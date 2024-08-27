@@ -63,8 +63,14 @@
 # % description: Return basic information only
 # %end
 
+# %flag
+# % key: p
+# % description: Pretty print the JSON output
+# %end
+
 import sys
 import json
+from io import StringIO
 from contextlib import contextmanager
 from pprint import pprint
 import grass.script as gs
@@ -108,6 +114,7 @@ def main():
 
     # Flag options
     basic_info = flags["b"]  # optional
+    pretty_print = flags["p"]  # optional
 
     # Set the request headers
     settings = options["settings"]
@@ -122,38 +129,46 @@ def main():
         stac_helper.conforms_to_item_search()
 
         if format == "plain":
-            gs.message(_(f"Client Id: {client.id}"))
-            gs.message(_(f"Client Title: {client.title}"))
-            gs.message(_(f"Client Description: {client.description}"))
-            gs.message(_(f"Client STAC Extensions: {client.stac_extensions}"))
-            # gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
-            gs.message(_(f"Client catalog_type: {client.catalog_type}"))
-            gs.message(_(f"{'-' * 75}\n"))
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"Catalog: {client.title}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"Client Id: {client.id}\n")
+            sys.stdout.write(f"Client Description: {client.description}\n")
+            sys.stdout.write(f"Client STAC Extensions: {client.stac_extensions}\n")
+            sys.stdout.write(f"Client catalog_type: {client.catalog_type}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
 
             # Get all collections
             collection_list = stac_helper.get_all_collections()
-            gs.message(_(f"Collections: {len(collection_list)}\n"))
-            gs.message(_(f"{'-' * 75}\n"))
+            sys.stdout.write(f"Collections: {len(collection_list)}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
 
             if basic_info:
                 for i in collection_list:
-                    gs.message(_(f"{i.get('id')}: {i.get('title')}"))
-
-            if not basic_info:
+                    sys.stdout.write(f"{i.get('id')}: {i.get('title')}\n")
+            else:
                 for i in collection_list:
-                    gs.message(_(f"{i.get('id')}: {i.get('title')}"))
-                    gs.message(_(f"{i.get('description')}"))
-                    gs.message(_(f"Extent: {i.get('extent')}"))
-                    gs.message(_(f"License: {i.get('license')}"))
-                    gs.message(_(f"{'-' * 75}\n"))
+                    sys.stdout.write(f"Collection: {i.get('title')}\n")
+                    sys.stdout.write(f"{'-' * 75}\n")
+                    sys.stdout.write(f"Collection Id: {i.get('id')}\n")
+                    sys.stdout.write(f"{i.get('description')}\n")
+                    sys.stdout.write(f"Extent: {i.get('extent')}\n")
+                    sys.stdout.write(f"License: {i.get('license')}\n")
+                    sys.stdout.write(f"{'-' * 75}\n")
                     libstac.print_list_attribute(
                         client.get_conforms_to(), "Conforms To:"
                     )
-                    gs.message(_(f"{'-' * 75}\n"))
+                    sys.stdout.write(f"{'-' * 75}\n")
                 return None
         else:
-            json_output = json.dumps(client.to_dict())
-            return json_output
+            client_dict = client.to_dict()
+            if pretty_print:
+                output = StringIO()
+                pprint(client_dict, stream=output)
+                sys.stdout.write(output.getvalue())
+            else:
+                json_output = json.dumps(client.to_dict())
+                sys.stdout.write(json_output)
 
     except Exception as e:
         gs.fatal(_("Error: {}".format(e)))
