@@ -39,7 +39,6 @@
 # %option G_OPT_V_OUTPUT
 # % key: footprints
 # % description: Name for output vector map with footprints
-# % label: Only supported for download from ESA_Copernicus Open Access Hub
 # % required: no
 # % guisection: Output
 # %end
@@ -53,7 +52,6 @@
 # % key: area_relation
 # % type: string
 # % description: Spatial relation of footprint to AOI
-# % label: ESA Copernicus Open Access Hub allows all three, USGS Earth Explorer only 'Intersects' option
 # % options: Intersects,Contains,IsWithin
 # % answer: Intersects
 # % required: no
@@ -70,7 +68,6 @@
 # % key: producttype
 # % type: string
 # % description: Sentinel product type to filter
-# % label: USGS Earth Explorer only supports S2MSI1C
 # % required: no
 # % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S3OL1EFR,S3OL1ERR,S3OL1SPC,S3SL1RBT,S3OL2WFR,S3OL2WRR,S3OL2LFR,S3OL2LRR,S3SL2LST,S3SL2FRP,S3SY2SYN,S3SY2VGP,S3SY2VG1,S3SY2V10,S3SY2AOD,S3SR2LAN
 # % answer: S2MSI2A
@@ -98,7 +95,6 @@
 # % key: query
 # % type: string
 # % description: Extra search keywords to use in the query
-# % label: USGS Earth Explorer only supports query options "identifier", "filename" (in ESA name format) or "usgs_identifier" (in USGS name format)
 # % guisection: Filter
 # %end
 # %option
@@ -113,7 +109,6 @@
 # % type: integer
 # % multiple: yes
 # % description: Relative orbit number to download (Sentinel-1: from 1 to 175; Sentinel-2: from 1 to 143; Sentinel-3: from 1 to 385)
-# % label:_Only supported by ESA Copernicus Open Access Hub.
 # % guisection: Filter
 # %end
 # %option
@@ -174,7 +169,7 @@
 # %rules
 # % requires: -b,map
 # % required: output,-l,-p
-# % excludes: id,map,area_relation,clouds,producttype,start,end,limit,query,sort,order
+# % excludes: id,map,area_relation,clouds,start,end,limit,query,sort,order
 # % excludes: -p,-l
 # %end
 
@@ -429,6 +424,7 @@ def main():
                     id=options["id"],
                     output=outdir,
                     provider=eodag_provider,
+                    producttype=options["producttype"],
                 )
             )
         except CalledModuleError:
