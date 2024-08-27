@@ -425,6 +425,7 @@ def main():
                     output=outdir,
                     provider=eodag_provider,
                     producttype=options["producttype"],
+                    footprints=options["footprints"],
                 )
             )
         except CalledModuleError:
