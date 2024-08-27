@@ -144,8 +144,11 @@ def main():
             sys.stdout.write(f"{'-' * 75}\n")
 
             if basic_info:
+                sys.stdout.write("Collection Id | Collection Title\n")
+                sys.stdout.write(f"{'-' * 75}\n")
                 for i in collection_list:
                     sys.stdout.write(f"{i.get('id')}: {i.get('title')}\n")
+                sys.stdout.write(f"{'-' * 75}\n")
             else:
                 for i in collection_list:
                     sys.stdout.write(f"Collection: {i.get('title')}\n")
