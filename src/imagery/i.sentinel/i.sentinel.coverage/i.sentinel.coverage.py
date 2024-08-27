@@ -96,7 +96,7 @@
 
 # %rules
 # % collective: start,end
-# % excludes: names,start,end,clouds,producttype
+# % excludes: names,start,end,clouds
 # %end
 
 
