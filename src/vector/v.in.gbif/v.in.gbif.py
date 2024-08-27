@@ -105,7 +105,7 @@ def main():
         <SrcDataSource relativeToVRT="1">%s</SrcDataSource>
         <GeometryType>wkbPoint</GeometryType>
         <LayerSRS>WGS84</LayerSRS>
-                <Field name="g_gbifid" src="gbifid" type="Integer" />
+                <Field name="g_gbifid" src="gbifid" type="Integer64" />
                 <Field name="g_datasetkey" src="datasetkey" type="String" width="255" />
                 <Field name="g_occurrenceid" src="occurrenceid" type="String" width="255" />
                 <Field name="g_kingdom" src="kingdom" type="String" width="50" />
