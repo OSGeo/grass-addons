@@ -64,10 +64,22 @@
 # %end
 
 import sys
+import json
+from contextlib import contextmanager
 from pprint import pprint
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
-import json
+
+
+@contextmanager
+def add_sys_path(new_path):
+    """Add a path to sys.path and remove it when done"""
+    original_sys_path = sys.path[:]
+    sys.path.append(new_path)
+    try:
+        yield
+    finally:
+        sys.path = original_sys_path
 
 
 path = get_lib_path(modname="t.stac", libname="staclib")
@@ -78,14 +90,17 @@ sys.path.append(path)
 
 def main():
     """Main function"""
-    import staclib as libstac
 
-    try:
-        from pystac_client import Client
-        from pystac_client.exceptions import APIError
-    except ImportError:
-        gs.fatal(_("pystac_client is not installed."))
-        return None
+    # Import dependencies
+    path = get_lib_path(modname="t.stac", libname="staclib")
+    if path is None:
+        gs.fatal("Not able to find the stac library directory.")
+
+    with add_sys_path(path):
+        try:
+            import staclib as libstac
+        except ImportError as err:
+            gs.fatal(f"Unable to import staclib: {err}")
 
     # STAC Client options
     client_url = options["url"]  # required
@@ -99,23 +114,24 @@ def main():
     req_headers = libstac.set_request_headers(settings)
 
     try:
-        client = Client.open(client_url, headers=req_headers)
+        stac_helper = libstac.STACHelper()
+        client = stac_helper.connect_to_stac(client_url, req_headers)
 
         # Check if the client conforms to the STAC Item Search
         # This will exit the program if the client does not conform
-        libstac.conform_to_item_search(client)
+        stac_helper.conforms_to_item_search()
 
         if format == "plain":
             gs.message(_(f"Client Id: {client.id}"))
             gs.message(_(f"Client Title: {client.title}"))
             gs.message(_(f"Client Description: {client.description}"))
             gs.message(_(f"Client STAC Extensions: {client.stac_extensions}"))
-            gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
+            # gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
             gs.message(_(f"Client catalog_type: {client.catalog_type}"))
             gs.message(_(f"{'-' * 75}\n"))
 
             # Get all collections
-            collection_list = libstac.get_all_collections(client)
+            collection_list = stac_helper.get_all_collections()
             gs.message(_(f"Collections: {len(collection_list)}\n"))
             gs.message(_(f"{'-' * 75}\n"))
 
@@ -139,8 +155,8 @@ def main():
             json_output = json.dumps(client.to_dict())
             return json_output
 
-    except APIError as e:
-        gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
+    except Exception as e:
+        gs.fatal(_("Error: {}".format(e)))
 
 
 if __name__ == "__main__":
