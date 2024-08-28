@@ -71,8 +71,14 @@
 # % description: Return basic information only
 # %end
 
+# %flag
+# % key: p
+# % description: Pretty print the JSON output
+# %end
+
 import sys
 import json
+from io import StringIO
 from pprint import pprint
 from contextlib import contextmanager
 import grass.script as gs
@@ -125,6 +131,7 @@ def main():
 
     # Flag options
     basic_info = flags["b"]  # optional
+    pretty_print = flags["p"]  # optional
 
     # Set the request headers
     settings = options["settings"]
@@ -137,13 +144,19 @@ def main():
 
     if collection_id:
         collection_dict = stac_helper.get_collection(collection_id)
-        if format == "json":
-            return json.dumps(collection_dict)
-            # return pprint(collection.to_dict())
-        elif format == "plain":
+
+        if format == "plain":
             if basic_info:
                 return libstac.print_basic_collection_info(collection_dict)
             return libstac.print_summary(collection_dict)
+        else:
+            if pretty_print:
+                output = StringIO()
+                pprint(collection_dict, stream=output)
+                sys.stdout.write(output.getvalue())
+            else:
+                json_output = json.dumps(collection_dict)
+                sys.stdout.write(json_output)
 
 
 if __name__ == "__main__":

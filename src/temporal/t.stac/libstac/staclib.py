@@ -14,6 +14,7 @@
 
 
 import os
+import sys
 import base64
 import tempfile
 import json
@@ -117,7 +118,7 @@ class STACHelper:
             gs.fatal(_("Error searching STAC API: {}".format(e)))
 
         try:
-            gs.message(_(f"Search Matched: {search.matched()} items"))
+            sys.stdout.write(f"Search Matched: {search.matched()} items\n")
         except e:
             gs.warning(_(f"No items found: {e}"))
             return None
@@ -126,20 +127,20 @@ class STACHelper:
 
     def report_stac_item(self, item):
         """Print a report of the STAC item to the console."""
-        gs.message(_(f"Collection ID: {item.collection_id}"))
-        gs.message(_(f"Item: {item.id}"))
+        sys.stdout.write(f"Collection ID: {item.collection_id}\n")
+        sys.stdout.write(f"Item: {item.id}\n")
         print_attribute(item, "geometry", "Geometry")
-        gs.message(_(f"Bbox: {item.bbox}"))
+        sys.stdout.write(f"Bbox: {item.bbox}\n")
 
         print_attribute(item, "datetime", "Datetime")
         print_attribute(item, "start_datetime", "Start Datetime")
         print_attribute(item, "end_datetime", "End Datetime")
-        gs.message(_("Extra Fields:"))
+        sys.stdout.write("Extra Fields:\n")
         print_summary(item.extra_fields)
 
         print_list_attribute(item.stac_extensions, "Extensions:")
         # libstac.print_attribute(it_import_tqdmem, "stac_extensions", "Extensions")
-        gs.message(_("Properties:"))
+        sys.stdout.write("Properties:\n")
         print_summary(item.properties)
 
     def _check_conformance(self, conformance_class, response="fatal"):
@@ -158,7 +159,7 @@ class STACHelper:
                 gs.info(_(f"STAC API does not conform to {conformance_class}"))
                 return True
             elif response == "message":
-                gs.message(_(f"STAC API does not conform to {conformance_class}"))
+                sys.stdout.write(f"STAC API does not conform to {conformance_class}\n")
                 return True
 
     def conforms_to_collections(self):
@@ -251,90 +252,95 @@ def print_summary(data, depth=1):
     for key, value in data.items():
         indentation = generate_indentation(start_depth)
         if isinstance(value, dict):
-            gs.message(_(f"#\n# {indentation}{key}:"))
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"\n {indentation}{key}:\n")
             print_summary(value, depth=start_depth + 1)
         if isinstance(value, list):
-            gs.message(_(f"# {indentation}{key}:"))
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"{indentation}{key}:\n")
             for item in value:
                 if isinstance(item, dict):
                     print_summary(item, depth=start_depth + 1)
         else:
-            gs.message(_(f"# {indentation}{key}: {value}"))
+            sys.stdout.write(f"# {indentation}{key}: {value}\n")
 
 
 def print_list_attribute(data, title):
     "Print a list attribute"
-    gs.message(_(f"{title}"))
+    sys.stdout.write(f"{'-' * 75}\n")
+    sys.stdout.write(f"{title}\n")
+    sys.stdout.write(f"{'-' * 75}\n")
     for item in data:
-        gs.message(_(f"\t{item}"))
+        sys.stdout.write(f"\t{item}\n")
+    sys.stdout.write(f"{'-' * 75}\n")
 
 
 def print_attribute(item, attribute, message=None):
     """Print an attribute of the item and handle AttributeError."""
     message = message if message else attribute.capitalize()
     try:
-        gs.message(_(f"{message}: {getattr(item, attribute)}"))
+        sys.stdout.write(f"{message}: {getattr(item, attribute)}\n")
     except AttributeError:
         gs.info(_(f"{message} not found."))
 
 
 def print_basic_collection_info(collection):
     """Print basic information about a collection"""
-    gs.message(_(f"Collection ID: {collection.get('id')}"))
-    gs.message(_(f"STAC Version: {collection.get('stac_version')}"))
-    gs.message(_(f"Description: {collection.get('description')}"))
-    gs.message(_(f"Extent: {collection.get('extent')}"))
-    gs.message(_(f"License: {collection.get('license')}"))
-    gs.message(_(f"Keywords: {collection.get('keywords')}"))
+    sys.stdout.write(f"Collection ID: {collection.get('id')}\n")
+    sys.stdout.write(f"STAC Version: {collection.get('stac_version')}\n")
+    sys.stdout.write(f"Description: {collection.get('description')}\n")
+    sys.stdout.write(f"Extent: {collection.get('extent')}\n")
+    sys.stdout.write(f"License: {collection.get('license')}\n")
+    sys.stdout.write(f"Keywords: {collection.get('keywords')}\n")
     item_summary = collection.get("summaries")
-    gs.message(_(f"{'-' * 75}\n"))
+    sys.stdout.write(f"{'-' * 75}\n\n")
     if item_summary:
-        gs.message(_("Summary:"))
+        sys.stdout.write("Summary:\n")
         for k, v in item_summary.items():
-            gs.message(_(f"{k}: {v}"))
-        gs.message(_(f"{'-' * 75}\n"))
+            sys.stdout.write(f"{k}: {v}\n")
+        sys.stdout.write(f"{'-' * 75}\n\n")
     item_assets = collection.get("item_assets")
     item_asset_keys = item_assets.keys()
 
-    gs.message(_(f"Item Assets Keys: {list(item_asset_keys)}"))
-    gs.message(_(f"{'-' * 75}\n"))
+    sys.stdout.write(f"Item Assets Keys: {list(item_asset_keys)}\n")
+    sys.stdout.write(f"{'-' * 75}\n\n")
     for key, value in item_assets.items():
-        gs.message(_(f"Asset: {value.get('title')}"))
-        gs.message(_(f"Key: {key}"))
-        gs.message(_(f"Roles: {value.get('roles')}"))
-        gs.message(_(f"Type: {value.get('type')}"))
-        gs.message(_(f"Description: {value.get('description')}"))
+        sys.stdout.write(f"Asset: {value.get('title')}\n")
+        sys.stdout.write(f"Key: {key}\n")
+        sys.stdout.write(f"Roles: {value.get('roles')}\n")
+        sys.stdout.write(f"Type: {value.get('type')}\n")
+        sys.stdout.write(f"Description: {value.get('description')}\n")
         if value.get("gsd"):
-            gs.message(_(f"GSD: {value.get('gsd')}"))
+            sys.stdout.write(f"GSD: {value.get('gsd')}\n")
         if value.get("eo:bands"):
-            gs.message(_("EO Bands:"))
+            sys.stdout.write("EO Bands:\n")
             for band in value.get("eo:bands"):
-                gs.message(_(f"Band: {band}"))
+                sys.stdout.write(f"Band: {band}\n")
         if value.get("proj:shape"):
-            gs.message(_(f"Shape: {value.get('proj:shape')}"))
+            sys.stdout.write(f"Shape: {value.get('proj:shape')}\n")
         if value.get("proj:transform"):
-            gs.message(_(f"Asset Transform: {value.get('proj:transform')}"))
+            sys.stdout.write(f"Asset Transform: {value.get('proj:transform')}\n")
         if value.get("proj:crs"):
-            gs.message(_(f"CRS: {value.get('proj:crs')}"))
+            sys.stdout.write(f"CRS: {value.get('proj:crs')}\n")
         if value.get("proj:geometry"):
-            gs.message(_(f"Geometry: {value.get('proj:geometry')}"))
+            sys.stdout.write(f"Geometry: {value.get('proj:geometry')}\n")
         if value.get("proj:extent"):
-            gs.message(_(f"Asset Extent: {value.get('proj:extent')}"))
+            sys.stdout.write(f"Asset Extent: {value.get('proj:extent')}\n")
         if value.get("raster:bands"):
-            gs.message(_("Raster Bands:"))
+            sys.stdout.write("Raster Bands:\n")
             for band in value.get("raster:bands"):
-                gs.message(_(f"Band: {band}"))
+                sys.stdout.write(f"Band: {band}\n")
 
-        gs.message(_(f"{'-' * 75}\n"))
+        sys.stdout.write(f"{'-' * 75}\n\n")
 
 
 def collection_metadata(collection):
     """Get collection"""
 
-    gs.message(_("*" * 80))
-    gs.message(_(f"Collection Id: {collection.get('id')}"))
-    gs.message(_(f"Title: {collection.get('title')}"))
-    gs.message(_(f"Description: {collection.get('description')}"))
+    sys.stdout.write(f"{'-' * 75}\n\n")
+    sys.stdout.write(f"Collection Id: {collection.get('id')}\n")
+    sys.stdout.write(f"Title: {collection.get('title')}\n")
+    sys.stdout.write(f"Description: {collection.get('description')}\n")
 
     extent = collection.get("extent")
     if extent:
@@ -342,50 +348,50 @@ def collection_metadata(collection):
         if spatial:
             bbox = spatial.get("bbox")
             if bbox:
-                gs.message(_(f"bbox: {bbox}"))
+                sys.stdout.write(f"bbox: {bbox}\n")
         temporal = extent.get("temporal")
         if temporal:
             interval = temporal.get("interval")
             if interval:
-                gs.message(_(f"Temporal Interval: {interval}"))
+                sys.stdout.write(f"Temporal Interval: {interval}\n")
 
-    gs.message(_(f"License: {collection.get('license')}"))
-    gs.message(_(f"Keywords: {collection.get('keywords')}"))
-    # gs.message(_(f"Providers: {collection.get('providers')}"))
-    gs.message(_(f"Links: {collection.get('links')}"))
-    gs.message(_(f"Stac Extensions: {collection.get('stac_extensions')}"))
+    sys.stdout.write(f"License: {collection.get('license')}\n")
+    sys.stdout.write(f"Keywords: {collection.get('keywords')}\n")
+    # sys.stdout.write(f"Providers: {collection.get('providers')}\n")
+    sys.stdout.write(f"Links: {collection.get('links')}\n")
+    sys.stdout.write(f"Stac Extensions: {collection.get('stac_extensions')}\n")
 
     try:
-        gs.message(_("\n# Summaries:"))
+        sys.stdout.write("\n# Summaries:\n")
         print_summary(collection.get("summaries"))
     except AttributeError:
         gs.info(_("Summaries not found."))
 
     try:
-        gs.message(_("\n# Extra Fields:"))
+        sys.stdout.write("\n# Extra Fields:\n")
         print_summary(collection.get("extra_fields"))
     except AttributeError:
         gs.info(_("# Extra Fields not found."))
-    gs.message(_("*" * 80))
+    sys.stdout.write(f"{'-' * 75}\n\n")
 
 
 def report_plain_asset_summary(asset):
     MediaType = _import_pystac_mediatype(False)
-    gs.message(_("\nAsset"))
-    gs.message(_(f"Asset Item Id: {asset.get('item_id')}"))
+    sys.stdout.write("\nAsset\n")
+    sys.stdout.write(f"Asset Item Id: {asset.get('item_id')}\n")
 
-    gs.message(_(f"Asset Title: {asset.get('title')}"))
-    gs.message(_(f"Asset Filename: {asset.get('file_name')}"))
-    gs.message(_(f"Raster bands: {asset.get('raster:bands')}"))
-    gs.message(_(f"Raster bands: {asset.get('eo:bands')}"))
-    gs.message(_(f"Asset Description: {asset.get('description')}"))
+    sys.stdout.write(f"Asset Title: {asset.get('title')}\n")
+    sys.stdout.write(f"Asset Filename: {asset.get('file_name')}\n")
+    sys.stdout.write(f"Raster bands: {asset.get('raster:bands')}\n")
+    sys.stdout.write(f"Raster bands: {asset.get('eo:bands')}\n")
+    sys.stdout.write(f"Asset Description: {asset.get('description')}\n")
 
     if MediaType:
-        gs.message(_(f"Asset Media Type: { MediaType(asset.get('type')).name}"))
+        sys.stdout.write(f"Asset Media Type: { MediaType(asset.get('type')).name}\n")
     else:
-        gs.message(_(f"Asset Media Type: {asset.get('type')}"))
-    gs.message(_(f"Asset Roles: {asset.get('roles')}"))
-    gs.message(_(f"Asset Href: {asset.get('href')}"))
+        sys.stdout.write(f"Asset Media Type: {asset.get('type')}\n")
+    sys.stdout.write(f"Asset Roles: {asset.get('roles')}\n")
+    sys.stdout.write(f"Asset Href: {asset.get('href')}\n")
 
 
 def region_to_wgs84_decimal_degrees_bbox():
@@ -395,7 +401,7 @@ def region_to_wgs84_decimal_degrees_bbox():
         float(c)
         for c in [region["ll_w"], region["ll_s"], region["ll_e"], region["ll_n"]]
     ]
-    gs.message(_("BBOX: {}".format(bbox)))
+    sys.stdout.write("BBOX: {}\n".format(bbox))
     return bbox
 
 
@@ -426,7 +432,7 @@ def check_url_type(url):
         gs.warning(_("HTTP is not secure. Using HTTPS instead."))
         return url.replace("https://", "/vsicurl/https://")
     else:
-        gs.message(_(f"Unknown Protocol: {url}"))
+        sys.stdout.write(f"Unknown Protocol: {url}\n")
         return "unknown"
 
 
@@ -635,7 +641,7 @@ def create_metadata_vector(vector, metadata):
     ) as new_vec:
 
         for i, item in enumerate(metadata):
-            gs.message(_("Adding collection: {}".format(item.get("id"))))
+            sys.stdout.write(f"Adding collection: {item.get('id')}\n")
             # Transform bbox to locations CRS
             # Safe extraction
             extent = item.get("extent", {})
@@ -653,9 +659,7 @@ def create_metadata_vector(vector, metadata):
             if bbox_list and isinstance(bbox_list[0], list) and len(bbox_list[0]) == 4:
                 wgs84_bbox = bbox_list[0]
             else:
-                gs.warning(
-                    _("Invalid bbox. Skipping Collection {}.".format(item.get("id")))
-                )
+                gs.warning(_(f"Invalid bbox. Skipping Collection {item.get('id')}.\n"))
                 continue
 
             bbox = wgs84_bbox_to_boundary(wgs84_bbox)
@@ -703,12 +707,12 @@ def create_metadata_vector(vector, metadata):
 
 def import_grass_raster(params):
     assets, resample_method, extent, resolution, resolution_value, memory = params
-    gs.message(_(f"Downloading Asset: {assets}"))
+    sys.stdout.write(f"Downloading Asset: {assets}\n")
     input_url = check_url_type(assets["href"])
-    gs.message(_(f"Import Url: {input_url}"))
+    sys.stdout.write(f"Import Url: {input_url}\n")
 
     try:
-        gs.message(_(f"Importing: {assets['file_name']}"))
+        sys.stdout.write(f"Importing: {assets['file_name']}\n")
         gs.parse_command(
             "r.import",
             input=input_url,
