@@ -267,18 +267,18 @@ def align_windows(window, region=None):
     the west, etc.
 
     :param window: dict of window to align, with keys north, south, east,
-                   west, ns_res, ew_res, is_latlong
+                   west, nsres, ewres, is_latlong
     :type window: dict
     :param ref: dict of window to align to, with keys north, south, east,
-                west, ns_res, ew_res, is_latlong
+                west, nsres, ewres, is_latlong
     :type ref: dict
     :return: a modified version of ``window`` that is aligend to ``ref``
     :rtype: dict
 
     """
     aligned_window = {
-        "ns_res": region.nsres,
-        "ew_res": region.ewres,
+        "nsres": region.nsres,
+        "ewres": region.ewres,
         "is_latlong": region.proj == "ll",
         "north": (
             region.north
@@ -314,11 +314,11 @@ def align_windows(window, region=None):
         ),
     }
     if aligned_window["is_latlong"]:
-        while aligned_window["north"] > 90.0 + aligned_window["ns_res"] / 2.0:
-            aligned_window["north"] -= aligned_window["ns_res"]
-        while aligned_window["south"] < -90.0 - aligned_window["ns_res"] / 2.0:
-            aligned_window["south"] += aligned_window["ns_res"]
-    return aligned_window, region.nsres, region.ewres
+        while aligned_window["north"] > 90.0 + aligned_window["nsres"] / 2.0:
+            aligned_window["north"] -= aligned_window["nsres"]
+        while aligned_window["south"] < -90.0 - aligned_window["nsres"] / 2.0:
+            aligned_window["south"] += aligned_window["nsres"]
+    return aligned_window
 
 
 def legalize_name_string(string):
@@ -551,36 +551,33 @@ def get_import_type(projection_match, resample, flags_dict):
 
 def setup_temporal_filter(options_dict):
     """Gernerate temporal filter from input"""
-    time_formats = {
-        10: "%Y-%m-%d",
-        19: "%Y-%m-%d %H:%M:%S",
-    }
+
     kwargs = {}
     relations = options_dict["temporal_relations"].split(",")
     for time_ref in ["start_time", "end_time"]:
         if options_dict[time_ref]:
-            if len(options_dict[time_ref]) not in time_formats:
-                gs.fatal(_("Unsupported datetime format in {}.").format(time_ref))
             try:
-                kwargs[time_ref] = datetime.strptime(
-                    options_dict[time_ref], time_formats[len(options_dict[time_ref])]
-                )
+                kwargs[time_ref] = datetime.fromisoformat(options_dict[time_ref])
             except ValueError:
-                gs.fatal(_("Can not parse input in {}.").format(time_ref))
+                gs.fatal(
+                    _("Can not parse input in {}. Is it ISO-compliant?").format(
+                        time_ref
+                    )
+                )
         else:
             kwargs[time_ref] = None
-    return TemporalExtent(**kwargs), relations
+    if any(kwargs.values()):
+        return TemporalExtent(**kwargs), relations
+    return None, relations
 
 
 def apply_temporal_filter(ref_window, relations, start, end):
     """Apply temporal filter to time dimension"""
-    if ref_window.start_time is None and ref_window.end_time is None:
-        return True
     if ref_window.start_time is None:
-        relations.append("after")
+        return bool(ref_window.end_time >= start)
     if ref_window.end_time is None:
-        relations.append("before")
-    return (
+        return bool(ref_window.start_time <= start)
+    return bool(
         ref_window.temporal_relation(TemporalExtent(start_time=start, end_time=end))
         in relations
     )
@@ -671,7 +668,14 @@ def read_data(
 
 
 def create_vrt(
-    subdataset, gisenv, resample, nodata, equal_proj, transform, recreate=False
+    subdataset,
+    gisenv,
+    resample,
+    nodata,
+    equal_proj,
+    transform,
+    region_cropping=False,
+    recreate=False,
 ):
     """Create a GDAL VRT for import"""
     vrt_dir = Path(gisenv["GISDBASE"]).joinpath(
@@ -710,24 +714,25 @@ def create_vrt(
             transform,
             edge_densification=15,
         )
-        # Cropping to computational region should only be done with r-flag
-        aligned_bbox, nsres, ewres = ALIGN_REGION(transformed_bbox)
         kwargs["dstSRS"] = gisenv["LOCATION_PROJECTION"]
         kwargs["resampleAlg"] = resample
-        # Resolution should be probably taken from region rather than from source dataset
-        kwargs["xRes"] = ewres  # gt[1]
-        kwargs["yRes"] = nsres  # -gt[5]
-        if not subdataset.GetSpatialRef():
-            kwargs["srcSRS"] = DEFAULT_CRS_WKT
-        kwargs["outputBounds"] = (
-            aligned_bbox["west"],
-            aligned_bbox["south"],
-            aligned_bbox["east"],
-            aligned_bbox["north"],
-        )
-
         if nodata is not None:
             kwargs["srcNodata"] = nodata
+        # Resolution should be probably taken from region rather than from source dataset
+        # Cropping to computational region should only be done with r-flag
+        if region_cropping:
+            aligned_bbox = ALIGN_REGION(transformed_bbox)
+            kwargs["xRes"] = aligned_bbox["ewres"]  # gt[1]
+            kwargs["yRes"] = aligned_bbox["nsres"]  # -gt[5]
+            kwargs["outputBounds"] = (
+                aligned_bbox["west"],
+                aligned_bbox["south"],
+                aligned_bbox["east"],
+                aligned_bbox["north"],
+            )
+        if not subdataset.GetSpatialRef():
+            kwargs["srcSRS"] = DEFAULT_CRS_WKT
+
         vrt = gdal.Warp(
             vrt_name,
             subdataset,
@@ -841,18 +846,40 @@ def parse_netcdf(
                 ]
             ).astype(np.float64)
         else:
-            gs.fatal(_("No time dimension detected for <{}>").format(sds_url))
+            gs.warning(
+                _("No time dimension detected for <{}>. Skipping...").format(sds_url)
+            )
+            continue
+        if "time#units" not in sds_metadata or "time#calendar" not in sds_metadata:
+            gs.warning(
+                _(
+                    "Invalid definition of time dimension detected for <{}>. Skipping..."
+                ).format(sds_url)
+            )
+            continue
         time_dimensions = get_time_dimensions(time_values, sds_metadata)
         end_times = get_end_time(time_dimensions)
-        requested_time_dimensions = np.array(
-            [
-                apply_temporal_filter(
-                    valid_window, valid_relations, start, end_times[idx]
-                )
-                for idx, start in enumerate(time_dimensions)
-            ]
-        )
-        if not requested_time_dimensions.any():
+
+        if valid_window is not None:
+            requested_time_dimensions = np.array(
+                [
+                    apply_temporal_filter(
+                        valid_window, valid_relations, start, end_times[idx]
+                    )
+                    for idx, start in enumerate(time_dimensions)
+                ]
+            )
+            end_time_dimensions = end_times[requested_time_dimensions]
+            # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
+            start_time_dimensions = time_dimensions[requested_time_dimensions]
+        else:
+            end_time_dimensions = end_times
+            # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
+            start_time_dimensions = time_dimensions
+            requested_time_dimensions = time_values
+
+        requested_time_dimensions = np.where(requested_time_dimensions)[0]
+        if requested_time_dimensions.size == 0:
             gs.warning(
                 _(
                     "Nothing to import from subdataset {s} in {f}".format(
@@ -861,11 +888,6 @@ def parse_netcdf(
                 )
             )
             continue
-
-        end_time_dimensions = end_times[requested_time_dimensions]
-        # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
-        start_time_dimensions = time_dimensions[requested_time_dimensions]
-        requested_time_dimensions = np.where(requested_time_dimensions)[0]
 
         # Get metadata
         grass_metadata = get_metadata(sds_metadata, s_d[1], semantic_label)
@@ -925,6 +947,7 @@ def parse_netcdf(
                         options["nodata"],
                         projections_match,
                         transform,
+                        region_cropping=flags["r"],
                         recreate=gs.overwrite(),
                     )
                 ),  # create VRT here???
@@ -988,7 +1011,7 @@ def main():
 
     if options["nodata"]:
         try:
-            nodata = " ".join(map(str, map(int, options["nodata"].split(","))))
+            nodata = " ".join(map(str, map(float, options["nodata"].split(","))))
         except Exception:
             gs.fatal(_("Invalid input for nodata"))
     else:
