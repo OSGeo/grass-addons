@@ -290,13 +290,13 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                     cpls += 1.; // count of elements
                                 } // end distance test: rv <= radius ^ |rvh| <=
                                   // lag
-                            }     // end angle test: |ddir| <= td
-                        }         // end i test: *ii > i
+                            } // end angle test: |ddir| <= td
+                        } // end i test: *ii > i
                     end:
                         ii++;                      // go to the next index
                         j_vals += *ii - *(ii - 1); // go to the next value
                     } // end j for loop: points within overlapping rectangles
-                }     // end test: n_vals > 0
+                } // end test: n_vals > 0
                 else {
                     report_error(report);
                     G_fatal_error(_("This point does not have neighbours in "
@@ -731,8 +731,8 @@ constant_voxel_centre:
                             row0++; // to test if it is completed
                         }
                     } // end while: full row
-                }     // end else: last column
-            }         // end else: the same column
+                } // end else: last column
+            } // end else: the same column
 
             row = krig.first == TRUE ? 0 : *row0; // setup starting cell
             break;                                // count does not rise
@@ -785,7 +785,7 @@ constant_voxel_centre:
                             } // end else: complete level
                         }
                     } // end if: *row0 == nrows
-                }     // end if: last column
+                } // end if: last column
 
                 else {
                     col++;
@@ -828,9 +828,9 @@ constant_voxel_centre:
                                                   &krig, &new_matrix);
                                 goto new_dep;
                             } // end else: complete level
-                        }     // if: complete == ncols - 1
-                    }         // while: *row0 == nrows
-                }             // else: general row
+                        } // if: complete == ncols - 1
+                    } // while: *row0 == nrows
+                } // else: general row
                 row = krig.first == TRUE ? 0 : *row0;
             } // end else: go to the new column
 

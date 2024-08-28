@@ -486,7 +486,7 @@ def Find_rules(B, infosystem, type_rule):
         rules = []  # starting comples (single rule built from elementary conditions  )
         S = copy.deepcopy(G)  # set of objects currently covered by rule
         control = 0
-        while len(rules) == 0 or set(obj_cov_by_rules).issubset(B) == False:
+        while len(rules) == 0 or set(obj_cov_by_rules).issubset(B) is False:
             obj_cov_by_rules = []  # set covered by rules
             best = {
                 "criterion": "",

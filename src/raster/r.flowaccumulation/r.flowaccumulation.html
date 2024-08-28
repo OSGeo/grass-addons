@@ -12,22 +12,18 @@ accumulation. Instead, this module only uses a flow direction raster map to
 trace and accumulate the amount of flow draining through and including each
 cell.
 
-<p><em>r.flowaccumulation</em> supports parallel computation of flow
-accumulation using OpenMP while <em>r.accumulate</em> does not. However, for
-weighted flow accumulation, use <em>r.accumulate</em>.
-
 <p>The module recognizes three different formats of flow directions:
 <div align="center">
 <img src="r_flowaccumulation_formats.png" alt="degree">
 </div>
 
-<p>Since the module does not use elevation data (e.g., slope), flow
-accumulation is calculated by single flow direction (SFD) routing and may not
-be comparable to the result from multiple flow direction (MFD) routing
+<p>Because it does not use elevation data (e.g., slope), flow accumulation is
+calculated by single flow direction (SFD) routing and may not be comparable to
+the result from multiple flow direction (MFD) routing.
 
-<p>The module allows cell values to overflow the maximum value of the specified
-output <b>type</b> to avoid excessive checks. With the <b>-o</b> flag, it
-prints a fatal error and exits if an overflow occurs.
+<p>By default, the module allows cell values to overflow the maximum value of
+the specified output <b>type</b> to avoid excessive checks. With the <b>-o</b>
+flag, it prints a fatal error and exits if an overflow occurs.
 
 <p>The module uses extra memory to store an intermediate output matrix and it
 is generally faster than with the <b>-m</b> flag because intermediate results
@@ -46,6 +42,16 @@ swapping (e.g., data fit in the physical memory), the <b>-z</b> flag can be
 slower with additional zero-comparison operations. The <b>-Z</b> flag is
 similar to the <b>-z</b> flag, but zero cells are not nullified and are saved
 in the output map.
+
+<p>Weighted flow accumulation can be computed using the <b>weight</b> option.
+When this option is given, the data type for flow accumulation is automatically
+promoted to that of the weight map if the <b>type</b> option is not explicitly
+given, but one can choose to use a different data type if needed (e.g., FCELL
+for CELL weights, DCELL for FCELL weights). However, CELL cannot be used for
+FCELL or DCELL weighting to maintain floating-point precision. Similarly, FCELL
+cannot be used for DCELL weighting. The data type will be promoted in these
+cases, ignoring the user request. The <b>-o</b>, <b>-z</b>, and <b>-Z</b> flags
+cannot be used with the <b>weight</b> option.
 
 <h2>EXAMPLES</h2>
 

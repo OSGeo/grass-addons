@@ -91,9 +91,9 @@ class MySheet:
     def list(self):
         styles = sorted(self.byName.items())
         alii = {}
-        for (alias, style) in list(self.byAlias.items()):
+        for alias, style in list(self.byAlias.items()):
             alii[style] = alias
-        for (name, style) in styles:
+        for name, style in styles:
             alias = alii.get(style, None)
             style.listAttrs("    ")
 

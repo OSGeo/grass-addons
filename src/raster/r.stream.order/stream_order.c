@@ -195,7 +195,7 @@ int horton(const int *strahler, int *horton, int number_of_streams)
                     cur_stream = stack[--top];
 
                 } /* end up_stream */
-            }     /* end spring/node */
+            } /* end spring/node */
         } while (cur_stream);
     } /* end for outlets */
     G_free(stack);
@@ -278,7 +278,7 @@ int hack(int *hack, int *topo_dim, int number_of_streams)
                     cur_stream = stack[--top];
 
                 } /* end up_stream */
-            }     /* end spring/node */
+            } /* end spring/node */
         } while (cur_stream);
     } /* end for outlets */
     G_free(stack);

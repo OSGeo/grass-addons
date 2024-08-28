@@ -1520,7 +1520,7 @@ void joules2(struct SunGeometryConstDay *sunGeom,
                 ss = 0; /* we've got the sunset */
             }
         } /* end of while */
-    }     /* all-day radiation */
+    } /* all-day radiation */
 }
 
 /*////////////////////////////////////////////////////////////////////// */
@@ -1967,13 +1967,14 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
         }
         sunVarGeom.zmax = zmax;
         shadowoffset_base = (j % (numRows)) * n * arrayNumInt;
-#pragma omp parallel firstprivate(                                            \
-    q1, tan_lam_l, z1, i, shadowoffset, longitTime, coslat, coslatsq, func,   \
-    latitude, longitude, sin_phi_l, latid_l, sin_u, cos_u, sin_v, cos_v, lum, \
-    gridGeom, sunGeom, sunVarGeom, sunSlopeGeom, sunRadVar, elevin, aspin,    \
-    slopein, civiltime, linkein, albedo, latin, coefbh, coefdh, incidout,     \
-    longin, horizon, beam_rad, insol_time, diff_rad, refl_rad, glob_rad,      \
-    mapset, per, decimals, str_step)
+#pragma omp parallel firstprivate(                                           \
+        q1, tan_lam_l, z1, i, shadowoffset, longitTime, coslat, coslatsq,    \
+            func, latitude, longitude, sin_phi_l, latid_l, sin_u, cos_u,     \
+            sin_v, cos_v, lum, gridGeom, sunGeom, sunVarGeom, sunSlopeGeom,  \
+            sunRadVar, elevin, aspin, slopein, civiltime, linkein, albedo,   \
+            latin, coefbh, coefdh, incidout, longin, horizon, beam_rad,      \
+            insol_time, diff_rad, refl_rad, glob_rad, mapset, per, decimals, \
+            str_step)
         {
 #pragma omp for schedule(dynamic)
             for (i = 0; i < n; i++) {
@@ -2142,7 +2143,7 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
                     }
 
                 } /* undefs */
-                  // shadowoffset += arrayNumInt;
+                // shadowoffset += arrayNumInt;
             }
         }
         arrayOffset++;
