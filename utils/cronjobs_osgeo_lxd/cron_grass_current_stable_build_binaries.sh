@@ -33,7 +33,7 @@
 #################################
 # variables for build environment (grass.osgeo.org specific)
 MAINDIR=/home/neteler
-PATH=$MAINDIR/bin:/usr/bin:/usr/local/bin
+PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 GMAJOR=8
 GMINOR=4

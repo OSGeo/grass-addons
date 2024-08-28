@@ -18,7 +18,7 @@
 ###################################################################
 # variables for packaging environment (grass.osgeo.org specific)
 MAINDIR=/home/neteler
-PATH=$MAINDIR/bin:/usr/bin:/usr/local/bin
+PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
