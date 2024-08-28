@@ -18,6 +18,8 @@ import sys
 import base64
 import tempfile
 import json
+from datetime import datetime
+from dateutil import parser
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
@@ -382,8 +384,8 @@ def report_plain_asset_summary(asset):
 
     sys.stdout.write(f"Asset Title: {asset.get('title')}\n")
     sys.stdout.write(f"Asset Filename: {asset.get('file_name')}\n")
-    sys.stdout.write(f"Raster bands: {asset.get('raster:bands')}\n")
-    sys.stdout.write(f"Raster bands: {asset.get('eo:bands')}\n")
+    sys.stdout.write(f"raster:bands: {asset.get('raster:bands')}\n")
+    sys.stdout.write(f"eo:bands: {asset.get('eo:bands')}\n")
     sys.stdout.write(f"Asset Description: {asset.get('description')}\n")
 
     if MediaType:
@@ -571,18 +573,40 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
     gs.run_command("v.colors", map=vector, color="random", quiet=True)
 
 
+def format_datetime(dt_str):
+    # Parse the datetime string
+    dt = parser.parse(dt_str)
+    # Format the datetime object to the desired format
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def register_strds_from_items(collection_items_assets, strds_output):
     """Create registy for STRDS from collection items assets"""
+
     with open(strds_output, "w") as f:
         for asset in collection_items_assets:
             semantic_label = asset.get("file_name").split(".")[-1]
             created_date = asset.get("datetime")
+            eobands = asset.get("eo:bands")
+            if eobands:
+                for idx, band in enumerate(eobands):
 
-            if created_date:
-                f.write(f"{asset['file_name']}|{created_date}|{semantic_label}\n")
+                    band_name = band.get("common_name")
+                    if created_date:
+                        formatted_date = format_datetime(created_date)
+                        f.write(
+                            f"{asset['file_name']}.{idx + 1}|{formatted_date}|{band_name}\n"
+                        )
+                    else:
+                        gs.warning(_("No datetime found for item."))
+                        f.write(f"{asset['file_name']}.{idx + 1}|{None}|{band_name}\n")
             else:
-                gs.warning(_("No datetime found for item."))
-                f.write(f"{asset['file_name']}|{None}|{semantic_label}\n")
+                if created_date:
+                    formatted_date = format_datetime(created_date)
+                    f.write(f"{asset['file_name']}|{formatted_date}|{semantic_label}\n")
+                else:
+                    gs.warning(_("No datetime found for item."))
+                    f.write(f"{asset['file_name']}|{None}|{semantic_label}\n")
 
 
 def fetch_items_with_pagination(items_search, limit, max_items):
