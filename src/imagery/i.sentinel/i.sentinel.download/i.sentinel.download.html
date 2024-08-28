@@ -197,7 +197,7 @@ some footprint overlap):
 g.region n=42 w=12 s=41 e=13 res=0:01 -p
 i.sentinel.download -l settings=credentials.txt producttype=S2MSI2A start=2018-01-01 end=2018-12-31 clouds=1 footprints=s2_scenes_footprints
 
-Writing footprints into <s2_scenes_footprints>...
+Writing footprints into &lt;s2_scenes_footprints&lt;...
 197 scene(s) found.
 [...]
 S2B_MSIL2A_20180210T100139_N9999_R122_T32TQM_20221022T182154 2018-02-10T10:01:39   0% S2MSI2A 0.98 GB
@@ -207,6 +207,7 @@ S2A_MSIL2A_20181023T100051_N9999_R122_T32TQM_20221022T181952 2018-10-23T10:00:51
 S2A_MSIL2A_20181023T100051_N9999_R122_T33TTG_20221023T032324 2018-10-23T10:00:51   0% S2MSI2A 0.99 GB
 S2A_MSIL2A_20181205T101401_N9999_R022_T32TQM_20221022T180259 2018-12-05T10:14:01   0% S2MSI2A 625.52 MB
 [...]
+</pre></div>
 <p>
 Find Sentinel-2 L1C products (S2MSI1C) of <b>last 60 days</b> (default) covering current computation region extent:
 
@@ -282,7 +283,7 @@ Example of downloading a single Sentinel product by ID:
 
 <div class="code"><pre>
 i.sentinel.download settings=credentials.txt id=S2B_MSIL2A_20180210T100139_N9999_R122_T32TQM_20221022T182154 output=s2_data/
-<pre></div>
+</pre></div>
 
 <h2>REQUIREMENTS</h2>
 
