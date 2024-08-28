@@ -137,7 +137,6 @@ class TestNetCDFImport(TestCase):
         # check t.info output
         tinfo_string = """name=S2
             temporal_type=absolute
-            creation_time='2024-08-28 14:02:08.466692'
             start_time='2021-02-28 10:30:24'
             end_time='2021-02-28 10:30:24'
             granularity='None'
