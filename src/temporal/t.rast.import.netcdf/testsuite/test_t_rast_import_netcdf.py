@@ -266,7 +266,7 @@ class TestNetCDFImport(TestCase):
         )
 
         # check t.info output
-        tinfo_string = """"name=se_norge
+        tinfo_string = """name=se_norge
             temporal_type=absolute
             semantic_type=mean
             start_time='2021-01-01 06:00:00'
