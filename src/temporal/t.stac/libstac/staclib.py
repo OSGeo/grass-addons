@@ -20,6 +20,8 @@ import tempfile
 import json
 from datetime import datetime
 from dateutil import parser
+from io import StringIO
+from pprint import pprint
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
@@ -90,7 +92,7 @@ class STACHelper:
             gs.fatal(_("Error getting collections: {}".format(e)))
 
     def get_collection(self, collection_id):
-        """Get a collection from STAC Client"""
+        """Get a collection frofrom io import StringIOm STAC Client"""
         try:
             collection = self.client.get_collection(collection_id)
             self.collection = collection.to_dict()
@@ -120,7 +122,7 @@ class STACHelper:
             gs.fatal(_("Error searching STAC API: {}".format(e)))
 
         try:
-            sys.stdout.write(f"Search Matched: {search.matched()} items\n")
+            gs.message(_(f"Search Matched: {search.matched()} items"))
         except e:
             gs.warning(_(f"No items found: {e}"))
             return None
@@ -267,6 +269,17 @@ def print_summary(data, depth=1):
             sys.stdout.write(f"# {indentation}{key}: {value}\n")
 
 
+def print_json_to_stdout(data, pretty=False):
+    """Pretty print data to stdout"""
+    if pretty:
+        output = StringIO()
+        pprint(data, stream=output)
+        sys.stdout.write(output.getvalue())
+    else:
+        json_output = json.dumps(data)
+        sys.stdout.write(json_output)
+
+
 def print_list_attribute(data, title):
     "Print a list attribute"
     sys.stdout.write(f"{'-' * 75}\n")
@@ -403,7 +416,6 @@ def region_to_wgs84_decimal_degrees_bbox():
         float(c)
         for c in [region["ll_w"], region["ll_s"], region["ll_e"], region["ll_n"]]
     ]
-    sys.stdout.write("BBOX: {}\n".format(bbox))
     return bbox
 
 

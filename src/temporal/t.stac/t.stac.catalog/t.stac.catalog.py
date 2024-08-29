@@ -161,13 +161,7 @@ def main():
                 return None
         else:
             client_dict = client.to_dict()
-            if pretty_print:
-                output = StringIO()
-                pprint(client_dict, stream=output)
-                sys.stdout.write(output.getvalue())
-            else:
-                json_output = json.dumps(client.to_dict())
-                sys.stdout.write(json_output)
+            libstac.print_json_to_stdout(client_dict, pretty_print)
 
     except Exception as e:
         gs.fatal(_("Error: {}".format(e)))

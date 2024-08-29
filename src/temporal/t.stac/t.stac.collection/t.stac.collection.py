@@ -149,14 +149,8 @@ def main():
             if basic_info:
                 return libstac.print_basic_collection_info(collection_dict)
             return libstac.print_summary(collection_dict)
-        else:
-            if pretty_print:
-                output = StringIO()
-                pprint(collection_dict, stream=output)
-                sys.stdout.write(output.getvalue())
-            else:
-                json_output = json.dumps(collection_dict)
-                sys.stdout.write(json_output)
+        elif format == "json":
+            return libstac.print_json_to_stdout(collection_dict, pretty_print)
 
 
 if __name__ == "__main__":

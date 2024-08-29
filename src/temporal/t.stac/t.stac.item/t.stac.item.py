@@ -251,6 +251,11 @@
 # % description: Dowload and import assets
 # %end
 
+# %flag
+# % key: p
+# % description: Pretty print the JSON output
+# %end
+
 # %option G_OPT_M_NPROCS
 # %end
 
@@ -261,6 +266,7 @@ import os
 import sys
 from pprint import pprint
 import json
+from io import StringIO
 from contextlib import contextmanager
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
@@ -347,6 +353,7 @@ def main():
     item_metadata = flags["i"]
     asset_metadata = flags["a"]
     download = flags["d"]
+    pretty_print = flags["p"]  # optional
 
     # Output options
     strds_output = options["strds_output"]  # optional
@@ -378,13 +385,9 @@ def main():
         if format == "plain":
             return libstac.collection_metadata(collection)
         elif format == "json":
-            return json.dumps(collection)
-        else:
-            # Return plain text by default
-            return libstac.collection_metadata(collection)
+            return libstac.print_json_to_stdout(collection, pretty_print)
 
     # Start item search
-
     if intersects:
         # Convert the vector to a geojson
         output_geojson = "tmp_stac_intersects.geojson"
@@ -403,7 +406,7 @@ def main():
 
     # Set the bbox to the current region if the user did not specify the bbox or intersects option
     if not bbox and not intersects:
-        gs.message(_("Setting bbox to current region: {}".format(bbox)))
+        gs.verbose(_("Setting bbox to current region: {}".format(bbox)))
         bbox = libstac.region_to_wgs84_decimal_degrees_bbox()
 
     if datetime:
@@ -450,12 +453,14 @@ def main():
     # Report item metadata
     if item_metadata:
         if format == "plain":
+            gs.message(_("bbox: {}\n".format(bbox)))
             gs.message(_(f"Items Found: {len(list(items))}"))
             for item in items:
                 stac_helper.report_stac_item(item)
             return None
         if format == "json":
-            return json.dumps([item.to_dict() for item in items])
+            item_list = [item.to_dict() for item in items]
+            return libstac.print_json_to_stdout(item_list, pretty_print)
 
     for item in items:
         asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
@@ -466,13 +471,16 @@ def main():
         strds_output = os.path.abspath(strds_output)
         libstac.register_strds_from_items(collection_items_assets, strds_output)
 
-    gs.message(_(f"{len(collection_items_assets)} Assets Ready for download..."))
     if asset_metadata:
-        for asset in collection_items_assets:
-            if format == "plain":
+        if format == "plain":
+            gs.message(
+                _(f"{len(collection_items_assets)} Assets Ready for download...")
+            )
+            for asset in collection_items_assets:
                 libstac.report_plain_asset_summary(asset)
-            if format == "json":
-                return pprint(asset)
+
+        if format == "json":
+            return libstac.print_json_to_stdout(collection_items_assets, pretty_print)
 
     if download:
         # Download and Import assets
