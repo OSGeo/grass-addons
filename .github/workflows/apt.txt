@@ -13,9 +13,11 @@ libpng-dev
 libproj-dev
 libreadline-dev
 libudunits2-dev
+libudunits2-data
 libzstd-dev
 proj-bin
 pdal
 sqlite3
 subversion
+udunits-bin
 zlib1g-dev
