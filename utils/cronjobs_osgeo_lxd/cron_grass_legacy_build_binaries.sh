@@ -295,6 +295,11 @@ unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 
 ############################################
 # Inject hint to new current version hint in a red box into each manual page
+# - cd into folder of HTML manual pages
+# - run sed to replace an existing HTML string in the upper part of the HTML file
+#   with itself + the red box pointing to the respective stable version manual page
+# --> do this for core manual pages, addons, libpython
+##
 # for core manual pages
 echo "Injecting G8.x new current version hint in a red box into MAN pages..."
 # inject G8.x current stable version hint in a red box:
@@ -307,7 +312,11 @@ echo "Injecting G8.x new current version hint in a red box into MAN pages..."
 
 # SEO: inject canonical link into all (old) manual pages to point to latest stable (avoid "duplicate content" SEO punishment)
 # see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
-# canonical: once again after addon manual (re)creation, only where missing
+# - cd into folder of HTML manual pages
+# - run sed to replace an existing HTML header string in the upper part of the HTML file
+#   with itself + canonical link of stable version
+# --> do this for core manual pages, addons, libpython
+##
 (cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
