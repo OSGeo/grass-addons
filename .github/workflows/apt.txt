@@ -12,6 +12,7 @@ libopenblas-dev
 libpng-dev
 libproj-dev
 libreadline-dev
+libudunits2-dev
 libzstd-dev
 proj-bin
 pdal
