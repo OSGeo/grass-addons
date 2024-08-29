@@ -5,12 +5,22 @@
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep
-# git clone https://github.com/OSGeo/grass.git release_branch_8_2
+###################################################################
+# how it works:
+# - it updates locally the GRASS source code from github server
+# - packages the source code tarball
+#
+# Preparations, on server (neteler@grasslxd:$):
+#   mkdir -p ~/src
+#   cd ~/src
+#   git clone https://github.com/OSGeo/grass.git release_branch_8_3
 #
 ###################################################################
-
+# variables for packaging environment (grass.osgeo.org specific)
 MAINDIR=/home/neteler
+PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
+
+# https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=3
 GVERSION=$GMAJOR.$GMINOR.git
@@ -50,7 +60,7 @@ mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
-# clean up
+# clean up from previous run
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
@@ -58,7 +68,7 @@ rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
-srm -f config_*.git_log.txt ChangeLog
+rm -f config_*.git_log.txt ChangeLog
 
 # reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
@@ -73,27 +83,27 @@ git merge origin/$BRANCH
 
 git status
 
-#generate changelog
+# generate changelog
 touch include/Make/Platform.make # workaround for https://trac.osgeo.org/grass/ticket/3853
 make changelog
 rm -f include/Make/Platform.make
 
-# go to parent for packaging
+# go to parent directory for packaging
 cd ..
 
 date
-#package it (we rename the directory to have the date inside the package):
+# package it (we rename the directory to have the date inside the package):
 DATE=`date '+_%Y_%m_%d'`
 mv $BRANCH $PACKAGENAME\src_snapshot$DATE
 # exclude version control system directories (the flag order matters!)
 $TAR cfz $PACKAGENAME\src_snapshot$DATE.tar.gz --exclude-vcs $PACKAGENAME\src_snapshot$DATE
 mv $PACKAGENAME\src_snapshot$DATE $BRANCH
 
-#remove old snapshot:
+# remove old snapshot:
 rm -f $TARGETDIR/$PACKAGENAME\src_snapshot*
 rm -f $TARGETDIR/ChangeLog.gz
 
-#publish the new one:
+# publish the new one:
 cd $BRANCH/
 cp -p ChangeLog AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.html $TARGETDIR
 
@@ -102,9 +112,9 @@ gzip $TARGETDIR/ChangeLog
 cp $PACKAGENAME\src_snapshot$DATE.tar.gz $TARGETDIR
 rm -f $PACKAGENAME\src_snapshot$DATE.tar.gz
 chmod a+r,g+w $TARGETDIR/* 2> /dev/null
-#chgrp grass $TARGETDIR/*   2> /dev/null
+# chgrp grass $TARGETDIR/*   2> /dev/null
 
-# link for convenience:
+# "latest" link for convenience:
 (cd $TARGETDIR ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
 
 echo "Written to: $TARGETDIR
