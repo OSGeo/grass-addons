@@ -177,7 +177,6 @@
 # %end
 
 # %rules
-# % excludes: -l,-r
 # % excludes: print,output
 # % required: print,output
 # %end
@@ -203,7 +202,7 @@ from datetime import datetime
 from functools import partial
 from io import StringIO
 from itertools import chain
-from math import ceil, floor
+from math import ceil, floor, inf
 from multiprocessing import Pool
 import os
 from pathlib import Path
@@ -214,7 +213,7 @@ import numpy as np
 
 # import dateutil.parser as parser
 
-import grass.script as gscript
+import grass.script as gs
 import grass.temporal as tgis
 from grass.pygrass.modules import Module, MultiModule
 from grass.pygrass.raster import RasterRow
@@ -244,7 +243,8 @@ RESAMPLE_DICT = {
     "Q3": "Q3",
 }
 
-GRASS_VERSION = list(map(int, gscript.version()["version"].split(".")[0:2]))
+GRASS_VERSION = list(map(int, gs.version()["version"].split(".")[0:2]))
+DEFAULT_CRS_WKT = """GEOGCS["WGS 84 (CRS84)",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AXIS["Longitude",EAST],AXIS["Latitude",NORTH],AUTHORITY["OGC","CRS84"]]"""
 TGIS_VERSION = 2
 ALIGN_REGION = None
 
@@ -267,39 +267,57 @@ def align_windows(window, region=None):
     the west, etc.
 
     :param window: dict of window to align, with keys north, south, east,
-                   west, ns_res, ew_res, is_latlong
+                   west, nsres, ewres, is_latlong
     :type window: dict
     :param ref: dict of window to align to, with keys north, south, east,
-                west, ns_res, ew_res, is_latlong
+                west, nsres, ewres, is_latlong
     :type ref: dict
     :return: a modified version of ``window`` that is aligend to ``ref``
     :rtype: dict
 
     """
     aligned_window = {
-        "ns_res": region.nsres,
-        "ew_res": region.ewres,
+        "nsres": region.nsres,
+        "ewres": region.ewres,
         "is_latlong": region.proj == "ll",
         "north": (
             region.north
-            - floor((region.north - window[3]) / region.nsres) * region.nsres
+            if window[3] == inf
+            else (
+                region.north
+                - floor((region.north - window[3]) / region.nsres) * region.nsres
+            )
         ),
         "south": (
             region.south
-            - ceil((region.south - window[1]) / region.nsres) * region.nsres
+            if window[1] == inf
+            else (
+                region.south
+                - ceil((region.south - window[1]) / region.nsres) * region.nsres
+            )
         ),
         "west": (
-            region.west + floor((window[0] - region.west) / region.ewres) * region.ewres
+            region.west
+            if window[0] == inf
+            else (
+                region.west
+                + floor((window[0] - region.west) / region.ewres) * region.ewres
+            )
         ),
         "east": (
-            region.east + ceil((window[2] - region.east) / region.ewres) * region.ewres
+            region.east
+            if window[2] == inf
+            else (
+                region.east
+                + ceil((window[2] - region.east) / region.ewres) * region.ewres
+            )
         ),
     }
     if aligned_window["is_latlong"]:
-        while aligned_window["north"] > 90.0 + aligned_window["ns_res"] / 2.0:
-            aligned_window["north"] -= aligned_window["ns_res"]
-        while aligned_window["south"] < -90.0 - aligned_window["ns_res"] / 2.0:
-            aligned_window["south"] += aligned_window["ns_res"]
+        while aligned_window["north"] > 90.0 + aligned_window["nsres"] / 2.0:
+            aligned_window["north"] -= aligned_window["nsres"]
+        while aligned_window["south"] < -90.0 - aligned_window["nsres"] / 2.0:
+            aligned_window["south"] += aligned_window["nsres"]
     return aligned_window
 
 
@@ -309,13 +327,8 @@ def legalize_name_string(string):
     return legal_string
 
 
-def get_time_dimensions(meta):
+def get_time_dimensions(time_values, meta):
     """Extracts netcdf-cf compliant time dimensions from metadata using UDUNITS2"""
-    if "NETCDF_DIM_time_VALUES" not in meta:
-        return None
-    time_values = np.fromstring(
-        meta["NETCDF_DIM_time_VALUES"].strip("{").strip("}"), sep=",", dtype=np.float64
-    )
     time_dates = cf_units.num2date(
         time_values, meta["time#units"], meta["time#calendar"]
     )
@@ -327,7 +340,7 @@ def check_semantic_label_support(module_options):
     semantic label concept"""
     if GRASS_VERSION[0] < 8:
         if module_options["semantic_labels"]:
-            gscript.warning(
+            gs.warning(
                 _(
                     "The semantic labels concept requires GRASS GIS version 8.0 or later.\n"
                     "Ignoring the semantic label configuration file <{conf_file}>"
@@ -337,7 +350,7 @@ def check_semantic_label_support(module_options):
 
     if TGIS_VERSION < 3:
         if module_options["semantic_labels"]:
-            gscript.warning(
+            gs.warning(
                 _(
                     "The semantic labels concept requires TGIS version 3 or later.\n"
                     "Ignoring the semantic label configuration file <{conf_file}>"
@@ -357,11 +370,9 @@ def parse_semantic_label_conf(conf_file):
 
     semantic_label = {}
     if not os.access(options["semantic_labels"], os.R_OK):
-        gscript.fatal(
-            _(
-                "Cannot read configuration file <{conf_file}>".format(
-                    conf_file=conf_file
-                )
+        gs.fatal(
+            _("Cannot read configuration file <{conf_file}>").format(
+                conf_file=conf_file
             )
         )
     with open(conf_file, "r") as c_file:
@@ -375,21 +386,17 @@ def parse_semantic_label_conf(conf_file):
                 if Rast_legal_semantic_label(line[1]) == 1:
                     semantic_label[line[0]] = line[1]
                 else:
-                    gscript.fatal(
+                    gs.fatal(
                         _(
                             "Line {line_nr} in configuration file <{conf_file}> "
-                            "contains an illegal band name".format(
-                                line_nr=idx + 1, conf_file=conf_file
-                            )
-                        )
+                            "contains an illegal band name"
+                        ).format(line_nr=idx + 1, conf_file=conf_file)
                     )
     if not semantic_label:
-        gscript.fatal(
+        gs.fatal(
             _(
-                "Invalid formated or empty semantic label configuration in file <{}>".format(
-                    conf_file
-                )
-            )
+                "Invalid formated or empty semantic label configuration in file <{}>"
+            ).format(conf_file)
         )
 
     return semantic_label
@@ -399,62 +406,68 @@ def get_metadata(netcdf_metadata, subdataset="", semantic_label=None):
     """Transform NetCDF metadata to GRASS metadata"""
     # title , history , institution , source , comment and references
 
+    standard_name = None
+    if not subdataset:
+        subdataset = [
+            k
+            for k in netcdf_metadata.keys()
+            if k.endswith("standard_name")
+            and not k.startswith("time")
+            and not k.startswith("latitude")
+            and not k.startswith("longitude")
+        ][0].split("#")[0]
+        standard_name = netcdf_metadata.get(f"{subdataset}#standard_name")
     meta = {}
     # title is required metadata for netCDF-CF
-    title = (
-        netcdf_metadata["NC_GLOBAL#title"]
-        if "NC_GLOBAL#title" in netcdf_metadata
-        else ""
+    title = netcdf_metadata.get("NC_GLOBAL#title", "")
+
+    title += ", {subdataset}: {long_name}, {method}".format(
+        subdataset=standard_name or subdataset,
+        long_name=netcdf_metadata.get(f"{subdataset}#long_name", ""),
+        method=netcdf_metadata.get(f"{subdataset}#cell_methods", ""),
     )
-    title += (
-        ", {subdataset}: {long_name}, {method}".format(
-            subdataset=subdataset,
-            long_name=netcdf_metadata.get("{}#long_name".format(subdataset)),
-            method=netcdf_metadata.get("{}#cell_methods".format(subdataset)),
-        )
-        if subdataset != ""
-        else ""
-    )
-    title += (
-        ", version: {}".format(netcdf_metadata["NC_GLOBAL#version"])
-        if "NC_GLOBAL#version" in netcdf_metadata
-        else ""
-    )
-    title += (
-        ", type: {}".format(netcdf_metadata["NC_GLOBAL#type"])
-        if "NC_GLOBAL#type" in netcdf_metadata
-        else ""
-    )
+    title += f", version: {netcdf_metadata.get('NC_GLOBAL#version', '')}"
+    title += f", type: {netcdf_metadata.get('NC_GLOBAL#type', '')}"
     meta["title"] = title
     # history is required metadata for netCDF-CF
     meta["history"] = netcdf_metadata.get(
         "NC_GLOBAL#history"
     )  # phrase Text to append to the next line of the map's metadata file
     meta["units"] = netcdf_metadata.get(
-        "{}#units".format(subdataset)
+        f"{subdataset}#units"
     )  # string Text to use for map data units
 
     meta["vdatum"] = None  # string Text to use for map vertical datum
-    meta["source1"] = netcdf_metadata.get("NC_GLOBAL#source")
+    meta["source1"] = netcdf_metadata.get("NC_GLOBAL#source") or netcdf_metadata.get(
+        "NC_GLOBAL#reference"
+    )
     meta["source2"] = netcdf_metadata.get("NC_GLOBAL#institution")
 
     meta["description"] = "\n".join(
-        map(
-            str,
-            filter(
-                None,
-                [
-                    netcdf_metadata.get("NC_GLOBAL#summary"),
-                    netcdf_metadata.get("NC_GLOBAL#comment"),
-                    netcdf_metadata.get("NC_GLOBAL#references"),
-                ],
-            ),
-        )
+        [
+            netcdf_metadata.get(meta_variable)
+            for meta_variable in [
+                "NC_GLOBAL#summary",
+                "NC_GLOBAL#reference",
+                "NC_GLOBAL#references",
+            ]
+            if netcdf_metadata.get(meta_variable)
+        ]
     )
     if semantic_label is not None:
         meta["semantic_label"] = semantic_label[subdataset]
-    elif SEMANTIC_LABEL_SUPPORT and Rast_legal_semantic_label(subdataset):
-        meta["semantic_label"] = subdataset
+    elif (
+        SEMANTIC_LABEL_SUPPORT
+        and standard_name
+        and Rast_legal_semantic_label(legalize_name_string(standard_name))
+    ):
+        meta["semantic_label"] = legalize_name_string(standard_name)
+    elif (
+        SEMANTIC_LABEL_SUPPORT
+        and subdataset
+        and Rast_legal_semantic_label(legalize_name_string(subdataset))
+    ):
+        meta["semantic_label"] = legalize_name_string(subdataset)
 
     return meta
 
@@ -472,7 +485,10 @@ def transform_bounding_box(bbox, transform, edge_densification=15):
     u_r = np.array((bbox[2], bbox[3]))
 
     def _transform_vertex(vertex):
-        x_transformed, y_transformed, _ = transform.TransformPoint(*vertex)
+        try:
+            x_transformed, y_transformed, _ = transform.TransformPoint(*vertex)
+        except Exception:
+            x_transformed, y_transformed = inf, inf
         return (x_transformed, y_transformed)
 
     # This list comprehension iterates over each edge of the bounding box,
@@ -515,13 +531,11 @@ def get_import_type(projection_match, resample, flags_dict):
     if not projection_match and not flags_dict["o"]:
         resample = resample or "nearest"
         if resample not in RESAMPLE_DICT:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "For re-projection with gdalwarp only the following "
-                    "resample methods are allowed: {}".format(
-                        ", ".join(list(RESAMPLE_DICT.keys()))
-                    )
-                )
+                    "resample methods are allowed: {}"
+                ).format(", ".join(list(RESAMPLE_DICT.keys())))
             )
         resample = RESAMPLE_DICT[resample]
     else:
@@ -537,32 +551,33 @@ def get_import_type(projection_match, resample, flags_dict):
 
 def setup_temporal_filter(options_dict):
     """Gernerate temporal filter from input"""
-    time_formats = {
-        10: "%Y-%m-%d",
-        19: "%Y-%m-%d %H:%M:%S",
-    }
+
     kwargs = {}
     relations = options_dict["temporal_relations"].split(",")
     for time_ref in ["start_time", "end_time"]:
         if options_dict[time_ref]:
-            if len(options_dict[time_ref]) not in time_formats:
-                gscript.fatal(_("Unsupported datetime format in {}.".format(time_ref)))
             try:
-                kwargs[time_ref] = datetime.strptime(
-                    options_dict[time_ref], time_formats[len(options_dict[time_ref])]
-                )
+                kwargs[time_ref] = datetime.fromisoformat(options_dict[time_ref])
             except ValueError:
-                gscript.fatal(_("Can not parse input in {}.".format(time_ref)))
+                gs.fatal(
+                    _("Can not parse input in {}. Is it ISO-compliant?").format(
+                        time_ref
+                    )
+                )
         else:
             kwargs[time_ref] = None
-    return TemporalExtent(**kwargs), relations
+    if any(kwargs.values()):
+        return TemporalExtent(**kwargs), relations
+    return None, relations
 
 
 def apply_temporal_filter(ref_window, relations, start, end):
     """Apply temporal filter to time dimension"""
-    if ref_window.start_time is None and ref_window.end_time is None:
-        return True
-    return (
+    if ref_window.start_time is None:
+        return bool(ref_window.end_time >= start)
+    if ref_window.end_time is None:
+        return bool(ref_window.start_time <= start)
+    return bool(
         ref_window.temporal_relation(TemporalExtent(start_time=start, end_time=end))
         in relations
     )
@@ -588,7 +603,6 @@ def read_data(
     gisenv,
 ):
     """Import or link data and metadata"""
-
     input_url = sds_dict["url"]
     metadata = sds_dict["grass_metadata"]
     import_type = sds_dict["import_options"][0]
@@ -625,7 +639,6 @@ def read_data(
     # mapname_list.append(legalize_name_string(infile[0]))
     # if is_subdataset:
     # mapname_list.append(legalize_name_string(infile[1]))
-
     for i, raster_map in enumerate(maps):
         band = bands[i]
         mapname = raster_map.split("@")[0]
@@ -639,7 +652,7 @@ def read_data(
             ),  # use predefined string
         )
         mm = []
-        if not RasterRow(mapname, gisenv["MAPSET"]).exist() or gscript.overwrite():
+        if not RasterRow(mapname, gisenv["MAPSET"]).exist() or gs.overwrite():
             new_import = deepcopy(import_mod)
             new_import(band=band, output=mapname)
             mm.append(new_import)
@@ -655,20 +668,26 @@ def read_data(
 
 
 def create_vrt(
-    subdataset, gisenv, resample, nodata, equal_proj, transform, recreate=False
+    subdataset,
+    gisenv,
+    resample,
+    nodata,
+    equal_proj,
+    transform,
+    region_cropping=False,
+    recreate=False,
 ):
     """Create a GDAL VRT for import"""
     vrt_dir = Path(gisenv["GISDBASE"]).joinpath(
         gisenv["LOCATION_NAME"], gisenv["MAPSET"], "gdal"
     )
-    vrt = vrt_dir.joinpath(
-        "netcdf_{}.vrt".format(
-            legalize_name_string(Path(subdataset.GetDescription()).name)
-        )
+    vrt = (
+        vrt_dir
+        / f"netcdf_{legalize_name_string(Path(subdataset.GetDescription()).name)}.vrt"
     )
     vrt_name = str(vrt)
-    if vrt.exists() and not recreate:
-        return vrt_name
+    # if vrt.exists() and not recreate:
+    #     return vrt_name
     kwargs = {"format": "VRT"}
     if equal_proj:
         if nodata is not None:
@@ -695,22 +714,25 @@ def create_vrt(
             transform,
             edge_densification=15,
         )
-        # Cropping to computational region should only be done with r-flag
-        aligned_bbox = ALIGN_REGION(transformed_bbox)
         kwargs["dstSRS"] = gisenv["LOCATION_PROJECTION"]
         kwargs["resampleAlg"] = resample
-        # Resolution should be probably taken from region rather than from source dataset
-        kwargs["xRes"] = gt[1]
-        kwargs["yRes"] = -gt[5]
-        kwargs["outputBounds"] = (
-            aligned_bbox["west"],
-            aligned_bbox["south"],
-            aligned_bbox["east"],
-            aligned_bbox["north"],
-        )
-
         if nodata is not None:
             kwargs["srcNodata"] = nodata
+        # Resolution should be probably taken from region rather than from source dataset
+        # Cropping to computational region should only be done with r-flag
+        if region_cropping:
+            aligned_bbox = ALIGN_REGION(transformed_bbox)
+            kwargs["xRes"] = aligned_bbox["ewres"]  # gt[1]
+            kwargs["yRes"] = aligned_bbox["nsres"]  # -gt[5]
+            kwargs["outputBounds"] = (
+                aligned_bbox["west"],
+                aligned_bbox["south"],
+                aligned_bbox["east"],
+                aligned_bbox["north"],
+            )
+        if not subdataset.GetSpatialRef():
+            kwargs["srcSRS"] = DEFAULT_CRS_WKT
+
         vrt = gdal.Warp(
             vrt_name,
             subdataset,
@@ -740,11 +762,11 @@ def parse_netcdf(
     inputs_dict = {}
 
     # Check if file exists and readable
-    gscript.verbose(_("Processing {}".format(in_url)))
+    gs.verbose(_("Processing {}").format(in_url))
     try:
         ncdf = gdal.Open(in_url)
     except FileNotFoundError:
-        gscript.warning(_("Could not open <{}>.\nSkipping...".format(in_url)))
+        gs.warning(_("Could not open <{}>.\nSkipping...").format(in_url))
         return None
 
     # Get global metadata
@@ -754,33 +776,52 @@ def parse_netcdf(
     cf_version = ncdf_metadata.get("NC_GLOBAL#Conventions")
 
     if cf_version is None or not cf_version.upper().startswith("CF"):
-        gscript.warning(
+        gs.warning(
             _(
                 "Input netCDF file does not adhere to CF-standard. Import may fail or be incorrect."
             )
         )
 
-    # Sub datasets containing variables have 3 dimensions (x,y,z)
-    sds = [
-        # SDS_ID, SDS_url, SDS_dimension
-        [sds[0].split(":")[-1], sds[0], len(sds[1].split(" ")[0].split("x"))]
-        for sds in ncdf.GetSubDatasets()
-        if len(sds[1].split(" ")[0].split("x")) == 3
-    ]
+    sds = ncdf.GetSubDatasets()
 
-    # Filter based on semantic_label if provided
-    if semantic_label is not None:
-        sds = [s for s in sds if s[0] in semantic_label.keys()]
+    # Can be replaced with:
+    # gdal.OpenEx(..., open_options=["ASSUME_LONGLAT=YES"])
+    # In GDAL >= 3.7
+    default_crs = osr.SpatialReference()
+    default_crs.ImportFromEPSG(4326)
+    # default_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-    # Open subdatasets to get metadata
-    if sds:  # and ncdf.RasterCount == 0:
+    if sds:
+        # Sub datasets containing variables have 3 dimensions (x,y,z)
+        sds = [
+            # SDS_ID, SDS_url, SDS_dimension
+            [
+                sds[0].split(":")[-1],
+                f"NETCDF:{in_url}:{sds[0].split(':')[-1]}",  # sds[0],
+                len(sds[1].split(" ")[0].split("x")),
+            ]
+            for sds in ncdf.GetSubDatasets()
+            if len(sds[1].split(" ")[0].split("x")) == 3
+        ]
+
+        # Filter based on semantic_label if provided
+        if semantic_label is not None:
+            sds = [s for s in sds if s[0] in semantic_label.keys()]
+
+        # Open subdatasets to get metadata
         sds = [[gdal.Open(s[1])] + s for s in sds]
     elif not sds and ncdf.RasterCount == 0:
-        gscript.warning(_("No data to import from file {}").format(in_url))
+        gs.warning(_("No data to import from file {}").format(in_url))
         return None
     else:
+        if semantic_label is not None:
+            gs.warning(
+                _(
+                    "Input dataset <{}> does not contain subdatasets. Cannot filter by semantic label"
+                ).format(in_url)
+            )
         # Check raster layers
-        sds = [ncdf, "", "", 0]
+        sds = [[ncdf, "", in_url, 0]]
 
     # Extract metadata
     # Collect relevant inputs in a dictionary
@@ -789,112 +830,143 @@ def parse_netcdf(
 
     for s_d in sds:
         sds_metadata = s_d[0].GetMetadata()
-        sds_url = s_d[0].GetDescription()
+        sds_url = s_d[2]
         raster_count = s_d[0].RasterCount
         if "NETCDF_DIM_time_VALUES" in sds_metadata:
-            # Apply temporal filter
-            sd_time_dimensions = get_time_dimensions(sds_metadata)
-            end_times = get_end_time(sd_time_dimensions)
+            time_values = np.fromstring(
+                sds_metadata["NETCDF_DIM_time_VALUES"].strip("{").strip("}"),
+                sep=",",
+                dtype=np.float64,
+            )
+        elif raster_count > 0:
+            time_values = np.array(
+                [
+                    s_d[0].GetRasterBand(i).GetMetadata().get("NETCDF_DIM_time")
+                    for i in range(1, s_d[0].RasterCount + 1)
+                ]
+            ).astype(np.float64)
+        else:
+            gs.warning(
+                _("No time dimension detected for <{}>. Skipping...").format(sds_url)
+            )
+            continue
+        if "time#units" not in sds_metadata or "time#calendar" not in sds_metadata:
+            gs.warning(
+                _(
+                    "Invalid definition of time dimension detected for <{}>. Skipping..."
+                ).format(sds_url)
+            )
+            continue
+        time_dimensions = get_time_dimensions(time_values, sds_metadata)
+        end_times = get_end_time(time_dimensions)
+
+        if valid_window is not None:
             requested_time_dimensions = np.array(
                 [
                     apply_temporal_filter(
                         valid_window, valid_relations, start, end_times[idx]
                     )
-                    for idx, start in enumerate(sd_time_dimensions)
+                    for idx, start in enumerate(time_dimensions)
                 ]
             )
-            if not requested_time_dimensions.any():
-                gscript.warning(
-                    _(
-                        "Nothing to import from subdataset {s} in {f}".format(
-                            s=s_d[1], f=sds_url
-                        )
-                    )
-                )
-                continue
-
             end_time_dimensions = end_times[requested_time_dimensions]
             # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
-            start_time_dimensions = sd_time_dimensions[requested_time_dimensions]
-            requested_time_dimensions = np.where(requested_time_dimensions)[0]
+            start_time_dimensions = time_dimensions[requested_time_dimensions]
+        else:
+            end_time_dimensions = end_times
+            # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
+            start_time_dimensions = time_dimensions
+            requested_time_dimensions = time_values
 
-            # Get metadata
-            grass_metadata = get_metadata(sds_metadata, s_d[1], semantic_label)
-            # Compile mapname
-            infile = Path(in_url).stem.split(":")
-            map_name = legalize_name_string(infile[0])
-            location_crs = osr.SpatialReference()
-            location_crs.ImportFromWkt(reference_crs)
-            subdataset_crs = s_d[0].GetSpatialRef()
-            projections_match = subdataset_crs.IsSame(location_crs)
-            import_type, resample, projections_match = get_import_type(
-                flags["o"] or projections_match,
-                options["resample"],
-                flags,
-            )
-
-            transform = None
-            if not projections_match:
-                transform = osr.CoordinateTransformation(subdataset_crs, location_crs)
-
-            # Loop over bands / time dimension
-            maps = []
-            bands = []
-            for i, band in enumerate(requested_time_dimensions):
-                if raster_count > 1:
-                    map_name = f"{map_name}_{start_time_dimensions[i].strftime('%Y%m%dT%H%M%S')}"
-                map_name = f"{map_name}.{grass_metadata.get('semantic_label') or i + 1}"
-                bands.append(i + 1)
-                maps.append(
-                    "{map}@{mapset}|{start_time}|{end_time}|{semantic_label}".format(
-                        map=map_name,
-                        mapset=gisenv["MAPSET"],
-                        start_time=start_time_dimensions[i].strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
-                        end_time=end_time_dimensions[i].strftime("%Y-%m-%d %H:%M:%S"),
-                        semantic_label=grass_metadata.get("semantic_label") or "",
+        requested_time_dimensions = np.where(requested_time_dimensions)[0]
+        if requested_time_dimensions.size == 0:
+            gs.warning(
+                _(
+                    "Nothing to import from subdataset {s} in {f}".format(
+                        s=s_d[1], f=sds_url
                     )
                 )
-            # Store metadata in dictionary
-            inputs_dict[in_url]["sds"].append(
-                {
-                    "strds_name": (
-                        "{}_{}".format(options["output"], s_d[1])
-                        if s_d[1] and not semantic_label
-                        else options["output"]
-                    ),
-                    "id": s_d[1],
-                    "url": (
-                        sds_url
-                        if options["print"] or import_type == "r.in.gdal"
-                        else create_vrt(
-                            s_d[0],
-                            gisenv,
-                            resample,
-                            options["nodata"],
-                            projections_match,
-                            transform,
-                            recreate=gscript.overwrite(),
-                        )
-                    ),  # create VRT here???
-                    "grass_metadata": grass_metadata,
-                    "extended_metadata": sds_metadata,
-                    "time_dimensions": sd_time_dimensions,
-                    "start_time_dimensions": start_time_dimensions,
-                    "end_time_dimensions": end_time_dimensions,
-                    "requested_time_dimensions": requested_time_dimensions,
-                    "rastercount": s_d[0].RasterCount,
-                    "bands": bands,
-                    "maps": maps,
-                    "import_options": [import_type, resample, projections_match],
-                }
             )
+            continue
+
+        # Get metadata
+        grass_metadata = get_metadata(sds_metadata, s_d[1], semantic_label)
+        # Compile mapname
+        infile = Path(in_url).stem.split(":")
+        map_base_name = legalize_name_string(infile[0])
+        location_crs = osr.SpatialReference()
+        location_crs.ImportFromWkt(reference_crs)
+        subdataset_crs = s_d[0].GetSpatialRef() or default_crs
+        projections_match = subdataset_crs.IsSame(location_crs)
+        import_type, resample, projections_match = get_import_type(
+            flags["o"] or projections_match,
+            options["resample"],
+            flags,
+        )
+
+        transform = None
+        if not projections_match:
+            transform = osr.CoordinateTransformation(subdataset_crs, location_crs)
+
+        # Loop over bands / time dimension
+        maps = []
+        bands = []
+        for i, band in enumerate(requested_time_dimensions):
+            if raster_count > 1:
+                map_name = f"{map_base_name}_{start_time_dimensions[i].strftime('%Y%m%dT%H%M%S')}"
+            else:
+                map_name = map_base_name
+            map_name = f"{map_name}.{grass_metadata.get('semantic_label') or band + 1}"
+            bands.append(band + 1)
+            maps.append(
+                "{map}@{mapset}|{start_time}|{end_time}|{semantic_label}".format(
+                    map=map_name,
+                    mapset=gisenv["MAPSET"],
+                    start_time=start_time_dimensions[i].strftime("%Y-%m-%d %H:%M:%S"),
+                    end_time=end_time_dimensions[i].strftime("%Y-%m-%d %H:%M:%S"),
+                    semantic_label=grass_metadata.get("semantic_label", ""),
+                )
+            )
+        # Store metadata in dictionary
+        inputs_dict[in_url]["sds"].append(
+            {
+                "strds_name": (
+                    f"{options['output']}_{s_d[1]}"
+                    if s_d[1] and not SEMANTIC_LABEL_SUPPORT
+                    else options["output"]
+                ),
+                "id": s_d[1],
+                "url": (
+                    sds_url
+                    if options["print"]
+                    or (import_type == "r.in.gdal" and projections_match)
+                    else create_vrt(
+                        s_d[0],
+                        gisenv,
+                        resample,
+                        options["nodata"],
+                        projections_match,
+                        transform,
+                        region_cropping=flags["r"],
+                        recreate=gs.overwrite(),
+                    )
+                ),  # create VRT here???
+                "grass_metadata": grass_metadata,
+                "extended_metadata": sds_metadata,
+                "time_dimensions": time_dimensions,
+                "start_time_dimensions": start_time_dimensions,
+                "end_time_dimensions": end_time_dimensions,
+                "requested_time_dimensions": requested_time_dimensions,
+                "rastercount": s_d[0].RasterCount,
+                "bands": bands,
+                "maps": maps,
+                "import_options": [import_type, resample, projections_match],
+            }
+        )
         # Close open GDAL datasets
         s_d = None
     # Close open GDAL datasets
     sds = None
-
     return inputs_dict
 
 
@@ -906,6 +978,7 @@ def run_modules(mod_list):
             sync=True,
             set_temp_region=False,
         ).run()
+    return None
 
 
 def main():
@@ -915,7 +988,7 @@ def main():
     try:
         import cf_units
     except ImportError:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Cannot import Python library 'cf-units'\n"
                 "Please install it with (pip install cf-units)"
@@ -924,9 +997,7 @@ def main():
 
     # Check if NetCDF driver is available
     if not gdal.GetDriverByName("netCDF"):
-        gscript.fatal(
-            _("netCDF driver missing in GDAL. Please install netcdf binaries.")
-        )
+        gs.fatal(_("netCDF driver missing in GDAL. Please install netcdf binaries."))
 
     # Unregister potentially conflicting driver
     for driver in ["HDF5", "HDF5Image"]:
@@ -934,15 +1005,15 @@ def main():
             gdal.GetDriverByName(driver).Deregister()
 
     inputs = options["input"].split(",")
-    sep = gscript.utils.separator(options["separator"])
+    sep = gs.utils.separator(options["separator"])
 
     valid_window, valid_relations = setup_temporal_filter(options)
 
     if options["nodata"]:
         try:
-            nodata = " ".join(map(str, map(int, options["nodata"].split(","))))
+            nodata = " ".join(map(str, map(float, options["nodata"].split(","))))
         except Exception:
-            gscript.fatal(_("Invalid input for nodata"))
+            gs.fatal(_("Invalid input for nodata"))
     else:
         nodata = None
 
@@ -954,7 +1025,7 @@ def main():
                 with open(inputs[0], "r") as in_file:
                     inputs = in_file.read().strip().split()
             except IOError:
-                gscript.fatal(_("Unable to read text from <{}>.".format(inputs[0])))
+                gs.fatal(_("Unable to read text from <{}>.").format(inputs[0]))
 
     inputs = [
         "/vsicurl/" + in_url if in_url.startswith("http") else in_url
@@ -964,7 +1035,7 @@ def main():
     for in_url in inputs:
         # Maybe other suffixes are valid too?
         if not in_url.endswith(".nc"):
-            gscript.fatal(_("<{}> does not seem to be a NetCDF file".format(in_url)))
+            gs.fatal(_("<{}> does not seem to be a NetCDF file").format(in_url))
 
     # Initialize TGIS
     tgis.init()
@@ -976,10 +1047,10 @@ def main():
     semantic_label = parse_semantic_label_conf(options["semantic_labels"])
 
     # Get GRASS GIS environment info
-    grass_env = dict(gscript.gisenv())
+    grass_env = dict(gs.gisenv())
 
     # Create directory for vrt files if needed
-    if flags["l"] or flags["f"]:
+    if flags["l"] or flags["f"] or flags["r"]:
         vrt_dir = Path(grass_env["GISDBASE"]).joinpath(
             grass_env["LOCATION_NAME"], grass_env["MAPSET"], "gdal"
         )
@@ -987,9 +1058,7 @@ def main():
             vrt_dir.mkdir()
 
     # Get projection of the current location
-    grass_env["LOCATION_PROJECTION"] = gscript.read_command(
-        "g.proj", flags="wf"
-    ).strip()
+    grass_env["LOCATION_PROJECTION"] = gs.read_command("g.proj", flags="wf").strip()
 
     # Current region
     global ALIGN_REGION
@@ -1011,7 +1080,7 @@ def main():
         "r.external": Module(
             "r.external",
             quiet=True,
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
             flags=imp_flags + "ra" if flags["f"] else imp_flags + "ma",
@@ -1019,7 +1088,7 @@ def main():
         "r.in.gdal": Module(
             "r.in.gdal",
             quiet=True,
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
             flags=imp_flags + "ra" if flags["r"] else imp_flags + "a",
@@ -1132,7 +1201,7 @@ def main():
     for strds in relevant_strds_dict:
         # Append if exists and overwrite allowed (do not update metadata)
         if (
-            strds not in existing_strds or (gscript.overwrite and not flags["a"])
+            strds not in existing_strds or (gs.overwrite and not flags["a"])
         ) and strds not in modified_strds:
             tgis.open_new_stds(
                 strds,
@@ -1142,11 +1211,11 @@ def main():
                 relevant_strds_dict[strds]["description"],
                 "mean",  # semanticstype
                 None,  # dbif
-                gscript.overwrite,
+                gs.overwrite,
             )
             modified_strds[strds] = []
         elif not flags["a"]:
-            gscript.fatal(_("STRDS exisits."))
+            gs.fatal(_("STRDS exisits."))
 
         else:
             modified_strds[strds] = []
@@ -1179,7 +1248,7 @@ def main():
     # Run modules in parallel
     use_cores = min(len(queued_modules), int(options["nprocs"]))
     with Pool(processes=use_cores) as pool:
-        pool.map(run_modules, np.array_split(queued_modules, use_cores))
+        pool.map(run_modules, [queued_modules[i::use_cores] for i in range(use_cores)])
 
     for strds_name, r_maps in modified_strds.items():
         # Register raster maps in strds using tgis
@@ -1187,7 +1256,7 @@ def main():
         if GRASS_VERSION >= [8, 0] and TGIS_VERSION >= 3:
             map_file = StringIO("\n".join(r_maps))
         else:
-            map_file = gscript.tempfile()
+            map_file = gs.tempfile()
             with open(map_file, "w") as m_f:
                 m_f.write("\n".join(r_maps))
         register_maps_in_space_time_dataset(
@@ -1203,14 +1272,16 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # lazy imports
     global gdal
     try:
         from osgeo import gdal, osr
+
+        gdal.UseExceptions()
     except ImportError:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Unable to load GDAL Python bindings (requires "
                 "package 'python-gdal' or Python library GDAL "

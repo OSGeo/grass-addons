@@ -4,5 +4,5 @@ pandas
 scikit-learn
 GDAL==${GDAL_VERSION}
 pygbif
-cf_units
+cf_units @ git+https://github.com/SciTools/cf-units@f57a7f1fdba4e9424e4dbbc01b614e521a88086c
 thredds_crawler
