@@ -102,6 +102,8 @@ jobs:
         run: |
           GDAL_VERSION="$(gdal-config --version)"
           export GDAL_VERSION
+          UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml
+          export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
