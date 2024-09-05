@@ -135,15 +135,14 @@ def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = "tmp_icw_" + str(os.getpid()) + "_"
     # grass.run_command('g.list', type='raster', mapset='.', flags='p')
-    result = grass.list_strings('raster', pattern=tmp_base + "*", mapset='.')
+    result = grass.list_strings("raster", pattern=tmp_base + "*", mapset=".")
     if len(result) > 0:
-       grass.run_command(
-          "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
-       )
+        grass.run_command(
+            "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
+        )
 
 
 def main():
-
     pts_input = options["input"]
     output = options["output"]
     cost_map = options["cost_map"]
@@ -553,7 +552,10 @@ def main():
 
     grass.run_command("r.colors", map=output, color="bcyr", quiet=True)
     grass.run_command(
-        "r.support", map=output, history=" ", title="Inverse cost-weighted interpolation"
+        "r.support",
+        map=output,
+        history=" ",
+        title="Inverse cost-weighted interpolation",
     )
     grass.run_command("r.support", map=output, history="v.surf.icw interpolation:")
     grass.run_command(
