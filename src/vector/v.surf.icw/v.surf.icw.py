@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 #
 # MODULE:       v.surf.icw
-#                version $Id$
 #
 # AUTHOR:       M. Hamish Bowman, Dunedin, New Zealand
 #                Originally written aboard the NZ DoC ship M/V Renown,
@@ -13,7 +12,7 @@
 # PURPOSE:      Like IDW interpolation, but distance is cost to get to any
 #                other site.
 #
-# COPYRIGHT:    (c) 2003-2014 Hamish Bowman
+# COPYRIGHT:    (c) 2003-2024 Hamish Bowman
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -345,7 +344,7 @@ def main():
         )
         # stall to wait for the nth worker to complete,
         if (i + 1) % workers == 0:
-            # print 'stalling ...'
+            # print('stalling ...')
             proc[i].wait()
 
     # make sure everyone is finished
@@ -393,7 +392,7 @@ def main():
         )
         # stall to wait for the nth worker to complete,
         if (i + 1) % workers == 0:
-            # print 'stalling ...'
+            # print('stalling ...')
             proc[i].wait()
 
         # r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
@@ -415,8 +414,7 @@ def main():
 
     #######################################################
     #### Step 3) find sum(cost^2)
-    grass.verbose("")
-    grass.verbose(_("Finding sum of squares ..."))
+    grass.verbose("\n" + _("Finding sum of squares ..."))
 
     # todo: test if MASK exists already, fatal exit if it does?
     if post_mask:
@@ -450,8 +448,7 @@ def main():
 
     #######################################################
     #### Step 4) ( 1/di^2 / sum(1/d^2) ) *  ai
-    grass.verbose("")
-    grass.message(_("Creating partial weights ..."))
+    grass.message("\n" + _("Creating partial weights ..."))
 
     proc = {}
     num = 1
@@ -534,8 +531,7 @@ def main():
     # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
-    grass.message("")
-    grass.message(_("Calculating final values ..."))
+    grass.message("\n" + _("Calculating final values ..."))
 
     input_maps = tmp_base + "partial.%05d" % 1
     for i in range(2, n + 1):
@@ -550,7 +546,7 @@ def main():
 
     grass.run_command("r.colors", map=output, color="bcyr", quiet=True)
     grass.run_command(
-        "r.support", map=output, history="", title="Inverse cost-weighted interpolation"
+        "r.support", map=output, history=" ", title="Inverse cost-weighted interpolation"
     )
     grass.run_command("r.support", map=output, history="v.surf.icw interpolation:")
     grass.run_command(
