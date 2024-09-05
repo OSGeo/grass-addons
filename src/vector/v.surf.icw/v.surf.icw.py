@@ -539,7 +539,7 @@ def main():
     with open(TMP_FILE, "w") as maplist:
         for i in range(1, n + 1):
             mapname = "%spartial.%05d" % (tmp_base, i)
-            maplist.write(mapname + "\n") 
+            maplist.write(mapname + "\n")
     maplist.close()
 
     try:
