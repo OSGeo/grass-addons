@@ -134,10 +134,12 @@ TMP_FILE = None
 def cleanup():
     grass.verbose(_("Cleanup.."))
     tmp_base = "tmp_icw_" + str(os.getpid()) + "_"
-    grass.run_command(
-        "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
-    )
-    grass.try_remove(TMP_FILE)
+    # grass.run_command('g.list', type='raster', mapset='.', flags='p')
+    result = grass.list_strings('raster', pattern=tmp_base + "*", mapset='.')
+    if len(result) > 0:
+       grass.run_command(
+          "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
+       )
 
 
 def main():
@@ -423,14 +425,12 @@ def main():
 
     grass.message(_("Summation of cost weights ..."))
 
-    input_maps = tmp_base + "1by_cost_site_sq.%05d" % 1
-
-    global TMP_FILE
     TMP_FILE = grass.tempfile()
     with open(TMP_FILE, "w") as maplist:
-        for i in range(2, n + 1):
+        for i in range(1, n + 1):
             mapname = "%s1by_cost_site_sq.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
+    maplist.close()
 
     # grass.run_command('g.list', type = 'raster', mapset = '.')
 
@@ -441,6 +441,8 @@ def main():
         )
     except CalledModuleError:
         grass.fatal(_("Problem running %s") % "r.series")
+
+    grass.try_remove(TMP_FILE)
 
     if post_mask:
         grass.message(_("Removing post_mask <%s>"), post_mask)
@@ -533,14 +535,19 @@ def main():
     #######################################################
     grass.message("\n" + _("Calculating final values ..."))
 
-    input_maps = tmp_base + "partial.%05d" % 1
-    for i in range(2, n + 1):
-        input_maps += ",%spartial.%05d" % (tmp_base, i)
+    TMP_FILE = grass.tempfile()
+    with open(TMP_FILE, "w") as maplist:
+        for i in range(1, n + 1):
+            mapname = "%spartial.%05d" % (tmp_base, i)
+            maplist.write(mapname + "\n") 
+    maplist.close()
 
     try:
-        grass.run_command("r.series", method="sum", input=input_maps, output=output)
+        grass.run_command("r.series", method="sum", file=TMP_FILE, output=output)
     except CalledModuleError:
         grass.fatal(_("Problem running %s") % "r.series")
+
+    grass.try_remove(TMP_FILE)
 
     # TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
 
