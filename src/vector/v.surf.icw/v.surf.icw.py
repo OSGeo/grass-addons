@@ -271,16 +271,16 @@ def main():
         data_value = grass.vector_db_select(pts_input, columns=column)["values"][cat][0]
 
         if not data_value:
-            grass.message(
+            grass.verbose(
                 _("Site %d of %d,  e=%.4f  n=%.4f  cat=%d  data=?")
                 % (num, n, float(easting), float(northing), cat)
             )
-            grass.message(_(" -- Skipping, no data here."))
+            grass.verbose(_(" -- Skipping, no data here."))
             del points_list[num - 1]
             n -= 1
             continue
         else:
-            grass.message(
+            grass.verbose(
                 _("Site %d of %d,  e=%.4f  n=%.4f  cat=%d  data=%.8g")
                 % (num, n, float(easting), float(northing), cat, float(data_value))
             )
@@ -296,7 +296,7 @@ def main():
             .split("|")[-1]
         )
         if rast_val == "*":
-            grass.message(_(" -- Skipping, point lays outside of cost_map."))
+            grass.verbose(_(" -- Skipping, point lays outside of cost_map."))
             del points_list[num - 1]
             n -= 1
             continue
@@ -462,12 +462,12 @@ def main():
 
         # failsafe: at this point the data values should all be valid
         if not data_value:
-            grass.message(_("Site %d of %d,  cat = %d, data value = ?") % (num, n, cat))
-            grass.message(_(" -- Skipping, no data here. [Probably programmer error]"))
+            grass.verbose(_("Site %d of %d,  cat = %d, data value = ?") % (num, n, cat))
+            grass.verbose(_(" -- Skipping, no data here. [Probably programmer error]"))
             n -= 1
             continue
         else:
-            grass.message(
+            grass.verbose(
                 _("Site %d of %d,  cat = %d, data value = %.8g")
                 % (num, n, cat, data_value)
             )
@@ -483,7 +483,7 @@ def main():
             .split("|")[-1]
         )
         if rast_val == "*":
-            grass.message(
+            grass.verbose(
                 _(
                     " -- Skipping, point lays outside of cost_map. [Probably programmer error]"
                 )
