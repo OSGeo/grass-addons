@@ -327,6 +327,7 @@ def main():
         if proc[i].wait() != 0:
             grass.fatal(_("Problem running %s") % "r.cost")
 
+    grass.verbose("\n")
     grass.message(_("Removing anomalies at site positions ..."))
 
     proc = {}
@@ -449,7 +450,8 @@ def main():
 
     #######################################################
     #### Step 4) ( 1/di^2 / sum(1/d^2) ) *  ai
-    grass.message("\n" + _("Creating partial weights ..."))
+    grass.verbose("\n")
+    grass.message(_("Creating partial weights ..."))
 
     proc = {}
     num = 1
@@ -532,7 +534,8 @@ def main():
     # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
-    grass.message("\n" + _("Calculating final values ..."))
+    grass.verbose("\n")
+    grass.message(_("Calculating final values ..."))
 
     TMP_FILE = grass.tempfile()
     with open(TMP_FILE, "w") as maplist:
