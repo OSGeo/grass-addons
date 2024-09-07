@@ -1,0 +1,85 @@
+<h2>DESCRIPTION</h2>
+
+
+<em>r.surf.volcano</em> creates an artificial surface resembling a seamount
+or cone volcano. The user can alter the size and shape of the mountain and
+optionally roughen its surface.
+
+
+<h2>NOTES</h2>
+
+The friction of distance controls the shape of the mountain when using
+the default polynomial method. Higher values generate steeper slopes.
+<p>
+The <i>pseudo</i>-<b>kurtosis</b> factor is used with all other methods
+to control the slope steepness. For the Gaussian method setting the value
+nearer to zero creates a flatter surface, while higher values generate
+steeper slopes. For Lorentzian, logarithmic, and exponential methods the
+opposite is true.
+<p>
+The surface roughness factor controls the fixed standard deviation
+distance (<b>sigma</b>) used in the Gaussian random number generator.
+It is only used when the <b>-r</b> roughen surface flag is turned on.
+A value closer to zero makes a smoother surface, a higher value makes
+a rougher surface.
+<p>
+It is possible to set a negative value for the <b>peak</b> in order
+to create a pit.
+
+
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+r.surf.volcano -r output=seamount
+
+# view in the display monitor
+r.colors seamount color=sepia -e
+d.rast seamount
+
+# view in 3D
+r.colors seamount color=srtm
+nviz seamount
+
+# export to Matlab
+r.out.mat in=seamount out=seamount.mat
+
+# integrate into existing DEM
+r.mapcalc "seamount_dem=if(seamount > dem, seamount, dem)"
+r.colors seamount_dem color=srtm
+</pre></div>
+
+
+Create a roughened volcano with a crater:
+<div class="code"><pre>
+r.surf.volcano -r output=volcano crater=250 --verbose
+r.shaded.relief volcano
+</pre></div>
+
+Create a fancy 3D scene:
+<div class="code"><pre>
+r.surf.volcano -r output=base_volcano peak=600 crater=120
+r.surf.fractal output=base_fractal
+r.mapcalc "artificial_land = base_volcano + base_fractal"
+r.colors artificial_land color=srtm
+nviz artificial_land
+</pre></div>
+
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.surf.fractal.html">r.surf.fractal</a><br>
+<a href="r.surf.gauss.html">r.surf.gauss</a><br>
+<a href="r.surf.random.html">r.surf.random</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Hamish Bowman<br>
+<i>Dept. Marine Science<br>
+University of Otago<br>
+Dunedin, New Zealand</i>
+
+<p>
+<i>Last changed: $Date$</i>
