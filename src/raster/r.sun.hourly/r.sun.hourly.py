@@ -49,7 +49,7 @@
 # % key: linke_value
 # % type: double
 # % description: A single value of the Linke atmospheric turbidity coefficient [-]
-# % options: 0.0-7.0
+# % options: 0.0-
 # % answer: 3.0
 # % required: no
 # %end
