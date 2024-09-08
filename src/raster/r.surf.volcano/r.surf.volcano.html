@@ -36,15 +36,11 @@ r.surf.volcano -r output=seamount
 r.colors seamount color=sepia -e
 d.rast seamount
 
-# view in 3D
-r.colors seamount color=srtm
-nviz seamount
-
 # export to Matlab
 r.out.mat in=seamount out=seamount.mat
 
 # integrate into existing DEM
-r.mapcalc "seamount_dem=if(seamount > dem, seamount, dem)"
+r.mapcalc "seamount_dem = if(seamount > dem, seamount, dem)"
 r.colors seamount_dem color=srtm
 </pre></div>
 
@@ -52,18 +48,17 @@ r.colors seamount_dem color=srtm
 Create a roughened volcano with a crater:
 <div class="code"><pre>
 r.surf.volcano -r output=volcano crater=250 --verbose
-r.shaded.relief volcano
+r.relief in=volcano out=volcano.shade
 </pre></div>
 
 Create a fancy 3D scene:
 <div class="code"><pre>
 r.surf.volcano -r output=base_volcano peak=600 crater=120
 r.surf.fractal output=base_fractal
-r.mapcalc "artificial_land = base_volcano + base_fractal"
+r.mapcalc "artificial_land = base_volcano*10 + base_fractal"
 r.colors artificial_land color=srtm
-nviz artificial_land
+<!-- nviz artificial_land -->
 </pre></div>
-
 
 
 <h2>SEE ALSO</h2>
@@ -77,9 +72,6 @@ nviz artificial_land
 <h2>AUTHOR</h2>
 
 Hamish Bowman<br>
-<i>Dept. Marine Science<br>
+<i>Dept. of Geology<br>
 University of Otago<br>
 Dunedin, New Zealand</i>
-
-<p>
-<i>Last changed: $Date$</i>
