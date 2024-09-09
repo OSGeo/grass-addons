@@ -29,12 +29,18 @@ to create a pit.
 
 <h2>EXAMPLES</h2>
 
+Create a simple Gaussian bell:
 <div class="code"><pre>
-r.surf.volcano -r output=seamount
+r.surf.volcano -r output=seamount method=gaussian
 
 # view in the display monitor
-r.colors seamount color=sepia -e
+r.colors seamount color=roygbiv
 d.rast seamount
+
+# render in 3D
+m.nviz.image elevation_map=seamount out=gaussian \
+  perspective=10 resolution_fine=1 height=3500
+pnmtopng gaussian.ppm > gaussian.png
 
 # export to Matlab
 r.out.mat in=seamount out=seamount.mat
@@ -43,6 +49,11 @@ r.out.mat in=seamount out=seamount.mat
 r.mapcalc "seamount_dem = if(seamount > dem, seamount, dem)"
 r.colors seamount_dem color=srtm
 </pre></div>
+
+<div align="center" style="margin: 10px">
+<img src="r_surf_volcano_gaussian.jpg" border=0><br>
+<i>Gaussian bell</i>
+</div>
 
 
 Create a roughened volcano with a crater:
@@ -53,12 +64,21 @@ r.relief in=volcano out=volcano.shade
 
 Create a fancy 3D scene:
 <div class="code"><pre>
-r.surf.volcano -r output=base_volcano peak=600 crater=120
+r.surf.volcano -r output=base_volcano peak=1000 crater=200
 r.surf.fractal output=base_fractal
-r.mapcalc "artificial_land = base_volcano*10 + base_fractal"
-r.colors artificial_land color=srtm
-<!-- nviz artificial_land -->
+r.mapcalc "artificial_land = base_volcano*3.5 + base_fractal"
+
+m.nviz.image elevation_map=artificial_land out=volcano3D \
+  perspective=25 resolution_fine=1 height=30000
+pnmtopng volcano3D.ppm > volcano3D.png
 </pre></div>
+
+
+<div align="center" style="margin: 10px">
+<img src="r_surf_volcano_volcano3D.jpg" border=0><br>
+<i>Synthetic volcano from r.surf.volcano combined with fractal
+landscape from r.surf.fractal</i>
+</div>
 
 
 <h2>SEE ALSO</h2>
