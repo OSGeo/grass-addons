@@ -43,25 +43,14 @@
 # % keyword: interpolation
 # % keyword: ICW
 # %End
-# %option
-# % key: input
-# % type: string
-# % gisprompt: old,vector,vector
-# % description: Name of existing vector points map containing seed data
-# % required : yes
+# %option G_OPT_V_INPUT
+# % label: Name of existing vector points map containing seed data
 # %end
-# %option
-# % key: column
-# % type: string
+# %option G_OPT_DB_COLUMN
 # % description: Column name in points map that contains data values
 # % required : yes
 # %end
-# %option
-# % key: output
-# % type: string
-# % gisprompt: new,cell,raster
-# % description: Name for output raster map
-# % required : yes
+# %option G_OPT_R_OUTPUT
 # %end
 # %option
 # % key: cost_map
@@ -78,19 +67,11 @@
 # % options: 1-6
 # % required : no
 # %end
-# %option
-# % key: layer
+# %option G_OPT_V_FIELD
 # % type: integer
-# % answer: 1
-# % description: Layer number of data in points map
-# % required: no
+# % label: Layer number of data in points map
 # %end
-# %option
-# % key: where
-# % type: string
-# % label: WHERE conditions of SQL query statement without 'where' keyword
-# % description: Example: income < 1000 and inhab >= 10000
-# % required : no
+# %option G_OPT_DB_WHERE
 # %end
 
 ##%option
@@ -111,11 +92,8 @@
 # % key: r
 # % description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 # %end
-# %option
-# % key: workers
-# % type: integer
-# % options: 1-256
-# % answer: 1
+# %option G_OPT_M_NPROCS
+# % options: 1-1024
 # % description: Number of parallel processes to launch
 # %end
 
@@ -151,7 +129,7 @@ def main():
     friction = float(options["friction"])
     layer = options["layer"]
     where = options["where"]
-    workers = int(options["workers"])
+    workers = int(options["nprocs"])
 
     if workers == 1 and "WORKERS" in os.environ:
         workers = int(os.environ["WORKERS"])
@@ -267,6 +245,7 @@ def main():
         northing = position[1]
         cat = int(position[-1])
 
+        # FIXME: layer=layer probably needed here
         # retrieve data value from vector's attribute table:
         data_value = grass.vector_db_select(pts_input, columns=column)["values"][cat][0]
 
@@ -459,6 +438,7 @@ def main():
         easting = position[0]
         northing = position[1]
         cat = int(position[-1])
+        # FIXME: layer=layer probably needed here
         data_value = grass.vector_db_select(pts_input, columns=column)["values"][cat][0]
         data_value = float(data_value)
 
@@ -566,6 +546,7 @@ def main():
         map=output,
         history="  input map=" + pts_input + "   attribute column=" + column,
     )
+    # FIXME: if layer !=1 then (layer="$layer") probably needed here
     grass.run_command(
         "r.support",
         map=output,
