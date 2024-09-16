@@ -216,7 +216,7 @@ def compute_vif(mapx, mapy):
     unused, resid = np.linalg.lstsq(x_i, mapy, rcond=None)[:2]
     if resid.size == 0:
         resid = 0
-    r2 = float(1 - resid / (mapy.size * mapy.var()))
+    r2 = float(1 - resid[0] / (mapy.size * mapy.var()))
     if float(r2) > 0.9999999999:
         vif = float("inf")
         sqrtvif = float("inf")
