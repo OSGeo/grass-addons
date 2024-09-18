@@ -88,12 +88,6 @@ def add_sys_path(new_path):
         sys.path = original_sys_path
 
 
-path = get_lib_path(modname="t.stac", libname="staclib")
-if path is None:
-    gs.fatal("Not able to find the stac library directory.")
-sys.path.append(path)
-
-
 def main():
     """Main function"""
 

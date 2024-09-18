@@ -84,12 +84,6 @@ from contextlib import contextmanager
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
-# Add the stac library to the sys.path
-path = get_lib_path(modname="t.stac", libname="staclib")
-if path is None:
-    gs.fatal("Not able to find the stac library directory.")
-sys.path.append(path)
-
 
 @contextmanager
 def add_sys_path(new_path):
@@ -100,12 +94,6 @@ def add_sys_path(new_path):
         yield
     finally:
         sys.path = original_sys_path
-
-
-path = get_lib_path(modname="t.stac", libname="staclib")
-if path is None:
-    gs.fatal("Not able to find the stac library directory.")
-sys.path.append(path)
 
 
 def main():
