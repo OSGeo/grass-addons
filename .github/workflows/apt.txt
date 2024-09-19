@@ -8,7 +8,7 @@ libgdal-dev
 libgl1-mesa-dev
 libglu1-mesa-dev
 libnetcdf-dev
-libopenblas-dev
+liblapacke-dev
 libpng-dev
 libproj-dev
 libreadline-dev
