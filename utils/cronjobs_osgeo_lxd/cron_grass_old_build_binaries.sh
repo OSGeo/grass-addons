@@ -109,8 +109,8 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-pdal \
   --with-fftw \
   --with-nls \
-  --with-blas --with-blas-includes=/usr/include/atlas/ \
-  --with-lapack --with-lapack-includes=/usr/include/atlas/ \
+  --with-blas \
+  --with-lapack \
   --with-zstd \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
