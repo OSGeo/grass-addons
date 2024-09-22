@@ -51,17 +51,24 @@ class TestBuildGDALVRT(TestCase):
         regions = {"s": (0, 1000), "n": (500, 1500)}
         tmp_dir = Path(gs.tempfile(create=False))
         tmp_dir.mkdir(parents=True, exist_ok=True)
+        cls.map_input_file = tmp_dir / "map_file.txt"
         gs.run_command(
             "r.external.out",
             format="GTiff",
             options="compress=LZW,PREDICTOR=3",
             directory=str(tmp_dir),
         )
+        map_list = []
         for name, ns_extent in regions.items():
             gs.run_command(
                 "g.region", n=ns_extent[1], s=ns_extent[0], w=0, e=1000, res=1
             )
-            gs.mapcalc(f"tmp_vrt_gtiff_{ns_extent[1]}_{ns_extent[0]}=float(x()*y())")
+            map_name = f"tmp_vrt_gtiff_{ns_extent[1]}_{ns_extent[0]}"
+            map_list.append(map_name)
+            gs.mapcalc(f"{map_name}=float(x()*y())")
+
+        cls.map_input_file.write_text("\n".join(map_list), encoding="UTF8")
+
         # Set region
         gs.use_temp_region()
         gs.run_command("g.region", n=1500, s=0, w=0, e=1000, res=1)
@@ -153,6 +160,42 @@ semantic_label="none"
             "tmp_vrt_gdal_dir", reference=self.vrt_univar, precision=2
         )
         self.assertFileExists(vrt_directory + "/tmp_vrt_gdal_dir.vrt")
+
+    def test_r_buildvrt_fails_rm(self):
+        """Check that module fails with both -m and -r"""
+        raster_maps = gs.list_strings(type="raster", pattern="tmp_vrt_gtiff*_*")
+        # run the import module
+        self.assertModuleFail(
+            "r.buildvrt.gdal",
+            verbose=True,
+            input=",".join(raster_maps),
+            file=str(self.map_input_file),
+            output="tmp_vrt_gdal_input_file",
+        )
+
+    def test_r_buildvrt_fails_rm(self):
+        """Check that module fails with both -m and -r"""
+        # run the import module
+        self.assertModuleFail(
+            "r.buildvrt.gdal",
+            verbose=True,
+            flags="rm",
+            file=str(self.map_input_file),
+            output="tmp_vrt_gdal_rm",
+        )
+
+    def test_r_buildvrt_gdal_vrt_file(self):
+        """Check that the output is created and readable with file input"""
+        # run the import module
+        self.assertModule(
+            "r.buildvrt.gdal",
+            verbose=True,
+            file=str(self.map_input_file),
+            output="tmp_vrt_gdal_file",
+        )
+        self.assertRasterFitsUnivar(
+            "tmp_vrt_gdal_file", reference=self.vrt_univar, precision=2
+        )
 
 
 if __name__ == "__main__":
