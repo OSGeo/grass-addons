@@ -90,7 +90,7 @@ def get_raster_gdalpath(map_name, check_linked=True, gis_env=None):
         )
         if header_path.exists():
             gdal_path = Path(
-                gs.parse_key_val(header_path.read_text().replace(": ", "="))["file"]
+                gs.parse_key_val(header_path.read_text(), sep=": "))["file"]
             )
             if gdal_path.exists():
                 return str(gdal_path)
