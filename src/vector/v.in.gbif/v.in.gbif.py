@@ -86,9 +86,9 @@ def main():
     new_gbif_csv = os.path.join(gbiftempdir, gbifcsv)
 
     # quote raw data
-    with open("%s" % (gbifraw), "rb") as csvinfile:
+    with open(f"{gbifraw}", "r") as csvinfile:
         gbifreader = csv.reader(csvinfile, delimiter="\t")
-        with open("%s" % (new_gbif_csv), "wb") as csvoutfile:
+        with open(f"{new_gbif_csv}", "w", newline="") as csvoutfile:
             gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
             for row in gbifreader:
                 gbifwriter.writerow(row)
@@ -98,14 +98,14 @@ def main():
     grass.message("writing vrt ...")
     new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt)
 
-    f = open("%s" % (new_gbif_vrt), "wt")
+    f = open(f"{new_gbif_vrt}", "wt")
     f.write(
         """<OGRVRTDataSource>
     <OGRVRTLayer name="%s">
         <SrcDataSource relativeToVRT="1">%s</SrcDataSource>
         <GeometryType>wkbPoint</GeometryType>
         <LayerSRS>WGS84</LayerSRS>
-                <Field name="g_gbifid" src="gbifid" type="Integer" />
+                <Field name="g_gbifid" src="gbifid" type="Integer64" />
                 <Field name="g_datasetkey" src="datasetkey" type="String" width="255" />
                 <Field name="g_occurrenceid" src="occurrenceid" type="String" width="255" />
                 <Field name="g_kingdom" src="kingdom" type="String" width="50" />

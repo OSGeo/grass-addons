@@ -445,11 +445,11 @@ def main():
     try:
         import sklearn
 
-        if sklearn.__version__ < "0.20":
-            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+        if sklearn.__version__ < "1.2.2":
+            gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     except ImportError:
-        gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+        gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     try:
         import pandas as pd
@@ -683,7 +683,7 @@ def main():
 
     # one-hot encoding
     elif norm_data is False and category_maps is not None:
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough", transformers=[("onehot", enc, stack.categorical)]
         )
@@ -691,7 +691,7 @@ def main():
     # standardization and one-hot encoding
     elif norm_data is True and category_maps is not None:
         scaler = StandardScaler()
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough",
             transformers=[
