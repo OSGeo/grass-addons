@@ -61,9 +61,12 @@
 
 # %rules
 # % required: input,file
+# % exclusive: input,file
+# % exclusive: -m,-r
 # %end
 
 
+import json
 import sys
 
 from pathlib import Path
@@ -71,7 +74,9 @@ from pathlib import Path
 import grass.script as gs
 
 
-def get_raster_gdalpath(map_name, check_linked=True, gis_env=None):
+def get_raster_gdalpath(
+    map_name, check_linked=True, has_grasadriver=False, gis_env=None
+):
     """Get get the path to a raster map that can be opened by GDAL
 
     Checks for GDAL source of linked raster data and returns those
@@ -88,28 +93,37 @@ def get_raster_gdalpath(map_name, check_linked=True, gis_env=None):
             / map_info["name"]
             / "gdal"
         )
-        if header_path.exists():
+        if header_path.is_file():
             gdal_path = Path(
-                gs.parse_key_val(header_path.read_text(), sep=": "))["file"]
+                gs.parse_key_val(header_path.read_text(), sep=": ")["file"]
             )
             if gdal_path.exists():
                 return str(gdal_path)
 
-        # Check if Path can be read from command history
-        gdal_path = Path(
-            gs.parse_key_val(
-                gs.parse_command("r.info", flags="e", map=map_name)["comments"]
-                .replace("\\", "")
-                .replace('"', ""),
-                vsep=" ",
-            )["input"]
-        )
-        if gdal_path.exists():
-            return str(gdal_path)
+        # Check if path to GDAL-readable input dataset can be read
+        # from command history; normaly this should not be reached
+        raster_history = json.loads(
+            gs.read_command("r.info", format="json", map=map_name)
+        )["comments"].split("\n")
+        for comment in raster_history:
+            if "input" not in comment:
+                continue
+            gdal_path = Path(gs.parse_key_val(comment, vsep=" ")["input"])
+            if gdal_path.is_file():
+                return str(gdal_path)
 
     # Get native GRASS GIS format header
+    if not has_grasadriver:
+        gs.fatal(
+            _(
+                "The GDAL-GRASS GIS driver is unavailable. "
+                "Cannot create GDAL VRTs for map <{}>. "
+                "Please install the GDAL-GRASS plugin."
+            ).format(map_name)
+        )
+
     gdal_path = Path(gs.find_file(map_name)["file"].replace("/cell/", "/cellhd/"))
-    if gdal_path.exists():
+    if gdal_path.is_file():
         return gdal_path
 
     # Fail if file path cannot be determined
@@ -118,16 +132,25 @@ def get_raster_gdalpath(map_name, check_linked=True, gis_env=None):
 
 def main():
     """run the main workflow"""
+    options, flags = gs.parser()
 
-    # Check if GRASS GIS driver is available
-    if not gdal.GetDriverByName("GRASS"):
-        gs.warning(
+    # lazy imports
+    global gdal
+    try:
+        from osgeo import gdal
+    except ImportError:
+        gs.fatal(
             _(
-                "The GRASS GIS driver missing in GDAL."
-                "Creating VRTs for maps in native GRASS GIS format will fail. "
-                "Please install the GDAL-GRASS plugin."
+                "Unable to load GDAL Python bindings (requires "
+                "package 'python-gdal' or Python library GDAL "
+                "to be installed)."
             )
         )
+
+    # Check if GRASS GIS driver is available
+    has_grassdriver = True
+    if not gdal.GetDriverByName("GRASS"):
+        has_grassdriver = False
 
     # Get GRASS GIS environment info
     gisenv = gs.gisenv()
@@ -164,7 +187,6 @@ def main():
     gs.run_command(
         "r.external",
         quiet=True,
-        overwrite=gs.overwrite(),
         flags=f"oa{''.join([key for key, val in flags.items() if val])}",
         input=str(vrt_path),
         output=output,
@@ -173,19 +195,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gs.parser()
-
-    # lazy imports
-    global gdal
-    try:
-        from osgeo import gdal
-    except ImportError:
-        gs.fatal(
-            _(
-                "Unable to load GDAL Python bindings (requires "
-                "package 'python-gdal' or Python library GDAL "
-                "to be installed)."
-            )
-        )
 
     sys.exit(main())
