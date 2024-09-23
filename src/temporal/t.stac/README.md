@@ -1,9 +1,9 @@
-# (In-Development) t.stac
+# t.stac
 
 ## Description
 
 The **t.stac** toolset utilizes the
-[pystac-client (v0.5.1)](https://github.com/stac-utils/pystac-client) to search
+[pystac-client (v0.8.3)](https://github.com/stac-utils/pystac-client) to search
 STAC APIs and import items into GRASS GIS.
 
 ### Item Search Parameters
@@ -83,7 +83,9 @@ required. Use items_as_dicts to avoid object unmarshalling errors.
 
 ### Dependencies
 
-* [pystac-client (v0.5.1)](https://github.com/stac-utils/pystac-client)
+* [pystac-client (v0.8.3)](https://github.com/stac-utils/pystac-client)
+* [pystac (v1.10.1)](https://pystac.readthedocs.io/en/stable/)
+* [tqdm (4.66.3)](https://github.com/tqdm/tqdm)
 
 #### Optional Query
 
