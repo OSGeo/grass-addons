@@ -387,7 +387,7 @@ def main():
                     label = "$y = {c:.3f} + {m:.3f} x$".format(m=cf[0], c=cf[1])
                 elif method == "logarithmic":
                     line = np.log(x_pred) * cf[0] + cf[1]
-                    label = "$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=cf[0], c=cf[1])
+                    label = r"$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=cf[0], c=cf[1])
                 elif method == "exponential":
                     line = np.exp(x_pred * cf[0] + cf[1])
                     label = "$y = {c:.3f} e^{{{m:.3f}x}}$".format(
@@ -400,7 +400,7 @@ def main():
                     )
                 elif method == "logarithmic2":
                     line = logarithmic2(x_pred / magn, *cf) * magn
-                    label = "$y = {A:.3f} + {B:.3f} \ln(x-{C:.3f})$".format(
+                    label = r"$y = {A:.3f} + {B:.3f} \ln(x-{C:.3f})$".format(
                         A=cf[0], B=cf[1], C=cf[2]
                     )
                 ax.plot(x_pred, line, label=label)

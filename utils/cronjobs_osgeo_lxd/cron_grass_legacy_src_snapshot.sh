@@ -1,20 +1,27 @@
 #!/bin/sh
 
 # script to build GRASS GIS legacy source package from the `releasebranch_7_8` branch
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# Markus Neteler 2002-2023
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
-## prep, neteler@osgeo6:$
-# mkdir -p ~/src
-# cd ~/src
-# for i in 2 4 6 ; do git clone ​https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
-# for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
+###################################################################
+# how it works:
+# - it updates locally the GRASS source code from github server
+# - packages the source code tarball
+#
+# Preparations, on server (neteler@grasslxd:$):
+#   mkdir -p ~/src
+#   cd ~/src
+#   for i in 2 4 6 ; do git clone ​https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
+#   for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
 #
 ###################################################################
-
+# variables for packaging environment (grass.osgeo.org specific)
 MAINDIR=/home/neteler
+PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
+
+# https://github.com/OSGeo/grass/tags
 GMAJOR=7
 GMINOR=8
 GVERSION=$GMAJOR.$GMINOR.git
@@ -54,16 +61,17 @@ mkdir -p $TARGETDIR
 cd $SOURCE/$BRANCH/
 date
 
-# clean up
+# clean up from previous run
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
+rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
-rm -f config_${DOTVERSION}.git_log.txt ChangeLog
+rm -f config_*.git_log.txt ChangeLog
 
-# be sure to be on branch
+# be sure to be on the right branch
 git checkout $BRANCH
 
 echo "git update..."
@@ -73,38 +81,38 @@ git merge origin/$BRANCH
 
 git status
 
-#generate changelog
+# generate changelog
 touch include/Make/Platform.make # workaround for https://trac.osgeo.org/grass/ticket/3853
 make changelog
 rm -f include/Make/Platform.make
 
-# go to parent for packaging
+# go to parent directory for packaging
 cd ..
 
 date
-#package it (we rename the directory to have the date inside the package):
+# package it (we rename the directory to have the date inside the package):
 DATE=`date '+_%Y_%m_%d'`
 mv $BRANCH $PACKAGENAME\src_snapshot$DATE
 # exclude version control system directories (the flag order matters!)
 $TAR cfz $PACKAGENAME\src_snapshot$DATE.tar.gz --exclude-vcs $PACKAGENAME\src_snapshot$DATE
 mv $PACKAGENAME\src_snapshot$DATE $BRANCH
 
-#remove old snapshot:
+# remove old snapshot:
 rm -f $TARGETDIR/$PACKAGENAME\src_snapshot*
 rm -f $TARGETDIR/ChangeLog.gz
 
-#publish the new one:
+# publish the new one:
 cd $BRANCH/
-cp -p ChangeLog AUTHORS CHANGES CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR
+cp -p ChangeLog AUTHORS CITING COPYING GPL.TXT INSTALL REQUIREMENTS.html $TARGETDIR
 
 cd ..
 gzip $TARGETDIR/ChangeLog
 cp $PACKAGENAME\src_snapshot$DATE.tar.gz $TARGETDIR
 rm -f $PACKAGENAME\src_snapshot$DATE.tar.gz
 chmod a+r,g+w $TARGETDIR/* 2> /dev/null
-chgrp grass $TARGETDIR/*   2> /dev/null
+# chgrp grass $TARGETDIR/*   2> /dev/null
 
-# link for convenience:
+# "latest" link for convenience:
 (cd $TARGETDIR ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
 
 echo "Written to: $TARGETDIR

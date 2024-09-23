@@ -32,20 +32,20 @@ jobs:
         include:
           - grass-version: main
             python-version: "3.11"
-          - grass-version: releasebranch_8_3
+          - grass-version: releasebranch_8_4
             python-version: "3.10"
       fail-fast: false
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
 
       - name: Checkout addons
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           path: grass-addons
 
@@ -57,7 +57,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -102,10 +102,12 @@ jobs:
         run: |
           GDAL_VERSION="$(gdal-config --version)"
           export GDAL_VERSION
+          UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml
+          export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@v2
+        uses: r-lib/actions/setup-r@e6be4b3706e0f39bc7a4cf4496a5f2c4cb840040 # v2.10.1
         with:
           r-version: 4.2.1
 
@@ -119,7 +121,7 @@ jobs:
           ../.github/workflows/test.sh
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

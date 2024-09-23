@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# 2020, Markus Neteler
+# 2020-2024, Markus Neteler
 # deploy updated web site from github repo
 
 # preparation
@@ -23,7 +23,7 @@
 cd /home/neteler/grass-website/ && \
    git pull origin master && \
    rm -rf /home/neteler/grass-website/public/* && \
-   nice hugo && \
+   nice /home/neteler/go/bin/hugo && \
    mkdir /var/www/html_new && \
    \cp -rp /home/neteler/grass-website/public/* /var/www/html_new/ && \
    rm -fr /var/www/html/* && \

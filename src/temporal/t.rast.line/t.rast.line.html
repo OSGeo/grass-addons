@@ -1,99 +1,99 @@
 <h2>DESCRIPTION</h2>
 
-<em>t.rast.line</em> draws trend lines of the average values of the 
-input raster layers in a space-time raster dataset (strds). The trend 
-line represents the average values of the current computational region. 
-The user can optionally show an error bar for each trend line 
-using the <b>error</b> option. The error bar can be based on the 
-standard deviation (SD) or standard error (SE). The user can multiply 
-the SD or SE to increase or decrease the width of the error band using 
-the <b>n</b> option. 
+<em>t.rast.line</em> draws trend lines of the average values of the
+input raster layers in a space-time raster dataset (strds). The trend
+line represents the average values of the current computational region.
+The user can optionally show an error bar for each trend line
+using the <b>error</b> option. The error bar can be based on the
+standard deviation (SD) or standard error (SE). The user can multiply
+the SD or SE to increase or decrease the width of the error band using
+the <b>n</b> option.
 
 <p>
-If a zonal raster map is provided, using the <b>zones</b> option, trend 
-lines are plotted for each zone (category) in the zonal raster layer. 
-The zonal raster should be a single, static integer raster map. 
+If a zonal raster map is provided, using the <b>zones</b> option, trend
+lines are plotted for each zone (category) in the zonal raster layer.
+The zonal raster should be a single, static integer raster map.
 
 <p>
-<div align="left" style="margin: 10px"> <a href="t_rast_line_07.png"> 
-<img src="t_rast_line_07.png" alt="Trend lines for three land cover 
-categories of the FCover for the fraction of green vegetation cover for 
-the period 2014-2019." border="0"> </a><br><i>Trend lines (average 
-&#177; SD) for three land cover categories of the FCover for the 
+<div align="left" style="margin: 10px"> <a href="t_rast_line_07.png">
+<img src="t_rast_line_07.png" alt="Trend lines for three land cover
+categories of the FCover for the fraction of green vegetation cover for
+the period 2014-2019." border="0"> </a><br><i>Trend lines (average
+&#177; SD) for three land cover categories of the FCover for the
 fraction of green vegetation cover for the period 2014-2019.</i> </div>
 
 <p>
-The function will plot all rasters in the strds. Alternatively, the user 
+The function will plot all rasters in the strds. Alternatively, the user
 can select a subset of the raster layers using the WHERE conditions.
 
 <p>
-By default, the resulting plot is displayed on a new screen. However, the 
-user can also save the plot to a file using the <b>output</b> option. The 
-format is determined by the extension given by the user. So, if output 
-= outputfile.png, the plot will be saved as a *png* file. The user can 
+By default, the resulting plot is displayed on a new screen. However, the
+user can also save the plot to a file using the <b>output</b> option. The
+format is determined by the extension given by the user. So, if output
+= outputfile.png, the plot will be saved as a *png* file. The user can
 set the output size (in inches) and resolution (dpi).
 
 <p>
-There are a few plot format and layout options, including the option to 
-plot grid lines and the legend, rotate the labels, change the font size 
+There are a few plot format and layout options, including the option to
+plot grid lines and the legend, rotate the labels, change the font size
 of the labels, and change the date format.
 
 <p>
-If a zonal map is provided, the lines will take the colors of the 
-categories on that map. If the zonal map does not have a color table, 
+If a zonal map is provided, the lines will take the colors of the
+categories on that map. If the zonal map does not have a color table,
 the lines will be assigned random colors.
 
 <p>
-The default format of the date-time labels on the x-axis depend on the 
-temporal granularity of the data. This can be changed by the user using 
-the <b>date_format</b> option. For a list of options, see the <a 
+The default format of the date-time labels on the x-axis depend on the
+temporal granularity of the data. This can be changed by the user using
+the <b>date_format</b> option. For a list of options, see the <a
 href="https://strftime.org/">Python strftime cheatsheet</a>.
 
 <p>
-The <b>where</b> options allows allows performing different selections 
-of maps registered in the space-time datasets. For example, with 
-<i>start_time &lt; '2020-01-01'</i> the time series is limited to all 
-maps with a start time before the given date. For more details, see <a 
-href="https://grass.osgeo.org/grass83/manuals/temporalintro.html#modules-to-process-space-time-raster-datasets">this 
+The <b>where</b> options allows allows performing different selections
+of maps registered in the space-time datasets. For example, with
+<i>start_time &lt; '2020-01-01'</i> the time series is limited to all
+maps with a start time before the given date. For more details, see <a
+href="https://grass.osgeo.org/grass83/manuals/temporalintro.html#modules-to-process-space-time-raster-datasets">this
 page</a> for more details.
 
 <h2>NOTE</h2>
 
-The user can specify the number of threads to be used with the <b>nprocs</b> 
-parameter. However, note that parallelization does not work when the 
-MASK is set. If speed is an issue, it is recommended to create a new 
-zonal layer using, e.g., <em>r.mapcalc</em>, remove the MASK and use 
+The user can specify the number of threads to be used with the <b>nprocs</b>
+parameter. However, note that parallelization does not work when the
+MASK is set. If speed is an issue, it is recommended to create a new
+zonal layer using, e.g., <em>r.mapcalc</em>, remove the MASK and use
 the newly created zonal layer.
 
 <p>
-The t.rast.line module operates on the raster array defined by the 
-current region settings, not the original extent and resolution of the 
-input map. See <a 
-href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a> 
+The t.rast.line module operates on the raster array defined by the
+current region settings, not the original extent and resolution of the
+input map. See <a
+href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a>
 to understand the impact of the region settings on the calculations.
 
 <h2>EXAMPLE</h2>
 
-The next two examples use the North Carolina full (NC) and North 
-Carolina Climate 2000-2012 data sets, which can be downloaded from (<a 
-href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this 
+The next two examples use the North Carolina full (NC) and North
+Carolina Climate 2000-2012 data sets, which can be downloaded from (<a
+href="https://grass.osgeo.org/download/data/#NorthCarolinaDataset">this
 download page</a>).
 
 <p>
-First step is to create temporal datasets <i>tempmean</i> and 
-<i>precip_sum</i> for the rainfall and temperature time 
-series respectively, as described in <a 
-href="http://ncsu-geoforall-lab.github.io/grass-temporal-workshop">this 
-tutorial</a>. These will serve as input for the examples below. The 
-<i>landclass_96</i> raster layer in the PERMANENT mapset of the NC 
+First step is to create temporal datasets <i>tempmean</i> and
+<i>precip_sum</i> for the rainfall and temperature time
+series respectively, as described in <a
+href="http://ncsu-geoforall-lab.github.io/grass-temporal-workshop">this
+tutorial</a>. These will serve as input for the examples below. The
+<i>landclass_96</i> raster layer in the PERMANENT mapset of the NC
 project (location) will be used as zonal map.
 
 <h3>Example 1</h3>
 
-Plot the tempmean time series. Note that you can speed up the process 
-considerably by making use of the cores and threads of your computer. 
-You can set the number of threads to be used with the <b>nprocs</b> 
-option. 
+Plot the tempmean time series. Note that you can speed up the process
+considerably by making use of the cores and threads of your computer.
+You can set the number of threads to be used with the <b>nprocs</b>
+option.
 
 <p>
 <div class="code"><pre>
@@ -108,8 +108,8 @@ t.rast.line input=tempmean nprocs=10
 
 <h3>Example 2</h3>
 
-Plot the rainfall time series. Set the color of the line to green, and 
-choose the option to plot an error band based on the <i>standard 
+Plot the rainfall time series. Set the color of the line to green, and
+choose the option to plot an error band based on the <i>standard
 deviation</i> using the <b>error</b> option.
 
 <p>
@@ -124,9 +124,9 @@ t.rast.line input=precip_sum error=sd line_color=0:128:0:255 nprocs=10
 
 <h3>Example 3</h3>
 
-Now, compare the temporal rainfall patterns in the inland Avery County 
-and Brunswick County on the coast. Set the flag <b>-l</b> to include a 
-legend. 
+Now, compare the temporal rainfall patterns in the inland Avery County
+and Brunswick County on the coast. Set the flag <b>-l</b> to include a
+legend.
 
 <p>
 <div class="code"><pre>
@@ -141,20 +141,20 @@ t.rast.line -l input=tempmean zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
-	
+
 <p>
 <div align="center" style="margin: 10px">
 <img src="t_rast_line_03.png">
 </div>
 
 <p>
-Because the zonal map does not have a color table, the lines have a 
-random color. 
+Because the zonal map does not have a color table, the lines have a
+random color.
 
 <h3>Example 4</h3>
 
-If you want the colors of the trend lines to match the color of the 
-zonal categories, make sure to define the category colors. 
+If you want the colors of the trend lines to match the color of the
+zonal categories, make sure to define the category colors.
 
 <p>
 <div class="code"><pre>
@@ -169,8 +169,8 @@ t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10
 </pre></div>
 
 <p>
-Whether this was the right color choice is debatable, but, the colors 
-of the graph match those of the zones of the map. Note that with the 
+Whether this was the right color choice is debatable, but, the colors
+of the graph match those of the zones of the map. Note that with the
 <b>g</b> flag, vertical grid lines are drawn.
 
 <p>
@@ -180,8 +180,8 @@ of the graph match those of the zones of the map. Note that with the
 
 <h3>Example 5</h3>
 
-You can zoom in on a specific period using the <b>where</b> option. 
-For example, to plot the trend line for the time period 01-01-2004 to 
+You can zoom in on a specific period using the <b>where</b> option.
+For example, to plot the trend line for the time period 01-01-2004 to
 01-01-2010, you can use the following:
 
 <p>
@@ -192,9 +192,9 @@ t.rast.line -l -g input=tempmean zones=comparison_counties error=sd nprocs=10 \
 
 
 <p>
-When using greater than (>), the date alone is not enough, also also 
-the time needs to be set explicitly. This is not needed when using 
-smaller than (<). 
+When using greater than (>), the date alone is not enough, also also
+the time needs to be set explicitly. This is not needed when using
+smaller than (<).
 
 <p>
 <div align="center" style="margin: 10px">
@@ -203,9 +203,9 @@ smaller than (<).
 
 <h3>Example 6</h3>
 
-If you want to create and compare two plots, it might be useful to 
-force both to use a specific scale by using the <b>y_axis_limits</b> 
-parameter and the same y-axis label by using the <b>y_label</b> 
+If you want to create and compare two plots, it might be useful to
+force both to use a specific scale by using the <b>y_axis_limits</b>
+parameter and the same y-axis label by using the <b>y_label</b>
 parameter.
 
 <p>
