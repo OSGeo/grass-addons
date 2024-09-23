@@ -77,11 +77,12 @@ import grass.script as gs
 def get_raster_gdalpath(
     map_name, check_linked=True, has_grasadriver=False, gis_env=None
 ):
-    """Get get the path to a raster map that can be opened by GDAL
+    """Get the GDAL-readable path to a GRASS GIS raster map
 
-    Checks for GDAL source of linked raster data and returns those
-    if not otherwise requested or the path to the header of
-    raster maps in native GRASS GIS format"""
+    Returns either the link stored in the GDAL-link file in the cell_misc
+    directory for raster maps linked with r.external or r.external.out
+    - if requested - or the path to the header of the GRASS GIS raster
+    map"""
     if check_linked:
         # Check GDAL link header
         map_info = gs.find_file(map_name)
@@ -98,18 +99,6 @@ def get_raster_gdalpath(
                 gs.parse_key_val(header_path.read_text(), sep=": ")["file"]
             )
             if gdal_path.exists():
-                return str(gdal_path)
-
-        # Check if path to GDAL-readable input dataset can be read
-        # from command history; normaly this should not be reached
-        raster_history = json.loads(
-            gs.read_command("r.info", format="json", map=map_name)
-        )["comments"].split("\n")
-        for comment in raster_history:
-            if "input" not in comment:
-                continue
-            gdal_path = Path(gs.parse_key_val(comment, vsep=" ")["input"])
-            if gdal_path.is_file():
                 return str(gdal_path)
 
     # Get native GRASS GIS format header
