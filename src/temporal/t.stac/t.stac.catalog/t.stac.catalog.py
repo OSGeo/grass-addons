@@ -63,26 +63,44 @@
 # % description: Return basic information only
 # %end
 
+# %flag
+# % key: p
+# % description: Pretty print the JSON output
+# %end
+
 import sys
+import json
+from io import StringIO
+from contextlib import contextmanager
 from pprint import pprint
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
-# Import STAC Client
-from pystac_client import Client
-from pystac_client.exceptions import APIError
-import json
 
-
-path = get_lib_path(modname="t.stac", libname="staclib")
-if path is None:
-    gs.fatal("Not able to find the stac library directory.")
-sys.path.append(path)
+@contextmanager
+def add_sys_path(new_path):
+    """Add a path to sys.path and remove it when done"""
+    original_sys_path = sys.path[:]
+    sys.path.append(new_path)
+    try:
+        yield
+    finally:
+        sys.path = original_sys_path
 
 
 def main():
     """Main function"""
-    import staclib as libstac
+
+    # Import dependencies
+    path = get_lib_path(modname="t.stac", libname="staclib")
+    if path is None:
+        gs.fatal("Not able to find the stac library directory.")
+
+    with add_sys_path(path):
+        try:
+            import staclib as libstac
+        except ImportError as err:
+            gs.fatal(f"Unable to import staclib: {err}")
 
     # STAC Client options
     client_url = options["url"]  # required
@@ -90,54 +108,57 @@ def main():
 
     # Flag options
     basic_info = flags["b"]  # optional
+    pretty_print = flags["p"]  # optional
 
     # Set the request headers
     settings = options["settings"]
     req_headers = libstac.set_request_headers(settings)
 
     try:
-        client = Client.open(client_url, headers=req_headers)
-
-        # Check if the client conforms to the STAC Item Search
-        # This will exit the program if the client does not conform
-        libstac.conform_to_item_search(client)
+        stac_helper = libstac.STACHelper()
+        client = stac_helper.connect_to_stac(client_url, req_headers)
 
         if format == "plain":
-            gs.message(_(f"Client Id: {client.id}"))
-            gs.message(_(f"Client Title: {client.title}"))
-            gs.message(_(f"Client Description: {client.description}"))
-            gs.message(_(f"Client STAC Extensions: {client.stac_extensions}"))
-            gs.message(_(f"Client Extra Fields: {client.extra_fields}"))
-            gs.message(_(f"Client catalog_type: {client.catalog_type}"))
-            gs.message(_(f"{'-' * 75}\n"))
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"Catalog: {client.title}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
+            sys.stdout.write(f"Client Id: {client.id}\n")
+            sys.stdout.write(f"Client Description: {client.description}\n")
+            sys.stdout.write(f"Client STAC Extensions: {client.stac_extensions}\n")
+            sys.stdout.write(f"Client catalog_type: {client.catalog_type}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
 
             # Get all collections
-            collection_list = libstac.get_all_collections(client)
-            gs.message(_(f"Collections: {len(collection_list)}\n"))
-            gs.message(_(f"{'-' * 75}\n"))
+            collection_list = stac_helper.get_all_collections()
+            sys.stdout.write(f"Collections: {len(collection_list)}\n")
+            sys.stdout.write(f"{'-' * 75}\n")
 
             if basic_info:
+                sys.stdout.write("Collection Id | Collection Title\n")
+                sys.stdout.write(f"{'-' * 75}\n")
                 for i in collection_list:
-                    gs.message(_(f"{i.get('id')}: {i.get('title')}"))
-
-            if not basic_info:
+                    sys.stdout.write(f"{i.get('id')}: {i.get('title')}\n")
+                sys.stdout.write(f"{'-' * 75}\n")
+            else:
                 for i in collection_list:
-                    gs.message(_(f"{i.get('id')}: {i.get('title')}"))
-                    gs.message(_(f"{i.get('description')}"))
-                    gs.message(_(f"Extent: {i.get('extent')}"))
-                    gs.message(_(f"License: {i.get('license')}"))
-                    gs.message(_(f"{'-' * 75}\n"))
+                    sys.stdout.write(f"Collection: {i.get('title')}\n")
+                    sys.stdout.write(f"{'-' * 75}\n")
+                    sys.stdout.write(f"Collection Id: {i.get('id')}\n")
+                    sys.stdout.write(f"{i.get('description')}\n")
+                    sys.stdout.write(f"Extent: {i.get('extent')}\n")
+                    sys.stdout.write(f"License: {i.get('license')}\n")
+                    sys.stdout.write(f"{'-' * 75}\n")
                     libstac.print_list_attribute(
                         client.get_conforms_to(), "Conforms To:"
                     )
-                    gs.message(_(f"{'-' * 75}\n"))
+                    sys.stdout.write(f"{'-' * 75}\n")
                 return None
         else:
-            json_output = json.dumps(client.to_dict())
-            return json_output
+            client_dict = client.to_dict()
+            libstac.print_json_to_stdout(client_dict, pretty_print)
 
-    except APIError as e:
-        gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
+    except Exception as e:
+        gs.fatal(_("Error: {}".format(e)))
 
 
 if __name__ == "__main__":
