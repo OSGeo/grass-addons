@@ -55,6 +55,7 @@ jobs:
           VALIDATE_PYTHON_FLAKE8: false
           VALIDATE_PYTHON_ISORT: false # Until issues are fixed
           VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
+          VALIDATE_PYTHON_PYINK: false # fork of black with different behavior
           VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
           VALIDATE_PYTHON_RUFF: false # Until ruff is configured and most issues fixed
           VALIDATE_R: false
