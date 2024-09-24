@@ -34,6 +34,7 @@ jobs:
       - name: Lint code base
         uses: super-linter/super-linter@b92721f792f381cedc002ecdbb9847a15ece5bb8 # v7.1.0
         env:
+          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # By default, super-linter expect all linters to have their config
           # files inside .github/linters.
@@ -47,7 +48,10 @@ jobs:
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_HTML: false # Until configured, some valid findings
+          VALIDATE_HTML_PRETTIER: false # Until properly formatted
           VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
+          VALIDATE_JSON_PRETTIER: false # until fixed
+          VALIDATE_JSONC_PRETTIER: false
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
           VALIDATE_PERL: false # Until issues are fixed
