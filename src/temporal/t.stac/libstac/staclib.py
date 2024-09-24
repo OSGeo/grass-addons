@@ -402,7 +402,7 @@ def report_plain_asset_summary(asset):
     sys.stdout.write(f"Asset Description: {asset.get('description')}\n")
 
     if MediaType:
-        sys.stdout.write(f"Asset Media Type: { MediaType(asset.get('type')).name}\n")
+        sys.stdout.write(f"Asset Media Type: {MediaType(asset.get('type')).name}\n")
     else:
         sys.stdout.write(f"Asset Media Type: {asset.get('type')}\n")
     sys.stdout.write(f"Asset Roles: {asset.get('roles')}\n")
