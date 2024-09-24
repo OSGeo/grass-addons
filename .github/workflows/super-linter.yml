@@ -50,9 +50,10 @@ jobs:
           VALIDATE_HTML: false # Until configured, some valid findings
           VALIDATE_HTML_PRETTIER: false # Until properly formatted
           VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
-          VALIDATE_JSON_PRETTIER: false # until fixed
+          VALIDATE_JSON_PRETTIER: false # Until fixed
           VALIDATE_JSONC_PRETTIER: false
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
+          VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
           VALIDATE_PERL: false # Until issues are fixed
           VALIDATE_PYTHON_BLACK: false # Until code is upgraded to a newer black version
