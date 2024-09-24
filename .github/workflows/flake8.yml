@@ -17,7 +17,7 @@ concurrency:
 permissions: {}
 env:
   # renovate: datasource=python-version depName=python
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.12"
   # renovate: datasource=pypi depName=flake8
   FLAKE8_VERSION: "7.1.1"
 
