@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
