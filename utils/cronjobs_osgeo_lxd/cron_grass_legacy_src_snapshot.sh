@@ -10,20 +10,17 @@
 # - it updates locally the GRASS source code from github server
 # - packages the source code tarball
 #
-# Preparations, on server (neteler@grasslxd:$):
-#   mkdir -p ~/src
-#   cd ~/src
-#   for i in 2 4 6 ; do git clone ​https://github.com/OSGeo/grass.git releasebranch_7_$i ; done
-#   for i in 2 4 6 ; do (cd releasebranch_7_$i ;  git checkout releasebranch_7_$i ) ; done
+# To be executed on server (neteler@grasslxd:$)
 #
 ###################################################################
 # variables for packaging environment (grass.osgeo.org specific)
-MAINDIR=/home/neteler
+MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=7
 GMINOR=8
+BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -34,7 +31,6 @@ set -e
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
@@ -57,9 +53,30 @@ halt_on_error()
 # create a source code snapshot:
 CWD=`pwd`
 
-mkdir -p $TARGETDIR
+# setup source code repo
+mkdir -p $SOURCE $TARGETDIR
+
+# fetch repo if needed
+cd "$SOURCE/"
+# Check if the repository is already cloned
+if [ -d "$BRANCH" ]; then
+  echo "The GRASS GIS repository <$BRANCH> has already been cloned. Continuing..."
+else
+  echo "Cloning the GRASS GIS repository <$BRANCH> first..."
+  git clone https://github.com/OSGeo/grass.git $BRANCH
+  if [ $? -eq 0 ]; then
+    echo "Repository successfully cloned."
+  else
+    echo "Error: Failed to clone the repository."
+    exit 1
+  fi
+fi
+
 cd $SOURCE/$BRANCH/
 date
+
+# be sure to be on the right branch
+git checkout $BRANCH
 
 # clean up from previous run
 touch include/Make/Platform.make
@@ -70,9 +87,6 @@ rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_*.git_log.txt ChangeLog
-
-# be sure to be on the right branch
-git checkout $BRANCH
 
 echo "git update..."
 git fetch --all --prune       || halt_on_error "git fetch error!"

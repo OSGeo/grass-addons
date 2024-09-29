@@ -8,7 +8,7 @@
 ###################################################################
 # how it works:
 # - it updates locally the GRASS source code from github server
-# - configures, compiles
+# - configures source code and then compiles it
 # - packages the binaries
 # - generated the install scripts
 # - generates the pyGRASS 7 HTML manual
@@ -22,25 +22,20 @@
 #  - Install GDAL
 #  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 #  - Clone source from github:
-#    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git releasebranch_7_8
-#    cd releasebranch_7_8
-#    git checkout releasebranch_7_8
-#  - Prepare target directories:
-#    cd /var/www/code_and_data/
-#    mkdir grass78
+#  - cross-link code into web space on grasslxd server:
 #    cd /var/www/html/
 #    ln -s /var/www/code_and_data/grass78 .
 #
 #################################
 # variables for build environment (grass.osgeo.org specific)
-MAINDIR=/home/neteler
+MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=7
 GMINOR=8
 GPATCH=7 # required by grass-addons-index.sh
+BRANCH=releasebranch_${GMAJOR}_$GMINOR
 
 # NEW_CURRENT: set to same value as in cron_grass_old_build_binaries.sh
 NEW_CURRENT=84
@@ -60,13 +55,12 @@ LDFLAGSSTRING='-s'
 # define GRASS GIS build related paths:
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# progman not built for older dev versions or old stable, only for preview
+# progman not built for older dev versions or old stable, only for preview version
 #TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -87,6 +81,31 @@ halt_on_error()
 # function to configure for compilation
 configure_grass()
 {
+# setup source code repo
+
+mkdir -p $SOURCE $TARGETDIR
+
+# fetch repo if needed
+cd "$SOURCE/"
+# Check if the repository is already cloned
+if [ -d "$BRANCH" ]; then
+  echo "The GRASS GIS repository <$BRANCH> has already been cloned. Continuing..."
+else
+  echo "Cloning the GRASS GIS repository <$BRANCH> first..."
+  git clone https://github.com/OSGeo/grass.git $BRANCH
+  if [ $? -eq 0 ]; then
+    echo "Repository successfully cloned."
+  else
+    echo "Error: Failed to clone the repository."
+    exit 1
+  fi
+fi
+
+cd $SOURCE/$BRANCH/
+date
+
+# be sure to be on the right branch
+git checkout $BRANCH
 # cleanup from previous run
 rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
@@ -138,6 +157,7 @@ git fetch --all --prune && git checkout $BRANCH && git pull --rebase || halt_on_
 git status
 
 # for the "contributors list" in old CMSMS (still needed for hugo?)
+mkdir -p $TARGETMAIN/uploads/grass/
 cp -f *.csv $TARGETMAIN/uploads/grass/
 
 # configure for compilation
@@ -251,15 +271,31 @@ cd $GRASSBUILDDIR
 
 # update addon repo (addon repo has been cloned twice on the server to
 # have separate grass7 and grass8 addon compilation)
-(cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# fetch addon repo if needed
+cd "$SOURCE/"
+# Check if the addon repository is already cloned
+if [ -d "grass${GMAJOR}-addons" ]; then
+  echo "The GRASS GIS repository <grass${GMAJOR}-addons> has already been cloned. Continuing..."
+else
+  echo "Cloning the GRASS GIS repository <grass${GMAJOR}-addons> first..."
+  git clone https://github.com/OSGeo/grass-addons.git grass${GMAJOR}-addons
+  if [ $? -eq 0 ]; then
+    echo "Repository successfully cloned."
+  else
+    echo "Error: Failed to clone the repository."
+    exit 1
+  fi
+fi
+# setup source code repo
+(cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
 sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
    $GMINOR \
-   ~/src/grass$GMAJOR-addons/src/ \
-   ~/src/$BRANCH/dist.$ARCH/ \
+   $SOURCE/grass$GMAJOR-addons/src/ \
+   $SOURCE/$BRANCH/dist.$ARCH/ \
    ~/.grass$GMAJOR/addons \
-   ~/src/$BRANCH/bin.$ARCH/grass$VERSION \
+   $SOURCE/$BRANCH/bin.$ARCH/grass$VERSION \
    1
 mkdir -p $TARGETHTMLDIR/addons/
 # copy individual addon html files into one target dir if compiled addon
@@ -282,7 +318,7 @@ mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
 cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-~/src/$BRANCH/bin.$ARCH/grass$VERSION --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
+$SOURCE/$BRANCH/bin.$ARCH/grass$VERSION --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
 cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords
@@ -316,7 +352,6 @@ echo "Injecting G8.x new current version hint in a red box into MAN pages..."
 # - run sed to replace an existing HTML header string in the upper part of the HTML file
 #   with itself + canonical link of stable version
 # --> do this for core manual pages, addons, libpython
-##
 (cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
 (cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
