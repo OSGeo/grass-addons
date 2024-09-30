@@ -16,7 +16,8 @@
 # - run this script
 #
 ###################################################################
-# variables for packaging environment (grass.osgeo.org specific)
+# variables for src packaging environment (grass.osgeo.org specific)
+USER=`id -u -n`
 MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 

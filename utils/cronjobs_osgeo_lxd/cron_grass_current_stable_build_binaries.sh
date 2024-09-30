@@ -28,6 +28,7 @@
 #
 #################################
 # variables for build environment (grass.osgeo.org specific)
+USER=`id -u -n`
 MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
