@@ -316,18 +316,18 @@ fi
 (cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
+sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
    $GMINOR \
    $SOURCE/grass$GMAJOR-addons/src/ \
    $SOURCE/$BRANCH/dist.$ARCH/ \
-   ~/.grass$GMAJOR/addons \
+   $MAINDIR/.grass$GMAJOR/addons \
    $SOURCE/$BRANCH/bin.$ARCH/grass \
    1
 mkdir -p $TARGETHTMLDIR/addons/
 # copy individual addon html files into one target dir if compiled addon
-# has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
+# has own dir e.g. $MAINDIR/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
-for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
+for dir in `find $MAINDIR/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
         if [ "$(ls -A $dir/docs/html/)" ]; then
             for f in $dir/docs/html/*; do
@@ -336,7 +336,7 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
+sh $MAINDIR/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 # copy over hamburger menu assets
 cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/hamburger_menu.svg \
@@ -345,13 +345,13 @@ cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# copy over logs from ~/.grass$GMAJOR/addons/logs/
+# copy over logs from $MAINDIR/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
-cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+cp -p $MAINDIR/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
-cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
+$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
+cp $MAINDIR/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords
 export ARCH

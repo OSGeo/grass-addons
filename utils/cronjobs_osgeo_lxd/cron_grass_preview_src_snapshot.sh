@@ -84,7 +84,7 @@ git checkout $BRANCH
 
 # clean up from previous run
 touch include/Make/Platform.make
-$MYMAKE distclean > /dev/null 2>&1
+$MYMAKE distclean
 rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
 # cleanup leftover garbage
