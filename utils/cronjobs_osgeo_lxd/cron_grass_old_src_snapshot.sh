@@ -11,6 +11,9 @@
 # - packages the source code tarball
 #
 # To be executed on server (neteler@grasslxd:$)
+# - install dependencies:
+#   cd $HOME/src/release_branch_8_3/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - run this script
 #
 ###################################################################
 # variables for packaging environment (grass.osgeo.org specific)
