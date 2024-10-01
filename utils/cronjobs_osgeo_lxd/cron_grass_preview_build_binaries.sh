@@ -80,28 +80,11 @@ halt_on_error()
 # function to configure for compilation
 configure_grass()
 {
-# setup source code repo
-mkdir -p $SOURCE $TARGETDIR
-# fetch repo if needed
-cd "$SOURCE/"
-# Check if the repository is already cloned
-if [ -d "$BRANCH" ]; then
-  echo "The GRASS GIS repository <$BRANCH> has already been cloned. Continuing..."
-else
-  echo "Cloning the GRASS GIS repository <$BRANCH> first..."
-  git clone https://github.com/OSGeo/grass.git $BRANCH
-  if [ $? -eq 0 ]; then
-    echo "Repository successfully cloned."
-  else
-    echo "Error: Failed to clone the repository."
-    exit 1
-  fi
-fi
-
-cd $SOURCE/$BRANCH/
-date
+# be sure the targetdir exists
+mkdir -p $TARGETDIR
 
 # be sure to be on the right branch
+cd $SOURCE/$BRANCH/
 git checkout $BRANCH
 
 # cleanup from previous run
@@ -236,7 +219,8 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 
 # note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
-##### generate i18N stats for HTML page path (WebSVN):
+##### generate i18N stats for HTML page path:
+# note: the gettext POT files are managed in git and OSGeo Weblate
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
 cd $GRASSBUILDDIR
 (cd locale/ ;

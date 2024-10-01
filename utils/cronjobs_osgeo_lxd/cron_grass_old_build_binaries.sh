@@ -84,30 +84,11 @@ halt_on_error()
 # function to configure for compilation
 configure_grass()
 {
-# setup source code repo
-
-mkdir -p $SOURCE $TARGETDIR
-
-# fetch repo if needed
-cd "$SOURCE/"
-# Check if the repository is already cloned
-if [ -d "$BRANCH" ]; then
-  echo "The GRASS GIS repository <$BRANCH> has already been cloned. Continuing..."
-else
-  echo "Cloning the GRASS GIS repository <$BRANCH> first..."
-  git clone https://github.com/OSGeo/grass.git $BRANCH
-  if [ $? -eq 0 ]; then
-    echo "Repository successfully cloned."
-  else
-    echo "Error: Failed to clone the repository."
-    exit 1
-  fi
-fi
-
-cd $SOURCE/$BRANCH/
-date
+# be sure the targetdir exists
+mkdir -p $TARGETDIR
 
 # be sure to be on the right branch
+cd $SOURCE/$BRANCH/
 git checkout $BRANCH
 
 # cleanup from previous run
