@@ -17,11 +17,11 @@
 # - injects DuckDuckGo search field
 
 # Preparations, on server (neteler@grasslxd:$):
-# - Install PROJ incl Datum shift grids
-# - Install GDAL
-# - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
-# - install further dependencies:
+
+# - install dependencies:
 #     cd $HOME/src/main/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - install further dependencies:
+#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
