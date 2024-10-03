@@ -75,7 +75,7 @@ import grass.script as gs
 
 
 def get_raster_gdalpath(
-    map_name, check_linked=True, has_grasadriver=False, gis_env=None
+    map_name, check_linked=True, has_grassdriver=False, gis_env=None
 ):
     """Get the GDAL-readable path to a GRASS GIS raster map
 
@@ -102,7 +102,7 @@ def get_raster_gdalpath(
                 return str(gdal_path)
 
     # Get native GRASS GIS format header
-    if not has_grasadriver:
+    if not has_grassdriver:
         gs.fatal(
             _(
                 "The GDAL-GRASS GIS driver is unavailable. "
@@ -127,6 +127,8 @@ def main():
     global gdal
     try:
         from osgeo import gdal
+
+        gdal.UseExceptions()
     except ImportError:
         gs.fatal(
             _(
@@ -153,7 +155,10 @@ def main():
     if len(inputs) < 1:
         gs.fatal(_("At least one input map is required".format(inputs[0])))
 
-    inputs = [get_raster_gdalpath(raster_map, gis_env=gisenv) for raster_map in inputs]
+    inputs = [
+        get_raster_gdalpath(raster_map, has_grassdriver=has_grassdriver, gis_env=gisenv)
+        for raster_map in inputs
+    ]
 
     # Get output
     output = options["output"]
@@ -170,7 +175,14 @@ def main():
     # Create GDAL VRT
     vrt_path = str(vrt_dir / f"{output}.vrt")
     gs.verbose(_("Creating GDAL VRT '{}'.").format(vrt_path))
-    gdal.BuildVRT(vrt_path, inputs)
+    try:
+        gdal.BuildVRT(vrt_path, inputs)
+    except OSError:
+        gs.fatal(
+            _("Failed to build VRT {vrt} with inputs <{in_files}>").format(
+                vrt=vrt_path, in_file=", ".join(inputs)
+            )
+        )
 
     # Import (link) GDAL VRT
     gs.run_command(
