@@ -102,6 +102,61 @@ It is controlled via `cron_job_list_grass` on the server in:
 grasslxd:/home/neteler/cronjobs/
 ```
 
-## History
+## Running the scripts in a Docker container
 
-The cronjobs here have been initially written in 2002 and subsequently been updated.
+```bash
+# using ubuntu:22.04 as ubuntu is still missing PDAL
+docker run -it --volume="$(pwd)/:/data" ubuntu:22.04 bash
+```
+
+Run the following within docker:
+
+```bash
+apt update -y && apt install git gettext python3-sphinx doxygen graphviz zip -y
+
+USER=`id -u -n`
+MAINDIR=/home/$USER
+SOURCE=$MAINDIR/src/
+mkdir -p $SOURCE $MAINDIR/cronjobs/
+cd $SOURCE
+
+# GRASS GIS addons: get a shallow clone into docker container
+cd $SOURCE
+git clone --depth=1 https://github.com/OSGeo/grass.git grass8-addons
+# add links to cronjob scripts
+(cd $MAINDIR/cronjobs/ \
+    && ln -s $SOURCE/grass8-addons/utils/cronjobs_osgeo_lxd/*.sh .)
+(cd $MAINDIR/cronjobs/ \
+    && ln -s $SOURCE/grass8-addons/utils/cronjobs_osgeo_lxd/*.py .)
+
+# needed for script runs in docker, to avoid major path complexity in scripts
+ln -s /home/root/src /root/src
+
+# repo release branches: get a shallow clone into docker container
+for REPO in releasebranch_7_8 releasebranch_8_3 releasebranch_8_4 ; do
+ git clone -b $REPO --single-branch --depth=1 \
+     https://github.com/OSGeo/grass.git $REPO
+done
+
+# repo main: get a shallow clone into docker container
+BRANCH=main
+git clone --single-branch --depth=1 https://github.com/OSGeo/grass.git $BRANCH
+
+# install dependencies
+apt install $(cat $SOURCE/$BRANCH/.github/workflows/apt.txt) -y
+
+# define python3 = python
+update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+cd /data/
+
+# run all cronjob scripts
+bash cron_grass_current_stable_build_binaries.sh \
+  && bash cron_grass_current_stable_src_snapshot.sh \
+  &&  bash cron_grass_legacy_build_binaries.sh \
+  &&  bash cron_grass_legacy_src_snapshot.sh \
+  && bash cron_grass_old_build_binaries.sh \
+  &&  bash cron_grass_old_src_snapshot.sh \
+  &&  bash cron_grass_preview_build_binaries.sh \
+  &&  bash cron_grass_preview_src_snapshot.sh
+```
