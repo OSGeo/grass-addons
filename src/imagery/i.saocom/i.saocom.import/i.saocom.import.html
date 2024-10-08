@@ -1,0 +1,71 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.saocom.import</em> module allows importing SAOCOM-1 L1A (SLC) products from their native format, as provided by <a href="https://www.argentina.gob.ar/ciencia/conae">CONAE</a>.
+SLC products are complex matrices, but GRASS will import them as two separate bands containing the real and imaginary parts, which allows further manipulation and prevents from losing important information. 
+As described in the graphical workflow, most of the code works outside GRASS GIS: It temporarily reads the SLC data (either a folder or zip file), extracts the real and imaginary components, and saves them as GeoTiff files.
+These GeoTiff files are then imported to GRASS GIS using <em>r.import</em> and stored as raster maps in the PERMANENT mapset. Additionaly, a Ground Control Points file
+associated to these files will be created within de <em>cell_misc</em> directory, in case the user performs later geocoding with <em>i.saocom.geocode</em>. This GCP information is extracted from the original SAOCOM-1 matrix using Python <em>rasterio</em> library and will account for any multilooking applied to the images.
+
+<p>
+By default <em>i.saocom.import</em> will process all the available polarizations, which can be selected with the <b>polarizations</b> option. 
+The module assumes by default that the data is zipped but this can be changed with the <b>is_zip</b> option. The user can also apply a multilooking factor, which must be indicated as a list, followinf the order <em>[az_loos,rg_looks]</em>.
+By default no multilooking is applied. The module requires to specify a <b>basename</b> value which will be used as prefix for all the polarization bands to be imported. 
+
+
+<p>
+<b>Important:</b> <em>i.saocom.import</em>  assumes a GRASS session is active in an XY unprojected location. Importing the files to projected locations may lead to non-desired outputs.
+
+
+<center>
+<img src="saocomImportWF.png" width="1100" height="600">
+<p><em>Graphical description of the workflow followed by <em>i.saocom.import</em></em>
+</center>
+
+<h2>NOTES</h2>
+
+SAOCOM L1A images are projected in radar coordinates. To run this module it is important to previously create an XY (unprojected) location.
+A file named <b>GCPS.csv</b> with the Ground Control Points information will be stored in the current location's <b>cell_misc</b> directory, inside a sub-folder that will be named after the <b>basename</b> value.
+
+<h2>EXAMPLES</h2>
+
+<h3>Import all polarizations</h3>
+
+Firstly, an unprojected (XY) location must be created, the example below creates a location called <em>saocom</em>:
+
+<div class="code"><pre>
+grass -c XY saocom -e
+</pre></div>
+
+Then, run <em>i.saocom.import</em> from a zip file containing polarizations = ['hh','hv','vh','vv']:
+
+<div class="code"><pre>
+zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
+i.saocom.import data=zip_file is_zip=yes basename=SAO1B_20211222
+</pre></div>
+
+The previous example will create two bands using the given <b>basename</b> as prefix: <em>SAO1B_20211222_[pol]_r</em> (real band) <em>SAO1B_20211222_[pol]_i</em> (imaginary band). <em>[pol]</em>
+indicates the imported polarization, which for SAOCOM images can be any of ['hh','hv','vh','vv'].
+
+<h3>Import specific polarizations and apply multilooking</h3>
+
+<div class="code"><pre>
+zip_file = S1B_OPER_SAR_EOSSP__CORE_L1A_OLF_20211225T165228.zip
+i.saocom.import data=zip_file is_zip =yes basename=SAO1B_20211222 polarizations=hh,vv multilook=4,2
+</pre></div>
+
+The previous example will import only the <em>hh</em> and <em>vv</em> vv polarizations, and in case none of them are found the program will let the user know which are the available polarization channels in the dataset. The multilooking factor will be of 4 in azimuth direction and 2 in range direction.
+
+<h2>REFERENCES</h2>
+
+Reference or references to paper related to the tool or references which algorithm the tool is based on.
+
+<h2>SEE ALSO</h2>
+
+<a href="i.saocom.geocode.html">i.saocom.geocode</a>,
+<a href="i.sar.amplitude.html">i.sar.amplitude</a>,
+<a href="i.sar.speckle.html">i.sar.speckle</a>,
+<a href="i.sar.pauliRGB.html">i.sar.pauliRGB</a>
+
+<h2>AUTHORS</h2>
+
+Santiago Seppi, CONAE, Argentina.
