@@ -56,7 +56,7 @@
 # % type: string
 # % description: Sentinel product type to filter
 # % required: no
-# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A
 # % answer: S2MSI2A
 # % guisection: Filter
 # %end
@@ -96,7 +96,7 @@
 
 # %rules
 # % collective: start,end
-# % excludes: names,start,end,clouds,producttype
+# % excludes: names,start,end,clouds
 # %end
 
 
@@ -218,7 +218,7 @@ def main():
         grass.fatal(_("Vector map <{}> not found").format(area))
     producttype = options["producttype"]
 
-    grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
+    grass.message(_("Retrieving Sentinel footprints from CDSE ..."))
     fps = "tmp_fps_%s" % str(os.getpid())
     rm_vectors.append(fps)
 
@@ -265,7 +265,7 @@ def main():
                 for i in range(0, len(resp)):
                     error_msg += resp[i].decode("utf-8")
                 grass.fatal(_("Error using i.sentinel.download: {}").format(error_msg))
-        name_list_tmp = [x.split(" ")[1] for x in s_list]
+        name_list_tmp = [x.split(" ")[0] for x in s_list]
     else:
         name_list_tmp = options["names"].split(",")
     name_list = []
@@ -279,13 +279,10 @@ def main():
             grass.run_command(
                 "i.sentinel.download",
                 settings=settings,
-                map=area,
-                start=start_day,
-                end=end_day,
                 footprints=fpi,
                 producttype=producttype,
-                query="identifier=%s" % name,
-                flags="lb",
+                id=name,
+                flags="l",
                 quiet=True,
             )
             name_list.append(name)
@@ -310,30 +307,30 @@ def main():
             grass.run_command(
                 "v.db.update",
                 map=temp_overlay,
-                column="a_identifier",
-                query_column='a_identifier || "+" ' + "|| b_identifier",
-                where="a_identifier NOT NULL AND " + "b_identifier NOT NULL",
+                column="a_title",
+                query_column='a_title || "+" ' + "|| b_title",
+                where="a_title NOT NULL AND " + "b_title NOT NULL",
                 quiet=True,
             )
             grass.run_command(
                 "v.db.update",
                 map=temp_overlay,
-                column="a_identifier",
-                query_column="b_identifier",
-                where="a_identifier IS NULL",
+                column="a_title",
+                query_column="b_title",
+                where="a_title IS NULL",
                 quiet=True,
             )
             grass.run_command(
                 "v.db.renamecolumn",
                 map=temp_overlay,
-                column="a_identifier,identifier",
+                column="a_title,title",
                 quiet=True,
             )
             columns_dict = grass.parse_command("v.info", map=temp_overlay, flags="c")
             drop_columns = [
                 col.split("|")[1]
                 for col in columns_dict
-                if col.split("|")[1] not in ["cat", "identifier"]
+                if col.split("|")[1] not in ["cat", "title"]
             ]
             grass.run_command(
                 "v.db.dropcolumn", map=temp_overlay, columns=drop_columns, quiet=True
@@ -366,7 +363,7 @@ def main():
     # list of scenes that actually intersect with bbox
     name_list_updated_tmp = list(
         grass.parse_command(
-            "v.db.select", map=fps_in_area, column="a_identifier", flags="c"
+            "v.db.select", map=fps_in_area, column="a_title", flags="c"
         ).keys()
     )
 
