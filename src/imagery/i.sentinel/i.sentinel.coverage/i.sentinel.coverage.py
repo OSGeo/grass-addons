@@ -258,7 +258,6 @@ def main():
         if resp[0] != b"":
             s_list = resp[0].decode("utf-8").strip().splitlines()
         else:
-            # Experimental version warning needs to be removed from i.eodag
             if set(resp) == {b""}:
                 grass.fatal(_("No products found"))
             else:
