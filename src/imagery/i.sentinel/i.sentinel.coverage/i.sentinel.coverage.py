@@ -56,7 +56,7 @@
 # % type: string
 # % description: Sentinel product type to filter
 # % required: no
-# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A
 # % answer: S2MSI2A
 # % guisection: Filter
 # %end
@@ -218,7 +218,7 @@ def main():
         grass.fatal(_("Vector map <{}> not found").format(area))
     producttype = options["producttype"]
 
-    grass.message(_("Retrieving Sentinel footprints from ESA hub ..."))
+    grass.message(_("Retrieving Sentinel footprints from CDSE ..."))
     fps = "tmp_fps_%s" % str(os.getpid())
     rm_vectors.append(fps)
 
@@ -331,8 +331,7 @@ def main():
             drop_columns = [
                 col.split("|")[1]
                 for col in columns_dict
-                if col.split("|")[1]
-                not in ["cat", "title"]  # What does cat refer to here?
+                if col.split("|")[1] not in ["cat", "title"]
             ]
             grass.run_command(
                 "v.db.dropcolumn", map=temp_overlay, columns=drop_columns, quiet=True
