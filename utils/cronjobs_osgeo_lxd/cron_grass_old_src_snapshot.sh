@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# script to build GRASS GIS old current source package from the release branch
+# script to build GRASS GIS old current sources package from the `release_branch_8_3` branch
 # (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
@@ -10,19 +10,21 @@
 # - it updates locally the GRASS source code from github server
 # - packages the source code tarball
 #
-# Preparations, on server (neteler@grasslxd:$):
-#   mkdir -p ~/src
-#   cd ~/src
-#   git clone https://github.com/OSGeo/grass.git release_branch_8_3
+# To be executed on server (neteler@grasslxd:$)
+# - install dependencies:
+#   cd $HOME/src/release_branch_8_3/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - run this script
 #
 ###################################################################
-# variables for packaging environment (grass.osgeo.org specific)
-MAINDIR=/home/neteler
+# variables for src packaging environment (grass.osgeo.org specific)
+USER=`id -u -n`
+MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=3
+BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR
 GSHORTGVERSION=$GMAJOR$GMINOR
@@ -33,7 +35,6 @@ set -e
 ###################
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 # where to put the resulting .tar.gz file:
 TARGETMAIN=/var/www/code_and_data/
 TARGETDIR=$TARGETMAIN/grass${GSHORTGVERSION}/source/snapshot
@@ -56,9 +57,12 @@ halt_on_error()
 # create a source code snapshot:
 CWD=`pwd`
 
+# be sure the targetdir exists
 mkdir -p $TARGETDIR
+
+# be sure to be on the right branch
 cd $SOURCE/$BRANCH/
-date
+git checkout $BRANCH
 
 # clean up from previous run
 touch include/Make/Platform.make
@@ -72,9 +76,6 @@ rm -f config_*.git_log.txt ChangeLog
 
 # reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
-
-## hard reset local git repo (just in case)
-#git checkout main && git reset --hard HEAD~1 && git reset --hard origin
 
 echo "git update..."
 git fetch --all --prune       || halt_on_error "git fetch error!"
