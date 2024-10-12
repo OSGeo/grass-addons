@@ -26,14 +26,15 @@ jobs:
       # To report GitHub Actions status checks
       statuses: write
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           # super-linter needs the full git history to get the
           # list of files that changed across commits
           fetch-depth: 0
       - name: Lint code base
-        uses: super-linter/super-linter@1fa6ba58a88783e9714725cf89ac26d53e80c148 # v6.9.0
+        uses: super-linter/super-linter@b92721f792f381cedc002ecdbb9847a15ece5bb8 # v7.1.0
         env:
+          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # By default, super-linter expect all linters to have their config
           # files inside .github/linters.
@@ -47,14 +48,19 @@ jobs:
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_HTML: false # Until configured, some valid findings
+          VALIDATE_HTML_PRETTIER: false # Until properly formatted
           VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
+          VALIDATE_JSON_PRETTIER: false # Until fixed
+          VALIDATE_JSONC_PRETTIER: false
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
+          VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
           VALIDATE_PERL: false # Until issues are fixed
           VALIDATE_PYTHON_BLACK: false # Until code is upgraded to a newer black version
           VALIDATE_PYTHON_FLAKE8: false
           VALIDATE_PYTHON_ISORT: false # Until issues are fixed
           VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
+          VALIDATE_PYTHON_PYINK: false # fork of black with different behavior
           VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
           VALIDATE_PYTHON_RUFF: false # Until ruff is configured and most issues fixed
           VALIDATE_R: false

@@ -1,72 +1,72 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.in.vect</em> transforms an external vector file (like GeoPackage) 
-into a raster file and imports it into GRASS GIS. Optionally, 
-attributes from the vector layer can be converted to raster category 
+<em>r.in.vect</em> transforms an external vector file (like GeoPackage)
+into a raster file and imports it into GRASS GIS. Optionally,
+attributes from the vector layer can be converted to raster category
 labels.
 
 <p>
-When users have a vector file that they want to convert to a raster 
-map, they would normally import the vector map into GRASS GIS using, 
-e.g., <em>v.in.ogr</em>, and subsequently convert the resulting vector 
-into a raster map using <em>v.to.rast</em>. Because of the topological 
-vector format of GRASS GIS, importing large complex vector maps can be 
-slow. To speed up the process, <em>r.in.vect</em> converts the 
-user-defined vector file to an intermediate geoTIF file (using <a 
-href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rasterize</a>) 
-and imports it into GRASS GIS. 
+When users have a vector file that they want to convert to a raster
+map, they would normally import the vector map into GRASS GIS using,
+e.g., <em>v.in.ogr</em>, and subsequently convert the resulting vector
+into a raster map using <em>v.to.rast</em>. Because of the topological
+vector format of GRASS GIS, importing large complex vector maps can be
+slow. To speed up the process, <em>r.in.vect</em> converts the
+user-defined vector file to an intermediate geoTIF file (using <a
+href="https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize">gdal.rasterize</a>)
+and imports it into GRASS GIS.
 
 <p>
-The objects in the vector map will be assigned an user-defined value 
-using the <b>value</b> parameter. Alternatively, the user can use the 
-<b>attribute_column</b> to specify the name of an existing column from 
-the vector map's attribute table. The values in that column will be 
+The objects in the vector map will be assigned an user-defined value
+using the <b>value</b> parameter. Alternatively, the user can use the
+<b>attribute_column</b> to specify the name of an existing column from
+the vector map's attribute table. The values in that column will be
 used as raster values in the output raster map.
 
 <h2>Notes</h2>
 
-By default, <em>r.in.vect</em> will only affect data in areas lying 
-inside the boundaries of the current computational region. Before 
-running the function, users should therefore ensure that the 
-computational region is correctly set, and that the region's resolution 
-is at the desired level. Alternatively, users can use the <b>-v</b> 
-flag to set the exent of the raster layer to that of the vector layer. 
-To ensure that the resulting raster map cleanly aligns with the 
-computational region, the extent may be slightly larger than that of 
+By default, <em>r.in.vect</em> will only affect data in areas lying
+inside the boundaries of the current computational region. Before
+running the function, users should therefore ensure that the
+computational region is correctly set, and that the region's resolution
+is at the desired level. Alternatively, users can use the <b>-v</b>
+flag to set the exent of the raster layer to that of the vector layer.
+To ensure that the resulting raster map cleanly aligns with the
+computational region, the extent may be slightly larger than that of
 the vector layer.
 
 <p>
-If the coordinate reference system (CRS) of the vector file differs 
-from that of the mapset in which users want to import the raster, the 
+If the coordinate reference system (CRS) of the vector file differs
+from that of the mapset in which users want to import the raster, the
 vector file will be first reprojected using <em>ogr2ogr</em>.
 
 <p>
-The <b>label_column</b> parameter can be used to assign raster category 
-labels. Users should check if each unique value from the category 
-column has one corresponding label in the label column. If there are 
-categories with more than one label, the first from the label column 
+The <b>label_column</b> parameter can be used to assign raster category
+labels. Users should check if each unique value from the category
+column has one corresponding label in the label column. If there are
+categories with more than one label, the first from the label column
 will be used (and a warning will be printed).
 
 <p>
-With the <b>-d</b> flag, all pixels touched by lines or polygons will 
-be updated, not just those on the line render path, or which center 
-point is within the polygon. For lines, this is similar to setting the 
+With the <b>-d</b> flag, all pixels touched by lines or polygons will
+be updated, not just those on the line render path, or which center
+point is within the polygon. For lines, this is similar to setting the
 <b>-d</b> flag in <em>v.to.rast</em>.
 
 <p>
-Note that this will make a difference for complex and large vector 
-layers. For simple and small vector layers, it is probably faster to 
+Note that this will make a difference for complex and large vector
+layers. For simple and small vector layers, it is probably faster to
 import the vector layer first and converting it to a raster in GRASS.
 
 <h2>EXAMPLE</h2>
 
-The examples of <em>r.in.vect</em> use vector maps from the 
-<a href="https://grass.osgeo.org/download/data/">North Carolina sample 
-data set</a>. 
+The examples of <em>r.in.vect</em> use vector maps from the
+<a href="https://grass.osgeo.org/download/data/">North Carolina sample
+data set</a>.
 
 <h3>Example 1</h3>
 
-First, export a vector layer as a GeoPackage. 
+First, export a vector layer as a GeoPackage.
 
 <div class="code"><pre>
 # Export the geology vector map as Geopackage
@@ -74,9 +74,9 @@ v.out.ogr input=geology@PERMANENT output=geology.gpkg format=GPKG
 </pre></div>
 
 <p>
-Import the geology.gpkg as raster. Raster cells overlapping with the 
-vector features will be assigned a value of 1, and the other raster 
-cells null. If you have RAM to spare, increase the memory to speed up 
+Import the geology.gpkg as raster. Raster cells overlapping with the
+vector features will be assigned a value of 1, and the other raster
+cells null. If you have RAM to spare, increase the memory to speed up
 the import.
 
 <div class="code"><pre>
@@ -90,23 +90,23 @@ value=1 \
 memory=2000
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a href="r_in_vect_im01.png"> 
-<img src="r_in_vect_im01.png" alt="The geology vector file converted 
-to, and imported as raster in GRASS. Example 1" border="0"> 
-</a><br><i>Figure 1: The geology vector file was converted to, and 
-imported as a raster into GRASS GIS, using the default settings.</i> 
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im01.png">
+<img src="r_in_vect_im01.png" alt="The geology vector file converted
+to, and imported as raster in GRASS. Example 1" border="0">
+</a><br><i>Figure 1: The geology vector file was converted to, and
+imported as a raster into GRASS GIS, using the default settings.</i>
 </div>
 
 <p>
-If the GeoPackage file (or any other data source) has 
-multiple layers, users need to specify which layer to use with 
-the <b>layer</b> parameter. Otherwise, the first layer will be 
-selected. 
+If the GeoPackage file (or any other data source) has
+multiple layers, users need to specify which layer to use with
+the <b>layer</b> parameter. Otherwise, the first layer will be
+selected.
 
 <h3>Example 2</h3>
 
-Import the geology.gpkg as raster. Specify the column holding the 
-values to use as raster values and the column holding the labels for 
+Import the geology.gpkg as raster. Specify the column holding the
+values to use as raster values and the column holding the labels for
 the raster values.
 
 <div class="code"><pre>
@@ -121,20 +121,20 @@ memory=2000
 r.colors map=geology_rast2 color=random
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a href="r_in_vect_im02.png"> 
-<img src="r_in_vect_im02.png" alt="The geology vector file converted 
-to, and imported as raster in GRASS GIS. Example 2" border="0"> 
-</a><br><i>Figure 2: The geology vector file converted to raster and 
-imported into GRASS GIS using the values from the vector attribute 
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im02.png">
+<img src="r_in_vect_im02.png" alt="The geology vector file converted
+to, and imported as raster in GRASS GIS. Example 2" border="0">
+</a><br><i>Figure 2: The geology vector file converted to raster and
+imported into GRASS GIS using the values from the vector attribute
 column GEOL250_ as raster values.</i> </div>
 
 
 <h3>Example 3</h3>
 
-First, set the resolution to 1 meter. Next, export the busroute6 vector 
-map as GeoPackage, and import it as a raster. Use the <b>-v</b> 
-flag to ensure the extent of the raster matches that of the 
-vector (by default, the bounding box of the raster map will 
+First, set the resolution to 1 meter. Next, export the busroute6 vector
+map as GeoPackage, and import it as a raster. Use the <b>-v</b>
+flag to ensure the extent of the raster matches that of the
+vector (by default, the bounding box of the raster map will
 match that of the current computational region).
 
 <div class="code"><pre>
@@ -154,16 +154,16 @@ value=1 \
 memory=2000
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a href="r_in_vect_im03.png"> 
-<img src="r_in_vect_im03.png" alt="The busroute6 vector file converted 
-to raster and imported into GRASS GIS. Example 3" border="0"> 
-</a><br><i>Figure 3: The busroute6 vector file converted to raster and 
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im03.png">
+<img src="r_in_vect_im03.png" alt="The busroute6 vector file converted
+to raster and imported into GRASS GIS. Example 3" border="0">
+</a><br><i>Figure 3: The busroute6 vector file converted to raster and
 imported into GRASS GIS using the extent of the vector map.</i> </div>
 
 
 <h3>Example 4</h3>
 
-The same as above, but using the <b>-d</b> flag to create densified 
+The same as above, but using the <b>-d</b> flag to create densified
 lines.
 
 <div class="code"><pre>
@@ -175,12 +175,12 @@ value=1 \
 memory=2000
 </pre></div>
 
-<div align="left" style="margin: 10px"> <a href="r_in_vect_im04.png"> 
-<img src="r_in_vect_im04.png" alt="The busroute6 vector file converted 
-to raster and imported into GRASS GIS. Example 4" border="0"> 
-</a><br><i>Figure 4: Rasterize the busroute 6 vector map using the 
-<b>-d</b> flag to create densified lines by adding extra cells (shown 
-in red). This avoids gaps or lines that consist of cells that are only 
+<div align="left" style="margin: 10px"> <a href="r_in_vect_im04.png">
+<img src="r_in_vect_im04.png" alt="The busroute6 vector file converted
+to raster and imported into GRASS GIS. Example 4" border="0">
+</a><br><i>Figure 4: Rasterize the busroute 6 vector map using the
+<b>-d</b> flag to create densified lines by adding extra cells (shown
+in red). This avoids gaps or lines that consist of cells that are only
 diagonally connected.</i> </div>
 
 <h2>SEE ALSO</h2>
@@ -191,6 +191,6 @@ diagonally connected.</i> </div>
 
 <h2>AUTHORS</h2>
 
-Paulo van Breugel (<a href="https://ecodiv.earth">ecodiv.earth</a>)<br> 
-Applied Geo-information Sciences<br> <a href="https://www.has.nl/">HAS 
+Paulo van Breugel (<a href="https://ecodiv.earth">ecodiv.earth</a>)<br>
+Applied Geo-information Sciences<br> <a href="https://www.has.nl/">HAS
 green academy, University of Applied Sciences</a><br>
