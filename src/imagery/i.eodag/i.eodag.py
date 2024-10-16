@@ -337,7 +337,7 @@ def get_aoi(vector=None):
     if "+proj" not in proj:
         gs.fatal(_("Unable to get AOI: unprojected location not supported"))
 
-    if vector not in gs.parse_command("g.list", type="vector"):
+    if not gs.find_file(vector, element="vector")["file"]:
         gs.fatal(
             _("Unable to get AOI: vector map <{}> could not be found".format(vector))
         )
