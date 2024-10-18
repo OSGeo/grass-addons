@@ -85,7 +85,9 @@
 
 import sys
 import os
-import requests
+import urllib.request
+import urllib.error
+import json
 import grass.script as grass
 from grass.script.utils import separator
 
@@ -164,26 +166,32 @@ products_url = (
 )
 
 
+def urlopen(url):
+    url = url.replace(" ", "%20")
+    return urllib.request.urlopen(url)
+
+
 def show_datasets(fs):
     datasets = query_datasets()
-    print(f"INDEX{fs}ID{fs}TAG")
+    print(f"index{fs}id{fs}tag")
     for i in range(len(datasets)):
         dataset = datasets[i]
         print(f"{i}{fs}{dataset['id']}{fs}{dataset['sbDatasetTag']}")
 
 
 def show_states(fs):
-    print(f"FIPS{fs}USPS{fs}NAME")
+    print(f"fips{fs}usps{fs}name")
     for state in states:
         print(f"{state['fips']}{fs}{state['usps']}{fs}{state['name']}")
 
 
 def query_datasets():
     url = datasets_url
-    res = requests.get(url)
-    if res.status_code != 200:
-        grass.fatal(_("Failed to fetch dataset metadata"))
-    ret = res.json()
+    try:
+        with urlopen(url) as f:
+            ret = json.load(f)
+    except urllib.error.HTTPError as e:
+        grass.fatal(_("Failed to fetch dataset metadata with status code %d") % e.code)
 
     datasets = []
     for item in ret:
@@ -201,13 +209,6 @@ def download_file(item, code, compare_file_size):
     filename = url.split("/")[-1]
     size = item["sizeInBytes"]
     name = code["name"]
-    res = requests.get(url, stream=True)
-    if res.status_code != 200:
-        grass.warning(
-            _("Failed to download %s with status code %d") % (filename, res.status_code)
-        )
-        return
-
     if os.path.exists(filename) and not grass.overwrite():
         file_size = os.path.getsize(filename)
         if not compare_file_size or file_size == size:
@@ -218,10 +219,13 @@ def download_file(item, code, compare_file_size):
         )
 
     grass.message(_("Downloading %s for %s...") % (filename, name))
-    with open(filename, "wb") as f:
-        for chunk in res.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
+    try:
+        with urlopen(url) as inf, open(filename, "wb") as outf:
+            outf.write(inf.read())
+    except urllib.error.HTTPError as e:
+        grass.warning(
+            _("Failed to download %s with status code %d") % (filename, e.code)
+        )
 
 
 def main():
@@ -332,8 +336,10 @@ def main():
                 )
                 + date_params
             )
-            res = requests.get(url)
-            if res.status_code != 200:
+            try:
+                with urlopen(url) as f:
+                    ret = json.load(f)
+            except urllib.error.HTTPError as e:
                 if total:
                     grass.fatal(
                         _("Failed to fetch product metadata for %s (offset %d of %d)")
@@ -344,7 +350,6 @@ def main():
                         _("Failed to fetch product metadata for %s (offset %d)")
                         % (code["name"], offset)
                     )
-            ret = res.json()
             if not total:
                 total = ret["total"]
                 grass.message(_("Number of files to download: %d") % total)
