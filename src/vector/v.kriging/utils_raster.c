@@ -3,7 +3,7 @@
 /* open raster layer */
 void open_layer(struct int_par *xD, struct reg_par *reg, struct output *out)
 {
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     /* 2D Raster layer */
     if (xD->i3 == FALSE) {
@@ -31,7 +31,7 @@ void write2layer(struct int_par *xD, struct reg_par *reg, struct output *out,
     // Local variables
     int i3 = xD->i3;
     int ndeps = reg->ndeps, nrows = reg->nrows, ncols = reg->ncols;
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     int col, row, dep;
     int pass = 0;               /* Number of processed cells */
