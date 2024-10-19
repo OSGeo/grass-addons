@@ -1,8 +1,6 @@
 #ifndef _GLOBAL_H_
 #define _GLOBAL_H_
 
-#include <stdint.h>
-
 #ifdef _MSC_VER
 #include <winsock2.h>
 /* gettimeofday.c */
