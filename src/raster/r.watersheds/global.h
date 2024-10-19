@@ -17,9 +17,6 @@ int gettimeofday(struct timeval *, struct timezone *);
 #define INDEX(row, col)   ((size_t)(row) * ncols + (col))
 #define DIR(row, col)     dir_map->cells.c[INDEX(row, col)]
 
-#define SUBWATERSHED_NULL INT32_MIN
-#define HIERARCHY_NULL    -1
-
 struct raster_map {
     RASTER_MAP_TYPE type;
     size_t cell_size;
