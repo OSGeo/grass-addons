@@ -1,0 +1,69 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.watersheds</em> delineates a large number of watersheds from a flow
+direction raster map and an outlets vector map using the Memory-Efficient
+Watershed Delineation (MESHED) OpenMP parallel algorithm by Cho (2024).
+
+<h2>NOTES</h2>
+
+<em>r.watersheds</em> uses a flow direction raster map and an outlets vector
+map to delineate a large number of watersheds in parallel using OpenMP.
+
+<p>The module recognizes three different formats of flow directions:
+<div align="center">
+<img src="r_watersheds_formats.png" alt="degree">
+</div>
+
+<h2>EXAMPLES</h2>
+
+These examples use the North Carolina sample dataset.
+
+<p>Calculate flow accumulation using <em>r.watershed</em> and
+<em>r.watersheds</em>:
+<div class="code"><pre>
+# set computational region
+g.region -ap raster=elevation
+
+# calculate drainage directions using r.watershed
+r.watershed -s elevation=elevation drainage=drain
+
+# extract draining cells
+r.mapcalc ex="dcells=if(\
+        (isnull(drain[-1,-1])&amp;&amp;abs(drain)==3)||\
+        (isnull(drain[-1,0])&amp;&amp;abs(drain)==2)||\
+        (isnull(drain[-1,1])&amp;&amp;abs(drain)==1)||\
+        (isnull(drain[0,-1])&amp;&amp;abs(drain)==4)||\
+        (isnull(drain[0,1])&amp;&amp;abs(drain)==8)||\
+        (isnull(drain[1,-1])&amp;&amp;abs(drain)==5)||\
+        (isnull(drain[1,0])&amp;&amp;abs(drain)==6)||\
+        (isnull(drain[1,1])&amp;&amp;abs(drain)==7),1,null())"
+r.to.vect input=dcells type=point output=dcells
+
+# delineate all watersheds using r.watersheds
+r.watersheds dir=drain outlets=dcells output=wsheds nprocs=$(nproc)
+</pre></div>
+
+<div align="center">
+<img src="r_watersheds_nc_example.png">
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.flowaccumulation.html">r.flowaccumulation</a>,
+<a href="r.accumulate.html">r.accumulate</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
+<a href="r.stream.distance.html">r.stream.distance</a>
+</em>
+
+<h2>REFERENCES</h2>
+
+Huidae Cho, October 2024. <em>Avoid Backtracking and Burn Your Inputs:
+CONUS-Scale Watershed Delineation Using OpenMP.</em> Environmental Modelling
+&amp; Software, 106244.
+<a href="https://doi.org/10.1016/j.envsoft.2024.106244">doi:10.1016/j.envsoft.2024.106244</a>.
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
