@@ -115,7 +115,7 @@ static void trace_up(struct raster_map *dir_map, int row, int col, int id,
 {
     int i, j;
     int nup = 0;
-    int row_next = -1, col_next = -1;
+    int next_row = -1, next_col = -1;
 
     for (i = -1; i <= 1; i++) {
         /* skip edge cells */
@@ -136,12 +136,12 @@ static void trace_up(struct raster_map *dir_map, int row, int col, int id,
                 IS_NOTDONE(row + i, col + j)) {
                 if (++nup == 1) {
                     /* climb up only to this cell at this time */
-                    row_next = row + i;
-                    col_next = col + j;
+                    next_row = row + i;
+                    next_col = col + j;
 #ifndef USE_LESS_MEMORY
-                    SET_DONE(row_next, col_next);
+                    SET_DONE(next_row, next_col);
 #endif
-                    SHED(row_next, col_next) = id;
+                    SHED(next_row, next_col) = id;
                 }
                 else
                     /* if we found more than one upstream cell, we don't need
@@ -164,8 +164,8 @@ static void trace_up(struct raster_map *dir_map, int row, int col, int id,
             return;
 
         up = pop_up(up_stack);
-        row_next = up.row;
-        col_next = up.col;
+        next_row = up.row;
+        next_col = up.col;
     }
     else if (nup > 1) {
         /* if there are more up cells to visit, let's come back later */
@@ -178,7 +178,7 @@ static void trace_up(struct raster_map *dir_map, int row, int col, int id,
 
     /* use gcc -O2 or -O3 flags for tail-call optimization
      * (-foptimize-sibling-calls) */
-    trace_up(dir_map, row_next, col_next, id, up_stack);
+    trace_up(dir_map, next_row, next_col, id, up_stack);
 }
 
 static void init_up_stack(struct cell_stack *up_stack)
