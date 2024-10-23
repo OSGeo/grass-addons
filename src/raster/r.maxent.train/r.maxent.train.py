@@ -49,8 +49,8 @@
 
 # %option G_OPT_M_DIR
 # % key: projectionlayers
-# % label: Location of an alternate set of environmental variables.
-# % description: Location of an alternate set of environmental variables. Maxent models will be projected onto these variables. The result will be imported in grass gis.
+# % label: Location of folder with set of environmental variables.
+# % description: Location of an set of rasters representing the same environmental variables as used to create the Maxent model. They will be used to create a prediction layer based on the trained model.
 # % guisection: Input
 # % required: no
 # %end
@@ -570,9 +570,9 @@ def main(options, flags):
             envp, samp
         )
         gs.fatal(_(msg))
-    envir_layers = options["projectionlayers"]
-    if bool(envir_layers):
-        envir_files = os.listdir(options["projectionlayers"])
+    projection_layers = options["projectionlayers"]
+    if bool(projection_layers):
+        envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
         if not set(header_samples[3:]).issubset(envir_names):
@@ -947,17 +947,19 @@ def main(options, flags):
         gs.info(_("Created the layer {} in GRASS GIS".format(newname)))
 
         # Defined color column
-        if "v.db.pyupdate" in plugins_installed:
-            if len(prediction_csv) == 1:
-                color_column = nm
-            else:
-                color_column = f"{nm}_mean"
-                gs.run_command(
-                    "v.db.dropcolumn",
-                    map=newname,
-                    columns="Test_vs_train",
-                    quiet=function_verbosity,
-                )
+        if len(prediction_csv) == 1:
+            color_column = nm
+        elif "v.db.pyupdate" in plugins_installed:
+            color_column = f"{nm}_mean"
+            gs.run_command(
+                "v.db.dropcolumn",
+                map=newname,
+                columns="Test_vs_train",
+                quiet=function_verbosity,
+            )
+        else:
+            color_column = False
+        if color_column:
             gs.run_command(
                 "v.colors",
                 map=newname,
@@ -1033,9 +1035,9 @@ def main(options, flags):
             prediction_bgr = [
                 file
                 for file in all_files
-                if file.endswith("_avg.csv")
-                or file.endswith("_stddev.csv")
-                or file.endswith("_median.csv")
+                if file.endswith("_bg_avg.csv")
+                or file.endswith("_bg_stddev.csv")
+                or file.endswith("_bg_median.csv")
             ]
             prediction_bgrlay = [
                 x.replace(".csv", options["suffix"]) for x in prediction_bgr
@@ -1112,7 +1114,7 @@ def main(options, flags):
     )
 
     with open(variablenames, "w") as alias_var:
-        for x in envir_names:
+        for x in header_samples:
             alias_var.write("{},".format(x))
 
     gs.info(_("---------Done----------\n"))
