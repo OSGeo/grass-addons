@@ -8,7 +8,7 @@
 ###################################################################
 # how it works:
 # - it updates locally the GRASS source code from github server
-# - configures, compiles
+# - configures source code and then compiles it
 # - packages the binaries
 # - generated the install scripts
 # - generates the pyGRASS 8 HTML manual
@@ -16,28 +16,26 @@
 # - injects DuckDuckGo search field
 
 # Preparations, on server (neteler@grasslxd:$):
-#  - Install PROJ incl Datum shift grids
-#  - Install GDAL
-#  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
-#  - Clone source from github:
-#    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git releasebranch_8_4
-#    cd releasebranch_8_4
-#    git checkout releasebranch_8_4
-#  - Prepare target directories:
-#    cd /var/www/code_and_data/
-#    mkdir grass84
-#    cd /var/www/html/
-#    ln -s /var/www/code_and_data/grass84 .
+# - install dependencies:
+#     cd $HOME/src/releasebranch_8_4/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - install further dependencies:
+#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
+# - run this script
+# - one time only: cross-link code into web space on grasslxd server:
+#     cd /var/www/html/
+#     ln -s /var/www/code_and_data/grass84 .
 #
 #################################
 # variables for build environment (grass.osgeo.org specific)
-MAINDIR=/home/neteler
+USER=`id -u -n`
+MAINDIR=/home/$USER
 PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
+# https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=4
 GPATCH="0dev"  # required by grass-addons-index.sh
+BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
@@ -53,13 +51,12 @@ LDFLAGSSTRING='-s'
 # define GRASS GIS build related paths:
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=releasebranch_${GMAJOR}_$GMINOR
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# progman not built for older dev versions or old stable, only for preview
+# progman not built for older dev versions or old stable, only for preview version
 #TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -80,6 +77,12 @@ halt_on_error()
 # function to configure for compilation
 configure_grass()
 {
+# be sure the targetdir exists
+mkdir -p $TARGETDIR
+
+# be sure to be on the right branch
+cd $SOURCE/$BRANCH/
+git checkout $BRANCH
 
 # cleanup from previous run
 rm -f config_$GMAJOR.$GMINOR.git_log.txt
@@ -135,6 +138,7 @@ git fetch --all --prune && git checkout $BRANCH && git pull --rebase || halt_on_
 git status
 
 # for the "contributors list" in old CMSMS (still needed for hugo?)
+mkdir -p $TARGETMAIN/uploads/grass/
 cp -f *.csv $TARGETMAIN/uploads/grass/
 
 # configure for compilation
@@ -164,7 +168,7 @@ $MYMAKE sphinxdoclib
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
 mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
-# don't destroy the addons
+# don't destroy the addons during update
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*
 (cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
@@ -212,9 +216,8 @@ cd $GRASSBUILDDIR/
 #(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 #### end unused
 
-# note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
-
-##### generate i18N stats for HTML page path (WebSVN):
+##### generate i18N stats for HTML page path:
+# note: the gettext POT files are managed in git and OSGeo Weblate
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
 cd $GRASSBUILDDIR
 (cd locale/ ;
@@ -274,21 +277,37 @@ cd $GRASSBUILDDIR
 
 # update addon repo (addon repo has been cloned twice on the server to
 # have separate grass7 and grass8 addon compilation)
-(cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# fetch addon repo if needed
+cd "$SOURCE/"
+# Check if the addon repository is already cloned
+if [ -d "grass${GMAJOR}-addons" ]; then
+  echo "The GRASS GIS repository <grass${GMAJOR}-addons> has already been cloned. Continuing..."
+else
+  echo "Cloning the GRASS GIS repository <grass${GMAJOR}-addons> first..."
+  git clone https://github.com/OSGeo/grass-addons.git grass${GMAJOR}-addons
+  if [ $? -eq 0 ]; then
+    echo "Repository successfully cloned."
+  else
+    echo "Error: Failed to clone the repository."
+    exit 1
+  fi
+fi
+# setup source code repo
+(cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
+sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
    $GMINOR \
-   ~/src/grass$GMAJOR-addons/src/ \
-   ~/src/$BRANCH/dist.$ARCH/ \
-   ~/.grass$GMAJOR/addons \
-   ~/src/$BRANCH/bin.$ARCH/grass \
+   $SOURCE/grass$GMAJOR-addons/src/ \
+   $SOURCE/$BRANCH/dist.$ARCH/ \
+   $MAINDIR/.grass$GMAJOR/addons \
+   $SOURCE/$BRANCH/bin.$ARCH/grass \
    1
 mkdir -p $TARGETHTMLDIR/addons/
 # copy individual addon html files into one target dir if compiled addon
-# has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
+# has own dir e.g. $MAINDIR/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
-for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
+for dir in `find $MAINDIR/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
         if [ "$(ls -A $dir/docs/html/)" ]; then
             for f in $dir/docs/html/*; do
@@ -297,7 +316,7 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
+sh $MAINDIR/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 # copy over hamburger menu assets
 cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/hamburger_menu.svg \
@@ -306,13 +325,13 @@ cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# copy over logs from ~/.grass$GMAJOR/addons/logs/
+# copy over logs from $MAINDIR/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
-cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+cp -p $MAINDIR/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-~/src/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
-cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
+$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
+cp $MAINDIR/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords
 export ARCH

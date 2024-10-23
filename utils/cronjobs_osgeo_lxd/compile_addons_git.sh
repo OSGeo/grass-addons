@@ -151,8 +151,8 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         fi
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
-    make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
-    make MODULE_TOPDIR="$TOPDIR" \
+    make -j2 MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
+    make -j2 MODULE_TOPDIR="$TOPDIR" \
         BIN="$path/bin" \
         HTMLDIR="$path/docs/html" \
         MANBASEDIR="$path/docs/man" \
