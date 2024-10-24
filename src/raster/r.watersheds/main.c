@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
     opt.layer = G_define_standard_option(G_OPT_V_FIELD);
 
     opt.idcol = G_define_standard_option(G_OPT_DB_COLUMN);
-    opt.idcol->description = _("Name of attribute column for watershed IDs");
+    opt.idcol->description = _("Name of attribute column for watershed IDs "
+                               "(using a non-default column is slower)");
     opt.idcol->answer = GV_KEY_COLUMN;
 
     opt.wsheds = G_define_standard_option(G_OPT_R_OUTPUT);

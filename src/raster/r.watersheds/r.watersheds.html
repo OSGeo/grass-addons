@@ -21,9 +21,8 @@ input. <em>r.watersheds</em> is similar to <em>r.water.outlet</em> and
 <em>r.watershed</em>, but <em>r.water.outlet</em> can delineate a watershed for
 one outlet point at a time and <em>r.stream.basins</em> is a sequential module
 for multiple watersheds. Unlike <em>r.stream.basins</em>, <em>r.watersheds</em>
-can use a column for watershed IDs, but using a non-default column can be
-slower than using the default category (cat) column because of database
-queries.
+can use a column for watershed IDs, but using a non-default column is slower
+than using the default category (cat) column because of database queries.
 
 <p>For comparisons, using an i7-1370P CPU with 64GB memory and a 30-meter flow
 direction map for the entire Texas (1.8 billion cells), <em>r.watersheds</em>
