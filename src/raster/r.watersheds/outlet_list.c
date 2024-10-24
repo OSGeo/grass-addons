@@ -62,13 +62,17 @@ struct outlet_list *read_outlets(char *outlets_name, char *layer, char *idcol)
 
     field = Vect_get_field_number(&Map, layer);
 
-    Fi = Vect_get_field(&Map, field);
-    driver = db_start_driver_open_database(Fi->driver,
-                                           Vect_subst_var(Fi->database, &Map));
-    if (db_column_Ctype(driver, Fi->table, idcol) != DB_C_TYPE_INT)
-        G_fatal_error(
-            _("Column <%s> in vector map <%s> must be of integer type"), idcol,
-            outlets_name);
+    /* avoid database queries for the default cat column; it's expensive */
+    if (strcmp(idcol, GV_KEY_COLUMN) != 0) {
+        Fi = Vect_get_field(&Map, field);
+        if (!(driver = db_start_driver_open_database(
+                  Fi->driver, Vect_subst_var(Fi->database, &Map))))
+            G_fatal_error("Unable to start db driver");
+        if (db_column_Ctype(driver, Fi->table, idcol) != DB_C_TYPE_INT)
+            G_fatal_error(
+                _("Column <%s> in vector map <%s> must be of integer type"),
+                idcol, outlets_name);
+    }
 
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();

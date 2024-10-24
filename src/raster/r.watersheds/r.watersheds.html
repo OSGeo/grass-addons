@@ -14,6 +14,25 @@ map to delineate a large number of watersheds in parallel using OpenMP.
 <img src="r_watersheds_formats.png" alt="degree">
 </div>
 
+<em>r.watershed</em> can be used to create an input flow direction raster map,
+but it creates watersheds from an elevation map and does not take outlets as
+input. <em>r.watersheds</em> is similar to <em>r.water.outlet</em> and
+<em>r.stream.basins</em>. Both modules take an input flow direction map from
+<em>r.watershed</em>, but <em>r.water.outlet</em> can delineate a watershed for
+one outlet point at a time and <em>r.stream.basins</em> is a sequential module
+for multiple watersheds. Unlike <em>r.stream.basins</em>, <em>r.watersheds</em>
+can use a column for watershed IDs, but using a non-default column can be
+slower than using the default category (cat) column because of database
+queries.
+
+<p>For comparisons, using an i7-1370P CPU with 64GB memory and a 30-meter flow
+direction map for the entire Texas (1.8 billion cells), <em>r.watersheds</em>
+took 1 minute 27 seconds to delineate the entire state using 60,993 outlet
+cells draining away (see below how to extract draining cells) while
+<em>r.stream.basins</em> 5 minutes 28 seconds, both using the category column.
+However, <em>r.watersheds</em> with a non-category column took 6 minutes 21
+seconds because of heavy database queries.
+
 <h2>EXAMPLES</h2>
 
 These examples use the North Carolina sample dataset.
