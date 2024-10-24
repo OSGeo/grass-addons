@@ -6,7 +6,7 @@
  *
  * PURPOSE:      Delineate a large number of watersheds using the
  *               Memory-Efficient Watershed Delineation (MESHED) OpenMP
- *               parallel algorithm by Cho (2024).
+ *               parallel algorithm by Cho (2025).
  *
  * COPYRIGHT:    (C) 2024 by Huidae Cho and the GRASS Development Team
  *
