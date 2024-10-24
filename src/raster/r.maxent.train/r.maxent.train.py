@@ -685,7 +685,7 @@ def main(options, flags):
         process.wait()
         if process.returncode != 0:
             gs.fatal(_("Maxent terminated with an error"))
-    msg = "Done, you can find the model outputs in:\n {}\n".format(
+    msg = "Done, you can find the model outputs in the folder:\n {}\n".format(
         options["outputdirectory"]
     )
     gs.info(_(msg))
