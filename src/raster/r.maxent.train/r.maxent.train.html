@@ -135,10 +135,14 @@ Use the output of <em>v.maxent.swd</em> as input for
 The outputs will be written to this folder.
 
 <p>
-The <b>projectionlayers</b> parameter is optionally. If you set it, a
-raster prediction layer will be created that represent the potential
-suitability distribution under current conditions (the conditions used
-to train the model).
+The <b>projectionlayers</b> parameter is optional. When set, it 
+produces a raster prediction layer that reflects the potential 
+distribution based on the projection layers. This is primarily useful 
+for model evaluation. I.e., you typically use it to generate a 
+potential suitability map using the same conditions applied during 
+model creation, which can then be compared to the observed 
+distribution. For final predictions in future scenarios or different 
+locations, use the <em>r.maxent.prediction</em> module. 
 
 <p>
 With the <b>-y</b> and <b>-b</b> flags the point layers with the sample
