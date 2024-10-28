@@ -134,6 +134,7 @@ git clone --depth=1 --branch grass8 https://github.com/OSGeo/grass-addons.git gr
 
 # needed for script runs in docker, to avoid major path complexity in scripts
 ln -s /home/root/src /root/src
+ln -s $MAINDIR/cronjobs /root/cronjobs
 
 # repo release branches: get a shallow clone into docker container
 for REPO in releasebranch_7_8 releasebranch_8_3 releasebranch_8_4 ; do
