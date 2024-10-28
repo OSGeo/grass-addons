@@ -125,7 +125,7 @@ cd $SOURCE
 
 # GRASS GIS addons: get a shallow clone into docker container
 cd $SOURCE
-git clone --depth=1 https://github.com/OSGeo/grass.git grass8-addons
+git clone --depth=1 --branch grass8 https://github.com/OSGeo/grass-addons.git grass8-addons
 # add links to cronjob scripts
 (cd $MAINDIR/cronjobs/ \
     && ln -s $SOURCE/grass8-addons/utils/cronjobs_osgeo_lxd/*.sh .)
