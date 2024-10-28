@@ -255,22 +255,6 @@ cd $GRASSBUILDDIR
 
 # update addon repo (addon repo has been cloned twice on the server to
 # have separate grass7 and grass8 addon compilation)
-# fetch addon repo if needed
-cd "$SOURCE/"
-# Check if the addon repository is already cloned
-if [ -d "grass${GMAJOR}-addons" ]; then
-  echo "The GRASS GIS repository <grass${GMAJOR}-addons> has already been cloned. Continuing..."
-else
-  echo "Cloning the GRASS GIS repository <grass${GMAJOR}-addons> first..."
-  git clone https://github.com/OSGeo/grass-addons.git grass${GMAJOR}-addons
-  if [ $? -eq 0 ]; then
-    echo "Repository successfully cloned."
-  else
-    echo "Error: Failed to clone the repository."
-    exit 1
-  fi
-fi
-# setup source code repo
 (cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
@@ -351,7 +335,7 @@ python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
-rm -rf lib/html/ lib/latex/
+rm -rf lib/html/ lib/latex/ /tmp/addons
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
