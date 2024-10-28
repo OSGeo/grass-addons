@@ -105,6 +105,7 @@ grasslxd:/home/neteler/cronjobs/
 ## Running the scripts in a Docker container
 
 ```bash
+cd utils/cronjobs_osgeo_lxd/
 # using ubuntu:22.04 as ubuntu is still missing PDAL
 docker run -it --volume="$(pwd)/:/data" ubuntu:22.04 bash
 ```
@@ -112,6 +113,8 @@ docker run -it --volume="$(pwd)/:/data" ubuntu:22.04 bash
 Run the following within docker:
 
 ```bash
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Etc/UTC
 apt update -y && apt install git gettext python3-sphinx doxygen graphviz zip -y
 
 USER=`id -u -n`
@@ -138,7 +141,7 @@ for REPO in releasebranch_7_8 releasebranch_8_3 releasebranch_8_4 ; do
      https://github.com/OSGeo/grass.git $REPO
 done
 
-# repo main: get a shallow clone into docker container
+# repo main branch: get a shallow clone into docker container
 BRANCH=main
 git clone --single-branch --depth=1 https://github.com/OSGeo/grass.git $BRANCH
 
