@@ -104,10 +104,15 @@ grasslxd:/home/neteler/cronjobs/
 
 ## Running the scripts in a Docker container
 
+Using a standard Docker image, we will clone the required repositories
+inside the Docker container, set it up and run the cronjob bash scripts.
+This setup facilitates automated builds, snapshots and handling of multiple
+GRASS GIS versions in a Dockerised environment for continuous integration
+or release management.
+
 ```bash
-cd utils/cronjobs_osgeo_lxd/
-# using ubuntu:22.04 as ubuntu is still missing PDAL
-docker run -it --volume="$(pwd)/:/data" ubuntu:22.04 bash
+# using ubuntu:22.04 as ubuntu-latest is still missing PDAL
+docker run -it ubuntu:22.04 bash
 ```
 
 Run the following within docker:
@@ -152,15 +157,15 @@ apt install $(cat $SOURCE/$BRANCH/.github/workflows/apt.txt) -y
 # define python3 = python
 update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
-cd /data/
+cd $SOURCE/grass8-addons/utils/cronjobs_osgeo_lxd/
 
 # run all cronjob scripts
 bash cron_grass_current_stable_build_binaries.sh \
   && bash cron_grass_current_stable_src_snapshot.sh \
-  &&  bash cron_grass_legacy_build_binaries.sh \
-  &&  bash cron_grass_legacy_src_snapshot.sh \
+  && bash cron_grass_legacy_build_binaries.sh \
+  && bash cron_grass_legacy_src_snapshot.sh \
   && bash cron_grass_old_build_binaries.sh \
-  &&  bash cron_grass_old_src_snapshot.sh \
-  &&  bash cron_grass_preview_build_binaries.sh \
-  &&  bash cron_grass_preview_src_snapshot.sh
+  && bash cron_grass_old_src_snapshot.sh \
+  && bash cron_grass_preview_build_binaries.sh \
+  && bash cron_grass_preview_src_snapshot.sh
 ```
