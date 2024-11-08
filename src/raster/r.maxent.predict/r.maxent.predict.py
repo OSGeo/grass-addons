@@ -159,20 +159,29 @@ def cleanup():
         pass
 
 
-def check_layers_exist(layers):
-    """
-    Check if all layers in a list exist in accessible mapsets.
-
-    param str layers: names of layers
-
-    return list: list with names of missing layers
-    """
+def check_layers(layers):
     missing_layers = []
+    double_layers = []
+    current_mapset = gs.gisenv()["MAPSET"]
     for layer in layers:
+        if "@" in layer:
+            layname, mpset = layer.split("@")
+        else:
+            layname = layer
+            mpset = ""
+
+        # List raster layers matching the pattern in the specified mapset
+        chlay = gs.parse_command(
+            "g.list", flags="m", type="raster", pattern=layname, mapset=mpset
+        )
+
         # Check if the layer exists in the current mapset
-        if not gs.find_file(name=layer)["fullname"]:
+        chlay_mapsets = {mapsetname.split("@")[1] for mapsetname in chlay.keys()}
+        if not chlay:
             missing_layers.append(layer)
-    return missing_layers
+        elif len(chlay) > 1 and current_mapset not in chlay_mapsets:
+            double_layers.append(layer)
+    return {"missing": missing_layers, "double": double_layers}
 
 
 def create_temp_name(prefix):
@@ -272,30 +281,37 @@ def main(options, flags):
 
     # Get names of variables and corresponding layer names
     # ------------------------------------------------------------------
-    gs.info(_("Check if the variable and layer names correspond\n"))
-
     if bool(options["alias_file"]):
         with open(options["alias_file"]) as csv_file:
             row_data = list(csv.reader(csv_file, delimiter=","))
         col_data = list(zip(*row_data))
-        chlay = check_layers_exist(col_data[1])
-        if len(chlay) > 0:
-            gs.message(
-                _(
-                    "The layer(s) {} do not exist in the accessible mapsets".format(
-                        ", ".join(chlay)
-                    )
-                )
-            )
-        else:
-            file_names = col_data[0]
-            layer_names = col_data[1]
+        file_names = col_data[0]
+        layer_names = col_data[1]
     else:
         layer_names = options["raster"].split(",")
         if bool(options["variables"]):
             file_names = options["variables"].split(",")
         else:
             file_names = [strip_mapset(x) for x in layer_names]
+    chlay = check_layers(layer_names)
+    if len(chlay["missing"]) > 0:
+        gs.fatal(
+            _(
+                "The layer(s) {} do not exist in the accessible mapsets".format(
+                    ", ".join(chlay["missing"])
+                )
+            )
+        )
+    if len(chlay["double"]) > 0:
+        gs.fatal(
+            _(
+                "There are layers with the name {} in multiple accessible mapsets, "
+                "none of which are in the current mapset."
+                "Add the mapset name to specify which or these layers should be used.".format(
+                    ", ".join(chlay["double"])
+                )
+            )
+        )
 
     # Export raster layers to temporary directory
     # ------------------------------------------------------------------
@@ -341,6 +357,7 @@ def main(options, flags):
         "f": "fadebyclamping=true",
     }
     maxent_command += [val for key, val in bool_flags.items() if flags.get(key)]
+    print(maxent_command)
 
     # Run Maxent density.Project
     # -----------------------------------------------------------------
@@ -349,17 +366,29 @@ def main(options, flags):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
+        text=True,
     ) as process:
         # Capture and print stdout
         for stdout_line in process.stdout:
             gs.info(stdout_line)
         # Capture and print stderr
         for stderr_line in process.stderr:
-            gs.info(stderr_line)
+            gs.info(f"Warning/Error: {stderr_line}")
+            if "java.util.NoSuchElementException" in stderr_line:
+                missing_variables = "One or more of the input variables are missing"
         # Check the return code
         process.wait()
         if process.returncode != 0:
-            gs.fatal(_("Maxent terminated with an error"))
+            if missing_variables:
+                gs.fatal(
+                    _(
+                        "Maxent terminated with an error. Check if "
+                        "for all model variables the corresponding input layers are provided, or "
+                        "if the layer names correspond to the variable names used to create the model."
+                    )
+                )
+            else:
+                gs.fatal(_("Maxent terminated with an error"))
 
     # -----------------------------------------------------------------
     # Import the resulting layer in GRASS GIS
