@@ -132,6 +132,8 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
+import time
 import uuid
 import grass.script as gs
 
@@ -141,6 +143,35 @@ temp_directory = gs.tempdir()
 
 # Functions
 # ------------------------------------------------------------------
+
+
+class LoadingIndicator:
+    def __init__(self, message="Processing..."):
+        self.message = message
+        self.symbols = ["|", "/", "-", "\\"]
+        self.stop_running = False
+        self.thread = threading.Thread(target=self._animate)
+
+    def _animate(self):
+        while not self.stop_running:
+            for symbol in self.symbols:
+                if self.stop_running:
+                    break
+                sys.stdout.write(f"\r{symbol} {self.message}")
+                sys.stdout.flush()
+                time.sleep(0.1)
+        # Clear the line after stopping
+        sys.stdout.write("\r\n")
+
+    def start(self):
+        self.stop_running = False
+        self.thread.start()
+
+    def stop(self):
+        self.stop_running = True
+        self.thread.join()
+
+
 def find_index_case_insensitive(lst, target):
     """
     Find index for string match, matching case insensitive
@@ -316,6 +347,8 @@ def main(options, flags):
     # Export raster layers to temporary directory
     # ------------------------------------------------------------------
     gs.info(_("Export the raster layers as asci layers for use by Maxent\n"))
+    loading_indicator = LoadingIndicator()
+    loading_indicator.start()
 
     for n, layer_name in enumerate(layer_names):
         dt = gs.parse_command("r.info", map=layer_name, flags="g")["datatype"]
@@ -336,6 +369,7 @@ def main(options, flags):
             nodata=nodataval,
             quiet=True,
         )
+    loading_indicator.stop()
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
@@ -357,10 +391,10 @@ def main(options, flags):
         "f": "fadebyclamping=true",
     }
     maxent_command += [val for key, val in bool_flags.items() if flags.get(key)]
-    print(maxent_command)
 
     # Run Maxent density.Project
     # -----------------------------------------------------------------
+    gs.info(_("This may take some time ..."))
     with subprocess.Popen(
         maxent_command,
         stdout=subprocess.PIPE,
@@ -375,24 +409,26 @@ def main(options, flags):
         for stderr_line in process.stderr:
             gs.info(f"Warning/Error: {stderr_line}")
             if "java.util.NoSuchElementException" in stderr_line:
-                missing_variables = "One or more of the input variables are missing"
+                missing_variables = (
+                    "Check variable names and path + names of input files"
+                )
         # Check the return code
         process.wait()
         if process.returncode != 0:
             if missing_variables:
-                gs.fatal(
-                    _(
-                        "Maxent terminated with an error. Check if "
-                        "for all model variables the corresponding input layers are provided, or "
-                        "if the layer names correspond to the variable names used to create the model."
-                    )
-                )
+                gs.fatal(missing_variables)
             else:
                 gs.fatal(_("Maxent terminated with an error"))
-
     # -----------------------------------------------------------------
     # Import the resulting layer in GRASS GIS
     # -----------------------------------------------------------------
+    if not os.path.isfile(temp_file):
+        gs.fatal(
+            _(
+                "Maxent did not create an output raster for import in GRASS.\n"
+                "Check the error message(s) above."
+            )
+        )
     gs.info(_("Importing the predicted suitability layer in GRASS GIS\n"))
     gs.run_command(
         "r.in.gdal",
