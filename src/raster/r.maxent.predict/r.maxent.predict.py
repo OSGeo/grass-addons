@@ -51,10 +51,22 @@
 # % guisection: input
 # %end
 
+# %option G_OPT_M_DIR
+# % key: projectionlayers
+# % label: Location of folder with set of environmental variables.
+# % description: Directory with set of rasters representing the same environmental variables as used to create the Maxent model. The names of the raster layers, excluding the file extension, need to be the same as the variable names used to create the Maxent model.
+# % guisection: input
+# % required: no
+# %end
+
+# %rules
+# % excludes: projectionlayers,raster,variables
+# %end
+
 # %option G_OPT_F_BIN_INPUT
 # % key: alias_file
 # % label: csv file with variable and layer names
-# % description: A csv file with in the first column the names of the explanatory variables used in the model, and in the second column the names of corresponding raster layers. Make both are provided in the same order.
+# % description: A csv file with in the first column the names of the explanatory variables used in the model, and in the second column the names of corresponding raster layers. Make sure both are provided in the same order.
 # % guisection: input
 # % required: no
 # %end
@@ -136,10 +148,6 @@ import threading
 import time
 import uuid
 import grass.script as gs
-
-
-temp_directory = gs.tempdir()
-
 
 # Functions
 # ------------------------------------------------------------------
@@ -310,66 +318,75 @@ def main(options, flags):
             )
             gs.fatal(_(msg))
 
-    # Get names of variables and corresponding layer names
+    # Create (or get) folder with environmental layers
     # ------------------------------------------------------------------
-    if bool(options["alias_file"]):
-        with open(options["alias_file"]) as csv_file:
-            row_data = list(csv.reader(csv_file, delimiter=","))
-        col_data = list(zip(*row_data))
-        file_names = col_data[0]
-        layer_names = col_data[1]
+
+    projectionlayers = options["projectionlayers"]
+    if projectionlayers:
+        # The name of an existing folder with layers is provided
+        temp_directory = projectionlayers
     else:
-        layer_names = options["raster"].split(",")
-        if bool(options["variables"]):
-            file_names = options["variables"].split(",")
+        # Create temporary folder for the raster layers
+        temp_directory = gs.tempdir()
+
+        # Get Get names of variables and corresponding layer names
+        if bool(options["alias_file"]):
+            with open(options["alias_file"]) as csv_file:
+                row_data = list(csv.reader(csv_file, delimiter=","))
+            col_data = list(zip(*row_data))
+            file_names = col_data[0]
+            layer_names = col_data[1]
         else:
-            file_names = [strip_mapset(x) for x in layer_names]
-    chlay = check_layers(layer_names)
-    if len(chlay["missing"]) > 0:
-        gs.fatal(
-            _(
-                "The layer(s) {} do not exist in the accessible mapsets".format(
-                    ", ".join(chlay["missing"])
+            layer_names = options["raster"].split(",")
+            if bool(options["variables"]):
+                file_names = options["variables"].split(",")
+            else:
+                file_names = [strip_mapset(x) for x in layer_names]
+        chlay = check_layers(layer_names)
+        if len(chlay["missing"]) > 0:
+            gs.fatal(
+                _(
+                    "The layer(s) {} do not exist in the accessible mapsets".format(
+                        ", ".join(chlay["missing"])
+                    )
                 )
             )
-        )
-    if len(chlay["double"]) > 0:
-        gs.fatal(
-            _(
-                "There are layers with the name {} in multiple accessible mapsets, "
-                "none of which are in the current mapset."
-                "Add the mapset name to specify which or these layers should be used.".format(
-                    ", ".join(chlay["double"])
+        if len(chlay["double"]) > 0:
+            gs.fatal(
+                _(
+                    "There are layers with the name {} in multiple accessible mapsets, "
+                    "none of which are in the current mapset."
+                    "Add the mapset name to specify which or these layers should be used.".format(
+                        ", ".join(chlay["double"])
+                    )
                 )
             )
-        )
 
-    # Export raster layers to temporary directory
-    # ------------------------------------------------------------------
-    gs.info(_("Export the raster layers as asci layers for use by Maxent\n"))
-    loading_indicator = LoadingIndicator()
-    loading_indicator.start()
+        # Export raster layers to temporary directory
+        gs.info(_("Export the raster layers as asci layers for use by Maxent\n"))
+        loading_indicator = LoadingIndicator()
+        loading_indicator.start()
 
-    for n, layer_name in enumerate(layer_names):
-        dt = gs.parse_command("r.info", map=layer_name, flags="g")["datatype"]
-        if dt == "CELL":
-            datatype = "Int16"
-            nodataval = -9999
-        else:
-            datatype = ""
-            nodataval = -9999999
-        file_name = os.path.join(temp_directory, f"{file_names[n]}.asc")
-        gs.run_command(
-            "r.out.gdal",
-            input=layer_name,
-            output=file_name,
-            format="AAIGrid",
-            flags="c",
-            type=datatype,
-            nodata=nodataval,
-            quiet=True,
-        )
-    loading_indicator.stop()
+        for n, layer_name in enumerate(layer_names):
+            dt = gs.parse_command("r.info", map=layer_name, flags="g")["datatype"]
+            if dt == "CELL":
+                datatype = "Int16"
+                nodataval = -9999
+            else:
+                datatype = ""
+                nodataval = -9999999
+            file_name = os.path.join(temp_directory, f"{file_names[n]}.asc")
+            gs.run_command(
+                "r.out.gdal",
+                input=layer_name,
+                output=file_name,
+                format="AAIGrid",
+                flags="c",
+                type=datatype,
+                nodata=nodataval,
+                quiet=True,
+            )
+        loading_indicator.stop()
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
