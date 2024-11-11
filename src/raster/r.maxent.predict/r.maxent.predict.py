@@ -27,14 +27,14 @@
 # %end
 
 # %option G_OPT_F_BIN_INPUT
-# % key: lambda
+# % key: lambdafile
 # % label: Lambda model file
 # % description: Lambda model file created by Maxent or the r.maxent.train addon.
 # % guisection: input
 # %end
 
 # %option G_OPT_R_INPUTS
-# % key: raster
+# % key: rasters
 # % type: string
 # % label: Names of the input raster layers
 # % description: Names of the raster layers representing the environmental variables used in the Maxent model.
@@ -60,7 +60,7 @@
 # %end
 
 # %rules
-# % excludes: projectionlayers,raster,variables
+# % excludes: projectionlayers,rasters,variables
 # %end
 
 # %option G_OPT_F_BIN_INPUT
@@ -72,7 +72,7 @@
 # %end
 
 # %rules
-# % excludes: alias_file,variables,raster
+# % excludes: alias_file,variables,rasters
 # %end
 
 # %flag
@@ -337,7 +337,7 @@ def main(options, flags):
             file_names = col_data[0]
             layer_names = col_data[1]
         else:
-            layer_names = options["raster"].split(",")
+            layer_names = options["rasters"].split(",")
             if bool(options["variables"]):
                 file_names = options["variables"].split(",")
             else:
@@ -399,7 +399,7 @@ def main(options, flags):
         "-cp",
         maxent_file,
         "density.Project",
-        options["lambda"],
+        options["lambdafile"],
         temp_directory,
         temp_file,
     ]
