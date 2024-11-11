@@ -336,7 +336,7 @@ class PdfCreator(object):
         )
 
         text = self.doc.render()
-        # http://www.reportlab.com/docs/reportlab-userguide.pdf
+        # https://www.reportlab.com/docs/reportlab-userguide.pdf
         if save and self.pdf_file is not None:
             path = self.savePDF(text)
             return path

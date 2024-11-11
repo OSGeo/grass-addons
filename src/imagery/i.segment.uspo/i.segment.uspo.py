@@ -19,7 +19,7 @@
 # (2006),
 # Parameter selection for region-growing image segmentation algorithms using
 # spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
-# 14, pp. 3035-3040, https://doi.org/10.1080%2f01431160600617194
+# 14, pp. 3035-3040, https://doi.org/10.1080/01431160600617194
 #
 # B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
 # (2015),

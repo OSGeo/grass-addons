@@ -225,7 +225,7 @@ def main():
     except ImportError:
         grass.fatal(
             _(
-                "Cannot import pygbif (https://github.com/sckott/pygbif)"
+                "Cannot import pygbif (https://github.com/gbif/pygbif)"
                 " library."
                 " Please install it (pip install pygbif)"
                 " or ensure that it is on path"

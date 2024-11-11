@@ -64,7 +64,7 @@
                Zhao, Shaohua. 2015. "A Practical Split-Window Algorithm
                for Estimating Land Surface Temperature from Landsat 8 Data."
                Remote Sens. 7, no. 1: 647-665.
-               <http://www.mdpi.com/2072-4292/7/1/647/htm#sthash.ba1pt9hj.dpuf>
+               <https://www.mdpi.com/2072-4292/7/1/647#sthash.ba1pt9hj.dpuf>
 
                [1] [Look below for the publised paper!] Huazhong Ren, Chen Du,
                Qiming Qin, Rongyuan Liu, Jinjie Meng, and Jing Li. "Atmospheric
@@ -222,7 +222,7 @@
 # %option
 # % key: qapixel
 # % key_desc: pixelvalue
-# % description: Quality assessment pixel value for which to build a mask | Source: <http://landsat.usgs.gov/L8QualityAssessmentBand.php>.
+# % description: Quality assessment pixel value for which to build a mask | Source: <https://web.archive.org/web/20150712004428/https://landsat.usgs.gov/L8QualityAssessmentBand.php>.
 # % answer: 61440
 # % required: no
 # % multiple: yes

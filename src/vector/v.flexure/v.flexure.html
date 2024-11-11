@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and can be useful in cases of glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>v.flexure</em> and <a href="r.flexure.html">r.flexure</a> are the GRASS GIS interfaces to the the model <a href="http://csdms.colorado.edu/wiki/Model:gFlex"><b>gFlex</b></a>.
+<em>v.flexure</em> computes how the rigid outer shell of a planet deforms elastically in response to surface-normal loads by solving equations for plate bending. This phenomenon is known as "flexural isostasy" and can be useful in cases of glacier/ice-cap/ice-sheet loading, sedimentary basin filling, mountain belt growth, volcano emplacement, sea-level change, and other geologic processes. <em>v.flexure</em> and <a href="r.flexure.html">r.flexure</a> are the GRASS GIS interfaces to the the model <a href="https://csdms.colorado.edu/wiki/Model:GFlex"><b>gFlex</b></a>.
 
 As both <em>v.flexure</em> and <a href="r.flexure.html">r.flexure</a> are interfaces to gFlex, this must be downloaded and installed. The most recent versions of <b>gFlex</b> are available from <a href="https://github.com/awickert/gFlex">https://github.com/awickert/gFlex</a>, and installation instructions are avaliable on that page via the <em>README.md</em> file.
 
@@ -12,7 +12,7 @@ As both <em>v.flexure</em> and <a href="r.flexure.html">r.flexure</a> are interf
 <p>
 <b>output</b> is provided as a grid of vector points corresponding to the GRASS region when this command is invoked. Be sure to use <em>g.region</em> to properly set the input region! <b>raster_output</b> is the same output, except converted to a raster grid at the same resolution as the current computational region. If you have a grid spacing that is much smaller than a flexural wavelength, it is possible to interpolate the vector output to a much finer resolution than this raster output provides.
 <p>
-The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling System</a>, into which <b>gFlex</b> is integrated, is a community-driven effort to build an open-source modeling infrastructure for Earth-surface processes.
+The <a href="https://csdms.colorado.edu">Community Surface Dynamics Modeling System</a>, into which <b>gFlex</b> is integrated, is a community-driven effort to build an open-source modeling infrastructure for Earth-surface processes.
 
 <h2>SEE ALSO</h2>
 
@@ -26,9 +26,9 @@ The <a href="http://csdms.colorado.edu">Community Surface Dynamics Modeling Syst
 
 Wickert, A. D. (2015), Open-source modular solutions for flexural isostasy: gFlex v1.0, <i>Geoscientific Model Development Discussions</i>, <i>8</i>(6), 4245&ndash;4292, doi:10.5194/gmdd-8-4245-2015.
 <p>
-Wickert, A. D., G. E. Tucker, E. W. H. Hutton, B. Yan, and S. D. Peckham (2011), <a href="http://csdms.colorado.edu/wiki/CSDMS_2011_annual_meeting_Andrew_Wickert">Feedbacks between surface processes and flexural isostasy: a motivation for coupling models</a>, in <i>CSDMS 2011 Meeting: Impact of time and process scales</i>, Student Keynote, Boulder, CO.
+Wickert, A. D., G. E. Tucker, E. W. H. Hutton, B. Yan, and S. D. Peckham (2011), <a href="https://csdms.colorado.edu/csdms_wiki/images/Andrew_Wickert_CSDMS_2011_annual_meeting.pdf">Feedbacks between surface processes and flexural isostasy: a motivation for coupling models</a>, in <i>CSDMS 2011 Meeting: Impact of time and process scales</i>, Student Keynote, Boulder, CO.
 <p>
-van Wees, J. D., and S. Cloetingh (1994), A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, <i>Geophysical Journal International</i>, <i>117</i>(1), 179&ndash;195, doi:10.1111/j.1365-246X.1994.tb03311.x.
+van Wees, J. D., and S. Cloetingh (1994), A Finite-Difference Technique to Incorporate Spatial Variations In Rigidity and Planar Faults Into 3-D Models For Lithospheric Flexure, <i>Geophysical Journal International</i>, <i>117</i>(1), 179&ndash;195, <a href="https://doi.org/10.1111/j.1365-246X.1994.tb03311.x">doi:10.1111/j.1365-246X.1994.tb03311.x</a>.
 
 <h2>AUTHOR</h2>
 

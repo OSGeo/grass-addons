@@ -15,7 +15,7 @@
 #            Riitters, K., J. Wickham, R. O'Neill, B. Jones, and
 #            E. Smith. 2000. in: Global-scalepatterns of forest
 #            fragmentation. Conservation Ecology 4(2): 3. [online]
-#            URL: http://www.consecol.org/vol4/iss2/art3/
+#            URL: https://www.ecologyandsociety.org/vol4/iss2/art3/
 #
 # COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
 #

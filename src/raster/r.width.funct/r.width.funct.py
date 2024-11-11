@@ -16,7 +16,7 @@
 #               for details.
 #
 # REQUIRES:     Matplotlib
-#                 http://matplotlib.sourceforge.net/
+#                 https://matplotlib.org
 #
 #
 ################################################################################

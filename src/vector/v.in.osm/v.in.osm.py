@@ -109,7 +109,7 @@ class OsmImporter:
 
         # process
         try:
-            # http://gdal.org/drv_osm.html
+            # https://gdal.org/drivers/vector/osm.html
             os.environ["OGR_INTERLEAVED_READING"] = "YES"
 
             grass.debug("Step 1/3: v.in.ogr...", 2)

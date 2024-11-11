@@ -70,7 +70,8 @@ class Column_Water_Vapor:
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
     Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
     1: 647-665.
-    http://www.mdpi.com/2072-4292/7/1/647/htm\#sthash.ba1pt9hj.dpuf
+    https://www.mdpi.com/2072-4292/7/1/647#sthash.ba1pt9hj.dpuf
+    https://doi.org/10.3390/rs70100647
 
     from which the equation's coefficients are (also) published.
 

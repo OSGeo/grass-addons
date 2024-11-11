@@ -8,7 +8,7 @@
 # PURPOSE:      Compute biodiversity indices over input layers
 #
 # COPYRIGHT: (C) 2016-2024 Paulo van Breugel and the GRASS DEVELOPMENT TEAM
-#            http://ecodiv.earth
+#            https://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
