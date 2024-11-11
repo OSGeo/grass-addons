@@ -1162,7 +1162,7 @@ def main(options, flags):
             gs.run_command(
                 "v.db.addcolumn",
                 map=prediction_bgrlay[0],
-                columns=f"max double precision",
+                columns="max double precision",
                 quiet=function_verbosity,
             )
             gs.run_command(
@@ -1176,7 +1176,7 @@ def main(options, flags):
             gs.run_command(
                 "v.db.addcolumn",
                 map=prediction_bgrlay[0],
-                columns=f"min double precision",
+                columns="min double precision",
                 quiet=function_verbosity,
             )
             gs.run_command(
