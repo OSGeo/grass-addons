@@ -126,7 +126,6 @@ USER=`id -u -n`
 MAINDIR=/home/$USER
 SOURCE=$MAINDIR/src/
 mkdir -p $SOURCE $MAINDIR/cronjobs/
-cd $SOURCE
 
 # GRASS GIS addons: get a shallow clone into docker container
 cd $SOURCE
