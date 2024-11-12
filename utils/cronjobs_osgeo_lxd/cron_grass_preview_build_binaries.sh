@@ -15,6 +15,8 @@
 # - generates the pyGRASS 8 HTML manual
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
+# - copies over generated manual pages to grass-devel/manuals/
+# - injects in versioned manual the "canonical" to point to "devel" manual (as seen in the Python manual pages)
 
 # Preparations, on server (neteler@grasslxd:$):
 
@@ -327,12 +329,39 @@ export GISBASE=$ARCH_DISTDIR
 export VERSION_NUMBER=$DOTVERSION
 python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/ $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/addons/
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+############################################
+# Cloning new manual pages into grass-devel/manuals/ (following the Python manual pages concept)
+# - inject canonical URL therein to point to versioned manual page (avoiding "duplicate content" SEO punishment)
+#   see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+
+TARGETHTMLDIRDEVEL=$TARGETMAIN/grass-devel/manuals/
+mkdir -p $TARGETHTMLDIRDEVEL $TARGETHTMLDIRDEVEL/addons
+# cleanup from previous run
+rm -rf /tmp/addons
+\mv $TARGETHTMLDIRDEVEL/addons /tmp
+rm -f $TARGETHTMLDIRDEVEL/*.*
+(cd $TARGETHTMLDIRDEVEL ; rm -rf barscales colortables icons northarrows)
+# clone manual pages
+cp -rp $TARGETHTMLDIR/* $TARGETHTMLDIRDEVEL/
+
+############################################
+# SEO: inject canonical link into versioned manual pages (e.g, grass85/)
+# - cd back into folder of versioned HTML manual pages
+# - run sed to replace an existing HTML header string in the upper part of the HTML file
+#   with itself + canonical link of devel version
+# --> do this for core manual pages, addons, libpython
+(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
 
 ############################################
 # create sitemaps to expand the hugo sitemap
 
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
+
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass-devel/manuals/ --url=https://grass.osgeo.org/grass-devel/manuals/ -o
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass-devel/manuals/addons/ --url=https://grass.osgeo.org/grass-devel/manuals/addons/ -o
 
 ############################################
 # cleanup
@@ -342,9 +371,10 @@ rm -rf lib/html/ lib/latex/ /tmp/addons
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
-echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
-echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
+echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/ (with canonical in metadata)"
+echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/ (with canonical in metadata)"
+echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/ (with canonical in metadata)"
 echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML devel manual to https://grass.osgeo.org/grass-devel/manuals/"
 
 exit 0
