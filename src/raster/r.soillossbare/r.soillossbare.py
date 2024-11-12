@@ -9,7 +9,7 @@ PURPOSE:  	Calculate annual soil loss [t/(ha*a)] for bare croplands.
 			Also use r.soillosscropland.py afterwards for grown soil.
 			Source: Mitasova H, Mitas L, 1999. Modeling soil detachment
 			with RUSLE 3d using GIS.
-			http://skagit.meas.ncsu.edu/~helena/gmslab/erosion/usle.html
+			http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html
 
 			@return out_soillossbare raster map and intermediate results
 

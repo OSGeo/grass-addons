@@ -300,7 +300,7 @@ def main():
                 install += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
                 install += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
                 install += (
-                    'install.packages("%s", repos="http://cran.us.r-'
+                    'install.packages("%s", repos="https://cran.us.r-'
                     'project.org")}\n' % i
                 )
                 r_file.write(install)

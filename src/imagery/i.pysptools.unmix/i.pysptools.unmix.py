@@ -134,7 +134,7 @@ def main():
         gs.fatal(
             _(
                 "Cannot import pysptools \
-                      (https://pypi.python.org/pypi/pysptools) library."
+                      (https://pypi.org/project/pysptools) library."
                 " Please install it (pip install pysptools)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."
@@ -148,7 +148,7 @@ def main():
         gs.fatal(
             _(
                 "Cannot import sklearn \
-                      (https://pypi.python.org/pypi/scikit-learn) library."
+                      (https://pypi.org/project/scikit-learn) library."
                 " Please install it (pip install scikit-learn)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."
@@ -161,7 +161,7 @@ def main():
         gs.fatal(
             _(
                 "Cannot import cvxopt \
-                      (https://pypi.python.org/pypi/cvxopt) library."
+                      (https://pypi.org/project/cvxopt) library."
                 " Please install it (pip install cvxopt)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."

@@ -42,7 +42,7 @@ bt full
 
 This will generate a full backtrace if GRASS was compiled with "-g",
 i.e. debugging. See
-http://grass.osgeo.org/wiki/GRASS_Debugging#Using_GDB
+https://grass.osgeo.org/wiki/GRASS_Debugging#Using_GDB
 
 Got it, too:
 

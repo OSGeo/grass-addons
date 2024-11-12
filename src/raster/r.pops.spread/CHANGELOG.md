@@ -2,7 +2,7 @@
 
 All notable changes to this project should be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## 2020-04-16 - SEI model
 

@@ -26,7 +26,7 @@
 #               define aliases for the names of the species distribution layer
 #
 # COPYRIGHT:   (C) 2015-2024 Paulo van Breugel and the GRASS Development Team
-#              http://ecodiv.earth
+#              https://ecodiv.earth
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS

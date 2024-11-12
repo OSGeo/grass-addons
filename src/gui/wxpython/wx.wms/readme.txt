@@ -10,7 +10,7 @@ The project uses WMS service to fetch images of the maps. The Get Feature servic
 
 Libraries to be installed
 
-1.  BeautifulSoup 3.2 , an XML, HTML Parser ( http://www.crummy.com/software/BeautifulSoup/ )
+1.  BeautifulSoup 3.2 , an XML, HTML Parser ( https://www.crummy.com/software/BeautifulSoup/ )
 
 
 How to run the add-on

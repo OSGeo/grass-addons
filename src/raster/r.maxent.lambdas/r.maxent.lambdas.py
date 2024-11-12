@@ -13,7 +13,7 @@ PURPOSE:      Compute raw and/or logistic prediction maps from a lambdas
               are accessible from the current mapset.!!!
 
               This script will parse the specified lambdas-file from
-              MaxEnt >= 3.3.3e (see http://biodiversityinformatics.amnh.org/open_source/maxent/)
+              MaxEnt >= 3.3.3e (see https://biodiversityinformatics.amnh.org/open_source/maxent/)
               and translate it into an r.mapcalc-expression which can be stored
               in a file.
 

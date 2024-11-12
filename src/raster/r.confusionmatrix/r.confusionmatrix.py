@@ -94,9 +94,9 @@ def cleanup():
 
 
 def print_descriptions():
-    # http://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
+    # https://web.archive.org/web/20200721134326/https://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
 
-    # http://web.pdx.edu/~nauna/resources/9-accuracyassessment.pdf
+    # https://web.pdx.edu/~nauna/resources/9-accuracyassessment.pdf
     oa = "Overall accuracy\nNumber of correct pixels / total number of pixels"
     ua = (
         "User Accuracy\n"
@@ -111,7 +111,7 @@ def print_descriptions():
         + "* Calculated as: Number correctly identified in ref. plots of a given class / Number actually in that reference class\n"
     )
 
-    # http://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
+    # https://web.archive.org/web/20200721134326/https://gis.humboldt.edu/OLM/Courses/GSP_216_Online/lesson6-2/metrics.html
     om = (
         "Omission Error\n"
         + "Omission error refers to reference sites that were left out "
@@ -128,7 +128,7 @@ def print_descriptions():
         + "Commission Error = 100 % - User Accuracy"
     )
 
-    # http://www.iww.forst.uni-goettingen.de/doc/ckleinn/lehre/waldmess/Material/rs_06_accuracy%20assessment.pdf
+    # https://web.archive.org/web/20170829104229/https://www.iww.forst.uni-goettingen.de/doc/ckleinn/lehre/waldmess/Material/rs_06_accuracy%20assessment.pdf
     kap = (
         "Kappa coefficient\n"
         + "It characterizes the degree of matching between reference data set and classification.\n"

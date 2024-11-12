@@ -13,7 +13,7 @@
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
 #
-# COPYRIGHT: (C) 2015 - 2022 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015 - 2024 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -215,8 +215,10 @@ def compute_vif(mapx, mapy):
     x_i = np.hstack((mapx, np.ones((mapx.shape[0], 1))))
     unused, resid = np.linalg.lstsq(x_i, mapy, rcond=None)[:2]
     if resid.size == 0:
-        resid = 0
-    r2 = float(1 - resid[0] / (mapy.size * mapy.var()))
+        resid_value = 0
+    else:
+        resid_value = resid[0]
+    r2 = float(1 - resid_value / (mapy.size * mapy.var()))
     if float(r2) > 0.9999999999:
         vif = float("inf")
         sqrtvif = float("inf")

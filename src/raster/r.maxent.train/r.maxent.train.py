@@ -49,8 +49,8 @@
 
 # %option G_OPT_M_DIR
 # % key: projectionlayers
-# % label: Location of an alternate set of environmental variables.
-# % description: Location of an alternate set of environmental variables. Maxent models will be projected onto these variables. The result will be imported in grass gis.
+# % label: Location of folder with set of environmental variables.
+# % description: Location of an set of rasters representing the same environmental variables as used to create the Maxent model. They will be used to create a prediction layer based on the trained model.
 # % guisection: Input
 # % required: no
 # %end
@@ -411,6 +411,13 @@
 # % Description: Maximum memory to be used by Maxent (in MB)
 # %end
 
+# %option
+# % key: precision
+# % type: integer
+# % label: Precision suitability map
+# % description:  Set the required precision (in the form of number of decimal digits) of the species suitability raster layer (leave empty for default).
+# %end
+
 # %flag
 # % key: v
 # % label: Show the Maxent user interface
@@ -445,6 +452,8 @@ import subprocess
 import sys
 import uuid
 import numpy as np
+import time
+import threading
 import grass.script as gs
 
 
@@ -453,6 +462,35 @@ CLEAN_LAY = []
 
 # Funtions
 # ------------------------------------------------------------------
+
+
+class LoadingIndicator:
+    def __init__(self, message="Processing..."):
+        self.message = message
+        self.symbols = ["|", "/", "-", "\\"]
+        self.stop_running = False
+        self.thread = threading.Thread(target=self._animate)
+
+    def _animate(self):
+        while not self.stop_running:
+            for symbol in self.symbols:
+                if self.stop_running:
+                    break
+                sys.stdout.write(f"\r{symbol} {self.message}")
+                sys.stdout.flush()
+                time.sleep(0.1)
+        # Clear the line after stopping
+        sys.stdout.write("\r\n")
+
+    def start(self):
+        self.stop_running = False
+        self.thread.start()
+
+    def stop(self):
+        self.stop_running = True
+        self.thread.join()
+
+
 def find_index_case_insensitive(lst, target):
     """
     Find index for string match, matching case insensitive
@@ -570,9 +608,9 @@ def main(options, flags):
             envp, samp
         )
         gs.fatal(_(msg))
-    envir_layers = options["projectionlayers"]
-    if bool(envir_layers):
-        envir_files = os.listdir(options["projectionlayers"])
+    projection_layers = options["projectionlayers"]
+    if bool(projection_layers):
+        envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
         if not set(header_samples[3:]).issubset(envir_names):
@@ -669,6 +707,9 @@ def main(options, flags):
     gs.info(_("Maxent runtime messages"))
     gs.info(_("-----------------------"))
 
+    loading_indicator = LoadingIndicator()
+    loading_indicator.start()
+
     with subprocess.Popen(
         maxent_command,
         stdout=subprocess.PIPE,
@@ -685,15 +726,20 @@ def main(options, flags):
         process.wait()
         if process.returncode != 0:
             gs.fatal(_("Maxent terminated with an error"))
-    msg = "Done, you can find the model outputs in:\n {}\n".format(
+    msg = "Done, you can find the model outputs in the folder:\n {}\n".format(
         options["outputdirectory"]
     )
+
+    loading_indicator.stop()
     gs.info(_(msg))
     gs.info(_("-----------------------\n"))
 
     # -----------------------------------------------------------------
     # Get relevant statistics to present
     # -----------------------------------------------------------------
+    gs.info(_("Get basic statistics"))
+    gs.info(_("-----------------------"))
+
     reps = int(options["replicates"])
     if reps > 1:
         if options["replicatetype"] == "crossvalidate":
@@ -823,7 +869,7 @@ def main(options, flags):
                 )
             # Spatial join of layer to first layer
             if int(options["replicates"]) > 1 and index > 0:
-                msg = "Combining samplePrediction layer and computing summary stats".format(
+                msg = "Combining samplePrediction layers and computing summary stats".format(
                     index + 1, len(prediction_csv)
                 )
                 colname = f"{nm}_{index + 1}"
@@ -947,17 +993,13 @@ def main(options, flags):
         gs.info(_("Created the layer {} in GRASS GIS".format(newname)))
 
         # Defined color column
-        if "v.db.pyupdate" in plugins_installed:
-            if len(prediction_csv) == 1:
-                color_column = nm
-            else:
-                color_column = f"{nm}_mean"
-                gs.run_command(
-                    "v.db.dropcolumn",
-                    map=newname,
-                    columns="Test_vs_train",
-                    quiet=function_verbosity,
-                )
+        if len(prediction_csv) == 1:
+            color_column = nm
+        elif "v.db.pyupdate" in plugins_installed:
+            color_column = f"{nm}_mean"
+        else:
+            color_column = False
+        if color_column:
             gs.run_command(
                 "v.colors",
                 map=newname,
@@ -966,7 +1008,25 @@ def main(options, flags):
                 color="bcyr",
                 quiet=function_verbosity,
             )
-
+        gs.run_command(
+            "v.db.dropcolumn",
+            map=newname,
+            columns="Test_vs_train,X,Y",
+            quiet=function_verbosity,
+        )
+        gs.run_command(
+            "v.db.addcolumn",
+            map=newname,
+            columns="pointlocations varchar(20)",
+            quiet=function_verbosity,
+        )
+        gs.run_command(
+            "v.db.update",
+            map=newname,
+            column="pointlocations",
+            value="occurrences",
+            quiet=function_verbosity,
+        )
     # Import the background file with predicted values in grass
     # -----------------------------------------------------------------
     if flags["b"]:
@@ -1015,16 +1075,43 @@ def main(options, flags):
             colnames = list(
                 gs.parse_command("db.columns", table=prediction_bgrlay).keys()
             )
-            nm = colnames[find_index_case_insensitive(colnames, outputformat)]
+            nmcol = colnames[find_index_case_insensitive(colnames, outputformat)]
             gs.run_command(
                 "v.colors",
                 map=prediction_bgrlay,
                 use="attr",
-                column=nm,
+                column=nmcol,
                 color="bcyr",
                 quiet=function_verbosity,
             )
-
+            # Remove unused columns
+            for col in ["Raw", "Cumulative", "Cloglog"]:
+                if nm != col:
+                    gs.run_command(
+                        "v.db.dropcolumn",
+                        map=prediction_bgrlay,
+                        columns=col,
+                        quiet=function_verbosity,
+                    )
+            gs.run_command(
+                "v.db.dropcolumn",
+                map=prediction_bgrlay,
+                columns="X,Y",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay,
+                columns="pointlocations varchar(20)",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay,
+                column="pointlocations",
+                value="backgroundpoints",
+                quiet=function_verbosity,
+            )
         # Import background prediction points in case of replicates > 1
         else:
             gs.info(
@@ -1033,10 +1120,11 @@ def main(options, flags):
             prediction_bgr = [
                 file
                 for file in all_files
-                if file.endswith("_avg.csv")
-                or file.endswith("_stddev.csv")
-                or file.endswith("_median.csv")
+                if file.endswith("_obs_avg.csv")
+                or file.endswith("_obs_min.csv")
+                or file.endswith("_obs_max.csv")
             ]
+            prediction_bgr.sort()
             prediction_bgrlay = [
                 x.replace(".csv", options["suffix"]) for x in prediction_bgr
             ]
@@ -1068,16 +1156,88 @@ def main(options, flags):
                     columns=coldef,
                     quiet=function_verbosity,
                 )
-
-                # Create color table
-                gs.run_command(
-                    "v.colors",
-                    map=prediction_bgrlay[index],
-                    use="attr",
-                    column=coldef[2].replace(" double precision", ""),
-                    color="bcyr",
-                    quiet=function_verbosity,
-                )
+            gs.run_command(
+                "v.db.renamecolumn", map=prediction_bgrlay[0], column=f"avg,{nm}_mean"
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="max double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.what.vect",
+                map=prediction_bgrlay[0],
+                column="max",
+                query_map=prediction_bgrlay[1],
+                query_column="max",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="min double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.what.vect",
+                map=prediction_bgrlay[0],
+                column="min",
+                query_map=prediction_bgrlay[2],
+                query_column="min",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns=f"{nm}_range double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay[0],
+                column=f"{nm}_range",
+                query_column="max-min",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.dropcolumn",
+                map=prediction_bgrlay[0],
+                columns="min,max,Long,Lat",
+                quiet=function_verbosity,
+            )
+            # Create color table
+            gs.run_command(
+                "v.colors",
+                map=prediction_bgrlay[0],
+                use="attr",
+                column=f"{nm}_mean",
+                color="bcyr",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="pointlocations varchar(20)",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay[0],
+                column="pointlocations",
+                value="backgroundpoints",
+                quiet=function_verbosity,
+            )
+            bgrname_avg = prediction_bgrlay[0]
+            newbgrname = bgrname_avg.replace("_avg", "")
+            gs.run_command(
+                "g.rename",
+                vector=f"{prediction_bgrlay[0]},{newbgrname}",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "g.remove", type="vector", flags="f", name=prediction_bgrlay[1:]
+            )
 
     # Import the raster files in GRASS
     # -----------------------------------------------------------------
@@ -1103,6 +1263,18 @@ def main(options, flags):
                 memory=int(options["memory"]),
                 quiet=function_verbosity,
             )
+            precision = options["precision"]
+            if precision.isdigit():
+                prec = 10 ** -int(precision)
+                gs.run_command(
+                    "r.mapcalc",
+                    expression=f"{grasslayers[idx]} = round({grasslayers[idx]}, {prec})",
+                    overwrite=True,
+                    quiet=True,
+                )
+            gs.run_command(
+                "r.colors", map=grasslayers[idx], color="bcyr", quiet=function_verbosity
+            )
             gs.info(_("Imported {}".format(grasslayers[idx])))
 
     # Write file with variable names (to check in r.maxent.predict)
@@ -1112,7 +1284,7 @@ def main(options, flags):
     )
 
     with open(variablenames, "w") as alias_var:
-        for x in envir_names:
+        for x in header_samples:
             alias_var.write("{},".format(x))
 
     gs.info(_("---------Done----------\n"))

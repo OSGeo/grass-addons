@@ -262,7 +262,7 @@ def get_orcid(text):
     Any whitespace is stripped from the text.
 
     >>> # URL style
-    >>> print(get_orcid("http://orcid.org/0000-0000-0000-0000")[0])
+    >>> print(get_orcid("https://orcid.org/0000-0000-0000-0000")[0])
     0000-0000-0000-0000
     >>> # ISBN style
     >>> print(get_orcid("ORCID 0000-0000-0000-0000")[0])
@@ -386,9 +386,9 @@ def get_code_urls_from_documentation(text):
     Returns a tuple with URL of the source code and URL of history of
     the source code.
 
-    >>> text = '<h2>SOURCE CODE</h2><a href="http://osgeo.org/r.spread">r.spread source code</a> (<a href="http://osgeo.org/log/r.spread">history</a>)'
+    >>> text = '<h2>SOURCE CODE</h2><a href="https://github.com/OSGeo/grass/tree/main/raster/r.spread">r.spread source code</a> (<a href="https://github.com/OSGeo/grass/commits/main/raster/r.spread">history</a>)'
     >>> get_code_urls_from_documentation(text)
-    ('http://osgeo.org/r.spread', 'http://osgeo.org/log/r.spread')
+    ('https://github.com/OSGeo/grass/tree/main/raster/r.spread', 'https://github.com/OSGeo/grass/commits/main/raster/r.spread')
     """
     capture = r'<h2>SOURCE CODE</h2>.*<a href="(.+)">[^<]*source code</a>\s+\(<a href="(.+)">history</a>\)'
     match = re.search(capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
@@ -592,7 +592,7 @@ def print_cff(citation, output):
     print("version:", citation["grass-version"], file=output)
     # CFF 1.0.3 does not say expplicitely except for Date (so not any
     # string), so assuming YAML timestamp
-    # (http://yaml.org/type/timestamp.html)
+    # (https://yaml.org/type/timestamp.html)
     # now we have only the year, so using Jan 1
     print("date-released:", citation["grass-build-date"], file=output)
     # license string according to https://spdx.org/licenses/
@@ -862,7 +862,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation["type"] = "software"
     # the team as an entity
     citation["authors"] = [
-        {"name": "The GRASS Development Team", "website": "http://grass.osgeo.org/"}
+        {"name": "The GRASS Development Team", "website": "https://grass.osgeo.org/"}
     ]
     citation["title"] = "GRASS GIS {version}".format(**grass_version)
     citation["version"] = grass_version["version"]
@@ -1002,7 +1002,7 @@ def main(options, flags):
 #  organization = {Open Source Geospatial Foundation},
 #  address = {USA},
 #  year = {YEAR},
-#  url = {http://grass.osgeo.org},
+#  url = {https://grass.osgeo.org},
 # }
 
 
