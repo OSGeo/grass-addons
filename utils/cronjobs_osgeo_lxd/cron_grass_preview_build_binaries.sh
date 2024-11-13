@@ -16,7 +16,7 @@
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
 # - copies over generated manual pages to grass-devel/manuals/
-# - injects in versioned manual the "canonical" to point to "devel" manual (as seen in the Python manual pages)
+# - injects in versioned manual the "canonical" to point to "stable" manual (as seen in the Python manual pages)
 
 # Preparations, on server (neteler@grasslxd:$):
 
@@ -331,7 +331,7 @@ python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/man
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 ############################################
 # Cloning new manual pages into grass-devel/manuals/ (following the Python manual pages concept)
-# - inject canonical URL therein to point to versioned manual page (avoiding "duplicate content" SEO punishment)
+# - inject canonical URL therein to point to "stable" manual page (avoiding "duplicate content" SEO punishment)
 #   see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
 
 TARGETHTMLDIRDEVEL=$TARGETMAIN/grass-devel/manuals/
@@ -350,9 +350,9 @@ cp -rp $TARGETHTMLDIR/* $TARGETHTMLDIRDEVEL/
 # - run sed to replace an existing HTML header string in the upper part of the HTML file
 #   with itself + canonical link of devel version
 # --> do this for core manual pages, addons, libpython
-(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-devel/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
+(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
 
 ############################################
 # create sitemaps to expand the hugo sitemap
