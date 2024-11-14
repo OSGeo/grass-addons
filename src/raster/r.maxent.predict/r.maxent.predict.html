@@ -197,7 +197,9 @@ ecosystems do not change.
 <div class="code">
 <pre>
 r.maxent.predict
-  lambda=output_model1/Bradypus_tridactylus.lambdas raster=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2@current variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
+  lambda=output_model1/Bradypus_tridactylus.lambdas \
+  rasters=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2 \
+  variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
   output=model_1_ssp585
 </pre>
 </div>
@@ -207,7 +209,8 @@ The resulting layer is written to the current mapset as
 <i>model_1_ssp585</i> (right map in the figure below). The results
 suggest the area with suitable conditions will increase under future
 climates compared the that under the current conditions (left map in
-the figure below). Not sure that is realistic.
+the figure below). This result is unexpected, and warrants further
+investigation.
 
 <p>
 <div align="left" style="margin: 10px"> <a

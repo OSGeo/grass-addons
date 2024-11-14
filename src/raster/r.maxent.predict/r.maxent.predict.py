@@ -27,14 +27,14 @@
 # %end
 
 # %option G_OPT_F_BIN_INPUT
-# % key: lambda
+# % key: lambdafile
 # % label: Lambda model file
 # % description: Lambda model file created by Maxent or the r.maxent.train addon.
 # % guisection: input
 # %end
 
 # %option G_OPT_R_INPUTS
-# % key: raster
+# % key: rasters
 # % type: string
 # % label: Names of the input raster layers
 # % description: Names of the raster layers representing the environmental variables used in the Maxent model.
@@ -51,16 +51,28 @@
 # % guisection: input
 # %end
 
-# %option G_OPT_F_BIN_INPUT
-# % key: alias_file
-# % label: csv file with variable and layer names
-# % description: A csv file with in the first column the names of the explanatory variables used in the model, and in the second column the names of corresponding raster layers. Make both are provided in the same order.
+# %option G_OPT_M_DIR
+# % key: projectionlayers
+# % label: Location of folder with set of environmental variables.
+# % description: Directory with set of rasters representing the same environmental variables as used to create the Maxent model. The names of the raster layers, excluding the file extension, need to be the same as the variable names used to create the Maxent model.
 # % guisection: input
 # % required: no
 # %end
 
 # %rules
-# % excludes: alias_file,variables,raster
+# % excludes: projectionlayers,rasters,variables
+# %end
+
+# %option G_OPT_F_BIN_INPUT
+# % key: alias_file
+# % label: csv file with variable and layer names
+# % description: A csv file with in the first column the names of the explanatory variables used in the model, and in the second column the names of corresponding raster layers. Make sure both are provided in the same order.
+# % guisection: input
+# % required: no
+# %end
+
+# %rules
+# % excludes: alias_file,variables,rasters
 # %end
 
 # %flag
@@ -132,15 +144,42 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
+import time
 import uuid
 import grass.script as gs
 
-
-temp_directory = gs.tempdir()
-
-
 # Functions
 # ------------------------------------------------------------------
+
+
+class LoadingIndicator:
+    def __init__(self, message="Processing..."):
+        self.message = message
+        self.symbols = ["|", "/", "-", "\\"]
+        self.stop_running = False
+        self.thread = threading.Thread(target=self._animate)
+
+    def _animate(self):
+        while not self.stop_running:
+            for symbol in self.symbols:
+                if self.stop_running:
+                    break
+                sys.stdout.write(f"\r{symbol} {self.message}")
+                sys.stdout.flush()
+                time.sleep(0.1)
+        # Clear the line after stopping
+        sys.stdout.write("\r\n")
+
+    def start(self):
+        self.stop_running = False
+        self.thread.start()
+
+    def stop(self):
+        self.stop_running = True
+        self.thread.join()
+
+
 def find_index_case_insensitive(lst, target):
     """
     Find index for string match, matching case insensitive
@@ -159,20 +198,29 @@ def cleanup():
         pass
 
 
-def check_layers_exist(layers):
-    """
-    Check if all layers in a list exist in accessible mapsets.
-
-    param str layers: names of layers
-
-    return list: list with names of missing layers
-    """
+def check_layers(layers):
     missing_layers = []
+    double_layers = []
+    current_mapset = gs.gisenv()["MAPSET"]
     for layer in layers:
+        if "@" in layer:
+            layname, mpset = layer.split("@")
+        else:
+            layname = layer
+            mpset = ""
+
+        # List raster layers matching the pattern in the specified mapset
+        chlay = gs.parse_command(
+            "g.list", flags="m", type="raster", pattern=layname, mapset=mpset
+        )
+
         # Check if the layer exists in the current mapset
-        if not gs.find_file(name=layer)["fullname"]:
+        chlay_mapsets = {mapsetname.split("@")[1] for mapsetname in chlay.keys()}
+        if not chlay:
             missing_layers.append(layer)
-    return missing_layers
+        elif len(chlay) > 1 and current_mapset not in chlay_mapsets:
+            double_layers.append(layer)
+    return {"missing": missing_layers, "double": double_layers}
 
 
 def create_temp_name(prefix):
@@ -270,56 +318,75 @@ def main(options, flags):
             )
             gs.fatal(_(msg))
 
-    # Get names of variables and corresponding layer names
+    # Create (or get) folder with environmental layers
     # ------------------------------------------------------------------
-    gs.info(_("Check if the variable and layer names correspond\n"))
 
-    if bool(options["alias_file"]):
-        with open(options["alias_file"]) as csv_file:
-            row_data = list(csv.reader(csv_file, delimiter=","))
-        col_data = list(zip(*row_data))
-        chlay = check_layers_exist(col_data[1])
-        if len(chlay) > 0:
-            gs.message(
+    projectionlayers = options["projectionlayers"]
+    if projectionlayers:
+        # The name of an existing folder with layers is provided
+        temp_directory = projectionlayers
+    else:
+        # Create temporary folder for the raster layers
+        temp_directory = gs.tempdir()
+
+        # Get Get names of variables and corresponding layer names
+        if bool(options["alias_file"]):
+            with open(options["alias_file"]) as csv_file:
+                row_data = list(csv.reader(csv_file, delimiter=","))
+            col_data = list(zip(*row_data))
+            file_names = col_data[0]
+            layer_names = col_data[1]
+        else:
+            layer_names = options["rasters"].split(",")
+            if bool(options["variables"]):
+                file_names = options["variables"].split(",")
+            else:
+                file_names = [strip_mapset(x) for x in layer_names]
+        chlay = check_layers(layer_names)
+        if len(chlay["missing"]) > 0:
+            gs.fatal(
                 _(
                     "The layer(s) {} do not exist in the accessible mapsets".format(
-                        ", ".join(chlay)
+                        ", ".join(chlay["missing"])
                     )
                 )
             )
-        else:
-            file_names = col_data[0]
-            layer_names = col_data[1]
-    else:
-        layer_names = options["raster"].split(",")
-        if bool(options["variables"]):
-            file_names = options["variables"].split(",")
-        else:
-            file_names = [strip_mapset(x) for x in layer_names]
+        if len(chlay["double"]) > 0:
+            gs.fatal(
+                _(
+                    "There are layers with the name {} in multiple accessible mapsets, "
+                    "none of which are in the current mapset."
+                    "Add the mapset name to specify which or these layers should be used.".format(
+                        ", ".join(chlay["double"])
+                    )
+                )
+            )
 
-    # Export raster layers to temporary directory
-    # ------------------------------------------------------------------
-    gs.info(_("Export the raster layers as asci layers for use by Maxent\n"))
+        # Export raster layers to temporary directory
+        gs.info(_("Export the raster layers as asci layers for use by Maxent\n"))
+        loading_indicator = LoadingIndicator()
+        loading_indicator.start()
 
-    for n, layer_name in enumerate(layer_names):
-        dt = gs.parse_command("r.info", map=layer_name, flags="g")["datatype"]
-        if dt == "CELL":
-            datatype = "Int16"
-            nodataval = -9999
-        else:
-            datatype = ""
-            nodataval = -9999999
-        file_name = os.path.join(temp_directory, f"{file_names[n]}.asc")
-        gs.run_command(
-            "r.out.gdal",
-            input=layer_name,
-            output=file_name,
-            format="AAIGrid",
-            flags="c",
-            type=datatype,
-            nodata=nodataval,
-            quiet=True,
-        )
+        for n, layer_name in enumerate(layer_names):
+            dt = gs.parse_command("r.info", map=layer_name, flags="g")["datatype"]
+            if dt == "CELL":
+                datatype = "Int16"
+                nodataval = -9999
+            else:
+                datatype = ""
+                nodataval = -9999999
+            file_name = os.path.join(temp_directory, f"{file_names[n]}.asc")
+            gs.run_command(
+                "r.out.gdal",
+                input=layer_name,
+                output=file_name,
+                format="AAIGrid",
+                flags="c",
+                type=datatype,
+                nodata=nodataval,
+                quiet=True,
+            )
+        loading_indicator.stop()
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
@@ -332,7 +399,7 @@ def main(options, flags):
         "-cp",
         maxent_file,
         "density.Project",
-        options["lambda"],
+        options["lambdafile"],
         temp_directory,
         temp_file,
     ]
@@ -344,26 +411,41 @@ def main(options, flags):
 
     # Run Maxent density.Project
     # -----------------------------------------------------------------
+    gs.info(_("This may take some time ..."))
     with subprocess.Popen(
         maxent_command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
+        text=True,
     ) as process:
         # Capture and print stdout
         for stdout_line in process.stdout:
             gs.info(stdout_line)
         # Capture and print stderr
         for stderr_line in process.stderr:
-            gs.info(stderr_line)
+            gs.info(f"Warning/Error: {stderr_line}")
+            if "java.util.NoSuchElementException" in stderr_line:
+                missing_variables = (
+                    "Check variable names and path + names of input files"
+                )
         # Check the return code
         process.wait()
         if process.returncode != 0:
-            gs.fatal(_("Maxent terminated with an error"))
-
+            if missing_variables:
+                gs.fatal(missing_variables)
+            else:
+                gs.fatal(_("Maxent terminated with an error"))
     # -----------------------------------------------------------------
     # Import the resulting layer in GRASS GIS
     # -----------------------------------------------------------------
+    if not os.path.isfile(temp_file):
+        gs.fatal(
+            _(
+                "Maxent did not create an output raster for import in GRASS.\n"
+                "Check the error message(s) above."
+            )
+        )
     gs.info(_("Importing the predicted suitability layer in GRASS GIS\n"))
     gs.run_command(
         "r.in.gdal",
