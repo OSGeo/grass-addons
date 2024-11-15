@@ -1,9 +1,9 @@
 <h2>DESCRIPTION</h2>
 
 
-The <em>r.maxent.*</em> modules are a front-end to the Maxent software, 
-providing a convenient way to prepare the input data in GRASS GIS, run 
-the Maxent software, and create output layers in GRASS GIS. 
+The <em>r.maxent.predict</em> module is a front-end to the Maxent 
+software, providing a convenient way to run the Maxent software, and 
+create output layers in GRASS GIS. 
 
 <p>
 <div align="left" style="margin: 10px"> <a 
@@ -14,13 +14,10 @@ preparation, training a model to model prediction" border="0">
 prediction using three GRASS GIS addons.</i> </div>
 
 <p>
-It includes three addons that can be used to prepare the input data for 
-the Maxent model, to train a maxent presence only model, and to use the 
-model to create prediction layers. In addition, it provides a helper 
-function to enable GRASS to use the Maxent software.
-
-
-<h3>Model prediction</h3>
+It is part of a set of three addons that can be used to prepare the 
+input data for the Maxent model (<em>v.maxent.sdm</em>), to train a 
+maxent presence only model (<em>r.maxent.train</em>), and to use the model to 
+create prediction layers (this module). 
 
 The <em>r.maxent.predict</em> modules uses the model  (the 
 <i>.lambdas</i> file) created with <em>r.maxent.train</em> (or the 

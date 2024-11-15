@@ -69,12 +69,6 @@ import sys
 import grass.script as gs
 
 
-options = {"maxent": "/home/paulo/Downloads/maxent/maxent.jar", "java": ""}
-flags = {"j": "", "u": ""}
-maxent = options["maxent"]
-overwrite = flags["u"]
-
-
 # Functions
 # -------------------------------------------------------------------
 def install_maxent(maxent, overwrite):
@@ -151,7 +145,9 @@ def set_path_to_java(java, overwrite):
 
     # Check text file exists in addon directory
     addon_directory = os.environ.get("GRASS_ADDON_BASE")
-    txt_java_path = os.path.join(addon_directory, "r_maxent_path_to_java.txt")
+    txt_java_path = os.path.join(
+        addon_directory, "scripts", "r_maxent_path_to_java.txt"
+    )
     java_txt_copy = os.path.isfile(txt_java_path)
 
     # If overwrite is set, copy maxent overwriting the existing file
@@ -159,14 +155,20 @@ def set_path_to_java(java, overwrite):
         with open(txt_java_path, "w") as file:
             file.write(java)
         msg = (
-            "Text file created:\n" "{java}\n" "with path to java executable:\n" "{java}"
+            "Text file created:\n"
+            "{}\n"
+            "with path to java executable:\n"
+            "{}".format(txt_java_path, java)
         )
         gs.info(_(msg))
     elif not os.path.isfile(java_txt_copy):
         with open(txt_java_path, "w") as file:
             file.write(java)
         msg = (
-            "Text file created:\n" "{java}\n" "with path to java executable:\n" "{java}"
+            "Text file created:\n"
+            "{}\n"
+            "with path to java executable:\n"
+            "{}".format(txt_java_path, java)
         )
         gs.info(_(msg))
     else:
@@ -218,7 +220,7 @@ def main(options, flags):
 
     # Set path to java executable
     if bool(options["java"]):
-        set_path_to_java(java=options["java"], overwrite=flags["u"])
+        set_path_to_java(java=os.path.normpath(options["java"]), overwrite=flags["u"])
     else:
         if not java_findable():
             gs.message(
@@ -233,7 +235,7 @@ def main(options, flags):
 
     # Install maxent
     if bool(options["maxent"]):
-        install_maxent(maxent=options["maxent"], overwrite=flags["u"])
+        install_maxent(maxent=os.path.normpath(options["maxent"]), overwrite=flags["u"])
 
 
 if __name__ == "__main__":

@@ -1,9 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-
-The <em>r.maxent.*</em> modules are a front-end to the Maxent software, 
-providing a convenient way to prepare the input data in GRASS GIS, run 
-the Maxent software, and create output layers in GRASS GIS. 
+The <em>r.maxent.train</em> module is a front-end to the Maxent 
+software, providing a convenient way to run the Maxent software, and 
+create output layers in GRASS GIS. 
 
 <p>
 <div align="left" style="margin: 10px"> <a 
@@ -14,12 +13,10 @@ workflow, from data preparation, training a model to model prediction
 using three GRASS GIS addons.</i> </div>
 
 <p>
-It includes three addons that can be used to prepare the input data for 
-the Maxent model, to train a maxent presence only model, and to use the 
-model to create prediction layers. In addition, it provides a helper 
-function to enable GRASS to use the Maxent software.
-
-<h3>Model training</h3>
+It is part of a set of three addons that can be used to prepare the 
+input data for the Maxent model (<em>v.maxent.sdm</em>), to train a 
+maxent presence only model (this module), and to use the model to 
+create prediction layers (<em>r.maxent.predict</em>). 
 
 With <em>r.maxent.train</em> a Maxent presence only model can be
 created using the <em>Maxent software</em>. As input, the addon
@@ -58,8 +55,8 @@ see the Maxent help file.
 
 <h2>NOTES</h2>
 
-This addon requires the Maxent software (version &ge; 3.4). You can download the software 
-from the <a 
+This addon requires the Maxent software (version &ge; 3.4). You can 
+download the software from the <a 
 href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
 website</a>. The <em>r.maxent.setup</em> module provides an helper 
 function to enable GRASS GIS to use the Maxent software.

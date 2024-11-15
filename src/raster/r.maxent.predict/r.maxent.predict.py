@@ -236,7 +236,7 @@ def check_java_txtfile():
         gs.warning(_("GRASS_ADDON_BASE environment variable is not set."))
         return None
 
-    file_path = os.path.join(addon_directory, "r_maxent_path_to_java.txt")
+    file_path = os.path.join(addon_directory, "scripts", "r_maxent_path_to_java.txt")
     if not os.path.isfile(file_path):
         return None
 
@@ -277,34 +277,34 @@ def main(options, flags):
 
     # Check if provided java executable exists
     # ------------------------------------------------------------------
-    java_path = options["java"]
-    if java_path:
+    jav = check_java_txtfile()
+    if options["java"]:
+        java_path = os.path.normpath(options["java"])
         if not os.path.isfile(java_path):
             gs.fatal(_("Provided path to java executable cannot be found."))
-        if java_functional(java_path):
+        elif not java_functional(java_path):
             gs.fatal(_("Problem with provided java executable."))
-
-    jav = check_java_txtfile()
-    if jav:
+        else:
+            path_to_java = os.path.normpath(options["java"])
+    elif jav:
         path_to_java = jav
     elif java_functional("java"):
         path_to_java = "java"
     else:
         gs.warning(
             _(
-                "Java cannot be found from GRASS GIS. Please ensure Java "
-                "is installed and/or properly configured. If you are sure "
-                "Java is installed, you can provide the path to the java "
-                "executable using the 'java' parameter. Alternatively, "
-                "for a more permanent solution, see the r.maxent.setup addon."
+                "Java cannot be found. Please ensure Java is installed "
+                "and/or properly configured to be accessible from GRASS. \n"
+                "If you are sure Java is installed, you can provide the path "
+                "to the java executable using the 'java' parameter. \n"
+                "For a more permanent solution, see the r.maxent.setup addon."
             )
         )
 
     # Checking availability of maxent.jar
     # ------------------------------------------------------------------
-    path_to_maxent = options["maxent"]
-    if bool(path_to_maxent):
-        maxent_file = options["maxent"]
+    if bool(options["maxent"]):
+        maxent_file = os.path.normpath(options["maxent"])
         if not os.path.isfile(maxent_file):
             msg = "The maxent.jar file was not found on the location you provided"
             gs.fatal(_(msg))
@@ -414,7 +414,7 @@ def main(options, flags):
 
     temp_file = os.path.join(temp_directory, create_temp_name("mxt_"))
     maxent_command = [
-        "java",
+        path_to_java,
         f"-mx{options['memory']}m",
         "-cp",
         maxent_file,
