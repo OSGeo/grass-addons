@@ -56,6 +56,9 @@
 # % excludes: -j, maxent, java, -u
 # %end
 
+# %rules
+# % required: -j, maxent, java
+# %end
 
 # import libraries
 # ------------------------------------------------------------------
@@ -66,7 +69,10 @@ import sys
 import grass.script as gs
 
 
-CLEAN_LAY = []
+options = {"maxent": "/home/paulo/Downloads/maxent/maxent.jar", "java": ""}
+flags = {"j": "", "u": ""}
+maxent = options["maxent"]
+overwrite = flags["u"]
 
 
 # Functions
@@ -106,24 +112,24 @@ def install_maxent(maxent, overwrite):
 
     # If overwrite is set, copy maxent overwriting the existing file
     if maxent_copy and bool(overwrite):
-        shutil.copyfile(maxent, maxent_copy)
+        shutil.copyfile(maxent, maxent_file)
         msg = (
-            "Copied the maxent.jar file to the grass gis addon script directory.\n"
-            "{({maxent_copy}.\n"
+            "Replaced the maxent.jar file in the grass gis addon script directory.\n"
+            f"path: {maxent_file}.\n"
         )
         gs.info(_(msg))
-    elif not os.path.isfile(maxent_copy):
-        shutil.copyfile(maxent, maxent_copy)
+    elif not os.path.isfile(maxent_file):
+        shutil.copyfile(maxent, maxent_file)
         msg = (
             "Copied the maxent.jar file to the grass gis addon script directory.\n"
-            "{({maxent_copy}.\n"
+            f"path: {maxent_file}.\n"
         )
         gs.info(_(msg))
     else:
         msg = (
             "There is already a maxent.jar file in the scripts \n"
             "directory. Use the -u flag if you want to update \n"
-            " the maxent.jar file."
+            f"the file {maxent_file}."
         )
         gs.fatal(_(msg))
 
@@ -199,20 +205,16 @@ def main(options, flags):
     # Check if Java can be found
     if flags["j"]:
         if not java_findable():
-            gs.message(
+            gs.warning(
                 _(
                     "Java cannot be found from GRASS GIS. Please ensure Java "
                     "is installed and/or properly configured. If you are sure "
                     "Java is installed, you can use this module to define the "
-                    "path to the java executable. See the help file for details"
+                    "path to the java executable. See the help file for details."
                 )
             )
         else:
-            gs.message(_("Java is accessible from GRASS GIS"))
-
-    # Install maxent
-    if bool(options["maxent"]):
-        install_maxent(maxent=options["maxent"], overwrite=flags["u"])
+            gs.message(_("Java is accessible from GRASS GIS."))
 
     # Set path to java executable
     if bool(options["java"]):
@@ -225,11 +227,13 @@ def main(options, flags):
                     "Please ensure Java is installed and/or properly configured."
                     "If you are sure Java is installed, you can use this module"
                     "to define the path to the java executable. See the help file"
-                    "for details"
+                    "for details."
                 )
             )
-    if not bool(options["java"]) and not bool(options["maxent"]):
-        gs.message(_("Nothing done ..."))
+
+    # Install maxent
+    if bool(options["maxent"]):
+        install_maxent(maxent=options["maxent"], overwrite=flags["u"])
 
 
 if __name__ == "__main__":
