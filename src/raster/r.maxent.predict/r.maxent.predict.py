@@ -119,18 +119,6 @@
 # %end
 
 # %flag
-# % key: i
-# % label: Copy maxent.jar to addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
-# %end
-
-# %flag
-# % key: u
-# % label: Overwrites maxent.jar in addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exists in the addon directory, it is overwritten.
-# %end
-
-# %flag
 # % key: p
 # % label: Print Maxent command
 # % description: Print the Maxent command used to create the prediction layer. For debugging.
@@ -281,32 +269,6 @@ def main(options, flags):
         if not os.path.isfile(maxent_file):
             msg = "The maxent.jar file was not found on the location you provided"
             gs.fatal(_(msg))
-        file_name = os.path.basename(os.path.basename(maxent_file))
-        maxent_path = os.environ.get("GRASS_ADDON_BASE")
-        maxent_copy = os.path.join(maxent_path, "scripts", "maxent.jar")
-        if file_name != "maxent.jar":
-            gs.fatal(
-                _(
-                    "The name of the maxent program should be 'maxent.jar',"
-                    " not '{}'".format(file_name)
-                )
-            )
-        if bool(flags["i"]):
-            if os.path.isfile(maxent_copy):
-                msg = (
-                    "There is already a maxent.jar file in the scripts \n"
-                    "directory. Remove the -i flag. If you want to update \n"
-                    " the maxent.jar file, use the -u flag instead."
-                )
-                gs.fatal(_(msg))
-            else:
-                shutil.copyfile(maxent_file, maxent_copy)
-                msg = "Copied the maxent.jar file to the GRASS GIS addon script directory .\n\n"
-                gs.info(_(msg))
-        if bool(flags["u"]):
-            shutil.copyfile(maxent_file, maxent_copy)
-            msg = "Copied the maxent.jar file to the GRASS GIS addon script directory .\n\n"
-            gs.info(_(msg))
     else:
         maxent_file = os.environ.get("GRASS_ADDON_BASE")
         maxent_file = os.path.join(maxent_file, "scripts", "maxent.jar")
@@ -314,7 +276,7 @@ def main(options, flags):
             msg = (
                 "You did not provide the path to the maxent.jar file,\n"
                 "nor was it found in the addon script directory.\n"
-                "See the manual page for instructions."
+                "See the manual page of r.maxent.setup for instructions."
             )
             gs.fatal(_(msg))
 
