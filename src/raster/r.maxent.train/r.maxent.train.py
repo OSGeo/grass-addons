@@ -402,6 +402,13 @@
 # % required: no
 # %end
 
+# %option G_OPT_F_BIN_INPUT
+# % key: java
+# % label: Location java executable
+# % description: If Java is installed, but cannot be found, the user can provide the path to the java executable file. Note, an alternative is to use the r.maxent.setup addon.
+# % required: no
+# %end
+
 # %option G_OPT_M_NPROCS
 # % key: threads
 # % label: Number of processor threads to use.
@@ -424,21 +431,8 @@
 # % description: Use this flag to show the Maxent interface. Note that when you select this option, Maxent will not start before you hit the start option.
 # %end
 
-# %flag
-# % key: i
-# % label: Copy maxent.jar to addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
-# %end
-
-# %flag
-# % key: u
-# % label: Overwrites maxent.jar in addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exists in the addon directory, it is overwritten.
-# %end
-
 # %rules
 # % exclusive: replicates,randomtestpoints
-# % exclusive: -i, -u
 # %end
 
 # import libraries
@@ -447,13 +441,9 @@ import atexit
 import csv
 import re
 import os
-import shutil
 import subprocess
 import sys
 import uuid
-import numpy as np
-import time
-import threading
 import grass.script as gs
 
 
@@ -462,33 +452,6 @@ CLEAN_LAY = []
 
 # Funtions
 # ------------------------------------------------------------------
-
-
-class LoadingIndicator:
-    def __init__(self, message="Processing..."):
-        self.message = message
-        self.symbols = ["|", "/", "-", "\\"]
-        self.stop_running = False
-        self.thread = threading.Thread(target=self._animate)
-
-    def _animate(self):
-        while not self.stop_running:
-            for symbol in self.symbols:
-                if self.stop_running:
-                    break
-                sys.stdout.write(f"\r{symbol} {self.message}")
-                sys.stdout.flush()
-                time.sleep(0.1)
-        # Clear the line after stopping
-        sys.stdout.write("\r\n")
-
-    def start(self):
-        self.stop_running = False
-        self.thread.start()
-
-    def stop(self):
-        self.stop_running = True
-        self.thread.join()
 
 
 def find_index_case_insensitive(lst, target):
@@ -538,6 +501,63 @@ def repl_char(keep, strlist, replwith):
     return nwlist
 
 
+def java_functional(java_path):
+    """
+    Check if Java can be found by running the 'java -version' command.
+
+    Returns:
+        bool: True if Java is findable, False otherwise.
+    """
+    try:
+        # Run 'java -version' and suppress its output
+        subprocess.run(
+            [java_path, "-version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def check_java_txtfile():
+    """Check if there is a text file with path to java executables in the addon
+    directory
+    """
+    addon_directory = os.environ.get("GRASS_ADDON_BASE")
+    if not addon_directory:
+        gs.warning(_("GRASS_ADDON_BASE environment variable is not set."))
+        return None
+
+    file_path = os.path.join(addon_directory, "scripts", "r_maxent_path_to_java.txt")
+    if not os.path.isfile(file_path):
+        return None
+
+    try:
+        with open(file_path, "r") as file:
+            java_path = file.readline().strip()
+    except Exception as e:
+        gs.warning(_("File with path to java exists but cannot be read: {}".format(e)))
+        return None
+
+    if not java_path:
+        gs.warning(_("The file 'r_maxent_path_to_java.txt' is empty"))
+        return None
+
+    if not os.path.exists(java_path) or not java_functional(java_path):
+        gs.warning(
+            _(
+                "The path to the Java executable '{}', defined in the"
+                " 'r_maxent_path_to_java.txt' in the addon directory "
+                "does not exist or is not functional.".format(java_path)
+            )
+        )
+        return None
+
+    return java_path
+
+
 # Main
 # ------------------------------------------------------------------
 def main(options, flags):
@@ -548,40 +568,39 @@ def main(options, flags):
     else:
         function_verbosity = True
 
+    # Check if provided java executable exists
+    # ------------------------------------------------------------------
+    jav = check_java_txtfile()
+    if options["java"]:
+        java_path = os.path.normpath(options["java"])
+        if not os.path.isfile(java_path):
+            gs.fatal(_("Provided path to java executable cannot be found."))
+        elif not java_functional(java_path):
+            gs.fatal(_("Problem with provided java executable."))
+        else:
+            path_to_java = os.path.normpath(options["java"])
+    elif jav:
+        path_to_java = jav
+    elif java_functional("java"):
+        path_to_java = "java"
+    else:
+        gs.warning(
+            _(
+                "Java cannot be found. Please ensure Java is installed "
+                "and/or properly configured to be accessible from GRASS. \n"
+                "If you are sure Java is installed, you can provide the path "
+                "to the java executable using the 'java' parameter. \n"
+                "For a more permanent solution, see the r.maxent.setup addon."
+            )
+        )
+
     # Checking availability of maxent.jar
     # ------------------------------------------------------------------
-    path_to_maxent = options["maxent"]
-    if bool(path_to_maxent):
-        maxent_file = options["maxent"]
+    if bool(options["maxent"]):
+        maxent_file = os.path.normpath(options["maxent"])
         if not os.path.isfile(maxent_file):
             msg = "The maxent.jar file was not found on the location you provided"
             gs.fatal(_(msg))
-        file_name = os.path.basename(os.path.basename(maxent_file))
-        maxent_path = os.environ.get("GRASS_ADDON_BASE")
-        maxent_copy = os.path.join(maxent_path, "scripts", "maxent.jar")
-        if file_name != "maxent.jar":
-            gs.fatal(
-                _(
-                    "The name of the maxent program should be 'maxent.jar',"
-                    " not '{}'".format(file_name)
-                )
-            )
-        if bool(flags["i"]):
-            if os.path.isfile(maxent_copy):
-                msg = (
-                    "There is already a maxent.jar file in the scripts \n"
-                    "directory. Remove the -i flag. If you want to update \n"
-                    " the maxent.jar file, use the -u flag instead."
-                )
-                gs.fatal(_(msg))
-            else:
-                shutil.copyfile(maxent_file, maxent_copy)
-                msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
-                gs.info(_(msg))
-        if bool(flags["u"]):
-            shutil.copyfile(maxent_file, maxent_copy)
-            msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
-            gs.info(_(msg))
     else:
         maxent_file = os.environ.get("GRASS_ADDON_BASE")
         maxent_file = os.path.join(maxent_file, "scripts", "maxent.jar")
@@ -589,14 +608,14 @@ def main(options, flags):
             msg = (
                 "You did not provide the path to the maxent.jar file,\n"
                 "nor was it found in the addon script directory.\n"
-                "See the manual page for instructions."
+                "See the manual page of r.maxent.setup for instructions."
             )
             gs.fatal(_(msg))
 
     # Check variable names in swd files and environmental layers
     # ------------------------------------------------------------------
-    envir_layers = options["environmentallayersfile"]
-    sample_layers = options["samplesfile"]
+    envir_layers = os.path.normpath(options["environmentallayersfile"])
+    sample_layers = os.path.normpath(options["samplesfile"])
     with open(envir_layers) as f:
         header_environ = f.readline().strip("\n").split(",")
     with open(sample_layers) as f:
@@ -608,8 +627,8 @@ def main(options, flags):
             envp, samp
         )
         gs.fatal(_(msg))
-    projection_layers = options["projectionlayers"]
-    if bool(projection_layers):
+    if bool(options["projectionlayers"]):
+        projection_layers = os.path.normpath(options["projectionlayers"])
         envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
@@ -623,7 +642,7 @@ def main(options, flags):
     # ------------------------------------------------------------------
     # names options
     maxent_command = [
-        "java",
+        path_to_java,
         f"-mx{options['memory']}m",
         "-jar",
         maxent_file,
@@ -704,11 +723,8 @@ def main(options, flags):
 
     # Run Maxent, train and create the model
     # -----------------------------------------------------------------
-    gs.info(_("Maxent runtime messages"))
+    gs.info(_("Maxent running ... this may take some time, please be patient"))
     gs.info(_("-----------------------"))
-
-    loading_indicator = LoadingIndicator()
-    loading_indicator.start()
 
     with subprocess.Popen(
         maxent_command,
@@ -730,7 +746,6 @@ def main(options, flags):
         options["outputdirectory"]
     )
 
-    loading_indicator.stop()
     gs.info(_(msg))
     gs.info(_("-----------------------\n"))
 
