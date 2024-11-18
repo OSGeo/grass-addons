@@ -1323,13 +1323,6 @@ def main():
 
 
 if __name__ == "__main__":
-    gs.warning(_("Experimental Version..."))
-    gs.warning(
-        _(
-            "This module is still under development, \
-            and its behaviour is not guaranteed to be reliable"
-        )
-    )
     options, flags = gs.parser()
 
     try:
