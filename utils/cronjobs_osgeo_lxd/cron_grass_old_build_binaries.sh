@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # script to build GRASS GIS old current binaries + addons from the `releasebranch_8_3` branch
 # (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
@@ -173,6 +173,7 @@ echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
 mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
 # don't destroy the addons during update
+rm -rf /tmp/addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*
 (cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
@@ -334,9 +335,10 @@ unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 # - cd into folder of HTML manual pages
 # - run sed to replace an existing HTML string in the upper part of the HTML file
 #   with itself + the red box pointing to the respective stable version manual page
-# --> do this for core manual pages, addons, libpython
+# --> do this for core manual pages, addons, libpython, recursively
+
 ##
-# for core manual pages
+# red box for core manual pages
 echo "Injecting G8.x new current version hint in a red box into MAN pages..."
 # inject G8.x current stable version hint in a red box:
 (cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'document is for an older version of GRASS GIS' *.html` ; do sed -i -e "s:<div id=\"container\">:<div id=\"container\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
@@ -346,19 +348,35 @@ echo "Injecting G8.x new current version hint in a red box into MAN pages..."
 # also for Python
 (cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'document is for an older version of GRASS GIS' *.html` ; do sed -i -e "s:^<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../../grass${NEW_CURRENT}/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
 
-# SEO: inject canonical link into all (old) manual pages to point to latest stable (avoid "duplicate content" SEO punishment)
+############################################
+# SEO: inject canonical link into all (old) versioned manual pages to point to grass-stable (avoid "duplicate content" SEO punishment)
 # see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
-# - cd into folder of HTML manual pages
+# - cd back into folder of versioned HTML manual pages
 # - run sed to replace an existing HTML header string in the upper part of the HTML file
 #   with itself + canonical link of stable version
-# --> do this for core manual pages, addons, libpython
-(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+# --> do this for core manual pages, addons, libpython, recursively
+
+process_files() {
+  local dir="$1"
+  local prefix="$2"
+
+  find "$dir" -type f -name '*.html' | while IFS= read -r myfile; do
+    if ! grep -q 'link rel="canonical"' "$myfile"; then
+      manpage="$prefix$(basename ${myfile})"
+      sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$manpage\">\n</head>:g" ${myfile}
+    fi
+  done
+}
+
+cd "$TARGETHTMLDIR"
+process_files "$TARGETHTMLDIR" ""
+process_files "$TARGETHTMLDIR/addons" "addons/"
+process_files "$TARGETHTMLDIR/libpython" "libpython/"
 
 ############################################
 # create sitemaps to expand the hugo sitemap
 
+# versioned manual:
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
 
