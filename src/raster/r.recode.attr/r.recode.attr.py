@@ -7,8 +7,8 @@
 # PURPOSE:      Recode raster to one or more new layers using an
 #               attribute table (csv file) as input
 #
-# COPYRIGHT: (C) 2015-2024 Paulo van Breugel
-#            https://ecodiv.earth
+# COPYRIGHT: (C) 2015-2024 by Paulo van Breugel
+#            and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
