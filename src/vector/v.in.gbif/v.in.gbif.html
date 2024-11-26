@@ -10,12 +10,12 @@ hast to be unzipped before importing the csv file.
 
 <p>
 <em>v.in.gbif</em> saves the data to an intermediate <a href="https://gdal.org">GDAL</a>
-<a href="https://gdal.org/drv_vrt.html">VRT - Virtual Datasource</a>
+<a href="https://gdal.org/drivers/vector/vrt.html">VRT - Virtual Datasource</a>
 which will be imported by <a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>. The VRT data set
 can be copied to a user defined directory by <i>-c</i> flag and used in any GDAL aware software.
 
 As some column names in the original data set are similar to <a
-href="https://www.postgresql.org/docs/devel/static/sql-keywords-appendix.html">SQL reserverd key words</a>,
+href="https://www.postgresql.org/docs/devel/sql-keywords-appendix.html">SQL reserverd key words</a>,
 the columns will renamed with the prefix <i>g_</i>.
 </p>
 

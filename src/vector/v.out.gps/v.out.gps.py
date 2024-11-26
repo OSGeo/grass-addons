@@ -18,8 +18,8 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  GPSBabel from         http://gpsbabel.sourceforge.net
-#      -  cs2cs from PROJ.4 (for m.proj)        http://proj.osgeo.org
+#      -  GPSBabel from         https://www.gpsbabel.org
+#      -  cs2cs from PROJ.4 (for m.proj)        https://proj.org
 #
 #      - report supported GPSBabel formats:
 #         gpsbabel -^2 | tr '\t' ';' | sort -t';' -k3
@@ -27,7 +27,7 @@
 #############################################################################
 #
 # How to do it
-#   http://www.gdal.org/ogr/drv_gpx.html
+#   https://gdal.org/drivers/vector/gpx.html
 #   gpsbabel [options] -i INTYPE -f INFILE -o OUTTYPE -F OUTFILE
 #
 #############################################################################
@@ -148,14 +148,14 @@ def main():
     if not grass.find_program("gpsbabel"):
         grass.fatal(
             _("The gpsbabel program was not found, please install it first.\n")
-            + "http://gpsbabel.sourceforge.net"
+            + "https://www.gpsbabel.org"
         )
 
     #### check for cs2cs
     if not grass.find_program("cs2cs"):
         grass.fatal(
             _("The cs2cs program was not found, please install it first.\n")
-            + "http://proj.osgeo.org"
+            + "https://proj.org"
         )
 
     # check if we will overwrite data
@@ -287,7 +287,7 @@ def main():
 
     # BUG: cat is being reported as evelation and attribute output is skipped.
     #   (v.out.ogr DB reading or ->OGR GPX driver bug<-
-    #     resolved: see new Create opts at http://www.gdal.org/ogr/drv_gpx.html)
+    #     resolved: see new Create opts at https://gdal.org/drivers/vector/gpx.html)
     #   v.out.ogr -> shapefile -> GPX works, but we try to avoid that as it's
     #     lossy. Also that would allow ogr2ogr -a_srs $IN_PROJ -t_srs EPSG:4326
     #     so skip m.proj pains.. if that is done ogr2ogr -s_srs MUST HAVE +wktext

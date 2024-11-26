@@ -46,7 +46,7 @@
 <p>where:</p>
 <ul>
 <li><code>Ti</code> and <code>Tj</code> are Top of Atmosphere brightness temperatures measured in channels <code>i</code> (~11.0 microns) and <code>j</code> (~12.0 µm), respectively</li>
-<li>from https://landsat.usgs.gov/band_designations_landsat_satellites.php:
+<li>from https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites (https://web.archive.org/web/20160424105111/http://landsat.usgs.gov:80/band_designations_landsat_satellites.php):
 <ul>
 <li>Band 10, Thermal Infrared (TIRS) 1, 10.60-11.19, 100*(30)</li>
 <li>Band 11, Thermal Infrared (TIRS) 2, 11.50-12.51, 100*(30)</li>
@@ -171,7 +171,7 @@ The shortest call for processing a complete Landsat8 scene normally is:
 <li><p><strong><code>landcover=</code></strong> the name of the FROM-GLC map that covers the extent of the Landsat8 scene under processing</p></li>
 <li><p>the <strong><code>n</code></strong> flag will set zero digital number values, which may represent NoData in the original bands, to NULL. This option is probably unnecessary for smaller regions in which there are no NoData pixels present.</p></li>
 </ul>
-<p>The pixel value 61440 is selected automatically to build a cloud mask. At the moment, only a single pixel value may be requested from the Quality Assessment band. For details, refer to [https://landsat.usgs.gov/L8QualityAssessmentBand.php USGS' webpage for Landsat8 Quality Assessment Band]</p>
+<p>The pixel value 61440 is selected automatically to build a cloud mask. At the moment, only a single pixel value may be requested from the Quality Assessment band. For details, refer to [https://web.archive.org/web/20150712004428/httpss://landsat.usgs.gov/L8QualityAssessmentBand.php USGS' webpage for Landsat8 Quality Assessment Band]</p>
 <p><strong><code>window</code></strong> is an important option. It defines the size of the spatial window querying for column water vapor values. Small window sizes introduce a spatial discontinuation effect in the final LST image. Larger window sizes lead to more accurate results, at the cost of performance. However, too large window sizes should be avoided as they would include large variations of land and atmospheric conditions. In [2] it is stated:</p>
 <blockquote>
 <p>A small window size n (N = n * n, see equation (1a)) cannot ensure a high correlation between two bands' temperatures due to the instrument noise. In contrast, the size cannot be too large because the variations in the surface and atmospheric conditions become larger as the size increases.</p>
@@ -244,7 +244,7 @@ The shortest call for processing a complete Landsat8 scene normally is:
 </div>
 <h2 id="todo">TODO</h2>
 <ul>
-<li>Go through <a href="http://trac.osgeo.org/grass/wiki/Submitting/Python">Submitting Python</a></li>
+<li>Go through <a href="https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md#python">Submitting Python</a></li>
 <li>Proper command history tracking.</li>
 <li>Deduplicate code where applicable</li>
 <li>Test compiling in other systems</li>
@@ -252,7 +252,7 @@ The shortest call for processing a complete Landsat8 scene normally is:
 </ul>
 <h2 id="references">REFERENCES</h2>
 <ul>
-<li><p>[0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015. &quot;A Practical Split-Window Algorithm for Estimating Land Surface Temperature from Landsat 8 Data.&quot; Remote Sens. 7, no. 1: 647-665. http://www.mdpi.com/2072-4292/7/1/647/htm</p></li>
+<li><p>[0] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao, Shaohua. 2015. &quot;A Practical Split-Window Algorithm for Estimating Land Surface Temperature from Landsat 8 Data.&quot; Remote Sens. 7, no. 1: 647-665. https://www.mdpi.com/2072-4292/7/1/647</p></li>
 <li><p>[1] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng, and Jing Li. &quot;Atmospheric Water Vapor Retrieval from Landsat 8 and Its Validation.&quot; 3045--3048. IEEE, 2014.</p></li>
 <li><p>[2] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., &amp; Meng, J. (2015). Atmospheric water vapor retrieval from Landsat 8 thermal infrared images. Journal of Geophysical Research: Atmospheres, 120(5), 1723-1738.</p></li>
 </ul>

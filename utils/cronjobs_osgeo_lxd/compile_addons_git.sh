@@ -151,8 +151,8 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
         fi
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
-    make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
-    make MODULE_TOPDIR="$TOPDIR" \
+    make -j2 MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
+    make -j2 MODULE_TOPDIR="$TOPDIR" \
         BIN="$path/bin" \
         HTMLDIR="$path/docs/html" \
         MANBASEDIR="$path/docs/man" \
@@ -186,7 +186,7 @@ if [ "$GMINOR" -gt "2" ]; then
 fi
 
 echo "</table><hr />
-<div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
+<div style=\"text-align: right\">Valid: <a href=\"https://validator.w3.org/check/referer\">XHTML</a></div>
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
 echo ""
@@ -196,7 +196,7 @@ bash ~/cronjobs/check_addons_urls.sh "$ADDON_PATH" \
 echo ""
 
 echo "</table><hr />
-<div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
+<div style=\"text-align: right\">Valid: <a href=\"https://validator.w3.org/check/referer\">XHTML</a></div>
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
 
 echo "Log file written to <$ADDON_PATH/logs/>"

@@ -1,19 +1,39 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.maxent.predict</em> addon can be used to apply a previously
-calculated Maxent model to a new set of environmental raster data. It
-requires a <i>.lambdas</i> file describing a Maxent model, and the
-name of raster layers for all predictor variables described in the
-lambdas file. The <i>.lambdas file</i> can be created by the
-<em>r.maxent.train</em> addon, or by the Maxent software directly.
+
+The <em>r.maxent.predict</em> module is a front-end to the Maxent 
+software, providing a convenient way to run the Maxent software, and 
+create output layers in GRASS GIS. 
 
 <p>
-For convenience, <em>r.maxent.train</em> creates a file
-<i>maxent_explanatory_variable_names.csv</i>, which you can check for
-the names of the predictor variables. If these are different from the
-input raster layers, you can provide the variable names using the
-<em>variables</em> parameter. Alternatively, you can provide a CSV file
-with the names of the explanatory variables (first column) and the
+<div align="left" style="margin: 10px"> <a 
+href="r_maxent_predict_workflow.png"> <img 
+src="r_maxent_predict_workflow.png" alt="workflow, from data 
+preparation, training a model to model prediction" border="0"> 
+</a><br><i>A workflow, from data preparation, training a model to model 
+prediction using three GRASS GIS addons.</i> </div>
+
+<p>
+It is part of a set of three addons that can be used to prepare the 
+input data for the Maxent model (<em>v.maxent.sdm</em>), to train a 
+maxent presence only model (<em>r.maxent.train</em>), and to use the model to 
+create prediction layers (this module). 
+
+The <em>r.maxent.predict</em> modules uses the model  (the 
+<i>.lambdas</i> file) created with <em>r.maxent.train</em> (or the 
+Maxent software directly) and applies this to a set of environmental 
+raster layers. These should represent the same variables as used to 
+create the model, but can represent a different area, of future 
+conditions.
+
+
+<p>
+The <em>r.maxent.train</em> creates a file 
+<i>maxent_explanatory_variable_names.csv</i>, which you can check for 
+the names of the predictor variables. If these are different from the 
+input raster layers, you can provide the variable names using the 
+<em>variables</em> parameter. Alternatively, you can provide a CSV file 
+with the names of the explanatory variables (first column) and the 
 names of the corresponding raster layers (second column).
 
 <p>
@@ -28,26 +48,14 @@ option.
 
 <h2>NOTES</h2>
 
-This addon requires the Maxent software. You can download the software
-from the <a
-href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent
-website</a>. The software includes a <em>Maxent.jar</em> file. The
-addon expects a copy of the executable in the GRASS GIS addon
-directory. If it is not there, you need to provide the path to the
-<i>maxent.jar</i> file using the <b>maxent</b> parameter. To avoid
-having to provide this each time again, you can use the <b>-i</b> flag.
-If set, the <i>maxent.jar</i> file will be copied to the addon/script
-directory. Note that if you already did this when running
-<em>r.maxent.train</em>, there is no need to repeat it here.
+This addon requires the Maxent software (version &ge; 3.4). You can download the software 
+from the <a 
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
+website</a>. The <em>r.maxent.setup</em> module provides an helper 
+function to enable GRASS GIS to use the Maxent software.
 
-<p>
-If you want to update the Maxent.jar file, use the <b>-u</b> flag.
-Removing the Maxent.jar file needs to be done manually. Go to the GRASS
-GIS addon directory, and delete the Maxent.jar file. To find the addon
-directory, open GRASS GIS, and type `echo $GRASS_ADDON_BASE` on the
-command line.
 
-<h2>Examples</h2>
+<h2>EXAMPLE</h2>
 
 <p>
 The examples below use a dataset that you can download <a
@@ -81,26 +89,6 @@ Unzip the file, start up GRASS GIS, open the GRASS GIS database to
 which you copied the folder <i>sampledata</i>, switch to the Location
 <i>sampledata</i> and open the mapset <i>model01</i>. This mapset
 should have access to the other mapsets.
-
-This addon is part of a series of three addons that can be used to
-prepare the data, train a maxent presence only model, and to use the
-model to create prediction layers.
-
-<p>
-<div align="left" style="margin: 10px"> <a
-href="r_maxent_predict_01.png"> <img src="r_maxent_predict_01.png"
-alt="workflow, from data preparation, training a model to model
-prediction" border="0"> </a><br><i>A workflow, from data preparation,
-training a model to model prediction using three GRASS GIS addons.</i>
-</div>
-
-<p>
-The examples below show how to use the three addons in sequence. Only
-the basic options are shown. For a detailed account of all options,
-check out the Maxent tutorial on the <a
-href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent
-website</a>.
-
 
 <h3>1: Data preparation</h3>
 
@@ -180,8 +168,8 @@ In your current mapset, you'll find the raster prediction layer, and
 the sample and background point layers with the predicted values.
 
 <p>
-<div align="left" style="margin: 10px"> <a href="r_maxent_train.png">
-<img src="r_maxent_train.png" alt="Output layers in GRASS GIS"
+<div align="left" style="margin: 10px"> <a href="r_maxent_predict_01.png">
+<img src="r_maxent_predict_01.png" alt="Output layers in GRASS GIS"
 border="0"> </a><br><i>The example creates the prediction raster layer
 'model_1_suitability_current',  the sample point layer
 'model_1_samplepred' and the background point layer 'model_bgrdpred'
@@ -197,7 +185,9 @@ ecosystems do not change.
 <div class="code">
 <pre>
 r.maxent.predict
-  lambda=output_model1/Bradypus_tridactylus.lambdas raster=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2@current variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
+  lambda=output_model1/Bradypus_tridactylus.lambdas \
+  rasters=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2 \
+  variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
   output=model_1_ssp585
 </pre>
 </div>
@@ -207,7 +197,8 @@ The resulting layer is written to the current mapset as
 <i>model_1_ssp585</i> (right map in the figure below). The results
 suggest the area with suitable conditions will increase under future
 climates compared the that under the current conditions (left map in
-the figure below). Not sure that is realistic.
+the figure below). This result is unexpected, and warrants further
+investigation.
 
 <p>
 <div align="left" style="margin: 10px"> <a
@@ -239,18 +230,17 @@ Distributions, 17:43-57, 2011.</li>
 
 <h2>SEE ALSO</h2>
 
-<ul>
-<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species and
-background swd files and prediction rasters that can be used directly
-by the <em>r.maxent.train</em> addon (or the Maxent software itself) to
-create species distribution models.</li>
-<li><a href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating
-species and background swd files based on species distribution data in
-raster format.</li>
-<li><a href="r.maxent.train.html">r.maxent.train</a>, creates a maxent
-model based on presence point data a set of environmental predictor
-layers.</li>
-</ul>
+<ul> <li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species 
+and background swd files and prediction rasters that can be used 
+directly by the <em>r.maxent.train</em> addon (or the Maxent software 
+itself) to create species distribution models.</li> <li><a 
+href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating species and 
+background swd files based on species distribution data in raster 
+format.</li> <li><a href="r.maxent.train.html">r.maxent.train</a>, 
+creates a maxent model based on presence point data a set of 
+environmental predictor layers.</li> <li><a 
+href="r.maxent.setup.html">r.maxent.setup</a>, helper function to 
+allow GRASS to use Maxent.</li> </ul>
 
 <h2>AUTHOR</h2>
 

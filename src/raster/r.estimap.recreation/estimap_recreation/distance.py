@@ -96,7 +96,7 @@ def compute_attractiveness(
     Compute a raster map whose values follow an (euclidean) distance function
     ( {constant} + {kappa} ) / ( {kappa} + exp({alpha} * {distance}) ), where:
 
-    Source: http://publications.jrc.ec.europa.eu/repository/bitstream/JRC87585/lb-na-26474-en-n.pd
+    Source: https://publications.jrc.ec.europa.eu/repository/bitstream/JRC87585/lb-na-26474-en-n.pdf
 
     Parameters
     ----------

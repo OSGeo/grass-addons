@@ -56,7 +56,83 @@ import csv
 import math
 import shutil
 import tempfile
-import grass.script as grass
+import grass.script as gs
+
+import csv
+
+
+def process_csv(
+    gbifraw, new_gbif_csv, primary_encoding=None, fallback_encoding="utf-8"
+):
+    """
+    Process a CSV file using a primary encoding and fallback to another if the first fails.
+    Substitutes problematic characters during the second fallback.
+
+    :param gbifraw: Path to the input CSV file.
+    :param new_gbif_csv: Path to the output CSV file.
+    :param primary_encoding: Primary encoding to try first. If None, uses system default.
+    :param fallback_encoding: Fallback encoding to use if the primary fails.
+    """
+
+    def process_file(input_encoding, handle_errors=False):
+        """
+        Process the file with the specified encoding.
+        If `handle_errors` is True, substitutes problematic characters.
+        """
+        error_mode = "replace" if handle_errors else "strict"
+        gs.message(
+            _(
+                "Trying to process file using encoding: {} (errors={})".format(
+                    input_encoding, error_mode
+                )
+            )
+        )
+        with open(
+            gbifraw, "r", encoding=input_encoding, errors=error_mode
+        ) as csvinfile:
+            gbifreader = csv.reader(csvinfile, delimiter="\t")
+            with open(new_gbif_csv, "w", newline="", encoding="utf-8") as csvoutfile:
+                gbifwriter = csv.writer(
+                    csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL
+                )
+                for row in gbifreader:
+                    gbifwriter.writerow(row)
+        gs.message(
+            _("File processed successfully using encoding: {}".format(input_encoding))
+        )
+
+    try:
+        process_file(primary_encoding)
+    except UnicodeDecodeError as e:
+        gs.warning(
+            _("Warming: Unable to decode the file with system default encoding.")
+        )
+        gs.warning(_("Details: {}".format(e)))
+        gs.warning(_("Falling back to encoding: {}".format(fallback_encoding)))
+
+        try:
+            process_file(fallback_encoding, handle_errors=True)
+        except UnicodeDecodeError as e:
+            gs.warning(
+                _(
+                    "Error: Unable to decode the file even with fallback encoding {}".format(
+                        fallback_encoding
+                    )
+                )
+            )
+            gs.fatal(_("Details: {}".format(e)))
+        except Exception as e:
+            gs.fatal(
+                _(
+                    "An unexpected error occurred during fallback processing: {}".format(
+                        e
+                    )
+                )
+            )
+    except FileNotFoundError as e:
+        gs.fatal(_("Error: File not found - {}".format(e.filename)))
+    except Exception as e:
+        gs.fatal(_("An unexpected error occurred: {}".format(e)))
 
 
 def main():
@@ -72,30 +148,24 @@ def main():
     global tmp
 
     # check for unsupported locations or unsupported combination of option and projected location
-    in_proj = grass.parse_command("g.proj", flags="g")
+    in_proj = gs.parse_command("g.proj", flags="g")
 
     if in_proj["name"].lower() == "xy_location_unprojected":
-        grass.fatal(_("xy-locations are not supported"))
+        gs.fatal(_("xy-locations are not supported"))
 
     # import GBIF data
-    grass.message("Starting importing GBIF data ...")
-    grass.message("preparing data for vrt ...")
+    gs.message("Starting importing GBIF data ...")
+    gs.message("preparing data for vrt ...")
 
     # new quoted GBIF csv file
     gbiftempdir = tempfile.gettempdir()
     new_gbif_csv = os.path.join(gbiftempdir, gbifcsv)
 
     # quote raw data
-    with open(f"{gbifraw}", "r") as csvinfile:
-        gbifreader = csv.reader(csvinfile, delimiter="\t")
-        with open(f"{new_gbif_csv}", "w", newline="") as csvoutfile:
-            gbifwriter = csv.writer(csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL)
-            for row in gbifreader:
-                gbifwriter.writerow(row)
-    grass.message("----")
+    process_csv(gbifraw, new_gbif_csv, primary_encoding=None, fallback_encoding="utf-8")
 
-    # write        vrt
-    grass.message("writing vrt ...")
+    # write vrt
+    gs.message("writing vrt ...")
     new_gbif_vrt = os.path.join(gbiftempdir, gbifvrt)
 
     f = open(f"{new_gbif_vrt}", "wt")
@@ -155,31 +225,29 @@ def main():
 
     f.close()
 
-    grass.message("----")
+    gs.message("----")
     # Give information where output file are saved
-    grass.message("GBIF vrt files:")
-    grass.message(gbifvrt)
-    grass.message("-")
-    grass.message(gbifcsv)
-    grass.message("----")
+    gs.message("GBIF vrt files:")
+    gs.message(gbifvrt)
+    gs.message("-")
+    gs.message(gbifcsv)
+    gs.message("----")
 
     # import GBIF vrt
-    grass.message("importing GBIF vrt ...")
+    gs.message("importing GBIF vrt ...")
 
     # reprojection-on-the-fly if flag r
 
     if reproject_gbif:
 
-        grass.message("reprojecting data on-the-fly ...")
-        grass.run_command(
-            "v.import", input=new_gbif_vrt, output=gbifimported, quiet=True
-        )
+        gs.message("reprojecting data on-the-fly ...")
+        gs.run_command("v.import", input=new_gbif_vrt, output=gbifimported, quiet=True)
 
         # no reprojection-on-the-fly
 
     else:
 
-        grass.run_command(
+        gs.run_command(
             "v.in.ogr",
             input=new_gbif_vrt,
             layer=gbif_vrt_layer,
@@ -187,31 +255,31 @@ def main():
             quiet=True,
         )
 
-    grass.message("...")
+    gs.message("...")
     # v.in.gbif done!
-    grass.message("importing GBIF data done!")
+    gs.message("importing GBIF data done!")
     # move vrt and csv to user defined directory
 
     if move_vrt_gbif_to_dir:
 
-        grass.message("----")
-        grass.message("Create GBIF vrt data files ...")
+        gs.message("----")
+        gs.message("Create GBIF vrt data files ...")
         shutil.move(new_gbif_vrt, directory)
         shutil.move(new_gbif_csv, directory)
-        grass.message("in following user defined directory:")
-        grass.message(directory)
-        grass.message("----")
+        gs.message("in following user defined directory:")
+        gs.message(directory)
+        gs.message("----")
 
     else:
 
-        grass.message("----")
-        grass.message("Some clean up ...")
+        gs.message("----")
+        gs.message("Some clean up ...")
         os.remove("%s" % new_gbif_vrt)
         os.remove("%s" % new_gbif_csv)
-        grass.message("Clean up done.")
-        grass.message("----")
+        gs.message("Clean up done.")
+        gs.message("----")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

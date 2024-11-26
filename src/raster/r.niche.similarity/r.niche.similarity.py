@@ -11,7 +11,7 @@
 #               (van der Vaart, 1998)
 #
 # COPYRIGHT: (c) 2015-2019 Paulo van Breugel and GRASS Development Team
-#            http://ecodiv.earth
+#            https://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS

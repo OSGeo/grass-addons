@@ -95,10 +95,10 @@ def mask_clouds(qa_band, qa_pixel):
     - support for multiple qa_pixel values (eg. input as a list of values)
 
     Create and apply a cloud mask based on the Quality Assessment Band
-    (BQA.) Source: <http://landsat.usgs.gov/L8QualityAssessmentBand.php
+    (BQA.) Source: <https://landsat.usgs.gov/L8QualityAssessmentBand.php
 
     See also:
-    http://courses.neteler.org/processing-landsat8-data-in-grass-gis-7/#Applying_the_Landsat_8_Quality_Assessment_%28QA%29_Band
+    https://neteler.org/blog/processing-landsat8-data-in-grass-gis-7/#Applying_the_Landsat_8_Quality_Assessment_%28QA%29_Band
     """
     msg = (
         "\n|i Masking for pixel values <{qap}> "

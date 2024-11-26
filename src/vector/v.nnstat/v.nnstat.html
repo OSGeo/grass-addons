@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.nnstat</em> indicates clusters, separations or random distribution of point dataset in 2D or 3D space using Nearest Neighbour Analysis (NNA). The method is based on comparison of observed average distance between the nearest neighbours and the distance which would be expected if points in the dataset are distributed randomly. More detailed information about theoretical background is provided in (<a href="https://courses.washington.edu/bio480/Week1-PAPER-Clark_and_Evans1954.pdf">Clark and Evans, 1954</a>), (<a href="http://journals.aps.org/rmp/pdf/10.1103/RevModPhys.15.1">Chandrasekhar, 1943, p. 86-87</a>). Details about the module and testing are summarized in (<a href="https://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>).
+<em>v.nnstat</em> indicates clusters, separations or random distribution of point dataset in 2D or 3D space using Nearest Neighbour Analysis (NNA). The method is based on comparison of observed average distance between the nearest neighbours and the distance which would be expected if points in the dataset are distributed randomly. More detailed information about theoretical background is provided in (<a href="https://web.archive.org/web/20171205194648/https://courses.washington.edu/bio480/Week1-PAPER-Clark_and_Evans1954.pdf">Clark and Evans, 1954</a>), (<a href="https://doi.org/10.1103/RevModPhys.15.1">Chandrasekhar, 1943, p. 86-87</a>). Details about the module and testing are summarized in (<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>).
 
 <h2>EXAMPLES</h2>
 <h3>Comparison of 2D and 3D NNA</h3>
@@ -75,7 +75,7 @@ Output in the command line:
 </table>
 
 <p><b>NOTE:</b> Comparing the results of 2D NNA with results summarized in
-(<a href="https://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there can be
+(<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>), there can be
 seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of
 the convex hull that have been computed using two versions of the module.
 
@@ -159,7 +159,7 @@ Output in the command line:
 
 <h3>Comparison of various datasets</h3>
 <p>
-In (<a href="https://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-11.pdf">Stopkova, 2013</a>), there might be seen other examples (also clustered and dispersed datasets).
+In (<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>), there might be seen other examples (also clustered and dispersed datasets).
 </p>
 
 <h2>TODO</h2>
@@ -173,11 +173,14 @@ In (<a href="https://geoinformatics.fsv.cvut.cz/pdf/geoinformatics-fce-ctu-2013-
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.hull.html">v.hull</a>
 </em>
 
+<h2>REFERENCES:</h2>
+Stopkova, 2013: Extension of mathematical background for Nearest Neighbour Analysis in three-dimensional space, <a href="https://doi.org/10.14311/gi.11.2">https://doi.org/10.14311/gi.11.2</a>, <a href="https://ojs.cvut.cz/ojs/index.php/gi/article/view/gi.11.2/2396">https://ojs.cvut.cz/ojs/index.php/gi/article/view/gi.11.2/2396</a>
+
 <h2>REQUIREMENTS</h2>
 <ul>
 <li><b>LAPACK / BLAS</b> (libraries for numerical computing) for
 GMATH library (GRASS Numerical Library)<br>
-<a href="http://www.netlib.org/lapack">http://www.netlib.org/lapack</a> (usually available on Linux distros)
+<a href="https://www.netlib.org/lapack">https://www.netlib.org/lapack</a> (usually available on Linux distros)
 </ul>
 
 <h2>AUTHOR</h2>

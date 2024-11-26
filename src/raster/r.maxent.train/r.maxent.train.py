@@ -402,6 +402,13 @@
 # % required: no
 # %end
 
+# %option G_OPT_F_BIN_INPUT
+# % key: java
+# % label: Location java executable
+# % description: If Java is installed, but cannot be found, the user can provide the path to the java executable file. Note, an alternative is to use the r.maxent.setup addon.
+# % required: no
+# %end
+
 # %option G_OPT_M_NPROCS
 # % key: threads
 # % label: Number of processor threads to use.
@@ -411,27 +418,21 @@
 # % Description: Maximum memory to be used by Maxent (in MB)
 # %end
 
+# %option
+# % key: precision
+# % type: integer
+# % label: Precision suitability map
+# % description:  Set the required precision (in the form of number of decimal digits) of the species suitability raster layer (leave empty for default).
+# %end
+
 # %flag
 # % key: v
 # % label: Show the Maxent user interface
 # % description: Use this flag to show the Maxent interface. Note that when you select this option, Maxent will not start before you hit the start option.
 # %end
 
-# %flag
-# % key: i
-# % label: Copy maxent.jar to addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory.
-# %end
-
-# %flag
-# % key: u
-# % label: Overwrites maxent.jar in addon directory
-# % description: Copy the maxent.jar (path provided with the 'maxent' parameter) to the addon scripts directory. If the file already exists in the addon directory, it is overwritten.
-# %end
-
 # %rules
 # % exclusive: replicates,randomtestpoints
-# % exclusive: -i, -u
 # %end
 
 # import libraries
@@ -440,11 +441,9 @@ import atexit
 import csv
 import re
 import os
-import shutil
 import subprocess
 import sys
 import uuid
-import numpy as np
 import grass.script as gs
 
 
@@ -453,6 +452,8 @@ CLEAN_LAY = []
 
 # Funtions
 # ------------------------------------------------------------------
+
+
 def find_index_case_insensitive(lst, target):
     """
     Find index for string match, matching case insensitive
@@ -500,6 +501,63 @@ def repl_char(keep, strlist, replwith):
     return nwlist
 
 
+def java_functional(java_path):
+    """
+    Check if Java can be found by running the 'java -version' command.
+
+    Returns:
+        bool: True if Java is findable, False otherwise.
+    """
+    try:
+        # Run 'java -version' and suppress its output
+        subprocess.run(
+            [java_path, "-version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def check_java_txtfile():
+    """Check if there is a text file with path to java executables in the addon
+    directory
+    """
+    addon_directory = os.environ.get("GRASS_ADDON_BASE")
+    if not addon_directory:
+        gs.warning(_("GRASS_ADDON_BASE environment variable is not set."))
+        return None
+
+    file_path = os.path.join(addon_directory, "scripts", "r_maxent_path_to_java.txt")
+    if not os.path.isfile(file_path):
+        return None
+
+    try:
+        with open(file_path, "r") as file:
+            java_path = file.readline().strip()
+    except Exception as e:
+        gs.warning(_("File with path to java exists but cannot be read: {}".format(e)))
+        return None
+
+    if not java_path:
+        gs.warning(_("The file 'r_maxent_path_to_java.txt' is empty"))
+        return None
+
+    if not os.path.exists(java_path) or not java_functional(java_path):
+        gs.warning(
+            _(
+                "The path to the Java executable '{}', defined in the"
+                " 'r_maxent_path_to_java.txt' in the addon directory "
+                "does not exist or is not functional.".format(java_path)
+            )
+        )
+        return None
+
+    return java_path
+
+
 # Main
 # ------------------------------------------------------------------
 def main(options, flags):
@@ -510,40 +568,39 @@ def main(options, flags):
     else:
         function_verbosity = True
 
+    # Check if provided java executable exists
+    # ------------------------------------------------------------------
+    jav = check_java_txtfile()
+    if options["java"]:
+        java_path = os.path.normpath(options["java"])
+        if not os.path.isfile(java_path):
+            gs.fatal(_("Provided path to java executable cannot be found."))
+        elif not java_functional(java_path):
+            gs.fatal(_("Problem with provided java executable."))
+        else:
+            path_to_java = os.path.normpath(options["java"])
+    elif jav:
+        path_to_java = jav
+    elif java_functional("java"):
+        path_to_java = "java"
+    else:
+        gs.warning(
+            _(
+                "Java cannot be found. Please ensure Java is installed "
+                "and/or properly configured to be accessible from GRASS. \n"
+                "If you are sure Java is installed, you can provide the path "
+                "to the java executable using the 'java' parameter. \n"
+                "For a more permanent solution, see the r.maxent.setup addon."
+            )
+        )
+
     # Checking availability of maxent.jar
     # ------------------------------------------------------------------
-    path_to_maxent = options["maxent"]
-    if bool(path_to_maxent):
-        maxent_file = options["maxent"]
+    if bool(options["maxent"]):
+        maxent_file = os.path.normpath(options["maxent"])
         if not os.path.isfile(maxent_file):
             msg = "The maxent.jar file was not found on the location you provided"
             gs.fatal(_(msg))
-        file_name = os.path.basename(os.path.basename(maxent_file))
-        maxent_path = os.environ.get("GRASS_ADDON_BASE")
-        maxent_copy = os.path.join(maxent_path, "scripts", "maxent.jar")
-        if file_name != "maxent.jar":
-            gs.fatal(
-                _(
-                    "The name of the maxent program should be 'maxent.jar',"
-                    " not '{}'".format(file_name)
-                )
-            )
-        if bool(flags["i"]):
-            if os.path.isfile(maxent_copy):
-                msg = (
-                    "There is already a maxent.jar file in the scripts \n"
-                    "directory. Remove the -i flag. If you want to update \n"
-                    " the maxent.jar file, use the -u flag instead."
-                )
-                gs.fatal(_(msg))
-            else:
-                shutil.copyfile(maxent_file, maxent_copy)
-                msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
-                gs.info(_(msg))
-        if bool(flags["u"]):
-            shutil.copyfile(maxent_file, maxent_copy)
-            msg = "Copied the maxent.jar file to the grass gis addon script directory .\n\n"
-            gs.info(_(msg))
     else:
         maxent_file = os.environ.get("GRASS_ADDON_BASE")
         maxent_file = os.path.join(maxent_file, "scripts", "maxent.jar")
@@ -551,14 +608,14 @@ def main(options, flags):
             msg = (
                 "You did not provide the path to the maxent.jar file,\n"
                 "nor was it found in the addon script directory.\n"
-                "See the manual page for instructions."
+                "See the manual page of r.maxent.setup for instructions."
             )
             gs.fatal(_(msg))
 
     # Check variable names in swd files and environmental layers
     # ------------------------------------------------------------------
-    envir_layers = options["environmentallayersfile"]
-    sample_layers = options["samplesfile"]
+    envir_layers = os.path.normpath(options["environmentallayersfile"])
+    sample_layers = os.path.normpath(options["samplesfile"])
     with open(envir_layers) as f:
         header_environ = f.readline().strip("\n").split(",")
     with open(sample_layers) as f:
@@ -570,8 +627,8 @@ def main(options, flags):
             envp, samp
         )
         gs.fatal(_(msg))
-    projection_layers = options["projectionlayers"]
-    if bool(projection_layers):
+    if bool(options["projectionlayers"]):
+        projection_layers = os.path.normpath(options["projectionlayers"])
         envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
@@ -585,7 +642,7 @@ def main(options, flags):
     # ------------------------------------------------------------------
     # names options
     maxent_command = [
-        "java",
+        path_to_java,
         f"-mx{options['memory']}m",
         "-jar",
         maxent_file,
@@ -666,7 +723,7 @@ def main(options, flags):
 
     # Run Maxent, train and create the model
     # -----------------------------------------------------------------
-    gs.info(_("Maxent runtime messages"))
+    gs.info(_("Maxent running ... this may take some time, please be patient"))
     gs.info(_("-----------------------"))
 
     with subprocess.Popen(
@@ -688,12 +745,16 @@ def main(options, flags):
     msg = "Done, you can find the model outputs in the folder:\n {}\n".format(
         options["outputdirectory"]
     )
+
     gs.info(_(msg))
     gs.info(_("-----------------------\n"))
 
     # -----------------------------------------------------------------
     # Get relevant statistics to present
     # -----------------------------------------------------------------
+    gs.info(_("Get basic statistics"))
+    gs.info(_("-----------------------"))
+
     reps = int(options["replicates"])
     if reps > 1:
         if options["replicatetype"] == "crossvalidate":
@@ -823,7 +884,7 @@ def main(options, flags):
                 )
             # Spatial join of layer to first layer
             if int(options["replicates"]) > 1 and index > 0:
-                msg = "Combining samplePrediction layer and computing summary stats".format(
+                msg = "Combining samplePrediction layers and computing summary stats".format(
                     index + 1, len(prediction_csv)
                 )
                 colname = f"{nm}_{index + 1}"
@@ -951,12 +1012,6 @@ def main(options, flags):
             color_column = nm
         elif "v.db.pyupdate" in plugins_installed:
             color_column = f"{nm}_mean"
-            gs.run_command(
-                "v.db.dropcolumn",
-                map=newname,
-                columns="Test_vs_train",
-                quiet=function_verbosity,
-            )
         else:
             color_column = False
         if color_column:
@@ -968,7 +1023,25 @@ def main(options, flags):
                 color="bcyr",
                 quiet=function_verbosity,
             )
-
+        gs.run_command(
+            "v.db.dropcolumn",
+            map=newname,
+            columns="Test_vs_train,X,Y",
+            quiet=function_verbosity,
+        )
+        gs.run_command(
+            "v.db.addcolumn",
+            map=newname,
+            columns="pointlocations varchar(20)",
+            quiet=function_verbosity,
+        )
+        gs.run_command(
+            "v.db.update",
+            map=newname,
+            column="pointlocations",
+            value="occurrences",
+            quiet=function_verbosity,
+        )
     # Import the background file with predicted values in grass
     # -----------------------------------------------------------------
     if flags["b"]:
@@ -1017,16 +1090,43 @@ def main(options, flags):
             colnames = list(
                 gs.parse_command("db.columns", table=prediction_bgrlay).keys()
             )
-            nm = colnames[find_index_case_insensitive(colnames, outputformat)]
+            nmcol = colnames[find_index_case_insensitive(colnames, outputformat)]
             gs.run_command(
                 "v.colors",
                 map=prediction_bgrlay,
                 use="attr",
-                column=nm,
+                column=nmcol,
                 color="bcyr",
                 quiet=function_verbosity,
             )
-
+            # Remove unused columns
+            for col in ["Raw", "Cumulative", "Cloglog"]:
+                if nm != col:
+                    gs.run_command(
+                        "v.db.dropcolumn",
+                        map=prediction_bgrlay,
+                        columns=col,
+                        quiet=function_verbosity,
+                    )
+            gs.run_command(
+                "v.db.dropcolumn",
+                map=prediction_bgrlay,
+                columns="X,Y",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay,
+                columns="pointlocations varchar(20)",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay,
+                column="pointlocations",
+                value="backgroundpoints",
+                quiet=function_verbosity,
+            )
         # Import background prediction points in case of replicates > 1
         else:
             gs.info(
@@ -1035,10 +1135,11 @@ def main(options, flags):
             prediction_bgr = [
                 file
                 for file in all_files
-                if file.endswith("_bg_avg.csv")
-                or file.endswith("_bg_stddev.csv")
-                or file.endswith("_bg_median.csv")
+                if file.endswith("_obs_avg.csv")
+                or file.endswith("_obs_min.csv")
+                or file.endswith("_obs_max.csv")
             ]
+            prediction_bgr.sort()
             prediction_bgrlay = [
                 x.replace(".csv", options["suffix"]) for x in prediction_bgr
             ]
@@ -1070,16 +1171,88 @@ def main(options, flags):
                     columns=coldef,
                     quiet=function_verbosity,
                 )
-
-                # Create color table
-                gs.run_command(
-                    "v.colors",
-                    map=prediction_bgrlay[index],
-                    use="attr",
-                    column=coldef[2].replace(" double precision", ""),
-                    color="bcyr",
-                    quiet=function_verbosity,
-                )
+            gs.run_command(
+                "v.db.renamecolumn", map=prediction_bgrlay[0], column=f"avg,{nm}_mean"
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="max double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.what.vect",
+                map=prediction_bgrlay[0],
+                column="max",
+                query_map=prediction_bgrlay[1],
+                query_column="max",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="min double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.what.vect",
+                map=prediction_bgrlay[0],
+                column="min",
+                query_map=prediction_bgrlay[2],
+                query_column="min",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns=f"{nm}_range double precision",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay[0],
+                column=f"{nm}_range",
+                query_column="max-min",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.dropcolumn",
+                map=prediction_bgrlay[0],
+                columns="min,max,Long,Lat",
+                quiet=function_verbosity,
+            )
+            # Create color table
+            gs.run_command(
+                "v.colors",
+                map=prediction_bgrlay[0],
+                use="attr",
+                column=f"{nm}_mean",
+                color="bcyr",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.addcolumn",
+                map=prediction_bgrlay[0],
+                columns="pointlocations varchar(20)",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "v.db.update",
+                map=prediction_bgrlay[0],
+                column="pointlocations",
+                value="backgroundpoints",
+                quiet=function_verbosity,
+            )
+            bgrname_avg = prediction_bgrlay[0]
+            newbgrname = bgrname_avg.replace("_avg", "")
+            gs.run_command(
+                "g.rename",
+                vector=f"{prediction_bgrlay[0]},{newbgrname}",
+                quiet=function_verbosity,
+            )
+            gs.run_command(
+                "g.remove", type="vector", flags="f", name=prediction_bgrlay[1:]
+            )
 
     # Import the raster files in GRASS
     # -----------------------------------------------------------------
@@ -1104,6 +1277,18 @@ def main(options, flags):
                 output=grasslayers[idx],
                 memory=int(options["memory"]),
                 quiet=function_verbosity,
+            )
+            precision = options["precision"]
+            if precision.isdigit():
+                prec = 10 ** -int(precision)
+                gs.run_command(
+                    "r.mapcalc",
+                    expression=f"{grasslayers[idx]} = round({grasslayers[idx]}, {prec})",
+                    overwrite=True,
+                    quiet=True,
+                )
+            gs.run_command(
+                "r.colors", map=grasslayers[idx], color="bcyr", quiet=function_verbosity
             )
             gs.info(_("Imported {}".format(grasslayers[idx])))
 

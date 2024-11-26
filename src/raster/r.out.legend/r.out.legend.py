@@ -8,7 +8,7 @@
 # DESCRIPTION:  Export the legend of a raster as image, which can be used
 #               in e.g., the map composer in QGIS.
 #
-# COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2024 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -182,13 +182,13 @@ import math
 import grass.script as grass
 from grass.pygrass.modules import Module
 from grass.script.utils import parse_key_val
-import imp
+import importlib.util
 
-try:
-    imp.find_module("PIL")
+spec = importlib.util.find_spec("PIL")
+if spec is not None:
     found = True
     from PIL import Image
-except ImportError:
+else:
     found = False
 
 
