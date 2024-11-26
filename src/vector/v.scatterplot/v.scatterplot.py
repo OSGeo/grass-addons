@@ -279,7 +279,7 @@
 # % key: groups
 # % type: string
 # % label: Column grouping the features in categories
-# % description: Colum with categories. If selected, a separate ellipse will be drawn for each group/category
+# % description: Column with categories. If selected, a separate ellipse will be drawn for each group/category
 # % guisection: Ellipse
 # %end
 
