@@ -378,8 +378,8 @@ void shallow_water(double **m_h1, double **m_u1, double **m_v1, float **m_z,
                 }
 
             } // end for col
-        }     // end for row
-    }         // end if method
+        } // end for row
+    } // end if method
 
     // DESCRIPTION OF METHOD (italian --> TRASLATE)
     //**********************************************************************************

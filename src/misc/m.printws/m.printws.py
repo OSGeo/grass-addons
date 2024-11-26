@@ -256,11 +256,11 @@ def cleanthisandthat(intext):
     # Once workspace files are always good this function could be NOOP
     outtext = ""
     for line in intext.splitlines():
-        m = re.search("http\://", line)
+        m = re.search(r"http\://", line)
         if m:
-            line2 = re.sub("\&amp\;", "SAVED___amp\;", line)
-            line3 = re.sub("\&", "&amp;", line2)
-            line4 = re.sub("SAVED___amp\;", "&amp;", line3)
+            line2 = re.sub(r"\&amp\;", r"SAVED___amp\;", line)
+            line3 = re.sub(r"\&", "&amp;", line2)
+            line4 = re.sub(r"SAVED___amp\;", "&amp;", line3)
             outtext = outtext + line4 + "\n"
         else:
             outtext = outtext + line + "\n"
@@ -580,7 +580,7 @@ def getfontbypattern(kindpattern):
     split = s.splitlines()
     for l in split:
         # check if it has : or space.
-        m = re.search("[\:\ ]+", l, re.IGNORECASE)
+        m = re.search(r"[\:\ ]+", l, re.IGNORECASE)
         if not m:
             m = re.search("(.*" + kindpattern + ".*)", l, re.IGNORECASE)
             if m:
@@ -591,7 +591,7 @@ def getfontbypattern(kindpattern):
     if safe == "romans":
         for l in split:
             # check if it has : or space.
-            m = re.search("[\:\ ]+", l, re.IGNORECASE)
+            m = re.search(r"[\:\ ]+", l, re.IGNORECASE)
             if not m:
                 m = re.search("[A-Z].+[_].+", l, re.IGNORECASE)
                 if m:
@@ -646,7 +646,7 @@ def main():
             )
 
     textmacros = {}
-    #%nam% macros are kept for backward compatibility
+    # %nam% macros are kept for backward compatibility
     textmacros["%TIME24%"] = time.strftime("%H:%M:%S")
     textmacros["%DATEYMD%"] = time.strftime("%Y.%m.%d")
     textmacros["%DATEMDY%"] = time.strftime("%m/%d/%Y")
@@ -656,12 +656,12 @@ def main():
         textmacros["%USERNAME%"] = pwd.getpwuid(os.getuid())[0]
     # using $ for macros in the future. New items should be created
     # exclusively as $macros later on
-    textmacros["\$TIME24"] = textmacros["%TIME24%"]
-    textmacros["\$DATEYMD"] = textmacros["%DATEYMD%"]
-    textmacros["\$DATEMDY"] = textmacros["%DATEMDY%"]
-    textmacros["\$USERNAME"] = textmacros["%USERNAME%"]
+    textmacros[r"\$TIME24"] = textmacros["%TIME24%"]
+    textmacros[r"\$DATEYMD"] = textmacros["%DATEYMD%"]
+    textmacros[r"\$DATEMDY"] = textmacros["%DATEMDY%"]
+    textmacros[r"\$USERNAME"] = textmacros["%USERNAME%"]
 
-    textmacros["\$SPC"] = "\\u00A0"  # ?? d.text won't display this at string end hmmm
+    textmacros[r"\$SPC"] = "\\u00A0"  # ?? d.text won't display this at string end hmmm
 
     # saves region for restoring at end
     # doing with official method:
@@ -688,7 +688,7 @@ def main():
         quit()
 
     textmacros["%GXW%"] = options["input"]
-    textmacros["\$GXW"] = textmacros["%GXW%"]
+    textmacros[r"\$GXW"] = textmacros["%GXW%"]
 
     displaycounter = 0
 
@@ -696,7 +696,7 @@ def main():
     # each display is a whole and independent file assembly
     for key in displays:
         textmacros["%DISPLAY%"] = key
-        textmacros["\$DISPLAY"] = key
+        textmacros[r"\$DISPLAY"] = key
         grass.verbose(_("printws: rendering display: " + key))
         displaycounter = displaycounter + 1
         layers = copy.deepcopy(displays[key])
@@ -1037,11 +1037,11 @@ def main():
                 render(lay[1], lay[2], lay[3])
                 imcommand = (
                     imcommand
-                    + " \( "
+                    + r" \( "
                     + LASTFILE
                     + " -channel a -evaluate multiply "
                     + lay[0]
-                    + " +channel \)"
+                    + r" +channel \)"
                 )
 
         # setting resolution back to pre-script state since map rendering is

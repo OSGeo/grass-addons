@@ -267,7 +267,7 @@ def main():
 
     # Lazy import GDAL python bindings
     try:
-        from osgeo import gdal, osr
+        from osgeo import gdal, osr, ogr
     except ImportError as e:
         grass.fatal(_("Module requires GDAL python bindings: {}").format(e))
 
@@ -406,9 +406,8 @@ def main():
     # cost_ewres = reg['ewres']
 
     # Rasterize patches
-    # http://www.gdal.org/gdal_tutorial.html
-    # http://geoinformaticstutorial.blogspot.no/2012/11/convert-
-    # shapefile-to-raster-with-gdal.html
+    # https://gdal.org/en/latest/tutorials/index.html
+    # https://web.archive.org/web/20181001042636/http://geoinformaticstutorial.blogspot.com:80/2012/11/convert-shapefile-to-raster-with-gdal.html
     if t_flag:
         # Rasterize patches with "all-touched" mode using GDAL
         # Read region-settings (not needed canuse max_n, min_s, max_e,

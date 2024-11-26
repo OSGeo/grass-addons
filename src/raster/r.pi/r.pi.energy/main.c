@@ -75,6 +75,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("connectivity analysis"));
     module->description = _("Individual-based dispersal model for connectivity "
                             "analysis - energy based.");
 

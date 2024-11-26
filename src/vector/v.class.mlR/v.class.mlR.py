@@ -17,7 +17,7 @@
 # Classification in Pattern Recognition Tasks. In D.-Y. Yeung et al., eds.
 # Structural, Syntactic, and Statistical Pattern Recognition. Lecture Notes in
 # Computer Science. Springer Berlin Heidelberg, pp. 705-713,
-# http://dx.doi.org/10.1007/11815921_77</a>.
+# https://doi.org/10.1007/11815921_77</a>.
 #############################################################################
 # %module
 # % description: Provides supervised support vector machine classification
@@ -330,16 +330,16 @@ def main():
     voting_function += "return(list(maj_class=maj_class, prob=prob))\n}"
 
     weighting_functions = {}
-    weighting_functions[
-        "smv"
-    ] = "weights <- rep(1/length(weighting_base), length(weighting_base))"
+    weighting_functions["smv"] = (
+        "weights <- rep(1/length(weighting_base), length(weighting_base))"
+    )
     weighting_functions["swv"] = "weights <- weighting_base/sum(weighting_base)"
-    weighting_functions[
-        "bwwv"
-    ] = "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
-    weighting_functions[
-        "qbwwv"
-    ] = "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
+    weighting_functions["bwwv"] = (
+        "weights <- 1-(max(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base))"
+    )
+    weighting_functions["qbwwv"] = (
+        "weights <- ((min(weighting_base) - weighting_base)/(max(weighting_base) - min(weighting_base)))**2"
+    )
 
     packages = {
         "svmRadial": ["kernlab"],

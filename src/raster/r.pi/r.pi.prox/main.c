@@ -95,6 +95,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("proximity analysis"));
     module->description =
         _("Calculates correlation of two raster maps "
           "by calculating correlation function of two "

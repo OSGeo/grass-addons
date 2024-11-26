@@ -987,9 +987,7 @@ class layer(glob, Flag, vect_rules, layer_init):
         return layer.n_pts
 
     def standard_header(self):
-        # *** function based on answer 3: http://stackoverflow.com/  ...
-        # questions/5287762/how-to-insert-a-new-line-before-the-first-line- ...
-        # in-a-file-using-python
+        # *** function based on: https://stackoverflow.com/a/5287934/
         for num, line in enumerate(
             fileinput.FileInput(self.filename, inplace=2)  # etc
         ):

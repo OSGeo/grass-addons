@@ -2,7 +2,7 @@
 
 ################################################################################
 #
-# MODULE:       g.md5sum.py
+# MODULE:       g.compare.md5.py
 #
 # AUTHOR(S):    Luca Delucchi <lucadeluge@gmail.com>
 #

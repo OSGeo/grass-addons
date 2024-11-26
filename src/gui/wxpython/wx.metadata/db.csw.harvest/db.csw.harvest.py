@@ -94,7 +94,9 @@ def harvest(source, dst):
                 sys.argv[1],
                 i,
             )
-            dest.harvest(source=source, resourcetype="http://www.isotc211.org/2005/gmd")
+            dest.harvest(
+                source=source, resourcetype="https://www.isotc211.org/2005/gmd"
+            )
             # print dest.request
             # print dest.response
 

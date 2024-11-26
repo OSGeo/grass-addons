@@ -104,6 +104,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("patch index"));
     module->description =
         _("Analysis of n-th Euclidean Nearest Neighbor distance.");
 

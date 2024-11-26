@@ -282,8 +282,8 @@ class CswAdmin:
             print("ERROR: -f <cfg> is a required argument")
 
         if self.COMMAND not in ["post_xml"]:
-            SCP = configparser.SafeConfigParser()
-            SCP.readfp(open(self.CFG))
+            SCP = configparser.ConfigParser()
+            SCP.read_file(open(self.CFG))
 
             self.DATABASE = SCP.get("repository", "database")
             self.URL = SCP.get("server", "url")
@@ -348,12 +348,12 @@ class CswAdmin:
         defaultConf = os.path.join(os.getenv('GRASS_ADDON_BASE'),'wx.metadata' ,'etc','config','default-sample.cfg')
         print self.database
 
-        SCP = ConfigParser.SafeConfigParser()
+        SCP = configparser.ConfigParser()
         try:
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
         except:
             shutil.copy2(defaultConf, conf)
-            SCP.readfp(open(conf))
+            SCP.read_file(open(conf))
 
         DATABASE = SCP.get('repository', 'database')
         #URL = SCP.get('server', 'url')

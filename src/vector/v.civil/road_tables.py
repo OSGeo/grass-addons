@@ -348,9 +348,10 @@ class RoadTable(object):
     def __getitem__(self, index):
         return dict(zip(self.cols_names, self.rows[index]))
 
-    def __setitem__(self, index, name, value):
-        ind = self.cols_names.index(name)
-        self.rows[index][ind] = value
+    def __setitem__(self, index, value):
+        ind1, name = index
+        ind2 = self.cols_names.index(name)
+        self.rows[ind1][ind2] = value
 
     def __delitem__(self, index):
         del self.rows[index]

@@ -80,6 +80,7 @@ import gettext
 
 gettext.install("grassmods", os.path.join(os.getenv("GISBASE"), "locale"))
 
+
 # check requirements
 def check_progs():
     found_missing = False

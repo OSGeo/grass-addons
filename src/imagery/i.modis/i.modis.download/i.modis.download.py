@@ -97,9 +97,6 @@ if path is None:
     grass.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
-if sys.version_info[0] >= 3:
-    raw_input = input
-
 
 def check_folder(folder):
     """Check if a folder it is writable by the user that launch the process"""
@@ -205,7 +202,7 @@ def main():
 
             if check_folder(options["folder"]):
                 fold = options["folder"]
-            user = raw_input(_("Insert username: "))
+            user = input(_("Insert username: "))
             passwd = getpass.getpass(_("Insert password: "))
         else:
             grass.fatal(

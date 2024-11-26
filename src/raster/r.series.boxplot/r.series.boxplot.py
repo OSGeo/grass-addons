@@ -96,7 +96,7 @@
 
 # %option
 # % type: double
-# % options: 0-365
+# % options: -90-90
 # % key: rotate_labels
 # % label: Rotate labels (degrees)
 # % description: Rotate labels (degrees)
@@ -381,8 +381,8 @@ def main(options, flags):
                 "r.univar", flags=["g", "t"], map=rastername, stdout_=PIPE
             ).outputs.stdout
             n_values = int(univar.replace("\r", "").split("\n")[1].split("|")[0])
-            lower_notch = quantile_2 - 1.57 * (iqr / n_values**2)
-            upper_notch = quantile_2 + 1.57 * (iqr / n_values**2)
+            lower_notch = quantile_2 - 1.57 * (iqr / n_values**0.5)
+            upper_notch = quantile_2 + 1.57 * (iqr / n_values**0.5)
         else:
             lower_notch = ""
             upper_notch = ""
@@ -469,10 +469,26 @@ def main(options, flags):
             patch.set_facecolor(color)
         for median, mcolor in zip(bxplot["medians"], mcolor):
             median.set_color(mcolor)
-    if options["rotate_labels"] and vertical:
-        plt.xticks(rotation=rotate_label)
-    if options["rotate_labels"] and not vertical:
-        plt.yticks(rotation=rotate_label)
+
+    # Label orientation
+    if bool(options["rotate_labels"]) and vertical:
+        rotate_labels = float(options["rotate_labels"])
+        if abs(rotate_labels) <= 10 or abs(rotate_labels) >= 80:
+            plt.xticks(rotation=rotate_labels)
+        elif rotate_labels < 0:
+            plt.xticks(rotation=rotate_labels, ha="left", rotation_mode="anchor")
+        else:
+            plt.xticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
+    elif bool(options["rotate_labels"]) and not vertical:
+        rotate_labels = float(options["rotate_labels"])
+        if abs(rotate_labels) <= 10 or abs(rotate_labels) >= 80:
+            plt.yticks(rotation=rotate_labels)
+        else:
+            plt.yticks(rotation=rotate_labels, ha="right", rotation_mode="anchor")
+    elif vertical:
+        plt.xticks(rotation=45, ha="right", rotation_mode="anchor")
+
+    # Set grid
     if grid:
         if vertical:
             ax.yaxis.grid(True)

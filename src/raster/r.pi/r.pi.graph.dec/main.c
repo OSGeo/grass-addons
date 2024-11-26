@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("connectivity analysis"));
     module->description =
         _("Graph Theory - successive criteria-based deletion of patches.");
 

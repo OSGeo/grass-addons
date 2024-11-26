@@ -123,7 +123,7 @@ def loadVector(vector):
     while l < len(vectorAscii):
         line = vectorAscii[l].split()
         if line[0] in ["L", "B", "A"]:
-            skip = len(line) - 2
+            skip = int(line[2])
             vertices = int(line[1])
             l += 1
             v.append([])
@@ -132,7 +132,7 @@ def loadVector(vector):
                 l += 1
             l += skip
         elif line[0] in ["P", "C", "F", "K"]:
-            skip = len(line) - 2
+            skip = int(line[2])
             vertices = int(line[1])
             l += 1
             for i in range(vertices):

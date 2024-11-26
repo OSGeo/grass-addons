@@ -167,14 +167,14 @@ def main(options, flags):
     # import ipdb; ipdb.set_trace()
 
     if c:
-        msgr.message("\Clean rivers\n")
+        msgr.message("\\Clean rivers\n")
         TMPVECT = [("tmprgreen_%i_cleanb" % os.getpid())]
         pid = os.getpid()
         dissolve_lines(river, "tmprgreen_%i_cleanb" % os.getpid())
         river = "tmprgreen_%i_cleanb" % pid
         # number of cell of the river
     # range for the solution
-    msgr.message("\Loop on the category of segments\n")
+    msgr.message("\\Loop on the category of segments\n")
 
     range_plant = (len_min, len_plant)
     plants = find_segments(river, discharge, elevation, range_plant, distance, p_max)

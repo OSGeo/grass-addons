@@ -41,7 +41,6 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 
 from . import globalvar
-from . import mdutil
 from .mdjinjaparser import JinjaTemplateParser
 
 # =========================================================================
@@ -51,18 +50,19 @@ ADD_RM_BUTTON_SIZE = (35, 35)
 
 
 class MdFileWork:
-
     """initializer of metadata in OWSLib and export OWSLib object to xml by jinja template system"""
 
     def __init__(self, pathToXml=None):
 
         try:
-            global Environment, FileSystemLoader, etree, GError, GMessage
+            global Environment, FileSystemLoader, etree, GError, GMessage, mdutil
 
             from jinja2 import Environment, FileSystemLoader
             from lxml import etree
 
             from core.gcmd import GError, GMessage
+
+            from . import mdutil
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
@@ -81,7 +81,7 @@ class MdFileWork:
         @return: initialized md object by input xml
         """
         if path is None:
-            self.md = mdutil.MD_MetadataMOD(md=None)
+            self.md = mdutil.get_md_metadatamod_inst(md=None)
             return self.md
         else:
             io = open(path, "r")
@@ -96,7 +96,7 @@ class MdFileWork:
             try:
                 tree = etree.parse(path)
                 root = tree.getroot()
-                self.md = mdutil.MD_MetadataMOD(root)
+                self.md = mdutil.get_md_metadatamod_inst(root)
 
                 return self.md
 
@@ -189,7 +189,6 @@ class MdFileWork:
 
 
 class MdBox(wx.Panel):
-
     """widget(static box) which include metadata items (MdItem)"""
 
     def __init__(self, parent, label="label"):
@@ -326,7 +325,6 @@ class MdBoxKeywords(MdBox):
 
 
 class MdWxDuplicator:
-
     """duplicator of MdBox and MdItem object"""
 
     def __init__(self, mdItems, parent, boxlabel=None, mdItemOld=None, template=None):
@@ -390,7 +388,6 @@ class MdWxDuplicator:
 # METADATA ITEM (label+ctrlText+button(optional)+chckbox(template)
 # =========================================================================
 class MdItem(wx.BoxSizer):
-
     """main building blocks of generated GUI of editor"""
 
     def __init__(
@@ -901,7 +898,6 @@ class MdItemKeyword(wx.BoxSizer):
 
 
 class MdNotebookPage(scrolled.ScrolledPanel):
-
     """
     every notebook page is initialized by jinjainfo::MdDescription.group (label)
     """
@@ -1162,7 +1158,6 @@ class MdKeywords(wx.BoxSizer):
 # MAIN FRAME
 # =========================================================================
 class MdMainEditor(wx.Panel):
-
     """
     main functions : self.generateGUI(): generating GUI from: editor:MdItem,MdBox,MdNotebookPage
                      self.createNewMD(): filling OWSLib.iso.MD_Metadata by values from generated GUI

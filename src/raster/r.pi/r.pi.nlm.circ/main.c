@@ -102,9 +102,9 @@ void plant(int *buffer, int sx, int sy, int x, int y, int patch)
                     }
                     break;
                 } /* switch */
-            }     /* if */
-        }         /* for x */
-    }             /* for y */
+            } /* if */
+        } /* for x */
+    } /* for y */
 }
 
 void create_patches(int *buffer, int sx, int sy, int patch_count,
@@ -219,6 +219,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("neutral landscapes"));
     module->description =
         _("Creates a random landscape with defined attributes.");
 

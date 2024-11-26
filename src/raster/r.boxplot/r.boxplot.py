@@ -688,6 +688,7 @@ def compute_outliers(
             output=tmpname,
             rules="-",
             stdin_=recode_rules,
+            quiet=True,
         )
         vectornames.append(tmpvect)
         Module(
@@ -695,6 +696,7 @@ def compute_outliers(
             input=tmpname,
             output=tmpvect,
             type="point",
+            quiet=True,
         )
         Module("g.remove", type="raster", name=tmpname, flags="f")
         if zones:
@@ -1155,8 +1157,8 @@ def main(options, flags):
 
     # Create new value rasters if there is a mask or the value raster
     # extent and resolution do not match that of the current region
+    mask_present = checkmask()
     if bool(options["zones"]):
-        mask_present = checkmask()
         valueraster_region = check_regionraster_match(options["input"])
         if mask_present or not valueraster_region:
             value_raster = create_temporary_name("tmpinput")
@@ -1165,6 +1167,8 @@ def main(options, flags):
             )
         else:
             value_raster = options["input"]
+    else:
+        value_raster = options["input"]
 
     # Create temporary zonal rasters if there is a mask or the zonal raster
     # extent and resolution do not match that of the current region
@@ -1204,7 +1208,6 @@ def main(options, flags):
         "flier_size": int(options["flier_size"]),
         "flier_marker": options["flier_marker"],
         "flier_color": get_valid_color(color=options["flier_color"]),
-        "mask_present": mask_present,
         "median_lw": float(options["median_lw"]),
         "median_color": median_color,
     }

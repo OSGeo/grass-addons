@@ -1,132 +1,132 @@
 #!/usr/bin/env python
-############################################################################
-#
-# MODULE:       m.crawl.thredds
-# AUTHOR(S):    stefan.blumentrath
-# PURPOSE:      List dataset urls from a thredds server (TDS)
-# COPYRIGHT:    (C) 2021 by Stefan Blumentrath, and the GRASS Development Team
-#
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-############################################################################
+"""
+MODULE:       m.crawl.thredds
+AUTHOR(S):    stefan.blumentrath
+PURPOSE:      List dataset urls from a thredds server (TDS)
+COPYRIGHT:    (C) 2021-2023 by Stefan Blumentrath, and the GRASS Development Team
 
-#%module
-#% description: List dataset urls from a Thredds Data Server (TDS) catalog.
-#% keyword: temporal
-#% keyword: import
-#% keyword: download
-#% keyword: data
-#% keyword: metadata
-#% keyword: netcdf
-#% keyword: thredds
-#% keyword: opendap
-#%end
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-#%option
-#% key: input
-#% description: URL of a catalog on a thredds server
-#% type: string
-#% required: yes
-#% multiple: no
-#%end
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+"""
 
-#%option
-#% key: print
-#% description: Additional information to print
-#% options: service,dataset_size
-#% type: string
-#% required: no
-#% multiple: yes
-#%end
+# %module
+# % description: List dataset urls from a Thredds Data Server (TDS) catalog.
+# % keyword: temporal
+# % keyword: import
+# % keyword: download
+# % keyword: data
+# % keyword: metadata
+# % keyword: netcdf
+# % keyword: thredds
+# % keyword: opendap
+# %end
 
-#%option
-#% key: services
-#% label: Services of thredds server to crawl
-#% description: Comma separated list of services names (lower case) of thredds server to crawl, typical services are: httpserver, netcdfsubset, opendap, wms
-#% type: string
-#% required: yes
-#% multiple: yes
-#% answer: httpserver
-#%end
+# %option
+# % key: input
+# % description: URL of a catalog on a thredds server
+# % type: string
+# % required: yes
+# % multiple: no
+# %end
 
-#%option
-#% key: filter
-#% description: Regular expression for filtering dataset and catalog URLs
-#% type: string
-#% required: no
-#% multiple: no
-#% answer: .*
-#%end
+# %option
+# % key: print
+# % description: Additional information to print
+# % options: service,dataset_size
+# % type: string
+# % required: no
+# % multiple: yes
+# %end
 
-#%option
-#% key: skip
-#% description: Regular expression(s) for skipping sub-catalogs / URLs (e.g. ".*jpeg.*,.*metadata.*)"
-#% type: string
-#% required: no
-#% multiple: yes
-#%end
+# %option
+# % key: services
+# % label: Services of thredds server to crawl
+# % description: Comma separated list of services names (lower case) of thredds server to crawl, typical services are: httpserver, netcdfsubset, opendap, wms
+# % type: string
+# % required: yes
+# % multiple: yes
+# % answer: httpserver
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% multiple: no
-#% description: Name of the output file (stdout if omitted)
-#% answer: -
-#%end
+# %option
+# % key: filter
+# % description: Regular expression for filtering dataset and catalog URLs
+# % type: string
+# % required: no
+# % multiple: no
+# % answer: .*
+# %end
 
-#%option G_OPT_F_SEP
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: skip
+# % description: Regular expression(s) for skipping sub-catalogs / URLs (e.g. ".*jpeg.*,.*metadata.*)"
+# % type: string
+# % required: no
+# % multiple: yes
+# %end
 
-#%option
-#% key: modified_before
-#% label: Latest modification timestamp of datasets to include in the output
-#% description: ISO-formated date or timestamp (e.g. "2000-01-01T12:12:55.03456Z" or "2000-01-01")
-#% type: string
-#% required: no
-#% multiple: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % multiple: no
+# % description: Name of the output file (stdout if omitted)
+# % answer: -
+# %end
 
-#%option
-#% key: modified_after
-#% label: Earliest modification timestamp of datasets to include in the output
-#% description: ISO-formated date or timestamp (e.g. "2000-01-01T12:12:55.03456Z" or "2000-01-01")
-#% type: string
-#% required: no
-#% multiple: no
-#%end
+# %option G_OPT_F_SEP
+# % required: no
+# % multiple: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: authentication
-#% required: no
-#% multiple: no
-#% description: File with authentication information (username and password) for thredds server
-#% label: Authentication for thredds server
-#%end
+# %option
+# % key: modified_before
+# % label: Latest modification timestamp of datasets to include in the output
+# % description: ISO-formated date or timestamp (e.g. "2000-01-01T12:12:55.03456Z" or "2000-01-01")
+# % type: string
+# % required: no
+# % multiple: no
+# %end
+
+# %option
+# % key: modified_after
+# % label: Earliest modification timestamp of datasets to include in the output
+# % description: ISO-formated date or timestamp (e.g. "2000-01-01T12:12:55.03456Z" or "2000-01-01")
+# % type: string
+# % required: no
+# % multiple: no
+# %end
+
+# %option G_OPT_F_INPUT
+# % key: authentication
+# % required: no
+# % multiple: no
+# % description: File with authentication information (username and password) for thredds server
+# % label: Authentication for thredds server
+# %end
 
 # Simplify the following with: G_OPT_M_NPROCS
-#%option
-#% key: nprocs
-#% type: integer
-#% required: no
-#% multiple: no
-#% key_desc: Number of cores
-#% label: Number of cores to use for crawling thredds server
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % required: no
+# % multiple: no
+# % key_desc: Number of cores
+# % label: Number of cores to use for crawling thredds server
+# % answer: 1
+# %end
 
 import os
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
+
 import grass.script as gscript
 
 
@@ -144,7 +144,6 @@ def get_authentication(authentication_input):
         )
 
     if authentication_input is not None and authentication_input != "":
-
         if authentication_input == "-":
             # stdin
             import getpass
@@ -153,11 +152,11 @@ def get_authentication(authentication_input):
             password = getpass.getpass(_("Insert password: "))
             thredds_authentication = (user, password)
         elif os.access(authentication_input, os.R_OK):
-            with open(authentication_input, "r") as auth_file:
+            with open(authentication_input, "r", encoding="UTF8") as auth_file:
                 thredds_authentication = tuple(auth_file.read().split(os.linesep)[0:2])
         else:
             gscript.fatal(
-                _("Unable to open file <{}> for reading.".format(authentication_input))
+                _("Unable to open file <{}> for reading.").format(authentication_input)
             )
     return thredds_authentication
 
@@ -179,10 +178,8 @@ def parse_isotime(options_dict, time_key):
             timestamp = datetime.strptime(time_string, time_format)
         except ValueError:
             gscript.fatal(
-                _(
-                    "Unable to parse {option} timestamp <{time_str}>.".format(
-                        option=time_key, time_str=options_dict[time_key]
-                    )
+                _("Unable to parse {option} timestamp <{time_str}>.").format(
+                    option=time_key, time_str=options_dict[time_key]
                 )
             )
     return timestamp
@@ -238,21 +235,32 @@ def main():
     authentication = get_authentication(options["authentication"])
 
     # Check if output file can be written
-    if os.path.exists(options["output"]) and not gscript.overwrite():
-        gscript.fatal(
-            _(
-                "File <{}> already exists. Use --o to overwrite.".format(
-                    options["output"]
+    if options["output"] and options["output"] != "-":
+        output = Path(options["output"])
+        if output.exists():
+            if not output.is_file():
+                gscript.fatal(
+                    _("Cannot write to <{}>. It exists and is not a file.").format(
+                        options["output"]
+                    )
                 )
-            )
-        )
+
+            if not gscript.overwrite():
+                gscript.fatal(
+                    _("File <{}> already exists. Use --o to overwrite.").format(
+                        options["output"]
+                    )
+                )
+        else:
+            try:
+                output.write_text("", encoding="UTF8")
+                output.unlink()
+            except OSError:
+                gscript.fatal(
+                    _("Unable to write to file <{}>.").format(options["output"])
+                )
     else:
-        try:
-            with open(options["output"], "w") as op:
-                op.write("")
-            os.remove(options["output"])
-        except OSError:
-            gscript.fatal(_("Unable to write to file <{}>.".format(options["output"])))
+        output = None
 
     # Parse list of regular expressions for skipping parts of the catalog
     if options["skip"]:
@@ -273,16 +281,16 @@ def main():
         gscript.fatal(
             _(
                 "Unable to crawl <{url}> with the given input.\n"
-                "Please check provided options.".format(url=options["input"])
-            )
+                "Please check provided options."
+            ).format(url=options["input"])
         )
 
     if len(catalog.datasets) == 0:
         gscript.warning(
             _(
                 "No datasets returned from server <{url}> with the given input.\n"
-                "Please check provided options.".format(url=options["input"])
-            )
+                "Please check provided options."
+            ).format(url=options["input"])
         )
         dataset_urls = [
             options["separator"]
@@ -300,10 +308,8 @@ def main():
         if options["services"].isdisjoint(services):
             gscript.fatal(
                 _(
-                    "The thredds server does not offer the requested service(s) <{}>.".format(
-                        ",".join(options["services"])
-                    )
-                )
+                    "The thredds server does not offer the requested service(s) <{}>."
+                ).format(",".join(options["services"]))
             )
 
         # Check if ALL requested services are provided by the server for at least one dataset
@@ -312,23 +318,25 @@ def main():
                 options["services"].remove(service)
                 gscript.warning(
                     _(
-                        "The thredds server does not offer the requested service <{}>.".format(
-                            service
-                        )
-                    )
+                        "The thredds server does not offer the requested service <{}>."
+                    ).format(service)
                 )
 
         # Get dataset information as a list of strings
         dataset_urls = [
             "".join(
                 [
-                    service.get("service").lower() + options["separator"]
-                    if "service" in options["print"]
-                    else "",
+                    (
+                        service.get("service").lower() + options["separator"]
+                        if "service" in options["print"]
+                        else ""
+                    ),
                     service.get("url"),
-                    options["separator"] + str(dataset.size)
-                    if "data_size" in options["print"]
-                    else "",
+                    (
+                        options["separator"] + str(dataset.size)
+                        if "data_size" in options["print"]
+                        else ""
+                    ),
                 ]
             )
             for dataset in catalog.datasets
@@ -337,12 +345,10 @@ def main():
         ]
 
     # Return resulting list of datasets
-    if options["output"]:
-        if options["output"] == "-":
-            print(os.linesep.join(dataset_urls))
-        else:
-            with open(options["output"], "w") as op:
-                op.write(os.linesep.join(dataset_urls))
+    if output:
+        output.write_text("\n".join(dataset_urls) + "\n", encoding="UTF8")
+    else:
+        print("\n".join(dataset_urls) + "\n")
 
 
 if __name__ == "__main__":

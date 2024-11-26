@@ -1973,7 +1973,7 @@ class DynamicEvolution:
                     gscript.run_command(
                         "g.remove", type="raster", name=["rain_excess"], flags="f"
                     )
-                except (CalledModuleError):
+                except CalledModuleError:
                     pass
 
             # compute net elevation change

@@ -78,6 +78,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("proximity analysis"));
     module->description =
         _("Probability analysis of 2 random points being in the same patch.");
 

@@ -1,5 +1,6 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
+#include <math.h>
 
 float fuzzy(FCELL cell)
 {
@@ -42,8 +43,8 @@ float fuzzy(FCELL cell)
     }
 
     if (type == SSHAPE) {
-        m = pow(2, exp(2 * abs(shape)));
-        return (shape < 0) ? pow(1 - cos(x * PI2), m) : pow(sin(x * PI2), m);
+        m = pow(2, exp(2 * fabs(shape)));
+        return (shape < 0) ? 1 - pow(cos(x * PI2), m) : pow(sin(x * PI2), m);
     }
 
     return -1; /* error */

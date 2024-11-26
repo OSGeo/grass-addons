@@ -214,9 +214,9 @@ def main():
         if (
             row[0] not in totals_dict
         ):  # Will pass the condition only if the current zone ID does not exists yet in the dictionary
-            totals_dict[
-                row[0]
-            ] = {}  # Declare a new embedded dictionnary for the current zone ID
+            totals_dict[row[0]] = (
+                {}
+            )  # Declare a new embedded dictionnary for the current zone ID
         if (
             flags["l"] and row[1] in classes_list
         ):  # Will pass only if flag -l is active and if the current class is in the 'classes_list'

@@ -1,0 +1,475 @@
+<h2>DESCRIPTION</h2>
+<h3>WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.</h3>
+
+<em>i.eodag</em> allows to search and download imagery scenes, e.g. Sentinel,
+Landsat, and MODIS, as well as other Earth Observation products, from a number
+of different providers. The module utilizes the
+<a href="https://eodag.readthedocs.io/en/stable/">EODAG API</a>,
+as a single interface to search for products within the supported providers.
+
+<p>
+By default <em>i.eodag</em> will search for products which footprint intersects
+the current computational region extent. Users can alternatively opt to pass a
+vector map throught the <b>map</b> option to define the area of interest (AOI)
+and change the relation with product footprints by means of the
+<b>area_relation</b> or <b>minimum_overlap</b> options.
+
+<p>
+To only list available scenes, <b>l</b> flag must be set. If no <b>start</b>
+or <b>end</b> dates are provided, the module will search scenes from the
+past 60 days. Note that the dates used for searching <b>start</b>, <b>end</b>,
+in addition to <b>ingestiondate</b>, which is displayed when listing found scenes,
+refer to the sensing time of the scene.
+
+<p>
+To download all scenes found within the time frame provided, users must
+remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
+files will be downloaded into the /tmp directory.
+To download only selected scenes, one or more IDs must be provided
+through the <b>id</b> option.
+
+<p>
+To be able to download data through <em>i.eodag</em>, users will
+need to register for the providers of interest.
+<em>i.eodag</em> reads user credentials from the EODAG YAML config file.
+Users have to specify the configuration file path through the <b>config</b>
+option, otherwise <em>i.eodag</em> will use the credentials found in
+the default config file which is auto-generated the first time EODAG is used
+after installation. The configuration file is stored by default in
+<code>$HOME/.config/eodag/eodag.yml</code>.
+
+<h3>Use Cases</h3>
+
+There are different ways to use <em>i.eodag</em>:
+
+<h4>Searching from scratch</h4>
+<p>
+When users are searching for scenes for the first time and they don't
+know the IDs of specific scenes.
+The searching is done by setting the main options e.g. <b>producttype</b>,
+<b>start</b>, <b>end</b>, <b>clouds</b> and, possibly, <b>provider</b>.
+
+<h4>Searching using scenes IDs</h4>
+<p>
+Users have a set of scenes IDs that they want to search for and download.
+They can either use the <b>id</b> option or use the <b>file</b> option
+and pass a text file, with one ID per line.
+When searching with ID, users must specify the product type that the IDs
+belong to. Specifying a provider is not mandatory, but it is recommended.
+In case users do not specify the provider, each scene might be offered
+from a different provider. Note that all scenes IDs have to belong
+to the same product type.
+
+<h4>Reading products from a GeoJSON file</h4>
+<p>
+When the user has already performed a first search and saved the results into
+a GeoJSON file using the <b>save</b> option.
+Users will then pass the GeoJSON file through the <b>file</b>
+option. No additional searching will be done in this case, but users will be
+able to further filter the products saved in the GeoJSON file through the
+different options, e.g. <b>start, end, query, area_relation, etc.</b>
+
+
+<h2>NOTES</h2>
+
+<h3>Querying</h3>
+<p>
+Querying, aka. filtering, is a method introduced to <em>i.eodag</em> to further
+filter the search results based on an extended list of products' properties, called
+<a href="https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?highlight=queryables#Queryables">queryables</a>.<br>
+The <b>print</b> option can be used to get hints of the avaible queryables.
+For example, to get the queryables for the product "S2_MSI_L2A" that is
+offered by Copernicus Data Space Ecosystem (cop_dataspace):
+<div class="code"><pre>
+i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
+</pre>
+</div>
+Note that the <b>print</b> option only gives a subset of the avaible queryables,
+and users can in fact use any of the product's properties for filtering.
+If users are not sure about the all the available properties for a product,
+they can run a generic search with the <b>j</b> flag and <b>limit=1</b>,
+to see an instance of the product of interest.
+The available queryables will be found in the JSON output within the
+"properties" section.
+
+<p>
+The possible types of these properties are:
+<ul>
+  <li><b>str</b> most common type.</li>
+  <li><b>int</b> may have a specified range.</li>
+  <li><b>float</b> may have a specified range.</li>
+  <li><b>Literal</b> has a list of options to choose from.</li>
+</ul>
+
+<p>
+The <b>query</b> option is used for querying. There is a list of rules that users
+need to follow when composing queries:
+<h4>Operators</h4>
+<table border="1">
+<thead>
+<tr>
+<th>Relation</th>
+<th>Operator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Equal</td>
+<td style="text-align: center"><code>eq</code></td>
+</tr>
+<tr>
+<td>Not Equal</td>
+<td style="text-align: center"><code>ne</code></td>
+</tr>
+<tr>
+<td>Less Than or Equal</td>
+<td style="text-align: center"><code>le</code></td>
+</tr>
+<tr>
+<td>Less Than</td>
+<td style="text-align: center"><code>lt</code></td>
+</tr>
+<tr>
+<td>Greater Than or Equal</td>
+<td style="text-align: center"><code>ge</code></td>
+</tr>
+<tr>
+<td>Greater Than</td>
+<td style="text-align: center"><code>gt</code></td>
+</tr>
+</tbody>
+</table>
+
+<h4>Query Structure</h4>
+
+<p>
+Basic structure:
+
+<div class="code"><pre>
+{queryable} = {value} ; {operator}
+</pre></div>
+
+<p>
+Example
+<p>
+Print products which <b>orbitDirection</b> property is "DESCENDING":
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING;eq"
+</pre></div>
+NOTE: If no operator is specified then the 'eq' opeartor will be used.
+
+<p>
+Multiple values per queryable:
+
+<div class="code"><pre>
+{queryable} = {value_1} ; {operator_1} | {value_2} ; {opeartor_2}
+</pre></div>
+
+<p>
+Examples
+<p>
+Print products which <b>cloudCover</b> is either less than 30 <b>OR</b> greater
+than 60, aka. [0, 30) &cup; (60, 100].<br>
+Notice here that multiple values are used to indicate the <b>OR</b> relation.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30;lt | 60;gt"
+</pre></div>
+
+To use the <b>AND</b> relation instead, write them in separate queries.<br>
+Print products which <b>cloudCover</b> is greater than 30 <b>AND</b>
+less than 60, aka. (30, 60).
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30;gt, cloudCover=60;lt"
+</pre></div>
+
+Print products which <b>cloudCover</b> is greater than 30 <b>AND</b> less than
+60, and having a descending orbit.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="cloudCover=30;gt, cloudCover=60;lt, orbitDirection=DESCENDING"
+</pre></div>
+
+<p>
+Null Values
+<p>
+In some cases, products might have <b>Null</b> as the value of some properties
+(aka. queryables). These products will be filtered out by default.
+In case users do not want them to be filtered out, they need to provide
+an additional <b>Null</b> value to the queryable.
+
+<p>
+Examples
+<p>
+Print products which <b>orbitDirection</b> is <b>DESCENDING</b>.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING"
+</pre></div>
+Print products which <b>orbitDirection</b> is <b>DESCENDING OR Null</b>.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="orbitDirection=DESCENDING|Null"
+</pre></div>
+
+
+<h4>Frequently used queryables</h4>
+
+<ul>
+  <li><b>cloudCover</b> range [0, 100]</li>
+  <li><b>orbitNumber</b></li>
+  <li><b>orbitDirection</b></li>
+  <li><b>storageStatus</b></li>
+  <li><b>start</b> ISO formated date referring to products caputred on
+    start date or later.</li>
+  <li><b>end</b> ISO formated date referring to products caputred on
+    end date or earlier.</li>
+</ul>
+
+<p>
+NOTE: These queryables are only for reference, and they might not always
+be avaiable for all providers/products.
+
+
+<h3>EODAG configuration</h3>
+
+<p>
+EODAG configuration <b>YAML</b> file is used to set multiple values, including:
+<p>
+<dl>
+<dt><b>Priority</b>
+<dd>Used when the <em>i.eodag</em> tries to search for a product,
+with no <b>provider</b> specified. Searching is attempted with providers
+with higher priority first.
+
+<p>
+<dt><b>Credentials</b>
+<dd>Some providers require credentials to conduct searching,
+while others do not. However, users will need to set the credentials for downloading,
+in most cases. See
+<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html" target="_blank">
+  Providers Registration</a> for more details about registration and credentials.
+
+  <p>
+NOTE: If users notice that <em>i.eodag</em> doesn't recognize
+a specific provider when searching or downloading,
+it might be that they need to specify the credentials for that provider.
+
+<p>
+<dt><b>Output Prefix</b>
+<dd>Setting the output_prefix is similar to using the <b>output</b> option.
+  It is the directory into which downloaded products will be saved.
+</dl>
+
+<p>
+Following is an example for a config YAML file with Copernicus Dataspace
+credentials:
+<div class="code"><pre>
+cop_dataspace:
+    priority: # Lower value means lower priority (Default: 0)
+    search:   # Search parameters configuration
+    download:
+        extract:
+        outputs_prefix:
+    auth:
+        credentials:
+          username: email@email.com
+          password: password
+</pre></div>
+
+<h4>Creodias</h4>
+To register to Creodias, users should create an account
+<a href="https://portal.creodias.eu/register.php">here</a>, and
+then use their username and password in the eodag configuration file.
+Users will also need TOTP, a 6-digits temporary one time password,
+to be able to authenticate and download scenes (product search
+within creodias can be done without registering).
+This TOTP is only valid for very short time, i.e., 30 to 60 seconds, so it shall
+not be set through the eodag configuration file.
+When <em>i.eodag</em> attempts to download a scene from creodias,
+users will be prompted to input the TOTP. If they prefer to discard these
+scenes, they should enter <b>"-"</b> instead. Note that interactive
+prompt does not work in the graphical user interface.
+
+<p>
+See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">Configure EODAG</a>
+section for more details about configuration of the
+providers' credentials and other EODAG YAML config file parameters.
+
+<h2>EXAMPLES</h2>
+
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, using a vector map as an AOI:
+
+<div class="code"><pre>
+v.extract input=urbanarea where="NAME = 'Durham'" output=durham
+
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+    map=durham producttype=S2_MSI_L2A provider=cop_dataspace
+</pre></div>
+
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, with at least 70% of the AOI covered:
+
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+    producttype=S2_MSI_L2A provider=cop_dataspace \
+    clouds=50 map=durham minimum_overlap=70
+</pre></div>
+
+Sort results descendingly by <b>cloudcover</b>, and then by <b>ingestiondate</b>.
+Note that sorting with <b>cloudcover</b> uses unrounded values,
+while they are rounded to the nearest integer when listing.
+
+<div class="code"><pre>
+i.eodag -l start=2022-05-25 end=2022-06-01 \
+    producttype=S2_MSI_L2A provider=cop_dataspace \
+    sort=cloudcover,ingestiondate order=desc
+</pre></div>
+
+Search for scenes with a list of IDs, and filter the results with the
+provided parameters:
+
+<div class="code"><pre>
+i.eodag -l file=ids_list.txt \
+    start=2022-05-25 \
+    area_relation=Contains clouds=3
+</pre></div>
+
+Search and list the available Sentinel 2 scenes in the Copernicus Data Space
+Ecosystem, with relative orbit number 54:
+
+<div class="code"><pre>
+i.eodag -l producttype=S2_MSI_L2A \
+    provider=cop_dataspace save=search_result.geojson \
+    query="relativeOrbitNumber=54"
+</pre></div>
+
+Search and list the available Tier 1 Landsat 9 Collection 2 Level 2 scenes in USGS,
+using filtering with a regular expression:
+
+<div class="code"><pre>
+i.eodag -l producttype=LANDSAT_C2L2 \
+    provider=usgs save=search_result.geojson \
+    pattern="LC09.*T1"
+</pre></div>
+
+Search and list Sentinel 2 scenes using IDs from Copernicus Data Space Ecosystem:<br>
+To download the selected scenes, simply remove the l flag.
+<div class="code"><pre>
+i.eodag -l provider=cop_dataspace producttype=S2_MSI_L2A \
+    id="S2A_MSIL2A_20240728T154941_N0511_R054_T17SPV_20240728T235651,
+    S2A_MSIL2A_20240618T154941_N0510_R054_T17SPV_20240618T222157"
+</pre></div>
+
+Search and list for a Landsat scene using its ID from USGS:<br>
+To download the selected scene, remove the l flag.
+<div class="code"><pre>
+i.eodag -l provider=usgs producttype=LANDSAT_C2L2 \
+    id=LC08_L2SP_016035_20240715_20240722_02_T1
+</pre></div>
+
+Download all available scenes with cloud coverage not exceeding 50%
+in the /tmp directory:
+
+<div class="code"><pre>
+i.eodag start=2022-05-25 end=2022-06-01 \
+    producttype=S2_MSI_L2A provider=cop_dataspace clouds=50
+</pre></div>
+
+Download only selected scenes from a text file with IDs, using the Copernicus Data
+Space Ecosystem as the provider:
+
+<div class="code"><pre>
+i.eodag file=ids_list.txt provider=cop_dataspace
+</pre></div>
+
+
+
+Download only selected scenes into the <em>download_here</em>
+directory, using a custom config file:
+
+<div class="code"><pre>
+i.eodag provider=cop_dataspace \
+    id="S2B_MSIL2A_20240526T080609_N0510_R078_T37SDD_20240526T094753,
+    S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T124818" \
+    producttype=S2_MSI_L2A \
+    config=full/path/to/eodag/config.yaml \
+    output=download_here
+</pre></div>
+
+List recognized EODAG providers:
+<div class="code"><pre>
+i.eodag print=providers
+</pre></div>
+
+List recognized EODAG providers offering Sentinel 2 scenes:
+<div class="code"><pre>
+i.eodag print=providers producttype=S2_MSI_L2A
+</pre></div>
+
+List recognized EODAG products:
+<div class="code"><pre>
+i.eodag print=products
+</pre></div>
+
+List recognized EODAG products offered by Copernicus Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag print=products provider=cop_dataspace
+</pre></div>
+
+List queryables for Sentinel 2 scenes offered by Copernicus
+Data Space Ecosystem:
+<div id="list_queryables_example" class="code"><pre>
+i.eodag print=queryables provider=cop_dataspace producttype=S2_MSI_L2A
+</pre></div>
+
+List current EODAG configuration:
+<div class="code"><pre>
+i.eodag print=config
+</pre></div>
+
+List current EODAG configuration for Copernicus Data Space Ecosystem:
+<div class="code"><pre>
+i.eodag print=config provider=cop_dataspace
+</pre></div>
+
+Print query summary:
+<div class="code"><pre>
+i.eodag -lp provider=usgs producttype=LANDSAT_C2L2 area_relation=IsWithin clouds=30
+</pre></div>
+
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
+    (install with <code>pip install eodag</code>)</li>
+    <li>For EODAG 3.0.0 and later, some of the providers have additonal dependencies that needs to be
+    installed, e.g. <code>pip install eodag[usgs]</code>, for more info see
+    <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">installation page</a>.
+    To install all dependencies use <code>pip install eodag[all]</code></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.landsat.html">i.landsat</a>,
+<a href="i.sentinel.html">i.sentinel</a>,
+<a href="i.modis.html">i.modis</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="https://github.com/HamedElgizery" target="_blank">Hamed Elgizery</a>, Giza, Egypt.<br>
+<p>
+GSoC 2024 Mentors: Luca Delucchi, Stefan Blumentrath, Veronica Andreo
+</p>

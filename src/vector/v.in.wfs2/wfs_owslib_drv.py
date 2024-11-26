@@ -6,7 +6,7 @@ try:
 except:
     grass.fatal(
         _(
-            "OSWLib can not be found. Install OSWLib (http://geopython.github.com/OWSLib/) or use GRASS driver."
+            "OSWLib can not be found. Install OSWLib (https://github.com/geopython/OWSLib) or use GRASS driver."
         )
     )
 

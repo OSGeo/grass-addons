@@ -20,7 +20,7 @@ from helpers import run
 
 
 class Column_Water_Vapor:
-    """
+    r"""
     Retrieving atmospheric column water vapor from Landsat8 TIRS data based on
     the modified split-window covariance and variance ratio (MSWCVR).
 
@@ -70,7 +70,8 @@ class Column_Water_Vapor:
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
     Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
     1: 647-665.
-    http://www.mdpi.com/2072-4292/7/1/647/htm\#sthash.ba1pt9hj.dpuf
+    https://www.mdpi.com/2072-4292/7/1/647#sthash.ba1pt9hj.dpuf
+    https://doi.org/10.3390/rs70100647
 
     from which the equation's coefficients are (also) published.
 
@@ -374,17 +375,17 @@ class Column_Water_Vapor:
 
         cwv = (
             "eval("
-            "\ \n  ti_mean = {tim},"
-            "\ \n"
-            "\ \n  tj_mean = {tjm},"
-            "\ \n"
-            "\ \n  numerator = {numerator},"
-            "\ \n"
-            "\ \n  denominator = {denominator},"
-            "\ \n"
-            "\ \n  rji = numerator / denominator,"
-            "\ \n"
-            "\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
+            "\\ \n  ti_mean = {tim},"
+            "\\ \n"
+            "\\ \n  tj_mean = {tjm},"
+            "\\ \n"
+            "\\ \n  numerator = {numerator},"
+            "\\ \n"
+            "\\ \n  denominator = {denominator},"
+            "\\ \n"
+            "\\ \n  rji = numerator / denominator,"
+            "\\ \n"
+            "\\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
         )
 
         cwv_expression = cwv.format(
@@ -422,17 +423,17 @@ class Column_Water_Vapor:
 
         cwv = (
             "eval("
-            "\ \n  ti_median = {tim},"
-            "\ \n"
-            "\ \n  tj_median = {tjm},"
-            "\ \n"
-            "\ \n  numerator = {numerator},"
-            "\ \n"
-            "\ \n  denominator = {denominator},"
-            "\ \n"
-            "\ \n  rji = numerator / denominator,"
-            "\ \n"
-            "\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
+            "\\ \n  ti_median = {tim},"
+            "\\ \n"
+            "\\ \n  tj_median = {tjm},"
+            "\\ \n"
+            "\\ \n  numerator = {numerator},"
+            "\\ \n"
+            "\\ \n  denominator = {denominator},"
+            "\\ \n"
+            "\\ \n  rji = numerator / denominator,"
+            "\\ \n"
+            "\\ \n  {c0} + {c1} * (rji) + {c2} * (rji)^2)"
         )
 
         cwv_expression = cwv.format(

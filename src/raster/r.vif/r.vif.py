@@ -13,7 +13,7 @@
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
 #
-# COPYRIGHT: (C) 2015 - 2022 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015 - 2024 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -123,6 +123,14 @@ import grass.script as gs
 
 
 # Functions
+def prRed(skk):
+    print("\033[91m {}\033[00m".format(skk))
+
+
+def prGreen(skk):
+    print("\033[92m {}\033[00m".format(skk))
+
+
 CLEAN_RAST = []
 
 
@@ -207,8 +215,10 @@ def compute_vif(mapx, mapy):
     x_i = np.hstack((mapx, np.ones((mapx.shape[0], 1))))
     unused, resid = np.linalg.lstsq(x_i, mapy, rcond=None)[:2]
     if resid.size == 0:
-        resid = 0
-    r2 = float(1 - resid / (mapy.size * mapy.var()))
+        resid_value = 0
+    else:
+        resid_value = resid[0]
+    r2 = float(1 - resid_value / (mapy.size * mapy.var()))
     if float(r2) > 0.9999999999:
         vif = float("inf")
         sqrtvif = float("inf")
@@ -348,7 +358,13 @@ def main(options, flags):
                     vifstat = compute_vif2(x, y)
                 else:
                     # Compute vif using sample
-                    y = p[:, k]
+                    try:
+                        y = p[:, k]
+                    except IndexError as e:
+                        prRed(f"An error occurred: {str(e)}")
+                        prGreen(
+                            "Tip: check if all input rasters have values within the computation region."
+                        )
                     x = np.delete(p, k, axis=1)
                     vifstat = compute_vif(x, y)
 

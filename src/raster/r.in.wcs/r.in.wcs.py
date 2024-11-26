@@ -8,7 +8,7 @@ AUTHOR(S):  Martin Zbinden <martin.zbinden@immerda.ch>, inspired by
             Luca Delucchi <lucadeluge gmail com>
 
 PURPOSE:    Downloads and imports data from WCS server (only version 1.0.0).
-            According to http://grasswiki.osgeo.org/wiki/WCS
+            According to https://grasswiki.osgeo.org/wiki/WCS
 
 VERSION:        0.1
 
@@ -508,9 +508,9 @@ def main():
     """Main function"""
     flag_c = flags["c"]
 
-    options[
-        "version"
-    ] = "1.0.0"  # right now only supported version, therefore not in GUI
+    options["version"] = (
+        "1.0.0"  # right now only supported version, therefore not in GUI
+    )
 
     grass.debug("Using GDAL WCS driver")
     wcs = WCSGdalDrv()  # only supported driver

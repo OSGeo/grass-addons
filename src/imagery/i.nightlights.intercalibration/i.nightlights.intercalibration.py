@@ -80,20 +80,20 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
    | |  Others?                                                         | |
    | |                                                                  | |
    | +------------------------------------------------------------------+ |
-   |                                               http://asciiflow.com   |
+   |                                              https://asciiflow.com   |
    +----------------------------------------------------------------------+
 
 
                Sources
 
-               - <http://ngdc.noaa.gov/eog/dmsp.html>
+               - <https://ngdc.noaa.gov/eog/dmsp.html>
 
-               - <http://ngdc.noaa.gov/eog/dmsp/downloadV4composites.html>
+               - <https://ngdc.noaa.gov/eog/dmsp/downloadV4composites.html>
 
                - Metadata on DMSP-OLS:
                <https://catalog.data.gov/harvest/object/e84ef28f-7935-4ca2-b9c7-7a77cb156c4c/html>
 
-               - From <http://ngdc.noaa.gov/eog/gcv4_readme.txt> on the data
+               - From <https://ngdc.noaa.gov/eog/gcv4_readme.txt> on the data
                this module is meant to process:
 
                  F1?YYYY_v4b_stable_lights.avg_vis.tif: The cleaned up avg_vis
@@ -221,6 +221,7 @@ from intercalibration_models import Elvidge, Liu2012, Wu2013
 
 # any constants? -------------------------------------------------------------
 MODELS = {"elvidge": Elvidge, "liu2012": Liu2012, "wu2013": Wu2013}
+
 
 # helper functions ----------------------------------------------------------
 def cleanup():

@@ -19,14 +19,14 @@
 # (2006),
 # Parameter selection for region-growing image segmentation algorithms using
 # spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
-# 14, pp. 3035-3040, http://dx.doi.org/10.1080%2f01431160600617194
+# 14, pp. 3035-3040, https://doi.org/10.1080/01431160600617194
 #
 # B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
 # (2015),
 # Image Segmentation Parameter Optimization Considering Within- and
 # Between-Segment Heterogeneity at Multiple Scale Levels: Test Case for Mapping
 # Residential Areas Using Landsat Imagery, ISPRS International Journal of
-# Geo-Information, 4(4), pp. 2292-2305, http://dx.doi.org/10.3390/ijgi4042292
+# Geo-Information, 4(4), pp. 2292-2305, https://doi.org/10.3390/ijgi4042292
 #############################################################################
 
 # %Module
@@ -739,13 +739,15 @@ def create_optimization_list(variancelist, autocorlist, opt_function, alpha, dir
         optlist = [normvariance[x] + normautocor[x] for x in range(len(normvariance))]
     if opt_function == "f":
         optlist = [
-            (1 + alpha**2)
-            * (
-                (normvariance[x] * normautocor[x])
-                / float(alpha**2 * normautocor[x] + normvariance[x])
+            (
+                (1 + alpha**2)
+                * (
+                    (normvariance[x] * normautocor[x])
+                    / float(alpha**2 * normautocor[x] + normvariance[x])
+                )
+                if (normautocor[x] + normvariance[x]) > 0
+                else 0
             )
-            if (normautocor[x] + normvariance[x]) > 0
-            else 0
             for x in range(len(normvariance))
         ]
     return optlist

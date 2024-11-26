@@ -180,7 +180,7 @@ class HiveCliHook(BaseHook, HiveSpatial):
                 except Exception as e:
                     message = e.args[0].split("\n")[-2]
                     logging.info(message)
-                    error_loc = re.search("(\d+):(\d+)", message)
+                    error_loc = re.search(r"(\d+):(\d+)", message)
                     if error_loc and error_loc.group(1).isdigit():
                         l = int(error_loc.group(1))
                         begin = max(l - 2, 0)

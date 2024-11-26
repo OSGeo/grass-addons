@@ -202,7 +202,7 @@ def main():
 
         grass.run_command("v.db.addtable", map=bbox_map, columns="srid text, name text")
         for i in range(0, nbbox):
-            message("\b" * 80 + _("Populating table...") + f" {i+1}/{nbbox}", "")
+            message("\b" * 80 + _("Populating table...") + f" {i + 1}/{nbbox}", "")
             b = bbox[i]
             srid = f"{b.crs_auth_name}:{b.crs_code}"
             cat = i + 1
