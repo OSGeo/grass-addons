@@ -507,7 +507,7 @@ void main_loop(void)
                                 }
 
                             } /* else */
-                        }     /*DEFined area */
+                        } /*DEFined area */
                         else {
                             w[lw][2] = 1e-10; /* eliminate walker if it is out
                                                  of area */

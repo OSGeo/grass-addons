@@ -424,7 +424,7 @@ def main():
             "R is required, but cannot be found on the system.\n \
                     Please make sure that R is installed and the path \
                     to R is added to the environment variables \
-                    (see: http://grass.osgeo.org/wiki/R_statistics#MS_Windows). \
+                    (see: https://grass.osgeo.org/wiki/R_statistics#MS_Windows). \
                     After that a restart of GRASS GIS is required."
         )
 

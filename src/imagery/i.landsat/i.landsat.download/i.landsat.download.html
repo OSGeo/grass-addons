@@ -72,14 +72,6 @@ The dataset names and IDs are:
 </tbody>
 </table>
 
-<p>
-To connect to EODAG the credentials of the data source of interest
-(either USGS or Planetary Computer) have to be filled in the EODAG config file.
-See EODAG Configuration section in <a href="i.eodag.html">i.eodag</a> and
-<a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html">EODAG Configuration</a>.
-The configuration file is stored by default in $HOME/.config/eodag/eodag.yml.
-If it is not there, it will be created after running the module.
-<p>
 
 <p>
 By default, only products which footprint intersects current computation
@@ -103,32 +95,95 @@ can be set to define how long a request should wait for a response before
 aborting (default is 300 seconds).
 
 <h2>NOTES</h2>
-USGS is still under development and can't be used for searching nor downloading.
+
+<h3>Settings</h3>
+<p>
+<em>i.landsat.download</em> reads the user credentials either from the
+terminal or from the <b>settings</b> file. This file must contain two
+lines in case of USGS provider, or one line in case of Planetary Computer provider.
+
+<p>
+User credentials can be also defined interactively when <b>settings=-</b>
+is given. Note that interactive prompt does not work in the graphical
+user interface.
+
+<p>
+Alternatively, if the settings option is not specified <em>i.landsat.download</em>
+will attempt to use credentials stored in the default EODAG configuration file in
+<code>$HOME/.config/eodag/eodag.yml</code>. Note any parameter set in the configuration
+file, e.g. 'extract' to specify whether to extract the downloaded scenes or not,
+will be used by <em>i.landsat.download</em>, unless overriden by user options.
+<b>Exception:</b> output parameter in EODAG configuration file is not used by <em>i.landsat.download</em>,
+and the default output directory is the current working directory.
+
+<h3>USGS EarthExplorer</h3>
+<p>
+To connect to EarthExplorer both a <em>username</em> and a <em>password</em>
+are required. See the <a href="https://ers.cr.usgs.gov/register">register</a>
+page for signing up.
+
+<p>
+<b>USGS Settings File</b>
+<div class="code"><pre>
+myusername
+mypassword
+</pre></div>
+
+<p>
+<b>USGS Interactive Settings</b>
+<div class="code"><pre>
+Insert username: myusername
+Insert password:
+</pre></div>
+
+
+<h3>Planetary Computer</h3>
+<p>
+Most datasets are anonymously accessible, but a subscription
+key may be needed to
+<a href="https://planetarycomputer.microsoft.com/docs/concepts/sas/#rate-limits-and-access-restrictions">increase rate limits and access private datasets.</a>
+Users can create an account <a href="https://planetarycomputer.microsoft.com/account/request">here</a>,
+and then view their keys by signing in with their Microsoft account
+<a href="https://planetarycomputer.developer.azure-api.net/">here</a>.
+<p>
+<b>Planetary Computer Settings File</b>
+<div class="code"><pre>
+apikey
+</pre></div>
+
+<b>Planetary Computer Interactive Settings</b>
+<div class="code"><pre>
+Insert API key:
+</pre></div>
+Note: to use Plantery Computer anonymously the settings option should not be used.
+
 
 <h2>EXAMPLES</h2>
 
 Search available scenes:
 
 <div class="code"><pre>
-i.landsat.download -l dataset=landsat_8_ot_c2_l2 \
-    clouds=15 start='2018-08-24' end='2018-12-21'
-<pre></div>
+i.landsat.download -l settings=credentials.txt \
+    dataset=landsat_8_ot_c2_l2 clouds=15 \
+    datasource=usgs start='2018-08-24' end='2018-12-21'
+</pre></div>
 
 Download all available scenes:
 
 <div class="code"><pre>
-i.landsat.download dataset=landsat_8_ot_c2_l2 \
-    clouds=15 start='2018-08-24' end='2018-12-21' \
+i.landsat.download settings=credentials.txt \
+    dataset=landsat_8_ot_c2_l2 clouds=15 \
+    datasource=usgs start='2018-08-24' end='2018-12-21' \
     timeout=600
-<pre></div>
+</pre></div>
 
-Download selected scenes by ID:
+Download selected scenes by ID anonymously from Planetary Computer:
 
 <div class="code"><pre>
-i.landsat.download \
+i.landsat.download datasource=planetary_computer \
     id=LC09_L2SP_015035_20240529_02_T1,LC09_L2SP_015035_20240614_02_T1 \
     output=/tmp
-<pre></div>
+</pre></div>
 
 <h2>REQUIREMENTS</h2>
 

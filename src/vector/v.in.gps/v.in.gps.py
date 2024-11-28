@@ -19,8 +19,8 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  GPSBabel from         http://gpsbabel.sourceforge.net
-#      -  cs2cs from PROJ.4 (for m.proj)        http://proj.osgeo.org
+#      -  GPSBabel from         https://www.gpsbabel.org
+#      -  cs2cs from PROJ.4 (for m.proj)        https://proj.org
 #
 #      - report supported GPSBabel formats:
 #         gpsbabel -^2 | tr '\t' ';' | sort -t';' -k3
@@ -28,7 +28,7 @@
 #############################################################################
 #
 # How to do it
-#   http://www.gdal.org/ogr/drv_gpx.html
+#   https://gdal.org/drivers/vector/gpx.html
 #   gpsbabel [options] -i INTYPE -f INFILE -o OUTTYPE -F OUTFILE
 #
 #############################################################################
@@ -113,14 +113,14 @@ def main():
     if not grass.find_program("gpsbabel"):
         grass.fatal(
             _("The gpsbabel program was not found, please install it first.\n")
-            + "http://gpsbabel.sourceforge.net"
+            + "https://www.gpsbabel.org"
         )
 
     #### check for cs2cs
     if not grass.find_program("cs2cs"):
         grass.fatal(
             _("The cs2cs program was not found, please install it first.\n")
-            + "http://proj.osgeo.org"
+            + "https://proj.org"
         )
 
     # todo

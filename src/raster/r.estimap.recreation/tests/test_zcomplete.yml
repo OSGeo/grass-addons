@@ -1,5 +1,4 @@
 ---
-
 - mapset: complete_example
   flags: []
   inputs:
@@ -26,7 +25,7 @@
     population:
       - input_population_2015
     timestamp:
-      - '2015'
+      - "2015"
   outputs:
     csvs:
       supply:

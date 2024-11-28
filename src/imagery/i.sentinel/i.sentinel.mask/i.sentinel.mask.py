@@ -329,8 +329,10 @@ def get_sun_position(module_options, bands):
         with open(str(metadata_file), encoding="UTF8") as json_file:
             data = json.load(json_file)
         zenith_azimuth = tuple(
-            float(data["MEAN_SUN_ZENITH_ANGLE"]),
-            float(data["MEAN_SUN_AZIMUTH_ANGLE"]),
+            (
+                float(data["MEAN_SUN_ZENITH_ANGLE"]),
+                float(data["MEAN_SUN_AZIMUTH_ANGLE"]),
+            )
         )
     except OSError:
         gs.fatal(

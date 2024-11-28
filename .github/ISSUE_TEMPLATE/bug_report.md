@@ -2,9 +2,8 @@
 name: Bug report
 about: Create a report to help us improve
 title: "[Bug] "
-labels: ''
-assignees: ''
-
+labels: ""
+assignees: ""
 ---
 
 **Name of the addon**

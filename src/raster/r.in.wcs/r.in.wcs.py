@@ -8,7 +8,7 @@ AUTHOR(S):  Martin Zbinden <martin.zbinden@immerda.ch>, inspired by
             Luca Delucchi <lucadeluge gmail com>
 
 PURPOSE:    Downloads and imports data from WCS server (only version 1.0.0).
-            According to http://grasswiki.osgeo.org/wiki/WCS
+            According to https://grasswiki.osgeo.org/wiki/WCS
 
 VERSION:        0.1
 

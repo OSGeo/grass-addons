@@ -858,7 +858,7 @@ int main(int argc, char *argv[])
                 }
             }
         } // end two for cicles
-    }     // end if
+    } // end if
     // there isn't interest to find where is the lake --> everywhere
     // m_lake[row][col]=0
     if (method == 3) {
@@ -920,7 +920,7 @@ int main(int argc, char *argv[])
                                       t);
                             reg_lim = 1;
                         } /* warning  message only a time */
-                    }     /* velocities at the limit of computational region */
+                    } /* velocities at the limit of computational region */
 
                     //********************************************************************
                     // timestep optimization using the CFL stability condition
@@ -1187,13 +1187,13 @@ int main(int argc, char *argv[])
                 // timestep=0.1/timestep_ct;
             }
         } /* end if write outputs*/
-          /* else {
-                  //G_message("timestep =%f,t=%f",timestep,t);
-                  //pippo=1;
-                  G_message("Function SWE - t=%f, TSTOP=%d",t,TSTOP);
-                  //G_percent(t, TSTOP, timestep);
-          } */
-          // G_message("Function SWE applied - t=%f, TSTOP=%d",t,TSTOP);
+        /* else {
+                //G_message("timestep =%f,t=%f",timestep,t);
+                //pippo=1;
+                G_message("Function SWE - t=%f, TSTOP=%d",t,TSTOP);
+                //G_percent(t, TSTOP, timestep);
+        } */
+        // G_message("Function SWE applied - t=%f, TSTOP=%d",t,TSTOP);
         // G_message("timestep =%f,t=%f",timestep,t);
     } /* end time loop*/
 
@@ -1459,7 +1459,7 @@ int main(int argc, char *argv[])
         }
         // G_message("pippo, row=%d e nrows=%d", row, nrows);
     } // end row
-      /* chiudi i file */
+    /* chiudi i file */
 
     if (OUT_H) {
         G_message("Writing the output final map %s", name1);
