@@ -435,7 +435,7 @@ def recode_reference_rasters(
             gs.run_command("g.rename", raster=f"{tmpfmask},MASK", quiet=True)
 
         # Calculate the frequency distribution
-        tmpf1 = f"AATMP_{i}"  # create_temporary_name("tmp4")
+        tmpf1 = create_temporary_name("tmp4")
         gs.run_command("r.mapcalc", expression=f"{tmpf1} = int({digits2} * {envlay})")
         stats_out = gs.read_command(
             "r.stats", flags="cn", input=tmpf1, sort="asc", separator=";"
