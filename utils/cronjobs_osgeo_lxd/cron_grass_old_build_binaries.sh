@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # script to build GRASS GIS old current binaries + addons from the `releasebranch_8_3` branch
 # (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
@@ -11,11 +11,10 @@
 # - configures source code and then compiles it
 # - packages the binaries
 # - generated the install scripts
-# - generates the pyGRASS 8 HTML manual
-# - generates the user 8 HTML manuals
+# - generates the user old current 8 HTML manuals
 # - injects DuckDuckGo search field
 # - injects "G8.x is the new version" box into core and addon manual pages
-# - injects canonical URL
+# - injects in versioned manual the "canonical" to point to "stable" manual (as seen in the Python manual pages)
 
 # Preparations, on server (neteler@grasslxd:$):
 # - install dependencies:
@@ -173,6 +172,7 @@ echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
 mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
 # don't destroy the addons during update
+rm -rf /tmp/addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*
 (cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
@@ -192,33 +192,9 @@ cp -p AUTHORS CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TA
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
 
 ############
+
 # generate doxygen programmers's G8 manual
-cd $GRASSBUILDDIR/
-#$MYMAKE htmldocs-single > /dev/null || (echo "$0 htmldocs-single: an error occurred" ; exit 1)
-$MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 1)
-
-cd $GRASSBUILDDIR/
-
-#### unused, only done in "preview" script
-## clean old TARGETPROGMAN stuff from last run
-#if  [ -z "$TARGETPROGMAN" ] ; then
-# echo "\$TARGETPROGMAN undefined, error!"
-# exit 1
-#fi
-#mkdir -p $TARGETPROGMAN
-#rm -f $TARGETPROGMAN/*.*
-#
-## copy over doxygen manual
-#cp -r html/*  $TARGETPROGMAN/
-#
-#echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
-## fix permissions
-#chgrp -R grass $TARGETPROGMAN/*
-#chmod -R a+r,g+w $TARGETPROGMAN/
-#chmod -R a+r,g+w $TARGETPROGMAN/*
-## bug in doxygen
-#(cd $TARGETPROGMAN/ ; ln -s index.html main.html)
-#### end unused
+## -> no, only in GRASS GIS 8 versions in later versions
 
 ##### generate i18N stats for HTML page path:
 # note: the gettext POT files are managed in git and OSGeo Weblate
@@ -334,31 +310,78 @@ unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 # - cd into folder of HTML manual pages
 # - run sed to replace an existing HTML string in the upper part of the HTML file
 #   with itself + the red box pointing to the respective stable version manual page
-# --> do this for core manual pages, addons, libpython
-##
-# for core manual pages
-echo "Injecting G8.x new current version hint in a red box into MAN pages..."
-# inject G8.x current stable version hint in a red box:
-(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'document is for an older version of GRASS GIS' *.html` ; do sed -i -e "s:<div id=\"container\">:<div id=\"container\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
-# also for addons, separately for landing page and addons
-(cd $TARGETHTMLDIR/addons/ ; sed -i -e "s:<table><tr><td>:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/addons/index.html\">current addon manual page</a>.</p> <table><tr><td>:g" index.html)
-(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'document is for an older version of GRASS GIS' *.html` ; do sed -i -e "s:<div id=\"container\">:<div id=\"container\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../grass${NEW_CURRENT}/manuals/addons/$myfile\">current manual page</a>.</p>:g" $myfile ; done)
-# also for Python
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'document is for an older version of GRASS GIS' *.html` ; do sed -i -e "s:^<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that will be discontinued soon. You should upgrade, and read the <a href=\"../../../../grass${NEW_CURRENT}/manuals/libpython/$myfile\">current Python manual page</a>.</p>:g" $myfile ; done)
+# --> do this for core manual pages, addons, libpython, recursively
 
-# SEO: inject canonical link into all (old) manual pages to point to latest stable (avoid "duplicate content" SEO punishment)
-# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
-# - cd into folder of HTML manual pages
-# - run sed to replace an existing HTML header string in the upper part of the HTML file
-#   with itself + canonical link of stable version
-# --> do this for core manual pages, addons, libpython
-(cd $TARGETHTMLDIR/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/addons/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/addons/$myfile\">\n</head>:g" $myfile ; done)
-(cd $TARGETHTMLDIR/libpython/ ; for myfile in `grep -L 'link rel="canonical"' *.html` ; do sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass${NEW_CURRENT}/manuals/libpython/$myfile\">\n</head>:g" $myfile ; done)
+# red box for outdated manual pages
+echo "Injecting G8.x new current version hint in a red box into MAN pages..."
+
+process_files() {
+  local dir="$1"
+  local prefix="$2"
+
+  find "$dir" -type f -name '*.html' | while IFS= read -r myfile; do
+    if ! grep -q 'document is for an older version of GRASS GIS' "$myfile"; then
+      manpage="$prefix$(basename ${myfile})"
+      sed -i -e "s:<div id=\"container\">:<div id=\"container\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that has been discontinued. You should upgrade, and read the <a href=\"../../../grass-stable/manuals/$manpage\">current manual page</a>.</p>:g" ${myfile}
+    fi
+  done
+}
+
+cd "$TARGETHTMLDIR"
+process_files "$TARGETHTMLDIR" ""
+process_files "$TARGETHTMLDIR/addons" "addons/"
+
+# also into addons landing page, separately due to different structure
+(cd $TARGETHTMLDIR/addons/ ;
+    sed -i -e "s:<table><tr><td>:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that has been discontinued. You should upgrade, and read the <a href=\"../../../grass-stable/manuals/addons/index.html\">current addon manual page</a>.</p> <table><tr><td>:g" index.html
+)
+
+# also into libpython pages, separately due to different structure
+# red box for outdated libpython manual pages
+echo "Injecting G8.x new current version hint in a red box into libpython MAN pages..."
+process_files() {
+  local dir="$1"
+  local prefix="$2"
+
+  find "$dir" -type f -name '*.html' | while IFS= read -r myfile; do
+    if ! grep -q 'document is for an older version of GRASS GIS' "$myfile"; then
+      manpage="$prefix$(basename ${myfile})"
+      sed -i -e "s:^<hr class=\"header\">:<hr class=\"header\"><p style=\"border\:3px; border-style\:solid; border-color\:#BC1818; padding\: 1em;\">Note\: This document is for an older version of GRASS GIS that has been discontinued. You should upgrade, and read the <a href=\"../../../../grass-stable/manuals/$manpage\">current Python library manual page</a>.</p>:g" ${myfile}
+    fi
+  done
+}
+
+process_files "$TARGETHTMLDIR/libpython" "libpython/"
 
 ############################################
-# create sitemaps to expand the hugo sitemap
+# SEO: inject canonical link into all (old) versioned manual pages to point to grass-stable (avoid "duplicate content" SEO punishment)
+# see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+# - cd back into folder of versioned HTML manual pages
+# - run sed to replace an existing HTML header string in the upper part of the HTML file
+#   with itself + canonical link of stable version
+# --> do this for core manual pages, addons, libpython, recursively
 
+process_files() {
+  local dir="$1"
+  local prefix="$2"
+
+  find "$dir" -type f -name '*.html' | while IFS= read -r myfile; do
+    if ! grep -q 'link rel="canonical"' "$myfile"; then
+      manpage="$prefix$(basename ${myfile})"
+      sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$manpage\">\n</head>:g" ${myfile}
+    fi
+  done
+}
+
+cd "$TARGETHTMLDIR"
+process_files "$TARGETHTMLDIR" ""
+process_files "$TARGETHTMLDIR/addons" "addons/"
+process_files "$TARGETHTMLDIR/libpython" "libpython/"
+
+############################################
+# create local sitemap
+
+# versioned manual:
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
 
@@ -370,9 +393,8 @@ rm -rf lib/html/ lib/latex/ /tmp/addons
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
-echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
-echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
-echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
-## echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
+echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/ (with canonical in metadata)"
+echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/ (with canonical in metadata)"
+echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/ (with canonical in metadata)"
 
 exit 0
