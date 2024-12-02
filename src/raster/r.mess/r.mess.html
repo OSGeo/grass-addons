@@ -1,52 +1,62 @@
 <h2>DESCRIPTION</h2>
 
-The Multivariate Environmental Similarity (MES) surfaces was proposed
-by Elith et al (2010) [1] and originally implemented in the <a
-href="https://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent
-software</a>. The MES provides a measure of the proportional distance
-of any points (in the projection data) with respect to the range of
-individual covariates from the reference data. More precisely, the MES
-represents how similar a point is to a reference set of points, with
-respect to a set of predictor variables (V1, V2, ...). The values in
-the MESS are influenced by the full distribution of the reference
-points. So, sites within the environmental range of the reference
-points but  in relatively unusual environments will have a smaller
-value than those in very  common environments. See the supplementary
-materials of Elith et al. (2010) [1] for more details.
+<em>r.mess</em> computes the multivariate environmental similarity 
+(MES) [1], which measures how similar environmental conditions in one 
+area are to those in a reference area. This can also be used to compare 
+environmental conditions between current and future scenarios. See the 
+supplementary materials of Elith et al. (2010) [1] for more details.
 
 <p>
-<em>r.mess</em> computes the MES and the individual similarity layers
-(IES - the user can select to delete these layers) and, optionally,
-several other layers that help to further interpret the MES values.
+Besides the MES, <em>r.mess</em> computes the individual similarity 
+layers (IES - the user can select to delete these layers) and, 
+optionally, several other layers that help to further interpret the MES 
+values:
 
+<p>
 <ul>
-<li>the area where for at least one of the variables has a value
-that falls outside the range of values found in the reference set</li>
-<li>the most dissimilar variable (MoD)</li>
-<li>the sum of the IES layers where IES &lt; 0. This is similar to
-the NT1 measure as proposed by Mesgaran et al. 2014 [2]</li>
-<li>the number of layers with negative values</li>
+<li>The area where for at least one of the variables has a value
+that falls outside the range of values found in the reference set.</li>
+<li>The most dissimilar variable (MoD).</li>
+<li>The sum of the IES layers where IES &lt; 0. This is similar to
+the NT1 measure as proposed by Mesgaran et al. 2014 [2].</li>
+<li>The number of layers with negative values.</li>
 </ul>
 
 <p>
-The user can compare a set of reference / baseline conditions (ref) and
-projected / test conditions (proj). For the reference conditions, the
-whole region can be used (no reference areas or points are given).
-Alternatively, one can define a set of reference/sample points
-(presvect) or reference/sample areas (presrast) against which other
-areas are to be compared. The projected conditions can be future
-conditions in the same area (similarity across time), or conditions in
-another area (similarity between two different areas). See the examples
-for more details.
+The user can compare a set of reference (baseline) conditions to 
+projected (test) conditions. The reference conditions are defined by a 
+set of environmental raster layers (<b>ref_env</b>). To specify the 
+reference area, one of the following can be used:
 
-<h2>NOTES</h2>
+<p>
+<ul>
+<li><b>ref_rast</b> = reference raster layer: A raster with values of 1 
+and 0 (or nodata). Reference conditions are derived from the locations 
+where the raster value is 1.</li>
+<li><b>ref_vect</b> = reference vector point layer: Reference conditions 
+are taken for the point locations in the vector layer.</li>
+<li><b>ref_region</b> = reference region: Only areas within the 
+specified region's boundaries are considered as the reference 
+area.</li>
+</ul>
 
-Note that a mask is taken into account when computing the frequency
-distribution of the reference data layers, but is removed when
-computing the output layers. This means that instead of using a
-raster layer to delimit an reference / sample area (<i>ref_rast</i>,
-see example 2), one can use the mask to delimit a reference area,
-and compute how similar the areas area outside the mask.
+<p>
+If no reference raster map, vector map, or region is provided, the entire 
+area covered by the input environmental raster layers is used as the 
+reference area.
+
+<p>
+The projected (test) conditions are defined by a second set of 
+environmental variables (<b>proj_env</b>). They can represent future 
+conditions in the same area (similarity across time), or conditions in 
+another area (similarity between two different areas). If a projection 
+region (<b>proj_region</b>) is provided, the MESS (and other layers) 
+will be limited to that region.
+
+<p>
+If <b>proj_env</b> is not provided, the MESS value of a raster cell 
+represents how similar the conditions in that cell are compared to the 
+medium conditions across the whole area.
 
 <h2>EXAMPLE</h2>
 
@@ -60,24 +70,24 @@ href="http://www.protectedplanet.net/">protectedplanet.net</a>.
 
 <h3>Example 1</h3>
 
-The simplest case is when only a set of reference data layers (<i>env
-</i>) is provided. The multi-variate similarity values of the resulting
+The simplest case is when only a set of reference data layers (<b>ref_env
+</b>) is provided. The multi-variate similarity values of the resulting
 map are a measure of how similar conditions in a location are to the
 median conditions in the whole region.
 
-<p>>
 <div class="code"><pre>
 g.region raster=bio1
-r.mess env=bio1,bio12,bio15 output=Ex_01
+r.mess ref_env=bio1,bio12,bio15 output=Ex_01
 </pre></div>
 
 <p>
-Thus, in the maps above, the value in each pixel represents how similar
-conditions are in that pixel to the median conditions in the entire
-region, in  terms of mean annual temperature (bio1), mean annual
-precipitation (bio12),  precipitation seasonality (bio15) and the three
+Thus, in the following maps, the value in each pixel represents how 
+similar conditions are in that pixel to the median conditions in the 
+entire region, in  terms of mean annual temperature (bio1), mean annual 
+precipitation (bio12),  precipitation seasonality (bio15) and the three 
 combined (MES).
 
+<p>
 <center>
 <img src="r_mess_Ex_01.png">
 </center>
@@ -93,7 +103,7 @@ al.(2015)</a> [3] for an example of how this can be useful.
 <p>
 <div class="code"><pre>
 g.region raster=bio1
-r.mess -m -n -i env=bio1,bio12,bio15 ref_rast=ppa output=Ex_02
+r.mess -m -n -i ref_env=bio1,bio12,bio15 ref_rast=ppa output=Ex_02
 </pre></div>
 
 <p>
@@ -111,16 +121,14 @@ gradients. Areas with novel conditions can be found in northern Kenya.
 <h3>Example 3</h3>
 
 Similarity between long-term average conditions based on the period
-1950-2000 (<i>env</i>) and projections for climate conditions in
-2070 under RCP85 based on the IPSL General Circulation Models (<i>
-env_proj</i>). No reference points or areas are defined in this
-example, so the whole region is used as a reference. Note that this is
-equivalent to what the Maxent program does when computing the MESS
-layers.
+1950-2000 (<b>ref_env</b>) and projections for climate conditions in
+2070 under RCP85 based on the IPSL General Circulation Models (<b>
+proj_env</b>). No reference points or areas are defined in this
+example, so the whole region is used as a reference. 
 
 <div class="code"><pre>
 g.region raster=bio1
-r.mess env=bio1,bio12,bio15 env_proj=IPSL_bio1,IPSL_bio12,IPSL_bio15
+r.mess ref_env=bio1,bio12,bio15 proj_env=IPSL_bio1,IPSL_bio12,IPSL_bio15
 output=Ex_03
 </pre></div>
 
@@ -135,6 +143,7 @@ values in the <i>MES</i> and <i>SumNeg</i> maps only differ where the
 MES of more than one variable is negative (dark gray areas in the
 <i>Count</i> map).
 
+<p>
 <center>
 <img src="r_mess_Ex_03.png">
 </center>
@@ -157,7 +166,16 @@ Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.
 M. 2015. Environmental Gap Analysis to Prioritize Conservation Efforts
 in Eastern Africa. PLoS ONE 10: e0121444.
 
+<h2>SEE ALSO</h2>
+
+For an example of using the <em>r.mess</em> addon as part of a modeling 
+workflow, see the tutorial <a 
+href="https://ecodiv.earth/TutorialsNotes/sdmingrassgis/">Species 
+distribution modeling using Maxent in GRASS GIS</a>.
+
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel, paulo at ecodiv.earth
+Paulo van Breugel, <a href="https://ecodiv.earth">https://ecodiv.earth</a> | HAS green academy University of Applied Sciences | <a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a> | <a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>
