@@ -1,0 +1,52 @@
+---
+name: OSGeo4W
+
+on:
+  push:
+    branches:
+      - grass8
+  pull_request:
+    branches:
+      - grass8
+
+jobs:
+  build:
+    name: ${{ matrix.os }} build and tests
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}-${{
+        matrix.os }}
+      cancel-in-progress: true
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - windows-2019
+      fail-fast: false
+
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          path-type: inherit
+          location: D:\
+          update: true
+          install: git
+
+      - name: Install OSGeo4W
+        run: |
+          $exe = 'osgeo4w-setup.exe'
+          $url = 'http://download.osgeo.org/osgeo4w/v2/' + $exe
+          (New-Object System.Net.WebClient).DownloadFile($url, $exe)
+          Start-Process ('.\'+$exe) -ArgumentList '-A -g -k -q \
+            -s http://download.osgeo.org/osgeo4w/v2/ -P ${{ env.Deps }}' -Wait
+        env:
+          Deps: "grass8"
+
+      - name: Compile GRASS GIS Addons
+        run: D:\msys64\usr\bin\bash.exe -l (''+(Get-Location)+'\.github\workflows\osgeo4w_build_addons.sh') (Get-Location)

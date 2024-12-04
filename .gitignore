@@ -2,3 +2,4 @@ OBJ.*
 *.pyc
 *.o
 *.tmp.html
+*~
