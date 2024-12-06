@@ -296,7 +296,6 @@ def main(options, flags):
     bgrout = options["bgr_output"]
     bkgr_file_extension = pathlib.Path(bgrout).suffix
     if os.path.isfile(bgrout):
-        bgrout2 = CreateFileName(bgrout)
         os.remove(bgrout)
         gs.message(
             _("The file {} already existed and will be overwritten".format(bgrout))
