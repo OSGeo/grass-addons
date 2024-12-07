@@ -160,7 +160,6 @@ import numpy as np
 from subprocess import PIPE
 import grass.script as gs
 from grass.pygrass.modules import Module
-import pandas as pd
 import random
 
 clean_layers = []
