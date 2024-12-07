@@ -259,20 +259,6 @@ def cleanup():
                 )
 
 
-def CreateFileName(outputfile):
-    """Create temporary file name"""
-    flname = outputfile
-    k = 0
-    while os.path.isfile(flname):
-        k = k + 1
-        fn = flname.split(".")
-        if len(fn) == 1:
-            flname = fn[0] + "_" + str(k)
-        else:
-            flname = fn[0] + "_" + str(k) + "." + fn[1]
-    return flname
-
-
 def thin_points(layer, newname):
     """
     Thin point layer, reducing to density to maximum one per raster layer
@@ -310,11 +296,16 @@ def main(options, flags):
     bgrout = options["bgr_output"]
     bkgr_file_extension = pathlib.Path(bgrout).suffix
     if os.path.isfile(bgrout):
-        bgrout2 = CreateFileName(bgrout)
+        os.remove(bgrout)
         gs.message(
-            _("The file {} already exist. Using {} instead".format(bgrout, bgrout2))
+            _("The file {} already exists and will be overwritten".format(bgrout))
         )
-        bgrout = bgrout2
+    specout = options["species_output"]
+    if os.path.isfile(specout):
+        os.remove(specout)
+        gs.message(
+            _("The file {} already exists and will be overwritten".format(specout))
+        )
     bgpn = options["nbgp"]
     nodata = options["nodata"]
     flag_h = flags["h"]
@@ -519,7 +510,6 @@ def main(options, flags):
                         " \nof provided species names. No SWD file with presences created"
                     )
                 )
-        specout = options["species_output"]
         spec_file_extension = pathlib.Path(specout).suffix
 
         # Write for each species a temp swd file
