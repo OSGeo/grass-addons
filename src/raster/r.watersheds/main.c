@@ -4,7 +4,7 @@
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
- * PURPOSE:      Delineate a large number of watersheds using the
+ * PURPOSE:      Delineates a large number of watersheds using the
  *               Memory-Efficient Watershed Delineation (MESHED) OpenMP
  *               parallel algorithm by Cho (2025).
  *
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword(_("watershed delineation"));
-    module->description = _("Delineate a large number of watersheds using the "
+    module->description = _("Delineates a large number of watersheds using the "
                             "Memory-Efficient Watershed Delineation (MESHED) "
                             "OpenMP parallel algorithm by Cho (2024).");
 
