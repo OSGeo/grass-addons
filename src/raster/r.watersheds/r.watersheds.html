@@ -36,7 +36,7 @@ seconds because of heavy database queries.
 
 <h2>EXAMPLES</h2>
 
-This example uses the North Carolina sample dataset.
+These examples use the North Carolina sample dataset.
 
 <p>Calculate flow accumulation using <em>r.watershed</em> and delineate all
 watersheds from draining cells using <em>r.watersheds</em>:
@@ -64,7 +64,23 @@ r.watersheds dir=drain outlets=dcells output=wsheds nprocs=$(nproc)
 </pre></div>
 
 <div align="center">
-<img src="r_watersheds_nc_example.png">
+<img src="r_watersheds_wsheds.png">
+</div>
+
+<p>Perform the same analysis for 10,938 bridges in North Carolina:
+<div class="code"><pre>
+# set computational region
+g.region -ap raster=elev_state_500m
+
+# calculate drainage directions using r.watershed
+r.watershed -s elevation=elev_state_500m drainage=drain_state
+
+# delineate all watersheds using r.watersheds
+r.watersheds dir=drain_state outlets=bridges output=bridge_wsheds nproc=$(nproc)
+</pre></div>
+
+<div align="center">
+<img src="r_watersheds_bridge_wsheds.png">
 </div>
 
 <h2>SEE ALSO</h2>
