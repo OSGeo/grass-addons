@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("watershed delineation"));
     module->description = _("Delineates a large number of watersheds using the "
                             "Memory-Efficient Watershed Delineation (MESHED) "
-                            "OpenMP parallel algorithm by Cho (2024).");
+                            "OpenMP parallel algorithm by Cho (2025).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->key = "direction";
