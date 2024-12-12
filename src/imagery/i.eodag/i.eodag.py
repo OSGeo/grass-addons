@@ -1316,7 +1316,7 @@ def main():
             if not search_result:
                 gs.message(_("Nothing to download.\nExiting..."))
             if options["output"]:
-                custom_config["outputs_prefix"] = options["output"]
+                custom_config["output_dir"] = options["output"]
             dag.download_all(search_result, **custom_config)
         except MisconfiguredError as e:
             gs.fatal(_(e))
