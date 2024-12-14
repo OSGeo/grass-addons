@@ -354,7 +354,7 @@ def main():
         exp = f"{output_map} = float({last_result})"
         gscript.mapcalc(exp)
     else:
-        gscript.run_command("g.copy", raster=f"{output_map},{last_result}")
+        gscript.run_command("g.copy", raster=f"{last_result},{output_map}")
 
     # copy color rules from input to output
     gscript.run_command("r.colors", map=output_map, raster=lowres_map)
