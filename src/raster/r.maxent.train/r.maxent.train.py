@@ -811,9 +811,7 @@ def main(options, flags):
     # -----------------------------------------------------------------
     all_files = all_files = os.listdir(options["outputdirectory"])
     # Create list of addons. Is later used to check if v.db.pyupdate is installed
-    outputs = gs.read_command(
-        "g.extension", flags="a", quiet=function_verbosity
-    )
+    outputs = gs.read_command("g.extension", flags="a", quiet=function_verbosity)
     plugins_installed = [addon.strip() for addon in outputs.splitlines()]
 
     # -----------------------------------------------------------------
