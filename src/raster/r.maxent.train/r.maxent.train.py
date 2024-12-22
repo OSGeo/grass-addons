@@ -1280,6 +1280,7 @@ def main(options, flags):
             precision = options["precision"]
             if precision.isdigit():
                 prec = 10 ** -int(precision)
+                prec = f"{prec:.{precision}f}"
                 gs.run_command(
                     "r.mapcalc",
                     expression=f"{grasslayers[idx]} = round({grasslayers[idx]}, {prec})",
