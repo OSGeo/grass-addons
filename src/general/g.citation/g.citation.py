@@ -693,7 +693,7 @@ def print_bibtex(citation, output):
         sep="",
         file=output,
     )
-    print("  year = {", citation["year"], "}", sep="", file=output)
+    print("  year = {", citation["year"], "},", sep="", file=output)
     print(
         "  note = {Accessed: ",
         citation["access"],
