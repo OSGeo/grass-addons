@@ -26,12 +26,20 @@
 # %end
 
 # %option G_OPT_V_FIELD
+# % guisection: Input
 # %end
 
 # %option G_OPT_DB_COLUMN
 # % key: column
 # % description: Attribute column value to be plotted
 # % required: yes
+# % guisection: Input
+# %end
+
+# %option G_OPT_DB_COLUMN
+# % key: group_by
+# % description: Attribute column with categories to group the data by
+# % required: no
 # % guisection: Input
 # %end
 
@@ -60,6 +68,7 @@
 # % label: DPI
 # % description: resolution of plot
 # % required: no
+# % answer: 100
 # % guisection: Output
 # %end
 
@@ -71,13 +80,6 @@
 # % description: Default font size
 # % guisection: Output
 # % required: no
-# %end
-
-# %option G_OPT_DB_COLUMN
-# % key: group_by
-# % description: Attribute column with categories to group the data by
-# % required: no
-# % guisection: Plot format
 # %end
 
 # %option
@@ -116,6 +118,22 @@
 # % label: Rotate labels
 # % description: rotate x-axis labels
 # % guisection: Plot format
+# %end
+
+# %flag
+# % key: g
+# % label: Add grid lines
+# % description: Add grid lines
+# % guisection: Plot format
+# %end
+
+# %option
+# % key: axis_limits
+# % type: string
+# % label: Limit value axis [min,max]
+# % description: min and max value of y-axis, or x-axis if -h flag is set)
+# % guisection: Plot format
+# % required: no
 # %end
 
 # %option G_OPT_CN
@@ -205,55 +223,86 @@
 # %end
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 import operator
 import numpy as np
 
 
-def main():
-    import matplotlib  # required by windows
+def lazy_import_py_modules():
+    """Lazy import Py modules"""
+    global matplotlib
+    global plt
 
-    matplotlib.use("wxAGG")  # required by windows
-    import matplotlib.pyplot as plt
+    # lazy import matplotlib
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ModuleNotFoundError:
+        gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def get_valid_color(color):
+    """Get valid Matplotlib color
+
+    :param str color: input color
+
+    :return str|list: color e.g. blue|[0.0, 0.0, 1.0]
+    """
+    if ":" in color:
+        color = [int(x) / 255 for x in color.split(":")]
+    if not matplotlib.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.".format(color)))
+    return color
+
+
+def main():
+
+    # lazy import matplotlib
+    lazy_import_py_modules()
 
     # input
     vector = options["map"]
     column = options["column"]
-    if options["dpi"]:
-        dpi = float(options["dpi"])
-    else:
-        dpi = 300
+    dpi = float(options["dpi"])
+    grid = flags["g"]
     if options["plot_dimensions"]:
         dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     else:
         if flags["h"]:
             dimensions = [6, 4]
         else:
-            dimensions = [6, 4]
+            dimensions = [4, 6]
+    blcolor = get_valid_color(options["bx_blcolor"])
+    bxcolor = get_valid_color(options["bx_color"])
     boxprops = {
-        "color": options["bx_blcolor"],
-        "facecolor": options["bx_color"],
+        "color": blcolor,
+        "facecolor": bxcolor,
         "linewidth": float(options["bx_lw"]),
     }
+    median_color = get_valid_color(options["median_color"])
     medianprops = {
-        "color": options["median_color"],
+        "color": median_color,
         "linewidth": float(options["median_lw"]),
     }
     whiskerprops = {
         "linewidth": float(options["bx_lw"]),
-        "color": options["bx_blcolor"],
+        "color": blcolor,
     }
     capprops = {
         "linewidth": float(options["bx_lw"]),
-        "color": options["bx_blcolor"],
+        "color": blcolor,
     }
+    flier_color = get_valid_color(options["flier_color"])
     flierprops = {
         "marker": options["flier_marker"],
         "markersize": float(options["flier_size"]),
-        "markerfacecolor": (options["flier_color"]),
+        "markerfacecolor": flier_color,
+        "markeredgecolor": flier_color,
+        "markeredgewidth": float(options["bx_lw"]),
     }
     bxp_width = float(options["bx_width"])
-
     group_by = options["group_by"] if options["group_by"] else None
     output = options["output"] if options["output"] else None
     where = (
@@ -278,7 +327,7 @@ def main():
     if where:
         df = [
             x
-            for x in gscript.read_command(
+            for x in gs.read_command(
                 "v.db.select", map_=vector, column=cols, where=where, flags="c"
             ).splitlines()
         ]
@@ -286,7 +335,7 @@ def main():
     else:
         df = [
             x
-            for x in gscript.read_command(
+            for x in gs.read_command(
                 "v.db.select", map_=vector, column=cols, flags="c"
             ).splitlines()
         ]
@@ -294,6 +343,12 @@ def main():
     # Set plot dimensions and fontsize
     if bool(options["fontsize"]):
         plt.rcParams["font.size"] = int(options["fontsize"])
+
+    # Closing message
+    if not options["output"]:
+        gs.message(
+            _("\n> Note, you need to close the figure to finish the script \n\n")
+        )
 
     # Set plot dimensions and DPI
     fig, ax = plt.subplots(figsize=dimensions, dpi=dpi)
@@ -323,7 +378,6 @@ def main():
         ax.boxplot(
             data,
             notch=flag_n,
-            sym="gD",
             labels=uid,
             vert=flag_h,
             showfliers=flag_o,
@@ -341,7 +395,6 @@ def main():
         ax.boxplot(
             data,
             notch=flag_n,
-            sym="gD",
             vert=flag_h,
             showfliers=flag_o,
             boxprops=boxprops,
@@ -355,6 +408,21 @@ def main():
     if flag_r:
         plt.xticks(rotation=90)
     plt.tight_layout()
+
+    # Set limits value axis
+    if bool(options["axis_limits"]):
+        minlim, maxlim = map(float, options["axis_limits"].split(","))
+        if bool(flag_h):
+            plt.ylim([minlim, maxlim])
+        else:
+            plt.xlim([minlim, maxlim])
+
+    # Set grid (optional)
+    if flag_h:
+        ax.yaxis.grid(bool(grid))
+    else:
+        ax.xaxis.grid(bool(grid))
+
     if output:
         plt.savefig(output)
     else:
@@ -362,5 +430,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()
