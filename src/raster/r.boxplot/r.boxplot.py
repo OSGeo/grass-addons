@@ -297,7 +297,7 @@ def lazy_import_py_modules(backend):
     try:
         import matplotlib
 
-        if backend == None:
+        if backend is None:
             matplotlib.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
