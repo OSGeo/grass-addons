@@ -228,7 +228,7 @@ import operator
 import numpy as np
 
 
-def lazy_import_py_modules():
+def lazy_import_py_modules(backend):
     """Lazy import Py modules"""
     global matplotlib
     global plt
@@ -237,7 +237,8 @@ def lazy_import_py_modules():
     try:
         import matplotlib
 
-        matplotlib.use("WXAgg")
+        if backend == None:
+            matplotlib.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -260,7 +261,8 @@ def get_valid_color(color):
 def main():
 
     # lazy import matplotlib
-    lazy_import_py_modules()
+    output = options["output"] if options["output"] else None
+    lazy_import_py_modules(output)
 
     # input
     vector = options["map"]
@@ -304,7 +306,6 @@ def main():
     }
     bxp_width = float(options["bx_width"])
     group_by = options["group_by"] if options["group_by"] else None
-    output = options["output"] if options["output"] else None
     where = (
         options["where"] + " AND " + column + " IS NOT NULL"
         if options["where"]

@@ -288,7 +288,7 @@ from grass.pygrass.modules import Module
 clean_maps = []
 
 
-def lazy_import_py_modules():
+def lazy_import_py_modules(backend):
     """Lazy import Py modules"""
     global matplotlib
     global plt
@@ -297,7 +297,8 @@ def lazy_import_py_modules():
     try:
         import matplotlib
 
-        matplotlib.use("WXAgg")
+        if backend == None:
+            matplotlib.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -1126,7 +1127,8 @@ def main(options, flags):
     """
 
     # lazy import matplotlib
-    lazy_import_py_modules()
+    output = options["output"] if options["output"] else None
+    lazy_import_py_modules(output)
 
     # Check if zonal map is an integer map
     if options["zones"]:
