@@ -212,7 +212,7 @@
 
 # %flag
 # % key: t
-# % label: Use product features
+# % label: Use threshold features
 # % description: By default, threshold features are not used. Use this flag to enable them.
 # % guisection: Parameters
 # %end
