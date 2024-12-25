@@ -1,22 +1,22 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.maxent.train</em> module is a front-end to the Maxent 
-software, providing a convenient way to run the Maxent software, and 
-create output layers in GRASS GIS. 
+The <em>r.maxent.train</em> module is a front-end to the Maxent
+software, providing a convenient way to run the Maxent software, and
+create output layers in GRASS GIS.
 
 <p>
-<div align="left" style="margin: 10px"> <a 
-href="r_maxent_train_workflow.png"> <img 
-src="r_maxent_train_workflow.png" alt="workflow, from data preparation, 
-training a model to model prediction" border="0"> </a><br><i>A 
-workflow, from data preparation, training a model to model prediction 
+<div align="left" style="margin: 10px"> <a
+href="r_maxent_train_workflow.png"> <img
+src="r_maxent_train_workflow.png" alt="workflow, from data preparation,
+training a model to model prediction" border="0"> </a><br><i>A
+workflow, from data preparation, training a model to model prediction
 using three GRASS GIS addons.</i> </div>
 
 <p>
-It is part of a set of three addons that can be used to prepare the 
-input data for the Maxent model (<em>v.maxent.sdm</em>), to train a 
-maxent presence only model (this module), and to use the model to 
-create prediction layers (<em>r.maxent.predict</em>). 
+It is part of a set of three addons that can be used to prepare the
+input data for the Maxent model (<em>v.maxent.sdm</em>), to train a
+maxent presence only model (this module), and to use the model to
+create prediction layers (<em>r.maxent.predict</em>).
 
 With <em>r.maxent.train</em> a Maxent presence only model can be
 created using the <em>Maxent software</em>. As input, the addon
@@ -55,10 +55,10 @@ see the Maxent help file.
 
 <h2>NOTES</h2>
 
-This addon requires the Maxent software (version &ge; 3.4). You can 
-download the software from the <a 
-href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent 
-website</a>. The <em>r.maxent.setup</em> module provides an helper 
+This addon requires the Maxent software (version &ge; 3.4). You can
+download the software from the <a
+href="https://biodiversityinformatics.amnh.org/open_source/maxent">Maxent
+website</a>. The <em>r.maxent.setup</em> module provides an helper
 function to enable GRASS GIS to use the Maxent software.
 
 
@@ -253,27 +253,27 @@ Distributions, 17:43-57, 2011.</li>
 <h2>SEE ALSO</h2>
 
 <ul>
-<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species 
-and background swd files and prediction rasters that can be used 
-directly by the <em>r.maxent.train</em> addon (or the Maxent software 
+<li><a href="v.maxent.swd.html">v.maxent.swd</a>, creating species
+and background swd files and prediction rasters that can be used
+directly by the <em>r.maxent.train</em> addon (or the Maxent software
 itself) to create species distribution models.</li>
-<li><a 
-href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating species and 
-background swd files based on species distribution data in raster 
-format.</li> 
+<li><a
+href="r.out.maxent_swd.html">r.out.maxent_swd</a>, creating species and
+background swd files based on species distribution data in raster
+format.</li>
 <li><a href="r.maxent.predict.html">r.maxent.predict</a>, creating a
 suitability layer based on a set of environmental layers and a Maxent
 model, e.g., created using the r.maxent.train addon.</li>
-<li><a 
-href="r.maxent.setup.html">r.maxent.setup</a>, helper function to 
+<li><a
+href="r.maxent.setup.html">r.maxent.setup</a>, helper function to
 allow GRASS to use Maxent.</li>
 </ul>
 
 <h2>AUTHOR</h2>
 
-<a href="https:ecodiv.earth">Paulo van Breugel</a>, <a 
-href="https://has.nl">HAS green academy</a>, <a 
-href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative 
-Biomonitoring research group</a>, <a 
-href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust 
+<a href="https:ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
 Landscapes research group</a>

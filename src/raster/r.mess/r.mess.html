@@ -1,15 +1,15 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.mess</em> computes the multivariate environmental similarity 
-(MES) [1], which measures how similar environmental conditions in one 
-area are to those in a reference area. This can also be used to compare 
-environmental conditions between current and future scenarios. See the 
+<em>r.mess</em> computes the multivariate environmental similarity
+(MES) [1], which measures how similar environmental conditions in one
+area are to those in a reference area. This can also be used to compare
+environmental conditions between current and future scenarios. See the
 supplementary materials of Elith et al. (2010) [1] for more details.
 
 <p>
-Besides the MES, <em>r.mess</em> computes the individual similarity 
-layers (IES - the user can select to delete these layers) and, 
-optionally, several other layers that help to further interpret the MES 
+Besides the MES, <em>r.mess</em> computes the individual similarity
+layers (IES - the user can select to delete these layers) and,
+optionally, several other layers that help to further interpret the MES
 values:
 
 <p>
@@ -23,39 +23,39 @@ the NT1 measure as proposed by Mesgaran et al. 2014 [2].</li>
 </ul>
 
 <p>
-The user can compare a set of reference (baseline) conditions to 
-projected (test) conditions. The reference conditions are defined by a 
-set of environmental raster layers (<b>ref_env</b>). To specify the 
+The user can compare a set of reference (baseline) conditions to
+projected (test) conditions. The reference conditions are defined by a
+set of environmental raster layers (<b>ref_env</b>). To specify the
 reference area, one of the following can be used:
 
 <p>
 <ul>
-<li><b>ref_rast</b> = reference raster layer: A raster with values of 1 
-and 0 (or nodata). Reference conditions are derived from the locations 
+<li><b>ref_rast</b> = reference raster layer: A raster with values of 1
+and 0 (or nodata). Reference conditions are derived from the locations
 where the raster value is 1.</li>
-<li><b>ref_vect</b> = reference vector point layer: Reference conditions 
+<li><b>ref_vect</b> = reference vector point layer: Reference conditions
 are taken for the point locations in the vector layer.</li>
-<li><b>ref_region</b> = reference region: Only areas within the 
-specified region's boundaries are considered as the reference 
+<li><b>ref_region</b> = reference region: Only areas within the
+specified region's boundaries are considered as the reference
 area.</li>
 </ul>
 
 <p>
-If no reference raster map, vector map, or region is provided, the entire 
-area covered by the input environmental raster layers is used as the 
+If no reference raster map, vector map, or region is provided, the entire
+area covered by the input environmental raster layers is used as the
 reference area.
 
 <p>
-The projected (test) conditions are defined by a second set of 
-environmental variables (<b>proj_env</b>). They can represent future 
-conditions in the same area (similarity across time), or conditions in 
-another area (similarity between two different areas). If a projection 
-region (<b>proj_region</b>) is provided, the MESS (and other layers) 
+The projected (test) conditions are defined by a second set of
+environmental variables (<b>proj_env</b>). They can represent future
+conditions in the same area (similarity across time), or conditions in
+another area (similarity between two different areas). If a projection
+region (<b>proj_region</b>) is provided, the MESS (and other layers)
 will be limited to that region.
 
 <p>
-If <b>proj_env</b> is not provided, the MESS value of a raster cell 
-represents how similar the conditions in that cell are compared to the 
+If <b>proj_env</b> is not provided, the MESS value of a raster cell
+represents how similar the conditions in that cell are compared to the
 medium conditions across the whole area.
 
 <h2>EXAMPLE</h2>
@@ -81,10 +81,10 @@ r.mess ref_env=bio1,bio12,bio15 output=Ex_01
 </pre></div>
 
 <p>
-Thus, in the following maps, the value in each pixel represents how 
-similar conditions are in that pixel to the median conditions in the 
-entire region, in  terms of mean annual temperature (bio1), mean annual 
-precipitation (bio12),  precipitation seasonality (bio15) and the three 
+Thus, in the following maps, the value in each pixel represents how
+similar conditions are in that pixel to the median conditions in the
+entire region, in  terms of mean annual temperature (bio1), mean annual
+precipitation (bio12),  precipitation seasonality (bio15) and the three
 combined (MES).
 
 <p>
@@ -124,7 +124,7 @@ Similarity between long-term average conditions based on the period
 1950-2000 (<b>ref_env</b>) and projections for climate conditions in
 2070 under RCP85 based on the IPSL General Circulation Models (<b>
 proj_env</b>). No reference points or areas are defined in this
-example, so the whole region is used as a reference. 
+example, so the whole region is used as a reference.
 
 <div class="code"><pre>
 g.region raster=bio1
@@ -168,9 +168,9 @@ in Eastern Africa. PLoS ONE 10: e0121444.
 
 <h2>SEE ALSO</h2>
 
-For an example of using the <em>r.mess</em> addon as part of a modeling 
-workflow, see the tutorial <a 
-href="https://ecodiv.earth/TutorialsNotes/sdmingrassgis/">Species 
+For an example of using the <em>r.mess</em> addon as part of a modeling
+workflow, see the tutorial <a
+href="https://ecodiv.earth/TutorialsNotes/sdmingrassgis/">Species
 distribution modeling using Maxent in GRASS GIS</a>.
 
 
