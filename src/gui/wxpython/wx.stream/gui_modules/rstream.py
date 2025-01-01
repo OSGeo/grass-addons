@@ -6,7 +6,7 @@
 
 @brief GUI for r.stream.* modules
 
-See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
+See https://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - RStreamFrame

@@ -15,7 +15,7 @@
 #               for details.
 #
 # SEE ALSO:     GMT: The Generic Mapping Tools
-#                 http://gmt.soest.hawaii.edu
+#                 https://www.generic-mapping-tools.org/
 #
 #############################################################################
 

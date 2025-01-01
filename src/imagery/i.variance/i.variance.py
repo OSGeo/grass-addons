@@ -15,7 +15,7 @@
 #############################################################################
 # Curtis E. Woodcock, Alan H. Strahler, The factor of scale in remote sensing,
 # Remote Sensing of Environment, Volume 21, Issue 3, April 1987, Pages 311-332,
-# ISSN 0034-4257, http://dx.doi.org/10.1016/0034-4257(87)90015-0.
+# ISSN 0034-4257, https://doi.org/10.1016/0034-4257(87)90015-0.
 #
 #############################################################################
 

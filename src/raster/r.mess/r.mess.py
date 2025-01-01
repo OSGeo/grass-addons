@@ -25,19 +25,11 @@
 # %End
 
 # %option G_OPT_R_INPUTS
-# % key: env
+# % key: ref_env
 # % description: Reference conditions
 # % key_desc: names
 # % required: yes
-# % guisection: Input
-# %end
-
-# %option G_OPT_R_INPUTS
-# % key: env_proj
-# % description: Projected conditions
-# % key_desc: names
-# % required: no
-# % guisection: Input
+# % guisection: reference
 # %end
 
 # %option G_OPT_R_INPUT
@@ -46,20 +38,44 @@
 # % description: Reference areas (1 = presence, 0 or null = absence)
 # % key_desc: name
 # % required: no
-# % guisection: Input
+# % guisection: reference
 # %end
 
 # %option G_OPT_V_MAP
 # % key: ref_vect
 # % label: Reference points (vector)
-# % description: Point vector layer with presence locations
+# % description: Point vector layer with reference locations
 # % key_desc: name
 # % required: no
-# % guisection: Input
+# % guisection: reference
+# %end
+
+# %option G_OPT_M_REGION
+# % key: ref_region
+# % label: Reference region
+# % description: Region with reference conditions
+# % required: no
+# % guisection: reference
+# %end
+
+# %option G_OPT_R_INPUTS
+# % key: proj_env
+# % description: Projected conditions
+# % key_desc: names
+# % required: no
+# % guisection: projected
+# %end
+
+# %option G_OPT_M_REGION
+# % key: proj_region
+# % label: Projection region
+# % description: Region with projected conditions
+# % required: no
+# % guisection: projected
 # %end
 
 # %rules
-# %exclusive: ref_rast,ref_vect
+# %exclusive: ref_rast,ref_vect,ref_region
 # %end
 
 # %option G_OPT_R_BASENAME_OUTPUT
@@ -75,6 +91,7 @@
 # % description: Precision of your input layers values
 # % key_desc: string
 # % answer: 3
+# % options: 0-6
 # %end
 
 # %flag
@@ -107,6 +124,12 @@
 # % guisection: Output
 # %end
 
+# %option G_OPT_M_NPROCS
+# %end
+
+# %option G_OPT_MEMORYMB
+# %end
+
 # import libraries
 import os
 import sys
@@ -114,21 +137,19 @@ import atexit
 import uuid
 import tempfile
 import operator
-from subprocess import PIPE
 import numpy as np
+import subprocess
 import grass.script as gs
-from grass.script import db
-from grass.pygrass.modules import Module
 
 COLORS_MES = """\
 0% 244:109:67
-0 255:255:210
+0 255:255:255
 100% 50:136:189
 """
 
 RECL_MESNEG = """\
-0\twithin range
-1\tnovel conditions
+0|within range
+1|novel conditions
 """
 
 # ----------------------------------------------------------------------------
@@ -143,7 +164,7 @@ def cleanup():
     """Remove temporary maps specified in the global list"""
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
-        Module("g.remove", flags="f", type="all", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
 
 
 def raster_exists(envlay):
@@ -154,14 +175,26 @@ def raster_exists(envlay):
             gs.fatal(_("The layer {} does not exist".format(envlay[chl])))
 
 
-# Create temporary name
-def tmpname(prefix):
-    """Generate a tmp name which contains prefix
+def create_unique_name(name):
+    """Generate a temporary name which contains prefix
     Store the name in the global list.
-    Use only for raster maps.
+
+    :param str name: prefix to be used for unique string
+
+    :return str: Unique string with user defined prefix
     """
-    tmpf = prefix + str(uuid.uuid4())
-    tmpf = tmpf.replace("-", "_")
+    unique_string = f"{name}{uuid.uuid4().hex}"
+    return unique_string
+
+
+def create_temporary_name(prefix):
+    """Create temporary file name and add this to clean_maps
+
+    :param str name: prefix to be used for unique string
+
+    :return str: Unique string with user defined prefix
+    """
+    tmpf = create_unique_name(prefix)
     CLEAN_RAST.append(tmpf)
     return tmpf
 
@@ -170,8 +203,10 @@ def compute_ies(INtmprule, INipi, INtmpf2, INenvmin, INenvmax):
     """
     Compute the environmental similarity layer for the individual variables
     """
-    tmpf3 = tmpname("tmp6")
-    Module("r.recode", input=INtmpf2, output=tmpf3, rules=INtmprule)
+    tmpf3 = create_temporary_name("tmp6")
+    gs.run_command("r.recode", input=INtmpf2, output=tmpf3, rules=INtmprule)
+    if not gs.find_file(tmpf3, element="cell")["fullname"]:
+        gs.fatal(_("Failed to recode raster layer"))
 
     calcc = (
         "{0} = if({1} == 0, (float({2}) - {3}) / ({4} - {3}) "
@@ -181,32 +216,34 @@ def compute_ies(INtmprule, INipi, INtmpf2, INenvmin, INenvmax):
             INipi, tmpf3, INtmpf2, float(INenvmin), float(INenvmax)
         )
     )
-    Module("r.mapcalc", expression=calcc, quiet=True)
-    Module("r.colors", map=INipi, rules="-", stdin=COLORS_MES, quiet=True)
+    gs.run_command("r.mapcalc", expression=calcc, quiet=True)
+    gs.write_command(
+        "r.colors",
+        map=INipi,
+        rules="-",
+        stdin=COLORS_MES,
+        quiet=True,
+        stderr=subprocess.DEVNULL,
+    )
 
 
-def main(options, flags):
-
-    gisbase = os.getenv("GISBASE")
-    if not gisbase:
-        gs.fatal(_("$GISBASE not defined"))
-        return 0
-
+def check_layer_type(ref_layer, type):
+    """
+    Checks if layers are of right type
+    """
     # Reference / sample area or points
-    ref_vect = options["ref_vect"]
-    if ref_vect:
-        topology_check = gs.vector_info_topo(ref_vect)
+    if type == "point":
+        topology_check = gs.vector_info_topo(ref_layer)
         if topology_check["points"] == 0:
             gs.fatal(
                 _(
                     "the reference vector layer {} does not contain points".format(
-                        ref_vect
+                        ref_layer
                     )
                 )
             )
-    ref_rast = options["ref_rast"]
-    if ref_rast:
-        reftype = gs.raster_info(ref_rast)
+    elif type == "raster":
+        reftype = gs.raster_info(ref_layer)
         if reftype["datatype"] != "CELL":
             gs.fatal(_("The ref_rast map must have type CELL (integer)"))
         if (reftype["min"] != 0 and reftype["min"] != 1) or reftype["max"] != 1:
@@ -219,33 +256,309 @@ def main(options, flags):
                     )
                 )
             )
+    else:
+        gs.message(_("Check format: correct"))
+
+
+def create_reference_layer(ref_rast, reference_layer):
+    """
+    Create reference layer
+    """
+    gs.run_command(
+        "r.mapcalc",
+        expression=f"{ref_rast} = if(isnull({reference_layer}),null(),1)",
+        quiet=True,
+    )
+
+
+def recode_reference_vector(
+    ref_vect,
+    ref_env_lay,
+    proj_region,
+    digits2,
+    projection_layers,
+    variable_name,
+    ipi,
+    tmphist,
+):
+    """
+    Recode table based on reference vector
+    """
+
+    # Copy point layer and add columns for variables
+    tmpf0 = create_temporary_name("tmp7")
+    gs.run_command(
+        "v.extract", flags="t", input=ref_vect, type="point", output=tmpf0, quiet=True
+    )
+    gs.run_command("v.db.addtable", quiet=True, map=tmpf0, stderr=subprocess.DEVNULL)
+
+    # Upload raster values and get value in python as frequency table
+    sql1 = "SELECT cat FROM {}".format(str(tmpf0))
+    cn = len(np.hstack(gs.db.db_select(sql=sql1)))
+    if not cn:
+        gs.fatal(_("Database query failed or returned no results"))
+    for m, reflay in enumerate(ref_env_lay):
+        gs.message(_("Computing frequency distribution for {} ... ".format(reflay)))
+
+        # Compute frequency distribution of variable(m)
+        mid = str(m)
+        laytype = gs.raster_info(reflay)["datatype"]
+        if laytype == "CELL":
+            columns = "envvar_{} integer".format(str(mid))
+        else:
+            columns = "envvar_{} double precision".format(str(mid))
+        gs.run_command("v.db.addcolumn", map=tmpf0, columns=columns, quiet=True)
+        sql2 = "UPDATE {} SET envvar_{} = NULL".format(str(tmpf0), str(mid))
+        gs.run_command("db.execute", sql=sql2, quiet=True)
+        coln = "envvar_{}".format(str(mid))
+        gs.run_command(
+            "v.what.rast",
+            quiet=True,
+            map=tmpf0,
+            layer=1,
+            raster=reflay,
+            column=coln,
+        )
+        sql3 = (
+            "SELECT {0}, count({0}) from {1} WHERE {0} IS NOT NULL "
+            "GROUP BY {0} ORDER BY {0}"
+        ).format(coln, tmpf0)
+        volval = np.vstack(gs.db.db_select(sql=sql3))
+        volval = volval.astype(float, copy=False)
+        a = np.cumsum(volval[:, 1], axis=0)
+        b = np.sum(volval[:, 1], axis=0)
+        c = a / b * 100
+
+        # Check for point without values
+        if b < cn:
+            gs.info(
+                _(
+                    "Please note that there were {} points without "
+                    "value. This is probably because they are outside "
+                    "the computational region or {} had no value "
+                    "(nodata) for that point locations".format((cn - b), reflay)
+                )
+            )
+
+        # Set region proj_region
+        gs.use_temp_region()
+        gs.run_command("g.region", region=proj_region)
+
+        # Multiply env_proj layer with dignum
+        tmpf2 = create_temporary_name("tmp8")
+        gs.run_command(
+            "r.mapcalc",
+            expression="{0} = int({1} * {2})".format(
+                tmpf2, digits2, projection_layers[m]
+            ),
+            quiet=True,
+        )
+
+        # Calculate min and max values of sample points and raster layer
+        envmin = int(min(volval[:, 0]) * digits2)
+        envmax = int(max(volval[:, 0]) * digits2)
+        Drange = gs.read_command("r.info", flags="r", map=tmpf2)
+        Drange = str.splitlines(Drange)
+        Drange = np.hstack([i.split("=") for i in Drange])
+        Dmin = int(Drange[1])
+        Dmax = int(Drange[3])
+
+        if Dmin < envmin:
+            e1 = Dmin - 1
+        else:
+            e1 = envmin - 1
+        if Dmax > envmax:
+            e2 = Dmax + 1
+        else:
+            e2 = envmax + 1
+
+        a0 = volval[:, 0] * digits2
+        a0 = a0.astype(int, copy=False)
+        a1 = np.hstack([(e1), a0])
+        a2 = np.hstack([a0 - 1, (e2)])
+        b1 = np.hstack([(0), c])
+
+        fd3, tmprule = tempfile.mkstemp(suffix=variable_name[m])
+        with open(tmprule, "w") as text_file:
+            for k in np.arange(0, len(b1)):
+                rtmp = "{}:{}:{}\n".format(str(int(a1[k])), str(int(a2[k])), str(b1[k]))
+                text_file.write(rtmp)
+
+        # Create the recode layer and calculate the IES
+        compute_ies(tmprule, ipi[m], tmpf2, envmin, envmax)
+        gs.run_command(
+            "r.support",
+            map=ipi[m],
+            title="IES {}".format(reflay),
+            units="0-100 (relative score)",
+            description="Environmental similarity {}".format(reflay),
+            loadhistory=tmphist,
+        )
+
+        # Clean up
+        os.close(fd3)
+        os.remove(tmprule)
+
+        # Change region back to original
+        gs.del_temp_region()
+
+
+def recode_reference_rasters(
+    ref_env_lay,
+    ref_rast,
+    digits2,
+    projection_layers,
+    nprocs,
+    variable_name,
+    ipi,
+    tmphist,
+    ref_region,
+    proj_region,
+):
+    """
+    Recode table based on reference raster (and region)
+    """
+    if ref_rast:
+        gs.run_command("r.mask", raster=ref_rast, quiet=True)
+        tmpfmask = create_temporary_name("tmpmsk1")
+        gs.run_command("g.rename", raster=f"MASK,{tmpfmask}", quiet=True)
+    for i, envlay in enumerate(ref_env_lay):
+
+        gs.message(_("Preparing the input data ..."))
+
+        # set reference region
+        gs.use_temp_region()
+        gs.run_command("g.region", region=ref_region)
+
+        # Create mask based on reference layer or environmental layers
+        if ref_rast:
+            gs.run_command("g.rename", raster=f"{tmpfmask},MASK", quiet=True)
+
+        # Calculate the frequency distribution
+        tmpf1 = create_temporary_name("tmp4")
+        gs.run_command("r.mapcalc", expression=f"{tmpf1} = int({digits2} * {envlay})")
+        stats_out = gs.read_command(
+            "r.stats", flags="cn", input=tmpf1, sort="asc", separator=";"
+        )
+        stval = {}
+        stats_outlines = stats_out.replace("\r", "").split("\n")
+        stats_outlines = [_f for _f in stats_outlines if _f]
+        for z in stats_outlines:
+            [val, count] = z.split(";")
+            stval[float(val)] = float(count)
+        sstval = sorted(stval.items(), key=operator.itemgetter(0))
+        sstval = np.matrix(sstval)
+        a = np.cumsum(np.array(sstval), axis=0)
+        b = np.sum(np.array(sstval), axis=0)
+        c = a[:, 1] / b[1] * 100
+
+        # Remove tmp mask and set region to proj_env or proj_region if needed
+        if ref_rast:
+            gs.run_command("g.rename", raster=f"MASK,{tmpfmask}", quiet=True)
+        gs.del_temp_region()
+        gs.use_temp_region()
+        gs.run_command("g.region", region=proj_region)
+
+        # Get min and max values for recode table
+        tmpf2 = create_temporary_name("tmp5")
+        gs.run_command(
+            "r.mapcalc",
+            expression=f"{tmpf2} = int({digits2} * {projection_layers[i]})",
+        )
+        d = gs.parse_command("r.univar", flags="g", map=tmpf2, nprocs=nprocs)
+        if not d or "min" not in d or "max" not in d:
+            gs.fatal(
+                _("Failed to parse statistics from {}".format(projection_layers[i]))
+            )
+
+        # Create recode rules
+        Dmin = int(d["min"])
+        Dmax = int(d["max"])
+        envmin = np.min(np.array(sstval), axis=0)[0]
+        envmax = np.max(np.array(sstval), axis=0)[0]
+
+        if Dmin < envmin:
+            e1 = Dmin - 1
+        else:
+            e1 = envmin - 1
+        if Dmax > envmax:
+            e2 = Dmax + 1
+        else:
+            e2 = envmax + 1
+
+        a1 = np.hstack([(e1), np.array(sstval.T[0])[0, :]])
+        a2 = np.hstack([np.array(sstval.T[0])[0, :] - 1, (e2)])
+        b1 = np.hstack([(0), c])
+
+        fd2, tmprule = tempfile.mkstemp(suffix=variable_name[i])
+        with open(tmprule, "w") as text_file:
+            for k in np.arange(0, len(b1.T)):
+                text_file.write(
+                    "%s:%s:%s\n" % (str(int(a1[k])), str(int(a2[k])), str(b1[k]))
+                )
+
+        # Create the recode layer and calculate the IES
+        gs.message(_("Calculating IES for {} ...".format(envlay)))
+        compute_ies(tmprule, ipi[i], tmpf2, envmin, envmax)
+        gs.run_command(
+            "r.support",
+            map=ipi[i],
+            title="IES {}".format(envlay),
+            units="0-100 (relative score)",
+            description="Environmental similarity {}".format(envlay),
+            loadhistory=tmphist,
+        )
+
+        # Clean up
+        os.close(fd2)
+        os.remove(tmprule)
+
+        # Change region back to original
+        gs.del_temp_region()
+
+
+def main(options, flags):
+
+    # Check if there is a MASK
+    mask_present = gs.find_file(
+        name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
+    )
+    if mask_present and mask_present["fullname"]:
+        gs.fatal(_("Please remove the MASK before using r.mess."))
+
+    # Check if reference layers are of right type
+    ref_vect = options["ref_vect"]
+    if ref_vect:
+        check_layer_type(ref_vect, "point")
+    ref_rast = options["ref_rast"]
+    if ref_rast:
+        check_layer_type(ref_rast, "raster")
+
+    # Settings
+    nprocs = int(options["nprocs"])
+    memory = int(options["memory"])
 
     # old environmental layers & variable names
-    reference_layer = options["env"]
-    reference_layer = reference_layer.split(",")
-    raster_exists(reference_layer)
-    variable_name = [z.split("@")[0] for z in reference_layer]
+    ref_env_lay = options["ref_env"]
+    ref_env_lay = ref_env_lay.split(",")
+    raster_exists(ref_env_lay)
+    variable_name = [z.split("@")[0] for z in ref_env_lay]
     variable_name = [x.lower() for x in variable_name]
 
     # new environmental variables
-    projection_layers = options["env_proj"]
+    projection_layers = options["proj_env"]
     if not projection_layers:
-        to_be_projected = False
-        projection_layers = reference_layer
+        projection_layers = ref_env_lay
     else:
-        to_be_projected = True
         projection_layers = projection_layers.split(",")
         raster_exists(projection_layers)
-        if (
-            len(projection_layers) != len(reference_layer)
-            and len(projection_layers) != 0
-        ):
+        if len(projection_layers) != len(ref_env_lay) and len(projection_layers) != 0:
             gs.fatal(
                 _(
                     "The number of reference and predictor variables"
                     " should be the same. You provided {} reference and {}"
                     " projection variables".format(
-                        len(reference_layer), len(projection_layers)
+                        len(ref_env_lay), len(projection_layers)
                     )
                 )
             )
@@ -255,19 +568,9 @@ def main(options, flags):
     opc = opl + "_MES"
     ipi = [opl + "_" + i for i in variable_name]
 
-    # flags
-    flm = flags["m"]
-    flk = flags["k"]
-    fln = flags["n"]
-    fli = flags["i"]
-    flc = flags["c"]
-
     # digits / precision
     digits = int(options["digits"])
     digits2 = pow(10, digits)
-
-    # get current region settings, to compare to new ones later
-    region_1 = gs.parse_command("g.region", flags="g")
 
     # Text for history in metadata
     opt2 = dict((k, v) for k, v in options.items() if v)
@@ -277,278 +580,82 @@ def main(options, flags):
     with open(tmphist, "w") as text_file:
         text_file.write(hist)
 
-    # Create reference layer if not defined
-    if not ref_rast and not ref_vect:
-        ref_rast = tmpname("tmp0")
-        Module(
-            "r.mapcalc",
-            "{0} = if(isnull({1}),null(),1)".format(ref_rast, reference_layer[0]),
-            quiet=True,
-        )
-
-    # Create the recode table - Reference distribution is raster
-    citiam = gs.find_file(name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"])
-    if citiam["fullname"]:
-        rname = tmpname("tmp3")
-        Module("r.mapcalc", expression="{} = MASK".format(rname), quiet=True)
-
-    if ref_rast:
-        vtl = ref_rast
-
-        # Create temporary layer based on reference layer
-        tmpf0 = tmpname("tmp2")
-        Module(
-            "r.mapcalc", expression="{0} = int({1} * 1)".format(tmpf0, vtl), quiet=True
-        )
-        Module("r.null", map=tmpf0, setnull=0, quiet=True)
-        if citiam["fullname"]:
-            Module("r.mask", flags="r", quiet=True)
-        for i in range(len(reference_layer)):
-
-            # Create mask based on combined MASK/reference layer
-            Module("r.mask", raster=tmpf0, quiet=True)
-
-            # Calculate the frequency distribution
-            tmpf1 = tmpname("tmp4")
-            Module(
-                "r.mapcalc",
-                expression="{0} = int({1} * {2})".format(
-                    tmpf1, digits2, reference_layer[i]
-                ),
-                quiet=True,
-            )
-            stats_out = Module(
-                "r.stats",
-                flags="cn",
-                input=tmpf1,
-                sort="asc",
-                separator=";",
-                stdout_=PIPE,
-            ).outputs.stdout
-            stval = {}
-            stats_outlines = stats_out.replace("\r", "").split("\n")
-            stats_outlines = [_f for _f in stats_outlines if _f]
-            for z in stats_outlines:
-                [val, count] = z.split(";")
-                stval[float(val)] = float(count)
-            sstval = sorted(stval.items(), key=operator.itemgetter(0))
-            sstval = np.matrix(sstval)
-            a = np.cumsum(np.array(sstval), axis=0)
-            b = np.sum(np.array(sstval), axis=0)
-            c = a[:, 1] / b[1] * 100
-
-            # Remove tmp mask and set region to env_proj if needed
-            Module("r.mask", quiet=True, flags="r")
-            if to_be_projected:
-                gs.use_temp_region()
-                Module("g.region", quiet=True, raster=projection_layers[0])
-
-            # get new region settings, to compare to original ones later
-            region_2 = gs.parse_command("g.region", flags="g")
-
-            # Get min and max values for recode table (based on full map)
-            tmpf2 = tmpname("tmp5")
-            Module(
-                "r.mapcalc",
-                expression="{0} = int({1} * {2})".format(
-                    tmpf2, digits2, projection_layers[i]
-                ),
-                quiet=True,
-            )
-            d = gs.parse_command("r.univar", flags="g", map=tmpf2, quiet=True)
-
-            # Create recode rules
-            Dmin = int(d["min"])
-            Dmax = int(d["max"])
-            envmin = np.min(np.array(sstval), axis=0)[0]
-            envmax = np.max(np.array(sstval), axis=0)[0]
-
-            if Dmin < envmin:
-                e1 = Dmin - 1
-            else:
-                e1 = envmin - 1
-            if Dmax > envmax:
-                e2 = Dmax + 1
-            else:
-                e2 = envmax + 1
-
-            a1 = np.hstack([(e1), np.array(sstval.T[0])[0, :]])
-            a2 = np.hstack([np.array(sstval.T[0])[0, :] - 1, (e2)])
-            b1 = np.hstack([(0), c])
-
-            fd2, tmprule = tempfile.mkstemp(suffix=variable_name[i])
-            with open(tmprule, "w") as text_file:
-                for k in np.arange(0, len(b1.T)):
-                    text_file.write(
-                        "%s:%s:%s\n" % (str(int(a1[k])), str(int(a2[k])), str(b1[k]))
-                    )
-
-            # Create the recode layer and calculate the IES
-            compute_ies(tmprule, ipi[i], tmpf2, envmin, envmax)
-            Module(
-                "r.support",
-                map=ipi[i],
-                title="IES {}".format(reference_layer[i]),
-                units="0-100 (relative score)",
-                description="Environmental similarity {}".format(reference_layer[i]),
-                loadhistory=tmphist,
-            )
-
-            # Clean up
-            os.close(fd2)
-            os.remove(tmprule)
-
-            # Change region back to original
-            gs.del_temp_region()
-
-    # Create the recode table - Reference distribution is vector
+    # Create reference region
+    ref_region = options["ref_region"]
+    tmprefreg = create_temporary_name("tmpreg1")
+    if ref_region:
+        gs.run_command("g.region", region=ref_region)
+        tmprefreg = ref_region
+    elif ref_rast:
+        gs.run_command("g.region", raster=ref_rast)
+        gs.run_command("g.region", save=tmprefreg)
     else:
-        vtl = ref_vect
+        gs.run_command("g.region", save=tmprefreg)
 
-        # Copy point layer and add columns for variables
-        tmpf0 = tmpname("tmp7")
-        Module(
-            "v.extract", quiet=True, flags="t", input=vtl, type="point", output=tmpf0
+    # Create projection region
+    proj_region = options["proj_region"]
+    tmpprojreg = create_temporary_name("tmpreg2")
+    if proj_region:
+        gs.run_command("g.region", region=proj_region)
+        tmpprojreg = proj_region
+    else:
+        gs.run_command("g.region", raster=projection_layers[0])
+        gs.run_command("g.region", save=tmpprojreg)
+
+    # Create recode table
+    gs.run_command("g.region", region=tmprefreg)
+    if ref_vect:
+        # Recode table based on reference vector
+        recode_reference_vector(
+            ref_vect,
+            ref_env_lay,
+            tmpprojreg,
+            digits2,
+            projection_layers,
+            variable_name,
+            ipi,
+            tmphist,
         )
-        Module("v.db.addtable", quiet=True, map=tmpf0)
-
-        # TODO: see if there is a more efficient way to handle the mask
-        if citiam["fullname"]:
-            Module("r.mask", quiet=True, flags="r")
-
-        # Upload raster values and get value in python as frequency table
-        sql1 = "SELECT cat FROM {}".format(str(tmpf0))
-        cn = len(np.hstack(db.db_select(sql=sql1)))
-        for m in range(len(reference_layer)):
-
-            # Set mask back (this means that points outside the mask will
-            # be ignored in the computation of the frequency distribution
-            # of the reference variabele env(m))
-            if citiam["fullname"]:
-                Module("g.copy", raster=[rname, "MASK"], quiet=True)
-
-            # Compute frequency distribution of variable(m)
-            mid = str(m)
-            laytype = gs.raster_info(reference_layer[m])["datatype"]
-            if laytype == "CELL":
-                columns = "envvar_{} integer".format(str(mid))
-            else:
-                columns = "envvar_{} double precision".format(str(mid))
-            Module("v.db.addcolumn", map=tmpf0, columns=columns, quiet=True)
-            sql2 = "UPDATE {} SET envvar_{} = NULL".format(str(tmpf0), str(mid))
-            Module("db.execute", sql=sql2, quiet=True)
-            coln = "envvar_{}".format(str(mid))
-            Module(
-                "v.what.rast",
-                quiet=True,
-                map=tmpf0,
-                layer=1,
-                raster=reference_layer[m],
-                column=coln,
-            )
-            sql3 = (
-                "SELECT {0}, count({0}) from {1} WHERE {0} IS NOT NULL "
-                "GROUP BY {0} ORDER BY {0}"
-            ).format(coln, tmpf0)
-            volval = np.vstack(db.db_select(sql=sql3))
-            volval = volval.astype(float, copy=False)
-            a = np.cumsum(volval[:, 1], axis=0)
-            b = np.sum(volval[:, 1], axis=0)
-            c = a / b * 100
-
-            # Check for point without values
-            if b < cn:
-                gs.info(
-                    _(
-                        "Please note that there were {} points without "
-                        "value. This is probably because they are outside "
-                        "the computational region or mask".format((cn - b))
-                    )
-                )
-
-            # Set region to env_proj layers (if different from env) and remove
-            # mask (if set above)
-            if citiam["fullname"]:
-                Module("r.mask", quiet=True, flags="r")
-            if to_be_projected:
-                gs.use_temp_region()
-                Module("g.region", quiet=True, raster=projection_layers[0])
-            region_2 = gs.parse_command("g.region", flags="g")
-
-            # Multiply env_proj layer with dignum
-            tmpf2 = tmpname("tmp8")
-            Module(
-                "r.mapcalc",
-                expression="{0} = int({1} * {2})".format(
-                    tmpf2, digits2, projection_layers[m]
-                ),
-                quiet=True,
-            )
-
-            # Calculate min and max values of sample points and raster layer
-            envmin = int(min(volval[:, 0]) * digits2)
-            envmax = int(max(volval[:, 0]) * digits2)
-            Drange = gs.read_command("r.info", flags="r", map=tmpf2)
-            Drange = str.splitlines(Drange)
-            Drange = np.hstack([i.split("=") for i in Drange])
-            Dmin = int(Drange[1])
-            Dmax = int(Drange[3])
-
-            if Dmin < envmin:
-                e1 = Dmin - 1
-            else:
-                e1 = envmin - 1
-            if Dmax > envmax:
-                e2 = Dmax + 1
-            else:
-                e2 = envmax + 1
-
-            a0 = volval[:, 0] * digits2
-            a0 = a0.astype(int, copy=False)
-            a1 = np.hstack([(e1), a0])
-            a2 = np.hstack([a0 - 1, (e2)])
-            b1 = np.hstack([(0), c])
-
-            fd3, tmprule = tempfile.mkstemp(suffix=variable_name[m])
-            with open(tmprule, "w") as text_file:
-                for k in np.arange(0, len(b1)):
-                    rtmp = "{}:{}:{}\n".format(
-                        str(int(a1[k])), str(int(a2[k])), str(b1[k])
-                    )
-                    text_file.write(rtmp)
-
-            # Create the recode layer and calculate the IES
-            compute_ies(tmprule, ipi[m], tmpf2, envmin, envmax)
-            Module(
-                "r.support",
-                map=ipi[m],
-                title="IES {}".format(reference_layer[m]),
-                units="0-100 (relative score)",
-                description="Environmental similarity {}".format(reference_layer[m]),
-                loadhistory=tmphist,
-            )
-
-            # Clean up
-            os.close(fd3)
-            os.remove(tmprule)
-
-            # Change region back to original
-            gs.del_temp_region()
+    else:
+        # Recode table based on reference raster (and region)
+        recode_reference_rasters(
+            ref_env_lay,
+            ref_rast,
+            digits2,
+            projection_layers,
+            nprocs,
+            variable_name,
+            ipi,
+            tmphist,
+            tmprefreg,
+            tmpprojreg,
+        )
+    # Set temporary region to projected region
+    gs.use_temp_region()
+    gs.run_command("g.region", region=tmpprojreg)
 
     # Calculate MESS statistics
-    # Set region to env_proj layers (if different from env)
-    # Note: this changes the region, to ensure the newly created layers
-    # are actually visible to the user. This goes against normal practise
-    # There will be a warning.
-    if to_be_projected:
-        Module("g.region", quiet=True, raster=projection_layers[0])
-
-    # MES
-    Module("r.series", quiet=True, output=opc, input=ipi, method="minimum")
-    gs.write_command("r.colors", map=opc, rules="-", stdin=COLORS_MES, quiet=True)
+    gs.message(_("Calculating MESS statistics ..."))
+    gs.run_command(
+        "r.series",
+        quiet=True,
+        output=opc,
+        input=ipi,
+        method="minimum",
+        nprocs=nprocs,
+        memory=memory,
+    )
+    gs.write_command(
+        "r.colors",
+        map=opc,
+        rules="-",
+        stdin=COLORS_MES,
+        quiet=True,
+        stderr=subprocess.DEVNULL,
+    )
 
     # Write layer metadata
-    Module(
+    gs.run_command(
         "r.support",
         map=opc,
         title="Areas with novel conditions",
@@ -558,15 +665,23 @@ def main(options, flags):
     )
 
     # Area with negative MES
-    if fln:
-        mod1 = "{}_novel".format(opl)
-        Module("r.mapcalc", "{} = int(if( {} < 0, 1, 0))".format(mod1, opc), quiet=True)
+    if flags["n"]:
+        gs.message(_("Calculate Area with negative MES"))
+        mod1 = f"{opl}_novel"
+        gs.run_command("r.mapcalc", expression=f"{mod1} = if( {opc} < 0, 1, 0)")
 
         # Write category labels
-        Module("r.category", map=mod1, rules="-", stdin=RECL_MESNEG, quiet=True)
+        gs.write_command(
+            "r.category",
+            map=mod1,
+            rules="-",
+            stdin=RECL_MESNEG,
+            separator="|",
+            quiet=True,
+        )
 
         # Write layer metadata
-        Module(
+        gs.run_command(
             "r.support",
             map=mod1,
             title="Areas with novel conditions",
@@ -577,22 +692,31 @@ def main(options, flags):
         )
 
     # Most dissimilar variable (MoD)
-    if flm:
-        tmpf4 = tmpname("tmp9")
+    if flags["m"]:
+        gs.message(_("Calculate Most dissimilar variable (MoD)"))
+        tmpf4 = create_temporary_name("tmp9")
         mod2 = "{}_MoD".format(opl)
-        Module("r.series", quiet=True, output=tmpf4, input=ipi, method="min_raster")
-        Module("r.mapcalc", "{} = int({})".format(mod2, tmpf4), quiet=True)
+        gs.run_command(
+            "r.series",
+            quiet=True,
+            output=tmpf4,
+            input=ipi,
+            method="min_raster",
+            nprocs=nprocs,
+            memory=memory,
+        )
+        gs.run_command("r.mapcalc", expression=f"{mod2} = int({tmpf4})", quiet=True)
 
         fd4, tmpcat = tempfile.mkstemp()
         with open(tmpcat, "w") as text_file:
             for cats in range(len(ipi)):
-                text_file.write("{}:{}\n".format(str(cats), reference_layer[cats]))
-        Module("r.category", quiet=True, map=mod2, rules=tmpcat, separator=":")
+                text_file.write(f"{str(cats)}:{ref_env_lay[cats]}\n")
+        gs.run_command("r.category", quiet=True, map=mod2, rules=tmpcat, separator=":")
         os.close(fd4)
         os.remove(tmpcat)
 
         # Write layer metadata
-        Module(
+        gs.run_command(
             "r.support",
             map=mod2,
             title="Most dissimilar variable (MoD)",
@@ -603,21 +727,31 @@ def main(options, flags):
         )
 
     # sum(IES), where IES < 0
-    if flk:
+    if flags["k"]:
+        gs.message(_("Calculate sum(IES), where IES < 0 ..."))
         mod3 = "{}_SumNeg".format(opl)
         c0 = -0.01 / digits2
-        Module(
+        gs.run_command(
             "r.series",
             quiet=True,
             input=ipi,
             method="sum",
             range=("-inf", c0),
             output=mod3,
+            nprocs=nprocs,
+            memory=memory,
         )
-        gs.write_command("r.colors", map=mod3, rules="-", stdin=COLORS_MES, quiet=True)
+        gs.write_command(
+            "r.colors",
+            map=mod3,
+            rules="-",
+            stdin=COLORS_MES,
+            quiet=True,
+            stderr=subprocess.DEVNULL,
+        )
 
         # Write layer metadata
-        Module(
+        gs.run_command(
             "r.support",
             map=mod3,
             title="Sum of negative IES values",
@@ -628,25 +762,28 @@ def main(options, flags):
         )
 
     # Number of layers with negative values
-    if flc:
-        tmpf5 = tmpname("tmp10")
+    if flags["c"]:
+        gs.message(_("Calculate number of layers with negative values ..."))
+        tmpf5 = create_temporary_name("tmp10")
         mod4 = "{}_CountNeg".format(opl)
         MinMes = gs.read_command("r.info", quiet=True, flags="r", map=opc)
         MinMes = str.splitlines(MinMes)
         MinMes = float(np.hstack([i.split("=") for i in MinMes])[1])
         c0 = -0.0001 / digits2
-        Module(
+        gs.run_command(
             "r.series",
             quiet=True,
             input=ipi,
             output=tmpf5,
             method="count",
             range=(MinMes, c0),
+            nprocs=nprocs,
+            memory=memory,
         )
         gs.mapcalc("$mod4 = int($tmpf5)", mod4=mod4, tmpf5=tmpf5, quiet=True)
 
         # Write layer metadata
-        Module(
+        gs.run_command(
             "r.support",
             map=mod4,
             title="Number of layers with negative values",
@@ -657,19 +794,13 @@ def main(options, flags):
         )
 
     # Remove IES layers
-    if fli:
-        Module("g.remove", quiet=True, flags="f", type="raster", name=ipi)
+    if flags["i"]:
+        gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
     # Clean up tmp file
     # os.remove(tmphist)
 
     gs.message(_("Finished ...\n"))
-    if region_1 != region_2:
-        gs.message(
-            _(
-                "\nPlease note that the region has been changes to match"
-                " the set of projection (env_proj) variables.\n"
-            )
-        )
+    gs.del_temp_region()
 
 
 if __name__ == "__main__":

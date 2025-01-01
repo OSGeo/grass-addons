@@ -815,7 +815,7 @@ class CSWBrowserPanel(wx.Panel):
                 self.outpoutschema = "gmd"
                 if self.warns:
                     GWarning(
-                        "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly."
+                        "Endopoint of service is not setup properly. Server returns ISO metadata(https://www.isotc211.org/2005/gmd) instead of CSW records(https://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly."
                     )
                     self.warns = False
 

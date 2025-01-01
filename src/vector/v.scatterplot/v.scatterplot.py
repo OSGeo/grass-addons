@@ -279,7 +279,7 @@
 # % key: groups
 # % type: string
 # % label: Column grouping the features in categories
-# % description: Colum with categories. If selected, a separate ellipse will be drawn for each group/category
+# % description: Column with categories. If selected, a separate ellipse will be drawn for each group/category
 # % guisection: Ellipse
 # %end
 
@@ -394,7 +394,9 @@ def lazy_import_matplotlib():
         from matplotlib import cm
         from matplotlib.colors import Normalize
     except ModuleNotFoundError:
-        gs.fatal(_("Matplotlib is not installed. Please, install it."))
+        gs.fatal(
+            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
+        )
 
 
 def get_valid_color(color):

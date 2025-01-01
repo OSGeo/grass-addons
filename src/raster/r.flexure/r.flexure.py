@@ -18,7 +18,7 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
+#      -  gFlex: https://csdms.colorado.edu/wiki/Model:GFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
 

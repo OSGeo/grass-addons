@@ -153,24 +153,30 @@ def moving_average(x, y, window):
 ###############
 
 
+def lazy_import_matplotlib():
+    """Lazy import matplotlib modules"""
+    global matplotlib
+    global plt
+    try:
+        import matplotlib
+
+        matplotlib.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ModuleNotFoundError:
+        gs.fatal(
+            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
+        )
+
+
 def main():
     """
     Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    try:
-        import matplotlib
 
-        matplotlib.use("WXAgg")
-        from matplotlib import pyplot as plt
-    except ImportError as e:
-        raise ImportError(
-            _(
-                'v.stream.profiler needs the "matplotlib" '
-                "(python-matplotlib) package to be installed. {0}"
-            ).format(e)
-        )
+    # lazy import modules
+    lazy_import_matplotlib()
 
     options, flags = gscript.parser()
 

@@ -1,5 +1,5 @@
 v.in.redwg requires GNU LibreDWG. To get this library go to
-http://gnu.org/s/libredwg (no official release yet, you need to check out the
+https://www.gnu.org/software/libredwg (no official release yet, you need to check out the
 source code and compile).
 
 Warning: some trick might be needed to build it since I created the Makefile

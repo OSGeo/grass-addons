@@ -332,7 +332,7 @@ def get_url(
 ):
     """Return the complete url to download the wheel file for windows"""
 
-    urlwin = "http://www.lfd.uci.edu/~gohlke/pythonlibs/"
+    urlwin = "https://www.lfd.uci.edu/~gohlke/pythonlibs/"
 
     def match():
         """Match platform with available wheel files on the web page"""

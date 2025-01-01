@@ -62,7 +62,7 @@ r.findtheriver.
 
 Linux/Unix
 
-First read: <http://grasswiki.osgeo.org/wiki/Compile_and_Install#Addons>
+First read: <https://grasswiki.osgeo.org/wiki/Compile_and_Install#Addons>
 
 To install, you will generally do:
 
