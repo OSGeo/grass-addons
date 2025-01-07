@@ -11,9 +11,9 @@ fi
 
 # note: g.download.location is a wrapper around g.download.project
 grass --tmp-project XY --exec \
-    g.download.location url=https://grass.osgeo.org/sampledata/north_carolina/nc_spm_full_v2alpha2.tar.gz path=$TMP
+    g.download.location url=https://grass.osgeo.org/sampledata/north_carolina/nc_spm_full_v2alpha2.tar.gz path=$HOME
 
 grass --tmp-project XY --exec \
     python3 -m grass.gunittest.main \
-        --grassdata $TMP --location nc_spm_full_v2alpha2 --location-type nc \
+        --grassdata $HOME --location nc_spm_full_v2alpha2 --location-type nc \
         --min-success 60
