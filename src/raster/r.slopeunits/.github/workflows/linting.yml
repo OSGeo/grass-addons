@@ -1,7 +1,0 @@
-name: Python Flake8, black and pylint code quality check
-
-on: [push, pull_request]
-
-jobs:
-  lint:
-    uses: mundialis/github-workflows/.github/workflows/linting.yml@1.2.0
