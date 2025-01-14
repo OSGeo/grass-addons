@@ -28,8 +28,7 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
 {
 
     int i, j, di = 0, dj = 0;
-    int snapped = 0;
-    int status = 3;
+    int status = 2;
     int teststream = 0;
     float cur_distance = radius;
     float distance = 0;
@@ -73,7 +72,7 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
                             cur_distance = distance;
                             di = i;
                             dj = j;
-                            snapped = 1;
+                            status = 3;
                         }
                 }
             }
@@ -132,16 +131,14 @@ int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
                         cur_distance = distance;
                         di = i;
                         dj = j;
-                        snapped = 1;
+                        status = 3;
                     }
             }
     } /* end of non-streams version */
-    if (!snapped) {
+    if (status == 2)
         G_warning(_("Unable to snap point with cat %d, in a given radius. "
                     "Increase search radius."),
                   point->cat);
-        status = 2;
-    }
     point->di = di;
     point->dj = dj;
     point->status = status;
