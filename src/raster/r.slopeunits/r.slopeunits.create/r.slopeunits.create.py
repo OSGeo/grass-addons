@@ -138,7 +138,7 @@ import os
 
 # import sys
 
-import grass.script as grass
+import gs.script as gs
 
 # initialize global vars
 rm_rasters = []
@@ -150,15 +150,15 @@ def cleanup():
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
-        if grass.find_file(name=rmrast, element="cell")["file"]:
-            grass.run_command("g.remove", type="raster", name=rmrast, **kwargs)
+        if gs.find_file(name=rmrast, element="cell")["file"]:
+            gs.run_command("g.remove", type="raster", name=rmrast, **kwargs)
     for rmvect in rm_vectors:
-        if grass.find_file(name=rmvect, element="vector")["file"]:
-            grass.run_command("g.remove", type="vector", name=rmvect, **kwargs)
+        if gs.find_file(name=rmvect, element="vector")["file"]:
+            gs.run_command("g.remove", type="vector", name=rmvect, **kwargs)
 
-    if grass.find_file("MASK")["file"]:
-        # grass.run_command('r.mask', flags='r')
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    if gs.find_file("MASK")["file"]:
+        # gs.run_command('r.mask', flags='r')
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
 
 def slope_units(
@@ -180,7 +180,7 @@ def slope_units(
     global thc
 
     # estimating values of parameters in cells units
-    region = grass.region()
+    region = gs.region()
     nsres = region["nsres"]
     ewres = region["ewres"]
     thc = int(thr / (nsres * ewres))
@@ -192,16 +192,16 @@ def slope_units(
         amaxc = int(amax / (nsres * ewres))
 
     # a MASK must not exist already
-    if grass.find_file(name="MASK", element="cell")["file"]:
-        grass.fatal("Please remove the raster MASK first, before running this module")
+    if gs.find_file(name="MASK", element="cell")["file"]:
+        gs.fatal("Please remove the raster MASK first, before running this module")
 
     # setting the mask on the DTM
     exp = "$out = if(isnull($mask), null(), 1)"
-    grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
+    gs.mapcalc(exp, out="MASK", mask=dem, quiet=True)
     rm_rasters.append("MASK")
 
     # generating the aspect layer
-    grass.run_command(
+    gs.run_command(
         "r.slope.aspect",
         elevation=dem,
         aspect="aspectslutmp",
@@ -210,16 +210,16 @@ def slope_units(
     rm_rasters.append("aspectslutmp")
 
     # printing something
-    grass.message(f"Initial threshold (cells) is : {thc}")
-    grass.message(f"Initial minimum area (cells) is : {aminc}")
+    gs.message(f"Initial threshold (cells) is : {thc}")
+    gs.message(f"Initial minimum area (cells) is : {aminc}")
 
     # calculating sin and cosin of the aspect layer
     exp = "$out = cos($a)"
-    grass.mapcalc(exp, out="coseno", a="aspectslutmp", quiet=True)
+    gs.mapcalc(exp, out="coseno", a="aspectslutmp", quiet=True)
     exp = "$out = sin($a)"
-    grass.mapcalc(exp, out="seno", a="aspectslutmp", quiet=True)
+    gs.mapcalc(exp, out="seno", a="aspectslutmp", quiet=True)
 
-    grass.run_command(
+    gs.run_command(
         "g.remove", type="raster", name="aspectslutmp", flags="f", quiet=True
     )
     rm_rasters.append("coseno")
@@ -229,13 +229,13 @@ def slope_units(
     counter = 0
     last_counter = counter - 1
     control = 1
-    i = grass.raster_info(dem)
+    i = gs.raster_info(dem)
     # control_lastrun = int(i["cells"])
-    grass.mapcalc("$out = null()", out="slu_r_0", quiet=True)
-    grass.mapcalc("$out = null()", out="cvar_0", quiet=True)
-    grass.mapcalc("$out = null()", out="count_0", quiet=True)
-    grass.mapcalc("$out = 1", out="slu_r_todo", quiet=True)
-    grass.mapcalc("$out = 1", out="slu_r_todo_0", quiet=True)
+    gs.mapcalc("$out = null()", out="slu_r_0", quiet=True)
+    gs.mapcalc("$out = null()", out="cvar_0", quiet=True)
+    gs.mapcalc("$out = null()", out="count_0", quiet=True)
+    gs.mapcalc("$out = 1", out="slu_r_todo", quiet=True)
+    gs.mapcalc("$out = 1", out="slu_r_todo_0", quiet=True)
     rm_rasters.append("slu_r_0")
     rm_rasters.append("cvar_0")
     rm_rasters.append("count_0")
@@ -252,7 +252,7 @@ def slope_units(
     while control > 0 and counter < maxiter and thc >= red:
 
         # generating half-basins
-        # grass.run_command(
+        # gs.run_command(
         #     'r.watershed',
         #     elevation=dem,
         #     hbasin='slu_r_tmp',
@@ -261,14 +261,14 @@ def slope_units(
         #     overwrite=True,
         #     quiet=True,
         # )
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
         )
         if flags["s"]:
             rwflags = "abs"
         else:
             rwflags = "ab"
-        grass.run_command(
+        gs.run_command(
             "r.watershed",
             elevation=dem,
             hbasin="slu_r_tmp",
@@ -280,24 +280,24 @@ def slope_units(
         rm_rasters.append("slu_r_tmp")
 
         # remove output map from previous run
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name="slu_r", flags="f", quiet=True
         )
         if plains:
             exp = "$out = if(isnull($a), $b, null())"
-            grass.mapcalc(exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True)
+            gs.mapcalc(exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True)
         else:
-            grass.run_command("g.copy", rast="slu_r_tmp,slu_r", quiet=True)
+            gs.run_command("g.copy", rast="slu_r_tmp,slu_r", quiet=True)
 
         rm_rasters.append("slu_r")
 
-        if grass.find_file(name="MASK", element="cell")["file"]:
-            grass.run_command("r.mask", flags="r", quiet=True)
+        if gs.find_file(name="MASK", element="cell")["file"]:
+            gs.run_command("r.mask", flags="r", quiet=True)
         exp = "$out = if(isnull($mask), null(), 1)"
-        grass.mapcalc(exp, out="MASK", mask="slu_r_todo", quiet=True)
+        gs.mapcalc(exp, out="MASK", mask="slu_r_todo", quiet=True)
 
-        if grass.find_file(name="count", element="cell")["file"]:
-            grass.run_command(
+        if gs.find_file(name="count", element="cell")["file"]:
+            gs.run_command(
                 "g.remove",
                 type="raster",
                 name="count",
@@ -305,7 +305,7 @@ def slope_units(
                 quiet=True,
             )
 
-        grass.run_command(
+        gs.run_command(
             "r.stats.zonal",
             base="slu_r",
             cover="coseno",
@@ -315,15 +315,15 @@ def slope_units(
         )
         rm_rasters.append("count")
 
-        if grass.find_file(name="sumcoseno", element="cell")["file"]:
-            grass.run_command(
+        if gs.find_file(name="sumcoseno", element="cell")["file"]:
+            gs.run_command(
                 "g.remove",
                 type="raster",
                 name="sumcoseno",
                 flags="f",
                 quiet=True,
             )
-        grass.run_command(
+        gs.run_command(
             "r.stats.zonal",
             base="slu_r",
             cover="coseno",
@@ -333,15 +333,15 @@ def slope_units(
         )
         rm_rasters.append("sumcoseno")
 
-        if grass.find_file(name="sumseno", element="cell")["file"]:
-            grass.run_command(
+        if gs.find_file(name="sumseno", element="cell")["file"]:
+            gs.run_command(
                 "g.remove",
                 type="raster",
                 name="sumseno",
                 flags="f",
                 quiet=True,
             )
-        grass.run_command(
+        gs.run_command(
             "r.stats.zonal",
             base="slu_r",
             cover="seno",
@@ -359,11 +359,11 @@ def slope_units(
         # unit vectors (and
         # cells) involved in the sum
         exp = "$out = 1 - ((sqrt(($a)^2 + ($b)^2)) / $c)"
-        if grass.find_file(name="cvar", element="cell")["file"]:
-            grass.run_command(
+        if gs.find_file(name="cvar", element="cell")["file"]:
+            gs.run_command(
                 "g.remove", type="raster", name="cvar", flags="f", quiet=True
             )
-        grass.mapcalc(
+        gs.mapcalc(
             exp,
             out="cvar",
             a="sumseno",
@@ -373,17 +373,17 @@ def slope_units(
         )
         rm_rasters.append("cvar")
 
-        grass.run_command("r.mask", flags="r", quiet=True)
+        gs.run_command("r.mask", flags="r", quiet=True)
 
         # selecting half-basins where area is larger than the minimum area and
         # the average
         # unit vector is smaller than the unit vector threshold
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
         )
         if options["areamax"]:
             exp = "$out = if($a > $f || ($a > $b && $c > $d), $g, null())"
-            grass.mapcalc(
+            gs.mapcalc(
                 exp,
                 out="slu_r_todo",
                 a="count",
@@ -394,19 +394,19 @@ def slope_units(
                 f=amaxc,
                 quiet=True,
             )
-            grass.run_command(
+            gs.run_command(
                 "g.copy",
                 rast=(f"count,count_prova_{counter}"),
                 quiet=True,
             )
             rm_rasters.append(f"count_prova_{counter}")
             # exp = "$out = if($a>$b,1,null())"
-            # grass.mapcalc(
+            # gs.mapcalc(
             #     exp, out = "slu_r_large"+str(counter),
             #     a = "count", b = amaxc , overwrite=True, quiet=True)
         else:
             exp = "$out = if($a > $b && $c > $d, $g, null())"
-            grass.mapcalc(
+            gs.mapcalc(
                 exp,
                 out="slu_r_todo",
                 a="count",
@@ -420,8 +420,8 @@ def slope_units(
         # checking that there actually are half-basins with area greater than
         # areamin
         # and circular variance greater than cvarmin. otherwise the loop exits
-        stats = grass.read_command("r.univar", flags="g", map="slu_r_todo", quiet=True)
-        keyval = grass.parse_key_val(stats)
+        stats = gs.read_command("r.univar", flags="g", map="slu_r_todo", quiet=True)
+        keyval = gs.parse_key_val(stats)
         # ivan
         # if there are any non-NULL cells
         if int(keyval["n"]) > 0:
@@ -433,34 +433,34 @@ def slope_units(
             # selected
             # in the previous steps with those that come from the previous step
             # of the loop
-            grass.run_command(
+            gs.run_command(
                 "g.copy",
                 rast=(f"slu_r_todo,slu_r_todo_{counter}"),
                 quiet=True,
             )
             rm_rasters.append(f"slu_r_todo_{counter}")
-            grass.run_command("r.mask", raster="slu_r_todo", flags="i", quiet=True)
-            grass.run_command(
+            gs.run_command("r.mask", raster="slu_r_todo", flags="i", quiet=True)
+            gs.run_command(
                 "r.patch",
                 input=("slu_r_" + str(last_counter), "slu_r"),
                 output="slu_r_" + str(counter),
                 quiet=True,
             )
             rm_rasters.append(f"slu_r_{counter}")
-            grass.run_command(
+            gs.run_command(
                 "g.copy",
                 rast=("slu_r_" + str(counter), "slu_r_prova_" + str(counter)),
                 quiet=True,
             )
             rm_rasters.append(f"slu_r_prova_{counter}")
-            grass.run_command(
+            gs.run_command(
                 "r.patch",
                 input=("cvar_" + str(last_counter), "cvar"),
                 output="cvar_" + str(counter),
                 quiet=True,
             )
             rm_rasters.append(f"cvar_{counter}")
-            grass.run_command(
+            gs.run_command(
                 "r.patch",
                 input=("count_" + str(last_counter), "count"),
                 output="count_" + str(counter),
@@ -468,7 +468,7 @@ def slope_units(
             )
             rm_rasters.append(f"count_{counter}")
 
-            grass.run_command("r.mask", flags="r", quiet=True)
+            gs.run_command("r.mask", flags="r", quiet=True)
 
             # rejecting partition if average area of new half-basins is less
             # than amin;
@@ -478,7 +478,7 @@ def slope_units(
                     # this block does not make sense,
                     # count_prova_<last_counter> has been calculated above
                     if counter == 1:
-                        grass.mapcalc("$out = 1", out="count_prova_0", quiet=True)
+                        gs.mapcalc("$out = 1", out="count_prova_0", quiet=True)
                     exp = "$out = if($a > $b, 1, null())"
                     # this
                     # a="count_prova_" + str(last_counter - 1)
@@ -486,7 +486,7 @@ def slope_units(
                     # because the result would be "count_prova_-1"
                     # changed to
                     # a="count_prova_" + str(last_counter)
-                    grass.mapcalc(
+                    gs.mapcalc(
                         exp,
                         out="slu_r_large" + str(counter),
                         a="count_prova_" + str(last_counter),
@@ -495,40 +495,40 @@ def slope_units(
                     )
                     rm_rasters.append(f"slu_r_large{counter}")
                     exp = "$out = if(isnull($a), $b, null())"
-                    grass.mapcalc(
+                    gs.mapcalc(
                         exp,
                         out="MASK",
                         a="slu_r_large" + str(counter),
                         b="slu_r_" + str(counter),
                         quiet=True,
                     )
-                    grass.run_command(
+                    gs.run_command(
                         "g.copy",
                         rast="MASK,mask" + str(counter),
                         quiet=True,
                     )
                 else:
-                    grass.run_command(
+                    gs.run_command(
                         "r.mask", raster="slu_r_" + str(counter), quiet=True
                     )
 
-                stats_lc = grass.read_command(
+                stats_lc = gs.read_command(
                     "r.univar",
                     flags="g",
                     map="slu_r_todo_" + str(last_counter),
                     quiet=True,
                 )
-                kv_lc = grass.parse_key_val(stats_lc)
+                kv_lc = gs.parse_key_val(stats_lc)
 
-                #                grass.message(("Univar: %s") % kv_lc )
+                #                gs.message(("Univar: %s") % kv_lc )
                 # ivan
                 # if kv_lc.has_key("n"):
                 # if there are any non-NULL cells
                 if int(kv_lc["n"]) > 0:
                     en_int = int(kv_lc["n"])
-                    grass.message(f"Univar: {en_int}")
+                    gs.message(f"Univar: {en_int}")
                     if en_int > 0:
-                        grass.run_command(
+                        gs.run_command(
                             "r.statistics",
                             base="slu_r_todo_" + str(last_counter),
                             cover="slu_r",
@@ -538,12 +538,12 @@ def slope_units(
                         )
                         rm_rasters.append(f"slu_diversity_{counter}")
                         rm_rasters.append(f"slu_r_todo_{last_counter}")
-                        # grass.run_command('r.univar', map='slu_r')
-                        # grass.run_command(
+                        # gs.run_command('r.univar', map='slu_r')
+                        # gs.run_command(
                         #     'r.univar', map='slu_r_todo_'+str(last_counter))
-                        # grass.run_command(
+                        # gs.run_command(
                         #     'r.univar', map='slu_diversity_'+str(counter))
-                        grass.run_command(
+                        gs.run_command(
                             "r.stats.zonal",
                             base="slu_r_todo_" + str(last_counter),
                             cover="coseno",
@@ -553,7 +553,7 @@ def slope_units(
                         )
                         rm_rasters.append(f"todocount_{counter}")
                         exp = "$out = $d / $a"
-                        grass.mapcalc(
+                        gs.mapcalc(
                             exp,
                             out="slu_r_test_" + str(counter),
                             a="@slu_diversity_" + str(counter),
@@ -562,7 +562,7 @@ def slope_units(
                         )
                         rm_rasters.append(f"slu_r_test_{counter}")
                         exp = "$out = if($d < $e, $c, null())"
-                        grass.mapcalc(
+                        gs.mapcalc(
                             exp,
                             out="slu_r_corr_" + str(counter),
                             b="slu_r_" + str(counter),
@@ -572,15 +572,15 @@ def slope_units(
                             quiet=True,
                         )
                         rm_rasters.append(f"slu_r_corr_{counter}")
-                        grass.run_command("r.mask", flags="r", quiet=True)
+                        gs.run_command("r.mask", flags="r", quiet=True)
 
-                        grass.run_command(
+                        gs.run_command(
                             "g.rename",
                             rast=f"slu_r_{counter},slu_r_tmp_{counter}",
                             quiet=True,
                         )
                         rm_rasters.append(f"slu_r_tmp_{counter}")
-                        grass.run_command(
+                        gs.run_command(
                             "r.patch",
                             input=(
                                 "slu_r_corr_" + str(counter),
@@ -589,7 +589,7 @@ def slope_units(
                             output="slu_r_" + str(counter),
                             quiet=True,
                         )
-                        grass.run_command(
+                        gs.run_command(
                             "g.remove",
                             type="raster",
                             name=f"slu_r_tmp_{counter}",
@@ -598,15 +598,15 @@ def slope_units(
                         )
                         rm_rasters.append(f"slu_r_{counter}")
                     else:
-                        grass.run_command("r.mask", flags="r", quiet=True)
+                        gs.run_command("r.mask", flags="r", quiet=True)
                 else:
-                    grass.run_command("r.mask", flags="r", quiet=True)
+                    gs.run_command("r.mask", flags="r", quiet=True)
 
             control = int(keyval["n"])
             thc = int(thc - thc / red)
             thhect = thc * nsres * ewres / 10000
-            grass.message((f"Threshold (hectars) is: {thhect}"))
-            grass.message(
+            gs.message((f"Threshold (hectars) is: {thhect}"))
+            gs.message(
                 (
                     "No. of cells to be still classified as SLU is: "
                     f"{control}. Loop done: {counter}"
@@ -614,13 +614,13 @@ def slope_units(
             )
         else:
             # exit the loop
-            grass.message(("Nothing to do, ready to write the outputs"))
+            gs.message(("Nothing to do, ready to write the outputs"))
             control = 0
 
     # depending on how the while loop is exited the slu_r_$counter may have
     # some small holes. Here we fill them.
     exp = "$out = if(isnull($a), $b, $a)"
-    grass.mapcalc(
+    gs.mapcalc(
         exp,
         out="slu_r_final",
         a="slu_r_" + str(counter),
@@ -628,14 +628,14 @@ def slope_units(
         quiet=True,
     )
     exp = "$out = $a"
-    grass.mapcalc(
+    gs.mapcalc(
         exp,
         out="cvar_final",
         a="cvar_" + str(counter),
         quiet=True,
     )
     exp = "$out = $a"
-    grass.mapcalc(
+    gs.mapcalc(
         exp,
         out="count_final",
         a="count_" + str(counter),
@@ -644,14 +644,14 @@ def slope_units(
 
     # preparing the outputs
     exp = "$out = $a"
-    grass.mapcalc(exp, out="slumap_1", a="slu_r_final", quiet=True)
+    gs.mapcalc(exp, out="slumap_1", a="slu_r_final", quiet=True)
     # add areas where DEM exists, and SUs do not exist
     if options["plainsmap"]:
         exp = (
             "$out = if(isnull($a), if(isnull($b), if(isnull($c),"
             "null(), 1), null()), $a)"
         )
-        grass.mapcalc(
+        gs.mapcalc(
             exp,
             a="slumap_1",
             b=plains,
@@ -661,21 +661,21 @@ def slope_units(
         )
     else:
         exp = "$out = if(isnull($a), if(isnull($c), null(), 1), $a)"
-        grass.mapcalc(exp, a="slumap_1", c=dem, out="slumap_2", quiet=True)
-    grass.run_command("r.clump", input="slumap_2", output=slumap, quiet=True)
-    grass.run_command("g.remove", type="raster", name="slumap_1", flags="f", quiet=True)
-    grass.run_command("g.remove", type="raster", name="slumap_2", flags="f", quiet=True)
+        gs.mapcalc(exp, a="slumap_1", c=dem, out="slumap_2", quiet=True)
+    gs.run_command("r.clump", input="slumap_2", output=slumap, quiet=True)
+    gs.run_command("g.remove", type="raster", name="slumap_1", flags="f", quiet=True)
+    gs.run_command("g.remove", type="raster", name="slumap_2", flags="f", quiet=True)
 
-    grass.run_command("r.colors", map="slu_r_final", color="random", quiet=True)
+    gs.run_command("r.colors", map="slu_r_final", color="random", quiet=True)
 
     if circvarmap:
-        grass.message(f"Writing out {circvarmap}")
+        gs.message(f"Writing out {circvarmap}")
         exp = "$out = $a"
-        grass.mapcalc(exp, out=circvarmap, a="cvar_final", quiet=True)
+        gs.mapcalc(exp, out=circvarmap, a="cvar_final", quiet=True)
     if areamap:
-        grass.message(f"Writing out {areamap}")
+        gs.message(f"Writing out {areamap}")
         exp = "$out = $a * $b * $c"
-        grass.mapcalc(
+        gs.mapcalc(
             exp,
             out=areamap,
             a="count_final",
@@ -685,16 +685,16 @@ def slope_units(
         )
 
     # clean up
-    if grass.find_file(name="MASK", element="cell")["file"]:
-        grass.run_command("r.mask", flags="r", quiet=True)
-    grass.run_command(
+    if gs.find_file(name="MASK", element="cell")["file"]:
+        gs.run_command("r.mask", flags="r", quiet=True)
+    gs.run_command(
         "g.remove", type="raster", name="seno,coseno", flags="f", quiet=True
     )
 
-    grass.run_command(
+    gs.run_command(
         "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
     )
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         type="raster",
         name="slu_r_final,cvar_final,count_final,slu_r_todo_final",
@@ -704,37 +704,37 @@ def slope_units(
 
     for i in range(1, counter + 1):
         mapname = "slu_diversity_" + str(i)
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
 
     for i in range(counter + 1):
         mapname = "slu_r_" + str(i)
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
         mapname = "cvar_" + str(i)
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
         mapname = "count_" + str(i)
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
         mapname = "slu_r_todo_" + str(i)
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
 
-    grass.message("Slope units calculated.")
+    gs.message("Slope units calculated.")
 
 
 def export_as_vect(slumap, slumapvect):
     """Create vector map from raster map"""
-    grass.run_command("r.to.vect", type="area", input=slumap, output=slumapvect)
+    gs.run_command("r.to.vect", type="area", input=slumap, output=slumapvect)
     threshold = options["generalize_treshold"]
     if flags["g"]:
-        grass.run_command(
+        gs.run_command(
             "v.generalize",
             input=slumapvect,
             output=f"{slumapvect}_gen",
@@ -778,10 +778,10 @@ def main():
     if options["slumapvect"]:
         export_as_vect(slumap, options["slumapvect"])
 
-    grass.message("Slope units finished.")
+    gs.message("Slope units finished.")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

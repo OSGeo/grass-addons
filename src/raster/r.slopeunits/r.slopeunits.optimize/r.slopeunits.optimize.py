@@ -145,13 +145,13 @@ import atexit
 import math
 import os
 
-import grass.script as grass
+import gs.script as gs
 
 # initialize global vars
 rm_rasters = []
 rm_vectors = []
 COUNT_GLOBAL = 0
-env = grass.gisenv()
+env = gs.gisenv()
 gisdbase = env["GISDBASE"]
 location = env["LOCATION_NAME"]
 master_mapset = env["MAPSET"]
@@ -162,15 +162,15 @@ def cleanup():
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
-        if grass.find_file(name=rmrast, element="cell")["file"]:
-            grass.run_command("g.remove", type="raster", name=rmrast, **kwargs)
+        if gs.find_file(name=rmrast, element="cell")["file"]:
+            gs.run_command("g.remove", type="raster", name=rmrast, **kwargs)
     for rmvect in rm_vectors:
-        if grass.find_file(name=rmvect, element="vector")["file"]:
-            grass.run_command("g.remove", type="vector", name=rmvect, **kwargs)
+        if gs.find_file(name=rmvect, element="vector")["file"]:
+            gs.run_command("g.remove", type="vector", name=rmvect, **kwargs)
 
-    if grass.find_file("MASK")["file"]:
-        # grass.run_command('r.mask', flags='r')
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    if gs.find_file("MASK")["file"]:
+        # gs.run_command('r.mask', flags='r')
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
 
 def run_batch(
@@ -198,16 +198,16 @@ def run_batch(
     mapset_prefix = "tmp_su"
     nome_mapset = f"{mapset_prefix}_{ico}"
 
-    grass.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
-    grass.run_command("g.mapset", mapset=nome_mapset, flags="c")
-    grass.run_command("g.mapsets", mapset=master_mapset, operation="add")
-    grass.run_command(
+    gs.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
+    gs.run_command("g.mapset", mapset=nome_mapset, flags="c")
+    gs.run_command("g.mapsets", mapset=master_mapset, operation="add")
+    gs.run_command(
         "g.region",
         vect=basin,
         align=dem,
     )
 
-    grass.message(
+    gs.message(
         f"Calculating slopeunits for cvmin={str(cvmin)} and "
         f"areamin={str(areamin)} ..."
     )
@@ -218,7 +218,7 @@ def run_batch(
         rwflags = "s"
     else:
         rwflags = ""
-    grass.run_command(
+    gs.run_command(
         "r.slopeunits.create",
         demmap=dem,
         slumap=slumap,
@@ -232,7 +232,7 @@ def run_batch(
         overwrite=True,
         **kwargs,
     )
-    grass.run_command(
+    gs.run_command(
         "r.slopeunits.clean",
         demmap=dem,
         slumap=slumap,
@@ -243,10 +243,10 @@ def run_batch(
         **kwargs,
     )
 
-    region = grass.parse_command("g.region", flags="pg")
+    region = gs.parse_command("g.region", flags="pg")
     resolution = math.floor(float(region["ewres"]) * float(region["nsres"]))
 
-    grass.run_command(
+    gs.run_command(
         "r.to.vect",
         input=slumapclean,
         output=slumapclean,
@@ -254,7 +254,7 @@ def run_batch(
         overwrite=True,
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         type="raster",
         name=f"{slumap},{slumapclean}",
@@ -262,10 +262,10 @@ def run_batch(
         quiet=True,
     )
 
-    grass.message(
-        f"Calculating metrics for cvmin={str(cvmin)} and " "areamin={str(areamin)} ..."
+    gs.message(
+        f"Calculating metrics for cvmin={str(cvmin)} and areamin={str(areamin)} ..."
     )
-    metrics = grass.parse_command(
+    metrics = gs.parse_command(
         "r.slopeunits.metrics",
         basin=basin,
         dem=dem,
@@ -276,10 +276,10 @@ def run_batch(
         resolution=resolution,
     )
 
-    grass.message(f"exe no. {ico}: done")
+    gs.message(f"exe no. {ico}: done")
 
-    grass.run_command("g.mapset", mapset=master_mapset)
-    grass.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
+    gs.run_command("g.mapset", mapset=master_mapset)
+    gs.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
 
     return metrics
 
@@ -335,13 +335,13 @@ def calcola_loop(
         )
         out1 = f"{float(metrics['v_fin']):16.14f}"
         out2 = f"{float(metrics['i_fin']):16.9f}".strip()
-        grass.message(f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ...")
+        gs.message(f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ...")
         with open(calcd_file, "a") as file:
             file.write(f"{cvmin} {areamin} {out1} {out2}\n")
 
     else:
         # found_v found - x and y already processed and in file
-        grass.message(
+        gs.message(
             "x and y already calculated! Do nothing but copy the result "
             "in the result vectors"
         )
@@ -359,7 +359,7 @@ def calcola_loop(
             )
         out2 = float(f"{found_i:16.14f}")
 
-    grass.message(f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ...")
+    gs.message(f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ...")
     with open(current_file, "a") as file:
         file.write(f"{ico} {cvmin} {areamin} {out1} {out2}\n")
 
@@ -610,10 +610,10 @@ def main():
     # pass fully qualified names of input maps
     dem = options["demmap"]
     if "@" not in dem:
-        dem = grass.find_file(dem, element="cell")["fullname"]
+        dem = gs.find_file(dem, element="cell")["fullname"]
     plainsmap = options["plainsmap"]
     if plainsmap and "@" not in plainsmap:
-        plainsmap = grass.find_file(plainsmap, element="cell")["fullname"]
+        plainsmap = gs.find_file(plainsmap, element="cell")["fullname"]
     slumap = options["slumap"]
     slumapclean = options["slumapclean"]
     thresh = float(options["thresh"])
@@ -622,7 +622,7 @@ def main():
     cleansize = options["cleansize"]
     basin = options["basin"]
     if "@" not in basin:
-        basin = grass.find_file(basin, element="vector")["fullname"]
+        basin = gs.find_file(basin, element="vector")["fullname"]
     x_lims = [
         float(options["cvmin"].split(",")[0]),
         float(options["cvmin"].split(",")[1]),
@@ -642,17 +642,17 @@ def main():
 
     # Clean start
     if os.path.exists(outdir):
-        if grass.overwrite():
-            grass.utils.try_remove(calcd_file)
-            grass.utils.try_remove(current_file)
-            grass.utils.try_remove(optimum_file)
+        if gs.overwrite():
+            gs.utils.try_remove(calcd_file)
+            gs.utils.try_remove(current_file)
+            gs.utils.try_remove(optimum_file)
         else:
             if (
                 os.path.exists(calcd_file)
                 or os.path.exists(current_file)
                 or os.path.exists(optimum_file)
             ):
-                grass.fatal(
+                gs.fatal(
                     f"ERROR: One of {calcd_file}, {current_file} or "
                     f"{optimum_file} exists. To overwrite, use the --overwrite "
                     "flag"
@@ -829,6 +829,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()
