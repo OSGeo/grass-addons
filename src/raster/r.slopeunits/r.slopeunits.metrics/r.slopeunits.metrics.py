@@ -109,6 +109,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     thr_clean = cleansize
     res = resolution
 
+    gs.use_temp_region()
     gs.run_command("g.region", vect=basin, align=dem)
     if gs.find_file("MASK")["file"]:
         gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
@@ -443,6 +444,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     if gs.find_file("MASK")["file"]:
         gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
+    gs.del_temp_region()
     gs.message("Metrics calculated.")
 
     return v_fin, i_fin

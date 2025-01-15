@@ -201,6 +201,7 @@ def run_batch(
     gs.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
     gs.run_command("g.mapset", mapset=nome_mapset, flags="c")
     gs.run_command("g.mapsets", mapset=master_mapset, operation="add")
+    gs.use_temp_region()
     gs.run_command(
         "g.region",
         vect=basin,
@@ -280,6 +281,8 @@ def run_batch(
 
     gs.run_command("g.mapset", mapset=master_mapset)
     gs.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
+
+    gs.del_temp_region()
 
     return metrics
 
