@@ -170,9 +170,7 @@ def cleanup():
 
     if grass.find_file("MASK")["file"]:
         # grass.run_command('r.mask', flags='r')
-        grass.run_command(
-            "g.remove", type="raster", name="MASK", flags="f", quiet=True
-        )
+        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
 
 def run_batch(
@@ -265,8 +263,7 @@ def run_batch(
     )
 
     grass.message(
-        f"Calculating metrics for cvmin={str(cvmin)} and "
-        "areamin={str(areamin)} ..."
+        f"Calculating metrics for cvmin={str(cvmin)} and " "areamin={str(areamin)} ..."
     )
     metrics = grass.parse_command(
         "r.slopeunits.metrics",
@@ -314,8 +311,7 @@ def calcola_loop(
             (
                 float(line.split()[2])
                 for line in file
-                if float(line.split()[0]) == cvmin
-                and float(line.split()[1]) == areamin
+                if float(line.split()[0]) == cvmin and float(line.split()[1]) == areamin
             ),
             None,
         )
@@ -339,9 +335,7 @@ def calcola_loop(
         )
         out1 = f"{float(metrics['v_fin']):16.14f}"
         out2 = f"{float(metrics['i_fin']):16.9f}".strip()
-        grass.message(
-            f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ..."
-        )
+        grass.message(f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ...")
         with open(calcd_file, "a") as file:
             file.write(f"{cvmin} {areamin} {out1} {out2}\n")
 
@@ -365,9 +359,7 @@ def calcola_loop(
             )
         out2 = float(f"{found_i:16.14f}")
 
-    grass.message(
-        f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ..."
-    )
+    grass.message(f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ...")
     with open(current_file, "a") as file:
         file.write(f"{ico} {cvmin} {areamin} {out1} {out2}\n")
 

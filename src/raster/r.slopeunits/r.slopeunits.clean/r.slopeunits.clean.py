@@ -99,9 +99,7 @@ def cleanup():
 
     if grass.find_file("MASK")["file"]:
         # grass.run_command('r.mask', flags='r')
-        grass.run_command(
-            "g.remove", type="raster", name="MASK", flags="f", quiet=True
-        )
+        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
 
 def clean_method_3(input_vect, output_vect, minarea):
@@ -412,8 +410,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                         quiet=True,
                     )
                     dotpr = (
-                        float(cos_buco) * float(cos_j)
-                        + float(sin_buco) * float(sin_j)
+                        float(cos_buco) * float(cos_j) + float(sin_buco) * float(sin_j)
                     ) * 10000
                     if dotpr >= massimo and dotpr > 0:
                         massimo = dotpr
@@ -575,9 +572,7 @@ def clean_small_areas(dem, slumap, plains, cleansize, slumapclean):
         grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
         areamap = "areamap"
 
-        grass.run_command(
-            "r.clump", input=slumap, output="slu_clump", quiet=True
-        )
+        grass.run_command("r.clump", input=slumap, output="slu_clump", quiet=True)
         rm_rasters.append("slu_clump")
 
         grass.run_command(
@@ -624,9 +619,7 @@ def clean_small_areas(dem, slumap, plains, cleansize, slumapclean):
         rm_rasters.append("slu_r_grow")
 
     if flags["m"]:
-        grass.message(
-            " -- we want QUICK cleaning of small-sized areas: METHOD 2 --"
-        )
+        grass.message(" -- we want QUICK cleaning of small-sized areas: METHOD 2 --")
         clean_input = "slu_r_grow"
         clean_output = "slu_no_stripes"
         grass.run_command(
@@ -695,9 +688,7 @@ def clean_small_areas(dem, slumap, plains, cleansize, slumapclean):
         )
 
     if flags["n"]:
-        grass.message(
-            " -- we want DETAILED cleaning of small-sized areas: METHOD 3 --"
-        )
+        grass.message(" -- we want DETAILED cleaning of small-sized areas: METHOD 3 --")
         grass.run_command(
             "r.to.vect",
             input=slumap,
