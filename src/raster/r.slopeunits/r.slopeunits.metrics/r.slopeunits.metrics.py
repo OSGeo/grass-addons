@@ -78,7 +78,7 @@ import atexit
 import os
 import sys
 
-import grass.script as grass
+import gs.script as gs
 
 # initialize global vars
 rm_rasters = []
@@ -90,15 +90,15 @@ def cleanup():
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
-        if grass.find_file(name=rmrast, element="cell")["file"]:
-            grass.run_command("g.remove", type="raster", name=rmrast, **kwargs)
+        if gs.find_file(name=rmrast, element="cell")["file"]:
+            gs.run_command("g.remove", type="raster", name=rmrast, **kwargs)
     for rmvect in rm_vectors:
-        if grass.find_file(name=rmvect, element="vector")["file"]:
-            grass.run_command("g.remove", type="vector", name=rmvect, **kwargs)
+        if gs.find_file(name=rmvect, element="vector")["file"]:
+            gs.run_command("g.remove", type="vector", name=rmvect, **kwargs)
 
-    if grass.find_file("MASK")["file"]:
-        # grass.run_command('r.mask', flags='r')
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    if gs.find_file("MASK")["file"]:
+        # gs.run_command('r.mask', flags='r')
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
 
 def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
@@ -109,19 +109,20 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     thr_clean = cleansize
     res = resolution
 
-    grass.run_command("g.region", vect=basin, align=dem)
-    if grass.find_file("MASK")["file"]:
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
-    grass.run_command("r.mask", vect=basin, overwrite=True)
-    grass.run_command("g.remove", type="vector", name="su_segm", flags="f")
-    grass.run_command("g.copy", vect=f"{sucl},su_segm", overwrite=True)
-    grass.run_command("v.db.dropcolumn", map="su_segm", columns="value,label,area")
-    grass.run_command("v.db.addcolumn", map="su_segm", columns="area real")
-    grass.run_command(
+    gs.use_temp_region()
+    gs.run_command("g.region", vect=basin, align=dem)
+    if gs.find_file("MASK")["file"]:
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    gs.run_command("r.mask", vect=basin, overwrite=True)
+    gs.run_command("g.remove", type="vector", name="su_segm", flags="f")
+    gs.run_command("g.copy", vect=f"{sucl},su_segm", overwrite=True)
+    gs.run_command("v.db.dropcolumn", map="su_segm", columns="value,label,area")
+    gs.run_command("v.db.addcolumn", map="su_segm", columns="area real")
+    gs.run_command(
         "v.to.db", map="su_segm", option="area", columns="area", overwrite=True
     )
-    grass.run_command("db.execute", sql=f"delete from su_segm where area<{thr_clean}")
-    grass.run_command(
+    gs.run_command("db.execute", sql=f"delete from su_segm where area<{thr_clean}")
+    gs.run_command(
         "v.clean",
         input="su_segm",
         type="area",
@@ -130,7 +131,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         threshold=thr_clean,
         overwrite=True,
     )
-    grass.run_command("g.rename", vect="su_ok,su_segm", overwrite=True)
+    gs.run_command("g.rename", vect="su_ok,su_segm", overwrite=True)
 
     ##############################################################
     #
@@ -143,10 +144,10 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     # [4] Alvioli, Marchesini et al., Journal of Maps, 18, 300-313 (2021)
     #
 
-    if grass.find_file("MASK")["file"]:
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
-    grass.run_command("r.mask", vect="su_segm", overwrite=True)
-    grass.run_command(
+    if gs.find_file("MASK")["file"]:
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    gs.run_command("r.mask", vect="su_segm", overwrite=True)
+    gs.run_command(
         "v.to.rast",
         input="su_segm",
         output="su_segm",
@@ -156,17 +157,17 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
 
     onecell = res * res
 
-    grass.message(_("r.slope.aspect ..."))
-    grass.run_command("r.slope.aspect", elevation=dem, aspect="aspect", overwrite=True)
-    grass.run_command("r.colors", map="aspect", color="aspectcolr")
-    grass.message(_("circular variance ..."))
+    gs.message(_("r.slope.aspect ..."))
+    gs.run_command("r.slope.aspect", elevation=dem, aspect="aspect", overwrite=True)
+    gs.run_command("r.colors", map="aspect", color="aspectcolr")
+    gs.message(_("circular variance ..."))
     # aspect in degrees - mapcalc's cos(x) wants x in degrees -- OK
-    grass.run_command("r.mapcalc", expression="cos=cos(aspect)", overwrite=True)
+    gs.run_command("r.mapcalc", expression="cos=cos(aspect)", overwrite=True)
     # aspect in degrees - mapcalc's sin(x) wants x in degrees -- OK
-    grass.run_command("r.mapcalc", expression="sin=sin(aspect)", overwrite=True)
+    gs.run_command("r.mapcalc", expression="sin=sin(aspect)", overwrite=True)
 
-    grass.message(_("r.statistics 1 ..."))
-    grass.run_command(
+    gs.message(_("r.statistics 1 ..."))
+    gs.run_command(
         "r.stats.zonal",
         base="su_segm",
         cover="su_segm",
@@ -174,8 +175,8 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         output="numero",
         overwrite=True,
     )
-    grass.message(_("r.statistics 2 ..."))
-    grass.run_command(
+    gs.message(_("r.statistics 2 ..."))
+    gs.run_command(
         "r.stats.zonal",
         base="su_segm",
         cover="cos",
@@ -183,8 +184,8 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         output="sumcos",
         overwrite=True,
     )
-    grass.message(_("r.statistics 3 ..."))
-    grass.run_command(
+    gs.message(_("r.statistics 3 ..."))
+    gs.run_command(
         "r.stats.zonal",
         base="su_segm",
         cover="sin",
@@ -192,17 +193,17 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         output="sumsin",
         overwrite=True,
     )
-    grass.run_command(
+    gs.run_command(
         "r.mapcalc",
         expression="v_i = 1-((sqrt((sumsin)^2 + (sumcos)^2))/numero)",
         overwrite=True,
     )
 
-    grass.message(_("r.statistics 4 ..."))
-    grass.run_command(
+    gs.message(_("r.statistics 4 ..."))
+    gs.run_command(
         "r.mapcalc", expression=f"base = int({dem}/{dem})", overwrite=True
     )
-    grass.run_command(
+    gs.run_command(
         "r.stats.zonal",
         base="base",
         cover="cos",
@@ -210,7 +211,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         output="sumcos_all",
         overwrite=True,
     )
-    grass.run_command(
+    gs.run_command(
         "r.stats.zonal",
         base="base",
         cover="sin",
@@ -219,9 +220,9 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         overwrite=True,
     )
 
-    grass.message(_("v.category edges ..."))
-    grass.run_command("g.remove", type="vector", name="su_segm_edges", flags="f")
-    grass.run_command(
+    gs.message(_("v.category edges ..."))
+    gs.run_command("g.remove", type="vector", name="su_segm_edges", flags="f")
+    gs.run_command(
         "v.category",
         input="su_segm",
         output="su_segm_edges",
@@ -230,13 +231,13 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         option="add",
         overwrite=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.addtable",
         map="su_segm_edges",
         layer=2,
         col="left integer,right integer,lunghezza real",
     )
-    grass.run_command(
+    gs.run_command(
         "v.to.db",
         map="su_segm_edges",
         option="sides",
@@ -245,7 +246,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         type="boundary",
         overwrite=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.to.db",
         map="su_segm_edges",
         option="length",
@@ -256,99 +257,99 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     )
 
     # mapcalc's atan(x,y) returns result in degrees ..
-    grass.run_command(
+    gs.run_command(
         "r.mapcalc", expression="a_i = atan(sumsin,sumcos)", overwrite=True
     )
-    grass.run_command(
+    gs.run_command(
         "r.mapcalc",
         expression="a_all = atan(sumsin_all,sumcos_all)",
         overwrite=True,
     )
     # .. but we need maps in radians, as needed by bc in bash
     pii = 3.14159265359
-    grass.run_command("r.mapcalc", expression=f"a_irad = a_i*{pii}/180", overwrite=True)
-    grass.run_command(
+    gs.run_command("r.mapcalc", expression=f"a_irad = a_i*{pii}/180", overwrite=True)
+    gs.run_command(
         "r.mapcalc", expression=f"a_allrad = a_all*{pii}/180", overwrite=True
     )
 
-    grass.message(_("v.rast.stats 1 ..."))
-    grass.run_command(
+    gs.message(_("v.rast.stats 1 ..."))
+    gs.run_command(
         "v.rast.stats",
         map="su_segm_edges",
         raster="a_irad",
         column_prefix="a_i",
         method="average",
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.renamecolumn", map="su_segm_edges", column="a_i_average,a_i"
     )
 
-    grass.message(_("v.rast.stats 2 ..."))
-    grass.run_command(
+    gs.message(_("v.rast.stats 2 ..."))
+    gs.run_command(
         "v.rast.stats",
         map="su_segm_edges",
         raster="a_allrad",
         column_prefix="a_all",
         method="average",
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.renamecolumn", map="su_segm_edges", column="a_all_average,a_all"
     )
 
-    grass.message(_("v.rast.stats 3 ..."))
-    grass.run_command(
+    gs.message(_("v.rast.stats 3 ..."))
+    gs.run_command(
         "v.rast.stats",
         map="su_segm_edges",
         raster="v_i",
         column_prefix="v_i",
         method="average",
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.renamecolumn", map="su_segm_edges", column="v_i_average,v_i"
     )
 
     # fix problems
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges set v_i = (select coalesce(0,v_i) "
             "as v_i from su_segm_edges) where v_i is null"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "v.extract",
         input="su_segm_edges",
         where="v_i>=0",
         output="su_segm",
         overwrite=True,
     )
-    grass.run_command("v.db.addtable", map="su_segm", table="su_segm_edges_2", layer=2)
+    gs.run_command("v.db.addtable", map="su_segm", table="su_segm_edges_2", layer=2)
 
     # calcolo V - metodo RASTER
-    grass.message(_("-- calcolo V --"))
-    grass.run_command("r.mapcalc", expression=f"num = {onecell}*v_i", overwrite=True)
-    grass.run_command("r.mapcalc", expression=f"den = {onecell}", overwrite=True)
-    numvar = grass.parse_command(
+    gs.message(_("-- calcolo V --"))
+    gs.run_command("r.mapcalc", expression=f"num = {onecell}*v_i", overwrite=True)
+    gs.run_command("r.mapcalc", expression=f"den = {onecell}", overwrite=True)
+    numvar = gs.parse_command(
         "r.univar",
         map="num",
         quiet=True,
-        parse=(grass.core.parse_key_val, {"sep": ":"}),
+        parse=(gs.core.parse_key_val, {"sep": ":"}),
     )
-    denvar = grass.parse_command(
+    denvar = gs.parse_command(
         "r.univar",
         map="den",
         quiet=True,
-        parse=(grass.core.parse_key_val, {"sep": ":"}),
+        parse=(gs.core.parse_key_val, {"sep": ":"}),
     )
     v_fin = float(numvar["sum"]) / float(denvar["sum"])
-    grass.message(_(f"Vfin: {v_fin}"))
+    gs.message(_(f"Vfin: {v_fin}"))
 
     #
     # calcolo I
     #
-    grass.message(_("-- calcolo I -- ALT2 procedure"))
+    gs.message(_("-- calcolo I -- ALT2 procedure"))
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map="su_segm",
         layer=2,
@@ -357,78 +358,78 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
             "si real, cj real, sj real, num real"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set ai = "
             "(select a_i from su_segm where cat=su_segm_edges_2.left)"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set aj = "
             "(select a_i from su_segm where cat=su_segm_edges_2.right)"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set aall = "
             "(select a_all from su_segm where cat=su_segm_edges_2.right)"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set ci = "
             "cos(atan((sin(ai)+sin(aall))/(cos(ai)+cos(aall))))"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set si = "
             "sin(atan((sin(ai)+sin(aall))/(cos(ai)+cos(aall))))"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set cj = "
             "cos(atan((sin(aj)+sin(aall))/(cos(aj)+cos(aall))))"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql=(
             "update su_segm_edges_2 set sj = "
             "sin(atan((sin(aj)+sin(aall))/(cos(aj)+cos(aall))))"
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="update su_segm_edges_2 set num = ci*cj+si*sj",
     )
 
-    num = grass.parse_command(
+    num = gs.parse_command(
         "db.select",
         flags="c",
         sql="select sum(num) from su_segm_edges_2 where left<>-1 and right<>-1",
     )
-    den = grass.parse_command(
+    den = gs.parse_command(
         "db.select",
         flags="c",
         sql="select count(*) from su_segm_edges_2 where left<>-1 and right<>-1",
     )
     num_float = float(next(iter(num.keys())))
     den_float = float(next(iter(den.keys())))
-    grass.message(_(num_float))
-    grass.message(_(den_float))
+    gs.message(_(num_float))
+    gs.message(_(den_float))
     i_fin = float(num_float) / float(den_float)
-    grass.message(_(f"Ifin: {i_fin}"))
+    gs.message(_(f"Ifin: {i_fin}"))
 
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         type="raster",
         name=(
@@ -437,13 +438,14 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         ),
         flags="f",
     )
-    grass.run_command(
+    gs.run_command(
         "g.remove", type="vector", name="su_segm,su_segm_edges", flags="f"
     )
-    if grass.find_file("MASK")["file"]:
-        grass.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
+    if gs.find_file("MASK")["file"]:
+        gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
-    grass.message("Metrics calculated.")
+    gs.del_temp_region()
+    gs.message("Metrics calculated.")
 
     return v_fin, i_fin
 
@@ -470,7 +472,7 @@ def main():
         cleansize,
         resolution,
     )
-    grass.message("Calculating metrics finished.")
+    gs.message("Calculating metrics finished.")
 
     output = f"{areamin} {cvmin} {v_fin} {i_fin}"
 
@@ -480,13 +482,13 @@ def main():
     sys.stdout.write(f"i_fin={i_fin}\n")
 
     if options["outfile"]:
-        grass.debug("Writing output to file")
-        grass.debug(output)
+        gs.debug("Writing output to file")
+        gs.debug(output)
         with open(outfile, "a") as file:
             file.write(output)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()
