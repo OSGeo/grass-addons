@@ -880,8 +880,15 @@ def skip_existing(output, search_result):
                 creation_time = str(
                     datetime.utcfromtimestamp(os.path.getctime(scene_file))
                 )
-                ingestion_time = scene.properties.get("modificationDate")
-                if normalize_time(ingestion_time) <= creation_time:
+                ingestion_time = scene.properties.get(
+                    "modificationDate",
+                    scene.properties.get(
+                        "publicationDate", scene.properties.get("creationDate")
+                    ),
+                )
+                if ingestion_time and normalize_time(ingestion_time) <= normalize_time(
+                    creation_time
+                ):
                     # This is to check that the file was completely downloaded
                     # without interruptions.
                     # The reason this works:
