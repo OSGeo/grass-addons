@@ -898,7 +898,7 @@ def skip_existing(output, search_result):
                     # the scenes remote location
                     # so here we are checking for the existance of that file.
                     hashed_file = (
-                        downloaded_dir / md5(scene.remote_location.encode()).hexdigest()
+                        downloaded_dir / md5((scene.product_type+"-"+scene.properties['id']).encode()).hexdigest()
                     )
                     if not hashed_file.exists():
                         continue
