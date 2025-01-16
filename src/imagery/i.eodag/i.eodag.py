@@ -877,12 +877,17 @@ def skip_existing(output, search_result):
         for suffix in SUFFIXES:
             scene_file = output / (scene.properties["title"] + suffix)
             if scene_file.exists():
-                creation_time = datetime.utcfromtimestamp(os.path.getctime(scene_file))
-                ingestion_time = scene.properties.get("modificationDate")
-                if (
-                    ingestion_time
-                    and datetime.fromisoformat(ingestion_time).replace(tzinfo=None)
-                    <= creation_time
+                creation_time = str(
+                    datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                )
+                ingestion_time = scene.properties.get(
+                    "modificationDate",
+                    scene.properties.get(
+                        "publicationDate", scene.properties.get("creationDate")
+                    ),
+                )
+                if ingestion_time and normalize_time(ingestion_time) <= normalize_time(
+                    creation_time
                 ):
                     # This is to check that the file was completely downloaded
                     # without interruptions.
@@ -893,7 +898,10 @@ def skip_existing(output, search_result):
                     # the scenes remote location
                     # so here we are checking for the existance of that file.
                     hashed_file = (
-                        downloaded_dir / md5(scene.remote_location.encode()).hexdigest()
+                        downloaded_dir
+                        / md5(
+                            (scene.product_type + "-" + scene.properties["id"]).encode()
+                        ).hexdigest()
                     )
                     if not hashed_file.exists():
                         continue
@@ -1316,7 +1324,7 @@ def main():
             if not search_result:
                 gs.message(_("Nothing to download.\nExiting..."))
             if options["output"]:
-                custom_config["outputs_prefix"] = options["output"]
+                custom_config["output_dir"] = options["output"]
             dag.download_all(search_result, **custom_config)
         except MisconfiguredError as e:
             gs.fatal(_(e))
