@@ -200,9 +200,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     )
 
     gs.message(_("r.statistics 4 ..."))
-    gs.run_command(
-        "r.mapcalc", expression=f"base = int({dem}/{dem})", overwrite=True
-    )
+    gs.run_command("r.mapcalc", expression=f"base = int({dem}/{dem})", overwrite=True)
     gs.run_command(
         "r.stats.zonal",
         base="base",
@@ -257,9 +255,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     )
 
     # mapcalc's atan(x,y) returns result in degrees ..
-    gs.run_command(
-        "r.mapcalc", expression="a_i = atan(sumsin,sumcos)", overwrite=True
-    )
+    gs.run_command("r.mapcalc", expression="a_i = atan(sumsin,sumcos)", overwrite=True)
     gs.run_command(
         "r.mapcalc",
         expression="a_all = atan(sumsin_all,sumcos_all)",
@@ -280,9 +276,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         column_prefix="a_i",
         method="average",
     )
-    gs.run_command(
-        "v.db.renamecolumn", map="su_segm_edges", column="a_i_average,a_i"
-    )
+    gs.run_command("v.db.renamecolumn", map="su_segm_edges", column="a_i_average,a_i")
 
     gs.message(_("v.rast.stats 2 ..."))
     gs.run_command(
@@ -304,9 +298,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         column_prefix="v_i",
         method="average",
     )
-    gs.run_command(
-        "v.db.renamecolumn", map="su_segm_edges", column="v_i_average,v_i"
-    )
+    gs.run_command("v.db.renamecolumn", map="su_segm_edges", column="v_i_average,v_i")
 
     # fix problems
     gs.run_command(
@@ -438,9 +430,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         ),
         flags="f",
     )
-    gs.run_command(
-        "g.remove", type="vector", name="su_segm,su_segm_edges", flags="f"
-    )
+    gs.run_command("g.remove", type="vector", name="su_segm,su_segm_edges", flags="f")
     if gs.find_file("MASK")["file"]:
         gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 

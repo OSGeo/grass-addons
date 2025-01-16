@@ -512,9 +512,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                                 column="newcat",
                                 quiet=True,
                             )
-                            gs.run_command(
-                                "v.db.addtable", map=output_vect, quiet=True
-                            )
+                            gs.run_command("v.db.addtable", map=output_vect, quiet=True)
                             gs.run_command(
                                 "v.db.addcolumn",
                                 map=output_vect,
@@ -564,9 +562,7 @@ def clean_small_areas(dem, slumap, plains, cleansize, slumapclean):
 
     if not flags["n"]:
         if not flags["m"]:
-            gs.message(
-                " -- we want QUICK cleaning of small-sized areas: METHOD 1 --"
-            )
+            gs.message(" -- we want QUICK cleaning of small-sized areas: METHOD 1 --")
 
         exp = "$out = if(isnull($mask), null(), 1)"
         gs.mapcalc(exp, out="MASK", mask=dem, quiet=True)

@@ -280,9 +280,7 @@ def slope_units(
         rm_rasters.append("slu_r_tmp")
 
         # remove output map from previous run
-        gs.run_command(
-            "g.remove", type="raster", name="slu_r", flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name="slu_r", flags="f", quiet=True)
         if plains:
             exp = "$out = if(isnull($a), $b, null())"
             gs.mapcalc(exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True)
@@ -508,9 +506,7 @@ def slope_units(
                         quiet=True,
                     )
                 else:
-                    gs.run_command(
-                        "r.mask", raster="slu_r_" + str(counter), quiet=True
-                    )
+                    gs.run_command("r.mask", raster="slu_r_" + str(counter), quiet=True)
 
                 stats_lc = gs.read_command(
                     "r.univar",
@@ -687,13 +683,9 @@ def slope_units(
     # clean up
     if gs.find_file(name="MASK", element="cell")["file"]:
         gs.run_command("r.mask", flags="r", quiet=True)
-    gs.run_command(
-        "g.remove", type="raster", name="seno,coseno", flags="f", quiet=True
-    )
+    gs.run_command("g.remove", type="raster", name="seno,coseno", flags="f", quiet=True)
 
-    gs.run_command(
-        "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
-    )
+    gs.run_command("g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True)
     gs.run_command(
         "g.remove",
         type="raster",
@@ -704,27 +696,17 @@ def slope_units(
 
     for i in range(1, counter + 1):
         mapname = "slu_diversity_" + str(i)
-        gs.run_command(
-            "g.remove", type="raster", name=mapname, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
 
     for i in range(counter + 1):
         mapname = "slu_r_" + str(i)
-        gs.run_command(
-            "g.remove", type="raster", name=mapname, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
         mapname = "cvar_" + str(i)
-        gs.run_command(
-            "g.remove", type="raster", name=mapname, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
         mapname = "count_" + str(i)
-        gs.run_command(
-            "g.remove", type="raster", name=mapname, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
         mapname = "slu_r_todo_" + str(i)
-        gs.run_command(
-            "g.remove", type="raster", name=mapname, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
 
     gs.message("Slope units calculated.")
 
