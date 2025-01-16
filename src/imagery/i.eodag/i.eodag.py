@@ -877,7 +877,9 @@ def skip_existing(output, search_result):
         for suffix in SUFFIXES:
             scene_file = output / (scene.properties["title"] + suffix)
             if scene_file.exists():
-                creation_time = datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                creation_time = str(
+                    datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                )
                 ingestion_time = scene.properties.get("modificationDate")
                 if normalize_time(ingestion_time) <= creation_time:
                     # This is to check that the file was completely downloaded
