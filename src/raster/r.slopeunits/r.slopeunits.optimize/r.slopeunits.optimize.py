@@ -155,20 +155,29 @@ env = gs.gisenv()
 gisdbase = env["GISDBASE"]
 location = env["LOCATION_NAME"]
 master_mapset = env["MAPSET"]
+rm_mapsets = []
 
 
 def cleanup():
     """Cleanup function"""
+    current_mapset = gs.gisenv()["MAPSET"]
+    if current_mapset != master_mapset:
+        gs.run_command("g.mapset", mapset=master_mapset)
+    for mapset in rm_mapsets:
+        path = os.path.join(gisdbase, location, mapset)
+        if os.path.exists(path):
+            grass.utils.try_rmdir(path)
+
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
-        if gs.find_file(name=rmrast, element="cell")["file"]:
+        if gs.find_file(name=rmrast, element="cell", mapset=master_mapset)["file"]:
             gs.run_command("g.remove", type="raster", name=rmrast, **kwargs)
     for rmvect in rm_vectors:
-        if gs.find_file(name=rmvect, element="vector")["file"]:
+        if gs.find_file(name=rmvect, element="vector", mapset=master_mapset)["file"]:
             gs.run_command("g.remove", type="vector", name=rmvect, **kwargs)
 
-    if gs.find_file("MASK")["file"]:
+    if gs.find_file(name="MASK", element="cell", mapset=master_mapset)["file"]:
         # gs.run_command('r.mask', flags='r')
         gs.run_command("g.remove", type="raster", name="MASK", flags="f", quiet=True)
 
@@ -197,6 +206,7 @@ def run_batch(
     ico = COUNT_GLOBAL
     mapset_prefix = "tmp_su"
     nome_mapset = f"{mapset_prefix}_{ico}"
+    rm_mapsets.append(nome_mapset)
 
     gs.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
     gs.run_command("g.mapset", mapset=nome_mapset, flags="c")
@@ -607,7 +617,7 @@ def calculate_new_limits_caso_4(x_lims_cur, y_lims_cur):
 
 def main():
     """Main function of r.slopeunits.optimize"""
-    global rm_rasters, rm_vectors
+    global rm_rasters, rm_vectors, rm_mapsets
     global COUNT_GLOBAL
 
     # pass fully qualified names of input maps
