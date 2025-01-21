@@ -44,6 +44,7 @@
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: filled_elevation
+# % required: no
 # % description: Raster map representing filled digital elevation model
 # %end
 # %option
@@ -257,17 +258,18 @@ def main():
         gs.mapcalc(
             f"{options['water_elevation_stddev']} = {tmp_water_elevation_stddev_zonal_res}"
         )
-    gs.run_command(
-        "r.patch",
-        input=[tmp_rfillstats, options["water_elevation"]],
-        output=options["filled_elevation"],
-    )
     gs.run_command("r.colors", map=options["water_elevation"], raster=ground)
-    gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
     gs.run_command("r.colors", map=options["water_elevation_stddev"], color="reds")
     gs.raster_history(options["water_elevation"])
-    gs.raster_history(options["filled_elevation"])
     gs.raster_history(options["water_elevation_stddev"])
+    if options["filled_elevation"]:
+        gs.run_command(
+            "r.patch",
+            input=[tmp_rfillstats, options["water_elevation"]],
+            output=options["filled_elevation"],
+        )
+        gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
+        gs.raster_history(options["filled_elevation"])
 
 
 if __name__ == "__main__":
