@@ -145,7 +145,7 @@ import atexit
 import math
 import os
 
-import gs.script as gs
+import grass.script as gs
 
 # initialize global vars
 rm_rasters = []
