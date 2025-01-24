@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.watersheds
+ * MODULE:       r.hydrobasin
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
