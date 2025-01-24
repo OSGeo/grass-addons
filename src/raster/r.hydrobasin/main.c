@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.watersheds
+ * MODULE:       r.hydrobasin
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
@@ -8,7 +8,7 @@
  *               Memory-Efficient Watershed Delineation (MESHED) OpenMP
  *               parallel algorithm by Cho (2025).
  *
- * COPYRIGHT:    (C) 2024 by Huidae Cho and the GRASS Development Team
+ * COPYRIGHT:    (C) 2024-2025 by Huidae Cho and the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS

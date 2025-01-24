@@ -1,37 +1,36 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.watersheds</em> delineates a large number of watersheds from a flow
+<em>r.hydrobasin</em> delineates a large number of watersheds from a flow
 direction raster map and an outlets vector map using the Memory-Efficient
 Watershed Delineation (MESHED) OpenMP parallel algorithm by Cho (2025).
 
 <h2>NOTES</h2>
 
-<em>r.watersheds</em> uses a flow direction raster map and an outlets vector
+<em>r.hydrobasin</em> uses a flow direction raster map and an outlets vector
 map to delineate a large number of watersheds in parallel using OpenMP.
 
 <p>The module recognizes three different formats of flow directions:
 <div align="center">
-<img src="r_watersheds_formats.png" alt="degree">
+<img src="r_hydrobasin_formats.png" alt="degree">
 </div>
 
-<em>r.watershed</em> (singular) can be used to create an input flow direction
-raster map. It can also create watersheds, but it uses an elevation map instead
-of a flow direction map, which is actually one of its outputs, and does not
-take outlets as input. <em>r.watersheds</em> is more similar to
-<em>r.water.outlet</em> and <em>r.stream.basins</em>. Both modules take an
-input flow direction map from <em>r.watershed</em>, but <em>r.water.outlet</em>
-can delineate a watershed for one outlet point at a time and
-<em>r.stream.basins</em> is a sequential module for multiple watersheds. Unlike
-<em>r.stream.basins</em>, <em>r.watersheds</em> can use a column for watershed
-IDs, but using a non-default column is slower than using the default category
-(cat) column because of database queries.
+<em>r.watershed</em> can be used to create an input flow direction raster map.
+It can also create watersheds, but it uses an elevation map instead of a flow
+direction map, which is actually one of its outputs, and does not take outlets
+as input. <em>r.hydrobasin</em> is more similar to <em>r.water.outlet</em> and
+<em>r.stream.basins</em>. Both modules take an input flow direction map from
+<em>r.watershed</em>, but <em>r.water.outlet</em> can delineate a watershed for
+one outlet point at a time and <em>r.stream.basins</em> is a sequential module
+for multiple watersheds. Unlike <em>r.stream.basins</em>, <em>r.hydrobasin</em>
+can use a column for watershed IDs, but using a non-default column is slower
+than using the default category (cat) column because of database queries.
 
 <p>For comparisons, using an i7-1370P CPU with 64GB memory and a 30-meter flow
-direction map for the entire Texas (1.8 billion cells), <em>r.watersheds</em>
+direction map for the entire Texas (1.8 billion cells), <em>r.hydrobasin</em>
 took 1 minute 27 seconds to delineate the entire state using 60,993 outlet
 cells draining away (see below how to extract draining cells) while
 <em>r.stream.basins</em> 5 minutes 28 seconds, both using the category column.
-However, <em>r.watersheds</em> with a non-category column took 6 minutes 21
+However, <em>r.hydrobasin</em> with a non-category column took 6 minutes 21
 seconds because of heavy database queries.
 
 <h2>EXAMPLES</h2>
@@ -39,7 +38,7 @@ seconds because of heavy database queries.
 These examples use the North Carolina sample dataset.
 
 <p>Calculate flow accumulation using <em>r.watershed</em> and delineate all
-watersheds from draining cells using <em>r.watersheds</em>:
+watersheds from draining cells using <em>r.hydrobasin</em>:
 <div class="code"><pre>
 # set computational region
 g.region -ap raster=elevation
@@ -59,12 +58,12 @@ r.mapcalc ex="dcells=if(\
         (isnull(drain[1,1])&amp;&amp;abs(drain)==7),1,null())"
 r.to.vect input=dcells type=point output=dcells
 
-# delineate all watersheds using r.watersheds
-r.watersheds dir=drain outlets=dcells output=wsheds nprocs=$(nproc)
+# delineate all watersheds using r.hydrobasin
+r.hydrobasin dir=drain outlets=dcells output=wsheds nprocs=$(nproc)
 </pre></div>
 
 <div align="center">
-<img src="r_watersheds_wsheds.png">
+<img src="r_hydrobasin_wsheds.png">
 </div>
 
 <p>Perform the same analysis for 10,938 bridges in North Carolina:
@@ -75,12 +74,12 @@ g.region -ap raster=elev_state_500m
 # calculate drainage directions using r.watershed
 r.watershed -s elevation=elev_state_500m drainage=drain_state
 
-# delineate all watersheds using r.watersheds
-r.watersheds dir=drain_state outlets=bridges output=bridge_wsheds nproc=$(nproc)
+# delineate all watersheds using r.hydrobasin
+r.hydrobasin dir=drain_state outlets=bridges output=bridge_wsheds nproc=$(nproc)
 </pre></div>
 
 <div align="center">
-<img src="r_watersheds_bridge_wsheds.png">
+<img src="r_hydrobasin_bridge_wsheds.png">
 </div>
 
 <h2>SEE ALSO</h2>
