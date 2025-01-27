@@ -76,14 +76,26 @@ def cleanup():
                 )
 
 
+def testdbcon(map):
+    """Test if the vector layer has an attribute table"""
+    testdb = gs.read_command("v.db.connect", flags="c", map=map)
+    return testdb
+
+
 def main(options, flags):
 
     # Copy layer and remove all but cat column in new layer
     tmplayer = create_temporary_name("tmp")
-    gs.run_command("g.copy", vector=[options["input"], tmplayer], overwrite=True)
-    cols = gs.read_command("db.columns", table=tmplayer).split("\n")
-    cols = [x for x in cols[1:] if x != ""]
-    gs.run_command("v.db.dropcolumn", map=tmplayer, columns=cols)
+    gs.run_command(
+        "g.copy", vector=[options["input"], tmplayer], overwrite=True, quiet=True
+    )
+    if len(testdbcon(options["input"])) == 0:
+        gs.run_command("v.db.addtable", map=tmplayer)
+        cols = ""
+    else:
+        cols = gs.read_command("db.columns", table=tmplayer).split("\n")
+        cols = [x for x in cols[1:] if x != ""]
+        gs.run_command("v.db.dropcolumn", map=tmplayer, columns=cols)
 
     # Check topology
     top = gs.parse_command("v.info", flags="t", map=tmplayer)
