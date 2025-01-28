@@ -101,7 +101,7 @@ import numpy as np
 import subprocess
 
 # GRASS
-from grass import script as gscript
+from grass import script as gs
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import general as g
@@ -115,11 +115,12 @@ def main():
     """
     FlowFill
     """
+    options, flags = gs.parser()
     # netCDF4
     try:
         from netCDF4 import Dataset
     except:
-        g.fatal(
+        gs.fatal(
             _(
                 "netCDF4 not detected. Install pip3 and "
                 "then type at the command prompt: "
@@ -127,7 +128,6 @@ def main():
             )
         )
 
-    options, flags = gscript.parser()
     _input = options["input"]
     _np = options["np"]
     _threshold = options["threshold"]
@@ -143,7 +143,7 @@ def main():
     import numpy as np
     from netCDF4 import Dataset
     # GRASS
-    from grass import script as gscript
+    from grass import script as gs
     from grass.script import array as garray
     from grass.pygrass.modules.shortcuts import raster as r
     from grass.pygrass.modules.shortcuts import general as g
@@ -163,43 +163,43 @@ def main():
     """
 
     # Check for overwrite -- should be unnecessary thanks to GRASS parser
-    _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
+    _rasters = np.array(gs.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any() or (_water == _output).any():
-        if gscript.overwrite() is False:
-            g.fatal(_("output would overwrite " + _output))
+        if gs.overwrite() is False:
+            gs.fatal(_("output would overwrite " + _output))
 
     # Check for proper number of processors
     try:
         _np = int(_np)
     except:
-        g.fatal(_("Number of processors must be an integer."))
+        gs.fatal(_("Number of processors must be an integer."))
 
     if _np < 3:
-        g.fatal(_("FlowFill requires 3 or more processors."))
+        gs.fatal(_("FlowFill requires 3 or more processors."))
 
     # Check for proper option set
-    if _h_runoff is not "":  # ????? possible ?????
-        if _h_runoff_raster is not "":
-            g.fatal(_('Only one of "h_runoff" and "h_runoff_raster" may be set'))
-    elif _h_runoff_raster is "":
-        g.fatal(_('Either "h_runoff" or "h_runoff_raster" must be set'))
+    if _h_runoff != "":  # ????? possible ?????
+        if _h_runoff_raster != "":
+            gs.fatal(_('Only one of "h_runoff" and "h_runoff_raster" may be set'))
+    elif _h_runoff_raster == "":
+        gs.fatal(_('Either "h_runoff" or "h_runoff_raster" must be set'))
 
-    if _output is "" and _water is "":
-        g.warning(_("No output is set."))
+    if _output == "" and _water == "":
+        gs.warning(_("No output is set."))
 
     # Set up runoff options
-    if _h_runoff_raster is not "":
+    if _h_runoff_raster != "":
         _runoff_bool = "Y"
     else:
         _h_runoff = float(_h_runoff)
         _runoff_bool = "N"
 
     # Get computational region
-    n_columns = gscript.region()["cols"]
-    n_rows = gscript.region()["rows"]
+    n_columns = gs.region()["cols"]
+    n_rows = gs.region()["rows"]
 
     # Output DEM as temporary file for FORTRAN
-    temp_FlowFill_input_file = gscript.tempfile(create=False)
+    temp_FlowFill_input_file = gs.tempfile(create=False)
     dem = garray.array(_input, null=-999999)
     dem_array = np.array(dem[:]).astype(np.float32)
     del dem
@@ -214,8 +214,8 @@ def main():
     #           overwrite=True)
 
     # Output runoff raster as temporary file for FORTRAN
-    if _h_runoff_raster is not "":
-        temp_FlowFill_runoff_file = gscript.tempfile(create=False)
+    if _h_runoff_raster != "":
+        temp_FlowFill_runoff_file = gs.tempfile(create=False)
         rr = garray.array(_h_runoff_raster, null=0.0)
         rr_array = np.array(rr[:]).astype(np.float32)
         del rr
@@ -232,7 +232,7 @@ def main():
         temp_FlowFill_runoff_file = ""
 
     # Run FlowFill
-    temp_FlowFill_output_file = gscript.tempfile(create=False)
+    temp_FlowFill_output_file = gs.tempfile(create=False)
     mpirunstr = (
         "mpirun -np "
         + str(_np)
@@ -274,7 +274,7 @@ def main():
     popen.stdout.close()
     if _mpirun_error_flag:
         print("")
-        g.fatal(
+        gs.fatal(
             _(
                 "FlowFill executable not found.\n"
                 "If you have not installed FlowFill, please download it "
@@ -292,7 +292,7 @@ def main():
     # if 'mpirun was unable to find the specified executable file' in \
     #                              ''.join(_stdout.stdout.readlines()):
     # else:
-    #    g.message('FlowFill Executable Found.')
+    #    gs.message('FlowFill Executable Found.')
     #    print('')
 
     # subprocess.Popen(mpirunstr, shell=True).wait()
@@ -317,9 +317,9 @@ def main():
     # Save the output to GRASS GIS
     dem = garray.array()
     dem[:] = outrast
-    dem.write(_output, overwrite=gscript.overwrite())
+    dem.write(_output, overwrite=gs.overwrite())
     dem[:] = outrast_water
-    dem.write(_water, overwrite=gscript.overwrite())
+    dem.write(_water, overwrite=gs.overwrite())
     del dem
 
 
