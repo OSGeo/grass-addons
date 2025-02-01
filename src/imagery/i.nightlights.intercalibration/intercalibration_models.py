@@ -171,7 +171,7 @@ class Elvidge(CalibrationModel):
         """
         msg = "Calibration model proposed by Elvidge, "
         msg += str(self.version) + "\n  "
-        msg += "[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n"
+        msg += "[DN adj. = C0 + C1\u00d7DN + C2\u00d7DN^2]\n"
         return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
@@ -253,7 +253,7 @@ class Liu2012(CalibrationModel):
         Return a string representation of the calibration model
         """
         msg = "Calibration model by Liu, 2012: "
-        msg += "DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n"
+        msg += "DNc = a \u00d7 DN^2 + b \u00d7 DN + c\n"
         return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
@@ -327,7 +327,7 @@ class Wu2013(CalibrationModel):
     def __str__(self):
         """ """
         msg = "Calibration model by Wu, 2013: "
-        msg += "DNc + 1 = a \u00D7 (DN + 1)^b\n"
+        msg += "DNc + 1 = a \u00d7 (DN + 1)^b\n"
         return msg + "  " + self._model + "\n"
 
     def build_model(self):
