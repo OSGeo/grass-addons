@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
 """
- MODULE:       i.histo.match
- AUTHOR(S):    Stefan Blumentrath (Norway) parallel / Numpy re-implementation
-               of the original module written by:
-               Luca Delucchi, Fondazione E. Mach (Italy)
-               original PERL code was developed by:
-               Laura Zampa (2004) student of Dipartimento di Informatica e
-               Telecomunicazioni, Facoltà di Ingegneria,
-               University of Trento  and ITC-irst, Trento (Italy)
+MODULE:     i.histo.match
+AUTHOR(S):  Stefan Blumentrath (Norway) parallel / Numpy re-implementation
+            of the original module written by:
+            Luca Delucchi, Fondazione E. Mach (Italy)
+            original PERL code was developed by:
+            Laura Zampa (2004) student of Dipartimento di Informatica e
+            Telecomunicazioni, Facoltà di Ingegneria,
+            University of Trento  and ITC-irst, Trento (Italy)
 
- PURPOSE:      Calculate histogram matching of several images
- COPYRIGHT:    (C) 2011-2024 by the GRASS Development Team
+PURPOSE:    Calculate histogram matching of several images
+COPYRIGHT:  (C) 2011-2024 by the GRASS Development Team
 
-               This program is free software under the GNU General
-               Public License (>=v2). Read the file COPYING that
-               comes with GRASS for details.
+            This program is free software under the GNU General
+            Public License (>=v2). Read the file COPYING that
+            comes with GRASS for details.
 """
 
 # %module

@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 """
- MODULE:      i.sentinel.download
- AUTHOR(S):   Martin Landa (original contributor)
-              Hamed Elgizery <hamedashraf2004 gmail.com>
+MODULE:     i.sentinel.download
+AUTHOR(S):  Martin Landa (original contributor)
+            Hamed Elgizery <hamedashraf2004 gmail.com>
 
- PURPOSE:     Downloads Sentinel data from Copernicus Data Space Ecosystem,
-              using the EODAG API.
+PURPOSE:    Downloads Sentinel data from Copernicus Data Space Ecosystem,
+            using the EODAG API.
 
- COPYRIGHT:   (C) 2018-2024 by Martin Landa, and the GRASS development team
+COPYRIGHT:  (C) 2018-2024 by Martin Landa, and the GRASS development team
 
-              This program is free software under the GNU General Public
-              License (>=v2). Read the file COPYING that comes with GRASS
-              for details.
+            This program is free software under the GNU General Public
+            License (>=v2). Read the file COPYING that comes with GRASS
+            for details.
 
- CHANGELOG:   Use the EODAG API as a unified datasource - Hamed Elgizery
+CHANGELOG:  Use the EODAG API as a unified datasource - Hamed Elgizery
 """
 
 # %module
