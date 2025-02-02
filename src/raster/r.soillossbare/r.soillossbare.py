@@ -138,7 +138,6 @@ This program is free software under the GNU General Public License
 # %  description: Remove intermediate results
 # %end
 
-
 import sys
 import os
 import grass.script as g
@@ -147,7 +146,6 @@ from grass.exceptions import CalledModuleError
 
 class rusle_base(object):
     def __init__(self):
-
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
         self.temp_dirs_to_cleanup = []

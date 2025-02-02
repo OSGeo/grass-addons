@@ -256,7 +256,6 @@ def traverse_network_create_graph(vector, start_node, graph_nodes, graph_edges):
 
     # For each line at that node
     for line_id in edge_ids:
-
         line_id_abs = abs(line_id)
         line = vector.read(line_id_abs)
         nodes = line.nodes()
@@ -423,7 +422,6 @@ def detect_compute_networks(
     # Check for copy columns only if the input vector map
     # has an attribute table
     if v.table and columns:
-
         # These are the column names that are newly created
         # and it must be checked if their names
         # are exist in the input map column names
@@ -450,7 +448,6 @@ def detect_compute_networks(
                 # Rename the column if it conflicts with the
                 # order column names in the output map
                 if column in new_column_names:
-
                     # Create name suffix and make sure that the new column name
                     # does not exists
                     number = 1

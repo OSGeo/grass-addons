@@ -478,7 +478,6 @@ class CSWBrowserPanel(wx.Panel):
         ]
         services = {}
         for link in links:
-
             if "scheme" in link:
                 link_type = link["scheme"]
             elif "protocol" in link:
@@ -543,7 +542,6 @@ class CSWBrowserPanel(wx.Panel):
             self.bttAddWcs.Enable()
 
     def OnNavigate(self, evt):
-
         name = evt.GetEventObject().GetLabel()
         if name == "<<":
             self.startfrom = 0
@@ -883,7 +881,6 @@ class CSWBrowserPanel(wx.Panel):
         self.findResNumLbl.SetLabel(msg)
         index = 0
         for rec in self.catalog.records:
-
             if self.catalog.records[rec].identification.identtype:
                 item = wx.ListItem()
                 self.resultList.InsertStringItem(

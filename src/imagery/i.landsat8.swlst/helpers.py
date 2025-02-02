@@ -101,8 +101,9 @@ def mask_clouds(qa_band, qa_pixel):
     https://neteler.org/blog/processing-landsat8-data-in-grass-gis-7/#Applying_the_Landsat_8_Quality_Assessment_%28QA%29_Band
     """
     msg = (
-        "\n|i Masking for pixel values <{qap}> "
-        "in the Quality Assessment band.".format(qap=qa_pixel)
+        "\n|i Masking for pixel values <{qap}> in the Quality Assessment band.".format(
+            qap=qa_pixel
+        )
     )
     g.message(msg)
 

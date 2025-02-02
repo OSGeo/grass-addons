@@ -68,8 +68,9 @@ def main():
         if not os.path.exists(path):
             grass.fatal(
                 _(
-                    "No groups with name {na} in LOCATION {loc}, MAPSET"
-                    " {ma}".format(na=name, loc=gisenv["LOCATION_NAME"], ma=mapset)
+                    "No groups with name {na} in LOCATION {loc}, MAPSET {ma}".format(
+                        na=name, loc=gisenv["LOCATION_NAME"], ma=mapset
+                    )
                 )
             )
         if sub:
@@ -77,8 +78,9 @@ def main():
             if not os.path.exists(path):
                 grass.fatal(
                     _(
-                        "No subgroups with name {na} in group "
-                        "{gr}".format(na=sub, gr=name)
+                        "No subgroups with name {na} in group {gr}".format(
+                            na=sub, gr=name
+                        )
                     )
                 )
             if not flagg:
@@ -103,8 +105,9 @@ def main():
         if not os.path.exists(path):
             grass.fatal(
                 _(
-                    "No groups in LOCATION {loc}, MAPSET "
-                    "{ma}".format(loc=gisenv["LOCATION_NAME"], ma=gisenv["MAPSET"])
+                    "No groups in LOCATION {loc}, MAPSET {ma}".format(
+                        loc=gisenv["LOCATION_NAME"], ma=gisenv["MAPSET"]
+                    )
                 )
             )
         for gr in os.listdir(path):

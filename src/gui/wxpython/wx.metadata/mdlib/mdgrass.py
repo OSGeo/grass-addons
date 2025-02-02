@@ -439,7 +439,6 @@ class GrassMD:
             self.md.identification.contact.append(val)
 
         if self.type == "vector":
-
             # Identification/Resource Abstract
             # TODO not enough sources for create abstarce
             self.md.identification.abstract = mdutil.replaceXMLReservedChar(
@@ -641,7 +640,6 @@ class GrassMD:
         Update some parameters in r/v.support. This part need revision #TODO
         """
         if self.type == "vector":
-
             if len(md.contact) > 0:
                 _org = ""
                 for co in md.contact:
@@ -700,7 +698,6 @@ class GrassMD:
 
         # ------------------------------------------------------------------------ RASTER
         if self.type == "raster":
-
             if md.identification.title is not (None or ""):
                 _title = md.identification.title
                 Module("r.support", map=self.map, title=_title, overwrite=True)

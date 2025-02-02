@@ -94,7 +94,6 @@ for details.
 # % required: coordinates, points
 # %end
 
-
 import sys
 import atexit
 import json

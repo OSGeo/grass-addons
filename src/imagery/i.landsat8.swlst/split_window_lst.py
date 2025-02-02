@@ -127,7 +127,6 @@ class SplitWindowLST:
         )
 
         if landcover in EMISSIVITIES.keys() or landcover == "Random":
-
             # a fixed land cover class requested
             assert self._landcover_string_validity(
                 landcover_class
@@ -152,7 +151,6 @@ class SplitWindowLST:
             )
 
         else:
-
             # if no fixed land cover class requested
             self.landcover_class = False
 

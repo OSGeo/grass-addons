@@ -277,7 +277,7 @@ def checkValues(res, alpha=False):
         if not alpha and reso[i] % 2 == 0:
             # return the error advice
             grass.fatal(
-                _("The size setting must be an odd number " "(found %d)" % reso[i])
+                _("The size setting must be an odd number (found %d)" % reso[i])
             )
     # create a range
     if typ == "range":

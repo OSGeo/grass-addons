@@ -63,23 +63,19 @@ from grass.exceptions import CalledModuleError
 
 class OsmImporter:
     def __init__(self):
-
         self.tmp_vects = []
         self.tmp_opid = str(os.getpid())
 
     def cleanup(self):
-
         for tmp in self.tmp_vects:
             grass.run_command(
                 "g.remove", flags="f", type="vector", name=tmp, quiet=True
             )
 
     def _getTmpName(self, name):
-
         return name + "_" + self.tmp_opid
 
     def getNewTmp(self, name):
-
         tmp = self._getTmpName(name)
 
         self.tmp_vects.append(tmp)
@@ -87,11 +83,9 @@ class OsmImporter:
         return tmp
 
     def getTmp(self, name):
-
         return self._getTmpName(name)
 
     def main(self, options, flags):
-
         # just get the layer names
         if flags["l"]:
             try:

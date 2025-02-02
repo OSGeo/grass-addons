@@ -99,7 +99,6 @@ This program is free software under the GNU General Public License
 # % answer:WFS_GRASS
 # %end
 
-
 import os
 import sys
 
@@ -109,7 +108,6 @@ import grass.script as grass
 
 
 def main():
-
     if options["driver"] == "WFS_GRASS":
         grass.debug("Using GRASS driver")
         from wfs_drv import WFSDrv

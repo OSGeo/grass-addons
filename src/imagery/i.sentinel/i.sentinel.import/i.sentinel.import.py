@@ -1038,7 +1038,7 @@ def main():
         if options["register_output"]:
             gs.warning(
                 _(
-                    "Register output file name is not created " "when -{} flag given"
+                    "Register output file name is not created when -{} flag given"
                 ).format("p")
             )
         importer.print_products()

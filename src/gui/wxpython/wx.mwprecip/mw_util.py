@@ -437,7 +437,6 @@ def getFilesInFoldr(fpath, full=False):
             if full:
                 tmp.append(os.path.join(fpath, path))
             else:
-
                 tmp.append(path)
 
     return tmp

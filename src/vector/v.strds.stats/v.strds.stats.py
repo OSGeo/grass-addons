@@ -94,9 +94,7 @@ class Sample(object):
         elif date == "end":
             output = str(self.end).split(" ")[0].replace("-", "_")
         else:
-            grass.fatal(
-                "The values accepted by printDay in Sample are:" " 'start', 'end'"
-            )
+            grass.fatal("The values accepted by printDay in Sample are: 'start', 'end'")
         if self.granu:
             if self.granu.find("minute") != -1 or self.granu.find("second") != -1:
                 output += "_" + str(self.start).split(" ")[1].replace(":", "_")
@@ -192,7 +190,6 @@ def main():
             isvalid = True
             mapname_list = []
             for mapmatrix in mapmatrizes:
-
                 entry = mapmatrix[i]
 
                 if entry["samples"]:
@@ -218,7 +215,7 @@ def main():
         except CalledModuleError:
             dbif.close()
             grass.fatal(
-                _("Unable to run v.extract for vector map" " <%s> and where <%s>")
+                _("Unable to run v.extract for vector map <%s> and where <%s>")
                 % (input, where)
             )
     else:

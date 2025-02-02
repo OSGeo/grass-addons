@@ -296,7 +296,7 @@ def main():
             )
             if ismask == 2:
                 grass.mapcalc(
-                    "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1," " null()))",
+                    "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1, null()))",
                     overwrite=grass.overwrite(),
                     quiet=True,
                     sigma=sigma,
@@ -484,7 +484,7 @@ def main():
             )
             if ismask == 2:
                 grass.mapcalc(
-                    "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1," " null()))",
+                    "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1, null()))",
                     overwrite=grass.overwrite(),
                     quiet=True,
                     sigma=sigma,

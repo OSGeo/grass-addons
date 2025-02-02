@@ -280,9 +280,7 @@ def main():
         "i.pca", input=shade_maps, output=pca_basename, overwrite=core.overwrite()
     )
 
-    grass.info(
-        _("Creating RGB composite from " "PC1 (red), PC2 (green), PC3 (blue) ...")
-    )
+    grass.info(_("Creating RGB composite from PC1 (red), PC2 (green), PC3 (blue) ..."))
     grass.run_command(
         "r.composite",
         red=pca_maps[0],

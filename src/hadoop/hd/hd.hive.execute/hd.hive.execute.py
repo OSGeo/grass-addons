@@ -45,7 +45,6 @@ from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
 
 def main():
-
     conn = ConnectionManager()
 
     conn.get_current_connection(options["conn_type"])

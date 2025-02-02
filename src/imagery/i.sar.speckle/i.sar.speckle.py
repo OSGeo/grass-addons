@@ -62,7 +62,6 @@ from grass.pygrass.modules.shortcuts import raster as r
 
 
 def lee_filter(img, size, img_out):
-
     pid = str(os.getpid())
     img_mean = "tmp%s_img_mean" % pid
     img_sqr = "tmp%s_img_sqr" % pid
@@ -104,7 +103,6 @@ def lee_filter(img, size, img_out):
 
 
 def main():
-
     method = options["method"]  # algorithm for speckle removal
     img = options["input"]  # name of input image
     img_out = options["output"]  # name of output image
@@ -114,7 +112,7 @@ def main():
 
     if (out["name"] != "") and not grass.overwrite():
         grass.warning(
-            _("Output map name already exists. " "Delete it or use overwrite flag")
+            _("Output map name already exists. Delete it or use overwrite flag")
         )
 
     if method == "lee":

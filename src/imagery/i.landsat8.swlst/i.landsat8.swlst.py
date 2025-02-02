@@ -491,7 +491,6 @@ def main():
     #
 
     if mtl_file:
-
         # if MTL and b10 given, use it to compute at-satellite temperature t10
         if b10:
             # convert DNs to at-satellite temperatures
@@ -527,7 +526,6 @@ def main():
 
     # use given fixed class?
     if landcover_class:
-
         if split_window_lst.landcover_class is False:
             # replace with meaningful error
             grass.warning(
@@ -565,7 +563,6 @@ def main():
 
     # use the FROM-GLC map
     elif landcover_map:
-
         if average_emissivity_map:
             tmp_avg_lse = average_emissivity_map
 

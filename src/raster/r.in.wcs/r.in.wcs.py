@@ -138,7 +138,6 @@ class WCSBase:
         self.etree = etree
 
     def __del__(self):
-
         # tries to remove temporary files, all files should be
         # removed before, implemented just in case of unexpected
         # stop of module

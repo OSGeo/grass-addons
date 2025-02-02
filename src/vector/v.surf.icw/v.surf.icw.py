@@ -142,7 +142,6 @@ def cleanup():
 
 
 def main():
-
     pts_input = options["input"]
     output = options["output"]
     cost_map = options["cost_map"]

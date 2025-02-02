@@ -368,7 +368,6 @@ def main(options, flags):
     )
 
     if recreation_potential:
-
         # export 'recreation_potential' map and
         # use 'output_name' for the temporary 'potential' map for spectrum
         tmp_recreation_potential_categories = export_map(
@@ -389,7 +388,6 @@ def main(options, flags):
         grass.warning(_(INFRASTRUCTURE_NOT_REQUIRED))
 
     if any([recreation_opportunity, recreation_spectrum, demand, flow, supply]):
-
         infrastructure_component = build_infrastructure_component(
             infrastructure=infrastructure,
             artificial=artificial,
@@ -415,7 +413,6 @@ def main(options, flags):
     """ Recreation Spectrum """
 
     if any([recreation_spectrum, demand, flow, supply]):
-
         recreation_opportunity_component = []
 
         # input
@@ -472,7 +469,6 @@ def main(options, flags):
         """ Recreation Opportunity [Output]"""
 
         if recreation_opportunity:
-
             # export 'recreation_opportunity' map and
             # use 'output_name' for the temporary 'potential' map for spectrum
             tmp_recreation_opportunity_categories = export_map(
@@ -525,7 +521,6 @@ def main(options, flags):
         )
 
         if base_vector:
-
             update_vector(
                 vector=base_vector,
                 raster=recreation_spectrum,
@@ -536,7 +531,6 @@ def main(options, flags):
     """Valuation Tables"""
 
     if any([demand, flow, supply, aggregation]):
-
         """Highest Recreation Spectrum == 9"""
 
         expression = (
@@ -650,12 +644,10 @@ def main(options, flags):
         """Mobility function"""
 
         if not flow and any([supply, aggregation]):
-
             flow = flow_map_name
             remove_map_at_exit(flow)
 
         if flow or any([supply, aggregation]):
-
             mobility_expression = mobility_function(
                 distance=distance_categories_to_highest_spectrum,
                 constant=MOBILITY_CONSTANT,
@@ -678,7 +670,6 @@ def main(options, flags):
             r.mapcalc(mobility_equation, overwrite=True)
 
             if base_vector:
-
                 update_vector(
                     vector=base_vector,
                     raster=flow,
@@ -689,7 +680,6 @@ def main(options, flags):
     """Supply Table"""
 
     if aggregation:
-
         supply_parameters = {}
 
         if supply:

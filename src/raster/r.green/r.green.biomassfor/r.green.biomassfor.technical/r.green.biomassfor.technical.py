@@ -195,7 +195,6 @@ YPIX = "yield_pix = yield_pix1*%d + yield_pix2*%d"
 
 
 def remove_map(opts, flgs):
-
     run_command("g.remove", type="raster", flags="f", name="cable_crane_extraction")
     run_command("g.remove", type="raster", flags="f", name="forwarder_extraction")
     run_command("g.remove", type="raster", flags="f", name="other_extraction")

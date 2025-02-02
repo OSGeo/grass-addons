@@ -78,7 +78,6 @@ def set_output_encoding(encoding="utf-8"):
 
 
 def main():
-
     # Set output encoding to UTF-8
     set_output_encoding()
     # Parse input

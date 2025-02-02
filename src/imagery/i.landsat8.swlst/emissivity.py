@@ -52,7 +52,7 @@ def determine_delta_emissivity(
     Produce a delta emissivity map based on the FROM-GLC map covering the
     region of interest.
     """
-    msg = "\n|i Determining delta land surface emissivity based on a " "look-up table "
+    msg = "\n|i Determining delta land surface emissivity based on a look-up table "
     if not quiet:
         msg += "| Expression:\n\n {exp}"
         msg = msg.format(exp=delta_lse_expression)

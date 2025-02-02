@@ -82,7 +82,6 @@ def build_land_component(
             grass.fatal(_(FATAL_MESSAGE_LAND_USE_DATATYPE.format(landuse=landuse)))
 
     if landuse and suitability_scores and ":" not in suitability_scores:
-
         msg = USING_SUITABILITY_SCORES_FROM_FILE.format(scores=suitability_scores)
         grass.verbose(_(msg))
 
@@ -117,7 +116,6 @@ def build_land_component(
     # Use one set of land cover reclassification rules
 
     if not landcover and landuse:
-
         landcover = landuse
         msg = ATTEMPT_TO_USE_LAND_USE_FOR_AREAL_STATISTICS.format(landuse=landuse)
         grass.warning(_(msg))
@@ -134,7 +132,6 @@ def build_land_component(
 
     # if 'land_classes' not given
     if landcover and not landcover_reclassification_rules:
-
         # if 'landcover' is not the MAES land cover,
         # then use internal reclassification rules
         # how to test:
@@ -170,11 +167,9 @@ def build_land_component(
     # FIXME -----------------------------------------------------------------
 
     if land:
-
         land_component = land.split(",")
 
     if landuse and suitability_scores:
-
         msg = DERIVING_LAND_SUITABILITY
         grass.verbose(msg.format(landuse=landuse, rules=suitability_scores))
 

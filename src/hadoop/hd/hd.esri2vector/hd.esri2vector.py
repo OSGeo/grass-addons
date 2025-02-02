@@ -44,7 +44,6 @@ from hdfsgrass.hdfs_grass_lib import GrassMapBuilderEsriToEsri
 
 
 def main():
-
     files = os.listdir(options["path"])
     map_string = ""
     # download and convert  blocks of table

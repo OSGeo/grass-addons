@@ -57,31 +57,31 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 
                Overview
 
-   +----------------------------------------------------------------------+
-   |                                                                      |
-   |          +-----------------+                                         |
-   | DN  +--> |Calibration Model| +-->  Calibrated DN                     |
-   |          +---^-------------+            ^                            |
-   |              |                          |                            |
-   |              |             +--Evaluation+Methods-------------------+ |
-   |              |             |                                       | |
-   |              |             | ? Not Implemented                     | |
-   |              |             |                                       | |
-   |              |             +---------------------------------------+ |
-   |              |                                                       |
-   | +--Regression+Models-----------------------------------------------+ |
-   | |                                                                  | |
-   | |  Elvidge, 2009/2014:  DNc = C0 + C1×DN + C2×DNv2                 | |
-   | |                                                                  | |
-   | |  Liu, 2012:  based on Elvidge's model + optimal threshold method | |
-   | |                                                                  | |
-   | |  Wu, 2014:            DNc + 1 = a×(DN + 1)^b                     | |
-   | |                                                                  | |
-   | |  Others?                                                         | |
-   | |                                                                  | |
-   | +------------------------------------------------------------------+ |
-   |                                              https://asciiflow.com   |
-   +----------------------------------------------------------------------+
++----------------------------------------------------------------------+
+|                                                                      |
+|          +-----------------+                                         |
+| DN  +--> |Calibration Model| +-->  Calibrated DN                     |
+|          +---^-------------+            ^                            |
+|              |                          |                            |
+|              |             +--Evaluation+Methods-------------------+ |
+|              |             |                                       | |
+|              |             | ? Not Implemented                     | |
+|              |             |                                       | |
+|              |             +---------------------------------------+ |
+|              |                                                       |
+| +--Regression+Models-----------------------------------------------+ |
+| |                                                                  | |
+| |  Elvidge, 2009/2014:  DNc = C0 + C1×DN + C2×DNv2                 | |
+| |                                                                  | |
+| |  Liu, 2012:  based on Elvidge's model + optimal threshold method | |
+| |                                                                  | |
+| |  Wu, 2014:            DNc + 1 = a×(DN + 1)^b                     | |
+| |                                                                  | |
+| |  Others?                                                         | |
+| |                                                                  | |
+| +------------------------------------------------------------------+ |
+|                                              https://asciiflow.com   |
++----------------------------------------------------------------------+
 
 
                Sources
@@ -198,7 +198,6 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 # % multiple : no
 # %end
 
-
 # required librairies -------------------------------------------------------
 import os
 import sys
@@ -305,7 +304,7 @@ def main():
     global temporary_maps
     temporary_maps = []
 
-    msg = "|i Inter-satellite calibration of DMSP-OLS Nighttime Stable " "Lights"
+    msg = "|i Inter-satellite calibration of DMSP-OLS Nighttime Stable Lights"
     g.message(msg)
     del msg
 
@@ -320,7 +319,6 @@ def main():
     """Loop over list of input images"""
 
     for image in input_list:
-
         satellite = image[0:3]
         year = image[3:7]
 
@@ -404,7 +402,6 @@ def main():
         """Transfer timestamps, if any"""
 
         if timestamps:
-
             try:
                 datetime = grass.read_command("r.timestamp", map=image)
                 run("r.timestamp", map=tmp_cdn, date=datetime)
@@ -460,7 +457,6 @@ def main():
 
         ndi = float()
         if evaluation:
-
             # total light indices for input, tmp_cdn images
             tli_image = total_light_index(image)
             tli_tmp_cdn = total_light_index(tmp_cdn)
@@ -490,7 +486,7 @@ def main():
             history_calibration += "NDI: {ndi}".format(ndi=round(ndi, 10))
         title_calibration = "Calibrated DMSP-OLS Stable Lights"
         description_calibration = (
-            "Inter-satellite calibrated average " "Digital Number values"
+            "Inter-satellite calibrated average Digital Number values"
         )
         units_calibration = "Digital Numbers (Calibrated)"
 

@@ -72,6 +72,7 @@ To do:
 - implement usage of temporal envelope of vector points
 - implement relative temporal type
 """
+
 import os
 
 try:
@@ -238,7 +239,6 @@ def main():
     # Loop over STRDS
     counter = 0
     for strds_name in strds_names:
-
         cur_strds = tgis.open_old_stds(strds_name, "strds", dbif)
 
         # skip current STRDS if no map is registered in it
@@ -283,8 +283,9 @@ def main():
             dbif.close()
             grass.fatal(
                 _(
-                    "No maps selected from Space time raster dataset "
-                    "{}".format(cur_strds.get_id())
+                    "No maps selected from Space time raster dataset {}".format(
+                        cur_strds.get_id()
+                    )
                 )
             )
 

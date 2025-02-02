@@ -228,7 +228,6 @@ def cleanup():
 
 
 def main():
-
     # lazy import required numpy and scipy modules
     import numpy
     from scipy import stats
@@ -864,7 +863,6 @@ def main():
         segment_list = sorted(list(set(segment_list)))
 
         for j in segment_list:
-
             segment_cat = str(j)
             grass.debug(_("This is segment nr.: " + str(segment_cat)))
 
@@ -883,7 +881,6 @@ def main():
             source_points_list = list(csv.reader(source_points_list, delimiter="|"))
 
             for k in source_points_list:
-
                 cat = int(k[0])
                 X = float(k[1])
                 Y = float(k[2])
@@ -1151,7 +1148,6 @@ def main():
                         last_barrier = float(barriers_list[-1][3])
 
                     for l in barriers_list:
-
                         barrier_cat = int(l[0])
                         adj_X = float(l[1])
                         adj_Y = float(l[2])

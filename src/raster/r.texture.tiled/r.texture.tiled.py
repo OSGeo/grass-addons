@@ -134,7 +134,6 @@ class MyGridModule(GridModule):
 
 
 def main():
-
     inputraster = options["input"]
     outputprefix = options["output"]
     windowsize = int(options["size"])

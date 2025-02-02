@@ -51,7 +51,6 @@ def main():
     hive = conn.get_hook()
 
     if options["path"]:
-
         for path in hive.check_for_content(options["path"], flags["r"]):
             grass.message(path)
 

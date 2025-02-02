@@ -193,8 +193,7 @@ def main():
         g.run_command("g.region", raster=Green)
         try:
             g.mapcalc(
-                exp="{tmp_deep}=if({tmp_band}<{band_min}, {tmp_band},"
-                "null())".format(
+                exp="{tmp_deep}=if({tmp_band}<{band_min}, {tmp_band},null())".format(
                     tmp_deep="tmp_deep", band_min=tmp_AOI_min, tmp_band=str(i)
                 ),
                 overwrite=True,
@@ -331,7 +330,7 @@ def main():
                 r_file.write('grass_file=readRAST("%s")\n' % "tmp_Calibration_points")
                 r_file.write("raster_file = raster(grass_file)\n")
                 frame_file = (
-                    "calib = as.data.frame(raster_file,na.rm = TRUE ," "xy = TRUE)\n"
+                    "calib = as.data.frame(raster_file,na.rm = TRUE ,xy = TRUE)\n"
                 )
                 r_file.write(frame_file)
             for i in li:
@@ -349,9 +348,9 @@ def main():
                 r_file.write(ref_file)
             g.run_command("g.remove", type="raster", pattern="MASK", flags="f")
             ref_file = "Rapid_ref.sdf=SpatialPointsDataFrame(calib[,1:2],calib)\n"
-            ref_file += "Rapid_pred.sdf=SpatialPointsDataFrame(pred[,1:2]," "pred)\n"
+            ref_file += "Rapid_pred.sdf=SpatialPointsDataFrame(pred[,1:2],pred)\n"
             ref_file += (
-                "DM_Rapid_ref.sdf=gw.dist(dp.locat=coordinates" "(Rapid_ref.sdf))\n"
+                "DM_Rapid_ref.sdf=gw.dist(dp.locat=coordinates(Rapid_ref.sdf))\n"
             )
             r_file.write(ref_file)
             l = []
@@ -363,8 +362,7 @@ def main():
                 k = "+".join(l)
             if bisquare:
                 ref_flag = (
-                    "cat('\nCalculating optimal bandwidth using "
-                    "bisquare kernel..\n')\n"
+                    "cat('\nCalculating optimal bandwidth using bisquare kernel..\n')\n"
                 )
                 ref_flag += (
                     "BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,"
@@ -388,8 +386,7 @@ def main():
                 r_file.write(ref_flag)
             if not bisquare:
                 ref_fla = (
-                    "cat('\nCalculating optimal bandwidth using "
-                    "gaussian kernel..\n')\n"
+                    "cat('\nCalculating optimal bandwidth using gaussian kernel..\n')\n"
                 )
                 ref_fla += (
                     "BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,"
@@ -413,7 +410,7 @@ def main():
                 r_file.write(ref_fla)
             ref_fil = "Sp_frame = as.data.frame(GWR_Rapid_pred.sdf$SDF)\n"
             r_file.write(ref_fil)
-            export = 'write.table(Sp_frame, quote=FALSE, sep=",",' '"%s")\n' % predict
+            export = 'write.table(Sp_frame, quote=FALSE, sep=",","%s")\n' % predict
             r_file.write(export)
             r_file.close()
             subprocess.check_call(["Rscript", r], shell=False)

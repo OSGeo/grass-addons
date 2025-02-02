@@ -207,7 +207,6 @@ def get_size(vector):
 
 
 def main():
-
     global rm_regions, rm_rasters, rm_vectors
 
     # parameters

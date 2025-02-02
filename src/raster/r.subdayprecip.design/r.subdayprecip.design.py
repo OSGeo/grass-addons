@@ -178,11 +178,11 @@ def main():
         # check valid rasters
         name = grass.find_file(rast, element="cell")["name"]
         if not name:
-            grass.warning("Raster map <{}> not found. " "Skipped.".format(rast))
+            grass.warning("Raster map <{}> not found. Skipped.".format(rast))
             continue
         if name not in allowed_rasters:
             grass.warning(
-                "Raster map <{}> skipped. " "Allowed: {}".format(rast, allowed_rasters)
+                "Raster map <{}> skipped. Allowed: {}".format(rast, allowed_rasters)
             )
             continue
 

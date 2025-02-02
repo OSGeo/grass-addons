@@ -65,7 +65,6 @@ GNU General Public License for more details.
 # % exclusive: -m,-r
 # %end
 
-
 import json
 import sys
 
@@ -196,5 +195,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     sys.exit(main())

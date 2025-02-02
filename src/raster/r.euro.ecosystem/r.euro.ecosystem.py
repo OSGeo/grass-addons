@@ -39,7 +39,6 @@ COPYRIGHT: (C) 2015, 2019 by the GRASS Development Team
 # % description: level 2 data
 # %end
 
-
 import sys
 import os
 import csv
@@ -50,7 +49,6 @@ import grass.script as grass
 
 
 def main():
-
     iraster = options["input"]
     eraster = options["input"].split("@")[0]
     level1 = flags["1"]

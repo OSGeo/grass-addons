@@ -104,7 +104,6 @@ if "GISBASE" not in os.environ.keys():
 
 
 def get_rastertype(raster):
-
     if not isinstance(raster[0, 0], np.float32) and not isinstance(
         raster[0, 0], np.float64
     ):
@@ -127,7 +126,6 @@ def mask_rasternd(raster):
 
 
 def main():
-
     try:
         import pysptools.eea as eea
     except ImportError:

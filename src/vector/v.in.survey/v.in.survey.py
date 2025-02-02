@@ -1255,7 +1255,6 @@ class Merge(Merge_init, layer):
         if sum(Merge_init.len_item) > 0:
             for i in range(0, 1):
                 if Merge.name[i] != "":  # just for merged layers
-
                     # find out code to recognize a type of the vector layer:
                     # split the name of the 1st layer to be merged...
                     element = Merge.name[i].split(",")[0]

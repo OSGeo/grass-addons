@@ -425,7 +425,6 @@ def diversity_filter(samples, uncertain_samples_index, nbr, diversity_lambda=0.2
     selected_sample_index = uncertain_samples_index  # At the begining, take all samples
 
     while selected_sample_index.shape[0] > nbr:
-
         dist_to_closest = distance_to_closest(samples_cpy)
         average_dist = average_distance(samples_cpy)
         discard = np.argmax(L * dist_to_closest + (1 - L) * (1.0 / m) * average_dist)

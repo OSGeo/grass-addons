@@ -176,7 +176,6 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
 
 
 def main():
-
     settings = options["settings"]
     scene_names = options["scene_name"].split(",")
     output = options["output"]
