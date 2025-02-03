@@ -8,6 +8,11 @@ config.log
 config.status*
 error.log
 
+# Ingore Python virtual environment
+venv/
+env/
+.venv/
+.env/
 
 # notebook helper files
 .ipynb_checkpoints
