@@ -146,7 +146,7 @@ def checkdate(options):
     # set only start day
     elif options["startday"] == "" and options["endday"] != "":
         grass.fatal(
-            _("It is not possible to use <endday> option without " "<startday> option")
+            _("It is not possible to use <endday> option without <startday> option")
         )
     # set start and end day
     elif options["startday"] != "" and options["endday"] != "":
@@ -299,10 +299,7 @@ def main():
                 grass.message("files=%s" % modisOgg.filelist.name)
             elif filesize == 0:
                 grass.message(
-                    _(
-                        "No data download, probably they have been "
-                        "previously downloaded"
-                    )
+                    _("No data download, probably they have been previously downloaded")
                 )
             elif filesize != 0:
                 grass.message(

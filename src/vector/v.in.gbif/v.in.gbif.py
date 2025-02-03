@@ -136,7 +136,6 @@ def process_csv(
 
 
 def main():
-
     gbifraw = options["input"]
     gbifimported = options["output"]
     directory = options["dir"]
@@ -239,14 +238,12 @@ def main():
     # reprojection-on-the-fly if flag r
 
     if reproject_gbif:
-
         gs.message("reprojecting data on-the-fly ...")
         gs.run_command("v.import", input=new_gbif_vrt, output=gbifimported, quiet=True)
 
         # no reprojection-on-the-fly
 
     else:
-
         gs.run_command(
             "v.in.ogr",
             input=new_gbif_vrt,
@@ -261,7 +258,6 @@ def main():
     # move vrt and csv to user defined directory
 
     if move_vrt_gbif_to_dir:
-
         gs.message("----")
         gs.message("Create GBIF vrt data files ...")
         shutil.move(new_gbif_vrt, directory)
@@ -271,7 +267,6 @@ def main():
         gs.message("----")
 
     else:
-
         gs.message("----")
         gs.message("Some clean up ...")
         os.remove("%s" % new_gbif_vrt)

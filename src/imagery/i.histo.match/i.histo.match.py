@@ -60,7 +60,6 @@ COPYRIGHT:  (C) 2011-2024 by the GRASS Development Team
 # %option G_OPT_M_NPROCS
 # %end
 
-
 import sys
 import os
 

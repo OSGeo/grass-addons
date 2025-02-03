@@ -176,7 +176,6 @@ sys.path.append(path)
 
 
 def main(options, flags):
-
     from config import ModelConfig
     import utils
     import model as modellib
@@ -279,7 +278,7 @@ def main(options, flags):
         # Write list of unused images to logs
         testImagesThreshold = int(len(images) * 0.9)
         gscript.message(
-            "List of unused images saved in the logs directory" 'as "unused.txt"'
+            'List of unused images saved in the logs directoryas "unused.txt"'
         )
         with open(os.path.join(logs, "unused.txt"), "w") as unused:
             for filename in images[testImagesThreshold:]:

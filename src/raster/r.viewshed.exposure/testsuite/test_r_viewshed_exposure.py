@@ -185,7 +185,6 @@ class TestFunctions(TestCase):
         gs.run_command("g.region", raster=self.dsm, align=self.dsm)
 
         for function in self.functions:
-
             # Output dataset
             output = "test_roads_{}".format(function[0])
             self.r_viewshed.outputs.output = output

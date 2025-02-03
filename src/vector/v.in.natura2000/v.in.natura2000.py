@@ -120,7 +120,6 @@ import grass.script as grass
 
 
 def main():
-
     n2k_input = options["input"]
     n2k_output = options["output"]
     pa_sitetype_input = options["sitetype"]

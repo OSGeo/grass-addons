@@ -356,7 +356,6 @@ def main():
 
             # Extract unnacceptable bitpatterns (bp) form bitpattern filter
             for bp in options[k].split(","):
-
                 if bit_length[k] == 1:
                     bits = single_bits[bp]
                 else:

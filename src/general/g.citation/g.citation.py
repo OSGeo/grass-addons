@@ -430,7 +430,6 @@ except ImportError:
 
 
 def print_using_citeproc(csl_json, keys, style):
-
     from citeproc import CitationStylesStyle, CitationStylesBibliography
     from citeproc import Citation, CitationItem
     from citeproc import formatter
@@ -778,8 +777,9 @@ def print_chicago_footnote(citation, output):
             authors_text += ", and "
     title = "GRASSS GIS module {}".format(citation["module"])
     print(
-        "{authors_text}, {title} ({grass-version}), computer software"
-        " ({year}).".format(authors_text=authors_text, title=title, **citation),
+        "{authors_text}, {title} ({grass-version}), computer software ({year}).".format(
+            authors_text=authors_text, title=title, **citation
+        ),
         file=output,
     )
 
@@ -937,7 +937,7 @@ def main(options, flags):
     if output_format == "citeproc":
         if not options["style"]:
             gs.fatal(
-                _("Option format=citeproc requires also" " the option style to be set")
+                _("Option format=citeproc requires also the option style to be set")
             )
     vertical_separator = options["vertical_separator"]
     output = options["output"]

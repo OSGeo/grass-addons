@@ -577,10 +577,7 @@ def join_multiplecsv(
     # Stop execution if outputfile exists and cannot be overwritten
     if os.path.isfile(outfile) and overwrite is False:
         gscript.fatal(
-            _(
-                "File '%s' already exists and overwrite option is "
-                "not enabled." % outfile
-            )
+            _("File '%s' already exists and overwrite option is not enabled." % outfile)
         )
     else:
         nbfile = len(fileList)
@@ -994,18 +991,18 @@ def main():
     gscript.verbose(_("Checking installation of necessary modules..."))
     # Check if i.segment.stats is well installed
     if not gscript.find_program("i.segment.stats", "--help"):
-        message = "You first need to install the addon " "i.segment.stats.\n"
-        message += "You can install the addon with 'g.extension " "i.segment.stats'"
+        message = "You first need to install the addon i.segment.stats.\n"
+        message += "You can install the addon with 'g.extension i.segment.stats'"
         gscript.fatal(_(message))
     # Check if r.zonal.classes is well installed
     if not gscript.find_program("r.zonal.classes", "--help"):
-        message = _("You first need to install the addon " "r.zonal.classes.\n")
-        message += _("You can install the addon with 'g.extension " "r.zonal.classes'")
+        message = _("You first need to install the addon r.zonal.classes.\n")
+        message += _("You can install the addon with 'g.extension r.zonal.classes'")
         gscript.fatal(_(message))
     # Check if r.clip is well installed
     if not gscript.find_program("r.clip", "--help"):
-        message = _("You first need to install the addon " "r.clip.\n")
-        message += _("You can install the addon with 'g.extension " "r.clip.'")
+        message = _("You first need to install the addon r.clip.\n")
+        message += _("You can install the addon with 'g.extension r.clip.'")
         gscript.fatal(_(message))
     # ------------------------------------------------------------------
     # Define variables from user's values
@@ -1407,7 +1404,7 @@ def main():
     # Run random forest
     # ------------------------------------------------------------------
     gscript.info(
-        _("Random forest model training and prediction. " "This may take some time...")
+        _("Random forest model training and prediction. This may take some time...")
     )
     RandomForest(output_weighting_layer, vector_map.split("@")[0], id)
 
@@ -1455,6 +1452,5 @@ def main():
 
 
 if __name__ == "__main__":
-
     atexit.register(cleanup)
     sys.exit(main())

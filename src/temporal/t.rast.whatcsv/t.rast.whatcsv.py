@@ -90,7 +90,6 @@ import grass.pygrass.modules as pymod
 
 
 def main(options, flags):
-
     # Get the options
     csv_file = options["csv"]
     strds = options["strds"]

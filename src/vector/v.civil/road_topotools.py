@@ -373,7 +373,6 @@ class Triang(object):
         max_z = 0
         min_z = 100000
         for area_id in range(1, num_areas + 1):
-
             GrassVect.Vect_get_area_points(map_info, area_id, line1.c_points)
 
             pto1_z = line1.c_points.contents.z[0]
@@ -399,7 +398,6 @@ class Triang(object):
 
         num_areas = GrassVect.Vect_get_num_areas(map_info)
         for area_id in range(1, num_areas + 1):
-
             GrassVect.Vect_get_area_points(map_info, area_id, line1.c_points)
 
             pto1_x = line1.c_points.contents.x[0]
@@ -413,7 +411,6 @@ class Triang(object):
             pto3_z = line1.c_points.contents.z[2]
 
             for i, z_z in enumerate(range(max_min[0], max_min[1] + 1)):
-
                 if pto1_z < z_z and pto2_z < z_z and pto3_z < z_z:
                     continue
                 if pto1_z > z_z and pto2_z > z_z and pto3_z > z_z:

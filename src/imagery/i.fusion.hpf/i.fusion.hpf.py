@@ -260,7 +260,6 @@ def hpf_ascii(center, filter, tmpfile, second_pass):
 
 
 def main():
-
     pan = options["pan"]
     msxlst = options["msx"].split(",")
     outputsuffix = options["suffix"]
@@ -443,7 +442,7 @@ def main():
         grass.message("\n|4 Weighting the High-Pass-Filtered image (HPFi)")
 
         # Compute (1st Pass) Weighting
-        msg_w = "   > Weighting = StdDev(MSx) / StdDev(HPFi) * " "Modulating Factor"
+        msg_w = "   > Weighting = StdDev(MSx) / StdDev(HPFi) * Modulating Factor"
         grass.message(msg_w)
 
         # StdDev of Multi-Spectral Image(s)
@@ -478,7 +477,6 @@ def main():
         cmd_history.append(hst.format(msd=msx_sd, hsd=hpf_sd, mod=modulator))
 
         if second_pass and ratio > 5.5:
-
             #
             # 4+ 2nd Pass Weighting the High Pass Filtered image
             #
@@ -502,8 +500,7 @@ def main():
             #
 
             grass.message(
-                "\n|5+ Adding small-kernel-based weighted "
-                "2nd HPFi back to fused image"
+                "\n|5+ Adding small-kernel-based weighted 2nd HPFi back to fused image"
             )
 
             add_back = "{final} = {msx_hpf} + {pan_hpf} * {wgt}"
@@ -528,13 +525,10 @@ def main():
         #
 
         if histogram_match:
-
             # adapt output StdDev and Mean to the input(ted) ones
             # technically, this is not histogram matching but
             # normalizing to the input's mean + stddev
-            grass.message(
-                "\n|+ Matching histogram of Pansharpened image " "to %s" % (msx)
-            )
+            grass.message("\n|+ Matching histogram of Pansharpened image to %s" % (msx))
 
             # Collect stats for linear histogram matching
             msx_hpf_avg = avg(tmp_msx_hpf)
@@ -589,9 +583,7 @@ def main():
             cmd_history.append("Linear Histogram Matching: %s" % lhm)
         else:
             # scale result to input using quantiles
-            grass.message(
-                "\n|+ Quantile scaling of Pansharpened image " "to %s" % (msx)
-            )
+            grass.message("\n|+ Quantile scaling of Pansharpened image to %s" % (msx))
 
             msx_info = images[msx]
             outfn = "round"
@@ -677,7 +669,6 @@ def main():
         #
 
         if trimming_factor:
-
             tf = trimming_factor
 
             # communicate

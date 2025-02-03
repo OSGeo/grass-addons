@@ -67,7 +67,7 @@ def main(rinput, background, output, method):
     try:
         from PIL import Image
     except ImportError:
-        gscript.fatal("Cannot import PIL." " Please install the Python pillow package.")
+        gscript.fatal("Cannot import PIL. Please install the Python pillow package.")
 
     if "@" in rinput:
         rinput = rinput.split("@")[0]

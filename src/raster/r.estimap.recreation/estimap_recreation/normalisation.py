@@ -149,7 +149,6 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
     grass.verbose(_(msg))
 
     if len(components) > 1:
-
         # prepare string for mapcalc expression
         components = [name.split("@")[0] for name in components]
         components_string = SPACY_PLUS.join(components)

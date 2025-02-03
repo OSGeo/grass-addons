@@ -164,7 +164,7 @@ def main(options, flags):
             import matplotlib as mpl
 
             gscript.fatal(
-                _("Matplotlib {v} does not contain color table" " <{n}>").format(
+                _("Matplotlib {v} does not contain color table <{n}>").format(
                     v=mpl.__version__, n=name
                 )
             )

@@ -238,16 +238,14 @@ def main(options, flags):
                 pymod.Module(
                     "v.db.addcolumn",
                     map=invect,
-                    columns="{col} " "double precision".format(col=colname),
+                    columns="{col} double precision".format(col=colname),
                 )
             except CalledModuleError:
                 gscript.fatal(
-                    _("Not possible to create column " "{col}".format(col=colname))
+                    _("Not possible to create column {col}".format(col=colname))
                 )
         gscript.warning(
-            _("Attribute table of vector {name} will be updated" "...").format(
-                name=invect
-            )
+            _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
     elif update:
         colexist = pymod.Module(
@@ -259,14 +257,12 @@ def main(options, flags):
                     _("Column '{}' does not exist, please create it first".format(col))
                 )
         gscript.warning(
-            _("Attribute table of vector {name} will be updated" "...").format(
-                name=invect
-            )
+            _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
 
     if output != "-" and len(cols) != len(mets):
         gscript.fatal(
-            _("'columns' and 'method' options must have the same " "number of elements")
+            _("'columns' and 'method' options must have the same number of elements")
         )
     tgis.init()
     dbif = tgis.SQLDatabaseInterfaceConnection()
@@ -305,11 +301,11 @@ def main(options, flags):
         gscript.fatal(_("You have to fill 'date_column' or 'date' option"))
     if incol:
         if endcol:
-            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by " "{dc}".format(
+            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by {dc}".format(
                 vmap=invect, dc=incol, ec=endcol
             )
         else:
-            mysql = "SELECT DISTINCT {dc} from {vmap} order by " "{dc}".format(
+            mysql = "SELECT DISTINCT {dc} from {vmap} order by {dc}".format(
                 vmap=invect, dc=incol
             )
         try:
@@ -333,9 +329,7 @@ def main(options, flags):
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(
-                    _("Unable to add table <%s> to vector map " "<%s>" % invect)
-                )
+                gscript.fatal(_("Unable to add table <%s> to vector map <%s>" % invect))
         if pymap.is_open():
             pymap.close()
         qfeat = pymod.Module(
@@ -362,7 +356,7 @@ def main(options, flags):
         else:
             sdata = fdata
             fdata = sdata - td
-        mwhere = "start_time >= '{inn}' and start_time < " "'{out}'".format(
+        mwhere = "start_time >= '{inn}' and start_time < '{out}'".format(
             inn=fdata, out=sdata
         )
         lines = None
@@ -404,7 +398,7 @@ def main(options, flags):
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
                 gscript.fatal(
-                    _("db.select returned an error for date " "{da}".format(da=start))
+                    _("db.select returned an error for date {da}".format(da=start))
                 )
         if not lines and stdout:
             for feat in myfeats:

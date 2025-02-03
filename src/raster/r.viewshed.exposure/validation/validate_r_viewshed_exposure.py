@@ -66,7 +66,6 @@ def run_test_A(
 
         # iterate over points
         for pt in val_pts_topo.viter("points"):
-
             grass.percent(counter, no_points, 1)
             counter += 1
 
@@ -76,7 +75,6 @@ def run_test_A(
 
             # iterate over radii
             for r in radii:
-
                 # set region around processed point
                 grass.run_command(
                     "g.region",
@@ -89,7 +87,6 @@ def run_test_A(
 
                 # iterate over parametrisation methods
                 for m in methods:
-
                     # Calculate GVI
                     r_GVI = "tmp_GVI_{p}_{r}_{m}".format(p=pt_id, r=r, m=m)
 
@@ -244,7 +241,6 @@ def run_test_A_no_viewshed(
 
         # iterate over points
         for pt in val_pts_topo.viter("points"):
-
             grass.percent(counter, no_points, 1)
             counter += 1
 
@@ -254,7 +250,6 @@ def run_test_A_no_viewshed(
 
             # iterate over radii
             for r in radii:
-
                 # set region around processed point
                 grass.run_command(
                     "g.region",
@@ -267,7 +262,6 @@ def run_test_A_no_viewshed(
 
                 # iterate over parametrisation methods
                 for m in methods:
-
                     # Calculate GVI
                     r_GVI = "tmp_GVI_{p}_{r}_{m}".format(p=pt_id, r=r, m=m)
 
@@ -420,7 +414,6 @@ def run_test_B(
 
         # iterate over sample densities
         for dr in densities_reps:
-
             d = dr[0]  # density
             reps = dr[1]  # repetitions
             counter = 0
@@ -441,7 +434,6 @@ def run_test_B(
 
                 # iterate over radii
                 for radius in radii:
-
                     # set region around processed point
                     grass.run_command(
                         "g.region",
@@ -454,7 +446,6 @@ def run_test_B(
 
                     # iterate over repetitions
                     for rep in range(reps):
-
                         # Calculate GVI
                         r_GVI = "tmp_GVI_{p}_{r}_{m}_{s}_m".format(
                             p=pt_id, s=d, r=radius, m=method
@@ -727,7 +718,6 @@ def run_test_C(
 
 
 def main():
-
     # Set numpy printing options
     np.set_printoptions(formatter={"float": lambda x: "{0:0.2f}".format(x)})
 

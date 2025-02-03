@@ -83,7 +83,6 @@ def testdbcon(map):
 
 
 def main(options, flags):
-
     # Copy layer and remove all but cat column in new layer
     tmplayer = create_temporary_name("tmp")
     gs.run_command(

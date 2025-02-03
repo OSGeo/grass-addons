@@ -96,7 +96,6 @@ sys.path.append(path)
 
 
 def main(options, flags):
-
     # Lazy import GDAL python bindings
     try:
         from osgeo import gdal, osr
@@ -618,11 +617,11 @@ if __name__ == "__main__":
         import skimage.io
     except ImportError:
         grass.fatal(
-            "Cannot import skimage." " Please install the Python scikit-image package."
+            "Cannot import skimage. Please install the Python scikit-image package."
         )
     try:
         from PIL import Image
     except ImportError:
-        grass.fatal("Cannot import PIL." " Please install the Python pillow package.")
+        grass.fatal("Cannot import PIL. Please install the Python pillow package.")
 
     main(options, flags)

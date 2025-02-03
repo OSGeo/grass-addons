@@ -142,7 +142,6 @@ class MyGridModule(GridModule):
 
 
 def main():
-
     expression = options["expression"]
     width = options["width"]
     height = options["height"]

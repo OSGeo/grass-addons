@@ -84,7 +84,7 @@ def main():
                 print(_("Removing signature file <{si}>".format(si=sign)))
             except:
                 grass.warning(
-                    _("Signature file <{pa}> was not " "removed".format(pa=sign))
+                    _("Signature file <{pa}> was not removed".format(pa=sign))
                 )
         else:
             output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub, sig=sign)

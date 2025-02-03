@@ -993,7 +993,6 @@ def computeBaselineFromTime(db):
             for line in f:
                 st = st + line.replace("\n", "")
                 if "i" in line.split("\n")[0]:  # get baseline form interval
-
                     fromt = f.next()
                     st += fromt.replace("\n", "")
                     tot = f.next()
@@ -1065,11 +1064,9 @@ def computeBaselineFromTime(db):
             ##parse input file
 
             for line in f:
-
                 # print_message(line)
                 st = st + line.replace("\n", "")
                 if "i" in line.split("\n")[0]:  # get baseline form interval
-
                     fromt = f.next()
                     st += fromt.replace("\n", "")
                     tot = f.next()
@@ -1293,7 +1290,6 @@ def grassWork():
     try:
         with open(os.path.join(path, "l_timewindow"), "r") as f:
             for win in f.read().splitlines():
-
                 win = schema_name + "." + win
                 grass.run_command(
                     "v.db.connect",
@@ -1406,7 +1402,6 @@ def computePrecip(db):
     links_dict = getBaselDict(db)
     ##check if baseline from text is correct
     if len(links_dict) < link_num:
-
         sql = "select linkid from link"
         links = db.executeSql(sql, True, True)
         for link in links:
@@ -1433,7 +1428,6 @@ def computePrecip(db):
             # final precipiatation is R1
             Ar = record[1] - baseline_decibel - Aw
             if Ar > 0:
-
                 yr = Ar / (record[2] / 1000)
                 R1 = (yr / coef_a_k[1]) ** (1 / coef_a_k[0])
             else:
@@ -1579,7 +1573,6 @@ def makeTimeWin(db, typeid, table):
     ##make timewindows from time interval
     ###############################################
     while cur_timestamp <= timestamp_max:
-
         # create name of view
         a = time.strftime(
             "%Y_%m_%d_%H_%M", time.strptime(str(cur_timestamp), "%Y-%m-%d %H:%M:%S")
@@ -1606,7 +1599,6 @@ def makeTimeWin(db, typeid, table):
             tgrass_vector.append(tgrass)
 
         else:
-
             tgrass = view_name + "|" + str(cur_timestamp) + "\n"
             tgrass_vector.append(tgrass)
 

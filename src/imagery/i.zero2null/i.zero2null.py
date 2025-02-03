@@ -44,7 +44,6 @@ def cleanup():
         rm_region is not None
         and gscript.find_file(name=rm_region, element="windows", mapset=".")["name"]
     ):
-
         gscript.run_command("g.region", region=rm_region)
         gscript.run_command(
             "g.remove", type="region", name=rm_region, flags="f", quiet=True
@@ -57,7 +56,6 @@ def cleanup():
 
 
 def main():
-
     inmaps = options["map"].split(",")
 
     # save current region

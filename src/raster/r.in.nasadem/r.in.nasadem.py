@@ -268,7 +268,6 @@ def import_local_tile(tile, local, pid, layer):
 
 
 def download_tile(tile, url, pid, version, username, password):
-
     grass.debug("Download tile: %s" % tile, debug=1)
     local_tile = "NASADEM_HGT_" + str(tile) + ".zip"
 
@@ -358,7 +357,6 @@ def createTMPlocation(epsg=4326):
 
 
 def main():
-
     global TMPLOC, SRCGISRC, TGTGISRC, GISDBASE
     global tile, tmpdir, in_temp, currdir, tmpregionname
 

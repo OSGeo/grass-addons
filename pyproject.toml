@@ -1,7 +1,11 @@
+[project]
+name = "grass-addons"
+requires-python = ">=3.8"
+
 [tool.black]
 required-version = '25'
 line-length = 88
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
 extend-exclude = '''
 (
     # exclude directories in the root of the project
@@ -20,3 +24,7 @@ extend-exclude = '''
     )/
 )
 '''
+
+[tool.ruff]
+required-version = ">=0.9.4"
+builtins = ["_"]

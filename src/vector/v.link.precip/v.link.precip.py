@@ -124,7 +124,6 @@ def setFirstRun():
 
 
 def firstConnect():
-
     print_message("v.in.ogr")
     grass.run_command(
         "v.in.ogr",
@@ -139,7 +138,6 @@ def firstConnect():
 
     # if vector already exits, remove dblink (original table)
     if grass.find_file(nat, element="vector")["fullname"]:
-
         grass.run_command("v.db.connect", map=nat, flags="d", layer="1", quiet=True)
 
         grass.run_command("v.db.connect", map=nat, flags="d", layer="2", quiet=True)
@@ -160,7 +158,6 @@ def firstConnect():
 
 
 def nextConnect():
-
     grass.run_command("v.db.connect", map=nat, layer="2", flags="d", quiet=True)
 
     grass.run_command(
@@ -183,7 +180,6 @@ def setColor(mapa):
 
 
 def createVect(view_nat):
-
     grass.run_command(
         "v.in.ogr",
         input="PG:",
@@ -256,7 +252,6 @@ def run():
             nextConnect()
 
     elif flags["c"]:
-
         view = (
             schema
             + ".%sview" % prefix
@@ -278,19 +273,16 @@ def run():
             print("I/O error({}): {}".format(e.errno, e))
 
     if flags["p"]:
-
         sql = "select %s, precip_mm_h from %s " % (key, view)
         grass.run_command("db.select", sql=sql, separator="  ")
 
 
 def isTimeValid(time):
-
     RE = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$")
     return bool(RE.search(time))
 
 
 def main():
-
     global schema, time, path, ogr, nat, layer, key, prefix, typ, firstrun, filetimewin
     schema = options["schema"]
 

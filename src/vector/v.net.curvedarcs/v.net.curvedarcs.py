@@ -93,7 +93,6 @@ def cleanup():
 
 
 def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
-
     filename = gscript.tempfile()
     maxlength = max(lineinfo.values())
     step = 100000 / nbvertices
@@ -116,7 +115,6 @@ def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
 
 
 def write_segarcdefs(lineinfo, maxcat):
-
     filename = gscript.tempfile()
     with open(filename, "w") as fout:
         for arccat in lineinfo:
@@ -128,7 +126,6 @@ def write_segarcdefs(lineinfo, maxcat):
 
 
 def process_infile(flow_file, separator, header, sameok, outputfile):
-
     vnetinfile = gscript.tempfile()
     sqlfile = gscript.tempfile()
     cat = 0

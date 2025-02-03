@@ -291,7 +291,6 @@ def main():
 
         # Define r
         if options["r_rick_map"]:
-
             if options["population_patches"]:
                 grass.run_command(
                     "r.statistics2",

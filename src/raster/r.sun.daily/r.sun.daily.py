@@ -519,7 +519,7 @@ def main():
         and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time)
     ):
         grass.fatal(
-            _("Day step higher then 1 would produce" " meaningless cumulative maps.")
+            _("Day step higher then 1 would produce meaningless cumulative maps.")
         )
 
     # check: start < end

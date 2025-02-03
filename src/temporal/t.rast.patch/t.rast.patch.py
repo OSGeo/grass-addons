@@ -97,7 +97,6 @@ def main():
     rows = sp.get_registered_maps("id", where, "start_time", None)
 
     if rows:
-
         ordered_rasts = []
         # newest images are first
         if sort == "desc":
@@ -128,7 +127,6 @@ def main():
             grass.fatal(_("%s failed. Check above error messages.") % "r.patch")
 
         if not add_time:
-
             # We need to set the temporal extent from the subset of selected maps
             maps = sp.get_registered_maps_as_objects(
                 where=where, order="start_time", dbif=None

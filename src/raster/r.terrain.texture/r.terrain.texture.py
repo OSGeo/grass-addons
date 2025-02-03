@@ -315,7 +315,6 @@ def classification(level, slope, smean, texture, tmean, convexity, cmean, classi
 
 
 def main():
-
     elevation = options["elevation"]
     slope = options["slope"]
     flat_thres = float(options["flat_thres"])

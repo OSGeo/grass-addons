@@ -749,7 +749,7 @@ class Evolution:
 
         # derive rainfall energy (MJ ha^-1 mm^-1)
         gscript.mapcalc(
-            f"{rain_energy}" f"=0.29*(1.-(0.72*exp(-0.05*{self.rain_intensity})))",
+            f"{rain_energy}=0.29*(1.-(0.72*exp(-0.05*{self.rain_intensity})))",
             overwrite=True,
         )
 
@@ -761,20 +761,13 @@ class Evolution:
         * (1 hr / 60 min))
         """
         gscript.mapcalc(
-            f"{rain_volume}"
-            f"= {self.rain_intensity}"
-            f"*({self.rain_interval}"
-            f"/60.)",
+            f"{rain_volume}= {self.rain_intensity}*({self.rain_interval}/60.)",
             overwrite=True,
         )
 
         # derive event erosivity index (MJ mm ha^-1 hr^-1)
         gscript.mapcalc(
-            f"{erosivity}"
-            f"=({rain_energy}"
-            f"*{rain_volume})"
-            f"*{self.rain_intensity}"
-            f"*1.",
+            f"{erosivity}=({rain_energy}*{rain_volume})*{self.rain_intensity}*1.",
             overwrite=True,
         )
 
@@ -786,7 +779,7 @@ class Evolution:
         * (1 yr / 525600 min))
         """
         gscript.mapcalc(
-            f"{r_factor}" f"={erosivity}" f"/({self.rain_interval}" f"/525600.)",
+            f"{r_factor}={erosivity}/({self.rain_interval}/525600.)",
             overwrite=True,
         )
 
@@ -1054,21 +1047,13 @@ class Evolution:
         of overland flow
         """
         gscript.mapcalc(
-            f"{sedflow}"
-            f"={r_factor}"
-            f"*{self.k_factor}"
-            f"*{self.c_factor}"
-            f"*{ls_factor}",
+            f"{sedflow}={r_factor}*{self.k_factor}*{self.c_factor}*{ls_factor}",
             overwrite=True,
         )
 
         # convert sediment flow from tons/ha/yr to kg/m^2s
         gscript.mapcalc(
-            "{converted_sedflow}"
-            "={sedflow}"
-            "*{ton_to_kg}"
-            "/{ha_to_m2}"
-            "/{yr_to_s}".format(
+            "{converted_sedflow}={sedflow}*{ton_to_kg}/{ha_to_m2}/{yr_to_s}".format(
                 converted_sedflow=sediment_flux,
                 sedflow=sedflow,
                 ton_to_kg=1000.0,
@@ -1224,21 +1209,13 @@ class Evolution:
         P is a dimensionless prevention measures factor
         """
         gscript.mapcalc(
-            f"{sedflow}"
-            f"={r_factor}"
-            f"*{self.k_factor}"
-            f"*{ls_factor}"
-            f"*{self.c_factor}",
+            f"{sedflow}={r_factor}*{self.k_factor}*{ls_factor}*{self.c_factor}",
             overwrite=True,
         )
 
         # convert sediment flow from tons/ha/yr to kg/m^2s
         gscript.mapcalc(
-            "{converted_sedflow}"
-            "={sedflow}"
-            "*{ton_to_kg}"
-            "/{ha_to_m2}"
-            "/{yr_to_s}".format(
+            "{converted_sedflow}={sedflow}*{ton_to_kg}/{ha_to_m2}/{yr_to_s}".format(
                 converted_sedflow=sedflux,
                 sedflow=sedflow,
                 ton_to_kg=1000.0,
@@ -1250,8 +1227,7 @@ class Evolution:
 
         # filter outliers
         gscript.mapcalc(
-            f"{sediment_flux}"
-            f"=if({sedflux}>{self.erdepmax},{self.erdepmax},{sedflux})",
+            f"{sediment_flux}=if({sedflux}>{self.erdepmax},{self.erdepmax},{sedflux})",
             overwrite=True,
         )
         gscript.run_command("r.colors", map=sediment_flux, color="viridis", flags="g")
@@ -1484,7 +1460,6 @@ class DynamicEvolution:
 
         i = 0
         while i < iterations:
-
             if i > 0:
                 # derive excess water (mm/hr) from rainfall rate (mm/hr)
                 # plus the depth (m) per rainfall interval (min)
@@ -1717,7 +1692,6 @@ class DynamicEvolution:
 
         # open txt file with precipitation data
         with open(evol.precipitation, newline="") as csvfile:
-
             # check for header
             has_header = csv.Sniffer().has_header(csvfile.readline())
 
@@ -1738,10 +1712,7 @@ class DynamicEvolution:
             # compute rainfall intensity (mm/hr)
             # from rainfall observation (mm)
             gscript.mapcalc(
-                f"{evol.rain_intensity}"
-                f"={float(initial[1])}"
-                f"/{self.rain_interval}"
-                f"*60.",
+                f"{evol.rain_intensity}={float(initial[1])}/{self.rain_interval}*60.",
                 overwrite=True,
             )
 
@@ -1840,7 +1811,6 @@ class DynamicEvolution:
 
             # run the landscape evolution model for each rainfall record
             for row in precip:
-
                 # update the elevation
                 evol.elevation = evolved_elevation
 
@@ -1851,10 +1821,7 @@ class DynamicEvolution:
                 # from rainfall observation (mm)
                 rain_intensity = "rain_intensity"
                 gscript.mapcalc(
-                    f"{rain_intensity}"
-                    f"={float(row[1])}"
-                    f"/{self.rain_interval}"
-                    f"*60.",
+                    f"{rain_intensity}={float(row[1])}/{self.rain_interval}*60.",
                     overwrite=True,
                 )
 

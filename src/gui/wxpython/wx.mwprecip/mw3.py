@@ -786,7 +786,6 @@ class Computor:
             # print baseline.statFce
             ######## AVG #########
             if baseline.statFce == "avg":
-
                 if baseline.type == "noDryWin":
                     if baseline.statFce == "avg":
                         sql = (
@@ -1504,17 +1503,11 @@ class GrassTemporalMgr:
         self.timeWinConf = timeWinConf
         self.datasetName = database.schema
         self.datasetTitle = "MW time dataset"
-        self.datasetTdescription = (
-            " IDtype=%s,"
-            "sumStep=%s,"
-            "startTime=%s,"
-            "endTime='%s"
-            % (
-                timeWinConf.typeID,
-                timeWinConf.sumStep,
-                timeWinConf.startTime,
-                timeWinConf.endTime,
-            )
+        self.datasetTdescription = " IDtype=%s,sumStep=%s,startTime=%s,endTime='%s" % (
+            timeWinConf.typeID,
+            timeWinConf.sumStep,
+            timeWinConf.startTime,
+            timeWinConf.endTime,
         )
         self.createTimedataset()
         self.registerMaps()

@@ -175,7 +175,6 @@ import atexit
 
 
 def main():
-
     bands = {}
     cor_bands = {}
     dem = options["elevation"]

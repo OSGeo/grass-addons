@@ -268,7 +268,7 @@ def main():
         mpirunstr, stdout=subprocess.PIPE, shell=True, universal_newlines=True
     )
     for stdout_line in iter(popen.stdout.readline, ""):
-        print(stdout_line),
+        print(stdout_line)
         if "mpirun was unable to find the specified executable file" in stdout_line:
             _mpirun_error_flag = True
     popen.stdout.close()

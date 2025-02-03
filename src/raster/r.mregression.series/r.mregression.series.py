@@ -278,7 +278,7 @@ if __name__ == "__main__":
         import statsmodels.api as sm
     except ImportError:
         grass.fatal(
-            _("Cannot import statsmodels." " Install python-statmodels package first")
+            _("Cannot import statsmodels. Install python-statmodels package first")
         )
 
     main(options, flags)

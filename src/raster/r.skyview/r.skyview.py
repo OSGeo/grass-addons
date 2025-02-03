@@ -151,8 +151,9 @@ def main():
     ):
         gcore.warning(
             _(
-                "Using possibly inappropriate color table <{}>"
-                " for aspect".format(colorize_color)
+                "Using possibly inappropriate color table <{}> for aspect".format(
+                    colorize_color
+                )
             )
         )
 

@@ -979,7 +979,6 @@ end
     # graduated points and line widths thematic mapping
 
     if themetype in ["graduated_points", "graduated_lines"]:
-
         # display graduated points/lines by intervals
         if themecalc == "interval":
             out(
@@ -1013,7 +1012,6 @@ end
 
         # display graduated points/lines for standard deviation units
         if themecalc == "std_deviation":
-
             out(
                 f_graph,
                 locals(),
@@ -1045,7 +1043,6 @@ end
 
         # display graduated points/lines for quartiles
         if themecalc == "quartiles":
-
             out(
                 f_graph,
                 locals(),

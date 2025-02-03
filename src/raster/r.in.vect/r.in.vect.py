@@ -239,7 +239,6 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
 
 
 def main(options, flags):
-
     ogr.UseExceptions()
 
     # Get variables

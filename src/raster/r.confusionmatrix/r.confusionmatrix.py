@@ -287,7 +287,6 @@ def convert_output(
 
 
 def main():
-
     global rm_files
 
     # parameters

@@ -20,7 +20,6 @@ This program is free software under the GNU General Public License
 @author Margherita Di Leo (GSoC student 2011)
 """
 
-
 import wx
 import glob
 

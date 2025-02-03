@@ -316,7 +316,6 @@ def do_it_all(global_vars, target_pts_np):
     tmp_vs = "{}_{}".format(tempname, os.getpid())
 
     for target_pnt in target_pts_np:
-
         # Display a progress info message
         grass.percent(counter, len(target_pts_np), 1)
         grass.verbose(
@@ -1239,7 +1238,6 @@ def main():
     # as atan(dz/dx) (e-w direction), atan(dz/dy) (n-s direction)
     # using moving window [row, col]
     elif pfunction == "Visual_magnitude":
-
         r_slope_ew = "{}_slope_ew".format(TEMPNAME)
         r_slope_ns = "{}_slope_ns".format(TEMPNAME)
 

@@ -1169,7 +1169,6 @@ class MdMainFrame(wx.Frame):
             GMessage("Select map in data catalog...")
 
     def _layout(self):
-
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         # self.toolbarPanelSizer = wx.BoxSizer(wx.HORIZONTAL)

@@ -423,7 +423,6 @@ def recode_reference_rasters(
         tmpfmask = create_temporary_name("tmpmsk1")
         gs.run_command("g.rename", raster=f"MASK,{tmpfmask}", quiet=True)
     for i, envlay in enumerate(ref_env_lay):
-
         gs.message(_("Preparing the input data ..."))
 
         # set reference region
@@ -518,7 +517,6 @@ def recode_reference_rasters(
 
 
 def main(options, flags):
-
     # Check if there is a MASK
     mask_present = gs.find_file(
         name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
@@ -660,7 +658,7 @@ def main(options, flags):
         map=opc,
         title="Areas with novel conditions",
         units="0-100 (relative score)",
-        description="The multivariate environmental similarity" "(MES)",
+        description="The multivariate environmental similarity(MES)",
         loadhistory=tmphist,
     )
 

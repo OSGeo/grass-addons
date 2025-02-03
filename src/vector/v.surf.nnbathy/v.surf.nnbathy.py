@@ -88,7 +88,7 @@ def main():
 
     # initial controls
     if options["input"] and options["file"]:
-        grass.fatal("Please specify either the 'input' " "or 'file' option, not both")
+        grass.fatal("Please specify either the 'input' or 'file' option, not both")
 
     if not (options["input"] or options["file"]):
         grass.fatal("Please specify either the 'input' or 'file' option")

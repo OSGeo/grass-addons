@@ -105,7 +105,6 @@ class Landsat8_MTL:
 
         # loop over lines, do some cleaning
         for idx in range(len(lines)):
-
             # split line in '='
             line = lines[idx]
             line_split = line.split("=")

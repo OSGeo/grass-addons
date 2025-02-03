@@ -128,7 +128,6 @@ isos_final = None
 
 
 def cleanup():
-
     if method == "r.cost":
         # remove temporary cost column from road map
         if grass.vector_db(roads)[int(layer)]["driver"] == "dbf":
@@ -201,7 +200,6 @@ def cleanup():
 
 
 def isocalc(isoraw):
-
     global isos_extract
     global isos_extract_rast
     global isos_grow_cat
@@ -273,7 +271,6 @@ def isocalc(isoraw):
 
 
 def main():
-
     # Input for all methods
     global roads
     roads = options["map"]

@@ -250,7 +250,6 @@ def slope_units(
     # int(thc-thc/red)
     # remains equal to thc
     while control > 0 and counter < maxiter and thc >= red:
-
         # generating half-basins
         # gs.run_command(
         #     'r.watershed',

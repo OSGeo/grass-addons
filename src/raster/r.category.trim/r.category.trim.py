@@ -84,7 +84,6 @@ import grass.script as gs
 
 
 def main(options, flags):
-
     # Check if running in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:

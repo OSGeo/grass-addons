@@ -205,7 +205,6 @@ def compute_supply(
     categories = grass.parse_command("r.category", map=aggregation, delimiter="\t")
 
     for category in categories:
-
         msg = "\n>>> Processing category '{c}' of aggregation map '{a}'"
         grass.verbose(_(msg.format(c=category, a=aggregation)))
 
@@ -508,7 +507,6 @@ def compute_supply(
         # )
 
         if print_only:
-
             grass.verbose(" * Flow in category {c}:".format(c=category))
             r.stats(
                 input=(flow_in_category),
@@ -519,7 +517,6 @@ def compute_supply(
             )
 
         if not print_only:
-
             if flow_column_name:
                 flow_column_prefix = flow_column_name + "_" + category
             else:
@@ -528,7 +525,6 @@ def compute_supply(
 
             # Produce vector map(s)
             if vector:
-
                 update_vector(
                     vector=vector,
                     raster=flow_in_category,
