@@ -50,7 +50,6 @@ from rstream_panelOne import *
 
 class TabPanel(wx.Panel):
     def __init__(self, parent):
-
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)

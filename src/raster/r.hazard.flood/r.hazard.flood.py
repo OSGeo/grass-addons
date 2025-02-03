@@ -60,7 +60,6 @@ except:
 
 
 def main():
-
     #### check if we have the r.area addon
     if not grass.find_program("r.area", "--help"):
         grass.fatal(

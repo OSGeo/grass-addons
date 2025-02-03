@@ -121,7 +121,6 @@ class CoorWindow(wx.Dialog):
         self.mapwin = mapwindow.GetWindow()
 
     def OnGenPrev(self, event):
-
         # read current region
         infoRegion = grass.read_command("g.region", flags="p")
         dictRegion = grass.parse_key_val(infoRegion, ":")
@@ -231,7 +230,6 @@ class CoorWindow(wx.Dialog):
             )
 
         else:
-
             grass.run_command(
                 "r.stream.extract",
                 elevation=self.r_elev,
@@ -270,7 +268,6 @@ class CoorWindow(wx.Dialog):
         ImgVvr.MainLoop()
 
     def OnButtonCoor(self, event):
-
         if self.mapwin.RegisterMouseEventHandler(
             wx.EVT_LEFT_DOWN, self.OnMouseAction, wx.StockCursor(wx.CURSOR_CROSS)
         ):
@@ -318,7 +315,6 @@ class TabPanelOne(wx.Panel):
         self._layout()
 
     def _layout(self):
-
         self.select = wx.GridBagSizer(20, 5)
 
         # ----------------------------
@@ -643,7 +639,6 @@ class TabPanelOne(wx.Panel):
     # -------------Network extraction-------------
 
     def OnRun(self, event):
-
         self.radioval2 = self.cb2.GetValue()
         self.radioval3 = self.cb3.GetValue()
 

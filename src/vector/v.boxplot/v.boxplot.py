@@ -259,7 +259,6 @@ def get_valid_color(color):
 
 
 def main():
-
     # lazy import matplotlib
     output = options["output"] if options["output"] else None
     lazy_import_py_modules(output)

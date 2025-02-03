@@ -179,7 +179,6 @@ def import_local_tile(tile, local, pid, srtmv3, one):
 
 
 def download_tile(tile, url, pid, srtmv3, one, username, password):
-
     grass.debug("Download tile: %s" % tile, debug=1)
     output = tile + ".r.in.srtm.tmp." + str(pid)
     if srtmv3:
@@ -304,7 +303,6 @@ def createTMPlocation(epsg=4326):
 
 
 def main():
-
     global TMPLOC, SRCGISRC, TGTGISRC, GISDBASE
     global tile, tmpdir, in_temp, currdir, tmpregionname
 

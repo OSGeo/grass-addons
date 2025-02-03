@@ -168,7 +168,6 @@ class HiveCliHook(BaseHook, HiveSpatial):
         other = ";".join(other)
         for query_set in [create, insert]:
             for query in query_set:
-
                 query_preview = " ".join(query.split())[:50]
                 logging.info("Testing HQL [{0} (...)]".format(query_preview))
                 if query_set == insert:
@@ -340,7 +339,7 @@ class HiveMetastoreHook(BaseHook):
         elif len(parts[0]) == 1:
             field = list(parts[0].keys())[0]
         elif not field:
-            raise Exception("Please specify the field you want the max " "value for")
+            raise Exception("Please specify the field you want the max value for")
 
         return max([p[field] for p in parts])
 
@@ -392,7 +391,6 @@ class HiveServer2Hook(BaseHook, HiveSpatial):
         )
 
     def get_results(self, hql, schema="default", arraysize=1000):
-
         with self.get_conn() as conn:
             if isinstance(hql, basestring):
                 hql = [hql]
@@ -420,7 +418,6 @@ class HiveServer2Hook(BaseHook, HiveSpatial):
         lineterminator="\r\n",
         output_header=True,
     ):
-
         schema = schema or "default"
         with self.get_conn() as conn:
             with conn.cursor() as cur:

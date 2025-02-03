@@ -16,7 +16,6 @@ class WFSBase:
         self.temp_map = None
 
     def __del__(self):
-
         # tries to remove temporary files/dirs, all temps should be
         # removoved before, implemented just in case of unexpected
         # stop of module

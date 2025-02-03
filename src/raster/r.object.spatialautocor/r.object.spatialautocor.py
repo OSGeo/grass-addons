@@ -163,7 +163,6 @@ def get_autocorrelation(mapname, raster, neighbordict, method):
 
 
 def main():
-
     check_progs()
 
     object_map = options["object_map"]

@@ -154,21 +154,15 @@ def set_path_to_java(java, overwrite):
     if java_txt_copy and bool(overwrite):
         with open(txt_java_path, "w") as file:
             file.write(java)
-        msg = (
-            "Text file created:\n"
-            "{}\n"
-            "with path to java executable:\n"
-            "{}".format(txt_java_path, java)
+        msg = "Text file created:\n{}\nwith path to java executable:\n{}".format(
+            txt_java_path, java
         )
         gs.info(_(msg))
     elif not os.path.isfile(java_txt_copy):
         with open(txt_java_path, "w") as file:
             file.write(java)
-        msg = (
-            "Text file created:\n"
-            "{}\n"
-            "with path to java executable:\n"
-            "{}".format(txt_java_path, java)
+        msg = "Text file created:\n{}\nwith path to java executable:\n{}".format(
+            txt_java_path, java
         )
         gs.info(_(msg))
     else:
@@ -203,7 +197,6 @@ def java_findable():
 # Main
 # ------------------------------------------------------------------
 def main(options, flags):
-
     # Check if Java can be found
     if flags["j"]:
         if not java_findable():

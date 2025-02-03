@@ -560,7 +560,7 @@ class product:
     def print_prods(self):
         oldprod = self.prod
         for key in self.products.keys():
-            print(key),
+            print(key)
             self.prod = key
             print(self)
         self.prod = oldprod
@@ -734,10 +734,7 @@ class projection:
             )
         else:
             grass.fatal(
-                _(
-                    "Projection not supported, please contact the "
-                    "GRASS-dev mailing list"
-                )
+                _("Projection not supported, please contact the GRASS-dev mailing list")
             )
 
     def datum(self):

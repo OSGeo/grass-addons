@@ -67,7 +67,6 @@ def cleanup():
 
 
 def main():
-
     global nuldev, tmp
     nuldev = open(os.devnull, "w")
     tmp = "v_tin_to_rast_%d" % os.getpid()

@@ -918,7 +918,6 @@ def bxp_zones(opt):
 
     # Construct per zone the boxplot
     for i in ordered_list:
-
         # Get stats for the ith boxplot
         (
             min_value,

@@ -602,7 +602,6 @@ def register_strds_from_items(collection_items_assets, strds_output):
             eobands = asset.get("eo:bands")
             if eobands:
                 for idx, band in enumerate(eobands):
-
                     band_name = band.get("common_name")
                     if created_date:
                         formatted_date = format_datetime(created_date)
@@ -675,7 +674,6 @@ def create_metadata_vector(vector, metadata):
     with VectorTopo(
         vector, mode="w", tab_cols=COLS, layer=1, overwrite=True
     ) as new_vec:
-
         for i, item in enumerate(metadata):
             sys.stdout.write(f"Adding collection: {item.get('id')}\n")
             # Transform bbox to locations CRS

@@ -177,7 +177,6 @@ COPYRIGHT: (C) 2016 by the GRASS Development Team
 # % excludes: -r,-p,-g,-t
 # %end
 
-
 import sys
 
 # import os

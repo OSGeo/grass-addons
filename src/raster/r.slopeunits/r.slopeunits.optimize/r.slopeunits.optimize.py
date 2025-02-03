@@ -219,8 +219,7 @@ def run_batch(
     )
 
     gs.message(
-        f"Calculating slopeunits for cvmin={str(cvmin)} and "
-        f"areamin={str(areamin)} ..."
+        f"Calculating slopeunits for cvmin={str(cvmin)} and areamin={str(areamin)} ..."
     )
     kwargs = {}
     if plainsmap:

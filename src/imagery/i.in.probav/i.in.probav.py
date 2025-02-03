@@ -72,7 +72,6 @@ def cleanup():
 
 
 def main():
-
     global tmpfile
     infile = options["input"]
     out = options["output"]

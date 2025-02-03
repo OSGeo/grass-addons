@@ -157,7 +157,6 @@ def C_index(n1, n2, txtf):
 
 
 def main(options, flags):
-
     # Check if running in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:

@@ -286,7 +286,6 @@ class UpdateConnectionsResources:
         active_xml_csw_url=False,
         not_valid_xml_csw_url=False,
     ):
-
         from mdlib.dependency import check_dependencies
 
         module_not_found = []
@@ -384,8 +383,7 @@ class UpdateConnectionsResources:
             if not os.path.exists(path):
                 gscript.fatal(
                     _(
-                        "Spreadsheets file '{}' "
-                        "doesn't exists.".format(
+                        "Spreadsheets file '{}' doesn't exists.".format(
                             path,
                         ),
                     ),
@@ -432,8 +430,7 @@ class UpdateConnectionsResources:
         if not os.path.exists(path):
             gscript.fatal(
                 _(
-                    "Connnections resources file '{}' "
-                    "doesn't exists.".format(
+                    "Connnections resources file '{}' doesn't exists.".format(
                         path,
                     ),
                 ),
@@ -586,7 +583,7 @@ class UpdateConnectionsResources:
     def _not_valid_xml_csw_url(self, value):
         if not isinstance(value, bool):
             gscript.fatal(
-                _("Param 'not_valid_xml_csw_url' arg require " "boolean value"),
+                _("Param 'not_valid_xml_csw_url' arg require boolean value"),
             )
         self.__not_valid_xml_csw_url = value
 
@@ -1013,7 +1010,7 @@ class UpdateConnectionsResources:
 
     def _get_data_format(self):
         """Get dat row format"""
-        return "{country}, " "{govermental_level}, " "{api_provider}{separator}" "{url}"
+        return "{country}, {govermental_level}, {api_provider}{separator}{url}"
 
     def _split_data_row(self, row):
         """Split data row string
@@ -1045,14 +1042,12 @@ class UpdateConnectionsResources:
         name, url = self._split_data_row(row)
 
         if self._valid_csw_url:
-
             # Valid and active
             if self._active_csw_url:
                 if (
                     url not in self._not_valid_csw_urls
                     and url not in self._not_active_csw_urls
                 ):
-
                     self._print_result = join_char.join(
                         [
                             self._print_result,
@@ -1071,7 +1066,6 @@ class UpdateConnectionsResources:
                     )
 
         elif self._not_valid_csw_url:
-
             if url in self._not_valid_csw_urls:
                 self._print_result = join_char.join(
                     [
@@ -1100,7 +1094,6 @@ class UpdateConnectionsResources:
                     url in self._not_active_csw_urls
                     and url not in self._not_valid_csw_urls
                 ):
-
                     self._print_result = join_char.join(
                         [
                             self._print_result,
@@ -1165,8 +1158,7 @@ class UpdateConnectionsResources:
                 [
                     self._print_summary_result,
                     (
-                        "Number of new connections resource"
-                        "{value:.>25}{eof}".format(
+                        "Number of new connections resource{value:.>25}{eof}".format(
                             value=self._new_connections
                             - len(self._not_valid_csw_urls)
                             - len(self._not_active_csw_urls),
@@ -1219,8 +1211,7 @@ class UpdateConnectionsResources:
             [
                 self._print_summary_result,
                 (
-                    "Sum"
-                    "{value:.>57}{eof}".format(
+                    "Sum{value:.>57}{eof}".format(
                         value=self._new_connections,
                         eof=eof,
                     )

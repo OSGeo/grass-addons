@@ -111,7 +111,6 @@ import grass.script as gscript
 
 
 def cleanup():
-
     if temporary_vect:
         if gscript.find_file(temporary_vect, element="vector")["name"]:
             gscript.run_command(
@@ -155,7 +154,6 @@ def finalize(existingAggregate):
 
 
 def worker(segment_map, stat_temp_file, raster):
-
     rastername = raster.split("@")[0]
     rastername = rastername.replace(".", "_")
     temp_file = stat_temp_file + "." + rastername
@@ -171,7 +169,6 @@ def worker(segment_map, stat_temp_file, raster):
 
 
 def main():
-
     global insert_sql
     insert_sql = None
     global temporary_vect
@@ -281,7 +278,6 @@ def main():
                 if gscript.find_file("MASK", element="cell", mapset=current_mapset)[
                     "name"
                 ]:
-
                     null_test = gscript.read_command(
                         "r.stats", flags="N", input_=["MASK", raster], quiet=True
                     ).splitlines()
@@ -344,7 +340,6 @@ def main():
 
     # Calculating neighborhood statistics if requested
     if neighborhood:
-
         gscript.message(_("Calculating neighborhood statistics..."))
 
         # Add neighbordhood statistics to headers

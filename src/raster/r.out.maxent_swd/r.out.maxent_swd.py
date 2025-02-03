@@ -304,7 +304,6 @@ def main():
 
         # Parse species input variables
         for species in species_dict:
-
             species_map = species_dict[species]
             # Zoom region to match specie map if requested
             if flags["z"]:

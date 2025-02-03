@@ -67,7 +67,6 @@ class TransLine(object):
     def set_talud(self, taludes, terr):
         """Return"""
         if self.displ_left != [] and self.displ_left[-1] is not None:
-
             terr.set_pnt_terr(self.displ_left[-1])
             self.talud_left = taludes.talud_left.get_pnt_slope(
                 self.r_pnt, self.displ_left[-1]
@@ -105,7 +104,6 @@ class TransLine(object):
         max_left_width = self.max_left_width()
         line = []
         if self.talud_left is not None:
-
             self.talud_left.npk = max_left_width - self.talud_left.dist_displ
             line.append(self.talud_left)
 
@@ -232,7 +230,6 @@ class Trans(object):
         """Return"""
         dat_1 = []
         for i, dat_2 in enumerate(self.tabla_iter):
-
             if i >= 1:
                 if dat_1["npk"] == 0:
                     continue
@@ -248,7 +245,6 @@ class Trans(object):
                     self.terr.set_pnts_terr(r_pnts)
 
                 for r_pnt in r_pnts:
-
                     dist_left = start["dist_left"] + (
                         (r_pnt.npk - start["pk"])
                         * (end["dist_left"] - start["dist_left"])
@@ -313,7 +309,6 @@ class Trans(object):
 
             for i, r_pnt in enumerate([t_ali.talud_left, t_ali.talud_right]):
                 if r_pnt is not None and r_pnt.npk != -1:
-
                     list_pnts.append(r_pnt)
                     list_attrs.append(
                         [

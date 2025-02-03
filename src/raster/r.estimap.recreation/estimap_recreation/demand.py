@@ -238,7 +238,6 @@ def compute_demand(
     g.rename(raster=(demand_copy, output_demand), quiet=True)
 
     if output_demand and vector_base_map:
-
         update_vector(
             vector=vector_base_map,
             raster=output_demand,

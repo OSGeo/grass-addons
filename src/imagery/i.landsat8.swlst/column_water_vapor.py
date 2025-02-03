@@ -483,7 +483,6 @@ def estimate_cwv_big_expression(
 
     # save Column Water Vapor map?
     if cwv_output:
-
         # strings for metadata
         history_cwv = "FixMe -- Column Water Vapor model: "
         history_cwv += "FixMe -- Add equation?"

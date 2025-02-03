@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
 """
- MODULE:       i.landsat.qa
+MODULE:     i.landsat.qa
 
- AUTHOR(S):    Stefan Blumentrath <stefan.blumentrath@nina.no>
+AUTHOR(S):  Stefan Blumentrath <stefan.blumentrath@nina.no>
 
- PURPOSE:      Reclass Landsat QA band according to acceptable pixel quality
-               as defined by the user
+PURPOSE:    Reclass Landsat QA band according to acceptable pixel quality
+            as defined by the user
 
- COPYRIGHT:    (C) 2016-2021 by the GRASS Development Team
+COPYRIGHT:  (C) 2016-2021 by the GRASS Development Team
 
-               This program is free software under the GNU General Public
-               License (>=v2). Read the file COPYING that comes with GRASS
-               for details.
+            This program is free software under the GNU General Public
+            License (>=v2). Read the file COPYING that comes with GRASS
+            for details.
 """
 
 # %Module
@@ -356,7 +356,6 @@ def main():
 
             # Extract unnacceptable bitpatterns (bp) form bitpattern filter
             for bp in options[k].split(","):
-
                 if bit_length[k] == 1:
                     bits = single_bits[bp]
                 else:

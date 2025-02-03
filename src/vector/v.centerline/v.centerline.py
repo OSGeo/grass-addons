@@ -85,7 +85,6 @@ def cleanup():
 
 
 def main():
-
     input = options["input"]
     if options["refline"]:
         refline_cat = int(options["refline"])
@@ -168,7 +167,6 @@ def main():
 
     # Use transversals algorithm
     if transversals:
-
         # Break any intersections in the original lines so that
         # they do not interfere further on
         grass.run_command(
@@ -271,7 +269,6 @@ def main():
 
     # Use closest point algorithm
     else:
-
         # Get reference line calculate its length
         grass.run_command(
             "v.extract", input=input, output=tmp_line_map, cats=refline_cat, quiet=True

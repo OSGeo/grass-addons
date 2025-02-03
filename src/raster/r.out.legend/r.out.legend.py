@@ -194,7 +194,6 @@ else:
 
 # main function
 def main():
-
     # parameters - file name and extension
     outputfile = options["file"]
     ext = outputfile.split(".")
@@ -207,13 +206,15 @@ def main():
             grass.fatal("Unknown display driver <{}>".format(ext[1]))
     if filetype == "ps" and not ext[1] == "ps":
         grass.fatal(
-            "The file type <{}> does not match the file extension <"
-            "{}>".format(filetype, ext[1])
+            "The file type <{}> does not match the file extension <{}>".format(
+                filetype, ext[1]
+            )
         )
     if filetype == "png" and not ext[1] == "png":
         grass.fatal(
-            "The file type <{}> does not match the file extension <"
-            "{}>".format(filetype, ext[1])
+            "The file type <{}> does not match the file extension <{}>".format(
+                filetype, ext[1]
+            )
         )
 
     # parameters - image settings

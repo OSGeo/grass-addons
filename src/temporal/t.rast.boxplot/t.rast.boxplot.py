@@ -719,7 +719,6 @@ def main(options, flags):
     # Create the stats and define the boxes
     boxes = []
     for _, rastername in enumerate(rast_names):
-
         # Compute boxplot stats
         (
             min_value,

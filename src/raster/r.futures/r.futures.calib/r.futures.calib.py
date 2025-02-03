@@ -347,7 +347,7 @@ def check_addon_installed(addon, fatal=True):
         call = gcore.fatal if fatal else gcore.warning
         call(
             _(
-                "Addon {a} is not installed." " Please install it using g.extension."
+                "Addon {a} is not installed. Please install it using g.extension."
             ).format(a=addon)
         )
 

@@ -611,7 +611,7 @@ def main():
         grass.fatal(_('Choose one of "input" or "files" options'))
         return 0
     elif options["input"] != "" and options["files"] != "":
-        grass.fatal(_('It is not possible set "input" and "files"' " options together"))
+        grass.fatal(_('It is not possible set "input" and "files" options together'))
         return 0
     # check if remove the files or not
     if flags["t"]:
@@ -650,9 +650,7 @@ def main():
 
     # check if import simple file or mosaic
     if flags["m"] and options["input"] != "":
-        grass.fatal(
-            _("It is not possible to create a mosaic with a single" " HDF file")
-        )
+        grass.fatal(_("It is not possible to create a mosaic with a single HDF file"))
         return 0
     elif flags["m"]:
         mosaic(options, remove, analyze, over, outfile)

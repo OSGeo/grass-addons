@@ -225,7 +225,7 @@ def main():
         rkappa = True
     elif flags["k"] and method:
         gscript.message(
-            _("If method is different from 'no' it is not possible" " to use r.kappa")
+            _("If method is different from 'no' it is not possible to use r.kappa")
         )
         rkappa = _load_skll()
     else:
@@ -240,7 +240,7 @@ def main():
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
         gscript.fatal(
-            _("Space time raster dataset {st} seems to be " "empty".format(st=strds))
+            _("Space time raster dataset {st} seems to be empty".format(st=strds))
         )
         return 1
 

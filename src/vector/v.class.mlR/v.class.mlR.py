@@ -289,7 +289,6 @@ import grass.script as gscript
 
 
 def cleanup():
-
     if allmap:
         gscript.try_remove(feature_vars)
     if trainmap:
@@ -308,7 +307,6 @@ def cleanup():
 
 
 def main():
-
     global allmap
     global trainmap
     global feature_vars
@@ -917,7 +915,6 @@ def main():
     gscript.message("Finished running R.")
 
     if allmap and not flags["f"]:
-
         model_output_csvt = model_output + ".csvt"
         temptable = "classif_tmp_table_%d" % os.getpid()
 

@@ -88,8 +88,9 @@ def get_parser():
         "dataset",
         type=str,
         metavar="DATASET",
-        help="Name of dataset you are using, possible choices"
-        " are: {va}".format(va=", ".join(DATASET.keys())),
+        help="Name of dataset you are using, possible choices are: {va}".format(
+            va=", ".join(DATASET.keys())
+        ),
         choices=DATASET.keys(),
     )
     parser.add_argument(
@@ -146,7 +147,7 @@ def get_parser():
         action="store_true",
         default=False,
         dest="cleanup",
-        help="Remove the maps created by this" " script",
+        help="Remove the maps created by this script",
     )
     return parser
 

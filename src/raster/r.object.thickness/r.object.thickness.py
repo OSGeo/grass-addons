@@ -396,7 +396,6 @@ def main():
 
 
 if __name__ == "__main__":
-
     options, flags = gscript.parser()
     # atexit.register(cleanup)
     main()

@@ -6,12 +6,12 @@ MODULE:   	r.soillossbare.py
 AUTHOR(S):  Martin Zbinden
 
 PURPOSE:  	Calculate annual soil loss [t/(ha*a)] for bare croplands.
-			Also use r.soillosscropland.py afterwards for grown soil.
-			Source: Mitasova H, Mitas L, 1999. Modeling soil detachment
-			with RUSLE 3d using GIS.
-			http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html
+            Also use r.soillosscropland.py afterwards for grown soil.
+            Source: Mitasova H, Mitas L, 1999. Modeling soil detachment
+            with RUSLE 3d using GIS.
+            http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html
 
-			@return out_soillossbare raster map and intermediate results
+            @return out_soillossbare raster map and intermediate results
 
 
 VERSION:  	0.2 (corrected flowacc calculation, added tempdir handling)
@@ -138,7 +138,6 @@ This program is free software under the GNU General Public License
 # %  description: Remove intermediate results
 # %end
 
-
 import sys
 import os
 import grass.script as g
@@ -147,7 +146,6 @@ from grass.exceptions import CalledModuleError
 
 class rusle_base(object):
     def __init__(self):
-
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
         self.temp_dirs_to_cleanup = []

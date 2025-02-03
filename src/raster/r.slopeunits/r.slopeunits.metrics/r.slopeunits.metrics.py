@@ -346,8 +346,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         map="su_segm",
         layer=2,
         columns=(
-            "ai real, aj real, aall real, ci real, "
-            "si real, cj real, sj real, num real"
+            "ai real, aj real, aall real, ci real, si real, cj real, sj real, num real"
         ),
     )
     gs.run_command(

@@ -323,7 +323,6 @@ def check_progs():
     found_missing = False
     for prog in ["r.neighborhoodmatrix"]:
         if not gscript.find_program(prog, "--help"):
-
             found_missing = True
             gscript.warning(
                 _("'%s' required. Please install '%s' first using 'g.extension %s'")
@@ -882,7 +881,6 @@ def main():
     best_values = {}
     maps_to_keep = []
     for region in regions:
-
         gscript.message("Working on region %s\n" % region)
         parms["region"] = region.replace("@", "_at_")
 

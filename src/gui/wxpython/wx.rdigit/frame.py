@@ -209,7 +209,6 @@ class RDigitMapFrame(SingleMapFrame):
         self._addPaneToolbar(name="digitMap")
 
     def _addPaneToolbar(self, name):
-
         self.toolbars[name] = RDigitMapManagerToolbar(self, self.mapManager)
         self._mgr.AddPane(
             self.toolbars[name],
@@ -224,7 +223,6 @@ class RDigitMapFrame(SingleMapFrame):
         )
 
     def _addPaneMapWindow(self):
-
         self._mgr.AddPane(
             self.MapWindow,
             wx.aui.AuiPaneInfo()

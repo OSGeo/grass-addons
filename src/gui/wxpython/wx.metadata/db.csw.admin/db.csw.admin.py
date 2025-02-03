@@ -249,7 +249,6 @@ class CswAdmin:
         return False
 
     def run(self, argv):
-
         if len(argv) == 0:
             grass.error("Nothing to do. Set args")
             return

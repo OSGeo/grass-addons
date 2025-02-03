@@ -586,7 +586,6 @@ def main():
     if flags["e"]:
         # Insert new point
         if "row" in add:
-
             road.plant_generate()
 
             if "," in options["pklist"]:
@@ -710,7 +709,6 @@ def main():
     ##################### Run ###################
 
     if flags["r"]:
-
         if flags["t"]:
             road.plant_generate(True, float(options["camber"]))
             road.rtab.update_tables()
@@ -728,7 +726,6 @@ def main():
         road.displ_generate()
 
         if options["dem"]:
-
             road.terr_generate(options["dem"])
 
             road.taludes_generate()
@@ -800,7 +797,6 @@ def main():
             road.trans_write()
 
         if options["dem"]:
-
             road.terr.set_pnts_terr(road.plant.roadline)
 
             road.taludes.set_roadlines(road.plant.roadline, road.displ)

@@ -249,7 +249,7 @@ def main():
     # Diverge here if using bspline interpolation
     # step 5
     gscript.info(
-        _("Extracting z value from the elevation" " for difference zero contours...")
+        _("Extracting z value from the elevation for difference zero contours...")
     )
     if bspline:
         # Extract points from vector contours
@@ -286,8 +286,9 @@ def main():
 
         gscript.info(
             _(
-                "Interpolating purged surface using a spline step value"
-                " of {s}".format(s=spline_step)
+                "Interpolating purged surface using a spline step value of {s}".format(
+                    s=spline_step
+                )
             )
         )
         gscript.run_command(
@@ -318,9 +319,7 @@ def main():
             )
         )
 
-        gscript.info(
-            _("Interpolating elevation between" " difference zero contours...")
-        )
+        gscript.info(_("Interpolating elevation between difference zero contours..."))
         gscript.run_command(
             "r.fillnulls",
             input=raster_contours_with_values,

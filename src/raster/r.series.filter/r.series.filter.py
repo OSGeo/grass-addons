@@ -352,7 +352,6 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
 
 
 def filter(method, names, winsize, order, prefix, itercount, fit_up):
-
     current_mapset = grass.read_command("g.mapset", flags="p")
     current_mapset = current_mapset.strip()
 
@@ -399,7 +398,6 @@ def _get_row_or_nan(raster, row_num):
 
 
 def main(options, flags):
-
     optimize = flags["c"]
     fit_up = flags["u"]
     if optimize and fit_up:

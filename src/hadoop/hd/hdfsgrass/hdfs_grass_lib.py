@@ -52,7 +52,6 @@ class ConnectionManager:
     """
 
     def __init__(self):
-
         self.conn_id = None
         self.conn_type = None
         self.host = None
@@ -352,7 +351,6 @@ class JSONBuilder:
     """
 
     def __init__(self, grass_map=None, json_file=None):
-
         self.grass_map = grass_map
         self.json_file = json_file
         self.json = ""
@@ -407,7 +405,6 @@ class JSONBuilder:
         """
         with open(filename, "r+") as outputFile:
             with open(filename, "r") as inputFile:
-
                 currentLineNumber = 0
                 while currentLineNumber < lineNumber:
                     inputFile.readline()
@@ -483,7 +480,6 @@ class GrassMapBuilder(object):
     def remove_line(self, lineNumber):
         with open(self.file, "r+") as outputFile:
             with open(self.file, "r") as inputFile:
-
                 currentLineNumber = 0
                 while currentLineNumber < lineNumber:
                     inputFile.readline()
@@ -651,7 +647,6 @@ class GrassMapBuilderEsriToEsri(GrassMapBuilder):
         self._create_map()
 
     def _generate_header(self, geom_type, wkid):
-
         cols = ""
         if self.attr:
             items = self.attr.split(",")

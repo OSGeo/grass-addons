@@ -106,7 +106,6 @@ if "GISBASE" not in os.environ:
 
 
 def main():
-
     # Read variables
     r_elevation = options["dem"].split("@")[0]
     mapname = options["dem"].replace("@", " ")
