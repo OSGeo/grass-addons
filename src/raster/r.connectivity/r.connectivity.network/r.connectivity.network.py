@@ -322,32 +322,24 @@ def main():
         if grass.db.db_table_exist(table) and not overwrite:
             grass.fatal(
                 'Table "{}" already exists. \
-                         Use --o flag to overwrite'.format(
-                    table
-                )
+                         Use --o flag to overwrite'.format(table)
             )
 
     if qml_style_dir:
         if not os.path.exists(qml_style_dir):
             grass.fatal(
                 'QML output requested but directory "{}" \
-                        does not exists.'.format(
-                    qml_style_dir
-                )
+                        does not exists.'.format(qml_style_dir)
             )
         if not os.path.isdir(qml_style_dir):
             grass.fatal(
                 'QML output requested but "{}" is not a \
-                        directory.'.format(
-                    qml_style_dir
-                )
+                        directory.'.format(qml_style_dir)
             )
         if not os.access(qml_style_dir, os.R_OK):
             grass.fatal(
                 'Output directory "{}" for QML files is not \
-                        writable.'.format(
-                    qml_style_dir
-                )
+                        writable.'.format(qml_style_dir)
             )
 
     for plot in [kernel_plot, overview_plot]:
@@ -355,16 +347,12 @@ def main():
             if not os.path.exists(os.path.dirname(plot)):
                 grass.fatal(
                     'Directory for output "{}" does not \
-                            exists.'.format(
-                        plot
-                    )
+                            exists.'.format(plot)
                 )
             if not os.access(os.path.dirname(plot), os.R_OK):
                 grass.fatal(
                     'Output directory "{}" is not \
-                            writable.'.format(
-                        plot
-                    )
+                            writable.'.format(plot)
                 )
 
     # Visualise negative exponential decay kernel and exit
@@ -507,9 +495,7 @@ def main():
     if i_flag and missing_packages:
         grass.warning(
             "Installing required R-packages {} on \
-                      request.".format(
-                ",".join(missing_packages)
-            )
+                      request.".format(",".join(missing_packages))
         )
         utils = rpackages.importr("utils")
         utils.chooseCRANmirror(ind=1)
@@ -518,9 +504,7 @@ def main():
         grass.fatal(
             "The following required R-packages {} are issing \
                     on your system. Please install \
-                    them.".format(
-                ",".join(missing_packages)
-            )
+                    them.".format(",".join(missing_packages))
         )
 
     # Check igraph version
@@ -537,9 +521,7 @@ def main():
                 "The required igraph version is 0.6-2 or \
                           later, the installed version is {}. \
                           Installing latest version of igraph on \
-                          request.".format(
-                    igraph_version
-                )
+                          request.".format(igraph_version)
             )
             utils.install_packages("igraph")
         else:
@@ -547,9 +529,7 @@ def main():
                 "The required igraph version is 0.6-2 or \
                          later, the installed version is {}. \
                          Please download and install at least igraph \
-                         version 0.6-2".format(
-                    igraph_version
-                )
+                         version 0.6-2".format(igraph_version)
             )
 
     rscript = """
@@ -567,9 +547,7 @@ library(nlme)
 library(codetools)
 library(rgrass7)
 library(DBI)
-""".format(
-        "{}".format(verbose).upper()
-    )
+""".format("{}".format(verbose).upper())
 
     if cores > 1:
         rscript += """
@@ -580,9 +558,7 @@ library(doMC)
 
 registerDoMC()
 options(cores = {})
-""".format(
-            cores
-        )
+""".format(cores)
 
     rscript += """
 # Variables
@@ -1648,9 +1624,7 @@ close(con_qml)
 #Close R
 ########################################################################
 #q()
-""".format(
-        cores
-    )
+""".format(cores)
 
     if cores <= 1 or os_type == "Windows":
         rscript.replace("mclapply(mc.cores={}, ".format(cores), "lapply(")

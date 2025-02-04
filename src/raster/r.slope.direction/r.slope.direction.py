@@ -238,9 +238,7 @@ if({{dir}} == {3}, if(isnull({{elev_in}}[0,-1]),{{elev_in}},{{elev_in}}[0,-1]), 
 if({{dir}} == {4}, if(isnull({{elev_in}}[1,-1]),{{elev_in}},{{elev_in}}[1,-1]), \
 if({{dir}} == {5}, if(isnull({{elev_in}}[1,0]),{{elev_in}},{{elev_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{elev_in}}[1,1]),{{elev_in}},{{elev_in}}[1,1]), \
-if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(
-        *dirs
-    )
+if(isnull({{elev_in}}[0,1]),{{elev_in}},{{elev_in}}[0,1]))))))))""".format(*dirs)
 
     kwargs = {
         "dir": direction,
@@ -258,9 +256,7 @@ if({{dir}} == {4}, if(isnull({{dist_in}}[1,-1]),{{dist_in}},{{dist_in}}[1,-1]), 
 if({{dir}} == {5}, if(isnull({{dist_in}}[1,0]),{{dist_in}},{{dist_in}}[1,0]), \
 if({{dir}} == {6}, if(isnull({{dist_in}}[1,1]),{{dist_in}},{{dist_in}}[1,1]), \
 if(isnull({{dist_in}}[0,1]),{{dist_in}},{{dist_in}}[0,1]))))))))
-{{dist_sum_out}}={{dist_sum_in}}+{{dist_in}}""".format(
-            *dirs
-        )
+{{dist_sum_out}}={{dist_sum_in}}+{{dist_in}}""".format(*dirs)
 
         kwargs["dist_in"] = "{}_dist_odd".format(tmpname)
         kwargs["dist_out"] = "{}_dist_even".format(tmpname)

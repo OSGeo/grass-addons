@@ -102,9 +102,7 @@ def sample_relative(input, layer, timestamp_column, column, t_raster, where, i_f
     end = t_raster["end_time"]
     raster_map = "{}@{}".format(t_raster["name"], t_raster["mapset"])
     where += """(julianday({0}) >= date('{1}') AND \
-                julianday({0}) < date('{2}'))""".format(
-        timestamp_column, start, end
-    )
+                julianday({0}) < date('{2}'))""".format(timestamp_column, start, end)
 
 
 def sample_absolute(input, layer, timestamp_column, column, t_raster, where, i_flag):
@@ -113,9 +111,7 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster, where, i_f
     end = t_raster["end_time"]
     raster_map = "{}@{}".format(t_raster["name"], t_raster["mapset"])
     where += """({0} >= date('{1}') AND \
-                {0} < date('{2}'))""".format(
-        timestamp_column, start, end
-    )
+                {0} < date('{2}'))""".format(timestamp_column, start, end)
 
     grass.verbose(_("Sampling points between {} and {}".format(start, end)))
 
@@ -190,9 +186,7 @@ def main():
             _(
                 "Could not find column {} \
                     in table connected to vector map {} \
-                    at layer {}".format(
-                    timestamp_column, input, layer
-                )
+                    at layer {}".format(timestamp_column, input, layer)
             )
         )
     if cols[timestamp_column]["type"] != "DATE":
@@ -204,9 +198,7 @@ def main():
                 _(
                     "Timestamp column is of type {}. \
                             It is recommended to use DATE type with an index. \
-                            ".format(
-                        cols[timestamp_column]["type"]
-                    )
+                            ".format(cols[timestamp_column]["type"])
                 )
             )
 
@@ -228,9 +220,7 @@ def main():
         grass.verbose(
             _(
                 "Temporal extent of vector points map is \
-                      {} to {}".format(
-                    extent[0], extent[1]
-                )
+                      {} to {}".format(extent[0], extent[1])
             )
         )
     else:

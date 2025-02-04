@@ -1170,7 +1170,16 @@ class MdMainEditor(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         try:
-            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, GError, MD_Distribution, MD_ReferenceSystem
+            global \
+                CI_Date, \
+                CI_OnlineResource, \
+                CI_ResponsibleParty, \
+                DQ_DataQuality, \
+                EX_Extent, \
+                EX_GeographicBoundingBox, \
+                GError, \
+                MD_Distribution, \
+                MD_ReferenceSystem
 
             from owslib.iso import (
                 CI_Date,

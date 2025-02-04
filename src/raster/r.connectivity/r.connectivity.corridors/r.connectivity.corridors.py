@@ -244,9 +244,7 @@ def main():
     if not con:
         grass.fatal(
             "Database connection for map {} \
-                    is not defined for layer {}.".format(
-                network, layer
-            )
+                    is not defined for layer {}.".format(network, layer)
         )
 
     # Check if required columns exist and are of required type
@@ -262,9 +260,7 @@ def main():
         grass.fatal(
             "Cannot find the following required/requested \
                     column(s) {} in vector map \
-                    {}.".format(
-                ", ".join(missing_columns), network
-            )
+                    {}.".format(", ".join(missing_columns), network)
         )
 
     #
@@ -276,9 +272,7 @@ def main():
                 "Column {} is of type {}. \
                          Only numeric types (integer, \
                          real or double precision) \
-                         allowed!".format(
-                    col, in_columns[col]["type"]
-                )
+                         allowed!".format(col, in_columns[col]["type"])
             )
 
         if col in weights:

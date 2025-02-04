@@ -856,9 +856,7 @@ def main():
             "db.select",
             flags="c",
             sql="SELECT segment FROM source_points_%d" % os.getpid(),
-        ).split("\n")[
-            :-1
-        ]  # remove last (empty line)
+        ).split("\n")[:-1]  # remove last (empty line)
         segment_list = map(int, segment_list)
         segment_list = sorted(list(set(segment_list)))
 
@@ -875,9 +873,7 @@ def main():
                 flags="c",
                 sql="SELECT cat, X, Y, n_fish, prob_scalar, Strahler, habitat_attract, p FROM source_points_%d WHERE segment=%d"
                 % (os.getpid(), int(j)),
-            ).split("\n")[
-                :-1
-            ]  # remove last (empty line)
+            ).split("\n")[:-1]  # remove last (empty line)
             source_points_list = list(csv.reader(source_points_list, delimiter="|"))
 
             for k in source_points_list:
@@ -1138,9 +1134,7 @@ def main():
                         flags="c",
                         sql="SELECT cat, adj_X, adj_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist"
                         % (passability_col, os.getpid()),
-                    ).split("\n")[
-                        :-1
-                    ]  # remove last (empty line)
+                    ).split("\n")[:-1]  # remove last (empty line)
                     barriers_list = list(csv.reader(barriers_list, delimiter="|"))
 
                     # if affected barriers then define the last loop (find the upstream most barrier)

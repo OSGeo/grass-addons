@@ -123,17 +123,13 @@ def main():
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
-    <Name>{}</Name>""".format(
-        style_name
-    )
+    <Name>{}</Name>""".format(style_name)
     sld += """
     <UserStyle>
       <Title>{}</Title>
       <FeatureTypeStyle>
         <Rule>
-          <RasterSymbolizer>\n""".format(
-        name
-    )
+          <RasterSymbolizer>\n""".format(name)
 
     # Define type of ColorMap depending on data type of input map
     if use_categories:

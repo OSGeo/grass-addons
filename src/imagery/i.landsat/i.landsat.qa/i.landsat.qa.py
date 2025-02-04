@@ -178,9 +178,7 @@ def check_user_input(user_input):
             grass.fatal(
                 _(
                     """All conditions for {} specified as
-            unacceptable, this will result in an empty map.""".format(
-                        o
-                    )
+            unacceptable, this will result in an empty map.""".format(o)
                 )
             )
         # Check if valid combination of options if provided

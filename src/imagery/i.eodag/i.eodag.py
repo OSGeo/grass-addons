@@ -1313,9 +1313,9 @@ def main():
                         ]
                     )
                 else:
-                    dag.providers_config["creodias"].auth.credentials[
-                        "totp"
-                    ] = creodias_otp
+                    dag.providers_config["creodias"].auth.credentials["totp"] = (
+                        creodias_otp
+                    )
                     dag._plugins_manager.get_auth_plugin("creodias").authenticate()
             custom_config = {
                 "timeout": int(options["timeout"]),
