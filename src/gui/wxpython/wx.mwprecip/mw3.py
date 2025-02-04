@@ -1783,11 +1783,13 @@ class Database:
             self.connection.executeSql(sql, False, True)
 
             logger.info("Computing column lenght")
-            sql = "UPDATE link SET lenght = get_earth_distance1(n1.long,n1.lat,n2.long,n2.lat) \
+            sql = (
+                "UPDATE link SET lenght = get_earth_distance1(n1.long,n1.lat,n2.long,n2.lat) \
                     FROM node AS n1 JOIN \
                     link AS l ON n1.nodeid = fromnodeid \
                     JOIN node AS n2 ON n2.nodeid = tonodeid \
                     WHERE link.linkid = l.linkid; "
+            )
             self.connection.executeSql(sql, False, True)
 
             # logger.info("Add column precip")

@@ -325,7 +325,8 @@ def main(options, flags):
     else:
         indexfin2 = opl
     mapcalc(
-        "eval(" "dpf = $pf - $pff,"
+        "eval("
+        "dpf = $pf - $pff,"
         # Individual classes
         "patch = if($pf < 0.4, 1, 0),"
         "transitional = if($pf >= 0.4 && $pf < 0.6, 2, 0),"

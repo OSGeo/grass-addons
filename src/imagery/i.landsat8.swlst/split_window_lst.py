@@ -128,9 +128,9 @@ class SplitWindowLST:
 
         if landcover in EMISSIVITIES.keys() or landcover == "Random":
             # a fixed land cover class requested
-            assert self._landcover_string_validity(
-                landcover_class
-            ), "Unknown land cover class name!"
+            assert self._landcover_string_validity(landcover_class), (
+                "Unknown land cover class name!"
+            )
             self.landcover_class = landcover
 
             # retrieve & set avg emissivities for channels t10, t11

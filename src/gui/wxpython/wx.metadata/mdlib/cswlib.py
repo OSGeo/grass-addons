@@ -103,7 +103,20 @@ class CSWBrowserPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GUI, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
+            global \
+                BBox, \
+                CatalogueServiceWeb, \
+                Environment, \
+                ExceptionReport, \
+                FileSystemLoader, \
+                GError, \
+                GMessage, \
+                GUI, \
+                GWarning, \
+                HtmlFormatter, \
+                PropertyIsLike, \
+                XmlLexer, \
+                highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -1059,7 +1072,19 @@ class CSWConnectionPanel(wx.Panel):
     def __init__(self, parent, main, cswBrowser=True):
         wx.Panel.__init__(self, parent)
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
+            global \
+                BBox, \
+                CatalogueServiceWeb, \
+                Environment, \
+                ExceptionReport, \
+                FileSystemLoader, \
+                GError, \
+                GMessage, \
+                GWarning, \
+                HtmlFormatter, \
+                PropertyIsLike, \
+                XmlLexer, \
+                highlight
 
             from jinja2 import Environment, FileSystemLoader
 

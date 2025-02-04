@@ -374,9 +374,7 @@ def main():
     if in_mapset and unicode(in_mapset) != unicode(Mapset()):
         grass.fatal(
             "Input vector map is not in current mapset and cannot be modified. \
-                    Please consider copying it to current mapset.".format(
-                output
-            )
+                    Please consider copying it to current mapset.".format(output)
         )
 
     buffers = []

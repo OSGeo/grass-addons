@@ -42,7 +42,19 @@ class GrassMD:
 
     def __init__(self, map, type):
         try:
-            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality, Environment, etree, EX_Extent, EX_GeographicBoundingBox, FileSystemLoader, MD_Distribution, MD_ReferenceSystem, RunCommand
+            global \
+                CI_Date, \
+                CI_OnlineResource, \
+                CI_ResponsibleParty, \
+                DQ_DataQuality, \
+                Environment, \
+                etree, \
+                EX_Extent, \
+                EX_GeographicBoundingBox, \
+                FileSystemLoader, \
+                MD_Distribution, \
+                MD_ReferenceSystem, \
+                RunCommand
 
             from owslib.iso import (
                 CI_Date,

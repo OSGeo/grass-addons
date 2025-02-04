@@ -158,9 +158,7 @@ XMLENERGYTOOLBOX = """<?xml version="1.0" encoding="UTF-8"?>
     </items>
   </toolbox>
 </toolboxes>
-""".format(
-    XMLMAINMENU=XMLMAINMENU
-)
+""".format(XMLMAINMENU=XMLMAINMENU)
 
 
 def value_not_none(method):

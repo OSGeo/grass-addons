@@ -574,9 +574,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="zzview{Q} = if(zzview{Q}>90 && zzview{Q}<180,\
-                    null(),zzview{Q})".format(
-                        Q=i
-                    ),
+                    null(),zzview{Q})".format(Q=i),
                     overwrite=True,
                     quiet=True,
                 )
@@ -609,9 +607,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzview{Q} =\
-            if(zzview{Q}==180,0,zzview{Q})".format(
-                Q=i
-            ),
+            if(zzview{Q}==180,0,zzview{Q})".format(Q=i),
             overwrite=True,
             quiet=True,
         )
@@ -628,9 +624,7 @@ def compute(
             if( y()<{py} && x()=={px}, 180, \
             if( y()=={py} && x()<{px}, 270, \
             if( y()>{py} && x()=={px}, 0 \
-            ) ) ) ) ) ) ) )".format(
-                A=f"zzview_angle{i}", py=y, px=x
-            ),
+            ) ) ) ) ) ) ) )".format(A=f"zzview_angle{i}", py=y, px=x),
             quiet=True,
         )
         # estimating the layer of the vertical angle between point and each
@@ -652,9 +646,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzb_view{Q} =\
-            cos(zzview90_{Q})*cos(zzview_angle{Q})".format(
-                Q=i
-            ),
+            cos(zzview90_{Q})*cos(zzview_angle{Q})".format(Q=i),
             quiet=True,
         )
         # evaluate the eastern component of the versor oriented along
@@ -662,9 +654,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zza_view{Q} =\
-            cos(zzview90_{Q})*sin(zzview_angle{Q})".format(
-                Q=i
-            ),
+            cos(zzview90_{Q})*sin(zzview_angle{Q})".format(Q=i),
             quiet=True,
         )
         # estimate the three-dimensional distance between the point and
@@ -680,9 +670,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="{D} = pow(pow(abs(y()-{py}),2)\
-                    +pow(abs(x()-{px}),2),0.5)".format(
-                        D=f"zzeuclidean{i}", py=y, px=x
-                    ),
+                    +pow(abs(x()-{px}),2),0.5)".format(D=f"zzeuclidean{i}", py=y, px=x),
                     quiet=True,
                 )  # Planar distance
                 Module(
@@ -727,9 +715,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="{D} = pow(pow(abs(y()-{py}),2)+pow(abs(x()\
-                    -{px}),2),0.5)".format(
-                        D=f"zzeuclidean{i}", py=y, px=x
-                    ),
+                    -{px}),2),0.5)".format(D=f"zzeuclidean{i}", py=y, px=x),
                     quiet=True,
                 )  # Planar distance
                 Module(
@@ -793,9 +779,7 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="kkview_angle{Q} = if(y()>{py} && x()>={px},\
-                zzview_angle{Q}+270, zzview_angle{Q}-90)".format(
-                    Q=i, py=y, px=x
-                ),
+                zzview_angle{Q}+270, zzview_angle{Q}-90)".format(Q=i, py=y, px=x),
                 quiet=True,
             )
             # Calculating the 3 components of the K versor
@@ -816,9 +800,7 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zz_dotproduct{Q} = kka_view{Q}*zza_dem +\
-                kkb_view{Q}*zzb_dem + kkc_view{Q}*zzc_dem".format(
-                    Q=i
-                ),
+                kkb_view{Q}*zzb_dem + kkc_view{Q}*zzc_dem".format(Q=i),
                 quiet=True,
             )
             # Calculating a, b and c components for the first part of the
@@ -826,25 +808,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_equation_first{Q} = kkc_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_equation_first{Q} = kkb_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_equation_first{Q} = kka_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             # Calculating a, b and c components for the second part of
@@ -875,25 +851,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_equation_third{Q} = sin({B})*(kka_view{Q}\
-                *zzb_dem - kkb_view{Q}*zza_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zzb_dem - kkb_view{Q}*zza_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_equation_third{Q} = sin({B})*(kkc_view{Q}\
-                *zza_dem - kka_view{Q}*zzc_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zza_dem - kka_view{Q}*zzc_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_equation_third{Q} = sin({B})*(kkb_view{Q}\
-                *zzc_dem - kkc_view{Q}*zzb_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zzc_dem - kkc_view{Q}*zzb_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
 
@@ -902,25 +872,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_dem_curv{Q} = zzc_equation_first{Q}\
-                + zzc_equation_second{Q} + zzc_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zzc_equation_second{Q} + zzc_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_dem_curv{Q} = zzb_equation_first{Q}\
-                + zzb_equation_second{Q} + zzb_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zzb_equation_second{Q} + zzb_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_dem_curv{Q} = zza_equation_first{Q}\
-                + zza_equation_second{Q} + zza_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zza_equation_second{Q} + zza_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
 
@@ -934,9 +898,7 @@ def compute(
                 (sqrt(zza_view{Q}*zza_view{Q}+zzb_view{Q}*zzb_view{Q}\
                 +zzc_view{Q}*zzc_view{Q})*sqrt(zza_dem_curv{Q}*zza_dem_curv{Q}\
                 +zzb_dem_curv{Q}*zzb_dem_curv{Q}+zzc_dem_curv{Q}\
-                *zzc_dem_curv{Q})))".format(
-                    Q=i
-                ),
+                *zzc_dem_curv{Q})))".format(Q=i),
                 quiet=True,
             )
         else:
@@ -946,9 +908,7 @@ def compute(
                 acos((zza_view{Q}*zza_dem+zzb_view{Q}*zzb_dem+zzc_view{Q}\
                 *zzc_dem)/(sqrt(zza_view{Q}*zza_view{Q}+zzb_view{Q}\
                 *zzb_view{Q}+zzc_view{Q}*zzc_view{Q})*sqrt(zza_dem*\
-                zza_dem+zzb_dem*zzb_dem+zzc_dem*zzc_dem)))".format(
-                    Q=i
-                ),
+                zza_dem+zzb_dem*zzb_dem+zzc_dem*zzc_dem)))".format(Q=i),
                 quiet=True,
             )
         # filtering 3d distance based on angle{Q} map
@@ -974,9 +934,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzH2_{Q} = pow(pow({r},2)+pow({d},2)-(2*{r}*{d}\
-            *cos(zzangle{Q}-90)),0.5)".format(
-                r=circle_radius, d=f"zzdistance{i}", Q=i
-            ),
+            *cos(zzangle{Q}-90)),0.5)".format(r=circle_radius, d=f"zzdistance{i}", Q=i),
             quiet=True,
         )
         # calculating B1 and B2 that are the angles between the line passing
@@ -1019,9 +977,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzsangle{Q} = if(zzsangle{Q}>2*{pi} || \
-            zzB2_{Q}>=90,2*{pi},zzsangle{Q})".format(
-                Q=i, pi=pi
-            ),
+            zzB2_{Q}>=90,2*{pi},zzsangle{Q})".format(Q=i, pi=pi),
             overwrite=True,
             quiet=True,
         )
@@ -1045,9 +1001,7 @@ def collectresults(task, proc):
         Module(
             "r.mapcalc",
             expression="{A} = if(isnull({Q}) ||| \
-            {Q}==0,{A},max({A},{Q}))".format(
-                A=f"xxtemp_a_{proc}", Q=f"zzangle{i}"
-            ),
+            {Q}==0,{A},max({A},{Q}))".format(A=f"xxtemp_a_{proc}", Q=f"zzangle{i}"),
             overwrite=True,
             quiet=True,
         )

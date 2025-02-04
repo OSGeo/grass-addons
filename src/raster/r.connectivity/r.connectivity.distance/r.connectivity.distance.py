@@ -318,17 +318,13 @@ def main():
     if not grass.legal_name(prefix):
         grass.fatal(
             "{} is not a legal name for GRASS \
-                    maps.".format(
-                prefix
-            )
+                    maps.".format(prefix)
         )
 
     if prefix[0].isdigit():
         grass.fatal(
             "Tables names starting with a digit are not SQL \
-                    compliant.".format(
-                prefix
-            )
+                    compliant.".format(prefix)
         )
 
     # Check if output maps not already exists or could be overwritten
@@ -341,9 +337,7 @@ def main():
     if not int(layer) in in_db_connection.keys():
         grass.fatal(
             "No attribute table connected vector map {} at \
-                    layer {}.".format(
-                patches, layer
-            )
+                    layer {}.".format(patches, layer)
         )
 
     # Check if cat column exists
@@ -353,18 +347,14 @@ def main():
     if "cat" not in pcols.keys():
         grass.fatal(
             "Cannot find the reqired column cat in vector map \
-                    {}.".format(
-                patches
-            )
+                    {}.".format(patches)
         )
 
     # Check if pop_proxy column exists
     if pop_proxy not in pcols.keys():
         grass.fatal(
             "Cannot find column {} in vector map \
-                    {}".format(
-                pop_proxy, patches
-            )
+                    {}".format(pop_proxy, patches)
         )
 
     # Check if pop_proxy column is numeric type
@@ -372,9 +362,7 @@ def main():
         grass.fatal(
             "Column {} is of type {}. Only numeric types \
                     (integer or double precision) \
-                    allowed!".format(
-                pop_proxy, pcols[pop_proxy]["type"]
-            )
+                    allowed!".format(pop_proxy, pcols[pop_proxy]["type"])
         )
 
     # Check if pop_proxy column does not contain values <= 0
@@ -389,9 +377,7 @@ def main():
     if np.min(pop_vals) <= 0:
         grass.fatal(
             "Column {} contains values <= 0 or NULL. Neither \
-                    values <= 0 nor NULL allowed!}".format(
-                pop_proxy
-            )
+                    values <= 0 nor NULL allowed!}".format(pop_proxy)
         )
 
     ##############################################
@@ -504,9 +490,7 @@ def main():
     {p}_patches_pol[1,0]!={p}_patches_pol)||| \
     (isnull({p}_patches_pol[0,-1])||| \
     {p}_patches_pol[0,-1]!={p}_patches_pol)), \
-    {p}_patches_pol,null()), null())".format(
-            p=TMP_PREFIX
-        ),
+    {p}_patches_pol,null()), null())".format(p=TMP_PREFIX),
         quiet=True,
     )
 
@@ -583,17 +567,13 @@ def main():
                 "Patch {} has not been rasterized and will \
                           therefore not be treated as part of the \
                           network. Consider using t-flag or change \
-                          resolution.".format(
-                    cat
-                )
+                          resolution.".format(cat)
             )
 
             continue
         grass.verbose(
             "Calculating connectivity-distances for patch \
-                      number {}".format(
-                cat
-            )
+                      number {}".format(cat)
         )
 
         # Filter
@@ -842,9 +822,7 @@ def main():
         if p_flag:
             grass.verbose(
                 "Extracting shortest paths for patch number \
-                          {}...".format(
-                    cat
-                )
+                          {}...".format(cat)
             )
 
             points_n = len(to_cats)
@@ -1020,9 +998,7 @@ def main():
                  ELSE to_p END AS p_to,
                  dist
                  FROM {}) AS x
-                 GROUP BY p_from, p_to""".format(
-            edge_map
-        )
+                 GROUP BY p_from, p_to""".format(edge_map)
         with open(
             os.path.join(conefor_dir, "undirected_connection_file"), "w"
         ) as edges:

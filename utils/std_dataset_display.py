@@ -38,9 +38,7 @@ def legend_item(color, text, x, y):
         {x1} {y1}
         {x2} {y1}
         {x2} {y2}
-    """.format(
-            color=color, x1=x, y1=y, x2=x + 2, y2=y + 2
-        ),
+    """.format(color=color, x1=x, y1=y, x2=x + 2, y2=y + 2),
     )
     gscript.run_command("d.text", text=text, at=(x + 3, y + 0.5), size=2, color="black")
 

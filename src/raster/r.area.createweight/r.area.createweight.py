@@ -813,9 +813,7 @@ def RandomForest(weighting_layer_name, vector, id):
     message = (
         "Selected covariates for the random forest model (with "
         "feature importance upper than {value} %) : \n\
-        ".format(
-            value=min_fimportance * 100
-        )
+        ".format(value=min_fimportance * 100)
     )
     message += "\n".join(list_covar)
     log_text += message + "\n\n"
@@ -977,7 +975,31 @@ def main():
     gscript.use_temp_region()  # define use of temporary regions
 
     ## Create global variables
-    global TMP_MAPS, TMP_CSV, TMP_VECT, vector_map, allstatfile, min_fimportance, param_grid, kfold, basemap_a, basemap_b, distance_to, tile_size, n_jobs, id, response_variable, plot, log_f, log_text, log_text_extend, basemap_a_category_list, basemap_b_category_list, rasta_class_list, rastb_class_list, output_units_layer
+    global \
+        TMP_MAPS, \
+        TMP_CSV, \
+        TMP_VECT, \
+        vector_map, \
+        allstatfile, \
+        min_fimportance, \
+        param_grid, \
+        kfold, \
+        basemap_a, \
+        basemap_b, \
+        distance_to, \
+        tile_size, \
+        n_jobs, \
+        id, \
+        response_variable, \
+        plot, \
+        log_f, \
+        log_text, \
+        log_text_extend, \
+        basemap_a_category_list, \
+        basemap_b_category_list, \
+        rasta_class_list, \
+        rastb_class_list, \
+        output_units_layer
 
     ## Create empty variables
     raster_list = []  # List of the input rasters
