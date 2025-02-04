@@ -1,5 +1,11 @@
 ---
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.9.4
+    hooks:
+      # Run the formatter.
+      - id: ruff-format
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -27,11 +33,6 @@ repos:
     rev: v0.44.0
     hooks:
       - id: markdownlint-fix
-  # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 25.1.0
-    hooks:
-      - id: black-jupyter
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.1
     hooks:
