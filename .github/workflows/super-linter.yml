@@ -56,7 +56,7 @@ jobs:
           VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
           VALIDATE_PERL: false # Until issues are fixed
-          VALIDATE_PYTHON_BLACK: false # Until code is upgraded to a newer black version
+          VALIDATE_PYTHON_BLACK: false # We are using ruff format
           VALIDATE_PYTHON_FLAKE8: false
           VALIDATE_PYTHON_ISORT: false # Until issues are fixed
           VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
