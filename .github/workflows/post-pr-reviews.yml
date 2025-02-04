@@ -3,7 +3,8 @@ name: Post PR code suggestions
 
 on:
   workflow_run:
-    workflows: ["ClangFormat Check", "Python Black Formatting"]
+    workflows:
+      ["ClangFormat Check", "Python Black Formatting", "Linting & formatting"]
     types:
       - completed
 permissions: {}
