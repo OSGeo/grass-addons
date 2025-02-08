@@ -81,10 +81,10 @@ def normalize_map(raster, output_name):
     # msg = "Univariate statistics: {us}".format(us=univar_string)
 
     minimum = grass.raster_info(raster)["min"]
-    grass.debug(_("Minimum: {m}".format(m=minimum)))
+    grass.debug(_("Minimum: {m}").format(m=minimum))
 
     maximum = grass.raster_info(raster)["max"]
-    grass.debug(_("Maximum: {m}".format(m=maximum)))
+    grass.debug(_("Maximum: {m}").format(m=maximum))
 
     if minimum is None or maximum is None:
         msg = "Minimum and maximum values of the <{raster}> map are 'None'.\n"
@@ -94,7 +94,7 @@ def normalize_map(raster, output_name):
         msg += "\n  - the MASK opacifies all non-NULL cells "
         msg += "\n  - the region is not correctly set\n"
         msg += "=========================================== "
-        grass.fatal(_(msg.format(raster=raster)))
+        grass.fatal(_(msg).format(raster=raster))
 
     normalisation = "float(({raster} - {minimum}) / ({maximum} - {minimum}))"
     normalisation = normalisation.format(
@@ -181,7 +181,7 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
         tmp_output = tmp_intermediate
 
     # grass.verbose(_("Temporary map name: {name}".format(name=tmp_output)))
-    grass.debug(_("Output map name: {name}".format(name=output_name)))
+    grass.debug(_("Output map name: {name}").format(name=output_name))
     # r.info(map=tmp_output, flags='gre')
 
     ### FIXME

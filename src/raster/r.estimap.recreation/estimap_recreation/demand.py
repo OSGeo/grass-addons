@@ -91,8 +91,7 @@ def build_unmet_demand_expression(
     # build_distance_function().
 
     msg = "Expression for distance category '{d}': {e}"
-    msg = msg.format(d=distance_category, e=unmet_demand_expression)
-    grass.debug(_(msg))
+    grass.debug(_(msg).format(d=distance_category, e=unmet_demand_expression))
 
     # build expressions -- explicit: use the 'score' kwarg!
     expression = (
@@ -103,7 +102,7 @@ def build_unmet_demand_expression(
     )
     if not real_numbers:
         expression = "round(" + expression + ")"
-    grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
+    grass.debug(_("Mapcalc expression: {e}").format(e=expression))
 
     # replace keywords appropriately
     unmet_demand_expression = expression.format(
@@ -112,8 +111,8 @@ def build_unmet_demand_expression(
         distance_category=distance_category,
     )
 
-    msg = "Big expression (after formatting): {e}".format(e=unmet_demand_expression)
-    grass.debug(_(msg))
+    msg = "Big expression (after formatting): {e}"
+    grass.debug(_(msg).format(e=unmet_demand_expression))
 
     return unmet_demand_expression
 
@@ -188,7 +187,7 @@ def compute_unmet_demand(
     # integration to build_distance_function().
 
     msg = "*** Unmet demand function: {f}"
-    grass.debug(_(msg.format(f=unmet_demand_expression)))
+    grass.debug(_(msg).format(f=unmet_demand_expression))
 
     unmet_demand_equation = EQUATION.format(
         result=output_unmet_demand, expression=unmet_demand_expression

@@ -206,7 +206,7 @@ def compute_supply(
 
     for category in categories:
         msg = "\n>>> Processing category '{c}' of aggregation map '{a}'"
-        grass.verbose(_(msg.format(c=category, a=aggregation)))
+        grass.verbose(_(msg).format(c=category, a=aggregation))
 
         # Intermediate names
 
@@ -234,8 +234,7 @@ def compute_supply(
         # Output names
 
         msg = "*** Processing aggregation raster category: {r}"
-        msg = msg.format(r=category)
-        grass.debug(_(msg))
+        grass.debug(_(msg).format(r=category))
         # g.message(_(msg))
 
         # First, set region to extent of the aggregation map
@@ -251,12 +250,11 @@ def compute_supply(
         )
 
         msg = "!!! Computational resolution matched to {raster}"
-        msg = msg.format(raster=aggregation)
-        grass.debug(_(msg))
+        grass.debug(_(msg).format(raster=aggregation))
 
         # Build MASK for current category & high quality recreation areas
         msg = " * Setting category '{c}' as a MASK"
-        grass.verbose(_(msg.format(c=category, a=aggregation)))
+        grass.verbose(_(msg).format(c=category, a=aggregation))
 
         masking = "if( {spectrum} == {highest_quality_category} && "
         masking += "{aggregation} == {category}, "
@@ -284,7 +282,7 @@ def compute_supply(
             quiet=True,
         )
         cells_categories = grass.parse_command("r.category", map=cells, delimiter="\t")
-        grass.debug(_("*** Cells: {c}".format(c=cells_categories)))
+        grass.debug(_("*** Cells: {c}").format(c=cells_categories))
 
         # Build cell category and label rules for `r.category`
         cells_rules = "\n".join(
@@ -432,8 +430,8 @@ def compute_supply(
                 for x in fraction_categories.values()
             ]
         )
-        msg = "*** Fractions: {f}".format(f=fraction_categories)
-        grass.debug(_(msg))
+        msg = "*** Fractions: {f}"
+        grass.debug(_(msg).format(f=fraction_categories))
 
         # g.message(_("Sum: {:.17g}".format(fractions_sum)))
         assert abs(fractions_sum - 1) < 1.0e-6, "Sum of fractions is != 1"
@@ -463,7 +461,7 @@ def compute_supply(
             delimiter="\t",
             quiet=True,
         )
-        grass.debug(_("*** Flow: {c}".format(c=flow_categories)))
+        grass.debug(_("*** Flow: {c}").format(c=flow_categories))
 
         # Build flow category and label rules for `r.category`
         flow_rules = "\n".join(

@@ -79,17 +79,17 @@ def build_land_component(
         # Check datatype: a land use map should be categorical, i.e. of type CELL
         landuse_datatype = grass.raster.raster_info(landuse)["datatype"]
         if landuse_datatype != "CELL":
-            grass.fatal(_(FATAL_MESSAGE_LAND_USE_DATATYPE.format(landuse=landuse)))
+            grass.fatal(_(FATAL_MESSAGE_LAND_USE_DATATYPE).format(landuse=landuse))
 
     if landuse and suitability_scores and ":" not in suitability_scores:
-        msg = USING_SUITABILITY_SCORES_FROM_FILE.format(scores=suitability_scores)
-        grass.verbose(_(msg))
+        msg = USING_SUITABILITY_SCORES_FROM_FILE
+        grass.verbose(_(msg).format(scores=suitability_scores))
 
     suitability_map_name = temporary_filename(filename="suitability")
 
     if landuse and not suitability_scores:
-        msg = USING_SUITABILITY_SCORES_FROM_INTERNAL_RULES.format(map=landuse)
-        grass.warning(_(msg))
+        msg = USING_SUITABILITY_SCORES_FROM_INTERNAL_RULES
+        grass.warning(_(msg).format(map=landuse))
 
         temporary_suitability_map_name = temporary_filename(
             filename=suitability_map_name
@@ -100,8 +100,8 @@ def build_land_component(
         remove_files_at_exit(suitability_scores)
 
     if landuse and suitability_scores and ":" in suitability_scores:
-        msg = USING_SUITABILITY_SCORES_FROM_STRING.format(map=landuse)
-        grass.verbose(_(msg))
+        msg = USING_SUITABILITY_SCORES_FROM_STRING
+        grass.verbose(_(msg).format(map=landuse))
         temporary_suitability_map_name = temporary_filename(
             filename=suitability_map_name
         )
@@ -117,8 +117,8 @@ def build_land_component(
 
     if not landcover and landuse:
         landcover = landuse
-        msg = ATTEMPT_TO_USE_LAND_USE_FOR_AREAL_STATISTICS.format(landuse=landuse)
-        grass.warning(_(msg))
+        msg = ATTEMPT_TO_USE_LAND_USE_FOR_AREAL_STATISTICS
+        grass.warning(_(msg).format(landuse=landuse))
 
     # if 'land_classes' is a file
     if (
@@ -127,8 +127,7 @@ def build_land_component(
         and ":" not in landcover_reclassification_rules
     ):
         msg = USING_LAND_COVER_RECLASSIFICATION_RULES_FROM_FILE
-        msg = msg.format(rules=landcover_reclassification_rules)
-        grass.verbose(_(msg))
+        grass.verbose(_(msg).format(rules=landcover_reclassification_rules))
 
     # if 'land_classes' not given
     if landcover and not landcover_reclassification_rules:
@@ -138,8 +137,8 @@ def build_land_component(
         # 1. landcover is not a "MAES" land cover
         # 2. landcover is an Urban Atlas one?
 
-        msg = USING_INTERNAL_LAND_COVER_RECLASSIFICATION_RULES.format(map=landcover)
-        grass.verbose(_(msg))
+        msg = USING_INTERNAL_LAND_COVER_RECLASSIFICATION_RULES
+        grass.verbose(_(msg).format(map=landcover))
 
         temporary_maes_ecosystem_types = temporary_filename(
             filename=maes_ecosystem_types
@@ -156,8 +155,8 @@ def build_land_component(
         and landcover_reclassification_rules
         and ":" in landcover_reclassification_rules
     ):
-        msg = USING_LAND_COVER_RECLASSIFICATION_RULES_FROM_STRING.format(map=landcover)
-        grass.verbose(_(msg))
+        msg = USING_LAND_COVER_RECLASSIFICATION_RULES_FROM_STRING
+        grass.verbose(_(msg).format(map=landcover))
         temporary_maes_land_classes = temporary_filename(filename=maes_land_classes)
         landcover_reclassification_rules = string_to_file(
             landcover_reclassification_rules, filename=maes_land_classes
