@@ -242,8 +242,12 @@ def main():
         if a is None or c is None:
             allowed_return_period = ("N2", "N5", "N10", "N20", "N50", "N100")
             if not any(n in rast for n in allowed_return_period):
-                grass.error("Unable to determine return period from raster name: <{}>. "
-                            "Allowed return periods: {}".format(rast, ','.join(allowed_return_period)))
+                grass.error(
+                    "Unable to determine return period from raster name: <{}>. "
+                    "Allowed return periods: {}".format(
+                        rast, ",".join(allowed_return_period)
+                    )
+                )
             grass.fatal("Unable to calculate coefficients")
 
         # calculate output values, update attribute table
