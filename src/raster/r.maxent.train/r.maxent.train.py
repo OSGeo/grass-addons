@@ -785,16 +785,16 @@ def main(options, flags):
 
     statistics = rows[len(rows) - 1]
     i = variables.index("#Training samples")
-    gs.info(_(f"Number of training samples: {statistics[i]}"))
+    gs.info(_("Number of training samples: {}").format(statistics[i]))
     i = variables.index("#Background points")
-    gs.info(_(f"Number of background points: {statistics[i]}"))
+    gs.info(_("Number of background points: {}").format(statistics[i]))
     i = variables.index("Training AUC")
-    print(_(f"Training AUC: {statistics[i]}"))
+    print(_("Training AUC: {}").format(statistics[i]))
     try:
         i = variables.index("Test AUC")
         msg = f"Test AUC: {statistics[i]}"
         i = variables.index("AUC Standard Deviation")
-        gs.message(_("{} (+/- {})".format(msg, statistics[i])))
+        gs.message(_("{} (+/- {})").format(msg, statistics[i]))
     except ValueError:
         gs.info(_("Test AUC: no test data was provided"))
 

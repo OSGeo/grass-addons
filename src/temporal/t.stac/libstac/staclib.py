@@ -115,16 +115,16 @@ class STACHelper:
         try:
             search = self.client.search(**kwargs)
         except APIError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
         except NotImplementedError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
         except Exception as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
 
         try:
-            gs.message(_(f"Search Matched: {search.matched()} items"))
+            gs.message(_("Search Matched: {} items").format(search.matched()))
         except e:
-            gs.warning(_(f"No items found: {e}"))
+            gs.warning(_("No items found: {}").format(e))
             return None
 
         return search
@@ -151,16 +151,20 @@ class STACHelper:
         """Check if the STAC API conforms to the given conformance class"""
         if not self.client.conforms_to(conformance_class):
             if response == "fatal":
-                gs.fatal(_(f"STAC API does not conform to {conformance_class}"))
+                gs.fatal(_("STAC API does not conform to {}").format(conformance_class))
                 return False
             elif response == "warning":
-                gs.warning(_(f"STAC API does not conform to {conformance_class}"))
+                gs.warning(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "verbose":
-                gs.verbose(_(f"STAC API does not conform to {conformance_class}"))
+                gs.verbose(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "info":
-                gs.info(_(f"STAC API does not conform to {conformance_class}"))
+                gs.info(_("STAC API does not conform to {}").format(conformance_class))
                 return True
             elif response == "message":
                 sys.stdout.write(f"STAC API does not conform to {conformance_class}\n")
@@ -296,7 +300,7 @@ def print_attribute(item, attribute, message=None):
     try:
         sys.stdout.write(f"{message}: {getattr(item, attribute)}\n")
     except AttributeError:
-        gs.info(_(f"{message} not found."))
+        gs.info(_("{message} not found.").format(message=message))
 
 
 def print_basic_collection_info(collection):
@@ -693,7 +697,11 @@ def create_metadata_vector(vector, metadata):
             if bbox_list and isinstance(bbox_list[0], list) and len(bbox_list[0]) == 4:
                 wgs84_bbox = bbox_list[0]
             else:
-                gs.warning(_(f"Invalid bbox. Skipping Collection {item.get('id')}.\n"))
+                gs.warning(
+                    _("Invalid bbox. Skipping Collection {id}.\n").format(
+                        id=item.get("id")
+                    )
+                )
                 continue
 
             bbox = wgs84_bbox_to_boundary(wgs84_bbox)
