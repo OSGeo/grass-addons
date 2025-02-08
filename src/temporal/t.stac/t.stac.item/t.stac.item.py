@@ -399,7 +399,7 @@ def main():
 
     # Set the bbox to the current region if the user did not specify the bbox or intersects option
     if not bbox and not intersects:
-        gs.verbose(_("Setting bbox to current region: {}".format(bbox)))
+        gs.verbose(_("Setting bbox to current region: {}").format(bbox))
         bbox = libstac.region_to_wgs84_decimal_degrees_bbox()
 
     if datetime:

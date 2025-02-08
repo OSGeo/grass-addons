@@ -89,7 +89,7 @@ class STACHelper:
             return [i.to_dict() for i in collection_list]
 
         except APIError as e:
-            gs.fatal(_("Error getting collections: {}".format(e)))
+            gs.fatal(_("Error getting collections: {}").format(e))
 
     def get_collection(self, collection_id):
         """Get a collection frofrom io import StringIOm STAC Client"""
@@ -99,7 +99,7 @@ class STACHelper:
             return self.collection
 
         except APIError as e:
-            gs.fatal(_("Error getting collection: {}".format(e)))
+            gs.fatal(_("Error getting collection: {}").format(e))
 
     def search_api(self, **kwargs):
         """Search the STAC API"""
@@ -709,7 +709,7 @@ def create_metadata_vector(vector, metadata):
             # Iterate over the list of dictionaries and attempt to cast each value to float using safe_float_cast
             if not all(safe_float_cast(i) for i in bbox.values()):
                 gs.warning(
-                    _("Invalid bbox. Skipping Collection {}.".format(item.get("id")))
+                    _("Invalid bbox. Skipping Collection {}.").format(item.get("id"))
                 )
                 continue
 
@@ -768,7 +768,7 @@ def import_grass_raster(params):
             quiet=True,
         )
     except CalledModuleError as e:
-        gs.fatal(_("Error importing raster: {}".format(e.stderr)))
+        gs.fatal(_("Error importing raster: {}").format(e.stderr))
 
 
 def download_assets(
@@ -813,7 +813,7 @@ def download_assets(
                     if pbar:
                         pbar.update(1)
             except Exception as e:
-                gs.fatal(_("Error importing raster: {}".format(str(e))))
+                gs.fatal(_("Error importing raster: {}").format(str(e)))
 
     tqdm = _import_tqdm(False)
     if tqdm is None:

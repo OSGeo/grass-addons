@@ -239,10 +239,8 @@ def main():
                     except (FloatingPointError, RuntimeError):
                         gcore.warning(
                             _(
-                                "Method '{m}' cannot converge for subregion {reg}".format(
-                                    m=method, reg=subregionId
-                                )
-                            )
+                                "Method '{m}' cannot converge for subregion {reg})"
+                            ).format(m=method, reg=subregionId)
                         )
                         rmse[method] = sys.maxsize  # so that other method is selected
                         coeff[method] = (np.nan, np.nan, np.nan)
@@ -337,10 +335,8 @@ def main():
             gcore.warning(
                 _(
                     "Subregion {sub} has negative numbers"
-                    " of newly developed cells, changing to zero".format(
-                        sub=subregionId
-                    )
-                )
+                    " of newly developed cells, changing to zero"
+                ).format(sub=subregionId)
             )
             demand[subregionId][demand[subregionId] < 0] = 0
         if coeff[method][0] < 0 or np.isnan(coeff[method][0]):
@@ -356,10 +352,8 @@ def main():
             gcore.warning(
                 _(
                     "For subregion {sub} population and development are inversely proportional,"
-                    " demand will be interpolated based on prior change in development only.".format(
-                        sub=subregionId
-                    )
-                )
+                    " demand will be interpolated based on prior change in development only."
+                ).format(sub=subregionId)
             )
 
         # draw

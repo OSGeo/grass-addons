@@ -93,9 +93,8 @@ def install_maxent(maxent, overwrite):
     maxent_copy = os.path.join(maxent_path, "scripts", "maxent.jar")
     if file_name != "maxent.jar":
         gs.fatal(
-            _(
-                "The name of the maxent program should be 'maxent.jar',"
-                " not '{}'".format(file_name)
+            _("The name of the maxent program should be 'maxent.jar', not '{}'").format(
+                file_name
             )
         )
 
@@ -154,17 +153,13 @@ def set_path_to_java(java, overwrite):
     if java_txt_copy and bool(overwrite):
         with open(txt_java_path, "w") as file:
             file.write(java)
-        msg = "Text file created:\n{}\nwith path to java executable:\n{}".format(
-            txt_java_path, java
-        )
-        gs.info(_(msg))
+        msg = "Text file created:\n{}\nwith path to java executable:\n{}"
+        gs.info(_(msg).format(txt_java_path, java))
     elif not os.path.isfile(java_txt_copy):
         with open(txt_java_path, "w") as file:
             file.write(java)
-        msg = "Text file created:\n{}\nwith path to java executable:\n{}".format(
-            txt_java_path, java
-        )
-        gs.info(_(msg))
+        msg = "Text file created:\n{}\nwith path to java executable:\n{}"
+        gs.info(_(msg).format(txt_java_path, java))
     else:
         msg = (
             "The text file with the path to the java executable \n"

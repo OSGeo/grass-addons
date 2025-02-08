@@ -242,7 +242,7 @@ def main(options, flags):
                 )
             except CalledModuleError:
                 gscript.fatal(
-                    _("Not possible to create column {col}".format(col=colname))
+                    _("Not possible to create column {col}").format(col=colname)
                 )
         gscript.warning(
             _("Attribute table of vector {name} will be updated...").format(name=invect)
@@ -254,7 +254,7 @@ def main(options, flags):
         for col in cols:
             if col not in colexist:
                 gscript.fatal(
-                    _("Column '{}' does not exist, please create it first".format(col))
+                    _("Column '{}' does not exist, please create it first").format(col)
                 )
         gscript.warning(
             _("Attribute table of vector {name} will be updated...").format(name=invect)
@@ -291,8 +291,8 @@ def main(options, flags):
             gscript.fatal(
                 _(
                     "Input granularity is smaller or equal to the {iv}"
-                    " STRDS granularity".format(iv=strds)
-                )
+                    " STRDS granularity"
+                ).format(iv=strds)
             )
         td = int(gran)
     if incol and indate:
@@ -398,7 +398,7 @@ def main(options, flags):
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
                 gscript.fatal(
-                    _("db.select returned an error for date {da}".format(da=start))
+                    _("db.select returned an error for date {da}").format(da=start)
                 )
         if not lines and stdout:
             for feat in myfeats:

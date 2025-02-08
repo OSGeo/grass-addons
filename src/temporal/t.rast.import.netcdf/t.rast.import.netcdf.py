@@ -881,10 +881,8 @@ def parse_netcdf(
         requested_time_dimensions = np.where(requested_time_dimensions)[0]
         if requested_time_dimensions.size == 0:
             gs.warning(
-                _(
-                    "Nothing to import from subdataset {s} in {f}".format(
-                        s=s_d[1], f=sds_url
-                    )
+                _("Nothing to import from subdataset {s} in {f}").format(
+                    s=s_d[1], f=sds_url
                 )
             )
             continue

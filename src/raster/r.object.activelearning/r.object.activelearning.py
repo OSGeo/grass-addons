@@ -604,9 +604,8 @@ def main():
         msg = e.msg
         gcore.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     learning_steps = (

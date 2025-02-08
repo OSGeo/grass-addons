@@ -177,18 +177,17 @@ def check_user_input(user_input):
         if len(user_input[o].split(",")) >= 4:
             grass.fatal(
                 _(
-                    """All conditions for {} specified as
-            unacceptable, this will result in an empty map.""".format(o)
-                )
+                    "All conditions for {} specified as unacceptable, "
+                    "this will result in an empty map."
+                ).format(o)
             )
+
         # Check if valid combination of options if provided
         if o in collection_unsupported[collection]:
             grass.warning(
                 _(
-                    "Condition {condition} is unsupported in Collection {collection}".format(
-                        condition=o, collection=user_input["collection"]
-                    )
-                )
+                    "Condition {condition} is unsupported in Collection {collection}"
+                ).format(condition=o, collection=user_input["collection"])
             )
     return sensor, collection, bit_filter
 
@@ -329,11 +328,9 @@ def main():
             if not set(options[pattern].split(",")).issubset(set(bit_keys)):
                 grass.fatal(
                     _(
-                        "Invalid input for option <{opt}>.\
-                only the following are allowed: {valid}".format(
-                            opt=pattern, valid=",".join(bit_keys)
-                        )
-                    )
+                        "Invalid input for option <{opt}>. "
+                        "Only the following are allowed: {valid}"
+                    ).format(opt=pattern, valid=",".join(bit_keys))
                 )
 
     # List for categories representing pixels of unacceptable quality

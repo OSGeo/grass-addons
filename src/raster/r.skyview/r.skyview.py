@@ -150,10 +150,8 @@ def main():
         and colorize_color not in ["default", "aspectcolr"]
     ):
         gcore.warning(
-            _(
-                "Using possibly inappropriate color table <{}> for aspect".format(
-                    colorize_color
-                )
+            _("Using possibly inappropriate color table <{}> for aspect").format(
+                colorize_color
             )
         )
 

@@ -355,7 +355,7 @@ def get_valid_color(color):
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
     if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -675,10 +675,8 @@ def main(options, flags):
     range_min_val = 0
     if whisker_range <= range_min_val:
         gs.fatal(
-            _(
-                "The range value need to be larger than {min_val}".format(
-                    min_val=range_min_val,
-                )
+            _("The range value need to be larger than {min_val}").format(
+                min_val=range_min_val
             )
         )
 

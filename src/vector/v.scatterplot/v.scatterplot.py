@@ -411,7 +411,7 @@ def get_valid_color(color):
         if max(color) > 1:
             color[:] = [x / 255 for x in color]
     if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+        gs.fatal(_("{} is not a valid color.").format(color))
     color = matplotlib.colors.to_rgba(color)
     return color
 

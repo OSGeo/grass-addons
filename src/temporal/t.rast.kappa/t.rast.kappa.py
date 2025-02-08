@@ -240,7 +240,7 @@ def main():
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
         gscript.fatal(
-            _("Space time raster dataset {st} seems to be empty".format(st=strds))
+            _("Space time raster dataset {st} seems to be empty").format(st=strds)
         )
         return 1
 
