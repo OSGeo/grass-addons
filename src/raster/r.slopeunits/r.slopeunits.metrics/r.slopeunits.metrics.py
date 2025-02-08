@@ -415,8 +415,8 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     )
     num_float = float(next(iter(num.keys())))
     den_float = float(next(iter(den.keys())))
-    gs.message(_(num_float))
-    gs.message(_(den_float))
+    gs.message(num_float)
+    gs.message(den_float)
     i_fin = float(num_float) / float(den_float)
     gs.message(_("Ifin: {}").format(i_fin))
 
