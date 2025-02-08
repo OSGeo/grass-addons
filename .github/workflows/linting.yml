@@ -44,11 +44,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff==${{ env.RUFF_VERSION }}
 
-      - name: Run ruff formatter
-        run: |
-          ruff format
-      - name: Create and uploads code suggestions to apply
-        id: diff
+      - name: Run Ruff (output annotations on fixable errors)
+        run: ruff check --output-format=github . --preview --unsafe-fixes
+        continue-on-error: true
+      - name: Run Ruff (apply fixes for suggestions)
+        run: ruff check . --preview --fix --unsafe-fixes
+      - name: Run `ruff format` showing diff without failing
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        run: ruff format --diff
+      - name: Run `ruff format` fixing files
+        # Run `ruff format` even when `ruff check` fixed files: fixes can require formatting
+        if: ${{ !cancelled() }}
+        run: ruff format
+      - name: Create and uploads code suggestions to apply for Ruff
+        # Will fail fast here if there are changes required
+        id: diff-ruff
+        # To run after ruff step exits with failure when rules don't have fixes available
+        if: ${{ !cancelled() }}
         uses: OSGeo/grass/.github/actions/create-upload-suggestions@main
         with:
           tool-name: ruff
