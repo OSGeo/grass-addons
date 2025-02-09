@@ -118,7 +118,12 @@ jobs:
         with:
           r-version: 4.2.1
           Ncpus: 4
-
+      - name: Configure ccache for R package builds
+        run: |
+          # R package sources are extracted as newly created files
+          echo "CCACHE_SLOPPINESS=include_file_ctime" >> "${GITHUB_ENV}"
+          # R temp directory name differs
+          echo "CCACHE_NOHASHDIR=true" >> "${GITHUB_ENV}"
       - name: Get R dependencies
         run: |
           grass-addons/.github/workflows/install_r_packages.R
