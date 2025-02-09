@@ -2,7 +2,9 @@ import unittest
 
 import grass.script as grass
 from grass.script import array as garray
+from grass.script.utils import set_path
 
+set_path("r.agent", "libagent", "..")
 from libagent import error, grassland, playground
 
 
