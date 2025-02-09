@@ -206,10 +206,8 @@ def parse_bgr_input(alias_input, env_maps, alias_names):
         # Check if environmental parameter map(s) exist
         if not RasterRow(param).exist():
             gscript.fatal(
-                _(
-                    "Could not find environmental parameter raster map <{}>".format(
-                        param
-                    )
+                _("Could not find environmental parameter raster map <{}>").format(
+                    param
                 )
             )
 
@@ -244,10 +242,8 @@ def parse_species_input(species_masks, species_names):
             species_map = RasterRow(*species_map_name)
             if not species_map.exist():
                 gscript.fatal(
-                    _(
-                        "Could not find species raster map <{}> in mapset <{}>.".format(
-                            *species_map_name
-                        )
+                    _("Could not find species raster map <{}> in mapset <{}>.").format(
+                        *species_map_name
                     )
                 )
 
@@ -308,7 +304,7 @@ def main():
             # Zoom region to match specie map if requested
             if flags["z"]:
                 gscript.verbose(
-                    _("Zooming region to species {} temporarily.".format(species))
+                    _("Zooming region to species {} temporarily.").format(species)
                 )
                 gscript.use_temp_region()
                 gscript.run_command(
@@ -321,7 +317,7 @@ def main():
             )
 
             # Export data using r.stats
-            gscript.verbose(_("Producing output for species {}".format(species)))
+            gscript.verbose(_("Producing output for species {}").format(species))
             stats = gscript.pipe_command(
                 "r.stats",
                 flags="1gN",
@@ -351,7 +347,7 @@ def main():
     # Check if a mask file allready exists
     if bgr_mask:
         gscript.verbose(
-            _("Using map {} as mask for the background landscape...".format(bgr_mask))
+            _("Using map {} as mask for the background landscape...").format(bgr_mask)
         )
         # Apply mask
         gscript.run_command("r.mask", raster=bgr_mask, overwrite=True, quiet=True)

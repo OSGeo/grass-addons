@@ -334,7 +334,7 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
         parse=(gs.core.parse_key_val, {"sep": ":"}),
     )
     v_fin = float(numvar["sum"]) / float(denvar["sum"])
-    gs.message(_(f"Vfin: {v_fin}"))
+    gs.message(_("Vfin: {}").format(v_fin))
 
     #
     # calcolo I
@@ -415,10 +415,10 @@ def calculate_metrics(basin, dem, slumapclean, cleansize, resolution):
     )
     num_float = float(next(iter(num.keys())))
     den_float = float(next(iter(den.keys())))
-    gs.message(_(num_float))
-    gs.message(_(den_float))
+    gs.message(num_float)
+    gs.message(den_float)
     i_fin = float(num_float) / float(den_float)
-    gs.message(_(f"Ifin: {i_fin}"))
+    gs.message(_("Ifin: {}").format(i_fin))
 
     gs.run_command(
         "g.remove",

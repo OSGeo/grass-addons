@@ -285,10 +285,8 @@ def main():
         spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
 
         gscript.info(
-            _(
-                "Interpolating purged surface using a spline step value of {s}".format(
-                    s=spline_step
-                )
+            _("Interpolating purged surface using a spline step value of {s}").format(
+                s=spline_step
             )
         )
         gscript.run_command(

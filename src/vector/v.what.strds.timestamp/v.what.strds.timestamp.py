@@ -113,7 +113,7 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster, where, i_f
     where += """({0} >= date('{1}') AND \
                 {0} < date('{2}'))""".format(timestamp_column, start, end)
 
-    grass.verbose(_("Sampling points between {} and {}".format(start, end)))
+    grass.verbose(_("Sampling points between {} and {}").format(start, end))
 
     # If only one core is used, processing can be faster if computational region is temporarily moved
     # to where datapoints are (e.g. in case of tracking data)
@@ -184,10 +184,9 @@ def main():
     if timestamp_column not in cols.keys():
         grass.fatal(
             _(
-                "Could not find column {} \
-                    in table connected to vector map {} \
-                    at layer {}".format(timestamp_column, input, layer)
-            )
+                "Could not find column {column_name} "
+                "in table connected to vector map {map_name} at layer {layer_name}"
+            ).format(column_name=timestamp_column, map_name=input, layer_name=layer)
         )
     if cols[timestamp_column]["type"] != "DATE":
         if dbcon["driver"] != "sqlite":
@@ -196,10 +195,9 @@ def main():
             # (at least not with a couple of 100 points)
             grass.warning(
                 _(
-                    "Timestamp column is of type {}. \
-                            It is recommended to use DATE type with an index. \
-                            ".format(cols[timestamp_column]["type"])
-                )
+                    "Timestamp column is of type {}. "
+                    "It is recommended to use DATE type with an index."
+                ).format(cols[timestamp_column]["type"])
             )
 
     # Make sure the temporal database exists
@@ -220,8 +218,8 @@ def main():
         grass.verbose(
             _(
                 "Temporal extent of vector points map is \
-                      {} to {}".format(extent[0], extent[1])
-            )
+                      {0} to {1}"
+            ).format(extent[0], extent[1])
         )
     else:
         tempwhere = "({}) AND ".format(tempwhere)
@@ -236,8 +234,8 @@ def main():
             grass.warning(
                 _(
                     "Space time raster dataset {} does not contain any registered "
-                    "map. It is being skipped.".format(cur_strds.get_id())
-                )
+                    "map. It is being skipped."
+                ).format(cur_strds.get_id())
             )
             counter += 1
             continue
@@ -272,10 +270,8 @@ def main():
         if not rows and tempwhere:
             dbif.close()
             grass.fatal(
-                _(
-                    "No maps selected from Space time raster dataset {}".format(
-                        cur_strds.get_id()
-                    )
+                _("No maps selected from Space time raster dataset {}").format(
+                    cur_strds.get_id()
                 )
             )
 

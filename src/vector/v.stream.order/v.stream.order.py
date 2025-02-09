@@ -329,7 +329,7 @@ def graph_to_vector(
             cols.append((entry[1], entry[2]))
 
     out_streams = VectorTopo(output)
-    grass.message(_("Writing vector map <%s>" % output))
+    grass.message(_("Writing vector map <%s>") % output)
     out_streams.open("w", tab_cols=cols)
 
     count = 0
@@ -338,10 +338,8 @@ def graph_to_vector(
         count += 1
 
         grass.message(
-            _(
-                "Writing network %i from %i with "
-                "outlet category %i" % (count, len(graphs), outlet_cat)
-            )
+            _("Writing network %i from %i with outlet category %i")
+            % (count, len(graphs), outlet_cat)
         )
 
         # Write each edge as line
@@ -465,8 +463,9 @@ def detect_compute_networks(
                         _(
                             "Column name conflict: Renaming column "
                             "<%(col)s> from input map into %(col)s%(ap)s "
-                            "in output map" % {"col": column, "ap": suffix}
+                            "in output map"
                         )
+                        % {"col": column, "ap": suffix}
                     )
                     column += suffix
                 copy_columns.append((col_index, column, col_type))
@@ -474,7 +473,7 @@ def detect_compute_networks(
                 v.close()
                 p.close()
                 grass.fatal(
-                    _("Column %s is not in attribute table of <%s>" % (column, vname))
+                    _("Column %s is not in attribute table of <%s>") % (column, vname)
                 )
 
     # Detect closest edges and nodes to the outflow points
@@ -511,7 +510,7 @@ def detect_compute_networks(
                 closest_node = n2
 
             grass.verbose(
-                _("Detect edge <%i> for outflow point %s" % (line.id, point.to_wkt()))
+                _("Detect edge <%i> for outflow point %s") % (line.id, point.to_wkt())
             )
 
             # Ignore identical starting points to avoid

@@ -538,7 +538,7 @@ def author_name_to_cff(text):
         else:
             raise NotImplementedError("Not sure how to split <{}>".format(text))
     else:
-        raise RuntimeError(_("Cannot split name <{}> correctly".format(text)))
+        raise RuntimeError(_("Cannot split name <{}> correctly").format(text))
     return {"given": given, "particle": particle, "family": family, "suffix": suffix}
 
 
@@ -845,7 +845,7 @@ def print_citation(citation, format, output):
     try:
         function = _FORMAT_FUNCTION[format]
     except KeyError:
-        raise RuntimeError(_("Unsupported format or style: %s" % format))
+        raise RuntimeError(_("Unsupported format or style: %s") % format)
     function(citation, output)
 
 
@@ -948,20 +948,16 @@ def main(options, flags):
             gs.fatal(
                 _(
                     "No such file or directory '{output_file}'."
-                    " Please choose correct output file path.".format(
-                        output_file=output,
-                    )
-                )
+                    " Please choose correct output file path."
+                ).format(output_file=output)
             )
         except PermissionError:
             gs.fatal(
                 _(
                     "Permission denied '{output_file}'."
                     " Please change the permission of the output file"
-                    " to allow writing.".format(
-                        output_file=output,
-                    )
-                )
+                    " to allow writing."
+                ).format(output_file=output)
             )
     else:
         output = sys.stdout
@@ -975,7 +971,7 @@ def main(options, flags):
                 print(vertical_separator, file=output)
             print_citation(citation, output_format, output)
         except RuntimeError as error:
-            message = _("Module {name}: {error}".format(**locals()))
+            message = _("Module {name}: {error}").format(**locals())
             if flags["s"]:
                 gs.warning(message)
                 error_count += 1

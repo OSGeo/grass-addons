@@ -227,9 +227,6 @@ ignore = [
     "I001",    # unsorted-imports
     "ICN001",  # unconventional-import-alias
     "INP001",  # implicit-namespace-package
-    "INT001",  # f-string-in-get-text-func-call
-    "INT002",  # format-in-get-text-func-call
-    "INT003",  # printf-in-get-text-func-call
     "ISC003",  # explicit-string-concatenation
     "LOG015",  # root-logger-call
     "N801",    # invalid-class-name

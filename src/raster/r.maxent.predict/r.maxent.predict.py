@@ -244,7 +244,7 @@ def check_java_txtfile():
         with open(file_path, "r") as file:
             java_path = file.readline().strip()
     except Exception as e:
-        gs.warning(_("File with path to java exists but cannot be read: {}".format(e)))
+        gs.warning(_("File with path to java exists but cannot be read: {}").format(e))
         return None
 
     if not java_path:
@@ -256,8 +256,8 @@ def check_java_txtfile():
             _(
                 "The path to the Java executable '{}', defined in the "
                 "'r_maxent_path_to_java.txt' in the addon directory "
-                "does not exist or is not functional.".format(java_path)
-            )
+                "does not exist or is not functional."
+            ).format(java_path)
         )
         return None
 
@@ -366,10 +366,8 @@ def main(options, flags):
         chlay = check_layers(layer_names)
         if len(chlay["missing"]) > 0:
             gs.fatal(
-                _(
-                    "The layer(s) {} do not exist in the accessible mapsets".format(
-                        ", ".join(chlay["missing"])
-                    )
+                _("The layer(s) {} do not exist in the accessible mapsets").format(
+                    ", ".join(chlay["missing"])
                 )
             )
         if len(chlay["double"]) > 0:
@@ -377,10 +375,8 @@ def main(options, flags):
                 _(
                     "There are layers with the name {} in multiple accessible mapsets, "
                     "none of which are in the current mapset."
-                    "Add the mapset name to specify which or these layers should be used.".format(
-                        ", ".join(chlay["double"])
-                    )
-                )
+                    "Add the mapset name to specify which or these layers should be used."
+                ).format(", ".join(chlay["double"]))
             )
 
         # Export raster layers to temporary directory
@@ -476,7 +472,7 @@ def main(options, flags):
     )
     if bool(flags["p"]):
         msg = " ".join(maxent_command)
-        gs.info(_("Run:\n {}".format(msg)))
+        gs.info(_("Run:\n {}").format(msg))
     else:
         gs.info(_("Done"))
 

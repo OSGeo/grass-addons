@@ -284,9 +284,9 @@ def main():
     global CLOUDCOVER_PRODUCTS
 
     if not options["datasource"] in DATASOURCE_MAP:
-        gs.fatal(_("{} is unrecognized".format(options["datasource"])))
+        gs.fatal(_("{} is unrecognized").format(options["datasource"]))
     if DATASOURCE_MAP[options["datasource"]] == "DEPRECATED":
-        gs.fatal(_("{} is no longer supported".format(options["datasource"])))
+        gs.fatal(_("{} is no longer supported").format(options["datasource"]))
 
     if options["output"]:
         outdir = options["output"]
@@ -429,7 +429,7 @@ def main():
                 )
             )
         except CalledModuleError:
-            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
+            gs.fatal(_("Connection to {} failed.\n").format(options["datasource"]))
     else:
         try:
             scenes = json.loads(
@@ -455,7 +455,7 @@ def main():
                 )
             )
         except CalledModuleError:
-            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
+            gs.fatal(_("Connection to {} failed.\n").format(options["datasource"]))
 
     headers_mapping = {
         "cop_dataspace": {

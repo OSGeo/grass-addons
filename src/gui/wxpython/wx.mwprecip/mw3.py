@@ -31,9 +31,8 @@ class PointInterpolation:
         msg = e.msg
         grass.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     def __init__(self, database, step, methodDist=False):
@@ -674,9 +673,8 @@ class Computor:
         msg = e.msg
         grass.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     def __init__(self, baseline, timeWin, database, exportData):

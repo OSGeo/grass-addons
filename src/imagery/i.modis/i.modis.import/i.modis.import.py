@@ -154,7 +154,7 @@ def list_files(opt, mosaik=False):
             listoffile = open(opt["files"], "r")
             basedir = os.path.split(listoffile.name)[0]
         else:
-            grass.fatal(_("File {name} does not exist".format(name=opt["files"])))
+            grass.fatal(_("File {name} does not exist").format(name=opt["files"]))
         # if mosaic create a dictionary
         if mosaik:
             filelist = {}
@@ -303,15 +303,16 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
         if not os.path.exists(name):
             name = os.path.join(os.getcwd(), t)
         if not os.path.exists(name):
-            grass.warning(_("File %s doesn't find" % name))
+            grass.warning(_("File %s doesn't find") % name)
             continue
         filesize = int(os.path.getsize(name))
         if filesize < 1000:
             grass.warning(
                 _(
                     "Probably some error occur during the conversion"
-                    "for file <%s>. Escape import" % name
+                    "for file <%s>. Escape import"
                 )
+                % name
             )
             continue
         try:
@@ -324,7 +325,7 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             # check number of bands
             nbands = int(grass.read_command("r.in.gdal", input=name, flags="p"))
         except CalledModuleError as e:
-            grass.warning(_("Error during import of {}".format(basename)))
+            grass.warning(_("Error during import of {}").format(basename))
             continue
 
         # process bands
@@ -404,7 +405,7 @@ def single(options, remove, an, ow, fil):
             # the full path to hdf file
             hdf = os.path.join(basedir, i)
             if not os.path.exists(hdf):
-                grass.warning(_("%s not found" % i))
+                grass.warning(_("{file} not found").format(file=i))
                 continue
 
         grass.message(
@@ -594,7 +595,7 @@ def main():
         try:
             from rmodislib import product
         except ImportError as e:
-            grass.fatal("Unable to load i.modis library: {}".format(e))
+            grass.fatal("Unable to load i.modis library: {}").format(e)
         prod = product()
         prod.print_prods()
         return 0
@@ -663,14 +664,14 @@ def main():
         # one layer only
         if count == 1:
             if flags["g"]:
-                grass.message(_("file={name}".format(name=outfile.name)))
+                grass.message(_("file={name}").format(name=outfile.name))
             else:
                 grass.message(
                     _(
                         "You can use temporal framework, registering"
                         " the maps using t.register input=your_strds "
-                        "'file={name}'".format(name=outfile.name)
-                    )
+                        "'file={name}'"
+                    ).format(name=outfile.name)
                 )
         # for more layer create several files with only a subset for each layer
         elif count > 1:
@@ -704,8 +705,9 @@ def main():
                     "t.register and \n"
                 )
             tfile.close()
+            msg_template = _("'file={name}'\n")
             for fil in outfiles.values():
-                message += "'file={name}'\n".format(name=fil.name)
+                message += msg_template.format(name=fil.name)
             grass.message(_(message))
 
 

@@ -66,7 +66,7 @@ def main(options, flags):
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
         gscript.fatal(
-            _("Space time raster dataset {st} seems to be empty".format(st=strds))
+            _("Space time raster dataset {st} seems to be empty").format(st=strds)
         )
         return 1
     mapnames = [mapp.get_name() for mapp in maps]
@@ -80,15 +80,13 @@ def main(options, flags):
             overwrite=gscript.overwrite(),
         )
         gscript.message(
-            _(
-                "Space time raster dataset {st} exported to {pa}".format(
-                    st=strds, pa=out_name
-                )
+            _("Space time raster dataset {st} exported to {pa}").format(
+                st=strds, pa=out_name
             )
         )
     except:
         gscript.fatal(
-            _("Unable to export space time raster dataset {st}".format(st=strds))
+            _("Unable to export space time raster dataset {st}").format(st=strds)
         )
         return 1
 

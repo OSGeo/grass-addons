@@ -217,10 +217,8 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
                 "The number of unique raster values (based on column '{0}') is smaller "
                 "than the number of unique labels in the column '{1}'. This means "
                 "that there are raster value with more than one matching label."
-                "For those raster values, the first label in column '{1}' is used.".format(
-                    column_name, column_rat
-                )
-            )
+                "For those raster values, the first label in column '{1}' is used."
+            ).format(column_name, column_rat)
         )
 
     # Create category rules
@@ -317,10 +315,8 @@ def main(options, flags):
         gs.fatal(
             _(
                 "The data type of the selected column is '{}'.\n"
-                "To create a raster, the data type needs to be integer or float".format(
-                    data_type
-                )
-            )
+                "To create a raster, the data type needs to be integer or float"
+            ).format(data_type)
         )
 
     rasterize_options = gdal.RasterizeOptions(

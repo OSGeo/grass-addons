@@ -301,10 +301,8 @@ def futures_process(params):
     try:
         if cat:
             gscript.message(
-                _(
-                    "Running simulation {s}/{r} for subregion {sub}".format(
-                        s=seed, r=repeat, sub=cat
-                    )
+                _("Running simulation {s}/{r} for subregion {sub}").format(
+                    s=seed, r=repeat, sub=cat
                 )
             )
             env = os.environ.copy()
@@ -313,7 +311,7 @@ def futures_process(params):
             )
             gscript.run_command("r.futures.pga", env=env, **options)
         else:
-            gscript.message(_("Running simulation {s}/{r}".format(s=seed, r=repeat)))
+            gscript.message(_("Running simulation {s}/{r}").format(s=seed, r=repeat))
             gscript.run_command("r.futures.pga", **options)
     except (KeyboardInterrupt, CalledModuleError):
         return
