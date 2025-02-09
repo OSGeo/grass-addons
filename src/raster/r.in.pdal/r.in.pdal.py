@@ -352,10 +352,8 @@ def main():
 
     if len(outfiles.split(",")) != len(methods.split(",")):
         grass.fatal(
-            _(
-                "Number of outputs <%s> does not match number of methods <%s>"
-                % (outfiles, methods)
-            )
+            _("Number of outputs <%s> does not match number of methods <%s>")
+            % (outfiles, methods)
         )
 
     # overwrite auf true setzen
@@ -423,7 +421,7 @@ def main():
             grass.run_command(
                 "g.remove", flags="f", type="vector", name="tiles", quiet=True
             )
-            grass.fatal(_("Format .%s is not supported.." % infile_format))
+            grass.fatal(_("Format .%s is not supported..") % infile_format)
 
         grass.message(_("Converting input file <%s>...") % infile)
         tmp_file_json = "tmp_file_json_" + str(os.getpid())

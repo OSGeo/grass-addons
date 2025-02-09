@@ -81,10 +81,8 @@ def process_csv(
         """
         error_mode = "replace" if handle_errors else "strict"
         gs.message(
-            _(
-                "Trying to process file using encoding: {} (errors={})".format(
-                    input_encoding, error_mode
-                )
+            _("Trying to process file using encoding: {} (errors={})").format(
+                input_encoding, error_mode
             )
         )
         with open(
@@ -98,7 +96,7 @@ def process_csv(
                 for row in gbifreader:
                     gbifwriter.writerow(row)
         gs.message(
-            _("File processed successfully using encoding: {}".format(input_encoding))
+            _("File processed successfully using encoding: {}").format(input_encoding)
         )
 
     try:
@@ -107,32 +105,28 @@ def process_csv(
         gs.warning(
             _("Warming: Unable to decode the file with system default encoding.")
         )
-        gs.warning(_("Details: {}".format(e)))
-        gs.warning(_("Falling back to encoding: {}".format(fallback_encoding)))
+        gs.warning(_("Details: {}").format(e))
+        gs.warning(_("Falling back to encoding: {}").format(fallback_encoding))
 
         try:
             process_file(fallback_encoding, handle_errors=True)
         except UnicodeDecodeError as e:
             gs.warning(
                 _(
-                    "Error: Unable to decode the file even with fallback encoding {}".format(
-                        fallback_encoding
-                    )
-                )
+                    "Error: Unable to decode the file even with fallback encoding {}"
+                ).format(fallback_encoding)
             )
-            gs.fatal(_("Details: {}".format(e)))
+            gs.fatal(_("Details: {}").format(e))
         except Exception as e:
             gs.fatal(
-                _(
-                    "An unexpected error occurred during fallback processing: {}".format(
-                        e
-                    )
+                _("An unexpected error occurred during fallback processing: {}").format(
+                    e
                 )
             )
     except FileNotFoundError as e:
-        gs.fatal(_("Error: File not found - {}".format(e.filename)))
+        gs.fatal(_("Error: File not found - {}").format(e.filename))
     except Exception as e:
-        gs.fatal(_("An unexpected error occurred: {}".format(e)))
+        gs.fatal(_("An unexpected error occurred: {}").format(e))
 
 
 def main():

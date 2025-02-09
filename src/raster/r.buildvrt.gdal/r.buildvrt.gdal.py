@@ -152,7 +152,7 @@ def main():
         inputs = Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
 
     if len(inputs) < 1:
-        gs.fatal(_("At least one input map is required".format(inputs[0])))
+        gs.fatal(_("At least one input map is required"))
 
     inputs = [
         get_raster_gdalpath(raster_map, has_grassdriver=has_grassdriver, gis_env=gisenv)

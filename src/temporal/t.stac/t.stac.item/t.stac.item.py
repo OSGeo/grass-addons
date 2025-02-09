@@ -399,7 +399,7 @@ def main():
 
     # Set the bbox to the current region if the user did not specify the bbox or intersects option
     if not bbox and not intersects:
-        gs.verbose(_("Setting bbox to current region: {}".format(bbox)))
+        gs.verbose(_("Setting bbox to current region: {}").format(bbox))
         bbox = libstac.region_to_wgs84_decimal_degrees_bbox()
 
     if datetime:
@@ -446,8 +446,8 @@ def main():
     # Report item metadata
     if item_metadata:
         if format == "plain":
-            gs.message(_("bbox: {}\n".format(bbox)))
-            gs.message(_(f"Items Found: {len(list(items))}"))
+            gs.message(_("bbox: {}\n").format(bbox))
+            gs.message(_("Items Found: {}").format(len(list(items))))
             for item in items:
                 stac_helper.report_stac_item(item)
             return None
@@ -467,7 +467,7 @@ def main():
     if asset_metadata:
         if format == "plain":
             gs.message(
-                _(f"{len(collection_items_assets)} Assets Ready for download...")
+                _("%s Assets Ready for download...") % len(collection_items_assets)
             )
             for asset in collection_items_assets:
                 libstac.report_plain_asset_summary(asset)

@@ -180,40 +180,37 @@ def check_columns(module_options):
                 if col and col not in vmap_cols.keys():
                     gscript.fatal(
                         _(
-                            "Column {col} not in attribute table of map <{m}> with layer <{l}>".format(
-                                m=module_options["input"],
-                                l=module_options["layer"],
-                                col=col,
-                            )
+                            "Column {col} not in attribute table of map <{m}> with layer <{l}>"
+                        ).format(
+                            m=module_options["input"],
+                            l=module_options["layer"],
+                            col=col,
                         )
                     )
                 if at == "attribute_columns":
                     if vmap_cols[col]["type"] not in supported_numeric:
                         gscript.fatal(
                             _(
-                                "Type {t} of column {col} is not a numeric type supported by this module".format(
-                                    t=vmap_cols[at]["type"], col=col
-                                )
-                            )
+                                "Type {t} of column {col} is not a numeric type supported by this module"
+                            ).format(t=vmap_cols[at]["type"], col=col)
                         )
     if module_options["key_column"] not in vmap_cols:
         gscript.fatal(
             _(
-                "Key column <{col}> not found in attribute table of map <{m}> at layer <{l}>".format(
-                    m=module_options["input"],
-                    l=module_options["layer"],
-                    col=module_options["key_column"],
-                )
+                "Key column <{col}> not found in attribute table of map <{m}> at layer <{l}>"
+            ).format(
+                m=module_options["input"],
+                l=module_options["layer"],
+                col=module_options["key_column"],
             )
         )
     if vmap_cols[module_options["key_column"]]["type"] != "INTEGER":
         gscript.fatal(
             _(
-                "The key column has to be integer, but column <{col}> is of "
-                "type {t}".format(
-                    t=vmap_cols[module_options["key_column"]]["type"],
-                    col=module_options["key_column"],
-                )
+                "The key column has to be integer, but column <{col}> is of type {t}"
+            ).format(
+                t=vmap_cols[module_options["key_column"]]["type"],
+                col=module_options["key_column"],
             )
         )
 
@@ -252,8 +249,8 @@ def main():
         gscript.warning(
             _(
                 "Using <{}> as separator may cause the module to fail. "
-                "Please use only single, special characters as separator.".format(sep)
-            )
+                "Please use only single, special characters as separator."
+            ).format(sep)
         )
 
     if key_column in attribute_columns:

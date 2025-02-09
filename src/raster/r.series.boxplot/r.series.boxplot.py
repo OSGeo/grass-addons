@@ -327,7 +327,7 @@ def main(options, flags):
     else:
         flier_color = options["flier_color"]
     if not matplotlib.colors.is_color_like(flier_color):
-        gs.fatal(_("{} is not a valid color".format(options["flier_color"])))
+        gs.fatal(_("{} is not a valid color").format(options["flier_color"]))
     if bool(options["text_labels"]):
         list_text_labels = options["text_labels"].split(",")
         if len(list_text_labels) != len(rasters):

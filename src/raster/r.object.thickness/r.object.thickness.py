@@ -321,13 +321,12 @@ def main():
     # If the maximum thickness is equal to the expected maximum size print a warning
     if max_thickness >= tsize:
         message = _(
-            "maximum thickness %f is larger or equal to the imput expected maximum size %f:"
-            % (max_thickness, tsize)
+            "maximum thickness %(max_thickness)f is larger or equal to "
+            "the input expected maximum size %(size)f: "
+            "the border of the largest object has not been reached, "
+            "rise the expected maximum size value."
         )
-        message += _(
-            " the border of the largest object has not been reached, rise the expected maximum size value."
-        )
-        gscript.warning(message)
+        gscript.warning(message % {"max_thickness": max_thickness, "size": tsize})
 
     # copy the maps if the user has provided a name
     if rmedian:

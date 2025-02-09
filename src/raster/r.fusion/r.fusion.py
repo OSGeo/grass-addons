@@ -346,7 +346,7 @@ def main():
 
     # convert output to input data type
     # preliminary output is DCELL
-    gscript.message(_(f"Creating final output map <{output_map}>..."))
+    gscript.message(_("Creating final output map <{}>...").format(output_map))
     if infolr["datatype"] == "CELL":
         exp = f"{output_map} = round({last_result})"
         gscript.mapcalc(exp)
@@ -359,7 +359,11 @@ def main():
     # copy color rules from input to output
     gscript.run_command("r.colors", map=output_map, raster=lowres_map)
 
-    gscript.message(_(f"Fusion of <{lowres_map}> with <{highres_map}> finished."))
+    gscript.message(
+        _("Fusion of <{lowres_map}> with <{highres_map}> finished.").format(
+            lowres_map=lowres_map, highres_map=highres_map
+        )
+    )
 
 
 if __name__ == "__main__":

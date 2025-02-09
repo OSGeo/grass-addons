@@ -339,7 +339,7 @@ def get_aoi(vector=None):
 
     if not gs.find_file(vector, element="vector")["file"]:
         gs.fatal(
-            _("Unable to get AOI: vector map <{}> could not be found".format(vector))
+            _("Unable to get AOI: vector map <{}> could not be found").format(vector)
         )
 
     args = {}
@@ -401,7 +401,7 @@ def search_by_ids(products_ids):
     gs.verbose("Searching for products...")
     search_result = []
     for query_id in products_ids:
-        gs.info(_("Searching for {}".format(query_id)))
+        gs.info(_("Searching for {}").format(query_id))
         if int(eodag.__version__.split(".")[0]) < 3:
             product, count = dag.search(
                 id=query_id, provider=options["provider"] or None
@@ -418,10 +418,10 @@ def search_by_ids(products_ids):
             count = product.number_matched
         if count > 1:
             gs.warning(
-                _("{}\nCould not be uniquely identified. Skipping...".format(query_id))
+                _("{}\nCould not be uniquely identified. Skipping...").format(query_id)
             )
         elif count == 0 or not product[0].properties["id"].startswith(query_id):
-            gs.warning(_("{}\nNot Found. Skipping...".format(query_id)))
+            gs.warning(_("{}\nNot Found. Skipping...").format(query_id))
         else:
             gs.info(_("Found."))
             search_result.append(product[0])
@@ -440,7 +440,7 @@ def setup_environment_variables(env, **kwargs):
     if config:
         config_file = Path(options["config"])
         if not config_file.is_file():
-            gs.fatal(_("Config file '{}' not found.".format(options["config"])))
+            gs.fatal(_("Config file '{}' not found.").format(options["config"]))
         env["EODAG_CFG_FILE"] = options["config"]
 
 
@@ -534,10 +534,8 @@ def list_products(products):
                     except ValueError:
                         # Invalid ISO Format
                         gs.warning(
-                            _(
-                                "Timestamp {} is not compliant with ISO 8601".format(
-                                    product_attribute_value
-                                )
+                            _("Timestamp {} is not compliant with ISO 8601").format(
+                                product_attribute_value
                             )
                         )
                         product_attribute_value = product.properties[column]
@@ -596,10 +594,8 @@ def dates_to_iso_format():
 
     if end_date < start_date:
         gs.fatal(
-            _(
-                "End Date ({}) can not come before Start Date ({})".format(
-                    end_date, start_date
-                )
+            _("End Date ({}) can not come before Start Date ({})").format(
+                end_date, start_date
             )
         )
     options["start"] = start_date
@@ -631,7 +627,7 @@ def parse_query(query=None):
             key, values = map(str.strip, parameter.split("="))
         except Exception as e:
             gs.debug(e)
-            gs.fatal(_("Queryable <{}> could not be parsed".format(parameter)))
+            gs.fatal(_("Queryable <{}> could not be parsed").format(parameter))
         if key == "start":
             try:
                 start_date = normalize_time(values)
@@ -640,10 +636,8 @@ def parse_query(query=None):
                 gs.debug(e)
                 gs.fatal(
                     _(
-                        "Queryable <{}> could not be parsed\nDate must be ISO formated".format(
-                            parameter
-                        )
-                    )
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated"
+                    ).format(parameter)
                 )
             continue
         if key == "end":
@@ -654,10 +648,8 @@ def parse_query(query=None):
                 gs.debug(e)
                 gs.fatal(
                     _(
-                        "Queryable <{}> could not be parsed\nDate must be ISO formated".format(
-                            parameter
-                        )
-                    )
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated"
+                    ).format(parameter)
                 )
             continue
         operator = None
@@ -670,15 +662,13 @@ def parse_query(query=None):
                     value, operator = map(str.strip, value.split(";"))
                 except ValueError:
                     gs.fatal(
-                        _("Queryable <{}> could not be parsed\n".format(parameter))
+                        _("Queryable <{}> could not be parsed\n").format(parameter)
                     )
                 if operator not in VALID_OPERATORS:
                     gs.fatal(
                         _(
-                            "Invalid operator <{}> for queryable <{}>. Available operators {}".format(
-                                operator, key, VALID_OPERATORS
-                            )
-                        )
+                            "Invalid operator <{0}> for queryable <{1}>. Available operators {2}"
+                        ).format(operator, key, VALID_OPERATORS)
                     )
             try:
                 value = float(value)
@@ -771,10 +761,9 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                 except TypeError:
                     gs.warning(
                         _(
-                            "Invalid operator <{}> for queryable <{}>\nOperator <{}> will be used instead".format(
-                                operator, queryable, DEFAULT_OPERATOR
-                            )
-                        )
+                            "Invalid operator <{0}> for queryable <{1}>\n"
+                            "Operator <{2}> will be used instead"
+                        ).format(operator, queryable, DEFAULT_OPERATOR)
                     )
                     filtered_search_result_list = search_result.filter_property(
                         operator=DEFAULT_OPERATOR, **{queryable: value}
@@ -795,10 +784,8 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
 
     postfilter_count = len(search_result)
     gs.verbose(
-        _(
-            "{} product(s) filtered out in total.".format(
-                prefilter_count - postfilter_count
-            )
+        _("{} product(s) filtered out in total.").format(
+            prefilter_count - postfilter_count
         )
     )
 
@@ -858,15 +845,13 @@ def skip_existing(output, search_result):
     # Check if directory doesn't exist or if it is empty
 
     if not output.exists() or next(os.scandir(output), None) is None:
-        gs.verbose(_("Directory '{}' is empty, no scenes to skip".format(output)))
+        gs.verbose(_("Directory '{}' is empty, no scenes to skip").format(output))
         return search_result
     downloaded_dir = output / ".downloaded"
     if not downloaded_dir.exists() or next(os.scandir(downloaded_dir), None) is None:
         gs.verbose(
-            _(
-                "The `.download` directory in '{}' is empty, no scenes to skip".format(
-                    output
-                )
+            _("The `.download` directory in '{}' is empty, no scenes to skip").format(
+                output
             )
         )
         return search_result
@@ -960,12 +945,12 @@ def save_search_result(search_result, file_name):
         file_name += ".geojson"
         gs.warning(
             _(
-                "Search results are saved in geojson format, which doesn't match the file extension. Search result will be saved in '{}'".format(
-                    file_name
-                )
-            )
+                "Search results are saved in geojson format, "
+                "which doesn't match the file extension. "
+                "Search result will be saved in '{}'"
+            ).format(file_name)
         )
-    gs.verbose(_("Saving searchin result in '{}'".format(file_name)))
+    gs.verbose(_("Saving searchin result in '{}'").format(file_name))
     dag.serialize(search_result, filename=file_name)
 
 
@@ -1006,9 +991,9 @@ def print_eodag_providers(**kwargs):
     """
     product_type = kwargs["producttype"]
     if product_type:
-        gs.message(_("Recongnized providers offering {}".format(product_type)))
+        gs.message(_("Recognized providers offering {}").format(product_type))
     else:
-        gs.message(_("Recongnizaed providers"))
+        gs.message(_("Recognized providers"))
     print(
         json.dumps(
             {"providers": dag.available_providers(product_type or None)}, indent=4
@@ -1026,9 +1011,9 @@ def print_eodag_products(**kwargs):
     provider = kwargs["provider"]
     product_type = kwargs["producttype"]
     if provider:
-        gs.message(_("Recognized products offered by {}".format(provider)))
+        gs.message(_("Recognized products offered by {}").format(provider))
     else:
-        gs.message(_("Recongnizaed providers"))
+        gs.message(_("Recognized providers"))
     products = dag.list_product_types(provider or None)
     if product_type:
         for product in products:
@@ -1166,7 +1151,7 @@ def main():
     if options["provider"]:
         dag.set_preferred_provider(options["provider"])
     geometry = get_aoi(options["map"])
-    gs.verbose(_("AOI: {}".format(geometry)))
+    gs.verbose(_("AOI: {}").format(geometry))
 
     queryables = parse_query(options["query"])
     for queryable, values in queryables:
@@ -1198,9 +1183,9 @@ def main():
         ids_set = set(pid.strip() for pid in options["id"].split(","))
     elif options["file"]:
         if Path(options["file"]).is_file():
-            gs.verbose(_('Reading file "{}"'.format(options["file"])))
+            gs.verbose(_('Reading file "{}"').format(options["file"]))
         else:
-            gs.fatal(_('Could not open file "{}"'.format(options["file"])))
+            gs.fatal(_('Could not open file "{}"').format(options["file"]))
         # Read IDs from TEXT file
         if options["file"][-4:] == ".txt":
             ids_set = set(
@@ -1218,12 +1203,12 @@ def main():
                 )
         else:
             # Other unsupported file formats
-            gs.fatal(_("Could not read file '{}'".format(options["file"])))
+            gs.fatal(_("Could not read file '{}'").format(options["file"]))
 
     if len(ids_set):
         # Remove empty string
         ids_set.discard(str())
-        gs.message(_("Found {} distinct ID(s).".format(len(ids_set))))
+        gs.message(_("Found {} distinct ID(s).").format(len(ids_set)))
         gs.message("\n".join(ids_set))
         # Search for products found from options["file"] or options["id"]
         options["limit"] = len(ids_set)  # Disable limit option

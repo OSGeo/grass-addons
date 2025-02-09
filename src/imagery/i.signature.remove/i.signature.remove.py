@@ -75,16 +75,16 @@ def main():
             grass.fatal(
                 _(
                     "Signature file <{pa}> does not exist for group "
-                    "<{gr}> and subgroup <{su}>".format(pa=sign, gr=group, su=sub)
-                )
+                    "<{gr}> and subgroup <{su}>"
+                ).format(pa=sign, gr=group, su=sub)
             )
         if rem:
             try:
                 os.remove(path)
-                print(_("Removing signature file <{si}>".format(si=sign)))
+                print(_("Removing signature file <{si}>").format(si=sign))
             except:
                 grass.warning(
-                    _("Signature file <{pa}> was not removed".format(pa=sign))
+                    _("Signature file <{pa}> was not removed").format(pa=sign)
                 )
         else:
             output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub, sig=sign)

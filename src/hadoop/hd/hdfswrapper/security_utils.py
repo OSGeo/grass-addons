@@ -29,7 +29,7 @@ def get_kerberos_principal(principal, host):
         return principal
     else:
         if not host:
-            raise IOError(
+            raise OSError(
                 "Can't replace %s pattern since host is null." % HOSTNAME_PATTERN
             )
         return replace_hostname_pattern(components, host)
@@ -63,7 +63,7 @@ def get_fqdn(hostname_or_ip=None):
             fqdn = socket.gethostbyaddr(hostname_or_ip)[0]
         else:
             fqdn = get_localhost_name()
-    except IOError:
+    except OSError:
         fqdn = hostname_or_ip
 
     if fqdn == "localhost":

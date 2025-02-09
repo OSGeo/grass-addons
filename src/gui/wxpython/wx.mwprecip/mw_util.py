@@ -336,7 +336,7 @@ class TextInput(wx.Panel):
         try:
             self.directInp.SetValue(str)
             return 1
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e.strerror))
             return -1
         except ValueError:
@@ -545,7 +545,7 @@ def readDict(fn):
                 dict_rap[key] = eval(val)
         f.close()
         return dict_rap
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e.strerror))
 
 

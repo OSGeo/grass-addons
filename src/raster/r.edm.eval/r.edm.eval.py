@@ -380,7 +380,7 @@ def get_valid_color(color):
         if max(color) > 1:
             color[:] = [x / 255 for x in color]
     if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+        gs.fatal(_("{} is not a valid color.").format(color))
     color = matplotlib.colors.to_rgba(color)
     return color
 
@@ -489,25 +489,21 @@ def main(options, flags):
             n_bins=int(options["n_bins"]) + 1,
             background=flags["b"],
         )
-        gs.message(_("\n--- performance {} ---".format(modelled.split("@")[0])))
-        gs.message(_("AUC = {}".format(round(dfw_stats["auc"], 4))))
-        gs.message(_("maximum TSS =  {}".format(round(dfw_stats["tss_max"], 4))))
-        gs.message(_("maximum kappa =  {}".format(round(dfw_stats["kappa_max"], 4))))
+        gs.message(_("\n--- performance {} ---").format(modelled.split("@")[0]))
+        gs.message(_("AUC = {}").format(round(dfw_stats["auc"], 4)))
+        gs.message(_("maximum TSS =  {}").format(round(dfw_stats["tss_max"], 4)))
+        gs.message(_("maximum kappa =  {}").format(round(dfw_stats["kappa_max"], 4)))
         gs.message(
-            _("treshold maximum TSS = {}".format(round(dfw_stats["tss_threshold"], 4)))
+            _("treshold maximum TSS = {}").format(round(dfw_stats["tss_threshold"], 4))
         )
         gs.message(
-            _(
-                "treshold maximum kappa = {}".format(
-                    round(dfw_stats["kappa_threshold"], 4)
-                )
+            _("treshold maximum kappa = {}").format(
+                round(dfw_stats["kappa_threshold"], 4)
             )
         )
         gs.message(
-            _(
-                "treshold minimum distance to (0,1) = {}".format(
-                    round(dfw_stats["min_dist_threshold"], 4)
-                )
+            _("treshold minimum distance to (0,1) = {}").format(
+                round(dfw_stats["min_dist_threshold"], 4)
             )
         )
         dfw2.append(dfw1)

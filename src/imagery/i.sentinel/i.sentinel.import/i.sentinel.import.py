@@ -467,10 +467,9 @@ class SentinelImporter(object):
             ):
                 gs.message(
                     _(
-                        "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
-                            map_name
-                        )
-                    )
+                        "option <output>: <{}> exists. "
+                        "To overwrite, use the --overwrite flag"
+                    ).format(map_name)
                 )
                 continue
 
@@ -678,10 +677,9 @@ class SentinelImporter(object):
                 ):
                     gs.fatal(
                         _(
-                            "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
-                                map_name
-                            )
-                        )
+                            "option <output>: <{}> exists. "
+                            "To overwrite, use the --overwrite flag"
+                        ).format(map_name)
                     )
                     continue
 
