@@ -173,21 +173,21 @@ def main():
     # extract multi values to points
     for rast in opt["return_period"].split(","):
         # check valid rasters
-        name = grass.find_file(rast, element="cell")["name"]
-        if not name:
+        rast_name = grass.find_file(rast, element="cell")["name"]
+        if not rast_name:
             grass.warning("Raster map <{}> not found. Skipped.".format(rast))
             continue
 
         # perform zonal statistics
         grass.message("Processing <{}>...".format(rast))
-        table = "{}_table".format(name)
+        table = "{}_table".format(rast_name)
         if vinfo["areas"] > 0:
             Module(
                 "v.rast.stats",
                 flags="c",
                 map=opt["map"],
                 raster=rast,
-                column_prefix=name,
+                column_prefix=rast_name,
                 method="average",
                 quiet=True,
             )
@@ -197,7 +197,7 @@ def main():
                 map=opt["map"],
                 columns="cat",
                 flags="c",
-                where="{}_average is NULL".format(name),
+                where="{}_average is NULL".format(rast_name),
                 stdout_=grass.PIPE,
             )
             cats = null_values.outputs.stdout.splitlines()
@@ -214,8 +214,8 @@ def main():
                     map=opt["map"],
                     raster=rast,
                     type="centroid",
-                    column="{}_average".format(name),
-                    where="{}_average is NULL".format(name),
+                    column="{}_average".format(rast_name),
+                    where="{}_average is NULL".format(rast_name),
                     quiet=True,
                 )
         else:  # -> points
@@ -223,18 +223,17 @@ def main():
                 "v.what.rast",
                 map=opt["map"],
                 raster=rast,
-                column="{}_average".format(name),
+                column="{}_average".format(rast_name),
                 quiet=True,
             )
 
         # add column to the attribute table if not exists
         rl = float(opt["rainlength"])
-        field_name = "H_{}T{}".format(name, opt["rainlength"])
-        if field_name not in columns:
+        if rast_name not in columns:
             Module(
                 "v.db.addcolumn",
                 map=opt["map"],
-                columns="{} double precision".format(field_name),
+                columns="{} double precision".format(rast_name),
             )
 
         # determine coefficient for calculation
@@ -252,22 +251,22 @@ def main():
 
         # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
-        expression = "{}_average * {}".format(name, coef)
+        expression = "{}_average * {}".format(rast_name, coef)
         Module(
-            "v.db.update", map=opt["map"], column=field_name, query_column=expression
+            "v.db.update", map=opt["map"], column=rast_name, query_column=expression
         )
 
         if check_area_size:
             Module(
                 "v.db.update",
                 map=opt["map"],
-                column=field_name,
+                column=rast_name,
                 value="-1",
                 where="{} > {}".format(area_col_name, opt["area_size"]),
             )
 
         # remove unused column
-        Module("v.db.dropcolumn", map=opt["map"], columns="{}_average".format(name))
+        Module("v.db.dropcolumn", map=opt["map"], columns="{}_average".format(rast_name))
 
     if check_area_size:
         # remove unused column
