@@ -388,7 +388,7 @@ def main():
                         password = lines[1].strip()
                         if len(lines) > 2:
                             api_url = lines[2].strip()
-                except IOError as e:
+                except OSError as e:
                     gs.fatal(_("Unable to open settings file: {}").format(e))
                 if user is None or password is None:
                     gs.fatal(_("No user or password given"))

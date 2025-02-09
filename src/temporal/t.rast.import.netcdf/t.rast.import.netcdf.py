@@ -1022,7 +1022,7 @@ def main():
             try:
                 with open(inputs[0], "r") as in_file:
                     inputs = in_file.read().strip().split()
-            except IOError:
+            except OSError:
                 gs.fatal(_("Unable to read text from <{}>.").format(inputs[0]))
 
     inputs = [

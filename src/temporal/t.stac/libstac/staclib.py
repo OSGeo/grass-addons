@@ -234,7 +234,7 @@ def set_request_headers(settings):
                 username = lines[0].strip()
                 password = lines[1].strip()
 
-        except IOError as e:
+        except OSError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
     else:
         return req_headers

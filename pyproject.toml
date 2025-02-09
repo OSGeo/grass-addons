@@ -423,7 +423,6 @@ ignore = [
     "UP021",   # replace-universal-newlines
     "UP022",   # replace-stdout-stderr
     "UP023",   # deprecated-c-element-tree
-    "UP024",   # os-error-alias
     "UP028",   # yield-in-for-loop
     "UP029",   # unnecessary-builtin-import
     "UP030",   # format-literals

@@ -212,7 +212,7 @@ def get_custom_eodag_config(datasource, settings):
                     if len(lines) < 1:
                         gs.fatal(_("Invalid settings file"))
                     apikey = lines[0].strip()
-        except IOError as e:
+        except OSError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
 
     geojson_temp_dir = gs.tempdir()

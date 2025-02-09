@@ -31,7 +31,7 @@ def get_connections_from_file(filename):
     except etree.ParseError as err:
         error = 1
         msg = "Cannot parse XML file: %s" % err
-    except IOError as err:
+    except OSError as err:
         error = 1
         msg = "Cannot open file: %s" % err
 

@@ -591,7 +591,7 @@ class GrassMD:
                                                      %s"
                             % (str(path)),
                         )
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("ERROR: cannot write xml to file")
                 return path
@@ -606,7 +606,7 @@ class GrassMD:
                                                      %s"
                         % (str(path)),
                     )
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("ERROR: cannot write xml to file")
                     # sys.exit()
@@ -623,7 +623,7 @@ class GrassMD:
                             "g.message", message="Metadata file has been overwritten"
                         )
                         return path
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("error: cannot write xml to file")
                 else:
@@ -637,7 +637,7 @@ class GrassMD:
                     Module("g.message", message="Metadata file has been exported")
                     return path
 
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("error: cannot write xml to file")
 

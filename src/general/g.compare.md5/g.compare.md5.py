@@ -66,7 +66,7 @@ def md5(fileName, excludeLine="", includeLine=""):
     m = hashlib.md5()
     try:
         fd = open(fileName, "rb")
-    except IOError:
+    except OSError:
         print("Unable to open the file in read mode")
         return
     content = fd.readlines()

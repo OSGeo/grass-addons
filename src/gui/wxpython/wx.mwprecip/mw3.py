@@ -316,7 +316,7 @@ class RainGauge:
                 self.lat = float(f.next())
                 self.lon = float(f.next())
             f.close()
-        except IOError as e:
+        except OSError as e:
             grass.error("I/O error({}): {}".format(e.errno, e))
 
         gaugeTMPfile = "gauge_tmp"
@@ -335,7 +335,7 @@ class RainGauge:
                     stri = str(self.gaugeid) + "," + line
                     tmp.append(stri)
                 f.close()
-        except IOError as e:
+        except OSError as e:
             grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
@@ -343,7 +343,7 @@ class RainGauge:
             with open(os.path.join(self.schemaPath, gaugeTMPfile), "w+") as io:
                 io.writelines(tmp)
                 io.close()
-        except IOError as e:
+        except OSError as e:
             grass.error("I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
@@ -651,7 +651,7 @@ class TimeWindows:
             io2 = open(os.path.join(self.path, TMPname), "w+")
             io2.writelines(nameList)
             io2.close()
-        except IOError as e:
+        except OSError as e:
             grass.warning(
                 "Cannot write temporal registration file  %s"
                 % os.path.join(self.path, TMPname)
@@ -797,7 +797,7 @@ class Computor:
                     try:
                         # print baseline.pathToFile
                         f = open(baseline.pathToFile, "r")
-                    except IOError as e:
+                    except OSError as e:
                         # print baseline.pathToFile
                         grass.warning(
                             "Path to file with dry-window definiton not exist; %s"
@@ -909,7 +909,7 @@ class Computor:
                     try:
                         # print baseline.pathToFile
                         f = open(baseline.pathToFile, "r")
-                    except IOError as e:
+                    except OSError as e:
                         grass.warning(
                             "Path to file with dry-window definiton not exist"
                         )
@@ -991,7 +991,7 @@ class Computor:
                     )
                     io1.close()
                     os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
-                except IOError as e:
+                except OSError as e:
                     grass.warning("Cannot open <%s> file" % table_tmp)
                     return False
 
