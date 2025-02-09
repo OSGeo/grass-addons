@@ -137,7 +137,11 @@ class TestFunctions(TestCase):
             "stddev": 0.555438,
             "variance": 0.308511,
             "coeff_var": 131.549853569661,
-            "sum": 31834.1479829689,
+            "sum": 31834.1480175955,  # average 1, 4 and 10 core
+            # "sum": 31834.1480048643, # average 4 and 10 core
+            # "sum": 31834.1480430579, # 1 core x64
+            # "sum": 31834.1480267597, # 4 core x64
+            # "sum": 31834.1479829689, # 10 core x64
         },
         "test_points": {
             "n": 97340,
