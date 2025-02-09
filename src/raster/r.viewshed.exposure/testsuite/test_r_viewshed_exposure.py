@@ -49,7 +49,7 @@ class TestFunctions(TestCase):
         sample_density=5,
         seed=50,
         memory=5000,
-        nprocs=10,
+        nprocs=4,
         quiet=True,
         overwrite=True,
     )
