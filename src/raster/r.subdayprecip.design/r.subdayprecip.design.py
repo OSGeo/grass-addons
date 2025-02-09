@@ -252,9 +252,7 @@ def main():
         # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
         expression = "{}_average * {}".format(rast_name, coef)
-        Module(
-            "v.db.update", map=opt["map"], column=rast_name, query_column=expression
-        )
+        Module("v.db.update", map=opt["map"], column=rast_name, query_column=expression)
 
         if check_area_size:
             Module(
@@ -266,7 +264,9 @@ def main():
             )
 
         # remove unused column
-        Module("v.db.dropcolumn", map=opt["map"], columns="{}_average".format(rast_name))
+        Module(
+            "v.db.dropcolumn", map=opt["map"], columns="{}_average".format(rast_name)
+        )
 
     if check_area_size:
         # remove unused column
