@@ -119,7 +119,7 @@ def setFirstRun():
         io = open(os.path.join(path, firstrun), "wr")
         io.write(options["type"])
         io.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
@@ -269,7 +269,7 @@ def run():
 
                     createVect(win)
 
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     if flags["p"]:

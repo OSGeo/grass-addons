@@ -44,7 +44,7 @@ class WFSDrv(WFSBase):
         grass.debug(url)
         try:
             wfs_data = urlopen(url)
-        except IOError:
+        except OSError:
             grass.fatal(_("Unable to fetch data from server"))
 
         temp_map = self._temp()
@@ -54,7 +54,7 @@ class WFSDrv(WFSBase):
             temp_map_opened = open(temp_map, "w")
             temp_map_opened.write(wfs_data.read())
             temp_map_opened
-        except IOError:
+        except OSError:
             grass.fatal(_("Unable to write data into tempfile"))
         finally:
             temp_map_opened.close()
@@ -72,7 +72,7 @@ class WFSDrv(WFSBase):
                 try:
                     error_xml_opened = open(temp_map, "r")
                     err_str = error_xml_opened.read()
-                except IOError:
+                except OSError:
                     grass.fatal(_("Unable to read data from tempfile"))
                 finally:
                     error_xml_opened.close()

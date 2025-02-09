@@ -291,7 +291,7 @@ def main():
         print(" * Reading comma separated values from:", CSVFILE)
 
     else:
-        raise IOError("Please define a file to read comma-separated-values from!")
+        raise OSError("Please define a file to read comma-separated-values from!")
 
     # convert csv file to string
     csvstring = csv_reader(CSVFILE)
