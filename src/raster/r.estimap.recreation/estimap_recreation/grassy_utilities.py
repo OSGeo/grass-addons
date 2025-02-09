@@ -42,14 +42,14 @@ def remove_map(map_name):
 def remove_map_at_exit(map_name):
     """Remove the provided map when the program exits"""
     msg = "*** Add '{map}' to list of maps to remove when program exits"
-    grass.debug(_(msg.format(map=map_name)))
+    grass.debug(_(msg).format(map=map_name))
     atexit.register(lambda: remove_map(map_name))
 
 
 def remove_files_at_exit(filename):
     """Remove the specified file when the program exits"""
     msg = "*** Add '{file}' to list of files to remove when program exits"
-    grass.debug(_(msg.format(file=filename)))
+    grass.debug(_(msg).format(file=filename))
     atexit.register(lambda: os.unlink(filename))
 
 
@@ -121,8 +121,7 @@ def string_to_file(string, filename=None):
     string = string.split(",")
     string = "\n".join(string)
     # string = string.splitlines()
-    msg = "String split in lines: {s}".format(s=string)
-    grass.debug(_(msg))
+    grass.debug(_("String split in lines: {s}").format(s=string))
 
     # # Use a file-like object instead?
     # import tempfile
@@ -173,10 +172,11 @@ def get_univariate_statistics(raster):
     mean = round(float(univariate["mean"]), 3)
     maximum = univariate["max"]
     variance = round(float(univariate["variance"]), 3)
-    msg = " * Univariate statistics for '{raster}'".format(raster=raster)
+    msg = " * Univariate statistics for '{raster}'"
     msg += "\n  min {mn} | mean {avg} | max {mx} | variance {v}"
-    msg = msg.format(mn=minimum, avg=mean, mx=maximum, v=variance)
-    grass.verbose(_(msg))
+    grass.verbose(
+        _(msg).format(raster=raster, mn=minimum, avg=mean, mx=maximum, v=variance)
+    )
     return univariate
 
 
@@ -207,19 +207,16 @@ def recode_map(raster, rules, colors, output):
     --------
     ...
     """
-    msg = "*** Setting NULL cells in {name} map to 0"
-    msg = msg.format(name=raster)
-    grass.debug(_(msg))
+    grass.debug(_("*** Setting NULL cells in {name} map to 0").format(name=raster))
 
     # ------------------------------------------
     r.null(map=raster, null=0)  # Set NULLs to 0
     msg = "*** To Do: confirm if setting the '{raster}' map's NULL cells to 0 is right"
-    msg = msg.format(raster=raster)
-    grass.debug(_(msg))
+    grass.debug(_(msg).format(raster=raster))
     # Is this right?
     # ------------------------------------------
 
-    grass.verbose(_("* Scoring map {name}:".format(name=raster)))
+    grass.verbose(_("* Scoring map {name}:").format(name=raster))
     r.recode(input=raster, rules=rules, output=output)
     r.colors(map=output, rules="-", stdin=SCORE_COLORS, quiet=True)
 
@@ -330,9 +327,7 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
         )  # Maybe use 'finding'?
 
     # inform
-    msg = "* Outputting '{raster}' map\n"
-    msg = msg.format(raster=output_name)
-    grass.verbose(_(msg))
+    grass.verbose(_("* Outputting '{raster}' map\n").format(raster=output_name))
 
     # get categories and labels
     temporary_raster_categories_map = temporary_filename("categories_of_" + input_name)
@@ -448,8 +443,7 @@ def smooth_map(raster, method, size):
     --------
     """
     # Build MASK for current category & high quality recreation areas
-    msg = "Smoothing map '{m}'"
-    grass.verbose(_(msg.format(m=raster)))
+    grass.verbose(_("Smoothing map '{m}'").format(m=raster))
     r.neighbors(
         input=raster,
         output=raster,
@@ -496,7 +490,7 @@ def update_vector(vector, raster, methods, column_prefix):
         column_prefix=column_prefix,
         overwrite=True,
     )
-    grass.verbose(_("* Updating vector map '{v}'".format(v=vector)))
+    grass.verbose(_("* Updating vector map '{v}'").format(v=vector))
 
 
 def raster_to_vector(
@@ -525,12 +519,10 @@ def raster_to_vector(
     """
     msg = " * Vectorising raster map '{r}'"
     grass.verbose(
-        _(
-            msg.format(
-                c=category,
-                r=raster_category_flow,
-                v=vector_category_flow,
-            )
+        _(msg).format(
+            c=category,
+            r=raster_category_flow,
+            v=vector_category_flow,
         )
     )
     r.to_vect(
