@@ -54,6 +54,7 @@ jobs:
           create-symlink: true
           verbose: 1
           evict-old-files: 7d
+          key: ${{ github.job }}-${{ matrix.grass-version }}-${{ matrix.python-version }}
 
       - name: Get dependencies
         run: |
