@@ -329,7 +329,7 @@ def main(options, flags):
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(_("Unable to add table <%s> to vector map <%s>" % invect))
+                gscript.fatal(_("Unable to add table <%s> to vector map <%s>") % invect)
         if pymap.is_open():
             pymap.close()
         qfeat = pymod.Module(

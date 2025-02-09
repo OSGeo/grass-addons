@@ -419,7 +419,7 @@ def main():
 
     # todo: test if MASK exists already, fatal exit if it does?
     if post_mask:
-        grass.message(_("Setting post_mask <%s>"), post_mask)
+        grass.message(_("Setting post_mask <%s>") % post_mask)
         grass.mapcalc("MASK = $maskmap", maskmap=post_mask, overwrite=True)
 
     grass.message(_("Summation of cost weights ..."))
@@ -586,7 +586,7 @@ def main():
 
     #######################################################
     # Step 6) done!
-    grass.message(_("Done! Results written to <%s>." % output))
+    grass.message(_("Done! Results written to <%s>.") % output)
 
 
 if __name__ == "__main__":

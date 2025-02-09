@@ -303,15 +303,16 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
         if not os.path.exists(name):
             name = os.path.join(os.getcwd(), t)
         if not os.path.exists(name):
-            grass.warning(_("File %s doesn't find" % name))
+            grass.warning(_("File %s doesn't find") % name)
             continue
         filesize = int(os.path.getsize(name))
         if filesize < 1000:
             grass.warning(
                 _(
                     "Probably some error occur during the conversion"
-                    "for file <%s>. Escape import" % name
+                    "for file <%s>. Escape import"
                 )
+                % name
             )
             continue
         try:
@@ -404,7 +405,7 @@ def single(options, remove, an, ow, fil):
             # the full path to hdf file
             hdf = os.path.join(basedir, i)
             if not os.path.exists(hdf):
-                grass.warning(_("%s not found" % i))
+                grass.warning(_("{file} not found").format(file=i))
                 continue
 
         grass.message(

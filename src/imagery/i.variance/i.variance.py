@@ -160,10 +160,10 @@ def main():
             gscript.message(
                 _(
                     "Max resolution leads to less cells than defined by 'min_cells' (%d)."
-                    % min_cells
                 )
+                % min_cells
             )
-            gscript.message(_("Max resolution reduced to %d" % target_res))
+            gscript.message(_("Max resolution reduced to %d") % target_res)
 
     nb_iterations = target_res - res / step
     if nb_iterations < 3:

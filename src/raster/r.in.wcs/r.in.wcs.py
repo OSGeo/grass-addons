@@ -177,10 +177,8 @@ class WCSBase:
             self.params["password"] == "" and self.params["username"]
         ):
             grass.fatal(
-                _(
-                    "Please insert both %s and %s parameters or none of them."
-                    % ("password", "username")
-                )
+                _("Please insert both %s and %s parameters or none of them.")
+                % ("password", "username")
             )
 
         # configure region extent (specified name or current region)

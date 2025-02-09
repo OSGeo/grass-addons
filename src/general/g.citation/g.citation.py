@@ -845,7 +845,7 @@ def print_citation(citation, format, output):
     try:
         function = _FORMAT_FUNCTION[format]
     except KeyError:
-        raise RuntimeError(_("Unsupported format or style: %s" % format))
+        raise RuntimeError(_("Unsupported format or style: %s") % format)
     function(citation, output)
 
 

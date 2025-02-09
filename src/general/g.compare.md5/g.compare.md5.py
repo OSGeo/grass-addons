@@ -92,7 +92,7 @@ def checkfile(name, formatt, shell):
             grass.message(0)
             return
         else:
-            grass.fatal(_("%s %s does not exists" % (typ, name)))
+            grass.fatal(_("%s %s does not exists") % (typ, name))
     else:
         return inp
 
@@ -106,13 +106,13 @@ def checkmd5(a, b, shell):
                 grass.message(0)
                 return
             else:
-                grass.fatal(_("You have no permission to read %s file" % a))
+                grass.fatal(_("You have no permission to read %s file") % a)
         if not os.access(b, os.R_OK):
             if shell:
                 grass.message(0)
                 return
             else:
-                grass.fatal(_("You have no permission to read %s file" % b))
+                grass.fatal(_("You have no permission to read %s file") % b)
         # calculate the md5
         amd5 = md5(a)
         bmd5 = md5(b)

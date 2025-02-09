@@ -305,9 +305,9 @@ def main():
                 grass.message(
                     _(
                         "All data have been downloaded, continue "
-                        "with i.modis.import with the option "
-                        "'files=%s'" % modisOgg.filelist.name
+                        "with i.modis.import with the option 'files=%s'"
                     )
+                    % modisOgg.filelist.name
                 )
         else:
             grass.fatal(_("Error during connection"))

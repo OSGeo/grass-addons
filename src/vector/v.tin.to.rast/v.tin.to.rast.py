@@ -184,7 +184,7 @@ def main():
     )
     grass.raster_history(output)
 
-    grass.message(_("Done: generated raster map <%s>" % output))
+    grass.message(_("Done: generated raster map <%s>") % output)
 
 
 if __name__ == "__main__":

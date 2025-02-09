@@ -315,8 +315,9 @@ class Controller:
         logger.message(
             _(
                 "Processing %d cells. Computing time raises "
-                "exponentially with resolution." % grass.region()["cells"]
+                "exponentially with resolution."
             )
+            % grass.region()["cells"]
         )
         logger.message(_("Importing data..."))
 
@@ -522,10 +523,8 @@ def importR():
         if not robjects.r.require(each, quietly=True)[0]:
             missingPackagesList.append(each)
     if missingPackagesList:
-        errorString = _(
-            "R package(s) %s missing. Install it/them and re-run v.krige."
-        ) % ", ".join(map(str, missingPackagesList))
-        grass.fatal(errorString)
+        errorString = _("R package(s) %s missing. Install it/them and re-run v.krige.")
+        grass.fatal(errorString % ", ".join(map(str, missingPackagesList)))
 
 
 if __name__ == "__main__":
