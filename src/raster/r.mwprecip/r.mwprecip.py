@@ -280,7 +280,7 @@ def intrpolatePoints(db):
     db.executeSql(sql, False, True)
 
     try:  # open file for interpol. points.
-        io = open(os.path.join(path, "linkpointsname"), "wr")
+        io = open(os.path.join(path, "linkpointsname"), "w")
     except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
     io.write(nametable)
@@ -300,7 +300,7 @@ def intrpolatePoints(db):
     x = 0  # id in table with interpol. points
 
     try:
-        io = open(os.path.join(path, "linknode"), "wr")
+        io = open(os.path.join(path, "linknode"), "w")
     except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
@@ -730,7 +730,7 @@ def removeLines(old_file, new_file, start, end):
     data_list = open(old_file, "r").readlines()
     temp_list = data_list[0:start]
     temp_list[len(temp_list) :] = data_list[end : len(data_list)]
-    open(new_file, "wr").writelines(temp_list)
+    open(new_file, "w").writelines(temp_list)
 
 
 def readRaingauge(db, path_file):
@@ -771,7 +771,7 @@ def readRaingauge(db, path_file):
 
     ## write list of string to database
     try:
-        with open(os.path.join(path, "gauge_tmp"), "wr") as x:
+        with open(os.path.join(path, "gauge_tmp"), "w") as x:
             x.writelines(tmp)
             x.close()
     except OSError as e:
@@ -907,7 +907,7 @@ def getBaselDict(db):
     if options["baselfile"]:
         links_dict = readBaselineFromText(options["baselfile"])
         try:
-            io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+            io1 = open(os.path.join(path, "compute_precip_info"), "w")
             io1.write("fromfile|" + options["aw"])
             io1.close
         except OSError as e:
@@ -948,14 +948,14 @@ def computeBaselinFromMode(db, linktb, recordtb):
     sql = "drop table %s.tempround" % (schema_name)
     db.executeSql(sql, False, True)
     try:
-        io0 = open(os.path.join(path, "baseline"), "wr")
+        io0 = open(os.path.join(path, "baseline"), "w")
         io0.writelines(tmp)
         io0.close()
     except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         io1.write("mode|" + options["aw"])
         io1.close
     except OSError as e:
@@ -1053,7 +1053,7 @@ def computeBaselineFromTime(db):
             break
 
         ##write values to baseline file
-        writer = csv.writer(open(os.path.join(path, "baseline"), "wr"))
+        writer = csv.writer(open(os.path.join(path, "baseline"), "w"))
         for key, value in mydict1.items():
             writer.writerow([key, value])
 
@@ -1113,7 +1113,7 @@ def computeBaselineFromTime(db):
         c = 0
         ##write values to flat file
         try:
-            io = open(os.path.join(path, "mode_tmp"), "wr")
+            io = open(os.path.join(path, "mode_tmp"), "w")
             c = 0
             for it in tmp:
                 for i in it:
@@ -1146,7 +1146,7 @@ def computeBaselineFromTime(db):
 
     ##write  unique mark to file
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         st = st + "|" + options["aw"]
         io1.write(st)
         io1.close
@@ -1180,14 +1180,14 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
         tmp.append(str(linkid) + "," + str(resu) + "\n")
 
     try:
-        io0 = open(os.path.join(path, "baseline"), "wr")
+        io0 = open(os.path.join(path, "baseline"), "w")
         io0.writelines(tmp)
         io0.close()
     except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         io1.write("quantile" + quantile + "|" + options["aw"])
         io1.close
     except OSError as e:
@@ -1394,7 +1394,7 @@ def computePrecip(db):
     db.setIsoLvl(0)
 
     try:
-        io = open(os.path.join(path, "precip"), "wr")
+        io = open(os.path.join(path, "precip"), "w")
     except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
@@ -1535,7 +1535,7 @@ def makeTimeWin(db, typeid, table):
     ##save first and last timewindow to file. On first line file include time step "minute","hour"etc
     if typeid == "linkid":
         try:
-            io1 = open(os.path.join(path, "time_window_info"), "wr")
+            io1 = open(os.path.join(path, "time_window_info"), "w")
         except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
         io1.write(
@@ -1619,14 +1619,14 @@ def makeTimeWin(db, typeid, table):
     ##write values to flat file
     if typeid == "linkid":
         try:
-            io2 = open(os.path.join(path, "l_timewindow"), "wr")
+            io2 = open(os.path.join(path, "l_timewindow"), "w")
             io2.writelines(temp)
             io2.close()
         except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
     else:
         try:
-            io2 = open(os.path.join(path, "g_timewindow"), "wr")
+            io2 = open(os.path.join(path, "g_timewindow"), "w")
             io2.writelines(temp)
             io2.close()
         except OSError as e:
@@ -1642,7 +1642,7 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io3 = open(os.path.join(path, filename), "wr")
+            io3 = open(os.path.join(path, filename), "w")
             io3.writelines(tgrass_interpol)
             io3.close()
         except OSError as e:
@@ -1656,7 +1656,7 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io3 = open(os.path.join(path, filename), "wr")
+            io3 = open(os.path.join(path, filename), "w")
             io3.writelines(tgrass_vector)
             io3.close()
         except OSError as e:
@@ -1671,7 +1671,7 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io4 = open(os.path.join(path, filename), "wr")
+            io4 = open(os.path.join(path, filename), "w")
             io4.writelines(tgrass_vector)
             io4.close()
         except OSError as e:

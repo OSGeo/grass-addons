@@ -116,7 +116,7 @@ def print_message(msg):
 
 def setFirstRun():
     try:
-        io = open(os.path.join(path, firstrun), "wr")
+        io = open(os.path.join(path, firstrun), "w")
         io.write(options["type"])
         io.close
     except OSError as e:
