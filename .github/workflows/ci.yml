@@ -52,7 +52,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5 # v1.2.17
         with:
           create-symlink: true
-          verbose: 1
+          verbose: 2
           evict-old-files: 7d
           key: ${{ github.job }}-${{ matrix.grass-version }}-${{ matrix.python-version }}
 
