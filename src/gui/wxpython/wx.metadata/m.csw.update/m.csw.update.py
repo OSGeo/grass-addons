@@ -381,20 +381,10 @@ class UpdateConnectionsResources:
             self._spreadsheet_file_url_type = UrlType.WEB
         else:
             if not os.path.exists(path):
-                gscript.fatal(
-                    _(
-                        "Spreadsheets file '{}' doesn't exists.".format(
-                            path,
-                        ),
-                    ),
-                )
+                gscript.fatal(_("Spreadsheets file '{}' doesn't exists.").format(path))
             if not path.lower().endswith(".ods"):
                 gscript.fatal(
-                    _(
-                        "File '{}' is not spreadsheets file (.ods)".format(
-                            path,
-                        ),
-                    ),
+                    _("File '{}' is not spreadsheets file (.ods)").format(path)
                 )
 
             self.__spreadsheet_file_url = path
@@ -408,17 +398,12 @@ class UpdateConnectionsResources:
     def _conns_resrs_xsd(self, path):
         if not os.path.exists(path):
             gscript.fatal(
-                _(
-                    "Connnections resources xsd schema file '{}' "
-                    "doesn't exists.".format(
-                        path,
-                    ),
-                ),
+                _("Connections resources xsd schema file '{}' doesn't exists.").format(
+                    path
+                )
             )
         if not path.lower().endswith(".xsd"):
-            gscript.fatal(
-                _("File '{}' is not xsd file (.xsd)".format(path)),
-            )
+            gscript.fatal(_("File '{}' is not xsd file (.xsd)").format(path))
         self.__conns_resrs_xsd = path
 
     @property
@@ -429,16 +414,10 @@ class UpdateConnectionsResources:
     def _conns_resrs_xml(self, path):
         if not os.path.exists(path):
             gscript.fatal(
-                _(
-                    "Connnections resources file '{}' doesn't exists.".format(
-                        path,
-                    ),
-                ),
+                _("Connnections resources file '{}' doesn't exists.").format(path)
             )
         if not path.lower().endswith(".xml"):
-            gscript.fatal(
-                _("File '{}' is not xml file (.xml)".format(path)),
-            )
+            gscript.fatal(_("File '{}' is not xml file (.xml)").format(path))
         self._validate_xml(xml=path, xsd=self._conns_resrs_xsd)
         self.__conns_resrs_xml = path
 
@@ -452,10 +431,8 @@ class UpdateConnectionsResources:
             gscript.fatal(
                 _(
                     "Param 'data_theme' args is not allowed value, "
-                    "allowed values are: {}".format(
-                        ", ".join(self.data_theme_opts),
-                    ),
-                ),
+                    "allowed values are: {}"
+                ).format(", ".join(self.data_theme_opts))
             )
         self.__data_theme = value
 
@@ -602,12 +579,12 @@ class UpdateConnectionsResources:
                         _(
                             "Download file from <{url}>, "
                             "return status code {code}, "
-                            "{desc}".format(
-                                url=self._spreadsheet_file_url,
-                                code=response.code,
-                                desc=desc,
-                            ),
-                        ),
+                            "{desc}"
+                        ).format(
+                            url=self._spreadsheet_file_url,
+                            code=response.code,
+                            desc=desc,
+                        )
                     )
                 if (
                     response.getheader("Content-Type")
@@ -618,10 +595,8 @@ class UpdateConnectionsResources:
                             "Wrong downloaded file format. "
                             "Check url <{}>. Allowed file format is "
                             "OpenDocument Format (ODF) with .ods extension "
-                            "- a spreadsheet file".format(
-                                self._spreadsheet_file_url,
-                            ),
-                        ),
+                            "- a spreadsheet file"
+                        ).format(self._spreadsheet_file_url)
                     )
 
                 self._downloaded_file = io.BytesIO()
@@ -629,22 +604,15 @@ class UpdateConnectionsResources:
 
             except urllib.error.HTTPError as err:
                 gscript.fatal(
-                    _(
-                        "Download file from <{url}>, "
-                        "return status code {code}, ".format(
-                            url=self._spreadsheet_file_url,
-                            code=err,
-                        ),
-                    ),
+                    _("Download file from <{url}>, return status code {code}, ").format(
+                        url=self._spreadsheet_file_url, code=err
+                    )
                 )
             except urllib.error.URLError:
                 gscript.fatal(
                     _(
-                        "Download file from <{url}>, "
-                        "failed. Check internet connection.".format(
-                            url=self._spreadsheet_file_url,
-                        ),
-                    ),
+                        "Download file from <{url}>, failed. Check internet connection."
+                    ).format(url=self._spreadsheet_file_url)
                 )
 
     def _is_multiple_url(self, url):
@@ -714,11 +682,7 @@ class UpdateConnectionsResources:
             if add_url:
                 self._not_valid_csw_urls.append(url)
             else:
-                gscript.fatal(
-                    _(
-                        "Validation url <{}> failure".format(url),
-                    ),
-                )
+                gscript.fatal(_("Validation url <{}> failure").format(url))
         else:
             return url
 
@@ -734,16 +698,11 @@ class UpdateConnectionsResources:
             gscript.fatal(
                 _(
                     "Connnections resources xml file '{xml}' "
-                    "is not valid.\n\n{xsd_schema}".format(
-                        xml=xml,
-                        xsd_schema=gscript.decode(
-                            etree.tostring(
-                                _xsd,
-                                pretty_print=True,
-                            ),
-                        ),
-                    ),
-                ),
+                    "is not valid.\n\n{xsd_schema}"
+                ).format(
+                    xml=xml,
+                    xsd_schema=gscript.decode(etree.tostring(_xsd, pretty_print=True)),
+                )
             )
 
     def _validate_xml_at_parse_time(self, xml_string):
@@ -760,10 +719,8 @@ class UpdateConnectionsResources:
             gscript.fatal(
                 _(
                     "Can't parse connection xml item string '{}'. "
-                    "Xml string is not valid.".format(
-                        xml_string,
-                    ),
-                ),
+                    "Xml string is not valid."
+                ).format(xml_string)
             )
 
     def _get_root_tag(self):
@@ -807,10 +764,8 @@ class UpdateConnectionsResources:
         gscript.warning(
             _(
                 "Non active csw items going to be removed from connections "
-                "resources xml file {xml}".format(
-                    xml=self._conns_resrs_xml,
-                ),
-            ),
+                "resources xml file {xml}"
+            ).format(xml=self._conns_resrs_xml)
         )
         gscript.message(_(self._progress_message))
         n = len(self._xml_root)
@@ -846,10 +801,8 @@ class UpdateConnectionsResources:
         gscript.warning(
             _(
                 "Non valid csw urls going to be removed from connections "
-                "resources xml file {xml}".format(
-                    xml=self._conns_resrs_xml,
-                ),
-            ),
+                "resources xml file {xml}"
+            ).format(xml=self._conns_resrs_xml)
         )
         gscript.message(_(self._progress_message))
         n = len(self._xml_root)
@@ -971,10 +924,8 @@ class UpdateConnectionsResources:
         gscript.warning(
             _(
                 "Write active and valid csw connections resources into "
-                "the xml file {xml}".format(
-                    xml=self._conns_resrs_xml,
-                ),
-            ),
+                "the xml file {xml}"
+            ).format(xml=self._conns_resrs_xml)
         )
 
         self._xml_tree.write(self._conns_resrs_xml, pretty_print=True)
@@ -1382,10 +1333,8 @@ def main():
         gscript.warning(
             _(
                 "Use spreadsheet file url '{}' for getting new csw "
-                "resources connections candidates".format(
-                    url,
-                ),
-            ),
+                "resources connections candidates"
+            ).format(url)
         )
 
     if (flags["a"] or flags["i"] or flags["v"] or flags["n"]) and not flags["p"]:

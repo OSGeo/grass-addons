@@ -149,14 +149,12 @@ def check_directions(dir_type, dmax):
             )
         else:
             gscript.fatal(
-                _(
-                    "Unable to detect format of input direction map <{}>".format(
-                        direction
-                    )
+                _("Unable to detect format of input direction map <{}>").format(
+                    direction
                 )
             )
     else:
-        gscript.fatal(_("Invalid directions format '{}'".format(direction)))
+        gscript.fatal(_("Invalid directions format '{}'").format(direction))
 
     return dir_type
 

@@ -510,7 +510,7 @@ def main():
                 reason=error.reason, code=error.code, instructions=try_again_messge
             )
         )
-    except (URLError, OSError, IOError) as error:
+    except (URLError, OSError) as error:
         # Catching also SSLError and potentially others which are
         # subclasses of IOError in Python 2 and of OSError in Python 3.
         gscript.fatal(
@@ -836,7 +836,7 @@ def main():
                     local_tile_path_list.append(extracted_tile)
                     if not preserve_extracted_files:
                         cleanup_list.append(extracted_tile)
-            except IOError as error:
+            except OSError as error:
                 cleanup_list.append(extracted_tile)
                 gscript.fatal(
                     _(

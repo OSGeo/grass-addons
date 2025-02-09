@@ -212,7 +212,7 @@ def get_custom_eodag_config(datasource, settings):
                     if len(lines) < 1:
                         gs.fatal(_("Invalid settings file"))
                     apikey = lines[0].strip()
-        except IOError as e:
+        except OSError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
 
     geojson_temp_dir = gs.tempdir()
@@ -331,10 +331,9 @@ def main():
         if options["datasource"] == "usgs" and int(eodag.__version__.split(".")[0]) < 3:
             gs.fatal(
                 _(
-                    "EODAG 3.0.0 or later is needed to search by IDs with USGS".format(
-                        eodag.__version__
-                    )
-                )
+                    "EODAG 3.0.0 or later is needed to search by IDs with USGS. "
+                    "Current version is {}"
+                ).format(eodag.__version__)
             )
         gs.run_command(
             "i.eodag",
@@ -399,14 +398,18 @@ def main():
                 )
             )
         except CalledModuleError:
+            msg_planetary_computer = _(
+                "Could not connect to Planetary Computer.\n"
+                "Please check your credentials or try again later."
+            )
+            msg_USGS = _(
+                "Could not connect to USGS.\n"
+                "Please check your credentials or try again later."
+            )
             gs.fatal(
-                _(
-                    "Could not connect to {}.\nPlease check your credentials or try again later.".format(
-                        "Planetary Computer"
-                        if options["datasource"] == "planetary_computer"
-                        else "USGS"
-                    )
-                )
+                msg_planetary_computer
+                if options["datasource"] == "planetary_computer"
+                else msg_USGS
             )
 
         headers_mapping = {
@@ -423,7 +426,7 @@ def main():
         }
 
         # Output number of scenes found
-        gs.message(_("{} scene(s) found.".format(len(scenes["features"]))))
+        gs.message(_("{} scene(s) found.").format(len(scenes["features"])))
 
         if flags["l"]:
             for scene in scenes["features"]:

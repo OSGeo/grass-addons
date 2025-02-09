@@ -136,7 +136,7 @@ def string_to_file(string, filename=None):
     # for line in ascii_file:
     #     grass.debug(_(line.rstrip()))
 
-    except IOError as error:
+    except OSError as error:
         print("IOError :", error)
         return
 

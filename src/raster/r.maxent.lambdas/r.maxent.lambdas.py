@@ -169,7 +169,7 @@ def parse_alias(alias_file):
     if alias_file:
         if not os.access(alias_file, os.R_OK):
             gscript.fatal(
-                _("Alias file <{}> not found or not readable".format(alias_file))
+                _("Alias file <{}> not found or not readable").format(alias_file)
             )
 
         with open(alias_file, "r") as a_f:
@@ -192,10 +192,8 @@ def parse_alias(alias_file):
             if not raster_map.exist():
                 gscript.fatal(
                     _(
-                        "Could not find environmental parameter raster map <{}> in mapset <{}>.".format(
-                            raster, mapset
-                        )
-                    )
+                        "Could not find environmental parameter raster map <{0}> in mapset <{1}>."
+                    ).format(raster, mapset)
                 )
 
     return alias_dict
@@ -271,7 +269,7 @@ def parse_lambdas_row(row, coeff, alias_dict, clamp):
         for rmap in mc_row[0]:
             if rmap not in alias_dict:
                 gscript.fatal(
-                    _("Invalid input: Variable {} not found in alias file".format(rmap))
+                    _("Invalid input: Variable {} not found in alias file").format(rmap)
                 )
             mc_row[1] = mc_row[1].replace(rmap, alias_dict[rmap])
         mc_row[0] = (alias_dict[rmap] for rmap in mc_row[0])

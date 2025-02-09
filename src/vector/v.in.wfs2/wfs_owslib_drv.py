@@ -53,7 +53,7 @@ class WFSOwsLibDrv(WFSBase):
             temp_map_opened = open(temp_map, "w")
             temp_map_opened.write(wfs_data.read())
             temp_map_opened
-        except IOError:
+        except OSError:
             grass.fatal(_("Unable to write data into tempfile"))
         finally:
             temp_map_opened.close()

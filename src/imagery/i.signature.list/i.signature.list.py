@@ -67,20 +67,16 @@ def main():
         path = os.path.join(path, mapset, "group", name)
         if not os.path.exists(path):
             grass.fatal(
-                _(
-                    "No groups with name {na} in LOCATION {loc}, MAPSET {ma}".format(
-                        na=name, loc=gisenv["LOCATION_NAME"], ma=mapset
-                    )
+                _("No groups with name {na} in LOCATION {loc}, MAPSET {ma}").format(
+                    na=name, loc=gisenv["LOCATION_NAME"], ma=mapset
                 )
             )
         if sub:
             path = os.path.join(path, "subgroup", sub, "sig")
             if not os.path.exists(path):
                 grass.fatal(
-                    _(
-                        "No subgroups with name {na} in group {gr}".format(
-                            na=sub, gr=name
-                        )
+                    _("No subgroups with name {na} in group {gr}").format(
+                        na=sub, gr=name
                     )
                 )
             if not flagg:
@@ -94,7 +90,7 @@ def main():
         else:
             path = os.path.join(path, "subgroup")
             if not os.path.exists(path):
-                grass.fatal(_("No subgroups for group {gr}".format(gr=name)))
+                grass.fatal(_("No subgroups for group {gr}").format(gr=name))
             for di in os.listdir(path):
                 print("    Subgroup: {}".format(di))
                 for sig in os.listdir(os.path.join(path, di, "sig")):
@@ -104,16 +100,14 @@ def main():
         path = os.path.join(path, gisenv["MAPSET"], "group")
         if not os.path.exists(path):
             grass.fatal(
-                _(
-                    "No groups in LOCATION {loc}, MAPSET {ma}".format(
-                        loc=gisenv["LOCATION_NAME"], ma=gisenv["MAPSET"]
-                    )
+                _("No groups in LOCATION {loc}, MAPSET {ma}").format(
+                    loc=gisenv["LOCATION_NAME"], ma=gisenv["MAPSET"]
                 )
             )
         for gr in os.listdir(path):
             print("Group: {}".format(gr))
             if not os.path.exists(os.path.join(path, gr, "subgroup")):
-                grass.warning(_("No subgroups for group {gr}".format(gr=name)))
+                grass.warning(_("No subgroups for group {gr}").format(gr=name))
                 continue
             for di in os.listdir(os.path.join(path, gr, "subgroup")):
                 print("    Subgroup: {}".format(di))

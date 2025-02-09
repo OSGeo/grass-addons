@@ -227,9 +227,6 @@ ignore = [
     "I001",    # unsorted-imports
     "ICN001",  # unconventional-import-alias
     "INP001",  # implicit-namespace-package
-    "INT001",  # f-string-in-get-text-func-call
-    "INT002",  # format-in-get-text-func-call
-    "INT003",  # printf-in-get-text-func-call
     "ISC003",  # explicit-string-concatenation
     "LOG015",  # root-logger-call
     "N801",    # invalid-class-name
@@ -302,7 +299,6 @@ ignore = [
     "PLW0602", # global-variable-not-assigned
     "PLW0603", # global-statement
     "PLW0604", # global-at-module-level
-    "PLW1501", # bad-open-mode
     "PLW1508", # invalid-envvar-default
     "PLW1510", # subprocess-run-without-check
     "PLW1514", # unspecified-encoding
@@ -426,7 +422,6 @@ ignore = [
     "UP021",   # replace-universal-newlines
     "UP022",   # replace-stdout-stderr
     "UP023",   # deprecated-c-element-tree
-    "UP024",   # os-error-alias
     "UP028",   # yield-in-for-loop
     "UP029",   # unnecessary-builtin-import
     "UP030",   # format-literals

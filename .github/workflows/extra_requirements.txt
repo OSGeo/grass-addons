@@ -1,8 +1,11 @@
+-r ./requirements.txt
 scipy
 eodag
 pandas
 scikit-learn
 GDAL==${GDAL_VERSION}
 pygbif
-cf_units @ git+https://github.com/SciTools/cf-units@f57a7f1fdba4e9424e4dbbc01b614e521a88086c
+cf_units
 thredds_crawler
+-r ../../src/temporal/t.stac/requirements.txt
+-r ../../src/raster/r.estimap.recreation/requirements-dev.txt

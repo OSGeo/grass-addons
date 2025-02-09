@@ -257,7 +257,7 @@ def main():
 
     # Calculate renyi
     for n in range(len(Q)):
-        gs.info(_("Computing alpha = {}".format(Q[n])))
+        gs.info(_("Computing alpha = {}").format(Q[n]))
         Qn = str(Q[n])
         Qn = Qn.replace(".", "_")
         renyi = OUT + "_Renyi_" + Qn
@@ -287,7 +287,7 @@ def main():
             tmp_4 = tmpname("tmp06")
             gs.mapcalc(f"{tmp_3} = 0", quiet=True)
             for i in range(len(IN)):
-                gs.info(_("Computing map {j} from {n} maps".format(j=i + 1, n=len(IN))))
+                gs.info(_("Computing map {j} from {n} maps").format(j=i + 1, n=len(IN)))
                 gs.mapcalc(
                     (
                         f"{tmp_4} = if({IN[i]} == 0, "
