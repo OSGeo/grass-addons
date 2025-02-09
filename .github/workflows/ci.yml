@@ -48,6 +48,12 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: grass-addons
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2.17
+        with:
+          create-symlink: true
+          verbose: 1
+          evict-old-files: 7d
 
       - name: Get dependencies
         run: |
