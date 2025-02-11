@@ -48,6 +48,13 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: grass-addons
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5 # v1.2.17
+        with:
+          create-symlink: true
+          verbose: 2
+          evict-old-files: 7d
+          key: ${{ github.job }}-${{ matrix.grass-version }}-${{ matrix.python-version }}
 
       - name: Get dependencies
         run: |
@@ -110,7 +117,13 @@ jobs:
         uses: r-lib/actions/setup-r@473c68190595b311a74f208fba61a8d8c0d4c247 # v2.11.1
         with:
           r-version: 4.2.1
-
+          Ncpus: 4
+      - name: Configure ccache for R package builds
+        run: |
+          # R package sources are extracted as newly created files
+          echo "CCACHE_SLOPPINESS=include_file_ctime" >> "${GITHUB_ENV}"
+          # R temp directory name differs
+          echo "CCACHE_NOHASHDIR=true" >> "${GITHUB_ENV}"
       - name: Get R dependencies
         run: |
           grass-addons/.github/workflows/install_r_packages.R
