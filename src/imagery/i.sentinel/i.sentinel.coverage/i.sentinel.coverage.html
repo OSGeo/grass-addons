@@ -10,16 +10,13 @@ scene footprints and does not include the cloud covered pixels.
 
 <h3>Check Sentinel-1 scenes by region, start and end time</h3>
 
-Note that only the last 12 months of Sentinel data are online available
-ESA Hub, older scenes are stored in the Long Term Archive (LTA) and
-cannot be retrieved immediately. The example is based on the North Carolina
-dataset:
+The example is based on the North Carolina dataset:
 
 <div class="code"><pre>
 # extract Durham (NC) county
 v.extract input=boundary_county output=county_durham where="NAME = 'DURHAM'"
 
-# simplify geometry (needed for ESA Hub)
+# simplify geometry
 v.generalize input=county_durham output=county_durham_dp1000 method=douglas threshold=1000
 
 # search for SLC scenes in certain period of time
@@ -29,16 +26,13 @@ i.sentinel.coverage settings=credentials.txt output=s1names.txt \
 
 <h3>Check Sentinel-2 scenes by region, cloud coverage, start and end time</h3>
 
-Note that only the last 12 months of Sentinel data are online available
-ESA Hub, older scenes are stored in the Long Term Archive (LTA) and
-cannot be retrieved immediately. The example is based on the North Carolina
-dataset:
+The example is based on the North Carolina dataset:
 
 <div class="code"><pre>
 # extract Durham (NC) county
 v.extract input=boundary_county output=county_durham where="NAME = 'DURHAM'"
 
-# simplify geometry (needed for ESA Hub)
+# simplify geometry
 v.generalize input=county_durham output=county_durham_dp1000 method=douglas threshold=1000
 
 # search for L2A scenes with minimal clouds in certain period of time
