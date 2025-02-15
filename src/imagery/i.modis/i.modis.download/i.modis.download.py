@@ -291,7 +291,7 @@ def main():
         if modisOgg.nconnection <= 20:
             # download tha tiles
             grass.message(
-                _("Downloading MODIS product <{}> ({})...".format(produ, prod["prod"]))
+                _("Downloading MODIS product <{}> ({})...").format(produ, prod["prod"])
             )
             modisOgg.downloadsAllDay()
             filesize = int(os.path.getsize(modisOgg.filelist.name))
@@ -305,9 +305,9 @@ def main():
                 grass.message(
                     _(
                         "All data have been downloaded, continue "
-                        "with i.modis.import with the option "
-                        "'files=%s'" % modisOgg.filelist.name
+                        "with i.modis.import with the option 'files=%s'"
                     )
+                    % modisOgg.filelist.name
                 )
         else:
             grass.fatal(_("Error during connection"))

@@ -112,7 +112,7 @@ class WFSBase:
         )
         try:
             cap = urlopen(cap_url)
-        except IOError:
+        except OSError:
             grass.fatal(_("Unable to get capabilities from '%s'") % options["url"])
 
         cap_lines = cap.readlines()
@@ -155,7 +155,7 @@ class WFSBase:
                         self.region["s"],
                     )
                 )
-            except IOError:
+            except OSError:
                 grass.fatal(_("Unable to write data into tempfile"))
             finally:
                 temp_region_opened.close()

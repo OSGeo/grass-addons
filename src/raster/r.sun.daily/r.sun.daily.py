@@ -436,8 +436,7 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
                 _(
                     "Raster map <{name}> already exists. "
                     "Change the base name or allow overwrite."
-                    "".format(name=map_)
-                )
+                ).format(name=map_)
             )
 
 

@@ -189,12 +189,12 @@ def main():
     neighborhood = True if flags["n"] else False
     if neighborhood:
         if not gscript.find_program("r.neighborhoodmatrix", "--help"):
-            message = _("You need to install the addon r.neighborhoodmatrix to be able")
-            message += _(" to calculate area measures.\n")
-            message += _(
-                " You can install the addon with 'g.extension r.neighborhoodmatrix'"
+            message = (
+                "You need to install the addon r.neighborhoodmatrix to be able "
+                "to calculate area measures.\n"
+                "You can install the addon with 'g.extension r.neighborhoodmatrix'"
             )
-            gscript.fatal(message)
+            gscript.fatal(_(message))
 
     raster_statistics = (
         options["raster_statistics"].split(",") if options["raster_statistics"] else []
@@ -270,7 +270,7 @@ def main():
             for raster in rasters:
                 null_values_found = False
                 if not gscript.find_file(raster, element="cell")["name"]:
-                    gscript.message(_("Cannot find raster '%s'" % raster))
+                    gscript.message(_("Cannot find raster '%s'") % raster)
                     gscript.message(_("Removing this raster from list."))
                     rasters_to_remove.append(raster)
                     continue
@@ -292,12 +292,13 @@ def main():
                         null_values_found = True
 
                 if null_values_found:
-                    message = "Raster <%s> contains null values.\n" % raster
-                    message += "This can lead to errors in the calculations.\n"
-                    message += "Check region settings and raster extent.\n"
-                    message += "Possibly fill null values of raster.\n"
-                    message += "Removing this raster from list."
-                    gscript.warning(message)
+                    message = """Raster <%s> contains null values.
+This can lead to errors in the calculations.
+Check region settings and raster extent.
+Possibly fill null values of raster.
+Removing this raster from list."
+"""
+                    gscript.warning(message % raster)
                     rasters_to_remove.append(raster)
 
             for raster in rasters_to_remove:
@@ -309,10 +310,8 @@ def main():
             if len(rasters) < processes:
                 processes = len(rasters)
                 gscript.message(
-                    _(
-                        "Only one process per raster. Reduced number of processes to %i."
-                        % processes
-                    )
+                    _("Only one process per raster. Reduced number of processes to %i.")
+                    % processes
                 )
 
             stat_indices = [raster_stat_dict[x] for x in raster_statistics]
@@ -384,10 +383,12 @@ def main():
                     newvalues.append("0")
                 output_dict[key] = output_dict[key] + newvalues
 
-    message = _("Some values could not be calculated for the objects below. ")
-    message += _("These objects are thus not included in the results. ")
-    message += _("HINT: Check some of the raster maps for null values ")
-    message += _("and possibly fill these values with r.fillnulls.")
+    message = _(
+        "Some values could not be calculated for the objects below. "
+        "These objects are thus not included in the results. "
+        "HINT: Check some of the raster maps for null values "
+        "and possibly fill these values with r.fillnulls."
+    )
     error_objects = []
 
     if csvfile:
@@ -421,7 +422,7 @@ def main():
                 fsql.write("DROP TABLE %s;" % temporary_vect)
             else:
                 gscript.fatal(
-                    _("Table %s already exists. Use --o to overwrite" % temporary_vect)
+                    _("Table %s already exists. Use --o to overwrite") % temporary_vect
                 )
         create_statement = (
             "CREATE TABLE " + temporary_vect + " (cat int PRIMARY KEY);\n"
@@ -460,8 +461,8 @@ def main():
 
     if error_objects:
         object_string = ", ".join(error_objects[:100])
-        message += _(
-            "\n\nObjects with errors (only first 100 are shown):\n%s" % object_string
+        message += (
+            _("\n\nObjects with errors (only first 100 are shown):\n%s") % object_string
         )
         gscript.message(message)
 

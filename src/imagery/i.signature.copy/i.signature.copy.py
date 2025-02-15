@@ -106,7 +106,7 @@ def main():
         isign,
     )
     if not os.path.exists(ipath):
-        grass.fatal(_("Signature file <{}> does not exist".format(ipath)))
+        grass.fatal(_("Signature file <{}> does not exist").format(ipath))
 
     # try to split output group and mapset
     try:
@@ -127,9 +127,8 @@ def main():
     if not os.path.exists(opath):
         grass.fatal(
             _(
-                "<{pa}> does not exist, do group <{gr}> and "
-                "subgroup <{su}> exist?".format(pa=ipath, gr=ogroup, su=osub)
-            )
+                "<{pa}> does not exist, do group <{gr}> and subgroup <{su}> exist?"
+            ).format(pa=ipath, gr=ogroup, su=osub)
         )
     else:
         opath = os.path.join(opath, osign)
@@ -137,15 +136,15 @@ def main():
             grass.fatal(
                 _(
                     "ERROR: option <osignature>: <{}> exists. To "
-                    "overwrite, use the --overwrite flag".format(osign)
-                )
+                    "overwrite, use the --overwrite flag"
+                ).format(osign)
             )
     # try to copy the signature file otherwise return an error
     try:
         shutil.copy2(ipath, opath)
         return
     except:
-        grass.fatal(_("ERROR: copying {inp} to {oup}".format(inp=ipath, oup=opath)))
+        grass.fatal(_("ERROR: copying {inp} to {oup}").format(inp=ipath, oup=opath))
 
 
 if __name__ == "__main__":

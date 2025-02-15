@@ -177,10 +177,8 @@ class WCSBase:
             self.params["password"] == "" and self.params["username"]
         ):
             grass.fatal(
-                _(
-                    "Please insert both %s and %s parameters or none of them."
-                    % ("password", "username")
-                )
+                _("Please insert both %s and %s parameters or none of them.")
+                % ("password", "username")
             )
 
         # configure region extent (specified name or current region)
@@ -275,7 +273,7 @@ class WCSBase:
             cap = self._fetchDataFromServer(
                 cap_url, options["username"], options["password"]
             )
-        except (IOError, HTTPException) as e:
+        except (OSError, HTTPException) as e:
             if isinstance(e, HTTPError) and e.code == 401:
                 grass.fatal(
                     _("Authorization failed to <%s> when fetching capabilities")

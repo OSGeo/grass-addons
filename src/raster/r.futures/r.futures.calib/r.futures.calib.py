@@ -395,13 +395,13 @@ def run_one_combination(
         gcore.message(
             _(
                 "Running calibration combination {comb_count}/{comb_all}"
-                " of simulation attempt {i}/{repeat} with random seed {s}...".format(
-                    comb_count=comb_count,
-                    comb_all=comb_all,
-                    i=i + 1,
-                    repeat=repeat,
-                    s=f_seed,
-                )
+                " of simulation attempt {i}/{repeat} with random seed {s}..."
+            ).format(
+                comb_count=comb_count,
+                comb_all=comb_all,
+                i=i + 1,
+                repeat=repeat,
+                s=f_seed,
             )
         )
         try:

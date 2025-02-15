@@ -538,7 +538,7 @@ def check_java_txtfile():
         with open(file_path, "r") as file:
             java_path = file.readline().strip()
     except Exception as e:
-        gs.warning(_("File with path to java exists but cannot be read: {}".format(e)))
+        gs.warning(_("File with path to java exists but cannot be read: {}").format(e))
         return None
 
     if not java_path:
@@ -550,8 +550,8 @@ def check_java_txtfile():
             _(
                 "The path to the Java executable '{}', defined in the"
                 " 'r_maxent_path_to_java.txt' in the addon directory "
-                "does not exist or is not functional.".format(java_path)
-            )
+                "does not exist or is not functional."
+            ).format(java_path)
         )
         return None
 
@@ -623,20 +623,16 @@ def main(options, flags):
     if header_samples != header_environ:
         envp = os.path.basename(envir_layers)
         samp = os.path.basename(sample_layers)
-        msg = "The columnnames in the {} and {} files are not the same".format(
-            envp, samp
-        )
-        gs.fatal(_(msg))
+        msg = "The columnnames in the {} and {} files are not the same"
+        gs.fatal(_(msg).format(envp, samp))
     if bool(options["projectionlayers"]):
         projection_layers = os.path.normpath(options["projectionlayers"])
         envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
         if not set(header_samples[3:]).issubset(envir_names):
-            msg = "Not all variables are available as ascii files in:\n {}".format(
-                envir_layers
-            )
-            gs.fatal(_(msg))
+            msg = "Not all variables are available as ascii files in:\n {}"
+            gs.fatal(_(msg).format(envir_layers))
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
@@ -742,11 +738,9 @@ def main(options, flags):
         process.wait()
         if process.returncode != 0:
             gs.fatal(_("Maxent terminated with an error"))
-    msg = "Done, you can find the model outputs in the folder:\n {}\n".format(
-        options["outputdirectory"]
-    )
+    msg = "Done, you can find the model outputs in the folder:\n {}\n"
 
-    gs.info(_(msg))
+    gs.info(_(msg).format(options["outputdirectory"]))
     gs.info(_("-----------------------\n"))
 
     # -----------------------------------------------------------------
@@ -766,11 +760,9 @@ def main(options, flags):
         msg = (
             "A {0} with {1} replications was carried out.\n"
             "The average and standard deviation of the AUC of the"
-            "\n {1} submodels are presented below.\n\n".format(
-                valtype, options["replicates"]
-            )
+            "\n {1} submodels are presented below.\n\n"
         )
-        gs.info(_(msg))
+        gs.info(_(msg).format(valtype, options["replicates"]))
     else:
         gs.info(_("Basic stats about the model are printed below:\n"))
 
@@ -785,16 +777,16 @@ def main(options, flags):
 
     statistics = rows[len(rows) - 1]
     i = variables.index("#Training samples")
-    gs.info(_(f"Number of training samples: {statistics[i]}"))
+    gs.info(_("Number of training samples: {}").format(statistics[i]))
     i = variables.index("#Background points")
-    gs.info(_(f"Number of background points: {statistics[i]}"))
+    gs.info(_("Number of background points: {}").format(statistics[i]))
     i = variables.index("Training AUC")
-    print(_(f"Training AUC: {statistics[i]}"))
+    print(_("Training AUC: {}").format(statistics[i]))
     try:
         i = variables.index("Test AUC")
         msg = f"Test AUC: {statistics[i]}"
         i = variables.index("AUC Standard Deviation")
-        gs.message(_("{} (+/- {})".format(msg, statistics[i])))
+        gs.message(_("{} (+/- {})").format(msg, statistics[i]))
     except ValueError:
         gs.info(_("Test AUC: no test data was provided"))
 
@@ -849,10 +841,8 @@ def main(options, flags):
 
         nm = outputformat.capitalize()
         for index, file in enumerate(prediction_csv):
-            msg = "Importing samplePrediction layer {} of {}".format(
-                index + 1, len(prediction_csv)
-            )
-            gs.info(_(msg))
+            msg = "Importing samplePrediction layer {} of {}"
+            gs.info(_(msg).format(index + 1, len(prediction_csv)))
             inputfile = os.path.join(options["outputdirectory"], file)
             gs.run_command(
                 "v.in.ascii",
@@ -883,9 +873,8 @@ def main(options, flags):
                 )
             # Spatial join of layer to first layer
             if int(options["replicates"]) > 1 and index > 0:
-                msg = "Combining samplePrediction layers and computing summary stats".format(
-                    index + 1, len(prediction_csv)
-                )
+                msg = "Combining samplePrediction layers and computing summary stats"
+                gs.info(_(msg).format(index + 1, len(prediction_csv)))
                 colname = f"{nm}_{index + 1}"
                 gs.run_command(
                     "v.db.addcolumn",
@@ -1004,7 +993,7 @@ def main(options, flags):
             vector=f"{prediction_layers[0]},{newname}",
             quiet=function_verbosity,
         )
-        gs.info(_("Created the layer {} in GRASS GIS".format(newname)))
+        gs.info(_("Created the layer {} in GRASS GIS").format(newname))
 
         # Defined color column
         if len(prediction_csv) == 1:
@@ -1072,10 +1061,8 @@ def main(options, flags):
                 "Cumulative double precision,"
                 "Cloglog double precision"
             )
-            msg = "Importing background Prediction point layer {}".format(
-                prediction_bgrlay
-            )
-            gs.info(_(msg))
+            msg = "Importing background Prediction point layer {}"
+            gs.info(_(msg).format(prediction_bgrlay))
             inputfile = os.path.join(options["outputdirectory"], prediction_bgr[0])
             gs.run_command(
                 "v.in.ascii",
@@ -1149,10 +1136,11 @@ def main(options, flags):
                     x.replace(result, bkgrpoints) for x in prediction_bgrlay
                 ]
             for index, file in enumerate(prediction_bgr):
-                msg = "Importing {}: {} of {}".format(
-                    prediction_bgrlay[index], index + 1, len(prediction_bgr)
+                gs.info(
+                    _("Importing {}: {} of {}").format(
+                        prediction_bgrlay[index], index + 1, len(prediction_bgr)
+                    )
                 )
-                gs.info(_(msg))
                 inputfile = os.path.join(options["outputdirectory"], file)
                 with open(inputfile) as f:
                     header_line = f.readline().strip("\n").split(",")
@@ -1267,7 +1255,7 @@ def main(options, flags):
         if bool(predlays):
             grasslayers = [x.replace(result, predlays) for x in grasslayers]
         for idx, asci in enumerate(asciilayers):
-            gs.info(_("Importing layer {} of {}".format(idx + 1, len(grasslayers))))
+            gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)
             gs.run_command(
                 "r.in.gdal",
@@ -1290,7 +1278,7 @@ def main(options, flags):
             gs.run_command(
                 "r.colors", map=grasslayers[idx], color="bcyr", quiet=function_verbosity
             )
-            gs.info(_("Imported {}".format(grasslayers[idx])))
+            gs.info(_("Imported {}").format(grasslayers[idx]))
 
     # Write file with variable names (to check in r.maxent.predict)
     # -----------------------------------------------------------------

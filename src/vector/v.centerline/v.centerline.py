@@ -158,12 +158,12 @@ def main():
 
     if transversals and not search_range:
         search_range = sum(mean_dists) / len(mean_dists)
-        grass.message(_("Calculated search range:  %.5f." % search_range))
+        grass.message(_("Calculated search range:  %.5f.") % search_range)
 
     if not refline_cat:
         refline_cat = sorted(zip(cats, mean_dists), key=lambda tup: tup[1])[0][0]
 
-        grass.message(_("Category number of chosen reference line: %s." % refline_cat))
+        grass.message(_("Category number of chosen reference line: %s.") % refline_cat)
 
     # Use transversals algorithm
     if transversals:

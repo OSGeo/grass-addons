@@ -64,7 +64,7 @@ def main():
     out = hive.get_results(hql=options["hql"], schema=options["schema"])
 
     if options["out"]:
-        with open(out, "rw") as io:
+        with open(out, "w") as io:
             io.writelines(out)
             io.close()
     else:

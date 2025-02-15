@@ -1,10 +1,11 @@
-import unittest2 as unittest
+import unittest
 
-# import unittest
-
-from libagent import error, playground, grassland
 import grass.script as grass
 from grass.script import array as garray
+from grass.script.utils import set_path
+
+set_path("r.agent", "libagent", "..")
+from libagent import error, grassland, playground
 
 
 class TestGrassland(unittest.TestCase):

@@ -383,14 +383,15 @@ def main():
         layer=layer,
     )
     if not stats:
-        grass.fatal(_("Unable to calculate statistics for vector map <%s>" % map))
+        grass.fatal(_("Unable to calculate statistics for vector map <%s>") % map)
     stats = grass.parse_key_val(stats)
     if "min" not in stats:
         grass.fatal(
             _(
                 "Unable to calculate statistics for vector map <%s> "
-                "(missing minimum/maximum value)" % map
+                "(missing minimum/maximum value)"
             )
+            % map
         )
 
     min = float(stats["min"])

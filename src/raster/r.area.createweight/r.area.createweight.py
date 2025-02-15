@@ -373,12 +373,11 @@ def category_list_check(cat_list, raster_map):
     for cat in cat_list:
         if cat not in existing_cat:
             message = (
-                "Some categories provided do not exist in the "
-                "parts of raster \n <%s>, that are covered by the "
-                "spatial units. Please check. \n Valid categories "
-                "are: " + ",".join(existing_cat_string)
-            ) % raster_map
-            gscript.fatal(_(message))
+                "Some categories provided do not exist in the parts of raster \n"
+                "<%s>, that are covered by the spatial units. Please check. \n"
+                "Valid categories are: "
+            )
+            gscript.fatal((_(message) % raster_map) + ",".join(existing_cat_string))
     gscript.verbose(_("All user-given categories exist in raster <%s>.") % raster_map)
 
 
@@ -448,17 +447,17 @@ def spatial_boundaries(vector, id):
             name=gridded_vector,
             flags="fb",
         )
-        message = (
-            "A tile size of %s m seems too large and produces "
+        message = _(
+            "A tile size of {} m seems too large and produces "
             "loss of some spatial units when rasterizing them."
             "\n"
-        ) % tile_size
-        message += (
+        ).format(tile_size)
+        message += _(
             "Try to reduce the 'tile_size' parameter or edit "
-            "the <%s> vector to merge smallest spatial units with "
+            "the <{}> vector to merge smallest spatial units with "
             "their neighboring units"
-        ) % vector
-        gscript.fatal(_(message))
+        ).format(vector)
+        gscript.fatal(message)
 
 
 def compute_proportion_csv(categorical_raster, zone_raster, prefix, outputfile):
@@ -577,7 +576,7 @@ def join_multiplecsv(
     # Stop execution if outputfile exists and cannot be overwritten
     if os.path.isfile(outfile) and overwrite is False:
         gscript.fatal(
-            _("File '%s' already exists and overwrite option is not enabled." % outfile)
+            _("File '%s' already exists and overwrite option is not enabled.") % outfile
         )
     else:
         nbfile = len(fileList)
@@ -960,12 +959,9 @@ def RandomForest(weighting_layer_name, vector, id):
     plt.savefig(plot + ".png", bbox_inches="tight", dpi=400)
     # Export in .svg file (vectorial)
     plt.savefig(plot + ".svg", bbox_inches="tight", dpi=400)
-    message = (
-        "Final Random Forest model run - internal Out-of-bag "
-        "score (OOB) : %0.3f" % regressor.oob_score
-    )
-    log_text += message + "\n"
-    gscript.info(_(message))
+    message = "Final Random Forest model run - internal Out-of-bag score (OOB) : %0.3f"
+    log_text += message % regressor.oob_score + "\n"
+    gscript.info(_(message) % regressor.oob_score)
 
 
 def main():
@@ -1086,14 +1082,14 @@ def main():
     # basemap_a exists?
     result = gscript.find_file(basemap_a_user, element="cell")
     if not result["file"]:
-        gscript.fatal(_("Raster map <%s> not found" % basemap_a_user))
+        gscript.fatal(_("Raster map <%s> not found") % basemap_a_user)
     raster_list.append(basemap_a_user)
     basemap_a = "basemap_a"
     raster_list_prep.append(basemap_a)
     # vector exists?
     result = gscript.find_file(vector_map, element="vector")
     if not result["file"]:
-        gscript.fatal(_("Vector map <%s> not found" % vector_map))
+        gscript.fatal(_("Vector map <%s> not found") % vector_map)
 
     # id column exists?
     if id not in gscript.vector_columns(vector_map).keys():
@@ -1188,10 +1184,8 @@ def main():
     )
     if kfold > maxfold:
         gscript.fatal(
-            _(
-                "<kfold> parameter must be lower than %s "
-                "(number of spatial units)" % maxfold
-            )
+            _("<kfold> parameter must be lower than %s (number of spatial units)")
+            % maxfold
         )
     if kfold < 2:
         gscript.fatal(_("<kfold> parameter must be higher than 2"))
@@ -1200,18 +1194,19 @@ def main():
         gscript.fatal(
             _(
                 "Directory '%s' for output plot of model's "
-                "feature importances does not exist. \nPlease specify an "
-                "existing directory" % os.path.split(plot)[0]
+                "feature importances does not exist.\n"
+                "Please specify an existing directory"
             )
+            % os.path.split(plot)[0]
         )
     # Directory for output file with logging of RF run valid?
     if not os.path.exists(os.path.split(log_file)[0]):
         gscript.fatal(
             _(
-                "Directory '%s' for output file with logging "
-                "of RF run does not exist. \nPlease specify an existing "
-                "directory" % os.path.split(log_file)[0]
+                "Directory '%s' for output file with logging of RF run does not exist.\n"
+                "Please specify an existing directory"
             )
+            % os.path.split(log_file)[0]
         )
 
     # ------------------------------------------------------------------

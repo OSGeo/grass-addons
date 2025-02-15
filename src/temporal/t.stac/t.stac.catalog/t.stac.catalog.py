@@ -158,7 +158,7 @@ def main():
             libstac.print_json_to_stdout(client_dict, pretty_print)
 
     except Exception as e:
-        gs.fatal(_("Error: {}".format(e)))
+        gs.fatal(_("Error: {}").format(e))
 
 
 if __name__ == "__main__":

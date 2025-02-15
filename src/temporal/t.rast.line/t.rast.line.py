@@ -279,7 +279,7 @@ def get_valid_color(color):
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
     if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -751,7 +751,11 @@ def main(options, flags):
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
         path_name = os.path.split(output)
-        gs.message(_(f"Done, you can find the file {path_name[1]} in {path_name[0]}"))
+        gs.message(
+            _("Done, you can find the file {name} in {path}").format(
+                name=path_name[0], path=path_name[1]
+            )
+        )
     else:
         plt.tight_layout()
         plt.show()

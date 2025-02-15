@@ -253,12 +253,12 @@ def main(options, flags):
     """ First, care about the computational region"""
 
     if mask:
-        msg = " * Masking NULL cells based on '{mask}'".format(mask=mask)
-        grass.verbose(_(msg))
+        msg = " * Masking NULL cells based on '{mask}'"
+        grass.verbose(_(msg).format(mask=mask))
         r.mask(raster=mask, overwrite=True, quiet=True)
 
     if landuse_extent:
-        g.message(_(MATCHING_COMPUTATIONAL_RESOLUTION.format(raster=landuse)))
+        g.message(_(MATCHING_COMPUTATIONAL_RESOLUTION).format(raster=landuse))
         grass.use_temp_region()  # modify the region safely
         g.region(flags="p", raster=landuse)  # set region to 'landuse'
 
@@ -309,7 +309,7 @@ def main(options, flags):
 
     """Water"""
     if len(water_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALISING.format(component=WATER_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING).format(component=WATER_COMPONENT))
         zerofy_and_normalise_component(
             water_component,
             THRESHHOLD_ZERO,
@@ -323,7 +323,7 @@ def main(options, flags):
 
     """Natural"""
     if len(natural_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALISING.format(component=NATURAL_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING).format(component=NATURAL_COMPONENT))
         zerofy_and_normalise_component(
             components=natural_component,
             threshhold=THRESHHOLD_ZERO,
@@ -344,8 +344,8 @@ def main(options, flags):
     )
 
     msg = COMPUTING_INTERMEDIATE_POTENTIAL_MAP
-    grass.verbose(_(msg.format(potential=tmp_recreation_potential)))
-    grass.debug(_("*** Maps: {maps}".format(maps=recreation_potential_component)))
+    grass.verbose(_(msg).format(potential=tmp_recreation_potential))
+    grass.debug(_("*** Maps: {maps}").format(maps=recreation_potential_component))
 
     zerofy_and_normalise_component(
         components=recreation_potential_component,
@@ -358,8 +358,8 @@ def main(options, flags):
         filename=recreation_potential
     )
 
-    msg = CLASSIFYING_POTENTIAL_MAP.format(potential=tmp_recreation_potential)
-    grass.verbose(_(msg))
+    msg = CLASSIFYING_POTENTIAL_MAP
+    grass.verbose(_(msg).format(potential=tmp_recreation_potential))
 
     classify_recreation_component(
         component=tmp_recreation_potential,
@@ -437,12 +437,12 @@ def main(options, flags):
             filename=recreation_opportunity_map_name
         )
         msg = COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP
-        grass.debug(_(msg.format(opportunity=tmp_recreation_opportunity)))
+        grass.debug(_(msg).format(opportunity=tmp_recreation_opportunity))
 
         grass.verbose(
-            _(MESSAGE_NORMALISING.format(component=RECREATION_OPPORTUNITY_COMPONENT))
+            _(MESSAGE_NORMALISING).format(component=RECREATION_OPPORTUNITY_COMPONENT)
         )
-        grass.debug(_("*** Maps: {maps}".format(maps=recreation_opportunity_component)))
+        grass.debug(_("*** Maps: {maps}").format(maps=recreation_opportunity_component))
 
         zerofy_and_normalise_component(
             components=recreation_opportunity_component,
@@ -492,8 +492,8 @@ def main(options, flags):
             spectrum=recreation_spectrum,
         )
 
-        msg = WRITING_SPECTRUM_MAP.format(spectrum=recreation_spectrum)
-        grass.verbose(_(msg))
+        msg = WRITING_SPECTRUM_MAP
+        grass.verbose(_(msg).format(spectrum=recreation_spectrum))
         get_univariate_statistics(recreation_spectrum)
 
         # get category labels
@@ -595,8 +595,8 @@ def main(options, flags):
             quiet=True,
         )
 
-        msg = MATCHING_COMPUTATIONAL_RESOLUTION.format(raster=population)
-        grass.verbose(_(msg))
+        msg = MATCHING_COMPUTATIONAL_RESOLUTION
+        grass.verbose(_(msg).format(raster=population))
         grass.use_temp_region()  # to safely modify the region
         g.region(
             nsres=population_ns_resolution,
@@ -607,8 +607,7 @@ def main(options, flags):
         if info:
             population_statistics = get_univariate_statistics(population)
             population_total = population_statistics["sum"]
-            msg = POPULATION_STATISTICS.format(s=population_total)
-            grass.verbose(_(msg))
+            grass.verbose(_(POPULATION_STATISTICS).format(s=population_total))
 
         """Demand Distribution"""
 
@@ -660,7 +659,7 @@ def main(options, flags):
             # Maybe it can, though, after successfully testing its
             # integration to build_distance_function().
 
-            grass.debug(_(MOBILITY_FUNCTION.format(f=mobility_expression)))
+            grass.debug(_(MOBILITY_FUNCTION).format(f=mobility_expression))
 
             """Flow map"""
 

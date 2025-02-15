@@ -34,8 +34,7 @@ def append_map_to_component(raster, component_name, component_list):
     """
     component_list.append(raster)
     msg = "Map {name} included in the '{component}' component"
-    msg = msg.format(name=raster, component=component_name)
-    grass.verbose(_(msg))
+    grass.verbose(_(msg).format(name=raster, component=component_name))
 
 
 def smooth_component(component, method, size):
@@ -47,8 +46,7 @@ def smooth_component(component, method, size):
     size:
     """
     try:
-        msg = "Smoothing component '{c}'"
-        grass.verbose(_(msg.format(c=component)))
+        grass.verbose(_("Smoothing component '{c}'").format(c=component))
         if len(component) > 1:
             for item in component:
                 smooth_map(item, method=method, size=size)
