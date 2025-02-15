@@ -1,0 +1,23 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.hand</b></em> - Height Above Nearest Drainage (HAND) is a terrain-based inundation model
+that uses a digital elevation model (DEM) to calculate the height of the terrain above the
+nearest stream <a href="https://www.sciencedirect.com/science/article/pii/S0022169411002599">(Nobre et al., 2011)</a>.
+The HAND model is used to estimate flood potential during a flood event.
+
+The <em><b>r.hand</b></em> tool calculates the HAND raster map from a DEM raster map with options to provide
+precomputed streams and flow direction raster maps. The tool will return an inundation raster map or times series (STRDS) of
+inundation raster maps based on user define water levels.
+
+<h2>EXAMPLES</h2>
+
+<h2>REFERENCES</h2>
+[1] Nobre, A.D., Cuartas, L.A., Hodnett, M., Rennó, C.D., Rodrigues, G., Silveira, A., Waterloo, M., Saleska, S., 2011. Height Above the Nearest Drainage – a hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. https://doi.org/10.1016/j.jhydrol.2011.03.051
+
+<h2>AUTHORS</h2>
+Corey White, OpenPlains Inc.
+
+<h2>SEE ALSO</h2>
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>,
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>,
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.series.html">r.lake.series</a></em>
