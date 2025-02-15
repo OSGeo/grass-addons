@@ -11,6 +11,20 @@ inundation raster maps based on user define water levels.
 
 <h2>EXAMPLES</h2>
 
+Calculate HAND raster map from a DEM raster map:
+
+<div class="code"><pre>
+    r.hand elevation=elevation output=hand depth=2 inundation_rast=inundation
+</pre></div>
+
+Calculate series of HAND raster maps from a DEM raster map:
+
+<div class="code"><pre>
+    r.hand -t elevation=elevation output=hand inundation_strds=inundation_strds \
+    start_water_level=0 end_water_level=10 step=1
+</pre></div>
+
+
 <h2>REFERENCES</h2>
 [1] Nobre, A.D., Cuartas, L.A., Hodnett, M., Rennó, C.D., Rodrigues, G., Silveira, A., Waterloo, M., Saleska, S., 2011. Height Above the Nearest Drainage – a hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. https://doi.org/10.1016/j.jhydrol.2011.03.051
 
