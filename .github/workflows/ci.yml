@@ -129,6 +129,7 @@ jobs:
           grass-addons/.github/workflows/install_r_packages.R
 
       - name: Run tests
+        timeout-minutes: 45
         run: |
           cd grass-addons/src
           ../.github/workflows/test.sh
