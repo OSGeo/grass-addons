@@ -225,7 +225,6 @@ ignore = [
     "G002",    # logging-percent-format
     "G003",    # logging-string-concat
     "I001",    # unsorted-imports
-    "ICN001",  # unconventional-import-alias
     "INP001",  # implicit-namespace-package
     "ISC003",  # explicit-string-concatenation
     "LOG015",  # root-logger-call

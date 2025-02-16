@@ -155,12 +155,12 @@ def moving_average(x, y, window):
 
 def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
-    global matplotlib
+    global mpl
     global plt
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(
