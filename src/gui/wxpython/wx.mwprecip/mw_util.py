@@ -11,7 +11,6 @@ import wx.lib.filebrowsebutton as filebrowse
 import codecs
 from core.gcmd import GMessage, GError
 from grass.script import core as grass
-import grass.script as grass
 
 import time
 from datetime import datetime
