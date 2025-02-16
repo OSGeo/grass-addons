@@ -62,14 +62,14 @@ COPYRIGHT: (C) 2015 by the GRASS Development Team
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
     try:
         from osgeo import ogr
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Unable to load GDAL Python bindings (requires "
                 "package 'python-gdal' or Python library GDAL "
@@ -92,7 +92,7 @@ def main():
     # save species list to a user defined directory
 
     if save_species:
-        grass.message("saving species list to a text file ...")
+        gs.message("saving species list to a text file ...")
         output_species_file = os.path.join(directory, species_file)
         # define ogr driver
         driver = ogr.GetDriverByName("ESRI Shapefile")
@@ -106,12 +106,12 @@ def main():
         for feature in layer:
             f.write("%s\n" % (feature.GetField("binomial")))
         f.close()
-        grass.message("%s" % (output_species_file))
+        gs.message("%s" % (output_species_file))
 
     # print species list of the shapefile
 
     elif list_species:
-        grass.message("list species IUCN Red List Spatial Data ...")
+        gs.message("list species IUCN Red List Spatial Data ...")
         # define ogr driver
         driver = ogr.GetDriverByName("ESRI Shapefile")
         # open data source
@@ -119,13 +119,13 @@ def main():
         # get layer
         layer = dataSource.GetLayer()
         for feature in layer:
-            grass.message("%s" % (feature.GetField("binomial")))
+            gs.message("%s" % (feature.GetField("binomial")))
 
     # import spatial data for a user defined species in the Red List
 
     else:
-        grass.message(" importing spatial data for %s ..." % (imported_species_quoted))
-        grass.run_command(
+        gs.message(" importing spatial data for %s ..." % (imported_species_quoted))
+        gs.run_command(
             "v.in.ogr",
             input=redlist_shapefile_long,
             output=species_to_import,
@@ -135,5 +135,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

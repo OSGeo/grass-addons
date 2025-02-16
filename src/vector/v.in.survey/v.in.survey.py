@@ -185,7 +185,7 @@ import os
 import subprocess
 from functools import reduce
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.messages import get_msgr
 
 
@@ -284,14 +284,14 @@ class MakeSameVarcharColTypeLengthMapTables:
         result = []
         for index, table in enumerate(tables):
             result.append({})
-            stdout, stderr = grass.start_command(
+            stdout, stderr = gs.start_command(
                 "db.describe",
                 flags="c",
                 table=table,
                 stdout=subprocess.PIPE,
             ).communicate()
             if stdout:
-                stdout = grass.decode(stdout)
+                stdout = gs.decode(stdout)
                 for row in stdout.split("\n"):
                     if row.count(":") == 3:
                         col, ctype, clen = row.split(":")[-3:]
@@ -316,23 +316,23 @@ class MakeSameVarcharColTypeLengthMapTables:
                             table = tables[index]
                             break
                     for table in list(filter(lambda i: i != table, tables)):
-                        grass.run_command(
+                        gs.run_command(
                             "v.db.addcolumn",
                             map=table,
                             columns="{}_ varchar({})".format(col, clen),
                         )
-                        grass.run_command(
+                        gs.run_command(
                             "v.db.update",
                             map=table,
                             column="{}_".format(col),
                             query_column=col,
                         )
-                        grass.run_command(
+                        gs.run_command(
                             "v.db.dropcolumn",
                             map=table,
                             columns=col,
                         )
-                        grass.run_command(
+                        gs.run_command(
                             "v.db.renamecolumn",
                             map=table,
                             column="{0}_,{0}".format(col),
@@ -348,7 +348,7 @@ class test:
             special = self.test_file.split("/")  # which file is being checked:
             # list of layers that have been done in previous session
             if special[len(special) - 1] == "_layers_done.txt":
-                grass.fatal(
+                gs.fatal(
                     _(
                         "File <"
                         + self.test_file
@@ -358,7 +358,7 @@ class test:
                     )
                 )
             else:  # any other file (input file)
-                grass.fatal("File <" + self.test_file + "> does not exist.")
+                gs.fatal("File <" + self.test_file + "> does not exist.")
         return 0
 
     # test if file is blank
@@ -868,13 +868,13 @@ class layer(glob, Flag, vect_rules, layer_init):
 
         # initial value: do not skip existing layer and make fatal error
         skip = False
-        mapset = grass.gisenv()["MAPSET"]
+        mapset = gs.gisenv()["MAPSET"]
 
         # make fatal error if there are any existing layers during data import
         if (
             overwrite_all is False
             and final is False
-            and grass.find_file(layer_name, element="vector", mapset=mapset)[  # etc
+            and gs.find_file(layer_name, element="vector", mapset=mapset)[  # etc
                 "file"
             ]
         ):
@@ -890,7 +890,7 @@ class layer(glob, Flag, vect_rules, layer_init):
         # skip existing layers during final steps (merge and clean)
         if (
             final is True
-            and grass.find_file(layer_name, element="vector", mapset=mapset)["file"]
+            and gs.find_file(layer_name, element="vector", mapset=mapset)["file"]
         ):
             # change value: skip existing layer and do not make fatal error
             skip = True
@@ -909,7 +909,7 @@ class layer(glob, Flag, vect_rules, layer_init):
         layer_name = layer.unit + suffix
         self.test_existence(layer_name, False)  # test layer existence
 
-        in_ascii = grass.run_command(
+        in_ascii = gs.run_command(
             "v.in.ascii",
             input=self.filename,
             output=layer_name,
@@ -926,17 +926,17 @@ class layer(glob, Flag, vect_rules, layer_init):
         if layer.vector == "B":
             self.test_existence(layer.name, False)  # test layer existence
             # add centroids and create polygon layer
-            grass.run_command(
+            gs.run_command(
                 "v.centroids",
                 input=layer_name,
                 output=layer.name,
                 overwrite=overwrite_all,
             )
             # remove temporary line layer
-            grass.run_command("g.remove", type="vector", name=layer_name, flags="f")
+            gs.run_command("g.remove", type="vector", name=layer_name, flags="f")
         elif self.vector == "L":
             # add categories to line layer
-            grass.run_command(
+            gs.run_command(
                 "v.category",
                 input=layer_name,
                 option="add",
@@ -945,7 +945,7 @@ class layer(glob, Flag, vect_rules, layer_init):
                 overwrite=overwrite_all,
             )
             # remove the layer without cats
-            grass.run_command("g.remove", type="vector", name=layer_name, flags="f")
+            gs.run_command("g.remove", type="vector", name=layer_name, flags="f")
 
         if self.vformat == "standard":
             self.set_attribute_table()
@@ -1036,11 +1036,9 @@ class layer(glob, Flag, vect_rules, layer_init):
     # add atrribute table with the name of the layer
     def set_attribute_table(self):
         # add table with the name column
-        grass.run_command(
-            "v.db.addtable", map=layer.name, columns="lyr_name varchar(15)"
-        )
+        gs.run_command("v.db.addtable", map=layer.name, columns="lyr_name varchar(15)")
         # update the name column with the 1st 15 characters of the layer's name
-        grass.run_command(
+        gs.run_command(
             "v.db.update", map=layer.name, column="lyr_name", value=layer.name[:15]
         )
         return 0
@@ -1234,7 +1232,7 @@ class Merge(Merge_init, layer):
                 )
             MakeSameVarcharColTypeLengthMapTables(tables=Merge.name)
             # merge layers to temporary layer
-            grass.run_command(
+            gs.run_command(
                 "v.patch",
                 input=Merge.name,
                 output=Merge_init.item[0] + "_tmp",
@@ -1242,7 +1240,7 @@ class Merge(Merge_init, layer):
                 overwrite=True,
             )
             for map in Merge.name:
-                grass.run_command(
+                gs.run_command(
                     "g.remove",
                     flags="f",
                     type="vector",
@@ -1277,13 +1275,11 @@ class Merge(Merge_init, layer):
                     if code != "pt":
                         temp = Merge.item[i] + "_tmp"  # temporary layer
                         # topology clean according to vector type
-                        grass.run_command(
+                        gs.run_command(
                             "v.clean", input=temp, output=lyr_name, tool=methods
                         )
                         # remove temporary layer
-                        grass.run_command(
-                            "g.remove", type="vector", name=temp, flags="f"
-                        )
+                        gs.run_command("g.remove", type="vector", name=temp, flags="f")
         return 0
 
 
@@ -1330,7 +1326,7 @@ class dxf(files):
     # estimate text size according to the map extents
     # original: make_layername (v.out.dxf: main)
     def do_limits(self, calculate_textsize):
-        region = grass.region()
+        region = gs.region()
         self.north = region["n"]
         self.south = region["s"]
         self.east = region["e"]
@@ -1928,7 +1924,7 @@ def main():
     msgr = get_msgr()  # setup messenger as global variable
 
     global overwrite_all
-    overwrite_all = grass.overwrite()
+    overwrite_all = gs.overwrite()
 
     global current_layer
     global dxfs
@@ -2039,5 +2035,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

@@ -3,7 +3,7 @@ from math import ceil
 
 from urllib2 import urlopen, HTTPError, URLError
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -21,16 +21,16 @@ class WFSBase:
         # stop of module
         for temp in self.temp_to_cleanup:
             if os.path.isdir(temp):
-                grass.try_rmdir(temp)
+                gs.try_rmdir(temp)
             else:
-                grass.try_remove(temp)
+                gs.try_remove(temp)
 
         # deletes enviromental variable which overrides region
         if "GRASS_REGION" in os.environ.keys():
             os.environ.pop("GRASS_REGION")
 
     def _debug(self, fn, msg):
-        grass.debug("%s.%s: %s" % (self.__class__.__name__, fn, msg))
+        gs.debug("%s.%s: %s" % (self.__class__.__name__, fn, msg))
 
     def _initializeParameters(self, options, flags):
         self._debug("_initialize_parameters", "started")
@@ -49,40 +49,40 @@ class WFSBase:
 
         self.o_srs = int(options["srs"])
         if self.o_srs <= 0:
-            grass.fatal(_("Invalid EPSG code %d") % self.o_srs)
+            gs.fatal(_("Invalid EPSG code %d") % self.o_srs)
 
         try:
             self.o_maximum_features = int(options["maximum_features"])
             if int(options["maximum_features"]) < 1:
-                grass.fatal(_("Invalid maximum number of features (must be >1)"))
+                gs.fatal(_("Invalid maximum number of features (must be >1)"))
         except ValueError:
             self.o_maximum_features = None
 
         # read projection info
-        self.proj_location = grass.read_command("g.proj", flags="jf").rstrip("\n")
+        self.proj_location = gs.read_command("g.proj", flags="jf").rstrip("\n")
 
-        self.proj_srs = grass.read_command(
+        self.proj_srs = gs.read_command(
             "g.proj", flags="jf", epsg=str(self.o_srs)
         ).rstrip("\n")
 
         if not self.proj_srs or not self.proj_location:
-            grass.fatal(_("Unable to get projection info"))
+            gs.fatal(_("Unable to get projection info"))
 
         # set region
         self.o_region = options["region"]
         if self.o_region:
-            if not grass.find_file(name=self.o_region, element="windows", mapset=".")[
+            if not gs.find_file(name=self.o_region, element="windows", mapset=".")[
                 "name"
             ]:
-                grass.fatal(_("Region <%s> not found") % self.o_region)
+                gs.fatal(_("Region <%s> not found") % self.o_region)
 
         if self.o_region:
-            s = grass.read_command(
+            s = gs.read_command(
                 "g.region", quiet=True, flags="ug", region=self.o_region
             )
-            self.region = grass.parse_key_val(s, val_type=float)
+            self.region = gs.parse_key_val(s, val_type=float)
         else:
-            self.region = grass.region()
+            self.region = gs.region()
 
         self.ogr_drv_format = "ESRI Shapefile"
         self._debug("_initialize_parameters", "finished")
@@ -113,7 +113,7 @@ class WFSBase:
         try:
             cap = urlopen(cap_url)
         except OSError:
-            grass.fatal(_("Unable to get capabilities from '%s'") % options["url"])
+            gs.fatal(_("Unable to get capabilities from '%s'") % options["url"])
 
         cap_lines = cap.readlines()
         for line in cap_lines:
@@ -156,24 +156,24 @@ class WFSBase:
                     )
                 )
             except OSError:
-                grass.fatal(_("Unable to write data into tempfile"))
+                gs.fatal(_("Unable to write data into tempfile"))
             finally:
                 temp_region_opened.close()
 
-            points = grass.read_command(
+            points = gs.read_command(
                 "m.proj",
                 flags="d",
                 proj_out=self.proj_srs,
                 proj_in=self.proj_location,
                 input=temp_region,
             )  # TODO: stdin
-            grass.try_remove(temp_region)
+            gs.try_remove(temp_region)
             if not points:
-                grass.fatal(_("Unable to determine region, %s failed") % "m.proj")
+                gs.fatal(_("Unable to determine region, %s failed") % "m.proj")
 
             points = points.splitlines()
             if len(points) != 4:
-                grass.fatal(_("Region defintion: 4 points required"))
+                gs.fatal(_("Region defintion: 4 points required"))
 
             for point in points:
                 point = map(float, point.split("|"))
@@ -215,7 +215,7 @@ class WFSBase:
         """
         # reprojection of downloaded data
         if self.proj_srs != self.proj_location:  # TODO: do it better
-            grass.message(_("Reprojecting data..."))
+            gs.message(_("Reprojecting data..."))
             temp_warpmap = self._temp()
 
             if int(os.getenv("GRASS_VERBOSE", "2")) <= 2:
@@ -225,7 +225,7 @@ class WFSBase:
 
             temp_warpmap = self._temp(directory=True)
 
-            ps = grass.Popen(
+            ps = gs.Popen(
                 [
                     "ogr2ogr",
                     "-overwrite",
@@ -246,15 +246,15 @@ class WFSBase:
                 nuldev.close()
 
             if ps.returncode != 0:
-                grass.fatal(_("%s failed") % "ogr2ogr")
+                gs.fatal(_("%s failed") % "ogr2ogr")
         # downloaded data projection is same as projection of location
         else:
             temp_warpmap = self.temp_map
 
-        grass.message(_("Importing vector map into GRASS..."))
+        gs.message(_("Importing vector map into GRASS..."))
         # importing temp_map into GRASS
         try:
-            grass.run_command(
+            gs.run_command(
                 "v.in.ogr",
                 quiet=True,
                 overwrite=True,
@@ -262,10 +262,10 @@ class WFSBase:
                 output=self.o_output,
             )
         except CalledModuleError:
-            grass.fatal(_("%s failed") % "v.in.ogr")
+            gs.fatal(_("%s failed") % "v.in.ogr")
 
-        grass.try_rmdir(temp_warpmap)
-        grass.try_remove(self.temp_map)
+        gs.try_rmdir(temp_warpmap)
+        gs.try_remove(self.temp_map)
 
     def _flipBbox(self, bbox):
         """
@@ -295,12 +295,12 @@ class WFSBase:
         @return string path to temp
         """
         if directory:
-            temp = grass.tempdir()
+            temp = gs.tempdir()
         else:
-            temp = grass.tempfile()
+            temp = gs.tempfile()
 
         if temp is None:
-            grass.fatal(_("Unable to create temporary files"))
+            gs.fatal(_("Unable to create temporary files"))
 
         # list of created temps for destructor
         self.temp_to_cleanup.append(temp)
