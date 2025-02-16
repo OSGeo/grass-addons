@@ -1,4 +1,4 @@
-import grass.script as grass
+import grass.script as gs
 
 from urllib2 import urlopen
 import xml.etree.ElementTree as ET
@@ -12,7 +12,7 @@ class WFSDrv(WFSBase):
 
         @return temp_map with downloaded data
         """
-        grass.message(_("Downloading data from WFS server..."))
+        gs.message(_("Downloading data from WFS server..."))
 
         proj = self.projection_name + "=EPSG:" + str(self.o_srs)
 
@@ -41,11 +41,11 @@ class WFSDrv(WFSBase):
         if self.o_urlparams != "":
             url += "&" + self.o_urlparams
 
-        grass.debug(url)
+        gs.debug(url)
         try:
             wfs_data = urlopen(url)
         except OSError:
-            grass.fatal(_("Unable to fetch data from server"))
+            gs.fatal(_("Unable to fetch data from server"))
 
         temp_map = self._temp()
 
@@ -55,7 +55,7 @@ class WFSDrv(WFSBase):
             temp_map_opened.write(wfs_data.read())
             temp_map_opened
         except OSError:
-            grass.fatal(_("Unable to write data into tempfile"))
+            gs.fatal(_("Unable to write data into tempfile"))
         finally:
             temp_map_opened.close()
 
@@ -73,13 +73,13 @@ class WFSDrv(WFSBase):
                     error_xml_opened = open(temp_map, "r")
                     err_str = error_xml_opened.read()
                 except OSError:
-                    grass.fatal(_("Unable to read data from tempfile"))
+                    gs.fatal(_("Unable to read data from tempfile"))
                 finally:
                     error_xml_opened.close()
 
                 if err_str is not None:
-                    grass.fatal(_("WFS server error: %s") % err_str)
+                    gs.fatal(_("WFS server error: %s") % err_str)
                 else:
-                    grass.fatal(_("WFS server unknown error"))
+                    gs.fatal(_("WFS server unknown error"))
 
         return temp_map

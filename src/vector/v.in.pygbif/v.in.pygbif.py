@@ -181,7 +181,7 @@ import sys
 
 # import os
 import math
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
@@ -211,7 +211,7 @@ def main():
         from osgeo import ogr, osr
         from osgeo import __version__ as gdal_version
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Unable to load GDAL Python bindings (requires "
                 "package 'python-gdal' or Python library GDAL "
@@ -222,7 +222,7 @@ def main():
         from pygbif import occurrences
         from pygbif import species
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Cannot import pygbif (https://github.com/gbif/pygbif)"
                 " library."
@@ -439,7 +439,7 @@ def main():
         try:
             parse(date_from)
         except:
-            grass.fatal("Invalid invalid start date provided")
+            gs.fatal("Invalid invalid start date provided")
 
         if date_from and not date_to:
             eventDate = "{}".format(date_from)
@@ -448,12 +448,12 @@ def main():
         try:
             parse(date_to)
         except:
-            grass.fatal("Invalid invalid end date provided")
+            gs.fatal("Invalid invalid end date provided")
         # Check if date to is after date_from
         if parse(date_from) < parse(date_to):
             eventDate = "{},{}".format(date_from, date_to)
         else:
-            grass.fatal("Invalid date range: End date has to be after start date!")
+            gs.fatal("Invalid date range: End date has to be after start date!")
     # Set filter on basisOfRecord if requested by user
     if basisofrecord == "ALL":
         basisOfRecord = None
@@ -470,8 +470,8 @@ def main():
 
     # Set reprojection parameters
     # Set target projection of current LOCATION
-    proj_info = grass.parse_command("g.proj", flags="g")
-    target_crs = grass.read_command("g.proj", flags="fj").rstrip()
+    proj_info = gs.parse_command("g.proj", flags="g")
+    target_crs = gs.read_command("g.proj", flags="fj").rstrip()
     target = osr.SpatialReference()
 
     # Prefer EPSG CRS definitions
@@ -485,7 +485,7 @@ def main():
         target.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
     if target_crs == "XY location (unprojected)":
-        grass.fatal("Sorry, XY locations are not supported!")
+        gs.fatal("Sorry, XY locations are not supported!")
 
     # Set source projection from GBIF
     source = osr.SpatialReference()
@@ -505,10 +505,10 @@ def main():
         else:
             m = VectorTopo(mask)
         if not m.exist():
-            grass.fatal("Could not find vector map <{}>".format(mask))
+            gs.fatal("Could not find vector map <{}>".format(mask))
         m.open("r")
         if not m.is_open():
-            grass.fatal("Could not open vector map <{}>".format(mask))
+            gs.fatal("Could not open vector map <{}>".format(mask))
 
         # Use map Bbox as spatial filter if map contains <> 1 area
         if m.number_of("areas") == 1:
@@ -531,7 +531,7 @@ def main():
         # Do not limit import spatially if LOCATION is able to take global data
         if no_region_limit:
             if target_crs not in latlon_crs:
-                grass.fatal(
+                gs.fatal(
                     "Import of data from outside the current region is"
                     "only supported in a WGS84 location!"
                 )
@@ -540,7 +540,7 @@ def main():
             # Limit import spatially to current region
             # if LOCATION is !NOT! able to take global data
             # to avoid pprojection ERRORS
-            region = grass.parse_command("g.region", flags="g")
+            region = gs.parse_command("g.region", flags="g")
             region_pol = "POLYGON (({0} {1},{0} {3},{2} {3},{2} {1},{0} {1}))".format(
                 region["e"], region["n"], region["w"], region["s"]
             )
@@ -578,9 +578,7 @@ def main():
                 )
                 key = species_match["usageKey"]
             except:
-                grass.error(
-                    "Data request for taxon {} failed. Are you online?".format(s)
-                )
+                gs.error("Data request for taxon {} failed. Are you online?".format(s))
                 continue
 
         # Return matching taxon and alternatives and exit
@@ -638,7 +636,7 @@ def main():
                 limit=1,
             )["count"]
         except:
-            grass.error("Data request for taxon {} faild. Are you online?".format(s))
+            gs.error("Data request for taxon {} faild. Are you online?".format(s))
             returns_n = 0
 
         # Exit if search does not give a return
@@ -647,12 +645,10 @@ def main():
             print("Found {0} occurrences for taxon {1}...".format(returns_n, s))
             continue
         elif returns_n <= 0:
-            grass.warning(
-                "No occurrences for current search for taxon {0}...".format(s)
-            )
+            gs.warning("No occurrences for current search for taxon {0}...".format(s))
             continue
         elif returns_n >= 200000:
-            grass.warning(
+            gs.warning(
                 "Your search for {1} returns {0} records.\n"
                 "Unfortunately, the GBIF search API is limited to 200,000 records per request.\n"
                 "The download will be incomplete. Please consider to split up your search.".format(
@@ -662,9 +658,7 @@ def main():
 
         # Get the number of chunks to download
         chunks = int(math.ceil(returns_n / float(chunk_size)))
-        grass.verbose(
-            "Downloading {0} occurrences for taxon {1}...".format(returns_n, s)
-        )
+        gs.verbose("Downloading {0} occurrences for taxon {1}...".format(returns_n, s))
 
         # Create a map for each species if requested using map name as suffix
         if species_maps:
@@ -831,10 +825,10 @@ def main():
             new.table.conn.commit()
             new.close()
             if not no_topo:
-                grass.run_command("v.build", map=mapname, option="build")
+                gs.run_command("v.build", map=mapname, option="build")
 
             # Write history to map
-            grass.vector_history(mapname)
+            gs.vector_history(mapname)
 
     # Close the output map if not a map for each species is requested
     if (
@@ -847,13 +841,13 @@ def main():
         new.table.conn.commit()
         new.close()
         if not no_topo:
-            grass.run_command("v.build", map=mapname, option="build")
+            gs.run_command("v.build", map=mapname, option="build")
 
         # Write history to map
-        grass.vector_history(mapname)
+        gs.vector_history(mapname)
 
 
 # Run the module
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

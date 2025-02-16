@@ -104,17 +104,17 @@ import sys
 
 sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), "etc", "v.in.wfs2"))
 
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
     if options["driver"] == "WFS_GRASS":
-        grass.debug("Using GRASS driver")
+        gs.debug("Using GRASS driver")
         from wfs_drv import WFSDrv
 
         wfs = WFSDrv()
     else:
-        grass.debug("Using OSWLib driver")
+        gs.debug("Using OSWLib driver")
         from wfs_owslib_drv import WFSOwsLibDrv
 
         wfs = WFSOwsLibDrv()
@@ -128,5 +128,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

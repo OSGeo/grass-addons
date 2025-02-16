@@ -84,28 +84,28 @@ import os
 import atexit
 import re
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
 def cleanup():
-    grass.verbose("Cleaning up ...")
+    gs.verbose("Cleaning up ...")
     if tmp:
-        grass.try_remove(tmp)
+        gs.try_remove(tmp)
     if tmp_proj:
-        grass.try_remove(tmp_proj)
+        gs.try_remove(tmp_proj)
     if tmp_gpx:
-        grass.try_remove(tmp_gpx)
+        gs.try_remove(tmp_gpx)
 
     # only try to remove map if it exists to avoid ugly warnings
     if tmp_vogb:
-        if grass.find_file(tmp_vogb, element="vector")["name"]:
-            grass.run_command(
+        if gs.find_file(tmp_vogb, element="vector")["name"]:
+            gs.run_command(
                 "g.remove", flags="f", type="vector", name=tmp_vogb, quiet=True
             )
     if tmp_extr:
-        if grass.find_file(tmp_extr, element="vector")["name"]:
-            grass.run_command(
+        if gs.find_file(tmp_extr, element="vector")["name"]:
+            gs.run_command(
                 "g.remove", flags="f", type="vector", name=tmp_vogb, quiet=True
             )
 
@@ -132,9 +132,9 @@ def main():
 
     nflags = len(filter(None, [wpt, rte, trk]))
     if nflags > 1:
-        grass.fatal(_("One feature at a time please."))
+        gs.fatal(_("One feature at a time please."))
     if nflags < 1:
-        grass.fatal(_("No features requested for export."))
+        gs.fatal(_("No features requested for export."))
 
     # set some reasonable defaults
     if not type:
@@ -145,32 +145,32 @@ def main():
 
     #### check for gpsbabel
     ### FIXME: may need --help or similar?
-    if not grass.find_program("gpsbabel"):
-        grass.fatal(
+    if not gs.find_program("gpsbabel"):
+        gs.fatal(
             _("The gpsbabel program was not found, please install it first.\n")
             + "https://www.gpsbabel.org"
         )
 
     #### check for cs2cs
-    if not grass.find_program("cs2cs"):
-        grass.fatal(
+    if not gs.find_program("cs2cs"):
+        gs.fatal(
             _("The cs2cs program was not found, please install it first.\n")
             + "https://proj.org"
         )
 
     # check if we will overwrite data
-    if os.path.exists(output) and not grass.overwrite():
-        grass.fatal(_("Output file already exists."))
+    if os.path.exists(output) and not gs.overwrite():
+        gs.fatal(_("Output file already exists."))
 
     #### set temporary files
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
 
     # SQL extract if needed
     if where:
-        grass.verbose("Extracting data ...")
+        gs.verbose("Extracting data ...")
         tmp_extr = "tmp_vogb_extr_%d" % os.getpid()
         try:
-            grass.run_command(
+            gs.run_command(
                 "v.extract",
                 input="$GIS_OPT_INPUT",
                 output=tmp_extr,
@@ -180,11 +180,11 @@ def main():
                 quiet=True,
             )
         except CalledModuleError:
-            grass.fatal(_("Error executing SQL query"))
+            gs.fatal(_("Error executing SQL query"))
 
-        kv = grass.vector_info_topo(tmp_extr)
+        kv = gs.vector_info_topo(tmp_extr)
         if kv["primitives"] == 0:
-            grass.fatal(_("SQL query returned an empty map (no %s features?)") % type)
+            gs.fatal(_("SQL query returned an empty map (no %s features?)") % type)
 
         inmap = tmp_extr
     else:
@@ -200,7 +200,7 @@ def main():
     #   Change to s/^ \([0-9]   .*\)    /# \1/' ??? mmph.
 
     # reproject to lat/lon WGS84
-    grass.verbose("Reprojecting data ...")
+    gs.verbose("Reprojecting data ...")
 
     re1 = re.compile(r"^\([PLBCFKA]\)")
     re2 = re.compile(r"^ 1     ")
@@ -211,8 +211,8 @@ def main():
 
     tmp_proj = tmp + ".proj"
     tf = open(tmp_proj, "w")
-    p1 = grass.pipe_command("v.out.ascii", input=inmap, format="standard")
-    p2 = grass.feed_command("m.proj", input="-", flags="od", quiet=True, stdout=tf)
+    p1 = gs.pipe_command("v.out.ascii", input=inmap, format="standard")
+    p2 = gs.feed_command("m.proj", input="-", flags="od", quiet=True, stdout=tf)
     tf.close()
 
     lineno = 0
@@ -229,10 +229,10 @@ def main():
     p2.wait()
 
     if p1.returncode != 0 or p2.returncode != 0:
-        grass.fatal(_("Error reprojecting data"))
+        gs.fatal(_("Error reprojecting data"))
 
     tmp_vogb = "tmp_vogb_epsg4326_%d" % os.getpid()
-    p3 = grass.feed_command(
+    p3 = gs.feed_command(
         "v.in.ascii", out=tmp_vogb, format="standard", flags="n", quiet=True
     )
     tf = open(tmp_proj, "r")
@@ -248,7 +248,7 @@ def main():
     p3.wait()
 
     if p3.returncode != 0:
-        grass.fatal(_("Error reprojecting data"))
+        gs.fatal(_("Error reprojecting data"))
 
     # don't v.db.connect directly as source table will be removed with
     # temporary map in that case. So we make a temp copy of it to work with.
@@ -262,7 +262,7 @@ def main():
         db_driver = db_params["driver"]
 
         try:
-            grass.run_command(
+            gs.run_command(
                 "db.copy",
                 from_driver=db_driver,
                 from_database=db_database,
@@ -270,12 +270,12 @@ def main():
                 to_table=tmp_vogb,
             )
         except CalledModuleError:
-            grass.fatal(_("Error copying temporary DB"))
+            gs.fatal(_("Error copying temporary DB"))
 
         try:
-            grass.run_command("v.db.connect", map=tmp_vogb, table=tmp_vogb, quiet=True)
+            gs.run_command("v.db.connect", map=tmp_vogb, table=tmp_vogb, quiet=True)
         except CalledModuleError:
-            grass.fatal(_("Error reconnecting temporary DB"))
+            gs.fatal(_("Error reconnecting temporary DB"))
 
     # export as GPX using v.out.ogr
     if trk:
@@ -294,11 +294,11 @@ def main():
     #     with PROJ.4 terms or else the +nadgrids will be ignored! best to feed
     #     it  IN_PROJ="`g.proj -jf` +wktext"  in that case.
 
-    grass.verbose("Exporting data ...")
+    gs.verbose("Exporting data ...")
 
     tmp_gpx = tmp + ".gpx"
     try:
-        grass.run_command(
+        gs.run_command(
             "v.out.ogr",
             input=tmp_vogb,
             output=tmp_gpx,
@@ -309,13 +309,13 @@ def main():
             quiet=True,
         )
     except CalledModuleError:
-        grass.fatal(_("Error exporting data"))
+        gs.fatal(_("Error exporting data"))
 
     if format == "gpx":
         # short circuit, we have what we came for.
-        grass.try_remove(output)
+        gs.try_remove(output)
         os.rename(tmp_gpx, output)
-        grass.verbose("Fast exit.")
+        gs.verbose("Fast exit.")
         sys.exit()
 
     # run gpsbabel
@@ -328,19 +328,19 @@ def main():
     else:
         gtype = ""
 
-    grass.verbose("Running GPSBabel ...")
+    gs.verbose("Running GPSBabel ...")
 
-    ret = grass.call(
+    ret = gs.call(
         ["gpsbabel", gtype, "-i", "gpx", "-f", tmp + ".gpx", "-o", format, "-F", output]
     )
 
     if ret != 0:
-        grass.fatal(_("Error running GPSBabel"))
+        gs.fatal(_("Error running GPSBabel"))
 
-    grass.verbose("Done.")
+    gs.verbose("Done.")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

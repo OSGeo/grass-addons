@@ -122,7 +122,7 @@ sys.path.append(path)
 # dependencies to be checked once, as they are quite time-consuming. cfr. grass.parser.
 # GRASS binding
 try:
-    import grass.script as grass
+    import grass.script as gs
 except ImportError:
     sys.exit(_("No GRASS-python library found"))
 
@@ -179,18 +179,18 @@ class Controller:
 
         # GRASS checks for null values in the chosen column. R can hardly handle column as a variable,
         # looks for a hardcoded string.
-        cols = grass.vector_columns(map=map, layer=1)
+        cols = gs.vector_columns(map=map, layer=1)
         nulls = int(
-            grass.parse_command(
+            gs.parse_command(
                 "v.univar",
                 map=map,
                 column=column,
                 type="point",
-                parse=(grass.parse_key_val, {"sep": ": "}),
+                parse=(gs.parse_key_val, {"sep": ": "}),
             )["number of NULL attributes"]
         )
         if nulls > 0:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "%d NULL value(s) in the selected column - unable to perform kriging."
                 )
@@ -199,7 +199,7 @@ class Controller:
         return Rpointmap
 
     def CreateGrid(self, inputdata):
-        Region = grass.region()
+        Region = gs.region()
         Grid = robjects.r.gmeta2grd()
 
         # addition of coordinates columns into dataframe.
@@ -277,7 +277,7 @@ class Controller:
     def ExportMap(self, map, column, name, overwrite, command, variograms):
         # add kriging parameters to raster map history
         robjects.r.writeRAST(map, vname=name, zcol=column, overwrite=overwrite)
-        grass.run_command(
+        gs.run_command(
             "r.support",
             map=name,
             title="Kriging output",
@@ -286,7 +286,7 @@ class Controller:
         if (
             command.find("model") == -1
         ):  # if the command has no model option, add automap chosen model
-            grass.run_command(
+            gs.run_command(
                 "r.support",
                 map=name,
                 history="Model chosen by automatic fitting: " + variograms["model"],
@@ -317,7 +317,7 @@ class Controller:
                 "Processing %d cells. Computing time raises "
                 "exponentially with resolution."
             )
-            % grass.region()["cells"]
+            % gs.region()["cells"]
         )
         logger.message(_("Importing data..."))
 
@@ -406,8 +406,8 @@ def main(argv=None):
         options, flags = argv
 
         # @TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        if grass.find_file(options["input"], element="vector")["fullname"] == "":
-            grass.fatal(_("Vector map <%s> not found") % options["input"])
+        if gs.find_file(options["input"], element="vector")["fullname"] == "":
+            gs.fatal(_("Vector map <%s> not found") % options["input"])
 
         # @TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing on 64bit.
 
@@ -421,23 +421,23 @@ def main(argv=None):
 
         # check for output map with same name. g.parser can't handle this, afaik.
         if (
-            grass.find_file(options["output"], element="cell")["fullname"]
+            gs.find_file(options["output"], element="cell")["fullname"]
             and os.getenv("GRASS_OVERWRITE") is None
         ):
-            grass.fatal(_("option: <output>: Raster map already exists."))
+            gs.fatal(_("option: <output>: Raster map already exists."))
 
         if options["output_var"] != "" and (
-            grass.find_file(options["output_var"], element="cell")["fullname"]
+            gs.find_file(options["output_var"], element="cell")["fullname"]
             and os.getenv("GRASS_OVERWRITE") is None
         ):
-            grass.fatal(_("option: <output>: Variance raster map already exists."))
+            gs.fatal(_("option: <output>: Variance raster map already exists."))
 
         importR()
         if options["model"] == "":
             try:
                 robjects.r.require("automap")
             except ImportError as e:
-                grass.fatal(
+                gs.fatal(
                     _("R package automap is missing, no variogram autofit available.")
                 )
         else:
@@ -446,7 +446,7 @@ def main(argv=None):
                 or options["nugget"] == ""
                 or options["range"] == ""
             ):
-                grass.fatal(
+                gs.fatal(
                     _(
                         "You have specified model, but forgot at least one of psill, nugget and range."
                     )
@@ -484,7 +484,7 @@ def main(argv=None):
             kappa=options["kappa"],
             output_var=options["output_var"],
             command=command,
-            logger=grass,
+            logger=gs,
         )
 
 
@@ -500,18 +500,18 @@ def importR():
     # rpy2
     global robjects
     global rinterface
-    grass.message(_("Loading dependencies, please wait..."))
+    gs.message(_("Loading dependencies, please wait..."))
     try:
         import rpy2.robjects as robjects
         import rpy2.rinterface as rinterface  # to speed up kriging? for plots.
     except ImportError:
         # ok for other OSes?
-        grass.fatal(
+        gs.fatal(
             _("Python module 'Rpy2' not found. Please install it and re-run v.krige.")
         )
 
     if not robjects.r.require("automap", quietly=True)[0]:
-        grass.warning(
+        gs.warning(
             _(
                 'R package "automap" is missing. It provides variogram autofitting functionality and thus is recomended.'
             )
@@ -524,11 +524,11 @@ def importR():
             missingPackagesList.append(each)
     if missingPackagesList:
         errorString = _("R package(s) %s missing. Install it/them and re-run v.krige.")
-        grass.fatal(errorString % ", ".join(map(str, missingPackagesList)))
+        gs.fatal(errorString % ", ".join(map(str, missingPackagesList)))
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        sys.exit(main(argv=grass.parser()))
+        sys.exit(main(argv=gs.parser()))
     else:
         main()
