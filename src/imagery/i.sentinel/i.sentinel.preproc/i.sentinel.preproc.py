@@ -163,7 +163,7 @@
 # %end
 
 import grass.script as gscript
-import xml.etree.ElementTree as et
+import xml.etree.ElementTree as ET
 from datetime import datetime
 import os
 import math
@@ -258,7 +258,7 @@ def main():
         )
 
     # Create xml "tree" for reading parameters from metadata
-    tree = et.parse(mtd_file)
+    tree = ET.parse(mtd_file)
     root = tree.getroot()
 
     # Start reading the xml file

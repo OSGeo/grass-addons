@@ -234,9 +234,9 @@ def main(options, flags):
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("matplotlib is not installed"))
@@ -295,8 +295,8 @@ def main(options, flags):
             bxcolor = [float(_x) / 255 for _x in bxcolor]
         else:
             bxcolor = set_bxcolor.replace(" ", "")
-        if matplotlib.colors.is_color_like(bxcolor):
-            bxcolor = matplotlib.colors.to_rgba(bxcolor)
+        if mpl.colors.is_color_like(bxcolor):
+            bxcolor = mpl.colors.to_rgba(bxcolor)
         else:
             gs.fatal(
                 _(
@@ -326,7 +326,7 @@ def main(options, flags):
         flier_color = [int(_x) / 255 for _x in options["flier_color"].split(":")]
     else:
         flier_color = options["flier_color"]
-    if not matplotlib.colors.is_color_like(flier_color):
+    if not mpl.colors.is_color_like(flier_color):
         gs.fatal(_("{} is not a valid color").format(options["flier_color"]))
     if bool(options["text_labels"]):
         list_text_labels = options["text_labels"].split(",")

@@ -1,7 +1,7 @@
 import grass.script as grass
 
 from urllib2 import urlopen
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 from wfs_base import WFSBase
 
@@ -61,7 +61,7 @@ class WFSDrv(WFSBase):
 
         namespaces = ["http://www.opengis.net/ows", "http://www.opengis.net/ogc"]
 
-        context = etree.iterparse(temp_map, events=["start"])
+        context = ET.iterparse(temp_map, events=["start"])
         event, root = context.next()
 
         for namesp in namespaces:
