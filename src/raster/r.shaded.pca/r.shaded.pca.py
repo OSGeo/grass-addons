@@ -93,7 +93,7 @@ import os
 import atexit
 from multiprocessing import Process
 
-import grass.script as grass
+import grass.script as gs
 import grass.script.core as core
 
 REMOVE = []
@@ -104,9 +104,9 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
     for pattern in MREMOVE:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="raster", pattern="%s*" % pattern, quiet=True
         )
 
@@ -137,7 +137,7 @@ def run_r_shaded_relief(
     params = {}
     if units:
         params.update({"units": units})
-    grass.run_command(
+    gs.run_command(
         "r.relief",
         input=elevation_input,
         output=shades_basename + suffix,
@@ -153,17 +153,17 @@ def run_r_shaded_relief(
 
 def set_color_table(rasters, map_):
     if is_grass_7():
-        grass.run_command("r.colors", map=rasters, raster=map_, quiet=True)
+        gs.run_command("r.colors", map=rasters, raster=map_, quiet=True)
     else:
         for rast in rasters:
-            grass.run_command("r.colors", map=rast, raster=map_, quiet=True)
+            gs.run_command("r.colors", map=rast, raster=map_, quiet=True)
 
 
 def check_map_names(basename, mapset, suffixes):
     for suffix in suffixes:
         map_ = "%s%s%s" % (basename, "_", suffix)
-        if grass.find_file(map_, element="cell", mapset=mapset)["file"]:
-            grass.fatal(
+        if gs.find_file(map_, element="cell", mapset=mapset)["file"]:
+            gs.fatal(
                 _(
                     "Raster map <%s> already exists. "
                     "Change the base name or allow overwrite."
@@ -180,7 +180,7 @@ def frange(x, y, step):
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     elevation_input = options["input"]
     pca_shade_output = options["output"]
@@ -209,15 +209,15 @@ def main():
         REMOVE.extend(pca_maps)
 
     # here we check all the posible
-    if not grass.overwrite():
-        check_map_names(shades_basename, grass.gisenv()["MAPSET"], suffixes=azimuths)
+    if not gs.overwrite():
+        check_map_names(shades_basename, gs.gisenv()["MAPSET"], suffixes=azimuths)
         check_map_names(
             pca_basename,
-            grass.gisenv()["MAPSET"],
+            gs.gisenv()["MAPSET"],
             suffixes=range(1, number_of_azimuths),
         )
 
-    grass.info(_("Running r.relief in a loop..."))
+    gs.info(_("Running r.relief in a loop..."))
     count = 0
     # Parallel processing
     proc_list = []
@@ -273,15 +273,15 @@ def main():
 
     shade_maps = [shades_basename + suf for suf in all_suffixes]
 
-    grass.info(_("Running r.pca..."))
+    gs.info(_("Running r.pca..."))
 
     # not quiet=True to get percents
-    grass.run_command(
+    gs.run_command(
         "i.pca", input=shade_maps, output=pca_basename, overwrite=core.overwrite()
     )
 
-    grass.info(_("Creating RGB composite from PC1 (red), PC2 (green), PC3 (blue) ..."))
-    grass.run_command(
+    gs.info(_("Creating RGB composite from PC1 (red), PC2 (green), PC3 (blue) ..."))
+    gs.run_command(
         "r.composite",
         red=pca_maps[0],
         green=pca_maps[1],
@@ -290,7 +290,7 @@ def main():
         overwrite=core.overwrite(),
         quiet=True,
     )
-    grass.raster_history(pca_shade_output)
+    gs.raster_history(pca_shade_output)
 
     if pca_basename_user:
         set_color_table(pca_maps, map_=shade_maps[0])

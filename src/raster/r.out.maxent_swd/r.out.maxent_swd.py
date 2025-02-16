@@ -142,24 +142,22 @@ REQUIREMENTS:
 import atexit
 import os
 
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.gis import Mapset
 from grass.pygrass.raster import RasterRow
 
-TMP_NAME = gscript.tempname(12)
+TMP_NAME = gs.tempname(12)
 
 
 def cleanup():
     """Restore old mask if it existed"""
     if RasterRow("{}_MASK".format(TMP_NAME), Mapset().name).exist():
-        gscript.verbose("Restoring old mask...")
+        gs.verbose("Restoring old mask...")
         if RasterRow("MASK", Mapset().name).exist():
-            gscript.run_command("r.mask", flags="r")
-        gscript.run_command(
-            "g.rename", rast="{}_MASK,MASK".format(TMP_NAME), quiet=True
-        )
+            gs.run_command("r.mask", flags="r")
+        gs.run_command("g.rename", rast="{}_MASK,MASK".format(TMP_NAME), quiet=True)
     if RasterRow("MASK", Mapset().name).exist():
-        gscript.run_command("r.mask", flags="r")
+        gs.run_command("r.mask", flags="r")
 
 
 def parse_bgr_input(alias_input, env_maps, alias_names):
@@ -172,10 +170,10 @@ def parse_bgr_input(alias_input, env_maps, alias_names):
 
     if alias_input:
         if not os.access(alias_input, os.R_OK):
-            gscript.fatal(
+            gs.fatal(
                 _("The file containing alias names does not exist or is not readable.")
             )
-        gscript.info(
+        gs.info(
             _(
                 "Alias and map names are beeing read from file. Other input regarding environmental parameter(s) will be ignored..."
             )
@@ -198,14 +196,12 @@ def parse_bgr_input(alias_input, env_maps, alias_names):
 
     # Check if number of alias names is identically with number of background maps
     if len(alias) != len(parameters):
-        gscript.fatal(
-            _("Number of provided background maps and alias names do not match.")
-        )
+        gs.fatal(_("Number of provided background maps and alias names do not match."))
 
     for param in parameters:
         # Check if environmental parameter map(s) exist
         if not RasterRow(param).exist():
-            gscript.fatal(
+            gs.fatal(
                 _("Could not find environmental parameter raster map <{}>").format(
                     param
                 )
@@ -228,7 +224,7 @@ def parse_species_input(species_masks, species_names):
     # Check if number of specie names is identically with number of specie maps
     if species_names and species_masks:
         if len(species_names) != len(species_masks):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Number of provided species input maps and species names do not match."
                 )
@@ -241,7 +237,7 @@ def parse_species_input(species_masks, species_names):
             species_name = species_names[idx] if species_names else species_map_name[0]
             species_map = RasterRow(*species_map_name)
             if not species_map.exist():
-                gscript.fatal(
+                gs.fatal(
                     _("Could not find species raster map <{}> in mapset <{}>.").format(
                         *species_map_name
                     )
@@ -274,12 +270,8 @@ def main():
 
     # Check if a mask file allready exists
     if RasterRow("MASK", Mapset().name).exist():
-        gscript.verbose(
-            _("A mask allready exists. Renaming existing mask to old_MASK...")
-        )
-        gscript.run_command(
-            "g.rename", rast="MASK,{}_MASK".format(TMP_NAME), quiet=True
-        )
+        gs.verbose(_("A mask allready exists. Renaming existing mask to old_MASK..."))
+        gs.run_command("g.rename", rast="MASK,{}_MASK".format(TMP_NAME), quiet=True)
 
     # Build parameter header if necessary
     header = ",".join(alias)
@@ -303,22 +295,22 @@ def main():
             species_map = species_dict[species]
             # Zoom region to match specie map if requested
             if flags["z"]:
-                gscript.verbose(
+                gs.verbose(
                     _("Zooming region to species {} temporarily.").format(species)
                 )
-                gscript.use_temp_region()
-                gscript.run_command(
+                gs.use_temp_region()
+                gs.run_command(
                     "g.region", align="@".join(species_map), zoom="@".join(species_map)
                 )
             #
             # Apply specie mask
-            gscript.run_command(
+            gs.run_command(
                 "r.mask", raster="@".join(species_map), overwrite=True, quiet=True
             )
 
             # Export data using r.stats
-            gscript.verbose(_("Producing output for species {}").format(species))
-            stats = gscript.pipe_command(
+            gs.verbose(_("Producing output for species {}").format(species))
+            stats = gs.pipe_command(
                 "r.stats",
                 flags="1gN",
                 verbose=True,
@@ -329,13 +321,13 @@ def main():
 
             with open(species_output, "a") as sp_out:
                 for row in stats.stdout:
-                    sp_out.write("{},{}".format(species, gscript.decode(row)))
+                    sp_out.write("{},{}".format(species, gs.decode(row)))
 
             # Redo zoom region to match specie map if it had been requested
             if flags["z"]:
-                gscript.del_temp_region()
+                gs.del_temp_region()
             # Remove mask
-            gscript.run_command("r.mask", flags="r", quiet=True)
+            gs.run_command("r.mask", flags="r", quiet=True)
 
     # Write header to background output SWD file
     bgr_header = "bgr,X,Y,{}\n".format(",".join(alias))
@@ -346,15 +338,15 @@ def main():
     # Process map data for background
     # Check if a mask file allready exists
     if bgr_mask:
-        gscript.verbose(
+        gs.verbose(
             _("Using map {} as mask for the background landscape...").format(bgr_mask)
         )
         # Apply mask
-        gscript.run_command("r.mask", raster=bgr_mask, overwrite=True, quiet=True)
+        gs.run_command("r.mask", raster=bgr_mask, overwrite=True, quiet=True)
     #
     # Export data using r.stats
-    gscript.verbose(_("Producing output for background landscape"))
-    stats = gscript.pipe_command(
+    gs.verbose(_("Producing output for background landscape"))
+    stats = gs.pipe_command(
         "r.stats",
         flags="1gN",
         input=",".join(parameters),
@@ -364,12 +356,12 @@ def main():
 
     with open(bgr_output, "a") as bgr_out:
         for row in stats.stdout:
-            bgr_out.write("bgr,{}".format(gscript.decode(row)))
+            bgr_out.write("bgr,{}".format(gs.decode(row)))
 
     cleanup()
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

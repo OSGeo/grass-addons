@@ -122,7 +122,7 @@
 
 import sys
 import atexit
-import grass.script as grass
+import grass.script as gs
 
 
 # cleaning up temp files
@@ -137,7 +137,7 @@ def cleanup():
         "sum_Ycosine",
         "sum_Zcosine",
     ]
-    grass.run_command("g.remove", flags="bf", type="raster", name=rasts, quiet=True)
+    gs.run_command("g.remove", flags="bf", type="raster", name=rasts, quiet=True)
 
 
 def main():
@@ -155,20 +155,20 @@ def main():
     zcos = options["zcos"]  # temporary
 
     # check if input files exist
-    grass.message("----")
-    grass.message("Check if input files exist ...")
+    gs.message("----")
+    gs.message("Check if input files exist ...")
 
-    find_elev = grass.find_file(elevmap, element="cell")
+    find_elev = gs.find_file(elevmap, element="cell")
     if find_elev["name"] == "":
         print("Map %s not found! Aborting." % elevmap)
         sys.exit()
 
-    find_slope = grass.find_file(slope, element="cell")
+    find_slope = gs.find_file(slope, element="cell")
     if find_slope["name"] == "":
         print("Map %s not found! Aborting." % slope)
         sys.exit()
 
-    find_aspect = grass.find_file(aspect, element="cell")
+    find_aspect = gs.find_file(aspect, element="cell")
     if find_aspect["name"] == "":
         print("Map %s not found! Aborting." % aspect)
         sys.exit()
@@ -180,8 +180,8 @@ def main():
     #########################################################################################################
 
     # give default names to outputs, in case the user doesn't provide them
-    grass.message("----")
-    grass.message("Define default output names when not defined by user ...")
+    gs.message("----")
+    gs.message("Define default output names when not defined by user ...")
 
     if strength == "":
         strength = "%s_vector_strength_%sx%s" % (find_elev["name"], window, window)
@@ -196,32 +196,32 @@ def main():
     # correct aspect angles from cartesian (GRASS default) to compass angles
     #   if(A==0,0,if(A < 90, 90-A, 360+90-A))
 
-    grass.message("----")
-    grass.message("Calculate compass aspect values ...")
+    gs.message("----")
+    gs.message("Calculate compass aspect values ...")
 
     if compass == "":
         aspect_compass = "aspect_compass"
         #        aspect_compass = grass.tempfile()
-        grass.mapcalc(
+        gs.mapcalc(
             "${out} = if(${rast1}==0,0,if(${rast1} < 90, 90-${rast1}, 360+90-${rast1}))",
             out=aspect_compass,
             rast1=aspect,
         )
     else:
-        grass.message("Using previous calculated compass aspect values (longitude)")
+        gs.message("Using previous calculated compass aspect values (longitude)")
         aspect_compass = compass
 
     # calculates colatitude (90-slope)
 
-    grass.message("----")
-    grass.message("Calculate colatitude ...")
+    gs.message("----")
+    gs.message("Calculate colatitude ...")
 
     if colatitude == "":
         colat_angle = "colat_angle"
         #        colat_angle = grass.tempfile()
-        grass.mapcalc("${out} = 90 - ${rast1}", out=colat_angle, rast1=slope)
+        gs.mapcalc("${out} = 90 - ${rast1}", out=colat_angle, rast1=slope)
     else:
-        grass.message("Using previous calculated colatitude values")
+        gs.message("Using previous calculated colatitude values")
         colat_angle = colatitude
 
     #####################
@@ -229,54 +229,54 @@ def main():
     # direction cosines relative to axis oriented north, east and up
     # direction cosine calculation according to McKean & Roering (2004), Geomorphology, 57:331-351.
 
-    grass.message("----")
-    grass.message("Calculate direction cosines ...")
+    gs.message("----")
+    gs.message("Calculate direction cosines ...")
 
     # X cosine
     if xcos == "":
         cosine_x = "cosine_x"
         #        cosine_x = grass.tempfile()
-        grass.mapcalc(
+        gs.mapcalc(
             "${out} = sin(${rast1}) * cos(${rast2})",
             out="cosine_x",
             rast1=aspect_compass,
             rast2=colat_angle,
         )
     else:
-        grass.message("Using previous calculated X direction cosine value")
+        gs.message("Using previous calculated X direction cosine value")
         cosine_x = xcos
 
     # Y cosine
     if ycos == "":
         cosine_y = "cosine_y"
         #        cosine_y = grass.tempfile()
-        grass.mapcalc(
+        gs.mapcalc(
             "${out} = sin(${rast1}) * sin(${rast2})",
             out="cosine_y",
             rast1=aspect_compass,
             rast2=colat_angle,
         )
     else:
-        grass.message("Using previous calculated Y direction cosine values")
+        gs.message("Using previous calculated Y direction cosine values")
         cosine_y = ycos
 
     # Z cosine
     if zcos == "":
         cosine_z = "cosine_z"
         #        cosine_z = grass.tempfile()
-        grass.mapcalc("${out} = cos(${rast1})", out="cosine_z", rast1=aspect_compass)
+        gs.mapcalc("${out} = cos(${rast1})", out="cosine_z", rast1=aspect_compass)
     else:
-        grass.message("Using previous calculated Y direction cosine values")
+        gs.message("Using previous calculated Y direction cosine values")
         cosine_z = zcos
 
     # calculate SUM of direction cosines
 
-    grass.message("----")
-    grass.message("Calculate sum of direction cosines ...")
+    gs.message("----")
+    gs.message("Calculate sum of direction cosines ...")
 
-    grass.message("Calculating sum of X direction cosines ...")
+    gs.message("Calculating sum of X direction cosines ...")
     #    sum_Xcosine = grass.tempfile()
-    grass.run_command(
+    gs.run_command(
         "r.neighbors",
         input=cosine_x,
         output="sum_Xcosine",
@@ -285,9 +285,9 @@ def main():
         overwrite=True,
     )
 
-    grass.message("Calculating sum of Y direction cosines ...")
+    gs.message("Calculating sum of Y direction cosines ...")
     #    sum_Ycosine = grass.tempfile()
-    grass.run_command(
+    gs.run_command(
         "r.neighbors",
         input=cosine_y,
         output="sum_Ycosine",
@@ -296,9 +296,9 @@ def main():
         overwrite=True,
     )
 
-    grass.message("Calculating sum of Z direction cosines ...")
+    gs.message("Calculating sum of Z direction cosines ...")
     #    sum_Zcosine = grass.tempfile()
-    grass.run_command(
+    gs.run_command(
         "r.neighbors",
         input=cosine_z,
         output="sum_Zcosine",
@@ -310,11 +310,11 @@ def main():
     #####################
     # calculate vector strength
 
-    grass.message("----")
-    grass.message("Calculate vector strength ...")
+    gs.message("----")
+    gs.message("Calculate vector strength ...")
 
     #    print strength
-    grass.mapcalc(
+    gs.mapcalc(
         "${out} = sqrt(exp(${rast1},2) + exp(${rast2},2) + exp(${rast3},2))",
         out=strength,
         rast1="sum_Xcosine",
@@ -325,11 +325,11 @@ def main():
     # calculate Inverted Fisher's K parameter
     # k=1/((N-1)/(N-R))
 
-    grass.message("----")
-    grass.message("Calculate inverted Fisher's K parameter ...")
+    gs.message("----")
+    gs.message("Calculate inverted Fisher's K parameter ...")
 
     w = int(window)
-    grass.mapcalc(
+    gs.mapcalc(
         "${out} = ($w * $w - ${rast1}) / ($w * $w - 1)",
         out=fisher,
         rast1=strength,
@@ -338,18 +338,18 @@ def main():
 
     #    calculations done
 
-    grass.message("----")
-    grass.message("Result maps:")
-    grass.message(strength)
-    grass.message(fisher)
-    grass.message("Calculations done.")
-    grass.message("----")
+    gs.message("----")
+    gs.message("Result maps:")
+    gs.message(strength)
+    gs.message(fisher)
+    gs.message("Calculations done.")
+    gs.message("----")
 
 
 # this "if" condition instructs execution of code contained in this script, *only* if the script is being executed directly
 if (
     __name__ == "__main__"
 ):  # this allows the script to be used as a module in other scripts or as a standalone script
-    options, flags = grass.parser()  #
+    options, flags = gs.parser()  #
     atexit.register(cleanup)
     sys.exit(main())  #
