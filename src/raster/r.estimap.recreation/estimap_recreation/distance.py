@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -71,12 +71,12 @@ def build_distance_function(
 
     function = " ( {numerator} ) / ( {denominator} )"
     function = function.format(numerator=numerator, denominator=denominator)
-    grass.debug("Function without score: {f}").format(f=function)
+    gs.debug("Function without score: {f}").format(f=function)
 
     if score:
         function += " * {score}"  # need for float()?
         function = function.format(score=score)
-    grass.debug(_("*** Function after adding 'score': {f}").format(f=function))
+    gs.debug(_("*** Function after adding 'score': {f}").format(f=function))
 
     # -------------------------------------------------------------------------
     # if suitability:
@@ -141,7 +141,7 @@ def compute_attractiveness(
     ]
 
     if score:
-        grass.debug(_("Score for attractiveness equation: {s}").format(s=score))
+        gs.debug(_("Score for attractiveness equation: {s}").format(s=score))
         distance_terms += str(score)
 
     # tmp_distance = temporary_filename('_'.join(distance_terms))
@@ -153,7 +153,7 @@ def compute_attractiveness(
     if mask:
         msg = "Inverted masking to exclude non-NULL cells "
         msg += "from distance related computations based on '{mask}'"
-        grass.verbose(_(msg).format(mask=mask))
+        gs.verbose(_(msg).format(mask=mask))
         r.mask(raster=mask, flags="i", overwrite=True, quiet=True)
 
     # FIXME: use a parameters dictionary, avoid conditionals
@@ -182,13 +182,13 @@ def compute_attractiveness(
     distance_function = EQUATION.format(
         result=tmp_distance_map, expression=distance_function
     )
-    grass.verbose(_("* Distance function: {f}").format(f=distance_function))
-    grass.mapcalc(distance_function, overwrite=True)
+    gs.verbose(_("* Distance function: {f}").format(f=distance_function))
+    gs.mapcalc(distance_function, overwrite=True)
 
     r.null(map=tmp_distance_map, null=0)  # Set NULLs to 0
 
-    compress_status = grass.read_command("r.compress", flags="g", map=tmp_distance_map)
-    grass.verbose(_("* Compress status: {s}").format(s=compress_status))  # REMOVEME
+    compress_status = gs.read_command("r.compress", flags="g", map=tmp_distance_map)
+    gs.verbose(_("* Compress status: {s}").format(s=compress_status))  # REMOVEME
 
     return tmp_distance_map
 
@@ -222,7 +222,7 @@ def neighborhood_function(raster, method, size, distance_map):
 
     neighborhood_output = distance_map + "_" + method
     msg = "* Neighborhood operator '{method}' and size '{size}' for map '{name}'"
-    grass.verbose(_(msg).format(method=method, size=size, name=neighborhood_output))
+    gs.verbose(_(msg).format(method=method, size=size, name=neighborhood_output))
 
     r.neighbors(
         input=raster,
@@ -244,9 +244,9 @@ def neighborhood_function(raster, method, size, distance_map):
         result=filtered_output, expression=scoring_function
     )
     # ---------------------------------------------------------------
-    grass.debug(_("*** Expression: {e}").format(e=neighborhood_function))
+    gs.debug(_("*** Expression: {e}").format(e=neighborhood_function))
     # ---------------------------------------------------------------
-    grass.mapcalc(neighborhood_function, overwrite=True)
+    gs.mapcalc(neighborhood_function, overwrite=True)
 
     # tmp_distance_map = filtered_output
 
@@ -284,7 +284,7 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
     """
     artificial_distances = temporary_filename(filename=raster)
 
-    grass.run_command(
+    gs.run_command(
         "r.grow.distance",
         input=raster,
         distance=artificial_distances,
@@ -296,17 +296,15 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
     # temporary maps will be removed
     if output_name:
         tmp_output = temporary_filename(filename=output_name)
-        grass.debug(_("*** Pre-defined output map name {name}").format(name=tmp_output))
+        gs.debug(_("*** Pre-defined output map name {name}").format(name=tmp_output))
 
     else:
         tmp_output = temporary_filename(filename="artificial_proximity")
-        grass.debug(
-            _("*** Hardcoded temporary map name {name}").format(name=tmp_output)
-        )
+        gs.debug(_("*** Hardcoded temporary map name {name}").format(name=tmp_output))
 
     msg = "* Computing proximity to '{mapname}'"
-    grass.verbose(_(msg).format(mapname=raster))
-    grass.run_command(
+    gs.verbose(_(msg).format(mapname=raster))
+    gs.run_command(
         "r.recode",
         input=artificial_distances,
         output=tmp_output,
@@ -314,9 +312,9 @@ def compute_artificial_proximity(raster, distance_categories, output_name=None):
         overwrite=True,
     )
 
-    output = grass.find_file(name=tmp_output, element="cell")
+    output = gs.find_file(name=tmp_output, element="cell")
     if not output["file"]:
-        grass.fatal("\n***Proximity map {name} not created!".format(name=raster))
+        gs.fatal("\n***Proximity map {name} not created!".format(name=raster))
     #     else:
     #         g.message(_("Output map {name}:").format(name=tmp_output))
 

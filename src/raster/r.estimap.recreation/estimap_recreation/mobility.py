@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from .distance import build_distance_function
 
 
@@ -116,11 +116,11 @@ def mobility_function(
         # Maybe it can, though, after successfully testing its
         # integration to build_distance_function().
 
-        grass.debug(_("For distance '{d}':").format(d=distance))
-        grass.debug(_(expressions[distance_category]))
+        gs.debug(_("For distance '{d}':").format(d=distance))
+        gs.debug(_(expressions[distance_category]))
 
     msg = "Expressions per distance category: {e}"
-    grass.debug(_(msg).format(e=expressions))
+    gs.debug(_(msg).format(e=expressions))
 
     # build expressions -- explicit: use the'score' kwarg!
     expression = (
@@ -140,7 +140,7 @@ def mobility_function(
     )
     if not real_numbers:
         expression = "round(" + expression + ")"
-    grass.debug(_("Mapcalc expression: {e}").format(e=expression))
+    gs.debug(_("Mapcalc expression: {e}").format(e=expression))
 
     # replace keywords appropriately
     # 'distance' is a map
@@ -160,6 +160,6 @@ def mobility_function(
     # FIXME Make the above more elegant?
 
     msg = "Big expression (after formatting): {e}"
-    grass.debug(_(msg).format(e=expression))
+    gs.debug(_(msg).format(e=expression))
 
     return mobility_expression

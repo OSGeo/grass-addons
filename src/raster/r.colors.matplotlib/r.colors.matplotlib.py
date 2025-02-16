@@ -84,7 +84,7 @@
 
 import os
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def values_to_rule(value, red, green, blue, percent):
@@ -163,7 +163,7 @@ def main(options, flags):
         if hasattr(cm, "datad") and name not in cm.datad.keys():
             import matplotlib as mpl
 
-            gscript.fatal(
+            gs.fatal(
                 _("Matplotlib {v} does not contain color table <{n}>").format(
                     v=mpl.__version__, n=name
                 )
@@ -186,7 +186,7 @@ def main(options, flags):
         for char in "gae":
             if flags[char]:
                 rcf += char
-        gscript.write_command(
+        gs.write_command(
             "r.colors",
             map=options["map"],
             flags=rcf,
@@ -202,4 +202,4 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    sys.exit(main(*gscript.parser()))
+    sys.exit(main(*gs.parser()))

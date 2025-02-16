@@ -135,7 +135,7 @@
 
 import os
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def values_to_rule(value, red, green, blue, percent):
@@ -195,7 +195,7 @@ def main(options, flags):
         fallback = False
     except ImportError:
         # perhaps this can be function in the core
-        gscript.error(_("{} Python package not installed.").format("seaborn"))
+        gs.error(_("{} Python package not installed.").format("seaborn"))
     if not fallback:
         cmap = sns.cubehelix_palette(
             n_colors=n_colors,
@@ -218,7 +218,7 @@ def main(options, flags):
 
         cmap = clr.LinearSegmentedColormap.from_list("from_list", cmap, N=n_colors)
     else:
-        gscript.warning(
+        gs.warning(
             _(
                 "Using Matplotlib cubehelix color table."
                 " Most of cubehelix parameters ignored"
@@ -249,7 +249,7 @@ def main(options, flags):
         for char in "gae":
             if flags[char]:
                 rcf += char
-        gscript.write_command(
+        gs.write_command(
             "r.colors",
             map=options["map"],
             flags=rcf,
@@ -265,4 +265,4 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    sys.exit(main(*gscript.parser()))
+    sys.exit(main(*gs.parser()))

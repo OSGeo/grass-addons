@@ -212,7 +212,7 @@ import sys
 import platform
 import warnings
 import numpy as np
-import grass.script as grass
+import grass.script as gs
 import grass.script.task as task
 import grass.script.db as grass_db
 
@@ -266,7 +266,7 @@ def main():
         from rpy2.robjects.vectors import StrVector
         import rpy2.robjects.numpy2ri
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Cannot import rpy2 (https://rpy2.bitbucket.io)"
                 " library."
@@ -297,9 +297,9 @@ def main():
         if float(options["connectivity_cutoff"]) > 0:
             connectivity_cutoff = float(options["connectivity_cutoff"])
         else:
-            grass.fatal('"connectivity_cutoff" has to be > 0.')
+            gs.fatal('"connectivity_cutoff" has to be > 0.')
     else:
-        grass.fatal('Option "connectivity_cutoff" is not given as a number.')
+        gs.fatal('Option "connectivity_cutoff" is not given as a number.')
     lnbh_cutoff = options["lnbh_cutoff"]
     cl_thresh = options["cl_thresh"]
 
@@ -308,8 +308,8 @@ def main():
     kernel_plot = options["kernel_plot"]
     overview_plot = options["overview_plot"]
 
-    verbose = grass.verbosity() == 3
-    overwrite = grass.overwrite()
+    verbose = gs.verbosity() == 3
+    overwrite = gs.overwrite()
 
     edge_output = "{}_edge_measures".format(prefix)
     edge_output_tmp = "{}_edge_measures_tmp".format(prefix)
@@ -319,25 +319,25 @@ def main():
 
     # Check if input parameters are correct
     for table in [vertex_output, edge_output, network_output]:
-        if grass.db.db_table_exist(table) and not overwrite:
-            grass.fatal(
+        if gs.db.db_table_exist(table) and not overwrite:
+            gs.fatal(
                 'Table "{}" already exists. \
                          Use --o flag to overwrite'.format(table)
             )
 
     if qml_style_dir:
         if not os.path.exists(qml_style_dir):
-            grass.fatal(
+            gs.fatal(
                 'QML output requested but directory "{}" \
                         does not exists.'.format(qml_style_dir)
             )
         if not os.path.isdir(qml_style_dir):
-            grass.fatal(
+            gs.fatal(
                 'QML output requested but "{}" is not a \
                         directory.'.format(qml_style_dir)
             )
         if not os.access(qml_style_dir, os.R_OK):
-            grass.fatal(
+            gs.fatal(
                 'Output directory "{}" for QML files is not \
                         writable.'.format(qml_style_dir)
             )
@@ -345,12 +345,12 @@ def main():
     for plot in [kernel_plot, overview_plot]:
         if plot:
             if not os.path.exists(os.path.dirname(plot)):
-                grass.fatal(
+                gs.fatal(
                     'Directory for output "{}" does not \
                             exists.'.format(plot)
                 )
             if not os.access(os.path.dirname(plot), os.R_OK):
-                grass.fatal(
+                gs.fatal(
                     'Output directory "{}" is not \
                             writable.'.format(plot)
                 )
@@ -369,9 +369,9 @@ def main():
 
     db_connection = grass_db.db_connection()
     # parse_command('db.connect', flags='g')
-    db_name = grass.read_command("db.databases").rstrip("\n")
+    db_name = gs.read_command("db.databases").rstrip("\n")
 
-    net_hist_str = grass.parse_command(
+    net_hist_str = gs.parse_command(
         "v.info", map=network_map, flags="h", delimiter=":"
     )["COMMAND"].split("\n")[0]
     # grass.parse_command('v.info', map=network_map, flags='h'
@@ -390,25 +390,25 @@ def main():
 
     robjects.numpy2ri.activate()
 
-    grass.verbose("prefix is {}".format(prefix))
-    grass.verbose("cores is {}".format(cores))
-    grass.verbose("convergence_treshold is {}".format(convergence_treshold))
-    grass.verbose("euler is {}".format(euler))
-    grass.verbose("base is {}".format(base))
-    grass.verbose("exponent is {}".format(exponent))
-    grass.verbose("cd_cutoff is {}".format(cd_cutoff))
-    grass.verbose("connectivity_cutoff is {}".format(connectivity_cutoff))
-    grass.verbose("lnbh_cutoff is {}".format(lnbh_cutoff))
-    grass.verbose("kernel_plot is {}".format(kernel_plot))
-    grass.verbose("overview_plot is {}".format(overview_plot))
-    grass.verbose("dist_prefix is {}".format(dist_prefix))
-    grass.verbose("EDGES is {}_edges".format(prefix))
-    grass.verbose("VERTICES is {}_vertices".format(prefix))
-    grass.verbose("cl_thresh is {}".format(cl_thresh))
+    gs.verbose("prefix is {}".format(prefix))
+    gs.verbose("cores is {}".format(cores))
+    gs.verbose("convergence_treshold is {}".format(convergence_treshold))
+    gs.verbose("euler is {}".format(euler))
+    gs.verbose("base is {}".format(base))
+    gs.verbose("exponent is {}".format(exponent))
+    gs.verbose("cd_cutoff is {}".format(cd_cutoff))
+    gs.verbose("connectivity_cutoff is {}".format(connectivity_cutoff))
+    gs.verbose("lnbh_cutoff is {}".format(lnbh_cutoff))
+    gs.verbose("kernel_plot is {}".format(kernel_plot))
+    gs.verbose("overview_plot is {}".format(overview_plot))
+    gs.verbose("dist_prefix is {}".format(dist_prefix))
+    gs.verbose("EDGES is {}_edges".format(prefix))
+    gs.verbose("VERTICES is {}_vertices".format(prefix))
+    gs.verbose("cl_thresh is {}".format(cl_thresh))
 
     # Check if R is installed
-    if not grass.find_program("R"):
-        grass.fatal(
+    if not gs.find_program("R"):
+        gs.fatal(
             "R is required, but cannot be found on the system.\n \
                     Please make sure that R is installed and the path \
                     to R is added to the environment variables \
@@ -452,7 +452,7 @@ def main():
             fig.savefig(kernel_plot)
 
     if cores > 1 and os_type == "Windows":
-        grass.warning(
+        gs.warning(
             "Parallel processing not yet supported on MS Windows. \
                        Setting number of cores to 1."
         )
@@ -466,10 +466,8 @@ def main():
             # Check for ghostscript deactivated on Windows because the
             # path to gswin32 is not defined in the environment settings
             # by ghostscript installation automatically
-            if not grass.shutil_which("gswin32") and not grass.shutil_which(
-                "gswin32.exe"
-            ):
-                grass.fatal(
+            if not gs.shutil_which("gswin32") and not gs.shutil_which("gswin32.exe"):
+                gs.fatal(
                     "ghostscript is required for postscript \
                             output, cannot find ghostscript \
                             (gswin32.exe), please install ghostscript \
@@ -477,8 +475,8 @@ def main():
                 )
 
         else:
-            if not grass.shutil_which("gs") and not grass.shutil_which("ghostscript"):
-                grass.fatal(
+            if not gs.shutil_which("gs") and not gs.shutil_which("ghostscript"):
+                gs.fatal(
                     "ghostscript is required for postscript \
                             output, please install ghostscript first"
                 )
@@ -493,7 +491,7 @@ def main():
     missing_packages = np.setdiff1d(req_packages, installed_packages)
 
     if i_flag and missing_packages:
-        grass.warning(
+        gs.warning(
             "Installing required R-packages {} on \
                       request.".format(",".join(missing_packages))
         )
@@ -501,7 +499,7 @@ def main():
         utils.chooseCRANmirror(ind=1)
         utils.install_packages(StrVector(missing_packages))
     elif missing_packages:
-        grass.fatal(
+        gs.fatal(
             "The following required R-packages {} are issing \
                     on your system. Please install \
                     them.".format(",".join(missing_packages))
@@ -517,7 +515,7 @@ def main():
 
     if not isinstance(igraph_version, rpy2.rinterface.RNULLType):
         if i_flag:
-            grass.warning(
+            gs.warning(
                 "The required igraph version is 0.6-2 or \
                           later, the installed version is {}. \
                           Installing latest version of igraph on \
@@ -525,7 +523,7 @@ def main():
             )
             utils.install_packages("igraph")
         else:
-            grass.fatal(
+            gs.fatal(
                 "The required igraph version is 0.6-2 or \
                          later, the installed version is {}. \
                          Please download and install at least igraph \
@@ -1634,16 +1632,16 @@ close(con_qml)
 
     robjects.r(rscript)
 
-    grass.run_command(
+    gs.run_command(
         "g.copy", quiet=True, vector="{},{}".format(network_map, edge_output)
     )
-    grass.run_command(
+    gs.run_command(
         "g.copy", quiet=True, vector="{},{}".format(in_vertices, vertex_output)
     )
 
     # Use v.db.connect instead of v.db.join (much faster)
 
-    grass.run_command(
+    gs.run_command(
         "v.db.join",
         map=edge_output,
         column="cat",
@@ -1651,7 +1649,7 @@ close(con_qml)
         other_column="con_id",
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.join",
         map=vertex_output,
         column="cat",
@@ -1662,7 +1660,7 @@ close(con_qml)
 
     update_history = "{}\n{}".format(net_hist_str, os.environ["CMDLINE"])
 
-    grass.run_command(
+    gs.run_command(
         "v.support",
         flags="h",
         map=vertex_output,
@@ -1670,7 +1668,7 @@ close(con_qml)
         cmdhist=update_history,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.support",
         flags="h",
         map=edge_output,
@@ -1680,6 +1678,6 @@ close(con_qml)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

@@ -121,7 +121,7 @@ grass_install_tree = os.getenv("GISBASE")
 sys.path.append(grass_install_tree + os.sep + "etc" + os.sep + "python")
 
 
-import grass.script as grass
+import grass.script as gs
 
 
 # m is a grass/bash command that will generate some list of keyed info to
@@ -162,15 +162,15 @@ def main():
     # error checks for incompatible variables
     # through a fatal warning and do not proceed.
     if options["in_cost"] != "" and flags["i"]:
-        grass.fatal("Flag 'i' cannot be used with input option 'in_cost'")
+        gs.fatal("Flag 'i' cannot be used with input option 'in_cost'")
     if flags["l"] & flags["i"]:
-        grass.fatal("Flag 'i' cannot be used with flag 'l'")
+        gs.fatal("Flag 'i' cannot be used with flag 'l'")
     # check for MASK and take appropriate actions
     if (
-        "MASK" in grass.list_grouped("rast")[grass.gisenv()["MAPSET"]]
+        "MASK" in gs.list_grouped("rast")[gs.gisenv()["MAPSET"]]
         and bool(options["sigma"]) is True
     ):
-        grass.message(
+        gs.message(
             "There is already a MASK in place, and you also have"
             " selected to mask slope values above %s.\n The high slope areas"
             " (slope mask) will be temporarily added to current MASKED areas for"
@@ -179,14 +179,14 @@ def main():
         )
         ismask = 2
         tempmask = "temporary.mask.%s" % pid
-        grass.run_command(
+        gs.run_command(
             "g.rename",
             quiet=True,
-            overwrite=grass.overwrite(),
+            overwrite=gs.overwrite(),
             raster="MASK,%s" % tempmask,
         )
-    elif "MASK" in grass.list_grouped("rast")[grass.gisenv()["MAPSET"]]:
-        grass.message(
+    elif "MASK" in gs.list_grouped("rast")[gs.gisenv()["MAPSET"]]:
+        gs.message(
             "There is a MASK in place. The areas MASKed out will"
             " be ignored while calculating catchment geometry."
         )
@@ -194,7 +194,7 @@ def main():
     else:
         ismask = 0
 
-    grass.message("Wanted buffer area=%s\n" % int(area))
+    gs.message("Wanted buffer area=%s\n" % int(area))
 
     ####################################################
 
@@ -202,13 +202,13 @@ def main():
     flagstring = ""
     if flags["k"]:
         flagstring += "k"
-        grass.verbose("Using Knight's move")
+        gs.verbose("Using Knight's move")
     # check for, and do iterative procedure
     if flags["i"]:
         # get the coords from the vector map, and check if we want to name them
         if options["name_column"] != "":
             # note that the "r" flag will constrain to points in the current geographic region.
-            pointset = grass.read_command(
+            pointset = gs.read_command(
                 "v.out.ascii",
                 flags="r",
                 input=start_points,
@@ -219,7 +219,7 @@ def main():
             ).strip()
         else:
             # note that the "r" flag will constrain to points in the current geographic region.
-            pointsset = grass.read_command(
+            pointsset = gs.read_command(
                 "v.out.ascii",
                 flags="r",
                 input=start_points,
@@ -227,7 +227,7 @@ def main():
                 format="point",
                 separator=",",
             ).strip()
-        grass.message(
+        gs.message(
             _(
                 "Note that the routine is constrained to points in the current geographic region."
             )
@@ -239,14 +239,14 @@ def main():
                 masterlist.append(line.strip().split(","))
         # figure out friction source
         if bool(options["friction"]) is True:
-            grass.verbose("Calculating costs using input friction map")
+            gs.verbose("Calculating costs using input friction map")
             friction = options["friction"]
         else:
-            grass.verbose("Calculating for time costs only")
+            gs.verbose("Calculating for time costs only")
             friction = "temporary.friction.%s" % pid
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = if(isnull(${rast1}), null(), 0)",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
                 out=friction,
                 rast1=elevation,
@@ -260,7 +260,7 @@ def main():
                 ptname = site[3]  # name column
             else:
                 ptname = site[2]  # cat number
-            grass.verbose(
+            gs.verbose(
                 _("Calculating cost-surface for location %s,%s (point name = %s)")
                 % (site[0], site[1], ptname)  # coordinates
             )
@@ -268,10 +268,10 @@ def main():
             tempry = "cost_surface_{ptname}_{c}".format(ptname=ptname, c=counter)
             counter += 1
             cost_list.append(tempry)
-            grass.run_command(
+            gs.run_command(
                 "r.walk",
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 flags=flagstring,
                 elevation=elevation,
                 friction=friction,
@@ -285,34 +285,34 @@ def main():
         # slope mask is implemented after cost surface creation to ensure complete cost surfaces
         # for output if flag -c is implemented
         if bool(options["sigma"]) is True:
-            grass.verbose("Creating optional slope mask")
+            gs.verbose("Creating optional slope mask")
             slope = "temporary.slope.%s" % pid
-            grass.run_command(
+            gs.run_command(
                 "r.slope.aspect",
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 elevation=elevation,
                 slope=slope,
             )
             if ismask == 2:
-                grass.mapcalc(
+                gs.mapcalc(
                     "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1, null()))",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet=True,
                     sigma=sigma,
                     rast1=slope,
                     tempmask=tempmask,
                 )
             else:
-                grass.mapcalc(
+                gs.mapcalc(
                     "MASK=if(${rast1} <= ${sigma}, 1, null())",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet=True,
                     sigma=sigma,
                     rast1=slope,
                 )
         else:
-            grass.verbose("No slope mask created")
+            gs.verbose("No slope mask created")
         # calculate all the catchments
         count = 0
         for cost, site in zip(cost_list, masterlist):
@@ -334,11 +334,11 @@ def main():
             for key in sorted(areadict):
                 tot_area = tot_area + int(float(areadict[key]))
                 maxcost = key
-            grass.message(
+            gs.message(
                 "Maximum cost distance value %s covers an area of %s"
                 " square map units" % (int(maxcost), tot_area)
             )
-            grass.verbose("Commencing to find a catchment configuration.....")
+            gs.verbose("Commencing to find a catchment configuration.....")
             testarea = 0
             lastarea = 0
             lastkey = 0
@@ -355,37 +355,37 @@ def main():
             else:
                 cutoff = lastkey
                 displayarea = lastarea
-            grass.verbose("Catchment configuration found!")
-            grass.message(
+            gs.verbose("Catchment configuration found!")
+            gs.message(
                 "Cost cutoff %s produces a catchment of %s square map "
                 "units." % (int(cutoff), displayarea)
             )
             ####################################################
-            grass.verbose("Creating output map")
-            t = grass.tempfile()
+            gs.verbose("Creating output map")
+            t = gs.tempfile()
             temp = open(t, "w+")
             temp.write("0 thru %s = %s\n" % (int(cutoff), mapval))
             temp.flush()
-            grass.run_command(
+            gs.run_command(
                 "r.reclass",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 input=cost,
                 output="cost.reclass.%s" % pid,
                 rules=t,
             )
             temp.close()
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out}=if(isnull(${cost}), null(), ${cost})",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
                 cost="cost.reclass.%s" % pid,
                 out=tempry,
             )
-            grass.verbose("The output catchment map will be named %s" % tempry)
-            grass.run_command("r.colors", quiet=True, map=tempry, color="ryb")
+            gs.verbose("The output catchment map will be named %s" % tempry)
+            gs.run_command("r.colors", quiet=True, map=tempry, color="ryb")
             if flags["c"] is True:
-                grass.verbose("Keeping cost map...")
-                grass.run_command(
+                gs.verbose("Keeping cost map...")
+                gs.run_command(
                     "g.remove",
                     quiet=True,
                     flags="f",
@@ -394,8 +394,8 @@ def main():
                 )
 
             else:
-                grass.verbose("Removing interim cost map...")
-                grass.run_command(
+                gs.verbose("Removing interim cost map...")
+                gs.run_command(
                     "g.remove",
                     quiet=True,
                     flags="f",
@@ -404,47 +404,45 @@ def main():
                 )
         #  clean up friction map if necessary
         if bool(options["friction"]) is False:
-            grass.run_command(
+            gs.run_command(
                 "g.remove", quiet=True, flags="f", type="raster", name=friction
             )
         # clean up slope map if necessary
         if bool(options["sigma"]) is True:
-            grass.run_command(
-                "g.remove", quiet=True, flags="f", type="raster", name=slope
-            )
+            gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=slope)
         # check mask status and reset to original state
         if ismask == 2:
-            grass.message("Reinstating original MASK...")
-            grass.run_command(
+            gs.message("Reinstating original MASK...")
+            gs.run_command(
                 "g.rename",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet="True",
                 rast=tempmask + ",MASK",
             )
         elif ismask == 0 and bool(options["sigma"]) is True:
-            grass.run_command(
+            gs.run_command(
                 "g.remove", quiet=True, flags="f", type="raster", name="MASK"
             )
         elif ismask == 1:
-            grass.message("Keeping original MASK")
-        grass.verbose("     DONE!")
+            gs.message("Keeping original MASK")
+        gs.verbose("     DONE!")
         return
     else:  # Run with the full set of points.
         if bool(options["in_cost"]) is True:
-            grass.verbose("Using input cost surface")
+            gs.verbose("Using input cost surface")
             cost = options["in_cost"]
         else:
-            grass.verbose("Calculating cost surface")
+            gs.verbose("Calculating cost surface")
             cost = "temporary.cost.%s" % pid
             if bool(options["friction"]) is True:
-                grass.verbose("Calculating costs using input friction map")
+                gs.verbose("Calculating costs using input friction map")
                 friction = options["friction"]
             else:
-                grass.verbose("Calculating for time costs only")
+                gs.verbose("Calculating for time costs only")
                 friction = "temporary.friction.%s" % pid
-                grass.mapcalc(
+                gs.mapcalc(
                     "${out} = if(isnull(${rast1}), null(), 0)",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet=True,
                     out=friction,
                     rast1=elevation,
@@ -452,10 +450,10 @@ def main():
             # NOTE! because "lambda" is an internal python variable, it is
             # impossible to enter the value for key "lambda" in r.walk.
             # It ends up with a python error.
-            grass.run_command(
+            gs.run_command(
                 "r.walk",
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 flags=flagstring,
                 elevation=elevation,
                 friction=friction,
@@ -468,42 +466,42 @@ def main():
             )
         #  clean up friction map if necessary
         if bool(options["friction"]) is False:
-            grass.run_command(
+            gs.run_command(
                 "g.remove", quiet=True, flags="f", type="raster", name=friction
             )
         #################################################
         if bool(options["sigma"]) is True:
-            grass.verbose("Creating optional slope mask")
+            gs.verbose("Creating optional slope mask")
             slope = "temporary.slope.%s" % pid
-            grass.run_command(
+            gs.run_command(
                 "r.slope.aspect",
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 elevation=elevation,
                 slope=slope,
             )
             if ismask == 2:
-                grass.mapcalc(
+                gs.mapcalc(
                     "MASK=if(${rast1} <= ${sigma}, 1, if(${tempmask}, 1, null()))",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet=True,
                     sigma=sigma,
                     rast1=slope,
                     tempmask=tempmask,
                 )
             else:
-                grass.mapcalc(
+                gs.mapcalc(
                     "MASK=if(${rast1} <= ${sigma}, 1, null())",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet=True,
                     sigma=sigma,
                     rast1=slope,
                 )
         else:
-            grass.verbose("No slope mask created")
+            gs.verbose("No slope mask created")
         ##################################################
         if flags["l"] is True:
-            grass.message(
+            gs.message(
                 "Calculating list of possible catchment"
                 " configurations...\ncost value | catchment area"
             )
@@ -517,17 +515,17 @@ def main():
             # start the loop, and list the values
             for key in sorted(areadict):
                 testarea = testarea + int(float(areadict[key]))
-                grass.message("%s | %s" % (int(key), testarea))
+                gs.message("%s | %s" % (int(key), testarea))
             if flags["c"] is True:
                 if bool(options["in_cost"]) is False:
-                    grass.run_command(
+                    gs.run_command(
                         "g.rename",
-                        overwrite=grass.overwrite(),
+                        overwrite=gs.overwrite(),
                         quiet=True,
                         rast="temporary.cost.%s,%s_cost_surface" % (pid, buff),
                     )
-                    grass.verbose("Cleaning up...(keeping cost map)")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...(keeping cost map)")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -535,8 +533,8 @@ def main():
                         name="cost.reclass.%s" % pid,
                     )
                 else:
-                    grass.verbose("Cleaning up...1")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...1")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -545,8 +543,8 @@ def main():
                     )
             else:
                 if bool(options["in_cost"]) is False:
-                    grass.verbose("Cleaning up...2")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...2")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -554,8 +552,8 @@ def main():
                         name="cost.reclass.%s,temporary.cost.%s" % (pid, pid),
                     )
                 else:
-                    grass.verbose("Cleaning up...3")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...3")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -563,24 +561,24 @@ def main():
                         name="cost.reclass.%s" % pid,
                     )
             if bool(options["sigma"]) is True:
-                grass.run_command(
+                gs.run_command(
                     "g.remove", quiet=True, flags="f", type="raster", name=slope
                 )
             if ismask == 2:
-                grass.message("Reinstating original MASK...")
-                grass.run_command(
+                gs.message("Reinstating original MASK...")
+                gs.run_command(
                     "g.rename",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet="True",
                     rast=tempmask + ",MASK",
                 )
             elif ismask == 0 and bool(options["sigma"]) is True:
-                grass.run_command(
+                gs.run_command(
                     "g.remove", quiet=True, flags="f", type="raster", name="MASK"
                 )
             elif ismask == 1:
-                grass.message("Keeping original MASK")
-            grass.verbose("     DONE!")
+                gs.message("Keeping original MASK")
+            gs.verbose("     DONE!")
             return
         else:
             areadict = {}
@@ -593,11 +591,11 @@ def main():
             for key in sorted(areadict):
                 tot_area = tot_area + int(float(areadict[key]))
                 maxcost = key
-            grass.message(
+            gs.message(
                 "Maximum cost distance value %s covers an area of %s"
                 " square map units" % (int(maxcost), tot_area)
             )
-            grass.verbose("Commencing to find a catchment configuration.....")
+            gs.verbose("Commencing to find a catchment configuration.....")
             testarea = 0
             lastarea = 0
             lastkey = 0
@@ -614,44 +612,44 @@ def main():
             else:
                 cutoff = lastkey
                 displayarea = lastarea
-            grass.verbose("Catchment configuration found!")
-            grass.message(
+            gs.verbose("Catchment configuration found!")
+            gs.message(
                 "Cost cutoff %s produces a catchment of %s square map "
                 "units." % (int(cutoff), displayarea)
             )
             ####################################################
-            grass.verbose("Creating output map")
-            t = grass.tempfile()
+            gs.verbose("Creating output map")
+            t = gs.tempfile()
             temp = open(t, "w+")
             temp.write("0 thru %s = %s\n" % (int(cutoff), mapval))
             temp.flush()
-            grass.run_command(
+            gs.run_command(
                 "r.reclass",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 input=cost,
                 output="cost.reclass.%s" % pid,
                 rules=t,
             )
             temp.close()
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out}=if(isnull(${cost}), null(), ${cost})",
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
                 cost="cost.reclass.%s" % pid,
                 out=buff,
             )
-            grass.verbose("The output catchment map will be named %s" % buff)
-            grass.run_command("r.colors", quiet=True, map=buff, color="ryb")
+            gs.verbose("The output catchment map will be named %s" % buff)
+            gs.run_command("r.colors", quiet=True, map=buff, color="ryb")
             if flags["c"] is True:
                 if bool(options["in_cost"]) is False:
-                    grass.run_command(
+                    gs.run_command(
                         "g.rename",
-                        overwrite=grass.overwrite(),
+                        overwrite=gs.overwrite(),
                         quiet=True,
                         rast="temporary.cost.%s,%s_cost_surface" % (pid, buff),
                     )
-                    grass.verbose("Cleaning up...(keeping cost map)")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...(keeping cost map)")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -659,8 +657,8 @@ def main():
                         name="cost.reclass.%s" % pid,
                     )
                 else:
-                    grass.verbose("Cleaning up...1")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...1")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -669,8 +667,8 @@ def main():
                     )
             else:
                 if bool(options["in_cost"]) is False:
-                    grass.verbose("Cleaning up...2")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...2")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -678,8 +676,8 @@ def main():
                         name="cost.reclass.%s,temporary.cost.%s" % (pid, pid),
                     )
                 else:
-                    grass.verbose("Cleaning up...3")
-                    grass.run_command(
+                    gs.verbose("Cleaning up...3")
+                    gs.run_command(
                         "g.remove",
                         quiet=True,
                         flags="f",
@@ -687,24 +685,24 @@ def main():
                         name="cost.reclass.%s" % pid,
                     )
             if bool(options["sigma"]) is True:
-                grass.run_command(
+                gs.run_command(
                     "g.remove", quiet=True, flags="f", type="raster", name=slope
                 )
             if ismask == 2:
-                grass.message("Reinstating original MASK...")
-                grass.run_command(
+                gs.message("Reinstating original MASK...")
+                gs.run_command(
                     "g.rename",
-                    overwrite=grass.overwrite(),
+                    overwrite=gs.overwrite(),
                     quiet="True",
                     rast=tempmask + ",MASK",
                 )
             elif ismask == 0 and bool(options["sigma"]) is True:
-                grass.run_command(
+                gs.run_command(
                     "g.remove", quiet=True, flags="f", type="raster", name="MASK"
                 )
             elif ismask == 1:
-                grass.message("Keeping original MASK")
-            grass.verbose("     DONE!")
+                gs.message("Keeping original MASK")
+            gs.verbose("     DONE!")
             return
 
 
@@ -712,6 +710,6 @@ def main():
 # This way of programming is necessary for the way g.parser needs to
 # run in GRASS 7.
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()
     exit(0)

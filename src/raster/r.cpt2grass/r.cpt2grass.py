@@ -54,7 +54,7 @@
 # %end
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def HSVtoRGB(h, s, v):
@@ -149,7 +149,7 @@ def main(options, flags):
             cpt_rules.append(line.strip())
 
     if model not in ("RGB", "HSV"):
-        gscript.fatal(_("Only the RGB and HSV color models are supported"))
+        gs.fatal(_("Only the RGB and HSV color models are supported"))
 
     rules = []
     if flags["s"]:
@@ -161,7 +161,7 @@ def main(options, flags):
         try:
             v1, r1, g1, b1, v2, r2, g2, b2 = line.split()
         except ValueError:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Parsing input failed. The expected format is 'value1 R G B value2 R G B'"
                 )
@@ -185,7 +185,7 @@ def main(options, flags):
             )
         )
     if options["map"]:
-        gscript.write_command(
+        gs.write_command(
             "r.colors", map=options["map"], rules="-", stdin="\n".join(rules)
         )
     if options["output"]:
@@ -197,5 +197,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main(options, flags))
