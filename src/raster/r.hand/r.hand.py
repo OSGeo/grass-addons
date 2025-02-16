@@ -134,6 +134,7 @@ import sys
 import atexit
 import uuid
 import grass.script as gs
+from grass.exceptions import CalledModuleError
 
 tmp_raster_list = []
 
@@ -157,7 +158,7 @@ def run_r_watershed(
     direction: str,
     threshold: int,
     memory: int,
-    swap_mode: bool,
+    swap_mode_flag: str,
 ) -> None:
     """
     Run the GRASS GIS r.watershed module to generate streams and flow direction raster maps.
@@ -168,7 +169,7 @@ def run_r_watershed(
     direction (str): Name of the output flow direction raster map.
     threshold (int): Minimum size of exterior watershed basin in cells. Must be greater than 0.
     memory (int): Maximum memory to be used in MB.
-    swap_mode (bool): If provided, enables memory swap mode.
+    swap_mode_flag (str): If provided, enables memory swap mode.
 
     Returns:
     None
@@ -177,15 +178,11 @@ def run_r_watershed(
     CalledModuleError: If there is an error running the r.watershed module.
     """
 
-    flags = ""
     if streams.startswith("tmp") and direction.startswith("tmp"):
         gs.message(_("Generating streams and flow direction raster maps"))
         if threshold <= 0:
             gs.fatal(_("Threshold must be greater than 0"))
 
-        if swap_mode:
-            gs.message(_("Using memory swap mode"))
-            flags = "m"
         try:
             gs.run_command(
                 "r.watershed",
@@ -194,14 +191,13 @@ def run_r_watershed(
                 stream=streams,
                 drainage=direction,
                 memory=memory,
-                flags=flags,
+                flags=swap_mode_flag,
                 quiet=True,
             )
-        except gs.CalledModuleError as e:
+        except CalledModuleError as e:
             gs.fatal(
-                _(
-                    f"Error generating streams and flow direction raster maps: {e.stderr}"
-                )
+                _("Error generating streams and flow direction raster maps: %s")
+                % e.stderr
             )
 
 
@@ -211,7 +207,7 @@ def run_stream_distance(
     elevation: str,
     difference: str,
     memory: int,
-    swap_mode: bool,
+    swap_mode_flag: str,
 ) -> None:
     """
     Calculate the height above nearest drainage (HAND) using the r.stream.distance GRASS GIS module.
@@ -222,19 +218,13 @@ def run_stream_distance(
     elevation (str): Name of the input elevation raster map.
     difference (str): Name of the output raster map to store the height above nearest drainage.
     memory (int): Maximum memory to be used by the module.
-    swap_mode (bool): Use memory swap (operation is slow).
+    swap_mode_flag (str): Use memory swap (operation is slow).
 
     Raises:
     CalledModuleError: If there is an error running the r.stream.distance module.
     """
-    flags = ""
-
     gs.message(_("Calculating height above nearest drainage"))
 
-    if swap_mode:
-        gs.message(_("Using memory swap mode"))
-
-        flags = "m"
     try:
         gs.run_command(
             "r.stream.distance",
@@ -244,11 +234,11 @@ def run_stream_distance(
             method="downstream",  # Fixed to downstream for HAND analysis
             difference=difference,
             memory=memory,
-            flags=flags,
+            flags=swap_mode_flag,
             quiet=True,
         )
-    except gs.CalledModuleError as e:
-        gs.fatal(_(f"Error calculating height above nearest drainage: {e.stderr}"))
+    except CalledModuleError as e:
+        gs.fatal(_("Error calculating height above nearest drainage: %s") % e.stderr)
 
 
 def run_r_lake(difference: str, depth: float, inundation: str, streams: str):
@@ -279,8 +269,8 @@ def run_r_lake(difference: str, depth: float, inundation: str, streams: str):
             seed=streams,
             quiet=True,
         )
-    except gs.CalledModuleError as e:
-        gs.fatal(_(f"Error generating inundation raster map: {e.stderr}"))
+    except CalledModuleError as e:
+        gs.fatal(_("Error generating inundation raster map: %s") % e.stderr)
 
 
 def run_r_lake_series(
@@ -303,7 +293,7 @@ def run_r_lake_series(
     streams (str): The name of the streams raster map used as seed points.
 
     Raises:
-    gs.CalledModuleError: If there is an error running the r.lake.series command.
+    CalledModuleError: If there is an error running the r.lake.series command.
 
     Returns:
     None
@@ -336,15 +326,15 @@ def run_r_lake_series(
             seed=streams,
             quiet=True,
         )
-    except gs.CalledModuleError as e:
-        gs.fatal(_("Error generating inundation raster maps: {}".format(e.stderr)))
+    except CalledModuleError as e:
+        gs.fatal(_("Error generating inundation raster maps: %s") % e.stderr)
 
 
 def generate_temp_raster_name(raster_name: str) -> str:
     """Generate a temporary raster name"""
     uuid_str = str(uuid.uuid4())
     tmp_raster_name = f"tmp_{raster_name}_{uuid_str}"
-    gs.debug(_(f"Temporary raster name: {tmp_raster_name}"))
+    gs.debug(_("Temporary raster name: %s") % tmp_raster_name)
     tmp_raster_list.append(tmp_raster_name)
     return tmp_raster_name
 
@@ -352,7 +342,7 @@ def generate_temp_raster_name(raster_name: str) -> str:
 def check_raster_exists(raster):
     # check if input file exists
     if not gs.find_file(raster)["file"]:
-        gs.fatal(_(f"Raster map {raster} not found"))
+        gs.fatal(_("Raster map %s not found") % raster)
     return raster
 
 
@@ -396,10 +386,16 @@ def main():
     # Compuational Options
     memory = options["memory"]
     swap_mode = flags["m"]
+    swap_mode_flags = ""
+    if swap_mode:
+        gs.message(_("Using memory swap mode"))
+        swap_mode_flags = "m"
 
     # Check if elevation, stram_rast, and direction are provided
-    run_r_watershed(elevation, streams, direction, threshold, memory, swap_mode)
-    run_stream_distance(streams, direction, elevation, difference, memory, swap_mode)
+    run_r_watershed(elevation, streams, direction, threshold, memory, swap_mode_flags)
+    run_stream_distance(
+        streams, direction, elevation, difference, memory, swap_mode_flags
+    )
 
     if inundation_series:
         run_r_lake_series(
