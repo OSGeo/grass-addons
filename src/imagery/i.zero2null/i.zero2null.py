@@ -32,7 +32,7 @@ import sys
 import os
 import shutil
 import atexit
-import grass.script as gscript
+import grass.script as gs
 
 # initialize global vars
 rm_region = None
@@ -42,15 +42,13 @@ rm_rasters = []
 def cleanup():
     if (
         rm_region is not None
-        and gscript.find_file(name=rm_region, element="windows", mapset=".")["name"]
+        and gs.find_file(name=rm_region, element="windows", mapset=".")["name"]
     ):
-        gscript.run_command("g.region", region=rm_region)
-        gscript.run_command(
-            "g.remove", type="region", name=rm_region, flags="f", quiet=True
-        )
+        gs.run_command("g.region", region=rm_region)
+        gs.run_command("g.remove", type="region", name=rm_region, flags="f", quiet=True)
     for rmrast in rm_rasters:
-        if gscript.find_file(name=rmrast, element="cell", mapset=".")["name"]:
-            gscript.run_command(
+        if gs.find_file(name=rmrast, element="cell", mapset=".")["name"]:
+            gs.run_command(
                 "g.remove", type="raster", name=rmrast, flags="f", quiet=True
             )
 
@@ -62,56 +60,52 @@ def main():
     # why is this global needed for rm_region but not for rm_rasters ?
     global rm_region
     rm_region = "i_zero2null_region_" + str(os.getpid())
-    gscript.run_command("g.region", save=rm_region)
+    gs.run_command("g.region", save=rm_region)
 
-    gisenv = gscript.gisenv()
+    gisenv = gs.gisenv()
 
     for inmap in inmaps:
-        gscript.message("Processing <%s>..." % inmap)
+        gs.message("Processing <%s>..." % inmap)
         # check if map is in current mapset
         inmap = inmap.split("@")[0]
-        mapname = gscript.find_file(name=inmap, element="cell", mapset=".")["name"]
+        mapname = gs.find_file(name=inmap, element="cell", mapset=".")["name"]
         if mapname is None or len(mapname) == 0:
-            gscript.warning("Raster map <%s> is not in the current mapset." % mapname)
+            gs.warning("Raster map <%s> is not in the current mapset." % mapname)
             continue
 
         # set current region to map
-        gscript.run_command("g.region", raster=inmap)
+        gs.run_command("g.region", raster=inmap)
 
         # check if there are any zero cells
-        rinfo = gscript.raster_info(inmap)
+        rinfo = gs.raster_info(inmap)
         if rinfo["datatype"] != "CELL":
-            gscript.warning(
+            gs.warning(
                 "Input map <%s> is not of CELL type but %s."
                 % (inmap, rinfo["datatype"])
             )
             continue
 
         if rinfo["min"] > 0:
-            gscript.message("No zero cells in input map <%s>, nothing to do." % inmap)
+            gs.message("No zero cells in input map <%s>, nothing to do." % inmap)
             continue
 
-        gscript.run_command("g.region", raster=inmap)
+        gs.run_command("g.region", raster=inmap)
 
         # create clumps of zero cells
         # reclass rules
-        tmpfile = gscript.tempfile()
+        tmpfile = gs.tempfile()
         f = open(tmpfile, "w")
         f.write("0 = 1\n")
         f.write("* = NULL\n")
         f.close()
 
-        gscript.run_command(
-            "r.reclass", input=inmap, output=inmap + "_rcl", rules=tmpfile
-        )
-        gscript.try_remove(tmpfile)
+        gs.run_command("r.reclass", input=inmap, output=inmap + "_rcl", rules=tmpfile)
+        gs.try_remove(tmpfile)
         rm_rasters.append(inmap + "_rcl")
 
-        gscript.run_command(
-            "r.clump", input=inmap + "_rcl", output=inmap + "_rcl_clump"
-        )
+        gs.run_command("r.clump", input=inmap + "_rcl", output=inmap + "_rcl_clump")
 
-        map_region = gscript.region()
+        map_region = gs.region()
 
         # get center coordinates of the corner pixels
         nc = map_region["n"] - map_region["nsres"] / 2.0
@@ -123,7 +117,7 @@ def main():
         corner_clumps = []
         # strip line endings from r.what output
         clump = (
-            gscript.read_command(
+            gs.read_command(
                 "r.what", map=inmap + "_rcl_clump", coordinates=("%s,%s" % (wc, nc))
             )
             .rstrip()
@@ -133,7 +127,7 @@ def main():
             corner_clumps.append(clump)
 
         clump = (
-            gscript.read_command(
+            gs.read_command(
                 "r.what", map=inmap + "_rcl_clump", coordinates=("%s,%s" % (ec, nc))
             )
             .rstrip()
@@ -143,7 +137,7 @@ def main():
             corner_clumps.append(clump)
 
         clump = (
-            gscript.read_command(
+            gs.read_command(
                 "r.what", map=inmap + "_rcl_clump", coordinates=("%s,%s" % (ec, sc))
             )
             .rstrip()
@@ -153,7 +147,7 @@ def main():
             corner_clumps.append(clump)
 
         clump = (
-            gscript.read_command(
+            gs.read_command(
                 "r.what", map=inmap + "_rcl_clump", coordinates=("%s,%s" % (wc, sc))
             )
             .rstrip()
@@ -164,24 +158,24 @@ def main():
 
         # check if any clumps are not covered by corner cells:
         # internal patches of zero cells
-        clumpinfo = gscript.raster_info(inmap + "_rcl_clump")
+        clumpinfo = gs.raster_info(inmap + "_rcl_clump")
         maptomask = None
         n_inner_clumps = int(clumpinfo["max"]) - len(corner_clumps)
         if n_inner_clumps > 0:
-            gscript.message("Filling %(n)d inner clumps..." % {"n": n_inner_clumps})
+            gs.message("Filling %(n)d inner clumps..." % {"n": n_inner_clumps})
             exp = "%(inmap)s_nozero = if(%(inmap)s == 0, null(), %(inmap)s)" % {
                 "inmap": inmap
             }
-            gscript.mapcalc(exp)
+            gs.mapcalc(exp)
             rm_rasters.append(inmap + "_nozero")
-            gscript.run_command(
+            gs.run_command(
                 "r.grow.distance", input=inmap + "_nozero", value=inmap + "_nearest_flt"
             )
             rm_rasters.append(inmap + "_nearest_flt")
             exp = "%(inmap)s_nearest = round(%(inmap)s_nearest_flt)" % {"inmap": inmap}
-            gscript.mapcalc(exp)
+            gs.mapcalc(exp)
             rm_rasters.append(inmap + "_nearest")
-            gscript.run_command(
+            gs.run_command(
                 "r.patch",
                 input="%(inmap)s_nearest,%(inmap)s_nozero" % {"inmap": inmap},
                 output=inmap + "_filled",
@@ -193,11 +187,9 @@ def main():
 
         # corner clumps of zero cells
         if len(corner_clumps) > 0:
-            gscript.message(
-                "Removing %(n)d corner clumps..." % {"n": len(corner_clumps)}
-            )
+            gs.message("Removing %(n)d corner clumps..." % {"n": len(corner_clumps)})
             corner_clumps = sorted(set(corner_clumps))
-            tmpfile = gscript.tempfile()
+            tmpfile = gs.tempfile()
             f = open(tmpfile, "w")
             have_corner_clumps = False
             for clump in corner_clumps:
@@ -207,23 +199,23 @@ def main():
             # create a nodata mask and set masked cells to null
             f.write("* = NULL\n")
             f.close()
-            gscript.run_command(
+            gs.run_command(
                 "r.reclass",
                 input=inmap + "_rcl_clump",
                 output=inmap + "_nodatamask",
                 rules=tmpfile,
             )
-            gscript.try_remove(tmpfile)
+            gs.try_remove(tmpfile)
             rm_rasters.append(inmap + "_nodatamask")
 
             exp = (
                 "%(inmap)s_null = if(isnull(%(inmap)s_nodatamask), %(maptomask)s, null())"
                 % {"inmap": inmap, "maptomask": maptomask}
             )
-            gscript.mapcalc(exp)
+            gs.mapcalc(exp)
         else:
             if maptomask != inmap:
-                gscript.run_command(
+                gs.run_command(
                     "g.rename",
                     raster="%(maptomask)s,%(inmap)s_null"
                     % {"maptomask": maptomask, "inmap": inmap},
@@ -311,21 +303,19 @@ def main():
             shutil.copyfile(path, newpath)
 
         # remove <inmap>_rcl first
-        gscript.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=inmap + "_rcl", flags="f", quiet=True
         )
         # remove <inmap>
-        gscript.run_command(
-            "g.remove", type="raster", name=inmap, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=inmap, flags="f", quiet=True)
 
         # rename <inmap>_null to <inmap>
-        gscript.run_command(
+        gs.run_command(
             "g.rename", raster="%(inmap)s_null,%(inmap)s" % {"inmap": inmap}, quiet=True
         )
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

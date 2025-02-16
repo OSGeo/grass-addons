@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import grass.script as gscript
+import grass.script as gs
 from PIL import Image
 import argparse
 
@@ -14,7 +14,7 @@ DATASET = {"north_carolina": {"w": 600, "h": 600}, "piemonte": {"w": 600, "h": 8
 
 
 def description_box(title):
-    gscript.write_command(
+    gs.write_command(
         "d.graph",
         stdin="""
     color white
@@ -25,11 +25,11 @@ def description_box(title):
         100 0
     """,
     )
-    gscript.run_command("d.text", text=title, at="2,11", size=5, color="black")
+    gs.run_command("d.text", text=title, at="2,11", size=5, color="black")
 
 
 def legend_item(color, text, x, y):
-    gscript.write_command(
+    gs.write_command(
         "d.graph",
         stdin="""
     color {color}
@@ -40,7 +40,7 @@ def legend_item(color, text, x, y):
         {x2} {y2}
     """.format(color=color, x1=x, y1=y, x2=x + 2, y2=y + 2),
     )
-    gscript.run_command("d.text", text=text, at=(x + 3, y + 0.5), size=2, color="black")
+    gs.run_command("d.text", text=text, at=(x + 3, y + 0.5), size=2, color="black")
 
 
 def d_rast_legend(raster, title):
@@ -48,10 +48,10 @@ def d_rast_legend(raster, title):
     :param str raster: the name of raster to print
     :param str title: the text to append to the legend
     """
-    gscript.run_command("d.rast", map=raster)
+    gs.run_command("d.rast", map=raster)
     description_box(title)
-    gscript.run_command("d.legend", raster=raster, at="6,9,6,50", flags="d")
-    gscript.run_command(
+    gs.run_command("d.legend", raster=raster, at="6,9,6,50", flags="d")
+    gs.run_command(
         "d.barscale", style="classic", at="55,9", color="black", text_position="over"
     )
 
@@ -76,7 +76,7 @@ def join_output(inputs, output, width, height, resize=None):
 
 def cleanup(maps):
     """Remove all the created maps"""
-    gscript.run_command("g.remove", type="raster", name=",".join(maps), flags="f")
+    gs.run_command("g.remove", type="raster", name=",".join(maps), flags="f")
 
 
 def get_parser():
@@ -177,9 +177,9 @@ def main():
     height = data["h"]
 
     # we set region for the whole session (i.e. also outside the script)
-    gscript.run_command("g.region", raster=elevation)
+    gs.run_command("g.region", raster=elevation)
 
-    gscript.run_command(
+    gs.run_command(
         "r.slope.aspect",
         elevation=elevation,
         slope=slope,
@@ -187,7 +187,7 @@ def main():
         pcurvature=profile_curvature,
     )
 
-    gscript.run_command("r.relief", input=elevation, output=shade)
+    gs.run_command("r.relief", input=elevation, output=shade)
 
     # render maps
     # set variables for rendering into a file
@@ -199,15 +199,15 @@ def main():
 
     # shaded map with vectors
     os.environ["GRASS_RENDER_FILE"] = ele_out
-    gscript.run_command("d.shade", shade=shade, color=elevation)
-    gscript.run_command("d.vect", map=streams, width=1, color=streams_color)
-    gscript.run_command("d.vect", map=roadsmajor, width=2, color=roads_color)
+    gs.run_command("d.shade", shade=shade, color=elevation)
+    gs.run_command("d.vect", map=streams, width=1, color=streams_color)
+    gs.run_command("d.vect", map=roadsmajor, width=2, color=roads_color)
     description_box("Overview map")
     legend_item(streams_color, "Streams", 3, 3)
     legend_item(roads_color, "Major roads", 3, 6)
-    gscript.run_command("d.legend", raster=elevation, at="3,6,30,50")
-    gscript.run_command("d.text", text="Elevation", at="30,7", size=2, color="black")
-    gscript.run_command(
+    gs.run_command("d.legend", raster=elevation, at="3,6,30,50")
+    gs.run_command("d.text", text="Elevation", at="30,7", size=2, color="black")
+    gs.run_command(
         "d.barscale", style="classic", at="55,9", color="black", text_position="over"
     )
 

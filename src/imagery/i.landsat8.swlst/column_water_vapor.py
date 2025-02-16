@@ -15,7 +15,7 @@ from constants import EQUATION
 from randomness import random_adjacent_pixel_values
 from grass.pygrass.modules.shortcuts import general as g
 from dummy_mapcalc_strings import replace_dummies
-import grass.script as grass
+import grass.script as gs
 from helpers import run
 
 
@@ -476,7 +476,7 @@ def estimate_cwv_big_expression(
         g.message(msg)
 
     cwv_equation = EQUATION.format(result=outname, expression=cwv_expression)
-    grass.mapcalc(cwv_equation, overwrite=True)
+    gs.mapcalc(cwv_equation, overwrite=True)
 
     if quiet:
         run("r.info", map=outname, flags="r")

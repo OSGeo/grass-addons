@@ -83,14 +83,14 @@
 # % guisection: table
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
 
 def main():
     if not options["columns"] and not options["struct"]:
-        grass.fatal("Must be defined <attributes> or <struct> parameter")
+        gs.fatal("Must be defined <attributes> or <struct> parameter")
 
     conn = ConnectionManager()
     conn.get_current_connection(options["driver"])
@@ -109,5 +109,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

@@ -434,3 +434,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # See https://docs.astral.sh/ruff/settings/#lint_per-file-ignores
 "src/imagery/i.sam2/i.sam2.py" = ["DOC502"]
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+# Declare a custom aliases, checked with rule ICN001
+"grass.script" = "gs"
+"grass.temporal" = "tgis"

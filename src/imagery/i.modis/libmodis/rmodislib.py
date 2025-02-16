@@ -15,7 +15,7 @@
 # 		for details.
 #
 #############################################################################
-import grass.script as grass
+import grass.script as gs
 
 # interface to g.proj -p
 
@@ -32,7 +32,7 @@ def get_proj(flag="p"):
 
     @return dictionary of projection values
     """
-    gproj = grass.read_command("g.proj", flags=flag)
+    gproj = gs.read_command("g.proj", flags=flag)
     if flag == "p":
         listproj = gproj.split("\n")
         try:
@@ -61,7 +61,7 @@ def get_proj(flag="p"):
                 proj[ilist[0].strip()] = ilist[1].strip()
             except IndexError:
                 continue
-        proj.update(grass.parse_command("g.proj", flags="j"))
+        proj.update(gs.parse_command("g.proj", flags="j"))
         return proj
     elif flag == "w":
         return gproj.replace("\n", "").replace("    ", "")
@@ -522,7 +522,7 @@ class product:
         elif list(self.products_swath.keys()).count(self.prod) == 1:
             return self.products_swath[self.prod]
         else:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "The MODIS product ({}) inserted is not supported yet. "
                     "Consider to ask on the grass-dev mailing list "
@@ -537,7 +537,7 @@ class product:
         for k, v in self.products_swath.items():
             if v["prod"].find(code) != -1:
                 return self.products_swath[k]
-        grass.fatal(
+        gs.fatal(
             _(
                 "The MODIS product ({}) inserted is not supported yet. "
                 "Consider to ask on the grass-dev mailing list "
@@ -647,7 +647,7 @@ class projection:
     def returned(self):
         """Return the projection in the MRT style"""
         if self.val not in self.projections.keys():
-            grass.fatal(_("Projection <%s> is not supported") % self.val)
+            gs.fatal(_("Projection <%s> is not supported") % self.val)
         else:
             return self.projections[self.val]
 
@@ -733,16 +733,16 @@ class projection:
                 SMajor, SMinor, 0.0, Factor, CentMer, TrueScale, FE, FN, swath
             )
         else:
-            grass.fatal(
+            gs.fatal(
                 _("Projection not supported, please contact the GRASS-dev mailing list")
             )
 
     def datum(self):
         """Return the datum in the MRT style"""
         if self.dat not in self.datumlist.keys():
-            grass.fatal(_("Datum <%s> is not supported") % self.dat)
+            gs.fatal(_("Datum <%s> is not supported") % self.dat)
         elif self.dat == "etrs89":
-            grass.warning(_("Changing datum <%s> to <%s>") % (self.dat, "wgs84"))
+            gs.warning(_("Changing datum <%s> to <%s>") % (self.dat, "wgs84"))
         return self.datumlist[self.dat]
 
     def datumswath(self):

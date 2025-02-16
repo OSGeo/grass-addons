@@ -20,7 +20,7 @@ from sqlalchemy import Table
 from hdfs_grass_util import read_dict, save_dict, get_tmp_folder
 from grass.pygrass.modules import Module
 from grass.script.core import PIPE
-import grass.script as grass
+import grass.script as gs
 from grass_map import VectorDBInfo as VectorDBInfoBase
 
 from dagpype import stream_lines, to_stream, filt, nth
@@ -95,8 +95,8 @@ class ConnectionManager:
         Add connection to sql database. If connection already exists, is overwritten.
         :return:
         """
-        grass.message("***" * 30)
-        grass.message(
+        gs.message("***" * 30)
+        gs.message(
             "\n     Adding new connection \n       conn_type: %s  \n" % self.conn_type
         )
         self.session.add(self.connection)
@@ -104,15 +104,13 @@ class ConnectionManager:
             self.session.commit()
             self._set_active_connection(self.conn_type, self.connectionDict["conn_id"])
         except IntegrityError as e:
-            grass.message(
-                "       ERROR conn_id already exists. Will be overwritten...\n"
-            )
-            grass.message("***" * 30)
+            gs.message("       ERROR conn_id already exists. Will be overwritten...\n")
+            gs.message("***" * 30)
             self.session.rollback()
             self.session.flush()
             self.remove_conn_Id(self.connectionDict["conn_id"])
             self.add_connection()
-            grass.message("***" * 30)
+            gs.message("***" * 30)
 
     def set_connection(
         self,
@@ -139,7 +137,7 @@ class ConnectionManager:
         """
 
         if None in [conn_id, conn_type]:
-            grass.fatal("ERROR: no conn_id or conn_type defined")
+            gs.fatal("ERROR: no conn_id or conn_type defined")
             return None
         self.conn_id = conn_id
         self.conn_type = conn_type
@@ -165,13 +163,13 @@ class ConnectionManager:
         try:
             connTable.drop(settings.engine)
             os.remove(settings.grass_config)
-            grass.message("***" * 30)
-            grass.message("\n     Table of connection has been removed \n")
-            grass.message("***" * 30)
+            gs.message("***" * 30)
+            gs.message("\n     Table of connection has been removed \n")
+            gs.message("***" * 30)
         except Exception as e:
-            grass.message("***" * 30)
-            grass.message("\n     No table exists\n")
-            grass.message("***" * 30)
+            gs.message("***" * 30)
+            gs.message("\n     No table exists\n")
+            gs.message("***" * 30)
 
     @staticmethod
     def show_connections():
@@ -180,17 +178,17 @@ class ConnectionManager:
         :return:
         """
         cn = settings.engine.connect()
-        grass.message("***" * 30)
-        grass.message("\n     Table of connection \n")
+        gs.message("***" * 30)
+        gs.message("\n     Table of connection \n")
         try:
             result = cn.execute("select * from connection")
             for row in result:
-                grass.message("       %s\n" % row)
+                gs.message("       %s\n" % row)
             cn.close()
         except Exception as e:
-            grass.message(e)
-            grass.message("        No connection\n")
-        grass.message("***" * 30)
+            gs.message(e)
+            gs.message("        No connection\n")
+        gs.message("***" * 30)
 
     def set_active_connection(self, conn_type=None, conn_id=None):
         """
@@ -239,13 +237,13 @@ class ConnectionManager:
         """
         cfg = read_dict(settings.grass_config)
         if cfg:
-            grass.message("***" * 30)
-            grass.message("\n     Primary connection for db drivers\n")
+            gs.message("***" * 30)
+            gs.message("\n     Primary connection for db drivers\n")
             for key, val in cfg.iteritems():
-                grass.message("       conn_type: %s -> conn_id: %s\n" % (key, val))
+                gs.message("       conn_type: %s -> conn_id: %s\n" % (key, val))
         else:
-            grass.message("      No connection defined\n")
-        grass.message("***" * 30)
+            gs.message("      No connection defined\n")
+        gs.message("***" * 30)
 
     def get_current_connection(self, conn_type):
         """
@@ -279,16 +277,16 @@ class ConnectionManager:
         :return:
         """
         cn = settings.engine.connect()
-        grass.message("***" * 30)
-        grass.message("\n     Removing connection %s " % id)
+        gs.message("***" * 30)
+        gs.message("\n     Removing connection %s " % id)
         try:
-            grass.message("       conn_id= %s \n" % id)
+            gs.message("       conn_id= %s \n" % id)
             cn.execute('DELETE FROM connection WHERE conn_id="%s"' % id)
             cn.close()
         except Exception as e:
-            grass.message("       ERROR: %s \n" % e)
+            gs.message("       ERROR: %s \n" % e)
             # grass.message('     No connection with conn_id %s'%id)
-        grass.message("***" * 30)
+        gs.message("***" * 30)
 
     def set_connection_uri(self, uri):
         """
@@ -311,7 +309,7 @@ class ConnectionManager:
         hook = self.get_hook()
         if hook:
             if not hook.test():
-                grass.message("Cannot establish connection")
+                gs.message("Cannot establish connection")
                 return False
 
 
@@ -336,7 +334,7 @@ class HiveTableBuilder:
             if dtype == "integer":
                 dtype = "INT"
             if not dtype.capitalize() in dtype:
-                grass.fatal(
+                gs.fatal(
                     "Automatic generation of columns faild, datatype %s is not recognized"
                     % dtype
                 )
@@ -454,7 +452,7 @@ class JSONBuilder:
             overwrite=True,
         )
 
-        grass.message(out1.outputs["stderr"].value.strip())
+        gs.message(out1.outputs["stderr"].value.strip())
 
         self.rm_last_lines(out, 3)
         # remove first 5 lines and last 3 to enseure format for serializetion
@@ -584,9 +582,9 @@ class GrassMapBuilder(object):
             return ["paths", '"type":"MultiLineString","coordinates":']
 
         if line.find('"x"'):
-            grass.fatal("Point is not supported")
+            gs.fatal("Point is not supported")
         if line.find("envelope"):
-            grass.fatal("Envelope is not supported")
+            gs.fatal("Envelope is not supported")
 
     def replace_substring(self, foo, bar):
         """
@@ -714,15 +712,15 @@ class GrassHdfs:
 
     @staticmethod
     def printInfo(hdfs, msg=None):
-        grass.message("***" * 30)
+        gs.message("***" * 30)
         if msg:
-            grass.message("     %s \n" % msg)
-        grass.message(" path :\n    %s\n" % hdfs)
-        grass.message("***" * 30)
+            gs.message("     %s \n" % msg)
+        gs.message(" path :\n    %s\n" % hdfs)
+        gs.message("***" * 30)
 
     def get_path_grass_dataset(self):
-        LOCATION_NAME = grass.gisenv()["LOCATION_NAME"]
-        MAPSET = grass.gisenv()["MAPSET"]
+        LOCATION_NAME = gs.gisenv()["LOCATION_NAME"]
+        MAPSET = gs.gisenv()["MAPSET"]
         dest_path = os.path.join("grass_data_hdfs", LOCATION_NAME, MAPSET, "vector")
         self.mkdir(dest_path)
         return dest_path
@@ -750,5 +748,5 @@ class GrassHdfs:
         if out:
             self.grass.messageInfo(out)
         else:
-            grass.message("Copy error!")
+            gs.message("Copy error!")
         return out

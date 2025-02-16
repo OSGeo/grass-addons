@@ -50,7 +50,7 @@
 
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -59,7 +59,7 @@ def main():
     signs = options["signature"]
     rem = flags["f"]
 
-    gisenv = grass.gisenv()
+    gisenv = gs.gisenv()
 
     try:
         name, mapset = group.split("@", 1)
@@ -72,7 +72,7 @@ def main():
         path = os.path.join(gisenv["GISDBASE"], gisenv["LOCATION_NAME"])
         path = os.path.join(path, mapset, "group", name, "subgroup", sub, "sig", sign)
         if not os.path.exists(path):
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Signature file <{pa}> does not exist for group "
                     "<{gr}> and subgroup <{su}>"
@@ -83,15 +83,13 @@ def main():
                 os.remove(path)
                 print(_("Removing signature file <{si}>").format(si=sign))
             except:
-                grass.warning(
-                    _("Signature file <{pa}> was not removed").format(pa=sign)
-                )
+                gs.warning(_("Signature file <{pa}> was not removed").format(pa=sign))
         else:
             output_str += "{gr}/{su}/{sig}\n".format(gr=group, su=sub, sig=sign)
 
     if not rem:
         print(output_str.rstrip())
-        grass.warning(
+        gs.warning(
             _(
                 "Nothing removed. You must use the force flag (-f) "
                 "to actually remove them. Exiting."
@@ -100,5 +98,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())
