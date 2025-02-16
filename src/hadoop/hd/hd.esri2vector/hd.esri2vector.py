@@ -38,7 +38,7 @@
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import GrassMapBuilderEsriToEsri
 
@@ -55,15 +55,15 @@ def main():
             map_build.build()
             map_string += "%s," % map
         except Exception as e:
-            grass.warning("Error: %s\n     Map < %s >  conversion failed" % (e, block))
+            gs.warning("Error: %s\n     Map < %s >  conversion failed" % (e, block))
 
     path, folder_name = os.path.split(options["path"])
-    grass.message(
+    gs.message(
         "For merge map: v.patch output=%s -e --overwrite input=%s"
         % (folder_name, map_string)
     )
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

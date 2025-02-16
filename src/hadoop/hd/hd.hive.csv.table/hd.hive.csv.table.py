@@ -100,7 +100,7 @@
 # % description: the EXTERNAL keyword lets you create a table and provide a LOCATION so that Hive does not use a default location for this table. This comes in handy if you already have data generated. When dropping an EXTERNAL table, data in the table is NOT deleted from the file system.
 # % guisection: table
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -126,5 +126,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()
