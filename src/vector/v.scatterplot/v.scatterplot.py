@@ -382,14 +382,14 @@ import random
 
 def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
-    global matplotlib
+    global mpl
     global plt
     global cm
     global Normalize
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
         from matplotlib import cm
         from matplotlib.colors import Normalize
@@ -410,9 +410,9 @@ def get_valid_color(color):
         color = [int(x) for x in color.split(":")]
         if max(color) > 1:
             color[:] = [x / 255 for x in color]
-    if not matplotlib.colors.is_color_like(color):
+    if not mpl.colors.is_color_like(color):
         gs.fatal(_("{} is not a valid color.").format(color))
-    color = matplotlib.colors.to_rgba(color)
+    color = mpl.colors.to_rgba(color)
     return color
 
 
@@ -518,7 +518,7 @@ def density_scatter(
     idx = z.argsort()
     x, y, z = np.array(X)[idx], np.array(Y)[idx], z[idx]
 
-    cmap = matplotlib.cm.get_cmap(density_colormap)
+    cmap = mpl.cm.get_cmap(density_colormap)
     if reverse_colors:
         cmap = cmap.reversed()
     if s:
@@ -533,7 +533,7 @@ def density_scatter(
     # Create a ScalarMappable for the colorbar
     # Set an empty array to allow the ScalarMappable to be used for the legend
     norm = Normalize(vmin=np.min(z), vmax=np.max(z))
-    sm = matplotlib.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
 
     # Add colorbar to the right of the plo
@@ -559,7 +559,7 @@ def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     # two-dimensional dataset.
     ell_radius_x = np.sqrt(1 + pearson)
     ell_radius_y = np.sqrt(1 - pearson)
-    ellipse = matplotlib.patches.Ellipse(
+    ellipse = mpl.patches.Ellipse(
         (0, 0),
         width=ell_radius_x * 2,
         height=ell_radius_y * 2,
@@ -578,7 +578,7 @@ def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     mean_y = np.mean(y)
 
     transf = (
-        matplotlib.transforms.Affine2D()
+        mpl.transforms.Affine2D()
         .rotate_deg(45)
         .scale(scale_x, scale_y)
         .translate(mean_x, mean_y)
@@ -595,7 +595,7 @@ def random_color():
     :return list with rgb elements
     """
     hex_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-    return matplotlib.colors.hex2color(hex_color)
+    return mpl.colors.hex2color(hex_color)
 
 
 def main(options, flags):

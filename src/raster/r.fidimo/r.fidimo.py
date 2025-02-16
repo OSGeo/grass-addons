@@ -229,7 +229,7 @@ def cleanup():
 
 def main():
     # lazy import required numpy and scipy modules
-    import numpy
+    import numpy as np
     from scipy import stats
     from scipy import optimize
 
@@ -1343,10 +1343,10 @@ def main():
 
                     RealisedDensity = garray.array()
                     if options["seed2"]:
-                        numpy.random.seed(int(options["seed2"]))
-                    RealisedDensity[...] = numpy.random.multinomial(
+                        np.random.seed(int(options["seed2"]))
+                    RealisedDensity[...] = np.random.multinomial(
                         n_fish,
-                        (CorrectedDensity / numpy.sum(CorrectedDensity)).flat,
+                        (CorrectedDensity / np.sum(CorrectedDensity)).flat,
                         size=1,
                     ).reshape(CorrectedDensity.shape)
 

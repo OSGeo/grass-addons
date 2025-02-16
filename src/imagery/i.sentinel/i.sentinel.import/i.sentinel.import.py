@@ -811,7 +811,7 @@ class SentinelImporter(object):
         import numpy as np
 
         try:
-            from xml.etree import ElementTree
+            from xml.etree import ElementTree as ET
             from datetime import datetime
         except ImportError as e:
             gs.fatal(_("Unable to parse metadata file. {}").format(e))
@@ -819,7 +819,7 @@ class SentinelImporter(object):
         meta = {}
         meta["timestamp"] = None
         with io.open(mtd_file, encoding="utf-8") as fd:
-            root = ElementTree.fromstring(fd.read())
+            root = ET.fromstring(fd.read())
             nsPrefix = root.tag[: root.tag.index("}") + 1]
             nsDict = {"n1": nsPrefix[1:-1]}
             node = root.find("n1:General_Info", nsDict)

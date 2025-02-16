@@ -420,9 +420,9 @@ def parse_instances(
 
     May be extended in the future (commented parameters)
     """
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     dpi = 80

@@ -188,9 +188,9 @@ def main():
     demand = {}
     i = 0
     if plot:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("Agg")
+        mpl.use("Agg")
         import matplotlib.pyplot as plt
 
         n_plots = int(np.ceil(np.sqrt(len(subregionIds))))
