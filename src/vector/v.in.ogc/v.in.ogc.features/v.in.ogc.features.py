@@ -44,14 +44,14 @@ This program is free software under the GNU General Public License
 # %end
 import sys
 import json
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
     try:
         from owslib.ogcapi.features import Features
     except:
-        grass.fatal(
+        gs.fatal(
             _(
                 "OSWLib was not found. Install OSWLib (https://github.com/geopython/OWSLib)."
             )
@@ -64,28 +64,26 @@ def main():
             print("{}".format(coll))
         return
     if not options["layer"]:
-        grass.fatal(
+        gs.fatal(
             _("Required parameter <layer> not set: (Name for input vector map layer)")
         )
     elif options["layer"] not in collections:
-        grass.fatal(_("Layer {} is not a Feature layer"))
+        gs.fatal(_("Layer {} is not a Feature layer"))
     if not options["output"]:
-        grass.fatal(
-            _("Required parameter <output> not set: (Name for output vector map)")
-        )
+        gs.fatal(_("Required parameter <output> not set: (Name for output vector map)"))
 
     try:
         layer = feats.collection_items(options["layer"])
     except Exception as e:
-        grass.fatal(
+        gs.fatal(
             _("Problem retrieving data from the server. The error was: {}").format(e)
         )
-    tmpfile = grass.tempfile()
+    tmpfile = gs.tempfile()
     with open(tmpfile, "w") as f:
         json.dump(layer, f, indent=4)
-    grass.run_command("v.import", input=tmpfile, output=options["output"])
+    gs.run_command("v.import", input=tmpfile, output=options["output"])
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

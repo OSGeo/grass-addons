@@ -116,7 +116,7 @@ import csv
 import math
 import shutil
 import tempfile
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -147,82 +147,82 @@ def main():
     try:
         import pyspatialite.dbapi2 as db
     except:
-        grass.fatal(
+        gs.fatal(
             "pyspatialite is needed to run this script.\n"
             "source: https://pypi.org/project/pyspatialite \n"
             "Please activate/install it in your python stack."
         )
 
     if list_n2k_layer:
-        grass.message("Available data layer(s):")
-        grass.message("may take some time ...")
-        grass.message("...")
-        grass.run_command("v.in.ogr", input=n2k_input, flags="l")
+        gs.message("Available data layer(s):")
+        gs.message("may take some time ...")
+        gs.message("...")
+        gs.run_command("v.in.ogr", input=n2k_input, flags="l")
 
     if list_bg_reg:
-        grass.message("Biogeographic regions:")
+        gs.message("Biogeographic regions:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         for row in c.execute(
             "SELECT BIOGEFRAPHICREG FROM BIOREGION GROUP BY BIOGEFRAPHICREG"
         ):
-            grass.message(row)
+            gs.message(row)
         conn.close()
 
     if list_ms:
-        grass.message("EU member states:")
+        gs.message("EU member states:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         for row in c.execute("SELECT MS FROM Natura2000polygon GROUP BY MS"):
-            grass.message(row)
+            gs.message(row)
         conn.close()
 
     if list_habitats:
-        grass.message("habitat codes of EU community interest:")
+        gs.message("habitat codes of EU community interest:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         try:
             for row in c.execute(
                 "SELECT HABITATCODE, DESCRIPTION FROM HABITATS GROUP BY HABITATCODE"
             ):
-                grass.message(row)
+                gs.message(row)
         except:
             pass
-            grass.warning(
+            gs.warning(
                 "Some problems querying habitat code or names occurred."
                 " Please check columns HABITATCODE and DESCRIPTION of table HABITATS in the sqlite database."
             )
         conn.close()
 
     if list_species:
-        grass.message("species codes of EU community interest:")
+        gs.message("species codes of EU community interest:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         try:
             for row in c.execute(
                 "SELECT SPECIESCODE, SPECIESNAME FROM SPECIES GROUP BY SPECIESCODE"
             ):
-                grass.message(row)
+                gs.message(row)
         except:
             pass
-            grass.warning(
+            gs.warning(
                 "Some problems querying species code or names occurred."
                 " Please check columns SPECIESCODE and SPECIESNAME of table SPECIES in the sqlite database."
             )
         conn.close()
 
     if list_site_type:
-        grass.message("site types:")
+        gs.message("site types:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         for row in c.execute("SELECT SITETYPE FROM NATURA2000SITES GROUP BY SITETYPE"):
-            grass.message(row)
+            gs.message(row)
         conn.close()
 
     if pa_sitetype_input:
-        grass.message("importing protected areas of site type: %s" % pa_sitetype_input)
-        grass.message("may take some time ...")
-        grass.run_command(
+        gs.message("importing protected areas of site type: %s" % pa_sitetype_input)
+        gs.message("may take some time ...")
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="natura2000polygon",
@@ -232,9 +232,9 @@ def main():
         )
 
     if ms_input:
-        grass.message("importing protected areas of member state: %s" % ms_input)
-        grass.message("may take some time ...")
-        grass.run_command(
+        gs.message("importing protected areas of member state: %s" % ms_input)
+        gs.message("may take some time ...")
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="natura2000polygon",
@@ -244,22 +244,22 @@ def main():
         )
 
     if habitat_code_input:
-        grass.message(
+        gs.message(
             "importing protected areas with habitat (code): %s" % habitat_code_input
         )
-        grass.message("preparing (spatial) views in the sqlite/spatialite database:")
+        gs.message("preparing (spatial) views in the sqlite/spatialite database:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         # create view of defined habitat
-        grass.message("view: %s" % habitat_view)
+        gs.message("view: %s" % habitat_view)
         sqlhabitat = 'CREATE VIEW "%s" AS ' % (habitat_view)
         sqlhabitat += "SELECT * FROM HABITATS "
         sqlhabitat += 'WHERE HABITATCODE = "%s" ' % (habitat_code_input)
         sqlhabitat += 'ORDER BY "SITECODE"'
-        grass.message(sqlhabitat)
+        gs.message(sqlhabitat)
         c.execute(sqlhabitat)
         # create spatial view of defined habitat - part 1
-        grass.message("spatial view: %s" % habitat_spatial_view)
+        gs.message("spatial view: %s" % habitat_spatial_view)
         sqlhabitatspatial1 = 'CREATE VIEW "%s" AS ' % (habitat_spatial_view)
         sqlhabitatspatial1 += (
             'SELECT "a"."ROWID" AS "ROWID", "a"."PK_UID" AS "PK_UID", '
@@ -281,7 +281,7 @@ def main():
         sqlhabitatspatial1 += 'FROM "Natura2000polygon" AS "a" '
         sqlhabitatspatial1 += 'JOIN %s AS "b" USING ("SITECODE") ' % (habitat_view)
         sqlhabitatspatial1 += 'ORDER BY "a"."SITECODE";'
-        grass.message(sqlhabitatspatial1)
+        gs.message(sqlhabitatspatial1)
         c.execute(sqlhabitatspatial1)
         # create spatial view of defined habitat - part 2
         sqlhabitatspatial2 = "INSERT INTO views_geometry_columns "
@@ -290,15 +290,15 @@ def main():
             'VALUES ("%s", "geometry", "rowid", "natura2000polygon", "geometry", 1);'
             % (habitat_spatial_view.lower())
         )
-        grass.message(sqlhabitatspatial2)
+        gs.message(sqlhabitatspatial2)
         # execute spatial vieww
         c.execute(sqlhabitatspatial2)
         conn.commit()
         conn.close()
         # import spatial view
-        grass.message("importing data...")
-        grass.message("may take some time...")
-        grass.run_command(
+        gs.message("importing data...")
+        gs.message("may take some time...")
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="%s" % (habitat_spatial_view),
@@ -307,22 +307,22 @@ def main():
         )
 
     if species_code_input:
-        grass.message(
+        gs.message(
             "importing protected areas with species (code): %s" % species_code_input
         )
-        grass.message("preparing (spatial) views in the sqlite/spatialite database:")
+        gs.message("preparing (spatial) views in the sqlite/spatialite database:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         # create view of defined species
-        grass.message("view: %s" % species_view)
+        gs.message("view: %s" % species_view)
         sqlspecies = 'CREATE VIEW "%s" AS ' % (species_view)
         sqlspecies += "SELECT * FROM SPECIES "
         sqlspecies += 'WHERE SPECIESCODE = "%s" ' % (species_code_input)
         sqlspecies += 'ORDER BY "SITECODE"'
-        grass.message(sqlspecies)
+        gs.message(sqlspecies)
         c.execute(sqlspecies)
         # create spatial view of defined species - part 1
-        grass.message("spatial view: %s" % species_spatial_view)
+        gs.message("spatial view: %s" % species_spatial_view)
         sqlspeciesspatial1 = 'CREATE VIEW "%s" AS ' % (species_spatial_view)
         sqlspeciesspatial1 += (
             'SELECT "a"."ROWID" AS "ROWID", "a"."PK_UID" AS "PK_UID", '
@@ -359,7 +359,7 @@ def main():
         sqlspeciesspatial1 += 'FROM "Natura2000polygon" AS "a" '
         sqlspeciesspatial1 += 'JOIN %s AS "b" USING ("SITECODE") ' % (species_view)
         sqlspeciesspatial1 += 'ORDER BY "a"."SITECODE";'
-        grass.message(sqlspeciesspatial1)
+        gs.message(sqlspeciesspatial1)
         c.execute(sqlspeciesspatial1)
         # create spatial view of defined habitat - part 2
         sqlspeciesspatial2 = "INSERT INTO views_geometry_columns "
@@ -368,15 +368,15 @@ def main():
             'VALUES ("%s", "geometry", "rowid", "natura2000polygon", "geometry", 1);'
             % (species_spatial_view.lower())
         )
-        grass.message(sqlspeciesspatial2)
+        gs.message(sqlspeciesspatial2)
         # execute spatial view
         c.execute(sqlspeciesspatial2)
         conn.commit()
         conn.close()
         # import spatial view
-        grass.message("importing data...")
-        grass.message("may take some time...")
-        grass.run_command(
+        gs.message("importing data...")
+        gs.message("may take some time...")
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="%s" % (species_spatial_view),
@@ -385,22 +385,22 @@ def main():
         )
 
     if biogeoreg_long:
-        grass.message(
+        gs.message(
             "importing protected areas of biogeographic region: %s" % biogeoreg_long
         )
-        grass.message("preparing (spatial) views in the sqlite/spatialite database:")
+        gs.message("preparing (spatial) views in the sqlite/spatialite database:")
         conn = db.connect("%s" % n2k_input)
         c = conn.cursor()
         # create view of defined biogeographic region
-        grass.message("view: %s" % biogeoreg_view)
+        gs.message("view: %s" % biogeoreg_view)
         sqlbioreg = 'CREATE VIEW "%s" AS ' % (biogeoreg_view)
         sqlbioreg += "SELECT * FROM BIOREGION "
         sqlbioreg += 'WHERE BIOGEFRAPHICREG = "%s" ' % (biogeoreg_long)
         sqlbioreg += 'ORDER BY "SITECODE"'
-        grass.message(sqlbioreg)
+        gs.message(sqlbioreg)
         c.execute(sqlbioreg)
         # create spatial view of defined biogeographical region - part 1
-        grass.message("spatial view: %s" % biogeoreg_spatial_view)
+        gs.message("spatial view: %s" % biogeoreg_spatial_view)
         sqlbioregspatial1 = 'CREATE VIEW "%s" AS ' % (biogeoreg_spatial_view)
         sqlbioregspatial1 += 'SELECT "a"."ROWID" AS "ROWID", "a"."PK_UID" AS "PK_UID", '
         sqlbioregspatial1 += '"a"."RELEASE_DA" AS "RELEASE_DA", "a"."MS" AS "MS", '
@@ -412,7 +412,7 @@ def main():
         sqlbioregspatial1 += 'FROM "Natura2000polygon" AS "a" '
         sqlbioregspatial1 += 'JOIN %s AS "b" USING ("SITECODE") ' % (biogeoreg_view)
         sqlbioregspatial1 += 'ORDER BY "a"."SITECODE";'
-        grass.message(sqlbioregspatial1)
+        gs.message(sqlbioregspatial1)
         c.execute(sqlbioregspatial1)
         # create spatial view of defined biogeographical region - part 2
         sqlbioregspatial2 = "INSERT INTO views_geometry_columns "
@@ -421,15 +421,15 @@ def main():
             'VALUES ("%s", "geometry", "rowid", "natura2000polygon", "geometry", 1);'
             % (biogeoreg_spatial_view.lower())
         )
-        grass.message(sqlbioregspatial2)
+        gs.message(sqlbioregspatial2)
         # execute spatial view
         c.execute(sqlbioregspatial2)
         conn.commit()
         conn.close()
         # import spatial view
-        grass.message("importing data...")
-        grass.message("may take some time...")
-        grass.run_command(
+        gs.message("importing data...")
+        gs.message("may take some time...")
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="%s" % (biogeoreg_spatial_view),
@@ -438,10 +438,8 @@ def main():
         )
 
     if layer_exist:
-        grass.message(
-            "importing existing spatial layer %s of the dataset" % layer_exist
-        )
-        grass.run_command(
+        gs.message("importing existing spatial layer %s of the dataset" % layer_exist)
+        gs.run_command(
             "v.in.ogr",
             input="%s" % (n2k_input),
             layer="%s" % (layer_exist),
@@ -451,5 +449,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

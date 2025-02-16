@@ -38,13 +38,13 @@ import sys
 import os
 import atexit
 import math
-import grass.script as grass
+import grass.script as gs
 
 
 def cleanup():
     for ext in ["", ".sort"]:
-        grass.try_remove(tmp + ext)
-    grass.run_command(
+        gs.try_remove(tmp + ext)
+    gs.run_command(
         "g.remove", flags="f", type="vector", pattern=prefix + "_*", quiet=True
     )
 
@@ -53,11 +53,11 @@ def sortfile(infile, outfile):
     inf = open(infile, "r")
     outf = open(outfile, "w")
 
-    if grass.find_program("sort", "-n"):
-        grass.run_command("sort", flags="n", stdin=inf, stdout=outf)
+    if gs.find_program("sort", "-n"):
+        gs.run_command("sort", flags="n", stdin=inf, stdout=outf)
     else:
         # FIXME: we need a large-file sorting function
-        grass.warning(_("'sort' not found: sorting in memory"))
+        gs.warning(_("'sort' not found: sorting in memory"))
         lines = inf.readlines()
         for i in range(len(lines)):
             lines[i] = float(lines[i].rstrip("\r\n"))
@@ -71,7 +71,7 @@ def sortfile(infile, outfile):
 
 def main():
     global tmp, prefix
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
     prefix = "concave_hull_tmp_%d" % os.getpid()
 
     input = options["input"]
@@ -82,16 +82,16 @@ def main():
 
     delaunay = prefix + "_delaunay"
 
-    grass.message(_("Delaunay triangulation..."))
-    grass.run_command("v.delaunay", input=input, output=delaunay, quiet=True)
+    gs.message(_("Delaunay triangulation..."))
+    gs.run_command("v.delaunay", input=input, output=delaunay, quiet=True)
 
     out_points = prefix + "_delaunay_pnts"
     out_lines_nocat = prefix + "_delaunay_lines_nocat"
     out_lines = prefix + "_delaunay_lines"
     out_lines_tmp = prefix + "_delaunay_lines_tmp"
 
-    grass.message(_("Geometry conversion..."))
-    grass.run_command(
+    gs.message(_("Geometry conversion..."))
+    gs.run_command(
         "v.extract",
         input=delaunay,
         output=out_lines_tmp,
@@ -99,7 +99,7 @@ def main():
         layer="-1",
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.type",
         input=out_lines_tmp,
         output=out_lines_nocat,
@@ -107,7 +107,7 @@ def main():
         to_type="line",
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.type",
         input=delaunay,
         output=out_points,
@@ -116,7 +116,7 @@ def main():
         quiet=True,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.category",
         input=out_lines_nocat,
         output=out_lines,
@@ -124,25 +124,25 @@ def main():
         type="line",
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.addtable",
         map=out_lines,
         col="cat integer,length double precision",
         quiet=True,
     )
 
-    grass.message(_("Evaluating threshold..."))
-    grass.run_command(
+    gs.message(_("Evaluating threshold..."))
+    gs.run_command(
         "v.to.db", map=out_lines, type="line", op="length", col="length", quiet=True
     )
 
-    db_info = grass.vector_db(map=out_lines, layer="1")[1]
+    db_info = gs.vector_db(map=out_lines, layer="1")[1]
     table = db_info["table"]
     database = db_info["database"]
     driver = db_info["driver"]
     sql = "SELECT length FROM %s" % (table)
     tmpf = open(tmp, "w")
-    grass.run_command(
+    gs.run_command(
         "db.select",
         flags="c",
         table=table,
@@ -156,7 +156,7 @@ def main():
     # check if result is empty
     tmpf = open(tmp, "r")
     if tmpf.read(1) == "":
-        grass.fatal(_("Table <%s> contains no data.") % table)
+        gs.fatal(_("Table <%s> contains no data.") % table)
     tmpf.close()
 
     N = 0
@@ -175,11 +175,11 @@ def main():
         ppos = round(N * perc / 100)
 
     if perc == 89:
-        grass.fatal(_("Cannot calculate hull. Too few points."))
+        gs.fatal(_("Cannot calculate hull. Too few points."))
 
     if perc_orig > perc:
         thresh = int(perc) - 90
-        grass.warning(_("Threshold reduced to %d to calculate hull") % thresh)
+        gs.warning(_("Threshold reduced to %d to calculate hull") % thresh)
 
     inf = open(tmp + ".sort", "r")
     l = 0
@@ -190,10 +190,10 @@ def main():
         l += 1
     inf.close()
 
-    grass.message(_("Feature selection..."))
+    gs.message(_("Feature selection..."))
     lines_concave = prefix + "_delaunay_lines_select"
     lines_concave_nocat = prefix + "_delaunay_lines_select_nocat"
-    grass.run_command(
+    gs.run_command(
         "v.extract",
         input=out_lines,
         output=lines_concave,
@@ -202,7 +202,7 @@ def main():
         quiet=True,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.category",
         input=lines_concave,
         output=lines_concave_nocat,
@@ -213,7 +213,7 @@ def main():
     )
 
     borders_concave = prefix + "_delaunay_borders_select"
-    grass.run_command(
+    gs.run_command(
         "v.type",
         input=lines_concave_nocat,
         output=borders_concave,
@@ -223,15 +223,15 @@ def main():
     )
 
     areas_concave = prefix + "_delaunay_areas_select"
-    grass.run_command(
+    gs.run_command(
         "v.centroids", input=borders_concave, output=areas_concave, quiet=True
     )
-    grass.run_command("v.db.droptable", map=areas_concave, flags="f", quiet=True)
-    grass.run_command(
+    gs.run_command("v.db.droptable", map=areas_concave, flags="f", quiet=True)
+    gs.run_command(
         "v.db.addtable", map=areas_concave, col="cat integer,count integer", quiet=True
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.vect.stats",
         points=out_points,
         areas=areas_concave,
@@ -241,7 +241,7 @@ def main():
 
     areas_concave_extr = prefix + "_delaunay_areas_extract"
 
-    grass.run_command(
+    gs.run_command(
         "v.extract",
         input=areas_concave,
         output=areas_concave_extr,
@@ -250,8 +250,8 @@ def main():
         quiet=True,
     )
 
-    grass.message(_("The following warnings can be ignored"), flag="i")
-    grass.run_command(
+    gs.message(_("The following warnings can be ignored"), flag="i")
+    gs.run_command(
         "v.dissolve",
         input=areas_concave_extr,
         output=output,
@@ -259,10 +259,10 @@ def main():
         layer="1",
         quiet=True,
     )
-    grass.message(_("Concave hull successfully created"))
+    gs.message(_("Concave hull successfully created"))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

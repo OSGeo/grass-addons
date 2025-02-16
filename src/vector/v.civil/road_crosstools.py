@@ -9,7 +9,7 @@ import sys
 import os
 
 import math
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 
@@ -105,7 +105,7 @@ class InterAlign(object):
         elif self.type == "Straight":
             self.init_straight()
         else:
-            grass.message(" not yet implemented")
+            gs.message(" not yet implemented")
 
     def init_curve(self, topo):
         """Return"""
@@ -236,15 +236,15 @@ class Intersections(object):
         dist1 = [p for p in self.dist1 if p != -1]
         dist2 = [p for p in self.dist2 if p != -1]
         if self.plant1.type == "Straight" and self.plant2.type == "Curve":
-            grass.message("straight_curve")
+            gs.message("straight_curve")
             return self.straight_curve(self.radios[ind], dist1[ind], dist2[ind])
 
         elif self.plant1.type == "Straight" and self.plant2.type == "Straight":
-            grass.message("straight_straight")
+            gs.message("straight_straight")
             return self.straight_straight(self.radios[ind], dist1[ind], dist2[ind])
 
         elif self.plant1.type == "Curve" and self.plant2.type == "Curve":
-            grass.message("curve_curve")
+            gs.message("curve_curve")
             return self.curve_curve(self.radios[ind], dist1[ind], dist2[ind])
 
     def straight_straight(self, radio, dist1, dist2):
@@ -459,8 +459,8 @@ class Intersections(object):
             + '"'
         )
 
-        grass.message(sal0)
-        grass.message(all_sal0)
+        gs.message(sal0)
+        gs.message(all_sal0)
         if write:
             os.system(sal0)
             os.system(all_sal0)
@@ -483,8 +483,8 @@ class Intersections(object):
             + '"'
         )
 
-        grass.message(sal0)
-        grass.message(all_sal0)
+        gs.message(sal0)
+        gs.message(all_sal0)
         if write:
             os.system(sal0)
             os.system(all_sal0)

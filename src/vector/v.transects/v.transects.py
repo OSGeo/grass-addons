@@ -75,7 +75,7 @@
 from subprocess import Popen, PIPE, STDOUT
 from numpy import array
 from math import sqrt
-import grass.script as grass
+import grass.script as gs
 import tempfile
 import random
 
@@ -88,12 +88,12 @@ def tempmap():
     rand_number = [random.randint(0, 9) for i in range(6)]
     rand_number_str = "".join(map(str, rand_number))
     mapname = "temp_" + rand_number_str
-    maplist = grass.read_command("g.list", type="vector", mapset=".").split()
+    maplist = gs.read_command("g.list", type="vector", mapset=".").split()
     while mapname in maplist:
         rand_number = [random.randint(0, 9) for i in range(6)]
         rand_number_str = "".join(map(str, rand_number))
         mapname = "temp_" + rand_number_str
-        maplist = grass.read_command("g.list", type="vector", mapset=".").split()
+        maplist = gs.read_command("g.list", type="vector", mapset=".").split()
     return mapname
 
 
@@ -110,7 +110,7 @@ def loadVector(vector):
     # p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE,
     #          stderr=STDOUT, close_fds=False)
     vectorAscii = (
-        grass.read_command("v.out.ascii", format="standard", input=vector)
+        gs.read_command("v.out.ascii", format="standard", input=vector)
         .strip("\n")
         .split("\n")
     )
@@ -139,9 +139,9 @@ def loadVector(vector):
                 l += 1
             l += skip
         else:
-            grass.fatal(_("Problem with line: <%s>") % vectorAscii[l])
+            gs.fatal(_("Problem with line: <%s>") % vectorAscii[l])
     if len(v) < 1:
-        grass.fatal(_("Zero lines found in vector map <%s>") % vector)
+        gs.fatal(_("Zero lines found in vector map <%s>") % vector)
     return v
 
 
@@ -260,7 +260,7 @@ def writeTransects(transects, output):
     a.write(transects_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii", flags="n", input=temp_path, output=output, format="standard"
     )
 
@@ -307,7 +307,7 @@ def writeQuads(transects, output):
     a.write(quad_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii", flags="n", input=a.name, output=output, format="standard"
     )
 
@@ -322,7 +322,7 @@ def writePoints(transect_locs, output):
     a.write(pt_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii",
         input=a.name,
         output=output,
@@ -340,9 +340,9 @@ def main():
     try:
         transect_spacing = float(options["transect_spacing"])
     except:
-        grass.fatal(_("Invalid transect_spacing value."))
+        gs.fatal(_("Invalid transect_spacing value."))
     if transect_spacing == 0.0:
-        grass.fatal(_("Zero invalid transect_spacing value."))
+        gs.fatal(_("Zero invalid transect_spacing value."))
     dleft = options["dleft"]
     dright = options["dright"]
     shape = options["type"]
@@ -355,7 +355,7 @@ def main():
         try:
             dleft = float(dleft)
         except:
-            grass.fatal(_("Invalid dleft value."))
+            gs.fatal(_("Invalid dleft value."))
     if not dright:
         dright = transect_spacing
     else:
@@ -363,19 +363,19 @@ def main():
         try:
             dright = float(dright)
         except:
-            grass.fatal(_("Invalid dright value."))
+            gs.fatal(_("Invalid dright value."))
     # check if input file does not exists
-    if not grass.find_file(vector, element="vector")["file"]:
-        grass.fatal(_("<%s> does not exist.") % vector)
+    if not gs.find_file(vector, element="vector")["file"]:
+        gs.fatal(_("<%s> does not exist.") % vector)
     # check if output file exists
-    if grass.find_file(output, element="vector")["mapset"] == grass.gisenv()["MAPSET"]:
-        if not grass.overwrite():
-            grass.fatal(_("output map <%s> exists") % output)
+    if gs.find_file(output, element="vector")["mapset"] == gs.gisenv()["MAPSET"]:
+        if not gs.overwrite():
+            gs.fatal(_("output map <%s> exists") % output)
 
     # JL Is the vector a line and does if have at least one feature?
-    info = grass.parse_command("v.info", flags="t", map=vector)
+    info = gs.parse_command("v.info", flags="t", map=vector)
     if info["lines"] == "0":
-        grass.fatal(_("vector <%s> does not contain lines") % vector)
+        gs.fatal(_("vector <%s> does not contain lines") % vector)
 
     #################################
     v = loadVector(vector)
@@ -398,12 +398,12 @@ def main():
     else:
         writePoints(transect_locs, temp_map)
 
-    grass.run_command(
+    gs.run_command(
         "v.category", input=temp_map, output=output, option="add", type=shape
     )
-    grass.run_command("g.remove", flags="f", type="vector", name=temp_map)
+    gs.run_command("g.remove", flags="f", type="vector", name=temp_map)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()
