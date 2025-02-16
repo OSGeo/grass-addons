@@ -55,7 +55,7 @@
 import numpy as np
 
 # GRASS
-from grass import script as gscript
+from grass import script as gs
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -91,9 +91,9 @@ def main():
     rd.BreachDepressions(dem=rd_inout, in_place=True, topology=_topology)
 
     dem[:] = rd_inout[:]
-    dem.write(_output, overwrite=gscript.overwrite())
+    dem.write(_output, overwrite=gs.overwrite())
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

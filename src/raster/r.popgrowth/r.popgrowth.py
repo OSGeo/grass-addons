@@ -126,7 +126,7 @@ import atexit
 import math  # for function sqrt()
 
 # import required grass modules
-import grass.script as grass
+import grass.script as gs
 import grass.script.array as garray
 
 
@@ -135,16 +135,16 @@ import numpy as np
 
 
 def cleanup():
-    grass.debug(_("This is the cleanup part"))
+    gs.debug(_("This is the cleanup part"))
     if tmp_map_rast or tmp_map_vect:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             flags="fb",
             type="raster",
             name=[f + str(os.getpid()) for f in tmp_map_rast],
             quiet=True,
         )
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             flags="f",
             type="vector",
@@ -165,14 +165,14 @@ def main():
     ############ PARAMETER INPUT ##############
     # Check for correct input
     if str(options["exponential_output"]) == "" and str(options["ricker_output"]) == "":
-        grass.fatal(_("Output name for a model is missing"))
+        gs.fatal(_("Output name for a model is missing"))
 
     # Model parameters input
     t = int(options["timesteps"])
 
     # If populations patches are provided, otherwise single cell populations are used
     if options["population_patches"]:
-        grass.run_command(
+        gs.run_command(
             "r.statistics2",
             base=options["population_patches"],
             cover=options["n_initial"],
@@ -180,7 +180,7 @@ def main():
             output="n0_tmp_%d" % os.getpid(),
         )
     else:
-        grass.run_command(
+        gs.run_command(
             "g.copy", raster=options["n_initial"] + "," + "n0_tmp_%d" % os.getpid()
         )
 
@@ -225,14 +225,14 @@ def main():
     if options["exponential_output"]:
         # Check for correct input
         if options["r_exp_value"] and options["r_exp_map"]:
-            grass.fatal(_("Provide either fixed value for r or raster map"))
+            gs.fatal(_("Provide either fixed value for r or raster map"))
 
         # Define r
         if options["r_exp_map"]:
-            grass.debug(_("r_exp_map provided"))
+            gs.debug(_("r_exp_map provided"))
 
             if options["population_patches"]:
-                grass.run_command(
+                gs.run_command(
                     "r.statistics2",
                     base=options["population_patches"],
                     cover=options["r_exp_map"],
@@ -240,7 +240,7 @@ def main():
                     output="r_exp_tmp_%d" % os.getpid(),
                 )
             else:
-                grass.run_command(
+                gs.run_command(
                     "g.copy",
                     raster=options["r_exp_map"] + "," + "r_exp_tmp_%d" % os.getpid(),
                 )
@@ -252,7 +252,7 @@ def main():
         elif options["r_exp_value"]:
             r = float(options["r_exp_value"])
         else:
-            grass.fatal(_("No r value/map provided for exponential model"))
+            gs.fatal(_("No r value/map provided for exponential model"))
 
         # run model
         n0_map = garray.array("n0_tmp_%d" % os.getpid())
@@ -263,7 +263,7 @@ def main():
 
         # Retransform in case of patches
         if options["population_patches"]:
-            grass.mapcalc(
+            gs.mapcalc(
                 "$exponential_output = if($n0,(round(($n0*1.0/$n0_tmp)*$exponential_output_tmp)),null())",
                 ricker_output=options["exponential_output"],
                 n0=options["n_initial"],
@@ -272,7 +272,7 @@ def main():
             )
 
         else:
-            grass.mapcalc(
+            gs.mapcalc(
                 "$exponential_output = if($n0,$exponential_output_tmp,null())",
                 exponential_output=options["exponential_output"],
                 n0=options["n_initial"],
@@ -283,16 +283,16 @@ def main():
     if options["ricker_output"]:
         # Check for correct input
         if options["r_rick_value"] and options["r_rick_map"]:
-            grass.fatal(_("Provide either fixed value for r or raster map"))
+            gs.fatal(_("Provide either fixed value for r or raster map"))
         if options["k_value"] and options["k_map"]:
-            grass.fatal(
+            gs.fatal(
                 _("Provide either fixed value for carrying capacity (K) or raster map")
             )
 
         # Define r
         if options["r_rick_map"]:
             if options["population_patches"]:
-                grass.run_command(
+                gs.run_command(
                     "r.statistics2",
                     base=options["population_patches"],
                     cover=options["r_rick_map"],
@@ -300,7 +300,7 @@ def main():
                     output="r_rick_tmp_%d" % os.getpid(),
                 )
             else:
-                grass.run_command(
+                gs.run_command(
                     "g.copy",
                     raster=options["r_rick_map"] + "," + "r_rick_tmp_%d" % os.getpid(),
                 )
@@ -312,12 +312,12 @@ def main():
         elif options["r_rick_value"]:
             r = float(options["r_rick_value"])
         else:
-            grass.fatal(_("No r value/map for Ricker model provided"))
+            gs.fatal(_("No r value/map for Ricker model provided"))
 
         # Define k
         if options["k_map"]:
             if options["population_patches"]:
-                grass.run_command(
+                gs.run_command(
                     "r.statistics2",
                     base=options["population_patches"],
                     cover=options["k_map"],
@@ -325,7 +325,7 @@ def main():
                     output="k_tmp_%d" % os.getpid(),
                 )
             else:
-                grass.run_command(
+                gs.run_command(
                     "g.copy", raster=options["k_map"] + "," + "k_tmp_%d" % os.getpid()
                 )
 
@@ -336,7 +336,7 @@ def main():
         elif options["k_value"]:
             k = float(options["k_value"])
         else:
-            grass.fatal(_("No value/map for carrying capacity (k) provided"))
+            gs.fatal(_("No value/map for carrying capacity (k) provided"))
 
         # run model
         n0_map = garray.array("n0_tmp_%d" % os.getpid())
@@ -347,7 +347,7 @@ def main():
 
         # Retransform in case of patches
         if options["population_patches"]:
-            grass.mapcalc(
+            gs.mapcalc(
                 "$ricker_output = if($n0,(round(($n0*1.0/$n0_tmp)*$ricker_output_tmp)),null())",
                 ricker_output=options["ricker_output"],
                 n0=options["n_initial"],
@@ -356,7 +356,7 @@ def main():
             )
 
         else:
-            grass.mapcalc(
+            gs.mapcalc(
                 "$ricker_output = if($n0,$ricker_output_tmp,null())",
                 ricker_output=options["ricker_output"],
                 n0=options["n_initial"],
@@ -367,6 +367,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

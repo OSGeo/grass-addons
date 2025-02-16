@@ -42,17 +42,17 @@
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 import numpy as np
 
 
 def main():
-    stats = grass.read_command(
+    stats = gs.read_command(
         "r.stats", input=options["map"], sep="space", nv="*", nsteps="255", flags="Anc"
     ).split("\n")[:-1]
 
     # res = cellsize
-    res = grass.region()["nsres"]
+    res = gs.region()["nsres"]
 
     zn = np.zeros((len(stats), 4), float)
     kl = np.zeros((len(stats), 2), float)
@@ -148,5 +148,5 @@ def findint(kl, f):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

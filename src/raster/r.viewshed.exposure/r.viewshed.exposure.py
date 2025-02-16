@@ -197,18 +197,18 @@ from grass.pygrass.raster import numpy2raster
 from grass.pygrass.gis.region import Region
 from grass.pygrass.vector.basic import Bbox
 
-import grass.script as grass
+import grass.script as gs
 from grass.script import utils as grassutils
 
 
 # Declare global variables
 # random name of binary viewshed
-TEMPNAME = grass.tempname(12)
+TEMPNAME = gs.tempname(12)
 
 
 def cleanup():
     """Remove raster and vector maps stored in a list"""
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         flags="f",
         type="raster,vector",
@@ -222,21 +222,21 @@ def cleanup():
         RasterRow("MASK", Mapset().name).exist()
         and RasterRow("MASK_{}".format(TEMPNAME)).exist()
     ):
-        grass.run_command("r.mask", flags="r", quiet=True)
+        gs.run_command("r.mask", flags="r", quiet=True)
     reset_mask()
 
 
 def unset_mask():
     """Deactivate user mask"""
     if RasterRow("MASK", Mapset().name).exist():
-        grass.run_command(
+        gs.run_command(
             "g.copy",
             quiet=True,
             raster="MASK,MASK_{}".format(TEMPNAME),
             stderr=subprocess.DEVNULL,
             errors="ignore",
         )
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             quiet=True,
             type="raster",
@@ -250,15 +250,15 @@ def unset_mask():
 def reset_mask():
     """Re-activate user mask"""
     if RasterRow("MASK_{}".format(TEMPNAME)).exist():
-        grass.warning("Reseting mask")
-        grass.run_command(
+        gs.warning("Reseting mask")
+        gs.run_command(
             "g.copy",
             quiet=True,
             raster="MASK_{},MASK".format(TEMPNAME),
             stderr=subprocess.DEVNULL,
             errors="ignore",
         )
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             quiet=True,
             type="raster",
@@ -277,7 +277,7 @@ def clean_temp(pid):
     from pathlib import Path
     from shutil import rmtree
 
-    tempfile = Path(grass.tempfile(create=False))
+    tempfile = Path(gs.tempfile(create=False))
     for path in tempfile.parent.glob(str(pid) + ".*"):
         if path.is_file():
             grassutils.try_rmdir(path)
@@ -317,8 +317,8 @@ def do_it_all(global_vars, target_pts_np):
 
     for target_pnt in target_pts_np:
         # Display a progress info message
-        grass.percent(counter, len(target_pts_np), 1)
-        grass.verbose(
+        gs.percent(counter, len(target_pts_np), 1)
+        gs.verbose(
             "Processing point {i} ({p:.1%})".format(
                 i=int(target_pnt[0]), p=counter / len(target_pts_np)
             )
@@ -357,7 +357,7 @@ def do_it_all(global_vars, target_pts_np):
 
         # Create processing environment with region information
         c_env = os.environ.copy()
-        c_env["GRASS_REGION"] = grass.region_env(
+        c_env["GRASS_REGION"] = gs.region_env(
             n=loc_reg_n, s=loc_reg_s, e=loc_reg_e, w=loc_reg_w
         )
 
@@ -366,7 +366,7 @@ def do_it_all(global_vars, target_pts_np):
         # ======================================================================
         # 2. Calculate binary viewshed and convert to numpy
         # ======================================================================
-        vs = grass.pipe_command(
+        vs = gs.pipe_command(
             "r.viewshed",
             flags="b" + flagstring,
             input=r_dsm,
@@ -799,7 +799,7 @@ def visual_magnitude_reverse(
 
     # Ensure that values are represented as float (in case of CELL
     # data type) and replace integer NaN with numpy NaN
-    dsm_type = grass.parse_command("r.info", map=r_dsm, flags="g")["datatype"]
+    dsm_type = gs.parse_command("r.info", map=r_dsm, flags="g")["datatype"]
 
     if dsm_type == "CELL":
         np_dsm = np_dsm.astype(np.float32)
@@ -892,7 +892,7 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
     :rtype: string
     """
     # mask categories of raster map to be sampled from
-    grass.run_command(
+    gs.run_command(
         "r.mask",
         raster=r_map,
         maskcats=cat,
@@ -902,19 +902,19 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
 
     # number of non-null cells in map (cells to sample from)
     source_ncells = int(
-        grass.parse_command("r.univar", map=r_map, flags="g", quiet=True)["n"]
+        gs.parse_command("r.univar", map=r_map, flags="g", quiet=True)["n"]
     )
 
     # check that input map is not empty
     if source_ncells == 0:
-        grass.fatal("The analysis cannot be conducted for 0 sampling points.")
+        gs.fatal("The analysis cannot be conducted for 0 sampling points.")
 
     if density == 100:
         # vectorize source cells directly - no sampling
-        grass.verbose("Distributing {} sampling points...".format(source_ncells))
+        gs.verbose("Distributing {} sampling points...".format(source_ncells))
 
         # vectorize source cells
-        grass.run_command(
+        gs.run_command(
             "r.to.vect",
             flags="b",
             input=r_map,
@@ -930,13 +930,13 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
         nsample = int(density * source_ncells / 100)
 
         if nsample == 0:
-            grass.fatal("The analysis cannot be conducted for 0 sampling points.")
+            gs.fatal("The analysis cannot be conducted for 0 sampling points.")
         else:
-            grass.verbose("Distributing {} sampling points...".format(nsample))
+            gs.verbose("Distributing {} sampling points...".format(nsample))
 
         # random sample points - raster
         r_sample = "{}_rand_pts_rast".format(TEMPNAME)
-        grass.run_command(
+        gs.run_command(
             "r.random.cells",
             output=r_sample,
             ncells=nsample,
@@ -947,7 +947,7 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
         )
 
         # vectorize raster of random sample points
-        grass.run_command(
+        gs.run_command(
             "r.to.vect",
             flags="b",
             input=r_sample,
@@ -959,12 +959,10 @@ def sample_raster_with_points(r_map, cat, density, min_d, v_sample, seed):
         )
 
         # remove random sample points - raster
-        grass.run_command(
-            "g.remove", flags="f", type="raster", name=r_sample, quiet=True
-        )
+        gs.run_command("g.remove", flags="f", type="raster", name=r_sample, quiet=True)
 
     # remove mask
-    grass.run_command("r.mask", flags="r", quiet=True)
+    gs.run_command("r.mask", flags="r", quiet=True)
 
     return v_sample
 
@@ -1009,9 +1007,9 @@ def txt2numpy(
         encoding = grassutils._get_encoding()
 
     if type(tablestring).__name__ == "str":
-        tablestring = grass.encode(tablestring, encoding=encoding)
+        tablestring = gs.encode(tablestring, encoding=encoding)
     elif type(tablestring).__name__ != "bytes":
-        grass.fatal("Unsupported data type")
+        gs.fatal("Unsupported data type")
 
     kwargs = {
         "missing_values": null_value,
@@ -1044,12 +1042,12 @@ def main():
     # Required
     r_output = options["output"]
     r_dsm = options["input"]
-    dsm_type = grass.parse_command("r.info", map=r_dsm, flags="g")["datatype"]
+    dsm_type = gs.parse_command("r.info", map=r_dsm, flags="g")["datatype"]
 
     # Test if DSM exist
-    gfile_dsm = grass.find_file(name=r_dsm, element="cell")
+    gfile_dsm = gs.find_file(name=r_dsm, element="cell")
     if not gfile_dsm["file"]:
-        grass.fatal("Raster map <{}> not found".format(r_dsm))
+        gs.fatal("Raster map <{}> not found".format(r_dsm))
 
     # Exposure settings
     v_source = options["sampling_points"]
@@ -1059,33 +1057,33 @@ def main():
 
     # test if source vector map exist and contains points
     if v_source:
-        gfile_vsource = grass.find_file(name=v_source, element="vector")
+        gfile_vsource = gs.find_file(name=v_source, element="vector")
         if not gfile_vsource["file"]:
-            grass.fatal("Vector map <{}> not found".format(v_source))
-        if not grass.vector.vector_info_topo(v_source, layer=1)["points"] > 0:
-            grass.fatal("Vector map <{}> does not contain any points.".format(v_source))
+            gs.fatal("Vector map <{}> not found".format(v_source))
+        if not gs.vector.vector_info_topo(v_source, layer=1)["points"] > 0:
+            gs.fatal("Vector map <{}> does not contain any points.".format(v_source))
 
     if r_source:
-        gfile_rsource = grass.find_file(name=r_source, element="cell")
+        gfile_rsource = gs.find_file(name=r_source, element="cell")
         if not gfile_rsource["file"]:
-            grass.fatal("Raster map <{}> not found".format(r_source))
+            gs.fatal("Raster map <{}> not found".format(r_source))
 
         # if source_cat is set, check that r_source is CELL
-        source_datatype = grass.parse_command("r.info", map=r_source, flags="g")[
+        source_datatype = gs.parse_command("r.info", map=r_source, flags="g")[
             "datatype"
         ]
 
         if source_cat != "*" and source_datatype != "CELL":
-            grass.fatal(
+            gs.fatal(
                 "The raster map <%s> must be integer (CELL type) in order to \
                 use the 'sourcecat' parameter"
                 % r_source
             )
 
     if r_weights:
-        gfile_weights = grass.find_file(name=r_weights, element="cell")
+        gfile_weights = gs.find_file(name=r_weights, element="cell")
         if not gfile_weights["file"]:
-            grass.fatal("Raster map <{}> not found".format(r_weights))
+            gs.fatal("Raster map <{}> not found".format(r_weights))
 
     # Viewshed settings
     range_inp = float(options["range"])
@@ -1101,19 +1099,19 @@ def main():
 
     # test values
     if v_elevation < 0.0:
-        grass.fatal("Observer elevation must be larger than or equal to 0.0.")
+        gs.fatal("Observer elevation must be larger than or equal to 0.0.")
 
     if range_inp <= 0.0 and range_inp != -1:
-        grass.fatal("Exposure range must be larger than 0.0.")
+        gs.fatal("Exposure range must be larger than 0.0.")
 
     if pfunction == "Fuzzy_viewshed" and range_inp == -1:
-        grass.fatal(
+        gs.fatal(
             "Exposure range cannot be \
             infinity for fuzzy viewshed approach."
         )
 
     if pfunction == "Fuzzy_viewshed" and b_1 > range_inp:
-        grass.fatal(
+        gs.fatal(
             "Exposure range must be larger than radius around \
             the viewpoint where clarity is perfect."
         )
@@ -1133,15 +1131,15 @@ def main():
     # Region settings
     # ==========================================================================
     # check that location is not in lat/long
-    if grass.locn_is_latlong():
-        grass.fatal("The analysis is not available for lat/long coordinates.")
+    if gs.locn_is_latlong():
+        gs.fatal("The analysis is not available for lat/long coordinates.")
 
     # get comp. region parameters
     reg = Region()
 
     # check that NSRES equals EWRES
     if abs(reg.ewres - reg.nsres) > 1e-6:
-        grass.fatal(
+        gs.fatal(
             "Variable north-south and east-west 2D grid resolution \
             is not supported"
         )
@@ -1157,7 +1155,7 @@ def main():
         exp_range = multiplicate * reg.nsres
 
     if RasterRow("MASK", Mapset().name).exist():
-        grass.warning("Current MASK is temporarily renamed.")
+        gs.warning("Current MASK is temporarily renamed.")
         unset_mask()
 
     # ==========================================================================
@@ -1166,7 +1164,7 @@ def main():
     if v_source:
         # go for using input vector map as sampling points
         v_source_sample = v_source
-        grass.verbose("Using sampling points from input vector map")
+        gs.verbose("Using sampling points from input vector map")
 
     else:
         # go for sampling
@@ -1191,7 +1189,7 @@ def main():
     attr_map_list = [r_dsm]
 
     if pfunction in ["Solid_angle", "Visual_magnitude"]:
-        grass.verbose("Precomputing parameter maps...")
+        gs.verbose("Precomputing parameter maps...")
 
     # Precompute values A, B, C, D for solid angle function
     # using moving window [row, col]
@@ -1221,7 +1219,7 @@ def main():
                           $inmap[1, 1]) / 4",
             ]
         )
-        grass.mapcalc(
+        gs.mapcalc(
             expr,
             inmap=r_dsm,
             outmap_A=r_a_z,
@@ -1229,7 +1227,7 @@ def main():
             outmap_C=r_c_z,
             outmap_D=r_d_z,
             overwrite=True,
-            quiet=grass.verbosity() <= 1,
+            quiet=gs.verbosity() <= 1,
         )
 
         attr_map_list.extend([r_a_z, r_b_z, r_c_z, r_d_z])
@@ -1260,7 +1258,7 @@ def main():
             ]
         )
 
-        grass.mapcalc(
+        gs.mapcalc(
             expr,
             inmap=r_dsm,
             outmap_ew=r_slope_ew,
@@ -1268,7 +1266,7 @@ def main():
             w_ew=reg.ewres,
             w_ns=reg.nsres,
             overwrite=True,
-            quiet=grass.verbosity() <= 1,
+            quiet=gs.verbosity() <= 1,
         )
 
         attr_map_list.extend([r_slope_ew, r_slope_ns])
@@ -1278,7 +1276,7 @@ def main():
         attr_map_list.append(r_weights)
 
     # Extract attribute values
-    target_pts_grass = grass.read_command(
+    target_pts_grass = gs.read_command(
         "r.what",
         flags="v",
         map=attr_map_list,
@@ -1315,13 +1313,13 @@ def main():
         weights_np = np.ones((no_points, 1))
         target_pts_np = np.hstack((target_pts_np, weights_np))
 
-    grass.debug("target_pts_np: {}".format(target_pts_np))
+    gs.debug("target_pts_np: {}".format(target_pts_np))
 
     # ==========================================================================
     # Calculate weighted parametrised cumulative viewshed
     # by iterating over target points T
     # ==========================================================================
-    grass.verbose("Calculating partial viewsheds...")
+    gs.verbose("Calculating partial viewsheds...")
 
     # Parametrisation function
     if pfunction == "Solid_angle":
@@ -1372,7 +1370,7 @@ def main():
     np_sum = np.nansum(np_sum, axis=0, dtype=np.single)
     np_sum[all_nan] = np.nan
 
-    grass.verbose("Writing final result and cleaning up...")
+    gs.verbose("Writing final result and cleaning up...")
 
     # Restore original computational region
     reg.read()
@@ -1386,8 +1384,8 @@ def main():
     cleanup()
 
     # Set raster history to output raster
-    grass.raster_history(r_output, overwrite=True)
-    grass.run_command(
+    gs.raster_history(r_output, overwrite=True)
+    gs.run_command(
         "r.support",
         overwrite=True,
         map=r_output,
@@ -1399,6 +1397,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

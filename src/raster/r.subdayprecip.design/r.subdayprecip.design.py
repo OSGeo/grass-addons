@@ -50,7 +50,7 @@
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
 
@@ -123,22 +123,22 @@ def coeff(name, rl):
 
 def main():
     # check if the map is in the current mapset
-    mapset = grass.find_file(opt["map"], element="vector")["mapset"]
-    if not mapset or mapset != grass.gisenv()["MAPSET"]:
-        grass.fatal(
+    mapset = gs.find_file(opt["map"], element="vector")["mapset"]
+    if not mapset or mapset != gs.gisenv()["MAPSET"]:
+        gs.fatal(
             _("Vector map <{}> not found in the current mapset").format(opt["map"])
         )
 
     # get list of existing columns
     try:
-        columns = grass.vector_columns(opt["map"]).keys()
+        columns = gs.vector_columns(opt["map"]).keys()
     except CalledModuleError as e:
         return 1
 
     # test input feature type
-    vinfo = grass.vector_info_topo(opt["map"])
+    vinfo = gs.vector_info_topo(opt["map"])
     if vinfo["areas"] < 1 and vinfo["points"] < 1:
-        grass.fatal(
+        gs.fatal(
             _("No points or areas found in input vector map <{}>").format(opt["map"])
         )
 
@@ -160,11 +160,11 @@ def main():
             map=opt["map"],
             columns=area_col_name,
             where="{} > {}".format(area_col_name, opt["area_size"]),
-            stdout_=grass.PIPE,
+            stdout_=gs.PIPE,
         )
         large_areas = len(areas.outputs.stdout.splitlines())
         if large_areas > 0:
-            grass.warning(
+            gs.warning(
                 "{} areas larger than size limit will be skipped from computation".format(
                     large_areas
                 )
@@ -173,13 +173,13 @@ def main():
     # extract multi values to points
     for rast in opt["return_period"].split(","):
         # check valid rasters
-        rast_name = grass.find_file(rast, element="cell")["name"]
+        rast_name = gs.find_file(rast, element="cell")["name"]
         if not rast_name:
-            grass.warning("Raster map <{}> not found. Skipped.".format(rast))
+            gs.warning("Raster map <{}> not found. Skipped.".format(rast))
             continue
 
         # perform zonal statistics
-        grass.message("Processing <{}>...".format(rast))
+        gs.message("Processing <{}>...".format(rast))
         table = "{}_table".format(rast_name)
         if vinfo["areas"] > 0:
             Module(
@@ -198,11 +198,11 @@ def main():
                 columns="cat",
                 flags="c",
                 where="{}_average is NULL".format(rast_name),
-                stdout_=grass.PIPE,
+                stdout_=gs.PIPE,
             )
             cats = null_values.outputs.stdout.splitlines()
             if len(cats) > 0:
-                grass.warning(
+                gs.warning(
                     _(
                         "Input vector map <{}> contains very small areas (smaller than "
                         "raster resolution). These areas will be proceeded by querying "
@@ -241,13 +241,13 @@ def main():
         if a is None or c is None:
             allowed_return_period = ("N2", "N5", "N10", "N20", "N50", "N100")
             if not any(n in rast for n in allowed_return_period):
-                grass.error(
+                gs.error(
                     "Unable to determine return period from raster name: <{}>. "
                     "Allowed return periods: {}".format(
                         rast, ",".join(allowed_return_period)
                     )
                 )
-            grass.fatal("Unable to calculate coefficients")
+            gs.fatal("Unable to calculate coefficients")
 
         # calculate output values, update attribute table
         coef = a * rl ** (1 - c)
@@ -276,5 +276,5 @@ def main():
 
 
 if __name__ == "__main__":
-    opt, flg = grass.parser()
+    opt, flg = gs.parser()
     sys.exit(main())

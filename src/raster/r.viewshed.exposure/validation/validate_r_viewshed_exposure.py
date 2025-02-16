@@ -17,7 +17,7 @@ from subprocess import Popen, PIPE
 
 
 from grass.pygrass.vector import VectorTopo
-import grass.script as grass
+import grass.script as gs
 
 
 def run_test_A(
@@ -36,8 +36,8 @@ def run_test_A(
     :param val_file: File to store the validation results
     """
 
-    nsres = grass.raster_info(dsm)["nsres"]
-    ewres = grass.raster_info(dsm)["ewres"]
+    nsres = gs.raster_info(dsm)["nsres"]
+    ewres = gs.raster_info(dsm)["ewres"]
 
     # new VectorTopo object
     val_pts_topo = VectorTopo(val_pts)
@@ -66,7 +66,7 @@ def run_test_A(
 
         # iterate over points
         for pt in val_pts_topo.viter("points"):
-            grass.percent(counter, no_points, 1)
+            gs.percent(counter, no_points, 1)
             counter += 1
 
             pt_id = pt.attrs["img_no"]
@@ -76,7 +76,7 @@ def run_test_A(
             # iterate over radii
             for r in radii:
                 # set region around processed point
-                grass.run_command(
+                gs.run_command(
                     "g.region",
                     align=dsm,
                     n=pt_y + (r + nsres / 2.0),
@@ -130,7 +130,7 @@ def run_test_A(
                     if r_viewshed_profile["Exit status"] == "0":
                         # extract GVI value at point
                         gvi = float(
-                            grass.read_command(
+                            gs.read_command(
                                 "r.what",
                                 map=r_GVI,
                                 coordinates="{},{}".format(pt_x, pt_y),
@@ -173,7 +173,7 @@ def run_test_A(
                             "exit": r_viewshed_profile["Exit status"],
                         }
                     )
-                    grass.message(
+                    gs.message(
                         "{},{},{},{},{},{},{},{},{},{},{}".format(
                             pt_id,
                             m,
@@ -211,8 +211,8 @@ def run_test_A_no_viewshed(
     :param val_file: File to store the validation results
     """
 
-    nsres = grass.raster_info(dsm)["nsres"]
-    ewres = grass.raster_info(dsm)["ewres"]
+    nsres = gs.raster_info(dsm)["nsres"]
+    ewres = gs.raster_info(dsm)["ewres"]
 
     # new VectorTopo object
     val_pts_topo = VectorTopo(val_pts)
@@ -241,7 +241,7 @@ def run_test_A_no_viewshed(
 
         # iterate over points
         for pt in val_pts_topo.viter("points"):
-            grass.percent(counter, no_points, 1)
+            gs.percent(counter, no_points, 1)
             counter += 1
 
             pt_id = pt.attrs["img_no"]
@@ -251,7 +251,7 @@ def run_test_A_no_viewshed(
             # iterate over radii
             for r in radii:
                 # set region around processed point
-                grass.run_command(
+                gs.run_command(
                     "g.region",
                     align=dsm,
                     n=pt_y + (r + nsres / 2.0),
@@ -304,7 +304,7 @@ def run_test_A_no_viewshed(
                     if r_viewshed_profile["Exit status"] == "0":
                         # extract GVI value at point
                         gvi = float(
-                            grass.read_command(
+                            gs.read_command(
                                 "r.what",
                                 map=r_GVI,
                                 coordinates="{},{}".format(pt_x, pt_y),
@@ -347,7 +347,7 @@ def run_test_A_no_viewshed(
                             "exit": r_viewshed_profile["Exit status"],
                         }
                     )
-                    grass.message(
+                    gs.message(
                         "{},{},{},{},{},{},{},{},{},{},{}".format(
                             pt_id,
                             m,
@@ -384,8 +384,8 @@ def run_test_B(
     :param elev: Observer elevation
     :param val_file: File to store the validation results
     """
-    nsres = grass.raster_info(dsm)["nsres"]
-    ewres = grass.raster_info(dsm)["ewres"]
+    nsres = gs.raster_info(dsm)["nsres"]
+    ewres = gs.raster_info(dsm)["ewres"]
 
     # new VectorTopo object
     val_pts_topo = VectorTopo(val_pts)
@@ -420,7 +420,7 @@ def run_test_B(
 
             # iterate over points
             for pt in val_pts_topo.viter("points"):
-                grass.percent(counter, no_points, 1)
+                gs.percent(counter, no_points, 1)
                 counter += 1
 
                 pt_id = pt.attrs["img_no"]
@@ -435,7 +435,7 @@ def run_test_B(
                 # iterate over radii
                 for radius in radii:
                     # set region around processed point
-                    grass.run_command(
+                    gs.run_command(
                         "g.region",
                         align=dsm,
                         n=pt_y + (radius + nsres / 2.0),
@@ -491,7 +491,7 @@ def run_test_B(
                         # check if r.viewshed.exposure finished sucessfuly
                         if r_viewshed_profile["Exit status"] == "0":
                             # extract GVI value at point
-                            gvi = grass.read_command(
+                            gvi = gs.read_command(
                                 "r.what",
                                 map=r_GVI,
                                 coordinates="{},{}".format(pt_x, pt_y),
@@ -534,7 +534,7 @@ def run_test_B(
                                 "exit": r_viewshed_profile["Exit status"],
                             }
                         )
-                        grass.message(
+                        gs.message(
                             "{},{},{},{},{},{},{},{},{},{},{},{}".format(
                                 pt_id,
                                 rep,
@@ -574,8 +574,8 @@ def run_test_C(
     :param elev: Observer elevation
     :param val_file: File to store the validation results
     """
-    nsres = grass.raster_info(dsm)["nsres"]
-    ewres = grass.raster_info(dsm)["ewres"]
+    nsres = gs.raster_info(dsm)["nsres"]
+    ewres = gs.raster_info(dsm)["ewres"]
 
     # new VectorTopo object
     val_pts_topo = VectorTopo(val_pts)
@@ -604,7 +604,7 @@ def run_test_C(
 
         # iterate over points
         for pt in val_pts_topo.viter("points"):
-            grass.percent(counter, no_points, 1)
+            gs.percent(counter, no_points, 1)
             counter += 1
 
             pt_id = pt.attrs["img_no"]
@@ -612,7 +612,7 @@ def run_test_C(
             pt_y = pt.y
 
             # set region around processed point
-            grass.run_command(
+            gs.run_command(
                 "g.region",
                 align=dsm,
                 n=pt_y + (radius + nsres / 2.0),
@@ -663,7 +663,7 @@ def run_test_C(
             # check if r.viewshed.exposure finished sucessfuly
             if r_viewshed_profile["Exit status"] == "0":
                 # extract GVI value at point
-                gvi = grass.read_command(
+                gvi = gs.read_command(
                     "r.what", map=r_GVI, coordinates="{},{}".format(pt_x, pt_y)
                 ).split("|")[3]
             else:
@@ -695,7 +695,7 @@ def run_test_C(
                     "exit": r_viewshed_profile["Exit status"],
                 }
             )
-            grass.message(
+            gs.message(
                 "{},{},{},{},{},{},{},{},{},{},{}".format(
                     pt_id,
                     method,
@@ -723,7 +723,7 @@ def main():
 
     # Validation points
     v_points = "validation_points_update_20210326"
-    grass.run_command("v.build", map=v_points, quiet=True)
+    gs.run_command("v.build", map=v_points, quiet=True)
 
     # Constant viewshed settings
     observer_elevation = 1.5
@@ -873,5 +873,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())
