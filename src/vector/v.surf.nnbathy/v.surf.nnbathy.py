@@ -77,7 +77,7 @@
 import sys
 import os
 
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -88,22 +88,22 @@ def main():
 
     # initial controls
     if options["input"] and options["file"]:
-        grass.fatal("Please specify either the 'input' or 'file' option, not both")
+        gs.fatal("Please specify either the 'input' or 'file' option, not both")
 
     if not (options["input"] or options["file"]):
-        grass.fatal("Please specify either the 'input' or 'file' option")
+        gs.fatal("Please specify either the 'input' or 'file' option")
 
     if (
         options["input"]
-        and not grass.find_file(options["input"], element="vector")["fullname"]
+        and not gs.find_file(options["input"], element="vector")["fullname"]
     ):
-        grass.fatal("Vector <%s> not found" % options["input"])
+        gs.fatal("Vector <%s> not found" % options["input"])
 
     if options["input"] and options["layer"] != "0" and not options["column"]:
-        grass.fatal("Option 'column' required")
+        gs.fatal("Option 'column' required")
 
     if options["file"] and not os.path.isfile(options["file"]):
-        grass.fatal("File %s does not exist" % options["file"])
+        gs.fatal("File %s does not exist" % options["file"])
 
     # vector or file input?
     if options["input"]:
@@ -116,5 +116,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

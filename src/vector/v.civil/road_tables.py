@@ -7,7 +7,7 @@ Created on Thu Oct  2 18:24:22 2014
 
 # from grass.pygrass.vector.table import Link
 import time
-import grass.script as grass
+import grass.script as gs
 import grass.lib.vector as libvect
 from grass.pygrass.errors import GrassError
 from grass.pygrass.vector.geometry import Point
@@ -457,7 +457,7 @@ class RoadTable(object):
             if col[0] not in self.cols_names:
                 cols_out.append(col)
         if cols_out != []:
-            grass.warning("adding columns " + ",".join([p[0] for p in cols_out]))
+            gs.warning("adding columns " + ",".join([p[0] for p in cols_out]))
             self._add_columns(cols_out)
 
     def _add_columns(self, columns):
@@ -873,12 +873,12 @@ class RoadTables(object):
     def add_table(self, tab_sufix, tab_subname):
         """Return"""
         if tab_sufix not in ["_Displ", "_Marks"]:
-            grass.warning("Only Displ or Marks tables can be used")
+            gs.warning("Only Displ or Marks tables can be used")
             return None
         tab_name = self.road_name + tab_sufix + tab_subname
         n_layer = self.polygon.dblinks.num_dblinks()
         if tab_name in [link.table_name for link in self.polygon.dblinks]:
-            grass.warning("table exist")
+            gs.warning("table exist")
         else:
             self.tables[tab_sufix + tab_subname] = RoadTable(
                 self.polygon, self.polyline, n_layer + 1, tab_name, tab_sufix

@@ -52,7 +52,7 @@
 
 import os
 import atexit
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector import geometry as geo
 
@@ -62,26 +62,24 @@ tmp_centerpoints_map = None
 
 
 def cleanup():
-    if grass.find_file(tmp_points_map, element="vector")["name"]:
-        grass.run_command(
+    if gs.find_file(tmp_points_map, element="vector")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="vector", name=tmp_points_map, quiet=True
         )
-    if grass.find_file(tmp_line_map, element="vector")["name"]:
-        grass.run_command(
+    if gs.find_file(tmp_line_map, element="vector")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="vector", name=tmp_line_map, quiet=True
         )
-    if grass.find_file(tmp_cleaned_map, element="vector")["name"]:
-        grass.run_command(
+    if gs.find_file(tmp_cleaned_map, element="vector")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="vector", name=tmp_cleaned_map, quiet=True
         )
-    if grass.find_file(tmp_centerpoints_map, element="vector")["name"]:
-        grass.run_command(
+    if gs.find_file(tmp_centerpoints_map, element="vector")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="vector", name=tmp_centerpoints_map, quiet=True
         )
-    if grass.find_file(tmp_map, element="vector")["name"]:
-        grass.run_command(
-            "g.remove", flags="f", type="vector", name=tmp_map, quiet=True
-        )
+    if gs.find_file(tmp_map, element="vector")["name"]:
+        gs.run_command("g.remove", flags="f", type="vector", name=tmp_map, quiet=True)
 
 
 def main():
@@ -110,11 +108,11 @@ def main():
     tmp_cleaned_map = "cleaned_map_tmp_%d" % os.getpid()
     tmp_map = "generaluse_map_tmp_%d" % os.getpid()
 
-    nb_lines = grass.vector_info_topo(input)["lines"]
+    nb_lines = gs.vector_info_topo(input)["lines"]
 
     # Find best reference line and max distance between centerpoints of lines
     segment_input = ""
-    categories = grass.read_command(
+    categories = gs.read_command(
         "v.category", input=input, option="print", quiet=True
     ).splitlines()
     for category in categories:
@@ -122,7 +120,7 @@ def main():
         segment_input += " {} {}".format(category.strip(), " 50%")
         segment_input += os.linesep
 
-    grass.write_command(
+    gs.write_command(
         "v.segment",
         input=input,
         output=tmp_centerpoints_map,
@@ -131,7 +129,7 @@ def main():
         quiet=True,
     )
 
-    center_distances = grass.read_command(
+    center_distances = gs.read_command(
         "v.distance",
         from_=tmp_centerpoints_map,
         to=tmp_centerpoints_map,
@@ -158,18 +156,18 @@ def main():
 
     if transversals and not search_range:
         search_range = sum(mean_dists) / len(mean_dists)
-        grass.message(_("Calculated search range:  %.5f.") % search_range)
+        gs.message(_("Calculated search range:  %.5f.") % search_range)
 
     if not refline_cat:
         refline_cat = sorted(zip(cats, mean_dists), key=lambda tup: tup[1])[0][0]
 
-        grass.message(_("Category number of chosen reference line: %s.") % refline_cat)
+        gs.message(_("Category number of chosen reference line: %s.") % refline_cat)
 
     # Use transversals algorithm
     if transversals:
         # Break any intersections in the original lines so that
         # they do not interfere further on
-        grass.run_command(
+        gs.run_command(
             "v.clean", input=input, output=tmp_cleaned_map, tool="break", quiet=True
         )
 
@@ -200,7 +198,7 @@ def main():
                 length_offset,
                 -search_range,
             )
-            grass.write_command(
+            gs.write_command(
                 "v.segment",
                 input=input,
                 output=tmp_points_map,
@@ -209,7 +207,7 @@ def main():
             )
 
             # Create transversal
-            grass.write_command(
+            gs.write_command(
                 "v.net",
                 points=tmp_points_map,
                 output=tmp_line_map,
@@ -221,10 +219,10 @@ def main():
 
             # Patch transversal onto cleaned input lines
             maps = tmp_cleaned_map + "," + tmp_line_map
-            grass.run_command("v.patch", input=maps, out=tmp_map, overwrite=True)
+            gs.run_command("v.patch", input=maps, out=tmp_map, overwrite=True)
 
             # Find intersections
-            grass.run_command(
+            gs.run_command(
                 "v.clean",
                 input=tmp_map,
                 out=tmp_line_map,
@@ -234,7 +232,7 @@ def main():
             )
 
             # Add categories to intersection points
-            grass.run_command(
+            gs.run_command(
                 "v.category",
                 input=tmp_points_map,
                 out=tmp_map,
@@ -243,7 +241,7 @@ def main():
             )
 
             # Get coordinates of points
-            coords = grass.read_command(
+            coords = gs.read_command(
                 "v.to.db", map=tmp_map, op="coor", flags="p"
             ).splitlines()
 
@@ -270,12 +268,12 @@ def main():
     # Use closest point algorithm
     else:
         # Get reference line calculate its length
-        grass.run_command(
+        gs.run_command(
             "v.extract", input=input, output=tmp_line_map, cats=refline_cat, quiet=True
         )
 
         os.environ["GRASS_VERBOSE"] = "0"
-        lpipe = grass.read_command(
+        lpipe = gs.read_command(
             "v.to.db", map=tmp_line_map, op="length", flags="p"
         ).splitlines()
         del os.environ["GRASS_VERBOSE"]
@@ -286,7 +284,7 @@ def main():
         step = linelength / nb_vertices
 
         # Create reference points for vertice calculation
-        grass.run_command(
+        gs.run_command(
             "v.to.points",
             input=tmp_line_map,
             output=tmp_points_map,
@@ -294,7 +292,7 @@ def main():
             quiet=True,
         )
 
-        nb_points = grass.vector_info_topo(tmp_points_map)["points"]
+        nb_points = gs.vector_info_topo(tmp_points_map)["points"]
 
         cat = []
         x = []
@@ -302,7 +300,7 @@ def main():
 
         # Get coordinates of closest points on all input lines
         if search_range:
-            points = grass.read_command(
+            points = gs.read_command(
                 "v.distance",
                 from_=tmp_points_map,
                 from_layer=2,
@@ -313,7 +311,7 @@ def main():
                 quiet=True,
             ).splitlines()
         else:
-            points = grass.read_command(
+            points = gs.read_command(
                 "v.distance",
                 from_=tmp_points_map,
                 from_layer=2,
@@ -372,7 +370,7 @@ def main():
         line = geo.Line(list(zip(xmedian, ymedian)))
     else:
         if median and nb_lines <= 2:
-            grass.message(_("More than 2 lines necesary for median, using mean."))
+            gs.message(_("More than 2 lines necesary for median, using mean."))
         line = geo.Line(list(zip(xmean, ymean)))
 
     new = VectorTopo(output)
@@ -383,6 +381,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

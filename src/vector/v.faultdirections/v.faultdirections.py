@@ -47,7 +47,7 @@
 
 import sys
 import numpy as np
-import grass.script as gscript
+import grass.script as gs
 
 
 def main():
@@ -62,7 +62,7 @@ def main():
     legend_angle = float(options["legend_angle"])
 
     azimuth = []
-    for line in gscript.read_command(
+    for line in gs.read_command(
         "v.db.select", map_=vector, column=column, flags="c"
     ).splitlines():
         azimuth.append(float(line))
@@ -105,5 +105,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

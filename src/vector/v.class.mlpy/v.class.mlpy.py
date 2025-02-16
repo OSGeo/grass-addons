@@ -64,7 +64,7 @@
 # TODO: ouput to new map (all classes/one class), depens what is faster
 
 
-import grass.script as grass
+import grass.script as gs
 
 import numpy as np
 
@@ -72,7 +72,7 @@ import numpy as np
 def addColumn(mapName, columnName, columnType):
     """Adds column to the map's table."""
     columnDefinition = columnName + " " + columnType
-    grass.run_command("v.db.addcolumn", map=mapName, columns=columnDefinition)
+    gs.run_command("v.db.addcolumn", map=mapName, columns=columnDefinition)
 
 
 def hasColumn(tableDescription, column):
@@ -106,7 +106,7 @@ def updateColumn(mapName, column, cats, values=None):
         statement += " WHERE cat = " + cat
         statements += statement + ";\n"
 
-    grass.write_command("db.execute", input="-", stdin=statements)
+    gs.write_command("db.execute", input="-", stdin=statements)
 
 
 class Classifier:
@@ -119,7 +119,7 @@ class Classifier:
         try:
             import mlpy
         except ImportError:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Cannot import mlpy (https://mlpy.sourceforge.net)"
                     " library."
@@ -188,11 +188,11 @@ def extractColumnWithCats(dbTable, columnsDescription):
 
 # unused
 def fatal_noAttributeTable(mapName):
-    grass.fatal(_("Vector map <%s> has no or empty attribute table") % mapName)
+    gs.fatal(_("Vector map <%s> has no or empty attribute table") % mapName)
 
 
 def fatal_noEnoughColumns(mapName, ncols, required):
-    grass.fatal(
+    gs.fatal(
         _(
             "Not enough columns in vector map <%(map)s>"
             " (found %(ncols)s, expected at least %(r)s"
@@ -202,14 +202,14 @@ def fatal_noEnoughColumns(mapName, ncols, required):
 
 
 def fatal_noClassColumn(mapName, columnName):
-    grass.fatal(
+    gs.fatal(
         _("Vector map <%(map)s> does not have the column <%(col)s> cointaining class")
         % {"map": mapName, "col": columnName}
     )
 
 
 def fatal_noRows(mapName):
-    grass.fatal(_("Empty attribute table for map vector <%(map)s>") % {"map": mapName})
+    gs.fatal(_("Empty attribute table for map vector <%(map)s>") % {"map": mapName})
 
 
 def checkNcols(mapName, tableDescription, requiredNcols):
@@ -228,13 +228,13 @@ def checkDbConnection(mapName):
 
     \todo check layer
     """
-    ret = grass.vector_db(mapName)
+    ret = gs.vector_db(mapName)
     if not ret:
-        grass.fatal(_("Vector map <%s> has no attribute table") % mapName)
+        gs.fatal(_("Vector map <%s> has no attribute table") % mapName)
 
 
 def main():
-    options, unused = grass.parser()
+    options, unused = gs.parser()
 
     mapName = options["input"]
     trainingMapName = options["training"]
@@ -260,7 +260,7 @@ def main():
 
     # loading descriptions first to check them
 
-    trainingTableDescription = grass.db_describe(table=trainingMapName)
+    trainingTableDescription = gs.db_describe(table=trainingMapName)
 
     if useAllColumns:
         trainingMinNcols = 3
@@ -273,7 +273,7 @@ def main():
     if not hasColumn(trainingTableDescription, columnWithClass):
         fatal_noClassColumn(trainingMapName, columnWithClass)
 
-    tableDescription = grass.db_describe(table=mapName)
+    tableDescription = gs.db_describe(table=mapName)
 
     if useAllColumns:
         minNcols = 2
@@ -289,11 +289,11 @@ def main():
 
     # TODO: make fun from this
     if useAllColumns:
-        dbTable = grass.db_select(table=trainingMapName)
+        dbTable = gs.db_select(table=trainingMapName)
     else:
         # assuming that columns concatenated by comma
         sql = "SELECT %s,%s FROM %s" % (columnWithClass, columns, trainingMapName)
-        dbTable = grass.db_select(sql=sql)
+        dbTable = gs.db_select(sql=sql)
 
     trainingParameters = fromDbTableToSimpleTable(
         dbTable,
@@ -313,11 +313,11 @@ def main():
 
     # TODO: hard coded 'cat'?
     if useAllColumns:
-        dbTable = grass.db_select(table=mapName)
+        dbTable = gs.db_select(table=mapName)
     else:
         # assuming that columns concatenated by comma
         sql = "SELECT %s,%s FROM %s" % ("cat", columns, mapName)
-        dbTable = grass.db_select(sql=sql)
+        dbTable = gs.db_select(sql=sql)
 
     parameters = fromDbTableToSimpleTable(
         dbTable,
