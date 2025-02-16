@@ -3,9 +3,6 @@ name = "grass-addons"
 requires-python = ">=3.8"
 
 [tool.black]
-required-version = '25'
-line-length = 88
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
 extend-exclude = '''
 (
     # exclude directories in the root of the project
@@ -24,6 +21,9 @@ extend-exclude = '''
     )/
 )
 '''
+line-length = 88
+required-version = '25'
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.ruff]
 builtins = ["_"]
@@ -430,3 +430,7 @@ ignore = [
     "UP035",   # deprecated-import
     "UP036",   # outdated-version-block
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# See https://docs.astral.sh/ruff/settings/#lint_per-file-ignores
+"src/imagery/i.sam2/i.sam2.py" = ["DOC502"]
