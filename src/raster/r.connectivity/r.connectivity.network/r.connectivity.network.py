@@ -276,9 +276,9 @@ def main():
             )
         )
 
-    import matplotlib
+    import matplotlib as mpl
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     # Input variables

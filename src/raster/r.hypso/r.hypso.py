@@ -143,9 +143,9 @@ def findint(kl, f):
 
 
 def plotImage(x, y, image, type, xlabel, ylabel, title):
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     plt.plot(x, y, type)

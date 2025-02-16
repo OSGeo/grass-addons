@@ -211,9 +211,9 @@ def main(options, flags):
         # as_cmap ignores n_colors in 0.7.0
         # but we want n_colors to be exact when we are exporting
         # the color table or doing discrete one
-        import matplotlib  # required by windows
+        import matplotlib as mpl  # required by windows
 
-        matplotlib.use("wxAGG")  # required by windows
+        mpl.use("wxAGG")  # required by windows
         import matplotlib.colors as clr
 
         cmap = clr.LinearSegmentedColormap.from_list("from_list", cmap, N=n_colors)

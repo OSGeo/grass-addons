@@ -290,15 +290,15 @@ clean_maps = []
 
 def lazy_import_py_modules(backend):
     """Lazy import Py modules"""
-    global matplotlib
+    global mpl
     global plt
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
         if backend is None:
-            matplotlib.use("WXAgg")
+            mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -434,7 +434,7 @@ def get_valid_color(color):
     """
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
-    if not matplotlib.colors.is_color_like(color):
+    if not mpl.colors.is_color_like(color):
         gs.fatal(_("{} is not a valid color.").format(color))
     return color
 

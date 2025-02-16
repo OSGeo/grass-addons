@@ -195,7 +195,7 @@ import numpy as np
 import math as ma
 
 # Import pyplot library
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 # Import literal_eval
@@ -203,7 +203,7 @@ from ast import literal_eval
 from copy import deepcopy
 
 # Use a non-interactive backend: prevent the figure from popping up
-matplotlib.use("Agg")
+mpl.use("Agg")
 
 
 # For list of files to cleanup
