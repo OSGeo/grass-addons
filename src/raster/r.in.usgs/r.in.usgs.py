@@ -156,7 +156,6 @@
 import sys
 import os
 import zipfile
-import grass.script as gscript
 from six.moves.urllib.request import urlopen
 from six.moves.urllib.error import URLError, HTTPError
 from six.moves.urllib.parse import quote_plus
@@ -207,7 +206,7 @@ def get_cache_dir(name):
 
 def get_current_mapset():
     """Get curret mapset name as a string"""
-    return gscript.read_command("g.mapset", flags="p").strip()
+    return gs.read_command("g.mapset", flags="p").strip()
 
 
 def map_exists(element, name, mapset):
@@ -223,17 +222,17 @@ def map_exists(element, name, mapset):
         element = "grid3"
     # g.findfile returns non-zero when file was not found
     # se we ignore return code and just focus on stdout
-    process = gscript.start_command(
+    process = gs.start_command(
         "g.findfile",
         flags="n",
         element=element,
         file=name,
         mapset=mapset,
-        stdout=gscript.PIPE,
-        stderr=gscript.PIPE,
+        stdout=gs.PIPE,
+        stderr=gs.PIPE,
     )
     output, errors = process.communicate()
-    info = gscript.parse_key_val(output, sep="=")
+    info = gs.parse_key_val(output, sep="=")
     # file is the key questioned in grass.script.core find_file()
     # return code should be equivalent to checking the output
     if info["file"]:
@@ -255,7 +254,7 @@ def run_file_import(
 ):
     result = {}
     try:
-        gscript.run_command(
+        gs.run_command(
             "r.import",
             input=input,
             output=output,
@@ -279,9 +278,7 @@ def run_lidar_import(identifier, results, input, output, input_srs=None):
     if input_srs:
         params["input_srs"] = input_srs
     try:
-        gscript.run_command(
-            "v.in.pdal", input=input, output=output, flags="wr", **params
-        )
+        gs.run_command("v.in.pdal", input=input, output=output, flags="wr", **params)
     except CalledModuleError:
         error = ("Unable to import <{0}>").format(output)
         result["errors"] = error
@@ -431,14 +428,12 @@ def main():
     if not work_dir:
         work_dir = get_cache_dir("r_in_usgs")
     elif not os.path.isdir(work_dir):
-        gscript.fatal(
-            _("Directory <{}> does not exist. Please create it.").format(work_dir)
-        )
+        gs.fatal(_("Directory <{}> does not exist. Please create it.").format(work_dir))
 
     # Returns current units
     try:
-        proj = gscript.parse_command("g.proj", flags="g")
-        if gscript.locn_is_latlong():
+        proj = gs.parse_command("g.proj", flags="g")
+        if gs.locn_is_latlong():
             product_resolution = nav_string["dataset"][gui_dataset][0]
         elif float(proj["meters"]) == 1:
             product_resolution = nav_string["dataset"][gui_dataset][1]
@@ -452,23 +447,23 @@ def main():
 
     if gui_resampling_method == "default":
         gui_resampling_method = nav_string["interpolation"]
-        gscript.verbose(
+        gs.verbose(
             _("The default resampling method for product {product} is {res}").format(
                 product=gui_product, res=product_interpolation
             )
         )
 
     # Get coordinates for current GRASS computational region and convert to USGS SRS
-    gregion = gscript.region()
+    gregion = gs.region()
     wgs84 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
-    min_coords = gscript.read_command(
+    min_coords = gs.read_command(
         "m.proj",
         coordinates=(gregion["w"], gregion["s"]),
         proj_out=wgs84,
         separator="comma",
         flags="d",
     )
-    max_coords = gscript.read_command(
+    max_coords = gs.read_command(
         "m.proj",
         coordinates=(gregion["e"], gregion["n"]),
         proj_out=wgs84,
@@ -494,7 +489,7 @@ def main():
     TNM_API_URL = base_TNM + datasets_TNM + bbox_TNM + prod_format_TNM
     if gui_product == "nlcd":
         TNM_API_URL += "&prodExtents={0}".format(prod_extent)
-    gscript.verbose("TNM API Query URL:\t{0}".format(TNM_API_URL))
+    gs.verbose("TNM API Query URL:\t{0}".format(TNM_API_URL))
 
     # Query TNM API
     try_again_messge = _(
@@ -503,7 +498,7 @@ def main():
     try:
         TNM_API_GET = urlopen(TNM_API_URL, timeout=12)
     except HTTPError as error:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "HTTP(S) error from USGS TNM API: {code}: {reason} ({instructions})"
             ).format(
@@ -513,7 +508,7 @@ def main():
     except (URLError, OSError) as error:
         # Catching also SSLError and potentially others which are
         # subclasses of IOError in Python 2 and of OSError in Python 3.
-        gscript.fatal(
+        gs.fatal(
             _("Error accessing USGS TNM API: {error} ({instructions})").format(
                 error=error, instructions=try_again_messge
             )
@@ -525,7 +520,7 @@ def main():
         if return_JSON["errors"]:
             TNM_API_error = return_JSON["errors"]
             api_error_msg = "TNM API Error - {0}".format(str(TNM_API_error))
-            gscript.fatal(api_error_msg)
+            gs.fatal(api_error_msg)
         if gui_product == "lidar" and options["title_filter"]:
             return_JSON["items"] = [
                 item
@@ -535,7 +530,7 @@ def main():
             return_JSON["total"] = len(return_JSON["items"])
 
     except:
-        gscript.fatal(_("Unable to load USGS JSON object."))
+        gs.fatal(_("Unable to load USGS JSON object."))
     # Functions down_list() and exist_list() used to determine
     # existing files and those that need to be downloaded.
 
@@ -599,7 +594,7 @@ def main():
                 TNM_file_size
                 and abs(existing_local_file_size - TNM_file_size) > cache_size_tolerance
             ):
-                gscript.verbose(
+                gs.verbose(
                     _(
                         "Size of local file {filename} ({local_size}) differs"
                         " from a file size specified in the API ({api_size})"
@@ -663,13 +658,13 @@ def main():
         exist_msg = _(
             "\n{0} of {1} files/archive(s) exist locally and will be used by module."
         ).format(len(exist_zip_list), tiles_needed_count)
-        gscript.message(exist_msg)
+        gs.message(exist_msg)
     # TODO: fix this way of reporting and merge it with the one in use
     if exist_tile_list:
         exist_msg = _(
             "\n{0} of {1} files/archive(s) exist locally and will be used by module."
         ).format(len(exist_tile_list), tiles_needed_count)
-        gscript.message(exist_msg)
+        gs.message(exist_msg)
 
     # formats JSON size from bites into needed units for combined file size
     total_size_str = "0"
@@ -700,7 +695,7 @@ def main():
                             gui_subset
                         )
                     )
-                    gscript.fatal(nlcd_unavailable)
+                    gs.fatal(nlcd_unavailable)
     else:
         data_info = (
             "USGS file(s) to download:",
@@ -725,9 +720,9 @@ def main():
 
     # USGS data download process
     if file_download_count <= 0:
-        gscript.message(_("Extracting existing USGS Data..."))
+        gs.message(_("Extracting existing USGS Data..."))
     else:
-        gscript.message(_("Downloading USGS Data..."))
+        gs.message(_("Downloading USGS Data..."))
 
     TNM_count = len(dwnld_url)
     download_count = 0
@@ -763,12 +758,12 @@ def main():
                 while True:
                     chunk = dwnld_req.read(CHUNK)
                     if download_bytes:
-                        gscript.percent(count, steps, 10)
+                        gs.percent(count, steps, 10)
                     count += 1
                     if not chunk:
                         break
                     local_file.write(chunk)
-                gscript.percent(1, 1, 1)
+                gs.percent(1, 1, 1)
             local_file.close()
             # determine if file is a zip archive or another format
             if local_file_path.endswith(".zip"):
@@ -799,12 +794,12 @@ def main():
         for t in exist_tile_list:
             local_tile_path_list.append(t)
     if local_zip_path_list:
-        gscript.message("Extracting data...")
+        gs.message("Extracting data...")
         # for each zip archive, extract needed file
         files_to_process = len(local_zip_path_list)
         for i, z in enumerate(local_zip_path_list):
             # TODO: measure only for the files being unzipped
-            gscript.percent(i, files_to_process, 10)
+            gs.percent(i, files_to_process, 10)
             # Extract tiles from ZIP archives
             try:
                 with zipfile.ZipFile(z, "r") as read_zip:
@@ -838,28 +833,28 @@ def main():
                         cleanup_list.append(extracted_tile)
             except OSError as error:
                 cleanup_list.append(extracted_tile)
-                gscript.fatal(
+                gs.fatal(
                     _(
                         "Unable to locate or extract IMG file '{filename}'"
                         " from ZIP archive '{zipname}': {error}"
                     ).format(filename=extracted_tile, zipname=z, error=error)
                 )
-        gscript.percent(1, 1, 1)
+        gs.percent(1, 1, 1)
         # TODO: do this before the extraction begins
-        gscript.verbose(
+        gs.verbose(
             _("Extracted {extracted} new tiles and used {used} existing tiles").format(
                 used=used_existing_extracted_tiles_num, extracted=extracted_tiles_num
             )
         )
         if old_extracted_tiles_num:
-            gscript.verbose(
+            gs.verbose(
                 _(
                     "Found {removed} existing tiles older"
                     " than the corresponding downloaded archive"
                 ).format(removed=old_extracted_tiles_num)
             )
         if removed_extracted_tiles_num:
-            gscript.verbose(
+            gs.verbose(
                 _("Removed {removed} existing tiles").format(
                     removed=removed_extracted_tiles_num
                 )
@@ -872,7 +867,7 @@ def main():
         )
         return
 
-    has_pdal = gscript.find_program(pgm="v.in.pdal")
+    has_pdal = gs.find_program(pgm="v.in.pdal")
     if gui_product == "lidar" and not has_pdal:
         gs.fatal(_("Module v.in.pdal is missing, cannot process downloaded data."))
 
@@ -913,7 +908,7 @@ def main():
                 in_info = _(
                     "Importing and reprojecting {name} ({count} out of {total})..."
                 ).format(name=LT_file_name, count=i + 1, total=files_to_import)
-                gscript.info(in_info)
+                gs.info(in_info)
 
                 process_count += 1
                 if gui_product != "lidar":
@@ -958,17 +953,17 @@ def main():
                     exitcodes += process.exitcode
                 if exitcodes != 0:
                     if nprocs > 1:
-                        gscript.fatal(
+                        gs.fatal(
                             _(
                                 "Parallel import and reprojection failed."
                                 " Try running with nprocs=1."
                             )
                         )
                     else:
-                        gscript.fatal(_("Import and reprojection step failed."))
+                        gs.fatal(_("Import and reprojection step failed."))
                 for identifier in process_id_list:
                     if "errors" in results[identifier]:
-                        gscript.warning(results[identifier]["errors"])
+                        gs.warning(results[identifier]["errors"])
                     else:
                         patch_names.append(results[identifier]["output"])
                         imported_tiles_num += 1
@@ -981,7 +976,7 @@ def main():
         assert not process_id_list
         assert not process_count
 
-    gscript.verbose(
+    gs.verbose(
         _("Imported {imported} new tiles and used {used} existing tiles").format(
             used=used_existing_imported_tiles_num, imported=imported_tiles_num
         )
@@ -1003,29 +998,29 @@ def main():
     if completed_tiles_count == tiles_needed_count:
         if len(patch_names) > 1:
             try:
-                gscript.use_temp_region()
+                gs.use_temp_region()
                 # set the resolution
                 if product_resolution:
-                    gscript.run_command("g.region", res=product_resolution, flags="a")
+                    gs.run_command("g.region", res=product_resolution, flags="a")
                 if gui_product == "naip":
                     for i in ("1", "2", "3", "4"):
                         patch_names_i = [name + "." + i for name in patch_names]
                         output = gui_output_layer + "." + i
-                        gscript.run_command(
+                        gs.run_command(
                             "r.patch",
                             input=patch_names_i,
                             output=output,
                             **r_patch_kwargs,
                         )
-                        gscript.raster_history(output)
+                        gs.raster_history(output)
                 elif gui_product == "lidar":
-                    gscript.run_command(
+                    gs.run_command(
                         "v.patch",
                         flags="nzb",
                         input=patch_names,
                         output=gui_output_layer,
                     )
-                    gscript.run_command(
+                    gs.run_command(
                         "v.surf.rst",
                         input=gui_output_layer,
                         elevation=gui_output_layer,
@@ -1033,54 +1028,54 @@ def main():
                         **rst_params,
                     )
                 else:
-                    gscript.run_command(
+                    gs.run_command(
                         "r.patch",
                         input=patch_names,
                         output=gui_output_layer,
                         **r_patch_kwargs,
                     )
-                    gscript.raster_history(gui_output_layer)
-                gscript.del_temp_region()
+                    gs.raster_history(gui_output_layer)
+                gs.del_temp_region()
                 out_info = ("Patched composite layer '{0}' added").format(
                     gui_output_layer
                 )
-                gscript.verbose(out_info)
+                gs.verbose(out_info)
                 # Remove files if not -k flag
                 if not preserve_imported_tiles:
                     if gui_product == "naip":
                         for i in ("1", "2", "3", "4"):
                             patch_names_i = [name + "." + i for name in patch_names]
-                            gscript.run_command(
+                            gs.run_command(
                                 "g.remove", type="raster", name=patch_names_i, flags="f"
                             )
                     elif gui_product == "lidar":
-                        gscript.run_command(
+                        gs.run_command(
                             "g.remove",
                             type="vector",
                             name=patch_names + [gui_output_layer],
                             flags="f",
                         )
                     else:
-                        gscript.run_command(
+                        gs.run_command(
                             "g.remove", type="raster", name=patch_names, flags="f"
                         )
             except CalledModuleError:
-                gscript.fatal("Unable to patch tiles.")
+                gs.fatal("Unable to patch tiles.")
             temp_down_count = _(
                 "{0} of {1} tiles successfully imported and patched"
             ).format(completed_tiles_count, tiles_needed_count)
-            gscript.info(temp_down_count)
+            gs.info(temp_down_count)
         elif len(patch_names) == 1:
             if gui_product == "naip":
                 for i in ("1", "2", "3", "4"):
-                    gscript.run_command(
+                    gs.run_command(
                         "g.rename",
                         raster=(patch_names[0] + "." + i, gui_output_layer + "." + i),
                     )
             elif gui_product == "lidar":
                 if product_resolution:
-                    gscript.run_command("g.region", res=product_resolution, flags="a")
-                gscript.run_command(
+                    gs.run_command("g.region", res=product_resolution, flags="a")
+                gs.run_command(
                     "v.surf.rst",
                     input=patch_names[0],
                     elevation=gui_output_layer,
@@ -1088,49 +1083,45 @@ def main():
                     **rst_params,
                 )
                 if not preserve_imported_tiles:
-                    gscript.run_command(
+                    gs.run_command(
                         "g.remove", type="vector", name=patch_names[0], flags="f"
                     )
             else:
-                gscript.run_command(
-                    "g.rename", raster=(patch_names[0], gui_output_layer)
-                )
+                gs.run_command("g.rename", raster=(patch_names[0], gui_output_layer))
             temp_down_count = _("Tile successfully imported")
-            gscript.info(temp_down_count)
+            gs.info(temp_down_count)
         else:
-            gscript.fatal(_("No tiles imported successfully. Nothing to patch."))
+            gs.fatal(_("No tiles imported successfully. Nothing to patch."))
     else:
-        gscript.fatal(
-            _("Error in getting or importing the data (see above). Please retry.")
-        )
+        gs.fatal(_("Error in getting or importing the data (see above). Please retry."))
 
     # set appropriate color table
     if gui_product == "ned":
-        gscript.run_command("r.colors", map=gui_output_layer, color="elevation")
+        gs.run_command("r.colors", map=gui_output_layer, color="elevation")
 
     # composite NAIP
     if gui_product == "naip":
-        gscript.use_temp_region()
-        gscript.run_command("g.region", raster=gui_output_layer + ".1")
-        gscript.run_command(
+        gs.use_temp_region()
+        gs.run_command("g.region", raster=gui_output_layer + ".1")
+        gs.run_command(
             "r.composite",
             red=gui_output_layer + ".1",
             green=gui_output_layer + ".2",
             blue=gui_output_layer + ".3",
             output=gui_output_layer,
         )
-        gscript.raster_history(gui_output_layer)
-        gscript.del_temp_region()
+        gs.raster_history(gui_output_layer)
+        gs.del_temp_region()
 
 
 def cleanup():
     # Remove files in cleanup_list
     for f in cleanup_list:
         if os.path.exists(f):
-            gscript.try_remove(f)
+            gs.try_remove(f)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())
