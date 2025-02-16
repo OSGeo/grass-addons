@@ -379,7 +379,7 @@ import pdb
 
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parser, read_command, run_command
@@ -521,8 +521,8 @@ def fertility_maintenance(opts, flgs):
     )
 
     listmapsite = ""
-    map_site_prod_bioenergyT = grass.find_file("site_prod_bioenergyT", element="cell")
-    map_site_prod_bioenergyFF = grass.find_file("site_prod_bioenergyFF", element="cell")
+    map_site_prod_bioenergyT = gs.find_file("site_prod_bioenergyT", element="cell")
+    map_site_prod_bioenergyFF = gs.find_file("site_prod_bioenergyFF", element="cell")
 
     if map_site_prod_bioenergyT["fullname"] != "":
         listmapsite += map_site_prod_bioenergyT["fullname"]
@@ -639,7 +639,7 @@ def soil_water_protection(opts, flgs):
     list_sw_prot = []
     for i in range(1, 4):
         file_sw = "S_W_prot_bioenergy%s" % i
-        map_sw = grass.find_file(file_sw, element="cell")
+        map_sw = gs.find_file(file_sw, element="cell")
         if map_sw["fullname"] != "":
             list_sw_prot.append(map_sw["fullname"])
     string_sw_prot = string.join(list_sw_prot, ",")
@@ -730,7 +730,7 @@ def soil_water_protection(opts, flgs):
     list_sw_prot = []
     for i in range(5, 8):
         file_sw = "S_W_prot_bioenergy%s" % i
-        map_sw = grass.find_file(file_sw, element="cell")
+        map_sw = gs.find_file(file_sw, element="cell")
         if map_sw["fullname"] != "":
             list_sw_prot.append(map_sw["fullname"])
     string_sw_prot = string.join(list_sw_prot, ",")

@@ -80,14 +80,14 @@ from math import nan
 import numpy as np
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 # initialize global vars
 rm_files = []
 
 
 def cleanup():
-    grass.message(_("Cleaning up..."))
+    gs.message(_("Cleaning up..."))
     for rm_f in rm_files:
         if os.path.isfile(rm_f):
             os.remove(rm_f)
@@ -140,18 +140,18 @@ def print_descriptions():
     )
 
     # print descriptions
-    grass.message(oa)
-    grass.message("\n")
-    grass.message(ua)
-    grass.message("\n")
-    grass.message(pa)
-    grass.message("\n")
-    grass.message(com)
-    grass.message("\n")
-    grass.message(om)
-    grass.message("\n")
-    grass.message(kap)
-    grass.message("\n")
+    gs.message(oa)
+    gs.message("\n")
+    gs.message(ua)
+    gs.message("\n")
+    gs.message(pa)
+    gs.message("\n")
+    gs.message(com)
+    gs.message("\n")
+    gs.message(om)
+    gs.message("\n")
+    gs.message(kap)
+    gs.message("\n")
 
 
 def set_reference(descriptionflag=None):
@@ -159,10 +159,10 @@ def set_reference(descriptionflag=None):
         reference = options["raster_reference"]
         refname = reference
     elif options["vector_reference"] and options["column"]:
-        savedregion = grass.tempname(12)
-        grass.run_command("g.region", save=savedregion)
-        grass.run_command("g.region", raster=options["classification"])
-        reference = grass.tempname(12)
+        savedregion = gs.tempname(12)
+        gs.run_command("g.region", save=savedregion)
+        gs.run_command("g.region", raster=options["classification"])
+        reference = gs.tempname(12)
         kwargs = {
             "input": options["vector_reference"],
             "output": reference,
@@ -171,28 +171,28 @@ def set_reference(descriptionflag=None):
         }
         if options["label_column"]:
             kwargs["label_column"] = options["label_column"]
-        grass.run_command("v.to.rast", quiet=True, **kwargs)
+        gs.run_command("v.to.rast", quiet=True, **kwargs)
         refname = options["vector_reference"] + " with column " + options["column"]
         # reset region
-        grass.run_command("g.region", region=savedregion, quiet=True)
+        gs.run_command("g.region", region=savedregion, quiet=True)
         # remove region
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="region", name=savedregion, quiet=True
         )
     else:
         if not descriptionflag:
-            grass.fatal(
+            gs.fatal(
                 "Either <raster_reference> or <vector_reference> and <column> must be indicated"
             )
     return reference, refname
 
 
 def get_r_kappa(classification, reference):
-    tmp_csv = grass.tempfile()
+    tmp_csv = gs.tempfile()
     os.remove(tmp_csv)
     rm_files.append(tmp_csv)
 
-    grass.run_command(
+    gs.run_command(
         "r.kappa",
         flags="wmh",
         classification=classification,
@@ -303,7 +303,7 @@ def main():
         if not (classification and reference):
             return
     elif not (classification and reference):
-        grass.fatal(
+        gs.fatal(
             _(
                 "If <-d> is not set, <classification> and <raster_reference> or <vector_reference> with <column> must be set."
             )
@@ -317,13 +317,13 @@ def main():
     # confusionmatrix
     confusionmatrix = errormatrix[:-1, :-1]
     if not flags["m"]:
-        grass.message("\nConfusion matrix:\n%s" % str(confusionmatrix))
+        gs.message("\nConfusion matrix:\n%s" % str(confusionmatrix))
 
     # Overall accuracy
     diag = [errormatrix[i, i] for i in range(errormatrix.shape[0] - 1)]
     overall_accuracy = np.sum(diag) / errormatrix[-1, -1] * 100
     if not flags["m"]:
-        grass.message("\nOverall accuracy: %f" % overall_accuracy)
+        gs.message("\nOverall accuracy: %f" % overall_accuracy)
 
     # User Accuracy and Commission
     user_accuracy = {}
@@ -341,15 +341,15 @@ def main():
 
     # print  User Accuracy and Commission
     if not flags["m"]:
-        grass.message("\nUser Accuracy: ")
+        gs.message("\nUser Accuracy: ")
     for key, item in user_accuracy.items():
         if not flags["m"]:
-            grass.message("%s: %f" % (key, item))
+            gs.message("%s: %f" % (key, item))
     if not flags["m"]:
-        grass.message("\nCommission error: ")
+        gs.message("\nCommission error: ")
     for key, item in commission.items():
         if not flags["m"]:
-            grass.message("%s: %f" % (key, item))
+            gs.message("%s: %f" % (key, item))
 
     # Producer Accuracy and Omission
     producer_accuracy = {}
@@ -369,13 +369,13 @@ def main():
 
     # print Producer Accuracy and Omission
     if not flags["m"]:
-        grass.message("\nProducer Accuracy: ")
+        gs.message("\nProducer Accuracy: ")
         for key, item in producer_accuracy.items():
-            grass.message("%s: %f" % (key, item))
+            gs.message("%s: %f" % (key, item))
     if not flags["m"]:
-        grass.message("\nOmission error: ")
+        gs.message("\nOmission error: ")
         for key, item in omission.items():
-            grass.message("%s: %f" % (key, item))
+            gs.message("%s: %f" % (key, item))
 
     # Kappa coefficient
     pc = 0
@@ -384,7 +384,7 @@ def main():
     pc *= 1 / (errormatrix[-1, -1] * errormatrix[-1, -1])
     kappa = (overall_accuracy / 100 - pc) / (1 - pc)
     if not flags["m"]:
-        grass.message("\nKappa coefficient: %f" % kappa)
+        gs.message("\nKappa coefficient: %f" % kappa)
 
     # round values to two digits
     for item in user_accuracy.items():
@@ -424,16 +424,14 @@ def main():
             print(line)
 
     if len(ref_classes) == 1:
-        grass.warning(_("Only one class in reference dataset."))
+        gs.warning(_("Only one class in reference dataset."))
 
     # cleanup
     if options["vector_reference"]:
-        grass.run_command(
-            "g.remove", type="raster", name=reference, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=reference, flags="f", quiet=True)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

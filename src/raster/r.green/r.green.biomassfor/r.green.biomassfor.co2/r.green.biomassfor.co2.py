@@ -255,7 +255,7 @@ import pdb
 
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parser, read_command, run_command

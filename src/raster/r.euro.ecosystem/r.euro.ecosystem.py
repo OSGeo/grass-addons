@@ -45,7 +45,7 @@ import csv
 import math
 import shutil
 import tempfile
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -62,7 +62,7 @@ def main():
     global tmp
 
     # start settings
-    grass.message("Setting colors and categories ...")
+    gs.message("Setting colors and categories ...")
 
     # define intermediate folder files
     datatempdir = tempfile.gettempdir()
@@ -109,12 +109,12 @@ def main():
         fcal1.close()
 
         # apply color rules level 1
-        grass.message("applying color rules for data level 1...")
-        grass.run_command("r.colors", map=iraster, rules=tmp_col_l1, quiet=True)
+        gs.message("applying color rules for data level 1...")
+        gs.run_command("r.colors", map=iraster, rules=tmp_col_l1, quiet=True)
 
         # apply category rules level 1
-        grass.message("applying category rules for data level 1...")
-        grass.run_command(
+        gs.message("applying category rules for data level 1...")
+        gs.run_command(
             "r.category", map=iraster, rules=tmp_cat_l1, separator="pipe", quiet=True
         )
 
@@ -399,18 +399,18 @@ def main():
         fcal2.close()
 
         # apply color rules level 2
-        grass.message("applying color rules for data level 2...")
-        grass.run_command("r.colors", map=iraster, rules=tmp_col_l2, quiet=True)
+        gs.message("applying color rules for data level 2...")
+        gs.run_command("r.colors", map=iraster, rules=tmp_col_l2, quiet=True)
 
         # apply category rules level 2
-        grass.message("applying category rules for data level 2...")
-        grass.run_command(
+        gs.message("applying category rules for data level 2...")
+        gs.run_command(
             "r.category", map=iraster, rules=tmp_cat_l2, separator="pipe", quiet=True
         )
 
     # do some clean up
-    grass.message("----")
-    grass.message("cleaning intermediate files ....")
+    gs.message("----")
+    gs.message("cleaning intermediate files ....")
     if level1:
         os.remove("%s" % tmp_col_l1)
         os.remove("%s" % tmp_cat_l1)
@@ -419,10 +419,10 @@ def main():
         os.remove("%s" % tmp_col_l2)
         os.remove("%s" % tmp_cat_l2)
 
-    grass.message("Cleaning done.")
-    grass.message("----")
+    gs.message("Cleaning done.")
+    gs.message("----")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

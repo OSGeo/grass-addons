@@ -156,7 +156,7 @@
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 import json
 import time
 
@@ -174,11 +174,11 @@ def footprint_to_vectormap(infile, footprint):
         infile(string): Name of LAS input file
         footprint(string): Footprint of the data as vector map
     """
-    if not grass.find_program(
+    if not gs.find_program(
         options["pdal_cmd"].split(" ")[0],
         " ".join(options["pdal_cmd"].split(" ")[1:]) + " info --boundary",
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "The pdal executable is not available."
                 " Install PDAL or put the pdal executable on path."
@@ -186,15 +186,15 @@ def footprint_to_vectormap(infile, footprint):
         )
     command_fp = options["pdal_cmd"].split(" ")
     command_fp.extend(["info", "--boundary", infile])
-    tmp_fp = grass.tempfile()
+    tmp_fp = gs.tempfile()
     if tmp_fp is None:
-        grass.fatal("Unable to create temporary files")
+        gs.fatal("Unable to create temporary files")
     fh = open(tmp_fp, "wb")
-    if grass.call(command_fp, stdout=fh) != 0:
+    if gs.call(command_fp, stdout=fh) != 0:
         fh.close()
         # check to see if pdal info executed properly
         os.remove(tmp_fp)
-        grass.fatal(_("pdal info broken..."))
+        gs.fatal(_("pdal info broken..."))
     else:
         fh.close()
     data = json.load(open(tmp_fp))
@@ -212,50 +212,50 @@ def footprint_to_vectormap(infile, footprint):
         x_y = coord.split(",")
         for xy in x_y:
             xy_in += xy.rstrip().replace(" ", ",") + "\n"
-    tmp_xy = grass.tempfile()
+    tmp_xy = gs.tempfile()
     if tmp_xy is None:
-        grass.fatal("Unable to create temporary files")
+        gs.fatal("Unable to create temporary files")
     f = open(tmp_xy, "w")
     f.write(xy_in[:-1])
     f.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.lines", input=tmp_xy, output="footprint_line", separator="comma"
     )
-    grass.run_command("g.region", vector="footprint_line")
-    grass.run_command(
+    gs.run_command("g.region", vector="footprint_line")
+    gs.run_command(
         "v.type",
         input="footprint_line",
         out="footprint_boundary",
         from_type="line",
         to_type="boundary",
     )
-    grass.run_command("v.centroids", input="footprint_boundary", out=footprint)
-    grass.run_command("v.db.addtable", map=footprint, columns="name varchar(50)")
-    grass.run_command("v.db.update", map=footprint, column="name", value=infile)
+    gs.run_command("v.centroids", input="footprint_boundary", out=footprint)
+    gs.run_command("v.db.addtable", map=footprint, columns="name varchar(50)")
+    gs.run_command("v.db.update", map=footprint, column="name", value=infile)
 
     # Cleaning up
-    grass.message(_("Cleaning up..."))
+    gs.message(_("Cleaning up..."))
     os.remove(tmp_fp)
     os.remove(tmp_xy)
-    grass.run_command(
+    gs.run_command(
         "g.remove", flags="f", type="vector", name="footprint_line", quiet=True
     )
-    grass.run_command(
+    gs.run_command(
         "g.remove", flags="f", type="vector", name="footprint_boundary", quiet=True
     )
 
     # metadata
-    grass.run_command("v.support", map=footprint, comment="in " + os.environ["CMDLINE"])
+    gs.run_command("v.support", map=footprint, comment="in " + os.environ["CMDLINE"])
 
-    grass.message(_("Generating output vector map <%s>...") % footprint)
+    gs.message(_("Generating output vector map <%s>...") % footprint)
 
 
 def scan_extent(infile):
-    if not grass.find_program(
+    if not gs.find_program(
         options["pdal_cmd"].split(" ")[0],
         " ".join(options["pdal_cmd"].split(" ")[1:]) + " info --summary",
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "The pdal program is not in the path "
                 + "and executable. Please install first"
@@ -264,19 +264,19 @@ def scan_extent(infile):
     command_scan = options["pdal_cmd"].split(" ")
     command_scan.extend(["info", "--summary", infile])
 
-    tmp_scan = grass.tempfile()
+    tmp_scan = gs.tempfile()
     if tmp_scan is None:
-        grass.fatal("Unable to create temporary files")
+        gs.fatal("Unable to create temporary files")
     fh = open(tmp_scan, "wb")
     summary = True
-    if grass.call(command_scan, stdout=fh) != 0:
+    if gs.call(command_scan, stdout=fh) != 0:
         fh.close()
         command_scan = options["pdal_cmd"].split(" ")
         command_scan.extend(["info", infile])
         fh2 = open(tmp_scan, "wb")
-        if grass.call(command_scan, stdout=fh2) != 0:
+        if gs.call(command_scan, stdout=fh2) != 0:
             os.remove(tmp_scan)
-            grass.fatal(
+            gs.fatal(
                 _("pdal cannot determine metadata " + "for unsupported format of <%s>")
                 % infile
             )
@@ -351,7 +351,7 @@ def main():
     shell_script_style = flags["g"]
 
     if len(outfiles.split(",")) != len(methods.split(",")):
-        grass.fatal(
+        gs.fatal(
             _("Number of outputs <%s> does not match number of methods <%s>")
             % (outfiles, methods)
         )
@@ -360,20 +360,20 @@ def main():
     os.environ["GRASS_OVERWRITE"] = "1"
 
     # to hide non-error messages from subprocesses
-    if grass.verbosity() <= 2:
+    if gs.verbosity() <= 2:
         outdev = open(os.devnull, "w")
     else:
         outdev = sys.stdout
 
     # use temporary region
-    grass.use_temp_region()
+    gs.use_temp_region()
 
     n, s, w, e, t, b = scan_extent(infile)
 
     # scan -s or shell_script_style -g:
     if scan:
         if not shell_script_style:
-            grass.message(
+            gs.message(
                 _("north: %s\nsouth: %s\nwest: %s\neast: %s\ntop: %s\nbottom: %s")
                 % (n, s, w, e, t, b)
             )
@@ -388,24 +388,22 @@ def main():
 
         if raster_file:
             raster_reference = "img" + str(os.getpid())
-            grass.run_command(
+            gs.run_command(
                 "r.external", input=raster_file, flags="o", output=raster_reference
             )
-            result = grass.find_file(name=raster_reference, element="raster")
+            result = gs.find_file(name=raster_reference, element="raster")
             if result["fullname"] == "":
                 raster_reference = raster_reference + ".1"
         # option 1: set region to extent of tiles while precisely aligning pixel
         # geometry to raster_reference (including both raster_reference and raster_file)
         if raster_reference:
-            grass.run_command(
+            gs.run_command(
                 "g.region", n=n, s=s, e=e, w=w, flags="g", align=raster_reference
             )
         else:
             # option 2: change raster resolution to final resolution while best
             # effort aligning to pixel geometry
-            grass.run_command(
-                "g.region", n=n, s=s, e=e, w=w, flags="ap", res=resolution
-            )
+            gs.run_command("g.region", n=n, s=s, e=e, w=w, flags="ap", res=resolution)
         # generate PDAL pipeline
         # . pdal pipline laz2json (STDOUT) | r.in.xyz
         bn = os.path.basename(infile)
@@ -418,12 +416,12 @@ def main():
         elif infile_format.lower() == "pts":
             format_reader = "readers.pts"
         else:
-            grass.run_command(
+            gs.run_command(
                 "g.remove", flags="f", type="vector", name="tiles", quiet=True
             )
-            grass.fatal(_("Format .%s is not supported..") % infile_format)
+            gs.fatal(_("Format .%s is not supported..") % infile_format)
 
-        grass.message(_("Converting input file <%s>...") % infile)
+        gs.message(_("Converting input file <%s>...") % infile)
         tmp_file_json = "tmp_file_json_" + str(os.getpid())
 
         data = {}
@@ -442,9 +440,9 @@ def main():
         with open(tmp_file_json, "w") as f:
             json.dump(data, f)
 
-        tmp_xyz = grass.tempfile()
+        tmp_xyz = gs.tempfile()
         if tmp_xyz is None:
-            grass.fatal("Unable to create temporary files")
+            gs.fatal("Unable to create temporary files")
         command_pdal1 = options["pdal_cmd"].split(" ")
         if options["pdal_cmd"] != "pdal":
             v_index = None
@@ -460,11 +458,11 @@ def main():
         command_pdal1.extend(["pipeline", "--input", tmp_file_json2])
 
         fh = open(tmp_xyz, "wb")
-        if grass.call(command_pdal1, stdout=fh) != 0:
+        if gs.call(command_pdal1, stdout=fh) != 0:
             fh.close()
             # check to see if pdal pipeline executed properly
             print(command_pdal1)
-            grass.fatal(_("pdal pipeline is broken..."))
+            gs.fatal(_("pdal pipeline is broken..."))
         else:
             fh.close()
 
@@ -472,7 +470,7 @@ def main():
             method = methods.split(",")[i]
             outfile = outfiles.split(",")[i]
 
-            grass.message(_("Generating output raster map <%s>...") % outfile)
+            gs.message(_("Generating output raster map <%s>...") % outfile)
 
             command_pdal2 = [
                 "r.in.xyz",
@@ -496,34 +494,32 @@ def main():
             if trim:
                 command_pdal2.append("trim=" + trim)
 
-            if grass.call(command_pdal2, stdout=outdev) != 0:
+            if gs.call(command_pdal2, stdout=outdev) != 0:
                 # check to see if r.in.xyz executed properly
                 os.remove(tmp_xyz)
-                grass.fatal(_("r.in.xyz is broken..."))
+                gs.fatal(_("r.in.xyz is broken..."))
 
             # metadata
-            empty_history = grass.tempfile()
+            empty_history = gs.tempfile()
             if empty_history is None:
-                grass.fatal("Unable to create temporary files")
+                gs.fatal("Unable to create temporary files")
             f = open(empty_history, "w")
             f.close()
-            grass.run_command(
+            gs.run_command(
                 "r.support",
                 map=outfile,
                 source1=infile,
                 description="generated by r.in.pdal",
                 loadhistory=empty_history,
             )
-            grass.run_command("r.support", map=outfile, history=os.environ["CMDLINE"])
+            gs.run_command("r.support", map=outfile, history=os.environ["CMDLINE"])
             os.remove(empty_history)
 
         # Cleanup
-        grass.message(_("Cleaning up..."))
-        grass.run_command(
-            "g.remove", flags="f", type="vector", name="tiles", quiet=True
-        )
+        gs.message(_("Cleaning up..."))
+        gs.run_command("g.remove", flags="f", type="vector", name="tiles", quiet=True)
         if raster_file:
-            grass.run_command(
+            gs.run_command(
                 "g.remove",
                 flags="f",
                 type="raster",
@@ -532,9 +528,9 @@ def main():
             )
         os.remove(tmp_file_json)
         os.remove(tmp_xyz)
-        grass.del_temp_region()
+        gs.del_temp_region()
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

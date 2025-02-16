@@ -90,7 +90,7 @@
 import os
 import atexit
 
-import grass.script as gscript
+import grass.script as gs
 import grass.script.core as gcore
 
 
@@ -102,9 +102,9 @@ def cleanup():
     if RREMOVE or VREMOVE:
         gcore.info(_("Cleaning temporary maps..."))
     for rast in RREMOVE:
-        gscript.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster", name=rast, quiet=True)
     for vect in VREMOVE:
-        gscript.run_command("g.remove", flags="f", type="vector", name=vect, quiet=True)
+        gs.run_command("g.remove", flags="f", type="vector", name=vect, quiet=True)
 
 
 def create_tmp_map_name(name):
@@ -118,8 +118,8 @@ def create_persistent_map_name(basename, name):
 
 
 def check_map_name(name, mapset, element_type):
-    if gscript.find_file(name, element=element_type, mapset=mapset)["file"]:
-        gscript.fatal(
+    if gs.find_file(name, element=element_type, mapset=mapset)["file"]:
+        gs.fatal(
             _(
                 "Raster map <%s> already exists. "
                 "Change the base name or allow overwrite."
@@ -130,7 +130,7 @@ def check_map_name(name, mapset, element_type):
 
 def main():
     atexit.register(cleanup)
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     elevation_input = options["input"]
     local_relief_output = options["output"]
@@ -202,22 +202,22 @@ def main():
     # check even for the temporary maps
     # (although, in ideal world, we should always fail if some of them exists)
     if not gcore.overwrite():
-        check_map_name(smooth_elevation, gscript.gisenv()["MAPSET"], "cell")
-        check_map_name(subtracted_smooth_elevation, gscript.gisenv()["MAPSET"], "cell")
-        check_map_name(vector_contours, gscript.gisenv()["MAPSET"], "vect")
-        check_map_name(raster_contours_with_values, gscript.gisenv()["MAPSET"], "cell")
-        check_map_name(purged_elevation, gscript.gisenv()["MAPSET"], "cell")
+        check_map_name(smooth_elevation, gs.gisenv()["MAPSET"], "cell")
+        check_map_name(subtracted_smooth_elevation, gs.gisenv()["MAPSET"], "cell")
+        check_map_name(vector_contours, gs.gisenv()["MAPSET"], "vect")
+        check_map_name(raster_contours_with_values, gs.gisenv()["MAPSET"], "cell")
+        check_map_name(purged_elevation, gs.gisenv()["MAPSET"], "cell")
         if bspline:
-            check_map_name(contour_points, gscript.gisenv()["MAPSET"], "vect")
+            check_map_name(contour_points, gs.gisenv()["MAPSET"], "vect")
         else:
-            check_map_name(raster_contours, gscript.gisenv()["MAPSET"], "cell")
+            check_map_name(raster_contours, gs.gisenv()["MAPSET"], "cell")
 
     # algorithm according to Hesse 2010 (LiDAR-derived Local Relief Models)
     # step 1 (point cloud to digital elevation model) omitted
 
     # step 2
-    gscript.info(_("Smoothing using r.neighbors..."))
-    gscript.run_command(
+    gs.info(_("Smoothing using r.neighbors..."))
+    gs.run_command(
         "r.neighbors",
         input=elevation_input,
         output=smooth_elevation,
@@ -226,8 +226,8 @@ def main():
     )
 
     # step 3
-    gscript.info(_("Subtracting smoothed from original elevation..."))
-    gscript.mapcalc(
+    gs.info(_("Subtracting smoothed from original elevation..."))
+    gs.mapcalc(
         "{c} = {a} - {b}".format(
             c=subtracted_smooth_elevation,
             a=elevation_input,
@@ -237,8 +237,8 @@ def main():
     )
 
     # step 4
-    gscript.info(_("Finding zero contours in elevation difference map..."))
-    gscript.run_command(
+    gs.info(_("Finding zero contours in elevation difference map..."))
+    gs.run_command(
         "r.contour",
         input=subtracted_smooth_elevation,
         output=vector_contours,
@@ -248,12 +248,10 @@ def main():
 
     # Diverge here if using bspline interpolation
     # step 5
-    gscript.info(
-        _("Extracting z value from the elevation for difference zero contours...")
-    )
+    gs.info(_("Extracting z value from the elevation for difference zero contours..."))
     if bspline:
         # Extract points from vector contours
-        gscript.run_command(
+        gs.run_command(
             "v.to.points",
             _input=vector_contours,
             llayer="1",
@@ -264,7 +262,7 @@ def main():
         )
 
         # Extract original dem elevations at point locations
-        gscript.run_command(
+        gs.run_command(
             "v.what.rast",
             _map=contour_points,
             raster=elevation_input,
@@ -273,7 +271,7 @@ def main():
         )
 
         # Get mean distance between points to optimize spline interpolation
-        mean_dist = gscript.parse_command(
+        mean_dist = gs.parse_command(
             "v.surf.bspline",
             flags="e",
             _input=contour_points,
@@ -284,12 +282,12 @@ def main():
         )
         spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
 
-        gscript.info(
+        gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
                 s=spline_step
             )
         )
-        gscript.run_command(
+        gs.run_command(
             "v.surf.bspline",
             _input=contour_points,
             raster_output=purged_elevation,
@@ -299,7 +297,7 @@ def main():
             overwrite=gcore.overwrite(),
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "v.to.rast",
             input=vector_contours,
             output=raster_contours,
@@ -308,7 +306,7 @@ def main():
             value=1,
             overwrite=gcore.overwrite(),
         )
-        gscript.mapcalc(
+        gs.mapcalc(
             "{c} = {a} * {b}".format(
                 c=raster_contours_with_values,
                 a=raster_contours,
@@ -317,8 +315,8 @@ def main():
             )
         )
 
-        gscript.info(_("Interpolating elevation between difference zero contours..."))
-        gscript.run_command(
+        gs.info(_("Interpolating elevation between difference zero contours..."))
+        gs.run_command(
             "r.fillnulls",
             input=raster_contours_with_values,
             output=purged_elevation,
@@ -327,8 +325,8 @@ def main():
         )
 
     # step 6
-    gscript.info(_("Subtracting purged from original elevation..."))
-    gscript.mapcalc(
+    gs.info(_("Subtracting purged from original elevation..."))
+    gs.mapcalc(
         "{c} = {a} - {b}".format(
             c=local_relief_output,
             a=elevation_input,
@@ -337,21 +335,21 @@ def main():
         )
     )
 
-    gscript.raster_history(local_relief_output)
+    gs.raster_history(local_relief_output)
 
     # set color tables
     if save_intermediates:
         # same color table as input
-        gscript.run_command(
+        gs.run_command(
             "r.colors", map=smooth_elevation, raster=elevation_input, quiet=True
         )
-        gscript.run_command(
+        gs.run_command(
             "r.colors", map=purged_elevation, raster=elevation_input, quiet=True
         )
 
         # has only one color
         if not bspline:
-            gscript.run_command(
+            gs.run_command(
                 "r.colors",
                 map=raster_contours_with_values,
                 raster=elevation_input,
@@ -359,14 +357,14 @@ def main():
             )
 
         # same color table as output
-        gscript.run_command(
+        gs.run_command(
             "r.colors", map=subtracted_smooth_elevation, color=color_table, quiet=True
         )
 
     if shaded_local_relief_output:
         if not user_color_table:
             color_table = "difference"
-        gscript.run_command(
+        gs.run_command(
             "r.colors",
             flags=rcolors_flags,
             map=local_relief_output,
@@ -377,8 +375,8 @@ def main():
         # but it is probably fast in comparison to the rest.
         # In theory, r.skyview and first component from r.shaded.pca
         # can be added as well, but let's leave this to the user.
-        gscript.run_command("r.relief", input=elevation_input, output=relief_shade)
-        gscript.run_command(
+        gs.run_command("r.relief", input=elevation_input, output=relief_shade)
+        gs.run_command(
             "r.shade",
             shade=relief_shade,
             color=local_relief_output,
@@ -386,18 +384,18 @@ def main():
         )
         if not user_color_table:
             color_table = "grey"
-            gscript.run_command(
+            gs.run_command(
                 "r.colors",
                 flags=rcolors_flags,
                 map=local_relief_output,
                 color=color_table,
                 quiet=True,
             )
-        gscript.raster_history(shaded_local_relief_output)
+        gs.raster_history(shaded_local_relief_output)
     else:
         if not user_color_table:
             color_table = "grey"
-        gscript.run_command(
+        gs.run_command(
             "r.colors",
             flags=rcolors_flags,
             map=local_relief_output,

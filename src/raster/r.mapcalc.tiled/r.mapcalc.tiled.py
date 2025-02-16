@@ -94,7 +94,7 @@
 # % exclusive: processes,nprocs
 # %end
 
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.modules.grid.grid import (
     GridModule,
     Location,
@@ -162,7 +162,7 @@ def main():
             warning = True
         if warning:
             # square tiles tend to be slower than horizontal slices
-            gscript.warning(
+            gs.warning(
                 _(
                     "No tile width or height provided, default tile size set: {h} rows x {w} cols."
                 ).format(h=height, w=width)
@@ -173,7 +173,7 @@ def main():
     if not processes:
         processes = options["processes"]
         if processes:
-            gscript.warning(_("Option processes is obsolete, use nprocs instead."))
+            gs.warning(_("Option processes is obsolete, use nprocs instead."))
     try:
         processes = int(processes)
     except ValueError:
@@ -219,5 +219,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()
