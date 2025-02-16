@@ -88,23 +88,23 @@
 import os
 import sys
 from datetime import *
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
 
 path = get_lib_path(modname="i.modis", libname="libmodis")
 if path is None:
-    grass.fatal("Not able to find the modis library directory.")
+    gs.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
 
 def check_folder(folder):
     """Check if a folder it is writable by the user that launch the process"""
     if not os.path.exists(folder) or not os.path.isdir(folder):
-        grass.fatal(_("Folder <{}> does not exist").format(folder))
+        gs.fatal(_("Folder <{}> does not exist").format(folder))
 
     if not os.access(folder, os.W_OK):
-        grass.fatal(_("Folder <{}> is not writeable").format(folder))
+        gs.fatal(_("Folder <{}> is not writeable").format(folder))
 
     return True
 
@@ -126,7 +126,7 @@ def checkdate(options):
         lastSplit = second.split("-")
         lastDay = date(int(lastSplit[0]), int(lastSplit[1]), int(lastSplit[2]))
         if firstDay < lastDay:
-            grass.fatal(_("End day has to be bigger then start day"))
+            gs.fatal(_("End day has to be bigger then start day"))
         delta = firstDay - lastDay
         valueDelta = int(delta.days)
         return valueDay, second, valueDelta
@@ -145,7 +145,7 @@ def checkdate(options):
         valueDay = lastday.strftime("%Y-%m-%d")
     # set only start day
     elif options["startday"] == "" and options["endday"] != "":
-        grass.fatal(
+        gs.fatal(
             _("It is not possible to use <endday> option without <startday> option")
         )
     # set start and end day
@@ -161,15 +161,15 @@ def main():
     try:
         from rmodislib import product
     except:
-        grass.fatal("i.modis library is not installed")
+        gs.fatal("i.modis library is not installed")
     try:
         from pymodis.downmodis import downModis
     except:
-        grass.fatal("pymodis library is not installed")
+        gs.fatal("pymodis library is not installed")
     # check if you are in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:
-        grass.fatal(_("$GISBASE not defined"))
+        gs.fatal(_("$GISBASE not defined"))
         return 0
     if flags["l"]:
         prod = product()
@@ -177,7 +177,7 @@ def main():
         return 0
     # empty settings and folder would collide
     if not options["settings"] and not options["folder"]:
-        grass.fatal(
+        gs.fatal(
             _(
                 "With empty settings parameter (to use the .netrc file) "
                 "the folder parameter needs to be specified"
@@ -190,7 +190,7 @@ def main():
         if check_folder(options["folder"]):
             fold = options["folder"]
         else:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Set folder parameter when using stdin for passing "
                     "the username and password"
@@ -205,7 +205,7 @@ def main():
             user = input(_("Insert username: "))
             passwd = getpass.getpass(_("Insert password: "))
         else:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Set folder parameter when using stdin for passing "
                     "the username and password"
@@ -214,7 +214,7 @@ def main():
     # set username, password and folder by file
     else:
         if not os.path.isfile(options["settings"]):
-            grass.fatal(
+            gs.fatal(
                 _("The settings parameter <{}> is not a file").format(
                     options["settings"]
                 )
@@ -228,16 +228,16 @@ def main():
                 user = fileread[0].strip()
                 passwd = fileread[1].strip()
         except (FileNotFoundError, PermissionError) as e:
-            grass.fatal(_("Unable to read settings: {}").format(e))
+            gs.fatal(_("Unable to read settings: {}").format(e))
         if options["folder"] != "":
             if check_folder(options["folder"]):
                 fold = options["folder"]
         # set the folder from path where settings file is stored
         else:
             path = os.path.split(options["settings"])[0]
-            temp = os.path.split(grass.tempfile())[0]
+            temp = os.path.split(gs.tempfile())[0]
             if temp in path:
-                grass.warning(
+                gs.warning(
                     _(
                         "You are downloading data into a temporary "
                         "directory. They will be deleted when you "
@@ -253,7 +253,7 @@ def main():
     # set tiles
     if options["tiles"] == "":
         tiles = None
-        grass.warning(
+        gs.warning(
             _("Option 'tiles' not set. Downloading all available tiles to <{}>").format(
                 fold
             )
@@ -290,19 +290,19 @@ def main():
         modisOgg.connect()
         if modisOgg.nconnection <= 20:
             # download tha tiles
-            grass.message(
+            gs.message(
                 _("Downloading MODIS product <{}> ({})...").format(produ, prod["prod"])
             )
             modisOgg.downloadsAllDay()
             filesize = int(os.path.getsize(modisOgg.filelist.name))
             if flags["g"] and filesize != 0:
-                grass.message("files=%s" % modisOgg.filelist.name)
+                gs.message("files=%s" % modisOgg.filelist.name)
             elif filesize == 0:
-                grass.message(
+                gs.message(
                     _("No data download, probably they have been previously downloaded")
                 )
             elif filesize != 0:
-                grass.message(
+                gs.message(
                     _(
                         "All data have been downloaded, continue "
                         "with i.modis.import with the option 'files=%s'"
@@ -310,9 +310,9 @@ def main():
                     % modisOgg.filelist.name
                 )
         else:
-            grass.fatal(_("Error during connection"))
+            gs.fatal(_("Error during connection"))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

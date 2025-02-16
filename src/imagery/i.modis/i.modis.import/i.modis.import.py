@@ -112,13 +112,13 @@ import shutil
 import tempfile
 from datetime import datetime, timedelta
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 from grass.exceptions import CalledModuleError
 
 path = get_lib_path(modname="i.modis", libname="libmodis")
 if path is None:
-    grass.fatal("Not able to find the modis library directory.")
+    gs.fatal("Not able to find the modis library directory.")
 sys.path.append(path)
 
 
@@ -145,7 +145,7 @@ def list_files(opt, mosaik=False):
     if opt["files"] != "":
         if os.path.exists(opt["files"]):
             if os.path.splitext(opt["files"])[-1].lower() == ".hdf":
-                grass.fatal(
+                gs.fatal(
                     _(
                         "Option <{}> assumes file with list of HDF files. "
                         "Use option <{}> to import a single HDF file"
@@ -154,7 +154,7 @@ def list_files(opt, mosaik=False):
             listoffile = open(opt["files"], "r")
             basedir = os.path.split(listoffile.name)[0]
         else:
-            grass.fatal(_("File {name} does not exist").format(name=opt["files"]))
+            gs.fatal(_("File {name} does not exist").format(name=opt["files"]))
         # if mosaic create a dictionary
         if mosaik:
             filelist = {}
@@ -205,7 +205,7 @@ def confile(pm, opts, q, mosaik=False):
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import resampling, product, projection
     except ImportError as e:
-        grass.fatal("Unable to load i.modis library: {}".format(e))
+        gs.fatal("Unable to load i.modis library: {}".format(e))
     # return projection and datum
     projObj = projection()
     proj = projObj.returned()
@@ -239,13 +239,13 @@ def confile(pm, opts, q, mosaik=False):
         conf = pm.confResample(spectr, res, pref, dat, resampl, proj, zone, projpar)
         return conf
     except OSError as e:
-        grass.fatal(e)
+        gs.fatal(e)
 
 
 def metadata(pars, mapp):
     """Set metadata to the imported files"""
     # metadata
-    grass.run_command(
+    gs.run_command(
         "r.support",
         quiet=True,
         map=mapp,
@@ -256,7 +256,7 @@ def metadata(pars, mapp):
     rangetime = pars.retRangeTime()
     data = rangetime["RangeBeginningDate"].split("-")
     dataobj = datetime(int(data[0]), int(data[1]), int(data[2]))
-    grass.run_command(
+    gs.run_command(
         "r.timestamp", map=mapp, quiet=True, date=dataobj.strftime("%d %b %Y")
     )
     return dataobj
@@ -293,7 +293,7 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
     if not tifiles:
         tifiles = glob.glob1(os.getcwd(), "{pr}*.tif".format(pr=pref))
     if not tifiles:
-        grass.fatal(_("Error during the conversion"))
+        gs.fatal(_("Error during the conversion"))
     outfile = []
     # for each file import it
     for t in tifiles:
@@ -303,11 +303,11 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
         if not os.path.exists(name):
             name = os.path.join(os.getcwd(), t)
         if not os.path.exists(name):
-            grass.warning(_("File %s doesn't find") % name)
+            gs.warning(_("File %s doesn't find") % name)
             continue
         filesize = int(os.path.getsize(name))
         if filesize < 1000:
-            grass.warning(
+            gs.warning(
                 _(
                     "Probably some error occur during the conversion"
                     "for file <%s>. Escape import"
@@ -317,15 +317,15 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
             continue
         try:
             basename = basename.replace('"', "").replace(" ", "_")
-            grass.run_command(
+            gs.run_command(
                 "r.in.gdal", input=name, output=basename, overwrite=write, quiet=True
             )
             outfile.append(basename)
 
             # check number of bands
-            nbands = int(grass.read_command("r.in.gdal", input=name, flags="p"))
+            nbands = int(gs.read_command("r.in.gdal", input=name, flags="p"))
         except CalledModuleError as e:
-            grass.warning(_("Error during import of {}").format(basename))
+            gs.warning(_("Error during import of {}").format(basename))
             continue
 
         # process bands
@@ -363,10 +363,10 @@ def import_tif(basedir, rem, write, pm, prod, target=None, listfile=None):
 
 def findfile(pref, suff):
     """Check if a file exists on mapset"""
-    if grass.find_file(pref + suff)["file"]:
-        return grass.find_file(pref + suff)
+    if gs.find_file(pref + suff)["file"]:
+        return gs.find_file(pref + suff)
     else:
-        grass.warning(_("Raster map <%s> not found") % (pref + suff))
+        gs.warning(_("Raster map <%s> not found") % (pref + suff))
 
 
 def doy2date(modis):
@@ -383,16 +383,16 @@ def single(options, remove, an, ow, fil):
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
     except ImportError as e:
-        grass.fatal("Unable to load i.modis library: {}".format(e))
+        gs.fatal("Unable to load i.modis library: {}".format(e))
     try:
         from pymodis.convertmodis import convertModis
         from pymodis.convertmodis_gdal import convertModisGDAL
         from pymodis.parsemodis import parseModis
     except ImportError as e:
-        grass.fatal("Unable to import pymodis library: {}".format(e))
+        gs.fatal("Unable to import pymodis library: {}".format(e))
     listfile, basedir = list_files(options)
     if not listfile:
-        grass.warning(_("No HDF files found"))
+        gs.warning(_("No HDF files found"))
         return
 
     # for each file
@@ -405,21 +405,21 @@ def single(options, remove, an, ow, fil):
             # the full path to hdf file
             hdf = os.path.join(basedir, i)
             if not os.path.exists(hdf):
-                grass.warning(_("{file} not found").format(file=i))
+                gs.warning(_("{file} not found").format(file=i))
                 continue
 
-        grass.message(
+        gs.message(
             _("Proccessing <{f}> ({i}/{c})...").format(
                 f=os.path.basename(hdf), i=idx, c=count
             )
         )
-        grass.percent(idx, count, 5)
+        gs.percent(idx, count, 5)
         idx += 1
 
         try:
             pm = parseModis(hdf)
         except OSError:
-            grass.fatal(_("<{}> is not a HDF file").format(hdf))
+            gs.fatal(_("<{}> is not a HDF file").format(hdf))
             continue
         if options["mrtpath"]:
             # create conf file fro mrt tools
@@ -465,21 +465,21 @@ def mosaic(options, remove, an, ow, fil):
         # try to import pymodis (modis) and some classes for i.modis.download
         from rmodislib import product, projection, get_proj
     except ImportError as e:
-        grass.fatal("Unable to load i.modis library: {}".format(e))
+        gs.fatal("Unable to load i.modis library: {}".format(e))
     try:
         from pymodis.convertmodis import convertModis, createMosaic
         from pymodis.convertmodis_gdal import createMosaicGDAL, convertModisGDAL
         from pymodis.parsemodis import parseModis
     except ImportError as e:
-        grass.fatal("Unable to import pymodis library: {}".format(e))
+        gs.fatal("Unable to import pymodis library: {}".format(e))
     dictfile, targetdir = list_files(options, True)
     pid = str(os.getpid())
     # for each day
     count = len(dictfile.keys())
     idx = 1
     for dat, listfiles in dictfile.items():
-        grass.message(_("Processing <{d}> ({i}/{c})...").format(d=dat, i=idx, c=count))
-        grass.percent(idx, count, 5)
+        gs.message(_("Processing <{d}> ({i}/{c})...").format(d=dat, i=idx, c=count))
+        gs.percent(idx, count, 5)
         idx += 1
 
         pref = listfiles[0].split(os.path.sep)[-1]
@@ -581,27 +581,27 @@ def mosaic(options, remove, an, ow, fil):
             except (OSError, TypeError) as e:
                 pass
         if options["mrtpath"]:
-            grass.try_remove(tempfile.name)
-        grass.try_remove(os.path.join(targetdir, "mosaic", pid))
+            gs.try_remove(tempfile.name)
+        gs.try_remove(os.path.join(targetdir, "mosaic", pid))
 
 
 def main():
     # check if you are in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:
-        grass.fatal(_("$GISBASE not defined"))
+        gs.fatal(_("$GISBASE not defined"))
         return 0
     if flags["l"]:
         try:
             from rmodislib import product
         except ImportError as e:
-            grass.fatal("Unable to load i.modis library: {}").format(e)
+            gs.fatal("Unable to load i.modis library: {}").format(e)
         prod = product()
         prod.print_prods()
         return 0
     # return an error if q and spectral are set
     if not flags["q"] and options["spectral"] != "":
-        grass.warning(
+        gs.warning(
             _(
                 'If no QA layer chosen in the "spectral" option'
                 " the command will report an error"
@@ -609,17 +609,17 @@ def main():
         )
     # return an error if both input and files option are set or not
     if options["input"] == "" and options["files"] == "":
-        grass.fatal(_('Choose one of "input" or "files" options'))
+        gs.fatal(_('Choose one of "input" or "files" options'))
         return 0
     elif options["input"] != "" and options["files"] != "":
-        grass.fatal(_('It is not possible set "input" and "files" options together'))
+        gs.fatal(_('It is not possible set "input" and "files" options together'))
         return 0
     # check if remove the files or not
     if flags["t"]:
         remove = False
     else:
         remove = True
-    if grass.overwrite():
+    if gs.overwrite():
         over = True
     else:
         over = False
@@ -642,7 +642,7 @@ def main():
         else:
             outfile = open(options["outfile"], "w")
         if count > 1:
-            grass.warning(
+            gs.warning(
                 "The spectral subsets are more than one so the "
                 " output file will be renamed"
             )
@@ -651,7 +651,7 @@ def main():
 
     # check if import simple file or mosaic
     if flags["m"] and options["input"] != "":
-        grass.fatal(_("It is not possible to create a mosaic with a single HDF file"))
+        gs.fatal(_("It is not possible to create a mosaic with a single HDF file"))
         return 0
     elif flags["m"]:
         mosaic(options, remove, analyze, over, outfile)
@@ -660,13 +660,13 @@ def main():
     # if t.register file is create
     if outfile:
         outfile.close()
-        tempdir = grass.tempdir()
+        tempdir = gs.tempdir()
         # one layer only
         if count == 1:
             if flags["g"]:
-                grass.message(_("file={name}").format(name=outfile.name))
+                gs.message(_("file={name}").format(name=outfile.name))
             else:
-                grass.message(
+                gs.message(
                     _(
                         "You can use temporal framework, registering"
                         " the maps using t.register input=your_strds "
@@ -708,9 +708,9 @@ def main():
             msg_template = _("'file={name}'\n")
             for fil in outfiles.values():
                 message += msg_template.format(name=fil.name)
-            grass.message(_(message))
+            gs.message(_(message))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

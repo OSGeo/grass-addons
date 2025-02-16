@@ -1,5 +1,5 @@
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import general as g
 from landsat8_mtl import Landsat8_MTL
@@ -9,7 +9,7 @@ def cleanup():
     """
     Clean up temporary maps
     """
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         flags="f",
         type="rast",
@@ -17,7 +17,7 @@ def cleanup():
         quiet=True,
     )
 
-    if grass.find_file(name="MASK", element="cell")["file"]:
+    if gs.find_file(name="MASK", element="cell")["file"]:
         r.mask(flags="r", verbose=True)
 
 
@@ -27,8 +27,8 @@ def tmp_map_name(name):
 
     tmp_avg_lse = tmp + '.avg_lse'
     """
-    temporary_file = grass.tempfile()
-    tmp = "tmp." + grass.basename(temporary_file)  # use its basename
+    temporary_file = gs.tempfile()
+    tmp = "tmp." + gs.basename(temporary_file)  # use its basename
     return tmp + "." + str(name)
 
 
@@ -36,7 +36,7 @@ def run(cmd, **kwargs):
     """
     Pass required arguments to grass commands (?)
     """
-    grass.run_command(cmd, quiet=True, **kwargs)
+    gs.run_command(cmd, quiet=True, **kwargs)
 
 
 def save_map(mapname):

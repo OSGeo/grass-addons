@@ -75,16 +75,16 @@ import sys
 import os
 import atexit
 from math import sqrt
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
-    if gscript.find_file(temp_resamp_map, element="raster")["name"]:
-        gscript.run_command(
+    if gs.find_file(temp_resamp_map, element="raster")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="raster", name=temp_resamp_map, quiet=True
         )
-    if gscript.find_file(temp_variance_map, element="raster")["name"]:
-        gscript.run_command(
+    if gs.find_file(temp_variance_map, element="raster")["name"]:
+        gs.run_command(
             "g.remove", flags="f", type="raster", name=temp_variance_map, quiet=True
         )
 
@@ -140,7 +140,7 @@ def main():
     resolutions = []
     variances = []
 
-    region = gscript.parse_command("g.region", flags="g")
+    region = gs.parse_command("g.region", flags="g")
     cells = int(region["cells"])
     res = (float(region["nsres"]) + float(region["ewres"])) / 2
     north = float(region["n"])
@@ -157,26 +157,26 @@ def main():
         target_res_cells = int(sqrt(((east - west) * (north - south)) / min_cells))
         if target_res > target_res_cells:
             target_res = target_res_cells
-            gscript.message(
+            gs.message(
                 _(
                     "Max resolution leads to less cells than defined by 'min_cells' (%d)."
                 )
                 % min_cells
             )
-            gscript.message(_("Max resolution reduced to %d") % target_res)
+            gs.message(_("Max resolution reduced to %d") % target_res)
 
     nb_iterations = target_res - res / step
     if nb_iterations < 3:
         message = _("Less than 3 iterations. Cannot determine maxima.\n")
         message += _("Please increase max_size or reduce min_cells.")
-        gscript.fatal(_(message))
+        gs.fatal(_(message))
 
-    gscript.use_temp_region()
+    gs.use_temp_region()
 
-    gscript.message(_("Calculating variance at different resolutions"))
+    gs.message(_("Calculating variance at different resolutions"))
     while res <= target_res:
-        gscript.percent(res, target_res, step)
-        gscript.run_command(
+        gs.percent(res, target_res, step)
+        gs.run_command(
             "r.resamp.stats",
             input=input,
             output=temp_resamp_map,
@@ -184,7 +184,7 @@ def main():
             quiet=True,
             overwrite=True,
         )
-        gscript.run_command(
+        gs.run_command(
             "r.neighbors",
             input=temp_resamp_map,
             method="variance",
@@ -192,20 +192,20 @@ def main():
             quiet=True,
             overwrite=True,
         )
-        varianceinfo = gscript.parse_command(
+        varianceinfo = gs.parse_command(
             "r.univar", map_=temp_variance_map, flags="g", quiet=True
         )
         resolutions.append(res)
         variances.append(float(varianceinfo["mean"]))
         res += step
-        region = gscript.parse_command(
+        region = gs.parse_command(
             "g.region", res=res, n=north, s=south, w=west, e=east, flags="ag"
         )
         cells = int(region["cells"])
 
     indices, differences = FindMaxima(variances)
     max_resolutions = [resolutions[x] for x in indices]
-    gscript.message(_("resolution,min_diff"))
+    gs.message(_("resolution,min_diff"))
     for i in range(len(max_resolutions)):
         print("%g,%g" % (max_resolutions[i], differences[i]))
 
@@ -230,6 +230,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

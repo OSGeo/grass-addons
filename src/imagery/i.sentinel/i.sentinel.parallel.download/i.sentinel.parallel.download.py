@@ -126,7 +126,7 @@
 import sys
 import os
 import multiprocessing as mp
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module, ParallelModuleQueue
 from datetime import datetime, timedelta
 
@@ -193,14 +193,14 @@ def main():
         settings_required = True
 
     if datasource == "USGS_EE" and producttype != "S2MSI1C":
-        grass.fatal(
+        gs.fatal(
             _(
                 "Download from USGS Earth Explorer only supports "
                 "Sentinel-2 Level 1C data (S2MSI1C)"
             )
         )
     elif datasource == "GCS" and producttype not in ["S2MSI2A", "S2MSI1C"]:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Download from GCS only supports Sentinel-2 Level"
                 "1C (S2MSI1C) or 2A (S2MSI2A)"
@@ -208,8 +208,8 @@ def main():
         )
 
     # check if we have the i.sentinel.download + i.sentinel.import addons
-    if not grass.find_program("i.sentinel.download", "--help"):
-        grass.fatal(
+    if not gs.find_program("i.sentinel.download", "--help"):
+        gs.fatal(
             _(
                 "The 'i.sentinel.download' module was not found, "
                 "install it first: \n g.extension i.sentinel"
@@ -219,7 +219,7 @@ def main():
     # Test if all required data are there
     if settings_required is True:
         if not os.path.isfile(settings):
-            grass.fatal(_("Settings file <{}> not found").format(settings))
+            gs.fatal(_("Settings file <{}> not found").format(settings))
 
     # set some common environmental variables, like:
     os.environ.update(
@@ -232,7 +232,7 @@ def main():
 
     # test nprocs Settings
     if nprocs > mp.cpu_count():
-        grass.warning(
+        gs.warning(
             _(
                 "Using {} parallel processes but only {} CPUs available."
                 "Setting nprocs to {}"
@@ -242,7 +242,7 @@ def main():
 
     # sentinelsat allows only three parallel downloads
     elif nprocs > 2 and options["datasource"] == "ESA_COAH":
-        grass.message(
+        gs.message(
             _(
                 "Maximum number of parallel processes for Downloading"
                 " fixed to 2 due to sentinelsat API restrictions"
@@ -252,7 +252,7 @@ def main():
 
     # usgs allows maximum 10 parallel downloads
     elif nprocs > 10 and options["datasource"] == "USGS_EE":
-        grass.message(
+        gs.message(
             _(
                 "Maximum number of parallel processes for Downloading"
                 " fixed to 10 due to Earth Explorer restrictions"
@@ -267,7 +267,7 @@ def main():
         if datasource == "ESA_COAH":
             for scene in scenenames:
                 if len(scene) < 10 or not scene.startswith("S2"):
-                    grass.fatal(
+                    gs.fatal(
                         _(
                             "Please provide scenenames in the format"
                             " S2X_LLLLLL_YYYYMMDDTHHMMSS_"
@@ -287,13 +287,13 @@ def main():
         }
         if options["limit"]:
             download_args["limit"] = options["limit"]
-        i_sentinel_download_string = grass.parse_command(
+        i_sentinel_download_string = gs.parse_command(
             "i.sentinel.download", **download_args
         )
         i_sentinel_keys = i_sentinel_download_string.keys()
         scenenames = [item.split(" ")[1] for item in i_sentinel_keys]
     # parallelize download
-    grass.message(_("Downloading Sentinel-2 data..."))
+    gs.message(_("Downloading Sentinel-2 data..."))
 
     # adapt nprocs to number of scenes
     nprocs_final = min(len(scenenames), nprocs)
@@ -327,5 +327,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

@@ -71,7 +71,7 @@
 import os
 import sys
 import shutil
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -86,7 +86,7 @@ def main():
     if not osign:
         osign = isign
 
-    gisenv = grass.gisenv()
+    gisenv = gs.gisenv()
 
     # try to split input group and mapset
     try:
@@ -106,7 +106,7 @@ def main():
         isign,
     )
     if not os.path.exists(ipath):
-        grass.fatal(_("Signature file <{}> does not exist").format(ipath))
+        gs.fatal(_("Signature file <{}> does not exist").format(ipath))
 
     # try to split output group and mapset
     try:
@@ -125,15 +125,15 @@ def main():
         "sig",
     )
     if not os.path.exists(opath):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<{pa}> does not exist, do group <{gr}> and subgroup <{su}> exist?"
             ).format(pa=ipath, gr=ogroup, su=osub)
         )
     else:
         opath = os.path.join(opath, osign)
-        if os.path.exists(opath) and not grass.overwrite():
-            grass.fatal(
+        if os.path.exists(opath) and not gs.overwrite():
+            gs.fatal(
                 _(
                     "ERROR: option <osignature>: <{}> exists. To "
                     "overwrite, use the --overwrite flag"
@@ -144,14 +144,14 @@ def main():
         shutil.copy2(ipath, opath)
         return
     except:
-        grass.fatal(_("ERROR: copying {inp} to {oup}").format(inp=ipath, oup=opath))
+        gs.fatal(_("ERROR: copying {inp} to {oup}").format(inp=ipath, oup=opath))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

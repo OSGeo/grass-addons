@@ -2,7 +2,7 @@ from grass.pygrass.modules.shortcuts import general as g
 from dummy_mapcalc_strings import replace_dummies
 from constants import DUMMY_MAPCALC_STRING_FROM_GLC
 from constants import EQUATION
-import grass.script as grass
+import grass.script as gs
 from helpers import run
 
 
@@ -31,7 +31,7 @@ def determine_average_emissivity(
         result=outname,
         expression=avg_lse_expression,
     )
-    grass.mapcalc(avg_lse_equation, overwrite=True)
+    gs.mapcalc(avg_lse_equation, overwrite=True)
 
     if not quiet:
         run("r.info", map=outname, flags="r")
@@ -68,7 +68,7 @@ def determine_delta_emissivity(
         result=outname, expression=delta_lse_expression
     )
 
-    grass.mapcalc(delta_lse_equation, overwrite=True)
+    gs.mapcalc(delta_lse_equation, overwrite=True)
 
     if not quiet:
         run("r.info", map=outname, flags="r")

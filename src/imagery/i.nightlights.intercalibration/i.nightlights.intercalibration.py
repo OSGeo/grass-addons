@@ -208,7 +208,7 @@ sys.path.insert(
 )
 
 import atexit
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -229,8 +229,8 @@ def cleanup():
     """
     if len(temporary_maps) > 0:
         for temporary_map in temporary_maps:
-            grass.message(_("Removing temporary files..."))
-            grass.run_command(
+            gs.message(_("Removing temporary files..."))
+            gs.run_command(
                 "g.remove", flags="f", type="rast", name=temporary_map, quiet=True
             )
 
@@ -239,7 +239,7 @@ def run(cmd, **kwargs):
     """
     Pass required arguments to grass commands (?)
     """
-    grass.run_command(cmd, quiet=True, **kwargs)
+    gs.run_command(cmd, quiet=True, **kwargs)
 
 
 def retrieve_model_parameters(model_class, *args, **kwargs):
@@ -260,8 +260,8 @@ def total_light_index(ntl_image):
     """
     Evaluation index (TLI) which represents the sum of grey values in an area.
     """
-    univar = grass.parse_command(
-        "r.univar", map=ntl_image, flags="g", parse=(grass.parse_key_val, {"sep": "="})
+    univar = gs.parse_command(
+        "r.univar", map=ntl_image, flags="g", parse=(gs.parse_key_val, {"sep": "="})
     )
     return float(univar["sum"])
 
@@ -311,9 +311,9 @@ def main():
     """Temporary Region and Files"""
 
     if extend_region:
-        grass.use_temp_region()  # to safely modify the region
+        gs.use_temp_region()  # to safely modify the region
 
-    tmpfile = grass.basename(grass.tempfile())
+    tmpfile = gs.basename(gs.tempfile())
     tmp = "tmp." + tmpfile
 
     """Loop over list of input images"""
@@ -332,7 +332,7 @@ def main():
             del msg
 
         elif not extend_region:
-            grass.warning(_("Operating on current region"))
+            gs.warning(_("Operating on current region"))
 
         """Retrieve coefficients"""
 
@@ -397,20 +397,20 @@ def main():
             g.message(msg.format(formula=mapcalc_formula))
             del msg
 
-        grass.mapcalc(calibration_formula, overwrite=True)
+        gs.mapcalc(calibration_formula, overwrite=True)
 
         """Transfer timestamps, if any"""
 
         if timestamps:
             try:
-                datetime = grass.read_command("r.timestamp", map=image)
+                datetime = gs.read_command("r.timestamp", map=image)
                 run("r.timestamp", map=tmp_cdn, date=datetime)
 
                 msg = "\n|i Timestamping: {stamp}".format(stamp=datetime)
                 g.message(msg)
 
             except CalledModuleError:
-                grass.fatal(
+                gs.fatal(
                     _(
                         "\n|* Timestamp is missing! "
                         "Please add one to the input map if further times series "
@@ -420,7 +420,7 @@ def main():
                 )
 
         else:
-            grass.warning(_("As requested, timestamp transferring not attempted."))
+            gs.warning(_("As requested, timestamp transferring not attempted."))
 
         # -------------------------------------------------------------------------
         # add timestamps and register to spatio-temporal raster data set
@@ -516,7 +516,7 @@ def main():
         """Restore previous computational region"""
 
         if extend_region:
-            grass.del_temp_region()
+            gs.del_temp_region()
             g.message("\n|! Original Region restored")
 
         """Things left to do..."""
@@ -528,6 +528,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

@@ -296,7 +296,7 @@
 # % collective: hr_start,hr_stop,hr_step
 # %end
 
-import grass.script as gscript
+import grass.script as gs
 import sys
 import os
 import atexit
@@ -322,14 +322,14 @@ def iteritems(dict):
 def check_progs():
     found_missing = False
     for prog in ["r.neighborhoodmatrix"]:
-        if not gscript.find_program(prog, "--help"):
+        if not gs.find_program(prog, "--help"):
             found_missing = True
-            gscript.warning(
+            gs.warning(
                 _("'%s' required. Please install '%s' first using 'g.extension %s'")
                 % (prog, prog, prog)
             )
     if found_missing:
-        gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+        gs.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
 def cleanup():
@@ -337,7 +337,7 @@ def cleanup():
 
     if not keep:
         for mapname in maplist:
-            gscript.run_command(
+            gs.run_command(
                 "g.remove", flags="f", type="raster", pat=mapname, quiet=True
             )
 
@@ -358,7 +358,7 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
         for minsize in iter(minsize_queue.get, "STOP"):
             map_list = rg_hierarchical_seg(parms, thresholds, minsize)
             for mapname, threshold, minsize in map_list:
-                mapinfo = gscript.raster_info(mapname)
+                mapinfo = gs.raster_info(mapname)
                 if mapinfo["max"] > mapinfo["min"]:
                     variance_per_raster = []
                     autocor_per_raster = []
@@ -403,7 +403,7 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
     try:
         for threshold, minsize in iter(parameter_queue.get, "STOP"):
             mapname = rg_non_hierarchical_seg(parms, threshold, minsize)
-            mapinfo = gscript.raster_info(mapname)
+            mapinfo = gs.raster_info(mapname)
             if mapinfo["max"] > mapinfo["min"]:
                 variance_per_raster = []
                 autocor_per_raster = []
@@ -458,7 +458,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
         temp_segment_map_thresh = outputs_prefix % threshold
         map_list.append([temp_segment_map_thresh, threshold, minsize])
         if previous is None:
-            gscript.run_command(
+            gs.run_command(
                 "i.segment",
                 group=parms["group"],
                 threshold=threshold,
@@ -470,7 +470,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
             )
             previous = temp_segment_map_thresh
         else:
-            gscript.run_command(
+            gs.run_command(
                 "i.segment",
                 group=parms["group"],
                 threshold=threshold,
@@ -493,7 +493,7 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
     temp_segment_map_thresh += "__%.4f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
     if parms["seeds"]:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -505,7 +505,7 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
             overwrite=True,
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -575,7 +575,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
     temp_segment_map_thresh += "__%.2f" % radius
     temp_segment_map_thresh += "__%d" % minsize
     if parms["adaptive"]:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -590,7 +590,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
             overwrite=True,
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -616,7 +616,7 @@ def get_variance(mapname, raster):
         os.getpid(),
         current_process().name.replace("-", "_"),
     )
-    gscript.run_command(
+    gs.run_command(
         "r.stats.zonal",
         base=mapname,
         cover=raster,
@@ -625,18 +625,16 @@ def get_variance(mapname, raster):
         overwrite=True,
         quiet=True,
     )
-    univar = gscript.parse_command("r.univar", map_=temp_map, flags="g", quiet=True)
+    univar = gs.parse_command("r.univar", map_=temp_map, flags="g", quiet=True)
     var = float(univar["mean"])
-    gscript.run_command(
-        "g.remove", type_="raster", name=temp_map, flags="f", quiet=True
-    )
+    gs.run_command("g.remove", type_="raster", name=temp_map, flags="f", quiet=True)
     return var
 
 
 def get_nb_matrix(mapname):
     """Create a dictionary with neighbors per segment"""
 
-    res = gscript.read_command(
+    res = gs.read_command(
         "r.neighborhoodmatrix", input_=mapname, output="-", sep="comma", quiet=True
     )
 
@@ -655,10 +653,10 @@ def get_nb_matrix(mapname):
 def get_autocorrelation(mapname, raster, neighbordict, indicator):
     """Calculate either Moran's I or Geary's C for values of the given raster"""
 
-    raster_vars = gscript.parse_command("r.univar", map_=raster, flags="g", quiet=True)
+    raster_vars = gs.parse_command("r.univar", map_=raster, flags="g", quiet=True)
     global_mean = float(raster_vars["mean"])
 
-    univar_res = gscript.read_command(
+    univar_res = gs.read_command(
         "r.univar",
         flags="t",
         map_=raster,
@@ -777,7 +775,7 @@ def main():
         hierarchical_segmentation = True
         message = "INFO: Using hierarchical segmentation.\n"
         message += "INFO: Note that this leads to less optimal parallization."
-        gscript.info(message)
+        gs.info(message)
 
     check_progs()
 
@@ -814,9 +812,7 @@ def main():
     if options["maps"]:
         rasters = options["maps"].split(",")
     else:
-        list_rasters = gscript.read_command(
-            "i.group", group=group, flags="gl", quiet=True
-        )
+        list_rasters = gs.read_command("i.group", group=group, flags="gl", quiet=True)
         rasters = list_rasters.split("\n")[:-1]
     parms["rasters"] = rasters
 
@@ -875,16 +871,16 @@ def main():
     parms["temp_segment_map"] = temp_segment_map
 
     # Don't change general mapset region settings when switching regions
-    gscript.use_temp_region()
+    gs.use_temp_region()
 
     regiondict = {}
     best_values = {}
     maps_to_keep = []
     for region in regions:
-        gscript.message("Working on region %s\n" % region)
+        gs.message("Working on region %s\n" % region)
         parms["region"] = region.replace("@", "_at_")
 
-        gscript.run_command("g.region", region=region, quiet=True)
+        gs.run_command("g.region", region=region, quiet=True)
 
         # Launch segmentation and optimization calculation in parallel processes
         processes_list = []
@@ -957,7 +953,7 @@ def main():
                     threshlist.append(threshold)
                     minsizelist.append(minsize)
                 else:
-                    gscript.message("Error in worker function: %s" % result)
+                    gs.message("Error in worker function: %s" % result)
         else:
             hrlist = []
             radiuslist = []
@@ -972,7 +968,7 @@ def main():
                     radiuslist.append(radius)
                     minsizelist.append(minsize)
                 else:
-                    gscript.message("Error in worker function: %s" % result)
+                    gs.message("Error in worker function: %s" % result)
 
         maplist += regional_maplist
         # Calculate optimization function values and get indices of best values
@@ -1066,22 +1062,22 @@ def main():
             msg += "%s\t" % region
             msg += "\t".join(map(str, result))
             msg += "\n"
-    gscript.message(msg)
+    gs.message(msg)
 
     # Keep copies of segmentation results with best values
 
     if segmented_map:
         for bestmap, rank, region in maps_to_keep:
             outputmap = segmented_map + "_" + region + "_rank%d" % rank
-            gscript.run_command(
+            gs.run_command(
                 "g.copy",
                 raster=[bestmap, outputmap],
                 quiet=True,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
             )
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()
