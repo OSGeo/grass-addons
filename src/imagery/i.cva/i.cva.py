@@ -72,7 +72,6 @@ from __future__ import print_function
 import atexit
 import sys
 import grass.script as gs
-from grass import script
 
 
 TMPRAST = []
@@ -165,7 +164,7 @@ def main():
         for i in range(1, len(vals))
     ]
     rules = "\n".join(["%3d thru %3d = %s   %s-%s" % v for v in rvals])
-    script.write_command(
+    gs.write_command(
         "r.reclass",
         input=anglemap_name,
         output=anglemap_class,
@@ -237,7 +236,7 @@ def cleanup():
     # !Delete temporary maps
     TMPRAST.reverse()
     for i in TMPRAST:
-        script.run_command("g.remove", flags="f", type="raster", name=i, quiet=True)
+        gs.run_command("g.remove", flags="f", type="raster", name=i, quiet=True)
 
 
 if __name__ == "__main__":
