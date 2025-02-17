@@ -5,7 +5,7 @@
 # MODULE:       test_r_hand.py
 # AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      Performs Height Above Nearest Drainage (HAND) analysis.
-# COPYRIGHT:    (C) 2025 OpenPlains Inc.
+# COPYRIGHT:    (C) 2025 OpenPlains Inc. and the GRASS Development Team
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
@@ -61,7 +61,7 @@ class TestHand(TestCase):
             "r.hand",
             elevation=self.elevation,
             depth=2,
-            inundation_rast=self.inundation,
+            inundation_raster=self.inundation,
             overwrite=True,
         )
         self.assertRasterExists(self.inundation)
@@ -72,7 +72,7 @@ class TestHand(TestCase):
         module = SimpleModule(
             "r.hand",
             elevation=self.elevation,
-            inundation_rast=self.inundation,
+            inundation_raster=self.inundation,
             overwrite=True,
         )
         self.assertModuleFail(module)
@@ -85,7 +85,7 @@ class TestHand(TestCase):
         module = SimpleModule(
             "r.hand",
             elevation=self.elevation,
-            inundation_rast=self.inundation,
+            inundation_raster=self.inundation,
             depth=-1,
             overwrite=True,
         )
@@ -101,7 +101,7 @@ class TestHand(TestCase):
             elevation=self.elevation,
             streams=self.stream_rast,
             direction=self.direction,
-            inundation_rast=self.inundation,
+            inundation_raster=self.inundation,
             depth=3,
             overwrite=True,
         )
@@ -118,7 +118,7 @@ class TestHand(TestCase):
             elevation=self.elevation,
             streams=self.stream_rast,
             direction=self.direction,
-            inundation_rast=self.inundation,
+            inundation_raster=self.inundation,
             hand=self.hand,
             depth=3,
             overwrite=True,

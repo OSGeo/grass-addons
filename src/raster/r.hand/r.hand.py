@@ -13,7 +13,7 @@
 #############################################################################
 
 # %module
-# % description: Performs Height Above Nearest Drainage (HAND) analysis.
+# % description: Performs Height Above Nearest Drainage (HAND) analysis and flood inundation mapping with HAND method.
 # % keyword: raster
 # % keyword: hydrology
 # % keyword: flood
@@ -43,7 +43,7 @@
 # %end
 
 # %option G_OPT_R_OUTPUT
-# % key: inundation_rast
+# % key: inundation_raster
 # % required: no
 # % description: Name of the output inundation raster map
 # % guisection: Output
@@ -381,7 +381,7 @@ def main():
 
     # r.lake options
     depth = float(options["depth"]) if options["depth"] else None
-    inundation_rast = options["inundation_rast"]
+    inundation_raster = options["inundation_raster"]
 
     # r.lake.series options
     inundation_series = flags["t"]
@@ -418,7 +418,7 @@ def main():
             streams,
         )
     else:
-        run_r_lake(hand, depth, inundation_rast, streams)
+        run_r_lake(hand, depth, inundation_raster, streams)
 
 
 if __name__ == "__main__":
