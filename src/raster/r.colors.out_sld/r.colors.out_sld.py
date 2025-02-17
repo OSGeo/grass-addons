@@ -63,7 +63,7 @@ TODO:
 
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 
 def set_output_encoding(encoding="utf-8"):
@@ -86,11 +86,11 @@ def main():
     map = options["map"]  # done
 
     # check if input file exists
-    if not grass.find_file(map)["file"]:
-        grass.fatal(_("Raster map <%s> not found") % map)
+    if not gs.find_file(map)["file"]:
+        gs.fatal(_("Raster map <%s> not found") % map)
 
     # Get map metadata
-    mapinfo = grass.parse_command("r.info", flags="e", map=map)
+    mapinfo = gs.parse_command("r.info", flags="e", map=map)
 
     if mapinfo["title"]:
         name = "{}: {}".format(mapinfo["map"], mapinfo["title"])
@@ -98,15 +98,15 @@ def main():
         name = mapinfo["map"]
 
     # Get color rules
-    color_rules = grass.read_command("r.colors.out", map=map).split("\n")
+    color_rules = gs.read_command("r.colors.out", map=map).split("\n")
 
     # Get maptype (CELL, FCELL, DCELL)
-    maptype = grass.parse_command("r.info", flags="g", map=map)["datatype"]
+    maptype = gs.parse_command("r.info", flags="g", map=map)["datatype"]
 
     # Check if map has categories if type is CELL
     if maptype == "CELL":
-        grass.verbose("Reading category lables, may take a while...")
-        categories = grass.parse_command("r.category", map=map, separator="=")
+        gs.verbose("Reading category lables, may take a while...")
+        categories = gs.parse_command("r.category", map=map, separator="=")
         if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
             use_categories = True
         else:
@@ -142,7 +142,7 @@ def main():
 
     # loop over colors
     for num, c in enumerate(color_rules):
-        grass.percent(num + 1, len(color_rules), 1)
+        gs.percent(num + 1, len(color_rules), 1)
         if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
             q = c.split(" ")[0]
             if q == "nv":
@@ -188,5 +188,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

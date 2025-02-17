@@ -91,7 +91,7 @@ import os
 import atexit
 import csv
 
-import grass.script as gscript
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 # i18N
@@ -101,7 +101,7 @@ gettext.install("grassmods", os.path.join(os.getenv("GISBASE"), "locale"))
 
 
 def main():
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # required input
     input = options["input"]
@@ -118,19 +118,19 @@ def main():
     resolutiondir = options["resolutiondir"]
 
     overwrite_flag = ""
-    if gscript.overwrite():
+    if gs.overwrite():
         overwrite_flag = "t"
 
     # check if v.transects is installed
-    if not gscript.find_program("v.transects", "--help"):
+    if not gs.find_program("v.transects", "--help"):
         message = _("You need to install the addon v.transects to be able")
         message += _(" to run r.object.thickness.\n")
         message += _(" You can install the addon with 'g.extension v.transects'")
-        gscript.fatal(message)
+        gs.fatal(message)
 
     # check if input file exists
-    if not gscript.find_file(input)["file"]:
-        gscript.fatal(_("Raster map <%s> not found") % input)
+    if not gs.find_file(input)["file"]:
+        gs.fatal(_("Raster map <%s> not found") % input)
 
     # strip mapset name
     in_name_strip = options["input"].split("@")
@@ -140,10 +140,10 @@ def main():
 
     # create a map containing only the category to replace and NULL
     categorymap = "{}".format(in_name) + "_bin_" + "{}".format(tmp)
-    gscript.verbose(_("Category map: <%s>") % categorymap)
-    gscript.verbose(_("Extracting category: <%d>") % category)
+    gs.verbose(_("Category map: <%s>") % categorymap)
+    gs.verbose(_("Extracting category: <%d>") % category)
 
-    gscript.run_command(
+    gs.run_command(
         "r.mapcalc",
         expression="{outmap}=if({inmap}=={cat}, 1, null())".format(
             outmap=categorymap, inmap=input, cat=category
@@ -153,15 +153,15 @@ def main():
     )
 
     # create a map containing midlines for each clump
-    gscript.verbose(_("Finding median lines"))
+    gs.verbose(_("Finding median lines"))
     categorymap_thin = "{}".format(categorymap) + "_thin"
-    gscript.run_command(
+    gs.run_command(
         "r.thin", input=categorymap, output=categorymap_thin, quiet=True, overwrite="t"
     )
 
     # convert to vector
-    gscript.verbose(_("Creating vector map of median lines"))
-    gscript.run_command(
+    gs.verbose(_("Creating vector map of median lines"))
+    gs.run_command(
         "r.to.vect",
         input=categorymap_thin,
         output=categorymap_thin,
@@ -174,8 +174,8 @@ def main():
     # half size (left and right) of the transect, must be larger than the larger expected hslf size of objects
     dsize = tsize / 2
     categorymap_transects = "{}".format(categorymap) + "_transects"
-    gscript.verbose(_("Creating transects"))
-    gscript.run_command(
+    gs.verbose(_("Creating transects"))
+    gs.run_command(
         "v.transects",
         input=categorymap_thin,
         output=categorymap_transects,
@@ -188,8 +188,8 @@ def main():
 
     # clip transects with the clumps
     # convert binarymap to vector
-    gscript.verbose(_("Creating vector area map"))
-    gscript.run_command(
+    gs.verbose(_("Creating vector area map"))
+    gs.run_command(
         "r.to.vect",
         input=categorymap,
         output=categorymap,
@@ -199,16 +199,16 @@ def main():
     )
 
     # drop unneeded column "label" from the table
-    gscript.run_command(
+    gs.run_command(
         "v.db.dropcolumn", map=categorymap, columns="label", quiet=True, overwrite="t"
     )
 
     # clip transects with object
     categorymap_transects_inside = "{}".format(categorymap) + "_transects_inside"
-    gscript.verbose(_("Clipping transects"))
+    gs.verbose(_("Clipping transects"))
     # exit if no transect has been created
     try:
-        testrun = gscript.run_command(
+        testrun = gs.run_command(
             "v.overlay",
             ainput=categorymap_transects,
             binput=categorymap,
@@ -222,23 +222,23 @@ def main():
         # raster
         temp_raster_maps = [categorymap, categorymap_thin]
         for temp_map in temp_raster_maps:
-            gscript.run_command(
+            gs.run_command(
                 "g.remove", type="raster", name=temp_map, flags="f", quiet=True
             )
         # vector
         temp_vector_maps = [categorymap, categorymap_thin, categorymap_transects]
         for temp_map in temp_vector_maps:
-            gscript.run_command(
+            gs.run_command(
                 "g.remove", type="vector", name=temp_map, flags="f", quiet=True
             )
 
         message = _("No transects created:")
         message += _(" lower transects spacing.")
-        gscript.fatal(message)
+        gs.fatal(message)
 
     # add a column for the transects length
-    gscript.verbose(_("Evaluating transects lengths"))
-    gscript.run_command(
+    gs.verbose(_("Evaluating transects lengths"))
+    gs.run_command(
         "v.db.addcolumn",
         map=categorymap_transects_inside,
         columns="length double",
@@ -246,7 +246,7 @@ def main():
         overwrite="t",
     )
     # upload transects' lengths
-    gscript.run_command(
+    gs.run_command(
         "v.to.db",
         map=categorymap_transects_inside,
         option="length",
@@ -259,8 +259,8 @@ def main():
     # create csv file
     csv_file = "./" + "{}".format(categorymap_transects_inside) + ".csv"
 
-    gscript.verbose(_("Creating CSV file"))
-    gscript.run_command(
+    gs.verbose(_("Creating CSV file"))
+    gs.run_command(
         "v.out.ogr",
         input=categorymap_transects_inside,
         output=csv_file,
@@ -297,7 +297,7 @@ def main():
     mean_thickness = sum(result) / len(result)
 
     # region resolution in map units
-    region = gscript.region()
+    region = gs.region()
 
     if resolutiondir == "N-S":
         resolution = region.nsres
@@ -309,11 +309,11 @@ def main():
     max_thickness_pixel = max_thickness / resolution
     mean_thickness_pixel = mean_thickness / resolution
 
-    gscript.message(
+    gs.message(
         _("Thickness in map units: min %f  max %f  mean %f")
         % (min_thickness, max_thickness, mean_thickness)
     )
-    gscript.message(
+    gs.message(
         _("Thickness in pixels: min %f  max %f  mean %f")
         % (min_thickness_pixel, max_thickness_pixel, mean_thickness_pixel)
     )
@@ -326,25 +326,25 @@ def main():
             "the border of the largest object has not been reached, "
             "rise the expected maximum size value."
         )
-        gscript.warning(message % {"max_thickness": max_thickness, "size": tsize})
+        gs.warning(message % {"max_thickness": max_thickness, "size": tsize})
 
     # copy the maps if the user has provided a name
     if rmedian:
-        gscript.run_command(
+        gs.run_command(
             "g.copy",
             raster="{inmap},{outmap}".format(inmap=categorymap_thin, outmap=rmedian),
             overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
     if vmedian:
-        gscript.run_command(
+        gs.run_command(
             "g.copy",
             vector="{inmap},{outmap}".format(inmap=categorymap_thin, outmap=vmedian),
             overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
     if transects:
-        gscript.run_command(
+        gs.run_command(
             "g.copy",
             vector="{inmap},{outmap}".format(
                 inmap=categorymap_transects, outmap=transects
@@ -353,7 +353,7 @@ def main():
             quiet=True,
         )
     if itransects:
-        gscript.run_command(
+        gs.run_command(
             "g.copy",
             vector="{inmap},{outmap}".format(
                 inmap=categorymap_transects_inside, outmap=itransects
@@ -362,7 +362,7 @@ def main():
             quiet=True,
         )
     if csv_file_out:
-        gscript.run_command(
+        gs.run_command(
             "v.out.ogr",
             input=categorymap_transects_inside,
             output=csv_file_out,
@@ -375,9 +375,7 @@ def main():
     # raster
     temp_raster_maps = [categorymap, categorymap_thin]
     for temp_map in temp_raster_maps:
-        gscript.run_command(
-            "g.remove", type="raster", name=temp_map, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="raster", name=temp_map, flags="f", quiet=True)
     # vector
     temp_vector_maps = [
         categorymap,
@@ -386,15 +384,13 @@ def main():
         categorymap_transects_inside,
     ]
     for temp_map in temp_vector_maps:
-        gscript.run_command(
-            "g.remove", type="vector", name=temp_map, flags="f", quiet=True
-        )
+        gs.run_command("g.remove", type="vector", name=temp_map, flags="f", quiet=True)
 
     # remove temporary csv_file
     os.remove(csv_file)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     # atexit.register(cleanup)
     main()

@@ -616,7 +616,7 @@ import sys
 if "GISBASE" not in os.environ:
     sys.exit("Exiting: You must be in GRASS GIS to run this program.")
 
-import grass.script as grass
+import grass.script as gs
 from grass.script.utils import set_path
 
 addon_path = os.path.join(
@@ -633,5 +633,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main(options, flags)

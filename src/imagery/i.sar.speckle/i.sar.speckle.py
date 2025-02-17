@@ -56,7 +56,7 @@
 
 
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 
@@ -77,8 +77,8 @@ def lee_filter(img, size, img_out):
     # Local variance
     r.mapcalc("%s = %s - (%s^2)" % (img_variance, img_sqr_mean, img_mean))
     # Overall variance
-    return_univar = grass.read_command("r.univar", map=img, flags="ge")
-    univar_stats = grass.parse_key_val(return_univar)
+    return_univar = gs.read_command("r.univar", map=img, flags="ge")
+    univar_stats = gs.parse_key_val(return_univar)
     overall_variance = univar_stats["variance"]
     # Weights
     r.mapcalc(
@@ -91,9 +91,9 @@ def lee_filter(img, size, img_out):
     )
 
     # Cleanup
-    grass.message(_("Cleaning up intermediate files..."))
+    gs.message(_("Cleaning up intermediate files..."))
     try:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", quiet=False, type="raster", pattern="tmp*"
         )
     except:
@@ -108,12 +108,10 @@ def main():
     img_out = options["output"]  # name of output image
     size = options["size"]  # size of neighborhood
 
-    out = grass.core.find_file(img_out)
+    out = gs.core.find_file(img_out)
 
-    if (out["name"] != "") and not grass.overwrite():
-        grass.warning(
-            _("Output map name already exists. Delete it or use overwrite flag")
-        )
+    if (out["name"] != "") and not gs.overwrite():
+        gs.warning(_("Output map name already exists. Delete it or use overwrite flag"))
 
     if method == "lee":
         g.message(_("Applying Lee Filter"))
@@ -121,9 +119,9 @@ def main():
         g.message(_("Done."))
 
     else:
-        grass.fatal(_("The requested speckle filter is not yet implemented."))
+        gs.fatal(_("The requested speckle filter is not yet implemented."))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

@@ -285,25 +285,25 @@ import subprocess
 import os
 import shutil
 from ast import literal_eval
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
     if allmap:
-        gscript.try_remove(feature_vars)
+        gs.try_remove(feature_vars)
     if trainmap:
-        gscript.try_remove(training_vars)
+        gs.try_remove(training_vars)
     if model_output_csv:
-        gscript.try_remove(model_output_csv)
+        gs.try_remove(model_output_csv)
     if model_output_csvt:
-        gscript.try_remove(model_output_csvt)
+        gs.try_remove(model_output_csvt)
     if r_commands:
-        gscript.try_remove(r_commands)
+        gs.try_remove(r_commands)
     if reclass_files:
         for reclass_file in reclass_files.values():
-            gscript.try_remove(reclass_file)
+            gs.try_remove(reclass_file)
     if temptable:
-        gscript.run_command("db.droptable", table=temptable, flags="f", quiet=True)
+        gs.run_command("db.droptable", table=temptable, flags="f", quiet=True)
 
 
 def main():
@@ -385,13 +385,13 @@ def main():
     weighting_modes = options["weighting_modes"].split(",")
     weighting_metric = options["weighting_metric"]
     if len(classifiers) == 1:
-        gscript.message("Only one classifier, so no voting applied")
+        gs.message("Only one classifier, so no voting applied")
 
     processes = int(options["processes"])
     folds = options["folds"]
     partitions = options["partitions"]
     tunelength = options["tunelength"]
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     tunegrids = literal_eval(options["tunegrids"]) if options["tunegrids"] else {}
 
     max_features = None
@@ -451,8 +451,8 @@ def main():
         bw_plot_file = options["bw_plot_file"].replace("\\", "/")
 
     if allmap:
-        feature_vars = gscript.tempfile().replace("\\", "/")
-        gscript.run_command(
+        feature_vars = gs.tempfile().replace("\\", "/")
+        gs.run_command(
             "v.db.select",
             map_=allfeatures,
             file_=feature_vars,
@@ -464,8 +464,8 @@ def main():
         feature_vars = allfeatures.replace("\\", "/")
 
     if trainmap:
-        training_vars = gscript.tempfile().replace("\\", "/")
-        gscript.run_command(
+        training_vars = gs.tempfile().replace("\\", "/")
+        gs.run_command(
             "v.db.select",
             map_=training,
             file_=training_vars,
@@ -476,7 +476,7 @@ def main():
     else:
         training_vars = training.replace("\\", "/")
 
-    r_commands = gscript.tempfile().replace("\\", "/")
+    r_commands = gs.tempfile().replace("\\", "/")
 
     r_file = open(r_commands, "w")
 
@@ -747,7 +747,7 @@ def main():
         r_file.write("\n")
 
         if allmap and not flags["f"]:
-            model_output = gscript.tempfile().replace("\\", "/")
+            model_output = gs.tempfile().replace("\\", "/")
             model_output_csv = model_output + ".csv"
             write_string = "write.csv(resultsdf, '%s'," % model_output_csv
             write_string += " row.names=FALSE, quote=FALSE)"
@@ -759,7 +759,7 @@ def main():
             if len(classifiers) > 1:
                 if flags["i"]:
                     for classifier in classifiers:
-                        tmpfilename = gscript.tempfile()
+                        tmpfilename = gs.tempfile()
                         reclass_files[classifier] = tmpfilename.replace("\\", "/")
                         r_file.write(
                             "tempdf <- data.frame(resultsdf$id, resultsdf$%s)"
@@ -776,7 +776,7 @@ def main():
                         )
                         r_file.write("\n")
                 for weighting_mode in weighting_modes:
-                    tmpfilename = gscript.tempfile()
+                    tmpfilename = gs.tempfile()
                     reclass_files[weighting_mode] = tmpfilename.replace("\\", "/")
                     r_file.write(
                         "tempdf <- data.frame(resultsdf$id, resultsdf$%s_%s)"
@@ -793,7 +793,7 @@ def main():
                     )
                     r_file.write("\n")
             else:
-                tmpfilename = gscript.tempfile()
+                tmpfilename = gs.tempfile()
                 reclass_files[classifiers[0]] = tmpfilename.replace("\\", "/")
                 r_file.write(
                     "reclass <- data.frame(out=apply(resultsdf, 1, function(x) paste(x[1],'=', x[2])))"
@@ -901,18 +901,18 @@ def main():
     if r_script_file:
         shutil.copy(r_commands, r_script_file)
 
-    gscript.message("Running R now. Following output is R output.")
+    gs.message("Running R now. Following output is R output.")
     try:
         subprocess.check_call(
             ["Rscript", r_commands],
             stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError:
-        gscript.fatal(
+        gs.fatal(
             "There was an error in the execution of the R script.\nPlease check the R output."
         )
 
-    gscript.message("Finished running R.")
+    gs.message("Finished running R.")
 
     if allmap and not flags["f"]:
         model_output_csvt = model_output + ".csvt"
@@ -933,8 +933,8 @@ def main():
         f.write(header_string)
         f.close()
 
-        gscript.message("Loading results into attribute table")
-        gscript.run_command(
+        gs.message("Loading results into attribute table")
+        gs.run_command(
             "db.in.ogr",
             input_=model_output_csv,
             output=temptable,
@@ -943,10 +943,10 @@ def main():
         )
         index_creation = "CREATE INDEX idx_%s_cat" % temptable
         index_creation += " ON %s (id)" % temptable
-        gscript.run_command("db.execute", sql=index_creation, quiet=True)
-        columns = gscript.read_command("db.columns", table=temptable).splitlines()[1:]
-        orig_cat = gscript.vector_db(allfeatures)[int(segments_layer)]["key"]
-        gscript.run_command(
+        gs.run_command("db.execute", sql=index_creation, quiet=True)
+        columns = gs.read_command("db.columns", table=temptable).splitlines()[1:]
+        orig_cat = gs.vector_db(allfeatures)[int(segments_layer)]["key"]
+        gs.run_command(
             "v.db.join",
             map_=allfeatures,
             column=orig_cat,
@@ -959,7 +959,7 @@ def main():
     if classified_map:
         for classification, reclass_file in reclass_files.items():
             output_map = classified_map + "_" + classification
-            gscript.run_command(
+            gs.run_command(
                 "r.reclass",
                 input=raster_segments_map,
                 output=output_map,
@@ -969,6 +969,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

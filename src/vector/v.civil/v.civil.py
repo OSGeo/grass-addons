@@ -526,12 +526,12 @@ import os
 import sys
 
 # sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.road'))
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
 path = get_lib_path(modname="v.civil")
 if path is None:
-    grass.fatal("Not able to find the civil library directory.")
+    gs.fatal("Not able to find the civil library directory.")
 sys.path.append(path)
 
 import road_road as Road
@@ -703,7 +703,7 @@ def main():
 
     if options["backup"]:
         road.rtab.create_backup(options["backup"])
-        grass.message("backup created")
+        gs.message("backup created")
         sys.exit(0)
 
     ##################### Run ###################
@@ -771,29 +771,29 @@ def main():
 
         #
         if "plan" in plan_opt:
-            grass.message("writing plan")
+            gs.message("writing plan")
             road.plant_write()
 
         if "displ" in plan_opt:
-            grass.message("writing displ")
+            gs.message("writing displ")
             road.displ_write()
 
         if "marks" in plan_opt:
-            grass.message("writing marks")
+            gs.message("writing marks")
             road.marks_write()
 
         if "pks" in plan_opt:
-            grass.message("writing pks")
+            gs.message("writing pks")
             road.trans_write_pks(startend, pkopt)
 
         #
         if "vert" in vert_opt:
-            grass.message("writing elev")
+            gs.message("writing elev")
             road.elev_write()
 
         #
         if "trans" in trans_opt:
-            grass.message("writing trans")
+            gs.message("writing trans")
             road.trans_write()
 
         if options["dem"]:
@@ -803,24 +803,24 @@ def main():
 
             #
             if "profile" in vert_opt:
-                grass.message("writing profile")
+                gs.message("writing profile")
                 road.long_profile_write()
 
             if "profiles" in trans_opt:
-                grass.message("writing profiles")
+                gs.message("writing profiles")
                 road.trans_profiles_write()
 
             #
             if "slopes" in terr_opt:
-                grass.message("writing slopes")
+                gs.message("writing slopes")
                 road.taludes_write()
 
             if "sareas" in terr_opt:
-                grass.message("writing slopes_areas")
+                gs.message("writing slopes_areas")
                 road.taludes_areas_write()
 
             if "topo" in terr_opt:
-                grass.message(
+                gs.message(
                     "writing pnts, breakliness and hull for \
                                triangulation"
                 )
@@ -839,7 +839,7 @@ def main():
             road.marks_write(tab_subname_m)
 
         if options["areaopt"]:
-            grass.message("writing displ_areas")
+            gs.message("writing displ_areas")
             road.displ_areas_write(options["areaopt"], tab_subname_d)
 
     sys.exit(0)
@@ -852,5 +852,5 @@ if __name__ == "__main__":
         doctest.testmod()
 
     else:
-        options, flags = grass.parser()
+        options, flags = gs.parser()
         main()

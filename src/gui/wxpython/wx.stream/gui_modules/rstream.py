@@ -31,7 +31,7 @@ import wx.lib.flatnotebook as FN
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
 
-import grass.script as grass
+import grass.script as gs
 import gselect
 import gcmd
 import dbm

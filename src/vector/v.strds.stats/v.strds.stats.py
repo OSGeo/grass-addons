@@ -60,7 +60,7 @@
 # % required: no
 # %end
 
-import grass.script as grass
+import grass.script as gs
 import grass.temporal as tgis
 from grass.pygrass.utils import copy as gcopy
 from grass.pygrass.messages import Messenger
@@ -94,7 +94,7 @@ class Sample(object):
         elif date == "end":
             output = str(self.end).split(" ")[0].replace("-", "_")
         else:
-            grass.fatal("The values accepted by printDay in Sample are: 'start', 'end'")
+            gs.fatal("The values accepted by printDay in Sample are: 'start', 'end'")
         if self.granu:
             if self.granu.find("minute") != -1 or self.granu.find("second") != -1:
                 output += "_" + str(self.start).split(" ")[1].replace(":", "_")
@@ -111,11 +111,11 @@ def main():
     methods = options["method"]
     percentile = options["percentile"]
 
-    overwrite = grass.overwrite()
+    overwrite = gs.overwrite()
 
     quiet = True
 
-    if grass.verbosity() > 2:
+    if gs.verbosity() > 2:
         quiet = False
 
     if where == "" or where == " " or where == "\n":
@@ -141,7 +141,7 @@ def main():
         )
         if not rows:
             dbif.close()
-            grass.fatal(
+            gs.fatal(
                 _("Space time raster dataset <%s> is empty") % first_strds.get_id()
             )
 
@@ -159,7 +159,7 @@ def main():
         for name in strds_names[1:]:
             dataset = tgis.open_old_stds(name, "strds", dbif)
             if dataset.get_temporal_type() != first_strds.get_temporal_type():
-                grass.fatal(
+                gs.fatal(
                     _(
                         "Temporal type of space time raster "
                         "datasets must be equal\n<%(a)s> of type "
@@ -211,10 +211,10 @@ def main():
     # Get the layer and database connections of the input vector
     if where:
         try:
-            grass.run_command("v.extract", input=input, where=where, output=output)
+            gs.run_command("v.extract", input=input, where=where, output=output)
         except CalledModuleError:
             dbif.close()
-            grass.fatal(
+            gs.fatal(
                 _("Unable to run v.extract for vector map <%s> and where <%s>")
                 % (input, where)
             )
@@ -229,7 +229,7 @@ def main():
         pymap.open("r")
     except:
         dbif.close()
-        grass.fatal(_("Unable to create vector map <%s>") % output)
+        gs.fatal(_("Unable to create vector map <%s>") % output)
     pymap.close()
 
     for sample in samples:
@@ -239,7 +239,7 @@ def main():
             day = sample.printDay()
             column_name = "%s_%s" % (sample.strds_name, day)
             try:
-                grass.run_command(
+                gs.run_command(
                     "v.rast.stats",
                     map=output,
                     raster=name,
@@ -251,7 +251,7 @@ def main():
                 )
             except CalledModuleError:
                 dbif.close()
-                grass.fatal(
+                gs.fatal(
                     _(
                         "Unable to run v.what.rast for vector map"
                         " <%s> and raster map <%s>"
@@ -266,5 +266,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

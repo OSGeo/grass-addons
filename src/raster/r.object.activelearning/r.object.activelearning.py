@@ -97,7 +97,7 @@
 
 try:  # You can run the tests outside of grass where those imports are not available
     import grass as grass
-    import grass.script as gcore
+    import grass.script as gs
 except ImportError:
     pass
 
@@ -193,7 +193,7 @@ def update(update_file, X_train, ID_train, y_train, X_unlabeled, ID_unlabeled):
             ID_train = np.append(ID_train, [ID], axis=0)
             y_train = np.append(y_train, [label], axis=0)
         else:
-            gcore.warning("The following sample could not be found :{}".format(row[0]))
+            gs.warning("The following sample could not be found :{}".format(row[0]))
 
     return X_train, ID_train, y_train
 
@@ -243,7 +243,7 @@ def write_update(
             unlabeled = np.delete(unlabeled, index[0][0], axis=0)
             successful_updates.append(index_update)
         else:
-            gcore.warning(
+            gs.warning(
                 "Unable to update completely: the following sample could not be found in the unlabeled set:{}".format(
                     row[0]
                 )
@@ -259,10 +259,10 @@ def write_update(
     # Save files
     if new_training_filename != "":
         write_updated_file(new_training_filename, training)
-        gcore.message("New training file written to {}".format(new_training_filename))
+        gs.message("New training file written to {}".format(new_training_filename))
     if new_unlabeled_filename != "":
         write_updated_file(new_unlabeled_filename, unlabeled)
-        gcore.message("New unlabeled file written to {}".format(new_unlabeled_filename))
+        gs.message("New unlabeled file written to {}".format(new_unlabeled_filename))
 
 
 def write_updated_file(file_path, data):
@@ -517,7 +517,7 @@ def learning(
     c_svm, gamma_parameter = SVM_parameters(
         options["c_svm"], options["gamma_parameter"], X_train, y_train, search_iter
     )
-    gcore.message(
+    gs.message(
         "Parameters used : C={}, gamma={}, lambda={}".format(
             c_svm, gamma_parameter, diversity_lambda
         )
@@ -592,7 +592,7 @@ def main():
         from sklearn.model_selection import StratifiedKFold
         from sklearn.metrics.pairwise import rbf_kernel
     except ImportError:
-        gcore.fatal(
+        gs.fatal(
             "This module requires the scikit-learn python package. Please install it."
         )
 
@@ -602,7 +602,7 @@ def main():
         import numpy as np
     except ModuleNotFoundError as e:
         msg = e.msg
-        gcore.fatal(
+        gs.fatal(
             _(
                 "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
             ).format(msg.split("'")[-2])
@@ -650,7 +650,7 @@ def main():
     elif options["update"] == "" and (
         options["training_updated"] != "" or options["unlabeled_updated"] != ""
     ):
-        gcore.warning("No update file specified : could not write the updated files.")
+        gs.warning("No update file specified : could not write the updated files.")
     nbr_new_train = ID_train.shape[0]
 
     samples_to_label_IDs, score, predictions = learning(
@@ -675,14 +675,14 @@ def main():
         write_result_file(
             ID_unlabeled, X_unlabeled, predictions, header_unlabeled, predictions_file
         )
-        gcore.message("Class predictions written to {}".format(predictions_file))
+        gs.message("Class predictions written to {}".format(predictions_file))
 
-    gcore.message("Training set : {}".format(X_train.shape[0]))
-    gcore.message("Test set : {}".format(X_test.shape[0]))
-    gcore.message(
+    gs.message("Training set : {}".format(X_train.shape[0]))
+    gs.message("Test set : {}".format(X_test.shape[0]))
+    gs.message(
         "Unlabeled set : {}".format(X_unlabeled.shape[0] - (nbr_new_train - nbr_train))
     )
-    gcore.message("Score : {}".format(score))
+    gs.message("Score : {}".format(score))
 
     for ID in samples_to_label_IDs:
         print((int(ID)))

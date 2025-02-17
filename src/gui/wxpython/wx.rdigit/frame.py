@@ -27,7 +27,7 @@ if __name__ == "__main__":
 import wx
 
 from ctypes import *
-import grass.script as grass
+import grass.script as gs
 from core import globalvar
 from core.gcmd import GError, GMessage
 from mapdisp import statusbar as sb

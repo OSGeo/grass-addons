@@ -149,7 +149,7 @@ from datetime import datetime
 from datetime import timedelta
 from subprocess import PIPE as PI
 import numpy as np
-import grass.script as gscript
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -166,7 +166,7 @@ def return_value(vals, met):
             m = stats.mode(vals)
             return m.mode[0]
         except ImportError:
-            gscript.fatal(_("For method 'mode' you need to install scipy"))
+            gs.fatal(_("For method 'mode' you need to install scipy"))
     elif met == "minimum":
         return vals.min()
     elif met == "maximum":
@@ -213,18 +213,18 @@ def main(options, flags):
     mets = options["method"].split(",")
     gran = options["granularity"]
     dateformat = options["date_format"]
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     update = flags["u"]
     create = flags["c"]
 
     stdout = False
     if output != "-" and update:
-        gscript.fatal(_("Cannot combine 'output' option and 'u' flag"))
+        gs.fatal(_("Cannot combine 'output' option and 'u' flag"))
     elif output != "-" and create:
-        gscript.fatal(_("Cannot combine 'output' option and 'c' flag"))
+        gs.fatal(_("Cannot combine 'output' option and 'c' flag"))
     elif output == "-" and (update or create):
         if update and not cols:
-            gscript.fatal(_("Please set 'columns' option"))
+            gs.fatal(_("Please set 'columns' option"))
         output = invect
     else:
         stdout = True
@@ -241,10 +241,8 @@ def main(options, flags):
                     columns="{col} double precision".format(col=colname),
                 )
             except CalledModuleError:
-                gscript.fatal(
-                    _("Not possible to create column {col}").format(col=colname)
-                )
-        gscript.warning(
+                gs.fatal(_("Not possible to create column {col}").format(col=colname))
+        gs.warning(
             _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
     elif update:
@@ -253,15 +251,15 @@ def main(options, flags):
         ).outputs.stdout.splitlines()
         for col in cols:
             if col not in colexist:
-                gscript.fatal(
+                gs.fatal(
                     _("Column '{}' does not exist, please create it first").format(col)
                 )
-        gscript.warning(
+        gs.warning(
             _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
 
     if output != "-" and len(cols) != len(mets):
-        gscript.fatal(
+        gs.fatal(
             _("'columns' and 'method' options must have the same number of elements")
         )
     tgis.init()
@@ -288,7 +286,7 @@ def main(options, flags):
             td = None
     else:
         if sp.get_granularity() >= int(gran):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Input granularity is smaller or equal to the {iv}"
                     " STRDS granularity"
@@ -296,9 +294,9 @@ def main(options, flags):
             )
         td = int(gran)
     if incol and indate:
-        gscript.fatal(_("Cannot combine 'date_column' and 'date' options"))
+        gs.fatal(_("Cannot combine 'date_column' and 'date' options"))
     elif not incol and not indate:
-        gscript.fatal(_("You have to fill 'date_column' or 'date' option"))
+        gs.fatal(_("You have to fill 'date_column' or 'date' option"))
     if incol:
         if endcol:
             mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by {dc}".format(
@@ -314,7 +312,7 @@ def main(options, flags):
             )
             mydates = dates.outputs["stdout"].value.splitlines()
         except CalledModuleError:
-            gscript.fatal(_("db.select return an error"))
+            gs.fatal(_("db.select return an error"))
     elif indate:
         if enddate:
             mydates = ["{ida}|{eda}".format(ida=indate, eda=enddate)]
@@ -329,7 +327,7 @@ def main(options, flags):
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(_("Unable to add table <%s> to vector map <%s>") % invect)
+                gs.fatal(_("Unable to add table <%s> to vector map <%s>") % invect)
         if pymap.is_open():
             pymap.close()
         qfeat = pymod.Module(
@@ -376,7 +374,7 @@ def main(options, flags):
             )
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
-            gscript.warning("t.rast.what faild with where='{}'".format(mwhere))
+            gs.warning("t.rast.what faild with where='{}'".format(mwhere))
             pass
         if incol:
             if endcol:
@@ -397,7 +395,7 @@ def main(options, flags):
                 )
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
-                gscript.fatal(
+                gs.fatal(
                     _("db.select returned an error for date {da}").format(da=start)
                 )
         if not lines and stdout:
@@ -464,7 +462,7 @@ def main(options, flags):
                                     where="cat={ca}".format(ca=vals[0]),
                                 )
                         except CalledModuleError:
-                            gscript.fatal(_("v.db.update return an error"))
+                            gs.fatal(_("v.db.update return an error"))
                 if stdout:
                     outtxt += "\n"
                 if x == len(myfeats):
@@ -476,5 +474,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main(options, flags)

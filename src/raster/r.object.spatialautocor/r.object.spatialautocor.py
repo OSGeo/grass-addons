@@ -58,28 +58,28 @@
 
 from __future__ import print_function
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 # check requirements
 def check_progs():
     found_missing = False
     for prog in ["r.neighborhoodmatrix"]:
-        if not gscript.find_program(prog, "--help"):
+        if not gs.find_program(prog, "--help"):
             found_missing = True
-            gscript.warning(
+            gs.warning(
                 _("'%s' required. Please install '%s' first using 'g.extension %s'")
                 % (prog, prog, prog)
             )
     if found_missing:
-        gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+        gs.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
 def get_nb_matrix(mapname, diagonal):
     """Create a dictionary with neighbors per segment"""
 
     if diagonal:
-        res = gscript.read_command(
+        res = gs.read_command(
             "r.neighborhoodmatrix",
             input_=mapname,
             output="-",
@@ -88,7 +88,7 @@ def get_nb_matrix(mapname, diagonal):
             quiet=True,
         )
     else:
-        res = gscript.read_command(
+        res = gs.read_command(
             "r.neighborhoodmatrix", input_=mapname, output="-", sep="comma", quiet=True
         )
 
@@ -107,10 +107,10 @@ def get_nb_matrix(mapname, diagonal):
 def get_autocorrelation(mapname, raster, neighbordict, method):
     """Calculate either Moran's I or Geary's C for values of the given raster"""
 
-    raster_vars = gscript.parse_command("r.univar", map_=raster, flags="g", quiet=True)
+    raster_vars = gs.parse_command("r.univar", map_=raster, flags="g", quiet=True)
     global_mean = float(raster_vars["mean"])
 
-    univar_res = gscript.read_command(
+    univar_res = gs.read_command(
         "r.univar",
         flags="t",
         map_=raster,
@@ -176,5 +176,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

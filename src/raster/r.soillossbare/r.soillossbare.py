@@ -140,7 +140,7 @@ This program is free software under the GNU General Public License
 
 import sys
 import os
-import grass.script as g
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -154,18 +154,18 @@ class rusle_base(object):
         self.tmp_rast = []
 
     def _debug(self, fn, msg):
-        g.debug("%s.%s: %s" % (self.__class__.__name__, fn, msg))
+        gs.debug("%s.%s: %s" % (self.__class__.__name__, fn, msg))
 
     def __del__(self):
         # tries to remove temporary files, all files should be
         # removed before, implemented just in case of unexpected
         # stop of module
         for temp_file in self.temp_files_to_cleanup:
-            g.try_remove(temp_file)
+            gs.try_remove(temp_file)
         pass
 
         for temp_dir in self.temp_dirs_to_cleanup:
-            g.try_remove(temp_dir)
+            gs.try_remove(temp_dir)
         pass
 
         if flag_r:
@@ -178,9 +178,9 @@ class rusle_base(object):
         @return string path to temp_file
         """
         self._debug("_tempfile", "started")
-        temp_file = g.tempfile()
+        temp_file = gs.tempfile()
         if temp_file is None:
-            g.fatal(_("Unable to create temporary files"))
+            gs.fatal(_("Unable to create temporary files"))
 
         # list of created tempfiles for destructor
         self.temp_files_to_cleanup.append(temp_file)
@@ -195,9 +195,9 @@ class rusle_base(object):
         @return string path to temp_dir
         """
         self._debug("_tempdir", "started")
-        temp_dir = g.tempdir()
+        temp_dir = gs.tempdir()
         if temp_dir is None:
-            g.fatal(_("Unable to create temporary directory"))
+            gs.fatal(_("Unable to create temporary directory"))
 
         # list of created tempfiles for destructor
         self.temp_dirs_to_cleanup.append(temp_dir)
@@ -207,13 +207,13 @@ class rusle_base(object):
 
     def removeTempRasters(self):
         for tmprast in self.tmp_rast:
-            g.message('Removing "%s"' % tmprast)
+            gs.message('Removing "%s"' % tmprast)
             try:
-                g.run_command(
+                gs.run_command(
                     "g.remove", flags="f", type="raster", name=tmprast, quiet=True
                 )
             except CalledModuleError:
-                g.warning(_("Removing temporary raster maps failed"))
+                gs.warning(_("Removing temporary raster maps failed"))
 
     def rusle(self):
         """!main method in rusle_base
@@ -234,7 +234,7 @@ class rusle_base(object):
         if not fieldblock:
             if fieldblockvect:
                 fieldblock = outprefix + "fieldblock"
-                g.run_command(
+                gs.run_command(
                     "v.to.rast",
                     input=fieldblockvect,
                     output=fieldblock,
@@ -243,27 +243,27 @@ class rusle_base(object):
                     quiet=quiet,
                 )
         if fieldblock:
-            g.verbose('Raster map fieldblock is in "%s"' % fieldblock)
+            gs.verbose('Raster map fieldblock is in "%s"' % fieldblock)
         else:
             fieldblock = ""
 
         if not options["flowacc"]:
             self._getFlowacc(elevation, flowacc, fieldblock)
-            g.verbose('Raster map flowacc is in "%s".' % flowacc)
+            gs.verbose('Raster map flowacc is in "%s".' % flowacc)
         else:
-            g.verbose('Raster map flowacc taken from "%s".' % flowacc)
+            gs.verbose('Raster map flowacc taken from "%s".' % flowacc)
 
         self._getSlope(elevation, slope)
-        g.verbose('Raster map slope is in  "%s"' % slope)
+        gs.verbose('Raster map slope is in  "%s"' % slope)
 
         self._getLsfac(flowacc, slope, lsfactor)
-        g.verbose('Raster map lsfactor is in  "%s"' % lsfactor)
+        gs.verbose('Raster map lsfactor is in  "%s"' % lsfactor)
 
         self._getSoillossbare(lsfactor, kfactor, rfactor, soillossbare)
-        g.message('Soilloss for bare soil in map "%s".' % soillossbare)
+        gs.message('Soilloss for bare soil in map "%s".' % soillossbare)
 
-        stats = g.parse_command("r.univar", flags="g", map=soillossbare, delimiter="=")
-        g.message(
+        stats = gs.parse_command("r.univar", flags="g", map=soillossbare, delimiter="=")
+        gs.message(
             "mean = %s \n stddev = %s \n min = %s \n max = %s"
             % (stats["mean"], stats["stddev"], stats["min"], stats["max"])
         )
@@ -272,20 +272,20 @@ class rusle_base(object):
 
     def _getBarrier(self, fieldblock, barrier):
         formula = "$barrier = if(isnull($fieldblock),1,0)"
-        g.mapcalc(formula, barrier=barrier, fieldblock=fieldblock, quiet=quiet)
-        g.verbose('Raster map barrier is in "%s"' % barrier)
+        gs.mapcalc(formula, barrier=barrier, fieldblock=fieldblock, quiet=quiet)
+        gs.verbose('Raster map barrier is in "%s"' % barrier)
         return barrier
 
     def _getElevationFieldblock(self, elevation, fieldblock, elevationfieldblock):
         formula = "$elevationfieldblock = if(isnull($fieldblock),null(),$elevation)"
-        g.mapcalc(
+        gs.mapcalc(
             formula,
             elevationfieldblock=elevationfieldblock,
             elevation=elevation,
             fieldblock=fieldblock,
             quiet=quiet,
         )
-        g.verbose('Raster map elevationfieldblock is in "%s"' % elevationfieldblock)
+        gs.verbose('Raster map elevationfieldblock is in "%s"' % elevationfieldblock)
         return elevationfieldblock
 
     def _getSlope(self, elevation, slope):
@@ -296,7 +296,7 @@ class rusle_base(object):
         # Slope and aspect were computed using GRASS GIS 6.4.1 r.slope.aspect using a 2FD
         # algorithm (Zhou, 2004) and 3x3 pixels neighborhood, which is suitable for smoothed DEMs.
 
-        g.run_command("r.slope.aspect", elevation=elevation, slope=slope, quiet=quiet)
+        gs.run_command("r.slope.aspect", elevation=elevation, slope=slope, quiet=quiet)
 
         return slope
 
@@ -326,7 +326,7 @@ class rusle_base(object):
 
         formula_lsfactor = "$lsfactor = (1+$m)*exp($flowacc * $resolution /22.1,$m)*exp(sin($slope)/0.09,$n)"
 
-        g.mapcalc(
+        gs.mapcalc(
             formula_lsfactor,
             lsfactor=lsfactor,
             flowacc=flowacc,
@@ -350,7 +350,7 @@ class rusle_base(object):
         @return
         """
         formula_soillossbare = "$soillossbare = $lsfactor * $kfactor * $rfactor"
-        g.mapcalc(
+        gs.mapcalc(
             formula_soillossbare,
             soillossbare=soillossbare,
             lsfactor=lsfactor,
@@ -374,7 +374,7 @@ class rusle_base(object):
             ]
         )
 
-        g.write_command(
+        gs.write_command(
             "r.colors", map=soillossbare, rules="-", stdin=rules, quiet=quiet
         )
 
@@ -391,7 +391,7 @@ class rusle_flow(rusle_base):
             barrier = outprefix + "barrier"
             self.tmp_rast.append(barrier)
             barrier = self._getBarrier(fieldblock, barrier)
-            g.run_command(
+            gs.run_command(
                 "r.flow",
                 elevation=elevation,
                 barrier=barrier,
@@ -400,7 +400,7 @@ class rusle_flow(rusle_base):
             )
 
         else:
-            g.run_command(
+            gs.run_command(
                 "r.flow", elevation=elevation, flowaccumulation=flowacc, quiet=quiet
             )
 
@@ -420,7 +420,7 @@ class rusle_watershed(rusle_base):
             self._getElevationFieldblock(elevation, fieldblock, elevationfieldblock)
             elevation = elevationfieldblock
 
-        g.run_command(
+        gs.run_command(
             "r.watershed",
             flags="a",
             elevation=elevation,
@@ -454,7 +454,7 @@ class rusle_terraflow(rusle_base):
         statsfile = self._tempfile()
         streamdir = self._tempdir()
 
-        g.run_command(
+        gs.run_command(
             "r.terraflow",
             elevation=elevation,
             filled=raster["filled"],
@@ -467,7 +467,7 @@ class rusle_terraflow(rusle_base):
             quiet=quiet,
         )
 
-        g.mapcalc(
+        gs.mapcalc(
             "$flowacc = $flowacc / $resolution",
             overwrite=True,
             flowacc=flowacc,
@@ -515,25 +515,25 @@ def main():
     flag_r = flags["r"]  # remove temp maps
 
     quiet = True
-    if g.verbosity() > 2:
+    if gs.verbosity() > 2:
         quiet = False
 
-    g.run_command("g.region", flags="a", res=resolution)
+    gs.run_command("g.region", flags="a", res=resolution)
 
     if flowacc:
-        g.info("Using flowaccumulation from input raster map %s ..." % flowacc)
+        gs.info("Using flowaccumulation from input raster map %s ..." % flowacc)
         ruslealg = rusle_base()
 
     elif flowaccmethod == "r.terraflow":
-        g.info("Using flowaccumulation from module r.terraflow (MFD) ...")
+        gs.info("Using flowaccumulation from module r.terraflow (MFD) ...")
         ruslealg = rusle_terraflow()
 
     elif flowaccmethod == "r.flow":
-        g.info("Using flowaccumulation from module r.flow (SFD) ...")
+        gs.info("Using flowaccumulation from module r.flow (SFD) ...")
         ruslealg = rusle_flow()
 
     elif flowaccmethod == "r.watershed":
-        g.info("Using flowaccumulation from module r.watershed (MFD) ...")
+        gs.info("Using flowaccumulation from module r.watershed (MFD) ...")
         ruslealg = rusle_watershed()
 
     p = ruslealg.rusle()
@@ -545,5 +545,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = g.parser()
+    options, flags = gs.parser()
     sys.exit(main())

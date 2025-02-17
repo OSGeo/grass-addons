@@ -198,7 +198,7 @@ import csv
 import random
 
 # import required grass modules
-import grass.script as grass
+import grass.script as gs
 import grass.script.setup as gsetup
 import grass.script.array as garray
 
@@ -211,14 +211,14 @@ tmp_map_vect = None
 
 def cleanup():
     if (tmp_map_rast or tmp_map_vect) and not flags["a"]:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             flags="f",
             type="raster",
             name=[f + str(os.getpid()) for f in tmp_map_rast],
             quiet=True,
         )
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             flags="f",
             type="vector",
@@ -301,19 +301,19 @@ def main():
     if options["barriers"]:
         input_barriers = options["barriers"].split("@")[0]
         # check if barrier file exists in current mapset (Problem when file in other mapset!!!!)
-        if not grass.find_file(name=input_barriers, element="vector")["file"]:
-            grass.fatal(_("Barriers map not found in current mapset"))
+        if not gs.find_file(name=input_barriers, element="vector")["file"]:
+            gs.fatal(_("Barriers map not found in current mapset"))
         # check if passability_col is provided and existing
         if not options["passability_col"]:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Please provide column name that holds the barriers' passability values ('passability_col')"
                 )
             )
-        if not options["passability_col"] in grass.read_command(
+        if not options["passability_col"] in gs.read_command(
             "db.columns", table=input_barriers
         ).split("\n"):
-            grass.fatal(
+            gs.fatal(
                 _(
                     "Please provide correct column name that holds the barriers' passability values ('passability_col')"
                 )
@@ -324,9 +324,9 @@ def main():
     if (options["source_populations"] and options["n_source"]) or (
         str(options["source_populations"]) == "" and str(options["n_source"]) == ""
     ):
-        grass.fatal(_("Provide either fixed or random source population"))
+        gs.fatal(_("Provide either fixed or random source population"))
     if options["n_source"] and flags["r"]:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Realisation (flag: 'r') in combination with random source populations (n_source) not possible. Please choose either random source populations or provide source populations to calculate realisation"
             )
@@ -352,10 +352,10 @@ def main():
     # Output
     output_fidimo = options["output"]
     if (
-        grass.find_file(name=output_fidimo + "_" + "fit", element="cell")["file"]
-        and not grass.overwrite()
+        gs.find_file(name=output_fidimo + "_" + "fit", element="cell")["file"]
+        and not gs.overwrite()
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "Output file exists already, either change output name or set overwrite-flag"
             )
@@ -371,7 +371,7 @@ def main():
 
     # Dispersal parameter input
     if str(options["species"] != "Custom species") and (options["l"] or options["ar"]):
-        grass.message(_("Species settings will be overwritten with l and ar"))
+        gs.message(_("Species settings will be overwritten with l and ar"))
     species = str(options["species"])
     if options["l"]:
         l = float(options["l"])
@@ -384,14 +384,14 @@ def main():
 
     # Share of mobile/stationary individuals
     if options["habitat_p"] or (options["p"] and options["habitat_p"]):
-        grass.message(
+        gs.message(
             _("Map of habitat dependent share of mobile/stationary will be used")
         )
         habitat_p = options["habitat_p"]
     elif float(options["p"]) >= 0 and float(options["p"]) < 1:
         p_fixed = float(options["p"])
     else:
-        grass.fatal(_("Valid range for p: 0 - 1"))
+        gs.fatal(_("Valid range for p: 0 - 1"))
 
     ##### Calculating 'fishmove' depending on species or L & AR
     # Set fixed seed if specified
@@ -415,21 +415,21 @@ def main():
 
     ############ REGION, DB-CONNECTION ##############
     # Setting region to extent of input River
-    grass.run_command(
+    gs.run_command(
         "g.region", flags="a", rast=river, overwrite=True, save="region_Fidimo"
     )
 
     # Getting resultion, res=cellsize
     res = int(
-        grass.read_command("g.region", flags="m").strip().split("\n")[4].split("=")[1]
+        gs.read_command("g.region", flags="m").strip().split("\n")[4].split("=")[1]
     )
 
     # database-connection
-    env = grass.gisenv()
+    env = gs.gisenv()
     gisdbase = env["GISDBASE"]
     location = env["LOCATION_NAME"]
     mapset = env["MAPSET"]
-    grass.run_command(
+    gs.run_command(
         "db.connect",
         driver="sqlite",
         database="$GISDBASE/$LOCATION_NAME/$MAPSET/sqlite.db",
@@ -444,7 +444,7 @@ def main():
 
     # Populate input-river (raster) with value of resolution
     # *1.0 to get float raster instead of integer
-    grass.mapcalc(
+    gs.mapcalc(
         "$river_raster = if(!isnull($river),$res*1.0,null())",
         river_raster="river_raster_tmp_%d" % os.getpid(),
         river=river,
@@ -453,7 +453,7 @@ def main():
     )
 
     # Converting river_raster to river_vector
-    grass.run_command(
+    gs.run_command(
         "r.to.vect",
         overwrite=True,
         input="river_raster_tmp_%d" % os.getpid(),
@@ -462,7 +462,7 @@ def main():
     )
 
     # Converting river_raster to river_point
-    grass.run_command(
+    gs.run_command(
         "r.to.vect",
         overwrite=True,
         input="river_raster_tmp_%d" % os.getpid(),
@@ -472,16 +472,16 @@ def main():
 
     # Prepare Barriers/Snap barriers to river_vector
     if options["barriers"]:
-        grass.run_command(
+        gs.run_command(
             "g.copy", vector=input_barriers + "," + "barriers_tmp_%d" % os.getpid()
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.db.addcolumn",
             map="barriers_tmp_%d" % os.getpid(),
             columns="adj_X DOUBLE, adj_Y DOUBLE",
         )
-        grass.run_command(
+        gs.run_command(
             "v.distance",
             overwrite=True,
             from_="barriers_tmp_%d" % os.getpid(),
@@ -489,7 +489,7 @@ def main():
             upload="to_x,to_y",
             column="adj_X,adj_Y",
         )
-        grass.run_command(
+        gs.run_command(
             "v.in.db",
             overwrite=True,
             table="barriers_tmp_%d" % os.getpid(),
@@ -498,11 +498,11 @@ def main():
             key="cat",
             output="barriers_%d" % os.getpid(),
         )
-        grass.run_command(
+        gs.run_command(
             "v.db.addcolumn", map="barriers_%d" % os.getpid(), columns="dist DOUBLE"
         )
         # Making barriers permanent
-        grass.run_command(
+        gs.run_command(
             "g.copy",
             vector="barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers",
         )
@@ -513,7 +513,7 @@ def main():
         ):
             barrier_coors = str(adj_X) + "," + str(adj_Y)
 
-            grass.run_command(
+            gs.run_command(
                 "v.edit",
                 map="river_vector_tmp_%d" % os.getpid(),
                 tool="break",
@@ -522,14 +522,14 @@ def main():
             )
 
     # Getting category values (ASC) for river_network segments
-    grass.run_command(
+    gs.run_command(
         "v.category",
         overwrite=True,
         input="river_vector_tmp_%d" % os.getpid(),
         option="del",
         output="river_vector_nocat_tmp_%d" % os.getpid(),
     )
-    grass.run_command(
+    gs.run_command(
         "v.category",
         overwrite=True,
         input="river_vector_nocat_tmp_%d" % os.getpid(),
@@ -542,7 +542,7 @@ def main():
     # !!!!!!
 
     # Calculation of distance from outflow and flow direction for total river
-    grass.run_command(
+    gs.run_command(
         "r.cost",
         flags="n",
         overwrite=True,
@@ -551,12 +551,10 @@ def main():
         start_coordinates=coors,
     )
 
-    largest_cost_value = grass.raster_info("distance_raster_tmp_%d" % os.getpid())[
-        "max"
-    ]
+    largest_cost_value = gs.raster_info("distance_raster_tmp_%d" % os.getpid())["max"]
 
     # buffer
-    grass.run_command(
+    gs.run_command(
         "r.grow.distance",
         overwrite=True,
         input="distance_raster_tmp_%d" % os.getpid(),
@@ -564,7 +562,7 @@ def main():
     )
 
     # get value of the nearest river cell
-    grass.run_command(
+    gs.run_command(
         "r.grow",
         overwrite=True,
         input="distance_raster_tmp_%d" % os.getpid(),
@@ -575,7 +573,7 @@ def main():
     )
 
     # remove buffer for start
-    grass.mapcalc(
+    gs.mapcalc(
         "$river_raster_grow_start_tmp = if($river_raster_nearest_tmp==0,null(),$distance_raster_grow_tmp)",
         river_raster_grow_start_tmp="river_raster_grow_start_tmp_%d" % os.getpid(),
         river_raster_nearest_tmp="river_raster_nearest_tmp_%d" % os.getpid(),
@@ -583,7 +581,7 @@ def main():
     )
 
     # grow by one cell to make sure that the start point is the only cell
-    grass.run_command(
+    gs.run_command(
         "r.grow",
         overwrite=True,
         input="river_raster_grow_start_tmp_%d" % os.getpid(),
@@ -594,7 +592,7 @@ def main():
     )
 
     # patch river raster with buffer
-    grass.run_command(
+    gs.run_command(
         "r.patch",
         overwrite=True,
         input="distance_raster_tmp_%d,river_raster_buffer_tmp_%d"
@@ -603,24 +601,22 @@ def main():
     )
 
     # Get maximum value and divide if to large (>2200000)
-    max_buffer = grass.raster_info("distance_raster_buffered_tmp_%d" % os.getpid())[
-        "max"
-    ]
+    max_buffer = gs.raster_info("distance_raster_buffered_tmp_%d" % os.getpid())["max"]
 
     if max_buffer > 2100000:
-        grass.message(
+        gs.message(
             _(
                 "River network is very large and r.watershed (and e.g stream order extract) might not work"
             )
         )
-        grass.mapcalc(
+        gs.mapcalc(
             "$distance_raster_buffered_div = $distance_raster_buffered/1000.0",
             distance_raster_buffered_div="distance_raster_buffered_div_tmp_%d"
             % os.getpid(),
             distance_raster_buffered="distance_raster_buffered_tmp_%d" % os.getpid(),
         )
         # Getting flow direction and stream segments
-        grass.run_command(
+        gs.run_command(
             "r.watershed",
             flags="m",  # depends on memory!! #
             elevation="distance_raster_buffered_div_tmp_%d" % os.getpid(),
@@ -632,7 +628,7 @@ def main():
 
     else:
         # Getting flow direction and stream segments
-        grass.run_command(
+        gs.run_command(
             "r.watershed",
             flags="m",  # depends on memory!! #
             elevation="distance_raster_buffered_tmp_%d" % os.getpid(),
@@ -642,7 +638,7 @@ def main():
             overwrite=True,
         )
 
-    grass.mapcalc(
+    gs.mapcalc(
         "$flow_direction_tmp = if($stream_rwatershed_tmp,$drainage_tmp,null())",
         flow_direction_tmp="flow_direction_tmp_%d" % os.getpid(),
         stream_rwatershed_tmp="stream_rwatershed_tmp_%d" % os.getpid(),
@@ -650,14 +646,14 @@ def main():
     )
 
     # Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)
-    grass.mapcalc(
+    gs.mapcalc(
         "$river_raster_combine_tmp = if(!isnull($stream_rwatershed_tmp) && !isnull($river_raster_tmp),$res*1.0,null())",
         river_raster_combine_tmp="river_raster_combine_tmp_%d" % os.getpid(),
         river_raster_tmp="river_raster_tmp_%d" % os.getpid(),
         stream_rwatershed_tmp="stream_rwatershed_tmp_%d" % os.getpid(),
         res=res,
     )
-    grass.run_command(
+    gs.run_command(
         "g.copy",
         overwrite=True,
         raster="river_raster_combine_tmp_%d" % os.getpid() + ","
@@ -665,7 +661,7 @@ def main():
     )
 
     # Calculation of stream order (Shreve/Strahler)
-    grass.run_command(
+    gs.run_command(
         "r.stream.order",
         stream_rast="stream_rwatershed_tmp_%d" % os.getpid(),
         direction="flow_direction_tmp_%d" % os.getpid(),
@@ -677,27 +673,27 @@ def main():
     ################ Preparation Source Populations ################
     # Defining source points either as random points in the river or from input raster
     if options["n_source"]:
-        grass.run_command(
+        gs.run_command(
             "r.random",
             overwrite=True,
             input="river_raster_tmp_%d" % os.getpid(),
             n=n_source,
             vector_output="source_points_%d" % os.getpid(),
         )
-        grass.run_command(
+        gs.run_command(
             "v.db.addcolumn",
             map="source_points_%d" % os.getpid(),
             columns="n_fish INT, prob_scalar DOUBLE",
         )
 
         # Set starting probability of occurrence to 1.0*scalar for all random source_points
-        grass.write_command(
+        gs.write_command(
             "db.execute",
             input="-",
             stdin="UPDATE source_points_%d SET prob_scalar=%d"
             % (os.getpid(), scalar * 1.0),
         )
-        grass.write_command(
+        gs.write_command(
             "db.execute",
             input="-",
             stdin="UPDATE source_points_%d SET n_fish=%d" % (os.getpid(), 1.0),
@@ -708,7 +704,7 @@ def main():
     if options["source_populations"]:
         # Multiplying source probability with very large scalar to avoid problems
         # with very small floating points (problem: precision of FLOAT); needs retransforamtion in the end
-        grass.mapcalc(
+        gs.mapcalc(
             "$source_populations_scalar_tmp = $source_populations*$scalar",
             source_populations=source_populations,
             source_populations_scalar_tmp="source_populations_scalar_tmp_%d"
@@ -717,7 +713,7 @@ def main():
         )
 
         # Exclude source Populations that are outside the river_raster
-        grass.mapcalc(
+        gs.mapcalc(
             "$source_populations_scalar_corrected_tmp = if($river_raster_tmp,$source_populations_scalar_tmp)",
             source_populations_scalar_corrected_tmp="source_populations_scalar_corrected_tmp_%d"
             % os.getpid(),
@@ -727,14 +723,14 @@ def main():
         )
 
         # Convert to source population points
-        grass.run_command(
+        gs.run_command(
             "r.to.vect",
             overwrite=True,
             input="source_populations_scalar_corrected_tmp_%d" % os.getpid(),
             output="source_points_%d" % os.getpid(),
             type="point",
         )
-        grass.run_command(
+        gs.run_command(
             "v.db.addcolumn",
             map="source_points_%d" % os.getpid(),
             columns="n_fish INT, prob_scalar DOUBLE",
@@ -742,14 +738,14 @@ def main():
 
         # populate n_fish and sample prob from input source_populations raster (multiplied by scalar)
         if flags["r"]:
-            grass.run_command(
+            gs.run_command(
                 "v.what.rast",
                 map="source_points_%d" % os.getpid(),
                 raster=source_populations,
                 column="n_fish",
             )
 
-        grass.run_command(
+        gs.run_command(
             "v.what.rast",
             map="source_points_%d" % os.getpid(),
             raster="source_populations_scalar_tmp_%d" % os.getpid(),
@@ -757,12 +753,12 @@ def main():
         )
 
     # Adding columns and coordinates to source points
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map="source_points_%d" % os.getpid(),
         columns="X DOUBLE, Y DOUBLE, segment INT, Strahler INT, habitat_attract DOUBLE, p DOUBLE",
     )
-    grass.run_command(
+    gs.run_command(
         "v.to.db",
         map="source_points_%d" % os.getpid(),
         type="point",
@@ -771,7 +767,7 @@ def main():
     )
 
     # Convert river from vector to raster format and get cat-value
-    grass.run_command(
+    gs.run_command(
         "v.to.rast",
         input="river_vector_tmp_%d" % os.getpid(),
         overwrite=True,
@@ -780,7 +776,7 @@ def main():
     )
 
     # Adding information of segment to source points
-    grass.run_command(
+    gs.run_command(
         "v.what.rast",
         map="source_points_%d" % os.getpid(),
         raster="river_raster_cat_tmp_%d" % os.getpid(),
@@ -788,7 +784,7 @@ def main():
     )
 
     # Adding information of Strahler stream order to source points
-    grass.run_command(
+    gs.run_command(
         "v.what.rast",
         map="source_points_%d" % os.getpid(),
         raster="strahler_tmp_%d" % os.getpid(),
@@ -797,7 +793,7 @@ def main():
 
     # Adding information of habitat attractiveness to source points
     if options["habitat_attract"]:
-        grass.run_command(
+        gs.run_command(
             "v.what.rast",
             map="source_points_%d" % os.getpid(),
             raster=habitat_attract,
@@ -806,14 +802,14 @@ def main():
 
     # Adding information of p (share of stationary/mobiles) to source points
     if options["habitat_p"]:
-        grass.run_command(
+        gs.run_command(
             "v.what.rast",
             map="source_points_%d" % os.getpid(),
             raster=habitat_p,
             column="p",
         )
     else:
-        grass.run_command(
+        gs.run_command(
             "v.db.update",
             map="source_points_%d" % os.getpid(),
             value=p_fixed,
@@ -821,7 +817,7 @@ def main():
         )
 
     # Make source points permanent
-    grass.run_command(
+    gs.run_command(
         "g.copy",
         vector="source_points_%d" % os.getpid()
         + ","
@@ -852,7 +848,7 @@ def main():
 
         ########## Loop over segments ############
         # Extract Segments-Info to loop over
-        segment_list = grass.read_command(
+        segment_list = gs.read_command(
             "db.select",
             flags="c",
             sql="SELECT segment FROM source_points_%d" % os.getpid(),
@@ -862,13 +858,13 @@ def main():
 
         for j in segment_list:
             segment_cat = str(j)
-            grass.debug(_("This is segment nr.: " + str(segment_cat)))
+            gs.debug(_("This is segment nr.: " + str(segment_cat)))
 
             mapcalc_list_Aa = []
             mapcalc_list_Ab = []
 
             # Loop over Source points
-            source_points_list = grass.read_command(
+            source_points_list = gs.read_command(
                 "db.select",
                 flags="c",
                 sql="SELECT cat, X, Y, n_fish, prob_scalar, Strahler, habitat_attract, p FROM source_points_%d WHERE segment=%d"
@@ -893,8 +889,8 @@ def main():
                 # TODO: add here progress bar
 
                 # Debug messages
-                grass.debug(_("Start looping over source points"))
-                grass.debug(
+                gs.debug(_("Start looping over source points"))
+                gs.debug(
                     _(
                         "Source point coors:"
                         + coors
@@ -905,8 +901,8 @@ def main():
 
                 # Select dispersal parameters
                 SO = "SO=" + str(Strahler)
-                grass.debug(_("This is i:" + str(i)))
-                grass.debug(_("This is " + str(SO)))
+                gs.debug(_("This is i:" + str(i)))
+                gs.debug(_("This is " + str(SO)))
 
                 # if Random Value within Confidence Interval then select a sigma value that is within the CI assuming a normal distribution of sigma within the CI
                 if (
@@ -935,7 +931,7 @@ def main():
                     sigma_stat = fishmove.rx(i, "sigma_stat", 1, 1, SO, 1)
                     sigma_mob = fishmove.rx(i, "sigma_mob", 1, 1, SO, 1)
 
-                grass.debug(
+                gs.debug(
                     _(
                         "Dispersal parameters: prob_scalar="
                         + str(prob_scalar)
@@ -966,14 +962,14 @@ def main():
                         )
                     )
 
-                grass.debug(
+                gs.debug(
                     _(
                         "Distance from each source point is calculated up to a threshold of: "
                         + str(max_dist)
                     )
                 )
 
-                grass.run_command(
+                gs.run_command(
                     "r.cost",
                     flags="n",
                     overwrite=True,
@@ -984,7 +980,7 @@ def main():
                 )
 
                 # Getting upper and lower distance (cell boundaries) based on the fact that there are different flow lengths through a cell depending on the direction (diagonal-orthogonal)
-                grass.mapcalc(
+                gs.mapcalc(
                     "$upper_distance = if($flow_direction==2||$flow_direction==4||$flow_direction==6||$flow_direction==8||$flow_direction==-2||$flow_direction==-4||$flow_direction==-6||$flow_direction==-8, $distance_from_point+($ds/2.0), $distance_from_point+($dd/2.0))",
                     upper_distance="upper_distance_tmp_%d" % os.getpid(),
                     flow_direction="flow_direction_tmp_%d" % os.getpid(),
@@ -994,7 +990,7 @@ def main():
                     overwrite=True,
                 )
 
-                grass.mapcalc(
+                gs.mapcalc(
                     "$lower_distance = if($flow_direction==2||$flow_direction==4||$flow_direction==6||$flow_direction==8||$flow_direction==-2||$flow_direction==-4||$flow_direction==-6||$flow_direction==-8, $distance_from_point-($ds/2.0), $distance_from_point-($dd/2.0))",
                     lower_distance="lower_distance_tmp_%d" % os.getpid(),
                     flow_direction="flow_direction_tmp_%d" % os.getpid(),
@@ -1005,7 +1001,7 @@ def main():
                 )
 
                 # MAIN PART: leptokurtic probability density kernel based on fishmove
-                grass.debug(
+                gs.debug(
                     _("Begin with core of fidimo, application of fishmove on garray")
                 )
 
@@ -1017,11 +1013,11 @@ def main():
 
                 # Calculation Kernel Density from Distance Raster
                 # only for m=0 because of cdf-function
-                if grass.find_file(
+                if gs.find_file(
                     name="density_from_point_unmasked_tmp_%d" % os.getpid(),
                     element="cell",
                 )["file"]:
-                    grass.run_command(
+                    gs.run_command(
                         "g.remove",
                         flags="f",
                         type="raster",
@@ -1032,11 +1028,11 @@ def main():
                 x2 = garray.array("upper_distance_tmp_%d" % os.getpid())
                 Density = garray.array()
                 Density[...] = cdf(x2) - cdf(x1)
-                grass.debug(_("Write density from point to garray. unmasked"))
+                gs.debug(_("Write density from point to garray. unmasked"))
                 Density.write("density_from_point_unmasked_tmp_%d" % os.getpid())
 
                 # Mask density output because Density.write doesn't provide nulls()
-                grass.mapcalc(
+                gs.mapcalc(
                     "$density_from_point = if($distance_from_point>=0, $density_from_point_unmasked, null())",
                     density_from_point="density_from_point_tmp_%d" % os.getpid(),
                     distance_from_point="distance_from_point_tmp_%d" % os.getpid(),
@@ -1046,10 +1042,10 @@ def main():
                 )
 
                 # Defining up and downstream of source point
-                grass.debug(_("Defining up and downstream of source point"))
+                gs.debug(_("Defining up and downstream of source point"))
 
                 # Defining area upstream source point
-                grass.run_command(
+                gs.run_command(
                     "r.stream.basins",
                     overwrite=True,
                     direction="flow_direction_tmp_%d" % os.getpid(),
@@ -1058,7 +1054,7 @@ def main():
                 )
 
                 # Defining area downstream source point
-                grass.run_command(
+                gs.run_command(
                     "r.drain",
                     input="distance_raster_tmp_%d" % os.getpid(),
                     output="downstream_drain_tmp_%d" % os.getpid(),
@@ -1067,23 +1063,23 @@ def main():
                 )
 
                 # Applying upstream split at network nodes based on inverse Shreve stream order
-                grass.debug(
+                gs.debug(
                     _(
                         "Applying upstream split at network nodes based on inverse Shreve stream order"
                     )
                 )
 
-                grass.mapcalc(
+                gs.mapcalc(
                     "$upstream_shreve = if($upstream_part, $shreve)",
                     upstream_shreve="upstream_shreve_tmp_%d" % os.getpid(),
                     upstream_part="upstream_part_tmp_%d" % os.getpid(),
                     shreve="shreve_tmp_%d" % os.getpid(),
                     overwrite=True,
                 )
-                max_shreve = grass.raster_info("upstream_shreve_tmp_%d" % os.getpid())[
+                max_shreve = gs.raster_info("upstream_shreve_tmp_%d" % os.getpid())[
                     "max"
                 ]
-                grass.mapcalc(
+                gs.mapcalc(
                     "$rel_upstream_shreve = $upstream_shreve / $max_shreve",
                     rel_upstream_shreve="rel_upstream_shreve_tmp_%d" % os.getpid(),
                     upstream_shreve="upstream_shreve_tmp_%d" % os.getpid(),
@@ -1091,14 +1087,14 @@ def main():
                     overwrite=True,
                 )
 
-                grass.mapcalc(
+                gs.mapcalc(
                     "$division_overlay = if(isnull($downstream_drain), $rel_upstream_shreve, $downstream_drain)",
                     division_overlay="division_overlay_tmp_%d" % os.getpid(),
                     downstream_drain="downstream_drain_tmp_%d" % os.getpid(),
                     rel_upstream_shreve="rel_upstream_shreve_tmp_%d" % os.getpid(),
                     overwrite=True,
                 )
-                grass.mapcalc(
+                gs.mapcalc(
                     "$density = if($density_from_point, $density_from_point*$division_overlay, null())",
                     density="density_" + str(cat),
                     density_from_point="density_from_point_tmp_%d" % os.getpid(),
@@ -1106,11 +1102,11 @@ def main():
                     overwrite=True,
                 )
 
-                grass.run_command("r.null", map="density_" + str(cat), null="0")
+                gs.run_command("r.null", map="density_" + str(cat), null="0")
 
                 ###### Barriers per source point #######
                 if options["barriers"]:
-                    grass.mapcalc(
+                    gs.mapcalc(
                         "$distance_upstream_point = if($upstream_part, $distance_from_point, null())",
                         distance_upstream_point="distance_upstream_point_tmp_%d"
                         % os.getpid(),
@@ -1120,7 +1116,7 @@ def main():
                     )
 
                     # Getting distance of barriers and information if barrier is involved/affected
-                    grass.run_command(
+                    gs.run_command(
                         "v.what.rast",
                         map="barriers_%d" % os.getpid(),
                         raster="distance_upstream_point_tmp_%d" % os.getpid(),
@@ -1129,7 +1125,7 @@ def main():
 
                     # Loop over the affected barriers (from most downstream barrier to most upstream barrier)
                     # Initally affected = all barriers where density > 0
-                    barriers_list = grass.read_command(
+                    barriers_list = gs.read_command(
                         "db.select",
                         flags="c",
                         sql="SELECT cat, adj_X, adj_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist"
@@ -1149,7 +1145,7 @@ def main():
                         passability = float(l[4])
                         coors_barriers = str(adj_X) + "," + str(adj_Y)
 
-                        grass.debug(
+                        gs.debug(
                             _(
                                 "Starting with calculating barriers-effect (coors_barriers: "
                                 + coors_barriers
@@ -1158,7 +1154,7 @@ def main():
                         )
 
                         # Defining upstream the barrier
-                        grass.run_command(
+                        gs.run_command(
                             "r.stream.basins",
                             overwrite=True,
                             direction="flow_direction_tmp_%d" % os.getpid(),
@@ -1166,12 +1162,10 @@ def main():
                             basins="upstream_barrier_tmp_%d" % os.getpid(),
                         )
 
-                        grass.run_command(
-                            "r.null", map="density_" + str(cat), setnull="0"
-                        )
+                        gs.run_command("r.null", map="density_" + str(cat), setnull="0")
 
                         # Getting density upstream barrier only
-                        grass.mapcalc(
+                        gs.mapcalc(
                             "$upstream_barrier_density = if($upstream_barrier, $density, null())",
                             upstream_barrier_density="upstream_barrier_density_tmp_%d"
                             % os.getpid(),
@@ -1190,7 +1184,7 @@ def main():
                             "median": 16,
                             "range": 8,
                         }
-                        univar_upstream_barrier_density = grass.read_command(
+                        univar_upstream_barrier_density = gs.read_command(
                             "r.univar",
                             map="upstream_barrier_density_tmp_%d" % os.getpid(),
                             flags="e",
@@ -1203,7 +1197,7 @@ def main():
                             )
                         else:
                             # if no upstream density to allocate than stop that "barrier-loop" and continue with next barrier
-                            grass.message(
+                            gs.message(
                                 _(
                                     "No upstream density to allocate downstream for that barrier: "
                                     + coors_barriers
@@ -1219,7 +1213,7 @@ def main():
                         barrier_effect = 200  # units as in mapset (m)
 
                         # Calculating distance from barriers (up- and downstream)
-                        grass.run_command(
+                        gs.run_command(
                             "r.cost",
                             overwrite=True,
                             input="river_raster_tmp_%d" % os.getpid(),
@@ -1229,7 +1223,7 @@ def main():
                         )
 
                         # Getting distance map for downstream of barrier only
-                        grass.mapcalc(
+                        gs.mapcalc(
                             "$distance_downstream_barrier = if(isnull($upstream_barrier), $distance_barrier, null())",
                             distance_downstream_barrier="distance_downstream_barrier_tmp_%d"
                             % os.getpid(),
@@ -1239,7 +1233,7 @@ def main():
                         )
 
                         # Getting inverse distance map for downstream of barrier only
-                        grass.mapcalc(
+                        gs.mapcalc(
                             "$inv_distance_downstream_barrier = 1.0/$distance_downstream_barrier",
                             inv_distance_downstream_barrier="inv_distance_downstream_barrier_tmp_%d"
                             % os.getpid(),
@@ -1249,7 +1243,7 @@ def main():
                         )
 
                         # Getting parameters for distance weighted relocation of densities downstream the barrier (inverse to distance (reciprocal), y=(density/sum(1/distance))/distance)
-                        univar_distance_downstream_barrier = grass.read_command(
+                        univar_distance_downstream_barrier = gs.read_command(
                             "r.univar",
                             map="inv_distance_downstream_barrier_tmp_%d" % os.getpid(),
                             flags="e",
@@ -1259,7 +1253,7 @@ def main():
                                 d["sum"]
                             ].split(":")[1]
                         )
-                        grass.debug(
+                        gs.debug(
                             _(
                                 "sum_inv_distance_downstream_barrier: "
                                 + str(sum_inv_distance_downstream_barrier)
@@ -1267,7 +1261,7 @@ def main():
                         )
 
                         # Calculation Density downstream the barrier
-                        grass.mapcalc(
+                        gs.mapcalc(
                             "$downstream_barrier_density = ($density_for_downstream/$sum_inv_distance_downstream_barrier)/$distance_downstream_barrier",
                             downstream_barrier_density="downstream_barrier_density_tmp_%d"
                             % os.getpid(),
@@ -1279,14 +1273,14 @@ def main():
                         )
 
                         # Combination upstream and downstream density from barrier
-                        grass.run_command("r.null", map="density_" + str(cat), null="0")
-                        grass.run_command(
+                        gs.run_command("r.null", map="density_" + str(cat), null="0")
+                        gs.run_command(
                             "r.null",
                             map="downstream_barrier_density_tmp_%d" % os.getpid(),
                             null="0",
                         )
 
-                        grass.mapcalc(
+                        gs.mapcalc(
                             "$density_point = if(isnull($upstream_barrier), $downstream_barrier_density+$density_point, $upstream_barrier_density*$passability)",
                             density_point="density_" + str(cat),
                             upstream_barrier="upstream_barrier_tmp_%d" % os.getpid(),
@@ -1299,11 +1293,11 @@ def main():
                         )
 
                         if dist == last_barrier:
-                            grass.run_command(
+                            gs.run_command(
                                 "r.null", map="density_" + str(cat), null="0"
                             )
                         else:
-                            grass.run_command(
+                            gs.run_command(
                                 "r.null", map="density_" + str(cat), setnull="0"
                             )
 
@@ -1312,7 +1306,7 @@ def main():
 
                 if options["habitat_attract"]:
                     # Multiply (Weight) density point with relative attractiveness. relative attractive in relation to habitat attractiveness at source
-                    grass.mapcalc(
+                    gs.mapcalc(
                         "$density_point_attract = $density_point*($habitat_attract/$source_habitat_attract)",
                         density_point_attract="density_attract_" + str(cat),
                         density_point="density_" + str(cat),
@@ -1321,7 +1315,7 @@ def main():
                         overwrite=True,
                     )
 
-                    grass.run_command(
+                    gs.run_command(
                         "g.rename",
                         raster="density_attract_"
                         + str(cat)
@@ -1333,7 +1327,7 @@ def main():
 
                 if flags["r"]:
                     # Realisation of Probability raster, Multinomial backtransformation from probability into fish counts per cell
-                    grass.debug(
+                    gs.debug(
                         _(
                             "Write Realisation (fish counts) from point to garray. This is point cat: "
                             + str(cat)
@@ -1352,7 +1346,7 @@ def main():
 
                     RealisedDensity.write("realised_density_" + str(cat))
 
-                    grass.run_command(
+                    gs.run_command(
                         "r.null", map="realised_density_" + str(cat), null="0"
                     )
 
@@ -1363,17 +1357,17 @@ def main():
             mapcalc_string_Aa_aggregate = "+".join(mapcalc_list_Aa)
             mapcalc_string_Aa_removal = ",".join(mapcalc_list_Aa)
 
-            grass.mapcalc(
+            gs.mapcalc(
                 "$density_segment = $mapcalc_string_Aa_aggregate",
                 density_segment="density_segment_" + segment_cat,
                 mapcalc_string_Aa_aggregate=mapcalc_string_Aa_aggregate,
                 overwrite=True,
             )
-            grass.run_command(
+            gs.run_command(
                 "g.remove", flags="bf", type="raster", name=mapcalc_string_Aa_removal
             )
 
-            grass.run_command(
+            gs.run_command(
                 "r.null", map="density_segment_" + segment_cat, null="0"
             )  # Final density map per segment, set 0 for aggregation with r.mapcalc
 
@@ -1382,20 +1376,20 @@ def main():
             if flags["r"]:
                 mapcalc_string_Ab_aggregate = "+".join(mapcalc_list_Ab)
                 mapcalc_string_Ab_removal = ",".join(mapcalc_list_Ab)
-                grass.mapcalc(
+                gs.mapcalc(
                     "$realised_density_segment = $mapcalc_string_Ab_aggregate",
                     realised_density_segment="realised_density_segment_" + segment_cat,
                     mapcalc_string_Ab_aggregate=mapcalc_string_Ab_aggregate,
                     overwrite=True,
                 )
-                grass.run_command(
+                gs.run_command(
                     "g.remove",
                     flags="bf",
                     type="raster",
                     name=mapcalc_string_Ab_removal,
                 )
 
-                grass.run_command(
+                gs.run_command(
                     "r.null", map="realised_density_segment_" + segment_cat, null="0"
                 )  # Final density map per segment, set 0 for aggregation with r.mapcalc
                 mapcalc_list_Bb.append("realised_density_segment_" + segment_cat)
@@ -1407,7 +1401,7 @@ def main():
         # Final raster map, Final map is sum of all
         # density maps (for each segment), All contributing maps (string_Ba_removal) are deleted
         # in the end.
-        grass.mapcalc(
+        gs.mapcalc(
             "$density_final = $mapcalc_string_Ba_aggregate",
             density_final="density_final_%d" % os.getpid(),
             mapcalc_string_Ba_aggregate=mapcalc_string_Ba_aggregate,
@@ -1417,13 +1411,13 @@ def main():
         if flags["r"]:
             mapcalc_string_Bb_aggregate = "+".join(mapcalc_list_Bb)
             mapcalc_string_Bb_removal = ",".join(mapcalc_list_Bb)
-            grass.mapcalc(
+            gs.mapcalc(
                 "$realised_density_final = $mapcalc_string_Bb_aggregate",
                 realised_density_final="realised_density_final_%d" % os.getpid(),
                 mapcalc_string_Bb_aggregate=mapcalc_string_Bb_aggregate,
                 overwrite=True,
             )
-            grass.run_command(
+            gs.run_command(
                 "g.copy",
                 raster="realised_density_final_%d" % os.getpid()
                 + ",realised_"
@@ -1433,16 +1427,16 @@ def main():
             )
 
             # Set all 0-values to NULL, Backgroundvalues
-            grass.run_command(
+            gs.run_command(
                 "r.null", map="realised_" + output_fidimo + "_" + i, setnull="0"
             )
 
-            grass.run_command(
+            gs.run_command(
                 "g.remove", flags="bf", type="raster", name=mapcalc_string_Bb_removal
             )
 
         # backtransformation (divide by scalar which was defined before)
-        grass.mapcalc(
+        gs.mapcalc(
             "$density_final_corrected = $density_final/$scalar",
             density_final_corrected="density_final_corrected_%d" % os.getpid(),
             density_final="density_final_%d" % os.getpid(),
@@ -1450,7 +1444,7 @@ def main():
             overwrite=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "g.copy",
             raster="density_final_corrected_%d" % os.getpid()
             + ","
@@ -1460,19 +1454,19 @@ def main():
         )
 
         # Set all 0-values to NULL, Backgroundvalues
-        grass.run_command("r.null", map=output_fidimo + "_" + i, setnull="0")
+        gs.run_command("r.null", map=output_fidimo + "_" + i, setnull="0")
 
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="bf", type="raster", name=mapcalc_string_Ba_removal
         )
 
     # Delete basic maps if flag "b" is set
     if flags["b"]:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="bf", type="vector", name=output_fidimo + "_source_points"
         )
         if options["barriers"]:
-            grass.run_command(
+            gs.run_command(
                 "g.remove", flags="bf", type="vector", name=output_fidimo + "_barriers"
             )
 
@@ -1480,6 +1474,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

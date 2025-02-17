@@ -1,10 +1,10 @@
-import grass.script as grass
+import grass.script as gs
 
 try:
     from owslib.wfs import WebFeatureService
     from owslib.util import ServiceException
 except:
-    grass.fatal(
+    gs.fatal(
         _(
             "OSWLib can not be found. Install OSWLib (https://github.com/geopython/OWSLib) or use GRASS driver."
         )
@@ -19,7 +19,7 @@ class WFSOwsLibDrv(WFSBase):
 
         @return temp_map with downloaded data
         """
-        grass.message(_("Downloading data from WFS server..."))
+        gs.message(_("Downloading data from WFS server..."))
 
         if self.bbox:
             query_bbox = (
@@ -42,9 +42,9 @@ class WFSOwsLibDrv(WFSBase):
             )
         # TODO do it better
         except ServiceException as e:
-            grass.fatal(_("Server returned exception"))
+            gs.fatal(_("Server returned exception"))
 
-        grass.debug(url)
+        gs.debug(url)
 
         temp_map = self._temp()
 
@@ -54,7 +54,7 @@ class WFSOwsLibDrv(WFSBase):
             temp_map_opened.write(wfs_data.read())
             temp_map_opened
         except OSError:
-            grass.fatal(_("Unable to write data into tempfile"))
+            gs.fatal(_("Unable to write data into tempfile"))
         finally:
             temp_map_opened.close()
 

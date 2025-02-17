@@ -58,7 +58,7 @@ import copy
 import sys
 
 import grass.temporal as tgis
-import grass.script as gscript
+import grass.script as gs
 import grass.pygrass.modules as pymod
 
 
@@ -74,7 +74,7 @@ def main():
     elif options["setnull"]:
         nullmod.inputs.setnull = options["setnull"]
     else:
-        gscript.fatal(_("Please set 'null' or 'setnull' option"))
+        gs.fatal(_("Please set 'null' or 'setnull' option"))
 
     tgis.init()
     # We need a database interface
@@ -84,9 +84,7 @@ def main():
     sp = tgis.open_old_stds(strds, "strds", dbif)
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
-        gscript.fatal(
-            _("Space time raster dataset {st} seems to be empty").format(st=strds)
-        )
+        gs.fatal(_("Space time raster dataset {st} seems to be empty").format(st=strds))
         return 1
     # module queue for parallel execution
     process_queue = pymod.ParallelModuleQueue(int(nprocs))
@@ -101,12 +99,12 @@ def main():
         process_queue.put(mod)
 
         if count % 10 == 0:
-            gscript.percent(count, num_maps, 1)
+            gs.percent(count, num_maps, 1)
 
     # Wait for unfinished processes
     process_queue.wait()
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

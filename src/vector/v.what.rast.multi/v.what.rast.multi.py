@@ -108,11 +108,11 @@
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import vector as v
 
 if "GISBASE" not in os.environ:
-    grass.message("You must be in GRASS GIS to run this program.")
+    gs.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 
@@ -133,7 +133,7 @@ def main():
     # If length(columns) != length(rasters), throw error
     if columns != [""]:
         if len(columns) != len(rasters):
-            grass.fatal(
+            gs.fatal(
                 _("The number of rasters and the number of column names do not match")
             )
 
@@ -164,5 +164,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

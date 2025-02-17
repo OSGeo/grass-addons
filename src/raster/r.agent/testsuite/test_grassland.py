@@ -1,6 +1,6 @@
 import unittest
 
-import grass.script as grass
+import grass.script as gs
 from grass.script import array as garray
 from grass.script.utils import set_path
 
@@ -15,7 +15,7 @@ class TestGrassland(unittest.TestCase):
         self.vectlayername = None  # "r_agent_vect_testmap@"+grass.gisenv()['MAPSET']
 
         if self.rastlayername:
-            for m in grass.list_strings("rast"):
+            for m in gs.list_strings("rast"):
                 if self.rastlayername == m:
                     print(
                         "We need a raster map to play with in this test,"
@@ -26,7 +26,7 @@ class TestGrassland(unittest.TestCase):
                     self.assertTrue(False)
 
         if self.vectlayername:
-            for m in grass.list_strings("vect"):
+            for m in gs.list_strings("vect"):
                 if self.vectlayername == m:
                     print(
                         "We need a vector map to play with in this test,"
@@ -40,7 +40,7 @@ class TestGrassland(unittest.TestCase):
 
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())
-        self.assertEqual(self.pg.getregion(), grass.region())
+        self.assertEqual(self.pg.getregion(), gs.region())
 
     def test_setregion(self):
         # TODO should not be required here.. maybe "resetregion()"?
@@ -156,10 +156,8 @@ class TestGrassland(unittest.TestCase):
 
     def tearDown(self):
         if self.rastlayername:
-            grass.try_remove(
-                grass.find_file(name=self.rastlayername, element="cell")["file"]
-            )
+            gs.try_remove(gs.find_file(name=self.rastlayername, element="cell")["file"])
         if self.vectlayername:
-            grass.try_remove(
-                grass.find_file(name=self.vectlayername, element="vector")["file"]
+            gs.try_remove(
+                gs.find_file(name=self.vectlayername, element="vector")["file"]
             )

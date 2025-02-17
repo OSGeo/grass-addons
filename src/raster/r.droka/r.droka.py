@@ -85,10 +85,10 @@ from grass.script import array as garray
 import numpy as np
 
 try:
-    import grass.script as grass
+    import grass.script as gs
 except:
     try:
-        from grass.script import core as grass
+        from grass.script import core as gs
 
         # from grass.script import core as gcore
     except:
@@ -113,9 +113,9 @@ def main():
     mapname[0] = mapname[0].replace(".", "_")
     start = options["start"]
     start_ = start.split("@")[0]
-    gfile = grass.find_file(start, element="vector")
+    gfile = gs.find_file(start, element="vector")
     if not gfile["name"]:
-        grass.fatal(_("Vector map <%s> not found") % infile)
+        gs.fatal(_("Vector map <%s> not found") % infile)
 
     # x = options['x']
     # y = options['y']
@@ -132,7 +132,7 @@ def main():
     # else:
     #    n = float(n)
 
-    grass.message("Setting variables...")
+    gs.message("Setting variables...")
     prefix = options["prefix"]
     rocks = prefix + "_propagation"
     v = prefix + "_vel"
@@ -142,7 +142,7 @@ def main():
     eMax = e + "_max"
     eMean = e + "_mean"
 
-    gregion = grass.region()
+    gregion = gs.region()
     PixelWidth = gregion["ewres"]
 
     if n == "":
@@ -154,11 +154,11 @@ def main():
 
     # d_buff = (n * PixelWidth)/2
 
-    grass.message("Defining starting points...")
+    gs.message("Defining starting points...")
     if int(num) == 1:
-        grass.run_command("g.copy", vector=start + ",start_points_", quiet=True)
+        gs.run_command("g.copy", vector=start + ",start_points_", quiet=True)
     else:
-        grass.run_command(
+        gs.run_command(
             "v.buffer",
             input=start,
             type="point",
@@ -167,7 +167,7 @@ def main():
             quiet=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.random",
             input="start_buffer_",
             npoints=num,
@@ -176,7 +176,7 @@ def main():
             quiet=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.patch",
             input=start + ",start_random_",
             output="start_points_",
@@ -188,8 +188,8 @@ def main():
     # v.patch input=punto,random output=patch1
 
     # Create raster (which will be the input DEM) with value 1
-    grass.mapcalc("uno=$dem*0+1", dem=r_elevation, quiet=True)
-    what = grass.read_command(
+    gs.mapcalc("uno=$dem*0+1", dem=r_elevation, quiet=True)
+    what = gs.read_command(
         "r.what",
         map=r_elevation,
         points="start_points_",
@@ -209,9 +209,9 @@ def main():
     # Array for energy
     enMax = garray.array()
     enMean = garray.array()
-    grass.message("Waiting...")
+    gs.message("Waiting...")
     for i in xrange(len(quota) - 1):
-        grass.message("Shoot number: " + str(i + 1))
+        gs.message("Shoot number: " + str(i + 1))
         z = float(quota[i].split("||")[1])
         point = quota[i].split("||")[0]
         x = float(point.split("|")[0])
@@ -219,7 +219,7 @@ def main():
         # print x,y,z
         # Cost calculation (split and use the starting points in start_raster
         # at the start_coordinates parameter in r.cost call)
-        grass.run_command(
+        gs.run_command(
             "r.cost",
             flags="k",
             input="uno",
@@ -230,34 +230,34 @@ def main():
         )
 
         # Transform cell distance values into metric values using raster resolution
-        grass.mapcalc("costo_m=costo*(ewres()+nsres())/2", overwrite=True)
+        gs.mapcalc("costo_m=costo*(ewres()+nsres())/2", overwrite=True)
 
         # Calculate A=tangent of visual angle (INPUT) * cost in meters
-        grass.mapcalc("A=tan($ang)*costo_m", ang=ang, overwrite=True)
-        grass.mapcalc("C=$z-A", z=z, overwrite=True)
-        grass.mapcalc("D=C-$dem", dem=r_elevation, overwrite=True)
+        gs.mapcalc("A=tan($ang)*costo_m", ang=ang, overwrite=True)
+        gs.mapcalc("C=$z-A", z=z, overwrite=True)
+        gs.mapcalc("D=C-$dem", dem=r_elevation, overwrite=True)
         # Area of propagation
-        grass.mapcalc("E=if(D>0,1,null())", overwrite=True)
+        gs.mapcalc("E=if(D>0,1,null())", overwrite=True)
         # delatH value (F)
-        grass.mapcalc("F=D*E", overwrite=True)
+        gs.mapcalc("F=D*E", overwrite=True)
 
         # Calculation of velocity
-        grass.mapcalc("vel = $red*sqrt(2*9.8*F)", red=red, overwrite=True)
+        gs.mapcalc("vel = $red*sqrt(2*9.8*F)", red=red, overwrite=True)
         velocity = garray.array("vel")
         velMax[...] = (np.where(velocity > velMax, velocity, velMax)).astype(float)
         velMean[...] = (velocity + velMean).astype(float)
 
         # Calculation of the number of boulders
-        grass.mapcalc("somma=if(vel>0,1,0)", overwrite=True)
+        gs.mapcalc("somma=if(vel>0,1,0)", overwrite=True)
         somma = garray.array("somma")
         tot[...] = (somma + tot).astype(float)
 
         # Calculation of energy
-        grass.mapcalc("en=$m*9.8*F/1000", m=m, overwrite=True)
+        gs.mapcalc("en=$m*9.8*F/1000", m=m, overwrite=True)
         energy = garray.array("en")
         enMax[...] = (np.where(energy > enMax, energy, enMax)).astype(float)
         enMean[...] = (energy + enMean).astype(float)
-    grass.message("Create output maps...")
+    gs.message("Create output maps...")
     tot.write(rocks)
     velMax.write(vMax)
     velMean[...] = (velMean / i).astype(float)
@@ -276,30 +276,30 @@ def main():
     # grass.run_command('d.rast' ,
     #    map=eMean)
     if int(num) == 1:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="vector", name=("start_points_"), quiet=True
         )
     else:
-        grass.run_command(
+        gs.run_command(
             "g.rename", vect="start_points_," + prefix + "_starting", quiet=True
         )
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             flags="f",
             type="vector",
             name=("start_buffer_", "start_random_"),
             quiet=True,
         )
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         flags="f",
         type="raster",
         name=("uno", "costo", "costo_m", "A", "C", "D", "E", "F", "en", "vel", "somma"),
         quiet=True,
     )
-    grass.message("Done!")
+    gs.message("Done!")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

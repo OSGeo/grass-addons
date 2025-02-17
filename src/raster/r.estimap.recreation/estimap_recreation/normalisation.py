@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -43,7 +43,7 @@ def zerofy_small_values(raster, threshhold, output_name):
     rounding = "if({raster} < {threshhold}, 0, {raster})"
     rounding = rounding.format(raster=raster, threshhold=threshhold)
     rounding_equation = EQUATION.format(result=output_name, expression=rounding)
-    grass.mapcalc(rounding_equation, overwrite=True)
+    gs.mapcalc(rounding_equation, overwrite=True)
 
 
 def normalize_map(raster, output_name):
@@ -69,10 +69,10 @@ def normalize_map(raster, output_name):
     # grass.debug(_("Input to normalize: {name}".format(name=raster)))
     # grass.debug(_("Ouput: {name}".format(name=output_name)))
 
-    finding = grass.find_file(name=raster, element="cell")
+    finding = gs.find_file(name=raster, element="cell")
 
     if not finding["file"]:
-        grass.fatal("Raster map {name} not found".format(name=raster))
+        gs.fatal("Raster map {name} not found".format(name=raster))
     # else:
     #     grass.debug("Raster map {name} found".format(name=raster))
 
@@ -80,11 +80,11 @@ def normalize_map(raster, output_name):
     # univar_string = univar_string.replace('\n', '| ').replace('\r', '| ')
     # msg = "Univariate statistics: {us}".format(us=univar_string)
 
-    minimum = grass.raster_info(raster)["min"]
-    grass.debug(_("Minimum: {m}").format(m=minimum))
+    minimum = gs.raster_info(raster)["min"]
+    gs.debug(_("Minimum: {m}").format(m=minimum))
 
-    maximum = grass.raster_info(raster)["max"]
-    grass.debug(_("Maximum: {m}").format(m=maximum))
+    maximum = gs.raster_info(raster)["max"]
+    gs.debug(_("Maximum: {m}").format(m=maximum))
 
     if minimum is None or maximum is None:
         msg = "Minimum and maximum values of the <{raster}> map are 'None'.\n"
@@ -94,7 +94,7 @@ def normalize_map(raster, output_name):
         msg += "\n  - the MASK opacifies all non-NULL cells "
         msg += "\n  - the region is not correctly set\n"
         msg += "=========================================== "
-        grass.fatal(_(msg).format(raster=raster))
+        gs.fatal(_(msg).format(raster=raster))
 
     normalisation = "float(({raster} - {minimum}) / ({maximum} - {minimum}))"
     normalisation = normalisation.format(
@@ -109,7 +109,7 @@ def normalize_map(raster, output_name):
     normalisation_equation = EQUATION.format(
         result=output_name, expression=normalisation
     )
-    grass.mapcalc(normalisation_equation, overwrite=True)
+    gs.mapcalc(normalisation_equation, overwrite=True)
     get_univariate_statistics(output_name)
 
 
@@ -145,8 +145,8 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
     """
     msg = " * Normalising sum of: "
     msg += ",".join(components)
-    grass.debug(_(msg))
-    grass.verbose(_(msg))
+    gs.debug(_(msg))
+    gs.verbose(_(msg))
 
     if len(components) > 1:
         # prepare string for mapcalc expression
@@ -165,7 +165,7 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
             result=tmp_intermediate, expression=component_expression
         )
 
-        grass.mapcalc(component_equation, overwrite=True)
+        gs.mapcalc(component_equation, overwrite=True)
 
     elif len(components) == 1:
         # temporary map names, if components contains one element
@@ -174,14 +174,14 @@ def zerofy_and_normalise_component(components, threshhold, output_name):
 
     if threshhold > THRESHHOLD_ZERO:
         msg = " * Setting values < {threshhold} in '{raster}' to zero"
-        grass.verbose(msg.format(threshhold=threshhold, raster=tmp_intermediate))
+        gs.verbose(msg.format(threshhold=threshhold, raster=tmp_intermediate))
         zerofy_small_values(tmp_intermediate, threshhold, tmp_output)
 
     else:
         tmp_output = tmp_intermediate
 
     # grass.verbose(_("Temporary map name: {name}".format(name=tmp_output)))
-    grass.debug(_("Output map name: {name}").format(name=output_name))
+    gs.debug(_("Output map name: {name}").format(name=output_name))
     # r.info(map=tmp_output, flags='gre')
 
     ### FIXME

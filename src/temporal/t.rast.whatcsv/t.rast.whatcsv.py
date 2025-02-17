@@ -81,7 +81,7 @@ import sys
 import copy
 import csv
 import subprocess
-import grass.script as gscript
+import grass.script as gs
 import grass.temporal as tgis
 import grass.pygrass.modules as pymod
 
@@ -104,7 +104,7 @@ def main(options, flags):
     # output_color = flags["r"]
     # output_cat = flags["i"]
 
-    overwrite = gscript.overwrite()
+    overwrite = gs.overwrite()
 
     # Make sure the temporal database exists
     tgis.init()
@@ -156,5 +156,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main(options, flags)

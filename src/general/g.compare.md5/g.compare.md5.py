@@ -58,7 +58,7 @@
 import os
 import sys
 import hashlib
-import grass.script as grass
+import grass.script as gs
 
 
 def md5(fileName, excludeLine="", includeLine=""):
@@ -83,16 +83,16 @@ def checkfile(name, formatt, shell):
     """Check if the input file exists"""
     if formatt == "raster":
         typ = "Raster"
-        inp = grass.find_file(name)
+        inp = gs.find_file(name)
     elif formatt == "vector":
         typ = "Vector"
-        inp = grass.find_file(name, formatt)
+        inp = gs.find_file(name, formatt)
     if inp["name"] == "":
         if shell:
-            grass.message(0)
+            gs.message(0)
             return
         else:
-            grass.fatal(_("%s %s does not exists") % (typ, name))
+            gs.fatal(_("%s %s does not exists") % (typ, name))
     else:
         return inp
 
@@ -103,16 +103,16 @@ def checkmd5(a, b, shell):
     if os.path.exists(a) and os.path.exists(b):
         if not os.access(a, os.R_OK):
             if shell:
-                grass.message(0)
+                gs.message(0)
                 return
             else:
-                grass.fatal(_("You have no permission to read %s file") % a)
+                gs.fatal(_("You have no permission to read %s file") % a)
         if not os.access(b, os.R_OK):
             if shell:
-                grass.message(0)
+                gs.message(0)
                 return
             else:
-                grass.fatal(_("You have no permission to read %s file") % b)
+                gs.fatal(_("You have no permission to read %s file") % b)
         # calculate the md5
         amd5 = md5(a)
         bmd5 = md5(b)
@@ -134,7 +134,7 @@ def main():
     # check if we are in grass
     gisbase = os.getenv("GISBASE")
     if not gisbase:
-        grass.fatal(_("$GISBASE not defined"))
+        gs.fatal(_("$GISBASE not defined"))
         return 0
     # check if shell script output is required
     if flags["g"]:
@@ -149,7 +149,7 @@ def main():
     typ = options["type"]
     ainp = checkfile(options["ainput"], typ, shell)
     binp = checkfile(options["binput"], typ, shell)
-    variables = grass.core.gisenv()
+    variables = gs.core.gisenv()
     # files to investigate to check identity
     # for now color2 is ignored
     raster_folder = ["cats", "cell", "cellhd", "cell_misc", "fcell", "colr", "hist"]
@@ -184,18 +184,18 @@ def main():
                         apath = os.path.join(apath, i)
                         bpath = os.path.join(bpath, i)
                         if not checkmd5(apath, bpath, shell):
-                            grass.message(err)
+                            gs.message(err)
                             return
                 # if the files are different return false
                 else:
-                    grass.message(err)
+                    gs.message(err)
                     return
             # check md5sum for each file
             else:
                 if not checkmd5(apath, bpath, shell):
-                    grass.message(err)
+                    gs.message(err)
                     return
-        grass.message(good)
+        gs.message(good)
         return
     # start analysis for vector
     elif typ == "vector":
@@ -203,12 +203,12 @@ def main():
             apath = os.path.join(aloc, "vector", ainp["name"], fold)
             bpath = os.path.join(bloc, "vector", binp["name"], fold)
             if not checkmd5(apath, bpath, shell):
-                grass.message(err)
+                gs.message(err)
                 return
-        grass.message(good)
+        gs.message(good)
         return
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

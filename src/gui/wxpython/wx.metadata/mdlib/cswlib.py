@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from subprocess import PIPE
 from threading import Thread
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 from grass.script.setup import set_gui_path
@@ -367,7 +367,7 @@ class CSWBrowserPanel(wx.Panel):
     def OnShowReguest(self, evt):
         # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
         path = os.path.join(tempfile.gettempdir(), "htmlRequest.xml")
-        request = grass.decode(self.catalog.request)
+        request = gs.decode(self.catalog.request)
         if os.path.exists(path):
             os.remove(path)
         f = open(path, "w")
@@ -381,7 +381,7 @@ class CSWBrowserPanel(wx.Panel):
     def OnShowResponse(self, evt):
         # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
         path = os.path.join(tempfile.gettempdir(), "htmlResponse.xml")
-        response = grass.decode(self.catalog.response)
+        response = gs.decode(self.catalog.response)
         if os.path.exists(path):
             os.remove(path)
         f = open(path, "w")

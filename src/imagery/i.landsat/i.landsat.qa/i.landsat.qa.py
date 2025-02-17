@@ -150,7 +150,7 @@ COPYRIGHT:  (C) 2016-2021 by the GRASS Development Team
 
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 if "GISBASE" not in os.environ:
     print(_("You must be in GRASS GIS to run this program."))
@@ -175,7 +175,7 @@ def check_user_input(user_input):
     # Check if propper input is provided:
     for o in bit_filter:
         if len(user_input[o].split(",")) >= 4:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "All conditions for {} specified as unacceptable, "
                     "this will result in an empty map."
@@ -184,7 +184,7 @@ def check_user_input(user_input):
 
         # Check if valid combination of options if provided
         if o in collection_unsupported[collection]:
-            grass.warning(
+            gs.warning(
                 _(
                     "Condition {condition} is unsupported in Collection {collection}"
                 ).format(condition=o, collection=user_input["collection"])
@@ -326,7 +326,7 @@ def main():
                 single_bits.keys() if bit_length[pattern] == 1 else double_bits.keys()
             )
             if not set(options[pattern].split(",")).issubset(set(bit_keys)):
-                grass.fatal(
+                gs.fatal(
                     _(
                         "Invalid input for option <{opt}>. "
                         "Only the following are allowed: {valid}"
@@ -377,5 +377,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

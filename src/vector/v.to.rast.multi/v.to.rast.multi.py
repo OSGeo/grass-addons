@@ -165,20 +165,20 @@
 
 import sys
 import numpy as np
-import grass.script as gscript
+import grass.script as gs
 
 
 def check_columns(module_options):
     """Check if column is numeric"""
     supported_numeric = ["INTEGER", "DOUBLE PRECISION"]
-    vmap_cols = gscript.vector.vector_columns(
+    vmap_cols = gs.vector.vector_columns(
         module_options["input"], layer=module_options["layer"]
     )
     for at in ["attribute_columns", "label_columns"]:
         if module_options[at]:
             for col in module_options[at].split(","):
                 if col and col not in vmap_cols.keys():
-                    gscript.fatal(
+                    gs.fatal(
                         _(
                             "Column {col} not in attribute table of map <{m}> with layer <{l}>"
                         ).format(
@@ -189,13 +189,13 @@ def check_columns(module_options):
                     )
                 if at == "attribute_columns":
                     if vmap_cols[col]["type"] not in supported_numeric:
-                        gscript.fatal(
+                        gs.fatal(
                             _(
                                 "Type {t} of column {col} is not a numeric type supported by this module"
                             ).format(t=vmap_cols[at]["type"], col=col)
                         )
     if module_options["key_column"] not in vmap_cols:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Key column <{col}> not found in attribute table of map <{m}> at layer <{l}>"
             ).format(
@@ -205,7 +205,7 @@ def check_columns(module_options):
             )
         )
     if vmap_cols[module_options["key_column"]]["type"] != "INTEGER":
-        gscript.fatal(
+        gs.fatal(
             _(
                 "The key column has to be integer, but column <{col}> is of type {t}"
             ).format(
@@ -246,7 +246,7 @@ def main():
         else options["separator"]
     )
     if len(sep) > 1:
-        gscript.warning(
+        gs.warning(
             _(
                 "Using <{}> as separator may cause the module to fail. "
                 "Please use only single, special characters as separator."
@@ -254,7 +254,7 @@ def main():
         )
 
     if key_column in attribute_columns:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "A raster map for the <key_column> is always produced "
                 "it thus should not be given in the <attribute_columns> option."
@@ -262,7 +262,7 @@ def main():
         )
 
     if label_columns and len(label_columns) != len(attribute_columns):
-        gscript.fatal(
+        gs.fatal(
             _(
                 "If the <label_columns> option is used it has to have the same "
                 "length (number of commas) as the <attribute_columns> option."
@@ -270,7 +270,7 @@ def main():
         )
 
     if ndigits and len(ndigits) != len(attribute_columns):
-        gscript.fatal(
+        gs.fatal(
             _(
                 "If the <ndigits> option is used it has to have the same "
                 "length (number of commas) as the <attribute_columns> option."
@@ -291,7 +291,7 @@ def main():
     else:
         v_to_rast_kwargs["use"] = "cat"
 
-    gscript.run_command(
+    gs.run_command(
         "v.to.rast",
         output=f"{output}_{key_column}",
         flags="d" if flags["d"] else None,
@@ -299,7 +299,7 @@ def main():
     )
 
     # Write raster history for key_column map
-    gscript.raster.raster_history(f"{output}_{key_column}", overwrite=True)
+    gs.raster.raster_history(f"{output}_{key_column}", overwrite=True)
 
     # Load attribute data to numpy
     columns = [key_column]
@@ -314,7 +314,7 @@ def main():
         "columns": ",".join(set(columns)),
     }
     attributes = np.genfromtxt(
-        gscript.read_command("v.db.select", separator=sep, **select_kwargs)
+        gs.read_command("v.db.select", separator=sep, **select_kwargs)
         .rstrip()
         .split("\n"),
         encoding=None,
@@ -347,7 +347,7 @@ def main():
                 ]
             )
         # Reclassify key_column map
-        gscript.write_command(
+        gs.write_command(
             "r.reclass",
             input=f"{output}_{key_column}",
             output=f"{output}_{col}",
@@ -355,11 +355,11 @@ def main():
             stdin=rules,
         )
         # Write raster history
-        gscript.raster.raster_history(f"{output}_{col}", overwrite=True)
+        gs.raster.raster_history(f"{output}_{col}", overwrite=True)
 
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

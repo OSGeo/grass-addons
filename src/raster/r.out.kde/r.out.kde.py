@@ -49,7 +49,7 @@ import tempfile
 import atexit
 import shutil
 from math import exp
-import grass.script as gscript
+import grass.script as gs
 
 
 TMPRAST = []
@@ -57,7 +57,7 @@ TMPDIR = tempfile.mkdtemp()
 
 
 def cleanup():
-    gscript.run_command(
+    gs.run_command(
         "g.remove", name=",".join(TMPRAST), flags="f", type="raster", quiet=True
     )
     shutil.rmtree(TMPDIR)
@@ -67,24 +67,24 @@ def main(rinput, background, output, method):
     try:
         from PIL import Image
     except ImportError:
-        gscript.fatal("Cannot import PIL. Please install the Python pillow package.")
+        gs.fatal("Cannot import PIL. Please install the Python pillow package.")
 
     if "@" in rinput:
         rinput = rinput.split("@")[0]
-    suffix = "_" + os.path.basename(gscript.tempfile(False))
+    suffix = "_" + os.path.basename(gs.tempfile(False))
     tmpname = rinput + suffix
-    gscript.run_command("g.copy", raster=[rinput, tmpname])
+    gs.run_command("g.copy", raster=[rinput, tmpname])
     TMPRAST.append(tmpname)
-    gscript.run_command("r.colors", map=tmpname, color="grey")
+    gs.run_command("r.colors", map=tmpname, color="grey")
 
-    reg = gscript.region()
+    reg = gs.region()
     width = reg["cols"]
     height = reg["rows"]
 
     fg_out = os.path.join(TMPDIR, "foreground.png")
     bg_out = os.path.join(TMPDIR, "background.png")
     intensity_tmp = os.path.join(TMPDIR, "intensity.png")
-    gscript.run_command(
+    gs.run_command(
         "d.mon",
         start="cairo",
         output=fg_out,
@@ -92,22 +92,20 @@ def main(rinput, background, output, method):
         height=height,
         bgcolor="black",
     )
-    gscript.run_command("d.rast", map=rinput)
-    gscript.run_command("d.mon", stop="cairo")
+    gs.run_command("d.rast", map=rinput)
+    gs.run_command("d.mon", stop="cairo")
 
     # background
-    gscript.run_command(
-        "d.mon", start="cairo", output=bg_out, width=width, height=height
-    )
-    gscript.run_command("d.rast", map=background)
-    gscript.run_command("d.mon", stop="cairo")
+    gs.run_command("d.mon", start="cairo", output=bg_out, width=width, height=height)
+    gs.run_command("d.rast", map=background)
+    gs.run_command("d.mon", stop="cairo")
 
     # greyscale
-    gscript.run_command(
+    gs.run_command(
         "d.mon", start="cairo", output=intensity_tmp, width=width, height=height
     )
-    gscript.run_command("d.rast", map=tmpname)
-    gscript.run_command("d.mon", stop="cairo")
+    gs.run_command("d.rast", map=tmpname)
+    gs.run_command("d.mon", stop="cairo")
 
     # put together with transparency
     foreground = Image.open(fg_out)
@@ -146,7 +144,7 @@ def scale(cmin, cmax, intens, method):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     rinput = options["input"]
     bg = options["background"]
     output = options["output"]

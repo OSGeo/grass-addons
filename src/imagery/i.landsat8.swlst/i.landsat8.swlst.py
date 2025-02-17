@@ -323,7 +323,7 @@ sys.path.insert(
 )
 
 import atexit
-import grass.script as grass
+import grass.script as gs
 
 # from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
@@ -453,7 +453,7 @@ def main():
 
     # Set Region
     if scene_extent:
-        grass.use_temp_region()  # safely modify the region
+        gs.use_temp_region()  # safely modify the region
         msg = "\n|! Matching region extent to map {name}"
 
         # ToDo: check if extent-B10 == extent-B11? Unnecessary?
@@ -470,7 +470,7 @@ def main():
         g.message(msg)
 
     elif not scene_extent:
-        grass.warning(_("Operating on current region"))
+        gs.warning(_("Operating on current region"))
 
     #
     # 1. Mask clouds
@@ -528,7 +528,7 @@ def main():
     if landcover_class:
         if split_window_lst.landcover_class is False:
             # replace with meaningful error
-            grass.warning(
+            gs.warning(
                 "Unknown land cover class string! Note, this string "
                 "input option is case sensitive."
             )
@@ -618,7 +618,7 @@ def main():
 
     if info and landcover_class == "Random":
         msg = "\n|* Will pick a random emissivity class!"
-        grass.verbose(msg)
+        gs.verbose(msg)
 
     estimate_lst(
         lst_output,
@@ -693,7 +693,7 @@ def main():
 
     # restore region
     if scene_extent:
-        grass.del_temp_region()  # restoring previous region settings
+        gs.del_temp_region()  # restoring previous region settings
         g.message("|! Original Region restored")
 
     # print citation
@@ -702,6 +702,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

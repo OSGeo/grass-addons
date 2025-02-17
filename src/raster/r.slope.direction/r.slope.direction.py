@@ -75,13 +75,13 @@ COPYRIGHT:    (C) 2019 by the GRASS Development Team
 import os
 import atexit
 
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
     """Remove temporary maps"""
     nuldev = open(os.devnull, "w")
-    gscript.run_command(
+    gs.run_command(
         "g.remove",
         flags="f",
         quiet=True,
@@ -106,55 +106,51 @@ def check_directions(dir_type, dmax):
     """
     if dir_type == "degree":
         if dmax > 360:
-            gscript.fatal(_("Directional degrees can not be > 360"))
+            gs.fatal(_("Directional degrees can not be > 360"))
     elif dir_type == "45degree":
         if dmax > 8:
-            gscript.fatal(_("Directional degrees divided by 45 can not be > 8"))
+            gs.fatal(_("Directional degrees divided by 45 can not be > 8"))
     elif dir_type == "bitmask":
         if dmax > ((1 << 16) - 1):
-            gscript.fatal(
-                _("Bitmask encoded directions can not be > %d"), (1 << 16) - 1
-            )
+            gs.fatal(_("Bitmask encoded directions can not be > %d"), (1 << 16) - 1)
     elif dir_type == "auto":
         if dmax <= 8:
-            gscript.message(
+            gs.message(
                 _(
                     "Input direction format assumed to be degrees CCW from East divided by 45"
                 )
             )
             dir_type = "degree_45"
         elif dmax <= ((1 << 8) - 1):
-            gscript.message(
+            gs.message(
                 _(
                     "Input direction format assumed to be bitmask encoded without Knight's move"
                 )
             )
             dir_type = "bitmask"
         elif dmax <= 360:
-            gscript.message(
-                _("Input direction format assumed to be degrees CCW from East")
-            )
+            gs.message(_("Input direction format assumed to be degrees CCW from East"))
             dir_type = "degree"
         elif dmax <= ((1 << 16) - 1):
-            gscript.message(
+            gs.message(
                 _(
                     "Input direction format assumed to be bitmask encoded with Knight's move"
                 )
             )
             dir_type = "bitmask_k"
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Sorry, bitmask direction with Knight's move encoding is not (yet) supported"
                 )
             )
         else:
-            gscript.fatal(
+            gs.fatal(
                 _("Unable to detect format of input direction map <{}>").format(
                     direction
                 )
             )
     else:
-        gscript.fatal(_("Invalid directions format '{}'").format(direction))
+        gs.fatal(_("Invalid directions format '{}'").format(direction))
 
     return dir_type
 
@@ -163,7 +159,7 @@ def main():
     """Do the main work"""
     # Define static variables
     global tmpname
-    tmpname = gscript.tempname(12)
+    tmpname = gs.tempname(12)
 
     # Define user input variables
     a_flag = flags["a"]
@@ -176,19 +172,19 @@ def main():
     try:
         steps = list(map(int, options["steps"].split(",")))
     except:
-        gscript.fatal(_("Not all steps given as integer."))
+        gs.fatal(_("Not all steps given as integer."))
 
     n_steps = max(steps)
 
     abs = "abs" if a_flag else ""
 
-    dir_values = gscript.parse_command("r.info", map=direction, flags="r")
+    dir_values = gs.parse_command("r.info", map=direction, flags="r")
 
     dir_type = check_directions(dir_format, float(dir_values["max"]))
 
     # Ceck if number of requested steps and outputs match
     if len(outputs) != len(steps):
-        gscript.fatal(_("Number of steps and number of output maps differ"))
+        gs.fatal(_("Number of steps and number of output maps differ"))
 
     # Define static variables
     kwargs_even = {
@@ -262,9 +258,9 @@ if(isnull({{dist_in}}[0,1]),{{dist_in}},{{dist_in}}[0,1]))))))))
         kwargs["dist_sum_out"] = "{}_dist_sum_even".format(tmpname)
 
         # Start processing
-        curent_region = gscript.region()
+        curent_region = gs.region()
 
-        gscript.run_command(
+        gs.run_command(
             "r.mapcalc",
             overwrite=True,
             quiet=True,
@@ -318,12 +314,12 @@ if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
             else:
                 mc_expression += result_expression
 
-        gscript.run_command(
+        gs.run_command(
             "r.mapcalc", overwrite=True, quiet=True, expression=mc_expression
         )
 
         if x in steps:
-            gscript.raster.raster_history(outputs[idx])
+            gs.raster.raster_history(outputs[idx])
 
         # Set variables for next iteration
         # Use even and odd numbers for iterative re-naming
@@ -334,10 +330,10 @@ if({dir} == {N} || {dir} == {S},{nsres},{ewres}))
             # Odd
             kwargs = kwargs_odd
 
-        gscript.percent(x, max(steps), 1)
+        gs.percent(x, max(steps), 1)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

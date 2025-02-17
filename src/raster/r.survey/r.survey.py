@@ -159,21 +159,21 @@ from grass.pygrass.modules import Module
 import multiprocessing
 import threading
 import sys
-import grass.script as gscript
+import grass.script as gs
 from grass.script import core as grasscore
 from math import pi
 
 
 # function for cleaning temporary layers
 def cleanup():
-    gscript.message(" Cleaning all temporary maps ")
+    gs.message(" Cleaning all temporary maps ")
     Module("g.remove", type="vector", pattern="xxtemp*", quiet=True, flags="f")
     Module("g.remove", type="vector", pattern="zzpnt*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="xx*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="zz*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="kk*", quiet=True, flags="f")
     dem = general.dem
-    find_dem_modified = gscript.find_file(f"zz{dem}_modified", element="cell")
+    find_dem_modified = gs.find_file(f"zz{dem}_modified", element="cell")
     if find_dem_modified["name"] != "":
         Module(
             "g.remove",
@@ -182,7 +182,7 @@ def cleanup():
             quiet=True,
             flags="f",
         )
-    find_dem_modified = gscript.find_file(f"zz{dem}_modified_full", element="cell")
+    find_dem_modified = gs.find_file(f"zz{dem}_modified_full", element="cell")
     if find_dem_modified["name"] != "":
         Module(
             "g.remove",
@@ -192,23 +192,23 @@ def cleanup():
             flags="f",
         )
     if main.treesmap:
-        find_treesmap = gscript.find_file(main.treesmap, element="cell")
+        find_treesmap = gs.find_file(main.treesmap, element="cell")
         if find_treesmap["name"] != "":
             Module("g.remove", type="raster", name=main.treesmap, quiet=True, flags="f")
     if main.buildmap:
-        find_buildmap = gscript.find_file(main.buildmap, element="cell")
+        find_buildmap = gs.find_file(main.buildmap, element="cell")
         if find_buildmap["name"] != "":
             Module("g.remove", type="raster", name=main.buildmap, quiet=True, flags="f")
     # Removing the MASK based on the viewangle_threshold
-    find_MASK = gscript.find_file("MASK", element="cell")
+    find_MASK = gs.find_file("MASK", element="cell")
     if find_MASK["name"] != "":
         Module("r.mask", flags="r")
     # Replacing the original MASK in the mapset and removing the temporary
     # copy "maskera"
-    find_maskera = gscript.find_file("maskera", element="cell")
+    find_maskera = gs.find_file("maskera", element="cell")
     if find_maskera["name"] != "":
         Module("r.mask", raster="maskera")
-        gscript.message("replacing the original MASK in the mapset")
+        gs.message("replacing the original MASK in the mapset")
         Module("g.remove", type="raster", name="maskera", quiet=True, flags="f")
 
 
@@ -493,7 +493,7 @@ def compute(
         threading.Timer(0.1, starting.release).start()  # release in a 0.1 secs
         # using temporary regions (on the same mapset) for the different
         # parallel computations
-        gscript.use_temp_region()
+        gs.use_temp_region()
         # extracting a point from the map of the locations
         Module(
             "v.extract", input=pnt, output=f"zzpnt{i}", cats=i, flags="t", quiet=True
@@ -661,8 +661,8 @@ def compute(
         # each visible cell
         if obsabselev:
             if hcurv:
-                j = gscript.read_command("g.proj", flags="j", quiet=True)
-                kvj = gscript.parse_key_val(j)
+                j = gs.read_command("g.proj", flags="j", quiet=True)
+                kvj = gs.parse_key_val(j)
                 eradius = kvj[
                     "+a"
                 ]  # This is the radius of the earth for the elipsoid in
@@ -706,8 +706,8 @@ def compute(
                 )
         else:
             if hcurv:
-                j = gscript.read_command("g.proj", flags="j", quiet=True)
-                kvj = gscript.parse_key_val(j)
+                j = gs.read_command("g.proj", flags="j", quiet=True)
+                kvj = gs.parse_key_val(j)
                 eradius = kvj[
                     "+a"
                 ]  # This is the radius of the earth for the elipsoid in the
@@ -982,11 +982,11 @@ def compute(
             quiet=True,
         )
         # removing temporary region
-        gscript.del_temp_region()
+        gs.del_temp_region()
     except Exception as error:
         # cleaning termporary layers
         cleanup()
-        gscript.fatal(
+        gs.fatal(
             f"ERROR in compute block with point having category {i}:\
                       {error}"
         )
@@ -1120,11 +1120,11 @@ def collectresults(task, proc):
 def main():
     options, flags = parser()
     # are we in LatLong location?
-    s = gscript.read_command("g.proj", flags="j")
-    kv = gscript.parse_key_val(s)
+    s = gs.read_command("g.proj", flags="j")
+    kv = gs.parse_key_val(s)
     if kv["+proj"] == "longlat":
         # gscript.fatal(_("This module does not operate in LatLong locations"))
-        gscript.fatal("This module does not operate in LatLong locations")
+        gs.fatal("This module does not operate in LatLong locations")
 
     # Verifying that there are no layers with the same name as the temporary
     # layers created during the processes
@@ -1161,13 +1161,13 @@ def main():
         the mapset having names starting with 'xx*' , 'zz*' , 'kk*' or named\
         as 'treesmap', 'buildmap' or 'maskera' to prevent overwriting and\
         removing them ***"
-        gscript.fatal(message)
+        gs.fatal(message)
 
     # Verify if there is a MASK. In such a case, a copy of the MASK layer is
     # saved to replace it at the end of the process
-    find_MASK = gscript.find_file("MASK", element="cell")
+    find_MASK = gs.find_file("MASK", element="cell")
     if find_MASK["name"] != "":
-        gscript.warning(
+        gs.warning(
             "A MASK layer was found. It will be copied and updated later by\
             the end of the process"
         )
@@ -1218,7 +1218,7 @@ def main():
     except Exception as error:
         # cleaning termporary layers
         cleanup()
-        gscript.fatal(
+        gs.fatal(
             f"There was an error converting the layer to 3d: {error} Please\
             check if you have provided column and layer information."
         )
@@ -1226,7 +1226,7 @@ def main():
     try:
         oradius
     except Exception as error:
-        gscript.warning(
+        gs.warning(
             f"Using region resolution for object size radius, since object\
             radius parameter was not set,  {error}"
         )
@@ -1318,9 +1318,7 @@ def main():
             ]
             # generating a group of zero value maps for each chunk
             for i in range(len(chunks)):
-                gscript.message(
-                    f"Creating 'maps zero' for the chunk {i} of {len(chunks)}"
-                )
+                gs.message(f"Creating 'maps zero' for the chunk {i} of {len(chunks)}")
                 # for storing maximum view angles
                 for jj in zeromap_names:
                     Module("g.copy", raster=("xxtempzero_map", f"{jj}{i}"), quiet=True)
@@ -1333,15 +1331,13 @@ def main():
         except Exception as error:
             # cleaning termporary layers
             cleanup()
-            gscript.fatal(
-                f"Some error occurred while combinig temporary maps,  {error}"
-            )
+            gs.fatal(f"Some error occurred while combinig temporary maps,  {error}")
 
         else:
             # creating the "zeros" map to be used for the FINAL combination of
             # the different teporary maps (THE FOLLOWING CAN BE DONE CREATING
             # A FIRTS MAP AND THEN COPYING IT, FASTENING THE PROCESS)
-            gscript.message("Creating Final 'zeros map' ")
+            gs.message("Creating Final 'zeros map' ")
             Module("r.mapcalc", expression="xxtemp_a = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_b = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_c = 0", quiet=True)
@@ -1352,9 +1348,7 @@ def main():
             # combining the maps. This must be done in series since xxtemp_c
             # depends on xxtemp_a for each given chunk
             for i in range(len(chunks)):
-                gscript.message(
-                    f"Creating 'maps zero' for the chunk {i} of {len(chunks)}"
-                )
+                gs.message(f"Creating 'maps zero' for the chunk {i} of {len(chunks)}")
                 # updating the map of the angles
                 Module(
                     "r.mapcalc",
@@ -1465,9 +1459,9 @@ def main():
             message = f"The maps are going to be filtered according to the\
             viewangle_threshold value: {viewangle_threshold}, as requested\
             by the user."
-            gscript.warning(message)
+            gs.warning(message)
 
-        gscript.message("Creating final maps")
+        gs.message("Creating final maps")
         Module(
             "r.mapcalc",
             expression="{A} = {B}".format(A=f"{output}_maxViewAngle", B="xxtemp_a"),
@@ -1534,10 +1528,10 @@ def main():
                 ),
                 quiet=True,
             )
-        gscript.message(" Successful run ")
+        gs.message(" Successful run ")
     # in case of CTRL-C
     except KeyboardInterrupt as error:
-        gscript.fatal(f"Program interruption: {error}")
+        gs.fatal(f"Program interruption: {error}")
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ import time
 import os
 import sys
 import math
-import grass.script as grass
+import grass.script as gs
 
 # from grass.pygrass.gis.region import Region
 
@@ -146,7 +146,7 @@ class Topo(object):
             sal += " " + str(pto.x) + " " + str(pto.y) + " " + str(pto.z) + "\n"
         sal += "1  1\n"
 
-        grass.write_command(
+        gs.write_command(
             "v.in.ascii",
             flags="nz",
             output=self.name_map,
@@ -155,14 +155,14 @@ class Topo(object):
             format="standard",
             quiet=True,
         )
-        grass.run_command("v.road", flags="r", name=self.name_map)
+        gs.run_command("v.road", flags="r", name=self.name_map)
 
         sal = ""
         for i in range(1, 5):
             sal += "UPDATE " + self.name_map + "_Plan SET "
             sal += "radio=" + str(radio)
             sal += " WHERE cat2=" + str(i + 1) + " ;\n"
-        grass.write_command("db.execute", stdin=sal, input="-", quiet=True)
+        gs.write_command("db.execute", stdin=sal, input="-", quiet=True)
 
 
 #########################################################
@@ -182,7 +182,7 @@ class Triang(object):
 
     def split_maps(self):
         """Return"""
-        grass.message("Spliting in points and breaklines maps")
+        gs.message("Spliting in points and breaklines maps")
 
         topo = VectorTopo(self.name_map)
         topo.open("r")
@@ -210,7 +210,7 @@ class Triang(object):
 
     def get_area_hull(self):
         """Return"""
-        grass.run_command(
+        gs.run_command(
             "v.centroids",
             input=self.contornomap,
             output=self.contornomap + "_area",
@@ -220,7 +220,7 @@ class Triang(object):
 
     def cut_by_hull(self):
         """Return"""
-        grass.run_command(
+        gs.run_command(
             "v.category",
             input=self.namecurved,
             output=self.namecurved + "_cat",
@@ -229,14 +229,14 @@ class Triang(object):
             quiet=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.db.addtable",
             map=self.namecurved + "_cat",
             columns="x double,y double,z double",
             quiet=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.to.db",
             map=self.namecurved + "_cat",
             option="start",
@@ -246,7 +246,7 @@ class Triang(object):
             quiet=True,
         )
 
-        grass.run_command(
+        gs.run_command(
             "v.overlay",
             ainput=self.namecurved + "_cat",
             atype="line",
@@ -307,7 +307,7 @@ class Triang(object):
 
     def triangle(self):
         """Return"""
-        grass.message("Triangulating tin")
+        gs.message("Triangulating tin")
         cmd = "/mnt/trb/addons/v.triangle/v.triangle.v7 points=" + self.ptosmap
         if self.breakmap != "":
             cmd += " lines=" + self.breakmap
@@ -316,7 +316,7 @@ class Triang(object):
 
     def delaunay(self):
         """Return"""
-        grass.run_command(
+        gs.run_command(
             "v.delaunay",
             input=self.name_map,
             output=self.nametin,
@@ -357,7 +357,7 @@ class Triang(object):
             new.write(Line(line))
         new.close()
 
-        grass.run_command(
+        gs.run_command(
             "v.build.polylines",
             input=self.namelines,
             output=self.namecurved,

@@ -40,7 +40,7 @@
 # % description: recursive
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -52,9 +52,9 @@ def main():
 
     if options["path"]:
         for path in hive.check_for_content(options["path"], flags["r"]):
-            grass.message(path)
+            gs.message(path)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

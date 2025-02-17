@@ -17,10 +17,10 @@ This program is free software under the GNU General Public License
 # % keyword: metadata
 # %end
 
-import grass.script as grass
+import grass.script as gs
 from grass.script.setup import set_gui_path
 
-grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
+gs.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 from mdlib.cswlib import CSWBrowserPanel, CSWConnectionPanel
@@ -61,5 +61,5 @@ def main(giface=None):
 
 
 if __name__ == "__main__":
-    grass.parser()
+    gs.parser()
     main()

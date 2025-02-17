@@ -187,7 +187,7 @@
 
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parse_command, parser, run_command
 

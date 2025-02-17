@@ -81,7 +81,7 @@
 import os
 import sys
 import re
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -132,7 +132,7 @@ def controlPoints(inputmap):
     """
 
     # return r.info about input file
-    rinfo = grass.raster_info(inputmap)
+    rinfo = gs.raster_info(inputmap)
     nsres = rinfo["nsres"]
     ewres = rinfo["ewres"]
     # create a dictionary for Nord East
@@ -198,7 +198,7 @@ def vector_what(map, coor):
 
     result = {}
     # create string for east_north param
-    fields = grass.read_command("v.what", flags="ag", map=map, east_north=coor)
+    fields = gs.read_command("v.what", flags="ag", map=map, east_north=coor)
     # split lines
     fields = fields.splitlines()
     # value for number of features
@@ -254,7 +254,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
         camera_tile = prefix_tile + csuffix
         # first tile start the new map
         if i == 0:
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = if(isnull(${c_tile}), ${in_map}, "
                 "if(${c_input} >= ${maxV}, ${in_map}, "
                 "if(${c_tile} >= ${maxV}, ${tile}, ${in_map})))",
@@ -266,7 +266,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
                 maxV=maxValue,
             )
 
-            grass.mapcalc(
+            gs.mapcalc(
                 "temp_camera = if(isnull(${c_tile}), ${c_input}, "
                 "if(${c_input} >= ${maxV}, ${c_input}, "
                 "if(${c_tile} >= ${maxV}, ${c_tile}, ${c_input})))",
@@ -276,7 +276,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
             )
         # for the other tile check the outmap
         else:
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = if(isnull(${c_tile}), ${out}, "
                 "if(temp_camera >= ${maxV},${out}, "
                 "if(${c_tile} >= ${maxV}, ${tile}, ${out})))",
@@ -286,7 +286,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
                 maxV=maxValue,
             )
 
-            grass.mapcalc(
+            gs.mapcalc(
                 "temp_camera = if(isnull(${c_tile}), temp_camera, "
                 "if(temp_camera >= ${maxV}, ${c_input}, "
                 "if(${c_tile} >= ${maxV}, ${c_tile},${c_input})))",
@@ -298,5 +298,5 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

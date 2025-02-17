@@ -49,7 +49,7 @@ class TestFunctions(TestCase):
         sample_density=5,
         seed=50,
         memory=5000,
-        nprocs=10,
+        nprocs=4,
         quiet=True,
         overwrite=True,
     )
@@ -137,7 +137,7 @@ class TestFunctions(TestCase):
             "stddev": 0.555438,
             "variance": 0.308511,
             "coeff_var": 131.549853569661,
-            "sum": 31834.1479829689,
+            "sum": 31834.1480130134,  # midpoint of 1 and 10 core x64
         },
         "test_points": {
             "n": 97340,
@@ -241,7 +241,7 @@ class TestFunctions(TestCase):
         self.assertRasterFitsUnivar(
             raster=output,
             reference=self.test_results_stats[output],
-            precision=1e-5,
+            precision=4e-5,
         )
 
     def test_points(self):

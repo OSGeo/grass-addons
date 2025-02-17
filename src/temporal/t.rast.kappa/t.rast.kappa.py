@@ -74,7 +74,7 @@
 # %end
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 import grass.temporal as tgis
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
@@ -93,7 +93,7 @@ def _load_skll():
 
         return False
     except ImportError:
-        gscript.warning(_(""))
+        gs.warning(_(""))
         return True
 
 
@@ -114,7 +114,7 @@ def _split_maps(maps, splitting):
         except ValueError:
             pass
     if not split:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "It is not possible to parse splittingday value. "
                 "Please you one of the two supported format: "
@@ -200,9 +200,7 @@ def _kappa_skll(map1, map2, lowmem, method):
 
 
 def _kappa_grass(map1, map2):
-    return gscript.read_command(
-        "r.kappa", classification=map1, reference=map2, quiet=True
-    )
+    return gs.read_command("r.kappa", classification=map1, reference=map2, quiet=True)
 
 
 def main():
@@ -215,16 +213,16 @@ def main():
     where = options["where"]
     sep = separator(options["separator"])
     if flags["p"] and not options["splittingday"]:
-        gscript.fatal(_("'p' flag required to set also 'splittingday' option"))
+        gs.fatal(_("'p' flag required to set also 'splittingday' option"))
     elif flags["p"] and options["splittingday"] and out_name == "-":
-        gscript.fatal(_("'output' option is required with 'p' flag"))
+        gs.fatal(_("'output' option is required with 'p' flag"))
 
     if flags["k"] and flags["p"]:
-        gscript.fatal(_("It is not possible to use 'k' and 'p' flag together"))
+        gs.fatal(_("It is not possible to use 'k' and 'p' flag together"))
     elif flags["k"] and not method:
         rkappa = True
     elif flags["k"] and method:
-        gscript.message(
+        gs.message(
             _("If method is different from 'no' it is not possible to use r.kappa")
         )
         rkappa = _load_skll()
@@ -239,14 +237,12 @@ def main():
     sp = tgis.open_old_stds(strds, "strds", dbif)
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
-        gscript.fatal(
-            _("Space time raster dataset {st} seems to be empty").format(st=strds)
-        )
+        gs.fatal(_("Space time raster dataset {st} seems to be empty").format(st=strds))
         return 1
 
     if flags["p"]:
         before, after = _split_maps(maps, options["splittingday"])
-        _kappa_pixel(before, after, out_name, method, gscript.overwrite())
+        _kappa_pixel(before, after, out_name, method, gs.overwrite())
         return
 
     mapnames = [mapp.get_name() for mapp in maps]
@@ -277,9 +273,9 @@ def main():
     if not rkappa:
         fi.close()
 
-    gscript.message(_("All data have analyzed"))
+    gs.message(_("All data have analyzed"))
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

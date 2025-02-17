@@ -282,7 +282,7 @@ import sys
 import atexit
 from multiprocessing import Pool
 
-import grass.script as gscript
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 TMP_RASTERS = []
@@ -291,7 +291,7 @@ PREFIX = "tmprfuturesparallelpga"
 
 def cleanup():
     if TMP_RASTERS:
-        gscript.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=TMP_RASTERS, flags="f", quiet=True
         )
 
@@ -300,26 +300,24 @@ def futures_process(params):
     repeat, seed, cat, options = params
     try:
         if cat:
-            gscript.message(
+            gs.message(
                 _("Running simulation {s}/{r} for subregion {sub}").format(
                     s=seed, r=repeat, sub=cat
                 )
             )
             env = os.environ.copy()
-            env["GRASS_REGION"] = gscript.region_env(
-                raster=PREFIX + cat, zoom=PREFIX + cat
-            )
-            gscript.run_command("r.futures.pga", env=env, **options)
+            env["GRASS_REGION"] = gs.region_env(raster=PREFIX + cat, zoom=PREFIX + cat)
+            gs.run_command("r.futures.pga", env=env, **options)
         else:
-            gscript.message(_("Running simulation {s}/{r}").format(s=seed, r=repeat))
-            gscript.run_command("r.futures.pga", **options)
+            gs.message(_("Running simulation {s}/{r}").format(s=seed, r=repeat))
+            gs.run_command("r.futures.pga", **options)
     except (KeyboardInterrupt, CalledModuleError):
         return
 
 
 def split_subregions(expr):
     try:
-        gscript.mapcalc(expr)
+        gs.mapcalc(expr)
     except (KeyboardInterrupt, CalledModuleError):
         return
 
@@ -334,19 +332,19 @@ def main():
         if options[key] == "":
             options.pop(key)
     if tosplit and "output_series" in options:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Parallelization on subregion level is not supported together with <output_series> option"
             )
         )
 
     if (
-        not gscript.overwrite()
-        and gscript.list_grouped("raster", pattern=options["output"] + "_run1")[
-            gscript.gisenv()["MAPSET"]
+        not gs.overwrite()
+        and gs.list_grouped("raster", pattern=options["output"] + "_run1")[
+            gs.gisenv()["MAPSET"]
         ]
     ):
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Raster map <{r}> already exists."
                 " To overwrite, use the --overwrite flag"
@@ -355,14 +353,12 @@ def main():
     global TMP_RASTERS
     cats = []
     if tosplit:
-        gscript.message(_("Splitting subregions"))
+        gs.message(_("Splitting subregions"))
         cats = (
-            gscript.read_command("r.stats", flags="n", input=subregions)
-            .strip()
-            .splitlines()
+            gs.read_command("r.stats", flags="n", input=subregions).strip().splitlines()
         )
         if len(cats) < 2:
-            gscript.fatal(
+            gs.fatal(
                 _("Not enough subregions to split computation. Do not use -d flag.")
             )
         mapcalcs = []
@@ -410,12 +406,12 @@ def main():
         return
 
     if cats:
-        gscript.message(_("Patching subregions"))
+        gs.message(_("Patching subregions"))
         for i in range(repeat):
             patch_input = [
                 options["output"] + "_run" + str(i + 1) + "_" + cat for cat in cats
             ]
-            gscript.run_command(
+            gs.run_command(
                 "r.patch",
                 input=patch_input,
                 output=options["output"] + "_run" + str(i + 1),
@@ -425,6 +421,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())
