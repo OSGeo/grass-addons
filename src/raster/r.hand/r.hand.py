@@ -173,9 +173,6 @@ def run_r_watershed(
 
     Returns:
     None
-
-    Raises:
-    CalledModuleError: If there is an error running the r.watershed module.
     """
 
     if streams.startswith("tmp") and direction.startswith("tmp"):
@@ -201,6 +198,37 @@ def run_r_watershed(
             )
 
 
+def set_hand_colors(difference: str) -> None:
+    """Set HAND raster colors based on Norbre et al. 2011"""
+    hand_colors = """
+        0% white
+        1-5 #1d91c0
+        5-15 #41ab5d
+        100% #ec7014
+        nv white
+        default grey
+    """
+    try:
+        with gs.feed_command("r.colors", map=difference, rules="-", quiet=True) as cmd:
+            cmd.stdin.write(hand_colors.encode())
+            cmd.stdin.close()
+    except CalledModuleError as e:
+        gs.fatal(_("Error setting HAND colors: %s") % e.stderr)
+
+
+def set_hand_categories(difference: str) -> None:
+    """Set HAND raster categories based on Norbre et al. 2011"""
+    hand_cats = "-30000:0:no data\n1:5:Surface water table\n5:15:Shallow water table\n15:30000:Deep water table"
+    try:
+        with gs.feed_command(
+            "r.category", map=difference, rules="-", separator=":", quiet=True
+        ) as cmd:
+            cmd.stdin.write(hand_cats.encode())
+            cmd.stdin.close()
+    except CalledModuleError as e:
+        gs.fatal(_("Error setting HAND categories: %s") % e.stderr)
+
+
 def run_stream_distance(
     streams: str,
     direction: str,
@@ -220,8 +248,8 @@ def run_stream_distance(
     memory (int): Maximum memory to be used by the module.
     swap_mode_flag (str): Use memory swap (operation is slow).
 
-    Raises:
-    CalledModuleError: If there is an error running the r.stream.distance module.
+    Returns:
+    None
     """
     gs.message(_("Calculating height above nearest drainage"))
 
@@ -241,7 +269,7 @@ def run_stream_distance(
         gs.fatal(_("Error calculating height above nearest drainage: %s") % e.stderr)
 
 
-def run_r_lake(difference: str, depth: float, inundation: str, streams: str):
+def run_r_lake(difference: str, depth: float, inundation: str, streams: str) -> None:
     """
     Generates an inundation raster map using the r.lake GRASS GIS module.
 
@@ -251,9 +279,8 @@ def run_r_lake(difference: str, depth: float, inundation: str, streams: str):
     inundation (str): The name of the output inundation raster map.
     streams (str): The name of the seed raster map indicating the starting points for inundation.
 
-    Raises:
-    gs.fatal: If the depth is less than or equal to 0.
-    CalledModuleError: If there is an error running the r.lake module.
+    Returns:
+    None
     """
 
     gs.message(_("Generating inundation raster map"))
@@ -280,7 +307,7 @@ def run_r_lake_series(
     water_level_step: float,
     inundation_strds: str,
     streams: str,
-):
+) -> None:
     """
     Runs r.lake.series to generate inundation raster maps for a series of water levels.
 
@@ -291,9 +318,6 @@ def run_r_lake_series(
     water_level_step (float): The step increment for water levels between start and end.
     inundation_strds (str): The name of the output space-time raster dataset.
     streams (str): The name of the streams raster map used as seed points.
-
-    Raises:
-    CalledModuleError: If there is an error running the r.lake.series command.
 
     Returns:
     None
@@ -339,7 +363,7 @@ def generate_temp_raster_name(raster_name: str) -> str:
     return tmp_raster_name
 
 
-def check_raster_exists(raster):
+def check_raster_exists(raster: str) -> str:
     # check if input file exists
     if not gs.find_file(raster)["file"]:
         gs.fatal(_("Raster map %s not found") % raster)
@@ -396,6 +420,8 @@ def main():
     run_stream_distance(
         streams, direction, elevation, difference, memory, swap_mode_flags
     )
+    set_hand_colors(difference)
+    set_hand_categories(difference)
 
     if inundation_series:
         run_r_lake_series(
