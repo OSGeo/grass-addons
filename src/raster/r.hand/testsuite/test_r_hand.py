@@ -39,7 +39,16 @@ class TestHand(TestCase):
         # to not override mapset's region (which might be used by other tests)
         cls.use_temp_region()
 
-        cls.runModule("g.region", raster=cls.elevation, res=1)
+        cls.runModule(
+            "g.region",
+            raster=cls.elevation,
+            res=10,
+            n=220790,
+            s=218390,
+            w=632680,
+            e=635910,
+            flags="a",
+        )
         cls.runModule(
             "r.watershed",
             elevation=cls.elevation,
