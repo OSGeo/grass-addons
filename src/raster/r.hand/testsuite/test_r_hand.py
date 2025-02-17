@@ -43,7 +43,7 @@ class TestHand(TestCase):
         cls.runModule(
             "r.watershed",
             elevation=cls.elevation,
-            threshold=10000,
+            threshold=50000,
             stream=cls.stream_rast,
             drainage=cls.direction,
             quiet=True,
