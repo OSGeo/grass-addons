@@ -27,6 +27,23 @@ Additionally, the HAND raster map can be returned as an output if desired by set
     start_water_level=0 end_water_level=10 step=1
 </pre></div>
 
+<h3>Output HAND raster in addition to inundation raster(s):</h3>
+
+<div class="code"><pre>
+    r.hand elevation=elevation output=hand depth=4 hand=hand threshold=5000 \
+    inundation_rast=inundation
+</pre></div>
+
+The HAND raster is classified according to Nobre et al (2011) where:
+
+<ul>
+    <li>0 &gt; HAND &lt; 5 m = Surface Water Table</li>
+    <li>5 &gt; HAND &lt; 15 m = Shallow Water Table</li>
+    <li>HAND &gt; 15 m = Deep Water Table</li>
+</ul>
+
+<img src="r_hand_class.png" height="480" width="640" ><br>
+
 
 <h2>REFERENCES</h2>
 [1] Nobre, A.D., Cuartas, L.A., Hodnett, M., Rennó, C.D., Rodrigues, G., Silveira, A., Waterloo, M., Saleska, S., 2011. Height Above the Nearest Drainage – a hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. https://doi.org/10.1016/j.jhydrol.2011.03.051

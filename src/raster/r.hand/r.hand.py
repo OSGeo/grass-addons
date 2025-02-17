@@ -58,11 +58,11 @@
 # %end
 
 # %option G_OPT_R_OUTPUT
-# % key: difference
+# % key: hand
 # % label: Heigh above nearest drainage raster map
 # % type: string
 # % required: no
-# % description: Name of the output difference raster map
+# % description: Name of the output HAND raster map
 # % guisection: Output
 # %end
 
@@ -198,7 +198,7 @@ def run_r_watershed(
             )
 
 
-def set_hand_colors(difference: str) -> None:
+def set_hand_colors(hand: str) -> None:
     """Set HAND raster colors based on Norbre et al. 2011"""
     hand_colors = """
         0% white
@@ -209,19 +209,19 @@ def set_hand_colors(difference: str) -> None:
         default grey
     """
     try:
-        with gs.feed_command("r.colors", map=difference, rules="-", quiet=True) as cmd:
+        with gs.feed_command("r.colors", map=hand, rules="-", quiet=True) as cmd:
             cmd.stdin.write(hand_colors.encode())
             cmd.stdin.close()
     except CalledModuleError as e:
         gs.fatal(_("Error setting HAND colors: %s") % e.stderr)
 
 
-def set_hand_categories(difference: str) -> None:
+def set_hand_categories(hand: str) -> None:
     """Set HAND raster categories based on Norbre et al. 2011"""
     hand_cats = "-30000:0:no data\n1:5:Surface water table\n5:15:Shallow water table\n15:30000:Deep water table"
     try:
         with gs.feed_command(
-            "r.category", map=difference, rules="-", separator=":", quiet=True
+            "r.category", map=hand, rules="-", separator=":", quiet=True
         ) as cmd:
             cmd.stdin.write(hand_cats.encode())
             cmd.stdin.close()
@@ -233,7 +233,7 @@ def run_stream_distance(
     streams: str,
     direction: str,
     elevation: str,
-    difference: str,
+    hand: str,
     memory: int,
     swap_mode_flag: str,
 ) -> None:
@@ -244,7 +244,7 @@ def run_stream_distance(
     streams (str): Name of the input stream raster map.
     direction (str): Name of the input flow direction raster map.
     elevation (str): Name of the input elevation raster map.
-    difference (str): Name of the output raster map to store the height above nearest drainage.
+    hand (str): Name of the output raster map to store the height above nearest drainage.
     memory (int): Maximum memory to be used by the module.
     swap_mode_flag (str): Use memory swap (operation is slow).
 
@@ -260,7 +260,7 @@ def run_stream_distance(
             direction=direction,
             elevation=elevation,
             method="downstream",  # Fixed to downstream for HAND analysis
-            difference=difference,
+            difference=hand,
             memory=memory,
             flags=swap_mode_flag,
             quiet=True,
@@ -269,12 +269,12 @@ def run_stream_distance(
         gs.fatal(_("Error calculating height above nearest drainage: %s") % e.stderr)
 
 
-def run_r_lake(difference: str, depth: float, inundation: str, streams: str) -> None:
+def run_r_lake(hand: str, depth: float, inundation: str, streams: str) -> None:
     """
     Generates an inundation raster map using the r.lake GRASS GIS module.
 
     Parameters:
-    difference (str): The name of the elevation raster map.
+    hand (str): The name of the elevation raster map.
     depth (float): The water level to be used for inundation. Must be greater than 0.
     inundation (str): The name of the output inundation raster map.
     streams (str): The name of the seed raster map indicating the starting points for inundation.
@@ -290,7 +290,7 @@ def run_r_lake(difference: str, depth: float, inundation: str, streams: str) -> 
     try:
         gs.run_command(
             "r.lake",
-            elevation=difference,
+            elevation=hand,
             water_level=depth,
             lake=inundation,
             seed=streams,
@@ -301,7 +301,7 @@ def run_r_lake(difference: str, depth: float, inundation: str, streams: str) -> 
 
 
 def run_r_lake_series(
-    difference: str,
+    hand: str,
     start_water_level: float,
     end_water_level: float,
     water_level_step: float,
@@ -312,7 +312,7 @@ def run_r_lake_series(
     Runs r.lake.series to generate inundation raster maps for a series of water levels.
 
     Parameters:
-    difference (str): The name of the elevation raster map.
+    hand (str): The name of the elevation raster map.
     start_water_level (float): The starting water level for the inundation series.
     end_water_level (float): The ending water level for the inundation series.
     water_level_step (float): The step increment for water levels between start and end.
@@ -342,7 +342,7 @@ def run_r_lake_series(
     try:
         gs.run_command(
             "r.lake.series",
-            elevation=difference,
+            elevation=hand,
             start_water_level=start_water_level,
             end_water_level=end_water_level,
             water_level_step=water_level_step,
@@ -385,11 +385,7 @@ def main():
         if options["direction"]
         else generate_temp_raster_name("direction")
     )
-    difference = (
-        options["difference"]
-        if options["difference"]
-        else generate_temp_raster_name("difference")
-    )
+    hand = options["hand"] if options["hand"] else generate_temp_raster_name("hand")
     threshold = int(options["threshold"])
 
     # r.lake options
@@ -417,15 +413,13 @@ def main():
 
     # Check if elevation, stram_rast, and direction are provided
     run_r_watershed(elevation, streams, direction, threshold, memory, swap_mode_flags)
-    run_stream_distance(
-        streams, direction, elevation, difference, memory, swap_mode_flags
-    )
-    set_hand_colors(difference)
-    set_hand_categories(difference)
+    run_stream_distance(streams, direction, elevation, hand, memory, swap_mode_flags)
+    set_hand_colors(hand)
+    set_hand_categories(hand)
 
     if inundation_series:
         run_r_lake_series(
-            difference,
+            hand,
             start_water_level,
             end_water_level,
             water_level_step,
@@ -433,7 +427,7 @@ def main():
             streams,
         )
     else:
-        run_r_lake(difference, depth, inundation_rast, streams)
+        run_r_lake(hand, depth, inundation_rast, streams)
 
 
 if __name__ == "__main__":

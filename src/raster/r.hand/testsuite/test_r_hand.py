@@ -23,7 +23,7 @@ class TestHand(TestCase):
     elevation = "elev_lid792_1m"
     stream_rast = "test_stream_rast"
     direction = "test_direction"
-    difference = "test_difference"
+    hand = "test_hand"
     inundation = "test_inundation"
     inundation_strds = "test_inundation_strds"
     inundation_strds_maps = [
@@ -111,7 +111,7 @@ class TestHand(TestCase):
         self.assertRasterExists(self.inundation)
 
     def test_r_hand_save_differenc(self):
-        """Test to ensure difference raster is saved"""
+        """Test to ensure hand raster is saved"""
 
         module = SimpleModule(
             "r.hand",
@@ -119,12 +119,12 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_rast=self.inundation,
-            difference=self.difference,
+            hand=self.hand,
             depth=3,
             overwrite=True,
         )
         self.assertModule(module)
-        self.assertRasterExists(self.difference)
+        self.assertRasterExists(self.hand)
         self.assertRasterExists(self.inundation)
 
     def test_r_hand_series(self):
@@ -136,7 +136,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             start_water_level=0.0,
             end_water_level=3.0,
             water_level_step=1,
@@ -144,7 +144,7 @@ class TestHand(TestCase):
             overwrite=True,
         )
         self.assertModule(module)
-        self.assertRasterExists(self.difference)
+        self.assertRasterExists(self.hand)
         for i in self.inundation_strds_maps:
             self.assertRasterExists(i)
 
@@ -157,7 +157,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             # start_water_level=0,
             end_water_level=3,
             water_level_step=1,
@@ -177,7 +177,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             start_water_level=0,
             # end_water_level=3,
             water_level_step=1,
@@ -197,7 +197,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             start_water_level=-4,
             end_water_level=3,
             water_level_step=1,
@@ -217,7 +217,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             start_water_level=5,
             end_water_level=0,
             water_level_step=1,
@@ -239,7 +239,7 @@ class TestHand(TestCase):
             streams=self.stream_rast,
             direction=self.direction,
             inundation_strds=self.inundation_strds,
-            difference=self.difference,
+            hand=self.hand,
             start_water_level=0,
             end_water_level=5,
             water_level_step=-1,
