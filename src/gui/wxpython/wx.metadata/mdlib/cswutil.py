@@ -14,7 +14,7 @@ This program is free software under the GNU General Public License
 import os
 import sys
 import webbrowser
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 from gettext import gettext, ngettext
 from xml.dom.minidom import parseString
 
@@ -24,11 +24,11 @@ def get_connections_from_file(filename):
 
     error = 0
     try:
-        doc = etree.parse(filename).getroot()
+        doc = ET.parse(filename).getroot()
         if doc.tag != "qgsCSWConnections":
             error = 1
             msg = "Invalid CSW connections XML."
-    except etree.ParseError as err:
+    except ET.ParseError as err:
         error = 1
         msg = "Cannot parse XML file: %s" % err
     except OSError as err:

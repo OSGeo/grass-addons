@@ -83,7 +83,7 @@ def get_device():
         str: "cuda" if a CUDA-enabled GPU is available, otherwise "cpu".
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    gs.message(_(f"Running computation on {device}..."))
+    gs.message(_("Running computation on {device}...").format(device=device))
     if device == "cuda":
         torch.cuda.empty_cache()
     return device
@@ -243,7 +243,7 @@ def main():
         else:
             masks = run_samgeo_segmentation(rgb_array, checkpoint_dir, device)
     except Exception as e:
-        gs.fatal(_(f"Error while running SAMGeo: {e}"))
+        gs.fatal(_("Error while running SAMGeo: {e}").format(e=e))
         return 1
 
     gs.message(_("Segmentation complete."))

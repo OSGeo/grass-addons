@@ -131,7 +131,7 @@ import grass.script.array as garray
 
 
 # import required numpy/scipy modules
-import numpy
+import numpy as np
 
 
 def cleanup():
@@ -203,22 +203,22 @@ def main():
     def exponential_mod(n0, r, t):
         n = n0
         for t in range(t):
-            n = 1.0 * n * numpy.exp(r)
+            n = 1.0 * n * np.exp(r)
             if flags["i"]:
                 # n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
-                n = numpy.round(n)
+                n = np.round(n)
         return n
 
     # Ricker Model
     def ricker_mod(n0, r, k, t):
         n = n0
         for t in range(t):
-            numpy.seterr(invalid="ignore")
-            n = 1.0 * n * numpy.exp(r * (1 - (n / k)))
-            numpy.seterr(invalid="warn")
+            np.seterr(invalid="ignore")
+            n = 1.0 * n * np.exp(r * (1 - (n / k)))
+            np.seterr(invalid="warn")
             if flags["i"]:
                 # n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
-                n = numpy.round(n)
+                n = np.round(n)
         return n
 
     ################# Exponential Model #################
