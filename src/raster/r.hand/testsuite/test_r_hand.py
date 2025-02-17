@@ -20,7 +20,7 @@ from grass.gunittest.main import test
 
 
 class TestHand(TestCase):
-    elevation = "elev_lid792_1m"
+    elevation = "elevation"
     stream_rast = "test_stream_rast"
     direction = "test_direction"
     hand = "test_hand"
