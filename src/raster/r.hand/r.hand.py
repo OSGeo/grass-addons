@@ -5,14 +5,12 @@
 # MODULE:       r.hand
 # AUTHOR:       Corey T. White, OpenPlains Inc.
 # PURPOSE:      Performs Height Above Nearest Drainage (HAND) analysis.
-# COPYRIGHT:    (C) 2025 OpenPlains Inc.
+# COPYRIGHT:    (C) 2025 OpenPlains Inc. and the GRASS Development Team
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
 #
 #############################################################################
-
-#!/usr/bin/env python
 
 # %module
 # % description: Performs Height Above Nearest Drainage (HAND) analysis.
@@ -23,19 +21,13 @@
 # % keyword: json
 # %end
 
-# %option G_OPT_R_INPUT
-# % key: elevation
-# % label: Elevation raster map
-# % type: string
-# % required: yes
-# % description: Name of the elevation raster map
+# %option G_OPT_R_ELEV
 # % guisection: Input
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: streams
 # % label: Stream raster map
-# % type: string
 # % required: no
 # % description: Name of the stream raster map
 # % guisection: Input
@@ -59,7 +51,7 @@
 
 # %option G_OPT_R_OUTPUT
 # % key: hand
-# % label: Heigh above nearest drainage raster map
+# % label: Height above nearest drainage raster map
 # % type: string
 # % required: no
 # % description: Name of the output HAND raster map
@@ -69,7 +61,7 @@
 # %option G_OPT_STRDS_OUTPUT
 # % key: inundation_strds
 # % required: no
-# % description: Name of the output inundation STRD.
+# % description: Name of the output inundation STRDS.
 # % guisection: Output
 # %end
 
@@ -86,7 +78,7 @@
 # % key: depth
 # % type: double
 # % required: no
-# % description: Innudation depth (Single output)
+# % description: Inundation depth (single output)
 # % guisection: Parameters
 # %end
 
@@ -116,7 +108,6 @@
 # %end
 
 # %option G_OPT_MEMORYMB
-# % Description: Maximum memory to be used by Maxent (in MB)
 # %end
 
 # %flag
