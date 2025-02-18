@@ -15,7 +15,7 @@ Additionally, the HAND raster map can be returned as an output if desired by set
 <h3>Calculate an inundation raster map from a DEM raster map:</h3>
 
 <div class="code"><pre>
-    r.hand elevation=elevation output=hand depth=2 inundation_rast=inundation
+    r.hand elevation=elevation hand=hand depth=2 inundation_raster=inundation
 </pre></div>
 
 <div align="center" style="margin: 10px"></div>
@@ -34,15 +34,15 @@ Additionally, the HAND raster map can be returned as an output if desired by set
 <h3>Calculate series of inundation raster maps from a DEM raster map:</h3>
 
 <div class="code"><pre>
-    r.hand -t elevation=elevation output=hand inundation_strds=inundation_strds \
-    start_water_level=0 end_water_level=10 step=1
+    r.hand -t elevation=elevation hand=hand inundation_strds=inundation_strds \
+    start_water_level=0 end_water_level=5 water_level_step=1
 </pre></div>
 
 <h3>Output HAND raster in addition to inundation raster(s):</h3>
 
 <div class="code"><pre>
-    r.hand elevation=elevation output=hand depth=4 hand=hand threshold=5000 \
-    inundation_rast=inundation
+    r.hand elevation=elevation hand=hand depth=4 threshold=5000 \
+    inundation_raster=inundation
 </pre></div>
 
 The HAND raster is classified according to Nobre et al (2011) where:
@@ -53,7 +53,38 @@ The HAND raster is classified according to Nobre et al (2011) where:
     <li>HAND &gt; 15 m = Deep Water Table</li>
 </ul>
 
-<img src="r_hand_class.png" height="480" width="640" ><br>
+<div align="center" style="margin: 10px"></div>
+    <a href="r_hand_color.png">
+        <img
+        src="r_hand_color.png"
+        width="600"
+        height="600"
+        alt="r.hand HAND example"
+        border="0"
+        />
+    </a><br/>
+    <i>Figure: Height Above Nearest Drainage (HAND)</i>
+</div>
+
+<div class="code"><pre>
+    # Reclassify HAND raster into categories
+    r.reclass input=hand output=hand_reclass rules=- &lt$lt EOF
+    -30000 thru 0 = NULL
+    1 thru 5	= 1 Surface
+    5 thru 15	= 2 Shallow
+    15 thru 30000 = 3 Deep
+    EOF
+
+    # Set color table for HAND raster
+    r.colors map=hand_reclass rules=- &lt$lt EOF
+    1 #1d91c0
+    2 #41ab5d
+    3 #ec7014
+    nv white
+    default grey
+    EOF
+</pre></div>
+
 <div align="center" style="margin: 10px"></div>
     <a href="r_hand_class.png">
         <img
@@ -71,8 +102,8 @@ The HAND raster is classified according to Nobre et al (2011) where:
 [1] Nobre, A.D., Cuartas, L.A., Hodnett, M., Rennó, C.D., Rodrigues, G., Silveira, A., Waterloo, M., Saleska, S., 2011. Height Above the Nearest Drainage – a hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. https://doi.org/10.1016/j.jhydrol.2011.03.051
 
 <h2>AUTHORS</h2>
-Corey White, <a href="https://openplains.com">OpenPlains Inc.</a> &amp; <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br>
-Maris Nartiss (author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>),<br>
+Corey White, <a href="https://openplains.com">OpenPlains Inc.</a> &amp; <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br/>
+Maris Nartiss (author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>),<br/>
 Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>(author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.series.html">r.lake.series</a></em>)
 
 <h2>SEE ALSO</h2>

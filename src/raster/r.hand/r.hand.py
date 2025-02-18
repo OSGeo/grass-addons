@@ -204,9 +204,9 @@ def run_r_watershed(
 def set_hand_colors(hand: str) -> None:
     """Set HAND raster colors based on Norbre et al. 2011"""
     hand_colors = """
-        0% white
-        1-5 #1d91c0
-        5-15 #41ab5d
+        0 white
+        5 #1d91c0
+        15 #41ab5d
         100% #ec7014
         nv white
         default grey
