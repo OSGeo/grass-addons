@@ -200,15 +200,13 @@ def set_hand_colors(hand: str) -> None:
         default grey
     """
     try:
-        with gs.feed_command("r.colors", map=hand, rules="-", quiet=True) as cmd:
-            cmd.stdin.write(hand_colors.encode())
-            cmd.stdin.close()
+        gs.write_command("r.colors", map=hand, rules="-", stdin=hand_colors, quiet=True)
     except CalledModuleError as e:
         gs.fatal(_("Error setting HAND colors: %s") % e.stderr)
 
 
 def set_hand_categories(hand: str) -> None:
-    """Set HAND raster categories based on Norbre et al. 2011"""
+    """Set HAND raster categories based on Nobre et al. 2011"""
     hand_cats = "-30000:0:no data\n1:5:Surface water table\n5:15:Shallow water table\n15:30000:Deep water table"
     try:
         with gs.feed_command(
