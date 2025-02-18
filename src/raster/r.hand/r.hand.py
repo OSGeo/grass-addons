@@ -125,6 +125,7 @@ import sys
 import atexit
 import uuid
 import grass.script as gs
+import grass.script.core as gcore
 from grass.exceptions import CalledModuleError
 
 tmp_raster_list = []
@@ -140,6 +141,17 @@ def cleanup():
             # pattern="tmp_*",
             flags="f",
             quiet=True,
+        )
+
+
+def check_addon_installed(addon: str, fatal=True) -> None:
+    """Check if a GRASS GIS addon is installed"""
+    if not gcore.find_program(addon, "--help"):
+        call = gcore.fatal if fatal else gcore.warning
+        call(
+            _(
+                "Addon {a} is not installed. Please install it using g.extension."
+            ).format(a=addon)
         )
 
 
@@ -407,6 +419,7 @@ def main():
     set_hand_categories(hand)
 
     if inundation_series:
+        check_addon_installed("r.lake.series", fatal=False)
         run_r_lake_series(
             hand,
             start_water_level,
