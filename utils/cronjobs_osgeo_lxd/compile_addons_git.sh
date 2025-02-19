@@ -29,7 +29,7 @@ else
 fi
 
 if [ -z "$3" ]; then
-    echo "Usage: $0 grass_major_version grass_minor_version git_patch \
+    echo "Usage: $0 grass_major_version grass_minor_version git_path \
 topdir addons_path grass_startup_program [separate]"
     echo "eg. $0 8 0 ~/src/grass_addons/grass${GMAJOR}/ \
 ~/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \
@@ -155,6 +155,7 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     make -j2 MODULE_TOPDIR="$TOPDIR" \
         BIN="$path/bin" \
         HTMLDIR="$path/docs/html" \
+        MDDIR="$path/docs/md" \
         MANBASEDIR="$path/docs/man" \
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
@@ -189,10 +190,23 @@ echo "</table><hr />
 <div style=\"text-align: right\">Valid: <a href=\"https://validator.w3.org/check/referer\">XHTML</a></div>
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
-echo ""
-bash ~/cronjobs/check_addons_urls.sh "$ADDON_PATH" \
-   "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.log" \
-   "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
+# If the script is available, run it. Otherwise just print the command.
+URL_CHECK_SCRIPT="~/cronjobs/check_addons_urls.sh"
+URL_CHECK_INDEX_LOG="$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.log"
+URL_CHECK_INDEX_HTML="$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
+if [ -f $URL_CHECK_SCRIPT ]; then
+    echo ""
+    bash $URL_CHECK_SCRIPT \
+        "$ADDON_PATH" \
+        "$URL_CHECK_INDEX_LOG" \
+        "$URL_CHECK_INDEX_HTML"
+else
+    echo ""
+    echo bash $URL_CHECK_SCRIPT \
+        "$ADDON_PATH" \
+        "$URL_CHECK_INDEX_LOG" \
+        "$URL_CHECK_INDEX_HTML"
+fi
 echo ""
 
 echo "</table><hr />
