@@ -80,11 +80,13 @@ programmer's manual.
 
 ## Web site organisation
 
-Important: there are two web related directories on the server:
+Important: there are two web related directories on the server. The content
+of source code/data is blended via symlinks into the html directory which
+is served as grass.osgeo.org:
 
 - `/var/www/code_and_data/`: contains source code, sample data, etc.
 - `/var/www/html/`: contains the hugo generated files. The relevant
-  subdirectories of `/var/www/code_and_data/` are linked here.
+  subdirectories of `/var/www/code_and_data/` are linked into `/var/www/html/`.
 
 ## Infrastructure
 
