@@ -3,3 +3,36 @@ default: true
 
 # Fix any fixable errors (depending on the markdownlint wrapper tool used)
 fix: true
+
+# The source file for a documentation of a tool starts with h2 because h1 is
+# generated during the build.
+first-line-h1: false
+
+# Errors from .html to .md rename (first step in HTML to Markdown conversion)
+heading-increment: false
+heading-style: false
+ul-style: false
+ul-indent: false
+no-trailing-spaces: false
+no-hard-tabs: false
+no-reversed-links: false
+no-multiple-blanks: false
+line-length: false
+no-missing-space-atx: false
+no-multiple-space-atx: false
+no-missing-space-closed-atx: false
+blanks-around-headings: false
+heading-start-left: false
+no-duplicate-heading: false
+no-trailing-punctuation: false
+ol-prefix: false
+blanks-around-lists: false
+no-inline-html: false
+no-bare-urls: false
+no-space-in-emphasis: false
+no-alt-text: false
+emphasis-style: false
+reference-links-images: false
+table-pipe-style: false
+blanks-around-tables: false
+# The block above this is to be eventually removed.
