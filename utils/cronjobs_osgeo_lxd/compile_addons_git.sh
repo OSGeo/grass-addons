@@ -201,7 +201,7 @@ if [ -f $URL_CHECK_SCRIPT ]; then
         "$URL_CHECK_INDEX_LOG" \
         "$URL_CHECK_INDEX_HTML"
 else
-    echo ""
+    echo "Run (modify script path as needed):"
     echo bash $URL_CHECK_SCRIPT \
         "$ADDON_PATH" \
         "$URL_CHECK_INDEX_LOG" \
