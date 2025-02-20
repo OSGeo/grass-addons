@@ -1,45 +1,45 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.object.spatialautocor</em> calculates global spatial autocorrelation
-of the raster objects in the <em>object_map</em> based on the values in the
-<em>variable_map</em>. The user can choose between Moran's I or Geary's G
-indicator using the <em>method</em> parameter.
+*r.object.spatialautocor* calculates global spatial autocorrelation of
+the raster objects in the *object\_map* based on the values in the
+*variable\_map*. The user can choose between Moran's I or Geary's G
+indicator using the *method* parameter.
 
-<p>At this stage, neighborhood is simply defined by an adjancy matrix. The
+At this stage, neighborhood is simply defined by an adjancy matrix. The
 user can choose whether to also accept diagonal neighborhood by setting
-the <em>-d</em> flag.
+the *-d* flag.
 
-<h2>NOTES</h2>
+## NOTES
 
 The module depends on the addon
-<a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a>
-which needs to be installed.
+[r.neighborhoodmatrix](r.neighborhoodmatrix.md) which needs to be
+installed.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-Calculate the spatial autocorrelation of altitude in the elevation map using
-individual patches in the landclass96 (North Carolina sample dataset) as objects:
+Calculate the spatial autocorrelation of altitude in the elevation map
+using individual patches in the landclass96 (North Carolina sample
+dataset) as objects:
 
-<p>
-<div class="code"><pre>
+```sh
 g.region raster=elevation
 r.clump landclass96 output=objects
 r.object.spatialautocor ob=objects var=elevation method=moran
 r.object.spatialautocor ob=objects var=elevation method=geary
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena. Biometrika 37, 17-23.
-<a href="https://dx.doi.org/10.2307%2F2332142">https://dx.doi.org/10.2307%2F2332142</a>
-<br><br>
-Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The Incorporated Statistician 5, 115.
-<a href="https://dx.doi.org/10.2307%2F2986645">https://dx.doi.org/10.2307%2F2986645</a>
+Moran, P.A.P., 1950. Notes on Continuous Stochastic Phenomena.
+Biometrika 37, 17-23. <https://dx.doi.org/10.2307%2F2332142>  
+  
+Geary, R.C., 1954. The Contiguity Ratio and Statistical Mapping. The
+Incorporated Statistician 5, 115. <https://dx.doi.org/10.2307%2F2986645>
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a><br>
+[r.neighborhoodmatrix](r.neighborhoodmatrix.md)  
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Moritz Lennert

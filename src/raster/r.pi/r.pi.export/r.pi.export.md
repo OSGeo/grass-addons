@@ -1,71 +1,57 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 This module exports raster patch values (no single pixels, but single
-individual patch values), which can be used for subsequent analysis in
-R and later import into GRASS again, using
-<a href="r.pi.import.html">r.pi.import</a>.
+individual patch values), which can be used for subsequent analysis in R
+and later import into GRASS again, using [r.pi.import](r.pi.import.md).
 
-<h2>NOTES</h2>
+## NOTES
 
 This module...
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-An example for the North Carolina sample dataset:
+An example for the North Carolina sample dataset: generating a patch
+index map for later export:
 
-generating a patch index map for later export:
-<div class="code"><pre>
+```sh
 r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area
-</pre></div>
+```
 
 export this resulting map:
-<div class="code"><pre>
+
+```sh
 r.pi.export input=landclass96_forestclass5_area output=patch_area_out values=patch_area_values id_raster=forestclass5_ID stats=average,variance,min
-</pre></div>
+```
 
-various resulting files are generated:<br>
-<em>patch_area_out</em>: a text file with the <em>average</em>,
-<em>variance</em> and <em>minimum</em> statistics as defined above and
-additionally informaton about the percentage coverage
-(<em>landcover</em>) and the number of fragments (<em>number</em>) of
-the analysed landcover.
+various resulting files are generated:  
+*patch\_area\_out*: a text file with the *average*, *variance* and
+*minimum* statistics as defined above and additionally informaton about
+the percentage coverage (*landcover*) and the number of fragments
+(*number*) of the analysed landcover.  
+*patch\_area\_values*: a text file with the actual patch values not the
+statistics. The first column is providing the corresponding patch ID,
+which is also existing in the *forestclass5\_ID* raster map
+(here:0-878). The second column is providing the percentage cover of
+each patch (sum is equal the overall coverage: 0.506). The third column
+is holding the actual patch index value (here area; e.g. patch 0: 12).
 
-<br>
+## SEE ALSO
 
-<em>patch_area_values</em>: a text file with the actual patch values
-not the statistics. The first column is providing the corresponding
-patch ID, which is also existing in the <em>forestclass5_ID</em> raster
-map (here:0-878). The second column is providing the percentage cover
-of each patch (sum is equal the overall coverage: 0.506). The third
-column is holding the actual patch index value (here area; e.g. patch
-0: 12).
+*[r.pi.corearea](r.pi.corearea.md), [r.pi.corr.mw](r.pi.corr.mw.md),
+[r.pi.csr.mw](r.pi.csr.mw.md), [r.pi.graph](r.pi.graph.md),
+[r.pi.graph.dec](r.pi.graph.dec.md), [r.pi.graph.pr](r.pi.graph.pr.md),
+[r.pi.graph.red](r.pi.graph.red.md), [r.pi.grow](r.pi.grow.md),
+[r.pi.import](r.pi.import.md), [r.pi.index](r.pi.index.md),
+[r.pi.lm](r.pi.lm.md), [r.pi.odc](r.pi.odc.md),
+[r.pi.prob.mw](r.pi.prob.mw.md), [r.pi.rectangle](r.pi.rectangle.md),
+[r.pi](r.pi.md)*
 
-<h2>SEE ALSO</h2>
+## AUTHORS
 
-<em>
-<a href="r.pi.corearea.html">r.pi.corearea</a>,
-<a href="r.pi.corr.mw.html">r.pi.corr.mw</a>,
-<a href="r.pi.csr.mw.html">r.pi.csr.mw</a>,
-<a href="r.pi.graph.html">r.pi.graph</a>,
-<a href="r.pi.graph.dec.html">r.pi.graph.dec</a>,
-<a href="r.pi.graph.pr.html">r.pi.graph.pr</a>,
-<a href="r.pi.graph.red.html">r.pi.graph.red</a>,
-<a href="r.pi.grow.html">r.pi.grow</a>,
-<a href="r.pi.import.html">r.pi.import</a>,
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.pi.lm.html">r.pi.lm</a>,
-<a href="r.pi.odc.html">r.pi.odc</a>,
-<a href="r.pi.prob.mw.html">r.pi.prob.mw</a>,
-<a href="r.pi.rectangle.html">r.pi.rectangle</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
-
-<h2>AUTHORS</h2>
-
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

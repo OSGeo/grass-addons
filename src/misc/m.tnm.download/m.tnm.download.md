@@ -1,46 +1,51 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>m.tnm.download</em> downloads data for specified polygon codes from <a href="https://apps.nationalmap.gov/downloader/">The National Map (TNM)</a>.
+*m.tnm.download* downloads data for specified polygon codes from [The
+National Map (TNM)](https://apps.nationalmap.gov/downloader/).
 
-<h2>NOTES</h2>
+## NOTES
 
-This module uses <a href="https://apps.nationalmap.gov/tnmaccess/">the TNM Access REST APIs</a> to download TNM data.
+This module uses [the TNM Access REST
+APIs](https://apps.nationalmap.gov/tnmaccess/) to download TNM data.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 List supported datasets and exit:
-<div class="code"><pre>
+
+```sh
 # use indices, IDs, or tags to select datasets, but indices can change between
 # sessions
 m.tnm.download -d
-</pre></div>
+```
 
 List supported states and exit:
-<div class="code"><pre>
+
+```sh
 # use FIPS codes, USPS codes, or names to select states for type=state
 m.tnm.download -s
-</pre></div>
+```
 
 Download National Elevation Dataset (NED) 1-arcsecond files for Texas:
-<div class="code"><pre>
+
+```sh
 # find the dataset ID
 m.tnm.download -d | grep "NED.* 1 arc-second"
 m.tnm.download dataset=one-arc-second-dem type=state code=TX
-</pre></div>
+```
 
-Download National Watershed Boundary Dataset (WBD) files for HUC8 01010001:
-<div class="code"><pre>
+Download National Watershed Boundary Dataset (WBD) files for HUC8
+01010001:
+
+```sh
 # find the dataset ID
 m.tnm.download -d | grep WBD
 m.tnm.download dataset=watershed-boundary-dataset type=huc8 code=01010001
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="m.cdo.download.html">m.cdo.download</a>
-</em>
+*[m.cdo.download](m.cdo.download.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University

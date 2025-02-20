@@ -1,31 +1,30 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.ply</em> imports a vector map in PLY vector format. A PLY
-file always holds a number of vertices which are imported as points. PLY
-vertices can have a number of properties in addition to their
-coordinates. These properties are stored in an attribute table. For
-larger PLY files with many vertices (&gt; 1000) it is highly recommended
-to not use DBF as database driver, but SQLite (default in GRASS GIS 7),
-PostgreSQL or MySQL, because the DBF driver is rather slow and can
-consume a lot of memory. The database driver can be set with <em>db.connect</em>.
+*v.in.ply* imports a vector map in PLY vector format. A PLY file always
+holds a number of vertices which are imported as points. PLY vertices
+can have a number of properties in addition to their coordinates. These
+properties are stored in an attribute table. For larger PLY files with
+many vertices (\> 1000) it is highly recommended to not use DBF as
+database driver, but SQLite (default in GRASS GIS 7), PostgreSQL or
+MySQL, because the DBF driver is rather slow and can consume a lot of
+memory. The database driver can be set with *db.connect*.
 
-<h2>NOTES</h2>
-<em>v.in.ply</em> is designed for large point clouds with the
-possibility to have only coordinates, and no attribute table (for speed
-reasons).
+## NOTES
 
-<h2>EXAMPLES</h2>
+*v.in.ply* is designed for large point clouds with the possibility to
+have only coordinates, and no attribute table (for speed reasons).
 
-<div class="code"><pre>
+## EXAMPLES
+
+```sh
 v.in.ply input=myfile.ply output=myfile
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<a href="https://paulbourke.net/dataformats/ply">https://paulbourke.net/dataformats/ply</a>
-<br>
-<a href="https://sites.cc.gatech.edu/projects/large_models/ply.html">https://sites.cc.gatech.edu/projects/large_models/ply.html</a>
+<https://paulbourke.net/dataformats/ply>  
+<https://sites.cc.gatech.edu/projects/large_models/ply.html>
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Metz

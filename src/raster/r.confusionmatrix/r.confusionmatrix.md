@@ -1,33 +1,31 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.confusionmatrix</em> calculates the confusion matrix, overall, user and
-producer accuracies, the omission and commission errors and the Kappa coefficient
-of classification result using <em>r.kappa</em>.
+*r.confusionmatrix* calculates the confusion matrix, overall, user and
+producer accuracies, the omission and commission errors and the Kappa
+coefficient of classification result using *r.kappa*.
 
-<h2>NOTES</h2>
+## NOTES
 
-The reference can be a raster map <b>raster_reference</b> or a vector map
-<b>vector_reference</b> with a <b>column</b> containing the class labels as
+The reference can be a raster map **raster\_reference** or a vector map
+**vector\_reference** with a **column** containing the class labels as
 integer numbers.
-<p>
-In case of vector reference, this map is rasterized according to the extent and
-resolution of the <b>classification</b> raster map.
 
-<h2>EXAMPLE</h2>
+In case of vector reference, this map is rasterized according to the
+extent and resolution of the **classification** raster map.
 
-Compute the confusion matrix as a CSV file including description of the accuracies:
+## EXAMPLE
 
-<div class="code"><pre>
+Compute the confusion matrix as a CSV file including description of the
+accuracies:
+
+```sh
 r.confusionmatrix classification=classified raster_reference=trainingmap csvfile=test.csv -d
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.kappa.html">r.kappa</a>
-</em>
+*[r.kappa](https://grass.osgeo.org/grass-stable/manuals/r.kappa.html)*
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Anika Weinmann, <a href="https://www.mundialis.de/">mundialis GmbH &amp; Co. KG</a>
+Anika Weinmann, [mundialis GmbH & Co. KG](https://www.mundialis.de/)

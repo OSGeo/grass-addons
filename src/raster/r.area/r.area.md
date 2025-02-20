@@ -1,20 +1,21 @@
-<h2>DESCRIPTION</h2>
-<p>Module r.area reclassifies raster areas (created typically with <a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>)
-to values representing their size (in cells).
-Additionally, it can be used to remove areas smaller or greater than a threshold.
-</p>
+## DESCRIPTION
 
-<h2>NOTE</h2>
-<p>If areas belonging to a certain category are not continuous
-every area belonging to the same category has the same area value.
+Module r.area reclassifies raster areas (created typically with
+[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)) to
+values representing their size (in cells). Additionally, it can be used
+to remove areas smaller or greater than a threshold.
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html">r.reclass.area</a>
-</em>
+## NOTE
 
+If areas belonging to a certain category are not continuous every area
+belonging to the same category has the same area value.
 
-<h2>AUTHOR</h2>
-Jarek  Jasiewicz
+## SEE ALSO
+
+*[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html)*
+
+## AUTHOR
+
+Jarek Jasiewicz

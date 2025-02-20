@@ -1,58 +1,41 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.vect.stats</em> bins points from a vector map into a raster map.
+*r.vect.stats* bins points from a vector map into a raster map.
 
-<p>
-Use <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> to set the extent and
-resolution of the resulting raster.
+Use
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*
+to set the extent and resolution of the resulting raster.
 
-
-<h2>EXAMPLES</h2>
-
-<!--
-
-TODO: needs to be finished
-
-Calculate for current region the beam irradiance (direct radiation)
-for DOY 355 in 2014 from 8am to 3pm:
-
-<div class="code"><pre>
-g.region vect=elev_lid792_bepts res=10
-</pre></div>
--->
+## EXAMPLES
 
 Calculate number of schools in grid of spatial resolution 1km:
 
-<div class="code"><pre>
+```sh
 g.region res=1000 vector=schools_wake
 r.vect.stats input=schools_wake output=schools_count
-</pre></div>
+```
 
 Calculate sum of atribute column CAPACITYTO:
 
-<div class="code"><pre>
+```sh
 r.vect.stats input=schools_wake output=schools_capacity_sum column=CAPACITYTO method=sum
-</pre></div>
+```
 
-<center>
-  <img src="r_to_vect_schools_count.png" border="0" alt="Number of schools in grid of spatial resolution 1km">
-  <img src="r_to_vect_schools_sum.png" border="0" alt="Sum of atribute column CAPACITYTO in grid of spatial resolution 1km"><br>
-  <em>Figure: Number of schools (left part) and sum of CAPACITYTO attribute column (right part) in grid of spatial resolution 1km.</em>
-</center>
+![image-alt](r_to_vect_schools_count.png)
+![image-alt](r_to_vect_schools_sum.png)  
+*Figure: Number of schools (left part) and sum of CAPACITYTO attribute
+column (right part) in grid of spatial resolution 1km.*
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[v.out.ascii](https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html),
+[r.in.xyz](https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html),
+[r.in.lidar](https://grass.osgeo.org/grass-stable/manuals/r.in.lidar.html)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.lidar.html">r.in.lidar</a>
-</em>
+## AUTHORS
 
-
-<h2>AUTHORS</h2>
-
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a><br>
-Column and method parameters added by Martin
-Landa, <a href="https://geomatics.fsv.cvut.cz/research/geoforall/">CTU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)  
+Column and method parameters added by Martin Landa, [CTU GeoForAll
+Lab](https://geomatics.fsv.cvut.cz/research/geoforall/)

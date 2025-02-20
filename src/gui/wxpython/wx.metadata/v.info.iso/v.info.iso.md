@@ -1,76 +1,63 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.info.iso</em> creates metadata of vector maps according
-to <a href="https://www.iso.org/standard/26020.html">ISO
-    19115</a>.
+*v.info.iso* creates metadata of vector maps according to [ISO
+19115](https://www.iso.org/standard/26020.html).
 
-<p>
-    The module also allows conversion of metadata from native GRASS GIS format
-    to ISO-based format.
+The module also allows conversion of metadata from native GRASS GIS
+format to ISO-based format.
 
-<h2>NOTES</h2>
+## NOTES
 
-For dependencies and installation instructions see
-<a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+For dependencies and installation instructions see [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
-<h3>Naming of metadata files and storage</h3>
+### Naming of metadata files and storage
 
+Default location for exported metadata files is *metadata* directory in
+the map's mapset. If the name for output metadata file is not specified
+by **output** option than the name is built from map's type and its
+name. For raster maps, the prefix derived from the current nomenclature
+is *raster*, for vector maps *vector*. File ends with *.xml* extension.
 
-Default location for exported metadata files is
-<i>metadata</i> directory in the map's mapset. If the name for output
-metadata file is not specified by <b>output</b> option than the name
-is built from map's type and its name. For raster maps, the prefix
-derived from the current nomenclature is <em>raster</em>, for vector
-maps <em>vector</em>. File ends with <em>.xml</em> extension.
+For example default metadata file name for raster map "basins" is
+*vector\_basins.xml*.
 
-<p>
-    For example default metadata file name for raster map
-    &quot;basins&quot; is <em>vector_basins.xml</em>.
+### Metadata profile
 
-<h3>Metadata profile</h3>
+The *basic* profile is substituted from intersection between items
+stored in GRASS native metadata format and INSPIRE profile. The
+intersect (subset) includes all available GRASS metadata. Metadata which
+cannot be assigned to ISO based attributes are stored in metadata
+attribute *abstract*. The *inspire* profile fulfills the criteria of
+INSPIRE profile. Values which are not able to get from native GRASS
+metadata are filled by text string `'$NULL'`. This rule applies to both
+profiles.
 
-The <i>basic</i> profile is substituted from intersection between
-items stored in GRASS native metadata format and INSPIRE profile. The
-intersect (subset) includes all available GRASS metadata. Metadata
-which cannot be assigned to ISO based attributes are stored in
-metadata attribute <em>abstract</em>. The <i>inspire</i> profile
-fulfills the criteria of INSPIRE profile. Values which are not able to
-get from native GRASS metadata are filled by text
-string <tt>'$NULL'</tt>. This rule applies to both profiles.
+## EXAMPLES
 
+Export metadata using *basic* profile (default):
 
-<h2>EXAMPLES</h2>
-
-Export metadata using <i>basic</i> profile (default):
-
-<div class="code"><pre>
+```sh
 v.info.iso map=basins
-</pre>
-</div>
+```
 
-<p>
-    Export metadata using <i>inspire</i> profile:
+Export metadata using *inspire* profile:
 
-<div class="code"><pre>
+```sh
 v.info.iso map=basins profile=inspire
-</pre>
-</div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/v.info.html">v.info</a>,
-    <a href="r.info.iso.html">r.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>
-</em>
+*[v.info](https://grass.osgeo.org/grass-stable/manuals/v.info.html),
+[r.info.iso](r.info.iso.md), [g.gui.metadata](g.gui.metadata.md)*
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+See also related [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-    Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during [Google Summer of
+Code 2014](https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS)
+(mentors: Margherita Di Leo, Martin Landa)

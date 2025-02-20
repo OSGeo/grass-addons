@@ -1,604 +1,495 @@
-<!-- <h2>DESCRIPTION</h2> -->
+*v.civil.road* generates a alignment for design roads, channels,
+ports...
 
-<em>v.civil.road</em> generates a alignment for design roads, channels, ports...
+## USAGE
 
+To run the program for the first time, a map with one horizontal
+polygon, is required.
 
-<h2>USAGE</h2>
+There are three options: The flag *-r* for run the program, The flag
+*-p* Update solution from polygon (if you modific the polygon), The flag
+*-t* Update solution from table plan (walk with dc\_ and lr\_)
 
-To run the program for the first time, a map with one horizontal polygon, is
-required.
-
-<p>
-There are three options:
-The flag <em>-r</em> for run the program,
-The flag <em>-p</em> Update solution from polygon (if you modific the polygon),
-The flag <em>-t</em> Update solution from table plan (walk with dc_ and lr_)
-
-<p>
 The other options are described below.
 
+## Plan
 
+### plan options
 
+*plan* write the horizontal alignment.
 
-<h2>Plan</h2>
+*pks* write pk marks in horizontal.
 
-<h3>plan options</h3>
-<p>
-<em>plan</em> write the horizontal alignment.
+*displ* write the displaced platform lines in horizontal.
 
-<p>
-<em>pks</em> write pk marks in horizontal.
+*marks* write the marks in horizontal.
 
-<p>
-<em>displ</em> write the displaced platform lines in horizontal.
+### options
 
-<p>
-<em>marks</em> write the marks in horizontal.
+*pkopt* define the distance between normal marks (npk), distance between
+principal marks (mpk), longitude of normal marks and longitude of
+principal marks.
 
+*areaopt* write the areas defined with pairs of displaced lines.
 
-<h3>options</h3>
+## Vertical
 
-<p>
-<em>pkopt</em> define the distance between normal marks (npk),
-distance between principal marks (mpk), longitude of normal marks and
-longitude of principal marks.
+### vert options
 
-<p>
-<em>areaopt</em> write the areas defined with pairs of displaced lines.
+*vert* write the vertical alignment in horizontal.
 
+*profile* write longitudinal profile map.
 
+### options
 
-
-<h2>Vertical</h2>
-
-<h3>vert options</h3>
-<p>
-<em>vert</em>  write the vertical alignment in horizontal.
-
-<p>
-<em>profile</em> write longitudinal profile map.
-
-<h3>options</h3>
-<p>
-With the option <em>LPScale</em>, the vertical scale of the longitudinal
+With the option *LPScale*, the vertical scale of the longitudinal
 profile can be given.
 
-<p>
-The <em>LPopt</em> option give the longitude of marks, distance between marks
+The *LPopt* option give the longitude of marks, distance between marks
 in axis x and y, and distance between lines of the guitar.
 
+## Cross
 
+### Cross options
 
+*cross* write cross section in horizontal
 
-<h2>Cross</h2>
+*sections* write cross sections map.
 
-<h3>Cross options</h3>
-<p>
-<em>cross</em>  write cross section in horizontal
+### options
 
-<p>
-<em>sections</em> write cross sections map.
-
-<h3>options</h3>
-<p>
-With the option <em>LTScale</em>, the vertical scale of the longitudinal
+With the option *LTScale*, the vertical scale of the longitudinal
 profile can be given.
 
-<p>
-The <em>LTopt</em> option give the longitude of marks, distance between marks
+The *LTopt* option give the longitude of marks, distance between marks
 in axis x and y, and distance between lines of the guitar.
 
-<p>
-The <em>LTopt2</em> option give the number of rows of cross-section to display,
+The *LTopt2* option give the number of rows of cross-section to display,
 distance between cross-section in axis x and y.
 
+## Terrain
 
+### Terr options
 
-
-
-<h2>Terrain</h2>
-
-<h3>Terr options</h3>
-<p>
-<em>slopes</em> flag write the slope soil lines calculated with the last
+*slopes* flag write the slope soil lines calculated with the last
 displaced lines (perpendicular to the central axis).
 
-<p>
-<em>sareas</em> write the areas map with slope soil lines and the last
+*sareas* write the areas map with slope soil lines and the last
 displaced lines in horizontal.
 
-<p>
-<em>tri</em> write points, lines and hull area  map.
+*tri* write points, lines and hull area map.
 
+## Tools
 
+The flag *-a* add a new table. Displ or Marks.
 
-<h2>Tools</h2>
+The flag *-i* insert a rows in table. List of pks for each row.
 
-<p>
-The flag <em>-a</em> add a new table. Displ or Marks.
+The flag *-n* add a new displ line, ei, a new column in displ table. You
+must give a start and end distances and height. And number of column and
+side to insert.
 
-<p>
-The flag <em>-i</em> insert a rows in table. List of pks for each row.
+The flag *-d* del a displ line, ei, a column in displ table. A number of
+column and side is required.
 
-<p>
-The flag <em>-n</em> add a new displ line, ei, a new column in displ table.
-You must give a start and end distances and height. And number of column
-and side to insert.
+## Tables
 
-<p>
-The flag <em>-d</em> del a displ line, ei, a column in displ table. A number
-of column and side is required.
+We have six parts: plant, vertical, displaced, terrain, tranversal and
+marks.
 
-
-<h2>Tables</h2>
-
-<p>
-We have six parts: plant, vertical, displaced, terrain, tranversal and marks.
-
-<p>
 The tables stored in the polygon map are:
 
-<h3>Layer 1:</h3>
-<p>
-Created with only cat column (if not exist), is for free use to add columns
-with information of the road.
+### Layer 1:
 
+Created with only cat column (if not exist), is for free use to add
+columns with information of the road.
 
+### Layer 2:
 
-<h3>Layer 2:</h3>
-<p>
-<b>"NameRoad"_Plan</b>, for insert the parameters of the horizontal
-alignment. This layer have all vertices and nodes of the horizontal polygon.
-No more points can be added to this layer with the insert point option.
+**"NameRoad"\_Plan**, for insert the parameters of the horizontal
+alignment. This layer have all vertices and nodes of the horizontal
+polygon. No more points can be added to this layer with the insert point
+option.
 
-<p>
 The columns are:
 
-<ul>
-    <li><b>radio</b>: radio of curve
-        <p>+ for clockwise</p>
-        <p>- for anticlockwise</p>
-    </li>
-    <li><b>a_in</b>: Parameter A of input Clothoid</li>
-    <li><b>a_out</b>: Parameter A of output Clothoid</li>
-    <li><b>widening</b>: Widening of curve (where this widening is growing
-        in the clothoid, only in mode exact)</li>
-    <li><b>superelev</b>: Parameter A of input Clothoid</li>
-    <li><b>dc_</b>: longitude of curve. For use with flag <em>-t</em></li>
-    <li><b>lr_</b>: longitude of straight. For use with flag <em>-t</em></li>
-</ul>
+  - **radio**: radio of curve
+    
+    \+ for clockwise
+    
+    \- for anticlockwise
 
+  - **a\_in**: Parameter A of input Clothoid
 
+  - **a\_out**: Parameter A of output Clothoid
 
-<h3>Layer 3:</h3>
+  - **widening**: Widening of curve (where this widening is growing in
+    the clothoid, only in mode exact)
 
-<p>
-<b>"NameRoad"_Vert</b>, for insert the parameters of the vertical
+  - **superelev**: Parameter A of input Clothoid
+
+  - **dc\_**: longitude of curve. For use with flag *-t*
+
+  - **lr\_**: longitude of straight. For use with flag *-t*
+
+### Layer 3:
+
+**"NameRoad"\_Vert**, for insert the parameters of the vertical
 alignment.This layer are created with the first an last vertices of the
-horizontal polygon. New point can be added by the flag 'e' TableTools option,
-or with edit gui. The added points, are inserted in the central axis
+horizontal polygon. New point can be added by the flag 'e' TableTools
+option, or with edit gui. The added points, are inserted in the central
+axis referencing by pk.
+
+The columns are:
+
+  - **pk**: kilometric point of the central axis
+  - **elev**: Elevation of the vertice of the vertical alignment
+  - **kv**: Parameter Kv of the vertical alignment
+  - **l**: Leng of parabolic curve (no yet implemented)
+  - **B**: Height of vertice of vertical polygon to the parabolic curve
+    (no yet implemented)
+
+### Layer 4:
+
+**"NameRoad"\_Displ**, for insert the parameters of the platform. This
+layer are created with the first an last vertices of the horizontal
+polygon. New point can be added by the flag 'e' TableTools option, or
+with edit gui. The added points, are inserted in the central axis
 referencing by pk.
 
-<p>
-The columns are:
-
-<ul>
-    <li><b>pk</b>: kilometric point of the central axis</li>
-    <li><b>elev</b>: Elevation of the vertice of the vertical alignment</li>
-    <li><b>kv</b>: Parameter Kv of the vertical alignment</li>
-    <li><b>l</b>: Leng of parabolic curve (no yet implemented)</li>
-    <li><b>B</b>: Height of vertice of vertical polygon to the parabolic
-                curve (no yet implemented)</li>
-</ul>
-
-
-<h3>Layer 4: </h3>
-
-<b>"NameRoad"_Displ</b>, for insert the parameters of the platform.
-This layer are created with the first an last vertices of the horizontal
-polygon. New point can be added by the flag 'e' TableTools option, or with edit
-gui. The added points, are inserted in the central axis referencing by pk.
-<p>
 The columns for editing by the user are:
 
-<ul>
-    <li><b>pk</b>: kilometric point of the central axis</li>
-    <li><b>sec_left, sec_right</b>: For defining left and right platform lines
-        (distance and height to the central axis), separated by ";" </li>
-    <li><b>type_left, type_right</b>: Types of left and right lines
-        (types are: l,e,r,0). You can enter the type of multiple lines
-        separated by ";"
-        <b>l</b>: linear approximation between definition points.
-        <b>e</b>: displaced lines, mode exact.
-        <b>c</b>: ellipse between definition points.
-        <b>rR,A</b>: circle between definition points ((x-A)^2+y^2=R^2))</li>
-</ul>
+  - **pk**: kilometric point of the central axis
+  - **sec\_left, sec\_right**: For defining left and right platform
+    lines (distance and height to the central axis), separated by ";"
+  - **type\_left, type\_right**: Types of left and right lines (types
+    are: l,e,r,0). You can enter the type of multiple lines separated by
+    ";" **l**: linear approximation between definition points. **e**:
+    displaced lines, mode exact. **c**: ellipse between definition
+    points. **rR,A**: circle between definition points
+    ((x-A)^2+y^2=R^2))
 
-<p>
-Between two points, if the second input distance equal zero, the line will be
-stopped. If the second input distance equal -1, this point will not be processed
-and the next one will be considered.
+Between two points, if the second input distance equal zero, the line
+will be stopped. If the second input distance equal -1, this point will
+not be processed and the next one will be considered.
 
+### Layer 5:
 
+**"NameRoad"\_Terr**, for insert the parameters for slopes. This layer
+are created with the first an last vertices of the horizontal polygon.
+New point can be added by the flag 'e' TableTools option, or with edit
+gui. The added points, are inserted in the central axis referencing by
+pk.
 
-<h3>Layer 5: </h3>
-
-<b>"NameRoad"_Terr</b>, for insert the parameters for slopes.
-This layer are created with the first an last vertices of the horizontal
-polygon. New point can be added by the flag 'e' TableTools option, or with edit
-gui. The added points, are inserted in the central axis referencing by pk.
-<p>
 The columns for editing by the user are:
 
-<ul>
-    <li><b>cut_left</b>: Cut slope left</li>
-    <li><b>cut_right</b>: Cut slope right</li>
-    <li><b>fill_left</b>: Fill slope left</li>
-    <li><b>fill_right</b>: Fill slope right</li>
-</ul>
+  - **cut\_left**: Cut slope left
+  - **cut\_right**: Cut slope right
+  - **fill\_left**: Fill slope left
+  - **fill\_right**: Fill slope right
 
+### Layer 6:
 
+**"NameRoad"\_Trans**, for insert the parameters of transects to the
+central axis. This layer are created with the first an last vertices of
+the horizontal polygon. New point can be added by the flag 'e'
+TableTools option, or with edit gui. The added points, are inserted in
+the central axis referencing by pk.
 
+The columns for editing by the user are:
 
-<h3>Layer 6:</h3>
-<p>
-<b>"NameRoad"_Trans</b>, for insert the parameters of transects to the central
-axis.
-This layer are created with the first an last vertices of the horizontal
-polygon. New point can be added by the flag 'e' TableTools option, or with edit gui.
+  - **pk**: kilometric point of the central axis
+  - **dist\_left,dist\_right**: Distance left and right from the central
+    axis
+  - **npk**: Distance between trans
+
+### Layer 7:
+
+**"NameRoad"\_Marks**, for insert the parameters of Marks. This layer
+are created with the first an last vertex of the horizontal polygon. New
+point can be added by the flag 'e' TableTools option, or with edit gui.
 The added points, are inserted in the central axis referencing by pk.
-<p>
+
 The columns for editing by the user are:
 
-<ul>
-    <li><b>pk</b>: kilometric point of the central axis</li>
-    <li><b>dist_left,dist_right</b>: Distance left and right from the central
-axis</li>
-    <li><b>npk</b>: Distance between trans</li>
-</ul>
+  - **dist**: distance left and right from the central axis
+  - **elev**: Elevation left and right from the central axis
+  - **azi**: 1 for azimuth of the point of the road or -1
+  - **name**: Name of mark
+  - **cod**: Code of mark
 
+## Example:
 
-
-
-<h3>Layer 7:</h3>
-<p>
-<b>"NameRoad"_Marks</b>, for insert the parameters of Marks.
-This layer are created with the first an last vertex of the horizontal
-polygon. New point can be added by the flag 'e' TableTools option, or with edit gui.
-The added points, are inserted in the central axis referencing by pk.
-<p>
-The columns for editing by the user are:
-
-<ul>
-    <li><b>dist</b>: distance left and right from the central axis</li>
-    <li><b>elev</b>: Elevation left and right from the central
-axis</li>
-    <li><b>azi</b>: 1 for azimuth of the point of the road or -1</li>
-    <li><b>name</b>: Name of mark</li>
-    <li><b>cod</b>: Code of mark</li>
-</ul>
-
-
-<h2>Example:</h2>
-
-<p>
 This example is done in the North Carolina data set.
-</p>
 
-<p>
-At the end of this example, there is a backup that can be executed to play with this example.
-</p>
+At the end of this example, there is a backup that can be executed to
+play with this example.
 
-<p>
-The example start creating a closed polygon with the editor, in a created map named Circuit.
+The example start creating a closed polygon with the editor, in a
+created map named Circuit.
 
-<p>
-<img src="./img1.png" width="500" height="406" alt="">
+![image-alt](./img1.png)
 
-<p>
 After that, run the next command to get all tables in the map Circuit
 
-<pre><code>
+```sh
 v.road -r name=Circuit
-</code></pre>
+```
 
-<p>
-<img src="./img_tables1.png" width="400" height="166" alt="">
+![image-alt](./img_tables1.png)
 
+### Plant
 
-<!-- ########################## Plant ############################## -->
+For each vertex of the polygon we define a radio and in and out
+clothoids. So we can write the plant and pks maps.
 
-<h3>Plant</h3>
-<p>
-For each vertex of the polygon we define a radio and in and out clothoids. So we can write the plant and pks maps.
+![image-alt](./img_tables2.png)
 
-<p>
-<img src="./img_tables2.png" width="400" height="221" alt="">
+![image-alt](./img_a_plan.png)
 
-<p>
-<img src="./img_a_plan.png" width="300" height="241" alt="">
-
-<pre><code>
+```sh
 v.road -r name=Circuit plan=plan,pks
-</code></pre>
+```
 
-<p>
-And we obtain the map <em>Circuit__Plant</em> and <em>Circuit__Pks</em>, and their tables.
+And we obtain the map *Circuit\_\_Plant* and *Circuit\_\_Pks*, and their
+tables.
 
-<p>
-<img src="./img2.png" width="500" height="406" alt="">
+![image-alt](./img2.png)
 
-<p>
-<img src="./img_tables2_2.png" width="400" height="200" alt="">
+![image-alt](./img_tables2_2.png)
 
-<p>
-If we move some vertex of polygon we must run with the flag 'p' to update the road.
+If we move some vertex of polygon we must run with the flag 'p' to
+update the road.
 
-<p>
-<img src="./img2_1.png" width="500" height="406" alt="">
+![image-alt](./img2_1.png)
 
-<p>
-If we change some values of columns 'dc_' (long of circle) or 'lr_' (long of straight), or fill the last line (with 'dc_' and 'lr_' too,
-a new vertex are inserted and a new line) we must run with the flag 't' to update the road.
+If we change some values of columns 'dc\_' (long of circle) or 'lr\_'
+(long of straight), or fill the last line (with 'dc\_' and 'lr\_' too, a
+new vertex are inserted and a new line) we must run with the flag 't' to
+update the road.
 
-<p>
-<img src="./img_tables2_3.png" width="400" height="200" alt="">
+![image-alt](./img_tables2_3.png)
 
-<p>
-The distance between points of each alignments is of 1 meters by default, but this can be changed in the Interval in straights and Interval in curves options.
+The distance between points of each alignments is of 1 meters by
+default, but this can be changed in the Interval in straights and
+Interval in curves options.
 
-<!-- ########################## Vertical ############################## -->
+### Vertical
 
-<h3>Vertical</h3>
+At first, we have only the nodes of polygon, and if we set elev we will
+obtain a straight with slope. To get more vertices we have to add new
+rows to this table with *tabletools* giving the pk of the vertex.
 
-At first, we have only the nodes of polygon, and if we set elev we will obtain a straight with slope. To get more
-vertices we have to add new rows to this table with <em>tabletools</em> giving the pk of the vertex.
+![image-alt](./img_a_tooladdrow.png)
 
-<p>
-<img src="./img_a_tooladdrow.png" width="300" height="229" alt="">
+And now we have to set the elevation of those vertices and the *kv*
+parameter.
 
-<p>
-And now we have to set the elevation of those vertices and the <em>kv</em> parameter.
+![image-alt](./img_tables3.png)
 
-<p>
-<img src="./img_tables3.png" width="400" height="166" alt="">
+Now choose vertical option to get the vertical map in horizontal and the
+longitudinal profile, and give a *DEM* in the terrain option.
 
-<p>
-Now choose vertical option to get the vertical map in horizontal and the longitudinal profile, and give a
-<em>DEM</em> in the terrain option.
-
-<pre><code>
+```sh
 v.road -r name=Circuit vert=vert,profile dem=elev_lid792_1m
-</code></pre>
+```
 
-<p>
-And we obtain the map <em>Circuit__Vertical</em> and <em>Circuit__LongProfile </em>, and their tables.
+And we obtain the map *Circuit\_\_Vertical* and *Circuit\_\_LongProfile*
+, and their tables.
 
-<p>
-<img src="./img3_2.png" width="500" height="406" alt="">
+![image-alt](./img3_2.png)
 
+### Displaced
 
-<!-- ########################## Displaced ############################## -->
+For first time, this table have two rows, who are the nodes of the
+polygon, and for that the first and the last points of the central axis.
 
-<h3>Displaced</h3>
-<p>
-For first time, this table have two rows, who are the nodes of the polygon, and for that the first and the last points of the central axis.
+The displaced lines are defined in sec\_left,sec\_right columns with a
+list separated with ";", starting from left to right in each side of the
+central axis. Each displaced line is defined with distance to the
+central axis and height to the central axis (d,h).
 
-<p>
-The displaced lines are defined in sec_left,sec_right columns with a list separated with ";", starting from left to right in each side of the central axis.
-Each displaced line is defined with distance to the central axis and height to the central axis (d,h).
+The mode to calculate the displaced lines is defined in the
+type\_left,type\_right columns,for each line separated by ";".
 
-<p>
-The mode to calculate the displaced lines is defined in the type_left,type_right columns,for each line separated by ";".
+To get more vertices we have to add new rows to this table with
+*tabletools* giving the pk of the vertex.
 
-<p>
-To get more vertices we have to add new rows to this table with <em>tabletools</em> giving the pk of the vertex.
+In this example we are going to define two displaced lines in the left
+side to the central axis and two for right side with slope 2% to out.
 
-<p>
-In this example we are going to define two displaced lines in the left side to the central axis and two for right side with slope 2%  to out.
+![image-alt](./img_tables4_1.png)
 
-<p>
-<img src="./img_tables4_1.png" width="400" height="166" alt="">
+The platform lines define, the lanes of a road, the platform limits, ...
+Those lines can be parallel to the central axis of a road (or not). If
+it's so, we need to know that the parallel to a clothoid is not a
+clothoid. Then we have two ways to do the platform lines.
 
-<p>
-The platform lines define, the lanes of a road, the platform limits, ... Those lines can be parallel to the central axis of a road (or not).
-If it's so, we need to know that the parallel to a clothoid is not a clothoid. Then we have two ways to do the platform lines.
+In the first way, mode exact "e", we need to calculate a new displaced
+central axis, e.i., a parallel to the polygon not to the central axis.
+The new alignment or displaced line created within the new polygon have
+new clothoids for the transitions. To run this mode, the first and the
+last points, of a section of the road, must have the same displaced
+distance.
 
-<p>
-In the first way, mode exact "e", we need to calculate a new displaced central axis, e.i., a parallel to the polygon not to the central axis.
-The new alignment or displaced line created within the new polygon have new clothoids for the transitions.
-To run this mode, the first and the last points, of a section of the road, must have the same displaced distance.
+The widening parameter of the section above, only will be calculate in
+this mode, because the widening growing in the clothoid, then is applied
+only to the displaced lines calculated with clothoid.
 
-<p>
-The widening parameter of the section above, only will be calculate in this mode, because the widening growing in the clothoid,
-then is applied only to the displaced lines calculated with clothoid.
+The second way, mode lineal "l", we calculate the perpendicular
+displaced distance to each point of the central axis, to obtain a
+parallel to it, where the transitions won't be clothoids. Then we can't
+know where are the tangents of transitions. But in this mode, the
+displaced distance for the first and the last points don't have to be
+the same in a section of the road. A lineal variation will be done
+between those points.
 
-<p>
-The second way, mode lineal "l", we calculate the perpendicular displaced distance to each point of the central axis,
-to obtain a parallel to it, where the transitions won't be clothoids. Then we can't know where are the tangents of transitions.
-But in this mode, the displaced distance for the first and the last points don't have to be the same in a section of the road. A lineal variation will be done between those points.
+For this example, the first and last are defined as lineal and the rest
+are in mode exact.
 
-<p>
-For this example, the first and last are defined as lineal and the rest are in mode exact.
+Into this second way, the variation don't have to be only lineal. We can
+define a circumference in the displaced line with the option "rR,A".
 
-<p>
-Into this second way, the variation don't have to be only lineal. We can define a circumference in the displaced line with the option "rR,A".
+Between two points, if the second input distance equal zero, the line
+will be stopped. If the second input distance equal -1, this point will
+not be processed and the next one will be considered.
 
-<p>
-Between two points, if the second input distance equal zero, the line will be stopped. If the second input distance equal -1, this point will not be processed and the next one will be considered.
-
-<pre><code>
+```sh
 v.road -r name=Circuit plan=displ
-</code></pre>
+```
 
-And we obtain the map Circuit__Displaced, and their tables.
+And we obtain the map Circuit\_\_Displaced, and their tables.
 
-<p>
-<img src="./img4.png" width="500" height="406" alt="">
+![image-alt](./img4.png)
 
-<p>
-With distance to the central axis and height of the lines we can obtain different forms, that we'll see in the cross sections.
+With distance to the central axis and height of the lines we can obtain
+different forms, that we'll see in the cross sections.
 
-<p>
-<img src="./img_a_vcivilroad_7.png" width="400" height="200" alt="">
+![image-alt](./img_a_vcivilroad_7.png)
 
-<p>
 Now we can add new lines by hand or with TableTools option.
 
-<pre><code>
+```sh
 v.road -e name=Circuit displline=add side=left ncol=3 sedist="10 -0.2; 10 -0.2"
 v.road -e name=Circuit displline=add side=right ncol=3 sedist="10 -0.2; 10 -0.2"
-</code></pre>
+```
 
+And add new points. We are going to cut the last line in pk 900 and
+1700.
 
-<p>
-And add new points. We are going to cut the last line in pk 900 and 1700.
-
-<pre><code>
+```sh
 v.road -e name=Circuit@road add=row tab_type=Displ pklist=876,900,1074,1690,1700,1811
-</code></pre>
+```
 
-<p>
-<img src="./img_tables4_2.png" width="400" height="166" alt="">
+![image-alt](./img_tables4_2.png)
 
-<p>
-<img src="./img4_1.png" width="500" height="406" alt="">
+![image-alt](./img4_1.png)
 
-<p>
-Mode exact "e" in the first two lines, without widening and with widening set to 0.2.
+Mode exact "e" in the first two lines, without widening and with
+widening set to 0.2.
 
-<p>
-<img src="./img4_2.png" width="350" height="275" alt="">
-<img src="./img4_3.png" width="350" height="275" alt="">
+![image-alt](./img4_2.png) ![image-alt](./img4_3.png)
 
+### Terr
 
-<!-- ########################## Terr ############################## -->
+The cut/fill are calculated with the first displaced line of the left
+side and the last displaced line of the right side, and with the slope
+given in the columns cut\_left, cut\_right, fill\_left, fill\_right.
 
-<h3>Terr</h3>
+To get more vertices we have to add new rows to this table with
+*tabletools* giving the pk of the vertex.
 
-<p>
-The cut/fill are calculated with the first displaced line of the left side and the last displaced line of the right side,
-and with the slope given in the columns cut_left, cut_right, fill_left, fill_right.
+![image-alt](./img_tables5_1.png)
 
-<p>
-To get more vertices we have to add new rows to this table with <em>tabletools</em> giving the pk of the vertex.
+We can generate points of the different alignments, breaklines and a
+hull of all points.
 
-<p>
-<img src="./img_tables5_1.png" width="400" height="166" alt="">
-
-<p>
-We can generate points of the different alignments, breaklines and a hull of all points.
-
-<pre><code>
+```sh
 v.road -r name=Circuit terr=slopes,sareas,topo dem=elev_lid792_1m
-</code></pre>
+```
 
-<p>
-And we obtain the map Circuit__Slopes, Circuit__Slopes_Areas, Circuit__Topo and Circuit__Topo_Hull, and their tables.
+And we obtain the map Circuit\_\_Slopes, Circuit\_\_Slopes\_Areas,
+Circuit\_\_Topo and Circuit\_\_Topo\_Hull, and their tables.
 
-<p>
-<img src="./img5.png" width="500" height="406" alt="">
+![image-alt](./img5.png)
 
+### Transversal
 
+In this table where we are going to define transversals 2D lines to the
+central axis, to obtain later, the cross sections.
 
-<!-- ########################## Displaced ############################## -->
-
-<h3>Transversal</h3>
-
-<p>
-In this table where we are going to define transversals 2D lines to the central axis, to obtain later, the cross sections.
-
-<p>
 This lines contains the cutoff with the displaced lines.
 
-<p>
-When this table is created, have two rows, who are the first and the last points of the central axis.
+When this table is created, have two rows, who are the first and the
+last points of the central axis.
 
-<p>
-In the columns dist_left, dist_right we can define the distance left and right to the central axis and in the column npk the distance between lines.
+In the columns dist\_left, dist\_right we can define the distance left
+and right to the central axis and in the column npk the distance between
+lines.
 
-<p>
-<img src="./img_tables6_1.png" width="400" height="166" alt="">
+![image-alt](./img_tables6_1.png)
 
-<p>
 We can obtain the transversal profiles selecting it too.
 
-<pre><code>
+```sh
 v.road -r name=Circuit trans=trans,profiles dem=elev_lid792_1m
-</code></pre>
+```
 
-<p>
-And we obtain the map Circuit__Trans and Circuit__TransProfiles, and their tables.
+And we obtain the map Circuit\_\_Trans and Circuit\_\_TransProfiles, and
+their tables.
 
-<p>
-<img src="./img6.png" width="500" height="406" alt="">
+![image-alt](./img6.png)
 
-<p>
-<img src="./img6_1.png" width="500" height="406" alt="">
+![image-alt](./img6_1.png)
 
+### Marks
 
-<h3>Marks</h3>
 We can define marks or road objects by pk.
-<p>
-<img src="./img_tables7_1.png" width="400" height="166" alt="">
 
-<p>
-<img src="./img7.png" width="500" height="406" alt="">
+![image-alt](./img_tables7_1.png)
 
+![image-alt](./img7.png)
 
+### TopoTools
 
-<!-- ########################## Displaced ############################## -->
+With the Circuit\_Topo map created, we can triangulate with triangle or
+delaunay, and obtain the curves.
 
-<h3>TopoTools</h3>
+In this example we must delete the points that cross the road, for a
+good triangulation. We can run this.
 
-<p>
-With the Circuit_Topo map created, we can triangulate with triangle or delaunay, and obtain the curves.
-
-<p>
-In this example we must delete the points that cross the road, for a good triangulation. We can run this.
-
-<pre><code>
+```sh
 v.edit map=Circuit__Topo type=point tool=delete ids=0-999999 where="pk > 876 AND pk < 1074"
 v.edit map=Circuit__Topo type=point tool=delete ids=0-999999 where="pk > 1690 AND pk < 1811"
 
 db.execute sql="DELETE FROM Circuit__Topo WHERE pk > 876 and pk < 1074"
 db.execute sql="DELETE FROM Circuit__Topo WHERE pk > 1690 and pk < 1811"
-</code></pre>
+```
 
-<p>
-And obtain the Circuit__Topo like this. The hull must be changed too.
+And obtain the Circuit\_\_Topo like this. The hull must be changed too.
 
+![image-alt](./img8_1.png)
 
-<p>
-<img src="./img8_1.png" width="500" height="406" alt="">
+![image-alt](./img_a_topotools_1.png)
 
-
-<p>
-<img src="./img_a_topotools_1.png" width="399" height="339" alt="">
-
-<pre><code>
+```sh
 v.road -o name=Circuit dem=elev_lid792_1m topotools=delaunay,curved,cut_hull
-</code></pre>
+```
 
-<p>
-And we obtain the map Circuit__Topo_Tin and Circuit__Topo_Curves, and their tables.
+And we obtain the map Circuit\_\_Topo\_Tin and Circuit\_\_Topo\_Curves,
+and their tables.
 
-<p>
-<img src="./img8_2.png" width="500" height="406" alt="">
+![image-alt](./img8_2.png)
 
+### Backup
 
-<!-- ########################## Displaced ############################## -->
-
-<h3>Backup</h3>
-
-<p>
 After run the backup you can run this to obtain all maps.
 
-<pre><code>
+```sh
 v.road -r name=Circuit plan=plan,pks,displ,marks vert=vert,profile trans=trans,profiles terr=slopes,sareas,topo dem=elev_lid792_1m
-</code></pre>
+```
 
-<pre><code>
+```sh
 echo "L 15 1
  638602.453907 220281.587467
  638872.438983 220266.927644
@@ -825,4 +716,4 @@ UPDATE Circuit_Trans SET pk='0.0',dist_left='20.0',dist_right='20.0',npk='20.0' 
 UPDATE Circuit_Trans SET pk='2208.88779535',dist_left='20.0',dist_right='20.0',npk='20.0' WHERE cat6=2;
 UPDATE Circuit SET name='Circuit' WHERE cat=1;
 " | db.execute input=-
-</code></pre>
+```

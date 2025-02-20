@@ -1,48 +1,46 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 Patch relevance for Euclidean Nearest Neighbor patches.
-<p>
-<em>r.pi.enn.pr</em> computes distance and area
-differences for the first NN after removal of patch i.
 
+*r.pi.enn.pr* computes distance and area differences for the first NN
+after removal of patch i.
 
-<h2>NOTES</h2>
+## NOTES
 
-The <em>keyval</em> operator determines which category value is taken for
-the Patch Index analysis.
-<p>
-The <em>method</em> operators determine what measure is applied
-on the nth NN (area or distance).
-<p>
-Differences of distance/area after removal of patch i are provided as output as well as
-the amount of patches to be affected by its removal (percent) (PP) and
-the amount of area in these patches (PA - Percent Area)
+The *keyval* operator determines which category value is taken for the
+Patch Index analysis.
 
-<h2>EXAMPLE</h2>
+The *method* operators determine what measure is applied on the nth NN
+(area or distance).
+
+Differences of distance/area after removal of patch i are provided as
+output as well as the amount of patches to be affected by its removal
+(percent) (PP) and the amount of area in these patches (PA - Percent
+Area)
+
+## EXAMPLE
 
 An example for the North Carolina sample dataset:
-<p>
-Analysing the differences (average) in distance when patch i of class 5 is removed:
-<div class="code"><pre>
+
+Analysing the differences (average) in distance when patch i of class 5
+is removed:
+
+```sh
 r.pi.enn.pr input=landclass96 output=dist_iter keyval=5 method=distance statmethod=average
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.pi.enn.html">r.pi.enn</a>,
-<a href="r.pi.fnn.html">r.pi.fnn</a>,
-<a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
+*[r.pi.index](r.pi.index.md), [r.pi.enn](r.pi.enn.md),
+[r.pi.fnn](r.pi.fnn.md), [r.pi.searchtime.pr](r.pi.searchtime.pr.md),
+[r.pi](r.pi.md)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

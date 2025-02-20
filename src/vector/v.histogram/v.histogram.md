@@ -1,31 +1,28 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-<em>v.histogram</em> draws a histogram of the values in a vector
-map attribute column. Users can use the <b>where</b>
-option to only select a subset of the attribute table and can determine the
-number of <b>bins</b> (bars) used for the histogram. The <b>plot_output</b>
-parameter determines whether the result is displayed on screen (default) or
-exported to a graphics file.
+*v.histogram* draws a histogram of the values in a vector map attribute
+column. Users can use the **where** option to only select a subset of
+the attribute table and can determine the number of **bins** (bars) used
+for the histogram. The **plot\_output** parameter determines whether the
+result is displayed on screen (default) or exported to a graphics file.
 
-<h2>NOTE</h2>
-<p>
-This is a quick and dirty solution using basic matplotlib. In future, this
-should be integrated into the g.gui, possibly together with the raster
-histogram tool.
+## NOTE
 
-<h2>EXAMPLE</h2>
+This is a quick and dirty solution using basic matplotlib. In future,
+this should be integrated into the g.gui, possibly together with the
+raster histogram tool.
+
+## EXAMPLE
 
 Show the histogram of median age values in the census block map:
-<div class="code"><pre>
+
+```sh
 v.histogram map=censusblk_swwake column=MEDIAN_AGE where="TOTAL_POP>0"
-</pre></div>
+```
 
-<center>
-<img src="d_vect_colhist.png" border="1"><br>
+![image-alt](d_vect_colhist.png)  
 Histogram of median age values in census blocks
-</center>
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Moritz Lennert

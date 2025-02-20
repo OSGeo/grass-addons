@@ -1,191 +1,147 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.nnstat</em> indicates clusters, separations or random distribution of point dataset in 2D or 3D space using Nearest Neighbour Analysis (NNA). The method is based on comparison of observed average distance between the nearest neighbours and the distance which would be expected if points in the dataset are distributed randomly. More detailed information about theoretical background is provided in (<a href="https://web.archive.org/web/20171205194648/https://courses.washington.edu/bio480/Week1-PAPER-Clark_and_Evans1954.pdf">Clark and Evans, 1954</a>), (<a href="https://doi.org/10.1103/RevModPhys.15.1">Chandrasekhar, 1943, p. 86-87</a>). Details about the module and testing are summarized in (<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>).
+*v.nnstat* indicates clusters, separations or random distribution of
+point dataset in 2D or 3D space using Nearest Neighbour Analysis (NNA).
+The method is based on comparison of observed average distance between
+the nearest neighbours and the distance which would be expected if
+points in the dataset are distributed randomly. More detailed
+information about theoretical background is provided in ([Clark and
+Evans, 1954](https://web.archive.org/web/20171205194648/https://courses.washington.edu/bio480/Week1-PAPER-Clark_and_Evans1954.pdf)),
+([Chandrasekhar, 1943,
+p. 86-87](https://doi.org/10.1103/RevModPhys.15.1)). Details about the
+module and testing are summarized in
+([Stopkova, 2013](https://doi.org/10.14311/gi.11.2)).
 
-<h2>EXAMPLES</h2>
-<h3>Comparison of 2D and 3D NNA</h3>
-On the example of dataset that contains 2000 randomly distributed points, basic settings of analysis dimension (2D or 3D) will be examined:
-<ul>
-<li> <b>2D NNA</b> may be performed using <b>2D vector layer</b>. If 2D NNA is required to be
-performed using <b>3D vector layer</b>, <u>flag <i>-2</i></u> should be marked. The results of
-both cases can be seen below.
+## EXAMPLES
 
-<div class="code"><pre>
-v.nnstat input=rand_2000_2d
-</pre></div>
+### Comparison of 2D and 3D NNA
 
-Output in the command line:
-<table>
-	<tr>
-		<td>
-			<div class="code"><pre>
-				Input coordinates have been read...
-				Computing average distance between nearest neighbors...
- 				 100%
+On the example of dataset that contains 2000 randomly distributed
+points, basic settings of analysis dimension (2D or 3D) will be
+examined:
 
+  - **2D NNA** may be performed using **2D vector layer**. If 2D NNA is
+    required to be performed using **3D vector layer**,
+    <span class="underline">flag *-2*</span> should be marked. The
+    results of both cases can be seen below.
+    
+    ```sh
+    v.nnstat input=rand_2000_2d
+    ```
+    
 
-				*** Nearest Neighbour Analysis results ***
-				Input settings .. 3D layer: 0 3D NNA: 0
-				Number of points .......... 2000
-				Area ...................... 398645718.651701 [units^2]
-				Density of points ......... 0.000005
-				Average distance between the nearest neighbours ........... 225.859 [units]
-				Average expected distance between the nearest neighbours .. 223.228 [units]
-				Ratio rA/rE ............... 1.011785
+    Output in the command line:
+    
+    <table>
+    <colgroup>
+    <col style="width: 100%" />
+    </colgroup>
+    <tbody>
+    <tr class="odd">
+    <td></td>
+    </tr>
+    </tbody>
+    </table>
+    
+    ```sh
+    v.nnstat input=rand_2000_3d -2
+    ```
+    
 
-				*** Results of two-tailed test of the mean ***
-				Null hypothesis: Point set is randomly distributed within the region.
-				Standard variate of the normal curve> c = 1.008239
-				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
-			</pre></div>
-		</td>
-	</tr>
-</table>
+    Output in the command line:
+    
+    <table>
+    <colgroup>
+    <col style="width: 100%" />
+    </colgroup>
+    <tbody>
+    <tr class="odd">
+    <td></td>
+    </tr>
+    </tbody>
+    </table>
+    
+    **NOTE:** Comparing the results of 2D NNA with results summarized in
+    ([Stopkova, 2013](https://doi.org/10.14311/gi.11.2)), there can be
+    seen small difference between the values of area. It is assumed to
+    be caused by differences in transformed coordinates of the convex
+    hull that have been computed using two versions of the module.
 
-<div class="code"><pre>
-v.nnstat input=rand_2000_3d -2
-</pre></div>
+  - **3D NNA** can be performed just using **3D vector layer**. If 3D
+    NNA is required to be performed using **2D vector layer**,
+    <span class="underline">name of the column in attribute table that
+    contains elevation values</span> must be set. The results of both
+    cases can be seen below.
+    
+    ```sh
+    v.nnstat input=rand_2000_3d
+    ```
+    
 
-Output in the command line:
-<table>
-	<tr>
-		<td>
-			<div class="code"><pre>
-				Input coordinates have been read...
-				Computing average distance between nearest neighbors...
- 				 100%
+    Output in the command line:
+    
+    <table>
+    <colgroup>
+    <col style="width: 100%" />
+    </colgroup>
+    <tbody>
+    <tr class="odd">
+    <td></td>
+    </tr>
+    </tbody>
+    </table>
+    
+    ```sh
+    v.nnstat input=rand_2000_2d zcolumn=z
+    ```
+    
 
+    Output in the command line:
+    
+    <table>
+    <colgroup>
+    <col style="width: 100%" />
+    </colgroup>
+    <tbody>
+    <tr class="odd">
+    <td></td>
+    </tr>
+    </tbody>
+    </table>
 
-				*** Nearest Neighbour Analysis results ***
-				Input settings .. 3D layer: 1 3D NNA: 0
-				Number of points .......... 2000
-				Area ...................... 398645718.651701 [units^2]
-				Density of points ......... 0.000005
-				Average distance between the nearest neighbours ........... 225.859 [units]
-				Average expected distance between the nearest neighbours .. 223.228 [units]
-				Ratio rA/rE ............... 1.011785
+  - **Warning**: If flag *-2* is set up together with *zcolumn*, the
+    flag will have higher priority and 2D NNA will be performed.
 
-				*** Results of two-tailed test of the mean ***
-				Null hypothesis: Point set is randomly distributed within the region.
-				Standard variate of the normal curve> c = 1.008239
-				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
-			</pre></div>
-		</td>
-	</tr>
-</table>
+### Comparison of various datasets
 
-<p><b>NOTE:</b> Comparing the results of 2D NNA with results summarized in
-(<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>), there can be
-seen small difference between the values of area. It is assumed to be caused by differences in transformed coordinates of
-the convex hull that have been computed using two versions of the module.
+In ([Stopkova, 2013](https://doi.org/10.14311/gi.11.2)), there might be
+seen other examples (also clustered and dispersed datasets).
 
-<li> <b>3D NNA</b> can be performed just using <b>3D vector layer</b>. If 3D NNA is required to be performed using
-<b>2D vector layer</b>, <u>name of the column in attribute table that contains elevation values</u> must be set.
-The results of both cases can be seen below.
+## TODO
 
-<div class="code"><pre>
-v.nnstat input=rand_2000_3d
-</pre></div>
+  - add **graphical output**
 
-Output in the command line:
-<table>
-	<tr>
-		<td>
-			<div class="code"><pre>
-				Input coordinates have been read...
-				Computing average distance between nearest neighbors...
-				 100%
-				Reading 3D vertices...
- 				 100%
-				Constructing 3D hull...
-  				  99%
+## SEE ALSO
 
-				*** Nearest Neighbour Analysis results ***
-				Input settings .. 3D layer: 1 3D NNA: 1
-				Number of points .......... 2000
-				Volume .................... 398423031180.489197 [units^3]
-				Density of points ......... 0.000000
-				Average distance between the nearest neighbours ........... 346.072 [units]
-				Average expected distance between the nearest neighbours .. 323.531 [units]
-				Ratio rA/rE ............... 1.069670
+*[v.hull](https://grass.osgeo.org/grass-stable/manuals/v.hull.html)*
 
-				*** Results of two-tailed test of the mean ***
-				Null hypothesis: Point set is randomly distributed within the region.
-				Standard variate of the normal curve> c = 0.191691
-				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
-			</pre></div>
-		</td>
-	</tr>
-</table>
+## REFERENCES:
 
-<div class="code"><pre>
-v.nnstat input=rand_2000_2d zcolumn=z
-</pre></div>
+Stopkova, 2013: Extension of mathematical background for Nearest
+Neighbour Analysis in three-dimensional space,
+<https://doi.org/10.14311/gi.11.2>,
+<https://ojs.cvut.cz/ojs/index.php/gi/article/view/gi.11.2/2396>
 
-Output in the command line:
-<table>
-	<tr>
-		<td>
-			<div class="code"><pre>
-				Reading elevations from attribute table: 2000 records selected
-				Input coordinates have been read...
-				Computing average distance between nearest neighbors...
-				 100%
-				Reading 3D vertices...
- 				 100%
-				Constructing 3D hull...
-  				  99%
+## REQUIREMENTS
 
-				*** Nearest Neighbour Analysis results ***
-				Input settings .. 3D layer: 0 .. 3D NNA: 1 .. zcolumn: z
-				Number of points .......... 2000
-				Volume .................... 398423031180.489197 [units^3]
-				Density of points ......... 0.000000
-				Average distance between the nearest neighbours ........... 346.072 [units]
-				Average expected distance between the nearest neighbours .. 323.531 [units]
-				Ratio rA/rE ............... 1.069670
+  - **LAPACK / BLAS** (libraries for numerical computing) for GMATH
+    library (GRASS Numerical Library)  
+    <https://www.netlib.org/lapack> (usually available on Linux distros)
 
-				*** Results of two-tailed test of the mean ***
-				Null hypothesis: Point set is randomly distributed within the region.
-				Standard variate of the normal curve> c = 0.191691
-				Null hypothesis IS NOT REJECTED at the significance level alpha = 0.05
-			</pre></div>
-		</td>
-	</tr>
-</table>
+## AUTHOR
 
-<li> <b>Warning</b>: If flag <i>-2</i> is set up together with <i>zcolumn</i>, the flag will have higher priority and 2D NNA will be performed.
-</ul>
-
-<h3>Comparison of various datasets</h3>
-<p>
-In (<a href="https://doi.org/10.14311/gi.11.2">Stopkova, 2013</a>), there might be seen other examples (also clustered and dispersed datasets).
-</p>
-
-<h2>TODO</h2>
-<ul>
-<li>add <b>graphical output</b>
-</ul>
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.hull.html">v.hull</a>
-</em>
-
-<h2>REFERENCES:</h2>
-Stopkova, 2013: Extension of mathematical background for Nearest Neighbour Analysis in three-dimensional space, <a href="https://doi.org/10.14311/gi.11.2">https://doi.org/10.14311/gi.11.2</a>, <a href="https://ojs.cvut.cz/ojs/index.php/gi/article/view/gi.11.2/2396">https://ojs.cvut.cz/ojs/index.php/gi/article/view/gi.11.2/2396</a>
-
-<h2>REQUIREMENTS</h2>
-<ul>
-<li><b>LAPACK / BLAS</b> (libraries for numerical computing) for
-GMATH library (GRASS Numerical Library)<br>
-<a href="https://www.netlib.org/lapack">https://www.netlib.org/lapack</a> (usually available on Linux distros)
-</ul>
-
-<h2>AUTHOR</h2>
-
-Eva Stopkova<br> functions for computation of Minimum Bounding Box
-volume (Minimum Bounding Rectangle area) are based on functions for
-computing convex hull from the module <i>v.hull</i> (Aime, A.,
-Neteler, M., Ducke, B., Landa, M.)
+Eva Stopkova  
+functions for computation of Minimum Bounding Box volume (Minimum
+Bounding Rectangle area) are based on functions for computing convex
+hull from the module *v.hull* (Aime, A., Neteler, M., Ducke, B., Landa,
+M.)

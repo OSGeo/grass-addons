@@ -1,25 +1,21 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.download.location</em> downloads an archived (e.g.,
-<code>.zip</code> or <code>.tar.gz</code>) location from a given URL
-and unpacks it to a specified or current GRASS GIS Spatial Database.
-URL can be also a local file on the disk.
+*g.download.location* downloads an archived (e.g., `.zip` or `.tar.gz`)
+location from a given URL and unpacks it to a specified or current GRASS
+GIS Spatial Database. URL can be also a local file on the disk. If the
+archive contains a directory which contains a location, the module will
+recognize that and use the location automatically. First directory which
+is a location is used. Other locations or any other files are ignored.
 
-If the archive contains a directory which contains a location, the module
-will recognize that and use the location automatically.
-First directory which is a location is used.
-Other locations or any other files are ignored.
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[g.mapset](https://grass.osgeo.org/grass-stable/manuals/g.mapset.html),
+[g.mapsets](https://grass.osgeo.org/grass-stable/manuals/g.mapsets.html),
+[r.proj](https://grass.osgeo.org/grass-stable/manuals/r.proj.html),
+[v.proj](https://grass.osgeo.org/grass-stable/manuals/v.proj.html),
+[g.proj.all](g.proj.all.md)*
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/g.mapset.html">g.mapset</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/g.mapsets.html">g.mapsets</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/r.proj.html">r.proj</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.proj.html">v.proj</a>,
-  <a href="g.proj.all.html">g.proj.all</a>
-</em>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

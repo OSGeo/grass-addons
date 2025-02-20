@@ -1,51 +1,39 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>hd.hive.csv.table</em> helps to create Hive table for storing data in CSV format
+*hd.hive.csv.table* helps to create Hive table for storing data in CSV
+format
 
+## NOTES
 
-<p>
+Spatial Framework from ESRI supports reading from several file format.
+The Framework allows creating geometric data type from WKB, JSON and
+GeoJSON. Table can be created from hiveserver2 command line or with
+using module *hd.hive.csv.table*. Defining feature of table is provided
+using parameters and flags of module. It helps to user make CSV based
+table without advanced knowledge of Hive syntax.
 
+## EXAMPLES
 
-<h2>NOTES</h2>
+Creating table for storing coordinates.
 
-Spatial Framework from ESRI supports reading  from
-several file format.  The Framework allows creating geometric data type from
-WKB, JSON and GeoJSON. Table can be created from hiveserver2 command
-line or with using module  <em>hd.hive.csv.table</em>.
-Defining feature of table is provided using parameters and flags of module. It helps
-to user make CSV based  table without advanced knowledge of Hive syntax.
+```sh
+hd.hive.json.table driver=hiveserver2 table=csv driver=hiveserver2 table=json struct="type string, properties STRUCT<cat:SMALLINT>, geometry string" -e -d
+```
 
+## SEE ALSO
 
-<h2>EXAMPLES</h2>
+*[hd.hdfs.in.fs](hd.hdfs.in.fs.md),
+[hd.hdfs.in.vector](hd.hdfs.in.vector.md),
+[hd.hdfs.out.vector](hd.hdfs.out.vector.md),
+[hd.hdfs.info](hd.hdfs.info.md), [hd.hive.execute](hd.hive.execute.md),
+[hd.hive.csv.table](hd.hive.csv.table.md),
+[hd.hive.select](hd.hive.select.md), [hd.hive.info](hd.hive.info.md),
+[hd.hive.json.table](hd.hive.json.table.md)*
 
-Creating table for storing  coordinates.
+See also related [wiki page](https://grasswiki.osgeo.org/wiki/).
 
-<div class="code"><pre>
-hd.hive.json.table driver=hiveserver2 table=csv driver=hiveserver2 table=json struct="type string, properties STRUCT&lt;cat:SMALLINT&gt;, geometry string" -e -d
-</pre>
-</div>
+## AUTHOR
 
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
-<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
-<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
-<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
-<a href="hd.hive.execute.html">hd.hive.execute</a>,
-<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
-<a href="hd.hive.select.html">hd.hive.select</a>,
-<a href="hd.hive.info.html">hd.hive.info</a>,
-<a href="hd.hive.json.table.html">hd.hive.json.table</a>
-</em>
-
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/">wiki page</a>.
-
-
-<h2>AUTHOR</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during master thesis project 2016 (mentor: Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during master thesis
+project 2016 (mentor: Martin Landa)

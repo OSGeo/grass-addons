@@ -1,134 +1,114 @@
-<h2>NAME</h2>
+## NAME
 
-<em>r.fidimo</em> performs analysis of fish dispersal based on
-leptokurtic dispersal kernels. It calculates fish dispersal along river
-corridors based on a user's stream network input, fish source populations
-and species-specific dispersal parameters.
+*r.fidimo* performs analysis of fish dispersal based on leptokurtic
+dispersal kernels. It calculates fish dispersal along river corridors
+based on a user's stream network input, fish source populations and
+species-specific dispersal parameters.
 
-<h2>OPTIONS</h2>
-<h3>Stream parameters</h3>
-<dl>
-<dt><b>river</b></dt>
-<dd>Name of input stream network map (thinned raster map) on which the
-calculations of dispersal is performed. In cases of very meandering rivers
-(with bends narrower than the spatial resolution of the analysis (cell size)
-it is recommended to run v.generalize and r.thin and/or to use
-<em>r.fidimo.river</em> in advance. The stream network should only consist
-of tree-like structures, as braiding rivers and networks with two-side
-connected side arms will not work. Check the raster beforehand carefully!
-</dd>
-<dt><b>outflow_point</b></dt>
-<dd>Name of the outflow point txt-file (single point) for the calculation
-of the flow direction within the provided river network. The text-file
-must only contain a single |-separated coordinate pair (X|Y; same
-coordinate system as the <b>river</b> network raster). The file should not
-contain any headings, etc. e.g. the content of the file can look like:
-</dd>
-</dl>
+## OPTIONS
 
-<div class="code"><pre>
+### Stream parameters
+
+  - **river**  
+    Name of input stream network map (thinned raster map) on which the
+    calculations of dispersal is performed. In cases of very meandering
+    rivers (with bends narrower than the spatial resolution of the
+    analysis (cell size) it is recommended to run v.generalize and
+    r.thin and/or to use *r.fidimo.river* in advance. The stream network
+    should only consist of tree-like structures, as braiding rivers and
+    networks with two-side connected side arms will not work. Check the
+    raster beforehand carefully\!
+  - **outflow\_point**  
+    Name of the outflow point txt-file (single point) for the
+    calculation of the flow direction within the provided river network.
+    The text-file must only contain a single |-separated coordinate pair
+    (X|Y; same coordinate system as the **river** network raster). The
+    file should not contain any headings, etc. e.g. the content of the
+    file can look like:
+
+```sh
 545287.44|1942020.18
-</pre></div>
+```
 
-<dl>
-<dt><b>barriers</b></dt>
-<dd>Name of input barrier text-file indicating the geographical position
-and passability of barriers e.g. weirs. The file should contain the
-X and Y coordinate and a value for passability (0-1 where 0 is
-impassable and 1 is 100% passable). The values must be |-separated:
-</dd>
-</dl>
+  - **barriers**  
+    Name of input barrier text-file indicating the geographical position
+    and passability of barriers e.g. weirs. The file should contain the
+    X and Y coordinate and a value for passability (0-1 where 0 is
+    impassable and 1 is 100% passable). The values must be |-separated:
 
-<div class="code"><pre>
+```sh
 3543350.8001|6064831.9001|1
 3535061.5179|6064457.5321|0.3
-</pre></div>
+```
 
-<h3>Source populations</h3>
-The source populations can be provided either as random points (flag -r),
-or as fixed source population raster (flag -f).
+### Source populations
 
-<dl>
-<dt><b>n_source</b></dt>
-<dd>For the random locations; number or percentage of cells containing
-source populations. The model selects randomly cell (number specified
-by the user) and assigns a starting density of 1 to each occupied cell.
-</dd>
-<dt><b>source_populations</b></dt>
-<dd>Input raster map indicating the starting density per cell. All
-cells with densities &gt; 0 will act as source populations for the model.
-The raster map must have the resolution as the river raster and all
-source population cells must also be part of the river raster.
-</dd>
-</dl>
+The source populations can be provided either as random points (flag
+-r), or as fixed source population raster (flag -f).
 
-<h3>Dispersal parameters</h3>
+  - **n\_source**  
+    For the random locations; number or percentage of cells containing
+    source populations. The model selects randomly cell (number
+    specified by the user) and assigns a starting density of 1 to each
+    occupied cell.
+  - **source\_populations**  
+    Input raster map indicating the starting density per cell. All cells
+    with densities \> 0 will act as source populations for the model.
+    The raster map must have the resolution as the river raster and all
+    source population cells must also be part of the river raster.
 
-<dl>
-<dt><b>species</b></dt>
-<dd>Selected species with predefined L and AR (see R-package 'fishmove').
-</dd>
-<dt><b>L</b></dt>
-<dd>Length of fish which should be modelled. Increasing L is positively
-correlated with larger dispersal distances. Setting L will overwrite any
-species-settings (see R-package 'fishmove').
-</dd>
-<dt><b>AR</b></dt>
-<dd>Aspect ratio of the caudal fin of a fish which should be modelled.
-Increasing AR is positively correlated with larger dispersal distances.
-etting AR will overwrite any species-settings (see R-package 'fishmove').
-</dd>
-<dt><b>T</b></dt>
-<dd>Time interval for one modelling step. The dispersal kernel is time
-dependent and increasing T is positively correlated with larger dispersal
-distances (see R-package 'fishmove').
-</dd>
-<dt><b>p</b></dt>
-<dd>Share of the stationary component of the population. The value is
-set to 0.67 by default (my Paper).
-</dd>
-</dl>
+### Dispersal parameters
 
-<h3>Output</h3>
-<dl>
-<dt><b>output</b></dt>
-<dd>The base name of the output file(s). The output raster files will
-be %output%_fit respectively %output%_lwr and %output%_upr if a
-statistical interval is set.
-</dd>
-<dt><b>statistical_interval</b></dt>
-<dd>Statistical interval (confidence or prediction) derived from the
-regression analysis (see R-package 'fishmove'). If a statistical interval
-is set, three output maps will be created (fit, lwr and upr).
-</dd>
-</dl>
+  - **species**  
+    Selected species with predefined L and AR (see R-package
+    'fishmove').
+  - **L**  
+    Length of fish which should be modelled. Increasing L is positively
+    correlated with larger dispersal distances. Setting L will overwrite
+    any species-settings (see R-package 'fishmove').
+  - **AR**  
+    Aspect ratio of the caudal fin of a fish which should be modelled.
+    Increasing AR is positively correlated with larger dispersal
+    distances. etting AR will overwrite any species-settings (see
+    R-package 'fishmove').
+  - **T**  
+    Time interval for one modelling step. The dispersal kernel is time
+    dependent and increasing T is positively correlated with larger
+    dispersal distances (see R-package 'fishmove').
+  - **p**  
+    Share of the stationary component of the population. The value is
+    set to 0.67 by default (my Paper).
 
-<h3>Dependencies</h3>
-<ul>
-<li>RPy2</li>
-<li>NumPy</li>
-<li>SciPy</li>
-<li>Sqlite3</li>
-<li>r.stream.order</li>
-</ul>
+### Output
 
-<h2>SEE ALSO</h2>
+  - **output**  
+    The base name of the output file(s). The output raster files will be
+    %output%\_fit respectively %output%\_lwr and %output%\_upr if a
+    statistical interval is set.
+  - **statistical\_interval**  
+    Statistical interval (confidence or prediction) derived from the
+    regression analysis (see R-package 'fishmove'). If a statistical
+    interval is set, three output maps will be created (fit, lwr and
+    upr).
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.order.html">r.stream.order</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
-</em>
+### Dependencies
 
-<h2>REFERENCES</h2>
+  - RPy2
+  - NumPy
+  - SciPy
+  - Sqlite3
+  - r.stream.order
 
-<em>Fidimo-paper</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[r.stream.order](https://grass.osgeo.org/grass-stable/manuals/r.stream.order.html),
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
+
+## REFERENCES
+
+*Fidimo-paper*
+
+## AUTHOR
 
 Johannes Radinger, Leibniz-Institute of Freshwater Ecology and Inland
 Fisheries, Berlin (Germany)
-
-<!--
-<p>
-<i>Last changed: (Mo, Sept 20, 2011)</i>
--->

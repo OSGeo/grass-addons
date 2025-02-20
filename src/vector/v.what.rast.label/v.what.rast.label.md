@@ -1,77 +1,77 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.what.rast.label</em> retrieves raster values and labels from one
-or more given raster maps for each point stored in the input vector map.
-The name of the columns with the raster values start with <i>ID_</i>,
-followed by the name of the raster layer from which the values are taken.
-For the name of the column with the raster labels, the name of the raster from
+*v.what.rast.label* retrieves raster values and labels from one or more
+given raster maps for each point stored in the input vector map. The
+name of the columns with the raster values start with *ID\_*, followed
+by the name of the raster layer from which the values are taken. For the
+name of the column with the raster labels, the name of the raster from
 which the label is taken is used.
 
-<p>Optionally, the user can define raster layers without labels. In that case
-only the raster values are uploaded to a column with the name of that raster.
+Optionally, the user can define raster layers without labels. In that
+case only the raster values are uploaded to a column with the name of
+that raster.
 
-<p>Another option is to add columns with point coordinates to the attribute
+Another option is to add columns with point coordinates to the attribute
 table of the output vector layer.
 
-<p>The user can opt to include the attribute columns of the input vector layer
-in the output. In that case, the columns with the raster values and labels will
-appear after the columns from the input vector layer.
+The user can opt to include the attribute columns of the input vector
+layer in the output. In that case, the columns with the raster values
+and labels will appear after the columns from the input vector layer.
 
-<h2>NOTES</h2>
+## NOTES
 
-Points and centroids with shared category number cannot be processed. To solve
-this, unique categories may be added with v.category in a separate layer. See
-<i>v.what.rast</i> for details.
+Points and centroids with shared category number cannot be processed. To
+solve this, unique categories may be added with v.category in a separate
+layer. See *v.what.rast* for details.
 
-<p>If you only want to upload raster values at positions of vector points to the
-attribute table of that vector layer, use <i>v.what.rast</i> instead.
+If you only want to upload raster values at positions of vector points
+to the attribute table of that vector layer, use *v.what.rast* instead.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Get the POI within the bounds of the land use map.
 
-<p><div class="code"><pre>
+```sh
 g.region raster=landuse
 v.in.region output=regionbounds
 v.select ainput=points_of_interest binput=regionbounds output=POI_select operator=within
-</pre></div>
+```
 
-<p>Extract raster values and labels from landuse map. Columns from the
-input map (POI_select) are not included.
+Extract raster values and labels from landuse map. Columns from the
+input map (POI\_select) are not included.
 
-<p><div class="code"><pre>
+```sh
 v.what.rast.label vector=POI_select raster=landuse raster2=elevation output=POI_landuse1
-</pre></div>
+```
 
-<p>Extract raster values and labels from landuse map. Use the -0 flag
-to include the columns from the input map (POI_select)
+Extract raster values and labels from landuse map. Use the -0 flag to
+include the columns from the input map (POI\_select)
 
-<p><div class="code"><pre>
+```sh
 v.what.rast.label -o vector=POI_select raster=landuse raster2=elevation output=POI_landuse2
-</pre></div>
+```
 
-<p>Extract raster values and labels from landuse map and values from
+Extract raster values and labels from landuse map and values from
 elevation map. Use the -0 flag to include the columns from the input map
-(POI_select)
+(POI\_select)
 
-<p><div class="code"><pre>
+```sh
 v.what.rast.label -o vector=POI_select@user1 raster=landuse raster2=elevation output=POI_landuse3
-</pre></div>
+```
 
-<p>Extract raster values and labels from landuse map and values from
+Extract raster values and labels from landuse map and values from
 elevation map. Use the -0 flag to include the columns from the input map
-(POI_select). Use the -c flag to include the point coordinates
+(POI\_select). Use the -c flag to include the point coordinates
 
-<p><div class="code"><pre>
+```sh
 v.what.rast.label -o -c vector=POI_select@user1 raster=landuse@PERMANENT raster2=elevation@PERMANENT output=POI_landuse4
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>,
-<a href="v.what.rast.multi.html">v.what.rast.multi</a> (addon)
-</em>
+*[v.what.rast](https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html),
+[v.what.rast.multi](v.what.rast.multi.md) (addon)*
 
-<h2>AUTHORS</h2>
-<em>Paulo van Breugel</em>
+## AUTHORS
+
+*Paulo van Breugel*

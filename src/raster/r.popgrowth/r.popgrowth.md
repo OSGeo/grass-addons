@@ -1,21 +1,21 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.popgrow</em> calculates classical models of population growths. The module creates
-a new raster map of population size (abundance) after a specified number of time steps based
-on an intial populations size (input raster).
-<p>
-Available models for populations growth: Exponential growth and the Ricker model.
+*r.popgrow* calculates classical models of population growths. The
+module creates a new raster map of population size (abundance) after a
+specified number of time steps based on an intial populations size
+(input raster).
 
+Available models for populations growth: Exponential growth and the
+Ricker model.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 TBD.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Johannes Radinger<br>
-<i>Leibniz-Institute of Freshwater Ecology and Inland Fisheries (IGB)<br>
-Berlin, Germany</i>
+Johannes Radinger  
+*Leibniz-Institute of Freshwater Ecology and Inland Fisheries (IGB)  
+Berlin, Germany*

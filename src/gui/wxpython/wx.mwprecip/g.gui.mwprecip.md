@@ -1,10 +1,10 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.gui.mwprecip</em> processes raw data of microwave link data in order
-to obtain derived precipitation data.
+*g.gui.mwprecip* processes raw data of microwave link data in order to
+obtain derived precipitation data.
 
-<h2>NOTES</h2>
+## NOTES
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel)

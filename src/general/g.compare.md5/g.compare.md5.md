@@ -1,14 +1,14 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.compare.md5</em> is a module that checks if two GRASS maps are identical.
+*g.compare.md5* is a module that checks if two GRASS maps are identical.
 It uses the MD5 cryptographic hash function. For vector map layers it
 does not check if the attribute table(s) are identical, too.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 North Carolina example, with elevation map:
 
-<div class="code"><pre>
+```sh
 # copy a raster map
 g.copy raster=elevation,dem
 
@@ -23,10 +23,12 @@ g.compare.md5 ainput=elevation binput=dem
 
 # but when adding the -c flag (ignore color table), TRUE is returned
 g.compare.md5 -c ainput=elevation binput=dem
-</pre></div>
+```
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Luca Delucchi, Fondazione Edmund Mach, Research and Innovation Centre,
-Department of Biodiversity and Molecular Ecology,
-<a href="https://web.archive.org/web/20151217025426/https://gis.cri.fmach.it/">GIS and Remote Sensing Unit</a>, Italy
+Department of Biodiversity and Molecular Ecology, [GIS and Remote
+Sensing
+Unit](https://web.archive.org/web/20151217025426/https://gis.cri.fmach.it/),
+Italy

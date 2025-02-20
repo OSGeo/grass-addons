@@ -1,19 +1,15 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.flip</em>Flips an image North-South. Initial need was for TRMM images.
+*r.flip*Flips an image North-South. Initial need was for TRMM images.
 
-
-<h2>NOTES</h2>
+## NOTES
 
 Added flags for East-West flip (w) and both N-S and E-W (b).
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a>
-</em>
+*[i.atcorr](https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, International Water Management Institute, Sri Lanka

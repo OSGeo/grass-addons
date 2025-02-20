@@ -1,66 +1,92 @@
-<h2>DESCRIPTION</h2>
-<em>r.green.hydro.optimal</em> detects the position of the potential hydropower plants that can produce the highest possible power. Deciding the range of plant length and the distance between plants, the module returns two vector maps with the segments of rivers exploited by the potential plants and with the intakes and restitution of these plants. The module computes the potential plants in order to maximize the power that can be produced.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.green.hydro.optimal* detects the position of the potential hydropower
+plants that can produce the highest possible power. Deciding the range
+of plant length and the distance between plants, the module returns two
+vector maps with the segments of rivers exploited by the potential
+plants and with the intakes and restitution of these plants. The module
+computes the potential plants in order to maximize the power that can be
+produced.
 
-The three input files are the rivers considered (vector), the discharge for each point of this river (raster) and the elevation raster map to calculate the gross head.<br><br>
+## NOTES
 
-The power is defined as:<br>
+The three input files are the rivers considered (vector), the discharge
+for each point of this river (raster) and the elevation raster map to
+calculate the gross head.  
+  
+The power is defined as:  
 
-<center>P=&eta; * &rho; * g * Q * &Delta;h</center>
+P=η \* ρ \* g \* Q \* Δh
 
-<blockquote>where &eta; is the efficiency of the plant <br>
-&rho; the density of water (1000 kg/m<sup>3</sup>) <br>
-g the gravity term (9,81 m/s<sup>2</sup>) <br>
-Q the discharge of the river<br>
-&Delta;h the gross head of the considered segment</blockquote><br>
+> where η is the efficiency of the plant  
+> ρ the density of water (1000 kg/m<sup>3</sup>)  
+> g the gravity term (9,81 m/s<sup>2</sup>)  
+> Q the discharge of the river  
+> Δh the gross head of the considered segment
 
-The module maximizes the power over a given range by a brute-force search in order to examine all possible arrangements of Q and &Delta;h. Thus, the potential segments can be shorter than the maximum plant length chosen because it depends on the maximization of the product  Q * &Delta;h. <br><br>
+  
+The module maximizes the power over a given range by a brute-force
+search in order to examine all possible arrangements of Q and Δh. Thus,
+the potential segments can be shorter than the maximum plant length
+chosen because it depends on the maximization of the product Q \* Δh.  
+  
+For each potential segment, the potential power is given in kW in
+attribute.
 
-For each potential segment, the potential power is given in kW in attribute.
+## EXAMPLE
 
+This example is based on the case-study of Gesso and Vermenagna valleys
+in the Natural Park of the Maritime Alps, Piedmont, Italy.  
+  
+Here is the vector file availablestreams of the interested streams in
+which we want to compute the potential hydropower plants. The river
+segments already exploited by an existing plant do not appear in the
+file.  
 
-<h2>EXAMPLE</h2>
-This example is based on the case-study of Gesso and Vermenagna valleys in the Natural Park of the Maritime Alps, Piedmont, Italy.<br><br>
-
-Here is the vector file availablestreams of the interested streams in which we want to compute the potential hydropower plants. The river segments already exploited by an existing plant do not appear in the file.<br>
-
-<center>
-<img src="r_green_hydro_optimal_input.png" alt="availablestreams"><br>
+![image-alt](r_green_hydro_optimal_input.png)  
 Input vector map availablestreams
-</center><br>
 
-The following command computes the potential plants for a plant length range from 10 to 800 m and a distance between plants of 800 m :<br><br>
+  
+The following command computes the potential plants for a plant length
+range from 10 to 800 m and a distance between plants of 800 m :  
+  
 
-<div class="code"><pre>r.green.hydro.optimal
+```sh
+r.green.hydro.optimal
 discharge=discharge
 river=availablestreams
 elevation=elevation
 len_plant=800
 distance=800
 output_plant=potentialsegments
-output_point=potentialpoints<br>
-d.vect map= potentialpoints color=red<br>
-d.vect map= potentialplants color=blue<br></pre></div><br>
+output_point=potentialpoints
 
-The output vector maps are shown in the following picture which gathers the potential segments vector map (potentialplants, in blue) and the potential intakes and restitution vector map (potentialpoints, in red)
-<center>
-<img src="r_green_hydro_optimal_output.png" alt="potentialplants"><br>
-Output vector maps potentialplants (in blue) and potentialpoints (in red)
-</center>
+d.vect map= potentialpoints color=red
 
+d.vect map= potentialplants color=blue
+```
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="r.green.hydro.discharge.html">r.green.hydro.discharge</a><br>
-<a href="r.green.hydro.delplants.html">r.green.hydro.delplants</a><br>
-<a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
-<a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
-<a href="r.green.hydro.structure.html">r.green.hydro.structure</a><br>
-<a href="r.green.hydro.technical.html">r.green.hydro.technical</a><br>
-<a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
-</em>
+  
+The output vector maps are shown in the following picture which gathers
+the potential segments vector map (potentialplants, in blue) and the
+potential intakes and restitution vector map (potentialpoints, in red)
 
-<h2>AUTHORS</h2>
+![image-alt](r_green_hydro_optimal_output.png)  
+Output vector maps potentialplants (in blue) and potentialpoints (in
+red)
 
-Giulia Garegnani (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.<br>
+## SEE ALSO
+
+*[r.green.hydro.discharge](r.green.hydro.discharge.md)  
+[r.green.hydro.delplants](r.green.hydro.delplants.md)  
+[r.green.hydro.theoretical](r.green.hydro.theoretical.md)  
+[r.green.hydro.recommended](r.green.hydro.recommended.md)  
+[r.green.hydro.structure](r.green.hydro.structure.md)  
+[r.green.hydro.technical](r.green.hydro.technical.md)  
+[r.green.hydro.financial](r.green.hydro.financial.md)  
+*
+
+## AUTHORS
+
+Giulia Garegnani (Eurac Research, Bolzano, Italy), Manual written by
+Julie Gros.

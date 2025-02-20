@@ -1,11 +1,13 @@
-<h2>DESCRIPTION</h2>
-<em>r.slopeunits.clean</em> cleans slope units layer, e.g. results of <em>r.slopeunits.create</em>.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.slopeunits.clean* cleans slope units layer, e.g. results of
+*r.slopeunits.create*.
 
-<h2>EXAMPLE</h2>
+## NOTES
 
-<div class="code"><pre>
+## EXAMPLE
+
+```sh
 r.slopeunits.clean \
     demmap=dem_italia_isolegrandi@su_test \
     plainsmap=flat \
@@ -13,16 +15,17 @@ r.slopeunits.clean \
     slumapclean=su_tmp_cl \
     cleansize=25000 \
     -m
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-<em>
-    <a href="r.slopeunits.create.html">r.slopeunits.create</a>,
-    <a href="r.slopeunits.metrics.html">r.slopeunits.metrics</a>,
-    <a href="r.slopeunits.optimize.html">r.slopeunits.optimize</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHORS</h2>
-Main authors: Ivan Marchesini, Massimiliano Alvioli, CNR-IRPI
-<br>
-Markus Metz (refactoring, translation of "clean_method_3" to python), Carmen Tawalika (creation of extra addon), <a href="https://www.mundialis.de/">mundialis</a>
+*[r.slopeunits.create](r.slopeunits.create.md),
+[r.slopeunits.metrics](r.slopeunits.metrics.md),
+[r.slopeunits.optimize](r.slopeunits.optimize.md)*
+
+## AUTHORS
+
+Main authors: Ivan Marchesini, Massimiliano Alvioli, CNR-IRPI  
+Markus Metz (refactoring, translation of "clean\_method\_3" to python),
+Carmen Tawalika (creation of extra addon),
+[mundialis](https://www.mundialis.de/)

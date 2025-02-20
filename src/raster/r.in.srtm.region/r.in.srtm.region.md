@@ -1,79 +1,78 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.in.srtm.region</em> imports all SRTM tiles covering the
-current region or region extents given with <b>region</b> into GRASS,
-patches the tiles together and optionally interpolates holes for
-SRTM V2.1. The SRTM V003 products are already void-filled.
-<p>
-<em>r.in.srtm.region</em> downloads
-(<a href="https://lpdaac.usgs.gov/documents/179/SRTM_User_Guide_V3.pdf">SRTM product description</a>)
+*r.in.srtm.region* imports all SRTM tiles covering the current region or
+region extents given with **region** into GRASS, patches the tiles
+together and optionally interpolates holes for SRTM V2.1. The SRTM V003
+products are already void-filled.
 
-<ul>
-<li> SRTMGL1 V003 tiles at 1 arc second (about 30 meters) resolution, void-filled from:<br>
- <a href="https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/">https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/</a></li>
+*r.in.srtm.region* downloads ([SRTM product
+description](https://lpdaac.usgs.gov/documents/179/SRTM_User_Guide_V3.pdf))
 
-<li> SRTMGL3 V003 tiles at 3 arc seconds (about 90 meters) resolution, void-filled from:<br>
- <a href="https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/">https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/</a></li>
+  - SRTMGL1 V003 tiles at 1 arc second (about 30 meters) resolution,
+    void-filled from:  
+    <https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/>
+  - SRTMGL3 V003 tiles at 3 arc seconds (about 90 meters) resolution,
+    void-filled from:  
+    <https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/>
+  - SRTM V2.1 tiles at 3 arc second (about 90 meters) resolution from:
+    [http://dds.cr.usgs.gov/srtm/](http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/)
+  - or, optionally *r.in.srtm.region* uses a local folder with
+    previously downloaded SRTM data files if the **local** option is
+    given.
 
-<li> SRTM V2.1 tiles at 3 arc second (about 90 meters) resolution from:
-<a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">http://dds.cr.usgs.gov/srtm/</a></li>
-<li> or, optionally <em>r.in.srtm.region</em> uses a local folder with previously downloaded SRTM data files if
-  the <b>local</b> option is given.</li>
-</ul>
+Importantly, for the SRTM tiles download a user registration is needed
+at <https://urs.earthdata.nasa.gov/users/new>
 
-Importantly, for the SRTM tiles download a user registration is needed at
-<a href="https://urs.earthdata.nasa.gov/users/new">https://urs.earthdata.nasa.gov/users/new</a>
-<p>
-In the user profile, two specific applications must be approved in the "My application" tab:
-<ul>
-<li>"LP DAAC Data Pool" application, and</li>
-<li>"Earthdata Search" application.</li>
-</ul>
+In the user profile, two specific applications must be approved in the
+"My application" tab:
 
-<h2>EXAMPLE</h2>
+  - "LP DAAC Data Pool" application, and
+  - "Earthdata Search" application.
 
-Import of SRTMGL1 V003 (1 arc seconds ~ 30m) covering the current computational region:
+## EXAMPLE
 
-<div class="code"><pre>
+Import of SRTMGL1 V003 (1 arc seconds \~ 30m) covering the current
+computational region:
+
+```sh
 # run in LatLong location - Sicily East, Italy
 g.region n=39 s=37 w=14 e=16 res=0:00:01 -p
 
 # use own credentials here
 r.in.srtm.region -1 user="my_nasa_user" password="my_nasa_pw" output=srtm_sicily_1arc memory=2000
 r.univar srtm_sicily_1arc
-</pre></div>
+```
 
-<div align="center" style="margin: 10px">
-<a href="r_in_srtm_region_etna.png">
-<img src="r_in_srtm_region_etna.png" width="600" alt="r.in.srtm.region example" border="0">
-</a><br>
-<i>Figure: Eta volcano (Sicily, Italy) shown in NVIZ</i>
-</div>
+[![image-alt](r_in_srtm_region_etna.png)](r_in_srtm_region_etna.png)  
+*Figure: Eta volcano (Sicily, Italy) shown in NVIZ*
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.in.srtm](https://grass.osgeo.org/grass-stable/manuals/r.in.srtm.html),
+[r.in.nasadem](r.in.nasadem.md) (addon)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.srtm.html">r.in.srtm</a>,
-<a href="r.in.nasadem.html">r.in.nasadem</a> (addon)
-</em>
-<p>
-The <a href="http://www2.jpl.nasa.gov/srtm/">Shuttle Radar Topography Mission</a>
-homepage at NASA's JPL (see also <a href="https://lpdaac.usgs.gov/product_search/?collections=MEaSUREs+SRTM&status=Operational&view=list">MEaSUREs Data Product Table - SRTM</a>).
-<p>
-The <a href="https://lpdaac.usgs.gov/sites/default/files/public/measures/docs/NASA_SRTM_V3.pdf">SRTM v3 documentation</a>.
-<p>
-<a href="https://lpdaac.usgs.gov/products/srtmgl1v003/">SRTMGL1: NASA Shuttle Radar Topography Mission Global 1 arc second V003</a>
-<p>
-NASA JPL. (2013). <i>NASA Shuttle Radar Topography Mission Global 1 arc second.</i> NASA LP DAAC. <a href="https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003">https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003</a>
+The [Shuttle Radar Topography Mission](http://www2.jpl.nasa.gov/srtm/)
+homepage at NASA's JPL (see also [MEaSUREs Data Product Table -
+SRTM](https://lpdaac.usgs.gov/product_search/?collections=MEaSUREs+SRTM&status=Operational&view=list)).
 
-<h2>REFERENCES</h2>
+The [SRTM v3
+documentation](https://lpdaac.usgs.gov/sites/default/files/public/measures/docs/NASA_SRTM_V3.pdf).
 
-M. Neteler, 2005. <a href="https://grass.osgeo.org/newsletter/GRASSNews_vol3.pdf">SRTM and VMAP0 data in OGR and GRASS.</a>
-<i><a href="https://grass.osgeo.org/newsletter/">GRASS Newsletter</a></i>, Vol.3, pp. 2-6, June 2005. ISSN 1614-8746.
+[SRTMGL1: NASA Shuttle Radar Topography Mission Global 1 arc second
+V003](https://lpdaac.usgs.gov/products/srtmgl1v003/)
 
+NASA JPL. (2013). *NASA Shuttle Radar Topography Mission Global 1 arc
+second.* NASA LP DAAC.
+<https://doi.org/10.5067/MEaSUREs/SRTM/SRTMGL1.003>
 
-<h2>AUTHORS</h2>
+## REFERENCES
 
-Markus Metz<br>
+M. Neteler, 2005. [SRTM and VMAP0 data in OGR and
+GRASS.](https://grass.osgeo.org/newsletter/GRASSNews_vol3.pdf) *[GRASS
+Newsletter](https://grass.osgeo.org/newsletter/)*, Vol.3, pp. 2-6, June
+2005. ISSN 1614-8746.
+
+## AUTHORS
+
+Markus Metz  
 Reprojection support: Anika Bettge, mundialis

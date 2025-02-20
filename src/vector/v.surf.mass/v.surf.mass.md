@@ -1,27 +1,25 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.surf.mass</em> creates a raster surface from vector areas,
-preserving the value of the area attribute. For example, if the selected
-area attibute is the population count, the sum of all pixel values in a
-given area is equal to the area's population count.
+*v.surf.mass* creates a raster surface from vector areas, preserving the
+value of the area attribute. For example, if the selected area attibute
+is the population count, the sum of all pixel values in a given area is
+equal to the area's population count.
 
-
-<h2>NOTES</h2>
+## NOTES
 
 The current region needs to be prepared with
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>, choosing a resolution such that
-the smallest area is covered by at least four pixels. The current region
-should be completely inside the bounding box of the vector.
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+choosing a resolution such that the smallest area is covered by at least
+four pixels. The current region should be completely inside the bounding
+box of the vector.
 
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<h3>Pycnophylactic interpolation of Voronoi triangles using annual
-precipitation in the North Carolina sample data</h3>
+### Pycnophylactic interpolation of Voronoi triangles using annual precipitation in the North Carolina sample data
 
 (see below for screenshots of the results)
 
-<div class="code"><pre>
+```sh
 # setting the region
 g.region -p raster=elev_state_500m
 
@@ -61,25 +59,23 @@ v.to.rast precip_annual out=precip_annual_voronoi type=area use=attr attrcolumn=
 d.mon wx0
 d.rast.leg precip_annual_voronoi
 d.rast.leg precip_annual_pycno
-</pre></div>
+```
 
-<center>
-<img src="v_surf_mass_voronoi.png" border="0"><br>
-<i>Annual precipitation (30 years avg.) of North Carolina shown
-   as Voronoi diagram based on meteorological stations (perspective
-   view in NVIZ).</i>
-<img src="v_surf_mass_pycno.png" border="0"><br>
-<i>Smooth Pycnophylactic Interpolation of annual precipitation
- (30 years avg.) of North Carolina using the Voronoi diagram map
- based on meteorological stations (perspective view in NVIZ).</i>
-</center>
+![image-alt](v_surf_mass_voronoi.png)  
+*Annual precipitation (30 years avg.) of North Carolina shown as Voronoi
+diagram based on meteorological stations (perspective view in NVIZ).*
+![image-alt](v_surf_mass_pycno.png)  
+*Smooth Pycnophylactic Interpolation of annual precipitation (30 years
+avg.) of North Carolina using the Voronoi diagram map based on
+meteorological stations (perspective view in NVIZ).*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
 Tobler WR. 1979. Smooth Pycnophylactic Interpolation for Geographical
 Regions. Journal of the American Statistical Association, 74 (367):
-519-530 (<a href="https://people.geog.ucsb.edu/~kclarke/Geography232/Pycno.pdf">PDF</a>).
+519-530
+([PDF](https://people.geog.ucsb.edu/~kclarke/Geography232/Pycno.pdf)).
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Metz

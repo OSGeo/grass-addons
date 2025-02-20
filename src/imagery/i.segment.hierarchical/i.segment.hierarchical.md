@@ -1,18 +1,16 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.segment.hierarchical</em> performs a hierarchical segmentation on
-a image (group). The module uses <em>i.segment</em>.
+*i.segment.hierarchical* performs a hierarchical segmentation on a image
+(group). The module uses *i.segment*.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 TODO
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>
-</em>
+*[i.segment](https://grass.osgeo.org/grass-stable/manuals/i.segment.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Pietro Zambelli (University of Trento)

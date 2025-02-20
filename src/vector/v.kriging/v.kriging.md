@@ -1,150 +1,166 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.kriging</em> constructs 2D / 3D raster from the values located on discrete points using interpolation method <i>ordinary kriging</i>. In order to let the user decide on the process and necessary parameters, the module performance is divided into three phases:
+*v.kriging* constructs 2D / 3D raster from the values located on
+discrete points using interpolation method *ordinary kriging*. In order
+to let the user decide on the process and necessary parameters, the
+module performance is divided into three phases:
 
-<ul>
-	<li><b>initial phase</b> computes experimental variogram.
-	<ul>
-		<li>Please set up a name of the <b>report file</b>. The file will be created automatically in working directory to enable import of parameters from current to following phases. If the file has been deleted during the module performance, the user is asked to start interpolation again from the initial phase.</li>
-		<li>Warning about particular point and "<i>less than 2 neighbours in its closest surrounding. The perimeter of the surrounding will be increased...</i>" indicates that variogram range should be shortened.</li>
-		<li>There will appear some temporary files during variogram computation. They will be deleted automatically in following phase. If missing, the user is asked to repeat initial phase.</li>
-		<li>It is not necessary to save experimental variogram plots. They just help to estimate parameters of theoretical variogram that will be computed in following step (output contains experimental and theoretical variogram plotted together).</li>
-	</ul>
-	</li>
-	<li>in the <b>middle phase</b>, the user estimates theoretical variogram setting up the range (if necessary, the sill and the nugget effect as well) to fit the experimental variogram from previous phase.
-	<ul>
-		<li>Default <i>sill</i> is calculated from variogram values, more details in (<i>Stopkova, 2014</i>).</li>
-		<li>Save horizontal and vertical variogram plots using <i>file=extension</i>.</li>
-		<li>Experimental anisotropic / bivariate variogram is plotted as a base for final theoretical variogram parameters estimation in final phase.</li>
-	</ul>
-	</li>
-	<li><b>final phase</b> performs interpolation based on parameters of theoretical variogram.
-	<ul>
-		<li>Save anisotropic or bivariate variogram plot using <i>file=extension</i>.</li>
-	</ul>
-	</li>
-</ul>
+  - **initial phase** computes experimental variogram.
+      - Please set up a name of the **report file**. The file will be
+        created automatically in working directory to enable import of
+        parameters from current to following phases. If the file has
+        been deleted during the module performance, the user is asked to
+        start interpolation again from the initial phase.
+      - Warning about particular point and "*less than 2 neighbours in
+        its closest surrounding. The perimeter of the surrounding will
+        be increased...*" indicates that variogram range should be
+        shortened.
+      - There will appear some temporary files during variogram
+        computation. They will be deleted automatically in following
+        phase. If missing, the user is asked to repeat initial phase.
+      - It is not necessary to save experimental variogram plots. They
+        just help to estimate parameters of theoretical variogram that
+        will be computed in following step (output contains experimental
+        and theoretical variogram plotted together).
+  - in the **middle phase**, the user estimates theoretical variogram
+    setting up the range (if necessary, the sill and the nugget effect
+    as well) to fit the experimental variogram from previous phase.
+      - Default *sill* is calculated from variogram values, more details
+        in (*Stopkova, 2014*).
+      - Save horizontal and vertical variogram plots using
+        *file=extension*.
+      - Experimental anisotropic / bivariate variogram is plotted as a
+        base for final theoretical variogram parameters estimation in
+        final phase.
+  - **final phase** performs interpolation based on parameters of
+    theoretical variogram.
+      - Save anisotropic or bivariate variogram plot using
+        *file=extension*.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-To get optimal results, it is necessary to test various initial settings, anisotropic ratios and variogram functions. Input (2D or 3D point layer) must contain values to be interpolated in the attribute table.
+To get optimal results, it is necessary to test various initial
+settings, anisotropic ratios and variogram functions. Input (2D or 3D
+point layer) must contain values to be interpolated in the attribute
+table.
 
-<h3>3D kriging</h3>
+### 3D kriging
 
-<b>General commands</b>
-<div class="code"><pre>
+**General commands**
+
+```sh
 v.kriging phase=initial in=input_layer icol=name report=report_file.txt file=png
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=input_layer phase=middle hz_fun=exponential vert_fun=exponential ic=name file=png  \
 hz_range=double vert_range=double [hz_sill=double vert_sill=double hz_nugget=double vert_nugget=double] -u
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=input_layer phase=final final_fun=exponential final_range=double \
 [final_sill=double final_nugget=double] icol=name file=png out=name crossval=crossval_file.txt
-</pre></div>
+```
 
-<p>
-Commands based on the <a href="https://grass.osgeo.org/download/data/">dataset</a> of
-<b>Slovakia 3D precipitation</b> (<i>Mitasova and Hofierka, 2004</i>). For more detailed information check
-<a href="v.kriging.pdf">case studies</a>. Another examples of 3D interpolation are available in (<i>Stopkova, 2014</i>).
+Commands based on the [dataset](https://grass.osgeo.org/download/data/)
+of **Slovakia 3D precipitation** (*Mitasova and Hofierka, 2004*). For
+more detailed information check [case studies](v.kriging.pdf). Another
+examples of 3D interpolation are available in (*Stopkova, 2014*).
 
-<div class="code"><pre>
+```sh
 v.kriging phase=initial in=precip3d@PERMANENT ic=precip report=precip3d.txt file=png --o
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=precip3d@PERMANENT phase=middle hz_fun=exponential vert_fun=gaussian ic=precip file=png hz_range=100000. vert_range=1600 --o -u
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=precip3d@PERMANENT phase=middle hz_fun=exponential vert_fun=gaussian ic=precip \
 file=png hz_range=100000. vert_range=1600 --o -u
-</pre></div>
+```
 
-Note: 3D points in this example are concentrated on the Earth's surface. Thus the deeper / higher, the less accurate result of interpolation.
+Note: 3D points in this example are concentrated on the Earth's surface.
+Thus the deeper / higher, the less accurate result of interpolation.
 
-<h3>2D kriging</h3>
-<p> <b>General commands</b>
+### 2D kriging
 
-<div class="code"><pre>
+**General commands**
+
+```sh
 v.kriging phase=initial in=input_layer icol=name report=report_file.txt file=png -2
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=input_layer phase=final final_function=linear icol=name file=png \
   out=name crossval=crossval_file.txt -2
-</pre></div>
+```
 
-<p> Commands based on 500 random points extracted from input points of Digital Elevation Model (DEM)
-<i>elev_lid792_randpts</i> from the <b>North Carolina
-<a href="https://grass.osgeo.org/download/data/">dataset</a></b> (<i>Neteler and Mitasova, 2004</i>).
-See the <a href="v.kriging.pdf">case studies</a>.
+Commands based on 500 random points extracted from input points of
+Digital Elevation Model (DEM) *elev\_lid792\_randpts* from the **North
+Carolina [dataset](https://grass.osgeo.org/download/data/)** (*Neteler
+and Mitasova, 2004*). See the [case studies](v.kriging.pdf).
 
-<div class="code"><pre>
+```sh
 v.kriging phase=initial in=elev_lid792_selected ic=value azimuth=45. td=45. \
 report=lid792_500_linear.txt -2 --o
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 v.kriging in=elev_lid792_selected phase=final final_function=linear ic=value \
 file=png out=lid792_500_linear crossval=lid792_500_xval_linear.txt -2 --o
-</pre></div>
+```
 
-<h2>TODO</h2>
-<ul>
-<li><b>anisotropy</b> in horizontal direction missing
-<li>current version is suitable just for <b>metric coordinate systems</b>
-<li>enable <b>mask usage</b>
-<li><b>bivariate variogram</b> needs to be rebuilt (theory)
-<li><b>2D interpolation from 3D input layer</b> needs to be rebuilt (especially in case that there are too many points located on identical horizontal coordinates with different elevation)
-</ul>
+## TODO
 
-<h2>Recommendations</h2>
-<ul>
-<li> In case of too much <i>warnings</i> about input points that have "<b>less than 2 neighbours in its closest surrounding</b>. The perimeter of the surrounding will be increased...", please consider shorter variogram range.
-<li> Save just figures with theoretical variogram (using <i>file=extension</i> in the middle and final phase). Experimental variograms are included in the theoretical variogram plot and separate "experimental" plots can be just temporal.
-</ul>
+  - **anisotropy** in horizontal direction missing
+  - current version is suitable just for **metric coordinate systems**
+  - enable **mask usage**
+  - **bivariate variogram** needs to be rebuilt (theory)
+  - **2D interpolation from 3D input layer** needs to be rebuilt
+    (especially in case that there are too many points located on
+    identical horizontal coordinates with different elevation)
 
-<h2>REFERENCES</h2>
+## Recommendations
 
-<table>
- 	<tr>
- 		<td>
- 			Mitasova, H. and Hofierka, J. (2004). <i>Slovakia Precipitation data</i>. Available at <a href="https://grass.osgeo.org/download/data/">https://grass.osgeo.org/download/data/</a>.
- 		</td>
- 	</tr>
- 	<tr>
- 	<tr>
- 		<td>
- 			Neteler, M. and Mitasova, H. (2004). <i>Open Source GIS: A GRASS GIS Approach</i>.
- 			2nd Ed. 401 pp, Springer, New York. Online Supplement: https://grassbook.org
- 		</td>
- 	</tr>
- 	<tr>
- 		<td>
- 			Stopkova, E. (2014). <i>Development and application of 3D analytical functions in spatial analyses</i>
- 			(Unpublished doctoral dissertation). The Department of Theoretical Geodesy, Faculty of Civil Engineering
- 			of Slovak University of Technology in Bratislava, Slovakia.
- 		</td>
- 	</tr>
- </table>
+  - In case of too much *warnings* about input points that have "**less
+    than 2 neighbours in its closest surrounding**. The perimeter of the
+    surrounding will be increased...", please consider shorter variogram
+    range.
+  - Save just figures with theoretical variogram (using *file=extension*
+    in the middle and final phase). Experimental variograms are included
+    in the theoretical variogram plot and separate "experimental" plots
+    can be just temporal.
 
-<h2>SEE ALSO</h2>
+## REFERENCES
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html">v.vol.rst</a><br>
-<a href="v.krige.html">v.krige</a>
-</em>
+Mitasova, H. and Hofierka, J. (2004). *Slovakia Precipitation data*.
+Available at <https://grass.osgeo.org/download/data/>.
 
-<h2>REQUIREMENTS</h2>
-<ul>
-<li><b>Gnuplot</b> graphing utility, <a href="http://www.gnuplot.info/">more</a><br>
-<li><b>LAPACK / BLAS</b> (libraries for numerical computing) for
-    GMATH library (GRASS Numerical Library)<br>
-    <a href="https://www.netlib.org/lapack">https://www.netlib.org/lapack</a>
-    (usually available on Linux distros)
-</ul>
+Neteler, M. and Mitasova, H. (2004). *Open Source GIS: A GRASS GIS
+Approach*. 2nd Ed. 401 pp, Springer, New York. Online Supplement:
+https://grassbook.org
 
-<h2>AUTHOR</h2>
+Stopkova, E. (2014). *Development and application of 3D analytical
+functions in spatial analyses* (Unpublished doctoral dissertation). The
+Department of Theoretical Geodesy, Faculty of Civil Engineering of
+Slovak University of Technology in Bratislava, Slovakia.
 
-Eva Stopkova<br>
+## SEE ALSO
+
+*[v.vol.rst](https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html)  
+[v.krige](v.krige.md)*
+
+## REQUIREMENTS
+
+  - **Gnuplot** graphing utility, [more](http://www.gnuplot.info/)  
+  - **LAPACK / BLAS** (libraries for numerical computing) for GMATH
+    library (GRASS Numerical Library)  
+    <https://www.netlib.org/lapack> (usually available on Linux distros)
+
+## AUTHOR
+
+Eva Stopkova  
 functions taken from another modules are cited above the function or at
-the beginning of the file (e.g. <i>quantile.cpp</i> that uses slightly
-modified functions taken from the module <i>r.quantile</i> (Clements, G.))
+the beginning of the file (e.g. *quantile.cpp* that uses slightly
+modified functions taken from the module *r.quantile* (Clements, G.))

@@ -1,52 +1,49 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The purpose of <em>r.windfetch</em> is to compute wind fetch,
-which is the length of water over which winds blow without obstruction.
-Fetch is an important feature in wave modeling for waves created by wind.
+The purpose of *r.windfetch* is to compute wind fetch, which is the
+length of water over which winds blow without obstruction. Fetch is an
+important feature in wave modeling for waves created by wind.
 
-<p>
-Input is a binary raster map <b>input</b> where land is 1 and 0 is water.
-To compute fetch for certain point(s), user provides either the coordinates
-with the <b>coordinates</b> parameter or a points vector map with <b>points</b> parameter.
-Output is formatted with <b>format</b> parameter either as JSON or CSV and can
-be printed to a file (<b>output_file</b>) or to standard output.
+Input is a binary raster map **input** where land is 1 and 0 is water.
+To compute fetch for certain point(s), user provides either the
+coordinates with the **coordinates** parameter or a points vector map
+with **points** parameter. Output is formatted with **format** parameter
+either as JSON or CSV and can be printed to a file (**output\_file**) or
+to standard output.
 
+## NOTES
 
-<h2>NOTES</h2>
-Wind fetch is computed for specific directions, determined by parameters <b>direction</b>
-and <b>step</b>. Direction angle is in degrees counterclockwise from the East. For example,
-for <code>direction=45</code> and <code>step=90</code>, <em>r.windfetch</em> computes fetch
-for directions 45, 135, 225, and 315 (NE, NW, SW, SE).
+Wind fetch is computed for specific directions, determined by parameters
+**direction** and **step**. Direction angle is in degrees
+counterclockwise from the East. For example, for `direction=45` and
+`step=90`, *r.windfetch* computes fetch for directions 45, 135, 225, and
+315 (NE, NW, SW, SE). By default wind fetch for each direction is
+averaged from multiple directions around it. The number of minor
+directions from which the main direction is computed is specified with
+parameter **minor\_directions**. The step between the minor directions
+is given in **minor\_step** and is in degrees.
 
-By default wind fetch for each direction is averaged from multiple directions
-around it. The number of minor directions from which the main direction is computed
-is specified with parameter <b>minor_directions</b>. The step between the minor directions
-is given in <b>minor_step</b> and is in degrees.
+## EXAMPLE
 
-
-<h2>EXAMPLE</h2>
 Compute wind fetch on a lake edge with default parameters:
-<div class="code"><pre>
+
+```sh
 r.mapcalc "land = if (isnull(lakes), 1, 0)"
 r.windfetch input=land format=csv coordinates=635659,223234
-</pre></div>
+```
 
-<div align="center" style="margin: 10px">
-    <a href="r_windfetch.png">
-    <img src="r_windfetch.png" width="600"
-         alt="r_windfetch example" border="0">
-    </a><br>
-    <i>Figure: Wind fetch for a selected point, visualized in a polar plot.</i>
-</div>
+[![image-alt](r_windfetch.png)](r_windfetch.png)  
+*Figure: Wind fetch for a selected point, visualized in a polar plot.*
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.horizon.html">r.horizon</a>
-</em>
+*[r.horizon](https://grass.osgeo.org/grass-stable/manuals/r.horizon.html)*
 is used for computing distances.
 
-<h2>AUTHORS</h2>
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>.
-This addon was developed with funding from
-<a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=2322073">NSF Award #2322073</a>, granted to Natrx, Inc.
+## AUTHORS
+
+Anna Petrasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/). This addon was developed
+with funding from [NSF Award
+\#2322073](https://www.nsf.gov/awardsearch/showAward?AWD_ID=2322073),
+granted to Natrx, Inc.

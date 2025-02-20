@@ -1,147 +1,130 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.series.lwr</em> performs a local weighted regression (LWR,
-Cleveland and Devlin 1988) of time series in order to estimate missing
-values and identify outliers. For each input map, an output map with
-the suffix <em>suffix</em> (default: _lwr) is created.
+*r.series.lwr* performs a local weighted regression (LWR, Cleveland and
+Devlin 1988) of time series in order to estimate missing values and
+identify outliers. For each input map, an output map with the suffix
+*suffix* (default: \_lwr) is created.
 
-<p>
 For each observation in the time series, the (in time) neighboring
 values are used to estimate a polynomial function that best fits the
 observations. The values are weighted according to their distance (in
 time) to the current observation. Values that are farther away in time
-get lower weights. The main difference among the different
-<b>weight</b> funtions lies in how strongly the current observation is
-emphasized with respect to its temporal neighbors. See this dedicated
-<a href="https://en.wikipedia.org/wiki/Kernel_(statistics)#Kernel_functions_in_common_use">wiki</a>
+get lower weights. The main difference among the different **weight**
+funtions lies in how strongly the current observation is emphasized with
+respect to its temporal neighbors. See this dedicated
+[wiki](https://en.wikipedia.org/wiki/Kernel_\(statistics\)#Kernel_functions_in_common_use)
 for further details.
 
-<p>
-The option <b>order</b> determines the order of the polynomial function
+The option **order** determines the order of the polynomial function
 used to fit the observations. An order of 0 is a weighted average, an
-order of 1 is a linear regression. Recommended and default is
-<em>order=2</em>. An order of 3 might cause over-fitting, resulting in
-no smoothing, and should only be used with data that show high
-fluctuations.
+order of 1 is a linear regression. Recommended and default is *order=2*.
+An order of 3 might cause over-fitting, resulting in no smoothing, and
+should only be used with data that show high fluctuations.
 
-<p>
-The <em>delta</em> option is experimental. It smoothes the polynomial
-function. With a high <em>delta</em> value, a higher order polynomial
-function fitting becomes similar to a moving average.
+The *delta* option is experimental. It smoothes the polynomial function.
+With a high *delta* value, a higher order polynomial function fitting
+becomes similar to a moving average.
 
-<p>
 Optionally, low and/or high outliers can be removed when fitting a
-polynomial by means of the <em>-l</em> and <em>-h</em> flags,
-respectively. In this case, a fit error tolerance (option <em>fet</em>)
-must be provided. The value of fet is relative to the value range of the
-variable being considered.
+polynomial by means of the *-l* and *-h* flags, respectively. In this
+case, a fit error tolerance (option *fet*) must be provided. The value
+of fet is relative to the value range of the variable being considered.
 The use of these flags will slow down the module and they are only
 needed when the time series contains many outliers. A few outliers are
 handled well with the default settings.
 
-<p>
 All gaps in the time series are by default interpolated, as long as the
 time series contains sufficient non-NULL observations. Optionally, the
-maximum size of gaps to be interpolated can be set with the
-<em>maxgap</em> option. The units of maxgap are the units of the time
-steps.
+maximum size of gaps to be interpolated can be set with the *maxgap*
+option. The units of maxgap are the units of the time steps.
 
-<p>
-Extrapolation can be avoided with the <em>-i</em> flag. In this case,
-LWR is performed only from the first to the last non-NULL observation
-in the time series.
+Extrapolation can be avoided with the *-i* flag. In this case, LWR is
+performed only from the first to the last non-NULL observation in the
+time series.
 
-<p>
-The module uses an adaptive bandwidth to fit the polynomial and
-searches for <em>order + 1 + dod</em> valid values around the current
-observation. The degree of over-determination (dod) is the user defined
-number of extra temporal neighbours that should be considered for the
-estimation of the value at each time step.
+The module uses an adaptive bandwidth to fit the polynomial and searches
+for *order + 1 + dod* valid values around the current observation. The
+degree of over-determination (dod) is the user defined number of extra
+temporal neighbours that should be considered for the estimation of the
+value at each time step.
 
-<p>
 There is a trade-off between the goodness of fit to existing/original
 data and avoiding overshoots in gaps. This trade-off can be observed in
-the example below when <em>order=2</em> is used along with <em>dod=0</em>.
-In this case, the reconstruction will most of the time be an exact match
-to the input data because LWR will try to copy the slopes in the data,
+the example below when *order=2* is used along with *dod=0*. In this
+case, the reconstruction will most of the time be an exact match to the
+input data because LWR will try to copy the slopes in the data,
 including those very steep slopes, but this might create overshootings
 in gaps. The risk of overshootings can be alleviated by increasing dod
-(i.e. dod > 0), which will smooth the output. The effect of a dod=5 can
+(i.e. dod \> 0), which will smooth the output. The effect of a dod=5 can
 be observed in the examples below.
 
-<h2>NOTES</h2>
+## NOTES
 
-If the <em>range</em> option is given, all the values falling outside
-the <em>low,high</em> thresholds will be treated as if they were NULL.
+If the *range* option is given, all the values falling outside the
+*low,high* thresholds will be treated as if they were NULL.
 
-<p>
-The <em>low,high</em> thresholds are floating point. Therefore, use
-<em>-inf</em> or <em>inf</em> for a single threshold (e.g.,
-<em>range=0,inf</em> to ignore negative values, or
-<em>range=-inf,-200.4</em> to ignore values above -200.4).
+The *low,high* thresholds are floating point. Therefore, use *-inf* or
+*inf* for a single threshold (e.g., *range=0,inf* to ignore negative
+values, or *range=-inf,-200.4* to ignore values above -200.4).
 
-<p>
 There is no need to give time steps if the time interval among maps is
 constant. If the interval is not constant, the user needs to assign time
 steps. These must always increase (i.e.: each time step must be larger
 than the previous one) and the total number of time steps must be equal
 to the number of input maps.
 
-<p>
 The maximum number of raster maps that can be processed is given by the
-user-specific limit of the operating system. For example, the soft limits
-for users are typically 1024. The soft limit can be changed with e.g.
-<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but it cannot be
-higher than the hard limit. If the latter is too low, you can as superuser
-add an entry in:
+user-specific limit of the operating system. For example, the soft
+limits for users are typically 1024. The soft limit can be changed with
+e.g. `ulimit -n 4096` (UNIX-based operating systems) but it cannot be
+higher than the hard limit. If the latter is too low, you can as
+superuser add an entry in:
 
-<div class="code"><pre>
+```sh
 /etc/security/limits.conf
-# &lt;domain&gt;      &lt;type&gt;  &lt;item&gt;         &lt;value&gt;
+# <domain>      <type>  <item>         <value>
 your_username  hard    nofile          4096
-</pre></div>
+```
 
 This will raise the hard limit to 4096 files. Also have a look at the
 overall limit of the operating system
-<div class="code"><pre>
+
+```sh
 cat /proc/sys/fs/file-max
-</pre></div>
+```
+
 which on modern Linux systems is several 100,000 files.
 
-<p>
-Use the <b>-z</b> flag to analyze large amounts of raster maps without
-hitting open files limit and the <em>file</em> option to avoid hitting
-the size limit of command line arguments.
-Note that the computation using the <em>file</em> option is slower than
-with the <em>input</em> option.
-For every single row in the output map(s) all input maps are opened and
-closed. The amount of RAM will rise linearly with the number of
-specified input maps. The <em>input</em> and <em>file</em> options are
-mutually exclusive: the former is a comma separated list of raster map
-names and the latter is a text file with a new line separated list of
-raster map names. Note that the order of maps in one option or
-the other is very important.
+Use the **-z** flag to analyze large amounts of raster maps without
+hitting open files limit and the *file* option to avoid hitting the size
+limit of command line arguments. Note that the computation using the
+*file* option is slower than with the *input* option. For every single
+row in the output map(s) all input maps are opened and closed. The
+amount of RAM will rise linearly with the number of specified input
+maps. The *input* and *file* options are mutually exclusive: the former
+is a comma separated list of raster map names and the latter is a text
+file with a new line separated list of raster map names. Note that the
+order of maps in one option or the other is very important.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 We use a time series of the Chlorophyll-a concentration level 3 product
-from MODIS Aqua (spatial resolution approx. 4 km and temporal
-resolution 8 days) to exemplify different parameter settings in
-r.series.lwr. We will first execute the module with default options to
-interpolate all existent gaps with a polynomial of first order (i.e.
-order=1). Second, we change to a second order polynomial (i.e.
-order=2). The third case shows how to use <em>-l/-h</em> flags in
-combination with <em>fet</em> to remove outliers. In this example we
-will remove only high outiliers (-h flag) and we set a value of fet
-relative to the values of Chlorophyll-a concentration. The fourth
-example demonstrates the use of <em>dod</em> to consider more time
-steps when fitting the polynomial at each observation (Note that the
-resulting series is smoother, i.e. the fluctuations have been
-smoothed). Finally, we set a value for <em>maxgap</em>, so that only
+from MODIS Aqua (spatial resolution approx. 4 km and temporal resolution
+8 days) to exemplify different parameter settings in r.series.lwr. We
+will first execute the module with default options to interpolate all
+existent gaps with a polynomial of first order (i.e. order=1). Second,
+we change to a second order polynomial (i.e. order=2). The third case
+shows how to use *-l/-h* flags in combination with *fet* to remove
+outliers. In this example we will remove only high outiliers (-h flag)
+and we set a value of fet relative to the values of Chlorophyll-a
+concentration. The fourth example demonstrates the use of *dod* to
+consider more time steps when fitting the polynomial at each observation
+(Note that the resulting series is smoother, i.e. the fluctuations have
+been smoothed). Finally, we set a value for *maxgap*, so that only
 temporal gaps equal to or smaller than the maximum gap will be
 interpolated.
 
-<div class="code"><pre>
+```sh
 # list of maps
 maplist=`g.list type=raster pattern=A201[2-3]*chlor_a* sep=,`
 
@@ -159,11 +142,11 @@ r.series.lwr -i -h input=$maplist suffix=_lwr4 order=2 weight=tricube dod=5 fet=
 
 # 5. set maxgap (temporal gaps longer than maxgap will not be filled)
 r.series.lwr -i input=$maplist suffix=_lwr5 order=2 weight=tricube maxgap=4
-</pre></div>
+```
 
 We now create strds for the different executions of LWR.
 
-<div class="code"><pre>
+```sh
 for i in `seq 1 5` ; do
 
  # create time series with lwr outputs
@@ -198,64 +181,52 @@ for i in `seq 1 5` ; do
  t.info cla_lwr${i}
 
 done
-</pre></div>
+```
 
-Finally, we use <a href="https://grass.osgeo.org/grass-stable/manuals/g.gui.tplot.html">g.gui.tplot</a> to inspect
-the results of the interpolations with the different settings and
-compare with the original series at a random pixel
-(e.g. -61.196485623,-45.3232161874):
+Finally, we use
+[g.gui.tplot](https://grass.osgeo.org/grass-stable/manuals/g.gui.tplot.html)
+to inspect the results of the interpolations with the different settings
+and compare with the original series at a random pixel (e.g.
+-61.196485623,-45.3232161874):
 
-<div class="code"><pre>
+```sh
 g.gui.tplot strds=cla_2012_2013 coordinates=-61.196485623,-45.3232161874
 g.gui.tplot strds=cla_lwr1,cla_lwr2 coordinates=-61.196485623,-45.3232161874
 g.gui.tplot strds=cla_lwr3,cla_lwr4 coordinates=-61.196485623,-45.3232161874
 g.gui.tplot strds=cla_lwr5,cla_2012_2013 coordinates=-61.196485623,-45.3232161874
-</pre></div>
+```
 
-<p>
-<div align="center" style="margin: 10px">
-<a href="r_series_lwr_cla_orig.png">
-<img src="r_series_lwr_cla_orig.png" width="490" height="287" alt="Original time series" border="0">
-</a><br>
-<i>Original series (cla_2012_2013)</i><br>
-<a href="r_series_lwr_cla_lwr1_lwr2.png">
-<img src="r_series_lwr_cla_lwr1_lwr2.png" width="490" height="287" alt="Comparison order=1 vs order=2" border="0">
-</a><br>
-<i>Outputs of LWR with order=1 (cla_lwr1) and order=2 (cla_lwr2).</i><br>
-<a href="r_series_lwr_cla_lwr3_lwr4.png">
-<img src="r_series_lwr_cla_lwr3_lwr4.png" width="490" height="287" alt="Comparison dod > 1 vs dod > 1 plus -h and fet" border="0">
-</a><br>
-<i>Outputs of LWR with dod=5 (cla_lwr3) and dod=5 plus -h flag and fet=0.5 (cla_lwr4).</i><br>
-<a href="r_series_lwr_cla_orig_lwr5.png">
-<img src="r_series_lwr_cla_orig_lwr5.png" width="490" height="287" alt="Gap-filled series up to maxgap=4" border="0">
-</a><br>
-<i>Original series (cla_2012_2013) and the output of LWR with maxgap=4 (cla_lwr5).</i>
-</div>
+[![image-alt](r_series_lwr_cla_orig.png)](r_series_lwr_cla_orig.png)  
+*Original series (cla\_2012\_2013)*  
+[![image-alt](r_series_lwr_cla_lwr1_lwr2.png)](r_series_lwr_cla_lwr1_lwr2.png)  
+*Outputs of LWR with order=1 (cla\_lwr1) and order=2 (cla\_lwr2).*  
+[![image-alt](r_series_lwr_cla_lwr3_lwr4.png)](r_series_lwr_cla_lwr3_lwr4.png)  
+*Outputs of LWR with dod=5 (cla\_lwr3) and dod=5 plus -h flag and
+fet=0.5 (cla\_lwr4).*  
+[![image-alt](r_series_lwr_cla_orig_lwr5.png)](r_series_lwr_cla_orig_lwr5.png)  
+*Original series (cla\_2012\_2013) and the output of LWR with maxgap=4
+(cla\_lwr5).*
 
-<p>
-<div align="center" style="margin: 10px">
-<a href="r_series_lwr_cla_201281.png">
-<img src="r_series_lwr_cla_201281.png" width="400" height="386" alt="Original map" border="0"></a>
-<a href="r_series_lwr_cla_lwr7_201281.png">
-<img src="r_series_lwr_cla_lwr7_201281.png" width="400" height="386" alt="Gap-filled map" border="0">
-</a><br>
-<i>Comparison of an original Chlorophyll-a map and a reconstructed map (dod=5).</i>
-</div>
+[![image-alt](r_series_lwr_cla_201281.png)](r_series_lwr_cla_201281.png)
+[![image-alt](r_series_lwr_cla_lwr7_201281.png)](r_series_lwr_cla_lwr7_201281.png)  
+*Comparison of an original Chlorophyll-a map and a reconstructed map
+(dod=5).*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-Cleveland, William S.; Devlin, Susan J. (1988). <i>Locally-Weighted
-Regression: An Approach to Regression Analysis by Local Fitting</i>,
-<b>Journal of the American Statistical Association</b>, 83 (403), 596-610,
-doi:<a href="https://doi.org/10.2307/2289282">10.2307/2289282</a>
+Cleveland, William S.; Devlin, Susan J. (1988). *Locally-Weighted
+Regression: An Approach to Regression Analysis by Local Fitting*,
+**Journal of the American Statistical Association**, 83 (403), 596-610,
+doi:[10.2307/2289282](https://doi.org/10.2307/2289282)
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.series</a></em>,
-<em><a href="r.hants.html">r.hants</a></em>
-<p>
-<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">Temporal data processing Wiki</a>
+*[r.series](https://grass.osgeo.org/grass-stable/manuals/r.series.html)*,
+*[r.hants](r.hants.md)*
 
-<h2>AUTHOR</h2>
+[Temporal data processing
+Wiki](https://grasswiki.osgeo.org/wiki/Temporal_data_processing)
+
+## AUTHOR
 
 Markus Metz

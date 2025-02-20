@@ -1,22 +1,18 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.rotate</em> rotates an input raster by a clockwise angle.
+*i.rotate* rotates an input raster by a clockwise angle.
 
-<h2>NOTES</h2>
+## NOTES
 
-<p>
-
-<h2>TODO</h2>
+## TODO
 
 Checking if all pixels in the output raster are populated; if not, apply
 an NN algorithm.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.flip.html">r.flip</a>
-</em>
+*[r.flip](r.flip.md)*
 
-<H2>AUTHOR</H2>
+## AUTHOR
 
 Yann Chemin, CGIAR, Sri Lanka

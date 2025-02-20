@@ -1,22 +1,21 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.wavelet</em> Decomposes the time-series with the requested wavelet.
-The output will have 4 components, High-Pass Level 1 and 2, Low-Pass
-Level 1 and 2. Low Pass Level 1 can be recomposed using HP2 and LP2
-using the recomposition mode.<br>
+*i.wavelet* Decomposes the time-series with the requested wavelet. The
+output will have 4 components, High-Pass Level 1 and 2, Low-Pass Level 1
+and 2. Low Pass Level 1 can be recomposed using HP2 and LP2 using the
+recomposition mode.  
 This module is designed to make a temporal fusion from multi-sources.
-<h2>NOTES</h2>
 
-<h2>TODO</h2>
+## NOTES
+
+## TODO
+
 More wavelet families to be included.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="r.hants.html">r.hants</a>,
-  <a href="i.lmf.html">i.lmf</a>
-</em>
+*[r.hants](r.hants.md), [i.lmf](i.lmf.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, International Water Management Institute

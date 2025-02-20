@@ -1,40 +1,34 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.csv</em> imports rows from a CSV (Comma Separated Value) file
-into a vector map as points with attributes.
-The separator for CSV is comma (<code>,</code>) by default,
-but it can be set to any single character such as semicolon (<code>;</code>),
-pipe (<code>|</code>), or tabulator.
+*v.in.csv* imports rows from a CSV (Comma Separated Value) file into a
+vector map as points with attributes. The separator for CSV is comma
+(`,`) by default, but it can be set to any single character such as
+semicolon (`;`), pipe (`|`), or tabulator.
 
-<h2>NOTES</h2>
+## NOTES
 
 The module requires the "pyproj" Python package to work.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-The following imports CSV file called <code>latest_sites.csv</code>
-in the current directory into the current mapset as point vector map named
-<code>sampling_sites</code> using the default coordinate transformation from WGS84.
-Latitude and longitude are in columns <code>Site_Lat</code> and <code>Site_Long</code>.
+The following imports CSV file called `latest_sites.csv` in the current
+directory into the current mapset as point vector map named
+`sampling_sites` using the default coordinate transformation from WGS84.
+Latitude and longitude are in columns `Site_Lat` and `Site_Long`.
 
-<div class="code"><pre>
+```sh
 v.in.csv input=latest_sites.csv output=sampling_sites latitude=Site_Lat longitude=Site_Long
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<ul>
-    <li>
-        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a></em>
-        for the underlying module with finer control (but not coordinate transformation),
-    </li>
-    <li>
-        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a></em>
-        for an alternative CSV import using GDAL/OGR.
-    </li>
-</ul>
+  - *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
+    for the underlying module with finer control (but not coordinate
+    transformation),
+  - *[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
+    for an alternative CSV import using GDAL/OGR.
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Vaclav Petras, <a href="https://cnr.ncsu.edu/geospatial/">NCSU Center for Geospatial Analytics</a>
+Vaclav Petras, [NCSU Center for Geospatial
+Analytics](https://cnr.ncsu.edu/geospatial/)

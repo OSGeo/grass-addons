@@ -1,24 +1,22 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.explode</em> "explode" polylines, splitting them to separate lines.
+*v.explode* "explode" polylines, splitting them to separate lines.
 
-<h2>NOTES</h2>
+## NOTES
 
-Module is a simple wrapper to <em>v.split</em> + <em>v.category</em>.
+Module is a simple wrapper to *v.split* + *v.category*.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<div class="code"><pre>
+```sh
 v.explode input=polylines output=lines
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.split.html">v.split</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.category.html">v.category</a>
-</em>
+*[v.split](https://grass.osgeo.org/grass-stable/manuals/v.split.html),
+[v.category](https://grass.osgeo.org/grass-stable/manuals/v.category.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Alexander Muriy (IEG RAS, Moscow)

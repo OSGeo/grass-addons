@@ -1,13 +1,11 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.in.wcs.py</em>  downloads and imports coverage from WCS server.
+*r.in.wcs.py* downloads and imports coverage from WCS server.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.wms.html">r.in.wms</a>
-</em>
+*[r.in.wms](https://grass.osgeo.org/grass-stable/manuals/r.in.wms.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Martin Zbinden

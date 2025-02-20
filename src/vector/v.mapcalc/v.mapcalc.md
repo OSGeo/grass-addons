@@ -1,33 +1,42 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.mapcalc</em> performs overlay and buffer functions on
-vector map layers. New vector map layers can be created which are
-expressions of existing vector map layers, boolean vector operations
-and buffer functions.
+*v.mapcalc* performs overlay and buffer functions on vector map layers.
+New vector map layers can be created which are expressions of existing
+vector map layers, boolean vector operations and buffer functions.
 
-<h3>PROGRAM USE</h3>
-The module expects its input as expression in the following form: <br>
-<br>
-<b> result = expression </b>
-<br>
-<br>
+### PROGRAM USE
 
-This structure is similar to r.mapcalc, see <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em>.
-Where <b>result</b> is the name of a vector map layer that will contain the result of the calculation and
-<b>expression</b> is any valid combination of boolean and buffer operations for existing vector map layers. <br>
+The module expects its input as expression in the following form:  
+  
+**result = expression**  
+  
+This structure is similar to r.mapcalc, see
+*[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*.
+Where **result** is the name of a vector map layer that will contain the
+result of the calculation and **expression** is any valid combination of
+boolean and buffer operations for existing vector map layers.  
+The input is given by using the first module option *expression=* . This
+option passes a **quoted** expression on the command line, for
+example:  
 
-The input is given by using the first module option <i>expression=</i> . This option passes a <b>quoted</b>
-expression on the command line, for example: <br>
-<div class="code"><pre>v.mapcalc expression="A = B"</pre></div>
-Where <b>A</b> is the new vector map layer that will be equal to the existing vector map layer <b>B</b> in this case. <br>
-<div class="code"><pre>v.mapcalc "A = B"</pre></div>
+```sh
+v.mapcalc expression="A = B"
+```
+
+Where **A** is the new vector map layer that will be equal to the
+existing vector map layer **B** in this case.  
+
+```sh
+v.mapcalc "A = B"
+```
+
 will give the same result.
 
-<h3>OPERATORS AND FUNCTIONS</h3>
+### OPERATORS AND FUNCTIONS
 
-The module supports the following boolean vector operations: <br>
+The module supports the following boolean vector operations:  
 
-<div class="code"><pre>
+```sh
  Boolean Name   Operator Meaning         Precedence   Correspondent function
 ----------------------------------------------------------------------------------
  AND            &        Intersection          1      (v.overlay operator=and)
@@ -36,57 +45,67 @@ The module supports the following boolean vector operations: <br>
  XOR            ^        Symmetric difference  1      (v.overlay operator=xor)
  NOT            ~        Complement            1      (v.overlay operator=not)
 
-</pre></div>
+```
 
 And vector functions:
-<div class="code"><pre>
- buff_p(A, size)    	  Buffer the points of vector map layer A with size
- buff_l(A, size)    	  Buffer the lines of vector map layer A with size
- buff_a(A, size)    	  Buffer the areas of vector map layer A with size
-</pre></div>
 
-<h2>NOTES</h2>
-As shown in the operator table above, the boolean vector operators do not have different precedence.
-In default setting the expression will be left associatively evaluated. To define specific precedence use parentheses
-around these expressions, for example:<br>
+```sh
+ buff_p(A, size)          Buffer the points of vector map layer A with size
+ buff_l(A, size)          Buffer the lines of vector map layer A with size
+ buff_a(A, size)          Buffer the areas of vector map layer A with size
+```
 
-<div class="code"><pre>
+## NOTES
+
+As shown in the operator table above, the boolean vector operators do
+not have different precedence. In default setting the expression will be
+left associatively evaluated. To define specific precedence use
+parentheses around these expressions, for example:  
+
+```sh
  v.mapcalc expression="D = A & B | C"
-</pre></div>
-Here the first intermediate result is the intersection of vector map layers <b>A & B</b>.
-This intermediate vector map layer is taken to create the union with vector map <b>C</b> to get the final result <b>D</b>.
-It represents the default behaviour of left associativity.
+```
 
-<div class="code"><pre>
+Here the first intermediate result is the intersection of vector map
+layers **A & B**. This intermediate vector map layer is taken to create
+the union with vector map **C** to get the final result **D**. It
+represents the default behaviour of left associativity.
+
+```sh
  v.mapcalc expression="D = A & (B | C)"
-</pre></div>
-Here the first intermediate result is taken from the parenthesized union of vector map layers <b>B | C</b>.
-Afterwards the intersection of the intermediate vector map layer and <b>A</b> will be evaluated to get the final
-result vector map layer <b>D</b>.
-<br>
-<br>
-It should be noticed, that the order in which the operations are performed does matter.
-Different order of operations can lead to a different result.
+```
 
-<h2>EXAMPLES</h2>
+Here the first intermediate result is taken from the parenthesized union
+of vector map layers **B | C**. Afterwards the intersection of the
+intermediate vector map layer and **A** will be evaluated to get the
+final result vector map layer **D**.  
+  
+It should be noticed, that the order in which the operations are
+performed does matter. Different order of operations can lead to a
+different result.
 
-This example needed specific region setting. It should work in UTM and LL test locations. <br>
-First set the regions extent and create two vector maps with one random points, respectively:
+## EXAMPLES
 
-<div class="code"><pre>
+This example needed specific region setting. It should work in UTM and
+LL test locations.  
+First set the regions extent and create two vector maps with one random
+points, respectively:
+
+```sh
 g.region s=0 n=30 w=0 e=50 b=0 t=50 res=10 res3=10 -p3
 
 v.random --o -z output=point_1 n=1 seed=1
 v.random --o -z output=point_2 n=1 seed=2
 v.info point_1
 v.info point_2
-</pre></div>
+```
 
-Then the vector algebra is used to create buffers around those points, cut out a subset and apply different boolean operation
-on the subsets in one statement:
+Then the vector algebra is used to create buffers around those points,
+cut out a subset and apply different boolean operation on the subsets in
+one statement:
 
-<div class="code"><pre>
-v.mapcalc --o expr="buff_and = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) &amp; \
+```sh
+v.mapcalc --o expr="buff_and = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) & \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
 v.mapcalc --o expr="buff_or  = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) | \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
@@ -94,32 +113,28 @@ v.mapcalc --o expr="buff_xor = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) ^
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
 v.mapcalc --o expr="buff_not = (buff_p(point_1, 30.0) ~ buff_p(point_1, 20.0)) ~ \
                     (buff_p(point_2, 35) ~ buff_p(point_2, 25))"
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
 The use of this module requires the following software to be installed:
-<a href="https://www.dabeaz.com/ply/">PLY(Python-Lex-Yacc)</a>
+[PLY(Python-Lex-Yacc)](https://www.dabeaz.com/ply/)
 
-<p>
-<div class="code"><pre>
+```sh
 # Ubuntu/Debian
 sudo apt-get install python-ply
 
 # Fedora
 sudo dnf install python-ply
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.overlay.html">v.overlay</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.buffer.html">v.buffer</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.patch.html">v.patch</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
-</em>
+*[v.overlay](https://grass.osgeo.org/grass-stable/manuals/v.overlay.html),
+[v.buffer](https://grass.osgeo.org/grass-stable/manuals/v.buffer.html),
+[v.patch](https://grass.osgeo.org/grass-stable/manuals/v.patch.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
 
-
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Thomas Leppelt, Soeren Gebbert, Thuenen Institut, Germany

@@ -1,111 +1,99 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The module extracts portion of the <b>input</b> raster map according to
-the current computational region. The areas outside of the computational
-region are clipped and only the inner part is kept.
-The <b>input</b> raster map is left intact and a new (clipped)
-<b>output</b> raster map is created in the process.
+The module extracts portion of the **input** raster map according to the
+current computational region. The areas outside of the computational
+region are clipped and only the inner part is kept. The **input** raster
+map is left intact and a new (clipped) **output** raster map is created
+in the process.
 
-<p>
 By default the cell size and the cell alignment of the original raster
-are preserved. In other words, the output map inherits its resolution and
-cell positions (grid) from the input raster rather than the
+are preserved. In other words, the output map inherits its resolution
+and cell positions (grid) from the input raster rather than the
 computational region.
 
-<p>
-If resampling into the cells size and cell alignment of the
-current computational is desired, the module can perform a nearest
-neighbor resampling when the <b>-r</b> flag is used.
-If a more advanced resampling is required, the user is advised to use
-one of the dedicated resampling modules.
+If resampling into the cells size and cell alignment of the current
+computational is desired, the module can perform a nearest neighbor
+resampling when the **-r** flag is used. If a more advanced resampling
+is required, the user is advised to use one of the dedicated resampling
+modules.
 
-<p>
-If mask (<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a></em>) is active, it is
-respected and the output raster map will contain NULL (no data) values
-according to the mask.
-Otherwise, values in the <b>input</b> raster map are simply transferred
-to the <b>output</b> raster map.
+If mask
+(*[r.mask](https://grass.osgeo.org/grass-stable/manuals/r.mask.html)*)
+is active, it is respected and the output raster map will contain NULL
+(no data) values according to the mask. Otherwise, values in the
+**input** raster map are simply transferred to the **output** raster
+map.
 
-<p>
-The color table of the output raster map is set according to the
-input raster map, so that the colors in both raster maps will match.
+The color table of the output raster map is set according to the input
+raster map, so that the colors in both raster maps will match.
 
-<h2>NOTES</h2>
+## NOTES
 
-<ul>
+  - In GRASS GIS, clipping of rasters is usually not needed because
+    modules respect the current computational region and clipping (with
+    possible resampling) is done automatically.
+  - If the user needs to clip raster map according to another raster map
+    or according to a vector map, the
+    *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*
+    should be used first before running the *r.clip* module.
+  - The extent of the resulting map might be slightly different based on
+    how the cells of the input raster align with the cells of the
+    computational region. The mechanism for aligning in the background
+    is the one used in
+    *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*.
+    If an exact match is desired, the user is advised to resolve the
+    cell alignment ahead using
+    *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*
+    and then use *r.clip* with the **-r** flag.
 
-<li>
-In GRASS GIS, clipping of rasters is usually not needed because
-modules respect the current computational region and clipping
-(with possible resampling) is done automatically.
-
-<li>
-If the user needs to clip raster map according to another raster map or
-according to a vector map,
-the <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> should be used first
-before running the <em>r.clip</em> module.
-
-<li>
-The extent of the resulting map might be slightly different based on how
-the cells of the input raster align with the cells of the computational
-region. The mechanism for aligning in the background is the one used in
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>. If an exact match is
-desired, the user is advised to resolve the cell alignment ahead using
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em> and then use
-<em>r.clip</em> with the <b>-r</b> flag.
-
-</ul>
-
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 The following examples are using the full North Carolina sample
 location.
 
-<h3>Clip according to a raster map</h3>
+### Clip according to a raster map
 
 First we set the computational region to match the raster map called
-<em>elev_lid792_1m</em> which we want to use for clipping:
+*elev\_lid792\_1m* which we want to use for clipping:
 
-<div class="code"><pre>
+```sh
 g.region raster=elev_lid792_1m
-</pre></div>
+```
 
-Now, the following will clip raster map called <em>elevation</em>
-according to the extent of <em>elev_lid792_1m</em> raster map creating
-a new raster map called <em>elevation_clipped</em>:
+Now, the following will clip raster map called *elevation* according to
+the extent of *elev\_lid792\_1m* raster map creating a new raster map
+called *elevation\_clipped*:
 
-<div class="code"><pre>
+```sh
 r.clip input=elevation output=elevation_clipped
-</pre></div>
+```
 
-<h3>Clip and then compare the resolutions</h3>
+### Clip and then compare the resolutions
 
-The following example clips (crops) raster map called <em>elevation</em>
+The following example clips (crops) raster map called *elevation*
 according to the current region resulting in a new raster map called
-<em>clipped_elevation</em>.
-The computational region will be set match raster map called
-<em>elev_lid792_1m</em> since this the extent we want to work with
+*clipped\_elevation*. The computational region will be set match raster
+map called *elev\_lid792\_1m* since this the extent we want to work with
 in this example.
 
-<p>
 First we set the computational region to match a raster map called
-<em>elev_lid792_1m</em>:
+*elev\_lid792\_1m*:
 
-<div class="code"><pre>
+```sh
 g.region raster=elev_lid792_1m
-</pre></div>
+```
 
-This is the computational region we want to have.
-Now we check the new region using:
+This is the computational region we want to have. Now we check the new
+region using:
 
-<div class="code"><pre>
+```sh
 g.region -g
-</pre></div>
+```
 
-In the output, we can see extent, resolution in both directions,
-and number of rows and columns:
+In the output, we can see extent, resolution in both directions, and
+number of rows and columns:
 
-<pre>
+```sh
 ...
 n=220750
 s=220000
@@ -117,25 +105,25 @@ rows=750
 cols=700
 cells=525000
 ...
-</pre>
+```
 
 Now we perform the clipping:
 
-<div class="code"><pre>
+```sh
 r.clip input=elevation output=clipped_elevation
-</pre></div>
+```
 
 Finally, we check the size of the new raster map using:
 
-<div class="code"><pre>
+```sh
 r.info map=clipped_elevation -g
-</pre></div>
+```
 
-In the output, we can see that the extent is the same
-(exactly the same in this case) as the computational region
-while the resolution and number of cells are different:
+In the output, we can see that the extent is the same (exactly the same
+in this case) as the computational region while the resolution and
+number of cells are different:
 
-<pre>
+```sh
 ...
 north=220750
 south=220000
@@ -147,23 +135,22 @@ rows=75
 cols=70
 cells=5250
 ...
-</pre>
+```
 
-The reason for this is that the <em>elevation</em> map was not
-resampled, instead the cell values and positions were preserved.
-The number of cells depends on the resolution which was derived from
-the original <em>elevation</em> map. To see it, we can use the
-following:
+The reason for this is that the *elevation* map was not resampled,
+instead the cell values and positions were preserved. The number of
+cells depends on the resolution which was derived from the original
+*elevation* map. To see it, we can use the following:
 
-<div class="code"><pre>
+```sh
 r.info map=elevation -g
-</pre></div>
+```
 
-The output shows the resolution used for the new
-<em>clipped_elevation</em> as well as much higher number of cells and
-larger extent of the original map:
+The output shows the resolution used for the new *clipped\_elevation* as
+well as much higher number of cells and larger extent of the original
+map:
 
-<pre>
+```sh
 ...
 north=228500
 south=215000
@@ -175,22 +162,21 @@ rows=1350
 cols=1500
 cells=2025000
 ...
-</pre>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.copy.html">g.copy</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.proj.html">r.proj</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.resample.html">r.resample</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.resamp.rst.html">r.resamp.rst</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.clip.html">v.clip</a>
-</em>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[g.copy](https://grass.osgeo.org/grass-stable/manuals/g.copy.html),
+[r.mask](https://grass.osgeo.org/grass-stable/manuals/r.mask.html),
+[r.patch](https://grass.osgeo.org/grass-stable/manuals/r.patch.html),
+[r.proj](https://grass.osgeo.org/grass-stable/manuals/r.proj.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.resample](https://grass.osgeo.org/grass-stable/manuals/r.resample.html),
+[r.resamp.rst](https://grass.osgeo.org/grass-stable/manuals/r.resamp.rst.html),
+[v.clip](https://grass.osgeo.org/grass-stable/manuals/v.clip.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

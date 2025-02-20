@@ -1,44 +1,39 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-<em>r.centroids</em> is a wrapper function for <a href="https://grass.osgeo.org/grass-stable/manuals/r.volume.html">r.volume</a>
-that computes the center point of raster clumps of data (neighboring, same-valued pixels). The centroids will always fall within
-the clump so they may not be the true, mathematical centroid. The centroids will always fall at the center of a pixel.
-<p>
+*r.centroids* is a wrapper function for
+[r.volume](https://grass.osgeo.org/grass-stable/manuals/r.volume.html)
+that computes the center point of raster clumps of data (neighboring,
+same-valued pixels). The centroids will always fall within the clump so
+they may not be the true, mathematical centroid. The centroids will
+always fall at the center of a pixel.
 
+*r.centroids* requires an input raster containing clumps of data such as
+the output of
+[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html).
 
-<em>r.centroids</em> requires an input raster containing clumps of data such as the
-output of <a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>.
+## EXAMPLES
 
-<h2>EXAMPLES</h2>
 Find the centroids of the basins map (North Carolina sample dataset).
-
 First, set computational area.
-<div class="code"><pre>
+
+```sh
 g.region raster=basin_50K
-</pre></div>
+```
 
 Then, compute the centroids.
-<div class="code"><pre>
+
+```sh
 r.centroids input=basin_50K output=centroids50K
-</pre></div>
+```
 
-<center>
-<a href="r_centroids_basin_50K.png">
-<img src="r_centroids_basin_50K.png" border="0" width="600" alt="r.centroids results">
-</a>
-</center>
+[![image-alt](r_centroids_basin_50K.png)](r_centroids_basin_50K.png)
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.volume](https://grass.osgeo.org/grass-stable/manuals/r.volume.html)*
+*[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.volume.html">r.volume</a>
-</em>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a>
-</em>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Caitlin Haedrich, <i>Center for Geospatial Analytics, North Carolina State University</i>, January, 2021.
+Caitlin Haedrich, *Center for Geospatial Analytics, North Carolina State
+University*, January, 2021.

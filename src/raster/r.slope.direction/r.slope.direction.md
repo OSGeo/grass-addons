@@ -1,41 +1,44 @@
-<h2>DESCRIPTION:</h2>
+## DESCRIPTION:
 
-<em>r.slope.direction</em> computes slope as elevation difference divided by
+*r.slope.direction* computes slope as elevation difference divided by
 distance along a user given number of steps following a direction map.
 
-<p>Difference in altitude to the neighboring cell in the given direction is measured
-and divided by the distance (determined by north south and east west resolution
-of the computational region). With the <b>steps</b> paramter the user
-can define how many steps along the direction map the algorithm should perform.
-For each step a temporary raster map is created. Thus, processing time is - in
-addition to the computational region - mainly determined by the maximum
-<b>steps</b> value. Multiple neighboorhoods can be given in order to
-produce slope measures at different spatial scales.</p>
+Difference in altitude to the neighboring cell in the given direction is
+measured and divided by the distance (determined by north south and east
+west resolution of the computational region). With the **steps**
+paramter the user can define how many steps along the direction map the
+algorithm should perform. For each step a temporary raster map is
+created. Thus, processing time is - in addition to the computational
+region - mainly determined by the maximum **steps** value. Multiple
+neighboorhoods can be given in order to produce slope measures at
+different spatial scales.
 
-The <b>slope_measure</b> option defines the format in which slope is reported.
-Possible values are
-<ul>
-<li><b>degree</b> (the default) - the angle described by the total elevation
-difference devided by the total distance over the user given number of steps
-along the direction map</li>
-<li><b>degree_int</b> - same as degree but multiplied with 100 and rounded
-to the closest integer to limit data volume</li>
-<li><b>difference</b> - the total elevation difference independent from the
-x-y distance along the direction map</li>
-<li><b>percent</b> - the ratio between the total elevation difference and
-the total distance over the user given number of steps along the direction map</li>
-<li><b>percent_int</b> - same as percent but multiplied with 10000 and rounded
-to the closest integer to limit data volume</li>
-</ul>
+The **slope\_measure** option defines the format in which slope is
+reported. Possible values are
 
-<p>The <b>a</b>-flag allows to compute slope as absolute elevation differences.</p>
+  - **degree** (the default) - the angle described by the total
+    elevation difference devided by the total distance over the user
+    given number of steps along the direction map
+  - **degree\_int** - same as degree but multiplied with 100 and rounded
+    to the closest integer to limit data volume
+  - **difference** - the total elevation difference independent from the
+    x-y distance along the direction map
+  - **percent** - the ratio between the total elevation difference and
+    the total distance over the user given number of steps along the
+    direction map
+  - **percent\_int** - same as percent but multiplied with 10000 and
+    rounded to the closest integer to limit data volume
 
-<h2>EXAMPLES</h2>
-The following examples are based on the North Carolina dataset!
+The **a**-flag allows to compute slope as absolute elevation
+differences.
 
-<h3>Slope following a flow direction raster at different scales</h3>
+## EXAMPLES
 
-<div class="code"><pre>
+The following examples are based on the North Carolina dataset\!
+
+### Slope following a flow direction raster at different scales
+
+```sh
 # Set the computational region
 g.region -p raster=elevation
 
@@ -45,36 +48,16 @@ r.watershed elevation=elevation accumulation=faccum drainage=fdir
 r.slope.direction --o --v elevation=elevation direction=fdir \
 steps=1,5,13 output=fdir_slope_1,fdir_slope_5,fdir_slope_13 \
 method=total_gradient format=percent scale=3 type=CELL
-</pre></div>
+```
 
-<table>
-<tr>
-<td>
-<a href="r_slope_direction_fdir_slope_1.png">
-<img src="r_slope_direction_fdir_slope_1.png" width="180" height="180"
-alt="Slope following flow direction for 1 pixel" border="0">
-</a></td>
-<td>
-<a href="r_slope_direction_fdir_slope_5.png">
-<img src="r_slope_direction_fdir_slope_5.png" width="180" height="180"
-alt="Slope following flow direction for 5 pixels" border="0">
-</a></td>
-<td>
-<a href="r_slope_direction_fdir_slope_13.png">
-<img src="r_slope_direction_fdir_slope_13.png" width="180" height="180"
-alt="Slope following flow direction for 13 pixels" border="0">
-</a></td>
-</tr>
-<tr>
-<td><i>Slope following flow direction for 1 pixel.</i></td>
-<td><i>Slope following flow direction for 5 pixels.</i></td>
-<td><i>Slope following flow direction for 13 pixels.</i></td>
-</tr>
-</table>
+|                                                                                        |                                                                                        |                                                                                          |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [![image-alt](r_slope_direction_fdir_slope_1.png)](r_slope_direction_fdir_slope_1.png) | [![image-alt](r_slope_direction_fdir_slope_5.png)](r_slope_direction_fdir_slope_5.png) | [![image-alt](r_slope_direction_fdir_slope_13.png)](r_slope_direction_fdir_slope_13.png) |
+| *Slope following flow direction for 1 pixel.*                                          | *Slope following flow direction for 5 pixels.*                                         | *Slope following flow direction for 13 pixels.*                                          |
 
-<h3>Slope along a street network at different scales</h3>
+### Slope along a street network at different scales
 
-<div class="code"><pre>
+```sh
 # Set the computational region
 g.region -p raster=elevation
 
@@ -145,43 +128,22 @@ r.slope.direction -a elevation=elevation \
 direction=streets_wake_dir45 steps=1,5,13 \
 outputs=streets_wake_slope_1,streets_wake_slope_5,streets_wake_slope_13
 
-</pre></div>
+```
 
-<table>
-<tr>
-<td>
-<a href="r_slope_direction_streets_wake_slope_1.png">
-<img src="r_slope_direction_streets_wake_slope_1.png" width="180" height="180"
-alt="Slope following street direction for 1 pixel" border="0">
-</a></td>
-<td>
-<a href="r_slope_direction_streets_wake_slope_5.png">
-<img src="r_slope_direction_streets_wake_slope_5.png" width="180" height="180"
-alt="Slope following street direction for 5 pixels" border="0">
-</a>
-</td>
-<td>
-<a href="r_slope_direction_streets_wake_slope_13.png">
-<img src="r_slope_direction_streets_wake_slope_13.png" width="180" height="180"
-alt="Slope following street direction for 13 pixels" border="0">
-</a>
-</td>
-</tr>
-<tr>
-<td><i>Slope following street direction for 1 pixel.</i></td>
-<td><i>Slope following street direction for 5 pixels.</i></td>
-<td><i>Slope following street direction for 13 pixels.</i></td>
-</tr>
-</table>
+|                                                                                                        |                                                                                                        |                                                                                                          |
+| ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| [![image-alt](r_slope_direction_streets_wake_slope_1.png)](r_slope_direction_streets_wake_slope_1.png) | [![image-alt](r_slope_direction_streets_wake_slope_5.png)](r_slope_direction_streets_wake_slope_5.png) | [![image-alt](r_slope_direction_streets_wake_slope_13.png)](r_slope_direction_streets_wake_slope_13.png) |
+| *Slope following street direction for 1 pixel.*                                                        | *Slope following street direction for 5 pixels.*                                                       | *Slope following street direction for 13 pixels.*                                                        |
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.path.html">r.path</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.slope.html">r.stream.slope</a>
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.path](https://grass.osgeo.org/grass-stable/manuals/r.path.html),
+[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html),
+[r.stream.slope](https://grass.osgeo.org/grass-stable/manuals/r.stream.slope.html)
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
-Written for the INVAFISH project (RCN MILJ&Oslash;FORSK grant 243910)
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo,
+Norway  
+Written for the INVAFISH project (RCN MILJØFORSK grant 243910)

@@ -1,30 +1,27 @@
-<!-- meta page name: i.landsat -->
-<!-- meta page name description: Toolset for downloading and importing of Landsat products -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *i.landsat* toolset consists of three modules:
 
-The <em>i.landsat</em> toolset consists of three modules:
+  - [i.landsat.download](i.landsat.download.md)  
+    downloads Landsat TM, ETM and OLI data from
+    [EarthExplorer](https://earthexplorer.usgs.gov/) using
+    [landsatxplore](https://github.com/yannforget/landsatxplore) Python
+    library
+  - [i.landsat.import](i.landsat.import.md)  
+    imports Landsat data downloaded from EarthExplorer into GRASS GIS
+    mapsets
+  - [i.landsat.qa](i.landsat.qa.md)  
+    reclassifies Landsat QA band according to acceptable pixel quality
+    as defined by the user
 
-<dl>
-  <dt><a href="i.landsat.download.html">i.landsat.download</a></dt>
-    <dd>downloads Landsat TM, ETM and OLI data from
-      <a href="https://earthexplorer.usgs.gov/">EarthExplorer</a> using
-      <a href="https://github.com/yannforget/landsatxplore">landsatxplore</a>
-      Python library</dd>
-  <dt><a href="i.landsat.import.html">i.landsat.import</a></dt>
-    <dd>imports Landsat data downloaded from EarthExplorer into GRASS GIS mapsets</dd>
-  <dt><a href="i.landsat.qa.html">i.landsat.qa</a></dt>
-    <dd>reclassifies Landsat QA band according to acceptable pixel quality as defined by the user</dd>
-</dl>
+## REQUIREMENTS
 
-<h2>REQUIREMENTS</h2>
+  - An [EarthExplorer](https://ers.cr.usgs.gov/register) account
+  - [landsatxplore library](https://github.com/yannforget/landsatxplore)
+    (install with `pip install landsatxplore`)
 
-<ul>
-  <li>An <a href="https://ers.cr.usgs.gov/register">EarthExplorer</a> account</li>
-  <li><a href="https://github.com/yannforget/landsatxplore">landsatxplore library</a> (install with <code>pip install landsatxplore</code>)</li>
-</ul>
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-<a href="https://veroandreo.gitlab.io/" target="_blank">Veronica Andreo</a>, CONICET, Argentina.<br>
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo (Norway)
+[Veronica Andreo](https://veroandreo.gitlab.io/), CONICET, Argentina.  
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo
+(Norway)

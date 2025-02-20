@@ -1,15 +1,16 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 PLACEHOLDER
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
 PLACEHOLDER
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html">r.fill.dir</a><br>
+[r.fill.dir](https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html)  
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Richard Barnes (algorithm and codebase), Andrew D. Wickert (GRASS frontend)<br>
+Richard Barnes (algorithm and codebase), Andrew D. Wickert (GRASS
+frontend)

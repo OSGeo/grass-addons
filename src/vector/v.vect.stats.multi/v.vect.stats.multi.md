@@ -1,161 +1,136 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.vect.stats.multi</em> computes attribute statistics of points in vector map
-<em>points</em> falling into each area in vector map <em>areas</em>.
-The results are uploaded to the attribute table of the vector map <em>areas</em>.
+*v.vect.stats.multi* computes attribute statistics of points in vector
+map *points* falling into each area in vector map *areas*. The results
+are uploaded to the attribute table of the vector map *areas*.
 
-<p>
-By default, statistics are computed for all integer and floating point attributes (columns),
-e.g., DOUBLE PRECISION and INTEGER columns will be used, but TEXT will not.
-Specific (multiple) columns can be selected using <b>points_columns</b>.
-The type of the selected columns again need to be some integer and floating point type.
+By default, statistics are computed for all integer and floating point
+attributes (columns), e.g., DOUBLE PRECISION and INTEGER columns will be
+used, but TEXT will not. Specific (multiple) columns can be selected
+using **points\_columns**. The type of the selected columns again need
+to be some integer and floating point type.
 
-<h3>Statistical methods</h3>
+### Statistical methods
 
 Using numeric attribute values of all points falling into a given area,
 a new value is determined with the selected method.
 
-<p>
-<em>v.vect.stats</em> can perform the following operations:
+*v.vect.stats* can perform the following operations:
 
-<p><dl>
+  - **sum**  
+    The sum of values.
+  - **average**  
+    The average value of all point attributes (sum / count).
+  - **median**  
+    The value found half-way through a list of the attribute values,
+    when these are ranged in numerical order.
+  - **mode**  
+    The most frequently occurring value.
+  - **minimum**  
+    The minimum observed value.
+  - **maximum**  
+    The maximum observed value.
+  - **range**  
+    The range of the observed values.
+  - **stddev**  
+    The statistical standard deviation of the attribute values.
+  - **variance**  
+    The statistical variance of the attribute values.
+  - **diversity**  
+    The number of different attribute values.
 
-<dt><b>sum</b>
-<dd>The sum of values.
+The count (number of points) is always computed and stored in
+**count\_column**.
 
-<dt><b>average</b>
-<dd>The average value of all point attributes (sum / count).
+### Column names
 
-<dt><b>median</b>
-<dd>The value found half-way through a list of the
-attribute values, when these are ranged in numerical order.
+The **stats\_columns** can be used to provide custom column names
+instead of the generated ones. If provided, the number of columns must
+be number of **points\_columns** times number of methods requested (in
+**method**). The order of names is that first come all statistics for
+one column, then all statistics for another column, etc. If only one
+statistical method is requested, then it is simply one column from
+**points\_columns** after another. Note that the number of names
+**stats\_columns** is checked against the number of columns that will be
+created. However, whether the names correspond to what is being computed
+for the columns cannot be checked, so, for example, providing names for
+one statistic for all columns, followed by another statistic, etc. will
+result in a mismatch between column names and what was actually
+computed.
 
-<dt><b>mode</b>
-<dd>The most frequently occurring value.
+## NOTES
 
-<dt><b>minimum</b>
-<dd>The minimum observed value.
-
-<dt><b>maximum</b>
-<dd>The maximum observed value.
-
-<dt><b>range</b>
-<dd>The range of the observed values.
-
-<dt><b>stddev</b>
-<dd>The statistical standard deviation of the attribute values.
-
-<dt><b>variance</b>
-<dd>The statistical variance of the attribute values.
-
-<dt><b>diversity</b>
-<dd>The number of different attribute values.
-
-</dl>
-
-The count (number of points) is always computed and stored in <b>count_column</b>.
-
-<h3>Column names</h3>
-
-The <b>stats_columns</b> can be used to provide custom column names
-instead of the generated ones.
-If provided, the number of columns must be number of <b>points_columns</b>
-times number of methods requested (in <b>method</b>).
-The order of names is that first come all statistics for one column,
-then all statistics for another column, etc.
-If only one statistical method is requested, then it is simply
-one column from <b>points_columns</b> after another.
-Note that the number of names <b>stats_columns</b> is checked against
-the number of columns that will be created. However, whether the names correspond
-to what is being computed for the columns cannot be checked, so, for example,
-providing names for one statistic for all columns, followed by another statistic,
-etc. will result in a mismatch between column names and what was actually computed.
-
-<h2>NOTES</h2>
-
-<p>
 This module is using
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em>
-underneath to do the actual statistical computations.
-See <em>v.vect.stats</em> for details about behavior in special cases.
+*[v.vect.stats](https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html)*
+underneath to do the actual statistical computations. See *v.vect.stats*
+for details about behavior in special cases.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<h3>ZIP codes and POIs</h3>
+### ZIP codes and POIs
 
 The following example is using points of interest (POIs) and ZIP code
-areas vector from the basic North Carolina sample database:
+areas vector from the basic North Carolina sample database: Create a
+copy of ZIP code areas in the current mapset to allow for adding
+attributes (using a name which expresses what you will add later on):
 
-Create a copy of ZIP code areas in the current mapset
-to allow for adding attributes (using a name which expresses
-what you will add later on):
-
-<div class="code"><pre>
+```sh
 g.copy vector=zipcodes@PERMANENT,zipcodes_with_poi_stats
-</pre></div>
+```
 
-Compute minimum and maximum for each numerical colum in the attribute table
-of points of interest:
+Compute minimum and maximum for each numerical colum in the attribute
+table of points of interest:
 
-<div class="code"><pre>
+```sh
 v.vect.stats.multi points=points_of_interest areas=zipcodes_with_poi_stats method=minimum,maximum count_column=point_count
-</pre></div>
+```
 
-Use <em>v.info</em> to see all the newly created columns:
+Use *v.info* to see all the newly created columns:
 
-<div class="code"><pre>
+```sh
 v.info -c map=zipcodes_with_poi_stats
-</pre></div>
+```
 
-Use <em>v.db.select</em> (or GUI) to examine the values
-(you can see subset of the data by selecting only specific columns
-or using the where cause to get only certain rows):
+Use *v.db.select* (or GUI) to examine the values (you can see subset of
+the data by selecting only specific columns or using the where cause to
+get only certain rows):
 
-<div class="code"><pre>
+```sh
 v.db.select map=zipcodes_with_poi_stats
-</pre></div>
+```
 
-Each of the new columns separately can be assigned color using <em>v.colors</em>:
+Each of the new columns separately can be assigned color using
+*v.colors*:
 
-<div class="code"><pre>
+```sh
 v.colors map=zipcodes_with_poi_stats use=attr column=elev_m_maximum color=viridis rgb_column=elev_m_maximum_color
-</pre></div>
+```
 
-<h3>Specifying columns by name</h3>
+### Specifying columns by name
 
-Assuming a similar setup as in the previous example
-(<em>g.copy</em> used to create a copy in the current mapset),
-you can ask for statistics only on columns PUMPERS, TANKER, and AERIAL
-and specify the names of new columns using:
-(wrapping a long line here using Bash-like syntax):
+Assuming a similar setup as in the previous example (*g.copy* used to
+create a copy in the current mapset), you can ask for statistics only on
+columns PUMPERS, TANKER, and AERIAL and specify the names of new columns
+using: (wrapping a long line here using Bash-like syntax):
 
-<div class="code"><pre>
+```sh
 v.vect.stats.multi points=firestations areas=zipcodes method=sum \
     count_column=count point_columns=PUMPERS,TANKER,AERIAL \
     stats_columns=all_pumpers,all_tankers,all_aerials
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<ul>
-    <li>
-        <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html">v.vect.stats</a></em>
-        for printing information instead of storing it in
-        the attribute table,
-    </li>
-    <li>
-        <em><a href="v.what.rast.multi.html">v.what.rast.multi</a></em>
-        for querying multiple raster maps by one vector points map,
-    </li>
-    <li>
-        <em><a href="g.copy.html">g.copy</a></em>
-        for creating a copy of vector map to update
-        (to preserve the original data given that this module performs
-        a large automated operation).
-    </li>
-</ul>
+  - *[v.vect.stats](https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html)*
+    for printing information instead of storing it in the attribute
+    table,
+  - *[v.what.rast.multi](v.what.rast.multi.md)* for querying multiple
+    raster maps by one vector points map,
+  - *[g.copy](g.copy.md)* for creating a copy of vector map to update
+    (to preserve the original data given that this module performs a
+    large automated operation).
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Vaclav Petras, <a href="https://cnr.ncsu.edu/geospatial">NCSU Center for Geospatial Analytics</a>
+Vaclav Petras, [NCSU Center for Geospatial
+Analytics](https://cnr.ncsu.edu/geospatial)

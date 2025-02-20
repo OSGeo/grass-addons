@@ -1,41 +1,41 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.convert.all</em> converts all GRASS 5.0/5.3/5.4 vectors in the current
+*v.convert.all* converts all GRASS 5.0/5.3/5.4 vectors in the current
 mapset into GRASS 7 vectors.
 
-<h2>NOTES</h2>
+## NOTES
 
-Vector maps from 5.0/5.3/5.4 and 7 do not interfere. They are stored in different
-directories, so the same names can be kept. Old vector maps can be listed with
-<em>g.list oldvect</em>.
+Vector maps from 5.0/5.3/5.4 and 7 do not interfere. They are stored in
+different directories, so the same names can be kept. Old vector maps
+can be listed with *g.list oldvect*.
 
-<p>To convert back from 7 to 6 vector format, use <em>v.build</em> in GRASS 6.
-<p>To convert back from 6.0 into the 5.0/5.3/5.4 vector format,
-use <em>v.out.ogr</em> (to SHAPE format) and then <em>v.in.shape</em>
-in the old GRASS program.
-<p>
-As this GRASS version uses SQL for attribute management, there are
-some <a href="sql.html">SQL restrictings concerning the file names</a>.
-This script changes dots (e.g. "foo.bar") in old vector map names into
-underline(s) (e.g. "foo_bar").
+To convert back from 7 to 6 vector format, use *v.build* in GRASS 6.
 
-<h2>EXAMPLE</h2>
+To convert back from 6.0 into the 5.0/5.3/5.4 vector format, use
+*v.out.ogr* (to SHAPE format) and then *v.in.shape* in the old GRASS
+program.
 
-To convert all old vector maps in the current mapset to the new vector format:
-<p><div class="code"><pre>
+As this GRASS version uses SQL for attribute management, there are some
+[SQL restrictings concerning the file names](sql.md). This script
+changes dots (e.g. "foo.bar") in old vector map names into underline(s)
+(e.g. "foo\_bar").
+
+## EXAMPLE
+
+To convert all old vector maps in the current mapset to the new vector
+format:
+
+```sh
 v.convert.all
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.list.html">g.list</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.convert.html">v.convert</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html">v.out.ogr</a>
-</em>
+*[g.list](https://grass.osgeo.org/grass-stable/manuals/g.list.html),
+[v.convert](https://grass.osgeo.org/grass-stable/manuals/v.convert.html),
+[v.out.ascii](https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html),
+[v.out.ogr](https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Neteler, ITC-Irst, Trento, Italy

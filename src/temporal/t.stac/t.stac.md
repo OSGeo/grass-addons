@@ -1,51 +1,40 @@
-<!-- meta page name: t.stac -->
-<!-- meta page name description: Toolset for working with SpatioTemporal Asset Catalogs -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *t.stac* toolset allows the user to explore metadata and ingest
+SpatioTemporal Asset Catalog (STAC) items, collections, and catalogs.
+The toolset is based on the PySTAC library and provides a set of modules
+for working with STAC APIs. [STAC](https://stacspec.org/) is a
+specification for organizing geospatial information in a way that is
+interoperable across software and data services. The
+[pystac-client](https://github.com/stac-utils/pystac-client) is used to
+interact with STAC APIs.
 
-<p>
-The <em>t.stac</em> toolset allows the user to explore metadata and ingest SpatioTemporal Asset Catalog
-(STAC) items, collections, and catalogs. The toolset is based on the PySTAC library and provides a set of
-modules for working with STAC APIs.
+*t.stac.catalog* *t.stac.collection* *t.stac.item* *(WIP) t.stac.export*
 
-<a href="https://stacspec.org/">STAC</a> is a specification for organizing geospatial information in a way
-that is interoperable across software and data services. The
-<a href="https://github.com/stac-utils/pystac-client">pystac-client</a> is used to interact with STAC APIs.
+## REQUIREMENTS
 
+  - [pystac
+    (1.9.x)](https://pystac.readthedocs.io/en/stable/installation.html)
+  - [pystac\_client
+    (0.7.x)](https://pystac-client.readthedocs.io/en/stable/)
+  - [](https://pypi.org/project/tqdm/)tqdm (4.66.x)
 
-
-<p>
-<em>t.stac.catalog</em>
-<em>t.stac.collection</em>
-<em>t.stac.item</em>
-<em>(WIP) t.stac.export</em>
-
-<h2>REQUIREMENTS</h2>
-
-<p>
-<ul>
-  <li><a href="https://pystac.readthedocs.io/en/stable/installation.html">pystac (1.9.x)</a></li>
-  <li><a href="https://pystac-client.readthedocs.io/en/stable/">pystac_client (0.7.x)</a></li>
-  <li><a href="https://pypi.org/project/tqdm/"></a>tqdm (4.66.x)</li>
-</ul>
-
-<p>
 After dependencies are fulfilled, the toolset can be installed using the
-<em>g.extension</em> tool:
-<div class="code"><pre>
+*g.extension* tool:
+
+```sh
 g.extension extension=t.stac
-</pre></div>
+```
 
-<h2>MODULES</h2>
+## MODULES
 
-<em>
-<a href="t.stac.catalog">t.stac.catalog.html</a>
-<a href="t.stac.collection.html">t.stac.collection.html</a>
-<a href="t.stac.item.html">t.stac.item.html</a>
-</em>
+*[t.stac.catalog.html](t.stac.catalog)
+[t.stac.collection.html](t.stac.collection.md)
+[t.stac.item.html](t.stac.item.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Corey White
-
-This work was funded by <a href="https://openplains.com/">OpenPlains Inc.</a> and the <a href="https://cnr.ncsu.edu/geospatial/">Center for Geospatial Analytics</a> at North Carolina State University.
+Corey White This work was funded by [OpenPlains
+Inc.](https://openplains.com/) and the [Center for Geospatial
+Analytics](https://cnr.ncsu.edu/geospatial/) at North Carolina State
+University.

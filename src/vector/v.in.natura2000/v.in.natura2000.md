@@ -1,45 +1,40 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.natura2000</em> imports <a href="https://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/52E54BF3-ACDB-4959-9165-F3E4469BE610">Natura 2000 protected areas</a>.
+*v.in.natura2000* imports [Natura 2000 protected
+areas](https://www.eea.europa.eu/data-and-maps/data/ds_resolveuid/52E54BF3-ACDB-4959-9165-F3E4469BE610).
 The tool is implemented for the sqlite/spatialite version of this data
-(size > 1 GB). Listing und import operations of <em>v.in.natura2000</em>
-may be slow due to the huge data file size. Listing (already availabe
+(size \> 1 GB). Listing und import operations of *v.in.natura2000* may
+be slow due to the huge data file size. Listing (already availabe
 layers, biogeographic regions, EU member states codes, habitat codes,
 species codes, protected area site types) and importing (all data,
 protected areas of a defined habitat/species/member states/biogeographic
-region) is limited to some small selection of  wide range of possible
+region) is limited to some small selection of wide range of possible
 cases.
 
-<h3>Important notes</h3>
+### Important notes
 
-<p>
 Topological correctness of the input data is not guaranteed, overlapping
 of (many) polygones may occur. According to GRASS GIS topological model,
 imported data may have more layers in case of overlapping polygones .
+The sqlite/spatialite data is shipped in EPSG:3035 projection. The
+script uses
+[pyspatialite](https://pypi.org/project/pyspatialite/3.0.1-alpha-0) for
+connecting to the sqlite/spatialite database.
 
-The sqlite/spatialite data is shipped in EPSG:3035 projection.
+With the database update by end 2015 the column *PERCENTAGE\_COVER* in
+the HABITATS table was renamed to *PERCENTAGECOVER*. The addon script
+was adapted accordingly; for Natura 2000 database versions \< 2015, the
+column has to be renamed back.
 
-The script uses <a href="https://pypi.org/project/pyspatialite/3.0.1-alpha-0">pyspatialite</a>
-for connecting to the sqlite/spatialite database.
-</p>
-
-<p>
-With the database update by end 2015 the column <i>PERCENTAGE_COVER</i>
-in the HABITATS table was renamed to <i>PERCENTAGECOVER</i>. The addon
-script was adapted accordingly; for Natura 2000 database versions <
-2015, the column has to be renamed back.
-</p>
-
-<p>
 Depending on which taxonomy was used to identify species, different
 species codes may be used for species across EU member states. Check the
-<a href="https://cdr.eionet.europa.eu/help/natura2000">Reference Portal for Natura 2000</a>
- (<i>Codelist for species (Annex II,IV,V)</i>) for species and their synonyms.</p>
+[Reference Portal for
+Natura 2000](https://cdr.eionet.europa.eu/help/natura2000) (*Codelist
+for species (Annex II,IV,V)*) for species and their synonyms.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code">
- <pre>
+```sh
 # list spatial layer(s) already availabe in the sqlite/spatialite database
 v.in.natura2000 -l input=Natura2000_end2014.sqlite
 
@@ -81,17 +76,15 @@ output=pa_alpineregion biogeographic_region=Alpine
 v.in.natura2000 input=Natura2000_end2014.sqlite /
 output=pa_austria member_state=AT
 
- </pre>
-</div>
+ 
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.proj.html">v.proj</a>
-</em>
+*[v.import](https://grass.osgeo.org/grass-stable/manuals/v.import.html),
+[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html),
+[v.proj](https://grass.osgeo.org/grass-stable/manuals/v.proj.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

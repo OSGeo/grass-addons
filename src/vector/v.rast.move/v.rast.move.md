@@ -1,93 +1,74 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.rast.move</em> takes values from raster maps and adds them to X and Y
+*v.rast.move* takes values from raster maps and adds them to X and Y
 coordinates of features in a vector map vertex by vertex. Works on lines
-only, other features are ignored and not included in the result.
+only, other features are ignored and not included in the result. Null
+values in rasters are turned into zeros by default and a warning is
+generated. This behavior can be modified by the **nulls** option to
+either silence the warning with explicit `nulls="zeros"` or the warning
+can be turned into an error with `nulls="error"`. The rasters are loaded
+based on the computational region, so the most advantageous use of
+resources is to set the computational region to match the vector. To
+avoid issues with vector coordinates at the border of the computational
+region, it is best to also grow the region one cell on each side. Vector
+features outside of the computational region always result in an error
+being reported (regardless of the **nulls** option), but the rasters can
+have any extent as along as the computational region is set to match the
+vector.
 
-Null values in rasters are turned into zeros by default and a warning is
-generated. This behavior can be modified by the <b>nulls</b> option to
-either silence the warning with explicit <code>nulls="zeros"</code>
-or the warning can be turned into an error with <code>nulls="error"</code>.
+## NOTES
 
-The rasters are loaded based on the computational region, so the most
-advantageous use of resources is to set the computational region to
-match the vector. To avoid issues with vector coordinates at the border
-of the computational region, it is best to also grow the region one cell
-on each side. Vector features outside of the computational region always
-result in an error being reported (regardless of the <b>nulls</b> option),
-but the rasters can have any extent as along as the computational region
-is set to match the vector.
+Unlike *v.perturb* which moves points randomly, *v.rast.move* works on
+vertices of lines and uses same value for all vertices at a given cell.
+Unlike v.transform used with raster values in attribute columns,
+*v.rast.move* operates on individual vertices in the line, not on the
+whole line (attributes are associated with features, not their
+vertices).
 
-<h2>NOTES</h2>
+## EXAMPLES
 
-Unlike <em>v.perturb</em> which moves points randomly, <em>v.rast.move</em>
-works on vertices of lines and uses same value for all vertices at a given
-cell. Unlike v.transform used with raster values in attribute columns,
-<em>v.rast.move</em> operates on individual vertices in the line, not on the
-whole line (attributes are associated with features, not their vertices).
+### Shift in X direction
 
-<h2>EXAMPLES</h2>
+This example uses the North Carolina sample dataset. Set the
+computational region to match the vector map and use 100-meter
+resolution.
 
-<h3>Shift in X direction</h3>
-
-<!-- The original code is in the notebook. -->
-
-This example uses the North Carolina sample dataset.
-
-Set the computational region to match the vector map and use
-100-meter resolution.
-
-<div class="code"><pre>
+```sh
 g.region vector=roadsmajor res=100
-</pre></div>
+```
 
-Generate rasters for a shift in X direction (one raster is a wave, the other is zero):
+Generate rasters for a shift in X direction (one raster is a wave, the
+other is zero):
 
-<div class="code"><pre>
+```sh
 g.region vector=roadsmajor res=100
 r.mapcalc expression="a = 1000 * sin(row())"
 r.mapcalc expression="b = 0"
-</pre></div>
+```
 
 Use the rasters to move the vector:
 
-<div class="code"><pre>
+```sh
 v.rast.move input=roadsmajor output=roads_moved x_raster=a y_raster=b
-</pre></div>
+```
 
-<div align="center" style="margin: 10px">
-  <a href="v_rast_move.png">
-  <img src="v_rast_move.png" width="600" height="600" alt="Two roads networks" border="0">
-  </a><br>
-  <i>
-    Figure: Original (blue) and shifted (red) road network and the X shift
-    values in diverging blue-white-red colors (red shift right, blue shift
-    left, white no shift)
-  </i>
-  </div>
+[![image-alt](v_rast_move.png)](v_rast_move.png)  
+*Figure: Original (blue) and shifted (red) road network and the X shift
+values in diverging blue-white-red colors (red shift right, blue shift
+left, white no shift)*
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<ul>
-  <li>
-    <em><a href="v.transform.html">v.transform</a></em>
-    for changing coordinates for the whole vector map or
-    feature by feature based on the attributes,
-  </li>
-  <li>
-    <em><a href="v.perturb.html">v.perturb</a></em>
-    for randomly changing point positions by small amounts,
-  </li>
-  <li>
-    <em><a href="r.mapcalc.html">r.mapcalc</a></em>
-    for generating or adjusting the raster maps,
-  </li>
-  <li>
-    <em><a href="g.region.html">g.region</a></em>
-    to set the computational region before the computation.
-  </li>
-</ul>
+  - *[v.transform](v.transform.md)* for changing coordinates for the
+    whole vector map or feature by feature based on the attributes,
+  - *[v.perturb](v.perturb.md)* for randomly changing point positions by
+    small amounts,
+  - *[r.mapcalc](r.mapcalc.md)* for generating or adjusting the raster
+    maps,
+  - *[g.region](g.region.md)* to set the computational region before the
+    computation.
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Vaclav Petras, <a href="https://cnr.ncsu.edu/geospatial">NCSU Center for Geospatial Analytics, GeoForAll Lab</a>
+Vaclav Petras, [NCSU Center for Geospatial Analytics, GeoForAll
+Lab](https://cnr.ncsu.edu/geospatial)

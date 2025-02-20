@@ -1,62 +1,62 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.sun.hourly</em> is a convenient script for running
-r.sun for multiple times in a loop. It allows to run r.sun in mode 1
-to create maps of instantaneous solar irradiance.
-Alternatively, it allows to integrate solar irradiance maps over specified time period
-to compute solar irradiation (mode 2).
+*r.sun.hourly* is a convenient script for running r.sun for multiple
+times in a loop. It allows to run r.sun in mode 1 to create maps of
+instantaneous solar irradiance. Alternatively, it allows to integrate
+solar irradiance maps over specified time period to compute solar
+irradiation (mode 2). See r.sun [manual
+page](https://grass.osgeo.org/grass-stable/manuals/r.sun.html) for more
+information.
 
-See r.sun <a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">manual page</a> for more information.
+### Output parameters explanation
 
-<h3>Output parameters explanation</h3>
-<p>
 There are three basic types of output:
-<p>
-In mode 1, if one of options <b>beam_rad_basename</b>, <b>diff_rad_basename</b>
-<b>refl_rad_basename</b>, <b>glob_rad_basename</b>, and <b>incidout_basename</b>
-is selected, it will compute a time series of irradiance maps.
-Optionally, <b>b</b> flag will convert them to binary rasters representing shaded areas.
-Using this flag in combination with <b>beam_rad_basename</b>
-is a convenient way to determine if there is direct sunlight or not at a certain place and time.
 
-Series of maps are (if flag <b>t</b> is checked) registered
-to space time raster dataset with absolute time and point time (not interval time).
-Option <b>year</b> has to be specified so that the raster maps can be registered
-to space time dataset or assigned a timestamp. The reason is that it is not possible
-to assign time without date.
+In mode 1, if one of options **beam\_rad\_basename**,
+**diff\_rad\_basename** **refl\_rad\_basename**,
+**glob\_rad\_basename**, and **incidout\_basename** is selected, it will
+compute a time series of irradiance maps. Optionally, **b** flag will
+convert them to binary rasters representing shaded areas. Using this
+flag in combination with **beam\_rad\_basename** is a convenient way to
+determine if there is direct sunlight or not at a certain place and
+time. Series of maps are (if flag **t** is checked) registered to space
+time raster dataset with absolute time and point time (not interval
+time). Option **year** has to be specified so that the raster maps can
+be registered to space time dataset or assigned a timestamp. The reason
+is that it is not possible to assign time without date.
 
-<p>
-In mode 2, a series of
-solar irradiation maps will be computed with units Wh/m2.
-This is done by multiplying an instantaneous irradiance raster
-computed in the middle of the specified intervals by time step.
-For example, if <b>start_time</b> is 8,  <b>end_time</b> is 10 and
-<b>time_step</b> is 0.5, the irradiation rasters will be computed for
+In mode 2, a series of solar irradiation maps will be computed with
+units Wh/m2. This is done by multiplying an instantaneous irradiance
+raster computed in the middle of the specified intervals by time step.
+For example, if **start\_time** is 8, **end\_time** is 10 and
+**time\_step** is 0.5, the irradiation rasters will be computed for
 times 8:15, 8:45, 9:15 and 9:45.
-<p>
-If flag <b>c</b> is selected it will accumulate the irradiation
-values, meaning the last raster represents all solar irradiation during the period.
 
-<p>
-When any of output options <b>beam_rad</b>, <b>diff_rad</b>
-<b>refl_rad</b> and <b>glob_rad</b> are specified,
-irradiation rasters are summed over the specified period (mode 2 only).
+If flag **c** is selected it will accumulate the irradiation values,
+meaning the last raster represents all solar irradiation during the
+period.
 
+When any of output options **beam\_rad**, **diff\_rad** **refl\_rad**
+and **glob\_rad** are specified, irradiation rasters are summed over the
+specified period (mode 2 only).
 
-<h3>Real-sky radiation parameters</h3>
-Real-sky radiation parameters (see <a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a>)
-can be input as raster map (<b>coeff_bh</b> and <b>coeff_dh</b>),
-or space-time raster dataset (<b>coeff_bh_strds</b> and <b>coeff_dh_strds</b>)
-to account for time-varying conditions. The space-time raster
-dataset (strds) needs to be interval-based (i.e. have start and end time,
-see <a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a>, for more details).
+### Real-sky radiation parameters
 
-<h2>EXAMPLES</h2>
+Real-sky radiation parameters (see
+[r.sun](https://grass.osgeo.org/grass-stable/manuals/r.sun.html)) can be
+input as raster map (**coeff\_bh** and **coeff\_dh**), or space-time
+raster dataset (**coeff\_bh\_strds** and **coeff\_dh\_strds**) to
+account for time-varying conditions. The space-time raster dataset
+(strds) needs to be interval-based (i.e. have start and end time, see
+[t.register](https://grass.osgeo.org/grass-stable/manuals/t.register.html),
+for more details).
 
-Calculate for current region the beam irradiance (direct radiation)
-for DOY 355 in 2014 from 8am to 3pm:
+## EXAMPLES
 
-<div class="code"><pre>
+Calculate for current region the beam irradiance (direct radiation) for
+DOY 355 in 2014 from 8am to 3pm:
+
+```sh
 g.region -p
 r.sun.hourly elevation=elevation start_time=8 end_time=15 \
               day=355 year=2014 beam_rad_basename=beam nprocs=4 -t
@@ -65,40 +65,37 @@ t.info beam
 
 # show raster maps registered in beam temporal dataset
 t.rast.list beam
-</pre></div>
+```
 
-<p>
 Calculate beam irradiation during day and also cumulative irradiation,
 use different steps:
 
-<div class="code"><pre>
+```sh
 g.region raster=elevation res=100 -pa
 r.sun.hourly elevation=elevation year=2019 day=100  start=8 end=16 time_step=0.333 beam_rad_basename=beam_m2_step_short mode=mode2 nprocs=4 -t
 r.sun.hourly elevation=elevation year=2019 day=100  start=8 end=16 time_step=0.333 beam_rad_basename=beam_m2_step_short_cum mode=mode2 nprocs=4 -tc
 r.sun.hourly elevation=elevation year=2019 day=100  start=8 end=16 time_step=1 beam_rad_basename=beam_m2_step_long mode=mode2 nprocs=4 -t
 r.sun.hourly elevation=elevation year=2019 day=100  start=8 end=16 time_step=1 beam_rad_basename=beam_m2_step_long_cum mode=mode2 nprocs=4 -tc
 g.gui.tplot strds=beam_m2_step_short,beam_m2_step_long,beam_m2_step_short_cum,beam_m2_step_long_cum coordinates=636919,220431
-</pre></div>
+```
 
-<center>
-<a href="r_sun_hourly.png"><img src="r_sun_hourly.png" alt="Plot" width="600"></a>
-</center>
+[![image-alt](r_sun_hourly.png)](r_sun_hourly.png)
 
-<h2>NOTE</h2>
-Beam irradiance binary raster maps can be displayed as
-semitransparent over other map layers or module
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html"><em>r.null</em></a> can be used to
-set one of the values (either shade or sunlight) as NULL.
+## NOTE
 
-<h2>SEE ALSO</h2>
+Beam irradiance binary raster maps can be displayed as semitransparent
+over other map layers or module
+[*r.null*](https://grass.osgeo.org/grass-stable/manuals/r.null.html) can
+be used to set one of the values (either shade or sunlight) as NULL.
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a>,
-<a href="r.sun.daily.html">r.sun.daily</a> in Addons
-</em>
+## SEE ALSO
 
+*[r.sun](https://grass.osgeo.org/grass-stable/manuals/r.sun.html),
+[r.sun.daily](r.sun.daily.md) in Addons*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br>
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/),  
+Anna Petrasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

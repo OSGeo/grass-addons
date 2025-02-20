@@ -1,40 +1,37 @@
-<!-- meta page name: i.sentinel -->
-<!-- meta page name description: Toolset for download and processing of Copernicus Sentinel products -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *i.sentinel* toolset consists of currently six modules:
 
-The <em>i.sentinel</em> toolset consists of currently six modules:
+  - [i.sentinel.coverage](i.sentinel.coverage.md)  
+    checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected
+    by filters
+  - [i.sentinel.download](i.sentinel.download.md)  
+    downloads Copernicus Sentinel products from [Copernicus Open Access
+    Hub](https://scihub.copernicus.eu/)
+  - [i.sentinel.parallel.download](i.sentinel.parallel.download.md)  
+    downloads parellelized (using i.sentinel.download) Copernicus
+    Sentinel products from [Copernicus Open Access
+    Hub](https://scihub.copernicus.eu/)
+  - [i.sentinel.import](i.sentinel.import.md)  
+    imports already downloaded Sentinel products into GRASS GIS mapset
+  - [i.sentinel.preproc](i.sentinel.preproc.md)  
+    imports and performs atmospheric correction on Sentinel-2 images
+  - [i.sentinel.mask](i.sentinel.mask.md)  
+    creates clouds and shadows masks for Sentinel-2 images
 
-<dl>
-  <dt><a href="i.sentinel.coverage.html">i.sentinel.coverage</a></dt>
-  <dd>checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected by filters</dd>
-  <dt><a href="i.sentinel.download.html">i.sentinel.download</a></dt>
-  <dd>downloads Copernicus Sentinel products from
-      <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a></dd>
-  <dt><a href="i.sentinel.parallel.download.html">i.sentinel.parallel.download</a></dt>
-  <dd>downloads parellelized (using i.sentinel.download) Copernicus Sentinel products from
-      <a href="https://scihub.copernicus.eu/">Copernicus Open Access Hub</a></dd>
-  <dt><a href="i.sentinel.import.html">i.sentinel.import</a></dt>
-  <dd>imports already downloaded Sentinel products into GRASS GIS mapset</dd>
-  <dt><a href="i.sentinel.preproc.html">i.sentinel.preproc</a></dt>
-  <dd>imports and performs atmospheric correction on Sentinel-2 images</dd>
-  <dt><a href="i.sentinel.mask.html">i.sentinel.mask</a></dt>
-  <dd>creates clouds and shadows masks for Sentinel-2 images</dd>
-</dl>
+## REQUIREMENTS
 
-<h2>REQUIREMENTS</h2>
+  - [Sentinelsat library](https://pypi.org/project/sentinelsat/)
+  - [Pandas library](https://pypi.org/project/pandas/)
 
-<ul>
-  <li><a href="https://pypi.org/project/sentinelsat/">Sentinelsat library</a></li>
-  <li><a href="https://pypi.org/project/pandas/">Pandas library</a></li>
-</ul>
+## AUTHORS
 
-<h2>AUTHORS</h2>
+Martin Landa, [GeoForAll
+Lab](https://geomatics.fsv.cvut.cz/research/geoforall/), CTU in Prague,
+Czech Republic with support of
+[OpenGeoLabs](https://opengeolabs.cz/en/home/) company
 
-Martin Landa, <a href="https://geomatics.fsv.cvut.cz/research/geoforall/">GeoForAll Lab</a>,
-CTU in Prague, Czech Republic with support
-of <a href="https://opengeolabs.cz/en/home/">OpenGeoLabs</a> company
-<p>
 Roberta Fagandini, GSoC 2018 student, Italy
-<p>
-Anika Weinmann, Guido Riembauer, Markus Neteler, <a href="https://www.mundialis.de/">mundialis</a>, Germany
+
+Anika Weinmann, Guido Riembauer, Markus Neteler,
+[mundialis](https://www.mundialis.de/), Germany

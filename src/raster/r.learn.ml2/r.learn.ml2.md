@@ -1,66 +1,67 @@
-<!-- meta page name: r.learn.ml2 -->
-<!-- meta page name description: Supervised classification and regression with scikit-learn -->
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p><em>r.learn.ml2</em> represents a front-end to the scikit learn python package. The module
-	enables scikit-learn classification and regression models to be applied to GRASS GIS rasters
-	that are stored as part of an imagery group <em>group</em> or specified as individual maps in
-	the optional <em>raster</em> parameter.</p>
+*r.learn.ml2* represents a front-end to the scikit learn python package.
+The module enables scikit-learn classification and regression models to
+be applied to GRASS GIS rasters that are stored as part of an imagery
+group *group* or specified as individual maps in the optional *raster*
+parameter.
 
-<p>The training component of the machine learning workflow is performed using the
-	<em><a href="r.learn.train.html">r.learn.train</a></em> module. This module uses training data consisting
-    of labelled pixels in a GRASS GIS raster map, or a GRASS GIS vector containing points, and develops a machine
-	learning model on the rasters within a GRASS imagery group. This model needs to be saved to a
-	file and can be automatically compressed if the .gz file extension is used.</p>
+The training component of the machine learning workflow is performed
+using the *[r.learn.train](r.learn.train.md)* module. This module uses
+training data consisting of labelled pixels in a GRASS GIS raster map,
+or a GRASS GIS vector containing points, and develops a machine learning
+model on the rasters within a GRASS imagery group. This model needs to
+be saved to a file and can be automatically compressed if the .gz file
+extension is used.
 
-<p>After a model is training, the <em><a href="r.learn.predict.html">r.learn.predict</a></em> module needs to
-    be called, which will retrieve the saved and pre-fitted model and apply it to a GRASS GIS imagery group.</p>
+After a model is training, the *[r.learn.predict](r.learn.predict.md)*
+module needs to be called, which will retrieve the saved and pre-fitted
+model and apply it to a GRASS GIS imagery group.
 
-<h2>NOTES</h2>
+## NOTES
 
-<p><em>r.learn.ml2</em> uses the "scikit-learn" machine learning python package (version &ge; 0.20)
-	along with the "pandas" package. These packages need to be installed within your GRASS GIS
-	Python environment. For Linux users, these packages should be available through the linux
-	package manager. For MS-Windows users using a 64 bit GRASS, the easiest way of installing the
-	packages is by using the precompiled binaries from <a
-		href="http://www.lfd.uci.edu/~gohlke/pythonlibs/">Christoph Gohlke</a> and by using the <a
-		href="https://grass.osgeo.org/download/software/ms-windows/">OSGeo4W</a> installation method
-	of GRASS, where the python setuptools can also be installed. You can then use 'easy_install pip'
-	to install the pip package manager. Then, you can download the NumPy+MKL and scikit-learn .whl
-	files.</p>
+*r.learn.ml2* uses the "scikit-learn" machine learning python package
+(version ≥ 0.20) along with the "pandas" package. These packages need to
+be installed within your GRASS GIS Python environment. For Linux users,
+these packages should be available through the linux package manager.
+For MS-Windows users using a 64 bit GRASS, the easiest way of installing
+the packages is by using the precompiled binaries from [Christoph
+Gohlke](http://www.lfd.uci.edu/~gohlke/pythonlibs/) and by using the
+[OSGeo4W](https://grass.osgeo.org/download/software/ms-windows/)
+installation method of GRASS, where the python setuptools can also be
+installed. You can then use 'easy\_install pip' to install the pip
+package manager. Then, you can download the NumPy+MKL and scikit-learn
+.whl files.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<p>Here we are going to use the GRASS GIS sample North Carolina data set as a basis to perform a
-	landsat classification. We are going to classify a Landsat 7 scene from 2000, using training
-	information from an older (1996) land cover dataset.</p>
+Here we are going to use the GRASS GIS sample North Carolina data set as
+a basis to perform a landsat classification. We are going to classify a
+Landsat 7 scene from 2000, using training information from an older
+(1996) land cover dataset.
 
-<p>Landsat 7 (2000) bands 7,4,2 color composite example:</p>
-<center>
-	<img src="lsat7_2000_b742.png" alt="Landsat 7 (2000) bands 7,4,2 color composite example">
-</center>
+Landsat 7 (2000) bands 7,4,2 color composite example:
 
-<p>Note that this example must be run in the "landsat" mapset of the North Carolina sample data set
-	location.</p>
+![image-alt](lsat7_2000_b742.png)
 
-<p>First, we are going to generate some training pixels from an older (1996) land cover
-	classification:</p>
+Note that this example must be run in the "landsat" mapset of the North
+Carolina sample data set location.
 
-<div class="code">
-	<pre>
+First, we are going to generate some training pixels from an older
+(1996) land cover classification:
+
+```sh
 g.region raster=landclass96 -p
 r.random input=landclass96 npoints=1000 raster=training_pixels
-</pre>
-</div>
+```
 
-<p>Then we can use these training pixels to perform a classification on the more recently obtained
-	landsat 7 image:</p>
+Then we can use these training pixels to perform a classification on the
+more recently obtained landsat 7 image:
 
-<div class="code">
-	<pre>
+```sh
 # train a random forest classification model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
-	model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
+    model_name=RandomForestClassifier n_estimators=500 save_model=rf_model.gz
 
 # perform prediction using r.learn.predict
 r.learn.predict group=lsat7_2000 load_model=rf_model.gz output=rf_classification
@@ -70,23 +71,21 @@ r.category rf_classification
 
 # copy color scheme from landclass training map to result
 r.colors rf_classification raster=training_pixels
-</pre>
-</div>
+```
 
-<p>Random forest classification result:</p>
-<center>
-	<img src="rfclassification.png" alt="Random forest classification result">
-</center>
+Random forest classification result:
 
-<h2>SEE ALSO</h2>
+![image-alt](rfclassification.png)
 
-<a href="r.learn.train.html">r.learn.train</a>,
-<a href="r.learn.predict.html">r.learn.predict</a>
+## SEE ALSO
 
-<h2>REFERENCES</h2>
+[r.learn.train](r.learn.train.md), [r.learn.predict](r.learn.predict.md)
 
-<p>Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.</p>
+## REFERENCES
 
-<h2>AUTHOR</h2>
+Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp.
+2825-2830, 2011.
+
+## AUTHOR
 
 Steven Pawley

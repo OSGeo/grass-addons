@@ -1,25 +1,27 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>m.prism.download</em> downloads data from
-<a href="https://prism.oregonstate.edu/">the PRISM Climate Group</a>.
+*m.prism.download* downloads data from [the PRISM Climate
+Group](https://prism.oregonstate.edu/).
 
-<h2>NOTES</h2>
+## NOTES
 
-This module anonymously logs in to
-<a href="ftp://ftp.prism.oregonstate.edu/">their FTP server</a>
-(<a href="https://ftp.prism.oregonstate.edu/">HTTPS server</a> for easier
-browsing) and download climate data for a specified time period.
+This module anonymously logs in to [their FTP
+server](ftp://ftp.prism.oregonstate.edu/) ([HTTPS
+server](https://ftp.prism.oregonstate.edu/) for easier browsing) and
+download climate data for a specified time period.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 List supported datasets and exit:
-<div class="code"><pre>
+
+```sh
 # use indices or datasets, but indices can change between module versions
 m.prism.download -d
-</pre></div>
+```
 
 Download daily precipitation from 2020-01-01 to today:
-<div class="code"><pre>
+
+```sh
 # find the dataset name
 m.prism.download -d | grep "daily" # found daily/ppt
 
@@ -31,19 +33,17 @@ m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today
 
 # do something with the downloaded files
 for file in $(m.prism.download dataset=daily/ppt start_date=2020-01-01 end_date=today -f sep=newline); do
-	echo $file
-	unzip $file
-	# more tasks...
+    echo $file
+    unzip $file
+    # more tasks...
 done
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="m.cdo.download.html">m.cdo.download</a>,
-<a href="m.tnm.download.html">m.tnm.download</a>
-</em>
+*[m.cdo.download](m.cdo.download.md),
+[m.tnm.download](m.tnm.download.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University

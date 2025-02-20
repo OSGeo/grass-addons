@@ -1,13 +1,13 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.isis3mt</em> Generates an ISIS3 map template file according to the
- current GRASS projection parameters
+*g.isis3mt* Generates an ISIS3 map template file according to the
+current GRASS projection parameters
 
-<h2>NOTE</h2>
+## NOTE
 
-The ISIS3 user should use <tt>matchmap=yes</tt> in <tt>cam2mapi</tt>.
+The ISIS3 user should use `matchmap=yes` in `cam2mapi`.
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Alessandro Frigeri, INA, Ispra, Italy<br>
+Alessandro Frigeri, INA, Ispra, Italy  
 Added to GRASS 7 by Yann Chemin

@@ -1,51 +1,40 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-Module <em>hd.hdfs.in.vector</em> allows to GET Hive table and transform it to GRASS vector map.
+Module *hd.hdfs.in.vector* allows to GET Hive table and transform it to
+GRASS vector map.
 
+## NOTES
 
-<p>
+The module allows to GET results from HDFS and create GRASS vector. The
+module download serialized GeoJSON file from HDFS to local filesystem
+and in the second step modifies file to standard GeoJSON format. The
+second step is important to make file consistent according to GeoJSON
+standard. In that time, format is readable by *v.in.ogr* and can be
+transformed to the native GRASS vector map.
 
-<h2>NOTES</h2>
-
-The module allows to GET results from HDFS and create GRASS vector.
-The module download serialized GeoJSON file from HDFS to local filesystem and in the second step
-modifies file to standard GeoJSON format. The second step is important to make
-file consistent according to GeoJSON standard. In that time, format is readable
-by <em>v.in.ogr</em> and can be transformed
-to the native GRASS vector map.
-
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Copy and transform Hive table stored as Esri GeoJSON to GRASS vector.
-The result map will include table with attributes count and bind_id.
+The result map will include table with attributes count and bind\_id.
 
-<div class="code"><pre>
+```sh
 hd.hdfs.out.vector.py driver=webhdfs out=europe_agg2 attributes='count int,bin_id int' hdfs=/user/hive/warehouse/europe_agg1
-</pre>
-</div>
+```
 
+## SEE ALSO
 
+*[hd.hdfs.in.fs](hd.hdfs.in.fs.md),
+[hd.hdfs.in.vector](hd.hdfs.in.vector.md),
+[hd.hdfs.out.vector](hd.hdfs.out.vector.md),
+[hd.hdfs.info](hd.hdfs.info.md), [hd.hive.execute](hd.hive.execute.md),
+[hd.hive.csv.table](hd.hive.csv.table.md),
+[hd.hive.select](hd.hive.select.md), [hd.hive.info](hd.hive.info.md),
+[hd.hive.json.table](hd.hive.json.table.md)*
 
-<h2>SEE ALSO</h2>
+See also related [wiki page](https://grasswiki.osgeo.org/wiki/).
 
-<em>
-<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
-<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
-<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
-<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
-<a href="hd.hive.execute.html">hd.hive.execute</a>,
-<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
-<a href="hd.hive.select.html">hd.hive.select</a>,
-<a href="hd.hive.info.html">hd.hive.info</a>,
-<a href="hd.hive.json.table.html">hd.hive.json.table</a>
-</em>
+## AUTHOR
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/">wiki page</a>.
-
-
-<h2>AUTHOR</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during master thesis project 2016 (mentor: Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during master thesis
+project 2016 (mentor: Martin Landa)

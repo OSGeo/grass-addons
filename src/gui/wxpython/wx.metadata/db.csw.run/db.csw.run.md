@@ -1,31 +1,27 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<b>db.csw.run</b> is designed to interact with Catalog Service for the Web (CSW)
-servers for metadata management purposes. It is implemented as a WSGI wrapper
-for pycsw and the module for starting the server on localhost.
+**db.csw.run** is designed to interact with Catalog Service for the Web
+(CSW) servers for metadata management purposes. It is implemented as a
+WSGI wrapper for pycsw and the module for starting the server on
+localhost.
 
-<h2>NOTES</h2>
+## NOTES
 
 ...
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/r.info.html">r.info</a>,
-    <a href="v.info.iso.html">v.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>
-    <a href="db.csw.harvest">db.csw.harvest</a>
-    <a href="db.csw.admin">db.csw.admin</a>
-    <a href="db.csw.run">db.csw.run</a>
-</em>
+*[r.info](https://grass.osgeo.org/grass-stable/manuals/r.info.html),
+[v.info.iso](v.info.iso.md), [g.gui.metadata](g.gui.metadata.md)
+[db.csw.harvest](db.csw.harvest) [db.csw.admin](db.csw.admin)
+[db.csw.run](db.csw.run)*
 
-<p>
-See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+See also related [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-    Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during [Google Summer of
+Code 2014](https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS)
+(mentors: Margherita Di Leo, Martin Landa)

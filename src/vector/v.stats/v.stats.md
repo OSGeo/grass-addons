@@ -1,7 +1,7 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The <em>v.stats</em> calculates vector statistics.
+The *v.stats* calculates vector statistics.
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Pietro Zambelli (University of Trento)

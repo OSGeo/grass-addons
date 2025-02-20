@@ -1,59 +1,96 @@
-<h2>DESCRIPTION</h2>
-<em>r.green.hydro.structure</em> computes the derivation channel and the penstock for each potential plant and for both sides of the river.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.green.hydro.structure* computes the derivation channel and the
+penstock for each potential plant and for both sides of the river.
 
-The input maps are the elevation raster map and the one with the segments of potential plants (vector map which can be computed by r.green.hydro.optimal or r.green.hydro.recommended). <br>
-In the section "Input column", the column names in the table of the map with potential plants have to be reported in order to read correctly the corresponding values.<br>
-The module returns a vector map with the structure for each plant on both sides of the river. The derivation channel and the penstock are distinguished and reported in the table.<br>
-In option, the module can also compute the vector map with the intake and restitution of each potential plant.<br><br>
+## NOTES
 
-As the current potential concerns especially small hydropower (inferior to 20 MW), the structure suggested is the one for small hydropower detailed in the picture below. It is composed of an intake (A) which diverts water from the river. This water is conveyed into a derivation channel (B) with a very low slope and arrives in a forebay tank (C) which regulates the fluctuation of discharge. Finally, the penstock (D) conveys the water with the highest possible head to the turbine-alternator group (E) which produces electricity. The water is then released in the river (restitution F). We use the following vocabulary: the structure of the plant corresponds to the part with the derivation channel, the forebay tank and the penstock, whereas the segment of the plant corresponds to the part of the river (water not diverted) between the intake (A) and the restitution (F).<br><br>
+The input maps are the elevation raster map and the one with the
+segments of potential plants (vector map which can be computed by
+r.green.hydro.optimal or r.green.hydro.recommended).  
+In the section "Input column", the column names in the table of the map
+with potential plants have to be reported in order to read correctly the
+corresponding values.  
+The module returns a vector map with the structure for each plant on
+both sides of the river. The derivation channel and the penstock are
+distinguished and reported in the table.  
+In option, the module can also compute the vector map with the intake
+and restitution of each potential plant.  
+  
+As the current potential concerns especially small hydropower (inferior
+to 20 MW), the structure suggested is the one for small hydropower
+detailed in the picture below. It is composed of an intake (A) which
+diverts water from the river. This water is conveyed into a derivation
+channel (B) with a very low slope and arrives in a forebay tank (C)
+which regulates the fluctuation of discharge. Finally, the penstock (D)
+conveys the water with the highest possible head to the
+turbine-alternator group (E) which produces electricity. The water is
+then released in the river (restitution F). We use the following
+vocabulary: the structure of the plant corresponds to the part with the
+derivation channel, the forebay tank and the penstock, whereas the
+segment of the plant corresponds to the part of the river (water not
+diverted) between the intake (A) and the restitution (F).  
+  
 
-<center>
-<img src="r_green_hydro_technical_picstruct.png" alt="structure"><br>
+![image-alt](r_green_hydro_technical_picstruct.png)  
 Structure of the plants considered in the module
-</center><br><br>
 
-The power is maximized for the highest head in the penstock so the derivation channel is computed along the same quote (the low slope is neglected here) until the point which maximizes the head along the penstock. The structure is computed for both sides of the river in order to determine which one produces the most power.
+  
+  
+The power is maximized for the highest head in the penstock so the
+derivation channel is computed along the same quote (the low slope is
+neglected here) until the point which maximizes the head along the
+penstock. The structure is computed for both sides of the river in order
+to determine which one produces the most power.
 
-<h2>EXAMPLE</h2>
-This example is based on the case-study of Gesso and Vermenagna valleys in the Natural Park of the Maritime Alps, Piedmont, Italy.<br><br>
+## EXAMPLE
 
-Here is the input vector map potentialplants with the segments of potential plants (in blue). The vector map with the intakes and restitution of potential plants is also visibile in red on this picture.<br><br>
+This example is based on the case-study of Gesso and Vermenagna valleys
+in the Natural Park of the Maritime Alps, Piedmont, Italy.  
+  
+Here is the input vector map potentialplants with the segments of
+potential plants (in blue). The vector map with the intakes and
+restitution of potential plants is also visibile in red on this
+picture.  
+  
 
-<center>
-<img src="r_green_hydro_structure_input.png" alt="potentialplants"><br>
+![image-alt](r_green_hydro_structure_input.png)  
 Input vector map potentialplants
-</center><br>
 
-The following command computes the derivation channel and the penstock for each potential plant and for each side of the river :<br>
-<div class="code"><pre>r.green.hydro.structure elevation=elevation plant=potentialplants output_struct=structplants</pre></div><br><br>
+  
+The following command computes the derivation channel and the penstock
+for each potential plant and for each side of the river :  
 
-The result is shown in black in the following picture which gathers the input and output maps.<br><br>
+```sh
+r.green.hydro.structure elevation=elevation plant=potentialplants output_struct=structplants
+```
 
-<center>
-<img src="r_green_hydro_structure_output.png" alt="plantstructure"><br>
+  
+  
+The result is shown in black in the following picture which gathers the
+input and output maps.  
+  
+
+![image-alt](r_green_hydro_structure_output.png)  
 Output vector map structplants in black
-</center>
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="r.green.hydro.discharge.html">r.green.hydro.discharge</a><br>
-<a href="r.green.hydro.delplants.html">r.green.hydro.delplants</a><br>
-<a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
-<a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
-<a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
-<a href="r.green.hydro.technical.html">r.green.hydro.technical</a><br>
-<a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
-</em>
+*[r.green.hydro.discharge](r.green.hydro.discharge.md)  
+[r.green.hydro.delplants](r.green.hydro.delplants.md)  
+[r.green.hydro.theoretical](r.green.hydro.theoretical.md)  
+[r.green.hydro.optimal](r.green.hydro.optimal.md)  
+[r.green.hydro.recommended](r.green.hydro.recommended.md)  
+[r.green.hydro.technical](r.green.hydro.technical.md)  
+[r.green.hydro.financial](r.green.hydro.financial.md)  
+*
 
-<h2>REFERENCE</h2>
+## REFERENCE
 
-Picture of the plant structure taken from Micro-hydropower Systems - A Buyer's
-Guide, Natural Resources Canada, 2004
+Picture of the plant structure taken from Micro-hydropower Systems - A
+Buyer's Guide, Natural Resources Canada, 2004
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Pietro Zambelli (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.
+Pietro Zambelli (Eurac Research, Bolzano, Italy), Manual written by
+Julie Gros.

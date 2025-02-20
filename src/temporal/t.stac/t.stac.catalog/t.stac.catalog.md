@@ -1,29 +1,28 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>t.stac.catalog</em> is a tool for exploring SpatioTemporal Asset Catalogs metadata
-from a STAC API. A list of STAC API and Catalogs can be found at
-<a target="_blank" href="https://stacindex.org/catalogs">https://stacindex.org/catalogs</a>.
-The tool is based on the PySTAC library and provides a set of modules for working with
-STAC APIs.
+*t.stac.catalog* is a tool for exploring SpatioTemporal Asset Catalogs
+metadata from a STAC API. A list of STAC API and Catalogs can be found
+at <https://stacindex.org/catalogs>. The tool is based on the PySTAC
+library and provides a set of modules for working with STAC APIs.
 
-<h2>REQUIREMENTS</h2>
+## REQUIREMENTS
 
-<ul>
-    <li><a href="https://pystac-client.readthedocs.io/en/stable/">PySTAC_Client (0.8.3)</a></li>
-</ul>
+  - [PySTAC\_Client
+    (0.8.3)](https://pystac-client.readthedocs.io/en/stable/)
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Get the catalog metadata from a STAC API.
 
-<h3>STAC Catalog JSON metadata</h3>
-<pre><code class="code">
+### STAC Catalog JSON metadata
+
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
-</code></pre>
+```
 
 GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
 
-<pre><code class="code">
+```sh
 from grass import gs
 catalog = gs.parse_command("t.stac.catalog", url="https://earth-search.aws.element84.com/v1/", flags="p")
 print(catalog)
@@ -48,10 +47,11 @@ print(catalog)
  'stac_version': '1.0.0',
  'title': 'Earth Search by Element 84',
  'type': 'Catalog'}
-</code></pre>
+```
 
-<h3>STAC Catalog plain text metadata</h3>
-<pre><code>
+### STAC Catalog plain text metadata
+
+```sh
 t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain -b
 
 ---------------------------------------------------------------------------
@@ -76,10 +76,11 @@ sentinel-2-l1c: Sentinel-2 Level-1C
 sentinel-2-c1-l2a: Sentinel-2 Collection 1 Level-2A
 sentinel-1-grd: Sentinel-1 Level-1C Ground Range Detected (GRD)
 ---------------------------------------------------------------------------
-</code></pre>
+```
 
-<h3>Basic STAC catalog metadata</h3>
-<pre><code>
+### Basic STAC catalog metadata
+
+```sh
 t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain
 
 ---------------------------------------------------------------------------
@@ -111,47 +112,54 @@ License: proprietary
 Extent: {'spatial': {'bbox': [[-180, -90, 180, 90]]}, 'temporal': {'interval': [['2014-10-10T00:28:21Z', None]]}}
 License: proprietary
 ---------------------------------------------------------------------------
-</code></pre>
+```
 
-<h2>AUTHENTICATION</h2>
+## AUTHENTICATION
 
-The <em>t.stac.catalog</em> tool supports authentication with the STAC API using the <em>GDAL's</em> virtual fie system <em>/vsi/</em>.
+The *t.stac.catalog* tool supports authentication with the STAC API
+using the *GDAL's* virtual fie system */vsi/*.
 
+### Basic Authentication
 
-<h3>Basic Authentication</h3>
-<pre><code>
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/" settings="user:password"
-</code></pre>
+```
 
-<h3>AWS</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files">AWS S3</a>
+### AWS
 
-<h3>Google Cloud Storage</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files">Google Cloud Storage</a>
+[AWS
+S3](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
 
-<h3>Microsoft Azure</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files">Microsoft Azure</a>
+### Google Cloud Storage
 
-<h3>HTTP</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access">HTTP</a>
+[Google Cloud
+Storage](https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files)
 
-<h2>SEE ALSO</h2>
+### Microsoft Azure
 
-<em>Requirements
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html">t.stac.collection</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.item">t.stac.item</a>
-</em>
-<p>
-<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>
+[Microsoft
+Azure](https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files)
 
-<h2>AUTHORS</h2>
+### HTTP
 
-Corey T. White<br>
+[HTTP](https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access)
 
-<h2>Sponsors</h2>
-<ul>
-    <li><a target="_blank" href="https://openplains.com">OpenPlains Inc.</a></li>
-    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
-</ul>
+## SEE ALSO
+
+*Requirements
+[t.stac.collection](https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html),
+[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/t.stac.item)*
+
+[GRASS GIS Wiki: temporal data
+processing](https://grasswiki.osgeo.org/wiki/Temporal_data_processing)
+
+## AUTHORS
+
+Corey T. White  
+
+## Sponsors
+
+  - [OpenPlains Inc.](https://openplains.com)
+  - [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
 
 Center for Geospatial Analytics at North Carolina State University

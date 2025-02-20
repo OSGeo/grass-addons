@@ -1,74 +1,84 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>r.green.hydro - GRASS GIS manual</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
+[![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
+-----
 
-<h2>NAME</h2>
+## NAME
 
-The <em>r.green.hydro</em>  - Toolset for computing the hydropower potential.
+The *r.green.hydro* - Toolset for computing the hydropower potential.
 
-<h2>KEYWORDS</h2>
-<a href="https://grass.osgeo.org/grass-stable/manuals/raster.html">raster</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html">biomass topic</a>
+## KEYWORDS
 
-<!-- meta page name description: Computes the residual energy potential of different renewable energies like biomass or hydropower -->
-<h2>DESCRIPTION</h2>
+[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
+[biomass
+topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
 
-The <em>r.green.hydro</em> suite computes the hydropower potential. <br>
-It is composed of several programs considering different limits (e.g. theoretical, recommended, legal, technical, ecological and economic constraints).<br>
+## DESCRIPTION
 
-The <em>r.green.hydro</em> suite consists of the following six different parts:<br><br>
+The *r.green.hydro* suite computes the hydropower potential.  
+It is composed of several programs considering different limits (e.g.
+theoretical, recommended, legal, technical, ecological and economic
+constraints).  
+The *r.green.hydro* suite consists of the following six different
+parts:  
+  
+\- [r.green.hydro.theoretical](r.green.hydro.theoretical.md)  
+calculates for each basin the theoretical maximum hydropower energy
+potential  
+input raster maps:    - discharge along river network     - elevation of
+the considered region  
+input vector map:       existing plant position  
+output vector maps: - available river segments               - optimal
+plant position  
+  
+\- [r.green.hydro.recommended](r.green.hydro.recommended.md)  
+detects the potential plant position considering legal and ecological
+constraints and the user's recommendations  
+input raster maps:    - discharge along river network     - elevation of
+the considered region     - minimum flow discharge  
+input vector maps:    - existing plant position                   -
+areas excluded from calculation  
+output vector maps: - available river segments               - optimal
+plant position  
+  
+\- [r.green.hydro.technical](r.green.hydro.technical.md)  
+calculates the hydropower potential considering technical constrains
+(head losses, efficiency of turbine)  
+input vector map:       intakes and restitutions of the potential
+plants  
+output vector map:  - structure (derivation channel and penstock) on
+both sides of the river for each potential plant  
+  
+\- [r.green.hydro.financial](r.green.hydro.financial.md)  
+computes the economic costs and values of the plants  
+input raster maps:    - landuse     - slope  
+input vector maps:   - segments of the potential plants   - plant
+structure     - electric grid  
+output vector map:    structure of the potential plants with a
+re-organized table with e.g. power, gross head, total cost  
+  
+\- [r.green.hydro.structure](r.green.hydro.structure.md)  
+computes the derivation channel and the penstock for each potential
+plant on both sides of the river  
+input raster map:       elevation of the considered region  
+input vector map:       segments of the potential plants  
+output vector map:    structure for each plant on both sides of the
+river  
+  
+\- [r.green.hydro.optimal](r.green.hydro.optimal.md)  
+detects the position of the potential hydropower plants that can produce
+the highest possible power  
+input raster maps:    - discharge along river network     - elevation of
+the considered region  
+input vector map:       considered rivers  
+output vector maps: - potential river segments               - intake
+and restitution of each potential plant  
+  
 
-- <a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
-  calculates for each basin the theoretical maximum hydropower energy potential<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region<br>
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;existing plant position<br>
-  output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
+## SEE ALSO
 
-- <a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
-  detects the potential plant position considering legal and ecological constraints and the user's recommendations<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region &nbsp; &nbsp; - minimum flow discharge<br>
-  input vector maps: &nbsp;&nbsp; - existing plant position  &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;-  areas excluded from calculation<br>
-  output vector maps: - available river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - optimal plant position<br><br>
+*[r.green](r.green.md) - overview page*
 
-- <a href="r.green.hydro.technical.html">r.green.hydro.technical</a><br>
-  calculates the hydropower potential considering technical constrains (head losses, efficiency of turbine)<br>
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;intakes and restitutions of the potential plants<br>
-  output vector map: &nbsp;- structure (derivation channel and penstock) on both sides of the river for each potential plant<br><br>
+## AUTHOR
 
-- <a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
-  computes the economic costs and values of the plants<br>
-  input raster maps: &nbsp; &nbsp;- landuse  &nbsp; &nbsp; - slope<br>
-  input vector maps: &nbsp;&nbsp;- segments of the potential plants &nbsp;&nbsp;- plant structure &nbsp;&nbsp;&nbsp;&nbsp;- electric grid<br>
-  output vector map: &nbsp;&nbsp; structure of the potential plants with a re-organized table with e.g. power, gross head, total cost<br><br>
-
-- <a href="r.green.hydro.structure.html">r.green.hydro.structure</a><br>
-  computes the derivation channel and the penstock for each potential plant on both sides of the river<br>
-  input raster map: &nbsp; &nbsp; &nbsp; elevation of the considered region<br>
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;segments of the potential plants<br>
-  output vector map: &nbsp;&nbsp; structure for each plant on both sides of the river<br><br>
-
-- <a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
-  detects the position of the potential hydropower plants that can produce the highest possible power<br>
-  input raster maps: &nbsp; &nbsp;- discharge along river network  &nbsp; &nbsp; - elevation of the considered region <br>
-  input vector map: &nbsp;&nbsp; &nbsp; &nbsp;considered rivers<br>
-  output vector maps: - potential river segments &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - intake and restitution of each potential plant<br><br>
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="r.green.html">r.green</a> - overview page
-</em>
-
-<h2>AUTHOR</h2>
-
-For authors and references, please refer to the respective modules of <em>r.green</em>.
+For authors and references, please refer to the respective modules of
+*r.green*.

@@ -1,48 +1,23 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.area.weigh</em> rasterizes vector areas using known cell weights.
-In the output raster, the sum off all cells falling into a given area
-is identical to the area attribute value used to rasterize the area.
+*v.area.weigh* rasterizes vector areas using known cell weights. In the
+output raster, the sum off all cells falling into a given area is
+identical to the area attribute value used to rasterize the area.
 
-<p>
-<em>v.area.weigh</em> can add spatial detail to larger areas, if more
-detailed information is available from other sources. For example,
-population counts are typically available for administrative areas such
-as provinces, counties or countries. At the same time, the location of
+*v.area.weigh* can add spatial detail to larger areas, if more detailed
+information is available from other sources. For example, population
+counts are typically available for administrative areas such as
+provinces, counties or countries. At the same time, the location of
 urban areas might be known and can be used to refine spatial detail
-using <em>v.area.weigh</em>.
+using *v.area.weigh*.
 
-<!--
-TODO: add reasonable example
+## SEE ALSO
 
-<h2>EXAMPLE</h2>
+*[v.surf.mass](v.surf.mass.md) addon,
+[r.area.createweight](r.area.createweight.md) addon,
+[v.to.rast](https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html),
+[r.stats.zonal](https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html)*
 
-<div class="code"><pre>
-# set computational region to raster ...
-g.region -p raster=...
-
-# extract urban areas
-r.mapcalc "urban = if(...)"
-
-# smooth a bit
-r.neighbors input=urban output=urban_ngbr5 size=5 method=average
-
-# refine
-v.area.weigh vector=... column=... weight=urban_ngbr5 out=...
-</pre></div>
-
--->
-
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="v.surf.mass.html">v.surf.mass</a> addon,
-<a href="r.area.createweight.html">r.area.createweight</a> addon,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html">v.to.rast</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.zonal.html">r.stats.zonal</a>
-</em>
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Metz

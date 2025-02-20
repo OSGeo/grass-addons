@@ -1,52 +1,48 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 Creates a random generated map with values 0 or 1" "by given landcover
 and agglomeration value.
 
-<h2>NOTES</h2>
+## NOTES
 
 Related to r.pi.nlm.circ but using fractal landscapes instead of
 circular growth. Per default the size of the whole region is used for
 generating a random landscape, this can be constraint by assigning a
-class in a raster map with acts as mask for the generation of the
-random landscape (<em>nullval</em>). The landcover can be set manually,
-randomly or be taken from the input class coverage. The agglomeration
-level (<em>sharpness</em>) can be set manually or randomly. If similar
-random landscape with differing e.g. percentage coverage should be
-generated, then the <em>seed</em> can be set using any number and
-reused for any subsequent analysis.
+class in a raster map with acts as mask for the generation of the random
+landscape (*nullval*). The landcover can be set manually, randomly or be
+taken from the input class coverage. The agglomeration level
+(*sharpness*) can be set manually or randomly. If similar random
+landscape with differing e.g. percentage coverage should be generated,
+then the *seed* can be set using any number and reused for any
+subsequent analysis.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-An example for the North Carolina sample dataset:
+An example for the North Carolina sample dataset: A random landscape
+with random percentage coverage and agglomeration factor:  
 
-A random landscape with random percentage coverage and agglomeration
-factor:<br>
-<div class="code"><pre>
+```sh
 r.pi.nlm output=nlm.1 landcover=50
-</pre></div>
-
+```
 
 A random landscape is generated using the percentage coverage of class
-5. The agglomeration factor is set randomly:<br>
-<div class="code"><pre>
+5. The agglomeration factor is set randomly:  
+
+```sh
 r.pi.nlm input=landclass96 output=nlm.2 keyval=5
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a>,
-<a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
+*[r.pi.nlm.circ](r.pi.nlm.circ.md), [r.pi.nlm.stats](r.pi.nlm.stats.md),
+[r.pi](r.pi.md)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

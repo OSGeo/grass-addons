@@ -1,78 +1,46 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>r.green.gshp - GRASS GIS manual</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
+[![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
+-----
 
-<h2>NAME</h2>
+## NAME
 
-The <em>r.green.gshp</em> - Toolset for computing the Ground Source Heat Pump potential.
+The *r.green.gshp* - Toolset for computing the Ground Source Heat Pump
+potential.
 
-<h2>KEYWORDS</h2>
-<a href="https://grass.osgeo.org/grass-stable/manuals/raster.html">raster</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html">biomass topic</a>
+## KEYWORDS
 
-<!-- meta page name description: Computes the residual energy potential of different renewable energies like biomass or hydropower -->
-<h2>DESCRIPTION</h2>
+[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
+[biomass
+topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
 
-The <em>r.green.gshp</em> suite computes the Ground Source Heat Pump potential.<br>
-It is composed of several programs considering different limits (e.g. theoretical,
-planning, technical, economic/financial constraints).
-<p>
+## DESCRIPTION
+
+The *r.green.gshp* suite computes the Ground Source Heat Pump
+potential.  
+It is composed of several programs considering different limits (e.g.
+theoretical, planning, technical, economic/financial constraints).
 
 The development of this tool was funded by the Alpine Space
- <a href="http://www.alpine-space.eu/projects/greta/en/home">GRETA</a> project.
+[GRETA](http://www.alpine-space.eu/projects/greta/en/home) project.  
+[![image-alt](https://greta.eurac.edu/static/geonode/img/greta_logo.png)](https://www.alpine-space.eu/projects/greta/en/home)  
+GRETA is co-financed by the European Regional Development Fund through
+the [Interreg Alpine Space](https://www.alpine-space.eu/) programme.  
+  
+The *r.green.gshp* suite consists of the following different parts:  
+  
 
-<br>
+  - [r.green.gshp.theoretical](r.green.gshp.theoretical.md) - Calculates
+    for each single Borehole Heat Exchanger (BHE) the maximum
+    power/energy potential, assessed through the G.POT method.
 
-<a href="https://www.alpine-space.eu/projects/greta/en/home" target="_blank"><img src="https://greta.eurac.edu/static/geonode/img/greta_logo.png" class="logo" width="200px"></a>
+## SEE ALSO
 
-<br>
+*[r.green](r.green.md) - overview page  
+[A. Casasso, R. Sethi, 2016, *G.POT: A quantitative method for the
+assessment and mapping of the shallow geothermal potential*, **Energy**,
+Volume 106, pp. 765-773](https://doi.org/10.1016/j.energy.2016.03.091)*
 
-GRETA is co-financed by the European Regional Development Fund through the <a href="https://www.alpine-space.eu/">Interreg Alpine Space</a> programme.
+## AUTHOR
 
-<br><br>
-
-The <em>r.green.gshp</em> suite consists of the following different parts:<br><br>
-
-<ul>
-<li><a href="r.green.gshp.theoretical.html">r.green.gshp.theoretical</a> -
-  Calculates for each single Borehole Heat Exchanger (BHE) the maximum power/energy potential, assessed through the G.POT method.</li>
-<!--
-<li><a href="r.green.gshp.planning.html">r.green.gshp.planning</a> -
-  [status: not implemented yet] consider legal, ecological constraints and the user's recommendations to plan the use of the GSHP system</li>
-
-<li><a href="r.green.gshp.technical.html">r.green.gshp.technical</a> -
-  [status: testing] calculates the length of a BHE following the ASHRAE methodology.<br><br>
-
-<li><a href="r.green.gshp.financial.html">r.green.gshp.financial</a><br>
-  [status: not implemented yet] computes the economic and financial feasibility of the ground source heat plants</li>
--->
-</ul>
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="r.green.html">r.green</a> - overview page
-<br>
-<a href="https://doi.org/10.1016/j.energy.2016.03.091">
-A. Casasso, R. Sethi,
-2016,
-<i>G.POT: A quantitative method for the assessment and mapping of the shallow geothermal potential</i>,
-<b>Energy</b>,
-Volume 106,
-pp. 765-773
-</a>
-</em>
-
-<h2>AUTHOR</h2>
-
-For authors and references, please refer to the respective module of <em>r.green</em>.
+For authors and references, please refer to the respective module of
+*r.green*.

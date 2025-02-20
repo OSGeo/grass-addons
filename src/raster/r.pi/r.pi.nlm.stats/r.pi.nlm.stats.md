@@ -1,33 +1,30 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 Neutral Landscape Generator - index statistics
 
-<h2>NOTES</h2>
+## NOTES
 
 ...
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 An example for the North Carolina sample dataset:
 
-<div class="code"><pre>
+```sh
 g.region -d
 ...
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.nlm.html">r.pi.nlm</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
+*[r.pi.nlm](r.pi.nlm.md), [r.pi](r.pi.md)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

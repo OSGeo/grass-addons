@@ -1,79 +1,74 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>d.vect.thematic2</em> creates thematic maps from vector features of
-all types and numeric attributes stored in the attribute table connected to a vector
-map.
+*d.vect.thematic2* creates thematic maps from vector features of all
+types and numeric attributes stored in the attribute table connected to
+a vector map.
 
-<p>
-Thematic maps can be displayed by either a <i>graduated color
-scheme</i> (for all vector types), as <i>graduated icon sizes</i> (for
-point and centroid types), or <i>graduated line widths</i> (for lines
-and boundaries with associated attributes), see <b>themetype</b>
-option for details. The user selects the vector <b>map</b> to be
-mapped and attribute <b>column</b> from which to derive mapping
-intervals, and (optionally) the <b>layer</b> for attribute data.
+Thematic maps can be displayed by either a *graduated color scheme* (for
+all vector types), as *graduated icon sizes* (for point and centroid
+types), or *graduated line widths* (for lines and boundaries with
+associated attributes), see **themetype** option for details. The user
+selects the vector **map** to be mapped and attribute **column** from
+which to derive mapping intervals, and (optionally) the **layer** for
+attribute data.
 
-<p>In thematic maps, the color or point size changes for each range of
+In thematic maps, the color or point size changes for each range of
 attribute values. Value ranges for thematic mapping can be set at
-<i>regular intervals</i>, <i>standard deviation</i> units on either side of the
-<i>mean</i>, <i>quartiles</i>, or delimited by <i>user-defined
-breakpoints</i>, see <b>themecalc</b> option.  User-defined
-breakpoints (<b>themecalc=custom_breaks</b>) can be entered
-via <b>breakpoints</b> option.
-
-<h2>NOTES</h2>
-
-<p>There is option <b>colorscheme</b> to define the color scheme
-(graduated colors) and range of point sizes (graduated points) for
-thematic maps.
-
-<p>
-Optionally, a simple text legend is printed when <b>-l</b> flag is
-given. A graphic legend can be drawn in the selected display monitor.
-
-<p>
-Thematic colors can be uploaded by <b>rgb_column</b> option
-to a specified attribute column (which is created automatically if
-doesn't exist in the table) for later display
-via <em><a href="https://grass.osgeo.org/grass-stable/manuals/d.vect.html">d.vect</a></em> and <b>rgb_column</b>
+*regular intervals*, *standard deviation* units on either side of the
+*mean*, *quartiles*, or delimited by *user-defined breakpoints*, see
+**themecalc** option. User-defined breakpoints
+(**themecalc=custom\_breaks**) can be entered via **breakpoints**
 option.
 
-<p>When the <b>psmap</b> option is set to 'name', two psmap instruction files are
-created (in the current directory if no path is given), one for the map
-('name.psmap') and one for the legend ('name_legend.psmap'). The map file also
-contains 'label' commands which allow to create a legend directly in the map by
-adding a 'vlegend' command. See the <em><a href="ps.map">ps.map</a></em> manual
-page for more details.
+## NOTES
 
-<p>
-The algorithm currently uses the <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.univar.html">v.univar</a></em> to calculate basic
-descriptive statistics needed for thematic mapping (minimum, maximum, mean,
-standard deviation, and quartiles).
+There is option **colorscheme** to define the color scheme (graduated
+colors) and range of point sizes (graduated points) for thematic maps.
 
-<h2>EXAMPLES</h2>
+Optionally, a simple text legend is printed when **-l** flag is given. A
+graphic legend can be drawn in the selected display monitor.
+
+Thematic colors can be uploaded by **rgb\_column** option to a specified
+attribute column (which is created automatically if doesn't exist in the
+table) for later display via
+*[d.vect](https://grass.osgeo.org/grass-stable/manuals/d.vect.html)* and
+**rgb\_column** option.
+
+When the **psmap** option is set to 'name', two psmap instruction files
+are created (in the current directory if no path is given), one for the
+map ('name.psmap') and one for the legend ('name\_legend.psmap'). The
+map file also contains 'label' commands which allow to create a legend
+directly in the map by adding a 'vlegend' command. See the
+*[ps.map](ps.map)* manual page for more details.
+
+The algorithm currently uses the
+*[v.univar](https://grass.osgeo.org/grass-stable/manuals/v.univar.html)*
+to calculate basic descriptive statistics needed for thematic mapping
+(minimum, maximum, mean, standard deviation, and quartiles).
+
+## EXAMPLES
 
 Earthquake points with color gradient:
 
-<div class="code"><pre>
+```sh
 d.vect.thematic2 -l recent_earthquakes column=magnitude type=point
-</pre></div>
+```
 
-<p>Earthquake points with different sizes:
+Earthquake points with different sizes:
 
-<div class="code"><pre>
+```sh
 d.vect.thematic2 -l recent_earthquakes column=magnitude type=point \
                 themetype=graduated_points maxsize=15
-</pre></div>
+```
 
-<center>
-<img src="d_vect_thematic_equake.png"><br>
-Example for earthquake map rendering
-(<a href="https://github.com/OSGeo/grass-promo/tree/master/tutorials/batch_processing/earthquakes">script code</a>)
-</center>
+![image-alt](d_vect_thematic_equake.png)  
+Example for earthquake map rendering ([script
+code](https://github.com/OSGeo/grass-promo/tree/master/tutorials/batch_processing/earthquakes))
 
-<p>North Carolina: differences between 'elevation' (10m) and 'elev_state_500m':
+North Carolina: differences between 'elevation' (10m) and
+'elev\_state\_500m':
 
-<div class="code"><pre>
+```sh
 # random sampling of elevation points:
 g.region raster=elevation -p
 v.random random npoints=200
@@ -92,29 +87,26 @@ v.univar -e elev_sample column=diff type=point
 # thematic map:
 d.mon wx0
 d.vect.thematic2 -l elev_sample column=diff type=point
-</pre></div>
+```
 
-<p>
 North Carolina sample dataset example:
 
-<div class="code"><pre>
+```sh
 g.region vector=nc_state
 d.vect.thematic2 -l precip_30ynormals column=annual type=point
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/d.vect.html">d.vect</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/d.vect.chart.html">d.vect.chart</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.univar.html">v.univar</a>
-</em>
+*[d.vect](https://grass.osgeo.org/grass-stable/manuals/d.vect.html),
+[d.vect.chart](https://grass.osgeo.org/grass-stable/manuals/d.vect.chart.html),
+[v.univar](https://grass.osgeo.org/grass-stable/manuals/v.univar.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Michael Barton, Arizona State University
-<p>
-Various updates by:<br>
-Daniel Cavelo Aros,<br>
-Martin Landa,<br>
+
+Various updates by:  
+Daniel Cavelo Aros,  
+Martin Landa,  
 Jachym Cepicky

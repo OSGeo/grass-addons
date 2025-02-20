@@ -1,67 +1,55 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.habitat.dem</em> calculates DEM and solar derived characteristics
-of habitat vector polygons. The user must specify the input <b>elevation raster</b>
-map, a <b>habitat vector</b> map with a <b>numeric unique ID</b> column
-and a <b>prefix</b> used for all results.
+*v.habitat.dem* calculates DEM and solar derived characteristics of
+habitat vector polygons. The user must specify the input **elevation
+raster** map, a **habitat vector** map with a **numeric unique ID**
+column and a **prefix** used for all results.
 
-<p>
 A preliminary visual delineation of habitats based upon digital
 orthophotos is a common task for an ecologist before fieldwork.
 Ecological site conditions of habitats are often influenced amongst
 others by terrain forms, solar irradiance and irradiation.
-<em>v.habitat.dem</em> gives some DEM derived characteristics for a
-quick validation of the preliminary visual habitat delineation.
-</p>
+*v.habitat.dem* gives some DEM derived characteristics for a quick
+validation of the preliminary visual habitat delineation.
 
-<h2>NOTES</h2>
+## NOTES
 
 The location has to be in a projected coordination system. Before
-running <em>v.habitat.dem</em> the region has to be aligned to the
-<b>elevation raster</b> map and the <b>habitat vector</b> map by
-<em>g.region</em>. During calculations, especially for solar
-characteristics, the region will be extended by a user input (default
-5.000). The results are as good as the DEM quality and resolution is.
+running *v.habitat.dem* the region has to be aligned to the **elevation
+raster** map and the **habitat vector** map by *g.region*. During
+calculations, especially for solar characteristics, the region will be
+extended by a user input (default 5.000). The results are as good as the
+DEM quality and resolution is.
 
-<h3>Terrain characteristics</h3>
+### Terrain characteristics
 
-<b>Slope</b> and <b>aspect</b> are calculated by <em>r.slope.aspect</em>.
+**Slope** and **aspect** are calculated by *r.slope.aspect*.
 
-<p>
-The <b>slope</b> output raster map contains slope values, stated in
-degrees of inclination from the horizontal.
-<br>
-The <b>aspect</b> output raster map indicates the direction that slopes
-are facing. The aspect categories represent the number degrees of east.
-</p>
+The **slope** output raster map contains slope values, stated in degrees
+of inclination from the horizontal.  
+The **aspect** output raster map indicates the direction that slopes are
+facing. The aspect categories represent the number degrees of east.
 
-<p>
-<b>Accumulation</b>, <b>drainage direction</b> and <b>topographic index</b>
-are calculated by <em>r.watershed</em>. The flag <b>-a</b> (use positive
-flow accumulation even for likely underestimates) is used as default.
-</p>
+**Accumulation**, **drainage direction** and **topographic index** are
+calculated by *r.watershed*. The flag **-a** (use positive flow
+accumulation even for likely underestimates) is used as default.
 
-<p>
-The <b>accumulation</b> map contains the absolute value of each cell in
+The **accumulation** map contains the absolute value of each cell in
 this output map and is the amount of overland flow that traverses the
 cell. This value will be the number of upland cells plus one if no
-overland flow map is given.
-<br>
-The <b>drainage direction</b> map contains drainage direction. Provides
-the "aspect" for each cell measured CCW from East.
-<br>
-The <b>topographic index</b> raster map contains topographic index TCI
-and is computed as <tt>ln(&alpha; / tan(&beta;))</tt> where &alpha; a is
-the cumulativeupslope area draining through a point per unit contour
-length and <tt>tan(&beta;)</tt> is the local slope angle. The TCI
-reflects the tendency of water to accumulate at any point in the
-catchment and the tendency for gravitaional forces to move that water
-downslope. This value will be negative if <tt>&alpha; / tan(&beta;) &lt; 1</tt>.
-</p>
+overland flow map is given.  
+The **drainage direction** map contains drainage direction. Provides the
+"aspect" for each cell measured CCW from East.  
+The **topographic index** raster map contains topographic index TCI and
+is computed as `ln(α / tan(β))` where α a is the cumulativeupslope area
+draining through a point per unit contour length and `tan(β)` is the
+local slope angle. The TCI reflects the tendency of water to accumulate
+at any point in the catchment and the tendency for gravitaional forces
+to move that water downslope. This value will be negative if `α / tan(β)
+< 1`.
 
-Terrain forms are calculated by <em>r.geomorphon</em>.
+Terrain forms are calculated by *r.geomorphon*.
 
-<p>
 Geomorphon is a new concept of presentation and analysis of terrain
 forms using machine vision approach. This concept utilises 8-tuple
 pattern of the visibility neighbourhood and breaks well known limitation
@@ -69,175 +57,138 @@ of standard calculus approach where all terrain forms cannot be detected
 in a single window size. The pattern arises from a comparison of a focus
 pixel with its eight neighbours starting from the one located to the
 east and continuing counterclockwise producing a ternary operator. All
-options in the <em>r.geomorphon</em>-calculation are set to default
-(<b>skip = 0</b>, <b>search = 3</b>, <b>flat = 1</b>, <b>dist = 0</b>)
-where <b>search</b> determines the length on the geodesic distances in
-all eight directions where line-of-sight is calculated, <b>skip</b>
-determines length on the geodesic distances at the beginning of
-calculation all eight directions where line-of-sight is yet calculated,
-<b>flat</b> defines the difference (in degrees) between zenith and nadir
-line-of-sight which indicate flat direction and <b>dist</b> determines >
-flat distance.
-</p>
+options in the *r.geomorphon*-calculation are set to default (**skip =
+0**, **search = 3**, **flat = 1**, **dist = 0**) where **search**
+determines the length on the geodesic distances in all eight directions
+where line-of-sight is calculated, **skip** determines length on the
+geodesic distances at the beginning of calculation all eight directions
+where line-of-sight is yet calculated, **flat** defines the difference
+(in degrees) between zenith and nadir line-of-sight which indicate flat
+direction and **dist** determines \> flat distance.
 
-<p>
-The most common terrain forms calculated by <em>r.geomorphon</em> are:
-</p>
+The most common terrain forms calculated by *r.geomorphon* are:
 
-<ul>
- <li>flat</li>
- <li>summit</li>
- <li>ridge</li>
- <li>shoulder</li>
- <li>spur</li>
- <li>slope</li>
- <li>hollow</li>
- <li>footslope</li>
- <li>valley</li>
- <li>depression</li>
-</ul>
+  - flat
+  - summit
+  - ridge
+  - shoulder
+  - spur
+  - slope
+  - hollow
+  - footslope
+  - valley
+  - depression
 
 The LS factor
 
-<p>
 The LS is the slope length-gradient factor. The LS factor represents a
 ratio of soil loss under given conditions to that at a site with the
 "standard" slope steepness of 9% and slope length of 22.13m. The steeper
 and longer the slope, the higher the risk for erosion.
-</p>
 
-<p>
 The LS factor is calculated accordingly Neteler & Mitasova 2008 in
-<em>r.mapcalc</em> with flow accumulation of <em>r.flow</em> and slope
-of <em>r.slope.aspect</em>
-</p>
+*r.mapcalc* with flow accumulation of *r.flow* and slope of
+*r.slope.aspect*
 
-<div class="code">
- <pre>
+```sh
   1.4 * exp(flow_accumulation * resolution / 22.1, 0.4) * exp(sin(slope) 0.09, 1.2)
- </pre>
-</div>
+ 
+```
 
-<p>
 The colors of the LS factor map are set to:
-</p>
 
-<ul>
- <li>0 white</li>
- <li>3 yellow</li>
- <li>6 orange</li>
- <li>10 red</li>
- <li>50 magenta</li>
- <li>100 violet</li>
-</ul>
+  - 0 white
+  - 3 yellow
+  - 6 orange
+  - 10 red
+  - 50 magenta
+  - 100 violet
 
-<h3>Terrain characteristics uploaded to the habitat vector attribute table per polygon</h3>
+### Terrain characteristics uploaded to the habitat vector attribute table per polygon
 
-<ul>
- <li><b>DEM altitude</b>: minimum, maximum, range, average, median</li>
- <li><b>slope</b>: minimum, maximum, range, average, median</li>
- <li><b>aspect</b>: minimum, maximum, range, average, median</li>
- <li><b>geomorphons</b>: absolute area of flat, summit, ridge, shoulder, spur, slope, hollow, footslope, valley, depression</li>
-</ul>
+  - **DEM altitude**: minimum, maximum, range, average, median
+  - **slope**: minimum, maximum, range, average, median
+  - **aspect**: minimum, maximum, range, average, median
+  - **geomorphons**: absolute area of flat, summit, ridge, shoulder,
+    spur, slope, hollow, footslope, valley, depression
 
-<p>
-Additionally the mutual occurrence by <em>r.coin</em> of unique habitat
-ID and geomorphons in percent of the row is printed to the output.
-</p>
+Additionally the mutual occurrence by *r.coin* of unique habitat ID and
+geomorphons in percent of the row is printed to the output.
 
-<h3>Simple check of terrain characteristics</h3>
+### Simple check of terrain characteristics
 
-<p>
 Simple checks regarding aspect and slope per unique habitat ID are
 evaluated and marked in the attribute table as follow:
-</p>
 
-<ul>
-<li><b>simple check regarding aspect range:</b></li>
-<li>aspect range 100-200 *</li>
-<li>aspect range 201-300 **</li>
-<li>aspect range &ge; 300 ***</li>
-<li><b>simple checks regarding aspect range and slope median:</b></li>
-<li>aspect range 100-200 and median slope &lt; 5 *</li>
-<li>aspect range 201-300 and median slope &lt; 5 **</li>
-<li>aspect range &ge; 300 and median slope &lt; 5 ***</li>
-</ul>
+  - **simple check regarding aspect range:**
+  - aspect range 100-200 \*
+  - aspect range 201-300 \*\*
+  - aspect range ≥ 300 \*\*\*
+  - **simple checks regarding aspect range and slope median:**
+  - aspect range 100-200 and median slope \< 5 \*
+  - aspect range 201-300 and median slope \< 5 \*\*
+  - aspect range ≥ 300 and median slope \< 5 \*\*\*
 
-<p>
 These simple checks may indicate reconsidering of some preliminary
 visual habitat delineations.
-</p>
 
-<h3>Solar characteristics</h3>
+### Solar characteristics
 
-<p>
 The solar characterstics (direct sunlight / shadows caused by terrain
-for a certain day in the year) are calculated by <em>r.sun.hourly</em>
-based upon <em>r.sun</em>. The <b>-b</b>-flag is used to create binary
-rasters instead of irradiation rasters. The user can define start time
-of interval, end time of interval, time step for running <em>r.sun</em>,
-number of day of the year and the year. As default is set summer
-solstice (21st June 2014, 8:00-18:00, 1 hour time step).
-</p>
+for a certain day in the year) are calculated by *r.sun.hourly* based
+upon *r.sun*. The **-b**-flag is used to create binary rasters instead
+of irradiation rasters. The user can define start time of interval, end
+time of interval, time step for running *r.sun*, number of day of the
+year and the year. As default is set summer solstice (21st June 2014,
+8:00-18:00, 1 hour time step).
 
-<p>
-The results of the <em>r.sun.hourly</em>-analysis are automatically
-registered into a temporal database. The space time raster dataset can
-be easily animated in the <em>g.gui.animation</em>-tool.
-</p>
+The results of the *r.sun.hourly*-analysis are automatically registered
+into a temporal database. The space time raster dataset can be easily
+animated in the *g.gui.animation*-tool.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<!-- NC example
-g.copy vector=zipcodes_wake,myzipcodes_wake
-g.region -a raster=elevation vector=myzipcodes_wake align=elevation -p
-v.habitat.dem elevation=elevation vector=myzipcodes_wake column=cat prefix=a dir=tmp
--->
-
-<div class="code"><pre>
+```sh
 # align region to DEM and habitat vector
 g.region -a raster=DEM vector=myhabitats align=DEM
 
-# run <em>v.habitat.dem</em>
+# run v.habitat.dem
 v.habitat.dem elevation=DEM vector=myhabitats column=Id prefix=a dir=C:\wd
 
-# do <em>r.null</em> to the <em>r.sun.hourly</em> output to get maps without direct beam
+# do r.null to the r.sun.hourly output to get maps without direct beam
 r.null map=a_beam_rad_08.00 setnull=1
 [...]
 r.null map=a_beam_rad_18.00 setnull=1
 
-# animate the <em>r.sun.hourly</em> output by the <em>g.gui.animation</em>-tool
+# animate the r.sun.hourly output by the g.gui.animation-tool
 g.gui.animation strds=a_beam_rad
-</pre></div>
+```
 
-<h2>DEPENDENCIES</h2>
+## DEPENDENCIES
 
-<ul>
-<li>r.geomorphon</li>
-<li>r.sun.hourly (addon)</li>
-</ul>
+  - r.geomorphon
+  - r.sun.hourly (addon)
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.gui.animation.html">g.gui.animation</a>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.coin.html">r.coin</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.geomorphon.html">r.geomorphon</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a>,
-<a href="r.sun.hourly.html">r.sun.hourly</a> (addon),
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html">v.to.rast</a>
-</em>
+*[g.gui.animation](https://grass.osgeo.org/grass-stable/manuals/g.gui.animation.html)
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r.coin](https://grass.osgeo.org/grass-stable/manuals/r.coin.html),
+[r.geomorphon](https://grass.osgeo.org/grass-stable/manuals/r.geomorphon.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html),
+[r.sun](https://grass.osgeo.org/grass-stable/manuals/r.sun.html),
+[r.sun.hourly](r.sun.hourly.md) (addon),
+[r.stats](https://grass.osgeo.org/grass-stable/manuals/r.stats.html),
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
+[v.rast.stats](https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html),
+[v.to.rast](https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html)*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-Neteler, M. and Mitasova, H. 2008. <a href="https://grassbook.org/">Open Source GIS: A GRASS GIS Approach</a>. Third Edition. Springer.
+Neteler, M. and Mitasova, H. 2008. [Open Source GIS: A GRASS GIS
+Approach](https://grassbook.org/). Third Edition. Springer.
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

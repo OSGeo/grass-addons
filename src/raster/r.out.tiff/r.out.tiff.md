@@ -1,43 +1,40 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-Note: this module is superseded by <a href="https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html">r.out.gdal</a>.
-<p>
+Note: this module is superseded by
+[r.out.gdal](https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html).
 
-<em>r.out.tiff</em> converts a GRASS raster map to a TIFF raster map. Output may
-be 8 or 24 bit (TrueColor).  Optionally, a TIFF World file compatible with
-ESRI's and other's products may be output.
+*r.out.tiff* converts a GRASS raster map to a TIFF raster map. Output
+may be 8 or 24 bit (TrueColor). Optionally, a TIFF World file compatible
+with ESRI's and other's products may be output.
 
-<p>The program prompts the user for the name of a GRASS raster map, an output
-TIFF file, whether an 8 or 24 bit format is desired, and whether or not to
-create a TIFF world file.  Currently only uncompressed, packpit, or deflate
-TIFF files are written.  These output formats are known to be compatible
-with r.in.tiff.
+The program prompts the user for the name of a GRASS raster map, an
+output TIFF file, whether an 8 or 24 bit format is desired, and whether
+or not to create a TIFF world file. Currently only uncompressed,
+packpit, or deflate TIFF files are written. These output formats are
+known to be compatible with r.in.tiff.
 
-<p>The output filename will always have the suffix <code>.tif</code>, and the Tiff World
-file (if requested) <code>.tfw</code>. Any <code>.tif</code> or
-<code>.tiff</code> suffix (case insensitive) specified in the output filename
-will be discarded.
+The output filename will always have the suffix `.tif`, and the Tiff
+World file (if requested) `.tfw`. Any `.tif` or `.tiff` suffix (case
+insensitive) specified in the output filename will be discarded.
 
-<p>When writing with "-l" option, tiles are written at 128x128 pixels.  For
+When writing with "-l" option, tiles are written at 128x128 pixels. For
 programs that can utilize tiles, it can help speed up some drawing
 operations.
 
-<p>The user may adjust region and resolution before export using
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>.
+The user may adjust region and resolution before export using
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html).
 
-<p>A better choice to export GRASS raster data might be
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html">r.out.gdal</a>.
+A better choice to export GRASS raster data might be
+[r.out.gdal](https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html).
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html">r.in.gdal</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html">r.out.gdal</a>
-</em>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r.in.gdal](https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html),
+[r.out.gdal](https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Michael Shapiro,
-U.S. Army Construction Engineering Research Laboratory
-<p>GRASS 5.0 team
+Michael Shapiro, U.S. Army Construction Engineering Research Laboratory
+
+GRASS 5.0 team

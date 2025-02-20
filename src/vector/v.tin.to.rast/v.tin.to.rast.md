@@ -1,14 +1,14 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.tin.to.rast</em> converts (rasterizes) a TIN map into a raster map.
+*v.tin.to.rast* converts (rasterizes) a TIN map into a raster map.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-Example of <em>v.tin.to.rast</em> usage (North Carolina sample data set).
+Example of *v.tin.to.rast* usage (North Carolina sample data set).
 Preparation of a TIN (Delaunay triangulation) from geodetic points, then
 rasterization of the TIN:
 
-<div class="code"><pre>
+```sh
 # work on a copy of the original geodetic points map
 g.copy vector=geodetic_pts,mygeodetic_pts
 
@@ -29,15 +29,13 @@ v.delaunay input=mygeodetic_pts_3d output=mygeodetic_pts_3d_delaunay
 g.region vector=mygeodetic_pts_3d_delaunay res=500 -p
 v.tin.to.rast input=mygeodetic_pts_3d_delaunay output=mygeodetic_pts_3d_delaunay
 r.colors mygeodetic_pts_3d_delaunay color=srtm_plus
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.delaunay.html">v.delaunay</a>
-</em>
+*[v.delaunay](https://grass.osgeo.org/grass-stable/manuals/v.delaunay.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Antonio Alliegro, Alexander Muriy<br>
+Antonio Alliegro, Alexander Muriy  
 Example: Markus Neteler

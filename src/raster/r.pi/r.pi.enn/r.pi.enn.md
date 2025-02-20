@@ -1,103 +1,67 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.pi.enn</em> computes the euclidean distance between patches (1-n NN).
-
+*r.pi.enn* computes the euclidean distance between patches (1-n NN).
 Analysis of n-th euclidean nearest neighbour distance.
 
-<h2>NOTES</h2>
+## NOTES
 
-The user must specify the names of the raster map layers to
-be used for <em>input</em> and <em>output</em>, the <em>keyval</em> the
-<em>method</em> (e.g. distance, area) and <em>statmethod</em> used (i.e.,
-average).
-<p>
+The user must specify the names of the raster map layers to be used for
+*input* and *output*, the *keyval* the *method* (e.g. distance, area)
+and *statmethod* used (i.e., average).
 
-Within <em>r.pi.enn</em> the following setting have to be set:
+Within *r.pi.enn* the following setting have to be set:
 
-<h3>keyval setting:</h3>
+### keyval setting:
 
-The <em>keyval</em> operator determines which category value is taken for the Patch Index analysis.
+The *keyval* operator determines which category value is taken for the
+Patch Index analysis.
 
-<h3>Method setting:</h3>
+### Method setting:
 
-The <em>method</em> operators determine what measure is applied
+The *method* operators determine what measure is applied on the nth NN.
+
+  - **Distance**  
+    The *Average* computes the average distance of the n NN.
+  - **Path distance**  
+    The *path\_distance* computes the actual distance to the n NN.
+  - **Area**  
+    The *area* computes the area of the n NN.
+  - **Perimeter**  
+    The *perimeter* computes the perimeter of the n NN.
+  - **SHAPE Index**  
+    The *shapeindex* computes the SHAPE Index of the n NN.
+
+### Statmethod setting:
+
+The *statmethod* operators determine what statistic measure is applied
 on the nth NN.
 
-<p>
-<dl>
-<dt><b>Distance</b>
+  - **Average**  
+    The *Average* computes the average distance of the n NN.
+  - **Variance**  
+    The *Variance* computes the variance of the distance of the n NN.
+  - **Std. Dev.**  
+    The *Std. Dev* computes the std. dev. of the distance of the n NN.
 
-<dd>The <em>Average</em> computes the average distance of the n NN.
+### Number:
 
+The *keyval* operator determines which or how many Nearest Neighbour are
+analysed. *1,2,5* will analyse the 1, 2 and 5th Nearest Neigbour. *1-10*
+will analyse the 1, 2, 3, ... 10th Nearest Neighbour. *0* will analyse
+all Nearest Neighbours.
 
-<dt><b>Path distance</b>
+### Distancematrix:
 
-<dd>The <em>path_distance</em> computes the actual distance to the n NN.
+The *dmout* operator is optional and determines if a distance matrix is
+written (first NN only). *1,2,5* will analyse the 1, 2 and 5th Nearest
+Neigbour. *1-10* will analyse the 1, 2, 3, ... 10th Nearest Neighbour.
+*0* will analyse all Nearest Neighbours.
 
-
-<dt><b>Area</b>
-
-<dd>The <em>area</em> computes the area of the n NN.
-
-<dt><b>Perimeter</b>
-
-<dd>The <em>perimeter</em> computes the perimeter of the n NN.
-
-<dt><b>SHAPE Index</b>
-
-<dd>The <em>shapeindex</em> computes the SHAPE Index of the n NN.
-</dl>
-
-<h3>Statmethod setting:</h3>
-
-The <em>statmethod</em> operators determine what statistic measure is applied
-on the nth NN.
-
-<p>
-<dl>
-<dt><b>Average</b>
-
-<dd>The <em>Average</em> computes the average distance of the n NN.
-
-
-<dt><b>Variance</b>
-
-<dd>The <em>Variance</em> computes the variance of the distance of the n NN.
-
-
-<dt><b>Std. Dev.</b>
-
-<dd>The <em>Std. Dev</em> computes the std. dev. of the distance of the n NN.
-</dl>
-
-
-<h3>Number:</h3>
-
-The <em>keyval</em> operator determines which or how many Nearest Neighbour are analysed.
-
-<em> 1,2,5 </em> will analyse the 1, 2 and 5th Nearest Neigbour.
-
-<em> 1-10 </em> will analyse the 1, 2, 3, ... 10th Nearest Neighbour.
-
-<em> 0 </em> will analyse all Nearest Neighbours.
-
-
-<h3>Distancematrix:</h3>
-
-The <em>dmout</em> operator is optional and determines if a distance matrix is written (first NN only).
-
-<em> 1,2,5 </em> will analyse the 1, 2 and 5th Nearest Neigbour.
-
-<em> 1-10 </em> will analyse the 1, 2, 3, ... 10th Nearest Neighbour.
-
-<em> 0 </em> will analyse all Nearest Neighbours.
-
-
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 An example for the North Carolina sample dataset:
 
-<div class="code"><pre>
+```sh
 r.pi.enn input=landclass96 output=dist1.c5 keyval=5 method=distance number=1 statmethod=average
 # -> gives a map of patches (all of category of 5) with the average distance to their first NN
 
@@ -109,25 +73,21 @@ r.pi.enn input=landclass96 output=dist1.5.10.c5 keyval=5 method=distance number=
 
 r.pi.enn input=landclass96 output=dist10b.c5 keyval=5 method=path_distance number=10 statmethod=average
 # -> gives a map of patches (all of category of 5) with the actual distance to the 10th NN
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.fragment.dist.html">r.fragment.dist</a>,
-<a href="r.pi.enn.html">r.pi.enn</a>,
-<a href="r.pi.enn.pr.html">r.pi.enn.pr</a>,
-<a href="r.fragment.neighbors.html">r.fragment.neighbors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.setup.html">r.li</a>
-</em>
+*[r.pi.index](r.pi.index.md), [r.fragment.dist](r.fragment.dist.md),
+[r.pi.enn](r.pi.enn.md), [r.pi.enn.pr](r.pi.enn.pr.md),
+[r.fragment.neighbors](r.fragment.neighbors.md),
+[r.li](https://grass.osgeo.org/grass-stable/manuals/r.li.setup.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

@@ -1,126 +1,107 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.centerline</em> creates a new map with a line representing an
+*v.centerline* creates a new map with a line representing an
 approximation of the central tendency of a series of input lines that
-all have similar trajectories. This can for example, be the central
-line of a river represented by its two sides, or a line representing
-the general direction of a series of flight paths, etc.
+all have similar trajectories. This can for example, be the central line
+of a river represented by its two sides, or a line representing the
+general direction of a series of flight paths, etc.
 
-<p>
 Two algorithms are proposed in the module, both based on the idea of
-using a reference line, creating a series of reference points along
-this line and then finding the coordinates of corresponding points on
-all the input lines. The default algorithm uses closest distance to
-identify corresponding points, while the second algorithm (<b>t</b>
-flag) draws perpendicular transversals at the reference points and uses
-the intersections of these transversals with the other lines as
+using a reference line, creating a series of reference points along this
+line and then finding the coordinates of corresponding points on all the
+input lines. The default algorithm uses closest distance to identify
+corresponding points, while the second algorithm (**t** flag) draws
+perpendicular transversals at the reference points and uses the
+intersections of these transversals with the other lines as
 corresponding points.
 
-<p>
 In detail, the default algorithm goes as follows:
-<ul>
-	<li>choose one of the input lines as reference line</li>
-	<li>create a series of points at regular intervals on this line</li>
-	<li>for each of these points:
-	  <ul>
-		  <li>find the closest point on each of the input lines</li>
-		  <li>get the coordinates of those points</li>
-		  <li>calculate the mean or (mathematical) median of these coordinates</li>
-	  </ul>
-	</li>
-	<li>use the calculated means (or medians) as vertices of the new line</li>
-</ul>
 
-<p>
+  - choose one of the input lines as reference line
+  - create a series of points at regular intervals on this line
+  - for each of these points:
+      - find the closest point on each of the input lines
+      - get the coordinates of those points
+      - calculate the mean or (mathematical) median of these coordinates
+  - use the calculated means (or medians) as vertices of the new line
+
 The transversals algorithm goes as follows:
-<ul>
-	<li>choose one of the input lines as reference line</li>
-	<li>create a series of perpendicular (transversal) lines at regular intervals on this line</li>
-	<li>for each of these transversals:
-	  <ul>
-		  <li>find the intersection points of the transversal with all input lines</li>
-		  <li>get the coordinates of those points</li>
-		  <li>calculate the mean or (mathematical) median of these coordinates</li>
-	  </ul>
-	</li>
-	<li>use the calculated means (or medians) as vertices of the new line</li>
-</ul>
 
-<p>The user can change three parameters in the algorithms: the choice
-of the reference line (<b>refline</b>), the number of vertices to
-calculate (<b>vertices</b>) and the search range (<b>range</b>), i.e.
-for the default algorithm the maximum distance of corresponding points
-from the reference line and for the second algorithm the length of the
+  - choose one of the input lines as reference line
+  - create a series of perpendicular (transversal) lines at regular
+    intervals on this line
+  - for each of these transversals:
+      - find the intersection points of the transversal with all input
+        lines
+      - get the coordinates of those points
+      - calculate the mean or (mathematical) median of these coordinates
+  - use the calculated means (or medians) as vertices of the new line
+
+The user can change three parameters in the algorithms: the choice of
+the reference line (**refline**), the number of vertices to calculate
+(**vertices**) and the search range (**range**), i.e. for the default
+algorithm the maximum distance of corresponding points from the
+reference line and for the second algorithm the length of the
 transversals on each side of the reference line.
 
-<p>If no reference line is given the module choses the reference line
-by determining the mean distance of the midpoint of each line to the
+If no reference line is given the module choses the reference line by
+determining the mean distance of the midpoint of each line to the
 midpoints of all other lines. The line with the lowest mean distance is
-then chosen as the reference line. If no range is given, the module
-uses the mean of the above mean distances as the range for the
-transversals algorithm, and an unlimited search range for the default
-algorithm.
+then chosen as the reference line. If no range is given, the module uses
+the mean of the above mean distances as the range for the transversals
+algorithm, and an unlimited search range for the default algorithm.
 
-<p>If the <b>m</b> flag is set and there are more than 2 lines in the
-input file, the module calculates the mathematical median of the x and
-of the y coordinates.
+If the **m** flag is set and there are more than 2 lines in the input
+file, the module calculates the mathematical median of the x and of the
+y coordinates.
 
-<h2>NOTES</h2>
+## NOTES
 
 This module is more of a proof of concept showing that an approximate
 solution to the problem is possible with existing GRASS modules. A
 C-based solution would probably be much more efficient.
 
-<p>The median in this module is <b>not</b> the geometric median, but
-the simple mathematical median respectively of the x and the y
-coordinates.
+The median in this module is **not** the geometric median, but the
+simple mathematical median respectively of the x and the y coordinates.
 
-<p>The transversals algorithm is very sensitive to the range parameter.
-The user might want to play around with this parameter to find the best
+The transversals algorithm is very sensitive to the range parameter. The
+user might want to play around with this parameter to find the best
 value.
 
-<p>Increasing the number of vertices should have a smoothing effect on
-the resulting line, but in the case of the transversals algorithm it
-can possibly lead to more instability.
+Increasing the number of vertices should have a smoothing effect on the
+resulting line, but in the case of the transversals algorithm it can
+possibly lead to more instability.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 v.centerline input=flightpaths output=center_line_mean
 v.centerline -m input=flightpaths output=center_line_median
 v.centerline input=flightpaths output=center_line_mean_5000 range=5000
 v.centerline -t input=flightpaths output=center_line_mean_t
 v.centerline -t input=flightpaths output=center_line_mean_t_8000 range=8000
-</pre></div>
+```
 
-<center>
-	<img src="v_centerline_flightpaths.png" border="1"><br>
-	Different centerlines resulting from variations in the parameters and flags
-</center>
+![image-alt](v_centerline_flightpaths.png)  
+Different centerlines resulting from variations in the parameters and
+flags
 
-<div class="code"><pre>
+```sh
 v.centerline input=river output=center_line
 v.centerline -t input=river output=river_center_t
-</pre></div>
+```
 
-<center>
-	<img src="v_centerline_river.png" border="1"><br>
-	Mean central line (median only makes sense if number of lines > 2) for distance (red) and transversals (blue) algorithms, the latter with automatically determined range
-</center>
+![image-alt](v_centerline_river.png)  
+Mean central line (median only makes sense if number of lines \> 2) for
+distance (red) and transversals (blue) algorithms, the latter with
+automatically determined range
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[v.segment](https://grass.osgeo.org/grass-stable/manuals/v.segment.html),
+[v.distance](https://grass.osgeo.org/grass-stable/manuals/v.distance.html)*  
+Similar addons: *[v.centerpoint](v.centerpoint.md)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.distance.html">v.distance</a>
-</em>
-<br>
-Similar addons:
-<em>
-<a href="v.centerpoint.html">v.centerpoint</a>
-</em>
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Moritz Lennert

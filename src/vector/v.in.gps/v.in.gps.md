@@ -1,96 +1,85 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.gps</em> allows the user to import waypoint, route, and track
-data from a locally connected GPS receiver or a text file containing
-GPS data of many common formats. Translation is done via the
-<em><a href="https://www.gpsbabel.org">GPSBabel</a></em> program.
+*v.in.gps* allows the user to import waypoint, route, and track data
+from a locally connected GPS receiver or a text file containing GPS data
+of many common formats. Translation is done via the
+*[GPSBabel](https://www.gpsbabel.org)* program.
 
-<p>This software is not intended as a primary means of navigation.
+This software is not intended as a primary means of navigation.
 
-<h2>NOTES</h2>
+## NOTES
 
-<em>v.in.gps</em> automatically reprojects data using the
-projection settings of the current location.
+*v.in.gps* automatically reprojects data using the projection settings
+of the current location. The default input data projection is lat/lon
+WGS84. If your GPS outputs data using another projection or map datum,
+you may include the *[PROJ](https://proj.org/)* parameters defining your
+projection in the **proj** option and *v.in.gps* will reproject your
+data accordingly. Great care must be taken to get these parameters
+correct\! The automatic transform may be skipped by using the **-k**
+flag in which case the data will be imported unprojected, as it appears
+in the **input**.
 
-The default input data projection is lat/lon WGS84. If your GPS outputs data
-using another projection or map datum, you may include the
-<em><a href="https://proj.org/">PROJ</a></em>
-parameters defining your projection in the <b>proj</b> option and
-<em>v.in.gps</em> will reproject your data accordingly.
-Great care must be taken to get these parameters correct!
+Route and Track data may be uploaded as a series of points by using the
+**-p** flag, otherwise they will be imported as lines. You can run
+*v.in.gps* multiple times and merge the line and point vectors with the
+*v.patch* command if you want, but take care when merging dissimilar
+attribute tables.
 
-The automatic transform may be skipped by using the <b>-k</b> flag in which
-case the data will be imported unprojected, as it appears in the <b>input</b>.
+## EXAMPLES
 
-<p>Route and Track data may be uploaded as a series of points by using the <b>-p</b>
-flag, otherwise they will be imported as lines. You can run <em>v.in.gps</em>
-multiple times and merge the line and point vectors with the <em>v.patch</em>
-command if you want, but take care when merging dissimilar attribute tables.
+### GPS device connected via USB adapter
 
-<!--
-When we tested the script with a Garmin GPS we noticed that importing waypoints
-the <i>time</i> field is not correctly set. The data reported is
-a default system time, while with a gpx text file this thing did not
-happen. We believe that is a <i>gpsbabel</i> trouble in translating
-from <i>garmin</i> to <i>xcsv</i> ...
--->
+Import waypoints, tracks, routes from /dev/ttyUSB0 and save to a GRASS
+vector map:
 
-<h2>EXAMPLES</h2>
-
-<h3>GPS device connected via USB adapter</h3>
-
-Import waypoints, tracks, routes from /dev/ttyUSB0 and save
-to a GRASS vector map:
-<div class="code"><pre>
+```sh
 v.in.gps -w input=/dev/ttyUSB0 format=garmin output=waypoints
 v.in.gps -t input=/dev/ttyUSB0 format=garmin output=tracks
 v.in.gps -r input=/dev/ttyUSB0 format=garmin output=routes
-</pre></div>
+```
 
-<h3>GPS device connected via serial adapter</h3>
+### GPS device connected via serial adapter
 
 Import waypoint data from a Garmin GPS connected at /dev/ttyS0 and save
-to a GRASS vector map named <i>waypoints</i>:
-<div class="code"><pre>
-v.in.gps -w input=/dev/ttyS0 format=garmin output=waypoints
-</pre></div>
+to a GRASS vector map named *waypoints*:
 
-<h3>Import track data from a GPX</h3>
+```sh
+v.in.gps -w input=/dev/ttyS0 format=garmin output=waypoints
+```
+
+### Import track data from a GPX
 
 Import track data from a GPX text file and save to a GRASS vector map
-named <i>tracks</i>.
-<!-- (currently buggy) The gpxlogger program distributed with
-<a href="https://www.berlios.de/software/gpsd">GPSd</a> >2.30 is a good program for
-creating these logs. -->
-<div class="code"><pre>
-v.in.gps -t input=gpslog.gpx format=gpx output=tracks
-</pre></div>
+named *tracks*.
 
-<h3>Import route data from GPS connected at /dev/gps</h3>
+```sh
+v.in.gps -t input=gpslog.gpx format=gpx output=tracks
+```
+
+### Import route data from GPS connected at /dev/gps
 
 Import route data as a series of points from a Garmin GPS connected at
-/dev/gps and save to a GRASS vector map named <i>routePoints</i>:
-<div class="code"><pre>
+/dev/gps and save to a GRASS vector map named *routePoints*:
+
+```sh
 v.in.gps -r -p file=/dev/gps format=garmin output=routePoints
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/db.execute.html">db.execute</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>,
-<a href="v.in.garmin.html">v.in.garmin</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.db.connect.html">v.db.connect</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.patch.html">v.patch</a>
-</em>
+*[db.execute](https://grass.osgeo.org/grass-stable/manuals/db.execute.html),
+[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html),
+[v.in.garmin](v.in.garmin.md),
+[v.db.connect](https://grass.osgeo.org/grass-stable/manuals/v.db.connect.html),
+[v.patch](https://grass.osgeo.org/grass-stable/manuals/v.patch.html)*
+[gpsbabel](https://www.gpsbabel.org) from gpsbabel.org  
+cs2cs from [PROJ](https://proj.org/)
 
-<a href="https://www.gpsbabel.org">gpsbabel</a> from gpsbabel.org<br>
-cs2cs from <a href="https://proj.org/">PROJ</a>
-
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Claudio Porta and Lucio Davide Spano, students of Computer Science at
-University of Pisa (Italy).<br>
-Commission from Faunalia Pontedera (PI)<br><br>
-Based on <em>v.in.garmin</em> for GRASS 6.0 by Hamish Bowman<br>
-and <em>v.in.garmin.sh</em> for GRASS 5 by Andreas Lange
+University of Pisa (Italy).  
+Commission from Faunalia Pontedera (PI)  
+  
+Based on *v.in.garmin* for GRASS 6.0 by Hamish Bowman  
+and *v.in.garmin.sh* for GRASS 5 by Andreas Lange

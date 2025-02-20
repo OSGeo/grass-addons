@@ -1,107 +1,124 @@
-<!-- meta page name: r.pi -->
-<!-- meta page name description: Toolset for multiscale analysis of landscape patch structure. -->
+## KEYWORDS
 
-<h2>KEYWORDS</h2>
+[raster](raster.md), [landscape structure
+analysis](topic_landscape_structure_analysis.md), [neutral
+landscapes](keywords.md#neutral-landscapes), [patch
+index](keywords.md#patch-index)
 
-<a href="raster.html">raster</a>, <a href="topic_landscape_structure_analysis.html">landscape structure analysis</a>, <a href="keywords.html#neutral landscapes">neutral landscapes</a>, <a href="keywords.html#patch index">patch index</a>
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
-
-<em>r.pi</em> (raster patch index) provides various functions to analyse
+*r.pi* (raster patch index) provides various functions to analyse
 spatial attributes of a landscape. It has a focus on patch-based indices
-but delivers class-based indices as well. <em>r.le</em> and its successor
-<em>r.li</em> provide landscape indices.
+but delivers class-based indices as well. *r.le* and its successor
+*r.li* provide landscape indices.
 
-<p>
-A list with a short description of the <em>r.pi</em> modules can be found
+A list with a short description of the *r.pi* modules can be found
 below. More in depth description of a certain module (commands, flags,
-options) can be found in the  respective folder (like
-<em><a href="r.pi.graph.html">r.pi.graph</a></em>). The functions/algorithms
-of the modules are not yet very extensive but will be expanded in the
-future. Please submit any bug/feature you might encounter to improve the
-functionality.
-<p>
+options) can be found in the respective folder (like
+*[r.pi.graph](r.pi.graph.md)*). The functions/algorithms of the modules
+are not yet very extensive but will be expanded in the future. Please
+submit any bug/feature you might encounter to improve the functionality.
+
 The program will interactively query the user for input, output and
 options (GUI). However the module can be also run from the terminal
 prompt (CLI) and might be implemented in e.g. a bash-script.
-<p>
+
 It is highly recommended to read the help pages or e.g the overview
 documents of
-<a href="https://web.archive.org/web/20211022092443/https://www.umass.edu/landeco/research/fragstats/documents/fragstats_documents.html">Fragstats</a>
+[Fragstats](https://web.archive.org/web/20211022092443/https://www.umass.edu/landeco/research/fragstats/documents/fragstats_documents.html)
 to get a better impression of problems, possibilities and caveats.
 
+### General and Connectivity Indices
 
-<h3>General and Connectivity Indices</h3>
+  - **[r.pi.index](r.pi.index.md)**: Calculations of basic indices
+    (area, SHAPE etc.)
+  - **[r.pi.enn](r.pi.enn.md)**: Area, SHAPE and distance to n-th
+    Euclidean Nearest Neighbor
+  - **[r.pi.fnn](r.pi.fnn.md)**: Area, SHAPE and distance to n-th
+    Functional Nearest Neighbor
+  - **[r.pi.grow](r.pi.grow.md)**: Size and suitability based region
+    growing
+  - **[r.pi.odc](r.pi.odc.md)**: Area and distance to omnidirectional
+    n-th Nearest Neighbors
+  - **[r.pi.neigh](r.pi.neigh.md)**: Extraction of values of patches in
+    defined buffer region
+  - **[r.pi.prox](r.pi.prox.md)**: Calculation of Proximity and Modified
+    Proximity Index for patches in buffer region
+  - **[r.pi.graph](r.pi.graph.md)**: Various connectivity indices within
+    the Graph Theory
+  - **[r.pi.graph.pr](r.pi.graph.pr.md)**: Graph Theory - iterative
+    removal (patch relevance analysis)
 
-<ul>
-<li><b><a href="r.pi.index.html">r.pi.index</a></b>: Calculations of basic indices (area, SHAPE etc.)</li>
-<li><b><a href="r.pi.enn.html">r.pi.enn</a></b>: Area, SHAPE and distance to n-th Euclidean Nearest Neighbor</li>
-<li><b><a href="r.pi.fnn.html">r.pi.fnn</a></b>: Area, SHAPE and distance to n-th Functional Nearest Neighbor</li>
-<li><b><a href="r.pi.grow.html">r.pi.grow</a></b>: Size and suitability based region growing</li>
-<li><b><a href="r.pi.odc.html">r.pi.odc</a></b>: Area and distance to omnidirectional n-th Nearest Neighbors</li>
-<li><b><a href="r.pi.neigh.html">r.pi.neigh</a></b>: Extraction of values of patches in defined buffer region</li>
-<li><b><a href="r.pi.prox.html">r.pi.prox</a></b>: Calculation of Proximity and Modified Proximity Index for patches in buffer region</li>
-<li><b><a href="r.pi.graph.html">r.pi.graph</a></b>: Various connectivity indices within the Graph Theory </li>
-<li><b><a href="r.pi.graph.pr.html">r.pi.graph.pr</a></b>: Graph Theory - iterative removal (patch relevance analysis)</li>
-</ul>
+### Individual-based dispersal models
 
+  - **[r.pi.searchtime](r.pi.searchtime.md)**: Searchtime and
+    Immigration rate
+  - **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Individual-based
+    dispersal model for connectivity analysis (time-based) using moving
+    window
+  - **[r.pi.energy](r.pi.energy.md)**: Immigration, Migration and
+    successfull emigration rate
+  - **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Related to
+    *r.pi.searchtime* but using a Moving Windows approach
 
-<h3>Individual-based dispersal models</h3>
-<ul>
-<li><b><a href="r.pi.searchtime.html">r.pi.searchtime</a></b>: Searchtime and Immigration rate</li>
-<li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>: Individual-based dispersal model for connectivity analysis (time-based) using moving window</li>
-<li><b><a href="r.pi.energy.html">r.pi.energy</a></b>: Immigration, Migration and successfull emigration rate</li>
-<li><b><a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a></b>: Related to <em>r.pi.searchtime</em> but using a Moving Windows approach</li>
-</ul>
+### Patch-Relevance
 
-<h3>Patch-Relevance</h3>
-<ul>
-<li><b><a href="r.pi.enn.pr.html">r.pi.enn.pr</a></b>: Patch relevance for Euclidean nearest neighbor patches</li>
-<li><b><a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a></b>: Relevance of patches for maintenance of searchtime</li>
-<li><b><a href="r.pi.energy.pr.html">r.pi.energy.pr</a></b>: Relevance of patches for maintenance of immigration rate</li>
-<li><b><a href="r.pi.graph.red.html">r.pi.graph.red</a></b>: Graph Theory - decreasing distance threshold option</li>
-<li><b><a href="r.pi.graph.dec.html">r.pi.graph.dec</a></b>: Graph Theory - successive criteria-based deletion of patches</li>
-</ul>
+  - **[r.pi.enn.pr](r.pi.enn.pr.md)**: Patch relevance for Euclidean
+    nearest neighbor patches
+  - **[r.pi.searchtime.pr](r.pi.searchtime.pr.md)**: Relevance of
+    patches for maintenance of searchtime
+  - **[r.pi.energy.pr](r.pi.energy.pr.md)**: Relevance of patches for
+    maintenance of immigration rate
+  - **[r.pi.graph.red](r.pi.graph.red.md)**: Graph Theory - decreasing
+    distance threshold option
+  - **[r.pi.graph.dec](r.pi.graph.dec.md)**: Graph Theory - successive
+    criteria-based deletion of patches
 
-<h3>Neutral Landscape Model</h3>
-<ul>
-<li><b><a href="r.pi.nlm.html">r.pi.nlm</a></b>: Generation of a neutral landscape (fractal)</li>
-<li><b><a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a></b>: Statistical analysis of landscapes based on permutation of neutral landscapes</li>
-<li><b><a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a></b>: Generation of a neutral landscape (circular)</li>
-</ul>
+### Neutral Landscape Model
 
-<h3>Various modules</h3>
-<ul>
-<li><b><a href="r.pi.corearea.html">r.pi.corearea</a></b>: Calculation of core area based on costmatrix</li>
-<li><b><a href="r.pi.csr.mw.html">r.pi.csr.mw</a></b>: Complete Spatial Randomness analysis on moving window.</li>
-<li><b><a href="r.pi.prob.mw.html">r.pi.prob.mw</a></b>: Probability of two random points being in the same patch</li>
-<li><b><a href="r.pi.rectangle.html">r.pi.rectangle</a></b>: Generation of rectangles based on coordinate points</li>
-<li><b><a href="r.pi.import.html">r.pi.import</a></b>: Import of values to corresponding patches</li>
-<li><b><a href="r.pi.export.html">r.pi.export</a></b>: Export of values from patches</li>
-<li><b><a href="r.pi.lm.html">r.pi.lm</a></b>: Linear regression analysis for patches</li>
-<li><b><a href="r.pi.corr.mw.html">r.pi.corr.mw</a></b>: Moving window correlation between two raster maps</li>
-</ul>
+  - **[r.pi.nlm](r.pi.nlm.md)**: Generation of a neutral landscape
+    (fractal)
+  - **[r.pi.nlm.stats](r.pi.nlm.stats.md)**: Statistical analysis of
+    landscapes based on permutation of neutral landscapes
+  - **[r.pi.nlm.circ](r.pi.nlm.circ.md)**: Generation of a neutral
+    landscape (circular)
 
-<h2>EXAMPLES</h2>
+### Various modules
 
-<h4>Calculation of the SHAPE-Index</h4>
+  - **[r.pi.corearea](r.pi.corearea.md)**: Calculation of core area
+    based on costmatrix
+  - **[r.pi.csr.mw](r.pi.csr.mw.md)**: Complete Spatial Randomness
+    analysis on moving window.
+  - **[r.pi.prob.mw](r.pi.prob.mw.md)**: Probability of two random
+    points being in the same patch
+  - **[r.pi.rectangle](r.pi.rectangle.md)**: Generation of rectangles
+    based on coordinate points
+  - **[r.pi.import](r.pi.import.md)**: Import of values to corresponding
+    patches
+  - **[r.pi.export](r.pi.export.md)**: Export of values from patches
+  - **[r.pi.lm](r.pi.lm.md)**: Linear regression analysis for patches
+  - **[r.pi.corr.mw](r.pi.corr.mw.md)**: Moving window correlation
+    between two raster maps
 
-Input can be generated by <em>r.pi.nlm</em>, for example:
+## EXAMPLES
 
-<div class="code"><pre>
+#### Calculation of the SHAPE-Index
+
+Input can be generated by *r.pi.nlm*, for example:
+
+```sh
 # generate random landscape with 50% cover
 r.pi.nlm output=NLM_in landcover=50 sharpness=0.5
 
 # use the class 1 of the above generated landscape for computation of SHAPE-Index
 r.pi.index input=NLM_in keyval=1 output=NLM_in.shape method=shape
-</pre></div>
+```
 
+#### Calculation of the distance to the first and 10th Nearest Neighbor
 
-<h4>Calculation of the distance to the first and 10th Nearest Neighbor</h4>
+Input generated by *r.pi.nlm*, for example:
 
-Input generated by <em>r.pi.nlm</em>, for example:
-
-<div class="code"><pre>
+```sh
 # generate random landscape with 50% cover
 r.pi.nlm output=NLM_in landcover=50 sharpness=0.5
 
@@ -113,78 +130,60 @@ r.pi.enn input=NLM_in output=NLM_in.enn10 method=distance number=10
 
 # 1-10th NN
 r.pi.enn input=NLM_in output=NLM_in.enn10 method=distance number=1-10
-</pre></div>
+```
 
-
-<h2>NOTE</h2>
+## NOTE
 
 The maximum number of patches that can be queried at one time depend on
 the module and might also be influenced by the resolution.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.corr.mw.html">r.pi.corr.mw</a>,
-<a href="r.pi.energy.html">r.pi.energy</a>,
-<a href="r.pi.energy.pr.html">r.energy.pr</a>,
-<a href="r.pi.enn.html">r.pi.enn</a>,
-<a href="r.pi.enn.pr.html">r.pi.enn.pr</a>,
-<a href="r.pi.neigh.html">r.pi.neigh</a>,
-<a href="r.pi.fnn.html">r.pi.fnn</a>,
-<a href="r.pi.nlm.circ.html">r.pi.nlm.circ</a>,
-<a href="r.pi.nlm.html">r.pi.nlm</a>,
-<a href="r.pi.nlm.stats.html">r.nlm.stats</a>,
-<a href="r.pi.corearea.html">r.pi.corearea</a>,
-<a href="r.pi.csr.mw.html">r.pi.csr.mw</a>,
-<a href="r.pi.export.html">r.pi.export</a>,
-<a href="r.pi.graph.html">r.pi.graph</a>,
-<a href="r.pi.graph.dec.html">r.pi.graph.dec</a>,
-<a href="r.pi.graph.pr.html">r.pi.graph.pr</a>,
-<a href="r.pi.graph.red.html">r.pi.graph.red</a>,
-<a href="r.pi.grow.html">r.pi.grow</a>,
-<a href="r.pi.import.html">r.pi.import</a>,
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.pi.lm.html">r.pi.lm</a>,
-<a href="r.pi.odc.html">r.pi.odc</a>,
-<a href="r.pi.prob.mw.html">r.pi.prob.mw</a>,
-<a href="r.pi.rectangle.html">r.pi.rectangle</a>,
-<a href="r.pi.searchtime.html">r.pi.searchtime</a>,
-<a href="r.pi.searchtime.pr.html">r.pi.searchtime.pr</a>,
-<a href="r.pi.searchtime.mw.html">r.pi.searchtime.mw</a>
-</em>
+*[r.pi.corr.mw](r.pi.corr.mw.md), [r.pi.energy](r.pi.energy.md),
+[r.energy.pr](r.pi.energy.pr.md), [r.pi.enn](r.pi.enn.md),
+[r.pi.enn.pr](r.pi.enn.pr.md), [r.pi.neigh](r.pi.neigh.md),
+[r.pi.fnn](r.pi.fnn.md), [r.pi.nlm.circ](r.pi.nlm.circ.md),
+[r.pi.nlm](r.pi.nlm.md), [r.nlm.stats](r.pi.nlm.stats.md),
+[r.pi.corearea](r.pi.corearea.md), [r.pi.csr.mw](r.pi.csr.mw.md),
+[r.pi.export](r.pi.export.md), [r.pi.graph](r.pi.graph.md),
+[r.pi.graph.dec](r.pi.graph.dec.md), [r.pi.graph.pr](r.pi.graph.pr.md),
+[r.pi.graph.red](r.pi.graph.red.md), [r.pi.grow](r.pi.grow.md),
+[r.pi.import](r.pi.import.md), [r.pi.index](r.pi.index.md),
+[r.pi.lm](r.pi.lm.md), [r.pi.odc](r.pi.odc.md),
+[r.pi.prob.mw](r.pi.prob.mw.md), [r.pi.rectangle](r.pi.rectangle.md),
+[r.pi.searchtime](r.pi.searchtime.md),
+[r.pi.searchtime.pr](r.pi.searchtime.pr.md),
+[r.pi.searchtime.mw](r.pi.searchtime.mw.md)*
 
-<p>
-<em>
-<a href="r.le.html">r.le</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.html">r.li</a>
-</em>
+*[r.le](r.le.md),
+[r.li](https://grass.osgeo.org/grass-stable/manuals/r.li.html)*
 
-<h2>REFERENCE</h2>
+## REFERENCE
 
-<ul>
-<li>Wegmann, M., Leutner, B. F., Metz, M., Neteler, M., Dech, S., &amp; Rocchini, D. (2018).
-<i>r. pi: A grass gis package for semi‐automatic spatial pattern analysis of remotely sensed
-land cover data.</i> Methods in Ecology and Evolution, 9(1), 191-199.
-<a href="https://doi.org/10.1111/2041-210X.12827">https://doi.org/10.1111/2041-210X.12827</a></li>
-</ul>
+  - Wegmann, M., Leutner, B. F., Metz, M., Neteler, M., Dech, S., &
+    Rocchini, D. (2018). *r. pi: A grass gis package for semi‐automatic
+    spatial pattern analysis of remotely sensed land cover data.*
+    Methods in Ecology and Evolution, 9(1), 191-199.
+    <https://doi.org/10.1111/2041-210X.12827>
 
-<h2>Disclaimer</h2>
+## Disclaimer
 
-This software is released under the GPL license, hence also the limitation
-of liability. This software was designed for a certain project and its research
-questions. Its nomenclature might not be concordant with other software packages.
-Moreover its capabilities are yet limited and can not be compared to such of e.g.
-Fragstats, however every user is invited to extend, modify or fix the
-functionality of <em>r.pi</em> as long as the new code comply with the GPL.
+This software is released under the GPL license, hence also the
+limitation of liability. This software was designed for a certain
+project and its research questions. Its nomenclature might not be
+concordant with other software packages. Moreover its capabilities are
+yet limited and can not be compared to such of e.g. Fragstats, however
+every user is invited to extend, modify or fix the functionality of
+*r.pi* as long as the new code comply with the GPL.
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Martin Wegmann <br>
-Department of Remote Sensing <br>
-<em>Remote Sensing and Biodiversity Unit</em><br>
+Programming: Elshad Shirinov  
+Scientific concept: Martin Wegmann  
+Department of Remote Sensing  
+*Remote Sensing and Biodiversity Unit*  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz
-<p>
+
 Documentation improvements: Markus Neteler

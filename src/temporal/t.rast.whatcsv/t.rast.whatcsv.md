@@ -1,39 +1,45 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>t.rast.what</em> is designed to sample space time raster datasets
-at specific point coordinates using <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a> internally.
-The output of <a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a>
-is transformed to different output layouts.
-The output layouts can be specified using the <em>layout</em> option.
-<p>
+*t.rast.what* is designed to sample space time raster datasets at
+specific point coordinates using
+[r.what](https://grass.osgeo.org/grass-stable/manuals/r.what.html)
+internally. The output of
+[r.what](https://grass.osgeo.org/grass-stable/manuals/r.what.html) is
+transformed to different output layouts. The output layouts can be
+specified using the *layout* option.
+
 Three layouts can be specified:
-<ul>
-    <li><em>row</em> - Row order, one vector sample point value per row</li>
-    <li><em>col</em> - Column order, create a column for each vector sample point of a single time step/raster layer</li>
-    <li><em>timerow</em> - Time order, create a column for each time step, this order is the original r.what output, except that the column names are the time stamps</li>
-</ul>
+
+  - *row* - Row order, one vector sample point value per row
+  - *col* - Column order, create a column for each vector sample point
+    of a single time step/raster layer
+  - *timerow* - Time order, create a column for each time step, this
+    order is the original r.what output, except that the column names
+    are the time stamps
 
 Please have a look at the example to see the supported layouts.
-<p>
+
 This module is designed to run several instances of r.what to sample
 subsets of a space time raster dataset in parallel. Several intermediate
-text files will be created that are merged into a single file at the
-end of the processing.
-<p>
-Coordinates can be provided as vector map using the <em>points</em> option
-or as comma separated coordinate list with the <em>coordinates </em>option.
-<p>
-An output file can be specified using the <em>output</em> option.
-Stdout will be used if no output is specified or if the
-<em>output</em> option is set to "-".
+text files will be created that are merged into a single file at the end
+of the processing.
 
-<h2>EXAMPLES</h2>
+Coordinates can be provided as vector map using the *points* option or
+as comma separated coordinate list with the *coordinates* option.
 
-<h3>Data preparation</h3>
-In the following examples we sample a space time raster dataset that contains
-4 raster map layers. First we create the STRDS that will be sampled with t.rast.what.
+An output file can be specified using the *output* option. Stdout will
+be used if no output is specified or if the *output* option is set to
+"-".
 
-<div class="code"><pre>
+## EXAMPLES
+
+### Data preparation
+
+In the following examples we sample a space time raster dataset that
+contains 4 raster map layers. First we create the STRDS that will be
+sampled with t.rast.what.
+
+```sh
 g.region s=0 n=80 w=0 e=120 b=0 t=50 res=10
 
 # Generate data
@@ -46,15 +52,14 @@ t.create type=strds output=A title="A test" descr="A test"
 
 t.register -i type=raster input=A maps=a_1,a_2,a_3,a_4 \
     start='1990-01-01' increment="1 month"
-</pre></div>
+```
 
-<h3>Example 1</h3>
+### Example 1
 
 The first approach uses text coordinates as input and stdout as output,
 the layout is one coordinate(point per column:
 
-
-<div class="code"><pre>
+```sh
 t.rast.what strds=A coordinates="115,36,79,45" layout=col -n
 
 start|end|115.0000000000;36.0000000000|79.0000000000;45.0000000000
@@ -62,14 +67,14 @@ start|end|115.0000000000;36.0000000000|79.0000000000;45.0000000000
 1990-02-01 00:00:00|1990-03-01 00:00:00|2|2
 1990-03-01 00:00:00|1990-04-01 00:00:00|3|3
 1990-04-01 00:00:00|1990-05-01 00:00:00|4|4
-</pre></div>
+```
 
-<h3>Example 2</h3>
+### Example 2
 
-A vector map layer can be used as input to sample the STRDS. All
-three available layouts are demonstrated using the vector map for sampling.
+A vector map layer can be used as input to sample the STRDS. All three
+available layouts are demonstrated using the vector map for sampling.
 
-<div class="code"><pre>
+```sh
 # First create the vector map layer based on random points
 v.random output=points n=3 seed=1
 
@@ -111,21 +116,18 @@ x|y|1990-03-01 00:00:00;1990-04-01 00:00:00|1990-04-01 00:00:00;1990-05-01 00:00
 115.004358627375|36.3593955782903|3|4
 79.681676382576|45.2391522852909|3|4
 97.4892579600048|79.2347263950131|3|4
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.what.html">r.what</a> ,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html">t.rast.aggregate.ds</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.extract.html">t.rast.extract</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.info.html">t.info</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mask.html">r.mask</a>
-</em>
+*[r.what](https://grass.osgeo.org/grass-stable/manuals/r.what.html) ,
+[r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html),
+[t.rast.aggregate.ds](https://grass.osgeo.org/grass-stable/manuals/t.rast.aggregate.ds.html),
+[t.rast.extract](https://grass.osgeo.org/grass-stable/manuals/t.rast.extract.html),
+[t.info](https://grass.osgeo.org/grass-stable/manuals/t.info.html),
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r.mask](https://grass.osgeo.org/grass-stable/manuals/r.mask.html)*
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-S&ouml;ren Gebbert, Th&uuml;nen Institute of Climate-Smart Agriculture
+Sören Gebbert, Thünen Institute of Climate-Smart Agriculture

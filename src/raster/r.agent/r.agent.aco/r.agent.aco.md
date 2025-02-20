@@ -1,78 +1,72 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 As a first real example of a world there is an ACO-based environment
-(see <a href="https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms">Ant Colony Optimization</a>)
+(see [Ant Colony
+Optimization](https://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms))
 available.
-<p>
-The basic concept of such an ACO world, is to take some cost surface
-and transform it to a penalty layer. Even if the algorithm comes from
-the realm of insects, it might be adapted to different animal kingdoms.
+
+The basic concept of such an ACO world, is to take some cost surface and
+transform it to a penalty layer. Even if the algorithm comes from the
+realm of insects, it might be adapted to different animal kingdoms.
 Depending on the type of agent this penalty layer must be reinterpreted:
-if for example, we want to talk about human
-agents
-the penalty layer may be expressed by the walking velocity, e.g. calculated
-with the algorithm proposed by
-<a href="https://web.archive.org/web/20220523095740/http://www.geodyssey.com/papers/tobler93.html">Tobler1993</a>.
-The actors on the playground will wander around on the playground
-using the time for their paths that correspond with the values in the penalty
-grid.
-If they find some attractor, they walk home to the position they
-originated, marking their way with pheromones. While this
-pheromone vanishes over time, the following agents are more likely
-to choose their next steps to a position that smells most.
-<p>
-This first toolset was mainly developed for
-<a href="https://www.topoi.org/group/a-iii-4-topoi-1/">Topoi Project A-III-4</a>,
-with some
-inspirations from previous work conducted at the
-<a href="https://www.unibe.ch/">Uni Bern</a> in 2008.
+if for example, we want to talk about human agents the penalty layer may
+be expressed by the walking velocity, e.g. calculated with the algorithm
+proposed by
+[Tobler1993](https://web.archive.org/web/20220523095740/http://www.geodyssey.com/papers/tobler93.html).
+The actors on the playground will wander around on the playground using
+the time for their paths that correspond with the values in the penalty
+grid. If they find some attractor, they walk home to the position they
+originated, marking their way with pheromones. While this pheromone
+vanishes over time, the following agents are more likely to choose their
+next steps to a position that smells most.
 
+This first toolset was mainly developed for [Topoi Project
+A-III-4](https://www.topoi.org/group/a-iii-4-topoi-1/), with some
+inspirations from previous work conducted at the [Uni
+Bern](https://www.unibe.ch/) in 2008.
 
-<h2>NOTES</h2>
+## NOTES
 
 The state of this software is: "first do it".
-<p>
-ACO works best on dynamic maps -- it constantly tries to improve paths...
 
+ACO works best on dynamic maps -- it constantly tries to improve
+paths...
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-A fictive use case could look something like this
-(note: at the moment the
-in- and output variables with <em>libold</em>, are still ascii-files):
-<p>
-<div class="code"><pre>
+A fictive use case could look something like this (note: at the moment
+the in- and output variables with *libold*, are still ascii-files):
+
+```sh
 r.agent.aco outputmap=out.map penaltymap=testpenalty.grid \
   sitesmap=sites.vect rounds=100 outrounds=100 volatilizationtime=5000 \
   antslife=2000 maxants=400 pathintensity=1000000
-</pre></div>
-<p>
-For running the total test suite on the libraries,
-i.e. to run all the tests that are at the end
-of each python file, use this test collection
-(for certain tests, the following files must exist though:
- "elev.grid", and "arch.vect"):
-<p>
-<div class="code"><pre>
-user@host:~$ cd /&lt;pathtoaddons&gt;/r.agent/libagent
+```
+
+For running the total test suite on the libraries, i.e. to run all the
+tests that are at the end of each python file, use this test collection
+(for certain tests, the following files must exist though: "elev.grid",
+and "arch.vect"):
+
+```sh
+user@host:~$ cd /<pathtoaddons>/r.agent/libagent
 
 user@host:libold$ ./alltests.py
-</pre></div>
+```
 
-<h2>TODO</h2>
+## TODO
 
 Integrate it directly within grass.
-<p>
+
 Improve encapsulation of classes.
-<p>
+
 Find good parameters, or parameter finding strategies for the ACO part.
-Try to avoid high penalty fields.
-Think about heuristics too.
-<p>
+Try to avoid high penalty fields. Think about heuristics too.
+
 Implement other ABM scenarios.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Michael Lustenberger inofix.ch

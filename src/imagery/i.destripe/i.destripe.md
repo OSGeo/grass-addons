@@ -1,25 +1,21 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.destripe</em> Destripes in a row-based Fourier smoothing way.
-Requires a near vertical striping.
+*i.destripe* Destripes in a row-based Fourier smoothing way. Requires a
+near vertical striping. Input:
 
-Input:
-<ul>
- <li>Number of harmonics to use for reconstruction (less is smoother output).
-</ul>
+  - Number of harmonics to use for reconstruction (less is smoother
+    output).
 
-<h2>NOTES</h2>
+## NOTES
 
-<h2>TODO</h2>
+## TODO
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="i.rotate.html">i.rotate</a>
-</em>
+*[i.rotate](i.rotate.md)*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, International Water Management Institute, Sri Lanka.

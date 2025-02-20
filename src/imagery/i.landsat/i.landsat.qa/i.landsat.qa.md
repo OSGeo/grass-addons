@@ -1,169 +1,89 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-Removing unreliable pixels is a fundamental and one of the first steps in
-remote sensing. Landsat imagery provides a Quality Assessment (QA) band which
-can be used for this purpose.
+Removing unreliable pixels is a fundamental and one of the first steps
+in remote sensing. Landsat imagery provides a Quality Assessment (QA)
+band which can be used for this purpose.
 
-<p>The <em>i.landsat.qa</em> module generates reclassification rule files which
-can be used in <a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a> for filtering the
-QA band according to pixel quality characteristics the user defines as
-unacceptable. It works with both Collection 1 and Collection 2 data from
-Landsat 8 OLI/TIRS, 4-7 TM/ETM+. The <b>dataset</b> the QA band belongs to
-is specified like in <a href="i.landsat.download.html">i.landsat.download</a>.
-</p>
+The *i.landsat.qa* module generates reclassification rule files which
+can be used in
+[r.reclass](https://grass.osgeo.org/grass-stable/manuals/r.reclass.html)
+for filtering the QA band according to pixel quality characteristics the
+user defines as unacceptable. It works with both Collection 1 and
+Collection 2 data from Landsat 8 OLI/TIRS, 4-7 TM/ETM+. The **dataset**
+the QA band belongs to is specified like in
+[i.landsat.download](i.landsat.download.md).
 
-<p>Values defined as unacceptable for a given condition will be set to NULL
-in the output raster map. All other values will be set to 1.</p>
+Values defined as unacceptable for a given condition will be set to NULL
+in the output raster map. All other values will be set to 1.
 
-<p>The Quality Assessment (QA) band from Landsat contains 16bit integer
-values that represent "bit-packed combinations of surface, atmosphere, and
-sensor conditions that can affect the overall usefulness of a given pixel".
-<br>
+The Quality Assessment (QA) band from Landsat contains 16bit integer
+values that represent "bit-packed combinations of surface, atmosphere,
+and sensor conditions that can affect the overall usefulness of a given
+pixel".  
 
-<p>The following quality relevant conditions are represented as "single bits"
-in the Landsat QA band:</p>
+The following quality relevant conditions are represented as "single
+bits" in the Landsat QA band:
 
-<table border="1" padding="0" spacing="1">
-  <tr>
-    <td>Condition</td>
-    <td>Collection</td>
-  </tr>
-  <tr>
-    <td>Designated Fill</td>
-    <td>1,2</td>
-  </tr>
-  <tr>
-    <td>Dilated Cloud</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Terrain Occlusion / Dropped Pixels</td>
-    <td>1</td>
-  </tr>
-  <tr>
-    <td>Cloud</td>
-    <td>1,2</td>
-  </tr>
-  <tr>
-    <td>Cirrus</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Cloud Shadow</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Snow</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Clear</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Water</td>
-    <td>2</td>
-  </tr>
-</table>
+|                                    |            |
+| ---------------------------------- | ---------- |
+| Condition                          | Collection |
+| Designated Fill                    | 1,2        |
+| Dilated Cloud                      | 2          |
+| Terrain Occlusion / Dropped Pixels | 1          |
+| Cloud                              | 1,2        |
+| Cirrus                             | 2          |
+| Cloud Shadow                       | 2          |
+| Snow                               | 2          |
+| Clear                              | 2          |
+| Water                              | 2          |
 
-<p>Possible choices for the "single bits" are:</p>
+Possible choices for the "single bits" are:
 
-<table border="1" padding="0" spacing="1">
-  <tr>
-    <td>Value</td>
-	<td>Description</td>
-	<td>Bit representation</td>
-  </tr>
-  <tr>
-    <td>No</td>
-	<td>This condition does not exist</td>
-	<td>0</td>
-  </tr>
-  <tr>
-    <td>Yes</td>
-	<td>This condition exists</td>
-	<td>1</td>
-  </tr>
-</table>
+|       |                               |                    |
+| ----- | ----------------------------- | ------------------ |
+| Value | Description                   | Bit representation |
+| No    | This condition does not exist | 0                  |
+| Yes   | This condition exists         | 1                  |
 
-<p>The following quality relevant conditions are represented as "double bits"
-in the Landsat QA band:</p>
+The following quality relevant conditions are represented as "double
+bits" in the Landsat QA band:
 
-<table border="1" padding="0" spacing="1">
-  <tr>
-    <td>Condition</td>
-    <td>Collection</td>
-  </tr>
-  <tr>
-    <td>Radiometric saturation</td>
-    <td>2</td>
-  </tr>
-  <tr>
-    <td>Cloud Confidence</td>
-    <td>1,2</td>
-  </tr>
-  <tr>
-    <td>Cloud Shadow Confidence</td>
-    <td>1,2</td>
-  </tr>
-  <tr>
-    <td>Snow/Ice Confidence</td>
-    <td>1,2</td>
-  </tr>
-  <tr>
-    <td>Cirrus Confidence</td>
-    <td>1,2</td>
-  </tr>
-</table>
+|                         |            |
+| ----------------------- | ---------- |
+| Condition               | Collection |
+| Radiometric saturation  | 2          |
+| Cloud Confidence        | 1,2        |
+| Cloud Shadow Confidence | 1,2        |
+| Snow/Ice Confidence     | 1,2        |
+| Cirrus Confidence       | 1,2        |
 
-<p>Possible choices for the "double bits" are:</p>
+Possible choices for the "double bits" are:
 
-<table border="1" padding="0" spacing="1">
-  <tr>
-    <td>Value</td>
-	<td>Description</td>
-	<td>Bit representation</td>
-  </tr>
-  <tr>
-    <td>Not Determined</td>
-	<td>Algorithm did not determine the status of this condition</td>
-	<td>00</td>
-  </tr>
-  <tr>
-    <td>Low</td>
-	<td>Algorithm has low to no confidence that this condition exists
-	(0-33 percent confidence)</td>
-	<td>01</td>
-  </tr>
-  <tr>
-    <td>Medium</td>
-	<td>Algorithm has medium confidence that this condition exists
-	(34-66 percent confidence)</td>
-	<td>10</td>
-  </tr>
-  <tr>
-    <td>High</td>
-	<td>Algorithm has high confidence that this condition exists
-	(67-100 percent confidence)</td>
-	<td>11</td>
-  </tr>
-</table>
+|                |                                                                                         |                    |
+| -------------- | --------------------------------------------------------------------------------------- | ------------------ |
+| Value          | Description                                                                             | Bit representation |
+| Not Determined | Algorithm did not determine the status of this condition                                | 00                 |
+| Low            | Algorithm has low to no confidence that this condition exists (0-33 percent confidence) | 01                 |
+| Medium         | Algorithm has medium confidence that this condition exists (34-66 percent confidence)   | 10                 |
+| High           | Algorithm has high confidence that this condition exists (67-100 percent confidence)    | 11                 |
 
-<h2>NOTES</h2>
+## NOTES
 
-The Landsat Quality Assessment band is an artificial band which represents
-an analysis based on <a href="https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf">
-defined algorithms</a>. The USGS provides the users with the following note on
-how the QA band should be used:
+The Landsat Quality Assessment band is an artificial band which
+represents an analysis based on [defined
+algorithms](https://landsat.usgs.gov/documents/LDCM_CVT_ADD.pdf). The
+USGS provides the users with the following note on how the QA band
+should be used:
 
-<p>"Rigorous science applications seeking to optimize the value of pixels used
-in a study will find QA bits useful as a first level indicator of certain
-conditions. Otherwise, users are advised that this file contains information
-that can be easily misinterpreted and it is not recommended for general use."</p>
+"Rigorous science applications seeking to optimize the value of pixels
+used in a study will find QA bits useful as a first level indicator of
+certain conditions. Otherwise, users are advised that this file contains
+information that can be easily misinterpreted and it is not recommended
+for general use."
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 # Create a cloud mask:
 i.landsat.qa --overwrite --verbose cloud_confidence="Medium,High" \
     dataset="landsat_ot_c2_l2" \
@@ -178,25 +98,22 @@ i.landsat.qa --overwrite --verbose water="Yes" \
 r.reclass input=LC81980182015183LGN00_BQA \
     output=LC81980182015183LGN00_Water_Mask rules=./Water_Mask_rules.txt
 
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.reclass](https://grass.osgeo.org/grass-stable/manuals/r.reclass.html),
+[i.modis.qc](i.modis.qc.md), [r.bitpattern](r.bitpattern.md),
+[i.landsat](i.landsat.md) [i.landsat8.swlst](i.landsat8.swlst.md)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>,
-<a href="i.modis.qc.html">i.modis.qc</a>,
-<a href="r.bitpattern.html">r.bitpattern</a>,
-<a href="i.landsat.html">i.landsat</a>
-<a href="i.landsat8.swlst.html">i.landsat8.swlst</a>
-</em>
+## REFERENCES
 
-<h2>REFERENCES</h2>
-<em><a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band">
-Landsat Collection 1 Level 1 Quality Assessment bands</a>
-<a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands">
-Landsat Collection 2 Level 1 Quality Assessment bands</a></em>
+*[Landsat Collection 1 Level 1 Quality Assessment
+bands](https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1-level-1-quality-assessment-band)
+[Landsat Collection 2 Level 1 Quality Assessment
+bands](https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2-quality-assessment-bands)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo (Norway)
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo
+(Norway)

@@ -1,240 +1,233 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.forcircular</em> analyzes and measures the level of sustainability of the
+*r.forcircular* analyzes and measures the level of sustainability of the
 forest-wood supply chain in a circular bioeconomy approach.
 
-<h2>NOTES</h2>
-This module permits to identify potentially usable forest areas both from a
-technical and economic point of view. The required data input is a vector file
-with a series of mandatory fields described below:
-<ul>
-    <li>incr_ha: [float] value of the forest increase [mc * ha * year-1]</li>
-    <li>management: [integer] forest management system (form of government), can
-        take on two values, namely (1) for forest management and (2) for coppice
-        management</li>
-    <li>treatment: [integer] treatment adopted, it can take on two values,
-        namely (1) for the final use cut and (2) for the thinning. Thinning is
-        not foreseen for coppice woods.</li>
-    <li>roughness: [integer] level of terrain accidentality - (0): no
-        accidentality; (1): locally bumpy; (2): partially bumpy; (3): mostly
-        bumpy</li>
-    <li>tree_diam: [integer] average diameter of the stems [cm]. If the data is
-        not available, indicate the generic value 99999</li>
-    <li>tree_vol: [decimal] average volume per plant [m3]. If the data is not
-        available, indicate the generic value 9.999</li>
-    <li>rotation: [integer] cutting cycle (or forest shift) [years]</li>
-    <li>soil_prod: [integer] degree of soil productivity (fertility): (1): very
-        low; (2): low; (3): medium; (4); tall; (5): very high</li>
-    <li>PCI: [float] Average lower calorific value of the wood species present
-        in the polygon [MWh / t]</li>
-    <li>cut: [float]: cut percentage (range from 0 (0%) to 1 (100%)). It
-        represents the percentage of wood mass on the total stock that falls
-        during the cutting operation.</li>
-    <li>perc_round: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for round wood</li>
-    <li>perc_timb: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for poles</li>
-    <li>perc_fire: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for firewood</li>
-    <li>perc_res: [float] (from 0 to 1) corresponding to the percentage of wood
-        residues to be used for energy (wood chips)</li>
-    <li>perc_roun9: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for roundwood in the assortment optimization scenario</li>
-    <li>perc_timb9: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for poles in the assortment optimization scenario</li>
-    <li>perc_fire9: [float] (from 0 to 1) corresponding to the percentage of the
-        wood mass for firewood in the assortment optimization scenario</li>
-    <li>perc_res9: [float] (from 0 to 1) corresponding to the percentage of wood
-        residues to be used for energy use (wood chips) in the assortment
-        optimization scenario</li>
-    <li>pric_roun: [float] corresponding to the average price for the roundwood
-        assortment [&euro; / m3]</li>
-    <li>pric_timb: [float] corresponding to the average price for the poles
-        assortment [&euro; / m3]</li>
-    <li>pric_fire: [float] corresponding to the average price for the firewood
-        assortment [&euro; / m3]</li>
-    <li>pric_bioe: [float] corresponding to the average price for biomass energy
-        for energy use [&euro; / MWh]</li>
-</ul>
+## NOTES
+
+This module permits to identify potentially usable forest areas both
+from a technical and economic point of view. The required data input is
+a vector file with a series of mandatory fields described below:
+
+  - incr\_ha: \[float\] value of the forest increase \[mc \* ha \*
+    year-1\]
+  - management: \[integer\] forest management system (form of
+    government), can take on two values, namely (1) for forest
+    management and (2) for coppice management
+  - treatment: \[integer\] treatment adopted, it can take on two values,
+    namely (1) for the final use cut and (2) for the thinning. Thinning
+    is not foreseen for coppice woods.
+  - roughness: \[integer\] level of terrain accidentality - (0): no
+    accidentality; (1): locally bumpy; (2): partially bumpy; (3): mostly
+    bumpy
+  - tree\_diam: \[integer\] average diameter of the stems \[cm\]. If the
+    data is not available, indicate the generic value 99999
+  - tree\_vol: \[decimal\] average volume per plant \[m3\]. If the data
+    is not available, indicate the generic value 9.999
+  - rotation: \[integer\] cutting cycle (or forest shift) \[years\]
+  - soil\_prod: \[integer\] degree of soil productivity (fertility):
+    (1): very low; (2): low; (3): medium; (4); tall; (5): very high
+  - PCI: \[float\] Average lower calorific value of the wood species
+    present in the polygon \[MWh / t\]
+  - cut: \[float\]: cut percentage (range from 0 (0%) to 1 (100%)). It
+    represents the percentage of wood mass on the total stock that falls
+    during the cutting operation.
+  - perc\_round: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for round wood
+  - perc\_timb: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for poles
+  - perc\_fire: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for firewood
+  - perc\_res: \[float\] (from 0 to 1) corresponding to the percentage
+    of wood residues to be used for energy (wood chips)
+  - perc\_roun9: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for roundwood in the assortment optimization
+    scenario
+  - perc\_timb9: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for poles in the assortment optimization scenario
+  - perc\_fire9: \[float\] (from 0 to 1) corresponding to the percentage
+    of the wood mass for firewood in the assortment optimization
+    scenario
+  - perc\_res9: \[float\] (from 0 to 1) corresponding to the percentage
+    of wood residues to be used for energy use (wood chips) in the
+    assortment optimization scenario
+  - pric\_roun: \[float\] corresponding to the average price for the
+    roundwood assortment \[€ / m3\]
+  - pric\_timb: \[float\] corresponding to the average price for the
+    poles assortment \[€ / m3\]
+  - pric\_fire: \[float\] corresponding to the average price for the
+    firewood assortment \[€ / m3\]
+  - pric\_bioe: \[float\] corresponding to the average price for biomass
+    energy for energy use \[€ / MWh\]
 
 Other mandatory data:
 
-<ul>
-    <li>vector tracks file</li>
-    <li>vector boundaries file</li>
-    <li>raster digital elevetion model file</li>
-</ul>
+  - vector tracks file
+  - vector boundaries file
+  - raster digital elevetion model file
 
 Optional data:
 
-<ul>
-    <li>vector rivers file</li>
-    <li>vector lakes file</li>
-    <li>vector protected areas file</li>
-</ul>
+  - vector rivers file
+  - vector lakes file
+  - vector protected areas file
 
-<em>r.forcircular</em> identifies forest areas potentially exploitable from both
-technical (according to geomorphological, logistic and mechanization variables)
-and economic (through the estimation of stumpage value) points of view.
-Subsequently, the use of indicators belonging to the 4R framework of the
-circular economy (Reduce, Reuse, Recycle, Recover) allows to evaluate the level
-of circularity of the forest-wood supply chain. Finally, the application of
-spatial multicriteria analysis (SMCA) (specifically with compromise programming
-- CP - technique) permits to merge in a unique measure the level of circular
-bioeconomy for production of traditional wood assortments and bioenergy in
-forest areas. In the SMCA procedure, each indicator is weighted according to
-on-line questionnaire proposed to decision makers operating in the forest-based
-sector. The list of indicators used is the following:
-<br><br>
-<table border=1 cellpadding=3px>
-    <tr>
-        <td>4R</td>
-        <td>INDICATORS</td>
-        <td>DEFINITION</td>
-    </tr>
-    <tr>
-        <td>Reduce</td>
-        <td>i1 - Ratio (on annual basis) between annual value and annual mean
-            volume of harvested mass
-            <hr> i2 - CO2 emissions per unit of wood product
-        </td>
-        <td>Improving of the process efficiency reducing the utilization of
-            natural resources</td>
-    </tr>
-    <tr>
-        <td>Reuse</td>
-        <td>i5 - Ratio between the potential economic value of the wood
-            assortment and the real value earned</td>
-        <td>Valorisation of the valuable wood high quality assortments</td>
-    </tr>
-    <tr>
-        <td>Recover</td>
-        <td>i6 - Percentage of wood waste for bioenergy production
-            <hr> i7 - Amount of CO2 emissions saved per unit of energy produced
-            by wood wastes
-        </td>
-        <td>Energy recovery from wood waste products; Emissions saved from
-            energy recovery from wood waste products</td>
-    </tr>
+*r.forcircular* identifies forest areas potentially exploitable from
+both technical (according to geomorphological, logistic and
+mechanization variables) and economic (through the estimation of
+stumpage value) points of view. Subsequently, the use of indicators
+belonging to the 4R framework of the circular economy (Reduce, Reuse,
+Recycle, Recover) allows to evaluate the level of circularity of the
+forest-wood supply chain. Finally, the application of spatial
+multicriteria analysis (SMCA) (specifically with compromise programming
+- CP - technique) permits to merge in a unique measure the level of
+circular bioeconomy for production of traditional wood assortments and
+bioenergy in forest areas. In the SMCA procedure, each indicator is
+weighted according to on-line questionnaire proposed to decision makers
+operating in the forest-based sector. The list of indicators used is the
+following:  
+  
+
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>4R</td>
+<td>INDICATORS</td>
+<td>DEFINITION</td>
+</tr>
+<tr class="even">
+<td>Reduce</td>
+<td>i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass
+<hr />
+i2 - CO2 emissions per unit of wood product</td>
+<td>Improving of the process efficiency reducing the utilization of natural resources</td>
+</tr>
+<tr class="odd">
+<td>Reuse</td>
+<td>i5 - Ratio between the potential economic value of the wood assortment and the real value earned</td>
+<td>Valorisation of the valuable wood high quality assortments</td>
+</tr>
+<tr class="even">
+<td>Recover</td>
+<td>i6 - Percentage of wood waste for bioenergy production
+<hr />
+i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes</td>
+<td>Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products</td>
+</tr>
+</tbody>
 </table>
 
-<p>
 The quantification of circular bioeconomy indicators is developed in the
-framework of provisioning forest ecosystem services. For this reason, the
-indicators and results of SMCA process are computed on forest surface with
-financial efficiency of production process or, in other terms, the area
-where a positive stumpage value can be reached. The calculation of stumpage
-value is carried out following the approach of another GRASS GIS add-on: <a
-href="r.green.biomassfor.html">r.green.biomassfor</a>.
+framework of provisioning forest ecosystem services. For this reason,
+the indicators and results of SMCA process are computed on forest
+surface with financial efficiency of production process or, in other
+terms, the area where a positive stumpage value can be reached. The
+calculation of stumpage value is carried out following the approach of
+another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.html).
 
-<p>
-The model in <em>r.forcircular</em> starts with importation of geodata and
-conversion of vector intp raster. Then, through a multistep approach, the
-technical and the economic availability
-of biomass (both traditional wood assortments and woodchips for bioenergy
-production) are quantified. Technical availability depicts forest surface
-where the extraction of wood material is possible.
-The approach combines type of mechanisation, limits for slope,
-distance from roads and roughness. <br>
+The model in *r.forcircular* starts with importation of geodata and
+conversion of vector intp raster. Then, through a multistep approach,
+the technical and the economic availability of biomass (both traditional
+wood assortments and woodchips for bioenergy production) are quantified.
+Technical availability depicts forest surface where the extraction of
+wood material is possible. The approach combines type of mechanisation,
+limits for slope, distance from roads and roughness.  
 In forest area where extraction is possible, the stumpage value is
-quantified as a combination of differenct factors such as
-hourly unitary cost of each production process, worker costs,
-hourly productivity and administrative costs.
-<br>
+quantified as a combination of differenct factors such as hourly unitary
+cost of each production process, worker costs, hourly productivity and
+administrative costs.  
 The user can setthe upper and - if needed - lower limits for slope and
-distance
-from roads to obtain the technical surface:
+distance from roads to obtain the technical surface:
 
-<div align="center" style="margin: 10px">
-<a href="tech_function.png"><img src="tech_function.png" width="600"></a>
-</div>
+[![image-alt](tech_function.png)](tech_function.png)
+
 In forest area where extraction is possible, the stumpage value is
-quantified as
-follow:
+quantified as follow:
 
-<div align="center" style="margin: 10px">
-<a href="stumpage_function.png"><img src="stumpage_function.png" width="600"></a>
-</div>
+[![image-alt](stumpage_function.png)](stumpage_function.png)
+
 Subsequently, the 4R indicators are calculated on the forest area with
-positive revenue. <br> <br>
-The importance of each circular bioeconomy index derives from the work of
-Paletto et al. (see Paletto A, Becagli C, Geri F, et al (2022) Use of
+positive revenue.  
+  
+The importance of each circular bioeconomy index derives from the work
+of Paletto et al. (see Paletto A, Becagli C, Geri F, et al (2022) Use of
 Participatory Processes in Wood Residue Management from a Circular
 Bioeconomy Perspective: An Approach Adopted in Italy. Energies 15:1011)
-where - starting from a total sample of 56 decision makers operating
-in forest-based sectorin Italy - 30 decision makers
-filled out a questionnaire.
-The decision makers involved in the study have been identified
-based on their knowledge and experience in the fields of bioeconomy,
-circular economic, and forest policy.
-According to the outputs provided by Paletto et al., the values of indices currently
-applied in <em>r.forcircular</em> (but modifiable by users) are: i1=0.15,
+where - starting from a total sample of 56 decision makers operating in
+forest-based sectorin Italy - 30 decision makers filled out a
+questionnaire. The decision makers involved in the study have been
+identified based on their knowledge and experience in the fields of
+bioeconomy, circular economic, and forest policy. According to the
+outputs provided by Paletto et al., the values of indices currently
+applied in *r.forcircular* (but modifiable by users) are: i1=0.15,
 i2=0.12, i3=0.12, i4=0.13, i5=0.14, i6=0.17, i7=0.16.
 
-<p>
-<em>r.forcircular</em> highlights the output in both numerical and
-geographical format. By means of zonal statistics operations following
-results can be reported for the forest surface where stumpage value is
-greater then 0: annual availability of assortments (m<sup>3</sup>/y)
-recalibrated in category of harvested material (i.e., roundwood, timber
-pole, firewood, woodchips converted in bioenergy and expressed in MWh/y),
-annual stumpage value (&euro;/y), average annual stumpage value
-(&euro;/ha·y-1), average stumpage value at harvesting
-(&euro;/ha) and avoided CO<sub>2</sub> emissions (tCO<sub>2</sub>/y). <br>
-<br>
-Quantification of circular bioeconomy is expressed by a SMCA procedure based
-on compromise programming (CP) technique. CP depicts the distance from the
-so-called “ideal” point, a hypothetical alternative defined as the most
-suitable level for each indicator (i) in the considered scenario.
-The distance from ideal point (DIP) is measured with the decision rule: <br>
-<a href="dip.png"><img src="dip.png" width="300"></a><br>
+*r.forcircular* highlights the output in both numerical and geographical
+format. By means of zonal statistics operations following results can be
+reported for the forest surface where stumpage value is greater then 0:
+annual availability of assortments (m<sup>3</sup>/y) recalibrated in
+category of harvested material (i.e., roundwood, timber pole, firewood,
+woodchips converted in bioenergy and expressed in MWh/y), annual
+stumpage value (€/y), average annual stumpage value (€/ha·y-1), average
+stumpage value at harvesting (€/ha) and avoided CO<sub>2</sub> emissions
+(tCO<sub>2</sub>/y).  
+  
+Quantification of circular bioeconomy is expressed by a SMCA procedure
+based on compromise programming (CP) technique. CP depicts the distance
+from the so-called “ideal” point, a hypothetical alternative defined as
+the most suitable level for each indicator (i) in the considered
+scenario. The distance from ideal point (DIP) is measured with the
+decision rule:  
+[![image-alt](dip.png)](dip.png)  
 
+## EXAMPLE
 
+This example is based on the case-study of Municipality Union of the
+Sieve and Arno valleys (province of Florence, Tuscany, Italy). The
+territory is mountainous and is located in the central Apennine. The
+surface of Municipality Union is 49,500 hectares with a forest index of
+62%. Woodlands are mainly composed by broadleaved forests (84%),
+followed by conifers (10%) and mixed forests of broadleaved and conifers
+(6%). Below you can see the vector parcel file, with a field structure
+like the manatory field scheme described above.
 
-<h2>EXAMPLE</h2>
-This example is based on the case-study of Municipality Union of the Sieve and
-Arno valleys (province of Florence, Tuscany, Italy). The territory is
-mountainous and is located in the central Apennine. The surface of Municipality
-Union is 49,500 hectares with a forest index of 62%. Woodlands are
-mainly composed by broadleaved forests (84%), followed by conifers (10%) and
-mixed forests of broadleaved and conifers (6%).
-Below you can see the vector parcel file, with a field structure like the
-manatory field scheme described above.
-<div align="center" style="margin: 10px">
-<a href="parcel.png"><img src="parcel.png" width="400"></a><br>
-<i>Parcel map</i>
-</div>
+[![image-alt](parcel.png)](parcel.png)  
+*Parcel map*
+
 On the basis of this example the correct syntax to run the module is:
-<div class="code"><pre>
+
+```sh
 r.forcircular forest=parcel boundaries=study_Area dtm=dem tracks=forest_tracks \
   rivers=rivers lakes=lakes protected_areas=reserved slp_min_cc=30. slp_max_cc=100. \
   dist_max_cc=1000. dist_max_fw=900. slp_max_cop=30. dist_max_cop=800. \
   hf_slope="cable crane - high power" c_slope="cable crane - medium/low power" \
   hf_noslope="tractor" c_noslope="tractor" ind1=indicator1 ind2=indicator2 ind3=indicator3 \
   ind4=indicator4 ind5=indicator5 ind6=indicator6 ind7=indicator7
-</pre></div>
+```
 
-<p>
-The output maps are: technical_surface (forest surface where exploitation is
-technically possibile), economic_surface (forest surface where the exploitation
-is economically advantageous), emission (CO<sub>2</sub> produced by the
-exploitation), annual_avoided_emission (emissions avoided compared to the use of
-fossil fuels), revenues (map of economic revenues), dip (distance from ideal,
-the assessment of the circular economy level of the forest supply chain).
-Below there are two examples of the output maps corresponding respectively to
-the
-stumpage value and the annual avoided emission: <br><br>
-<div align="center" style="margin: 10px">
-    <a href="stumpage.png">
-        <img src="stumpage.png" width="400" alt="stumpage value map" border="0">
-    </a><a href="./avoided_emission.png">
-        <img src="./avoided_emission.png" width="400" alt="Avoided emission map"
-         border="0">
-    </a><br>
-    <i>Examples of output maps: stumpage value and avoided emission</i>
-</div>
+The output maps are: technical\_surface (forest surface where
+exploitation is technically possibile), economic\_surface (forest
+surface where the exploitation is economically advantageous), emission
+(CO<sub>2</sub> produced by the exploitation), annual\_avoided\_emission
+(emissions avoided compared to the use of fossil fuels), revenues (map
+of economic revenues), dip (distance from ideal, the assessment of the
+circular economy level of the forest supply chain). Below there are two
+examples of the output maps corresponding respectively to the stumpage
+value and the annual avoided emission:  
+  
+
+[![image-alt](stumpage.png)](stumpage.png)
+[![image-alt](./avoided_emission.png)](./avoided_emission.png)  
+*Examples of output maps: stumpage value and avoided emission*
+
 The output text results are the follow:
-<div class="code"><pre>
+
+```sh
 #############################
 End of process
 Name of output maps:
@@ -256,23 +249,19 @@ rep_indicator6 -> percentual of wood residuals used in bioenergy production (%):
 rep_indicator7 -> avoided CO2 per unit of energy produced (gCO2 /kWh): 308.6331
 dist_tot -> AMC map: 3.7276
 #############################
-</pre></div>
+```
 
+## REFERENCE
 
-<h2>REFERENCE</h2>
+Paletto A, Becagli C, Geri F, Sacchelli S, De Meo I. Use of
+Participatory Processes in Wood Residue Management from a Circular
+Bioeconomy Perspective: An Approach Adopted in Italy. Energies. 2022;
+15(3):1011. <https://doi.org/10.3390/en15031011>
 
-Paletto A, Becagli C, Geri F, Sacchelli S, De Meo I. Use of Participatory
-Processes in Wood Residue Management from a Circular Bioeconomy Perspective: An
-Approach Adopted in Italy. Energies. 2022; 15(3):1011.
-<a href="https://doi.org/10.3390/en15031011">
-    https://doi.org/10.3390/en15031011</a>
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.green.biomassfor](r.green.biomassfor.md)*
 
-<em>
-    <a href="r.green.biomassfor.html">r.green.biomassfor</a>
-</em>
-
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Francesco Geri and Sandro Sacchelli

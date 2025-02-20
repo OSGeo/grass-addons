@@ -1,45 +1,39 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>hd.esri2vector</em> module for conversion Hive table stored serialised Esri GeoJSON to GRASS vector map.
+*hd.esri2vector* module for conversion Hive table stored serialised Esri
+GeoJSON to GRASS vector map.
 
-<p>
+## NOTES
 
+### Usage
 
-<h2>NOTES</h2>
+By default is exported only geometry features of map. Parameter
+*attribute* specify attributes which will be linked to the map. Check
+[hd.hdfs.out.vector](hd.hdfs.out.vector.md) for GET Hive table from
+Hadoop server.
 
-<h3>Usage</h3>
-By default is exported only geometry features of map. Parameter <em>attribute</em> specify attributes which will be linked to the map.
-Check <a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a> for GET Hive table from Hadoop server.
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Conversion of Hive table stored on local computer.
-<div class="code"><pre>
+
+```sh
 hd.esri2vector out=europe_aggregation attributes='count int,bin_id int' path=/path/to/hive/table
-</pre>
-</div>
+```
 
+## SEE ALSO
 
+*[hd.hdfs.in.fs](hd.hdfs.in.fs.md),
+[hd.hdfs.in.vector](hd.hdfs.in.vector.md),
+[hd.hdfs.out.vector](hd.hdfs.out.vector.md),
+[hd.hdfs.info](hd.hdfs.info.md), [hd.hive.execute](hd.hive.execute.md),
+[hd.hive.csv.table](hd.hive.csv.table.md),
+[hd.hive.select](hd.hive.select.md), [hd.hive.info](hd.hive.info.md),
+[hd.hive.json.table](hd.hive.json.table.md)*
 
-<h2>SEE ALSO</h2>
+See also related [wiki page](https://grasswiki.osgeo.org/wiki/).
 
-<em>
-<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
-<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
-<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
-<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
-<a href="hd.hive.execute.html">hd.hive.execute</a>,
-<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
-<a href="hd.hive.select.html">hd.hive.select</a>,
-<a href="hd.hive.info.html">hd.hive.info</a>,
-<a href="hd.hive.json.table.html">hd.hive.json.table</a>
-</em>
+## AUTHOR
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/">wiki page</a>.
-
-
-<h2>AUTHOR</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during master thesis project 2016 (mentor: Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during master thesis
+project 2016 (mentor: Martin Landa)

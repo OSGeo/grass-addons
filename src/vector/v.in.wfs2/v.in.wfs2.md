@@ -1,25 +1,22 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.wfs2</em> imports OGC WFS maps (Web Feature Service) from
-external servers.
+*v.in.wfs2* imports OGC WFS maps (Web Feature Service) from external
+servers.
 
-
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Parks in Canada:
-<p><div class="code"><pre>
+
+```sh
 v.in.wfs2 url=http://www2.dmsolutions.ca/cgi-bin/mswfs_gmap output=parks srs=42304 layers=park wfs_version=1.1.0
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.wms.html">r.in.wms</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>
-</em>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r.in.wms](https://grass.osgeo.org/grass-stable/manuals/r.in.wms.html),
+[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Stepan Turek

@@ -1,24 +1,22 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.strds.stats</em> calculates univariate statistics from given space-time raster datasets
-(STRDS) based on a vector map and uploads statistics to new attribute columns.
+*v.strds.stats* calculates univariate statistics from given space-time
+raster datasets (STRDS) based on a vector map and uploads statistics to
+new attribute columns.
 
-<h2>NOTES</h2>
+## NOTES
 
+## EXAMPLES
 
-<h2>EXAMPLES</h2>
-
-<div class="code"><pre>
+```sh
 v.strds.stats input=myvector strds=mystrds output=newvector
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.vect.observe.strds.html">t.vect.observe.strds</a>
-</em>
+*[v.what.rast](https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html),
+[t.vect.observe.strds](https://grass.osgeo.org/grass-stable/manuals/t.vect.observe.strds.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Luca Delucchi, Fondazione Edmund Mach

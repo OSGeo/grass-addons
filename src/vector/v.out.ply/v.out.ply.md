@@ -1,30 +1,26 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.out.ply</em> converts a GRASS vector map in binary format to an
-ASCII file in PLY format. Currently supported is points export only.
-<em>v.out.ply</em> is designed for large point clouds and fairly fast
-if only coordinates are exported. The export of attributes with the
-option <b>columns</b> can slow down the export considerably.
+*v.out.ply* converts a GRASS vector map in binary format to an ASCII
+file in PLY format. Currently supported is points export only.
+*v.out.ply* is designed for large point clouds and fairly fast if only
+coordinates are exported. The export of attributes with the option
+**columns** can slow down the export considerably.
 
-<p>If the <b>output</b> parameter is not given then the coordinates of
-any <em>point</em> data within the vector map is sent to stdout.
+If the **output** parameter is not given then the coordinates of any
+*point* data within the vector map is sent to stdout.
 
+## REFERENCES
 
-<h2>REFERENCES</h2>
+<https://paulbourke.net/dataformats/ply>  
+<https://sites.cc.gatech.edu/projects/large_models/ply.html>
 
-<a href="https://paulbourke.net/dataformats/ply">https://paulbourke.net/dataformats/ply</a>
-<br>
-<a href="https://sites.cc.gatech.edu/projects/large_models/ply.html">https://sites.cc.gatech.edu/projects/large_models/ply.html</a>
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[v.out.ascii](https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html),
+[v.in.ply](v.in.ply.md)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a>,
-<a href="v.in.ply.html">v.in.ply</a>
-</em>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Markus Metz
-<br>
-based on <a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a>
+Markus Metz  
+based on
+[v.out.ascii](https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html)

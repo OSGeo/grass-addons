@@ -1,45 +1,48 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.univar</em> calculates the univariate statistics of one or several raster
-map(s). This includes the number of cells counted, minimum and maximum cell
-values, range, arithmetic mean, population variance, standard deviation, and
-coefficient of variation. Statistics are calculated separately for every
-category/zone found in the <b>zones</b> input map if given.
-If the <b>-e</b> extended statistics flag is given the 1st quartile, median,
-3rd quartile, and given <b>percentile</b> are calculated.
-If the <b>-g</b> flag is given the results are presented in a format suitable
-for use in a shell script.
-If the <b>-t</b> flag is given the results are presented in tabular format
-with the given field separator. The table can immediately be converted to a
-vector attribute table which can then be linked to a vector, e.g. the vector
-that was rasterized to create the <b>zones</b> input raster.
-<p>
-When multiple input maps are given to <em>r.univar</em>, the overall statistics
-are calculated. This is useful for a time series of the same variable, as well as
-for the case of a segmented/tiled dataset. Allowing multiple raster maps to be
-specified saves the user from using a temporary raster map for the result of
-<em>r.series</em> or <em>r.patch</em>.
+*r.univar* calculates the univariate statistics of one or several raster
+map(s). This includes the number of cells counted, minimum and maximum
+cell values, range, arithmetic mean, population variance, standard
+deviation, and coefficient of variation. Statistics are calculated
+separately for every category/zone found in the **zones** input map if
+given. If the **-e** extended statistics flag is given the 1st quartile,
+median, 3rd quartile, and given **percentile** are calculated. If the
+**-g** flag is given the results are presented in a format suitable for
+use in a shell script. If the **-t** flag is given the results are
+presented in tabular format with the given field separator. The table
+can immediately be converted to a vector attribute table which can then
+be linked to a vector, e.g. the vector that was rasterized to create the
+**zones** input raster.
 
-<h2>NOTES</h2>
+When multiple input maps are given to *r.univar*, the overall statistics
+are calculated. This is useful for a time series of the same variable,
+as well as for the case of a segmented/tiled dataset. Allowing multiple
+raster maps to be specified saves the user from using a temporary raster
+map for the result of *r.series* or *r.patch*.
 
-As with most GRASS raster modules, <em>r.univar</em> operates on the raster
-array defined by the current region settings, not the original extent and
-resolution of the input map. See <em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>.
-<p>
-This module can use large amounts of system memory when the <b>-e</b>
-extended statistics flag is used with a very large region setting. If the
-region is too large the module should exit gracefully with a memory allocation
-error. Basic statistics can be calculated using any size input region.
-<p>
-Without a <b>zones</b> input raster, the <em>r.quantile</em> module will
-be significantly more efficient for calculating percentiles with large maps.
+## NOTES
 
-<h2>EXAMPLE</h2>
+As with most GRASS raster modules, *r.univar* operates on the raster
+array defined by the current region settings, not the original extent
+and resolution of the input map. See
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*.
+
+This module can use large amounts of system memory when the **-e**
+extended statistics flag is used with a very large region setting. If
+the region is too large the module should exit gracefully with a memory
+allocation error. Basic statistics can be calculated using any size
+input region.
+
+Without a **zones** input raster, the *r.quantile* module will be
+significantly more efficient for calculating percentiles with large
+maps.
+
+## EXAMPLE
 
 Calculate the raster statistics for zones within a vector map coverage
 and upload the results for mean, min and max back to the vector map:
 
-<div class="code"><pre>
+```sh
 #### set the raster region to match the map
 g.region vector=fields res=10 -ap
 
@@ -68,67 +71,31 @@ sed -e '1d' fields_stats.txt | awk -F'|' \
    > fields_stats_sqlcmd.txt
 
 db.execute input=fields_stats_sqlcmd.txt
-<!--
 
-###### alternate method with db.in.ogr:  (needs work) ######
-
-#### convert text file table to a database table
-# not safe for commas in the label
-tr '|' ',' &lt; fields_stats.txt > fields_stats.csv
-echo '"Integer","String","Real","Real","Real"' > fields_stats.csvt
-
-# import table
-db.in.ogr input=fields_stats.csv output=fields_data
-
-# view table
-db.select fields_data
-
-# remove temporary files
-rm fields_stats.csv fields_stats.csvt fields_stats.txt
-
-
-#### populate vector DB with stats
-
-# create working copy of vector map
-g.copy vector=fields,fields_stats
-
-# create new attribute columns to hold output
-v.db.addcol map=fields_stats \
-  columns='mean_elev DOUBLE PRECISION, min_elev DOUBLE PRECISION, max_elev DOUBLE PRECISION'
-
-# perform DB step  (broken)
-## how to automatically collate by key column, ie copy between tables?
-## SELECT INTO? JOIN?
-echo "INSERT INTO fields_stats (mean_elev,min_elev,max_elev) SELECT mean,min,max FROM fields_data" | db.execute
--->
 
 #### view completed table
 v.db.select fields_stats
-</pre></div>
+```
 
+## TODO
 
-<h2>TODO</h2>
+*mode, skewness, kurtosis*
 
-<i>mode, skewness, kurtosis</i>
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r3.univar](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html),
+[r.mode](https://grass.osgeo.org/grass-stable/manuals/r.mode.html),
+[r.quantile](https://grass.osgeo.org/grass-stable/manuals/r.quantile.html),
+[r.series](https://grass.osgeo.org/grass-stable/manuals/r.series.html),
+[r.stats](https://grass.osgeo.org/grass-stable/manuals/r.stats.html),
+[r.statistics](https://grass.osgeo.org/grass-stable/manuals/r.statistics.html),
+[v.rast.stats](https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html),
+[v.univar](https://grass.osgeo.org/grass-stable/manuals/v.univar.html)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r3.univar.html">r3.univar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mode.html">r.mode</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.quantile.html">r.quantile</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.series</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.statistics.html">r.statistics</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.univar.html">v.univar</a>
-</em>
+## AUTHORS
 
-
-<h2>AUTHORS</h2>
-
-Hamish Bowman, Otago University, New Zealand<br>
-Extended statistics by Martin Landa<br>
-Multiple input map support by Ivan Shmakov<br>
+Hamish Bowman, Otago University, New Zealand  
+Extended statistics by Martin Landa  
+Multiple input map support by Ivan Shmakov  
 Zonal loop by Markus Metz

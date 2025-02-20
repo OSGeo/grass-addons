@@ -1,48 +1,52 @@
-<h2>DESCRIPTION</h2>
-An increasing amount of spatio-temporal data, like climate observations and forecast data
-or satellite imagery is provided through <a href="https://www.unidata.ucar.edu/software/tds/">
-Thredds Data Servers (TDS)</a>.
+## DESCRIPTION
 
-<p>
-<em>m.crawl.thredds</em> crawls the catalog of a Thredds Data Server (TDS)
-starting from the catalog-URL provided in the <b>input</b>. It is a wrapper
-module around the Python library <a href="https://github.com/ioos/thredds_crawler">
-thredds_crawler</a>. <em>m.crawl.thredds</em> returns a list of dataset URLs,
-optionally with additional information on the service type and data size.
-Depending on the format of the crawled datasets, the output of
-<em>m.crawl.thredds</em> may be used as input to <em>t.rast.import.netcdf</em>.
+An increasing amount of spatio-temporal data, like climate observations
+and forecast data or satellite imagery is provided through [Thredds Data
+Servers (TDS)](https://www.unidata.ucar.edu/software/tds/).
 
-<p>
+*m.crawl.thredds* crawls the catalog of a Thredds Data Server (TDS)
+starting from the catalog-URL provided in the **input**. It is a wrapper
+module around the Python library
+[thredds\_crawler](https://github.com/ioos/thredds_crawler).
+*m.crawl.thredds* returns a list of dataset URLs, optionally with
+additional information on the service type and data size. Depending on
+the format of the crawled datasets, the output of *m.crawl.thredds* may
+be used as input to *t.rast.import.netcdf*.
+
 The returned list of datasets can be filtered:
-<ul>
-  <li>based on the modification time of the dataset using a range of relevant
-timestamps defined by the <b>modified_before</b> and <b>modified_after</b> option(s)</li>
-  <li>based on the file name using a regular expression in the <b>filter</b> option.</li>
-</ul>
 
-<p>
-When crawling larger Thredds installations, skipping irrelevant branches of the server's
-tree of datasets can greatly speed-up the process. In the <b>skip</b> option, branches
-(and also leaf datasets) can be excluded from the search by a comma-separated list of
-regular expression strings, e.g. ".*metadata.*" would direct the module to not look for
-datasets inside a "metadata" directory.
+  - based on the modification time of the dataset using a range of
+    relevant timestamps defined by the **modified\_before** and
+    **modified\_after** option(s)
+  - based on the file name using a regular expression in the **filter**
+    option.
 
-<p>
-Authentication to the Thredds Server (if required) can be provided either through
-a text-file, where the first line contains the username and the second the password,
-or by interactive user input (if <i>authentication=-</i>).
-Alternatively, username and password can be passed through environment variables
-<i>THREDDS_USER</i> and <i>THREDDS_PASSWORD</i>.
+When crawling larger Thredds installations, skipping irrelevant branches
+of the server's tree of datasets can greatly speed-up the process. In
+the **skip** option, branches (and also leaf datasets) can be excluded
+from the search by a comma-separated list of regular expression strings,
+e.g. ".\*metadata.\*" would direct the module to not look for datasets
+inside a "metadata" directory.
 
-<h2>NOTES</h2>
-The Thredds data catalog is crawled recursively. Providing the URL to the
-root of a catalog on a Thredds server with many hierarchies and datasets can
-therefore be quite time consuming, even if executed in parallel (<b>nprocs</b> > 1).
+Authentication to the Thredds Server (if required) can be provided
+either through a text-file, where the first line contains the username
+and the second the password, or by interactive user input (if
+*authentication=-*). Alternatively, username and password can be passed
+through environment variables *THREDDS\_USER* and *THREDDS\_PASSWORD*.
 
-<h2>EXAMPLES</h2>
-List modelled climate observation datasets from the Norwegian Meteorological Institute (met.no)
+## NOTES
 
-<div class="code"><pre>
+The Thredds data catalog is crawled recursively. Providing the URL to
+the root of a catalog on a Thredds server with many hierarchies and
+datasets can therefore be quite time consuming, even if executed in
+parallel (**nprocs** \> 1).
+
+## EXAMPLES
+
+List modelled climate observation datasets from the Norwegian
+Meteorological Institute (met.no)
+
+```sh
 # Get a list of all data for "seNorge"
 m.crawl.thredds input="https://thredds.met.no/thredds/catalog/senorge/seNorge_2018/Archive/catalog.xml"
 https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc
@@ -60,11 +64,12 @@ m.crawl.thredds input="https://thredds.met.no/thredds/catalog/senorge/seNorge_20
 modified_after="2021-02-01" filter=".*2018_202.*"
 https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc
 https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2020.nc
-</pre></div>
+```
 
-List Sentinel-2A data from the Norwegian Ground Segment (NBS) for the 2. Feb 2021
+List Sentinel-2A data from the Norwegian Ground Segment (NBS) for the 2.
+Feb 2021
 
-<div class="code"><pre>
+```sh
 # Get a list of all Sentinel-2A data for 2. Feb 2021 with dataset size
 m.crawl.thredds input="https://nbstds.met.no/thredds/catalog/NBS/S2A/2021/02/28/catalog.xml" print="data_size"
 https://nbstds.met.no/thredds/fileServer/NBS/S2A/2021/02/28/S2A_MSIL1C_20210228T103021_N0202_R108_T35WPU_20210228T201033_DTERRENGDATA.nc|107.6
@@ -76,18 +81,20 @@ m.crawl.thredds input="https://nbstds.met.no/thredds/catalog/NBS/S2A/2021/02/28/
 https://nbstds.met.no/thredds/wms/NBS/S2A/2021/02/28/S2A_MSIL1C_20210228T103021_N0202_R108_T35WPU_20210228T201033_DTERRENGDATA.nc
 (...)
 https://nbstds.met.no/thredds/wms/NBS/S2A/2021/02/28/S2A_MSIL1C_20210228T103021_N0202_R108_T32VNL_20210228T201033_DTERRENGDATA.nc
-</pre></div>
+```
 
-<h2>REQUIREMENTS</h2>
-<em>m.crawl.thredds</em> is a wrapper around the
-<a href="https://github.com/ioos/thredds_crawler">thredds_crawler</a> Python
+## REQUIREMENTS
+
+*m.crawl.thredds* is a wrapper around the
+[thredds\_crawler](https://github.com/ioos/thredds_crawler) Python
 library.
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/i.sentinel.download.html">i.sentinel.download</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/t.rast.import.netcdf.html">t.rast.import.netcdf</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHORS</h2>
-Stefan Blumentrath, <a href="https://www.nina.no/Kontakt/Ansatte/Ansattinformasjon.aspx?AnsattID=14230">Norwegian Institute for Nature Research (NINA), Oslo</a>
+*[i.sentinel.download](https://grass.osgeo.org/grass-stable/manuals/addons/i.sentinel.download.html),
+[t.rast.import.netcdf](https://grass.osgeo.org/grass-stable/manuals/addons/t.rast.import.netcdf.html)*
+
+## AUTHORS
+
+Stefan Blumentrath, [Norwegian Institute for Nature Research (NINA),
+Oslo](https://www.nina.no/Kontakt/Ansatte/Ansattinformasjon.aspx?AnsattID=14230)

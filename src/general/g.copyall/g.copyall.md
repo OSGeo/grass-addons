@@ -1,34 +1,32 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em><b>g.copyall</b></em> copies maps/files of a specified from a selected mapset
-to the current working mapset. All maps/files can be copied or a subset of
-maps/files specified by a wildcard pattern or regular expression. Optionally, a
-prefix can be added to all files copied and vector topology can be rebuilt to match
-currently running version of GRASS.
+***g.copyall*** copies maps/files of a specified from a selected mapset
+to the current working mapset. All maps/files can be copied or a subset
+of maps/files specified by a wildcard pattern or regular expression.
+Optionally, a prefix can be added to all files copied and vector
+topology can be rebuilt to match currently running version of GRASS.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-Copy all raster maps from mapset "test" to current mapset and prefix them
-with "fromtest":
+Copy all raster maps from mapset "test" to current mapset and prefix
+them with "fromtest":
 
-<div class="code"><pre>
+```sh
 g.copyall mapset=test output_prefix=fromtest
-</pre></div>
+```
 
-Copy all vector maps beginning with "s" from mapset "test" to current mapset:
+Copy all vector maps beginning with "s" from mapset "test" to current
+mapset:
 
-<div class="code"><pre>
+```sh
 g.copyall mapset=test datatype=vect filter="s*"
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.list.html">g.list</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.copy.html">g.copy</a>
-</em>
+*[g.list](https://grass.osgeo.org/grass-stable/manuals/g.list.html),
+[g.copy](https://grass.osgeo.org/grass-stable/manuals/g.copy.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Michael Barton (Arizona State University, USA)

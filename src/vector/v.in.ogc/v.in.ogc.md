@@ -1,27 +1,24 @@
-<!-- meta page name: v.in.ogc -->
-<!-- meta page name description: Toolset for import of vector data from several OGC API standards -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *v.in.ogc* suite is able to import vector data from several OGC API
+standards. It supports
 
-The <em>v.in.ogc</em> suite is able to import vector data from several OGC API standards. It supports
-<ul>
-<li><a href="v.in.ogc.features.html">OGC API Features</a> - import vector data from a OGC API Features standard </li>
-</ul>
+  - [OGC API Features](v.in.ogc.features.md) - import vector data from a
+    OGC API Features standard
 
-<div class="code"><pre>
+```sh
 g.extension v.in.ogc
-</pre></div>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
-<em>v.in.ogc</em> requires <em>owslib</em> Python library.
+*v.in.ogc* requires *owslib* Python library.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="v.in.ogc.features.html">v.in.ogc.features</a>
-</em>
+*[v.in.ogc.features](v.in.ogc.features.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code Sprint 2021.
+Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code
+Sprint 2021.

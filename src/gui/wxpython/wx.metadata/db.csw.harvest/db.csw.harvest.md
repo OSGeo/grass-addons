@@ -1,38 +1,37 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-Module <em>db.csw.harvest</em> allows to harvest metadata between two catalogues.
+Module *db.csw.harvest* allows to harvest metadata between two
+catalogues.
 
-<p>
-<h2>NOTES</h2>
-For dependencies and installation instructions see
-<a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
-For importing metadata to local server transactions must be allowed. The parameter "transactions" is
-stored in the configure file "default.cfq" (by default in pycsw installation folder).
+## NOTES
 
-<h2>EXAMPLES</h2>
-<p>
+For dependencies and installation instructions see [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
+For importing metadata to local server transactions must be allowed. The
+parameter "transactions" is stored in the configure file "default.cfq"
+(by default in pycsw installation folder).
+
+## EXAMPLES
+
 Harvesting of a remote catalogue to local:
 
-<div class="code"><pre>
+```sh
 db.csw.harvest source=https://geodati.gov.it/RNDT/csw destination=http://localhost:8000/
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/r.info.html">r.info</a>,
-    <a href="v.info.iso.html">v.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>,
-    <a href="g.gui.cswbrowser.html">g.gui.cswbrowser</a>,
-    <a href="db.csw.admin">db.csw.admin</a>,
-    <a href="db.csw.run">db.csw.run</a>
-</em>
+*[r.info](https://grass.osgeo.org/grass-stable/manuals/r.info.html),
+[v.info.iso](v.info.iso.md), [g.gui.metadata](g.gui.metadata.md),
+[g.gui.cswbrowser](g.gui.cswbrowser.md), [db.csw.admin](db.csw.admin),
+[db.csw.run](db.csw.run)*
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+See also related [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
-<h2>AUTHOR</h2>
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-    Summer of Code 2015</a> (mentors: Martin Landa)
+## AUTHOR
+
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during [Google Summer of
+Code 2015](https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS)
+(mentors: Martin Landa)

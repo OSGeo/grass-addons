@@ -1,60 +1,54 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.vi</em> calculates vegetation indices based on biophysical parameters.
+*i.vi* calculates vegetation indices based on biophysical parameters.
 
+  - RVI: ratio vegetation index:
+  - NDVI: Normalized Difference Vegetation Index
+  - IPVI: Infrared Percentage Vegetation Index
+  - DVI: Difference Vegetation Index
+  - PVI: Perpendicular Vegetation Index
+  - WDVI: Weighted Difference Vegetation Index
+  - SAVI: Soil Adjusted Vegetation Index
+  - GARI: Green atmospherically resistant vegetation index
+  - MSAVI: Modified Soil Adjusted Vegetation Index
+  - MSAVI2: second Modified Soil Adjusted Vegetation Index
+  - GEMI: Global Environmental Monitoring Index
+  - ARVI: atmospherically resistant vegetation indices
+  - GVI: Green Vegetation Index
 
-	  <ul>
-		<li>RVI: ratio vegetation index:</li>
-		<li>NDVI: Normalized Difference Vegetation Index</li>
-		<li>IPVI: Infrared Percentage Vegetation Index</li>
-		<li>DVI: Difference Vegetation Index</li>
-		<li>PVI: Perpendicular Vegetation Index</li>
-		<li>WDVI: Weighted Difference Vegetation Index</li>
-		<li>SAVI: Soil Adjusted Vegetation Index</li>
-		<li>GARI: Green atmospherically resistant vegetation index</li>
-		<li>MSAVI: Modified Soil Adjusted Vegetation Index</li>
-		<li>MSAVI2: second Modified Soil Adjusted Vegetation Index</li>
-		<li>GEMI: Global Environmental Monitoring Index</li>
-		<li>ARVI: atmospherically resistant vegetation indices</li>
-		<li>GVI: Green Vegetation Index</li>
-	  </ul>
-
-<h2>Description</h2>
+## Description
 
 NDVI
-	  <ul>
-	      <li>Data Type Band Numbers ([IR, Red])  </li>
-	      <li>TM Bands= [4,3] </li>
-	      <li>MSS Bands = [7, 5] </li>
-	      <li>AVHRR Bands = [2, 1] </li>
-	      <li>SPOT XS Bands = [3, 2] </li>
-	      <li>AVIRIS Bands = [51, 29] </li>
-	      <li> example: (AVHRR) NDVI = (channel 2 - channel 1) / (channel 2 + channel 1)</li>
-	  </ul>
 
-<h2>NOTES</h2>
-Originally from kepler.gps.caltech.edu <br>
-A FAQ on Vegetation in Remote Sensing  <br>
-Written by Terrill W. Ray <br>
-	   Div. of Geological and Planetary Sciences<br>
-	   California Institute of Technology<br>
-email: terrill@mars1.gps.caltech.edu<br>
-Snail Mail:  Terrill Ray<br>
-	     Division of Geological and Planetary Sciences<br>
-	     Caltech<br>
-	     Mail Code 170-25<br>
-	     Pasadena, CA  91125<br>
+  - Data Type Band Numbers (\[IR, Red\])
+  - TM Bands= \[4,3\]
+  - MSS Bands = \[7, 5\]
+  - AVHRR Bands = \[2, 1\]
+  - SPOT XS Bands = \[3, 2\]
+  - AVIRIS Bands = \[51, 29\]
+  - example: (AVHRR) NDVI = (channel 2 - channel 1) / (channel 2 +
+    channel 1)
 
-<h2>TODO</h2>
+## NOTES
 
+Originally from kepler.gps.caltech.edu  
+A FAQ on Vegetation in Remote Sensing  
+Written by Terrill W. Ray  
+Div. of Geological and Planetary Sciences  
+California Institute of Technology  
+email: terrill@mars1.gps.caltech.edu  
+Snail Mail: Terrill Ray  
+Division of Geological and Planetary Sciences  
+Caltech  
+Mail Code 170-25  
+Pasadena, CA 91125  
 
-<h2>SEE ALSO</h2>
+## TODO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.albedo.html">i.albedo</a>
-</em>
+## SEE ALSO
 
+*[i.albedo](https://grass.osgeo.org/grass-stable/manuals/i.albedo.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 GRASS Development Team.
