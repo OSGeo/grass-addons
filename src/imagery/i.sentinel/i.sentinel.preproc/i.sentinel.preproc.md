@@ -115,7 +115,7 @@ which it is based.
 Below an example of the control file, taken from the *i.atcorr* manual
 page, of a Sentinel-2A image:
 
-```sh
+```text
 25                            - geometrical conditions = Sentinel-2A
 5 4 19.737 -78.727 35.748     - month day hh.ddd longitude latitude ("hh.ddd" is in decimal hours GMT)
 2                             - atmospheric model = midlatitude summer
@@ -184,7 +184,7 @@ file, input elevation map and bands.
     the atmospheric model. Obviously, it is possible to choose other
     options from those available.
 
-4.  **Aerosol model**  
+4. **Aerosol model**
     
     Also in this case, only some options are available and users have to
     select the desired one from the drop-down menu, then it is converted
@@ -201,7 +201,7 @@ file, input elevation map and bands.
       
     No automatic procedure has been implemented in this case.
 
-5.  **Visibility or AOD**  
+5. **Visibility or AOD**
     
     By default, *i.sentinel.preproc* uses the input visibility map to
     estimate a visibility value to be added in the control file. If no
@@ -255,7 +255,7 @@ file, input elevation map and bands.
     visibility (or -1 if AOD=0) if an AOD value is provided (through
     both `aod_value` and `aeronet_file`).
 
-6.  **Mean target elevation above sea level**  
+6. **Mean target elevation above sea level**
     
     Mean target elevation above sea level is automatically estimated
     from the input digital elevation model. According to the rules for
@@ -264,12 +264,12 @@ file, input elevation map and bands.
     mean=121 in the control file it will be written in \[-km\], i.e.,
     -0.121).
 
-7.  **Sensor height**  
+7. **Sensor height**
     
     Since the sensor is on board a satellite, the sensor height is
     automatically set to -1000.
 
-8.  **Sensor band**  
+8. **Sensor band**
     
     The number of the band changes automatically according to the band
     that is processed at that moment. The module reads the name of the
@@ -303,7 +303,7 @@ i.sentinel.preproc -a -t input_dir=/path/S2A_MSIL1C_20180315T160021_N0206_R097_T
 Here is the control file automatically written for Band 02 of the input
 scene
 
-```sh
+```text
 25
 5 4 19.74 -78.728 35.749
 3                           -The Automatic option identified the Midlatitude Winter as the proper model for the scene
@@ -318,7 +318,7 @@ scene
 Here is the output text file ready to be used as input for
 *i.sentinel.mask* (**-t** flag)
 
-```sh
+```text
 blue=T17SPV_20180315T160021_B02_cor
 green=T17SPV_20180315T160021_B03_cor
 red=T17SPV_20180315T160021_B04_cor
