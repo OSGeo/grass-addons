@@ -77,10 +77,6 @@ db.execute input=fields_stats_sqlcmd.txt
 v.db.select fields_stats
 ```
 
-## TODO
-
-*mode, skewness, kurtosis*
-
 ## SEE ALSO
 
 *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),

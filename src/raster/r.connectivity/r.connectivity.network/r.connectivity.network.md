@@ -50,32 +50,32 @@ set of (sub)graphs is extracted, specified by:
 
 ### Graph measures
 
-**Number of edges**
+#### Number of edges
 
 The number of edges is the number of connections between pairs of
 vertices in the network.
 
-**Number of vertices**
+#### Number of vertices
 
 The number of vertices is the number of polygons (patches) from the
 input vector map which are analysed in the r.connectivity.\*.
 
-**Cluster**
+#### Cluster
 
 A cluster is a group of vertices which are connected with each other,
 but not with the rest of vertices in a graph (a single isolated vertex
 can be a cluster as well).
 
-**Diameter**
+#### Diameter
 
 The diameter of a graph is the length of the longest geodesic.
 
-**Density**
+#### Density
 
 The density of a graph is the ratio of the number of edges and the
 number of possible edges.
 
-[![image-alt](r_connectivity_network_overview.png)](r_connectivity_network_overview.png)  
+![Overview plot over fragmentation of the network](r_connectivity_network_overview.png)  
 *Figure: Overview plot over fragmentation of the network when edges of
 increasing length are removed, produced in the example below.*
 

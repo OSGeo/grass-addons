@@ -73,15 +73,13 @@ of columns will relate to the number of rasters specified on the command
 line. If the output file already exists, the new data values will be
 appended to it.
 
-### Flags:
+### Flags and parameters:
 
 **--v** Verbose module output. Print information pertaining to module
 progress and completion.
 
 **--p** Run Quietly. Suppress program output that would include program
 percent complete messages and time elapsed.
-
-### Parameters:
 
 **input=***name,name*\[*,name,name*,...\]
 

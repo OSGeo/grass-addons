@@ -74,4 +74,9 @@ v.what.rast.label -o -c vector=POI_select@user1 raster=landuse@PERMANENT raster2
 
 ## AUTHORS
 
-*Paulo van Breugel*
+Paulo van Breugel | [HAS green academy](https://has.nl), University of
+Applied Sciences | [Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
+| [Innovative Bio-Monitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/)
+| Contact: [Ecodiv.earth](https://ecodiv.earth)

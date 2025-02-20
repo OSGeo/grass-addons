@@ -85,7 +85,7 @@ in the output map. This column must be of integer type.
 
 These examples use the North Carolina sample dataset.
 
-### Flow accumulation
+### Flow accumulation example
 
 Calculate flow accumulation using *r.watershed* and *r.accumulate*:
 
@@ -125,7 +125,7 @@ accumulated from the headwater cells.
 
 ![image-alt](r_accumulate_nc_comparison.png)
 
-### Stream network delineation
+### Stream network delineation example
 
 Calculate flow accumulation and delineate stream networks at once:
 
@@ -164,7 +164,7 @@ respectively. Note that the two flow direction maps are different.
 
 ![image-alt](r_accumulate_nc_stream_comparison.png)
 
-### Subwatershed delineation
+### Subwatershed delineation example
 
 Delineate the watershed for one outlet:
 
@@ -197,7 +197,7 @@ r.accumulate direction=drain_directions subwatershed=subwatersheds \
 
 ![image-alt](r_accumulate_nc_subwatersheds_example.png)
 
-### Longest flow path calculation
+### Longest flow path calculation example
 
 Calculate the longest flow path for one outlet:
 

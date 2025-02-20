@@ -5,14 +5,10 @@ readable in jMAF, JAMM or 4eMka2 sofware [Laboratory of Intelligent
 Decision Support Systems - Poznan
 University.](http://idss.cs.put.poznan.pl/)
 
-*(GRASS python Script)*
-
 ## NOTES
 
 This module, as all GRASS raster modules, will export cells based on the
 current region settings. See the *g.region* module for details.
-
-## TODO
 
 ## SEE ALSO
 

@@ -104,6 +104,7 @@ In most cases default options should not be changed.
         as T-conorm;
       - **Hamacher** (simplified) with Hamacher product as T-norm and
         Einstein sum as T-conorm;
+
     | Family      | T-NORM (AND)                                 | T CONORM (OR)                             |
     | ----------- | -------------------------------------------- | ----------------------------------------- |
     | ZADEH       | MIN(x,y)                                     | MAX(x,y)                                  |
@@ -112,6 +113,7 @@ In most cases default options should not be changed.
     | LUKASIEWICZ | MAX((x+y-1),0)                               | MIN((x+y),1)                              |
     | FODOR       | IF (x+y)\>1 THEN MIN(x,y) ELSE 0             | IF (x+y\<1) THEN MAX(x,y) ELSE 1          |
     | HAMACHER    | IF (x==y==0) THEN 0 ELSE (x\*y)/((x+y)-x\*y) | (x+y)/(1+x\*y)                            |
+
   - **imp** (implication)  
     Implication determines the method of reshapening of consequents
     (fuzzy set) by antecedents (single value) :
@@ -171,7 +173,7 @@ In most cases default options should not be changed.
 
 ## NOTES
 
-#### Calculation of boundary shape
+### Calculation of boundary shape
 
 Depending on the type of the boundary, different equations are used to
 determine the shape:
@@ -297,7 +299,7 @@ r.fuzzy.system maps=flood.map rules=flood.rul output=flood
 The resulting map should look like the image below. Yellow colour means
 no risk, red high risk, green, blue end so on moderate risk.
 
-![image-alt](f_result.png)
+![Flood risk](f_result.png)
 
   
 

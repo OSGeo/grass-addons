@@ -80,14 +80,14 @@ To connect to EarthExplorer both a *username* and a *password* are
 required. See the [register](https://ers.cr.usgs.gov/register) page for
 signing up.
 
-**USGS Settings File**
+USGS settings file:
 
 ```sh
 myusername
 mypassword
 ```
 
-**USGS Interactive Settings**
+USGS interactive settings:
 
 ```sh
 Insert username: myusername
@@ -104,13 +104,13 @@ Users can create an account
 then view their keys by signing in with their Microsoft account
 [here](https://planetarycomputer.developer.azure-api.net/).
 
-**Planetary Computer Settings File**
+Planetary computer settings file:
 
 ```sh
 apikey
 ```
 
-**Planetary Computer Interactive Settings**
+Planetary computer interactive settings:
 
 ```sh
 Insert API key:

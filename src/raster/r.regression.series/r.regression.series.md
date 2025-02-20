@@ -15,8 +15,6 @@ Following methods are available:
   - f: F statistic
   - t: T statistic
 
-## DESCRIPTION
-
 The module assumes a simple linear regression of the form
 
 ```sh

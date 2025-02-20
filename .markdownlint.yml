@@ -9,9 +9,6 @@ fix: true
 first-line-h1: false
 
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
-heading-increment: false
-heading-style: false
-no-emphasis-as-heading: false
 no-blanks-blockquote: false
 no-multiple-space-blockquote: false
 ul-style: false
@@ -24,9 +21,6 @@ line-length: false
 no-missing-space-atx: false
 no-multiple-space-atx: false
 no-missing-space-closed-atx: false
-blanks-around-headings: false
-heading-start-left: false
-no-duplicate-heading: false
 no-trailing-punctuation: false
 ol-prefix: false
 blanks-around-lists: false

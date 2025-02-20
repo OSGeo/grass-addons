@@ -12,7 +12,7 @@ regimes based on topographic, land cover, soil, and rainfall parameters.
 
 ## EXAMPLES
 
-**Basic instructions**
+### Basic instructions
 
 A basic example for the [North Carolina sample
 dataset](https://grass.osgeo.org/download/data/). Install the add-on
@@ -31,11 +31,11 @@ g.region raster=elev_lid792_1m res=1
 r.sim.terrain -f elevation=elevation runs=event mode=rusle_mode rain_intensity=50.0 rain_duration=120 rain_interval=3 m=0.4 n=1.3
 ```
 
-[![image-alt](r_sim_terrain_rusle.png)](r_sim_terrain_rusle.png)  
+![Net difference (m) for a dynamic RUSLE simulation](r_sim_terrain_rusle.png)  
 *Figure: Net difference (m) for a dynamic RUSLE simulation of a 120 min
 event with a rainfall intensity of 50 mm/hr with a 3 minute interval.*
 
-**Spatially variable soil and landcover**
+### Spatially variable soil and landcover
 
 Clone or download the [landscape evolution sample
 dataset](https://github.com/baharmon/landscape_evolution_dataset) with a
@@ -59,7 +59,8 @@ rain_intensity=50.0 rain_interval=120 rain_duration=10 walkers=1000000 \
 detachment_value=0.01 transport_value=0.0001 manning=mannings runoff=runoff
 ```
 
-[![image-alt](r_sim_terrain.png)](r_sim_terrain.png)  
+![Net difference (m) for a steady state, transport limited SIMWE
+simulation](r_sim_terrain.png)  
 *Figure: Net difference (m) for a steady state, transport limited SIMWE
 simulation of a 120 min event with a rainfall intensity of 50 mm/hr.*
 

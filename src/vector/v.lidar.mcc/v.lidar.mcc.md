@@ -74,8 +74,7 @@ v.in.lidar -tr input=points.las output=points
 v.lidar.mcc points ground=ground_points nonground=non_ground_points
 ```
 
-![image-alt](v_lidar_mcc.png)
-
+![Ground and non ground points](v_lidar_mcc.png)  
 *Figure: Ground points (green) and non ground points (red)*
 
 ## SEE ALSO

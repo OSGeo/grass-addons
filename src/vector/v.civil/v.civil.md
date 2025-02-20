@@ -12,9 +12,7 @@ There are three options: The flag *-r* for run the program, The flag
 
 The other options are described below.
 
-## Plan
-
-### plan options
+### Plan
 
 *plan* write the horizontal alignment.
 
@@ -24,23 +22,17 @@ The other options are described below.
 
 *marks* write the marks in horizontal.
 
-### options
-
 *pkopt* define the distance between normal marks (npk), distance between
 principal marks (mpk), longitude of normal marks and longitude of
 principal marks.
 
 *areaopt* write the areas defined with pairs of displaced lines.
 
-## Vertical
-
-### vert options
+### Vertical
 
 *vert* write the vertical alignment in horizontal.
 
 *profile* write longitudinal profile map.
-
-### options
 
 With the option *LPScale*, the vertical scale of the longitudinal
 profile can be given.
@@ -48,15 +40,11 @@ profile can be given.
 The *LPopt* option give the longitude of marks, distance between marks
 in axis x and y, and distance between lines of the guitar.
 
-## Cross
-
-### Cross options
+### Cross
 
 *cross* write cross section in horizontal
 
 *sections* write cross sections map.
-
-### options
 
 With the option *LTScale*, the vertical scale of the longitudinal
 profile can be given.
@@ -67,9 +55,7 @@ in axis x and y, and distance between lines of the guitar.
 The *LTopt2* option give the number of rows of cross-section to display,
 distance between cross-section in axis x and y.
 
-## Terrain
-
-### Terr options
+### Terrain
 
 *slopes* flag write the slope soil lines calculated with the last
 displaced lines (perpendicular to the central axis).
@@ -79,7 +65,7 @@ displaced lines in horizontal.
 
 *tri* write points, lines and hull area map.
 
-## Tools
+### Tools
 
 The flag *-a* add a new table. Displ or Marks.
 
@@ -92,19 +78,19 @@ side to insert.
 The flag *-d* del a displ line, ei, a column in displ table. A number of
 column and side is required.
 
-## Tables
+### Tables
 
 We have six parts: plant, vertical, displaced, terrain, tranversal and
 marks.
 
 The tables stored in the polygon map are:
 
-### Layer 1:
+#### Layer 1:
 
 Created with only cat column (if not exist), is for free use to add
 columns with information of the road.
 
-### Layer 2:
+#### Layer 2:
 
 **"NameRoad"\_Plan**, for insert the parameters of the horizontal
 alignment. This layer have all vertices and nodes of the horizontal
@@ -132,7 +118,7 @@ The columns are:
 
   - **lr\_**: longitude of straight. For use with flag *-t*
 
-### Layer 3:
+#### Layer 3:
 
 **"NameRoad"\_Vert**, for insert the parameters of the vertical
 alignment.This layer are created with the first an last vertices of the
@@ -149,7 +135,7 @@ The columns are:
   - **B**: Height of vertice of vertical polygon to the parabolic curve
     (no yet implemented)
 
-### Layer 4:
+#### Layer 4:
 
 **"NameRoad"\_Displ**, for insert the parameters of the platform. This
 layer are created with the first an last vertices of the horizontal
@@ -173,7 +159,7 @@ Between two points, if the second input distance equal zero, the line
 will be stopped. If the second input distance equal -1, this point will
 not be processed and the next one will be considered.
 
-### Layer 5:
+#### Layer 5:
 
 **"NameRoad"\_Terr**, for insert the parameters for slopes. This layer
 are created with the first an last vertices of the horizontal polygon.
@@ -188,7 +174,7 @@ The columns for editing by the user are:
   - **fill\_left**: Fill slope left
   - **fill\_right**: Fill slope right
 
-### Layer 6:
+#### Layer 6:
 
 **"NameRoad"\_Trans**, for insert the parameters of transects to the
 central axis. This layer are created with the first an last vertices of
@@ -203,7 +189,7 @@ The columns for editing by the user are:
     axis
   - **npk**: Distance between trans
 
-### Layer 7:
+#### Layer 7:
 
 **"NameRoad"\_Marks**, for insert the parameters of Marks. This layer
 are created with the first an last vertex of the horizontal polygon. New
@@ -218,7 +204,7 @@ The columns for editing by the user are:
   - **name**: Name of mark
   - **cod**: Code of mark
 
-## Example:
+## Example
 
 This example is done in the North Carolina data set.
 
@@ -274,7 +260,7 @@ The distance between points of each alignments is of 1 meters by
 default, but this can be changed in the Interval in straights and
 Interval in curves options.
 
-### Vertical
+### Vertical option
 
 At first, we have only the nodes of polygon, and if we set elev we will
 obtain a straight with slope. To get more vertices we have to add new

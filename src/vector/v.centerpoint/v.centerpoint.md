@@ -32,13 +32,13 @@ If an output vector is given, categories of the respective lines and
 areas are transferred from the selected layer to layer 1. Layer 2 holds
 the same category values as for output to stdout.
 
-#### Point centers
+### Point centers
 
   - **mean** - center of gravity, mean of all point coordinates
   - **median** - geometric median, minimum distance to all points
   - **pmedian** - point closest to the geometric median
 
-#### Line centers
+### Line centers
 
   - **mid** - the mid point of each line, lies exactly on the line
   - **mean** - center of gravity, mean of all line segments, might not
@@ -46,7 +46,7 @@ the same category values as for output to stdout.
   - **median** - geometric median, minimum distance to all line
     segments, might not lie on the line
 
-#### Area centers
+### Area centers
 
   - **mean** - center of gravity, calculated using area triangulation
   - **median** - geometric median, minimum distance to area

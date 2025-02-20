@@ -11,18 +11,16 @@
     "both", range between A and D defines base, but range between B and
     C core of the fuzzy set. Between A and B and C and D are set's
     boundaries. If side is "both" it require 4 points, else 2 points.
-    
-    ### Fuzzy set definition:
-    
-    ![image-alt](set.png)
+
+    ![Fuzzy set definition](set.png)  
+    *Fuzzy set definition*
 
   - **side**  
     Option indicates if set is fuzzified of both sides (both), left or
     right side. See description for details.
     
-    ### Boundary definition:
-    
-    ![image-alt](boundary.png)  
+    ![Boundary definition](boundary.png)  
+    *Boundary definition*
 
 ## OUTPUTS
 
@@ -45,9 +43,8 @@
     indicate more dilatant set, the positive values more concentrate
     set. See NOTES for details.
     
-    ### Impact of shape parameter on shape boundary:
-    
-    ![image-alt](shape.png)
+    ![Impact of shape parameter on shape boundary](shape.png)  
+    *Impact of shape parameter on shape boundary*
 
   - **height**  
     Optional height modifier. Range from 0 to 1. The default value is 1
@@ -57,7 +54,7 @@
 
 ## DESCRIPTION
 
-#### Definition of fuzzy set
+### Definition of fuzzy set
 
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh
 (1965) introduced Fuzzy sets as an extension of the classical notion of
@@ -73,7 +70,7 @@ operations.
 
 ## NOTES
 
-#### Calculation of boundary shape
+### Calculation of boundary shape
 
 Depending on type of the boundary different equation are used to
 determine its shape:

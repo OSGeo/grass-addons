@@ -58,7 +58,7 @@ For bug please contact Gianluca Massei (g\_mass@libero.it)
 
 ## SEE ALSO
 
-*r.mcda.fuzzy, r.mcda.electre, r.mcda.regime, r.to.drsa, r.in.drsa*
+*[r.mcda.input](r.mcda.input.md), [r.mcda.electre](r.mcda.electre.md), [r.mcda.output](r.mcda.output.md)*
 
 ## AUTHORS
 
