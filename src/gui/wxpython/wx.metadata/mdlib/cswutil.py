@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 @module  utility for g.gui.cswbrowser
 @brief   GUI csw browser

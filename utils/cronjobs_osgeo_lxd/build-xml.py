@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Creates the addons file module.xml required by the module g.extension
 @Author: Martin Landa

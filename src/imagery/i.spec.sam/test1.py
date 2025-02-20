@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This creates 4 spectral maps
 # Each map has 4 horizontal sections

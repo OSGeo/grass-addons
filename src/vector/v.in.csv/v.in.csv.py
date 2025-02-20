@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """Import CSV as vector points with attributes into GRASS GIS
 

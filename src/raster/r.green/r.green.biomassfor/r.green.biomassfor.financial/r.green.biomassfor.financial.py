@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -- coding: utf-8 --
 #
 ############################################################################
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # MODULE:      r.green.biomassfor.economic
 # AUTHOR(S):   Sandro Sacchelli, Francesco Geri

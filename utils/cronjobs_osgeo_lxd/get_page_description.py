@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # PURPOSE: Extracts page one line descriptions for index.html of GRASS GIS Addons
 #

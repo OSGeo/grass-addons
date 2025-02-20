@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 MODULE:       m.crawl.thredds
 AUTHOR(S):    stefan.blumentrath

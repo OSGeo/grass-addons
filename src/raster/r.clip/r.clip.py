@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # %module
 # % label: Extracts portion of the input map which overlaps with the current region
