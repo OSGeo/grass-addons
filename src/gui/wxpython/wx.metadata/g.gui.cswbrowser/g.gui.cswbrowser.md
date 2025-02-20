@@ -47,7 +47,7 @@ can be set by GRASS region or manualy.
     checkbox. Syntax of constraints is based on python list syntax. Each
     keywords must be in braces \<'\> or \<"\>.
 
-  -   - OR condition  
+  - - OR condition  
         a || b || c \["a","b","c"\]
       - AND condition  
         a && b && c \[\["a","b","c"\]\]

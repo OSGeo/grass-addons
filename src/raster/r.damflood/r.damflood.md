@@ -93,7 +93,7 @@ while in case of partial dam breach (configuration *ii*) the user can
 choose between don't use any hypothesis, like in the previous
 configuration, or evaluate the initial velocity using the overflow
 spillway equation:  
-*V* = *0.4* <span class="radic"><sup>` 
+*V* = *0.4* <span class="radic"><sup>`
  `</sup>√<span class="radicand" style="text-decoration:overline">`(2 g
 h)`</span>  
 where *V* is the water flow velocity expressed in m/s, *g* is the
