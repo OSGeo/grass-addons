@@ -1,15 +1,15 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.prominence</em> calculates the average difference between a
-central cell and its neighbors. It approximated the terrain 'ruggedness'
-by looking at average differences in elev_lid792_1m within a given neighborhood
-The <em>radius</em> is specified in number of map rows/columns.
+*r.prominence* calculates the average difference between a central cell
+and its neighbors. It approximated the terrain 'ruggedness' by looking
+at average differences in elev\_lid792\_1m within a given neighborhood
+The *radius* is specified in number of map rows/columns.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 North Carolina sample region:
 
-<div class="code"><pre>
+```sh
 g.region raster=elev_lid792_1m
 
 # get region rows/columns
@@ -23,13 +23,10 @@ r.relief input=elev_lid792_1m output=elev_lid792_1m_shaded
 
 d.mon wx0
 d.shade shade=elev_lid792_1m_shaded color=prominence
-</pre></div>
+```
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Benjamin Ducke (benjamin.ducke - oxfordarch.co.uk)<br>
-Update to GRASS GIS 7: Markus Neteler - <a href="https://www.mundialis.de/">mundialis</a>
-
-<!--
-<p><i>Last changed: $Date$</i>
--->
+Benjamin Ducke (benjamin.ducke - oxfordarch.co.uk)  
+Update to GRASS GIS 7: Markus Neteler -
+[mundialis](https://www.mundialis.de/)

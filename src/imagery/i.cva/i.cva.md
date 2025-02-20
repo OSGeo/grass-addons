@@ -1,66 +1,62 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.cva</em> calculates Change Vector Analysis (CVA) for two input
-variables. CVA is a remote sensing technique used for change detection
-analysis. As input for CVA, two maps for each date must be given: in general,
-on X axis an indicator of overall reflectance and on Y axis an indicator of
-vegetation conditions. A common choice for the indicators is Albedo and NDVI
-(Normalized Difference Vegetation Index) or the Brightness and Greenness
-features features of the Tasselled Cap (TC) transform.
-<br>
-For each pixel of the original image, CVA gives in output a map of the angle
-and a map of the magnitude of the vector of the change between two dates.
-<br>
-Read Malila et al. for a complete explanation of the technique. This module
-might require a first transformation of the data to Top Of Atmosphere
-Reflectance (TOAR); if the TC transform are chosen as indicators, the TC
-transform should be then performed as well before running CVA.
-<p>
+*i.cva* calculates Change Vector Analysis (CVA) for two input variables.
+CVA is a remote sensing technique used for change detection analysis. As
+input for CVA, two maps for each date must be given: in general, on X
+axis an indicator of overall reflectance and on Y axis an indicator of
+vegetation conditions. A common choice for the indicators is Albedo and
+NDVI (Normalized Difference Vegetation Index) or the Brightness and
+Greenness features features of the Tasselled Cap (TC) transform.  
+For each pixel of the original image, CVA gives in output a map of the
+angle and a map of the magnitude of the vector of the change between two
+dates.  
+Read Malila et al. for a complete explanation of the technique. This
+module might require a first transformation of the data to Top Of
+Atmosphere Reflectance (TOAR); if the TC transform are chosen as
+indicators, the TC transform should be then performed as well before
+running CVA.
+
 Four parameters are required in input:
-<ul>
-<li> <b>xaraster</b>: first date map for X axis,
-<li> <b>xbraster</b>: second date map for X axis,
-<li> <b>yaraster</b>: first date map for Y axis,
-<li> <b>ybraster</b>: second date map for Y axis.
-</ul>
-<p>
+
+  - **xaraster**: first date map for X axis,
+  - **xbraster**: second date map for X axis,
+  - **yaraster**: first date map for Y axis,
+  - **ybraster**: second date map for Y axis.
+
 The following maps can be generated in output:
-<ul>
-<li> <i>basename</i>_angle: map of the angles of the change vector between
-the two dates;
-<li> <i>basename</i>_angle_class: map of the angles, classified by the four
-quadrants (0-90, 90-180, ...);
-<li> <i>basename</i>_magnitude: map of the magnitudes of the change vector
-between the two dates;
-<li> <i>basename</i>_change: final map of the change
-</ul>
-<p>
-The change detection map is created using the classified angle map and applying
-a threshold to the magnitude: the change is given by the pixels that have
-values higher than the threshold, divided in four categories depending on
-the quadrant they belong to.
-<br>
-The threshold can be chosen manually (<em>custom value</em>, given by personal
-criteria) or using statistical criteria. In this case the mean of the magnitude
-values is used and the user can choose the multiples of <em>N</em> standard
-deviation to sum to the mean (threshold = mean + N * standard deviation).
-<br>
+
+  - *basename*\_angle: map of the angles of the change vector between
+    the two dates;
+  - *basename*\_angle\_class: map of the angles, classified by the four
+    quadrants (0-90, 90-180, ...);
+  - *basename*\_magnitude: map of the magnitudes of the change vector
+    between the two dates;
+  - *basename*\_change: final map of the change
+
+The change detection map is created using the classified angle map and
+applying a threshold to the magnitude: the change is given by the pixels
+that have values higher than the threshold, divided in four categories
+depending on the quadrant they belong to.  
+The threshold can be chosen manually (*custom value*, given by personal
+criteria) or using statistical criteria. In this case the mean of the
+magnitude values is used and the user can choose the multiples of *N*
+standard deviation to sum to the mean (threshold = mean + N \* standard
+deviation).  
 One could consider of running the module at first without assigning a
 threshold, in order to have an idea of the range of the magnitude and to
-choose an appropriate custom threshold (for univariate statistical parameters
-run <a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>). In this case <em>i.cva</em> gives
-in output only three maps: the angle, angle classified and magnitude maps.
+choose an appropriate custom threshold (for univariate statistical
+parameters run
+[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)).
+In this case *i.cva* gives in output only three maps: the angle, angle
+classified and magnitude maps.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-Calculation of CVA maps from North Carolina Landsat 5 TM and 7 ETM scenes,
-using lsat5_1987 and lsat7_2002.
-<br>
+Calculation of CVA maps from North Carolina Landsat 5 TM and 7 ETM
+scenes, using lsat5\_1987 and lsat7\_2002.  
 The Tasselled cap maps are calculated for TOAR data.
 
-<!-- TODO: add TOAR part -->
-
-<div class="code"><pre>
+```sh
 # compute tasscap of 1987 scene
 g.region raster=lsat5_1987_10 -p
 i.tasscap sensor=landsat5_tm \
@@ -85,54 +81,35 @@ Mean of magnitude values is: 0.091335330260002
 Standard deviation of magnitude values is: 0.0671211630131731
 Writing change detection map CVA_87_02_change
 Threshold is 0.158456493273
-</pre></div>
+```
 
 Results:
 
-<p>
-<center>
-  <table border=1>
-  <tr>
-    <td align=center>
-      &nbsp;<img src="i.cva_1angle.png" alt="Angle map">
-      <br>
-      <font size="-1">
-      <i>CVA angle map 1</i>
-      </font>
-    </td>
-    <td align=center>
-      &nbsp;<img src="i.cva_2angleclass.png" alt="Classified angle
-      map">
-      <br>
-      <font size="-1">
-      <i>CVA classified angle map</i>
-      </font>
-    </td>
-  </tr>
-  <tr>
-    <td align=center>
-      &nbsp;<img src="i.cva_3magnitude.png" alt="Magnitude map">
-      <br>
-      <font size="-1">
-      <i>CVA magnitude map</i>
-      </font>
-    </td>
-    <td align=center>
-      &nbsp;<img src="i.cva_4change.png">
-      <br>
-      <font size="-1">
-      <i>CVA change map</i>
-      </font>
-    </td>
-  </tr>
-  </table>
-</center>
-<p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"> <img src="i.cva_1angle.png" alt="image-alt" /><br />
+<em>CVA angle map 1</em></td>
+<td style="text-align: center;"> <img src="i.cva_2angleclass.png" alt="image-alt" /><br />
+<em>CVA classified angle map</em></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"> <img src="i.cva_3magnitude.png" alt="image-alt" /><br />
+<em>CVA magnitude map</em></td>
+<td style="text-align: center;"> <img src="i.cva_4change.png" alt="image-alt" /><br />
+<em>CVA change map</em></td>
+</tr>
+</tbody>
+</table>
 
-Optionally, labels can be added to the four quadrants of the change
-map (after Zanchetta et al., 2016):
+Optionally, labels can be added to the four quadrants of the change map
+(after Zanchetta et al., 2016):
 
-<div class="code"><pre>
+```sh
 # assign legend
 cat i_cva_legend_rules.csv
 1:moisture reduction
@@ -150,30 +127,26 @@ cat i_cva_color_rules.csv
 4 139:105:20
 
 r.colors map=CVA_87_02_change rules=i_cva_color_rules.csv
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<ul>
-<li>Malila W A, Lafayette W. Change Vector Analysis (1980): An Approach
-  for Detecting Forest Changes with Landsat. LARS Symp., pp. 326-335
-  (<a href="https://docs.lib.purdue.edu/lars_symp/385/">PDF</a>)</li>
-<li>Zanchetta, A., Bitelli, G. & Karnieli, A. (2016): Monitoring desertification
-  by remote sensing using the Tasselled Cap transform for long-term
-  change detection. Nat Hazards, 83(Suppl 1):223-237.
-  (<a href="https://doi.org/10.1007/s11069-016-2342-9">DOI</a>)</li>
-</ul>
+  - Malila W A, Lafayette W. Change Vector Analysis (1980): An Approach
+    for Detecting Forest Changes with Landsat. LARS Symp., pp. 326-335
+    ([PDF](https://docs.lib.purdue.edu/lars_symp/385/))
+  - Zanchetta, A., Bitelli, G. & Karnieli, A. (2016): Monitoring
+    desertification by remote sensing using the Tasselled Cap transform
+    for long-term change detection. Nat Hazards, 83(Suppl 1):223-237.
+    ([DOI](https://doi.org/10.1007/s11069-016-2342-9))
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.albedo.html">i.albedo</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.vi.html">i.vi</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.aster.toar.html">i.aster.toar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.landsat.toar.html">i.landsat.toar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>
-</em>
+*[i.albedo](https://grass.osgeo.org/grass-stable/manuals/i.albedo.html),
+[i.vi](https://grass.osgeo.org/grass-stable/manuals/i.vi.html),
+[i.aster.toar](https://grass.osgeo.org/grass-stable/manuals/i.aster.toar.html),
+[i.landsat.toar](https://grass.osgeo.org/grass-stable/manuals/i.landsat.toar.html),
+[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Anna Zanchetta

@@ -1,96 +1,77 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.rename.many</em> renames multiple maps at once using
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.rename.html">g.rename</a></em> module.
-Old and new names are read from a text file.
-The file format is a simple CSV (comma separated values) format
-with no text delimiter (e.g. no quotes around cell content).
-Comma is a default cell delimiter but it can be changed to anything.
+*g.rename.many* renames multiple maps at once using
+*[g.rename](https://grass.osgeo.org/grass-stable/manuals/g.rename.html)*
+module. Old and new names are read from a text file. The file format is
+a simple CSV (comma separated values) format with no text delimiter
+(e.g. no quotes around cell content). Comma is a default cell delimiter
+but it can be changed to anything.
 
-<p>
 Possible use cases include:
-    <ul>
-        <li>
-            renaming maps named in a certain language to English
-            when data were obtained at national level but the futher
-            collaboration is international
-        </li>
-        <li>
-            renaming provided sample maps with English names to
-            a national language for educational purposes in case
-            English is not appropriate
-        </li>
-        <li>
-            preparation of a
-            <a href="https://grasswiki.osgeo.org/wiki/GRASS_GIS_Standardized_Sample_Datasets">
-            GRASS GIS Standardized Sample Dataset</a> which requires
-            a certain set of standardized names
-        </li>
-    </ul>
 
+  - renaming maps named in a certain language to English when data were
+    obtained at national level but the futher collaboration is
+    international
+  - renaming provided sample maps with English names to a national
+    language for educational purposes in case English is not appropriate
+  - preparation of a [GRASS GIS Standardized Sample
+    Dataset](https://grasswiki.osgeo.org/wiki/GRASS_GIS_Standardized_Sample_Datasets)
+    which requires a certain set of standardized names
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<h3>Renaming rasters</h3>
+### Renaming rasters
 
-First prepare a file with names of raster maps to be renamed.
-The file can be prepared in spreadsheet application
-(and saved as CSV with cell delimiter comma and no text delimiter)
-or as a text file in any (plain) text editor.
-In any case, the result should be a plain text file with format and
-content similar to the following sample:
+First prepare a file with names of raster maps to be renamed. The file
+can be prepared in spreadsheet application (and saved as CSV with cell
+delimiter comma and no text delimiter) or as a text file in any (plain)
+text editor. In any case, the result should be a plain text file with
+format and content similar to the following sample:
 
-<div class="code"><pre>
+```sh
 landuse96_28m,landuse
 geology_30m,geology
 soilsID,soils
-</pre></div>
+```
 
 Once the file is prepared, the module can be called:
 
-<div class="code"><pre>
+```sh
 g.rename.many raster=raster_names.csv
-</pre></div>
+```
 
-<p>
 This example worked only with raster maps. However multiple files, one
 for each map type, can be used at once.
 
-
-<h3>Creating a file with current names</h3>
+### Creating a file with current names
 
 A template for renaming can be prepared using
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.list.html">g.list</a></em> module,
-for example in command line (bash syntax):
+*[g.list](https://grass.osgeo.org/grass-stable/manuals/g.list.html)*
+module, for example in command line (bash syntax):
 
-<div class="code"><pre>
+```sh
 g.list type=raster mapset=. sep=",
-" &gt; raster_names.csv
-</pre></div>
+" > raster_names.csv
+```
 
-<p>
-Note that we are using only maps in a current Mapset because these
-are the only ones we can rename.
+Note that we are using only maps in a current Mapset because these are
+the only ones we can rename.
 
-<p>
-With some further processing file template can be made more complete
-by including map names twice (bash syntax):
+With some further processing file template can be made more complete by
+including map names twice (bash syntax):
 
-<div class="code"><pre>
-g.list type=raster mapset=. | sed -e "s/\(.*\)/\1,\1/g" &gt; raster_names.csv
-</pre></div>
+```sh
+g.list type=raster mapset=. | sed -e "s/\(.*\)/\1,\1/g" > raster_names.csv
+```
 
-The <em>sed</em> expression used here takes whatever is on a line
-on input and puts it twice on one line on the output separated by comma.
+The *sed* expression used here takes whatever is on a line on input and
+puts it twice on one line on the output separated by comma.
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[g.rename](https://grass.osgeo.org/grass-stable/manuals/g.rename.html),
+[g.list](https://grass.osgeo.org/grass-stable/manuals/g.list.html)*
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/g.rename.html">g.rename</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/g.list.html">g.list</a>
-</em>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>
+Vaclav Petras, [NCSU OSGeoREL](https://geospatial.ncsu.edu/osgeorel/)

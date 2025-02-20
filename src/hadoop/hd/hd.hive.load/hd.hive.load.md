@@ -1,47 +1,39 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>hd.hive.load</em> module allows to insert(load) data stored in HDFS into Hive table
+*hd.hive.load* module allows to insert(load) data stored in HDFS into
+Hive table
 
+## NOTES
 
-<p>
-
-
-<h2>NOTES</h2>
-Module <em>hd.hive.load</em> provides option to load data to the table.
-Availability of this module ensures more space within building of the workflow
-especially using python scripting or  <a href="https://grass.osgeo.org/grass-stable/manuals/wxGUI.gmodeler.html">graphical modeler of
-GRASS</a>,
+Module *hd.hive.load* provides option to load data to the table.
+Availability of this module ensures more space within building of the
+workflow especially using python scripting or [graphical modeler of
+GRASS](https://grass.osgeo.org/grass-stable/manuals/wxGUI.gmodeler.html),
 .
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-Below is example of HQL command: <em>LOAD DATA INPATH '/data/europe_latest_fix.csv' OVERWRITE INTO TABLE  europe;</em>
-<div class="code"><pre>
+Below is example of HQL command: *LOAD DATA INPATH
+'/data/europe\_latest\_fix.csv' OVERWRITE INTO TABLE europe;*
+
+```sh
 hd.hive.load driver=hiveserver2 table=europe path=/data/europe_latest_fix.csv
-</pre>
-</div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[hd.hdfs.in.fs](hd.hdfs.in.fs.md),
+[hd.hdfs.in.vector](hd.hdfs.in.vector.md),
+[hd.hdfs.out.vector](hd.hdfs.out.vector.md),
+[hd.hdfs.info](hd.hdfs.info.md), [hd.hive.execute](hd.hive.execute.md),
+[hd.hive.csv.table](hd.hive.csv.table.md),
+[hd.hive.select](hd.hive.select.md), [hd.hive.info](hd.hive.info.md),
+[hd.hive.json.table](hd.hive.json.table.md)*
 
-<em>
-<a href="hd.hdfs.in.fs.html">hd.hdfs.in.fs</a>,
-<a href="hd.hdfs.in.vector.html">hd.hdfs.in.vector</a>,
-<a href="hd.hdfs.out.vector.html">hd.hdfs.out.vector</a>,
-<a href="hd.hdfs.info.html">hd.hdfs.info</a>,
-<a href="hd.hive.execute.html">hd.hive.execute</a>,
-<a href="hd.hive.csv.table.html">hd.hive.csv.table</a>,
-<a href="hd.hive.select.html">hd.hive.select</a>,
-<a href="hd.hive.info.html">hd.hive.info</a>,
-<a href="hd.hive.json.table.html">hd.hive.json.table</a>
-</em>
+See also related [wiki page](https://grasswiki.osgeo.org/wiki/).
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/">wiki page</a>.
+## AUTHOR
 
-
-<h2>AUTHOR</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during master thesis project 2016 (mentor: Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during master thesis
+project 2016 (mentor: Martin Landa)

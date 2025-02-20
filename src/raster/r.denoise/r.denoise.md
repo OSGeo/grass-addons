@@ -1,82 +1,86 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-Sun et al.'s
-(2007) <a href="https://www.cs.cf.ac.uk/meshfiltering/index_files/Page342.htm">denoising
-algorithm</a> is a feature-preserving mesh denoising algorithm that
-smooths the surfaces of computer models of three dimensional objects
-such as those used in computer-aided design and graphics.  It removes
-random noise while preserving sharp features and smoothing with
-minimal changes to the original data. <em>r.denoise</em> is a Python
-script that allows the algorithm to be run on DEMs from within
-<em>GRASS</em>.  Denoising DEMs can improve clarity and quality
-of derived products such as slope and hydraulic maps.
+Sun et al.'s (2007) [denoising
+algorithm](https://www.cs.cf.ac.uk/meshfiltering/index_files/Page342.htm)
+is a feature-preserving mesh denoising algorithm that smooths the
+surfaces of computer models of three dimensional objects such as those
+used in computer-aided design and graphics. It removes random noise
+while preserving sharp features and smoothing with minimal changes to
+the original data. *r.denoise* is a Python script that allows the
+algorithm to be run on DEMs from within *GRASS*. Denoising DEMs can
+improve clarity and quality of derived products such as slope and
+hydraulic maps.
 
-<p>
-The amount of smoothing is controlled by the <b>threshold</b>
-and <b>iterations</b> parameters.  Increasing the <b>threshold</b>
-decreases how sharp a feature needs to be in order to be preserved
-e.g. decreases the smoothing.  To preserve ridge crests in mountain
-areas, T > 0.9 is recommended. Setting T too high results in the
-preservation of noise.  For SRTM data, which is already partly
-smoothed by NASA, T = 0.99 can be used.  Increasing the number
-of <em>iterations</em> increases the smoothing and the range of
-spatial correlation of the output dataset.  A small number, e.g. 5 or
-fewer, typically gives the best results.  See the REFERENCES for more
-detailed information.
+The amount of smoothing is controlled by the **threshold** and
+**iterations** parameters. Increasing the **threshold** decreases how
+sharp a feature needs to be in order to be preserved e.g. decreases the
+smoothing. To preserve ridge crests in mountain areas, T \> 0.9 is
+recommended. Setting T too high results in the preservation of noise.
+For SRTM data, which is already partly smoothed by NASA, T = 0.99 can be
+used. Increasing the number of *iterations* increases the smoothing and
+the range of spatial correlation of the output dataset. A small number,
+e.g. 5 or fewer, typically gives the best results. See the REFERENCES
+for more detailed information.
 
-<h2>NOTES</h2>
-<p>
-<em>r.denoise</em> works with a Cartesian coordinate system.  Thus
-data in geographic (lat-long) coordinates require projection during
-processing.  The script is able to do this if
-the <a href="http://www.epsg-registry.org/">EPSG code</a> of a
-suitable coordinate system is provided.
+## NOTES
 
-<h2>REQUIREMENTS</h2>
+*r.denoise* works with a Cartesian coordinate system. Thus data in
+geographic (lat-long) coordinates require projection during processing.
+The script is able to do this if the [EPSG
+code](http://www.epsg-registry.org/) of a suitable coordinate system is
+provided.
 
-<em>r.denoise</em> requires that <em>mdenoise</em>, the executable
-version of Sun et al.'s (2007) denoising algorithm, is available on
-the $PATH. <em>mdenoise</em> can be compiled and installed as follows:
+## REQUIREMENTS
 
-<div class="code"><pre>
+*r.denoise* requires that *mdenoise*, the executable version of Sun et
+al.'s (2007) denoising algorithm, is available on the $PATH. *mdenoise*
+can be compiled and installed as follows:
+
+```sh
 wget http://www.cs.cf.ac.uk/meshfiltering/index_files/Doc/mdsource.zip
 unzip mdsource.zip
 cd mdenoise
 g++ -o mdenoise mdenoise.cpp triangle.c
 ln -s `pwd`/mdenoise /some/directory/on/the/$PATH
-</pre></div>
+```
 
-<p>
-The python version of <em>r.denoise</em>
-uses <a href="https://github.com/jswhit/pyproj">pyproj</a>:
-<div class="code"><pre>
+The python version of *r.denoise* uses
+[pyproj](https://github.com/jswhit/pyproj):
+
+```sh
 pip install pyproj
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
-<ul>
-  <li>For further information on denoising DEMs, see: <a href="https://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/">Using Sun's denoising algorithm on topographic data</a>.
-  <li>Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective Feature-Preserving Mesh Denoising. IEEE Transactions on Visualisation and Computer Graphics, 13(5):925-938 <a href="https://doi.org/10.1109/TVCG.2007.1065">doi:10.1109/TVCG.2007.1065</a></li>
-  <li>Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other topographic data with a denoising algorithm. Geomorphology, 144:238-252. <a href="https://doi.org/10.1016/j.geomorph.2009.07.006">doi:10.1016/j.geomorph.2009.07.006</a></li>
-</ul>
+## REFERENCES
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.topidx.html">r.topidx</a>
-</em>
+  - For further information on denoising DEMs, see: [Using Sun's
+    denoising algorithm on topographic
+    data](https://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/).
+  - Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective
+    Feature-Preserving Mesh Denoising. IEEE Transactions on
+    Visualisation and Computer Graphics, 13(5):925-938
+    [doi:10.1109/TVCG.2007.1065](https://doi.org/10.1109/TVCG.2007.1065)
+  - Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other
+    topographic data with a denoising algorithm. Geomorphology,
+    144:238-252.
+    [doi:10.1016/j.geomorph.2009.07.006](https://doi.org/10.1016/j.geomorph.2009.07.006)
 
-<h2>AUTHORS</h2>
-John A Stevenson<br>
-johnalexanderstevenson <i>at</i> yahoo <i>dot</i> co <i>dot</i> uk<br><br>
+## SEE ALSO
 
-The module was written as part of a project funded
-by <a href="https://www.ukri.org/councils/epsrc">EPSRC</a> Grant no. EP/C007972/1
-(P.I. Paul Rosin, Cardiff University).<br><br>
+*[r.stats](https://grass.osgeo.org/grass-stable/manuals/r.stats.html),
+[r.in.xyz](https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html),
+[r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html),
+[r.topidx](https://grass.osgeo.org/grass-stable/manuals/r.topidx.html)*
 
-Module ported to Python by <a href="http://carlosgrohmann.com/">Carlos
-H. Grohmann</a><br>
-Institute of Energy and Environment, University of Sao Paulo, Brazil<br>
+## AUTHORS
+
+John A Stevenson  
+johnalexanderstevenson *at* yahoo *dot* co *dot* uk  
+  
+The module was written as part of a project funded by
+[EPSRC](https://www.ukri.org/councils/epsrc) Grant no. EP/C007972/1
+(P.I. Paul Rosin, Cardiff University).  
+  
+Module ported to Python by [Carlos H.
+Grohmann](http://carlosgrohmann.com/)  
+Institute of Energy and Environment, University of Sao Paulo, Brazil

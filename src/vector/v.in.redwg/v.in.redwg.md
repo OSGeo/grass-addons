@@ -1,35 +1,36 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.redwg</em> imports DWG files into GRASS.
+*v.in.redwg* imports DWG files into GRASS.
 
-<h2>EXAMPLE</h2>
-<div class="code"><pre>
+## EXAMPLE
+
+```sh
 v.in.redwg input=map.dwg output=map
-</pre></div>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
-v.in.redwg <strong>does not require OpenDWG or any proprietary software<strong>.
-It requires <a href="https://www.gnu.org/software/libredwg">LibreDWG</a>, which
-is released under the GNU GPLv3.
-<p>
-You need to download, compile and install (check website) LibreDWG and use the
-related <tt>configure</tt> options to tell GRASS about it (warning: configure
-options not implemented yet)
+v.in.redwg **does not require OpenDWG or any proprietary software**. It
+requires [LibreDWG](https://www.gnu.org/software/libredwg), which is
+released under the GNU GPLv3.****
 
-<div class="code"><pre>
+You need to download, compile and install (check website) LibreDWG and
+use the related `configure` options to tell GRASS about it (warning:
+configure options not implemented yet)
+
+```sh
    ./configure \
    ... \
    --with-libredwg \
    --with-libredwg-includes=/usr/include \
-</pre></div>
+```
 
-Then run <i>make</i> to compile this module.
-<p>
+Then run *make* to compile this module.
+
 Not all entity types are supported (warning printed).
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Rodrigo Rodrigues da Silva (pitanga at members dot fsf dot org), São Paulo, Brazil
-<br>based on original code by Radim Blazek, ITC-Irst, Trento, Italy
+Rodrigo Rodrigues da Silva (pitanga at members dot fsf dot org), São
+Paulo, Brazil  
+based on original code by Radim Blazek, ITC-Irst, Trento, Italy

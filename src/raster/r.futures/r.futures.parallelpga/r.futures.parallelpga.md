@@ -1,54 +1,56 @@
-<h2>DESCRIPTION</h2>
-Since FUTURES model is stochastic, multiple runs are recommended.
-Module <em>r.futures.parallelpga</em> is a script for running
-<a href="r.futures.pga.html">r.futures.pga</a> on multiple CPUs.
-All options of <a href="r.futures.pga.html">r.futures.pga</a> are available
-(except for random seed options which are handled by <em>r.futures.parallelpga</em>).
+## DESCRIPTION
 
-<p>
-Option <b>repeat</b> changes the number of times the simulation is repeated
-with the same settings but different random seed.
-Option <b>nprocs</b> sets the number of parallel processes to be used,
-which depends on number of available CPUs.
-Flag <b>-d</b> switches on parallelization on subregion level.
-Subregions are split and simulation runs on each subregion individually. This
-approach is convenient if available memory is not sufficient for the entire study area.
-However, as each subregion is handled separately, development pressure on the edge of a subregion
-does not influence its neighbors. This can influence the results in case of significant development
-happening on the subregion boundary.
+Since FUTURES model is stochastic, multiple runs are recommended. Module
+*r.futures.parallelpga* is a script for running
+[r.futures.pga](r.futures.pga.md) on multiple CPUs. All options of
+[r.futures.pga](r.futures.pga.md) are available (except for random seed
+options which are handled by *r.futures.parallelpga*).
 
-<h2>EXAMPLES</h2>
+Option **repeat** changes the number of times the simulation is repeated
+with the same settings but different random seed. Option **nprocs** sets
+the number of parallel processes to be used, which depends on number of
+available CPUs. Flag **-d** switches on parallelization on subregion
+level. Subregions are split and simulation runs on each subregion
+individually. This approach is convenient if available memory is not
+sufficient for the entire study area. However, as each subregion is
+handled separately, development pressure on the edge of a subregion does
+not influence its neighbors. This can influence the results in case of
+significant development happening on the subregion boundary.
 
-<h2>SEE ALSO</h2>
+## EXAMPLES
 
-<a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
-<em><a href="r.futures.potsurface.html">r.futures.potsurface</a></em>,
-<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
-<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
-<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>
+## SEE ALSO
 
-<h2>REFERENCES</h2>
-<ul>
-<li>
-    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
-    <a href="https://doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
-    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
-    Annals of the Association of American Geographers, 103(4), 785-807.
-    DOI: 10.1080/00045608.2012.707591
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
-   <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
-    tradeoffs between conservation planning strategies</a>.
-    Landscape and Urban Planning, 136, 28-39.
-    DOI: 10.1016/j.landurbplan.2014.11.011</li>
-<li>Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H.,  &amp; Meentemeyer, R. K. (2016).
-   <a href="https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf">Open Source Approach to Urban Growth Simulation</a>.
-   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
-   DOI: 10.5194/isprsarchives-XLI-B7-953-2016</li>
-</ul>
+[FUTURES](r.futures.md), *[r.futures.pga](r.futures.pga.md)*,
+*[r.futures.devpressure](r.futures.devpressure.md)*,
+*[r.futures.potsurface](r.futures.potsurface.md)*,
+*[r.futures.demand](r.futures.demand.md)*,
+*[r.futures.calib](r.futures.calib.md)*,
+*[r.futures.potential](r.futures.potential.md)*,
+*[r.sample.category](r.sample.category.md)*
 
-<h2>AUTHOR</h2>
+## REFERENCES
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+  - Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
+    Cunniffe, N. J., & Shoemaker, D. A. (2013). [FUTURES: Multilevel
+    Simulations of Emerging Urban-Rural Landscape Structure Using a
+    Stochastic Patch-Growing
+    Algorithm](https://doi.org/10.1080/00045608.2012.707591). Annals of
+    the Association of American Geographers, 103(4), 785-807. DOI:
+    10.1080/00045608.2012.707591
+  - Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
+    (2015). [Simulating urbanization scenarios reveals tradeoffs between
+    conservation planning
+    strategies](https://doi.org/10.1016/j.landurbplan.2014.11.011).
+    Landscape and Urban Planning, 136, 28-39. DOI:
+    10.1016/j.landurbplan.2014.11.011
+  - Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
+    H., & Meentemeyer, R. K. (2016). [Open Source Approach to Urban
+    Growth
+    Simulation](https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf).
+    Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7,
+    953-959. DOI: 10.5194/isprsarchives-XLI-B7-953-2016
+
+## AUTHOR
+
+Anna Petrasova, [NCSU GeoForAll](https://geospatial.ncsu.edu/geoforall/)

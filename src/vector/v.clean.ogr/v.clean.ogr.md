@@ -1,77 +1,76 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.clean.ogr</em> cleans non-topological polygons in an OGR
-datasource by importing, cleaning, and exporting these polgons. This
-module should not be used with polygons that are correctly overlapping,
-e.g. buffers.
-<p>
-<em>v.clean.ogr</em> imports vector data from files and database
-connections supported by the <a href="https://gdal.org/">OGR</a> library
-into a temporary location. Only one input layer is imported.
-<p>
+*v.clean.ogr* cleans non-topological polygons in an OGR datasource by
+importing, cleaning, and exporting these polgons. This module should not
+be used with polygons that are correctly overlapping, e.g. buffers.
+
+*v.clean.ogr* imports vector data from files and database connections
+supported by the [OGR](https://gdal.org/) library into a temporary
+location. Only one input layer is imported.
+
 Polygons in the input layer are automatically cleaned during impport.
-More thorough cleaning can be achieved by using the <b>snap</b> and
-<b>min_area</b> options.
-<p>
-The cleaned result is exported to the selected <b>output</b> datasource
-with &quot;_clean&quot; appended to the input layer name. Any overlaps
-are exported with &quot;_overlaps&quot; appended to the input layer name.
+More thorough cleaning can be achieved by using the **snap** and
+**min\_area** options.
 
-<h3>Supported Vector Formats</h3>
+The cleaned result is exported to the selected **output** datasource
+with "\_clean" appended to the input layer name. Any overlaps are
+exported with "\_overlaps" appended to the input layer name.
 
-<em>v.clean.ogr</em> uses the OGR library which supports various vector data
-formats including <a href="https://gdal.org/drivers/vector/gpkg.html">GeoPackage</a>,
-<a href="https://gdal.org/drivers/vector/shapefile.html">ESRI Shapefile</a>,
-<a href="https://gdal.org/drivers/vector/mitab.html">Mapinfo File</a>, UK .NTF,
-SDTS, TIGER, IHO S-57 (ENC), DGN, GML, GPX, AVCBin, REC, Memory, OGDI,
-and PostgreSQL, depending on the local OGR installation. For details see
-the <a href="https://gdal.org/drivers/vector/index.html">OGR web site</a>. The
-OGR (Simple Features Library) is part of the <a
-href="https://gdal.org">GDAL</a> library, hence GDAL needs to be
-installed to use <em>v.clean.ogr</em>.
+### Supported Vector Formats
 
-<p>
-The list of actually supported formats can be printed by <b>-f</b> flag.
+*v.clean.ogr* uses the OGR library which supports various vector data
+formats including
+[GeoPackage](https://gdal.org/drivers/vector/gpkg.html), [ESRI
+Shapefile](https://gdal.org/drivers/vector/shapefile.html), [Mapinfo
+File](https://gdal.org/drivers/vector/mitab.html), UK .NTF, SDTS, TIGER,
+IHO S-57 (ENC), DGN, GML, GPX, AVCBin, REC, Memory, OGDI, and
+PostgreSQL, depending on the local OGR installation. For details see the
+[OGR web site](https://gdal.org/drivers/vector/index.html). The OGR
+(Simple Features Library) is part of the [GDAL](https://gdal.org)
+library, hence GDAL needs to be installed to use *v.clean.ogr*.
 
-<h2>NOTES</h2>
+The list of actually supported formats can be printed by **-f** flag.
 
-<h3>Topology cleaning</h3>
+## NOTES
+
+### Topology cleaning
 
 When importing polygons, non-topological polygons are converted to
 topological areas. If the input polygons contain errors (unexpected
 overlapping areas, small gaps between polygons, or warnings about being
 unable to calculate centroids), the import might need to be repeated
-using a <em>snap</em> value as suggested in the output messages.
+using a *snap* value as suggested in the output messages.
 
-<p>
-The <em>snap</em> threshold defines the maximal distance from one to another
-vertex in map units (for latitude-longitude locations in degree). If there
-is no other vertex within <em>snap</em> distance, no snapping will be done.
-Note that a too large value can severely damage area topology, beyond repair.
-<p>
+The *snap* threshold defines the maximal distance from one to another
+vertex in map units (for latitude-longitude locations in degree). If
+there is no other vertex within *snap* distance, no snapping will be
+done. Note that a too large value can severely damage area topology,
+beyond repair.
+
 Further cleaning can be achieved by removing small areas using the
-<b>min_area</b> option. Note that units are always squaremeters. Values
-for <b>min_area</b> should generally be small, a value of 0.5 can already
+**min\_area** option. Note that units are always squaremeters. Values
+for **min\_area** should generally be small, a value of 0.5 can already
 clean up lots of artefacts.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-Cleaning polygons in a Shapefile in the current directory <em>research_area</em>
-<div class="code"><pre>
+Cleaning polygons in a Shapefile in the current directory
+*research\_area*
+
+```sh
 v.clean.ogr input=research_area layer=research_area output=research_area \
             snap=1e-4 min_area=1 -u --overwrite
-</pre></div>
-Two new Shapefile layers &quot;research_area_clean&quot; and
-&quot;research_area_overlaps&quot; may be created in the same directory.
+```
 
-<h2>SEE ALSO</h2>
+Two new Shapefile layers "research\_area\_clean" and
+"research\_area\_overlaps" may be created in the same directory.
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.clean.html">v.clean</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html">v.out.ogr</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html),
+[v.clean](https://grass.osgeo.org/grass-stable/manuals/v.clean.html),
+[v.out.ogr](https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html)*
+
+## AUTHOR
 
 Markus Metz

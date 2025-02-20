@@ -1,125 +1,78 @@
-<!DOCTYPE html>
-<html lang="{{ language }}">
-<head>
-    <meta charset="utf-8"/>
-    <title>{{ gettext('Service Metadata') }}</title>
-    <style type="text/css">
-        body, h3, h4 {
-            background-color: #ffffff;
-            font-family: arial, verdana, sans-serif;
-            text-align: left;
-            float: left;
-        }
+### {{ gettext('Service Metadata') }}
 
-        header {
-            display: inline-block;
-        }
-    </style>
-</head>
-<body>
-<header>
-    <h3>{{ gettext('Service Metadata') }}</h3>
-</header>
-<section id="service-metadata">
-    <h4>{{ gettext('Service Identification') }}</h4>
-    <table>
-        <tr>
-            <td>{{ gettext('Title') }}</td>
-            <td>{{ obj.identification.title }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Abstract') }}</td>
-            <td>{{ obj.identification.abstract }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Keywords') }}</td>
-            <td>{{ obj.identification.keywords|join(',') }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Type') }}</td>
-            <td>{{ obj.identification.type }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Version') }}</td>
-            <td>{{ obj.identification.version }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Fees') }}</td>
-            <td>{{ obj.identification.fees }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Access Constraints') }}</td>
-            <td>{{ obj.identification.accessconstraints }}</td>
-        </tr>
-    </table>
-</section>
-<section id="service-provider">
-    <h4>{{ gettext('Service URL') }}</h4>
+#### {{ gettext('Service Identification') }}
 
-    <p><a href="{{ obj.url }}">{{ obj.url}}</a></p>
-</section>
-<section id="service-provider">
-    <h4>{{ gettext('Service Provider') }}</h4>
-    <table>
-        <tr>
-            <td>{{ gettext('Name') }}</td>
-            <td>{{ obj.provider.name }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Site') }}</td>
-            <td><a href="{{ obj.provider.url }}">{{ obj.provider.url }}</a></td>
-        </tr>
-    </table>
-</section>
-<section id="service-contact">
-    <h4>{{ gettext('Service Contact') }}</h4>
-    <table>
-        <tr>
-            <td>{{ gettext('Name') }}</td>
-            <td>{{ obj.provider.contact.name }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Position') }}</td>
-            <td>{{ obj.provider.contact.position}}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Role') }}</td>
-            <td>{{ obj.provider.contact.role }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Address') }}</td>
-            <td>
-                {{ obj.provider.contact.address }}<br/>
-                {{ obj.provider.contact.city }}, {{ obj.provider.contact.region }}<br/>
-                {{ obj.provider.contact.postcode }}<br/>
-                {{ obj.provider.contact.country }}
-            </td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Email') }}</td>
-            <td><a href="mailto:{{ obj.provider.contact.email  }}">{{ obj.provider.contact.email }}</a></td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Phone') }}</td>
-            <td>{{ obj.provider.contact.phone }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Fax') }}</td>
-            <td>{{ obj.provider.contact.fax }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Url') }}</td>
-            <td><a href="{{ obj.provider.contact.url }}">{{ obj.provider.contact.url }}</a></td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Hours of Service') }}</td>
-            <td>{{ obj.provider.contact.hours }}</td>
-        </tr>
-        <tr>
-            <td>{{ gettext('Contact Instructions') }}</td>
-            <td>{{ obj.provider.contact.instructions }}</td>
-        </tr>
-    </table>
-</section>
-</body>
-</html>
+|                                     |                                             |
+| ----------------------------------- | ------------------------------------------- |
+| {{ gettext('Title') }}              | {{ obj.identification.title }}              |
+| {{ gettext('Abstract') }}           | {{ obj.identification.abstract }}           |
+| {{ gettext('Keywords') }}           | {{ obj.identification.keywords|join(',') }} |
+| {{ gettext('Type') }}               | {{ obj.identification.type }}               |
+| {{ gettext('Version') }}            | {{ obj.identification.version }}            |
+| {{ gettext('Fees') }}               | {{ obj.identification.fees }}               |
+| {{ gettext('Access Constraints') }} | {{ obj.identification.accessconstraints }}  |
+
+#### {{ gettext('Service URL') }}
+
+[{{ obj.url}}](%7B%7B-obj.url-%7D%7D)
+
+#### {{ gettext('Service Provider') }}
+
+|                       |                                                              |
+| --------------------- | ------------------------------------------------------------ |
+| {{ gettext('Name') }} | {{ obj.provider.name }}                                      |
+| {{ gettext('Site') }} | [{{ obj.provider.url }}](%7B%7B-obj.provider.url-%7D%7D) |
+
+#### {{ gettext('Service Contact') }}
+
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td>{{ gettext('Name') }}</td>
+<td>{{ obj.provider.contact.name }}</td>
+</tr>
+<tr class="even">
+<td>{{ gettext('Position') }}</td>
+<td>{{ obj.provider.contact.position}}</td>
+</tr>
+<tr class="odd">
+<td>{{ gettext('Role') }}</td>
+<td>{{ obj.provider.contact.role }}</td>
+</tr>
+<tr class="even">
+<td>{{ gettext('Address') }}</td>
+<td>{{ obj.provider.contact.address }}<br />
+{{ obj.provider.contact.city }}, {{ obj.provider.contact.region }}<br />
+{{ obj.provider.contact.postcode }}<br />
+{{ obj.provider.contact.country }}</td>
+</tr>
+<tr class="odd">
+<td>{{ gettext('Email') }}</td>
+<td><a href="mailto:%7B%7B-obj.provider.contact.email--%7D%7D">{{ obj.provider.contact.email }}</a></td>
+</tr>
+<tr class="even">
+<td>{{ gettext('Phone') }}</td>
+<td>{{ obj.provider.contact.phone }}</td>
+</tr>
+<tr class="odd">
+<td>{{ gettext('Fax') }}</td>
+<td>{{ obj.provider.contact.fax }}</td>
+</tr>
+<tr class="even">
+<td>{{ gettext('Url') }}</td>
+<td><a href="%7B%7B-obj.provider.contact.url-%7D%7D">{{ obj.provider.contact.url }}</a></td>
+</tr>
+<tr class="odd">
+<td>{{ gettext('Hours of Service') }}</td>
+<td>{{ obj.provider.contact.hours }}</td>
+</tr>
+<tr class="even">
+<td>{{ gettext('Contact Instructions') }}</td>
+<td>{{ obj.provider.contact.instructions }}</td>
+</tr>
+</tbody>
+</table>

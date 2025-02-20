@@ -1,69 +1,76 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>m.cdo.download</em> downloads data from
-<a href="https://www.ncei.noaa.gov/cdo-web/webservices/v2">NCEI's Climate Data
-Online (CDO)</a> using their v2 API.
+*m.cdo.download* downloads data from [NCEI's Climate Data Online
+(CDO)](https://www.ncei.noaa.gov/cdo-web/webservices/v2) using their v2
+API.
 
-<h2>NOTES</h2>
+## NOTES
 
-This module uses <a href="https://www.ncei.noaa.gov/cdo-web/api/v2/">the CDO
-Web Services v2 API</a> to download CDO data.
+This module uses [the CDO Web Services v2
+API](https://www.ncei.noaa.gov/cdo-web/api/v2/) to download CDO data.
 
-<p>To access the API services, obtain CDO API tokens from
-<a href="https://www.ncei.noaa.gov/cdo-web/token">here</a> and define an
-environment variable <tt>CDO_API_TOKENS</tt>. Use commas to separate multiple
+To access the API services, obtain CDO API tokens from
+[here](https://www.ncei.noaa.gov/cdo-web/token) and define an
+environment variable `CDO_API_TOKENS`. Use commas to separate multiple
 tokens. For example, two tokens can be stored as follows:
-<div class="code"><pre>
+
+```sh
 export CDO_API_TOKENS=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-</pre></div>
+```
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<p>List available datasets:
-<div class="code"><pre>
+List available datasets:
+
+```sh
 m.cdo.download fetch=datasets
-</pre></div>
+```
 
-<p>List available dataset IDs without column names:
-<div class="code"><pre>
+List available dataset IDs without column names:
+
+```sh
 m.cdo.download -c fetch=datasets fields=id
-</pre></div>
+```
 
-<p>List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
-<div class="code"><pre>
+List available stations within (47.5204,-122.2047)-(47.6139,-122.1065):
+
+```sh
 m.cdo.download fetch=stations extent=47.5204,-122.2047,47.6139,-122.1065
-</pre></div>
+```
 
-<p>List available &quot;precipitation&quot; and &quot;average temperature&quot;
-data types:
-<div class="code"><pre>
+List available "precipitation" and "average temperature" data types:
+
+```sh
 m.cdo.download fetch=datatypes field=id,mindate,maxdate,name |
 grep -i "|precipitation\||average temperature"
-</pre></div>
+```
 
-<p>List 10 available stations with PRCP and TAVG data starting 2023-01-01:
-<div class="code"><pre>
+List 10 available stations with PRCP and TAVG data starting 2023-01-01:
+
+```sh
 m.cdo.download fetch=stations datatypeid=PRCP,TAVG startdate=2023-01-01 limit=10
-</pre></div>
+```
 
-<p>Fetch daily PRCP and TAVG data for a station with mindate &le; 2023-01-01 and
-save it into a file:
-<div class="code"><pre>
+Fetch daily PRCP and TAVG data for a station with mindate ≤ 2023-01-01
+and save it into a file:
+
+```sh
 # find dataset IDs for data types PRCP and TAVG; let's use GHCND (Daily Summary)
 m.cdo.download fetch=datasets datatypeid=PRCP,TAVG
 
-# find the first station ID with mindate &le; 2023-01-01
+# find the first station ID with mindate ≤ 2023-01-01
 stationid=$(m.cdo.download -c fetch=stations datatypeid=PRCP,TAVG \
-	startdate=2023-01-01 fields=id limit=1)
+    startdate=2023-01-01 fields=id limit=1)
 
 # fetch actual data and save it to data.txt
 m.cdo.download fetch=data datasetid=GHCND datatypeid=PRCP,TAVG \
-	stationid=$stationid startdate=2023-01-01 enddate=2023-10-15 \
-	output=data.txt
-</pre></div>
+    stationid=$stationid startdate=2023-01-01 enddate=2023-10-15 \
+    output=data.txt
+```
 
-<p>Create a point vector map with all stations:
-<div class="code"><pre>
+Create a point vector map with all stations:
+
+```sh
 # from a latlong location
 
 # download metadata for all stations
@@ -71,15 +78,15 @@ m.cdo.download stations output=cdo_stations.txt
 
 # import cdo_stations.txt
 xy=$(awk -F'|' '{
-	if (NR == 1) {
-		for (i = 1; i &lt;= NF; i++)
-			if ($i == &quot;latitude&quot;)
-				latind = i
-			else if ($i == &quot;longitude&quot;)
-				lonind = i
-		printf &quot;x=%s y=%s&quot;, lonind, latind
-		exit
-	}
+    if (NR == 1) {
+        for (i = 1; i <= NF; i++)
+            if ($i == "latitude")
+                latind = i
+            else if ($i == "longitude")
+                lonind = i
+        printf "x=%s y=%s", lonind, latind
+        exit
+    }
 }' cdo_stations.txt)
 v.in.ascii input=cdo_stations.txt output=cdo_stations skip=1 $xy
 
@@ -88,23 +95,21 @@ old_cols=$(db.columns table=cdo_stations exclude=cat)
 new_cols=$(head -1 cdo_stations.txt | sed 's/|/ /g')
 
 for old_new in $(echo $old_cols $new_cols |
-	awk '{
-		n = NF / 2
-		for (i = 1; i &lt;= n; i++)
-			printf &quot;%s,%s\n&quot;, $i, $(i + n)
-	}'); do
-	v.db.renamecolumn map=cdo_stations column=$old_new
+    awk '{
+        n = NF / 2
+        for (i = 1; i <= n; i++)
+            printf "%s,%s\n", $i, $(i + n)
+    }'); do
+    v.db.renamecolumn map=cdo_stations column=$old_new
 done
-</pre></div>
+```
 
-<img src="m_cdo_download_cdo_stations.png" alt="CDO stations">
+![image-alt](m_cdo_download_cdo_stations.png)
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="m.tnm.download.html">m.tnm.download</a>
-</em>
+*[m.tnm.download](m.tnm.download.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University

@@ -1,19 +1,17 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.sentinel.parallel.download</em> downloads Sentinel-2 data defined
-by scene names in parallel using <em>i.sentinel.download</em>.<br>
-If no scene names are specified <em>i.sentinel.parallel.download</em>
-downloads data for the computational region set in the mapset; i.e, only
-products which footprint intersects the current computation region extent
-(area of interest, AOI) are selected.
+*i.sentinel.parallel.download* downloads Sentinel-2 data defined by
+scene names in parallel using *i.sentinel.download*.  
+If no scene names are specified *i.sentinel.parallel.download* downloads
+data for the computational region set in the mapset; i.e, only products
+which footprint intersects the current computation region extent (area
+of interest, AOI) are selected.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="i.sentinel.html">i.sentinel</a> module set,
-<a href="i.sentinel.download.html">i.sentinel.download</a>
-</em>
+*[i.sentinel](i.sentinel.md) module set,
+[i.sentinel.download](i.sentinel.download.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Guido Riembauer, <a href="https://www.mundialis.de/">mundialis</a>
+Guido Riembauer, [mundialis](https://www.mundialis.de/)

@@ -1,24 +1,20 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.redlist</em> imports <a href="https://www.iucn.org">IUCN</a> <a href="https://www.iucnredlist.org/">Red List</a>
-<a href="https://www.iucnredlist.org/resources/list/spatial-data">Spatial Data</a>.
+*v.in.redlist* imports [IUCN](https://www.iucn.org) [Red
+List](https://www.iucnredlist.org/) [Spatial
+Data](https://www.iucnredlist.org/resources/list/spatial-data). This
+data is by definition in WGS84 geographic coordinates.
 
-This data is by definition in WGS84 geographic coordinates.
+By the *-l* flag species in column 'binomial' of the attribute table are
+listed. The species in column 'binomial' can be exported to a text file
+by the *-s* flag.
 
-<p>
- By the <i>-l</i> flag species in column 'binomial' of the attribute
-table are listed. The species in column 'binomial' can be exported to a
-text file by the <i>-s</i> flag.
-</p>
+One of the species mentioned by *-l* or *-s* flag has to be specified
+for importing.
 
-<p>
-One of the species mentioned by <i>-l</i> or <i>-s</i> flag has to be specified for importing.
-</p>
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code">
- <pre>
+```sh
   # list species in column 'binomial' of the attribute table by -l flag
   v.in.redlist -l input=GYMNOPHIONA.shp
 
@@ -28,15 +24,13 @@ One of the species mentioned by <i>-l</i> or <i>-s</i> flag has to be specified 
   # import spatial data for a user defined species
   v.in.redlist input=GYMNOPHIONA.shp /
   output=Scolecomorphus_vittatus species_name=Scolecomorphus vittatus
- </pre>
-</div>
+ 
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>
-</em>
+*[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

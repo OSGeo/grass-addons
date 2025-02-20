@@ -1,51 +1,61 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>t.stac.item</em> is a tool for exploring and importing SpatioTemporal Asset Catalog item metadata and assets into GRASS GIS.
-The tool is based on the <a href="https://pystac-client.readthedocs.io/en/stable/">PySTAC_Client (0.8)</a> library and allows you to search items in a STAC Catalog.
+*t.stac.item* is a tool for exploring and importing SpatioTemporal Asset
+Catalog item metadata and assets into GRASS GIS. The tool is based on
+the [PySTAC\_Client
+(0.8)](https://pystac-client.readthedocs.io/en/stable/) library and
+allows you to search items in a STAC Catalog. The search can be done by
+specifying the item ID, collection ID, datatime or by using a search
+query. The full list of search parameters and documentation can be found
+at [PySTAC\_Client
+ItemSearch](https://pystac-client.readthedocs.io/en/stable/api.html#item-search).
 
-The search can be done by specifying the item ID, collection ID, datatime or by using a search query.
-The full list of search parameters and documentation can be found at <a href="https://pystac-client.readthedocs.io/en/stable/api.html#item-search">PySTAC_Client ItemSearch</a>.
+## NOTES
 
-<h2>NOTES</h2>
-The <em>t.stac.item</em> tool is part of the <a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.html">t.stac</a> temporal data processing framework.
-The tool requries that the data provider has implement the STAC API and conforms to <em>Item Search</em> specification.
+The *t.stac.item* tool is part of the
+[t.stac](https://grass.osgeo.org/grass-stable/manuals/t.stac.html)
+temporal data processing framework. The tool requries that the data
+provider has implement the STAC API and conforms to *Item Search*
+specification.
 
-<h2>REQUIREMENTS</h2>
+## REQUIREMENTS
 
-<ul>
-    <li><a href="https://pystac.readthedocs.io/en/stable/installation.html">PySTAC (1.10.x)</a></li>
-    <li><a href="https://pystac-client.readthedocs.io/en/stable/">PySTAC_Client (0.8)</a></li>
-    <li>tqdm (4.66.x)</li>
-    <li>numpy (1.26.x)</li>
-</ul>
+  - [PySTAC
+    (1.10.x)](https://pystac.readthedocs.io/en/stable/installation.html)
+  - [PySTAC\_Client
+    (0.8)](https://pystac-client.readthedocs.io/en/stable/)
+  - tqdm (4.66.x)
+  - numpy (1.26.x)
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
+### Get the item metadata from a STAC API.
 
-<h3>Get the item metadata from a STAC API.</h3>
-<pre><code class="code">
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
     t.stac.collection url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a"
     t.stac.item -i url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
-</code></pre>
+```
 
-<h3>Get the asset metadata from a STAC API.</h3>
-<pre><code class="code">
+### Get the asset metadata from a STAC API.
+
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
     t.stac.collection url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a"
     t.stac.item -a url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
-</code></pre>
+```
 
-<h3>Dpwnload the asset from a STAC API.</h3>
-<pre><code class="code">
+### Dpwnload the asset from a STAC API.
+
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
     t.stac.collection url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a"
     t.stac.item -d url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
-</code></pre>
+```
 
 GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
 
-<pre><code class="code">
+```sh
     from grass import gs
     catalog = gs.parse_command('t.stac.catalog', url="https://earth-search.aws.element84.com/v1/")
 
@@ -71,10 +81,11 @@ GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
  'stac_version': '1.0.0',
  'title': 'Earth Search by Element 84',
  'type': 'Catalog'}
-</code></pre>
+```
 
-<h3>STAC Catalog plain text metadata</h3>
-<pre><code>
+### STAC Catalog plain text metadata
+
+```sh
 t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain
 
 # Output
@@ -131,10 +142,11 @@ t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain
     Extent: {'spatial': {'bbox': [[-180, -90, 180, 90]]}, 'temporal': {'interval': [['2014-10-10T00:28:21Z', None]]}}
     License: proprietary
     ---------------------------------------------------------------------------
-</code></pre>
+```
 
-<h3>Basic STAC catalog metadata</h3>
-<pre><code>
+### Basic STAC catalog metadata
+
+```sh
     t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain -b
 
     # Output
@@ -146,49 +158,54 @@ t.stac.catalog url=https://earth-search.aws.element84.com/v1/ format=plain
     Client catalog_type: ABSOLUTE_PUBLISHED
     ---------------------------------------------------------------------------
 
-</code></pre>
+```
 
-<h2>AUTHENTICATION</h2>
+## AUTHENTICATION
 
-The <em>t.stac.catalog</em> tool supports authentication with the STAC API using the <em>GDAL's</em> virtual fie system <em>/vsi/</em>.
+The *t.stac.catalog* tool supports authentication with the STAC API
+using the *GDAL's* virtual fie system */vsi/*.
 
+### Basic Authentication
 
-
-
-<h3>Basic Authentication</h3>
-<pre><code>
+```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/" settings="user:password"
-</code></pre>
+```
 
-<h3>AWS</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files">AWS S3</a>
+### AWS
 
-<h3>Google Cloud Storage</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files">Google Cloud Storage</a>
+[AWS
+S3](https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files)
 
-<h3>Microsoft Azure</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files">Microsoft Azure</a>
+### Google Cloud Storage
 
-<h3>HTTP</h3>
-<a target="_blank" href="https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access">HTTP</a>
+[Google Cloud
+Storage](https://gdal.org/user/virtual_file_systems.html#vsigs-google-cloud-storage-files)
 
-<h2>SEE ALSO</h2>
+### Microsoft Azure
 
-<em>Requirements
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html">t.stac.collection</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.item">t.stac.item</a>
-</em>
-<p>
-<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>
+[Microsoft
+Azure](https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blob-files)
 
-<h2>AUTHORS</h2>
+### HTTP
 
-Corey T. White<br>
+[HTTP](https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access)
 
-<h2>Sponsors</h2>
-<ul>
-    <li><a target="_blank" href="https://openplains.com">OpenPlains Inc.</a></li>
-    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
-</ul>
+## SEE ALSO
+
+*Requirements
+[t.stac.collection](https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html),
+[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/t.stac.item)*
+
+[GRASS GIS Wiki: temporal data
+processing](https://grasswiki.osgeo.org/wiki/Temporal_data_processing)
+
+## AUTHORS
+
+Corey T. White  
+
+## Sponsors
+
+  - [OpenPlains Inc.](https://openplains.com)
+  - [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
 
 Center for Geospatial Analytics at North Carolina State University

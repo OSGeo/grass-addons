@@ -1,22 +1,22 @@
-<h2>DESCRIPTION</h2>
-<em>v.in.ogc.features</em> in able to import data from an OGC API Features Service.
+## DESCRIPTION
 
-<h2>EXAMPLES</h2>
+*v.in.ogc.features* in able to import data from an OGC API Features
+Service.
 
-<div class="code"><pre>
+## EXAMPLES
+
+```sh
 v.in.ogc.features -l url=https://demo.pygeoapi.io/stable
 
 v.in.ogc.features url=https://demo.pygeoapi.io/stable layers=lakes output=large_lakes
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-More info about <a href="https://ogcapi.ogc.org/features/" target="blank">OGC API Features</a>.
+## SEE ALSO
 
-<em>
-<a href="v.in.ogc.coverages.html">v.in.ogc.coverages</a>,
-<a href="r.in.ogc.html">r.in.ogc</a>
-</em>
+More info about [OGC API Features](https://ogcapi.ogc.org/features/).
+*[v.in.ogc.coverages](v.in.ogc.coverages.md), [r.in.ogc](r.in.ogc.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code Sprint 2021.
+Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code
+Sprint 2021.

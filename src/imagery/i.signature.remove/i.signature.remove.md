@@ -1,14 +1,14 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.signature.remove</em> removes one or more signature file(s) from a group/subgroup.
+*i.signature.remove* removes one or more signature file(s) from a
+group/subgroup.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 i.signature.remove igroup=name isubgroup=subname isignature=test
-</pre></div>
+```
 
-
-<H2>AUTHOR</H2>
+## AUTHOR
 
 Luca Delucchi

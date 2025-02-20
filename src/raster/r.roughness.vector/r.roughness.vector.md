@@ -1,89 +1,72 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
 In this script surface roughness is taken as the dispersion of vectors
 normal to surface areas (pixels). Normal vectors are defined by slope
 and aspect.
-</p>
 
-<p>
 This script will create several temporary maps, for the directional
 cosines in each direction (x,y,z), for the sum of these cosines and
 vector strength.
-</p>
 
-<p>
-The options <em>compass</em>, <em>colatitude</em>, <em>xcos</em>,
-<em>ycosm</em> and <em>zcos</em> are created as temporary files each
-time the script is run. If the user wants to create several map (with
-different window sizes, for instance), it is recommended to create those
-maps with <em>r.mapcalc</em> and use them as input:
-</p>
+The options *compass*, *colatitude*, *xcos*, *ycosm* and *zcos* are
+created as temporary files each time the script is run. If the user
+wants to create several map (with different window sizes, for instance),
+it is recommended to create those maps with *r.mapcalc* and use them as
+input:
 
-<div class="code">
- <pre>
-  r.mapcalc compass = "if(aspect==0,0,if(aspect &lt; 90, 90-aspect, 360+90-aspect))"
-  r.mapcalc colatitude = "90 -&nbsp;slope"
+```sh
+  r.mapcalc compass = "if(aspect==0,0,if(aspect < 90, 90-aspect, 360+90-aspect))"
+  r.mapcalc colatitude = "90 - slope"
   r.mapcalc xcos = "sin(colatitude)*cos(compass)"
   r.mapcalc ycos = "sin(colatitude)*sin(compass)"
   r.mapcalc zcos = "cos(colatitude)"
- </pre>
-</div>
+ 
+```
 
-<p>
 If the user does not specify the output maps names, they will be set to
-</p>
 
-<div class="code"><pre>
+```sh
 INPUT_MAP_vector_strength_NxN
-</pre></div>
+```
 
 and
 
-<div class="code"><pre>
+```sh
   INPUT_MAP_fisher_K_NxN
-</pre></div>
+```
 
 where N is the window size.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
   # calculate roughness factor by search window = 5
   r.roughness.vector elevation=DEM slope=slope aspect=aspect window=5
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a>
-</em>
+*[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<p>
 Hobson, R.D., 1972. Surface roughness in topography: quantitative
-approach. In: Chorley, R.J. (ed). <em>Spatial analysis in
-geomorphology</em>. Methuer, London, p.225-245.
-<br>
-<br>
-McKean, J. &amp; Roering, J., 2004. Objective landslide detection
-and surface morphology mapping using high-resolution airborne laser
-altimetry. <em>Geomorphology</em>, 57:331-351.
-<a href="https://doi.org/10.1016/S0169-555X(03)00164-8" target="_blank">https://doi.org/10.1016/S0169-555X(03)00164-8</a>.
-<br>
-<br>
-Grohmann, C.H., Smith, M.J. &amp; Riccomini, C., 2011. Multiscale Analysis
+approach. In: Chorley, R.J. (ed). *Spatial analysis in geomorphology*.
+Methuer, London, p.225-245.  
+  
+McKean, J. & Roering, J., 2004. Objective landslide detection and
+surface morphology mapping using high-resolution airborne laser
+altimetry. *Geomorphology*, 57:331-351.
+<https://doi.org/10.1016/S0169-555X(03)00164-8>.  
+  
+Grohmann, C.H., Smith, M.J. & Riccomini, C., 2011. Multiscale Analysis
 of Topographic Surface Roughness in the Midland Valley, Scotland.
-<em>Geoscience and Remote Sensing, IEEE Transactions on</em>, 49:1200-1213.
-<a href="https://doi.org/10.1109/TGRS.2010.2053546" target="_blank">https://doi.org/10.1109/TGRS.2010.2053546</a>
-</p>
+*Geoscience and Remote Sensing, IEEE Transactions on*, 49:1200-1213.
+<https://doi.org/10.1109/TGRS.2010.2053546>
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Carlos Henrique Grohmann - Institute of Energy and Environment,
-University of S&atilde;o Paulo, Brazil. (<a href="http://carlosgrohmann.com"
-target="_blank">http://carlosgrohmann.com</a>)
-<br>
+University of São Paulo, Brazil. (<http://carlosgrohmann.com>)  
 Helmut Kudrnovsky

@@ -1,37 +1,33 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>d.frame</em> manages display frames on the current user's graphics
-monitor. Graphics are displayed in rectangular frames on whatever
-graphics monitor the user is currently directing GRASS display output
-to (defined by <em><a href="https://grass.osgeo.org/grass-stable/manuals/d.mon.html">d.mon</a></em> module). These
-frames are created and managed with this module.
+*d.frame* manages display frames on the current user's graphics monitor.
+Graphics are displayed in rectangular frames on whatever graphics
+monitor the user is currently directing GRASS display output to (defined
+by *[d.mon](https://grass.osgeo.org/grass-stable/manuals/d.mon.html)*
+module). These frames are created and managed with this module.
 
-<p>
-Note that GRASS frame contents <em>are not</em> retained when one
-frame covers another. You cannot shuffle frames from top to bottom and
-then back again. They simply define rectangular areas on the screen
-where subsequent drawing will occur.
+Note that GRASS frame contents *are not* retained when one frame covers
+another. You cannot shuffle frames from top to bottom and then back
+again. They simply define rectangular areas on the screen where
+subsequent drawing will occur.
 
-<h2>NOTES</h2>
+## NOTES
 
-The coordinates for the <b>at</b> option are stated in the form
-<em>top,bottom,left,right</em> values are in percent. The upper-left
-corner of the graphics monitor always is at location 0,0 while the
-monitor's lower-right corner is always at 100,100.
+The coordinates for the **at** option are stated in the form
+*top,bottom,left,right* values are in percent. The upper-left corner of
+the graphics monitor always is at location 0,0 while the monitor's
+lower-right corner is always at 100,100.
 
-<p>
-If the user has created multiple display frames that overlap one another,
-whatever the user displays in the active frame will overwrite
+If the user has created multiple display frames that overlap one
+another, whatever the user displays in the active frame will overwrite
 those portions of the underlying frame where these frames overlap.
 
-<p>
-<b>Important note:</b> This version of <em>d.frame</em> works only
-with GRASS 7.0. Further versions of GRASS come with their own
-built-in <em>d.frame</em> module.
+**Important note:** This version of *d.frame* works only with GRASS 7.0.
+Further versions of GRASS come with their own built-in *d.frame* module.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 # start a new graphics monitor, the data will be rendered to
 # /tmp/map.png image output file of size 600x540px
 d.mon cairo out=/tmp/map.png width=600 height=540 --o
@@ -65,33 +61,27 @@ d.text text='RGB true colors' bgcolor=220:220:220 color=black size=6
 
 # release the current graphics monitor
 d.mon -r
-</pre></div>
+```
 
-<center>
-  <img src="d_frame.png" alt="d.frame example"><br>
-  <em>Figure: d.frame example</em>
-</center>
+![image-alt](d_frame.png)  
+*Figure: d.frame example*
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/d.erase.html">d.erase</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/d.info.html">d.info</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/d.mon.html">d.mon</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/d.redraw.html">d.redraw</a>
-</em>
+*[d.erase](https://grass.osgeo.org/grass-stable/manuals/d.erase.html),
+[d.info](https://grass.osgeo.org/grass-stable/manuals/d.info.html),
+[d.mon](https://grass.osgeo.org/grass-stable/manuals/d.mon.html),
+[d.redraw](https://grass.osgeo.org/grass-stable/manuals/d.redraw.html)*
 
-<p>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/variables.html#list-of-selected-grass-environment-variables-for-rendering">GRASS environment variables for
-  rendering</a> (GRASS_RENDER_FRAME)
+[GRASS environment variables for
+rendering](https://grass.osgeo.org/grass-stable/manuals/variables.html#list-of-selected-grass-environment-variables-for-rendering)
+(GRASS\_RENDER\_FRAME)
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Martin Landa, Czech Technical University in Prague, Czech Republic
 
-<p>
-Based on <em>d.frame</em> from GRASS 6:<br>
+Based on *d.frame* from GRASS 6:  
 James Westervelt, U.S. Army Construction Engineering Research
-Laboratory<br>
-Michael Shapiro, U.S. Army Construction Engineering
-Research Laboratory
+Laboratory  
+Michael Shapiro, U.S. Army Construction Engineering Research Laboratory

@@ -1,29 +1,29 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.net.curvedarcs</em> is a frontend to
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a></em> and
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a></em>
- that creates curved arcs between given start and end points.
-The user provides a point vector map and a text file (see Notes section) with
-start and end point categories as well as a flow volume for this link which
-will be transferred to the attribute table of the curved arcs.
+*v.net.curvedarcs* is a frontend to
+*[v.net](https://grass.osgeo.org/grass-stable/manuals/v.net.html)* and
+*[v.segment](https://grass.osgeo.org/grass-stable/manuals/v.segment.html)*
+that creates curved arcs between given start and end points. The user
+provides a point vector map and a text file (see Notes section) with
+start and end point categories as well as a flow volume for this link
+which will be transferred to the attribute table of the curved arcs.
 
-<p>
-The user can determine the nature of the curve with the <em>minimum_offset</em>
-and <em>maximum_offset</em> parameters. The longest curve's maximum offset
-from a straight line is equal to the value of <em>maximum_offset</em> in
-map units. The other curves maximum offset from a straight line is calulated
-as length(x)/max_length * max_offset. In other words, shorter lines are less
-curved than longer lines. However, any line's maximum offset is always at
-least <em>minimum_offset</em> from the straight line.
+The user can determine the nature of the curve with the
+*minimum\_offset* and *maximum\_offset* parameters. The longest curve's
+maximum offset from a straight line is equal to the value of
+*maximum\_offset* in map units. The other curves maximum offset from a
+straight line is calulated as length(x)/max\_length \* max\_offset. In
+other words, shorter lines are less curved than longer lines. However,
+any line's maximum offset is always at least *minimum\_offset* from the
+straight line.
 
-<h2>NOTES</h2>
+## NOTES
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 TODO
 
-<div class="code"><pre>
+```sh
 v.extract census_wake2000 cat=1,52,70,99,101 type=centroid out=tmp
 v.type tmp from=centroid to=point out=points
 echo >> flows.txt << EOF
@@ -40,35 +40,27 @@ echo >> flows.txt << EOF
 v.net.curvedarcs in=points flow=flows.txt sep=comma out=flows minoff=0 maxoff=2000
 d.vect map=flows display=shape,dir width_column=volume width_scale=0.05 size=10
 d.vect map=points display=shape,cat fill_color=red icon=basic/circle label_bcolor=black label_size=12 yref=bottom
-</pre></div>
+```
 
-<center>
-	        	<img src="v_net_curvedarcs.png" border="1"><br>
-		        The curved arcs with minimum offset = 150 and maximum offset = 2000
-</center>
+![image-alt](v_net_curvedarcs.png)  
+The curved arcs with minimum offset = 150 and maximum offset = 2000
 
-<p>
 Using different amount of curvature:
-<div class="code"><pre>
+
+```sh
 v.net.curvedarcs in=points flow=flows.txt sep=comma out=flows minoff=150 maxoff=5000 --o
 d.vect map=flows display=shape,dir width_column=volume width_scale=0.05 size=10
 d.vect map=points display=shape,cat fill_color=red icon=basic/circle label_bcolor=black label_size=12 yref=bottom
-</pre></div>
+```
 
-<center>
-	        	<img src="v_net_curvedarcs2.png" border="1"><br>
-		        The curved arcs with minimum offset = 0 and maximum offset = 5000
-</center>
+![image-alt](v_net_curvedarcs2.png)  
+The curved arcs with minimum offset = 0 and maximum offset = 5000
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[v.net](https://grass.osgeo.org/grass-stable/manuals/v.net.html),
+[v.segment](https://grass.osgeo.org/grass-stable/manuals/v.segment.html)*
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.net.html">v.net</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a>
-</em>
-
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Moritz Lennert, DGES-ULB

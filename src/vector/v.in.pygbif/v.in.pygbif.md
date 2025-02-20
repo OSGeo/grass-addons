@@ -1,41 +1,44 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>The module <em>v.in.pygbif</em> is a wrapper around the
-<a href="https://pygbif.readthedocs.io/en/latest/index.html">pygbif</a> package.
-<br>
-Thus, <em>pygbif</em> is a dependency of v.in.pygbif. pygbif can be installed like this:</p>
+The module *v.in.pygbif* is a wrapper around the
+[pygbif](https://pygbif.readthedocs.io/en/latest/index.html) package.  
+Thus, *pygbif* is a dependency of v.in.pygbif. pygbif can be installed
+like this:
 
-<div class="code"><pre>
+```sh
 pip install pygbif [--user]
-</pre></div>
+```
 
-<p>Through <em>pygbif</em>, the module allows to download data from the Global Biodiversity
-Information Facility (<a href="https://www.gbif.org">GBIF</a>) using different search/filter
-criteria.</p>
-<p>Since some of the Darwin Core attribute columns represent SQL key-words, the prefix "g_"
-was added to all attribute columns. The names of taxa provided at input to the search are
-written to the column "g_search".</p>
-<p>The point data is downloaded and projected into the current location. By default
-import is limited to the current computational region in order to avoid
-possible projection errors, e.g. when projecting global data into UTM locations.
-However, in lat&frasl;lon location this limitation can be skiped using the <b><em>-r</em></b>
-flag.<br>
-Providing a mask automatically overrides the limitation of the search to the current
-computational region.</p>
+Through *pygbif*, the module allows to download data from the Global
+Biodiversity Information Facility ([GBIF](https://www.gbif.org)) using
+different search/filter criteria.
 
-<p>Terminology in <b>v.in.pygbif</b> is oriented on the <em>Darwin Core</em> standard:
-<a href="https://rs.tdwg.org/dwc">https://rs.tdwg.org/dwc</a>.</p>
+Since some of the Darwin Core attribute columns represent SQL key-words,
+the prefix "g\_" was added to all attribute columns. The names of taxa
+provided at input to the search are written to the column "g\_search".
 
-<p>Please note that the GBIF Search API has a hard limit of 200,000 occurrences
-per request. If you want to fetch more records, either subivide your area of
-interest or split up your search by using different search criteria.<br>
-When a list of taxa is given as input, <b>v.in.pygbif</b> issues a search for each taxon
-individually. Thus, in order to split up a search it is recommended to either use different
-filters on time or space.</p>
+The point data is downloaded and projected into the current location. By
+default import is limited to the current computational region in order
+to avoid possible projection errors, e.g. when projecting global data
+into UTM locations. However, in lat⁄lon location this limitation can be
+skiped using the ***-r*** flag.  
+Providing a mask automatically overrides the limitation of the search to
+the current computational region.
 
-<h2>EXAMPLES</h2>
+Terminology in **v.in.pygbif** is oriented on the *Darwin Core*
+standard: <https://rs.tdwg.org/dwc>.
 
-<div class="code"><pre>
+Please note that the GBIF Search API has a hard limit of 200,000
+occurrences per request. If you want to fetch more records, either
+subivide your area of interest or split up your search by using
+different search criteria.  
+When a list of taxa is given as input, **v.in.pygbif** issues a search
+for each taxon individually. Thus, in order to split up a search it is
+recommended to either use different filters on time or space.
+
+## EXAMPLES
+
+```sh
 # Check matching taxon names and alternatives in GBIF:
 v.in.pygbif taxa="Poa,Plantago" rank=genus  -p
 
@@ -51,23 +54,20 @@ v.in.pygbif taxa="Poa pratensis,Plantago media" rank=species  -o
 # Fetch occurrences for two species into a map for each species:
 v.in.pygbif taxa="Poa pratensis,Plantago media" rank=species output=gbif -i
 
-</pre></div>
+```
 
-<h2>SEE ALSO:</h2>
+## SEE ALSO:
 
-<a href="v.in.gbif.html">v.in.gbif</a>
+[v.in.gbif](v.in.gbif.md)
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<a href="https://pygbif.readthedocs.io/en/latest/index.html">
-https://pygbif.readthedocs.io/en/latest/index.html</a><br>
-<a href="https://www.gbif.org">
-https://www.gbif.org</a><br>
-<a href="https://techdocs.gbif.org/en/openapi">
-https://techdocs.gbif.org/en/openapi</a>
+<https://pygbif.readthedocs.io/en/latest/index.html>  
+<https://www.gbif.org>  
+<https://techdocs.gbif.org/en/openapi>
 
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway<br>
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo,
+Norway  
 Helmut Kudrnovsky

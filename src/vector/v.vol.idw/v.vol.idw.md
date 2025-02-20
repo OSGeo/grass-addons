@@ -1,43 +1,35 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.vol.idw</em> fills a RASTER3D raster volume matrix with
-interpolated values generated from a set of irregularly spaced data
-points using numerical approximation (weighted averaging)
-techniques. The interpolated value of a tile is determined
-by values of nearby data points and the distance of the
-cell from those input points.  In comparison with other
-methods, numerical approximation allows representation of
-more complex volumes (particularly those with anomalous
-features), restricts the spatial influence of any errors,
-and generates the interpolated volume from the data
-points.
+*v.vol.idw* fills a RASTER3D raster volume matrix with interpolated
+values generated from a set of irregularly spaced data points using
+numerical approximation (weighted averaging) techniques. The
+interpolated value of a tile is determined by values of nearby data
+points and the distance of the cell from those input points. In
+comparison with other methods, numerical approximation allows
+representation of more complex volumes (particularly those with
+anomalous features), restricts the spatial influence of any errors, and
+generates the interpolated volume from the data points.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 v.vol.idw input=map output=rastermap3d column=col_name npoints=36
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.db.html">v.in.db</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html">v.vol.rst</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.to.rast3.html">v.to.rast3</a>
-</em>
+*[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html),
+[v.in.db](https://grass.osgeo.org/grass-stable/manuals/v.in.db.html),
+[v.surf.idw](https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html),
+[v.vol.rst](https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html),
+[v.to.rast3](https://grass.osgeo.org/grass-stable/manuals/v.to.rast3.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Jaro Hofierka, Department of Geography and Regional Development,
-University of Presov, Presov, Slovakia,
-<a href="mailto:hofierka@geomodel.sk">hofierka@geomodel.sk</a>
-<br>
+University of Presov, Presov, Slovakia, <hofierka@geomodel.sk>  
 
-<p>
-Modifications for raster3d library and vector format: <br>
-Noortheen Raja J, Institute of Remote Sensing, College of Engineering, Guindy,
-Anna University, India.
-<a href="mailto:jnoortheen@gmail.com">jnoortheen@gmail.com</a>
+Modifications for raster3d library and vector format:  
+Noortheen Raja J, Institute of Remote Sensing, College of Engineering,
+Guindy, Anna University, India. <jnoortheen@gmail.com>

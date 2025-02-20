@@ -1,39 +1,62 @@
-<h2>DESCRIPTION</h2>
-<em>r.green.hydro.delplants</em> deletes segments of river where there is an existing plant.
+## DESCRIPTION
 
-<h2>NOTES</h2>
-This command is used to select the segments of river which are not already exploited by a plant or another structure.<br>
-The required inputs are the elevation raster map, the map with the streams and the one with the intakes and restitution of the existing plants. In option, it is possible to add the map with the intakes and restitution of the other structures such aqueducts or irrigation in order to delete these segments too. <br>
-It is necessary to verify in "Optional" that the intakes and restitution are well reported in the table of the input maps (hydro and other).
+*r.green.hydro.delplants* deletes segments of river where there is an
+existing plant.
 
-<h2>EXAMPLE</h2>
-This example is based on the case-study of Mis valley in Belluno province, Veneto, Italy.<br><br>
+## NOTES
 
-<center>
-<img src="r_green_hydro_delplants_input.png" alt="input"><br>
-Input vector maps : streams of Mis Valley in black and intakes and restitution of existing plants in red
-</center><br><br>
+This command is used to select the segments of river which are not
+already exploited by a plant or another structure.  
+The required inputs are the elevation raster map, the map with the
+streams and the one with the intakes and restitution of the existing
+plants. In option, it is possible to add the map with the intakes and
+restitution of the other structures such aqueducts or irrigation in
+order to delete these segments too.  
+It is necessary to verify in "Optional" that the intakes and restitution
+are well reported in the table of the input maps (hydro and other).
 
-We use the following code to compute the available streams and obtain the next map :
-<div class="code"><pre>r.green.hydro.delplants hydro=existingplants river=streams output=availablestreams elevation=elevation<br>
-d.vect map=existingplants color=red<br></pre></div><br>
+## EXAMPLE
 
-<center>
-<img src="r_green_hydro_delplants_output.png" alt="output"><br>
-Output vector map in black : streams of Mis Valley without the existing plants (intakes and restitution of existing plants are added there in red)
-</center><br>
+This example is based on the case-study of Mis valley in Belluno
+province, Veneto, Italy.  
+  
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="r.green.hydro.discharge.html">r.green.hydro.discharge</a><br>
-<a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
-<a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
-<a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
-<a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
-<a href="r.green.hydro.structure.html">r.green.hydro.structure</a><br>
-<a href="r.green.hydro.technical.html">r.green.hydro.technical</a><br>
-</em>
+![image-alt](r_green_hydro_delplants_input.png)  
+Input vector maps : streams of Mis Valley in black and intakes and
+restitution of existing plants in red
 
-<h2>AUTHORS</h2>
+  
+  
+We use the following code to compute the available streams and obtain
+the next map :
 
-Giulia Garegnani and Pietro Zambelli (Eurac Research, Bolzano, Italy), Manual written by Julie Gros.
+```sh
+r.green.hydro.delplants hydro=existingplants river=streams output=availablestreams elevation=elevation
+
+d.vect map=existingplants color=red
+```
+
+  
+
+![image-alt](r_green_hydro_delplants_output.png)  
+Output vector map in black : streams of Mis Valley without the existing
+plants (intakes and restitution of existing plants are added there in
+red)
+
+  
+
+## SEE ALSO
+
+*[r.green.hydro.discharge](r.green.hydro.discharge.md)  
+[r.green.hydro.financial](r.green.hydro.financial.md)  
+[r.green.hydro.theoretical](r.green.hydro.theoretical.md)  
+[r.green.hydro.optimal](r.green.hydro.optimal.md)  
+[r.green.hydro.recommended](r.green.hydro.recommended.md)  
+[r.green.hydro.structure](r.green.hydro.structure.md)  
+[r.green.hydro.technical](r.green.hydro.technical.md)  
+*
+
+## AUTHORS
+
+Giulia Garegnani and Pietro Zambelli (Eurac Research, Bolzano, Italy),
+Manual written by Julie Gros.

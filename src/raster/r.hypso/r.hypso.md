@@ -1,53 +1,56 @@
-<h2>DESCRIPTION</h2>
-<em>r.hypso</em> produces the hypsometric and hypsographic curve
-related to a digital elevation model and prints the percentiles.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.hypso* produces the hypsometric and hypsographic curve related to a
+digital elevation model and prints the percentiles.
 
-The <em>hypsographic curve</em> gives the distribution of surfaces in
-different altitude ranges. Each point on the function reports on the
-y-axis the elevation and on the x-axis the portion of the basin
-surface placed above such elevation value. The <em>hypsometric curve
-</em> uses adimensional axes.
+## NOTES
 
-<h2>Flags:</h2>
-<p>-a: generates hypsometric curve
-<p>-b: generates hyposographic curve
+The *hypsographic curve* gives the distribution of surfaces in different
+altitude ranges. Each point on the function reports on the y-axis the
+elevation and on the x-axis the portion of the basin surface placed
+above such elevation value. The *hypsometric curve* uses adimensional
+axes.
 
-<h2>EXAMPLE</h2>
+## Flags:
 
-<div class="code"><pre>
+\-a: generates hypsometric curve
+
+\-b: generates hyposographic curve
+
+## EXAMPLE
+
+```sh
 r.hypso -b map=elevation image=/tmp/hypso
-</pre></div>
+```
+
 generates hypsographic curve, and
 
-<div class="code"><pre>
+```sh
 r.hypso -a map=elevation image=/tmp/hypso
-</pre></div>
+```
+
 generates hypsometric curve.
 
-<h3>Dependencies</h3>
-<ul>
-<li>Matplotlib</li>
-</ul>
+### Dependencies
 
-<h2>SEE ALSO</h2>
+  - Matplotlib
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.basin.html">r.basin</a>,
-</em>
+## SEE ALSO
 
-<h2>REFERENCES</h2>
+*[r.basin](https://grass.osgeo.org/grass-stable/manuals/r.basin.html),*
 
-<p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins,
-Chance and Self-Organization. Cambridge Press (2001)</em>
+## REFERENCES
 
-<p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A.
-&mdash; Caratterizzazione morfometrica del bacino idrografico in
-GRASS GIS (Morphometric characterization of the catchment in GRASS
-GIS environment), <a href="https://www.geolab.polimi.it/volume-9/">Geomatics Workbooks</a>,
-n. 9 (2010)</em>
+*Rodriguez-Iturbe I., Rinaldo A. — Fractal River Basins, Chance and
+Self-Organization. Cambridge Press (2001)*
 
-<h2>AUTHORS</h2>
+*In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. —
+Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
+(Morphometric characterization of the catchment in GRASS GIS
+environment), [Geomatics
+Workbooks](https://www.geolab.polimi.it/volume-9/), n. 9 (2010)*
 
-Margherita Di Leo (grass-dev AT lists DOT osgeo DOT org), Massimo Di Stefano, Francesco Di Stefano
+## AUTHORS
+
+Margherita Di Leo (grass-dev AT lists DOT osgeo DOT org), Massimo Di
+Stefano, Francesco Di Stefano

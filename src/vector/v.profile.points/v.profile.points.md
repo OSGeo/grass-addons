@@ -1,56 +1,42 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.profile.points</em> creates profile (transect) from vector point
-map or a lidar point cloud stored in a LAS file.
+*v.profile.points* creates profile (transect) from vector point map or a
+lidar point cloud stored in a LAS file.
 
-<div align="center" style="margin: 10px">
-<img src="v_profile_points.png" alt="r.profile.points sample output">
-<br>
-<i>Figure: Profile (transect) of a lidar point cloud, closer points are
-darker, further points are lighter</i>
-</div>
+![image-alt](v_profile_points.png)  
+*Figure: Profile (transect) of a lidar point cloud, closer points are
+darker, further points are lighter*
 
-<!--
-d.vect map=profile color=none fill_color=26:26:26 zcolor=grass width=1
-    icon=basic/point size=20
-mogrify -trim -resize 600x v_profile_points.png
--->
-
-<h3>Workflow in GUI</h3>
+### Workflow in GUI
 
 First Map Display should contain some base layers such as point density
-raster or digital elevation model.
-First Map Display should contain the resulting profile or profiles.
-Optionally a grid overlay can be added.
+raster or digital elevation model. First Map Display should contain the
+resulting profile or profiles. Optionally a grid overlay can be added.
 The "Zoom to selected map layers" button in the Map Display toolbar
-should be used to zoom to the newly created profile.
-The <b>coordinates</b> option in the Line tab can be activated,
-deactivated, or cleared during the work as need.
+should be used to zoom to the newly created profile. The **coordinates**
+option in the Line tab can be activated, deactivated, or cleared during
+the work as need.
 
-<div align="center" style="margin: 10px">
-<a href="v_profile_points_workspace.png">
-<img src="v_profile_points_workspace.png" width="600" alt="r.profile.points sample output">
-</a><br>
-<i>Figure: Creating the profile in GUI: running module from the top left
+[![image-alt](v_profile_points_workspace.png)](v_profile_points_workspace.png)  
+*Figure: Creating the profile in GUI: running module from the top left
 window; selecting line points in the Map Display in the top right;
-resulting profile in the bottom.</i>
-</div>
+resulting profile in the bottom.*
 
+## NOTES
 
-<h2>NOTES</h2>
+ASCII files such as CSV can be profiled after import and raster maps can
+be profiles after conversion to vector points. It is advantageous to
+limit the import or the conversion just to the area of interest to avoid
+unnecessary overhead.
 
-ASCII files such as CSV can be profiled after import and raster maps
-can be profiles after conversion to vector points. It is advantageous
-to limit the import or the conversion just to the area of interest
-to avoid unnecessary overhead.
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 v.profile.points input_file=.../points.las output=points_profile width=5 \
     coord=2090904,731231,2091435,731252
-</pre></div>
+```
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

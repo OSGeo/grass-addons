@@ -1,64 +1,48 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-<em>r.northerness.easterness</em> calculates northerness, easterness and
-the interaction between northerness and slope (northerness*slope). The
-user must specify the input <b>elevation raster</b> map.
-</p>
+*r.northerness.easterness* calculates northerness, easterness and the
+interaction between northerness and slope (northerness\*slope). The user
+must specify the input **elevation raster** map.
 
-<h2>NOTES</h2>
+## NOTES
 
-<p>
 As aspect is a circular land-surface parameter, in ecology a sine or
 cosine transformation is often used to obtain a continuous gradient,
 stressing the north-south or east-west gradient (northness or eastness).
-</p>
 
-<p>
 The GRASS GIS default aspect angles (cartesian) are converted to compass
 angles.
-</p>
 
-<p>
 Calculated raster maps are:
-</p>
 
-<ul>
- <li>northerness: <em>cos(aspect)</em></li>
- <li>easterness: <em>sin(aspect)</em></li>
- <li>interaction between northerness and slope: <em>northerness*slope</em></li>
-</ul>
+  - northerness: *cos(aspect)*
+  - easterness: *sin(aspect)*
+  - interaction between northerness and slope: *northerness\*slope*
 
-<p>
-The color of these raster maps are set to <em>grey</em>.
-</p>
+The color of these raster maps are set to *grey*.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code">
- <pre>
+```sh
   # align region to DEM and habitat vector
   g.region -a raster=DEM align=DEM
 
-  # run <em>r.northerness.easterness</em>
+  # run r.northerness.easterness
   r.northerness.easterness elevation=DEM
- </pre>
-</div>
+ 
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-Olaya, V. 2009. Basic Land-Surface Parameters. In: Hengl, T. &amp; Reuter,
+Olaya, V. 2009. Basic Land-Surface Parameters. In: Hengl, T. & Reuter,
 H.I. (eds.) 2009. Geomorphometry. Concepts, Software, Applications.
 Developments in Soil Science, Volume 33. Elsevier.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a>
-</em>
+*[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

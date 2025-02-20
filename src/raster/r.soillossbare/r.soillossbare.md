@@ -1,21 +1,20 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.soillossbare</em> calculates the annual soil loss [t/(ha*a)] for
-bare soil. Generates a "out_soillossbare" raster map and intermediate results.
-<p>
-Also use <em>r.soillosscropland</em> afterwards for grown soil.
+*r.soillossbare* calculates the annual soil loss \[t/(ha\*a)\] for bare
+soil. Generates a "out\_soillossbare" raster map and intermediate
+results.
 
-<h2>REFERENCES</h2>
+Also use *r.soillosscropland* afterwards for grown soil.
 
-Mitasova H, Mitas L, 1999. Modeling soil detachment with RUSLE 3d using GIS.
-<a href="http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html">http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html</a>
+## REFERENCES
 
-<h2>SEE ALSO</h2>
+Mitasova H, Mitas L, 1999. Modeling soil detachment with RUSLE 3d using
+GIS. <http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/erosion/usle.html>
 
-<em>
-<a href="r.soillosscropland.html">r.soillosscropland</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[r.soillosscropland](r.soillosscropland.md)*
+
+## AUTHOR
 
 Martin Zbinden

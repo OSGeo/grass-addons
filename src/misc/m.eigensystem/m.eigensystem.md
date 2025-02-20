@@ -1,28 +1,23 @@
-<!-- meta page name: m.eigensystem -->
-<!-- meta page name description: Computes eigenvalues and eigenvectors for an NxN matrix -->
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>m.eigensystem</em>
-determines the eigen values and eigen vectors for square matricies.
-The <em>inputfile</em> must have the following format:
-the first line contains an integer K which is the number of rows and
-columns in the matrix; the remainder of the file is the matrix, i.e.,
-K lines, each containing K real numbers.
+*m.eigensystem* determines the eigen values and eigen vectors for square
+matricies. The *inputfile* must have the following format: the first
+line contains an integer K which is the number of rows and columns in
+the matrix; the remainder of the file is the matrix, i.e., K lines, each
+containing K real numbers. For example:  
+*(Examples in this help page use the Spearfish-imagery sample dataset
+maps spot.ms.1, spot.ms.2, and spot.ms.3)*
 
-For example:<br>
-<I>(Examples in this help page use the Spearfish-imagery sample dataset
-maps spot.ms.1, spot.ms.2, and spot.ms.3)</I>
-<p>
-<pre>
+```sh
           3
           462.876649   480.411218   281.758307
           480.411218   513.015646   278.914813
           281.758307   278.914813   336.326645
-</pre>
-<p>
+```
 
-The output will be K groups of lines;  each group will have the format:
-<pre>
+The output will be K groups of lines; each group will have the format:
+
+```sh
           E   real part imaginary part   relative importance
           V   real part imaginary part
                    ... K lines ...
@@ -30,27 +25,16 @@ The output will be K groups of lines;  each group will have the format:
                    ... K lines ...
           W   real part imaginary part
                    ... K lines ...
-</pre>
+```
 
-The
-<em>E</em>
-line is the eigen value.
-The
-<em>V</em>
-lines are the eigen vector associated with E.
-The
-<em>N</em>
-lines are the V vector normalized to have a magnitude of 1.
-The
-<em>W</em>
-lines are the N vector multiplied by the square root of the
-magnitude of the eigen value (E).
-
-
-<p>
+The *E* line is the eigen value. The *V* lines are the eigen vector
+associated with E. The *N* lines are the V vector normalized to have a
+magnitude of 1. The *W* lines are the N vector multiplied by the square
+root of the magnitude of the eigen value (E).
 
 For the example input matrix above, the output would be:
-<pre>
+
+```sh
           E  1159.7452017844    0.0000000000   88.38
           V     0.6910021591    0.0000000000
           V     0.7205280412    0.0000000000
@@ -84,76 +68,65 @@ For the example input matrix above, the output would be:
           W     4.4598880523    0.0000000000
           W   -10.8698904856    0.0000000000
 
-</pre>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
 The relative importance of the eigen value (E) is the ratio (percentage)
-of the eigen value to the sum of the eigen values.  Note that the output
+of the eigen value to the sum of the eigen values. Note that the output
 is not sorted by relative importance.
 
-<p>
-In general, the solution to the eigen system results in complex
-numbers (with both real and imaginary parts).  However, in the example
-above, since the input matrix is symmetric (i.e., inverting the rows and columns
-gives the same matrix) the eigen system has only real values (i.e., the
-imaginary part is zero).
-This fact makes it possible to use eigen vectors to perform principle component
-transformation of data sets.  The covariance or correlation
-matrix of any data set is symmetric
+In general, the solution to the eigen system results in complex numbers
+(with both real and imaginary parts). However, in the example above,
+since the input matrix is symmetric (i.e., inverting the rows and
+columns gives the same matrix) the eigen system has only real values
+(i.e., the imaginary part is zero). This fact makes it possible to use
+eigen vectors to perform principle component transformation of data
+sets. The covariance or correlation matrix of any data set is symmetric
 and thus has only real eigen values and vectors.
 
-<h2>PRINCIPLE COMPONENTS</h2>
+## PRINCIPLE COMPONENTS
 
-To perform principle component transformation on GRASS data layers,
-one would use
-<em>r.covar</em>
-to get the covariance (or correlation) matrix for a set of data layers,
-<em>m.eigensystem</em>
-to extract the related eigen vectors, and
-<em>r.mapcalc</em>
-to form the desired components.
-For example, to get the eigen vectors for 3 layers:
+To perform principle component transformation on GRASS data layers, one
+would use *r.covar* to get the covariance (or correlation) matrix for a
+set of data layers, *m.eigensystem* to extract the related eigen
+vectors, and *r.mapcalc* to form the desired components. For example, to
+get the eigen vectors for 3 layers:
 
-<div class="code"><pre>
+```sh
 (echo 3; r.covar map.1,map.2,map.3 | grep -v "N = ") | m.eigensystem
-</pre></div>
+```
 
-Note that since r.covar only outputs the matrix, we must manually prepend
-the matrix size (3) using the echo command.
+Note that since r.covar only outputs the matrix, we must manually
+prepend the matrix size (3) using the echo command.
 
-<p>
 Then, using the W vector, new maps are created:
 
-<div class="code"><pre>
+```sh
 r.mapcalc "pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3"
 r.mapcalc "pc.2 =  2.9083*map.1 +  4.4599*map.2 - 10.8699*map.3"
 r.mapcalc "pc.3 =  1.8175*map.1 -  1.6232*map.2 -  0.1797*map.3"
-</pre></div>
+```
 
-<h2>PROGRAM NOTES</h2>
+## PROGRAM NOTES
 
 The source code for this program requires a Fortran compiler.
 
-<p>
-The equivalent <em>i.pca</em> command is:
-<div class="code"><pre>
+The equivalent *i.pca* command is:
+
+```sh
 i.pca in=spot.ms.1,spot.ms.2,spot.ms.3 out=spot_pca
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[i.pca](https://grass.osgeo.org/grass-stable/manuals/i.pca.html),
+[r.covar](https://grass.osgeo.org/grass-stable/manuals/r.covar.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.rescale](https://grass.osgeo.org/grass-stable/manuals/r.rescale.html)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.pca.html">i.pca</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.covar.html">r.covar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.rescale.html">r.rescale</a>
-</em>
+## AUTHOR
 
-
-<h2>AUTHOR</h2>
-
-This code uses routines from the EISPACK system.<br>
-The interface was coded by Michael Shapiro, U.S.Army Construction Engineering
- Research Laboratory
+This code uses routines from the EISPACK system.  
+The interface was coded by Michael Shapiro, U.S.Army Construction
+Engineering Research Laboratory

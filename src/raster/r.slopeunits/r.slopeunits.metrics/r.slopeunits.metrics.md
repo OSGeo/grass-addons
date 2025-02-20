@@ -1,12 +1,14 @@
-<h2>DESCRIPTION</h2>
-<em>r.slopeunits.metrics</em> creates metrics for slope units. Returns
-output "areamin, cvmin, v_fin and i_fin" to stdout, optionally writes to a file.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.slopeunits.metrics* creates metrics for slope units. Returns output
+"areamin, cvmin, v\_fin and i\_fin" to stdout, optionally writes to a
+file.
 
-<h2>EXAMPLE</h2>
+## NOTES
 
-<div class="code"><pre>
+## EXAMPLE
+
+```sh
 r.slopeunits.metrics \
     basin=basin_chk \
     demmap=dem_italia_isolegrandi@su_test \
@@ -16,16 +18,16 @@ r.slopeunits.metrics \
     cvmin=0.05 \
     resolution=625 \
     outfile=objf_1.dat
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-<em>
-    <a href="r.slopeunits.create.html">r.slopeunits.create</a>,
-    <a href="r.slopeunits.clean.html">r.slopeunits.clean</a>,
-    <a href="r.slopeunits.optimize.html">r.slopeunits.optimize</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHORS</h2>
-Main authors: Ivan Marchesini, Massimiliano Alvioli, CNR-IRPI
-<br>
-Carmen Tawalika (translation to python), <a href="https://www.mundialis.de/">mundialis</a>
+*[r.slopeunits.create](r.slopeunits.create.md),
+[r.slopeunits.clean](r.slopeunits.clean.md),
+[r.slopeunits.optimize](r.slopeunits.optimize.md)*
+
+## AUTHORS
+
+Main authors: Ivan Marchesini, Massimiliano Alvioli, CNR-IRPI  
+Carmen Tawalika (translation to python),
+[mundialis](https://www.mundialis.de/)

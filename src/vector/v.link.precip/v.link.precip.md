@@ -1,5 +1,5 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Matej Krejci, Czech Technical University in Prague, Czech Republic

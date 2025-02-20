@@ -1,92 +1,96 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.gcp</em> manages Ground Control Points (GCPs) non-interactively.
+*i.gcp* manages Ground Control Points (GCPs) non-interactively.
 
+## NOTES
 
-<h2>NOTES</h2>
+Unlike *g.gui.gcp*, *i.gcp* can be invoked from the command line or
+scripts to manage GCPs. It is recommended to create a backup copy of the
+original POINTS file using **-b** before making changes to the file. The
+backup POINTS file (POINTS\_BAK) can be restored using **-r** or removed
+later using **-B**. GCPs in the backup POINTS file can be listed using
+**-L**.
 
-Unlike <em>g.gui.gcp</em>, <em>i.gcp</em> can be invoked from the command line
-or scripts to manage GCPs. It is recommended to create a backup copy of the
-original POINTS file using <b>-b</b> before making changes to the file. The
-backup POINTS file (POINTS_BAK) can be restored using <b>-r</b> or removed
-later using <b>-B</b>. GCPs in the backup POINTS file can be listed using
-<b>-L</b>.
+## EXAMPLES
 
+List all GCPs in group "sar":
 
-<h2>EXAMPLES</h2>
-
-List all GCPs in group &quot;sar&quot;:
-<div class="code"><pre>
+```sh
 i.gcp -l group=sar
-</pre></div>
+```
 
 Create a backup copy of the current POINTS file:
-<div class="code"><pre>
+
+```sh
 i.gcp -b group=sar
-</pre></div>
+```
 
 Clear all GCPs first by removing the POINTS file:
-<div class="code"><pre>
-i.gcp -c group=sar
-</pre></div>
 
-Add new GCPs at the bottom-left and top-right corners of the satellite imagery:
-<div class="code"><pre>
+```sh
+i.gcp -c group=sar
+```
+
+Add new GCPs at the bottom-left and top-right corners of the satellite
+imagery:
+
+```sh
 i.gcp group=sar image_coordinates=0,0,31996,32239 target_coordinates=493920,3880490,529470,3916310
-</pre></div>
+```
 
 Add another GCP that will be ignored for now and list all GCPs:
-<div class="code"><pre>
+
+```sh
 i.gcp -l group=sar image_coordinates=100,100 target_coordinates=500000,4000000 status=ignore
-</pre></div>
+```
 
 Use the GCP just added and list all:
-<div class="code"><pre>
+
+```sh
 i.gcp -u -l group=sar point=3
-</pre></div>
+```
 
 Delete point 1:
-<div class="code"><pre>
+
+```sh
 i.gcp -d -l group=sar point=1
-</pre></div>
+```
 
 Ignore points 1-2:
-<div class="code"><pre>
+
+```sh
 i.gcp -i -l group=sar point=1-2
-</pre></div>
+```
 
 List GCPs in the backup POINTS file:
-<div class="code"><pre>
+
+```sh
 i.gcp -L group=sar
-</pre></div>
+```
 
 Restore the backup POINTS file:
-<div class="code"><pre>
+
+```sh
 i.gcp -r group=sar
-</pre></div>
+```
 
 Remove the backup POINTS file:
-<div class="code"><pre>
+
+```sh
 i.gcp -B group=sar
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+The GRASS 4 *[Image Processing
+manual](https://grass.osgeo.org/gdp/imagery/grass4_image_processing.pdf)*
 
-The GRASS 4 <em>
-<a href="https://grass.osgeo.org/gdp/imagery/grass4_image_processing.pdf">Image
-Processing manual</a></em>
+*[i.group](https://grass.osgeo.org/grass-stable/manuals/i.group.html),
+[i.target](https://grass.osgeo.org/grass-stable/manuals/i.target.html),
+[i.rectify](https://grass.osgeo.org/grass-stable/manuals/i.rectify.html),
+[i.points.auto](i.points.auto.md), [Ground Control Points
+Manager](https://grass.osgeo.org/grass-stable/manuals/wxGUI.gcp.html)*
 
-<p>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.group.html">i.group</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.target.html">i.target</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.rectify.html">i.rectify</a>,
-<a href="i.points.auto.html">i.points.auto</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/wxGUI.gcp.html">Ground Control Points Manager</a>
-</em>
+## AUTHOR
 
-
-<h2>AUTHOR</h2>
-
-<a href="mailto:grass4u@gmail com">Huidae Cho</a>
+[Huidae Cho](mailto:grass4u@gmail-com)

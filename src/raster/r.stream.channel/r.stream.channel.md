@@ -1,95 +1,97 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The module <em>r.stream.channel</em> is prepared to calculate some local properties
-of the stream network. It is supplementary module for <em>r.stream.order</em>, and
-<em>r.stream.distance</em> to investigate channel subsystem. For slope subsystem
-parameters is <em>r.stream.slope</em>. It may use ordered or unordered network. It
-calculate parameters for every segment between it init to outlet/join to the
-next stream. it also may calculate parameters between outlet and segment's init.
-It can calculate parameters for every orders but best results are for these
-orders where order remains unchanged from stream init to natural outlet (Hack
-and Horton ordering).
-<p>
+The module *r.stream.channel* is prepared to calculate some local
+properties of the stream network. It is supplementary module for
+*r.stream.order*, and *r.stream.distance* to investigate channel
+subsystem. For slope subsystem parameters is *r.stream.slope*. It may
+use ordered or unordered network. It calculate parameters for every
+segment between it init to outlet/join to the next stream. it also may
+calculate parameters between outlet and segment's init. It can calculate
+parameters for every orders but best results are for these orders where
+order remains unchanged from stream init to natural outlet (Hack and
+Horton ordering).
 
-<h2>OPTIONS</h2>
-<dl>
-<dt><b>-d</b></dt>
-<!-- TODO: understand what -d does, see main.c description -->
-<dd>Calculate downstream distance (from current cell DOWNSTREAM to outlet/join).
-Default is upstream (from current cell upstream to init/join.</dd>
-<dt><b>-m</b></dt>
-<dd>Only for very large data sets. Uses segment library to optimize memory
-consumption during analysis</dd>
-<dt><b>stream_rast</b></dt>
-<dd>Stream network: name of input stream map. Map may be ordered according to one
-of the <em>r.stream.order</em> ordering systems as well as unordered (with original stream
-identifiers). Because the streams network produced by <em>r.watershed</em> and
-<em>r.stream.extract</em> may slightly differ in detail it is required to use both stream
-and direction map produced by the same module. Non-stream cell values must be
-set to NULL.</dd>
-<dt><b>direction</b></dt>
-<dd>Flow direction: name of input direction map produced by
-<em>r.watershed</em> or <em>r.stream.extract</em>. If the <em>r.stream.extract</em>
-output map is used, it contains non-NULL values only in places where streams are
-present. NULL cells are ignored; zero and negative values are valid direction data
-if they vary from -8 to 8 (CCW from East in steps of 45 degrees). The direction
-map shall be of integer type (CELL). The region resolution and map resolution
-must be the same. Also the <em>stream_rast</em> network map must have the same
-resolution. If resolutions differ the module informs about it and stops. Region
-boundary and maps boundary may be different but it may lead to unexpected
-results.</dd>
-<dt><b>elevation</b></dt>
-<dd>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
-DCELL. It is not restricted to resolution of region settings as streams and
-direction.</dd>
-<dt><b>distance</b></dt>
-<dd>Upstream distance of current cell to the init/join. Flag modifications: <br>
-<b>-d:</b> downstream distance of current cell to the join/outlet;<br>
-<b>-l:</b> local distance between current cell and next cell. In most cases cell
-resolution and sqrt2 of cell resolution. useful when projection is LL or NS and
-WE resolutions differs. Flag <b>-d</b> ignored<br>
-<b>-c:</b> distance in cells. Map is written as double. Use <em>r.mapcalc</em> to convert
-to integer. Flags <b>-l</b> and <b>-d</b> ignored.<br>
-</dd>
-<dt><b>difference</b></dt>
-<dd>Upstream elevation difference between current cell to the init/join. It we
-need to calculate parameters different than elevation. If we need to calculate
-different parameters than elevation along streams (for example precipitation or
-so) use necessary map as elevation. Flag modifications: <br>
-<b>-d:</b> downstream difference of current cell to the join/outlet;<br>
-<b>-l:</b> local difference between current cell and next cell. With flag
-calculates difference between previous cell and current cell<br>
-<b>-c:</b> Ignored.
-</dd>
-<dt><b>gradient</b></dt>
-<dd>Upstream mean gradient between current cell and the init/join. Flag
-modifications: <br>
-<b>-d:</b> downstream mean gradient between current cell and the
-join/outlet;<br>
-<b>-l:</b> local gradient between current cell and next cell. Flag <b>-d</b> ignored<br>
-<b>-c:</b> Ignored.
-</dd>
-<dt><b>curvature</b></dt>
-<dd>Local stream course curvature  of current cell. Calculated according
-formula: <i>first_derivative/(1-second_derivative<sup>2</sup>)<sup>3/2</sup></i>
-Flag modifications: <br>
-<b>-d:</b> ignored;<br>
-<b>-l:</b> Ignored.<br>
-<b>-c:</b> Ignored.
-</dd>
-<dt><b>identifier</b></dt>
-<dd> Integer map: In ordered stream network there are more than one segment
-(segment: a part of the network where order remains unchanged) with the same
-order. To identify particular segments (for further analysis) every segment
-receive his unique identifier.</dd>
-</dl>
+## OPTIONS
 
-<h2>EXAMPLE</h2>
+  - **-d**  
+    Calculate downstream distance (from current cell DOWNSTREAM to
+    outlet/join). Default is upstream (from current cell upstream to
+    init/join.
+  - **-m**  
+    Only for very large data sets. Uses segment library to optimize
+    memory consumption during analysis
+  - **stream\_rast**  
+    Stream network: name of input stream map. Map may be ordered
+    according to one of the *r.stream.order* ordering systems as well as
+    unordered (with original stream identifiers). Because the streams
+    network produced by *r.watershed* and *r.stream.extract* may
+    slightly differ in detail it is required to use both stream and
+    direction map produced by the same module. Non-stream cell values
+    must be set to NULL.
+  - **direction**  
+    Flow direction: name of input direction map produced by
+    *r.watershed* or *r.stream.extract*. If the *r.stream.extract*
+    output map is used, it contains non-NULL values only in places where
+    streams are present. NULL cells are ignored; zero and negative
+    values are valid direction data if they vary from -8 to 8 (CCW from
+    East in steps of 45 degrees). The direction map shall be of integer
+    type (CELL). The region resolution and map resolution must be the
+    same. Also the *stream\_rast* network map must have the same
+    resolution. If resolutions differ the module informs about it and
+    stops. Region boundary and maps boundary may be different but it may
+    lead to unexpected results.
+  - **elevation**  
+    Elevation: name of input elevation map. Map can be of type CELL,
+    FCELL or DCELL. It is not restricted to resolution of region
+    settings as streams and direction.
+  - **distance**  
+    Upstream distance of current cell to the init/join. Flag
+    modifications:  
+    **-d:** downstream distance of current cell to the join/outlet;  
+    **-l:** local distance between current cell and next cell. In most
+    cases cell resolution and sqrt2 of cell resolution. useful when
+    projection is LL or NS and WE resolutions differs. Flag **-d**
+    ignored  
+    **-c:** distance in cells. Map is written as double. Use *r.mapcalc*
+    to convert to integer. Flags **-l** and **-d** ignored.  
+  - **difference**  
+    Upstream elevation difference between current cell to the init/join.
+    It we need to calculate parameters different than elevation. If we
+    need to calculate different parameters than elevation along streams
+    (for example precipitation or so) use necessary map as elevation.
+    Flag modifications:  
+    **-d:** downstream difference of current cell to the join/outlet;  
+    **-l:** local difference between current cell and next cell. With
+    flag calculates difference between previous cell and current cell  
+    **-c:** Ignored.
+  - **gradient**  
+    Upstream mean gradient between current cell and the init/join. Flag
+    modifications:  
+    **-d:** downstream mean gradient between current cell and the
+    join/outlet;  
+    **-l:** local gradient between current cell and next cell. Flag
+    **-d** ignored  
+    **-c:** Ignored.
+  - **curvature**  
+    Local stream course curvature of current cell. Calculated according
+    formula:
+    *first\_derivative/(1-second\_derivative<sup>2</sup>)<sup>3/2</sup>*
+    Flag modifications:  
+    **-d:** ignored;  
+    **-l:** Ignored.  
+    **-c:** Ignored.
+  - **identifier**  
+    Integer map: In ordered stream network there are more than one
+    segment (segment: a part of the network where order remains
+    unchanged) with the same order. To identify particular segments (for
+    further analysis) every segment receive his unique identifier.
 
-This example shows how to visualise the change of gradient map along the main
-stream of the catchment:
+## EXAMPLE
 
-<div class="code"><pre>
+This example shows how to visualise the change of gradient map along the
+main stream of the catchment:
+
+```sh
 g.region -p -a raster=elevation
 r.watershed elevation=elevation threshold=10000 drainage=direction stream=streams
 r.stream.order streams=streams direction=direction hack=hack
@@ -107,24 +109,21 @@ r=readRAST6(c("stdist","stgrad"),NODATA=-9999)
 p=subset(r@data,!is.na(r@data$dist))
 sorted=p[order(p$stdist),]
 plot(sorted,stdist~stgrad,type="l")
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="r.stream.distance.html">r.stream.distance</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
-<a href="r.stream.order.html">r.stream.order</a>,
-<a href="r.stream.basins.html">r.stream.basins</a>,
-<a href="r.stream.segment.html">r.stream.segment</a>,
-<a href="r.stream.slope.html">r.stream.slope</a>,
-<a href="r.stream.snap.html">r.stream.snap</a>,
-<a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
-</em>
+*[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.stream.distance](r.stream.distance.md),
+[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
+[r.stream.order](r.stream.order.md),
+[r.stream.basins](r.stream.basins.md),
+[r.stream.segment](r.stream.segment.md),
+[r.stream.slope](r.stream.slope.md), [r.stream.snap](r.stream.snap.md),
+[r.stream.stats](r.stream.stats.md),
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and Geoinformation
-Institute.
+Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and
+Geoinformation Institute.

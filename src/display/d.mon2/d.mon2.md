@@ -1,31 +1,28 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
 This is just a little experiment to see if we can make the ximgview,
 wximgview, and wxpyimgview programs a bit simpler to start up.
-<p>
 
-Add this to your <tt>~/.grass.bashrc</tt> file:
+Add this to your `~/.grass.bashrc` file:
 
-<div class="code"><pre>
+```sh
   if [ `echo "$GRASS_VERSION" | cut -f1 -d.` -eq 7 ] ; then
      alias d.mon='eval `d.mon.py -b`'
   fi
-</pre></div>
+```
 
-<p>
-By default the temporary file will be stored in $MAPSET/.tmp/ and cleared
-at the end of the session. You can put it somewhere else with the
-<b>tempfile</b> option. For example, when working remotely with
-PuTTY (ssh without tunnelled X) + Apache:
+By default the temporary file will be stored in $MAPSET/.tmp/ and
+cleared at the end of the session. You can put it somewhere else with
+the **tempfile** option. For example, when working remotely with PuTTY
+(ssh without tunnelled X) + Apache:
 
-<div class="code"><pre>
+```sh
    alias d.mon='eval `d.mon.py -b handler=none tempfile=/var/www/grassmap.png`'
-</pre></div>
+```
 
 then just hit reload in your web browser whenever a refresh is needed.
 
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Hamish Bowman<br>
+Hamish Bowman  
 Dunedin, New Zealand

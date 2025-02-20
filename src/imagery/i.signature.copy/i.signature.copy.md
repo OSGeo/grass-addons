@@ -1,14 +1,14 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.signature.copy</em> copies a signature file from a group/subgroup to another group/subgroup.
+*i.signature.copy* copies a signature file from a group/subgroup to
+another group/subgroup.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code"><pre>
+```sh
 i.signature.copy igroup=name isubgroup=subname isignature=test ogroup=name2 osubgroup=subname2
-</pre></div>
+```
 
-
-<H2>AUTHOR</H2>
+## AUTHOR
 
 Luca Delucchi

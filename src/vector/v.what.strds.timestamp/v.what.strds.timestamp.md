@@ -1,31 +1,29 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.what.strds.timestamp</em> matches points with a timestamp in
-the attribute table (<i>timestamp_column</i>) (e.g. recordings from
-stationary (temperature logger, wildlife camera traps) or non-stationary
-sensors (e.g GPS collars)) with Space Time Raster Datasets (STRDS) based
-on point locaitions in space and time. Raster values at the specific
-space-time position are written into the user-defined <i>column</i> in
-the attribute table of the input vector map.
+*v.what.strds.timestamp* matches points with a timestamp in the
+attribute table (*timestamp\_column*) (e.g. recordings from stationary
+(temperature logger, wildlife camera traps) or non-stationary sensors
+(e.g GPS collars)) with Space Time Raster Datasets (STRDS) based on
+point locaitions in space and time. Raster values at the specific
+space-time position are written into the user-defined *column* in the
+attribute table of the input vector map.
 
-<h2>NOTES</h2>
+## NOTES
 
 The SQLite DB backend does not provide specific date/datetime datatypes.
 However, text columns with ISO formated date strings are supported for
-the <em>timestamp_column</em> as well.
+the *timestamp\_column* as well.
 
-<p>
-Curretnly, <em>only STRDS with absolute temporal type are supported.</em>
-</p>
+Curretnly, *only STRDS with absolute temporal type are supported.*
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 This example is based on the MODIS LST raster time series sample dataset
-(mapset "modis_lst") available for the North Carolina sample location which
-can be downloaded from the
-<a href="https://grass.osgeo.org/download/data/">GRASS GIS website</a>.
+(mapset "modis\_lst") available for the North Carolina sample location
+which can be downloaded from the [GRASS GIS
+website](https://grass.osgeo.org/download/data/).
 
-<div class="code"><pre>
+```sh
 # Check time MODIS LST raster time series to sample
 t.rast.list LST_Day_monthly@modis_lst
 
@@ -87,17 +85,16 @@ v.db.addcolumn map=sampling_points column="lst_celsius double precision"
 # rescale original MODIS LST to degree Celsius
 v.db.update map=sampling_points column="lst_celsius" query_column="lst_at_sampling_time * 0.02 - 273.15"
 v.db.select sampling_points
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.strds.html">v.what.strds</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/t.rast.what.html">r.connectivity.corridors</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[v.what.rast](https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html),
+[v.what.strds](https://grass.osgeo.org/grass-stable/manuals/v.what.strds.html),
+[r.connectivity.corridors](https://grass.osgeo.org/grass-stable/manuals/t.rast.what.html)*
 
-Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)<br>
-Written for the 2018 <a href="https://irsae.no">IRSAE</a> GRASS GIS course at
+## AUTHOR
+
+Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)  
+Written for the 2018 [IRSAE](https://irsae.no) GRASS GIS course at
 Studenterhytta, Oslo

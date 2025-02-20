@@ -1,48 +1,46 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.build.pg</em> builds PostGIS topology for feature tables linked
-via <em><a href="https://grass.osgeo.org/grass-stable/manuals/v.external.html">v.external</a></em>.
+*v.build.pg* builds PostGIS topology for feature tables linked via
+*[v.external](https://grass.osgeo.org/grass-stable/manuals/v.external.html)*.
 
-<h2>NOTES</h2>
+## NOTES
 
-Note
-that <a href="https://trac.osgeo.org/postgis/wiki/UsersWikiPostgisTopology">PostGIS
-Topology</a> extension is currently under
-development. <em>v.build.pg</em> requires <b>PostGIS 2.0.0+</b>.
+Note that [PostGIS
+Topology](https://trac.osgeo.org/postgis/wiki/UsersWikiPostgisTopology)
+extension is currently under development. *v.build.pg* requires
+**PostGIS 2.0.0+**.
 
-<p>
-Existing PostGIS topology schema can be overwrite by <b>--overwrite</b> flag.
+Existing PostGIS topology schema can be overwrite by **--overwrite**
+flag.
 
-<p>
-<em>v.build.pg</em> calls PostGIS functions:
-<ol>
-  <li><a href="https://www.postgis.net/docs/manual-dev/CreateTopology.html">CreateTopology()</a>
-    to create topology schema in the database,</li>
-  <li><a href="https://www.postgis.net/docs/manual-dev/AddTopoGeometryColumn.html">AddTopoGeometryColumn()</a>
-    to add a topogeometry column to an existing feature table, and</li>
-  <li><a href="https://www.postgis.net/docs/manual-dev/toTopoGeom.html">toTopoGeom()</a>
-  to create a new topo geometry from the simple feature geometry.</li>
-</ol>
+*v.build.pg* calls PostGIS functions:
 
-<h2>EXAMPLES</h2>
+1. [CreateTopology()](https://www.postgis.net/docs/manual-dev/CreateTopology.html)
+    to create topology schema in the database,
+2. [AddTopoGeometryColumn()](https://www.postgis.net/docs/manual-dev/AddTopoGeometryColumn.html)
+    to add a topogeometry column to an existing feature table, and
+3. [toTopoGeom()](https://www.postgis.net/docs/manual-dev/toTopoGeom.html)
+    to create a new topo geometry from the simple feature geometry.
 
-<h3>Workflow example</h3>
+## EXAMPLES
+
+### Workflow example
 
 Export vector map into PostGIS:
 
-<div class="code"><pre>
+```sh
 v.out.ogr input=bridges output=PG:dbname=pgis_nc format=PostgreSQL
-</pre></div>
+```
 
 Create a new vector map as a link to PostGIS table:
 
-<div class="code"><pre>
+```sh
 v.external input=PG:dbname=pgis_nc layer=bridges
-</pre></div>
+```
 
 Check metadata:
 
-<div class="code"><pre>
+```sh
 v.info map=bridges
 
 ...
@@ -54,11 +52,11 @@ v.info map=bridges
  | Feature type:    point                                                     |
  |----------------------------------------------------------------------------|
 ...
-</pre></div>
+```
 
 Build PostGIS topology for the link:
 
-<div class="code"><pre>
+```sh
 v.build.pg map=bridges
 
 ...
@@ -67,13 +65,13 @@ Topology topo_bridges (6), SRID 900914, precision 1
 Layer 1, type Puntal (1), 10938 topogeoms
  Deploy: public.bridges.topo
 ...
-</pre></div>
+```
 
-<h3>Dry run</h3>
+### Dry run
 
-For testing issues use <b>-p</b> flag.
+For testing issues use **-p** flag.
 
-<div class="code"><pre>
+```sh
 v.build.pg map=bridges
 
 Creating new topology schema...
@@ -93,17 +91,15 @@ UPDATE bridges SET topo = topology.toTopoGeom(wkb_geometry, \
 
 
 SELECT topology.TopologySummary('topo_bridges')
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.external.html">v.external</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html">v.out.ogr</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.out.postgis.html">v.out.postgis</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.build.html">v.build</a>
-</em>
+*[v.external](https://grass.osgeo.org/grass-stable/manuals/v.external.html),
+[v.out.ogr](https://grass.osgeo.org/grass-stable/manuals/v.out.ogr.html),
+[v.out.postgis](https://grass.osgeo.org/grass-stable/manuals/v.out.postgis.html),
+[v.build](https://grass.osgeo.org/grass-stable/manuals/v.build.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Martin Landa, Czech Technical University in Prague, Czech Republic

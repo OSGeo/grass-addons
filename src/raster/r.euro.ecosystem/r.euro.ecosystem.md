@@ -1,33 +1,28 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.euro.ecosystem</em> defines colors and raster category labels
-for <a href="https://www.eea.europa.eu/en/datahub/datahubitem-view/573ff9d5-6889-407f-b3fc-cfe3f9e23941">Ecosystem types of Europe</a>.
+*r.euro.ecosystem* defines colors and raster category labels for
+[Ecosystem types of
+Europe](https://www.eea.europa.eu/en/datahub/datahubitem-view/573ff9d5-6889-407f-b3fc-cfe3f9e23941).
 
-<p>
-The data can be downloaded at <a href="https://www.eea.europa.eu/en/datahub/datahubitem-view/573ff9d5-6889-407f-b3fc-cfe3f9e23941">EEA</a>
-for level 1 (based on <a href=https://www.eea.europa.eu/en/datahub/datahubitem-view/ce3e4bf4-e929-404a-88c7-37f2c614fd1d">EUNIS</a>
-habitat classification level 1) and level 2 (based on EUNIS habitat classification level 2).
-</p>
+The data can be downloaded at
+[EEA](https://www.eea.europa.eu/en/datahub/datahubitem-view/573ff9d5-6889-407f-b3fc-cfe3f9e23941)
+for level 1 (based on
+[EUNIS](https://www.eea.europa.eu/en/datahub/datahubitem-view/ce3e4bf4-e929-404a-88c7-37f2c614fd1d%22)
+habitat classification level 1) and level 2 (based on EUNIS habitat
+classification level 2).
 
-<p>
 The dataset combines the Corine based MAES ecosystem classes with the
 non-spatial EUNIS habitat classification for a better biological
 characterization of ecosystems across Europe. As such it represents
 probabilities of EUNIS habitat presence for each MAES ecosystem type.
-</p>
 
-<p>
-Data definition rules have to be defined by flags <b>-1</b> or <b>-2</b>.
-</p>
+Data definition rules have to be defined by flags **-1** or **-2**.
 
-<p>
 Raster data definition rules are donated by EEA.
-</p>
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-<div class="code">
- <pre>
+```sh
   # link to ecosystem raster data level 1
   r.external input="es_l1_100m.tif" output=es_l1_100m
   # define colors and raster category labels
@@ -37,16 +32,14 @@ Raster data definition rules are donated by EEA.
   r.external input="es_l2_100m.tif" output=es_l2_100m
   # define colors and raster category labels
   r.euro.ecosystem -2 input=es_l2_100m
- </pre>
-</div>
+ 
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.html">r.colors</a>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.category.html">r.category</a>
-</em>
+*[r.colors](https://grass.osgeo.org/grass-stable/manuals/r.colors.html)
+[r.category](https://grass.osgeo.org/grass-stable/manuals/r.category.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

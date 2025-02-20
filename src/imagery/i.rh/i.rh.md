@@ -1,26 +1,20 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.rh</em> calculates the relative humidity
+*i.rh* calculates the relative humidity -s will return saturated water
+vapour instead. -a will return actual water vapour instead.
 
--s will return saturated water vapour instead.
+## NOTES
 
--a will return actual water vapour instead.
+## REFERENCES
 
-<h2>NOTES</h2>
+https://www.researchgate.net/publication/227247013\_High-resolution\_Surface\_Relative\_Humidity\_Computation\_Using\_MODIS\_Image\_in\_Peninsular\_Malaysia/
 
+## SEE ALSO
 
-<h2>REFERENCES</h2>
-https://www.researchgate.net/publication/227247013_High-resolution_Surface_Relative_Humidity_Computation_Using_MODIS_Image_in_Peninsular_Malaysia/
+*[i.vi](https://grass.osgeo.org/grass-stable/manuals/i.vi.html),
+[i.albedo](https://grass.osgeo.org/grass-stable/manuals/i.albedo.html),
+[i.wi](i.wi.md)*
 
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.vi.html">i.vi</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.albedo.html">i.albedo</a>,
-<a href="i.wi.html">i.wi</a>
-</em>
-
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, Plumergat, France

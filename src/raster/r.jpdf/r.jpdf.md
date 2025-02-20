@@ -1,49 +1,62 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.jpdf</em> reads two series of raster maps and calculates for each raster cell the joint probability density function of the two input series. The output is set of raster maps, each containing the probability within a range of values from the first set and a range from the second set. NULL values are ignored when calculating the JPDF.
-<p>
+*r.jpdf* reads two series of raster maps and calculates for each raster
+cell the joint probability density function of the two input series. The
+output is set of raster maps, each containing the probability within a
+range of values from the first set and a range from the second set. NULL
+values are ignored when calculating the JPDF.
 
-The number of output raster maps is determined by the number of "bins" specified by the user using the parameters <em>input1</em> and <em>input2</em>. The users gives the range and density of bins with <em> input1=Start1,End1,Nbins1 input2=Start2,End2,Nbins2</em>. In this case the data from the first data set will be assigned to <em>Nbins1</em> intervals between <em>Start1</em> and <em>End1</em> and <em>Nbins2</em> intervals between <em>Start2</em> and <em>End2</em> for the second data set. In addition, <em>r.jpdf</em> will calculate extra bins for values below or above the start and end values given by the user. In total, the output will consist of (<em>Nbins1</em>+2)&times;(<em>Nbins2</em>+2) raster maps. The naming of the output rasters is <em>Prefix_N1_N2</em> where <em>Prefix</em> is given by the parameter <em>output</em>. <em>N1</em> and <em>N2</em> may contain leading zeros.
-</p>
+The number of output raster maps is determined by the number of "bins"
+specified by the user using the parameters *input1* and *input2*. The
+users gives the range and density of bins with
+*input1=Start1,End1,Nbins1 input2=Start2,End2,Nbins2*. In this case the
+data from the first data set will be assigned to *Nbins1* intervals
+between *Start1* and *End1* and *Nbins2* intervals between *Start2* and
+*End2* for the second data set. In addition, *r.jpdf* will calculate
+extra bins for values below or above the start and end values given by
+the user. In total, the output will consist of (*Nbins1*+2)×(*Nbins2*+2)
+raster maps. The naming of the output rasters is *Prefix\_N1\_N2* where
+*Prefix* is given by the parameter *output*. *N1* and *N2* may contain
+leading zeros.
 
+## NOTES
 
+### Input series of different lengths
 
-<h2>NOTES</h2>
+Rasters from the two series of input data will be compared in the order
+in which they appear in the two lists. If one list is longer than the
+other, the trailing raster maps will be ignored.
 
-<h3>Input series of different lengths</h3>
-Rasters from the two series of input data will be compared in the order in which they appear in the two lists. If one list is longer than the other, the trailing raster maps will be ignored.
+### Memory consumption
 
-<h3>Memory consumption</h3>
+The (*Nbins1*+2)×(*Nbins2*+2) raster maps are held in memory until the
+end of the processing. On the other hand, only one raster from each of
+the two series of input rasters will be held in memory.
 
-The (<em>Nbins1</em>+2)&times;(<em>Nbins2</em>+2) raster maps are held in memory until the end of the processing. On the other hand, only one raster from each of the two series of input rasters will be held in memory.
+## EXAMPLES
 
+Using *r.jpdf* with wildcards:  
 
-<h2>EXAMPLES</h2>
-
-Using <em>r.jpdf</em> with wildcards:
-<br>
-<div class="code"><pre>
+```sh
 r.series input1="`g.list pattern='temperature*' sep=,`" input2="`g.list pattern='pressure*' sep=,`"\
          output=jpdf_temp_pres bins1=-20,40,10 bins2=950,1030,10
-</pre></div>
-<p>
-Note the <em>g.list</em> script also supports regular expressions for
-selecting map names.
+```
 
+Note the *g.list* script also supports regular expressions for selecting
+map names.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.list.html">g.list</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.quantile.html">r.quantile</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.series.accumulate.html">r.series.accumulate</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.series.interp.html">r.series.interp</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>
-</em>
-<p>
-<a href="https://grasswiki.osgeo.org/wiki/Large_raster_data_processing">Hints for large raster data processing</a>
+*[g.list](https://grass.osgeo.org/grass-stable/manuals/g.list.html),
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[r.quantile](https://grass.osgeo.org/grass-stable/manuals/r.quantile.html),
+[r.series.accumulate](https://grass.osgeo.org/grass-stable/manuals/r.series.accumulate.html),
+[r.series.interp](https://grass.osgeo.org/grass-stable/manuals/r.series.interp.html),
+[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)*
 
-<h2>AUTHOR</h2>
+[Hints for large raster data
+processing](https://grasswiki.osgeo.org/wiki/Large_raster_data_processing)
+
+## AUTHOR
 
 Thomas Huld

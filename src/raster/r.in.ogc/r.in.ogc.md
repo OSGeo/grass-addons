@@ -1,28 +1,24 @@
-<!-- meta page name: r.in.ogc -->
-<!-- meta page name description: Toolset for import of raster data from several OGC API standards -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *r.in.ogc* suite is able to import raster data from several OGC API
+standards. It supports
 
-The <em>r.in.ogc</em> suite is able to import raster data from several OGC API standards. It supports
-<ul>
-<li><a href="r.in.ogc.coverages.html">OGC API Coverages</a> - import raster data from an OGC API Coverages standard </li>
-</ul>
+  - [OGC API Coverages](r.in.ogc.coverages.md) - import raster data from
+    an OGC API Coverages standard
 
-<div class="code"><pre>
+```sh
 g.extension r.in.ogc
-</pre></div>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
-<em>r.in.ogc</em> requires <em>owslib</em> Python library.
+*r.in.ogc* requires *owslib* Python library.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.in.ogc.coverages.html">r.in.ogc.coverages</a>,
-<a href="v.in.ogc.html">v.in.ogc</a>
-</em>
+*[r.in.ogc.coverages](r.in.ogc.coverages.md), [v.in.ogc](v.in.ogc.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code Sprint 2021.
+Luca Delucchi, Fondazione Edmund Mach, during Joint OGC OSGeo ASF Code
+Sprint 2021.

@@ -11,6 +11,9 @@ first-line-h1: false
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
 heading-increment: false
 heading-style: false
+no-emphasis-as-heading: false
+no-blanks-blockquote: false
+no-multiple-space-blockquote: false
 ul-style: false
 ul-indent: false
 no-trailing-spaces: false
@@ -29,10 +32,17 @@ ol-prefix: false
 blanks-around-lists: false
 no-inline-html: false
 no-bare-urls: false
+no-space-in-links: false
+no-empty-links: false
 no-space-in-emphasis: false
 no-alt-text: false
 emphasis-style: false
 reference-links-images: false
 table-pipe-style: false
+table-column-count: false
 blanks-around-tables: false
 # The block above this is to be eventually removed.
+
+# The warning is triggered even for code blocks with language set to text,
+# so r.fuzzy.system syntax triggers the warning even when completely valid.
+commands-show-output: false

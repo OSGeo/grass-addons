@@ -1,27 +1,26 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.buildvrt.gdal</em> builds GDAL virtual rasters over GRASS GIS raster
-maps and links them to the mapset with <em>r.external</em>. The module is
-written as a workaround for a limitation in GRASS GIS Virtual Rasters (VRT)
-format with GDAL-linked raster maps (through <em>r.external</em> /
-<em>r.external.out</em>. In that case GRASS GIS Virtual Rasters currently
-show performance issues. See:
-<a href="https://github.com/OSGeo/grass/issues/4345">#4345</a>
+*r.buildvrt.gdal* builds GDAL virtual rasters over GRASS GIS raster maps
+and links them to the mapset with *r.external*. The module is written as
+a workaround for a limitation in GRASS GIS Virtual Rasters (VRT) format
+with GDAL-linked raster maps (through *r.external* / *r.external.out*.
+In that case GRASS GIS Virtual Rasters currently show performance
+issues. See: [\#4345](https://github.com/OSGeo/grass/issues/4345)
 
-<p>
 For the resulting maps GDAL VRT text files are created either in a
-directory named "gdal" in the current mapset or in a user-defined <b>
-vrt_directory</b>. Those files are not removed when the raster map is
+directory named "gdal" in the current mapset or in a user-defined
+**vrt\_directory**. Those files are not removed when the raster map is
 removed and the user is responsible for removing them when needed.
 
-<h2>REQUIREMENTS</h2>
-<em>r.buildvrt.gdal</em> uses the Python bindings for
-<a href="https://pypi.org/project/GDAL">GDAL</a> and requires the
-GDAL-GRASS driver to include raster maps in native GRASS format in
-GDAL VRTs.
+## REQUIREMENTS
 
-<h2>EXAMPLES</h2>
-<div class="code"><pre>
+*r.buildvrt.gdal* uses the Python bindings for
+[GDAL](https://pypi.org/project/GDAL) and requires the GDAL-GRASS driver
+to include raster maps in native GRASS format in GDAL VRTs.
+
+## EXAMPLES
+
+```sh
 # Create external example data
 regs='s,0,1000
 n,500,1500'
@@ -53,15 +52,15 @@ time r.univar map=vrt_${format_type}
 # Using GDAL VRT
 r.buildvrt.gdal --o --v input="$rmaps" output=vrt_${format_type}_gdal
 time r.univar map=vrt_${format_type}_gdal
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.buildvrt.html">r.buildvrt</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.html">r.external</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.external.out.html">r.external.out</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHORS</h2>
+*[r.buildvrt](https://grass.osgeo.org/grass-stable/manuals/r.buildvrt.html),
+[r.patch](https://grass.osgeo.org/grass-stable/manuals/r.patch.html),
+[r.external](https://grass.osgeo.org/grass-stable/manuals/r.external.html),
+[r.external.out](https://grass.osgeo.org/grass-stable/manuals/r.external.out.html)*
+
+## AUTHORS
+
 Stefan Blumentrath

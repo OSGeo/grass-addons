@@ -1,60 +1,52 @@
-<!-- meta page name: r.connectivity -->
-<!-- meta page name description: Toolset for conducting connectivity analysis of ecological networks -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
-<em>r.connectivity</em> is a toolset for conducting connectivity analysis
-of ecological networks. The toolset consists of three modules:
-<ul>
-<li><a href="r.connectivity.distance.html">r.connectivity.distance</a></li>
-<li><a href="r.connectivity.network.html">r.connectivity.network</a></li>
-<li><a href="r.connectivity.corridors.html">r.connectivity.corridors</a></li>
-</ul>
+*r.connectivity* is a toolset for conducting connectivity analysis of
+ecological networks. The toolset consists of three modules:
 
-<p>All the modules of the r.connectivity toolset can be installed in
-GRASS as follows:</p>
+  - [r.connectivity.distance](r.connectivity.distance.md)
+  - [r.connectivity.network](r.connectivity.network.md)
+  - [r.connectivity.corridors](r.connectivity.corridors.md)
 
-<div class="code"><pre>
+All the modules of the r.connectivity toolset can be installed in GRASS
+as follows:
+
+```sh
 g.extension operation=add extension=r.connectivity
-</pre></div>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
-The tools require the following underlying libraries and software:<br>
-<ul>
-<li>Cran R</li>
-<li>igraph and the igraph package for R</li>
-<li>ghostscript</li>
-</ul>
+The tools require the following underlying libraries and software:  
 
-<h2>EXAMPLE</h2>
-An example for a full workflow is provided in the manual of the individual
-tools applied in the following order:
-  <a href="r.connectivity.distance.html">r.connectivity.distance</a>,
-  <a href="r.connectivity.network.html">r.connectivity.network</a>
-  <a href="r.connectivity.corridors.html">r.connectivity.corridors</a>
+  - Cran R
+  - igraph and the igraph package for R
+  - ghostscript
 
+## EXAMPLE
 
-<h2>REFERENCE</h2>
-<dl>
-<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. &amp; Bakkestuen, V. 2012</b>
-(in Norwegian): Naturfaglig evaluering av norske verneomr&aring;der.
-Verneomr&aring;denes funksjon som &oslash;kologisk nettverk og toleranse
-for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for
+An example for a full workflow is provided in the manual of the
+individual tools applied in the following order:
+[r.connectivity.distance](r.connectivity.distance.md),
+[r.connectivity.network](r.connectivity.network.md)
+[r.connectivity.corridors](r.connectivity.corridors.md)
+
+## REFERENCE
+
+**Framstad, E., Blumentrath, S., Erikstad, L. & Bakkestuen, V. 2012**
+(in Norwegian): Naturfaglig evaluering av norske verneområder.
+Verneområdenes funksjon som økologisk nettverk og toleranse for
+klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for
 naturforskning (NINA), Trondheim.
-<a href="https://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf">
-	https://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf</a></dt>
-</dl>
+<https://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf>
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="r.connectivity.distance.html">r.connectivity.distance</a>,
-  <a href="r.connectivity.network.html">r.connectivity.network</a>
-  <a href="r.connectivity.corridors.html">r.connectivity.corridors</a>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.distance.html">v.distance</a>
-</em>
+*[r.connectivity.distance](r.connectivity.distance.md),
+[r.connectivity.network](r.connectivity.network.md)
+[r.connectivity.corridors](r.connectivity.corridors.md)
+[r.cost](https://grass.osgeo.org/grass-stable/manuals/r.cost.html)
+[v.distance](https://grass.osgeo.org/grass-stable/manuals/v.distance.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 For authors, please refer to each module of r.connectivity.

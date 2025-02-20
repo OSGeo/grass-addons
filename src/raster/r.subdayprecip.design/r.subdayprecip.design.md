@@ -1,96 +1,91 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.subdayprecip.design</em> computes subday design precipitation
-totals based on Hradek's method of reduction of daily maximums to
-chosen duration.
+*r.subdayprecip.design* computes subday design precipitation totals
+based on Hradek's method of reduction of daily maximums to chosen
+duration.
 
-<p>
 The tool uses methods of zonal statistics to compute average values of
-24 hours precipitation amounts of specified return period for a
-provided area or a spot. Rasters of daily maxima were derived from
-statistics published by Samaj et al. in 1985, which were based on
-precipitation series observed in 1901-1980. Calculated average value (in millimeters)
+24 hours precipitation amounts of specified return period for a provided
+area or a spot. Rasters of daily maxima were derived from statistics
+published by Samaj et al. in 1985, which were based on precipitation
+series observed in 1901-1980. Calculated average value (in millimeters)
 is then reduced to the chosen length of design rain event.
 
-<h2>NOTES</h2>
+## NOTES
 
 Subday design precipitation series are important for hydrological
 modelling and soil erosion problems in a small catchment scale when
 designing common measures for promoting water retention, landscape
 drainage systems, flood mitigation measures etc.
 
-<p>
-First automatization has been implemented by well-known method
-which is based on reduction of 24 hours design precipitation to
-shorter time. GIS can used for spatial supervised classification of
-point values of specified return periods (2, 10, 20, 50 and 100
-years).
+First automatization has been implemented by well-known method which is
+based on reduction of 24 hours design precipitation to shorter time. GIS
+can used for spatial supervised classification of point values of
+specified return periods (2, 10, 20, 50 and 100 years).
 
-<center>
 <table>
-<tr>
-<td><img src="r_subdayprecip_design_basin.png"></td>
-<td><img src="r_subdayprecip_design_h_rast.png"></td>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><img src="r_subdayprecip_design_basin.png" alt="image-alt" /></td>
+<td><img src="r_subdayprecip_design_h_rast.png" alt="image-alt" /></td>
 </tr>
-<tr>
-<td><em>Figure: Basins (in orange) with orthophoto<br> on background</em></td>
-<td><em>Figure: Return periods (2, 10, 20, 50 years)<br> in the area of the Czech Republic</em></td>
+<tr class="even">
+<td><em>Figure: Basins (in orange) with orthophoto<br />
+on background</em></td>
+<td><em>Figure: Return periods (2, 10, 20, 50 years)<br />
+in the area of the Czech Republic</em></td>
 </tr>
+</tbody>
 </table>
 
+![image-alt](r_subdayprecip_design_result.png)
 
-<img src="r_subdayprecip_design_result.png">
-<p>
-<em>Figure: IV.order basins colored by mean H_N2T60 value (in millimeters)</em>
+*Figure: IV.order basins colored by mean H\_N2T60 value (in
+millimeters)*
 
-</center>
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 r.subdayprecip.design map=basin return_period=N2,N5,N10,N20 rainlength=60
-</pre></div>
+```
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<ul>
-  <li>Landa M., Kavka P., Strouhal
-    L. (2015). <a href="https://web.archive.org/web/20170525233617/http://geomatica.como.polimi.it/workbooks/n12/">A
-    GIS tool for reduction day precipitation to subday</a>
-    (<a href="https://www.geolab.polimi.it/wp-content/uploads/GW12_FOSS4G-eu15.pdf#page=743">poster</a>)</li>
-  <li>Tomasu
-    M. (2013). <a href="https://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf">Tvorba
-    nastoje pro sestaveni kratkodobych navrhovych destu na zaklade
-    rizene interpolace a redukce</a> (in Czech)</li>
-  <li>Torfs, P. J. J. F., Horacek, S., & Rakovec,
-    O. (2010). Chimera, a framework for conceptual modelling using
-    analytical sensitives to parameters: implementation and
-    application to PDM model.</li>
-  <li>Sokol, Z., & Bliznak, V. (2009). Areal distribution and
+  - Landa M., Kavka P., Strouhal L. (2015). [A GIS tool for reduction
+    day precipitation to
+    subday](https://web.archive.org/web/20170525233617/http://geomatica.como.polimi.it/workbooks/n12/)
+    ([poster](https://www.geolab.polimi.it/wp-content/uploads/GW12_FOSS4G-eu15.pdf#page=743))
+  - Tomasu M. (2013). [Tvorba nastoje pro sestaveni kratkodobych
+    navrhovych destu na zaklade rizene interpolace a
+    redukce](https://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf)
+    (in Czech)
+  - Torfs, P. J. J. F., Horacek, S., & Rakovec, O. (2010). Chimera, a
+    framework for conceptual modelling using analytical sensitives to
+    parameters: implementation and application to PDM model.
+  - Sokol, Z., & Bliznak, V. (2009). Areal distribution and
     precipitation-altitude relationship of heavy short-term
-    precipitation in the Czech Republic in the warm part of the
-    year. Atmospheric Research, 94(4), 652-662.</li>
-</ul>
+    precipitation in the Czech Republic in the warm part of the year.
+    Atmospheric Research, 94(4), 652-662.
 
-<h3>Acknowledgement</h3>
+### Acknowledgement
 
-This work has been supported by
-the <a href="https://rain.fsv.cvut.cz">research project QJ1520265</a> -
-&quot;Variability of Short-term Precipitation and Runoff in Small
-Czech Drainage Basins and its Influence on Water Resources
-Management&quot;.
+This work has been supported by the [research project
+QJ1520265](https://rain.fsv.cvut.cz) - "Variability of Short-term
+Precipitation and Runoff in Small Czech Drainage Basins and its
+Influence on Water Resources Management".
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a>
-</em>
+*[v.rast.stats](https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html),
+[v.what.rast](https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Martin Landa, GeoForAll (OSGeoREL) Lab, Czech Technical University in Prague, Czech
-Republic<br>
-
+Martin Landa, GeoForAll (OSGeoREL) Lab, Czech Technical University in
+Prague, Czech Republic  
 The module is inspired by Python script developed for Esri ArcGIS
 platform by M. Tomasu in 2013.

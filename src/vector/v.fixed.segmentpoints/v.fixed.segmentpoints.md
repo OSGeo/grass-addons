@@ -1,43 +1,35 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.fixed.segmentpoints</em> creates segment points along a vector
-line with fixed distances by using the <em>v.segment</em> module. A
-category of one line has to be given. Start and end point of the line
-will be considered. The distance option is limited to an integer number.
-As a <em>prefix</em> (starting with a letter) has to be given, resulting
-vectors are <em>prefix</em>_singleline and
-<em>prefix</em>_segmentpoints, resulting external files are
-<em>prefix</em>_segmentpoints and <em>prefix</em>_segmentpoints.csv.
+*v.fixed.segmentpoints* creates segment points along a vector line with
+fixed distances by using the *v.segment* module. A category of one line
+has to be given. Start and end point of the line will be considered. The
+distance option is limited to an integer number. As a *prefix* (starting
+with a letter) has to be given, resulting vectors are
+*prefix*\_singleline and *prefix*\_segmentpoints, resulting external
+files are *prefix*\_segmentpoints and *prefix*\_segmentpoints.csv.
 
-<p>
 The next to last point may be closer to the last point as the given
 distance. Distance information for every point is added to the vector
-attribute table. The attribute is then exported as CSV file.
+attribute table. The attribute is then exported as CSV file. The
+*category (cat)* of the input line is stored in the column *cat\_line*
+of the *prefix*\_segmentpoints attribute table.
 
-The <em>category (cat)</em> of the input line is stored in the column
-<em>cat_line</em> of the <em>prefix</em>_segmentpoints attribute table.
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code">
- <pre>
+```sh
   # NC sample data set
   v.fixed.segmentpoints vector=streams@PERMANENT cat=40102 dir=C:\tmp distance=25
- </pre>
-</div>
+ 
+```
 
-<h2>DEPENDENCIES</h2>
+## DEPENDENCIES
 
-<ul>
-<li>v.segment</li>
-</ul>
+  - v.segment
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a>
-</em>
+*[v.segment](https://grass.osgeo.org/grass-stable/manuals/v.segment.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky

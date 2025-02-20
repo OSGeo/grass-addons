@@ -1,145 +1,137 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.hants</em> performs a Harmonic ANalysis of Time Series (HANTS) analysis
-in order to estimate missing values and identify outliers. For each input map,
-an output map with the suffix <em>suffix</em> (default: _hants) is created.
+*r.hants* performs a Harmonic ANalysis of Time Series (HANTS) analysis
+in order to estimate missing values and identify outliers. For each
+input map, an output map with the suffix *suffix* (default: \_hants) is
+created.
 
-<p>
-The option <b>nf</b>, number of frequencies, should be carefully chosen.
+The option **nf**, number of frequencies, should be carefully chosen.
 Different numbers of frequencies should be tested first on a small test
 region before running the module on the full region. As a rule of thumb,
-the number of frequencies should be at least
-<em>estimated periodicity + 3</em>, e.g. for NDVI with an annual cycle
-(one peak per year), the number of frequencies should be at least 4 when
-analysing one year. If two peaks are assumed per year, the number of
-frequencies should be at least 5 when analysing one year.
+the number of frequencies should be at least *estimated periodicity +
+3*, e.g. for NDVI with an annual cycle (one peak per year), the number
+of frequencies should be at least 4 when analysing one year. If two
+peaks are assumed per year, the number of frequencies should be at least
+5 when analysing one year.
 
-<p>The number of frequencies should not be too large, either. With a large
+The number of frequencies should not be too large, either. With a large
 number of frequencies, outliers can no longer be identified because the
-fit is &quot;too good&quot;, i.e. outliers can be represented by the
-estimates of the curve. Moreover, the number of frequencies should be
-smaller than <em>n input maps / 2</em> if missing values should be
-reconstructed.
+fit is "too good", i.e. outliers can be represented by the estimates of
+the curve. Moreover, the number of frequencies should be smaller than *n
+input maps / 2* if missing values should be reconstructed.
 
-<h2>NOTES</h2>
+## NOTES
 
-The optional <em>amplitude</em> and <em>phase</em> output maps contain
-the amplitude and phase for each frequency. The amplitude maps can be
-used to identify the dominant frequency with <em>r.series
-method=max_raster</em>. The baseline frequeny (base period) has the
-suffix <em>.0</em>, its first harmonic has the suffix <em>.1</em>, its
-second harmonic has the suffix <em>.2</em>, etc. The value of the
-output of <em>r.series method=max_raster</em> is identical to the
-number of the suffix. With the <em>amplitude</em> output maps for NDVI
-input, this can be used to determine the number of peaks in vegetation
-growth within the base period, where 0 (zero) means that the dominant
-frequency is the base period, i.e. one peak per base period.
+The optional *amplitude* and *phase* output maps contain the amplitude
+and phase for each frequency. The amplitude maps can be used to identify
+the dominant frequency with *r.series method=max\_raster*. The baseline
+frequeny (base period) has the suffix *.0*, its first harmonic has the
+suffix *.1*, its second harmonic has the suffix *.2*, etc. The value of
+the output of *r.series method=max\_raster* is identical to the number
+of the suffix. With the *amplitude* output maps for NDVI input, this can
+be used to determine the number of peaks in vegetation growth within the
+base period, where 0 (zero) means that the dominant frequency is the
+base period, i.e. one peak per base period.
 
-<p>
 HANTS operates in time, i.e. it looks at the time series of each cell.
 To fit a harmonic curve, it requires that the time series of each cell
 has a minimum amount of valid data. The number of valid observations
 must always be greater than or equal to the number of parameters that
 describe the harmonic curve (2 x nf - 1). The user can decide to use
-more observations than this minimum required. The option <b>dod</b>
-(degree of over-determination) is the minimum number of &quot;extra&quot;
-valid observations that should be considered to fit the curve. This
-parameter is optional, but it is recommended to be set.
+more observations than this minimum required. The option **dod** (degree
+of over-determination) is the minimum number of "extra" valid
+observations that should be considered to fit the curve. This parameter
+is optional, but it is recommended to be set.
 
-<p>
-In general, HANTS discards some information trying to represent the input
-time series with a limited number of sine/cosine functions. Therefore,
-most of the times, 1) it does not provide an exact match with the input
-data and, 2) it produces a smoothed output. With more frequencies, it is
-possible to get a better match with the input data, but also potential
-overshoots. The latter can be alleviated by setting dod &gt; 0 at the
-cost of further smoothing in the output.
+In general, HANTS discards some information trying to represent the
+input time series with a limited number of sine/cosine functions.
+Therefore, most of the times, 1) it does not provide an exact match with
+the input data and, 2) it produces a smoothed output. With more
+frequencies, it is possible to get a better match with the input data,
+but also potential overshoots. The latter can be alleviated by setting
+dod \> 0 at the cost of further smoothing in the output.
 
-<p>
-The <em>range</em> parameter can be set to <em>low,high</em> thresholds:
-values outside of this range are treated as NULL. The <em>low,high</em>
-thresholds are floating point, so use <em>-inf</em> or <em>inf</em> for
-a single threshold (e.g., <em>range=0,inf</em> to ignore negative
-values, or <em>range=-inf,-200.4</em> to ignore values above -200.4).
+The *range* parameter can be set to *low,high* thresholds: values
+outside of this range are treated as NULL. The *low,high* thresholds are
+floating point, so use *-inf* or *inf* for a single threshold (e.g.,
+*range=0,inf* to ignore negative values, or *range=-inf,-200.4* to
+ignore values above -200.4).
 
-<p>
-The length of the <em>base_period</em> is by default the number of input
-maps. If the user wants a base period of one year and the <em>input</em>
-or <em>file</em> options (note that they are mutually exclusive) provides
-a list of maps covering one year, then there is no need to set the base
-period. Besides, if the input maps are equidistant in time, e.g. every
-8 days, there is no need to set <em>time_steps</em>. However, if the
-interval is not constant (i.e. masp are not equidistant), the user needs
-to assign time steps. These must always increase (i.e. each time step
-must be larger than the previous one) and the total number of time steps
-must be equal to the number of input maps.
+The length of the *base\_period* is by default the number of input maps.
+If the user wants a base period of one year and the *input* or *file*
+options (note that they are mutually exclusive) provides a list of maps
+covering one year, then there is no need to set the base period.
+Besides, if the input maps are equidistant in time, e.g. every 8 days,
+there is no need to set *time\_steps*. However, if the interval is not
+constant (i.e. masp are not equidistant), the user needs to assign time
+steps. These must always increase (i.e. each time step must be larger
+than the previous one) and the total number of time steps must be equal
+to the number of input maps.
 
-<p>
-Optionally, low and/or high outliers can be removed by means of the
-<em>-l</em> and <em>-h</em> flags, respectively. In this case, the
-parameter <b>fet</b> (fit error tolerance) must be provided. The
-value of fet is relative to the value range of the variable being
-considered. For further details on the usage of the option fet, see
-Roerink et al. (2000).
+Optionally, low and/or high outliers can be removed by means of the *-l*
+and *-h* flags, respectively. In this case, the parameter **fet** (fit
+error tolerance) must be provided. The value of fet is relative to the
+value range of the variable being considered. For further details on the
+usage of the option fet, see Roerink et al. (2000).
 
-<p>
 The maximum number of raster maps that can be processed is given by the
-user-specific limit of the operating system. For example, the soft limits
-for users are typically 1024. The soft limit can be changed with e.g.
-<tt>ulimit -n 4096</tt> (UNIX-based operating systems) but it cannot be
-higher than the hard limit. If the latter is too low, you can as superuser
-add an entry in:
+user-specific limit of the operating system. For example, the soft
+limits for users are typically 1024. The soft limit can be changed with
+e.g. `ulimit -n 4096` (UNIX-based operating systems) but it cannot be
+higher than the hard limit. If the latter is too low, you can as
+superuser add an entry in:
 
-<div class="code"><pre>
+```sh
 /etc/security/limits.conf
-# &lt;domain&gt;      &lt;type&gt;  &lt;item&gt;         &lt;value&gt;
+# <domain>      <type>  <item>         <value>
 your_username  hard    nofile          4096
-</pre></div>
+```
 
 This will raise the hard limit to 4096 files. Also have a look at the
 overall limit of the operating system
-<div class="code"><pre>
+
+```sh
 cat /proc/sys/fs/file-max
-</pre></div>
+```
+
 which on modern Linux systems is several 100,000 files.
 
-<p>
-Use the <b>-z</b> flag to analyze large amounts of raster maps without
-hitting open files limit and the <em>file</em> option to avoid hitting
-the size limit of command line arguments.
-Note that the computation using the <em>file</em> option is slower than
-with the <em>input</em> option.
-For every single row in the output map(s) all input maps are opened and
-closed. The amount of RAM will rise linearly with the number of
-specified input maps. The <em>input</em> and <em>file</em> options are
-mutually exclusive: the former is a comma separated list of raster map
-names and the latter is a text file with a new line separated list of
-raster map names. Note that the order of maps in one option or
-the other is very important.
+Use the **-z** flag to analyze large amounts of raster maps without
+hitting open files limit and the *file* option to avoid hitting the size
+limit of command line arguments. Note that the computation using the
+*file* option is slower than with the *input* option. For every single
+row in the output map(s) all input maps are opened and closed. The
+amount of RAM will rise linearly with the number of specified input
+maps. The *input* and *file* options are mutually exclusive: the former
+is a comma separated list of raster map names and the latter is a text
+file with a new line separated list of raster map names. Note that the
+order of maps in one option or the other is very important.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<h3>Average temperature data example</h3>
-This small example is based on a climatic dataset for North Carolina which
-was from publicly available data (monthly temperature averages and monthly
-precipitation sums from 2000 to 2012, downloadable as
-<a href="http://courses.ncsu.edu/mea592/common/media/02/nc_climate_spm_2000_2012.zip">GRASS GIS 7 location</a>):
+### Average temperature data example
 
+This small example is based on a climatic dataset for North Carolina
+which was from publicly available data (monthly temperature averages and
+monthly precipitation sums from 2000 to 2012, downloadable as [GRASS
+GIS 7
+location](http://courses.ncsu.edu/mea592/common/media/02/nc_climate_spm_2000_2012.zip)):
 
-<div class="code"><pre>
+```sh
 # set computational region to one of the maps
 g.region raster=2004_03_tempmean -p
-</pre></div>
+```
 
 Visualize the time series as animation:
-<div class="code"><pre>
+
+```sh
 # note: color table is different from standard "celsius"
 g.gui.animation rast=`g.list type=raster pattern="*tempmean" sep=comma`
-</pre></div>
+```
 
-<p>
 Since HANTS is CPU intensive, we test for now at lower resolution:
-<div class="code"><pre>
+
+```sh
 g.region -p res=5000
 
 # HANTS: Harmonic analysis of the 156 input maps...
@@ -200,13 +192,14 @@ paste -d'|' time_series_orig.csv time_series_hants.csv | \
       cut -d'|' -f1,2,4,8 >> time_series_final.csv
 
 # Resulting CSV file: 'time_series_final.csv'
-</pre></div>
+```
 
-<h3>Using t.* modules to check for basic statistics</h3>
+### Using t.\* modules to check for basic statistics
 
-The temporal framework (t.* modules) can be used to assess basic statistics:
+The temporal framework (t.\* modules) can be used to assess basic
+statistics:
 
-<div class="code"><pre>
+```sh
 # create spatio temporal data set with hants output maps
 t.create type=strds temporaltype=absolute  output=tempmean_hants \
   title="Mean Temperature HANTS" description="Mean Temperature reconstructed with HANTS"
@@ -221,20 +214,20 @@ t.info type=strds input=tempmean_hants
 
 # getting statistics for each map in the series
 t.rast.univar -h tempmean_hants > stats_hants.txt
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.series</a></em>
-<em><a href="r.series.lwr.html">r.series.lwr</a></em>
+*[r.series](https://grass.osgeo.org/grass-stable/manuals/r.series.html)*
+*[r.series.lwr](r.series.lwr.md)*
 
-<h2>REFERENCES</h2>
-<p>
+## REFERENCES
+
 Roerink, G. J., Menenti, M. and Verhoef, W., 2000. Reconstructing
 cloudfree NDVI composites using Fourier analysis of time series.
-International Journal of Remote Sensing, 21 (9), 1911-1917.
-DOI: <a href="https://doi.org/10.1080/014311600209814">10.1080/014311600209814</a>
+International Journal of Remote Sensing, 21 (9), 1911-1917. DOI:
+[10.1080/014311600209814](https://doi.org/10.1080/014311600209814)
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Metz

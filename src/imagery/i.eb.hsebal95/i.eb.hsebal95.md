@@ -1,101 +1,90 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<i>i.eb.h_sebal95 </i> computes the <i>sensible heat flux</i> [W/m2]
-after Bastiaanssen, 1995 in [1].
+*i.eb.h\_sebal95* computes the *sensible heat flux* \[W/m2\] after
+Bastiaanssen, 1995 in \[1\].
 
-<p><em>i.eb.h_sebal95</em> given the vegetation height (hc), humidity (RU),
-wind speed at two meters height (WS), temperature (T), digital terrain model (DEM),
-and net radiation (NSR) raster input maps,
-calculates the sensible heat flux map (h0).
+*i.eb.h\_sebal95* given the vegetation height (hc), humidity (RU), wind
+speed at two meters height (WS), temperature (T), digital terrain model
+(DEM), and net radiation (NSR) raster input maps, calculates the
+sensible heat flux map (h0).
 
-<p>Optionally the user can activate a flag (-z)
-that allows him setting to zero all of the negative evapotranspiration cells;
-in fact these negative values motivated by the condensation of the air water
-vapour content, are sometime undesired because they can produce  computational
-problems. The usage of the flag -n detect that the module is run in night hours
-and the appropriate soil heat flux is calculated.
+Optionally the user can activate a flag (-z) that allows him setting to
+zero all of the negative evapotranspiration cells; in fact these
+negative values motivated by the condensation of the air water vapour
+content, are sometime undesired because they can produce computational
+problems. The usage of the flag -n detect that the module is run in
+night hours and the appropriate soil heat flux is calculated.
 
-<p>The algorithm implements well known approaches: the hourly
+The algorithm implements well known approaches: the hourly
 Penman-Monteith method as presented in Allen et al. (1998) for land
-surfaces and the Penman method (Penman, 1948) for water surfaces.<br>
+surfaces and the Penman method (Penman, 1948) for water surfaces.  
 
-<p>Land and water surfaces are idenfyied by Vh:<br>
--	where Vh less than 0 vegetation is present and evapotranspiration is calculated;<br>
--	where Vh=0 bare ground is present and evapotranspiration is calculated;<br>
--	where Vh more than 0 water surface is present and evaporation is calculated;<br>
+Land and water surfaces are idenfyied by Vh:  
+\- where Vh less than 0 vegetation is present and evapotranspiration is
+calculated;  
+\- where Vh=0 bare ground is present and evapotranspiration is
+calculated;  
+\- where Vh more than 0 water surface is present and evaporation is
+calculated;  
 
-<p>For more details on the algorithms see [1].
+For more details on the algorithms see \[1\].
 
+### Parameters:
 
-<h3>Parameters:</h3>
-<dl>
- <dt><b>DEM</b>=<I>name</I>
- <dd>Input elevation raster [m a.s.l.]. Required.</dd>
+  - **DEM**=*name*  
+    Input elevation raster \[m a.s.l.\]. Required.
+  - **T**=*name*  
+    Input temperature raster \[°C\]. Required.
+  - **RH** =*name*  
+    Input relative humidity raster \[%\]. Required.
+  - **WS** =*name*  
+    Input wind speed at two meters raster \[m/s\]. Required.
+  - **NSR** =*name*  
+    Input net solar radiation raster \[MJ/(m2\*h)\]. Required.
+  - **Vh** =*name*  
+    Input vegetation heigth raster \[m\]. Required.
+  - **ETP** =*name*  
+    Output evapotranspiration raster \[mm/h\]. Required.
 
- <dt><b>T</b>=<I>name</I>
- <dd>Input temperature raster [&deg;C]. Required.</dd>
+## NOTES
 
- <dt><b>RH</b> =<I>name</I>
- <dd>Input relative humidity raster [%]. Required.</dd>
+Net solar radiation map in MJ/(m2\*h) can be computed from the
+combination of the *r.sun*, run in mode 1, and the r.mapcalc commands.**
 
- <dt><b>WS</b> =<I>name</I>
- <dd>Input wind speed at two meters raster [m/s]. Required.</dd>
+The sum of the three radiation components outputted by r.sun (beam,
+diffuse, and reflected) multiplied by the Wh to Mj conversion factor
+(0.0036) and optionally by a clear sky factor \[0-1\] allows the
+generation of a map to be used as an NSR input for the *i.evapo.pm*
+command.  
+example:  
+r.sun elev\_in=dem asp\_in=aspect slope\_in=slope lin=2 albedo=alb\_Mar
+\\ incidout=out beam\_rad=beam diff\_rad=diffuse refl\_rad=reflected
+day=73 time=13:00 dist=100;  
+r.mapcalc 'NSR=0.0036\*(beam+diffuse+reflected)';
 
- <dt><b>NSR</b> =<I>name</I>
- <dd>Input net solar radiation raster [MJ/(m2*h)]. Required.</dd>
+## SEE ALSO
 
- <dt><b>Vh</b> =<I>name</I>
- <dd>Input vegetation heigth raster [m]. Required.</dd>
+*[i.eb.h\_iter](i.eb.h_iter.md), [i.eb.h0](i.eb.h0.md),
+[i.evapo.pm](i.evapo.pm.md)*
 
- <dt><b>ETP</b> =<I>name</I>
- <dd>Output evapotranspiration raster [mm/h]. Required.</dd>
+## REFERENCES
 
-</dl>
+\[1\] Bastiaanssen, W.G.M., 1995. Estimation of Land surface paramters
+by remote sensing under clear-sky conditions. PhD thesis, Wageningen
+University, Wageningen, The Netherlands.
 
+\[2\] Allen, R.G., L.S. Pereira, D. Raes, and M. Smith. 1998. Crop
+Evapotranspiration: Guidelines for computing crop water requirements.
+Irrigation and Drainage Paper 56, Food and Agriculture Organization of
+the United Nations, Rome, pp. 300
 
-<h2>NOTES</h2>
+\[3\] Penman, H. L. 1948. Natural evaporation from open water, bare soil
+and grass. Proc. Roy. Soc. London, A193, pp. 120-146.
 
-<p>Net solar radiation map in MJ/(m2*h) can be computed from the
-combination of the <em>r.sun<em>, run in mode 1, and the r.mapcalc
-commands.
+## AUTHOR
 
-<p>The sum of the three radiation components outputted by r.sun (beam, diffuse, and reflected)
-multiplied by the Wh to Mj conversion factor (0.0036) and optionally by a
-clear sky factor [0-1] allows the generation of a map to be used as
-an NSR input for the <em>i.evapo.pm</em> command.
-<br>
-example:
-<br>r.sun elev_in=dem asp_in=aspect slope_in=slope lin=2 albedo=alb_Mar \
-    incidout=out beam_rad=beam diff_rad=diffuse refl_rad=reflected day=73 time=13:00 dist=100;
-<br>r.mapcalc 'NSR=0.0036*(beam+diffuse+reflected)';
+Yann Chemin  
+International Rice Research Institute, Los Banos, The Philippines.  
+International Water management Institute, Colombo, Sri Lanka.
 
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="i.eb.h_iter.html">i.eb.h_iter</a>,
-<a href="i.eb.h0.html">i.eb.h0</a>,
-<a href="i.evapo.pm.html">i.evapo.pm</a>
-</em>
-
-<h2>REFERENCES</h2>
-
-  <p>[1] Bastiaanssen, W.G.M., 1995.
-  Estimation of Land surface paramters by remote sensing under clear-sky conditions. PhD thesis, Wageningen University, Wageningen, The Netherlands.
-
-  <p>[2] Allen, R.G., L.S. Pereira, D. Raes, and M. Smith. 1998.
-  Crop Evapotranspiration: Guidelines for computing crop water requirements.
-  Irrigation and Drainage Paper 56, Food and Agriculture Organization of the
-  United Nations, Rome, pp. 300
-
-  <p>[3] Penman, H. L. 1948. Natural evaporation from open water,
-  bare soil and grass. Proc. Roy. Soc. London, A193, pp. 120-146.
-
-
-<h2>AUTHOR</h2>
-
-Yann Chemin
-<br>International Rice Research Institute, Los Banos, The Philippines.
-<br>International Water management Institute, Colombo, Sri Lanka.
-
-<p>Contact: <a href="mailto:y.chemin@cgiar.org"> Yann Chemin</a>
+Contact: [Yann Chemin](mailto:y.chemin@cgiar.org)

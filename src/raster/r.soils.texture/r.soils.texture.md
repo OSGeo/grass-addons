@@ -1,31 +1,38 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.soils.texture</em> define soils texture from sand and clay
-distribution grid and a texture scheme definition.
-<br>
-Sand and clay grid are simple grid theme; scheme file is text
-ASCII file with *.dat extention like USDA.dat, FAO.dat and
-nternational.dat supplied with source code module in scheme
-directory.
-You can download *.dat files from the
-<a href="https://github.com/OSGeo/grass-addons/tree/grass8/src/raster/r.soils.texture/scheme">GRASS GIS addons repository</a>
+*r.soils.texture* define soils texture from sand and clay distribution
+grid and a texture scheme definition.  
+Sand and clay grid are simple grid theme; scheme file is text ASCII file
+with \*.dat extention like USDA.dat, FAO.dat and nternational.dat
+supplied with source code module in scheme directory. You can download
+\*.dat files from the [GRASS GIS addons
+repository](https://github.com/OSGeo/grass-addons/tree/grass8/src/raster/r.soils.texture/scheme)
 
-<h2>SEE ALSO<br></h2>
+## SEE ALSO  
 
-<em><a href="https://grass.osgeo.org/programming8/">GRASS 8 Programmer's Manual</a></em>
+*[GRASS 8 Programmer's Manual](https://grass.osgeo.org/programming8/)*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<p>Bourke P., 1987 Determining if a point lies on the interior of a polygon. Downloaded printed</p>
-<p>Neteler M. and H. Mitasova  2004  Open Source GIS: A GRASS GIS Approach - Kluwer Academic Publisher/Springer, Boston, -Second edition ISBN: 1-4020-8064-6</p>
-<p>Sanesi G., 2000 - Elementi di pedologia - Edagricole, Bologna</p>
-<p>Texture AutoLookup (TAL) ver 4.2, 2002 </p>
-<p>Van Rossum G. - 2005 - Manuale di riferimento di python - Ed. Italiana, Fred L. Drake, Jr., editor</p>
-<p>WATTON J. D., 1997 - Comparing C, Fortran, Lisp, java, python, perl,
-scheme (guile), and tcl using a floating point numerical test - point inside
-polygon. Applied mathematics and computer technology center alcoa technical
-center. Distribution documents.</p>
+Bourke P., 1987 Determining if a point lies on the interior of a
+polygon. Downloaded printed
 
-<h2>AUTHOR</h2>
+Neteler M. and H. Mitasova 2004 Open Source GIS: A GRASS GIS Approach -
+Kluwer Academic Publisher/Springer, Boston, -Second edition ISBN:
+1-4020-8064-6
 
-Gianluca Massei (g_massa@libero.it)
+Sanesi G., 2000 - Elementi di pedologia - Edagricole, Bologna
+
+Texture AutoLookup (TAL) ver 4.2, 2002
+
+Van Rossum G. - 2005 - Manuale di riferimento di python - Ed. Italiana,
+Fred L. Drake, Jr., editor
+
+WATTON J. D., 1997 - Comparing C, Fortran, Lisp, java, python, perl,
+scheme (guile), and tcl using a floating point numerical test - point
+inside polygon. Applied mathematics and computer technology center alcoa
+technical center. Distribution documents.
+
+## AUTHOR
+
+Gianluca Massei (g\_massa@libero.it)

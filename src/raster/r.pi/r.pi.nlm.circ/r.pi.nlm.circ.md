@@ -1,81 +1,58 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.pi.nlm.circ</em> is a random patch generator. It creates a random
+*r.pi.nlm.circ* is a random patch generator. It creates a random
 landscape with defined attributes.
 
-<h2>NOTES</h2>
+## NOTES
 
 The user must specify the names of the raster map layers to be used for
-<em>input</em> and <em>output</em>, the <em>landcover</em>, the
-<em>size</em>, the <em>count</em> used, the <em>keyval</em> of the
-class of interest of the input raster map.
+*input* and *output*, the *landcover*, the *size*, the *count* used, the
+*keyval* of the class of interest of the input raster map.
 
-<dl>
-<dt><b>Input</b>
+  - **Input**  
+    The *Input* is potentially used for Landcover, size and count.
+  - **keyval**  
+    The *keyval* is used to compute landcover and count if not declared.
+  - **landcover**  
+    The *landcover* defines the amount of cover, if not declared, the
+    landcover of keyval of input is used.
+  - **count**  
+    The *count* defines the amount of patches in the landscape, if not
+    defined, the amount of patches in the input is used, if 0 is
+    inserted, random amount of patches are created. Values from 1-n can
+    be defined for a fixed number of patches.
+  - **size**  
+    The *size* defines the size of the artificial landscape. If not
+    declared the size of the actual region is taken.
+  - **seed**  
+    The *seed* defiens the seed of random points. If all settings and
+    the seed is fixed, then the patches won't be random anymore, but
+    fixed. The user will receive everytime the same landscape.
+  - **xxx**  
+    The *xxx* ....
+  - **xxx**  
+    The *xxx* ....
 
-<dd>The <em>Input</em> is potentially used for Landcover, size and count.
-
-<dt><b>keyval</b>
-
-<dd>The <em>keyval</em> is used to compute landcover and count if not declared.
-
-<dt><b>landcover</b>
-
-<dd>The <em>landcover</em> defines the amount of cover, if not declared,
-the landcover of keyval of input is used.
-
-<dt><b>count</b>
-
-<dd>The <em>count</em> defines the amount of patches in the landscape,
-if not defined, the amount of patches in the input is used, if 0 is inserted,
-random amount of patches are created. Values from 1-n can be defined for
-a fixed number of patches.
-
-<dt><b>size</b>
-
-<dd>The <em>size</em> defines the size of the artificial landscape. If
-not declared the size of the actual region is taken.
-
-
-<dt><b>seed</b>
-
-<dd>The <em>seed</em> defiens the seed of random points. If all settings
-and the seed is fixed, then the patches won't be random anymore, but
-fixed. The user will receive everytime the same landscape.
-
-<dt><b>xxx</b>
-
-<dd>The <em>xxx</em> ....
-
-<dt><b>xxx</b>
-
-<dd>The <em>xxx</em> ....
-
-</dl>
-
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
 An example for the North Carolina sample dataset:
 
-<div class="code"><pre>
+```sh
 g.region -d
 ...
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.nlm.html">r.pi.nlm</a>,
-<a href="r.pi.nlm.stats.html">r.pi.nlm.stats</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
+*[r.pi.nlm](r.pi.nlm.md), [r.pi.nlm.stats](r.pi.nlm.stats.md),
+[r.pi](r.pi.md)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

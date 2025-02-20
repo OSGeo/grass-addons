@@ -1,180 +1,161 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The <em>r.edm.eval</em> addon returns a few evaluation statistics,
-including the area under the curve (AUC), the maximum true skill
-statistic (TSS), and the maximum kappa. For all three statistics, the
-corresponding probability threshold values are also given. Optionally,
-it draws the receiver operating characteristic (ROC) curve.
+The *r.edm.eval* addon returns a few evaluation statistics, including
+the area under the curve (AUC), the maximum true skill statistic (TSS),
+and the maximum kappa. For all three statistics, the corresponding
+probability threshold values are also given. Optionally, it draws the
+receiver operating characteristic (ROC) curve.
 
-<p>
 The addon takes as input a raster layer with
-observations(<em>observations</em>) and one or more
-<em>predictions</em> layers. The <em>observations</em> layer
-should be encoded with 1 (presence/cases) and 0 (absences/controls).
-The (<em>predictions</em> layer gives the predicted values (e.g., the
-outcome of a model). This typically are probability or suitability
-scores between 0 and 1, but it will work on other scales too. With two
-or more <em>predictions</em> layers, statistics are calculated for each
-prediction layer separately. This allows one to compare predictions of
-different models.
+observations(*observations*) and one or more *predictions* layers. The
+*observations* layer should be encoded with 1 (presence/cases) and 0
+(absences/controls). The (*predictions* layer gives the predicted values
+(e.g., the outcome of a model). This typically are probability or
+suitability scores between 0 and 1, but it will work on other scales
+too. With two or more *predictions* layers, statistics are calculated
+for each prediction layer separately. This allows one to compare
+predictions of different models.
 
-<p>
 By default, the prediction layer is divided in 200 bins (the user can
 change this number). For each bin, the module computes the cumulative
-true and false positives (TP, FP), true and false negatives (TN, FN), the
-true and false positive rate (TPR, FPR), the true negative rate (TNR),
-Cohen's kappa and the true skill statistic.
+true and false positives (TP, FP), true and false negatives (TN, FN),
+the true and false positive rate (TPR, FPR), the true negative rate
+(TNR), Cohen's kappa and the true skill statistic.
 
-<div class="code"><pre>
+```sh
 TPR = TP / (TP + FN)
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 FPR = FP / (FP + TN)
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 TNR = TN / (TN + FP)
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 TSS = TPR - FPR
-</pre></div>
-<div class="code"><pre>
+```
+
+```sh
 Kappa = 2 * (TP * TN - FN * FP) / ((TP + FP) * (FP + TN) + (TP + FN) * (FN + TN)))
-</pre></div>
+```
 
-<p>
-These values can be saved to a CSV file, together with the
-corresponding upper and lower boundaries of the bins values. These can
-be used to calculate additional statistics.
+These values can be saved to a CSV file, together with the corresponding
+upper and lower boundaries of the bins values. These can be used to
+calculate additional statistics.
 
-<p>
-With the <em>-b</em> flag, the module will use the fraction of
-points that is predicted to be presence/true instead of the false
-positive rate to create the ROC curve and calculate the AUC. Use this
-when the predictions are created using a model that works with
-background points instead of (pseudo-)absence points (like Maxent).
+With the *-b* flag, the module will use the fraction of points that is
+predicted to be presence/true instead of the false positive rate to
+create the ROC curve and calculate the AUC. Use this when the
+predictions are created using a model that works with background points
+instead of (pseudo-)absence points (like Maxent).
 
-<p>
-A problem with the AUC is that it varies with the spatial extent used
-to select background points (Lobo et al. 2008, Jiménez-Valverde 2012).
+A problem with the AUC is that it varies with the spatial extent used to
+select background points (Lobo et al. 2008, Jiménez-Valverde 2012).
 Generally, the larger that extent, the higher the AUC value. Therefore,
 AUC values are generally biased and cannot be directly compared. An
-admittedly simple way to evaluate this issue of changing AUC values
-with changing extents is to only use (pseudo-)absence or background
-points within certain distances of the presence points (raster cells).
-To do so, the user can use the <em>buffer</em> parameter to limit the
+admittedly simple way to evaluate this issue of changing AUC values with
+changing extents is to only use (pseudo-)absence or background points
+within certain distances of the presence points (raster cells). To do
+so, the user can use the *buffer* parameter to limit the
 absence/background points that are used to calculate the various
 statistics to those within a certain distance from the presence
 locations/areas.
 
-<p>
 The user can set the required ratio of presence and total points to be
-used in the evaluation (<em>preval</em>; value between 0 an 1). This
-allows the user to test how sensitive the evaluation statistics are for
-the prevalence of presence points.
+used in the evaluation (*preval*; value between 0 an 1). This allows the
+user to test how sensitive the evaluation statistics are for the
+prevalence of presence points.
 
-<h2>NOTES</h2>
+## NOTES
 
-The module expects an <em>reference</em> raster layer, encoded with 1
+The module expects an *reference* raster layer, encoded with 1
 (presence/cases) and 0 (absences/controls). Optionally, the user can
-define other values using the <em>absence</em> and <em>presence</em>
-parameters. If the layer contains more than 2 unique values, or if the
-layer is not of the type CELL (integer), the module will terminate with
-a warning.
+define other values using the *absence* and *presence* parameters. If
+the layer contains more than 2 unique values, or if the layer is not of
+the type CELL (integer), the module will terminate with a warning.
 
-<p>
 The selection of the best evaluation statistic depends on your data and
 what you want to test. This module provides a few only, but the user can
 calculate his/her own using the table in the CSV file. See the
 References list for a few useful references in that respect.
 
-<p>
-This module depends on the Python
-<a href="https://pandas.pydata.org/">Pandas library.</a>
+This module depends on the Python [Pandas
+library.](https://pandas.pydata.org/)
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Run this example in the "landsat" mapset of the North Carolina sample
 data set location. First, create a binary map with herbaceous land cover
 (1) and other (0). Next, create a raster layer with training pixels
-using <em>r.learn.train</em> and <em>r.learn.predict</em> from the
-<a href="r.learn.ml2.html">r.learn.ml2</a> addon.
-Note, <em>r.learn.train</em> can compute its own accuracy
-measures as well.
+using *r.learn.train* and *r.learn.predict* from the
+[r.learn.ml2](r.learn.ml2.md) addon. Note, *r.learn.train* can compute
+its own accuracy measures as well.
 
-<div class="code"><pre>
+```sh
 g.region raster=landclass96
 r.mapcalc "herbaceous = if(landclass96 == 3, 1, 0)"
 r.random input=herbaceous npoints=1000 raster=training_pixels seed=10
-</pre></div>
+```
 
-<p>
-Then we can use these training pixels to perform a classification on
-the more recently obtained landsat 7 image using <em>r.learn.train</em>.
+Then we can use these training pixels to perform a classification on the
+more recently obtained landsat 7 image using *r.learn.train*.
 
-<div class="code"><pre>
+```sh
 # train a random forest regression model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
-	model_name=RandomForestRegressor n_estimators=500 \
-	save_model=rf_model.gz cv=2
+    model_name=RandomForestRegressor n_estimators=500 \
+    save_model=rf_model.gz cv=2
 
 # perform prediction using r.learn.predict
 r.learn.predict group=lsat7_2000 load_model=rf_model.gz \
    output=rf_regressor
-</pre></div>
+```
 
-<p>
-Now we can see how well the model performed using the
-<em>r.edm.eval</em>.
+Now we can see how well the model performed using the *r.edm.eval*.
 
-<div class="code"><pre>
+```sh
 r.edm.eval -p reference=herbaceous prediction=rf_regressor
-</pre></div>
+```
 
-<p>
 The accuracy measures are printed on screen.
 
-<div class="code"><pre>
+```sh
 AUC = 0.8362
 maximum TSS = 0.5289
 maximum kappa = 0.4438
 treshold maximum TSS = 0.1118
 treshold maximum kappa = 0.2936
 treshold minimum distance to (0,1) = 0.0979
-</pre></div>
+```
 
-<p>
-And the accompanying ROC curve is shown below (the figure can
-optionally be saved to file).
+And the accompanying ROC curve is shown below (the figure can optionally
+be saved to file).
 
-<p>
-<div align="center" style="margin: 10px">
-<a href="r_edm_eval_01.png">
- <img src="r_edm_eval_01.png" alt="ROC curve" border="0">
-</a>
-</div>
+[![image-alt](r_edm_eval_01.png)](r_edm_eval_01.png)
 
-<p>
-Let's try how well a logistic regression performs, and compare this
-with the previous results.
+Let's try how well a logistic regression performs, and compare this with
+the previous results.
 
-<div class="code"><pre>
+```sh
 # train a logistic regression model using r.learn.train
 r.learn.train group=lsat7_2000 training_map=training_pixels \
-	model_name=LogisticRegression save_model=lr_model.gz cv=2
+    model_name=LogisticRegression save_model=lr_model.gz cv=2
 
 # perform prediction using r.learn.predict -p
 r.learn.predict group=lsat7_2000 load_model=lr_model.gz \
    output=lr_regressor
-</pre></div>
+```
 
-<div class="code"><pre>
+```sh
 r.edm.eval -p reference=herbaceous prediction=rf_regressor,lr_regressor_1
-</pre></div>
+```
 
-<p>
 The accuracy measures are printed on screen.
 
-<div class="code"><pre>
+```sh
 AUC = 0.8362
 maximum TSS = 0.5289
 maximum kappa = 0.4438
@@ -189,54 +170,42 @@ maximum kappa = 0.4669
 treshold maximum TSS = 0.1047
 treshold maximum kappa = 0.1995
 treshold minimum distance to (0,1) = 0.0848
-</pre></div>
+```
 
-And the accompanying ROC curve is shown below (the figure can optionally be saved to file).
+And the accompanying ROC curve is shown below (the figure can optionally
+be saved to file).
 
-<p>
-<div align="center" style="margin: 10px">
-<a href="r_edm_eval_02.png">
- <img src="r_edm_eval_02.png"
-      alt="ROC curve of random forest regression model and logistic regression model." border="0">
-</a></div>
+[![image-alt](r_edm_eval_02.png)](r_edm_eval_02.png)
 
-
-<h2>REFERENCES</h2>
+## REFERENCES
 
 Jiménez-Valverde, A. 2012. Insights into the area under the receiver
 operating characteristic curve (AUC) as a discrimination measure in
 species distribution modelling. Global Ecology and Biogeography 21:
 498-507
 
-<p>
-Lobo, J. M., Jim&eacute;nez-Valverde, A., &amp; Real, R. 2008. AUC: a
-misleading measure of the performance of predictive distribution
-models. Global Ecology and Biogeography 17: 145-151.
+Lobo, J. M., Jiménez-Valverde, A., & Real, R. 2008. AUC: a misleading
+measure of the performance of predictive distribution models. Global
+Ecology and Biogeography 17: 145-151.
 
-<p>
 Hijmans, R. J. 2012. Cross-validation of species distribution models:
-removing spatial sorting bias and calibration with a null model.
-Ecology 93: 679-688.
+removing spatial sorting bias and calibration with a null model. Ecology
+93: 679-688.
 
-<p>
-Allouche, O., Tsoar, A., &amp; Kadmon, R. 2006. Assessing the accuracy of
+Allouche, O., Tsoar, A., & Kadmon, R. 2006. Assessing the accuracy of
 species distribution models: prevalence, kappa and the true skill
 statistic (TSS). Journal of Applied Ecology 43: 1223-1232.
 
-<p>
-McPherson, J. M., Jetz, W., &amp; Rogers, D. J. 2004. The effects of
+McPherson, J. M., Jetz, W., & Rogers, D. J. 2004. The effects of
 species' range sizes on the accuracy of distribution models: ecological
 phenomenon or statistical artefact? Journal of Applied Ecology 41:
 811-823.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.confusionmatrix.html">r.confusionmatrix</a>,
-<a href="r.learn.ml2.html">r.learn.ml2</a>
-</em>
+*[r.confusionmatrix](r.confusionmatrix.md),
+[r.learn.ml2](r.learn.ml2.md)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Paulo van Breugel

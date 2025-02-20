@@ -1,39 +1,35 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.gravity</em> calculates the Bouguer gravity anomaly (after Mussett and Khan).
-<br>
- Bouguer anomaly computation require:
-<ul>
- <li> g_obs=observed gravity
- <li> freeair_corr=free air correction
- <li> bouguer_corr=bouguer correction
- <li> terrain_corr=terrain correction
- <li> latitude_corr=latitude correction
- <li> eotvos_corr=eotvos correction
-</ul>
+*i.gravity* calculates the Bouguer gravity anomaly (after Mussett and
+Khan).  
+Bouguer anomaly computation require:
 
-<h2>NOTES</h2>
+  - g\_obs=observed gravity
+  - freeair\_corr=free air correction
+  - bouguer\_corr=bouguer correction
+  - terrain\_corr=terrain correction
+  - latitude\_corr=latitude correction
+  - eotvos\_corr=eotvos correction
 
-<ul>
-  <li> International Gravity Formula (mGal), lambda=latitude (dd)
-  <li> Eotvos correction (mGal), v=velocity (kph), lambda=latitude (dd), alpha=direction of travel measured clockwise from North
-  <li> Free air Correction (mGal), h=height (m)
-  <li> Bouguer Correction (mGal), rho=density of slab (Mg/m3), h=height (m)
-  <li>
-</ul>
+## NOTES
 
-<p>For more details on the algorithms see [1].
+  - International Gravity Formula (mGal), lambda=latitude (dd)
+  - Eotvos correction (mGal), v=velocity (kph), lambda=latitude (dd),
+    alpha=direction of travel measured clockwise from North
+  - Free air Correction (mGal), h=height (m)
+  - Bouguer Correction (mGal), rho=density of slab (Mg/m3), h=height (m)
+  - 
+For more details on the algorithms see \[1\].
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="i.latlon.html">i.latlon</a>
-</em>
+*[i.latlon](i.latlon.md)*
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-[1] Mussett, A.E. and Khan, M.A, M.A. Looking into the Earth: An Introduction to Geological Geophysics.
+\[1\] Mussett, A.E. and Khan, M.A, M.A. Looking into the Earth: An
+Introduction to Geological Geophysics.
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, University of London at Birkbeck, United Kingdom.

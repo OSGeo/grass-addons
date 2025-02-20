@@ -1,55 +1,51 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.null.all</em> manages NULL (no-data) values in all raster maps
-in the current mapset. Selection can be modified using <b>pattern</b>
-and <b>exclude</b> options. The option <b>matching</b> specifies
-the type of search pattern use. Python users will find the extended
-regular expression syntax (marked as <em>extended</em>) as most
-familiar, while Bash users may want to use <em>wildcards</em>
-(glob patterns).
+*r.null.all* manages NULL (no-data) values in all raster maps in the
+current mapset. Selection can be modified using **pattern** and
+**exclude** options. The option **matching** specifies the type of
+search pattern use. Python users will find the extended regular
+expression syntax (marked as *extended*) as most familiar, while Bash
+users may want to use *wildcards* (glob patterns).
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-All the following examples are using the <b>-d</b> flag to run in a
-<em>dry run</em> mode so that no maps are actually modified.
+All the following examples are using the **-d** flag to run in a *dry
+run* mode so that no maps are actually modified. Set all values 1 to
+NULL in all raster maps in the current mapset:
 
-Set all values 1 to NULL in all raster maps in the current mapset:
-
-<div class="code"><pre>
+```sh
 r.null.all setnull=1 -d
-</pre></div>
+```
 
-Change all NULL to zero in all raster maps in the current mapset
-which begin with letter t and their name contains at least one other
-character (using the extended regular expressions):
+Change all NULL to zero in all raster maps in the current mapset which
+begin with letter t and their name contains at least one other character
+(using the extended regular expressions):
 
-<div class="code"><pre>
+```sh
 r.null.all null=0 pattern="^t.+" matching=extended -d
-</pre></div>
+```
 
-Set all values 0 to NULL in raster maps in the current mapset
-which do not end with the digit 1 (using the wildcards syntax):
+Set all values 0 to NULL in raster maps in the current mapset which do
+not end with the digit 1 (using the wildcards syntax):
 
-<div class="code"><pre>
+```sh
 r.null.all setnull=0 exclude="*1" matching=wildcards -d
-</pre></div>
+```
 
-Set all values 0 to NULL in raster maps in the current mapset
-which do not end with the digit 1 (using extended regular expressions):
+Set all values 0 to NULL in raster maps in the current mapset which do
+not end with the digit 1 (using extended regular expressions):
 
-<div class="code"><pre>
+```sh
 r.null.all setnull=0 exclude=".*1" matching=extended -d
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html">r.null</a>,
-  <a href="g.proj.all.html">g.proj.all</a>,
-  <a href="g.copyall.html">g.copyall</a>,
-  <a href="g.rename.many.html">g.rename.many</a>
-</em>
+*[r.null](https://grass.osgeo.org/grass-stable/manuals/r.null.html),
+[g.proj.all](g.proj.all.md), [g.copyall](g.copyall.md),
+[g.rename.many](g.rename.many.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

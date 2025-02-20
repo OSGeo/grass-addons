@@ -1,99 +1,92 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-<em>i.segment.stats</em> calculates statistics for areas in a raster
-map. Areas are defined by adjacent pixels with the same value. Such
-areas can be the output of <em><a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a></em> or
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em>.
+*i.segment.stats* calculates statistics for areas in a raster map. Areas
+are defined by adjacent pixels with the same value. Such areas can be
+the output of
+*[i.segment](https://grass.osgeo.org/grass-stable/manuals/i.segment.html)*
+or
+*[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)*.
 
-<p>
-Available statistics are those related to the shape, size and position of the
-areas (see the <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html">r.object.geometry</a></em>
-man page for more information on the statistics) and aggregated statistics
-of pixel values of other raster maps (see
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> for details).
+Available statistics are those related to the shape, size and position
+of the areas (see the
+*[r.object.geometry](https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html)*
+man page for more information on the statistics) and aggregated
+statistics of pixel values of other raster maps (see
+*[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)*
+for details).
 
-<p>
-In addition, for each of the above statistics, the <b>-n</b> flag allows the
-user to request the output of the mean and the standard deviation of the values
-of the neighboring objects (all direct neighbors, diagonal neighbors included),
-which allows gathering some context information for each object. For this
-feature, the <em><a href="r.neighborhoodmatrix.html">r.neighborhoodmatrix</a></em>
-addon has to be installed. Currently, the module calculates these context
-statistics for all available shape and spectral statistics.
+In addition, for each of the above statistics, the **-n** flag allows
+the user to request the output of the mean and the standard deviation of
+the values of the neighboring objects (all direct neighbors, diagonal
+neighbors included), which allows gathering some context information for
+each object. For this feature, the
+*[r.neighborhoodmatrix](r.neighborhoodmatrix.md)* addon has to be
+installed. Currently, the module calculates these context statistics for
+all available shape and spectral statistics.
 
-<p>
 The user can chose between output in the form of a vector map of the
-areas with the statistics in the attribute table (<b>vectormap</b>)
-and/or in the form of a CSV text file (<b>csvfile</b>).
+areas with the statistics in the attribute table (**vectormap**) and/or
+in the form of a CSV text file (**csvfile**).
 
-<p>
-Because of the way <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em> functions, it
-is difficult to handle cases where in some raster maps values are all null
-in some of the areas. Because of this, <em>i.segment.stats</em> checks the
-raster maps for existing null values and excludes them if it find any, emitting
-a warning to inform the user. The user can decide to ignore this check using the
-<b>c</b> flag, for example when there are only a few null cells and no complete
-areas with only null cells (i.e. the module can calculate statistics for areas
-with some null cells in them).
+Because of the way
+*[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)*
+functions, it is difficult to handle cases where in some raster maps
+values are all null in some of the areas. Because of this,
+*i.segment.stats* checks the raster maps for existing null values and
+excludes them if it find any, emitting a warning to inform the user. The
+user can decide to ignore this check using the **c** flag, for example
+when there are only a few null cells and no complete areas with only
+null cells (i.e. the module can calculate statistics for areas with some
+null cells in them).
 
-<h2>NOTES</h2>
+## NOTES
 
-<p>
-The module respects the current region settings. The <b>-r</b> flag allows
+The module respects the current region settings. The **-r** flag allows
 to force the module to adjust the region to the input raster map before
 calculating the statistics.
 
-<p>
-This module is a simple front-end to <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></em>
+This module is a simple front-end to
+*[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html)*
 and
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html">r.object.geometry</a></em>.
-If other statistics
-are desired, these should probably be implemented in those (or other) modules
-which can then be called from this module.
+*[r.object.geometry](https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html)*.
+If other statistics are desired, these should probably be implemented in
+those (or other) modules which can then be called from this module.
 
-<p>
-Problems can arise in the calculation of some form statistics for certain
-segment forms. If errors arise, the user might want to try to run
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.clump.html">r.clump</a></em> on the input raster file before running
-<em>i.segment.stats</em>.
+Problems can arise in the calculation of some form statistics for
+certain segment forms. If errors arise, the user might want to try to
+run
+*[r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)*
+on the input raster file before running *i.segment.stats*.
 
-<p>
 When treating files with a large number objects, creating the vector map
-can be very time-consuming. In that case, it might be easier to only work
-with the <b>csvfile</b> output.
+can be very time-consuming. In that case, it might be easier to only
+work with the **csvfile** output.
 
-<p>
-The processing of several raster input files for which to calculate per-segment
-statistics can be parallelized by setting the <b>processes</b> parameter to the
-number of desired parallel processes, with at most one process per raster to
-be treated.
+The processing of several raster input files for which to calculate
+per-segment statistics can be parallelized by setting the **processes**
+parameter to the number of desired parallel processes, with at most one
+process per raster to be treated.
 
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 i.group group=landsat_pan input=lsat7_2002_80
 g.region rast=lsat7_2002_80 -p
 i.segment group=landsat_pan output=ls_pan_seg01 threshold=0.1 memory=4000 minsize=50
 i.segment.stats map=ls_pan_seg01 csvfile=segstats.csv vectormap=ls_pan_seg01 \
   rasters=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70 \
   processes=4
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.segment.html">i.segment</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html">r.object.geometry</a>
-</em>
-<p>
-<em>
-<a href="v.class.mlR.html">v.class.mlR (Addon)</a>
-</em>
+*[i.segment](https://grass.osgeo.org/grass-stable/manuals/i.segment.html),
+[r.univar](https://grass.osgeo.org/grass-stable/manuals/r.univar.html),
+[v.rast.stats](https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html),
+[r.object.geometry](https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html)*
 
-<h2>AUTHOR</h2>
+*[v.class.mlR (Addon)](v.class.mlR.md)*
+
+## AUTHOR
 
 Moritz Lennert

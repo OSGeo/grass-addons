@@ -1,63 +1,60 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.ortho.corr</em> allows to correct orthophotos using the camera
-angle map create by <em>i.ortho.photo</em>.
+*i.ortho.corr* allows to correct orthophotos using the camera angle map
+create by *i.ortho.photo*.
 
-<p>
 It creates a new image by searching further images adjacent to the input
 image. The output contains part of near images where the camera angle
 value is optimal.
-<p>
 
-<h2>NOTES</h2>
+## NOTES
 
 It requires a tile index to be created containing all the images to be
-processed (e.g., GDAL's <em>gdaltindex</em> can create that):
+processed (e.g., GDAL's *gdaltindex* can create that):
 
-<div class="code"><pre>
+```sh
 gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
-</pre></div>
+```
 
-The <em>field</em> option is used for the field's name which contains the
-path to the file, the default is <em>location</em> that it is used by
-<em>gdaltindex</em>. The <em>exclude</em> option serves to remove some
-tiles, for example when having tiles from a different flight, they can be
-excluded by passing a string or a regular expression.
+The *field* option is used for the field's name which contains the path
+to the file, the default is *location* that it is used by *gdaltindex*.
+The *exclude* option serves to remove some tiles, for example when
+having tiles from a different flight, they can be excluded by passing a
+string or a regular expression.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Create tile index:
-<div class="code"><pre>
+
+```sh
 gdaltindex tile.shp $GRASSDATA/$LOCATION/$MAPSET/cellhd/*imagery.ortho
-</pre></div>
+```
 
-<p>
 Import tile index inside the mapset
-<div class="code"><pre>
+
+```sh
 v.in.ogr dns=tile.shp out=tile_images
-</pre></div>
+```
 
-<p>
-Start <em>i.ortho.corr</em> with the default parameters, the output map's
-name will be <tt>image.ortho_corr</tt>. You can use default parameters if
-you didn't change the output prefix in i.ortho.photo:
-<div class="code"><pre>
+Start *i.ortho.corr* with the default parameters, the output map's name
+will be `image.ortho_corr`. You can use default parameters if you didn't
+change the output prefix in i.ortho.photo:
+
+```sh
 i.ortho.corr input=image.ortho tiles=tile_images
-</pre></div>
+```
 
-<p>
-Start <em>i.ortho.corr</em> with different parameters
-<div class="code"><pre>
+Start *i.ortho.corr* with different parameters
+
+```sh
 i.ortho.corr input=image.photo tiles=tile_images osuffix=.photo csuffix=.camera
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.ortho.photo.html">i.ortho.photo</a>,
-<a href="i.ortho.rectify.html">i.ortho.rectify</a>
-</em>
+*[i.ortho.photo](https://grass.osgeo.org/grass-stable/manuals/i.ortho.photo.html),
+[i.ortho.rectify](i.ortho.rectify.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Luca Delucchi, Fondazione E. Mach (Italy)

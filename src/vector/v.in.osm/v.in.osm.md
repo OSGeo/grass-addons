@@ -1,33 +1,32 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.osm</em> imports OpenStreetMap data.
+*v.in.osm* imports OpenStreetMap data.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
 Import from PostgreSQL DB:
 
-<div class="code"><pre>
+```sh
 v.in.osm input="PG:host=localhost dbname=gis user=ostepok" table=planet_osm_line \
          type=point,line output=roads where="highway is not null"
-</pre></div>
+```
 
-<p>
 Import from OSM PBF file:
 
-<div class="code"><pre>
+```sh
 v.in.osm input=saarland-latest.osm.pbf table=lines type=point,line output=roads \
          where="highway is not null"
-</pre></div>
+```
 
-<h2>REQUIREMENTS</h2>
-PostgreSQL, PostGIS, <a href="https://wiki.openstreetmap.org/wiki/Osm2pgsql">osm2pgsql</a>
+## REQUIREMENTS
 
-<h2>SEE ALSO</h2>
+PostgreSQL, PostGIS,
+[osm2pgsql](https://wiki.openstreetmap.org/wiki/Osm2pgsql)
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
+
+## AUTHOR
 
 Stepan Turek

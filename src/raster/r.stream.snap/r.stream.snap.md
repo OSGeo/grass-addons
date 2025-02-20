@@ -1,130 +1,107 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-The module <em>r.stream.snap</em> is a supplementary module for
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> and
-<em><a href="r.stream.basins.html">r.stream.basins</a></em> to correct
-the position of outlets or stream initial points as they do not lie on
-the streamlines.
+The module *r.stream.snap* is a supplementary module for
+*[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html)*
+and *[r.stream.basins](r.stream.basins.md)* to correct the position of
+outlets or stream initial points as they do not lie on the streamlines.
 
-<p>
 For the outlet, the point is snapped to the nearest point which lies on
 the streamline.
 
-<p>
-For the stream initial points, when there is a small tributary near
-the main stream, the accumulation threshold shall be high enough to
-force the program ignoring this tributary and snap to the main stream.
-If there is no accumulation map, the points will be snapped to the
-nearest stream line, which in particular situations may be wrong.
-Because the <em>r.stream.*</em> modules are prepared to work with MFD
-accumulation maps, both stream network and accumulation map are
-necessary.
+For the stream initial points, when there is a small tributary near the
+main stream, the accumulation threshold shall be high enough to force
+the program ignoring this tributary and snap to the main stream. If
+there is no accumulation map, the points will be snapped to the nearest
+stream line, which in particular situations may be wrong. Because the
+*r.stream.\** modules are prepared to work with MFD accumulation maps,
+both stream network and accumulation map are necessary.
 
-<p>
 While it is assumed that the accumulation map is a MFD map, if the
 stream network is not supplied, the snap point is calculated in
 different way: the threshold is used to select only those points in the
 search radius which have accumulation value greater than the given
 threshold. The next mean value of these points is calculated and its
-value is taken as a new threshold. This procedure guarantees that
-points are snapped to the center of the stream tube. While for inits
-small thresholds are in use, it is probable that points were snapped to
-the stream tube border instead of its center.
+value is taken as a new threshold. This procedure guarantees that points
+are snapped to the center of the stream tube. While for inits small
+thresholds are in use, it is probable that points were snapped to the
+stream tube border instead of its center.
 
-<p>
 It is strongly recommended to use both stream network (even
-pre-generated with small accumulation threshold) and accumulation
-raster map, than accumulation or stream raster map only.
+pre-generated with small accumulation threshold) and accumulation raster
+map, than accumulation or stream raster map only.
 
-<h2>OPTIONS</h2>
+## OPTIONS
 
-<dl>
-<dt><b>stream_rast</b></dt>
-<dd>Stream network created
-by <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em> or
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em>. If used, the
-points are snapped to the nearest streamline point whose accumulation
-is greater than the threshold. If the accumulation is not used, the
-point is snapped to the nearest stream.
-</dd>
+  - **stream\_rast**  
+    Stream network created by
+    *[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html)*
+    or
+    *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*.
+    If used, the points are snapped to the nearest streamline point
+    whose accumulation is greater than the threshold. If the
+    accumulation is not used, the point is snapped to the nearest
+    stream.
+  - **accumulation**  
+    Accumulation map created with
+    *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
+    and used to generate the stream network with
+    *[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html)*.
+    If the stream network is not used, the point is adaptively snapped
+    to the point where the value is greater than mean values of
+    accumulation greater than given threshold in a search radius. See
+    the description for details.
+  - **radius**  
+    Search radius (in cells). If there are no streams in the search
+    radius, the point is not snapped. If there are no cells with
+    accumulation greater than accumulation threshold, the point also is
+    not snapped.
+  - **threshold**  
+    Minimum value of accumulation to snap the point. This option is
+    added to the snap stream inits to the stream tubes and to
+    distinguish between local tributaries and main streams.
+  - **input**  
+    Vector file containing outlets or inits as vector points. Only
+    point's categories are used. Any table attached to it is ignored.
+    Every point shall have its own unique category.
+  - **output**  
+    Vector file containing outlets or inits after snapping. On layer 1,
+    the original categories are preserved, on layer 2 there are four
+    categories which mean:
+    1. skipped (not in use yet)
+    2. unresolved (points remain unsnapped due to lack of streams in
+        search radius
+    3. snapped (points snapped to streamlines)
+    4. correct (points which remain on their original position, which
+        were originally corrected)
 
-<dt><b>accumulation</b></dt>
-<dd>Accumulation map created with
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></em> and used to
-generate the stream network with
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a></em>. If
-the stream network is not used, the point is adaptively snapped to the
-point where the value is greater than mean values of accumulation
-greater than given threshold in a search radius. See the description for
-details.
-</dd>
+## EXAMPLE
 
-<dt><b>radius</b></dt>
-<dd>Search radius (in cells). If there are no streams in the search
-radius, the point is not snapped. If there are no cells with
-accumulation greater than accumulation threshold, the point also is
-not snapped.
-</dd>
-
-<dt><b>threshold</b></dt>
-<dd>Minimum value of accumulation to snap the point. This option is
-added to the snap stream inits to the stream tubes
-and to distinguish between local tributaries and main streams.
-</dd>
-
-<dt><b>input</b></dt>
-<dd>Vector file containing outlets or inits as vector points. Only
-point's categories are used. Any table attached to it is
-ignored. Every point shall have its own unique category.
-</dd>
-
-<dt><b>output</b></dt>
-<dd>Vector file containing outlets or inits after snapping. On layer 1,
-the original categories are preserved, on layer 2 there are four
-categories which mean:
-<ol>
-<li>skipped (not in use yet)
-<li>unresolved (points remain unsnapped due to lack of streams in search radius
-<li>snapped (points snapped to streamlines)
-<li>correct (points which remain on their original position, which were
-originally corrected)
-</ol>
-</dd>
-</dl>
-
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 g.region -p -a raster=elevation
 r.watershed elevation=elevation threshold=10000 drainage=dirs stream=streams accumulation=accum
 # snap a point sampled in the riverine landscape to the calculated river network
 r.stream.snap input=mysampleoutlet output=mysampleoutlet_snapped stream_rast=streams accumulation=accum
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.patch.html">r.patch</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
-<a href="r.stream.basins.html">r.stream.basins</a>,
-<a href="r.stream.channel.html">r.stream.channel</a>,
-<a href="r.stream.order.html">r.stream.order</a>,
-<a href="r.stream.segment.html">r.stream.segment</a>,
-<a href="r.stream.slope.html">r.stream.slope</a>,
-<a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="r.stream.distance.html">r.stream.distance</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
-</em>
+*[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),
+[r.patch](https://grass.osgeo.org/grass-stable/manuals/r.patch.html),
+[r.reclass](https://grass.osgeo.org/grass-stable/manuals/r.reclass.html),
+[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
+[r.stream.basins](r.stream.basins.md),
+[r.stream.channel](r.stream.channel.md),
+[r.stream.order](r.stream.order.md),
+[r.stream.segment](r.stream.segment.md),
+[r.stream.slope](r.stream.slope.md),
+[r.stream.stats](r.stream.stats.md),
+[r.stream.distance](r.stream.distance.md),
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
 
-<p>
-See
-also <a href="https://grasswiki.osgeo.org/wiki/R.stream.*_modules">r.streams.*
-modules</a> wiki page.
+See also [r.streams.\*
+modules](https://grasswiki.osgeo.org/wiki/R.stream.*_modules) wiki page.
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and Geoinformation
-Institute.
+Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and
+Geoinformation Institute.

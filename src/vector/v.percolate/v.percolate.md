@@ -1,169 +1,149 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.percolate</em> implements continuum percolation analysis.  It
-identifies clusters of point locations at multiple threshold distances
-and outputs various statistics into plain text CSV files.  See notes
-for the difference between <em>v.percolate</em>
-and <em>v.cluster</em>.
+*v.percolate* implements continuum percolation analysis. It identifies
+clusters of point locations at multiple threshold distances and outputs
+various statistics into plain text CSV files. See notes for the
+difference between *v.percolate* and *v.cluster*.
 
-<p>For each input point in an input vector map <em>v.percolate</em>
-outputs the following information at each threshdold distance:
+For each input point in an input vector map *v.percolate* outputs the
+following information at each threshdold distance:
 
-<dl>
-  <dt><code>Cat</code></dt>
-  <dd>Cat value.</dd>
-  <dt><code>&lt;fieldname&gt;</code></dt>
-  <dd>The ID of the point in a chosen field in the input vector map.</dd>
-  <dt><code>X</code></dt>
-  <dd>X coordinate (easting).</dd>
-  <dt><code>Y</code></dt>
-  <dd>Y coordinate (northing).</dd>
-  <dt><code>Membership</code></dt>
-  <dd>Cluster membership (cluster ID).</dd>
-  <dt><code>FirstChange</code></dt>
-  <dd>Iteration at which the point first joined a cluster.</dd>
-  <dt><code>LastChange</code></dt>
-  <dd>Iteration at which the point most recently joined a new cluster.</dd>
-  <dt><code>NChanges</code></dt>
-  <dd>Number of changes of cluster membership.</dd>
-  <dt><code>FirstDistance</code></dt>
-  <dd>Distance at which the point first joined a cluster.</dd>
-  <dt><code>LastDistance</code></dt>
-  <dd>Distance at which the point most recently joined a new cluster.</dd>
-  <dt><code>MaxConCoeff</code></dt>
-  <dd> Maximum connection coefficient obtained.</dd>
-  <dt><code>LastGroupConnected</code></dt>
-  <dd>The cluster ID of the most recently connected cluster (the point
-  itself may not have changed clusters)</dd>
-  <dt><code>LastDistanceConnection</code></dt>
-  <dd>Distance at which the most recently connected cluster joined
-  (the point itself may not have changed clusters)) </dd>
-</dl>
+  - `Cat`  
+    Cat value.
+  - `<fieldname>`  
+    The ID of the point in a chosen field in the input vector map.
+  - `X`  
+    X coordinate (easting).
+  - `Y`  
+    Y coordinate (northing).
+  - `Membership`  
+    Cluster membership (cluster ID).
+  - `FirstChange`  
+    Iteration at which the point first joined a cluster.
+  - `LastChange`  
+    Iteration at which the point most recently joined a new cluster.
+  - `NChanges`  
+    Number of changes of cluster membership.
+  - `FirstDistance`  
+    Distance at which the point first joined a cluster.
+  - `LastDistance`  
+    Distance at which the point most recently joined a new cluster.
+  - `MaxConCoeff`  
+    Maximum connection coefficient obtained.
+  - `LastGroupConnected`  
+    The cluster ID of the most recently connected cluster (the point
+    itself may not have changed clusters)
+  - `LastDistanceConnection`  
+    Distance at which the most recently connected cluster joined (the
+    point itself may not have changed clusters))
 
-<p>For each cluster formed or already in existence at each threshold
-distance <em>v.percolate</em> outputs:
+For each cluster formed or already in existence at each threshold
+distance *v.percolate* outputs:
 
-<dl>
-  <dt><code>Cluster</code></dt>
-  <dd>The cluster ID.</dd>
-  <dt><code>Birth</code></dt>
-  <dd>Iteration at which the cluster was formed.</dd>
-  <dt><code>BirthDist</code></dt>
-  <dd>Distance at which the cluster was formed.</dd>
-  <dt><code>Death</code></dt>
-  <dd>Iteration at which the cluster was absorbed into another cluster
-  and so ceased to exist as an independent entity.</dd>
-  <dt><code>DeathDist</code></dt>
-  <dd>Distance at which the cluster was absorbed into another cluster
-  and so ceased to exist as an independent entity.</dd>
-  <dt><code>Longevity</code></dt>
-  <dd>Number of iterations during which the cluster existed as an
-  independent entity.</dd>
-  <dt><code>MaxSize</code></dt>
-  <dd>The number of points in the cluster just before it was absorbed
-  into another cluster.</dd>
-  <dt><code>Wins</code></dt>
-  <dd>The number of occasions when this cluster continued to exist
-  after joining with another cluster because, depending on the rule
-  chosen, it was either the larger cluster or the older cluster.</dd>
-</dl>
+  - `Cluster`  
+    The cluster ID.
+  - `Birth`  
+    Iteration at which the cluster was formed.
+  - `BirthDist`  
+    Distance at which the cluster was formed.
+  - `Death`  
+    Iteration at which the cluster was absorbed into another cluster and
+    so ceased to exist as an independent entity.
+  - `DeathDist`  
+    Distance at which the cluster was absorbed into another cluster and
+    so ceased to exist as an independent entity.
+  - `Longevity`  
+    Number of iterations during which the cluster existed as an
+    independent entity.
+  - `MaxSize`  
+    The number of points in the cluster just before it was absorbed into
+    another cluster.
+  - `Wins`  
+    The number of occasions when this cluster continued to exist after
+    joining with another cluster because, depending on the rule chosen,
+    it was either the larger cluster or the older cluster.
 
-<p>In addition to identifying clusters, <em>v.percolate</em> also
-computes an <i>experimental</i> Connection Coefficient for each
-point location.  This numerical value is intended to capture a
-property roughly analogous to Betweeness Centrality in network
-analysis.  The Connection Coefficient is smaller if a point location
-joins 2 small clusters, or 1 large and 1 small cluster, and greater if
-it joins 2 large clusters.
+In addition to identifying clusters, *v.percolate* also computes an
+*experimental* Connection Coefficient for each point location. This
+numerical value is intended to capture a property roughly analogous to
+Betweeness Centrality in network analysis. The Connection Coefficient is
+smaller if a point location joins 2 small clusters, or 1 large and 1
+small cluster, and greater if it joins 2 large clusters.
 
-<p>By default, the series of distance thresholds at which the above
-statistics will be reported is determined by
-setting <b>min</b>, <b>inc</b> and <b>max</b>.  <em>v.percolate</em>
-will never proceed beyond the maximum distance threshold, but it may
-cease to provide output before that distance is reached if
-the <b>-e</b> flag is set to force termination once all input points
-are connected in one cluster.
+By default, the series of distance thresholds at which the above
+statistics will be reported is determined by setting **min**, **inc**
+and **max**. *v.percolate* will never proceed beyond the maximum
+distance threshold, but it may cease to provide output before that
+distance is reached if the **-e** flag is set to force termination once
+all input points are connected in one cluster.
 
-<p>If <b>interval</b> is set to a positive non-zero value
-then <em>v.percolate</em> no longer outputs statistics at fixed
-distance thresholds.  Instead, it outputs statistics for
-every <em>N</em>th node-pair that is joined in a cluster,
-where <em>N</em> is the value given as the <b>interval</b>.  In
-general this is less useful than the default behaviour, but it has
-application for certain purposes.
+If **interval** is set to a positive non-zero value then *v.percolate*
+no longer outputs statistics at fixed distance thresholds. Instead, it
+outputs statistics for every *N*th node-pair that is joined in a
+cluster, where *N* is the value given as the **interval**. In general
+this is less useful than the default behaviour, but it has application
+for certain purposes.
 
-<p>The value of <b>keep</b> determines what happens when two clusters,
-each of 2 or more points, are to be joined.  The choice is between
-absorbing the more recently formed cluster into the older cluster, or
-absorbing the smaller cluster into the large cluster.
-Setting <b>keep</b> to 'oldest' makes it possible to track the gradual
-growth of one large super-cluster, but that is not necessarily most
-appropriate if the location of the first cluster is of no real
-significance.
+The value of **keep** determines what happens when two clusters, each of
+2 or more points, are to be joined. The choice is between absorbing the
+more recently formed cluster into the older cluster, or absorbing the
+smaller cluster into the large cluster. Setting **keep** to 'oldest'
+makes it possible to track the gradual growth of one large
+super-cluster, but that is not necessarily most appropriate if the
+location of the first cluster is of no real significance.
 
+## NOTES
 
-<h2>NOTES</h2>
+*v.cluster* already provides several methods for partitioning a set of
+points into clusters and will be more appropriate for most purposes.
 
-<em>v.cluster</em> already provides several methods for partitioning a
-set of points into clusters and will be more appropriate for most
-purposes.
+*v.percolate* has a very specific purpose, which is to facilitate
+continuum percolation analysis of point locations, as for example
+described in Arcaute et al. 2016. The emphasis of this form of analysis
+is less on finding optimal partitioning of points into clusters of
+certain sizes and more on observing discontinuities in cluster growth
+for the purpose of identifying 'natural' sales of interaction. Thus
+*v.percolate* automates the reasonably efficient production and
+recording of clusters at multiple threshold distances. For example, on a
+2018 mid-range laptop computer *v.percolate* requires around 100 seconds
+user time to find clusters in 10,513 points (55,256,328 pairwise
+relationships) at 128 different distance thresholds. Since the results
+will almost certainly be subject to further analysis in other software,
+such as [R](https://www.r-project.org/), a range of information (as
+described above) is output into plain text CSV files.
 
-<p><em>v.percolate</em> has a very specific purpose, which is to
-facilitate continuum percolation analysis of point locations, as for
-example described in Arcaute et al. 2016.  The emphasis of this form
-of analysis is less on finding optimal partitioning of points into
-clusters of certain sizes and more on observing discontinuities in
-cluster growth for the purpose of identifying 'natural' sales of
-interaction.  Thus <em>v.percolate</em> automates the reasonably
-efficient production and recording of clusters at multiple threshold
-distances.  For example, on a 2018 mid-range laptop
-computer <em>v.percolate</em> requires around 100 seconds user time to
-find clusters in 10,513 points (55,256,328 pairwise relationships) at
-128 different distance thresholds.  Since the results will almost
-certainly be subject to further analysis in other software, such
-as <a href="https://www.r-project.org/">R</a>, a range of information
-(as described above) is output into plain text CSV files.
+Note that *v.percolate* offers only one method of clustering, which is
+based purely on threshold distance: if 2 points are closer than the
+threshold distance then they are joined in a cluster. This method will
+return the same clusters as the
+[DBSCAN](https://en.wikipedia.org/wiki/DBSCAN) method if one relaxes the
+latter's requirement for clusters to include a minimum number of points.
+As a result, clusters created using *v.percolate* can be joined together
+by long strings of points, each with only 2 neighbours within the given
+threshold difference, a situation which DBSCAN avoids.
 
-<p>Note that <em>v.percolate</em> offers only one method of
-clustering, which is based purely on threshold distance: if 2 points
-are closer than the threshold distance then they are joined in a
-cluster.  This method will return the same clusters as
-the <a href="https://en.wikipedia.org/wiki/DBSCAN">DBSCAN</a> method if
-one relaxes the latter's requirement for clusters to include a minimum
-number of points.  As a result, clusters created
-using <em>v.percolate</em> can be joined together by long strings of
-points, each with only 2 neighbours within the given threshold
-difference, a situation which DBSCAN avoids.
+## REFERENCES
 
+  - Arcaute, E., C. Molinero, E. Hatna, R. Murcio, C. Vargas-Ruiz, P.
+    Masucci and M. Batty (2016). 'Regions and Cities in Britain through
+    Hierarchical Percolation'. *ArXiv*:1504.08318v2 \[Physics.Soc-Ph\].
+    <https://arxiv.org/abs/1504.08318>.
+  - Arcaute, E., S. Brookes, T. Brown, M. Lake and A. Reynolds (in
+    prep). 'Case studies in percolation analysis: the distribution of
+    English settlement in the 11th and 19th centuries compared'. For
+    submission to *Journal of Archaeological Science*.
+  - Lake, M, T. Brown and S. Maddison (2018). 'Percolation robustness
+    and the deep history of regionality'. Presentation to [Connected
+    Past](https://connectedpast.net/other-events/oxford-2018/programme/),
+    Oxford.
 
-<h2>REFERENCES</h2>
+## SEE ALSO
 
-<ul>
-  <li> Arcaute, E., C. Molinero, E. Hatna, R. Murcio, C. Vargas-Ruiz,
-  P. Masucci and M. Batty (2016). 'Regions and Cities in Britain
-  through Hierarchical Percolation'. <i>ArXiv</i>:1504.08318v2
-  [Physics.Soc-Ph]. <a href="https://arxiv.org/abs/1504.08318">https://arxiv.org/abs/1504.08318</a>.
-  <li> Arcaute, E., S. Brookes, T. Brown, M. Lake and A. Reynolds (in
-  prep). 'Case studies in percolation analysis: the distribution of
-  English settlement in the 11th and 19th centuries compared'.  For
-  submission to <i>Journal of Archaeological Science</i>.
-  <li>Lake, M, T. Brown and S. Maddison (2018). 'Percolation
-  robustness and the deep history of regionality'.  Presentation
-  to <a href="https://connectedpast.net/other-events/oxford-2018/programme/">Connected
-  Past</a>, Oxford.
-</ul>
+*[v.cluster](v.cluster.md)*.
 
-
-<h2>SEE ALSO</h2>
-
-<em><a href="v.cluster.html">v.cluster</a></em>.
-<p>
-
-
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Theo Brown, UCL Institute of Archaeology / Helyx Secure Information
 Systems, UK
 
-<p> Mark Lake, UCL Institute of Archaeology, University College
-London, UK
+Mark Lake, UCL Institute of Archaeology, University College London, UK

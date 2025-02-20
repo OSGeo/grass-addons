@@ -1,23 +1,24 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.what.spoly</em> queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries (not cleaned).
+*v.what.spoly* queries vector map with overlaping "spaghetti" polygons
+(e.g. Landsat footprints) at given location. Polygons must have not
+intersected boundaries (not cleaned).
 
-<h2>NOTES</h2>
+## NOTES
 
-Module only runs in locations with Cartesian coordinates. Module needs GDAL utilities and GDAL-Python to be installed.
+Module only runs in locations with Cartesian coordinates. Module needs
+GDAL utilities and GDAL-Python to be installed.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<div class="code"><pre>
+```sh
     v.what.spoly.py input=poly out=poly_select coor=465113.204082,5436513.2449
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.what.html">v.what</a>
-</em>
+*[v.what](https://grass.osgeo.org/grass-stable/manuals/v.what.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Alexander Muriy (IEG RAS, Moscow)

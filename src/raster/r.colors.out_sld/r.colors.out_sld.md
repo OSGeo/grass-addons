@@ -1,33 +1,35 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The module <em>r.colors.out_sld</em> exports the colors of a raster map into
+The module *r.colors.out\_sld* exports the colors of a raster map into
 the Styled Layer Description (SLD) format according to OGC standard.
 
-<p>For raster maps of type CELL also labels are exported. The export of labels
-requires that the input map is entirely read and may thus take a bit longer than the
-export of continuous color rules (ramp).
+For raster maps of type CELL also labels are exported. The export of
+labels requires that the input map is entirely read and may thus take a
+bit longer than the export of continuous color rules (ramp).
 
-<p>Only if the flag <b>n</b> is given, the NaN values are written into the
-generated SLD file which leads e.g. in GeoServer to an error when using such SLD.
+Only if the flag **n** is given, the NaN values are written into the
+generated SLD file which leads e.g. in GeoServer to an error when using
+such SLD.
 
-<p>Currently only SLD v1.0.0 is implemented.
+Currently only SLD v1.0.0 is implemented.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<div class="code"><pre>
+```sh
 # Exporting a color ramp
-r.colors.out_sld map=testmap style_name=Celsius</pre>
-</div>
+r.colors.out_sld map=testmap style_name=Celsius
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html">r.colors.out</a>
+[r.colors.out](https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html)
 
-<h2>REFERENCES</h2>
+## REFERENCES
 
-<a href="https://www.ogc.org/standard/sld">https://www.ogc.org/standard/sld</a>
+<https://www.ogc.org/standard/sld>
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Hamish Bowman<br>
-Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo, Norway
+Hamish Bowman  
+Stefan Blumentrath, Norwegian Institute for Nature Research, Oslo,
+Norway

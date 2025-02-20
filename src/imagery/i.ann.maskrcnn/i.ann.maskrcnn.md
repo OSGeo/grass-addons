@@ -1,61 +1,50 @@
-<!-- meta page name: i.ann.maskrcnn -->
-<!-- meta page name description: Mask R-CNN toolset -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+Mask R-CNN tools allow the user to train his own model and use it for a
+detection of objects, or to use a model provided by someone else. It can
+be seen as a supervised classification using convolutional neural
+networks.
 
-<p>
-Mask R-CNN tools allow the user to train his own model and use it for
-a detection of objects, or to use a model provided by someone else. It can be
-seen as a supervised classification using convolutional neural networks.
+The training is done using module *i.ann.maskrcnn.train*. The user feeds
+the module with training data consisting of images and masks for each
+instance of intended classes, and gets a model. For difficult tasks and
+when not using a pretrained model, the training may take even weeks; in
+case of a good pretrained model and powerful PC with GPU support, the
+training could get good results after 1 day and even less.
 
-<p>
-The training is done using module <em>i.ann.maskrcnn.train</em>. The user feeds
-the module with training data consisting of images and masks for each instance
-of intended classes, and gets a model. For difficult tasks and when not using
-a pretrained model, the training may take even weeks; in case of a good
-pretrained model and powerful PC with GPU support, the training could get good
-results after 1 day and even less.
-
-<p>
 When the user has a model, it can be used for the detection.
-<em>i.ann.maskrcnn.detect</em> detects classes learned during the training and
-extracts from given images vectors corresponding to detected objects. Objects
-can be extracted either as areas or points.
+*i.ann.maskrcnn.detect* detects classes learned during the training and
+extracts from given images vectors corresponding to detected objects.
+Objects can be extracted either as areas or points.
 
-<h2>DEPENDENCIES</h2>
+## DEPENDENCIES
 
-<p>
-<em>i.ann.maskrcnn.*</em> modules contain a lot of external Python
-dependencies. To run modules, it is necessary to have them installed. Modules
-use Python3, so please install Python3 versions.
+*i.ann.maskrcnn.\** modules contain a lot of external Python
+dependencies. To run modules, it is necessary to have them installed.
+Modules use Python3, so please install Python3 versions.
 
-<p>
-<ul>
-  <li>NumPy</li>
-  <li>Pillow</li>
-  <li>SciPy</li>
-  <li>Cython</li>
-  <li>scikit-image</li>
-  <li>OSGeo</li>
-  <li>TensorFlow &lt; 2.0</li>
-  <li>Keras</li>
-  <li>h5py</li>
-</ul>
+  - NumPy
+  - Pillow
+  - SciPy
+  - Cython
+  - scikit-image
+  - OSGeo
+  - TensorFlow \< 2.0
+  - Keras
+  - h5py
 
-<p>
-After dependencies are fulfilled, modules can be installed in
-GRASS GIS >= 7.8 using the <em>g.extension</em> module:
-<div class="code"><pre>
+After dependencies are fulfilled, modules can be installed in GRASS GIS
+\>= 7.8 using the *g.extension* module:
+
+```sh
 g.extension extension=maskrcnn
-</pre></div>
+```
 
-<h2>MODULES</h2>
+## MODULES
 
-<em>
-<a href="i.ann.maskrcnn.train.html">i.ann.maskrcnn.train</a>,
-<a href="i.ann.maskrcnn.detect.html">i.ann.maskrcnn.detect</a>
-</em>
+*[i.ann.maskrcnn.train](i.ann.maskrcnn.train.md),
+[i.ann.maskrcnn.detect](i.ann.maskrcnn.detect.md)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Ondrej Pesek

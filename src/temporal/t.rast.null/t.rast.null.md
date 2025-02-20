@@ -1,27 +1,30 @@
-<h2>DESCRIPTION</h2>
-<em><b>t.rast.null</b></em> manages NULL-values of the input space time
-raster dataset.
-<p>
-The <b>setnull</b> parameter is used to specify values in the ranges to
-be set to NULL. A range is either a single value (e.g., 5.3), or a pair
-of values (e.g., 4.76-34.56). Existing NULL-values are left NULL, unless
+## DESCRIPTION
+
+***t.rast.null*** manages NULL-values of the input space time raster
+dataset.
+
+The **setnull** parameter is used to specify values in the ranges to be
+set to NULL. A range is either a single value (e.g., 5.3), or a pair of
+values (e.g., 4.76-34.56). Existing NULL-values are left NULL, unless
 the null argument is requested.
-<p>
-The <b>null</b> parameter eliminates the NULL value and replaces it with
+
+The **null** parameter eliminates the NULL value and replaces it with
 the given value. This argument is applied only to existing NULL values,
-and not to the NULLs created by the <b>setnull</b> argument.
+and not to the NULLs created by the **setnull** argument.
 
-<h2>EXAMPLES</h2>
-Set specific values (0,-1 and -2) of a space time raster dataset to NULL:
-<div class="code"><pre>
+## EXAMPLES
+
+Set specific values (0,-1 and -2) of a space time raster dataset to
+NULL:
+
+```sh
     t.rast.null input=MY_INPUT_DATASET setnull=0,-1,-2
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.null.html">r.null</a>
-</em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[r.null](https://grass.osgeo.org/grass-stable/manuals/r.null.html)*
+
+## AUTHOR
 
 Luca Delucchi, Fondazione Edmund Mach

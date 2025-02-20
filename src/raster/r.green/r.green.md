@@ -1,56 +1,59 @@
-<!-- meta page name: r.green -->
-<!-- meta page name description: Toolset for computing the residual energy potential of different renewable energies like biomass or hydropower -->
+## DESCRIPTION
 
-<h2>DESCRIPTION</h2>
+The *r.green* suite computes the residual energy potential of different
+renewable energies like biomass, ground source heat pumps, or
+hydropower.
 
-The <em>r.green</em> suite computes the residual energy potential of different
-renewable energies like biomass, ground source heat pumps, or hydropower.
-<p>
 The tool is organized in the module groups:
 
-<ul>
-<li><a href="r.green.biomassfor.html">r.green.biomassfor</a> - computes
-    the energy potential of biomass from the forestry residues</li>
-<li><a href="r.green.gshp.html">r.green.gshp</a> - computes the Ground Source
-    Heat Pump potential</li>
-<li><a href="r.green.hydro.html">r.green.hydro</a> - computes the hydropower potential</li>
-</ul>
+  - [r.green.biomassfor](r.green.biomassfor.md) - computes the energy
+    potential of biomass from the forestry residues
+  - [r.green.gshp](r.green.gshp.md) - computes the Ground Source Heat
+    Pump potential
+  - [r.green.hydro](r.green.hydro.md) - computes the hydropower
+    potential
 
 for which are composed of several programs considering different limits
-(e.g. theoretical, recommended, legal, technical, ecological and economic constraints).<br>
+(e.g. theoretical, recommended, legal, technical, ecological and
+economic constraints).  
 These different scenarios can be compared so that the residual energy
-potential and the suitable places for constructing a new power plant can be identified.<br>
+potential and the suitable places for constructing a new power plant can
+be identified.  
 
-<p>
-All the modules of the tool r.green can be installed in GRASS GIS as following
-(see also <a href="r.green.install.html">r.green.install</a>):
+All the modules of the tool r.green can be installed in GRASS GIS as
+following (see also [r.green.install](r.green.install.md)):
 
-<div class="code"><pre>
+```sh
 g.extension r.green
-</pre></div>
+```
 
-<h2>NOTES</h2>
+## NOTES
 
-The basis for creating the modules to calculate the energy potential is shown in the following image:<br><br>
+The basis for creating the modules to calculate the energy potential is
+shown in the following image:  
+  
+![image-alt](r_green.png)  
 
-<img src="r_green.png" alt="energy potential modelling"><br>
+## REFERENCES
 
-<h2>REFERENCES</h2>
+  - Garegnani, G., Geri, F., Zambelli, P., Grilli, G., Sacchelli, S.,
+    Paletto, A., Curetti, G., Ciolli, M., Vettorato, D. (2015). A new
+    open source DSS for assessment and planning of renewable energy: r.
+    green. Proceedings of FOSS4G Europe, Como, 14-17.
+    ([PDF](http://www.academia.edu/download/42063487/A_new_open_source_DSS_for_assessment_and20160204-20913-vxe2wt.pdf))
+  - Garegnani, G., Zambelli, P., Geri, F., Gros, J., D'Alonzo, V.,
+    Grilli, G., Sacchelli, S., Balest, J. Curetti, G., Paletto, A.,
+    Ciolli, M., Vettorato, D. (2015): Evaluation of renewable energy
+    potential in Pilot Areas: a Decision Support System.
+    ([PDF](http://www.recharge-green.eu/wp-content/uploads/2015/02/Poster_r-green_v4.pdf))
 
-<ul>
-<li> Garegnani, G., Geri, F., Zambelli, P., Grilli, G., Sacchelli, S., Paletto, A., Curetti, G., Ciolli, M., Vettorato, D. (2015). A new open source DSS for assessment and planning of renewable energy: r. green. Proceedings of FOSS4G Europe, Como, 14-17. (<a href="http://www.academia.edu/download/42063487/A_new_open_source_DSS_for_assessment_and20160204-20913-vxe2wt.pdf">PDF</a>)</li>
-<li> Garegnani, G., Zambelli, P., Geri, F., Gros, J., D'Alonzo, V., Grilli, G., Sacchelli, S., Balest, J. Curetti, G., Paletto, A., Ciolli, M., Vettorato, D. (2015): Evaluation of renewable energy potential in Pilot Areas: a Decision Support System. (<a href="http://www.recharge-green.eu/wp-content/uploads/2015/02/Poster_r-green_v4.pdf">PDF</a>)</li>
-</ul>
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.green.install](r.green.install.md),
+[r.green.biomassfor](r.green.biomassfor.md),
+[r.green.gshp](r.green.gshp.md), [r.green.hydro](r.green.hydro.md)*
 
-<em>
-<a href="r.green.install.html">r.green.install</a>,
-<a href="r.green.biomassfor.html">r.green.biomassfor</a>,
-<a href="r.green.gshp.html">r.green.gshp</a>,
-<a href="r.green.hydro.html">r.green.hydro</a>
-</em>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-For authors and references, please refer to the respective module of <em>r.green</em>.
+For authors and references, please refer to the respective module of
+*r.green*.

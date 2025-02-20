@@ -1,37 +1,30 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The <em>r.le.patch</em> module calculates attribute, patch size, core
-(interior) size, shape, fractal dimension, and perimeter measures for sets
-of patches in a landscape.
+The *r.le.patch* module calculates attribute, patch size, core
+(interior) size, shape, fractal dimension, and perimeter measures for
+sets of patches in a landscape.
 
+## NOTES
 
-<h2>NOTES</h2>
+Full instructions can be found in the **r.le manual** (see "REFERENCES"
+section below) and the *[r.le.setup](r.le.setup.md)* help page.
 
-Full instructions can be found in the <b>r.le manual</b> (see "REFERENCES"
-section below) and the <em><a href="r.le.setup.html">r.le.setup</a></em>
-help page.
+## REFERENCES
 
-
-<h2>REFERENCES</h2>
-
-Baker, W.L. and Y. Cai. 1992. The r.le programs for multiscale analysis of
-landscape structure using the GRASS geographical information system.
+Baker, W.L. and Y. Cai. 1992. The r.le programs for multiscale analysis
+of landscape structure using the GRASS geographical information system.
 Landscape Ecology 7(4):291-302.
-<p>
-The <a href="https://grass.osgeo.org/gdp/landscape/r_le_manual5.pdf"><i>r.le</i>
-manual: Quantitative analysis of landscape structures</a> (GRASS 5; 2001)
 
-<h2>SEE ALSO</h2>
+The [*r.le* manual: Quantitative analysis of landscape
+structures](https://grass.osgeo.org/gdp/landscape/r_le_manual5.pdf)
+(GRASS 5; 2001)
 
-<em>
-<!-- <a href="r.le.dist.html">r.le.dist</a>,
-<a href="r.le.null.html">r.le.null</a>, -->
-<a href="r.le.pixel.html">r.le.pixel</a>,
-<!-- <a href="r.le.rename.html">r.le.rename</a>, -->
-<a href="r.le.setup.html">r.le.setup</a>,
-<a href="r.le.trace.html">r.le.trace</a></em>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+*[r.le.pixel](r.le.pixel.md), [r.le.setup](r.le.setup.md),
+[r.le.trace](r.le.trace.md)*
+
+## AUTHOR
 
 William L. Baker Department of Geography and Recreation University of
 Wyoming Laramie, Wyoming 82071 U.S.A.

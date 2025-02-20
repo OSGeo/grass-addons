@@ -1,35 +1,26 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The <em>r.mcda.output</em> module will export raster maps as a *isf file
-readable in jMAF, JAMM or 4eMka2 sofware <a href="http://idss.cs.put.poznan.pl/">Laboratory of Intelligent Decision Support Systems - Poznan University.</a>
-<p>
-<em>(GRASS python Script)</em>
+The *r.mcda.output* module will export raster maps as a \*isf file
+readable in jMAF, JAMM or 4eMka2 sofware [Laboratory of Intelligent
+Decision Support Systems - Poznan
+University.](http://idss.cs.put.poznan.pl/)
 
-<h2>NOTES</h2>
+*(GRASS python Script)*
 
+## NOTES
 
-<p>
 This module, as all GRASS raster modules, will export cells based on the
-current region settings. See the <em>g.region</em> module for details.
+current region settings. See the *g.region* module for details.
 
+## TODO
 
-<h2>TODO</h2>
+## SEE ALSO
 
+*[r.roughset](r.roughset.md), [r.mcda.regime](r.mcda.regime.md)
+[r.mcda.fuzzy](r.mcda.fuzzy.md) [r.mcda.electre](r.mcda.electre.md)
+[r.mcda.roughset](r.mcda.roughset.md), [r.mcda.input](r.mcda.input.md)*
 
+## AUTHORS
 
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="r.roughset.html">r.roughset</a>,
-<a href="r.mcda.regime.html">r.mcda.regime</a>
-<a href="r.mcda.fuzzy.html">r.mcda.fuzzy</a>
-<a href="r.mcda.electre.html">r.mcda.electre</a>
-<a href="r.mcda.roughset.html">r.mcda.roughset</a>,
-<a href="r.mcda.input.html">r.mcda.input</a>
-</em>
-
-<h2>AUTHORS</h2>
-
-Antonio Boggia - Gianluca Massei<br>
+Antonio Boggia - Gianluca Massei  
 Department of Economics and Appraisal - University of Perugia - Italy

@@ -1,24 +1,22 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.to.vect.tiled</em> vectorizes the <b>input</b> raster map and
-produces several tiled vector maps covering the current region.
-<p>
-Vectorizing a large raster map with <em>r.to.vect</em> can require a
-lot of memory. In these cases, <em>r.to.vect.tiled</em> can reduce
-memory usage by vectorizing each tile separately.
-<p>
-The tiles are optionally patched together with the <em>-p</em> flag.
+*r.to.vect.tiled* vectorizes the **input** raster map and produces
+several tiled vector maps covering the current region.
 
-<h2>SEE ALSO</h2>
+Vectorizing a large raster map with *r.to.vect* can require a lot of
+memory. In these cases, *r.to.vect.tiled* can reduce memory usage by
+vectorizing each tile separately.
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.to.vect.html">r.to.vect</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.patch.html">v.patch</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.thin.html">r.thin</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.clean.html">v.clean</a>
-</em>
+The tiles are optionally patched together with the *-p* flag.
 
-<h2>AUTHOR</h2>
+## SEE ALSO
+
+*[r.to.vect](https://grass.osgeo.org/grass-stable/manuals/r.to.vect.html),
+[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),
+[v.patch](https://grass.osgeo.org/grass-stable/manuals/v.patch.html),
+[r.thin](https://grass.osgeo.org/grass-stable/manuals/r.thin.html),
+[v.clean](https://grass.osgeo.org/grass-stable/manuals/v.clean.html)*
+
+## AUTHOR
 
 Markus Metz

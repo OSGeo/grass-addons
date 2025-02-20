@@ -1,44 +1,36 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-The <em>r.colors.cubehelix</em> module generates
-a cubehelix color table and assigns it to a given raster map
-if requested.
+The *r.colors.cubehelix* module generates a cubehelix color table and
+assigns it to a given raster map if requested. The color table is
+generated using *seaborn* Python package. Several parameters are
+available to control the cubehelix. When option **map** is specified
+*r.colors.cubehelix* assigns the color rules to the given raster map.
+The color tables are always stretched based on the range of values of
+the map
 
-The color table is generated using <em>seaborn</em> Python
-package. Several parameters are available to control the
-cubehelix.
+Depending on the use case, it may be advantageous to use the **-d** to
+discretize the color table into intervals.
 
-When option <b>map</b> is specified <em>r.colors.cubehelix</em>
-assigns the color rules to the given raster map.
-The color tables are always stretched based on the range of values of the map
-
-<p>
-Depending on the use case,
-it may be advantageous to use the <b>-d</b> to discretize
-the color table into intervals.
-
-
-<h2>NOTES</h2>
+## NOTES
 
 This module depends on
-<em><a href="https://seaborn.pydata.org/index.html">seaborn</a></em>
-which needs to be installed on your computer.
-Use your Python package manager (e.g. <em>pip</em>) or distribution package
-manager to install it.
+*[seaborn](https://seaborn.pydata.org/index.html)* which needs to be
+installed on your computer. Use your Python package manager (e.g. *pip*)
+or distribution package manager to install it.
 
+## EXAMPLES
 
-<h2>EXAMPLES</h2>
+### Creating a color table as GRASS color rules
 
-<h3>Creating a color table as GRASS color rules</h3>
+We do 0.6 rotation around the axis and use discrete (interval) color
+table rather than the standard continuous. If we don't specify output
+file, it is printed to standard output:
 
-We do 0.6 rotation around the axis and use discrete (interval) color table
-rather than the standard continuous.
-If we don't specify output file, it is printed to standard output:
-
-<div class="code"><pre>
+```sh
 r.colors.cubehelix -d ncolors=5 nrotations=0.6
-</pre></div>
-<pre>
+```
+
+```sh
 0.000% 218:222:192
 20.000% 218:222:192
 20.000% 198:166:136
@@ -49,78 +41,71 @@ r.colors.cubehelix -d ncolors=5 nrotations=0.6
 80.000% 119:61:98
 80.000% 48:28:59
 100.000% 48:28:59
-</pre>
+```
 
-<h3>Setting color table for a raster map</h3>
+### Setting color table for a raster map
 
 Now we set several different color tables for the elevation raster map
-from the North Carolina sample dataset.
-We use continuous and discrete color tables (gradients).
-The color tables are stretched to fit the raster map range.
+from the North Carolina sample dataset. We use continuous and discrete
+color tables (gradients). The color tables are stretched to fit the
+raster map range.
 
-<div class="code"><pre>
+```sh
 r.colors.cubehelix -d ncolors=8 nrotations=0.6 map=elevation
-</pre></div>
+```
 
 We can display legend:
-<div class="code"><pre>
+
+```sh
 d.legend raster=elevation labelnum=10 at=5,50,7,10
-</pre></div>
+```
 
 Here we set continuous color table with more colors
 
-<div class="code"><pre>
+```sh
 r.colors.cubehelix nrotations=1.4 start=4 map=elevation
-</pre></div>
+```
 
-<center>
-<img src="r_colors_cubehelix_two_colors.png">
-<img src="r_colors_cubehelix.png">
-</center>
+![image-alt](r_colors_cubehelix_two_colors.png)
+![image-alt](r_colors_cubehelix.png)
 
-<h3>Setting color table for a vector map</h3>
+### Setting color table for a vector map
 
 First we create a text file with color rules:
 
-<div class="code"><pre>
+```sh
 r.colors.cubehelix -i rot=0.6 output=cubehelix.txt
-</pre></div>
+```
 
 Then we set color table for the vector to the rules stored in a file:
 
-<div class="code"><pre>
+```sh
 v.colors map=points rules=cubehelix.txt
-</pre></div>
+```
 
 Color table for 3D raster map can be set in the same way.
 
+## REFERENCES
 
-<h2>REFERENCES</h2>
-
-<ul>
-<li>
-    Green, D. A., 2011, <a href="https://astron-soc.in/bulletin/11June/289392011.pdf">
-        <i>A colour scheme for the display of astronomical intensity images</i></a>,
+  - Green, D. A., 2011, [*A colour scheme for the display of
+    astronomical intensity
+    images*](https://astron-soc.in/bulletin/11June/289392011.pdf),
     Bulletin of the Astronomical Society of India, 39, 289.
-</li>
-</ul>
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.html">r.colors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.colors.html">v.colors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r3.colors.html">r3.colors</a>,
-<a href="r.cpt2grass.html">r.cpt2grass</a>,
-<a href="r.colors.matplotlib.html">r.colors.matplotlib</a>
-</em>
+*[r.colors](https://grass.osgeo.org/grass-stable/manuals/r.colors.html),
+[v.colors](https://grass.osgeo.org/grass-stable/manuals/v.colors.html),
+[r3.colors](https://grass.osgeo.org/grass-stable/manuals/r3.colors.html),
+[r.cpt2grass](r.cpt2grass.md),
+[r.colors.matplotlib](r.colors.matplotlib.md)*
 
-<p>
 seaborn
-<a href="https://seaborn.pydata.org/generated/seaborn.cubehelix_palette.html">cubehelix_palette</a>
+[cubehelix\_palette](https://seaborn.pydata.org/generated/seaborn.cubehelix_palette.html)
 function documentation and an
-<a href="https://seaborn.pydata.org/examples/palette_generation.html">example
+[example](https://seaborn.pydata.org/examples/palette_generation.html)
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
-Vaclav Petras, <a href="httpss://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](httpss://geospatial.ncsu.edu/geoforall/)

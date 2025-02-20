@@ -1,52 +1,48 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.fusion</em> enhances the resolution of a raster map by using spatial
-detail of a high-resolution map. The actual values in the resultant output map
-correspond to the input map while the spatial detail corresponds to the
-high-resolution map. The effect is similar to pan-sharpening, but the method
-can be applied more generally, not only to imagery but also to climatological
-data such as temperature or precipitation.
+*r.fusion* enhances the resolution of a raster map by using spatial
+detail of a high-resolution map. The actual values in the resultant
+output map correspond to the input map while the spatial detail
+corresponds to the high-resolution map. The effect is similar to
+pan-sharpening, but the method can be applied more generally, not only
+to imagery but also to climatological data such as temperature or
+precipitation.
 
-<h2>NOTES</h2>
+## NOTES
 
-Two different methods are available with the <b>method</b> option:
-<em>difference</em> and <em>proportion</em>.
+Two different methods are available with the **method** option:
+*difference* and *proportion*.
 
-<p>
-The <em>difference</em> method uses the formula
-<p>
+The *difference* method uses the formula
+
 A - B + B = A
-<p>
-more specifically
-<p>
-highres(A<sub>lowres</sub> - B<sub>lowres</sub>) + B<sub>highres</sub> = A<sub>highres</sub>
-<p>
-where <em>highres()</em> is a function to interpolate the differences. Here,
-<em>r.resamp.filter</em> is used for interpolation.
 
-<p>
-The <em>proportion</em> method is suitable for e.g. precipitation where zero
+more specifically
+
+highres(A<sub>lowres</sub> - B<sub>lowres</sub>) + B<sub>highres</sub> =
+A<sub>highres</sub>
+
+where *highres()* is a function to interpolate the differences. Here,
+*r.resamp.filter* is used for interpolation.
+
+The *proportion* method is suitable for e.g. precipitation where zero
 precipition must stay zero precipition, and uses the formula
-<p>
-A / B * B = A
-<p>
+
+A / B \* B = A
+
 more specifically
-<p>
-highres(A<sub>lowres</sub> / B<sub>lowres</sub>) * B<sub>highres</sub> = A<sub>highres</sub>
-<p>
 
-Again, <em>highres()</em> is a function to interpolate the proportions, and
-<em>r.resamp.filter</em> is used for interpolation. For the <em>proportion</em>
-method, all values in the high-resolution B map must be &gt; 0.
+highres(A<sub>lowres</sub> / B<sub>lowres</sub>) \* B<sub>highres</sub>
+= A<sub>highres</sub>
 
+Again, *highres()* is a function to interpolate the proportions, and
+*r.resamp.filter* is used for interpolation. For the *proportion*
+method, all values in the high-resolution B map must be \> 0.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.resamp.filter.html">r.resamp.filter</a>
-</em>
+*[r.resamp.filter](https://grass.osgeo.org/grass-stable/manuals/r.resamp.filter.html)*
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Markus Metz, mundialis

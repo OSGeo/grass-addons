@@ -1,41 +1,35 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>i.lmf</em> calculates the Local maximum fitting of a temporal image series,
+*i.lmf* calculates the Local maximum fitting of a temporal image series,
 intially for vegetation indices, it also works for surface reflectance.
-<p>
+
 This is a first level port, only a fast fitting is done, see TODO.
 
-<p>
-The number of bands is potentially several years, <b>nfiles</b> and <b>ndates</b>
-are respectively the number of pixels and the number of pixels in a year.
+The number of bands is potentially several years, **nfiles** and
+**ndates** are respectively the number of pixels and the number of
+pixels in a year.
 
+## NOTES
 
-<h2>NOTES</h2>
-Original links are found here
-
-SAWADA, 2001:
-<a href="https://web.archive.org/web/20110523233556/http://www.affrc.go.jp/ANDES/sawady/index.html">http://www.affrc.go.jp/ANDES/sawady/index.html</a>
-
+Original links are found here SAWADA, 2001:
+[http://www.affrc.go.jp/ANDES/sawady/index.html](https://web.archive.org/web/20110523233556/http://www.affrc.go.jp/ANDES/sawady/index.html)
 NAGATANI et al., 2002:
-<a href="https://web.archive.org/web/20051222023531/http://www.gisdevelopment.net/aars/acrs/2002/pos2/184.pdf">http://www.gisdevelopment.net/aars/acrs/2002/pos2/184.pdf</a>
+[http://www.gisdevelopment.net/aars/acrs/2002/pos2/184.pdf](https://web.archive.org/web/20051222023531/http://www.gisdevelopment.net/aars/acrs/2002/pos2/184.pdf)
+Yann Chemin and Kiyoshi Honda repaired it and ported it from SGI/OpenMP
+to Linux.
+[http://www.rsgis.ait.ac.th/\~honda/lmf/lmf.html](https://web.archive.org/web/20070824132301/http://www.rsgis.ait.ac.th/~honda/lmf/lmf.html)
 
+## TODO
 
-Yann Chemin and Kiyoshi Honda repaired it and ported it from SGI/OpenMP to Linux.
-<a href="https://web.archive.org/web/20070824132301/http://www.rsgis.ait.ac.th/~honda/lmf/lmf.html">http://www.rsgis.ait.ac.th/~honda/lmf/lmf.html</a>
+Port the full detailed algorithm from Fortran, and vastly
+unemcomber/clean it. It will make the algorithm must slower though,
+gaining only a marginal fitting strength, for my actual experience with
+VIs curves.
 
+## SEE ALSO
 
-<h2>TODO</h2>
-Port the full detailed algorithm from Fortran, and vastly unemcomber/clean it.
-It will make the algorithm must slower though, gaining only a marginal fitting
-strength, for my actual experience with VIs curves.
+*[r.series](https://grass.osgeo.org/grass-stable/manuals/r.series.html)*
 
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.series.html">r.series</a>
-</em>
-
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Yann Chemin, International Rice Research Institute, The Philippines

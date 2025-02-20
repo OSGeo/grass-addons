@@ -1,68 +1,66 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.diversity</em> calculates selected diversity indices by
-calling various <em>r.li</em> commands.
+*r.diversity* calculates selected diversity indices by calling various
+*r.li* commands.
 
-<p>
 This script uses the Pielou, Renyi, Shannon and Simpson indices. The
 output is a map for each index.
 
-<h2>NOTES</h2>
+## NOTES
 
-The user does not need to create a "conf" file with <em>r.li.setup
-</em> because this file will be created automatically by the script.<br>
-
-In <b>size</b> option it is possible use more values: the user can set more
-values with comma (,) and a range with minus (-).<br>
-
-If you calculate Renyi entropy remember to add the <b>alpha</b> option.
-Alpha option support single and multi values but not a range.<br>
-
-If the input raster contains NULL value cells, <em>r.diversity</em>
-returns -1 for these cells.<br>
+The user does not need to create a "conf" file with *r.li.setup* because
+this file will be created automatically by the script.  
+In **size** option it is possible use more values: the user can set more
+values with comma (,) and a range with minus (-).  
+If you calculate Renyi entropy remember to add the **alpha** option.
+Alpha option support single and multi values but not a range.  
+If the input raster contains NULL value cells, *r.diversity* returns -1
+for these cells.  
 If the user wants to keep NULL values instead, run subsequently on the
-resulting map:<br>
+resulting map:  
 
-<div class="code"><pre>
+```sh
 r.null map=my_map setnull=-1
-</pre></div>
+```
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-To calculate the set of indices from a NDVI map, with a moving window
-of 3 x 3 pixel, run:
-<div class="code"><pre>
+To calculate the set of indices from a NDVI map, with a moving window of
+3 x 3 pixel, run:
+
+```sh
 r.diversity input=ndvi_map prefix=diversity alpha=0.5
-</pre></div>
+```
 
-To calculate the set of indices from a NDVI map, with a moving window
-of 7 x 7 pixel, run:
-<div class="code"><pre>
+To calculate the set of indices from a NDVI map, with a moving window of
+7 x 7 pixel, run:
+
+```sh
 r.diversity input=ndvi_map prefix=diversity alpha=0.5 size=7
-</pre></div>
+```
 
 To calculate only Pielou and Simpson indices from a NDVI map, with
 several moving window (3 x 3, 5 x 5, 7 x 7, 9 x 9), run:
-<div class="code"><pre>
+
+```sh
 r.diversity input=ndvi_map prefix=diversity size=3-9 method=pielou,simpson
-</pre></div>
+```
 
-To calculate all methods excluding Pielou from a NDVI map, with two moving
-window (3 x 3, 9 x 9), run:
-<div class="code"><pre>
+To calculate all methods excluding Pielou from a NDVI map, with two
+moving window (3 x 3, 9 x 9), run:
+
+```sh
 r.diversity input=ndvi_map prefix=diversity size=3,9 exclude=pielou alpha=3
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.html">r.li</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.pielou.html">r.li.pielou</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.renyi.html">r.li.renyi</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.shannon.html">r.li.shannon</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.li.simpson.html">r.li.simpson</a>
-</em>
+*[r.li](https://grass.osgeo.org/grass-stable/manuals/r.li.html),
+[r.li.pielou](https://grass.osgeo.org/grass-stable/manuals/r.li.pielou.html),
+[r.li.renyi](https://grass.osgeo.org/grass-stable/manuals/r.li.renyi.html),
+[r.li.shannon](https://grass.osgeo.org/grass-stable/manuals/r.li.shannon.html),
+[r.li.simpson](https://grass.osgeo.org/grass-stable/manuals/r.li.simpson.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
 Luca Delucchi and Duccio Rocchini, Fondazione E. Mach (Italy)

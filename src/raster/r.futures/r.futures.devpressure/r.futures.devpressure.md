@@ -1,86 +1,81 @@
-<h2>DESCRIPTION</h2>
-Module <em>r.futures.devpressure</em> is part of <a href="r.futures.html">FUTURES</a>,
-land change model.
-It computes development pressure, a predictor based on the number of neighboring
-developed cells within search distance, weighted by distance.
-The development pressure variable plays a special role in the model,
-allowing for a feedback between predicted change and change in subsequent steps.
+## DESCRIPTION
 
-<p>
-There are multiple options for calculating development pressure in the model.
-<ul>
-<li><b>occurrence</b>: simple count of the number of developed
-cells within the specified window size</li>
-<li><b>gravity</b>: defined as scaling_factor / pow(distance, gamma)</li>
-<li><b>kernel</b>: defined as scaling_factor * exp(-2 * distance / gamma)</li>
-</ul>
-<p>
-Coefficient <b>gamma</b> is the coefficient controlling the influence of distance.
-The best value for gamma is chosen during the model selection process (TODO).
+Module *r.futures.devpressure* is part of [FUTURES](r.futures.md), land
+change model. It computes development pressure, a predictor based on the
+number of neighboring developed cells within search distance, weighted
+by distance. The development pressure variable plays a special role in
+the model, allowing for a feedback between predicted change and change
+in subsequent steps.
 
-<p>
-The input raster is binary, value 1 represents development, value 0 no development.
-The neighborhood <b>size</b> describes the size of the moving
-window in cells (2 * size + 1).
+There are multiple options for calculating development pressure in the
+model.
 
-<p>
-<center>
-<img src="devpressure_example.png">
-<p>
-Figure: Effect of parameters <b>size</b> and <b>gamma</b>:
-a) initial development,
-b) gamma = 2, size = 10,
-c) gamma = 1.5, size = 10,
-d) gamma = 1.5, size = 20.
-</center>
+  - **occurrence**: simple count of the number of developed cells within
+    the specified window size
+  - **gravity**: defined as scaling\_factor / pow(distance, gamma)
+  - **kernel**: defined as scaling\_factor \* exp(-2 \* distance /
+    gamma)
 
+Coefficient **gamma** is the coefficient controlling the influence of
+distance. The best value for gamma is chosen during the model selection
+process (TODO).
 
+The input raster is binary, value 1 represents development, value 0 no
+development. The neighborhood **size** describes the size of the moving
+window in cells (2 \* size + 1).
 
-<h2>NOTES</h2>
-By default NULL values are propagated.
-This means that the edges of the resulting map will be NULLs. To avoid that,
-flag <b>n</b> internally enlarges the computational region,
-converts NULLs to zeros, performs the computation
-and then patches back the original NULL values.
+![image-alt](devpressure_example.png)
 
-<p>
-Module <em>r.futures.devpressure</em>, although written for FUTURES model,
-is general enough to be used for different applications where distance pressure
- can be described with the functions above.
+Figure: Effect of parameters **size** and **gamma**: a) initial
+development, b) gamma = 2, size = 10, c) gamma = 1.5, size = 10, d)
+gamma = 1.5, size = 20.
 
+## NOTES
 
-<h2>EXAMPLES</h2>
-<div class="code"><pre>
+By default NULL values are propagated. This means that the edges of the
+resulting map will be NULLs. To avoid that, flag **n** internally
+enlarges the computational region, converts NULLs to zeros, performs the
+computation and then patches back the original NULL values.
+
+Module *r.futures.devpressure*, although written for FUTURES model, is
+general enough to be used for different applications where distance
+pressure can be described with the functions above.
+
+## EXAMPLES
+
+```sh
 r.futures.devpressure input=developed output=pressure gamma=1.5 size=10 method=gravity
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
-<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>
+[FUTURES](r.futures.md), *[r.futures.pga](r.futures.pga.md)*,
+*[r.futures.calib](r.futures.calib.md)*,
+*[r.futures.demand](r.futures.demand.md)*,
+*[r.sample.category](r.sample.category.md)*
 
-<h2>REFERENCES</h2>
-<ul>
-<li>
-    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
-    <a href="https://doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
-    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
-    Annals of the Association of American Geographers, 103(4), 785-807.
-    DOI: 10.1080/00045608.2012.707591
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
-   <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
-    tradeoffs between conservation planning strategies</a>.
-    Landscape and Urban Planning, 136, 28-39.
-    DOI: 10.1016/j.landurbplan.2014.11.011</li>
-<li>Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H.,  &amp; Meentemeyer, R. K. (2016).
-   <a href="https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf">Open Source Approach to Urban Growth Simulation</a>.
-   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
-   DOI: 10.5194/isprsarchives-XLI-B7-953-2016</li>
-</ul>
+## REFERENCES
 
-<h2>AUTHOR</h2>
+  - Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
+    Cunniffe, N. J., & Shoemaker, D. A. (2013). [FUTURES: Multilevel
+    Simulations of Emerging Urban-Rural Landscape Structure Using a
+    Stochastic Patch-Growing
+    Algorithm](https://doi.org/10.1080/00045608.2012.707591). Annals of
+    the Association of American Geographers, 103(4), 785-807. DOI:
+    10.1080/00045608.2012.707591
+  - Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
+    (2015). [Simulating urbanization scenarios reveals tradeoffs between
+    conservation planning
+    strategies](https://doi.org/10.1016/j.landurbplan.2014.11.011).
+    Landscape and Urban Planning, 136, 28-39. DOI:
+    10.1016/j.landurbplan.2014.11.011
+  - Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
+    H., & Meentemeyer, R. K. (2016). [Open Source Approach to Urban
+    Growth
+    Simulation](https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf).
+    Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7,
+    953-959. DOI: 10.5194/isprsarchives-XLI-B7-953-2016
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+## AUTHOR
+
+Anna Petrasova, [NCSU GeoForAll](https://geospatial.ncsu.edu/geoforall/)

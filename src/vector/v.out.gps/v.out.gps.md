@@ -1,43 +1,46 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.out.gps</em> allows the user to export waypoint, route, and track
-data from a vector map into a locally connected GPS receiver or as a file in
+*v.out.gps* allows the user to export waypoint, route, and track data
+from a vector map into a locally connected GPS receiver or as a file in
 many common GPS data formats. Translation is done via the
-<em><a href="https://www.gpsbabel.org">GPSBabel</a></em> program.
+*[GPSBabel](https://www.gpsbabel.org)* program.
 
-<p>Do not use as a primary means of navigation.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License (GPL) for more details.
+Do not use as a primary means of navigation. This program is distributed
+in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the GNU General Public License (GPL) for more details.
 
-<h2>NOTES</h2>
+## NOTES
 
-<em>v.out.gps</em> automatically reprojects data from the
-projection settings of the current location to Lat/Lon WGS84.
-<p>GPX format is used for data interchange between GRASS and GpsBabel.
-If the requested output is GPX, then <tt>gpsbabel</tt> is never run.
-<p>OGR's GPX driver knows a number of standard field names. If an attribute
+*v.out.gps* automatically reprojects data from the projection settings
+of the current location to Lat/Lon WGS84.
+
+GPX format is used for data interchange between GRASS and GpsBabel. If
+the requested output is GPX, then `gpsbabel` is never run.
+
+OGR's GPX driver knows a number of standard field names. If an attribute
 column matches the name it will be used in that field. Otherwise the
-attribute will be placed within the <tt>&lt;extensions&gt;</tt> metadata
-section of the record. Not all fields names are used with all feature
-types (e.g. DOP fix error is not meaningful for route lines). You can
-use the <em>v.db.renamecolumn</em> module to rename columns.
-<p>These are the standard GPX data fields known to OGR:
-<div class="code"><pre>
+attribute will be placed within the `<extensions>` metadata section of
+the record. Not all fields names are used with all feature types (e.g.
+DOP fix error is not meaningful for route lines). You can use the
+*v.db.renamecolumn* module to rename columns.
+
+These are the standard GPX data fields known to OGR:
+
+```sh
 ageofdgpsdata
-cmt:	 Comment
+cmt:     Comment
 course
 desc
-dgpsid:	 DGPS station type
-ele:	 Elevation
+dgpsid:  DGPS station type
+ele:     Elevation
 fix
 geoidheight
-hdop:	 Horizontal dillution of precision (estimated fix error)
-magvar:	 Magnetic variation
+hdop:    Horizontal dillution of precision (estimated fix error)
+magvar:  Magnetic variation
 name
 number
-pdop:	 Positional dillution of precision (estimated fix error)
+pdop:    Positional dillution of precision (estimated fix error)
 route_fid
 route_point_id
 sat
@@ -51,46 +54,43 @@ track_seg_point_id
 type
 url
 urlname
-vdop:	 Vertical dillution of precision (estimated fix error)
-</pre></div>
+vdop:    Vertical dillution of precision (estimated fix error)
+```
 
+## EXAMPLES
 
-<h2>EXAMPLES</h2>
-
-<h3>GPX Export</h3>
+### GPX Export
 
 Export a vector lines map to a GPX track file:
-<div class="code"><pre>
+
+```sh
 v.out.gps -t input=trail output=trail.gpx
-</pre></div>
+```
 
+### GPS device connected via USB adapter
 
-<h3>GPS device connected via USB adapter</h3>
-
-Export vector maps named <i>waypoints, tracks, routes</i> to a Garmin GPS
+Export vector maps named *waypoints, tracks, routes* to a Garmin GPS
 connected to /dev/ttyUSB0:
-<div class="code"><pre>
+
+```sh
 v.out.gps -w input=waypoints format=garmin output=/dev/ttyUSB0
 v.out.gps -t input=tracks format=garmin output=/dev/ttyUSB0
 v.out.gps -r input=routes format=garmin output=/dev/ttyUSB0
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[m.proj](https://grass.osgeo.org/grass-stable/manuals/m.proj.html),
+[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html),
+[v.out.ascii](https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html),
+[v.db.renamecolumn](https://grass.osgeo.org/grass-stable/manuals/v.db.renamecolumn.html),
+[v.extract](https://grass.osgeo.org/grass-stable/manuals/v.extract.html)*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/m.proj.html">m.proj</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.out.ascii.html">v.out.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.db.renamecolumn.html">v.db.renamecolumn</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.extract.html">v.extract</a>
-</em>
-<p>
-<a href="https://www.gpsbabel.org">GpsBabel.org</a><br>
-The <a href="https://gdal.org/drivers/vector/gpx.html">GDAL/OGR GPX format page</a><br>
-cs2cs from <a href="https://proj.org">PROJ.4</a><br>
+[GpsBabel.org](https://www.gpsbabel.org)  
+The [GDAL/OGR GPX format
+page](https://gdal.org/drivers/vector/gpx.html)  
+cs2cs from [PROJ.4](https://proj.org)  
 
-
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Hamish Bowman, Dunedin, New Zealand

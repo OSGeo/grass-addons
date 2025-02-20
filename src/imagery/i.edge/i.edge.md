@@ -1,82 +1,75 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-<em>i.edge</em> is an edge detector based on the Canny edge detection
-algorithm [Canny1986]. The Canny edge detector is a filter which detects
-a wide range of edges in raster maps and produces thin edges as a raster map.
+*i.edge* is an edge detector based on the Canny edge detection algorithm
+\[Canny1986\]. The Canny edge detector is a filter which detects a wide
+range of edges in raster maps and produces thin edges as a raster map.
 
-<h2>NOTES</h2>
+## NOTES
 
-The computational region shall be set to the input map.
+The computational region shall be set to the input map. The module can
+work only on small images since the data are loaded entirely into
+memory.
 
-The module can work only on small images since the data are loaded entirely into memory.
+### Algorithm
 
-<h3>Algorithm</h3>
+An edge is considered as a change in gradient which is computed from
+image digital values. There are two main noticeable differences between
+Canny filter and other edge detectors. First, the others algorithm
+usually output broad lines (edges) while Canny filter outputs
+one-pixel-wide line(s) which represents the most probable edge position
+\[Russ2011\]. Second, the Canny filter combines several steps together
+while other filters have only one step and often require some pre- or
+post-processing to get results which allows further processing. However,
+it must be noted that by applying subsequent filters, thresholding and
+edge thinning one can get similar results also from other edge
+detectors. The implementation used for *i.edge* module is based on code
+from \[Gibara2010\].
 
-<p>
-An edge is considered as a change in gradient which is computed from image digital
-values. There are two main noticeable differences between
-Canny filter and other edge detectors. First, the others algorithm usually
-output broad lines (edges) while Canny filter outputs one-pixel-wide line(s)
-which represents the most probable edge position [Russ2011].
-Second, the Canny filter combines several steps together while
-other filters have only one step and often require some pre- or post-processing to get
-results which allows further processing. However, it must be noted that by applying
-subsequent filters, thresholding and edge thinning one can get similar results also
-from other edge detectors.
-The implementation used for <em>i.edge</em> module is based on code from [Gibara2010].
-
-
-<p>
 Canny edge detector is considered as optimal edge detector according to
-these three criteria [Sonka1999]:
-<ol>
-<li>important edges cannot be omitted and only actual edges can be detected as
-edges (no false positives);
-<li>difference in position of the real edge and the detected edge is minimal;
-<li>there is only one detected edge for an edge in original image.
-</ol>
+these three criteria \[Sonka1999\]:
 
-<p>
-The algorithm consists of a few steps.
-Firstly, the noise is reduced by a Gaussian filter (based on normal distribution); the
-result is smoothed image. Secondly, two orthogonal gradient images are computed.
-These images are combined, so the final gradient can be defined by an angle and
-a magnitude (value). Next step is non-maximum suppression which preserves only
-pixels with magnitude higher than magnitude of other pixels in the direction (and the
-opposite direction) of gradient. Finally, only relevant or significant edges extracted
-by thresholding with hysteresis. This thresholding uses two constants; if a pixel
-magnitude is above the higher one (<em>hT</em>), it is kept.
-Pixels with the magnitude under the lower threshold (<em>lT</em>) are removed.
-Pixels with magnitude values between these two constants
-are kept only when the pixels has some neighbor pixels with magnitude higher than
-the high threshold [Sonka1999].
+1. important edges cannot be omitted and only actual edges can be
+    detected as edges (no false positives);
+2. difference in position of the real edge and the detected edge is
+    minimal;
+3. there is only one detected edge for an edge in original image.
 
+The algorithm consists of a few steps. Firstly, the noise is reduced by
+a Gaussian filter (based on normal distribution); the result is smoothed
+image. Secondly, two orthogonal gradient images are computed. These
+images are combined, so the final gradient can be defined by an angle
+and a magnitude (value). Next step is non-maximum suppression which
+preserves only pixels with magnitude higher than magnitude of other
+pixels in the direction (and the opposite direction) of gradient.
+Finally, only relevant or significant edges extracted by thresholding
+with hysteresis. This thresholding uses two constants; if a pixel
+magnitude is above the higher one (*hT*), it is kept. Pixels with the
+magnitude under the lower threshold (*lT*) are removed. Pixels with
+magnitude values between these two constants are kept only when the
+pixels has some neighbor pixels with magnitude higher than the high
+threshold \[Sonka1999\].
 
-<h3>Inputs and parameters</h3>
+### Inputs and parameters
 
 The input is a gray scale image (a raster map). Usually, this gray scale
-image is an intensity channel obtained by RGB to HIS conversion. Some other
-possibilities include color edges (obtained from RGB color channels) which
-may give slightly better results [Zimmermann2000]. In theory, <em>i.edge</em>
-module can be applied not only to images but also to digital elevation models
-and other data with abrupt changes in raster values.
-The output is a binary raster where ones denote edges and zeros denote
-everything else. There are also possible byproducts or intermediate products which
-can be part of the output, namely edge angles (gradient orientations).
+image is an intensity channel obtained by RGB to HIS conversion. Some
+other possibilities include color edges (obtained from RGB color
+channels) which may give slightly better results \[Zimmermann2000\]. In
+theory, *i.edge* module can be applied not only to images but also to
+digital elevation models and other data with abrupt changes in raster
+values. The output is a binary raster where ones denote edges and zeros
+denote everything else. There are also possible byproducts or
+intermediate products which can be part of the output, namely edge
+angles (gradient orientations). By changing parameters of the module one
+can easily achieve different levels of detail. There are 3 parameters
+which affect the result. A `sigma` value and two threshold values,
+`low_threshold` (*lT*) `high_threshold` (*hT*). It is recommended to use
+*lT* and *hT* threshold values in ratio (computed as *hT/lT*) between 2
+and 3 \[Sonka1999\].
 
-By changing parameters of the module one can easily achieve different levels of
-detail. There are 3 parameters which affect the result. A <tt>sigma</tt>
-value and two threshold values, <tt>low_threshold</tt> (<em>lT</em>)
-<tt>high_threshold</tt> (<em>hT</em>). It is recommended to use
-<em>lT</em> and <em>hT</em> threshold values in ratio (computed
-as <em>hT/lT</em>) between 2 and 3 [Sonka1999].
+## EXAMPLE
 
-
-
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 # set the region (resolution) to Landsat image
 g.region raster=lsat7_2000_20@landsat
 
@@ -91,50 +84,36 @@ i.edge input=lsat_pca.1 output=lsat_pca_1_edges
 
 # set no edges areas to NULL (for visualization)
 r.null map=lsat_pca_1_edges setnull=0
-</pre></div>
+```
 
-
-<h2>KNOWN ISSUES</h2>
+## KNOWN ISSUES
 
 Computational region shall be set to input map. The module can work only
-on small images since map is loaded into memory.
+on small images since map is loaded into memory. Edge strengths
+(gradient values) are not provided as an output but might be added in
+the future.
 
-Edge strengths (gradient values) are not provided as an output but might be added in the future.
+## REFERENCES
 
+  - J. Canny. *A Computational Approach to Edge Detection*. In: IEEE
+    Trans. Pattern Anal. Mach. Intell. 8.6 (June 1986), pp. 679–698.
+    issn: 0162-8828.
+  - J.C. Russ. *The image processing handbook*. CRC, 2011.
+  - Tom Gibara. *Canny Edge Detector Implementation*. \[Online; accessed
+    20-June- 2012\]. 2010. URL:
+    [https://www.tomgibara.com/computer-vision/canny-edge-detector](https://web.archive.org/web/20120628212753/http://www.tomgibara.com:80/computer-vision/canny-edge-detector).
+  - M. Sonka, V. Hlavac, and R. Boyle. *Image processing, analysis, and
+    machine vision*. PWS Pub. Pacific Grove (1999).
+  - P. Zimmermann. *A new framework for automatic building detection
+    analysing multiple cue data*. In: International Archives of
+    Photogrammetry and Remote Sensing 33.B3/2; PART 3 (2000), pp.
+    1063–1070.
 
-<h2>REFERENCES</h2>
+## SEE ALSO
 
-<ul>
+*[i.zc](https://grass.osgeo.org/grass-stable/manuals/i.zc.html),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
 
-<li>J. Canny. <i>A Computational Approach to Edge Detection</i>. In: IEEE Trans.
-Pattern Anal. Mach. Intell. 8.6 (June 1986), pp. 679–698. issn: 0162-8828.</li>
+## AUTHORS
 
-<li>J.C. Russ. <i>The image processing handbook</i>. CRC, 2011.</li>
-
-<li>Tom Gibara. <i>Canny Edge Detector Implementation</i>. [Online; accessed 20-June-
-2012]. 2010. URL:
-<a href="https://web.archive.org/web/20120628212753/http://www.tomgibara.com:80/computer-vision/canny-edge-detector">
-https://www.tomgibara.com/computer-vision/canny-edge-detector</a>.
-
-<li>M. Sonka, V. Hlavac, and R. Boyle. <i>Image processing, analysis, and machine
-vision</i>. PWS Pub. Pacific Grove (1999).
-
-<li>P. Zimmermann. <i>A new framework for automatic building detection analysing
-multiple cue data</i>. In: International Archives of Photogrammetry and Remote
-Sensing 33.B3/2; PART 3 (2000), pp. 1063–1070.</li>
-
-</ul>
-
-
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
-</em>
-
-
-<h2>AUTHORS</h2>
-
-Anna Kratochvilova,
-Vaclav Petras
+Anna Kratochvilova, Vaclav Petras

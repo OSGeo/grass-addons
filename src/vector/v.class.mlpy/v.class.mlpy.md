@@ -1,49 +1,43 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<p>
-The <em>v.class.mlpy</em> module is a tool for supervised vector classification.
-It is built on top of the Python <em>mlpy</em> library [Albanese2012].
-The classification is based on attribute values. The geometry is not taken into
-account, so the module does not depend on the feature types used in the map.
-The classification is supervised, so the training dataset is always required.
+The *v.class.mlpy* module is a tool for supervised vector
+classification. It is built on top of the Python *mlpy* library
+\[Albanese2012\]. The classification is based on attribute values. The
+geometry is not taken into account, so the module does not depend on the
+feature types used in the map. The classification is supervised, so the
+training dataset is always required.
 
-<p>
-The attribute table of training map (dataset) has to contain a column with
-the class. Required type of class column is integer. Expected type of other
-columns is double or integer.
+The attribute table of training map (dataset) has to contain a column
+with the class. Required type of class column is integer. Expected type
+of other columns is double or integer.
 
+## NOTES
 
-<h2>NOTES</h2>
+This module requires the user to have *mlpy* library installed. However,
+this is not an issue because *mlpy* library is free and open source and
+can be quickly downloaded and installed. Furthermore, library is
+available for all major platforms supported by GRASS GIS. You find
+*mlpy* download and installation instructions at the official *mlpy*
+website (<https://mlpy.sourceforge.net/>).
 
-<p>
-This module requires the user to have <em>mlpy</em> library installed.
-However, this is not an issue because <em>mlpy</em> library is
-free and open source and can be quickly downloaded and installed.
-Furthermore, library is available for all major platforms supported by
-GRASS GIS. You find <em>mlpy</em> download and installation
-instructions at the official <em>mlpy</em> website
-(<a href="https://mlpy.sourceforge.net/">https://mlpy.sourceforge.net/</a>).
+## EXAMPLE
 
-
-<h2>EXAMPLE</h2>
-
-<p>
 This is an example in a North Carolina sample dataset. It uses several
-raster maps and generates (spatially) random vector data for classification
-from raster maps. The random data used as input to
-the classification and represent training dataset and dataset to be classified
-in the real use case.
+raster maps and generates (spatially) random vector data for
+classification from raster maps. The random data used as input to the
+classification and represent training dataset and dataset to be
+classified in the real use case.
 
-<p>
 Two sets of random points are generated containing 100 and 1000 points.
-Then, an attribute table is created for both maps and attributes are derived
-from digital values of raster maps (Landsat images) at points locations.
-These attribute table columns are input to the classification.
-The smaller dataset is used as training dataset. Classes are taken from
-the raster map which is a part of the sample dataset as an example result
-of some former classification. The number of classes in training dataset is 6.
+Then, an attribute table is created for both maps and attributes are
+derived from digital values of raster maps (Landsat images) at points
+locations. These attribute table columns are input to the
+classification. The smaller dataset is used as training dataset. Classes
+are taken from the raster map which is a part of the sample dataset as
+an example result of some former classification. The number of classes
+in training dataset is 6.
 
-<div class="code"><pre>
+```sh
 # the example code uses unix-like syntax for continuation lines, for-loops,
 # variables and assigning command outputs to variables
 
@@ -84,29 +78,28 @@ v.class.mlpy input=points_unknown training=points_known class_column=landclass
 r.colors.out map=landclass96 rules=tmp_color_rules_file \
 | v.colors map=points_unknown column=landclass layer=1 rules=tmp_color_rules_file
 rm tmp_color_rules_file
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.class.html">v.class</a></em> for unsupervised attributes
-classification,
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.to.db.html">v.to.db</a></em> for populating attribute values
-from vector features,
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html">v.what.rast</a></em> for uploading raster
-values to attribute columns,
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html">v.rast.stats</a></em> for uploading raster
-statistics to attribute columns,
-<em><a href="v.class.ml.html">v.class.ml</a></em> for a more powerful vector
-classification module which uses <em>scikit-learn</em>
+*[v.class](https://grass.osgeo.org/grass-stable/manuals/v.class.html)*
+for unsupervised attributes classification,
+*[v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html)*
+for populating attribute values from vector features,
+*[v.what.rast](https://grass.osgeo.org/grass-stable/manuals/v.what.rast.html)*
+for uploading raster values to attribute columns,
+*[v.rast.stats](https://grass.osgeo.org/grass-stable/manuals/v.rast.stats.html)*
+for uploading raster statistics to attribute columns,
+*[v.class.ml](v.class.ml.md)* for a more powerful vector classification
+module which uses *scikit-learn*
 
+## REFERENCES
 
-<h2>REFERENCES</h2>
+D. Albanese, R. Visintainer, S. Merler, S. Riccadonna, G. Jurman, C.
+Furlanello. *mlpy: Machine Learning Python*, 2012.
+[arXiv:1202.6548](http://arxiv.org/abs/1202.6548)
 
-D. Albanese, R. Visintainer, S. Merler, S. Riccadonna, G. Jurman, C. Furlanello.
-<em>mlpy: Machine Learning Python</em>, 2012.
-<a href="http://arxiv.org/abs/1202.6548">arXiv:1202.6548</a>
+## AUTHOR
 
-<h2>AUTHOR</h2>
-
-Vaclav Petras,
-<a href="https://www.cvut.cz">Czech Technical University in Prague</a>, Czech Republic
+Vaclav Petras, [Czech Technical University in
+Prague](https://www.cvut.cz), Czech Republic

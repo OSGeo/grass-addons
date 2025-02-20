@@ -1,29 +1,23 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>t.info.iso</em> creates metadata of temporal maps according
-to <a href="https://www.iso.org/standard/26020.html">ISO
-    19115</a>.
+*t.info.iso* creates metadata of temporal maps according to [ISO
+19115](https://www.iso.org/standard/26020.html).
 
-<p>
-    The module also allows conversion of metadata from native GRASS GIS format
-    to ISO-based format.
+The module also allows conversion of metadata from native GRASS GIS
+format to ISO-based format.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/t.info.html">t.info</a>,
-    <a href="r.info.iso.html">r.info.iso</a>,
-    <a href="v.info.iso.html">v.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>
-</em>
+*[t.info](https://grass.osgeo.org/grass-stable/manuals/t.info.html),
+[r.info.iso](r.info.iso.md), [v.info.iso](v.info.iso.md),
+[g.gui.metadata](g.gui.metadata.md)*
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+See also related [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during [Google Summer of
+Code 2014](https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS)
+(mentors: Margherita Di Leo, Martin Landa)

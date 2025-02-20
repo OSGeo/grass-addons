@@ -1,89 +1,79 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.gui.cswbrowser</em> supports searching and browsing metadata catalogs based on
-<a href="https://www.ogc.org/publications/standard/cat/">Catalogue Service (CSW)</a> standard .
+*g.gui.cswbrowser* supports searching and browsing metadata catalogs
+based on [Catalogue Service
+(CSW)](https://www.ogc.org/publications/standard/cat/) standard .
 
-<p>
-    The module allows to setting up connection to csw by uri and search metadata using advanced filter.
+The module allows to setting up connection to csw by uri and search
+metadata using advanced filter.
 
-<h2>NOTES</h2>
+## NOTES
 
-For dependencies and installation instructions see the dedicated
-<a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+For dependencies and installation instructions see the dedicated [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
 
-<h3>Setting up connection</h3>
+### Setting up connection
 
-After start g.gui.cswbrowser the connection manager is initialized by default connection file which
-includes some well
-known catalogs. Connection manager allows to add, to delete and to load connection from xml file.
+After start g.gui.cswbrowser the connection manager is initialized by
+default connection file which includes some well known catalogs.
+Connection manager allows to add, to delete and to load connection from
+xml file.
 
-<h3>Search and browse catalog</h3>
+### Search and browse catalog
 
-Searching and browsing panel allows to setup request with using custom filter.
+Searching and browsing panel allows to setup request with using custom
+filter.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
 
-<h3>Query filter</h3>
-The filter can be defined by limitation of area by bounding box which can be set by GRASS region or
-manualy.
+### Query filter
 
-<h3>Bounding box</h3>
+The filter can be defined by limitation of area by bounding box which
+can be set by GRASS region or manualy.
 
-<ul>
-    <li>Bounding box<br>
-        Bounding box defined spatial extent for limitation of area. Button "Map extends" allows to set
-        up values from current GRASS region.
-    </li>
-    <li>Keywords<br>
-        This filter allows to use basic or advance keyword filtering. In the simple case user can define
-        single keywords or multiple keywords with button "+". Logic operator between keywords is AND(&amp;&amp;).
-        Second, advanced is based on OGC list of expressions which means that can be set filtr with logic
-        relations between keywords or sets of keywords. Dialog for settings kewords text string is under
-        "Advanced" checkbox. Syntax of constraints is based on python list syntax. Each keywords must be
-        in braces &lt;'&gt; or &lt;"&gt;.
-    </li>
-    <li>
-        <ul>
-            <li>OR condition<br>
-                a || b || c
-                ["a","b","c"]
-            </li>
-            <li>AND condition<br>
-                a && b && c
-                [["a","b","c"]]
-            </li>
-            <li>composition<br>
-                (a && b) || c || d || e
-                [["a","b"],["c"],["d"],["e"]] or [["a","b"],"c","d","e"]
-            </li>
-        </ul>
-    </li>
-</ul>
+### Bounding box
 
-<h3>Browsing of metadata</h3>
-In case of successful request, user can browse through results and show request and response in xml format.
-If services
-contains uri of WMS, WFS or WMS, module allows to add them directly with using upper toolbar.
+  - Bounding box  
+    Bounding box defined spatial extent for limitation of area. Button
+    "Map extends" allows to set up values from current GRASS region.
 
+  - Keywords  
+    This filter allows to use basic or advance keyword filtering. In the
+    simple case user can define single keywords or multiple keywords
+    with button "+". Logic operator between keywords is AND(&&). Second,
+    advanced is based on OGC list of expressions which means that can be
+    set filtr with logic relations between keywords or sets of keywords.
+    Dialog for settings kewords text string is under "Advanced"
+    checkbox. Syntax of constraints is based on python list syntax. Each
+    keywords must be in braces \<'\> or \<"\>.
 
-<h2>SEE ALSO</h2>
+  - - OR condition  
+        a || b || c \["a","b","c"\]
+      - AND condition  
+        a && b && c \[\["a","b","c"\]\]
+      - composition  
+        (a && b) || c || d || e \[\["a","b"\],\["c"\],\["d"\],\["e"\]\]
+        or \[\["a","b"\],"c","d","e"\]
 
-<em>
-    <a href="https://grass.osgeo.org/grass-stable/manuals/r.info.html">r.info</a>,
-    <a href="v.info.iso.html">v.info.iso</a>,
-    <a href="g.gui.metadata.html">g.gui.metadata</a>,
-    <a href="db.csw.harvest">db.csw.harvest</a>,
-    <a href="db.csw.admin">db.csw.admin</a>,
-    <a href="db.csw.run">db.csw.run</a>
-</em>
+### Browsing of metadata
 
-<p>
-    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+In case of successful request, user can browse through results and show
+request and response in xml format. If services contains uri of WMS, WFS
+or WMS, module allows to add them directly with using upper toolbar.
 
+## SEE ALSO
 
-<h2>AUTHORS</h2>
+*[r.info](https://grass.osgeo.org/grass-stable/manuals/r.info.html),
+[v.info.iso](v.info.iso.md), [g.gui.metadata](g.gui.metadata.md),
+[db.csw.harvest](db.csw.harvest), [db.csw.admin](db.csw.admin),
+[db.csw.run](db.csw.run)*
 
-Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
-at the Czech Technical University in Prague, developed
-during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
-    Summer of Code 2015</a> (mentor: Martin Landa)
+See also related [wiki
+page](https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support).
+
+## AUTHORS
+
+Matej Krejci, [OSGeoREL](https://geo.fsv.cvut.cz/gwiki/osgeorel) at the
+Czech Technical University in Prague, developed during [Google Summer of
+Code 2015](https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS)
+(mentor: Martin Landa)

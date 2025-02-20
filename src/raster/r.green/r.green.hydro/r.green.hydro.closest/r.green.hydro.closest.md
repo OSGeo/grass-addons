@@ -1,7 +1,7 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Pietro Zambelli

@@ -1,27 +1,26 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.sun.daily</em> is a convenient script for running
-r.sun for multiple days in a loop. It corresponds to mode 2
-(aggregation mode, see r.sun <a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">manual page</a>).
+*r.sun.daily* is a convenient script for running r.sun for multiple days
+in a loop. It corresponds to mode 2 (aggregation mode, see r.sun [manual
+page](https://grass.osgeo.org/grass-stable/manuals/r.sun.html)).
 
-<h3>Output parameters explanation</h3>
+### Output parameters explanation
+
 There are two basic options:
-<ul>
-<li>output series of maps (one for each day): options containing basename in their name</li>
-<li>output one map which is an aggregation of the intermediate maps</li>
-</ul>
 
-You can choose any combination of parameters: e.g. total map of diffuse radiance and
-series of beam radiance maps.
+  - output series of maps (one for each day): options containing
+    basename in their name
+  - output one map which is an aggregation of the intermediate maps
 
-Series of maps are (if flag <i>t</i> is checked) registered
-to space time raster dataset with relative time and point time (not interval time).
+You can choose any combination of parameters: e.g. total map of diffuse
+radiance and series of beam radiance maps. Series of maps are (if flag
+*t* is checked) registered to space time raster dataset with relative
+time and point time (not interval time). For GRASS 6, only timestamp is
+assigned.
 
-For GRASS 6, only timestamp is assigned.
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code"><pre>
+```sh
 g.region raster=elevation -p
 r.sun.daily elevation=elevation start_day=30 end_day=40 \
             beam_rad_basename=beam beam_rad=beam_sum nprocs=4 -t
@@ -30,18 +29,16 @@ t.info beam
 
 # show information about newly created beam_sum raster map
 r.info beam
-</pre></div>
+```
 
+## SEE ALSO
 
-<h2>SEE ALSO</h2>
+*[r.sun](https://grass.osgeo.org/grass-stable/manuals/r.sun.html)  
+[r.sun.hourly](r.sun.hourly.md) in Addons*
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.sun.html">r.sun</a><br>
-<a href="r.sun.hourly.html">r.sun.hourly</a> in Addons
-</em>
+## AUTHORS
 
-
-<h2>AUTHORS</h2>
-
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br>
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/),  
+Anna Petrasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

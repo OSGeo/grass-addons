@@ -1,45 +1,40 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.pi.corr.mw</em> provides information concerning the correlation
-of pixels inside a moving window between two raster files.
-<p>
+*r.pi.corr.mw* provides information concerning the correlation of pixels
+inside a moving window between two raster files.
+
 It calculates correlation of two raster maps by calculating correlation
-function of two corresponding rectangular areas for each raster point and
-writing the result into a new raster map.
+function of two corresponding rectangular areas for each raster point
+and writing the result into a new raster map.
 
-<h2>NOTES</h2>
+## NOTES
 
-This module computes the correlation between two raster files but
-unlike <em>r.pi.lm</em> for moving windows of a specific size. This
-module is partly based on <em>r.neighbors</em> and <em>r.covar</em>.
+This module computes the correlation between two raster files but unlike
+*r.pi.lm* for moving windows of a specific size. This module is partly
+based on *r.neighbors* and *r.covar*.
 
-<h2>EXAMPLE</h2>
+## EXAMPLE
 
-An example for the North Carolina sample dataset:
+An example for the North Carolina sample dataset: Correlation of all
+pixels within a 7x7 sized window of two rasters (elevation and slope).
+The output is multiplied by 10000 for higher precision
 
-Correlation of all pixels within a 7x7 sized window of two rasters
-(elevation and slope). The output is multiplied by 10000 for higher
-precision
-<div class="code"><pre>
+```sh
 g.region rast=elevation -p
 r.pi.corr.mw input1=slope input2=elevation output=corrwin1 size=7 max=10000
 r.colors corrwin1 col=bgyr
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.pi.lm.html">r.pi.lm</a>,
-<a href="r.pi.html">r.pi</a>
-</em>
+*[r.pi.index](r.pi.index.md), [r.pi.lm](r.pi.lm.md), [r.pi](r.pi.md)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann<br>
-Department of Remote Sensing<br>
-Remote Sensing and Biodiversity Unit<br>
+Programming: Elshad Shirinov  
+Scientific concept: Dr. Martin Wegmann  
+Department of Remote Sensing  
+Remote Sensing and Biodiversity Unit  
 University of Wuerzburg, Germany
-<p>
+
 Port to GRASS GIS 7: Markus Metz

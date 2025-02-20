@@ -1,73 +1,88 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>r.fill.category</em> replaces the values of pixels of a given category with values
-of the surrounding pixels and stores the output in
-a new raster map layer. The module can be used to eliminate one category from a raster map
-without leaving areas with NULL values, like for example when using <em>r.reclass.area</em>.
-<p>
-Areas with the given category are eroded and their pixels
-value is replaced with the values given by the mode of the surrounding pixels.
-</p>
-<p>
-<em>r.fill.category</em> iteratively applies <em>r.neighbors</em> and <em>r.mapcalc</em> until no pixel of the category
-to replace is left or the maximum number of iterations is reached.
-</p>
-<p>
-Optionally, <em>r.fill.category</em> can create an MPEG file animating the replacement process.
-</p>
+*r.fill.category* replaces the values of pixels of a given category with
+values of the surrounding pixels and stores the output in a new raster
+map layer. The module can be used to eliminate one category from a
+raster map without leaving areas with NULL values, like for example when
+using *r.reclass.area*.
 
-<h2>PARAMETERS</h2>
-The user controls the process by setting the <i>neighborhood size</i> in pixels and the <i>maximum number of iterations</i>.
-<p>
-The <i>neighborhood size</i> (<b>nsize</b>) controls the size of the moving window where the mode of the values is used to assign a value to the pixels of the category to be replaced. Large values of the <i>neighborhood size</i> can speed the process considerably but can also lead to unwanted effects where pixels with the category to remove are mixed with pixels with different categories. Small values of <i>neighborhood size</i> require a large number of iterations, therefore longer processing times, but provide better results when categories are mixed.
-</p>
-<p>
-The <i>maximum number of iterations</i> (<b>maxiter</b>) is limited to <i>999</i> because the name of the temporary map at each step uses three digits to identify the iteration.
-</p>
+Areas with the given category are eroded and their pixels value is
+replaced with the values given by the mode of the surrounding pixels.
 
-<h2>INTERMEDIATE MAPS</h2>
-To save space, maps generated at each iteration are removed as soon as they are used. It is possible to keep these maps using the <b>k</b> flag.
+*r.fill.category* iteratively applies *r.neighbors* and *r.mapcalc*
+until no pixel of the category to replace is left or the maximum number
+of iterations is reached.
 
-<h2>ANIMATION</h2>
-If the user provides the name of an MPEG output file, an animation is created by combining the raster maps of each step.
-<p>
-The <b>quality</b> (1-5) parameter controls the quality of the MPEG, lower values will yield higher quality images, but with less compression (i.e. larger MPEG file size). Switching from <i>quality=1</i> to <i>quality=5</i> reduces the MPEG file size of about 40%, although the actual compression ratio depends on the number of frames.
-</p>
-<p>
-The module <em>r.out.mpeg</em> is used to generate the MPEG file, therefore the program mpeg_encode (aka ppmtompeg) must be available.
-See <em>r.out.mpeg</em> manual for more information.
-</p>
-<p>
-If a name for an MPEG output file is provided but the <b>k</b> flag is not set, intermediate maps are kept during the process and deleted after the MPEG file has been created.
-</p>
+Optionally, *r.fill.category* can create an MPEG file animating the
+replacement process.
 
-<h2>EXAMPLE</h2>
+## PARAMETERS
 
-In this example, the lakes in the <i>landuse</i> map in the
-North Carolina sample dataset location are replaced by categories
-of the surrounding pixels:
+The user controls the process by setting the *neighborhood size* in
+pixels and the *maximum number of iterations*.
 
-<div class="code"><pre>
+The *neighborhood size* (**nsize**) controls the size of the moving
+window where the mode of the values is used to assign a value to the
+pixels of the category to be replaced. Large values of the *neighborhood
+size* can speed the process considerably but can also lead to unwanted
+effects where pixels with the category to remove are mixed with pixels
+with different categories. Small values of *neighborhood size* require a
+large number of iterations, therefore longer processing times, but
+provide better results when categories are mixed.
+
+The *maximum number of iterations* (**maxiter**) is limited to *999*
+because the name of the temporary map at each step uses three digits to
+identify the iteration.
+
+## INTERMEDIATE MAPS
+
+To save space, maps generated at each iteration are removed as soon as
+they are used. It is possible to keep these maps using the **k** flag.
+
+## ANIMATION
+
+If the user provides the name of an MPEG output file, an animation is
+created by combining the raster maps of each step.
+
+The **quality** (1-5) parameter controls the quality of the MPEG, lower
+values will yield higher quality images, but with less compression (i.e.
+larger MPEG file size). Switching from *quality=1* to *quality=5*
+reduces the MPEG file size of about 40%, although the actual compression
+ratio depends on the number of frames.
+
+The module *r.out.mpeg* is used to generate the MPEG file, therefore the
+program mpeg\_encode (aka ppmtompeg) must be available. See *r.out.mpeg*
+manual for more information.
+
+If a name for an MPEG output file is provided but the **k** flag is not
+set, intermediate maps are kept during the process and deleted after the
+MPEG file has been created.
+
+## EXAMPLE
+
+In this example, the lakes in the *landuse* map in the North Carolina
+sample dataset location are replaced by categories of the surrounding
+pixels:
+
+```sh
 # set the region on the landuse map
 g.region rast=landuse@PERMANENT
 # replace pixels of category 6 (water) with values of the surrounding pixels
 # create a drought.mpg animation file in the current directory
 r.fill.category input=landuse@PERMANENT output=landuse_dry category=6 animationfile=./drought.mpg
-</pre></div>
+```
 
-It removes all water pixels in 38 iterations. A <i>drought.mpg</i> MPEG file containing the animation of the replacement sequence is created in the current directory.
+It removes all water pixels in 38 iterations. A *drought.mpg* MPEG file
+containing the animation of the replacement sequence is created in the
+current directory.
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html">r.reclass.area</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.out.mpeg.html">r.out.mpeg</a>,
-<a href="r.fill.gaps.html">r.fill.gaps</a>
-</em>
+*[r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html),
+[r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html),
+[r.out.mpeg](https://grass.osgeo.org/grass-stable/manuals/r.out.mpeg.html),
+[r.fill.gaps](r.fill.gaps.md)*
 
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Paolo Zatelli and Stefano Gobbi,
-DICAM, University of Trento, Italy.
+Paolo Zatelli and Stefano Gobbi, DICAM, University of Trento, Italy.

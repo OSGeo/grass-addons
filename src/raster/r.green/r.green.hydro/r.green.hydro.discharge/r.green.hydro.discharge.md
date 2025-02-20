@@ -1,80 +1,139 @@
-<h2>DESCRIPTION</h2>
-<em>r.green.hydro.discharge</em> calculates the average natural discharge and the minimum flow discharge according to regional laws.
+## DESCRIPTION
 
-<h2>NOTES</h2>
+*r.green.hydro.discharge* calculates the average natural discharge and
+the minimum flow discharge according to regional laws.
 
-The natural discharge is the discharge of the streams which doesn't consider the existing power plants and the other structures exploiting the water of the river. <br>
-The Minimal Flow Discharge (MFD) is the amount of water which has to remain in the river to preserve the ecosystems. The legislation differs in each region. The MFD can be considered as a percentage of the current discharge, which is the discharge of the river considering the structures exploiting the water. The current discharge is often considered as the mean annual discharge.<br><br>
+## NOTES
 
-However, a percentage of the current discharge cannot define precisely the MFD and each region has a different method to define it. For the moment, this module only considers the legislation applied on Piave basin in the Veneto region. New tabs with the legislation of other regions could be added.<br><br>
+The natural discharge is the discharge of the streams which doesn't
+consider the existing power plants and the other structures exploiting
+the water of the river.  
+The Minimal Flow Discharge (MFD) is the amount of water which has to
+remain in the river to preserve the ecosystems. The legislation differs
+in each region. The MFD can be considered as a percentage of the current
+discharge, which is the discharge of the river considering the
+structures exploiting the water. The current discharge is often
+considered as the mean annual discharge.  
+  
+However, a percentage of the current discharge cannot define precisely
+the MFD and each region has a different method to define it. For the
+moment, this module only considers the legislation applied on Piave
+basin in the Veneto region. New tabs with the legislation of other
+regions could be added.  
+  
+The module computes two raster maps : the natural discharge and the MFD.
+On Piave basin, the natural discharge can be computed thanks to the
+input raster map with the values of specific discharge, and the MFD is
+calculated thanks to this formula :  
+  
 
-The module computes two raster maps : the natural discharge and the MFD. On Piave basin, the natural discharge can be computed thanks to the input raster map with the values of specific discharge, and the MFD is calculated thanks to this formula :<br><br>
+Q<sub>MFD</sub> = ( K<sub>b</sub> + K<sub>n</sub> ) \* 177 \*
+S<sup>0.85</sup> \* Q<sub>spec</sub> \* 10<sup>-6</sup>  
 
-<center>Q<SUB>MFD</SUB> = ( K<SUB>b</SUB> + K<SUB>n</SUB> ) * 177 * S<SUP>0.85</SUP> * Q<SUB>spec</SUB> * 10<SUP>-6</SUP><br></center>
+> where K<sub>b</sub> is the biological criticality index,  
+> K<sub>n</sub> is the naturalistic criticality index,  
+> S is the catchment area, in km<sup>2</sup>,  
+> Q<sub>spec</sub> is the specific flow-rate per unit area of the
+> catchment, in l/(s.km<sup>2</sup>)  
 
-<blockquote>where K<SUB>b</SUB> is the biological criticality index,<br>
-K<SUB>n</SUB> is the naturalistic criticality index,<br>
-S is the catchment area, in km<SUP>2</SUP>,<br>
-Q<SUB>spec</SUB> is the specific flow-rate per unit area of the catchment, in l/(s.km<SUP>2</SUP>) <br></blockquote>
+K<sub>b</sub> is typically within the range of 1-1.6; higher values are
+chosen for a river whose aquatic ecosystem is considered to be of a
+particular environmental value.  
+K<sub>n</sub> is typically within the range of 0-0.6; higher values of
+such index are used for basins having a particular naturalistic value,
+for instance national parks.  
+The values of K<sub>b</sub> and K<sub>n</sub> are imposed by the Piave
+River Catchment Authority (PRCA). They have different values depending
+on homogeneous segments which can be found in a table made by the PRCA.
+Also the values of Q<sub>spec</sub> depend on the area and are available
+in such a table.  
+  
+Thanks to three raster maps respectively with the values of
+K<sub>b</sub>, K<sub>n</sub> and Q<sub>spec</sub>, and also the
+elevation raster map and the streams vector map, the module creates the
+two raster maps with the values of MFD and average natural discharge.
 
-K<SUB>b</SUB> is typically within the range of 1-1.6; higher values are chosen for a river whose aquatic ecosystem is considered to be of a particular environmental value. <br>
-K<SUB>n</SUB> is typically within the range of 0-0.6; higher values of such index are used for basins having a particular naturalistic value, for instance national parks. <br>
-The values of K<SUB>b</SUB> and K<SUB>n</SUB> are imposed by the Piave River Catchment Authority (PRCA). They have different values depending on homogeneous segments which can be found in a table made by the PRCA. Also the values of Q<SUB>spec</SUB> depend on the area and are available in such a table.<br><br>
+## EXAMPLE
 
-Thanks to three raster maps respectively  with the values of K<SUB>b</SUB>, K<SUB>n</SUB> and Q<SUB>spec</SUB>, and also the elevation raster map and the streams vector map, the module creates the two raster maps with the values of MFD and average natural discharge.
+This example is based on the case-study of Mis valley in Belluno
+province, Veneto, Italy.  
+  
+Here is the map of the Mis valley with colored areas to define the
+K<sub>n</sub>, K<sub>b</sub> and Q<sub>spec</sub> values.
 
-<h2>EXAMPLE</h2>
-This example is based on the case-study of Mis valley in Belluno province, Veneto, Italy.<br><br>
+![image-alt](r.green.hydro.discharge_input.png)  
+Picture which gathers the input raster maps with K<sub>n</sub>,
+K<sub>b</sub> and Q<sub>spec</sub> values
 
-Here is the map of the Mis valley with colored areas to define the K<SUB>n</SUB>, K<SUB>b</SUB> and Q<SUB>spec</SUB> values.
+  
+  
+According to the legislation for the Piave basin explained above, the
+legal values for the Mis valley are :  
+K<sub>n</sub> = 0.4 in the whole region (yellow and red zones)  
+K<sub>b</sub> = 1.4 in the yellow zone and 1.6 in the red zone  
+Q<sub>spec</sub> = 44 l/(s.km<sup>2</sup>) in the yellow zone and 43
+l/(s.km<sup>2</sup>) elsewhere (red and white zones)  
+  
+These values are put in three different raster maps : q\_spec, k\_b and
+k\_n.  
+Here is the code used to create the raster maps with the MFD and the
+natural discharge. The basins are considered with a threshold of 10000
+m.  
+  
 
-<center>
-<img src="r.green.hydro.discharge_input.png" alt="input"><br>
-Picture which gathers the input raster maps with K<SUB>n</SUB>, K<SUB>b</SUB> and Q<SUB>spec</SUB> values
-</center><br><br>
+```sh
+r.green.hydro.discharge q_spec=q_spec output_q_river=discharge k_b=k_b k_n=k_n output_mfd=mfd elevation=elevation output_streams=streams threshold=100000
+```
 
-According to the legislation for the Piave basin explained above, the legal values for the Mis valley are :<br>
-K<SUB>n</SUB> = 0.4 in the whole region (yellow and red zones)<br>
-K<SUB>b</SUB> = 1.4 in the yellow zone and 1.6 in the red zone<br>
-Q<SUB>spec</SUB> = 44 l/(s.km<SUP>2</SUP>) in the yellow zone and 43 l/(s.km<SUP>2</SUP>) elsewhere (red and white zones)<br><br>
+  
+  
+The following picture gathers the two output raster maps mfd and
+discharge which look like each other (yellow background with colored
+points following the river and containing the values of discharge). For
+a better understanding, the following picture also shows the border of
+the Mis valley and the streams.  
+  
 
-These values are put in three different raster maps : q_spec, k_b and k_n.<br>
-Here is the code used to create the raster maps with the MFD and the natural discharge. The basins are considered with a threshold of 10000 m.<br><br>
+![image-alt](r.green.hydro.discharge_output.png)  
+Picture which gathers the output raster maps with valued of MFD and
+natural discharge, also showing the vector maps with the borders and
+streams of Mis valley
 
-<div class="code"><pre>r.green.hydro.discharge q_spec=q_spec output_q_river=discharge k_b=k_b k_n=k_n output_mfd=mfd elevation=elevation output_streams=streams threshold=100000</pre></div><br><br>
+  
+  
+The white point is queried in GRASS to know the values of MFD and
+natural discharge. The following picture shows these values in
+m<sup>3</sup>/s.  
+  
 
-The following picture gathers the two output raster maps mfd and discharge which look like each other (yellow background with colored points following the river and containing the values of discharge). For a better understanding, the following picture also shows the border of the Mis valley and the streams.<br><br>
+![image-alt](r.green.hydro.discharge_output_table.png)  
+Values of MFD and natural discharge (in m<sup>3</sup>/s) at the white
+point
 
-<center>
-<img src="r.green.hydro.discharge_output.png" alt="output"><br>
-Picture which gathers the output raster maps with valued of MFD and natural discharge, also showing the vector maps with the borders and streams of Mis valley
-</center><br><br>
+  
+  
 
-The white point is queried in GRASS to know the values of MFD and natural discharge. The following picture shows these values in m<SUP>3</SUP>/s. <br><br>
+## SEE ALSO
 
-<center>
-<img src="r.green.hydro.discharge_output_table.png" alt="table"><br>
-Values of MFD and natural discharge (in m<SUP>3</SUP>/s) at the white point
-</center><br><br>
+*[r.green.hydro.delplants](r.green.hydro.delplants.md)  
+[r.green.hydro.theoretical](r.green.hydro.theoretical.md)  
+[r.green.hydro.optimal](r.green.hydro.optimal.md)  
+[r.green.hydro.recommended](r.green.hydro.recommended.md)  
+[r.green.hydro.structure](r.green.hydro.structure.md)  
+[r.green.hydro.technical](r.green.hydro.technical.md)  
+[r.green.hydro.financial](r.green.hydro.financial.md)  
+*
 
+## REFERENCE
 
-<h2>SEE ALSO</h2>
-<em>
-<a href="r.green.hydro.delplants.html">r.green.hydro.delplants</a><br>
-<a href="r.green.hydro.theoretical.html">r.green.hydro.theoretical</a><br>
-<a href="r.green.hydro.optimal.html">r.green.hydro.optimal</a><br>
-<a href="r.green.hydro.recommended.html">r.green.hydro.recommended</a><br>
-<a href="r.green.hydro.structure.html">r.green.hydro.structure</a><br>
-<a href="r.green.hydro.technical.html">r.green.hydro.technical</a><br>
-<a href="r.green.hydro.financial.html">r.green.hydro.financial</a><br>
-</em>
+*Allegato alla delibera n. 4/2004 del Comitato Istituzionale del 3 marzo
+2004  
+Piano stralcio per la gestione delle risorse idriche del bacino del
+Piave - Misure di Salvaguardia*  
+from Autorità di bacino dei fiumi Isonzo, Tagliamento, Livenza, Piave,
+Brenta-Bacchiglione
 
-<h2>REFERENCE</h2>
-<i>Allegato alla delibera n. 4/2004 del Comitato Istituzionale del 3 marzo 2004<br>
-Piano stralcio per la gestione delle risorse idriche del bacino del Piave - Misure di Salvaguardia</i><br>
-from Autorit&agrave; di bacino dei fiumi Isonzo, Tagliamento, Livenza, Piave, Brenta-Bacchiglione
+## AUTHORS
 
-<h2>AUTHORS</h2>
-
-Giulia Garegnani (Eurac Research, Bolzano, Italy), Sara Biscaini (University of Trento, Italy),
-manual written by Julie Gros.
+Giulia Garegnani (Eurac Research, Bolzano, Italy), Sara Biscaini
+(University of Trento, Italy), manual written by Julie Gros.

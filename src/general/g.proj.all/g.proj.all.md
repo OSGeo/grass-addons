@@ -1,28 +1,32 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>g.proj.all</em> reprojects all raster and vector maps from given location and mapset to the current mapset.
-If flag <tt>r</tt> is set, current computational region is used for raster maps reprojection.
-Otherwise, each raster map is reprojected to its bounds, ignoring computational region in the current mapset.
+*g.proj.all* reprojects all raster and vector maps from given location
+and mapset to the current mapset. If flag `r` is set, current
+computational region is used for raster maps reprojection. Otherwise,
+each raster map is reprojected to its bounds, ignoring computational
+region in the current mapset. Modules
+[r.proj](https://grass.osgeo.org/grass-stable/manuals/r.proj.html) and
+[v.proj](https://grass.osgeo.org/grass-stable/manuals/v.proj.html) are
+used for reprojecting.
 
-Modules <a href="https://grass.osgeo.org/grass-stable/manuals/r.proj.html">r.proj</a> and <a href="https://grass.osgeo.org/grass-stable/manuals/v.proj.html">v.proj</a> are used for reprojecting.
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
+This example reprojects raster maps (with resolution 50 map units) and
+vector maps from mapset 'landsat' of 'nc\_spm\_08' location to the
+current mapset.
 
-This example reprojects raster maps (with resolution 50 map units) and vector maps from mapset 'landsat'
-of 'nc_spm_08' location to the current mapset.
-
-<div class="code"><pre>
+```sh
 g.proj.all resolution=50 location=nc_spm_08 mapset=landsat
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-  <a href="https://grass.osgeo.org/grass-stable/manuals/r.proj.html">r.proj</a>,
-  <a href="https://grass.osgeo.org/grass-stable/manuals/v.proj.html">v.proj</a>
-</em>
+*[r.proj](https://grass.osgeo.org/grass-stable/manuals/r.proj.html),
+[v.proj](https://grass.osgeo.org/grass-stable/manuals/v.proj.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br>
-Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Anna Petrasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/),  
+Vaclav Petras, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

@@ -1,18 +1,19 @@
-<h2>DESCRIPTION</h2>
-Module <em>r.divergence</em> computes the divergence of a vector field
-given by <b>magnitude</b> and <b>direction</b> raster maps.
-Direction is in degrees counterclockwise from the east
-and can be computed using <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a></em>.
+## DESCRIPTION
 
-This module can be used for estimating erosion and deposition rates for a steady state overland flow
-using USPED (Unit Stream Power based Erosion Deposition) model.
-Net erosion/deposition is estimated as a change in sediment flow rate
-expressed by a divergence in sediment flow.
+Module *r.divergence* computes the divergence of a vector field given by
+**magnitude** and **direction** raster maps. Direction is in degrees
+counterclockwise from the east and can be computed using
+*[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)*.
+This module can be used for estimating erosion and deposition rates for
+a steady state overland flow using USPED (Unit Stream Power based
+Erosion Deposition) model. Net erosion/deposition is estimated as a
+change in sediment flow rate expressed by a divergence in sediment flow.
 
-<h2>EXAMPLES</h2>
+## EXAMPLES
+
 In North Carolina sample dataset, we compute net erosion/deposition.
 
-<div class="code"><pre>
+```sh
 g.region raster=elev_lid792_1m -p
 r.slope.aspect elevation=elev_lid792_1m slope=slope aspect=aspect
 r.flow elevation=elev_lid792_1m flowaccumulation=flowacc
@@ -41,13 +42,15 @@ r.colors map=erosion_deposition rules=- << EOF
 100 0 0 100       #dark blue
 100% black
 EOF
-</pre></div>
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a></em>
+*[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)*
 
-<h2>AUTHORS</h2>
+## AUTHORS
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a><br>
-Helena Mitasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+Anna Petrasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)  
+Helena Mitasova, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)

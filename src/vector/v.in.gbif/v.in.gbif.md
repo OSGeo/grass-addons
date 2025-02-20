@@ -1,54 +1,48 @@
-<h2>DESCRIPTION</h2>
+## DESCRIPTION
 
-<em>v.in.gbif</em> imports <a href="https://www.gbif.org/">GBIF</a>
-species distribution data. GBIF data is by definition in WGS84 geographic coordinates.
+*v.in.gbif* imports [GBIF](https://www.gbif.org/) species distribution
+data. GBIF data is by definition in WGS84 geographic coordinates.
 
-<p>
-The species distribution data downloaded from <a href="https://www.gbif.org/">GBIF</a>
-hast to be unzipped before importing the csv file.
-</p>
+The species distribution data downloaded from
+[GBIF](https://www.gbif.org/) hast to be unzipped before importing the
+csv file.
 
-<p>
-<em>v.in.gbif</em> saves the data to an intermediate <a href="https://gdal.org">GDAL</a>
-<a href="https://gdal.org/drivers/vector/vrt.html">VRT - Virtual Datasource</a>
-which will be imported by <a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>. The VRT data set
-can be copied to a user defined directory by <i>-c</i> flag and used in any GDAL aware software.
+*v.in.gbif* saves the data to an intermediate [GDAL](https://gdal.org)
+[VRT - Virtual Datasource](https://gdal.org/drivers/vector/vrt.html)
+which will be imported by
+[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html).
+The VRT data set can be copied to a user defined directory by *-c* flag
+and used in any GDAL aware software. As some column names in the
+original data set are similar to [SQL reserverd key
+words](https://www.postgresql.org/docs/devel/sql-keywords-appendix.html),
+the columns will renamed with the prefix *g\_*.
 
-As some column names in the original data set are similar to <a
-href="https://www.postgresql.org/docs/devel/sql-keywords-appendix.html">SQL reserverd key words</a>,
-the columns will renamed with the prefix <i>g_</i>.
-</p>
+By the *-r* flag an on-the-fly reprojection of the data can be invoked
+using
+[v.import](https://grass.osgeo.org/grass-stable/manuals/v.import.html),
+if the location is not in WGS84. Quality of on-the-fly reprojection is
+not garanteed. The traditional reprojection procedure in GRASS GIS can
+also be used instead.
 
-<p>
- By the <i>-r</i> flag an on-the-fly reprojection of the data can be
-invoked using <a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>, if the location is
-not in WGS84. Quality of on-the-fly reprojection is not garanteed. The
-traditional reprojection procedure in GRASS GIS can also be used
-instead.
-</p>
+## EXAMPLE
 
-<h2>EXAMPLE</h2>
-
-<div class="code">
- <pre>
+```sh
   # import GBIF data
   v.in.gbif input=0004248-150811131857512.csv output=chondrilla
 
   # create GDAL VRT files based upon GBIF data in user defined directory by -c flag
   v.in.gbif -c input=0004248-150811131857512.csv /
   output=chondrilla dir=C:\data\
- </pre>
-</div>
+ 
+```
 
-<h2>SEE ALSO</h2>
+## SEE ALSO
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.proj.html">v.proj</a>
-</em>
+*[v.import](https://grass.osgeo.org/grass-stable/manuals/v.import.html),
+[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html),
+[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html),
+[v.proj](https://grass.osgeo.org/grass-stable/manuals/v.proj.html)*
 
-<h2>AUTHOR</h2>
+## AUTHOR
 
 Helmut Kudrnovsky
