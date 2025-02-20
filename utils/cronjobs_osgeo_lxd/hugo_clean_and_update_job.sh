@@ -23,5 +23,4 @@ cd /home/neteler/grass-website/ && \
    nice /home/neteler/go/bin/hugo && \
    rsync -a --delete /home/neteler/grass-website/public/ /var/www/html/ && \
    ln -s /var/www/code_and_data/* /var/www/html/ && \
-   (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .) && \
-   exit 0
+   (cd /var/www/html/ ; /home/neteler/bin/fix_link_timestamp.sh .)
