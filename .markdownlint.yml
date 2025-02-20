@@ -13,6 +13,7 @@ heading-increment: false
 heading-style: false
 no-emphasis-as-heading: false
 no-blanks-blockquote: false
+no-multiple-space-blockquote: false
 ul-style: false
 ul-indent: false
 no-trailing-spaces: false
@@ -41,3 +42,7 @@ table-pipe-style: false
 table-column-count: false
 blanks-around-tables: false
 # The block above this is to be eventually removed.
+
+# The warning is triggered even for code blocks with language set to text,
+# so r.fuzzy.system syntax triggers the warning even when completely valid.
+commands-show-output: false
