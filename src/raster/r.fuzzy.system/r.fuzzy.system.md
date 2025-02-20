@@ -13,7 +13,7 @@
     spaces, tabs, empty lines are allowed and may used to visual format
     of rule file. Lines beginning with **\#** are comments.
     
-    ```sh
+    ```text
     $ set_name {side; points; boundary_shape; hedge; height }
     ```
     
@@ -43,7 +43,7 @@
     
     An example of fuzzy sets definition:
     
-    ```sh
+    ```text
     $ moderate {both; 90,100,120,130; sshaped; 0; 1}
     ```
     
@@ -52,7 +52,7 @@
     A text file containing rules for classification. A typical fuzzy
     rule consists of one or more antecedents and one consequent:
     
-    ```sh
+    ```text
     IF elev IS high AND distance IS low THEN probability IS small
     
     where:
@@ -78,7 +78,7 @@
     
     An example of fuzzy rules definition:
     
-    ```sh
+    ```text
     $ small {distance = high & elev = high}
     ```
     
@@ -179,7 +179,7 @@ determine the shape:
 **Linear:** the membership is calculated according to the following
 equation:  
 
-```sh
+```text
 value  <=  A -> x = 0
 A< value > B -> x = (value-A)/(B-A)
 B <= value >= C -> x = 1
@@ -190,7 +190,7 @@ value  >=  D -> x = 0
 **S-shaped, G-shaped and J shaped:** the following equation is used to
 smooth the boundary:
 
-```sh
+```text
 sin(x * Pi/2)^2 (for S-shaped)
 tan(x * Pi/4)^2 (for J-shaped)
 tan(x * Pi/4)^0.5 (for G-shaped)
@@ -218,7 +218,7 @@ Suppose we want to determine the flood risk on some area (Spearfish
 dataset) using two maps: distance to streams and elevation above
 streams. We can write some common sense rules:
 
-```sh
+```text
 IF elevation IS low AND distance IS near THEN risk IS very probable
 IF elevation IS low OR distance IS near THEN risk IS probable
 IF elevation IS high AND distance IS far THEN risk IS unprobable
@@ -232,7 +232,7 @@ membership and from 100 to 200 m with partial membership greater than 0.
 Over 200 m we can assume that is not near. This allow the formulation of
 fuzzy rules for a distance map:
 
-```sh
+```text
 near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
 ```
 
@@ -264,7 +264,7 @@ must be named "%\_OUTPUT\_", in the map file, but the actual raster will
 be assigned the name from the "output" option to "r.fuzzy.system" (in
 the example below this is "flood").
 
-```sh
+```text
 # flood.map
 % elevation
 $ low {right; 2,6; sshaped; 0; 1}
@@ -281,7 +281,7 @@ $ veryprob {both; 40,60,60,80; linear; 0;1}
 
 RULES file example (text file):
 
-```sh
+```text
 # flood.rul
 $ unprob {elevation = high & distance = far}
 $ prob {distance = near | elevation = low}
