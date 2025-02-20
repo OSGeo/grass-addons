@@ -67,11 +67,11 @@ map, than accumulation or stream raster map only.
     Vector file containing outlets or inits after snapping. On layer 1,
     the original categories are preserved, on layer 2 there are four
     categories which mean:
-    1.  skipped (not in use yet)
-    2.  unresolved (points remain unsnapped due to lack of streams in
+    1. skipped (not in use yet)
+    2. unresolved (points remain unsnapped due to lack of streams in
         search radius
-    3.  snapped (points snapped to streamlines)
-    4.  correct (points which remain on their original position, which
+    3. snapped (points snapped to streamlines)
+    4. correct (points which remain on their original position, which
         were originally corrected)
 
 ## EXAMPLE

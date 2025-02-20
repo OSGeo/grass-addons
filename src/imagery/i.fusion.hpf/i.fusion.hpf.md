@@ -13,12 +13,12 @@ deviation of the original multi-spectral image.
 
 ### Background
 
-1.  Computing ratio of low (Multi-Spectral) to high (Panchromatic)
+1. Computing ratio of low (Multi-Spectral) to high (Panchromatic)
     resolutions
-2.  High Pass Filtering the Panchromatic Image
-3.  Resampling MSX image to the higher resolution
-4.  Adding weighted High-Pass-Filetred image to the upsampled MSX image
-5.  Optionally, matching histogram of Pansharpened image to the one of
+2. High Pass Filtering the Panchromatic Image
+3. Resampling MSX image to the higher resolution
+4. Adding weighted High-Pass-Filetred image to the upsampled MSX image
+5. Optionally, matching histogram of Pansharpened image to the one of
     the original MSX image
 
 ```sh

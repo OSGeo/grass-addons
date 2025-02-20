@@ -15,11 +15,11 @@ flag.
 
 *v.build.pg* calls PostGIS functions:
 
-1.  [CreateTopology()](https://www.postgis.net/docs/manual-dev/CreateTopology.html)
+1. [CreateTopology()](https://www.postgis.net/docs/manual-dev/CreateTopology.html)
     to create topology schema in the database,
-2.  [AddTopoGeometryColumn()](https://www.postgis.net/docs/manual-dev/AddTopoGeometryColumn.html)
+2. [AddTopoGeometryColumn()](https://www.postgis.net/docs/manual-dev/AddTopoGeometryColumn.html)
     to add a topogeometry column to an existing feature table, and
-3.  [toTopoGeom()](https://www.postgis.net/docs/manual-dev/toTopoGeom.html)
+3. [toTopoGeom()](https://www.postgis.net/docs/manual-dev/toTopoGeom.html)
     to create a new topo geometry from the simple feature geometry.
 
 ## EXAMPLES

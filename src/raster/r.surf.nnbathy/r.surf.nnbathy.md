@@ -25,21 +25,21 @@ output point at a time only. This eliminates the necessity to hold the
 whole output array in memory. However, even then all the input points
 are still held in the memory.
 
-1.  Requires *GRASS* 7 and *nnbathy* 1.76 or greater.
-2.  Build *nnbathy* according to instructions provided with its source
+1. Requires *GRASS* 7 and *nnbathy* 1.76 or greater.
+2. Build *nnbathy* according to instructions provided with its source
     code and put it somewhere in your $PATH.
-3.  The output raster map extent and resolution match the region
+3. The output raster map extent and resolution match the region
     settings at which the script was started.
-4.  The output raster map non-NULL area is limited to the convex hull
+4. The output raster map non-NULL area is limited to the convex hull
     encompassing all the non-NULL input cells.
-5.  The output is double precision floating point raster map (DCELL).
-6.  Natural neighbor is a an *exact* interpolation algorithm, so all
+5. The output is double precision floating point raster map (DCELL).
+6. Natural neighbor is a an *exact* interpolation algorithm, so all
     non-NULL input points have their value exactly preserved in the
     output.
-7.  There is circa 0.2 KB memory overhead per each *input* cell.
+7. There is circa 0.2 KB memory overhead per each *input* cell.
     However, the *output* grid can be of any size, if *nnbathy* is built
     with -DNN\_SERIAL switch.
-8.  *r.surf.nnbathy* creates 3 temporary files: ASCII x,y,z lists of the
+8. *r.surf.nnbathy* creates 3 temporary files: ASCII x,y,z lists of the
     input points and output cells, and the output list converted into
     GRASS ASCII format. Then it makes a GRASS raster map from the latter
     - and only then it removes the 3 temp files, when the script

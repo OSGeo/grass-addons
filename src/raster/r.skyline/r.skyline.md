@@ -3,12 +3,12 @@
 *r.skyline* takes a viewshed map as input and analyses the horizon. It
 has two main functions:
 
-1.  Given 2 viewshed maps containing inclination values it can determine
+1. Given 2 viewshed maps containing inclination values it can determine
     whether the original viewpoint appears below, on, or above the
     horizon when viewed from each cell that falls in the viewshed (see
     below for important information about how the viewsheds should be
     calculated in order to support this function);
-2.  More generally, given any single viewshed map in which cells are
+2. More generally, given any single viewshed map in which cells are
     coded either NULL (not visible from the viewpoint) or non-NULL
     (visible) it identifies cells that fall on 'near' or 'far' horizons
     (see **edges**), and determines which of those cells may not truly
@@ -106,14 +106,14 @@ in the landscape from which a 3m high building is visible, in other
 words whether the top of that building appears above, on or below the
 horizon behind it. There are three steps:
 
-1.  Compute the viewshed that will be used to calculate the inclination
+1. Compute the viewshed that will be used to calculate the inclination
     of the line-of-site to the horizon from the top of the building
     (**viewshed**). This would be achieved by treating the building as
     the viewpoint and setting the viewpoint offset (height above the
     ground of the viewing position) to the height of the building (3m)
     and the target offset (height above the ground of whatever the
     viewer is looking at) to zero.
-2.  Compute the viewshed that will be used to calculate the inclination
+2. Compute the viewshed that will be used to calculate the inclination
     of the line-of-sight towards the building from all locations from
     which it can be seen (**viewshed2**). This would be achieved by
     swapping appropriate viewpoint and target offsets to ensure that the
@@ -121,7 +121,7 @@ horizon behind it. There are three steps:
     case we would set the viewpoint offset to the height of the building
     (3m) and the target offset to the height of a person looking at the
     building (say 1.75m).
-3.  Finally, use *r.skyline* to compute the skyline index by specifying
+3. Finally, use *r.skyline* to compute the skyline index by specifying
     **viewshed** and **viewshed2** as the input viewsheds. Be sure also
     to set **coordinate** and **max\_dist** to the values that were used
     to generate the two input viewsheds.

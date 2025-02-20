@@ -109,10 +109,10 @@ input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seN
 
 ## TODO
 
-1.  Capture and store extended metadata in a way that allows for
+1. Capture and store extended metadata in a way that allows for
     filtering of relevant maps.
-2.  Improve printing of metadata and file structure
-3.  Support more options of Virtual Raster files (data type, ...)
+2. Improve printing of metadata and file structure
+3. Support more options of Virtual Raster files (data type, ...)
 
 ## SEE ALSO
 

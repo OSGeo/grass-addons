@@ -11,7 +11,7 @@ For bug please contact Gianluca Massei (g\_mass@libero.it)
 
 ## REFERENCE
 
-1.  Hwang C. L. and Yoon K. Multiple Objective Decision Making Methods
+1. Hwang C. L. and Yoon K. Multiple Objective Decision Making Methods
     and Applications, A State-of-the-Art Survey.Springer - Verlag ,
     1981.
 

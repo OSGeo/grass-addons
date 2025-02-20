@@ -7,8 +7,8 @@ around selected geometries in the input vector map.
 
 Available statistics are either
 
-1.  statistics provided by *r.univar* or
-2.  if the *t-flag* is checked - area of, number of and/or the most
+1. statistics provided by *r.univar* or
+2. if the *t-flag* is checked - area of, number of and/or the most
     frequent (mode) raster categories within the buffers using
     *r.stats*.
 

@@ -21,9 +21,9 @@ or more network measures from *r.connectivity.network*, using the
 Thus, *r.connectivity.corridors* produces two types of output, that are
 named according to a user defined **prefix** and **suffix**:
 
-1.  a set of individual corridor raster maps (named:
+1. a set of individual corridor raster maps (named:
     **prefix**\_corridor\_**edge\_id**\_**weight**) and
-2.  a summary over all computed corridors (named:
+2. a summary over all computed corridors (named:
     **prefix**\_corridor\_**edge\_id**\_**weight**\_sum\_**suffix**).
 
 Finally, all individual corridors are being put together using

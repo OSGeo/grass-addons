@@ -32,7 +32,7 @@ output layer is composed of the basename + richness.
 #### Shannon index
 
 The Shannon (also called the Shannon-Weaver or Shannon-Wiener) index is
-defined as `H' = -sum(p_i x log(p_i))`, where ` p_i  ` is the
+defined as `H' = -sum(p_i x log(p_i))`, where `p_i` is the
 proportional abundance of species `i`. The function uses the natural
 logarithm (one can also use other bases for the log, but that is
 currently not implemented, and doesn't make a real difference). Note the

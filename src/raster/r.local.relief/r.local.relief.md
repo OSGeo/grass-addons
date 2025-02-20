@@ -7,22 +7,22 @@ DEM.
 
 Generating the LRM is accomplished in 7 steps (Hesse 2010:69):
 
-1.  Creation of the DEM from the LIDAR data. Buildings, trees and other
+1. Creation of the DEM from the LIDAR data. Buildings, trees and other
     objects on the earth's surface should be removed.
-2.  Apply a low pass filter to the DEM. The low pass filter approximates
+2. Apply a low pass filter to the DEM. The low pass filter approximates
     the large-scale landforms. The neighborhood size of the low pass
     filter determines the scale of features that will be visible in the
     LRM. A default neighborhood size of 11 is used.
-3.  Subtract the low-pass filter result from the DEM to get the local
+3. Subtract the low-pass filter result from the DEM to get the local
     relief.
-4.  Extract the zero contour lines from the difference map.
-5.  Extract the input DEM's elevation values along the zero contour
+4. Extract the zero contour lines from the difference map.
+5. Extract the input DEM's elevation values along the zero contour
     lines.
-6.  Create a purged DEM by interpolating the null values between the
+6. Create a purged DEM by interpolating the null values between the
     rasterized contours generated in the previous step. This layer
     represents the large-scale landforms that will be removed to expose
     the local relief in the final step.
-7.  Subtract the purged DEM from the original DEM to get the local
+7. Subtract the purged DEM from the original DEM to get the local
     relief model.
 
 The interpolation step is performed by the

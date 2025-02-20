@@ -131,9 +131,9 @@ From the paper:
 The first important step of the algorithm is cloud screening. The module
 offers two ways to achieve this:
 
-1.  use of the Quality Assessment band and some user-defined QA pixel
+1. use of the Quality Assessment band and some user-defined QA pixel
     value
-2.  use an external cloud map as an inverted MASK
+2. use an external cloud map as an inverted MASK
 
 ### Calibration of TIRS channels 10, 11
 
@@ -179,22 +179,22 @@ where:
 
 Determination of LSEs (overview of Section 3.2)
 
-1.  The FROM-GLC (30m) contains 10 types of land covers (cropland,
+1. The FROM-GLC (30m) contains 10 types of land covers (cropland,
     forest, grassland, shrubland, wetland, waterbody, tundra,
     impervious, barren land and snow-ice).
 
-2.  Deriving emissivities for each land cover class by using different
+2. Deriving emissivities for each land cover class by using different
     combinations of three BRDF kernel models (geometrical, volumetric
     and specular models)
 
-3.  Vegetation and ground emissivity spectra for the BRDF models
+3. Vegetation and ground emissivity spectra for the BRDF models
     selected from the MODIS University of California, Santa Barbara
     (UCSB) Emissivity Library
 
-4.  Estimating FVC (to obtain emissivity of land cover with temporal
+4. Estimating FVC (to obtain emissivity of land cover with temporal
     variation) from NDVI based on Carlson (1997) and Sobrino (2001)
 
-5.  Finally, establishing the average emissivity Look-Up table
+5. Finally, establishing the average emissivity Look-Up table
 
 ### Column Water Vapor
 
@@ -203,14 +203,14 @@ split-window covariance and variance ratio (MSWCVR).
 
 Algorithm Coefficients (overview of Section 3.1)
 
-1.  The CWV is divided into 5 sub-ranges with an overlap of 0.5 g/cm2
+1. The CWV is divided into 5 sub-ranges with an overlap of 0.5 g/cm2
     between 2 adjacent sub-ranges: \[0.0, 2.5\], \[2.0, 3.5\], \[3.0,
     4.5\], \[4.0, 5.5\] and \[5.0, 6.3\] g/cm2.
 
-2.  The CWV is retrieved from a modified split-window covariance and
+2. The CWV is retrieved from a modified split-window covariance and
     variance ratio method.
 
-3.  However, given the somewhat unsuccessful CWV retrieval, a group of
+3. However, given the somewhat unsuccessful CWV retrieval, a group of
     coefficients for the entire CWV range is calculated to ensure the
     spatial continuity of the LST product.
 
@@ -306,11 +306,11 @@ continuity of the LST product.
 At minimum, the module requires the following in order to derive a land
 surface temperature map:
 
-1.  The Landsat8 scene's acquisition metadata (MTL file)
+1. The Landsat8 scene's acquisition metadata (MTL file)
 
-2.  Bands 10, 11 and QA
+2. Bands 10, 11 and QA
 
-3.  A FROM-GLC product for the same Path and Row as the Landsat scene to
+3. A FROM-GLC product for the same Path and Row as the Landsat scene to
     be processed
 
 The shortest call for processing a complete Landsat8 scene normally is:

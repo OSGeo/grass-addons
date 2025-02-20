@@ -8,11 +8,11 @@ viewshed.
 
 The processing workflow of the module consists of five steps:
 
-1.  Random sampling of exposure source raster map with vector points,
-2.  Calculating binary viewshed for each exposure source point,
-3.  Optional parametrisation of the binary viewshed,
-4.  Optional weighting of the (parametrised) viewshed,
-5.  Cumulating the (weighted) (parametrised) viewsheds.
+1. Random sampling of exposure source raster map with vector points,
+2. Calculating binary viewshed for each exposure source point,
+3. Optional parametrisation of the binary viewshed,
+4. Optional weighting of the (parametrised) viewshed,
+5. Cumulating the (weighted) (parametrised) viewsheds.
 
 [![image-alt](r_viewshed_exposure_workflow.png)](r_viewshed_exposure_workflow.png)  
 *Processing workflow*

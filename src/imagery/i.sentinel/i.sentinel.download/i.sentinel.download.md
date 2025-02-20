@@ -308,13 +308,13 @@ i.sentinel.download settings=credentials.txt id=S2B_MSIL2A_20180210T100139_N9999
 Finding UUID by Sentinel scene name (example:
 'S2B\_MSIL2A\_20190724T103029\_N0213\_R108\_T32ULA\_20190724T130550'):  
 
-1.  Visit the following page:
+1. Visit the following page:
     [browser.dataspace.copernicus.eu](https://browser.dataspace.copernicus.eu/)  
-2.  Go into the "Search" tab.
-3.  Paste Sentinel scene ID into the Search Box, and press Search.
-4.  A single scene should show up. Press the info icon on the bottom
+2. Go into the "Search" tab.
+3. Paste Sentinel scene ID into the Search Box, and press Search.
+4. A single scene should show up. Press the info icon on the bottom
     right of the scene.
-5.  The UUID is shown in the URL at the bottom of the scene window,
+5. The UUID is shown in the URL at the bottom of the scene window,
     between brackets.  
     (e.g.
     https://zipper.dataspace.copernicus.eu/odata/v1/Products(**3cfcc58f-8316-5df0-b55e-e1831e745b51**)/$value)

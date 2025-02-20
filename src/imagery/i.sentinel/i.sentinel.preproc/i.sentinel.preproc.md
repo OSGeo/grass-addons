@@ -132,13 +132,13 @@ users have to provide are: atmospheric model, aerosol model, visibility
 or AOD value. The others are automatically retrieved from the metadata
 file, input elevation map and bands.
 
-1.  **Geometrical conditions**
+1. **Geometrical conditions**
     
     The geometrical condition of the satellite are read from the
     metadata file and converted to the corresponding *i.atcorr* code, 25
     for Sentinel-2A mission and 26 for Sentinel-2B.
 
-2.  **Date, time, longitude and latitude**
+2. **Date, time, longitude and latitude**
     
     Date (month and day) and time are read from the metadata file. The
     date (with the format YYYY-MM-DDTHH:MM:SSZ) is converted in a
@@ -150,7 +150,7 @@ file, input elevation map and bands.
     Longitude and latitude are computed from the computational region
     and converted to WGS84 decimal coordinates.
 
-3.  **Atmospheric model**
+3. **Atmospheric model**
     
     Only some options are available:
     
@@ -231,18 +231,18 @@ file, input elevation map and bands.
     1.5 or 2.0)  
     To download this kind of file:  
     
-    1.  Go to
+    1. Go to
         <https://aeronet.gsfc.nasa.gov/cgi-bin/webtool_opera_v2_inv>
-    2.  Choose the site you want to get data from
-    3.  Choose the data you want to get data for
-    4.  Tick the box near the bottom labelled as 'Combined file (all
+    2. Choose the site you want to get data from
+    3. Choose the data you want to get data for
+    4. Tick the box near the bottom labelled as 'Combined file (all
         products without phase functions)'
-    5.  Choose either Level 1.5 or Level 2.0 data. Level 1.5 data is
+    5. Choose either Level 1.5 or Level 2.0 data. Level 1.5 data is
         unscreened, so contains far more data meaning it is more likely
         for users to find data near your specified time
-    6.  Choose 'All Points' under Data Format
-    7.  Download the file
-    8.  Unzip (the file has a .dubovik extension)
+    6. Choose 'All Points' under Data Format
+    7. Download the file
+    8. Unzip (the file has a .dubovik extension)
     
     Then, giving this file as input (e.g.
     `aeronet_file=your_path/*.dubovik`), the AOD at 550nm will be

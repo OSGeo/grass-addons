@@ -93,20 +93,20 @@ invalid. It means that d.legend.vect may face problems when restarting
 GRASS GIS and trying to use the saved workspace file with m.printws with
 its old settings. To prevent such issues do the following steps:
 
-1.  Compose your vector legend using the GUI as it is provided by
+1. Compose your vector legend using the GUI as it is provided by
     d.legend.vect.
-2.  When you are staisfied with the result or preparing for printing
+2. When you are staisfied with the result or preparing for printing
     with m.printws, set an output CSV file in the d.legend.vect dialog.
     This could be done on the In/Out tab.
-3.  Click the OK button.
-4.  In the background, your composed legend contents will be listed to
+3. Click the OK button.
+4. In the background, your composed legend contents will be listed to
     the corresponding CSV file.
-5.  Reopen the d.legend.vect dialog.
-6.  On the In/Out tab cut the text from the "Output csv file:" field and
+5. Reopen the d.legend.vect dialog.
+6. On the In/Out tab cut the text from the "Output csv file:" field and
     paste it to the "Input legend file:"
-7.  Clik OK and check if you legend is still the same as you want it to
+7. Clik OK and check if you legend is still the same as you want it to
     be.
-8.  Save the workspace as usual.
+8. Save the workspace as usual.
 
 Thusly prepared vector legends will be printed correctly by m.printws.
 If you would like to modify your legend, delete the "Input legend file:"

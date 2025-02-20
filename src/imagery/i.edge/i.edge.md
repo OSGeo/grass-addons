@@ -28,11 +28,11 @@ from \[Gibara2010\].
 Canny edge detector is considered as optimal edge detector according to
 these three criteria \[Sonka1999\]:
 
-1.  important edges cannot be omitted and only actual edges can be
+1. important edges cannot be omitted and only actual edges can be
     detected as edges (no false positives);
-2.  difference in position of the real edge and the detected edge is
+2. difference in position of the real edge and the detected edge is
     minimal;
-3.  there is only one detected edge for an edge in original image.
+3. there is only one detected edge for an edge in original image.
 
 The algorithm consists of a few steps. Firstly, the noise is reduced by
 a Gaussian filter (based on normal distribution); the result is smoothed

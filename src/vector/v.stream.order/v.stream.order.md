@@ -4,8 +4,8 @@ The module *v.stream.order* is designed to compute different stream
 order approaches based on a stream network vector map and a water outlet
 vector point map. It requires two inputs:
 
-1.  A vector line map with one or several independent stream networks
-2.  A vector point map that defines the water outlet points in the
+1. A vector line map with one or several independent stream networks
+2. A vector point map that defines the water outlet points in the
     stream network
 
 A single output vector map containing all detected networks and all
@@ -72,11 +72,11 @@ which fixes the ambiguity of Horton's ordering. In Strahler's ordering
 the main channel is not determined; instead the ordering is based on the
 hierarchy of tributaries. The ordering follows these rules:
 
-1.  if the node has no children, its Strahler order is 1.
-2.  if the node has one and only one tributuary with Strahler greatest
+1. if the node has no children, its Strahler order is 1.
+2. if the node has one and only one tributuary with Strahler greatest
     order i, and all other tributaries have order less than i, then the
     order remains i.
-3.  if the node has two or more tributaries with greatest order i, then
+3. if the node has two or more tributaries with greatest order i, then
     the Strahler order of the node is i + 1.
 
 Strahler's stream ordering starts in initial links which assigns order

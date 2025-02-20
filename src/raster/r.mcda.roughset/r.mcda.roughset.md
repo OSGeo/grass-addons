@@ -28,31 +28,31 @@ For bug please contact Gianluca Massei (g\_mass@libero.it)
 
 ## REFERENCE
 
-1.  Greco S., Matarazzo B., Slowinski R.: *Rough sets theory for
+1. Greco S., Matarazzo B., Slowinski R.: *Rough sets theory for
     multicriteria decision analysis*. European Journal of Operational
     Research, 129, 1 (2001) 1-47.
 
-2.  Greco S., Matarazzo B., Slowinski R.: *Multicriteria classification
+2. Greco S., Matarazzo B., Slowinski R.: *Multicriteria classification
     by dominance-based rough set approach*. In: W.Kloesgen and J.Zytkow
     (eds.), Handbook of Data Mining and Knowledge Discovery, Oxford
     University Press, New York, 2002.
 
-3.  Greco S., Matarazzo B., Slowinski, R., Stefanowski, J.: *An
+3. Greco S., Matarazzo B., Slowinski, R., Stefanowski, J.: *An
     Algorithm for Induction of Decision Rules Consistent with the
     Dominance Principle*. In W. Ziarko, Y. Yao (eds.): Rough Sets and
     Current Trends in Computing. Lecture Notes in Artificial
     Intelligence 2005 (2001) 304 - 313. Springer-Verlag
 
-4.  Greco, S., B. Matarazzo, R. Slowinski and J. Stefanowski: *Variable
+4. Greco, S., B. Matarazzo, R. Slowinski and J. Stefanowski: *Variable
     consistency model of dominance-based rough set approach.* In
     W.Ziarko, Y.Yao (eds.): Rough Sets and Current Trends in Computing.
     Lecture Notes in Artificial Intelligence 2005 (2001) 170 - 181.
     Springer-Verlag
 
-5.  <https://en.wikipedia.org/wiki/Dominance-based_rough_set_approach> -
+5. <https://en.wikipedia.org/wiki/Dominance-based_rough_set_approach> -
     “Dominance-based rough set approach”
 
-6.  <https://fcds.cs.put.poznan.pl/IDSS/software/software_and_projects.htm>
+6. <https://fcds.cs.put.poznan.pl/IDSS/software/software_and_projects.htm>
     - Software from Laboratory of intelligent decision support system in
     Poznań University of Technology
 
