@@ -1,0 +1,114 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.hand</b></em> - Height Above Nearest Drainage (HAND) is a terrain-based model that computes the height of the
+terrain above the nearest stream using a digital elevation model (DEM) <a href="https://doi.org/10.1016/j.jhydrol.2011.03.051">(Nobre et al., 2011)</a>.
+The HAND method is widely used for hydrological analysis, particularly for estimating flood inundation extents
+based on user-defined water levels.
+
+The tool generates flood inundation extent maps by applying the HAND method to a DEM. Users can optionally provide
+streams and flow direction raster maps to improve processing efficiency and accuracy. The tool will return an
+inundation raster map or times series (STRDS) of inundation raster maps based on user define water levels.
+Additionally, the HAND raster map can be returned as an output if desired by setting the <em>difference</em> parameter.
+
+<h2>EXAMPLES</h2>
+
+<h3>Calculate an inundation raster map from a DEM raster map:</h3>
+
+<div class="code"><pre>
+    r.hand elevation=elevation hand=hand depth=2 inundation_raster=inundation
+</pre></div>
+
+<div align="center" style="margin: 10px"></div>
+    <a href="r_hand.png">
+        <img
+        src="r_hand.png"
+        width="600"
+        height="600"
+        alt="r.hand example"
+        border="0"
+        />
+    </a><br/>
+    <i>Figure: Inundation event 2 m.</i>
+</div>
+
+<h3>Calculate series of inundation raster maps from a DEM raster map:</h3>
+
+<div class="code"><pre>
+    r.hand -t elevation=elevation hand=hand inundation_strds=inundation_strds \
+    start_water_level=0 end_water_level=5 water_level_step=1
+</pre></div>
+
+<h3>Output HAND raster in addition to inundation raster(s):</h3>
+
+<div class="code"><pre>
+    r.hand elevation=elevation hand=hand depth=4 threshold=5000 \
+    inundation_raster=inundation
+</pre></div>
+
+The HAND raster is classified according to Nobre et al (2011) where:
+
+<ul>
+    <li>0 &gt; HAND &lt; 5 m = Surface Water Table</li>
+    <li>5 &gt; HAND &lt; 15 m = Shallow Water Table</li>
+    <li>HAND &gt; 15 m = Deep Water Table</li>
+</ul>
+
+<div align="center" style="margin: 10px"></div>
+    <a href="r_hand_color.png">
+        <img
+        src="r_hand_color.png"
+        width="600"
+        height="600"
+        alt="r.hand HAND example"
+        border="0"
+        />
+    </a><br/>
+    <i>Figure: Height Above Nearest Drainage (HAND)</i>
+</div>
+
+<div class="code"><pre>
+    # Reclassify HAND raster into categories
+    r.reclass input=hand output=hand_reclass rules=- &lt$lt EOF
+    -30000 thru 0 = NULL
+    1 thru 5	= 1 Surface
+    5 thru 15	= 2 Shallow
+    15 thru 30000 = 3 Deep
+    EOF
+
+    # Set color table for HAND raster
+    r.colors map=hand_reclass rules=- &lt$lt EOF
+    1 #1d91c0
+    2 #41ab5d
+    3 #ec7014
+    nv white
+    default grey
+    EOF
+</pre></div>
+
+<div align="center" style="margin: 10px"></div>
+    <a href="r_hand_class.png">
+        <img
+        src="r_hand_class.png"
+        width="600"
+        height="600"
+        alt="r.hand HAND example"
+        border="0"
+        />
+    </a><br/>
+    <i>Figure: Height Above Nearest Drainage (HAND) water table classification.</i>
+</div>
+
+<h2>REFERENCES</h2>
+[1] Nobre, A.D., Cuartas, L.A., Hodnett, M., Rennó, C.D., Rodrigues, G., Silveira, A., Waterloo, M., Saleska, S., 2011. Height Above the Nearest Drainage – a hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. https://doi.org/10.1016/j.jhydrol.2011.03.051
+
+<h2>AUTHORS</h2>
+Corey White, <a href="https://openplains.com">OpenPlains Inc.</a> &amp; <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>,<br/>
+Maris Nartiss (author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>),<br/>
+Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>(author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.series.html">r.lake.series</a></em>)
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.series.html">r.lake.series</a>
+</em>
