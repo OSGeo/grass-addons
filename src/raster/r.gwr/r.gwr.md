@@ -94,13 +94,13 @@ The kernel function has little influence on the result, much more
 important is the bandwidth. Available kernel funtions to calculate
 weights are
 
-  - **Epanechnikov**  
+- **Epanechnikov**  
     w = 1 - d / bw
-  - **Bisquare (Quartic)**  
+- **Bisquare (Quartic)**  
     w = (1 - (d / bw)<sup>2</sup>)<sup>2</sup>
-  - **Tricubic**  
+- **Tricubic**  
     w = (1 - (d / bw)<sup>3</sup>)<sup>3</sup>
-  - **Gaussian**  
+- **Gaussian**  
     w = exp(-0.5 \* (d / bw)<sup>2</sup>)
 
 with  

@@ -29,16 +29,16 @@ al (2008).
 
 ## REFERENCES
 
-  - Warren, D. L., Glor, R. E., & Turelli, M. 2008. Environmental Niche
+- Warren, D. L., Glor, R. E., & Turelli, M. 2008. Environmental Niche
     Equivalency Versus Conservatism: Quantitative Approaches to Niche
     Evolution. Evolution 62(11): 2868-2883
-  - Warren, D. L., R. E. Glor, and M. Turelli. 2010. ENMTools: a toolbox
+- Warren, D. L., R. E. Glor, and M. Turelli. 2010. ENMTools: a toolbox
     for comparative studies of environmental niche models. Ecography
     33:607-611.
-  - Robert J. Hijmans, Steven Phillips, John Leathwick and Jane Elith
+- Robert J. Hijmans, Steven Phillips, John Leathwick and Jane Elith
     (2013). dismo: Species distribution modeling. R package version
     0.8-5. http://CRAN.R-project.org/package=dismo
-  - Christoph Heibl and Clement Calenge (2012). phyloclim: Integrating
+- Christoph Heibl and Clement Calenge (2012). phyloclim: Integrating
     Phylogenetics and Climatic Niche Modeling. R package version 0.9-0.
     http://CRAN.R-project.org/package=phyloclim
 

@@ -96,29 +96,29 @@ which provides a convenient wrapper for the *Maxent* software.
 
 ## SEE ALSO
 
-  - [r.maxent.train](r.maxent.train.md) addon to create/train a Maxent
+- [r.maxent.train](r.maxent.train.md) addon to create/train a Maxent
     model. The addon provides a wrapper to the Maxent software.
-  - [r.out.maxent\_swd](r.out.maxent_swd.md), an alternative
+- [r.out.maxent\_swd](r.out.maxent_swd.md), an alternative
     implementation of this addon, using species distribution data in
     raster format.
-  - [r.maxent.lambdas](r.maxent.lambdas.md) addon to compute raw or
+- [r.maxent.lambdas](r.maxent.lambdas.md) addon to compute raw or
     logistic prediction maps from MaxEnt lambdas files.
 
 ## REFERENCES
 
-  - MaxEnt 3.4.1 (
+- MaxEnt 3.4.1 (
     [https://biodiversityinformatics.amnh.org/open\_source/maxent](https://biodiversityinformatics.amnh.org/open_source/maxent/))
-  - Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. A maximum
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. A maximum
     entropy approach to species distribution modeling. In Proceedings of
     the Twenty-First International Conference on Machine Learning, pages
     655-662, 2004.
-  - Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. Maximum
+- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. Maximum
     entropy modeling of species geographic distributions. Ecological
     Modelling, 190:231-259, 2006.
-  - Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
+- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
     En Chee, Colin J. Yates. A statistical explanation of MaxEnt for
     ecologists. Diversity and Distributions, 17:43-57, 2011.
-  - GBIF.org (12 November 2023) GBIF Occurrence Download
+- GBIF.org (12 November 2023) GBIF Occurrence Download
     https://doi.org/10.15468/dl.br8b4a
 
 ## AUTHOR

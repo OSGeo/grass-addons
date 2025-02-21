@@ -185,7 +185,7 @@ North Carolina State University
 
 ## REFERENCES
 
-  - Mitasova, H., Thaxton, C., Hofierka, J., McLaughlin, R., Moore, A.,
+- Mitasova, H., Thaxton, C., Hofierka, J., McLaughlin, R., Moore, A.,
     Mitas L., 2004, [Path sampling method for modeling overland water
     flow, sediment transport and short term terrain evolution in Open
     Source
@@ -195,32 +195,32 @@ North Carolina State University
     Methods in Water Resources (CMWR XV), June 13-17 2004, Chapel Hill,
     NC, USA, Elsevier, pp. 1479-1490.
     <https://doi.org/10.1016/S0167-5648(04)80159-X>
-  - Mitasova H, Mitas, L., 2000, [Modeling spatial processes in
+- Mitasova H, Mitas, L., 2000, [Modeling spatial processes in
     multiscale framework: exploring duality between particles and
     fields,](http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/gisc00/duality.html)
     plenary talk at GIScience2000 conference, Savannah, GA.
-  - Mitas, L., and Mitasova, H., 1998, Distributed soil erosion
+- Mitas, L., and Mitasova, H., 1998, Distributed soil erosion
     simulation for effective erosion prevention. Water Resources
     Research, 34(3), 505-516.
-  - Mitasova, H., Mitas, L., 2001, [Multiscale soil erosion simulations
+- Mitasova, H., Mitas, L., 2001, [Multiscale soil erosion simulations
     for land use
     management,](http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/papers/LLEmiterev1.pdf)
     In: Landscape erosion and landscape evolution modeling, Harmon R.
     and Doe W. eds., Kluwer Academic/Plenum Publishers, pp. 321-347.
-  - Hofierka, J, Mitasova, H., Mitas, L., 2002. GRASS and modeling
+- Hofierka, J, Mitasova, H., Mitas, L., 2002. GRASS and modeling
     landscape processes using duality between particles and fields.
     Proceedings of the Open source GIS - GRASS users conference 2002 -
     Trento, Italy, 11-13 September 2002.
     [PDF](http://fatra.cnr.ncsu.edu/~hmitaso/gmslab/papers/Mitasova_Helena_2.pdf),
     [(archived
     PDF)](https://web.archive.org/web/20201022173344/https://www.ing.unitn.it/~grass/conferences/GRASS2002/proceedings/proceedings/pdfs/Mitasova_Helena_2.pdf)
-  - Hofierka, J., Knutova, M., 2015, Simulating aspects of a flash flood
+- Hofierka, J., Knutova, M., 2015, Simulating aspects of a flash flood
     using the Monte Carlo method and GRASS GIS: a case study of the Malá
     Svinka Basin (Slovakia), Open Geosciences. Volume 7, Issue 1, ISSN
     (Online) 2391-5447, DOI:
     [10.1515/geo-2015-0013](https://doi.org/10.1515/geo-2015-0013),
     April 2015
-  - Neteler, M. and Mitasova, H., 2008, [Open Source GIS: A GRASS GIS
+- Neteler, M. and Mitasova, H., 2008, [Open Source GIS: A GRASS GIS
     Approach. Third Edition.](https://grassbook.org/) The International
     Series in Engineering and Computer Science: Volume 773. Springer New
     York Inc, p. 406.

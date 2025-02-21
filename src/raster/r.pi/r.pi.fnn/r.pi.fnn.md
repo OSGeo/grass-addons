@@ -24,39 +24,39 @@ amount of "1" is chosen The *number* is the amount of nearest neighbours
 to be taken and the calculated distances are processed as assigned in
 *statmethod* Operations which *r.pi.fnn* can perform are:
 
-  - **Distance**  
+- **Distance**  
     The *Distance to Nearest* computes the nearest edge-to-edge distance
     between patches. Counting from the focus patch.
-  - **path Distance**  
+- **path Distance**  
     The *Distance to Nearest* computes the nearest edge-to-edge distance
     between patches. Unlike *Distance* the distance is computed based on
     subsequent NN not from the focus patch onwards. The 1th NN is the
     first patch with the minimal edge-to-edge distance from the focus
     patch, while 2th NN is the patch with the minimal edge-to-edge
     distance from the 1th NN patch and so on.
-  - **Area**  
+- **Area**  
     The *Area* computes the size of the nearest edge-to-edge distance
     patch. It is based on *Distance* not on *path Distance*.
-  - **Perimeter**  
+- **Perimeter**  
     The *Perimeter* computes the Perimeter of the nearest edge-to-edge
     distance patch. It is based on *Distance* not on *path Distance*.
-  - **SHAPE**  
+- **SHAPE**  
     The *SHAPE* computes the SHAPE Index of the nearest edge-to-edge
     distance patch. It is based on *Distance* not on *path Distance*.
 
 The *statsmethod* operators determine calculation is done on the
 distance. *Average*, *Variance*,*Stddev* and *value* can be used.
 
-  - **Average**  
+- **Average**  
     The *Average* computes the average value defined in *Operations to
     perform* .
-  - **Variance**  
+- **Variance**  
     The *Variance* computes the variance defined in *Operations to
     perform* .
-  - **Stand. Dev.**  
+- **Stand. Dev.**  
     The *Stand. Dev.* computes the stddev value defined in *Operations
     to perform* .
-  - **Value**  
+- **Value**  
     The *patch Distance* computes the nearest edge-to-edge distance
     between two patches. The output of *value* is the actual value. E.g.
     NN==5 of *area* gives the size of the 5th NN while *Average* gives

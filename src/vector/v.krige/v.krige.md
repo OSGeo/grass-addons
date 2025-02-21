@@ -24,12 +24,12 @@ with nugget.
 
 ### Dependencies
 
-  - **R software \>= 2.x**
+- **R software \>= 2.x**
 
-  - **rpy2**  
+- **rpy2**  
     Python binding to R. Note\! `rpy` version 1 is not supported.
 
-  - **R packages automap, gstat, rgrass7 and rgeos.**  
+- **R packages automap, gstat, rgrass7 and rgeos.**  
     automap is optional (provides automatic variogram fit).
 
 Install Rpy2 via pip(3):

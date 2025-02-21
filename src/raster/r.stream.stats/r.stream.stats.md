@@ -5,16 +5,16 @@ of drainage network.
 
 ## OPTIONS
 
-  - **-c**  
+- **-c**  
     Print only catchment's characteristics. Useful for shell script
     calculation or collecting data in external tables.
-  - **-o**  
+- **-o**  
     Print only parameters for every order. Useful to visualise Horton's
     law with external software (see example bellow).
-  - **-m**  
+- **-m**  
     Only for very large data sets. Use segment library to optimise
     memory consumption during analysis.
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network: name of input stream raster map produced by
     *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
     or
@@ -34,7 +34,7 @@ of drainage network.
     If not 0 or NULL use
     *[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
     to set background values to NULL.
-  - **direction**  
+- **direction**  
     Flow direction: name of input direction raster map produced by
     *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
     or
@@ -50,7 +50,7 @@ of drainage network.
     resolution. It is checked by default. If resolutions differ the
     module informs about it and stops. Region boundary and maps boundary
     may differ but it may lead to unexpected results.
-  - **elevation**  
+- **elevation**  
     Elevation: name of input elevation map. Map can be of type CELL,
     FCELL or DCELL. It is not restricted to resolution of region
     settings as **stream\_rast** and **direction** raster map.
@@ -86,40 +86,40 @@ used, the calculation will be performed but results may not have
 hydrological sense. For every order (std) means that statistics are
 calculated with standard deviation:
 
-  - number of streams
-  - total length of streams of a given order
-  - total area of basins of a given order
-  - drainage density
-  - stream density
-  - average length of streams of a given order (std)
-  - average slope (cell by cell inclination) of streams of a given order
+- number of streams
+- total length of streams of a given order
+- total area of basins of a given order
+- drainage density
+- stream density
+- average length of streams of a given order (std)
+- average slope (cell by cell inclination) of streams of a given order
     (std)
-  - average gradient (spring to outlet inclination) of streams of a
+- average gradient (spring to outlet inclination) of streams of a
     given order (std)
-  - average area of basins of a given order (std)
-  - avarage elevation difference of a given order (std)
+- average area of basins of a given order (std)
+- avarage elevation difference of a given order (std)
 
 Ratios:
 
-  - bifuracation ratio
-  - length ratio
-  - slope and gradient ratios
-  - area ratio
+- bifuracation ratio
+- length ratio
+- slope and gradient ratios
+- area ratio
 
 For the whole basin:
 
-  - total number of streams
-  - total length of streams
-  - total basin area
-  - drainage density
-  - stream density
+- total number of streams
+- total length of streams
+- total basin area
+- drainage density
+- stream density
 
 Ratios:
 
-  - bifurcation ratio (std)
-  - length ratio (std)
-  - slope and gradient ratios (std)
-  - area ratio (std)
+- bifurcation ratio (std)
+- length ratio (std)
+- slope and gradient ratios (std)
+- area ratio (std)
 
 For the whole basins ratios are calculated acording two formulas: as a
 mean of ratios for every order, or as a antilog of slope coefficient of
@@ -179,7 +179,7 @@ abline(model)
 
 ## REFERENCES
 
-  - Horton, R. E. (1945), *Erosional development of streams and their
+- Horton, R. E. (1945), *Erosional development of streams and their
     drainage basins: hydro-physical approach to quantitative
     morphology*, Geological Society of America Bulletin 56 (3): 275-370
 

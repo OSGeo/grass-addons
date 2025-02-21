@@ -62,9 +62,9 @@ dedicated functions for calibration.
 
 ## NOTES
 
-  - The directions of wind consider north (N) to be grid north, if your
+- The directions of wind consider north (N) to be grid north, if your
     true north is different direction, you need to make an adjustment.
-  - The module currently does not handle NULL (no data) as input, so you
+- The module currently does not handle NULL (no data) as input, so you
     need to change the NULLs to (most likely) zeros, for example:
     `r.null map=infection null=0`.
 
@@ -164,19 +164,19 @@ To cite this module, please refer to [How to
 cite](https://github.com/ncsu-landscape-dynamics/r.pops.spread#how-to-cite)
 section in the readme file.
 
-  - Meentemeyer, Ross K., Nik J. Cunniffe, Alex R. Cook, Joao A. N.
+- Meentemeyer, Ross K., Nik J. Cunniffe, Alex R. Cook, Joao A. N.
     Filipe, Richard D. Hunter, David M. Rizzo, and Christopher A.
     Gilligan, 2011. Epidemiological modeling of invasion in
     heterogeneous landscapes: spread of sudden oak death in California
     (1990-2030). *Ecosphere* 2:art17.
     [DOI: 10.1890/ES10-00192.1](https://doi.org/10.1890/ES10-00192.1)
-  - Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan
+- Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan
     Harmon, Vaclav Petras, Richard C. Cobb, Helena Mitasova, and Ross K.
     Meentemeyer. Tangible geospatial modeling for collaborative
     solutions to invasive species management. *Environmental Modelling &
     Software* 92 (2017): 176-188.
     [DOI: 10.1016/j.envsoft.2017.02.020](https://doi.org/10.1016/j.envsoft.2017.02.020)
-  - Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H.
+- Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H.
     and Meentemeyer, R.K., 2020. Geospatial simulation steering for
     adaptive management. *Environmental Modelling & Software* 133:
     104801.
@@ -191,10 +191,10 @@ section in the readme file.
 
 Tutorials and other resources:
 
-  - [PoPS Model Introduction in GRASS Using Jupyter
+- [PoPS Model Introduction in GRASS Using Jupyter
     Notebook](https://github.com/ncsu-landscape-dynamics/pops-intro-grass-notebook/blob/master/pops-intro-grass-notebook.ipynb)
     [![image-alt](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ncsu-landscape-dynamics/pops-intro-grass-notebook/master?urlpath=lab/tree/pops-intro-grass-notebook.ipynb "Go to an interactive notebook in Binder")
-  - [SOD Spread
+- [SOD Spread
     tutorial](https://grasswiki.osgeo.org/wiki/SOD_Spread_tutorial) (at
     GRASS wiki)
 

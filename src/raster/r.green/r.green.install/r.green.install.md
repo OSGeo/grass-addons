@@ -36,8 +36,6 @@ directory with full control of permissions, to be able to intall the
 ![image-alt](r_green_install_permissions.png)  
 Microsoft Windows Permissions
 
-  
-  
 The *r.green* modules are based on Python libraries. The module
 *r.green.install -i* is able to download and install them. However, some
 troubles can raise due to new links or versions. In this case, you can
@@ -59,7 +57,6 @@ code to install libraries and the *r.green* menu:
 r.green.install -i
 ```
 
-  
 Check the list of suggested libraries with the previous table. If they
 agree, you can proceed with the installation. If you install the Energy
 menu, use the following command:
@@ -68,7 +65,6 @@ menu, use the following command:
 r.green.install -x
 ```
 
-  
 Close GRASS and restart the programm to have in the the menu the session
 energy with all the *r.green* modules.
 

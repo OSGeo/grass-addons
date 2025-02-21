@@ -47,7 +47,7 @@ r.width.funct map=dist2out image=/tmp/my_basin
 
 ### Dependencies
 
-  - Matplotlib
+- Matplotlib
 
 ## SEE ALSO
 
@@ -56,9 +56,9 @@ r.width.funct map=dist2out image=/tmp/my_basin
 
 ## REFERENCES
 
-  - *Rodriguez-Iturbe I., Rinaldo A. — Fractal River Basins, Chance and
+- *Rodriguez-Iturbe I., Rinaldo A. — Fractal River Basins, Chance and
     Self-Organization. Cambridge Press (2001)*
-  - *In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. —
+- *In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. —
     Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
     (Morphometric characterization of the catchment in GRASS GIS
     environment), [Geomatics

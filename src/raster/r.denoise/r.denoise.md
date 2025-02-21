@@ -53,14 +53,14 @@ pip install pyproj
 
 ## REFERENCES
 
-  - For further information on denoising DEMs, see: [Using Sun's
+- For further information on denoising DEMs, see: [Using Sun's
     denoising algorithm on topographic
     data](https://personalpages.manchester.ac.uk/staff/neil.mitchell/mdenoise/).
-  - Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective
+- Sun X, Rosin PL, Martin RR, Langbein FC (2007) Fast and Effective
     Feature-Preserving Mesh Denoising. IEEE Transactions on
     Visualisation and Computer Graphics, 13(5):925-938
     [doi:10.1109/TVCG.2007.1065](https://doi.org/10.1109/TVCG.2007.1065)
-  - Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other
+- Stevenson JA, Sun X, Mitchell NC. (2009) Despeckling SRTM and other
     topographic data with a denoising algorithm. Geomorphology,
     144:238-252.
     [doi:10.1016/j.geomorph.2009.07.006](https://doi.org/10.1016/j.geomorph.2009.07.006)

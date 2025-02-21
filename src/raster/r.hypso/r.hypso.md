@@ -33,7 +33,7 @@ generates hypsometric curve.
 
 ### Dependencies
 
-  - Matplotlib
+- Matplotlib
 
 ## SEE ALSO
 

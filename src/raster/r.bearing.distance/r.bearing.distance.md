@@ -4,9 +4,9 @@
 from a point location to all non-NULL cells in a raster map. Optionally,
 the bearing returned in each non-NULL cell may be:
 
-  - the actual bearing measured from the point location;
-  - the difference between that bearing and a reference bearing;
-  - one of two measures of the extent to which the bearing is or is not
+- the actual bearing measured from the point location;
+- the difference between that bearing and a reference bearing;
+- one of two measures of the extent to which the bearing is or is not
     orthogonal to the reference bearing.
 
 By default, the **bearing** map records the bearing of a straight line
@@ -89,7 +89,7 @@ in non-integer, but this has not been rigorously checked.
 
 ## REFERENCES
 
-  - Harris, B. and Lake, M. (in prep.) The influence of visibility on
+- Harris, B. and Lake, M. (in prep.) The influence of visibility on
     the territorial packing of Neolithic long barrows in central
     southern England. For submission to *Journal of Archaeological
     Method and Theory*.

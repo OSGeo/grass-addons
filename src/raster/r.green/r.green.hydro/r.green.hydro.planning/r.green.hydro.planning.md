@@ -18,36 +18,35 @@ here we can consider a legal discharge and add areas which will be
 deleted from the considered streams map used to compute the potential
 plants.  
   
-
 ## Explanation of Parameters
 
 > \- **elevation**=name \[required\]  
 > raster map, to calculate the gross head  
->   
+>
 > \- **river**=name \[required\]  
 > vector on which the potential plants will be computed  
->   
+>
 > \- **efficiency**=double \[required\]  
 > efficiency of the plant  
->   
+>
 > \- **len\_plant**=double \[required\]  
 > maximum length of the plant  
->   
+>
 > \- **len\_min**=double \[required\]  
 > minimum plant length  
->   
+>
 > \- **distance**=double \[required\]  
 > minimum distance among the plants  
->   
+>
 > \- **output\_plant**=name \[required\]  
 > name of the output vector with the potential segments  
->   
+>
 > \- **discharge\_current**=name \[required\]  
 > current discharge; raster for each point of these rivers or raster map
 > with the legal discharge  
-> 
+>
 > > \[required (only if discharge\_current=currentdischarge)\]  
-> >   
+> >
 > > \- **mfd**=name  
 > > minimum amount of water to remain in the river to preserve the
 > > ecosystem  
@@ -55,46 +54,46 @@ plants.
 > > the current discharge minus the MFD read in your input raster map.  
 > > The module r.green.hydro.discharge can compute the raster map of the
 > > MFD according to the legislation of some regions.  
-> >   
+> >
 > > <span class="underline">**or**</span>  
-> >   
+> >
 > > \- **discharge\_natural**=name  
 > > discharge of the river without considering the structures exploiting
 > > the water  
 > > \- **percentage**=double  
 > > percentage used to calculate the MFD as an amount of the natural
 > > discharge  
-> 
+>
 > \- **area**=name \[optional\]  
 > areas to exclude from the planning of hydropower stations; only the
 > rivers outside these excluded areas will be considered to compute the
 > potential plants  
->   
+>
 > \- **buff**=double \[optional\]  
 > buffer around the excluded areas  
->   
+>
 > \- **points\_view**=name \[optional\]  
 > input vector map with points of interest  
->   
+>
 > \- **visibility\_resolution**=float \[optional\]  
 > vision from the points of interest  
 > An area corresponding to the fields of vision from the points of
 > interest is computed, the latter correspond to visibility zones.  
 > You can choose to exclude these areas or the areas where several
 > visibility zones are superimposed.  
->   
+>
 > \- **n\_points**=integer \[optional\]  
 > number of points for the visibility corresponding to the number of
 > visibility zones which are superimposed  
 > For example, if this number is 3, the areas where two or less
 > visibility zones are superimposed will be excluded.  
->   
+>
 > \- **output\_vis**=name \[optional\]  
 > name of the output vector with the viewed areas  
->   
+>
 > \- **p\_min**=double \[optional\]  
 > minimum mean power of the plant  
->   
+>
 
 The power (kW) is defined as:  
 
@@ -106,7 +105,6 @@ P=η \* ρ \* g \* Q \* Δh
 > Q the discharge of the river (m<sup>3</sup>/s)  
 > Δh the gross head of the considered segment (m)
 
-  
 The module maximizes the power over a given range by a brute-force
 search in order to examine all possible arrangements of Q and Δh. Thus,
 the potential segments can be shorter than the maximum plant length
@@ -114,7 +112,6 @@ chosen because it depends on the maximization of the product Q \* Δh.
 For each potential segment, the potential power is given in kW in
 attribute.  
   
-
 ## EXAMPLES
 
 **EXAMPLE 1**  
@@ -129,13 +126,9 @@ not appear in the file.
 This example is based on the case-study of Gesso and Vermenagna valleys
 in the Natural Park of the Maritime Alps, Piedmont, Italy.  
   
-
-  
 ![image-alt](r_green_hydro_planning_input_PNAM.png)  
 input vector map availablestreams
 
-  
-  
 First of all reset the region settings with g.region making them match
 the map elevation.  
   
@@ -167,7 +160,6 @@ v.buffer input=nationalparks output=buff_park distance=100
 d.vect map=buff_park7 color=0:128:0 fill_color=144:238:144 width=1
 ```
 
-  
 As you can see in the output map below, this code calculates the energy
 potential for a range of plant length from 10 to 200 m and a distance
 between the plants of 100 m. The areas with the national park and a
@@ -175,15 +167,12 @@ buffer of 100 m around it are excluded. The discharge considered here is
 the current discharge of rivers reduced by 30% of the Minimum Flow
 Discharge.  
   
-
 ![image-alt](r_green_hydro_planning_output_PNAM3.png)  
   
 output vector map: superimposition of the potential segments vector file
 (potentialplants, in blue) and the excluded national park (in green) and
 the buffer (in dark green)
 
-  
-  
 **  
 EXAMPLE 2**  
   
@@ -202,16 +191,13 @@ experts' recommendations during a focus group made in Veneto region.
 input vector map availablestreams with the national park and points of
 interest
 
-  
-  
 Points of interest are placed in the park so two different cases are
 presented here:  
 1\) The national park and a buffer of 200 m around it are excluded  
 2\) The visibility zones from points of interest is excluded  
   
-
 > 1\) In the first case, the code used is:  
-> 
+>
 > ```sh
 > r.green.hydro.planning              \
 >     discharge_current=currentdischarge \
@@ -233,26 +219,26 @@ presented here:
 > 
 > d.vect map=buff_park color=255:179:179 fill_color=255:179:179 width=1
 > ```
-> 
+>
 
->   
+>
 > This command calculates the energy potential for a range of plant
 > length from 10 to 400 m and a distance between plants of 150 m. The
 > areas with the national park and a buffer of 200 m around it are
 > excluded. The discharge considered here is the current discharge of
 > rivers subtracted by 25% of the natural discharge (the latter
 > corresponds to the MFD).  
->   
-> 
+>
+>
 > ![image-alt](r_green_hydro_planning_output_park.png)  
 > output vector map: superimposition of the potential segments vector
 > file (potentialplants, in blue), the excluded national park (in grey)
 > and the buffer (in light red)
-> 
->   
->   
+>
+>
+>
 > 2\) In the second case, the code used is:  
-> 
+>
 > ```sh
 > r.green.hydro.planning                \
 >     discharge_current=currentdischarge   \
@@ -276,17 +262,17 @@ presented here:
 > 
 > d.vect map= vis color=144:224:144 fill_color=144:224:144 width=1
 > ```
-> 
+>
 
->   
+>
 > This command calculates the energy potential for a plant length range
 > from 10 to 400 m and a distance between plants of 150 m. The
 > visibility zones from each point of interest are excluded. The
 > discharge considered here is the current discharge of rivers
 > subtracted by the MFD. The MFD was calculated previously and computed
 > in a raster map.  
->   
-> 
+>
+>
 > ![image-alt](r_green_hydro_planning_output_points.png)  
 > output vector map: superimposition of the potential segments vector
 > file (potentialplants, in blue), the points of interest (in green) and

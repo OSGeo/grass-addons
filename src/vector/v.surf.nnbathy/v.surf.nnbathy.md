@@ -57,7 +57,7 @@ d.rast map=raster_map
 
 ## REQUIREMENTS
 
-  - [nnbathy](https://github.com/sakov/nn-c) library by Pavel Sakov
+- [nnbathy](https://github.com/sakov/nn-c) library by Pavel Sakov
 
 ## SEE ALSO
 

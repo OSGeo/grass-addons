@@ -62,8 +62,8 @@ that you may need administrator rightrs to edit the osgeo4w.bat file.
 
 ## SEE ALSO
 
-  - [v.maxent.train](v.maxent.train.md)
-  - [v.maxent.predict](v.maxent.predict.md)
+- [v.maxent.train](v.maxent.train.md)
+- [v.maxent.predict](v.maxent.predict.md)
 
 ## AUTHOR
 

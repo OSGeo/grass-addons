@@ -78,29 +78,29 @@ The *unit=* keyword can be used to restrict queries to a specific unit.
 By default, it is set to *unit=any* and the full list of supported units
 is as follows:
 
-  - degree
-  - degree minute second hemisphere
-  - grad
-  - meter
-  - kilometer
-  - 50 kilometers
-  - 150 kilometers
-  - link
-  - foot
-  - US foot
-  - British foot (1936)
-  - British foot (Sears 1922)
-  - British yard (Sears 1922)
-  - British chain (Benoit 1895 B)
-  - British chain (Sears 1922 truncated)
-  - British chain (Sears 1922)
-  - Clarke's link
-  - Clarke's foot
-  - Clarke's yard
-  - German legal meter
-  - Gold Coast foot
-  - Indian yard (1937)
-  - Indian yard
+- degree
+- degree minute second hemisphere
+- grad
+- meter
+- kilometer
+- 50 kilometers
+- 150 kilometers
+- link
+- foot
+- US foot
+- British foot (1936)
+- British foot (Sears 1922)
+- British yard (Sears 1922)
+- British chain (Benoit 1895 B)
+- British chain (Sears 1922 truncated)
+- British chain (Sears 1922)
+- Clarke's link
+- Clarke's foot
+- Clarke's yard
+- German legal meter
+- Gold Coast foot
+- Indian yard (1937)
+- Indian yard
 
 Most commonly used units include *degree*, *meter*, and *US foot*.
 

@@ -5,10 +5,10 @@ using [SamGeo](https://samgeo.gishub.org/).
 
 ## REQUIREMENTS
 
-  - [Pillow\>=10.2.0](https://pillow.readthedocs.io/en/stable/)
-  - [numpy\>=1.26.1](https://numpy.org/)
-  - [torch\>=2.5.1](https://pytorch.org/)
-  - [segment-geospatial\>=0.12.3](https://samgeo.gishub.org/)
+- [Pillow\>=10.2.0](https://pillow.readthedocs.io/en/stable/)
+- [numpy\>=1.26.1](https://numpy.org/)
+- [torch\>=2.5.1](https://pytorch.org/)
+- [segment-geospatial\>=0.12.3](https://samgeo.gishub.org/)
 
 ```sh
         pip install pillow numpy torch segment-geospatial
@@ -35,11 +35,11 @@ the environment variable \`CUDA\_VISIBLE\_DEVICES\` to \`-1\`.
 
 ## REFERENCES
 
-  - Wu, Q., & Osco, L. (2023). samgeo: A Python package for segmenting
+- Wu, Q., & Osco, L. (2023). samgeo: A Python package for segmenting
     geospatial data with the Segment Anything Model (SAM). Journal of
     Open Source Software, 8(89), 5663.
     <https://doi.org/10.21105/joss.05663>
-  - Osco, L. P., Wu, Q., de Lemos, E. L., Gonçalves, W. N., Ramos, A. P.
+- Osco, L. P., Wu, Q., de Lemos, E. L., Gonçalves, W. N., Ramos, A. P.
     M., Li, J., & Junior, J. M. (2023). The Segment Anything Model (SAM)
     for remote sensing applications: From zero to one shot.
     International Journal of Applied Earth Observation and

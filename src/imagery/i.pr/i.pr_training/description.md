@@ -23,24 +23,24 @@ validation.
 
 ### Parameters:
 
-  - **input**=*string\[,*string*,...\]*  
+- **input**=*string\[,*string*,...\]*  
     Input raster maps (max 25) for extracting the training examples. The
     first one will be used for graphical output, where 'vis\_map' is
     specified
-  - **vis\_map**=*string*  
+- **vis\_map**=*string*  
     Raster Map for visualisation
-  - **training**=*string*  
+- **training**=*string*  
     Name of the output file containing the training raster maps. If this
     file already exists, the new data will be appended to the end of the
     file.
-  - **site\_file**=*string*  
+- **site\_file**=*string*  
     Name of the site file containing the labelled location. Typically a
     point vector layer or polygon centroids
-  - **rows**=*value*  
+- **rows**=*value*  
     Number of rows (required odd) of the training samples
-  - **cols**=*value*  
+- **cols**=*value*  
     Number of columns (required odd) of the training samples
-  - **class**=*value*  
+- **class**=*value*  
     Numerical label to be attached to the training examples. Option not
     required with the site\_file option.
 

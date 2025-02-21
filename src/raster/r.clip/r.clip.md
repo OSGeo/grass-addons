@@ -29,14 +29,14 @@ raster map, so that the colors in both raster maps will match.
 
 ## NOTES
 
-  - In GRASS GIS, clipping of rasters is usually not needed because
+- In GRASS GIS, clipping of rasters is usually not needed because
     modules respect the current computational region and clipping (with
     possible resampling) is done automatically.
-  - If the user needs to clip raster map according to another raster map
+- If the user needs to clip raster map according to another raster map
     or according to a vector map, the
     *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*
     should be used first before running the *r.clip* module.
-  - The extent of the resulting map might be slightly different based on
+- The extent of the resulting map might be slightly different based on
     how the cells of the input raster align with the cells of the
     computational region. The mechanism for aligning in the background
     is the one used in

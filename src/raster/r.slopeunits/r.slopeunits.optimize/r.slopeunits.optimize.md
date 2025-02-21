@@ -2,9 +2,9 @@
 
 *r.slopeunits.optimize* determines optimal input values for slope units:
 
-  - "areamin" - Minimum area (m^2) below which the slope unit is not
+- "areamin" - Minimum area (m^2) below which the slope unit is not
     further segmented
-  - "cvmin" - Minimum value of the circular variance (0.0-1.0) below
+- "cvmin" - Minimum value of the circular variance (0.0-1.0) below
     which the slope unit is not further segmented
 
 It calls *r.slopeunits.create*, *r.slopeunits.clean* and

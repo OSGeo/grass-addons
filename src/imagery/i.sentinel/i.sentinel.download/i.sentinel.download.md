@@ -11,47 +11,47 @@ Copernicus Sentinel data is the default option. The following product
 types (parameter **producttype**) are currently supported for download
 from the **Copernicus Data Space Ecosystem**:
 
-  - Sentinel-1 (SAR; available from Oct 2014 to present day) (SAR)
+- Sentinel-1 (SAR; available from Oct 2014 to present day) (SAR)
     [products](https://sentinel.esa.int/web/sentinel/missions/sentinel-1/data-products):
-      - SLC: Single Look Complex (Level-1)
-      - GRD: Ground Range Detected (Level-1)
-      - GRDCOG: COG format based Ground Range Detected (Level-1)
-      - OCN: Ocean products for wind, wave and currents applications
+  - SLC: Single Look Complex (Level-1)
+  - GRD: Ground Range Detected (Level-1)
+  - GRDCOG: COG format based Ground Range Detected (Level-1)
+  - OCN: Ocean products for wind, wave and currents applications
         (Level-2)
-  - Sentinel-2 (optical and infrared; available from July 2015 to
+- Sentinel-2 (optical and infrared; available from July 2015 to
     present day) (optical)
     [products](https://sentinel.esa.int/web/sentinel/missions/sentinel-2/data-products):
-      - S2MSI2A: operational Bottom-Of-Atmosphere reflectances in
+  - S2MSI2A: operational Bottom-Of-Atmosphere reflectances in
         cartographic geometry Level-2A)
-      - S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry
+  - S2MSI1C: Top-Of-Atmosphere reflectances in cartographic geometry
         (Level-1C)
-  - Sentinel-3 (OLCI and SLSTR instrument data products at level 2, for
+- Sentinel-3 (OLCI and SLSTR instrument data products at level 2, for
     OLCI sensor also Level 1; available from April 2018 to present day)
     (optical)
     [products](https://sentinel.esa.int/web/sentinel/missions/sentinel-3/data-products):
-      - S3OL1EFR: Land colour and atmosphere TOA radiances at full
+  - S3OL1EFR: Land colour and atmosphere TOA radiances at full
         resolution
-      - S3OL1ERR: Land colour and atmosphere TOA radiances at reduced
+  - S3OL1ERR: Land colour and atmosphere TOA radiances at reduced
         resolution
-      - S3SL1RBT: Brightness temperatures and radiances
-      - S3OL2WFR: Ocean colour, water and atmosphere geophysical
+  - S3SL1RBT: Brightness temperatures and radiances
+  - S3OL2WFR: Ocean colour, water and atmosphere geophysical
         parameters
-      - S3OL2WRR: Ocean colour, water and atmosphere geophysical
+  - S3OL2WRR: Ocean colour, water and atmosphere geophysical
         parameters at reduced resolution
-      - S3OL2LFR: Land colour and atmosphere geophysical parameters
-      - S3OL2LRR: Land colour and atmosphere geophysical parameters at
+  - S3OL2LFR: Land colour and atmosphere geophysical parameters
+  - S3OL2LRR: Land colour and atmosphere geophysical parameters at
         reduced resolution
-      - S3SL2LST: Land Surface Temperature
-      - S3SL2FRP: Fire Radiative Power
-      - S3SR2LAN: Land Surface Height
-      - S3SY2SYN: Surface Reflectance and Aerosol parameters over Land
-      - S3SY2VGP: 1 km VEGETATION-Like product (\~VGT-P) - TOA
+  - S3SL2LST: Land Surface Temperature
+  - S3SL2FRP: Fire Radiative Power
+  - S3SR2LAN: Land Surface Height
+  - S3SY2SYN: Surface Reflectance and Aerosol parameters over Land
+  - S3SY2VGP: 1 km VEGETATION-Like product (\~VGT-P) - TOA
         Reflectance
-      - S3SY2VG1: 1 km VEGETATION-Like product (\~VGT-S1) 1 day
+  - S3SY2VG1: 1 km VEGETATION-Like product (\~VGT-S1) 1 day
         synthesis surface reflectance and NDVI
-      - S3SY2V10: 1 km VEGETATION-Like product (\~VGT-S10) 10 day
+  - S3SY2V10: 1 km VEGETATION-Like product (\~VGT-S10) 10 day
         synthesis surface reflectance and NDVI
-      - S3SY2AOD: Global Aerosol parameter over land and sea on super
+  - S3SY2AOD: Global Aerosol parameter over land and sea on super
         pixel resolution (4.5 km x 4.5 km)
 
 To connect to the Copernicus Data Space Ecosystem both a *user* name and
@@ -101,11 +101,11 @@ interest, AOI) are filtered. The AOI can be optionally defined also by
 vector **map**. In addition the spatial relation between AOI and the
 footprint (**area\_relation**) can be set to
 
-  - *Contains*: to only return scenes where the AOI is contained inside
+- *Contains*: to only return scenes where the AOI is contained inside
     the footprint (Only supported by Copernicus Data Space Ecosystem)
-  - *IsWithin*: to only return scenes where the footprint is contained
+- *IsWithin*: to only return scenes where the footprint is contained
     inside the AOI (Only supported by Copernicus Data Space Ecosystem)
-  - *Intersects*: to return all scenes where the footprint intersects
+- *Intersects*: to return all scenes where the footprint intersects
     the AOI (default)
 
 Filtered products can be reduced by **limit** option.
@@ -124,11 +124,11 @@ can be listed separated with comma (e.g.
 
 **List of Some Queryables:**
 
-  - orbitNumber
-  - timeliness (e.g. NT, NRT-3h, etc...)
-  - processingBaseline
-  - polarizationChannels (e.g. VV\&VH)
-  - storageStatus
+- orbitNumber
+- timeliness (e.g. NT, NRT-3h, etc...)
+- processingBaseline
+- polarizationChannels (e.g. VV\&VH)
+- storageStatus
 
 Note refer to i.eodag to get a list of all queryables. Note that text
 based queryables have to be upper-case. Scenes with unavailbe queryable
@@ -289,8 +289,8 @@ i.sentinel.download settings=credentials.txt id=S2B_MSIL2A_20180210T100139_N9999
 
 ## REQUIREMENTS
 
-  - [i.eodag](i.eodag.md)
-  - [EODAG
+- [i.eodag](i.eodag.md)
+- [EODAG
     library](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html)
     (install with `pip install eodag`)
 

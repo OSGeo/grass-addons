@@ -23,11 +23,7 @@ fields of increment, forest surface, management and treatment. This
 example is based on data of Maè Valley, one of the test area of the
 R.green project  
   
-
 ![image-alt](theoretical_input.png)
-
-  
-  
 
 |           |         |            |           |
 | --------- | ------- | ---------- | --------- |
@@ -36,16 +32,12 @@ R.green project
 | 16.48     | 900     | 1          | 2         |
 | 24.82     | 500     | 2          | 1         |
 
-  
-
 ```sh
 r.green.biomassfor.theoretical --overwrite forest=forest@biomasfor boundaries=Boundary@biomasfor forest_column_increment=increment forest_column_yield_surface=surface forest_column_management=management forest_column_treatment=treatment energy_tops_hs=0.49 energy_cormometric_vol_hf=1.97 energy_tops_cops=0.55 output_basename=mae
 ```
 
 ![image-alt](theoretical_output.png)
 
-  
-  
 The output map is a standardize energy map with the pixel value equal to
 the corresponding bioenergy stimated.
 

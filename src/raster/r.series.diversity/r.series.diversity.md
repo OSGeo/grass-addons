@@ -178,16 +178,16 @@ max=0.5658
 
 ## REFERENCES
 
-  - Chase and Knight (2013). "Scale-dependent effect sizes of ecological
+- Chase and Knight (2013). "Scale-dependent effect sizes of ecological
     drivers on biodiversity: why standardised sampling is not enough".
     Ecology Letters, Volume 16, Issue Supplement s1, pgs 17-26.
-  - Gini, C. 1912. Variabilità e mutabilità. Reprinted in Memorie di
+- Gini, C. 1912. Variabilità e mutabilità. Reprinted in Memorie di
     metodologica statistica (Ed. Pizetti E, Salvemini, T). Rome:
     Libreria Eredi Virgilio Veschi 1.
-  - Jost L. 2006. Entropy and diversity. Oikos 113:363-75
-  - Legendre P, Legendre L. 1998. Numerical Ecology. Second English
+- Jost L. 2006. Entropy and diversity. Oikos 113:363-75
+- Legendre P, Legendre L. 1998. Numerical Ecology. Second English
     edition. Elsevier, Amsterdam
-  - Simpson, E. H. 1949. Measurement of Diversity Nature 163
+- Simpson, E. H. 1949. Measurement of Diversity Nature 163
 
 ## AUTHOR
 

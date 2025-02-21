@@ -109,10 +109,10 @@ d.region.grid region=study_area
 
 ## NOTES
 
-  - Use through the *Add command layer* option in the GUI.
-  - In the GUI, it is currently not possible to directly draw the
+- Use through the *Add command layer* option in the GUI.
+- In the GUI, it is currently not possible to directly draw the
     current region.
-  - Generally, only the grid resolution is based on the selected region
+- Generally, only the grid resolution is based on the selected region
     or raster, with extent of the grid being limited only by what is
     being displayed (this happens to be the current computational region
     when rendering directly to files in command line).

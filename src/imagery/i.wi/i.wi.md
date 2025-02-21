@@ -2,27 +2,27 @@
 
 *i.wi* calculates water indices based on biophysical parameters.
 
-  - AWEI: Automated Water Extraction Index (2 versions: no shadow or
+- AWEI: Automated Water Extraction Index (2 versions: no shadow or
     shadow
-  - LSWI: Land Surface Water Index
-  - NDWI: Normalized Difference Water Index (2 versions: McFeeters or
+- LSWI: Land Surface Water Index
+- NDWI: Normalized Difference Water Index (2 versions: McFeeters or
     Xu)
-  - TCW: Tasseled Cap Water
-  - WI: Water Index
+- TCW: Tasseled Cap Water
+- WI: Water Index
 
 ## NOTES
 
 Requirements (as of Landsat 5TM bands)
 
-  - awei\_noshadow needs greenchan, nirchan, chan5chan
-  - awei\_shadow needs bluechan, greenchan, nirchan, chan5chan,
+- awei\_noshadow needs greenchan, nirchan, chan5chan
+- awei\_shadow needs bluechan, greenchan, nirchan, chan5chan,
     chan7chan
-  - ls\_wi needs nirchan, chan7chan
-  - ndwi\_mcfeeters needs greenchan, nirchan
-  - ndwi\_xu needs greenchan, chan5chan
-  - tcw needs bluechan, greenchan, redchan, nirchan, chan5chan,
+- ls\_wi needs nirchan, chan7chan
+- ndwi\_mcfeeters needs greenchan, nirchan
+- ndwi\_xu needs greenchan, chan5chan
+- tcw needs bluechan, greenchan, redchan, nirchan, chan5chan,
     chan7chan
-  - wi needs greenchan, redchan, nirchan, chan5chan, chan7chan
+- wi needs greenchan, redchan, nirchan, chan5chan, chan7chan
 
 ## TODO
 

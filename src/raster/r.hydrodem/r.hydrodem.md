@@ -9,24 +9,24 @@ software, full sink removal is recommended.
 
 ## OPTIONS
 
-  - **input**  
+- **input**  
     Input map, required: Digital elevation model to be corrected. Gaps
     in the elevation map that are located within the area of interest
     should be filled beforehand, e.g. with *r.fillnulls* or
     *r.resamp.bspline*, to avoid distortions.
-  - **output**  
+- **output**  
     Output map, required: Hydrologically conditioned digital elevation
     model. By default, only minor modifications are done and not all
     sinks are removed.
-  - **size**  
+- **size**  
     All sinks of up to **size** cells will be removed. Default is 4, if
     in doubt, decrease and not increase.
-  - **mod**  
+- **mod**  
     All sinks will be removed that require not more than **mod** cells
     to be modifed. Often, rather large sinks can be removed by carving
     through only few cells. Default is 4, if in doubt, increase and not
     decrease.
-  - **-a**  
+- **-a**  
     **Not recommended if input for *r.watershed* is generated.**  
     With the **-a** flag set, all sinks will be removed using an impact
     reduction approach based on Lindsay & Creed (2005). The output will

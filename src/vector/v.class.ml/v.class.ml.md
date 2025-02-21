@@ -11,33 +11,33 @@ define which independent tasks should be execute.
 
 ### Flags:
 
-  - **-e**  
+- **-e**  
     Extract the training set from a vector map (vtraining).
-  - **-n**  
+- **-n**  
     Store: attribute table data, columns names, categories training
     data, training index to a numpy binary files.
-  - **-f**  
+- **-f**  
     Rank feature importances using a
     [ExtraTreesClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html)
     algorithm.
-  - **-b**  
+- **-b**  
     Balance the training using the class with the minor number of
     training samples or the parameter set in n\_training.
-  - **-o**  
+- **-o**  
     Optimize a balanced training dataset using the class with the minor
     number of training samples or the parameter set in n\_training.
-  - **-c**  
+- **-c**  
     Classify the whole dataset.
-  - **-r**  
+- **-r**  
     Export machine-learning results to raster maps.
-  - **-t**  
+- **-t**  
     Test several machine-learning algorithms on your dataset.
-  - **-v**  
+- **-v**  
     Test also the bias variance.
-  - **-x**  
+- **-x**  
     Compute also extra parameters to evaluate different algorithms like:
     confusion matrix, ROC, PR.
-  - **-d**  
+- **-d**  
     Explore the Support Vector Classification (SVC) domain.
 
 ### Input parameters:

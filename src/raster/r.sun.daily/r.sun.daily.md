@@ -8,9 +8,9 @@ page](https://grass.osgeo.org/grass-stable/manuals/r.sun.html)).
 
 There are two basic options:
 
-  - output series of maps (one for each day): options containing
+- output series of maps (one for each day): options containing
     basename in their name
-  - output one map which is an aggregation of the intermediate maps
+- output one map which is an aggregation of the intermediate maps
 
 You can choose any combination of parameters: e.g. total map of diffuse
 radiance and series of beam radiance maps. Series of maps are (if flag

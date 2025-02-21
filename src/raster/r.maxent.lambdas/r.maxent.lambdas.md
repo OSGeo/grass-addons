@@ -62,22 +62,22 @@ background predictions from the MaxEnt output (e.g. with
 
 ## REFERENCES
 
-  - Wilson, Peter D. 2009: Guidelines for computing MaxEnt model output
+- Wilson, Peter D. 2009: Guidelines for computing MaxEnt model output
     values from a lambdas file. (Available at
     <https://gsp.humboldt.edu/OLM/Courses/GSP_570/Learning-Modules/10-BlueSpray_Maxent_Uncertinaty/MaxEnt-lambda-files.pdf>)
-  - Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
     software for modeling species niches and distributions (Version
     3.4.1). Available from url:
     <https://biodiversityinformatics.amnh.org/open_source/maxent> and
     <https://github.com/mrmaxent/Maxent>
-  - Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
     maximum entropy approach to species distribution modeling. In
     Proceedings of the Twenty-First International Conference on Machine
     Learning, pages 655-662, 2004.
-  - Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
+- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
     Maximum entropy modeling of species geographic distributions.
     Ecological Modelling, 190:231-259, 2006.
-  - Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
+- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
     En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt
     for ecologists. Diversity and Distributions, 17:43-57, 2011.
 

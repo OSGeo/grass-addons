@@ -5,11 +5,11 @@ subbasins with different input data. The module is prepared to delineate
 an unrestricted number of basins in one step. It can delineate basins
 with three methods:
 
-  - Using coordinates: this option performs the same operation as
+- Using coordinates: this option performs the same operation as
     *r.water.outlet*.
-  - Using vector points: it allows to manually point outlets with any
+- Using vector points: it allows to manually point outlets with any
     method.
-  - Using streams (most advanced): it allows broader functionalities:
+- Using streams (most advanced): it allows broader functionalities:
     See the examples for more details.
 
 Only one method can be used at once: the methods cannot be mixed.
@@ -31,20 +31,20 @@ create a collective basin for all the outlets with common category.
 
 ## OPTIONS
 
-  - **-z**  
+- **-z**  
     Creates zero-value background instead of NULL. For some reason (like
     map algebra calculation) zero-valued background may be required.
-  - **-c**  
+- **-c**  
     By default *r.stream.basins* uses streams category as basin
     category. In some cases - for example if streams map is a product of
     map algebra and separate streams may not have unique values - this
     option will create a new category sequence for each basin (it does
     not work in vector point mode).
-  - **-l**  
+- **-l**  
     By default *r.stream.basins* creates basins for all unique streams.
     This option delineates basins only for the last streams, ignoring
     upstream (it does not work in vector point mode).
-  - **direction**  
+- **direction**  
     Flow direction: name of input flow direction map produced by
     *r.watershed* or *r.stream.extract*. The resolution of the
     computational region must match with the resolution of the raster
@@ -53,18 +53,18 @@ create a collective basin for all the outlets with common category.
     resolutions differ, the module informs about it and stops. Region
     boundary and maps boundaries may differ but it may lead to
     unexpected results.
-  - **coors**  
+- **coors**  
     East and north coordinates for the basin outlet. Using this option,
     it is possible to delineate only one basin at a time, similarly to
     *r.water.outlet*.
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network: name of input map of stream network, ordered
     according to the convention used by *r.watershed* or
     *r.stream.extract*. Since streams network produced by *r.watershed*
     and *r.stream.extract* might slightly differ in detail, it is
     required to use both stream and direction map produced by the same
     module. The stream background can have either NULL or zero values.
-  - **cats**  
+- **cats**  
     Stream categories to delineate basins for: All categories which are
     not in the stream map are ignored. It is possible to use the stream
     network created by *r.watershed*, *r.stream.extract* or
@@ -72,7 +72,7 @@ create a collective basin for all the outlets with common category.
     order for which basins will be created. For example, to delineate
     only basins for the streams of second order, use **cats=2**. If you
     need unique categories for each basin, use **-c** flag.
-  - **points**  
+- **points**  
     Vector file containing basins outlets as vector points. Only points'
     categories are used to delineate the basins. Attached tables are
     ignored. Every point shall have its own unique category. In this

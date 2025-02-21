@@ -9,12 +9,12 @@ but it can be changed to anything.
 
 Possible use cases include:
 
-  - renaming maps named in a certain language to English when data were
+- renaming maps named in a certain language to English when data were
     obtained at national level but the futher collaboration is
     international
-  - renaming provided sample maps with English names to a national
+- renaming provided sample maps with English names to a national
     language for educational purposes in case English is not appropriate
-  - preparation of a [GRASS GIS Standardized Sample
+- preparation of a [GRASS GIS Standardized Sample
     Dataset](https://grasswiki.osgeo.org/wiki/GRASS_GIS_Standardized_Sample_Datasets)
     which requires a certain set of standardized names
 

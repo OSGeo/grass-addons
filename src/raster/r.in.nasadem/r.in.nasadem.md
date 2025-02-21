@@ -31,8 +31,8 @@ NASADEM tiles download a user registration is needed at
 In the earthdata user profile, two specific applications must be
 approved in the "My application" tab:
 
-  - "LP DAAC Data Pool" application, and
-  - "Earthdata Search" application.
+- "LP DAAC Data Pool" application, and
+- "Earthdata Search" application.
 
 ## EXAMPLE
 

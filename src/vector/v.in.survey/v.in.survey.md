@@ -4,38 +4,38 @@
 by point names. The script joins several modules to perform following
 steps:
 
-  - The data is sorted according to point names to keep points from
+- The data is sorted according to point names to keep points from
     separated layers together.
-  - The script **scans input file and creates separate files for each
+- The script **scans input file and creates separate files for each
     layer**. Layers are distinguished by point names that provide
     information on layer name, vector type and point identifier. More
     detailed information about how to draft point names in your dataset
     (during data acquisition or in post-processing) is provided in
     **Notes** section.  
-     
-  - Line and polygon data are **converted to standard format** (input
+
+- Line and polygon data are **converted to standard format** (input
     data should respect topological rules to get geometrically correct
     layers).  
-     
-  - Then, **new vector layer** is created using *v.in.ascii*. Points are
+
+- Then, **new vector layer** is created using *v.in.ascii*. Points are
     stored in point layer; lines and polygons in line layer at this
     moment. Lines that store polygon data are converted to new polygon
     layer using *v.centroid*.  
-     
-  - **Attribute table is maintained** for line and polygon layers
+
+- **Attribute table is maintained** for line and polygon layers
     (points are imported in point format with the attributes as well).
-      - in case of line layers, categories are added at first using
+  - in case of line layers, categories are added at first using
         *v.category*,
-      - attribute table is created using *v.db.addtable*,
-      - column that stores layer name is updated using *v.db.update*.  
-         
-  - There is an option to **merge the features** by *v.patch* using
+  - attribute table is created using *v.db.addtable*,
+  - column that stores layer name is updated using *v.db.update*.  
+
+- There is an option to **merge the features** by *v.patch* using
     various patterns to detect desired layers. For more details, see
     **Notes**.  
-     
-  - Finally, *v.clean* is performed to **clean the topology** if any
+
+- Finally, *v.clean* is performed to **clean the topology** if any
     layers have been merged.
-  - If desired, **conversion to DXF** file is performed as well.
+- If desired, **conversion to DXF** file is performed as well.
 
 ## NOTES
 
@@ -43,35 +43,32 @@ steps:
 
 Several recommendations how to format the data:
 
-  - only input data in **point format** is accepted. The file should
+- only input data in **point format** is accepted. The file should
     contain just point identifier (see next item) and coordinates in
     two- or three-dimensional space.
-    
+
     ```sh
             Point_name      easting northing    [elevation]
             name.code.number    x   y       [z]
             
     ```
-    
 
     It does not depend on the coordinate order in the input file. The
     user can set up number of column for each coordinate (as in
     *v.in.ascii*).  
-     
 
-  - Point name provides information that is substantial for new layer
+- Point name provides information that is substantial for new layer
     creation - name and desired type of vector. Required **format of the
     point name** looks like this:
-    
+
     ```sh
                 layer_name.code.number
             
     ```
-    
 
     Items are separated by dots. To get correct results, please remove
     or replace all redundant dots in the input data.
-    
+
     <table>
     <colgroup>
     <col style="width: 50%" />
@@ -93,17 +90,15 @@ Several recommendations how to format the data:
     </tbody>
     </table>
 
-  - if using a **header or columns' names**, refer this in *skip*
+- if using a **header or columns' names**, refer this in *skip*
     parameter  
-     
 
-  - if necessary to **merge** any layers, please give them a name with
+- if necessary to **merge** any layers, please give them a name with
     specific prefix, which should be used as merging rule as well.
     Merging rule that is based on suffix or another part of the layer
     name is not recognized.  
-     
 
-  - if the module **crashes suddenly** during large dataset processing,
+- if the module **crashes suddenly** during large dataset processing,
     it might be caused by incomplete data writing to the layer input
     file. Please divide input data into several smaller files (probably
     depends on your computer performance).
@@ -113,11 +108,11 @@ Several recommendations how to format the data:
 If you wish to convert the data to DXF, please use *-x* flag. Then, it
 is necessary to set up:
 
-  - the **name of DXF file**. The file will be written into the output
+- the **name of DXF file**. The file will be written into the output
     directory.
-  - **drawing units**. Default value: *metric*. Another option:
+- **drawing units**. Default value: *metric*. Another option:
     *imperial*.
-  - **height of the text**. Default value: 0.0 (the height will be
+- **height of the text**. Default value: 0.0 (the height will be
     derived as a fraction (0.003) of longer side of a rectangular mapset
     region)
 
@@ -216,11 +211,11 @@ more clear using *underscores*.
 *ERROR: Not enough points to make polygon layer \<layer\>.*  
 These errors may refer to:
 
-  - a typographical mistake in particular point's name. Edit point's
+- a typographical mistake in particular point's name. Edit point's
     name in the input file and run script again.
-  - mixed layers. See *(Stopkova, 2016)* for more details. Edit point's
+- mixed layers. See *(Stopkova, 2016)* for more details. Edit point's
     name in the input file and run script again.
-  - broken geometry (just one point referring to a line or less than
+- broken geometry (just one point referring to a line or less than
     three points referring to a polygon). Please remove these points or
     edit their vector type (middle part of point name) to refer to a
     point.

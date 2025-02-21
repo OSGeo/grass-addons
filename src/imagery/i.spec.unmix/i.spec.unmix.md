@@ -99,14 +99,14 @@ i.spec.unmix group=lsat7_2002_toar matrix=sample/spectrum.dat result=lsat7_2002_
 
 ## REFERENCES
 
-  - Neteler, M., 1999: Spectral Mixture Analysis von Satellitendaten zur
+- Neteler, M., 1999: Spectral Mixture Analysis von Satellitendaten zur
     Bestimmung von Bodenbedeckungsgraden im Hinblick auf die
     Erosionsmodellierung. M.Sc. thesis, University of Hannover, Germany.
-  - Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
+- Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
     Furlanello, 2004. New image processing tools for GRASS. - In Proc.
     Free/Libre and Open Source Software for Geoinformatics: GIS-GRASS
     Users Conference, 12-14 Sep 2004, Bangkok, Thailand.
-  - Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
+- Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
     Furlanello, 2005. An integrated toolbox for image registration,
     fusion and classification. International Journal of Geoinformatics,
     1(1), pp. 51-61.
@@ -114,11 +114,11 @@ i.spec.unmix group=lsat7_2002_toar matrix=sample/spectrum.dat result=lsat7_2002_
 
 ## SEE ALSO
 
-  - *[i.spec.sam](i.spec.sam.md)  
+- *[i.spec.sam](i.spec.sam.md)  
     *
-  - http://www.research.att.com/\~andreas/xgobi/
-  - https://web.archive.org/web/20041230155448/https://www.public.iastate.edu/\~dicook/xgobi-book/xgobi.html
-  - https://lib.stat.cmu.edu/general/XGobi/
+- http://www.research.att.com/\~andreas/xgobi/
+- https://web.archive.org/web/20041230155448/https://www.public.iastate.edu/\~dicook/xgobi-book/xgobi.html
+- https://lib.stat.cmu.edu/general/XGobi/
 
 ## AUTHORS
 

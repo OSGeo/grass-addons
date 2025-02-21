@@ -112,7 +112,7 @@ r.bioclim tmin=`g.list type=rast pat=tmin_* map=. sep=,` \
 
 ## REFERENCES
 
-  - [Worldclim: Bioclimatic
+- [Worldclim: Bioclimatic
     variables](https://www.worldclim.org/data/bioclim.html)
 
 ## AUTHOR

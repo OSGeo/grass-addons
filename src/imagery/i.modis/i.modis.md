@@ -34,7 +34,7 @@ These products are currently supported:
 
 ### MODIS Surface Reflectance
 
-  - **Surface spectral reflectance daily 1 km and 500 m (Terra/Aqua)**:
+- **Surface spectral reflectance daily 1 km and 500 m (Terra/Aqua)**:
     Bands 1 through 7 corrected for atmospheric conditions such as
     gasses, aerosols, and Rayleigh scattering in Sinusoidal projection
     daily. Provided along with the 500 meter (m) surface reflectance,
@@ -45,7 +45,7 @@ These products are currently supported:
     [MOD09GA](https://lpdaac.usgs.gov/products/mod09gav061/) and
     [MYD09GA](https://lpdaac.usgs.gov/products/myd09gav061/) product
     pages).
-  - **Surface spectral reflectance eight day 500 m (Terra/Aqua)**: Bands
+- **Surface spectral reflectance eight day 500 m (Terra/Aqua)**: Bands
     1 through 7 corrected for atmospheric conditions such as gasses,
     aerosols, and Rayleigh scattering in Sinusoidal projection during an
     8-day period. Along with the seven 500 meter (m) reflectance bands
@@ -60,7 +60,7 @@ These products are currently supported:
 
 ### MODIS LST - Land Surface Temperature
 
-  - **Land Surface Temperature daily 1 km (Terra/Aqua)**: product
+- **Land Surface Temperature daily 1 km (Terra/Aqua)**: product
     provides per-pixel temperature and emissivity values in a sequence
     of swath-based to grid-based global products in Sinusoidal
     projection. The MODIS/Terra-Aqua LST/E Daily L3 Global 1 km Grid
@@ -69,7 +69,7 @@ These products are currently supported:
     (related [MOD11A1](https://lpdaac.usgs.gov/products/mod11a1v061/)
     and [MYD11A1](https://lpdaac.usgs.gov/products/myd11a1v061/) product
     pages).
-  - **Land Surface Temperature eight day 1 km (Terra/Aqua)**: data are
+- **Land Surface Temperature eight day 1 km (Terra/Aqua)**: data are
     composed from the daily 1-kilometer LST product (MOD11A1/MYD11A1)
     and stored on a 1-km Sinusoidal grid as the average values of
     clear-sky LSTs during an 8-day period.  
@@ -80,7 +80,7 @@ These products are currently supported:
     [MOD11A2](https://lpdaac.usgs.gov/products/mod11a2v061/) and
     [MYD11A2](https://lpdaac.usgs.gov/products/myd11a2v061/) product
     pages).
-  - **Land Surface Temperature eight day \~6 km (Terra/Aqua)**: products
+- **Land Surface Temperature eight day \~6 km (Terra/Aqua)**: products
     provide per-pixel temperature and emissivity values in a sequence of
     swath-based to grid-based global products. The MODIS/Terra-Aqua
     LST/E Daily L3 Global 6 km Grid (Short name: MOD11B1/MYD11B1), is
@@ -89,7 +89,7 @@ These products are currently supported:
     [MOD11B1](https://lpdaac.usgs.gov/products/mod11b1v061/) and
     [MYD11B1](https://lpdaac.usgs.gov/products/myd11b1v061/) product
     pages).
-  - **Land Surface Temperature monthly \~6 km (Terra/Aqua)**: products
+- **Land Surface Temperature monthly \~6 km (Terra/Aqua)**: products
     provide per-pixel temperature and emissivity values in a sequence of
     swath-based to grid-based global products with a pixel size of 5,600
     meters. Each LST\&E pixel value in the MOD11B3 is a simple average
@@ -109,7 +109,7 @@ These products are currently supported:
 
 ### MODIS VI - Vegetation Indices
 
-  - **VI sixteen days 250 m (Terra/Aqua)**: Global MOD13Q1/MYD13Q1 MODIS
+- **VI sixteen days 250 m (Terra/Aqua)**: Global MOD13Q1/MYD13Q1 MODIS
     vegetation indices are designed to provide consistent spatial and
     temporal comparisons of vegetation. conditions. Blue, red, and
     near-infrared reflectances, centered at 469-nanometers,
@@ -133,7 +133,7 @@ These products are currently supported:
     (related [MOD13Q1](https://lpdaac.usgs.gov/products/mod13q1v061/)
     and [MYD13Q1](https://lpdaac.usgs.gov/products/myd13q1v061/) product
     pages).
-  - **VI sixteen days 500 m (Terra/Aqua)**: Global MOD13A1/MYD13A1 MODIS
+- **VI sixteen days 500 m (Terra/Aqua)**: Global MOD13A1/MYD13A1 MODIS
     vegetation indices are designed to provide consistent spatial and
     temporal comparisons of vegetation conditions. Blue, red, and
     near-infrared reflectances, centered at 469-nanometers,
@@ -162,7 +162,7 @@ These products are currently supported:
     [MOD13A1](https://lpdaac.usgs.gov/products/mod13a1v061/) and
     [MYD13A1](https://lpdaac.usgs.gov/products/myd13a1v061/) product
     pages).
-  - **VI sixteen days 250 m (Terra/Aqua)**: The MOD13Q1 product provides
+- **VI sixteen days 250 m (Terra/Aqua)**: The MOD13Q1 product provides
     two primary vegetation layers. The first is the Normalized
     Difference Vegetation Index (NDVI) which is referred to as the
     continuity index to the existing National Oceanic and Atmospheric
@@ -178,7 +178,7 @@ These products are currently supported:
     (related [MOD13Q1](https://lpdaac.usgs.gov/products/mod13q1v061/)
     and [MYD13Q1](https://lpdaac.usgs.gov/products/myd13q1v061/) product
     pages).
-  - **VI sixteen days 1 km (Terra/Aqua)**: The MOD13A2 product provides
+- **VI sixteen days 1 km (Terra/Aqua)**: The MOD13A2 product provides
     a Vegetation Index (VI) value at a per pixel basis. There are 2
     primary vegetation layers. The first is the Normalized Difference
     Vegetation Index (NDVI) which is referred to as the continuity index
@@ -191,7 +191,7 @@ These products are currently supported:
     [MOD13A2](https://lpdaac.usgs.gov/products/mod13a2v061/) and
     [MYD13A2](https://lpdaac.usgs.gov/products/myd13a2v061/) product
     pages).
-  - **VI monthly 1 km (Terra/Aqua)**: The MOD13A3 product provides a
+- **VI monthly 1 km (Terra/Aqua)**: The MOD13A3 product provides a
     Vegetation Index (VI) value at a per pixel basis. There are 2
     primary vegetation layers. The first is the Normalized Difference
     Vegetation Index (NDVI) which is referred to as the continuity index
@@ -207,7 +207,7 @@ These products are currently supported:
     [MOD13A3](https://lpdaac.usgs.gov/products/mod13a3v061/) and
     [MYD13A3](https://lpdaac.usgs.gov/products/myd13a3v061/) product
     pages).
-  - **VI sixteen days Global 0.05Deg CMG (Terra/Aqua)**: The MOD13C1
+- **VI sixteen days Global 0.05Deg CMG (Terra/Aqua)**: The MOD13C1
     product provides a Vegetation Index (VI) value at a per pixel basis.
     There are 2 primary vegetation layers. The first is the Normalized
     Difference Vegetation Index (NDVI) which is referred to as the
@@ -221,7 +221,7 @@ These products are currently supported:
     [MOD13C1](https://lpdaac.usgs.gov/products/mod13c1v061/) and
     [MYD13C1](https://lpdaac.usgs.gov/products/myd13c1v061/) product
     pages).
-  - **VI monthly Global 0.05Deg CMG (Terra/Aqua)**: The MOD13C2 product
+- **VI monthly Global 0.05Deg CMG (Terra/Aqua)**: The MOD13C2 product
     provides a Vegetation Index (VI) value at a per pixel basis. There
     are 2 primary vegetation layers. The first is the Normalized
     Difference Vegetation Index (NDVI) which is referred to as the
@@ -238,7 +238,7 @@ These products are currently supported:
 
 ### MODIS AOD - Aerosol Optical Depth
 
-  - **Aerosol optical depth daily 1 km (Terra+Aqua)**: MCD19A2 is the
+- **Aerosol optical depth daily 1 km (Terra+Aqua)**: MCD19A2 is the
     short name for the Multi-Angle Implementation of Atmospheric
     Correction (MAIAC) algorithm-based Level-2 gridded (L2G) aerosol
     optical thickness over land surfaces product. This product is
@@ -260,7 +260,7 @@ These products are currently supported:
 
 ### MODIS Snow
 
-  - **Snow daily 500 m (Terra/Aqua)**: MOD10A1 and MYD10A1 are tiles of
+- **Snow daily 500 m (Terra/Aqua)**: MOD10A1 and MYD10A1 are tiles of
     daily snow cover at 500 m spatial resolution. The daily observation
     selected from multiple observations in a MOD10A1 (or MYD10A1) cell
     is the observation acquired nearest nadir and having the greatest
@@ -275,7 +275,7 @@ These products are currently supported:
     the validation and validation definitions (related
     [MOD10A1](https://nsidc.org/data/MOD10A1) and
     [MYD10A1](https://nsidc.org/data/MYD10A1) product pages).
-  - **Snow eight days 500 m (Terra/Aqua)**: The MOD10A2 and MYD10A2
+- **Snow eight days 500 m (Terra/Aqua)**: The MOD10A2 and MYD10A2
     products are composites of eight days of snow maps in the sinusoidal
     grid. An eight-day compositing period was chosen because that is the
     exact ground track repeat period of the Terra and Aqua platforms.
@@ -292,7 +292,7 @@ These products are currently supported:
 
 ### MODIS Land Water Mask
 
-  - **Land Water Mask 250 m (Terra)**: The Version 6 data product
+- **Land Water Mask 250 m (Terra)**: The Version 6 data product
     provides a global map of surface water at 250 meter (m) spatial
     resolution. The data are available annually from 2000 to 2015.
     MOD44W Version 6 is derived using a decision tree classifier trained
@@ -321,11 +321,11 @@ library. Please install it beforehand.
 [i.modis.import](i.modis.import.md),
 [i.modis.qc](https://grass.osgeo.org/grass-stable/manuals/i.modis.qc.html)*
 
-  - [MODIS Reprojection
+- [MODIS Reprojection
     Tool](https://web.archive.org/web/20170711122121/https://lpdaac.usgs.gov/tools/modis_reprojection_tool)
-  - [MODIS Land homepage](https://modis-land.gsfc.nasa.gov/)
-  - [MODIS Snow homepage](https://modis-snow-ice.gsfc.nasa.gov/)
-  - [MODIS Land products table](https://lpdaac.usgs.gov/product_search/)
+- [MODIS Land homepage](https://modis-land.gsfc.nasa.gov/)
+- [MODIS Snow homepage](https://modis-snow-ice.gsfc.nasa.gov/)
+- [MODIS Land products table](https://lpdaac.usgs.gov/product_search/)
 
 ## AUTHORS
 

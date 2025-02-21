@@ -32,7 +32,7 @@ map, than accumulation or stream raster map only.
 
 ## OPTIONS
 
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network created by
     *[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html)*
     or
@@ -41,7 +41,7 @@ map, than accumulation or stream raster map only.
     whose accumulation is greater than the threshold. If the
     accumulation is not used, the point is snapped to the nearest
     stream.
-  - **accumulation**  
+- **accumulation**  
     Accumulation map created with
     *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
     and used to generate the stream network with
@@ -50,20 +50,20 @@ map, than accumulation or stream raster map only.
     to the point where the value is greater than mean values of
     accumulation greater than given threshold in a search radius. See
     the description for details.
-  - **radius**  
+- **radius**  
     Search radius (in cells). If there are no streams in the search
     radius, the point is not snapped. If there are no cells with
     accumulation greater than accumulation threshold, the point also is
     not snapped.
-  - **threshold**  
+- **threshold**  
     Minimum value of accumulation to snap the point. This option is
     added to the snap stream inits to the stream tubes and to
     distinguish between local tributaries and main streams.
-  - **input**  
+- **input**  
     Vector file containing outlets or inits as vector points. Only
     point's categories are used. Any table attached to it is ignored.
     Every point shall have its own unique category.
-  - **output**  
+- **output**  
     Vector file containing outlets or inits after snapping. On layer 1,
     the original categories are preserved, on layer 2 there are four
     categories which mean:

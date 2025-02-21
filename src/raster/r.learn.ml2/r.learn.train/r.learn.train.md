@@ -96,6 +96,7 @@ use R2.
 ### Cross-Validation
 
 Cross validation can be performed by setting the *cv* parameters to \>
+
 1. Cross-validation is performed using stratified k-folds for
 classification and k-folds for regression. Several global and per-class
 accuracy measures are produced depending on whether the response

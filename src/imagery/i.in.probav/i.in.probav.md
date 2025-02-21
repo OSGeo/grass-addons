@@ -43,11 +43,11 @@ i.in.probav input=c_gls_NDVI300_201611010000_GLOBE_PROBAV_V1.0.1.nc \
 
 ## REFERENCES
 
-  - [VITO Product Distribution
+- [VITO Product Distribution
     Portal](https://www.vito-eodata.be/PDF/portal/Application.html#Home)
-  - [PROBA-V
+- [PROBA-V
     FAQ](https://www.vito-eodata.be/PDF/image/faq_help/Faq.html)
-  - [VITO Collections
+- [VITO Collections
     help](https://www.vito-eodata.be/PDF/image/faq_help/Help.html#COLLECTION)
 
 ## AUTHOR

@@ -82,8 +82,6 @@ g.region raster=elevation
 r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 ```
 
-  
-
 ![image-alt](r_boxplot_01.png)  
 
 ### Example 2
@@ -96,8 +94,6 @@ rotate the x-asis labels.
 ```sh
 r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
 ```
-
-  
 
 ![image-alt](r_boxplot_02.png)  
 
@@ -113,8 +109,6 @@ outlier locations as a point vector map.
 ```sh
 r.boxplot -o bx_sort=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
 ```
-
-  
 
 ![image-alt](r_boxplot_03.png)  
 
@@ -136,8 +130,6 @@ from low to high median, and set the font size to 11.
 r.boxplot -c bx_sort=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
 ```
 
-  
-
 ### Example 5
 
 To make it easier to compare the elevation distribution across the
@@ -147,8 +139,6 @@ median and interquartile range of the whole raster layer.
 ```sh
 r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR
 ```
-
-  
 
 Note, if the zones of your zonal map do not cover the entire area, you
 may want to use *r.mask* to mask out the non-covered parts of the input

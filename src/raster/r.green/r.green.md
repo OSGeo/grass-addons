@@ -6,11 +6,11 @@ hydropower.
 
 The tool is organized in the module groups:
 
-  - [r.green.biomassfor](r.green.biomassfor.md) - computes the energy
+- [r.green.biomassfor](r.green.biomassfor.md) - computes the energy
     potential of biomass from the forestry residues
-  - [r.green.gshp](r.green.gshp.md) - computes the Ground Source Heat
+- [r.green.gshp](r.green.gshp.md) - computes the Ground Source Heat
     Pump potential
-  - [r.green.hydro](r.green.hydro.md) - computes the hydropower
+- [r.green.hydro](r.green.hydro.md) - computes the hydropower
     potential
 
 for which are composed of several programs considering different limits
@@ -36,12 +36,12 @@ shown in the following image:
 
 ## REFERENCES
 
-  - Garegnani, G., Geri, F., Zambelli, P., Grilli, G., Sacchelli, S.,
+- Garegnani, G., Geri, F., Zambelli, P., Grilli, G., Sacchelli, S.,
     Paletto, A., Curetti, G., Ciolli, M., Vettorato, D. (2015). A new
     open source DSS for assessment and planning of renewable energy: r.
     green. Proceedings of FOSS4G Europe, Como, 14-17.
     ([PDF](http://www.academia.edu/download/42063487/A_new_open_source_DSS_for_assessment_and20160204-20913-vxe2wt.pdf))
-  - Garegnani, G., Zambelli, P., Geri, F., Gros, J., D'Alonzo, V.,
+- Garegnani, G., Zambelli, P., Geri, F., Gros, J., D'Alonzo, V.,
     Grilli, G., Sacchelli, S., Balest, J. Curetti, G., Paletto, A.,
     Ciolli, M., Vettorato, D. (2015): Evaluation of renewable energy
     potential in Pilot Areas: a Decision Support System.

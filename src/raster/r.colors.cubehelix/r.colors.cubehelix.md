@@ -87,7 +87,7 @@ Color table for 3D raster map can be set in the same way.
 
 ## REFERENCES
 
-  - Green, D. A., 2011, [*A colour scheme for the display of
+- Green, D. A., 2011, [*A colour scheme for the display of
     astronomical intensity
     images*](https://astron-soc.in/bulletin/11June/289392011.pdf),
     Bulletin of the Astronomical Society of India, 39, 289.

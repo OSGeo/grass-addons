@@ -8,57 +8,57 @@ difference between *v.percolate* and *v.cluster*.
 For each input point in an input vector map *v.percolate* outputs the
 following information at each threshdold distance:
 
-  - `Cat`  
+- `Cat`  
     Cat value.
-  - `<fieldname>`  
+- `<fieldname>`  
     The ID of the point in a chosen field in the input vector map.
-  - `X`  
+- `X`  
     X coordinate (easting).
-  - `Y`  
+- `Y`  
     Y coordinate (northing).
-  - `Membership`  
+- `Membership`  
     Cluster membership (cluster ID).
-  - `FirstChange`  
+- `FirstChange`  
     Iteration at which the point first joined a cluster.
-  - `LastChange`  
+- `LastChange`  
     Iteration at which the point most recently joined a new cluster.
-  - `NChanges`  
+- `NChanges`  
     Number of changes of cluster membership.
-  - `FirstDistance`  
+- `FirstDistance`  
     Distance at which the point first joined a cluster.
-  - `LastDistance`  
+- `LastDistance`  
     Distance at which the point most recently joined a new cluster.
-  - `MaxConCoeff`  
+- `MaxConCoeff`  
     Maximum connection coefficient obtained.
-  - `LastGroupConnected`  
+- `LastGroupConnected`  
     The cluster ID of the most recently connected cluster (the point
     itself may not have changed clusters)
-  - `LastDistanceConnection`  
+- `LastDistanceConnection`  
     Distance at which the most recently connected cluster joined (the
     point itself may not have changed clusters))
 
 For each cluster formed or already in existence at each threshold
 distance *v.percolate* outputs:
 
-  - `Cluster`  
+- `Cluster`  
     The cluster ID.
-  - `Birth`  
+- `Birth`  
     Iteration at which the cluster was formed.
-  - `BirthDist`  
+- `BirthDist`  
     Distance at which the cluster was formed.
-  - `Death`  
+- `Death`  
     Iteration at which the cluster was absorbed into another cluster and
     so ceased to exist as an independent entity.
-  - `DeathDist`  
+- `DeathDist`  
     Distance at which the cluster was absorbed into another cluster and
     so ceased to exist as an independent entity.
-  - `Longevity`  
+- `Longevity`  
     Number of iterations during which the cluster existed as an
     independent entity.
-  - `MaxSize`  
+- `MaxSize`  
     The number of points in the cluster just before it was absorbed into
     another cluster.
-  - `Wins`  
+- `Wins`  
     The number of occasions when this cluster continued to exist after
     joining with another cluster because, depending on the rule chosen,
     it was either the larger cluster or the older cluster.
@@ -124,15 +124,15 @@ threshold difference, a situation which DBSCAN avoids.
 
 ## REFERENCES
 
-  - Arcaute, E., C. Molinero, E. Hatna, R. Murcio, C. Vargas-Ruiz, P.
+- Arcaute, E., C. Molinero, E. Hatna, R. Murcio, C. Vargas-Ruiz, P.
     Masucci and M. Batty (2016). 'Regions and Cities in Britain through
     Hierarchical Percolation'. *ArXiv*:1504.08318v2 \[Physics.Soc-Ph\].
     <https://arxiv.org/abs/1504.08318>.
-  - Arcaute, E., S. Brookes, T. Brown, M. Lake and A. Reynolds (in
+- Arcaute, E., S. Brookes, T. Brown, M. Lake and A. Reynolds (in
     prep). 'Case studies in percolation analysis: the distribution of
     English settlement in the 11th and 19th centuries compared'. For
     submission to *Journal of Archaeological Science*.
-  - Lake, M, T. Brown and S. Maddison (2018). 'Percolation robustness
+- Lake, M, T. Brown and S. Maddison (2018). 'Percolation robustness
     and the deep history of regionality'. Presentation to [Connected
     Past](https://connectedpast.net/other-events/oxford-2018/programme/),
     Oxford.

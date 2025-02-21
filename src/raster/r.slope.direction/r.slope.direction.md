@@ -16,17 +16,17 @@ different spatial scales.
 The **slope\_measure** option defines the format in which slope is
 reported. Possible values are
 
-  - **degree** (the default) - the angle described by the total
+- **degree** (the default) - the angle described by the total
     elevation difference devided by the total distance over the user
     given number of steps along the direction map
-  - **degree\_int** - same as degree but multiplied with 100 and rounded
+- **degree\_int** - same as degree but multiplied with 100 and rounded
     to the closest integer to limit data volume
-  - **difference** - the total elevation difference independent from the
+- **difference** - the total elevation difference independent from the
     x-y distance along the direction map
-  - **percent** - the ratio between the total elevation difference and
+- **percent** - the ratio between the total elevation difference and
     the total distance over the user given number of steps along the
     direction map
-  - **percent\_int** - same as percent but multiplied with 10000 and
+- **percent\_int** - same as percent but multiplied with 10000 and
     rounded to the closest integer to limit data volume
 
 The **a**-flag allows to compute slope as absolute elevation

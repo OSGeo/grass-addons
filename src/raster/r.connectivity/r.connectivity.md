@@ -3,9 +3,9 @@
 *r.connectivity* is a toolset for conducting connectivity analysis of
 ecological networks. The toolset consists of three modules:
 
-  - [r.connectivity.distance](r.connectivity.distance.md)
-  - [r.connectivity.network](r.connectivity.network.md)
-  - [r.connectivity.corridors](r.connectivity.corridors.md)
+- [r.connectivity.distance](r.connectivity.distance.md)
+- [r.connectivity.network](r.connectivity.network.md)
+- [r.connectivity.corridors](r.connectivity.corridors.md)
 
 All the modules of the r.connectivity toolset can be installed in GRASS
 as follows:
@@ -18,9 +18,9 @@ g.extension operation=add extension=r.connectivity
 
 The tools require the following underlying libraries and software:  
 
-  - Cran R
-  - igraph and the igraph package for R
-  - ghostscript
+- Cran R
+- igraph and the igraph package for R
+- ghostscript
 
 ## EXAMPLE
 

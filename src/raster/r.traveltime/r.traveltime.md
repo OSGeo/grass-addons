@@ -58,14 +58,14 @@ r.colors ttime colors=blues
 
 ## REFERENCES
 
-  - Kilgore, J. L. (1997): *Development and evaluation of a GIS-based
+- Kilgore, J. L. (1997): *Development and evaluation of a GIS-based
     spatially distributed unit hydrograph model*, master thesis,
     Virginia Polytechnic Institute and State University.
-  - Melesse, A. M., Graham, W. D. (2004): *Storm runoff predicition
+- Melesse, A. M., Graham, W. D. (2004): *Storm runoff predicition
     based on a spatially distributed travel time method utilizing remote
     sensing and GIS*, Journal of the American Water Resources
     Association, 8, 863-879.
-  - Muzik, I. (1996): *Flood modelling with GIS-derived distributed unit
+- Muzik, I. (1996): *Flood modelling with GIS-derived distributed unit
     hydrographs*, Hydrological Processes, 10, 1401-1409.
 
 ## AUTHOR

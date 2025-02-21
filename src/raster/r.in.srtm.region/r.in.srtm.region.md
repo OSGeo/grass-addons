@@ -8,15 +8,15 @@ products are already void-filled.
 *r.in.srtm.region* downloads ([SRTM product
 description](https://lpdaac.usgs.gov/documents/179/SRTM_User_Guide_V3.pdf))
 
-  - SRTMGL1 V003 tiles at 1 arc second (about 30 meters) resolution,
+- SRTMGL1 V003 tiles at 1 arc second (about 30 meters) resolution,
     void-filled from:  
     <https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL1.003/2000.02.11/>
-  - SRTMGL3 V003 tiles at 3 arc seconds (about 90 meters) resolution,
+- SRTMGL3 V003 tiles at 3 arc seconds (about 90 meters) resolution,
     void-filled from:  
     <https://e4ftl01.cr.usgs.gov/MEASURES/SRTMGL3.003/2000.02.11/>
-  - SRTM V2.1 tiles at 3 arc second (about 90 meters) resolution from:
+- SRTM V2.1 tiles at 3 arc second (about 90 meters) resolution from:
     [http://dds.cr.usgs.gov/srtm/](http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/)
-  - or, optionally *r.in.srtm.region* uses a local folder with
+- or, optionally *r.in.srtm.region* uses a local folder with
     previously downloaded SRTM data files if the **local** option is
     given.
 
@@ -26,8 +26,8 @@ at <https://urs.earthdata.nasa.gov/users/new>
 In the user profile, two specific applications must be approved in the
 "My application" tab:
 
-  - "LP DAAC Data Pool" application, and
-  - "Earthdata Search" application.
+- "LP DAAC Data Pool" application, and
+- "Earthdata Search" application.
 
 ## EXAMPLE
 

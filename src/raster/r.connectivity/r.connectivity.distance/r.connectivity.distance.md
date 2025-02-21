@@ -22,8 +22,8 @@ user-defined Euclidean distance threshold.
 
 It produces two vector maps that hold the network:
 
-  - an edge-map (connections between patches) and a
-  - vertex-map (centroid representations of the patches).
+- an edge-map (connections between patches) and a
+- vertex-map (centroid representations of the patches).
 
 Attributes of the edge-map are:
 
@@ -63,9 +63,9 @@ If an output directory is given for the **conefor\_dir** option is
 specified, also output suitable for further processing in
 [CONEFOR](http://www.conefor.org) will be produced, namely:
 
-  - a node file
-  - a directed connection file, and
-  - an undirected connection file
+- a node file
+- a directed connection file, and
+- an undirected connection file
 
 ## EXAMPLES
 

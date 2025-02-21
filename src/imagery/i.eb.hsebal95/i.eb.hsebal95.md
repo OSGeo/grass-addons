@@ -31,19 +31,19 @@ For more details on the algorithms see \[1\].
 
 ### Parameters:
 
-  - **DEM**=*name*  
+- **DEM**=*name*  
     Input elevation raster \[m a.s.l.\]. Required.
-  - **T**=*name*  
+- **T**=*name*  
     Input temperature raster \[°C\]. Required.
-  - **RH** =*name*  
+- **RH** =*name*  
     Input relative humidity raster \[%\]. Required.
-  - **WS** =*name*  
+- **WS** =*name*  
     Input wind speed at two meters raster \[m/s\]. Required.
-  - **NSR** =*name*  
+- **NSR** =*name*  
     Input net solar radiation raster \[MJ/(m2\*h)\]. Required.
-  - **Vh** =*name*  
+- **Vh** =*name*  
     Input vegetation heigth raster \[m\]. Required.
-  - **ETP** =*name*  
+- **ETP** =*name*  
     Output evapotranspiration raster \[mm/h\]. Required.
 
 ## NOTES

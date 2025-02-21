@@ -10,36 +10,36 @@ parameter. For more details relating to the classifiers, refer to the
 [scikit learn documentation.](https://scikit-learn.org/stable/) The
 following classification and regression methods are available:
 
-  - *LogisticRegression* represents a linear model for classification
+- *LogisticRegression* represents a linear model for classification
     and is a modification of linear regression, but using the logistic
     distribution which enables the use of a categorical response
     variable. If the *response* raster is coded to 0 and 1, then a
     binary classification occurs, but the scikit-learn logistic
     regression can also perform a multiclass classification using a
     one-versus-rest scheme.
-  - *LinearDiscriminantAnalysis* and *QuadraticDiscriminantAnalysis* are
+- *LinearDiscriminantAnalysis* and *QuadraticDiscriminantAnalysis* are
     classifiers with linear and quadratic decision surfaces. These
     classifiers do not take any parameters and are inherently
     multiclass. They can only be used for classification.
-  - *KNeighborsClassifier* classifies samples based on closest distance
+- *KNeighborsClassifier* classifies samples based on closest distance
     to a predefined number of training samples. Two hyperparameters are
     exposed, with *n\_neighbors* governing the number of neighbors to
     use to decide the prediction label, and *weights* specifying whether
     these neighbors should have equal weights or whether they should be
     inversely weighted by their distance.
-  - *GaussianNB* is the Gaussian Naive Bayes algorithm and can be used
+- *GaussianNB* is the Gaussian Naive Bayes algorithm and can be used
     for classification only. Naive Bayes is a supervised learning
     algorithm based on applying Bayes theorem with the naive assumption
     of independence between every pair of features. This classifier does
     not take any parameters.
-  - The *DecisionTreeClassifier* and *DecisionTreeRegressor* map
+- The *DecisionTreeClassifier* and *DecisionTreeRegressor* map
     observations to a response variable using a hierarchy of splits and
     branches. The terminus of these branches, termed leaves, represent
     the prediction of the response variable. Decision trees are
     non-parametric and can model non-linear relationships between a
     response and predictor variables, and are insensitive the scaling of
     the predictors.
-  - The *RandomForestsClassifier* and *RandomForestsRegressor* represent
+- The *RandomForestsClassifier* and *RandomForestsRegressor* represent
     ensemble classification and regression tree methods. Random forests
     overcome some of the disadvantages of single decision trees by
     constructing an ensemble of uncorrelated trees. Each tree is
@@ -52,7 +52,7 @@ following classification and regression methods are available:
     during each node split, the splitting rule that is selected is based
     on the best of a collection of randomly-geneated thresholds that
     were assigned to the features.
-  - The *GradientBoostingClassifier* and *GradientBoostingRegressor*
+- The *GradientBoostingClassifier* and *GradientBoostingRegressor*
     also represent ensemble tree-based methods. However, in a boosted
     model the learning processes is additive in a forward step-wise
     fashion whereby *n\_estimators* are fit during each model step, and
@@ -62,13 +62,13 @@ following classification and regression methods are available:
     the model residuals. Additionally, Microsoft's *LGBMClassifier* and
     *LGBMRegressor* models represent an accelerated version of gradient
     boosting which can optionally be installed by pip install lightgbm.
-  - The *SVC* model is C-Support Vector Classifier. Only a linear kernel
+- The *SVC* model is C-Support Vector Classifier. Only a linear kernel
     is supported because non-linear kernels using scikit learn for
     typical remote sensing and spatial analysis datasets which consist
     of large numbers of samples are too slow to be practical. This
     classifier can still be slow for large datasets that include \>
     10000 training samples.
-  - The *EarthClassifier* and *EarthRegressor* is a python-based version
+- The *EarthClassifier* and *EarthRegressor* is a python-based version
     of Friedman's multivariate adaptive regression splines. This
     classifier depends on the [py-earth
     package](https://github.com/scikit-learn-contrib/py-earth), which
@@ -86,29 +86,29 @@ parameter settings as a comma-separated list. This tuning can also be
 accomplished simultaneously with nested cross-validation by also
 settings the *cv* option to \> 1. The parameters consist of:
 
-  - *C* is the inverse of the regularization strength, which is when a
+- *C* is the inverse of the regularization strength, which is when a
     penalty is applied to avoid overfitting. *C* applies to the
     LogisticRegression and SVC models.
-  - *n\_estimators* represents the number of trees in Random Forest
+- *n\_estimators* represents the number of trees in Random Forest
     model, and the number of trees used in each model step during
     Gradient Boosting. For random forests, a larger number of trees will
     never adversely affect accuracy although this is at the expensive of
     computational performance. In contrast, Gradient boosting will start
     to overfit if *n\_estimators* is too high, which will reduce model
     accuracy.
-  - *max\_features* controls the number of variables that are allowed to
+- *max\_features* controls the number of variables that are allowed to
     be chosen from at each node split in the tree-based models, and can
     be considered to control the degree of correlation between the trees
     in ensemble tree methods.
-  - *min\_samples\_split* and *min\_samples\_leaf* control the number of
+- *min\_samples\_split* and *min\_samples\_leaf* control the number of
     samples required to split a node or form a leaf node, respectively.
-  - The *learning\_rate* and *subsample* parameters apply only to
+- The *learning\_rate* and *subsample* parameters apply only to
     Gradient Boosting. *learning\_rate* shrinks the contribution of each
     tree, and *subsample* is the fraction of randomly selected samples
     for each tree. A lower *learning\_rate* always improves accuracy in
     gradient boosting but will require a much larger *n\_estimators*
     setting which will lower computational performance.
-  - The main control on accuracy in the Earth classifier consists
+- The main control on accuracy in the Earth classifier consists
     *max\_degree* which is the maximum degree of terms generated by the
     forward pass. Settings of *max\_degree* = 1 or 2 offer good accuracy
     versus computational performance.
@@ -128,6 +128,7 @@ as the metric. Multiclass classifications use accuracy, and regressions
 use R2.
 
 Cross validation can be performed by setting the *cv* parameters to \>
+
 1. Cross-validation is performed using stratified kfolds, and multiple
 global and per-class accuracy measures are produced depending on whether
 the response variable is binary or multiclass, or the classifier is for

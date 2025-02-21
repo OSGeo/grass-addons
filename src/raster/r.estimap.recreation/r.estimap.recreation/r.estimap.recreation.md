@@ -26,56 +26,56 @@ sources.*
 
 First, an overview of definitions:
 
-  - Recreation Potential  
+- Recreation Potential  
     is the potential of the ecosystems to offer recreation
     opportunities. It depends on the properties and conditions of an
     ecosystem. The recreation potential map, derives by adding and
     normalizing maps of natural *components* that may provide recreation
     opportunities.
 
-  - Recreation Demand  
+- Recreation Demand  
     is the number of households using a recreation service. By
     definition, population data are required in order to quantify the
     demand.
 
-  - Recreation (Opportunity) Spectrum  
+- Recreation (Opportunity) Spectrum  
     also mentioned as **ROS**, is the range of recreation opportunities
     categorized by their distance to roads and residential areas. It
     derives by combining the recreation potential and maps that depict
     access (i.e. infrastructure) and/or areas that provide opportunities
     for recreational activities.
-    
+
     An important category is the one with the *Highest Recreation
     Spectrum*. It includes areas of very high recreational value which,
     at the same time, are very near to access.
-    
+
     | Potential Opportunity | Near | Midrange | Far |
     | ----------------------- | ---- | -------- | --- |
     | Near                    | 1    | 2        | 3   |
     | Midrange                | 4    | 5        | 6   |
     | Far                     | 7    | 8        | 9   |
-    
-  - Met Demand  
+
+- Met Demand  
     is the part of the population that has access to *high quality areas
     for daily recreation* (population that lives within 4km from areas
     of high recreational value.
 
-  - Unmet Demand  
+- Unmet Demand  
     is the part of the population whose access to *high quality areas
     for daily recreation* is not guaranteed (population that lives
     beyond 4km from areas of high recreational value.
 
-  - Actual Flow  
+- Actual Flow  
     is the spatial relationship between potential and demand. In the
     case of recreation services, the *flow* is the number of visits in
     the areas of interest for daily recreation.
 
-  - The supply table  
+- The supply table  
     presents the contribution of each ecosystem type to the actual flow
     of outdoor recreation as measured by the number of potential visits
     to areas for daily recreation per year.
 
-  - The Use table  
+- The Use table  
     presents the allocation of the service flow to the users
     (inhabitants).
 
@@ -97,11 +97,11 @@ The base *distance* function to quantify *attractiveness*, is:
 
 where
 
-  - Constant
-  - Coefficients
-      - Kappa
-      - Alpha
-  - Variable
+- Constant
+- Coefficients
+  - Kappa
+  - Alpha
+- Variable
 
 #### Normalization
 
@@ -116,10 +116,10 @@ range.
 For the sake of demonstrating the usage of the module, we use the
 following *component* maps to derive a recreation *potential* map:
 
-  - `input_area_of_interest`
-  - `input_land_suitability`
-  - `input_water_resources`
-  - `input_protected_areas`
+- `input_area_of_interest`
+- `input_land_suitability`
+- `input_water_resources`
+- `input_protected_areas`
 
 ![area of interest](images/r_estimap_recreation_area_of_interest.png)
 ![land suitability](images/r_estimap_recreation_land_suitability.png)
@@ -162,7 +162,6 @@ the examples.
 | Output table name    | Remarks |
 |-------------------------|---------|
 | supply                  |         |
-
 
 Before anything, we need to define the extent of interest by executing
 
@@ -780,9 +779,9 @@ A vector input map with the role of the *base* map, can be used too.
 
 This command will also:
 
-  - export results of the mobility function in the files
+- export results of the mobility function in the files
     `output_supply.csv` and `output_use.csv`
-  - add the following columns in the attribute table linked to the
+- add the following columns in the attribute table linked to the
     `input_vector_local_administrative_units` vector map:
 
 ```sh
@@ -848,50 +847,50 @@ labels inside the units (in the vector map).
 The module offers a pre-processing functionality for all of the
 following input components:
 
-  - landuse
-  - suitability\_scores
+- landuse
+- suitability\_scores
 
 <!-- end list -->
 
-  - landcover
-  - land\_classes
+- landcover
+- land\_classes
 
 <!-- end list -->
 
-  - lakes
-  - lakes\_coefficients
-  - default is set to: euclidean,1,30,0.008,1
+- lakes
+- lakes\_coefficients
+- default is set to: euclidean,1,30,0.008,1
 
 <!-- end list -->
 
-  - coastline
-  - coastline\_coefficients
-  - default is set to: euclidean,1,30,0.008,1
-  - coast\_geomorphology
+- coastline
+- coastline\_coefficients
+- default is set to: euclidean,1,30,0.008,1
+- coast\_geomorphology
 
 <!-- end list -->
 
-  - bathing\_water
-  - bathing\_coefficients
-  - default is set to: euclidean,1,5,0.01101
+- bathing\_water
+- bathing\_coefficients
+- default is set to: euclidean,1,5,0.01101
 
 <!-- end list -->
 
-  - protected
-  - protected\_scores
-  - 11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
+- protected
+- protected\_scores
+- 11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
 
 <!-- end list -->
 
-  - anthropic
-  - anthropic\_distances
-  - 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+- anthropic
+- anthropic\_distances
+- 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 <!-- end list -->
 
-  - roads
-  - roads\_distances
-  - 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+- roads
+- roads\_distances
+- 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 A first look on how this works, is to experiment with the `landuse` and
 `suitability_scores` input options.
@@ -978,8 +977,8 @@ This is so because CORINE is a standard choice among existing land data
 bases that cover european territories. In case of a user requirement to
 provide an alternative scoring scheme, all what is required is either of
 
-  - provide a new "rules" file with the desired set of scoring rules
-  - provide a string to the `suitability_scores` option
+- provide a new "rules" file with the desired set of scoring rules
+- provide a string to the `suitability_scores` option
 
 ## Author
 

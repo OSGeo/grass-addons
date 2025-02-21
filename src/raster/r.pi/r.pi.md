@@ -30,74 +30,74 @@ to get a better impression of problems, possibilities and caveats.
 
 ### General and Connectivity Indices
 
-  - **[r.pi.index](r.pi.index.md)**: Calculations of basic indices
+- **[r.pi.index](r.pi.index.md)**: Calculations of basic indices
     (area, SHAPE etc.)
-  - **[r.pi.enn](r.pi.enn.md)**: Area, SHAPE and distance to n-th
+- **[r.pi.enn](r.pi.enn.md)**: Area, SHAPE and distance to n-th
     Euclidean Nearest Neighbor
-  - **[r.pi.fnn](r.pi.fnn.md)**: Area, SHAPE and distance to n-th
+- **[r.pi.fnn](r.pi.fnn.md)**: Area, SHAPE and distance to n-th
     Functional Nearest Neighbor
-  - **[r.pi.grow](r.pi.grow.md)**: Size and suitability based region
+- **[r.pi.grow](r.pi.grow.md)**: Size and suitability based region
     growing
-  - **[r.pi.odc](r.pi.odc.md)**: Area and distance to omnidirectional
+- **[r.pi.odc](r.pi.odc.md)**: Area and distance to omnidirectional
     n-th Nearest Neighbors
-  - **[r.pi.neigh](r.pi.neigh.md)**: Extraction of values of patches in
+- **[r.pi.neigh](r.pi.neigh.md)**: Extraction of values of patches in
     defined buffer region
-  - **[r.pi.prox](r.pi.prox.md)**: Calculation of Proximity and Modified
+- **[r.pi.prox](r.pi.prox.md)**: Calculation of Proximity and Modified
     Proximity Index for patches in buffer region
-  - **[r.pi.graph](r.pi.graph.md)**: Various connectivity indices within
+- **[r.pi.graph](r.pi.graph.md)**: Various connectivity indices within
     the Graph Theory
-  - **[r.pi.graph.pr](r.pi.graph.pr.md)**: Graph Theory - iterative
+- **[r.pi.graph.pr](r.pi.graph.pr.md)**: Graph Theory - iterative
     removal (patch relevance analysis)
 
 ### Individual-based dispersal models
 
-  - **[r.pi.searchtime](r.pi.searchtime.md)**: Searchtime and
+- **[r.pi.searchtime](r.pi.searchtime.md)**: Searchtime and
     Immigration rate
-  - **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Individual-based
+- **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Individual-based
     dispersal model for connectivity analysis (time-based) using moving
     window
-  - **[r.pi.energy](r.pi.energy.md)**: Immigration, Migration and
+- **[r.pi.energy](r.pi.energy.md)**: Immigration, Migration and
     successfull emigration rate
-  - **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Related to
+- **[r.pi.searchtime.mw](r.pi.searchtime.mw.md)**: Related to
     *r.pi.searchtime* but using a Moving Windows approach
 
 ### Patch-Relevance
 
-  - **[r.pi.enn.pr](r.pi.enn.pr.md)**: Patch relevance for Euclidean
+- **[r.pi.enn.pr](r.pi.enn.pr.md)**: Patch relevance for Euclidean
     nearest neighbor patches
-  - **[r.pi.searchtime.pr](r.pi.searchtime.pr.md)**: Relevance of
+- **[r.pi.searchtime.pr](r.pi.searchtime.pr.md)**: Relevance of
     patches for maintenance of searchtime
-  - **[r.pi.energy.pr](r.pi.energy.pr.md)**: Relevance of patches for
+- **[r.pi.energy.pr](r.pi.energy.pr.md)**: Relevance of patches for
     maintenance of immigration rate
-  - **[r.pi.graph.red](r.pi.graph.red.md)**: Graph Theory - decreasing
+- **[r.pi.graph.red](r.pi.graph.red.md)**: Graph Theory - decreasing
     distance threshold option
-  - **[r.pi.graph.dec](r.pi.graph.dec.md)**: Graph Theory - successive
+- **[r.pi.graph.dec](r.pi.graph.dec.md)**: Graph Theory - successive
     criteria-based deletion of patches
 
 ### Neutral Landscape Model
 
-  - **[r.pi.nlm](r.pi.nlm.md)**: Generation of a neutral landscape
+- **[r.pi.nlm](r.pi.nlm.md)**: Generation of a neutral landscape
     (fractal)
-  - **[r.pi.nlm.stats](r.pi.nlm.stats.md)**: Statistical analysis of
+- **[r.pi.nlm.stats](r.pi.nlm.stats.md)**: Statistical analysis of
     landscapes based on permutation of neutral landscapes
-  - **[r.pi.nlm.circ](r.pi.nlm.circ.md)**: Generation of a neutral
+- **[r.pi.nlm.circ](r.pi.nlm.circ.md)**: Generation of a neutral
     landscape (circular)
 
 ### Various modules
 
-  - **[r.pi.corearea](r.pi.corearea.md)**: Calculation of core area
+- **[r.pi.corearea](r.pi.corearea.md)**: Calculation of core area
     based on costmatrix
-  - **[r.pi.csr.mw](r.pi.csr.mw.md)**: Complete Spatial Randomness
+- **[r.pi.csr.mw](r.pi.csr.mw.md)**: Complete Spatial Randomness
     analysis on moving window.
-  - **[r.pi.prob.mw](r.pi.prob.mw.md)**: Probability of two random
+- **[r.pi.prob.mw](r.pi.prob.mw.md)**: Probability of two random
     points being in the same patch
-  - **[r.pi.rectangle](r.pi.rectangle.md)**: Generation of rectangles
+- **[r.pi.rectangle](r.pi.rectangle.md)**: Generation of rectangles
     based on coordinate points
-  - **[r.pi.import](r.pi.import.md)**: Import of values to corresponding
+- **[r.pi.import](r.pi.import.md)**: Import of values to corresponding
     patches
-  - **[r.pi.export](r.pi.export.md)**: Export of values from patches
-  - **[r.pi.lm](r.pi.lm.md)**: Linear regression analysis for patches
-  - **[r.pi.corr.mw](r.pi.corr.mw.md)**: Moving window correlation
+- **[r.pi.export](r.pi.export.md)**: Export of values from patches
+- **[r.pi.lm](r.pi.lm.md)**: Linear regression analysis for patches
+- **[r.pi.corr.mw](r.pi.corr.mw.md)**: Moving window correlation
     between two raster maps
 
 ## EXAMPLES
@@ -160,7 +160,7 @@ the module and might also be influenced by the resolution.
 
 ## REFERENCE
 
-  - Wegmann, M., Leutner, B. F., Metz, M., Neteler, M., Dech, S., &
+- Wegmann, M., Leutner, B. F., Metz, M., Neteler, M., Dech, S., &
     Rocchini, D. (2018). *r. pi: A grass gis package for semi‐automatic
     spatial pattern analysis of remotely sensed land cover data.*
     Methods in Ecology and Evolution, 9(1), 191-199.

@@ -13,17 +13,17 @@ geomechanical classification developed by Romana (1995). The final SMR
 rating is obtained by means of next expression: SMR=RMRb+(F1\*F2\*F3)+F4
 where:
 
-  - RMRb is the RMR index resulting from Bieniawski's Rock Mass
+- RMRb is the RMR index resulting from Bieniawski's Rock Mass
     Classification (1989)
-  - F1 depends on the parallelism between discontinuity and slope dip
+- F1 depends on the parallelism between discontinuity and slope dip
     direction
-  - F2 depends on the discontinuity dip in the case of planar failure
+- F2 depends on the discontinuity dip in the case of planar failure
     and the plunge, or of the intersection line in wedge failure. As
     regards toppling failure, this parameter takes the value 1.0
-  - F3 depends on the relationship between slope and discontinuity dips
+- F3 depends on the relationship between slope and discontinuity dips
     (toppling or planar failure cases) or the immersion line dip (wedge
     failure case)
-  - F4 is a correction factor that depends on the excavation method
+- F4 is a correction factor that depends on the excavation method
     used:
     <!-- end list -->
     <!-- end list -->
@@ -45,8 +45,8 @@ the module: the orientation dependent stability (the stability depend on
 relation between slope and discontinuity orientation). According to the
 author:
 
-  - sliding occurs if: TC \< 0,0113\*AP
-  - toppling occurs if: TC \< 0,0087\*(-90-AP+dip)
+- sliding occurs if: TC \< 0,0113\*AP
+- toppling occurs if: TC \< 0,0087\*(-90-AP+dip)
 
 where AP is the apparent dip, TC is the condition factor for a
 discontinuity. TC can be calculated by multiplying the large scale
@@ -57,38 +57,38 @@ factors observed in the field:
 
 **Rl** (roughness in large scale - area between 0,2x0,2 m2 and 1x1 m2)
 
-  - 1,00 Wavy
-  - 0,95 Slightly wavy
-  - 0,85 Curved
-  - 0,80 Slightly curved
-  - 0,75 Straight
+- 1,00 Wavy
+- 0,95 Slightly wavy
+- 0,85 Curved
+- 0,80 Slightly curved
+- 0,75 Straight
 
 **Rs** (roughness in small scale - area of 0,2x0,2m2):
 
-  - 0,95 Rough stepped
-  - 0,90 Smooth stepped
-  - 0,85 Polished stepped
-  - 0,80 Rough undulating
-  - 0,75 Smooth undulating
-  - 0,70 Polished undulating
-  - 0,65 Rough planar
-  - 0,60 Smooth planar
-  - 0,55 Polished planar.
+- 0,95 Rough stepped
+- 0,90 Smooth stepped
+- 0,85 Polished stepped
+- 0,80 Rough undulating
+- 0,75 Smooth undulating
+- 0,70 Polished undulating
+- 0,65 Rough planar
+- 0,60 Smooth planar
+- 0,55 Polished planar.
 
 **Im** (Infill material)
 
-  - Cemented --\> Infill (1,07), No Infill (1,00)
-  - Non softening and sheared material e.g. free of clay, talc, etc --\>
+- Cemented --\> Infill (1,07), No Infill (1,00)
+- Non softening and sheared material e.g. free of clay, talc, etc --\>
     Coarse (0,95) Medium (0,90) Fine (0,85)
-  - Soft sheared material e.g. clay, talc, etc --\> Coarse (0,75) Medium
+- Soft sheared material e.g. clay, talc, etc --\> Coarse (0,75) Medium
     (0,65) Fine (0,55)
-  - Gouge \< irregularities (0,42); Gouge \> irregularities (0,17);
+- Gouge \< irregularities (0,42); Gouge \> irregularities (0,17);
     flowing material (0,05)
 
 **Ka** (karst):
 
-  - 1,00 None
-  - 0.92 Karst
+- 1,00 None
+- 0.92 Karst
 
 NOTE: high pixel values indicate high susceptibility
 

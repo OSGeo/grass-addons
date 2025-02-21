@@ -22,7 +22,7 @@ v.ellipse input=points_of_interest output=ellipse step=1
 
 ## REFERENCES
 
-  - [Charles F. Van Loan: Using the Ellipse to Fit and Enclose Data
+- [Charles F. Van Loan: Using the Ellipse to Fit and Enclose Data
     Points.](https://www.cs.cornell.edu/cv/OtherPdf/Ellipse.pdf)
 
 ## SEE ALSO

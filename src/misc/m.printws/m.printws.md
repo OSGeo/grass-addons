@@ -11,16 +11,16 @@ The module creates bitmap files so it is **not suitable to produce
 professional cartographic quality**. However, the following usage
 scenarios are recommended:
 
-  - Get a high resolution bitmap or PDF copy of a workspace composition
+- Get a high resolution bitmap or PDF copy of a workspace composition
     to send in e-mail or include in office documents.
-  - Produce a quick printable page of the current screen composition.
-  - Use the main GRASS GIS window as a mapset composer. Supporting
+- Produce a quick printable page of the current screen composition.
+- Use the main GRASS GIS window as a mapset composer. Supporting
     multiple displays whole mapset compositions could be saved as normal
     workspaces and printed in one run. Being a regular GRASS script it
     could be called from other scripts and command line as well. No GUI
     is necessary to be started since m.printws processes saved workspace
     files.
-  - Automatic redraw and regeneration of illustrations attached to a
+- Automatic redraw and regeneration of illustrations attached to a
     publication (See Flexi option).
 
 ## NOTES
@@ -55,11 +55,10 @@ is slightly different on a map display compared to the created maps in
 files. With manual aligment and saving the workspace again the required
 positions could be set manually.***</span>
 
-  
 Some **drawbacks** of the module which should be taken into
 consideration:
 
-  - Depending on the number of layers with opacity lower than 100% the
+- Depending on the number of layers with opacity lower than 100% the
     number of temporarily generated files may increase. An A4 300 dpi
     page consumes \~33MB disk space and when joining the layers all
     these are read into memory or swapped to disk by ImageMagick. Using
@@ -69,12 +68,12 @@ consideration:
     dpi** is good for testing compositions meanwhile also saves disk
     space and processing time. 300 dpi or more is recommended for
     production printouts only.
-  - Font size of **label files** is not fitted yet to the dpi set by the
+- Font size of **label files** is not fitted yet to the dpi set by the
     user. Label files should be regenerated to lower or higher font size
     according to dpi size. Please consider that modern screens are
     around 100dpi or higher. If you render 300 dpi your labels should be
     drawn using 3 times bigger font size measured in dots.
-  - Some modules like d.wms (which can be added to displayed layers list
+- Some modules like d.wms (which can be added to displayed layers list
     in GUI to download, transform and display external WMS data source)
     download data again for each run. This is normal, however slower
     than rendering to a map display window. *The reason is that map
@@ -120,9 +119,9 @@ would create multiple maps printing all displays on a separate page in a
 separate file. File naming is automatic and works like demonstrated blow
 if having to displays named 'Downtown' and 'OVERVIEW OF CITY':
 
-  - File name entered for output: /path/to/file/outname.pdf
-  - Generated map 1: /path/to/file/outname\_DISPLAY\_1\_Downtown.pdf
-  - Generated map 2: /path/to/file/outname\_DISPLAY\_2\_OVERVIEW OF
+- File name entered for output: /path/to/file/outname.pdf
+- Generated map 1: /path/to/file/outname\_DISPLAY\_1\_Downtown.pdf
+- Generated map 2: /path/to/file/outname\_DISPLAY\_2\_OVERVIEW OF
     CITY.pdf
 
 When regenerating the map the files are overwritten. Selecting a full
@@ -170,14 +169,14 @@ If everything went fine, you will see the IM convert command help.
 
 There is a macro possibility for titles.
 
-  - $DISPLAY - as it is in the **title** field by default - in any of
+- $DISPLAY - as it is in the **title** field by default - in any of
     the text fields the name of the corresponting display will be used
     for text.
-  - $USERNAME - for user login name
-  - $TIME24 - 15:25:33
-  - $DATEYMD - 2016.08.02
-  - $DATEMDY - 08/02/2016
-  - $GXW - name of the workspace file printed (full path)
+- $USERNAME - for user login name
+- $TIME24 - 15:25:33
+- $DATEYMD - 2016.08.02
+- $DATEMDY - 08/02/2016
+- $GXW - name of the workspace file printed (full path)
 
 Please take care of possible command line variable expansion rules of
 your own operating system or shell. For example on Linux or generally in
@@ -199,7 +198,6 @@ map window is also a space saver on paper hardcopies.
 ![image-alt](m.printws_smallerwindow.png)  
 *Figure: Demonstration of filled or partly filled map displays*
 
-  
 On the figures above the difference is clearly visible. Before running
 m.printws it is recommended to fill the map display fully with map
 content. It could be easily done with the *Pan* tool.
@@ -208,7 +206,6 @@ content. It could be easily done with the *Pan* tool.
 ![image-alt](m.printws_filledagainwindow.png)  
 *Figure: Using Pan function display could be filled again*
 
-  
 Using the tool and making a minor movement or a simple click the map
 will fill the display again. After this alignment with the *Pan* tool
 the workspace must be saved again so m.printws could print up to the
@@ -227,16 +224,14 @@ other page edges. Supporting the creation of publication ready images
 (especially when the target format is tif, png or jpg) the **Flexi
 option is introduced** as a virtual page size. Using the Flexi page:
 
-  - Titles and other external elements won't be generated even if they
+- Titles and other external elements won't be generated even if they
     would be defined.
-  - Page content will be reduced to the map area only.
-  - There will be no margin independently of the ratio of the map edges.
-  - No postprocess is necessary (for example: cutting to size in
+- Page content will be reduced to the map area only.
+- There will be no margin independently of the ratio of the map edges.
+- No postprocess is necessary (for example: cutting to size in
     photoshop ). Illustration redraw can be fully automatic in case of
     content change by repeating the m.printws run
 
-  
-  
 <span class="small">***Background:** The Flexi mechanism actually sets
 up the same layout as it is specified with margins and titles on a
 300x300mm page and then cuts off everything outside the map frame
@@ -257,8 +252,6 @@ region=cartosim_2@PERMANENT pagemargin=10
 
 ![image-alt](m.printws_screen.png)  
 *Figure: Screen view of workspace*
-
-  
 
 ![image-alt](m.printws_sample_print.png)  
 *Figure: m.printws run example created from the same workspace*

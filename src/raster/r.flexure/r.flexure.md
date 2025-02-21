@@ -49,19 +49,19 @@ conditions all default to this.
 The finite difference boundary conditions are a bit more complicated,
 but are largely self-explanatory:
 
-  - **0Displacement0Slope**  
+- **0Displacement0Slope**  
     0-displacement-0-slope boundary condition
-  - **0Moment0Shear**  
+- **0Moment0Shear**  
     "Broken plate" boundary condition: second and third derivatives of
     vertical displacement are 0. This is like the end of a diving board.
-  - **0Slope0Shear**  
+- **0Slope0Shear**  
     First and third derivatives of vertical displacement are zero. While
     this does not lend itself so easily to physical meaning, it is
     helpful to aid in efforts to make boundary condition effects
     disappear (i.e. to emulate the NoOutsideLoads cases)
-  - **Mirror**  
+- **Mirror**  
     Load and elastic thickness structures reflected at boundary.
-  - **Periodic**  
+- **Periodic**  
     "Wrap-around" boundary condition: must be applied to both North and
     South and/or both East and West. This causes, for example, the edge
     of the eastern and western limits of the domain to act like they are

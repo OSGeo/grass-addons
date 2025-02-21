@@ -68,16 +68,16 @@ direction and **dist** determines \> flat distance.
 
 The most common terrain forms calculated by *r.geomorphon* are:
 
-  - flat
-  - summit
-  - ridge
-  - shoulder
-  - spur
-  - slope
-  - hollow
-  - footslope
-  - valley
-  - depression
+- flat
+- summit
+- ridge
+- shoulder
+- spur
+- slope
+- hollow
+- footslope
+- valley
+- depression
 
 The LS factor
 
@@ -97,19 +97,19 @@ The LS factor is calculated accordingly Neteler & Mitasova 2008 in
 
 The colors of the LS factor map are set to:
 
-  - 0 white
-  - 3 yellow
-  - 6 orange
-  - 10 red
-  - 50 magenta
-  - 100 violet
+- 0 white
+- 3 yellow
+- 6 orange
+- 10 red
+- 50 magenta
+- 100 violet
 
 ### Terrain characteristics uploaded to the habitat vector attribute table per polygon
 
-  - **DEM altitude**: minimum, maximum, range, average, median
-  - **slope**: minimum, maximum, range, average, median
-  - **aspect**: minimum, maximum, range, average, median
-  - **geomorphons**: absolute area of flat, summit, ridge, shoulder,
+- **DEM altitude**: minimum, maximum, range, average, median
+- **slope**: minimum, maximum, range, average, median
+- **aspect**: minimum, maximum, range, average, median
+- **geomorphons**: absolute area of flat, summit, ridge, shoulder,
     spur, slope, hollow, footslope, valley, depression
 
 Additionally the mutual occurrence by *r.coin* of unique habitat ID and
@@ -120,14 +120,14 @@ geomorphons in percent of the row is printed to the output.
 Simple checks regarding aspect and slope per unique habitat ID are
 evaluated and marked in the attribute table as follow:
 
-  - **simple check regarding aspect range:**
-  - aspect range 100-200 \*
-  - aspect range 201-300 \*\*
-  - aspect range ≥ 300 \*\*\*
-  - **simple checks regarding aspect range and slope median:**
-  - aspect range 100-200 and median slope \< 5 \*
-  - aspect range 201-300 and median slope \< 5 \*\*
-  - aspect range ≥ 300 and median slope \< 5 \*\*\*
+- **simple check regarding aspect range:**
+- aspect range 100-200 \*
+- aspect range 201-300 \*\*
+- aspect range ≥ 300 \*\*\*
+- **simple checks regarding aspect range and slope median:**
+- aspect range 100-200 and median slope \< 5 \*
+- aspect range 201-300 and median slope \< 5 \*\*
+- aspect range ≥ 300 and median slope \< 5 \*\*\*
 
 These simple checks may indicate reconsidering of some preliminary
 visual habitat delineations.
@@ -166,8 +166,8 @@ g.gui.animation strds=a_beam_rad
 
 ## DEPENDENCIES
 
-  - r.geomorphon
-  - r.sun.hourly (addon)
+- r.geomorphon
+- r.sun.hourly (addon)
 
 ## SEE ALSO
 

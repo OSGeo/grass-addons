@@ -13,11 +13,11 @@ interact with STAC APIs.
 
 ## REQUIREMENTS
 
-  - [pystac
+- [pystac
     (1.9.x)](https://pystac.readthedocs.io/en/stable/installation.html)
-  - [pystac\_client
+- [pystac\_client
     (0.7.x)](https://pystac-client.readthedocs.io/en/stable/)
-  - [](https://pypi.org/project/tqdm/)tqdm (4.66.x)
+- [](https://pypi.org/project/tqdm/)tqdm (4.66.x)
 
 After dependencies are fulfilled, the toolset can be installed using the
 *g.extension* tool:

@@ -18,15 +18,15 @@ ASCII point format:
 
 The category values are
 
-  - **1** - mean of points
-  - **2** - median of points
-  - **3** - point closest to median of points
-  - **4** - mid point of each line
-  - **5** - mean of each line
-  - **6** - median of each line
-  - **7** - mean of each area
-  - **8** - median of each area using area triangulation
-  - **9** - median of each area using boundaries
+- **1** - mean of points
+- **2** - median of points
+- **3** - point closest to median of points
+- **4** - mid point of each line
+- **5** - mean of each line
+- **6** - median of each line
+- **7** - mean of each area
+- **8** - median of each area using area triangulation
+- **9** - median of each area using boundaries
 
 If an output vector is given, categories of the respective lines and
 areas are transferred from the selected layer to layer 1. Layer 2 holds
@@ -34,24 +34,24 @@ the same category values as for output to stdout.
 
 ### Point centers
 
-  - **mean** - center of gravity, mean of all point coordinates
-  - **median** - geometric median, minimum distance to all points
-  - **pmedian** - point closest to the geometric median
+- **mean** - center of gravity, mean of all point coordinates
+- **median** - geometric median, minimum distance to all points
+- **pmedian** - point closest to the geometric median
 
 ### Line centers
 
-  - **mid** - the mid point of each line, lies exactly on the line
-  - **mean** - center of gravity, mean of all line segments, might not
+- **mid** - the mid point of each line, lies exactly on the line
+- **mean** - center of gravity, mean of all line segments, might not
     lie on the line
-  - **median** - geometric median, minimum distance to all line
+- **median** - geometric median, minimum distance to all line
     segments, might not lie on the line
 
 ### Area centers
 
-  - **mean** - center of gravity, calculated using area triangulation
-  - **median** - geometric median, minimum distance to area
+- **mean** - center of gravity, calculated using area triangulation
+- **median** - geometric median, minimum distance to area
     triangulation, might not lie inside the area
-  - **bmedian** - geometric median, minimum distance to boundary
+- **bmedian** - geometric median, minimum distance to boundary
     segments, might not lie inside the area
 
 ## EXAMPLE

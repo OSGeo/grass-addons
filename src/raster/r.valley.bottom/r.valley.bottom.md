@@ -26,7 +26,7 @@ interpretation will differ from what was envisaged in the original
 paper. However, in practice, this is often required especially for
 high-resolution DEMs. The arguments are:
 
-  - *t\_slope* represents the initial threshold (t) for slope angle (in
+- *t\_slope* represents the initial threshold (t) for slope angle (in
     percentage). This specifies the slope angle that corresponds to a
     (logit) rescaled flatness value of 0.5. This means that slope angles
     lower than t\_slope will be considered as flat areas, and slope
@@ -38,25 +38,25 @@ high-resolution DEMs. The arguments are:
     x coarsening of resolution) above a 25 m resolution. For example, a
     75 m DEM (3 x 25 m, 1 step) should have a t\_slope value of 8, and a
     250 m DEM (\~2 resolution steps) should have a t\_slope value of 4.
-  - *p\_slope* represents the shape parameter (p) for the sigmoid
+- *p\_slope* represents the shape parameter (p) for the sigmoid
     transformation. It defines the slope of the sigmoid function, i.e.
     how quickly changes in slope angle scale to being flat vs. non-flat
     areas. High p\_slope values will cause a slow, smooth transition
     from flat areas to steep areas. Low p\_slope values will result in
     much more rapid transitions that highlight more local vs. regional
     relief.
-  - *t\_pctl\_v* represents the threshold for transformation of
+- *t\_pctl\_v* represents the threshold for transformation of
     elevation percentile to evaluate lowness. This represents the
     threshold value for elevation percentile by which values less than
     this value will represent low areas. Elevation percentile represents
     the ratio of pixels of lower elevation relative to the total number
     of pixels in a moving-window neighborhood. Similarly *t\_pctl\_r* is
     the equivalent 'upness' threshold for the MRRTF index.
-  - *p\_pctl* represents the shape parameter (p) for the transformation
+- *p\_pctl* represents the shape parameter (p) for the transformation
     of the elevation percentile. It defines the slope of the sigmoid
     function and governs how quickly transitions occur from low areas to
     upland areas.
-  - *t\_vf* and *t\_rf* represent the thresholds for identifying valley
+- *t\_vf* and *t\_rf* represent the thresholds for identifying valley
     bottoms (or ridge tops). Larger values indicate increasing valley
     bottom characteristics, with values \< 0.5 considered not to be in
     valley bottoms.

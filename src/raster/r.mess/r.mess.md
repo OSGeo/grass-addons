@@ -7,6 +7,7 @@ environmental conditions between current and future scenarios. See the
 supplementary materials of Elith et al. (2010) \[1\] for more details.
 
 Besides the MES, *r.mess* computes the individual similarity layers (IES
+
 - the user can select to delete these layers) and, optionally, several
 other layers that help to further interpret the MES values:
 
@@ -22,12 +23,12 @@ projected (test) conditions. The reference conditions are defined by a
 set of environmental raster layers (**ref\_env**). To specify the
 reference area, one of the following can be used:
 
-  - **ref\_rast** = reference raster layer: A raster with values of 1
+- **ref\_rast** = reference raster layer: A raster with values of 1
     and 0 (or nodata). Reference conditions are derived from the
     locations where the raster value is 1.
-  - **ref\_vect** = reference vector point layer: Reference conditions
+- **ref\_vect** = reference vector point layer: Reference conditions
     are taken for the point locations in the vector layer.
-  - **ref\_region** = reference region: Only areas within the specified
+- **ref\_region** = reference region: Only areas within the specified
     region's boundaries are considered as the reference area.
 
 If no reference raster map, vector map, or region is provided, the

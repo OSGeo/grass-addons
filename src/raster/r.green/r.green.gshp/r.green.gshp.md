@@ -28,8 +28,7 @@ the [Interreg Alpine Space](https://www.alpine-space.eu/) programme.
   
 The *r.green.gshp* suite consists of the following different parts:  
   
-
-  - [r.green.gshp.theoretical](r.green.gshp.theoretical.md) - Calculates
+- [r.green.gshp.theoretical](r.green.gshp.theoretical.md) - Calculates
     for each single Borehole Heat Exchanger (BHE) the maximum
     power/energy potential, assessed through the G.POT method.
 

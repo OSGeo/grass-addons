@@ -7,11 +7,11 @@ for vectors. The categories and color table are preserved.
 
 The category values can be specified as:
 
-  - cat1,cat2,...
-  - cat1-cat3
-  - cat1-
-  - \-cat1
-  - and their combination: -cat1,cat2,cat3-cat6
+- cat1,cat2,...
+- cat1-cat3
+- cat1-
+- \-cat1
+- and their combination: -cat1,cat2,cat3-cat6
 
 The extent of the new raster can be changed with flag **-c** to fit the
 extent of the extracted data. When using flag **-s** output raster is a

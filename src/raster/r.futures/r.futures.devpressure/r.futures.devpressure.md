@@ -10,10 +10,10 @@ in subsequent steps.
 There are multiple options for calculating development pressure in the
 model.
 
-  - **occurrence**: simple count of the number of developed cells within
+- **occurrence**: simple count of the number of developed cells within
     the specified window size
-  - **gravity**: defined as scaling\_factor / pow(distance, gamma)
-  - **kernel**: defined as scaling\_factor \* exp(-2 \* distance /
+- **gravity**: defined as scaling\_factor / pow(distance, gamma)
+- **kernel**: defined as scaling\_factor \* exp(-2 \* distance /
     gamma)
 
 Coefficient **gamma** is the coefficient controlling the influence of
@@ -56,20 +56,20 @@ r.futures.devpressure input=developed output=pressure gamma=1.5 size=10 method=g
 
 ## REFERENCES
 
-  - Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
+- Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
     Cunniffe, N. J., & Shoemaker, D. A. (2013). [FUTURES: Multilevel
     Simulations of Emerging Urban-Rural Landscape Structure Using a
     Stochastic Patch-Growing
     Algorithm](https://doi.org/10.1080/00045608.2012.707591). Annals of
     the Association of American Geographers, 103(4), 785-807. DOI:
     10.1080/00045608.2012.707591
-  - Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
+- Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
     (2015). [Simulating urbanization scenarios reveals tradeoffs between
     conservation planning
     strategies](https://doi.org/10.1016/j.landurbplan.2014.11.011).
     Landscape and Urban Planning, 136, 28-39. DOI:
     10.1016/j.landurbplan.2014.11.011
-  - Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
+- Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
     H., & Meentemeyer, R. K. (2016). [Open Source Approach to Urban
     Growth
     Simulation](https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf).

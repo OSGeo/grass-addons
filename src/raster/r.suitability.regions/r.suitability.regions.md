@@ -181,10 +181,10 @@ for examples.
 
 ## See also
 
-  - [r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html)
-  - [r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)
-  - [v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html)
-  - [r.area](r.area.md)
+- [r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html)
+- [r.clump](https://grass.osgeo.org/grass-stable/manuals/r.clump.html)
+- [v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html)
+- [r.area](r.area.md)
 
 ## REQUIREMENTS
 

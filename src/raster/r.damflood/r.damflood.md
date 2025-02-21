@@ -32,7 +32,6 @@ raster maps.
 In case on high numerical stability problem, the user is warned, and the
 simulation is stopped.  
   
-  
 ***Use***  
 
 ***Requested input:***  
@@ -73,7 +72,6 @@ relative time of occurence\[t\_imax\].
 where and the raster maps are coded as "prefix" + "\_" + "elapsed
 seconds": e.g. *mydepth\_125*.  
   
-  
 *Obviously at least one output map prefix must be specified.*  
 The unit of measurements of output raster maps are expresssed using the
 *International System* (*S.I.*).  
@@ -105,9 +103,6 @@ numerical solution of the SWE (*default value = 0.01 s*), nevertheless
 the timestep \[\], and choose a specific failure tipe corresponding to
 different computational method for the initial velocity estimation.  
   
-  
-  
-  
 ***Notes***  
   
 *(GRASS ANSI C command)* </span>
@@ -130,7 +125,6 @@ introducing important new features to consider the numerical stability
 and the type of dam failure, and currently is written in ANSI C
 programming language within GRASS.  
   
-
 ## SEE ALSO
 
 *[r.lake](https://grass.osgeo.org/grass-stable/manuals/r.lake.html)*,

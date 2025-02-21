@@ -1,6 +1,6 @@
 ## OPTIONS
 
-  - **-s**  
+- **-s**  
     Increase convergence if slope value is high. Slope parameter
     radically slows down computation time, especially if the window
     parameter is high. If slope is used, a slope modifier is used
@@ -8,28 +8,28 @@
     cos(current)\*cos(target). If the slope of current and target cells
     are equal, this modifier's value will be 1. The modifier is applied
     with the formula: acos(cos(convergence) \* modifier)
-  - **-c**  
+- **-c**  
     Use circular window instead of square (default)
-  - **input**  
+- **input**  
     Digital elevation model. Data can be of any type and any projection.
     To calculate relief convergence, *r.convergence* uses real distances
     which is recalculated into cell distance, according formula:  
     `distance_between_current_cell_and_target_cell/distance_between_current_cell_and_nearest_neighbour_cell.`
     It is important if convergence is calculated for large areas in
     Lat/Lon projection.
-  - **weights**  
+- **weights**  
     Parameter describing the reduction of the impact of the cell due to
     its distance, where distance in cells:
-      - **standard:** no decay
-      - **inverse:** distance modifier is calculated as 1/x
-      - **power:** distance modifier is calculated as 1/(x\*x)
-      - **power:** distance modifier is calculated as 1/(x\*x)
-      - **gentle:** distance modifier is calculated as 1/((1-x)/(1+x))
-  - **window**  
+  - **standard:** no decay
+  - **inverse:** distance modifier is calculated as 1/x
+  - **power:** distance modifier is calculated as 1/(x\*x)
+  - **power:** distance modifier is calculated as 1/(x\*x)
+  - **gentle:** distance modifier is calculated as 1/((1-x)/(1+x))
+- **window**  
     Window size. Must be odd. For now there are no limits in window
     size. *r.convergence* uses the window size instead of classical
     radius for compatibility with other GRASS GIS commands.
-  - **output**  
+- **output**  
     Map of convergence index. The values ranges from -100 (max
     divergent, real peaks and ridges) by 0 (planar areas) to 100 (max
     convergent, real pits and channels). Classical convergence index

@@ -15,9 +15,9 @@ angles.
 
 Calculated raster maps are:
 
-  - northerness: *cos(aspect)*
-  - easterness: *sin(aspect)*
-  - interaction between northerness and slope: *northerness\*slope*
+- northerness: *cos(aspect)*
+- easterness: *sin(aspect)*
+- interaction between northerness and slope: *northerness\*slope*
 
 The color of these raster maps are set to *grey*.
 

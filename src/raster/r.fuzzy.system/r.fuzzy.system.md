@@ -1,6 +1,6 @@
 ## OPTIONS
 
-  - **maps** file  
+- **maps** file  
     A text file containing maps name and fuzzy sets connected with map
     definition. The input maps must be found in the search path. The
     output map name must be **\_OUTPUT\_** If maps are in different
@@ -12,17 +12,16 @@
     requires parameters separated by semicolon. Any whitespaces like
     spaces, tabs, empty lines are allowed and may used to visual format
     of rule file. Lines beginning with **\#** are comments.
-    
+
     ```text
     $ set_name {side; points; boundary_shape; hedge; height }
     ```
-    
 
-      - **set\_name**: Any name of the fuzzy set. Must not contain
+  - **set\_name**: Any name of the fuzzy set. Must not contain
         symbols: *%,$ and \#*
-      - **side**: Option indicate if set is fuzzified of both sides
+  - **side**: Option indicate if set is fuzzified of both sides
         (both), left or right side. Available: *both, left, right*.
-      - **points**: A list containing 4 (A,B,C,D) or 2 A,B) points
+  - **points**: A list containing 4 (A,B,C,D) or 2 A,B) points
         separated by comma. Points define location of sets of
         boundaries. Points may not to be in map range, but it may lead
         to only 0 o 1 membership for the whole map. For "both" side
@@ -30,28 +29,27 @@
         B and C core of the fuzzy set. Between A and B and C and D are
         set's boundaries. If side is "both" it require 4 points, else 2
         points. Points values must be not-decreasing.
-      - **shape**: Parameter defined the shape of the fuzzy boundary.
+  - **shape**: Parameter defined the shape of the fuzzy boundary.
         Available: *sshaped, linear, jshaped, gshaped*. The same
         boundaries are applied to both sides of fuzzy set.
-      - **hedge**: Shape modifier the positive number means dilatation
+  - **hedge**: Shape modifier the positive number means dilatation
         (power the fuzzy set by 2) the negative means concentration
         (square root of fuzzy set). The number means number of
         dilatation/concentration applied on fuzzy set.
-      - **height**: Height modifier. Range from 0 to 1. The value 1 and
+  - **height**: Height modifier. Range from 0 to 1. The value 1 and
         indicate full membership between points B and C. If height is
         lesser than one the maximum membership is equal to height.
-    
+
     An example of fuzzy sets definition:
-    
+
     ```text
     $ moderate {both; 90,100,120,130; sshaped; 0; 1}
     ```
-    
 
-  - **rules** file  
+- **rules** file  
     A text file containing rules for classification. A typical fuzzy
     rule consists of one or more antecedents and one consequent:
-    
+
     ```text
     IF elev IS high AND distance IS low THEN probability IS small
     
@@ -59,7 +57,6 @@
     antecedents: elev IS high; distance IS low
     consequent: probability IS small
     ```
-    
 
     The rule file has his own syntax. Because this module creates only
     one result map, the map name is omitted. Every rule starts with $
@@ -69,40 +66,39 @@
     the calculation the program checks if all names and sets are
     included in maps file. Names of the rules must be same as the set
     names of the output map. The rules file uses the following symbols:
-    
-      - IS is symbolised by **=**
-      - IS NOT is symbolised by **\~**
-      - AND is symbolised by **&**
-      - OR is symbolised by **|**
-      - To specify the order of operators use parentheses **()**.
-    
+
+  - IS is symbolised by **=**
+  - IS NOT is symbolised by **\~**
+  - AND is symbolised by **&**
+  - OR is symbolised by **|**
+  - To specify the order of operators use parentheses **()**.
+
     An example of fuzzy rules definition:
-    
+
     ```text
     $ small {distance = high & elev = high}
     ```
-    
 
 ## ADVANCED OPTIONS
 
 In most cases default options should not be changed.
 
-  - **family** (fuzzy logic family)  
+- **family** (fuzzy logic family)  
     AND and OR operations in fuzzy logic are made with T-norms and
     T-conorms. These are a generalization of the two-valued logical
     conjunction and disjunction used by boolean logic, for fuzzy logic.
     Because there is more than one possible generalisation of logical
     operations, r.fuzzy.system provides six common families for fuzzy
     operations:
-      - **Zadeh** with minimum (Godel) t-norm and maximum T-conorm;
-      - **product** with product T-norm and probabilistic sum as
+  - **Zadeh** with minimum (Godel) t-norm and maximum T-conorm;
+  - **product** with product T-norm and probabilistic sum as
         T-conorm;
-      - **drastic** with drastic T-norm and drastic T-conorm;
-      - **Lukasiewicz** with Lukasiewicz T-norm and bounded sum as a
+  - **drastic** with drastic T-norm and drastic T-conorm;
+  - **Lukasiewicz** with Lukasiewicz T-norm and bounded sum as a
         T-conorm;
-      - **Fodor** with nilpotent minimum as T-norm and nilpotent maximum
+  - **Fodor** with nilpotent minimum as T-norm and nilpotent maximum
         as T-conorm;
-      - **Hamacher** (simplified) with Hamacher product as T-norm and
+  - **Hamacher** (simplified) with Hamacher product as T-norm and
         Einstein sum as T-conorm;
 
     | Family      | T-NORM (AND)                                 | T CONORM (OR)                             |
@@ -114,28 +110,28 @@ In most cases default options should not be changed.
     | FODOR       | IF (x+y)\>1 THEN MIN(x,y) ELSE 0             | IF (x+y\<1) THEN MAX(x,y) ELSE 1          |
     | HAMACHER    | IF (x==y==0) THEN 0 ELSE (x\*y)/((x+y)-x\*y) | (x+y)/(1+x\*y)                            |
 
-  - **imp** (implication)  
+- **imp** (implication)  
     Implication determines the method of reshapening of consequents
     (fuzzy set) by antecedents (single value) :
-      - **minimum** means the lowest value of the antecedents and output
+  - **minimum** means the lowest value of the antecedents and output
         set definition. It usually creates trapezoidal consequent set
         definition.
-      - **product** means the multiplication of the antecedents and
+  - **product** means the multiplication of the antecedents and
         output set definition. It usually creates triangular consequent
         set definition.
-  - **defuz** (defuzzification method)  
+- **defuz** (defuzzification method)  
     Before defuzzification all consequents are aggregated into one fuzzy
     set. Defuzzification is the process of conversion of aggregated
     fuzzy set into one crisp value. The r.fuzzy.system provides 5
     methods of defuzzification:
-      - **centroid** center of mass of the fuzzy set (in practise
+  - **centroid** center of mass of the fuzzy set (in practise
         weighted mean);
-      - **bisector** a value which divide fuzzy set on two parts of
+  - **bisector** a value which divide fuzzy set on two parts of
         equal area;
-      - **min** min (right limit) of highest part of the set;
-      - **mean** mean (center) of highest part of the set;
-      - **max** max (left limit) of highest part of the set;
-  - **res** (universe resolution)  
+  - **min** min (right limit) of highest part of the set;
+  - **mean** mean (center) of highest part of the set;
+  - **max** max (left limit) of highest part of the set;
+- **res** (universe resolution)  
     The universe is an interval between the lowest and highest values of
     consequent and aggregated fuzzy sets. The resolution provides number
     of elements of these fuzzy sets. The minimum and maximum for
@@ -147,12 +143,12 @@ In most cases default options should not be changed.
 
 ## VISUAL OUTPUT
 
-  - **coordinates**  
+- **coordinates**  
     Coordinates of points for which output: universe, all consequents
     sets and aggregate set. It is useful for visual presentation or
     detail analysis of fuzzy rules behaviour. In that cases calculations
     are performed n=only for selected point.
-  - **membership only flag**  
+- **membership only flag**  
     Prints for all maps the set of values in the map range (map
     universe) and values of fuzzy sets (linguistic values). The number
     of values is taken from the resolution (default 100). This option is
@@ -160,11 +156,11 @@ In most cases default options should not be changed.
 
 ## OUTPUTS
 
-  - **output** (raster map)  
+- **output** (raster map)  
     Map containing defuzzified values. Map is always of type FCELLS and
     contains values defined in output universe. The output name must be
     the same as one of maps in maps definition file.
-  - **multiple output flag**  
+- **multiple output flag**  
     This flag is used to create fuzzified maps for every rule. The name
     of the map consist of output map name, '\_' and rule name (for
     example: output=probs and rule name high, the map name:
@@ -301,8 +297,6 @@ no risk, red high risk, green, blue end so on moderate risk.
 
 ![Flood risk](f_result.png)
 
-  
-
 ## SEE ALSO
 
 *[r.fuzzy.logic](r.fuzzy.logic.md) addon, [r.fuzzy.set](r.fuzzy.set.md)
@@ -311,25 +305,25 @@ addon,
 
 ## REFERENCES
 
-  - Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for
+- Jasiewicz, J. (2011). A new GRASS GIS fuzzy inference system for
     massive data analysis. Computers & Geosciences (37) 1525-1531. DOI
     <https://doi.org/10.1016/j.cageo.2010.09.008>
-  - Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3):
+- Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3):
     338-353.
     [DOI:10.1016/S0019-9958(65)90241-X](https://doi.org/10.1016/S0019-9958\(65\)90241-X).
     ISSN 0019-9958.
-  - Novák, V. (1989). Fuzzy Sets and Their Applications. Bristol: Adam
+- Novák, V. (1989). Fuzzy Sets and Their Applications. Bristol: Adam
     Hilger. ISBN 0-85274-583-4.
-  - Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory
+- Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory
     and applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN
     0-13-101171-5.
-  - Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set
+- Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set
     theory: foundations and applications. Englewood Cliffs, NJ: Prentice
     Hall. ISBN 0133410587.
-  - Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R.
+- Meyer D, Hornik K (2009a). Generalized and Customizable Sets in R.
     Journal of Statistical Software, 31(2), 1-27. DOI
     [DOI:10.18637/jss.v031.i02](https://doi.org/10.18637/jss.v031.i02)
-  - Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and
+- Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and
     Customizable Sets. R\~package version\~1.0, URL
     <https://cran.r-project.org/package=sets>.
 

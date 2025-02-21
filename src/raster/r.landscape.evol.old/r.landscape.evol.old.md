@@ -247,7 +247,6 @@ Log Scaled Flow Accumulation versus Topographic Curvatures.
 Map showing the spatial patterns of the cutoffs determined from the
 previous figure.  
   
-
 ### Note About Climate Parameters
 
 r.landscape.evol accepts an external "climate file", which should be a
@@ -261,14 +260,14 @@ rows as there are iterations of the simulation (**years**).
 
 ## SEE ALSO
 
-  - The [MEDLAND](http://medland.asu.edu/) project at Arizona State
+- The [MEDLAND](http://medland.asu.edu/) project at Arizona State
     University
 
-  - [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
+- [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
     [r.terraflow](https://grass.osgeo.org/grass-stable/manuals/r.terraflow.html),
     [r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)
 
-  - Mitasova, H., C. M. Barton, I. I. Ullah, J. Hofierka, and R. S.
+- Mitasova, H., C. M. Barton, I. I. Ullah, J. Hofierka, and R. S.
     Harmon 2013 GIS-based soil erosion modeling. In Remote Sensing and
     GIScience in Geomorphology, edited by J. Shroder and M. P. Bishop.
     3:228-258. San Diego: Academic Press.

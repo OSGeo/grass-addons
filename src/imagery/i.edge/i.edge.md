@@ -95,16 +95,16 @@ the future.
 
 ## REFERENCES
 
-  - J. Canny. *A Computational Approach to Edge Detection*. In: IEEE
+- J. Canny. *A Computational Approach to Edge Detection*. In: IEEE
     Trans. Pattern Anal. Mach. Intell. 8.6 (June 1986), pp. 679–698.
     issn: 0162-8828.
-  - J.C. Russ. *The image processing handbook*. CRC, 2011.
-  - Tom Gibara. *Canny Edge Detector Implementation*. \[Online; accessed
+- J.C. Russ. *The image processing handbook*. CRC, 2011.
+- Tom Gibara. *Canny Edge Detector Implementation*. \[Online; accessed
     20-June- 2012\]. 2010. URL:
     [https://www.tomgibara.com/computer-vision/canny-edge-detector](https://web.archive.org/web/20120628212753/http://www.tomgibara.com:80/computer-vision/canny-edge-detector).
-  - M. Sonka, V. Hlavac, and R. Boyle. *Image processing, analysis, and
+- M. Sonka, V. Hlavac, and R. Boyle. *Image processing, analysis, and
     machine vision*. PWS Pub. Pacific Grove (1999).
-  - P. Zimmermann. *A new framework for automatic building detection
+- P. Zimmermann. *A new framework for automatic building detection
     analysing multiple cue data*. In: International Archives of
     Photogrammetry and Remote Sensing 33.B3/2; PART 3 (2000), pp.
     1063–1070.

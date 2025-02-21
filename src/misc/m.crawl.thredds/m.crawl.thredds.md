@@ -15,10 +15,10 @@ be used as input to *t.rast.import.netcdf*.
 
 The returned list of datasets can be filtered:
 
-  - based on the modification time of the dataset using a range of
+- based on the modification time of the dataset using a range of
     relevant timestamps defined by the **modified\_before** and
     **modified\_after** option(s)
-  - based on the file name using a regular expression in the **filter**
+- based on the file name using a regular expression in the **filter**
     option.
 
 When crawling larger Thredds installations, skipping irrelevant branches

@@ -91,19 +91,18 @@ bands of a Sentinel-2 scene with a single process using *i.atcorr*.
 Unlike *i.atcorr*, it writes the control file changing it according to
 the band number. The only required inputs are:
 
-  - **input\_dir** = the \*.SAFE directory where the image and metadata
+- **input\_dir** = the \*.SAFE directory where the image and metadata
     file (MTD\_MSIL1C.xml or S2A\_OPER\_MTD\_SAFL1C\_PDMC\_\*.xml
     depending on naming convention) are stored,
-  - **elevation** = raster of a digital elevation model,
-  - **visibility or AOD value** = raster of a visibility map or an AOD
+- **elevation** = raster of a digital elevation model,
+- **visibility or AOD value** = raster of a visibility map or an AOD
     value (*see AOD section*),
-  - **Atmospheric model** = to be choosen from the drop-down menu,
-  - **Aerosol model** = to be choosen from the drop-down menu,
-  - **suffix** = a suffix for the output maps name
-  - **rescale** = the output range of values for the corrected bands,
+- **Atmospheric model** = to be choosen from the drop-down menu,
+- **Aerosol model** = to be choosen from the drop-down menu,
+- **suffix** = a suffix for the output maps name
+- **rescale** = the output range of values for the corrected bands,
     for example: 0-255, 0-1, 1-10000 (default value 0-1).
 
-  
 The module writes the control file automatically starting from the input
 above.
 
@@ -133,27 +132,27 @@ or AOD value. The others are automatically retrieved from the metadata
 file, input elevation map and bands.
 
 1. **Geometrical conditions**
-    
+
     The geometrical condition of the satellite are read from the
     metadata file and converted to the corresponding *i.atcorr* code, 25
     for Sentinel-2A mission and 26 for Sentinel-2B.
 
 2. **Date, time, longitude and latitude**
-    
+
     Date (month and day) and time are read from the metadata file. The
     date (with the format YYYY-MM-DDTHH:MM:SSZ) is converted in a
     standard format and only the month and the day are selected and
     added to the control file.
-    
+
     Time is already in Greenwich Mean Time (GMT), as *i.atcorr*
     requires, and it's automatically converted to decimal hours.  
     Longitude and latitude are computed from the computational region
     and converted to WGS84 decimal coordinates.
 
 3. **Atmospheric model**
-    
+
     Only some options are available:
-    
+
       - Automatic
       - No gaseous absorption
       - Tropical
@@ -162,12 +161,11 @@ file, input elevation map and bands.
       - Subarctic summer
       - Subarctic winter
       - Us standard 62
-    
-      
+
     Users can choose the proper option from a drop-down menu. The
     desired model is automatically converted to the corresponding code
     and added to the control file.
-    
+
     ***Automatic** option*  
     The default option is *Automatic* which consists in the automatic
     identification of the proper atmospheric model for the input image.
@@ -185,11 +183,11 @@ file, input elevation map and bands.
     options from those available.
 
 4. **Aerosol model**
-    
+
     Also in this case, only some options are available and users have to
     select the desired one from the drop-down menu, then it is converted
     to the corresponding code and added to the control file.
-    
+
       - no aerosols
       - continental model
       - maritime model
@@ -197,12 +195,11 @@ file, input elevation map and bands.
       - shettle model for background desert aerosol
       - biomass burning
       - stratospheric model
-    
-      
+
     No automatic procedure has been implemented in this case.
 
 5. **Visibility or AOD**
-    
+
     By default, *i.sentinel.preproc* uses the input visibility map to
     estimate a visibility value to be added in the control file. If no
     visibility map is available for the processed scene, it is possible
@@ -213,12 +210,12 @@ file, input elevation map and bands.
     computed and added to the control file. Whereas, if the **-a** flag
     isn't checked and an AOD value is provided it will be ignored and
     not added to the control file.
-    
+
     In the same way, if the **-a** flag is checked and a visibility map
     is provided it will be excluded from atmospheric correction process.
-    
+
     **AOD**
-    
+
     The AOD value can be specified by users (e.g. `aod_value=0.07`) or
     automatically retrieved from an AERONET file to be given as input
     instead of the AOD value.  
@@ -226,11 +223,11 @@ file, input elevation map and bands.
     available date to the scene date and compute AOD at 550nm using the
     closest upper and lower wavelength to 550 (e.g. 500nm and 675nm) and
     applying the Angstrom coefficient.
-    
+
     The type of AERONET file is a Combined file for All Points (Level
     1.5 or 2.0)  
     To download this kind of file:  
-    
+
     1. Go to
         <https://aeronet.gsfc.nasa.gov/cgi-bin/webtool_opera_v2_inv>
     2. Choose the site you want to get data from
@@ -243,11 +240,11 @@ file, input elevation map and bands.
     6. Choose 'All Points' under Data Format
     7. Download the file
     8. Unzip (the file has a .dubovik extension)
-    
+
     Then, giving this file as input (e.g.
     `aeronet_file=your_path/*.dubovik`), the AOD at 550nm will be
     automatically computed and added to the control file.
-    
+
     NOTE: as in *i.atcorr* manual explained, if an AOD value is provided
     a value 0 for the visibility has to be entered with the AOD value in
     the following line. Obviously, *i.sentinel.preproc* takes into
@@ -256,7 +253,7 @@ file, input elevation map and bands.
     both `aod_value` and `aeronet_file`).
 
 6. **Mean target elevation above sea level**
-    
+
     Mean target elevation above sea level is automatically estimated
     from the input digital elevation model. According to the rules for
     writing the contol file of *i.atcorr*, the mean elevation value is
@@ -265,12 +262,12 @@ file, input elevation map and bands.
     -0.121).
 
 7. **Sensor height**
-    
+
     Since the sensor is on board a satellite, the sensor height is
     automatically set to -1000.
 
 8. **Sensor band**
-    
+
     The number of the band changes automatically according to the band
     that is processed at that moment. The module reads the name of the
     band and converts it into the corresponding code.
@@ -328,23 +325,21 @@ swir12=T17SPV_20180315T160021_B12_cor
 nir8a=T17SPV_20180315T160021_B8A_cor
 ```
 
-  
-
 [![image-alt](i_sentinel_preproc_ES.png)](i_sentinel_preproc_ES.png)  
 *Figure: Sentinel-2A Band 02*
 
 ## REQUIREMENTS
 
-  - [i.sentinel.import](i.sentinel.import.md)
+- [i.sentinel.import](i.sentinel.import.md)
 
 ## IMPORTANT NOTES
 
-  - *i.sentinel.preproc* integrates a simplyfied version of both modules
+- *i.sentinel.preproc* integrates a simplyfied version of both modules
     (i.sentinel.import and i.atcorr), only some options are available.
     For instance, if it's necessary a strong customization (e.g.
     definition of your own atmospheric or aerosol model), please refer
     to i.atcorr.
-  - *i.sentinel.preproc* works with Sentinel-2 images whose names follow
+- *i.sentinel.preproc* works with Sentinel-2 images whose names follow
     both the New Compact Naming Convention (e.g.
     S2A\_MSIL1C\_20170527T102031\_N0205\_R065\_T32TMQ\_20170527T102301.SAFE)
     and the Old Format Naming Convention (e.g.
@@ -355,8 +350,8 @@ nir8a=T17SPV_20180315T160021_B8A_cor
 
 ## FOLLOW UP
 
-  - Implement download functionality avoiding dependencies
-  - Integrate topographic correction
+- Implement download functionality avoiding dependencies
+- Integrate topographic correction
 
 ## SEE ALSO
 

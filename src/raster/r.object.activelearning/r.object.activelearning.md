@@ -80,21 +80,21 @@ Example of an update file :
 
 Here are more details on a few parameters :
 
-  - **learning\_steps** : This is the number of samples that the module
+- **learning\_steps** : This is the number of samples that the module
     will ask to label at each run.
-  - **nbr\_uncertainty** : Number of uncertain samples to choose before
+- **nbr\_uncertainty** : Number of uncertain samples to choose before
     applying the diversity filter. This number should be higher than
     *learning\_steps*
-  - **diversity\_lambda** : Parameter used in the diversity heuristic.
+- **diversity\_lambda** : Parameter used in the diversity heuristic.
     If close to 0 only take into account the average distance to all
     other samples. If close to 1 only take into account the distance to
     the closest neighbour
-  - **c\_SVM** : Penalty parameter C of the error term. If it is too
+- **c\_SVM** : Penalty parameter C of the error term. If it is too
     large there is a risk of overfitting the training data. If it is too
     small you may have underfitting.
-  - **gamma\_SVM** : Kernel coefficient. 1/\#features is often a good
+- **gamma\_SVM** : Kernel coefficient. 1/\#features is often a good
     value to start with.
-  - **search\_iter** :Number of parameter settings that are sampled in
+- **search\_iter** :Number of parameter settings that are sampled in
     the automatic parameter search (C, gamma). search\_iter trades off
     runtime vs quality of the solution.
 

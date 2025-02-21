@@ -37,21 +37,21 @@ meters.
 
 ## OPTIONS
 
-  - **-o**  
+- **-o**  
     Outlets. Downstream method only. Calculate distance to or elevation
     above the outlet instead of streams. It chooses only the last outlet
     in the network ignoring nodes.
-  - **-s**  
+- **-s**  
     Subbasins. Downstream method only. Calculate distance to or
     elevation above stream nodes instead of streams. The distance and
     the elevation difference are relative to elementary subbasins
     instead of the whole basin.
-  - **-n**  
+- **-n**  
     Near. For upstream method only. Calculate distance to or elevation
     above the nearest local maximum/divide. With the default option, the
     distance/elevation is calculated to the farthest possible
     maximum/divide.
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network: name of input stream network map, produced using
     either *r.watershed* or *r.stream.extract*. Since stream network
     maps produced by *r.watershed* and *r.stream.extract* may slightly
@@ -59,7 +59,7 @@ meters.
     maps produced by the same module. Non-stream cell values must be set
     to NULL. Alternatively, in *outlet* mode, it's the raster map of the
     outlet.
-  - **direction**  
+- **direction**  
     Flow direction: name of input raster map with flow direction,
     produced using either *r.watershed* or *r.stream.extract*. If
     *r.stream.extract* output map is used, it is non-NULL only where
@@ -67,19 +67,19 @@ meters.
     zero and negative values are valid direction data only if they vary
     from -8 to 8 (CCW from East in steps of 45 degrees). Flow direction
     map shall be of integer type (CELL).
-  - **elevation**  
+- **elevation**  
     Elevation: name of input elevation map. It can be of type CELL,
     FCELL or DCELL.
-  - **method**  
+- **method**  
     It is possible to calculate the distance with two method:
     **downstream** from any raster cell to the nearest stream cell /
     junction cell or outlet or **upstream** from any cell upstream to
     the nearest maximum or divide.
-  - **difference**  
+- **difference**  
     Name of output map of elevation difference to the target (outlet,
     node, stream, divide, maximum) along watercoures. The map is of
     DCELL type.
-  - **distance**  
+- **distance**  
     Name of output map of distance to the target (outlet, node, stream,
     divide, maximum) along watercoures. The map is of DCELL type.
 

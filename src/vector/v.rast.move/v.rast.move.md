@@ -59,13 +59,13 @@ left, white no shift)*
 
 ## SEE ALSO
 
-  - *[v.transform](v.transform.md)* for changing coordinates for the
+- *[v.transform](v.transform.md)* for changing coordinates for the
     whole vector map or feature by feature based on the attributes,
-  - *[v.perturb](v.perturb.md)* for randomly changing point positions by
+- *[v.perturb](v.perturb.md)* for randomly changing point positions by
     small amounts,
-  - *[r.mapcalc](r.mapcalc.md)* for generating or adjusting the raster
+- *[r.mapcalc](r.mapcalc.md)* for generating or adjusting the raster
     maps,
-  - *[g.region](g.region.md)* to set the computational region before the
+- *[g.region](g.region.md)* to set the computational region before the
     computation.
 
 ## AUTHOR

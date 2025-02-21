@@ -252,32 +252,32 @@ stream from the catchment outlet.
 
 #### Stream network topology table description connected with vector file
 
-  - `cat` integer: category;
-  - `stream`integer: stream number, usually equal to cat;
-  - `next_stream` integer: stream to which contribute current stream
+- `cat` integer: category;
+- `stream`integer: stream number, usually equal to cat;
+- `next_stream` integer: stream to which contribute current stream
     (downstream);
-  - `prev_streams`; two or more contributing streams (upstream);
-  - `strahler` integer: Strahler's stream order;
-  - `horton` integer: Hortons's stream order;
-  - `shreve` integer: Shreve's stream magnitude;
-  - `hack` integer: Hack's main streams or Gravelius order;
-  - `topo_dim` integer: Topological dimension streams order;
-  - `scheidegger` integer: Scheidegger's Consisted Associated Integers;
-  - `drwal` integer: Drwal's stream hierarchy;
-  - `length` double precision: stream length;
-  - `stright` double precision: length of stream as stright line;
-  - `sinusoid` double precision: fractal dimension: stream
+- `prev_streams`; two or more contributing streams (upstream);
+- `strahler` integer: Strahler's stream order;
+- `horton` integer: Hortons's stream order;
+- `shreve` integer: Shreve's stream magnitude;
+- `hack` integer: Hack's main streams or Gravelius order;
+- `topo_dim` integer: Topological dimension streams order;
+- `scheidegger` integer: Scheidegger's Consisted Associated Integers;
+- `drwal` integer: Drwal's stream hierarchy;
+- `length` double precision: stream length;
+- `stright` double precision: length of stream as stright line;
+- `sinusoid` double precision: fractal dimension: stream
     length/stright stream length;
-  - `cum_length` double precision: length of stream from source;
-  - `flow_accum` double precision:
-  - `out_dist` double precision: distance of current stream init from
+- `cum_length` double precision: length of stream from source;
+- `flow_accum` double precision:
+- `out_dist` double precision: distance of current stream init from
     outlet;
-  - `source_elev` double precision: elevation of stream init;
-  - `outlet_elev` double precision: elevation of stream outlet;
-  - `elev_drop` double precision: difference between source\_elev and
+- `source_elev` double precision: elevation of stream init;
+- `outlet_elev` double precision: elevation of stream outlet;
+- `elev_drop` double precision: difference between source\_elev and
     outlet\_elev + drop outlet;
-  - `out_drop` double precision: drop at the outlet of the stream;
-  - `gradient` double precision: drop/length;
+- `out_drop` double precision: drop at the outlet of the stream;
+- `gradient` double precision: drop/length;
 
 ## EXAMPLE
 
@@ -296,28 +296,28 @@ r.stream.order stream_rast=streams direction=direction elevation=elevation \
 
 ## REFERENCES
 
-  - Drwal, J., (1982), *Wyksztalecenie i organizacja sieci
+- Drwal, J., (1982), *Wyksztalecenie i organizacja sieci
     hydrograficznej jako podstawa oceny struktury odplywu na terenach
     m;odoglacjalnych*, Rozprawy i monografie, Gdansk 1982, 130 pp (in
     Polish)
-  - Hack, J., (1957), *Studies of longitudinal stream profiles in
+- Hack, J., (1957), *Studies of longitudinal stream profiles in
     Virginia and Maryland*, U.S. Geological Survey Professional Paper,
     294-B
-  - Horton, R. E. (1945), *Erosional development of streams and their
+- Horton, R. E. (1945), *Erosional development of streams and their
     drainage basins: hydro-physical approach to quantitative
     morphology*, Geological Society of America Bulletin 56 (3):
     275-370  
     Scheidegger A. E., (1966), *Statistical Description of River
     Networks*. Water Resour. Res., 2(4): 785-790
-  - Shreve, R., (1966),*Statistical Law of Stream Numbers*, J. Geol.,
+- Shreve, R., (1966),*Statistical Law of Stream Numbers*, J. Geol.,
     74, 17-37.
-  - Strahler, A. N. (1952), *Hypsometric (area-altitude) analysis of
+- Strahler, A. N. (1952), *Hypsometric (area-altitude) analysis of
     erosional topology*,Geological Society of America Bulletin 63 (11):
     1117-1142
-  - Strahler, A. N. (1957), *Quantitative analysis of watershed
+- Strahler, A. N. (1957), *Quantitative analysis of watershed
     geomorphology*, Transactions of the American Geophysical Union 8
     (6): 913-920.
-  - Woldenberg, M. J., (1967), *Geography and properties of surfaces*,
+- Woldenberg, M. J., (1967), *Geography and properties of surfaces*,
     Harvard Papers in Theoretical Geography, 1: 95-189.
 
 ## SEE ALSO
