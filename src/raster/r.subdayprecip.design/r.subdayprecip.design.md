@@ -23,27 +23,13 @@ based on reduction of 24 hours design precipitation to shorter time. GIS
 can used for spatial supervised classification of point values of
 specified return periods (2, 10, 20, 50 and 100 years).
 
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td><img src="r_subdayprecip_design_basin.png" alt="image-alt" /></td>
-<td><img src="r_subdayprecip_design_h_rast.png" alt="image-alt" /></td>
-</tr>
-<tr class="even">
-<td><em>Figure: Basins (in orange) with orthophoto<br />
-on background</em></td>
-<td><em>Figure: Return periods (2, 10, 20, 50 years)<br />
-in the area of the Czech Republic</em></td>
-</tr>
-</tbody>
-</table>
+![Basins (in orange) with orthophoto on background](r_subdayprecip_design_basin.png)  
+*Figure: Basins (in orange) with orthophoto on background.*
 
-![image-alt](r_subdayprecip_design_result.png)
+![Return periods (2, 10, 20, 50 years) in the area of the Czech Republic](r_subdayprecip_design_h_rast.png)  
+*Figure: Return periods (2, 10, 20, 50 years) in the area of the Czech Republic.*
 
+![IV.order basins colored by mean H_N2T60 value](r_subdayprecip_design_result.png)  
 *Figure: IV.order basins colored by mean H\_N2T60 value (in
 millimeters)*
 

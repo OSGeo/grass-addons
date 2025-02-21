@@ -91,9 +91,7 @@ while in case of partial dam breach (configuration *ii*) the user can
 choose between don't use any hypothesis, like in the previous
 configuration, or evaluate the initial velocity using the overflow
 spillway equation:  
-*V* = *0.4* <span class="radic"><sup>`
- `</sup>√<span class="radicand" style="text-decoration:overline">`(2 g
-h)`</span>  
+*V = 0.4 * sqrt(2 g h)*  
 where *V* is the water flow velocity expressed in m/s, *g* is the
 gravitational acceleration expressed in m/s<sup>2</sup> and *h* is the
 water depth in correspondence of the dam breach expresssed in meters
@@ -102,10 +100,6 @@ Optionally the user may modify the initial timestep used for the
 numerical solution of the SWE (*default value = 0.01 s*), nevertheless
 the timestep \[\], and choose a specific failure tipe corresponding to
 different computational method for the initial velocity estimation.  
-  
-***Notes***  
-  
-*(GRASS ANSI C command)* </span>
 
 ## AUTHORS
 
@@ -132,7 +126,7 @@ programming language within GRASS.
 *[d.rast.arrow](https://grass.osgeo.org/grass-stable/manuals/d.rast.arrow.html)*,
 *[r.inund.fluv](r.inund.fluv.md)*.  
 Details of the numerical model are presented in references.  
-Details of use and developing of <span></span> are available
+Details of use and developing of r.damflood are available
 [here](http://istgeo.ist.supsi.ch/site/projects/dambreak).  
 
 ## REFERENCES

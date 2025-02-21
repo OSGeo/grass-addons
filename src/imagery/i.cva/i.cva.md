@@ -85,26 +85,17 @@ Threshold is 0.158456493273
 
 Results:
 
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"> <img src="i.cva_1angle.png" alt="image-alt" /><br />
-<em>CVA angle map 1</em></td>
-<td style="text-align: center;"> <img src="i.cva_2angleclass.png" alt="image-alt" /><br />
-<em>CVA classified angle map</em></td>
-</tr>
-<tr class="even">
-<td style="text-align: center;"> <img src="i.cva_3magnitude.png" alt="image-alt" /><br />
-<em>CVA magnitude map</em></td>
-<td style="text-align: center;"> <img src="i.cva_4change.png" alt="image-alt" /><br />
-<em>CVA change map</em></td>
-</tr>
-</tbody>
-</table>
+![CVA angle map 1](i.cva_1angle.png)  
+*CVA angle map 1.*
+
+![CVA classified angle map](i.cva_2angleclass.png)  
+*CVA classified angle map.*
+
+![CVA magnitude map](i.cva_3magnitude.png)  
+*CVA magnitude map.*
+
+![CVA change map](i.cva_4change.png)  
+*CVA change map.*
 
 Optionally, labels can be added to the four quadrants of the change map
 (after Zanchetta et al., 2016):

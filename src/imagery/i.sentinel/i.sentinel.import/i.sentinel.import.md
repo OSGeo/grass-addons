@@ -54,40 +54,32 @@ linked file name as *source2*. Also, sensing time is written into the
 timestamp of the map. After import, the metadata can be retrieved with
 *r.info -e* as shown below.
 
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td>SATELLITE=S2B<br />
-CLOUDY_PIXEL_PERCENTAGE=1.250696<br />
-DEGRADED_MSI_DATA_PERCENTAGE=0<br />
-NODATA_PIXEL_PERCENTAGE=58.089572<br />
-SATURATED_DEFECTIVE_PIXEL_PERCENTAGE=0.000000<br />
-DARK_FEATURES_PERCENTAGE=4.668012<br />
-CLOUD_SHADOW_PERCENTAGE=0.572569<br />
-VEGETATION_PERCENTAGE=45.350337<br />
-NOT_VEGETATED_PERCENTAGE=1.179313<br />
-WATER_PERCENTAGE=44.793952<br />
-UNCLASSIFIED_PERCENTAGE=2.184867<br />
-MEDIUM_PROBA_CLOUDS_PERCENTAGE=0.620685<br />
-HIGH_PROBA_CLOUDS_PERCENTAGE=0.570162<br />
-THIN_CIRRUS_PERCENTAGE=0.059849<br />
-SNOW_ICE_PERCENTAGE=0.000253<br />
-RADIATIVE_TRANSFER_ACCURACY=0.0<br />
-WATER_VAPOUR_RETRIEVAL_ACCURACY=0.0<br />
-AOT_RETRIEVAL_ACCURACY=0.0<br />
-MEAN_SUN_ZENITH_GRID_ANGLE=63.9790718336484<br />
-MEAN_SUN_AZIMUTH_GRID_ANGLE=180.4378695652174<br />
-MEAN_SUN_ZENITH_ANGLE=63.9790721741866<br />
-MEAN_SUN_AZIMUTH_ANGLE=180.437882291128<br />
-ZENITH_ANGLE_5=9.9540335513936<br />
-AZIMUTH_ANGLE_5=295.354861828927<br />
-</td>
-</tr>
-</tbody>
-</table>
+```sh
+<td>SATELLITE=S2B
+CLOUDY_PIXEL_PERCENTAGE=1.250696
+DEGRADED_MSI_DATA_PERCENTAGE=0
+NODATA_PIXEL_PERCENTAGE=58.089572
+SATURATED_DEFECTIVE_PIXEL_PERCENTAGE=0.000000
+DARK_FEATURES_PERCENTAGE=4.668012
+CLOUD_SHADOW_PERCENTAGE=0.572569
+VEGETATION_PERCENTAGE=45.350337
+NOT_VEGETATED_PERCENTAGE=1.179313
+WATER_PERCENTAGE=44.793952
+UNCLASSIFIED_PERCENTAGE=2.184867
+MEDIUM_PROBA_CLOUDS_PERCENTAGE=0.620685
+HIGH_PROBA_CLOUDS_PERCENTAGE=0.570162
+THIN_CIRRUS_PERCENTAGE=0.059849
+SNOW_ICE_PERCENTAGE=0.000253
+RADIATIVE_TRANSFER_ACCURACY=0.0
+WATER_VAPOUR_RETRIEVAL_ACCURACY=0.0
+AOT_RETRIEVAL_ACCURACY=0.0
+MEAN_SUN_ZENITH_GRID_ANGLE=63.9790718336484
+MEAN_SUN_AZIMUTH_GRID_ANGLE=180.4378695652174
+MEAN_SUN_ZENITH_ANGLE=63.9790721741866
+MEAN_SUN_AZIMUTH_ANGLE=180.437882291128
+ZENITH_ANGLE_5=9.9540335513936
+AZIMUTH_ANGLE_5=295.354861828927
+```
 
 ## NOTES
 
@@ -189,32 +181,14 @@ i.sentinel.import input=data -c -s
 i.sentinel.import input=data cloud_probability_threshold=25 cloud_area_threshold=10 -c -s
 ```
 
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><a href="i_sentinel_import_without_cloud_mask.png"><img src="i_sentinel_import_without_cloud_mask.png" alt="image-alt" /></a><br />
-<br />
-<em>Fig: S2 L2-A imagery without cloud mask<br />
-(example: T33TVE_20210313T095029, Italy)<br />
-</em></td>
-<td style="text-align: center;"><a href="i_sentinel_import_with_cloud_shadow_mask_v1.png"><img src="i_sentinel_import_with_cloud_shadow_mask_v1.png" alt="image-alt" /></a><br />
-<br />
-<em>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask<br />
-(default options)<br />
-</em></td>
-<td style="text-align: center;"><a href="i_sentinel_import_with_cloud_shadow_mask_v2.png"><img src="i_sentinel_import_with_cloud_shadow_mask_v2.png" alt="image-alt" /></a><br />
-<br />
-<em>Fig: Cloud (ligthgrey) and shadow (darkgrey) mask<br />
-(lower probability threshold and higher area threshold)<br />
-</em></td>
-</tr>
-</tbody>
-</table>
+![S2 L2-A imagery without cloud mask (example: T33TVE_20210313T095029, Italy)](i_sentinel_import_without_cloud_mask.png)  
+*Fig: S2 L2-A imagery without cloud mask (example: T33TVE_20210313T095029, Italy).*
+
+![Cloud (lightgrey) and shadow (darkgrey) mask (default options)](i_sentinel_import_with_cloud_shadow_mask_v1.png)  
+*Fig: Cloud (lightgrey) and shadow (darkgrey) mask (default options).*
+
+![Cloud (lightgrey) and shadow (darkgrey) mask (lower probability threshold and higher area threshold)](i_sentinel_import_with_cloud_shadow_mask_v2.png)  
+*Fig: Cloud (lightgrey) and shadow (darkgrey) mask (lower probability threshold and higher area threshold).*
 
 Link data from specific UTM zone while ignoring projection check
 
