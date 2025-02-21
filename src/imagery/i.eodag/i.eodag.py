@@ -1325,7 +1325,7 @@ if __name__ == "__main__":
         from eodag.utils.exceptions import MisconfiguredError
         import eodag
     except ImportError:
-        gs.fatal(_("Cannot import eodag. Please intall the library first."))
+        gs.fatal(_("Cannot import eodag. Please install the library first."))
 
     # To disable eodag logs, set DEBUG to 0
     # with " g.gisenv 'set=DEBUG=0' "

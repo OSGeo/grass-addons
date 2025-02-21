@@ -30,7 +30,7 @@ post-installation troubles that sometimes may occur.
 You should install [GRASS
 GIS](https://grass.osgeo.org/download/windows/) with administrator
 rights; either the stand-alone installer or via OSGeo4W package, in a
-directory with full control of permissions, to be able to intall the
+directory with full control of permissions, to be able to install the
 *r.green* modules.
 
 ![image-alt](r_green_install_permissions.png)  
