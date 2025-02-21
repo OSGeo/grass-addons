@@ -51,7 +51,7 @@ for a given variable) and the gain in AIC (AIC without a given variable
 minus AIC global must be positive) whether the inclusion of a given
 explaining variable in the model is justified.
 
-#### The explaining variables
+### The explaining variables
 
 R squared for each explaining variable represents the additional amount
 of explained variance when including this variable compared to when
@@ -72,7 +72,7 @@ variables, *r.gwr* calculates the F-value expressing the gain by
 including the current variable in addition to all other variables, not
 only the previous variables.
 
-#### Bandwidth
+### Bandwidth
 
 The bandwidth is the crucial parameter for geographically weighed
 regressions. A too small bandwidth will essentially use the weighed
@@ -80,7 +80,7 @@ average, any predictors are mostly ignored. A too large bandwidth will
 produce results similar to a global regression, and spatial
 non-stationarity can not be explored.
 
-#### Adaptive bandwidth
+### Adaptive bandwidth
 
 Instead of using a fixed bandwidth (search radius for each cell), an
 adaptive bandwidth can be used by specifying the number of points to be
@@ -88,7 +88,7 @@ used for each local regression with the *npoints* option. The module
 will find the nearest *npoints* points for each cell, adapt the bandwith
 accordingly and then calculate a local weighted regression.
 
-#### Kernel functions
+### Kernel functions
 
 The kernel function has little influence on the result, much more
 important is the bandwidth. Available kernel funtions to calculate
@@ -108,7 +108,7 @@ w = weight for current cell
 d = distance to the current cell  
 bw = bandwidth
 
-#### Masking
+### Masking
 
 A *mask* map can be provided (e.g. with **r.mask**) to restrict LWR to
 those cells where the mask map is not NULL and not 0 (zero).

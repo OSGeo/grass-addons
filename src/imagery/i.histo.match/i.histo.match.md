@@ -12,10 +12,10 @@ the target CDF value closest to the original value.
 ## EXAMPLE
 
 This example is based the [North Carolina GRASS sample data
-set](https://grass.osgeo.org/download/sample-data), \[complete GRASS
-location\].
+set](https://grass.osgeo.org/download/sample-data) (complete GRASS
+dataset).
 
-```code
+```sh
 # create the output with histogram matching
 i.histo.match input=lsat5_1987_10,lsat7_2000_10
 
@@ -26,13 +26,13 @@ r.colors map=lsat7_2000_10.match color=grey
 # visualize and compare the results
 ```
 
-##### Original data:
+### Original data:
 
-![image-alt](i_histo_match_original.png)  
+![i.histo.match original](i_histo_match_original.png)  
 
-##### Matched data:
+### Matched data:
 
-![image-alt](i_histo_match_matched.png)  
+![i.histo.match matched](i_histo_match_matched.png)  
 
 ## SEE ALSO
 

@@ -3,8 +3,6 @@
 The *r.mcda.ahp* Generate a raster map classified with analytic
 hierarchy process (AHP) \[Saaty, 1977 and Saaty & Vargas, 1991\]
 
-*(GRASS python Script)*
-
 ## NOTES
 
 It is mandatory to build a pairwise comparation table with the same

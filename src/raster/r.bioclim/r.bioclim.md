@@ -21,7 +21,7 @@ power of 10) ensures a minimum of precision.
 
 ## NOTES
 
-#### Quarter years
+### Quarter years
 
 The bioclimatic indices referring to the wettest, driest, warmest or
 coldest quarter can be computed in two different ways. The default is to
@@ -41,7 +41,7 @@ bioclimatic variables provided by
 [Worldclim](http://worldclim.org/bioclim) were computed. This option
 should be used when long-term averages are used as input.
 
-#### Precipitation data
+### Precipitation data
 
 Check the unit of measure of precipitation data. To calculate the bio18
 and bio19 **r.bioclim** rounds the value of the raster to the closest
@@ -51,7 +51,7 @@ m-2 m-1 (i.e., fluxes per second) as in
 with zero values for the bio18 and bio19, because the precipitation
 values are very close to 0.
 
-#### List of bioclimatic indices
+### List of bioclimatic indices
 
 **BIO 01** Annual mean temperature as the mean of the monthly
 temperatures (°C)

@@ -40,7 +40,7 @@ GRASS Development Team (2015)
 
 ## SEE ALSO
 
-*r.mcda.fuzzy, r.mcda.regime, r.mcda.roughet, r.mapcalc*
+*[r.mcda.input](r.mcda.input.md), [r.mcda.topsis](r.mcda.topsis.md), [r.mcda.roughset](r.mcda.roughset.md), [r.mcda.output](r.mcda.output.md)*
 
 ## AUTHORS
 

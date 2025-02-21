@@ -23,7 +23,7 @@ reduced with the **minsize** option.
 
 ## NOTES
 
-#### Input bands
+### Input bands
 
 Contrary to the original Achanta et al. SLIC algorithm which allows only
 RGB input images (which are internally transformed into LAB color space,
@@ -34,7 +34,7 @@ All band values are normalized to a common 0-1 scale to ensure
 comparability in the spectral distance calculations. Therefore results
 will not be identical with the original implementation.
 
-#### Iterations
+### Iterations
 
 In each iteration, the assignment of pixels to superpixels and the
 superpixels themselves (spatial and spectral means) are updated until
@@ -44,7 +44,7 @@ results but will increase processing time. The module will stop earlier
 if convergence is reached, but it can take 1000 or more iterations until
 convergence is reached.
 
-#### Step
+### Step
 
 Step size has to be larger than 1 to be meaningful, as otherwise each
 individual pixel would be considered as a superpixel. If no step size or
@@ -52,7 +52,7 @@ a step size of less than 2 given, the module estimates a step size
 internally on the basis of the number of superpixels (**num\_pixels** -
 200 by default).
 
-#### Minimum segment size
+### Minimum segment size
 
 If a minimum segment size of 2 or larger is given with the **minsize**
 parameter, segments with a smaller pixel count will be merged with their
@@ -65,14 +65,14 @@ will not be identical with the original implementation, even if a
 minimum segment size identical to the minimum segment size internally
 determined in the original implementation of Achanta et al. is used.
 
-#### Creating seeds for *i.segment*
+### Creating seeds for *i.segment*
 
 If the purpose is to create seeds for *i.segment*, a small number of
 iterations (at least 10) should be sufficient. Further on, a large
 number of superpixels or a small step should be used, and small clumps
 should not be merged.
 
-#### Image segmentation
+### Image segmentation
 
 If the purpose is to perform image segmentation with
 *i.superpixels.slic*, a larger number of iterations (e.g. 100) should be
@@ -80,7 +80,7 @@ used in order to obtain more stable superpixels. In this case, larger
 superpixels can be used and small clumps can be removed with the
 **minsize** option.
 
-#### Normalization of spectral distances (SLIC0)
+### Normalization of spectral distances (SLIC0)
 
 If the **-n** flag is used, the spectral distance of a pixel to a given
 superpixel is divided by the maximum previously observed spectral
@@ -110,7 +110,7 @@ effect becomes stronger with larger differences in the spectral
 homogeneity of neighboring superpixels, and with a lower *compactness*
 value, as spectral difference then gets a bigger weight.
 
-#### Perturbing initial superpixel centers
+### Perturbing initial superpixel centers
 
 Initial superpixel centers can be optimized with the **perturb** option.
 The objective of this optimization of initial superpixel centers is to
@@ -121,7 +121,7 @@ shifted to the same position. The **perturb** option is interpreted as
 percent of the maximum allowable shift distance such that no two
 superpixel centers can obtain the same position.
 
-#### Memory vs disk cache
+### Memory vs disk cache
 
 *i.superpixels.slic* can handle very large amounts of data. Depending on
 the amount of data and the available RAM memory, as defined by the
@@ -195,8 +195,7 @@ d.vect map=segments_color width=2 icon=basic/point
 d.vect map=segments fill_color=none
 ```
 
-![image-alt](i_superpixels_slic.png)
-
+![Average NDVI in each superpixel area (segment)](i_superpixels_slic.png)  
 *Average NDVI in each superpixel area (segment)*
 
 ## REFERENCES

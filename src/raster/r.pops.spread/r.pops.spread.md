@@ -200,7 +200,7 @@ Tutorials and other resources:
 
 ## AUTHORS
 
-*(in alphabetical order)*
+In alphabetical order:
 
 Chris Jones\*  
 Margaret Lawrimore\*  

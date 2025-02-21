@@ -96,7 +96,7 @@ in non-integer, but this has not been rigorously checked.
 
 ## SEE ALSO
 
-*r.viewshed*
+*[r.viewshed](https://grass.osgeo.org/grass-stable/manuals/r.viewshed.html)*
 
 ## AUTHOR
 

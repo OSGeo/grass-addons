@@ -5,12 +5,6 @@ or 4eMka2 sofware [Laboratory of Intelligent Decision Support Systems -
 Poznan University.](http://idss.cs.put.poznan.pl/) and returns maps of
 the rules
 
-*(GRASS python Script)*
-
-## NOTES
-
-## TODO
-
 ## SEE ALSO
 
 *[r.roughset](r.roughset.md), [r.mcda.regime](r.mcda.regime.md),

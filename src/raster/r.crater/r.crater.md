@@ -10,7 +10,7 @@ Vi: Projectile velocity (km/s)
 theta: projectile impact angle (degrees) for Gault scaling law (flag2)  
 Solid\_rock or not (1 or 0) for Gault scaling law (flag2)  
 
-*Backward mode*This mode needs to know the crater details  
+*Backward mode* This mode needs to know the crater details  
 
 ## NOTES
 
@@ -43,8 +43,6 @@ Mode 2: Estimate crater size from crater diameter\*/ Mode 2 case: Crater
 descriptor: argv\[8\]: enter the transient crater diameter in m (if the
 final, not the transient crater diameter is known, enter zero (0.0)
 here) argv\[9\]: \[optional\] enter the final crater diameter in m
-
-## NOTES
 
 ## SEE ALSO
 

@@ -17,7 +17,7 @@ For bug please contact Gianluca Massei (g\_mass@libero.it)
 
 ## SEE ALSO
 
-*r.mcda.fuzzy, r.mcda.electre, r.mcda.roughset, r.to.drsa, r.in.drsa*
+*[r.mcda.input](r.mcda.input.md), [r.mcda.electre](r.mcda.electre.md), [r.mcda.roughset](r.mcda.roughset.md), [r.mcda.output](r.mcda.output.md)*
 
 ## AUTHORS
 
