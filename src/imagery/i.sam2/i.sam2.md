@@ -29,7 +29,7 @@ Segment orthoimagery using SamGeo2:
 ## NOTES
 
 The first time use will be longer as the model needs to be downloaded.
-Subsequent runs will be faster. Additionally, Cuda is required for GPU
+Subsequent runs will be faster. Additionally, CUDA is required for GPU
 acceleration. If you do not have a GPU, you can use the CPU by setting
 the environment variable \`CUDA\_VISIBLE\_DEVICES\` to \`-1\`.
 
