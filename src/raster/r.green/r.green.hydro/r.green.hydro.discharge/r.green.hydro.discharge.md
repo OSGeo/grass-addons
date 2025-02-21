@@ -26,7 +26,6 @@ On Piave basin, the natural discharge can be computed thanks to the
 input raster map with the values of specific discharge, and the MFD is
 calculated thanks to this formula :  
   
-
 Q<sub>MFD</sub> = ( K<sub>b</sub> + K<sub>n</sub> ) \* 177 \*
 S<sup>0.85</sup> \* Q<sub>spec</sub> \* 10<sup>-6</sup>  
 
@@ -65,8 +64,6 @@ K<sub>n</sub>, K<sub>b</sub> and Q<sub>spec</sub> values.
 Picture which gathers the input raster maps with K<sub>n</sub>,
 K<sub>b</sub> and Q<sub>spec</sub> values
 
-  
-  
 According to the legislation for the Piave basin explained above, the
 legal values for the Mis valley are :  
 K<sub>n</sub> = 0.4 in the whole region (yellow and red zones)  
@@ -80,38 +77,28 @@ Here is the code used to create the raster maps with the MFD and the
 natural discharge. The basins are considered with a threshold of 10000
 m.  
   
-
 ```sh
 r.green.hydro.discharge q_spec=q_spec output_q_river=discharge k_b=k_b k_n=k_n output_mfd=mfd elevation=elevation output_streams=streams threshold=100000
 ```
 
-  
-  
 The following picture gathers the two output raster maps mfd and
 discharge which look like each other (yellow background with colored
 points following the river and containing the values of discharge). For
 a better understanding, the following picture also shows the border of
 the Mis valley and the streams.  
   
-
 ![image-alt](r.green.hydro.discharge_output.png)  
 Picture which gathers the output raster maps with valued of MFD and
 natural discharge, also showing the vector maps with the borders and
 streams of Mis valley
 
-  
-  
 The white point is queried in GRASS to know the values of MFD and
 natural discharge. The following picture shows these values in
 m<sup>3</sup>/s.  
   
-
 ![image-alt](r.green.hydro.discharge_output_table.png)  
 Values of MFD and natural discharge (in m<sup>3</sup>/s) at the white
 point
-
-  
-  
 
 ## SEE ALSO
 

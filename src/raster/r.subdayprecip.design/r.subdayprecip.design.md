@@ -55,18 +55,18 @@ r.subdayprecip.design map=basin return_period=N2,N5,N10,N20 rainlength=60
 
 ## REFERENCES
 
-  - Landa M., Kavka P., Strouhal L. (2015). [A GIS tool for reduction
+- Landa M., Kavka P., Strouhal L. (2015). [A GIS tool for reduction
     day precipitation to
     subday](https://web.archive.org/web/20170525233617/http://geomatica.como.polimi.it/workbooks/n12/)
     ([poster](https://www.geolab.polimi.it/wp-content/uploads/GW12_FOSS4G-eu15.pdf#page=743))
-  - Tomasu M. (2013). [Tvorba nastoje pro sestaveni kratkodobych
+- Tomasu M. (2013). [Tvorba nastoje pro sestaveni kratkodobych
     navrhovych destu na zaklade rizene interpolace a
     redukce](https://geo.fsv.cvut.cz/proj/bp/2013/martin-tomasu-bp-2013.pdf)
     (in Czech)
-  - Torfs, P. J. J. F., Horacek, S., & Rakovec, O. (2010). Chimera, a
+- Torfs, P. J. J. F., Horacek, S., & Rakovec, O. (2010). Chimera, a
     framework for conceptual modelling using analytical sensitives to
     parameters: implementation and application to PDM model.
-  - Sokol, Z., & Bliznak, V. (2009). Areal distribution and
+- Sokol, Z., & Bliznak, V. (2009). Areal distribution and
     precipitation-altitude relationship of heavy short-term
     precipitation in the Czech Republic in the warm part of the year.
     Atmospheric Research, 94(4), 652-662.

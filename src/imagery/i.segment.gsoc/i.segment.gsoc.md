@@ -173,27 +173,27 @@ day.
 
 ### Functionality
 
-  - Further testing of the shape characteristics (smoothness,
+- Further testing of the shape characteristics (smoothness,
     compactness), if it looks good it should be added to the Manhatten
     option. **in progress**
-  - Malahanobis distance for the similarity calculation.
+- Malahanobis distance for the similarity calculation.
 
 ### Use of Segmentation Results
 
-  - Improve the optional output from this module, or better yet, add a
+- Improve the optional output from this module, or better yet, add a
     module for *i.segment.metrics*.
-  - Providing updates to i.maxlik to ensure the segmentation output can
+- Providing updates to i.maxlik to ensure the segmentation output can
     be used as input for the existing classification functionality.
-  - Integration/workflow for *r.fuzzy*.
+- Integration/workflow for *r.fuzzy*.
 
 ### Speed
 
-  - See create\_isegs.c
+- See create\_isegs.c
 
 ### Memory
 
-  - User input for how much RAM can be used.
-  - Check input map type(s), currently storing in DCELL sized SEG file,
+- User input for how much RAM can be used.
+- Check input map type(s), currently storing in DCELL sized SEG file,
     could reduce this dynamically depending on input map time. (Could
     only reduce to FCELL, since will be storing mean we can't use CELL.
     Might not be worth the added code complexity.)

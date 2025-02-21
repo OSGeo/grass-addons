@@ -17,25 +17,25 @@ corresponding points.
 
 In detail, the default algorithm goes as follows:
 
-  - choose one of the input lines as reference line
-  - create a series of points at regular intervals on this line
-  - for each of these points:
-      - find the closest point on each of the input lines
-      - get the coordinates of those points
-      - calculate the mean or (mathematical) median of these coordinates
-  - use the calculated means (or medians) as vertices of the new line
+- choose one of the input lines as reference line
+- create a series of points at regular intervals on this line
+- for each of these points:
+  - find the closest point on each of the input lines
+  - get the coordinates of those points
+  - calculate the mean or (mathematical) median of these coordinates
+- use the calculated means (or medians) as vertices of the new line
 
 The transversals algorithm goes as follows:
 
-  - choose one of the input lines as reference line
-  - create a series of perpendicular (transversal) lines at regular
+- choose one of the input lines as reference line
+- create a series of perpendicular (transversal) lines at regular
     intervals on this line
-  - for each of these transversals:
-      - find the intersection points of the transversal with all input
+- for each of these transversals:
+  - find the intersection points of the transversal with all input
         lines
-      - get the coordinates of those points
-      - calculate the mean or (mathematical) median of these coordinates
-  - use the calculated means (or medians) as vertices of the new line
+  - get the coordinates of those points
+  - calculate the mean or (mathematical) median of these coordinates
+- use the calculated means (or medians) as vertices of the new line
 
 The user can change three parameters in the algorithms: the choice of
 the reference line (**refline**), the number of vertices to calculate

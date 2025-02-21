@@ -138,32 +138,32 @@ r.mapcalc expression=exposure_roadsmajor_s_rescaled =
 
 ## TODO
 
-  - Implement variable exposure source height.
-  - Implement possibility to switch between absolute and relative values
+- Implement variable exposure source height.
+- Implement possibility to switch between absolute and relative values
     of visual exposure (now absolute).
 
 ## REFERENCES
 
-  - Cimburova, Z., Blumentrath, S., 2022. Viewshed-based modelling of
+- Cimburova, Z., Blumentrath, S., 2022. Viewshed-based modelling of
     visual exposure to urban greenery - an efficient GIS tool for
     practical applications. *Landscape and Urban Planning* 222, 104395.
     <https://doi.org/10.1016/j.landurbplan.2022.104395>
-  - Chamberlain, B.C., Meitner, M.J., 2013. A route-based visibility
+- Chamberlain, B.C., Meitner, M.J., 2013. A route-based visibility
     analysis for landscape management. *Landscape and Urban Planning*
     111, 13-24. <https://doi.org/10.1016/j.landurbplan.2012.12.004>
-  - Domingo-Santos, J.M., de Villarán, R.F., Rapp-Arrarás, Í., de
+- Domingo-Santos, J.M., de Villarán, R.F., Rapp-Arrarás, Í., de
     Provens, E.C.-P., 2011. The visual exposure in forest and rural
     landscapes: An algorithm and a GIS tool. *Landscape and Urban
     Planning* 101, 52-58.
     <https://doi.org/10.1016/j.landurbplan.2010.11.018>
-  - Fisher, P., 1994. Probable and fuzzy models of the viewshed
+- Fisher, P., 1994. Probable and fuzzy models of the viewshed
     operation, in: Worboys, M.F. (Ed.), *Innovations in GIS*. Taylor &
     Francis, London, pp. 161-176.
-  - Grêt-Regamey, A., Bishop, I.D., Bebi, P., 2007. Predicting the
+- Grêt-Regamey, A., Bishop, I.D., Bebi, P., 2007. Predicting the
     scenic beauty value of mapped landscape changes in a mountainous
     region through the use of GIS. *Environment and Planning B: Planning
     and Design* 34, 50-67. <https://doi.org/10.1068/b32051>
-  - Ogburn, D.E., 2006. Assessing the level of visibility of cultural
+- Ogburn, D.E., 2006. Assessing the level of visibility of cultural
     objects in past landscapes. *Journal of Archaeological Science* 33,
     405-413. <https://doi.org/10.1016/j.jas.2005.08.005>
 

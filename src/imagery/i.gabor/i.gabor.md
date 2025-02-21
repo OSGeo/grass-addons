@@ -169,21 +169,21 @@ to read in bits of raster map at a time in memory.
 
 ## REFERENCES
 
-  - Gabor, D. (1946). *Theory of communication.* Journal of the
+- Gabor, D. (1946). *Theory of communication.* Journal of the
     Institute of Electrical Engineers, 93, 429–457.
-  - Grigorescu, S. E., Petkov, N., & Kruizinga, P. (2002). *Comparison
+- Grigorescu, S. E., Petkov, N., & Kruizinga, P. (2002). *Comparison
     of texture features based on Gabor filters.* IEEE Transactions on
     Image processing, 11(10), 1160-1167.
-  - Hillen, F., Meynberg, O., & Höfle, B. (2015). *Routing in dense
+- Hillen, F., Meynberg, O., & Höfle, B. (2015). *Routing in dense
     human crowds using smartphone movement data and optical aerial
     imagery.* ISPRS International Journal of Geo-Information, 4(2),
     974-988.
-  - Lee, T. S. (1996). *Image representation using 2D Gabor wavelets.*
+- Lee, T. S. (1996). *Image representation using 2D Gabor wavelets.*
     IEEE Transactions on pattern analysis and machine intelligence,
     18(10), 959-971.
-  - Smith, O. (2021). [*i.gabor - A Gabor filter module for GRASS
+- Smith, O. (2021). [*i.gabor - A Gabor filter module for GRASS
     GIS*](https://here.isnew.info/gisc-4360k/i.gabor---A-Gabor-filter-module-for-GRASS-GIS-by-Owen-Smith.pdf)
-  - Zhao, H., Xiao, P., & Feng, X. (2017). *Optimal Gabor filter-based
+- Zhao, H., Xiao, P., & Feng, X. (2017). *Optimal Gabor filter-based
     edge detection of high spatial resolution remotely sensed images.*
     Journal of Applied Remote Sensing, 11(1), 015019.
 

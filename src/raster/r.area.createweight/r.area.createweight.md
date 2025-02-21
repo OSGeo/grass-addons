@@ -211,11 +211,11 @@ For users of **macOS** GRASS-X.X.app bundles, start GRASS and install
 packages with following commands in the Terminal: `python -m pip install
 --upgrade pip` and `python -m pip install pandas scikit-learn`.
 
-  - Pandas Wheel (mainly relevant to Windows users):
+- Pandas Wheel (mainly relevant to Windows users):
     <https://pypi.org/project/pandas>
-  - Scikit-learn Wheel (mainly relevant to Windows users):
+- Scikit-learn Wheel (mainly relevant to Windows users):
     <https://pypi.org/project/scikit-learn>
-  - Unofficial Windows compiled binaries from [Christoph
+- Unofficial Windows compiled binaries from [Christoph
     Gohlke](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
 ## EXAMPLES

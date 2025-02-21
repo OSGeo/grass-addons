@@ -7,10 +7,8 @@ for the remainder (as in the case shown below). *r.mblend* merges the
 two DEMs, producing a smooth transition from the high resolution DEM to
 the low resolution DEM.  
   
-
 ![image-alt](both_inputs.png)  
   
-
 The module works by identifying the edge between the two rasters (near
 edge, shown in read below) and the edge composed by the cells in the low
 resolution DEM farther away from the high resolution raster (far edge,
@@ -21,10 +19,8 @@ used to interpolate a new raster with the points along the two edges.
 This interpolated differences raster thus trends from the full
 difference at the near edge towards zero at the far edge.  
   
-
 ![image-alt](edges.png)  
   
-
 The differences raster is finally added to the low resolution DEM given
 as input. In the resulting DEM, cells along the near edge take the
 values in the high resolution raster. The farther away from the near
@@ -32,7 +28,6 @@ edge (and closer to to the far edge) the closer is their value is to the
 low resolution raster, producing a smooth transition, without
 artefacts.  
   
-
 ![image-alt](blended.png)
 
 ## EXAMPLES

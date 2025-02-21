@@ -40,11 +40,11 @@ Source: Gangkofner, 2008
 
 ## NOTES
 
-  - Grasping and testing the various parameters that define the
+- Grasping and testing the various parameters that define the
     High-Pass filter's kernel size and center value is a matter of short
     time.
-  - Works with any number and type of raster imagery (8-bit, 16-bit)
-  - The "black border" effect, possibly caused due to a non-perfect
+- Works with any number and type of raster imagery (8-bit, 16-bit)
+- The "black border" effect, possibly caused due to a non-perfect
     match of the high vs. the low resolution of the input images, can be
     trimmed out by using the `trim` option --a floating point "trimming
     factor" with which to multiply the pixel size of the low resolution
@@ -101,29 +101,29 @@ Technique](https://gitlab.com/NikosAlexandris/i.fusion.hpf/blob/master/Documenta
 
 ## TODO
 
-  - Go through [Submitting
+- Go through [Submitting
     Python](https://trac.osgeo.org/grass/wiki/Submitting/Python)
-  - Access input raster by row I/O
-  - Support for parallel processing
-  - Proper command history tracking.
-  - Add timestamps (r.timestamp, temporal framework)
-  - Deduplicate code where applicable
-  - Make verbose level messages shorter, yet more informative (ie report
+- Access input raster by row I/O
+- Support for parallel processing
+- Proper command history tracking.
+- Add timestamps (r.timestamp, temporal framework)
+- Deduplicate code where applicable
+- Make verbose level messages shorter, yet more informative (ie report
     center cell)
-  - Test if it compiles in other systems
-  - Check options to integrate in
+- Test if it compiles in other systems
+- Check options to integrate in
     [i.pansharpen](https://grass.osgeo.org/grass-stable/manuals/i.pansharpen.html).
     Think of FFM methods vs. Others?
-  - Improve Documentation.lyx
+- Improve Documentation.lyx
 
 ## REFERENCES
 
-  - Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008).
+- Gangkofner, U. G., Pradhan, P. S., and Holcomb, D. W. (2008).
     Optimizing the high-pass filter addition technique for image fusion.
     PHOTOGRAMMETRIC ENGINEERING & REMOTE SENSING, 74(9):1107--1118.
-  - "ERDAS IMAGINE." Accessed March 19, 2015. [ERDAS IMAGINE
+- "ERDAS IMAGINE." Accessed March 19, 2015. [ERDAS IMAGINE
     Help](http://doc.hexagongeospatial.com/ERDAS-IMAGINE/ERDAS_IMAGINE_Help/#ii_hpfmerge_mergedialog.htm).
-  - Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
+- Aniruddha Ghosh & P.K. Joshi (2013) Assessment of pan-sharpened very
     high-resolution WorldView-2 images, International Journal of Remote
     Sensing, 34:23, 8336-8359
 

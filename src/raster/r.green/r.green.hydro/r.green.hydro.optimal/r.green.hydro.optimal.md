@@ -24,7 +24,6 @@ P=η \* ρ \* g \* Q \* Δh
 > Q the discharge of the river  
 > Δh the gross head of the considered segment
 
-  
 The module maximizes the power over a given range by a brute-force
 search in order to examine all possible arrangements of Q and Δh. Thus,
 the potential segments can be shorter than the maximum plant length
@@ -46,11 +45,9 @@ file.
 ![image-alt](r_green_hydro_optimal_input.png)  
 Input vector map availablestreams
 
-  
 The following command computes the potential plants for a plant length
 range from 10 to 800 m and a distance between plants of 800 m :  
   
-
 ```sh
 r.green.hydro.optimal
 discharge=discharge
@@ -66,7 +63,6 @@ d.vect map= potentialpoints color=red
 d.vect map= potentialplants color=blue
 ```
 
-  
 The output vector maps are shown in the following picture which gathers
 the potential segments vector map (potentialplants, in blue) and the
 potential intakes and restitution vector map (potentialpoints, in red)

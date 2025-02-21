@@ -20,8 +20,8 @@
 
 #### Links
 
-  - [{{ link\['scheme'\] if link\['scheme'\] not in \[None, 'None', ''\]
+- [{{ link\['scheme'\] if link\['scheme'\] not in \[None, 'None', ''\]
     else gettext('Access Link') }}](%7B%7B-link%5B'url'%5D-%7D%7D)
-  - [{{ link\['protocol'\] if link\['protocol'\] not in \[None, 'None',
+- [{{ link\['protocol'\] if link\['protocol'\] not in \[None, 'None',
     ''\] else gettext('Access Link')
     }}](%7B%7B-link%5B'url'%5D-%7D%7D)

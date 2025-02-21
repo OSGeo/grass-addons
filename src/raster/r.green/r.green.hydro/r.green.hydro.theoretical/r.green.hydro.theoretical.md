@@ -13,7 +13,6 @@ In this module the output is the theoretical maximum hydropower energy
 that can be converted in the ideal case without considering the
 efficiency of energy transformation.  
   
-
 ## NOTES
 
 The required inputs are the elevation raster map, the river discharge
@@ -25,7 +24,6 @@ realistic.
 Instead of the minimum size of the exterior watershed basin you can also
 enter the basin and stream maps created by r.watershed.  
   
-
 ## EXPLANATION
 
 The maximum potential hydropower establishes the theoretical maximum of
@@ -57,17 +55,13 @@ production is only given by their own potential and a lower portion,
 whose energy production is the sum of the two components, own potential
 and the potential given by the flow coming from the upper portions.  
   
-
 ![image-alt](r_green_hydro_theoretical_streams.png)  
   
 Subbasin scheme to calculate maximum potential hydropower
 
-  
-  
 The maximum potential hydropower for the upstream subbasins is given by
 the energy formula applied to the upstream inflows:  
   
-
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>up\_hydro</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
@@ -82,7 +76,7 @@ the energy formula applied to the upstream inflows:
 > Arc-GIS;  
 > H<sub>closure</sub> is the elevation at the closure point (point A in
 > the figure);</span>  
->   
+>
 
 The downstream lower subbasin (between point A and B in the figure) has
 both energy components: the potential from the upstream subbasins and
@@ -91,7 +85,6 @@ the discharge coming from the sides of the downstream lower subbasin and
 the difference between the elevation of the lower subbasin and the
 elevation at the closure point (point B in the figure):  
   
-
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>aff</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
@@ -102,7 +95,7 @@ elevation at the closure point (point B in the figure):
 > H<sub>mean</sub> is the elevation of lower subbasin;  
 > H<sub>closure</sub> is the elevation at closure point (point B in the
 > figure);</span>  
->   
+>
 
 The upstream component to the potential of the downstream lower subbasin
 is calculated taking into account the discharge coming from the upstream
@@ -110,7 +103,6 @@ subbasins and the difference between the elevation of the upstream
 closure point (point A in the figure) and the elevation at the basin
 closure (point B in the figure):  
   
-
 *E<sub>up\_max</sub> = conv \* g \* η \* ∑Q<sub>up\_hydro</sub> \*
 (H<sub>up\_closure</sub> - H<sub>closure</sub>)*  
 
@@ -120,15 +112,13 @@ closure (point B in the figure):
 > (point A in the figure);  
 > H<sub>closure</sub> is the elevation at closure point (point B in the
 > figure);</span>  
->   
+>
 
 The total maximum hydropower potential of the overall given basin is the
 sum of the different contributions computed at the subbasin level:  
   
-
 *E<sub>total\_max</sub> = E<sub>own\_max</sub> + E<sub>up\_max</sub>*  
   
-
 ## EXAMPLES
 
 **EXAMPLE 1**  
@@ -140,14 +130,10 @@ the Italian and French border.
 In the map below you can see the input files elevation and natural
 discharge.  
   
-
-  
 ![image-alt](r_green_hydro_theoretical_input.png)  
   
 input raster map with elevation and natural discharge
 
-  
-  
 For a faster run of this example, the input maps elevation and discharge
 are limited to the section that can be modified by
 r.green.hydro.theoretical using the code  
@@ -163,18 +149,12 @@ graphical user interface.
 r.green.hydro.theoretical elevation=elevation discharge=naturaldischarge rivers=streams lakes=lakes basins=basin stream=stream output=out
 ```
 
-  
 In the map below, you can see the output vector map with the basin
 potential.  
-  
-
   
 ![image-alt](r_green_hydro_theoretical_output.png)  
   
 output vector map with basin potential
-
-  
-  
 
 ## SEE ALSO
 

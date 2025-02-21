@@ -96,12 +96,12 @@ Rassmann 2010 (in German) describe a novel use of the approach to study
 prehistoric movement corridors of early Bronze Age technology through
 Europe.
 
-  - Wing, S.R., M.H.E. Bowman, F. Smith and S.M. Rutger (2004),
+- Wing, S.R., M.H.E. Bowman, F. Smith and S.M. Rutger (2004),
     *Analysis of biodiversity patterns and management decision making
     processes to support stewardship of marine resources and
     biodiversity in Fiordland - a case study*, report 2 of 3, Technical
     report, Report to the Ministry for the Environment, New Zealand.
-  - Ducke, B. and K. Rassmann (2010), *Modelling and Interpretation of
+- Ducke, B. and K. Rassmann (2010), *Modelling and Interpretation of
     the Communication Spaces of the 3rd and Early 2nd Millennium BC in
     Europe Using Diversity Gradients*   (*Modellierung und
     Interpretation der Kommunikationsräume des 3. und frühen 2.

@@ -54,7 +54,6 @@ r.viewshed.cva input=elevation output=peaks_CVA_map \
   observer_elevation=1.75 target_elevation=0
 ```
 
-  
 Undertake a cumulative viewshed analysis from a 10% sample of landscape
 locations in a region:  
 

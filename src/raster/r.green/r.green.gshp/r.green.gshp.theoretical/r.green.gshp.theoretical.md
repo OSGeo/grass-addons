@@ -15,7 +15,6 @@ The required inputs are the the thermal conductivity. If not specific
 values are indicated, reference values have been assumed for the ground
 features and the plant.  
   
-
 ## EXPLANATION
 
 *r.green.gshp.theoretical* calculates the potential of shallow
@@ -25,9 +24,9 @@ Casasso et al. (2016) as:
 > *P<sub>gshp</sub>=8\*(T<sub>0</sub> - T<sub>lim</sub>) λ L
 > t'<sub>c</sub>/(-0.619 t'<sub>c</sub> log(u'<sub>s</sub>)-0.455
 > t'<sub>c</sub>-1.619+4 π R<sub>b</sub>)*  
->   
+>
 > where
-> 
+>
 > > T<sub>0</sub> is the undisturbed ground temperature (°C),  
 > > T<sub>lim</sub> the threshold temperature of the heat carrier fluid
 > > setting to 2°C,  
@@ -56,8 +55,6 @@ r.green.gshp.theoretical \
     power=gpot_power \
     energy=gpot_energy \
 ```
-
-  
 
 ## REFERENCES
 

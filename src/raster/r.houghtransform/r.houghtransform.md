@@ -141,10 +141,10 @@ map to *r.houghtransform* module.
 
 ## REFERENCES
 
-  - M. Fiala. *Identify and Remove Hough Transform Method*. In: Proc.
+- M. Fiala. *Identify and Remove Hough Transform Method*. In: Proc.
     Vision Interface. 2003, pp. 184-187. url:
     <http://www.cipprs.org/papers/VI/VI2003/papers/S5/S5_fiala_28.pdf>.
-  - C. Galambos, J. Kittler, and J. Matas. *Using gradient information
+- C. Galambos, J. Kittler, and J. Matas. *Using gradient information
     to enhance the progressive probabilistic Hough transform*. In:
     Pattern Recognition, 2000. Proceedings. 15th International
     Conference on. Vol. 3. IEEE. 2000, pp. 560-563.

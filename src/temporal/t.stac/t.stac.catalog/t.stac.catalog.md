@@ -7,7 +7,7 @@ library and provides a set of modules for working with STAC APIs.
 
 ## REQUIREMENTS
 
-  - [PySTAC\_Client
+- [PySTAC\_Client
     (0.8.3)](https://pystac-client.readthedocs.io/en/stable/)
 
 ## EXAMPLES
@@ -159,7 +159,7 @@ Corey T. White
 
 ## Sponsors
 
-  - [OpenPlains Inc.](https://openplains.com)
-  - [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
+- [OpenPlains Inc.](https://openplains.com)
+- [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
 
 Center for Geospatial Analytics at North Carolina State University

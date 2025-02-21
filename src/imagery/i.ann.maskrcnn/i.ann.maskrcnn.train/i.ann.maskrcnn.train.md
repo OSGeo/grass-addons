@@ -10,17 +10,17 @@ Training dataset should be in the following structure:
 
 dataset-directory
 
-  - imagenumber
-      - imagenumber.jpg (training image)
-      - imagenumber-class1-number.png (mask for one instance of class1)
-      - imagenumber-class1-number.png (mask for another instance of
+- imagenumber
+  - imagenumber.jpg (training image)
+  - imagenumber-class1-number.png (mask for one instance of class1)
+  - imagenumber-class1-number.png (mask for another instance of
         class1)
-      - ...
-  - imagenumber2
-      - imagenumber2.jpg
-      - imagenumber2-class1-number.png (mask for one instance of class1)
-      - imagenumber2-class2-number.png (mask for another class instance)
-      - ...
+  - ...
+- imagenumber2
+  - imagenumber2.jpg
+  - imagenumber2-class1-number.png (mask for one instance of class1)
+  - imagenumber2-class2-number.png (mask for another class instance)
+  - ...
 
 The described structure of directories is required. Pictures must be
 \*.jpg files with 3 channels (for example RGB), masks must be \*.png
@@ -64,16 +64,16 @@ Dataset for examples:
 
 crops
 
-  - 000000
-      - 000000.jpg
-      - 000000-corn-0.png
-      - 000000-corn-1.png
-      - ...
-  - 000001
-      - 000001.jpg
-      - 000001-corn-0.png
-      - 000001-rice-0.png
-      - ...
+- 000000
+  - 000000.jpg
+  - 000000-corn-0.png
+  - 000000-corn-1.png
+  - ...
+- 000001
+  - 000001.jpg
+  - 000001-corn-0.png
+  - 000001-rice-0.png
+  - ...
 
 ### Training from scratch
 

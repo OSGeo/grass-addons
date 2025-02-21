@@ -25,23 +25,23 @@ of a CSV text file (the path to the file should be provided via the
 
 By default:
 
-  - the function compute the majority class as well as class proportions
+- the function compute the majority class as well as class proportions
     for each zone in the "base layer". If only the majority class or
     class proportion is needed, it can be specified by using the
     **statistics** parameter.
-  - the function provides the ratio of classes (total = 1) but the
+- the function provides the ratio of classes (total = 1) but the
     **-p** flag allows providing percentages (total = 100). The number
     of decimals is set to 5 by default and can be changed using the
     **decimals** parameter.
-  - the name of columns for proportions follows this logic : 'prop\_XX'
+- the name of columns for proportions follows this logic : 'prop\_XX'
     where XX is the class of the "base layer". The user can add a prefix
     to proportion columns using the **prefix** parameter.
-  - the function works under the current computation region. The **-r**
+- the function works under the current computation region. The **-r**
     flag can be used to define the computational region based on the
     "base layer" for the processing.
-  - the function ignores NULL values in statistics computation. This
+- the function ignores NULL values in statistics computation. This
     behaviour can be reverted using the **-n** flag.
-  - the function provides proportion columns only for classes that
+- the function provides proportion columns only for classes that
     actually exist in the "base layer" under the current computational
     region. This can create problems when the user run the function on
     different computational region with the aim to merge outputs at the
@@ -60,7 +60,7 @@ By default:
     same number (and order) of columns. Please notice that the
     computation of the mode is not affected by the list of classes
     provided in the **classes\_list** parameter.
-  - there is no check for the type of input's raster which is intended
+- there is no check for the type of input's raster which is intended
     to be "CELL". This behaviour can be reversed using the **-c** flag.
 
 ## EXAMPLES

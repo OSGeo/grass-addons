@@ -22,10 +22,10 @@ v.in.csv input=latest_sites.csv output=sampling_sites latitude=Site_Lat longitud
 
 ## SEE ALSO
 
-  - *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
+- *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
     for the underlying module with finer control (but not coordinate
     transformation),
-  - *[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
+- *[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
     for an alternative CSV import using GDAL/OGR.
 
 ## AUTHOR

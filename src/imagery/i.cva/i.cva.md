@@ -18,20 +18,20 @@ running CVA.
 
 Four parameters are required in input:
 
-  - **xaraster**: first date map for X axis,
-  - **xbraster**: second date map for X axis,
-  - **yaraster**: first date map for Y axis,
-  - **ybraster**: second date map for Y axis.
+- **xaraster**: first date map for X axis,
+- **xbraster**: second date map for X axis,
+- **yaraster**: first date map for Y axis,
+- **ybraster**: second date map for Y axis.
 
 The following maps can be generated in output:
 
-  - *basename*\_angle: map of the angles of the change vector between
+- *basename*\_angle: map of the angles of the change vector between
     the two dates;
-  - *basename*\_angle\_class: map of the angles, classified by the four
+- *basename*\_angle\_class: map of the angles, classified by the four
     quadrants (0-90, 90-180, ...);
-  - *basename*\_magnitude: map of the magnitudes of the change vector
+- *basename*\_magnitude: map of the magnitudes of the change vector
     between the two dates;
-  - *basename*\_change: final map of the change
+- *basename*\_change: final map of the change
 
 The change detection map is created using the classified angle map and
 applying a threshold to the magnitude: the change is given by the pixels
@@ -131,10 +131,10 @@ r.colors map=CVA_87_02_change rules=i_cva_color_rules.csv
 
 ## REFERENCES
 
-  - Malila W A, Lafayette W. Change Vector Analysis (1980): An Approach
+- Malila W A, Lafayette W. Change Vector Analysis (1980): An Approach
     for Detecting Forest Changes with Landsat. LARS Symp., pp. 326-335
     ([PDF](https://docs.lib.purdue.edu/lars_symp/385/))
-  - Zanchetta, A., Bitelli, G. & Karnieli, A. (2016): Monitoring
+- Zanchetta, A., Bitelli, G. & Karnieli, A. (2016): Monitoring
     desertification by remote sensing using the Tasselled Cap transform
     for long-term change detection. Nat Hazards, 83(Suppl 1):223-237.
     ([DOI](https://doi.org/10.1007/s11069-016-2342-9))

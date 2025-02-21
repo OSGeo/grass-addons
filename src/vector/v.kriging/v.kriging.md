@@ -5,36 +5,36 @@ discrete points using interpolation method *ordinary kriging*. In order
 to let the user decide on the process and necessary parameters, the
 module performance is divided into three phases:
 
-  - **initial phase** computes experimental variogram.
-      - Please set up a name of the **report file**. The file will be
+- **initial phase** computes experimental variogram.
+  - Please set up a name of the **report file**. The file will be
         created automatically in working directory to enable import of
         parameters from current to following phases. If the file has
         been deleted during the module performance, the user is asked to
         start interpolation again from the initial phase.
-      - Warning about particular point and "*less than 2 neighbours in
+  - Warning about particular point and "*less than 2 neighbours in
         its closest surrounding. The perimeter of the surrounding will
         be increased...*" indicates that variogram range should be
         shortened.
-      - There will appear some temporary files during variogram
+  - There will appear some temporary files during variogram
         computation. They will be deleted automatically in following
         phase. If missing, the user is asked to repeat initial phase.
-      - It is not necessary to save experimental variogram plots. They
+  - It is not necessary to save experimental variogram plots. They
         just help to estimate parameters of theoretical variogram that
         will be computed in following step (output contains experimental
         and theoretical variogram plotted together).
-  - in the **middle phase**, the user estimates theoretical variogram
+- in the **middle phase**, the user estimates theoretical variogram
     setting up the range (if necessary, the sill and the nugget effect
     as well) to fit the experimental variogram from previous phase.
-      - Default *sill* is calculated from variogram values, more details
+  - Default *sill* is calculated from variogram values, more details
         in (*Stopkova, 2014*).
-      - Save horizontal and vertical variogram plots using
+  - Save horizontal and vertical variogram plots using
         *file=extension*.
-      - Experimental anisotropic / bivariate variogram is plotted as a
+  - Experimental anisotropic / bivariate variogram is plotted as a
         base for final theoretical variogram parameters estimation in
         final phase.
-  - **final phase** performs interpolation based on parameters of
+- **final phase** performs interpolation based on parameters of
     theoretical variogram.
-      - Save anisotropic or bivariate variogram plot using
+  - Save anisotropic or bivariate variogram plot using
         *file=extension*.
 
 ## EXAMPLES
@@ -113,21 +113,21 @@ file=png out=lid792_500_linear crossval=lid792_500_xval_linear.txt -2 --o
 
 ## TODO
 
-  - **anisotropy** in horizontal direction missing
-  - current version is suitable just for **metric coordinate systems**
-  - enable **mask usage**
-  - **bivariate variogram** needs to be rebuilt (theory)
-  - **2D interpolation from 3D input layer** needs to be rebuilt
+- **anisotropy** in horizontal direction missing
+- current version is suitable just for **metric coordinate systems**
+- enable **mask usage**
+- **bivariate variogram** needs to be rebuilt (theory)
+- **2D interpolation from 3D input layer** needs to be rebuilt
     (especially in case that there are too many points located on
     identical horizontal coordinates with different elevation)
 
 ## Recommendations
 
-  - In case of too much *warnings* about input points that have "**less
+- In case of too much *warnings* about input points that have "**less
     than 2 neighbours in its closest surrounding**. The perimeter of the
     surrounding will be increased...", please consider shorter variogram
     range.
-  - Save just figures with theoretical variogram (using *file=extension*
+- Save just figures with theoretical variogram (using *file=extension*
     in the middle and final phase). Experimental variograms are included
     in the theoretical variogram plot and separate "experimental" plots
     can be just temporal.
@@ -153,8 +153,8 @@ Slovak University of Technology in Bratislava, Slovakia.
 
 ## REQUIREMENTS
 
-  - **Gnuplot** graphing utility, [more](http://www.gnuplot.info/)  
-  - **LAPACK / BLAS** (libraries for numerical computing) for GMATH
+- **Gnuplot** graphing utility, [more](http://www.gnuplot.info/)  
+- **LAPACK / BLAS** (libraries for numerical computing) for GMATH
     library (GRASS Numerical Library)  
     <https://www.netlib.org/lapack> (usually available on Linux distros)
 

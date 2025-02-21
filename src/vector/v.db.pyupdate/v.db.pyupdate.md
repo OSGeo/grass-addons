@@ -168,19 +168,19 @@ v.db.pyupdate map=buildings column="name" expression="f'Building num. {building_
 
 ## SEE ALSO
 
-  - *[v.db.addcolumn](https://grass.osgeo.org/grass-stable/manuals/v.db.addcolumn.html)*
+- *[v.db.addcolumn](https://grass.osgeo.org/grass-stable/manuals/v.db.addcolumn.html)*
     to add a new column (to be filled with values later),
-  - *[v.db.update](https://grass.osgeo.org/grass-stable/manuals/v.db.update.html)*
+- *[v.db.update](https://grass.osgeo.org/grass-stable/manuals/v.db.update.html)*
     for attribute updates using SQL,
-  - *[db.execute](https://grass.osgeo.org/grass-stable/manuals/db.execute.html)*
+- *[db.execute](https://grass.osgeo.org/grass-stable/manuals/db.execute.html)*
     to execute general SQL statements,
-  - *[v.db.addtable](https://grass.osgeo.org/grass-stable/manuals/v.db.addtable.html)*
+- *[v.db.addtable](https://grass.osgeo.org/grass-stable/manuals/v.db.addtable.html)*
     to add a new table to an existing vector map,
-  - *[v.db.connect](https://grass.osgeo.org/grass-stable/manuals/v.db.connect.html)*
+- *[v.db.connect](https://grass.osgeo.org/grass-stable/manuals/v.db.connect.html)*
     to find details about attribute storage,
-  - *[v.db.join](https://grass.osgeo.org/grass-stable/manuals/v.db.join.html)*
+- *[v.db.join](https://grass.osgeo.org/grass-stable/manuals/v.db.join.html)*
     to add columns from one table to another,
-  - *[v.db.select](https://grass.osgeo.org/grass-stable/manuals/v.db.select.html)*
+- *[v.db.select](https://grass.osgeo.org/grass-stable/manuals/v.db.select.html)*
     to obtain values from an attribute and test WHERE clauses.
 
 ## AUTHOR

@@ -97,13 +97,13 @@ r.futures.pga -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope \
 
 ## REFERENCES
 
-  - Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
+- Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
     Cunniffe, N. J., & Shoemaker, D. A. (2013). [FUTURES: Multilevel
     Simulations of Emerging Urban-Rural Landscape Structure Using a
     Stochastic Patch-Growing
     Algorithm](https://doi.org/10.1080/00045608.2012.707591). Annals of
     the Association of American Geographers, 103(4), 785-807.
-  - Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
+- Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
     (2015). [Simulating urbanization scenarios reveals tradeoffs between
     conservation planning
     strategies](https://doi.org/10.1016/j.landurbplan.2014.11.011).

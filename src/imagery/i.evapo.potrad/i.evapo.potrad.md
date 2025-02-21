@@ -26,12 +26,12 @@ known.
 
 ## REFERENCES
 
-  - Bastiaanssen, W.G.M., 1995. Regionalization of surface flux
+- Bastiaanssen, W.G.M., 1995. Regionalization of surface flux
     densities and moisture indicators in composite terrain; a remote
     sensing approach under clear skies in mediterranean climates. PhD
     thesis, Wageningen Agricultural Univ., The Netherland, 271 pp.
     ([PDF](https://edepot.wur.nl/206553))
-  - Chemin, Y., 2012. A Distributed Benchmarking Framework for Actual ET
+- Chemin, Y., 2012. A Distributed Benchmarking Framework for Actual ET
     Models, in: Irmak, A. (Ed.), Evapotranspiration - Remote Sensing and
     Modeling. InTech.
     ([PDF](https://www.intechopen.com/books/evapotranspiration-remote-sensing-and-modeling/a-distributed-benchmarking-framework-for-actual-et-models),

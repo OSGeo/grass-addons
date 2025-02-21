@@ -51,13 +51,13 @@ Without using the *-v* flag
 (*[r.fillnulls](https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html)*
 interpolation), intermediate maps have the following suffixes:
 
-  - `_smooth_elevation`: The result of running the low pass filter on
+- `_smooth_elevation`: The result of running the low pass filter on
     the DEM.
-  - `_subtracted_smooth_elevation`: The result of subtracting the low
+- `_subtracted_smooth_elevation`: The result of subtracting the low
     pass filter map from the DEM.
-  - `_raster_contours_with_values`: The rasterized zero contours with
+- `_raster_contours_with_values`: The rasterized zero contours with
     the values from elevation map.
-  - `_purged_elevation`: The raster interpolated from the
+- `_purged_elevation`: The raster interpolated from the
     \_raster\_contours\_with\_values map based that represents the
     large-scale landforms.
 
@@ -65,14 +65,14 @@ With using the *-v* flag
 (*[v.surf.bspline](https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html)*
 interpolation), intermediate maps have the following suffixes:
 
-  - `_smooth_elevation`: The result of running the low pass filter on
+- `_smooth_elevation`: The result of running the low pass filter on
     the DEM.
-  - `_subtracted_smooth_elevation`: The result of subtracting the low
+- `_subtracted_smooth_elevation`: The result of subtracting the low
     pass filter map from the DEM.
-  - `_vector_contours`: The zero contours extracted from the DEM.
-  - `_contour_points`: The points extractacted along the zero contour
+- `_vector_contours`: The zero contours extracted from the DEM.
+- `_contour_points`: The points extractacted along the zero contour
     lines with the input DEM elevation values.
-  - `_purged_elevation`: The raster interpolated from the
+- `_purged_elevation`: The raster interpolated from the
     \_contour\_points map that represents the large-scale landforms.
 
 The module sets equalized gray scale color table for local relief model
@@ -150,10 +150,10 @@ color table
 
 ## REFERENCES
 
-  - Hesse, Ralf (2010). LiDAR-derived Local Relief Models - a new tool
+- Hesse, Ralf (2010). LiDAR-derived Local Relief Models - a new tool
     for archaeological prospection. *Archaeological Prospection*
     17:67-72.
-  - Bennett, Rebecca (2011). *Archaeological Remote Sensing:
+- Bennett, Rebecca (2011). *Archaeological Remote Sensing:
     Visualization and Analysis of grass-dominated environments using
     laser scanning and digital spectra data.* Unpublished PhD Thesis.
     Electronic Document,

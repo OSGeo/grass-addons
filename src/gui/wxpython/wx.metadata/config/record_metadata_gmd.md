@@ -67,5 +67,5 @@ obj.identification.extent.boundingBox.maxy\]|join(',') }}
 
 #### Links
 
-  - [{{ cod if cod not in \[None, 'None', ''\] else gettext('Access
+- [{{ cod if cod not in \[None, 'None', ''\] else gettext('Access
     Link') }}](%7B%7B-cod-%7D%7D)

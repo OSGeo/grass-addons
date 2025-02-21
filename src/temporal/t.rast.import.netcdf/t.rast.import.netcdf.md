@@ -30,7 +30,7 @@ in a NetCDF file can be imported as "semantic\_label" into one STRDS. To
 achieve this, a configuration file has to be provided in the
 **semantic\_labels** option. That configuration file maps subdatasets in
 the NetCDF file to GRASS GIS semantic\_labels. Each line in that file
-must have the following format: ` 
+must have the following format: `
 input_netcdf_subdataset=grass_gis_semantic_label ` The equal sign *=* is
 required. If a semantic\_labels configuration file is provided, the
 import of subdatasets is limited to those subdatasets listed in the
@@ -57,9 +57,9 @@ Support of semantic\_labels is only available with GRASS GIS 8.0 or
 later. *t.rast.import.netcdf* uses the following non-standard Python
 modules:
 
-  - [numpy](https://pypi.org/project/numpy)
-  - [GDAL](https://pypi.org/project/GDAL) (preferably version \>= 3.4.1)
-  - [cf-units](https://pypi.org/project/cf-units)
+- [numpy](https://pypi.org/project/numpy)
+- [GDAL](https://pypi.org/project/GDAL) (preferably version \>= 3.4.1)
+- [cf-units](https://pypi.org/project/cf-units)
 
 ## EXAMPLES
 

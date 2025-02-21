@@ -10,7 +10,7 @@ structure of conversion events (PGA submodel).
 
 ### Submodels
 
-  - *DEMAND*  
+- *DEMAND*  
     DEMAND estimates the rate of per capita land consumption specific to
     each subregion. Projections of land consumption are based on
     extrapolations between historical changes in population and land
@@ -20,7 +20,7 @@ structure of conversion events (PGA submodel).
     over time can be derived for the USA, e.g. from National Land Cover
     Dataset. A possible implementation of the DEMAND submodel is
     available as module *[r.futures.demand](r.futures.demand.md)*.
-  - *POTENTIAL*  
+- *POTENTIAL*  
     The POTENTIAL submodel uses site suitability modeling approaches to
     quantify spatial gradients of land development potential. The model
     uses multilevel logistic regression to account for hierarchical
@@ -37,7 +37,7 @@ structure of conversion events (PGA submodel).
     *[r.futures.devpressure](r.futures.devpressure.md)*) which is
     updated each step and thus creates positive feedback resulting in
     new development attracting even more development.
-  - *PGA*  
+- *PGA*  
     Patch-Growing Algorithm is a stochastic algorithm, which simulates
     undeveloped to developed land change by iterative site selection and
     a contextually aware region growing mechanism. Simulations of change
@@ -53,20 +53,20 @@ Figure: FUTURES submodels and input data
 
 We need to collect the following data:
 
-  - *Study extent and resolution*  
+- *Study extent and resolution*  
     Specified with *[g.region](g.region.md)* command.
-  - *Subregions*  
+- *Subregions*  
     FUTURES is designed to capture variation across specified subregions
     within the full study extent. Subregions can be for example
     counties. DEMAND and POTENTIAL can both be specified according to
     subregions. Subregion raster map contains the subregion index for
     each cell as integer starting from 1. If you do not wish to model by
     subregion, all values in this map should be 1.
-  - *Population data*  
+- *Population data*  
     DEMAND submodel needs historical population data for each subregion
     for reference period and population projections for the simulated
     period.
-  - *Development change*  
+- *Development change*  
     Based on the change in developed cells in the beginning and end of
     the reference period, and the population data, DEMAND computes how
     many cells to convert for each region at each time step. Development
@@ -76,11 +76,11 @@ We need to collect the following data:
     representing the starting state of the landscape at the beginning of
     the simulation (developed = 1, available for development = 0,
     excluded from development as NULLs).
-  - *Predictors*  
+- *Predictors*  
     Development potential (POTENTIAL submodel) requires a set of
     uncorrelated predictors (raster maps) driving the land change. These
     can include distance to roads, distance to interchanges, slope, ...
-  - *Development pressure*  
+- *Development pressure*  
     The development pressure variable is one of the predictors, but it
     is recalculated at each time step to allow for positive feedback
     (new development attracts more development). For computing
@@ -164,20 +164,20 @@ yellow gradient represents new development where yellow is the latest.*
 
 ## REFERENCES
 
-  - Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
+- Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B.,
     Cunniffe, N. J., & Shoemaker, D. A. (2013). [FUTURES: Multilevel
     Simulations of Emerging Urban-Rural Landscape Structure Using a
     Stochastic Patch-Growing
     Algorithm](https://doi.org/10.1080/00045608.2012.707591). Annals of
     the Association of American Geographers, 103(4), 785-807. DOI:
     10.1080/00045608.2012.707591
-  - Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
+- Dorning, M. A., Koch, J., Shoemaker, D. A., & Meentemeyer, R. K.
     (2015). [Simulating urbanization scenarios reveals tradeoffs between
     conservation planning
     strategies](https://doi.org/10.1016/j.landurbplan.2014.11.011).
     Landscape and Urban Planning, 136, 28-39. DOI:
     10.1016/j.landurbplan.2014.11.011
-  - Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
+- Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova,
     H., & Meentemeyer, R. K. (2016). [Open Source Approach to Urban
     Growth
     Simulation](https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf).

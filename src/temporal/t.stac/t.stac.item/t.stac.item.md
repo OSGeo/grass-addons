@@ -20,12 +20,12 @@ specification.
 
 ## REQUIREMENTS
 
-  - [PySTAC
+- [PySTAC
     (1.10.x)](https://pystac.readthedocs.io/en/stable/installation.html)
-  - [PySTAC\_Client
+- [PySTAC\_Client
     (0.8)](https://pystac-client.readthedocs.io/en/stable/)
-  - tqdm (4.66.x)
-  - numpy (1.26.x)
+- tqdm (4.66.x)
+- numpy (1.26.x)
 
 ## EXAMPLES
 
@@ -205,7 +205,7 @@ Corey T. White
 
 ## Sponsors
 
-  - [OpenPlains Inc.](https://openplains.com)
-  - [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
+- [OpenPlains Inc.](https://openplains.com)
+- [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
 
 Center for Geospatial Analytics at North Carolina State University

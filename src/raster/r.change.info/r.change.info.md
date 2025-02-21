@@ -41,15 +41,15 @@ and patches are identified. The size and category of each patch are
 recorded. From these cell and patch statistics, three kinds of patterns
 (distributions) are calculated:
 
-  - **1. Distributions over categories (e.g land cover class)**  
+- **1. Distributions over categories (e.g land cover class)**  
     This provides information about changes in categories (e.g land
     cover class), e.g. if one category becomes more prominent. This
     detects changes in category composition.
-  - **2. Distributions over size classes**  
+- **2. Distributions over size classes**  
     This provides information about fragmentation, e.g. if a few large
     fragments are broken up into many small fragments. This detects
     changes in fragmentation.
-  - **3. Distributions over categories and size classes.**  
+- **3. Distributions over categories and size classes.**  
     This provides information about whether particular combinations of
     category and size class changed between input maps. This detects
     changes in the general landscape structure.
@@ -210,13 +210,13 @@ r.change.info in=`g.list type=rast pat=MCD12Q1.A*.Land_Cover_Type_1 sep=,` \
 
 ## REFERENCES
 
-  - Quinlan, J.R. 1986. Induction of decision trees. Machine Learning 1:
+- Quinlan, J.R. 1986. Induction of decision trees. Machine Learning 1:
     81-106. [DOI:10.1007/BF00116251](https://doi.org/10.1007/BF00116251)
-  - Rényi, A. 1961. [On measures of information and
+- Rényi, A. 1961. [On measures of information and
     entropy.](https://digitalassets.lib.berkeley.edu/math/ucb/text/math_s4_v1_article-27.pdf)
     Proceedings of the fourth Berkeley Symposium on Mathematics,
     Statistics and Probability 1960: 547-561.
-  - Shannon, C.E. 1948. A Mathematical Theory of Communication. Bell
+- Shannon, C.E. 1948. A Mathematical Theory of Communication. Bell
     System Technical Journal 27(3): 379-423.
     [DOI:10.1002/j.1538-7305.1948.tb01338.x](https://doi.org/10.1002/j.1538-7305.1948.tb01338.x)
 

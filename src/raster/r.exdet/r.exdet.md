@@ -51,13 +51,13 @@ variables, each representing conditions at different times. The function
 can also be used to compare the conditions in two different areas. This
 can be done in three different ways:
 
-  - The user can provide two different sets of environmental variables,
+- The user can provide two different sets of environmental variables,
     each covering a different area.
-  - The user can provide a mask and a set of data layers describing the
+- The user can provide a mask and a set of data layers describing the
     reference conditions. Conditions outside the area defined by the
     mask will then be compared with the conditions within the area
     defined by the mask.
-  - The user can provide a
+- The user can provide a
     [region](https://grass.osgeo.org/grass64/manuals/g.region.html) and
     a set of data layers describing the reference conditions. Conditions
     in the region defined by the user are compared to the conditions in
@@ -91,14 +91,14 @@ r.exdet -p reference=AusBio13@example,AusBio14,AusBio5,AusBio6 projection=SaBio1
 When using this tool, please cite the paper describing the method in
 your publications or other derived products.
 
-  - Mesgaran, M.B., Cousens, R.D. and Webber, B.L. (2014) Here be
+- Mesgaran, M.B., Cousens, R.D. and Webber, B.L. (2014) Here be
     dragons: a tool for quantifying novelty due to covariate range and
     correlation change when projecting species distribution models.
     Diversity & Distributions, 20: 1147-1159, DOI: 10.1111/ddi.12209.
 
 If you want, in addition, to cite this tool, you can use:
 
-  - van Breugel, P. (2016) r.exdet, a GRASS GIS addon for the
+- van Breugel, P. (2016) r.exdet, a GRASS GIS addon for the
     quantification of novel uni- and multi-variate environments. URL:
     https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html
 

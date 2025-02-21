@@ -58,8 +58,8 @@ d.rast map=raster_map
 
 ## REQUIREMENTS
 
-  - [nnbathy](https://github.com/sakov/nn-c) library by Pavel Sakov
-  - *[v.surf.nnbathy](v.surf.nnbathy.md)*
+- [nnbathy](https://github.com/sakov/nn-c) library by Pavel Sakov
+- *[v.surf.nnbathy](v.surf.nnbathy.md)*
 
 ## SEE ALSO
 

@@ -2,27 +2,27 @@
 
 The *i.sentinel* toolset consists of currently six modules:
 
-  - [i.sentinel.coverage](i.sentinel.coverage.md)  
+- [i.sentinel.coverage](i.sentinel.coverage.md)  
     checks the area coverage of Sentinel-1 or Sentinel-2 scenes selected
     by filters
-  - [i.sentinel.download](i.sentinel.download.md)  
+- [i.sentinel.download](i.sentinel.download.md)  
     downloads Copernicus Sentinel products from [Copernicus Open Access
     Hub](https://scihub.copernicus.eu/)
-  - [i.sentinel.parallel.download](i.sentinel.parallel.download.md)  
+- [i.sentinel.parallel.download](i.sentinel.parallel.download.md)  
     downloads parellelized (using i.sentinel.download) Copernicus
     Sentinel products from [Copernicus Open Access
     Hub](https://scihub.copernicus.eu/)
-  - [i.sentinel.import](i.sentinel.import.md)  
+- [i.sentinel.import](i.sentinel.import.md)  
     imports already downloaded Sentinel products into GRASS GIS mapset
-  - [i.sentinel.preproc](i.sentinel.preproc.md)  
+- [i.sentinel.preproc](i.sentinel.preproc.md)  
     imports and performs atmospheric correction on Sentinel-2 images
-  - [i.sentinel.mask](i.sentinel.mask.md)  
+- [i.sentinel.mask](i.sentinel.mask.md)  
     creates clouds and shadows masks for Sentinel-2 images
 
 ## REQUIREMENTS
 
-  - [Sentinelsat library](https://pypi.org/project/sentinelsat/)
-  - [Pandas library](https://pypi.org/project/pandas/)
+- [Sentinelsat library](https://pypi.org/project/sentinelsat/)
+- [Pandas library](https://pypi.org/project/pandas/)
 
 ## AUTHORS
 

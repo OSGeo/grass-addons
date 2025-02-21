@@ -20,15 +20,15 @@ Patch Index analysis.
 
 The *method* operators determine what measure is applied on the nth NN.
 
-  - **Distance**  
+- **Distance**  
     The *Average* computes the average distance of the n NN.
-  - **Path distance**  
+- **Path distance**  
     The *path\_distance* computes the actual distance to the n NN.
-  - **Area**  
+- **Area**  
     The *area* computes the area of the n NN.
-  - **Perimeter**  
+- **Perimeter**  
     The *perimeter* computes the perimeter of the n NN.
-  - **SHAPE Index**  
+- **SHAPE Index**  
     The *shapeindex* computes the SHAPE Index of the n NN.
 
 ### Statmethod setting:
@@ -36,11 +36,11 @@ The *method* operators determine what measure is applied on the nth NN.
 The *statmethod* operators determine what statistic measure is applied
 on the nth NN.
 
-  - **Average**  
+- **Average**  
     The *Average* computes the average distance of the n NN.
-  - **Variance**  
+- **Variance**  
     The *Variance* computes the variance of the distance of the n NN.
-  - **Std. Dev.**  
+- **Std. Dev.**  
     The *Std. Dev* computes the std. dev. of the distance of the n NN.
 
 ### Number:

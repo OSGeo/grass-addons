@@ -20,18 +20,17 @@ On the example of dataset that contains 2000 randomly distributed
 points, basic settings of analysis dimension (2D or 3D) will be
 examined:
 
-  - **2D NNA** may be performed using **2D vector layer**. If 2D NNA is
+- **2D NNA** may be performed using **2D vector layer**. If 2D NNA is
     required to be performed using **3D vector layer**,
     <span class="underline">flag *-2*</span> should be marked. The
     results of both cases can be seen below.
-    
+
     ```sh
     v.nnstat input=rand_2000_2d
     ```
-    
 
     Output in the command line:
-    
+
     <table>
     <colgroup>
     <col style="width: 100%" />
@@ -42,14 +41,13 @@ examined:
     </tr>
     </tbody>
     </table>
-    
+
     ```sh
     v.nnstat input=rand_2000_3d -2
     ```
-    
 
     Output in the command line:
-    
+
     <table>
     <colgroup>
     <col style="width: 100%" />
@@ -60,26 +58,25 @@ examined:
     </tr>
     </tbody>
     </table>
-    
+
     **NOTE:** Comparing the results of 2D NNA with results summarized in
     ([Stopkova, 2013](https://doi.org/10.14311/gi.11.2)), there can be
     seen small difference between the values of area. It is assumed to
     be caused by differences in transformed coordinates of the convex
     hull that have been computed using two versions of the module.
 
-  - **3D NNA** can be performed just using **3D vector layer**. If 3D
+- **3D NNA** can be performed just using **3D vector layer**. If 3D
     NNA is required to be performed using **2D vector layer**,
     <span class="underline">name of the column in attribute table that
     contains elevation values</span> must be set. The results of both
     cases can be seen below.
-    
+
     ```sh
     v.nnstat input=rand_2000_3d
     ```
-    
 
     Output in the command line:
-    
+
     <table>
     <colgroup>
     <col style="width: 100%" />
@@ -90,14 +87,13 @@ examined:
     </tr>
     </tbody>
     </table>
-    
+
     ```sh
     v.nnstat input=rand_2000_2d zcolumn=z
     ```
-    
 
     Output in the command line:
-    
+
     <table>
     <colgroup>
     <col style="width: 100%" />
@@ -109,7 +105,7 @@ examined:
     </tbody>
     </table>
 
-  - **Warning**: If flag *-2* is set up together with *zcolumn*, the
+- **Warning**: If flag *-2* is set up together with *zcolumn*, the
     flag will have higher priority and 2D NNA will be performed.
 
 ### Comparison of various datasets
@@ -119,7 +115,7 @@ seen other examples (also clustered and dispersed datasets).
 
 ## TODO
 
-  - add **graphical output**
+- add **graphical output**
 
 ## SEE ALSO
 
@@ -134,7 +130,7 @@ Neighbour Analysis in three-dimensional space,
 
 ## REQUIREMENTS
 
-  - **LAPACK / BLAS** (libraries for numerical computing) for GMATH
+- **LAPACK / BLAS** (libraries for numerical computing) for GMATH
     library (GRASS Numerical Library)  
     <https://www.netlib.org/lapack> (usually available on Linux distros)
 

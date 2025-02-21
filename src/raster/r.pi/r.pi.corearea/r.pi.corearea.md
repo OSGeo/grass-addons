@@ -22,21 +22,21 @@ The assigned distance weight is computed as:
 w(d) = 1 - (d / d\_max)^(tan(dist\_weight \* 0.5 \* pi))  
 where:  
 
-  - d = Distance of the respective cell
-  - d\_max - the defined maximum distance
-  - dist\_weight - the parameter how to weight the pixel values in the
+- d = Distance of the respective cell
+- d\_max - the defined maximum distance
+- dist\_weight - the parameter how to weight the pixel values in the
     landscape depending on the distance  
 
 the *dist\_weight* has a range between 0 and 1 and results in:
 
-  - 0 \< dist\_weight \< 0.5: the weighting curve decreases at low
+- 0 \< dist\_weight \< 0.5: the weighting curve decreases at low
     distances to the fragment and lowers to a weight of 0 at d=d\_max
-  - dist\_weight = 0.5: linear decrease of weight until weight of 0 at d
+- dist\_weight = 0.5: linear decrease of weight until weight of 0 at d
     = d\_max
-  - 0.5 \< dist\_weight \< 1: the weighting curve decreases slowly at
+- 0.5 \< dist\_weight \< 1: the weighting curve decreases slowly at
     low distances and approaches weight value of 0 at higher distances
     from the fragment, the weight value 0 is reached at d = d\_max
-  - dist\_weight = 1: no distance weight applied, common static edge
+- dist\_weight = 1: no distance weight applied, common static edge
     depth used
 
 ### propmap
@@ -46,9 +46,9 @@ matrix. This has an ecological application if certain landscape features
 inside a e.g. forest fragment hamper the human impact (edge effects).  
 two methods exist:  
 
-  - propmethod=linear: propagated value = actual value - (propmap value
+- propmethod=linear: propagated value = actual value - (propmap value
     at this position)  
-  - propmethod=exponential: propagated value = actual value / (propmap
+- propmethod=exponential: propagated value = actual value / (propmap
     value at this position)  
 
 If 0 is chosen using the linear method, then propagated value=actual

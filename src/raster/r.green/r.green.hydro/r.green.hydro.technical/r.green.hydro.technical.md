@@ -27,12 +27,9 @@ penstock, whereas the segment of the plant corresponds to the part of
 the river (water not diverted) between the intake (A) and the
 restitution (F).  
   
-
 ![image-alt](r_green_hydro_technical_picstruct.png)  
 Structure of the plants considered in the module
 
-  
-  
 The power is maximized for the highest head in the penstock so the
 derivation channel is computed along the same quote (the low slope is
 neglected here) until the point which maximizes the head along the
@@ -42,36 +39,35 @@ to determine which one produces the most power.
 Using the computed structure, the module calculates the **head
 losses**:  
   
-
 > \- in the derivation channel  
-> 
+>
 > > There are regular losses calculated thanks to Manning's formula:
 > > *Δh<sub>deriv</sub>=L\*(Q/(ks\*A\*Rh<sup>2/3</sup>))<sup>2</sup>*  
-> > 
+> >
 > > > where Rh is the hydraulic radius (m),  
 > > > A the cross sectional area of flow (m<sup>2</sup>),  
 > > > L is the channel length (m),  
 > > > Q is the discharge (m<sup>3</sup>/s),  
 > > > ks the Strickler coefficient (m<sup>1/3</sup>/s), we consider
 > > > steel as default parameter, with ks=75 m<sup>1/3</sup>/s.  
-> > >   
-> 
+> > >
+>
 > \- in the forebay tank  
-> 
+>
 > > There are singular losses caused by the change of section in the
 > > forebay tank and the change of direction in the penstock (steep
 > > slope).  
 > > In any case, singular head losses are expressed like this:
 > > *Δh<sub>sing</sub>=K\*V<sup>2</sup>/(2g)*  
-> > 
+> >
 > > > where V is the velocity (m/s),  
 > > > g the gravity term (9,81 m/s<sup>2</sup>),  
 > > > K is a coefficient determined according to the kind of
 > > > singularity.
-> > 
+> >
 > > In our case, the singular losses are the sum of the ones for these
 > > three phenomena:  
-> > 
+> >
 > > > \- enlargement at the entrance of the forebay tank:
 > > > K<sub>1</sub>=1 and V=1 m/s  
 > > > \- narrowing at the exit of the forebay tank: K<sub>2</sub>=0.5
@@ -79,20 +75,20 @@ losses**:
 > > > \- bend at the beginning of the penstock: K<sub>3</sub>=(gross
 > > > head/L)<sup>2</sup>+2\*sin(ASIN(gross head/L)/2)<sup>4</sup> and
 > > > V=4Q/(πD<sup>2</sup>) m/s  
-> > >   
-> 
+> > >
+>
 > \- in the penstock  
-> 
+>
 > > There are regular losses calculated thanks to this formula:
 > > *Δh<sub>pen</sub>=(f\*8\*L\*Q<sup>2</sup>)/(π<sup>2</sup>\*D<sup>5</sup>\*g)*  
-> > 
+> >
 > > > where L is the penstock length (m),  
 > > > D is the penstock diameter (m),  
 > > > Q is the discharge (m<sup>3</sup>/s),  
 > > > f is the Darcy-Weisbach friction coefficient, which can be
 > > > determined by Colebrooke formula. We consider steel by default
 > > > with absolute roughness of ε = 0,015 mm.  
-> > >   
+> > >
 
 Then, the module chooses the **turbine** which is the most accurate for
 each plant. The data of possible turbines of which you have to enter the
@@ -108,8 +104,8 @@ If you want to create an additional text file for another turbine model,
 the file has to have this scheme with the correct information at the
 corresponding lines:  
 
-> 
-> 
+>
+>
 > ```sh
 > TURBINE               ALPHA_C
 > Name of the turbine    Value of alpha_c
@@ -121,7 +117,7 @@ corresponding lines:
 > Coordinates of the curve efficiency=f(QW/Q_design)
 > 
 > ```
-> 
+>
 
 In the turbine folder there is already the text file called list with a
 large choice of turbines available. You have to enter the path of the
@@ -151,7 +147,7 @@ It corresponds to *P=η\*ρ\*g\*Q\*Δh<sub>net</sub>*
 > Q the discharge (m<sup>3</sup>/s),  
 > Δh<sub>net</sub> the net head, that means the gross head minus head
 > losses  
->   
+>
 
 The output map of the module is the one with the structure for each
 plant, including in the **table** the data of:  
@@ -162,7 +158,7 @@ plant, including in the **table** the data of:
 > \- side of the river (option0 or option1)  
 > \- diameter of the channel (m)  
 > \- losses in the channel (m)  
->   
+>
 > Moreover, only in the penstock's line of the structure, there are:  
 > \- singular losses (m) in the forebay tank between the derivation
 > channel and the penstock  
@@ -195,8 +191,6 @@ These potential plants have a maximum length of 800 m and a distance of
 ![image-alt](r_green_hydro_technical_input.png)  
 Potential intakes and restitutions
 
-  
-  
 The following command that you can either put in the command console or
 the GUI of r.green.hydro.technical computes the structure of the
 potential plants for each side of the river and includes the corrected
@@ -207,17 +201,12 @@ r.green.hydro.technical plant=potentialplants elevation=elevation output_struct=
 turbine_folder=/pathtothefileoftheturbine_folder  turbine_list=/pathtothefileoftheturbine_list
 ```
 
-  
 The result is shown in the following vector map called techplants. The
 table of this map is completed as explained in the end of the NOTES
 part.  
   
-
 ![image-alt](r_green_hydro_technical_output.png)  
 Structure of the potential plants in black (techplants map)
-
-  
-  
 
 ## SEE ALSO
 

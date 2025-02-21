@@ -91,10 +91,10 @@ available queryables will be found in the JSON output within the
 
 The possible types of these properties are:
 
-  - **str** most common type.
-  - **int** may have a specified range.
-  - **float** may have a specified range.
-  - **Literal** has a list of options to choose from.
+- **str** most common type.
+- **int** may have a specified range.
+- **float** may have a specified range.
+- **Literal** has a list of options to choose from.
 
 The **query** option is used for querying. There is a list of rules that
 users need to follow when composing queries:
@@ -195,13 +195,13 @@ query="orbitDirection=DESCENDING|Null"
 
 #### Frequently used queryables
 
-  - **cloudCover** range \[0, 100\]
-  - **orbitNumber**
-  - **orbitDirection**
-  - **storageStatus**
-  - **start** ISO formated date referring to products caputred on start
+- **cloudCover** range \[0, 100\]
+- **orbitNumber**
+- **orbitDirection**
+- **storageStatus**
+- **start** ISO formated date referring to products caputred on start
     date or later.
-  - **end** ISO formated date referring to products caputred on end date
+- **end** ISO formated date referring to products caputred on end date
     or earlier.
 
 NOTE: These queryables are only for reference, and they might not always
@@ -212,23 +212,23 @@ be avaiable for all providers/products.
 EODAG configuration **YAML** file is used to set multiple values,
 including:
 
-  - **Priority**  
+- **Priority**  
     Used when the *i.eodag* tries to search for a product, with no
     **provider** specified. Searching is attempted with providers with
     higher priority first.
 
-  - **Credentials**  
+- **Credentials**  
     Some providers require credentials to conduct searching, while
     others do not. However, users will need to set the credentials for
     downloading, in most cases. See [Providers
     Registration](https://eodag.readthedocs.io/en/stable/getting_started_guide/register.html)
     for more details about registration and credentials.
-    
+
     NOTE: If users notice that *i.eodag* doesn't recognize a specific
     provider when searching or downloading, it might be that they need
     to specify the credentials for that provider.
 
-  - **Output Prefix**  
+- **Output Prefix**  
     Setting the output\_prefix is similar to using the **output**
     option. It is the directory into which downloaded products will be
     saved.
@@ -423,10 +423,10 @@ i.eodag -lp provider=usgs producttype=LANDSAT_C2L2 area_relation=IsWithin clouds
 
 ## REQUIREMENTS
 
-  - [EODAG
+- [EODAG
     library](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html)
     (install with `pip install eodag`)
-  - For EODAG 3.0.0 and later, some of the providers have additonal
+- For EODAG 3.0.0 and later, some of the providers have additonal
     dependencies that needs to be installed, e.g. `pip install
     eodag[usgs]`, for more info see [installation
     page](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html).

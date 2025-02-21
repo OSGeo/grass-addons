@@ -18,9 +18,9 @@ the format depending on the ending of the file name defined by the user.
 If an overview plot is requested in the *overview* option, network
 characteristics are visualised in a plot showing an overview over:
 
-  - the number of connections,
-  - the number of components (clusters) and
-  - the size of the largest network component within the network
+- the number of connections,
+- the number of components (clusters) and
+- the size of the largest network component within the network
 
 over increasing cost-distance between patches.
 
@@ -43,9 +43,9 @@ In r.connectivity.network a graph is built from the network dataset
 produced in r.connectivity.distance. From this full and directed graph a
 set of (sub)graphs is extracted, specified by:
 
-  - u = for the undirected graph
-  - d = for the graph with only direct edges
-  - c = for the graph with only edges shorter than the cost distance
+- u = for the undirected graph
+- d = for the graph with only direct edges
+- c = for the graph with only edges shorter than the cost distance
     threshold
 
 ### Graph measures
@@ -81,7 +81,7 @@ increasing length are removed, produced in the example below.*
 
 ### Edge measures
 
-  - **Input parameters**  
+- **Input parameters**  
     **con\_id** = ID of the directed connection between two vertices
     (edge)
     **con\_id\_u** = ID of the undirected connection between two
@@ -94,8 +94,8 @@ increasing length are removed, produced in the example below.*
     edge
     **to\_pop** = Population proxy (pop\_proxy) of the end-vertex of an
     (directed) edge  
-      
-  - **Weights**  
+
+- **Weights**  
     **Cost distance (cd)**
     Cost distance is calculated for the directed (cd) and undirected
     graph (cd\_u). The cd weight for directed edges is exactly like
@@ -144,12 +144,12 @@ increasing length are removed, produced in the example below.*
     results (cf\_inv = Inverted competing potential flow for directed
     edges, cf\_inv\_u = Inverted competing potential flow for undirected
     edges).  
-      
+
     The mf and cf weights are inverted (mf\_inv, cf\_inv) by multiplying
     them with -1 followed by linear normalising to the original maximum
     and minimum values.  
-      
-  - **Output parameters**  
+
+- **Output parameters**  
     **Shortest connections (isshort)**
     In r.connectivity.network all edges are classified if they represent
     the shortest path from the start- to the end-vertex, which is stored
@@ -236,13 +236,13 @@ Spanning Tree (MST).*
 
 ## Vertex measures
 
-  - **Input parameters**  
+- **Input parameters**  
     **Patch ID (patch\_id)**
     ID of the vertex = category value (cat) of the patch vector given by
     the user in r.connectivity.distance.
     **Population proxy (pop\_proxy)**
     The population proxy given by the user in r.connectivity.distance.
-  - **Output parameters**  
+- **Output parameters**  
     **Cluster membership (cl)**
     A cluster is a group of vertices which are connected with each
     other, but not with the rest of vertices in a graph (a single

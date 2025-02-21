@@ -8,9 +8,9 @@ API](https://viewer.nationalmap.gov/tnmaccess/api/index), downloaded to
 a local cache directory, then imported, and patched together.
 *r.in.usgs* supports the following datasets:
 
-  - **ned**: National Elevation Dataset
-  - **naip**: NAIP orthoimagery
-  - **lidar**: Lidar Point Clouds (LPC)
+- **ned**: National Elevation Dataset
+- **naip**: NAIP orthoimagery
+- **lidar**: Lidar Point Clouds (LPC)
 
 National Land Cover Dataset (NLCD) is no longer available through the
 API.

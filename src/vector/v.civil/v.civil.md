@@ -99,24 +99,24 @@ option.
 
 The columns are:
 
-  - **radio**: radio of curve
-    
+- **radio**: radio of curve
+
     \+ for clockwise
-    
+
     \- for anticlockwise
 
-  - **a\_in**: Parameter A of input Clothoid
+- **a\_in**: Parameter A of input Clothoid
 
-  - **a\_out**: Parameter A of output Clothoid
+- **a\_out**: Parameter A of output Clothoid
 
-  - **widening**: Widening of curve (where this widening is growing in
+- **widening**: Widening of curve (where this widening is growing in
     the clothoid, only in mode exact)
 
-  - **superelev**: Parameter A of input Clothoid
+- **superelev**: Parameter A of input Clothoid
 
-  - **dc\_**: longitude of curve. For use with flag *-t*
+- **dc\_**: longitude of curve. For use with flag *-t*
 
-  - **lr\_**: longitude of straight. For use with flag *-t*
+- **lr\_**: longitude of straight. For use with flag *-t*
 
 #### Layer 3:
 
@@ -128,11 +128,11 @@ axis referencing by pk.
 
 The columns are:
 
-  - **pk**: kilometric point of the central axis
-  - **elev**: Elevation of the vertice of the vertical alignment
-  - **kv**: Parameter Kv of the vertical alignment
-  - **l**: Leng of parabolic curve (no yet implemented)
-  - **B**: Height of vertice of vertical polygon to the parabolic curve
+- **pk**: kilometric point of the central axis
+- **elev**: Elevation of the vertice of the vertical alignment
+- **kv**: Parameter Kv of the vertical alignment
+- **l**: Leng of parabolic curve (no yet implemented)
+- **B**: Height of vertice of vertical polygon to the parabolic curve
     (no yet implemented)
 
 #### Layer 4:
@@ -145,10 +145,10 @@ referencing by pk.
 
 The columns for editing by the user are:
 
-  - **pk**: kilometric point of the central axis
-  - **sec\_left, sec\_right**: For defining left and right platform
+- **pk**: kilometric point of the central axis
+- **sec\_left, sec\_right**: For defining left and right platform
     lines (distance and height to the central axis), separated by ";"
-  - **type\_left, type\_right**: Types of left and right lines (types
+- **type\_left, type\_right**: Types of left and right lines (types
     are: l,e,r,0). You can enter the type of multiple lines separated by
     ";" **l**: linear approximation between definition points. **e**:
     displaced lines, mode exact. **c**: ellipse between definition
@@ -169,10 +169,10 @@ pk.
 
 The columns for editing by the user are:
 
-  - **cut\_left**: Cut slope left
-  - **cut\_right**: Cut slope right
-  - **fill\_left**: Fill slope left
-  - **fill\_right**: Fill slope right
+- **cut\_left**: Cut slope left
+- **cut\_right**: Cut slope right
+- **fill\_left**: Fill slope left
+- **fill\_right**: Fill slope right
 
 #### Layer 6:
 
@@ -184,10 +184,10 @@ the central axis referencing by pk.
 
 The columns for editing by the user are:
 
-  - **pk**: kilometric point of the central axis
-  - **dist\_left,dist\_right**: Distance left and right from the central
+- **pk**: kilometric point of the central axis
+- **dist\_left,dist\_right**: Distance left and right from the central
     axis
-  - **npk**: Distance between trans
+- **npk**: Distance between trans
 
 #### Layer 7:
 
@@ -198,11 +198,11 @@ The added points, are inserted in the central axis referencing by pk.
 
 The columns for editing by the user are:
 
-  - **dist**: distance left and right from the central axis
-  - **elev**: Elevation left and right from the central axis
-  - **azi**: 1 for azimuth of the point of the road or -1
-  - **name**: Name of mark
-  - **cod**: Code of mark
+- **dist**: distance left and right from the central axis
+- **elev**: Elevation left and right from the central axis
+- **azi**: 1 for azimuth of the point of the road or -1
+- **name**: Name of mark
+- **cod**: Code of mark
 
 ## Example
 

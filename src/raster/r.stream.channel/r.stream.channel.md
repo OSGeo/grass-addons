@@ -13,14 +13,14 @@ Horton ordering).
 
 ## OPTIONS
 
-  - **-d**  
+- **-d**  
     Calculate downstream distance (from current cell DOWNSTREAM to
     outlet/join). Default is upstream (from current cell upstream to
     init/join.
-  - **-m**  
+- **-m**  
     Only for very large data sets. Uses segment library to optimize
     memory consumption during analysis
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network: name of input stream map. Map may be ordered
     according to one of the *r.stream.order* ordering systems as well as
     unordered (with original stream identifiers). Because the streams
@@ -28,7 +28,7 @@ Horton ordering).
     slightly differ in detail it is required to use both stream and
     direction map produced by the same module. Non-stream cell values
     must be set to NULL.
-  - **direction**  
+- **direction**  
     Flow direction: name of input direction map produced by
     *r.watershed* or *r.stream.extract*. If the *r.stream.extract*
     output map is used, it contains non-NULL values only in places where
@@ -40,11 +40,11 @@ Horton ordering).
     resolution. If resolutions differ the module informs about it and
     stops. Region boundary and maps boundary may be different but it may
     lead to unexpected results.
-  - **elevation**  
+- **elevation**  
     Elevation: name of input elevation map. Map can be of type CELL,
     FCELL or DCELL. It is not restricted to resolution of region
     settings as streams and direction.
-  - **distance**  
+- **distance**  
     Upstream distance of current cell to the init/join. Flag
     modifications:  
     **-d:** downstream distance of current cell to the join/outlet;  
@@ -54,7 +54,7 @@ Horton ordering).
     ignored  
     **-c:** distance in cells. Map is written as double. Use *r.mapcalc*
     to convert to integer. Flags **-l** and **-d** ignored.  
-  - **difference**  
+- **difference**  
     Upstream elevation difference between current cell to the init/join.
     It we need to calculate parameters different than elevation. If we
     need to calculate different parameters than elevation along streams
@@ -64,7 +64,7 @@ Horton ordering).
     **-l:** local difference between current cell and next cell. With
     flag calculates difference between previous cell and current cell  
     **-c:** Ignored.
-  - **gradient**  
+- **gradient**  
     Upstream mean gradient between current cell and the init/join. Flag
     modifications:  
     **-d:** downstream mean gradient between current cell and the
@@ -72,7 +72,7 @@ Horton ordering).
     **-l:** local gradient between current cell and next cell. Flag
     **-d** ignored  
     **-c:** Ignored.
-  - **curvature**  
+- **curvature**  
     Local stream course curvature of current cell. Calculated according
     formula:
     *first\_derivative/(1-second\_derivative<sup>2</sup>)<sup>3/2</sup>*
@@ -80,7 +80,7 @@ Horton ordering).
     **-d:** ignored;  
     **-l:** Ignored.  
     **-c:** Ignored.
-  - **identifier**  
+- **identifier**  
     Integer map: In ordered stream network there are more than one
     segment (segment: a part of the network where order remains
     unchanged) with the same order. To identify particular segments (for

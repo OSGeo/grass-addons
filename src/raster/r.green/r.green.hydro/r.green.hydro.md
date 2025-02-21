@@ -73,7 +73,6 @@ input vector map:       considered rivers
 output vector maps: - potential river segments               - intake
 and restitution of each potential plant  
   
-
 ## SEE ALSO
 
 *[r.green](r.green.md) - overview page*

@@ -21,25 +21,25 @@ analysis to first ENN perform faster. *Methods:* The *method* operators
 determine what algorithm is applied on the patches. *r.pi.index* can
 perform the following operations:
 
-  - **Area**  
+- **Area**  
     The *Area* computes the area of each patch.
-  - **Perimeter**  
+- **Perimeter**  
     The *Perimeter* computes the perimeter of each patch.
-  - **Area-Perimeter ratio**  
+- **Area-Perimeter ratio**  
     The *Area-Perimeter ratio* divides the patch perimeter by the area.
-  - **SHAPE Index**  
+- **SHAPE Index**  
     The *SHAPE Index* divides the patch perimete by the minimum
     perimeter possible for a maximally compact patch of the
     corresponding patch area.
-  - **Border Index**  
+- **Border Index**  
     The *Border Index* ....
-  - **Compactness Index**  
+- **Compactness Index**  
     The *Compactness Index* ....
-  - **Asymmetry Index**  
+- **Asymmetry Index**  
     The *Border Index* ....
-  - **Fractal Dimension Index**  
+- **Fractal Dimension Index**  
     The *Fractal Dimension Index* ....
-  - **Nearest Neighbour Index**  
+- **Nearest Neighbour Index**  
     The *Nearest Neighbour Index* computes the Euclidean distance to the
     first nearest neighbour patch.
 

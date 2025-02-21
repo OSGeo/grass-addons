@@ -18,22 +18,20 @@ to exclude low quality pixels in the input satellite image using
 ## EXAMPLE
 
 1. Define position:
-    
+
     ```sh
         xx xx 1x xx
         binary: 1000 -> integer: 8 -> pattern=8
     ```
-    
 
 2. Define value:
-    
+
     ```sh
         Ex.: We want to check for 0 in that position
         xx xx 0x xx
         binary: 0000 -> integer: 0 -> patval=0
         If value can be arbitrary (0/1), then assume 0 value
     ```
-    
 
 ## SEE ALSO
 

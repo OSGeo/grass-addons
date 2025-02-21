@@ -11,12 +11,12 @@ will work on the output *v.stream.network* with default attribute names.
 
 ## REFERENCES
 
-  - Ng, G.-H. C., A. D. Wickert, R. L. McLaughlin, J. La Frenierre, S.
+- Ng, G.-H. C., A. D. Wickert, R. L. McLaughlin, J. La Frenierre, S.
     Liess, and L. Sabeeri (2016), Modeling the role of groundwater and
     vegetation in the hydrological response of tropical glaciated
     watersheds to climate change, in AGU Fall Meeting Abstracts,
     H13L–1590, San Francisco, CA.
-  - Ng, G-H. Crystal, Andrew D. Wickert, Lauren D. Somers, Leila Saberi,
+- Ng, G-H. Crystal, Andrew D. Wickert, Lauren D. Somers, Leila Saberi,
     Collin Cronkite-Ratcliff, Richard G. Niswonger, and Jeffrey M.
     McKenzie. "GSFLOW–GRASS v1. 0.0: GIS-enabled hydrologic modeling of
     coupled groundwater–surface-water systems." *Geoscientific Model

@@ -7,13 +7,13 @@ The module makes each output cell value a function of the values
 assigned to the corresponding cells in the two input raster map series.
 Following methods are available:
 
-  - offset: Linear regression offset
-  - slope: Linear regression slope
-  - corcoef: Correlation Coefficent R
-  - rsq: Coefficient of determination = R squared
-  - adjrsq: Adjusted coefficient of determination
-  - f: F statistic
-  - t: T statistic
+- offset: Linear regression offset
+- slope: Linear regression slope
+- corcoef: Correlation Coefficent R
+- rsq: Coefficient of determination = R squared
+- adjrsq: Adjusted coefficient of determination
+- f: F statistic
+- t: T statistic
 
 The module assumes a simple linear regression of the form
 

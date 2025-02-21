@@ -32,7 +32,7 @@ i.lswt in1=NSS.LHRR.NP.D14177.S1312_b4 in2=NSS.LHRR.NP.D14177.S1312_b5 \
 
 The satellite specific split-window coefficients are taken from:
 
-  - Jimenez-Munoz, J.-C., Sobrino, J.A., 2008. Split-Window Coefficients
+- Jimenez-Munoz, J.-C., Sobrino, J.A., 2008. Split-Window Coefficients
     for Land Surface Temperature Retrieval From Low-Resolution Thermal
     Infrared Sensors. IEEE Geoscience and Remote Sensing Letters 5,
     806-809. ([DOI](https://doi.org/10.1109/LGRS.2008.2001636))
@@ -41,7 +41,7 @@ A new method to develop continuos time series of LSWT from historical
 AVHRR is explained below, uses the same split window technique
 implemented here:
 
-  - Pareeth, S., Delucchi, L., Metz, M., Rocchini, D., Devasthale, A.,
+- Pareeth, S., Delucchi, L., Metz, M., Rocchini, D., Devasthale, A.,
     Raspaud, M., Adrian, R., Salmaso, N., Neteler, M., 2016. New
     Automated Method to Develop Geometrically Corrected Time Series of
     Brightness Temperatures from Historical AVHRR LAC Data. Remote

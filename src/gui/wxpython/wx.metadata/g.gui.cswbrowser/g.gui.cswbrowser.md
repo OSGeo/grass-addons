@@ -33,11 +33,11 @@ can be set by GRASS region or manualy.
 
 ### Bounding box
 
-  - Bounding box  
+- Bounding box  
     Bounding box defined spatial extent for limitation of area. Button
     "Map extends" allows to set up values from current GRASS region.
 
-  - Keywords  
+- Keywords  
     This filter allows to use basic or advance keyword filtering. In the
     simple case user can define single keywords or multiple keywords
     with button "+". Logic operator between keywords is AND(&&). Second,
@@ -47,11 +47,11 @@ can be set by GRASS region or manualy.
     checkbox. Syntax of constraints is based on python list syntax. Each
     keywords must be in braces \<'\> or \<"\>.
 
-  - - OR condition  
+- - OR condition  
         a || b || c \["a","b","c"\]
-      - AND condition  
+  - AND condition  
         a && b && c \[\["a","b","c"\]\]
-      - composition  
+  - composition  
         (a && b) || c || d || e \[\["a","b"\],\["c"\],\["d"\],\["e"\]\]
         or \[\["a","b"\],"c","d","e"\]
 

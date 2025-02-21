@@ -48,7 +48,6 @@ will be used to estimate geographically weighted regression
 coefficients.The flag 'b' can be used to change the kernel function
 gaussian to bi-square.  
   
-
 ## EXAMPLES
 
 In *i.image.bathymetry* green band, red band, near-infrared band, band
@@ -67,7 +66,6 @@ calibration_points='Calibration_points' calibration_column='Z'
 depth_estimate='output' area_of_interest='AOI'
 ```
 
-  
 If SWIR band is not available near-infrared band can be used as
 "band\_for\_correction" (for e.g. satellite images like RapidEye and
 ALOS AVINIR-2). An example of depth estimation using RapidEye image is
@@ -83,10 +81,10 @@ depth_estimate='output'
 
 ## REFERENCES
 
-  - Vinayaraj, P., Raghavan, V. and Masumoto, S. (2016) Satellite
+- Vinayaraj, P., Raghavan, V. and Masumoto, S. (2016) Satellite
     derived bathymetry using adaptive-geographically weighted regression
     model, Marine Geodesy, 39(6), pp.458-478
-  - Su, H., Liu, H., Lei, W., Philipi, M., Heyman, W., and Beck, A.,
+- Su, H., Liu, H., Lei, W., Philipi, M., Heyman, W., and Beck, A.,
     2013, Geographically Adaptive Inversion Model for Improving
     Bathymetric Retrieval from Multispectral satellite Imagery. IEEE
     Transaction on Geosciences and Remote Sensing, 52(1) : 465-476,

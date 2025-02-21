@@ -19,9 +19,9 @@ broken during the development.
 
 ## SEE ALSO
 
-  - [r.agent.aco](r.agent.aco.md): Agents wander around on the terrain,
+- [r.agent.aco](r.agent.aco.md): Agents wander around on the terrain,
     marking paths to new locations.
-  - [r.agent.rand](r.agent.rand.md): Agents wander around on the
+- [r.agent.rand](r.agent.rand.md): Agents wander around on the
     terrain, marking paths to new locations.
 
 ## AUTHOR

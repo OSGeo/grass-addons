@@ -223,6 +223,7 @@ sign. The very first expression, hence, will give an error:
 \- The lexical scanner. At this point, there is a very simple and
 limited scanner. My plan was to provide 4 methods of input: + from the
 command line + from stdin, interactively, using GNU readline and history
+
 + from stdin by IO redirection like in "script | v.feature.algebra" +
 from a file, like in "v.feature.algebra -i statementfile" Of course,
 this should be done with Flex, with the input selection as needed for

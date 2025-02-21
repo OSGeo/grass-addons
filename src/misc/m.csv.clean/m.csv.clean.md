@@ -34,11 +34,11 @@ grass --tmp-project XY --exec m.csv.clean input=sampling_sites_raw.csv output=sa
 
 ## SEE ALSO
 
-  - *[v.in.csv](v.in.csv.md)* for an addon module for importing CSV as
+- *[v.in.csv](v.in.csv.md)* for an addon module for importing CSV as
     vector points with coordinate transformation,
-  - *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
+- *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
     for importing CSV as vector points with different approach,
-  - *[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
+- *[v.in.ogr](https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html)*
     for an alternative CSV import using GDAL/OGR.
 
 ## AUTHOR

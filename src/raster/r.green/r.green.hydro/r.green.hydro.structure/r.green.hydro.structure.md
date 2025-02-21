@@ -31,12 +31,9 @@ derivation channel, the forebay tank and the penstock, whereas the
 segment of the plant corresponds to the part of the river (water not
 diverted) between the intake (A) and the restitution (F).  
   
-
 ![image-alt](r_green_hydro_technical_picstruct.png)  
 Structure of the plants considered in the module
 
-  
-  
 The power is maximized for the highest head in the penstock so the
 derivation channel is computed along the same quote (the low slope is
 neglected here) until the point which maximizes the head along the
@@ -53,11 +50,9 @@ potential plants (in blue). The vector map with the intakes and
 restitution of potential plants is also visibile in red on this
 picture.  
   
-
 ![image-alt](r_green_hydro_structure_input.png)  
 Input vector map potentialplants
 
-  
 The following command computes the derivation channel and the penstock
 for each potential plant and for each side of the river :  
 
@@ -65,12 +60,9 @@ for each potential plant and for each side of the river :
 r.green.hydro.structure elevation=elevation plant=potentialplants output_struct=structplants
 ```
 
-  
-  
 The result is shown in black in the following picture which gathers the
 input and output maps.  
   
-
 ![image-alt](r_green_hydro_structure_output.png)  
 Output vector map structplants in black
 

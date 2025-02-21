@@ -3,7 +3,7 @@
 *i.destripe* Destripes in a row-based Fourier smoothing way. Requires a
 near vertical striping. Input:
 
-  - Number of harmonics to use for reconstruction (less is smoother
+- Number of harmonics to use for reconstruction (less is smoother
     output).
 
 ## NOTES

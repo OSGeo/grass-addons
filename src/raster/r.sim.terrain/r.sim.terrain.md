@@ -81,11 +81,11 @@ registered in the temporal database.
 
 ## REFERENCES
 
-  - Harmon, B. A., Mitasova, H., Petrasova, A., and Petras, V.:
+- Harmon, B. A., Mitasova, H., Petrasova, A., and Petras, V.:
     r.sim.terrain 1.0: a landscape evolution model with dynamic
     hydrology, Geosci. Model Dev., 12, 2837–2854,
     <https://doi.org/10.5194/gmd-12-2837-2019>, 2019.
-  - Mitasova H., Barton M., Ullah I., Hofierka J., Harmon R.S., 2013.
+- Mitasova H., Barton M., Ullah I., Hofierka J., Harmon R.S., 2013.
     [3.9 GIS-Based Soil Erosion
     Modeling](https://www.sciencedirect.com/science/article/abs/pii/B978012374739600052X).
     In J. F. Shroder, ed. Treatise on Geomorphology. San Diego: Academic

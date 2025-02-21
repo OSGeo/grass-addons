@@ -13,15 +13,15 @@ library. Please install it beforehand.
 To be able to download data the user needs to obtain *user* and
 *password* for the NASA Earthdata Login:
 
-  - First time user: The user has to register at
+- First time user: The user has to register at
     <https://urs.earthdata.nasa.gov/users/new>; then login and change to
     their [profile page](https://urs.earthdata.nasa.gov/profile). Once
     there, under the "Applications" tab \> "Authorized Apps", the user
     needs to approve the following applications (there is a search box
     that makes it easier to find the items):
-      - "LP DAAC Data Pool", and
-      - "Earthdata Search".
-  - If the user is already registered, he/she just needs to login and
+  - "LP DAAC Data Pool", and
+  - "Earthdata Search".
+- If the user is already registered, he/she just needs to login and
     enable the aforementioned applications at
     <https://urs.earthdata.nasa.gov/home> if not already done.
 
@@ -29,27 +29,25 @@ In order to download the desired MODIS product(s), the username and
 password must be provided through the *settings* option. There are three
 ways:
 
-  - using the
+- using the
     [.netrc](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html)
     file as showed below:
-    
+
     ```sh
     machine e4ftl01.cr.usgs.gov
     login your_NASA_username
     password your_NASA_password
     ```
-    
 
-  - pass a file in which the first row is the username, and the second
+- pass a file in which the first row is the username, and the second
     row is the password, as showed below:
-    
+
     ```sh
     your_NASA_username
     your_NASA_password
     ```
-    
 
-  - the user can pass the values from the standard input when prompted.
+- the user can pass the values from the standard input when prompted.
 
 **Warning**: As per NASA policy no more than ten simultaneous
 connections are permitted in parallel with their server. Hence, no more

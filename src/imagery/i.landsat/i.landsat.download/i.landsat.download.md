@@ -15,12 +15,12 @@ indicated at the end of the Landsat Product Identifier.
 The supported Landsat satellites include (see also [Landsat satellite
 chronology](https://en.wikipedia.org/wiki/Landsat_program#Satellite_chronology)):
 
-  - Landsat 5 (TM): 1984 to 2013
-  - Landsat 7 (ETM+): 1999 to present (note: [Landsat 7 ETM+ SLC-off
+- Landsat 5 (TM): 1984 to 2013
+- Landsat 7 (ETM+): 1999 to present (note: [Landsat 7 ETM+ SLC-off
     error](https://www.usgs.gov/core-science-systems/nli/landsat/landsat-7)
     after May 31, 2003)
-  - Landsat 8 (OLI): 2013 to present
-  - Landsat 9 (OLI-2): 2021 to present
+- Landsat 8 (OLI): 2013 to present
+- Landsat 9 (OLI-2): 2021 to present
 
 The dataset names and IDs are:
 
@@ -148,7 +148,7 @@ i.landsat.download datasource=planetary_computer \
 
 ## REQUIREMENTS
 
-  - [EODAG
+- [EODAG
     library](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html)
     (install with `pip install eodag`)
 

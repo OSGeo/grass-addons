@@ -20,13 +20,13 @@ module.
 *r.survey* wants to provide the user the necessary information to answer
 questions such as:
 
-  - In a survey trip, from how many places is something visible?
-  - During a field work, which place would be the best position to
+- In a survey trip, from how many places is something visible?
+- During a field work, which place would be the best position to
     observe a given point/area (according to the distance, the angle or
     both)?
-  - Which portion of the territory is visible along a survey
+- Which portion of the territory is visible along a survey
     path/flight?
-  - Are objects of a given size visible from a survey path/flight?
+- Are objects of a given size visible from a survey path/flight?
 
 Three principal outputs (visibility indexes) are given, based on
 trigonometric calculations in order to provide qualitative and
@@ -188,7 +188,7 @@ r.survey -d points=Flight_viewpoints dem=Synthetic_valley output=example3 maxdis
 
 ## REFERENCES
 
-  - Bornaetxea, T., Marchesini, I. *r.survey: a tool for calculating
+- Bornaetxea, T., Marchesini, I. *r.survey: a tool for calculating
     visibility of variable-size objects based on orientation*,
     **International Journal of Geographical Information Science**,
     <https://www.tandfonline.com/doi/full/10.1080/13658816.2021.1942476>

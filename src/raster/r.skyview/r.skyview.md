@@ -39,9 +39,9 @@ r.skyview input=elevation output=elevation_skyview ndir=8
 
 ## REFERENCES
 
-  - Zaksek K, Ostir K, Kokalj Z. *Sky-View Factor as a Relief
+- Zaksek K, Ostir K, Kokalj Z. *Sky-View Factor as a Relief
     Visualization Technique.* Remote Sensing. 2011; 3(2):398-415.
-  - Yokoyama R, Shirasawa M, Pike J R. *Visualizing topography by
+- Yokoyama R, Shirasawa M, Pike J R. *Visualizing topography by
     Openness: A new application of image processing to digital elevation
     models.* Photogrammetric engineering and remote sensing 68.3 (2002):
     257-266.

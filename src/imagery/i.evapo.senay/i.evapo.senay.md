@@ -39,7 +39,7 @@ very sensitive to the kind of pixel sample you feed it with.
 
 ## REFERENCES
 
-  - Senay 2007
+- Senay 2007
 
 Chemin, Y., 2012. A Distributed Benchmarking Framework for Actual ET
 Models, in: Irmak, A. (Ed.), Evapotranspiration - Remote Sensing and

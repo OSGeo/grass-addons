@@ -14,8 +14,8 @@ other hand, water depth in output maps is relative to the water level.
 
 This module outputs:
 
-  - a space-time raster dataset containing a map series
-  - a map series containing maps of areas with water for each water
+- a space-time raster dataset containing a map series
+- a map series containing maps of areas with water for each water
     level
 
 ## EXAMPLE

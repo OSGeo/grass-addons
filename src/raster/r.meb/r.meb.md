@@ -86,9 +86,9 @@ ONE 10(4): e0121444. doi: 10.1371/journal.pone.0121444
 
 ## REFERENCES
 
-  - Elith, J, Kearney, M, and Phillips, S. 2010. The art of modelling
+- Elith, J, Kearney, M, and Phillips, S. 2010. The art of modelling
     range-shifting species. Methods in Ecology and Evolution 1:330-342.
-  - van Breugel P, Kindt R, Lillesø J-PB, van Breugel M. 2015.
+- van Breugel P, Kindt R, Lillesø J-PB, van Breugel M. 2015.
     Environmental Gap Analysis to Prioritize Conservation Efforts in
     Eastern Africa. PLoS ONE 10(4): e0121444. doi:
     10.1371/journal.pone.0121444.

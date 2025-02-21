@@ -10,10 +10,10 @@ specified using the *layout* option.
 
 Three layouts can be specified:
 
-  - *row* - Row order, one vector sample point value per row
-  - *col* - Column order, create a column for each vector sample point
+- *row* - Row order, one vector sample point value per row
+- *col* - Column order, create a column for each vector sample point
     of a single time step/raster layer
-  - *timerow* - Time order, create a column for each time step, this
+- *timerow* - Time order, create a column for each time step, this
     order is the original r.what output, except that the column names
     are the time stamps
 

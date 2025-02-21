@@ -36,9 +36,9 @@ be empty.
 
 ## TODO
 
-  - Add flag to only output half matrix with each relation only shown
+- Add flag to only output half matrix with each relation only shown
     once.
-  - Measure neighbordhood length in map units, not only pixels
+- Measure neighbordhood length in map units, not only pixels
 
 ## EXAMPLE
 

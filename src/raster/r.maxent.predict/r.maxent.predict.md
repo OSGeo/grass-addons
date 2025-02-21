@@ -169,34 +169,34 @@ BCC-CSM2-MR and SSP 585.*
 
 ## REFERENCES
 
-  - Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
     software for modeling species niches and distributions (Version
     3.4.1). Available from url:
     <https://biodiversityinformatics.amnh.org/open_source/maxent> and
     <https://github.com/mrmaxent/Maxent>
-  - Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
     maximum entropy approach to species distribution modeling. In
     Proceedings of the Twenty-First International Conference on Machine
     Learning, pages 655-662, 2004.
-  - Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
+- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
     Maximum entropy modeling of species geographic distributions.
     Ecological Modelling, 190:231-259, 2006.
-  - Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
+- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
     En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt
     for ecologists. Diversity and Distributions, 17:43-57, 2011.
 
 ## SEE ALSO
 
-  - [v.maxent.swd](v.maxent.swd.md), creating species and background swd
+- [v.maxent.swd](v.maxent.swd.md), creating species and background swd
     files and prediction rasters that can be used directly by the
     *r.maxent.train* addon (or the Maxent software itself) to create
     species distribution models.
-  - [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
+- [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
     background swd files based on species distribution data in raster
     format.
-  - [r.maxent.train](r.maxent.train.md), creates a maxent model based on
+- [r.maxent.train](r.maxent.train.md), creates a maxent model based on
     presence point data a set of environmental predictor layers.
-  - [r.maxent.setup](r.maxent.setup.html), helper function to allow
+- [r.maxent.setup](r.maxent.setup.html), helper function to allow
     GRASS to use Maxent.
 
 ## AUTHOR

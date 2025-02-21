@@ -16,21 +16,21 @@ are installed (see below).
 Supported algorithms for [Endmember
 Extraction](https://pysptools.sourceforge.io/eea.html) are:
 
-  - *NFINDR*: N-FINDR endmembers induction algorithm after Winter
+- *NFINDR*: N-FINDR endmembers induction algorithm after Winter
     (1999), that also makes use of an Automatic Target Generation
     Process (ATGP) (Plaza & Chang 2006). (*Default*)
-  - *FIPPI*: Fast Iterative Pixel Purity Index after Chang (2006)
-  - *PPI*: Pixel Purity Index
+- *FIPPI*: Fast Iterative Pixel Purity Index after Chang (2006)
+- *PPI*: Pixel Purity Index
 
 Supported algorithms for [Spectral
 Unmixing](https://pysptools.sourceforge.io/abundance_maps.html) are:
 
-  - *FCLS*: Fully Constrained Least Squares (FCLS): Estimates endmember
+- *FCLS*: Fully Constrained Least Squares (FCLS): Estimates endmember
     abundance per pixel with the constraint that values are non-negative
     and sum up to one per pixel (*Default*)
-  - *UCLS*: Unconstrained Least Squares (UCLS): Estimates endmember
+- *UCLS*: Unconstrained Least Squares (UCLS): Estimates endmember
     abundance per pixel in an unconstrained way
-  - *NNLS*: Non-negative Constrained Least Squares (NNLS): Estimates
+- *NNLS*: Non-negative Constrained Least Squares (NNLS): Estimates
     endmember abundance per pixel with the constraint that values are
     non-negative
 
@@ -67,22 +67,22 @@ i.spec.unmix group=lsat7_2002 matrix=sample/spectrum.dat result=lsat7_2002_unmix
 
 ## REQUIREMENTS
 
-  - python-cvxopt (install through system software management)
-  - python-matplotlib (install through system software management)
-  - python-scikit-learn (install through system software management)
-  - python-scipy (install through system software management)
-  - [pysptools library](https://pypi.org/project/pysptools)
-  - [scikit-learn library](https://pypi.org/project/scikit-learn)
+- python-cvxopt (install through system software management)
+- python-matplotlib (install through system software management)
+- python-scikit-learn (install through system software management)
+- python-scipy (install through system software management)
+- [pysptools library](https://pypi.org/project/pysptools)
+- [scikit-learn library](https://pypi.org/project/scikit-learn)
 
 ## REFERENCES
 
-  - Chang, C.-I. 2006: A fast iterative algorithm for implementation of
+- Chang, C.-I. 2006: A fast iterative algorithm for implementation of
     pixel purity index. Geoscience and Remote Sensing Letters, IEEE,
     3(1): 63-67.
-  - Plaza, A. & Chang, C.-I. 2006: Impact of Initialization on Design of
+- Plaza, A. & Chang, C.-I. 2006: Impact of Initialization on Design of
     Endmember Extraction Algorithms. Geoscience and Remote Sensing, IEEE
     Transactions. 44(11): 3397-3407.
-  - Winter, M. E. 1999: N-FINDR: an algorithm for fast autonomous
+- Winter, M. E. 1999: N-FINDR: an algorithm for fast autonomous
     spectral end-member determination in hyperspectral data. Presented
     at the Imaging Spectrometry V, Denver, CO, USA, (3753): 266-275.
 

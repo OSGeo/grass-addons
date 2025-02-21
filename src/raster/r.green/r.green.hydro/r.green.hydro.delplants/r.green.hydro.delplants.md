@@ -20,13 +20,10 @@ are well reported in the table of the input maps (hydro and other).
 This example is based on the case-study of Mis valley in Belluno
 province, Veneto, Italy.  
   
-
 ![image-alt](r_green_hydro_delplants_input.png)  
 Input vector maps : streams of Mis Valley in black and intakes and
 restitution of existing plants in red
 
-  
-  
 We use the following code to compute the available streams and obtain
 the next map :
 
@@ -36,14 +33,10 @@ r.green.hydro.delplants hydro=existingplants river=streams output=availablestrea
 d.vect map=existingplants color=red
 ```
 
-  
-
 ![image-alt](r_green_hydro_delplants_output.png)  
 Output vector map in black : streams of Mis Valley without the existing
 plants (intakes and restitution of existing plants are added there in
 red)
-
-  
 
 ## SEE ALSO
 

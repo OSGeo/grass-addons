@@ -160,9 +160,9 @@ processing is desired).
 
 ## TODO
 
-  - Check for existing file created by R as no overwrite check is done
+- Check for existing file created by R as no overwrite check is done
     in R
-  - Use class probabilities determined by individual classifiers to
+- Use class probabilities determined by individual classifiers to
     calculate overall class probabilities
 
 ## EXAMPLE
@@ -184,12 +184,12 @@ v.class.mlR segments_file=segstats.csv training_file=training.csv train_class_co
 
 ## REFERENCES
 
-  - Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion
+- Moreno-Seco, F. et al. (2006), Comparison of Classifier Fusion
     Methods for Classification in Pattern Recognition Tasks. In D.-Y.
     Yeung et al., eds. Structural, Syntactic, and Statistical Pattern
     Recognition. Lecture Notes in Computer Science. Springer Berlin
     Heidelberg, pp. 705–713, <https://doi.org/10.1007/11815921_77>.
-  - Georganos, S. et al (2018), Less is more: optimizing classification
+- Georganos, S. et al (2018), Less is more: optimizing classification
     performance through feature selection in a very-high-resolution
     remote sensing object-based urban application, GIScience and Remote
     Sensing, 55:2, 221-242, DOI: 10.1080/15481603.2017.1408892

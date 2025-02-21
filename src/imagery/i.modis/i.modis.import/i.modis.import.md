@@ -23,11 +23,11 @@ obtaining a successful result.
 
 **Warning**:
 
-  - When using the MODIS Reprojection Tools to convert HDF files, only
+- When using the MODIS Reprojection Tools to convert HDF files, only
     the following projection systems are supported: Lambert Azimuthal
     Equal Area, Lambert Conformal Conic, Mercator, Polar Stereographic,
     Transverse Mercator, Universal Transverse Mercator.
-  - Using GDAL allows to handle all projections supported by Proj4.
+- Using GDAL allows to handle all projections supported by Proj4.
 
 NOTE: In order to work with the temporal framework of GRASS GIS the flag
 *w* must be set during the import with *i.modis.import*.

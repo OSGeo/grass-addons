@@ -38,16 +38,16 @@ Jaboyedoff and Labiouse, 2003)***
 output maps start with the prefix defined by the parameter prefix
 followed by the name of map
 
-  - *prefix*\_propagation: raster map representing the area of
+- *prefix*\_propagation: raster map representing the area of
     propagation. If are used multiple source points, each pixel shows
     the percentage of passage (%)
-  - *prefix*\_vel\_max: maximum rock-fall translational velocities
+- *prefix*\_vel\_max: maximum rock-fall translational velocities
     (m/sec)
-  - *prefix*\_vel\_med: medium rock-fall translational velocities
+- *prefix*\_vel\_med: medium rock-fall translational velocities
     (m/sec)
-  - *prefix*\_vel\_max: medium kinetic energy (kJ)
-  - *prefix*\_en\_max: maximum kinetic energy (kJ)
-  - *prefix*\_starting: vector map of starting points
+- *prefix*\_vel\_max: medium kinetic energy (kJ)
+- *prefix*\_en\_max: maximum kinetic energy (kJ)
+- *prefix*\_starting: vector map of starting points
 
 ## REFERENCES
 

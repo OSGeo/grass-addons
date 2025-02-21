@@ -3,7 +3,7 @@
 The *v.in.ogc* suite is able to import vector data from several OGC API
 standards. It supports
 
-  - [OGC API Features](v.in.ogc.features.md) - import vector data from a
+- [OGC API Features](v.in.ogc.features.md) - import vector data from a
     OGC API Features standard
 
 ```sh

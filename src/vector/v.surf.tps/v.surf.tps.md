@@ -87,10 +87,10 @@ covariable*
 
 ## REFERENCES
 
-  - Hutchinson MF, 1995, Interpolating mean rainfall using thin plate
+- Hutchinson MF, 1995, Interpolating mean rainfall using thin plate
     smoothing splines. International Journal of Geographical Information
     Systems, 9(4), pp. 385-403
-  - Wahba G, 1990, Spline models for observational data. In CBMS-NSF
+- Wahba G, 1990, Spline models for observational data. In CBMS-NSF
     Regional Conference Series in Applied Mathematics. Philadelpia:
     Society for Industrial and Applied Mathematics
 

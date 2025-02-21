@@ -73,19 +73,19 @@ d.explanation.plot a=input_1 b=input_2 c=result
 
 ## KNOWN ISSUES
 
-  - Issue [\#3381](https://trac.osgeo.org/grass/ticket/3381) prevents
+- Issue [\#3381](https://trac.osgeo.org/grass/ticket/3381) prevents
     d.rast.num to be used with `d.mon cairo`, so `d.mon wx0` needs to be
     used with this module. Using environmental variables for rendering
     directly or using tools such as *Map* from *grass.jupyter* avoids
     the issues.
-  - Issue [\#3382](https://trac.osgeo.org/grass/ticket/3382) prevents
+- Issue [\#3382](https://trac.osgeo.org/grass/ticket/3382) prevents
     usage of centered text with `d.mon wx0`, so the hardcoded values for
     text does not work perfectly.
-  - Issue [\#3383](https://trac.osgeo.org/grass/ticket/3383) prevents
+- Issue [\#3383](https://trac.osgeo.org/grass/ticket/3383) prevents
     d.rast.num to be saved to the image with `d.mon wx0`, taking
     screenshot is necessary (with a powerful screenshot tool, this also
     addresses the copping issue below).
-  - The size of the display must be square to have rasters and their
+- The size of the display must be square to have rasters and their
     cells as squares, e.g., `d.mon wx0 width=400 height=400` must be
     used. The image needs to be cropped afterwards, e.g. using
     ImageMagic's `mogrify -trim image.png`.

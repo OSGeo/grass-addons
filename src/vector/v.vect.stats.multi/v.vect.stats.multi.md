@@ -17,26 +17,26 @@ a new value is determined with the selected method.
 
 *v.vect.stats* can perform the following operations:
 
-  - **sum**  
+- **sum**  
     The sum of values.
-  - **average**  
+- **average**  
     The average value of all point attributes (sum / count).
-  - **median**  
+- **median**  
     The value found half-way through a list of the attribute values,
     when these are ranged in numerical order.
-  - **mode**  
+- **mode**  
     The most frequently occurring value.
-  - **minimum**  
+- **minimum**  
     The minimum observed value.
-  - **maximum**  
+- **maximum**  
     The maximum observed value.
-  - **range**  
+- **range**  
     The range of the observed values.
-  - **stddev**  
+- **stddev**  
     The statistical standard deviation of the attribute values.
-  - **variance**  
+- **variance**  
     The statistical variance of the attribute values.
-  - **diversity**  
+- **diversity**  
     The number of different attribute values.
 
 The count (number of points) is always computed and stored in
@@ -121,12 +121,12 @@ v.vect.stats.multi points=firestations areas=zipcodes method=sum \
 
 ## SEE ALSO
 
-  - *[v.vect.stats](https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html)*
+- *[v.vect.stats](https://grass.osgeo.org/grass-stable/manuals/v.vect.stats.html)*
     for printing information instead of storing it in the attribute
     table,
-  - *[v.what.rast.multi](v.what.rast.multi.md)* for querying multiple
+- *[v.what.rast.multi](v.what.rast.multi.md)* for querying multiple
     raster maps by one vector points map,
-  - *[g.copy](g.copy.md)* for creating a copy of vector map to update
+- *[g.copy](g.copy.md)* for creating a copy of vector map to update
     (to preserve the original data given that this module performs a
     large automated operation).
 

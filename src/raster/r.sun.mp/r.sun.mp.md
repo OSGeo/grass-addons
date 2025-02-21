@@ -16,8 +16,8 @@ maps can be calculated using
 For latitude-longitude coordinates it requires that the elevation map is
 in meters. The rules are:
 
-  - lat/lon coordinates: elevation in meters;
-  - Other coordinates: elevation in the same unit as the
+- lat/lon coordinates: elevation in meters;
+- Other coordinates: elevation in the same unit as the
     easting-northing coordinates.
 
 The solar geometry of the model is based on the works of Krcho (1990),
@@ -312,43 +312,43 @@ We can compute the day of year from a specific date in Python:
 
 ## REFERENCES
 
-  - Hofierka, J., Suri, M. (2002): The solar radiation model for Open
+- Hofierka, J., Suri, M. (2002): The solar radiation model for Open
     source GIS: implementation and applications. International GRASS
     users conference in Trento, Italy, September 2002.
     ([PDF](https://web.archive.org/web/20121021222649/https://skagit.meas.ncsu.edu/~jaroslav/trento/Hofierka_Jaroslav.pdf))
-  - Hofierka, J. (1997). Direct solar radiation modelling within an open
+- Hofierka, J. (1997). Direct solar radiation modelling within an open
     GIS environment. Proceedings of JEC-GI'97 conference in Vienna,
     Austria, IOS Press Amsterdam, 575-584.
-  - Jenco, M. (1992). Distribution of direct solar radiation on
+- Jenco, M. (1992). Distribution of direct solar radiation on
     georelief and its modelling by means of complex digital model of
     terrain (in Slovak). Geograficky casopis, 44, 342-355.
-  - Kasten, F. (1996). The Linke turbidity factor based on improved
+- Kasten, F. (1996). The Linke turbidity factor based on improved
     values of the integral Rayleigh optical thickness. Solar Energy, 56
     (3), 239-244.
-  - Kasten, F., Young, A. T. (1989). Revised optical air mass tables and
+- Kasten, F., Young, A. T. (1989). Revised optical air mass tables and
     approximation formula. Applied Optics, 28, 4735-4738.
-  - Kittler, R., Mikler, J. (1986): Basis of the utilization of solar
+- Kittler, R., Mikler, J. (1986): Basis of the utilization of solar
     radiation (in Slovak). VEDA, Bratislava, p. 150.
-  - Krcho, J. (1990). Morfometrická analza a digitálne modely georeliéfu
+- Krcho, J. (1990). Morfometrická analza a digitálne modely georeliéfu
     (Morphometric analysis and digital models of georelief, in Slovak).
     VEDA, Bratislava.
-  - Muneer, T. (1990). Solar radiation model for Europe. Building
+- Muneer, T. (1990). Solar radiation model for Europe. Building
     services engineering research and technology, 11, 4, 153-163.
-  - Neteler, M., Mitasova, H. (2002): Open Source GIS: A GRASS GIS
+- Neteler, M., Mitasova, H. (2002): Open Source GIS: A GRASS GIS
     Approach, Kluwer Academic Publishers. (Appendix explains formula;
     [r.sun script download](https://grassbook.org))
-  - Page, J. ed. (1986). Prediction of solar radiation on inclined
+- Page, J. ed. (1986). Prediction of solar radiation on inclined
     surfaces. Solar energy R\&D in the European Community, series F -
     Solar radiation data, Dordrecht (D. Reidel), 3, 71, 81-83.
-  - Page, J., Albuisson, M., Wald, L. (2001). The European solar
+- Page, J., Albuisson, M., Wald, L. (2001). The European solar
     radiation atlas: a valuable digital tool. Solar Energy, 71, 81-83.
-  - Rigollier, Ch., Bauer, O., Wald, L. (2000). On the clear sky model
+- Rigollier, Ch., Bauer, O., Wald, L. (2000). On the clear sky model
     of the ESRA - European Solar radiation Atlas - with respect to the
     Heliosat method. Solar energy, 68, 33-48.
-  - Scharmer, K., Greif, J., eds., (2000). The European solar radiation
+- Scharmer, K., Greif, J., eds., (2000). The European solar radiation
     atlas, Vol. 2: Database and exploitation software. Paris (Les
     Presses de l'École des Mines).
-  - Joint Research Centre: [GIS solar radiation database for
+- Joint Research Centre: [GIS solar radiation database for
     Europe](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis_en)
     and [Solar radiation and
     GIS](https://joint-research-centre.ec.europa.eu/photovoltaic-geographical-information-system-pvgis_ensolres/solmod3.htm)

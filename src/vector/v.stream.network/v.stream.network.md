@@ -6,9 +6,9 @@ built by
 with five new columns that define the nodes and links within a river
 network. These are (default names given):
 
-  - *x1*, *y1*: upstream coordinates
-  - *x2*, *y2*: downstream coordinates
-  - *tostream*: category number of the next stream; is equal to 0 if the
+- *x1*, *y1*: upstream coordinates
+- *x2*, *y2*: downstream coordinates
+- *tostream*: category number of the next stream; is equal to 0 if the
     stream flows off of the map
 
 Any stream-like network will work, but the lines need to be connected.
@@ -43,7 +43,7 @@ r.stream_extract(elevation=elevation, accumulation='drainageArea_m2', threshold=
 
 ## REFERENCES
 
-  - Ng, G-H. Crystal, Andrew D. Wickert, Lauren D. Somers, Leila Saberi,
+- Ng, G-H. Crystal, Andrew D. Wickert, Lauren D. Somers, Leila Saberi,
     Collin Cronkite-Ratcliff, Richard G. Niswonger, and Jeffrey M.
     McKenzie. "GSFLOW–GRASS v1. 0.0: GIS-enabled hydrologic modeling of
     coupled groundwater–surface-water systems." *Geoscientific Model

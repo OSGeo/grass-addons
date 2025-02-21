@@ -43,7 +43,7 @@ Manager](https://grass.osgeo.org/grass-stable/manuals/wxGUI.gcp.html)*
 
 (note that the former module name was **i.coregister**)
 
-  - Neteler, M, D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
+- Neteler, M, D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C.
     Furlanello (2005). An integrated toolbox for image registration,
     fusion and classification. International Journal of Geoinformatics,
     1(1):51-61

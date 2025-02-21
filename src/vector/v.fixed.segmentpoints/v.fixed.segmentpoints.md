@@ -24,7 +24,7 @@ of the *prefix*\_segmentpoints attribute table.
 
 ## DEPENDENCIES
 
-  - v.segment
+- v.segment
 
 ## SEE ALSO
 

@@ -28,9 +28,9 @@ acquire for the citation.
 
 ## NOTES
 
-  - Don't use the `format=dict` for further processing. It is meant for
+- Don't use the `format=dict` for further processing. It is meant for
     exploration of what information the module acquired.
-  - The structure of the JSON output is yet not guaranteed.
+- The structure of the JSON output is yet not guaranteed.
 
 ## EXAMPLES
 
@@ -48,11 +48,11 @@ g.citation -s format=citeproc vsep="< p>" -a > all.html
 
 ## KNOWN ISSUES
 
-  - More output formats or styles are needed. The following formats were
+- More output formats or styles are needed. The following formats were
     suggested so far: `csl,datacite,dublincore,json-ld,narcxml`
-  - The structure of the JSON output is not guaranteed. It reflects the
+- The structure of the JSON output is not guaranteed. It reflects the
     internal structure (only the empty entries are removed).
-  - Version and date in CFF output are incomplete.
+- Version and date in CFF output are incomplete.
 
 ## SEE ALSO
 

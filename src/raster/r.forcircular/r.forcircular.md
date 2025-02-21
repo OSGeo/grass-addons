@@ -9,68 +9,68 @@ This module permits to identify potentially usable forest areas both
 from a technical and economic point of view. The required data input is
 a vector file with a series of mandatory fields described below:
 
-  - incr\_ha: \[float\] value of the forest increase \[mc \* ha \*
+- incr\_ha: \[float\] value of the forest increase \[mc \* ha \*
     year-1\]
-  - management: \[integer\] forest management system (form of
+- management: \[integer\] forest management system (form of
     government), can take on two values, namely (1) for forest
     management and (2) for coppice management
-  - treatment: \[integer\] treatment adopted, it can take on two values,
+- treatment: \[integer\] treatment adopted, it can take on two values,
     namely (1) for the final use cut and (2) for the thinning. Thinning
     is not foreseen for coppice woods.
-  - roughness: \[integer\] level of terrain accidentality - (0): no
+- roughness: \[integer\] level of terrain accidentality - (0): no
     accidentality; (1): locally bumpy; (2): partially bumpy; (3): mostly
     bumpy
-  - tree\_diam: \[integer\] average diameter of the stems \[cm\]. If the
+- tree\_diam: \[integer\] average diameter of the stems \[cm\]. If the
     data is not available, indicate the generic value 99999
-  - tree\_vol: \[decimal\] average volume per plant \[m3\]. If the data
+- tree\_vol: \[decimal\] average volume per plant \[m3\]. If the data
     is not available, indicate the generic value 9.999
-  - rotation: \[integer\] cutting cycle (or forest shift) \[years\]
-  - soil\_prod: \[integer\] degree of soil productivity (fertility):
+- rotation: \[integer\] cutting cycle (or forest shift) \[years\]
+- soil\_prod: \[integer\] degree of soil productivity (fertility):
     (1): very low; (2): low; (3): medium; (4); tall; (5): very high
-  - PCI: \[float\] Average lower calorific value of the wood species
+- PCI: \[float\] Average lower calorific value of the wood species
     present in the polygon \[MWh / t\]
-  - cut: \[float\]: cut percentage (range from 0 (0%) to 1 (100%)). It
+- cut: \[float\]: cut percentage (range from 0 (0%) to 1 (100%)). It
     represents the percentage of wood mass on the total stock that falls
     during the cutting operation.
-  - perc\_round: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_round: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for round wood
-  - perc\_timb: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_timb: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for poles
-  - perc\_fire: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_fire: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for firewood
-  - perc\_res: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_res: \[float\] (from 0 to 1) corresponding to the percentage
     of wood residues to be used for energy (wood chips)
-  - perc\_roun9: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_roun9: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for roundwood in the assortment optimization
     scenario
-  - perc\_timb9: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_timb9: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for poles in the assortment optimization scenario
-  - perc\_fire9: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_fire9: \[float\] (from 0 to 1) corresponding to the percentage
     of the wood mass for firewood in the assortment optimization
     scenario
-  - perc\_res9: \[float\] (from 0 to 1) corresponding to the percentage
+- perc\_res9: \[float\] (from 0 to 1) corresponding to the percentage
     of wood residues to be used for energy use (wood chips) in the
     assortment optimization scenario
-  - pric\_roun: \[float\] corresponding to the average price for the
+- pric\_roun: \[float\] corresponding to the average price for the
     roundwood assortment \[€ / m3\]
-  - pric\_timb: \[float\] corresponding to the average price for the
+- pric\_timb: \[float\] corresponding to the average price for the
     poles assortment \[€ / m3\]
-  - pric\_fire: \[float\] corresponding to the average price for the
+- pric\_fire: \[float\] corresponding to the average price for the
     firewood assortment \[€ / m3\]
-  - pric\_bioe: \[float\] corresponding to the average price for biomass
+- pric\_bioe: \[float\] corresponding to the average price for biomass
     energy for energy use \[€ / MWh\]
 
 Other mandatory data:
 
-  - vector tracks file
-  - vector boundaries file
-  - raster digital elevetion model file
+- vector tracks file
+- vector boundaries file
+- raster digital elevetion model file
 
 Optional data:
 
-  - vector rivers file
-  - vector lakes file
-  - vector protected areas file
+- vector rivers file
+- vector lakes file
+- vector protected areas file
 
 *r.forcircular* identifies forest areas potentially exploitable from
 both technical (according to geomorphological, logistic and
@@ -80,6 +80,7 @@ belonging to the 4R framework of the circular economy (Reduce, Reuse,
 Recycle, Recover) allows to evaluate the level of circularity of the
 forest-wood supply chain. Finally, the application of spatial
 multicriteria analysis (SMCA) (specifically with compromise programming
+
 - CP - technique) permits to merge in a unique measure the level of
 circular bioeconomy for production of traditional wood assortments and
 bioenergy in forest areas. In the SMCA procedure, each indicator is
@@ -87,7 +88,6 @@ weighted according to on-line questionnaire proposed to decision makers
 operating in the forest-based sector. The list of indicators used is the
 following:  
   
-
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -220,7 +220,6 @@ circular economy level of the forest supply chain). Below there are two
 examples of the output maps corresponding respectively to the stumpage
 value and the annual avoided emission:  
   
-
 [![image-alt](stumpage.png)](stumpage.png)
 [![image-alt](./avoided_emission.png)](./avoided_emission.png)  
 *Examples of output maps: stumpage value and avoided emission*

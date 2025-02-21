@@ -9,26 +9,26 @@ input and output.
 
 The command requires some input:
 
-  - DEM a digital terrain model of the study area;
-  - Raster map or single value for soil cohesion (N/m^2);
-  - Raster map or single value for soil friction angle (°);
-  - Raster map or single value for soil density (kg/m^3);
-  - Raster map or single value for vertical thickness of soil (m);
-  - Raster map or single value for hydraulic conductivity k (m/h);
-  - Raster map or single value for root cohesion (N/m^2); (default = 0)
-  - Raster map or single value for wet soil density (kg/m^3). (default =
+- DEM a digital terrain model of the study area;
+- Raster map or single value for soil cohesion (N/m^2);
+- Raster map or single value for soil friction angle (°);
+- Raster map or single value for soil density (kg/m^3);
+- Raster map or single value for vertical thickness of soil (m);
+- Raster map or single value for hydraulic conductivity k (m/h);
+- Raster map or single value for root cohesion (N/m^2); (default = 0)
+- Raster map or single value for wet soil density (kg/m^3). (default =
     2100)
 
 The outputs are: A landslide susceptibility map (value range from 1 to
 7):
 
-  - 1 Unconditionally Unstable
-  - 2 0-30 mm/day
-  - 3 31-100 mm/day
-  - 4 101-150 mm/day
-  - 5 151-200 mm/day
-  - 6 201-999 mm/day
-  - 7 Stable
+- 1 Unconditionally Unstable
+- 2 0-30 mm/day
+- 3 31-100 mm/day
+- 4 101-150 mm/day
+- 5 151-200 mm/day
+- 6 201-999 mm/day
+- 7 Stable
 
 A map for of critical rainfall map (mm/day).
 

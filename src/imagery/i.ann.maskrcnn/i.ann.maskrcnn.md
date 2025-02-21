@@ -23,15 +23,15 @@ Objects can be extracted either as areas or points.
 dependencies. To run modules, it is necessary to have them installed.
 Modules use Python3, so please install Python3 versions.
 
-  - NumPy
-  - Pillow
-  - SciPy
-  - Cython
-  - scikit-image
-  - OSGeo
-  - TensorFlow \< 2.0
-  - Keras
-  - h5py
+- NumPy
+- Pillow
+- SciPy
+- Cython
+- scikit-image
+- OSGeo
+- TensorFlow \< 2.0
+- Keras
+- h5py
 
 After dependencies are fulfilled, modules can be installed in GRASS GIS
 \>= 7.8 using the *g.extension* module:

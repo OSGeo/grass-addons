@@ -210,7 +210,7 @@ Fennoscandia. Remote Sens., 9, 806.
 
 ## FOLLOW UP
 
-  - Implement other available algorithm(s) of clouds and shadows
+- Implement other available algorithm(s) of clouds and shadows
     detection
 
 ## SEE ALSO

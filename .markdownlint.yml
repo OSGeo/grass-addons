@@ -11,19 +11,12 @@ first-line-h1: false
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
 no-blanks-blockquote: false
 no-multiple-space-blockquote: false
-ul-style: false
-ul-indent: false
-no-trailing-spaces: false
-no-hard-tabs: false
 no-reversed-links: false
-no-multiple-blanks: false
 line-length: false
 no-missing-space-atx: false
 no-multiple-space-atx: false
 no-missing-space-closed-atx: false
 no-trailing-punctuation: false
-ol-prefix: false
-blanks-around-lists: false
 no-inline-html: false
 no-bare-urls: false
 no-space-in-links: false

@@ -67,9 +67,9 @@ values.
 
 Hence, to produce an LST map, the algorithm requires at minimum:
 
-  - TIRS bands 10 and 11
-  - the acquisition's metadata file (MTL)
-  - a Finer Resolution Observation & Monitoring of Global Land Cover
+- TIRS bands 10 and 11
+- the acquisition's metadata file (MTL)
+- a Finer Resolution Observation & Monitoring of Global Land Cover
     (FROM-GLC) product
 
 ### Details
@@ -84,28 +84,27 @@ infrared channels, which can be expressed as (equation 2 in \[0\])
 
 where:
 
-  - `Ti` and `Tj` are Top of Atmosphere brightness temperatures measured
+- `Ti` and `Tj` are Top of Atmosphere brightness temperatures measured
     in channels `i` (\~11.0 microns) and `j` (\~12.0 µm), respectively
-  - from
+- from
     https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites
     (https://web.archive.org/web/20160424105111/http://landsat.usgs.gov:80/band\_designations\_landsat\_satellites.php):
-      - Band 10, Thermal Infrared (TIRS) 1, 10.60-11.19, 100\*(30)
-      - Band 11, Thermal Infrared (TIRS) 2, 11.50-12.51, 100\*(30)
-  - e is the average emissivity of the two channels (i.e., `e = 0.5 [ei
-    + ej]`)
-  - De is the channel emissivity difference (i.e., `De = ei - ej`)
-  - `bk` (k = 0, 1, ... 7) are the algorithm coefficients derived from a
+  - Band 10, Thermal Infrared (TIRS) 1, 10.60-11.19, 100\*(30)
+  - Band 11, Thermal Infrared (TIRS) 2, 11.50-12.51, 100\*(30)
+- e is the average emissivity of the two channels (i.e., `e = 0.5 [ei + ej]`)
+- De is the channel emissivity difference (i.e., `De = ei - ej`)
+- `bk` (k = 0, 1, ... 7) are the algorithm coefficients derived from a
     simulated dataset.
 
 In the above equations,
 
-  - `dk` (k = 0, 1...6) and `ek` (k = 1, 2, 3, 4) are the algorithm
+- `dk` (k = 0, 1...6) and `ek` (k = 1, 2, 3, 4) are the algorithm
     coefficients;
-  - `w` is the Column Water Vapor;
-  - `e` and `De` are the average emissivity and emissivity difference of
+- `w` is the Column Water Vapor;
+- `e` and `De` are the average emissivity and emissivity difference of
     two adjacent thermal channels, respectively, which are similar to
     Equation (2);
-  - and `fk` (k = 0 and 1) is related to the influence of the
+- and `fk` (k = 0 and 1) is related to the influence of the
     atmospheric transmittance and emissivity, i.e., `fk = f(ei, ej, ti,
     tji)`.
 
@@ -147,12 +146,12 @@ factors provided in the metadata file:
 
 where:
 
-  - `Ll` = TOA spectral radiance (Watts/( m2 \* srad \* microns))
-  - `ML` = Band-specific multiplicative rescaling factor from the
+- `Ll` = TOA spectral radiance (Watts/( m2 \* srad \* microns))
+- `ML` = Band-specific multiplicative rescaling factor from the
     metadata (RADIANCE\_MULT\_BAND\_x, where x is the band number)
-  - `AL` = Band-specific additive rescaling factor from the metadata
+- `AL` = Band-specific additive rescaling factor from the metadata
     (RADIANCE\_ADD\_BAND\_x, where x is the band number)
-  - `Qcal` = Quantized and calibrated standard product pixel values (DN)
+- `Qcal` = Quantized and calibrated standard product pixel values (DN)
 
 #### Conversion to at-Satellite Temperature
 
@@ -164,12 +163,12 @@ thermal constants provided in the metadata file:
 
 where:
 
-  - `T` = At-satellite brightness temperature (K)
-  - `Ll` = TOA spectral radiance (Watts/(m^2 \* srad \* microns)), below
+- `T` = At-satellite brightness temperature (K)
+- `Ll` = TOA spectral radiance (Watts/(m^2 \* srad \* microns)), below
     'DUMMY\_RADIANCE'
-  - `K1` = Band-specific thermal conversion constant from the metadata
+- `K1` = Band-specific thermal conversion constant from the metadata
     (K1\_CONSTANT\_BAND\_x, where x is the band number, 10 or 11)
-  - `K2` = Band-specific thermal conversion constant from the metadata
+- `K2` = Band-specific thermal conversion constant from the metadata
     (K2\_CONSTANT\_BAND\_x, where x is the band number, 10 or 11)
 
 ![image-alt](LC81840332014146LGN00_B10.jpg)
@@ -223,22 +222,22 @@ whereas the transmittance ratio can be calculated based on the TOA
 brightness temperatures of the two bands. Considering N adjacent pixels,
 the CWV in the MSWCVR method is estimated as:
 
-  - `cwv = c0 + c1*(tj/ti) + c2*(tj/ti)^2` (3a)
+- `cwv = c0 + c1*(tj/ti) + c2*(tj/ti)^2` (3a)
 
 where:
 
-  - `tj/ti` \~ `Rji = SUM [(Tik-Ti\_mean) \* (Tjk-Tj\_mean)] /
+- `tj/ti` \~ `Rji = SUM [(Tik-Ti\_mean) \* (Tjk-Tj\_mean)] /
     SUM[(Tik-Tj\_mean)\^2]`
 
 In Equation (3a):
 
-  - `c0`, `c1` and `c2` are coefficients obtained from simulated data;
-  - `t` is the band effective atmospheric transmittance;
-  - `N` is the number of adjacent pixels (excluding water and cloud
+- `c0`, `c1` and `c2` are coefficients obtained from simulated data;
+- `t` is the band effective atmospheric transmittance;
+- `N` is the number of adjacent pixels (excluding water and cloud
     pixels) in a spatial window of size `n` (i.e., `N = n x n`);
-  - `Ti,k` and `Tj,k` are top of atmosphere brightness temperatures (K)
+- `Ti,k` and `Tj,k` are top of atmosphere brightness temperatures (K)
     of bands `i` and `j` for the `k`th pixel;
-  - `mean(Ti)` and `mean(Tj)` are the mean (or median -- not implemented
+- `mean(Ti)` and `mean(Tj)` are the mean (or median -- not implemented
     yet) brightness temperatures of the `N` pixels for the two bands.
 
 TIRS channels are originally of 100m spatial resolution. However, bands
@@ -252,16 +251,16 @@ performance (speed) of the module decreases greatly.
 
 The regression coefficients:
 
-  - `c0` = -9.674
-  - `c1` = 0.653
-  - `c2` = 9.087
+- `c0` = -9.674
+- `c1` = 0.653
+- `c2` = 9.087
 
 where obtained by:
 
-  - 946 cloud-free TIGR atmospheric profiles,
-  - the new high accurate atmospheric radiative transfer model MODTRAN
+- 946 cloud-free TIGR atmospheric profiles,
+- the new high accurate atmospheric radiative transfer model MODTRAN
     5.2
-  - simulating the band effective atmospheric transmittance Model
+- simulating the band effective atmospheric transmittance Model
     analysis indicated that this method will obtain a CWV RMSE of about
     0.5 g/cm^2.
 
@@ -321,16 +320,16 @@ i.landsat8.swlst mtl=MTL prefix=B landcover=FROM_GLC -n
 
 where:
 
-  - **`mtl=`** the name of the MTL metadata file (normally with a `.txt`
+- **`mtl=`** the name of the MTL metadata file (normally with a `.txt`
     extension)
 
-  - **`prefix=`** the prefix of the band names imported in GRASS GIS'
+- **`prefix=`** the prefix of the band names imported in GRASS GIS'
     data base
 
-  - **`landcover=`** the name of the FROM-GLC map that covers the extent
+- **`landcover=`** the name of the FROM-GLC map that covers the extent
     of the Landsat8 scene under processing
 
-  - the **`n`** flag will set zero digital number values, which may
+- the **`n`** flag will set zero digital number values, which may
     represent NoData in the original bands, to NULL. This option is
     probably unnecessary for smaller regions in which there are no
     NoData pixels present.
@@ -465,25 +464,25 @@ GIS' `r.mapcalc` module.
 
 ## TODO
 
-  - Go through [Submitting
+- Go through [Submitting
     Python](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md#python)
-  - Proper command history tracking.
-  - Deduplicate code where applicable
-  - Test compiling in other systems
-  - Improve documentation
+- Proper command history tracking.
+- Deduplicate code where applicable
+- Test compiling in other systems
+- Improve documentation
 
 ## REFERENCES
 
-  - \[0\] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
+- \[0\] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
     Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
     1: 647-665. https://www.mdpi.com/2072-4292/7/1/647
 
-  - \[1\] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng,
+- \[1\] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng,
     and Jing Li. "Atmospheric Water Vapor Retrieval from Landsat 8 and
     Its Validation." 3045--3048. IEEE, 2014.
 
-  - \[2\] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., & Meng,
+- \[2\] Ren, H., Du, C., Liu, R., Qin, Q., Yan, G., Li, Z. L., & Meng,
     J. (2015). Atmospheric water vapor retrieval from Landsat 8 thermal
     infrared images. Journal of Geophysical Research: Atmospheres,
     120(5), 1723-1738.

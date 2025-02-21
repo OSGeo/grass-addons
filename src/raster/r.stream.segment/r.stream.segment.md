@@ -2,12 +2,12 @@
 
 ## OPTIONS
 
-  - **-r**  
+- **-r**  
     Directions and azimut output in radians. Default is degrees.
-  - **-m**  
+- **-m**  
     Only for very large data sets. Use segment library to optimize
     memory consumption during analysis
-  - **stream\_rast**  
+- **stream\_rast**  
     Stream network: name of input stream map. Streams shall be ordered
     according one of the *r.stream.order* ordering system as well as
     unordered (with original stream identifiers) Because streams network
@@ -17,7 +17,7 @@
     or zero value. Background values of NULL are by default produced by
     *r.watershed* and *r.stream.extract*. If not 0 or NULL use
     *[r.mapcalc](r.mapcalc.html)* to set background values to null.
-  - **direction**  
+- **direction**  
     Flow direction: name of input direction map produced by
     *r.watershed* or *r.stream.extract*. If r.stream.extract output map
     is used, it only has non-NULL values in places where streams occur.
@@ -29,23 +29,23 @@
     If resolutions differ the module informs about it and stops. Region
     boundary and maps boundary may be differ but it may lead to
     unexpected results.
-  - **elevation**  
+- **elevation**  
     Elevation: name of input elevation map. Map can be of type CELL,
     FCELL or DCELL. It is not restricted to resolution of region
     settings as stream\_rast and direction.
-  - **length**  
+- **length**  
     Integer values indicating the search length (in cells) to determine
     straight line. The longest length parameter the module treats more
     tolerant local stream undulation and inequalities. Default value of
     15 is suitable for 30 meters DEMs. More detail DEMs may requre
     longer length.
-  - **skip**  
+- **skip**  
     Integer values indicating the length (in cells) local short segment
     to skip and join them to the longer neighbour. The shortest length
     parameter the more short segments will be produced by the module due
     to undulation and inequalities. Default value of 5 is suitable for
     30 meters DEMS. More details DEMS may require longer length.
-  - **threshold**  
+- **threshold**  
     real value indicates the internal angle between upstream and
     downstream direction to treat actual cell as lying on the straight
     line. Greater values (up to 180 degrees) produce more segments.
@@ -55,63 +55,63 @@
 
 <!-- end list -->
 
-  - **segments**  
+- **segments**  
     Vector map where every segment has its own category and following
     attributes:
-      - **segment**: integer, segment identifier
-      - **next\_segment**: integer, topological next segment identifier
-      - **s\_order**: integer, segment order
-      - **next\_order**: integer, topological next segment order
-      - **direction**: double precision, full segment direction (0-360)
-      - **azimuth**: double precision, full segment azimuth (0-180)
-      - **length**: double precision, segment length
-      - **straight**: double precision, length of straight line between
+  - **segment**: integer, segment identifier
+  - **next\_segment**: integer, topological next segment identifier
+  - **s\_order**: integer, segment order
+  - **next\_order**: integer, topological next segment order
+  - **direction**: double precision, full segment direction (0-360)
+  - **azimuth**: double precision, full segment azimuth (0-180)
+  - **length**: double precision, segment length
+  - **straight**: double precision, length of straight line between
         segment nodes
-      - **sinusoid**: double precision, sinusoid (length/straight)
-      - **elev\_min**: double precision, minimum elevation (elevation at
+  - **sinusoid**: double precision, sinusoid (length/straight)
+  - **elev\_min**: double precision, minimum elevation (elevation at
         segment start)
-      - **elev\_max**: double precision, maximum elevation (elevation at
+  - **elev\_max**: double precision, maximum elevation (elevation at
         segment end)
-      - **s\_drop**: double precision, difference between start and end
+  - **s\_drop**: double precision, difference between start and end
         of the segment
-      - **gradient**: double precision, drop/length
-      - **out\_direction**: double precision, direction (0-360) of
+  - **gradient**: double precision, drop/length
+  - **out\_direction**: double precision, direction (0-360) of
         segment end sector
-      - **out\_azimuth**: double precision, azimuth (0-180) of segment
+  - **out\_azimuth**: double precision, azimuth (0-180) of segment
         end sector
-      - **out\_length**: double precision, length of segment end sector
-      - **out\_drop**: double precision, drop of segment end sector
-      - **out\_gradient**: double precision, gradient of segment end
+  - **out\_length**: double precision, length of segment end sector
+  - **out\_drop**: double precision, drop of segment end sector
+  - **out\_gradient**: double precision, gradient of segment end
         sector
-      - **tangent\_dir**: double precision, direction of tangent in
+  - **tangent\_dir**: double precision, direction of tangent in
         segment outlet to the next stream
-      - **tangent\_azimuth**: double precision, azimuth of tangent in
+  - **tangent\_azimuth**: double precision, azimuth of tangent in
         segment outlet to the next stream
-      - **next\_direction**: double precision, direction of next stream
+  - **next\_direction**: double precision, direction of next stream
         in join with current segment
-      - **next\_azimuth**: double precision, azimuth of next stream in
+  - **next\_azimuth**: double precision, azimuth of next stream in
         join with current segment
     ![image-alt](dirs.png)
-  - **sectors**  
+- **sectors**  
     Vector map where every sector has its own category and following
     attributes:
-      - **sector**: integer, sector category
-      - **segment**: integer, segment category (to establish
+  - **sector**: integer, sector category
+  - **segment**: integer, segment category (to establish
         relationship)
-      - **s\_order**: integer, segment order
-      - **direction**: double precision, sector direction
-      - **azimuth**: double precision, sector azimuth
-      - **length**: double precision, sector length
-      - **straight**: double precision, length of straight line between
+  - **s\_order**: integer, segment order
+  - **direction**: double precision, sector direction
+  - **azimuth**: double precision, sector azimuth
+  - **length**: double precision, sector length
+  - **straight**: double precision, length of straight line between
         sector nodes
-      - **sinusoid**: double precision, sinusoid (length/straight)
-      - **elev\_min**: double precision, minimum elevation (elevation at
+  - **sinusoid**: double precision, sinusoid (length/straight)
+  - **elev\_min**: double precision, minimum elevation (elevation at
         sector start)
-      - **elev\_max**: double precision, minimum elevation (elevation at
+  - **elev\_max**: double precision, minimum elevation (elevation at
         sector end)
-      - **s\_drop**: double precision, difference between start and end
+  - **s\_drop**: double precision, difference between start and end
         of the sector
-      - **gradient**: double precision, drop/length
+  - **gradient**: double precision, drop/length
     ![image-alt](sectors.png) Relation between segments and sector may
     be set up by segment key.
 

@@ -61,10 +61,10 @@ the analysis, to generate a **hoz\_type** map.
 The **hoz\_type** map records the kind of horizon represented by each
 horizon cell. This distinguishes horizon cells as follows:
 
-  - 1 = cell falls on true far horizon;
-  - 2 = cell falls at maximum viewing distance;
-  - 3 = cell falls at edge of current region.
-  - NULL = cell does not fall on the horizon (or falls on the original
+- 1 = cell falls on true far horizon;
+- 2 = cell falls at maximum viewing distance;
+- 3 = cell falls at edge of current region.
+- NULL = cell does not fall on the horizon (or falls on the original
     viewpoint).
 
 Note that type 1 horizon cells might not really fall on the true horizon
@@ -134,7 +134,7 @@ non-integer).
 
 ## REFERENCES
 
-  - Harris, B. and Lake, M. (in prep.) The influence of visibility on
+- Harris, B. and Lake, M. (in prep.) The influence of visibility on
     the territorial packing of Neolithic long barrows in central
     southern England. For submission to *Journal of Archaeological
     Method and Theory*.

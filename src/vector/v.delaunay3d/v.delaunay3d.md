@@ -32,7 +32,7 @@ Number of tetrahedrons: 492
 
 ## REFERENCES
 
-  - [CGAL 4.2 - 3D
+- [CGAL 4.2 - 3D
     Triangulations](https://doc.cgal.org/4.2/CGAL.CGAL.3D-Triangulations/html/index.html)
 
 ## SEE ALSO
