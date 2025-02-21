@@ -127,7 +127,7 @@ following *component* maps to derive a recreation *potential* map:
 ![protected areas](images/r_estimap_recreation_protected_areas.png)
 
 The maps shown above are available to download, among other sample maps,
-at: https://gitlab.com/natcapes/r.estimap.recreation.data.
+at: <https://gitlab.com/natcapes/r.estimap.recreation.data>.
 
 Note, the prefix `input_` in front of all maps is purposive in order to
 make the examples easier to understand. Similarly, all output maps and
@@ -994,7 +994,7 @@ by the European Commission -- subsequent versions of the EUPL (the
 
 You may not use this work except in compliance with the Licence. You may
 obtain a copy of the Licence at:
-https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12
+<https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12>
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the Licence is distributed on an "AS IS" basis,

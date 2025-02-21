@@ -56,7 +56,7 @@ v.in.pygbif taxa="Poa pratensis,Plantago media" rank=species output=gbif -i
 
 ```
 
-## SEE ALSO:
+## SEE ALSO
 
 [v.in.gbif](v.in.gbif.md)
 

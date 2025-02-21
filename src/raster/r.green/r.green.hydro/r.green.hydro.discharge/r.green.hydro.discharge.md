@@ -29,11 +29,11 @@ calculated thanks to this formula :
 Q<sub>MFD</sub> = ( K<sub>b</sub> + K<sub>n</sub> ) \* 177 \*
 S<sup>0.85</sup> \* Q<sub>spec</sub> \* 10<sup>-6</sup>  
 
-> where K<sub>b</sub> is the biological criticality index,  
-> K<sub>n</sub> is the naturalistic criticality index,  
-> S is the catchment area, in km<sup>2</sup>,  
-> Q<sub>spec</sub> is the specific flow-rate per unit area of the
-> catchment, in l/(s.km<sup>2</sup>)  
+where K<sub>b</sub> is the biological criticality index,  
+K<sub>n</sub> is the naturalistic criticality index,  
+S is the catchment area, in km<sup>2</sup>,  
+Q<sub>spec</sub> is the specific flow-rate per unit area of the
+catchment, in l/(s.km<sup>2</sup>)  
 
 K<sub>b</sub> is typically within the range of 1-1.6; higher values are
 chosen for a river whose aquatic ecosystem is considered to be of a
@@ -108,8 +108,7 @@ point
 [r.green.hydro.recommended](r.green.hydro.recommended.md)  
 [r.green.hydro.structure](r.green.hydro.structure.md)  
 [r.green.hydro.technical](r.green.hydro.technical.md)  
-[r.green.hydro.financial](r.green.hydro.financial.md)  
-*
+[r.green.hydro.financial](r.green.hydro.financial.md)*
 
 ## REFERENCE
 

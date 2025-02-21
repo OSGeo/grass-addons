@@ -13,7 +13,7 @@ validation.
 \[**site\_file**=*string*\] **rows**=*value* **cols**=*value*
 \[**class**=*value*\] \[**--verbose**\] \[**--quiet**\]
 
-### Flags:
+### Flags
 
 **Flags:**
 
@@ -21,7 +21,7 @@ validation.
 
 \--q Quiet module output
 
-### Parameters:
+### Parameters
 
 - **input**=*string\[,*string*,...\]*  
     Input raster maps (max 25) for extracting the training examples. The
@@ -73,7 +73,7 @@ of columns will relate to the number of rasters specified on the command
 line. If the output file already exists, the new data values will be
 appended to it.
 
-### Flags and parameters:
+### Flags and parameters
 
 **--v** Verbose module output. Print information pertaining to module
 progress and completion.

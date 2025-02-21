@@ -6,7 +6,7 @@ correlation between flood exposure and a Modified Topographic Index
 (MTI), calculated on the basis of the DTM and strongly influenced by the
 resolution of this latter.
 
-### Important:
+### Important
 
 Before running the program, the region should be aligned perfectly with
 the input map. The cell size taken in consideration is the one specified

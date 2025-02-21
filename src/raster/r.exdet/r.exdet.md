@@ -100,7 +100,7 @@ If you want, in addition, to cite this tool, you can use:
 
 - van Breugel, P. (2016) r.exdet, a GRASS GIS addon for the
     quantification of novel uni- and multi-variate environments. URL:
-    https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html
+    <https://grass.osgeo.org/grass70/manuals/addons/r.exdet.html>
 
 ## REFERENCES
 

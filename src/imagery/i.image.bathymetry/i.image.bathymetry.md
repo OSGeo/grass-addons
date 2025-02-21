@@ -97,5 +97,5 @@ depth_estimate='output'
 
 ## AUTHORS
 
-Vinayaraj Poliyapram (email:*vinay223333@gmail.com*), Luca Delucchi and
+Vinayaraj Poliyapram (email:*<vinay223333@gmail.com>*), Luca Delucchi and
 Venkatesh Raghavan

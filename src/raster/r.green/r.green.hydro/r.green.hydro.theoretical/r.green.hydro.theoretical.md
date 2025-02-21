@@ -41,7 +41,8 @@ J.Alterach and P. Cuya.
 The maximum potential hydropower at subbasin scale can be computed as
 the sum of two components:  
   
-\- upstream subbasin potential           - subbasin own potential  
+- upstream subbasin potential
+- subbasin own potential  
   
 According to the general schematization in the figure below, point A is
 the closure point of the upstream subbasins (named UPSTREAM 1, UPSTREAM
@@ -55,9 +56,8 @@ production is only given by their own potential and a lower portion,
 whose energy production is the sum of the two components, own potential
 and the potential given by the flow coming from the upper portions.  
   
-![image-alt](r_green_hydro_theoretical_streams.png)  
-  
-Subbasin scheme to calculate maximum potential hydropower
+![Subbasin scheme to calculate maximum potential hydropower](r_green_hydro_theoretical_streams.png)  
+*Subbasin scheme to calculate maximum potential hydropower*
 
 The maximum potential hydropower for the upstream subbasins is given by
 the energy formula applied to the upstream inflows:  
@@ -65,18 +65,17 @@ the energy formula applied to the upstream inflows:
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>up\_hydro</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
-> <span class="small">where conv is the adimensional conversion factor
-> to calculate energy in GWh (conv = 0.00876);  
-> g is a gravity constant (9.81 m/s<sup>2</sup>);  
-> η is the overall electrical efficiency;  
-> Q<sub>up\_hydro</sub> is the mean annual discharge at the closure
-> section for the upstream subbasin;  
-> H<sub>mean</sub> is the mean elevation of the upstream subbasin
-> calculated from the hypsographic curve, using the statistical tool of
-> Arc-GIS;  
-> H<sub>closure</sub> is the elevation at the closure point (point A in
-> the figure);</span>  
->
+<span class="small">where conv is the adimensional conversion factor
+to calculate energy in GWh (conv = 0.00876);  
+g is a gravity constant (9.81 m/s<sup>2</sup>);  
+η is the overall electrical efficiency;  
+Q<sub>up\_hydro</sub> is the mean annual discharge at the closure
+section for the upstream subbasin;  
+H<sub>mean</sub> is the mean elevation of the upstream subbasin
+calculated from the hypsographic curve, using the statistical tool of
+Arc-GIS;  
+H<sub>closure</sub> is the elevation at the closure point (point A in
+the figure);</span>  
 
 The downstream lower subbasin (between point A and B in the figure) has
 both energy components: the potential from the upstream subbasins and
@@ -88,14 +87,13 @@ elevation at the closure point (point B in the figure):
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>aff</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
-> <span class="small">where Q<sub>aff</sub> is the afferent discharge
-> (own lower subbasin discharge). The afferent discharge is the
-> difference of the discharge observed at the closure section (point B
-> in the figure) and the sum of the upstream discharges;  
-> H<sub>mean</sub> is the elevation of lower subbasin;  
-> H<sub>closure</sub> is the elevation at closure point (point B in the
-> figure);</span>  
->
+<span class="small">where Q<sub>aff</sub> is the afferent discharge
+(own lower subbasin discharge). The afferent discharge is the
+difference of the discharge observed at the closure section (point B
+in the figure) and the sum of the upstream discharges;  
+H<sub>mean</sub> is the elevation of lower subbasin;  
+H<sub>closure</sub> is the elevation at closure point (point B in the
+figure);</span>  
 
 The upstream component to the potential of the downstream lower subbasin
 is calculated taking into account the discharge coming from the upstream
@@ -106,13 +104,12 @@ closure (point B in the figure):
 *E<sub>up\_max</sub> = conv \* g \* η \* ∑Q<sub>up\_hydro</sub> \*
 (H<sub>up\_closure</sub> - H<sub>closure</sub>)*  
 
-> <span class="small">where Q<sub>up\_hydro</sub> is the sum of the mean
-> annual discharges coming from the upstream subbasins;  
-> H<sub>up\_closure</sub> is the elevation at the upstream closure point
-> (point A in the figure);  
-> H<sub>closure</sub> is the elevation at closure point (point B in the
-> figure);</span>  
->
+<span class="small">where Q<sub>up\_hydro</sub> is the sum of the mean
+annual discharges coming from the upstream subbasins;  
+H<sub>up\_closure</sub> is the elevation at the upstream closure point
+(point A in the figure);  
+H<sub>closure</sub> is the elevation at closure point (point B in the
+figure);</span>  
 
 The total maximum hydropower potential of the overall given basin is the
 sum of the different contributions computed at the subbasin level:  
@@ -120,8 +117,6 @@ sum of the different contributions computed at the subbasin level:
 *E<sub>total\_max</sub> = E<sub>own\_max</sub> + E<sub>up\_max</sub>*  
   
 ## EXAMPLES
-
-**EXAMPLE 1**  
   
 This example is based on the case-study of the Gesso and Vermenagna
 valleys located in the Piedmont Region, in South-West Italy, close to
@@ -130,9 +125,8 @@ the Italian and French border.
 In the map below you can see the input files elevation and natural
 discharge.  
   
-![image-alt](r_green_hydro_theoretical_input.png)  
-  
-input raster map with elevation and natural discharge
+![input raster map with elevation and natural discharge](r_green_hydro_theoretical_input.png)  
+*input raster map with elevation and natural discharge*
 
 For a faster run of this example, the input maps elevation and discharge
 are limited to the section that can be modified by
@@ -152,9 +146,8 @@ r.green.hydro.theoretical elevation=elevation discharge=naturaldischarge rivers=
 In the map below, you can see the output vector map with the basin
 potential.  
   
-![image-alt](r_green_hydro_theoretical_output.png)  
-  
-output vector map with basin potential
+![output vector map with basin potential](r_green_hydro_theoretical_output.png)  
+*output vector map with basin potential*
 
 ## SEE ALSO
 
@@ -164,8 +157,7 @@ output vector map with basin potential
 [r.green.hydro.recommended](r.green.hydro.recommended.md)  
 [r.green.hydro.structure](r.green.hydro.structure.md)  
 [r.green.hydro.technical](r.green.hydro.technical.md)  
-[r.green.hydro.financial](r.green.hydro.financial.md)  
-*
+[r.green.hydro.financial](r.green.hydro.financial.md)*
 
 ## AUTHORS
 

@@ -57,7 +57,7 @@ other software.
 
 The examples below use a dataset that you can download [from
 here](https://ecodiv.earth/share/reader_SDM/grassmaxent_sampledata.zip).
-It includes [vector point layer]() with observation locations of the
+It includes vector point layer with observation locations of the
 pale-throated sloth (*Bradypus tridactylus*) from
 [GBIF](https://doi.org/10.15468/dl.br8b4a), a number of bioclim raster
 layers from
@@ -119,7 +119,7 @@ which provides a convenient wrapper for the *Maxent* software.
     En Chee, Colin J. Yates. A statistical explanation of MaxEnt for
     ecologists. Diversity and Distributions, 17:43-57, 2011.
 - GBIF.org (12 November 2023) GBIF Occurrence Download
-    https://doi.org/10.15468/dl.br8b4a
+    <https://doi.org/10.15468/dl.br8b4a>
 
 ## AUTHOR
 

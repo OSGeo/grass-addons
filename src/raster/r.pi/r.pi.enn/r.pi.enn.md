@@ -11,12 +11,12 @@ and *statmethod* used (i.e., average).
 
 Within *r.pi.enn* the following setting have to be set:
 
-### keyval setting:
+### keyval setting
 
 The *keyval* operator determines which category value is taken for the
 Patch Index analysis.
 
-### Method setting:
+### Method setting
 
 The *method* operators determine what measure is applied on the nth NN.
 
@@ -31,7 +31,7 @@ The *method* operators determine what measure is applied on the nth NN.
 - **SHAPE Index**  
     The *shapeindex* computes the SHAPE Index of the n NN.
 
-### Statmethod setting:
+### Statmethod setting
 
 The *statmethod* operators determine what statistic measure is applied
 on the nth NN.
@@ -43,14 +43,14 @@ on the nth NN.
 - **Std. Dev.**  
     The *Std. Dev* computes the std. dev. of the distance of the n NN.
 
-### Number:
+### Number
 
 The *keyval* operator determines which or how many Nearest Neighbour are
 analysed. *1,2,5* will analyse the 1, 2 and 5th Nearest Neigbour. *1-10*
 will analyse the 1, 2, 3, ... 10th Nearest Neighbour. *0* will analyse
 all Nearest Neighbours.
 
-### Distancematrix:
+### Distancematrix
 
 The *dmout* operator is optional and determines if a distance matrix is
 written (first NN only). *1,2,5* will analyse the 1, 2 and 5th Nearest

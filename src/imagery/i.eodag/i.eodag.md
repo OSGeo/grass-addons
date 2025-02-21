@@ -1,6 +1,6 @@
 ## DESCRIPTION
 
-### WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION.
+### WARNING: I.EODAG IS UNDER DEVELOPMENT. THIS IS AN EXPERIMENTAL VERSION
 
 *i.eodag* allows to search and download imagery scenes, e.g. Sentinel,
 Landsat, and MODIS, as well as other Earth Observation products, from a

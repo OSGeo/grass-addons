@@ -1,4 +1,4 @@
-## DESCRIPTION:
+## DESCRIPTION
 
 The purpose of the *v.rast.bufferstats* module is to provide local
 environmental context to a series of input geometries. It computes
@@ -55,7 +55,7 @@ statistics.
 The module is affected by the following underlying library issue:
 Currently, the module uses GRASS native buffering through pygrass which
 should be replaced by buffering using GEOS:
-https://trac.osgeo.org/grass/ticket/3628
+<https://trac.osgeo.org/grass/ticket/3628>
 
 ## SEE ALSO
 

@@ -9,25 +9,8 @@ fix: true
 first-line-h1: false
 
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
-no-blanks-blockquote: false
-no-multiple-space-blockquote: false
-no-reversed-links: false
 line-length: false
-no-missing-space-atx: false
-no-multiple-space-atx: false
-no-missing-space-closed-atx: false
-no-trailing-punctuation: false
 no-inline-html: false
-no-bare-urls: false
-no-space-in-links: false
-no-empty-links: false
-no-space-in-emphasis: false
-no-alt-text: false
-emphasis-style: false
-reference-links-images: false
-table-pipe-style: false
-table-column-count: false
-blanks-around-tables: false
 # The block above this is to be eventually removed.
 
 # The warning is triggered even for code blocks with language set to text,

@@ -26,11 +26,11 @@ r.colors map=lsat7_2000_10.match color=grey
 # visualize and compare the results
 ```
 
-### Original data:
+### Original data
 
 ![i.histo.match original](i_histo_match_original.png)  
 
-### Matched data:
+### Matched data
 
 ![i.histo.match matched](i_histo_match_matched.png)  
 

@@ -28,7 +28,7 @@ specification.
 
 ## EXAMPLES
 
-### Get the item metadata from a STAC API.
+### Get the item metadata from a STAC API
 
 ```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
@@ -36,7 +36,7 @@ specification.
     t.stac.item -i url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
 ```
 
-### Get the asset metadata from a STAC API.
+### Get the asset metadata from a STAC API
 
 ```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
@@ -44,7 +44,7 @@ specification.
     t.stac.item -a url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
 ```
 
-### Dpwnload the asset from a STAC API.
+### Dpwnload the asset from a STAC API
 
 ```sh
     t.stac.catalog url="https://earth-search.aws.element84.com/v1/"

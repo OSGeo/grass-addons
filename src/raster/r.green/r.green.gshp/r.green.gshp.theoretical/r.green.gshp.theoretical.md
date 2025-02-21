@@ -21,21 +21,21 @@ features and the plant.
 geothermal energy by means of and empirical relationship proposed by
 Casasso et al. (2016) as:
 
-> *P<sub>gshp</sub>=8\*(T<sub>0</sub> - T<sub>lim</sub>) λ L
-> t'<sub>c</sub>/(-0.619 t'<sub>c</sub> log(u'<sub>s</sub>)-0.455
-> t'<sub>c</sub>-1.619+4 π R<sub>b</sub>)*  
->
-> where
->
-> > T<sub>0</sub> is the undisturbed ground temperature (°C),  
-> > T<sub>lim</sub> the threshold temperature of the heat carrier fluid
-> > setting to 2°C,  
-> > λ is the the thermal conductivity of the ground (W/(mK)),  
-> > L the borehole length (m),  
-> > t'<sub>c</sub> is is the operating time ratio ,  
-> > u'<sub>s</sub> is a parameter depending on the simulaion time and
-> > the borehole radius ,  
-> > R<sub>b</sub> is the thermal resistance (K/W)
+*P<sub>gshp</sub>=8\*(T<sub>0</sub> - T<sub>lim</sub>) λ L
+t'<sub>c</sub>/(-0.619 t'<sub>c</sub> log(u'<sub>s</sub>)-0.455
+t'<sub>c</sub>-1.619+4 π R<sub>b</sub>)*  
+
+where
+
+T<sub>0</sub> is the undisturbed ground temperature (°C),  
+T<sub>lim</sub> the threshold temperature of the heat carrier fluid
+setting to 2°C,  
+λ is the the thermal conductivity of the ground (W/(mK)),  
+L the borehole length (m),  
+t'<sub>c</sub> is is the operating time ratio ,  
+u'<sub>s</sub> is a parameter depending on the simulaion time and
+the borehole radius ,  
+R<sub>b</sub> is the thermal resistance (K/W)
 
 ## EXAMPLES
 
@@ -43,8 +43,7 @@ This example is based on the case-study of the EUSALP region, located in
 Europe and covering part of Italian, Slovenian, Austrian, German, Swiss
 and France territories. The data can be downloades at the following
 repositories [EUSALP
-dataset](https://gitlab.inf.unibz.it/URS/GRETA/eusalp-shallow-geothermal-energy)
-.
+dataset](https://gitlab.inf.unibz.it/URS/GRETA/eusalp-shallow-geothermal-energy).
 
 ```sh
 r.green.gshp.theoretical \

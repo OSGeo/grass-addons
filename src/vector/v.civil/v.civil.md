@@ -85,12 +85,12 @@ marks.
 
 The tables stored in the polygon map are:
 
-#### Layer 1:
+#### Layer 1
 
 Created with only cat column (if not exist), is for free use to add
 columns with information of the road.
 
-#### Layer 2:
+#### Layer 2
 
 **"NameRoad"\_Plan**, for insert the parameters of the horizontal
 alignment. This layer have all vertices and nodes of the horizontal
@@ -118,7 +118,7 @@ The columns are:
 
 - **lr\_**: longitude of straight. For use with flag *-t*
 
-#### Layer 3:
+#### Layer 3
 
 **"NameRoad"\_Vert**, for insert the parameters of the vertical
 alignment.This layer are created with the first an last vertices of the
@@ -135,7 +135,7 @@ The columns are:
 - **B**: Height of vertice of vertical polygon to the parabolic curve
     (no yet implemented)
 
-#### Layer 4:
+#### Layer 4
 
 **"NameRoad"\_Displ**, for insert the parameters of the platform. This
 layer are created with the first an last vertices of the horizontal
@@ -159,7 +159,7 @@ Between two points, if the second input distance equal zero, the line
 will be stopped. If the second input distance equal -1, this point will
 not be processed and the next one will be considered.
 
-#### Layer 5:
+#### Layer 5
 
 **"NameRoad"\_Terr**, for insert the parameters for slopes. This layer
 are created with the first an last vertices of the horizontal polygon.
@@ -174,7 +174,7 @@ The columns for editing by the user are:
 - **fill\_left**: Fill slope left
 - **fill\_right**: Fill slope right
 
-#### Layer 6:
+#### Layer 6
 
 **"NameRoad"\_Trans**, for insert the parameters of transects to the
 central axis. This layer are created with the first an last vertices of
@@ -189,7 +189,7 @@ The columns for editing by the user are:
     axis
 - **npk**: Distance between trans
 
-#### Layer 7:
+#### Layer 7
 
 **"NameRoad"\_Marks**, for insert the parameters of Marks. This layer
 are created with the first an last vertex of the horizontal polygon. New

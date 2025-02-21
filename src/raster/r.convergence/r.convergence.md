@@ -37,7 +37,7 @@
 
 ## DESCRIPTION
 
-### How convergence index is calculated (3 x 3 window):
+### How convergence index is calculated (3 x 3 window)
 
 [![image-alt](conv.png)](conv.png)  
 *Figure 1: Convergence index for maximum divergence, maximum

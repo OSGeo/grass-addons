@@ -11,7 +11,7 @@ elevation and on the x-axis the portion of the basin surface placed
 above such elevation value. The *hypsometric curve* uses adimensional
 axes.
 
-## Flags:
+## Flags
 
 \-a: generates hypsometric curve
 

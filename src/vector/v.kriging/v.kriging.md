@@ -139,7 +139,7 @@ Available at <https://grass.osgeo.org/download/data/>.
 
 Neteler, M. and Mitasova, H. (2004). *Open Source GIS: A GRASS GIS
 Approach*. 2nd Ed. 401 pp, Springer, New York. Online Supplement:
-https://grassbook.org
+<https://grassbook.org>
 
 Stopkova, E. (2014). *Development and application of 3D analytical
 functions in spatial analyses* (Unpublished doctoral dissertation). The

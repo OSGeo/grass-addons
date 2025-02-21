@@ -116,9 +116,9 @@ i.spec.unmix group=lsat7_2002_toar matrix=sample/spectrum.dat result=lsat7_2002_
 
 - *[i.spec.sam](i.spec.sam.md)  
     *
-- http://www.research.att.com/\~andreas/xgobi/
-- https://web.archive.org/web/20041230155448/https://www.public.iastate.edu/\~dicook/xgobi-book/xgobi.html
-- https://lib.stat.cmu.edu/general/XGobi/
+- <http://www.research.att.com/\~andreas/xgobi/>
+- <https://web.archive.org/web/20041230155448/https://www.public.iastate.edu/\~dicook/xgobi-book/xgobi.html>
+- <https://lib.stat.cmu.edu/general/XGobi/>
 
 ## AUTHORS
 
