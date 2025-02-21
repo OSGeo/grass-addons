@@ -106,7 +106,8 @@ The source populations can be provided either as random points (flag
 
 ## REFERENCES
 
-*Fidimo-paper*
+Radinger, J., Kail, J., & Wolter, C. (2014). FIDIMO — A free and open source GIS-based dispersal model for riverine fish. *Ecological Informatics, 24*, 238–247. [https://doi.org/10.1016/j.ecoinf.2013.06.002](https://doi.org/10.1016/j.ecoinf.2013.06.002).
+
 
 ## AUTHOR
 

@@ -43,8 +43,7 @@ Add grid for the Landsat raster using a high-contrast color:
 d.region.grid raster=lsat7_2002_10 color=black
 ```
 
-![image-alt](d_region_grid_two_rasters.png)
-
+![Grids of two rasters which are not aligned](d_region_grid_two_rasters.png)  
 *Figure: Grids of two rasters which are not aligned*
 
 If you are using *d.mon*, you can stop the monitor using:

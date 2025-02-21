@@ -15,7 +15,7 @@ Zhang, Kimball, Nemani and Running (2010).
   - Rn day net radiation \[MJ/m2/d\]
   - G day soil heat flux \[MJ/m2/d\]
 
-*IGBP Biome types with ID used in this model*
+IGBP Biome types with ID used in this model:
 
   - Code ID Description
   - BENF 0 Boreal Evergreen Needleleaf Forest (less or eq 212 frost-free
@@ -31,7 +31,7 @@ Zhang, Kimball, Nemani and Running (2010).
   - GRS 10 Grassland
   - CRP 12 Cropland
 
-*IGBP Classification*
+IGBP Classification:
 
   - 01 Evergreen Needleleaf Forest
   - 02 Evergreen Broadleaf Forest
@@ -78,8 +78,6 @@ internal parameters of the model*
   - CRP Cropland -8 45 3800 650 20 30 450 0.005 0.003 0.04 105 3000 3
 
 \* For WSV when NDVI superior to 0.64"
-
-## TODO
 
 ## SEE ALSO
 

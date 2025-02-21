@@ -8,8 +8,6 @@ elevation, precipitation. It s a front-end for models from
 The module makes each output cell value a function of the values
 assigned to the corresponding cells in the input raster map series.
 
-## DESCRIPTION
-
 The module assumes a simple linear regression of the form
 
 ```sh

@@ -1,8 +1,6 @@
 ## DESCRIPTION
 
-*r.niche.similarity*
-
-A module to compute two metrics to quantify niche similarity or overlap
+Module *r.niche.similarity* computes two metrics to quantify niche similarity or overlap
 between all pairs of input raster layers.
 
 One is the niche equivalency or similarity for two species following

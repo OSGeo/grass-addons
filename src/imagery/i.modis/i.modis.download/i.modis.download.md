@@ -68,7 +68,7 @@ MB.
 
 ## EXAMPLES
 
-### MODIS NDVI Global
+### MODIS NDVI Global with stored credentials
 
 Download of the global MODIS product *MOD13C1 - MODIS/Terra Vegetation
 Indices 16-Day L3 Global 0.05Deg CMG V006* by selecting a specific

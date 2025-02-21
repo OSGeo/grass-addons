@@ -46,7 +46,7 @@ table.
 
 ### 3D kriging
 
-**General commands**
+General commands:
 
 ```sh
 v.kriging phase=initial in=input_layer icol=name report=report_file.txt file=png
@@ -85,7 +85,7 @@ Thus the deeper / higher, the less accurate result of interpolation.
 
 ### 2D kriging
 
-**General commands**
+General commands:
 
 ```sh
 v.kriging phase=initial in=input_layer icol=name report=report_file.txt file=png -2

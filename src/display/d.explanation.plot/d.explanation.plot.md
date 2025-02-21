@@ -33,8 +33,7 @@ plot.run("d.explanation.plot", a="a", b="b", c="c", d="d", operator_font="FreeMo
 plot.show()
 ```
 
-![image-alt](d_explanation_plot_with_r_series.png)
-
+![Resulting image for r.series](d_explanation_plot_with_r_series.png)  
 *Figure: Resulting image for r.series*
 
 ### Example using artificial data
@@ -69,8 +68,7 @@ d.mon wx0 width=400 height=400 output=r_patch.png
 d.explanation.plot a=input_1 b=input_2 c=result
 ```
 
-![image-alt](d_explanation_plot.png)
-
+![Resulting image for r.patch](d_explanation_plot.png)  
 *Figure: Resulting image for r.patch*
 
 ## KNOWN ISSUES

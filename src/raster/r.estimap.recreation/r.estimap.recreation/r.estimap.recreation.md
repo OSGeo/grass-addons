@@ -49,13 +49,12 @@ First, an overview of definitions:
     Spectrum*. It includes areas of very high recreational value which,
     at the same time, are very near to access.
     
-    | Potential | Opportunity | Near | Midrange | Far |
+    | Potential Opportunity | Near | Midrange | Far |
     | ----------------------- | ---- | -------- | --- |
     | Near                    | 1    | 2        | 3   |
     | Midrange                | 4    | 5        | 6   |
     | Far                     | 7    | 8        | 9   |
     
-
   - Met Demand  
     is the part of the population that has access to *high quality areas
     for daily recreation* (population that lives within 4km from areas
@@ -88,7 +87,7 @@ The following equation represents the logic behind ESTIMAP:
 Recreation Spectrum = Recreation Potential + Recreation Opportunity
 ```
 
-##### Remoteness and Proximity
+#### Remoteness and Proximity
 
 The base *distance* function to quantify *attractiveness*, is:
 
@@ -104,7 +103,7 @@ where
       - Alpha
   - Variable
 
-##### Normalization
+#### Normalization
 
 As part of the algorithm, each *component* is normalized. That is, all
 maps listed in a given component are summed up and normalised.
@@ -122,10 +121,10 @@ following *component* maps to derive a recreation *potential* map:
   - `input_water_resources`
   - `input_protected_areas`
 
-![image-alt](images/r_estimap_recreation_area_of_interest.png)
-![image-alt](images/r_estimap_recreation_land_suitability.png)
-![image-alt](images/r_estimap_recreation_water_resources.png)
-![image-alt](images/r_estimap_recreation_protected_areas.png)
+![area of interest](images/r_estimap_recreation_area_of_interest.png)
+![land suitability](images/r_estimap_recreation_land_suitability.png)
+![water resources](images/r_estimap_recreation_water_resources.png)
+![protected areas](images/r_estimap_recreation_protected_areas.png)
 
 The maps shown above are available to download, among other sample maps,
 at: https://gitlab.com/natcapes/r.estimap.recreation.data.
@@ -137,152 +136,33 @@ files will be prefixed with the string `output_`.
 Below, a table overviewing all input and output maps used or produced in
 the examples.
 
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th></th>
-<th>Input map name</th>
-<th>Spatial Resolution</th>
-<th>Remarks</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td>area_of_interest</td>
-<td>50 m</td>
-<td>A map that can be used as a 'mask'</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>land_suitability</td>
-<td>50 m</td>
-<td>A map scoring the potential for recreation over CORINE land classes</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>water_resources</td>
-<td>50 m</td>
-<td>A map scoring access to water resources</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>protected_areas</td>
-<td>50 m</td>
-<td>A map scoring the recreational value of natural protected areas</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>distance_to_infrastructure</td>
-<td>50 m</td>
-<td>A map scoring access to infrastructure</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>population_2015</td>
-<td>1000 m</td>
-<td>The resolution of the raster map given to the 'populatio' input option will define the resolution of the output maps 'demand', 'unmet' and 'flow'</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>local_administrative_unit</td>
-<td>50 m</td>
-<td>A rasterised version of Eurostat's Local Administrative Units map</td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>Output map name</td>
-<td>Spatial Resolution</td>
-<td>Remarks</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>potential<br />
-</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>potential_1</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td>potential_2</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>potential_3</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td>potential_4</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>spectrum</td>
-<td>50 m</td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td>opportunity</td>
-<td>50 m</td>
-<td>Requires to request for the 'spectrum' output</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>demand</td>
-<td>1000 m</td>
-<td>Depends on the 'flow' map which, in turn, depends on the 'population' input map</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>unmet</td>
-<td>1000 m</td>
-<td>Depends on the 'flow' map which, in turn, depends on the 'population' input map<br />
-</td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>flow</td>
-<td>1000 m</td>
-<td>Depends on the 'population' input map</td>
-</tr>
-<tr class="even">
-<td></td>
-<td>Output table name</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td>supply</td>
-<td>NA</td>
-<td></td>
-</tr>
-</tbody>
-</table>
+| Input map name            | Spatial Resolution | Remarks |
+|---------------------------|--------------------|---------|
+| area_of_interest         | 50 m               | A map that can be used as a 'mask' |
+| land_suitability         | 50 m               | A map scoring the potential for recreation over CORINE land classes |
+| water_resources          | 50 m               | A map scoring access to water resources |
+| protected_areas          | 50 m               | A map scoring the recreational value of natural protected areas |
+| distance_to_infrastructure | 50 m             | A map scoring access to infrastructure |
+| population_2015          | 1000 m             | The resolution of the raster map given to the 'population' input option will define the resolution of the output maps 'demand', 'unmet' and 'flow' |
+| local_administrative_unit | 50 m              | A rasterised version of Eurostat's Local Administrative Units map |
+
+| Output map name         | Spatial Resolution | Remarks |
+|-------------------------|--------------------|---------|
+| potential               | 50 m               |         |
+| potential_1             | 50 m               |         |
+| potential_2             | 50 m               |         |
+| potential_3             | 50 m               |         |
+| potential_4             | 50 m               |         |
+| spectrum                | 50 m               |         |
+| opportunity             | 50 m               | Requires to request for the 'spectrum' output |
+| demand                  | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
+| unmet                   | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
+| flow                    | 1000 m             | Depends on the 'population' input map |
+
+| Output table name    | Remarks |
+|-------------------------|---------|
+| supply                  |         |
+
 
 Before anything, we need to define the extent of interest by executing
 
@@ -331,9 +211,8 @@ map named `land_suitability`), the command to execute is:
   
 ```
 
-![image-alt](images/r_estimap_recreation_potential.png)
-
-Example of a recreation potential output map
+![Example of a recreation potential output map](images/r_estimap_recreation_potential.png)  
+*Example of a recreation potential output map*
 
 Note, this will process the map `input_land_suitability` over the extent
 defined previously via `g.region`, which is the standard behaviour in
@@ -347,9 +226,8 @@ as a mask and feed it to the input option `mask`:
     
 ```
 
-![image-alt](images/r_estimap_recreation_potential_1.png)
-
-Example of a recreation potential output map while using a MASK
+![output_potential_1](images/r_estimap_recreation_potential_1.png)  
+*Example of a recreation potential output map while using a MASK*
 
 The use of a mask (in GRASS GIS' terminology known as **MASK**) will
 ignore areas of **No Data** (pixels in the `area_of_interest` map
@@ -375,10 +253,9 @@ without a mask:
     
 ```
 
-![image-alt](images/r_estimap_recreation_potential_2.png)
-
-Example of a recreation potential output map while using a MASK, a land
-suitability map and a water resources map
+![output_potential_2](images/r_estimap_recreation_potential_2.png)  
+*Example of a recreation potential output map while using a MASK, a land
+suitability map and a water resources map*
 
 At this point it becomes clear that all `NULL` cells present in the
 water map, are propagated in the output map `output_potential_2`.
@@ -392,10 +269,9 @@ Following, we provide a map of protected areas named
     
 ```
 
-![image-alt](images/r_estimap_recreation_potential_3.png)
-
-Example of a recreation potential output map while using a MASK, a land
-suitability map, a water resources map and a natural resources map
+![output_potential_3](images/r_estimap_recreation_potential_3.png)  
+*Example of a recreation potential output map while using a MASK, a land
+suitability map, a water resources map and a natural resources map*
 
 While the `land` option accepts only one map as an input, both the
 `water` and the `natural` options accept multiple maps as inputs. For
@@ -411,10 +287,9 @@ example, we add a second map named `input_bathing_water_quality` to the
 In general, arbitrary number of maps, separated by comma, may be added
 to options that accept multiple inputs.
 
-![image-alt](images/r_estimap_recreation_potential_4.png)
-
-Example of a recreation potential output map while using a MASK, a land
-suitability map, two water resources maps and a natural resources map
+![output_potential_4](images/r_estimap_recreation_potential_4.png)  
+*Example of a recreation potential output map while using a MASK, a land
+suitability map, two water resources maps and a natural resources map*
 
 This example, features also a title and a legend, so as to make sense of
 the map (however, we will skip for now important cartographic elements).
@@ -451,7 +326,7 @@ addition an `infrastructure` component. In this example a map that
 scores distance to infrastructure (such as the road network) named
 `input_distance_to_infrastructure`, is defined as an additional input:
 
-![image-alt](images/r_estimap_recreation_distance_to_infrastructure.png)
+![input_distance_to_infrastructure](images/r_estimap_recreation_distance_to_infrastructure.png)
 
 Example of an input map showing distances to infrastructure
 
@@ -475,10 +350,9 @@ understand the special `\` character:
   
 ```
 
-![image-alt](images/r_estimap_recreation_spectrum.png)
-
-Example of a recreation spectrum output map while using a MASK, a land
-suitability map, a water resources map and a natural resources map
+![recreation spectrum output map](images/r_estimap_recreation_spectrum.png)  
+*Example of a recreation spectrum output map while using a MASK, a land
+suitability map, a water resources map and a natural resources map*
 
 Missing to define an `infrastructure` map, while asking for the
 `spectrum` output, the command will abort and inform about.
@@ -525,10 +399,9 @@ or, the same command in a copy-paste friendly way:
 We also add the `--o` overwrite flag, because existing `output_spectrum`
 map will cause the module to abort.
 
-![image-alt](images/r_estimap_recreation_opportunity.png)
-
-Example of a recreation spectrum output map while using a MASK, a land
-suitability map, a water resources map and a natural resources map
+![recreation spectrum output map](images/r_estimap_recreation_opportunity.png)  
+*Example of a recreation spectrum output map while using a MASK, a land
+suitability map, a water resources map and a natural resources map*
 
 The image of the *opportunity* map was produced via the following native
 GRASS GIS commands
@@ -554,18 +427,16 @@ map.
 
 ##### Population
 
-![image-alt](images/r_estimap_recreation_population_2015.png)
-
-Fragment of a population map (GHSL, 2015)
+![Fragment of a population map](images/r_estimap_recreation_population_2015.png)  
+*Fragment of a population map (GHSL, 2015)*
 
 In this example, the population map named `population_2015` is of
 1000m^2.
 
 ##### Local administrative units
 
-![image-alt](images/r_estimap_recreation_local_administrative_units.png)
-
-Fragment of a local administrative units input map
+![Fragment of a local administrative units input map](images/r_estimap_recreation_local_administrative_units.png)  
+*Fragment of a local administrative units input map*
 
 The map named `local_administrative_units` serves in the following
 example as the base map for the zonal statistics to obtain the demand
@@ -593,11 +464,10 @@ option:
 Of course, the maps `output_opportunity` and `output_spectrum` still
 exist in our data base, unless explicitly removed.
 
-![image-alt](images/r_estimap_recreation_demand.png)
-
-Example of a demand distribution output map while using a MASK and
+![Example of a demand distribution output map](images/r_estimap_recreation_demand.png)
+*Example of a demand distribution output map while using a MASK and
 inputs for land suitability, water resources, natural resources,
-infrastructure, population and base
+infrastructure, population and base*
 
 #### Unmet Demand
 
@@ -619,11 +489,10 @@ r.estimap.recreation --o \
   
 ```
 
-![image-alt](images/r_estimap_recreation_unmet_demand.png)
-
-Example of an 'unmet demand' output map while using a MASK and inputs
+![Example of an 'unmet demand' output map](images/r_estimap_recreation_unmet_demand.png)  
+*Example of an 'unmet demand' output map while using a MASK and inputs
 for land suitability, water resources, natural resources,
-infrastructure, population and base
+infrastructure, population and base*
 
 It is left as an exercise to the user to create screenshots of the
 *met*, the *unmet* demand distribution and the *flow* output maps. For
@@ -667,11 +536,10 @@ geometric boundaries
   
 ```
 
-![image-alt](images/r_estimap_recreation_mobility.png)
-
-Example of a flow output map while using a MASK and inputs for land
+![Example of a flow output map](images/r_estimap_recreation_mobility.png)  
+*Example of a flow output map while using a MASK and inputs for land
 suitability, water resources, natural resources, infrastructure,
-population and base
+population and base*
 
 If we check the output values for the `output_flow` map, they are
 rounded by the module automatically to integers\! Here the first few
@@ -890,9 +758,8 @@ time-series, maybe this will be useful.
 
 A vector input map with the role of the *base* map, can be used too.
 
-![image-alt](images/r_estimap_recreation_input_vector_local_administrative_units.png)
-
-Example of a vector map showing local administrative units
+![Example of a vector map showing local administrative units](images/r_estimap_recreation_input_vector_local_administrative_units.png)  
+*Example of a vector map showing local administrative units*
 
 ```sh
     r.estimap.recreation --o -r \
@@ -960,15 +827,13 @@ following the analysis, returns
 Here the vector map used for administrative boundaries with the sum of
 flow for each unit:
 
-![image-alt](images/r_estimap_recreation_sum_of_flow_per_local_administrative_unit.png)
-
-Example of a vector map showing the flow per unit
+![Example of a vector map showing the flow per unit](images/r_estimap_recreation_sum_of_flow_per_local_administrative_unit.png)  
+*Example of a vector map showing the flow per unit*
 
 and the corresponding unmet demand, based on the analysis
 
-![image-alt](images/r_estimap_recreation_sum_of_unmet_demand_in_concerned_local_administrative_unit.png)
-
-Example of a vector map showing the unmet demand in concerned units
+![Example of a vector map showing the unmet demand in concerned units](images/r_estimap_recreation_sum_of_unmet_demand_in_concerned_local_administrative_unit.png)  
+*Example of a vector map showing the unmet demand in concerned units*
 
 In the latter screenshot, the units bearing the unmet demand results,
 are not the same as the raster map previously shown. The different
@@ -1037,8 +902,8 @@ This requires a set of "score" rules, that correspond to the CORINE
 nomenclature, to translate the land cover types into recreation
 potential.
 
-![image-alt](images/r_estimap_recreation_corine_land_cover_2006.png)
-![image-alt](images/r_estimap_recreation_corine_land_cover_legend.png)
+![CORINE land cover 2006](images/r_estimap_recreation_corine_land_cover_2006.png)
+![CORINE land cover legend](images/r_estimap_recreation_corine_land_cover_legend.png)
 
 In this case, the rules are a simple ASCII file (for example named
 `corine_suitability.scores`) that contains the following:
@@ -1083,10 +948,9 @@ This file is provided in the `suitability_scores` option:
   
 ```
 
-![image-alt](images/r_estimap_recreation_potential_corine.png)
-
-Example of a recreation spectrum output map while using a MASK, based on
-a fragment from the CORINE land data base
+![Example of a recreation spectrum output map](images/r_estimap_recreation_potential_corine.png)  
+*Example of a recreation spectrum output map while using a MASK, based on
+a fragment from the CORINE land data base*
 
 The same can be achieved with a long one-line string too:
 

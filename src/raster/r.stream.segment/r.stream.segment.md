@@ -173,16 +173,6 @@ r.stream.segment stream_rast=riverorder_strahler direction=direction \
   elevation=elevation segments=river_segment sectors=river_sector
 ```
 
-## SEE ALSO
-
-*[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
-[r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
-[r.stream.order](r.stream.order.md),
-[r.stream.basins](r.stream.basins.md),
-[r.stream.slope](r.stream.slope.md),
-[r.stream.stats](r.stream.stats.md),
-[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),*
-
 ## REFERENCES
 
 Horton, R. E., (1932). Drainage basin characteristics: Am. Geophys.

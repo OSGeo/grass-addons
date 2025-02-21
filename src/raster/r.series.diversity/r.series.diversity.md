@@ -10,7 +10,7 @@ the Shannon index, the Shannon based effective number of species (ENS),
 the Simpson index (inverse and gini variants), pielou's eveness
 (Legendre & Legendre, 1998).
 
-#### The Renyi enthropy
+### The Renyi enthropy
 
 This index quantify the diversity, uncertainty, or randomness of a
 system. The user can define the order of diversity by setting the order
@@ -19,17 +19,16 @@ common and rare species. The diversity of order zero ( **alpha = 0**) is
 completely insensitive to species frequencies and is better known as
 species richness. Increasing the order diminishes the relative weights
 of rare species in the resulting index (Jost 2006, Legendre & Legendre
-1998). The name of the output layer is composed of the basename + renyi
-+ alpha.
+1998). The name of the output layer is composed of the basename + renyi + alpha.
 
-#### Richness
+### Richness
 
 The species richness is simply the count of the number of layers. It is
 a special case of the Reny enthropy: `S = exp(R0)`, whereby `S` is the
 species richness `R0` the renyi index for `alpha=0`. The name of the
 output layer is composed of the basename + richness.
 
-#### Shannon index
+### Shannon index
 
 The Shannon (also called the Shannon-Weaver or Shannon-Wiener) index is
 defined as `H' = -sum(p_i x log(p_i))`, where `p_i` is the
@@ -39,7 +38,7 @@ currently not implemented, and doesn't make a real difference). Note the
 Shannon index is a special case of the Renyi enthropy for `alpha --> 1`.
 The name of the output layer is composed of the basename + shannon.
 
-#### Effective number of species (ENS)
+### Effective number of species (ENS)
 
 This option gives the Shannon index, converted to into equivalent or
 effective numbers of species (also known as Hill numbers) (Lou Jost,
@@ -56,7 +55,7 @@ or [this
 one](https://jonlefcheck.net/2012/10/23/diversity-as-effective-numbers).
 The name of the output layer is composed of the basename + ens.
 
-#### Pielou's eveness (equitability) index
+### Pielou's eveness (equitability) index
 
 Species evenness refers to how close in numbers each species in an
 environment are. The evenness of a community can be represented by
@@ -65,10 +64,9 @@ Shannon diversity index and Hmax the maximum value of H', equal to
 log(species richness). Note that a weakness of this index is its
 dependence on species counts, and more specifically that it is a ratio
 of a relatively stable index, H', and one that is strongly dependent on
-sample size, S. The name of the output layer is composed of the basename
-+ pielou.
+sample size, S. The name of the output layer is composed of the basename + pielou.
 
-#### Simpson's index of diversity
+### Simpson's index of diversity
 
 The Simpson's index is defined as `D = sum p_i^2`. This is equivalent to
 `-1 * 1 / exp(R2)`, with `R2` the renyi index for `alpha=2`. With this
@@ -81,7 +79,7 @@ sample will belong to different species. The value ranges between 0 and
 1, with greater values representing greater sample diversity. The name
 of the output layer is composed of the basename + ginisimpson.
 
-#### Inverse Simpson index (Simpson's Reciprocal Index)
+### Inverse Simpson index (Simpson's Reciprocal Index)
 
 An alternative way to overcome the problem of the counter-intuitive
 nature of Simpson's Index is to use the inverse Simpson index, which is
