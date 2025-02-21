@@ -7,7 +7,7 @@ vapour instead. -a will return actual water vapour instead.
 
 ## REFERENCES
 
-https://www.researchgate.net/publication/227247013\_High-resolution\_Surface\_Relative\_Humidity\_Computation\_Using\_MODIS\_Image\_in\_Peninsular\_Malaysia/
+<https://www.researchgate.net/publication/227247013\_High-resolution\_Surface\_Relative\_Humidity\_Computation\_Using\_MODIS\_Image\_in\_Peninsular\_Malaysia/>
 
 ## SEE ALSO
 

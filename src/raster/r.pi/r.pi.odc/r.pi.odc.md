@@ -18,16 +18,16 @@ and *stats* used (i.e., average).
 
 Within *r.pi.odc* the following setting have to be set:
 
-### keyval setting:
+### keyval setting
 
 The *keyval* operator determines which category value is taken for the
 Patch Index analysis.
 
-### Ratio setting:
+### Ratio setting
 
 The *ratio* operators determine what measure is applied.
 
-### Neighbourhood level:
+### Neighbourhood level
 
 The *neighbor\_level* operator determines which neighbourhood level is
 used. *0* produces output for the focus patch itself, *1* assigns the
@@ -35,7 +35,7 @@ connectivity information of the first omnidirectional neighbours to the
 focus patch, hence the connectivity of the surrouding fragments. This
 value can be increased for analysing the more distant neighbours.
 
-### Output:
+### Output
 
 Various output files are autmatically created with the pattern
 $output.\* The ... *FP* describes attributes of the fokus patch (area

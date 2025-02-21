@@ -9,7 +9,7 @@ should be possible to add easily other python libraries. The module is
 though to be use in a modular way, using the flags it is possible to
 define which independent tasks should be execute.
 
-### Flags:
+### Flags
 
 - **-e**  
     Extract the training set from a vector map (vtraining).
@@ -40,7 +40,7 @@ define which independent tasks should be execute.
 - **-d**  
     Explore the Support Vector Classification (SVC) domain.
 
-### Input parameters:
+### Input parameters
 
 The *vector* parameter is the input vector map. The input vector map
 must be prepared with

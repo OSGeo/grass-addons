@@ -27,8 +27,8 @@ penstock, whereas the segment of the plant corresponds to the part of
 the river (water not diverted) between the intake (A) and the
 restitution (F).  
   
-![image-alt](r_green_hydro_technical_picstruct.png)  
-Structure of the plants considered in the module
+![Structure of the plants considered in the module](r_green_hydro_technical_picstruct.png)  
+*Structure of the plants considered in the module*
 
 The power is maximized for the highest head in the penstock so the
 derivation channel is computed along the same quote (the low slope is
@@ -39,56 +39,53 @@ to determine which one produces the most power.
 Using the computed structure, the module calculates the **head
 losses**:  
   
-> \- in the derivation channel  
->
-> > There are regular losses calculated thanks to Manning's formula:
-> > *Δh<sub>deriv</sub>=L\*(Q/(ks\*A\*Rh<sup>2/3</sup>))<sup>2</sup>*  
-> >
-> > > where Rh is the hydraulic radius (m),  
-> > > A the cross sectional area of flow (m<sup>2</sup>),  
-> > > L is the channel length (m),  
-> > > Q is the discharge (m<sup>3</sup>/s),  
-> > > ks the Strickler coefficient (m<sup>1/3</sup>/s), we consider
-> > > steel as default parameter, with ks=75 m<sup>1/3</sup>/s.  
-> > >
->
-> \- in the forebay tank  
->
-> > There are singular losses caused by the change of section in the
-> > forebay tank and the change of direction in the penstock (steep
-> > slope).  
-> > In any case, singular head losses are expressed like this:
-> > *Δh<sub>sing</sub>=K\*V<sup>2</sup>/(2g)*  
-> >
-> > > where V is the velocity (m/s),  
-> > > g the gravity term (9,81 m/s<sup>2</sup>),  
-> > > K is a coefficient determined according to the kind of
-> > > singularity.
-> >
-> > In our case, the singular losses are the sum of the ones for these
-> > three phenomena:  
-> >
-> > > \- enlargement at the entrance of the forebay tank:
-> > > K<sub>1</sub>=1 and V=1 m/s  
-> > > \- narrowing at the exit of the forebay tank: K<sub>2</sub>=0.5
-> > > and V=4Q/(πD<sup>2</sup>) m/s  
-> > > \- bend at the beginning of the penstock: K<sub>3</sub>=(gross
-> > > head/L)<sup>2</sup>+2\*sin(ASIN(gross head/L)/2)<sup>4</sup> and
-> > > V=4Q/(πD<sup>2</sup>) m/s  
-> > >
->
-> \- in the penstock  
->
-> > There are regular losses calculated thanks to this formula:
-> > *Δh<sub>pen</sub>=(f\*8\*L\*Q<sup>2</sup>)/(π<sup>2</sup>\*D<sup>5</sup>\*g)*  
-> >
-> > > where L is the penstock length (m),  
-> > > D is the penstock diameter (m),  
-> > > Q is the discharge (m<sup>3</sup>/s),  
-> > > f is the Darcy-Weisbach friction coefficient, which can be
-> > > determined by Colebrooke formula. We consider steel by default
-> > > with absolute roughness of ε = 0,015 mm.  
-> > >
+- in the derivation channel  
+
+There are regular losses calculated thanks to Manning's formula:
+*Δh<sub>deriv</sub>=L\*(Q/(ks\*A\*Rh<sup>2/3</sup>))<sup>2</sup>*  
+
+where Rh is the hydraulic radius (m),  
+A the cross sectional area of flow (m<sup>2</sup>),  
+L is the channel length (m),  
+Q is the discharge (m<sup>3</sup>/s),  
+ks the Strickler coefficient (m<sup>1/3</sup>/s), we consider
+steel as default parameter, with ks=75 m<sup>1/3</sup>/s.  
+
+- in the forebay tank  
+
+There are singular losses caused by the change of section in the
+forebay tank and the change of direction in the penstock (steep
+slope).  
+In any case, singular head losses are expressed like this:
+*Δh<sub>sing</sub>=K\*V<sup>2</sup>/(2g)*  
+
+where V is the velocity (m/s),  
+g the gravity term (9,81 m/s<sup>2</sup>),  
+K is a coefficient determined according to the kind of
+singularity.
+
+In our case, the singular losses are the sum of the ones for these
+three phenomena:  
+
+- enlargement at the entrance of the forebay tank:
+K<sub>1</sub>=1 and V=1 m/s  
+- narrowing at the exit of the forebay tank: K<sub>2</sub>=0.5
+and V=4Q/(πD<sup>2</sup>) m/s  
+- bend at the beginning of the penstock: K<sub>3</sub>=(gross
+head/L)<sup>2</sup>+2\*sin(ASIN(gross head/L)/2)<sup>4</sup> and
+V=4Q/(πD<sup>2</sup>) m/s  
+
+- in the penstock  
+
+There are regular losses calculated thanks to this formula:
+*Δh<sub>pen</sub>=(f\*8\*L\*Q<sup>2</sup>)/(π<sup>2</sup>\*D<sup>5</sup>\*g)*  
+
+where L is the penstock length (m),  
+D is the penstock diameter (m),  
+Q is the discharge (m<sup>3</sup>/s),  
+f is the Darcy-Weisbach friction coefficient, which can be
+determined by Colebrooke formula. We consider steel by default
+with absolute roughness of ε = 0,015 mm.  
 
 Then, the module chooses the **turbine** which is the most accurate for
 each plant. The data of possible turbines of which you have to enter the
@@ -104,20 +101,17 @@ If you want to create an additional text file for another turbine model,
 the file has to have this scheme with the correct information at the
 corresponding lines:  
 
->
->
-> ```sh
-> TURBINE               ALPHA_C
-> Name of the turbine    Value of alpha_c
-> Q_MIN                  Q_MAX
-> Value of q_min             Value of q_max
-> DH_MIN                 DH_MAX
-> Value of dh_min            Value of dh_max
-> QW/Q_design            ETA
-> Coordinates of the curve efficiency=f(QW/Q_design)
-> 
-> ```
->
+```sh
+TURBINE               ALPHA_C
+Name of the turbine    Value of alpha_c
+Q_MIN                  Q_MAX
+Value of q_min             Value of q_max
+DH_MIN                 DH_MAX
+Value of dh_min            Value of dh_max
+QW/Q_design            ETA
+Coordinates of the curve efficiency=f(QW/Q_design)
+
+```
 
 In the turbine folder there is already the text file called list with a
 large choice of turbines available. You have to enter the path of the
@@ -140,42 +134,42 @@ Finally, the corrected value of power which can be exploited is
 calculated.  
 It corresponds to *P=η\*ρ\*g\*Q\*Δh<sub>net</sub>*  
 
-> where η is the global efficiency of the plant (turbine, shaft,
-> alternator and transformer),  
-> ρ the density of water (1000 kg/m<sup>3</sup>),  
-> g the gravity term (9,81 m/s<sup>2</sup>),  
-> Q the discharge (m<sup>3</sup>/s),  
-> Δh<sub>net</sub> the net head, that means the gross head minus head
-> losses  
->
+where η is the global efficiency of the plant (turbine, shaft,
+alternator and transformer),  
+ρ the density of water (1000 kg/m<sup>3</sup>),  
+g the gravity term (9,81 m/s<sup>2</sup>),  
+Q the discharge (m<sup>3</sup>/s),  
+Δh<sub>net</sub> the net head, that means the gross head minus head
+losses  
 
 The output map of the module is the one with the structure for each
 plant, including in the **table** the data of:  
 
-> \- discharge (m<sup>3</sup>/s)  
-> \- gross head (m)  
-> \- kind of the channel: derivation (conduct) or penstock  
-> \- side of the river (option0 or option1)  
-> \- diameter of the channel (m)  
-> \- losses in the channel (m)  
->
-> Moreover, only in the penstock's line of the structure, there are:  
-> \- singular losses (m) in the forebay tank between the derivation
-> channel and the penstock  
-> \- the total losses (m) for each structure, which are the sum of the
-> regular losses in the derivation channel and in the penstock and the
-> singular losses in the forebay tank  
-> \- net head (m), which is the gross head minus the total losses  
-> \- hydraulic power (hyd\_power, in kW) which is the power considering
-> the gross head and a global efficiency equal to 1. It corresponds to
-> the theoretical power (the maximum)  
-> \- efficiency of the selected turbine (e\_turbine)  
-> \- kind of the selected turbine (turbine)  
-> \- power (kW) which can be exploited considering the technical
-> constrains  
-> \- global efficiency (power/hyd\_power)  
-> \- max\_power: yes or no, yes for the side (option1 or option0) which
-> produces the most power
+- discharge (m<sup>3</sup>/s)  
+- gross head (m)  
+- kind of the channel: derivation (conduct) or penstock  
+- side of the river (option0 or option1)  
+- diameter of the channel (m)  
+- losses in the channel (m)  
+
+Moreover, only in the penstock's line of the structure, there are:  
+
+- singular losses (m) in the forebay tank between the derivation
+channel and the penstock  
+- the total losses (m) for each structure, which are the sum of the
+regular losses in the derivation channel and in the penstock and the
+singular losses in the forebay tank  
+- net head (m), which is the gross head minus the total losses  
+- hydraulic power (hyd\_power, in kW) which is the power considering
+the gross head and a global efficiency equal to 1. It corresponds to
+the theoretical power (the maximum)  
+- efficiency of the selected turbine (e\_turbine)  
+- kind of the selected turbine (turbine)  
+- power (kW) which can be exploited considering the technical
+constrains  
+- global efficiency (power/hyd\_power)  
+- max\_power: yes or no, yes for the side (option1 or option0) which
+produces the most power
 
 ## EXAMPLE
 
@@ -188,8 +182,8 @@ map with the segments of river is also visible in blue in this picture.
 These potential plants have a maximum length of 800 m and a distance of
 800 m between them.
 
-![image-alt](r_green_hydro_technical_input.png)  
-Potential intakes and restitutions
+![Potential intakes and restitutions](r_green_hydro_technical_input.png)  
+*Potential intakes and restitutions*
 
 The following command that you can either put in the command console or
 the GUI of r.green.hydro.technical computes the structure of the
@@ -205,8 +199,8 @@ The result is shown in the following vector map called techplants. The
 table of this map is completed as explained in the end of the NOTES
 part.  
   
-![image-alt](r_green_hydro_technical_output.png)  
-Structure of the potential plants in black (techplants map)
+![Structure of the potential plants in black (techplants map)](r_green_hydro_technical_output.png)  
+*Structure of the potential plants in black (techplants map)*
 
 ## SEE ALSO
 
@@ -216,8 +210,7 @@ Structure of the potential plants in black (techplants map)
 [r.green.hydro.recommended](r.green.hydro.recommended.md)  
 [r.green.hydro.structure](r.green.hydro.structure.md)  
 [r.green.hydro.optimal](r.green.hydro.optimal.md)  
-[r.green.hydro.financial](r.green.hydro.financial.md)  
-*
+[r.green.hydro.financial](r.green.hydro.financial.md)*
 
 ## REFERENCE
 

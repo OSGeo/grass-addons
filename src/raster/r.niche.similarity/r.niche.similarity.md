@@ -37,10 +37,10 @@ al (2008).
     33:607-611.
 - Robert J. Hijmans, Steven Phillips, John Leathwick and Jane Elith
     (2013). dismo: Species distribution modeling. R package version
-    0.8-5. http://CRAN.R-project.org/package=dismo
+    0.8-5. <http://CRAN.R-project.org/package=dismo>
 - Christoph Heibl and Clement Calenge (2012). phyloclim: Integrating
     Phylogenetics and Climatic Niche Modeling. R package version 0.9-0.
-    http://CRAN.R-project.org/package=phyloclim
+    <http://CRAN.R-project.org/package=phyloclim>
 
 ## AUTHOR
 

@@ -28,7 +28,7 @@ maps with minimal manual repetition.
 Important: The user must run **g.region** first to make sure that the
 region boundaries and the resolution match the input elevation map.
 
-### Options and flags:
+### Options and flags
 
 *r.catchment* requires an input elevation map, **elevation** , and an
 input vector points map of starting locations, **start\_points**.

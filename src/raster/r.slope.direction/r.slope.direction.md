@@ -1,4 +1,4 @@
-## DESCRIPTION:
+## DESCRIPTION
 
 *r.slope.direction* computes slope as elevation difference divided by
 distance along a user given number of steps following a direction map.

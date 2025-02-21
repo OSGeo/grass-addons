@@ -1,4 +1,4 @@
-## DESCRIPTION:
+## DESCRIPTION
 
 *r.connectivity.distance* computes cost-distance between all areas
 (patches) of an input vector map within a user defined Euclidean
@@ -131,7 +131,7 @@ v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 *Figure: Patch vector map as input to r.connectivity.distance, produced
 in the example above.*
 
-### Create a cost raster:
+### Create a cost raster
 
 (see also: *r.cost*)
 

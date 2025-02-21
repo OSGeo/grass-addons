@@ -203,7 +203,7 @@ r.survey -d points=Flight_viewpoints dem=Synthetic_valley output=example3 maxdis
 
 Ivan Marchesini - Research Institute for Geo-Hydrological Protection
 (IRPI) - Italian National Research Council (CNR), Perugia, Italy.
-E-mail: ivan.marchesini@irpi.cnr.it. ORCiD: 0000-0002-8342-3134  
+E-mail: <ivan.marchesini@irpi.cnr.it>. ORCiD: 0000-0002-8342-3134  
 Txomin Bornaetxea - Department of Geology, University of the Basque
-Country (UPV/EHU), Leioa, Spain. E-mail: txomin.bornaetxea@ehu.eus.
+Country (UPV/EHU), Leioa, Spain. E-mail: <txomin.bornaetxea@ehu.eus>.
 ORCiD: 0000-0002-1540-3991

@@ -87,8 +87,8 @@ where:
 - `Ti` and `Tj` are Top of Atmosphere brightness temperatures measured
     in channels `i` (\~11.0 microns) and `j` (\~12.0 µm), respectively
 - from
-    https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites
-    (https://web.archive.org/web/20160424105111/http://landsat.usgs.gov:80/band\_designations\_landsat\_satellites.php):
+    <https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites>
+    (<https://web.archive.org/web/20160424105111/http://landsat.usgs.gov:80/band\_designations\_landsat\_satellites.php>):
   - Band 10, Thermal Infrared (TIRS) 1, 10.60-11.19, 100\*(30)
   - Band 11, Thermal Infrared (TIRS) 2, 11.50-12.51, 100\*(30)
 - e is the average emissivity of the two channels (i.e., `e = 0.5 [ei + ej]`)
@@ -337,7 +337,7 @@ where:
 The pixel value 61440 is selected automatically to build a cloud mask.
 At the moment, only a single pixel value may be requested from the
 Quality Assessment band. For details, refer to
-\[https://web.archive.org/web/20150712004428/httpss://landsat.usgs.gov/L8QualityAssessmentBand.php
+\[<https://web.archive.org/web/20150712004428/httpss://landsat.usgs.gov/L8QualityAssessmentBand.php>
 USGS' webpage for Landsat8 Quality Assessment Band\]
 
 **`window`** is an important option. It defines the size of the spatial
@@ -476,7 +476,7 @@ GIS' `r.mapcalc` module.
 - \[0\] Du, Chen; Ren, Huazhong; Qin, Qiming; Meng, Jinjie; Zhao,
     Shaohua. 2015. "A Practical Split-Window Algorithm for Estimating
     Land Surface Temperature from Landsat 8 Data." Remote Sens. 7, no.
-    1: 647-665. https://www.mdpi.com/2072-4292/7/1/647
+    1: 647-665. <https://www.mdpi.com/2072-4292/7/1/647>
 
 - \[1\] Huazhong Ren, Chen Du, Qiming Qin, Rongyuan Liu, Jinjie Meng,
     and Jing Li. "Atmospheric Water Vapor Retrieval from Landsat 8 and

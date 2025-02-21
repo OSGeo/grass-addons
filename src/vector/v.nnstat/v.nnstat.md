@@ -121,7 +121,7 @@ seen other examples (also clustered and dispersed datasets).
 
 *[v.hull](https://grass.osgeo.org/grass-stable/manuals/v.hull.html)*
 
-## REFERENCES:
+## REFERENCES
 
 Stopkova, 2013: Extension of mathematical background for Nearest
 Neighbour Analysis in three-dimensional space,

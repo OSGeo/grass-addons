@@ -317,7 +317,7 @@ Finding UUID by Sentinel scene name (example:
 5. The UUID is shown in the URL at the bottom of the scene window,
     between brackets.  
     (e.g.
-    https://zipper.dataspace.copernicus.eu/odata/v1/Products(**3cfcc58f-8316-5df0-b55e-e1831e745b51**)/$value)
+    <https://zipper.dataspace.copernicus.eu/odata/v1/Products(**3cfcc58f-8316-5df0-b55e-e1831e745b51**)/$value>)
     so the UUID is **3cfcc58f-8316-5df0-b55e-e1831e745b51** in this case
 
 See also [GRASS GIS Workshop in

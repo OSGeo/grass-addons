@@ -188,7 +188,7 @@ layers in script settings.
 
 ## ERROR MESSAGES
 
-### Input data:
+### Errors in input data
 
 *ERROR: Too many columns. Use input data in format 'name east north
 \[elev\]', please.*  
@@ -220,7 +220,7 @@ These errors may refer to:
     edit their vector type (middle part of point name) to refer to a
     point.
 
-### Script settings:
+### Script settings
 
 *ERROR: Wrong separator type.*  
 The separator does not fit the data file. Please set up another type:
@@ -255,12 +255,12 @@ river is represented by polygon and the rest of the features are lines.
 It would be better to use merging criteria *river\_stream* to separate
 just line object to be merged.
 
-### Files:
+### Files
 
 *ERROR: File *filename* does not exist.*  
 Missing input file.
 
-### Output layers:
+### Output layers
 
 *ERROR: Vector layer \<layer\> exists. Please remove the layer or rename
 the input points.*  
@@ -274,7 +274,7 @@ mixed in the file as well. How to prevent this, examples in *(Stopkova,
 but is empty, please check the input points. This might happened because
 of wrong point order (especially if the point order has been edited).
 
-### DXF conversion:
+### DXF conversion
 
 *ERROR: Please set up the drawing units to 'metric' or to 'imperial'.*  
 Anything else cannot be accepted (in accordance to DXF settings).

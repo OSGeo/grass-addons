@@ -18,11 +18,11 @@ The power is defined as:
 
 P=η \* ρ \* g \* Q \* Δh
 
-> where η is the efficiency of the plant  
-> ρ the density of water (1000 kg/m<sup>3</sup>)  
-> g the gravity term (9,81 m/s<sup>2</sup>)  
-> Q the discharge of the river  
-> Δh the gross head of the considered segment
+where η is the efficiency of the plant  
+ρ the density of water (1000 kg/m<sup>3</sup>)  
+g the gravity term (9,81 m/s<sup>2</sup>)  
+Q the discharge of the river  
+Δh the gross head of the considered segment
 
 The module maximizes the power over a given range by a brute-force
 search in order to examine all possible arrangements of Q and Δh. Thus,
@@ -42,8 +42,8 @@ which we want to compute the potential hydropower plants. The river
 segments already exploited by an existing plant do not appear in the
 file.  
 
-![image-alt](r_green_hydro_optimal_input.png)  
-Input vector map availablestreams
+![Input vector map available streams](r_green_hydro_optimal_input.png)  
+*Input vector map available streams*
 
 The following command computes the potential plants for a plant length
 range from 10 to 800 m and a distance between plants of 800 m :  
@@ -67,9 +67,10 @@ The output vector maps are shown in the following picture which gathers
 the potential segments vector map (potentialplants, in blue) and the
 potential intakes and restitution vector map (potentialpoints, in red)
 
-![image-alt](r_green_hydro_optimal_output.png)  
-Output vector maps potentialplants (in blue) and potentialpoints (in
-red)
+![Output vector maps potentialplants (in blue) and potentialpoints (in
+red)](r_green_hydro_optimal_output.png)  
+*Output vector maps potentialplants (in blue) and potentialpoints (in
+red)*
 
 ## SEE ALSO
 
@@ -79,8 +80,7 @@ red)
 [r.green.hydro.recommended](r.green.hydro.recommended.md)  
 [r.green.hydro.structure](r.green.hydro.structure.md)  
 [r.green.hydro.technical](r.green.hydro.technical.md)  
-[r.green.hydro.financial](r.green.hydro.financial.md)  
-*
+[r.green.hydro.financial](r.green.hydro.financial.md)*
 
 ## AUTHORS
 

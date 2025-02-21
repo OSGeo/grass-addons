@@ -100,10 +100,9 @@ input data, keeping in mind that the higher the coverage, the better the
 RF model. The RF model and its prediction will only be as good as the
 input data it is given.
 
-[![image-alt](r_area_createweight_overlap_admin.png)](r_area_createweight_overlap_admin.png)
-
-***Only the spatial units in grey are completely spatially covered by
-the basemap and are the ideal selection for the analysis.***
+![image-alt](r_area_createweight_overlap_admin.png)  
+*Only the spatial units in grey are completely spatially covered by
+the basemap and are the ideal selection for the analysis.*
 
 If a cell of the weighted grid (**output** parameter) is not covered by
 *all* the input rasters (i.e. if the statistics calculated for that cell
@@ -132,9 +131,11 @@ produce an error. The user should reduce the tile size, and/or edit the
 spatial units vector to merge the smallest spatial units with their
 neighbouring units (see examples).
 
-| [![image-alt](r_area_createweight_input_spatial_units.png)](r_area_createweight_input_spatial_units.png) | [![image-alt](r_area_createweight_gridded_spatial_units.png)](r_area_createweight_gridded_spatial_units.png) |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| *Input spatial units*                                                                                    | *'Gridded' spatial units*                                                                                    |
+![image-alt](r_area_createweight_input_spatial_units.png)  
+*Input spatial units*
+
+![image-alt](r_area_createweight_gridded_spatial_units.png)  
+*'Gridded' spatial units*
 
 The response variable is log-transformed to avoid non-normal
 distribution and used to train the model. The prediction is then
@@ -164,17 +165,13 @@ manual](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.Rando
 An example of the format is as follows, these are the parameters tested
 in the add-on:
 
-```sh
+```python
 "{'oob_score':[True],'bootstrap':[True],\
   'max_features':['sqrt',0.1,0.3,0.5,0.7,1],\
   'n_estimators':[500,1000]}"
 ```
 
-### Dependencies
-
-Python 3 is required.
-
-#### GRASS GIS addons
+### GRASS GIS addons
 
 *r.area.createweight* requires the GRASS GIS addons
 [i.segment.stats](i.segment.stats.md),
@@ -182,7 +179,7 @@ Python 3 is required.
 installed. This can be done using
 [g.extension](https://grass.osgeo.org/grass-stable/manuals/g.extension.html).
 
-#### Python libraries
+### Python libraries
 
 *r.area.createweight* uses the **"scikit-learn"** machine learning
 package (version \>= 0.24.1) along with the **"pandas"** Python package
@@ -226,9 +223,9 @@ weighting layer of population, using the layers **basemap\_a** =
 **distance** map can be created from the *streets\_wake* layer. Some of
 the layers must first be prepared as follows.
 
-### 1\. Dataset preparation of North Carolina data layers
+### Dataset preparation of North Carolina data layers
 
-#### 1.1 Prepare distance layer
+#### Prepare distance layer
 
 A layer containing distance to the nearest street can be created as
 follows:
@@ -259,11 +256,10 @@ Remove unnecessary files
 g.remove -f type=raster name=streets_wake_rast
 ```
 
-[![image-alt](r_area_createweight_distance_streets.png)  
-](r_area_createweight_distance_streets.png) ***Distance to streets
-layer***
+![Distance to streets layer](r_area_createweight_distance_streets.png)  
+*Distance to streets layer*
 
-#### 1.2 Prepare spatial units layer
+#### Prepare spatial units layer
 
 The vector spatial units layer must be prepared prior to running the
 module, as there are many small spatial units (polygons) that will get
@@ -336,11 +332,16 @@ g.remove -f type=vector \
   name=censusblk_swwake_points,censusblk_swwake_merge
 ```
 
-| [![image-alt](r_area_createweight_census_initial.png)](r_area_createweight_census_initial.png) | [![image-alt](r_area_createweight_census_merge.png)](r_area_createweight_census_merge.png) | [![image-alt](r_area_createweight_census_final.png)](r_area_createweight_census_final.png) |
-| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| *Initial census layer*                                                                         | *Census layer after merging*                                                               | *Census layer after removal of non-covered spatial units*                                  |
+![Initial census layer](r_area_createweight_census_initial.png)  
+*Initial census layer*
 
-### 2\. Create weighted layer
+![Census layer after merging](r_area_createweight_census_merge.png)  
+*Census layer after merging*
+
+![Census layer after removal of non-covered spatial units](r_area_createweight_census_final.png)  
+*Census layer after removal of non-covered spatial units*
+
+### Create weighted layer
 
 Generate a weighting layer using a land use map
 
@@ -374,12 +375,14 @@ r.area.createweight -a vector=censusblk_swwake_final id=cat \
   plot=path/to/filename log_file=path/to/filename n_jobs=4
 ```
 
-[![image-alt](r_area_createweight_weights.png)  
-](r_area_createweight_weights.png) ***Output weighting layer***
+![Output weighting layer](r_area_createweight_weights.png)  
+*Output weighting layer*
 
-| [![image-alt](r_area_createweight_importances_plot_nonames.png)](r_area_createweight_importances_plot_nonames.png) | [![image-alt](r_area_createweight_importances_plot_names.png)](r_area_createweight_importances_plot_names.png) |
-| ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| *Feature importances without names*                                                                                | *Feature importances with names*                                                                               |
+![Feature importances without names](r_area_createweight_importances_plot_nonames.png)  
+*Feature importances without names*
+
+![Feature importances with names](r_area_createweight_importances_plot_names.png)  
+*Feature importances with names*
 
 ## KNOWN ISSUES
 

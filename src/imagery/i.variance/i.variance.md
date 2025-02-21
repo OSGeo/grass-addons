@@ -148,7 +148,7 @@ The overall peak beyond 30m corresponds to the width of fields.
 
 Woodcock, C.E., Strahler, A.H., 1987. The factor of scale in remote
 sensing. Remote Sensing of Environment 21, 311–332.
-https://doi.org/10.1016/0034-4257(87)90015-0
+<https://doi.org/10.1016/0034-4257(87)90015-0>
 
 ## SEE ALSO
 

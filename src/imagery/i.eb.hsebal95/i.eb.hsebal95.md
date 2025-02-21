@@ -29,7 +29,7 @@ calculated;
 
 For more details on the algorithms see \[1\].
 
-### Parameters:
+### Parameters
 
 - **DEM**=*name*  
     Input elevation raster \[m a.s.l.\]. Required.

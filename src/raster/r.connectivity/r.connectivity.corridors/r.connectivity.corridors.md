@@ -45,7 +45,7 @@ The following example is continued from and based on the example in
 In this example two alternative (or to some extent complementary) sets
 of corridors are calculated:
 
-### Corridor set 1:
+### Corridor set 1
 
 For the first set, corridors are only computed for the minimum spanning
 tree (in literature sometimes called the backbone of an ecological
@@ -67,7 +67,7 @@ cores=1
 *Figure: Corridors computed for connections on the minimum spanning tree
 weighted by edge betweenness in the example above.*
 
-### Corridor set 2:
+### Corridor set 2
 
 For the second set, corridors are computed for all edges in the graph
 (network). This takes a little more time. Corridors are then weighted by
