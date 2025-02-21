@@ -12,8 +12,8 @@ first-line-h1: false
 line-length: false
 MD033:
   allowed_elements:
-  - sup
-  - sub
+    - sup
+    - sub
 # The block above this is to be eventually removed.
 
 # The warning is triggered even for code blocks with language set to text,
