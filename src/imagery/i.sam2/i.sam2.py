@@ -66,7 +66,6 @@
 import os
 import sys
 import grass.script as gs
-import torch
 import numpy as np
 from PIL import Image
 from grass.script import array as garray
@@ -228,6 +227,11 @@ def main():
     text_prompt = options.get("text_prompt")
     text_threshold = float(options.get("text_threshold"))
     box_threshold = float(options.get("box_threshold"))
+
+    try:
+        import torch
+    except ImportError:
+        gs.fatal(_("Cannot import torch. Please install python3-torch first."))
 
     input_image_np = read_raster_group(group)
     rgb_array = normalize_rgb_array(np.stack(input_image_np, axis=-1))

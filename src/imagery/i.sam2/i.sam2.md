@@ -24,7 +24,7 @@ Segment orthoimagery using SamGeo2:
     
 ```
 
-![image-alt](./i_sam2_trees.jpg)
+![i.sam2: trees detected in an aerial image with samgeo](i_sam2_trees.jpg)
 
 ## NOTES
 
