@@ -12,22 +12,11 @@ mask as provided in Sentinel-2 SAFE products and the cloud detection
 results obtained with *i.sentinel.mask* (shadow detection not activated
 in this example; see below for an example with cloud and shadow masks):
 
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><a href="i_sentinel_mask_indonesia_esa_sen2cor.png"><img src="i_sentinel_mask_indonesia_esa_sen2cor.png" alt="image-alt" /></a><br />
-<em>Fig: Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products<br />
-(example: Indonesia)</em></td>
-<td style="text-align: center;"><a href="i_sentinel_mask_indonesia_grass_gis.png"><img src="i_sentinel_mask_indonesia_grass_gis.png" alt="image-alt" /></a><br />
-<em>Fig: Cloud (yellow borders) and shadow (green borders) detection with <em>i.sentinel.mask</em><br />
-(example: Indonesia)</em></td>
-</tr>
-</tbody>
-</table>
+![Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products (example: Indonesia)](i_sentinel_mask_indonesia_esa_sen2cor.png)  
+*Fig: Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products (example: Indonesia).*
+
+![Cloud (yellow borders) and shadow (green borders) detection with i.sentinel.mask (example: Indonesia)](i_sentinel_mask_indonesia_grass_gis.png)  
+*Fig: Cloud (yellow borders) and shadow (green borders) detection with* i.sentinel.mask *(example: Indonesia).*
 
 The implemented procedure consists essentially of an algorithm based on
 values thresholds, comparisons and calculations between bands which
@@ -36,23 +25,14 @@ further improvements and elaborations (e.g. transformation from raster
 to vector, cleaning geometries, removing small areas, checking topology,
 etc.) carried out in the different steps of the procedure.
 
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td style="text-align: center;"><a href="i_sentinel_mask_GWF.png"><img src="i_sentinel_mask_GWF.png" alt="image-alt" /></a><br />
-<em>Fig: Module General WorkFlow</em></td>
-<td style="text-align: center;"><a href="i_sentinel_mask_CD.png"><img src="i_sentinel_mask_CD.png" alt="image-alt" /></a><br />
-<em>Fig: Cloud detection procedure</em></td>
-<td style="text-align: center;"><a href="i_sentinel_mask_SD.png"><img src="i_sentinel_mask_SD.png" alt="image-alt" /></a><br />
-<em>Fig: Shadow detection procedure</em></td>
-</tr>
-</tbody>
-</table>
+![Module General WorkFlow](i_sentinel_mask_GWF.png)  
+*Fig: Module General WorkFlow.*
+
+![Cloud detection procedure](i_sentinel_mask_CD.png)  
+*Fig: Cloud detection procedure.*
+
+![Shadow detection procedure](i_sentinel_mask_SD.png)  
+*Fig: Shadow detection procedure.*
 
 The algorithm has been developed starting from rules found in literature
 (Parmes et. al 2017) and conveniently refined.
@@ -67,7 +47,7 @@ shadows are spatially intersected in order to remove misclassified
 areas. This means that all those shadow geometries which do not
 intersect a cloud geometry are removed.
 
-[![image-alt](i_sentinel_mask_CS.png)](i_sentinel_mask_CS.png)  
+!["Cleaning" procedure of the shadow mask](i_sentinel_mask_CS.png)  
 *Fig: "Cleaning" procedure of the shadow mask*
 
 All necessary input bands (blue, green, red, nir, nir8a, swir11, swir12)
@@ -147,7 +127,7 @@ nir8a=T17SPV_20180315T160021_B8A_cor
 
 Use **-r** to set the computational region to the maximum image extend.
 
-[![image-alt](i_sentinel_mask_ES.png)](i_sentinel_mask_ES.png)  
+![image-alt](i_sentinel_mask_ES.png)  
 *Figure1 (left): Sentinel-2A Band 02 - Figure2 (right): Sentinel-2A Band
 02 with computed cloud and shadow masks*
 
@@ -207,11 +187,6 @@ Automatic Cloud and Shadow Detection in Optical Satellite Imagery
 Without Using Thermal Bands - Application to Suomi NPP VIIRS Images over
 Fennoscandia. Remote Sens., 9, 806.
 ([DOI](https://www.mdpi.com/2072-4292/9/8/806))
-
-## FOLLOW UP
-
-- Implement other available algorithm(s) of clouds and shadows
-    detection
 
 ## SEE ALSO
 

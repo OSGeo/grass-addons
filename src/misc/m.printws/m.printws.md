@@ -48,12 +48,12 @@ fast. It is recommended to run tests around 100dpi or lower and once we
 are satisfied with the layout it is time to set the final target dpi.
 
 The module tries to render everything what are checked on the layer list
-and also adds overlays like barscale, legend and north arrow**\***
+and also adds overlays like barscale, legend and north arrow\*
 
-<span class="small">***\*=As of August, 2016 overlay modules positioning
+*\*=As of August, 2016 overlay modules positioning
 is slightly different on a map display compared to the created maps in
 files. With manual aligment and saving the workspace again the required
-positions could be set manually.***</span>
+positions could be set manually.*
 
 Some **drawbacks** of the module which should be taken into
 consideration:
@@ -232,10 +232,10 @@ option is introduced** as a virtual page size. Using the Flexi page:
     photoshop ). Illustration redraw can be fully automatic in case of
     content change by repeating the m.printws run
 
-<span class="small">***Background:** The Flexi mechanism actually sets
+***Background:** The Flexi mechanism actually sets
 up the same layout as it is specified with margins and titles on a
 300x300mm page and then cuts off everything outside the map frame
-together with cancelling the rendering of title elements.*</span>  
+together with cancelling the rendering of title elements.*
   
 An ideal resolution could easily be set using the dpi option of
 m.printws.

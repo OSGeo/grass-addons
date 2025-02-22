@@ -10,7 +10,10 @@ first-line-h1: false
 
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
 line-length: false
-no-inline-html: false
+MD033:
+  allowed_elements:
+    - sup
+    - sub
 # The block above this is to be eventually removed.
 
 # The warning is triggered even for code blocks with language set to text,

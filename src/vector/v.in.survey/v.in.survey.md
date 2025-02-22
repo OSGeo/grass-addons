@@ -69,26 +69,9 @@ Several recommendations how to format the data:
     Items are separated by dots. To get correct results, please remove
     or replace all redundant dots in the input data.
 
-    <table>
-    <colgroup>
-    <col style="width: 50%" />
-    <col style="width: 50%" />
-    </colgroup>
-    <tbody>
-    <tr class="odd">
-    <td></td>
-    <td>any short, descriptive name as you wish your layer to be named. Please do not use spaces or dots.</td>
-    </tr>
-    <tr class="even">
-    <td></td>
-    <td>information about vector type of the new layer (point, line, polygon). You may define your own codes that refer directly to the geometry (e.g. <em>point</em>, <em>line</em>, <em>poly</em> etc. including various abbreviations). Or you may specify that e.g. <em>tree</em>, <em>bush</em> etc. are codes for point features, <em>river</em>, <em>profile</em> etc. refer to line segments and <em>lake</em> and <em>house</em> represent new polygon layers.</td>
-    </tr>
-    <tr class="odd">
-    <td></td>
-    <td>simple identifier of the point in the layer (preferably plain numbering)</td>
-    </tr>
-    </tbody>
-    </table>
+  - **name**: any short, descriptive name as you wish your layer to be named. Please do not use spaces or dots.
+  - **code**: information about vector type of the new layer (point, line, polygon). You may define your own codes that refer directly to the geometry (e.g. *point*, *line*, *poly* etc.). Or you may specify that e.g. *tree*, *bush* etc. are codes for point features, *river*, *profile* etc. refer to line segments and *lake* and *house* represent new polygon layers.
+  - **number**: simple identifier of the point in the layer (preferably plain numbering).
 
 - if using a **header or columns' names**, refer this in *skip*
     parameter  
@@ -141,10 +124,14 @@ that vertices of the line are given by its intersection with at least
 two other lines. Thus, each new area was generated as the space
 surrounded by a line and connection between its vertices.
 
-|                                               |                                         |                                                |
-| --------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
-| *Fig. 1*: Imported features with broken areas | *Fig. 2*: Lines with the directions     | *Fig. 3*: Imported features with correct areas |
-| ![image-alt](img_lyrs_broken.png)             | ![image-alt](img_sorted_boundaries.png) | ![image-alt](img_soils_correct.png)            |
+![Imported features with broken areas](img_lyrs_broken.png)  
+*Fig. 1: Imported features with broken areas*
+
+![Lines with the directions](img_sorted_boundaries.png)  
+*Fig. 2: Lines with the directions*
+
+![Imported features with correct areas](img_soils_correct.png)  
+*Fig. 3: Imported features with correct areas*
 
 To fix broken areas, original lines have been merged using *v.edit*
 according to their categories. Then points have been exported again and
@@ -160,20 +147,8 @@ can be set up:
     outdir=NC_test_small_merge merge_lyrs=road,soil
 ```
 
-<table>
-<colgroup>
-<col style="width: 100%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td><em>Fig. 1</em>: DXF drawing together with the labels<br />
-(north arrow and scale have been added later)</td>
-</tr>
-<tr class="even">
-<td><img src="img_NC_dxf.png" alt="image-alt" /></td>
-</tr>
-</tbody>
-</table>
+![DXF drawing](img_NC_dxf.png)  
+*Fig. 4: DXF drawing together with the labels (north arrow and scale have been added later)*
 
 The colours in DXF drawing have been set up automatically. In this case,
 labels of roads and elevation labels of soil types have been switched of
@@ -238,12 +213,11 @@ match this rule.*
 Merging different vector types is not allowed. This might be matter of
 comparing layer names with too free rules:
 
-|                       |  |                             |
-| --------------------- |  | --------------------------- |
-| **river**             |  | river -\> **river\_stream** |
-| river\_stream\_Danube |  | river\_area\_Danube         |
-| river\_stream\_Vah    |  | river\_stream\_Vah          |
-| river\_stream\_Hron   |  | river\_stream\_Hron         |
+| **river**              | river -> **river_stream** |
+|------------------------|---------------------------|
+| river_stream_Danube    | river_area_Danube         |
+| river_stream_Vah       | river_stream_Vah          |
+| river_stream_Hron      | river_stream_Hron         |
 
 Tab. 1: Example of too free rules for merging layers
 

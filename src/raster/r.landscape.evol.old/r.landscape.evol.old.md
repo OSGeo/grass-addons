@@ -177,7 +177,7 @@ follows:
 where ED is net erosion or deposition rate for sediment and *α* is the
 topographic aspect (i.e., direction of slope) for a cell. Whether
 flowing water will erode or deposit sediment in a particular cell is
-determined by the *<span class="underline">change</span>* in sediment
+determined by the *change* in sediment
 flow (transport capacity) from one cell to the next. If the transport
 capacity increases (for example, due to an increase in the steepness of
 the slope or amount of flowing water), more sediment will be entrained

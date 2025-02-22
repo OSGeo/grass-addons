@@ -65,7 +65,7 @@ the energy formula applied to the upstream inflows:
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>up\_hydro</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
-<span class="small">where conv is the adimensional conversion factor
+where conv is the adimensional conversion factor
 to calculate energy in GWh (conv = 0.00876);  
 g is a gravity constant (9.81 m/s<sup>2</sup>);  
 η is the overall electrical efficiency;  
@@ -75,7 +75,7 @@ H<sub>mean</sub> is the mean elevation of the upstream subbasin
 calculated from the hypsographic curve, using the statistical tool of
 Arc-GIS;  
 H<sub>closure</sub> is the elevation at the closure point (point A in
-the figure);</span>  
+the figure);
 
 The downstream lower subbasin (between point A and B in the figure) has
 both energy components: the potential from the upstream subbasins and
@@ -87,13 +87,13 @@ elevation at the closure point (point B in the figure):
 *E<sub>own\_max</sub> = conv \* g \* η \* Q<sub>aff</sub> \*
 (H<sub>mean</sub> - H<sub>closure</sub>)*  
 
-<span class="small">where Q<sub>aff</sub> is the afferent discharge
+where Q<sub>aff</sub> is the afferent discharge
 (own lower subbasin discharge). The afferent discharge is the
 difference of the discharge observed at the closure section (point B
 in the figure) and the sum of the upstream discharges;  
 H<sub>mean</sub> is the elevation of lower subbasin;  
 H<sub>closure</sub> is the elevation at closure point (point B in the
-figure);</span>  
+figure);
 
 The upstream component to the potential of the downstream lower subbasin
 is calculated taking into account the discharge coming from the upstream
@@ -104,12 +104,12 @@ closure (point B in the figure):
 *E<sub>up\_max</sub> = conv \* g \* η \* ∑Q<sub>up\_hydro</sub> \*
 (H<sub>up\_closure</sub> - H<sub>closure</sub>)*  
 
-<span class="small">where Q<sub>up\_hydro</sub> is the sum of the mean
+where Q<sub>up\_hydro</sub> is the sum of the mean
 annual discharges coming from the upstream subbasins;  
 H<sub>up\_closure</sub> is the elevation at the upstream closure point
 (point A in the figure);  
 H<sub>closure</sub> is the elevation at closure point (point B in the
-figure);</span>  
+figure);
 
 The total maximum hydropower potential of the overall given basin is the
 sum of the different contributions computed at the subbasin level:  

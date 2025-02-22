@@ -88,39 +88,11 @@ weighted according to on-line questionnaire proposed to decision makers
 operating in the forest-based sector. The list of indicators used is the
 following:  
   
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td>4R</td>
-<td>INDICATORS</td>
-<td>DEFINITION</td>
-</tr>
-<tr class="even">
-<td>Reduce</td>
-<td>i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass
-<hr />
-i2 - CO2 emissions per unit of wood product</td>
-<td>Improving of the process efficiency reducing the utilization of natural resources</td>
-</tr>
-<tr class="odd">
-<td>Reuse</td>
-<td>i5 - Ratio between the potential economic value of the wood assortment and the real value earned</td>
-<td>Valorisation of the valuable wood high quality assortments</td>
-</tr>
-<tr class="even">
-<td>Recover</td>
-<td>i6 - Percentage of wood waste for bioenergy production
-<hr />
-i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes</td>
-<td>Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products</td>
-</tr>
-</tbody>
-</table>
+| 4R      | INDICATORS                                                                 | DEFINITION                                                                 |
+|---------|---------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| Reduce  | i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass; i2 - CO2 emissions per unit of wood product | Improving of the process efficiency reducing the utilization of natural resources |
+| Reuse   | i5 - Ratio between the potential economic value of the wood assortment and the real value earned | Valorisation of the valuable wood high quality assortments |
+| Recover | i6 - Percentage of wood waste for bioenergy production; i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes | Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products |
 
 The quantification of circular bioeconomy indicators is developed in the
 framework of provisioning forest ecosystem services. For this reason,
@@ -144,12 +116,12 @@ administrative costs.
 The user can setthe upper and - if needed - lower limits for slope and
 distance from roads to obtain the technical surface:
 
-[![image-alt](tech_function.png)](tech_function.png)
+![image-alt](tech_function.png)
 
 In forest area where extraction is possible, the stumpage value is
 quantified as follow:
 
-[![image-alt](stumpage_function.png)](stumpage_function.png)
+![image-alt](stumpage_function.png)
 
 Subsequently, the 4R indicators are calculated on the forest area with
 positive revenue.  
