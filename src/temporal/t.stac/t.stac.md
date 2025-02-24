@@ -13,11 +13,9 @@ interact with STAC APIs.
 
 ## REQUIREMENTS
 
-- [pystac
-    (1.9.x)](https://pystac.readthedocs.io/en/stable/installation.html)
-- [pystac\_client
-    (0.7.x)](https://pystac-client.readthedocs.io/en/stable/)
-- [](https://pypi.org/project/tqdm/)tqdm (4.66.x)
+- [pystac (>=1.12)](https://pystac.readthedocs.io/en/stable/installation.html)
+- [pystac\_client (>=0.8)](https://pystac-client.readthedocs.io/en/stable/)
+- [tqdm (>=4.67)](https://pypi.org/project/tqdm/)
 
 After dependencies are fulfilled, the toolset can be installed using the
 *g.extension* tool:
@@ -28,7 +26,7 @@ g.extension extension=t.stac
 
 ## MODULES
 
-*[t.stac.catalog.html](t.stac.catalog)
+*[t.stac.catalog.html](t.stac.catalog.md)
 [t.stac.collection.html](t.stac.collection.md)
 [t.stac.item.html](t.stac.item.md)*
 
