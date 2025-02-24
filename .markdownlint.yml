@@ -9,7 +9,9 @@ fix: true
 first-line-h1: false
 
 # Errors from .html to .md rename (first step in HTML to Markdown conversion)
-line-length: false
+MD013:
+  code_blocks: false
+  tables: false
 MD033:
   allowed_elements:
     - sup
