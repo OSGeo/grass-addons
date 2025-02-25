@@ -1,3 +1,10 @@
+---
+name: i.landsat
+description: Toolset for downloading and importing of Landsat products
+---
+
+# Toolset for downloading and importing of Landsat products
+
 ## DESCRIPTION
 
 The *i.landsat* toolset consists of three modules:

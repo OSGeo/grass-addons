@@ -1,3 +1,10 @@
+---
+name: i.modis
+description: Toolset for download and processing of MODIS products using pyModis
+---
+
+# Toolset for download and processing of MODIS products using pyModis
+
 ## DESCRIPTION
 
 The *i.modis* suite is a toolset to import MODIS (Moderate Resolution

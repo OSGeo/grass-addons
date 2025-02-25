@@ -1,3 +1,9 @@
+---
+description: Computes the residual energy potential of different renewable energies like biomass or hydropower
+---
+
+# Computes the residual energy potential of different renewable energies like biomass or hydropower
+
 [![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
 
 -----

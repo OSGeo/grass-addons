@@ -1,3 +1,10 @@
+---
+name: t.stac
+description: Toolset for working with SpatioTemporal Asset Catalogs
+---
+
+# Toolset for working with SpatioTemporal Asset Catalogs
+
 ## DESCRIPTION
 
 The *t.stac* toolset allows the user to explore metadata and ingest

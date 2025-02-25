@@ -1,3 +1,9 @@
+---
+description: Computes the residual energy potential of different renewable energies like biomass or hydropower
+---
+
+# Computes the residual energy potential of different renewable energies like biomass or hydropower
+
 ## NAME
 
 The *r.green.hydro* - Toolset for computing the hydropower potential.
