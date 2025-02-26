@@ -177,7 +177,8 @@ v.db.select stream_network_order | less
 
 ## REFERENCES
 
-*[r.stream.order](https://grass.osgeo.org/grass-stable/manuals/r.stream.order.html)  
+*[r.stream.order]
+(<https://grass.osgeo.org/grass-stable/manuals/r.stream.order.html>)  
 [Depth first search at
 Wikipedia](https://en.wikipedia.org/wiki/Depth-first_search)  
 [Strahler number at

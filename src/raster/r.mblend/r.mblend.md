@@ -51,7 +51,7 @@ J.P. Leitão, L.M. de Sousa, [Towards the optimal fusion of
 high-resolution Digital Elevation Models for detailed urban flood
 assessment](https://doi.org/10.1016/j.jhydrol.2018.04.043), *Journal of
 Hydrology*, Volume 561, June 2018, Pages 651-661, DOI:
-[10.1016/j.jhydrol.2018.04.043](https://doi.org/10.1016/j.jhydrol.2018.04.043).  
+[10.1016/j.jhydrol.2018.04.043](https://doi.org/10.1016/j.jhydrol.2018.04.043).
   
 L.M. de Sousa, J.P. Leitão, [Improvements to DEM Merging with
 r.mblend](http://www.scitepress.org/PublicationsDetail.aspx?ID=mcJr0zto14w=&t=1).

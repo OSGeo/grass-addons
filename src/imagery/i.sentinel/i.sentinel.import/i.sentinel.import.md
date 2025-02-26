@@ -188,7 +188,8 @@ i.sentinel.import input=data cloud_probability_threshold=25 cloud_area_threshold
 *Fig: Cloud (lightgrey) and shadow (darkgrey) mask (default options).*
 
 ![Cloud (lightgrey) and shadow (darkgrey) mask (lower probability threshold and higher area threshold)](i_sentinel_import_with_cloud_shadow_mask_v2.png)  
-*Fig: Cloud (lightgrey) and shadow (darkgrey) mask (lower probability threshold and higher area threshold).*
+*Fig: Cloud (lightgrey) and shadow (darkgrey) mask
+ (lower probability threshold and higher area threshold).*
 
 Link data from specific UTM zone while ignoring projection check
 

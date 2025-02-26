@@ -16,9 +16,8 @@ is set to very high values, (this happens very rarely).
 An overview of the underlying theory with some applications can be found
 in [\[3\]](https://doi.org/10.1016/j.isprsjprs.2012.02.005).  
 Other examples of use of the module can be found
-[here](https://www.ing.unitn.it/~vittia/sw/sw_index.html) and in [this
-presentation \[FOSS4G 2009 -
-pdf\]](http://download.osgeo.org/osgeo/foss4g/2009/SPREP/2Thu/Parkside-GO4/1500/Thu-G04-1545-Zatelli.pdf).  
+[here](https://www.ing.unitn.it/~vittia/sw/sw_index.html) and in
+[this presentation \[FOSS4G 2009 - pdf\]](http://download.osgeo.org/osgeo/foss4g/2009/SPREP/2Thu/Parkside-GO4/1500/Thu-G04-1545-Zatelli.pdf).
 For details on the numerical implementation see \[4\].
 
 ## NOTES

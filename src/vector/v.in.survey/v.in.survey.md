@@ -69,9 +69,15 @@ Several recommendations how to format the data:
     Items are separated by dots. To get correct results, please remove
     or replace all redundant dots in the input data.
 
-  - **name**: any short, descriptive name as you wish your layer to be named. Please do not use spaces or dots.
-  - **code**: information about vector type of the new layer (point, line, polygon). You may define your own codes that refer directly to the geometry (e.g. *point*, *line*, *poly* etc.). Or you may specify that e.g. *tree*, *bush* etc. are codes for point features, *river*, *profile* etc. refer to line segments and *lake* and *house* represent new polygon layers.
-  - **number**: simple identifier of the point in the layer (preferably plain numbering).
+  - **name**: any short, descriptive name as you wish your layer to be named.
+    Please do not use spaces or dots.
+  - **code**: information about vector type of the new layer (point, line,
+    polygon). You may define your own codes that refer directly to the geometry
+    (e.g. *point*, *line*, *poly* etc.). Or you may specify that e.g. *tree*,
+    *bush* etc. are codes for point features, *river*, *profile* etc. refer
+     to line segments and *lake* and *house* represent new polygon layers.
+  - **number**: simple identifier of the point in the layer (preferably
+    plain numbering).
 
 - if using a **header or columns' names**, refer this in *skip*
     parameter  
@@ -148,7 +154,8 @@ can be set up:
 ```
 
 ![DXF drawing](img_NC_dxf.png)  
-*Fig. 4: DXF drawing together with the labels (north arrow and scale have been added later)*
+*Fig. 4: DXF drawing together with the labels
+ (north arrow and scale have been added later)*
 
 The colours in DXF drawing have been set up automatically. In this case,
 labels of roads and elevation labels of soil types have been switched of
