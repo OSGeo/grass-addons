@@ -212,6 +212,7 @@ def main():
     rseries_method = "sum" if "b" in flagstring else "count"
     gs.run_command(
         "r.series",
+        flags="z",
         quiet=True,
         overwrite=gs.overwrite(),
         input=(",").join(vshed_list),
