@@ -1,9 +1,9 @@
 ---
 name: r.green
-description: Toolset for computing the residual energy potential of different renewable energies like biomass or hydropower
+description: Toolset for computing the residual energy potential of different renewable energies
 ---
 
-# Toolset for computing the residual energy potential of different renewable energies like biomass or hydropower
+# Toolset for computing the residual energy potential of different renewable energies
 
 ## DESCRIPTION
 
