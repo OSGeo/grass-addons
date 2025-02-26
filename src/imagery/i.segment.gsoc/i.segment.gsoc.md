@@ -213,10 +213,10 @@ after the seed map has been processed.)
 This project was first developed during GSoC 2012. Project
 documentation, Image Segmentation references, and other information is
 at the [project
-wiki](https://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation).
+wiki](https://grasswiki.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation).
 
 Information about [classification in GRASS
-GIS](https://grass.osgeo.org/wiki/Image_classification) is also
+GIS](https://grasswiki.osgeo.org/wiki/Image_classification) is also
 available on the wiki.
 
 ## SEE ALSO

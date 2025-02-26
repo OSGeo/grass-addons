@@ -53,7 +53,7 @@ create a collective basin for all the outlets with common category.
     resolutions differ, the module informs about it and stops. Region
     boundary and maps boundaries may differ but it may lead to
     unexpected results.
-- **coors**  
+- **coordinates**  
     East and north coordinates for the basin outlet. Using this option,
     it is possible to delineate only one basin at a time, similarly to
     *r.water.outlet*.
@@ -105,7 +105,7 @@ outlets (in most cases that on map border):
 ```sh
 r.stream.basins -l direction=direction stream_rast=streams basins=bas_basins_last
 
-r.stream.basins direction=direction coors=639936.623832,216939.836449
+r.stream.basins direction=direction coordinates=639936.623832,216939.836449
 ```
 
 To delineate one or more particular basins defined by given streams, add
@@ -131,7 +131,7 @@ substituted by any polygon created for example with *v.digit*:
 
 ```sh
 r.circle -b output=circle coordinate=639936.623832,216939.836449 max=200
-r.stream.basins -c direction=direction streams=circle basins=bas_simul
+r.stream.basins -c direction=direction stream_rast=circle basins=bas_simul
 ```
 
 To determine areas of contribution to streams of particular order use as
@@ -152,10 +152,10 @@ v.extract -d input=lakes@PERMANENT output=lake8056 type=area layer=1 \
 
 v.to.rast input=lake8056 output=lake8056 use=val type=area layer=1 value=1
 
-r.stream.basins direction=direction streams=lake8056 basins=bas_basin_lake
+r.stream.basins direction=direction stream_rast=lake8056 basins=bas_basin_lake
 ```
 
-See also the tutorial: <https://grass.osgeo.org/wiki/R.stream.*>
+See also the tutorial: <https://grasswiki.osgeo.org/wiki/R.stream.*_modules>
 
 ## SEE ALSO
 

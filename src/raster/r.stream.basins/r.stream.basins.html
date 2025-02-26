@@ -93,7 +93,7 @@ differ, the module informs about it and stops. Region boundary and
 maps boundaries may differ but it may lead to unexpected results.
 </dd>
 
-<dt><b>coors</b></dt>
+<dt><b>coordinates</b></dt>
 <dd>East and north coordinates for the basin outlet. Using this option, it is possible
 to delineate only one basin at a time, similarly to <em>r.water.outlet</em>.
 </dd>
@@ -152,7 +152,7 @@ subbasins, use -l flag. This flag ignores all nodes and uses only real outlets
 <div class="code"><pre>
 r.stream.basins -l direction=direction stream_rast=streams basins=bas_basins_last
 
-r.stream.basins direction=direction coors=639936.623832,216939.836449
+r.stream.basins direction=direction coordinates=639936.623832,216939.836449
 </pre></div>
 
 <p>
@@ -180,7 +180,7 @@ with <em>v.digit</em>:
 
 <div class="code"><pre>
 r.circle -b output=circle coordinate=639936.623832,216939.836449 max=200
-r.stream.basins -c direction=direction streams=circle basins=bas_simul
+r.stream.basins -c direction=direction stream_rast=circle basins=bas_simul
 </pre></div>
 
 <p>
@@ -206,7 +206,7 @@ r.stream.basins direction=direction streams=lake8056 basins=bas_basin_lake
 </pre></div>
 
 <p>
-See also the tutorial: <a href="https://grass.osgeo.org/wiki/R.stream.*">https://grass.osgeo.org/wiki/R.stream.*</a>
+See also the tutorial: <a href="https://grasswiki.osgeo.org/wiki/R.stream.*_modules">https://grasswiki.osgeo.org/wiki/R.stream.*_modules</a>
 
 <h2>SEE ALSO</h2>
 
