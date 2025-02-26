@@ -1,24 +1,10 @@
 ---
-description: Computes the residual energy potential of different renewable energies like biomass or hydropower
+name: r.green.biomassfor
+description: Toolset for computing the energy potential of biomass from the forestry residues, considering different limits and constraints
+keywords: raster, biomass, forestry
 ---
 
-# Computes the residual energy potential of different renewable energies like biomass or hydropower
-
-[![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
-
------
-
-## NAME
-
-***r.green.biomassfor*** - Toolset for computing the energy potential of
-biomass from the forestry residues, considering different limits and
-constraints.
-
-## KEYWORDS
-
-[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
-[biomass
-topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
+# Toolset for Computing the Energy Potential of Biomass
 
 ## DESCRIPTION
 
@@ -38,7 +24,7 @@ parts:
 - [r.green.biomassfor.legal](r.green.biomassfor.legal.md) - Estimates
     potential bioenergy depending on forest increment, forest management
     and forest treatment
-- [r.green.biomassfor.tecnical](r.green.biomassfor.technical.md) -
+- [r.green.biomassfor.technical](r.green.biomassfor.technical.md) -
     Estimates the quantity of woody biomass obtained from a forest
     surface where extraction is possible given a particular level of
     mechanisation

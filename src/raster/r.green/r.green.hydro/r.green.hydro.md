@@ -1,18 +1,10 @@
 ---
+name: r.green.hydro
 description: Computes the residual energy potential of different renewable energies like biomass or hydropower
+keywords: raster, biomass
 ---
 
-# Computes the residual energy potential of different renewable energies like biomass or hydropower
-
-## NAME
-
-The *r.green.hydro* - Toolset for computing the hydropower potential.
-
-## KEYWORDS
-
-[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
-[biomass
-topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
+# Computes the residual energy potential of different renewable energies
 
 ## DESCRIPTION
 

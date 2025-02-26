@@ -1,23 +1,10 @@
 ---
-description: Computes the residual energy potential of different renewable energies like biomass or hydropower
+name: r.green.gshp
+description: Toolset for computing the Ground Source Heat Pump
+keywords: raster, geothermal, renewable energy
 ---
 
-# Computes the residual energy potential of different renewable energies like biomass or hydropower
-
-[![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
-
------
-
-## NAME
-
-The *r.green.gshp* - Toolset for computing the Ground Source Heat Pump
-potential.
-
-## KEYWORDS
-
-[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
-[biomass
-topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
+# Toolset for Computing the Ground Source Heat Pump
 
 ## DESCRIPTION
 
