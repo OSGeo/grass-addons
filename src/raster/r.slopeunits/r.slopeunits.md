@@ -1,3 +1,10 @@
+---
+name: r.slopeunits
+description: Toolset for calculating metrics for slope units
+---
+
+# Toolset for calculating metrics for slope units
+
 ## DESCRIPTION
 
 *r.slopeunits* is a GRASS GIS addon toolset that creates, cleans and

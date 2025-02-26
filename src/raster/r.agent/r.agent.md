@@ -1,3 +1,10 @@
+---
+name: r.agent
+description: Toolset for agent based modeling
+---
+
+# Toolset for agent based modeling
+
 ## DESCRIPTION
 
 *r.agent* consists of a library *libagent* and some submodules which use

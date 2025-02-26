@@ -1,3 +1,10 @@
+---
+name: m.eigensystem
+description: Computes eigenvalues and eigenvectors for an NxN matrix
+---
+
+# Computes eigenvalues and eigenvectors for an NxN matrix
+
 ## DESCRIPTION
 
 *m.eigensystem* determines the eigen values and eigen vectors for square

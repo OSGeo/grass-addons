@@ -1,3 +1,10 @@
+---
+name: r.pi
+description: Toolset for multiscale analysis of landscape patch structure
+---
+
+# Toolset for multiscale analysis of landscape patch structure
+
 ## KEYWORDS
 
 [raster](raster.md), [landscape structure

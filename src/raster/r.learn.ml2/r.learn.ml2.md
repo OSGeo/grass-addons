@@ -1,3 +1,10 @@
+---
+name: r.learn.ml2
+description: Supervised classification and regression with scikit-learn
+---
+
+# Supervised classification and regression with scikit-learn
+
 ## DESCRIPTION
 
 *r.learn.ml2* represents a front-end to the scikit learn python package.

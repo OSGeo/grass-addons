@@ -1,3 +1,10 @@
+---
+name: v.feature.algebra
+description: A vector calculator program
+---
+
+# A vector calculator program
+
 ## DESCRIPTION
 
 *v.feature.algebra* is a vector calculator program inspired by

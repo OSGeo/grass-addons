@@ -1,23 +1,7 @@
-[![image-alt](grass_logo.png)](https://grass.osgeo.org/grass-stable/manuals/index.html)
-
------
-
-## NAME
-
-*r.green.install* - Toolset to check that all the necessary Python
-libraries like scipy and numexpr are present in the python path. The
-module also check post-installation troubles that sometimes may occur.
-
-## KEYWORDS
-
-[raster](https://grass.osgeo.org/grass-stable/manuals/raster.html),
-[biomass
-topic](https://grass.osgeo.org/grass-stable/manuals/topic_biomass.html)
-
 ## DESCRIPTION
 
-The module installs the missing Python libraries for different operating
-systems and provide a general menu in the GRASS GUI.
+The tool checks and installs the missing Python libraries for different
+operating systems and provide a general menu in the GRASS GUI.
 
 ## NOTES
 

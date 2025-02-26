@@ -1,3 +1,10 @@
+---
+name: r.connectivity
+description: Toolset for conducting connectivity analysis of ecological networks
+---
+
+# Toolset for conducting connectivity analysis of ecological networks
+
 ## DESCRIPTION
 
 *r.connectivity* is a toolset for conducting connectivity analysis of
