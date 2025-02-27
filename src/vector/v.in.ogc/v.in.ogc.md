@@ -1,3 +1,10 @@
+---
+name: v.in.ogc
+description: Toolset for import of vector data from several OGC API standards
+---
+
+# Toolset for import of vector data from several OGC API standards
+
 ## DESCRIPTION
 
 The *v.in.ogc* suite is able to import vector data from several OGC API

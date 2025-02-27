@@ -1,3 +1,10 @@
+---
+name: r.futures
+description: FUTure Urban-Regional Environment Simulation (FUTURES)
+---
+
+# FUTure Urban-Regional Environment Simulation (FUTURES)
+
 ## DESCRIPTION
 
 *r.futures.\** is an implementation of FUTure Urban-Regional Environment

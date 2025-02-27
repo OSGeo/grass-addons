@@ -1,3 +1,10 @@
+---
+name: r.in.ogc
+description: Toolset for import of raster data from several OGC API standards
+---
+
+# Toolset for import of raster data from several OGC API standards
+
 ## DESCRIPTION
 
 The *r.in.ogc* suite is able to import raster data from several OGC API

@@ -1,3 +1,10 @@
+---
+name: r.green
+description: Toolset for computing the residual energy potential of different renewable energies
+---
+
+# Toolset for computing the residual energy potential of different renewable energies
+
 ## DESCRIPTION
 
 The *r.green* suite computes the residual energy potential of different

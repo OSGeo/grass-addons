@@ -72,7 +72,7 @@ products saved in the GeoJSON file through the different options, e.g.
 Querying, aka. filtering, is a method introduced to *i.eodag* to further
 filter the search results based on an extended list of products'
 properties, called
-[queryables](https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html?highlight=queryables#Queryables).  
+[queryables](https://eodag.readthedocs.io/en/stable/notebooks/api_user_guide/4_search.html#Queryables).
 The **print** option can be used to get hints of the avaible queryables.
 For example, to get the queryables for the product "S2\_MSI\_L2A" that
 is offered by Copernicus Data Space Ecosystem (cop\_dataspace):

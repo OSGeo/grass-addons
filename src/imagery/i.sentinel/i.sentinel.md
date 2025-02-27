@@ -1,3 +1,10 @@
+---
+name: i.sentinel
+description: Toolset for download and processing of Copernicus Sentinel products
+---
+
+# Toolset for download and processing of Copernicus Sentinel products
+
 ## DESCRIPTION
 
 The *i.sentinel* toolset consists of currently six modules:

@@ -12,11 +12,14 @@ mask as provided in Sentinel-2 SAFE products and the cloud detection
 results obtained with *i.sentinel.mask* (shadow detection not activated
 in this example; see below for an example with cloud and shadow masks):
 
-![Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products (example: Indonesia)](i_sentinel_mask_indonesia_esa_sen2cor.png)  
-*Fig: Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products (example: Indonesia).*
+![Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE products
+ (example: Indonesia)](i_sentinel_mask_indonesia_esa_sen2cor.png)  
+*Fig: Official cloud mask (yellow borders) as provided in Sentinel-2 SAFE
+ products (example: Indonesia).*
 
 ![Cloud (yellow borders) and shadow (green borders) detection with i.sentinel.mask (example: Indonesia)](i_sentinel_mask_indonesia_grass_gis.png)  
-*Fig: Cloud (yellow borders) and shadow (green borders) detection with* i.sentinel.mask *(example: Indonesia).*
+*Fig: Cloud (yellow borders) and shadow (green borders) detection with
+ i.sentinel.mask(example: Indonesia).*
 
 The implemented procedure consists essentially of an algorithm based on
 values thresholds, comparisons and calculations between bands which

@@ -15,9 +15,10 @@ box of the vector.
 
 ## EXAMPLE
 
-### Pycnophylactic interpolation of Voronoi triangles using annual precipitation in the North Carolina sample data
+### Pycnophylactic interpolation of Voronoi triangles
 
-(see below for screenshots of the results)
+Pycnophylactic interpolation of Voronoi triangles using annual precipitation
+in the North Carolina sample data:
 
 ```sh
 # setting the region
@@ -61,10 +62,12 @@ d.rast.leg precip_annual_voronoi
 d.rast.leg precip_annual_pycno
 ```
 
-![image-alt](v_surf_mass_voronoi.png)  
+![Annual precipitation (30 years avg.) of North Carolina shown as Voronoi
+diagram](v_surf_mass_voronoi.png)  
 *Annual precipitation (30 years avg.) of North Carolina shown as Voronoi
 diagram based on meteorological stations (perspective view in NVIZ).*
-![image-alt](v_surf_mass_pycno.png)  
+
+![Smooth Pycnophylactic Interpolation of annual precipitation](v_surf_mass_pycno.png)  
 *Smooth Pycnophylactic Interpolation of annual precipitation (30 years
 avg.) of North Carolina using the Voronoi diagram map based on
 meteorological stations (perspective view in NVIZ).*

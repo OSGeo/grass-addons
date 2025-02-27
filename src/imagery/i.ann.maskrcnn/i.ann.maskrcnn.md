@@ -1,3 +1,10 @@
+---
+name: i.ann.maskrcnn
+description: Mask R-CNN toolset
+---
+
+# Mask R-CNN toolset
+
 ## DESCRIPTION
 
 Mask R-CNN tools allow the user to train his own model and use it for a
