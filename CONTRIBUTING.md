@@ -63,6 +63,7 @@ upstream        https://github.com/OSGeo/grass-addons.git (push)
 
 It is important that "origin" points to your fork.
 
+
 ### Update before creating a feature branch
 
 - Download updates from all branches from the _upstream_ remote:
@@ -154,6 +155,13 @@ a pull request.
 
 Some contributors use GitHub CLI which allows them to create the pull request
 from command line in one step together with pushing the changes to GitHub.
+
+- Install/update pre-commit and identify to enable pre-commit checks when
+  issuing a pull request
+
+  ```bash
+  pip3 install -U pre-commit identify
+  ```
 
 ### After creating a pull request
 
