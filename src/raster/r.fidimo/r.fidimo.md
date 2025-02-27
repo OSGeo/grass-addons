@@ -1,4 +1,4 @@
-## NAME
+## DESCRIPTION
 
 *r.fidimo* performs analysis of fish dispersal based on leptokurtic
 dispersal kernels. It calculates fish dispersal along river corridors
