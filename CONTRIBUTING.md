@@ -63,6 +63,11 @@ upstream        https://github.com/OSGeo/grass-addons.git (push)
 
 It is important that "origin" points to your fork.
 
+
+- Install/update pre-commit and identify to enable pre-commit checks
+
+  ```pip3 install -U pre-commit identify```
+
 ### Update before creating a feature branch
 
 - Download updates from all branches from the _upstream_ remote:
