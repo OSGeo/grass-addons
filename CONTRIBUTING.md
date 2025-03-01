@@ -63,7 +63,6 @@ upstream        https://github.com/OSGeo/grass-addons.git (push)
 
 It is important that "origin" points to your fork.
 
-
 ### Update before creating a feature branch
 
 - Download updates from all branches from the _upstream_ remote:
