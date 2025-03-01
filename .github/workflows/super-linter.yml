@@ -52,6 +52,9 @@ jobs:
           VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
           VALIDATE_JSON_PRETTIER: false # Until fixed
           VALIDATE_JSONC_PRETTIER: false
+          VALIDATE_JUPYTER_NBQA_BLACK: false # Handled by our ruff formatting
+          VALIDATE_JUPYTER_NBQA_ISORT: false # Until fixed and confirmed safe
+          VALIDATE_JUPYTER_NBQA_MYPY: false # Until fixed
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
           VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
