@@ -21,7 +21,7 @@ desired by setting the *difference* parameter.
 r.hand elevation=elevation hand=hand depth=2 inundation_raster=inundation
 ```
 
-![Inundation event 2 m](r_hand.png)
+![Inundation event 2 m](r_hand.png)  
 *Figure: Inundation event $2 m$.*
 
 ### Calculate series of inundation raster maps from a DEM raster map
