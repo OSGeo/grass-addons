@@ -13,6 +13,13 @@ raster map or time series (STRDS) of inundation raster maps based on user-define
 water levels. Additionally, the HAND raster map can be returned as an output if
 desired by setting the *difference* parameter.
 
+## Dependencies
+
+### GRASS Addons
+
+- [r.stream.distance](addons/r.stream.distance.md)
+- [r.lake.series](addons/r.lake.series.md)
+
 ## EXAMPLES
 
 ### Calculate an inundation raster map from a DEM raster map
