@@ -17,7 +17,3 @@ MD033:
     - sup
     - sub
 # The block above this is to be eventually removed.
-
-# The warning is triggered even for code blocks with language set to text,
-# so r.fuzzy.system syntax triggers the warning even when completely valid.
-commands-show-output: false

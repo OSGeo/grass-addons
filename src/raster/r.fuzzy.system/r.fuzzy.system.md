@@ -13,9 +13,11 @@
     spaces, tabs, empty lines are allowed and may used to visual format
     of rule file. Lines beginning with **\#** are comments.
 
+    <!-- markdownlint-disable commands-show-output -->
     ```text
     $ set_name {side; points; boundary_shape; hedge; height }
     ```
+    <!-- markdownlint-enable commands-show-output -->
 
   - **set\_name**: Any name of the fuzzy set. Must not contain
         symbols: *%,$ and \#*
@@ -42,9 +44,11 @@
 
     An example of fuzzy sets definition:
 
+    <!-- markdownlint-disable commands-show-output -->
     ```text
     $ moderate {both; 90,100,120,130; sshaped; 0; 1}
     ```
+    <!-- markdownlint-enable commands-show-output -->
 
 - **rules** file  
     A text file containing rules for classification. A typical fuzzy
@@ -75,9 +79,11 @@
 
     An example of fuzzy rules definition:
 
+    <!-- markdownlint-disable commands-show-output -->
     ```text
     $ small {distance = high & elev = high}
     ```
+    <!-- markdownlint-enable commands-show-output -->
 
 ## ADVANCED OPTIONS
 
@@ -262,6 +268,7 @@ must be named "%\_OUTPUT\_", in the map file, but the actual raster will
 be assigned the name from the "output" option to "r.fuzzy.system" (in
 the example below this is "flood").
 
+<!-- markdownlint-disable commands-show-output -->
 ```text
 # flood.map
 % elevation
@@ -276,6 +283,7 @@ $ unprob {both; 0,20,20,40; linear; 0;1}
 $ prob {both; 20,40,40,60; linear; 0;1}
 $ veryprob {both; 40,60,60,80; linear; 0;1}
 ```
+<!-- markdownlint-enable commands-show-output -->
 
 RULES file example (text file):
 
