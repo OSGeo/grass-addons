@@ -1,7 +1,7 @@
 ---
 name: r.green.biomassfor
 description: Toolset for computing the energy potential of biomass from the forestry residues, considering different limits and constraints
-keywords: raster, biomass, forestry
+keywords: [raster, biomass, forestry]
 ---
 
 # Toolset for Computing the Energy Potential of Biomass

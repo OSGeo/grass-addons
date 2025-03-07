@@ -1,7 +1,7 @@
 ---
 name: r.green.hydro
 description: Computes the residual energy potential of different renewable energies like biomass or hydropower
-keywords: raster, biomass
+keywords: [raster, biomass]
 ---
 
 # Computes the residual energy potential of different renewable energies

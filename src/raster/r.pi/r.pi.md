@@ -1,16 +1,10 @@
 ---
 name: r.pi
 description: Toolset for multiscale analysis of landscape patch structure
+keywords: [raster, landscape structure analysis, neutral landscapes, patch index]
 ---
 
 # Toolset for multiscale analysis of landscape patch structure
-
-## KEYWORDS
-
-[raster](raster.md), [landscape structure
-analysis](topic_landscape_structure_analysis.md), [neutral
-landscapes](keywords.md#neutral-landscapes), [patch
-index](keywords.md#patch-index)
 
 ## DESCRIPTION
 
