@@ -349,6 +349,7 @@ ignore = [
     "RUF051",  # if-key-in-dict-del
     "RUF052",  # used-dummy-variable
     "RUF055",  # unnecessary-regular-expression
+    "RUF059",  # unused-unpacked-variable
     "RUF100",  # unused-noqa
     "S101",    # assert
     "S102",    # exec-builtin
