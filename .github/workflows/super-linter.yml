@@ -56,6 +56,7 @@ jobs:
           VALIDATE_JUPYTER_NBQA_ISORT: false # Until fixed and confirmed safe
           VALIDATE_JUPYTER_NBQA_MYPY: false # Until fixed
           VALIDATE_JUPYTER_NBQA_PYLINT: false # Until fixed
+          VALIDATE_JUPYTER_NBQA_RUFF: false # ruff version isn't updated at the same time as we do
           VALIDATE_LATEX: false # Until issues are fixed, some valid findings
           VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
           VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
