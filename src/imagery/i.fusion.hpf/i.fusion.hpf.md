@@ -88,7 +88,7 @@ d.rgb b=lsat7_2000_10_hpf g=lsat7_2000_20_hpf r=lsat7_2000_30_hpf
 *Figure: Original Landsat 7 RGB color composite at 28.5m resolution
 (North Carolina, Raleigh subset)*
 
-[image-alt](i_fusion_hpf_lsat7_hpf_rgb.png)  
+![image-alt](i_fusion_hpf_lsat7_hpf_rgb.png)  
 *Figure: Pansharpened Landsat 7 RGB color composite at 14.25m
 resolution(North Carolina, Raleigh subset)*
 
