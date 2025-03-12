@@ -701,7 +701,7 @@ This time it works. Here the first few lines from the output CSV files:
 
 returns
 
-```csv
+```text
   ==> output_supply.csv <==
   base,base_label,cover,cover_label,area,count,percents
   3,,1,723.555560,9000000.000000,9,7.76%
