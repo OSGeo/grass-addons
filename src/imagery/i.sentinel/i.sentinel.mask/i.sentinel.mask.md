@@ -58,7 +58,7 @@ must be imported in GRASS and specified one by one or using an input
 text file. The text file has to be written following the syntax below:
 *variable=your\_map*
 
-```sh
+```text
 blue=your_blue_map
 green=your_green_map
 red=your_red_map
@@ -118,7 +118,7 @@ i.sentinel.mask -r input_file=path/input_cloud_mask.txt cloud_mask=cloud \
 
 The input text file:
 
-```sh
+```text
 blue=T17SPV_20180315T160021_B02_cor
 green=T17SPV_20180315T160021_B03_cor
 red=T17SPV_20180315T160021_B04_cor

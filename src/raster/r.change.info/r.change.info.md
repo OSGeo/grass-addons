@@ -183,7 +183,7 @@ Assuming there is a time series of the MODIS land cover/land use product
 MCD12Q1, land cover type 1, available, and the raster maps have the
 names
 
-```sh
+```text
 MCD12Q1.A2001.Land_Cover_Type_1
 MCD12Q1.A2002.Land_Cover_Type_1
 MCD12Q1.A2003.Land_Cover_Type_1

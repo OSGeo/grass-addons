@@ -26,7 +26,7 @@ species-specific dispersal parameters.
     file should not contain any headings, etc. e.g. the content of the
     file can look like:
 
-```sh
+```text
 545287.44|1942020.18
 ```
 
@@ -36,7 +36,7 @@ species-specific dispersal parameters.
     X and Y coordinate and a value for passability (0-1 where 0 is
     impassable and 1 is 100% passable). The values must be |-separated:
 
-```sh
+```text
 3543350.8001|6064831.9001|1
 3535061.5179|6064457.5321|0.3
 ```

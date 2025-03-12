@@ -198,7 +198,7 @@ value and the annual avoided emission:
 
 The output text results are the follow:
 
-```sh
+```text
 #############################
 End of process
 Name of output maps:

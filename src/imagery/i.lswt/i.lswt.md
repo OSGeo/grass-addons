@@ -11,7 +11,7 @@ module uses a simplified non-linear split-window algorithm.
 
 The non-linear split window equation used here is:
 
-```sh
+```text
 LSWT = Ti + c1 * (Ti - Tj) + c2 * (Ti - Tj) ^ 2 + c0
 ```
 

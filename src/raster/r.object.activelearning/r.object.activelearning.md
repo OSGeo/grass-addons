@@ -36,22 +36,20 @@ the training and test examples should be the second attribute.
 
 Example of a training and test files :
 
-```sh
-            cat,Class_num,attr1,attr2,attr3
-            167485,4,3.546,456.76,6.76
-            183234,6,5.76,1285.54,9.45
-            173457,2,5.65,468.76,6.78
-        
+```csv
+cat,Class_num,attr1,attr2,attr3
+167485,4,3.546,456.76,6.76
+183234,6,5.76,1285.54,9.45
+173457,2,5.65,468.76,6.78
 ```
 
 Example of an unlabeled file :
 
-```sh
-            cat,attr1,attr2,attr3
-            167485,3.546,456.76,6.76
-            183234,5.76,1285.54,9.45
-            173457,5.65,468.76,6.78
-        
+```csv
+cat,attr1,attr2,attr3
+167485,3.546,456.76,6.76
+183234,5.76,1285.54,9.45
+173457,5.65,468.76,6.78
 ```
 
 The training set can be easily updated once you have labeled new
@@ -70,12 +68,11 @@ unlabeled\_updated).
 
 Example of an update file :
 
-```sh
-            cat,Class_num
-            194762,2
-            153659,6
-            178350,2
-        
+```csv
+cat,Class_num
+194762,2
+153659,6
+178350,2
 ```
 
 Here are more details on a few parameters :

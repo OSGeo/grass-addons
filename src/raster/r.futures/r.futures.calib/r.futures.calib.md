@@ -63,7 +63,7 @@ multiple runs (specified in **repeat**) are recommended, the error is
 then averaged. Calibration results are saved in a CSV file specified in
 **calibration\_results**:
 
-```sh
+```csv
 discount_factor,compactness_mean,compactness_range,area_error,compactness_error,combined_error
 0.10,0.60,0.10,0.92,0.70,0.81
 0.10,0.80,0.10,0.92,0.76,0.84

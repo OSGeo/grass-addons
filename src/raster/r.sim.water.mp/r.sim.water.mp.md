@@ -157,7 +157,7 @@ r.sim.water elevation=elevation.10m dx=elev_dx dy=elev_dy \
 
 If the module fails with
 
-```sh
+```text
 ERROR: nwalk (7000001) > maxw (7000000)!
 ```
 

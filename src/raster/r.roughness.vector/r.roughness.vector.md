@@ -25,14 +25,14 @@ input:
 
 If the user does not specify the output maps names, they will be set to
 
-```sh
+```text
 INPUT_MAP_vector_strength_NxN
 ```
 
 and
 
-```sh
-  INPUT_MAP_fisher_K_NxN
+```text
+INPUT_MAP_fisher_K_NxN
 ```
 
 where N is the window size.

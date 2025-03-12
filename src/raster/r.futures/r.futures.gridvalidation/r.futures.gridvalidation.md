@@ -25,7 +25,7 @@ disagreement on a 5km grid. First reclassify FUTURES output to 0
 (undeveloped) and 1 (developed) by creating a text file "rules.txt" with
 the following content:
 
-```sh
+```text
 -1 = 0
 0 thru 100 = 1
 ```

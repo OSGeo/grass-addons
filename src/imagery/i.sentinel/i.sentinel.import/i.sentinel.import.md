@@ -54,8 +54,8 @@ linked file name as *source2*. Also, sensing time is written into the
 timestamp of the map. After import, the metadata can be retrieved with
 *r.info -e* as shown below.
 
-```sh
-<td>SATELLITE=S2B
+```text
+SATELLITE=S2B
 CLOUDY_PIXEL_PERCENTAGE=1.250696
 DEGRADED_MSI_DATA_PERCENTAGE=0
 NODATA_PIXEL_PERCENTAGE=58.089572
