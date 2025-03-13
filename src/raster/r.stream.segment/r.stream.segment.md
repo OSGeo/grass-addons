@@ -72,6 +72,7 @@ output.
 
 Vector map where every segment has its own category and following
     attributes:
+
 - **segment**: integer, segment identifier
 - **next\_segment**: integer, topological next segment identifier
 - **s\_order**: integer, segment order
@@ -111,6 +112,7 @@ Vector map where every segment has its own category and following
 
 Vector map where every sector has its own category and following
 attributes:
+
 - **sector**: integer, sector category
 - **segment**: integer, segment category (to establish
       relationship)
