@@ -1,7 +1,7 @@
 ---
 name: r.green.gshp
 description: Toolset for computing the Ground Source Heat Pump
-keywords: raster, geothermal, renewable energy
+keywords: [raster, geothermal, renewable energy]
 ---
 
 # Toolset for Computing the Ground Source Heat Pump
