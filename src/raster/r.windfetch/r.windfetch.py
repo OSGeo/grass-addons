@@ -127,7 +127,9 @@ def point_fetch(land, coordinates, direction, step, minor_directions, minor_step
     offset = minor_step * (minor_directions - 1) / 2
     output = []
     for point in json.loads(data):
-        distances_dict = dict(zip(point["azimuth"], point["horizon_distance"]))
+        distances_dict = {
+            horizons["azimuth"]: horizons["distance"] for horizons in point["horizons"]
+        }
         output.append({"x": point["x"], "y": point["y"], "directions": [], "fetch": []})
         i = 0
         while i < 360:
