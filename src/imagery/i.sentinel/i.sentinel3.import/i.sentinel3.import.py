@@ -635,13 +635,16 @@ def adjust_region(region_dict):
     return region_dict
 
 
-def intersect_region(region_current, region_stripe, align_current=True):
-    """
+def intersect_region(region_current, region_stripe, align_current=True) -> dict:
+    """Intersect stripe region with current region aligned to resolution and extended for r.in.xyz.
+
     Adjust region bounds for r.in.xyz to the intersection
     of the current region (bounds + half resolution)
     aligned to resolution in ew and ns direction
     starting from the sw-corner
     """
+
+    # Remove potential, irrelevant / conflicting dict-keys and convert to float
     relevant_keys = ["n", "s", "e", "w", "nsres", "ewres"]
     region_current = {
         region_key: float(region_current[region_key]) for region_key in relevant_keys
@@ -650,49 +653,40 @@ def intersect_region(region_current, region_stripe, align_current=True):
         region_key: float(region_stripe[region_key]) for region_key in relevant_keys
     }
     region_dict = region_current.copy()
+    # Choose pixel alignment with stripe or region
     if not align_current:
         region_dict.update(
             {"nsres": region_stripe["nsres"], "ewres": region_stripe["ewres"]}
         )
-    stripe_s = region_stripe["s"] - region_stripe["nsres"] / 2.0
-    stripe_n = region_stripe["n"] + region_stripe["nsres"] / 2.0
-    stripe_w = region_stripe["w"] - region_stripe["ewres"] / 2.0
-    stripe_e = region_stripe["e"] + region_stripe["ewres"] / 2.0
-    region_dict["s"] = max(
-        region_current["s"],
-        region_current["s"]
-        + np.ceil((region_current["s"] - stripe_s) / float(region_dict["nsres"]))
-        * float(region_dict["nsres"]),
-    )
-    region_dict["n"] = min(
-        region_current["n"],
-        region_current["n"]
-        - np.floor((region_current["n"] - stripe_n) / float(region_dict["nsres"]))
-        * float(region_dict["nsres"]),
-    )
-    if stripe_e > stripe_w:
-        new_w = max(
-            region_current["w"],
-            region_current["w"]
-            + np.ceil((region_current["w"] - stripe_w) / float(region_dict["ewres"]))
-            * float(region_dict["ewres"]),
-        )
-        new_e = min(
-            region_current["e"],
-            region_current["e"]
-            - np.floor((region_current["e"] - stripe_e) / float(region_dict["ewres"]))
-            * float(region_dict["ewres"]),
-        )
-        if new_w < new_e:
-            region_dict["w"] = new_w
-            region_dict["e"] = new_e
+    for direction in "nsew":
+        resolution = region_dict["nsres"] if direction in "ns" else region_dict["ewres"]
+        if direction in "ne":
+            # Get the intersection of the stripe and the current region
+            region_dict[direction] = min(
+                region_current[direction], region_stripe[direction]
+            )
+            # Align region to required resolution and extend by one pixel for r.in.xyz
+            region_dict[direction] = (
+                np.ceil(region_dict[direction] / resolution) * resolution + resolution
+            )
+        else:
+            region_dict[direction] = max(
+                region_current[direction], region_stripe[direction]
+            )
+            region_dict[direction] = (
+                np.floor(region_dict[direction] / resolution) * resolution - resolution
+            )
+
     return region_dict
 
 
-def parse_s3_file_name(file_name):
-    """Extract info from file name according to naming onvention:
+def parse_s3_file_name(file_name: str) -> dict:
+    """Extract info from file name according to ESA naming onvention.
+
+    Naming convention is documented here:
     https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-3-slstr/naming-convention
     Assumes that file name is checked to be a valid / supported Sentinel-3 file name
+
     :param file_name: string representing the file name of a Senintel-3 scene
     """
     try:
@@ -1972,6 +1966,8 @@ if __name__ == "__main__":
         )
     try:
         from osgeo import osr
+
+        osr.UseExceptions()
     except ImportError:
         gs.fatal(
             _("Could not import gdal. Please install it with:\n" "'pip install GDAL'!")
