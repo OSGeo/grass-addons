@@ -721,7 +721,7 @@ def parse_s3_file_name(file_name: str) -> dict:
         gs.fatal(_("{} is not a supported Sentinel-3 scene").format(str(file_name)))
 
 
-def extract_file_info(s3_files: list, basename: str = None) -> tuple(str, dict):
+def extract_file_info(s3_files: list, basename: str = None):
     """Extract information from file name according to naming conventions."""
     result_dict = {}
     product_track_ids = [
