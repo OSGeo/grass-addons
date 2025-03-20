@@ -8,6 +8,13 @@ computed and a cross-validation procedure is then performed using the
 data given in the vector map input. The estimated predictive errors are
 stored in the optionally saved vector point map cvdev.
 
+For larger data sets, CV should be applied to a representative subset of the
+data. The cross-validation procedure works well only for well-sampled phenomena
+and when minimizing the predictive error is the goal. The parameters found by
+minimizing the predictive (CV) error may not not be the best for for poorly
+sampled phenomena (result could be strongly smoothed with lost details and
+fluctuations) or when significant noise is present that needs to be smoothed out.
+
 ## EXAMPLES
 
 ```bash
