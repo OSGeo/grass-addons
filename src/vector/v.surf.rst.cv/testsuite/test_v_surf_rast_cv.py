@@ -23,11 +23,7 @@ from grass.gunittest.main import test
 
 class TestRSTCrossValidation(TestCase):
     elevation = "elevation"
-    stream_rast = "test_stream_rast"
-    direction = "test_direction"
-    hand = "test_hand"
-    inundation = "test_inundation"
-    inundation_strds = "test_inundation_strds"
+    points = "test_stream_rast"
 
     @classmethod
     def setUpClass(cls):
@@ -46,6 +42,15 @@ class TestRSTCrossValidation(TestCase):
             flags="a",
         )
 
+        cls.runModule(
+            "r.random",
+            output=cls.elevation,
+            npoints=1000,
+            seed=0,
+            vector=cls.points,
+            flags="z",
+        )
+
     @classmethod
     def tearDownClass(cls):
         """Remove temporary region"""
@@ -56,10 +61,9 @@ class TestRSTCrossValidation(TestCase):
         """Test default settings"""
         self.assertModule(
             "v.surf.rst.cv",
-            point_cloud="elevation",
+            point_cloud=self.points,
             overwrite=True,
         )
-        self.assertRasterExists(self.inundation)
 
 
 if __name__ == "__main__":
