@@ -60,7 +60,7 @@ The result of
 is CSV table which can be used, for example in a spreadsheet
 application:
 
-```sh
+```csv
 cat,landclass96,elevation,geology_30m
 1,1,102.7855,270
 2,1,105.78,270

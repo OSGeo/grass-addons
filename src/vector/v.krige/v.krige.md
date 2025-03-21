@@ -41,7 +41,7 @@ sudo pip3 install Rpy2
 Install the following packages via R command line (or your preferred
 GUI):
 
-```sh
+```R
   install.packages("rgeos", dep=T)
   install.packages("rgdal", dep=T)
   install.packages("gstat", dep=T)

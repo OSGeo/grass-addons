@@ -43,7 +43,7 @@ Using the median, it would be assigned the value 2. See
 [r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html)
 for more details.
 
-```sh
+```text
 1 1 2 2 1
 4 4 1 3 1
 1 3 2 1 4
@@ -129,7 +129,7 @@ To compare the compactness of the resulting regions, the compactness of
 an area is calculated using the formula below (see also
 [v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html).
 
-```sh
+```text
 compactness = perimeter / (2 * sqrt(PI * area))
 ```
 
@@ -156,7 +156,7 @@ dimension of the boundary of a polygon is calculated using the formula
 below (see also
 [v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html).
 
-```sh
+```text
 fd = 2 * (log(perimeter) / log(area))
 ```
 

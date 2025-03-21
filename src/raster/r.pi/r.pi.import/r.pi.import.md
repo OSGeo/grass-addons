@@ -36,7 +36,7 @@ if you want to export the patch values to R and do e.g. a linear
 regression of two patch values and import them again in GRASS, do:  
 apply r.pi.export with two indices (A and B), in `R`, do:
 
-```sh
+```R
 resid.AB <- resid(lm(A[,3]~B[,3])) #write residuals of a linear regression
 df.resid.AB <- data.frame(A[,1],resid.AB) #merge patch IDs and resid into same data frame
 write.table(df.resid.AB,"resid.for.GRASS",row.names=F,col.names=F)

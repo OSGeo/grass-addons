@@ -50,7 +50,7 @@ derivates. So there are two parameters *diff\_penalty* and
 So the optimizing procedure performs loop over filtering parameters and
 calculates the next penalty function:
 
-```sh
+```text
 penalty = diff_penalty * sum(abs(Xi-Fi)) + sum(abs(dFi))
 ```
 

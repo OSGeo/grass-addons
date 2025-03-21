@@ -47,7 +47,7 @@ Several recommendations how to format the data:
     contain just point identifier (see next item) and coordinates in
     two- or three-dimensional space.
 
-    ```sh
+    ```text
             Point_name      easting northing    [elevation]
             name.code.number    x   y       [z]
             
@@ -61,7 +61,7 @@ Several recommendations how to format the data:
     creation - name and desired type of vector. Required **format of the
     point name** looks like this:
 
-    ```sh
+    ```text
                 layer_name.code.number
             
     ```

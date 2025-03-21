@@ -27,14 +27,14 @@ shorter than the *max\_gap*. Let's consider an example to visualize core
 and full seasons. We have a certain time series in which 0 means below
 the threshold and 1 means that the value is above the threshold set:
 
-```sh
+```text
 000101111010111101000
 ```
 
 If *min\_length=4* and *max\_gap=2*, core and full seasons will be
 identified as follows:
 
-```sh
+```text
 # core season:
 000001111111111100000
 #full season

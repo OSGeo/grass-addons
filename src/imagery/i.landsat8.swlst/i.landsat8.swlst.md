@@ -30,7 +30,7 @@ At-satellite brightness temperatures are derived from the TIRS channels
 their quantized digital numbers converted to at-satellite temperature
 values.
 
-```sh
+```text
                +--------+   +--------------------------+
                |Landsat8+--->Cloud screen & calibration|
                +--------+   +---+--------+-------------+

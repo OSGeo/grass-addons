@@ -62,7 +62,7 @@ input data is the path of the text file). Here is an example of a
 text file to create the landvalue raster map, the costs are in
 currency/ha:  
 
-```sh
+```text
 1 = 0 rocks, macerated, glaciers
 2 = 0 urbanized areas, infrastructure
 3 = 0 shores

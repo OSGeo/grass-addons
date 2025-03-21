@@ -3,13 +3,13 @@
 *r.gwr* calculates a geographically weighted multiple linear regression
 from raster maps, according to the formula
 
-```sh
+```text
 Y = b0 + sum(bi*Xi) + E
 ```
 
 where
 
-```sh
+```text
 X = {X1, X2, ..., Xm}
 m = number of explaining variables
 Y = {y1, y2, ..., yn}
@@ -20,7 +20,7 @@ n = number of observations (cases)
 
 In R notation:
 
-```sh
+```R
 Y ~ sum(bi*Xi)
 b0 is the intercept, X0 is set to 1
 ```

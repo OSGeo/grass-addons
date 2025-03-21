@@ -99,7 +99,7 @@ r.out.legend raster=elevation file=r_out_legend_1.png filetype=png \
 The dimensions (width and height) of the image are printed to the
 console.
 
-```sh
+```text
 ----------------------------
 File saved as r_out_legend_1.png
 The image dimensions are:
@@ -148,7 +148,7 @@ r.out.legend raster=elevation file=r_out_legend_4.png filetype=cairo \
 
 The dimensions (width and height) of the image:
 
-```sh
+```text
 ----------------------------
 File saved as r_out_legend_4.png
 The image dimensions are:
@@ -173,7 +173,7 @@ r.out.legend raster=elevation file=r_out_legend_5.png filetype=cairo \
 
 The dimensions (width and height) of the image:
 
-```sh
+```text
 ----------------------------
 File saved as r_out_legend_5.png
 The image dimensions are:

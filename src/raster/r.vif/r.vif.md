@@ -85,7 +85,7 @@ r.vif maps=$MAPS file=results1.csv maxvif=10
 Below the results are shown (here only the first and last part of the
 output is shown to save space):
 
-```sh
+```text
 VIF round 1
 --------------------------------------
 variable            vif  sqrtvif
@@ -136,7 +136,7 @@ r.vif maps=$MAPS maxvif=10 retain=2011_02_precip file=results2.csv
 
 The output is:
 
-```sh
+```text
 ...
 ...
 VIF round 6
@@ -173,7 +173,7 @@ r.vif -s maps=$MAPS maxvif=10
 
 The output is:
 
-```sh
+```text
 2011_01_precip,2011_04_precip,2011_05_precip,2011_06_precip,2011_07_precip,
 2011_08_precip
 ```
@@ -191,7 +191,7 @@ i.group group=group_example input=$SELECTION
 This selects raster layers using the r.vif functions, and adds these
 raster layers to the group 'group\_example':
 
-```sh
+```text
 Adding raster map <2011_01_precip@climate_1970_2012> to group
 Adding raster map <2011_04_precip@climate_1970_2012> to group
 Adding raster map <2011_05_precip@climate_1970_2012> to group

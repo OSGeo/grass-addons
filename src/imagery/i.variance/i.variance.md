@@ -86,7 +86,6 @@ width of fairways.
 ### Region 2
 
 ```sh
-region 2
 g.region n=222166 s=221890 w=637562 e=637966 res=1 -p
 i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region2_plot.png
 
@@ -118,7 +117,6 @@ and higher vegetation areas.
 ### Region 3
 
 ```sh
-region 3
 g.region n=220723 s=220218 w=638347 e=639086 res=1
 i.variance ortho_2001_t792_1m@PERMANENT max_size=50 plot=region3_plot.png
 

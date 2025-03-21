@@ -4,7 +4,7 @@
 Clementine UVVIS sensor has five bands, UVVIS1 = 415, UVVIS2 = 750,
 UVVIS3 = 900, UVVIS4 = 950 and UVVIS5 = 1000 nm.
 
-```sh
+```text
 wt%TiO2 = 3.708 arctan ((R415/R750)-y0Ti)/(R750-s0Ti) (1)
 
 wt%FeO = -137.97 ( R750 sin(theta) + (R950/R750) cos(theta) ) + 57.46   (2)
@@ -15,7 +15,7 @@ from Wilcox et al (2005). [Map-a-Planet
 Explorer](https://web.archive.org/web/20161203071556/http://www.mapaplanet.org/explorer/help/index.html)
 mentions this set of equations:
 
-```sh
+```c
 double feolucey2000(double uvvis2, double uvvis4){
      //\cite{lucey2000lunar}
      return(17.427*(-atan2f(((uvvis4/uvvis2)-1.19)/(uvvis2-0.08)))-7.565);

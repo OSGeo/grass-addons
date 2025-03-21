@@ -28,7 +28,7 @@ delimiter comma and no text delimiter) or as a text file in any (plain)
 text editor. In any case, the result should be a plain text file with
 format and content similar to the following sample:
 
-```sh
+```csv
 landuse96_28m,landuse
 geology_30m,geology
 soilsID,soils

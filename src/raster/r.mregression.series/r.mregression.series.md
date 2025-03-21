@@ -10,7 +10,7 @@ assigned to the corresponding cells in the input raster map series.
 
 The module assumes a simple linear regression of the form
 
-```sh
+```text
     Y(t) = b1 * X1(t) + b2 * X2(t) + ... + bn * Xn(t)
 ```
 
@@ -44,13 +44,13 @@ variables.
 For example the csv file for regression between NDVI and (elevation,
 precipitation)
 
-```sh
+```text
     NDVI = b1*Elevation + b2*Precipitation
 ```
 
 could be the next file:
 
-```sh
+```csv
 y,elevation,precipipation
 ndvi_1,elev_1,precip_1
 ndvi_2,elev_2,precip_2
@@ -73,7 +73,7 @@ r.mregression.series samples=settings result_prefix="coef."
 
 If the regression model includes the intercept
 
-```sh
+```text
     NDVI = b0 + b1*Elevation + b2*Precipitation
 ```
 
@@ -85,7 +85,7 @@ r.mapcalc "ones = 1.0"
 
 and the csv file is:
 
-```sh
+```csv
 y,offset,elevation,precipipation
 ndvi_1,ones,elev_1,precip_1
 ndvi_2,ones,elev_2,precip_2

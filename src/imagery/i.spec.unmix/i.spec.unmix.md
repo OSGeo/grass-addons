@@ -69,7 +69,7 @@ or from the PCA analysis.
 
 Sample content of "spectrum.dat":
 
-```sh
+```text
 # Channels: r g b i1 i2 i3
 # Enter spectra linewise!
 # 1. Sagebrush

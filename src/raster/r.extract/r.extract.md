@@ -33,7 +33,7 @@ g.region raster=zipcodes -p
 r.info zipcodes -rg
 ```
 
-```sh
+```text
 ...
 rows=1350
 cols=1500
@@ -50,7 +50,7 @@ r.extract input=zipcodes output=selected_zipcodes cats=27605,27601 -c
 r.info selected_zipcodes -rg
 ```
 
-```sh
+```text
 ...
 rows=404
 cols=377

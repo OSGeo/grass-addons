@@ -72,7 +72,7 @@ r.object.thickness input=landuse@PERMANENT category=6 tsize=4000 tspace=100 vmed
 
 outputs
 
-```sh
+```text
 Thickness in map units: min 1.525433  max 2962.446155  mean 301.059197
 Thickness in pixels: min 0.053524  max 103.945479  mean 10.563481
 ```

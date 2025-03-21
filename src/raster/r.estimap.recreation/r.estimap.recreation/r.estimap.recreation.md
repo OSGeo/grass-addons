@@ -83,7 +83,7 @@ First, an overview of definitions:
 
 The following equation represents the logic behind ESTIMAP:
 
-```sh
+```text
 Recreation Spectrum = Recreation Potential + Recreation Opportunity
 ```
 
@@ -91,7 +91,7 @@ Recreation Spectrum = Recreation Potential + Recreation Opportunity
 
 The base *distance* function to quantify *attractiveness*, is:
 
-```sh
+```text
 ( {Constant} + {Kappa} ) / ( {Kappa} + exp({alpha} * {Variable}) )
 ```
 
@@ -171,7 +171,7 @@ Before anything, we need to define the extent of interest by executing
 
 which returns
 
-```sh
+```text
   projection: 99 (ETRS89 / LAEA Europe)
   zone:       0
   datum:      etrs89
@@ -551,7 +551,7 @@ lines reporting areal statistics on the `output_flow` map:
 
 returns
 
-```sh
+```text
     52  125000000.000000 50000 1.72%
     53  191000000.000000 76400 2.63%
     54  303000000.000000 121200 4.17%
@@ -590,7 +590,7 @@ Querying again areal statistics via
 
 returns
 
-```sh
+```text
     52-52.139117 from  to  50000000.000000 20000 0.69%
     52.139117-52.278233 from  to  11000000.000000 4400 0.15%
     52.278233-52.41735 from  to  39000000.000000 15600 0.54%
@@ -630,7 +630,7 @@ algorithm's designers developed a MAES land classes scheme. The
 "translation" of the CORINE land classes (left) into this scheme
 (classes after the `=` sign) are for example:
 
-```sh
+```text
   1 = 1 Urban
   2 = 1 Urban
   3 = 1 Urban
@@ -701,7 +701,7 @@ This time it works. Here the first few lines from the output CSV files:
 
 returns
 
-```sh
+```text
   ==> output_supply.csv <==
   base,base_label,cover,cover_label,area,count,percents
   3,,1,723.555560,9000000.000000,9,7.76%
@@ -784,7 +784,7 @@ This command will also:
 - add the following columns in the attribute table linked to the
     `input_vector_local_administrative_units` vector map:
 
-```sh
+```text
     spectrum_sum
     demand_sum
     unmet_sum
@@ -809,7 +809,7 @@ For example, the
 
 following the analysis, returns
 
-```sh
+```text
     lau2_no_name|spectrum_sum|demand_sum|unmet_sum|flow_sum
     801 Bad Erlach|22096|2810||700
     841 Leopoldsdorf|8014|1800||426
@@ -907,7 +907,7 @@ potential.
 In this case, the rules are a simple ASCII file (for example named
 `corine_suitability.scores`) that contains the following:
 
-```sh
+```text
     1:1:0:0
     2:2:0.1:0.1
     3:9:0:0

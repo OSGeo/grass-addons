@@ -236,7 +236,7 @@ including:
 Following is an example for a config YAML file with Copernicus Dataspace
 credentials:
 
-```sh
+```yaml
 cop_dataspace:
     priority: # Lower value means lower priority (Default: 0)
     search:   # Search parameters configuration

@@ -90,7 +90,7 @@ The LS factor is calculated accordingly Neteler & Mitasova 2008 in
 *r.mapcalc* with flow accumulation of *r.flow* and slope of
 *r.slope.aspect*
 
-```sh
+```text
   1.4 * exp(flow_accumulation * resolution / 22.1, 0.4) * exp(sin(slope) 0.09, 1.2)
  
 ```

@@ -95,12 +95,6 @@ to be converted into a ParaView readable format.
 The *-z* flag fits active region's z range to input DEMs: This option
 does not yet work.
 
-## EXAMPLE
-
-```sh
-tbd
-```
-
 ## SEE ALSO
 
 *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html),

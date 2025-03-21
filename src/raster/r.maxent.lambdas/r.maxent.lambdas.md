@@ -13,7 +13,7 @@ This file should contain alias names in the first column and map names
 in the second column, separated by comma, without header. It should look
 e.g. like this:
 
-```sh
+```csv
 alias_1,map_1
 alias_2,map_2
 ...,...

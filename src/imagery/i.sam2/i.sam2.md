@@ -11,8 +11,7 @@ using [SamGeo](https://samgeo.gishub.org/).
 - [segment-geospatial\>=0.12.3](https://samgeo.gishub.org/)
 
 ```sh
-        pip install pillow numpy torch segment-geospatial
-    
+pip install pillow numpy torch segment-geospatial
 ```
 
 ## EXAMPLES
@@ -20,8 +19,7 @@ using [SamGeo](https://samgeo.gishub.org/).
 Segment orthoimagery using SamGeo2:
 
 ```sh
-    i.sam2 group=rgb_255 output=tree_mask text_prompt="trees"
-    
+i.sam2 group=rgb_255 output=tree_mask text_prompt="trees"
 ```
 
 ![i.sam2: trees detected in an aerial image with samgeo](i_sam2_trees.jpg)

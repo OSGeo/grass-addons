@@ -8,13 +8,13 @@ with temperature data for different times of the day.
 
 **GDDs** are calculated as
 
-```sh
+```text
     gdd = average - baseline
 ```
 
 The **Winkler index** is calculated as
 
-```sh
+```text
     wi = average - baseline
 ```
 
@@ -24,7 +24,7 @@ usually accumulated for the period April 1<sup>st</sup> to October
 
 **BEDDs** are calculated as
 
-```sh
+```text
     bedd = average - baseline
 ```
 
@@ -34,7 +34,7 @@ kinetics for example reach a plateau at an average daily temperature of
 
 The **Huglin heliothermal index** is calculated as
 
-```sh
+```text
     hi = (average + max) / 2 - baseline
 ```
 
@@ -58,7 +58,7 @@ map are added to the output, thus accumulating the selected index.
 The *scale* and *shift* parameters are used to transform input values
 with
 
-```sh
+```text
     new = old * scale + shift
 ```
 
@@ -85,7 +85,7 @@ typically 1024. The soft limit can be changed with e.g. `ulimit -n 1500`
 (UNIX-based operating systems) but not higher than the hard limit. If it
 is too low, you can as superuser add an entry in
 
-```sh
+```text
 /etc/security/limits.conf
 # <domain>      <type>  <item>         <value>
 your_username  hard    nofile          1500

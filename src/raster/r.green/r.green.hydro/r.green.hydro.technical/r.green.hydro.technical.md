@@ -101,7 +101,7 @@ If you want to create an additional text file for another turbine model,
 the file has to have this scheme with the correct information at the
 corresponding lines:  
 
-```sh
+```text
 TURBINE               ALPHA_C
 Name of the turbine    Value of alpha_c
 Q_MIN                  Q_MAX

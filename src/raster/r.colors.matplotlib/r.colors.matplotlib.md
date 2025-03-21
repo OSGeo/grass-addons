@@ -44,7 +44,7 @@ interpolation can be used for the values in between).
 r.colors.matplotlib color=summer ncolors=2
 ```
 
-```sh
+```text
 0.000% 0:127:102
 100.000% 255:255:102
 ```
@@ -57,7 +57,7 @@ the number of intervals, so we want to make it higher, 5 in this case.
 r.colors.matplotlib color=summer ncolors=5 -d
 ```
 
-```sh
+```text
 0.000% 0:127:102
 20.000% 0:127:102
 20.000% 63:159:102

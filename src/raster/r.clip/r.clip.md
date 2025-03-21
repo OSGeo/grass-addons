@@ -93,7 +93,7 @@ g.region -g
 In the output, we can see extent, resolution in both directions, and
 number of rows and columns:
 
-```sh
+```text
 ...
 n=220750
 s=220000
@@ -123,7 +123,7 @@ In the output, we can see that the extent is the same (exactly the same
 in this case) as the computational region while the resolution and
 number of cells are different:
 
-```sh
+```text
 ...
 north=220750
 south=220000
@@ -150,7 +150,7 @@ The output shows the resolution used for the new *clipped\_elevation* as
 well as much higher number of cells and larger extent of the original
 map:
 
-```sh
+```text
 ...
 north=228500
 south=215000

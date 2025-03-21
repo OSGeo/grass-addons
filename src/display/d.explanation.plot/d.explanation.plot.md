@@ -25,7 +25,7 @@ r.series input=a,b,c output=d method=average
 
 In Python:
 
-```sh
+```python
 import grass.jupyter as gj
 plot = gj.Map(use_region=True, width=700, height=700)
 plot.d_background(color="white")

@@ -27,7 +27,7 @@ DOP fix error is not meaningful for route lines). You can use the
 
 These are the standard GPX data fields known to OGR:
 
-```sh
+```text
 ageofdgpsdata
 cmt:     Comment
 course

@@ -3,7 +3,7 @@
 *r.series.decompose* is a module to calculate decomposintion of signal
 X.
 
-```sh
+```text
 X(t) = B0 + B1*t + B2*sin(B1*t) + B3 * cos(B1*t) + ... + B{n-1}*sin(Bk*t) + Bn * cos(Bk*t) + e
 ```
 
@@ -43,7 +43,7 @@ non-NULL values for computing. The regression coefficients *Bi* are
 stored in raster maps. They can be used for construct more detail time
 series via the equation:
 
-```sh
+```text
 X(t) = B0 + B1*t + B2*sin(B1*t) + B3 * cos(B1*t) + ... + B{n-1}*sin(Bk*t) + Bn * cos(Bk*t) + e
 ```
 
@@ -91,7 +91,7 @@ Decompose the signal:
 
 The command creates rasters of the coefficiens *coef.\**:
 
-```sh
+```text
 coef.const
 coef.time
 coef.sin_fr0.5
@@ -104,7 +104,7 @@ coef.sin_fr1.5
 
 and rasters of fitted NDVI *res.\**:
 
-```sh
+```text
 res.mod2003_01_01
 res.mod2003_01_09
 ...

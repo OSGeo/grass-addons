@@ -56,7 +56,7 @@ documentation](https://topepo.github.io/caret/model-training-and-tuning.html#alt
 For example, to define customized tuning grids for svmRadial and
 RandomForest, the user can define the paramter as:  
 
-```sh
+```python
 tunegrids="{'svmRadial': 'sigma=c(0.01,0.05,0.1), C=c(1,16,128)', 'rf': 'mtry=c(3,10,20)'}"
 ```
 

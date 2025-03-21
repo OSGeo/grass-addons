@@ -17,7 +17,7 @@ range of values of the map.
 RGB and HSV models are supported. The expected format of the cpt file
 is:
 
-```sh
+```text
 # COLOR_MODEL = RGB
 value1 R G B value2 R G B
 value2 R G B value3 R G B
@@ -38,7 +38,7 @@ output file, it is printed to standard output:
 r.cpt2grass input=rainfall.cpt
 ```
 
-```sh
+```text
 0.000 229:180:44
 20.000 229:180:44
 20.000 242:180:100
