@@ -23,7 +23,8 @@ from grass.gunittest.main import test
 
 class TestRSTCrossValidation(TestCase):
     elevation = "elevation"
-    points = "test_stream_rast"
+    points = "test_point_cloud"
+    cvdev_prefix = "test_cvdev"
 
     @classmethod
     def setUpClass(cls):
@@ -34,7 +35,7 @@ class TestRSTCrossValidation(TestCase):
         cls.runModule(
             "g.region",
             raster=cls.elevation,
-            res=10,
+            res=30,
             n=220790,
             s=218390,
             w=632680,
@@ -44,11 +45,12 @@ class TestRSTCrossValidation(TestCase):
 
         cls.runModule(
             "r.random",
-            output=cls.elevation,
-            npoints=1000,
+            input=cls.elevation,
+            npoints=500,
             seed=0,
             vector=cls.points,
             flags="z",
+            overwrite=True,
         )
 
     @classmethod
@@ -59,10 +61,58 @@ class TestRSTCrossValidation(TestCase):
 
     def test_v_surf_rst_cv_default(self):
         """Test default settings"""
+        self.assertModule("v.surf.rst.cv", point_cloud=self.points)
+
+    def test_v_surf_rst_cv_adjuest_tesion_smooth(self):
+        """Test setting tension and smooth"""
         self.assertModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            overwrite=True,
+            smooth=[0.0, 0.5, 1.0, 5.0],
+            tension=[10, 20, 30, 100],
+        )
+
+    def test_json_format(self):
+        """Test json output"""
+        self.assertModule(
+            "v.surf.rst.cv",
+            point_cloud=self.points,
+            smooth=[0.0, 0.5, 1.0, 5.0],
+            tension=[10, 20, 30, 100],
+            format="json",
+        )
+
+    def test_save_cv_vectors(self):
+        """Test save cv vectors output"""
+        self.assertModule(
+            "v.surf.rst.cv",
+            point_cloud=self.points,
+            smooth=[0.5, 5.0],
+            tension=[10, 100],
+            cv_prefix=self.cvdev_prefix,
+            format="json",
+        )
+
+    def test_save_json(self):
+        """Test saving json output"""
+        self.assertModule(
+            "v.surf.rst.cv",
+            point_cloud=self.points,
+            smooth=[0.5, 5.0],
+            tension=[10],
+            format="json",
+            output="test_cv.json",
+        )
+
+    def test_save_csv(self):
+        """Test saving csv output"""
+        self.assertModule(
+            "v.surf.rst.cv",
+            point_cloud=self.points,
+            smooth=[0.5, 5.0],
+            tension=[10],
+            format="csv",
+            output="test_cv.csv",
         )
 
 
