@@ -127,22 +127,6 @@ def check_addon_installed(addon: str, fatal=True) -> None:
         )
 
 
-def set_cv_colors(hand: str) -> None:
-    """Set HAND raster colors based on Norbre et al. 2011"""
-    hand_colors = """
-        0 white
-        5 #1d91c0
-        15 #41ab5d
-        100% #ec7014
-        nv white
-        default grey
-    """
-    try:
-        gs.write_command("r.colors", map=hand, rules="-", stdin=hand_colors, quiet=True)
-    except CalledModuleError as e:
-        gs.fatal(_("Error setting HAND colors: %s") % e.stderr)
-
-
 def generate_temp_raster_name(raster_name: str) -> str:
     """Generate a temporary raster name"""
     uuid_str = str(uuid.uuid4()).replace("-", "_")
@@ -198,12 +182,7 @@ def cross_validate(point_cloud: str, **kwargs) -> list[str]:
                     quiet=True,
                 )
             except CalledModuleError as e:
-                gs.warning(
-                    _(
-                        "Error running v.surf.rst with paramters tension: %f and smooth: %f: %s"
-                    )
-                    % (t, s, e.stderr)
-                )
+                gs.warning(_("Error running v.surf.rst: %s") % e.stderr)
 
             output_list.append([output_name, t, s])
 

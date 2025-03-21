@@ -90,7 +90,6 @@ class TestRSTCrossValidation(TestCase):
             smooth=[0.5, 5.0],
             tension=[10, 100],
             cv_prefix=self.cvdev_prefix,
-            format="json",
         )
 
     def test_save_json(self):
@@ -101,7 +100,7 @@ class TestRSTCrossValidation(TestCase):
             smooth=[0.5, 5.0],
             tension=[10],
             format="json",
-            output="test_cv.json",
+            output_file="test_cv.json",
         )
 
     def test_save_csv(self):
@@ -111,8 +110,8 @@ class TestRSTCrossValidation(TestCase):
             point_cloud=self.points,
             smooth=[0.5, 5.0],
             tension=[10],
-            format="csv",
-            output="test_cv.csv",
+            format="text",
+            output_file="test_cv.csv",
         )
 
 
