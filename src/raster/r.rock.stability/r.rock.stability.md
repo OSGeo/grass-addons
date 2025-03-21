@@ -25,10 +25,12 @@ where:
     failure case)
 - F4 is a correction factor that depends on the excavation method
     used:
-    <!-- end list -->
-    <!-- end list -->
-    <!-- end list -->
-    <!-- end list -->
+  - Natural Slope +15
+  - Pre-splitting +10
+  - Smooth blasting +8
+  - Normal blasting or mechanical excavation 0
+  - Poor blasting -8
+  </li>
 
 r.rock.stability calculate F1, F2 and F3 index by combining DEM (slope
 and aspect) and joint dip and dip direction.
@@ -97,19 +99,28 @@ to calculate the SMR index of wedge.
 
 ## INPUT
 
-**Digital Elevation Model** = name
+**Digital Elevation Model**:
+Name of elevation raster map
 
-**Dip direction** = string
+**Dip direction**:
+Value of the direction of the discontinuity measured clockwise starting from
+North. North is 0 or 360 degrees, East (90 degrees), South (180 degrees),
+West (270 degrees)
 
-**Dip** = string
+**Dip**:
+Angle of inclination of the discontinuity relative to a horizontal plane.
 
-**F4** = string
+**F4**:
+Correction factor according to Romana's classification
 
-**RMR** = string or map
+**RMR**:
+Value of RMRb according to Bieniawski's classification
 
-**TC (optional)** = string or map
+**TC (optional)**:
+Value of TC according to Hack's classification
 
-**Output prefix** = name
+**Output prefix**:
+Name of prefix used for output raster maps
 
 ## OUTPUT
 

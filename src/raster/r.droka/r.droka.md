@@ -16,21 +16,36 @@ Jaboyedoff and Labiouse, 2003)***
 
 ## INPUT
 
-**Digital Elevation Model** = name
+**Digital Elevation Model**:
+Name of elevation raster map.
 
-**Starting points** = name
+**Starting points**:
+Name of vector map containing rockfall source area. It can be one point or more.
 
-**Shadow angle** = integer
+**Shadow angle**:
+Angle of inclination that defines the propagation zone.
+It's calculated from a horizontal plane starting from a source point:
+highest values determine a lowest propagation.
 
-**Reduction value** = double
+**Reduction value**:
+Reduction multiplicator for velocity. Default value is 0.9.
 
-**Number of boulders** = integer
+**Number of boulders**:
+For each starting point can be generated other random points used in the computations.
+By default points are located in a radius from the starting point equal to:
+(cell size * number of boulders)/2. Insert 1 for use only the original
+starting point or points. Note that a high number of boulders can make
+excessively long the calculation times.
 
-**Rock mass** = double
+**Rock mass**:
+Value of rock mass (Kg)
 
-**Output prefix** = string
+**Output prefix**:
+Name of prefix used for output raster maps
 
-**Buffer distance** = integer
+**Buffer distance**:
+This value defines the radius for randomly generating boulders starting from
+starting point. It's in the option dialog window.
 
 ## OUTPUT
 
