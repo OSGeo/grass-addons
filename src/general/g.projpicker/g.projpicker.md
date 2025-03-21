@@ -35,7 +35,7 @@ query syntax is case-sensitive.
 Various coordinate formats are supported. For the *latlon* coordinate
 system, the following points are all identical:
 
-```sh
+```text
 ################################
 # decimal degrees and separators
 ################################
@@ -66,7 +66,7 @@ system, the following points are all identical:
 Any geometries following the *xy* keyword are in the *xy* coordinate
 system in an unknown unit. For example,
 
-```sh
+```text
 xy
 396255,1374239
 396255 1374239
@@ -114,7 +114,7 @@ of a bounding box.
 
 See the following example:
 
-```sh
+```text
 # point geometry
 # starts in latlon
 point
@@ -150,7 +150,7 @@ xy
 
 The above **input** file is parsed to:
 
-```sh
+```python
 ['point',
  [10.0, 20.0],
  'xy',
@@ -183,7 +183,7 @@ must be given as the first word.
 This query string performs the AND of all geometries A, B, C, and D, and
 returns projections that completely contain all of them:
 
-```sh
+```text
 and
 # A, B, C, or D can be point, poly, or bbox individually
 A
@@ -195,7 +195,7 @@ D
 This query string performs the OR of all geometries and returns
 projections that completely contain any of them:
 
-```sh
+```text
 or
 # A, B, C, or D can be point, poly, or bbox individually
 A
@@ -207,7 +207,7 @@ D
 This query string performs the XOR of two geometries and returns
 projections that completely contain only one of them:
 
-```sh
+```text
 xor
 # A or B can be point, poly, or bbox individually
 A
@@ -219,7 +219,7 @@ more than two geometries does not return mutually exclusive projections.
 For example, this query string returns projections that contain only A,
 B, or C exclusively, and additionally all three geometries:
 
-```sh
+```text
 xor
 # A, B, or C can be point, poly, or bbox individually
 A
@@ -235,7 +235,7 @@ If the first word is *prefix* in the query string, *and*, *or*, *xor*,
 This query string returns all projections that completely contain
 geometry A, but not B:
 
-```sh
+```text
 postfix
 A       # find A
 B       # find B
@@ -246,7 +246,7 @@ and     # A and not B
 This query string returns all projections that contain A or B, but not
 C: A, but not B:
 
-```sh
+```text
 postfix
 A       # find A
 B       # find B
@@ -259,7 +259,7 @@ and     # (A or B) and not C
 This query string returns all projections that contain both A and B, but
 not C; or those that contain C, but neither A nor B:
 
-```sh
+```text
 postfix
 A       # find A
 B       # find B
@@ -271,7 +271,7 @@ xor     # (A and B) xor C
 This query string returns all projections that contain only one of A, B,
 or C exclusively:
 
-```sh
+```text
 postfix
 A       # find A
 B       # find B
@@ -295,7 +295,7 @@ geometries are useful to manipulate existing projection sets.
 This query string ignores all results above *none* and returns those
 projections that only contain X:
 
-```sh
+```text
 postfix
 A       # find A
 B       # find B
@@ -311,7 +311,7 @@ or      # empty or X = X
 
 This query string returns all projections not in degree that contain A:
 
-```sh
+```text
 postfix
 A               # find A
 unit=degree     # restrict queries to degree unit
@@ -332,7 +332,7 @@ This query string returns all projections in *xy* that contain A that
 can be transformed to B in EPSG:4326 within a *match\_tol* distance
 tolerance in *xy* (default 1):
 
-```sh
+```text
 postfix
 match_tol=200   # error tolerance in an xy unit for distance matching
 A               # known coordinates in an unknown projection and unit
@@ -346,7 +346,7 @@ module and is slow because it has to transform B to many projections
 that contain both A and B. To save time and just return the first match,
 use *match\_max* (default 0 for all):
 
-```sh
+```text
 postfix
 match_tol=200   # error tolerance in an xy unit for distance matching
 match_max=1     # return the first match only and quit
@@ -369,7 +369,7 @@ stored and used immediately.
 
 See the following example:
 
-```sh
+```text
 postfix
 # define city geometries, but not used immediately
 city_A:
@@ -404,7 +404,7 @@ quotes unless they are separated by whitespaces.
 
 See the following example:
 
-```sh
+```text
 point 10,20 xy 3,4
 # use a space-comma-space to start a new poly
 latlon poly 10,20 "30 40" xy 5,6 7,8 9,10 , 11,12 13,14
@@ -415,7 +415,7 @@ latlon bbox 10,20,30,40 xy 5,6,7,8
 
 The output schema for the *sqlite* **format** is as follows:
 
-```sh
+```sql
 CREATE TABLE bbox (
     proj_table TEXT NOT NULL CHECK (length(proj_table) >= 1),
     crs_name TEXT NOT NULL CHECK (length(crs_name) >= 2),

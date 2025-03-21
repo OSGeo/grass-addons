@@ -30,7 +30,7 @@ file, it is printed to standard output:
 r.colors.cubehelix -d ncolors=5 nrotations=0.6
 ```
 
-```sh
+```text
 0.000% 218:222:192
 20.000% 218:222:192
 20.000% 198:166:136

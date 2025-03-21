@@ -27,7 +27,7 @@ series by setting the n-flag. For example, if the map has the following
 categories values and labels (after the redundant category labels have
 been removed):
 
-```sh
+```text
 2 label2
 5 label5
 9 label9
@@ -35,7 +35,7 @@ been removed):
 
 Then the new recoded layer will have the category values and labels:
 
-```sh
+```text
 1 label2
 2 label5
 3 label9

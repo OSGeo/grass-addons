@@ -15,7 +15,7 @@ containing K real numbers. For example:
 *(Examples in this help page use the Spearfish-imagery sample dataset
 maps spot.ms.1, spot.ms.2, and spot.ms.3)*
 
-```sh
+```text
           3
           462.876649   480.411218   281.758307
           480.411218   513.015646   278.914813
@@ -24,7 +24,7 @@ maps spot.ms.1, spot.ms.2, and spot.ms.3)*
 
 The output will be K groups of lines; each group will have the format:
 
-```sh
+```text
           E   real part imaginary part   relative importance
           V   real part imaginary part
                    ... K lines ...

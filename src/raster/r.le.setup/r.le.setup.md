@@ -50,7 +50,7 @@ be used directly. To draw regions and create a new regions map in
 *r.le.setup* select "REGIONS" from the first *r.le.setup* menu, and the
 user is asked to do the following:
 
-```sh
+```text
 1.  "ENTER THE NEW REGION MAP NAME:". Only a new raster map name is
 acceptable. The user can type LIST to find out the existing raster map
 names in this location and mapset.
@@ -94,7 +94,7 @@ it) before proceeding. The r.le.setup program will otherwise overwrite
 the "units" file. Then the following choice is displayed followed by a
 series of other choices:
 
-```sh
+```text
     Which do you want to do?
        (1) Use the keyboard to enter sampling unit parameters
        (2) Draw the sampling units with the mouse
@@ -114,7 +114,7 @@ the shape, size, and number of sampling units.
 If the choice is made to define sampling units using the keyboard, the
 following series of questions must be answered:
 
-```sh
+```text
     How many different SCALES do you want (1-15)?
 ```
 
@@ -181,7 +181,7 @@ dimension/vertical dimension) as a real number. For example, to obtain a
 sampling unit 10 columns wide by 4 rows long specify the ratio as 2.5
 (10/4).
 
-```sh
+```text
     Recommended maximum SIZE is m in x cell total area. 
 
     What size (in cells) for each sampling unit of scale n?
@@ -196,7 +196,7 @@ size, the program determines the nearest actual number of rows and
 columns, and hence size, that is closest to the requested size, given
 the shape requested earlier.
 
-```sh
+```text
     The nearest size is x cells wide X y cells high = xy cells
     Is this size OK?  (y/n)  [y]
 
@@ -214,7 +214,7 @@ the columns and down the rows. The user can then specify a particular
 layout (e.g., 6 units could be placed as 2 rows of 3 per row or as 3
 rows of 2 per row).
 
-```sh
+```text
     Is this set of sampling units OK?  (y/n)  [y]
 ```
 
@@ -227,7 +227,7 @@ that the user can try the sampling unit setup again.
 The choice is made to define sampling units using the mouse, then the
 following menu for use with the mouse is displayed:
 
-```sh
+```text
     Outline the standard sampling unit of scale n.
        Left button: Check unit size
        Middle button:   Move cursor
@@ -240,7 +240,7 @@ and rows in the unit, the ratio of width/length and the size of the
 unit, in cells, will be displayed. After this first unit is outlined,
 then a new menu is displayed:
 
-```sh
+```text
     Outline more sampling units of scale n?
        Left button: Exit
        Middle button:   Check unit position
@@ -325,7 +325,7 @@ Attribute groups and index classes are defined in a different way. In
 the *r.le* programs attribute groups are defined as in the following
 example:
 
-```sh
+```text
     1, 3, 5, 7, 9 thru 21 = 1 (comment)
     31 thru 50 = 2 (comment)
     end
@@ -349,13 +349,13 @@ the *r.le* setup results.
 The *r.le* measurement index classes are defined by the lower limits of
 the classes, as in the following example:
 
-```sh
+```text
     0.0, 10.0, 50.0, 200.0, -999
 ```
 
 This means:
 
-```sh
+```text
     if v >= 0.0 and v < 10.0 then  v belongs to index class 1;
     if v >= 10.0 and v < 50.0 then  v belongs to index class 2;
     if v >= 50.0 and v < 200.0 then v belongs to index class 3;

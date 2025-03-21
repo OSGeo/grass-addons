@@ -131,7 +131,7 @@ We can examine the result, e.g., with *v.db.select*:
 v.db.select map=my_precip_30ynormals columns=jul,log_july
 ```
 
-```sh
+```text
 jul|logjuly
 132.842|4.88916045210132
 127|4.84418708645859

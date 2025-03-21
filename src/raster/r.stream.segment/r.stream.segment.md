@@ -1,6 +1,13 @@
 ## DESCRIPTION
 
-## OPTIONS
+The main idea comes from works of Horton (1932) and Howard (1971, 1990).
+The module is designed to investigate network lineaments and calculate
+angle relations between tributaries and its major streams. The main
+problem in calculating directional parameters is that streams usually
+are not straight lines. Therefore as the first step of the procedure,
+partitioning of streams into near-straight-line segments is required.
+
+### OPTIONS
 
 - **-r**  
     Directions and azimut output in radians. Default is degrees.
@@ -53,74 +60,81 @@
     will not produce any additional segments to those resulting from
     ordering.
 
-<!-- end list -->
+### Outputs
 
-- **segments**  
-    Vector map where every segment has its own category and following
-    attributes:
-  - **segment**: integer, segment identifier
-  - **next\_segment**: integer, topological next segment identifier
-  - **s\_order**: integer, segment order
-  - **next\_order**: integer, topological next segment order
-  - **direction**: double precision, full segment direction (0-360)
-  - **azimuth**: double precision, full segment azimuth (0-180)
-  - **length**: double precision, segment length
-  - **straight**: double precision, length of straight line between
-        segment nodes
-  - **sinusoid**: double precision, sinusoid (length/straight)
-  - **elev\_min**: double precision, minimum elevation (elevation at
-        segment start)
-  - **elev\_max**: double precision, maximum elevation (elevation at
-        segment end)
-  - **s\_drop**: double precision, difference between start and end
-        of the segment
-  - **gradient**: double precision, drop/length
-  - **out\_direction**: double precision, direction (0-360) of
-        segment end sector
-  - **out\_azimuth**: double precision, azimuth (0-180) of segment
-        end sector
-  - **out\_length**: double precision, length of segment end sector
-  - **out\_drop**: double precision, drop of segment end sector
-  - **out\_gradient**: double precision, gradient of segment end
-        sector
-  - **tangent\_dir**: double precision, direction of tangent in
-        segment outlet to the next stream
-  - **tangent\_azimuth**: double precision, azimuth of tangent in
-        segment outlet to the next stream
-  - **next\_direction**: double precision, direction of next stream
-        in join with current segment
-  - **next\_azimuth**: double precision, azimuth of next stream in
-        join with current segment
-    ![image-alt](dirs.png)
-- **sectors**  
-    Vector map where every sector has its own category and following
-    attributes:
-  - **sector**: integer, sector category
-  - **segment**: integer, segment category (to establish
-        relationship)
-  - **s\_order**: integer, segment order
-  - **direction**: double precision, sector direction
-  - **azimuth**: double precision, sector azimuth
-  - **length**: double precision, sector length
-  - **straight**: double precision, length of straight line between
-        sector nodes
-  - **sinusoid**: double precision, sinusoid (length/straight)
-  - **elev\_min**: double precision, minimum elevation (elevation at
-        sector start)
-  - **elev\_max**: double precision, minimum elevation (elevation at
-        sector end)
-  - **s\_drop**: double precision, difference between start and end
-        of the sector
-  - **gradient**: double precision, drop/length
-    ![image-alt](sectors.png) Relation between segments and sector may
-    be set up by segment key.
+The module produces two vector maps: one representing original segments
+(where a segment is a streamline where its order remains unchanged) and the second
+divided into near straight line sectors resulting form segmentation process.
+Most of the segment and sectors attributes are the same as in *r.stream.order* vector
+output.
 
-The main idea comes from works of Horton (1932) and Howard (1971, 1990).
-The module is designed to investigate network lineaments and calculate
-angle relations between tributaries and its major streams. The main
-problem in calculating directional parameters is that streams usually
-are not straight lines. Therefore as the first step of the procedure,
-partitioning of streams into near-straight-line segments is required.
+#### Segments
+
+Vector map where every segment has its own category and following
+    attributes:
+
+- **segment**: integer, segment identifier
+- **next\_segment**: integer, topological next segment identifier
+- **s\_order**: integer, segment order
+- **next\_order**: integer, topological next segment order
+- **direction**: double precision, full segment direction (0-360)
+- **azimuth**: double precision, full segment azimuth (0-180)
+- **length**: double precision, segment length
+- **straight**: double precision, length of straight line between
+      segment nodes
+- **sinusoid**: double precision, sinusoid (length/straight)
+- **elev\_min**: double precision, minimum elevation (elevation at
+      segment start)
+- **elev\_max**: double precision, maximum elevation (elevation at
+      segment end)
+- **s\_drop**: double precision, difference between start and end
+      of the segment
+- **gradient**: double precision, drop/length
+- **out\_direction**: double precision, direction (0-360) of
+      segment end sector
+- **out\_azimuth**: double precision, azimuth (0-180) of segment
+      end sector
+- **out\_length**: double precision, length of segment end sector
+- **out\_drop**: double precision, drop of segment end sector
+- **out\_gradient**: double precision, gradient of segment end
+      sector
+- **tangent\_dir**: double precision, direction of tangent in
+      segment outlet to the next stream
+- **tangent\_azimuth**: double precision, azimuth of tangent in
+      segment outlet to the next stream
+- **next\_direction**: double precision, direction of next stream
+      in join with current segment
+- **next\_azimuth**: double precision, azimuth of next stream in
+      join with current segment  
+![image-alt](dirs.png)
+
+#### Sectors
+
+Vector map where every sector has its own category and following
+attributes:
+
+- **sector**: integer, sector category
+- **segment**: integer, segment category (to establish
+      relationship)
+- **s\_order**: integer, segment order
+- **direction**: double precision, sector direction
+- **azimuth**: double precision, sector azimuth
+- **length**: double precision, sector length
+- **straight**: double precision, length of straight line between
+      sector nodes
+- **sinusoid**: double precision, sinusoid (length/straight)
+- **elev\_min**: double precision, minimum elevation (elevation at
+      sector start)
+- **elev\_max**: double precision, minimum elevation (elevation at
+      sector end)
+- **s\_drop**: double precision, difference between start and end
+      of the sector
+- **gradient**: double precision, drop/length
+![image-alt](sectors.png)  
+Relation between segments and sector may
+be set up by segment key.
+
+## NOTES
 
 The segmentation process uses a method similar to the one used by Van &
 Ventura (1997) to detect corners and partition curves into straight
@@ -152,8 +166,6 @@ line joining downstream/upstream points at a distance globally defined
 by the search length parameter (1). Such a definition of the angle
 between streams is not fully compatible with Horton's original
 criterion.
-
-## NOTES
 
 The module can work only if direction map, stream\_rast map and region
 have the same settings. It is also required that stream\_rast map and

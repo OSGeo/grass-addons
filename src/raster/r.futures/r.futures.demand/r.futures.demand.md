@@ -14,7 +14,7 @@ format is as follows. First column is time (matching the time of rasters
 used in parameter **development**) and first row is the category of the
 subregion. The separator can be set with parameter **separator**.
 
-```sh
+```csv
 year,37037,37063,...
 1985,19860,10980,...
 1995,20760,12660,...
@@ -32,7 +32,7 @@ developed/undeveloped raster used in *[r.futures.pga](r.futures.pga.md)*
 as a starting point for simulation. There is an easy way to create such
 list using Python:
 
-```sh
+```python
 ','.join([str(i) for i in range(2015, 2031)])
 ```
 
@@ -44,7 +44,7 @@ seq -s, 2015 2030
 
 The format of the output **demand** table is:
 
-```sh
+```csv
 year,37037,37063,37069,...
 2012,1362,6677,513,...
 2013,1856,4850,1589,...

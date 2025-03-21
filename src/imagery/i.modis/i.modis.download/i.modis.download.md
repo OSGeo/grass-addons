@@ -33,7 +33,7 @@ ways:
     [.netrc](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html)
     file as showed below:
 
-    ```sh
+    ```text
     machine e4ftl01.cr.usgs.gov
     login your_NASA_username
     password your_NASA_password
@@ -42,7 +42,7 @@ ways:
 - pass a file in which the first row is the username, and the second
     row is the password, as showed below:
 
-    ```sh
+    ```text
     your_NASA_username
     your_NASA_password
     ```

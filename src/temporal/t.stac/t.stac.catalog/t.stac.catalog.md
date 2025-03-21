@@ -17,12 +17,12 @@ Get the catalog metadata from a STAC API.
 ### STAC Catalog JSON metadata
 
 ```sh
-    t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
+t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
 ```
 
 GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
 
-```sh
+```python
 from grass import gs
 catalog = gs.parse_command("t.stac.catalog", url="https://earth-search.aws.element84.com/v1/", flags="p")
 print(catalog)
@@ -122,7 +122,7 @@ using the *GDAL's* virtual fie system */vsi/*.
 ### Basic Authentication
 
 ```sh
-    t.stac.catalog url="https://earth-search.aws.element84.com/v1/" settings="user:password"
+t.stac.catalog url="https://earth-search.aws.element84.com/v1/" settings="user:password"
 ```
 
 ### AWS

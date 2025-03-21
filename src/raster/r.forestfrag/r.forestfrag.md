@@ -27,7 +27,7 @@ conditional probability that, given a pixel of forest, its neighbor is
 also forest. The classification model then identifies six fragmentation
 categories as:
 
-```sh
+```text
 interior:       Pf = 1.0
 patch:          Pf < 0.4
 transitional:   0.4 ≤ Pf < 0.6

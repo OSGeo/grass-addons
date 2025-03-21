@@ -75,11 +75,12 @@ r.mapcalc "diff = elevation - lidar_raleigh * 0.3048006096012192"
 r.univar -e diff
 ```
 
-[![image-alt](r_in_pdal.png)](r_in_pdal.png)  
+![difference of the elevation map and LiDAR
+point data binned](r_in_pdal.png)  
 *Figure: View showing the difference of the elevation map and LiDAR
 point data binned to raster map with r.in.pdal*
 
-[![image-alt](r_in_pdal_footprint.jpg)](r_in_pdal_footprint.jpg)  
+![LiDAR cloud footprint](r_in_pdal_footprint.jpg)  
 *Figure: LiDAR cloud footprint*
 
 ## Import LAZ file using PDAL docker

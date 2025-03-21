@@ -47,7 +47,7 @@ db.select sql="select greedyclr,count(greedyclr) from my_boundary_county group b
 
 gives
 
-```sh
+```text
 greedyclr|count(greedyclr)
 1|262
 2|351

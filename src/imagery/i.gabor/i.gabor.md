@@ -67,7 +67,7 @@ greater than or equal to the percentile value. Where a bit string
 position is equal to one it indicates the corresponding
 orientation*<sub>i</sub>* has a strong response.
 
-```sh
+```text
 orientation = 0, 45, 90, 135
 0   = 0b00000001 = 1
 45  = 0b00000010 = 2

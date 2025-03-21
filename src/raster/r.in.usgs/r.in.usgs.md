@@ -68,7 +68,7 @@ g.region raster=elevation
 r.in.usgs product=ned ned_dataset=ned19sec output_name=ned -i
 ```
 
-```sh
+```text
 USGS file(s) to download:
 -------------------------
 Total download size:    826.95 MB

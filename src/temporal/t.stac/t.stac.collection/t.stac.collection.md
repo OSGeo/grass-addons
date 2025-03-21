@@ -54,7 +54,7 @@ specification.
 
 GRASS Jupyter Notebooks can be used to visualize the catalog metadata.
 
-```sh
+```python
     from grass import gs
     catalog = gs.parse_command('t.stac.catalog', url="https://earth-search.aws.element84.com/v1/")
 

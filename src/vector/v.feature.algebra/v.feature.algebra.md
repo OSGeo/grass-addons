@@ -81,28 +81,28 @@ expressions and operations.
 
 This is an empty statement, which is legal
 
-```sh
-         ;
+```text
+;
 ```
 
 Some built in constants:
 
-```sh
-         12;
-         e;
-         pi;
-         pnt_o;
-         pnt_i;
-         pnt_j;
-         pnt_k;
-         rivers;
+```text
+12;
+e;
+pi;
+pnt_o;
+pnt_i;
+pnt_j;
+pnt_k;
+rivers;
 ```
 
 The last one isn't really a constant, as it depends on what if found at
 startup, but it behaves just the like.
 
-```sh
-         a;
+```text
+a;
 ```
 
 This gives an error. "a", which is (not yet) defined, is handled as a
@@ -112,11 +112,11 @@ Next some simple assignments. Also here, the name of the variable is
 initially not more than a string, but after performing the assignment,
 they take the type of the expressionL:
 
-```sh
-         num = 10.3;
-         pnt = (0,0);
-         map = rivers;
-         any = mkstring (hallo);
+```text
+num = 10.3;
+pnt = (0,0);
+map = rivers;
+any = mkstring (hallo);
 ```
 
 The last is only a backdoor for cases when exceptional things are
@@ -131,30 +131,30 @@ done, but if the map is changed, it must not change the former \`value'.
 I hope it's doing now, what everybody would expect (including to free
 eventually the allocated memory).
 
-```sh
-         num = 3.1;
-         pnt = (1,1);
-         map = cities;
-         any = mkstring (hello);
+```text
+num = 3.1;
+pnt = (1,1);
+map = cities;
+any = mkstring (hello);
 ```
 
 The pure numeric operations aren't new, beside that I'm trying to catch
 illegal operations:
 
-```sh
-         sqrt(e);
-         num = cos (pi/4);
-         num = -num + 3 * num - sqrt (num^2);
-         3.3 + 4.4;
-         2.2 - 1.1;
-         5 * 7;
-         21 / 0;
-         21 / 2;
-         -21 / 7;
-         -6.6 ^ 1.2;
-         6.6 ^ 1.2;
-         12.5 % 3.6;
-         2 * (3.1 + 0.9);
+```text
+sqrt(e);
+num = cos (pi/4);
+num = -num + 3 * num - sqrt (num^2);
+3.3 + 4.4;
+2.2 - 1.1;
+5 * 7;
+21 / 0;
+21 / 2;
+-21 / 7;
+-6.6 ^ 1.2;
+6.6 ^ 1.2;
+12.5 % 3.6;
+2 * (3.1 + 0.9);
 ```
 
 Next are points. Note that 2D and 3D are dealt with identically; in case
@@ -165,41 +165,41 @@ the third dimension. I've defined some infix operations a bit
 arbitrarily. Of course, this could be changed. The double () in case of
 a single function argument are surely ugly, but not avoidable.
 
-```sh
-         origin2d = (0,0);
-         p1 = (1,1);
-         p2 = p1;
-         p2 = v_copy (p1);
-         v_add ((1,0), (0,1));
-         (1,0) + (0,1);
-         v_sub ((1,1), (0,1));
-         (1,1) - (0,1);
-         v_abs ((-2, -1));
-         v_neg ((2, 1));
-         -(2,1);
-         v_mul ((2,4), 3.3);
-         (2,4) * 3.3;
-         3.3 * (2,4);
-         v_div ((6.6, 13.2), 3.3);
-         (6.6, 13.2) / 3.3;
-         v_unit ((12, 8));
-         v_cross ((1,2), (4,5));
-         v_cross ((1,2,3), (4,5,6));
-         (1,2,3) ^ (4,5,6);
-         v_val ((3,3));
-         v_dot ((1,2), (3,4));
-         (1,2) % (3,4);
-         v_dot ((1,2,3), (4,5,6));
-         (1,2,3) % (4,5,6);
-         v_area ((1,2,3), (4,5,6));
-         v_eq ((1,2), (1, 2));
-         v_eq ((1,2), (1.0001, 2.0001));
-         epsilon = (1e-3, 1e-3);
-         v_eq_epsilon ((1,2), (1.0001, 2.0001), epsilon);
-         v_isortho ((0,1), (1,0));
-         v_ispara ((0, 1), (0, -1));
-         v_isacute ((0, 1), (0, 0.5));
-         3 * (pnt + (2,2));
+```text
+origin2d = (0,0);
+p1 = (1,1);
+p2 = p1;
+p2 = v_copy (p1);
+v_add ((1,0), (0,1));
+(1,0) + (0,1);
+v_sub ((1,1), (0,1));
+(1,1) - (0,1);
+v_abs ((-2, -1));
+v_neg ((2, 1));
+-(2,1);
+v_mul ((2,4), 3.3);
+(2,4) * 3.3;
+3.3 * (2,4);
+v_div ((6.6, 13.2), 3.3);
+(6.6, 13.2) / 3.3;
+v_unit ((12, 8));
+v_cross ((1,2), (4,5));
+v_cross ((1,2,3), (4,5,6));
+(1,2,3) ^ (4,5,6);
+v_val ((3,3));
+v_dot ((1,2), (3,4));
+(1,2) % (3,4);
+v_dot ((1,2,3), (4,5,6));
+(1,2,3) % (4,5,6);
+v_area ((1,2,3), (4,5,6));
+v_eq ((1,2), (1, 2));
+v_eq ((1,2), (1.0001, 2.0001));
+epsilon = (1e-3, 1e-3);
+v_eq_epsilon ((1,2), (1.0001, 2.0001), epsilon);
+v_isortho ((0,1), (1,0));
+v_ispara ((0, 1), (0, -1));
+v_isacute ((0, 1), (0, 0.5));
+3 * (pnt + (2,2));
 ```
 
 This is planned, but doesn't work yet:
@@ -215,14 +215,14 @@ there is no map-operation which makes sense if it is not assigned to a
 variable. So all map expressions need to follow a variable and an equal
 sign. The very first expression, hence, will give an error:
 
-```sh
-         rivers + cities;
-         map = rivers;
-         map;
-         map = rivers + cities;
-         map = testmap (rivers);
-         map = test2map (rivers, cities);
-         map = dltest (rivers, cities);
+```text
+rivers + cities;
+map = rivers;
+map;
+map = rivers + cities;
+map = testmap (rivers);
+map = test2map (rivers, cities);
+map = dltest (rivers, cities);
 ```
 
 ## TODO

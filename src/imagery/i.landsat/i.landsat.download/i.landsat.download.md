@@ -82,14 +82,14 @@ signing up.
 
 USGS settings file:
 
-```sh
+```text
 myusername
 mypassword
 ```
 
 USGS interactive settings:
 
-```sh
+```text
 Insert username: myusername
 Insert password:
 ```

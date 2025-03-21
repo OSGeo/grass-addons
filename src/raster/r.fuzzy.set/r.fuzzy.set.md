@@ -77,7 +77,7 @@ determine its shape:
 
 **Linear:** the membership is calculated according following equation:
 
-```sh
+```text
 value  <=  A -> x = 0
 A < value > B -> x = (value-A)/(B-A)
 B <= value >= C -> x = 1
@@ -89,7 +89,7 @@ where x: membership
 
 **S-shaped:** the membership is calculated according following equation:
 
-```sh
+```text
 sin(x * Pi/2)^m (for positive shape parameter)
 1-cos(x * Pi/2)^m (for negative shape parameter)
 
@@ -100,7 +100,7 @@ For default shape=0, m = 2 (most common parameter for that equation).
 
 **G-shaped:** the membership is calculated according following equation:
 
-```sh
+```text
 tan(x * Pi/4)^1/m
 
 where x: membership, and
@@ -111,7 +111,7 @@ For default shape=0, m = 2 (most common parameter for that equation).
 
 **J shaped:** it use following equations:
 
-```sh
+```text
 tan(x * Pi/4)^m
 
 where x: membership, and

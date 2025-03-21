@@ -11,7 +11,7 @@ same name like the point cloud, but ending on .txt instead of .ply.
 The text file with GCPs must have the following format with one GCP per
 line:
 
-```sh
+```text
   x y z east north height status
 ```
 

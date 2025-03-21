@@ -71,7 +71,7 @@ For more detailed instructions and examples see this in-depth
 
 If the module fails with
 
-```sh
+```text
 ERROR: Unable to insert dataset of type raster in the temporal database. The mapset of the dataset does not match the current mapset.
 ```
 

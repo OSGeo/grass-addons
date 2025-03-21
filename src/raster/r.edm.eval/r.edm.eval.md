@@ -22,23 +22,23 @@ true and false positives (TP, FP), true and false negatives (TN, FN),
 the true and false positive rate (TPR, FPR), the true negative rate
 (TNR), Cohen's kappa and the true skill statistic.
 
-```sh
+```text
 TPR = TP / (TP + FN)
 ```
 
-```sh
+```text
 FPR = FP / (FP + TN)
 ```
 
-```sh
+```text
 TNR = TN / (TN + FP)
 ```
 
-```sh
+```text
 TSS = TPR - FPR
 ```
 
-```sh
+```text
 Kappa = 2 * (TP * TN - FN * FP) / ((TP + FP) * (FP + TN) + (TP + FN) * (FN + TN)))
 ```
 
@@ -122,7 +122,7 @@ r.edm.eval -p reference=herbaceous prediction=rf_regressor
 
 The accuracy measures are printed on screen.
 
-```sh
+```text
 AUC = 0.8362
 maximum TSS = 0.5289
 maximum kappa = 0.4438
@@ -155,7 +155,7 @@ r.edm.eval -p reference=herbaceous prediction=rf_regressor,lr_regressor_1
 
 The accuracy measures are printed on screen.
 
-```sh
+```text
 AUC = 0.8362
 maximum TSS = 0.5289
 maximum kappa = 0.4438

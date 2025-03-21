@@ -74,7 +74,7 @@ Copernicus Data Space Ecosystem is now the new successor.
 *i.sentinel.download* reads the user credentials from the **settings**
 file. The file must contain at least two lines:
 
-```sh
+```text
 myusername
 mypassword
 ```
@@ -89,7 +89,7 @@ User credentials can be also defined interactively when **settings=-**
 is given. Note that interactive prompt does not work in the graphical
 user interface.
 
-```sh
+```text
 Insert username: myusername
 Insert password:
 ```
