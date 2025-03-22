@@ -245,7 +245,7 @@ def main():
     point_cloud = options["point_cloud"]
 
     # Optional options
-    mask = options.get("mask")
+    mask = options["mask"]
     tension_list = options["tension"]
     smoothing_list = options["smooth"]
 
