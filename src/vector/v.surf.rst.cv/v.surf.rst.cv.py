@@ -83,11 +83,6 @@
 # %option G_OPT_M_NPROCS
 # %end
 
-# %flag
-# % key: s
-# % description: Save cross-validation outputs
-# %end
-
 from __future__ import annotations
 import sys
 import atexit
