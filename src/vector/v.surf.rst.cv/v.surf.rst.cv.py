@@ -42,7 +42,7 @@
 # % key: tension
 # % type: integer
 # % required: no
-# % description: Tension parameter for cross-validation (default: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120])
+# % description: Tension parameter for cross-validation (default: [10, 20, 40, 60, 80, 100])
 # % multiple: yes
 # %end
 
@@ -50,7 +50,7 @@
 # % key: smooth
 # % type: double
 # % required: no
-# % description: Smoothing parameter for cross-validation (default: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0])
+# % description: Smoothing parameter for cross-validation (default: [0.01, 0.1, 0.5, 1.0, 5.0, 10.0])
 # % multiple: yes
 # %end
 
@@ -100,30 +100,21 @@ import grass.script as gs
 import grass.script.core as gcore
 from grass.exceptions import CalledModuleError
 
-tmp_raster_list = []
+tmp_layer_list = []
+DEFAULT_TENSION = [10, 20, 40, 60, 80, 100]
+DEFAULT_SMOOTHING = [0.01, 0.1, 0.5, 1.0, 5.0, 10.0]
 
 
 def cleanup():
-    """ "Remove temporary raster maps"""
-    if len(tmp_raster_list) > 0:
+    """ "Remove temporary vector maps"""
+    if len(tmp_layer_list) > 0:
         gs.run_command(
             "g.remove",
-            type="raster",
-            name=",".join(tmp_raster_list),
+            type="vector",
+            name=",".join(tmp_layer_list),
             # pattern="tmp_*",
             flags="f",
             quiet=True,
-        )
-
-
-def check_addon_installed(addon: str, fatal=True) -> None:
-    """Check if a GRASS GIS addon is installed"""
-    if not gcore.find_program(addon, "--help"):
-        call = gcore.fatal if fatal else gcore.warning
-        call(
-            _(
-                "Addon {a} is not installed. Please install it using g.extension."
-            ).format(a=addon)
         )
 
 
@@ -132,7 +123,7 @@ def generate_temp_raster_name(raster_name: str) -> str:
     uuid_str = str(uuid.uuid4()).replace("-", "_")
     tmp_raster_name = f"tmp_{raster_name}_{uuid_str}"
     gs.debug(_("Temporary raster name: %s") % tmp_raster_name)
-    tmp_raster_list.append(tmp_raster_name)
+    tmp_layer_list.append(tmp_raster_name)
     return tmp_raster_name
 
 
@@ -145,7 +136,7 @@ def check_raster_exists(raster: str) -> str:
 
 def cross_validate(point_cloud: str, **kwargs) -> list[str]:
     """Cross-validate v.surf.rst parameters"""
-    gs.message(_("Starting cross-validating..."))
+    gs.message(_("Starting cross-validation..."))
     cvdev = "cvdev"
     if kwargs.get("cv_prefix"):
         cvdev = kwargs.get("cv_prefix")
@@ -153,13 +144,13 @@ def cross_validate(point_cloud: str, **kwargs) -> list[str]:
         cvdev = generate_temp_raster_name(cvdev)
 
     # Set tension
-    tension = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120]
+    tension = DEFAULT_TENSION
     if kwargs.get("tension"):
         tension = kwargs.get("tension").split(",")
     gs.message(_("Tension values: %s") % tension)
 
     # Set smoothing
-    smoothing = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
+    smoothing = DEFAULT_SMOOTHING
     if kwargs.get("smooth"):
         smoothing = kwargs.get("smooth").split(",")
     gs.message(_("Smoothing values: %s") % smoothing)
@@ -234,9 +225,11 @@ def report_results(results_list: list[dict], format: str, output_file: str) -> N
         write_output_file(json_results, output_file)
         return json_results
     else:
+        gs.message(_("Cross-validation results:"))
+        gs.message(_("Tension, Smoothing, RMSE, MAE"))
         for res in results_list:
             gs.message(
-                _("Tension: %s, Smoothing: %s, RMSE: %f, MAE: %f")
+                _("%s, %s, %f, %f")
                 % (res["tension"], res["smooth"], res["rmse"], res["mae"])
             )
         header = "Tension, Smoothing, RMSE, MAE"
