@@ -4,7 +4,9 @@
 #
 # MODULE:       v.surf.rst.cv
 # AUTHOR:       Corey T. White, NCSU GeoForAll Lab
-# PURPOSE:      Cross-validation of procedures for v.surf.rst
+# PURPOSE:      Cross-validation of procedures for optimizing regularized spline
+#               with tension interpolation (RST) smoothing and tension parameters
+#               for use with v.surf.rst.
 # COPYRIGHT:    (C) 2025 OpenPlains Inc. and the GRASS Development Team
 #               This program is free software under the GNU General
 #               Public License (>=v2). Read the file COPYING that
@@ -36,30 +38,107 @@
 # % type: string
 # % required: no
 # % description: Name of the mask raster map
+# % guisection: Input
 # %end
 
 # %option
 # % key: tension
 # % type: integer
 # % required: no
-# % description: Tension parameter for cross-validation (default: [10, 20, 40, 60, 80, 100])
+# % description: Tension parameter for cross-validation
 # % multiple: yes
+# % answer: 10, 20, 40, 60, 80, 100
+# % guisection: Cross-Validation
 # %end
 
 # %option
 # % key: smooth
 # % type: double
 # % required: no
-# % description: Smoothing parameter for cross-validation (default: [0.01, 0.1, 0.5, 1.0, 5.0, 10.0])
+# % description: Smoothing parameter for cross-validation
 # % multiple: yes
+# % answer: 0.01, 0.1, 0.5, 1.0, 5.0, 10.0
+# % guisection: Cross-Validation
+# %end
+
+# %option G_OPT_V_FIELD
+# % key: layer
+# % guisection: RST Parameters
+# % required: no
+# %end
+
+# %option G_OPT_DB_COLUMN
+# % key: zcolumn
+# % label: Name of the attribute column with values to be used for approximation
+# % description: If not given and input is 2D vector map then category values are used. If input is 3D vector map then z-coordinates are used.
+# % required: no
+# % guisection: RST Parameters
+# %end
+
+# %option G_OPT_DB_WHERE
+# % key: where
+# % label: WHERE conditions of SQL statement without 'where' keyword
+# % description: Example: elevation < 500 and elevation >= 1
+# % required: no
+# % guisection: RST Parameters
+# %end
+
+# %option
+# % key: segmax
+# % type: integer
+# % required: no
+# % description: Maximum number of points in segment
+# % answer: 40
+# % guisection: RST Parameters
+# %end
+
+# %option
+# % key: dmin
+# % type: double
+# % required: no
+# % description: Minimum distance between points
+# % answer: 0.0
+# % guisection: RST Parameters
+# %end
+
+# %option
+# % key: dmax
+# % type: double
+# % required: no
+# % description: Maximum distance between points on isoline (to insert additional points)
+# % answer: 0.0
+# % guisection: RST Parameters
+# %end
+
+# %option
+# % key: zscale
+# % type: double
+# % required: no
+# % description: Conversion factor for values used for approximation
+# % answer: 1.0
+# % guisection: RST Parameters
+# %end
+
+# %option
+# % key: theta
+# % type: double
+# % required: no
+# % description: Anisotropy angle (in degrees counterclockwise from East)
+# %end
+
+# %option
+# % key: scalex
+# % type: double
+# % required: no
+# % description: Anisotropy scaling factor
 # %end
 
 # %option
 # % key: cv_prefix
-# % label: Prefix to use for cross-validation output maps (must be used with -s)
+# % label: Prefix to use for cross-validation output maps
 # % type: string
 # % required: no
-# % description: Prefix to use for cross-validation output maps
+# % description: Prefix to use for cross-validation output cross-validation errors vector point map. Value must be set to save the cross-validation errors to a vector maps.
 # % guisection: Output
 # %end
 
@@ -84,12 +163,17 @@
 # %end
 
 from __future__ import annotations
+
 import sys
 import atexit
+from typing import TYPE_CHECKING
 import uuid
 import math
 import json
 from pathlib import Path
+
+if TYPE_CHECKING:
+    from optparse import Option
 
 import grass.script as gs
 import grass.script.core as gcore
@@ -129,41 +213,56 @@ def check_raster_exists(raster: str) -> str:
     return raster
 
 
-def cross_validate(point_cloud: str, **kwargs) -> list[str]:
+def set_tension_parameter(tension_option: Option[str]) -> list[int]:
+    """Set tension parameter"""
+    tension = DEFAULT_TENSION
+    if tension_option:
+        tension = tension_option.split(",")
+    gs.message(_("Tension values: %s") % tension)
+    return tension
+
+
+def set_smoothing_parameter(smoothing_option: Option[str]) -> list[float]:
+    """Set smoothing parameter"""
+    smoothing = DEFAULT_SMOOTHING
+    if smoothing_option:
+        smoothing = smoothing_option.split(",")
+    gs.message(_("Smoothing values: %s") % smoothing)
+    return smoothing
+
+
+def set_cvdev_parameter(cv_prefix: Option[str]) -> str:
+    """Set the cvdev parameter"""
+    CVDEV_PREFIX = "cvdev"
+    if cv_prefix:
+        cvdev = cv_prefix
+    else:
+        cvdev = generate_temp_raster_name(CVDEV_PREFIX)
+    return cvdev
+
+
+def cross_validate(
+    point_cloud: str,
+    tension_list: list[int],
+    smoothing_list: list[float],
+    cv_prefix: str,
+    **kwargs: dict,
+) -> list[str]:
     """Cross-validate v.surf.rst parameters"""
     gs.message(_("Starting cross-validation..."))
-    cvdev = "cvdev"
-    if kwargs.get("cv_prefix"):
-        cvdev = kwargs.get("cv_prefix")
-    else:
-        cvdev = generate_temp_raster_name(cvdev)
-
-    # Set tension
-    tension = DEFAULT_TENSION
-    if kwargs.get("tension"):
-        tension = kwargs.get("tension").split(",")
-    gs.message(_("Tension values: %s") % tension)
-
-    # Set smoothing
-    smoothing = DEFAULT_SMOOTHING
-    if kwargs.get("smooth"):
-        smoothing = kwargs.get("smooth").split(",")
-    gs.message(_("Smoothing values: %s") % smoothing)
 
     output_list = []
-    for t in tension:
-        for s in smoothing:
-            output_name = f"{cvdev}_{t}_{str(s).replace('.', '')}"
+    for t in tension_list:
+        for s in smoothing_list:
+            output_name = f"{cv_prefix}_{t}_{str(s).replace('.', '')}"
             try:
                 gs.run_command(
                     "v.surf.rst",
+                    **kwargs,
                     input=point_cloud,
                     cvdev=output_name,
-                    mask=kwargs.get("mask", None),
                     smooth=s,
                     tension=t,
-                    npmin=200,
-                    nprocs=kwargs.get("nprocs", 1),
                     flags="c",
                     quiet=True,
                 )
@@ -213,53 +312,49 @@ def write_output_file(results: str, output_file: str) -> None:
         gs.message(_("Results written to %s") % output_file)
 
 
-def report_results(results_list: list[dict], format: str, output_file: str) -> None:
+def report_results(results_list: list[dict], format: str) -> None:
     """Report the results of the cross-validation"""
+    gs.message(_("Cross-validation results:"))
     if format == "json":
         json_results = json.dumps(results_list, indent=4)
-        write_output_file(json_results, output_file)
+        gs.message(_(json_results))
         return json_results
     else:
-        gs.message(_("Cross-validation results:"))
-        gs.message(_("Tension, Smoothing, RMSE, MAE"))
+        header = "Tension, Smoothing, RMSE, MAE"
+        gs.message(_(header))
         for res in results_list:
             gs.message(
                 _("%s, %s, %f, %f")
                 % (res["tension"], res["smooth"], res["rmse"], res["mae"])
             )
-        header = "Tension, Smoothing, RMSE, MAE"
+
         csv_results = "\n".join(
             [",".join([str(res[k]) for k in res]) for res in results_list]
         )
         csv_results = f"{header}\n{csv_results}"
-        write_output_file(csv_results, output_file)
+        return csv_results
 
 
 def main():
     # Required options
     point_cloud = options["point_cloud"]
 
-    # Optional options
-    mask = options["mask"]
-    tension_list = options["tension"]
-    smoothing_list = options["smooth"]
-
     # Output options
-    cv_prefix = options.get("cv_prefix")
     output_file = options.get("output_file")
     format = options["format"]
 
-    # Processing Options
-    nprocs = options["nprocs"]
+    # Set parameters
+    cvdev = set_cvdev_parameter(options.get("cv_prefix"))
+    tension = set_tension_parameter(options.get("tension"))
+    smoothing = set_smoothing_parameter(options.get("smooth"))
 
     # Run cross-validation
     cv_map_list = cross_validate(
         point_cloud,
-        smooth=smoothing_list,
-        tension=tension_list,
-        cv_prefix=cv_prefix,
-        mask=mask,
-        nprocs=nprocs,
+        tension_list=tension,
+        smoothing_list=smoothing,
+        cv_prefix=cvdev,
+        **options,  # Pass the options to the cross-validation function kwargs
     )
     results_list = cvdev_results(cv_map_list)
     best_combination = min(results_list, key=lambda x: x["rmse"])
@@ -277,7 +372,9 @@ def main():
     )
     gs.message(_("-" * 50))
 
-    report_results(results_list, format, output_file)
+    results = report_results(results_list, format)
+    write_output_file(results, output_file)
+    return results
 
 
 if __name__ == "__main__":
