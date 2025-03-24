@@ -4,8 +4,8 @@
  MODULE:      i.sentinel3.import
  AUTHOR(S):   Stefan Blumentrath
  PURPOSE:     Import and pre-process Sentinel-3 data from the Copernicus program
- COPYRIGHT:   (C) 2024 by Norwegian Water and Energy Directorate, Stefan Blumentrath,
-              and the GRASS development team
+ COPYRIGHT:   (C) 2024-202-20255 BY Norwegian Water and Energy Directorate,
+              Stefan Blumentrath, and the GRASS development team
 
               This program is free software under the GNU General Public
               License (>=v2). Read the file COPYING that comes with GRASS
