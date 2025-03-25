@@ -82,9 +82,8 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % label: Filter available lidar tiles by their title (e.g. use "Phase4")
-# % description: To avoid combining lidar from multiple years, use first -i flag and filter by tile title.
-# % guisection: Lidar
+# % label: Filter available tiles by their title (e.g. use "Phase4")
+# % description: To avoid combining tiles from multiple years, use first -i flag and filter by tile title.
 # %end
 
 # %option
@@ -521,7 +520,7 @@ def main():
             TNM_API_error = return_JSON["errors"]
             api_error_msg = "TNM API Error - {0}".format(str(TNM_API_error))
             gs.fatal(api_error_msg)
-        if gui_product == "lidar" and options["title_filter"]:
+        if options["title_filter"]:
             return_JSON["items"] = [
                 item
                 for item in return_JSON["items"]
