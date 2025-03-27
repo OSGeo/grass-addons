@@ -282,12 +282,11 @@ def extract_residuals(cvdev_map: str) -> tuple[float, float]:
 
     residuals = [float(res["flt1"]) for res in residuals["records"] if res]
 
-    # # Calculate RMSE and MAE
+    # Calculate RMSE and MAE
     n = len(residuals)
     mse = sum([res**2 for res in residuals]) / n
     rmse = math.sqrt(mse)
     mae = sum([abs(res) for res in residuals]) / n
-    # return residuals
     return (rmse, mae)
 
 
