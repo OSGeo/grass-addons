@@ -37,6 +37,7 @@ jobs:
           filters: |
             precommit:
               - '.pre-commit-config.yaml'
+              - '.github/workflows/additional_checks.yml'
 
       - name: Check for CRLF endings
         uses: erclu/check-crlf@94acb86c2a41b0a46bd8087b63a06f0457dd0c6c # v1.2.0
