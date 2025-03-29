@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # renovate: datasource=python-version depName=python
-      PYTHON_VERSION: "3.12"
+      PYTHON_VERSION: "3.13"
 
     steps:
       - name: Checkout repository contents
@@ -37,6 +37,7 @@ jobs:
           filters: |
             precommit:
               - '.pre-commit-config.yaml'
+              - '.github/workflows/additional_checks.yml'
 
       - name: Check for CRLF endings
         uses: erclu/check-crlf@94acb86c2a41b0a46bd8087b63a06f0457dd0c6c # v1.2.0
