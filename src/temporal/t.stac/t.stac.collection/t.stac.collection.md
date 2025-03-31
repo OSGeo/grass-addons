@@ -191,13 +191,12 @@ Azure](https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blo
 
 ## SEE ALSO
 
-*Requirements
-[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/t.stac.item)
-[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/t.stac.item.html),*
+*[t.stac.catalog](https://grass.osgeo.org/grass-stable/manuals/addons/t.stac.catalog.html),
+[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/addons/t.stac.item.html)*
 
 ## AUTHORS
 
-Corey T. White  
+Corey T. White
 
 ## Sponsors
 

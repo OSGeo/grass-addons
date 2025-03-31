@@ -146,16 +146,15 @@ Azure](https://gdal.org/user/virtual_file_systems.html#vsiaz-microsoft-azure-blo
 
 ## SEE ALSO
 
-*Requirements
-[t.stac.collection](https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html),
-[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/t.stac.item)*
+*[t.stac.collection](https://grass.osgeo.org/grass-stable/manuals/addons/t.stac.collection.html),
+[t.stac.item](https://grass.osgeo.org/grass-stable/manuals/addons/t.stac.item.html)*
 
 [GRASS GIS Wiki: temporal data
 processing](https://grasswiki.osgeo.org/wiki/Temporal_data_processing)
 
 ## AUTHORS
 
-Corey T. White  
+Corey T. White
 
 ## Sponsors
 
