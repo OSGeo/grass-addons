@@ -360,16 +360,23 @@ def set_deviations_colors(map_name: str, data_type: str) -> None:
     data_type: str
         Type of the map layer (e.g., raster, vector).
     """
-    color_scheme = """
-        -0.85 red
-        -0.4 orange
-        -0.1 yellow
-        -0.001 220 220 220
-        0.001 220 220 220
-        0.1 cyan
-        0.4 aqua
-        0.8 blue
-        1.9 violet
+    # Calculate percentiles for color scheme
+    try:
+        stats = gs.parse_command("r.univar", map=map_name, flags="ge", quiet=True)
+        min_val = float(stats["min"])
+        max_val = float(stats["max"])
+        p1 = float(stats["first_quartile"])
+        p2 = float(stats["median"])
+        p3 = float(stats["third_quartile"])
+    except CalledModuleError as e:
+        gs.fatal(_("Error calculating statistics: %s") % e.stderr)
+
+    color_scheme = f"""
+        {min_val} red
+        {p1} yellow
+        {p2} 220:220:220
+        {p3} cyan
+        {max_val} blue
         """
 
     if data_type == "raster":
@@ -382,7 +389,13 @@ def set_deviations_colors(map_name: str, data_type: str) -> None:
     elif data_type == "vector":
         try:
             gs.write_command(
-                "v.colors", map=map_name, rules="-", stdin=color_scheme, quiet=True
+                "v.colors",
+                map=map_name,
+                rules="-",
+                use="attr",
+                column="flt1",
+                stdin=color_scheme,
+                quiet=True,
             )
         except CalledModuleError as e:
             gs.fatal(_("Error setting vector colors: %s") % e.stderr)
