@@ -178,38 +178,33 @@ if TYPE_CHECKING:
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
-tmp_layer_list = []
+TMP_LAYER_LIST = []
 DEFAULT_TENSION = [10, 20, 40, 60, 80, 100]
 DEFAULT_SMOOTHING = [0.01, 0.1, 0.5, 1.0, 5.0, 10.0]
 
 
 def cleanup():
     """ "Remove temporary vector maps"""
-    if len(tmp_layer_list) > 0:
+    if len(TMP_LAYER_LIST) > 0:
+        gs.message(_("Cleaning up temporary vector maps..."))
+        tmp_layer_root = TMP_LAYER_LIST[0]
+        gs.debug(_("Temporary vector maps root: %s") % tmp_layer_root)
         gs.run_command(
             "g.remove",
             type="vector",
-            name=",".join(tmp_layer_list),
-            # pattern="tmp_*",
+            pattern=f"{tmp_layer_root}*",
             flags="f",
             quiet=True,
         )
 
 
-def generate_temp_raster_name(raster_name: str) -> str:
-    """Generate a temporary raster name"""
+def generate_tmp_layer_name(layer_name: str) -> str:
+    """Generate a temporary layer name"""
     uuid_str = str(uuid.uuid4()).replace("-", "_")
-    tmp_raster_name = f"tmp_{raster_name}_{uuid_str}"
-    gs.debug(_("Temporary raster name: %s") % tmp_raster_name)
-    tmp_layer_list.append(tmp_raster_name)
-    return tmp_raster_name
-
-
-def check_raster_exists(raster: str) -> str:
-    # check if input file exists
-    if not gs.find_file(raster)["file"]:
-        gs.fatal(_("Raster map %s not found") % raster)
-    return raster
+    tmp_layer_name = f"tmp_{layer_name}_{uuid_str}"
+    gs.debug(_("Temporary layer name: %s") % tmp_layer_name)
+    TMP_LAYER_LIST.append(tmp_layer_name)
+    return tmp_layer_name
 
 
 def set_tension_parameter(tension_option: Option[str]) -> list[int]:
@@ -217,7 +212,7 @@ def set_tension_parameter(tension_option: Option[str]) -> list[int]:
     tension = DEFAULT_TENSION
     if tension_option:
         tension = tension_option.split(",")
-    gs.message(_("Tension values: %s") % tension)
+    gs.debug(_("Tension values: %s") % tension)
     return tension
 
 
@@ -226,39 +221,51 @@ def set_smoothing_parameter(smoothing_option: Option[str]) -> list[float]:
     smoothing = DEFAULT_SMOOTHING
     if smoothing_option:
         smoothing = smoothing_option.split(",")
-    gs.message(_("Smoothing values: %s") % smoothing)
+    gs.debug(_("Smoothing values: %s") % smoothing)
     return smoothing
 
 
 def set_cvdev_parameter(cv_prefix: Option[str]) -> str:
     """Set the cvdev parameter"""
-    CVDEV_PREFIX = "cvdev"
+    cvdev = None
     if cv_prefix:
         cvdev = cv_prefix
     else:
-        cvdev = generate_temp_raster_name(CVDEV_PREFIX)
+        cvdev = generate_tmp_layer_name("cvdev")
     return cvdev
 
 
 def cross_validate(
-    point_cloud: str,
+    points: str,
     tension_list: list[int],
     smoothing_list: list[float],
-    cv_prefix: str,
+    prefix_cv: str,
     **kwargs: dict,
 ) -> list[str]:
     """Cross-validate v.surf.rst parameters"""
     gs.message(_("Starting cross-validation..."))
 
+    # Remove tension and smooth from kwargs
+    # to avoid passing them to v.surf.rst
+    args_blacklist = {
+        "point_cloud",
+        "output_file",
+        "smooth",
+        "tension",
+        "cv_prefix",
+        "format",
+    }
+    kwargs_copy = {k: v for k, v in kwargs.items() if k not in args_blacklist}
+
     output_list = []
     for t in tension_list:
         for s in smoothing_list:
-            output_name = f"{cv_prefix}_{t}_{str(s).replace('.', '')}"
+            output_name = f"{prefix_cv}_{t}_{str(s).replace('.', '')}"
             try:
                 gs.run_command(
                     "v.surf.rst",
-                    **kwargs,
-                    input=point_cloud,
+                    **kwargs_copy,
+                    input=points,
                     cvdev=output_name,
                     smooth=s,
                     tension=t,
@@ -275,23 +282,33 @@ def cross_validate(
 
 def extract_residuals(cvdev_map: str) -> tuple[float, float]:
     # Extract residuals from the cvdev map
-    residuals = gs.parse_command(
-        "v.db.select", map=cvdev_map, format="json", quiet=True
-    )
+    try:
+        residuals = gs.parse_command(
+            "v.db.select", map=cvdev_map, format="json", quiet=True
+        )
 
-    residuals = [float(res["flt1"]) for res in residuals["records"] if res]
+        residuals = [float(res["flt1"]) for res in residuals["records"] if res]
 
-    # Calculate RMSE and MAE
-    n = len(residuals)
-    mse = sum([res**2 for res in residuals]) / n
-    rmse = math.sqrt(mse)
-    mae = sum([abs(res) for res in residuals]) / n
-    return (rmse, mae)
+        # Calculate RMSE and MAE
+        n = len(residuals)
+        mse = sum([res**2 for res in residuals]) / n
+        rmse = math.sqrt(mse)
+        mae = sum([abs(res) for res in residuals]) / n
+        return (rmse, mae)
+    except CalledModuleError as e:
+        gs.fatal(_("Error extracting residuals: %s") % e.stderr)
+    except ValueError as e:
+        gs.fatal(_("Error parsing residuals: %s") % e)
+    except ZeroDivisionError as e:
+        gs.fatal(_("Error calculating RMSE/MAE: %s") % e)
+    except Exception as e:
+        gs.fatal(_("Unexpected error: %s") % e)
 
 
 def cvdev_results(cvdev_list: list[str]) -> list[dict]:
     """Extract RMSE and MAE from cross-validation results"""
     results_list = []
+    gs.message(_("Extracting residuals..."))
     for cvdev, tension, smooth in cvdev_list:
         rmse, mae = extract_residuals(cvdev)
         results_list.append(
@@ -304,29 +321,31 @@ def cvdev_results(cvdev_list: list[str]) -> list[dict]:
 def write_output_file(results: str, output_file: str) -> None:
     if output_file:
         try:
+            gs.message(_("Results written to %s") % output_file)
             Path(output_file).write_text(results)
         except Exception as e:
             gs.fatal(_("Error writing output file: %s") % e)
-        gs.message(_("Results written to %s") % output_file)
 
 
 def report_results(results_list: list[dict], format: str) -> None:
     """Report the results of the cross-validation"""
-    gs.message(_("Cross-validation results:"))
+    gs.message(_("Generating results..."))
     if format == "json":
         json_results = json.dumps(results_list, indent=4)
-        print(json_results)
+        sys.stdout.write(json_results)
         return json_results
     else:
-        header = "Tension, Smoothing, RMSE, MAE"
-        print(header)
+        header = "Tension,Smoothing,RMSE,MAE\n"
+        sys.stdout.write(header)
         for res in results_list:
-            print(f"{res['tension']},{res['smooth']},{res['rmse']},{res['mae']}")
+            sys.stdout.write(
+                f"{res['tension']},{res['smooth']},{res['rmse']},{res['mae']}\n"
+            )
 
         csv_results = "\n".join(
             [",".join([str(res[k]) for k in res]) for res in results_list]
         )
-        csv_results = f"{header}\n{csv_results}"
+        csv_results = f"{header}{csv_results}"
         return csv_results
 
 
@@ -410,10 +429,10 @@ def main():
 
     # Run cross-validation
     cv_map_list = cross_validate(
-        point_cloud,
+        points=point_cloud,
         tension_list=tension,
         smoothing_list=smoothing,
-        cv_prefix=cvdev,
+        prefix_cv=cvdev,
         **options,  # Pass the options to the cross-validation function kwargs
     )
 
@@ -426,22 +445,27 @@ def main():
     # Process the results
     # Extract RMSE and MAE from the cvdev maps
     results_list = cvdev_results(cv_map_list)
-    best_combination = min(results_list, key=lambda x: x["rmse"])
 
-    print(f"""
-        Best Parameter Combination:
-        {"-" * 50}
-        Tension: {best_combination["tension"]}
-        Smoothing: {best_combination["smooth"]}
-        RMSE: {best_combination["rmse"]:.4f}
-        MAE: {best_combination["mae"]:.4f}
-        {"-" * 50}
-    """)
+    if results_list:
+        gs.message(_("\nBest parameter combination"))
+        # Sort the results by RMSE
+        best_combination = min(results_list, key=lambda x: x["rmse"])
+        gs.message(_("-" * 50 + "\n"))
+        gs.message(_("Tension: %s") % best_combination["tension"])
+        gs.message(_("Smoothing: %s") % best_combination["smooth"])
+        gs.message(_("RMSE: %s") % best_combination["rmse"])
+        gs.message(_("MAE: %s") % best_combination["mae"])
+        gs.message(_("-" * 50 + "\n"))
+    else:
+        gs.warning(
+            _("No results found. Unable to determine the best parameter combination.")
+        )
 
     # Report the results
     results = report_results(results_list, format)
     write_output_file(results, output_file)
-    return results
+
+    return 0
 
 
 if __name__ == "__main__":
