@@ -14,7 +14,7 @@
 #
 #############################################################################
 
-
+import os
 import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.gmodules import SimpleModule
@@ -25,6 +25,25 @@ class TestRSTCrossValidation(TestCase):
     elevation = "elevation"
     points = "test_point_cloud"
     cvdev_prefix = "test_cvdev"
+    # Get the number of CPU cores available to the process, minus one for system stability
+    total_processes = max(1, len(os.sched_getaffinity(0)) - 1)
+    if total_processes > 6:
+        # Limit to 6 processes for testing
+        total_processes = 6
+
+    # Defaults for interpolation
+    npoints = 500
+    segmax = 600
+
+    smooth = [0.5, 5.0]
+    tension = [10, 100]
+    expected_csv = (
+        "Tension,Smoothing,RMSE,MAE\n"
+        "10,0.5,3.938792429360747,3.2086477739999997\n"
+        "10,5.0,4.921535874096144,4.075445157999998\n"
+        "100,0.5,2.715355217413409,2.0061099599999994\n"
+        "100,5.0,3.438609351379808,2.73388017\n"
+    )
 
     @classmethod
     def setUpClass(cls):
@@ -46,7 +65,7 @@ class TestRSTCrossValidation(TestCase):
         cls.runModule(
             "r.random",
             input=cls.elevation,
-            npoints=500,
+            npoints=cls.npoints,
             seed=0,
             vector=cls.points,
             flags="z",
@@ -56,63 +75,108 @@ class TestRSTCrossValidation(TestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove temporary region"""
-        cls.runModule("g.remove", flags="f", type="all", pattern="test_*")
+        cls.runModule("g.remove", flags="f", type=["all"], pattern="test_*", quiet=True)
         cls.del_temp_region()
 
     def test_v_surf_rst_cv_default(self):
         """Test default settings"""
-        self.assertModule("v.surf.rst.cv", point_cloud=self.points)
-
-    def test_v_surf_rst_cv_adjuest_tesion_smooth(self):
-        """Test setting tension and smooth"""
-        self.assertModule(
+        module = SimpleModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            smooth=[0.0, 0.5, 1.0, 5.0],
-            tension=[10, 20, 30, 100],
+            nprocs=self.total_processes,
+            segmax=self.segmax,
+            overwrite=True,
         )
+        self.assertModule(module)
+
+    def test_v_surf_rst_cv_adjust_tension_smooth(self):
+        """Test setting tension and smooth"""
+        module = SimpleModule(
+            "v.surf.rst.cv",
+            point_cloud=self.points,
+            nprocs=self.total_processes,
+            smooth=self.smooth,
+            tension=self.tension,
+            segmax=self.segmax,
+            overwrite=True,
+        )
+        self.assertModule(module)
+
+        self.assertTrue(module.outputs.stdout)
+        self.assertMultiLineEqual(self.expected_csv, module.outputs.stdout)
+        self.assertTrue(module.outputs.stderr)
+        self.assertIn("Tension: 100\n", module.outputs.stderr)
+        self.assertIn("Smoothing: 0.5\n", module.outputs.stderr)
 
     def test_json_format(self):
         """Test json output"""
-        self.assertModule(
+        module = SimpleModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            smooth=[0.0, 0.5, 1.0, 5.0],
-            tension=[10, 20, 30, 100],
+            nprocs=self.total_processes,
+            smooth=self.smooth,
+            tension=self.tension,
+            segmax=self.segmax,
             format="json",
+            overwrite=True,
         )
+
+        self.assertModule(module)
+        self.assertTrue(module.outputs.stdout)
 
     def test_save_cv_vectors(self):
         """Test save cv vectors output"""
         self.assertModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            smooth=[0.5, 5.0],
-            tension=[10, 100],
+            nprocs=self.total_processes,
+            smooth=self.smooth,
+            tension=self.tension,
+            segmax=self.segmax,
             cv_prefix=self.cvdev_prefix,
+            overwrite=True,
         )
+        for t in self.tension:
+            for s in self.smooth:
+                prefix_cv = f"{self.cvdev_prefix}_{t}_{str(s).replace('.', '')}"
+                self.assertVectorExists(prefix_cv)
+                self.assertRasterExists(f"{prefix_cv}")
 
     def test_save_json(self):
         """Test saving json output"""
         self.assertModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            smooth=[0.5, 5.0],
-            tension=[10],
+            nprocs=self.total_processes,
+            smooth=self.smooth,
+            tension=self.tension,
+            segmax=self.segmax,
             format="json",
             output_file="test_cv.json",
+            overwrite=True,
         )
 
     def test_save_csv(self):
         """Test saving csv output"""
-        self.assertModule(
+        module = SimpleModule(
             "v.surf.rst.cv",
             point_cloud=self.points,
-            smooth=[0.5, 5.0],
-            tension=[10],
+            nprocs=self.total_processes,
+            smooth=self.smooth,
+            tension=self.tension,
             format="text",
             output_file="test_cv.csv",
+            segmax=self.segmax,
+            overwrite=True,
         )
+
+        self.assertModule(module)
+        with open("test_cv.csv", "r") as f:
+            lines = f.readlines()
+            self.assertTrue(lines[0].startswith("Tension,Smoothing,RMSE,MAE"))
+            self.assertTrue(lines[1].startswith("10,0.5,"))
+            self.assertTrue(lines[2].startswith("10,5.0,"))
+        self.assertTrue(module.outputs.stdout)
 
 
 if __name__ == "__main__":
