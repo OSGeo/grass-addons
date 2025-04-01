@@ -176,7 +176,6 @@ if TYPE_CHECKING:
     from optparse import Option
 
 import grass.script as gs
-import grass.script.core as gcore
 from grass.exceptions import CalledModuleError
 
 tmp_layer_list = []
@@ -316,16 +315,13 @@ def report_results(results_list: list[dict], format: str) -> None:
     gs.message(_("Cross-validation results:"))
     if format == "json":
         json_results = json.dumps(results_list, indent=4)
-        gs.message(_(json_results))
+        print(json_results)
         return json_results
     else:
         header = "Tension, Smoothing, RMSE, MAE"
-        gs.message(_(header))
+        print(header)
         for res in results_list:
-            gs.message(
-                _("%s, %s, %f, %f")
-                % (res["tension"], res["smooth"], res["rmse"], res["mae"])
-            )
+            print(f"{res['tension']},{res['smooth']},{res['rmse']},{res['mae']}")
 
         csv_results = "\n".join(
             [",".join([str(res[k]) for k in res]) for res in results_list]
@@ -431,19 +427,18 @@ def main():
     # Extract RMSE and MAE from the cvdev maps
     results_list = cvdev_results(cv_map_list)
     best_combination = min(results_list, key=lambda x: x["rmse"])
-    gs.message(_("\nBest Parameter Combination:"))
-    gs.message(_("-" * 50))
-    gs.message(
-        _("Tension: %s, Smoothing: %s, RMSE: %f, MAE: %f")
-        % (
-            best_combination["tension"],
-            best_combination["smooth"],
-            best_combination["rmse"],
-            best_combination["mae"],
-        )
-    )
-    gs.message(_("-" * 50))
 
+    print(f"""
+        Best Parameter Combination:
+        {"-" * 50}
+        Tension: {best_combination["tension"]}
+        Smoothing: {best_combination["smooth"]}
+        RMSE: {best_combination["rmse"]:.4f}
+        MAE: {best_combination["mae"]:.4f}
+        {"-" * 50}
+    """)
+
+    # Report the results
     results = report_results(results_list, format)
     write_output_file(results, output_file)
     return results
