@@ -334,6 +334,71 @@ def report_results(results_list: list[dict], format: str) -> None:
         return csv_results
 
 
+def set_deviations_colors(map_name: str, data_type: str) -> None:
+    """
+    Set deviations raster colors.
+    The color scheme is from https://ncsu-geoforall-lab.github.io/geospatial-modeling-course/grass/interpolation_2.html
+
+    name: map_name
+    type: str
+        Name of the map layer to set colors for.
+    data_type: str
+        Type of the map layer (e.g., raster, vector).
+    """
+    color_scheme = """
+        -0.85 red
+        -0.4 orange
+        -0.1 yellow
+        -0.001 220 220 220
+        0.001 220 220 220
+        0.1 cyan
+        0.4 aqua
+        0.8 blue
+        1.9 violet
+        """
+
+    if data_type == "raster":
+        try:
+            gs.write_command(
+                "r.colors", map=map_name, rules="-", stdin=color_scheme, quiet=True
+            )
+        except CalledModuleError as e:
+            gs.fatal(_("Error setting raster colors: %s") % e.stderr)
+    elif data_type == "vector":
+        try:
+            gs.write_command(
+                "v.colors", map=map_name, rules="-", stdin=color_scheme, quiet=True
+            )
+        except CalledModuleError as e:
+            gs.fatal(_("Error setting vector colors: %s") % e.stderr)
+    else:
+        gs.fatal(_("Unsupported data type: %s") % data_type)
+
+
+def compute_deviation_surface(cv_map_list: list[tuple[str, str, str]]) -> None:
+    """
+    Compute the deviation surface from the cross-validation
+    points and write it to a raster map.
+    """
+    gs.message(_("Computing deviation surfaces..."))
+    for cvdev_map, tension, smooth in cv_map_list:
+        try:
+            gs.run_command(
+                "v.surf.rst",
+                input=cvdev_map,
+                elevation=cvdev_map,
+                zcolumn="flt1",
+                npmin=140,
+                quiet=True,
+            )
+        except CalledModuleError as e:
+            gs.fatal(_("Error computing deviation surface: %s") % e.stderr)
+
+        # Set the color scheme for the deviation surface
+        set_deviations_colors(cvdev_map, "vector")
+        set_deviations_colors(cvdev_map, "raster")
+
+
 def main():
     # Required options
     point_cloud = options["point_cloud"]
@@ -355,9 +420,17 @@ def main():
         cv_prefix=cvdev,
         **options,  # Pass the options to the cross-validation function kwargs
     )
+
+    # Compute deviation surfaces if cv_prefix is set
+    # This will create a raster map for each cvdev_map
+    # with the deviations from the original points
+    if options.get("cv_prefix"):
+        compute_deviation_surface(cv_map_list)
+
+    # Process the results
+    # Extract RMSE and MAE from the cvdev maps
     results_list = cvdev_results(cv_map_list)
     best_combination = min(results_list, key=lambda x: x["rmse"])
-
     gs.message(_("\nBest Parameter Combination:"))
     gs.message(_("-" * 50))
     gs.message(
