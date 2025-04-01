@@ -64,7 +64,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -114,7 +114,7 @@ jobs:
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@14a7e741c1cb130261263aa1593718ba42cf443b # v2.11.2
+        uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
         with:
           r-version: 4.2.1
           Ncpus: 4
