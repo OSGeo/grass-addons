@@ -18,6 +18,7 @@ fluctuations) or when significant noise is present that needs to be smoothed out
 ## EXAMPLES
 
 ```python
+import grass.script as gs
 
 gs.run_command(
     "g.region",
@@ -55,7 +56,7 @@ gs.run_command('v.surf.rst.cv',
 )
 ```
 
-By setting the `output_file` and `format` options the output of the above
+By setting the **output_file** and **format** options the output of the above
 command will be a JSON file with the
 cross-validation results. The file will contain the following information:
 
@@ -101,18 +102,18 @@ MAE: 2.0061099599999994
 --------------------------------------------------
 ```
 
-When the `cv_prefix` option is set, the vector point maps with the
+When the **cv_prefix** option is set, the vector point maps with the
 cross-validation results will be saved and interpolated into a new surface that
 displays the residuals of the cross-validation. The surface will be saved in the
 current mapset with the name `<cv_prefix>_<tension>_<smooth>`.
 
-![cdev-surface](v_surf_rst_cv_100_05.png)
+![cdev-surface](v_surf_rst_cv_100_05.png)  
 *Tension: 100 Smooth: 0.5*
-![cdev-surface](v_surf_rst_cv_100_50.png)
+![cdev-surface](v_surf_rst_cv_100_50.png)  
 *Tension: 100 Smooth: 5*
-![cdev-surface](v_surf_rst_cv_10_05.png)
+![cdev-surface](v_surf_rst_cv_10_05.png)  
 *Tension: 10 Smooth: 0.5*
-![cdev-surface](v_surf_rst_cv_10_50.png)
+![cdev-surface](v_surf_rst_cv_10_50.png)  
 *Tension: 10 Smooth: 5*
 
 ## REFERENCES
