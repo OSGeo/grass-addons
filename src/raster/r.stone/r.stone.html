@@ -1,0 +1,95 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.stone</em> tries to model tri-dimensional paths
+of stones falling down a DTM.
+
+<p>
+    Input DTM is a square fixed spaced DTM, but it is used
+    as a Triangular Regular Network. Triangles are
+    built on the fly during run-time.
+</p>
+<p>
+    Paths are evaluated using parametric 2nd order equations after
+    a roto-translation of the coordinate system to the run-time
+    triangle.
+</p>
+
+<H3>Example usage</H3>
+<p>
+
+<div class="code">
+    <pre>
+r.stone dem_raster=dem sources_raster=sources nrest_raster=nrest trest_raster=trest friction_raster=friction counters_raster=outcounter stop_vel=1
+    /pre>
+</div>
+
+Where:
+<ul>
+    <li><strong>dem_raster</strong> is the input digital elevation model.</li>
+    <li>
+        <strong>sources_raster</strong> is the input sources raster.
+        <p>
+            This raster is used to define the start and stop points of the rock falls.
+            Positive values indicate the source areas of rock falls, while a value of -1
+            indicates areas where rocks must stop, such as for example a lake.
+        </p>
+    </li>
+    <li>
+        <strong>nrest_raster</strong> is the Normal Elasticity raster map.
+        <p>
+            This raster contains values of normal (vertical) restitution coefficient,
+            used at impact points. Accepted values are from 0 (total energy dumping)
+            to 100 (elastic restitution). Values are expressed in integer percentage.
+        </p>
+    </li>
+    <li>
+        <strong>trest_raster</strong> is the Tangential Elasticity raster map.
+        <p>
+            This raster contains values of tangential (horizontal) restitution coefficient,
+            used at impact points. Accepted values are from 0 (total energy dumping)
+            to 100 (elastic restitution). Values are expressed in integer percentage.
+        </p>
+    </li>
+    <li>
+        <strong>friction_raster</strong> is the Friction raster map.
+        This raster contains values of the rolling friction angle (tan(beta)).
+        <p>Example Frictions:</p>
+        <ul>
+            <li>For alluvial deposits, where the friction is high: beta = 40.4, tan(beta) = 0.85.</li>
+            <li>For bedrock, where the friction is low: beta = 16.7, tan(beta) = 0.30.</li>
+        </ul>
+    </li>
+    <li>
+        <strong>stop_vel</strong> is the parameter used to define the minimum velocity for a rock to be considered at in
+        motion.
+        A velocity lower than the one specified here causes the boulder to stop.
+    </li>
+    <li><strong>counters_raster</strong> is the output raster of the number of stones that passed through a cell.</li>
+</ul>
+
+See the module's manual page for more details.
+</p>
+
+<H3>Sample output</H3>
+<p>
+The following images show the output of the <em>r.stone</em> module.
+</p>
+<p>
+The starting point is a simple, artificially generated DEM and a single source point (plus the elasticity and friction rasters):
+</p>
+<img src="images/dem_source.png" alt="r.stone output" width="600" height="400" />
+<p>
+The counters output raster shows the number of stones that passed through each cell and looks liek the following:
+</p>
+<img src="images/counters.png" alt="r.stone output" width="600" height="400" />
+
+<p>
+    The algorithm is based on the work of Fausto Guzzetti, Giovanni Crosta, Riccardo Detti,
+    Federico Agliardi (2002): STONE: a computer program for the three-dimensional simulation of rock-falls.
+    <em>Computers &amp; Geosciences</em>, 28(9), 1079-1093.
+    <a href="https://doi.org/10.1016/S0098-3004(02)00025-0">https://doi.org/10.1016/S0098-3004(02)00025-0</a>
+</p>
+
+<h2>AUTHOR</h2>
+
+Fausto Guzzetti and Massimiliano Alvioli
