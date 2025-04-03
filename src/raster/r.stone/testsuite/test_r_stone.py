@@ -17,7 +17,7 @@ class TestRSimSediment(TestCase):
     def setUpClass(cls):
         """Set up region, create necessary data"""
 
-        cls.runModule("g.region", n=5151960, s=5151500, e=807140, w=806500, res=10)
+        cls.runModule("g.region", w=-1786670, e=-1786030, n=2463964, s=2463504, res=10)
         cls.runModule(
             "r.unpack",
             flags="o",
