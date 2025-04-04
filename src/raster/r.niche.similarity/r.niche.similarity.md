@@ -23,10 +23,41 @@ column for the D or I statistic.
 ## Notes
 
 This implementation is especially suitable if you are working with very
-large data sets. Results were checked against the niche.overlap function
-in the phyloclim package for R, which also uses the corrected
-formulation of I as published in an erratum of the article by Warren et
-al (2008).
+large data sets. Results were checked against the nicheOverlap function
+in the dismo package for R.
+
+If any of the input maps include NODATA cells, these should normally 
+not be included. The **-m** flag can be set to remove them. This mimics 
+the default behaviour of the 
+[nicheOverlap](https://search.r-project.org/CRAN/refmans/dismo/html/nicheOverlap.html) 
+function in the R dismo package. Alternatively, the user can replace 
+the NODATA with 0 values before running *r.niche.overlap*. 
+
+![](r_niche_similarity.png)
+
+*Figure: with the -m flag set, areas with NODATA in any of the input 
+maps are ignored.*
+
+## EXAMPLE
+
+Create two random rasters
+
+```sh
+# Set region
+g.region rows=18 cols=36 w=10 s=10 res=0.1
+
+# Create rasters r1 and r2
+r.mapcalc 'r1 = rand(0.0,1.0)' seed=0
+r.mapcalc 'r1 = rand(0.0,1.0)' seed=1
+```
+
+Compute the I and D
+
+```sh
+# Create rasters r1 and r2
+r.niche.similarity -i -d maps=r1,r2
+```
+
 
 ## REFERENCES
 
@@ -45,4 +76,9 @@ al (2008).
 
 ## AUTHOR
 
-Paulo van Breugel, paulo at ecodiv.org
+[Paulo van Breugel](https:ecodiv.earth), [HAS green
+academy](https://has.nl), [Innovative Biomonitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
+[Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
+
