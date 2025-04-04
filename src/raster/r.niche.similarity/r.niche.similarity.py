@@ -176,7 +176,7 @@ def main(options, flags):
     # Check if there are more than 1 input maps
     NLAY = len(INMAPS)
     if NLAY < 2:
-        gs.fatal("You need to provide 2 or more raster maps")
+        gs.fatal(_("You need to provide 2 or more raster maps"))
 
     # Write D and I values to standard output and optionally to text file
     Dind = []
@@ -345,8 +345,8 @@ def main(options, flags):
                             "Note that {} or {} contain NODATA cells.\n"
                             "This may result in unexpected outcomes. \n"
                             "Use the -m flag or check the manual page\n"
-                            "for alternatives.".format(nvar1, nvar2)
-                        )
+                            "for alternatives."
+                        ).format(nvar1, nvar2)
                     )
 
             # Set counter i
