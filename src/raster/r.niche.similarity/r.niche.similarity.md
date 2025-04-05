@@ -33,7 +33,8 @@ the default behaviour of the
 function in the R dismo package. Alternatively, the user can replace
 the NODATA with 0 values before running *r.niche.overlap*.
 
-![](r_niche_similarity.png)
+![Illustration of how nodata is handled when the -m flag is
+set](r_niche_similarity.png)
 
 *Figure: with the -m flag set, areas with NODATA in any of the input
 maps are ignored.*
