@@ -26,16 +26,16 @@ This implementation is especially suitable if you are working with very
 large data sets. Results were checked against the nicheOverlap function
 in the dismo package for R.
 
-If any of the input maps include NODATA cells, these should normally 
-not be included. The **-m** flag can be set to remove them. This mimics 
-the default behaviour of the 
-[nicheOverlap](https://search.r-project.org/CRAN/refmans/dismo/html/nicheOverlap.html) 
-function in the R dismo package. Alternatively, the user can replace 
-the NODATA with 0 values before running *r.niche.overlap*. 
+If any of the input maps include NODATA cells, these should normally
+not be included. The **-m** flag can be set to remove them. This mimics
+the default behaviour of the
+[nicheOverlap](https://search.r-project.org/CRAN/refmans/dismo/html/nicheOverlap.html)
+function in the R dismo package. Alternatively, the user can replace
+the NODATA with 0 values before running *r.niche.overlap*.
 
 ![](r_niche_similarity.png)
 
-*Figure: with the -m flag set, areas with NODATA in any of the input 
+*Figure: with the -m flag set, areas with NODATA in any of the input
 maps are ignored.*
 
 ## EXAMPLE
@@ -57,7 +57,6 @@ Compute the I and D
 # Create rasters r1 and r2
 r.niche.similarity -i -d maps=r1,r2
 ```
-
 
 ## REFERENCES
 
@@ -81,4 +80,3 @@ academy](https://has.nl), [Innovative Biomonitoring research
 group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
 [Climate-robust Landscapes research
 group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
-
