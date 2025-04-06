@@ -55,7 +55,6 @@ class Road(object):
     """
 
     def __init__(self, mapa=None):
-
         self.mapa = mapa.split("@")[0]
 
         self.polygon = VectorTopo(self.mapa)

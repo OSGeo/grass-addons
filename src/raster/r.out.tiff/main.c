@@ -56,7 +56,7 @@
 #define MAX_TILE_LENGTH 512
 
 #undef howmany
-#define howmany(x, y) (((x) + ((y)-1)) / (y))
+#define howmany(x, y) (((x) + ((y) - 1)) / (y))
 #define streq(a, b)   (strcmp(a, b) == 0)
 
 unsigned short config = PLANARCONFIG_CONTIG;

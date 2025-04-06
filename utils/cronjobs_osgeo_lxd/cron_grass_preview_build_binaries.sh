@@ -1,46 +1,49 @@
-#!/bin/sh
+#!/bin/bash
 
-# script to build GRASS GIS preview binaries + addons from the `main`
-# (c) GPL 2+ Markus Neteler <neteler@osgeo.org>
-# 2022-2023
+# script to build GRASS GIS preview binaries + addons from the `main` branch
+# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
 ###################################################################
 # how it works:
 # - it updates locally the GRASS source code from github server
-# - configures, compiles
+# - configures source code and then compiles it
 # - packages the binaries
 # - generated the install scripts
 # - generates the programmer's 8 HTML manual
 # - generates the pyGRASS 8 HTML manual
 # - generates the user 8 HTML manuals
 # - injects DuckDuckGo search field
+# - copies over generated manual pages to grass-devel/manuals/
+# - injects in versioned manual the "canonical" to point to "stable" manual (as seen in the Python manual pages)
 
-# Preparations, on server:
-#  - Install PROJ incl Datum shift grids
-#  - Install GDAL
-#  - Install apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
-#  - Clone source from github:
-#    mkdir -p ~/src ; cd ~/src
-#    git clone https://github.com/OSGeo/grass.git main
-#  - Prepare target directories:
-#    cd /var/www/code_and_data/
-#    mkdir grass84
-#    cd /var/www/html/
-#    ln -s /var/www/code_and_data/grass84 .
+# Preparations, on server (neteler@grasslxd:$):
+
+# - install dependencies:
+#     cd $HOME/src/main/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - install further dependencies:
+#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
+# - run this script
+# - one time only: cross-link code into web space on grasslxd server:
+#     cd /var/www/html/
+#     ln -s /var/www/code_and_data/grass85 .
 #
 #################################
-PATH=/home/neteler/binaries/bin:/usr/bin:/bin:/usr/X11R6/bin:/usr/local/bin
+# variables for build environment (grass.osgeo.org specific)
+USER=`id -u -n`
+MAINDIR=/home/$USER
+PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
+# https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=4
+GMINOR=5
 GPATCH="0dev"  # required by grass-addons-index.sh
+BRANCH=main
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
 GVERSION=$GMAJOR
 
-###################
 # fail early
 set -e
 
@@ -49,18 +52,15 @@ CFLAGSSTRING='-O2'
 CFLAGSSTRING='-Werror-implicit-function-declaration -fno-common'
 LDFLAGSSTRING='-s'
 
-#define several paths if required:
-
-MAINDIR=/home/neteler
+# define GRASS GIS build related paths:
 # where to find the GRASS sources (git clone):
 SOURCE=$MAINDIR/src/
-BRANCH=main
 GRASSBUILDDIR=$SOURCE/$BRANCH
 TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# progman compiled below (i.e., only for preview)
+# progman compiled below (i.e., only for preview version)
 # progman not built for older dev versions or old stable
 TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
@@ -79,18 +79,23 @@ halt_on_error()
   exit 1
 }
 
+# function to configure for compilation
 configure_grass()
 {
+# be sure the targetdir exists
+mkdir -p $TARGETDIR
 
-# which package?
-#   --with-mysql --with-mysql-includes=/usr/include/mysql --with-mysql-libs=/usr/lib/mysql \
+# be sure to be on the right branch
+cd $SOURCE/$BRANCH/
+git checkout $BRANCH
 
-# cleanup
+# cleanup from previous run
 rm -f config_$GMAJOR.$GMINOR.git_log.txt
 
 # reset i18N POT files to git, just to be sure
 git checkout locale/templates/*.pot
 
+# configure for compilation
 CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-cxx \
   --with-sqlite \
@@ -105,8 +110,9 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-pdal \
   --with-fftw \
   --with-nls \
-  --with-blas --with-blas-includes=/usr/include/atlas/ \
-  --with-lapack --with-lapack-includes=/usr/include/atlas/ \
+  --with-libsvm \
+  --with-blas \
+  --with-lapack \
   --with-zstd \
   2>&1 | tee config_$DOTVERSION.git_log.txt
 
@@ -115,12 +121,11 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
  fi
 }
 
-######## update from git:
-
+# be sure the directories are there
 mkdir -p $TARGETDIR
 cd $GRASSBUILDDIR/
 
-# clean up
+# clean up from previous run
 touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
@@ -129,31 +134,31 @@ git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
-# be sure to be on branch
+# be sure to be on the right branch
 git checkout $BRANCH
 
 echo "git update..."
 git fetch --all --prune && git checkout $BRANCH && git pull --rebase || halt_on_error "git update error!"
 git status
 
-# for the contributors list in CMS
+# for the "contributors list" in old CMSMS (still needed for hugo?)
+mkdir -p $TARGETMAIN/uploads/grass/
 cp -f *.csv $TARGETMAIN/uploads/grass/
 
-#configure
+# configure for compilation
 echo "configuring"
 configure_grass || (echo "$0: an error occurred" ; exit 1)
 pwd
 ARCH=`cat include/Make/Platform.make | grep ^ARCH | cut -d'=' -f2 | xargs`
 
-########  now GRASS is prepared ####################
-
-#### next compile GRASS:
+########  now GRASS GIS source code is prepared ####################
+#### next compile GRASS, takes a while
 $MYMAKE
 
 
 echo "GRASS $VERSION compilation done"
 
-# now GRASS is prepared ############################################
+########  now GRASS GIS binaries are prepared ####################
 
 #### create module overview (https://trac.osgeo.org/grass/ticket/1203)
 #sh utils/module_synopsis.sh
@@ -166,19 +171,23 @@ $MYMAKE sphinxdoclib
 ##
 echo "Copy over the manual + pygrass HTML pages:"
 mkdir -p $TARGETHTMLDIR
-# don't destroy the addons
+mkdir -p $TARGETHTMLDIR/addons # indeed only relevant the very first compile time
+# don't destroy the addons during update
+rm -rf /tmp/addons
 \mv $TARGETHTMLDIR/addons /tmp
 rm -f $TARGETHTMLDIR/*.*
 (cd $TARGETHTMLDIR ; rm -rf barscales colortables icons northarrows)
 \mv /tmp/addons $TARGETHTMLDIR
 
 cp -rp dist.$ARCH/docs/html/* $TARGETHTMLDIR/
-echo "Copied pygrass progman to http://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
+echo "Copied pygrass progman to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
 
+# search to be improved with mkdocs or similar; for now we use DuckDuckGo
 echo "Injecting DuckDuckGo search field into manual main page..."
 (cd $TARGETHTMLDIR/ ; sed -i -e "s+</table>+</table><\!\-\- injected in cron_grass8_relbranch_build_binaries.sh \-\-> <center><iframe src=\"https://duckduckgo.com/search.html?site=grass.osgeo.org%26prefill=Search%20manual%20pages%20at%20DuckDuckGo\" style=\"overflow:hidden;margin:0;padding:0;width:410px;height:40px;\" frameborder=\"0\"></iframe></center>+g" index.html)
 
-cp -p AUTHORS CHANGES CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR/
+# copy important files to web space
+cp -p AUTHORS CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TARGETDIR/
 
 # clean wxGUI sphinx manual etc
 (cd $GRASSBUILDDIR/ ; $MYMAKE cleansphinx)
@@ -205,7 +214,7 @@ cp -r html/*  $TARGETPROGMAN/
 
 echo "Copied HTML progman to https://grass.osgeo.org/programming${GVERSION}"
 # fix permissions
-chgrp -R grass $TARGETPROGMAN/*
+#chgrp -R grass $TARGETPROGMAN/*
 chmod -R a+r,g+w $TARGETPROGMAN/
 chmod -R a+r,g+w $TARGETPROGMAN/*
 # bug in doxygen
@@ -213,7 +222,8 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 
 # note: from G82+ onwards the gettext POT files are managed in git and OSGeo Weblate
 
-##### generate i18N stats for HTML page path (WebSVN):
+##### generate i18N stats for HTML page path:
+# note: the gettext POT files are managed in git and OSGeo Weblate
 ## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
 cd $GRASSBUILDDIR
 (cd locale/ ;
@@ -232,19 +242,19 @@ cat i18n_stats.txt | grep lib  > i18n_stats_libs.txt
 cat i18n_stats.txt | grep wxpy > i18n_stats_wxpy.txt
 cd $GRASSBUILDDIR
 
-# package the package
+# package the GRASS GIS package
 $MYMAKE bindist
 if [ $? -ne 0 ] ; then
    halt_on_error "make bindist."
 fi
 
-#report system:
+# report system:
 echo "System:
 $ARCH, compiled with:" > grass-$DOTVERSION\_$ARCH\_bin.txt
 ## echo "Including precompiled $GDALVERSION library for r.in.gdal" >> grass-$DOTVERSION\_$ARCH\_bin.txt
 gcc -v 2>&1 | grep -v Reading >> grass-$DOTVERSION\_$ARCH\_bin.txt
 
-# clean old version off
+# clean old version from previous run
 rm -f $TARGETDIR/grass-$DOTVERSION\_$ARCH\_bin.txt
 rm -f $TARGETDIR/grass-${DOTVERSION}*.tar.gz
 rm -f $TARGETDIR/grass-${DOTVERSION}*install.sh
@@ -272,22 +282,22 @@ cd $GRASSBUILDDIR
 # compile addons
 
 # update addon repo (addon repo has been cloned twice on the server to
-#   separate grass7 and grass8 addon compilation)
-(cd ~/src/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
+# have separate grass7 and grass8 addon compilation)
+(cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
 # compile addons
 cd $GRASSBUILDDIR
-sh ~/cronjobs/compile_addons_git.sh $GMAJOR \
+sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
    $GMINOR \
-   ~/src/grass$GMAJOR-addons/src/ \
-   ~/src/$BRANCH/dist.$ARCH/ \
-   ~/.grass$GMAJOR/addons \
-   ~/src/$BRANCH/bin.$ARCH/grass \
+   $SOURCE/grass$GMAJOR-addons/src/ \
+   $SOURCE/$BRANCH/dist.$ARCH/ \
+   $MAINDIR/.grass$GMAJOR/addons \
+   $SOURCE/$BRANCH/bin.$ARCH/grass \
    1
 mkdir -p $TARGETHTMLDIR/addons/
 # copy individual addon html files into one target dir if compiled addon
-# has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
+# has own dir e.g. $MAINDIR/.grass8/addons/db.join/ with bin/ docs/ etc/ scripts/
 # subdir
-for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
+for dir in `find $MAINDIR/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
         if [ "$(ls -A $dir/docs/html/)" ]; then
             for f in $dir/docs/html/*; do
@@ -296,7 +306,8 @@ for dir in `find ~/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
         fi
     fi
 done
-sh ~/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
+sh $MAINDIR/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
+# copy over hamburger menu assets
 cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/hamburger_menu.svg \
    $TARGETHTMLDIR/hamburger_menu_close.svg \
@@ -304,13 +315,13 @@ cp $TARGETHTMLDIR/grass_logo.png \
    $TARGETHTMLDIR/addons/
 chmod -R a+r,g+w $TARGETHTMLDIR 2> /dev/null
 
-# cp logs from ~/.grass$GMAJOR/addons/logs/
+# copy over logs from $MAINDIR/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
-cp -p ~/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
+cp -p $MAINDIR/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-~/src/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec ~/cronjobs/build-xml.py --build ~/.grass$GMAJOR/addons
-cp ~/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
+$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
+cp $MAINDIR/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords
 export ARCH
@@ -319,24 +330,78 @@ export GISBASE=$ARCH_DISTDIR
 export VERSION_NUMBER=$DOTVERSION
 python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/ $TARGETMAIN/grass$GMAJOR$GMINOR/manuals/addons/
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
+############################################
+# Cloning new manual pages into grass-devel/manuals/ (following the Python manual pages concept)
+# - inject canonical URL therein to point to "stable" manual page (avoiding "duplicate content" SEO punishment)
+#   see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+
+TARGETHTMLDIRDEVEL=$TARGETMAIN/grass-devel/manuals/
+mkdir -p $TARGETHTMLDIRDEVEL $TARGETHTMLDIRDEVEL/addons
+# cleanup from previous run
+rm -rf /tmp/addons
+\mv $TARGETHTMLDIRDEVEL/addons /tmp
+rm -f $TARGETHTMLDIRDEVEL/*.*
+(cd $TARGETHTMLDIRDEVEL ; rm -rf barscales colortables icons northarrows)
+# clone manual pages
+cp -rp $TARGETHTMLDIR/* $TARGETHTMLDIRDEVEL/
+
+############################################
+# SEO: inject canonical link into versioned manual pages (e.g, grass85/)
+# - cd back into folder of versioned HTML manual pages
+# - run sed to replace an existing HTML header string in the upper part of the HTML file
+#   with itself + canonical link of devel version
+# --> do this for core manual pages, addons, libpython, recursively
+
+process_files() {
+  local dir="$1"
+  local prefix="$2"
+
+  find "$dir" -type f -name '*.html' | while IFS= read -r myfile; do
+    if ! grep -q 'link rel="canonical"' "$myfile"; then
+      manpage="$prefix$(basename ${myfile})"
+      sed -i -e "s:</head>:<link rel=\"canonical\" href=\"https\://grass.osgeo.org/grass-stable/manuals/$manpage\">\n</head>:g" ${myfile}
+    fi
+  done
+}
+
+cd "$TARGETHTMLDIR"
+process_files "$TARGETHTMLDIR" ""
+process_files "$TARGETHTMLDIR/addons" "addons/"
+process_files "$TARGETHTMLDIR/libpython" "libpython/"
+
+# SEO: inject canonical link into "devel" manual pages (grass-devel/)
+# - cd back into folder of "devel" HTML manual pages
+# - run sed to replace an existing HTML header string in the upper part of the HTML file
+#   with itself + canonical link of grass-stable version
+# --> do this for core manual pages, addons, libpython, recursively
+cd "$TARGETHTMLDIRDEVEL"
+process_files "$TARGETHTMLDIRDEVEL" ""
+process_files "$TARGETHTMLDIRDEVEL/addons" "addons/"
+process_files "$TARGETHTMLDIRDEVEL/libpython" "libpython/"
 
 ############################################
 # create sitemaps to expand the hugo sitemap
 
+# versioned manual:
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/addons/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/addons/ -o
+
+# grass-devel manual:
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass-devel/manuals/ --url=https://grass.osgeo.org/grass-devel/manuals/ -o
+python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass-devel/manuals/addons/ --url=https://grass.osgeo.org/grass-devel/manuals/addons/ -o
 
 ############################################
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null || (echo "$0: an error occurred" ; exit 1)
-rm -rf lib/html/ lib/latex/
+rm -rf lib/html/ lib/latex/ /tmp/addons
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
-echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/"
-echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/"
+echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/ (with canonical in metadata)"
+echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/ (with canonical in metadata)"
+echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/ (with canonical in metadata)"
 echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
-echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/"
+echo "Copied HTML devel manual to https://grass.osgeo.org/grass-devel/manuals/"
 
 exit 0

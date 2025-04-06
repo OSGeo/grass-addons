@@ -1,11 +1,20 @@
 ---
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.11.4
+    hooks:
+      # Run the linter.
+      - id: ruff
+      # Run the formatter.
+      - id: ruff-format
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         exclude: |
           (?x)^(
+                .*\.md$|
                 .*\.ascii$|
                 .*\.ref$|
                 .*\.diff$|
@@ -24,25 +33,20 @@ repos:
                 .*\.svg$
           )
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.33.0
+    rev: v0.44.0
     hooks:
-      - id: markdownlint
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
+      - id: markdownlint-fix
   - repo: https://github.com/pycqa/flake8
-    rev: 3.9.2
+    rev: 7.2.0
     hooks:
       - id: flake8
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v15.0.6
+    rev: v18.1.8
     hooks:
       - id: clang-format
-        types_or: [c, c++, javascript, json, objective-c]
+        exclude_types:
+          - jupyter
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.29.0
+    rev: v1.37.0
     hooks:
       - id: yamllint
-        args: [--format, parsable, --strict, -d,
-               '{extends: default, rules: {truthy: disable, line-length: {max: 120, allow-non-breakable-words: true}}}']

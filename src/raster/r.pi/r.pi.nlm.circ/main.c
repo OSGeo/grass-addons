@@ -102,9 +102,9 @@ void plant(int *buffer, int sx, int sy, int x, int y, int patch)
                     }
                     break;
                 } /* switch */
-            }     /* if */
-        }         /* for x */
-    }             /* for y */
+            } /* if */
+        } /* for x */
+    } /* for y */
 }
 
 void create_patches(int *buffer, int sx, int sy, int patch_count,

@@ -166,7 +166,6 @@ class LongProfile(object):
         """Return"""
         lines = []
         for r_line in vert_segs:
-
             lines.append(self._ras(r_line))
         return lines
 
@@ -282,7 +281,6 @@ class TransProfiles(object):
             self.cols_width_right.append(max_col_right)
 
         for row in transp:
-
             difer = [tran.max_height() - tran.min_height() for tran in row]
             max_height = max(difer) * self.scale
             lim_sup = max([self._get_trans_lim_sup(tran) for tran in row])
@@ -340,7 +338,6 @@ class TransProfiles(object):
                 for k in range(
                     0, int(lim_sup) + 1, int(self.opts1["mark_y_dist"] * self.scale)
                 ):
-
                     labels.append([self.mat_trans[i][j].min_height() + k / self.scale])
                     mark_y.append(
                         Line(
@@ -380,7 +377,6 @@ class TransProfiles(object):
         labels = []
         for i in range(self.cols):
             for j in range(self.opts2["rows"]):
-
                 for k in range(
                     int(self.cols_width_left[i + 1]), 0, -int(self.opts1["mark_x_dist"])
                 ):
@@ -469,7 +465,6 @@ class TransProfiles(object):
         for i, col in enumerate(self.mat_trans):
             for j, tran in enumerate(col):
                 for r_pnt in tran.get_ras_pnts():
-
                     diff = self.cols_width_left[i + 1] - tran.max_left_width()
                     list_pnts.append(
                         Point(

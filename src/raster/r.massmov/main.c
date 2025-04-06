@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
                     }
                 }
             } /* row */
-        }     /* col */
+        } /* col */
 
         G_debug(1, "\nTIMESTEP %i", t);
         G_debug(1, "Volume increment = %f", Vol_in);
@@ -819,10 +819,11 @@ int main(int argc, char *argv[])
                 /* ciclo row-col per calcolare G, P, I, T, Tb */
                 G_debug(2, "Calculating G, P, I, T, Tb");
 
-#pragma omp parallel for private(                                            \
-    row, col, G_x, G_y, I_x, I_y, P_x, P_y, T, vel, T_x, T_y, ddt, Uloop_a,  \
-    Uloop_b, Vloop_a, Vloop_b, vel_b, T_b, T_x_b, T_y_b, Uloop_dt, Vloop_dt, \
-    dt, CFL_u, CFL_v, CFL) shared(dn_loops, CFL_max)
+#pragma omp parallel for private(row, col, G_x, G_y, I_x, I_y, P_x, P_y, T, \
+                                     vel, T_x, T_y, ddt, Uloop_a, Uloop_b,  \
+                                     Vloop_a, Vloop_b, vel_b, T_b, T_x_b,   \
+                                     T_y_b, Uloop_dt, Vloop_dt, dt, CFL_u,  \
+                                     CFL_v, CFL) shared(dn_loops, CFL_max)
                 for (row = 1; row < nrows - 1; row++) {
                     if (exit == 1)
                         continue;
@@ -998,7 +999,7 @@ int main(int argc, char *argv[])
                             }
                         }
                     } /*chiusura FOR cols */
-                }     /*chiusura FOR rows */
+                } /*chiusura FOR rows */
 
                 G_debug(2, "CFL_max=%f", CFL_max);
 
@@ -1044,7 +1045,7 @@ int main(int argc, char *argv[])
                                 m_Hloop_dt[row][col] = 0.0;
 
                         } /*chiusura FOR col */
-                    }     /*chiusura FOR row */
+                    } /*chiusura FOR row */
 
                     for (row = 1; row < nrows - 1; row++) {
                         for (col = 1; col < ncols - 1; col++) {
@@ -1061,7 +1062,7 @@ int main(int argc, char *argv[])
                                         (m_slope[row][col]) * ca);
 
                         } /*chiusura FOR col */
-                    }     /*chiusura FOR row */
+                    } /*chiusura FOR row */
 
                     /* m.b.e */
                     G_debug(2, "Calculating mass balance error");
@@ -1253,7 +1254,7 @@ int main(int argc, char *argv[])
                 }
 
             } /*chiusura IF exit */
-        }     /*chiusura WHILE */
+        } /*chiusura WHILE */
 
         t++;
     } /* chiusura WHILE STOP_count */

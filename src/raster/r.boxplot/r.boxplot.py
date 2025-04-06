@@ -23,11 +23,8 @@
 # %end
 
 # %option G_OPT_R_MAP
-# % key: input
-# % description: input raster
-# % required: yes
-# % label: Input raster
 # % guisection: Input
+# % required: yes
 # %end
 
 # %option G_OPT_R_MAP
@@ -122,7 +119,7 @@
 # %end
 
 # %option
-# % key: bx_sort
+# % key: order
 # % type: string
 # % label: Sort boxplots
 # % description: Sort boxplots based on their median values
@@ -291,16 +288,17 @@ from grass.pygrass.modules import Module
 clean_maps = []
 
 
-def lazy_import_py_modules():
+def lazy_import_py_modules(backend):
     """Lazy import Py modules"""
-    global matplotlib
+    global mpl
     global plt
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        if backend is None:
+            mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -436,8 +434,8 @@ def get_valid_color(color):
     """
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -538,7 +536,7 @@ def get_zonalcolors(zones, labelsids):
     return zones_rgb, txt_rgb
 
 
-def bx_zonal_stats(zones, name, bx_sort):
+def bx_zonal_stats(zones, name, order):
     """Compute the zonal stats to construct the boxplot (and order boxplots)
 
     :param str zones: name of the zonal map
@@ -567,9 +565,9 @@ def bx_zonal_stats(zones, name, bx_sort):
     for zone_id, value in enumerate(quantstats):
         ids.append(zone_id)
         medians.append(float(value[3]))
-    if bx_sort == "descending":
+    if order == "descending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=True)]
-    elif bx_sort == "ascending":
+    elif order == "ascending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=False)]
     else:
         ordered_list = list(range(0, len(quantstats)))
@@ -688,6 +686,7 @@ def compute_outliers(
             output=tmpname,
             rules="-",
             stdin_=recode_rules,
+            quiet=True,
         )
         vectornames.append(tmpvect)
         Module(
@@ -695,6 +694,7 @@ def compute_outliers(
             input=tmpname,
             output=tmpvect,
             type="point",
+            quiet=True,
         )
         Module("g.remove", type="raster", name=tmpname, flags="f")
         if zones:
@@ -903,7 +903,7 @@ def bxp_zones(opt):
 
     # Compute statistics
     quantstats, ordered_list = bx_zonal_stats(
-        opt["zones_raster"], opt["value_raster"], opt["bx_sort"]
+        opt["zones_raster"], opt["value_raster"], opt["order"]
     )
 
     # Change the order of the colors of the boxplots and median to match the
@@ -918,7 +918,6 @@ def bxp_zones(opt):
 
     # Construct per zone the boxplot
     for i in ordered_list:
-
         # Get stats for the ith boxplot
         (
             min_value,
@@ -1127,7 +1126,8 @@ def main(options, flags):
     """
 
     # lazy import matplotlib
-    lazy_import_py_modules()
+    output = options["output"] if options["output"] else None
+    lazy_import_py_modules(output)
 
     # Check if zonal map is an integer map
     if options["zones"]:
@@ -1155,16 +1155,18 @@ def main(options, flags):
 
     # Create new value rasters if there is a mask or the value raster
     # extent and resolution do not match that of the current region
+    mask_present = checkmask()
     if bool(options["zones"]):
-        mask_present = checkmask()
-        valueraster_region = check_regionraster_match(options["input"])
+        valueraster_region = check_regionraster_match(options["map"])
         if mask_present or not valueraster_region:
             value_raster = create_temporary_name("tmpinput")
             Module(
-                "r.mapcalc", expression="{} = {}".format(value_raster, options["input"])
+                "r.mapcalc", expression="{} = {}".format(value_raster, options["map"])
             )
         else:
-            value_raster = options["input"]
+            value_raster = options["map"]
+    else:
+        value_raster = options["map"]
 
     # Create temporary zonal rasters if there is a mask or the zonal raster
     # extent and resolution do not match that of the current region
@@ -1185,7 +1187,7 @@ def main(options, flags):
 
     # Collect options
     base_options = {
-        "value_name": options["input"],
+        "value_name": options["map"],
         "value_raster": value_raster,
         "output": options["output"],
         "outliers": flags["o"],
@@ -1204,7 +1206,6 @@ def main(options, flags):
         "flier_size": int(options["flier_size"]),
         "flier_marker": options["flier_marker"],
         "flier_color": get_valid_color(color=options["flier_color"]),
-        "mask_present": mask_present,
         "median_lw": float(options["median_lw"]),
         "median_color": median_color,
     }
@@ -1216,7 +1217,7 @@ def main(options, flags):
                 "zones_raster": zonal_raster,
                 "show_catnumbers": flags["s"],
                 "bx_zonalcolors": flags["c"],
-                "bx_sort": options["bx_sort"],
+                "order": options["order"],
                 "plot_rast_stats": options["raster_statistics"],
                 "raster_stat_color": raster_stat_color,
                 "raster_stat_alpha": float(options["raster_stat_alpha"]),

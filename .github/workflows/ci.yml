@@ -3,17 +3,26 @@ name: Build and test
 
 on:
   push:
+    branches:
+      - grass[0-9]+
   pull_request:
   schedule:
     # 01:00 Pacific Time (in UTC), every day (late night PT)
     - cron: 0 8 * * *
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-
     runs-on: ubuntu-22.04
-
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
@@ -22,26 +31,30 @@ jobs:
         # only.
         include:
           - grass-version: main
-            python-version: '3.10'
-          - grass-version: releasebranch_8_2
-            python-version: '3.7'
-          - grass-version: releasebranch_8_3
-            python-version: '3.10'
+            python-version: "3.11"
+          - grass-version: releasebranch_8_4
+            python-version: "3.10"
       fail-fast: false
 
     steps:
-
       - name: Checkout core
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
 
       - name: Checkout addons
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           path: grass-addons
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5 # v1.2.17
+        with:
+          create-symlink: true
+          verbose: 2
+          evict-old-files: 7d
+          key: ${{ github.job }}-${{ matrix.grass-version }}-${{ matrix.python-version }}
 
       - name: Get dependencies
         run: |
@@ -51,7 +64,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -62,57 +75,68 @@ jobs:
 
       - name: Create installation directory
         run: |
-          mkdir $HOME/install
+          mkdir "$HOME/install"
 
       - name: Set number of cores for compilation
         run: |
-          echo "MAKEFLAGS=-j$(nproc)" >> $GITHUB_ENV
+          echo "MAKEFLAGS=-j$(nproc)" >> "$GITHUB_ENV"
 
       - name: Set LD_LIBRARY_PATH for GRASS GIS compilation
         run: |
-          echo "LD_LIBRARY_PATH=$HOME/install/lib" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$HOME/install/lib" >> "$GITHUB_ENV"
 
       - name: Build GRASS GIS core
         run: |
           cd grass
-          ../grass-addons/.github/workflows/build_grass.sh $HOME/install
+          ../grass-addons/.github/workflows/build_grass.sh "$HOME/install"
 
       - name: Add the bin directory to PATH
         run: |
-          echo "$HOME/install/bin" >> $GITHUB_PATH
+          echo "$HOME/install/bin" >> "$GITHUB_PATH"
 
       - name: Make simple grass command available (not needed in G8)
         run: |
-          if [ ! -e $HOME/install/bin/grass ] ; then \
-            ln -s $HOME/install/bin/grass*   $HOME/install/bin/grass ; fi
+          if [ ! -e "$HOME/install/bin/grass" ] ; then \
+            ln -s "$HOME"/install/bin/grass* "$HOME"/install/bin/grass ; fi
 
       - name: Build addons
         run: |
           cd grass-addons/src
-          GRASS_INSTALL=$($HOME/install/bin/grass --config | sed -n '4{p;q}')
-          make MODULE_TOPDIR=$GRASS_INSTALL
+          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
+          make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Get extra Python dependencies
         run: |
-          export GDAL_VERSION=$(gdal-config --version)
+          GDAL_VERSION="$(gdal-config --version)"
+          export GDAL_VERSION
+          UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml
+          export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@v2
+        uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
         with:
           r-version: 4.2.1
-
+          Ncpus: 4
+      - name: Configure ccache for R package builds
+        run: |
+          # R package sources are extracted as newly created files
+          echo "CCACHE_SLOPPINESS=include_file_ctime" >> "${GITHUB_ENV}"
+          # R temp directory name differs
+          echo "CCACHE_NOHASHDIR=true" >> "${GITHUB_ENV}"
       - name: Get R dependencies
         run: |
           grass-addons/.github/workflows/install_r_packages.R
 
       - name: Run tests
+        timeout-minutes: 45
         run: |
           cd grass-addons/src
-          ../.github/workflows/test.sh
+          ../.github/workflows/test.sh --config ../.gunittest.cfg
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

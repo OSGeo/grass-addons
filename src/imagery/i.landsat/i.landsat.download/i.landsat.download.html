@@ -1,12 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <em>i.landsat.download</em> allows to search and download Landsat TM, ETM and OLI data
-from USGS <a href="https://earthexplorer.usgs.gov/">EarthExplorer</a> through
-the <a href="https://github.com/yannforget/landsatxplore">landsatxplore</a>
-Python library. Datasets currently supported include
-<a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-1?qt-science_support_page_related_con=1#qt-science_support_page_related_con">Collection 1</a>
-and
-<a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-collection-2?qt-science_support_page_related_con=2#qt-science_support_page_related_con">Collection 2</a>.
+from <a href="https://earthexplorer.usgs.gov/">USGS EarthExplorer</a> and
+<a href="https://planetarycomputer.microsoft.com/">Planetary Computer</a>
+using <a href="https://eodag.readthedocs.io/en/stable/">EODAG</a>
+Python library.
 
 <p>
 Landsat data are organized in tiers: Newly-acquired Landsat scenes are
@@ -26,6 +24,7 @@ The supported Landsat satellites include (see also
   <a href="https://www.usgs.gov/core-science-systems/nli/landsat/landsat-7">Landsat 7 ETM+ SLC-off error</a>
   after May 31, 2003)</li>
 <li>Landsat 8 (OLI): 2013 to present</li>
+<li>Landsat 9 (OLI-2): 2021 to present</li>
 </ul>
 
 The dataset names and IDs are:
@@ -39,20 +38,12 @@ The dataset names and IDs are:
 </thead>
 <tbody>
 <tr>
-<td>Landsat 5 TM Collection 1 Level 1</td>
-<td><code>landsat_tm_c1</code></td>
-</tr>
-<tr>
 <td>Landsat 5 TM Collection 2 Level 1</td>
 <td><code>landsat_tm_c2_l1</code></td>
 </tr>
 <tr>
 <td>Landsat 5 TM Collection 2 Level 2</td>
 <td><code>landsat_tm_c2_l2</code></td>
-</tr>
-<tr>
-<td>Landsat 7 ETM+ Collection 1 Level 1</td>
-<td><code>landsat_etm_c1</code></td>
 </tr>
 <tr>
 <td>Landsat 7 ETM+ Collection 2 Level 1</td>
@@ -63,49 +54,29 @@ The dataset names and IDs are:
 <td><code>landsat_etm_c2_l2</code></td>
 </tr>
 <tr>
-<td>Landsat 8 Collection 1 Level 1</td>
-<td><code>landsat_8_c1</code></td>
-</tr>
-<tr>
 <td>Landsat 8 Collection 2 Level 1</td>
-<td><code>landsat_ot_c2_l1</code></td>
+<td><code>landsat_8_ot_c2_l1</code></td>
 </tr>
 <tr>
 <td>Landsat 8 Collection 2 Level 2</td>
-<td><code>landsat_ot_c2_l2</code></td>
+<td><code>landsat_8_ot_c2_l2</code></td>
+</tr>
+<tr>
+<td>Landsat 9 Collection 2 Level 1</td>
+<td><code>landsat_9_ot_c2_l1</code></td>
+</tr>
+<tr>
+<td>Landsat 9 Collection 2 Level 2</td>
+<td><code>landsat_9_ot_c2_l2</code></td>
 </tr>
 </tbody>
 </table>
 
-<p>
-To connect to EarthExplorer both a <em>user</em> name and a <em>password</em>
-are required. See the <a href="https://ers.cr.usgs.gov/register">register</a>
-page for signing up.
-
-<p>
-<em>i.landsat.download</em> reads the user credentials either from the
-terminal or from the <b>settings</b> file. This file must contain two
-lines:
-
-<div class="code"><pre>
-myusername
-mypassword
-</pre></div>
-
-<p>
-User credentials can be also defined interactively when <b>settings=-</b>
-is given. Note that interactive prompt does not work in the graphical
-user interface.
-
-<div class="code"><pre>
-Insert username: myusername
-Insert password:
-</pre></div>
 
 <p>
 By default, only products which footprint intersects current computation
 region extent (area of interest, AOI) are filtered. The AOI can be optionally
-defined by a vector <b>map</b>. In this case, the vector extent will
+defined by a vector <b>map</b>. In this case, the vector will
 be used as AOI.
 
 <p>
@@ -118,10 +89,74 @@ To download all scenes found within the time frame provided, the user must
 remove the <b>l</b> flag and provide an <b>output</b> directory. Otherwise,
 files will be downloaded into <em>/tmp</em> directory.
 To download only selected scenes, one or more IDs must be provided
-through the <b>id</b> option, along with the <b>settings</b> file and an
-<b>output</b> directory. In addition, a <b>timeout</b> (in seconds)
+through the <b>id</b> option, along with an <b>output</b> directory.
+In addition, a <b>timeout</b> (in seconds)
 can be set to define how long a request should wait for a response before
 aborting (default is 300 seconds).
+
+<h2>NOTES</h2>
+
+<h3>Settings</h3>
+<p>
+<em>i.landsat.download</em> reads the user credentials either from the
+terminal or from the <b>settings</b> file. This file must contain two
+lines in case of USGS provider, or one line in case of Planetary Computer provider.
+
+<p>
+User credentials can be also defined interactively when <b>settings=-</b>
+is given. Note that interactive prompt does not work in the graphical
+user interface.
+
+<p>
+Alternatively, if the settings option is not specified <em>i.landsat.download</em>
+will attempt to use credentials stored in the default EODAG configuration file in
+<code>$HOME/.config/eodag/eodag.yml</code>. Note any parameter set in the configuration
+file, e.g. 'extract' to specify whether to extract the downloaded scenes or not,
+will be used by <em>i.landsat.download</em>, unless overriden by user options.
+<b>Exception:</b> output parameter in EODAG configuration file is not used by <em>i.landsat.download</em>,
+and the default output directory is the current working directory.
+
+<h3>USGS EarthExplorer</h3>
+<p>
+To connect to EarthExplorer both a <em>username</em> and a <em>password</em>
+are required. See the <a href="https://ers.cr.usgs.gov/register">register</a>
+page for signing up.
+
+<p>
+<b>USGS Settings File</b>
+<div class="code"><pre>
+myusername
+mypassword
+</pre></div>
+
+<p>
+<b>USGS Interactive Settings</b>
+<div class="code"><pre>
+Insert username: myusername
+Insert password:
+</pre></div>
+
+
+<h3>Planetary Computer</h3>
+<p>
+Most datasets are anonymously accessible, but a subscription
+key may be needed to
+<a href="https://planetarycomputer.microsoft.com/docs/concepts/sas/#rate-limits-and-access-restrictions">increase rate limits and access private datasets.</a>
+Users can create an account <a href="https://planetarycomputer.microsoft.com/account/request">here</a>,
+and then view their keys by signing in with their Microsoft account
+<a href="https://planetarycomputer.developer.azure-api.net/">here</a>.
+<p>
+<b>Planetary Computer Settings File</b>
+<div class="code"><pre>
+apikey
+</pre></div>
+
+<b>Planetary Computer Interactive Settings</b>
+<div class="code"><pre>
+Insert API key:
+</pre></div>
+Note: to use Plantery Computer anonymously the settings option should not be used.
+
 
 <h2>EXAMPLES</h2>
 
@@ -129,31 +164,32 @@ Search available scenes:
 
 <div class="code"><pre>
 i.landsat.download -l settings=credentials.txt \
-    dataset=landsat_8_c1 clouds=15 \
-    start='2018-08-24' end='2018-12-21'
-<pre></div>
+    dataset=landsat_8_ot_c2_l2 clouds=15 \
+    datasource=usgs start='2018-08-24' end='2018-12-21'
+</pre></div>
 
 Download all available scenes:
 
 <div class="code"><pre>
 i.landsat.download settings=credentials.txt \
-    dataset=landsat_8_c1 clouds=15 \
-    start='2018-08-24' end='2018-12-21' \
+    dataset=landsat_8_ot_c2_l2 clouds=15 \
+    datasource=usgs start='2018-08-24' end='2018-12-21' \
     timeout=600
-<pre></div>
+</pre></div>
 
-Download selected scenes by ID:
+Download selected scenes by ID anonymously from Planetary Computer:
 
 <div class="code"><pre>
-i.landsat.download settings=credentials.txt \
-    id=LC81391162018338LGN00,LC81301172018339LGN00 \
+i.landsat.download datasource=planetary_computer \
+    id=LC09_L2SP_015035_20240529_02_T1,LC09_L2SP_015035_20240614_02_T1 \
     output=/tmp
-<pre></div>
+</pre></div>
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
-    <li><a href="https://github.com/yannforget/landsatxplore">landsatxplore library</a> (install with <code>pip install landsatxplore</code>)</li>
+    <li><a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">EODAG library</a>
+    (install with <code>pip install eodag</code>)</li>
 </ul>
 
 <h2>SEE ALSO</h2>

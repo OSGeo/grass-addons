@@ -7,7 +7,6 @@ from grass.gunittest.main import test
 
 
 class TestPGA(TestCase):
-
     output = "output_demand.csv"
     output_plot = "output_plot.pdf"
     reference_demand = "data/demand.csv"

@@ -58,7 +58,6 @@ class TestRasterWhatCSV(TestCase):
         cls.del_temp_region()
 
     def test_1t(self):
-
         t_rast_whatcsv = SimpleModule(
             "t.rast.whatcsv",
             strds="A",

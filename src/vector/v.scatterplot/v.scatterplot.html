@@ -1,64 +1,63 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.scatterplot</em> draws a scatterplot of the value in one column 
-against the values in another column. There are a few layout 
-options, including the option to set the color of the dots, the color, 
-line type, and width of the trend line, and the font size of the axis 
+<em>v.scatterplot</em> draws a scatterplot of the value in one column
+against the values in another column. There are a few layout
+options, including the option to set the color of the dots, the color,
+line type, and width of the trend line, and the font size of the axis
 and tic labels.
 
 <p>
-Instead of a fixed color, dots can be colored using colors from a 
-user-defined column, or by the spatial density of nearby points, using 
-the option <em>type=density</em>. The spatial density is computed by 
-grouping the points in 2D bins. The number of bins along the x-axis and 
-y-axis is user-defined. The user can select a color map from a list of 
-sequential colormaps and perceptually uniform sequential colormaps. See 
-the matplotlib <a 
-href="https://matplotlib.org/stable/users/explain/colors/colormaps.html"> 
-manual page</a> for details. Use the <b>-r</b> flag to reverse the order of 
-the colors. 
+Instead of a fixed color, dots can be colored using colors from a
+user-defined column, or by the spatial density of nearby points, using
+the option <tt>type=density</tt>. The spatial density is computed by
+grouping the points in 2D bins. The number of bins along the x-axis and
+y-axis is user-defined. The user can select a color map from a list of
+sequential colormaps and perceptually uniform sequential colormaps. See
+the matplotlib <a
+href="https://matplotlib.org/stable/users/explain/colors/colormaps.html">
+manual page</a> for details. Use the <b>-r</b> flag to reverse the
+order of the colors.
 
 <p>
-By default, the resulting plot is displayed on screen (default). 
-However, the user can also save the plot to a file using the 
-<em>file_name</em> option. The format is determined by the extension 
-given by the user. So, if <tt>file_name = outputfile.png</tt>, the plot will be 
-saved as a PNG file.
+By default, the resulting plot is displayed on screen (default).
+However, the user can also save the plot to a file using the
+<b>file_name</b> option. The format is determined by the extension
+given by the user. So, if <tt>file_name = outputfile.png</tt>, the plot
+will be saved as a PNG file.
 
 <p>
-A linear or polynomial trend line with user-defined degrees can be 
-drawn on top of the scatter/density plot. If this option is enables, 
+A linear or polynomial trend line with user-defined degrees can be
+drawn on top of the scatter/density plot. If this option is enables,
 the R2 and trend line equation are printed to the commmand line.
 
 <p>
-A confidence ellipse of the covariance of the two variables can be 
-plotted on top of the scatterplot, following the method described <a 
-href="https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html">here</a>, 
-and using the code described <a 
-href="https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html">here</a>. 
-The radius of the ellipse can be controlled by n_sd which is the number 
-of standard deviations (SD). The default is 2 SD, which results in an 
-ellipse that encloses around 95% of the points. Optionally, separate 
-confidence ellipses can be drawn for groups defined in the column 
-<i>groups</i>. Groups can be assigned a random color, or a color based 
-on the RGB colors in a user-defined column. Note, all records in the 
-group should have the same color.
+A confidence ellipse of the covariance of the two variables can be
+plotted on top of the scatterplot, following the method described <a
+href="https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html">here</a>,
+and using the code described <a
+href="https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html">here</a>.
+The radius of the ellipse can be controlled by <b>n</b> which is the
+number of standard deviations (SD). The default is 2 SD, which results
+in an ellipse that encloses around 95% of the points. Optionally,
+separate confidence ellipses can be drawn for groups defined in the
+column <b>groups</b>. Groups can be assigned a random color, or a color
+based on the RGB colors in a user-defined column. Note, all records in
+the group should have the same color.
 
 <p>
-The user has the option to limit/expand the X-axis (<em>xlim</em>) and 
-Y-axis (<em>ylim</em>). This can e.g., make it easier to compare 
-different plots.
-
+The user has the option to limit/expand the X-axis
+(<b>x_axis_limits</b>) and Y-axis (<b>y_axis_limits</b>). This can
+e.g., make it easier to compare different plots.
 
 <h2>EXAMPLES</h2>
 
 <h3>Example 1</h3>
 
-For the examples below, the NCA sample data set from <a 
-href="https://grass.osgeo.org/download/data/">GRASS GIS website</a> 
+For the examples below, the NCA sample data set from <a
+href="https://grass.osgeo.org/download/data/">GRASS GIS website</a>
 will be used
 
-<p> Create a new mapset and Use the layer 
+<p> Create a new mapset and Use the layer
 <i>lsat7_2002_10@PERMANENT</i> to set the region.
 
 <div class="code"><pre>
@@ -68,7 +67,7 @@ g.region raster=lsat7_2002_10@PERMANENT
 </div>
 
 <p>
-Get the list of Landsat layers from the Permanent mapset. Use this as 
+Get the list of Landsat layers from the Permanent mapset. Use this as
 input for <em>i.pca</em> to create principal component layers.
 
 <div class="code"><pre>
@@ -78,9 +77,9 @@ i.pca -n input=$lcc output=pca rescale=0,100
 </div>
 
 <p>
-Create 5000 random points, retrieve the raster value from the first two 
-PCA layers for each point location of the random points, and write 
-these values to the columns <i>pca_1</i> and <i>pca_2</i> in the 
+Create 5000 random points, retrieve the raster value from the first two
+PCA layers for each point location of the random points, and write
+these values to the columns <i>pca_1</i> and <i>pca_2</i> in the
 attribute table of <i>randompoints</i>.
 
 <div class="code"><pre>
@@ -91,8 +90,8 @@ v.what.rast map=randompoints raster=pca.2 column=pca_2
 </div>
 
 <p>
-Create a scatterplot, plotting the values from the column 
-<i>pca_1</i> on the X-axis and <i>pca_2</i> on the Y-asix, with 
+Create a scatterplot, plotting the values from the column
+<i>pca_1</i> on the X-axis and <i>pca_2</i> on the Y-asix, with
 blue dots.
 
 <div class="code"><pre>
@@ -101,14 +100,14 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 color=blue
 </div>
 
 <p>
-<div align="center" style="margin: 10px"> <a 
-href="v_scatterplot_01.png"> <img src="v_scatterplot_01.png" alt=" 
-Scatterplot of pca_1 against pca_2" border="0"> </a><br> <i>Figure 1. 
+<div align="center" style="margin: 10px"> <a
+href="v_scatterplot_01.png"> <img src="v_scatterplot_01.png" alt="
+Scatterplot of pca_1 against pca_2" border="0"> </a><br> <i>Figure 1.
 Scatterplot of pca_1 against pca_2.</i> </div>
-  
+
 <h3>Example 2</h3>
 
-Create a density scatter of the values from <i>pca_1</i> and 
+Create a density scatter of the values from <i>pca_1</i> and
 <i>pca_2</i>. Add a red dashed polynomial trend line with degree 2.
 
 <div class="code"><pre>
@@ -118,18 +117,18 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 trendline=polynomial \
 </div>
 
 <p>
-<div align="center" style="margin: 10px"> <a 
-href="v_scatterplot_02.png"> <img src="v_scatterplot_02.png" alt=" 
-Density scatterplot of pca_1 against pca_2" border="0"> </a><br> 
-<i>Figure 2. Density scatterplot of pca_1 against pca_2. The dashed red 
+<div align="center" style="margin: 10px"> <a
+href="v_scatterplot_02.png"> <img src="v_scatterplot_02.png" alt="
+Density scatterplot of pca_1 against pca_2" border="0"> </a><br>
+<i>Figure 2. Density scatterplot of pca_1 against pca_2. The dashed red
 line gives the polynomial trend line (R&sup2;=0.149)</i> </div>
 
 <h3>Example 3</h3>
 
-Retrieves raster value from the raster layer <i>landclass96</i>, 
-and write these values to the column <i>landuse</i> in the attribute 
-table of <i>randompoints</i>. Next, transfer the raster colors of the 
-raster layer <i>landclass96</i> to the new column <i>RGB</i> of the 
+Retrieves raster value from the raster layer <i>landclass96</i>,
+and write these values to the column <i>landuse</i> in the attribute
+table of <i>randompoints</i>. Next, transfer the raster colors of the
+raster layer <i>landclass96</i> to the new column <i>RGB</i> of the
 attribute table of <i>randompoints</i>.
 
 
@@ -141,7 +140,7 @@ v.colors map=randompoints use=attr column=landuse \
 </div>
 
 <p>
-Create a scatterplot, using the colors from the RGB column. Set the 
+Create a scatterplot, using the colors from the RGB column. Set the
 size of the dots to 8.
 
 <div class="code"><pre>
@@ -150,21 +149,21 @@ v.scatterplot map=randompoints x=pca_1 y=pca_2 s=8 rgbcolumn=RGB
 </div>
 
 <p>
-<div align="center" style="margin: 10px"> <a 
-href="v_scatterplot_03.png"> <img src="v_scatterplot_03.png" alt=" 
-Scatterplot of pca_1 against pca_1. Colors represent the land use 
-categories in the point locations based on the landclass96 map." 
-border="0"> </a><br> <i>Figure 3. Scatterplot of pca_1 against pca_1. 
-Colors represent the land use categories in the point locations based 
+<div align="center" style="margin: 10px"> <a
+href="v_scatterplot_03.png"> <img src="v_scatterplot_03.png" alt="
+Scatterplot of pca_1 against pca_1. Colors represent the land use
+categories in the point locations based on the landclass96 map."
+border="0"> </a><br> <i>Figure 3. Scatterplot of pca_1 against pca_1.
+Colors represent the land use categories in the point locations based
 on the landclass96 map.</i> </div>
 
 <h3>Example 4</h3>
 
-Rename the PCA layers to remove the dots from the name. Next, use the 
-<a 
-href="https://grass.osgeo.org/grass-stable/manuals/addons/v.what.rast.label.html">v.what.rast.label</a> 
-addon to sample the values of the raster layers <em>pca.1</em> and 
-<em>pca.2</em>, and the values + labels of the <em>landclass96</em>. 
+Rename the PCA layers to remove the dots from the name. Next, use the
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/v.what.rast.label.html">v.what.rast.label</a>
+addon to sample the values of the raster layers <em>pca.1</em> and
+<em>pca.2</em>, and the values + labels of the <em>landclass96</em>.
 Add a column with the landclass colors using <i>v.colors</i>.
 
 <div class="code"><pre>
@@ -178,10 +177,10 @@ v.colors map=randompoints2 use=attr column=landclass96_ID \
 </div>
 
 <p>
-Extract the points with the categories forest (5), water (6) and 
-developed (1). Create a scatterplot of pca_1 against pca_2 and add the 
-2 SD confidence ellipse of the covariance of the two variables for 
-each of the land use categories, coloring both the dots and ellipses 
+Extract the points with the categories forest (5), water (6) and
+developed (1). Create a scatterplot of pca_1 against pca_2 and add the
+2 SD confidence ellipse of the covariance of the two variables for
+each of the land use categories, coloring both the dots and ellipses
 using the landclass colors.
 
 <div class="code"><pre>
@@ -189,15 +188,15 @@ v.extract input=randompoints2 \
           where='landclass96_ID=1 OR landclass96_ID=5 OR landclass96_ID=6' \
           output=forwatdev
 v.scatterplot -e map=forwatdev x=pca_1 y=pca_2 rgbcolumn=RGB s=5  \
-              groups=landclass96 groups_rgb=RGB 
+              groups=landclass96 groups_rgb=RGB
 </pre>
 </div>
 
 <p>
-<div align="center" style="margin: 10px"> <a 
-href="v_scatterplot_04.png"> <img src="v_scatterplot_04.png" 
-alt="v.scatterplot: confidence ellipses per land class" border="0"> 
-</a><br> <i>Figure 4. Scatterplot with confidence ellipses per land 
+<div align="center" style="margin: 10px"> <a
+href="v_scatterplot_04.png"> <img src="v_scatterplot_04.png"
+alt="v.scatterplot: confidence ellipses per land class" border="0">
+</a><br> <i>Figure 4. Scatterplot with confidence ellipses per land
 class.
  The radius of the ellipses is 2 SD.</i>
 </div>
@@ -216,8 +215,6 @@ class.
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel 
+Paulo van Breugel
 Applied Geo-information Sciences
 HAS green academy, University of Applied Sciences
-
-
