@@ -117,15 +117,14 @@
 # % description: Determines which line is the transect perpendicular to
 # % multiple: no
 # % options: trend, line
-# % descriptions: trend;Perpendicular to the line connecting transect points;line;Perpendicular to the particular segment of the original line  (see v.transect for details)
+# % descriptions: trend; Perpendicular to the line connecting transect points. line; Perpendicular to the particular segment of the original line  (see v.transect for details)
 # % answer: trend
+# %end
 
 import sys
 import os
 import atexit
-from collections import defaultdict
 import csv
-import numpy as np
 from statistics import median
 import uuid
 import grass.script as gs
@@ -166,7 +165,7 @@ def create_temporary_name(prefix):
     return tmpf
 
 
-def main(options, flags):
+def main():
 
     # required input
     input = options["input"]
@@ -196,7 +195,7 @@ def main(options, flags):
 
     # check if input file exists
     if not gs.find_file(input)["file"]:
-        gs.fatal(_("Raster map {} not found".format(input)))
+        gs.fatal(_("Raster map {} not found").format(input))
 
     # strip mapset name
     in_name_strip = options["input"].split("@")
@@ -205,7 +204,7 @@ def main(options, flags):
     # create a map containing only the category to replace and NULL
     categorymap = create_temporary_name(f"{in_name}_bin_")
     gs.verbose("Category map: {}".format(categorymap))
-    gs.verbose(_("Extracting category: {}".format(category)))
+    gs.verbose(_("Extracting category: {}").format(category))
 
     gs.run_command(
         "r.mapcalc",
@@ -521,5 +520,6 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
+    options, flags = gs.parser()
     atexit.register(cleanup)
-    sys.exit(main(*gs.parser()))
+    main()
