@@ -166,7 +166,6 @@ def create_temporary_name(prefix):
 
 
 def main():
-
     # required input
     input = options["input"]
     category = int(options["category"])
