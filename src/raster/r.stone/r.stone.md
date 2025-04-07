@@ -53,12 +53,12 @@ The following images show the output of the *r.stone* module.
 The starting point is a simple, artificially generated DEM and a single source
 point (plus the elasticity and friction rasters):
 
-![r.stone output](images/dem_source.png)
+![r.stone output](dem_source.png)
 
 The counters output raster shows the number of stones that passed through each
 cell and looks like the following:
 
-![r.stone output](images/counters.png)
+![r.stone output](counters.png)
 
 The algorithm is based on the work of Fausto Guzzetti, Giovanni Crosta,
 Riccardo Detti, Federico Agliardi (2002): STONE: a computer program for the
