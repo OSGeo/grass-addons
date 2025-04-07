@@ -422,7 +422,7 @@ def main():
     preserve_extracted_files = True
     use_existing_extracted_files = True
     preserve_imported_tiles = gui_k_flag
-    use_existing_imported_tiles = True
+    use_existing_imported_tiles = preserve_imported_tiles
 
     if not work_dir:
         work_dir = get_cache_dir("r_in_usgs")
@@ -898,6 +898,10 @@ def main():
             if gui_product != "naip" and not preserve_extracted_files:
                 cleanup_list.append(t)
             # TODO: unlike the files, we don't compare date with input
+            if not use_existing_imported_tiles:
+                # unique names so that they don't clash when running the tool in parallel
+                LT_layer_name = gs.append_uuid(LT_layer_name)
+
             if use_existing_imported_tiles and map_exists(
                 "raster", LT_layer_name, mapset
             ):
