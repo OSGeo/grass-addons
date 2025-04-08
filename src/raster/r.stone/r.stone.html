@@ -39,12 +39,43 @@ r.rock.stability
 </p>
 
 <h2>EXAMPLE</h2>
+<p>The input parameters of r.stone listed below are all mandatory. Generating a
+map of source locations requires either knowledge of the area, gained through
+field campaigns or aerial photos, or a sound statistical method. A simplistic
+method to estimate the location of sources is to consider locations on steep
+terrain as possible rockfall sources, for example:</p>
 
-<pre><code>
+<pre><code>bash
+g.region rast=dem
+r.slope.aspect –e elevation=dem slope=slope
+r.mapcalc “sources = if(slope&gt;50,10,null())”
+</code></pre>
+
+<p>to simulate 10 trajectories originating from each cell with slope larger
+  than 50 degrees.</p>
+
+<p>Raster maps of friction and restitution coefficients can be generated based
+on geo-lithological knowledge of the area. Assuming a geological map, in
+polygonal vector format, with classes similar to the table below, we generate
+the input raster maps as follows:</p>
+
+<pre><code>bash
+v.db.addcolumn map=geology columns='friction real, nrest integer, vrest integer'
+db.execute sql=”update geology set friction=0.65 where class_id=1”
+db.execute sql=”update geology set friction=0.80 where class_id=2”
+...
+v.to.rast input=geology use=attr attribute_column=friction output=friction
+</code></pre>
+
+<p>And similar operations for nrest and vrest, for all classes present in the
+  geology map. The actual model run is as follows:</p>
+
+<pre><code>bash
 r.stone dem=dem sources=sources_raster nrest=nrest_raster
         trest=trest_raster friction=friction_raster stop_vel=1
         counter=out_counter_raster
 </code></pre>
+
 
 <p>Where:</p>
 

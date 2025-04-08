@@ -29,10 +29,41 @@ meaning.
 
 ## SEE ALSO
 
-[r.rock.stability]
-(<https://grass.osgeo.org/grass85/manuals/addons/r.rock.stability.html>)
+[r.rock.stability](
+  <https://grass.osgeo.org/grass85/manuals/addons/r.rock.stability.html>)
 
 ## EXAMPLE
+
+The input parameters of r.stone listed below are all mandatory. Generating a
+map of source locations requires either knowledge of the area, gained through
+field campaigns or aerial photos, or a sound statistical method. A simplistic
+method to estimate the location of sources is to consider locations on steep
+terrain as possible rockfall sources, for example:
+
+```bash
+g.region rast=dem
+r.slope.aspect –e elevation=dem slope=slope
+r.mapcalc “sources = if(slope>50,10,null())”
+```
+
+to simulate 10 trajectories originating from each cell with slope larger than
+50 degrees.
+
+Raster maps of friction and restitution coefficients can be generated based
+on geo-lithological knowledge of the area. Assuming a geological map, in
+polygonal vector format, with classes similar to the table below, we generate
+the input raster maps as follows:
+
+```bash
+v.db.addcolumn map=geology columns='friction real, nrest integer, vrest integer'
+db.execute sql=”update geology set friction=0.65 where class_id=1”
+db.execute sql=”update geology set friction=0.80 where class_id=2”
+...
+v.to.rast input=geology use=attr attribute_column=friction output=friction 
+```
+
+And similar operations for nrest and vrest, for all classes present in the
+geology map. The actual model run is as follows:
 
 ```bash
 r.stone dem=dem sources=sources_raster nrest=nrest_raster
@@ -49,24 +80,24 @@ Where:
     where rocks must stop, such as for example a lake. Values larger than 1
     trigger the simulation of a corresponding number of randomized trajectories,
     from the same starting point. Null cells have no effect.
-* nrest is the normal restitution raster map.
+* **nrest** is the normal restitution raster map.
   * Contains values of normal (vertical) restitution coefficient, useful at
     impact points. Accepted values are from 0 (total energy dumping) to 100
     (elastic restitution). Values are expressed in integer percentage.
-* trest is the tangential restitution raster map.
+* **trest** is the tangential restitution raster map.
   * Contains values of tangential (horizontal) restitution coefficient, used
     at impact points. Accepted values are from 0 (total energy dumping) to 100
     (elastic restitution). Values are expressed in integer percentage.
-* friction is the Friction raster map.
+* **friction** is the Friction raster map.
   * Contains values of the rolling friction angle (tan(beta)).
     * Example Frictions:
       * For alluvial deposits, where the friction is high: beta = 40.4,
         tan(beta) = 0.85
       * For bedrock, where the friction is low: beta = 16.7, tan(beta) = 0.30
-* stop_vel is the parameter used to define the minimum velocity for a rock to
-  be considered in motion. A velocity lower than the one specified here causes
-  the boulder to stop.
-* counter is the output raster of the number of stones that passed through
+* **stop_vel** is the parameter used to define the minimum velocity for a rock
+  to be considered in motion. A velocity lower than the one specified here
+  causes the boulder to stop.
+* **counter** is the output raster of the number of stones that passed through
   a cell.
 
 The following table, extracted from [1], gives example values of restitution
@@ -128,4 +159,5 @@ Engineering Geology, 293, 106301.
 
 Fausto Guzzetti and Massimiliano Alvioli
 
-Translation from the original code and adaptation to GRASS GIS by Andrea Antonello
+Translation from the original code and adaptation to GRASS GIS
+by Andrea Antonello
