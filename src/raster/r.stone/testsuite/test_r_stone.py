@@ -78,12 +78,12 @@ class TestRSimSediment(TestCase):
 
         self.assertModule(
             "r.stone",
-            dem_raster=self.dem,
-            sources_raster=self.sources,
-            friction_raster=self.friction,
-            nrest_raster=self.nrest,
-            trest_raster=self.trest,
-            counters_raster=self.count,
+            dem=self.dem,
+            sources=self.sources,
+            friction=self.friction,
+            nrest=self.nrest,
+            trest=self.trest,
+            counter=self.count,
             ang_stoch_range=10,
             vrest_stoch_range=10,
             hrest_stoch_range=10,

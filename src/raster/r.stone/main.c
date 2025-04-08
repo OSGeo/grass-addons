@@ -69,14 +69,14 @@ int main(int argc, char *argv[])
     module->description = _("The STONE rockfall module");
 
     inputRaster.demOpt = G_define_standard_option(G_OPT_R_INPUT);
-    inputRaster.demOpt->key = "dem_raster";
+    inputRaster.demOpt->key = "dem";
     inputRaster.demOpt->label = _("Elevation raster map");
     inputRaster.demOpt->description = _("The input elevation raster map");
     inputRaster.demOpt->required = YES;
     inputRaster.demOpt->guisection = _("Input maps");
 
     inputRaster.sourcesOpt = G_define_standard_option(G_OPT_R_INPUT);
-    inputRaster.sourcesOpt->key = "sources_raster";
+    inputRaster.sourcesOpt->key = "sources";
     inputRaster.sourcesOpt->label = _("Start/stop raster map");
     inputRaster.sourcesOpt->description =
         _("The input start/stop integer raster file."
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     inputRaster.sourcesOpt->guisection = _("Input maps");
 
     inputRaster.nrestOpt = G_define_standard_option(G_OPT_R_INPUT);
-    inputRaster.nrestOpt->key = "nrest_raster";
+    inputRaster.nrestOpt->key = "nrest";
     inputRaster.nrestOpt->label = _("Normal Elasticity raster map");
     inputRaster.nrestOpt->description =
         _("Contains values of normal (vertical) restitution coefficient, used "
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     inputRaster.nrestOpt->guisection = _("Input maps");
 
     inputRaster.trestOpt = G_define_standard_option(G_OPT_R_INPUT);
-    inputRaster.trestOpt->key = "trest_raster";
+    inputRaster.trestOpt->key = "trest";
     inputRaster.trestOpt->label = _("Tangential Elasticity raster map");
     inputRaster.trestOpt->description =
         _("Contains values of tangential (horizontal) restitution coefficient, "
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     inputRaster.trestOpt->guisection = _("Input maps");
 
     inputRaster.frictionOpt = G_define_standard_option(G_OPT_R_INPUT);
-    inputRaster.frictionOpt->key = "friction_raster";
+    inputRaster.frictionOpt->key = "friction";
     inputRaster.frictionOpt->label = _("Friction raster map");
     inputRaster.frictionOpt->description =
         _("Contains values of rolling friction angle (tan(beta)), used where "
@@ -200,21 +200,21 @@ int main(int argc, char *argv[])
     params.stopvelOpt->answer = "3.0";
 
     outputRaster.countersOpt = G_define_standard_option(G_OPT_R_OUTPUT);
-    outputRaster.countersOpt->key = "counters_raster";
+    outputRaster.countersOpt->key = "counter";
     outputRaster.countersOpt->description =
         _("The resulting counters raster output map");
     outputRaster.countersOpt->required = YES;
     outputRaster.countersOpt->guisection = _("Output maps");
 
     outputRaster.maxvelOpt = G_define_standard_option(G_OPT_R_OUTPUT);
-    outputRaster.maxvelOpt->key = "maxvel_raster";
+    outputRaster.maxvelOpt->key = "maxvel";
     outputRaster.maxvelOpt->description =
         _("The optional maxvel raster output map");
     outputRaster.maxvelOpt->required = NO;
     outputRaster.maxvelOpt->guisection = _("Output maps");
 
     outputRaster.maxdzOpt = G_define_standard_option(G_OPT_R_OUTPUT);
-    outputRaster.maxdzOpt->key = "maxdz_raster";
+    outputRaster.maxdzOpt->key = "maxdz";
     outputRaster.maxdzOpt->description =
         _("The optional maxdz raster output map");
     outputRaster.maxdzOpt->required = NO;
