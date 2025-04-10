@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
-"""
- MODULE:      i.sentinel3.import
- AUTHOR(S):   Stefan Blumentrath
- PURPOSE:     Import and pre-process Sentinel-3 data from the Copernicus program
- COPYRIGHT:   (C) 2024-202-20255 BY Norwegian Water and Energy Directorate,
-              Stefan Blumentrath, and the GRASS development team
+"""MODULE:      i.sentinel3.import
+AUTHOR(S):   Stefan Blumentrath
+PURPOSE:     Import and pre-process Sentinel-3 data from the Copernicus program
+COPYRIGHT:   (C) 2024-202-20255 BY Norwegian Water and Energy Directorate,
+Stefan Blumentrath, and the GRASS development team
 
-              This program is free software under the GNU General Public
-              License (>=v2). Read the file COPYING that comes with GRASS
-              for details.
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
 """
 
 # %Module
@@ -139,13 +138,6 @@
 # % guisection: Settings
 # %end
 
-# to be implemented
-# # %flag
-# # % key: p
-# # % description: Print raster data to be imported and exit
-# # % guisection: Print
-# # %end
-
 # %flag
 # % key: r
 # % description: Rescale radiance bands to reflectance
@@ -157,25 +149,22 @@
 # # %end
 
 
-# ToDo
+# TODO
 # - implement printing
 # - implement cloud-masking at import
 # - implement elevation import
 # - do not write to temporary file (feed r.in.xyz from stdin)
 # - Add orphaned pixels
-# - parallelize NC conversion
 
+from __future__ import annotations
 
 import atexit
 import json
 import os
 import re
 import sys
-
 from collections import OrderedDict
 from datetime import datetime
-
-# from itertools import chain
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -265,7 +254,7 @@ S3_RADIANCE_ADJUSTMENT = {
             "S5": 1.04,
             "S6": 1.07,
         },
-    }
+    },
 }
 
 S3_BANDS = {
@@ -495,17 +484,21 @@ def cleanup() -> None:
     external = gs.parse_key_val(gs.read_command("r.external.out", flags="p"), sep=": ")
     if "directory" in external:
         for map_file in Path(external["directory"]).glob(
-            f"{TMP_NAME}_*{external['extension']}"
+            f"{TMP_NAME}_*{external['extension']}",
         ):
             if map_file.is_file():
                 map_file.unlink()
 
     gs.run_command(
-        "g.remove", type="raster", pattern=f"{TMP_NAME}_*", flags="f", quiet=True
+        "g.remove",
+        type="raster",
+        pattern=f"{TMP_NAME}_*",
+        flags="f",
+        quiet=True,
     )
 
 
-def np_as_scalar(var):
+def np_as_scalar(var: np.dtype) -> str | int | float:
     """Return a numpy object as scalar."""
     if type(var).__module__ == np.__name__:
         if var.size > 1:
@@ -541,7 +534,7 @@ def get_dtype_range(np_datatype: str) -> dict:
     }
 
 
-def consolidate_metadata_dicts(metadata_dicts):
+def consolidate_metadata_dicts(metadata_dicts: dict) -> dict:
     """Consolidate a list of metadata dictionaries for all input scenes.
 
     Consolidate a list of metadata dictionaries for all
@@ -555,27 +548,26 @@ def consolidate_metadata_dicts(metadata_dicts):
             for meta_key, meta_value in meta_dict.items():
                 if meta_key not in map_metadata_dicts[map_name]:
                     map_metadata_dicts[map_name][meta_key] = meta_value
-                else:
-                    if (
-                        isinstance(map_metadata_dicts[map_name][meta_key], list)
-                        and meta_value not in map_metadata_dicts[map_name][meta_key]
-                    ):
-                        map_metadata_dicts[map_name][meta_key].append(meta_value)
-                    elif meta_value != map_metadata_dicts[map_name][meta_key]:
-                        map_metadata_dicts[map_name][meta_key] = [
-                            map_metadata_dicts[map_name][meta_key],
-                            meta_value,
-                        ]
+                elif (
+                    isinstance(map_metadata_dicts[map_name][meta_key], list)
+                    and meta_value not in map_metadata_dicts[map_name][meta_key]
+                ):
+                    map_metadata_dicts[map_name][meta_key].append(meta_value)
+                elif meta_value != map_metadata_dicts[map_name][meta_key]:
+                    map_metadata_dicts[map_name][meta_key] = [
+                        map_metadata_dicts[map_name][meta_key],
+                        meta_value,
+                    ]
     return map_metadata_dicts
 
 
 def write_metadata(json_dict: dict, metadatajson: str) -> None:
     """Write extended map metadata to JSON file."""
-    with open(metadatajson, "w", encoding="UTF8") as outfile:
+    with Path(metadatajson).open("w", encoding="UTF8") as outfile:
         json.dump(json_dict, outfile)
 
 
-def convert_units(np_column, from_u: str, to_u: str):
+def convert_units(np_column: np.array, from_u: str, to_u: str) -> np.array:
     """Convert units of a numpy array.
 
     Converts a numpy column from one unit to
@@ -587,8 +579,8 @@ def convert_units(np_column, from_u: str, to_u: str):
         gs.fatal(
             _(
                 "Could not import cf_units. Please install it with:\n"
-                "'pip install cf_units'!"
-            )
+                "'pip install cf_units'!",
+            ),
         )
 
     try:
@@ -596,8 +588,9 @@ def convert_units(np_column, from_u: str, to_u: str):
     except ValueError:
         gs.fatal(
             _("Warning: Could not convert units from {from_u} to {to_u}.").format(
-                from_u=from_u, to_u=to_u
-            )
+                from_u=from_u,
+                to_u=to_u,
+            ),
         )
         converted_col = np_column
 
@@ -632,19 +625,20 @@ def adjust_region(region_dict: dict) -> dict:
     )
     region_dict["n"] = (
         region_dict["s"]
-        + np.ceil(((region_dict["n"] + (nsres / 2.0) - region_dict["s"]) / nsres))
-        * nsres
+        + np.ceil((region_dict["n"] + (nsres / 2.0) - region_dict["s"]) / nsres) * nsres
     )
     region_dict["e"] = (
         region_dict["w"]
-        + np.ceil(((region_dict["e"] + (ewres / 2.0) - region_dict["w"]) / ewres))
-        * ewres
+        + np.ceil((region_dict["e"] + (ewres / 2.0) - region_dict["w"]) / ewres) * ewres
     )
     return region_dict
 
 
 def intersect_region(
-    region_current: dict, region_stripe: dict, *, align_current: bool = True
+    region_current: dict,
+    region_stripe: dict,
+    *,
+    align_current: bool = True,
 ) -> dict:
     """Intersect stripe region with current region aligned to resolution and extended for r.in.xyz.
 
@@ -653,7 +647,6 @@ def intersect_region(
     aligned to resolution in ew and ns direction
     starting from the sw-corner
     """
-
     # Remove potential, irrelevant / conflicting dict-keys and convert to float
     relevant_keys = ["n", "s", "e", "w", "nsres", "ewres"]
     region_current = {
@@ -666,14 +659,15 @@ def intersect_region(
     # Choose pixel alignment with stripe or region
     if not align_current:
         region_dict.update(
-            {"nsres": region_stripe["nsres"], "ewres": region_stripe["ewres"]}
+            {"nsres": region_stripe["nsres"], "ewres": region_stripe["ewres"]},
         )
     for direction in "nsew":
         resolution = region_dict["nsres"] if direction in "ns" else region_dict["ewres"]
         if direction in "ne":
             # Get the intersection of the stripe and the current region
             region_dict[direction] = min(
-                region_current[direction], region_stripe[direction]
+                region_current[direction],
+                region_stripe[direction],
             )
             # Align region to required resolution and extend by one pixel for r.in.xyz
             region_dict[direction] = (
@@ -681,12 +675,12 @@ def intersect_region(
             )
         else:
             region_dict[direction] = max(
-                region_current[direction], region_stripe[direction]
+                region_current[direction],
+                region_stripe[direction],
             )
             region_dict[direction] = (
                 np.floor(region_dict[direction] / resolution) * resolution - resolution
             )
-
     return region_dict
 
 
@@ -721,7 +715,7 @@ def parse_s3_file_name(file_name: str) -> dict:
         gs.fatal(_("{} is not a supported Sentinel-3 scene").format(str(file_name)))
 
 
-def extract_file_info(s3_files: list, basename: str = None):
+def extract_file_info(s3_files: list, basename: str = None) -> tuple[str, dict]:
     """Extract information from file name according to naming conventions."""
     result_dict = {}
     product_track_ids = [
@@ -745,10 +739,12 @@ def extract_file_info(s3_files: list, basename: str = None):
             if file_info["mission_id"] != result_dict["mission_id"]:
                 result_dict["mission_id"] = "S3_"
             result_dict["start_time"] = min(
-                result_dict["start_time"], file_info["start_time"]
+                result_dict["start_time"],
+                file_info["start_time"],
             )
             result_dict["end_time"] = max(
-                result_dict["end_time"], file_info["end_time"]
+                result_dict["end_time"],
+                file_info["end_time"],
             )
             for pid in product_track_ids:
                 result_dict[pid].add(file_info[pid])
@@ -757,8 +753,9 @@ def extract_file_info(s3_files: list, basename: str = None):
         if len(result_dict[pid]) > 1:
             gs.warning(
                 _("Merging {key} {values}").format(
-                    key=pid, values=", ".join(result_dict[pid])
-                )
+                    key=pid,
+                    values=", ".join(result_dict[pid]),
+                ),
             )
     if result_dict["mission_id"] == "3_":
         gs.warning(_("Merging Seninel-3A and Seninel-3B data"))
@@ -772,7 +769,7 @@ def extract_file_info(s3_files: list, basename: str = None):
                 result_dict["start_time"].strftime("%Y%m%d%H%M%S"),
                 result_dict["end_time"].strftime("%Y%m%d%H%M%S"),
                 *[list(result_dict[pid])[0] for pid in product_track_ids],
-            ]
+            ],
         )
     return (
         basename,
@@ -780,7 +777,13 @@ def extract_file_info(s3_files: list, basename: str = None):
     )
 
 
-def get_geocoding(zip_file, root, geo_bands_dict, sun_mask=None, region_bounds=None):
+def get_geocoding(
+    zip_file: ZipFile,
+    root: Path,
+    geo_bands_dict: dict,
+    sun_mask: np.array = None,
+    region_bounds: dict = None,
+) -> tuple[dict, np.array, list[int]]:
     """Get ground control points from NetCDF file."""
     member = str(root / geo_bands_dict["nc_file"])
     nc_file_path = zip_file.extract(member, path=TMP_FILE)
@@ -792,12 +795,12 @@ def get_geocoding(zip_file, root, geo_bands_dict, sun_mask=None, region_bounds=N
             if band not in nc_file_open.variables:
                 gs.fatal(
                     _(
-                        "{s3_file} does not contain a container {container} with band {band}"
+                        "{s3_file} does not contain a container {container} with band {band}",
                     ).format(
                         s3_file=str(Path(nc_file_path).parent.name),
                         container=geo_bands_dict["nc_file"],
                         band=", ".join(band),
-                    )
+                    ),
                 )
 
             # Add band to dict
@@ -831,27 +834,26 @@ def get_geocoding(zip_file, root, geo_bands_dict, sun_mask=None, region_bounds=N
             if mask.all():
                 gs.warning(
                     _("No valid pixels inside computational region found in {}").format(
-                        str(zip_file.filename)
-                    )
+                        str(zip_file.filename),
+                    ),
                 )
                 return None, None, None
-
     return nc_bands, mask, resolution
 
 
 def setup_import_multi_module(
-    tmp_ascii,
-    mapname,
-    distance=None,
-    fill_flags=False,
-    zrange=None,
-    val_col=None,
-    data_type=None,
-    method="mean",
-    solar_flux=None,
-    rules=None,
-):
-    """Setup GRASS GIS moduls for importing S3 bands."""
+    tmp_ascii: Path,
+    mapname: str,
+    distance: float = None,
+    fill_flags: str | bool = False,
+    zrange: tuple[float, float] = None,
+    val_col: int = None,
+    data_type: str = None,
+    method: str = "mean",
+    solar_flux: float | None = None,
+    rules: str | None = None,
+) -> list[Module]:
+    """Set up GRASS GIS moduls for importing S3 bands."""
     # Basic import module
     modules = [
         Module(
@@ -873,7 +875,7 @@ def setup_import_multi_module(
             verbose=False,
             quiet=True,
             overwrite=OVERWRITE,
-        )
+        ),
     ]
 
     # Interpolation of missing / empty pixels
@@ -902,7 +904,7 @@ def setup_import_multi_module(
                 quiet=True,
                 overwrite=OVERWRITE,
                 run_=False,
-            )
+            ),
         )
         mapname = mapname_reflectance
     else:
@@ -920,12 +922,12 @@ def setup_import_multi_module(
                 stdin_=rules,
                 separator=":",
                 run_=False,
-            )
+            ),
         )
     return modules
 
 
-def get_file_metadata(nc_dataset) -> dict:
+def get_file_metadata(nc_dataset: Dataset) -> dict:
     """Collect metadata from NetCDF file."""
     metadata = {
         attr: np_as_scalar(nc_dataset.getncattr(attr))
@@ -956,8 +958,13 @@ def get_file_metadata(nc_dataset) -> dict:
 
 
 def get_band_metadata(
-    band_tuple, nc_variable, fmt, file_metadata=None, basename=None, to_celsius=False
-):
+    band_tuple: tuple,
+    nc_variable: np.array,
+    fmt: str,
+    file_metadata: dict = None,
+    basename: str = None,
+    to_celsius: bool = False,
+) -> tuple[dict, str]:
     """Extract band metadata from NetCDF variable."""
     metadata = file_metadata.copy()
     # Collect metadata
@@ -982,8 +989,9 @@ def get_band_metadata(
     if datatype not in DTYPE_TO_GRASS:
         gs.fatal(
             _("Unsupported datatype {dt} in band {band}").format(
-                dt=datatype, band=band_tuple[1]
-            )
+                dt=datatype,
+                band=band_tuple[1],
+            ),
         )
     if datatype in {"uint8", "uint16"}:
         metadata["method"] = "max"  # Unfortunately there is no "mode" in r.in.xyz
@@ -1040,13 +1048,12 @@ def get_band_metadata(
     return metadata, fmt
 
 
-def transform_coordinates(coordinates):
+def transform_coordinates(coordinates: np.array) -> np.array:
     """Tranform coordinates to projection of the current location.
 
     Tranforms a numpy array with coordinates to the
     projection of the current location
     """
-
     # Create source coordinate reference
     s_srs = osr.SpatialReference()
     s_srs.ImportFromEPSG(4326)
@@ -1065,7 +1072,13 @@ def transform_coordinates(coordinates):
     )
 
 
-def write_xyz(tmp_ascii, nc_bands, mask, fmt=None, project=True):
+def write_xyz(
+    tmp_ascii: str,
+    nc_bands: np.array,
+    mask: np.array,
+    fmt: str = None,
+    project: bool = True,
+) -> None:
     """Write temporary XYZ ascii file."""
     # Extract grid coordinates
     lon = np.ma.masked_where(mask, nc_bands["lon"][:]).compressed()
@@ -1074,7 +1087,7 @@ def write_xyz(tmp_ascii, nc_bands, mask, fmt=None, project=True):
     if project:
         # Project coordinates
         np_output = transform_coordinates(
-            np.dstack((lat, lon)).reshape(lat.shape[0], 2)
+            np.dstack((lat, lon)).reshape(lat.shape[0], 2),
         )
     else:
         np_output = np.hstack((lon[:, None], lat[:, None]))
@@ -1086,26 +1099,30 @@ def write_xyz(tmp_ascii, nc_bands, mask, fmt=None, project=True):
         if np.ma.is_masked(add_array):
             add_array = add_array.filled()
         np_output = np.hstack(
-            (np_output, np.ma.masked_where(mask, add_array).compressed()[:, None])
+            (np_output, np.ma.masked_where(mask, add_array).compressed()[:, None]),
         )
 
     # Write to temporary file
-    if Path(tmp_ascii).exists():
-        with open(tmp_ascii, "ab") as tmp_ascii_file:
+    tmp_ascii_path = Path(tmp_ascii)
+    if tmp_ascii_path.exists():
+        with tmp_ascii_path.open("ab", encoding="UTF8") as tmp_ascii_file:
             np.savetxt(tmp_ascii_file, np_output, delimiter=",", fmt=fmt)
     else:
         np.savetxt(tmp_ascii, np_output, delimiter=",", fmt=fmt)
 
-    stripe_reg = {
+    return {
         "n": np.ma.max(np_output[:, 1]),
         "s": np.ma.min(np_output[:, 1]),
         "e": np.ma.max(np_output[:, 0]),
         "w": np.ma.min(np_output[:, 0]),
     }
-    return stripe_reg
 
 
-def import_s3(s3_file: str, kwargs: dict, s3_product: str = None):
+def import_s3(
+    s3_file: str,
+    kwargs: dict,
+    s3_product: str = None,
+) -> tuple[dict, list[str], dict]:
     """Import Sentinel-3 netCDF4 data."""
     # Unpack dictionary variables
     rmap = kwargs["meta_dict"][0]
@@ -1151,6 +1168,7 @@ def import_s3(s3_file: str, kwargs: dict, s3_product: str = None):
                         align_current=False,
                     ),
                 )
+
         for stripe, stripe_dict in s3_product.requested_stripe_content.items():
             # Could be parallelized!!!
             # Get geocoding (lat/lon, elevation) and initial mask
@@ -1183,20 +1201,29 @@ def import_s3(s3_file: str, kwargs: dict, s3_product: str = None):
                 )
                 register_strings.append(register_output)
             stripe_region_dict = write_xyz(
-                tmp_ascii, nc_bands, mask, fmt=fmt, project=True
+                tmp_ascii,
+                nc_bands,
+                mask,
+                fmt=fmt,
+                project=True,
             )
             stripe_region_dict["ewres"] = float(resolution[0])
             stripe_region_dict["nsres"] = float(resolution[1])
-            sun_region_dict_intersect = intersect_region(
-                dict(kwargs["current_reg"]), sun_region_dict, align_current=False
-            )
+
             if kwargs["maximum_solar_angle"]:
+                sun_region_dict_intersect = intersect_region(
+                    dict(kwargs["current_reg"]),
+                    sun_region_dict,
+                    align_current=False,
+                )
+
                 region_dicts[stripe] = intersect_region(
-                    sun_region_dict_intersect, stripe_region_dict, align_current=False
+                    sun_region_dict_intersect,
+                    stripe_region_dict,
+                    align_current=False,
                 )
             else:
                 region_dicts[stripe] = stripe_region_dict
-
     return module_queue, register_strings, region_dicts
 
 
@@ -1208,8 +1235,13 @@ class S3Product:
     """
 
     def __init__(
-        self, product_type, view="n", bands=None, flag_bands=None, anxillary_bands=None
-    ):
+        self,
+        product_type: str,
+        view: str = "n",
+        bands: list[str] | str = None,
+        flag_bands: list[str] | str = None,
+        anxillary_bands: list[str] | str = None,
+    ) -> None:
         """Initialize a Sentinel-3 product."""
         self.product_type = product_type
         self.available_views = S3_VIEWS[product_type]
@@ -1224,17 +1256,18 @@ class S3Product:
         self.bands = self._check_bands(bands)
         self.flag_bands = self._check_bands(flag_bands, band_type="flag_bands")
         self.anxillary_bands = self._check_bands(
-            anxillary_bands, band_type="anxillary_bands"
+            anxillary_bands,
+            band_type="anxillary_bands",
         )
         self.grids = S3_GRIDS[product_type]
         self.requested_stripe_content = self._collect_requested_stripe_content()
         self.file_pattern = S3_FILE_PATTERN[product_type]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return Sentinel-3 product information as JSON."""
         return json.dumps(self.__repr__(), indent=2)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return Sentinel-3 product information as JSON."""
         class_dict = self.__dict__.copy()
         for band_type in ["bands", "flag_bands", "anxillary_bands"]:
@@ -1249,17 +1282,22 @@ class S3Product:
             )
         return json.dumps(class_dict, indent=2)
 
-    def _check_view(self, view):
+    def _check_view(self, view: str) -> str:
         """Check requested Satellite view to process."""
         if view not in self.available_views:
             gs.warning(
                 _("View {} not available for product type {}").format(
-                    view, self.product_type
-                )
+                    view,
+                    self.product_type,
+                ),
             )
         return view
 
-    def _check_bands(self, bands, band_type="bands"):
+    def _check_bands(
+        self,
+        bands: list[str] | str,
+        band_type: str = "bands",
+    ) -> list[S3Band]:
         """Check requested Satellite bands to process."""
         band_types = {
             "bands": self.available_bands,
@@ -1279,13 +1317,14 @@ class S3Product:
             if band not in band_types[band_type]:
                 gs.warning(
                     _("Band {0} is not available in product_type {1}").format(
-                        band, self.product_type
-                    )
+                        band,
+                        self.product_type,
+                    ),
                 )
             band_objects[band] = S3Band(self.product_type, band, use_b=False, view="n")
         return band_objects
 
-    def _collect_requested_stripe_content(self):
+    def _collect_requested_stripe_content(self) -> dict:
         """Collect requested stripe content."""
         suffixes = {}
         for band_type in ["bands", "flag_bands", "anxillary_bands"]:
@@ -1323,16 +1362,16 @@ class S3Product:
 
     def process_nc_file(
         self,
-        zip_file,
-        root,
-        container_dict_items,
-        nc_bands,
-        prefix,
-        module_queue,
-        module_flags,
-        tmp_ascii,
-        fmt=None,
-    ):
+        zip_file: ZipFile,
+        root: Path,
+        container_dict_items: tuple,
+        nc_bands: list,
+        prefix: str,
+        module_queue: dict,
+        module_flags: dict,
+        tmp_ascii: str,
+        fmt: str = None,
+    ) -> tuple[list, dict, dict, str]:
         """Extract requested bands as numpy arrays from NetCDF file and setup import modules."""
         meta_information = {}
         member = str(root / container_dict_items[0])
@@ -1356,12 +1395,12 @@ class S3Product:
                 if band.full_name not in nc_file_open.variables:
                     gs.fatal(
                         _(
-                            "{s3_file} does not contain a container {container} with band {band}"
+                            "{s3_file} does not contain a container {container} with band {band}",
                         ).format(
                             s3_file=str(root),
                             container=band.nc_file,
                             band=", ".join(band.full_name),
-                        )
+                        ),
                     )
 
                 nc_variable = nc_file_open[band.full_name]
@@ -1416,12 +1455,12 @@ class S3Product:
                                 [
                                     str(nc_file_open[band.full_name].flag_masks[idx]),
                                     label,
-                                ]
+                                ],
                             )
                             for idx, label in enumerate(
-                                nc_file_open[band.full_name].flag_meanings.split(" ")
+                                nc_file_open[band.full_name].flag_meanings.split(" "),
                             )
-                        ]
+                        ],
                     )
                 # Setup import modules
                 fill_flags = "m"
@@ -1452,7 +1491,7 @@ class S3Product:
                         a: np_as_scalar(nc_file_open.getncattr(a))
                         for a in nc_file_open.ncattrs()
                     },
-                    **{"variable": band.full_name},
+                    "variable": band.full_name,
                     **{
                         a: np_as_scalar(nc_file_open[band.full_name].getncattr(a))
                         for a in nc_file_open[band.full_name].ncattrs()
@@ -1462,8 +1501,14 @@ class S3Product:
             return nc_bands, module_queue, meta_information, fmt
 
     def get_sun_parameters(
-        self, zip_file, root, prefix, tmp_ascii, region_bounds, maximum_solar_angle=None
-    ):
+        self,
+        zip_file: ZipFile,
+        root: Path,
+        prefix: str,
+        tmp_ascii: str,
+        region_bounds: dict,
+        maximum_solar_angle: float = None,
+    ) -> tuple[dict, dict, dict]:
         """Extract sun parameters from S3 SLSTR product.
 
         Oriented on:
@@ -1476,8 +1521,8 @@ class S3Product:
         member = str(
             root
             / S3_SUN_PARAMTERS[self.product_type]["sun_bands"]["nc_file"].format(
-                self.view
-            )
+                self.view,
+            ),
         )
         nc_file_path = zip_file.extract(member, path=TMP_FILE)
         with Dataset(nc_file_path) as sun_parameter_nc:
@@ -1536,7 +1581,7 @@ class S3Product:
                         a: np_as_scalar(sun_parameter_nc.getncattr(a))
                         for a in sun_parameter_nc.ncattrs()
                     },
-                    **{"variable": band},
+                    "variable": band,
                     **{
                         a: np_as_scalar(sun_parameter_nc[band].getncattr(a))
                         for a in sun_parameter_nc[band].ncattrs()
@@ -1545,11 +1590,18 @@ class S3Product:
 
             # Write to temporary file
             sun_region_dict = write_xyz(
-                tmp_ascii, nc_bands, mask, fmt=fmt, project=True
+                tmp_ascii,
+                nc_bands,
+                mask,
+                fmt=fmt,
+                project=True,
             )
-            sun_region_dict["ewres"], sun_region_dict["nsres"] = float(
-                resolution[0]
-            ), float(resolution[1])
+            sun_region_dict["ewres"], sun_region_dict["nsres"] = (
+                float(
+                    resolution[0],
+                ),
+                float(resolution[1]),
+            )
 
         return import_modules, meta_information, sun_region_dict
 
@@ -1559,12 +1611,13 @@ class S3Band:
 
     def __init__(
         self,
-        product_type,
-        band_id,
-        use_b=False,
-        view="n",
-        radiance_adjustment="S3_PN_SLSTR_L1_08",
-    ):
+        product_type: str,
+        band_id: str,
+        use_b: bool = False,
+        view: str = "n",
+        radiance_adjustment: str = "S3_PN_SLSTR_L1_08",
+    ) -> None:
+        """Initialize a Sentinel-3 band."""
         self.band_id = band_id
         self.band_type = self._get_band_type(product_type)
         # Need to call in this order
@@ -1575,24 +1628,25 @@ class S3Band:
         self.exception = self._get_exception_band(product_type)
         self.nc_file = self._get_nc_file(product_type)
         self.radiance_adjustment = self._get_radiance_adjustment(
-            radiance_adjustment, view
+            radiance_adjustment,
+            view,
         )
         self.solar_flux = self._get_solar_flux_dict_for_band(product_type)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return json.dumps(self.__repr__(), indent=2)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return json.dumps(self.__dict__, indent=2)
 
-    def _get_band_type(self, product_type):
+    def _get_band_type(self, product_type: str) -> str | None:
         for band_type, s3_bands in S3_BANDS.items():
             if self.band_id in s3_bands[product_type]:
                 return band_type
         gs.fatal(_("Oh no"))
         return None
 
-    def _get_geometry(self, product_type, use_b):
+    def _get_geometry(self, product_type: str, use_b: bool) -> str:
         band_dict = S3_BANDS[self.band_type][product_type][self.band_id]
         return (
             "b"
@@ -1600,7 +1654,7 @@ class S3Band:
             else band_dict["geometries"][0]
         )
 
-    def _get_full_name(self, product_type):
+    def _get_full_name(self, product_type: str) -> str:
         band_dict = S3_BANDS[self.band_type][product_type][self.band_id]
         types = band_dict["types"]
         if self.band_type != "bands":
@@ -1609,7 +1663,7 @@ class S3Band:
             return band_dict["full_name"].format(self.band_id, types, self.suffix)
         return band_dict["full_name"].format(self.band_id, self.suffix)
 
-    def _get_nc_file(self, product_type):
+    def _get_nc_file(self, product_type: str) -> str:
         band_dict = S3_BANDS[self.band_type][product_type][self.band_id]
         types = band_dict["types"]
         if self.band_type == "flags":
@@ -1618,21 +1672,25 @@ class S3Band:
             return band_dict["nc_file"].format(self.band_id, types, self.suffix)
         return band_dict["nc_file"].format(self.band_id, self.suffix)
 
-    def _get_radiance_adjustment(self, radiance_adjustment, view):
+    def _get_radiance_adjustment(
+        self,
+        radiance_adjustment: str,
+        view: str,
+    ) -> float | None:
         if radiance_adjustment not in S3_RADIANCE_ADJUSTMENT:
             gs.fatal("Missing information on radiance adjustment")
         if self.band_id in S3_RADIANCE_ADJUSTMENT[radiance_adjustment][view]:
             return S3_RADIANCE_ADJUSTMENT[radiance_adjustment][view][self.band_id]
         return None
 
-    def _get_exception_band(self, product_type):
+    def _get_exception_band(self, product_type: str) -> dict | None:
         if "exception" in S3_BANDS[self.band_type][product_type][self.band_id]:
             return S3_BANDS[self.band_type][product_type][self.band_id][
                 "exception"
             ].format(self.band_id, "exception", self.suffix)
         return None
 
-    def _get_solar_flux_dict_for_band(self, product_type):
+    def _get_solar_flux_dict_for_band(self, product_type: str) -> dict | None:
         if (
             S3_SOLAR_FLUX[product_type]
             and self.band_id in S3_SOLAR_FLUX[product_type]["defaults"]
@@ -1640,10 +1698,12 @@ class S3Band:
             return {
                 "default": S3_SOLAR_FLUX[product_type]["defaults"][self.band_id],
                 "band": S3_SOLAR_FLUX[product_type]["band"].format(
-                    self.band_id, self.suffix
+                    self.band_id,
+                    self.suffix,
                 ),
                 "nc_file": S3_SOLAR_FLUX[product_type]["nc_file"].format(
-                    self.band_id, self.suffix
+                    self.band_id,
+                    self.suffix,
                 ),
             }
         return None
@@ -1676,7 +1736,7 @@ class S3Band:
             "elevation": f"elevation_{suffix}",
         }
 
-    def adjust_radiance(self, np_band_array):
+    def adjust_radiance(self, np_band_array: np.array) -> np.array:
         """Get radiance adjustment for band object."""
         if not self.radiance_adjustment:
             return np_band_array * self.radiance_adjustment
@@ -1687,10 +1747,12 @@ def get_solar_angle_bounds(region_bounds: dict, sun_region_dict: dict) -> dict:
     """Get latlon coordinates of bounds in solar angle bands."""
     solar_bounds = gs.parse_command("g.region", flags="ugl", **sun_region_dict)
     solar_bounds["ll_n"] = max(
-        float(solar_bounds["nw_lat"]), float(solar_bounds["ne_lat"])
+        float(solar_bounds["nw_lat"]),
+        float(solar_bounds["ne_lat"]),
     )
     solar_bounds["ll_s"] = min(
-        float(solar_bounds["sw_lat"]), float(solar_bounds["se_lat"])
+        float(solar_bounds["sw_lat"]),
+        float(solar_bounds["se_lat"]),
     )
     if solar_bounds["ll_n"] < float(region_bounds["ll_n"]):
         region_bounds["ll_n"] = solar_bounds["ll_n"]
@@ -1702,7 +1764,7 @@ def get_solar_angle_bounds(region_bounds: dict, sun_region_dict: dict) -> dict:
 def main() -> None:
     """Do the main work."""
     pattern = re.compile(
-        ".*" + S3_FILE_PATTERN[options["product_type"]].replace("*", ".*")
+        ".*" + S3_FILE_PATTERN[options["product_type"]].replace("*", ".*"),
     )
 
     # check provided input
@@ -1713,8 +1775,8 @@ def main() -> None:
         except ValueError:
             gs.fatal(
                 _(
-                    "Input <{}> is neither a supported Sentinel-3 scene nor a text file with scenes"
-                ).format(options["input"])
+                    "Input <{}> is neither a supported Sentinel-3 scene nor a text file with scenes",
+                ).format(options["input"]),
             )
 
     if not s3_files:
@@ -1728,13 +1790,16 @@ def main() -> None:
         if not re.match(pattern, s3_scene.name):
             gs.fatal(
                 _(
-                    "Input <{sn}> is not a supported Sentinel-3 scene for the requested product type <{pt}>"
-                ).format(sn=s3_scene, pt=options["product_type"])
+                    "Input <{sn}> is not a supported Sentinel-3 scene for the requested product type <{pt}>",
+                ).format(sn=s3_scene, pt=options["product_type"]),
             )
 
     if flags["d"]:
         global DTYPE_TO_GRASS
         DTYPE_TO_GRASS["float64"] = "DCELL"
+
+    solar_bands = S3_SUN_PARAMTERS[options["product_type"]]
+    solar_bands = solar_bands.get("sun_bands").get("bands") if solar_bands else {}
 
     s3_product = S3Product(
         options["product_type"],
@@ -1766,27 +1831,6 @@ def main() -> None:
         else None,
     }
 
-    # if flags["p"]:
-    #     print(
-    #         "|".join(
-    #             [
-    #                 "product_file_name",
-    #                 "nc_file_name",
-    #                 "nc_file_title",
-    #                 "nc_file_start_time",
-    #                 "nc_file_creation_time",
-    #                 "band",
-    #                 "band_shape",
-    #                 "band_title",
-    #                 "band_standard_name",
-    #                 "band_long_name",
-    #             ]
-    #         )
-    #     )
-    #     print("\n".join(chain(*import_result)))
-    #     cleanup()
-    #     return 0
-
     module_queues = []
     register_strings = []
     region_dicts = {}
@@ -1795,7 +1839,9 @@ def main() -> None:
     for s3_file in s3_files:
         gs.verbose(_("Preparing scene {} for import").format(s3_file.name))
         module_list, register_string, region_dict = import_s3(
-            s3_file, import_dict, s3_product=s3_product
+            s3_file,
+            import_dict,
+            s3_product=s3_product,
         )
         if module_list is not None:
             module_queues.append(module_list)
@@ -1810,20 +1856,33 @@ def main() -> None:
                     else:
                         extend_region(region_dicts[stripe_id], region)
     if not module_queues:
-        gs.warning(_("Nothing to import with the given input"))
+        gs.warning(_("Nothing to import with the given input."))
         sys.exit(0)
     stripe_envs = {}
     for stripe_id, stripe_region in region_dicts.items():
         stripe_env = os.environ.copy()
+        if (
+            stripe_region["s"] >= stripe_region["n"]
+            or stripe_region["w"] >= stripe_region["e"]
+        ):
+            gs.warning(
+                _(
+                    "No valid data found in data stripe {}.\n"
+                    "Nothing to import with the given input."
+                ).format(stripe_id),
+            )
+            sys.exit(0)
+
         if flags["n"]:
             stripe_env["GRASS_REGION"] = gs.region_env(**adjust_region(stripe_region))
         else:
+            stripe_region_dict = intersect_region(
+                dict(current_region),
+                stripe_region,
+                align_current=stripe_id != "sun_parameters",
+            )
             stripe_env["GRASS_REGION"] = gs.region_env(
-                **intersect_region(
-                    dict(current_region),
-                    stripe_region,
-                    align_current=stripe_id != "sun_parameters",
-                )
+                **stripe_region_dict,
             )
         stripe_envs[stripe_id] = stripe_env
 
@@ -1831,7 +1890,7 @@ def main() -> None:
         gs.verbose(_("Importing solar parameter bands"))
         queue = ParallelModuleQueue(nprocs)
         compute_env = stripe_envs["sun_parameters"]
-        for solar_parameter in ("solar_azimuth", "solar_zenith"):
+        for solar_parameter in solar_bands:
             module_list = []
             for solar_module in module_queues[0][solar_parameter]:
                 solar_module.env_ = compute_env
@@ -1845,12 +1904,12 @@ def main() -> None:
 
     gs.verbose(
         _("Importing scenes {}").format(
-            "\n" + "\n".join([s3_file.name for s3_file in s3_files])
-        )
+            "\n" + "\n".join([s3_file.name for s3_file in s3_files]),
+        ),
     )
     queue = ParallelModuleQueue(nprocs)
     for band_id, modules in module_queues[0].items():
-        if band_id in {"solar_azimuth", "solar_zenith"}:
+        if band_id in solar_bands:
             continue
         # S3SL2LST product has only "in" stripe and band names have no suffix
         if band_id[-2:] not in stripe_envs:
@@ -1874,9 +1933,13 @@ def main() -> None:
             mapname if not flags["r"] else mapname.replace("radiance", "reflectance")
         )
         if not gs.raster_info(mapname)["max"]:
-            gs.warning(("Raster map {} is empty. Removing...").format(mapname))
+            gs.warning(f"Raster map {mapname} is empty. Removing...")
             gs.run_command(
-                "g.remove", type="raster", name=mapname, flags="f", quiet=True
+                "g.remove",
+                type="raster",
+                name=mapname,
+                flags="f",
+                quiet=True,
             )
             continue
         metadata["semantic_label"] = (
@@ -1890,7 +1953,10 @@ def main() -> None:
         # Write extended metadata if requested
         if flags["j"]:
             json_standard_folder = Path(GISENV["GISDBASE"]).joinpath(
-                GISENV["LOCATION_NAME"], GISENV["MAPSET"], "cell_misc", mapname
+                GISENV["LOCATION_NAME"],
+                GISENV["MAPSET"],
+                "cell_misc",
+                mapname,
             )
             if not json_standard_folder.exists():
                 json_standard_folder.mkdir(parents=True, exist_ok=True)
@@ -1935,27 +2001,29 @@ def main() -> None:
                             [
                                 grass_timestamp(meta_info_dict[1]["start_time"]),
                                 grass_timestamp(meta_info_dict[1]["end_time"]),
-                            ]
+                            ],
                         ),
                         quiet=True,
                         run_=False,
                     ),
-                ]
-            )
+                ],
+            ),
         )
         t_register_strings.append(
             "|".join(
                 [
                     f"{mapname}@{GISENV['MAPSET']}",
                     meta_info_dict[1]["start_time"].isoformat(
-                        sep=" ", timespec="seconds"
+                        sep=" ",
+                        timespec="seconds",
                     ),
                     meta_info_dict[1]["end_time"].isoformat(
-                        sep=" ", timespec="seconds"
+                        sep=" ",
+                        timespec="seconds",
                     ),
                     metadata["semantic_label"],
-                ]
-            )
+                ],
+            ),
         )
     queue.wait()
 
@@ -1963,10 +2031,11 @@ def main() -> None:
     t_register_strings = "\n".join(t_register_strings) if t_register_strings else ""
     if options["register_output"]:
         gs.verbose(
-            _("Writing register file <{}>...").format(options["register_output"])
+            _("Writing register file <{}>...").format(options["register_output"]),
         )
         Path(options["register_output"]).write_text(
-            t_register_strings + "\n", encoding="UTF8"
+            t_register_strings + "\n",
+            encoding="UTF8",
         )
     else:
         print(t_register_strings)
@@ -1982,8 +2051,8 @@ if __name__ == "__main__":
         gs.fatal(
             _(
                 "Could not import dateutil. Please install it with:\n"
-                "'pip install dateutil'!"
-            )
+                "'pip install dateutil'!",
+            ),
         )
     try:
         from osgeo import osr
@@ -1991,7 +2060,7 @@ if __name__ == "__main__":
         osr.UseExceptions()
     except ImportError:
         gs.fatal(
-            _("Could not import gdal. Please install it with:\n'pip install GDAL'!")
+            _("Could not import gdal. Please install it with:\n'pip install GDAL'!"),
         )
 
     try:
@@ -2000,8 +2069,8 @@ if __name__ == "__main__":
         gs.fatal(
             _(
                 "Could not import netCDF4. Please install it with:\n"
-                "'pip install netcdf4'!"
-            )
+                "'pip install netcdf4'!",
+            ),
         )
 
     try:
@@ -2009,9 +2078,8 @@ if __name__ == "__main__":
     except ImportError:
         gs.fatal(
             _(
-                "Could not import numpy. Please install it with:\n"
-                "'pip install numpy'!"
-            )
+                "Could not import numpy. Please install it with:\n'pip install numpy'!",
+            ),
         )
 
     atexit.register(cleanup)
