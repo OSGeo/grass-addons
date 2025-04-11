@@ -1105,7 +1105,7 @@ def write_xyz(
     # Write to temporary file
     tmp_ascii_path = Path(tmp_ascii)
     if tmp_ascii_path.exists():
-        with tmp_ascii_path.open("ab", encoding="UTF8") as tmp_ascii_file:
+        with tmp_ascii_path.open("ab") as tmp_ascii_file:
             np.savetxt(tmp_ascii_file, np_output, delimiter=",", fmt=fmt)
     else:
         np.savetxt(tmp_ascii, np_output, delimiter=",", fmt=fmt)
