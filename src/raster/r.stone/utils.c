@@ -113,7 +113,7 @@ void print_double_array(const char *label, double *darray, int size)
                            darray[i]);
 
         // Check for buffer overflow
-        if (offset >= sizeof(buffer)) {
+        if ((size_t)offset >= sizeof(buffer)) {
             G_debug(4, "Error: Debug string too long");
             return;
         }
@@ -232,15 +232,15 @@ void print_runtimeParams(runtimeParams *params)
     G_message("\t-> gdStocHel2R: %f", params->gdStocHel2R);
     G_message("\t-> gdStocFrict2R: %f", params->gdStocFrict2R);
 
-    G_message("\t-> gplQuota: %p", params->gplQuota);
-    G_message("\t-> gplStartStop: %p", params->gplStartStop);
-    G_message("\t-> gplFrict: %p", params->gplFrict);
-    G_message("\t-> gplCountStones: %p", params->gplCountStones);
-    G_message("\t-> gplVelo: %p", params->gplVelo);
-    G_message("\t-> gplMaxQuota: %p", params->gplMaxQuota);
-    G_message("\t-> gplStartVel: %p", params->gplStartVel);
-    G_message("\t-> gpcVElas: %p", params->gpcVElas);
-    G_message("\t-> gpcHElas: %p", params->gpcHElas);
+    G_message("\t-> gplQuota: %p", (void *)params->gplQuota);
+    G_message("\t-> gplStartStop: %p", (void *)params->gplStartStop);
+    G_message("\t-> gplFrict: %p", (void *)params->gplFrict);
+    G_message("\t-> gplCountStones: %p", (void *)params->gplCountStones);
+    G_message("\t-> gplVelo: %p", (void *)params->gplVelo);
+    G_message("\t-> gplMaxQuota: %p", (void *)params->gplMaxQuota);
+    G_message("\t-> gplStartVel: %p", (void *)params->gplStartVel);
+    G_message("\t-> gpcVElas: %p", (void *)params->gpcVElas);
+    G_message("\t-> gpcHElas: %p", (void *)params->gpcHElas);
 }
 
 void print_uniData(UniSave *uniData)

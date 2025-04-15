@@ -134,8 +134,8 @@ typedef struct {
     short gsKernel9[9];
 } runtimeParams;
 
-int NewPlane(typeParams *stoneRunParams, runtimeParams *stoneRunTimeParams,
-             globalParams *stoneGlobalParams, P3d *cp, MathContext *ctx);
+int NewPlane(runtimeParams *stoneRunTimeParams, globalParams *stoneGlobalParams,
+             P3d *cp, MathContext *ctx);
 long Pivot(globalParams *gParams, double X, double Y);
 void RoundP3d(P3d *p);
 void Filter();
@@ -143,9 +143,7 @@ void MarkVelo();
 void MarkPath();
 void MarkQuota();
 void WritePath(runtimeParams *rtParams, typeParams *tParams,
-               globalParams *gParams, StoneStatus status);
-void WriteFile3d(StoneStatus status);
-void WriteFiles2d();
+               globalParams *gParams);
 void PivToXY(long piv, double *X, double *Y);
 double P3dDist2(P3d *p1, P3d *p2);
 double RoundDouble(double d);
