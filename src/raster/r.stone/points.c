@@ -21,15 +21,13 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
     long piv;
     double vs, v0oriz, v0vert, teta, alfa;
     P3d v0, cp, cpp, lb, cp0;
-    int count, index, ust_count, stone_count;
+    int count, index, stone_count;
     double slope, max_slope;
     int dir;
     double v_scalar, lbounce_scalar;
     int row, col;
 
     count = index = 0;
-
-    ust_count = 0;
 
     rtParams->glConter2d = 0L;
 
@@ -104,7 +102,7 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
 
             G_debug(3, "Start point: %d %d; stone: %d", row, col, stone_count);
 
-            if (NewPlane(rParams, rtParams, gParams, &cp0, ctx))
+            if (NewPlane(rtParams, gParams, &cp0, ctx))
                 break;
 
             lb = cp = cp0; /* Store bounce */
@@ -139,8 +137,8 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
                         break;
 
                     case 1: /* Path needs a new triangle */
-                        if (NewPlane(rParams, rtParams, gParams, &cp, ctx)) {
-                            WritePath(rtParams, rParams, gParams, FLY);
+                        if (NewPlane(rtParams, gParams, &cp, ctx)) {
+                            WritePath(rtParams, rParams, gParams);
                             break;
                         }
 
@@ -160,7 +158,7 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
 
                         G_debug(4, "(P) v_scalar: %f\n", v_scalar);
 
-                        WritePath(rtParams, rParams, gParams, FLY);
+                        WritePath(rtParams, rParams, gParams);
 
                         if (lbounce_scalar < rParams->short_bounce2 &&
                             v_scalar < rParams->fly_roll_thresh2) {
@@ -197,7 +195,7 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
                         // if (rParams->EnabledLogFile) fprintf(gFileLog,"Stop
                         // cell reached.\n");
                         G_debug(3, "Stop cell reached.");
-                        WritePath(rtParams, rParams, gParams, FLY);
+                        WritePath(rtParams, rParams, gParams);
                         break;
 
                     case 4: /* Special: We need an initial bounce */
@@ -215,14 +213,12 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
 
                     switch (type) {
                     case 0: /* Overflow */
-                        // if (rParams->EnabledLogFile) fprintf(gFileLog,"Track
-                        // overflow\n");
                         G_debug(3, "Track overflow");
                         break;
 
                     case 1: /* We need a new triangle */
-                        if (NewPlane(rParams, rtParams, gParams, &cp, ctx)) {
-                            WritePath(rtParams, rParams, gParams, ROLL);
+                        if (NewPlane(rtParams, gParams, &cp, ctx)) {
+                            WritePath(rtParams, rParams, gParams);
                             break;
                         }
 
@@ -235,7 +231,7 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
                                 switch to fly
                         */
                         if (cpp.Z > 0.01) {
-                            WritePath(rtParams, rParams, gParams, ROLL);
+                            WritePath(rtParams, rParams, gParams);
                             rtParams->gpPathCur = rtParams->gpPathRoot;
                             fly = 1;
                         }
@@ -246,14 +242,14 @@ void TrackPoints(typeParams *rParams, globalParams *gParams,
                         // if (rParams->EnabledLogFile) fprintf(gFileLog,"Roll:
                         // Velocity under threshold. Stopped.\n");
                         G_debug(3, "Roll: Velocity under threshold. Stopped.");
-                        WritePath(rtParams, rParams, gParams, ROLL);
+                        WritePath(rtParams, rParams, gParams);
                         break;
 
                     case 3:
                         // if (rParams->EnabledLogFile) fprintf(gFileLog,"Stop
                         // cell reached.\n");
                         G_debug(3, "Stop cell reached.");
-                        WritePath(rtParams, rParams, gParams, ROLL);
+                        WritePath(rtParams, rParams, gParams);
                         break;
                     }
                 }

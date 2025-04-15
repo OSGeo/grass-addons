@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
     } params;
 
     struct GModule *module;
-    struct History history;
 
     G_gisinit(argv[0]);
 
