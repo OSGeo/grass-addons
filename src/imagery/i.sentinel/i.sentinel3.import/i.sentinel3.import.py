@@ -552,12 +552,19 @@ def consolidate_metadata_dicts(metadata_dicts: dict) -> dict:
                     isinstance(map_metadata_dicts[map_name][meta_key], list)
                     and meta_value not in map_metadata_dicts[map_name][meta_key]
                 ):
-                    map_metadata_dicts[map_name][meta_key].append(meta_value)
+                    if isinstance(meta_value, (list, set)):
+                        map_metadata_dicts[map_name][meta_key].extend(meta_value)
+                    else:
+                        map_metadata_dicts[map_name][meta_key].append(meta_value)
                 elif meta_value != map_metadata_dicts[map_name][meta_key]:
-                    map_metadata_dicts[map_name][meta_key] = [
-                        map_metadata_dicts[map_name][meta_key],
-                        meta_value,
-                    ]
+                    if isinstance(map_metadata_dicts[map_name][meta_key], (list, set)):
+                        if meta_value not in map_metadata_dicts[map_name][meta_key]:
+                            map_metadata_dicts[map_name][meta_key].append(meta_value)
+                    else:
+                        map_metadata_dicts[map_name][meta_key] = [
+                            map_metadata_dicts[map_name][meta_key],
+                            meta_value,
+                        ]
     return map_metadata_dicts
 
 
@@ -949,7 +956,6 @@ def get_file_metadata(nc_dataset: Dataset) -> dict:
         ]
         if attr in nc_dataset.ncattrs()
     }
-
     metadata["start_time"] = parse_timestr(nc_dataset.start_time)
     metadata["end_time"] = parse_timestr(nc_dataset.stop_time)
     metadata["history"] = metadata["history"].strip()
@@ -1158,15 +1164,23 @@ def import_s3(
             region_dicts["sun_parameters"] = sun_region_dict
 
             if kwargs["maximum_solar_angle"]:
+                sun_region_dict = intersect_region(
+                    dict(kwargs["current_reg"]), sun_region_dict, align_current=False
+                )
+                print(sun_region_dict)
+                if sun_region_dict["e"] <= sun_region_dict["w"]:
+                    # East is wrapped around meridian
+                    if sun_region_dict["e"] <= float(kwargs["current_reg"]["w"]):
+                        sun_region_dict["e"] = float(kwargs["current_reg"]["e"])
+                    # West is wrapped around meridian
+                    if sun_region_dict["w"] >= float(kwargs["current_reg"]["e"]):
+                        sun_region_dict["w"] = float(kwargs["current_reg"]["w"])
+
                 sun_region_bounds = gs.parse_command(
                     "g.region",
                     flags="ugb",
                     quiet=True,
-                    **intersect_region(
-                        dict(kwargs["current_reg"]),
-                        sun_region_dict,
-                        align_current=False,
-                    ),
+                    **sun_region_dict,
                 )
 
         for stripe, stripe_dict in s3_product.requested_stripe_content.items():
