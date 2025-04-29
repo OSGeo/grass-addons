@@ -1167,7 +1167,7 @@ def import_s3(
                 sun_region_dict = intersect_region(
                     dict(kwargs["current_reg"]), sun_region_dict, align_current=False
                 )
-                print(sun_region_dict)
+
                 if sun_region_dict["e"] <= sun_region_dict["w"]:
                     # East is wrapped around meridian
                     if sun_region_dict["e"] <= float(kwargs["current_reg"]["w"]):
