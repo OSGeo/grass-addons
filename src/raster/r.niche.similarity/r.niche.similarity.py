@@ -25,12 +25,9 @@
 # % keyword: niche modelling
 # %End
 
-# %option
-# % key: maps
-# % type: string
-# % gisprompt: old,cell,raster
+# %option G_OPT_R_INPUTS
+# %key:maps
 # % description: Input maps
-# % key_desc: name
 # % required: yes
 # % multiple: yes
 # % guisection: Suitability distribution maps
@@ -61,8 +58,17 @@
 # % guisection: Statistics
 # %end
 
+# %flag
+# % key: m
+# % description: remove NA cells
+# % guisection: Statistics
+# %end
+
 # %rules
 # %required: -i,-d,-c
+# %end
+
+# %option G_OPT_M_NPROCS
 # %end
 
 # import libraries
@@ -97,7 +103,7 @@ def create_temporary_name(prefix):
     return tmpf
 
 
-def D_index(n1, n2, v1, v2, txtf):
+def D_index(n1, n2, v1, v2, txtf, nprocs):
     """Calculate D (Schoener's 1968)"""
     tmpf0 = create_temporary_name("rniche")
     gs.mapcalc(
@@ -109,17 +115,16 @@ def D_index(n1, n2, v1, v2, txtf):
         v2=v2,
         quiet=True,
     )
-    NO = float(gs.parse_command("r.univar", quiet=True, flags="g", map=tmpf0)["sum"])
-    NOV = 1 - (0.5 * NO)
-    gs.info(
-        _("Niche overlap (D) of {} and {} {}").format(
-            n1.split("@")[0], n2.split("@")[0], round(NOV, 3)
-        )
+    NO = float(
+        gs.parse_command("r.univar", quiet=True, flags="g", map=tmpf0, nprocs=nprocs)[
+            "sum"
+        ]
     )
-    return ["Niche overlap (D)", n1, n2, NOV]
+    NOV = 1 - (0.5 * NO)
+    return NOV
 
 
-def I_index(n1, v1, n2, v2, txtf):
+def I_index(n1, v1, n2, v2, txtf, nprocs):
     """Calculate I (Warren et al. 2008). Note that the sqrt in the
     H formulation and the ^2 in the I formation  cancel each other out,
     hence the formulation below"""
@@ -133,14 +138,13 @@ def I_index(n1, v1, n2, v2, txtf):
         v2=v2,
         quiet=True,
     )
-    NE = float(gs.parse_command("r.univar", quiet=True, flags="g", map=tmpf1)["sum"])
-    NEQ = 1 - (0.5 * NE)
-    gs.info(
-        _("Niche overlap (I) of {} and {} {}").format(
-            n1.split("@")[0], n2.split("@")[0], round(NEQ, 3)
-        )
+    NE = float(
+        gs.parse_command("r.univar", quiet=True, flags="g", map=tmpf1, nprocs=nprocs)[
+            "sum"
+        ]
     )
-    return ["Niche overlap (I)", n1, n2, NEQ]
+    NEQ = 1 - (0.5 * NE)
+    return NEQ
 
 
 def C_index(n1, n2, txtf):
@@ -148,12 +152,7 @@ def C_index(n1, n2, txtf):
     corl = gs.read_command("r.covar", quiet=True, flags="r", map=(n1, n2))
     corl = corl.split("N = ")[1]
     corl = float(corl.split(" ")[1])
-    gs.info(
-        _("Correlation coeff of {} and {} {}").format(
-            n1.split("@")[0], n2.split("@")[0], round(corl, 3)
-        )
-    )
-    return ["Correlation coeff", n1, n2, corl]
+    return corl
 
 
 def main(options, flags):
@@ -168,14 +167,16 @@ def main(options, flags):
     INMAPS = INMAPS.split(",")
     VARI = [i.split("@")[0] for i in INMAPS]
     OPF = options["output"]
+    nprocs = int(options["nprocs"])
     flag_i = flags["i"]
     flag_d = flags["d"]
     flag_c = flags["c"]
+    flag_m = flags["m"]
 
     # Check if there are more than 1 input maps
     NLAY = len(INMAPS)
     if NLAY < 2:
-        gs.fatal("You need to provide 2 or more raster maps")
+        gs.fatal(_("You need to provide 2 or more raster maps"))
 
     # Write D and I values to standard output and optionally to text file
     Dind = []
@@ -183,41 +184,173 @@ def main(options, flags):
     Cind = []
 
     i = 0
-    while i < NLAY:
-        nlay1 = INMAPS[i]
-        nvar1 = VARI[i]
-        vsum1 = float(
-            gs.parse_command("r.univar", quiet=True, flags="g", map=nlay1)["sum"]
-        )
-        j = i + 1
-        while j < NLAY:
-            nlay2 = INMAPS[j]
-            nvar2 = VARI[j]
-            vsum2 = float(
-                gs.parse_command("r.univar", quiet=True, flags="g", map=nlay2)["sum"]
+
+    if flag_m:
+        while i < NLAY:
+            nlay1 = INMAPS[i]
+            nvar1 = VARI[i]
+            j = i + 1
+            while j < NLAY:
+                nlay2 = INMAPS[j]
+                nvar2 = VARI[j]
+
+                # Set temp region to overlapping area
+                gs.use_temp_region()
+                gs.run_command("g.region", zoom=nlay1)
+                gs.run_command("g.region", zoom=nlay2)
+
+                # Stats
+                vsta1 = gs.parse_command(
+                    "r.univar", quiet=True, flags="g", map=nlay1, nprocs=nprocs
+                )
+                vsum1 = float(vsta1["sum"])
+                vsta2 = gs.parse_command(
+                    "r.univar", quiet=True, flags="g", map=nlay2, nprocs=nprocs
+                )
+                vsum2 = float(vsta2["sum"])
+
+                # Remove remaining nodata
+                chnodat = int(vsta1["null_cells"]) + int(vsta2["null_cells"])
+                if chnodat > 0:
+                    tmpl1 = create_temporary_name("tmp")
+                    gs.run_command(
+                        "r.mapcalc",
+                        expression=f"{tmpl1} = if(isnull({nlay1}) || isnull({nlay2}), null(), {nlay1})",
+                    )
+                    tmpl2 = create_temporary_name("tmp")
+                    gs.run_command(
+                        "r.mapcalc",
+                        expression=f"{tmpl2} = if(isnull({nlay1}) || isnull({nlay2}), null(), {nlay2})",
+                    )
+                    vsum1 = float(
+                        gs.parse_command(
+                            "r.univar", quiet=True, flags="g", map=tmpl1, nprocs=nprocs
+                        )["sum"]
+                    )
+                    vsum2 = float(
+                        gs.parse_command(
+                            "r.univar", quiet=True, flags="g", map=tmpl2, nprocs=nprocs
+                        )["sum"]
+                    )
+                else:
+                    tmpl1 = nlay1
+                    tmpl2 = nlay2
+
+                # Calculate D (Schoener's 1968)
+                if flag_d:
+                    di = D_index(
+                        n1=tmpl1, n2=tmpl2, v1=vsum1, v2=vsum2, txtf=OPF, nprocs=nprocs
+                    )
+                    Dind.append(di)
+                    gs.info(
+                        _("Niche overlap (D) of {} and {} {}").format(
+                            nvar1, nvar2, round(di, 5)
+                        )
+                    )
+
+                # Calculate I (Warren et al. 2008)
+                if flag_i:
+                    ii = I_index(
+                        n1=tmpl1, n2=tmpl2, v1=vsum1, v2=vsum2, txtf=OPF, nprocs=nprocs
+                    )
+                    Iind.append(ii)
+                    gs.info(
+                        _("Niche overlap (I) of {} and {} {}").format(
+                            nvar1, nvar2, round(ii, 5)
+                        )
+                    )
+
+                # Calculate correlation
+                if flag_c:
+                    ci = C_index(n1=tmpl1, n2=tmpl2, txtf=OPF)
+                    Cind.append(ci)
+                    gs.info(
+                        _("Correlation coeff of {} and {} {}").format(
+                            nvar1, nvar2, round(ci, 5)
+                        )
+                    )
+                gs.del_temp_region()
+
+                # Set counter
+                gs.info("--------------------------------------")
+                j = j + 1
+
+            # Set counter i
+            i = i + 1
+    else:
+        while i < NLAY:
+            nlay1 = INMAPS[i]
+            nvar1 = VARI[i]
+            j = i + 1
+
+            # Stats
+            vsta1 = gs.parse_command(
+                "r.univar", quiet=True, flags="g", map=nlay1, nprocs=nprocs
             )
+            vsum1 = float(vsta1["sum"])
 
-            # Calculate D (Schoener's 1968)
-            if flag_d:
-                di = D_index(n1=nlay1, n2=nlay2, v1=vsum1, v2=vsum2, txtf=OPF)
-                Dind.append(di)
+            while j < NLAY:
+                nlay2 = INMAPS[j]
+                nvar2 = VARI[j]
 
-            # Calculate I (Warren et al. 2008)
-            if flag_i:
-                ii = I_index(n1=nlay1, v1=vsum1, n2=nlay2, v2=vsum2, txtf=OPF)
-                Iind.append(ii)
+                # Stats
+                vsta2 = gs.parse_command(
+                    "r.univar", quiet=True, flags="g", map=nlay2, nprocs=nprocs
+                )
+                vsum2 = float(vsta2["sum"])
 
-            # Calculate correlation
-            if flag_c:
-                ci = C_index(n1=nlay1, n2=nlay2, txtf=OPF)
-                Cind.append(ci)
+                # Calculate D (Schoener's 1968)
+                if flag_d:
+                    di = D_index(
+                        n1=nlay1, n2=nlay2, v1=vsum1, v2=vsum2, txtf=OPF, nprocs=nprocs
+                    )
+                    Dind.append(di)
+                    gs.info(
+                        _("Niche overlap (D) of {} and {} {}").format(
+                            nvar1, nvar2, round(di, 5)
+                        )
+                    )
 
-            # Set counter
-            gs.info("--------------------------------------")
-            j = j + 1
+                # Calculate I (Warren et al. 2008)
+                if flag_i:
+                    ii = I_index(
+                        n1=nlay1, n2=nlay2, v1=vsum1, v2=vsum2, txtf=OPF, nprocs=nprocs
+                    )
+                    Iind.append(ii)
+                    gs.info(
+                        _("Niche overlap (I) of {} and {} {}").format(
+                            nvar1, nvar2, round(ii, 5)
+                        )
+                    )
 
-        # Set counter i
-        i = i + 1
+                # Calculate correlation
+                if flag_c:
+                    ci = C_index(n1=nlay1, n2=nlay2, txtf=OPF)
+                    Cind.append(ci)
+                    gs.info(
+                        _("Correlation coeff of {} and {} {}").format(
+                            nvar1, nvar2, round(ci, 5)
+                        )
+                    )
+
+                # Set counter
+                gs.info("--------------------------------------")
+                j = j + 1
+
+                # Warn if there is NODATA in one of the input raster layers
+                chnodat = int(vsta1["null_cells"]) + int(vsta2["null_cells"])
+                if chnodat > 0:
+                    gs.warning(
+                        _(
+                            "Note that {} or {} contain NODATA cells.\n"
+                            "This may result in unexpected outcomes. \n"
+                            "Use the -m flag or check the manual page\n"
+                            "for alternatives."
+                        ).format(nvar1, nvar2)
+                    )
+
+            # Set counter i
+            i = i + 1
 
     # Write results to csv file
     if OPF:
