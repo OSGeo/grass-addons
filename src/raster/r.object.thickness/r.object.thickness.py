@@ -121,6 +121,14 @@
 # % answer: trend
 # %end
 
+# %option
+# % key: iterations
+# % type: integer
+# % description: Maximum number of iterations (used during thinning)
+# % required: no
+# % answer: 200
+# %end
+
 import sys
 import os
 import atexit
@@ -218,19 +226,27 @@ def main():
     gs.verbose(_("Finding median lines"))
     categorymap_thin = f"{categorymap}_thin"
     CLEAN_LAY.append(categorymap_thin)
-    gs.run_command(
-        "r.thin", input=categorymap, output=categorymap_thin, quiet=True, overwrite="t"
-    )
-
-    # convert to vector
-    gs.verbose(_("Creating vector map of median lines"))
-    gs.run_command(
-        "r.to.vect",
-        input=categorymap_thin,
-        output=categorymap_thin,
-        type="line",
-        quiet=True,
-    )
+    try:
+        thin_message = gs.run_command(
+            "r.thin",
+            input=categorymap,
+            output=categorymap_thin,
+            iterations=int(options["iterations"]),
+            quiet=True,
+        )
+        # convert to vector
+        gs.verbose(_("Creating vector map of median lines"))
+        gs.run_command(
+            "r.to.vect",
+            input=categorymap_thin,
+            output=categorymap_thin,
+            type="line",
+            quiet=True,
+        )
+    except CalledModuleError:
+        gs.fatal(
+            "Creating the median lines failed. Try to increase the number of iterations"
+        )
 
     # create transects
     # half size (left and right) of the transect, must be larger than the larger expected half size of objects
@@ -361,12 +377,12 @@ def main():
 
     gs.message(
         _(
-            "Thickness in map units:\nminimum = {}\nmaximun = {}\nmean    = {}\nmedian  = {}\n\n"
+            "Thickness in map units:\nminimum = {0}\nmaximun = {1}\nmean    = {2}\nmedian  = {3}\n\n"
         ).format(min_thickness, max_thickness, mean_thickness, median_thickness)
     )
     gs.message(
         _(
-            "Thickness in pixels:\nminimum = {:.4f}\nmaximum = {:.4f}\nmean   = {:.4f}\nmedian = {:.4f}"
+            "Thickness in pixels:\nminimum = {0:.4f}\nmaximum = {1:.4f}\nmean   = {2:.4f}\nmedian = {3:.4f}"
         ).format(
             min_thickness_pixel,
             max_thickness_pixel,
