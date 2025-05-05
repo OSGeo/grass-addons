@@ -249,6 +249,37 @@ def set_request_headers(settings):
     return req_headers
 
 
+def estimate_download_size(assets):
+    """Estimate the total download size of assets."""
+    total_size = 0
+    num_assets = len(assets)
+    for asset in assets:
+        url = asset.get("href")
+        size = asset.get("file:size")  # Check if size is available in metadata
+        if size:
+            total_size += size
+        else:
+            # Fetch size using HEAD request if not available in metadata
+            try:
+                import requests
+
+                response = requests.head(url, timeout=10)
+                if response.status_code == 200 and "Content-Length" in response.headers:
+                    total_size += int(response.headers["Content-Length"])
+                else:
+                    gs.warning(_("Could not fetch size for asset: %s") % url)
+            except ImportError as e:
+                gs.warning(_("requests module not available: %s") % e)
+            except Exception as e:
+                gs.warning(_("Error fetching size for asset %s: %s") % (url, e))
+
+    output = {
+        "count": num_assets if isinstance(num_assets, int) else 0,
+        "bytes": total_size if isinstance(total_size, (int, float)) else 0,
+    }
+    return output
+
+
 def generate_indentation(depth):
     """Generate indentation for summary"""
     return "    " * depth
@@ -274,14 +305,22 @@ def print_summary(data, depth=1):
 
 
 def print_json_to_stdout(data, pretty=False):
-    """Pretty print data to stdout"""
-    if pretty:
-        output = StringIO()
-        pprint(data, stream=output)
-        sys.stdout.write(output.getvalue())
-    else:
-        json_output = json.dumps(data)
-        sys.stdout.write(json_output)
+    """
+    Print JSON data to stdout.
+
+    Args:
+        data (dict or list): The JSON-serializable data to print.
+        pretty (bool): Whether to pretty-print the JSON with indentation.
+
+    Returns:
+        str: The JSON string representation of the data.
+    """
+    try:
+        json_output = json.dumps(data, indent=4 if pretty else None)
+        sys.stdout.write(json_output + "\n")
+        return json_output
+    except (TypeError, ValueError) as e:
+        gs.fatal(_("Failed to serialize data to JSON: {}").format(e))
 
 
 def print_list_attribute(data, title):

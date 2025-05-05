@@ -378,7 +378,7 @@ def main():
         if format == "plain":
             return libstac.collection_metadata(collection)
         elif format == "json":
-            return libstac.print_json_to_stdout(collection, pretty_print)
+            libstac.print_json_to_stdout(collection, pretty_print)
 
     # Start item search
     if intersects:
@@ -416,9 +416,13 @@ def main():
     if filter_lang:
         search_params["filter_lang"] = filter_lang
 
+    # TODO: Make this a fucntion and improve the code
     if query:
         if isinstance(query, str):
-            query = json.loads(query)
+            try:
+                query = json.loads(query)
+            except json.JSONDecodeError as e:
+                gs.fatal(f"Invalid JSON format for query: {e}")
         if isinstance(query, dict):
             search_params["query"] = query
         if isinstance(query, list):
@@ -453,7 +457,7 @@ def main():
             return None
         if format == "json":
             item_list = [item.to_dict() for item in items]
-            return libstac.print_json_to_stdout(item_list, pretty_print)
+            libstac.print_json_to_stdout(item_list, pretty_print)
 
     for item in items:
         asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
@@ -473,7 +477,12 @@ def main():
                 libstac.report_plain_asset_summary(asset)
 
         if format == "json":
-            return libstac.print_json_to_stdout(collection_items_assets, pretty_print)
+            libstac.print_json_to_stdout(collection_items_assets, pretty_print)
+
+    if not summary_metadata and not item_metadata and not asset_metadata:
+        # gs.warning(_("No flags set. Use -m, -i or -a to get metadata."))
+        estimate_download_size = libstac.estimate_download_size(collection_items_assets)
+        libstac.print_json_to_stdout(estimate_download_size, pretty_print)
 
     if download:
         # Download and Import assets
@@ -486,6 +495,8 @@ def main():
             memory=memory,
             nprocs=nprocs,
         )
+
+    return 0
 
 
 if __name__ == "__main__":
