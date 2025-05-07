@@ -1,4 +1,5 @@
 <h2>DESCRIPTION</h2>
+
 <em>r.slopeunits.optimize</em> determines optimal input values for slope units:
 <ul>
 <li>
@@ -8,13 +9,11 @@
 "cvmin" - Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
 </li>
 </ul>
-It calls <em>r.slopeunits.create</em>, <em>r.slopeunits.clean</em> and <em>r.slopeunits.metrics</em> iteratively.
+It calls <em>r.slopeunits.create</em>, <em>r.slopeunits.clean</em>, and <em>r.slopeunits.metrics</em> iteratively.
 Output is a file <tt>opt.txt</tt> with optimal values in either specified folder or in folder <tt>output/</tt>"
 in the current working directory. Also files <tt>calcd.dat</tt> and <tt>current.txt</tt> are created with
 all determined and examined values and the four latest examined values (combination of <tt>areamin<tt>
-and <tt>cvmin<tt> minimum and maximum) and <tt>center</tt> respectively.
-
-<h2>NOTES</h2>
+and <tt>cvmin<tt> minimum and maximum) and <tt>center</tt>, respectively.
 
 <h2>EXAMPLE</h2>
 
@@ -29,7 +28,15 @@ r.slopeunits.optimize \
     cleansize=25000
 </pre></div>
 
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Alvioli, M., Marchesini, I., Reichenbach, P., Rossi, M., Ardizzone, F., Fiorucci, F., and Guzzetti, F. (2016): Automatic delineation of geomorphological slope units with r.slopeunits v1.0 and their optimization for landslide susceptibility modeling, Geosci. Model Dev., 9, 3975-3991. DOI:<a href="https://doi.org/10.5194/gmd-9-3975-2016">10.5194/gmd-9-3975-2016</a></li>
+<li>Alvioli, M., Guzzetti, F., &amp; Marchesini, I. (2020): Parameter-free delineation of slope units and terrain subdivision of Italy. Geomorphology, 358, 107124. DOI:<a href="https://doi.org/10.1016/j.geomorph.2020.107124">10.1016/j.geomorph.2020.107124</a></li>
+</ul>
+
 <h2>SEE ALSO</h2>
+
 <em>
     <a href="r.slopeunits.create.html">r.slopeunits.create</a>,
     <a href="r.slopeunits.clean.html">r.slopeunits.clean</a>,
