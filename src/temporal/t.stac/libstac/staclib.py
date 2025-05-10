@@ -20,9 +20,9 @@ import tempfile
 import json
 from datetime import datetime
 from dateutil import parser
-from io import StringIO
 from pprint import pprint
 import grass.script as gs
+from grass.script import _  # Importing _ for translations
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
@@ -34,7 +34,7 @@ try:
     from pystac_client.exceptions import APIError
     from pystac_client.conformance import ConformanceClasses
 except ImportError as err:
-    gs.fatal(_("Unable to import pystac_client: {err}"))
+    gs.fatal(_("Unable to import pystac_client: %s") % err)
 
 
 def _import_tqdm(error):
@@ -123,7 +123,7 @@ class STACHelper:
 
         try:
             gs.message(_("Search Matched: {} items").format(search.matched()))
-        except e:
+        except Exception as e:
             gs.warning(_("No items found: {}").format(e))
             return None
 
