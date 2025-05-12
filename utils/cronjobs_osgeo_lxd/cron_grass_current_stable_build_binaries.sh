@@ -36,7 +36,7 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=4
-GPATCH="0dev"  # required by grass-addons-index.sh
+GPATCH=1  # required by grass-addons-index.sh
 BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
