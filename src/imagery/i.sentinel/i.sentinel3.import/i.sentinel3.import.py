@@ -1775,6 +1775,21 @@ def get_solar_angle_bounds(region_bounds: dict, sun_region_dict: dict) -> dict:
     return region_bounds
 
 
+def check_region_validity(stripe_id: str, stripe_region: dict) -> None:
+    """Check if the computational region is valid and exit if not."""
+    if (
+        stripe_region["s"] >= stripe_region["n"]
+        or stripe_region["w"] >= stripe_region["e"]
+    ):
+        gs.warning(
+            _(
+                "No valid data found in data stripe {}.\n"
+                "Nothing to import with the given input."
+            ).format(stripe_id),
+        )
+        sys.exit(0)
+
+
 def main() -> None:
     """Do the main work."""
     pattern = re.compile(
@@ -1875,17 +1890,7 @@ def main() -> None:
     stripe_envs = {}
     for stripe_id, stripe_region in region_dicts.items():
         stripe_env = os.environ.copy()
-        if (
-            stripe_region["s"] >= stripe_region["n"]
-            or stripe_region["w"] >= stripe_region["e"]
-        ):
-            gs.warning(
-                _(
-                    "No valid data found in data stripe {}.\n"
-                    "Nothing to import with the given input."
-                ).format(stripe_id),
-            )
-            sys.exit(0)
+        check_region_validity(stripe_id, stripe_region)
 
         if flags["n"]:
             stripe_env["GRASS_REGION"] = gs.region_env(**adjust_region(stripe_region))
@@ -1895,6 +1900,7 @@ def main() -> None:
                 stripe_region,
                 align_current=stripe_id != "sun_parameters",
             )
+            check_region_validity(stripe_id, stripe_region_dict)
             stripe_env["GRASS_REGION"] = gs.region_env(
                 **stripe_region_dict,
             )
