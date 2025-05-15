@@ -266,10 +266,13 @@ import os
 import sys
 from pprint import pprint
 import json
-from io import StringIO
+import gettext
 from contextlib import contextmanager
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
+
+# Set up translation function
+_ = gettext.gettext
 
 
 @contextmanager
@@ -458,6 +461,7 @@ def main():
         if format == "json":
             item_list = [item.to_dict() for item in items]
             libstac.print_json_to_stdout(item_list, pretty_print)
+            return 0
 
     for item in items:
         asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
@@ -475,14 +479,22 @@ def main():
             )
             for asset in collection_items_assets:
                 libstac.report_plain_asset_summary(asset)
+            return 0
 
         if format == "json":
             libstac.print_json_to_stdout(collection_items_assets, pretty_print)
+            return 0
 
     if not summary_metadata and not item_metadata and not asset_metadata:
-        # gs.warning(_("No flags set. Use -m, -i or -a to get metadata."))
-        estimate_download_size = libstac.estimate_download_size(collection_items_assets)
-        libstac.print_json_to_stdout(estimate_download_size, pretty_print)
+        estimate_download = libstac.estimate_download_size(collection_items_assets)
+        if format == "json":
+            libstac.print_json_to_stdout(estimate_download, pretty_print)
+
+        if format == "plain":
+            sys.stdout.write(f"Total Assests: {estimate_download['count']}\n")
+            sys.stdout.write(
+                f"Estimated download size: {estimate_download['bytes'] / 1e9} GB\n"
+            )
 
     if download:
         # Download and Import assets

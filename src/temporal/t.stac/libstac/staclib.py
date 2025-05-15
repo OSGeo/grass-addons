@@ -19,10 +19,10 @@ import base64
 import tempfile
 import json
 from datetime import datetime
-from dateutil import parser
+from dateutil import parser as dateutil_parser
 from pprint import pprint
 import grass.script as gs
-from grass.script import _  # Importing _ for translations
+import gettext
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
@@ -35,6 +35,9 @@ try:
     from pystac_client.conformance import ConformanceClasses
 except ImportError as err:
     gs.fatal(_("Unable to import pystac_client: %s") % err)
+
+# Set up translation function
+_ = gettext.gettext
 
 
 def _import_tqdm(error):
@@ -273,10 +276,7 @@ def estimate_download_size(assets):
             except Exception as e:
                 gs.warning(_("Error fetching size for asset %s: %s") % (url, e))
 
-    output = {
-        "count": num_assets if isinstance(num_assets, int) else 0,
-        "bytes": total_size if isinstance(total_size, (int, float)) else 0,
-    }
+    output = {"count": num_assets, "bytes": total_size}
     return output
 
 
@@ -629,8 +629,11 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
 
 
 def format_datetime(dt_str):
+    if not dt_str:
+        gs.warning(_("No datetime found for item."))
+        return None
     # Parse the datetime string
-    dt = parser.parse(dt_str)
+    dt = dateutil_parser.parse(dt_str)
     # Format the datetime object to the desired format
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -643,17 +646,13 @@ def register_strds_from_items(collection_items_assets, strds_output):
             semantic_label = asset.get("file_name").split(".")[-1]
             created_date = asset.get("datetime")
             eobands = asset.get("eo:bands")
+            filename = asset.get("file_name")
             if eobands:
                 for idx, band in enumerate(eobands):
+                    filename = f"{filename}.{idx + 1}" if len(eobands) > 1 else filename
                     band_name = band.get("common_name")
-                    if created_date:
-                        formatted_date = format_datetime(created_date)
-                        f.write(
-                            f"{asset['file_name']}.{idx + 1}|{formatted_date}|{band_name}\n"
-                        )
-                    else:
-                        gs.warning(_("No datetime found for item."))
-                        f.write(f"{asset['file_name']}.{idx + 1}|{None}|{band_name}\n")
+                    formatted_date = format_datetime(created_date)
+                    f.write(f"{filename}|{formatted_date}|{band_name}\n")
             else:
                 if created_date:
                     formatted_date = format_datetime(created_date)
