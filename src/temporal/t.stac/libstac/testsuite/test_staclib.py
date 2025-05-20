@@ -10,6 +10,7 @@ from grass.pygrass.utils import get_lib_path
 from grass.pygrass.vector.geometry import Point
 from unittest.mock import patch, MagicMock
 import base64
+import tempfile
 
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
@@ -308,6 +309,91 @@ class TestEncodeCredentials(TestCase):
         )
         result = libstac.encode_credentials(username, password)
         self.assertEqual(result, expected)
+
+
+class TestSetRequestHeaders(TestCase):
+    """Test set_request_headers function"""
+
+    @patch("staclib.encode_credentials", return_value="encoded")
+    def test_set_request_headers_from_file(self, mock_encode):
+        # Create a temporary file with username and password
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("user\npass\n")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        expected = {"Authorization": "Basic encoded"}
+        result = libstac.set_request_headers(tmp_name)
+        self.assertEqual(result, expected)
+        mock_encode.assert_called_once_with("user", "pass")
+
+    @patch("staclib.encode_credentials", return_value="encoded")
+    def test_set_request_headers_from_file_with_blank_lines(self, mock_encode):
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("\nuser\npass\n\n")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        expected = {"Authorization": "Basic encoded"}
+        result = libstac.set_request_headers(tmp_name)
+        self.assertEqual(result, expected)
+        mock_encode.assert_called_once_with("user", "pass")
+
+    @patch("staclib.gs.fatal")
+    def test_set_request_headers_file_too_short(self, mock_fatal):
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("user\n")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        libstac.set_request_headers(tmp_name)
+        mock_fatal.assert_called_once_with("Invalid settings file")
+
+    @patch("staclib.gs.fatal")
+    def test_set_request_headers_file_oserror(self, mock_fatal):
+        libstac.set_request_headers("/nonexistent/file/path")
+        self.assertTrue(
+            mock_fatal.call_args[0][0].startswith("Unable to open settings file:")
+        )
+
+    @patch("staclib.encode_credentials", return_value="encoded")
+    @patch("builtins.input", return_value="user")
+    @patch("getpass.getpass", return_value="pass")
+    def test_set_request_headers_stdin(self, mock_getpass, mock_input, mock_encode):
+        expected = {"Authorization": "Basic encoded"}
+        result = libstac.set_request_headers("-")
+        self.assertEqual(result, expected)
+        mock_input.assert_called_once()
+        mock_getpass.assert_called_once()
+        mock_encode.assert_called_once_with("user", "pass")
+
+    def test_set_request_headers_empty_settings(self):
+        # Should return empty dict if settings is falsy
+        result = libstac.set_request_headers("")
+        self.assertEqual(result, {})
+
+    @patch("staclib.gs.fatal")
+    def test_set_request_headers_no_user_or_password(self, mock_fatal):
+        # Simulate file with blank lines only
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("\n\n")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        libstac.set_request_headers(tmp_name)
+        mock_fatal.assert_called_once_with("Invalid settings file")
+
+    @patch("staclib.gs.fatal")
+    def test_set_request_headers_none_user_or_password(self, mock_fatal):
+        # Simulate file with two blank lines (should trigger "No user or password given")
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("\n\n\n")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        # This will fail at the "Invalid settings file" check, not "No user or password given"
+        libstac.set_request_headers(tmp_name)
+        mock_fatal.assert_called_once_with("Invalid settings file")
 
 
 if __name__ == "__main__":

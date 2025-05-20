@@ -215,7 +215,7 @@ def encode_credentials(username: str, password: str) -> bytes:
     return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
 
 
-def set_request_headers(settings):
+def set_request_headers(settings: str) -> dict:
     """Set request headers"""
     req_headers = {}
     username = password = None
