@@ -210,7 +210,7 @@ class STACHelper:
         return self._check_conformance(ConformanceClasses.CONTEXT, response="warning")
 
 
-def encode_credentials(username, password):
+def encode_credentials(username: str, password: str) -> bytes:
     """Encode username and password for basic authentication"""
     return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
 

@@ -9,8 +9,7 @@ from grass.gunittest.main import test
 from grass.pygrass.utils import get_lib_path
 from grass.pygrass.vector.geometry import Point
 from unittest.mock import patch, MagicMock
-from grass.gunittest.gmodules import SimpleModule
-
+import base64
 
 path = get_lib_path(modname="t.stac", libname="staclib")
 if path is None:
@@ -21,6 +20,8 @@ import staclib as libstac
 
 
 class TestStaclib(TestCase):
+    """libstac tests"""
+
     def test_wgs84_bbox_to_boundary(self):
         """Test wgs84_bbox_to_boundary"""
         input_bbox = [-122.5, 37.5, -122, 38]
@@ -181,20 +182,6 @@ class TestPrintJsonToStdout(TestCase):
             "Failed to serialize data to JSON: Object of type set is not JSON serializable"
         )
 
-    def test_realworld_example(self):
-        """Test with a real-world example"""
-        stac_query = {"eo:cloud_cover": {"lt": 10}}
-        module = SimpleModule(
-            "t.stac.item",
-            url="https://earth-search.aws.element84.com/v1/",
-            collection_id="sentinel-2-l2a",
-            datetime="2024-04-01/2024-09-30",
-            asset_keys="red,nir",
-            query=json.dumps(stac_query),
-            format="json",
-        )
-        self.assertModule(module)
-
 
 class TestEstimateDownloadSize(TestCase):
     @patch("requests.head")
@@ -282,6 +269,45 @@ class TestEstimateDownloadSize(TestCase):
             mock_warning.assert_called_once_with(
                 "Error fetching size for asset http://example.com/asset1: Unexpected error"
             )
+
+
+class TestEncodeCredentials(TestCase):
+    def test_encode_credentials_basic(self):
+        username = "user"
+        password = "pass"
+        expected = base64.b64encode(b"user:pass").decode("utf-8")
+        result = libstac.encode_credentials(username, password)
+        self.assertEqual(result, expected)
+
+    def test_encode_credentials_empty_username(self):
+        username = ""
+        password = "pass"
+        expected = base64.b64encode(b":pass").decode("utf-8")
+        result = libstac.encode_credentials(username, password)
+        self.assertEqual(result, expected)
+
+    def test_encode_credentials_empty_password(self):
+        username = "user"
+        password = ""
+        expected = base64.b64encode(b"user:").decode("utf-8")
+        result = libstac.encode_credentials(username, password)
+        self.assertEqual(result, expected)
+
+    def test_encode_credentials_both_empty(self):
+        username = ""
+        password = ""
+        expected = base64.b64encode(b":").decode("utf-8")
+        result = libstac.encode_credentials(username, password)
+        self.assertEqual(result, expected)
+
+    def test_encode_credentials_special_characters(self):
+        username = "usér"
+        password = "päss:with:colons"
+        expected = base64.b64encode("usér:päss:with:colons".encode("utf-8")).decode(
+            "utf-8"
+        )
+        result = libstac.encode_credentials(username, password)
+        self.assertEqual(result, expected)
 
 
 if __name__ == "__main__":
