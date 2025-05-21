@@ -563,7 +563,7 @@ def series(operation, cuts, fills, elevation, earthworks):
 
         # calculate net cut and fill
         gs.mapcalc(
-            f"{earthworks}= if(isnull({{cutfill}}),{{elevation}},{{cutfill}})",
+            f"{earthworks}= if(isnull({cutfill}),{elevation},{cutfill})",
             overwrite=True,
         )
 
