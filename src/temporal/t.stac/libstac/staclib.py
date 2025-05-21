@@ -11,22 +11,26 @@
 #               comes with GRASS for details.
 #
 #############################################################################
-
+from __future__ import annotations
 
 import os
 import sys
 import base64
 import tempfile
 import json
+from pathlib import Path
 from datetime import datetime
 from dateutil import parser as dateutil_parser
 from pprint import pprint
 import grass.script as gs
 import gettext
+from typing import Optional
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
 from concurrent.futures import ThreadPoolExecutor
+
+from grass.jupyter.reprojection_renderer import ReprojectionRenderer
 
 # Import pystac_client modules
 try:
@@ -64,11 +68,35 @@ def _import_pystac_mediatype(error):
         return None
 
 
+def read_json_to_dict(file_path: str) -> dict:
+    """
+    Reads a JSON file and returns its content as a dictionary.
+
+    Args:
+        file_path (str or Path): The path to the JSON file.
+
+    Returns:
+        dict: A dictionary representing the JSON data.
+              Returns an empty dictionary if the file does not exist or is empty.
+    """
+    path = Path(file_path)
+    try:
+        if path.exists() and path.stat().st_size > 0:
+            with path.open() as file:
+                data = json.load(file)
+            return data
+        else:
+            return {}
+    except json.JSONDecodeError:
+        return {}
+
+
 class STACHelper:
     """STAC Helper Class"""
 
     def __init__(self):
         self.client = None
+        self._renderer = ReprojectionRenderer(use_region=True)
 
     def connect_to_stac(self, url, headers=None):
         """Connect to a STAC catalog."""
@@ -104,6 +132,35 @@ class STACHelper:
         except APIError as e:
             gs.fatal(_("Error getting collection: {}").format(e))
 
+    def wgs84_geojson_from_vector(self, vector_name: str) -> dict | None:
+        """Convert a vector to WGS84 GeoJSON"""
+        geojson_geom = None
+        if vector_name:
+            geojson_file = None
+            # Convert the vector to a geojson
+            gs.message(_("Converting %s to GeoJSON") % vector_name)
+            try:
+                geojson_file = self._renderer.render_vector(vector_name)
+            except Exception as e:
+                gs.fatal(_("Error creating GeoJSON from GRASS vector: %s") % e)
+
+            feature_collection = read_json_to_dict(geojson_file)
+            geojson_features = feature_collection.get("features")
+            if not geojson_features:
+                gs.fatal(_("No features found in GeoJSON file."))
+
+            if len(geojson_features) > 1:
+                gs.warning(
+                    _(
+                        "GeoJSON contains more than one feature. Only the first feature will be used."
+                    )
+                )
+
+            geojson_features = geojson_features[0]
+            geojson_geom = geojson_features.get("geometry")
+
+        return geojson_geom
+
     def search_api(self, **kwargs):
         """Search the STAC API"""
         if self.conforms_to_item_search():
@@ -115,14 +172,17 @@ class STACHelper:
         if kwargs.get("query"):
             self.conforms_to_query()
 
+        for key, value in kwargs.items():
+            gs.debug(f"Searching STAC API with {key}: {value}")
+
         try:
             search = self.client.search(**kwargs)
         except APIError as e:
-            gs.fatal(_("Error searching STAC API: {}").format(e))
+            gs.fatal(_("APIError searching STAC API: {}").format(e))
         except NotImplementedError as e:
-            gs.fatal(_("Error searching STAC API: {}").format(e))
+            gs.fatal(_("NotImplementedError searching STAC API: {}").format(e))
         except Exception as e:
-            gs.fatal(_("Error searching STAC API: {}").format(e))
+            gs.fatal(_("Exception searching STAC API: {}").format(e, **kwargs))
 
         try:
             gs.message(_("Search Matched: {} items").format(search.matched()))

@@ -339,19 +339,24 @@ class TestSetRequestHeaders(TestCase):
         self.assertEqual(result, expected)
         mock_encode.assert_called_once_with("user", "pass")
 
-    @patch("staclib.gs.fatal")
+    @patch("grass.script.fatal")
     def test_set_request_headers_file_too_short(self, mock_fatal):
+        mock_fatal.side_effect = SystemExit  # Simulate fatal error raising SystemExit
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
             tmp.write("user\n")
             tmp.flush()
             tmp_name = tmp.name
 
-        libstac.set_request_headers(tmp_name)
+        with self.assertRaises(SystemExit):
+            libstac.set_request_headers(tmp_name)
         mock_fatal.assert_called_once_with("Invalid settings file")
 
-    @patch("staclib.gs.fatal")
+    @patch("grass.script.fatal")
     def test_set_request_headers_file_oserror(self, mock_fatal):
-        libstac.set_request_headers("/nonexistent/file/path")
+        mock_fatal.side_effect = SystemExit  # Simulate fatal error raising SystemExit
+
+        with self.assertRaises(SystemExit):
+            libstac.set_request_headers("/nonexistent/file/path")
         self.assertTrue(
             mock_fatal.call_args[0][0].startswith("Unable to open settings file:")
         )
@@ -372,28 +377,107 @@ class TestSetRequestHeaders(TestCase):
         result = libstac.set_request_headers("")
         self.assertEqual(result, {})
 
-    @patch("staclib.gs.fatal")
+    @patch("grass.script.fatal")
     def test_set_request_headers_no_user_or_password(self, mock_fatal):
+        mock_fatal.side_effect = SystemExit  # Simulate fatal error raising SystemExit
         # Simulate file with blank lines only
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
             tmp.write("\n\n")
             tmp.flush()
             tmp_name = tmp.name
 
-        libstac.set_request_headers(tmp_name)
+        with self.assertRaises(SystemExit):
+            libstac.set_request_headers(tmp_name)
         mock_fatal.assert_called_once_with("Invalid settings file")
 
-    @patch("staclib.gs.fatal")
+    @patch("grass.script.fatal")
     def test_set_request_headers_none_user_or_password(self, mock_fatal):
+        mock_fatal.side_effect = SystemExit  # Simulate fatal error raising SystemExit
         # Simulate file with two blank lines (should trigger "No user or password given")
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
             tmp.write("\n\n\n")
             tmp.flush()
             tmp_name = tmp.name
 
-        # This will fail at the "Invalid settings file" check, not "No user or password given"
-        libstac.set_request_headers(tmp_name)
+        with self.assertRaises(SystemExit):
+            # This will fail at the "Invalid settings file" check, not "No user or password given"
+            libstac.set_request_headers(tmp_name)
         mock_fatal.assert_called_once_with("Invalid settings file")
+
+
+class TestReadJsonToDict(TestCase):
+    def test_read_json_to_dict_valid_file(self):
+        # Create a temporary JSON file with valid content
+        data = {"foo": "bar", "num": 42}
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            json.dump(data, tmp)
+            tmp.flush()
+            tmp_name = tmp.name
+
+        result = libstac.read_json_to_dict(tmp_name)
+        self.assertEqual(result, data)
+
+    def test_read_json_to_dict_empty_file(self):
+        # Create an empty temporary file
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp_name = tmp.name
+
+            result = libstac.read_json_to_dict(tmp_name)
+            self.assertEqual(result, {})
+
+    def test_read_json_to_dict_nonexistent_file(self):
+        # Use a file path that does not exist
+        result = libstac.read_json_to_dict("/nonexistent/path/to/file.json")
+        self.assertEqual(result, {})
+
+    def test_read_json_to_dict_invalid_json(self):
+        # Create a file with invalid JSON
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
+            tmp.write("{invalid json}")
+            tmp.flush()
+            tmp_name = tmp.name
+
+        result = libstac.read_json_to_dict(tmp_name)
+        self.assertEqual(result, {})
+
+    class TestWgs84GeojsonFromVector(TestCase):
+        def setUp(self):
+            self.helper = libstac.STACHelper()
+
+        @patch.object(libstac.STACHelper, "_renderer")
+        @patch("staclib.read_json_to_dict")
+        def test_wgs84_geojson_from_vector_success(self, mock_read_json, mock_renderer):
+            # Simulate renderer returns a file path, and read_json_to_dict returns a dict
+            mock_renderer.render_vector.return_value = "/tmp/vector.geojson"
+            mock_read_json.return_value = {"type": "FeatureCollection", "features": []}
+            result = self.helper.wgs84_geojson_from_vector("test_vector")
+            mock_renderer.render_vector.assert_called_once_with("test_vector")
+            mock_read_json.assert_called_once_with("/tmp/vector.geojson")
+            self.assertEqual(result, {"type": "FeatureCollection", "features": []})
+
+        @patch.object(libstac.STACHelper, "_renderer")
+        @patch("staclib.read_json_to_dict")
+        def test_wgs84_geojson_from_vector_none_vector_name(
+            self, mock_read_json, mock_renderer
+        ):
+            # If vector_name is None or empty, should return None and not call renderer
+            result = self.helper.wgs84_geojson_from_vector("")
+            mock_renderer.render_vector.assert_not_called()
+            mock_read_json.assert_not_called()
+            self.assertIsNone(result)
+
+        @patch.object(libstac.STACHelper, "_renderer")
+        @patch("grass.script.fatal")
+        def test_wgs84_geojson_from_vector_raises_exception(
+            self, mock_fatal, mock_renderer
+        ):
+            # Simulate renderer raising an exception
+            mock_renderer.render_vector.side_effect = Exception("fail")
+            mock_fatal.side_effect = SystemExit  # Simulate gs.fatal exiting
+            with self.assertRaises(SystemExit):
+                self.helper.wgs84_geojson_from_vector("test_vector")
+            mock_renderer.render_vector.assert_called_once_with("test_vector")
+            mock_fatal.assert_called_once()
 
 
 if __name__ == "__main__":

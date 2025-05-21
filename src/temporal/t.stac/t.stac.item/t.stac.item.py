@@ -384,26 +384,19 @@ def main():
             libstac.print_json_to_stdout(collection, pretty_print)
 
     # Start item search
-    if intersects:
-        # Convert the vector to a geojson
-        output_geojson = "tmp_stac_intersects.geojson"
-        gs.run_command(
-            "v.out.ogr", input=intersects, output=output_geojson, format="GeoJSON"
-        )
-        with open(output_geojson, "r") as f:
-            intersects_geojson = f.read()
-            search_params["intersects"] = intersects_geojson
-            f.close()
-        os.remove(output_geojson)
+    intersects_geojson = stac_helper.wgs84_geojson_from_vector(intersects)
+    if intersects_geojson:
+        search_params["intersects"] = intersects_geojson
 
     if options["ids"]:
         ids = options["ids"]  # item ids optional
         search_params["ids"] = ids.split(",")
 
     # Set the bbox to the current region if the user did not specify the bbox or intersects option
-    if not bbox and not intersects:
+    if not bbox and not intersects_geojson:
         gs.verbose(_("Setting bbox to current region: {}").format(bbox))
         bbox = libstac.region_to_wgs84_decimal_degrees_bbox()
+        search_params["bbox"] = bbox
 
     if datetime:
         search_params["datetime"] = datetime
@@ -436,7 +429,6 @@ def main():
     search_params["collections"] = collection_id
     search_params["limit"] = limit
     search_params["max_items"] = max_items
-    search_params["bbox"] = bbox
 
     # Search the STAC API
     items_search = stac_helper.search_api(**search_params)
