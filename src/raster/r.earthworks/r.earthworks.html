@@ -1,0 +1,227 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.earthworks</em> models new landforms
+using cut and fill operations
+to add and remove earth
+from an elevation raster.
+It can be used to model topographic forms
+such as  hills, pits, ridges, valleys,
+roads, dams, and levees.
+In cut operations
+earth is excavated from the elevation raster,
+while in fill operations
+earth is deposited on the elevation raster.
+In absolute mode
+earth is added or removed
+until the specified elevation is reached,
+while in relative mode
+earth is added or removed
+by a height relative to the existing terrain.
+
+<h3>Inputs</h3>
+The key inputs for <em>r.earthworks</em>
+are an existing elevation raster
+and a set of x-, y-, and z-values
+for the local minima and maxima
+of the new landforms.
+These values can be input as
+<b>coordinates</b>, <b>points</b>,
+<b>lines</b>, or a <b>raster</b>.
+For x- and y-coordinates, 2D points, and 2D lines,
+an input elevation parameter <b>z</b>
+must also be specified.
+This <b>z</b> parameter can be
+a single constant value
+or a list of values.
+Other input parameters
+for <em>r.earthworks</em> include
+operation, mode, function, rate, and flats.
+The <b>operation</b> parameter can be set to
+cut, fill, or cutfill mode
+to excavate, build, or excavate and build terrain.
+The <b>mode</b> parameter can be set to
+absolute or relative mode
+to use either zero or
+the exisiting elevation as a datum.
+In absolute mode, for example,
+a road would cut through
+or be built up on embankments over
+the exisiting terrain,
+while in relative mode
+a road would adapt to the terrain.
+The <b>function</b> parameter can be set to
+linear or exponential
+to define the slope
+from the local minima or maxima
+to the exisiting terrain.
+The <b>rate</b> parameter specifies the
+rate of growth and decay
+for a given slope function.
+For example a linear slope function
+with a rate of 0.1
+will generate a 10 percent slope.
+The <b>flats</b> parameter specifies the radius
+of constant elevation around local minima or maxima.
+It can be used to model the flat surfaces
+of topopraphic features such as
+plateaus, lakes, roads, and levees.
+
+<h3>Outputs</h3>
+In addition to generating an <b>earthworks</b> raster
+with transformed elevation values,
+<em>r.earthworks</em> can also calculate
+the volume of cut and fill.
+Set the output <b>volume</b> raster
+to generate a volumetric change raster.
+Use the <code>-p</code> flag
+to print the net volume of cut and fill.
+
+<h2>EXAMPLE</h2>
+
+<h3> Cut &amp; Fill Operations</h3>
+Perform basic cut and fill operations
+to model peaks and pits from x- and y-coordinates.
+
+<b>Setup</b>
+Set the computational region with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>
+and then use map algebra to generate a flat terrain with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a></em>.
+<div class="code"><pre>
+g.region n=500 s=0 e=500 w=0 res=1
+r.mapcalc expression="elevation = 0"
+</pre></div>
+
+<b>Fill Operation</b>
+Model a peak from a set of x- and y-coordinates with <em>r.earthworks</em>.
+Use the z parameter to set a z-coordinate for the top of the peak.
+Optionally use the flat parameter to create a plateau
+at the top of the peak.
+<div class="code"><pre>
+r.earthworks elevation=elevation earthworks=peak operation=fill coordinates=250,250 z=50 rate=0.5 flat=50
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_01.png">
+    <img src="r_earthworks_01.png" width="250" height="250"
+         alt="Fill operation" border="0">
+    </a>
+    <a href="r_earthworks_02.png">
+    <img src="r_earthworks_02.png" width="250" height="125"
+         alt="3D fill operation" border="0">
+    </a><br>
+    <i>Figure: Fill operation</i>
+</div>
+
+<b>Cut Operation</b>
+Model a pit from a set of x- and y-coordinates with *r.earthworks*.
+Set a z-coordinate for the bottom of the pit.
+<div class="code"><pre>
+r.earthworks elevation=elevation earthworks=pit operation=cut coordinates=250,250 z=-50 rate=0.5 flat=50
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_03.png">
+    <img src="r_earthworks_03.png" width="250" height="250"
+         alt="Cut operation" border="0">
+    </a>
+    <a href="r_earthworks_04.png">
+    <img src="r_earthworks_04.png" width="250" height="125"
+         alt="3D cut operation" border="0">
+    </a><br>
+    <i>Figure: Cut operation</i>
+</div>
+
+<b>Cut &amp; Fill Operation</b>
+Model a pit and a peak from two sets of x- and y-coordinates
+with <em>r.earthworks</em>.
+Set a z-coordinate for the bottom of the pit
+and another z-coordinate for the top of the peak.
+<div class="code"><pre>
+r.earthworks elevation=elevation earthworks=peak_and_pit operation=cutfill coordinates=180,180,320,320 z=-50,50 rate=0.5 flat=50
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_05.png">
+    <img src="r_earthworks_05.png" width="250" height="250"
+         alt="Cut-fill operation" border="0">
+    </a>
+    <a href="r_earthworks_06.png">
+    <img src="r_earthworks_06.png" width="250" height="125"
+         alt="3D cut-fill operation" border="0">
+    </a><br>
+    <i>Figure: Cut &amp; fill operation</i>
+</div>
+
+<h3>Road Grading</h3>
+Use a vector map of a road network
+to grade a road crossing over a valley.
+Start GRASS in the
+<em><a href="https://grass.osgeo.org/sampledata/north_carolina/nc_basic_spm_grass7.zip">North Carolina basic dataset</a></em>.
+First set the computation region with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a></em>.
+Then run <em>r.earthworks</em>
+with input elevation set to <code>elevation</code>,
+input lines set to <code>roadsmajor</code>,
+z set to <code>95</code>,
+operation set to <code>fill</code>,
+rate set to <code>0.25</code>,
+and flat set to <code>25</code>.
+This will grade an embankment through the valley
+with a 50 meter wide roadway
+at a constant elevation of 95 meters
+with side slopes of 25 percent.
+Optionally, compute contours with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.contour.html">r.contour</a></em>.
+
+<div class="code"><pre>
+g.region n=217700 s=216200 w=639200 e=640700 res=10
+r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 rate=0.25 operation=fill flat=25
+r.contour input=earthworks output=contours step=2
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_07.png">
+    <img src="r_earthworks_07.png" width="250" height="250"
+         alt="Elevation" border="0">
+    </a>
+    <a href="r_earthworks_08.png">
+    <img src="r_earthworks_08.png" width="250" height="250"
+         alt="Earthworks" border="0">
+    </a><br>
+    <i>Figure: Elevation and earthworks</i>
+</div>
+
+<h3>Dam Breach Modeling</h3>
+
+Model a flood due to a dam breach.
+Use <em>r.earthworks</em> to breach the dam and then use
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>
+to model the maximum possible extent and depth of flooding.
+
+<div class="code"><pre>
+g.region n=223740 s=222740 w=634450 e=635450 res=10
+r.lake elevation=elevation water_level=104 lake=lake coordinates=635150.7489931877,223203.9595016748
+r.earthworks elevation=elevation operation=cut coordinates=635235.4648198467,223210.9879314204 z=103 rate=0.5 flat=20
+r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=635150.7489931877,223203.9595016748
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_09.png">
+    <img src="r_earthworks_09.png" width="250" height="250"
+         alt="Dam" border="0">
+    </a>
+    <a href="r_earthworks_10.png">
+    <img src="r_earthworks_10.png" width="250" height="250"
+         alt="Dam Breach" border="0">
+    </a><br>
+    <i>Figure: Elevation and earthworks</i>
+</div>
+
+<!--<h2>REFERENCES</h2>-->
+
+<!--
+<h2>SEE ALSO</h2>
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
+</em>
+-->
+
+<h2>AUTHORS</h2>
+
+<a href="https://baharmon.github.io/">Brendan Harmon</a>
