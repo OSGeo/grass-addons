@@ -286,17 +286,28 @@ def add_sys_path(new_path):
         sys.path = original_sys_path
 
 
-def collect_item_assets(item, assset_keys, asset_roles):
+def collect_item_assets(item, asset_keys, asset_roles):
+    """
+    Collects and returns a list of asset dictionaries from a STAC item, filtered by specified asset keys and roles.
+
+    Args:
+        item: An object representing a STAC item, expected to have 'assets', 'collection_id', 'id', and 'properties' attributes.
+        asset_keys (list or set): A collection of asset keys to include. If empty or None, all asset keys are considered.
+        asset_roles (list or set): A collection of asset roles to include. If empty or None, all asset roles are considered.
+
+    Returns:
+        list: A list of dictionaries, each representing an asset that matches the provided keys and roles. Each dictionary includes additional metadata such as 'collection_id', 'item_id', 'file_name', and 'datetime'.
+    """
+    requested_assets = []
     for key, asset in item.assets.items():
         asset_file_name = f"{item.collection_id}.{item.id}.{key}"
         # Check if the asset key is in the list of asset keys
-        if assset_keys and key not in assset_keys:
+        if asset_keys and key not in asset_keys:
             continue
 
         # Check if the asset fits the roles
-        if asset_roles:
-            if not any(role in asset.roles for role in asset_roles):
-                continue
+        if asset_roles and not set(asset.roles) & set(asset_roles):
+            continue
 
         asset_dict = asset.to_dict()
         # The output file name
@@ -304,8 +315,9 @@ def collect_item_assets(item, assset_keys, asset_roles):
         asset_dict["item_id"] = item.id
         asset_dict["file_name"] = asset_file_name
         asset_dict["datetime"] = item.properties["datetime"]
+        requested_assets.append(asset_dict)
 
-        return asset_dict
+    return requested_assets
 
 
 def main():
@@ -455,10 +467,11 @@ def main():
             libstac.print_json_to_stdout(item_list, pretty_print)
             return 0
 
+    # Collect requested assets from each item
     for item in items:
-        asset = collect_item_assets(item, asset_keys, asset_roles=item_roles)
-        if asset:
-            collection_items_assets.append(asset)
+        collection_items_assets.extend(
+            collect_item_assets(item, asset_keys, asset_roles=item_roles)
+        )
 
     if strds_output:
         strds_output = os.path.abspath(strds_output)
