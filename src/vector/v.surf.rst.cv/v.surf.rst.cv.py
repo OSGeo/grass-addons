@@ -47,7 +47,7 @@
 # % required: no
 # % description: Tension parameter for cross-validation
 # % multiple: yes
-# % answer: 10, 20, 40, 60, 80, 100
+# % answer: 10,20,40,60,80,100
 # % guisection: Cross-Validation
 # %end
 
@@ -57,7 +57,7 @@
 # % required: no
 # % description: Smoothing parameter for cross-validation
 # % multiple: yes
-# % answer: 0.01, 0.1, 0.5, 1.0, 5.0, 10.0
+# % answer: 0.01,0.1,0.5,1.0,5.0,10.0
 # % guisection: Cross-Validation
 # %end
 
@@ -96,8 +96,7 @@
 # % key: dmin
 # % type: double
 # % required: no
-# % description: Minimum distance between points
-# % answer: 0.0
+# % description: Minimum distance between points (to remove almost identical points). Default value is half of the smaller resolution of the current region.
 # % guisection: RST Parameters
 # %end
 
@@ -106,7 +105,6 @@
 # % type: double
 # % required: no
 # % description: Maximum distance between points on isoline (to insert additional points)
-# % answer: 0.0
 # % guisection: RST Parameters
 # %end
 
@@ -207,22 +205,15 @@ def generate_tmp_layer_name(layer_name: str) -> str:
     return tmp_layer_name
 
 
-def set_tension_parameter(tension_option: Option[str]) -> list[int]:
-    """Set tension parameter"""
-    tension = DEFAULT_TENSION
-    if tension_option:
-        tension = tension_option.split(",")
-    gs.debug(_("Tension values: %s") % tension)
-    return tension
-
-
-def set_smoothing_parameter(smoothing_option: Option[str]) -> list[float]:
-    """Set smoothing parameter"""
-    smoothing = DEFAULT_SMOOTHING
-    if smoothing_option:
-        smoothing = smoothing_option.split(",")
-    gs.debug(_("Smoothing values: %s") % smoothing)
-    return smoothing
+def set_default_parameters(
+    user_options: str, default_option: list[int | float]
+) -> list[int | float]:
+    """Set default parameters"""
+    options = default_option
+    if user_options:
+        options = user_options.replace(" ", "").split(",")
+    gs.debug(_("Option values: %s") % options)
+    return options
 
 
 def set_cvdev_parameter(cv_prefix: Option[str]) -> str:
@@ -258,6 +249,7 @@ def cross_validate(
     kwargs_copy = {k: v for k, v in kwargs.items() if k not in args_blacklist}
 
     output_list = []
+    # TODO: Add support for multiple processes without user accidently overwhelming the cpu
     for t in tension_list:
         for s in smoothing_list:
             output_name = f"{prefix_cv}_{t}_{str(s).replace('.', '')}"
@@ -437,8 +429,12 @@ def main():
 
     # Set parameters
     cvdev = set_cvdev_parameter(options.get("cv_prefix"))
-    tension = set_tension_parameter(options.get("tension"))
-    smoothing = set_smoothing_parameter(options.get("smooth"))
+    tension = set_default_parameters(
+        options.get("tension"), default_option=DEFAULT_SMOOTHING
+    )
+    smoothing = set_default_parameters(
+        options.get("smooth"), default_option=DEFAULT_SMOOTHING
+    )
 
     # Run cross-validation
     cv_map_list = cross_validate(
