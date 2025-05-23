@@ -26,10 +26,11 @@ HSG raster **must** contain only the following values:
 
 No other values are allowed.
 
-
-The curve numbers produced by *r.curvenumber* are preliminary estimates.  
-Users should verify and, if necessary, adjust these values before using them 
-in detailed hydrologic analyses or engineering designs.
+The curve numbers used in *r.curvenumber* are based on values published by the 
+United States Department of Agriculture, Natural Resources Conservation Service (2004). 
+While these values serve as a widely accepted reference, users should 
+assess and, if needed, modify them to suit the specific requirements, 
+assumptions, and spatial scale of their hydrologic studies or engineering designs
 
 ## EXAMPLES
 
