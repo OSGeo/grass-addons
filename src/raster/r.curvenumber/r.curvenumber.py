@@ -204,7 +204,7 @@ def load_custom(path):
             for row in csv.DictReader(f):
                 lut[(row["lc"], row["hsg"])] = row["cn"]
     except Exception as e:
-        fatal(f"Unable to read lookup '{path}': {e}")
+        fatal(_("Unable to read lookup '{path}': {e}").format(path=path, e=e))
     if not lut:
         fatal(_("Custom lookup table is empty or malformed"))
     return lut
