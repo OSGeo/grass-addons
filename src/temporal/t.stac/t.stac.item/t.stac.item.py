@@ -498,7 +498,7 @@ def main():
         if format == "plain":
             sys.stdout.write(f"Total Assests: {estimate_download['count']}\n")
             sys.stdout.write(
-                f"Estimated download size: {estimate_download['bytes'] / 1e9} GB\n"
+                f"Estimated download size: {estimate_download.get('bytes', 0) / 1e9} GB\n"
             )
 
     if download:
