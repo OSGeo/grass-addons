@@ -26,7 +26,6 @@ HSG raster **must** contain only the following values:
 
 No other values are allowed.
 
-## DISCLAIMER
 
 The curve numbers produced by *r.curvenumber* are preliminary estimates.  
 Users should verify and, if necessary, adjust these values before using them 
