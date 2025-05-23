@@ -30,7 +30,7 @@ class TestRCn(TestCase):
         """Run r.cn with source=nlcd and verify pixel-perfect match."""
         # 1) compute CN with r.cn module
         self.assertModule(
-            "r.cn",
+            "r.curvenumber",
             landcover=self.lc,
             hsg=self.hsg,
             source="esa",
