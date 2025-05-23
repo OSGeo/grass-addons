@@ -206,7 +206,7 @@ def load_custom(path):
     except Exception as e:
         fatal(f"Unable to read lookup '{path}': {e}")
     if not lut:
-        fatal("Custom lookup table is empty or malformed")
+        fatal(_("Custom lookup table is empty or malformed"))
     return lut
 
 # nested if() expression for r.mapcalc
