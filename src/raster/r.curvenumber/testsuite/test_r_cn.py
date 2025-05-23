@@ -4,7 +4,7 @@ from grass.gunittest.main import test
 from grass.gunittest.gmodules import SimpleModule
 
 class TestRCn(TestCase):
-    """Test r.cn against a known expected output raster."""
+    """Test r.curvenumber against a known expected output raster."""
 
     lc       = "lc_esa_test"
     hsg      = "hsg_test"
