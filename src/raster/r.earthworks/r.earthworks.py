@@ -142,13 +142,24 @@
 # import libraries
 import grass.script as gs
 from itertools import repeat
-from itertools import batched
+from itertools import islice
 import sys
 import atexit
 import math
 
 # set global variables
 temporary = []
+
+
+def batched(iterable, n):
+    """Batch iterable into tuples"""
+
+    # implementation of itertools.batched
+    if n < 1:
+        raise ValueError("n must be at least one")
+    iterator = iter(iterable)
+    while batch := tuple(islice(iterator, n)):
+        yield batch
 
 
 def clean(temporary):

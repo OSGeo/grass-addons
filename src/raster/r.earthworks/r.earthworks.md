@@ -211,7 +211,9 @@ r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=63
 
 <!-- ## KNOWN ISSUES -->
 
-<!-- ## REFERENCES -->
+## REFERENCES
+
+Harmon, B. (2025). r.earthworks (Version 1.0.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
 
 <!-- ## SEE ALSO -->
 
