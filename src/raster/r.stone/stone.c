@@ -9,9 +9,6 @@
 
 static void GetMemory(typeParams *rParams, runtimeParams *rtParams,
                       globalParams *gParams);
-static void free_memory(typeParams *rParams, runtimeParams *rtParams,
-                        globalParams *gParams);
-static void WriteInfoStatFile();
 static void DumpMatrixToRaster(char *fname, long *mat, int nodata);
 static void InitRangeRandValues(typeParams *runParams,
                                 runtimeParams *runTimeParams, UniSave *uniData);
@@ -19,7 +16,7 @@ static void ReadInputRasters(typeParams *stoneRunParams,
                              globalParams *stoneGlobalParams,
                              runtimeParams *stoneRunTimeParams);
 static void ReadRasterToLongMatrix(char *rasterName, long **pmat, double factor,
-                                   long nodata, int countRuns);
+                                   long nodata);
 static void ReadRasterToShortMatrix(char *fname, short **pmat, double factor,
                                     short nodata);
 
@@ -63,13 +60,10 @@ void runStone(typeParams *rParams, globalParams *gParams)
     }
 
     DumpMatrixToRaster(rParams->OUT_COUNTERS_FILE, rtParams.gplCountStones, -1);
-    if (rParams->OUT_MAX_VEL_FILE != NULL &&
-        rParams->OUT_MAX_VEL_FILE[0] != '\0')
+    if (rParams->OUT_MAX_VEL_FILE[0] != '\0')
         DumpMatrixToRaster(rParams->OUT_MAX_VEL_FILE, rtParams.gplVelo, -1);
-    if (rParams->OUT_MAX_DZ_FILE != NULL && rParams->OUT_MAX_DZ_FILE[0] != '\0')
+    if (rParams->OUT_MAX_DZ_FILE[0] != '\0')
         DumpMatrixToRaster(rParams->OUT_MAX_DZ_FILE, rtParams.gplMaxQuota, -1);
-
-    free_memory(rParams, &rtParams, gParams);
 
     return;
 }
@@ -134,13 +128,13 @@ static void ReadInputRasters(typeParams *rParams, globalParams *gParams,
     gParams->gGeometry->ne_y = window.north;
 
     ReadRasterToLongMatrix(rParams->elev_f, &rtParams->gplQuota, 1000.,
-                           9999999L, 0);
+                           9999999L);
 
-    ReadRasterToLongMatrix(rParams->stst_f, &rtParams->gplStartStop, 1., -9999L,
-                           1);
+    ReadRasterToLongMatrix(rParams->stst_f, &rtParams->gplStartStop, 1.,
+                           -9999L);
 
     ReadRasterToLongMatrix(rParams->frict_f, &rtParams->gplFrict, 1000.,
-                           999999L, 0);
+                           999999L);
 
     ReadRasterToShortMatrix(rParams->v_elas_f, &rtParams->gpcVElas, 1., 0);
 
@@ -148,7 +142,7 @@ static void ReadInputRasters(typeParams *rParams, globalParams *gParams,
 
     if (rParams->SwitchVelType == 1)
         ReadRasterToLongMatrix(rParams->AccMtrxFile, &rtParams->gplStartVel,
-                               rParams->FromAccToVel * 1000, 0, 0);
+                               rParams->FromAccToVel * 1000, 0);
 
     /*
       Set globals
@@ -159,7 +153,6 @@ static void ReadInputRasters(typeParams *rParams, globalParams *gParams,
     gParams->giRows = gParams->gGeometry->rows + 2;
     gParams->glRowsxCols = gParams->giRows * gParams->giCols;
     gParams->gdCell = (double)gParams->gGeometry->cell;
-    double gdInvCell = 1 / gParams->gdCell;
     gParams->gdInvCell = 1 / gParams->gdCell;
     gParams->gdInvCell0001 = 0.001 / gParams->gdCell;
     gParams->gdInvCellSq20001 = 0.001 / (gParams->gdCell * SQ2);
@@ -167,15 +160,13 @@ static void ReadInputRasters(typeParams *rParams, globalParams *gParams,
 }
 
 static void ReadRasterToLongMatrix(char *rasterName, long **pmat, double factor,
-                                   long nodata, int countRuns)
+                                   long nodata)
 {
     int r, c;
-    double data;
     long piv;
     long *mat;
     char *mapset;
     RASTER_MAP_TYPE map_type;
-    struct Cell_head cellhd;
     void *inrast;
     int inFileDescriptor;
 
@@ -262,12 +253,10 @@ static void ReadRasterToShortMatrix(char *rasterName, short **pmat,
                                     double factor, short nodata)
 {
     int r, c;
-    double data;
     long piv;
     short *mat;
     char *mapset;
     RASTER_MAP_TYPE map_type;
-    struct Cell_head cellhd;
     void *inrast;
     int inFileDescriptor;
 
@@ -464,32 +453,8 @@ static void GetMemory(typeParams *rParams, runtimeParams *rtParams,
     rtParams->gP3dZero->Z = 0.;
 }
 
-static void free_memory(typeParams *rParams, runtimeParams *rtParams,
-                        globalParams *gParams)
-{
-    // free(rtParams->gplCountStones);
-    // free(rtParams->gplVelo);
-    // free(rtParams->gplMaxQuota);
-    // free(rtParams->gpPathRoot);
-    // free(rtParams->gP3dZero);
-    // free(rtParams->gpPathCur);
-    // free(rtParams->gplQuota);
-    // free(rtParams->gplStartStop);
-    // free(rtParams->gplFrict);
-    // free(rtParams->gplStartVel);
-    // free(rtParams->gplStartVel);
-    // free(rtParams->gpcVElas);
-    // free(rtParams->gpcHElas);
-    // free(rtParams);
-
-    // free(gParams->gGeometry);
-    // free(gParams);
-
-    // free(rParams);
-}
-
-int NewPlane(typeParams *rParams, runtimeParams *rtParams,
-             globalParams *gParams, P3d *cp, MathContext *ctx)
+int NewPlane(runtimeParams *rtParams, globalParams *gParams, P3d *cp,
+             MathContext *ctx)
 {
     int r, c;
     long piv;
@@ -614,8 +579,6 @@ int NewPlane(typeParams *rParams, runtimeParams *rtParams,
     x_rotate(ctx, gPlane->Rx);
     mget(ctx, gPlane->rToPlane);
     print_double_array("rToPlane", rtParams->gPlane.rToPlane, 16);
-    // G_debug(5, "NewPlane1: rToPlane: [%lf,%lf,%lf,%lf,%lf,...]", \
-    //         gPlane.rToPlane[0],gPlane.rToPlane[1],gPlane.rToPlane[2],gPlane.rToPlane[3],gPlane.rToPlane[4]);
 
     minit(ctx);
     translate(ctx, gPlane->Tx, gPlane->Ty, gPlane->Tz);
@@ -624,8 +587,6 @@ int NewPlane(typeParams *rParams, runtimeParams *rtParams,
     x_rotate(ctx, gPlane->Rx);
     mget(ctx, gPlane->toPlane);
     print_double_array("toPlane", rtParams->gPlane.toPlane, 16);
-    // G_debug(5, "NewPlane1: toPlane: [%lf,%lf,%lf,%lf,%lf,...]", \
-    //         gPlane.toPlane[0],gPlane.toPlane[1],gPlane.toPlane[2],gPlane.toPlane[3],gPlane.toPlane[4]);
 
     minit(ctx);
     x_rotate(ctx, -gPlane->Rx);
@@ -636,8 +597,6 @@ int NewPlane(typeParams *rParams, runtimeParams *rtParams,
     translate(ctx, -gPlane->Tx, -gPlane->Ty, -gPlane->Tz);
     mget(ctx, gPlane->fromPlane);
     print_double_array("fromPlane", rtParams->gPlane.fromPlane, 16);
-    // G_debug(5, "NewPlane1: fromPlane: [%lf,%lf,%lf,%lf,%lf,...]", \
-    //         gPlane->fromPlane[0],gPlane->fromPlane[1],gPlane->fromPlane[2],gPlane->fromPlane[3],gPlane->fromPlane[4]);
 
     G_debug(5, "NewPlane2: p0: %lf %lf %lf", gPlane->p0.X, gPlane->p0.Y,
             gPlane->p0.Z);
@@ -720,24 +679,15 @@ void Filter(runtimeParams *rtParams, typeParams *tParams)
 }
 
 void WritePath(runtimeParams *rtParams, typeParams *tParams,
-               globalParams *gParams, StoneStatus status)
+               globalParams *gParams)
 {
     Filter(rtParams, tParams);
 
     MarkVelo(rtParams, tParams, gParams);
 
-    MarkPath(rtParams, tParams, gParams);
+    MarkPath(rtParams, gParams);
 
     MarkQuota(rtParams, tParams, gParams);
-
-    if (tParams->gen_3d_vect)
-        WriteFile3d(status);
-
-    if (tParams->gen_2d_vect)
-        WriteFiles2d();
-
-    if (tParams->gFlagInfoStat)
-        WriteInfoStatFile();
 }
 
 void MarkVelo(runtimeParams *rtParams, typeParams *tParams,
@@ -770,8 +720,7 @@ void MarkVelo(runtimeParams *rtParams, typeParams *tParams,
     }
 }
 
-void MarkPath(runtimeParams *rtParams, typeParams *tParams,
-              globalParams *gParams)
+void MarkPath(runtimeParams *rtParams, globalParams *gParams)
 {
     typePath *p;
     P3d *pp;
@@ -829,104 +778,6 @@ void MarkQuota(runtimeParams *rtParams, typeParams *tParams,
 void WriteP3dToLog(const char *label, P3d *p)
 {
     G_debug(4, "%s X:%11.5lf Y:%11.5lf Z:%11.5lf", label, p->X, p->Y, p->Z);
-}
-
-void WriteFile3d(StoneStatus status)
-{
-    // CURRENTLY NOT SUPPORTED
-
-    // typePath *p;
-    // P3d *pp, *pv;
-    // double v;
-
-    // if (status == FLY)
-    //     fprintf(gFileUst1, "P\t%d\n", ++giUstSlice);
-    // else
-    //     fprintf(gFileUst1, "R\t%d\n", ++giUstSlice);
-
-    // for (p = gpPathRoot; p < gpPathCur; ++p) {
-    //     if (p->deleted)
-    //         continue;
-
-    //     pp = &p->pos;
-    //     pv = &p->v;
-
-    //     v = sqrt(pv->X * pv->X + pv->Y * pv->Y + pv->Z * pv->Z);
-
-    //     fprintf(gFileUst1, "%.3lf, %.3lf, %.3lf, %.2lf, %.2lf\n",
-    //             RoundDouble(gGeometry.sw_x + pp->X),
-    //             RoundDouble(gGeometry.sw_y + pp->Y), RoundDouble(pp->Z),
-    //             RoundDouble(v), RoundDouble(p->dz));
-    // }
-
-    // fflush(gFileUst1);
-}
-
-void WriteInfoStatFile()
-{
-    // CURRENTLY NOT SUPPORTED
-
-    // typeInfoStat info;
-    // typePath *p;
-    // double vx, vy, vz;
-
-    // info.id = glIdMasso;
-
-    // for (p = gpPathRoot; p < gpPathCur; ++p) {
-    //     if (p->deleted)
-    //         continue;
-
-    //     info.x = gGeometry.sw_x + p->pos.X;
-    //     info.y = gGeometry.sw_y + p->pos.Y;
-
-    //     info.dz = p->dz * 1000 * gdQuotaUMFactor;
-
-    //     vx = p->v.X;
-    //     vy = p->v.Y;
-    //     vz = p->v.Z;
-
-    //     info.v = sqrt(vx * vx + vy * vy + vz * vz) * 1000 * gdVeloUMFactor;
-
-    //     fwrite(&info, sizeof(info), 1, gFileInfoStat);
-    // }
-
-    // fflush(gFileInfoStat);
-}
-
-void WriteFiles2d()
-{
-    // CURRENTLY NOT SUPPORTED
-
-    // typePath *p;
-    // P3d *pp, *pv;
-    // double v;
-
-    // /*
-    //   Last point of path discarted to avoid to have two points
-    //   laying on the same place -- last point of this path and
-    //   the first of the next
-    // */
-    // for (p = gpPathRoot; p < gpPathCur - 1; ++p) {
-    //     if (p->deleted)
-    //         continue;
-
-    //     pp = &p->pos;
-    //     pv = &p->v;
-
-    //     v = sqrt(pv->X * pv->X + pv->Y * pv->Y + pv->Z * pv->Z);
-
-    //     ++glConter2d;
-
-    //     fprintf(gFilePoints, "%ld,%.3lf,%.3lf\n", glConter2d,
-    //             RoundDouble(gGeometry.sw_x + pp->X),
-    //             RoundDouble(gGeometry.sw_y + pp->Y));
-
-    //     fprintf(gFileAttrib, "%ld,%.3lf,%.3lf,%.3lf\n", glConter2d,
-    //             RoundDouble(pp->Z), RoundDouble(v), RoundDouble(p->dz));
-    // }
-
-    // fflush(gFilePoints);
-    // fflush(gFileAttrib);
 }
 
 double RoundDouble(double d)
