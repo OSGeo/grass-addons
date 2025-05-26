@@ -164,7 +164,7 @@ def create_unique_name(name):
     Store the name in the global list.
     Use only for raster maps.
     """
-    return name + str(uuid.uuid4().hex)
+    return gs.append_uuid(name)
 
 
 def create_temporary_name(prefix):
@@ -189,9 +189,7 @@ def main():
     csv_file_out = options["csvfilename"]
     resolutiondir = options["resolutiondir"]
 
-    overwrite_flag = ""
-    if gs.overwrite():
-        overwrite_flag = "t"
+    gs.overwrite()
 
     # check if v.transects is installed
     if not gs.find_program("v.transects", "--help"):
@@ -395,9 +393,9 @@ def main():
     if max_thickness >= tsize:
         gs.warning(
             _(
-                "maximum thickness {} is larger or equal to the imput \n"
-                "expected maximum size {}: the border of the largest \n"
-                "object has not been reached, rise the expected maximum \n"
+                "The maximum thickness {0} is larger or equal to the imput "
+                "expected maximum size {1}. I.e., the border of the largest "
+                "object has not been reached. Increase the expected maximum "
                 "size value."
             ).format(str(max_thickness), str(tsize))
         )
@@ -407,14 +405,12 @@ def main():
         gs.run_command(
             "g.copy",
             raster="{inmap},{outmap}".format(inmap=categorymap_thin, outmap=rmedian),
-            overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
     if vcategories:
         gs.run_command(
             "g.copy",
             vector="{inmap},{outmap}".format(inmap=categorymap, outmap=vcategories),
-            overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
         gs.run_command(
@@ -433,10 +429,7 @@ def main():
             return table_name in tables
 
         # Create temporary table name
-        while True:
-            temp_table = create_unique_name("tmp")
-            if not table_exists(temp_table):
-                break
+        temp_table = create_unique_name("tmp")
         DBTABLE.append(temp_table)
 
         # Create table with statistics
@@ -481,7 +474,6 @@ def main():
         gs.run_command(
             "g.copy",
             vector="{inmap},{outmap}".format(inmap=categorymap_thin, outmap=vmedian),
-            overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
         gs.run_command(
@@ -501,7 +493,6 @@ def main():
             vector="{inmap},{outmap}".format(
                 inmap=categorymap_transects, outmap=transects
             ),
-            overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
     if itransects:
@@ -510,7 +501,6 @@ def main():
             vector="{inmap},{outmap}".format(
                 inmap=categorymap_transects_inside, outmap=itransects
             ),
-            overwrite="{}".format(overwrite_flag),
             quiet=True,
         )
         gs.run_command(
