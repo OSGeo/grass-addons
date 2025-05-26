@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.signature.remove
+PGM=r.earthworks
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

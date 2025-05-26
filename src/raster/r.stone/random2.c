@@ -13,11 +13,11 @@
 #define M_PI (3.141592653589793115997963468544185161590576171875)
 #endif
 
-static long random_irpi(UniSave *uniData);
-static void srandom_irpi(UniSave *uniData, unsigned int);
+static long random_irpi();
+static void srandom_irpi(unsigned int);
 
-static long (*randomProc)(UniSave *) = random_irpi;
-static void (*seedProc)(UniSave *, unsigned int) = srandom_irpi;
+static long (*randomProc)() = random_irpi;
+static void (*seedProc)(unsigned int) = srandom_irpi;
 
 double Uniform(UniSave *uniData, double mean, double std_devn)
 {
@@ -26,14 +26,14 @@ double Uniform(UniSave *uniData, double mean, double std_devn)
      *   - rember that variance of a uniform pdf is  (b-a)^2/12
      */
     std_devn *= sqrt(12.0);
-    return (mean - std_devn / 2) + std_devn * (double)randomProc(uniData) /
-                                       ((double)uniData->randMax + 1);
+    return (mean - std_devn / 2) +
+           std_devn * (double)randomProc() / ((double)uniData->randMax + 1);
 }
 
 double SimpleUniform(UniSave *uniData, double min, double max)
 {
-    return min + (max - min) * (double)randomProc(uniData) /
-                     ((double)uniData->randMax + 1);
+    return min +
+           (max - min) * (double)randomProc() / ((double)uniData->randMax + 1);
 }
 
 double Cauchy(UniSave *uniData, double mean, double half_width)
@@ -49,10 +49,10 @@ double Gaussian(UniSave *uniData, double mean, double std_devn)
     double fac, r, v1, v2;
     if (iset == 0) {
         do {
-            v1 = 2.0 * ((double)(randomProc(uniData) & uniData->randMax) /
+            v1 = 2.0 * ((double)(randomProc() & uniData->randMax) /
                         (double)uniData->randMax) -
                  1.0;
-            v2 = 2.0 * ((double)(randomProc(uniData) & uniData->randMax) /
+            v2 = 2.0 * ((double)(randomProc() & uniData->randMax) /
                         (double)uniData->randMax) -
                  1.0;
             r = v1 * v1 + v2 * v2;
@@ -71,7 +71,7 @@ double Gaussian(UniSave *uniData, double mean, double std_devn)
 void Init_RNG(UniSave *uniData, unsigned int seed)
 {
     uniData->randMax = RAND_MAX;
-    seedProc(uniData, seed);
+    seedProc(seed);
     return;
 }
 
@@ -79,12 +79,12 @@ void Init_RNG(UniSave *uniData, unsigned int seed)
 // functions, because this allows for the possibility to extend with more random
 // functions in the future, once the licensing issues are solved.
 
-static long random_irpi(UniSave *uniData)
+static long random_irpi()
 {
     return (long)rand();
 }
 
-static void srandom_irpi(UniSave *uniData, unsigned int seed)
+static void srandom_irpi(unsigned int seed)
 {
     srand(seed);
 }
