@@ -5,8 +5,11 @@
   <li><strong>Built-in NLCD lookup</strong> (use the parameter <code>source=nlcd</code>)</li>
   <li><strong>Built-in ESA WorldCover lookup</strong> (use the parameter <code>source=esa</code>)</li>
 </ul>
-<p>For <code>source=custom</code> (use the parameter <code>source=custom</code>, and <code>lookup=/path/to/table.csv</code>)</p>
-<p>For <em>custom</em> lookups, the CSV must have the format <code>lc,hsg,cn</code>. Pass the custom lookup as a file or paste the values in the dialogue box.</p>
+
+<p>For <em>custom</em> lookups, use the parameter <code>source=custom</code>,
+and <code>lookup=/path/to/table.csv</code>. The CSV must have the header <code>lc,hsg,cn</code>.
+Pass the custom lookup as a file or paste the values in the dialogue box.</p>
+
 <p>Your HSG raster <strong>must</strong> contain only the following values:</p>
 <ul>
   <li><strong>1, 2, 3, 4</strong> for Hydrologic Soil Groups A, B, C, D.</li>
@@ -15,10 +18,10 @@
 <p>No other values are allowed.</p>
 
 <p>
-  The curve numbers used in <em>r.curvenumber</em> are based on values published by the 
-  United States Department of Agriculture, Natural Resources Conservation Service (2004). 
-  While these values serve as a widely accepted reference, users should 
-  assess and, if needed, modify them to suit the specific requirements, 
+  The curve numbers used in <em>r.curvenumber</em> are based on values published by the
+  United States Department of Agriculture, Natural Resources Conservation Service (2004).
+  While these values serve as a widely accepted reference, users should
+  assess and, if needed, modify them to suit the specific requirements,
   assumptions, and spatial scale of their hydrologic studies or engineering designs.
 </p>
 
@@ -57,5 +60,3 @@ r.curvenumber \
 
 <h2>AUTHOR</h2>
 <p><a href="mailto:mabdazzam@outlook.com">Abdullah Azzam</a>, New Mexico State University</p>
-
-

@@ -15,41 +15,40 @@
 ##############################################################################
 """It generates the curve number raster based on the land cover and hydrologic soil group rasters"""
 
-#%module
-#% description: Generates the Curve Number raster from the landcover and hydrologic soil group rasters
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: curve number
-#%end
+# %module
+# % description: Generates the Curve Number raster from the landcover and hydrologic soil group rasters
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: curve number
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: landcover
-#% description: Landcover raster
-#%end
+# %option G_OPT_R_INPUT
+# % key: landcover
+# % description: Landcover raster
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: soil
-#% description: Hydrologic Soil Group raster 
-#%end
+# %option G_OPT_R_INPUT
+# % key: soil
+# % description: Hydrologic Soil Group raster
+# %end
 
-#%option
-#% key: landcover_source
-#% type: string
-#% description: Lookup table source
-#% options: nlcd,esa,custom
-#% required: yes
-#%end
+# %option
+# % key: landcover_source
+# % type: string
+# % description: Lookup table source
+# % options: nlcd,esa,custom
+# % required: yes
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: lookup
-#% description: CSV with columns lc,hsg,cn (required if source=custom)
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: lookup
+# % description: CSV with columns lc,hsg,cn (required if source=custom)
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Curve number raster
-#%end
+# %option G_OPT_R_OUTPUT
+# % description: Curve number raster
+# %end
 
 import csv
 from grass.script import parser, run_command, fatal
@@ -188,6 +187,7 @@ ESA_CSV = """lc,hsg,cn
 100,4,79
 """
 
+
 # CSV parsing helpers
 def parse_csv(text):
     """Parse an embedded CSV string into {(lc,hsg): cn}."""
@@ -195,6 +195,7 @@ def parse_csv(text):
     for row in csv.DictReader(text.strip().splitlines()):
         lut[(row["lc"], row["hsg"])] = row["cn"]
     return lut
+
 
 def load_custom(path):
     """Parse a user‐supplied CSV file into {(lc,hsg): cn}."""
@@ -204,10 +205,11 @@ def load_custom(path):
             for row in csv.DictReader(f):
                 lut[(row["lc"], row["hsg"])] = row["cn"]
     except Exception as e:
-        fatal(_(f"Unable to read lookup '{path}': {e}").format(path=path, e=e))
+        fatal(_("Unable to read lookup '{path}': {e}").format(path=path, e=e))
     if not lut:
         fatal(_("Custom lookup table is empty or malformed"))
     return lut
+
 
 # nested if() expression for r.mapcalc
 def build_expression(landmap, hsg, lut):
@@ -217,14 +219,15 @@ def build_expression(landmap, hsg, lut):
         expr = f"if({landmap}=={lc} && {hsg}=={grp}, {cn}, {expr})"
     return expr
 
+
 # Main entry point
 def main():
     opts, flags = parser()
     landmap = opts["landcover"]
-    hsgmap  = opts["hsg"]
-    source  = opts["source"]
-    custom  = opts.get("lookup")
-    outmap  = opts["output"]
+    hsgmap = opts["soil"]
+    source = opts["landcover_source"]
+    custom = opts.get("lookup")
+    outmap = opts["output"]
 
     if source and source.lower() == "nlcd":
         lut = parse_csv(NLCD_CSV)
@@ -237,6 +240,7 @@ def main():
 
     expr = build_expression(landmap, hsgmap, lut)
     run_command("r.mapcalc", expression=f"{outmap} = {expr}")
+
 
 if __name__ == "__main__":
     main()
