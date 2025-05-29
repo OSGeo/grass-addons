@@ -193,7 +193,7 @@ def parse_csv(text):
     """Parse an embedded CSV string into {(lc,hsg): cn}."""
     lut = {}
     for row in csv.DictReader(text.strip().splitlines()):
-        lut[(row["lc"], row["hsg"])] = row["cn"]
+        lut[row["lc"], row["hsg"]] = row["cn"]
     return lut
 
 
@@ -203,7 +203,7 @@ def load_custom(path):
     try:
         with open(path, newline="") as f:
             for row in csv.DictReader(f):
-                lut[(row["lc"], row["hsg"])] = row["cn"]
+                lut[row["lc"], row["hsg"]] = row["cn"]
     except Exception as e:
         fatal(_("Unable to read lookup '{path}': {e}").format(path=path, e=e))
     if not lut:
