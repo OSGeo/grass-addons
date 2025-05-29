@@ -7,7 +7,7 @@ repos:
     rev: v0.11.11
     hooks:
       # Run the linter.
-      - id: ruff
+      - id: ruff-check
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/pre-commit-hooks
