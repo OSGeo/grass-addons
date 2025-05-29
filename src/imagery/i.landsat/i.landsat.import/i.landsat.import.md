@@ -52,8 +52,8 @@ and scene size, visit the [band
 designations](https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites?qt-news_science_products=0#qt-news_science_products)
 page at USGS website.
 
-The file naming convention for Landsat scenes is found
-[here](https://www.usgs.gov/faqs/what-naming-convention-landsat-collections-level-1-scenes).
+The file naming convention for Landsat scenes is explained in detail on
+the [USGS Landsat Collections Level-1 Scene Naming Convention FAQ](https://www.usgs.gov/faqs/what-naming-convention-landsat-collections-level-1-scenes).
 
 With the **register\_output** option *i.landsat.import* allows to create
 a text file that can be used to register imported imagery data into a

@@ -126,8 +126,6 @@ programming language within GRASS.
 *[d.rast.arrow](https://grass.osgeo.org/grass-stable/manuals/d.rast.arrow.html)*,
 *[r.inund.fluv](r.inund.fluv.md)*.  
 Details of the numerical model are presented in references.  
-Details of use and developing of r.damflood are available
-[here](http://istgeo.ist.supsi.ch/site/projects/dambreak).  
 
 ## REFERENCES
 

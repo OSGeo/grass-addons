@@ -110,7 +110,7 @@ bx_color=green median_color=white median_lw=0.8 bx_lw=0.8 \
 flier_color=orange flier_size=1 flier_marker=s font_size=8
 ```
 
-See [here](https://matplotlib.org/stable/tutorials/colors/colors.html)
+See [https://matplotlib.org/stable/tutorials/colors/colors.html](https://matplotlib.org/stable/tutorials/colors/colors.html)
 for the different formats in which colors can be specified.
 
 ![image-alt](t_rast_boxplot_02.png)

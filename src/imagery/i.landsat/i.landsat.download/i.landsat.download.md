@@ -99,10 +99,9 @@ Insert password:
 Most datasets are anonymously accessible, but a subscription key may be
 needed to [increase rate limits and access private
 datasets.](https://planetarycomputer.microsoft.com/docs/concepts/sas/#rate-limits-and-access-restrictions)
-Users can create an account
-[here](https://planetarycomputer.microsoft.com/account/request), and
-then view their keys by signing in with their Microsoft account
-[here](https://planetarycomputer.developer.azure-api.net/).
+Users can
+[create an account](https://planetarycomputer.microsoft.com/account/request), and
+then view their keys by signing in with their [Microsoft account](https://planetarycomputer.developer.azure-api.net/).
 
 Planetary computer settings file:
 

@@ -19,7 +19,8 @@ names to the provided base name.
 ## EXAMPLES
 
 The example uses the basic North Caroline dataset. You can download it
-from ([here](https://grass.osgeo.org/download/data/)). Alternatively,
+from ([https://grass.osgeo.org/download/data/](https://grass.osgeo.org/download/data/)).
+Alternatively,
 you can install in directly from within GRASS using the "Download sample
 project" option in the Data panel. Inspect the categories of the
 *landuse* raster layer.

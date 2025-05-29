@@ -1,4 +1,6 @@
 ---
+default_language_version:
+  node: lts
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
@@ -33,7 +35,7 @@ repos:
                 .*\.svg$
           )
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.44.0
+    rev: v0.45.0
     hooks:
       - id: markdownlint-fix
   - repo: https://github.com/pycqa/flake8
