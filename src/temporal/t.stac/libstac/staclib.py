@@ -19,12 +19,9 @@ import base64
 import tempfile
 import json
 from pathlib import Path
-from datetime import datetime
 from dateutil import parser as dateutil_parser
-from pprint import pprint
 import grass.script as gs
 import gettext
-from typing import Optional
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
@@ -72,12 +69,10 @@ def read_json_to_dict(file_path: str) -> dict:
     """
     Reads a JSON file and returns its content as a dictionary.
 
-    Args:
-        file_path (str or Path): The path to the JSON file.
-
-    Returns:
-        dict: A dictionary representing the JSON data.
-              Returns an empty dictionary if the file does not exist or is empty.
+    :param file_path: The path to the JSON file.
+    :type file_path: str
+    :return: A dictionary representing the JSON data. Returns an empty dictionary if the file does not exist, is empty, or contains invalid JSON.
+    :rtype: dict
     """
     path = Path(file_path)
     try:
@@ -368,12 +363,15 @@ def print_json_to_stdout(data, pretty=False):
     """
     Print JSON data to stdout.
 
-    Args:
-        data (dict or list): The JSON-serializable data to print.
-        pretty (bool): Whether to pretty-print the JSON with indentation.
-
-    Returns:
-        str: The JSON string representation of the data.
+    :param data: The JSON-serializable data to print.
+    :type data: dict or list
+    :param pretty: Set to true to pretty-print the JSON with indentation.
+    :type pretty: bool
+    :return: The JSON string representation of the data.
+    :rtype: str
+    :raises grass.fatal: If the data cannot be serialized to JSON.
+    :raises TypeError: If the data is not JSON-serializable.
+    :raises ValueError: If there is an error during JSON serialization.
     """
     try:
         json_output = json.dumps(data, indent=4 if pretty else None)
@@ -522,46 +520,48 @@ def region_to_wgs84_decimal_degrees_bbox():
     return bbox
 
 
-def check_url_type(url):
+def check_url_type(url: str) -> str:
     """
     Check if the URL is 's3://', 'gs://', or 'http(s)://'.
 
-    Parameters:
-    - url (str): The URL to check.
-
-    Returns:
-    - str: 's3', 'gs', 'http', or 'unknown' based on the URL type.
+    :param url (str): The URL to check.
+    :type url: str
+    :return: The modified URL with the appropriate prefix for GDAL/OGR, or 'unknown' if the protocol is not recognized.
+    :rtype: str
+    :raises grass.fatal: If an error occurs while checking the URL type.
     """
-    if url.startswith("s3://"):
-        os.environ["AWS_PROFILE"] = "default"
-        os.environ["AWS_REQUEST_PAYER"] = "requester"
-        return url.replace("s3://", "/vsis3/")  # Amazon S3
-    elif url.startswith("gs://"):
-        return url.replace("gs://", "/vsigs/")  # Google Cloud Storage
-    elif url.startswith("abfs://"):
-        return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
-    elif url.startswith("https://"):
-        return url.replace("https://", "/vsicurl/https://")
-        # TODO: Add check for cloud provider that uses https
-        # return url.replace("https://", "/vsiaz/")  # Azure Blob File System
-        # return url
-    elif url.startswith("http://"):
-        gs.warning(_("HTTP is not secure. Using HTTPS instead."))
-        return url.replace("https://", "/vsicurl/https://")
-    else:
-        sys.stdout.write(f"Unknown Protocol: {url}\n")
-        return "unknown"
+    try:
+        if url.startswith("s3://"):
+            os.environ["AWS_PROFILE"] = "default"
+            os.environ["AWS_REQUEST_PAYER"] = "requester"
+            return url.replace("s3://", "/vsis3/")  # Amazon S3
+        elif url.startswith("gs://"):
+            return url.replace("gs://", "/vsigs/")  # Google Cloud Storage
+        elif url.startswith("abfs://"):
+            return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
+        elif url.startswith("https://"):
+            return url.replace("https://", "/vsicurl/https://")
+            # TODO: Add check for cloud provider that uses https
+            # return url.replace("https://", "/vsiaz/")  # Azure Blob File System
+            # return url
+        elif url.startswith("http://"):
+            gs.warning(_("HTTP is not secure. Using HTTPS instead."))
+            return url.replace("https://", "/vsicurl/https://")
+        else:
+            gs.warning(_("Unknown Protocol: %s") % url)
+            return url
+    except Exception as e:
+        gs.fatal(_("Error checking URL type: {}").format(e))
 
 
 def bbox_to_nodes(bbox):
     """
     Convert a bounding box to polygon coordinates.
 
-    Parameters:
-    bbox (dict): A dictionary with 'west', 'south', 'east', 'north' keys.
-
-    Returns:
-    list of tuples: Coordinates of the polygon [(lon, lat), ...].
+    :param bbox: A dictionary with 'west', 'south', 'east', 'north' keys.
+    :type bbox: dict
+    :return: A list of tuples representing the polygon coordinates in the order [(lon, lat), ...].
+    :rtype: list of tuples
     """
     w, s, e, n = bbox["west"], bbox["south"], bbox["east"], bbox["north"]
     # Define corners: bottom-left, top-left, top-right, bottom-right, close by returning to start
@@ -625,12 +625,10 @@ def polygon_centroid(polygon_coords):
     """
     Create a centroid for a given polygon.
 
-    Args:
-        polygon_coords (list(Point)): List of coordinates representing the polygon.
-
-    Returns:
-        Centroid: The centroid of the polygon.
-
+    :param polygon_coords: List of coordinates representing the polygon.
+    :type polygon_coords: list of Point
+    :return: A Centroid object representing the centroid of the polygon.
+    :rtype: grass.pygrass.vector.geometry.Centroid
     """
     # Calculate the sums of the x and y coordinates
     sum_x = sum(
@@ -727,12 +725,15 @@ def fetch_items_with_pagination(items_search, limit, max_items):
     Fetches items from a search result with pagination.
 
     Args:
-        items_search (SearchResult): The search result object.
-        limit (int): The maximum number of items to fetch.
-        max_items (int): The maximum number of items on a page.
-
-    Returns:
-        list: A list of items fetched from the search result.
+    :param items_search: The search result object.
+    :type items_search: pystac_client.search.Search
+    :param limit: The maximum number of items to fetch.
+    :type limit: int
+    :param max_items: The maximum number of items on a page.
+    :type max_items: int
+    :return: A list of items fetched from the search result.
+    :rtype: list
+    :raises Exception: If there is an error fetching items from the search result.
     """
     items = []
     n_matched = None

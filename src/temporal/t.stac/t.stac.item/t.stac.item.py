@@ -288,15 +288,17 @@ def add_sys_path(new_path):
 
 def collect_item_assets(item, asset_keys, asset_roles):
     """
-    Collects and returns a list of asset dictionaries from a STAC item, filtered by specified asset keys and roles.
+    Collect and return a list of asset dictionaries from a STAC item, filtered by asset keys and roles.
 
-    Args:
-        item: An object representing a STAC item, expected to have 'assets', 'collection_id', 'id', and 'properties' attributes.
-        asset_keys (list or set): A collection of asset keys to include. If empty or None, all asset keys are considered.
-        asset_roles (list or set): A collection of asset roles to include. If empty or None, all asset roles are considered.
+    :param item: STAC item object with 'assets', 'collection_id', 'id', and 'properties' attributes.
+    :type item: object
+    :param asset_keys: Asset keys to include. If None or empty, all asset keys are considered.
+    :type asset_keys: list or set
+    :param asset_roles: Asset roles to include. If None or empty, all asset roles are considered.
+    :type asset_roles: list or set
 
-    Returns:
-        list: A list of dictionaries, each representing an asset that matches the provided keys and roles. Each dictionary includes additional metadata such as 'collection_id', 'item_id', 'file_name', and 'datetime'.
+    :return: List of asset dictionaries matching the provided keys and roles. Each dictionary includes 'collection_id', 'item_id', 'file_name', and 'datetime'.
+    :rtype: list
     """
     requested_assets = []
     for key, asset in item.assets.items():
