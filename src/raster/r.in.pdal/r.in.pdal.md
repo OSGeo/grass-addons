@@ -39,8 +39,11 @@ to import the LiDAR points.
 ## Import LAS file using PDAL
 
 Import of a LAS file using PDAL into a mapset in the sample NC SPM
-location. The sample LAS file is available
-[here](https://www.grassbook.org/wp-content/uploads/ncexternal/lidar_raleigh_nc_spm_height_feet.las).
+location.
+
+Dowload the sample LAS file by clicking on the link below.
+
+Download: [lidar_raleigh_nc_spm_height_feet.las](https://www.grassbook.org/wp-content/uploads/ncexternal/lidar_raleigh_nc_spm_height_feet.las).
 
 ```sh
 # check metadata
@@ -86,8 +89,9 @@ point data binned to raster map with r.in.pdal*
 ## Import LAZ file using PDAL docker
 
 Import of a LAZ file using PDAL docker into a mapset in the sample NC
-SPM location. The sample LAZ file is available
-[here](https://github.com/PDAL/PDAL/raw/master/test/data/laz/simple.laz).
+SPM location. The sample LAZ file is available for download with the link below.
+
+Download: [simple.laz](https://github.com/PDAL/PDAL/raw/master/test/data/laz/simple.laz).
 
 ```sh
 # pulling official PDAL docker image

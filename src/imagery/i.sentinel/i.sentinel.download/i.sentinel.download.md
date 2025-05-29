@@ -233,10 +233,10 @@ i.sentinel.download -l settings=credentials.txt id=S1A_IW_SLC__1SDV_20240609T052
 S1A_IW_SLC__1SDV_20240609T052012_20240609T052039_054242_0698FA_72DA 2024-06-09T05:20:12   0% S2MSI2A 7.71 GB
 ```
 
-Find Sentinel-1 products with date range filter and **query** filter
-limit to a specific polarisation mode (see
-[here](https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch)
-for query details):
+Find Sentinel-1 products within a specified date range and filter by a
+particular polarisation mode using the **query** parameter (refer to
+the [Copernicus SciHub User Guide](https://scihub.copernicus.eu/twiki/do/view/SciHubUserGuide/FullTextSearch)
+for details on available query options):
 
 ```sh
 i.sentinel.download -l settings=credentials.txt producttype=SLC start=2018-01-01 end=2018-12-31 query='polarizationChannels=VV&VH'

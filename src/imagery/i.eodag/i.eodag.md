@@ -251,8 +251,8 @@ cop_dataspace:
 
 #### Creodias
 
-To register to Creodias, users should create an account
-[here](https://portal.creodias.eu/register.php), and then use their
+To register to Creodias, users should
+[create an account](https://portal.creodias.eu/register.php), and then use their
 username and password in the eodag configuration file. Users will also
 need TOTP, a 6-digits temporary one time password, to be able to
 authenticate and download scenes (product search within creodias can be
