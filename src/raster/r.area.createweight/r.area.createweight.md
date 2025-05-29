@@ -199,8 +199,8 @@ command: `pip install packagename.whl`. Links for downloading wheels are
 provided below. The version installed should be compatible with the
 user's Python version. If GRASS was not installed using the OSGeo4W
 method, the pip package manager can be installed by saving the
-"get-pip.py" python script provided
-[here](https://bootstrap.pypa.io/get-pip.py) in the folder containing
+[get-pip.py](https://bootstrap.pypa.io/get-pip.py) python script provided
+in the folder containing
 the GRASS GIS Python environment (GRASSFOLDER/../etc/python/grass) and
 executing it with administrator rights with the following command:
 `python get-pip.py`  
