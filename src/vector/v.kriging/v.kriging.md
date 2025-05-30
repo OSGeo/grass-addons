@@ -153,7 +153,7 @@ Slovak University of Technology in Bratislava, Slovakia.
 
 ## REQUIREMENTS
 
-- **Gnuplot** graphing utility, [more](http://www.gnuplot.info/)  
+- **Gnuplot** graphing utility, [http://www.gnuplot.info/](http://www.gnuplot.info/)
 - **LAPACK / BLAS** (libraries for numerical computing) for GMATH
     library (GRASS Numerical Library)  
     <https://www.netlib.org/lapack> (usually available on Linux distros)
