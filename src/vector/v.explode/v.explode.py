@@ -53,10 +53,10 @@ import os
 import atexit
 
 try:
-    import grass.script as grass
+    import grass.script as gs
 except:
     try:
-        from grass.script import core as grass
+        from grass.script import core as gs
     except:
         if "GISBASE" not in os.environ:
             print("You must be in GRASS GIS to run this program.")
@@ -65,7 +65,7 @@ except:
 
 def cleanup():
     with open(os.devnull, "w") as nuldev:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             type_="vect",
             pattern="v_explode*",
@@ -80,15 +80,15 @@ def main():
     outmap = options["output"]
 
     # check if input file exists
-    if not grass.find_file(inmap, element="vector")["file"]:
-        grass.fatal(_("<%s> does not exist.") % inmap)
+    if not gs.find_file(inmap, element="vector")["file"]:
+        gs.fatal(_("<%s> does not exist.") % inmap)
 
     out_split = "v_explode" + "_" + "split"
-    grass.run_command(
+    gs.run_command(
         "v.split", input_=inmap, vertices=2, out=out_split, quiet=True, stderr=None
     )
     out_catdel = "v_explode" + "_" + "catdel"
-    grass.run_command(
+    gs.run_command(
         "v.category",
         input_=out_split,
         opt="del",
@@ -96,7 +96,7 @@ def main():
         quiet=True,
         stderr=None,
     )
-    grass.run_command(
+    gs.run_command(
         "v.category",
         input_=out_catdel,
         opt="add",
@@ -107,6 +107,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

@@ -260,7 +260,7 @@ import datetime
 import atexit
 from multiprocessing import Process
 
-import grass.script as grass
+import grass.script as gs
 import grass.script.core as core
 from grass.exceptions import CalledModuleError
 
@@ -272,9 +272,9 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
+        gs.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
     for pattern in MREMOVE:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             type="raster",
             pattern="{pattern}*".format(pattern=pattern),
@@ -352,7 +352,7 @@ def run_r_sun(
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
 
-    grass.run_command(
+    gs.run_command(
         "r.sun",
         elevation=elevation,
         aspect=aspect,
@@ -370,8 +370,8 @@ def run_r_sun(
             exp = "{out} = if({inp} > 0, 1, 0)".format(
                 out=output + suffix + tmpName, inp=output + suffix
             )
-            grass.mapcalc(exp=exp, overwrite=core.overwrite())
-            grass.run_command(
+            gs.mapcalc(exp=exp, overwrite=core.overwrite())
+            gs.run_command(
                 "g.rename",
                 raster=[output + suffix + tmpName, output + suffix],
                 quiet=True,
@@ -384,8 +384,8 @@ def run_r_sun(
             exp = "{out} = {inp} * {ts}".format(
                 inp=output + suffix, ts=time_step, out=output + suffix + tmpName
             )
-            grass.mapcalc(exp=exp, overwrite=core.overwrite())
-            grass.run_command(
+            gs.mapcalc(exp=exp, overwrite=core.overwrite())
+            gs.run_command(
                 "g.rename",
                 raster=[output + suffix + tmpName, output + suffix],
                 overwrite=True,
@@ -397,11 +397,11 @@ def set_color_table(rasters, binary=False):
     table = "gyr"
     if binary:
         table = "grey"
-    grass.run_command("r.colors", map=rasters, col=table, quiet=True)
+    gs.run_command("r.colors", map=rasters, col=table, quiet=True)
 
 
 def set_time_stamp(raster, time):
-    grass.run_command("r.timestamp", map=raster, date=time, quiet=True)
+    gs.run_command("r.timestamp", map=raster, date=time, quiet=True)
 
 
 def format_time(time):
@@ -431,8 +431,8 @@ def check_time_map_names(
                 )
             )
         for map_ in maps:
-            if grass.find_file(map_, element="cell", mapset=mapset)["file"]:
-                grass.fatal(
+            if gs.find_file(map_, element="cell", mapset=mapset)["file"]:
+                gs.fatal(
                     _(
                         "Raster map <%s> already exists. Change the base"
                         " name or allow overwrite."
@@ -491,9 +491,7 @@ def sum_maps(sum_, basename, suffixes):
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
-    grass.mapcalc(
-        "{sum_} = {new}".format(sum_=sum_, new=maps), overwrite=True, quiet=True
-    )
+    gs.mapcalc("{sum_} = {new}".format(sum_=sum_, new=maps), overwrite=True, quiet=True)
 
 
 def get_raster_from_strds(year, day, time, strds):
@@ -504,7 +502,7 @@ def get_raster_from_strds(year, day, time, strds):
         t=dt.strftime("%Y-%m-%d %H:%M")
     )
     try:
-        raster = grass.read_command(
+        raster = gs.read_command(
             "t.rast.list",
             flags="u",
             input=strds,
@@ -515,7 +513,7 @@ def get_raster_from_strds(year, day, time, strds):
         ).strip()
         return raster
     except CalledModuleError:
-        grass.warning(
+        gs.warning(
             "No raster found for {t} in dataset {s}".format(
                 t=dt.strftime("%Y-%m-%d %H:%M"), s=strds
             )
@@ -524,7 +522,7 @@ def get_raster_from_strds(year, day, time, strds):
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     elevation_input = options["elevation"]
     aspect_input = options["aspect"]
@@ -566,7 +564,7 @@ def main():
     )
 
     if not has_output:
-        grass.fatal(_("No output specified."))
+        gs.fatal(_("No output specified."))
 
     start_time = float(options["start_time"])
     end_time = float(options["end_time"])
@@ -594,18 +592,18 @@ def main():
 
     # check: start < end
     if start_time > end_time:
-        grass.fatal(_("Start time is after end time."))
+        gs.fatal(_("Start time is after end time."))
     if time_step >= end_time - start_time:
-        grass.fatal(_("Time step is too big."))
+        gs.fatal(_("Time step is too big."))
 
     if mode2 and incidout_basename:
-        grass.fatal(_("Can't compute incidence angle in mode 2"))
+        gs.fatal(_("Can't compute incidence angle in mode 2"))
     if flags["c"] and mode1:
-        grass.fatal(_("Can't compute cumulative irradiation rasters in mode 1"))
+        gs.fatal(_("Can't compute cumulative irradiation rasters in mode 1"))
     if mode2 and flags["b"]:
-        grass.fatal(_("Can't compute binary rasters in mode 2"))
+        gs.fatal(_("Can't compute binary rasters in mode 2"))
     if any((beam_rad, diff_rad, refl_rad, glob_rad)) and mode1:
-        grass.fatal(_("Can't compute irradiation raster maps in mode 1"))
+        gs.fatal(_("Can't compute irradiation raster maps in mode 1"))
 
     if beam_rad and not beam_rad_basename:
         beam_rad_basename = create_tmp_map_name("beam_rad")
@@ -621,10 +619,10 @@ def main():
         MREMOVE.append(glob_rad_basename)
 
     # here we check all the days
-    if not grass.overwrite():
+    if not gs.overwrite():
         check_time_map_names(
             beam_rad_basename,
-            grass.gisenv()["MAPSET"],
+            gs.gisenv()["MAPSET"],
             start_time,
             end_time,
             time_step,
@@ -634,7 +632,7 @@ def main():
         )
         check_time_map_names(
             diff_rad_basename,
-            grass.gisenv()["MAPSET"],
+            gs.gisenv()["MAPSET"],
             start_time,
             end_time,
             time_step,
@@ -644,7 +642,7 @@ def main():
         )
         check_time_map_names(
             refl_rad_basename,
-            grass.gisenv()["MAPSET"],
+            gs.gisenv()["MAPSET"],
             start_time,
             end_time,
             time_step,
@@ -654,7 +652,7 @@ def main():
         )
         check_time_map_names(
             glob_rad_basename,
-            grass.gisenv()["MAPSET"],
+            gs.gisenv()["MAPSET"],
             start_time,
             end_time,
             time_step,
@@ -675,12 +673,12 @@ def main():
             params.update({"slope": slope_input})
             REMOVE.append(slope_input)
 
-        grass.info(_("Running r.slope.aspect..."))
-        grass.run_command(
+        gs.info(_("Running r.slope.aspect..."))
+        gs.run_command(
             "r.slope.aspect", elevation=elevation_input, quiet=True, **params
         )
 
-    grass.info(_("Running r.sun in a loop..."))
+    gs.info(_("Running r.sun in a loop..."))
     count = 0
     # Parallel processing
     proc_list = []
@@ -799,8 +797,8 @@ def main():
                 previous = each + suffixes_all[0]
                 for suffix in suffixes_all[1:]:
                     new = each + suffix
-                    grass.run_command("g.copy", raster=[new, copy_tmp], quiet=True)
-                    grass.mapcalc(
+                    gs.run_command("g.copy", raster=[new, copy_tmp], quiet=True)
+                    gs.mapcalc(
                         "{new} = {previous} + {current}".format(
                             new=new, previous=previous, current=copy_tmp
                         ),
@@ -825,7 +823,7 @@ def main():
                 descr=desc,
                 semantic="mean",
                 dbif=None,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
             )
             tgis.register_maps_in_space_time_dataset(
                 type="raster",
@@ -841,7 +839,7 @@ def main():
         # Make sure the temporal database exists
         tgis.init()
 
-        mapset = grass.gisenv()["MAPSET"]
+        mapset = gs.gisenv()["MAPSET"]
         if mode2:
             start_time += 0.5 * time_step
         absolute_time = (

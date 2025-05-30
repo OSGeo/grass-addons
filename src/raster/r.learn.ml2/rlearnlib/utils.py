@@ -61,7 +61,6 @@ def option_to_list(x, dtype=None):
         x = [dtype(i) for i in x]
 
     if x is not None:
-
         if len(x) == 1 and x[0] == -1:
             x = None
 

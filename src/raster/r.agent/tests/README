@@ -1,15 +1,17 @@
-README file for libagent's test suite
+# libagent's test suite
 
 These test cases are intended to contain all the tests for
-libagent and to be usable with python 2.7 and higher, it
-should however run resp. via the separate unittest2 available
-as backport for python 2.3-2.6 too.
+libagent and to be usable with Python 3 and higher.
 
 To invoke e.g. the error tests only, from the topmost directory
 level issue
- user@host:~/path/r.agent.aco$ unit2 discover -v -p "test*.py"
+```console
+user@host:~/grass-addons/src/raster/r.agent$ python -m unittest -v
+```
 
-All tests except for tests.test_grassland should run without
-the GRASS environment. For tests.test_grassland you must start
+All tests except for testsuite.test_grassland should run without
+the GRASS environment. For testsuite.test_grassland you must start
 the tests inside the GRASS console respectively:
- GRASS 6.4.4 (foobar):~/path/r.agent.aco > unit2 discover -v -p "test*.py"
+```console
+GRASS 8.4.0 (foobar):~/grass-addons/src/raster/r.agent > python -m unittest discover -v -s "testsuite"
+```

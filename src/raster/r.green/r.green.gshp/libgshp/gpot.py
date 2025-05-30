@@ -40,6 +40,7 @@ simulation parameters:
       geo-exchange is evaluated.
 
 """
+
 from numpy import log, pi, sqrt
 
 from grass.script import raster as grast

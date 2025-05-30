@@ -72,13 +72,14 @@ To do:
 - implement usage of temporal envelope of vector points
 - implement relative temporal type
 """
+
 import os
 
 try:
     from subprocess import DEVNULL  # Python 3.
 except ImportError:
     DEVNULL = open(os.devnull, "wb")
-import grass.script as grass
+import grass.script as gs
 
 # from grass.exceptions import CalledModuleError
 import grass.temporal as tgis
@@ -101,9 +102,7 @@ def sample_relative(input, layer, timestamp_column, column, t_raster, where, i_f
     end = t_raster["end_time"]
     raster_map = "{}@{}".format(t_raster["name"], t_raster["mapset"])
     where += """(julianday({0}) >= date('{1}') AND \
-                julianday({0}) < date('{2}'))""".format(
-        timestamp_column, start, end
-    )
+                julianday({0}) < date('{2}'))""".format(timestamp_column, start, end)
 
 
 def sample_absolute(input, layer, timestamp_column, column, t_raster, where, i_flag):
@@ -112,23 +111,21 @@ def sample_absolute(input, layer, timestamp_column, column, t_raster, where, i_f
     end = t_raster["end_time"]
     raster_map = "{}@{}".format(t_raster["name"], t_raster["mapset"])
     where += """({0} >= date('{1}') AND \
-                {0} < date('{2}'))""".format(
-        timestamp_column, start, end
-    )
+                {0} < date('{2}'))""".format(timestamp_column, start, end)
 
-    grass.verbose(_("Sampling points between {} and {}".format(start, end)))
+    gs.verbose(_("Sampling points between {} and {}").format(start, end))
 
     # If only one core is used, processing can be faster if computational region is temporarily moved
     # to where datapoints are (e.g. in case of tracking data)
     # Move computational region temporarily to where points are in
     # in space and time
-    treg = grass.parse_command(
+    treg = gs.parse_command(
         "v.db.select", flags="r", map=input, where=where, quiet=True
     )  # stderr=subproess.PIPE,
 
     if len(set(treg.values())) > 1:
-        grass.use_temp_region()
-        grass.run_command(
+        gs.use_temp_region()
+        gs.run_command(
             "g.region",
             n=treg["n"],
             s=treg["s"],
@@ -175,38 +172,32 @@ def main():
     #     quiet = False
 
     # Check DB connection for input vector map
-    dbcon = grass.vector_layer_db(input, layer)
+    dbcon = gs.vector_layer_db(input, layer)
     # Check the number of sample strds and the number of columns
     strds_names = strds.split(",")
     column_names = columns.split(",")
     if not len(column_names) == len(strds_names):
-        grass.fatal(_("Number of columns and number of STRDS does not match."))
+        gs.fatal(_("Number of columns and number of STRDS does not match."))
 
     # Check type of timestamp column
-    cols = grass.vector_columns(input, layer=layer)
+    cols = gs.vector_columns(input, layer=layer)
     if timestamp_column not in cols.keys():
-        grass.fatal(
+        gs.fatal(
             _(
-                "Could not find column {} \
-                    in table connected to vector map {} \
-                    at layer {}".format(
-                    timestamp_column, input, layer
-                )
-            )
+                "Could not find column {column_name} "
+                "in table connected to vector map {map_name} at layer {layer_name}"
+            ).format(column_name=timestamp_column, map_name=input, layer_name=layer)
         )
     if cols[timestamp_column]["type"] != "DATE":
         if dbcon["driver"] != "sqlite":
             # Note that SQLite does not have a DATE datatype and
             # and an index does not significantly speedup the process
             # (at least not with a couple of 100 points)
-            grass.warning(
+            gs.warning(
                 _(
-                    "Timestamp column is of type {}. \
-                            It is recommended to use DATE type with an index. \
-                            ".format(
-                        cols[timestamp_column]["type"]
-                    )
-                )
+                    "Timestamp column is of type {}. "
+                    "It is recommended to use DATE type with an index."
+                ).format(cols[timestamp_column]["type"])
             )
 
     # Make sure the temporal database exists
@@ -222,15 +213,13 @@ def main():
             tsql = "SELECT {}({}) FROM {}".format(
                 stat, timestamp_column, dbcon["table"]
             )
-            extent.append(grass.read_command("db.select", flags="c", sql=tsql))
+            extent.append(gs.read_command("db.select", flags="c", sql=tsql))
 
-        grass.verbose(
+        gs.verbose(
             _(
                 "Temporal extent of vector points map is \
-                      {} to {}".format(
-                    extent[0], extent[1]
-                )
-            )
+                      {0} to {1}"
+            ).format(extent[0], extent[1])
         )
     else:
         tempwhere = "({}) AND ".format(tempwhere)
@@ -238,16 +227,15 @@ def main():
     # Loop over STRDS
     counter = 0
     for strds_name in strds_names:
-
         cur_strds = tgis.open_old_stds(strds_name, "strds", dbif)
 
         # skip current STRDS if no map is registered in it
         if cur_strds.metadata.get_number_of_maps() is None:
-            grass.warning(
+            gs.warning(
                 _(
                     "Space time raster dataset {} does not contain any registered "
-                    "map. It is being skipped.".format(cur_strds.get_id())
-                )
+                    "map. It is being skipped."
+                ).format(cur_strds.get_id())
             )
             counter += 1
             continue
@@ -270,9 +258,7 @@ def main():
         # define sampling function to use
         # becomes relevant when temporal type relative gets implemented
         if cur_strds.is_time_relative():
-            grass.fatal(
-                _("Sorry, STRDS of relative temporal type is not (yet) supported")
-            )
+            gs.fatal(_("Sorry, STRDS of relative temporal type is not (yet) supported"))
             sample = sample_relative
         else:
             sample = sample_absolute
@@ -281,10 +267,9 @@ def main():
         # temporal conditions
         if not rows and tempwhere:
             dbif.close()
-            grass.fatal(
-                _(
-                    "No maps selected from Space time raster dataset "
-                    "{}".format(cur_strds.get_id())
+            gs.fatal(
+                _("No maps selected from Space time raster dataset {}").format(
+                    cur_strds.get_id()
                 )
             )
 
@@ -310,13 +295,13 @@ def main():
             )
 
             row_number += 1
-            grass.percent(row_number, len(rows), 3)
+            gs.percent(row_number, len(rows), 3)
         counter = counter + 1
 
     dbif.close()
-    grass.vector_history(input)
+    gs.vector_history(input)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

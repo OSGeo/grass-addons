@@ -104,7 +104,6 @@ if "GISBASE" not in os.environ.keys():
 
 
 def get_rastertype(raster):
-
     if not isinstance(raster[0, 0], np.float32) and not isinstance(
         raster[0, 0], np.float64
     ):
@@ -127,7 +126,6 @@ def mask_rasternd(raster):
 
 
 def main():
-
     try:
         import pysptools.eea as eea
     except ImportError:
@@ -208,9 +206,7 @@ def main():
     if endmember_n > len(maps) + 1:
         gs.warning(
             "More endmembers ({}) requested than bands in \
-                   input imagery group ({})".format(
-                endmember_n, len(maps)
-            )
+                   input imagery group ({})".format(endmember_n, len(maps))
         )
         if extraction_method != "PPI":
             gs.fatal(
@@ -239,9 +235,7 @@ def main():
             gs.warning(
                 "{} is of type Float64.\
                         Float64 is currently not supported.\
-                        Reducing precision to Float32".format(
-                    raster
-                )
+                        Reducing precision to Float32".format(raster)
             )
 
         # Determine map type
@@ -345,9 +339,7 @@ def main():
             if len(idx[0]) == 0 or len(idx[1]) == 0:
                 gs.warning(
                     "Could not compute coordinated for endmember {}. \
-                            Please consider rescaling your data to integer".format(
-                        cat
-                    )
+                            Please consider rescaling your data to integer".format(cat)
                 )
                 cat = cat + 1
                 continue

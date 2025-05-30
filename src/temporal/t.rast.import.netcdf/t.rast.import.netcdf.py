@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 """
- MODULE:       t.rast.import.netcdf
- AUTHOR(S):    Stefan Blumentrath
- PURPOSE:      Import netCDF files that adhere to the CF convention as a
-               Space Time Raster Dataset (STRDS)
- COPYRIGHT:    (C) 2023 by stefan.blumentrath, and the GRASS Development Team
+MODULE:     t.rast.import.netcdf
+AUTHOR(S):  Stefan Blumentrath
+PURPOSE:    Import netCDF files that adhere to the CF convention as a
+            Space Time Raster Dataset (STRDS)
+COPYRIGHT:  (C) 2023 by stefan.blumentrath, and the GRASS Development Team
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
 """
 
@@ -881,10 +881,8 @@ def parse_netcdf(
         requested_time_dimensions = np.where(requested_time_dimensions)[0]
         if requested_time_dimensions.size == 0:
             gs.warning(
-                _(
-                    "Nothing to import from subdataset {s} in {f}".format(
-                        s=s_d[1], f=sds_url
-                    )
+                _("Nothing to import from subdataset {s} in {f}").format(
+                    s=s_d[1], f=sds_url
                 )
             )
             continue
@@ -1024,7 +1022,7 @@ def main():
             try:
                 with open(inputs[0], "r") as in_file:
                     inputs = in_file.read().strip().split()
-            except IOError:
+            except OSError:
                 gs.fatal(_("Unable to read text from <{}>.").format(inputs[0]))
 
     inputs = [

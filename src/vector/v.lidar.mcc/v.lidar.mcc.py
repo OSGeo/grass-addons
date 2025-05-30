@@ -83,7 +83,7 @@ import atexit
 
 # GRASS binding
 try:
-    import grass.script as grass
+    import grass.script as gs
 except ImportError:
     sys.exit(_("No GRASS-python library found"))
 
@@ -101,7 +101,7 @@ gettext.install("grassmods", os.path.join(os.getenv("GISBASE"), "locale"))
 
 def cleanup():
     nuldev = open(os.devnull, "w")
-    grass.run_command(
+    gs.run_command(
         "g.remove",
         flags="f",
         type="vector",
@@ -118,7 +118,7 @@ def main():
     # ideally stderrs should be printed when an exception was raised
     # this would be done easily with StringIO
     # but it doesn't work with subprocess
-    if not grass.debug_level():
+    if not gs.debug_level():
         nuldev = open(os.devnull, "w")
     else:
         nuldev = sys.stderr
@@ -133,15 +133,15 @@ def main():
     ng_output = options["nonground"]
 
     # does map exist?
-    if not grass.find_file(input, element="vector")["file"]:
-        grass.fatal(_("Vector map <%s> not found") % input)
+    if not gs.find_file(input, element="vector")["file"]:
+        gs.fatal(_("Vector map <%s> not found") % input)
 
     # Count points in input map
-    n_input = grass.vector_info(input)["points"]
+    n_input = gs.vector_info(input)["points"]
 
     # does map contain points ?
     if not (n_input > 0):
-        grass.fatal(_("Vector map <%s> does not contain points") % input)
+        gs.fatal(_("Vector map <%s> does not contain points") % input)
 
     flag_n = flags["n"]
 
@@ -150,7 +150,7 @@ def main():
     l = int(1)
     l_stop = int(options["nl"])
     if l_stop < 1:
-        grass.fatal("The minimum number of scale domains is 1.")
+        gs.fatal("The minimum number of scale domains is 1.")
 
     ### Curvature tolerance threshold (t)
     # Evans & Hudak 2007 used a t-value of 0.3
@@ -162,24 +162,24 @@ def main():
     # Evans & Hudak 2007 used a convergence threshold of 0.3
     j = float(options["j"])
     if j <= 0:
-        grass.fatal("The convergence threshold has to be > 0.")
+        gs.fatal("The convergence threshold has to be > 0.")
 
     ### Tension parameter (f)
     # Evans & Hudak 2007 used a tension parameter 1.5
     f = float(options["f"])
     if f <= 0:
-        grass.fatal("The tension parameter has to be > 0.")
+        gs.fatal("The tension parameter has to be > 0.")
 
     ### Spline steps parameter (s)
     # Evans & Hudak 2007 used the 12 nearest neighbors
     # (used spline steps $res * 5 before)
     s = int(options["s"])
     if s <= 0:
-        grass.fatal("The spline step parameter has to be > 0.")
+        gs.fatal("The spline step parameter has to be > 0.")
 
     ###Read desired resolution from region
     # Evans & Hudak 2007 used a desired resolution (delta) of 1.5
-    gregion = grass.region()
+    gregion = gs.region()
     x_res_fin = gregion["ewres"]
     y_res_fin = gregion["nsres"]
 
@@ -198,7 +198,7 @@ def main():
     # 7.1 v.patch has flags to use z even without topology
     # see #2433 on Trac and r66822 in Subversion
     build_before_patch = True
-    unused, gver_minor, unused = grass.version()["version"].split(".")
+    unused, gver_minor, unused = gs.version()["version"].split(".")
     if int(gver_minor) >= 1:
         build_before_patch = False
         # do not expect topology and expect z
@@ -218,8 +218,8 @@ def main():
             xres = x_res_fin * ((l + 1) - n_res_steps)
             yres = y_res_fin * ((l + 1) - n_res_steps)
 
-        grass.use_temp_region()
-        grass.run_command(
+        gs.use_temp_region()
+        gs.run_command(
             "g.region",
             s=gregion["s"],
             w=gregion["w"],
@@ -229,15 +229,15 @@ def main():
         )
         xs_s = xres * s
         ys_s = yres * s
-        grass.message("Processing scale domain " + str(l) + "...")
+        gs.message("Processing scale domain " + str(l) + "...")
         # Repeat application of v.outlier until convergence level is reached
         while convergence > j:
-            grass.verbose(
+            gs.verbose(
                 "Number of input points in iteration " + str(i) + ": " + str(n_input)
             )
             # Run v.outlier
             if not flag_n:
-                grass.run_command(
+                gs.run_command(
                     "v.outlier",
                     input=nc_points,
                     output=temp_ncout,
@@ -252,7 +252,7 @@ def main():
                     stderr=nuldev,
                 )
             else:
-                grass.run_command(
+                gs.run_command(
                     "v.outlier",
                     input=nc_points,
                     output=temp_ncout,
@@ -268,10 +268,10 @@ def main():
                 )
 
             # Get information about results for calculating convergence level
-            ng = grass.vector_info(temp_ng)["points"]
+            ng = gs.vector_info(temp_ng)["points"]
             nc = n_input - ng
             n_input = nc
-            grass.run_command(
+            gs.run_command(
                 "g.remove",
                 flags="f",
                 type="vector",
@@ -279,7 +279,7 @@ def main():
                 quiet=True,
                 stderr=nuldev,
             )
-            grass.run_command(
+            gs.run_command(
                 "g.rename",
                 vector=temp_ncout + "," + temp_ncin,
                 quiet=True,
@@ -287,10 +287,8 @@ def main():
             )
             nc_points = temp_ncin
             # Give information on process status
-            grass.verbose(
-                "Unclassified points after iteration " + str(i) + ": " + str(nc)
-            )
-            grass.verbose(
+            gs.verbose("Unclassified points after iteration " + str(i) + ": " + str(nc))
+            gs.verbose(
                 "Points classified as non ground after iteration "
                 + str(i)
                 + ": "
@@ -300,10 +298,10 @@ def main():
             if nc > 0:
                 convergence = float(float(ng) / float(nc))
                 if build_before_patch:
-                    grass.run_command("v.build", map=temp_ng, stderr=nuldev)
+                    gs.run_command("v.build", map=temp_ng, stderr=nuldev)
                 # Patch non-ground points to non-ground output map
                 if ng_output_exists:
-                    grass.run_command(
+                    gs.run_command(
                         "v.patch",
                         input=temp_ng,
                         output=ng_output,
@@ -313,14 +311,12 @@ def main():
                         stderr=nuldev,
                     )
                 else:
-                    grass.run_command(
-                        "g.copy", vector=(temp_ng, ng_output), stderr=nuldev
-                    )
+                    gs.run_command("g.copy", vector=(temp_ng, ng_output), stderr=nuldev)
                     ng_output_exists = True
             else:
                 convergence = 0
             # Give information on convergence level
-            grass.verbose(
+            gs.verbose(
                 "Convergence level after run "
                 + str(i)
                 + " in scale domain "
@@ -334,15 +330,15 @@ def main():
         t = t + ti
         l = l + 1
         # Delete temporary region
-        grass.del_temp_region()
+        gs.del_temp_region()
 
     # Rename temporary map of points whichhave not been classified as non-ground to output vector map containing ground points
-    grass.run_command(
+    gs.run_command(
         "g.rename", vector=nc_points + "," + g_output, quiet=True, stderr=nuldev
     )
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

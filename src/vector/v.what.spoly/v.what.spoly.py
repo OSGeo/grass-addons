@@ -64,8 +64,8 @@ import os
 import glob
 import atexit
 
-import grass.script as grass
-from grass.script import core as grass
+import grass.script as gs
+from grass.script import core as gs
 
 try:
     from osgeo import ogr
@@ -76,11 +76,11 @@ except:
 
 def cleanup():
     inmap = options["input"]
-    grass.try_remove(tmp)
+    gs.try_remove(tmp)
     for f in glob.glob(tmp + "*"):
-        grass.try_remove(f)
+        gs.try_remove(f)
     with open(os.devnull, "w") as nuldev:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             type_="vect",
             pat="v_temp*",
@@ -99,19 +99,19 @@ def main():
     global tmp, grass_version
 
     # setup temporary files
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
 
     # check for LatLong location
-    if grass.locn_is_latlong():
-        grass.fatal("Module works only in locations with cartesian coordinate system")
+    if gs.locn_is_latlong():
+        gs.fatal("Module works only in locations with cartesian coordinate system")
 
     # check if input file exists
-    if not grass.find_file(inmap, element="vector")["file"]:
-        grass.fatal(_("<%s> does not exist.") % inmap)
+    if not gs.find_file(inmap, element="vector")["file"]:
+        gs.fatal(_("<%s> does not exist.") % inmap)
 
     ## DO IT ##
     ## add categories to boundaries
-    grass.run_command(
+    gs.run_command(
         "v.category",
         input_=inmap,
         option="add",
@@ -124,7 +124,7 @@ def main():
     ## export polygons to CSV + WKT
     tmp1 = tmp + ".csv"
     tmp2 = tmp + "2.csv"
-    grass.run_command(
+    gs.run_command(
         "v.out.ogr",
         input_="v_temp_bcats",
         output=tmp1,
@@ -171,7 +171,7 @@ def main():
         cmd = "ogrinfo -al -fields=YES -geom=SUMMARY" + " " + tmp3 + " " + lyr_name
         os.system(cmd)
     else:
-        grass.run_command(
+        gs.run_command(
             "v.in.ogr",
             input_=tmp3,
             layer=lyr_name,
@@ -183,6 +183,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

@@ -5,7 +5,6 @@ from grass.gunittest.main import test
 
 
 class TestDevpressure(TestCase):
-
     output = "devpressure_output"
     result = "result"
 

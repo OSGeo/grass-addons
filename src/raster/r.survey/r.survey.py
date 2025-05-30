@@ -159,21 +159,21 @@ from grass.pygrass.modules import Module
 import multiprocessing
 import threading
 import sys
-import grass.script as gscript
+import grass.script as gs
 from grass.script import core as grasscore
 from math import pi
 
 
 # function for cleaning temporary layers
 def cleanup():
-    gscript.message(" Cleaning all temporary maps ")
+    gs.message(" Cleaning all temporary maps ")
     Module("g.remove", type="vector", pattern="xxtemp*", quiet=True, flags="f")
     Module("g.remove", type="vector", pattern="zzpnt*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="xx*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="zz*", quiet=True, flags="f")
     Module("g.remove", type="raster", pattern="kk*", quiet=True, flags="f")
     dem = general.dem
-    find_dem_modified = gscript.find_file(f"zz{dem}_modified", element="cell")
+    find_dem_modified = gs.find_file(f"zz{dem}_modified", element="cell")
     if find_dem_modified["name"] != "":
         Module(
             "g.remove",
@@ -182,7 +182,7 @@ def cleanup():
             quiet=True,
             flags="f",
         )
-    find_dem_modified = gscript.find_file(f"zz{dem}_modified_full", element="cell")
+    find_dem_modified = gs.find_file(f"zz{dem}_modified_full", element="cell")
     if find_dem_modified["name"] != "":
         Module(
             "g.remove",
@@ -192,23 +192,23 @@ def cleanup():
             flags="f",
         )
     if main.treesmap:
-        find_treesmap = gscript.find_file(main.treesmap, element="cell")
+        find_treesmap = gs.find_file(main.treesmap, element="cell")
         if find_treesmap["name"] != "":
             Module("g.remove", type="raster", name=main.treesmap, quiet=True, flags="f")
     if main.buildmap:
-        find_buildmap = gscript.find_file(main.buildmap, element="cell")
+        find_buildmap = gs.find_file(main.buildmap, element="cell")
         if find_buildmap["name"] != "":
             Module("g.remove", type="raster", name=main.buildmap, quiet=True, flags="f")
     # Removing the MASK based on the viewangle_threshold
-    find_MASK = gscript.find_file("MASK", element="cell")
+    find_MASK = gs.find_file("MASK", element="cell")
     if find_MASK["name"] != "":
         Module("r.mask", flags="r")
     # Replacing the original MASK in the mapset and removing the temporary
     # copy "maskera"
-    find_maskera = gscript.find_file("maskera", element="cell")
+    find_maskera = gs.find_file("maskera", element="cell")
     if find_maskera["name"] != "":
         Module("r.mask", raster="maskera")
-        gscript.message("replacing the original MASK in the mapset")
+        gs.message("replacing the original MASK in the mapset")
         Module("g.remove", type="raster", name="maskera", quiet=True, flags="f")
 
 
@@ -493,7 +493,7 @@ def compute(
         threading.Timer(0.1, starting.release).start()  # release in a 0.1 secs
         # using temporary regions (on the same mapset) for the different
         # parallel computations
-        gscript.use_temp_region()
+        gs.use_temp_region()
         # extracting a point from the map of the locations
         Module(
             "v.extract", input=pnt, output=f"zzpnt{i}", cats=i, flags="t", quiet=True
@@ -574,9 +574,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="zzview{Q} = if(zzview{Q}>90 && zzview{Q}<180,\
-                    null(),zzview{Q})".format(
-                        Q=i
-                    ),
+                    null(),zzview{Q})".format(Q=i),
                     overwrite=True,
                     quiet=True,
                 )
@@ -609,9 +607,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzview{Q} =\
-            if(zzview{Q}==180,0,zzview{Q})".format(
-                Q=i
-            ),
+            if(zzview{Q}==180,0,zzview{Q})".format(Q=i),
             overwrite=True,
             quiet=True,
         )
@@ -628,9 +624,7 @@ def compute(
             if( y()<{py} && x()=={px}, 180, \
             if( y()=={py} && x()<{px}, 270, \
             if( y()>{py} && x()=={px}, 0 \
-            ) ) ) ) ) ) ) )".format(
-                A=f"zzview_angle{i}", py=y, px=x
-            ),
+            ) ) ) ) ) ) ) )".format(A=f"zzview_angle{i}", py=y, px=x),
             quiet=True,
         )
         # estimating the layer of the vertical angle between point and each
@@ -652,9 +646,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzb_view{Q} =\
-            cos(zzview90_{Q})*cos(zzview_angle{Q})".format(
-                Q=i
-            ),
+            cos(zzview90_{Q})*cos(zzview_angle{Q})".format(Q=i),
             quiet=True,
         )
         # evaluate the eastern component of the versor oriented along
@@ -662,17 +654,15 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zza_view{Q} =\
-            cos(zzview90_{Q})*sin(zzview_angle{Q})".format(
-                Q=i
-            ),
+            cos(zzview90_{Q})*sin(zzview_angle{Q})".format(Q=i),
             quiet=True,
         )
         # estimate the three-dimensional distance between the point and
         # each visible cell
         if obsabselev:
             if hcurv:
-                j = gscript.read_command("g.proj", flags="j", quiet=True)
-                kvj = gscript.parse_key_val(j)
+                j = gs.read_command("g.proj", flags="j", quiet=True)
+                kvj = gs.parse_key_val(j)
                 eradius = kvj[
                     "+a"
                 ]  # This is the radius of the earth for the elipsoid in
@@ -680,9 +670,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="{D} = pow(pow(abs(y()-{py}),2)\
-                    +pow(abs(x()-{px}),2),0.5)".format(
-                        D=f"zzeuclidean{i}", py=y, px=x
-                    ),
+                    +pow(abs(x()-{px}),2),0.5)".format(D=f"zzeuclidean{i}", py=y, px=x),
                     quiet=True,
                 )  # Planar distance
                 Module(
@@ -718,8 +706,8 @@ def compute(
                 )
         else:
             if hcurv:
-                j = gscript.read_command("g.proj", flags="j", quiet=True)
-                kvj = gscript.parse_key_val(j)
+                j = gs.read_command("g.proj", flags="j", quiet=True)
+                kvj = gs.parse_key_val(j)
                 eradius = kvj[
                     "+a"
                 ]  # This is the radius of the earth for the elipsoid in the
@@ -727,9 +715,7 @@ def compute(
                 Module(
                     "r.mapcalc",
                     expression="{D} = pow(pow(abs(y()-{py}),2)+pow(abs(x()\
-                    -{px}),2),0.5)".format(
-                        D=f"zzeuclidean{i}", py=y, px=x
-                    ),
+                    -{px}),2),0.5)".format(D=f"zzeuclidean{i}", py=y, px=x),
                     quiet=True,
                 )  # Planar distance
                 Module(
@@ -793,9 +779,7 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="kkview_angle{Q} = if(y()>{py} && x()>={px},\
-                zzview_angle{Q}+270, zzview_angle{Q}-90)".format(
-                    Q=i, py=y, px=x
-                ),
+                zzview_angle{Q}+270, zzview_angle{Q}-90)".format(Q=i, py=y, px=x),
                 quiet=True,
             )
             # Calculating the 3 components of the K versor
@@ -816,9 +800,7 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zz_dotproduct{Q} = kka_view{Q}*zza_dem +\
-                kkb_view{Q}*zzb_dem + kkc_view{Q}*zzc_dem".format(
-                    Q=i
-                ),
+                kkb_view{Q}*zzb_dem + kkc_view{Q}*zzc_dem".format(Q=i),
                 quiet=True,
             )
             # Calculating a, b and c components for the first part of the
@@ -826,25 +808,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_equation_first{Q} = kkc_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_equation_first{Q} = kkb_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_equation_first{Q} = kka_view{Q}*\
-                zz_dotproduct{Q}*(1-cos({B}))".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                zz_dotproduct{Q}*(1-cos({B}))".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             # Calculating a, b and c components for the second part of
@@ -875,25 +851,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_equation_third{Q} = sin({B})*(kka_view{Q}\
-                *zzb_dem - kkb_view{Q}*zza_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zzb_dem - kkb_view{Q}*zza_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_equation_third{Q} = sin({B})*(kkc_view{Q}\
-                *zza_dem - kka_view{Q}*zzc_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zza_dem - kka_view{Q}*zzc_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_equation_third{Q} = sin({B})*(kkb_view{Q}\
-                *zzc_dem - kkc_view{Q}*zzb_dem)".format(
-                    Q=i, B=f"zzarc{i}"
-                ),
+                *zzc_dem - kkc_view{Q}*zzb_dem)".format(Q=i, B=f"zzarc{i}"),
                 quiet=True,
             )
 
@@ -902,25 +872,19 @@ def compute(
             Module(
                 "r.mapcalc",
                 expression="zzc_dem_curv{Q} = zzc_equation_first{Q}\
-                + zzc_equation_second{Q} + zzc_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zzc_equation_second{Q} + zzc_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zzb_dem_curv{Q} = zzb_equation_first{Q}\
-                + zzb_equation_second{Q} + zzb_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zzb_equation_second{Q} + zzb_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
             Module(
                 "r.mapcalc",
                 expression="zza_dem_curv{Q} = zza_equation_first{Q}\
-                + zza_equation_second{Q} + zza_equation_third{Q}".format(
-                    Q=i
-                ),
+                + zza_equation_second{Q} + zza_equation_third{Q}".format(Q=i),
                 quiet=True,
             )
 
@@ -934,9 +898,7 @@ def compute(
                 (sqrt(zza_view{Q}*zza_view{Q}+zzb_view{Q}*zzb_view{Q}\
                 +zzc_view{Q}*zzc_view{Q})*sqrt(zza_dem_curv{Q}*zza_dem_curv{Q}\
                 +zzb_dem_curv{Q}*zzb_dem_curv{Q}+zzc_dem_curv{Q}\
-                *zzc_dem_curv{Q})))".format(
-                    Q=i
-                ),
+                *zzc_dem_curv{Q})))".format(Q=i),
                 quiet=True,
             )
         else:
@@ -946,9 +908,7 @@ def compute(
                 acos((zza_view{Q}*zza_dem+zzb_view{Q}*zzb_dem+zzc_view{Q}\
                 *zzc_dem)/(sqrt(zza_view{Q}*zza_view{Q}+zzb_view{Q}\
                 *zzb_view{Q}+zzc_view{Q}*zzc_view{Q})*sqrt(zza_dem*\
-                zza_dem+zzb_dem*zzb_dem+zzc_dem*zzc_dem)))".format(
-                    Q=i
-                ),
+                zza_dem+zzb_dem*zzb_dem+zzc_dem*zzc_dem)))".format(Q=i),
                 quiet=True,
             )
         # filtering 3d distance based on angle{Q} map
@@ -974,9 +934,7 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzH2_{Q} = pow(pow({r},2)+pow({d},2)-(2*{r}*{d}\
-            *cos(zzangle{Q}-90)),0.5)".format(
-                r=circle_radius, d=f"zzdistance{i}", Q=i
-            ),
+            *cos(zzangle{Q}-90)),0.5)".format(r=circle_radius, d=f"zzdistance{i}", Q=i),
             quiet=True,
         )
         # calculating B1 and B2 that are the angles between the line passing
@@ -1019,18 +977,16 @@ def compute(
         Module(
             "r.mapcalc",
             expression="zzsangle{Q} = if(zzsangle{Q}>2*{pi} || \
-            zzB2_{Q}>=90,2*{pi},zzsangle{Q})".format(
-                Q=i, pi=pi
-            ),
+            zzB2_{Q}>=90,2*{pi},zzsangle{Q})".format(Q=i, pi=pi),
             overwrite=True,
             quiet=True,
         )
         # removing temporary region
-        gscript.del_temp_region()
+        gs.del_temp_region()
     except Exception as error:
         # cleaning termporary layers
         cleanup()
-        gscript.fatal(
+        gs.fatal(
             f"ERROR in compute block with point having category {i}:\
                       {error}"
         )
@@ -1045,9 +1001,7 @@ def collectresults(task, proc):
         Module(
             "r.mapcalc",
             expression="{A} = if(isnull({Q}) ||| \
-            {Q}==0,{A},max({A},{Q}))".format(
-                A=f"xxtemp_a_{proc}", Q=f"zzangle{i}"
-            ),
+            {Q}==0,{A},max({A},{Q}))".format(A=f"xxtemp_a_{proc}", Q=f"zzangle{i}"),
             overwrite=True,
             quiet=True,
         )
@@ -1166,11 +1120,11 @@ def collectresults(task, proc):
 def main():
     options, flags = parser()
     # are we in LatLong location?
-    s = gscript.read_command("g.proj", flags="j")
-    kv = gscript.parse_key_val(s)
+    s = gs.read_command("g.proj", flags="j")
+    kv = gs.parse_key_val(s)
     if kv["+proj"] == "longlat":
         # gscript.fatal(_("This module does not operate in LatLong locations"))
-        gscript.fatal("This module does not operate in LatLong locations")
+        gs.fatal("This module does not operate in LatLong locations")
 
     # Verifying that there are no layers with the same name as the temporary
     # layers created during the processes
@@ -1207,13 +1161,13 @@ def main():
         the mapset having names starting with 'xx*' , 'zz*' , 'kk*' or named\
         as 'treesmap', 'buildmap' or 'maskera' to prevent overwriting and\
         removing them ***"
-        gscript.fatal(message)
+        gs.fatal(message)
 
     # Verify if there is a MASK. In such a case, a copy of the MASK layer is
     # saved to replace it at the end of the process
-    find_MASK = gscript.find_file("MASK", element="cell")
+    find_MASK = gs.find_file("MASK", element="cell")
     if find_MASK["name"] != "":
-        gscript.warning(
+        gs.warning(
             "A MASK layer was found. It will be copied and updated later by\
             the end of the process"
         )
@@ -1264,7 +1218,7 @@ def main():
     except Exception as error:
         # cleaning termporary layers
         cleanup()
-        gscript.fatal(
+        gs.fatal(
             f"There was an error converting the layer to 3d: {error} Please\
             check if you have provided column and layer information."
         )
@@ -1272,7 +1226,7 @@ def main():
     try:
         oradius
     except Exception as error:
-        gscript.warning(
+        gs.warning(
             f"Using region resolution for object size radius, since object\
             radius parameter was not set,  {error}"
         )
@@ -1364,9 +1318,7 @@ def main():
             ]
             # generating a group of zero value maps for each chunk
             for i in range(len(chunks)):
-                gscript.message(
-                    f"Creating 'maps zero' for the chunk {i} of {len(chunks)}"
-                )
+                gs.message(f"Creating 'maps zero' for the chunk {i} of {len(chunks)}")
                 # for storing maximum view angles
                 for jj in zeromap_names:
                     Module("g.copy", raster=("xxtempzero_map", f"{jj}{i}"), quiet=True)
@@ -1379,15 +1331,13 @@ def main():
         except Exception as error:
             # cleaning termporary layers
             cleanup()
-            gscript.fatal(
-                f"Some error occurred while combinig temporary maps,  {error}"
-            )
+            gs.fatal(f"Some error occurred while combinig temporary maps,  {error}")
 
         else:
             # creating the "zeros" map to be used for the FINAL combination of
             # the different teporary maps (THE FOLLOWING CAN BE DONE CREATING
             # A FIRTS MAP AND THEN COPYING IT, FASTENING THE PROCESS)
-            gscript.message("Creating Final 'zeros map' ")
+            gs.message("Creating Final 'zeros map' ")
             Module("r.mapcalc", expression="xxtemp_a = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_b = 0", quiet=True)
             Module("r.mapcalc", expression="xxtemp_c = 0", quiet=True)
@@ -1398,9 +1348,7 @@ def main():
             # combining the maps. This must be done in series since xxtemp_c
             # depends on xxtemp_a for each given chunk
             for i in range(len(chunks)):
-                gscript.message(
-                    f"Creating 'maps zero' for the chunk {i} of {len(chunks)}"
-                )
+                gs.message(f"Creating 'maps zero' for the chunk {i} of {len(chunks)}")
                 # updating the map of the angles
                 Module(
                     "r.mapcalc",
@@ -1511,9 +1459,9 @@ def main():
             message = f"The maps are going to be filtered according to the\
             viewangle_threshold value: {viewangle_threshold}, as requested\
             by the user."
-            gscript.warning(message)
+            gs.warning(message)
 
-        gscript.message("Creating final maps")
+        gs.message("Creating final maps")
         Module(
             "r.mapcalc",
             expression="{A} = {B}".format(A=f"{output}_maxViewAngle", B="xxtemp_a"),
@@ -1580,10 +1528,10 @@ def main():
                 ),
                 quiet=True,
             )
-        gscript.message(" Successful run ")
+        gs.message(" Successful run ")
     # in case of CTRL-C
     except KeyboardInterrupt as error:
-        gscript.fatal(f"Program interruption: {error}")
+        gs.fatal(f"Program interruption: {error}")
 
 
 if __name__ == "__main__":

@@ -96,7 +96,6 @@ def main():
         g.gisenv(set="MONITOR=%s" % monitor_old)
 
     if flags["w"]:
-
         wldfile = options["output"].split(".")[0] + ".wld"
         file_ = open(wldfile, "w")
         file_.write("%36.15f \n" % win["ewres"])

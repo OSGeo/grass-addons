@@ -89,7 +89,7 @@ class STACHelper:
             return [i.to_dict() for i in collection_list]
 
         except APIError as e:
-            gs.fatal(_("Error getting collections: {}".format(e)))
+            gs.fatal(_("Error getting collections: {}").format(e))
 
     def get_collection(self, collection_id):
         """Get a collection frofrom io import StringIOm STAC Client"""
@@ -99,7 +99,7 @@ class STACHelper:
             return self.collection
 
         except APIError as e:
-            gs.fatal(_("Error getting collection: {}".format(e)))
+            gs.fatal(_("Error getting collection: {}").format(e))
 
     def search_api(self, **kwargs):
         """Search the STAC API"""
@@ -115,16 +115,16 @@ class STACHelper:
         try:
             search = self.client.search(**kwargs)
         except APIError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
         except NotImplementedError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
         except Exception as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Error searching STAC API: {}").format(e))
 
         try:
-            gs.message(_(f"Search Matched: {search.matched()} items"))
+            gs.message(_("Search Matched: {} items").format(search.matched()))
         except e:
-            gs.warning(_(f"No items found: {e}"))
+            gs.warning(_("No items found: {}").format(e))
             return None
 
         return search
@@ -151,16 +151,20 @@ class STACHelper:
         """Check if the STAC API conforms to the given conformance class"""
         if not self.client.conforms_to(conformance_class):
             if response == "fatal":
-                gs.fatal(_(f"STAC API does not conform to {conformance_class}"))
+                gs.fatal(_("STAC API does not conform to {}").format(conformance_class))
                 return False
             elif response == "warning":
-                gs.warning(_(f"STAC API does not conform to {conformance_class}"))
+                gs.warning(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "verbose":
-                gs.verbose(_(f"STAC API does not conform to {conformance_class}"))
+                gs.verbose(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "info":
-                gs.info(_(f"STAC API does not conform to {conformance_class}"))
+                gs.info(_("STAC API does not conform to {}").format(conformance_class))
                 return True
             elif response == "message":
                 sys.stdout.write(f"STAC API does not conform to {conformance_class}\n")
@@ -230,7 +234,7 @@ def set_request_headers(settings):
                 username = lines[0].strip()
                 password = lines[1].strip()
 
-        except IOError as e:
+        except OSError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
     else:
         return req_headers
@@ -296,7 +300,7 @@ def print_attribute(item, attribute, message=None):
     try:
         sys.stdout.write(f"{message}: {getattr(item, attribute)}\n")
     except AttributeError:
-        gs.info(_(f"{message} not found."))
+        gs.info(_("{message} not found.").format(message=message))
 
 
 def print_basic_collection_info(collection):
@@ -602,7 +606,6 @@ def register_strds_from_items(collection_items_assets, strds_output):
             eobands = asset.get("eo:bands")
             if eobands:
                 for idx, band in enumerate(eobands):
-
                     band_name = band.get("common_name")
                     if created_date:
                         formatted_date = format_datetime(created_date)
@@ -675,7 +678,6 @@ def create_metadata_vector(vector, metadata):
     with VectorTopo(
         vector, mode="w", tab_cols=COLS, layer=1, overwrite=True
     ) as new_vec:
-
         for i, item in enumerate(metadata):
             sys.stdout.write(f"Adding collection: {item.get('id')}\n")
             # Transform bbox to locations CRS
@@ -695,7 +697,11 @@ def create_metadata_vector(vector, metadata):
             if bbox_list and isinstance(bbox_list[0], list) and len(bbox_list[0]) == 4:
                 wgs84_bbox = bbox_list[0]
             else:
-                gs.warning(_(f"Invalid bbox. Skipping Collection {item.get('id')}.\n"))
+                gs.warning(
+                    _("Invalid bbox. Skipping Collection {id}.\n").format(
+                        id=item.get("id")
+                    )
+                )
                 continue
 
             bbox = wgs84_bbox_to_boundary(wgs84_bbox)
@@ -703,7 +709,7 @@ def create_metadata_vector(vector, metadata):
             # Iterate over the list of dictionaries and attempt to cast each value to float using safe_float_cast
             if not all(safe_float_cast(i) for i in bbox.values()):
                 gs.warning(
-                    _("Invalid bbox. Skipping Collection {}.".format(item.get("id")))
+                    _("Invalid bbox. Skipping Collection {}.").format(item.get("id"))
                 )
                 continue
 
@@ -762,7 +768,7 @@ def import_grass_raster(params):
             quiet=True,
         )
     except CalledModuleError as e:
-        gs.fatal(_("Error importing raster: {}".format(e.stderr)))
+        gs.fatal(_("Error importing raster: {}").format(e.stderr))
 
 
 def download_assets(
@@ -807,7 +813,7 @@ def download_assets(
                     if pbar:
                         pbar.update(1)
             except Exception as e:
-                gs.fatal(_("Error importing raster: {}".format(str(e))))
+                gs.fatal(_("Error importing raster: {}").format(str(e)))
 
     tqdm = _import_tqdm(False)
     if tqdm is None:

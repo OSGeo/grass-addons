@@ -176,7 +176,7 @@
 import numpy as np
 
 # GRASS
-import grass.script as grass
+import grass.script as gs
 import grass.script.array as garray
 
 ############################
@@ -189,7 +189,7 @@ def main():
     Gridded flexural isostatic solutions
     """
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
@@ -205,7 +205,7 @@ def main():
         print("gFlex. The most recent development version is available from")
         print("https://github.com/awickert/gFlex.")
         print("Installation instructions are available on the page.")
-        grass.fatal("Software dependency must be installed.")
+        gs.fatal("Software dependency must be installed.")
 
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()
@@ -259,17 +259,17 @@ def main():
     flex.BC_E = options["eastbc"]
 
     # Set verbosity
-    if grass.verbosity() >= 2:
+    if gs.verbosity() >= 2:
         flex.Verbose = True
-    if grass.verbosity() >= 3:
+    if gs.verbosity() >= 3:
         flex.Debug = True
-    elif grass.verbosity() == 0:
+    elif gs.verbosity() == 0:
         flex.Quiet = True
 
     # First check if output exists
-    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 "Raster map '"
                 + options["output"]
                 + "' already exists. Use '--o' to overwrite."
@@ -277,14 +277,14 @@ def main():
 
     # Get grid spacing from GRASS
     # Check if lat/lon and proceed as directed
-    if grass.region_env()[6] == "3":
+    if gs.region_env()[6] == "3":
         if latlon_override:
             if flex.Verbose:
                 print("Latitude/longitude grid.")
                 print("Based on r_Earth = 6371 km")
                 print("Setting y-resolution [m] to 111,195 * [degrees]")
-            flex.dy = grass.region()["nsres"] * 111195.0
-            NSmid = (grass.region()["n"] + grass.region()["s"]) / 2.0
+            flex.dy = gs.region()["nsres"] * 111195.0
+            NSmid = (gs.region()["n"] + gs.region()["s"]) / 2.0
             dx_at_mid_latitude = (
                 (3.14159 / 180.0) * 6371000.0 * np.cos(np.deg2rad(NSmid))
             )
@@ -294,13 +294,13 @@ def main():
                     + "%.2f" % dx_at_mid_latitude
                     + " * [degrees]"
                 )
-            flex.dx = grass.region()["ewres"] * dx_at_mid_latitude
+            flex.dx = gs.region()["ewres"] * dx_at_mid_latitude
         else:
-            grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
+            gs.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
     # Otherwise straightforward
     else:
-        flex.dx = grass.region()["ewres"]
-        flex.dy = grass.region()["nsres"]
+        flex.dx = gs.region()["ewres"]
+        flex.dy = gs.region()["nsres"]
 
     # CALCULATE!
     flex.initialize()
@@ -312,12 +312,10 @@ def main():
     outbuffer = garray.array()  # Instantiate output buffer
     outbuffer[...] = flex.w
     outbuffer.write(
-        options["output"], overwrite=grass.overwrite()
+        options["output"], overwrite=gs.overwrite()
     )  # Write it with the desired name
     # And create a nice colormap!
-    grass.run_command(
-        "r.colors", map=options["output"], color="differences", quiet=True
-    )
+    gs.run_command("r.colors", map=options["output"], color="differences", quiet=True)
 
     # Reinstate this with a flag or output filename
     # But I think better to let interpolation happen a posteriori

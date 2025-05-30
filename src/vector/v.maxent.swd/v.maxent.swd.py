@@ -298,13 +298,13 @@ def main(options, flags):
     if os.path.isfile(bgrout):
         os.remove(bgrout)
         gs.message(
-            _("The file {} already exists and will be overwritten".format(bgrout))
+            _("The file {} already exists and will be overwritten").format(bgrout)
         )
     specout = options["species_output"]
     if os.path.isfile(specout):
         os.remove(specout)
         gs.message(
-            _("The file {} already exists and will be overwritten".format(specout))
+            _("The file {} already exists and will be overwritten").format(specout)
         )
     bgpn = options["nbgp"]
     nodata = options["nodata"]

@@ -172,7 +172,7 @@ def raster_exists(envlay):
     for chl in range(len(envlay)):
         ffile = gs.find_file(envlay[chl], element="cell")
         if not ffile["fullname"]:
-            gs.fatal(_("The layer {} does not exist".format(envlay[chl])))
+            gs.fatal(_("The layer {} does not exist").format(envlay[chl]))
 
 
 def create_unique_name(name):
@@ -236,10 +236,8 @@ def check_layer_type(ref_layer, type):
         topology_check = gs.vector_info_topo(ref_layer)
         if topology_check["points"] == 0:
             gs.fatal(
-                _(
-                    "the reference vector layer {} does not contain points".format(
-                        ref_layer
-                    )
+                _("the reference vector layer {} does not contain points").format(
+                    ref_layer
                 )
             )
     elif type == "raster":
@@ -251,10 +249,8 @@ def check_layer_type(ref_layer, type):
                 _(
                     "The ref_rast map must be a binary raster,"
                     " i.e. it should contain only values 0 and 1 or 1 only"
-                    " (now the minimum is {} and maximum is {})".format(
-                        reftype["min"], reftype["max"]
-                    )
-                )
+                    " (now the minimum is {} and maximum is {})"
+                ).format(reftype["min"], reftype["max"])
             )
     else:
         gs.message(_("Check format: correct"))
@@ -298,7 +294,7 @@ def recode_reference_vector(
     if not cn:
         gs.fatal(_("Database query failed or returned no results"))
     for m, reflay in enumerate(ref_env_lay):
-        gs.message(_("Computing frequency distribution for {} ... ".format(reflay)))
+        gs.message(_("Computing frequency distribution for {} ... ").format(reflay))
 
         # Compute frequency distribution of variable(m)
         mid = str(m)
@@ -336,8 +332,8 @@ def recode_reference_vector(
                     "Please note that there were {} points without "
                     "value. This is probably because they are outside "
                     "the computational region or {} had no value "
-                    "(nodata) for that point locations".format((cn - b), reflay)
-                )
+                    "(nodata) for that point locations"
+                ).format((cn - b), reflay)
             )
 
         # Set region proj_region
@@ -423,7 +419,6 @@ def recode_reference_rasters(
         tmpfmask = create_temporary_name("tmpmsk1")
         gs.run_command("g.rename", raster=f"MASK,{tmpfmask}", quiet=True)
     for i, envlay in enumerate(ref_env_lay):
-
         gs.message(_("Preparing the input data ..."))
 
         # set reference region
@@ -468,7 +463,7 @@ def recode_reference_rasters(
         d = gs.parse_command("r.univar", flags="g", map=tmpf2, nprocs=nprocs)
         if not d or "min" not in d or "max" not in d:
             gs.fatal(
-                _("Failed to parse statistics from {}".format(projection_layers[i]))
+                _("Failed to parse statistics from {}").format(projection_layers[i])
             )
 
         # Create recode rules
@@ -498,7 +493,7 @@ def recode_reference_rasters(
                 )
 
         # Create the recode layer and calculate the IES
-        gs.message(_("Calculating IES for {} ...".format(envlay)))
+        gs.message(_("Calculating IES for {} ...").format(envlay))
         compute_ies(tmprule, ipi[i], tmpf2, envmin, envmax)
         gs.run_command(
             "r.support",
@@ -518,7 +513,6 @@ def recode_reference_rasters(
 
 
 def main(options, flags):
-
     # Check if there is a MASK
     mask_present = gs.find_file(
         name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
@@ -557,10 +551,8 @@ def main(options, flags):
                 _(
                     "The number of reference and predictor variables"
                     " should be the same. You provided {} reference and {}"
-                    " projection variables".format(
-                        len(ref_env_lay), len(projection_layers)
-                    )
-                )
+                    " projection variables"
+                ).format(len(ref_env_lay), len(projection_layers))
             )
 
     # output layers
@@ -660,7 +652,7 @@ def main(options, flags):
         map=opc,
         title="Areas with novel conditions",
         units="0-100 (relative score)",
-        description="The multivariate environmental similarity" "(MES)",
+        description="The multivariate environmental similarity(MES)",
         loadhistory=tmphist,
     )
 
