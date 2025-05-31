@@ -573,7 +573,7 @@ def main():
         TNM_file_title = f["title"]
         TNM_file_URL = str(f["downloadURL"])
         TNM_file_size = int(f["sizeInBytes"]) if f["sizeInBytes"] else None
-        TNM_file_name = TNM_file_URL.split(product_url_split)[-1]
+        TNM_file_name = TNM_file_URL.rsplit(product_url_split, maxsplit=1)[-1]
         if gui_product == "ned":
             local_file_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
             local_zip_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
