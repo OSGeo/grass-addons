@@ -189,8 +189,6 @@ def main():
     csv_file_out = options["csvfilename"]
     resolutiondir = options["resolutiondir"]
 
-    gs.overwrite()
-
     # check if v.transects is installed
     if not gs.find_program("v.transects", "--help"):
         message = _("You need to install the addon v.transects to be able")
@@ -217,7 +215,6 @@ def main():
             outmap=categorymap, inmap=input, cat=category
         ),
         quiet=True,
-        overwrite="t",
     )
 
     # create a map containing midlines for each clump
@@ -288,7 +285,6 @@ def main():
             output=categorymap_transects_inside,
             operator="and",
             quiet=True,
-            overwrite="t",
         )
     except CalledModuleError:
         # cleanup

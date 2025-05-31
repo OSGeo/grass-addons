@@ -102,4 +102,5 @@ mean = 10.563481
 
 ## AUTHOR
 
-Paolo Zatelli, DICAM, University of Trento, Italy.
+Paolo Zatelli, DICAM, University of Trento, Italy (original version)
+Paulo van Breugel, HAS green academy, Netherlands (add stats to generated vector layers).
