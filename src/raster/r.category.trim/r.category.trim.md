@@ -11,7 +11,7 @@ You may have noticed that when creating the new map, all category labels
 and colour table of the original map are copied over to the new map,
 even for category values that are not in the new map. If you are working
 with categorical maps, this may not be what you want. See
-[here](https://pvanb.wordpress.com/2015/09/22/categorical-maps-and-legends/)
+[categorical maps and legends](https://pvanb.wordpress.com/2015/09/22/categorical-maps-and-legends/)
 for a more detailed discussion.
 
 With this addon you can trim the category and colour tables so it only
@@ -73,8 +73,8 @@ input raster map.
 
 ## Examples
 
-See
-[here](https://pvanb.wordpress.com/grass-gis-categorical-raster-layers-in-qgis)
+See the blogpost
+[grass-gis-categorical-raster-layers-in-qgis](https://pvanb.wordpress.com/grass-gis-categorical-raster-layers-in-qgis)
 for examples
 
 ## See also
