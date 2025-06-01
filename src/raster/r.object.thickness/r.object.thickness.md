@@ -6,7 +6,7 @@ objects of a given category on a raster map.
 The thickness is reported both in map units and pixels. The module is primarily
 used to estimate the neighborhood window size for filters, such as those used by
 [r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html) and
-[r.fill.category](r.fill.category.md).
+[r.fill.category](https://grass.osgeo.org/grass-stable/manuals/addons/r.fill.category.html).
 
 Another use case is to estimate the width of small landscape elements (SLE),
 e.g., to complement statistics computed by
@@ -14,8 +14,8 @@ e.g., to complement statistics computed by
 
 Object thickness is evaluated by creating transects along the median lines of
 the raster objects, clipping them with objects themselves, and evaluating their
-lengths. This is done using the *v.transects* addon, which must therefore be
-installed to run this module.
+lengths. This is done using the *v.transects* addon, which must therefore
+be installed to run this module.
 
 Optionally, *r.object.thickness* can save a CSV file containing the complete
 list of the lengths of the parts of all created transects inside the objects. It
@@ -27,13 +27,13 @@ objects.
 
 ## PARAMETERS
 
-The user indicates the category of the objects whose thickness must be
-evaluated, and indicating the expected maximum length of the transects and their
-spacing.
+The user must indicate the category of the objects whose thickness should
+be evaluated, as well as the expected maximum length of the transects and
+their spacing.
 
 The expected maximum length of the transects is used to create the transects
-before clipping them with the raster objects. It must be chosen large enough to
-contain the longer cross section of the biggest object. The module issues a
+before clipping them with the raster objects. It must therefore be large enough
+to contain the longer cross section of the biggest object. The module issues a
 warning if the maximum evaluated thickness is less than or equal to the expected
 maximum: in that case, at least one transect has not been clipped because it
 does not intersect the object boundary. Therefore, the expected maximum size
@@ -74,7 +74,7 @@ Carolina sample dataset is evaluated:
 ```sh
 # set the region on the landuse map
 g.region rast=landuse@PERMANENT
-# evaluate the thickness of water bodies (categoy 6) in the landuse map
+# evaluate the thickness of water bodies (category 6) in the landuse map
 # create a vector map containing the median lines called median
 # create a vector map containing the transects inside the water bodies called transects_in
 r.object.thickness input=landuse@PERMANENT category=6 tsize=4000 tspace=100 vmedian=median itransects=transects_in
@@ -98,9 +98,9 @@ mean = 10.563481
 
 *[r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html),
 [r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.fill.category),
-[v.transects](https://grass.osgeo.org/grass-stable/manuals/v.transects),*
+[v.transects](https://grass.osgeo.org/grass-stable/manuals/v.transects)*
 
 ## AUTHOR
 
-Paolo Zatelli, DICAM, University of Trento, Italy (original version)
-Paulo van Breugel, HAS green academy, Netherlands (add stats to generated vector layers).
+- Paolo Zatelli, DICAM, University of Trento, Italy (original version)
+- Paulo van Breugel, HAS green academy, Netherlands (add stats to generated vector layers).
