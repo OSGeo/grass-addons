@@ -76,8 +76,10 @@ Carolina sample dataset is evaluated:
 g.region rast=landuse@PERMANENT
 # evaluate the thickness of water bodies (category 6) in the landuse map
 # create a vector map containing the median lines called median
-# create a vector map containing the transects inside the water bodies called transects_in
-r.object.thickness input=landuse@PERMANENT category=6 tsize=4000 tspace=100 vmedian=median itransects=transects_in
+# create a vector map containing the transects inside the water bodies
+# called transects_in
+r.object.thickness input=landuse@PERMANENT category=6 tsize=4000 tspace=100 \
+vmedian=median itransects=transects_in
 ```
 
 outputs
@@ -103,4 +105,5 @@ mean = 10.563481
 ## AUTHOR
 
 - Paolo Zatelli, DICAM, University of Trento, Italy (original version)
-- Paulo van Breugel, HAS green academy, Netherlands (add stats to generated vector layers).
+- Paulo van Breugel, HAS green academy, Netherlands (add stats to generated
+vector layers).
