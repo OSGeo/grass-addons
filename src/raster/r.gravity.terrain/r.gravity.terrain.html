@@ -12,7 +12,7 @@ This tool calculates the final term in the below equation (g(Terrain correction)
 
 <h2>NOTES</h2>
 <p style="font-weight: normal;">This GRASS tool uses the Nowell (1999) formula 7 (after Blais and Ferland, 1984 Eq 4) to calculate terrain corrections for each DEM point with respect to each gravity measurement location. The tool must be used in a UTM coordinate system as the calculations depend on Cartesian geometry.</p>
-<h2>Formula used in terrain correction</h2>
+<h3>Formula used in terrain correction</h3>
 <h4>g= G*rho*Acs* ((1/d) – (1/d’))<h4>
 
 
@@ -61,7 +61,8 @@ The maximum value is also subjective.  Calculating a terrain correction for all 
 
 <h2>EXAMPLE</h2>
 <div class="code"><pre>
-r.gravity.terrain input=90mSRTM_DEM Maximum_distance=30000m Minimum_distance=90m
+g.region raster=90mSRTM_DEM
+r.gravity.terrain input=90mSRTM_DEM maximum_distance=30000 minimum_distance=90 points=stations output=corrections.txt
 </pre></div>
 
 <div align="center" style="margin: 10px">
@@ -91,7 +92,7 @@ Blais, J.A.R. and Ferland, R., 1984. Optimization in gravimetric terrain correct
 
 
 <h2>SEE ALSO</h2>
-List related GRASS tools here.
+
 <em>
 <a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>

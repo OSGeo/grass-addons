@@ -49,6 +49,7 @@
 # % type: double
 # % required: yes
 # % multiple: no
+# % answer: 2670
 # % description: Crustal density in kg/m^3 used in the terrain correction (e.g.2670 kg/m^3)
 # %end
 # %option G_OPT_M_NPROCS
@@ -79,7 +80,7 @@ def correction(
         f"{temporary_basename}_{cat} = eval(dist = sqrt(((x() - {x}) * (x() - {x})) + ((y() - {y}) * (y() - {y}))), "
         f"dz = abs({elevation} - {z}), "
         f"d_prime = sqrt(dist * dist + dz * dz), "
-        f"if( dist >= {minimum_distance} && dist < {maximum_distance}, 100000 * (0.000000000066743) * {crustal_density}*area()*((1/ dist )-(1/ d_prime )), 0))"
+        f"if(dist >= {minimum_distance} && dist < {maximum_distance}, 100000 * (0.000000000066743) * {crustal_density} * area() * ((1 / dist)-(1 / d_prime)), 0))"
     )
 
     # Calculate total terrain correction. Use cat here!
@@ -102,11 +103,17 @@ def main():
     crustal_density = options["crustal_density"]
     n_processes = int(options["nprocs"])
 
+    info = gs.vector_info_topo(points)
+    if not info["map3d"]:
+        gs.fatal(_("Input vector map is not 3D"))
+    if not info["points"]:
+        gs.fatal(_("Input vector map does not contain points"))
+
     points = gs.read_command(
         "v.out.ascii", input=points, format="point", separator="comma"
     ).splitlines()
 
-    temporary_basename = gs.append_node_pid("r.terrain.correction")
+    temporary_basename = gs.append_node_pid("r.gravity.terrain")
     atexit.register(clean, temporary_basename)
 
     args = [
@@ -122,32 +129,11 @@ def main():
     ]
     with Pool(processes=n_processes) as pool:
         results = pool.starmap(correction, args)
-    with open(
-        output, "w"
-    ) as f:  # Open file *once* at the beginning for writing. 'w' for fresh start
+
+    with open(output, "w") as f:
         f.write("category,correction\n")
         for result in results:
             f.write(f"{result[0]},{result[1]}\n")
-
-
-#         i = 0
-#         gs.percent(i, len(points), 1)
-#         for point in points:
-#             x, y, z, cat = point.split(",")
-#             gs.mapcalc(f"{temporary_basename}_{cat} = eval(dist = sqrt(((x() - {x}) * (x() - {x})) + ((y() - {y}) * (y() - {y}))), "
-#                        f"dz = abs({elevation} - {z}), "
-#                        f"d_prime = sqrt(dist * dist + dz * dz), "
-#                        f"if( dist >= {minimum_distance} && dist < {maximum_distance}, 100000 * (0.000000000066743) * {crustal_density}*area()*((1/ dist )-(1/ d_prime )), 0))")
-#
-#             # Calculate total terrain correction. Use cat here!
-#             terrain_correction = gs.parse_command("r.univar", map=f"{temporary_basename}_{cat}", flags="g")["sum"]
-#             f.write(f"{cat},{terrain_correction}\n") # Write inside the loop, using cat
-#             i = i + 1
-#             gs.percent(i, len(points), 1)
-
-
-# if changing computational region is needed, uncomment
-# gs.use_temp_region()
 
 
 if __name__ == "__main__":
