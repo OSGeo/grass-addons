@@ -265,7 +265,7 @@ def main():
     if options["filled_elevation"]:
         gs.run_command(
             "r.patch",
-            input=[tmp_rfillstats, options["water_elevation"]],
+            input=[options["water_elevation"], tmp_rfillstats],
             output=options["filled_elevation"],
         )
         gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
