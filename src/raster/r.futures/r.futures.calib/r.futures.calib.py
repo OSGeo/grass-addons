@@ -301,7 +301,7 @@ except ImportError:
         """Add a random part to of a specified length to a name (string)
         >>> append_random("tmp", 8)
         >>> append_random("tmp", total_length=16)
-        ..note::
+        .. note::
             This function is copied from grass79.
         """
         if suffix_length and total_length:

@@ -24,9 +24,9 @@ more details).
 
 ## Examples
 
-See
-[here](https://pvanb.wordpress.com/2014/05/30/weighted_random_sample_of_raster_layer/)
-for examples
+See the blogpost
+[weighted random sample of raster layer](https://pvanb.wordpress.com/2014/05/30/weighted_random_sample_of_raster_layer/)
+for examples.
 
 ## See also
 

@@ -26,10 +26,10 @@ on top of the scatter/density plot. If this option is enables, the R2
 and trend line equation are printed to the commmand line.
 
 A confidence ellipse of the covariance of the two variables can be
-plotted on top of the scatterplot, following the method described
-[here](https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html),
-and using the code described
-[here](https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html).
+plotted on top of the scatterplot, following the method described in
+[Plot Confidence Ellipse 001](https://carstenschelp.github.io/2018/09/14/Plot_Confidence_Ellipse_001.html),
+and using the code described in the Matplotlib example
+[confidence_ellipse](https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html).
 The radius of the ellipse can be controlled by **n** which is the number
 of standard deviations (SD). The default is 2 SD, which results in an
 ellipse that encloses around 95% of the points. Optionally, separate

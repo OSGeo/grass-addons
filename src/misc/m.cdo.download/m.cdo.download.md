@@ -9,10 +9,10 @@ API.
 This module uses [the CDO Web Services v2
 API](https://www.ncei.noaa.gov/cdo-web/api/v2/) to download CDO data.
 
-To access the API services, obtain CDO API tokens from
-[here](https://www.ncei.noaa.gov/cdo-web/token) and define an
-environment variable `CDO_API_TOKENS`. Use commas to separate multiple
-tokens. For example, two tokens can be stored as follows:
+To access the API services, obtain your CDO API token from the
+[NCEI CDO Web Services Token Request page](https://www.ncei.noaa.gov/cdo-web/token)
+and set it as the `CDO_API_TOKENS` environment variable. If you have multiple
+tokens, separate them with commas. For example:
 
 ```sh
 export CDO_API_TOKENS=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb

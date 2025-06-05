@@ -134,8 +134,8 @@ parallel computation of the other points.
 ## EXAMPLES
 
 The location used for the following examples can be downloaded
-[here](https://github.com/IvanMarchesini/r.survey.py). The name is
-R.SURVEY\_Location
+[https://github.com/IvanMarchesini/r.survey.py](https://github.com/IvanMarchesini/r.survey.py).
+The name is R.SURVEY\_Location
 
 ### Visibility from roads
 
