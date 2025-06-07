@@ -18,6 +18,14 @@ zonal map only. Otherwise, the computational region can be changed to
 fit the extent of the zonal map with <em>g.region</em>.
 
 <p>
+To visually account for differences in the total area covered by each
+zone, you can optionally scale the width of each boxplot proportionally
+to the area of its corresponding category using the <b>bx_width_variable
+</b> parameter. This can be done linearly or using the square root of 
+the area, depending on the selected mode (linear or sqrt). In addition,
+the user can opt to print the area of each zone above the boxplot.
+
+<p>
 By default, the resulting plot is displayed on screen. However, the
 user can also save the plot to file using the <b>output</b> option. The
 format is determined by the extension given by the user. So, if output
@@ -169,6 +177,28 @@ values within the zones of the zonal layer.
 
 <p>
 <img src="r_boxplot_05.png"><br>
+
+<h3>Example 6</h3>
+
+To visualize the differences in surface area per land use category,
+you can set the width of the boxplots proportionally to the surface
+area or the square root of the surface area. The width of the
+largest zone is always set to the user-defined maximum
+(specified by <b>bxp_width</b>), and all other box widths are
+scaled relative to that.
+
+<div class="code"><pre>
+r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2" 
+</pre>
+</div><br>
+
+<p>
+The code above also print the surface area of each zone above
+the corresponding boxplot in square kilometers.
+
+<p>
+<img src="r_boxplot_06.png"><br>
+
 
 <h2>Acknowledgements</h2>
 
