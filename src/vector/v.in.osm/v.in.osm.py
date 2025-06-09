@@ -113,7 +113,7 @@ class OsmImporter:
                 layer=options["table"],
                 where=options["where"],
                 type=options["type"],
-                flags=flags["o"],
+                flags="o" if flags["o"] else None,
             )
         except CalledModuleError:
             gs.fatal(_("%s failed") % "v.in.ogr")
