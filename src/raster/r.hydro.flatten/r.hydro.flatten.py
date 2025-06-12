@@ -263,9 +263,18 @@ def main():
     gs.raster_history(options["water_elevation"])
     gs.raster_history(options["water_elevation_stddev"])
     if options["filled_elevation"]:
+        # The USGS 3DEP standards require that the shoreline of a water body must be above the level of the modeled impoundment surface
+        # in a DEM. This section compares the elevation of the modeled water surface to the shoreline elevations.
+        # For estimated elevations of the shoreline that are less than or equal to the modeled water surface,
+        # the elevation of the shoreline is raised to .001 vertical units) above the modeled water level.
+        # .001 meters or .001 feet are well below the .1 meter vertical accuracy of the current standards for LiDAR collection.
+        tmp_shore_3dep = get_name("shore_3dep")
+        gs.mapcalc(
+            f"{tmp_shore_3dep} = if ({tmp_water_elevation} >= {tmp_rfillstats}, ({tmp_water_elevation} + .001), {tmp_rfillstats})"
+        )
         gs.run_command(
             "r.patch",
-            input=[options["water_elevation"], tmp_rfillstats],
+            input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats],
             output=options["filled_elevation"],
         )
         gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
