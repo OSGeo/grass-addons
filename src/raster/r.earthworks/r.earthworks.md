@@ -88,7 +88,7 @@ which has a default value of a thousand map units.
 If this border is not large enough,
 then the earthworking operations may be incomplete
 with artifacts along their edges.
-If artifacts occurs, then increase the size of the border.
+If artifacts occur, then increase the size of the border.
 A larger border, however, will increase computation time.
 When the input elevation raster has a hundred thousand cells or more,
 an adaptive region is used by default,
