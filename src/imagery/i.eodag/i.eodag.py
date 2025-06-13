@@ -750,7 +750,7 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     if options["pattern"]:
         pattern = re.compile(options["pattern"])
         search_result = SearchResult(
-            [p for p in search_result if pattern.fullmatch(p.properties["title"])],
+            [p for p in search_result if pattern.fullmatch(str(p.properties["title"]))],
         )
 
     # Remove duplictes that might be created while filtering
@@ -1193,6 +1193,7 @@ def main() -> None:
         search_result = search_by_ids(
             {pid.strip() for pid in options["id"].split(",")},
             options,
+            eodag_api=dag,
         )
     elif id_file and id_file.suffix.lower() == ".geojson":
         gs.verbose(
@@ -1217,6 +1218,7 @@ def main() -> None:
                     for pid in id_file.read_text(encoding="UTF8").strip().split("\n")
                 },
                 options,
+                eodag_api=dag,
             )
         except OSError:
             gs.fatal(
