@@ -750,7 +750,7 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     if options["pattern"]:
         pattern = re.compile(options["pattern"])
         search_result = SearchResult(
-            [p for p in search_result if pattern.fullmatch(str(p.properties["title"]))],
+            [p for p in search_result if pattern.fullmatch(p.properties["title"])],
         )
 
     # Remove duplictes that might be created while filtering
@@ -1003,7 +1003,9 @@ def print_eodag_products(eodag_api, **kwargs) -> None:
             re.IGNORECASE,
         )
         products = [
-            product for product in products if product_type_pattern.search(product)
+            product
+            for product in products
+            if product_type_pattern.search(product["ID"])
         ]
     print(json.dumps({"products": products}, indent=4))
 
