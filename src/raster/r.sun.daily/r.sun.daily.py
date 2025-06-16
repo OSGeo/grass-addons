@@ -262,8 +262,8 @@
 #%end
 
 #%flag
-#% key: p
-#% description: Do not incorporate the shadowing effect of terrain
+#% key: s
+#% description: Skip automatic slope/aspect computation (requires manual input)
 #%end
 
 #%flag
@@ -556,7 +556,8 @@ def main():
 
     # check for slope/aspect
     if not aspect_input or not slope_input:
-        params = {}
+        if not flags["s"]:
+            params = {}
         if not aspect_input:
             aspect_input = create_tmp_map_name("aspect")
             params.update({"aspect": aspect_input})
@@ -570,7 +571,12 @@ def main():
         grass.run_command(
             "r.slope.aspect", elevation=elevation_input, quiet=True, **params
         )
+    else:
+        grass.fatal(_("Aspect or slope not provided and automatic generation skipped with -s flag."))
 
+
+
+# Initialize empty raster maps if needed
     if beam_rad:
         grass.mapcalc("{beam} = 0".format(beam=beam_rad), quiet=True)
     if diff_rad:
@@ -582,71 +588,74 @@ def main():
     if insol_time:
         grass.mapcalc("{insol} = 0".format(insol=insol_time), quiet=True)
 
+# Setup flags for r.sun
     rsun_flags = ""
     if flags["m"]:
         rsun_flags += "m"
     if flags["p"]:
         rsun_flags += "p"
 
+# Start r.sun loop
     grass.info(_("Running r.sun in a loop..."))
     count = 0
-    # Parallel processing
     proc_list = []
     proc_count = 0
     suffixes_all = []
+
     days = range(start_day, end_day + 1, day_step)
     num_days = len(days)
     core.percent(0, num_days, 1)
+
     for day in days:
         count += 1
         core.percent(count, num_days, 10)
 
-        suffix = "_" + format_order(day)
-        proc_list.append(
-            Process(
-                target=run_r_sun,
-                args=(
-                    elevation_input,
-                    aspect_input,
-                    slope_input,
-                    latitude,
-                    longitude,
-                    linke_input,
-                    linke_value,
-                    albedo_input,
-                    albedo_value,
-                    horizon_basename,
-                    horizon_step,
-                    solar_constant,
-                    day,
-                    step,
-                    beam_rad_basename,
-                    diff_rad_basename,
-                    refl_rad_basename,
-                    glob_rad_basename,
-                    insol_time_basename,
-                    suffix,
-                    rsun_flags,
-                ),
-            )
+    suffix = "_" + format_order(day)
+    proc_list.append(
+        Process(
+            target=run_r_sun,
+            args=(
+                elevation_input,
+                aspect_input,
+                slope_input,
+                latitude,
+                longitude,
+                linke_input,
+                linke_value,
+                albedo_input,
+                albedo_value,
+                horizon_basename,
+                horizon_step,
+                solar_constant,
+                day,
+                step,
+                beam_rad_basename,
+                diff_rad_basename,
+                refl_rad_basename,
+                glob_rad_basename,
+                insol_time_basename,
+                suffix,
+                rsun_flags,
+            ),
         )
+    )
 
-        proc_list[proc_count].start()
-        proc_count += 1
-        suffixes_all.append(suffix)
+    proc_list[proc_count].start()
+    proc_count += 1
+    suffixes_all.append(suffix)
 
-        if proc_count == nprocs or proc_count == num_days or count == num_days:
-            proc_count = 0
-            exitcodes = 0
-            for proc in proc_list:
-                proc.join()
-                exitcodes += proc.exitcode
+    if proc_count == nprocs or proc_count == num_days or count == num_days:
+        proc_count = 0
+        exitcodes = 0
+        for proc in proc_list:
+            proc.join()
+            exitcodes += proc.exitcode
 
-            if exitcodes != 0:
-                core.fatal(_("Error while r.sun computation"))
+        if exitcodes != 0:
+            core.fatal(_("Error while r.sun computation"))
 
-            # Empty process list
-            proc_list = []
+        proc_list = []  # clear process list
+
 
     if beam_rad:
         sum_maps(beam_rad, beam_rad_basename, suffixes_all)
@@ -689,9 +698,9 @@ def main():
     temporal = flags["t"]
     if temporal:
         core.info(_("Registering created maps into temporal dataset..."))
-        import grass.temporal as tgis
+    import grass.temporal as tgis
 
-        def registerToTemporal(
+    def registerToTemporal(
             basename, suffixes, mapset, start_day, day_step, title, desc
         ):
             """
@@ -722,10 +731,10 @@ def main():
             )
 
         # Make sure the temporal database exists
-        tgis.init()
+    tgis.init()
 
-        mapset = grass.gisenv()["MAPSET"]
-        if beam_rad_basename_user:
+    mapset = grass.gisenv()["MAPSET"]
+    if beam_rad_basename_user:
             registerToTemporal(
                 beam_rad_basename,
                 suffixes_all,
@@ -735,7 +744,7 @@ def main():
                 title="Beam irradiation",
                 desc="Output beam irradiation raster maps [Wh.m-2.day-1]",
             )
-        if diff_rad_basename_user:
+    if diff_rad_basename_user:
             registerToTemporal(
                 diff_rad_basename,
                 suffixes_all,
@@ -745,7 +754,7 @@ def main():
                 title="Diffuse irradiation",
                 desc="Output diffuse irradiation raster maps [Wh.m-2.day-1]",
             )
-        if refl_rad_basename_user:
+    if refl_rad_basename_user:
             registerToTemporal(
                 refl_rad_basename,
                 suffixes_all,
@@ -755,7 +764,7 @@ def main():
                 title="Reflected irradiation",
                 desc="Output reflected irradiation raster maps [Wh.m-2.day-1]",
             )
-        if glob_rad_basename_user:
+    if glob_rad_basename_user:
             registerToTemporal(
                 glob_rad_basename,
                 suffixes_all,
@@ -765,7 +774,7 @@ def main():
                 title="Total irradiation",
                 desc="Output total irradiation raster maps [Wh.m-2.day-1]",
             )
-        if insol_time_basename_user:
+    if insol_time_basename_user:
             registerToTemporal(
                 insol_time_basename,
                 suffixes_all,
