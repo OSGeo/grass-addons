@@ -55,6 +55,12 @@
 # % answer: 5
 # %end
 # %option
+# % key: max_stddev
+# % type: double
+# % required: no
+# % description: Maximum value of standard deviation to fill the DEM
+# %end
+# %option
 # % key: min_size
 # % type: integer
 # % required: no
@@ -108,6 +114,11 @@ def main():
         size_threshold = int(size_threshold)
     else:
         size_threshold = None
+    max_stddev = options["max_stddev"]
+    if max_stddev:
+        max_stddev = float(max_stddev)
+    else:
+        max_stddev = None
     # r.fill.stats settings
     filling_distance = 3
     filling_cells = 6
@@ -247,14 +258,26 @@ def main():
             method="sum",
             output=tmp_size,
         )
-        gs.mapcalc(
-            f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_zonal_res}, null())"
-        )
+        if max_stddev:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, if(  isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_water_elevation_zonal_res}, null()), null())"
+            )
+        else:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_zonal_res}, null())"
+            )
         gs.mapcalc(
             f"{options['water_elevation_stddev']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_stddev_zonal_res}, null())"
         )
     else:
-        gs.mapcalc(f"{options['water_elevation']} = {tmp_water_elevation_zonal_res}")
+        if max_stddev:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_water_elevation_zonal_res}, null())"
+            )
+        else:
+            gs.mapcalc(
+                f"{options['water_elevation']} = {tmp_water_elevation_zonal_res}"
+            )
         gs.mapcalc(
             f"{options['water_elevation_stddev']} = {tmp_water_elevation_stddev_zonal_res}"
         )
