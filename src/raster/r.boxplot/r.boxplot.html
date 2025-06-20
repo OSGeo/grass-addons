@@ -21,7 +21,7 @@ fit the extent of the zonal map with <em>g.region</em>.
 To visually account for differences in the total area covered by each
 zone, you can optionally scale the width of each boxplot proportionally
 to the area of its corresponding category using the <b>bx_width_variable
-</b> parameter. This can be done linearly or using the square root of 
+</b> parameter. This can be done linearly or using the square root of
 the area, depending on the selected mode (linear or sqrt). In addition,
 the user can opt to print the area of each zone above the boxplot.
 
@@ -188,7 +188,7 @@ largest zone is always set to the user-defined maximum
 scaled relative to that.
 
 <div class="code"><pre>
-r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2" 
+r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2"
 </pre>
 </div><br>
 
