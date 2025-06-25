@@ -722,7 +722,7 @@ def parse_s3_file_name(file_name: str) -> dict:
         gs.fatal(_("{} is not a supported Sentinel-3 scene").format(str(file_name)))
 
 
-def extract_file_info(s3_files: list, basename: str = None) -> tuple[str, dict]:
+def extract_file_info(s3_files: list, basename: str | None = None) -> tuple[str, dict]:
     """Extract information from file name according to naming conventions."""
     result_dict = {}
     product_track_ids = [
@@ -775,7 +775,7 @@ def extract_file_info(s3_files: list, basename: str = None) -> tuple[str, dict]:
                 result_dict["product"],
                 result_dict["start_time"].strftime("%Y%m%d%H%M%S"),
                 result_dict["end_time"].strftime("%Y%m%d%H%M%S"),
-                *[list(result_dict[pid])[0] for pid in product_track_ids],
+                *[next(iter(result_dict[pid])) for pid in product_track_ids],
             ],
         )
     return (
@@ -984,8 +984,6 @@ def get_band_metadata(
     mapname = f"{basename}_{varname_short}"
     metadata["mapname"] = mapname
 
-    # band_title = nc_variable.long_name if "long_name" in band_attrs else band_tuple[1]
-
     # Define unit
     unit = nc_variable.units if "units" in band_attrs else None
     unit = "degree_celsius" if band_tuple[0].startswith("LST") and to_celsius else unit
@@ -1165,7 +1163,9 @@ def import_s3(
 
             if kwargs["maximum_solar_angle"]:
                 sun_region_dict = intersect_region(
-                    dict(kwargs["current_reg"]), sun_region_dict, align_current=False
+                    dict(kwargs["current_reg"]),
+                    sun_region_dict,
+                    align_current=False,
                 )
 
                 if sun_region_dict["e"] <= sun_region_dict["w"]:
@@ -1648,9 +1648,11 @@ class S3Band:
         self.solar_flux = self._get_solar_flux_dict_for_band(product_type)
 
     def __str__(self) -> str:
+        """Return a JSON representation of the S3Band instance."""
         return json.dumps(self.__repr__(), indent=2)
 
     def __repr__(self) -> str:
+        """Return a JSON representation of the S3Band instance."""
         return json.dumps(self.__dict__, indent=2)
 
     def _get_band_type(self, product_type: str) -> str | None:
@@ -1784,10 +1786,17 @@ def check_region_validity(stripe_id: str, stripe_region: dict) -> None:
         gs.warning(
             _(
                 "No valid data found in data stripe {}.\n"
-                "Nothing to import with the given input."
+                "Nothing to import with the given input.",
             ).format(stripe_id),
         )
         sys.exit(0)
+
+
+def _get_grass_metadata(grass_md: dict, md_field: str) -> str | None:
+    md_field = grass_md.get(md_field)
+    if isinstance(md_field, list):
+        return ",".join(md_field)
+    return md_field
 
 
 def main() -> None:
@@ -1986,23 +1995,16 @@ def main() -> None:
         description = (
             json.dumps(metadata, separators=["\n", ": "]).lstrip("{").rstrip("}")
         )
+
         support_kwargs = {
             "map": mapname,
-            "title": ",".join(metadata["title"])
-            if isinstance(metadata["title"], list)
-            else metadata["title"],
-            "history": ",".join(metadata["history"])
-            if isinstance(metadata["history"], list)
-            else metadata["history"],
-            "units": metadata["unit"],
-            "source1": ",".join(metadata["product_name"])
-            if isinstance(metadata["product_name"], list)
-            else metadata["product_name"],
-            "source2": ",".join(metadata["processing_baseline"])
-            if isinstance(metadata["processing_baseline"], list)
-            else metadata["processing_baseline"],
+            "title": _get_grass_metadata(metadata, "title"),
+            "history": _get_grass_metadata(metadata, "history"),
+            "units": metadata.get("unit"),
+            "source1": _get_grass_metadata(metadata, "product_name"),
+            "source2": _get_grass_metadata(metadata, "processing_baseline"),
             "description": description,
-            "semantic_label": metadata["semantic_label"],
+            "semantic_label": metadata.get("semantic_label"),
         }
 
         queue.put(
