@@ -1,14 +1,24 @@
 <h2>DESCRIPTION</h2>
-<p><em>r.curvenumber</em> computes a Curve Number (CN) raster from a landcover classification raster and a Hydrologic Soil Group (HSG) raster. The Curve Number is a value that represents the runoff potential of a soil–landcover combination and is a key input in the USDA SCS Curve Number method—a widely adopted practice in hydrology to estimate runoff.</p>
+<p><em>r.curvenumber</em> computes a Curve Number (CN) raster from a landcover classification raster and a Hydrologic Soil Group (HSG) raster for various Antecedent Runoff Conditions (ARCs) and Hydrologic Conditions (HCs).</p>
+
+<p>The Curve Number is a value that represents the runoff potential of a soil–landcover combination and is a key input in the USDA SCS Curve Number method—a widely adopted practice in hydrology to estimate runoff.</p>
+
 <p>It supports the lookup tables for curve number values for the following datasets and provides:</p>
 <ul>
-  <li><strong>Built-in NLCD lookup</strong> (use the parameter <code>source=nlcd</code>)</li>
-  <li><strong>Built-in ESA WorldCover lookup</strong> (use the parameter <code>source=esa</code>)</li>
+  <li><strong>Built-in NLCD lookup for all ARCs and HCs</strong> (use the parameter <code>landcover_source=nlcd</code>)</li>
+  <li><strong>Built-in ESA WorldCover lookup for all ARCs and HCs</strong> (use the parameter <code>landcover_source=esa</code>)</li>
 </ul>
 
-<p>For <em>custom</em> lookups, use the parameter <code>source=custom</code>,
-and <code>lookup=/path/to/table.csv</code>. The CSV must have the header <code>lc,hsg,cn</code>.
-Pass the custom lookup as a file or paste the values in the dialogue box.</p>
+<p>The lookup table format is <code>lc,hsg,hc,arc,cn</code>, where:</p>
+<ul>
+  <li><code>lc</code>: land cover class code</li>
+  <li><code>hsg</code>: hydrologic soil group (1–4, or 11–14 for dual HSGs)</li>
+  <li><code>hc</code>: hydrologic condition (<code>poor</code>, <code>fair</code>, or <code>good</code>)</li>
+  <li><code>arc</code>: antecedent runoff condition (<code>i</code>, <code>ii</code>, or <code>iii</code>)</li>
+  <li><code>cn</code>: curve number value</li>
+</ul>
+
+<p>For <em>custom</em> lookups, use the parameter <code>landcover_source=custom</code> and <code>lookup=/path/to/table.csv</code>. The CSV must have the header <code>lc,hsg,hc,arc,cn</code>. Pass the custom lookup as a file or paste the values in the dialogue box.</p>
 
 <p>Your HSG raster <strong>must</strong> contain only the following values:</p>
 <ul>
@@ -28,24 +38,30 @@ Pass the custom lookup as a file or paste the values in the dialogue box.</p>
 <h2>EXAMPLES</h2>
 <pre><code># Example 1: NLCD lookup (built-in)
 r.curvenumber \
-  landcover=nlcd2019 \
+  landcover=nlcd \
   hsg=soil_hsg \
-  ls=nlcd \
+  landcover_source=nlcd \
+  h_c=poor \
+  arc=iii \
   output=cn_nlcd
 
 # Example 2: ESA WorldCover lookup (built-in)
 r.curvenumber \
-  landcover=esa2020 \
+  landcover=esa \
   hsg=soil_hsg \
-  ls=esa \
+  landcover_source=esa \
+  h_c=fair \
+  arc=ii \
   output=cn_esa
 
 # Example 3: Custom CSV lookup
 r.curvenumber \
-  landcover=my_lc_map \
-  soil=my_hsg_map \
-  ls=custom \
+  landcover=custom_lc_map \
+  soil=custom_hsg_map \
+  landcover_source=custom \
   lookup=cn_table.csv \
+  h_c=good \
+  arc=i \
   output=cn_custom
 </code></pre>
 <div style="text-align:center;">
