@@ -1164,7 +1164,10 @@ def parse_csv(text):
     """Parse an embedded CSV string into {(lc,hsg,hc,arc): cn}."""
     lut = {}
     for row in csv.DictReader(text.strip().splitlines()):
-        lut[row["lc"].lower(), row["hsg"].lower(), row["hc"].lower(), row["arc"].lower()] = row["cn"]
+        lut[
+            row["lc"].lower(), row["hsg"].lower(), row["hc"].lower(), row["arc"].lower()
+        ] = row["cn"]
+        # lut[row["lc"], row["hsg"]] = row["cn"]
     return lut
 
 
@@ -1174,7 +1177,13 @@ def load_custom(path):
     try:
         with open(path, newline="") as f:
             for row in csv.DictReader(f):
-                lut[row["lc"].lower(), row["hsg"].lower(), row["hc"].lower(), row["arc"].lower()] = row["cn"]
+                lut[
+                    row["lc"].lower(),
+                    row["hsg"].lower(),
+                    row["hc"].lower(),
+                    row["arc"].lower(),
+                ] = row["cn"]
+            # lut[row["lc"], row["hsg"]] = row["cn"]
     except Exception as e:
         fatal(_("Unable to read lookup '{path}': {e}").format(path=path, e=e))
     if not lut:
@@ -1190,6 +1199,7 @@ def build_expression(landmap, hsg, lut, hc, arc):
             # NOTE: use 'landmap' here, not 'landcover'
             expr = f"if({landmap}=={lc} && {hsg}=={grp}, {cn}, {expr})"
     return expr
+
 
 def main():
     opts, flags = parser()
@@ -1209,8 +1219,12 @@ def main():
             hc == "fair"
             and ("40", "A", "fair", arc) in lut
             and lut["40", "A", "fair", arc] == "0"
-            ):
-                warning(_("CN values for ESA cropland (lc=40) in fair condition are interpolated as the average of poor and good conditions"))
+        ):
+            warning(
+                _(
+                    "CN values for ESA cropland (lc=40) in fair condition are interpolated as the average of poor and good conditions"
+                )
+            )
     elif custom:
         lut = load_custom(custom)
     else:

@@ -2,7 +2,8 @@
 
 *r.curvenumber* computes a Curve Number (CN) raster
 from a landcover classification raster and a
-Hydrologic Soil Group (HSG) raster for various Antecedent Runoff Conditions (ARCs) and Hydrologic Conditions (HCs).
+Hydrologic Soil Group (HSG) raster for various
+Antecedent Runoff Conditions (ARCs) and Hydrologic Conditions (HCs).
 
 The Curve Number is a value that represents the
 runoff potential of a soil–landcover combination
