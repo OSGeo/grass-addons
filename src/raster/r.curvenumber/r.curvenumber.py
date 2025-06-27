@@ -1158,13 +1158,13 @@ ESA_CSV = """lc,hsg,hc,arc,cn
 100,4,good,iii,91
 """
 
+
 # CSV parsing helpers
 def parse_csv(text):
     """Parse an embedded CSV string into {(lc,hsg,hc,arc): cn}."""
     lut = {}
     for row in csv.DictReader(text.strip().splitlines()):
         lut[row["lc"].lower(), row["hsg"].lower(), row["hc"].lower(), row["arc"].lower()] = row["cn"]
-        #lut[row["lc"], row["hsg"]] = row["cn"]
     return lut
 
 
@@ -1175,7 +1175,6 @@ def load_custom(path):
         with open(path, newline="") as f:
             for row in csv.DictReader(f):
                 lut[row["lc"].lower(), row["hsg"].lower(), row["hc"].lower(), row["arc"].lower()] = row["cn"]
-               # lut[row["lc"], row["hsg"]] = row["cn"]
     except Exception as e:
         fatal(_("Unable to read lookup '{path}': {e}").format(path=path, e=e))
     if not lut:
@@ -1206,8 +1205,12 @@ def main():
         lut = parse_csv(NLCD_CSV)
     elif source == "esa":
         lut = parse_csv(ESA_CSV)
-        if hc == "fair" and ("40", "A", "fair", arc) in lut and lut[("40", "A", "fair", arc)] == "0":
-            warning(_("CN values for ESA cropland (lc=40) in fair condition are interpolated as the average of poor and good conditions"))
+        if (
+            hc == "fair"
+            and ("40", "A", "fair", arc) in lut
+            and lut["40", "A", "fair", arc] == "0"
+            ):
+                warning(_("CN values for ESA cropland (lc=40) in fair condition are interpolated as the average of poor and good conditions"))
     elif custom:
         lut = load_custom(custom)
     else:
@@ -1219,4 +1222,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
