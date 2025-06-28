@@ -1,3 +1,5 @@
+# r.curvenumber
+
 ## DESCRIPTION
 
 *r.curvenumber* computes a Curve Number (CN) raster
@@ -27,7 +29,7 @@ Where:
 - `cn`: curve number value
 
 For *custom* lookups, use the parameter `source=custom`,
-and `lookup=/path/to/table.csv`. 
+and `lookup=/path/to/table.csv`.
 The CSV must have the header `lc,hsg,hc,arc,cn`.
 Pass the custom lookup as a file or paste the values in the dialogue box.
 
@@ -74,7 +76,7 @@ r.curvenumber \
   output=cn_custom
 ```
 
-![r.curvenumber example](r_curvenumber_output.png)  
+![r.curvenumber example](r_curvenumber_output.png)
 *Figure: Example output from r.curvenumber*
 
 ## REFERENCES
