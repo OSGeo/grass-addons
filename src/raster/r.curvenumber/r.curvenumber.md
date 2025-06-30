@@ -74,7 +74,7 @@ r.curvenumber \
   output=cn_custom
 ```
 
-![r.curvenumber example](r_curvenumber_output.png)
+![r.curvenumber example](r_curvenumber_output.png)  
 *Figure: Example output from r.curvenumber*
 
 ## REFERENCES
