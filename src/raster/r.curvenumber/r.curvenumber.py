@@ -51,6 +51,7 @@
 # % type: string
 # % description: Hydrologic condition
 # % options: poor,fair,good
+# % descriptions: poor;increased runoff;fair;normal runoff;good;lower runoff
 # % answer: fair
 # % required: no
 # %end
