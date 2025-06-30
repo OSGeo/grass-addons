@@ -1,5 +1,3 @@
-# r.curvenumber
-
 ## DESCRIPTION
 
 *r.curvenumber* computes a Curve Number (CN) raster
