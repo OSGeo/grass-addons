@@ -82,7 +82,9 @@ r.curvenumber \
 - United States Department of Agriculture,
 Natural Resources Conservation Service. (2004).
 *National Engineering Handbook*, Part 630 Hydrology:
-Chapter 9 Hydrologic Soil-Cover Complexes (210-VI-NEH).
+Chapter 9 Hydrologic Soil-Cover Complexes
+and Chapter 10 Estimation of Direct Runoff from
+Storm Rainfall (210-VI-NEH).
 
 ## AUTHOR
 
