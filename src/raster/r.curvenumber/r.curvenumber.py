@@ -568,7 +568,7 @@ def build_expression(landmap, hsg, lut, conv, hc, arc):
             base_cn = int(cn)
             # dynamic ARC conversion
             adjusted_cn = (
-                    conv.get(base_cn, {}).get(arc, base_cn) if arc != "ii" else base_cn
+                conv.get(base_cn, {}).get(arc, base_cn) if arc != "ii" else base_cn
             )
             expr = f"if({landmap}=={lc} && {hsg}=={grp}, {adjusted_cn}, {expr})"
 
