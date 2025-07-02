@@ -527,7 +527,7 @@ def parse_csv(text):
     """Parse an embedded CSV string into {(lc,hsg,hc): cn} for ARC ii tables."""
     lut = {}
     for row in csv.DictReader(text.strip().splitlines()):
-        lut[(row["lc"].lower(), row["hsg"].lower(), row["hc"].lower())] = row["cn"]
+        lut[row["lc"].lower(), row["hsg"].lower(), row["hc"].lower()] = row["cn"]
     return lut
 
 
@@ -568,10 +568,7 @@ def build_expression(landmap, hsg, lut, conv, hc, arc):
             base_cn = int(cn)
             # dynamic ARC conversion
             adjusted_cn = (
-                    conv.get(base_cn, {})
-                    .get(arc, base_cn)
-                    if arc != "ii"
-                    else base_cn
+                    conv.get(base_cn, {}).get(arc, base_cn) if arc != "ii" else base_cn
             )
             expr = f"if({landmap}=={lc} && {hsg}=={grp}, {adjusted_cn}, {expr})"
 
@@ -617,6 +614,7 @@ def main():
 
     expr = build_expression(landmap, hsgmap, lut, conv, hc, arc)
     run_command("r.mapcalc", expression=f"{outmap} = {expr}")
+
 
 if __name__ == "__main__":
     main()
