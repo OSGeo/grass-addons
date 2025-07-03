@@ -297,23 +297,27 @@ def main():
         )
         if max_stddev:
             tmp_rfillstats_holes = get_name("rfillstats_holes")
-            # It turns out that running r.fillnulls from the original shoreline is more accurate than running r.fillnulls
+            # Running r.fillnulls from the original shoreline is more accurate than running r.fillnulls
             # on the gaps left from the 3 cell idw interpolations for the areas with high standard deviation. This section
             # punches holes for the high standard deviation areas in the original r.fill.stats result to be merged into the final
             # filled elevation product.  This will leave holes in the raster that can be filled with r.fillnulls with the options
-            # left to the user. 
+            # left to the user.
             f"{tmp_rfillstats_holes} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_rfillstats}, null())"
             gs.run_command(
-            "r.patch",
-            input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats_holes],
-            output=options["filled_elevation"],
+                "r.patch",
+                input=[
+                    options["water_elevation"],
+                    tmp_shore_3dep,
+                    tmp_rfillstats_holes,
+                ],
+                output=options["filled_elevation"],
             )
-            
+
         else:
             gs.run_command(
-            "r.patch",
-            input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats],
-            output=options["filled_elevation"],
+                "r.patch",
+                input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats],
+                output=options["filled_elevation"],
             )
         gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
         gs.raster_history(options["filled_elevation"])
