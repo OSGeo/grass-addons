@@ -1205,7 +1205,7 @@ def main():
             # Other unsupported file formats
             gs.fatal(_("Could not read file '{}'").format(options["file"]))
 
-    if len(ids_set):
+    if ids_set:
         # Remove empty string
         ids_set.discard(str())
         gs.message(_("Found {} distinct ID(s).").format(len(ids_set)))
