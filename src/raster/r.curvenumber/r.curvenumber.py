@@ -573,7 +573,7 @@ def build_expression(landmap, hsg, lut, conv, hc, arc):
             expr = f"if({landmap}=={lc} && {hsg}=={grp}, {adjusted_cn}, {expr})"
 
     # enforce minimum CN of 30
-    expr = f"if({expr} < 30, 30, {expr})"
+    expr = f"max({expr}, 30)"
     return expr
 
 
