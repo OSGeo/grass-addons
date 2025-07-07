@@ -49,7 +49,7 @@
 # %option
 # % key: hydrologic_condition
 # % type: string
-# % description: Hydrologic condition (groundcover density afftecting runoff potential)
+# % description: Hydrologic condition (groundcover density affecting runoff potential)
 # % options: poor,fair,good
 # % descriptions: poor;increased runoff;fair;normal runoff;good;lower runoff
 # % answer: fair
@@ -573,7 +573,7 @@ def build_expression(landmap, hsg, lut, conv, hc, arc):
             expr = f"if({landmap}=={lc} && {hsg}=={grp}, {adjusted_cn}, {expr})"
 
     # enforce minimum CN of 30
-    expr = f"max({expr}, 30)"
+    expr = f"if({expr} > 0 && {expr} < 30, 30, {expr})"
     return expr
 
 
@@ -592,18 +592,6 @@ def main():
         lut = parse_csv(NLCD_II_CSV)
     elif source == "esa":
         lut = parse_csv(ESA_II_CSV)
-        if (
-            hc == "fair"
-            and ("40", "1", "fair") in lut
-            and lut["40", "1", "fair"] == "70"
-        ):
-            warning(
-                _(
-                    "CN values for ESA cropland (lc=40)"
-                    "in fair condition are interpolated as"
-                    "the average of poor and good conditions"
-                )
-            )
     elif custom:
         lut = load_custom(custom)
     else:
