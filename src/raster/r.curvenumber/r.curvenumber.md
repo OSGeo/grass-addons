@@ -54,6 +54,9 @@ Curve Number decreases from poor to good due to
 improved infiltration with more vegetation.  
 See Reference 2 for further discussion.
 
+Note: Curve Number for Cropland for fair condition
+is provided as the average of Curve Number of poor
+and good hydrologic conditions.
 ### Antecedent Runoff Condition (ARC)
 
 The variability in Curve Number (CN) arises
