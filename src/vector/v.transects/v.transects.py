@@ -250,7 +250,7 @@ def writeTransects(transects, cats, output):
     transects_str = ""
     ncats = 2 if cats else 1
     cat = 1
-    linecat = True if cats else ''
+    linecat = True if cats else ""
     for i, transect in enumerate(transects):
         if len(transect) == 0:
             continue
