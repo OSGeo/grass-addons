@@ -1,61 +1,109 @@
 <h2>DESCRIPTION</h2>
-<p><em>r.curvenumber</em> computes a Curve Number (CN) raster from a landcover classification raster and a Hydrologic Soil Group (HSG) raster. The Curve Number is a value that represents the runoff potential of a soil–landcover combination and is a key input in the USDA SCS Curve Number method—a widely adopted practice in hydrology to estimate runoff.</p>
-<p>It supports the lookup tables for curve number values for the following datasets and provides:</p>
+<p>Generates a Curve Number (CN) raster using landcover and hydrologic soil group (HSG) rasters, along with user-specified hydrologic condition and antecedent runoff condition.</p>
+
+<h3>Landcover Source</h3>
+<p>Select the source of the landcover classification and corresponding lookup table:</p>
 <ul>
-  <li><strong>Built-in NLCD lookup</strong> (use the parameter <code>source=nlcd</code>)</li>
-  <li><strong>Built-in ESA WorldCover lookup</strong> (use the parameter <code>source=esa</code>)</li>
+  <li><strong>nlcd</strong>: Built-in NLCD lookup</li>
+  <li><strong>esa</strong>: Built-in ESA WorldCover 2021 lookup</li>
+  <li><strong>custom</strong>: Custom lookup table provided as a CSV file</li>
 </ul>
+<p>For custom, the CSV must include the following columns:<br><code>lc,hsg,hc,cn</code></p>
 
-<p>For <em>custom</em> lookups, use the parameter <code>source=custom</code>,
-and <code>lookup=/path/to/table.csv</code>. The CSV must have the header <code>lc,hsg,cn</code>.
-Pass the custom lookup as a file or paste the values in the dialogue box.</p>
-
-<p>Your HSG raster <strong>must</strong> contain only the following values:</p>
+<h3>Hydrologic Soil Groups (HSG)</h3>
+<p>The HSG raster must contain only:</p>
 <ul>
-  <li><strong>1, 2, 3, 4</strong> for Hydrologic Soil Groups A, B, C, D.</li>
-  <li><strong>11, 12, 13, 14</strong> for Dual HSGs A/D, B/D, C/D, D/D.</li>
+  <li>1 – Group A: High infiltration, low runoff</li>
+  <li>2 – Group B: Moderate infiltration</li>
+  <li>3 – Group C: Low infiltration</li>
+  <li>4 – Group D: Very low infiltration, high runoff</li>
+  <li>11–14 – Dual groups: A/D, B/D, C/D, D/D (for drained/undrained soils)</li>
 </ul>
-<p>No other values are allowed.</p>
+<p>Curve Number increases from HSG A to D due to reduced infiltration associated with increasing clay content and compaction.</p>
+<p>If you are using SSURGO soil data, Hydrologic Soil Group (HSG) values are typically provided directly. For other soil datasets that do not include HSG classifications, see Reference 1 (Chapter 7) for guidance on assigning HSGs based on soil texture, hydraulic conductivity, and water table depth. This information can be used to develop a custom HSG raster.</p>
 
-<p>
-  The curve numbers used in <em>r.curvenumber</em> are based on values published by the
-  United States Department of Agriculture, Natural Resources Conservation Service (2004).
-  While these values serve as a widely accepted reference, users should
-  assess and, if needed, modify them to suit the specific requirements,
-  assumptions, and spatial scale of their hydrologic studies or engineering designs.
-</p>
+<h3>Hydrologic Condition (HC)</h3>
+<p>Hydrologic condition reflects the percentage of surface groundcover and affects runoff potential. Generally:</p>
+<ul>
+  <li><strong>poor</strong>: Less than 30% cover — compacted or bare</li>
+  <li><strong>fair</strong>: 30–70% cover — partial vegetation (default)</li>
+  <li><strong>good</strong>: More than 70% cover — dense and healthy vegetation</li>
+</ul>
+<p>Curve Number decreases from poor to good due to improved infiltration with more vegetation.<br>
+See Reference 2 for further discussion.</p>
+<p><strong>Note:</strong> Curve Number for Cropland under fair hydrologic condition is provided as the average of the Curve Numbers for poor and good conditions.</p>
+
+<h3>Antecedent Runoff Condition (ARC)</h3>
+<p>The variability in Curve Number (CN) arises from factors such as rainfall intensity and duration, total precipitation, soil moisture conditions, vegetative cover density, growth stage, and temperature. These factors collectively define the Antecedent Runoff Condition (ARC), which is classified into three categories:</p>
+<ul>
+  <li><strong>ARC I</strong> – Dry conditions (low antecedent moisture)</li>
+  <li><strong>ARC II</strong> – Average conditions (typical or normal moisture, default)</li>
+  <li><strong>ARC III</strong> – Wet conditions (high antecedent moisture)</li>
+</ul>
+<p>Curve Number increases from ARC I to ARC III as runoff potential rises.</p>
+<p>A standard conversion table is used within the script to adjust CN values from ARC II to ARC I or ARC III, based on empirical relationships. This corresponds to Table 10-1 in Reference 3.</p>
+
+<h3>Sensitivity and CN Hierarchy</h3>
+<p>The CN is more sensitive to ARC than to HC.<br>
+Typical curve number values for a soil-cover complex follow this order:</p>
+
+<h4>CN Hierarchy</h4>
+<pre><code>p_iii &gt; f_iii &gt; g_iii &gt; p_ii &gt; f_ii &gt; g_ii &gt; p_i &gt; f_i &gt; g_i</code></pre>
+<p>Where:</p>
+<ul>
+  <li><code>p</code>, <code>f</code>, <code>g</code> denote <strong>poor</strong>, <strong>fair</strong>, and <strong>good</strong> hydrologic conditions</li>
+  <li><code>i</code>, <code>ii</code>, <code>iii</code> denote <strong>dry</strong>, <strong>average</strong>, and <strong>wet</strong> antecedent runoff conditions</li>
+</ul>
 
 <h2>EXAMPLES</h2>
 <pre><code># Example 1: NLCD lookup (built-in)
 r.curvenumber \
-  landcover=nlcd2019 \
+  landcover=nlcd \
   hsg=soil_hsg \
-  ls=nlcd \
+  landcover_source=nlcd \
+  h_c=poor \
+  arc=iii \
   output=cn_nlcd
 
 # Example 2: ESA WorldCover lookup (built-in)
 r.curvenumber \
-  landcover=esa2020 \
+  landcover=esa \
   hsg=soil_hsg \
-  ls=esa \
+  landcover_source=esa \
+  h_c=fair \
+  arc=ii \
   output=cn_esa
 
 # Example 3: Custom CSV lookup
 r.curvenumber \
-  landcover=my_lc_map \
-  soil=my_hsg_map \
-  ls=custom \
+  landcover=custom_lc_map \
+  soil=custom_hsg_map \
+  landcover_source=custom \
   lookup=cn_table.csv \
+  h_c=good \
+  arc=i \
   output=cn_custom
 </code></pre>
+
 <div style="text-align:center;">
-  <img src="r_curvenumber_output.png" alt="Example output from r.curvenumber">
-  <p><em>Figure: Example output from r.curvenumber</em></p>
+  <img src="r_curvenumber_output.png" alt="Example output from r.curvenumber" style="max-width:80%; height:auto;">
+  <p><em>Figure: Example output from <code>r.curvenumber</code></em></p>
 </div>
 
 <h2>REFERENCES</h2>
 <ul>
-  <li>United States Department of Agriculture, Natural Resources Conservation Service. (2004). <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter 9 Hydrologic Soil-Cover Complexes (210-VI-NEH).</li>
+  <li>
+    United States Department of Agriculture, Natural Resources Conservation Service. (2009).
+    <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter 7 – Hydrologic Soil Groups (210-VI-NEH).
+  </li>
+  <li>
+    United States Department of Agriculture, Natural Resources Conservation Service. (2004).
+    <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter 9 – Hydrologic Soil-Cover Complexes (210-VI-NEH).
+  </li>
+  <li>
+    United States Department of Agriculture, Natural Resources Conservation Service. (2004).
+    <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter 10 – Estimation of Direct Runoff from Storm Rainfall (210-VI-NEH).
+  </li>
 </ul>
 
 <h2>AUTHOR</h2>
