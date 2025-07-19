@@ -9,7 +9,7 @@
 #               to the addon folder, and offer the option to users to
 #               set the path to the java executable.
 #
-# COPYRIGHT:   (C) 2024 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT:   (C) 2024-2025 Paulo van Breugel and the GRASS Development Team
 #              https://ecodiv.earth
 #
 #              This program is free software under the GNU General Public
@@ -98,12 +98,12 @@ def install_maxent(maxent, overwrite):
             )
         )
 
-    # Check file exists in addon directory
+    # Check if file exists in addon directory
     maxent_file = os.environ.get("GRASS_ADDON_BASE")
     maxent_file = os.path.join(maxent_file, "scripts", "maxent.jar")
     maxent_copy = os.path.isfile(maxent_file)
 
-    # If overwrite is set, copy maxent overwriting the existing file
+    # If overwrite is set, copy maxent, overwriting the existing file
     if maxent_copy and bool(overwrite):
         shutil.copyfile(maxent, maxent_file)
         msg = (
@@ -114,7 +114,8 @@ def install_maxent(maxent, overwrite):
     elif not os.path.isfile(maxent_file):
         shutil.copyfile(maxent, maxent_file)
         msg = (
-            "Copied the maxent.jar file to the grass gis addon script directory.\n"
+            "Copied the maxent.jar file to the grass gis addon \n"
+            "script directory.\n"
             f"path: {maxent_file}.\n"
         )
         gs.info(_(msg))
@@ -137,19 +138,19 @@ def set_path_to_java(java, overwrite):
     :return str: status or error message and path to text file
     """
 
-    # Check if provided path+file exists
+    # Check if the provided path+file exists
     if not os.path.isfile(java):
         msg = "The java executable was not found on the location you provided"
         gs.fatal(_(msg))
 
-    # Check text file exists in addon directory
+    # Check if the text file exists in addon directory
     addon_directory = os.environ.get("GRASS_ADDON_BASE")
     txt_java_path = os.path.join(
         addon_directory, "scripts", "r_maxent_path_to_java.txt"
     )
     java_txt_copy = os.path.isfile(txt_java_path)
 
-    # If overwrite is set, copy maxent overwriting the existing file
+    # If overwrite is set, copy maxent, overwriting the existing file
     if java_txt_copy and bool(overwrite):
         with open(txt_java_path, "w") as file:
             file.write(java)
@@ -163,13 +164,13 @@ def set_path_to_java(java, overwrite):
     else:
         msg = (
             "The text file with the path to the java executable \n"
-            "already exists in the adadon directory. Use the -u \n"
+            "already exists in the addon directory. Use the -u \n"
             "flag if you want to update the file"
         )
         gs.fatal(_(msg))
 
 
-def java_findable():
+def java_functional(java_path):
     """
     Check if Java can be found by running the 'java -version' command.
 
@@ -179,7 +180,7 @@ def java_findable():
     try:
         # Run 'java -version' and suppress its output
         subprocess.run(
-            ["java", "-version"],
+            [java_path, "-version"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
@@ -189,17 +190,54 @@ def java_findable():
         return False
 
 
+def check_java_txtfile():
+    """Check if there is a text file with path to java executables in the addon
+    directory
+    """
+    addon_directory = os.environ.get("GRASS_ADDON_BASE")
+    if not addon_directory:
+        gs.warning(_("GRASS_ADDON_BASE environment variable is not set."))
+        return None
+
+    file_path = os.path.join(addon_directory, "scripts", "r_maxent_path_to_java.txt")
+    if not os.path.isfile(file_path):
+        return None
+
+    try:
+        with open(file_path, "r") as file:
+            java_path = file.readline().strip()
+    except Exception as e:
+        gs.warning(_("File with path to java exists but cannot be read: {}").format(e))
+        return None
+
+    if not java_path:
+        gs.warning(_("The file 'r_maxent_path_to_java.txt' is empty"))
+        return None
+
+    if not os.path.exists(java_path) or not java_functional(java_path):
+        gs.warning(
+            _(
+                "The path to the Java executable '{}', as defined in the \n"
+                " 'r_maxent_path_to_java.txt' in the addon directory \n"
+                "does not exist or is not functional."
+            ).format(java_path)
+        )
+        return None
+
+    return java_path
+
+
 # Main
 # ------------------------------------------------------------------
 def main(options, flags):
     # Check if Java can be found
     if flags["j"]:
-        if not java_findable():
+        if not java_functional("java") and not check_java_txtfile():
             gs.warning(
                 _(
-                    "Java cannot be found from GRASS GIS. Please ensure Java "
-                    "is installed and/or properly configured. If you are sure "
-                    "Java is installed, you can use this module to define the "
+                    "Java cannot be found from GRASS GIS. Please ensure Java \n"
+                    "is installed and/or properly configured. If you are sure \n"
+                    "Java is installed, you can use this module to define the \n"
                     "path to the java executable. See the help file for details."
                 )
             )
@@ -207,23 +245,44 @@ def main(options, flags):
             gs.message(_("Java is accessible from GRASS GIS."))
 
     # Set path to java executable
-    if bool(options["java"]):
-        set_path_to_java(java=os.path.normpath(options["java"]), overwrite=flags["u"])
     else:
-        if not java_findable():
-            gs.message(
-                _(
-                    "Java is not installed or not accessible via the system PATH. "
-                    "Please ensure Java is installed and/or properly configured."
-                    "If you are sure Java is installed, you can use this module"
-                    "to define the path to the java executable. See the help file"
-                    "for details."
-                )
+        # Install maxent
+        if bool(options["maxent"]):
+            install_maxent(
+                maxent=os.path.normpath(options["maxent"]), overwrite=flags["u"]
             )
+            maxent_installed = True
+        else:
+            maxent_installed = False
 
-    # Install maxent
-    if bool(options["maxent"]):
-        install_maxent(maxent=os.path.normpath(options["maxent"]), overwrite=flags["u"])
+        # Install java
+        if bool(options["java"]):
+            set_path_to_java(
+                java=os.path.normpath(options["java"]), overwrite=flags["u"]
+            )
+        else:
+            if not java_functional("java") and not check_java_txtfile():
+                if maxent_installed:
+                    gs.warning(
+                        _(
+                            "Java is not installed or not accessible via the "
+                            "system PATH. Maxent will therefore not run.\n"
+                            "Please ensure Java is installed and/or properly "
+                            "configured. If you are sure Java is installed, "
+                            "you can use this module to define the path to "
+                            " the java executable. See the help file for details."
+                        )
+                    )
+                else:
+                    gs.warning(
+                        _(
+                            "Java is not installed or not accessible via the system PATH. \n"
+                            "Please ensure Java is installed and/or properly configured. \n"
+                            "If you are sure Java is installed, you can use this module \n"
+                            "to define the path to the java executable. See the help file \n"
+                            "for details."
+                        )
+                    )
 
 
 if __name__ == "__main__":
