@@ -36,4 +36,3 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - run: pip install pre-commit && pre-commit run -a
-        if: ${{ steps.changes.outputs.precommit == 'true' }}
