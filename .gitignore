@@ -5,6 +5,7 @@
 OBJ.*
 *.o
 *.tmp.html
+*.tmp.md
 bin.*/*
 build
 /out/
