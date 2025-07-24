@@ -49,9 +49,10 @@ r.lfp dir=drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=dcells lfp=lfp2 o
 
 ## SEE ALSO
 
-*[r.flowaccumulation](r.flowaccumulation.md),
-[r.hydrobasin](r.hydrobasin.md), [r.accumulate](r.accumulate.md),
-[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),*
+*[r.hydrobasin](r.hydrobasin.md),
+[r.flowaccumulation](r.flowaccumulation.md),
+[r.accumulate](r.accumulate.md),
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
 
 ## REFERENCES
 
