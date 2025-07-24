@@ -6,10 +6,8 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-#define INDEX(row, col)       ((size_t)(row) * dir_map->ncols + (col))
-#define DIR_NULL              dir_map->null_value
-#define DIR(row, col)         dir_map->cells.byte[INDEX(row, col)]
-#define IS_DIR_NULL(row, col) (DIR(row, col) == DIR_NULL)
+#define INDEX(row, col) ((size_t)(row) * dir_map->ncols + (col))
+#define DIR(row, col)   dir_map->cells.byte[INDEX(row, col)]
 
 static void add_table(struct Map_info *, const char *, dbDriver **,
                       struct field_info **);
