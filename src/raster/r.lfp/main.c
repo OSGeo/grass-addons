@@ -102,9 +102,10 @@ int main(int argc, char *argv[])
     opt.encoding = G_define_option();
     opt.encoding->type = TYPE_STRING;
     opt.encoding->key = "encoding";
-    opt.encoding->label = _("Flow direction encoding for custom format; taudem "
-                            "(1-8 for E-SE CCW) or E,SE,S,SW,W,NW,N,NE");
+    opt.encoding->label = _("Flow direction encoding for custom format");
     opt.encoding->required = NO;
+    opt.encoding->description =
+        _("taudem (1-8 for E-SE CCW) or E,SE,S,SW,W,NW,N,NE");
 
     opt.outlets = G_define_standard_option(G_OPT_V_INPUT);
     opt.outlets->key = "outlets";
@@ -114,9 +115,12 @@ int main(int argc, char *argv[])
     opt.layer = G_define_standard_option(G_OPT_V_FIELD);
 
     opt.idcol = G_define_standard_option(G_OPT_DB_COLUMN);
-    opt.idcol->description = _("Name of input attribute column for outlet IDs "
-                               "(using a non-default column is slower)");
+    opt.idcol->label = _("Name of input attribute column for outlet IDs");
     opt.idcol->answer = GV_KEY_COLUMN;
+    G_asprintf(&desc,
+               _("Using a non-%s column is slower because of database access"),
+               GV_KEY_COLUMN);
+    opt.idcol->description = desc;
 
     opt.lfp = G_define_standard_option(G_OPT_V_OUTPUT);
     opt.lfp->key = "longest_flow_path";
