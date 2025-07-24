@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     opt.idcol->description = desc;
 
     opt.lfp = G_define_standard_option(G_OPT_V_OUTPUT);
-    opt.lfp->key = "longest_flow_path";
+    opt.lfp->key = "lfp";
     opt.lfp->required = NO;
     opt.lfp->description = _("Name for output longest flow paths vector map");
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
 #ifdef LOOP_THEN_TASK
     opt.tss = G_define_option();
     opt.tss->type = TYPE_INTEGER;
-    opt.tss->key = "tracing_stack_size";
+    opt.tss->key = "tss";
     opt.tss->label =
         _("Threshold size of tracing stack for switching to tasking");
     opt.tss->required = YES;
