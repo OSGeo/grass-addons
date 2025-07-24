@@ -11,6 +11,7 @@ int gettimeofday(struct timeval *, struct timezone *);
 #include <sys/time.h>
 #endif
 
+#define USE_LESS_MEMORY
 #define LOOP_THEN_TASK
 
 #define REALLOC_INCREMENT 1024

@@ -32,6 +32,7 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 #include "global.h"
+#include "lfp_funcs.h"
 
 int main(int argc, char *argv[])
 {
