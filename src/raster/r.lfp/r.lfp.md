@@ -38,10 +38,10 @@ r.to.vect input=dcells type=point output=dcells
 r.hydrobasin dir=drain outlets=dcells output=wsheds nproc=$(nproc)
 
 # calculate all longest flow paths
-r.lfp dir=drain outlets=outlets lfp=lfp ocol=outlet_cat nproc=$(nproc)
+r.lfp dir=drain outlets=dcells lfp=lfp ocol=outlet_cat nproc=$(nproc)
 
 # or using a custom format for r.watershed drainage (8-1 for E-NE CW)
-r.lfp dir=drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=outlets lfp=lfp2 ocol=outlet_cat nproc=$(nproc)
+r.lfp dir=drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=dcells lfp=lfp2 ocol=outlet_cat nproc=$(nproc)
 ```
 
 ![image-alt](r_lfp_nc_example.png)
