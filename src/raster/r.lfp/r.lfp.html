@@ -1,0 +1,65 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.lfp</em> calculates the longest flow paths for given outlet points using
+the Memory-Efficient Longest Flow Path (MELFP) OpenMP parallel algorithm by Cho
+(2025).
+
+<h2>NOTES</h2>
+
+<em>r.lfp</em> creates a longest flow path vector map using a flow
+direction raster map and an outlet point vector map.
+
+<h2>EXAMPLES</h2>
+
+These examples use the North Carolina sample dataset.
+
+<p>Create the longest flow path for one outlet:
+<div class="code"><pre>
+# set computational region
+g.region -ap raster=elevation
+
+# calculate drainage directions using r.watershed
+r.watershed -s elevation=elevation drainage=drain
+
+# extract draining cells
+r.mapcalc ex="dcells=if(\
+        (isnull(drain[-1,-1])&amp;&amp;abs(drain)==3)||\
+        (isnull(drain[-1,0])&amp;&amp;abs(drain)==2)||\
+        (isnull(drain[-1,1])&amp;&amp;abs(drain)==1)||\
+        (isnull(drain[0,-1])&amp;&amp;abs(drain)==4)||\
+        (isnull(drain[0,1])&amp;&amp;abs(drain)==8)||\
+        (isnull(drain[1,-1])&amp;&amp;abs(drain)==5)||\
+        (isnull(drain[1,0])&amp;&amp;abs(drain)==6)||\
+        (isnull(drain[1,1])&amp;&amp;abs(drain)==7),1,null())"
+r.to.vect input=dcells type=point output=dcells
+
+# delineate all watersheds using r.hydrobasin
+r.hydrobasin dir=drain outlets=dcells output=wsheds nproc=$(nproc)
+
+# calculate all longest flow paths
+r.lfp dir=drain outlets=outlets lfp=lfp ocol=outlet_cat nproc=$(nproc)
+
+# or using a custom format for r.watershed drainage (8-1 for E-NE CW)
+r.lfp dir=drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=outlets lfp=lfp2 ocol=outlet_cat nproc=$(nproc)
+</pre></div>
+
+<div align="center">
+<img src="r_lfp_nc_example.png">
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.flowaccumulation.html">r.flowaccumulation</a>,
+<a href="r.hydrobasin.html">r.hydrobasin</a>,
+<a href="r.accumulate.html">r.accumulate</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+</em>
+
+<h2>REFERENCES</h2>
+
+Huidae Cho, Accepted in July 2025. <em>Loop Then Task: Hybridizing OpenMP Parallelism to Improve Load Balancing and Memory Efficiency in Continental-Scale Longest Flow Path Computation.</em> Environmental Modelling &amp; Software.
+
+<h2>AUTHOR</h2>
+
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
