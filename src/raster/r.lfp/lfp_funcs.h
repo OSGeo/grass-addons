@@ -359,6 +359,7 @@ static TRACE_UP_RETURN trace_up(struct raster_map *dir_map, int row, int col,
         int nup = 0;
         int next_row = -1, next_col = -1;
         int ortho = 0, dia = 0;
+        struct cell up;
 
         for (i = 0; i < 8; i++) {
             int nbr_row = row + nbr_rcd[i][0];
@@ -388,7 +389,6 @@ static TRACE_UP_RETURN trace_up(struct raster_map *dir_map, int row, int col,
         if (!nup) {
             /* reached a ridge cell; if there were any up cells to visit, let's
              * go back or simply complete tracing */
-            struct cell up;
             double flen = down_northo + down_ndia * M_SQRT2;
 
             if (flen >= *lflen) {
@@ -423,8 +423,6 @@ static TRACE_UP_RETURN trace_up(struct raster_map *dir_map, int row, int col,
         }
         else if (nup > 1) {
             /* if there are more up cells to visit, let's come back later */
-            struct cell up;
-
             up.row = row;
             up.col = col;
             up.northo = down_northo;
@@ -436,8 +434,6 @@ static TRACE_UP_RETURN trace_up(struct raster_map *dir_map, int row, int col,
         /* next cell is not in the stack;
          * if current stack size + next cell >= tracing stack size */
         if (up_stack->n + 1 >= tracing_stack_size) {
-            struct cell up;
-
             up.row = next_row;
             up.col = next_col;
             up.northo = down_northo + ortho;
