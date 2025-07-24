@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
         G_message(_("Writing longest flow path heads vector <%s>..."),
                   heads_name);
         gettimeofday(&start_time, NULL);
-        write_head_points(heads_name, oidcol, outlet_l, dir_map);
+        write_head_points(heads_name, oidcol, outlet_l);
         gettimeofday(&end_time, NULL);
         G_message(
             _("Output time for longest flow path headwater points: %f seconds"),
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
         G_message(_("Writing longest flow path head coordinates file <%s>..."),
                   coors_path);
         gettimeofday(&start_time, NULL);
-        write_head_coors(coors_path, oidcol, outlet_l, dir_map);
+        write_head_coors(coors_path, oidcol, outlet_l);
         gettimeofday(&end_time, NULL);
         G_message(_("Output time for longest flow path head coordinates file: "
                     "%f seconds"),
