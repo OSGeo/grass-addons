@@ -1,7 +1,8 @@
 ## DESCRIPTION
 
 *r.lfp* calculates the longest flow paths for given outlet points using
-the Memory-Efficient Longest Flow Path (MELFP) OpenMP parallel algorithm
+the [Memory-Efficient Longest Flow Path
+(MELFP)](https://github.com/HuidaeCho/melfp) OpenMP parallel algorithm
 by Cho (2025).
 
 ## NOTES
