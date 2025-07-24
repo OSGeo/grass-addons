@@ -141,15 +141,15 @@ int main(int argc, char *argv[])
 
 #ifdef _OPENMP
 #ifdef LOOP_THEN_TASK
-    opt.tss = G_define_standard_option(G_OPT_V_OUTPUT);
+    opt.tss = G_define_option();
     opt.tss->type = TYPE_INTEGER;
     opt.tss->key = "tracing_stack_size";
+    opt.tss->label =
+        _("Threshold size of tracing stack for switching to tasking");
     opt.tss->required = YES;
     opt.tss->options = "0-";
     opt.tss->answer = "3072";
-    opt.tss->description =
-        _("Threshold size of tracing stack for switching to tasking; 0 for "
-          "guessing using sqrt(cells) / threads");
+    opt.tss->description = _("0 for guessing using sqrt(cells) / threads");
 #endif
 
     opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
