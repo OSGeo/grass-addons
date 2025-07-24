@@ -141,7 +141,7 @@ void write_lfp(const char *lfp_name, const char *idcol,
 }
 
 void write_head_points(const char *heads_name, const char *idcol,
-                       struct outlet_list *outlet_l, struct raster_map *dir_map)
+                       struct outlet_list *outlet_l)
 {
     struct Map_info Map;
     dbDriver *driver = NULL;
@@ -220,7 +220,7 @@ void write_head_points(const char *heads_name, const char *idcol,
 }
 
 void write_head_coors(const char *coors_path, const char *idcol,
-                      struct outlet_list *outlet_l, struct raster_map *dir_map)
+                      struct outlet_list *outlet_l)
 {
     FILE *fp;
     struct Cell_head window;

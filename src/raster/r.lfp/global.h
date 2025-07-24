@@ -92,9 +92,7 @@ void lfp_lessmem(struct raster_map *, struct outlet_list *, int, int);
 /* write.c */
 void write_lfp(const char *, const char *, struct outlet_list *,
                struct raster_map *);
-void write_head_points(const char *, const char *, struct outlet_list *,
-                       struct raster_map *);
-void write_head_coors(const char *, const char *, struct outlet_list *,
-                      struct raster_map *);
+void write_head_points(const char *, const char *, struct outlet_list *);
+void write_head_coors(const char *, const char *, struct outlet_list *);
 
 #endif
