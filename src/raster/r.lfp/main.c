@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
           "Path (MELFP) OpenMP parallel algorithm by Cho (2025).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
+    opt.dir->key = "direction";
     opt.dir->description = _("Name of input flow direction raster map");
 
     opt.format = G_define_option();
