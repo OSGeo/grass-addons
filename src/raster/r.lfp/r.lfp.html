@@ -42,8 +42,8 @@ potentially longer watershed-level flow paths, and finally eliminates shorter
 paths from both the subwatershed and hierarchically merged watershed results.
 
 <p>When parallel processing is enabled with the <b>nprocs</b> option,
-<em>r.lfp</em> uses the OpenMP&apos;s shared-memory model and the specified
-number of threads to parallelize the computation per thread initially (implicit
+<em>r.lfp</em> uses OpenMP&apos;s shared-memory model and the specified number
+of threads to parallelize the computation per thread initially (implicit
 tasking through looping) and later switch to explicit tasking for better load
 balancing as threads start becoming ideal after they finish their allocated
 implicit tasks. This loop-then-task approach significantly improves

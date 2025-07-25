@@ -41,10 +41,10 @@ eliminates shorter paths from both the subwatershed and hierarchically
 merged watershed results.
 
 When parallel processing is enabled with the **nprocs** option, *r.lfp*
-uses the OpenMP's shared-memory model and the specified number of
-threads to parallelize the computation per thread initially (implicit
-tasking through looping) and later switch to explicit tasking for better
-load balancing as threads start becoming ideal after they finish their
+uses OpenMP's shared-memory model and the specified number of threads to
+parallelize the computation per thread initially (implicit tasking
+through looping) and later switch to explicit tasking for better load
+balancing as threads start becoming ideal after they finish their
 allocated implicit tasks. This loop-then-task approach significantly
 improves computational efficiency along with highly reduced memory
 usage. In its benchmark experiment, the MELFP algorithm used in this
