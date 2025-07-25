@@ -7,7 +7,7 @@ by Cho (2025).
 
 ## NOTES
 
-*r.lfp* can automatically recognized the following three different
+*r.lfp* can automatically recognize the following three different
 formats of flow directions: **degree**, **45degree**, and **power2**.
 The **degree** format starts just above 0° at East (excluding 0° itself)
 and goes counterclockwise up to 360°, which also corresponds to East.
