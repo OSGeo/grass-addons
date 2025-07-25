@@ -27,6 +27,31 @@ encoding=8,7,6,5,4,3,2,1**.
 
 ![image-alt](r_lfp_custom_formats.png)
 
+Unless the **-f** option is specified, *r.lfp* defaults to computing the
+longest flow paths within each subwatershed, not crossing through any
+outlet points. This default behavior will produce longest flow path
+lines that do not overlap among subwatersheds. However, they can still
+overlap within a subwatershed if they are of the same length and share
+common downstream paths within that subwatershed.
+
+With the **-f** option, the module first computes the longest flow paths
+at the subwatershed level, then performs a hierarchical analysis to
+derive potentially longer watershed-level flow paths, and finally
+eliminates shorter paths from both the subwatershed and hierarchically
+merged watershed results.
+
+When parallel processing is enabled with the **nprocs** option, *r.lfp*
+uses the OpenMP's shared-memory model and the specified number of
+threads to parallelize the computation per thread initially (implicit
+tasking through looping) and later switch to explicit tasking for better
+load balancing as threads start becoming ideal after they finish their
+allocated implicit tasks. This loop-then-task approach significantly
+improves computational efficiency along with highly reduced memory
+usage. In its benchmark experiment, the MELFP algorithm used in this
+module achieved a 66% reduction in computation time using 79% lower peak
+memory with 33% higher CPU utilization, enabling faster and larger data
+processing (Cho, 2025).
+
 ## EXAMPLES
 
 These examples use the North Carolina sample dataset.

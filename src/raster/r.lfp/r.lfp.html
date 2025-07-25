@@ -18,8 +18,8 @@ Northeast.
 </div>
 
 <p><em>r.lfp</em> also supports the <b>taudem</b> format, which is used by
-<a href="https://github.com/dtarb/TauDEM">TauDEM</a>'s D8FlowDir. This format
-is not auto-detected because it shares the same encoding range of the
+<a href="https://github.com/dtarb/TauDEM">TauDEM</a>&apos;s D8FlowDir. This
+format is not auto-detected because it shares the same encoding range of the
 <b>45degree</b> format. Additionally, the module can accept any integer
 encodings with the <b>custom</b> format and <b>encoding</b> option, which uses
 eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
@@ -28,6 +28,29 @@ encoding=8,7,6,5,4,3,2,1</b>.
 <div align="center">
 <img src="r_lfp_custom_formats.png" alt="Custom flow direction formats">
 </div>
+
+<p>Unless the <b>-f</b> option is specified, <em>r.lfp</em> defaults to
+computing the longest flow paths within each subwatershed, not crossing through
+any outlet points. This default behavior will produce longest flow path lines
+that do not overlap among subwatersheds. However, they can still overlap within
+a subwatershed if they are of the same length and share common downstream paths
+within that subwatershed.
+
+<p>With the <b>-f</b> option, the module first computes the longest flow paths
+at the subwatershed level, then performs a hierarchical analysis to derive
+potentially longer watershed-level flow paths, and finally eliminates shorter
+paths from both the subwatershed and hierarchically merged watershed results.
+
+<p>When parallel processing is enabled with the <b>nprocs</b> option,
+<em>r.lfp</em> uses the OpenMP&apos;s shared-memory model and the specified
+number of threads to parallelize the computation per thread initially (implicit
+tasking through looping) and later switch to explicit tasking for better load
+balancing as threads start becoming ideal after they finish their allocated
+implicit tasks. This loop-then-task approach significantly improves
+computational efficiency along with highly reduced memory usage. In its
+benchmark experiment, the MELFP algorithm used in this module achieved a 66%
+reduction in computation time using 79% lower peak memory with 33% higher CPU
+utilization, enabling faster and larger data processing (Cho, 2025).
 
 <h2>EXAMPLES</h2>
 
