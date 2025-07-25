@@ -7,8 +7,25 @@ by Cho (2025).
 
 ## NOTES
 
-*r.lfp* creates a longest flow path vector map using a flow direction
-raster map and an outlet point vector map.
+*r.lfp* can automatically recognized the following three different
+formats of flow directions: **degree**, **45degree**, and **power2**.
+The **degree** format starts just above 0° at East (excluding 0° itself)
+and goes counterclockwise up to 360°, which also corresponds to East.
+The **45degree** format divides the degree format by 45°. The **power2**
+format starts from 1 at East and doubles clockwise up to Northeast.
+
+![image-alt](r_lfp_formats.png)
+
+*r.lfp* also supports the **taudem** format, which is used by
+[TauDEM](https://github.com/dtarb/TauDEM)'s D8FlowDir. This format is
+not auto-detected because it shares the same encoding range of the
+**45degree** format. Additionally, the module can accept any integer
+encodings with the **custom** format and **encoding** option, which uses
+eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode
+the **45degree** format using this method, one can use **format=custom
+encoding=8,7,6,5,4,3,2,1**.
+
+![image-alt](r_lfp_custom_formats.png)
 
 ## EXAMPLES
 

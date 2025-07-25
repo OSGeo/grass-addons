@@ -6,8 +6,28 @@ Path (MELFP)</a> OpenMP parallel algorithm by Cho (2025).
 
 <h2>NOTES</h2>
 
-<em>r.lfp</em> creates a longest flow path vector map using a flow
-direction raster map and an outlet point vector map.
+<em>r.lfp</em> can automatically recognized the following three different
+formats of flow directions: <b>degree</b>, <b>45degree</b>, and <b>power2</b>.
+The <b>degree</b> format starts just above 0&deg; at East (excluding 0&deg;
+itself) and goes counterclockwise up to 360&deg;, which also corresponds to
+East. The <b>45degree</b> format divides the degree format by 45&deg;. The
+<b>power2</b> format starts from 1 at East and doubles clockwise up to
+Northeast.
+<div align="center">
+<img src="r_lfp_formats.png" alt="Auto-detected flow direction formats">
+</div>
+
+<p><em>r.lfp</em> also supports the <b>taudem</b> format, which is used by
+<a href="https://github.com/dtarb/TauDEM">TauDEM</a>'s D8FlowDir. This format
+is not auto-detected because it shares the same encoding range of the
+<b>45degree</b> format. Additionally, the module can accept any integer
+encodings with the <b>custom</b> format and <b>encoding</b> option, which uses
+eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
+<b>45degree</b> format using this method, one can use <b>format=custom
+encoding=8,7,6,5,4,3,2,1</b>.
+<div align="center">
+<img src="r_lfp_custom_formats.png" alt="Custom flow direction formats">
+</div>
 
 <h2>EXAMPLES</h2>
 
