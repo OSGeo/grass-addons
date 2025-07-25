@@ -31,7 +31,8 @@ encoding=8,7,6,5,4,3,2,1**.
 
 These examples use the North Carolina sample dataset.
 
-Create the longest flow path for one outlet:
+Extract all draining cells (all outlets for the DEM), and calculate all
+watersheds and longest flow paths:
 
 ```sh
 # set computational region
