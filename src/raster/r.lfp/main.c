@@ -6,7 +6,8 @@
  *
  * PURPOSE:      Calculates the longest flow path from a flow direction raster
  *               map and a outlets vector map using the Memory-Efficient
- *               Longest Flow Path (MELFP) parallel algorithm by Cho (2025).
+ *               Longest Flow Path (MELFP) OpenMP parallel algorithm by Cho
+ *               (2025).
  *
  * COPYRIGHT:    (C) 2025 by Huidae Cho and the GRASS Development Team
  *
@@ -80,7 +81,7 @@ int main(int argc, char *argv[])
     module->description =
         _("Calculates the longest flow path from a flow direction raster map "
           "and a outlets vector map using the Memory-Efficient Longest Flow "
-          "Path (MELFP) parallel algorithm by Cho (2025).");
+          "Path (MELFP) OpenMP parallel algorithm by Cho (2025).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
     opt.dir->description = _("Name of input flow direction raster map");
