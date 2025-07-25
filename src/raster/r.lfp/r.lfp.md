@@ -56,15 +56,15 @@ processing (Cho, 2025).
 
 These examples use the North Carolina sample dataset.
 
-Extract all draining cells (all outlets for the DEM), and calculate all
-watersheds and longest flow paths:
+Extract all draining cells (all outlets for the elevation raster), and
+calculate all watersheds and longest flow paths:
 
 ```sh
 # set computational region
-g.region -ap raster=elevation
+g.region -ap rast=elevation
 
 # calculate drainage directions using r.watershed
-r.watershed -s elevation=elevation drainage=drain
+r.watershed -s elev=elevation drain=drain
 
 # extract draining cells
 r.mapcalc ex="dcells=if(\
@@ -88,7 +88,40 @@ r.lfp dir=drain outlets=dcells lfp=lfp ocol=outlet_cat nproc=$(nproc)
 r.lfp dir=drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=dcells lfp=lfp2 ocol=outlet_cat nproc=$(nproc)
 ```
 
-![image-alt](r_lfp_nc_example.png)
+![image-alt](r_lfp_elevation_example.png)
+
+Perform the same analysis using the statewide DEM, elev_state_500m:
+
+```sh
+# set computational region
+g.region -ap rast=elev_state_500m
+
+# calculate drainage directions using r.watershed
+r.watershed -s elev=elev_state_500m drain=nc_drain
+
+# extract draining cells
+r.mapcalc ex="nc_dcells=if(\
+        (isnull(nc_drain[-1,-1])&&abs(nc_drain)==3)||\
+        (isnull(nc_drain[-1,0])&&abs(nc_drain)==2)||\
+        (isnull(nc_drain[-1,1])&&abs(nc_drain)==1)||\
+        (isnull(nc_drain[0,-1])&&abs(nc_drain)==4)||\
+        (isnull(nc_drain[0,1])&&abs(nc_drain)==8)||\
+        (isnull(nc_drain[1,-1])&&abs(nc_drain)==5)||\
+        (isnull(nc_drain[1,0])&&abs(nc_drain)==6)||\
+        (isnull(nc_drain[1,1])&&abs(nc_drain)==7),1,null())"
+r.to.vect input=nc_dcells type=point output=nc_dcells
+
+# delineate all watersheds using r.hydrobasin
+r.hydrobasin dir=nc_drain outlets=nc_dcells output=nc_wsheds nproc=$(nproc)
+
+# calculate all longest flow paths
+r.lfp dir=nc_drain outlets=nc_dcells lfp=nc_lfp ocol=outlet_cat nproc=$(nproc)
+
+# or using a custom format for r.watershed drainage (8-1 for E-NE CW)
+r.lfp dir=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=nc_dcells lfp=nc_lfp2 ocol=outlet_cat nproc=$(nproc)
+```
+
+![image-alt](r_lfp_elev_state_500m_example.png)
 
 ## SEE ALSO
 
