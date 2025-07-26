@@ -153,7 +153,6 @@ int main(int argc, char *argv[])
     opt.tss->key = "tss";
     opt.tss->label =
         _("Threshold size of tracing stack for switching to tasking");
-    opt.tss->required = YES;
     opt.tss->options = "0-";
     opt.tss->answer = "3072";
     opt.tss->description = _("0: guess using sqrt(cells) / threads");
