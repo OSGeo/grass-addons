@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     opt.tss->required = YES;
     opt.tss->options = "0-";
     opt.tss->answer = "3072";
-    opt.tss->description = _("0 for guessing using sqrt(cells) / threads");
+    opt.tss->description = _("0: guess using sqrt(cells) / threads");
 #endif
 
     opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
