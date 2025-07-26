@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     opt.format->key = "format";
     opt.format->label = _("Format of input flow direction raster map");
     opt.format->required = YES;
-    opt.format->options = "auto,degree,45degree,power2,custom";
+    opt.format->options = "auto,degree,45degree,power2,taudem,custom";
     opt.format->answer = "auto";
     G_asprintf(
         &desc, "auto;%s;degree;%s;45degree;%s;power2;%s;taudem;%s;custom;%s",
