@@ -57,7 +57,7 @@ struct raster_map *read_direction(char *dir_name, char *format, char *encoding)
     else if (detect)
         G_fatal_error(_("Unable to detect format of input direction map <%s>"),
                       dir_name);
-    else if (strcmp(encoding, "taudem") == 0) {
+    else if (strcmp(format, "taudem") == 0) {
         int i;
 
         for (i = 1; i < 9; i++)
