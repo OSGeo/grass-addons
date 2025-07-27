@@ -92,13 +92,16 @@ int main(int argc, char *argv[])
     opt.format->key = "format";
     opt.format->label = _("Format of input flow direction raster map");
     opt.format->required = YES;
-    opt.format->options = "auto,degree,45degree,power2,custom";
+    opt.format->options = "auto,degree,45degree,power2,taudem,custom";
     opt.format->answer = "auto";
-    G_asprintf(&desc, "auto;%s;degree;%s;45degree;%s;power2;%s;custom;%s",
-               _("auto-detect direction format"), _("degrees CCW from East"),
-               _("degrees CCW from East divided by 45 (e.g. r.watershed)"),
-               _("powers of 2 CW from East (e.g., r.terraflow, ArcGIS)"),
-               _("use encoding"));
+    G_asprintf(
+        &desc, "auto;%s;degree;%s;45degree;%s;power2;%s;taudem;%s;custom;%s",
+        _("auto-detect direction format except taudem"),
+        _("degrees CCW from East"),
+        _("degrees CCW from East divided by 45 (e.g. r.watershed)"),
+        _("powers of 2 CW from East (e.g., r.terraflow, ArcGIS)"),
+        _("1-8 for E-SE CCW, not auto-detected (e.g., TauDEM D8FlowDir)"),
+        _("use encoding"));
     opt.format->descriptions = desc;
 
     opt.encoding = G_define_option();
@@ -106,8 +109,7 @@ int main(int argc, char *argv[])
     opt.encoding->key = "encoding";
     opt.encoding->label = _("Flow direction encoding for custom format");
     opt.encoding->required = NO;
-    opt.encoding->description =
-        _("taudem (1-8 for E-SE CCW) or E,SE,S,SW,W,NW,N,NE");
+    opt.encoding->description = _("Eight integers for E,SE,S,SW,W,NW,N,NE");
 
     opt.outlets = G_define_standard_option(G_OPT_V_INPUT);
     opt.outlets->key = "outlets";
@@ -153,10 +155,9 @@ int main(int argc, char *argv[])
     opt.tss->key = "tss";
     opt.tss->label =
         _("Threshold size of tracing stack for switching to tasking");
-    opt.tss->required = YES;
     opt.tss->options = "0-";
     opt.tss->answer = "3072";
-    opt.tss->description = _("0 for guessing using sqrt(cells) / threads");
+    opt.tss->description = _("0: guess using sqrt(cells) / threads");
 #endif
 
     opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
