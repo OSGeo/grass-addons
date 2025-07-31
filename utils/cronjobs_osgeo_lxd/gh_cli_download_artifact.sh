@@ -27,15 +27,16 @@
 # - GitHub CLI api: https://cli.github.com/manual/gh_api
 # - GitHub workflow runs: https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow
 
-# Configuration
+# === Configuration ===
 OWNER="OSGeo"
 REPO="grass"
-REPO_LOCAL="$HOME/software/grass_main/"
+REPO_LOCAL="$HOME/src/main/"
 WORKFLOW_NAME="documentation.yml"  # or the workflow filename/id
 ARTIFACT_NAME="mkdocs-site" # the name of the artifact
 ZIP_OUTPUT="$ARTIFACT_NAME.zip"
 OUTPUT_DIR="/tmp"
 
+# === Script ===
 # cleanup from previous run
 cd $OUTPUT_DIR && rm -f $ZIP_OUTPUT
 
