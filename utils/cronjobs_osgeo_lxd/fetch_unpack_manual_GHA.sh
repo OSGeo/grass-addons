@@ -20,7 +20,7 @@
 cd $HOME
 
 # fetch artifact
-bash gh_cli_download_artifact.sh
+bash /home/neteler/cronjobs/gh_cli_download_artifact.sh
 
 # update twice: version and devel
 cd /var/www/code_and_data/grass85/manuals/ && rm -rf * && unzip -q /tmp/mkdocs-site.zip
