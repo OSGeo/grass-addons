@@ -193,7 +193,7 @@ void HoughTransform::removePeakEffect(const CoordinatesList &neighbours,
     findEndPoints(lineList, beginLine, endLine, angle);
 }
 
-/** \param list[in, out] will be sorted by y cooridinate
+/** \param[in, out] list will be sorted by y coordinate
   if angle is in range (45, 135] or by x otherwise
   */
 bool HoughTransform::findEndPoints(CoordinatesList &list,
