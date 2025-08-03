@@ -409,7 +409,6 @@ def main():
         for i in range(1, n + 1):
             mapname = "%s1by_cost_site_sq.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
-    maplist.close()
 
     # grass.run_command('g.list', type = 'raster', mapset = '.')
 
@@ -522,7 +521,6 @@ def main():
         for i in range(1, n + 1):
             mapname = "%spartial.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
-    maplist.close()
 
     try:
         gs.run_command("r.series", method="sum", file=TMP_FILE, output=output)
