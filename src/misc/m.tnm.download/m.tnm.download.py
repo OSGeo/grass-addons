@@ -209,7 +209,7 @@ def download_file(item, code, compare_file_size):
     filename = url.split("/")[-1]
     size = item["sizeInBytes"]
     name = code["name"]
-    if os.path.exists(filename) and not grass.overwrite():
+    if os.path.exists(filename) and not gs.overwrite():
         file_size = os.path.getsize(filename)
         if not compare_file_size or file_size == size:
             gs.message(_("Skipping existing file %s for %s") % (filename, name))
