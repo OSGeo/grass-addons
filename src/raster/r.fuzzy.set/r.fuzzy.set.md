@@ -38,7 +38,8 @@
     The available options are illustrated in Figure 2.
 
     ![Illustration of the shape of boundaries: Linear, S-shaped, G-shaped, and J-shaped boundary parameter](boundary.png)  
-    *Figure 2: Boundary definition for **boundary** parameter values "*Linear*", "*S-shaped*", "*G-shaped*", and "*J-shaped*"*
+    *Figure 2: Boundary definition for **boundary** parameter values "*Linear*",
+    "*S-shaped*", "*G-shaped*", and "*J-shaped*"*
 
 - **shape**  
     Optional shape modifier. Range from -1 to 1. The default value is 0
