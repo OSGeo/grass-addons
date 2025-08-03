@@ -43,18 +43,18 @@ simulation is stopped.<br>
 The required inputs are:
 <ul>
 <li>a DTM including the lake bathymetry and the dam elevation over
-    the ground [<b>elev</b>],</li>
+    the ground [<b>elev</b>]</li>
 <li>a map with the initial condition easily obtained with
     <a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a>
-    command [<b>lake</b>],</li>
+    command [<b>lake</b>]</li>
 <li>a dam breach width raster map [<b>dambreak</b>] which can be
-    obtained using <a href="r.dam.html">r.dam</a> grass add-on script,</li>
+    obtained using <a href="r.dam.html">r.dam</a> grass add-on script</li>
 <li>a Manning's roughness coefficient raster map, easily obtained from a
     reclassification of a land use map
     (<a href="https://grass.osgeo.org/grass-stable/manuals/r.reclass.html">r.reclass</a>)
-    [<b>manning</b>],</li>
+    [<b>manning</b>]</li>
 <li>the simulation time length expressed in <em>seconds</em>
-    [<b>tstop</b>].</li>
+    [<b>tstop</b>]</li>
 </ul>
 
 
@@ -70,22 +70,22 @@ from the beginning of the simulation.
 The user can choose between one of the following time series raster maps as
 output:
 <ul>
-    <li>flow depth [<b>h</b>],</li>
-    <li>flow velocity [<b>vel</b>],</li>
+    <li>flow depth [<b>h</b>]</li>
+    <li>flow velocity [<b>vel</b>]</li>
 <!--Finally, the user can choose as additional output: <br>  -->
 <li>a raster map with maximum water depth [<b>hmax</b>],
     relative flooding intensity [<b>i_hmax</b>],
     that is the product of water depth and velocity,
-    and the relative time of occurrence [<b>t_hmax</b>],</li>
+    and the relative time of occurrence [<b>t_hmax</b>]</li>
 <li>a raster map with maximum water velocity [<b>vmax</b>],
     relative flooding intensity [<b>i_vmax</b>],
-    and the relative time of occurrence [<b>t_vmax</b>],</li>
+    and the relative time of occurrence [<b>t_vmax</b>]</li>
 <li>a raster map with maximum flooding intensity [<b>imax</b>]
-    and the relative time of occurrence[<b>t_imax</b>],</li>
+    and the relative time of occurrence[<b>t_imax</b>]</li>
 <li>a raster map with the time of arriving of the Wave-Front
     [<b>wavefront</b>]</li>
 </ul>
-where and the raster maps are coded as "prefix" + "_" + "elapsed seconds":
+where the raster maps are coded as "prefix" + "_" + "elapsed seconds":
 e.g. <em>mydepth_125</em>.<br>
 <br>
 <em>Obviously at least one output map prefix must be specified.</em> <br>
@@ -117,7 +117,8 @@ or evaluate the initial velocity using the overflow spillway equation: <br>
 </sup>&#8730;<span style="text-decoration:overline"class="radicand">
 <var>(2 <em>g h)</em></var></span><br>
 
-where <em>V</em> is the water flow velocity expressed in m/s,
+where
+<em>V</em> is the water flow velocity expressed in m/s,
 <em>g</em> is the gravitational acceleration expressed in m/s<sup>2</sup>
 and <em>h</em> is the water depth in correspondence of the dam breach
 expressed in meters (m). <br>
@@ -125,30 +126,28 @@ expressed in meters (m). <br>
 
 
 Optionally the user may modify the initial timestep used for the numerical
-solution of the SWE (<em>default value = 0.01 s</em>), nevertheless the
-timestep [<b>timestep</b>],
-and choose a specific failure type corresponding to the different computational
-methods for the initial velocity estimation.
+solution of the SWE (<em>default value = 0.01 s</em>),
+nevertheless the timestep [<b>timestep</b>],
+and choose a specific failure type corresponding to the
+different computational methods for the initial velocity estimation.
 <br><br>
-
-
-
-<h2>NOTES</h2>
-<em>(GRASS ANSI C command)</em>
-
 
 <h2>AUTHORS</h2>
 Roberto Marzocchi (<a href="mailto:roberto.marzocchi@gter.it">e-mail</a>) and Massimiliano Cannata (<a href="mailto:massimiliano.cannata@supsi.ch">e-mail</a>).
 The GRASS tool was developed by Institute of earth science (IST),
-University of applied science of Italian Switzerland (SUPSI), Lugano - Division of geomatics <a href="http://istgeo.ist.supsi.ch/site/" target="_blank">web-page</a><br>
+University of applied science of Italian Switzerland (SUPSI),
+Lugano - Division of geomatics <a href="http://istgeo.ist.supsi.ch/site/" target="_blank">web-page</a><br>
+
 Actually the debug is assured by:<br>
  - <a href="https://www.gter.it/"  target="_blank"> Gter srl</a> (Genoa, Italy) <br>
  - <a href="https://sites.supsi.ch/ist_en.html" target="_blank">IST -SUPSI</a> (Lugano, Switzerland)<br>
 
 
 
-The numerical model, originally developed by the National Center for Computational Hydroscience and Engineering of the University of Mississippi,
-has been reformulated and modified by the authors introducing important new features to consider the numerical stability and the type of dam failure,
+The numerical model, originally developed by the National Center for
+Computational Hydroscience and Engineering of the University of Mississippi,
+has been reformulated and modified by the authors introducing important new
+features to consider the numerical stability and the type of dam failure,
 and currently is written in ANSI C programming language within GRASS.<br><br>
 
 
@@ -160,7 +159,6 @@ and currently is written in ANSI C programming language within GRASS.<br><br>
 <br>
 
 Details of the numerical model are presented in references. <br>
-Usage and developping details of <a r.damflood></a> are available <a href="http://istgeo.ist.supsi.ch/site/projects/dambreak" target="_blank">here</a>.<br>
 
 
 <h2>REFERENCES</h2>
