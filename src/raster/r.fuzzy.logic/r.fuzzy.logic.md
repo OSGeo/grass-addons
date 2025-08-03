@@ -8,7 +8,7 @@
     Name of input y membership operand. This map must be of type FCELL
     with range 0 :1 and may require null values. Otherwise program will
     print error message and stops. This map is required
-    for all operation except **NOT**.
+    for all operations except **NOT**.
 - **operator**  
     Fuzzy set operators are a generalization of crisp set operators. There
     is more than one possible generalization of every operator. There
