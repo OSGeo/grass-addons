@@ -216,7 +216,6 @@ def test(xml, LayerTree, layerTreeRoot):
 
 
 def dfs(root, LayerTree, ltr):
-
     if not hasattr(root, "contents"):
         print(root.string)
         return

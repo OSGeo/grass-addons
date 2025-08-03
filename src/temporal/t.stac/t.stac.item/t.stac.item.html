@@ -1,0 +1,73 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.stac.item</em> is a tool for exploring and importing SpatioTemporal Asset Catalog item metadata and assets into GRASS GIS.
+The tool is based on the <a href="https://pystac-client.readthedocs.io/en/stable/">PySTAC_Client (0.8)</a> library and allows you to search items in a STAC Catalog.
+
+The search can be done by specifying the item ID, collection ID, datatime or by using a search query.
+The full list of search parameters and documentation can be found at <a href="https://pystac-client.readthedocs.io/en/stable/api.html#item-search">PySTAC_Client ItemSearch</a>.
+
+<h2>NOTES</h2>
+The <em>t.stac.item</em> tool is part of the <a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.html">t.stac</a> temporal data processing framework.
+The tool requries that the data provider has implement the STAC API and conforms to <em>Item Search</em> specification.
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href="https://pystac.readthedocs.io/en/stable/installation.html">PySTAC (1.10.x)</a></li>
+    <li><a href="https://pystac-client.readthedocs.io/en/stable/">PySTAC_Client (0.8)</a></li>
+    <li>tqdm (4.66.x)</li>
+    <li>numpy (1.26.x)</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+<h3>Get the item metadata from a STAC API.</h3>
+<pre><code class="code">
+    t.stac.catalog url="https://earth-search.aws.element84.com/v1/"
+    t.stac.collection url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a"
+    t.stac.item -i url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
+</code></pre>
+
+<h3>Get the asset metadata from a STAC API.</h3>
+<pre><code class="code">
+    t.stac.item -a url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
+</code></pre>
+
+<h3>Use datetime filter</h3>
+<pre><code class="code">
+    t.stac.item url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" datetime=2017-06-10/2017-06-11
+</code></pre>
+
+<h3>Use query option</h3>
+
+<pre><code class="code">
+    t.stac.item url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" query='{"eo:cloud_cover":{"lt":10}}'
+</code></pre>
+
+To read more about `query` option please look at [pystac_client documentation](https://pystac-client.readthedocs.io/en/stable/tutorials/cql2-filter.html)
+
+<h3>Dpwnload the asset from a STAC API.</h3>
+<pre><code class="code">
+    t.stac.item -d url="https://earth-search.aws.element84.com/v1/" collection_id="sentinel-2-l2a" item_id="S2B_36QWD_20220301_0_L2A"
+</code></pre>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.collection.html">t.stac.collection</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.stac.catalog.html">t.stac.catalog</a>
+</em>
+<p>
+<a href="https://grasswiki.osgeo.org/wiki/Temporal_data_processing">GRASS GIS Wiki: temporal data processing</a>
+
+<h2>AUTHORS</h2>
+
+Corey T. White<br>
+
+<h2>Sponsors</h2>
+<ul>
+    <li><a target="_blank" href="https://openplains.com">OpenPlains Inc.</a></li>
+    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
+</ul>
+
+Center for Geospatial Analytics at North Carolina State University

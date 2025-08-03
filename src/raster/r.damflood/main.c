@@ -865,7 +865,7 @@ int main(int argc, char *argv[])
                 }
             }
         } // end two for cycles
-    }     // end if
+    } // end if
     // There isn't interest to find where is the lake --> everywhere
     // m_lake[row][col]=0
     if (method == 3) {
@@ -926,7 +926,7 @@ int main(int argc, char *argv[])
                                       t);
                             reg_lim = 1;
                         } /* Warning message only a time */
-                    }     /* velocities at the limit of computational region */
+                    } /* velocities at the limit of computational region */
 
                     //*********************************************************/
                     // Timestep optimization using the CFL stability condition

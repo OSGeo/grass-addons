@@ -2,38 +2,38 @@
 
 
 """
- MODULE:       r.estimap.recreation
+MODULE:     r.estimap.recreation
 
- AUTHOR(S):    Nikos Alexandris <nik@nikosalexandris.net>
+AUTHOR(S):  Nikos Alexandris <nik@nikosalexandris.net>
 
-               First implementation as a collection of Python scripts by
-               Grazia Zulian <Grazia.Zulian@ec.europa.eu>
+            First implementation as a collection of Python scripts by
+            Grazia Zulian <Grazia.Zulian@ec.europa.eu>
 
- PURPOSE:      An implementation of the Ecosystem Services Mapping Tool
-               (ESTIMAP). ESTIMAP is a collection of spatially explicit models
-               to support mapping and modelling of ecosystem services
-               at European scale.
+PURPOSE:    An implementation of the Ecosystem Services Mapping Tool
+            (ESTIMAP). ESTIMAP is a collection of spatially explicit models
+            to support mapping and modelling of ecosystem services
+            at European scale.
 
- SOURCES:      https://www.bts.gov/archive/publications/journal_of_transportation_and_statistics/volume_04_number_23/paper_03/index
+SOURCES:    https://www.bts.gov/archive/publications/journal_of_transportation_and_statistics/volume_04_number_23/paper_03/index
 
- COPYRIGHT:    Copyright 2018 European Union
+COPYRIGHT:  Copyright 2018 European Union
 
-               Licensed under the EUPL, Version 1.2 or – as soon they will be
-               approved by the European Commission – subsequent versions of the
-               EUPL (the "Licence");
+            Licensed under the EUPL, Version 1.2 or – as soon they will be
+            approved by the European Commission – subsequent versions of the
+            EUPL (the "Licence");
 
-               You may not use this work except in compliance with the Licence.
-               You may obtain a copy of the Licence at:
+            You may not use this work except in compliance with the Licence.
+            You may obtain a copy of the Licence at:
 
-               https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12
+            https://joinup.ec.europa.eu/collection/eupl/eupl-text-11-12
 
-               Unless required by applicable law or agreed to in writing,
-               software distributed under the Licence is distributed on an
-               "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-               either express or implied. See the Licence for the specific
-               language governing permissions and limitations under the Licence.
+            Unless required by applicable law or agreed to in writing,
+            software distributed under the Licence is distributed on an
+            "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+            either express or implied. See the Licence for the specific
+            language governing permissions and limitations under the Licence.
 
-               Consult the LICENCE file for details.
+            Consult the LICENCE file for details.
 """
 
 from __future__ import division
@@ -616,7 +616,7 @@ import sys
 if "GISBASE" not in os.environ:
     sys.exit("Exiting: You must be in GRASS GIS to run this program.")
 
-import grass.script as grass
+import grass.script as gs
 from grass.script.utils import set_path
 
 addon_path = os.path.join(
@@ -633,5 +633,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main(options, flags)

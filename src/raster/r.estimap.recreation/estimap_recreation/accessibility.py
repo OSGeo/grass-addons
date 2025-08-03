@@ -14,7 +14,7 @@ from .constants import EQUATION
 
 
 def artificial_accessibility_expression(artificial_proximity, roads_proximity):
-    """
+    r"""
         Build an r.mapcalc compatible expression to compute accessibility to
         artificial surfaces based on the following accessibility classification
         rules for artificial surfaces:
@@ -53,18 +53,18 @@ def artificial_accessibility_expression(artificial_proximity, roads_proximity):
     """
     expression = (
         "if( {artificial} <= 2 && {roads} <= 2, 1,"
-        " \ \n if( {artificial} == 1 && {roads} == 3, 2,"
-        " \ \n if( {artificial} == 2 && {roads} == 3, 2,"
-        " \ \n if( {artificial} == 3 && {roads} <= 3, 2,"
-        " \ \n if( {artificial} <= 2 && {roads} == 4, 3,"
-        " \ \n if( {artificial} == 4 && {roads} == 2, 3,"
-        " \ \n if( {artificial} >= 4 && {roads} == 1, 3,"
-        " \ \n if( {artificial} <= 2 && {roads} == 5, 4,"
-        " \ \n if( {artificial} == 3 && {roads} == 4, 4,"
-        " \ \n if( {artificial} >= 4 && {roads} == 3, 4,"
-        " \ \n if( {artificial} == 5 && {roads} == 2, 4,"
-        " \ \n if( {artificial} >= 3 && {roads} == 5, 5,"
-        " \ \n if( {artificial} >= 4 && {roads} == 4, 5)))))))))))))"
+        " \\ \n if( {artificial} == 1 && {roads} == 3, 2,"
+        " \\ \n if( {artificial} == 2 && {roads} == 3, 2,"
+        " \\ \n if( {artificial} == 3 && {roads} <= 3, 2,"
+        " \\ \n if( {artificial} <= 2 && {roads} == 4, 3,"
+        " \\ \n if( {artificial} == 4 && {roads} == 2, 3,"
+        " \\ \n if( {artificial} >= 4 && {roads} == 1, 3,"
+        " \\ \n if( {artificial} <= 2 && {roads} == 5, 4,"
+        " \\ \n if( {artificial} == 3 && {roads} == 4, 4,"
+        " \\ \n if( {artificial} >= 4 && {roads} == 3, 4,"
+        " \\ \n if( {artificial} == 5 && {roads} == 2, 4,"
+        " \\ \n if( {artificial} >= 3 && {roads} == 5, 5,"
+        " \\ \n if( {artificial} >= 4 && {roads} == 4, 5)))))))))))))"
     )
 
     expression = expression.format(

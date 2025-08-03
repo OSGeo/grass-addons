@@ -23,11 +23,8 @@
 # %end
 
 # %option G_OPT_R_MAP
-# % key: input
-# % description: input raster
-# % required: yes
-# % label: Input raster
 # % guisection: Input
+# % required: yes
 # %end
 
 # %option G_OPT_R_MAP
@@ -122,7 +119,7 @@
 # %end
 
 # %option
-# % key: bx_sort
+# % key: order
 # % type: string
 # % label: Sort boxplots
 # % description: Sort boxplots based on their median values
@@ -173,10 +170,6 @@
 # % guisection: Plot format
 # %end
 
-# %rules
-# % requires: raster_statistics, zones
-# %end
-
 # %option G_OPT_CN
 # % key: bx_color
 # % label: Color of the boxplots
@@ -193,8 +186,13 @@
 # % guisection: Boxplot format
 # %end
 
-# %rules
-# % requires: -c, zones
+# %option
+# % key: area_label
+# % type: string
+# % description: Show the area above each boxplot
+# % required: no
+# % options: m2,ha,km2,acres,mi2
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -206,6 +204,15 @@
 # % guisection: Boxplot format
 # % answer: 0.75
 # % options: 0-1
+# %end
+
+# %option
+# % key: bx_width_variable
+# % type: string
+# % description: Set the width of the boxplots proportional to the area of the zones (linear) or the square root of the zones (sqrt).
+# % required: no
+# % options: linear,sqrt
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -276,9 +283,12 @@
 # %end
 
 # %rules
+# % requires: -c, zones
 # % requires: -s, zones
+# % requires: area_label, zones
+# % requires: raster_statistics, zones
+# % requires: bx_width_variable, zones
 # %end
-
 
 import atexit
 import sys
@@ -291,16 +301,17 @@ from grass.pygrass.modules import Module
 clean_maps = []
 
 
-def lazy_import_py_modules():
+def lazy_import_py_modules(backend):
     """Lazy import Py modules"""
-    global matplotlib
+    global mpl
     global plt
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        if backend is None:
+            mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -436,8 +447,8 @@ def get_valid_color(color):
     """
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -538,7 +549,7 @@ def get_zonalcolors(zones, labelsids):
     return zones_rgb, txt_rgb
 
 
-def bx_zonal_stats(zones, name, bx_sort):
+def bx_zonal_stats(zones, name, order):
     """Compute the zonal stats to construct the boxplot (and order boxplots)
 
     :param str zones: name of the zonal map
@@ -567,9 +578,9 @@ def bx_zonal_stats(zones, name, bx_sort):
     for zone_id, value in enumerate(quantstats):
         ids.append(zone_id)
         medians.append(float(value[3]))
-    if bx_sort == "descending":
+    if order == "descending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=True)]
-    elif bx_sort == "ascending":
+    elif order == "ascending":
         ordered_list = [i for _, i in sorted(zip(medians, ids), reverse=False)]
     else:
         ordered_list = list(range(0, len(quantstats)))
@@ -688,6 +699,7 @@ def compute_outliers(
             output=tmpname,
             rules="-",
             stdin_=recode_rules,
+            quiet=True,
         )
         vectornames.append(tmpvect)
         Module(
@@ -695,6 +707,7 @@ def compute_outliers(
             input=tmpname,
             output=tmpvect,
             type="point",
+            quiet=True,
         )
         Module("g.remove", type="raster", name=tmpname, flags="f")
         if zones:
@@ -903,7 +916,7 @@ def bxp_zones(opt):
 
     # Compute statistics
     quantstats, ordered_list = bx_zonal_stats(
-        opt["zones_raster"], opt["value_raster"], opt["bx_sort"]
+        opt["zones_raster"], opt["value_raster"], opt["order"]
     )
 
     # Change the order of the colors of the boxplots and median to match the
@@ -918,7 +931,6 @@ def bxp_zones(opt):
 
     # Construct per zone the boxplot
     for i in ordered_list:
-
         # Get stats for the ith boxplot
         (
             min_value,
@@ -1060,10 +1072,82 @@ def bxp_zones(opt):
     boxprops = dict(linewidth=opt["bxp_linewidth"], facecolor=opt["bx_color"])
     whiskerprops = dict(linewidth=opt["whisker_linewidth"])
     medianprops = dict(linewidth=opt["median_lw"], color=opt["median_color"])
+
+    if opt.get("variable_box_width") or opt.get("area_label"):
+        # Compute area (number of cells) per zone for width scaling
+        areas_cats = Module(
+            "r.stats",
+            flags="cna",
+            separator="pipe",
+            input=opt["zones_raster"],
+            stdout_=PIPE,
+        ).outputs.stdout.splitlines()
+        areas_dict = {
+            int(line.split("|")[0]): float(line.split("|")[1]) for line in areas_cats
+        }
+        ordered_ids = [labelsids[i] for i in ordered_list]
+
+    if opt.get("variable_box_width"):
+        zone_areas = [areas_dict.get(zid, 1) for zid in ordered_ids]
+
+        # Use sqrt of areas if selected
+        if opt.get("variable_box_width") == "sqrt":
+            zone_areas = [a**0.5 for a in zone_areas]
+
+        total_area = sum(zone_areas)
+        raw_widths = [(a / total_area) for a in zone_areas]
+
+        # Scale to max width = opt["bxp_width"] and ensure final width <= 1.0
+        scale_factor = opt["bxp_width"] / max(raw_widths) if raw_widths else 1.0
+        widths = [w * scale_factor for w in raw_widths]
+    else:
+        widths = opt["bxp_width"]
+
+    if opt.get("area_label"):
+        areas_for_labels = [areas_dict.get(zid, 1.0) for zid in ordered_ids]
+        if opt["area_label"] == "ha":
+            area_labels = [
+                (
+                    "{:.1f} ha".format(a / 10000.0)
+                    if a / 10000.0 < 10
+                    else "{:.0f} ha".format(a / 10000.0)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "km2":
+            area_labels = [
+                (
+                    "{:.1f} km²".format(a / 1e6)
+                    if a / 1e6 < 10
+                    else "{:.0f} km²".format(a / 1e6)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "acres":
+            area_labels = [
+                (
+                    "{:.1f} ac".format(a / 4046.86)
+                    if a / 4046.86 < 10
+                    else "{:.0f} ac".format(a / 4046.86)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "mi2":
+            area_labels = [
+                (
+                    "{:.2f} mi²".format(a / 2.59e6)
+                    if a / 2.59e6 < 10
+                    else "{:.0f} mi²".format(a / 2.59e6)
+                )
+                for a in areas_for_labels
+            ]
+        else:
+            area_labels = ["{:.0f} m²".format(a) for a in areas_for_labels]
+
     bxplot = ax.bxp(
         boxes,
         showfliers=True,
-        widths=opt["bxp_width"],
+        widths=widths,
         vert=bool(opt["vertical"]),
         shownotches=bool(opt["notch"]),
         patch_artist=True,
@@ -1078,6 +1162,28 @@ def bxp_zones(opt):
             "markeredgecolor": opt["flier_color"],
         },
     )
+
+    # Add area labels above each boxplot
+    if opt.get("area_label"):
+        for i, label in enumerate(area_labels):
+            if opt["vertical"]:
+                ax.text(
+                    i + 1,
+                    ax.get_ylim()[1],
+                    label,
+                    ha="center",
+                    va="bottom",
+                    fontsize=opt["fontsize"] * 0.85,
+                )
+            else:
+                ax.text(
+                    ax.get_xlim()[1],
+                    i + 1,
+                    label,
+                    va="center",
+                    ha="left",
+                    fontsize=opt["fontsize"] * 0.85,
+                )
 
     # Boxplots get colors matching category colors zonal map
     if bool(opt["bx_zonalcolors"]):
@@ -1127,7 +1233,8 @@ def main(options, flags):
     """
 
     # lazy import matplotlib
-    lazy_import_py_modules()
+    output = options["output"] if options["output"] else None
+    lazy_import_py_modules(output)
 
     # Check if zonal map is an integer map
     if options["zones"]:
@@ -1155,16 +1262,18 @@ def main(options, flags):
 
     # Create new value rasters if there is a mask or the value raster
     # extent and resolution do not match that of the current region
+    mask_present = checkmask()
     if bool(options["zones"]):
-        mask_present = checkmask()
-        valueraster_region = check_regionraster_match(options["input"])
+        valueraster_region = check_regionraster_match(options["map"])
         if mask_present or not valueraster_region:
             value_raster = create_temporary_name("tmpinput")
             Module(
-                "r.mapcalc", expression="{} = {}".format(value_raster, options["input"])
+                "r.mapcalc", expression="{} = {}".format(value_raster, options["map"])
             )
         else:
-            value_raster = options["input"]
+            value_raster = options["map"]
+    else:
+        value_raster = options["map"]
 
     # Create temporary zonal rasters if there is a mask or the zonal raster
     # extent and resolution do not match that of the current region
@@ -1185,7 +1294,7 @@ def main(options, flags):
 
     # Collect options
     base_options = {
-        "value_name": options["input"],
+        "value_name": options["map"],
         "value_raster": value_raster,
         "output": options["output"],
         "outliers": flags["o"],
@@ -1204,7 +1313,6 @@ def main(options, flags):
         "flier_size": int(options["flier_size"]),
         "flier_marker": options["flier_marker"],
         "flier_color": get_valid_color(color=options["flier_color"]),
-        "mask_present": mask_present,
         "median_lw": float(options["median_lw"]),
         "median_color": median_color,
     }
@@ -1216,10 +1324,12 @@ def main(options, flags):
                 "zones_raster": zonal_raster,
                 "show_catnumbers": flags["s"],
                 "bx_zonalcolors": flags["c"],
-                "bx_sort": options["bx_sort"],
+                "order": options["order"],
                 "plot_rast_stats": options["raster_statistics"],
                 "raster_stat_color": raster_stat_color,
                 "raster_stat_alpha": float(options["raster_stat_alpha"]),
+                "variable_box_width": options["bx_width_variable"],
+                "area_label": options["area_label"],
             },
         }
 

@@ -70,7 +70,7 @@ import os
 import platform
 import re
 import string
-import grass.script as grass
+import grass.script as gs
 from grass.lib import gis as grasslib
 from grass.lib import proj as grassproj
 
@@ -147,7 +147,7 @@ def main():
         isis3["Scale"] = "%f <pixel/degree>" % float(options["outres"])
     isis3["TargetName"] = body
     if flags["a"]:
-        ret = grass.start_command("g.region", flags="gl", stdout=subprocess.PIPE)
+        ret = gs.start_command("g.region", flags="gl", stdout=subprocess.PIPE)
         exec(ret.communicate()[0])
         isis3["MinimumLatitude"] = "%f" % min(se_lat, sw_lat)
         isis3["MaximumLatitude"] = "%f" % max(ne_lat, nw_lat)
@@ -174,5 +174,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

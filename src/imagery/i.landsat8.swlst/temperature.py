@@ -11,7 +11,7 @@ from constants import DUMMY_MAPCALC_STRING_CWV
 from constants import DUMMY_MAPCALC_STRING_T10
 from constants import DUMMY_MAPCALC_STRING_T11
 from constants import EQUATION
-import grass.script as grass
+import grass.script as gs
 from helpers import run
 
 
@@ -168,7 +168,7 @@ def estimate_lst(
         result=outname,
         expression=split_window_expression,
     )
-    grass.mapcalc(
+    gs.mapcalc(
         split_window_equation,
         overwrite=True,
     )

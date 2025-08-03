@@ -5,6 +5,7 @@ Created on Thu Nov 19 10:42:17 2020
 
 @author: lucadelu
 """
+
 import os
 import argparse
 import glob
@@ -40,16 +41,17 @@ def main():
     output = os.path.join(args.dir, args.sitemap)
     if os.path.exists(output) and not args.overwrite:
         print(
-            "{} already exists. If you want overwrite please use '-o' "
-            "parameter".format(output)
+            "{} already exists. If you want overwrite please use '-o' parameter".format(
+                output
+            )
         )
         return False
     url = args.url.rstrip("/")
     root = ET.Element("urlset")
     root.attrib["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance"
-    root.attrib[
-        "xsi:schemaLocation"
-    ] = "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+    root.attrib["xsi:schemaLocation"] = (
+        "http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+    )
     root.attrib["xmlns"] = "http://www.sitemaps.org/schemas/sitemap/0.9"
 
     htmls = glob.glob1(args.dir, "*.html")

@@ -1527,10 +1527,10 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks, config):
             # Fill the rest with repeated bg rois.
             keep_extra_ids = np.random.choice(keep_bg_ids, remaining, replace=True)
             keep = np.concatenate([keep, keep_extra_ids])
-    assert (
-        keep.shape[0] == config.TRAIN_ROIS_PER_IMAGE
-    ), "keep doesn't match ROI batch size {}, {}".format(
-        keep.shape[0], config.TRAIN_ROIS_PER_IMAGE
+    assert keep.shape[0] == config.TRAIN_ROIS_PER_IMAGE, (
+        "keep doesn't match ROI batch size {}, {}".format(
+            keep.shape[0], config.TRAIN_ROIS_PER_IMAGE
+        )
     )
 
     # Reset the gt boxes assigned to BG ROIs.
@@ -2876,9 +2876,9 @@ class MaskRCNN:
             verbose form in case of verbosity == 3, not 1
         """
         assert self.mode == "inference", "Create model in inference mode."
-        assert (
-            len(images) == self.config.BATCH_SIZE
-        ), "len(images) must be equal to BATCH_SIZE"
+        assert len(images) == self.config.BATCH_SIZE, (
+            "len(images) must be equal to BATCH_SIZE"
+        )
 
         if verbosity == 3:
             log("Processing {} images".format(len(images)))
@@ -2892,9 +2892,9 @@ class MaskRCNN:
         # All images in a batch MUST be of the same size
         image_shape = molded_images[0].shape
         for g in molded_images[1:]:
-            assert (
-                g.shape == image_shape
-            ), "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
+            assert g.shape == image_shape, (
+                "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
+            )
 
         # Anchors
         anchors = self.get_anchors(image_shape)
@@ -2950,9 +2950,9 @@ class MaskRCNN:
         masks: [H, W, N] instance binary masks
         """
         assert self.mode == "inference", "Create model in inference mode."
-        assert (
-            len(molded_images) == self.config.BATCH_SIZE
-        ), "Number of images must be equal to BATCH_SIZE"
+        assert len(molded_images) == self.config.BATCH_SIZE, (
+            "Number of images must be equal to BATCH_SIZE"
+        )
 
         if verbose:
             log("Processing {} images".format(len(molded_images)))
