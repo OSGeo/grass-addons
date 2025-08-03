@@ -4,7 +4,7 @@ default_language_version:
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.11.13
+    rev: v0.12.7
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -39,7 +39,7 @@ repos:
     hooks:
       - id: markdownlint-fix
   - repo: https://github.com/pycqa/flake8
-    rev: 7.2.0
+    rev: 7.3.0
     hooks:
       - id: flake8
   - repo: https://github.com/pre-commit/mirrors-clang-format
