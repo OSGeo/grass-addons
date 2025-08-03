@@ -100,18 +100,28 @@
 # % description: Example: income < 1000 and population >= 10000
 # %end
 
+# %flag
+# % key: m
+# % label: Retain mapset name
+# % description: When no column names are provided, the column names are created using the names of the input layers. Using this flag will retain the mapset part of the name (if given), but replacing the @ for an underscore.
+# %end
+
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import vector as v
 
 if "GISBASE" not in os.environ:
-    grass.message("You must be in GRASS GIS to run this program.")
+    gs.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 
-def main():
+def strip_mapset(name, join_char="@"):
+    """Strip mapset part of the layer name"""
+    return name.split(join_char)[0] if join_char in name else name
 
+
+def main():
     # Get options
     vmap = options["map"]  # Vector points
     layer = options["layer"]
@@ -123,7 +133,7 @@ def main():
     # If length(columns) != length(rasters), throw error
     if columns != [""]:
         if len(columns) != len(rasters):
-            grass.fatal(
+            gs.fatal(
                 _("The number of rasters and the number of column names do not match")
             )
 
@@ -135,13 +145,15 @@ def main():
 
     # For each raster
     for i in range(len(rasters)):
-
+        # Determine column name
         r = rasters[i]
-
         if columns != [""]:
             c = columns[i]
         else:
-            c = r
+            if flags["m"]:
+                c = r.replace("@", "_")
+            else:
+                c = strip_mapset(r)
 
         # Sample using v.what.rast
         v.what_rast(
@@ -152,5 +164,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

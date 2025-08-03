@@ -3,7 +3,7 @@
  * MODULE:     i.points.auto
  * AUTHOR(S):  based on i.points; additions by
  *              Ivan Michelazzi, Luca Miori (MSc theses at ITC-irst)
- *             http://gisws.media.osaka-cu.ac.jp/grass04/viewpaper.php?id=37
+ *             https://web.archive.org/web/20060409230920/http://gisws.media.osaka-cu.ac.jp/grass04/viewpaper.php?id=37
  *             Supervisors: Markus Neteler, Stefano Merler, ITC-irst 2003, 2004
  *             Markus Metz: near complete rewrite for GRASS 7
  *

@@ -16,8 +16,6 @@
  *
  *****************************************************************************/
 
-#define _MAIN_C_
-
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -44,19 +42,29 @@ int main(int argc, char *argv[])
     struct {
         struct Option *dir;
         struct Option *format;
+        struct Option *weight;
         struct Option *accum;
+        struct Option *type;
         struct Option *nprocs;
     } opt;
+    struct {
+        struct Flag *check_overflow;
+        struct Flag *use_less_memory;
+        struct Flag *use_zero;
+        struct Flag *leave_zero;
+        struct Flag *null_weight;
+    } flag;
     char *desc;
-    char *dir_name, *accum_name;
+    char *dir_name, *format, *weight_name, *accum_name, *type;
 #ifdef _OPENMP
     int nprocs;
 #endif
+    int check_overflow, use_less_memory, use_zero, null_weight;
     int dir_fd, accum_fd;
     unsigned char dir_format;
     struct Range dir_range;
-    CELL dir_min, dir_max;
-    struct raster_map *dir_map, *accum_map;
+    CELL dir_min, dir_max, *dir_buf;
+    struct raster_map *dir_map, *weight_map = NULL, *accum_map;
     int nrows, ncols, row, col;
     struct History hist;
     struct timeval first_time, start_time, end_time;
@@ -88,34 +96,73 @@ int main(int argc, char *argv[])
                _("powers of 2 CW from East (e.g., r.terraflow, ArcGIS)"));
     opt.format->descriptions = desc;
 
+    opt.weight = G_define_standard_option(G_OPT_R_INPUT);
+    opt.weight->key = "weight";
+    opt.weight->description = _("Name of input weight raster map");
+    opt.weight->required = NO;
+
     opt.accum = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.accum->description = _("Name for output flow accumulation raster map");
 
+    opt.type = G_define_standard_option(G_OPT_R_TYPE);
+    opt.type->answer = "CELL";
+
 #ifdef _OPENMP
     opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
-    opt.nprocs->label = opt.nprocs->description;
-    opt.nprocs->description = _("0 to use OMP_NUM_THREADS");
-    opt.nprocs->answer = "0";
 #endif
+
+    flag.check_overflow = G_define_flag();
+    flag.check_overflow->key = 'o';
+    flag.check_overflow->label = _("Check overflow and exit if it occurs");
+
+    flag.use_less_memory = G_define_flag();
+    flag.use_less_memory->key = 'm';
+    flag.use_less_memory->label = _("Use less memory");
+
+    flag.use_zero = G_define_flag();
+    flag.use_zero->key = 'z';
+    flag.use_zero->label = _("Initialize to zero and nullify it later");
+
+    flag.leave_zero = G_define_flag();
+    flag.leave_zero->key = 'Z';
+    flag.leave_zero->label =
+        _("Initialize to and leave zero instead of nullifying it");
+
+    flag.null_weight = G_define_flag();
+    flag.null_weight->key = 'n';
+    flag.null_weight->label = _("Treat null weight as zero");
+
+    G_option_excludes(opt.weight, flag.check_overflow, flag.use_zero,
+                      flag.leave_zero, NULL);
+    G_option_exclusive(flag.use_zero, flag.leave_zero, NULL);
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 
+    dir_name = opt.dir->answer;
+    format = opt.format->answer;
+    weight_name = opt.weight->answer;
+    accum_name = opt.accum->answer;
+    type = opt.type->answer;
+
 #ifdef _OPENMP
     nprocs = atoi(opt.nprocs->answer);
-    if (nprocs < 0)
-        G_fatal_error(_("<%s> must be >= 0"), opt.nprocs->key);
+    if (nprocs < 1)
+        G_fatal_error(_("<%s> must be >= 1"), opt.nprocs->key);
 
-    if (nprocs >= 1)
-        omp_set_num_threads(nprocs);
-    nprocs = omp_get_max_threads();
+    omp_set_num_threads(nprocs);
+#pragma omp parallel
+#pragma omp single
+    nprocs = omp_get_num_threads();
     G_message(n_("Using %d thread for serial computation",
                  "Using %d threads for parallel computation", nprocs),
               nprocs);
 #endif
 
-    dir_name = opt.dir->answer;
-    accum_name = opt.accum->answer;
+    check_overflow = flag.check_overflow->answer;
+    use_less_memory = flag.use_less_memory->answer;
+    use_zero = flag.use_zero->answer ? 1 : 2 * flag.leave_zero->answer;
+    null_weight = flag.null_weight->answer;
 
     /* read direction raster */
     G_message(_("Reading flow direction raster <%s>..."), dir_name);
@@ -134,22 +181,22 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Invalid direction map <%s>"), dir_name);
 
     dir_format = DIR_UNKNOWN;
-    if (strcmp(opt.format->answer, "degree") == 0) {
+    if (strcmp(format, "degree") == 0) {
         if (dir_max > 360)
             G_fatal_error(_("Directional degrees cannot be > 360"));
         dir_format = DIR_DEG;
     }
-    else if (strcmp(opt.format->answer, "45degree") == 0) {
+    else if (strcmp(format, "45degree") == 0) {
         if (dir_max > 8)
             G_fatal_error(_("Directional degrees divided by 45 cannot be > 8"));
         dir_format = DIR_DEG45;
     }
-    else if (strcmp(opt.format->answer, "power2") == 0) {
+    else if (strcmp(format, "power2") == 0) {
         if (dir_max > 128)
             G_fatal_error(_("Powers of 2 cannot be > 128"));
         dir_format = DIR_POW2;
     }
-    else if (strcmp(opt.format->answer, "auto") == 0) {
+    else if (strcmp(format, "auto") == 0) {
         if (dir_max <= 8) {
             dir_format = DIR_DEG45;
             G_important_message(_("Flow direction format assumed to be "
@@ -171,43 +218,101 @@ int main(int argc, char *argv[])
                 dir_name);
     }
     if (dir_format == DIR_UNKNOWN)
-        G_fatal_error(_("Invalid direction format '%s'"), opt.format->answer);
+        G_fatal_error(_("Invalid direction format '%s'"), format);
     /* end of r.path */
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    Rast_set_c_null_value(&cell_null, 1);
-
     dir_map = G_malloc(sizeof *dir_map);
     dir_map->nrows = nrows;
     dir_map->ncols = ncols;
-    dir_map->cells = G_malloc(sizeof(CELL) * nrows * ncols);
+    dir_map->cells.v = G_calloc((size_t)nrows * ncols, 1);
+    dir_buf = G_malloc(sizeof(CELL) * ncols);
+
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
-        Rast_get_c_row(dir_fd, dir_map->cells + ncols * row, row);
-        if (dir_format == DIR_DEG) {
+        Rast_get_c_row(dir_fd, dir_buf, row);
+        switch (dir_format) {
+        case DIR_DEG:
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
-                    DIR(row, col) = pow(2, abs(DIR(row, col) / 45.));
-        }
-        else if (dir_format == DIR_DEG45) {
+                if (!Rast_is_c_null_value(&dir_buf[col]))
+                    DIR(row, col) = pow(2, abs(dir_buf[col] / 45.));
+            break;
+        case DIR_DEG45:
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
-                    DIR(row, col) = pow(2, 8 - abs(DIR(row, col)));
-        }
-        else {
+                if (!Rast_is_c_null_value(&dir_buf[col]))
+                    DIR(row, col) = pow(2, 8 - abs(dir_buf[col]));
+            break;
+        default:
             for (col = 0; col < ncols; col++)
-                if (DIR(row, col) != cell_null)
-                    DIR(row, col) = abs(DIR(row, col));
+                if (!Rast_is_c_null_value(&dir_buf[col]))
+                    DIR(row, col) = abs(dir_buf[col]);
+            break;
         }
     }
     G_percent(1, 1, 1);
+    G_free(dir_buf);
     Rast_close(dir_fd);
 
     gettimeofday(&end_time, NULL);
     G_message(_("Input time for flow direction: %f seconds"),
               timeval_diff(NULL, &end_time, &start_time) / 1e6);
+
+    if (weight_name) {
+        /* read weight raster */
+        int weight_fd;
+
+        G_message(_("Reading weight raster <%s>..."), weight_name);
+        gettimeofday(&start_time, NULL);
+
+        weight_fd = Rast_open_old(weight_name, "");
+
+        weight_map = G_malloc(sizeof *weight_map);
+        weight_map->nrows = nrows;
+        weight_map->ncols = ncols;
+        weight_map->type = Rast_get_map_type(weight_fd);
+        weight_map->cell_size = Rast_cell_size(weight_map->type);
+        weight_map->cells.v =
+            G_calloc((size_t)nrows * ncols, weight_map->cell_size);
+
+        for (row = 0; row < nrows; row++) {
+            G_percent(row, nrows, 1);
+            Rast_get_row(weight_fd,
+                         (char *)weight_map->cells.v +
+                             weight_map->cell_size * ncols * row,
+                         row, weight_map->type);
+        }
+        G_percent(1, 1, 1);
+        Rast_close(weight_fd);
+
+        if (null_weight) {
+#pragma omp parallel for schedule(dynamic) private(col)
+            for (row = 0; row < nrows; row++)
+                for (col = 0; col < ncols; col++)
+                    switch (weight_map->type) {
+                    case CELL_TYPE:
+                        if (Rast_is_c_null_value(
+                                &weight_map->cells.c[INDEX(row, col)]))
+                            weight_map->cells.c[INDEX(row, col)] = 0;
+                        break;
+                    case FCELL_TYPE:
+                        if (Rast_is_f_null_value(
+                                &weight_map->cells.f[INDEX(row, col)]))
+                            weight_map->cells.f[INDEX(row, col)] = 0;
+                        break;
+                    default:
+                        if (Rast_is_d_null_value(
+                                &weight_map->cells.d[INDEX(row, col)]))
+                            weight_map->cells.d[INDEX(row, col)] = 0;
+                        break;
+                    }
+        }
+
+        gettimeofday(&end_time, NULL);
+        G_message(_("Input time for weight: %f seconds"),
+                  timeval_diff(NULL, &end_time, &start_time) / 1e6);
+    }
 
     /* accumulate flow */
     G_message(_("Accumulating flows..."));
@@ -216,12 +321,44 @@ int main(int argc, char *argv[])
     accum_map = G_malloc(sizeof *accum_map);
     accum_map->nrows = nrows;
     accum_map->ncols = ncols;
-    accum_map->cells = G_malloc(sizeof(CELL) * nrows * ncols);
 
-    accumulate(dir_map, accum_map);
+    if (strcmp(type, "CELL") == 0)
+        accum_map->type = CELL_TYPE;
+    else if (strcmp(type, "FCELL") == 0)
+        accum_map->type = FCELL_TYPE;
+    else
+        accum_map->type = DCELL_TYPE;
 
-    G_free(dir_map->cells);
+    /* promote accum_map type as necessary and print a warning */
+    if (weight_map && accum_map->type != DCELL_TYPE &&
+        accum_map->type != weight_map->type &&
+        (accum_map->type == CELL_TYPE || weight_map->type == DCELL_TYPE)) {
+        accum_map->type = weight_map->type;
+        G_warning(_("Accumulation type promoted to %s"),
+                  weight_map->type == FCELL_TYPE ? "FCELL" : "DCELL");
+    }
+
+    accum_map->cell_size = Rast_cell_size(accum_map->type);
+
+    if (use_zero)
+        accum_map->cells.v =
+            G_calloc((size_t)nrows * ncols, accum_map->cell_size);
+    else
+        accum_map->cells.v = G_malloc(accum_map->cell_size * nrows * ncols);
+
+    accumulate(dir_map, weight_map, accum_map, check_overflow, use_less_memory,
+               use_zero);
+
+    G_free(dir_map->cells.v);
     G_free(dir_map);
+
+    if (weight_map) {
+        G_free(weight_map->cells.v);
+        G_free(weight_map);
+    }
+
+    if (use_zero == 1)
+        nullify_zero(accum_map);
 
     gettimeofday(&end_time, NULL);
     G_message(_("Compute time for flow accumulation: %f seconds"),
@@ -231,14 +368,18 @@ int main(int argc, char *argv[])
     G_message(_("Writing flow accumulation raster <%s>..."), accum_name);
     gettimeofday(&start_time, NULL);
 
-    accum_fd = Rast_open_new(accum_name, CELL_TYPE);
+    accum_fd = Rast_open_new(accum_name, accum_map->type);
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 1);
-        Rast_put_c_row(accum_fd, accum_map->cells + ncols * row);
+        Rast_put_row(accum_fd,
+                     (char *)accum_map->cells.v +
+                         accum_map->cell_size * ncols * row,
+                     accum_map->type);
     }
     G_percent(1, 1, 1);
     Rast_close(accum_fd);
-    G_free(accum_map->cells);
+
+    G_free(accum_map->cells.v);
     G_free(accum_map);
 
     /* write history */

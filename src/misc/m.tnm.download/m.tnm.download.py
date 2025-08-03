@@ -88,7 +88,7 @@ import os
 import urllib.request
 import urllib.error
 import json
-import grass.script as grass
+import grass.script as gs
 from grass.script.utils import separator
 
 # v.db.select map=tl_2022_us_state col=statefp,stusps,name
@@ -191,7 +191,7 @@ def query_datasets():
         with urlopen(url) as f:
             ret = json.load(f)
     except urllib.error.HTTPError as e:
-        grass.fatal(_("Failed to fetch dataset metadata with status code %d") % e.code)
+        gs.fatal(_("Failed to fetch dataset metadata with status code %d") % e.code)
 
     datasets = []
     for item in ret:
@@ -200,7 +200,7 @@ def query_datasets():
             datasets.append({"id": tag["id"], "sbDatasetTag": tag["sbDatasetTag"]})
 
     if not datasets:
-        grass.fatal(_("Failed to fetch dataset metadata"))
+        gs.fatal(_("Failed to fetch dataset metadata"))
     return datasets
 
 
@@ -212,20 +212,18 @@ def download_file(item, code, compare_file_size):
     if os.path.exists(filename) and not grass.overwrite():
         file_size = os.path.getsize(filename)
         if not compare_file_size or file_size == size:
-            grass.message(_("Skipping existing file %s for %s") % (filename, name))
+            gs.message(_("Skipping existing file %s for %s") % (filename, name))
             return
-        grass.warning(
+        gs.warning(
             _("File size (%d) mismatches with metadata (%d)") % (file_size, size)
         )
 
-    grass.message(_("Downloading %s for %s...") % (filename, name))
+    gs.message(_("Downloading %s for %s...") % (filename, name))
     try:
         with urlopen(url) as inf, open(filename, "wb") as outf:
             outf.write(inf.read())
     except urllib.error.HTTPError as e:
-        grass.warning(
-            _("Failed to download %s with status code %d") % (filename, e.code)
-        )
+        gs.warning(_("Failed to download %s with status code %d") % (filename, e.code))
 
 
 def main():
@@ -267,7 +265,7 @@ def main():
                 if i >= n:
                     raise
             except:
-                grass.fatal(_("Unsupported dataset: %s") % d)
+                gs.fatal(_("Unsupported dataset: %s") % d)
         sel_datasets.append(sbDatasetTags[i])
     datasets = ",".join(sel_datasets)
 
@@ -284,7 +282,7 @@ def main():
             elif s in name:
                 i = name.index(s)
             else:
-                grass.fatal(_("Invalid state: %s") % s)
+                gs.fatal(_("Invalid state: %s") % s)
             sel_codes.append({"polyCode": fips[i], "name": name[i]})
     else:
         n = int(type_[-1])
@@ -294,7 +292,7 @@ def main():
                 if len(h) != n:
                     raise
             except:
-                grass.fatal(_("Invalid HUC%d: %s") % (n, h))
+                gs.fatal(_("Invalid HUC%d: %s") % (n, h))
             sel_codes.append({"polyCode": h, "name": f"{type_.upper()} {h}"})
 
     if start_date or end_date:
@@ -318,12 +316,12 @@ def main():
         files = []
         while not total or offset < total:
             if total:
-                grass.message(
+                gs.message(
                     _("Fetching product metadata for %s (offset %d of %d)...")
                     % (code["name"], offset, total)
                 )
             else:
-                grass.message(
+                gs.message(
                     _("Fetching product metadata for %s (offset %d)...")
                     % (code["name"], offset)
                 )
@@ -341,18 +339,18 @@ def main():
                     ret = json.load(f)
             except urllib.error.HTTPError as e:
                 if total:
-                    grass.fatal(
+                    gs.fatal(
                         _("Failed to fetch product metadata for %s (offset %d of %d)")
                         % (code["name"], offset, total)
                     )
                 else:
-                    grass.fatal(
+                    gs.fatal(
                         _("Failed to fetch product metadata for %s (offset %d)")
                         % (code["name"], offset)
                     )
             if not total:
                 total = ret["total"]
-                grass.message(_("Number of files to download: %d") % total)
+                gs.message(_("Number of files to download: %d") % total)
 
             items = ret["items"]
             for item in items:
@@ -368,5 +366,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

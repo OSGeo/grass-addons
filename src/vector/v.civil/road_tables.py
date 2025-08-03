@@ -7,7 +7,7 @@ Created on Thu Oct  2 18:24:22 2014
 
 # from grass.pygrass.vector.table import Link
 import time
-import grass.script as grass
+import grass.script as gs
 import grass.lib.vector as libvect
 from grass.pygrass.errors import GrassError
 from grass.pygrass.vector.geometry import Point
@@ -348,9 +348,10 @@ class RoadTable(object):
     def __getitem__(self, index):
         return dict(zip(self.cols_names, self.rows[index]))
 
-    def __setitem__(self, index, name, value):
-        ind = self.cols_names.index(name)
-        self.rows[index][ind] = value
+    def __setitem__(self, index, value):
+        ind1, name = index
+        ind2 = self.cols_names.index(name)
+        self.rows[ind1][ind2] = value
 
     def __delitem__(self, index):
         del self.rows[index]
@@ -425,7 +426,6 @@ class RoadTable(object):
 
         ult_i = 1
         for i in range(1, len(self.polyline[:-1])):
-
             dist2 = self.polyline[i].distance(self.polyline[i + 1])
             if map_plant:
                 values[-1] = dist2
@@ -457,7 +457,7 @@ class RoadTable(object):
             if col[0] not in self.cols_names:
                 cols_out.append(col)
         if cols_out != []:
-            grass.warning("adding columns " + ",".join([p[0] for p in cols_out]))
+            gs.warning("adding columns " + ",".join([p[0] for p in cols_out]))
             self._add_columns(cols_out)
 
     def _add_columns(self, columns):
@@ -494,8 +494,9 @@ class RoadTable(object):
             self.polygon.table.update(key=line.cat, values=attrs[1:])
         elif self.polygon.table is None and attrs:
             print(
-                "Table for vector {name} does not exist, attributes not"
-                " loaded".format(name=self.name)
+                "Table for vector {name} does not exist, attributes not loaded".format(
+                    name=self.name
+                )
             )
         # libvect.Vect_cat_set(obj.c_cats, self.layer, line.cat)
 
@@ -747,11 +748,9 @@ class RoadTable(object):
         ]
 
         for i, row in enumerate(self.rows):
-
             self.rewrite_obj(self.polyline[i], row)
 
         if len(self.rows) < len(self.polyline):
-
             self.polygon.open("rw", self.layer, with_z=True)
 
             for i in range(len(self), len(self.polyline)):
@@ -803,7 +802,6 @@ class RoadTables(object):
                 names.insert(0, [self.road_name, "", ""])
                 continue
             for tab in [link.table_name for link in self.polygon.dblinks]:
-
                 if tab_name in tab:
                     names.append(tab.split(tab_name))
                     names[-1].insert(1, tab_name)
@@ -847,7 +845,6 @@ class RoadTables(object):
     def gen_tables(self):
         """Return None"""
         for i, name in enumerate(self.get_tables_names()):
-
             namedic = name[1] + name[2]
             if name[1] == "":
                 namedic = "first"
@@ -876,12 +873,12 @@ class RoadTables(object):
     def add_table(self, tab_sufix, tab_subname):
         """Return"""
         if tab_sufix not in ["_Displ", "_Marks"]:
-            grass.warning("Only Displ or Marks tables can be used")
+            gs.warning("Only Displ or Marks tables can be used")
             return None
         tab_name = self.road_name + tab_sufix + tab_subname
         n_layer = self.polygon.dblinks.num_dblinks()
         if tab_name in [link.table_name for link in self.polygon.dblinks]:
-            grass.warning("table exist")
+            gs.warning("table exist")
         else:
             self.tables[tab_sufix + tab_subname] = RoadTable(
                 self.polygon, self.polyline, n_layer + 1, tab_name, tab_sufix

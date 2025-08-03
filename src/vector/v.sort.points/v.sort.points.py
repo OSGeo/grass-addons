@@ -39,7 +39,7 @@
 import sys
 import os
 
-import grass.script as gscript
+import grass.script as gs
 
 
 def num(s):
@@ -53,7 +53,7 @@ def num(s):
 
 
 def main():
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     inputmap = options["input"]
     layer = options["layer"]
     outputmap = options["output"]
@@ -62,8 +62,8 @@ def main():
     if flags["r"]:
         reverse = False
 
-    columns = gscript.vector_columns(inputmap)
-    key_column = gscript.vector_layer_db(inputmap, layer)["key"]
+    columns = gs.vector_columns(inputmap)
+    key_column = gs.vector_layer_db(inputmap, layer)["key"]
     sort_index = columns[sort_column]["index"] + 2
     sorted_cols = sorted(iter(columns.items()), key=lambda x_y: x_y[1]["index"])
     column_def = "x DOUBLE PRECISION, y DOUBLE PRECISION, cat INTEGER"
@@ -72,13 +72,13 @@ def main():
         name = sorted_cols[colcount][0]
         type = sorted_cols[colcount][1]["type"]
         if name == sort_column and (type != "INTEGER" and type != "DOUBLE PRECISION"):
-            gscript.fatal("Sort column must be numeric")
+            gs.fatal("Sort column must be numeric")
         if name == key_column:
             continue
         colnames.append(name)
         column_def += ", %s %s" % (name, type)
 
-    inpoints = gscript.read_command(
+    inpoints = gs.read_command(
         "v.out.ascii", in_=inputmap, columns=colnames, quiet=True
     )
 
@@ -93,7 +93,7 @@ def main():
     for list in points_sorted:
         outpoints += "|".join([str(x) for x in list]) + "\n"
 
-    gscript.write_command(
+    gs.write_command(
         "v.in.ascii",
         input="-",
         stdin=outpoints,
@@ -105,7 +105,7 @@ def main():
         quiet=True,
     )
 
-    gscript.run_command("v.db.dropcolumn", map=outputmap, columns="x,y", quiet=True)
+    gs.run_command("v.db.dropcolumn", map=outputmap, columns="x,y", quiet=True)
 
     return 0
 

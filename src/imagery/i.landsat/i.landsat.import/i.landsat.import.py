@@ -129,7 +129,6 @@ from grass.exceptions import CalledModuleError
 
 
 def _untar(inputdir, untardir):
-
     if not os.path.exists(inputdir):
         gs.fatal(_("Directory <{}> does not exist").format(inputdir))
     if not os.path.isdir(inputdir):
@@ -159,7 +158,24 @@ def _untar(inputdir, untardir):
 
     for scene in scenes_to_untar:
         with tarfile.open(name=scene, mode="r") as tar:
-            tar.extractall(untardir)
+
+            def is_within_directory(directory, target):
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+
+                return prefix == abs_directory
+
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise RuntimeError(_("Attempted path traversal in tar file"))
+
+                tar.extractall(path, members, numeric_owner=numeric_owner)
+
+            safe_extract(tar, untardir)
 
     untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
     return untared_tifs
@@ -285,7 +301,6 @@ def print_products(filenames):
 
 
 def main():
-
     inputdir = options["input"]
     untardir = options["unzip_dir"]
 

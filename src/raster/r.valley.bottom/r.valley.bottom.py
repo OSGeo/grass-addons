@@ -105,7 +105,6 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 # % description: Use square moving window instead of circular moving window
 # %end
 
-
 import atexit
 import math
 import os

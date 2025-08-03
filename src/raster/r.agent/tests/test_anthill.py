@@ -1,6 +1,4 @@
-import unittest2 as unittest
-
-# import unittest
+import unittest
 
 from libagent import playground, anthill
 

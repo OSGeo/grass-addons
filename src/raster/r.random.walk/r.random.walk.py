@@ -12,77 +12,77 @@
 #
 #############################################################################
 
-#%module
-#% description: Performs a 2D random walk inside the computational region and returns the resulting walk.
-#% keyword: raster
-#% keyword: random
-#% keyword: walk
-#% keyword: surface
-#% keyword: parallel
-#%end
+# %module
+# % description: Performs a 2D random walk inside the computational region and returns the resulting walk.
+# % keyword: raster
+# % keyword: random
+# % keyword: walk
+# % keyword: surface
+# % keyword: parallel
+# %end
 
-#%flag
-#% key: avoid
-#% description: Perform a self-avoiding random walk
-#% guisection: Parameters
-#%end
+# %flag
+# % key: avoid
+# % description: Perform a self-avoiding random walk
+# % guisection: Parameters
+# %end
 
-#%flag
-#% key: seed
-#% description: Generate random seed (result is non-deterministic).
-#%end
+# %flag
+# % key: seed
+# % description: Generate random seed (result is non-deterministic).
+# %end
 
-#%flag
-#% key: tpath
-#% description: Each walker starts from the same point.
-#%end
+# %flag
+# % key: tpath
+# % description: Each walker starts from the same point.
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%end
+# %option G_OPT_R_OUTPUT
+# %end
 
-#%option
-#% key: steps
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: How many steps to take during walk.
-#% answer: 100000
-#% guisection: Parameters
-#%end
+# %option
+# % key: steps
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: How many steps to take during walk.
+# % answer: 100000
+# % guisection: Parameters
+# %end
 
-#%option
-#% key: directions
-#% type: string
-#% required: no
-#% multiple: no
-#% options: 4, 8
-#% description: How many directions should be used during walk.
-#% answer: 4
-#% guisection: Parameters
-#%end
+# %option
+# % key: directions
+# % type: string
+# % required: no
+# % multiple: no
+# % options: 4, 8
+# % description: How many directions should be used during walk.
+# % answer: 4
+# % guisection: Parameters
+# %end
 
-#%option G_OPT_MEMORYMB
-#%end
+# %option G_OPT_MEMORYMB
+# %end
 
-#%option
-#% key: seed
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Seed for random number generator
-#%end
+# %option
+# % key: seed
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Seed for random number generator
+# %end
 
-#%option G_OPT_M_NPROCS
-#%end
+# %option G_OPT_M_NPROCS
+# %end
 
-#%option
-#% key: nwalkers
-#% type: integer
-#% required: no
-#% multiple: no
-#% answer: 1
-#% description: Number of walkers.
-#%end
+# %option
+# % key: nwalkers
+# % type: integer
+# % required: no
+# % multiple: no
+# % answer: 1
+# % description: Number of walkers.
+# %end
 
 import atexit
 import concurrent.futures
@@ -211,7 +211,7 @@ def find_new_path(walk_output, current_pos, new_position, num_directions, step):
 
     while visited:
         if walker_is_stuck(tested_directions, num_directions):
-            gs.message(_("Walker stuck on step {0}".format(step)))
+            gs.message(_("Walker stuck on step {0}").format(step))
             raise GetOutOfLoop
         else:
             # continue to check cells for an unvisited cell until one is found or walker is stuck
@@ -356,7 +356,7 @@ def run_parallel(
 ):
     gs.message(_("Smoothed Walk"))
     max_cpus = os.cpu_count() - 1
-    gs.message(_("Max CPUs: {0}, Used CPUs: {1}".format(max_cpus, processes)))
+    gs.message(_("Max CPUs: {0}, Used CPUs: {1}").format(max_cpus, processes))
     start_pos = False
     if path_sampling:
         start_pos = starting_position(boundary[0], boundary[1])
@@ -409,7 +409,7 @@ def main():
     reg = Region()
     cols = reg.cols
     rows = reg.rows
-    gs.message(_("Region with {0} rows and {1} columns".format(rows, cols)))
+    gs.message(_("Region with {0} rows and {1} columns").format(rows, cols))
     boundary = [rows, cols]
     path_sampling = flags["t"]
     processes = int(options["nprocs"])
@@ -417,7 +417,7 @@ def main():
     _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
     TMP_RASTERS.append(_tmp_rasters)
     mem_for_process = math.floor(int(memory) / processes)
-    gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
+    gs.message(_("Memory Per Process: {0}").format(mem_for_process))
     futures = run_parallel(
         _tmp_rasters,
         processes,
@@ -434,11 +434,11 @@ def main():
             data = future.result()
             TMP_SMOOTH_RASTERS.append(data)
         except Exception as exc:
-            gs.message(_("generated an exception: {0}".format(exc)))
+            gs.message(_("generated an exception: {0}").format(exc))
         else:
             continue
 
-    gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
+    gs.message(_("Averaging: {0} Rasters").format(len(TMP_SMOOTH_RASTERS)))
     if len(TMP_SMOOTH_RASTERS) > 0:
         # 1024 is the soft limit for most operating systems for number of allowed open files
         if len(TMP_SMOOTH_RASTERS) >= 1024:
@@ -459,7 +459,7 @@ def main():
 
     # cleanup()
     end = time.time()
-    gs.message(_("Runtime of the program is {0}".format(end - start)))
+    gs.message(_("Runtime of the program is {0}").format(end - start))
 
 
 if __name__ == "__main__":

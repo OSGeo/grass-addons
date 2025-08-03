@@ -174,7 +174,7 @@ int ram_process_streams(char **cat_list, CELL **streams, int number_of_streams,
                         outlets_num++;
                     }
                 } /* end if else lasts */
-            }     /* end if streams */
+            } /* end if streams */
         }
     }
     G_percent(r, nrows, 4);
@@ -265,8 +265,8 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
                         outlets_num++;
                     }
                 } /* end if else lasts */
-            }     /* end if streams */
-        }         /* end for */
+            } /* end if streams */
+        } /* end for */
     }
     G_percent(r, nrows, 4);
 

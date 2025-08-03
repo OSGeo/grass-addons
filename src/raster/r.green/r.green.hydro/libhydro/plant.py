@@ -122,7 +122,7 @@ def sort_by_west2east(line):
 
 
 def splitline(line, point, max_dist):
-    """Split a line using a point. return two lines that start with the point.
+    r"""Split a line using a point. return two lines that start with the point.
 
                   point
                      *---------
@@ -506,7 +506,7 @@ class Plant(object):
         return lines, ids
 
     def structures(self, elev, stream=None, ndigits=0, resolution=None, contour=None):
-        """Return a tuple with lines structres options of a hypotetical plant.
+        r"""Return a tuple with lines structres options of a hypotetical plant.
 
         ::
 

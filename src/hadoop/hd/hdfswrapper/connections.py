@@ -74,7 +74,6 @@ class Connection(Base):
         extra=None,
         uri=None,
     ):
-
         self.conn_id = conn_id
         if uri:
             self.parse_from_uri(uri)
@@ -176,6 +175,6 @@ class Connection(Base):
             except Exception as e:
                 logging.exception(e)
                 logging.error(
-                    "Failed parsing the json for " "conn_id {}".format(self.conn_id)
+                    "Failed parsing the json for conn_id {}".format(self.conn_id)
                 )
         return obj
