@@ -102,12 +102,6 @@ jobs:
           if [ ! -e "$HOME/install/bin/grass" ] ; then \
             ln -s "$HOME"/install/bin/grass* "$HOME"/install/bin/grass ; fi
 
-      - name: Build addons
-        run: |
-          cd grass-addons/src
-          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
-          make MODULE_TOPDIR="$GRASS_INSTALL"
-
       - name: Get extra Python dependencies
         run: |
           GDAL_VERSION="$(gdal-config --version)"
@@ -115,6 +109,12 @@ jobs:
           UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml
           export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
+
+      - name: Build addons
+        run: |
+          cd grass-addons/src
+          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
+          make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Set up R
         uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
