@@ -201,7 +201,7 @@ BCC-CSM2-MR and SSP 585.*
 
 ## AUTHOR
 
-[Paulo van Breugel](https:ecodiv.earth), [HAS green
+[Paulo van Breugel](https://ecodiv.earth), [HAS green
 academy](https://has.nl), [Innovative Biomonitoring research
 group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
 [Climate-robust Landscapes research
