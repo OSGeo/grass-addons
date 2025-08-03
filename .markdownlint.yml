@@ -1,0 +1,19 @@
+---
+default: true
+
+# Fix any fixable errors (depending on the markdownlint wrapper tool used)
+fix: true
+
+# The source file for a documentation of a tool starts with h2 because h1 is
+# generated during the build.
+first-line-h1: false
+
+# Errors from .html to .md rename (first step in HTML to Markdown conversion)
+MD013:
+  code_blocks: false
+  tables: false
+MD033:
+  allowed_elements:
+    - sup
+    - sub
+# The block above this is to be eventually removed.

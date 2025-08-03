@@ -17,38 +17,38 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculates multiple regression between time series: Y(t) = b1*X1(t) + ... + bn*Xn(t).
-#% overwrite: yes
-#% keyword: raster
-#% keyword: statistics
-#% keyword: regression
-#%End
-#%option
-#% key: samples
-#% type: string
-#% gisprompt: file with settings in csv format
-#% description: File contains list of input and output rasters
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: result_prefix
-#% type: string
-#% gisprompt: prefix for names of result rasters
-#% description: Prefix for names of result raster (rasters of regression coefficients)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: model
-#% type: string
-#% gisprompt: model
-#% description: model type: ols (ordinary least squares), rlm (robust linear model)
-#% required: no
-#% answer: ols
-#% multiple: no
-#%end
+# %Module
+# % description: Calculates multiple regression between time series: Y(t) = b1*X1(t) + ... + bn*Xn(t).
+# % overwrite: yes
+# % keyword: raster
+# % keyword: statistics
+# % keyword: regression
+# %End
+# %option
+# % key: samples
+# % type: string
+# % gisprompt: file with settings in csv format
+# % description: File contains list of input and output rasters
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: result_prefix
+# % type: string
+# % gisprompt: prefix for names of result rasters
+# % description: Prefix for names of result raster (rasters of regression coefficients)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: model
+# % type: string
+# % gisprompt: model
+# % description: model type: ols (ordinary least squares), rlm (robust linear model)
+# % required: no
+# % answer: ols
+# % multiple: no
+# %end
 
 
 import os
@@ -64,7 +64,7 @@ if "GISBASE" not in os.environ:
     sys.stderr.write("You must be in GRASS GIS to run this program.\n")
     sys.exit(1)
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass import raster
 from grass.pygrass.gis.region import Region
 
@@ -149,7 +149,7 @@ class DataModel(object):
             prefix+variable_name (see header)
         """
         if len(set(headers)) != len(headers):
-            grass.error("The names of the variables are not unique!")
+            gs.error("The names of the variables are not unique!")
 
         self.mtype = restype
 
@@ -266,19 +266,19 @@ def main(options, flags):
     headers, outputs, inputs = get_sample_names(samples)
 
     model = DataModel(headers, outputs, inputs, res_pref)
-    model.fit(model=model_type, overwrite=grass.overwrite())
+    model.fit(model=model_type, overwrite=gs.overwrite())
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     # lazy import (global to avoid import in a loop)
     try:
         import statsmodels.api as sm
     except ImportError:
-        grass.fatal(
-            _("Cannot import statsmodels." " Install python-statmodels package first")
+        gs.fatal(
+            _("Cannot import statsmodels. Install python-statmodels package first")
         )
 
     main(options, flags)

@@ -15,49 +15,49 @@
 #               for details.
 #
 # REQUIRES:     Matplotlib
-#               http://matplotlib.sourceforge.net/
+#               https://matplotlib.org
 #
 #
 ################################################################################
-#%module
-#% description: Outputs a hypsometric and hypsographic graph.
-#% keyword: raster
-#%end
+# %module
+# % description: Outputs a hypsometric and hypsographic graph.
+# % keyword: raster
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: map
-#% required: yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: map
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: image
-#% key_desc: image
-#% description: Name for output graph file (png)
-#% required: yes
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: image
+# % key_desc: image
+# % description: Name for output graph file (png)
+# % required: yes
+# %end
 
-#%flag
-#% key: a
-#% description: Generate hypsometric curve
-#%end
+# %flag
+# % key: a
+# % description: Generate hypsometric curve
+# %end
 
-#%flag
-#% key: b
-#% description: Generate hypsographic curve
-#%end
+# %flag
+# % key: b
+# % description: Generate hypsographic curve
+# %end
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 import numpy as np
 from operator import itemgetter
 
 
 def main():
-    stats = grass.read_command(
+    stats = gs.read_command(
         "r.stats", input=options["map"], sep="space", nv="*", nsteps="255", flags="inc"
     ).split("\n")[:-1]
-    res = grass.region()["nsres"]
+    res = gs.region()["nsres"]
     zn = np.zeros((len(stats), 6), float)
     kl = np.zeros((len(stats), 2), float)
     prc = np.zeros((9, 2), float)
@@ -75,7 +75,7 @@ def main():
 
     for i in range(len(stats)):
         zn[i, 3] = 1 - (zn[i, 2] / sum(zn[:, 1]))
-        zn[i, 4] = zn[i, 3] * (((res ** 2) / 1000000) * sum(zn[:, 1]))
+        zn[i, 4] = zn[i, 3] * (((res**2) / 1000000) * sum(zn[:, 1]))
         zn[i, 5] = (zn[i, 0] - min(zn[:, 0])) / (max(zn[:, 0]) - min(zn[:, 0]))
         kl[i, 0] = zn[i, 0]
         kl[i, 1] = 1 - (zn[i, 2] / totcell)
@@ -143,9 +143,9 @@ def findint(kl, f):
 
 
 def plotImage(x, y, image, type, xlabel, ylabel, title):
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     plt.plot(x, y, type)
@@ -160,5 +160,5 @@ def plotImage(x, y, image, type, xlabel, ylabel, title):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

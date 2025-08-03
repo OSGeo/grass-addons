@@ -18,52 +18,52 @@
 #
 #############################################################################
 
-#%Module
-#% description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset.
-#% keyword: copy
-#% keyword: general
-#% overwrite: yes
-#%End
-#%option G_OPT_M_MAPSET
-#% key: mapset
-#% description: Mapset to copy files from
-#% required: yes
-#%end
-#%option
-#% key: datatype
-#% type: string
-#% description: Choose type of GRASS data to copy
-#% options: rast,vect,labels,rast3d,region,group
-#% answer: rast
-#% required: yes
-#%end
-#%option
-#% key: filter
-#% type: string
-#% description: Search pattern to filter data files to copy
-#% required : no
-#%end
-#%option
-#% key: filter_type
-#% type: string
-#% description: Type of search pattern to use
-#% options: select all, wildcards,regular expressions,extended regular expressions
-#% answer: select all
-#% required : no
-#%end
-#%option
-#% key: output_prefix
-#% type: string
-#% description: Optional prefix for output raster maps
-#% required : no
-#%end
-#% Flag
-#% key: t
-#% description: Update vector topology to match current GRASS version
-#% End
+# %Module
+# % description: Copies all or a filtered subset of files of selected type from another mapset to the current working mapset.
+# % keyword: copy
+# % keyword: general
+# % overwrite: yes
+# %End
+# %option G_OPT_M_MAPSET
+# % key: mapset
+# % description: Mapset to copy files from
+# % required: yes
+# %end
+# %option
+# % key: datatype
+# % type: string
+# % description: Choose type of GRASS data to copy
+# % options: rast,vect,labels,rast3d,region,group
+# % answer: rast
+# % required: yes
+# %end
+# %option
+# % key: filter
+# % type: string
+# % description: Search pattern to filter data files to copy
+# % required : no
+# %end
+# %option
+# % key: filter_type
+# % type: string
+# % description: Type of search pattern to use
+# % options: select all, wildcards,regular expressions,extended regular expressions
+# % answer: select all
+# % required : no
+# %end
+# %option
+# % key: output_prefix
+# % type: string
+# % description: Optional prefix for output raster maps
+# % required : no
+# %end
+# % Flag
+# % key: t
+# % description: Update vector topology to match current GRASS version
+# % End
 
 
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -80,7 +80,7 @@ def main():
     datalist = []  # list of GRASS data files to copy
     input = ""
     output = ""
-    if grass.overwrite():
+    if gs.overwrite():
         overwrite = True
 
     if filter_type == "select all":
@@ -95,11 +95,11 @@ def main():
     #
     # first run g.list to get list of maps to parse
     #
-    l = grass.list_grouped(
+    l = gs.list_grouped(
         type=datatype, pattern=filter, check_search_path=True, flag=filterflag
     )
     if mapset not in l:
-        grass.warning(
+        gs.warning(
             _(
                 "You do not have access to mapset %s. Run g.mapsets (under settings menu) to change mapset access"
             )
@@ -119,12 +119,12 @@ def main():
             output = input
 
         params = {datatype: "%s@%s,%s" % (input, mapset, output)}
-        grass.run_command("g.copy", overwrite=overwrite, **params)
+        gs.run_command("g.copy", overwrite=overwrite, **params)
 
         if datatype == "vector" and flags["t"]:
-            grass.run_command("v.build", map=output)
+            gs.run_command("v.build", map=output)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

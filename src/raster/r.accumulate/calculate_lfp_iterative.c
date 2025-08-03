@@ -5,8 +5,7 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-struct neighbor
-{
+struct neighbor {
     int row;
     int col;
     double accum;
@@ -15,15 +14,13 @@ struct neighbor
     double max_length;
 };
 
-struct neighbor_stack
-{
+struct neighbor_stack {
     struct neighbor *accum;
     int n;
     int nalloc;
 };
 
-struct headwater_list
-{
+struct headwater_list {
     struct neighbor *head;
     int n;
     int nalloc;
@@ -39,8 +36,7 @@ static void add_table(struct Map_info *, char *, dbDriver **,
 static void trace_up(struct cell_map *, struct raster_map *, int, int,
                      struct line_list *);
 static void find_up(struct cell_map *, struct raster_map *, int, int, double,
-                    double, struct neighbor *, int *,
-                    struct headwater_list *);
+                    double, struct neighbor *, int *, struct headwater_list *);
 static void init_up_stack(struct neighbor_stack *);
 static void free_up_stack(struct neighbor_stack *);
 static void push_up(struct neighbor_stack *, struct neighbor *);
@@ -51,8 +47,8 @@ static void add_headwater(struct headwater_list *, struct neighbor *);
 static int compare_neighbor_max_length(const void *, const void *);
 
 void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
-                             struct raster_map *accum_buf, int *id,
-                             char *idcol, struct point_list *outlet_pl)
+                             struct raster_map *accum_buf, int *id, char *idcol,
+                             struct point_list *outlet_pl)
 {
     struct line_list ll;
     struct line_cats *Cats;
@@ -101,10 +97,12 @@ void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
 
         if (!ll.n) {
             if (idcol)
-                G_fatal_error(_("Failed to calculate the longest flow path for outlet %s=%d"),
+                G_fatal_error(_("Failed to calculate the longest flow path for "
+                                "outlet %s=%d"),
                               idcol, id[i]);
             else
-                G_fatal_error(_("Failed to calculate the longest flow path for outlet at (%f, %f)"),
+                G_fatal_error(_("Failed to calculate the longest flow path for "
+                                "outlet at (%f, %f)"),
                               outlet_pl->x[i], outlet_pl->y[i]);
         }
 
@@ -143,7 +141,7 @@ void calculate_lfp_iterative(struct Map_info *Map, struct cell_map *dir_buf,
     }
 }
 
-static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
+static void add_table(struct Map_info *Map, char *idcol, dbDriver **pdriver,
                       struct field_info **pFi)
 {
     dbDriver *driver;
@@ -153,9 +151,8 @@ static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
 
     Fi = Vect_default_field_info(Map, 1, NULL, GV_1TABLE);
 
-    driver =
-        db_start_driver_open_database(Fi->driver,
-                                      Vect_subst_var(Fi->database, Map));
+    driver = db_start_driver_open_database(Fi->driver,
+                                           Vect_subst_var(Fi->database, Map));
     db_set_error_handler_driver(driver);
     db_begin_transaction(driver);
 
@@ -172,13 +169,12 @@ static void add_table(struct Map_info *Map, char *idcol, dbDriver ** pdriver,
         G_fatal_error(_("Unable to create table: %s"), db_get_string(&sql));
     db_free_string(&sql);
 
-    if (db_grant_on_table
-        (driver, Fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
-        G_fatal_error(_("Unable to grant privileges on table <%s>"),
-                      Fi->table);
+    if (db_grant_on_table(driver, Fi->table, DB_PRIV_SELECT,
+                          DB_GROUP | DB_PUBLIC) != DB_OK)
+        G_fatal_error(_("Unable to grant privileges on table <%s>"), Fi->table);
 
-    if (Vect_map_add_dblink
-        (Map, 1, NULL, Fi->table, GV_KEY_COLUMN, Fi->database, Fi->driver))
+    if (Vect_map_add_dblink(Map, 1, NULL, Fi->table, GV_KEY_COLUMN,
+                            Fi->database, Fi->driver))
         G_fatal_error(_("Unable to add database link for vector map <%s>"),
                       Vect_get_full_name(Map));
 
@@ -320,9 +316,8 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
                      * vertical if j == 0 */
                     double length =
                         down_length +
-                        (i *
-                         j ? diag_length : (i ? window.ns_res : window.
-                                            ew_res));
+                        (i && j ? diag_length
+                                : (i ? window.ns_res : window.ew_res));
 
                     up[*nup].row = row + i;
                     up[*nup].col = col + j;
@@ -351,7 +346,8 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
          * upstream cells are diagonally flowing; only keep cells whose
          * theoretical longest upstream length is greater than or equal to the
          * first cell's theoretical shortest upstream length */
-        for (i = 1; i < *nup && up[i].max_length >= up[0].min_length; i++) ;
+        for (i = 1; i < *nup && up[i].max_length >= up[0].min_length; i++)
+            ;
         *nup = i;
     }
 
@@ -359,9 +355,9 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *accum_buf,
         for (i = 0; i < *nup; i++) {
             /* if the current cell's theoretical longest lfp < all existing,
              * skip tracing because it's impossible to obtain a longer lfp */
-            for (j = 0;
-                 j < hl->n && up[i].max_length < hl->head[j].down_length;
-                 j++) ;
+            for (j = 0; j < hl->n && up[i].max_length < hl->head[j].down_length;
+                 j++)
+                ;
 
             if (j == hl->n)
                 break;
@@ -387,10 +383,8 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
 {
     if (up_stack->n == up_stack->nalloc) {
         up_stack->nalloc += REALLOC_INCREMENT;
-        up_stack->accum =
-            (struct neighbor *)G_realloc(up_stack->accum,
-                                         up_stack->nalloc *
-                                         sizeof(struct neighbor));
+        up_stack->accum = (struct neighbor *)G_realloc(
+            up_stack->accum, up_stack->nalloc * sizeof(struct neighbor));
     }
     up_stack->accum[up_stack->n++] = *up;
 }
@@ -403,10 +397,8 @@ static struct neighbor pop_up(struct neighbor_stack *up_stack)
         up = up_stack->accum[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
-            up_stack->accum =
-                (struct neighbor *)G_realloc(up_stack->accum,
-                                             up_stack->nalloc *
-                                             sizeof(struct neighbor));
+            up_stack->accum = (struct neighbor *)G_realloc(
+                up_stack->accum, up_stack->nalloc * sizeof(struct neighbor));
         }
     }
 
@@ -430,10 +422,8 @@ static void add_headwater(struct headwater_list *hl, struct neighbor *h)
 {
     if (hl->n == hl->nalloc) {
         hl->nalloc += REALLOC_INCREMENT;
-        hl->head =
-            (struct neighbor *)G_realloc(hl->head,
-                                         hl->nalloc *
-                                         sizeof(struct neighbor));
+        hl->head = (struct neighbor *)G_realloc(
+            hl->head, hl->nalloc * sizeof(struct neighbor));
         if (!hl->head)
             G_fatal_error(_("Unable to increase headwater list"));
     }

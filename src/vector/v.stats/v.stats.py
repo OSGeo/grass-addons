@@ -15,124 +15,124 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculates vector statistics
-#% keyword: vector
-#% keyword: statistics
-#% keyword: shape
-#% overwrite: yes
-#%End
-#%option G_OPT_V_MAP
-#% key: vector
-#% description: Name of input vector map
-#% required: yes
-#%end
-#%option
-#% key: layer
-#% type: integer
-#% description: Vector layer
-#% multiple: no
-#% required: no
-#% answer: 1
-#%end
-#%option G_OPT_R_INPUTS
-#% key: rasters
-#% description: Name of input raster maps
-#% multiple: yes
-#% required: no
-#%end
-#%option G_OPT_R_INPUT
-#% key: zones
-#% description: Name of raster zones map
-#% multiple: no
-#% required: no
-#%end
-#%option
-#% key: rprefix
-#% description: Raster prefixes
-#% multiple: yes
-#% required: no
-#%end
-#%option
-#% key: skipshape
-#% type: string
-#% multiple: yes
-#% description: Skip shape columns
-#% required: no
-#% answer: area_id
-#%end
-#%option
-#% key: skipunivar
-#% type: string
-#% multiple: yes
-#% description: Skip shape columns
-#% required: no
-#% answer: label,all_cells,non_null_cells,null_cells,mean_of_abs,sum,sum_abs
-#%end
-#%option
-#% key: shpcsv
-#% type: string
-#% multiple: no
-#% description: CSV with the vector statistics of the shape
-#% required: no
-#%end
-#%option
-#% key: rstcsv
-#% type: string
-#% multiple: yes
-#% description: CSV with the statistics of the raster maps
-#% required: no
-#%end
-#%option
-#% key: rstpercentile
-#% type: integer
-#% multiple: no
-#% description: Raster percentile to use
-#% required: no
-#% answer: 90
-#%end
-#%option
-#% key: newlayer
-#% type: integer
-#% description: New vector layer that will be add to the vector map
-#% multiple: no
-#% required: no
-#% answer: 2
-#%end
-#%option
-#% key: newlayername
-#% type: string
-#% description: New vector layer that will be add to the vector map
-#% multiple: no
-#% required: no
-#%end
-#%option
-#% key: newtabname
-#% type: string
-#% description: New vector layer that will be add to the vector map
-#% multiple: no
-#% required: no
-#%end
-#%option
-#% key: separator
-#% type: string
-#% description: New vector layer that will be add to the vector map
-#% multiple: no
-#% required: no
-#% answer: ;
-#%end
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of process that will be used
-#% multiple: no
-#% required: no
-#% answer: 1
-#%end
-#%flag
-#% key: r
-#% description: Read from existing CSV files
-#%end
+# %Module
+# % description: Calculates vector statistics
+# % keyword: vector
+# % keyword: statistics
+# % keyword: shape
+# % overwrite: yes
+# %End
+# %option G_OPT_V_MAP
+# % key: vector
+# % description: Name of input vector map
+# % required: yes
+# %end
+# %option
+# % key: layer
+# % type: integer
+# % description: Vector layer
+# % multiple: no
+# % required: no
+# % answer: 1
+# %end
+# %option G_OPT_R_INPUTS
+# % key: rasters
+# % description: Name of input raster maps
+# % multiple: yes
+# % required: no
+# %end
+# %option G_OPT_R_INPUT
+# % key: zones
+# % description: Name of raster zones map
+# % multiple: no
+# % required: no
+# %end
+# %option
+# % key: rprefix
+# % description: Raster prefixes
+# % multiple: yes
+# % required: no
+# %end
+# %option
+# % key: skipshape
+# % type: string
+# % multiple: yes
+# % description: Skip shape columns
+# % required: no
+# % answer: area_id
+# %end
+# %option
+# % key: skipunivar
+# % type: string
+# % multiple: yes
+# % description: Skip shape columns
+# % required: no
+# % answer: label,all_cells,non_null_cells,null_cells,mean_of_abs,sum,sum_abs
+# %end
+# %option
+# % key: shpcsv
+# % type: string
+# % multiple: no
+# % description: CSV with the vector statistics of the shape
+# % required: no
+# %end
+# %option
+# % key: rstcsv
+# % type: string
+# % multiple: yes
+# % description: CSV with the statistics of the raster maps
+# % required: no
+# %end
+# %option
+# % key: rstpercentile
+# % type: integer
+# % multiple: no
+# % description: Raster percentile to use
+# % required: no
+# % answer: 90
+# %end
+# %option
+# % key: newlayer
+# % type: integer
+# % description: New vector layer that will be add to the vector map
+# % multiple: no
+# % required: no
+# % answer: 2
+# %end
+# %option
+# % key: newlayername
+# % type: string
+# % description: New vector layer that will be add to the vector map
+# % multiple: no
+# % required: no
+# %end
+# %option
+# % key: newtabname
+# % type: string
+# % description: New vector layer that will be add to the vector map
+# % multiple: no
+# % required: no
+# %end
+# %option
+# % key: separator
+# % type: string
+# % description: New vector layer that will be add to the vector map
+# % multiple: no
+# % required: no
+# % answer: ;
+# %end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of process that will be used
+# % multiple: no
+# % required: no
+# % answer: 1
+# %end
+# %flag
+# % key: r
+# % description: Read from existing CSV files
+# %end
 # -----------------------------------------------------
 import sys
 import os

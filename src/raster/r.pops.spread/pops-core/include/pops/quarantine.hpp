@@ -28,15 +28,14 @@ namespace pops {
 
 /*! Quarantine direction
  */
-enum class QuarantineDirection
-{
-    N = 0,  //!< North
+enum class QuarantineDirection {
+    N = 0,   //!< North
     E = 90,  //!< East
-    S = 180,  //!< South
-    W = 270,  //!< West
-    None  //!< Escaped
+    S = 180, //!< South
+    W = 270, //!< West
+    None     //!< Escaped
 };
-std::ostream& operator<<(std::ostream& os, const QuarantineDirection& obj)
+std::ostream &operator<<(std::ostream &os, const QuarantineDirection &obj)
 {
     os << static_cast<std::underlying_type<QuarantineDirection>::type>(obj);
     return os;
@@ -50,9 +49,8 @@ typedef std::vector<EscapeDistDir> EscapeDistDirs;
 /**
  * Class storing and computing quarantine escap metrics for one simulation.
  */
-template<typename IntegerRaster, typename RasterIndex = int>
-class QuarantineEscape
-{
+template <typename IntegerRaster, typename RasterIndex = int>
+class QuarantineEscape {
 private:
     RasterIndex width_;
     RasterIndex height_;
@@ -71,7 +69,7 @@ private:
      * Different quarantine areas are represented by different integers.
      * 0 in the raster means no quarantine area.
      */
-    void quarantine_boundary(const IntegerRaster& quarantine_areas)
+    void quarantine_boundary(const IntegerRaster &quarantine_areas)
     {
         int n, s, e, w;
         int idx = 0;
@@ -112,8 +110,8 @@ private:
      * @param boundary quarantine area boundary
      */
 
-    DistDir
-    closest_direction(RasterIndex i, RasterIndex j, const BBoxInt boundary) const
+    DistDir closest_direction(RasterIndex i, RasterIndex j,
+                              const BBoxInt boundary) const
     {
         int n, s, e, w;
         int mindist = std::numeric_limits<int>::max();
@@ -139,22 +137,16 @@ private:
     }
 
 public:
-    QuarantineEscape(
-        const IntegerRaster& quarantine_areas,
-        double ew_res,
-        double ns_res,
-        unsigned num_steps)
-        : width_(quarantine_areas.cols()),
-          height_(quarantine_areas.rows()),
-          west_east_resolution_(ew_res),
-          north_south_resolution_(ns_res),
+    QuarantineEscape(const IntegerRaster &quarantine_areas, double ew_res,
+                     double ns_res, unsigned num_steps)
+        : width_(quarantine_areas.cols()), height_(quarantine_areas.rows()),
+          west_east_resolution_(ew_res), north_south_resolution_(ns_res),
           num_steps(num_steps),
           escape_dist_dirs(
               num_steps,
               std::make_tuple(
-                  false,
-                  std::make_tuple(
-                      std::numeric_limits<double>::max(), QuarantineDirection::None)))
+                  false, std::make_tuple(std::numeric_limits<double>::max(),
+                                         QuarantineDirection::None)))
     {
         quarantine_boundary(quarantine_areas);
     }
@@ -163,13 +155,13 @@ public:
 
     /**
      * Computes whether infection in certain step escaped from quarantine areas
-     * and if not, computes and saves minimum distance and direction to quarantine areas
-     * for the specified step. Aggregates over all quarantine areas.
+     * and if not, computes and saves minimum distance and direction to
+     * quarantine areas for the specified step. Aggregates over all quarantine
+     * areas.
      */
-    void infection_escape_quarantine(
-        const IntegerRaster& infected,
-        const IntegerRaster& quarantine_areas,
-        unsigned step)
+    void infection_escape_quarantine(const IntegerRaster &infected,
+                                     const IntegerRaster &quarantine_areas,
+                                     unsigned step)
     {
         DistDir min_dist_dir = std::make_tuple(
             std::numeric_limits<double>::max(), QuarantineDirection::None);
@@ -180,13 +172,15 @@ public:
                 int area = quarantine_areas(i, j);
                 if (area == 0) {
                     escape_dist_dirs.at(step) = std::make_tuple(
-                        true, std::make_tuple(std::nan(""), QuarantineDirection::None));
+                        true, std::make_tuple(std::nan(""),
+                                              QuarantineDirection::None));
                     return;
                 }
                 double dist;
                 QuarantineDirection dir;
                 int bindex = boundary_id_idx_map[area];
-                std::tie(dist, dir) = closest_direction(i, j, boundaries.at(bindex));
+                std::tie(dist, dir) =
+                    closest_direction(i, j, boundaries.at(bindex));
                 if (dist < std::get<0>(min_dist_dir)) {
                     min_dist_dir = std::make_tuple(dist, dir);
                 }
@@ -223,8 +217,8 @@ public:
     }
 
     /**
-     * Returns the direction (N, S, E, W, None) of the minimum distance to quarantine
-     * boundary bbox. Returns None if infection already escaped.
+     * Returns the direction (N, S, E, W, None) of the minimum distance to
+     * quarantine boundary bbox. Returns None if infection already escaped.
      */
     QuarantineDirection direction(unsigned step) const
     {
@@ -234,17 +228,18 @@ public:
 };
 
 /**
- * Reports probability of escaping quarantine based on multiple runs for certain step.
- * 1 means 100% probability of escaping.
+ * Reports probability of escaping quarantine based on multiple runs for certain
+ * step. 1 means 100% probability of escaping.
  */
-template<typename IntegerRaster>
+template <typename IntegerRaster>
 double quarantine_escape_probability(
-    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos, unsigned step)
+    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos,
+    unsigned step)
 {
     bool escape;
     DistDir distdir;
     int escapes = 0;
-    for (const auto& item : escape_infos) {
+    for (const auto &item : escape_infos) {
         std::tie(escape, distdir) = item.escape_info(step);
         escapes += escape;
     }
@@ -252,19 +247,19 @@ double quarantine_escape_probability(
 }
 
 /**
- * Reports minimum distances to quarantine boundary (bbox) and associated distances
- * for each run for certain step.
- * If in certain runs infection escaped, it reports nan for distance and None for
- * direction.
+ * Reports minimum distances to quarantine boundary (bbox) and associated
+ * distances for each run for certain step. If in certain runs infection
+ * escaped, it reports nan for distance and None for direction.
  */
-template<typename IntegerRaster>
+template <typename IntegerRaster>
 std::vector<DistDir> distance_direction_to_quarantine(
-    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos, unsigned step)
+    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos,
+    unsigned step)
 {
     bool escape;
     DistDir distdir;
     std::vector<DistDir> distances_directions;
-    for (const auto& item : escape_infos) {
+    for (const auto &item : escape_infos) {
         std::tie(escape, distdir) = item.escape_info(step);
         distances_directions.push_back(distdir);
     }
@@ -274,14 +269,15 @@ std::vector<DistDir> distance_direction_to_quarantine(
 
 /**
  * Writes quarantine escape summary for all steps into a string.
- * Uses CSV fomat with commas (step, probability of escape, distance, direction as
- * azimuth from runs). E.g. "0,0.4,1000,0,2000,90,1500,0" If escaped in particular run,
- * there is empty value for that distance and direction
+ * Uses CSV fomat with commas (step, probability of escape, distance, direction
+ * as azimuth from runs). E.g. "0,0.4,1000,0,2000,90,1500,0" If escaped in
+ * particular run, there is empty value for that distance and direction
  * (...,1000,0,,,2000,90,...).
  */
-template<typename IntegerRaster>
+template <typename IntegerRaster>
 std::string write_quarantine_escape(
-    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos, unsigned num_steps)
+    const std::vector<QuarantineEscape<IntegerRaster>> escape_infos,
+    unsigned num_steps)
 {
     std::stringstream ss;
     ss << std::setprecision(1) << std::fixed;
@@ -307,5 +303,5 @@ std::string write_quarantine_escape(
     }
     return ss.str();
 }
-}  // namespace pops
-#endif  // POPS_QUARANTINE_HPP
+} // namespace pops
+#endif // POPS_QUARANTINE_HPP

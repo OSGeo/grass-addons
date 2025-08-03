@@ -33,7 +33,6 @@ from . import mdutil  # metadata lib
 
 
 class GrassMD:
-
     """
     @var self.map:  name of choosen map by user
     @var self.type: typ of map representation(cell, vector, r3)
@@ -43,7 +42,19 @@ class GrassMD:
 
     def __init__(self, map, type):
         try:
-            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality, Environment, etree, EX_Extent, EX_GeographicBoundingBox, FileSystemLoader, MD_Distribution, MD_ReferenceSystem, RunCommand
+            global \
+                CI_Date, \
+                CI_OnlineResource, \
+                CI_ResponsibleParty, \
+                DQ_DataQuality, \
+                Environment, \
+                etree, \
+                EX_Extent, \
+                EX_GeographicBoundingBox, \
+                FileSystemLoader, \
+                MD_Distribution, \
+                MD_ReferenceSystem, \
+                RunCommand
 
             from owslib.iso import (
                 CI_Date,
@@ -82,7 +93,7 @@ class GrassMD:
         context = mdutil.StaticContext()
         self.dirpath = os.path.join(context.lib_path, "profiles")
         # metadata object from OWSLIB ( for define md values)
-        self.md = mdutil.MD_MetadataMOD(md=None)
+        self.md = mdutil.get_md_metadatamod_inst(md=None)
         self.profilePath = None  # path to file with xml templates
 
         if self.type == "raster":
@@ -245,7 +256,7 @@ class GrassMD:
         self.profileName = "TEMPORAL"
 
         # OWSLib md object
-        self.md.identification = mdutil.MD_DataIdentification_MOD()
+        self.md.identification = mdutil.get_md_dataidentification_mod_inst()
         self.md.dataquality = DQ_DataQuality()
         self.md.distribution = MD_Distribution()
         self.md.identification.extent = EX_Extent()
@@ -341,7 +352,7 @@ class GrassMD:
             self.profilePath = profile
 
         # OWSLib md object
-        self.md.identification = mdutil.MD_DataIdentification_MOD()
+        self.md.identification = mdutil.get_md_dataidentification_mod_inst()
         self.md.dataquality = DQ_DataQuality()
         self.md.distribution = MD_Distribution()
         self.md.identification.extent = EX_Extent()
@@ -391,7 +402,7 @@ class GrassMD:
         if epsg is not None:
             self.md.referencesystem = MD_ReferenceSystem(None)
             self.md.referencesystem.code = (
-                "http://www.opengis.net/def/crs/EPSG/0/%s" % epsg
+                "https://www.opengis.net/def/crs/EPSG/0/%s" % epsg
             )
 
         # print self.md.referencesystem.code
@@ -440,7 +451,6 @@ class GrassMD:
             self.md.identification.contact.append(val)
 
         if self.type == "vector":
-
             # Identification/Resource Abstract
             # TODO not enough sources for create abstarce
             self.md.identification.abstract = mdutil.replaceXMLReservedChar(
@@ -529,7 +539,7 @@ class GrassMD:
 
     def readXML(self, xml_file):
         """create instance of metadata(owslib) from xml file"""
-        self.md = mdutil.MD_MetadataMOD(etree.parse(xml_file))
+        self.md = mdutil.get_md_metadatamod_inst(etree.parse(xml_file))
 
     def getMapInfo(self):
         xml_out_name = (
@@ -581,7 +591,7 @@ class GrassMD:
                                                      %s"
                             % (str(path)),
                         )
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("ERROR: cannot write xml to file")
                 return path
@@ -596,7 +606,7 @@ class GrassMD:
                                                      %s"
                         % (str(path)),
                     )
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("ERROR: cannot write xml to file")
                     # sys.exit()
@@ -613,7 +623,7 @@ class GrassMD:
                             "g.message", message="Metadata file has been overwritten"
                         )
                         return path
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("error: cannot write xml to file")
                 else:
@@ -627,7 +637,7 @@ class GrassMD:
                     Module("g.message", message="Metadata file has been exported")
                     return path
 
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("error: cannot write xml to file")
 
@@ -642,7 +652,6 @@ class GrassMD:
         Update some parameters in r/v.support. This part need revision #TODO
         """
         if self.type == "vector":
-
             if len(md.contact) > 0:
                 _org = ""
                 for co in md.contact:
@@ -701,7 +710,6 @@ class GrassMD:
 
         # ------------------------------------------------------------------------ RASTER
         if self.type == "raster":
-
             if md.identification.title is not (None or ""):
                 _title = md.identification.title
                 Module("r.support", map=self.map, title=_title, overwrite=True)

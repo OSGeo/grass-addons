@@ -32,12 +32,11 @@
 #include <grass/glocale.h>
 #include "setup.h"
 
-
 static void get_pwd(void);
 
 jmp_buf jmp;
 
-				/* MAIN PROGRAM */
+/* MAIN PROGRAM */
 
 int main(int argc, char *argv[])
 {
@@ -56,8 +55,8 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     module->description =
-	_("Interactive tool used to setup the sampling and analysis framework "
-	 "that will be used by the other r.le programs.");
+        _("Interactive tool used to setup the sampling and analysis framework "
+          "that will be used by the other r.le programs.");
 
     input = G_define_standard_option(G_OPT_R_MAP);
     input->description = _("Raster map to use to setup sampling");
@@ -68,25 +67,23 @@ int main(int argc, char *argv[])
     vect->required = NO;
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
-
-    setbuf(stdout, NULL);	/* unbuffered */
+    setbuf(stdout, NULL); /* unbuffered */
     setbuf(stderr, NULL);
 
-    G_sleep_on_error(1);	/* error messages get lost on clear screen */
-
+    G_sleep_on_error(1); /* error messages get lost on clear screen */
 
     map_name = input->answer;
     v_name = vect->answer;
-    s_name = NULL;		/* sites not used in GRASS 6 */
+    s_name = NULL; /* sites not used in GRASS 6 */
 
     /* setup the r.le.para directory */
     get_pwd();
 
     /* query for the map to be setup */
     if (R_open_driver() != 0)
-	G_fatal_error("No graphics device selected");
+        G_fatal_error("No graphics device selected");
 
     /* setup the current window for display & clear screen */
     D_setup(1);
@@ -102,13 +99,13 @@ int main(int argc, char *argv[])
     Rscr_wl = (double)(r0 - l0) / (b0 - t0);
 
     if (Rscr_wl > Rw_l) {
-	bot = b0;
-	right = l0 + (b0 - t0) * Rw_l;
+        bot = b0;
+        right = l0 + (b0 - t0) * Rw_l;
     }
 
     else {
-	right = r0;
-	bot = t0 + (r0 - l0) / Rw_l;
+        right = r0;
+        bot = t0 + (r0 - l0) / Rw_l;
     }
     D_new_window("a", t0, bot, l0, right);
     D_set_cur_wind("a");
@@ -122,18 +119,14 @@ int main(int argc, char *argv[])
     return (EXIT_SUCCESS);
 }
 
-
-
-
 /* SETUP THE R.LE.PARA DIRECTORY */
 static void get_pwd(void)
 {
     DIR *dp;
 
     if (!(dp = opendir("r.le.para")))
-	G_mkdir("r.le.para");
+        G_mkdir("r.le.para");
     else
-	closedir(dp);
+        closedir(dp);
     return;
-
 }

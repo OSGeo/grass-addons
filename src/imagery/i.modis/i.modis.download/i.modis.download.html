@@ -7,7 +7,7 @@ for each MODIS product.
 
 <h2>NOTES</h2>
 
-The <em>i.modis</em> modules need the <a href="http://www.pymodis.org">pyModis</a>
+The <em>i.modis</em> modules need the <a href="https://www.pymodis.org">pyModis</a>
 library. Please install it beforehand.
 <p>
 To be able to download data the user needs to obtain <em>user</em> and
@@ -15,9 +15,14 @@ To be able to download data the user needs to obtain <em>user</em> and
 <ul>
 <li> First time user: The user has to register at
  <a href="https://urs.earthdata.nasa.gov/users/new">https://urs.earthdata.nasa.gov/users/new</a>;
- then login and change to his/her profile page. Once there, under the "My applications"
- tab, the user needs to approve the following applications: "LP DAAC Data Pool"
- and "Earthdata Search".</li>
+ then login and change to their <a href="https://urs.earthdata.nasa.gov/profile">profile page</a>.
+ Once there, under the "Applications" tab &gt; "Authorized Apps",  the user needs
+ to approve the following applications (there is a search box that makes it easier
+ to find the items):
+ <ul>
+    <li> "LP DAAC Data Pool", and</li>
+    <li> "Earthdata Search".</li>
+ </ul>
 <li> If the user is already registered, he/she just needs to login and enable the
  aforementioned applications at
  <a href="https://urs.earthdata.nasa.gov/home">https://urs.earthdata.nasa.gov/home</a>
@@ -148,8 +153,3 @@ i.modis.download -g settings=$HOME/.grass8/i.modis/SETTING startday=2011-05-01 e
 <h2>AUTHOR</h2>
 
 Luca Delucchi, Google Summer of Code 2011; subsequently updated.
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

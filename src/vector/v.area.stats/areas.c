@@ -25,15 +25,13 @@ int init_vals(struct value val)
     return 0;
 }
 
-
 /* This function now does one of 3 things:
  * 1) It reads the areas of the areas.
- * 2) It reads the perimeter lengths of the areas. If projection is LL, the geodesic distance is used.
- * 3) It calculates the compactness using this formula:
- *    compactness = perimeter / (2 * sqrt(M_PI * area))
- * 4) It calculates the fractal dimension of the bounding curve:
- *    D_L  = 2 * log(perimeter) / log(area)
- *    (See B.B. Mandelbrot, The Fractal Geometry of Nature. 1982.)
+ * 2) It reads the perimeter lengths of the areas. If projection is LL, the
+ * geodesic distance is used. 3) It calculates the compactness using this
+ * formula: compactness = perimeter / (2 * sqrt(M_PI * area)) 4) It calculates
+ * the fractal dimension of the bounding curve: D_L  = 2 * log(perimeter) /
+ * log(area) (See B.B. Mandelbrot, The Fractal Geometry of Nature. 1982.)
  */
 int read_areas(struct Map_info *Map, int nareas)
 {
@@ -55,7 +53,8 @@ int read_areas(struct Map_info *Map, int nareas)
             Vect_reset_line(Ppoints);
 
             Values[aid].area_id = aid;
-            Values[aid].cat = Vect_get_area_cat(Map, aid, options.field);;
+            Values[aid].cat = Vect_get_area_cat(Map, aid, options.field);
+            ;
             Vect_get_area_points(Map, aid, Ppoints);
             Values[aid].perimeter = Vect_line_geodesic_length(Ppoints);
             Values[aid].boundarea =
@@ -70,8 +69,8 @@ int read_areas(struct Map_info *Map, int nareas)
                     Vect_reset_line(Ppoints);
                     ax = Vect_get_area_isle(Map, aid, isle);
                     if (Vect_get_isle_points(Map, ax, Ppoints) == -1) {
-                        G_fatal_error(_
-                                      ("Not able to read the isle <%d> of the area <%d>.\n"),
+                        G_fatal_error(_("Not able to read the isle <%d> of the "
+                                        "area <%d>.\n"),
                                       isle, aid);
                     }
 
@@ -88,9 +87,8 @@ int read_areas(struct Map_info *Map, int nareas)
             }
             Values[aid].area = Values[aid].boundarea - Values[aid].iarea;
             Values[aid].aratio = Values[aid].iarea / Values[aid].boundarea;
-            Values[aid].compact =
-                Values[aid].perimeter / (2.0 *
-                                         sqrt(M_PI * Values[aid].boundarea));
+            Values[aid].compact = Values[aid].perimeter /
+                                  (2.0 * sqrt(M_PI * Values[aid].boundarea));
             Values[aid].fd =
                 2.0 * log(Values[aid].perimeter) / log(Values[aid].boundarea);
         }

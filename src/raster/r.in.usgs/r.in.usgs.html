@@ -1,7 +1,7 @@
-<h2>DESCRIPTION</h2>	
+<h2>DESCRIPTION</h2>
 <em>r.in.usgs</em> downloads and patches selected USGS datasets (NED, NAIP, lidar) to
-the current GRASS computational region and coordinate reference system. 
-Associated parameters are automatically passed to 
+the current GRASS computational region and coordinate reference system.
+Associated parameters are automatically passed to
 <a href="https://viewer.nationalmap.gov/tnmaccess/api/index">
 The National Map Access API</a>, downloaded to a local cache directory,
 then imported, and patched together.
@@ -36,6 +36,7 @@ Use <b>i</b> flag to list the tiles first.
 <p>
 If the <b>i</b> flag is set, only information about data meeting the input parameters
 is displayed without downloading the data.
+If the <b>d</b> flag is set, data is downloaded but not imported and processed.
 
 <p>
 By default, downloaded files are kept in a user cache directory according to

@@ -20,50 +20,58 @@
 #
 #############################################################################
 
-#%module
-#% description: Patches multiple space time raster maps into a single raster map using r.patch.
-#% keyword: temporal
-#% keyword: aggregation
-#% keyword: series
-#% keyword: raster
-#% keyword: merge
-#% keyword: patching
-#% keyword: time
-#%end
+# %module
+# % description: Patches multiple space time raster maps into a single raster map using r.patch.
+# % keyword: temporal
+# % keyword: aggregation
+# % keyword: series
+# % keyword: raster
+# % keyword: merge
+# % keyword: patching
+# % keyword: time
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#%end
+# %option G_OPT_STRDS_INPUT
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%end
+# %option G_OPT_R_OUTPUT
+# %end
 
-#%flag
-#% key: t
-#% description: Do not assign the space time raster dataset start and end time to the output map
-#%end
+# %flag
+# % key: t
+# % description: Do not assign the space time raster dataset start and end time to the output map
+# %end
 
-#%flag
-#% key: z
-#% description: Use zero (0) for transparency instead of NULL
-#%end
+# %flag
+# % key: z
+# % description: Use zero (0) for transparency instead of NULL
+# %end
 
-#%flag
-#% key: s
-#% description: Do not create color and category files
-#%end
+# %flag
+# % key: s
+# % description: Do not create color and category files
+# %end
 
-#%option
-#% key: sort
-#% description: Sort order (see sort parameter)
-#% options: asc,desc
-#% answer: desc
-#%end
+# %flag
+# % key: v
+# % description: Patch to virtual raster map (r.buildvrt)
+# %end
 
+# %option
+# % key: sort
+# % description: Sort order (see sort parameter)
+# % options: asc,desc
+# % answer: desc
+# %end
 
-import grass.script as grass
+# %rules
+# % excludes: -v,-s,-z
+# %end
+
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -79,6 +87,7 @@ def main():
     add_time = flags["t"]
     patch_s = flags["s"]
     patch_z = flags["z"]
+    patch_module = "r.buildvrt" if flags["v"] else "r.patch"
 
     # Make sure the temporal database exists
     tgis.init()
@@ -88,7 +97,6 @@ def main():
     rows = sp.get_registered_maps("id", where, "start_time", None)
 
     if rows:
-
         ordered_rasts = []
         # newest images are first
         if sort == "desc":
@@ -108,18 +116,17 @@ def main():
             patch_flags += "s"
 
         try:
-            grass.run_command(
-                "r.patch",
-                overwrite=grass.overwrite(),
+            gs.run_command(
+                patch_module,
+                overwrite=gs.overwrite(),
                 input=(",").join(ordered_rasts),
                 output=output,
                 flags=patch_flags,
             )
         except CalledModuleError:
-            grass.fatal(_("%s failed. Check above error messages.") % "r.patch")
+            gs.fatal(_("%s failed. Check above error messages.") % "r.patch")
 
         if not add_time:
-
             # We need to set the temporal extent from the subset of selected maps
             maps = sp.get_registered_maps_as_objects(
                 where=where, order="start_time", dbif=None
@@ -145,7 +152,7 @@ def main():
             if output.find("@") >= 0:
                 id = output
             else:
-                mapset = grass.gisenv()["MAPSET"]
+                mapset = gs.gisenv()["MAPSET"]
                 id = output + "@" + mapset
 
             map = sp.get_new_map_instance(id)
@@ -161,5 +168,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

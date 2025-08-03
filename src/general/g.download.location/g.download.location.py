@@ -12,44 +12,44 @@
 #
 #############################################################################
 
-#%module
-#% label: Download GRASS Location from the web
-#% description: Get GRASS Location from an URL or file path
-#% keyword: general
-#% keyword: data
-#% keyword: download
-#% keyword: import
-#%end
-#%option
-#% key: url
-#% multiple: no
-#% type: string
-#% label: URL of the archive with a location to be downloaded
-#% description: URL of ZIP, TAR.GZ, or other similar archive
-#% required: yes
-#%end
-#%option G_OPT_M_LOCATION
-#% key: name
-#% required: no
-#% multiple: no
-#% key_desc: name
-#%end
-#%option G_OPT_M_DBASE
-#% key: path
-#% required: no
-#% multiple: no
-#%end
-#%option
-#% key: dbase
-#% multiple: no
-#% type: string
-#% label: Path to database, use path option instead
-#% description: This option is obsolete and replaced by path
-#% required: no
-#%end
-#%rules
-#% exclusive: path,dbase
-#%end
+# %module
+# % label: Download GRASS Location from the web
+# % description: Get GRASS Location from an URL or file path
+# % keyword: general
+# % keyword: data
+# % keyword: download
+# % keyword: import
+# %end
+# %option
+# % key: url
+# % multiple: no
+# % type: string
+# % label: URL of the archive with a location to be downloaded
+# % description: URL of ZIP, TAR.GZ, or other similar archive
+# % required: yes
+# %end
+# %option G_OPT_M_LOCATION
+# % key: name
+# % required: no
+# % multiple: no
+# % key_desc: name
+# %end
+# %option G_OPT_M_DBASE
+# % key: path
+# % required: no
+# % multiple: no
+# %end
+# %option
+# % key: dbase
+# % multiple: no
+# % type: string
+# % label: Path to database, use path option instead
+# % description: This option is obsolete and replaced by path
+# % required: no
+# %end
+# %rules
+# % exclusive: path,dbase
+# %end
 
 import os
 import shutil
@@ -75,6 +75,7 @@ class DownloadError(Exception):
 # TODO: multiple functions copied or modified from g.extension and
 # startup screen Download button
 # all should go to "grass.scripts.tools"
+
 
 # copy from g.extension
 def move_extracted_files(extract_dir, target_dir, files):
@@ -109,8 +110,9 @@ def move_extracted_files(extract_dir, target_dir, files):
 def extract_zip(name, directory, tmpdir):
     """Extract a ZIP file into a directory"""
     gs.debug(
-        "extract_zip(name={name}, directory={directory},"
-        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        "extract_zip(name={name}, directory={directory}, tmpdir={tmpdir})".format(
+            name=name, directory=directory, tmpdir=tmpdir
+        ),
         3,
     )
     try:
@@ -135,8 +137,9 @@ def extract_zip(name, directory, tmpdir):
 def extract_tar(name, directory, tmpdir):
     """Extract a TAR or a similar file into a directory"""
     gs.debug(
-        "extract_tar(name={name}, directory={directory},"
-        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        "extract_tar(name={name}, directory={directory}, tmpdir={tmpdir})".format(
+            name=name, directory=directory, tmpdir=tmpdir
+        ),
         3,
     )
     try:
@@ -166,7 +169,7 @@ def download_end_extract(source):
         f, h = urlretrieve(source, archive_name)
         if h.get("content-type", "") != "application/zip":
             raise DownloadError(
-                _("Download of <%s> failed " "or file is not a ZIP file") % source
+                _("Download of <%s> failed or file is not a ZIP file") % source
             )
         extract_zip(name=archive_name, directory=directory, tmpdir=tmpdir)
     elif "." in source and (
@@ -256,7 +259,7 @@ def main(options, flags):
     destination = os.path.join(database, name)
 
     if os.path.exists(destination):
-        gs.fatal(_("Location named <%s> already exists," " download canceled") % name)
+        gs.fatal(_("Location named <%s> already exists, download canceled") % name)
         return
 
     gs.message(_("Downloading and extracting..."))

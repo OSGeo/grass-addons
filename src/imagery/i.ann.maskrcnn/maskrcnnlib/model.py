@@ -29,10 +29,15 @@ import keras.models as KM
 import utils
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
-from distutils.version import LooseVersion
-
-assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
-assert LooseVersion(keras.__version__) >= LooseVersion("2.0.8")
+version_pattern = "([0-9]{1,3}).([0-9]{1,4})"
+assert list(map(int, re.match(version_pattern, tf.__version__).groups())) >= [1, 3]
+version_pattern = "([0-9]{1,3}).([0-9]{1,4}).([0-9]{1,4})"
+assert list(
+    map(
+        int,
+        re.match(version_pattern, keras.__version__).groups(),
+    )
+) >= [2, 0, 8]
 
 
 ############################################################
@@ -1134,7 +1139,7 @@ def smooth_l1_loss(y_true, y_pred):
     """
     diff = K.abs(y_true - y_pred)
     less_than_one = K.cast(K.less(diff, 1.0), "float32")
-    loss = (less_than_one * 0.5 * diff ** 2) + (1 - less_than_one) * (diff - 0.5)
+    loss = (less_than_one * 0.5 * diff**2) + (1 - less_than_one) * (diff - 0.5)
     return loss
 
 
@@ -1522,10 +1527,10 @@ def build_detection_targets(rpn_rois, gt_class_ids, gt_boxes, gt_masks, config):
             # Fill the rest with repeated bg rois.
             keep_extra_ids = np.random.choice(keep_bg_ids, remaining, replace=True)
             keep = np.concatenate([keep, keep_extra_ids])
-    assert (
-        keep.shape[0] == config.TRAIN_ROIS_PER_IMAGE
-    ), "keep doesn't match ROI batch size {}, {}".format(
-        keep.shape[0], config.TRAIN_ROIS_PER_IMAGE
+    assert keep.shape[0] == config.TRAIN_ROIS_PER_IMAGE, (
+        "keep doesn't match ROI batch size {}, {}".format(
+            keep.shape[0], config.TRAIN_ROIS_PER_IMAGE
+        )
     )
 
     # Reset the gt boxes assigned to BG ROIs.
@@ -2067,7 +2072,7 @@ class MaskRCNN:
 
         # Image size must be dividable by 2 multiple times
         h, w = config.IMAGE_SHAPE[:2]
-        if h / 2 ** 6 != int(h / 2 ** 6) or w / 2 ** 6 != int(w / 2 ** 6):
+        if h / 2**6 != int(h / 2**6) or w / 2**6 != int(w / 2**6):
             raise Exception(
                 "Image size must be dividable by 2 at least 6 times "
                 "to avoid fractions when downscaling and upscaling."
@@ -2871,9 +2876,9 @@ class MaskRCNN:
             verbose form in case of verbosity == 3, not 1
         """
         assert self.mode == "inference", "Create model in inference mode."
-        assert (
-            len(images) == self.config.BATCH_SIZE
-        ), "len(images) must be equal to BATCH_SIZE"
+        assert len(images) == self.config.BATCH_SIZE, (
+            "len(images) must be equal to BATCH_SIZE"
+        )
 
         if verbosity == 3:
             log("Processing {} images".format(len(images)))
@@ -2887,9 +2892,9 @@ class MaskRCNN:
         # All images in a batch MUST be of the same size
         image_shape = molded_images[0].shape
         for g in molded_images[1:]:
-            assert (
-                g.shape == image_shape
-            ), "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
+            assert g.shape == image_shape, (
+                "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
+            )
 
         # Anchors
         anchors = self.get_anchors(image_shape)
@@ -2945,9 +2950,9 @@ class MaskRCNN:
         masks: [H, W, N] instance binary masks
         """
         assert self.mode == "inference", "Create model in inference mode."
-        assert (
-            len(molded_images) == self.config.BATCH_SIZE
-        ), "Number of images must be equal to BATCH_SIZE"
+        assert len(molded_images) == self.config.BATCH_SIZE, (
+            "Number of images must be equal to BATCH_SIZE"
+        )
 
         if verbose:
             log("Processing {} images".format(len(molded_images)))

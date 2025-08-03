@@ -16,71 +16,71 @@
 #
 #############################################################################
 
-#%module
-#% description: Calculate diversity indices based on a moving window using r.li packages
-#% keyword: raster
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of input raster map
-#% required: yes
-#%end
-#%option
-#% key: prefix
-#% type: string
-#% gisprompt: new,cell,raster
-#% key_desc: name
-#% description: Prefix for output raster map(s)
-#% required: yes
-#%end
-#%option
-#% key: alpha
-#% type: double
-#% key_desc: alpha value for Renyi entropy
-#% description: Order of generalized entropy (> 0.0; undefined for 1.0)
-#% multiple: yes
-#% required: no
-#%end
-#%option
-#% key: size
-#% type: integer
-#% key_desc: moving window
-#% multiple: yes
-#% description: Size of processing window (odd number only)
-#% answer: 3
-#% required: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% key_desc: method
-#% options: simpson,shannon,pielou,renyi
-#% multiple: yes
-#% description: Name of methods to use
-#% answer: simpson,shannon,pielou,renyi
-#% required: no
-#%end
-#%option
-#% key: exclude
-#% type: string
-#% key_desc: exclude method
-#% options: simpson,shannon,pielou,renyi
-#% multiple: yes
-#% description: Exclude methods
-#% required: no
-#%end
-#%flag
-#% key: t
-#% description: Preserve configuration files
-#%end
+# %module
+# % description: Calculate diversity indices based on a moving window using r.li packages
+# % keyword: raster
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of input raster map
+# % required: yes
+# %end
+# %option
+# % key: prefix
+# % type: string
+# % gisprompt: new,cell,raster
+# % key_desc: name
+# % description: Prefix for output raster map(s)
+# % required: yes
+# %end
+# %option
+# % key: alpha
+# % type: double
+# % key_desc: alpha value for Renyi entropy
+# % description: Order of generalized entropy (> 0.0; undefined for 1.0)
+# % multiple: yes
+# % required: no
+# %end
+# %option
+# % key: size
+# % type: integer
+# % key_desc: moving window
+# % multiple: yes
+# % description: Size of processing window (odd number only)
+# % answer: 3
+# % required: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % key_desc: method
+# % options: simpson,shannon,pielou,renyi
+# % multiple: yes
+# % description: Name of methods to use
+# % answer: simpson,shannon,pielou,renyi
+# % required: no
+# %end
+# %option
+# % key: exclude
+# % type: string
+# % key_desc: exclude method
+# % options: simpson,shannon,pielou,renyi
+# % multiple: yes
+# % description: Exclude methods
+# % required: no
+# %end
+# %flag
+# % key: t
+# % description: Preserve configuration files
+# %end
 
 # import library
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 
 # main function
@@ -98,7 +98,7 @@ def main():
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
         # return an error advice
-        grass.fatal(_("You must be in GRASS GIS to run this program."))
+        gs.fatal(_("You must be in GRASS GIS to run this program."))
 
     # input raster map
     map_in = options["input"]
@@ -126,15 +126,15 @@ def main():
         os.mkdir(rlidir)
 
     # set overwrite
-    overwrite = grass.overwrite()
+    overwrite = gs.overwrite()
 
     quiet = True
 
-    if grass.verbosity() > 2:
+    if gs.verbosity() > 2:
         quiet = False
     # if method and exclude option are not null return an error
     if methods != "simpson,shannon,pielou,renyi" and excludes != "":
-        grass.fatal(_("You can either use 'method' or 'exclude' option but not both"))
+        gs.fatal(_("You can either use 'method' or 'exclude' option but not both"))
     # calculate not excluded index
     elif excludes != "":
         excludes = excludes.split(",")
@@ -152,7 +152,7 @@ def main():
     # remove configuration files
     if not flags["t"]:
         removeConfFile(resolution, rlidir)
-    grass.message(_("Done."))
+    gs.message(_("Done."))
 
 
 # calculate only method included in method option
@@ -165,7 +165,7 @@ def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
         for i in method:
             if i == "renyi":
                 for alp in alpha:
-                    grass.run_command(
+                    gs.run_command(
                         "r.li.renyi",
                         input=map_in,
                         output=map_out + "_renyi_size_" + r + "_alpha_" + str(alp),
@@ -174,7 +174,7 @@ def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
                         overwrite=overw,
                     )
             else:
-                grass.run_command(
+                gs.run_command(
                     "r.li." + i,
                     input=map_in,
                     output=map_out + "_" + i + "_size_" + r,
@@ -197,7 +197,7 @@ def calculateE(home, map_in, map_out, res, alpha, method, quiet, overw):
             if method.count(i) == 0:
                 if i == "renyi":
                     for alp in alpha:
-                        grass.run_command(
+                        gs.run_command(
                             "r.li.renyi",
                             input=map_in,
                             output=map_out + "_renyi_size_" + r + "_alpha_" + str(alp),
@@ -206,7 +206,7 @@ def calculateE(home, map_in, map_out, res, alpha, method, quiet, overw):
                             overwrite=overw,
                         )
                 else:
-                    grass.run_command(
+                    gs.run_command(
                         "r.li." + i,
                         input=map_in,
                         output=map_out + "_" + i + "_size_" + r,
@@ -221,11 +221,11 @@ def checkAlpha(method, alpha_val, negative=False):
         # it's used when we check the exclude option
         if negative:
             if method.count("renyi") != 1 and alpha == "":
-                grass.fatal(_("You must set alpha value for Renyi entropy"))
+                gs.fatal(_("You must set alpha value for Renyi entropy"))
         # it's used when we check the method option
         else:
             if method.count("renyi") == 1 and alpha == "":
-                grass.fatal(_("You must set alpha value for Renyi entropy"))
+                gs.fatal(_("You must set alpha value for Renyi entropy"))
 
 
 # create configuration file instead using r.li.setup
@@ -236,7 +236,7 @@ def createConfFile(res, inpumap, home):
     # start the text for the conf file
     outputLine = ["SAMPLINGFRAME 0|0|1|1\n"]
     # return r.info about input file
-    rinfo = grass.raster_info(inpumap)
+    rinfo = gs.raster_info(inpumap)
     # calculate number of lines
     rows = (rinfo["north"] - rinfo["south"]) / rinfo["nsres"]
     # calculate number of columns
@@ -276,13 +276,11 @@ def checkValues(res, alpha=False):
         reso[i] = float(reso[i]) if alpha else int(reso[i])
         if not alpha and reso[i] % 2 == 0:
             # return the error advice
-            grass.fatal(
-                _("The size setting must be an odd number " "(found %d)" % reso[i])
-            )
+            gs.fatal(_("The size setting must be an odd number (found %d)") % reso[i])
     # create a range
     if typ == "range":
         if alpha:
-            grass.fatal(_("Range for alpha values is not supported"))
+            gs.fatal(_("Range for alpha values is not supported"))
         else:
             reso = range(reso[0], reso[1] + 1, 2)
     return reso
@@ -295,5 +293,5 @@ def removeConfFile(res, home):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

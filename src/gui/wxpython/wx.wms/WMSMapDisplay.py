@@ -8,7 +8,7 @@ Classes:
  - ImagePanel
 Functions:
  - NewImageFrame
- 
+
 (C) 2006-2011 by the GRASS Development Team
 This program is free software under the GNU General Public
 License (>=v2). Read the file COPYING that comes with GRASS
@@ -39,7 +39,7 @@ class ImagePanel(wx.Panel):
                 (10 + png.GetWidth(), 5),
                 (png.GetWidth(), png.GetHeight()),
             )
-        except IOError:
+        except OSError:
             message = "Image file %s not found" % imageFile
             grass.warning(message)
             raise SystemExit

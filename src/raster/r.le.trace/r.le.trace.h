@@ -27,21 +27,19 @@
 #include "string.h"
 #include <grass/gis.h>
 
-#define EQ(a, b)    (a-b < 0.01 && a-b > -0.01 )
-#define BIG   500000000.0
+#define EQ(a, b) (a - b < 0.01 && a - b > -0.01)
+#define BIG      500000000.0
 // undefine library's macro
 #undef MIN
-#define MIN   5
-#define NULLPTR (PATCH *) 0
+#define MIN     5
+#define NULLPTR (PATCH *)0
 
-typedef struct pt
-{
+typedef struct pt {
     int row, col;
     struct pt *next;
 } PT;
 
-typedef struct patch
-{
+typedef struct patch {
     double att;
     int num, n, s, e, w, npts;
     double c_row, c_col;
@@ -54,8 +52,7 @@ typedef struct patch
     struct patch *next;
 } PATCH;
 
-struct CHOICE
-{
+struct CHOICE {
     char fn[30], out[30];
     int patchmap, trace, perim2;
     int all;

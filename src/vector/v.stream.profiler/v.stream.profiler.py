@@ -20,91 +20,91 @@
 
 # More information
 # Started 14 October 2016
-#%module
-#% description: Build a linked stream network: each link knows its downstream link
-#% keyword: vector
-#% keyword: stream network
-#% keyword: hydrology
-#% keyword: geomorphology
-#%end
-#%option
-#%  key: cat
-#%  label: Starting line segment category
-#%  required: yes
-#%  guidependency: layer,column
-#%end
-#%option G_OPT_V_INPUT
-#%  key: streams
-#%  label: Vector input of stream network created by r.stream.extract
-#%  required: yes
-#%end
-#%option G_OPT_V_OUTPUT
-#%  key: outstream
-#%  label: Vector output stream
-#%  required: no
-#%end
-#%option
-#%  key: direction
-#%  type: string
-#%  label: Which directon to march: up or down
-#%  options: upstream,downstream
-#%  answer: downstream
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: elevation
-#%  label: Topography (DEM)
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: accumulation
-#%  label: Flow accumulation raster
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: slope
-#%  label: Map of slope created by r.slope.area
-#%  required: no
-#%end
-#%option
-#%  key: units
-#%  type: string
-#%  label: Flow accumulation units
-#%  options: m2, km2, cumecs, cfs
-#%  required: no
-#%end
-#%option
-#%  key: accum_mult
-#%  type: double
-#%  label: Multiplier to convert flow accumulation to your chosen unit
-#%  answer: 1
-#%  required: no
-#%end
-#%option G_OPT_R_INPUT
-#%  key: window
-#%  label: Averaging distance [map units]
-#%  required: no
-#%end
-#%option
-#%  key: plots
-#%  type: string
-#%  label: Plots to generate
-#%  options: LongProfile,SlopeAccum,SlopeDistance,AccumDistance
-#%  required: no
-#%  multiple: yes
-#%end
-#%option
-#%  key: outfile_original
-#%  type: string
-#%  label: output file for data on original grid
-#%  required: no
-#%end
-#%option
-#%  key: outfile_smoothed
-#%  type: string
-#%  label: output file for data on smoothed grid
-#%  required: no
-#%end
+# %module
+# % description: Build a linked stream network: each link knows its downstream link
+# % keyword: vector
+# % keyword: stream network
+# % keyword: hydrology
+# % keyword: geomorphology
+# %end
+# %option
+# %  key: cat
+# %  label: Starting line segment category
+# %  required: yes
+# %  guidependency: layer,column
+# %end
+# %option G_OPT_V_INPUT
+# %  key: streams
+# %  label: Vector input of stream network created by r.stream.extract
+# %  required: yes
+# %end
+# %option G_OPT_V_OUTPUT
+# %  key: outstream
+# %  label: Vector output stream
+# %  required: no
+# %end
+# %option
+# %  key: direction
+# %  type: string
+# %  label: Which directon to march: up or down
+# %  options: upstream,downstream
+# %  answer: downstream
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: elevation
+# %  label: Topography (DEM)
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: accumulation
+# %  label: Flow accumulation raster
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: slope
+# %  label: Map of slope created by r.slope.area
+# %  required: no
+# %end
+# %option
+# %  key: units
+# %  type: string
+# %  label: Flow accumulation units
+# %  options: m2, km2, cumecs, cfs
+# %  required: no
+# %end
+# %option
+# %  key: accum_mult
+# %  type: double
+# %  label: Multiplier to convert flow accumulation to your chosen unit
+# %  answer: 1
+# %  required: no
+# %end
+# %option G_OPT_R_INPUT
+# %  key: window
+# %  label: Averaging distance [map units]
+# %  required: no
+# %end
+# %option
+# %  key: plots
+# %  type: string
+# %  label: Plots to generate
+# %  options: LongProfile,SlopeAccum,SlopeDistance,AccumDistance
+# %  required: no
+# %  multiple: yes
+# %end
+# %option
+# %  key: outfile_original
+# %  type: string
+# %  label: output file for data on original grid
+# %  required: no
+# %end
+# %option
+# %  key: outfile_smoothed
+# %  type: string
+# %  label: output file for data on smoothed grid
+# %  required: no
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -123,7 +123,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 from grass.pygrass.vector.geometry import Point
 
 ###################
@@ -153,18 +153,32 @@ def moving_average(x, y, window):
 ###############
 
 
+def lazy_import_matplotlib():
+    """Lazy import matplotlib modules"""
+    global mpl
+    global plt
+    try:
+        import matplotlib as mpl
+
+        mpl.use("WXAgg")
+        from matplotlib import pyplot as plt
+    except ModuleNotFoundError:
+        gs.fatal(
+            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
+        )
+
+
 def main():
     """
     Links each river segment to the next downstream segment in a tributary
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
-    import matplotlib  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
-    from matplotlib import pyplot as plt
+    # lazy import modules
+    lazy_import_matplotlib()
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # Parsing
     window = float(options["window"])
@@ -195,7 +209,7 @@ def main():
     z = []
     if options["direction"] == "downstream":
         # Get network
-        gscript.message("Network")
+        gs.message("Network")
         while selected_cats[-1] != 0:
             selected_cats.append(int(tostream[cats == selected_cats[-1]]))
         x.append(selected_cats[-1])
@@ -211,16 +225,14 @@ def main():
             if isinstance(data.read(i + 1), vector.geometry.Line):
                 if data.read(i + 1).cat in selected_cats:
                     coords.append(data.read(i + 1).to_array())
-                    gscript.core.percent(
-                        _i, len(selected_cats), 100.0 / len(selected_cats)
-                    )
+                    gs.core.percent(_i, len(selected_cats), 100.0 / len(selected_cats))
                     _i += 1
-        gscript.core.percent(1, 1, 1)
+        gs.core.percent(1, 1, 1)
         coords = np.vstack(np.array(coords))
 
         _dx = np.diff(coords[:, 0])
         _dy = np.diff(coords[:, 1])
-        x_downstream_0 = np.hstack((0, np.cumsum((_dx ** 2 + _dy ** 2) ** 0.5)))
+        x_downstream_0 = np.hstack((0, np.cumsum((_dx**2 + _dy**2) ** 0.5)))
         x_downstream = x_downstream_0.copy()
 
     elif options["direction"] == "upstream":
@@ -244,11 +256,11 @@ def main():
             input=options["streams"],
             output=options["outstream"],
             cats=selected_cats_csv,
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
         )
 
     # Analysis
-    gscript.message("Elevation")
+    gs.message("Elevation")
     if options["elevation"]:
         _include_z = True
         DEM = RasterRow(options["elevation"])
@@ -259,17 +271,17 @@ def main():
         for row in coords:
             z.append(DEM.get_value(Point(row[0], row[1])))
             if float(_i) / len(coords) > float(_lasti) / len(coords):
-                gscript.core.percent(_i, len(coords), np.floor(_i - _lasti))
+                gs.core.percent(_i, len(coords), np.floor(_i - _lasti))
             _lasti = _i
             _i += 1
         DEM.close()
         z = np.array(z)
         if options["window"] is not "":
             x_downstream, z = moving_average(x_downstream_0, z, window)
-        gscript.core.percent(1, 1, 1)
+        gs.core.percent(1, 1, 1)
     else:
         _include_z = False
-    gscript.message("Slope")
+    gs.message("Slope")
     if options["slope"]:
         _include_S = True
         slope = RasterRow(options["slope"])
@@ -280,7 +292,7 @@ def main():
         for row in coords:
             S.append(slope.get_value(Point(row[0], row[1])))
             if float(_i) / len(coords) > float(_lasti) / len(coords):
-                gscript.core.percent(_i, len(coords), np.floor(_i - _lasti))
+                gs.core.percent(_i, len(coords), np.floor(_i - _lasti))
             _lasti = _i
             _i += 1
         slope.close()
@@ -288,10 +300,10 @@ def main():
         S_0 = S.copy()
         if options["window"] is not "":
             x_downstream, S = moving_average(x_downstream_0, S, window)
-        gscript.core.percent(1, 1, 1)
+        gs.core.percent(1, 1, 1)
     else:
         _include_S = False
-    gscript.message("Accumulation")
+    gs.message("Accumulation")
     if options["accumulation"]:
         _include_A = True
         accumulation = RasterRow(options["accumulation"])
@@ -302,7 +314,7 @@ def main():
         for row in coords:
             A.append(accumulation.get_value(Point(row[0], row[1])) * accum_mult)
             if float(_i) / len(coords) > float(_lasti) / len(coords):
-                gscript.core.percent(_i, len(coords), np.floor(_i - _lasti))
+                gs.core.percent(_i, len(coords), np.floor(_i - _lasti))
             _lasti = _i
             _i += 1
         accumulation.close()
@@ -310,7 +322,7 @@ def main():
         A_0 = A.copy()
         if options["window"] is not "":
             x_downstream, A = moving_average(x_downstream_0, A, window)
-        gscript.core.percent(1, 1, 1)
+        gs.core.percent(1, 1, 1)
     else:
         _include_A = False
 

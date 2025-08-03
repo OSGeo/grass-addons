@@ -1,4 +1,5 @@
 #include "local_proto.h"
+
 static int tail, head, fifo_count;
 
 int fifo_insert(POINT point)
@@ -8,8 +9,8 @@ int fifo_insert(POINT point)
 
     fifo_points[tail++] = point;
     if (tail > fifo_max) {
-	G_debug(1, "tail > fifo_max");
-	tail = 0;
+        G_debug(1, "tail > fifo_max");
+        tail = 0;
     }
     fifo_count++;
     return 0;
@@ -18,17 +19,16 @@ int fifo_insert(POINT point)
 POINT fifo_return_del(void)
 {
     if (head >= fifo_max) {
-	G_debug(1, "head >= fifo_max");
-	head = -1;
+        G_debug(1, "head >= fifo_max");
+        head = -1;
     }
     fifo_count--;
 
     return fifo_points[++head];
 }
 
-
-int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
-			     DCELL ** elevation, OUTLET outlet, int outs)
+int ram_calculate_downstream(CELL **dirs, DCELL **distance, DCELL **elevation,
+                             OUTLET outlet, int outs)
 {
 
     int r, c, i, j;
@@ -36,7 +36,7 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
     POINT n_cell;
     double cur_dist = 0;
     double tmp_dist = 0;
-    DCELL target_elev;		/* elevation at stream or outlet */
+    DCELL target_elev; /* elevation at stream or outlet */
     double easting, northing;
     double cell_easting, cell_northing;
     struct Cell_head window;
@@ -49,89 +49,88 @@ int ram_calculate_downstream(CELL ** dirs, DCELL ** distance,
     c = outlet.c;
 
     if (elevation) {
-	target_elev = elevation[r][c];
-	elevation[r][c] = 0.;
+        target_elev = elevation[r][c];
+        elevation[r][c] = 0.;
     }
     else
-	Rast_set_d_null_value(&target_elev, 1);
+        Rast_set_d_null_value(&target_elev, 1);
 
     while (tail != head) {
-	easting = window.west + (c + .5) * window.ew_res;
-	northing = window.north - (r + .5) * window.ns_res;
+        easting = window.west + (c + .5) * window.ew_res;
+        northing = window.north - (r + .5) * window.ns_res;
 
-	for (i = 1; i < 9; ++i) {
+        for (i = 1; i < 9; ++i) {
 
-	    if (NOT_IN_REGION(i))
-		continue;	/* border */
+            if (NOT_IN_REGION(i))
+                continue; /* border */
 
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
-	    if (dirs[NR(i)][NC(i)] == j) {	/* countributing cell, reset distance and elevation */
+            j = DIAG(i);
+            next_r = NR(i);
+            next_c = NC(i);
+            if (dirs[NR(i)][NC(i)] ==
+                j) { /* countributing cell, reset distance and elevation */
 
-		if (outs) {	/* outlet mode */
+                if (outs) { /* outlet mode */
 
-		    if (distance[NR(i)][NC(i)] == 0)
-			continue;	/* continue loop, point is not added to the queue! */
-		    else {
-			cell_northing =
-			    window.north - (next_r + .5) * window.ns_res;
-			cell_easting =
-			    window.west + (next_c + .5) * window.ew_res;
-			cur_dist =
-			    tmp_dist + G_distance(easting, northing,
-						  cell_easting,
-						  cell_northing);
-			distance[NR(i)][NC(i)] = cur_dist;
-		    }
+                    if (distance[NR(i)][NC(i)] == 0)
+                        continue; /* continue loop, point is not added to the
+                                     queue! */
+                    else {
+                        cell_northing =
+                            window.north - (next_r + .5) * window.ns_res;
+                        cell_easting =
+                            window.west + (next_c + .5) * window.ew_res;
+                        cur_dist =
+                            tmp_dist + G_distance(easting, northing,
+                                                  cell_easting, cell_northing);
+                        distance[NR(i)][NC(i)] = cur_dist;
+                    }
+                }
+                else { /* stream mode */
 
-		}
-		else {		/* stream mode */
+                    if (distance[next_r][next_c] == 0) {
+                        cur_dist = 0;
+                        if (elevation)
+                            target_elev = elevation[next_r][next_c];
+                    }
+                    else {
+                        cell_northing =
+                            window.north - (next_r + .5) * window.ns_res;
+                        cell_easting =
+                            window.west + (next_c + .5) * window.ew_res;
+                        cur_dist =
+                            tmp_dist + G_distance(easting, northing,
+                                                  cell_easting, cell_northing);
+                        distance[NR(i)][NC(i)] = cur_dist;
+                    }
+                } /* end stream mode */
 
-		    if (distance[next_r][next_c] == 0) {
-			cur_dist = 0;
-			if (elevation)
-			    target_elev = elevation[next_r][next_c];
-		    }
-		    else {
-			cell_northing =
-			    window.north - (next_r + .5) * window.ns_res;
-			cell_easting =
-			    window.west + (next_c + .5) * window.ew_res;
-			cur_dist =
-			    tmp_dist + G_distance(easting, northing,
-						  cell_easting,
-						  cell_northing);
-			distance[NR(i)][NC(i)] = cur_dist;
-		    }
-		}		/* end stream mode */
+                if (elevation) {
+                    /* TODO: check for NULL value */
+                    elevation[next_r][next_c] =
+                        elevation[next_r][next_c] - target_elev;
+                    n_cell.target_elev = target_elev;
+                }
 
-		if (elevation) {
-		    /* TODO: check for NULL value */
-		    elevation[next_r][next_c] =
-			elevation[next_r][next_c] - target_elev;
-		    n_cell.target_elev = target_elev;
-		}
+                n_cell.r = next_r;
+                n_cell.c = next_c;
+                n_cell.cur_dist = cur_dist;
+                fifo_insert(n_cell);
+            }
+        } /* end for i... */
 
-		n_cell.r = next_r;
-		n_cell.c = next_c;
-		n_cell.cur_dist = cur_dist;
-		fifo_insert(n_cell);
-	    }
-	}			/* end for i... */
+        n_cell = fifo_return_del();
+        r = n_cell.r;
+        c = n_cell.c;
+        tmp_dist = n_cell.cur_dist;
+        target_elev = n_cell.target_elev;
 
-	n_cell = fifo_return_del();
-	r = n_cell.r;
-	c = n_cell.c;
-	tmp_dist = n_cell.cur_dist;
-	target_elev = n_cell.target_elev;
-
-    }				/* end while */
+    } /* end while */
     return 0;
 }
 
-int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
-			     SEGMENT *elevation, OUTLET outlet, int outs)
+int seg_calculate_downstream(SEGMENT *dirs, SEGMENT *distance,
+                             SEGMENT *elevation, OUTLET outlet, int outs)
 {
 
     int r, c, i, j;
@@ -139,7 +138,7 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
     POINT n_cell;
     double cur_dist = 0;
     double tmp_dist = 0;
-    DCELL target_elev;		/* elevation at stream or outlet */
+    DCELL target_elev; /* elevation at stream or outlet */
     double easting, northing;
     double cell_easting, cell_northing;
     CELL dirs_cell;
@@ -155,94 +154,92 @@ int seg_calculate_downstream(SEGMENT *dirs, SEGMENT * distance,
     c = outlet.c;
 
     if (elevation) {
-	Segment_get(elevation, &target_elev, r, c);
-	Segment_put(elevation, &zero_cell, r, c);
+        Segment_get(elevation, &target_elev, r, c);
+        Segment_put(elevation, &zero_cell, r, c);
     }
     else
-	Rast_set_d_null_value(&target_elev, 1);
+        Rast_set_d_null_value(&target_elev, 1);
 
     while (tail != head) {
-	easting = window.west + (c + .5) * window.ew_res;
-	northing = window.north - (r + .5) * window.ns_res;
+        easting = window.west + (c + .5) * window.ew_res;
+        northing = window.north - (r + .5) * window.ns_res;
 
-	for (i = 1; i < 9; ++i) {
+        for (i = 1; i < 9; ++i) {
 
-	    if (NOT_IN_REGION(i))
-		continue;	/* border */
+            if (NOT_IN_REGION(i))
+                continue; /* border */
 
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
+            j = DIAG(i);
+            next_r = NR(i);
+            next_c = NC(i);
 
-	    Segment_get(dirs, &dirs_cell, next_r, next_c);
-	    if (dirs_cell == j) {	/* countributing cell, reset distance and elevation */
+            Segment_get(dirs, &dirs_cell, next_r, next_c);
+            if (dirs_cell ==
+                j) { /* countributing cell, reset distance and elevation */
 
-		if (outs) {	/* outlet mode */
-		    Segment_get(distance, &distance_cell, next_r, next_c);
-		    if (distance_cell == 0)
-			continue;	/* continue loop, point is not added to the queue! */
-		    else {
-			cell_northing =
-			    window.north - (next_r + .5) * window.ns_res;
-			cell_easting =
-			    window.west + (next_c + .5) * window.ew_res;
-			cur_dist =
-			    tmp_dist + G_distance(easting, northing,
-						  cell_easting,
-						  cell_northing);
-			Segment_put(distance, &cur_dist, next_r, next_c);
+                if (outs) { /* outlet mode */
+                    Segment_get(distance, &distance_cell, next_r, next_c);
+                    if (distance_cell == 0)
+                        continue; /* continue loop, point is not added to the
+                                     queue! */
+                    else {
+                        cell_northing =
+                            window.north - (next_r + .5) * window.ns_res;
+                        cell_easting =
+                            window.west + (next_c + .5) * window.ew_res;
+                        cur_dist =
+                            tmp_dist + G_distance(easting, northing,
+                                                  cell_easting, cell_northing);
+                        Segment_put(distance, &cur_dist, next_r, next_c);
+                    }
+                }
+                else { /* stream mode */
+                    Segment_get(distance, &distance_cell, next_r, next_c);
+                    if (distance_cell == 0) {
+                        cur_dist = 0;
+                        if (elevation)
+                            Segment_get(elevation, &target_elev, next_r,
+                                        next_c);
+                    }
+                    else {
+                        cell_northing =
+                            window.north - (next_r + .5) * window.ns_res;
+                        cell_easting =
+                            window.west + (next_c + .5) * window.ew_res;
+                        cur_dist =
+                            tmp_dist + G_distance(easting, northing,
+                                                  cell_easting, cell_northing);
+                        Segment_put(distance, &cur_dist, next_r, next_c);
+                    }
+                } /* end stream mode */
 
-		    }
+                if (elevation) {
+                    /* TODO: check for NULL value */
+                    Segment_get(elevation, &elevation_cell, next_r, next_c);
+                    elevation_cell -= target_elev;
+                    Segment_put(elevation, &elevation_cell, next_r, next_c);
+                    n_cell.target_elev = target_elev;
+                }
 
-		}
-		else {		/* stream mode */
-		    Segment_get(distance, &distance_cell, next_r, next_c);
-		    if (distance_cell == 0) {
-			cur_dist = 0;
-			if (elevation)
-			    Segment_get(elevation, &target_elev, next_r,
-					next_c);
-		    }
-		    else {
-			cell_northing =
-			    window.north - (next_r + .5) * window.ns_res;
-			cell_easting =
-			    window.west + (next_c + .5) * window.ew_res;
-			cur_dist =
-			    tmp_dist + G_distance(easting, northing,
-						  cell_easting,
-						  cell_northing);
-			Segment_put(distance, &cur_dist, next_r, next_c);
-		    }
-		}		/* end stream mode */
+                n_cell.r = next_r;
+                n_cell.c = next_c;
+                n_cell.cur_dist = cur_dist;
+                fifo_insert(n_cell);
+            }
+        } /* end for i... */
 
-		if (elevation) {
-		    /* TODO: check for NULL value */
-		    Segment_get(elevation, &elevation_cell, next_r, next_c);
-		    elevation_cell -= target_elev;
-		    Segment_put(elevation, &elevation_cell, next_r, next_c);
-		    n_cell.target_elev = target_elev;
-		}
+        n_cell = fifo_return_del();
+        r = n_cell.r;
+        c = n_cell.c;
+        tmp_dist = n_cell.cur_dist;
+        target_elev = n_cell.target_elev;
 
-		n_cell.r = next_r;
-		n_cell.c = next_c;
-		n_cell.cur_dist = cur_dist;
-		fifo_insert(n_cell);
-	    }
-	}			/* end for i... */
-
-	n_cell = fifo_return_del();
-	r = n_cell.r;
-	c = n_cell.c;
-	tmp_dist = n_cell.cur_dist;
-	target_elev = n_cell.target_elev;
-
-    }				/* end while */
+    } /* end while */
 
     return 0;
 }
 
-int ram_fill_basins(OUTLET outlet, DCELL ** distance, CELL ** dirs)
+int ram_fill_basins(OUTLET outlet, DCELL **distance, CELL **dirs)
 {
     /* fill empty spaces with zeros but leave -1 as a markers of NULL */
     int r, c, i, j;
@@ -260,34 +257,34 @@ int ram_fill_basins(OUTLET outlet, DCELL ** distance, CELL ** dirs)
     distance[r][c] = stop;
 
     while (tail != head) {
-	for (i = 1; i < 9; ++i) {
-	    if (NOT_IN_REGION(i))
-		continue;	/* out of border */
+        for (i = 1; i < 9; ++i) {
+            if (NOT_IN_REGION(i))
+                continue; /* out of border */
 
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
+            j = DIAG(i);
+            next_r = NR(i);
+            next_c = NC(i);
 
-	    if (dirs[next_r][next_c] == j) {	/* countributing cell */
+            if (dirs[next_r][next_c] == j) { /* countributing cell */
 
-		distance[next_r][next_c] =
-		    (distance[next_r][next_c] == stop) ? stop : val;
-		n_cell.r = next_r;
-		n_cell.c = next_c;
-		fifo_insert(n_cell);
-	    }
+                distance[next_r][next_c] =
+                    (distance[next_r][next_c] == stop) ? stop : val;
+                n_cell.r = next_r;
+                n_cell.c = next_c;
+                fifo_insert(n_cell);
+            }
 
-	}			/* end for i... */
+        } /* end for i... */
 
-	n_cell = fifo_return_del();
-	r = n_cell.r;
-	c = n_cell.c;
+        n_cell = fifo_return_del();
+        r = n_cell.r;
+        c = n_cell.c;
     }
 
     return 0;
 }
 
-int seg_fill_basins(OUTLET outlet, SEGMENT * distance, SEGMENT * dirs)
+int seg_fill_basins(OUTLET outlet, SEGMENT *distance, SEGMENT *dirs)
 {
     /* fill empty spaces with zeros but leave -1 as a markers of NULL */
     int r, c, i, j;
@@ -308,39 +305,37 @@ int seg_fill_basins(OUTLET outlet, SEGMENT * distance, SEGMENT * dirs)
 
     while (tail != head) {
 
-	for (i = 1; i < 9; ++i) {
-	    if (NOT_IN_REGION(i))
-		continue;	/* out of border */
+        for (i = 1; i < 9; ++i) {
+            if (NOT_IN_REGION(i))
+                continue; /* out of border */
 
-	    j = DIAG(i);
-	    next_r = NR(i);
-	    next_c = NC(i);
+            j = DIAG(i);
+            next_r = NR(i);
+            next_c = NC(i);
 
-	    Segment_get(dirs, &dirs_cell, next_r, next_c);
+            Segment_get(dirs, &dirs_cell, next_r, next_c);
 
-	    if (dirs_cell == j) {	/* countributing cell */
+            if (dirs_cell == j) { /* countributing cell */
 
-		Segment_get(distance, &distance_cell, next_r, next_c);
-		distance_cell = (distance_cell == stop) ? stop : val;
-		Segment_put(distance, &distance_cell, next_r, next_c);
-		n_cell.r = next_r;
-		n_cell.c = next_c;
-		fifo_insert(n_cell);
+                Segment_get(distance, &distance_cell, next_r, next_c);
+                distance_cell = (distance_cell == stop) ? stop : val;
+                Segment_put(distance, &distance_cell, next_r, next_c);
+                n_cell.r = next_r;
+                n_cell.c = next_c;
+                fifo_insert(n_cell);
+            }
+        } /* end for i... */
 
-	    }
-	}			/* end for i... */
-
-	n_cell = fifo_return_del();
-	r = n_cell.r;
-	c = n_cell.c;
+        n_cell = fifo_return_del();
+        r = n_cell.r;
+        c = n_cell.c;
     }
 
     return 0;
 }
 
-int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
-			   DCELL ** elevation, DCELL ** tmp_elevation,
-			   int near)
+int ram_calculate_upstream(DCELL **distance, CELL **dirs, DCELL **elevation,
+                           DCELL **tmp_elevation, int near)
 {
     int r, c;
     int next_r, next_c;
@@ -360,128 +355,130 @@ int ram_calculate_upstream(DCELL ** distance, CELL ** dirs,
     Rast_get_window(&window);
 
     if (elevation) {
-	elevation_data_size = Rast_cell_size(DCELL_TYPE);
-	for (r = 0; r < nrows; ++r) {
-	    memcpy(tmp_elevation[r], elevation[r],
-		   ncols * elevation_data_size);
-	}
+        elevation_data_size = Rast_cell_size(DCELL_TYPE);
+        for (r = 0; r < nrows; ++r) {
+            memcpy(tmp_elevation[r], elevation[r], ncols * elevation_data_size);
+        }
     }
 
     for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
+        for (c = 0; c < ncols; ++c) {
 
-	    for (i = 1; i < 9; ++i) {
-		if (NOT_IN_REGION(i))
-		    continue;	/* out of border */
+            for (i = 1; i < 9; ++i) {
+                if (NOT_IN_REGION(i))
+                    continue; /* out of border */
 
-		j = DIAG(i);
-		next_r = NR(i);
-		next_c = NC(i);
-		if (dirs[next_r][next_c] == j && distance[r][c] != 0) {	/* is contributing cell */
-		    distance[r][c] = -1;
-		    break;
-		}
-	    }
-	    if (distance[r][c] == 1 && dirs[r][c] > 0)
-		n_inits++;
-	    else if (dirs[r][c] > 0)
-		distance[r][c] = -1;
-	}
+                j = DIAG(i);
+                next_r = NR(i);
+                next_c = NC(i);
+                if (dirs[next_r][next_c] == j &&
+                    distance[r][c] != 0) { /* is contributing cell */
+                    distance[r][c] = -1;
+                    break;
+                }
+            }
+            if (distance[r][c] == 1 && dirs[r][c] > 0)
+                n_inits++;
+            else if (dirs[r][c] > 0)
+                distance[r][c] = -1;
+        }
     }
 
-    d_inits = (POINT *) G_malloc(n_inits * sizeof(POINT));
+    d_inits = (POINT *)G_malloc(n_inits * sizeof(POINT));
 
     k = 0;
     for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
+        for (c = 0; c < ncols; ++c) {
 
-	    if (distance[r][c] == 1) {
+            if (distance[r][c] == 1) {
 
-		distance[r][c] = 0;
-		if (elevation)
-		    elevation[r][c] = 0;
+                distance[r][c] = 0;
+                if (elevation)
+                    elevation[r][c] = 0;
 
-		d = dirs[r][c];
+                d = dirs[r][c];
 
-		if (dirs[NR(d)][NC(d)] < 0)
-		    continue;
+                if (dirs[NR(d)][NC(d)] < 0)
+                    continue;
 
-		d_inits[k].r = r;
-		d_inits[k].c = c;
-		d_inits[k].cur_dist = 0;
+                d_inits[k].r = r;
+                d_inits[k].c = c;
+                d_inits[k].cur_dist = 0;
 
-		/* TODO: check for NULL value */
-		if (elevation)
-		    d_inits[k].target_elev = tmp_elevation[r][c];
+                /* TODO: check for NULL value */
+                if (elevation)
+                    d_inits[k].target_elev = tmp_elevation[r][c];
 
-		k++;
-	    }
-	}
+                k++;
+            }
+        }
     }
 
     counter = n_inits = k;
     /* return 0; */
     G_message(_("Calculate upstream parameters..."));
     while (n_inits > 0) {
-	k = 0;
-	G_percent((counter - n_inits), counter, 10);
-	for (i = 0; i < n_inits; ++i) {
-	    r = d_inits[i].r;
-	    c = d_inits[i].c;
-	    d = dirs[r][c];
-	    next_r = NR(d);
-	    next_c = NC(d);
-	    tmp_dist = d_inits[i].cur_dist;
+        k = 0;
+        G_percent((counter - n_inits), counter, 10);
+        for (i = 0; i < n_inits; ++i) {
+            r = d_inits[i].r;
+            c = d_inits[i].c;
+            d = dirs[r][c];
+            next_r = NR(d);
+            next_c = NC(d);
+            tmp_dist = d_inits[i].cur_dist;
 
-	    if (elevation)
-		target_elev = d_inits[i].target_elev;
+            if (elevation)
+                target_elev = d_inits[i].target_elev;
 
-	    easting = window.west + (c + 0.5) * window.ew_res;
-	    northing = window.north - (r + 0.5) * window.ns_res;
-	    cell_easting = window.west + (next_c + 0.5) * window.ew_res;
-	    cell_northing = window.north - (next_r + 0.5) * window.ns_res;
+            easting = window.west + (c + 0.5) * window.ew_res;
+            northing = window.north - (r + 0.5) * window.ns_res;
+            cell_easting = window.west + (next_c + 0.5) * window.ew_res;
+            cell_northing = window.north - (next_r + 0.5) * window.ns_res;
 
-	    cur_dist = tmp_dist +
-		G_distance(easting, northing, cell_easting, cell_northing);
+            cur_dist = tmp_dist + G_distance(easting, northing, cell_easting,
+                                             cell_northing);
 
-	    if (near)
-		done = (distance[next_r][next_c] > cur_dist ||
-			distance[next_r][next_c] <= 0) ? 1 : 0;
-	    else
-		done = (distance[next_r][next_c] < cur_dist ||
-			distance[next_r][next_c] <= 0) ? 1 : 0;
+            if (near)
+                done = (distance[next_r][next_c] > cur_dist ||
+                        distance[next_r][next_c] <= 0)
+                           ? 1
+                           : 0;
+            else
+                done = (distance[next_r][next_c] < cur_dist ||
+                        distance[next_r][next_c] <= 0)
+                           ? 1
+                           : 0;
 
-	    if (done) {
-		distance[next_r][next_c] = cur_dist;
-		if (elevation) {
-		    /* TODO: check for NULL value */
-		    elevation[next_r][next_c] =
-			target_elev - tmp_elevation[next_r][next_c];
-		}
-		if (dirs[NR(d)][NC(d)] < 1)
-		    continue;
+            if (done) {
+                distance[next_r][next_c] = cur_dist;
+                if (elevation) {
+                    /* TODO: check for NULL value */
+                    elevation[next_r][next_c] =
+                        target_elev - tmp_elevation[next_r][next_c];
+                }
+                if (dirs[NR(d)][NC(d)] < 1)
+                    continue;
 
-		d_inits[k].r = next_r;
-		d_inits[k].c = next_c;
-		d_inits[k].cur_dist = cur_dist;
+                d_inits[k].r = next_r;
+                d_inits[k].c = next_c;
+                d_inits[k].cur_dist = cur_dist;
 
-		/* TODO: check for NULL value */
-		if (elevation)
-		    d_inits[k].target_elev = target_elev;
-		k++;
-	    }			/* end of if done */
-	}
-	n_inits = k;
+                /* TODO: check for NULL value */
+                if (elevation)
+                    d_inits[k].target_elev = target_elev;
+                k++;
+            } /* end of if done */
+        }
+        n_inits = k;
     }
     G_percent((counter - n_inits), counter, 10);
 
     return 0;
 }
 
-
-int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
-			   SEGMENT * elevation, SEGMENT * tmp_elevation,
-			   int near)
+int seg_calculate_upstream(SEGMENT *distance, SEGMENT *dirs, SEGMENT *elevation,
+                           SEGMENT *tmp_elevation, int near)
 {
     int r, c;
     int next_r, next_c;
@@ -506,137 +503,134 @@ int seg_calculate_upstream(SEGMENT * distance, SEGMENT * dirs,
 
     if (elevation) {
         /* elevation_data_size = Rast_cell_size(DCELL_TYPE); */
-	for (r = 0; r < nrows; ++r) {
-	    for (c = 0; c < ncols; ++c) {
-		Segment_get(elevation, &elevation_cell, r, c);
-		Segment_put(tmp_elevation, &elevation_cell, r, c);
-	    }
-	}
+        for (r = 0; r < nrows; ++r) {
+            for (c = 0; c < ncols; ++c) {
+                Segment_get(elevation, &elevation_cell, r, c);
+                Segment_put(tmp_elevation, &elevation_cell, r, c);
+            }
+        }
     }
 
     for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
+        for (c = 0; c < ncols; ++c) {
 
-	    Segment_get(distance, &distance_cell, r, c);
+            Segment_get(distance, &distance_cell, r, c);
 
-	    for (i = 1; i < 9; ++i) {
-		if (NOT_IN_REGION(i))
-		    continue;	/* out of border */
+            for (i = 1; i < 9; ++i) {
+                if (NOT_IN_REGION(i))
+                    continue; /* out of border */
 
-		j = DIAG(i);
-		next_r = NR(i);
-		next_c = NC(i);
+                j = DIAG(i);
+                next_r = NR(i);
+                next_c = NC(i);
 
-		Segment_get(dirs, &dirs_cell, next_r, next_c);
+                Segment_get(dirs, &dirs_cell, next_r, next_c);
 
-		if (dirs_cell == j && distance_cell != 0) {	/* is contributing cell */
-		    Segment_put(distance, &minus_one_cell, r, c);
-		    break;
-		}
-	    }			/* end for i */
+                if (dirs_cell == j &&
+                    distance_cell != 0) { /* is contributing cell */
+                    Segment_put(distance, &minus_one_cell, r, c);
+                    break;
+                }
+            } /* end for i */
 
-	    Segment_get(distance, &distance_cell, r, c);
-	    Segment_get(dirs, &dirs_cell, r, c);
-	    if (distance_cell == 1 && dirs_cell > 0)
-		n_inits++;
-	    else if (dirs_cell > 0)
-		Segment_put(distance, &minus_one_cell, r, c);
-	}
+            Segment_get(distance, &distance_cell, r, c);
+            Segment_get(dirs, &dirs_cell, r, c);
+            if (distance_cell == 1 && dirs_cell > 0)
+                n_inits++;
+            else if (dirs_cell > 0)
+                Segment_put(distance, &minus_one_cell, r, c);
+        }
     }
 
-    d_inits = (POINT *) G_malloc(n_inits * sizeof(POINT));
+    d_inits = (POINT *)G_malloc(n_inits * sizeof(POINT));
 
     k = 0;
     for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
+        for (c = 0; c < ncols; ++c) {
 
-	    Segment_get(distance, &distance_cell, r, c);
-	    if (distance_cell == 1) {
+            Segment_get(distance, &distance_cell, r, c);
+            if (distance_cell == 1) {
 
-		Segment_put(distance, &zero_cell, r, c);
-		if (elevation)
-		    Segment_put(elevation, &zero_cell, r, c);
+                Segment_put(distance, &zero_cell, r, c);
+                if (elevation)
+                    Segment_put(elevation, &zero_cell, r, c);
 
-		Segment_get(dirs, &d, r, c);
-		Segment_get(dirs, &d_next, NR(d), NR(d));
+                Segment_get(dirs, &d, r, c);
+                Segment_get(dirs, &d_next, NR(d), NR(d));
 
-		if (d_next < 0)
-		    continue;
+                if (d_next < 0)
+                    continue;
 
-		d_inits[k].r = r;
-		d_inits[k].c = c;
-		d_inits[k].cur_dist = 0;
+                d_inits[k].r = r;
+                d_inits[k].c = c;
+                d_inits[k].cur_dist = 0;
 
-		if (elevation)
-		    Segment_get(tmp_elevation, &(d_inits[k].target_elev), r,
-				c);
-		k++;
-	    }
-	}
+                if (elevation)
+                    Segment_get(tmp_elevation, &(d_inits[k].target_elev), r, c);
+                k++;
+            }
+        }
     }
 
     counter = n_inits = k;
 
     G_message(_("Calculate upstream parameters..."));
     while (n_inits > 0) {
-	k = 0;
-	G_percent((counter - n_inits), counter, 10);
+        k = 0;
+        G_percent((counter - n_inits), counter, 10);
 
-	for (i = 0; i < n_inits; ++i) {
-	    r = d_inits[i].r;
-	    c = d_inits[i].c;
+        for (i = 0; i < n_inits; ++i) {
+            r = d_inits[i].r;
+            c = d_inits[i].c;
 
-	    Segment_get(dirs, &d, r, c);
-	    next_r = NR(d);
-	    next_c = NC(d);
-	    tmp_dist = d_inits[i].cur_dist;
+            Segment_get(dirs, &d, r, c);
+            next_r = NR(d);
+            next_c = NC(d);
+            tmp_dist = d_inits[i].cur_dist;
 
-	    if (elevation)
-		target_elev = d_inits[i].target_elev;
+            if (elevation)
+                target_elev = d_inits[i].target_elev;
 
-	    easting = window.west + (c + 0.5) * window.ew_res;
-	    northing = window.north - (r + 0.5) * window.ns_res;
-	    cell_easting = window.west + (next_c + 0.5) * window.ew_res;
-	    cell_northing = window.north - (next_r + 0.5) * window.ns_res;
+            easting = window.west + (c + 0.5) * window.ew_res;
+            northing = window.north - (r + 0.5) * window.ns_res;
+            cell_easting = window.west + (next_c + 0.5) * window.ew_res;
+            cell_northing = window.north - (next_r + 0.5) * window.ns_res;
 
-	    cur_dist = tmp_dist +
-		G_distance(easting, northing, cell_easting, cell_northing);
+            cur_dist = tmp_dist + G_distance(easting, northing, cell_easting,
+                                             cell_northing);
 
-	    Segment_get(distance, &distance_cell, next_r, next_c);
+            Segment_get(distance, &distance_cell, next_r, next_c);
 
-	    if (near)
-		done = (distance_cell > cur_dist ||
-			distance_cell <= 0) ? 1 : 0;
-	    else
-		done = (distance_cell < cur_dist ||
-			distance_cell <= 0) ? 1 : 0;
+            if (near)
+                done = (distance_cell > cur_dist || distance_cell <= 0) ? 1 : 0;
+            else
+                done = (distance_cell < cur_dist || distance_cell <= 0) ? 1 : 0;
 
-	    if (done) {
-		Segment_put(distance, &cur_dist, next_r, next_c);
-		if (elevation) {
-		    /* TODO: check for NULL value */
-		    Segment_get(tmp_elevation, &tmp_elevation_cell, next_r,
-				next_c);
-		    tmp_elevation_cell = target_elev - tmp_elevation_cell;
-		    Segment_put(elevation, &tmp_elevation_cell, next_r,
-				next_c);
-		}
+            if (done) {
+                Segment_put(distance, &cur_dist, next_r, next_c);
+                if (elevation) {
+                    /* TODO: check for NULL value */
+                    Segment_get(tmp_elevation, &tmp_elevation_cell, next_r,
+                                next_c);
+                    tmp_elevation_cell = target_elev - tmp_elevation_cell;
+                    Segment_put(elevation, &tmp_elevation_cell, next_r, next_c);
+                }
 
-		Segment_get(dirs, &dirs_cell, NR(d), NC(d));
-		if (dirs_cell < 1)
-		    continue;
+                Segment_get(dirs, &dirs_cell, NR(d), NC(d));
+                if (dirs_cell < 1)
+                    continue;
 
-		d_inits[k].r = next_r;
-		d_inits[k].c = next_c;
-		d_inits[k].cur_dist = cur_dist;
+                d_inits[k].r = next_r;
+                d_inits[k].c = next_c;
+                d_inits[k].cur_dist = cur_dist;
 
-		/* TODO: check for NULL value */
-		if (elevation)
-		    d_inits[k].target_elev = target_elev;
-		k++;
-	    }			/* end of if done */
-	}
-	n_inits = k;
+                /* TODO: check for NULL value */
+                if (elevation)
+                    d_inits[k].target_elev = target_elev;
+                k++;
+            } /* end of if done */
+        }
+        n_inits = k;
     }
     G_percent(1, 1, 1);
 

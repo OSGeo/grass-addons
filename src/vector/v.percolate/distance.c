@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    distance.c
@@ -14,12 +13,10 @@
 
 #include "distance.h"
 
-
 /***********************************************************************/
 /* Public functions                                                    */
 
 /***********************************************************************/
-
 
 float **initialiseDistanceMatrix(long int numpoints)
 {
@@ -34,9 +31,7 @@ float **initialiseDistanceMatrix(long int numpoints)
     return matrix;
 }
 
-
 /***********************************************************************/
-
 
 void freeDistanceMatrix(long int numpoints, float **matrix)
 {
@@ -48,10 +43,9 @@ void freeDistanceMatrix(long int numpoints, float **matrix)
     G_free(matrix);
 }
 
-
 /***********************************************************************/
 
-float computeDistanceMatrix(float **matrix, long int numpoints, node * nodes)
+float computeDistanceMatrix(float **matrix, long int numpoints, node *nodes)
 {
     float mindist;
     float maxdist;
@@ -61,7 +55,7 @@ float computeDistanceMatrix(float **matrix, long int numpoints, node * nodes)
     int geodesic;
 
     geodesic = (G_projection() == PROJECTION_LL);
-    G_message (_("The projection code is %d\n"), geodesic);
+    G_message(_("The projection code is %d\n"), geodesic);
 #endif
 
     if (!G_begin_distance_calculations()) {
@@ -83,11 +77,10 @@ float computeDistanceMatrix(float **matrix, long int numpoints, node * nodes)
         }
     }
 
-    G_message(_("Computed distance matrix, min = %1.1f, max = %1.1f"),
-              mindist, maxdist);
+    G_message(_("Computed distance matrix, min = %1.1f, max = %1.1f"), mindist,
+              maxdist);
     return maxdist;
 }
-
 
 /***********************************************************************/
 
@@ -108,11 +101,10 @@ void printDistanceMatrix(float **matrix, long int numpoints)
     }
 }
 
-
 /***********************************************************************/
 
 void printDistanceMatrixWithNodeCats(float **matrix, long int numpoints,
-                                     node * nodes)
+                                     node *nodes)
 {
     int i, j;
 

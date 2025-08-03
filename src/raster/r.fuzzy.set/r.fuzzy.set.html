@@ -2,7 +2,7 @@
 <dl>
 <dt><b>input</b></dt>
 <dd>Name of input raster map to be fuzzified. This map may be of any type and may
-require null values. 
+require null values.
 </dd>
 <dt><b>points</b></dt>
 <dd>A list containing 4 (A,B,C,D) or 2 (A,B) points defining set boundaries as defined in Figure 1.
@@ -86,7 +86,7 @@ GIS operations.
 Depending on type of the boundary, different equations are used to determine its
 shape:
 <p>
-<b>Linear:</b> the membership is calculated according following equation:<br>
+<b>Linear:</b> the membership is calculated according following equation:
 <pre><code>
 value  <=  A -> x = 0
 A < value > B -> x = (value-A)/(B-A)
@@ -98,33 +98,37 @@ where x: membership
 </code></pre>
 
 <p>
-<b>S-shaped:</b> it use following equation:
+<b>S-shaped:</b> the membership is calculated according following equation:
 <pre><code>
 sin(x * Pi/2)^m (for positive shape parameter)
 1-cos(x * Pi/2)^m (for negative shape parameter)
 
-where x: membership, and 
-m = 2^exp(2,shape) (for positive shape parameter)
-m = 2^(1+shape) (for negative shape parameter)
-where m: shape parameter.
+where x: membership, and
+m = 2^exp(2 * |shape|)
+For default shape=0, m = 2 (most common parameter for that equation).
 </code></pre>
-
-For default shape parameter <code>shape = 0</code>, 
-<code>m = 2</code> which is the most common parameter for
-that equation.
 
 <p>
-<b>G-shaped and J shaped:</b> it use following equations: 
+<b>G-shaped:</b> the membership is calculated according following equation:
 <pre><code>
-tan(x * Pi/4)^m (for J-shaped)
-tan(x * Pi/4)^1/m (for G-shaped)
+tan(x * Pi/4)^1/m
 
-where x: membership, and 
-m = 2^exp(2,shape) (for positive shape parameter)
-m = 2^(1+shape) (for negative shape parameter)
-where m: shape parameter.
+where x: membership, and
+m = 2^exp(-2 * shape) (for negative shape parameter)
+m = 2^(1-shape) (for positive shape parameter)
+For default shape=0, m = 2 (most common parameter for that equation).
 </code></pre>
- 
+
+<p>
+<b>J shaped:</b> it use following equations:
+<pre><code>
+tan(x * Pi/4)^m
+
+where x: membership, and
+m = 2^exp(2 * shape) (for positive shape parameter)
+m = 2^(1+shape) (for negative shape parameter)
+For default shape=0, m = 2 (most common parameter for that equation).
+</code></pre>
 
 <h2>SEE ALSO</h2>
 
@@ -158,13 +162,9 @@ foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
 Statistical Software, 31(2), 1-27. DOI <a href="https://doi.org/10.18637/jss.v031.i02">https://doi.org/10.18637/jss.v031.i02</a>
 
 <li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
+R~package version~1.0, URL <a href="https://cran.r-project.org/package=sets">https://cran.r-project.org/package=sets</a>.
 </ul>
 
 <h2>AUTHOR</h2>
-Jarek Jasiewicz
 
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->
+Jarek Jasiewicz

@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../../..
 
 PGM = r.pi.energy
 
-LIB_NAME = grass_rpi
+LIB_NAME = grass_rpi.$(GRASS_LIB_VERSION_NUMBER)
 RPI_LIB  = -l$(LIB_NAME)
 
 LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB) $(RPI_LIB)

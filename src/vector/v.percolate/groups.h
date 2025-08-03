@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    groups.h
@@ -11,7 +10,6 @@
  */
 
 /***********************************************************************/
-
 
 #ifndef GROUPS_H
 #define GROUPS_H
@@ -28,25 +26,23 @@
 #include "node.h"
 #include "file.h"
 
-
 /***********************************************************************/
 /* Types                                                         */
 
 /***********************************************************************/
 
-typedef struct tGroupInfo tGroupInfo;   /* We must do this to allow type node to
-                                           reference itself  */
+typedef struct tGroupInfo tGroupInfo; /* We must do this to allow type node to
+                                         reference itself  */
 
-struct tGroupInfo
-{
-    int birth;                  /* iteration when created */
-    int death;                  /* iteration when died (incorporated into another group) */
-    int longevity;              /* in iteration */
-    float birth_distance;       /* distance at which created */
-    float death_distance;       /* distance at which died (incorporated into another group) */
-    int wins;                   /* Number of groups (membership > 1) subsumed into this group */
+struct tGroupInfo {
+    int birth;     /* iteration when created */
+    int death;     /* iteration when died (incorporated into another group) */
+    int longevity; /* in iteration */
+    float birth_distance; /* distance at which created */
+    float death_distance; /* distance at which died (incorporated into another
+                             group) */
+    int wins; /* Number of groups (membership > 1) subsumed into this group */
 };
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -80,7 +76,7 @@ void addToGroupSize(int *, int, int);
 /* void addToGroupSize (int* groupSize, int group, int value) */
 void subtractFromGroupSize(int *, int, int);
 
-  /* void subtractFromGroupSize (int* groupSize, int group, int value) */
+/* void subtractFromGroupSize (int* groupSize, int group, int value) */
 void resetGroupSize(int *, int);
 
 /* void resetGroupSize (int* groupSize, int group) */
@@ -89,7 +85,8 @@ int getGroupSize(int *, int);
 /* int getGroupSize (int* groupSize, int group) */
 float updateGroupSizes(int *, int, int, int);
 
-/* float updateGroupSizes (int* groupSize, int fromGroup, int toGroup, int targetGroup) */
+/* float updateGroupSizes (int* groupSize, int fromGroup, int toGroup, int
+ * targetGroup) */
 /* int** allocateInitialGroupAge (long int); */
 tGroupInfo *allocateInitialGroupInfo(long int);
 

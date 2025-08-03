@@ -32,9 +32,8 @@ namespace pops {
  * its call in the function call operator, and extend the
  * supports_kernel() function.
  */
-template<typename IntegerRaster>
-class SwitchDispersalKernel
-{
+template <typename IntegerRaster>
+class SwitchDispersalKernel {
 protected:
     DispersalKernelType dispersal_kernel_type_;
     RadialDispersalKernel<IntegerRaster> radial_kernel_;
@@ -43,29 +42,31 @@ protected:
 
 public:
     SwitchDispersalKernel(
-        const DispersalKernelType& dispersal_kernel_type,
-        const RadialDispersalKernel<IntegerRaster>& radial_kernel,
-        const UniformDispersalKernel& uniform_kernel,
-        const DeterministicNeighborDispersalKernel& deterministic_neighbor_kernel =
-            DeterministicNeighborDispersalKernel(Direction::None))
+        const DispersalKernelType &dispersal_kernel_type,
+        const RadialDispersalKernel<IntegerRaster> &radial_kernel,
+        const UniformDispersalKernel &uniform_kernel,
+        const DeterministicNeighborDispersalKernel
+            &deterministic_neighbor_kernel =
+                DeterministicNeighborDispersalKernel(Direction::None))
         : dispersal_kernel_type_(dispersal_kernel_type),
           // Here we initialize all kernels,
           // although we won't use all of them.
-          radial_kernel_(radial_kernel),
-          uniform_kernel_(uniform_kernel),
+          radial_kernel_(radial_kernel), uniform_kernel_(uniform_kernel),
           deterministic_neighbor_kernel_(deterministic_neighbor_kernel)
-    {}
+    {
+    }
 
     /*! \copydoc RadialDispersalKernel::operator()()
      */
-    template<typename Generator>
-    std::tuple<int, int> operator()(Generator& generator, int row, int col)
+    template <typename Generator>
+    std::tuple<int, int> operator()(Generator &generator, int row, int col)
     {
         // switch in between the supported kernels
         if (dispersal_kernel_type_ == DispersalKernelType::Uniform) {
             return uniform_kernel_(generator, row, col);
         }
-        else if (dispersal_kernel_type_ == DispersalKernelType::DeterministicNeighbor) {
+        else if (dispersal_kernel_type_ ==
+                 DispersalKernelType::DeterministicNeighbor) {
             return deterministic_neighbor_kernel_(generator, row, col);
         }
         else {
@@ -86,6 +87,6 @@ public:
     }
 };
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_SWITCH_KERNEL_HPP
+#endif // POPS_SWITCH_KERNEL_HPP

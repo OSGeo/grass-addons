@@ -1,20 +1,20 @@
-#include<stdio.h>
-#include<math.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 
-    /* Average Solar Diurnal Radiation after Bastiaanssen (1995)
-     * Includes Slope and aspect correction
-     */ 
-    
+/* Average Solar Diurnal Radiation after Bastiaanssen (1995)
+ * Includes Slope and aspect correction
+ */
+
 #define PI 3.1415927
 double solar_day_3d(double lat, double doy, double tsw, double slope,
-		     double aspect) 
+                    double aspect)
 {
     double ws, costheta, latrad, delta, deltarad, ds, result;
 
     double temp1, temp2, temp3, temp4, temp5;
 
-    double slrad, asprad;	/*slope and aspect in radians */
+    double slrad, asprad; /*slope and aspect in radians */
 
     ds = 1.0 + 0.01672 * sin(2 * PI * (doy - 93.5) / 365.0);
     delta = 0.4093 * sin((2 * PI * doy / 365) - 1.39);
@@ -32,5 +32,3 @@ double solar_day_3d(double lat, double doy, double tsw, double slope,
     result = (costheta * 1367 * tsw) / (PI * ds * ds);
     return result;
 }
-
-

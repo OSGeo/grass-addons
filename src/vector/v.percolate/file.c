@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    file.c
@@ -9,7 +8,6 @@
  */
 
 /***********************************************************************/
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,17 +34,19 @@ void Create_CSV(char *filename, long int numpoints, int overwrite)
         /* Write data to file */
         if (doName)
             fprintf(stream,
-                    "Cat,%s,X,Y,Membership,FirstChange,LastChange,NChanges,FirstDistance,LastDistance,MaxConCoeff,LastGroupConnected,LastDistanceConnection",
+                    "Cat,%s,X,Y,Membership,FirstChange,LastChange,NChanges,"
+                    "FirstDistance,LastDistance,MaxConCoeff,LastGroupConnected,"
+                    "LastDistanceConnection",
                     input_id_col);
         else
-            fprintf(stream,
-                    "Cat,X,Y,Membership,FirstChange,LastChange,NChanges,FirstDistance,LastDistance,MaxConCoeff,LastGroupConnected,LastDistanceConnection");
+            fprintf(stream, "Cat,X,Y,Membership,FirstChange,LastChange,"
+                            "NChanges,FirstDistance,LastDistance,MaxConCoeff,"
+                            "LastGroupConnected,LastDistanceConnection");
         for (i = 0; i < nRows; i++) {
             fprintf(stream, "\n");
 
             if (doName)
-                fprintf(stream,
-                        "%d,%s,%1.2f,%1.2f,%d,%d,%d,%d,%f,%f,%f,%d,%f",
+                fprintf(stream, "%d,%s,%1.2f,%1.2f,%d,%d,%d,%d,%f,%f,%f,%d,%f",
                         nodeList[i].cat, nodeList[i].name, nodeList[i].x,
                         nodeList[i].y, nodeList[i].group,
                         nodeList[i].first_change, nodeList[i].last_change,
@@ -60,8 +60,7 @@ void Create_CSV(char *filename, long int numpoints, int overwrite)
                         nodeList[i].group, nodeList[i].first_change,
                         nodeList[i].last_change, nodeList[i].count_changes,
                         nodeList[i].first_distance, nodeList[i].last_distance,
-                        nodeList[i].max_connect,
-                        nodeList[i].lastGroupConnected,
+                        nodeList[i].max_connect, nodeList[i].lastGroupConnected,
                         nodeList[i].lastDistanceConnection);
         }
 
@@ -69,7 +68,6 @@ void Create_CSV(char *filename, long int numpoints, int overwrite)
         fclose(stream);
     }
 }
-
 
 /***********************************************************************/
 
@@ -88,8 +86,9 @@ void Create_intermediate_group_CSV(char *filename, int nextNewGroup,
         /* Write data to file */
 
         /* fprintf (stream, "Cluster,Birth,Age,Size"); */
-        fprintf(stream,
-                "Cluster,Birth,BirthDist,Death,DeathDist,Longevity,MaxSize,Wins");
+        fprintf(
+            stream,
+            "Cluster,Birth,BirthDist,Death,DeathDist,Longevity,MaxSize,Wins");
 
         /* Nothing to record for groups with id <= nextNewGroup, since
            by definition they have never been allocated */
@@ -111,11 +110,10 @@ void Create_intermediate_group_CSV(char *filename, int nextNewGroup,
     }
 }
 
-
 /***********************************************************************/
 
-void Create_final_group_CSV(char *filename, int numpoints,
-                            int iteration, int overwrite)
+void Create_final_group_CSV(char *filename, int numpoints, int iteration,
+                            int overwrite)
 {
     FILE *stream;
     long int nRows;
@@ -132,13 +130,15 @@ void Create_final_group_CSV(char *filename, int numpoints,
            mechanism by which groups shrink (when cease to have members
            their size is not updated) */
 
-        fprintf(stream,
-                "Cluster,Birth,BirthDist,Death,DeathDist,Longevity,MaxSize,Wins");
+        fprintf(
+            stream,
+            "Cluster,Birth,BirthDist,Death,DeathDist,Longevity,MaxSize,Wins");
 
         nRows = numpoints;
         for (i = 0; i < nRows; i++) {
             if (groupInfo[i].birth != -1) {
-                /* Only save data for groups that actually existed at some point */
+                /* Only save data for groups that actually existed at some point
+                 */
                 fprintf(stream, "\n");
                 fprintf(stream, "%ld,%d,%f,%d,%f,%d,%d,%d", i,
                         groupInfo[i].birth, groupInfo[i].birth_distance,
@@ -153,7 +153,6 @@ void Create_final_group_CSV(char *filename, int numpoints,
     }
 }
 
-
 /***********************************************************************/
 
 FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
@@ -163,14 +162,14 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
     strcat(name, suffix);
     testStream = fopen(name, "r");
     if ((testStream != NULL) && (!overwrite)) {
-      sprintf(message, _("File <%s> exists - refusing to overwrite "), name);
+        sprintf(message, _("File <%s> exists - refusing to overwrite "), name);
         fclose(testStream);
         return NULL;
     }
     else {
         stream = fopen(name, "w");
         if (stream == NULL) {
-	  sprintf(message, _("Can't create file <%s> "), name);
+            sprintf(message, _("Can't create file <%s> "), name);
             return NULL;
         }
         else {

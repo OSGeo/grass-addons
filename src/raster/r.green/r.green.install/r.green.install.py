@@ -15,19 +15,19 @@
 #############################################################################
 #
 
-#%module
-#% description: Check if everything of r.green is correctly installed and configured
-#% keyword: raster
-#% keyword: renewable energy
-#%end
-#%flag
-#% key: i
-#% description: Install missing libraries
-#%end
-#%flag
-#% key: x
-#% description: Add r.green menu to the GRASS GUI
-#%end
+# %module
+# % description: Check if everything of r.green is correctly installed and configured
+# % keyword: raster
+# % keyword: renewable energy
+# %end
+# %flag
+# % key: i
+# % description: Install missing libraries
+# %end
+# %flag
+# % key: x
+# % description: Add r.green menu to the GRASS GUI
+# %end
 
 # import system libraries
 from __future__ import print_function
@@ -74,7 +74,7 @@ CHECK_RGREENLIB = [
     ("libhydro", os.path.join("..", "r.green.hydro")),
 ]
 
-UAGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) " "Gecko/20100101 Firefox/44.0"
+UAGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0"
 
 PATHSYSXML = []
 PATHLOCXML = []
@@ -158,9 +158,7 @@ XMLENERGYTOOLBOX = """<?xml version="1.0" encoding="UTF-8"?>
     </items>
   </toolbox>
 </toolboxes>
-""".format(
-    XMLMAINMENU=XMLMAINMENU
-)
+""".format(XMLMAINMENU=XMLMAINMENU)
 
 
 def value_not_none(method):
@@ -332,7 +330,7 @@ def get_url(
 ):
     """Return the complete url to download the wheel file for windows"""
 
-    urlwin = "http://www.lfd.uci.edu/~gohlke/pythonlibs/"
+    urlwin = "https://www.lfd.uci.edu/~gohlke/pythonlibs/"
 
     def match():
         """Match platform with available wheel files on the web page"""

@@ -20,49 +20,49 @@
 # TODO
 #  Add a note to the user to use  matchmap=yes in cam2map
 
-#%module
-#% description: Generates an ISIS3 map template file according to the current GRASS GIS coordinate reference system.
-#% keyword: coordinates
-#% keyword: projection
-#%end
+# %module
+# % description: Generates an ISIS3 map template file according to the current GRASS GIS coordinate reference system.
+# % keyword: coordinates
+# % keyword: projection
+# %end
 
-#%option
-#% key: body
-#% type: string
-#% description: Target planetary body
-#% options: MOON,MERCURY,VENUS,MARS,Phobos,Deimos,JUPITER,Amalthea,Io,Europa,Ganymede,Callisto,SATURN,Janus,Epimetheus,Mimas,Enceladus,Tethys,Dione,Rhea,Titan,Hyperion,Iapetus,URANUS,Miranda,Ariel,Umbriel,Titania,Oberon,NEPTUNE
-#% required : yes
-#%end
+# %option
+# % key: body
+# % type: string
+# % description: Target planetary body
+# % options: MOON,MERCURY,VENUS,MARS,Phobos,Deimos,JUPITER,Amalthea,Io,Europa,Ganymede,Callisto,SATURN,Janus,Epimetheus,Mimas,Enceladus,Tethys,Dione,Rhea,Titan,Hyperion,Iapetus,URANUS,Miranda,Ariel,Umbriel,Titania,Oberon,NEPTUNE
+# % required : yes
+# %end
 
-#%option
-#% key: out
-#% type: string
-#% gisprompt: new_file,file,output
-#% description: Filename for the ISIS3 maptemplate to be generated
-#% required : yes
-#%end
+# %option
+# % key: out
+# % type: string
+# % gisprompt: new_file,file,output
+# % description: Filename for the ISIS3 maptemplate to be generated
+# % required : yes
+# %end
 
-#%option
-#% key: outres
-#% type: double
-#% description: Resolution of the ISIS3 projected data (default is: camera resolution)
-#% required : no
-#%end
+# %option
+# % key: outres
+# % type: double
+# % description: Resolution of the ISIS3 projected data (default is: camera resolution)
+# % required : no
+# %end
 
-#%Option
-#% key: restype
-#% type: string
-#% required: no
-#% multiple: no
-#% options: mpp,ppd
-#% description: Resolution type: meters per pixel (mpp) or pixels per degree (ppd)
-#% answer: mpp
-#%End
+# %Option
+# % key: restype
+# % type: string
+# % required: no
+# % multiple: no
+# % options: mpp,ppd
+# % description: Resolution type: meters per pixel (mpp) or pixels per degree (ppd)
+# % answer: mpp
+# %End
 
-#%flag
-#% key: a
-#% description: Align ISIS3 data to the extents of the current GRASS region
-#%end
+# %flag
+# % key: a
+# % description: Align ISIS3 data to the extents of the current GRASS region
+# %end
 
 import subprocess
 import sys
@@ -70,7 +70,7 @@ import os
 import platform
 import re
 import string
-import grass.script as grass
+import grass.script as gs
 from grass.lib import gis as grasslib
 from grass.lib import proj as grassproj
 
@@ -147,7 +147,7 @@ def main():
         isis3["Scale"] = "%f <pixel/degree>" % float(options["outres"])
     isis3["TargetName"] = body
     if flags["a"]:
-        ret = grass.start_command("g.region", flags="gl", stdout=subprocess.PIPE)
+        ret = gs.start_command("g.region", flags="gl", stdout=subprocess.PIPE)
         exec(ret.communicate()[0])
         isis3["MinimumLatitude"] = "%f" % min(se_lat, sw_lat)
         isis3["MaximumLatitude"] = "%f" % max(ne_lat, nw_lat)
@@ -174,5 +174,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

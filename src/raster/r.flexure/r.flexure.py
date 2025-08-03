@@ -18,7 +18,7 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
+#      -  gFlex: https://csdms.colorado.edu/wiki/Model:GFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
 
@@ -27,146 +27,146 @@
 # Revised 15--?? November 2014 after significantly improving the model
 # by Andy Wickert
 
-#%module
-#% description: Computes lithospheric flexural isostasy
-#% keyword: raster
-#% keyword: geophysics
-#%end
+# %module
+# % description: Computes lithospheric flexural isostasy
+# % keyword: raster
+# % keyword: geophysics
+# %end
 
-#%flag
-#%  key: l
-#%  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
-#%end
+# %flag
+# %  key: l
+# %  description: Allows running in lat/lon: dx is f(lat) at grid N-S midpoint
+# %end
 
-#%option
-#%  key: method
-#%  type: string
-#%  description: Solution method: Finite Diff. or Superpos. of analytical sol'ns
-#%  options: FD, SAS
-#%  required : yes
-#%end
+# %option
+# %  key: method
+# %  type: string
+# %  description: Solution method: Finite Diff. or Superpos. of analytical sol'ns
+# %  options: FD, SAS
+# %  required : yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  type: string
-#%  description: Raster map of loads (thickness * density * g) [Pa]
-#%  required : yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  type: string
+# %  description: Raster map of loads (thickness * density * g) [Pa]
+# %  required : yes
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: te
-#%  type: string
-#%  description: Elastic thickness: scalar or raster; unis chosen in "te_units"
-#%  required : yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: te
+# %  type: string
+# %  description: Elastic thickness: scalar or raster; unis chosen in "te_units"
+# %  required : yes
+# %end
 
-#%option
-#%  key: te_units
-#%  type: string
-#%  description: Units for elastic thickness
-#%  options: m, km
-#%  required : yes
-#%end
+# %option
+# %  key: te_units
+# %  type: string
+# %  description: Units for elastic thickness
+# %  options: m, km
+# %  required : yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  type: string
-#%  description: Output raster map of vertical deflections [m]
-#%  required : yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  type: string
+# %  description: Output raster map of vertical deflections [m]
+# %  required : yes
+# %end
 
-#%option
-#%  key: solver
-#%  type: string
-#%  description: Solver type
-#%  options: direct, iterative
-#%  answer: direct
-#%  required : no
-#%end
+# %option
+# %  key: solver
+# %  type: string
+# %  description: Solver type
+# %  options: direct, iterative
+# %  answer: direct
+# %  required : no
+# %end
 
-#%option
-#%  key: tolerance
-#%  type: double
-#%  description: Convergence tolerance (between iterations) for iterative solver
-#%  answer: 1E-3
-#%  required : no
-#%end
+# %option
+# %  key: tolerance
+# %  type: double
+# %  description: Convergence tolerance (between iterations) for iterative solver
+# %  answer: 1E-3
+# %  required : no
+# %end
 
-#%option
-#%  key: northbc
-#%  type: string
-#%  description: Northern boundary condition
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: northbc
+# %  type: string
+# %  description: Northern boundary condition
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: southbc
-#%  type: string
-#%  description: Southern boundary condition
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: southbc
+# %  type: string
+# %  description: Southern boundary condition
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: westbc
-#%  type: string
-#%  description: Western boundary condition
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: westbc
+# %  type: string
+# %  description: Western boundary condition
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: eastbc
-#%  type: string
-#%  description: Eastern boundary condition
-#%  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
-#%  answer: NoOutsideLoads
-#%  required : no
-#%end
+# %option
+# %  key: eastbc
+# %  type: string
+# %  description: Eastern boundary condition
+# %  options: 0Displacement0Slope, 0Moment0Shear, 0Slope0Shear, Mirror, Periodic, NoOutsideLoads
+# %  answer: NoOutsideLoads
+# %  required : no
+# %end
 
-#%option
-#%  key: g
-#%  type: double
-#%  description: gravitational acceleration at surface [m/s^2]
-#%  answer: 9.8
-#%  required : no
-#%end
+# %option
+# %  key: g
+# %  type: double
+# %  description: gravitational acceleration at surface [m/s^2]
+# %  answer: 9.8
+# %  required : no
+# %end
 
-#%option
-#%  key: ym
-#%  type: double
-#%  description: Young's Modulus [Pa]
-#%  answer: 65E9
-#%  required : no
-#%end
+# %option
+# %  key: ym
+# %  type: double
+# %  description: Young's Modulus [Pa]
+# %  answer: 65E9
+# %  required : no
+# %end
 
-#%option
-#%  key: nu
-#%  type: double
-#%  description: Poisson's ratio
-#%  answer: 0.25
-#%  required : no
-#%end
+# %option
+# %  key: nu
+# %  type: double
+# %  description: Poisson's ratio
+# %  answer: 0.25
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_fill
-#%  type: double
-#%  description: Density of material that fills flexural depressions [kg/m^3]
-#%  answer: 0
-#%  required : no
-#%end
+# %option
+# %  key: rho_fill
+# %  type: double
+# %  description: Density of material that fills flexural depressions [kg/m^3]
+# %  answer: 0
+# %  required : no
+# %end
 
-#%option
-#%  key: rho_m
-#%  type: double
-#%  description: Mantle density [kg/m^3]
-#%  answer: 3300
-#%  required : no
-#%end
+# %option
+# %  key: rho_m
+# %  type: double
+# %  description: Mantle density [kg/m^3]
+# %  answer: 3300
+# %  required : no
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -176,7 +176,7 @@
 import numpy as np
 
 # GRASS
-import grass.script as grass
+import grass.script as gs
 import grass.script.array as garray
 
 ############################
@@ -189,7 +189,7 @@ def main():
     Gridded flexural isostatic solutions
     """
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
@@ -205,7 +205,7 @@ def main():
         print("gFlex. The most recent development version is available from")
         print("https://github.com/awickert/gFlex.")
         print("Installation instructions are available on the page.")
-        grass.fatal("Software dependency must be installed.")
+        gs.fatal("Software dependency must be installed.")
 
     # This code is for 2D flexural isostasy
     flex = gflex.F2D()
@@ -259,17 +259,17 @@ def main():
     flex.BC_E = options["eastbc"]
 
     # Set verbosity
-    if grass.verbosity() >= 2:
+    if gs.verbosity() >= 2:
         flex.Verbose = True
-    if grass.verbosity() >= 3:
+    if gs.verbosity() >= 3:
         flex.Debug = True
-    elif grass.verbosity() == 0:
+    elif gs.verbosity() == 0:
         flex.Quiet = True
 
     # First check if output exists
-    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 "Raster map '"
                 + options["output"]
                 + "' already exists. Use '--o' to overwrite."
@@ -277,14 +277,14 @@ def main():
 
     # Get grid spacing from GRASS
     # Check if lat/lon and proceed as directed
-    if grass.region_env()[6] == "3":
+    if gs.region_env()[6] == "3":
         if latlon_override:
             if flex.Verbose:
                 print("Latitude/longitude grid.")
                 print("Based on r_Earth = 6371 km")
                 print("Setting y-resolution [m] to 111,195 * [degrees]")
-            flex.dy = grass.region()["nsres"] * 111195.0
-            NSmid = (grass.region()["n"] + grass.region()["s"]) / 2.0
+            flex.dy = gs.region()["nsres"] * 111195.0
+            NSmid = (gs.region()["n"] + gs.region()["s"]) / 2.0
             dx_at_mid_latitude = (
                 (3.14159 / 180.0) * 6371000.0 * np.cos(np.deg2rad(NSmid))
             )
@@ -294,13 +294,13 @@ def main():
                     + "%.2f" % dx_at_mid_latitude
                     + " * [degrees]"
                 )
-            flex.dx = grass.region()["ewres"] * dx_at_mid_latitude
+            flex.dx = gs.region()["ewres"] * dx_at_mid_latitude
         else:
-            grass.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
+            gs.fatal("Need the '-l' flag to enable lat/lon solution approximation.")
     # Otherwise straightforward
     else:
-        flex.dx = grass.region()["ewres"]
-        flex.dy = grass.region()["nsres"]
+        flex.dx = gs.region()["ewres"]
+        flex.dy = gs.region()["nsres"]
 
     # CALCULATE!
     flex.initialize()
@@ -312,12 +312,10 @@ def main():
     outbuffer = garray.array()  # Instantiate output buffer
     outbuffer[...] = flex.w
     outbuffer.write(
-        options["output"], overwrite=grass.overwrite()
+        options["output"], overwrite=gs.overwrite()
     )  # Write it with the desired name
     # And create a nice colormap!
-    grass.run_command(
-        "r.colors", map=options["output"], color="differences", quiet=True
-    )
+    gs.run_command("r.colors", map=options["output"], color="differences", quiet=True)
 
     # Reinstate this with a flag or output filename
     # But I think better to let interpolation happen a posteriori

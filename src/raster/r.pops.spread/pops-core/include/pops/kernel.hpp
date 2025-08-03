@@ -51,8 +51,8 @@
 
 namespace pops {
 
-/*! Dispersal kernel supporting all available kernels for natural and anthropogenic
- * distance spread.
+/*! Dispersal kernel supporting all available kernels for natural and
+ * anthropogenic distance spread.
  *
  * This is a typedef defining the main disperal kernel class in the PoPS
  * library. When you are using the library, this is default choice.
@@ -75,11 +75,11 @@ namespace pops {
  * See NaturalAnthropogenicDispersalKernel and SwitchDispersalKernel for further
  * documentation.
  */
-template<typename IntegerRaster>
-using DispersalKernel = NaturalAnthropogenicDispersalKernel<
-    SwitchDispersalKernel<IntegerRaster>,
-    SwitchDispersalKernel<IntegerRaster>>;
+template <typename IntegerRaster>
+using DispersalKernel =
+    NaturalAnthropogenicDispersalKernel<SwitchDispersalKernel<IntegerRaster>,
+                                        SwitchDispersalKernel<IntegerRaster>>;
 
-}  // namespace pops
+} // namespace pops
 
-#endif  // POPS_KERNEL_HPP
+#endif // POPS_KERNEL_HPP

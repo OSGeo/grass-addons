@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl
+use strict;
 
 opendir DIR, "./";
 @files=readdir DIR;
@@ -15,4 +16,3 @@ while($nfiles>=0){
     }
     $nfiles = $nfiles - 1;
 }
-

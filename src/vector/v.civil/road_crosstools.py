@@ -9,7 +9,7 @@ import sys
 import os
 
 import math
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 
@@ -105,7 +105,7 @@ class InterAlign(object):
         elif self.type == "Straight":
             self.init_straight()
         else:
-            grass.message(" not yet implemented")
+            gs.message(" not yet implemented")
 
     def init_curve(self, topo):
         """Return"""
@@ -236,18 +236,15 @@ class Intersections(object):
         dist1 = [p for p in self.dist1 if p != -1]
         dist2 = [p for p in self.dist2 if p != -1]
         if self.plant1.type == "Straight" and self.plant2.type == "Curve":
-
-            grass.message("straight_curve")
+            gs.message("straight_curve")
             return self.straight_curve(self.radios[ind], dist1[ind], dist2[ind])
 
         elif self.plant1.type == "Straight" and self.plant2.type == "Straight":
-
-            grass.message("straight_straight")
+            gs.message("straight_straight")
             return self.straight_straight(self.radios[ind], dist1[ind], dist2[ind])
 
         elif self.plant1.type == "Curve" and self.plant2.type == "Curve":
-
-            grass.message("curve_curve")
+            gs.message("curve_curve")
             return self.curve_curve(self.radios[ind], dist1[ind], dist2[ind])
 
     def straight_straight(self, radio, dist1, dist2):
@@ -291,7 +288,7 @@ class Intersections(object):
         r_a = self._get_radio_leng(self.plant2, radio, dist2)
         r_c = self.plant1.center.distance(self.plant2.center)
 
-        ang_a = math.acos((r_b ** 2 + r_c ** 2 - r_a ** 2) / (2 * r_b * r_c))
+        ang_a = math.acos((r_b**2 + r_c**2 - r_a**2) / (2 * r_b * r_c))
         # ang_b = math.acos((r_a ** 2 + r_c ** 2 - r_b ** 2) / (2 * r_a * r_c))
         # ang_c = math.pi - ang_a - ang_b
 
@@ -420,7 +417,6 @@ class Intersections(object):
         pklist_ini = [[], []]
         pklist_ini2 = [[], []]
         for i in range(side):
-
             intersec = self.get_intersect(i)
 
             for j, inter in enumerate(intersec):
@@ -463,8 +459,8 @@ class Intersections(object):
             + '"'
         )
 
-        grass.message(sal0)
-        grass.message(all_sal0)
+        gs.message(sal0)
+        gs.message(all_sal0)
         if write:
             os.system(sal0)
             os.system(all_sal0)
@@ -487,8 +483,8 @@ class Intersections(object):
             + '"'
         )
 
-        grass.message(sal0)
-        grass.message(all_sal0)
+        gs.message(sal0)
+        gs.message(all_sal0)
         if write:
             os.system(sal0)
             os.system(all_sal0)
@@ -499,7 +495,6 @@ class Intersections(object):
 
         sal = 'echo " \n'
         for i, npk in enumerate([p[0] for p in pklist_ini]):
-
             sal += "UPDATE " + name + "_Displ SET "
             if plant.izq == "Izq":
                 sal += "sec_left='"
@@ -507,7 +502,6 @@ class Intersections(object):
                 sal += "sec_right='"
 
             for dist in distances:
-
                 for len_d in pklist_ini[i][3]:
                     if dist == len_d:
                         sal += str(len_d) + " 0;"
@@ -521,7 +515,6 @@ class Intersections(object):
                 sal += ", type_right='"
 
             for dist in distances:
-
                 for j, len_d in enumerate(pklist_ini[i][3]):
                     if dist == len_d:
                         sal += (
@@ -544,7 +537,6 @@ class Intersections(object):
         name = plant.name.split("__")[0]
         sal = 'echo " \n'
         for i, npk in enumerate([p[0] for p in pklist_ini2]):
-
             sal += "UPDATE " + name + "_Displ SET "
             if plant.izq == "Izq":
                 sal += "sec_left='"
@@ -552,7 +544,6 @@ class Intersections(object):
                 sal += "sec_right='"
 
             for dist in distances:
-
                 for len_d in pklist_ini2[i][1]:
                     if dist == len_d:
                         sal += str(len_d) + " 0;"

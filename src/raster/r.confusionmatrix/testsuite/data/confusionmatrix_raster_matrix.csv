@@ -1,5 +1,5 @@
 ,,Reference Map,landclass96
-,,developed,agriculture,herbaceous,shrubland,forest,water,sediment,Class_7,Class_8,Class_9,Class_10,Class_11,Class_12,Class_13,Class_14,User Accuracy,Commission Error
+,,developed,agriculture,herbaceous,shrubland,forest,water,sediment,8,9,10,11,15,18,20,21,User Accuracy,Commission Error
 Classified Map,High Intensity Developed,34931,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100.0,0.0
 landuse96_28m,Low Intensity Developed,38146,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0
 ,Cultivated,0,2137,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0,100.0

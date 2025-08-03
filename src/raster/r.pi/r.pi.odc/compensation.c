@@ -25,10 +25,10 @@ DCELL odd_perim(DCELL value, int frag)
     Coords *fragment;
 
     for (fragment = fragments[frag]; fragment < fragments[frag + 1];
-	 fragment++) {
-	if (fragment->neighbors < 4) {
-	    perim++;
-	}
+         fragment++) {
+        if (fragment->neighbors < 4) {
+            perim++;
+        }
     }
 
     return value / perim;
@@ -40,10 +40,10 @@ DCELL perim_odd(DCELL value, int frag)
     Coords *fragment;
 
     for (fragment = fragments[frag]; fragment < fragments[frag + 1];
-	 fragment++) {
-	if (fragment->neighbors < 4) {
-	    perim++;
-	}
+         fragment++) {
+        if (fragment->neighbors < 4) {
+            perim++;
+        }
     }
 
     return perim / value;

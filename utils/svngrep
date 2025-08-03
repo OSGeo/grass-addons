@@ -13,4 +13,3 @@
 # + ignore "dist.`uname m`"  and  "^ChangeLog:" entries
 
 grep -I $* | grep -v '/\.svn/\|\.tmp\.html:\|locale/po/\|^dist\.'
-

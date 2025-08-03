@@ -14,87 +14,80 @@
 #############################################################################
 
 
-#%module
-#% description: Draws curved arcs between points (e.g. flows)
-#% keyword: vector
-#% keyword: network
-#% keyword: flows
-#%end
+# %module
+# % description: Draws curved arcs between points (e.g. flows)
+# % keyword: vector
+# % keyword: network
+# % keyword: flows
+# %end
 
-#%option G_OPT_V_INPUT
-#% label: Point map containing origins and destinations
-#%end
+# %option G_OPT_V_INPUT
+# % label: Point map containing origins and destinations
+# %end
 
-#%option G_OPT_V_FIELD
-#% label: Layer number where to find point categories
-#%end
+# %option G_OPT_V_FIELD
+# % label: Layer number where to find point categories
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: flow_input_file
-#% label: File containing origins, destinations and flow volumes
-#%end
+# %option G_OPT_F_INPUT
+# % key: flow_input_file
+# % label: File containing origins, destinations and flow volumes
+# %end
 
-#%option G_OPT_F_SEP
-#% label: Separator used in input text file
-#%end
+# %option G_OPT_F_SEP
+# % label: Separator used in input text file
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% label: Output map with curved lines
-#%end
+# %option G_OPT_V_OUTPUT
+# % label: Output map with curved lines
+# %end
 
-#%option
-#% key: minimum_offset
-#% type: double
-#% label: minimum offset at furthest point from straight line
-#% required: yes
-#%end
+# %option
+# % key: minimum_offset
+# % type: double
+# % label: minimum offset at furthest point from straight line
+# % required: yes
+# %end
 
-#%option
-#% key: maximum_offset
-#% type: double
-#% label: maximum offset at furthest point from straight line
-#% required: yes
-#%end
+# %option
+# % key: maximum_offset
+# % type: double
+# % label: maximum offset at furthest point from straight line
+# % required: yes
+# %end
 
-#%option
-#% key: vertices
-#% type: integer
-#% label: number of vertices used to draw curved lines
-#% answer: 30
-#%end
+# %option
+# % key: vertices
+# % type: integer
+# % label: number of vertices used to draw curved lines
+# % answer: 30
+# %end
 
-#%flag
-#% key: s
-#% description: Draw also short line for flow from and to same node
-#%end
+# %flag
+# % key: s
+# % description: Draw also short line for flow from and to same node
+# %end
 
 import os
 import atexit
 import math
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
     if tmplines:
-        gscript.run_command(
-            "g.remove", flags="f", type="vector", name=tmplines, quiet=True
-        )
+        gs.run_command("g.remove", flags="f", type="vector", name=tmplines, quiet=True)
     if tmplines2:
-        gscript.run_command(
-            "g.remove", flags="f", type="vector", name=tmplines2, quiet=True
-        )
+        gs.run_command("g.remove", flags="f", type="vector", name=tmplines2, quiet=True)
     if tmppoints:
-        gscript.run_command(
-            "g.remove", flags="f", type="vector", name=tmppoints, quiet=True
-        )
+        gs.run_command("g.remove", flags="f", type="vector", name=tmppoints, quiet=True)
 
-    gscript.try_remove(vseginfile)
-    gscript.try_remove(vnetinfile)
+    gs.try_remove(vseginfile)
+    gs.try_remove(vnetinfile)
 
 
 def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
-
-    filename = gscript.tempfile()
+    filename = gs.tempfile()
     maxlength = max(lineinfo.values())
     step = 100000 / nbvertices
     t = [x / 100000.0 for x in range(0, int(math.pi * 100000), step)]
@@ -116,8 +109,7 @@ def write_segmentdefs(lineinfo, minoffset, maxoffset, nbvertices):
 
 
 def write_segarcdefs(lineinfo, maxcat):
-
-    filename = gscript.tempfile()
+    filename = gs.tempfile()
     with open(filename, "w") as fout:
         for arccat in lineinfo:
             for cat in range(1, maxcat):
@@ -128,9 +120,8 @@ def write_segarcdefs(lineinfo, maxcat):
 
 
 def process_infile(flow_file, separator, header, sameok, outputfile):
-
-    vnetinfile = gscript.tempfile()
-    sqlfile = gscript.tempfile()
+    vnetinfile = gs.tempfile()
+    sqlfile = gs.tempfile()
     cat = 0
 
     with open(vnetinfile, "w") as fout:
@@ -162,7 +153,7 @@ def main():
     maxoffset = float(options["maximum_offset"])
     vertices = int(options["vertices"])
     outputfile = options["output"]
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     sameok = flags["s"]
     header = True
 
@@ -176,8 +167,8 @@ def main():
     vnetinfile, sqlfile = process_infile(
         flow_file, separator, header, sameok, outputfile
     )
-    gscript.message(_("Creating straight flow lines..."))
-    gscript.run_command(
+    gs.message(_("Creating straight flow lines..."))
+    gs.run_command(
         "v.net",
         points=orig_point_map,
         operation="arcs",
@@ -187,7 +178,7 @@ def main():
         quiet=True,
     )
 
-    linedata = gscript.read_command(
+    linedata = gs.read_command(
         "v.to.db", flags="p", map_=tmplines, option="length", quiet=True
     ).splitlines()
 
@@ -199,8 +190,8 @@ def main():
 
     vseginfile, maxcat = write_segmentdefs(lineinfo, minoffset, maxoffset, vertices)
 
-    gscript.message(_("Creating points of curved lines..."))
-    gscript.run_command(
+    gs.message(_("Creating points of curved lines..."))
+    gs.run_command(
         "v.segment",
         input_=tmplines,
         out=tmppoints,
@@ -209,10 +200,10 @@ def main():
         quiet=True,
     )
 
-    gscript.message(_("Creating curved lines from points..."))
+    gs.message(_("Creating curved lines from points..."))
 
     vnetinfile = write_segarcdefs(lineinfo, maxcat)
-    gscript.run_command(
+    gs.run_command(
         "v.net",
         points=tmppoints,
         output=tmplines,
@@ -222,7 +213,7 @@ def main():
         quiet=True,
     )
 
-    gscript.run_command(
+    gs.run_command(
         "v.extract",
         input_=tmplines,
         output=tmplines2,
@@ -231,8 +222,8 @@ def main():
         quiet=True,
     )
 
-    gscript.message(_("Creating polylines..."))
-    gscript.run_command(
+    gs.message(_("Creating polylines..."))
+    gs.run_command(
         "v.build.polylines",
         input_=tmplines2,
         output=outputfile,
@@ -241,7 +232,7 @@ def main():
         quiet=True,
     )
 
-    gscript.run_command(
+    gs.run_command(
         "v.db.addtable",
         map_=outputfile,
         columns="from_node int, to_node int, volume double precision",
@@ -249,10 +240,10 @@ def main():
         overwrite=True,
     )
 
-    gscript.run_command("db.execute", input_=sqlfile, quiet=True)
+    gs.run_command("db.execute", input_=sqlfile, quiet=True)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

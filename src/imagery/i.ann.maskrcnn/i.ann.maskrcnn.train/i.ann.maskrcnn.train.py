@@ -13,157 +13,157 @@
 #
 #############################################################################
 
-#%module
-#% description: Train your Mask R-CNN network
-#% keyword: ann
-#% keyword: vector
-#% keyword: raster
-#%end
-#%flag
-#%  key: e
-#%  description: Pretrained weights were trained on another classes / resolution / sizes
-#%end
-#%flag
-#%  key: s
-#%  description: Do not use 10 % of images and save their list to logs dir
-#%end
-#%flag
-#%  key: b
-#%  description: Train also batch normalization layers (not recommended for small batches)
-#%end
-#%flag
-#%  key: n
-#%  description: No resizing or padding of images (images must be of the same size)
-#%end
-#%option G_OPT_M_DIR
-#% key: training_dataset
-#% label: Path to the dataset with images and masks
-#% required: yes
-#%end
-#%option G_OPT_F_INPUT
-#% key: model
-#% type: string
-#% label: Path to the .h5 file to use as initial values
-#% description: Keep empty to train from a scratch
-#% required: no
-#% multiple: no
-#%end
-#%option
-#% key: classes
-#% type: string
-#% label: Names of classes separated with ","
-#% required: yes
-#% multiple: yes
-#%end
-#%option G_OPT_M_DIR
-#% key: logs
-#% label: Path to the directory in which will be models saved
-#% required: yes
-#%end
-#%option
-#% key: name
-#% type: string
-#% label: Name for output models
-#% required: yes
-#%end
-#%option
-#% key: epochs
-#% type: integer
-#% label: Number of epochs
-#% required: no
-#% multiple: no
-#% answer: 200
-#% guisection: Training parameters
-#%end
-#%option
-#% key: steps_per_epoch
-#% type: integer
-#% label: Steps per each epoch
-#% required: no
-#% multiple: no
-#% answer: 3000
-#% guisection: Training parameters
-#%end
-#%option
-#% key: rois_per_image
-#% type: integer
-#% label: How many ROIs train per image
-#% required: no
-#% multiple: no
-#% answer: 64
-#% guisection: Training parameters
-#%end
-#%option
-#% key: images_per_gpu
-#% type: integer
-#% label: Number of images per GPU
-#% description: Bigger number means faster training but needs a bigger GPU
-#% required: no
-#% multiple: no
-#% answer: 1
-#% guisection: Training parameters
-#%end
-#%option
-#% key: gpu_count
-#% type: integer
-#% label: Number of GPUs to be used
-#% required: no
-#% multiple: no
-#% answer: 1
-#% guisection: Training parameters
-#%end
-#%option
-#% key: mini_mask_size
-#% type: integer
-#% label: Size of mini mask separated with ","
-#% description: To use full sized masks, keep empty. Mini mask saves memory at the expense of precision
-#% required: no
-#% multiple: yes
-#% guisection: Training parameters
-#%end
-#%option
-#% key: validation_steps
-#% type: integer
-#% label: Number of validation steps
-#% description: Bigger number means more accurate estimation of the model precision
-#% required: no
-#% multiple: no
-#% answer: 100
-#% guisection: Training parameters
-#%end
-#%option
-#% key: images_min_dim
-#% type: integer
-#% label: Minimum length of images sides
-#% description: Images will be resized to have their shortest side at least of this value (has to be a multiple of 64)
-#% required: no
-#% multiple: no
-#% answer: 256
-#% guisection: Training parameters
-#%end
-#%option
-#% key: images_max_dim
-#% type: integer
-#% label: Maximum length of images sides
-#% description: Images will be resized to have their longest side of this value (has to be a multiple of 64)
-#% required: no
-#% multiple: no
-#% answer: 1280
-#% guisection: Training parameters
-#%end
-#%option
-#% key: backbone
-#% type: string
-#% label: Backbone architecture
-#% required: no
-#% multiple: no
-#% answer: resnet101
-#% options: resnet50,resnet101
-#% guisection: Training parameters
-#%end
+# %module
+# % description: Train your Mask R-CNN network
+# % keyword: ann
+# % keyword: vector
+# % keyword: raster
+# %end
+# %flag
+# %  key: e
+# %  description: Pretrained weights were trained on another classes / resolution / sizes
+# %end
+# %flag
+# %  key: s
+# %  description: Do not use 10 % of images and save their list to logs dir
+# %end
+# %flag
+# %  key: b
+# %  description: Train also batch normalization layers (not recommended for small batches)
+# %end
+# %flag
+# %  key: n
+# %  description: No resizing or padding of images (images must be of the same size)
+# %end
+# %option G_OPT_M_DIR
+# % key: training_dataset
+# % label: Path to the dataset with images and masks
+# % required: yes
+# %end
+# %option G_OPT_F_INPUT
+# % key: model
+# % type: string
+# % label: Path to the .h5 file to use as initial values
+# % description: Keep empty to train from a scratch
+# % required: no
+# % multiple: no
+# %end
+# %option
+# % key: classes
+# % type: string
+# % label: Names of classes separated with ","
+# % required: yes
+# % multiple: yes
+# %end
+# %option G_OPT_M_DIR
+# % key: logs
+# % label: Path to the directory in which will be models saved
+# % required: yes
+# %end
+# %option
+# % key: name
+# % type: string
+# % label: Name for output models
+# % required: yes
+# %end
+# %option
+# % key: epochs
+# % type: integer
+# % label: Number of epochs
+# % required: no
+# % multiple: no
+# % answer: 200
+# % guisection: Training parameters
+# %end
+# %option
+# % key: steps_per_epoch
+# % type: integer
+# % label: Steps per each epoch
+# % required: no
+# % multiple: no
+# % answer: 3000
+# % guisection: Training parameters
+# %end
+# %option
+# % key: rois_per_image
+# % type: integer
+# % label: How many ROIs train per image
+# % required: no
+# % multiple: no
+# % answer: 64
+# % guisection: Training parameters
+# %end
+# %option
+# % key: images_per_gpu
+# % type: integer
+# % label: Number of images per GPU
+# % description: Bigger number means faster training but needs a bigger GPU
+# % required: no
+# % multiple: no
+# % answer: 1
+# % guisection: Training parameters
+# %end
+# %option
+# % key: gpu_count
+# % type: integer
+# % label: Number of GPUs to be used
+# % required: no
+# % multiple: no
+# % answer: 1
+# % guisection: Training parameters
+# %end
+# %option
+# % key: mini_mask_size
+# % type: integer
+# % label: Size of mini mask separated with ","
+# % description: To use full sized masks, keep empty. Mini mask saves memory at the expense of precision
+# % required: no
+# % multiple: yes
+# % guisection: Training parameters
+# %end
+# %option
+# % key: validation_steps
+# % type: integer
+# % label: Number of validation steps
+# % description: Bigger number means more accurate estimation of the model precision
+# % required: no
+# % multiple: no
+# % answer: 100
+# % guisection: Training parameters
+# %end
+# %option
+# % key: images_min_dim
+# % type: integer
+# % label: Minimum length of images sides
+# % description: Images will be resized to have their shortest side at least of this value (has to be a multiple of 64)
+# % required: no
+# % multiple: no
+# % answer: 256
+# % guisection: Training parameters
+# %end
+# %option
+# % key: images_max_dim
+# % type: integer
+# % label: Maximum length of images sides
+# % description: Images will be resized to have their longest side of this value (has to be a multiple of 64)
+# % required: no
+# % multiple: no
+# % answer: 1280
+# % guisection: Training parameters
+# %end
+# %option
+# % key: backbone
+# % type: string
+# % label: Backbone architecture
+# % required: no
+# % multiple: no
+# % answer: resnet101
+# % options: resnet50,resnet101
+# % guisection: Training parameters
+# %end
 
 
-import grass.script as gscript
+import grass.script as gs
 from grass.script.utils import get_lib_path
 import os
 import sys
@@ -176,7 +176,6 @@ sys.path.append(path)
 
 
 def main(options, flags):
-
     from config import ModelConfig
     import utils
     import model as modellib
@@ -256,7 +255,7 @@ def main(options, flags):
 
     # Load weights
     if initialWeights:
-        gscript.message("Loading weights {}".format(initialWeights))
+        gs.message("Loading weights {}".format(initialWeights))
     if initialWeights and flags["e"]:
         model.load_weights(
             initialWeights,
@@ -266,7 +265,7 @@ def main(options, flags):
     elif initialWeights:
         model.load_weights(initialWeights, by_name=True)
 
-    gscript.message("Reading images from dataset {}".format(dataset))
+    gs.message("Reading images from dataset {}".format(dataset))
     images = list()
     for root, subdirs, _ in os.walk(dataset):
         if not subdirs:
@@ -278,9 +277,7 @@ def main(options, flags):
     if flags["s"]:
         # Write list of unused images to logs
         testImagesThreshold = int(len(images) * 0.9)
-        gscript.message(
-            "List of unused images saved in the logs directory" 'as "unused.txt"'
-        )
+        gs.message('List of unused images saved in the logs directoryas "unused.txt"')
         with open(os.path.join(logs, "unused.txt"), "w") as unused:
             for filename in images[testImagesThreshold:]:
                 unused.write("{}\n".format(filename))
@@ -306,7 +303,7 @@ def main(options, flags):
     if initialWeights:
         # Training - Stage 1
         # Adjust epochs and layers as needed
-        gscript.message("Training network heads")
+        gs.message("Training network heads")
         model.train(
             dataset_train,
             dataset_val,
@@ -317,7 +314,7 @@ def main(options, flags):
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
-        gscript.message("Fine tune Resnet stage 4 and up")
+        gs.message("Fine tune Resnet stage 4 and up")
         # divide the learning rate by 10 if ran out of memory or
         # if weights exploded
         model.train(
@@ -330,10 +327,10 @@ def main(options, flags):
 
         # Training - Stage 3
         # Fine tune all layers
-        gscript.message("Fine tune all layers")
+        gs.message("Fine tune all layers")
         # out of if statement
     else:
-        gscript.message("Training all layers")
+        gs.message("Training all layers")
         # out of if statement
 
     # divide the learning rate by 100 if ran out of memory or
@@ -348,5 +345,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main(options, flags)

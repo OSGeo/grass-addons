@@ -19,11 +19,9 @@ This program is free software under the GNU General Public License
 import sys
 
 from . import globalvar
-from .mdutil import findBetween
 
 
 class MdDescription:
-
     """Object which is initialzed by jinja template in '{# #}'"""
 
     def __init__(
@@ -121,7 +119,6 @@ class MdDescription:
 
 
 class JinjaTemplateParser:
-
     """Parser of OWSLib tag and init. values of jinjainfo::MdDescription from jinja template."""
 
     def __init__(self, template):
@@ -133,9 +130,11 @@ class JinjaTemplateParser:
         """
 
         try:
-            global GError
+            global GError, mdutil
 
             from core.gcmd import GError
+
+            from . import mdutil
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
@@ -160,14 +159,13 @@ class JinjaTemplateParser:
         try:
             with open(self.template, "r") as f:
                 for line in f:
-
                     # if found start of comments
                     if str(line).find("{{") != -1:
-                        obj = findBetween(line, "{{", "}}")
+                        obj = mdutil.findBetween(line, "{{", "}}")
                         self.mdOWSTag.append(obj)
 
                     if str(line).find("{%") != -1:
-                        obj = findBetween(line, "{%", "-%}")
+                        obj = mdutil.findBetween(line, "{%", "-%}")
                         self.mdOWSTag.append(obj)
 
         except:
@@ -183,9 +181,9 @@ class JinjaTemplateParser:
                 for line in f:
                     # if found start of comments
                     if str(line).find("{#") != -1:
-                        values = findBetween(line, "{#", "#}")
-                        values1 = findBetween(line, "{%", "#}")
-                        values2 = findBetween(line, "{{", "#}")
+                        values = mdutil.findBetween(line, "{#", "#}")
+                        values1 = mdutil.findBetween(line, "{%", "#}")
+                        values2 = mdutil.findBetween(line, "{{", "#}")
                         if values1 != "":
                             values += ",selfInfoString='''{%" + values1 + "#}'''"
                         else:

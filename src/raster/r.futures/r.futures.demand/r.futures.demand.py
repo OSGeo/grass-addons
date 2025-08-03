@@ -16,67 +16,67 @@
 #
 ##############################################################################
 
-#%module
-#% description: Script for creating demand table which determines the quantity of land change expected.
-#% keyword: raster
-#% keyword: demand
-#%end
-#%option G_OPT_R_INPUTS
-#% key: development
-#% description: Names of input binary raster maps representing development
-#% guisection: Input maps
-#%end
-#%option G_OPT_R_INPUT
-#% key: subregions
-#% description: Raster map of subregions
-#% guisection: Input maps
-#%end
-#%option G_OPT_F_INPUT
-#% key: observed_population
-#% description: CSV file with observed population in subregions at certain times
-#% guisection: Input population
-#%end
-#%option G_OPT_F_INPUT
-#% key: projected_population
-#% description: CSV file with projected population in subregions at certain times
-#% guisection: Input population
-#%end
-#%option
-#% type: integer
-#% key: simulation_times
-#% multiple: yes
-#% required: yes
-#% description: For which times demand is projected
-#% guisection: Output
-#%end
-#%option
-#% type: string
-#% key: method
-#% multiple: yes
-#% required: yes
-#% description: Relationship between developed cells (dependent) and population (explanatory)
-#% options: linear, logarithmic, exponential, exp_approach, logarithmic2
-#% descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX);exp_approach;y = (1 - e^(-A(x - B))) + C   (SciPy);logarithmic2;y = A + B * ln(x - C)   (SciPy)
-#% answer: linear,logarithmic
-#% guisection: Optional
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: plot
-#% required: no
-#% label: Save plotted relationship between developed cells and population into a file
-#% description: File type is given by extension (.pdf, .png, .svg)
-#% guisection: Output
-#%end
-#%option G_OPT_F_OUTPUT
-#% key: demand
-#% description: Output CSV file with demand (times as rows, regions as columns)
-#% guisection: Output
-#%end
-#%option G_OPT_F_SEP
-#% label: Separator used in CSV files
-#% guisection: Optional
-#% answer: comma
-#%end
+# %module
+# % description: Script for creating demand table which determines the quantity of land change expected.
+# % keyword: raster
+# % keyword: demand
+# %end
+# %option G_OPT_R_INPUTS
+# % key: development
+# % description: Names of input binary raster maps representing development
+# % guisection: Input maps
+# %end
+# %option G_OPT_R_INPUT
+# % key: subregions
+# % description: Raster map of subregions
+# % guisection: Input maps
+# %end
+# %option G_OPT_F_INPUT
+# % key: observed_population
+# % description: CSV file with observed population in subregions at certain times
+# % guisection: Input population
+# %end
+# %option G_OPT_F_INPUT
+# % key: projected_population
+# % description: CSV file with projected population in subregions at certain times
+# % guisection: Input population
+# %end
+# %option
+# % type: integer
+# % key: simulation_times
+# % multiple: yes
+# % required: yes
+# % description: For which times demand is projected
+# % guisection: Output
+# %end
+# %option
+# % type: string
+# % key: method
+# % multiple: yes
+# % required: yes
+# % description: Relationship between developed cells (dependent) and population (explanatory)
+# % options: linear, logarithmic, exponential, exp_approach, logarithmic2
+# % descriptions:linear;y = A + Bx;logarithmic;y = A + Bln(x);exponential;y = Ae^(BX);exp_approach;y = (1 - e^(-A(x - B))) + C   (SciPy);logarithmic2;y = A + B * ln(x - C)   (SciPy)
+# % answer: linear,logarithmic
+# % guisection: Optional
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: plot
+# % required: no
+# % label: Save plotted relationship between developed cells and population into a file
+# % description: File type is given by extension (.pdf, .png, .svg)
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: demand
+# % description: Output CSV file with demand (times as rows, regions as columns)
+# % guisection: Output
+# %end
+# %option G_OPT_F_SEP
+# % label: Separator used in CSV files
+# % guisection: Optional
+# % answer: comma
+# %end
 
 
 import sys
@@ -188,9 +188,9 @@ def main():
     demand = {}
     i = 0
     if plot:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("Agg")
+        mpl.use("Agg")
         import matplotlib.pyplot as plt
 
         n_plots = int(np.ceil(np.sqrt(len(subregionIds))))
@@ -239,10 +239,8 @@ def main():
                     except (FloatingPointError, RuntimeError):
                         gcore.warning(
                             _(
-                                "Method '{m}' cannot converge for subregion {reg}".format(
-                                    m=method, reg=subregionId
-                                )
-                            )
+                                "Method '{m}' cannot converge for subregion {reg})"
+                            ).format(m=method, reg=subregionId)
                         )
                         rmse[method] = sys.maxsize  # so that other method is selected
                         coeff[method] = (np.nan, np.nan, np.nan)
@@ -337,10 +335,8 @@ def main():
             gcore.warning(
                 _(
                     "Subregion {sub} has negative numbers"
-                    " of newly developed cells, changing to zero".format(
-                        sub=subregionId
-                    )
-                )
+                    " of newly developed cells, changing to zero"
+                ).format(sub=subregionId)
             )
             demand[subregionId][demand[subregionId] < 0] = 0
         if coeff[method][0] < 0 or np.isnan(coeff[method][0]):
@@ -356,10 +352,8 @@ def main():
             gcore.warning(
                 _(
                     "For subregion {sub} population and development are inversely proportional,"
-                    " demand will be interpolated based on prior change in development only.".format(
-                        sub=subregionId
-                    )
-                )
+                    " demand will be interpolated based on prior change in development only."
+                ).format(sub=subregionId)
             )
 
         # draw
@@ -387,7 +381,7 @@ def main():
                     label = "$y = {c:.3f} + {m:.3f} x$".format(m=cf[0], c=cf[1])
                 elif method == "logarithmic":
                     line = np.log(x_pred) * cf[0] + cf[1]
-                    label = "$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=cf[0], c=cf[1])
+                    label = r"$y = {c:.3f} + {m:.3f} \ln(x)$".format(m=cf[0], c=cf[1])
                 elif method == "exponential":
                     line = np.exp(x_pred * cf[0] + cf[1])
                     label = "$y = {c:.3f} e^{{{m:.3f}x}}$".format(
@@ -400,7 +394,7 @@ def main():
                     )
                 elif method == "logarithmic2":
                     line = logarithmic2(x_pred / magn, *cf) * magn
-                    label = "$y = {A:.3f} + {B:.3f} \ln(x-{C:.3f})$".format(
+                    label = r"$y = {A:.3f} + {B:.3f} \ln(x-{C:.3f})$".format(
                         A=cf[0], B=cf[1], C=cf[2]
                     )
                 ax.plot(x_pred, line, label=label)

@@ -17,138 +17,139 @@
 #
 #############################################################################
 
-#%module
-#% description: Sample a space time raster dataset at specific vector point map returning aggregate values and write the output to stdout or to attribute table
-#% keyword: temporal
-#% keyword: sampling
-#% keyword: raster
-#% keyword: time
-#%end
+# %module
+# % description: Sample a space time raster dataset at specific vector point map returning aggregate values and write the output to stdout or to attribute table
+# % keyword: temporal
+# % keyword: sampling
+# % keyword: raster
+# % keyword: time
+# % keyword: parallel
+# %end
 
-#%option G_OPT_V_INPUT
-#%end
+# %option G_OPT_V_INPUT
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: date_column
-#% description: Name of the column containing starting dates for aggregates
-#% required: no
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: date_column
+# % description: Name of the column containing starting dates for aggregates
+# % required: no
+# %end
 
-#%option
-#% key: date
-#% type: string
-#% description: The starting date for aggregation
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: date
+# % type: string
+# % description: The starting date for aggregation
+# % required: no
+# % multiple: no
+# %end
 
-#%option
-#% key: final_date
-#% type: string
-#% description: The end date for aggregation, requires date option
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: final_date
+# % type: string
+# % description: The end date for aggregation, requires date option
+# % required: no
+# % multiple: no
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option G_OPT_DB_COLUMNS
-#% key: final_date_column
-#% description: Column with ending date for aggregation, requires date_columns option
-#%end
+# %option G_OPT_DB_COLUMNS
+# % key: final_date_column
+# % description: Column with ending date for aggregation, requires date_columns option
+# %end
 
-#%option G_OPT_DB_COLUMNS
-#%end
+# %option G_OPT_DB_COLUMNS
+# %end
 
-#%option
-#% key: granularity
-#% type: string
-#% description: Aggregation granularity, format absolute time "x years, x months, x weeks, x days, x hours, x minutes, x seconds" or an integer value for relative time
-#% required: no
-#% multiple: no
-#%end
+# %option
+# % key: granularity
+# % type: string
+# % description: Aggregation granularity, format absolute time "x years, x months, x weeks, x days, x hours, x minutes, x seconds" or an integer value for relative time
+# % required: no
+# % multiple: no
+# %end
 
-#%option
-#% key: method
-#% type: string
-#% description: Aggregate operation to be performed on the raster maps
-#% required: yes
-#% multiple: yes
-#% options: average,median,mode,minimum,maximum,stddev,sum,variance,quart1,quart3,perc90,quantile
-#% answer: average
-#%end
+# %option
+# % key: method
+# % type: string
+# % description: Aggregate operation to be performed on the raster maps
+# % required: yes
+# % multiple: yes
+# % options: average,median,mode,minimum,maximum,stddev,sum,variance,quart1,quart3,perc90,quantile
+# % answer: average
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of processes to run in parallel
-#% required: no
-#% multiple: no
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of processes to run in parallel
+# % required: no
+# % multiple: no
+# % answer: 1
+# %end
 
-#%option
-#% key: date_format
-#% type: string
-#% description: Tha date format
-#% required: no
-#% answer: %Y-%m-%d
-#%end
+# %option
+# % key: date_format
+# % type: string
+# % description: Tha date format
+# % required: no
+# % answer: %Y-%m-%d
+# %end
 
-#%flag
-#% key: u
-#% label: Update attribute table of input vector map
-#% description: Instead of creating a new vector map update the attribute table with value(s)
-#%end
+# %flag
+# % key: u
+# % label: Update attribute table of input vector map
+# % description: Instead of creating a new vector map update the attribute table with value(s)
+# %end
 
-#%flag
-#% key: a
-#% label: Query STRDS with dates after the 'date' or 'column_date' value
-#% description: Usually t.rast.what.aggr aggregate values before the selected dates, using a flag it will query values after the selected dates
-#%end
+# %flag
+# % key: a
+# % label: Query STRDS with dates after the 'date' or 'column_date' value
+# % description: Usually t.rast.what.aggr aggregate values before the selected dates, using a flag it will query values after the selected dates
+# %end
 
-#%flag
-#% key: c
-#% label: Create new columns, it combine STRDS and method names
-#% description: Create new columns for the selected methods, it combine STRDS and method names
-#%end
+# %flag
+# % key: c
+# % label: Create new columns, it combine STRDS and method names
+# % description: Create new columns for the selected methods, it combine STRDS and method names
+# %end
 
-#%rules
-#% exclusive: date,date_column
-#%end
+# %rules
+# % exclusive: date,date_column
+# %end
 
-#%rules
-#% requires: date, final_date, granularity
-#%end
+# %rules
+# % requires: date, final_date, granularity
+# %end
 
-#%rules
-#% requires: date_column, final_date_column, granularity
-#%end
+# %rules
+# % requires: date_column, final_date_column, granularity
+# %end
 
-#%rules
-#% requires: final_date, date
-#%end
+# %rules
+# % requires: final_date, date
+# %end
 
-#%rules
-#% requires: final_date_column, date_column
-#%end
+# %rules
+# % requires: final_date_column, date_column
+# %end
 
 from datetime import datetime
 from datetime import timedelta
 from subprocess import PIPE as PI
 import numpy as np
-import grass.script as gscript
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -165,7 +166,7 @@ def return_value(vals, met):
             m = stats.mode(vals)
             return m.mode[0]
         except ImportError:
-            gscript.fatal(_("For method 'mode' you need to install scipy"))
+            gs.fatal(_("For method 'mode' you need to install scipy"))
     elif met == "minimum":
         return vals.min()
     elif met == "maximum":
@@ -212,18 +213,18 @@ def main(options, flags):
     mets = options["method"].split(",")
     gran = options["granularity"]
     dateformat = options["date_format"]
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     update = flags["u"]
     create = flags["c"]
 
     stdout = False
     if output != "-" and update:
-        gscript.fatal(_("Cannot combine 'output' option and 'u' flag"))
+        gs.fatal(_("Cannot combine 'output' option and 'u' flag"))
     elif output != "-" and create:
-        gscript.fatal(_("Cannot combine 'output' option and 'c' flag"))
+        gs.fatal(_("Cannot combine 'output' option and 'c' flag"))
     elif output == "-" and (update or create):
         if update and not cols:
-            gscript.fatal(_("Please set 'columns' option"))
+            gs.fatal(_("Please set 'columns' option"))
         output = invect
     else:
         stdout = True
@@ -237,16 +238,12 @@ def main(options, flags):
                 pymod.Module(
                     "v.db.addcolumn",
                     map=invect,
-                    columns="{col} " "double precision".format(col=colname),
+                    columns="{col} double precision".format(col=colname),
                 )
             except CalledModuleError:
-                gscript.fatal(
-                    _("Not possible to create column " "{col}".format(col=colname))
-                )
-        gscript.warning(
-            _("Attribute table of vector {name} will be updated" "...").format(
-                name=invect
-            )
+                gs.fatal(_("Not possible to create column {col}").format(col=colname))
+        gs.warning(
+            _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
     elif update:
         colexist = pymod.Module(
@@ -254,18 +251,16 @@ def main(options, flags):
         ).outputs.stdout.splitlines()
         for col in cols:
             if col not in colexist:
-                gscript.fatal(
-                    _("Column '{}' does not exist, please create it first".format(col))
+                gs.fatal(
+                    _("Column '{}' does not exist, please create it first").format(col)
                 )
-        gscript.warning(
-            _("Attribute table of vector {name} will be updated" "...").format(
-                name=invect
-            )
+        gs.warning(
+            _("Attribute table of vector {name} will be updated...").format(name=invect)
         )
 
     if output != "-" and len(cols) != len(mets):
-        gscript.fatal(
-            _("'columns' and 'method' options must have the same " "number of elements")
+        gs.fatal(
+            _("'columns' and 'method' options must have the same number of elements")
         )
     tgis.init()
     dbif = tgis.SQLDatabaseInterfaceConnection()
@@ -291,24 +286,24 @@ def main(options, flags):
             td = None
     else:
         if sp.get_granularity() >= int(gran):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Input granularity is smaller or equal to the {iv}"
-                    " STRDS granularity".format(iv=strds)
-                )
+                    " STRDS granularity"
+                ).format(iv=strds)
             )
         td = int(gran)
     if incol and indate:
-        gscript.fatal(_("Cannot combine 'date_column' and 'date' options"))
+        gs.fatal(_("Cannot combine 'date_column' and 'date' options"))
     elif not incol and not indate:
-        gscript.fatal(_("You have to fill 'date_column' or 'date' option"))
+        gs.fatal(_("You have to fill 'date_column' or 'date' option"))
     if incol:
         if endcol:
-            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by " "{dc}".format(
+            mysql = "SELECT DISTINCT {dc},{ec} from {vmap} order by {dc}".format(
                 vmap=invect, dc=incol, ec=endcol
             )
         else:
-            mysql = "SELECT DISTINCT {dc} from {vmap} order by " "{dc}".format(
+            mysql = "SELECT DISTINCT {dc} from {vmap} order by {dc}".format(
                 vmap=invect, dc=incol
             )
         try:
@@ -317,7 +312,7 @@ def main(options, flags):
             )
             mydates = dates.outputs["stdout"].value.splitlines()
         except CalledModuleError:
-            gscript.fatal(_("db.select return an error"))
+            gs.fatal(_("db.select return an error"))
     elif indate:
         if enddate:
             mydates = ["{ida}|{eda}".format(ida=indate, eda=enddate)]
@@ -332,9 +327,7 @@ def main(options, flags):
                 pymod.Module("v.db.addtable", map=invect)
             except CalledModuleError:
                 dbif.close()
-                gscript.fatal(
-                    _("Unable to add table <%s> to vector map " "<%s>" % invect)
-                )
+                gs.fatal(_("Unable to add table <%s> to vector map <%s>") % invect)
         if pymap.is_open():
             pymap.close()
         qfeat = pymod.Module(
@@ -361,7 +354,7 @@ def main(options, flags):
         else:
             sdata = fdata
             fdata = sdata - td
-        mwhere = "start_time >= '{inn}' and start_time < " "'{out}'".format(
+        mwhere = "start_time >= '{inn}' and start_time < '{out}'".format(
             inn=fdata, out=sdata
         )
         lines = None
@@ -381,7 +374,7 @@ def main(options, flags):
             )
             lines = r_what.outputs["stdout"].value.splitlines()
         except CalledModuleError:
-            gscript.warning("t.rast.what faild with where='{}'".format(mwhere))
+            gs.warning("t.rast.what faild with where='{}'".format(mwhere))
             pass
         if incol:
             if endcol:
@@ -402,8 +395,8 @@ def main(options, flags):
                 )
                 myfeats = qfeat.outputs["stdout"].value.splitlines()
             except CalledModuleError:
-                gscript.fatal(
-                    _("db.select returned an error for date " "{da}".format(da=start))
+                gs.fatal(
+                    _("db.select returned an error for date {da}").format(da=start)
                 )
         if not lines and stdout:
             for feat in myfeats:
@@ -469,7 +462,7 @@ def main(options, flags):
                                     where="cat={ca}".format(ca=vals[0]),
                                 )
                         except CalledModuleError:
-                            gscript.fatal(_("v.db.update return an error"))
+                            gs.fatal(_("v.db.update return an error"))
                 if stdout:
                     outtxt += "\n"
                 if x == len(myfeats):
@@ -481,5 +474,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main(options, flags)

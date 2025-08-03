@@ -3,7 +3,7 @@ from dummy_mapcalc_strings import replace_dummies
 from constants import DUMMY_MAPCALC_STRING_DN
 from constants import DUMMY_MAPCALC_STRING_RADIANCE
 from constants import EQUATION
-import grass.script as grass
+import grass.script as gs
 from helpers import run
 
 
@@ -35,7 +35,7 @@ def digital_numbers_to_radiance(
         radiance_expression, instring=DUMMY_MAPCALC_STRING_DN, outstring=band
     )
     radiance_equation = EQUATION.format(result=outname, expression=radiance_expression)
-    grass.mapcalc(radiance_equation, overwrite=True)
+    gs.mapcalc(radiance_equation, overwrite=True)
 
     if not quiet:
         run("r.info", map=outname, flags="r")
@@ -66,7 +66,7 @@ def radiance_to_brightness_temperature(
         result=outname, expression=temperature_expression
     )
 
-    grass.mapcalc(temperature_equation, overwrite=True)
+    gs.mapcalc(temperature_equation, overwrite=True)
 
     if not quiet:
         run("r.info", map=outname, flags="r")

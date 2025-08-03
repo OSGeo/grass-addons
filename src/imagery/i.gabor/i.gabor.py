@@ -99,7 +99,7 @@ if "GISBASE" not in os.environ:
     sys.stderr.write(_("You must be in GRASS GIS to run this program.\n"))
     sys.exit(1)
 
-import grass.script as grass
+import grass.script as gs
 from grass.script import array as garray
 
 
@@ -113,7 +113,7 @@ def gabor2d(win_size, orientation=0, wavelength=5, aspect=0.5, offset=0, ntype="
 
     # Check to make sure wave length is not greater than half the window size
     if wavelength >= xy:
-        grass.fatal(_("A wavelength smaller than w / 2 is needed"))
+        gs.fatal(_("A wavelength smaller than w / 2 is needed"))
 
     # Convert degrees to radians
     orientation = deg_to_radians(orientation)
@@ -124,7 +124,7 @@ def gabor2d(win_size, orientation=0, wavelength=5, aspect=0.5, offset=0, ntype="
     xr = x * np.cos(orientation) + y * np.sin(orientation)
     yr = -x * np.sin(orientation) + y * np.cos(orientation)
 
-    gaussian = np.exp(-((xr ** 2 + aspect ** 2 * yr ** 2) / (2 * stddev ** 2)))
+    gaussian = np.exp(-((xr**2 + aspect**2 * yr**2) / (2 * stddev**2)))
     if ntype == "imag":
         sf = np.sin(2 * np.pi * xr / wavelength + offset)
     else:
@@ -161,8 +161,8 @@ def main():
 
     if flags["q"]:
         if not threshold:
-            grass.fatal(_("A percentile threshold is needed to quantify."))
-        q = [2 ** i for i in range(len(orientation))]
+            gs.fatal(_("A percentile threshold is needed to quantify."))
+        q = [2**i for i in range(len(orientation))]
     else:
         q = 0
 
@@ -175,7 +175,7 @@ def main():
     inarr = garray.array(input)
     if flags["c"]:
         convolved = []
-        if type(q) == list:
+        if isinstance(q, list):
             for i in range(len(filters.keys())):
                 name = list(filters.keys())[i]
                 convolved.append(gabor_convolve(inarr, filters[name], threshold, q[i]))
@@ -194,11 +194,10 @@ def main():
 
 
 if __name__ == "__main__":
+    options, flags = gs.parser()
     # Lazy import for scipy.signal.fftconvolve
     try:
         from scipy.signal import fftconvolve
     except ImportError:
-        grass.fatal(_("Cannot import fftconvolve from scipy"))
-
-    options, flags = grass.parser()
+        gs.fatal(_("Cannot import fftconvolve from scipy"))
     sys.exit(main())

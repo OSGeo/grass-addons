@@ -474,7 +474,7 @@ Before anything, we need to define the extent of interest by executing
     <img src="images/r_estimap_recreation_potential_4.png" alt="Example of a recreation potential output map while using a MASK, a land suitability map, two water resources maps and a natural resources map" >
     <p class="caption">Example of a recreation potential output map while using a MASK, a land suitability map, two water resources maps and a natural resources map</p>
   </div>
-  
+
   <p>
   This example, features also a title and a legend, so as to make sense of the
   map (however, we will skip for now important cartographic elements).
@@ -580,7 +580,7 @@ Before anything, we need to define the extent of interest by executing
 
   <p>
   or, the same command in a copy-paste friendly way:
-  
+
   <div class="code"><pre>
     r.estimap.recreation  --o mask=input_area_of_interest  land=input_land_suitability  water=input_water_resources,input_bathing_water_quality  natural=input_protected_areas  infrastructure=input_distance_to_infrastructure  opportunity=output_opportunity  spectrum=output_spectrum
     </pre></div>
@@ -619,7 +619,7 @@ Before anything, we need to define the extent of interest by executing
   input map.
 
   <h5 id="population">Population</h5>
-  
+
   <div class="figure">
     <img src="images/r_estimap_recreation_population_2015.png" alt="Fragment of a population map (GHSL, 2015)" >
     <p class="caption">Fragment of a population map (GHSL, 2015)</p>
@@ -630,12 +630,12 @@ Before anything, we need to define the extent of interest by executing
   1000m^2.
 
   <h5 id="local-administrative-units">Local administrative units</h5>
-  
+
   <div class="figure">
     <img src="images/r_estimap_recreation_local_administrative_units.png" alt="Fragment of a local administrative units input map" >
     <p class="caption">Fragment of a local administrative units input map</p>
   </div>
-  
+
   <p>
   The map named <code>local_administrative_units</code> serves in the following
   example as the base map for the zonal statistics to obtain the demand
@@ -676,7 +676,7 @@ Before anything, we need to define the extent of interest by executing
   In the following example, we add <code>unmet</code> output map option. In
   this case of the <em>unmet</em> distribution map too, by design the module
   requires the user to define the <code>demand</code> output map option.
-  
+
   <div class="code"><pre>r.estimap.recreation --o \
     mask=input_area_of_interest \
     land=input_land_suitability \
@@ -776,7 +776,7 @@ Before anything, we need to define the extent of interest by executing
     <img src="images/r_estimap_recreation_mobility.png" alt="Example of a flow output map while using a MASK and inputs for land suitability, water resources, natural resources, infrastructure, population and base" >
     <p class="caption">Example of a flow output map while using a MASK and inputs for land suitability, water resources, natural resources, infrastructure, population and base</p>
   </div>
-  
+
   <p>
   If we check the output values for the <code>output_flow</code> map, they are
   rounded by the module automatically to integers! Here the first few lines
@@ -991,7 +991,7 @@ Before anything, we need to define the extent of interest by executing
   Note the use of the <code>timestamp</code> parameter! This concerns the
   <code>spectrum</code> map. If plans include working with GRASS GIS' temporal
   framework on time-series, maybe this will be useful.
-  
+
   <h4 id="vector-map">Vector map</h4>
 
   <p>A vector input map with the role of the <em>base</em> map, can be used too.
@@ -1149,7 +1149,7 @@ Before anything, we need to define the extent of interest by executing
   <p>
   A first look on how this works, is to experiment with the
   <code>landuse</code> and <code>suitability_scores</code> input options.
-  
+
   <p>
   Let's return to the first example, and use a fragment from the unprocessed
   CORINE land data set, instead of the <code>land_suitability</code> map. This

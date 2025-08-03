@@ -35,14 +35,14 @@
 #include <sstream>
 #include <string>
 
-using std::string;
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::string;
 
 using namespace pops;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     Raster<int> infected = {{5, 0}, {0, 0}};
     Raster<int> mortality_tracker = {{{3, 0}, {0, 0}}, {{0, 0}, {0, 0}}};
@@ -52,16 +52,13 @@ int main(int argc, char* argv[])
     double mortality_rate = 0.50;
     int current_year = 2018;
     int first_mortality_year = 2018;
-    Simulation<Raster<int>, Raster<double>> simulation(42, infected, ew_res, ns_res);
-    simulation.mortality(
-        infected,
-        mortality_rate,
-        current_year,
-        first_mortality_year,
-        mortality,
-        mortality_tracker_vector) cout
+    Simulation<Raster<int>, Raster<double>> simulation(42, infected, ew_res,
+                                                       ns_res);
+    simulation.mortality(infected, mortality_rate, current_year,
+                         first_mortality_year, mortality,
+                         mortality_tracker_vector) cout
         << mortality << endl;
     return 0;
 }
 
-#endif  // POPS_TEST
+#endif // POPS_TEST

@@ -16,26 +16,26 @@
 #
 ################################################################################
 
-#%module
-#% description: Find optimal threshold for stream extraction
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: threshold
-#%end
+# %module
+# % description: Find optimal threshold for stream extraction
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: threshold
+# %end
 
-#%option
-#% key: acc
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: acc
-#% description: Name of accumulation raster map
-#% required: yes
-#%END
+# %option
+# % key: acc
+# % type: string
+# % gisprompt: old,raster,raster
+# % key_desc: acc
+# % description: Name of accumulation raster map
+# % required: yes
+# %END
 
-#%flag
-#% key: g
-#% description: Print the threshold value in shell script style
-#%end
+# %flag
+# % key: g
+# % description: Print the threshold value in shell script style
+# %end
 
 from __future__ import print_function
 import os
@@ -43,11 +43,11 @@ import sys
 import math
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
-    stats = grass.read_command(
+    stats = gs.read_command(
         "r.stats",
         input=options["acc"],
         separator="space",
@@ -74,18 +74,18 @@ def main():
     th = area[index]
 
     if th < 0:
-        grass.warning("Flow accumulation contains negative values")
+        gs.warning("Flow accumulation contains negative values")
         if flags["g"]:
             print("threshold=%d" % th)
     else:
         if flags["g"]:
             print("threshold=%d" % th)
         else:
-            grass.message("Suggested threshold is %d" % th)
+            gs.message("Suggested threshold is %d" % th)
 
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

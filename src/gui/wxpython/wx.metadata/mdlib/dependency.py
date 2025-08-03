@@ -19,6 +19,7 @@
 #############################################################################
 
 import importlib
+import subprocess
 import sys
 
 
@@ -60,9 +61,9 @@ MODULES = {
     },
 }
 
-INSTALLED_VERSION_MESSAGE = "Installed version of {} library is " "<{}>."
+INSTALLED_VERSION_MESSAGE = "Installed version of {} library is <{}>."
 REQ_VERSION_MESSAGE = (
-    "{name} {version} is required. " "check requirements on the manual page <{url}>."
+    "{name} {version} is required. check requirements on the manual page <{url}>."
 )
 
 
@@ -114,7 +115,25 @@ def check_dependencies(module_name, check_version=False):
     except ModuleNotFoundError:
         message = "{name} {text} <{url}>.\n".format(
             name=module_name,
-            text="library is missing. Check requirements on the " "manual page",
+            text="library is missing. Check requirements on the manual page",
+            url=URL,
+        )
+        sys.stderr.write(message)
+
+
+def check_osmsm_lib():
+    """Check if osmsm JavaScript static map image OpenStreetMap generator
+    is installed
+
+    https://github.com/jperelli/osm-static-maps
+    """
+    lib = "osmsm"
+    try:
+        subprocess.call([lib], stdout=subprocess.PIPE)
+    except OSError:
+        message = "{name} JavaScript {text} <{url}>.\n".format(
+            name=lib,
+            text="library is missing. Check requirements on the manual page",
             url=URL,
         )
         sys.stderr.write(message)
@@ -124,6 +143,7 @@ def main():
     for module in MODULES:
         if check_dependencies(module_name=module):
             print("{name} is installed.".format(name=module))
+    check_osmsm_lib()
 
 
 if __name__ == "__main__":

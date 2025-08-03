@@ -16,43 +16,43 @@
 #               for details.
 #
 # REQUIRES:     Matplotlib
-#                 http://matplotlib.sourceforge.net/
+#                 https://matplotlib.org
 #
 #
 ################################################################################
-#%module
-#% description: Calculates the Width Function of a watershed basin.
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Calculates the Width Function of a watershed basin.
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: map
-#% description: Distance to outlet map (from r.stream.distance)
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: map
+# % description: Distance to outlet map (from r.stream.distance)
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: image
-#% key_desc: image
-#% description: Name for output graph file (png)
-#% required: yes
-#%END
+# %option G_OPT_F_OUTPUT
+# % key: image
+# % key_desc: image
+# % description: Name for output graph file (png)
+# % required: yes
+# %END
 
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 import numpy as np
 
 
 def main():
-    stats = grass.read_command(
+    stats = gs.read_command(
         "r.stats", input=options["map"], sep="space", nv="*", nsteps="255", flags="Anc"
     ).split("\n")[:-1]
 
     # res = cellsize
-    res = grass.region()["nsres"]
+    res = gs.region()["nsres"]
 
     zn = np.zeros((len(stats), 4), float)
     kl = np.zeros((len(stats), 2), float)
@@ -66,11 +66,11 @@ def main():
         if i != 0:
             zn[i, 0], zn[i, 1] = map(float, stats[i].split(" "))
             zn[i, 2] = zn[i, 1] + zn[i - 1, 2]
-            zn[i, 3] = zn[i, 1] * (res ** 2)
+            zn[i, 3] = zn[i, 1] * (res**2)
 
     totcell = sum(zn[:, 1])
     print("Tot. cells %s" % (totcell))
-    totarea = totcell * (res ** 2)
+    totarea = totcell * (res**2)
     print("Tot. area %s" % (totarea))
     maxdist = max(zn[:, 0])
     print("Max distance %s" % (maxdist))
@@ -118,9 +118,9 @@ def main():
 
 
 def plotImage(x, y, image, type, xlabel, ylabel, title):
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     plt.plot(x, y, type)
@@ -148,5 +148,5 @@ def findint(kl, f):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

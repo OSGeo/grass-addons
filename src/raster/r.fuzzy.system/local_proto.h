@@ -11,7 +11,7 @@
    PI4= PI/4
  */
 #ifndef PI2
-#define PI2 (2*atan(1))
+#define PI2 (2 * atan(1))
 #endif
 
 #ifndef PI4
@@ -19,17 +19,16 @@
 #endif
 
 #define STACKMAX 500
-#define VARMAX 50
+#define VARMAX   50
 
 #undef MIN
 #undef MAX
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef char *STRING;
 
-typedef enum
-{
+typedef enum {
     l_ZADEH,
     l_PRODUCT,
     l_DRASTIC,
@@ -38,29 +37,13 @@ typedef enum
     l_HAMACHER
 } logics;
 
-typedef enum
-{
-    s_LINEAR,
-    s_SSHAPE,
-    s_JSHAPE,
-    s_GSHAPE
-} shapes;
+typedef enum { s_LINEAR, s_SSHAPE, s_JSHAPE, s_GSHAPE } shapes;
 
-typedef enum
-{
-    s_BOTH,
-    s_LEFT,
-    s_RIGHT
-} sides;
+typedef enum { s_BOTH, s_LEFT, s_RIGHT } sides;
 
-typedef enum
-{
-    i_MIN,
-    i_PROD
-} implications;
+typedef enum { i_MIN, i_PROD } implications;
 
-typedef enum
-{
+typedef enum {
     d_CENTEROID,
     d_BISECTOR,
     d_MINOFHIGHEST,
@@ -68,30 +51,27 @@ typedef enum
     d_MEANOFHIGHEST
 } defuzz;
 
-typedef enum
-{
-    E,				/* ERROR */
-    S,				/* SHIFT */
-    R,				/* REDUCE */
-    A				/* ACCEPT */
+typedef enum {
+    E, /* ERROR */
+    S, /* SHIFT */
+    R, /* REDUCE */
+    A  /* ACCEPT */
 } actions;
 
-typedef enum
-{
-    t_START,			/* { */
-    t_AND,			/* & */
-    t_OR,			/* | */
-    t_IS_NOT,			/* ~ */
-    t_IS,			/* = */
-    t_LBRC,			/* ( */
-    t_RBRC,			/* ) */
-    t_STOP,			/* } */
-    t_size,			/* number of tokens */
-    t_VAL			/* value a product of MAP and VARIABLE */
+typedef enum {
+    t_START,  /* { */
+    t_AND,    /* & */
+    t_OR,     /* | */
+    t_IS_NOT, /* ~ */
+    t_IS,     /* = */
+    t_LBRC,   /* ( */
+    t_RBRC,   /* ) */
+    t_STOP,   /* } */
+    t_size,   /* number of tokens */
+    t_VAL     /* value a product of MAP and VARIABLE */
 } tokens;
 
-typedef struct
-{				/* membership definition */
+typedef struct { /* membership definition */
     char setname[21];
     sides side;
     float points[4];
@@ -100,44 +80,39 @@ typedef struct
     float height;
 } SETS;
 
-typedef struct
-{
+typedef struct {
     char name[30];
     int nsets;
-    int output;			/* is output map? */
+    int output; /* is output map? */
     RASTER_MAP_TYPE raster_type;
     fpos_t position;
     void *in_buf;
     DCELL cell;
-    int cfd;			/* file descriptor */
+    int cfd; /* file descriptor */
     SETS *sets;
 } MAPS;
 
-typedef struct
-{
+typedef struct {
     DCELL *value;
     SETS *set;
     char oper;
 } VALUES;
 
-
-typedef struct			/* stores queues with rules */
+typedef struct /* stores queues with rules */
 {
     char outname[20];
     int output_set_index;
-    char parse_queue[STACKMAX][VARMAX];	/* original rule */
-    int work_queue[STACKMAX];	/* symbols of values and operators */
-    VALUES value_queue[STACKMAX];	/* pointers to values, operators and sets */
+    char parse_queue[STACKMAX][VARMAX]; /* original rule */
+    int work_queue[STACKMAX];           /* symbols of values and operators */
+    VALUES value_queue[STACKMAX]; /* pointers to values, operators and sets */
     float weight;
 } RULES;
 
-typedef struct _outs
-{
+typedef struct _outs {
     char output_name[52];
-    int ofd;			/* output file descriptor */
+    int ofd; /* output file descriptor */
     FCELL *out_buf;
 } OUTPUTS;
-
 
 extern STRING var_name_file;
 extern STRING rule_name_file;
@@ -160,7 +135,7 @@ extern int HERE;
 
 int char_strip(char *buf, char rem);
 int char_copy(const char *buf, char *res, int start, int stop);
-int get_nsets(FILE * fd, fpos_t position);
+int get_nsets(FILE *fd, fpos_t position);
 int get_universe(void);
 int set_cats(void);
 
@@ -172,7 +147,7 @@ int create_output_maps(void);
 int get_rows(int row);
 int get_cells(int col);
 
-int parse_sets(SETS * set, char buf[], const char mapname[]);
+int parse_sets(SETS *set, char buf[], const char mapname[]);
 int parse_rules(int rule_num, int n, char buf[]);
 void process_coors(char *answer);
 void show_membership(void);
@@ -184,7 +159,7 @@ float defuzzify(int defuzzification, float max_agregate);
 float f_and(float cellx, float celly, logics family);
 float f_or(float cellx, float celly, logics family);
 float f_not(float cellx, logics family);
-float fuzzy(FCELL cell, SETS * set);
+float fuzzy(FCELL cell, SETS *set);
 
 int parse(void);
 void display(void);

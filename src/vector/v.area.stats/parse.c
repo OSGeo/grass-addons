@@ -10,21 +10,18 @@ int match();
 
 int parse_command_line(int argc, char *argv[])
 {
-    struct
-    {
+    struct {
         struct Option *vect;
         struct Option *field;
         struct Option *output;
         struct Option *separator;
     } parms;
 
-    struct
-    {
+    struct {
         struct Flag *shell_style;
         struct Flag *extended;
         struct Flag *table;
     } flags;
-
 
     parms.vect = G_define_standard_option(G_OPT_V_MAP);
 
@@ -42,8 +39,7 @@ int parse_command_line(int argc, char *argv[])
 
     flags.shell_style = G_define_flag();
     flags.shell_style->key = 'g';
-    flags.shell_style->description =
-        _("Print the stats in shell script style");
+    flags.shell_style->description = _("Print the stats in shell script style");
     flags.shell_style->guisection = _("Formatting");
 
     flags.extended = G_define_flag();
@@ -69,7 +65,7 @@ int parse_command_line(int argc, char *argv[])
     options.field = atoi(parms.field->answer);
 
     options.out = parms.output->answer;
-    options.separator = ";";    /* G_option_to_separator(parms.separator); */
+    options.separator = ";"; /* G_option_to_separator(parms.separator); */
     G_debug(1, _("The separator is: <%s>"), options.separator);
 
     return 0;

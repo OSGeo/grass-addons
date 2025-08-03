@@ -8,7 +8,7 @@
 #
 # PURPOSE:      FUTURES Potential submodel
 #
-# COPYRIGHT:    (C) 2016-2020 by the GRASS Development Team
+# COPYRIGHT:    (C) 2016-2021 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -16,84 +16,91 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for computing development potential as input to r.futures.pga
-#% keyword: raster
-#% keyword: statistics
-#%end
-#%option G_OPT_V_INPUT
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Output Potential file
-#%end
-#%option G_OPT_F_SEP
-#% label: Separator used in output file
-#% answer: comma
-#%end
-#%option G_OPT_DB_COLUMNS
-#% description: Names of attribute columns representing sampled predictors
-#% required: yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: developed_column
-#% description: Name of attribute column representing development
-#% required: yes
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: subregions_column
-#% description: Name of attribute column representing subregions
-#% required: yes
-#%end
-#%option
-#% type: string
-#% key: fixed_columns
-#% description: Predictor columns that will be used for all models when dredging
-#% required: no
-#% multiple: yes
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: min_variables
-#% description: Minimum number of predictors considered
-#% required: no
-#% answer: 1
-#% options: 1-20
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: max_variables
-#% description: Maximum number of predictors considered
-#% required: no
-#% options: 1-20
-#% guisection: Dredge
-#%end
-#%flag
-#% key: d
-#% description: Use dredge function to find best model
-#% guisection: Dredge
-#%end
-#%option
-#% type: integer
-#% key: nprocs
-#% description: Number of parallel processes for dredging
-#% required: yes
-#% answer: 1
-#% options: 1-50
-#% guisection: Dredge
-#%end
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% key: dredge_output
-#% description: Output CSV file summarizing all models
-#% guisection: Dredge
-#%end
+# %module
+# % description: Module for computing development potential as input to r.futures.pga
+# % keyword: raster
+# % keyword: statistics
+# %end
+# %option G_OPT_V_INPUT
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Output Potential file
+# %end
+# %option G_OPT_F_SEP
+# % label: Separator used in output file
+# % answer: comma
+# %end
+# %option G_OPT_DB_COLUMNS
+# % description: Names of attribute columns representing sampled predictors
+# % required: yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: developed_column
+# % description: Name of attribute column representing development
+# % required: yes
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: subregions_column
+# % description: Name of attribute column representing subregions
+# % required: yes
+# %end
+# %option
+# % type: string
+# % key: random_column
+# % description: Random effect predictor
+# % required: no
+# % multiple: no
+# %end
+# %option
+# % type: string
+# % key: fixed_columns
+# % description: Predictor columns that will be used for all models when dredging
+# % required: no
+# % multiple: yes
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: min_variables
+# % description: Minimum number of predictors considered
+# % required: no
+# % answer: 1
+# % options: 1-20
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: max_variables
+# % description: Maximum number of predictors considered
+# % required: no
+# % options: 1-20
+# % guisection: Dredge
+# %end
+# %flag
+# % key: d
+# % description: Use dredge function to find best model
+# % guisection: Dredge
+# %end
+# %option
+# % type: integer
+# % key: nprocs
+# % description: Number of parallel processes for dredging
+# % required: yes
+# % answer: 1
+# % options: 1-50
+# % guisection: Dredge
+# %end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % key: dredge_output
+# % description: Output CSV file summarizing all models
+# % guisection: Dredge
+# %end
 
 import sys
 import atexit
 import subprocess
-import grass.script as gscript
+import grass.script as gs
 import grass.script.utils as gutils
 
 
@@ -118,6 +125,7 @@ option_list = list(
   make_option(c("-x","--maximum"), action="store", default=NA, type='integer', help="maximum number of variables for dredge"),
   make_option(c("-n","--nprocs"), action="store", default=1, type='integer', help="number of processes for dredge"),
   make_option(c("-f","--fixed"), action="store", default=NA, type='character', help="fixed predictors for dredge"),
+  make_option(c("-a","--random"), action="store", default=NA, type='character', help="random effect predictor"),
   make_option(c("-e","--export_dredge"), action="store", default=NA, type='character', help="output CSV file of all models (when using dredge)")
 )
 opt = parse_args(OptionParser(option_list=option_list))
@@ -138,6 +146,9 @@ if (is.na(opt$predictors)) {
 }
 if (!is.na(opt$level)) {
     predictors <- predictors[predictors != opt$level]
+    if (!is.na(opt$random)) {
+        predictors <- predictors[predictors != opt$random]
+    }
 }
 predictors <- predictors[predictors != opt$response]
 
@@ -145,7 +156,11 @@ if (is.na(opt$level)) {
     fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors), collapse= "+")))
     model = glm(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
 } else {
-    interc <- paste("(1|", opt$level, ")")
+    if (is.na(opt$random)) {
+        interc <- paste("(1|", opt$level, ")")
+    } else {
+        interc <- paste("(", opt$random, "|", opt$level, ")")
+    }
     fmla <- as.formula(paste(opt$response, " ~ ", paste(c(predictors, interc), collapse= "+")))
     model = glmer(formula=fmla, family = binomial, data=input_data, na.action = "na.fail")
 }
@@ -161,7 +176,11 @@ if(opt$usedredge) {
             fixed <- paste(" ~ ",  fixed)
         }
         else {
-            fixed <- paste(" ~ ",  fixed, " + ", paste("(1|", opt$level, ")", sep=""))
+            if (is.na(opt$random)) {
+                fixed <- paste(" ~ ",  fixed, " + ", paste("(1|", opt$level, ")", sep=""))
+            } else {
+                fixed <- paste(" ~ ",  fixed, " + ", paste("(", opt$random, "|", opt$level, ")", sep=""))
+            }
         }
         fmla_fixed <- as.formula(fixed)
     }
@@ -202,10 +221,10 @@ TMP_RSCRIPT = None
 
 
 def cleanup():
-    gscript.try_remove(TMP_CSV)
-    gscript.try_remove(TMP_POT)
-    gscript.try_remove(TMP_DREDGE)
-    gscript.try_remove(TMP_RSCRIPT)
+    gs.try_remove(TMP_CSV)
+    gs.try_remove(TMP_POT)
+    gs.try_remove(TMP_DREDGE)
+    gs.try_remove(TMP_RSCRIPT)
 
 
 def main():
@@ -213,6 +232,7 @@ def main():
     columns = options["columns"].split(",")
     binary = options["developed_column"]
     level = options["subregions_column"]
+    random = options["random_column"]
     sep = gutils.separator(options["separator"])
     minim = int(options["min_variables"])
     dredge = flags["d"]
@@ -223,7 +243,7 @@ def main():
 
     for each in fixed_columns:
         if each not in columns:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Fixed predictor {} not among predictors specified in option 'columns'"
                 ).format(each)
@@ -233,12 +253,12 @@ def main():
     else:
         maxv = len(columns)
     if dredge and minim > maxv:
-        gscript.fatal(
+        gs.fatal(
             _("Minimum number of predictor variables is larger than maximum number")
         )
 
-    if not gscript.find_program("Rscript", "--version"):
-        gscript.fatal(
+    if not gs.find_program("Rscript", "--version"):
+        gs.fatal(
             _(
                 "Rscript required for running r.futures.potential, but not found. "
                 "Make sure you have R installed and added to the PATH."
@@ -246,10 +266,10 @@ def main():
         )
 
     global TMP_CSV, TMP_RSCRIPT, TMP_POT, TMP_DREDGE
-    TMP_CSV = gscript.tempfile(create=False) + ".csv"
-    TMP_RSCRIPT = gscript.tempfile()
+    TMP_CSV = gs.tempfile(create=False) + ".csv"
+    TMP_RSCRIPT = gs.tempfile()
     include_level = True
-    distinct = gscript.read_command(
+    distinct = gs.read_command(
         "v.db.select",
         flags="c",
         map=vinput,
@@ -260,15 +280,19 @@ def main():
         single_level = distinct.splitlines()[0]
     with open(TMP_RSCRIPT, "w") as f:
         f.write(rscript)
-    TMP_POT = gscript.tempfile(create=False) + "_potential.csv"
-    TMP_DREDGE = gscript.tempfile(create=False) + "_dredge.csv"
+    TMP_POT = gs.tempfile(create=False) + "_potential.csv"
+    TMP_DREDGE = gs.tempfile(create=False) + "_dredge.csv"
     columns += [binary]
     if include_level:
         columns += [level]
+    if random:
+        columns += [random]
+    # filter duplicates
+    columns = list(dict.fromkeys(columns))
     where = "{c} IS NOT NULL".format(c=columns[0])
     for c in columns[1:]:
         where += " AND {c} IS NOT NULL".format(c=c)
-    gscript.run_command(
+    gs.run_command(
         "v.db.select",
         map=vinput,
         columns=columns,
@@ -278,9 +302,9 @@ def main():
     )
 
     if dredge:
-        gscript.info(_("Running automatic model selection ..."))
+        gs.info(_("Running automatic model selection ..."))
     else:
-        gscript.info(_("Computing model..."))
+        gs.info(_("Computing model..."))
 
     cmd = [
         "Rscript",
@@ -304,6 +328,8 @@ def main():
     ]
     if include_level:
         cmd += ["-l", level]
+        if random:
+            cmd += ["-a", random]
     if dredge and fixed_columns:
         cmd += ["-f", ",".join(fixed_columns)]
     if dredge and options["dredge_output"]:
@@ -311,14 +337,15 @@ def main():
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if stderr:
-        gscript.warning(gscript.decode(stderr))
+        gs.warning(gs.decode(stderr))
     if p.returncode != 0:
-        gscript.fatal(_("Running R script failed, check messages above"))
+        gs.fatal(_("Running R script failed, check messages above"))
 
-    gscript.info(_("Best model summary:"))
-    gscript.info("-------------------------")
-    gscript.message(gscript.decode(stdout))
+    gs.info(_("Best model summary:"))
+    gs.info("-------------------------")
+    gs.message(gs.decode(stdout))
 
+    # note: this would be better with pandas, but adds dependency
     with open(TMP_POT, "r") as fin, open(options["output"], "w") as fout:
         i = 0
         for line in fin.readlines():
@@ -326,9 +353,18 @@ def main():
             row = [each.strip('"') for each in row]
             if i == 0:
                 row[0] = "ID"
+                if include_level and random:
+                    row[2] = row[1]
                 row[1] = "Intercept"
             if i == 1 and not include_level:
                 row[0] = single_level
+            if i >= 1:
+                if include_level:
+                    # devpressure needs to be after intercept
+                    if random:
+                        row[2], row[1] = row[1], row[2]
+                else:
+                    row[0] = single_level
             fout.write(sep.join(row))
             fout.write("\n")
             i += 1
@@ -347,6 +383,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

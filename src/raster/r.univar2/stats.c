@@ -30,7 +30,7 @@ univar_stat *create_univar_stat_struct()
     if (n_zones == 0)
         n_zones = 1;
 
-    stats = (univar_stat *) G_calloc(n_zones, sizeof(univar_stat));
+    stats = (univar_stat *)G_calloc(n_zones, sizeof(univar_stat));
 
     for (z = 0; z < n_zones; z++) {
         stats[z].zone = 0;
@@ -41,31 +41,31 @@ univar_stat *create_univar_stat_struct()
         stats[z].sum3 = 0.0;
         stats[z].sum4 = 0.0;
         stats[z].sum_abs = 0.0;
-        stats[z].min = 0.0 / 0.0;        /* set to nan as default */
-        stats[z].max = 0.0 / 0.0;        /* set to nan as default */
+        stats[z].min = 0.0 / 0.0; /* set to nan as default */
+        stats[z].max = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].range = 0.0 / 0.0;     /* set to nan as default */
-        stats[z].mean = 0.0 / 0.0;      /* set to nan as default */
-        stats[z].meandev = 0.0 / 0.0;   /* set to nan as default */
+        stats[z].range = 0.0 / 0.0;   /* set to nan as default */
+        stats[z].mean = 0.0 / 0.0;    /* set to nan as default */
+        stats[z].meandev = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].variance = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].stddev = 0.0 / 0.0;    /* set to nan as default */
-        stats[z].var_coef = 0.0 / 0.0;  /* set to nan as default */
+        stats[z].variance = 0.0 / 0.0; /* set to nan as default */
+        stats[z].stddev = 0.0 / 0.0;   /* set to nan as default */
+        stats[z].var_coef = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].skewness = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].kurtosis = 0.0 / 0.0;  /* set to nan as default */
+        stats[z].skewness = 0.0 / 0.0; /* set to nan as default */
+        stats[z].kurtosis = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].variance2 = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].stddev2 = 0.0 / 0.0;    /* set to nan as default */
-        stats[z].var_coef2 = 0.0 / 0.0;  /* set to nan as default */
+        stats[z].variance2 = 0.0 / 0.0; /* set to nan as default */
+        stats[z].stddev2 = 0.0 / 0.0;   /* set to nan as default */
+        stats[z].var_coef2 = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].skewness2 = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].kurtosis2 = 0.0 / 0.0;  /* set to nan as default */
+        stats[z].skewness2 = 0.0 / 0.0; /* set to nan as default */
+        stats[z].kurtosis2 = 0.0 / 0.0; /* set to nan as default */
 
-        stats[z].quartile_25 = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].median = 0.0 / 0.0;       /* set to nan as default */
-        stats[z].quartile_75 = 0.0 / 0.0;  /* set to nan as default */
-        stats[z].mode = 0.0 / 0.0;         /* set to nan as default */
+        stats[z].quartile_25 = 0.0 / 0.0; /* set to nan as default */
+        stats[z].median = 0.0 / 0.0;      /* set to nan as default */
+        stats[z].quartile_75 = 0.0 / 0.0; /* set to nan as default */
+        stats[z].mode = 0.0 / 0.0;        /* set to nan as default */
         stats[z].occurrences = 0;
 
         stats[z].n = 0;
@@ -79,11 +79,10 @@ univar_stat *create_univar_stat_struct()
     return stats;
 }
 
-
 /* *************************************************************** */
 /* **** univar_stat destructor *********************************** */
 /* *************************************************************** */
-void free_univar_stat_struct(univar_stat * stats)
+void free_univar_stat_struct(univar_stat *stats)
 {
     /*int z, n_zones = zone_info.n_zones;
 
@@ -99,7 +98,7 @@ int factorial(int n)
 {
     int res = 1;
 
-    while (n>1)
+    while (n > 1)
         res *= n--;
     return res;
 }
@@ -116,34 +115,29 @@ void index_combinations(int n, int **indexes)
     for (i = 0; i < n; i++)
         for (j = i + 1; j < n; j++)
             indexes[i][I] = i;
-            indexes[i][J] = j;
+    indexes[i][J] = j;
     return;
 }
 
-
-void sort_mode_double(double *array, int n, double tol,
-                      double *mode, int *occurrences)
+void sort_mode_double(double *array, int n, double tol, double *mode,
+                      int *occurrences)
 {
     int previous = array[0];
     int i = 1, counter = 1;
-    *mode = (double) array[0];
+    *mode = (double)array[0];
     *occurrences = 1;
 
-    if (n > 1)
-    {
-        while (i < n)
-        {
-            if ((double) fabs(array[i] - previous) > tol)
-            {
-                if (counter > *occurrences)
-                {
+    if (n > 1) {
+        while (i < n) {
+            if ((double)fabs(array[i] - previous) > tol) {
+                if (counter > *occurrences) {
                     *occurrences = counter;
-                    *mode = (double) previous;
+                    *mode = (double)previous;
                 }
                 previous = array[i];
                 counter = 1;
-            } else
-            {
+            }
+            else {
                 counter += 1;
             }
             i += 1;
@@ -152,9 +146,8 @@ void sort_mode_double(double *array, int n, double tol,
     return;
 }
 
-
-void mode_double(double *array, int n, double tol,
-                 double *mode, int *occurrences, int **indexes)
+void mode_double(double *array, int n, double tol, double *mode,
+                 int *occurrences, int **indexes)
 {
     int i, i_previous = 0, counter = 0, num_comb = 0;
     *mode = 0;
@@ -163,23 +156,21 @@ void mode_double(double *array, int n, double tol,
     num_comb = num_combinations(n, 2);
     index_combinations(n, indexes);
     for (i = 0; i < num_comb; i++)
-        if (array[indexes[i][I]] != i_previous)
-        {
-            if (counter > *occurrences)
-            {
+        if (array[indexes[i][I]] != i_previous) {
+            if (counter > *occurrences) {
                 *occurrences = counter;
-                *mode = (double) i_previous;
+                *mode = (double)i_previous;
             }
             i_previous = array[indexes[i][I]];
             counter = 0;
         }
-        if (fabs((double) array[indexes[i][I]] - (double) array[indexes[i][J]]) < tol)
-            counter += 1;
+    if (fabs((double)array[indexes[i][I]] - (double)array[indexes[i][J]]) < tol)
+        counter += 1;
     return;
 }
 
-
-int stats_extend(univar_stat *stat){
+int stats_extend(univar_stat *stat)
+{
     int p, qind_25, qind_75;
     int n = stat->n;
 
@@ -194,13 +185,13 @@ int stats_extend(univar_stat *stat){
 
     stat->quartile_25 = stat->array[qind_25];
     /*               odd ?     odd                              : even   */
-    stat->median = ((n % 2)?
-                    (stat->array[(int)(n/2)]) :
-                    (stat->array[n/2 - 1] + stat->array[n/2]) / 2.0);
+    stat->median =
+        ((n % 2) ? (stat->array[(int)(n / 2)])
+                 : (stat->array[n / 2 - 1] + stat->array[n / 2]) / 2.0);
     stat->quartile_75 = stat->array[qind_75];
 
-    sort_mode_double(stat->array, n, param.tol,
-                     &stat->mode, &stat->occurrences);
+    sort_mode_double(stat->array, n, param.tol, &stat->mode,
+                     &stat->occurrences);
 
     /* free the memory after compute the extended statistics */
     G_free(stat->array);
@@ -209,12 +200,12 @@ int stats_extend(univar_stat *stat){
     return 0;
 }
 
-
-int stats_general(univar_stat *s){
+int stats_general(univar_stat *s)
+{
     double n = s->n;
 
     s->null_cells = s->size - s->n;
-    s->range = s->max -s->min;
+    s->range = s->max - s->min;
     s->mean = s->sum / n;
     s->meandev = s->sum_abs / n;
 
@@ -224,50 +215,48 @@ int stats_general(univar_stat *s){
     s->stddev = sqrt(s->variance);
     s->var_coef = (s->stddev / s->mean) * 100.;
 
-    s->skewness = (s->sum3 / n
-                   - 3 * s->sum * s->sum2 / (n * n)
-                   + 2 * s->sum * s->sum * s->sum / (n * n * n)
-                   / (pow(s->variance, 1.5)));
-    s->kurtosis = ((s->sum4 / n
-                    - 4 * s->sum * s->sum3 / (n * n)
-                    + 6 * s->sum * s->sum * s->sum2 / (n * n * n)
-                    - 3 * s->sum * s->sum * s->sum* s->sum
-                    / (n * n * n * n))
-                   / (s->variance * s->variance) - 3);
+    s->skewness =
+        (s->sum3 / n - 3 * s->sum * s->sum2 / (n * n) +
+         2 * s->sum * s->sum * s->sum / (n * n * n) / (pow(s->variance, 1.5)));
+    s->kurtosis = ((s->sum4 / n - 4 * s->sum * s->sum3 / (n * n) +
+                    6 * s->sum * s->sum * s->sum2 / (n * n * n) -
+                    3 * s->sum * s->sum * s->sum * s->sum / (n * n * n * n)) /
+                       (s->variance * s->variance) -
+                   3);
 
     s->variance2 = s->sum2 / (n - 1);
     if (s->variance2 < GRASS_EPSILON)
         s->variance2 = 0.0;
     s->stddev2 = sqrt(s->variance2);
-    s->var_coef2 = (s->stddev2 / s->mean) * 100. ;
+    s->var_coef2 = (s->stddev2 / s->mean) * 100.;
 
     s->skewness2 = (s->sum3 / (s->stddev2 * s->stddev2 * s->stddev2) / n);
     s->kurtosis2 = (s->sum4 / (s->variance2 * s->variance2) / (n - 3));
     return 0;
 }
 
-
-int compute_stats(univar_stat *stat, double val, int len){
+int compute_stats(univar_stat *stat, double val, int len)
+{
     stat->sum += val;
     stat->sum2 += val * val;
     stat->sum3 += val * val * val;
     stat->sum4 += val * val * val * val;
     stat->sum_abs += fabs(val);
-    stat->min = (isnan(stat->min) || val < stat->min)? val: stat->min;
-    stat->max = (isnan(stat->max) || val > stat->max)? val: stat->max;
+    stat->min = (isnan(stat->min) || val < stat->min) ? val : stat->min;
+    stat->max = (isnan(stat->max) || val > stat->max) ? val : stat->max;
 
     if (stat->array != NULL)
-        G_debug(3, "Compute_stats, zone: %d, val=%f, %d/%d, n_alloc:%d", stat->zone, val, stat->n, stat->size, stat->n_alloc);
-        stat->array[stat->n] = val;
+        G_debug(3, "Compute_stats, zone: %d, val=%f, %d/%d, n_alloc:%d",
+                stat->zone, val, stat->n, stat->size, stat->n_alloc);
+    stat->array[stat->n] = val;
 
     stat->n++;
 
-
-    if (stat->n == stat->size){
+    if (stat->n == stat->size) {
         G_debug(3, "    Finish the zone: %d, sum=%f", stat->zone, stat->sum);
         /* finish this zone */
         stats_general(stat);
-        if (stat->array != NULL){
+        if (stat->array != NULL) {
             stats_extend(stat);
             return 1;
         }
@@ -275,12 +264,12 @@ int compute_stats(univar_stat *stat, double val, int len){
     return 0;
 }
 
-
 /* *************************************************************** */
 /* **** compute and print univar statistics to stdout ************ */
 /* *************************************************************** */
 
-void print_cols_table(){
+void print_cols_table()
+{
     int i;
 
     fprintf(stdout, "zone");
@@ -318,7 +307,7 @@ void print_cols_table(){
         fprintf(stdout, "%sthird_quart", zone_info.sep);
         for (i = 0; i < param.n_perc; i++) {
 
-            if (param.perc[i] == (int) param.perc[i]) {
+            if (param.perc[i] == (int)param.perc[i]) {
                 /* percentile is an exact integer */
                 fprintf(stdout, "%sperc_%d", zone_info.sep, (int)param.perc[i]);
             }
@@ -338,21 +327,21 @@ void print_cols_table(){
     return;
 }
 
-int print_row(univar_stat *stat, char *sep){
+int print_row(univar_stat *stat, char *sep)
+{
     int i;
     char sum_str[100];
 
     /* zone number */
     fprintf(stdout, "%d", stat->zone);
     /* zone label */
-    fprintf(stdout,"%s%s", sep, stat->cat);
+    fprintf(stdout, "%s%s", sep, stat->cat);
     /* zone all_cells */
-    fprintf(stdout,"%s%d", sep, stat->size);
+    fprintf(stdout, "%s%d", sep, stat->size);
     /* non-null cells */
     fprintf(stdout, "%s%d", sep, stat->n);
     /* null cells */
     fprintf(stdout, "%s%d", sep, stat->null_cells);
-
 
     sprintf(sum_str, "%.15g", stat->sum);
     G_trim_decimal(sum_str);
@@ -362,7 +351,6 @@ int print_row(univar_stat *stat, char *sep){
     fprintf(stdout, "%s%s", sep, sum_str);
     fprintf(stdout, "%s%.15g", sep, stat->min);
     fprintf(stdout, "%s%.15g", sep, stat->max);
-
 
     fprintf(stdout, "%s%.15g", sep, stat->range);
     fprintf(stdout, "%s%.15g", sep, stat->mean);
@@ -375,7 +363,6 @@ int print_row(univar_stat *stat, char *sep){
     fprintf(stdout, "%s%g", sep, stat->skewness);
     fprintf(stdout, "%s%g", sep, stat->kurtosis);
 
-
     fprintf(stdout, "%s%.15g", sep, stat->variance2);
     fprintf(stdout, "%s%.15g", sep, stat->stddev2);
     fprintf(stdout, "%s%.15g", sep, stat->var_coef2);
@@ -383,7 +370,7 @@ int print_row(univar_stat *stat, char *sep){
     fprintf(stdout, "%s%g", sep, stat->skewness2);
     fprintf(stdout, "%s%g", sep, stat->kurtosis2);
 
-    if (param.extended->answer){
+    if (param.extended->answer) {
         fprintf(stdout, "%s%g", sep, stat->quartile_25);
         fprintf(stdout, "%s%g", sep, stat->median);
         fprintf(stdout, "%s%g", sep, stat->quartile_75);
@@ -398,7 +385,7 @@ int print_row(univar_stat *stat, char *sep){
     return 0;
 }
 
-int print_stats_table(univar_stat * stats)
+int print_stats_table(univar_stat *stats)
 {
     int z, n_zones = zone_info.n_zones;
 

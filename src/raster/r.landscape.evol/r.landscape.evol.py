@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ############################################################################
 #
@@ -19,209 +19,209 @@
 #  GNU General Public License for more details.
 #
 #############################################################################/
-#%Module
-#% description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: erosion modeling
-#% keyword: landscape evolution
-#%End
-#%option G_OPT_R_ELEV
-#% key: elev
-#% description: Input elevation map (DEM of surface)
-#% required : yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: initbdrk
-#% description: Bedrock elevations map (DEM of bedrock)
-#% answer:
-#% required : yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: prefx
-#% answer: levol_
-#% required : yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: outdem
-#% description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: elevation
-#% required: yes
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: outsoil
-#% description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
-#% answer: soildepth
-#% required: yes
-#%end
-#%option
-#% key: number
-#% type: integer
-#% description: Number of iterations (cycles) to run
-#% answer: 1
-#% required : yes
-#%end
+# %Module
+# % description: Simulates the cumulative effect of erosion and deposition on a landscape over time.
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: erosion modeling
+# % keyword: landscape evolution
+# %End
+# %option G_OPT_R_ELEV
+# % key: elev
+# % description: Input elevation map (DEM of surface)
+# % required : yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: initbdrk
+# % description: Bedrock elevations map (DEM of bedrock)
+# % answer:
+# % required : yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: prefx
+# % answer: levol_
+# % required : yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: outdem
+# % description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: elevation
+# % required: yes
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: outsoil
+# % description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+# % answer: soildepth
+# % required: yes
+# %end
+# %option
+# % key: number
+# % type: integer
+# % description: Number of iterations (cycles) to run
+# % answer: 1
+# % required : yes
+# %end
 
-#%option G_OPT_R_MAP
-#% key: k
-#% description: Soil erodability index (K factor) map or constant (values <= 0.09 [t.ha.h /ha.MJ.mm])
-#% answer: 0.05
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: c
-#% description: Landcover index (C factor) map or constant (values <=1.0 [unitless])
-#% answer: 0.005
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: p
-#% description: Landuse practices factor (P factor) map or constant (values <=1.0 [unitless])
-#% answer: 1.0
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option G_OPT_R_MAP
-#% key: sdensity
-#% description: Soil density map or constant for conversion from mass to volume (values typically >=1000 [kg/m3])
-#% answer: 1218.4
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: transp_eq
-#% type: string
-#% description: The sediment transport equation to use (USPED: Tc=R*K*C*P*A^m*B^n, Stream power: Tc=Kt*gw*1/N*h^m*B^n, or Shear stress: Tc=Kt*tau^m ).
-#% answer: StreamPower
-#% options: StreamPower,ShearStress,USPED
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: exp_m
-#% type: string
-#% description: Exponent m relates to the influence of upslope area (and thus flow depth, discharge) on transport capacity. Values generally thought to scale inversely with increasing depth of flow between the two cutoff thresholds specified: "thresh1,m1,thresh2,m2"
-#% answer: 10,2,100,1
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%option
-#% key: exp_n
-#% type: string
-#% description: Exponent n relates to the influence of local topographic slope on transport capacity. Default values set to scale inversely with increasing local slope between the two slope cutoff thresholds specified: "thresh1,n1,thresh2,n2"
-#% answer: 10,2,45,0.5
-#% required : no
-#% guisection: Landscape Evolution
-#%end
-#%flag
-#% key: m
-#% description: -m Apply smoothing (useful to mitigate possible unstable conditions in streams)
-#% guisection: Landscape Evolution
-#%end
+# %option G_OPT_R_MAP
+# % key: k
+# % description: Soil erodability index (K factor) map or constant (values <= 0.09 [t.ha.h /ha.MJ.mm])
+# % answer: 0.05
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: c
+# % description: Landcover index (C factor) map or constant (values <=1.0 [unitless])
+# % answer: 0.005
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: p
+# % description: Landuse practices factor (P factor) map or constant (values <=1.0 [unitless])
+# % answer: 1.0
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option G_OPT_R_MAP
+# % key: sdensity
+# % description: Soil density map or constant for conversion from mass to volume (values typically >=1000 [kg/m3])
+# % answer: 1218.4
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: transp_eq
+# % type: string
+# % description: The sediment transport equation to use (USPED: Tc=R*K*C*P*A^m*B^n, Stream power: Tc=Kt*gw*1/N*h^m*B^n, or Shear stress: Tc=Kt*tau^m ).
+# % answer: StreamPower
+# % options: StreamPower,ShearStress,USPED
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: exp_m
+# % type: string
+# % description: Exponent m relates to the influence of upslope area (and thus flow depth, discharge) on transport capacity. Values generally thought to scale inversely with increasing depth of flow between the two cutoff thresholds specified: "thresh1,m1,thresh2,m2"
+# % answer: 10,2,100,1
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %option
+# % key: exp_n
+# % type: string
+# % description: Exponent n relates to the influence of local topographic slope on transport capacity. Default values set to scale inversely with increasing local slope between the two slope cutoff thresholds specified: "thresh1,n1,thresh2,n2"
+# % answer: 10,2,45,0.5
+# % required : no
+# % guisection: Landscape Evolution
+# %end
+# %flag
+# % key: m
+# % description: -m Apply smoothing (useful to mitigate possible unstable conditions in streams)
+# % guisection: Landscape Evolution
+# %end
 
-#%option G_OPT_R_MAP
-#% key: r
-#% description: Rainfall (R factor) map or constant (Employed only in the USPED equation) (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
-#% answer: 720
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: rain
-#% description: Precip total for the average erosion-causing storm map (Employed in stream power and shear stress equations) (values typically >=30.0 [mm])
-#% answer: 30
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: storms
-#% description: Number of erosion-causing storms per year map or constant (Employed in stream power and shear stress equations) (values >=0 [integer])
-#% answer: 2
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: stormlength
-#% description: Average length of the storm map or constant (Employed in stream power and shear stress equations) (values >=0.0 [h])
-#% answer: 24.0
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: stormi
-#% description: Proportion of the length of the storm where the storm is at peak intensity map or constant (Employed in stream power and shear stress equations) (values typically ~0.05 [unitless proportion])
-#% answer: 0.05
-#% guisection: Climate
-#%end
-#%option
-#% key: climfile
-#% gisprompt: old,file,file
-#% description: Path to climate file of comma separated values of "rain,R,storms,stormlength,stormi", with a new line for each year of the simulation. This option will override values or maps entered above.
-#% guisection: Climate
-#%end
-#%option G_OPT_R_MAP
-#% key: manningn
-#% description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
-#% answer: 0.03
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option G_OPT_R_MAP
-#% key: flowcontrib
-#% description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution (values between 0 and 100 [unitless percentage])
-#% answer: 100
-#% required : no
-#% guisection: Hydrology
-#%end
-#%option
-#% key: convergence
-#% type: integer
-#% description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
-#% answer: 5
-#% options: 1,2,3,4,5,6,7,8,9,10
-#% required : no
-#% guisection: Hydrology
-#%end
+# %option G_OPT_R_MAP
+# % key: r
+# % description: Rainfall (R factor) map or constant (Employed only in the USPED equation) (values typically between 500 and 10000 [MJ.mm/ha.h.yr])
+# % answer: 720
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: rain
+# % description: Precip total for the average erosion-causing storm map (Employed in stream power and shear stress equations) (values typically >=30.0 [mm])
+# % answer: 30
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: storms
+# % description: Number of erosion-causing storms per year map or constant (Employed in stream power and shear stress equations) (values >=0 [integer])
+# % answer: 2
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: stormlength
+# % description: Average length of the storm map or constant (Employed in stream power and shear stress equations) (values >=0.0 [h])
+# % answer: 24.0
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: stormi
+# % description: Proportion of the length of the storm where the storm is at peak intensity map or constant (Employed in stream power and shear stress equations) (values typically ~0.05 [unitless proportion])
+# % answer: 0.05
+# % guisection: Climate
+# %end
+# %option G_OPT_F_INPUT
+# % key: climfile
+# % required: no
+# % description: Path to climate file of comma separated values of "rain,R,storms,stormlength,stormi", with a new line for each year of the simulation. This option will override values or maps entered above.
+# % guisection: Climate
+# %end
+# %option G_OPT_R_MAP
+# % key: manningn
+# % description: Map or constant of the value of Manning's "N" value for channelized flow. (Employed in stream power and shear stress equations) (0.03 = clean/straight stream channel, 0.035 = major river, 0.04 = sluggish stream with pools, 0.06 = very clogged streams [unitless])
+# % answer: 0.03
+# % required: no
+# % guisection: Hydrology
+# %end
+# %option G_OPT_R_MAP
+# % key: flowcontrib
+# % description: Map or constant indicating how much each cell contributes to downstream flow (this typically relates to vegetation or conservation practices). If no map or value entered, routine will assume 100% downstream contribution (values between 0 and 100 [unitless percentage])
+# % answer: 100
+# % required : no
+# % guisection: Hydrology
+# %end
+# %option
+# % key: convergence
+# % type: integer
+# % description: Value for the flow convergence variable in r.watershed. Small values make water spread out, high values make it converge in narrower channels.
+# % answer: 5
+# % options: 1,2,3,4,5,6,7,8,9,10
+# % required: no
+# % guisection: Hydrology
+# %end
 
 
-#%flag
-#% key: p
-#% description: -p Run a sampling procedure to generate a vector points map with scaled flow accumulation values suitable for determining transport equation thresholds. Overrides all other output.
-#% guisection: Optional
-#%end
-#%flag
-#% key: k
-#% description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
-#% guisection: Optional
-#%end
-#%flag
-#% key: d
-#% description: -d Don't output yearly soil depth maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: r
-#% description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
-#% guisection: Optional
-#%end
-#%flag
-#% key: s
-#% description: -s Keep all slope maps
-#% guisection: Optional
-#%end
-#%flag
-#% key: t
-#% description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
-#% guisection: Optional
-#%end
-#%flag
-#% key: e
-#% description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
-#% guisection: Optional
-#%end
-#%Option G_OPT_F_OUTPUT
-#% key: statsout
-#% description: Name for the statsout text file (optional, if none provided, a default name will be used)
-#% required: no
-#% guisection: Optional
-#%end
+# %flag
+# % key: p
+# % description: -p Run a sampling procedure to generate a vector points map with scaled flow accumulation values suitable for determining transport equation thresholds. Overrides all other output.
+# % guisection: Optional
+# %end
+# %flag
+# % key: k
+# % description: -k Keep ALL temporary maps (overides flags -drst). This will make A LOT of maps!
+# % guisection: Optional
+# %end
+# %flag
+# % key: d
+# % description: -d Don't output yearly soil depth maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: r
+# % description: -r Don't output yearly maps of the erosion/deposition rates ("ED_rate" map, in vertical meters)
+# % guisection: Optional
+# %end
+# %flag
+# % key: s
+# % description: -s Keep all slope maps
+# % guisection: Optional
+# %end
+# %flag
+# % key: t
+# % description: -t Keep yearly maps of the Transport Capacity at each cell ("Qs" maps)
+# % guisection: Optional
+# %end
+# %flag
+# % key: e
+# % description: -e Keep yearly maps of the Excess Transport Capacity (divergence) at each cell ("DeltaQs" maps)
+# % guisection: Optional
+# %end
+# %Option G_OPT_F_OUTPUT
+# % key: statsout
+# % description: Name for the statsout text file (optional, if none provided, a default name will be used)
+# % required: no
+# % guisection: Optional
+# %end
 
 import sys
 import os
@@ -229,7 +229,7 @@ import math
 
 GISBASE = os.getenv("GISBASE")
 sys.path.append(GISBASE + os.sep + "etc" + os.sep + "python")
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -262,7 +262,7 @@ def main():
 
     # Make the statsout file with correct column headers
     if options["statsout"] == "":
-        env = grass.gisenv()
+        env = gs.gisenv()
         mapset = env["MAPSET"]
         statsout = "%s_%slsevol_stats.csv" % (mapset, prefx)
     else:
@@ -282,9 +282,9 @@ def main():
             + "Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth"
         )
     if flags["p"] is True:
-        grass.message("Making sample points map for determining cutoffs.")
+        gs.message("Making sample points map for determining cutoffs.")
     else:
-        grass.message(
+        gs.message(
             "\n##################################################"
             + "\n##################################################\n"
             + "\n STARTING SIMULATION\n"
@@ -293,24 +293,27 @@ def main():
             + " _____________________________________________________________\n"
             + "_____________________________________________________________\n"
         )
-        grass.message("Total number of iterations to be run is %s" % years)
+        gs.message("Total number of iterations to be run is %s" % years)
 
     # Get the region settings
-    region1 = grass.region()
+    region1 = gs.region()
 
     # This is the main loop for interating landscape evolution!
-    for x in range(int(years)):
-        grass.message(
-            "\n##################################################\n"
-            + "\n*************************\n"
-            + "Starting Iteration = %s" % (x + 1)
-            + "\n*************************\n"
-        )
-        landscapeEvol(x, (x + 1), prefx, statsout, region1["nsres"], masterlist, f)
+    if years == 1:
+        landscapeEvol(0, 1, prefx, statsout, region1["nsres"], masterlist, f)
+    else:
+        for x in range(int(years)):
+            gs.message(
+                "\n##################################################\n"
+                + "\n*************************\n"
+                + "Starting Iteration = %s" % (x + 1)
+                + "\n*************************\n"
+            )
+            landscapeEvol(x, (x + 1), prefx, statsout, region1["nsres"], masterlist, f)
 
-    # Since we are now done with the loop, close the stats file.
+        # Since we are now done with the loop, close the stats file.
     f.close()
-    grass.message("\nIterations complete!\n" + "\nDone with everything!")
+    gs.message("\nIterations complete!\n" + "\nDone with everything!")
     sys.exit(0)
 
 
@@ -347,6 +350,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     convergence = options["convergence"]
     manningn = options["manningn"]
     p = options["prefx"]
+    years = options["number"]
 
     # Make some variables for temporary map names
     aspect = "%saspect%04d" % (p, o)
@@ -392,28 +396,40 @@ def landscapeEvol(m, o, p, q, res, s, f):
         float(s[4][m]) * stormtimet
     )  # Calculate the length of time at peak flow depth
 
-    # Maps that will update at each iteration to record state of landscape
-    old_dem = "%s%s%04d" % (p, outdem, m)
-    old_soil = "%s%s%04d" % (p, outsoil, m)
-    slope = "%sslope%04d" % (p, o)
-    netchange = "%sED_rate%04d" % (p, o)
-    new_dem = "%s%s%04d" % (p, outdem, o)
-    new_soil = "%s%s%04d" % (p, outsoil, o)
-
-    # If first iteration, use input maps. Otherwise, use maps generated from
-    # previous iterations
-    if o == 1:
-        grass.run_command("g.copy", raster=elev + "," + old_dem, quiet=True)
-
+    # If single or first iteration, use input maps. Otherwise, use maps generated from
+    # previous iterations. If single run, no iteration numbers appended to map names.
+    if years == 1:
+        old_dem = elev
+        old_soil = old_soil = "%s%s%s" % (p, outsoil, pid)
+        slope = "%sslope" % (p)
+        netchange = "%sED_rate" % (p)
+        new_dem = "%s%s" % (p, outdem)
+        new_soil = "%s%s" % (p, outsoil)
+    elif o == 1:
+        old_dem = elev
+        old_soil = old_soil = "%s%s%s" % (p, outsoil, pid)
+        slope = "%sslope%04d" % (p, o)
+        netchange = "%sED_rate%04d" % (p, o)
+        new_dem = "%s%s%04d" % (p, outdem, o)
+        new_soil = "%s%s%04d" % (p, outsoil, o)
+    else:
+        # Iterative mode, so we will make some maps that will update
+        # at each iteration to record state of landscape
+        old_dem = "%s%s%04d" % (p, outdem, m)
+        old_soil = "%s%s%04d" % (p, outsoil, m)
+        slope = "%sslope%04d" % (p, o)
+        netchange = "%sED_rate%04d" % (p, o)
+        new_dem = "%s%s%04d" % (p, outdem, o)
+        new_soil = "%s%s%04d" % (p, outsoil, o)
     # Grab the number of cells in the starting DEM
-    numcells = grass.parse_command(
+    numcells = gs.parse_command(
         "r.univar",
         flags="g",
         map=old_dem,
     )["n"]
 
     # Calculate soil as difference between surface and bedrock
-    grass.mapcalc(
+    gs.mapcalc(
         "${old_soil}=${old_dem}-${initbdrk}",
         overwrite=True,
         quiet=True,
@@ -422,17 +438,17 @@ def landscapeEvol(m, o, p, q, res, s, f):
         initbdrk=initbdrk,
     )
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 1/6: calculating slope\n"
         + "*************************\n"
     )
-    grass.run_command(
+    gs.run_command(
         "r.slope.aspect", quiet=True, elevation=old_dem, aspect=aspect, slope=slope
     )
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 2/6: calculating accumulated flow depths\n"
@@ -446,14 +462,14 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # map with large numbers, which will be divided by 100 after it is
     # made, bringing the values back down to what they should be.
 
-    grass.mapcalc(
+    gs.mapcalc(
         "${rainexcess}=int(${flowcontrib})",
         quiet=True,
         rainexcess=rainexcess,
         flowcontrib=flowcontrib,
     )
 
-    grass.run_command(
+    gs.run_command(
         "r.watershed",
         quiet=True,
         flags="a",
@@ -465,7 +481,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         convergence=convergence,
     )
 
-    grass.mapcalc(
+    gs.mapcalc(
         "${flowacc}=${flacclargenum}/100",
         quiet=True,
         flowacc=flowacc,
@@ -476,7 +492,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     if flags["p"] is True:
         samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p)
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 3/6: calculating sediment transport rates \n"
@@ -568,12 +584,12 @@ def landscapeEvol(m, o, p, q, res, s, f):
         * sin(${aspect}))"""
 
     else:
-        grass.fatal(
+        gs.fatal(
             'You have entered a non-viable tranport equation name. Please ensure option "transp_eq" is one of "StreamPower," "ShearStress," or "USPED."'
         )
 
     # Actually do the mapcalc statement for chosen transport equation
-    x = grass.mapcalc_start(
+    x = gs.mapcalc_start(
         e1,
         quiet=True,
         qsx=qsx,
@@ -599,7 +615,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         manningn=manningn,
     )
 
-    y = grass.mapcalc_start(
+    y = gs.mapcalc_start(
         e2,
         quiet=True,
         qsy=qsy,
@@ -627,7 +643,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     x.wait()
     y.wait()
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 4/6: calculating divergence/difference of sediment transport and the actual amount of erosion or deposition in vertical meters/cell/year\n"
@@ -635,8 +651,8 @@ def landscapeEvol(m, o, p, q, res, s, f):
     )
 
     # Taking divergence of transport capacity Tc converts kg/m.s to kg/m2.s
-    sax = grass.start_command("r.slope.aspect", quiet=True, elevation=qsx, dx=qsxdx)
-    say = grass.start_command("r.slope.aspect", quiet=True, elevation=qsy, dy=qsydy)
+    sax = gs.start_command("r.slope.aspect", quiet=True, elevation=qsx, dx=qsxdx)
+    say = gs.start_command("r.slope.aspect", quiet=True, elevation=qsy, dy=qsydy)
 
     sax.wait()
     say.wait()
@@ -651,7 +667,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # storms per year to get m/year elevation change.
     if transp_eq == "USPED":
         ed = """${netchange}=((${qsxdx}+${qsydy})/${sdensity})"""
-        grass.mapcalc(
+        gs.mapcalc(
             ed,
             quiet=True,
             netchange=tmpnetchange,
@@ -661,7 +677,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         )
     else:
         ed = """${netchange}=((${qsxdx}+${qsydy})/${sdensity})*${stormi}*${storms}"""
-        grass.mapcalc(
+        gs.mapcalc(
             ed,
             quiet=True,
             netchange=tmpnetchange,
@@ -673,7 +689,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         )
     # Apply smoothing to the output to remove some spikes. Map will only be smoothed for values above the 90th quantile and below the 10th quantile (i.e., only extreme values will be smoothed)
     if flags["m"] is True:
-        a = grass.start_command(
+        a = gs.start_command(
             "r.neighbors",
             quiet=True,
             input=tmpnetchange,
@@ -682,7 +698,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
             size=5,
             quantile=0.1,
         )
-        b = grass.start_command(
+        b = gs.start_command(
             "r.neighbors",
             quiet=True,
             input=tmpnetchange,
@@ -694,7 +710,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
         a.wait()
         b.wait()
         smoother = """${netchange}=if(${tmpnetchange}<${tmp10qle}, ${tmp10qle}, if(${tmpnetchange}>${tmp90qle}, ${tmp90qle}, ${tmpnetchange}))"""
-        grass.mapcalc(
+        gs.mapcalc(
             smoother,
             quiet=True,
             netchange=netchange,
@@ -703,9 +719,9 @@ def landscapeEvol(m, o, p, q, res, s, f):
             tmp10qle=tmp10qle,
         )
     else:
-        grass.run_command("g.rename", quiet=True, raster=tmpnetchange + "," + netchange)
+        gs.run_command("g.rename", quiet=True, raster=tmpnetchange + "," + netchange)
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 5/6: calculating terrain evolution and new soil depths\n"
@@ -725,7 +741,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
     e = """${new_dem} = eval(x=if(${old_soil} > 0.0 && (-1*${netchange}) <= ${old_soil}, ${netchange}, \
            if((-1*${netchange}) > ${old_soil}, (-1*${old_soil}), 0)), \
            y=(${old_dem} + x), if(isnull(y), ${old_dem}, y))"""
-    grass.mapcalc(
+    gs.mapcalc(
         e,
         quiet=True,
         new_dem=new_dem,
@@ -737,14 +753,14 @@ def landscapeEvol(m, o, p, q, res, s, f):
     # Calculate new soil depths by subtracting initial bedrock elevations from
     # the new DEM.
     e = """${new_soil} = if((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))"""
-    grass.mapcalc(e, quiet=True, new_soil=new_soil, new_dem=new_dem, initbdrk=initbdrk)
+    gs.mapcalc(e, quiet=True, new_soil=new_soil, new_dem=new_dem, initbdrk=initbdrk)
 
     # Set colors for elevation, soil, and ED maps
-    grass.run_command("r.colors", quiet=True, map=new_dem, color="srtm")
+    gs.run_command("r.colors", quiet=True, map=new_dem, color="srtm")
 
     sdcolors = ["100% 0:249:47", "20% 78:151:211", "6% 194:84:171", "0% 227:174:217"]
-    sdc = grass.feed_command("r.colors", quiet=True, map=new_soil, rules="-")
-    sdc.stdin.write("\n".join(sdcolors))
+    sdc = gs.feed_command("r.colors", quiet=True, map=new_soil, rules="-")
+    sdc.stdin.write("\n".join(sdcolors).encode("utf-8"))
     sdc.stdin.close()
 
     nccolors = [
@@ -758,14 +774,14 @@ def landscapeEvol(m, o, p, q, res, s, f):
         "-1 255:0:0",
         "-100 127:0:255",
     ]
-    ncc = grass.feed_command("r.colors", quiet=True, map=netchange, rules="-")
-    ncc.stdin.write("\n".join(nccolors))
+    ncc = gs.feed_command("r.colors", quiet=True, map=netchange, rules="-")
+    ncc.stdin.write("\n".join(nccolors).encode("utf-8"))
     ncc.stdin.close()
 
     sdc.wait()
     ncc.wait()
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Iteration %s -- " % o
         + "step 6/6: writing stats to output file\n"
@@ -773,26 +789,20 @@ def landscapeEvol(m, o, p, q, res, s, f):
     )
     # Make some temp maps of just erosion rate and just deposition rates
     e = """${tmperosion}=if(${netchange} < -0, ${netchange}, null())"""
-    ero1 = grass.mapcalc_start(
-        e, quiet=True, tmperosion=tmperosion, netchange=netchange
-    )
+    ero1 = gs.mapcalc_start(e, quiet=True, tmperosion=tmperosion, netchange=netchange)
 
     e = """${tmpdep}=if(${netchange} > 0, ${netchange}, null())"""
-    dep1 = grass.mapcalc_start(e, quiet=True, tmpdep=tmpdep, netchange=netchange)
+    dep1 = gs.mapcalc_start(e, quiet=True, tmpdep=tmpdep, netchange=netchange)
 
     ero1.wait()
     dep1.wait()
 
     # Grab the stats from these temp files and save them to dictionaries
-    erosstats = grass.parse_command(
-        "r.univar", flags="ge", percentile="1", map=tmperosion
-    )
-    depostats = grass.parse_command("r.univar", flags="ge", percentile="99", map=tmpdep)
+    erosstats = gs.parse_command("r.univar", flags="ge", percentile="1", map=tmperosion)
+    depostats = gs.parse_command("r.univar", flags="ge", percentile="99", map=tmpdep)
 
     # Finish gathering stats (just need the soil depth stats now)
-    soilstats = grass.parse_command(
-        "r.univar", flags="ge", map=new_soil, percentile="99"
-    )
+    soilstats = gs.parse_command("r.univar", flags="ge", map=new_soil, percentile="99")
 
     # Write stats to a new line in the stats file
     # HEADER of the file should be: ',,Mean Values,,,,Standard Deviations,,,,Totals,,,Additional Stats\nIteration,,Mean Erosion,Mean Deposition,Mean Soil Depth,,Standard Deviation Erosion,Standard Deviation Deposition,Standard Deviation Soil Depth,,Total Sediment Eroded,Total Sediment Deposited,,Minimum Erosion,First Quartile Erosion,Median Erosion,Third Quartile Erosion,Maximum Erosion,Original Un-smoothed Maximum Erosion,,Minimum Deposition,First Quartile Deposition,Median Deposition,Third Quartile Deposition,Maximum Deposition,Original Un-smoothed Maximum Deposition,,Minimum Soil Depth,First Quartile Soil Depth,Median Soil Depth,Third Quartile Soil Depth,Maximum Soil Depth'
@@ -849,16 +859,16 @@ def landscapeEvol(m, o, p, q, res, s, f):
 
     # Cleanup temporary files
     if flags["k"] is True:
-        grass.message("\nTemporary maps will NOT be deleted!!!!\n")
+        gs.message("\nTemporary maps will NOT be deleted!!!!\n")
     else:
-        grass.message("\nCleaning up temporary maps...\n\n")
+        gs.message("\nCleaning up temporary maps...\n\n")
         # Check all the flag options, and add to list of maps to delete
         if flags["s"] is True:
-            grass.message("Keeping Slope map.")
+            gs.message("Keeping Slope map.")
         else:
             mapstoremove.append(slope)
         if flags["d"] is True:
-            grass.message("Not keeping Soil Depth map.")
+            gs.message("Not keeping Soil Depth map.")
             mapstoremove.append(old_soil)
             # Check if this is the last year and remove the "new-soil" map too
             if o == int(options["number"]):
@@ -866,23 +876,25 @@ def landscapeEvol(m, o, p, q, res, s, f):
         else:
             # Check if this is the first year, and if so, remove the temporary initial soil depths map
             if o <= 1:
-                grass.message(("%s%s%04d" % (p, outsoil, m)))
+                gs.message(("%s%s%04d" % (p, outsoil, m)))
                 mapstoremove.append("%s%s%04d" % (p, outsoil, m))
         if flags["e"] is True:
-            grass.message("Keeping delta Transport Capacity (divergence) maps.")
+            gs.message("Keeping delta Transport Capacity (divergence) maps.")
         else:
             mapstoremove.extend([qsxdx, qsydy])
         if flags["t"] is True:
-            grass.message("Keeping Transport Capacity maps.")
+            gs.message("Keeping Transport Capacity maps.")
         else:
             mapstoremove.extend([qsx, qsy])
         if flags["r"] is True:
-            grass.message("Not keeping an Erosion and Deposition rate map.")
+            gs.message("Not keeping an Erosion and Deposition rate map.")
             mapstoremove.append(netchange)
+        if o == 1:
+            mapstoremove.append(old_soil)
         if len(mapstoremove) == 0:
             pass
         else:
-            grass.run_command(
+            gs.run_command(
                 "g.remove",
                 quiet=True,
                 flags="f",
@@ -890,7 +902,7 @@ def landscapeEvol(m, o, p, q, res, s, f):
                 name=",".join(mapstoremove),
             )
 
-    grass.message(
+    gs.message(
         "\n*************************\n"
         + "Done with Iteration %s " % o
         + "\n*************************\n"
@@ -927,7 +939,7 @@ def climfile(d, y, years):
 
         # Throw a warning if there aren't enough values in the column
         if len(l) != int(years):
-            grass.fatal(
+            gs.fatal(
                 "Number of rows of rainfall data in your climate file\ndo not match the number of iterations you wish to run.\n Please ensure that these numbers match and try again"
             )
             sys.exit(1)
@@ -936,7 +948,7 @@ def climfile(d, y, years):
 
 def samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p):
     # Create terrain morphology maps
-    grass.run_command(
+    gs.run_command(
         "r.slope.aspect",
         quiet=True,
         elevation=old_dem,
@@ -947,48 +959,44 @@ def samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p):
     )
 
     # Generate random vector points and sample terrain to determine cutoff values for flow accumulation coefficients
-    grass.message(
+    gs.message(
         "GATHERING STATISTICS FOR DETERMINING CUTOFF VALUES\n-------------------------------------------------\n1) Calculating slope and curvatures"
     )
 
-    grass.message(
+    gs.message(
         '4) Determining number of sampling points using formula: "ln(#cells_in_input_map)*100"'
     )
-    flaccstats = grass.parse_command("r.univar", flags="g", map=flowacc)
+    flaccstats = gs.parse_command("r.univar", flags="g", map=flowacc)
     numpts = int(math.log(int(flaccstats["n"])) * 100)
 
-    grass.message(
+    gs.message(
         "5) Creating random points and sampling values of flow accumulation, curvatures, and slope."
     )
     vout = "%s%s_randomly_sampled_points" % (p, numpts)
-    grass.run_command(
+    gs.run_command(
         "r.random", quiet=True, input=flowacc, cover=pc, npoints=numpts, vector=vout
     )
 
-    grass.run_command(
-        "v.db.renamecolumn", quiet=True, map=vout, column="value,Flow_acc"
-    )
-    grass.run_command(
+    gs.run_command("v.db.renamecolumn", quiet=True, map=vout, column="value,Flow_acc")
+    gs.run_command(
         "v.db.renamecolumn", quiet=True, map=vout, column="covervalue,Princ_curv"
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         quiet=True,
         map=vout,
         columns="Tang_curv double precision, Slope double precision",
     )
-    grass.run_command(
-        "v.what.rast", quiet=True, map=vout, raster=tc, column="Tang_curv"
-    )
-    grass.run_command("v.what.rast", quiet=True, map=vout, raster=slope, column="Slope")
+    gs.run_command("v.what.rast", quiet=True, map=vout, raster=tc, column="Tang_curv")
+    gs.run_command("v.what.rast", quiet=True, map=vout, raster=slope, column="Slope")
 
     if flags["k"] is True:
-        grass.message(
+        gs.message(
             "--Keeping the created maps (Flow Accumulation, Slope, Principle Curvature, Tangential Curvature)"
         )
     else:
-        grass.message("6) Cleaning up...")
-        grass.run_command(
+        gs.message("6) Cleaning up...")
+        gs.run_command(
             "g.remove",
             quiet=True,
             flags="f",
@@ -996,7 +1004,7 @@ def samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p):
             name=slope + "," + pc + "," + tc + "," + flowacc,
         )
 
-    grass.message(
+    gs.message(
         'FINISHED. \nRandom sample points map "%s" created successfully.\n' % vout
     )
 
@@ -1005,5 +1013,5 @@ def samplePoints(old_dem, aspect, slope, pc, tc, flowacc, p):
 
 # Here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

@@ -109,7 +109,7 @@ i.e., we only have one point in time. Hence, the output register file will
 contain the map name and start time separated by <tt>|</tt> when using GRASS
 GIS stable version.
 In the case of GRASS GIS development version which supports the band reference
-concept (see <em><a href="https://grass.osgeo.org/grass-devel/manuals/g.bands.html">g.bands</a></em> module for details),
+concept (see <em><a href="https://grass.osgeo.org/grass-devel/manuals/i.band.library.html">i.band.library</a></em> module for details),
 the output register file is extended by a third column containing the band
 reference information, see the examples below.
 
@@ -162,6 +162,14 @@ i.landsat.import input=data pattern_file='229083_2019' pattern='B(4|5)'
 </pre></div>
 
 <p>
+Limit import to optical, NIR, thermal and QA_PIXEL using a regular
+expression (Landsat-8):
+
+<div class="code"><pre>
+i.landsat.import input=data pattern='(B(2|3|4|5|6|7|8|10|11)|QA_PIXEL)'
+</pre></div>
+
+<p>
 Limit import to bands 4 and 5 for path 229 and row 083 in 2019 and get a
 txt file to use in <em>t.register</em>
 
@@ -193,8 +201,3 @@ t.register input=landsat_ts file=t_register.txt
 <h2>AUTHOR</h2>
 
 <a href="https://veroandreo.gitlab.io/" target="_blank">Veronica Andreo</a>, CONICET, Argentina.
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.houghtransform
@@ -10,8 +9,8 @@
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 for details.
+ *               License (>=v2). Read the file COPYING that comes with
+ *               GRASS for details.
  *
  *****************************************************************************/
 
@@ -36,27 +35,27 @@ extern "C" {
   */
 int main(int argc, char *argv[])
 {
-    struct Cell_head cell_head;	/* it stores region information,
+    struct Cell_head cell_head; /* it stores region information,
                                    and header information of rasters */
-    char *name;			/* input raster name */
+    char *name;                 /* input raster name */
 
-    char *mapset;		/* mapset name */
+    char *mapset; /* mapset name */
 
-    char *result;		/* output raster name */
+    char *result; /* output raster name */
 
     int nrows, ncols;
 
-    struct GModule *module;	/* GRASS module for parsing arguments */
+    struct GModule *module; /* GRASS module for parsing arguments */
 
     /* options */
     struct Option *input, *output, *anglesOption, *houghImageNameOption,
-            *angleWidthOption,
-            *minGapOption, *maxNumberOfGapsOption,
-            *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
-            *lineWidthOption;
+        *angleWidthOption, *minGapOption, *maxNumberOfGapsOption,
+        *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
+        *lineWidthOption;
 
     /* initialize GIS environment */
-    G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
+    G_gisinit(
+        argv[0]); /* reads grass env, stores program name to G_program_name() */
 
     /* initialize module */
     module = G_define_module();
@@ -64,9 +63,9 @@ int main(int argc, char *argv[])
     G_add_keyword(_("Hough"));
     G_add_keyword(_("imagery"));
     module->description =
-            _("Performs Hough transformation and extracts line segments from image."
-              " Region shall be set to input map."
-              " Can work only on small images since map is loaded into memory.");
+        _("Performs Hough transformation and extracts line segments from image."
+          " Region shall be set to input map."
+          " Can work only on small images since map is loaded into memory.");
 
     /* Define the different options as defined in gis.h */
     input = G_define_standard_option(G_OPT_R_INPUT);
@@ -76,19 +75,22 @@ int main(int argc, char *argv[])
     anglesOption = G_define_standard_option(G_OPT_R_INPUT);
     anglesOption->key = "angles";
     anglesOption->required = NO;
-    anglesOption->description = _("Name of input image with angles from i.edge.");
+    anglesOption->description =
+        _("Name of input image with angles from i.edge.");
 
     houghImageNameOption = G_define_standard_option(G_OPT_R_OUTPUT);
     houghImageNameOption->key = "hough_image";
     houghImageNameOption->required = NO;
-    houghImageNameOption->description = _("Name of output image containing Hough transform");
+    houghImageNameOption->description =
+        _("Name of output image containing Hough transform");
 
     angleWidthOption = G_define_option();
     angleWidthOption->key = "angle_width";
     angleWidthOption->type = TYPE_INTEGER;
     angleWidthOption->required = NO;
     angleWidthOption->multiple = NO;
-    angleWidthOption->description = _("Width of circle sector (only when you provide angle map)");
+    angleWidthOption->description =
+        _("Width of circle sector (only when you provide angle map)");
     angleWidthOption->answer = const_cast<char *>("5");
 
     // this option will become max peaks number to find in HT
@@ -98,12 +100,11 @@ int main(int argc, char *argv[])
     maxLinesOption->required = NO;
     maxLinesOption->multiple = NO;
     maxLinesOption->label = _("Approximate number of line segments");
-    maxLinesOption->description = _(
-                "This number represents"
-                " maximal number of line candidates"
-                " detected in Hough transform image."
-                " Final number of line segments can be"
-                " smaller or greater.");
+    maxLinesOption->description = _("This number represents"
+                                    " maximal number of line candidates"
+                                    " detected in Hough transform image."
+                                    " Final number of line segments can be"
+                                    " smaller or greater.");
     maxLinesOption->answer = const_cast<char *>("20");
 
     minGapOption = G_define_option();
@@ -119,7 +120,8 @@ int main(int argc, char *argv[])
     maxNumberOfGapsOption->type = TYPE_INTEGER;
     maxNumberOfGapsOption->required = NO;
     maxNumberOfGapsOption->multiple = NO;
-    maxNumberOfGapsOption->description = _("Maximal number of gaps in line segment");
+    maxNumberOfGapsOption->description =
+        _("Maximal number of gaps in line segment");
     maxNumberOfGapsOption->answer = const_cast<char *>("5");
 
     maxGapOption = G_define_option();
@@ -143,7 +145,8 @@ int main(int argc, char *argv[])
     lineWidthOption->type = TYPE_INTEGER;
     lineWidthOption->required = NO;
     lineWidthOption->multiple = NO;
-    lineWidthOption->description = _("Expected width of line (used for searching segments)");
+    lineWidthOption->description =
+        _("Expected width of line (used for searching segments)");
     lineWidthOption->answer = const_cast<char *>("3");
 
     /* options and flags parser */
@@ -153,7 +156,6 @@ int main(int argc, char *argv[])
     /* stores options and flags to variables */
     result = output->answer;
     name = input->answer;
-
 
     HoughParametres houghParametres;
     houghParametres.maxPeaksNum = atoi(maxLinesOption->answer);
@@ -175,7 +177,7 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Raster map <%s> not found"), name);
 
     /* determine the inputmap type (CELL/FCELL/DCELL) */
-    //data_type = Rast_map_type(name, mapset);
+    // data_type = Rast_map_type(name, mapset);
 
     //    struct Cell_head templCellhd;
 
@@ -193,7 +195,8 @@ int main(int argc, char *argv[])
 
     /* **** */
 
-    hough_peaks(houghParametres, extractParametres, name, mapset, nrows, ncols, anglesOption->answer, houghImageNameOption->answer, result);
+    hough_peaks(houghParametres, extractParametres, name, mapset, nrows, ncols,
+                anglesOption->answer, houghImageNameOption->answer, result);
 
     /* **** */
 

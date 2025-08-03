@@ -27,40 +27,36 @@
 #include <string.h>
 #include <grass/gis.h>
 
-#define  BIG   1000000000.0
+#define BIG 1000000000.0
 // undefine library's macro
 #undef MAX
-#define  MAX   800
+#define MAX 800
 
-typedef struct __dirdesc
-{
-    int dd_fd;			/* file descriptor */
-    long dd_loc;		/* buf offset of entry from last readddir() */
-    long dd_size;		/* amount of valid data in buffer */
-    long dd_bsize;		/* amount of entries read at a time */
-    long dd_off;		/* Current offset in dir (for telldir) */
-    char *dd_buf;		/* directory data buffer */
+typedef struct __dirdesc {
+    int dd_fd;     /* file descriptor */
+    long dd_loc;   /* buf offset of entry from last readddir() */
+    long dd_size;  /* amount of valid data in buffer */
+    long dd_bsize; /* amount of entries read at a time */
+    long dd_off;   /* Current offset in dir (for telldir) */
+    char *dd_buf;  /* directory data buffer */
 } DIR;
 
-extern DIR *opendir( /* char *dirname */ );
-extern struct dirent *readdir( /* DIR *dirp */ );
-extern int closedir( /* DIR *dirp */ );
+extern DIR *opendir(/* char *dirname */);
+extern struct dirent *readdir(/* DIR *dirp */);
+extern int closedir(/* DIR *dirp */);
 
-struct CHOICE
-{
+struct CHOICE {
     char fn[30], reg[30], wrum;
     int edge, tex, fb, units, z, edgemap;
     int att[5], div[5], te2[6];
     int jux[3], edg[3];
 };
 
-typedef struct reglist
-{
+typedef struct reglist {
     int att;
     int n, s, e, w;
     struct reglist *next;
 } REGLIST;
-
 
 /** main.c **/
 void parse_cmd();
@@ -82,7 +78,6 @@ FILE *fopen2();
 FILE *fopen3();
 void get_rich_whole();
 
-
 /** cellclip.c **/
 void cell_clip_drv(int, int, int, int, double **, int, int, float);
 void cell_clip(DCELL **, DCELL **, int, int, int, int, int, float);
@@ -90,7 +85,6 @@ void get_rich();
 int is_not_empty_buffer();
 int center_is_not_zero();
 int compar();
-
 
 /** texture.c **/
 void mv_texture();

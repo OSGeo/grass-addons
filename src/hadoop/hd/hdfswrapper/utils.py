@@ -35,8 +35,8 @@ def string2dict(string):
         print(string)
         return json.loads(string.replace("'", '"'))
 
-    except Exception, e:
-        print("Dictonary is not valid: %s" % e)
+    except Exception as e:
+        print("Dictionary is not valid: %s" % e)
         return None
 
 

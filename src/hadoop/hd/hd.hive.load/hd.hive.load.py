@@ -13,41 +13,41 @@
 #
 #############################################################################
 
-#%module
-#% description: Load data to Hive table
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
+# %module
+# % description: Load data to Hive table
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
 
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% answer: hiveserver2
-#% description: Type of database driver
-#% options: hive_cli, hiveserver2
-#%end
-#%option
-#% key: table
-#% type: string
-#% required: yes
-#% description: name of table
-#%end
-#%option
-#% key: path
-#% type: string
-#% required: yes
-#% description: path of hdfs file
-#%end
-#%option
-#% key: partition
-#% type: string
-#% required: no
-#% description:  partition as a dict of  columns and values
-#%end
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % answer: hiveserver2
+# % description: Type of database driver
+# % options: hive_cli, hiveserver2
+# %end
+# %option
+# % key: table
+# % type: string
+# % required: yes
+# % description: name of table
+# %end
+# %option
+# % key: path
+# % type: string
+# % required: yes
+# % description: path of hdfs file
+# %end
+# %option
+# % key: partition
+# % type: string
+# % required: no
+# % description:  partition as a dict of  columns and values
+# %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -66,5 +66,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

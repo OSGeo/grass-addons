@@ -1,4 +1,3 @@
-
 /***************************************************************************/
 
 /***************************************************************************/
@@ -24,7 +23,6 @@
 
 #define MAXORDER 3
 
-int CRS_compute_georef_equations(struct Control_Points *, double *,
-					double *, double *, double *, int);
-int CRS_georef(double, double, double *, double *, double *, double *,
-		      int);
+int CRS_compute_georef_equations(struct Control_Points *, double *, double *,
+                                 double *, double *, int);
+int CRS_georef(double, double, double *, double *, double *, double *, int);

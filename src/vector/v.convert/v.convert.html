@@ -4,7 +4,7 @@
 
 <h2>NOTES</h2>
 
-Vector maps from 5.0/5.3/5.4 and 5.7/6.x do not interfere. They are stored in different 
+Vector maps from 5.0/5.3/5.4 and 5.7/6.x do not interfere. They are stored in different
 directories, so you can use the same names. Old vector maps can be listed with
 <em>g.list oldvect</em>.
 <p>If you need to convert back from 5.7/6.x into the 5.0/5.3/5.4 vector format,
@@ -12,7 +12,7 @@ use <em>v.out.ogr</em> (to SHAPE format) and then <em>v.in.shape</em>
 in the old GRASS program.
 Alternatively use "<em>v.out.ascii -o</em>" and <em>v.in.ascii</em>.
 <p>As this GRASS version uses SQL for attribute management, there are
-some <a href=sql.html>SQL restrictings concerning the file names</a>.
+some <a href="sql.html">SQL restrictings concerning the file names</a>.
 <p>Missing centroids can be added with <em>v.category</em>.
 
 <h2>EXAMPLE</h2>
@@ -33,8 +33,3 @@ v.convert in=vectormap_from_50 out=vectormap_60
 <h2>AUTHOR</h2>
 
 Radim Blazek, ITC-Irst, Trento, Italy
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

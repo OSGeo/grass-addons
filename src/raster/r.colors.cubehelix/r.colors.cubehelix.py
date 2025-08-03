@@ -14,128 +14,128 @@
 #
 #############################################################################
 
-#%module
-#% description: Create or apply a cubehelix color table to a GRASS raster map
-#% keyword: raster
-#% keyword: color table
-#% keyword: cubehelix
-#% keyword: seaborn
-#%end
+# %module
+# % description: Create or apply a cubehelix color table to a GRASS raster map
+# % keyword: raster
+# % keyword: color table
+# % keyword: cubehelix
+# % keyword: seaborn
+# %end
 
-#%option G_OPT_R_MAPS
-#% description: Raster map(s) to apply color table to
-#% required: no
-#% guisection: Basic
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name for the new color table rules file
-#% required: no
-#%end
+# %option G_OPT_R_MAPS
+# % description: Raster map(s) to apply color table to
+# % required: no
+# % guisection: Basic
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name for the new color table rules file
+# % required: no
+# %end
 
-#%option
-#% key: start
-#% type: double
-#% description: The hue at the start of the helix
-#% options: 0-3
-#% answer: 0
-#% required: no
-#% guisection: Cubehelix
-#%end
-#%option
-#% key: nrotations
-#% type: double
-#% label: Rotations around the hue wheel
-#% description: Rotations around the hue wheel over the range of the color table
-#% options: 0-3
-#% answer: 0.4
-#% required: no
-#% guisection: Cubehelix
-#%end
-#%option
-#% key: gamma
-#% type: double
-#% description: Gamma factor to emphasize darker (<1) or lighter (>1) colors
-#% options: 0-
-#% answer: 1.0
-#% required: no
-#% guisection: Cubehelix
-#%end
-#%option
-#% key: hue
-#% type: double
-#% description: Saturation of the colors
-#% options: 0-1
-#% answer: 0.8
-#% required: no
-#% guisection: Cubehelix
-#%end
-#%option
-#% key: light
-#% type: double
-#% description: Intensity of the lightest color in the color table
-#% options: 0-1
-#% answer: 0.85
-#% required: no
-#% guisection: Cubehelix
-#%end
-#%option
-#% key: dark
-#% type: double
-#% description: Intensity of the darkest color in the color table
-#% options: 0-1
-#% answer: 0.15
-#% required: no
-#% guisection: Cubehelix
-#%end
+# %option
+# % key: start
+# % type: double
+# % description: The hue at the start of the helix
+# % options: 0-3
+# % answer: 0
+# % required: no
+# % guisection: Cubehelix
+# %end
+# %option
+# % key: nrotations
+# % type: double
+# % label: Rotations around the hue wheel
+# % description: Rotations around the hue wheel over the range of the color table
+# % options: 0-3
+# % answer: 0.4
+# % required: no
+# % guisection: Cubehelix
+# %end
+# %option
+# % key: gamma
+# % type: double
+# % description: Gamma factor to emphasize darker (<1) or lighter (>1) colors
+# % options: 0-
+# % answer: 1.0
+# % required: no
+# % guisection: Cubehelix
+# %end
+# %option
+# % key: hue
+# % type: double
+# % description: Saturation of the colors
+# % options: 0-1
+# % answer: 0.8
+# % required: no
+# % guisection: Cubehelix
+# %end
+# %option
+# % key: light
+# % type: double
+# % description: Intensity of the lightest color in the color table
+# % options: 0-1
+# % answer: 0.85
+# % required: no
+# % guisection: Cubehelix
+# %end
+# %option
+# % key: dark
+# % type: double
+# % description: Intensity of the darkest color in the color table
+# % options: 0-1
+# % answer: 0.15
+# % required: no
+# % guisection: Cubehelix
+# %end
 
-#%option
-#% key: ncolors
-#% type: integer
-#% label: Number of colors in the color table
-#% description: Number of color intervals in a discrete color table with -d
-#% options: 2-
-#% answer: 6
-#% required: no
-#% guisection: Rules
-#%end
-#%flag
-#% key: d
-#% label: Generate discrete color table
-#% description: Generate discrete (interval) color table instead of a continuous one
-#% guisection: Rules
-#%end
+# %option
+# % key: ncolors
+# % type: integer
+# % label: Number of colors in the color table
+# % description: Number of color intervals in a discrete color table with -d
+# % options: 2-
+# % answer: 6
+# % required: no
+# % guisection: Rules
+# %end
+# %flag
+# % key: d
+# % label: Generate discrete color table
+# % description: Generate discrete (interval) color table instead of a continuous one
+# % guisection: Rules
+# %end
 
-#%flag
-#% key: n
-#% label: Reverse the order of colors (invert colors)
-#% description: If set, the color table will go from dark to light
-#% guisection: Basic
-#%end
-#%flag
-#% key: g
-#% description: Logarithmic scaling
-#% guisection: Basic
-#%end
-#%flag
-#% key: a
-#% description: Logarithmic-absolute scaling
-#% guisection: Basic
-#%end
-#%flag
-#% key: e
-#% description: Histogram equalization
-#% guisection: Basic
-#%end
-#%rules
-#% requires: -g, map
-#% requires: -a, map
-#% requires: -e, map
-#%end
+# %flag
+# % key: n
+# % label: Reverse the order of colors (invert colors)
+# % description: If set, the color table will go from dark to light
+# % guisection: Basic
+# %end
+# %flag
+# % key: g
+# % description: Logarithmic scaling
+# % guisection: Basic
+# %end
+# %flag
+# % key: a
+# % description: Logarithmic-absolute scaling
+# % guisection: Basic
+# %end
+# %flag
+# % key: e
+# % description: Histogram equalization
+# % guisection: Basic
+# %end
+# %rules
+# % requires: -g, map
+# % requires: -a, map
+# % requires: -e, map
+# %end
 
 
 import os
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def values_to_rule(value, red, green, blue, percent):
@@ -195,7 +195,7 @@ def main(options, flags):
         fallback = False
     except ImportError:
         # perhaps this can be function in the core
-        gscript.error(_("{} Python package not installed.").format("seaborn"))
+        gs.error(_("{} Python package not installed.").format("seaborn"))
     if not fallback:
         cmap = sns.cubehelix_palette(
             n_colors=n_colors,
@@ -211,14 +211,14 @@ def main(options, flags):
         # as_cmap ignores n_colors in 0.7.0
         # but we want n_colors to be exact when we are exporting
         # the color table or doing discrete one
-        import matplotlib  # required by windows
+        import matplotlib as mpl  # required by windows
 
-        matplotlib.use("wxAGG")  # required by windows
+        mpl.use("wxAGG")  # required by windows
         import matplotlib.colors as clr
 
         cmap = clr.LinearSegmentedColormap.from_list("from_list", cmap, N=n_colors)
     else:
-        gscript.warning(
+        gs.warning(
             _(
                 "Using Matplotlib cubehelix color table."
                 " Most of cubehelix parameters ignored"
@@ -249,7 +249,7 @@ def main(options, flags):
         for char in "gae":
             if flags[char]:
                 rcf += char
-        gscript.write_command(
+        gs.write_command(
             "r.colors",
             map=options["map"],
             flags=rcf,
@@ -265,4 +265,4 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    sys.exit(main(*gscript.parser()))
+    sys.exit(main(*gs.parser()))

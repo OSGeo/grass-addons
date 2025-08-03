@@ -4,7 +4,6 @@
 #include "../mapcalc.h"
 #include "../map.h"
 
-
 /*
  * Required function:
  * Return the name of the main function which is useable in v.mapcalc.
@@ -33,14 +32,15 @@ char *proto(void)
  * This is the main function which needs to have the name and prototype
  * as returned above.
  */
-MAP *dltest(MAP * m, MAP * n)
+MAP *dltest(MAP *m, MAP *n)
 {
     char namebuf[128];
 
     printf("Performing 2 arg dynamically loaded map function on maps "
-	   "%s and %s\n", m->name, n->name);
+           "%s and %s\n",
+           m->name, n->name);
     sprintf(namebuf, "%s.%s", m->name, n->name);
-    m = (MAP *) listitem(sizeof(MAP));
+    m = (MAP *)listitem(sizeof(MAP));
     m->name = strdup(namebuf);
     return m;
 }

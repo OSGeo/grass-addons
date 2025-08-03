@@ -12,48 +12,48 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates a polar plot of fault directions
-#% keyword: display
-#% keyword: vector
-#% keyword: geology
-#%end
-#%option G_OPT_V_MAP
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: column
-#% description: Attribute column containing azimuth
-#% required: yes
-#%end
-#%option
-#% key: step
-#% type: integer
-#% description: Step of binning (in degrees)
-#% answer: 10
-#% required: no
-#%end
-#%option
-#% key: legend_angle
-#% type: double
-#% description: Angle at which to put the axis labels
-#% answer: 0.0
-#% required: no
-#%end
-#%flag
-#% key: a
-#% description: Use absolute values in legend, instead of percentages
-#%end
+# %module
+# % description: Creates a polar plot of fault directions
+# % keyword: display
+# % keyword: vector
+# % keyword: geology
+# %end
+# %option G_OPT_V_MAP
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: column
+# % description: Attribute column containing azimuth
+# % required: yes
+# %end
+# %option
+# % key: step
+# % type: integer
+# % description: Step of binning (in degrees)
+# % answer: 10
+# % required: no
+# %end
+# %option
+# % key: legend_angle
+# % type: double
+# % description: Angle at which to put the axis labels
+# % answer: 0.0
+# % required: no
+# %end
+# %flag
+# % key: a
+# % description: Use absolute values in legend, instead of percentages
+# %end
 
 
 import sys
 import numpy as np
-import grass.script as gscript
+import grass.script as gs
 
 
 def main():
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     vector = options["map"]
@@ -62,7 +62,7 @@ def main():
     legend_angle = float(options["legend_angle"])
 
     azimuth = []
-    for line in gscript.read_command(
+    for line in gs.read_command(
         "v.db.select", map_=vector, column=column, flags="c"
     ).splitlines():
         azimuth.append(float(line))
@@ -105,5 +105,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

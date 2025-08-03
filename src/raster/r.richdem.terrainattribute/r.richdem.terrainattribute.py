@@ -20,39 +20,39 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Calculates local terrain attributes.
-#% keyword: raster
-#%end
+# %module
+# % description: Calculates local terrain attributes.
+# % keyword: raster
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM
+# %  required: yes
+# %end
 
-#%option
-#% key: attribute
-#% type: string
-#% label: Terrain attribute to calculate.
-#% required: yes
-#% multiple: no
-#% options: slope_riserun,slope_percentage,slope_degrees,slope_radians,aspect,curvature,planform_curvature,profile_curvature
-#%end
+# %option
+# % key: attribute
+# % type: string
+# % label: Terrain attribute to calculate.
+# % required: yes
+# % multiple: no
+# % options: slope_riserun,slope_percentage,slope_degrees,slope_radians,aspect,curvature,planform_curvature,profile_curvature
+# %end
 
-#%option
-#% key: zscale
-#% type: double
-#% label: Scalar multiplier for elevation (vertical exaggeration)
-#% required: no
-#% answer: 1.0
-#%end
+# %option
+# % key: zscale
+# % type: double
+# % label: Scalar multiplier for elevation (vertical exaggeration)
+# % required: no
+# % answer: 1.0
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with depressions filled
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with depressions filled
+# %  required: yes
+# %end
 
 
 ##################
@@ -62,7 +62,7 @@
 import numpy as np
 
 # GRASS
-from grass import script as gscript
+from grass import script as gs
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -102,9 +102,9 @@ def main():
 
     outarray = garray.array()
     outarray[:] = rd_output[:]
-    outarray.write(_output, overwrite=gscript.overwrite())
+    outarray.write(_output, overwrite=gs.overwrite())
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

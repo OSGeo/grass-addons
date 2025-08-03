@@ -21,67 +21,67 @@
 This executable script is a GRASS GIS module to run in a GRASS GIS session.
 """
 
-#%module
-#% description: Updates a column in a vector attribute table using Python code
-#% keyword: vector
-#% keyword: attribute table
-#% keyword: database
-#% keyword: attribute update
-#% keyword: Python
-#%end
-#%option G_OPT_V_MAP
-#%end
-#%option G_OPT_V_FIELD
-#% required: yes
-#%end
-#%option G_OPT_DB_WHERE
-#% label: WHERE condition of the initial SQL statement
-#% description: A standard SQL which will reduce the number of rows processed in Python
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: column
-#% description: Name of attribute column to update
-#% required: yes
-#%end
-#%option
-#% key: expression
-#% type: string
-#% label: Python expression to compute the new value
-#% description: Example: name.replace('-', ' ')
-#% required: yes
-#%end
-#%option
-#% key: condition
-#% type: string
-#% label: Python expression to select only subset of rows
-#% description: Example: name.startswith('North')
-#%end
-#%option
-#% key: packages
-#% type: string
-#% label: Python packages to import
-#% description: The math package is always imported for convenience
-#% multiple: yes
-#%end
-#%option G_OPT_F_INPUT
-#% key: functions
-#% label: Name of Python file defining functions for expression and condition
-#% description: This file can contain imports and it will loaded before expression and condition are evaluated
-#% required: no
-#%end
-#%flag
-#% key: s
-#% label: Import all functions from specificed packages
-#% description: Packages will be additionally imported using star imports (from package import *)
-#%end
-#%flag
-#% key: u
-#% label: Do not provide the additional lower-cased column names
-#% description: Attributes will be accessible only using the original (often uppercase) column name
-#%end
-#%rules
-#% requires: -s,packages
-#%end
+# %module
+# % description: Updates a column in a vector attribute table using Python code
+# % keyword: vector
+# % keyword: attribute table
+# % keyword: database
+# % keyword: attribute update
+# % keyword: Python
+# %end
+# %option G_OPT_V_MAP
+# %end
+# %option G_OPT_V_FIELD
+# % required: yes
+# %end
+# %option G_OPT_DB_WHERE
+# % label: WHERE condition of the initial SQL statement
+# % description: A standard SQL which will reduce the number of rows processed in Python
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: column
+# % description: Name of attribute column to update
+# % required: yes
+# %end
+# %option
+# % key: expression
+# % type: string
+# % label: Python expression to compute the new value
+# % description: Example: name.replace('-', ' ')
+# % required: yes
+# %end
+# %option
+# % key: condition
+# % type: string
+# % label: Python expression to select only subset of rows
+# % description: Example: name.startswith('North')
+# %end
+# %option
+# % key: packages
+# % type: string
+# % label: Python packages to import
+# % description: The math package is always imported for convenience
+# % multiple: yes
+# %end
+# %option G_OPT_F_INPUT
+# % key: functions
+# % label: Name of Python file defining functions for expression and condition
+# % description: This file can contain imports and it will loaded before expression and condition are evaluated
+# % required: no
+# %end
+# %flag
+# % key: s
+# % label: Import all functions from specificed packages
+# % description: Packages will be additionally imported using star imports (from package import *)
+# %end
+# %flag
+# % key: u
+# % label: Do not provide the additional lower-cased column names
+# % description: Attributes will be accessible only using the original (often uppercase) column name
+# %end
+# %rules
+# % requires: -s,packages
+# %end
 
 import os
 import json
@@ -311,11 +311,10 @@ def main():
         )
         table_contents = csv_loads(csv_text, delimeter=sep, null=null)
     else:
-        # TODO: XXX is a workaround for a bug in v.db.select -j
         json_text = gs.read_command(
-            "v.db.select", map=vector, layer=layer, flags="j", null="XXX", where=where
+            "v.db.select", map=vector, layer=layer, format="json", where=where
         )
-        table_contents = json.loads(json_text)
+        table_contents = json.loads(json_text)["records"]
 
     cmd = python_to_transaction(
         table=table,

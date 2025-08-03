@@ -20,23 +20,23 @@
 # More information
 # Started June 2019
 
-#%module
-#% description: Directs flow from flat areas on depression-filled DEMs
-#% keyword: raster
-#% keyword: hydrology
-#%end
+# %module
+# % description: Directs flow from flat areas on depression-filled DEMs
+# % keyword: raster
+# % keyword: hydrology
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: input
-#%  label: Input DEM (most commonly with depressions filled)
-#%  required: yes
-#%end
+# %option G_OPT_R_INPUT
+# %  key: input
+# %  label: Input DEM (most commonly with depressions filled)
+# %  required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#%  key: output
-#%  label: Output DEM with flats resolved for continuous flow
-#%  required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# %  key: output
+# %  label: Output DEM with flats resolved for continuous flow
+# %  required: yes
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -45,7 +45,7 @@
 import numpy as np
 
 # GRASS
-from grass import script as gscript
+from grass import script as gs
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -75,7 +75,7 @@ def main():
     _output = options["output"]
 
     # Check for overwrite
-    _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
+    _rasters = np.array(gs.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any():
         g.message(flags="e", message="output would overwrite " + _output)
 
@@ -85,9 +85,9 @@ def main():
     rd_output = rd.ResolveFlats(rd_input)
 
     dem[:] = rd_output[:]
-    dem.write(_output, overwrite=gscript.overwrite())
+    dem.write(_output, overwrite=gs.overwrite())
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

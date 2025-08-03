@@ -26,7 +26,8 @@
  */
 struct KeyValueIntInt *KeyValueIntInt_create()
 {
-    struct KeyValueIntInt *kv = (struct KeyValueIntInt *) G_malloc(sizeof(struct KeyValueIntInt));
+    struct KeyValueIntInt *kv =
+        (struct KeyValueIntInt *)G_malloc(sizeof(struct KeyValueIntInt));
     G_zero(kv, sizeof(struct KeyValueIntInt));
 
     return kv;
@@ -57,8 +58,8 @@ void KeyValueIntInt_set(struct KeyValueIntInt *kv, int key, int value)
                 kv->nalloc *= 2;
 
             size = kv->nalloc * sizeof(int);
-            kv->key = (int *) G_realloc(kv->key, size);
-            kv->value = (int *) G_realloc(kv->value, size);
+            kv->key = (int *)G_realloc(kv->key, size);
+            kv->value = (int *)G_realloc(kv->value, size);
         }
 
         kv->key[n] = key;
@@ -108,7 +109,7 @@ void KeyValueIntInt_free(struct KeyValueIntInt *kv)
 
     G_free(kv->key);
     G_free(kv->value);
-    kv->nitems = 0;                /* just for safe measure */
+    kv->nitems = 0; /* just for safe measure */
     kv->nalloc = 0;
     G_free(kv);
 }

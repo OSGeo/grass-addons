@@ -41,7 +41,6 @@ import wx
 import wx.lib.scrolledpanel as scrolled
 
 from . import globalvar
-from . import mdutil
 from .mdjinjaparser import JinjaTemplateParser
 
 # =========================================================================
@@ -51,18 +50,18 @@ ADD_RM_BUTTON_SIZE = (35, 35)
 
 
 class MdFileWork:
-
     """initializer of metadata in OWSLib and export OWSLib object to xml by jinja template system"""
 
     def __init__(self, pathToXml=None):
-
         try:
-            global Environment, FileSystemLoader, etree, GError, GMessage
+            global Environment, FileSystemLoader, etree, GError, GMessage, mdutil
 
             from jinja2 import Environment, FileSystemLoader
             from lxml import etree
 
             from core.gcmd import GError, GMessage
+
+            from . import mdutil
         except ModuleNotFoundError as e:
             msg = e.msg
             sys.exit(
@@ -81,7 +80,7 @@ class MdFileWork:
         @return: initialized md object by input xml
         """
         if path is None:
-            self.md = mdutil.MD_MetadataMOD(md=None)
+            self.md = mdutil.get_md_metadatamod_inst(md=None)
             return self.md
         else:
             io = open(path, "r")
@@ -96,7 +95,7 @@ class MdFileWork:
             try:
                 tree = etree.parse(path)
                 root = tree.getroot()
-                self.md = mdutil.MD_MetadataMOD(root)
+                self.md = mdutil.get_md_metadatamod_inst(root)
 
                 return self.md
 
@@ -189,7 +188,6 @@ class MdFileWork:
 
 
 class MdBox(wx.Panel):
-
     """widget(static box) which include metadata items (MdItem)"""
 
     def __init__(self, parent, label="label"):
@@ -326,7 +324,6 @@ class MdBoxKeywords(MdBox):
 
 
 class MdWxDuplicator:
-
     """duplicator of MdBox and MdItem object"""
 
     def __init__(self, mdItems, parent, boxlabel=None, mdItemOld=None, template=None):
@@ -390,7 +387,6 @@ class MdWxDuplicator:
 # METADATA ITEM (label+ctrlText+button(optional)+chckbox(template)
 # =========================================================================
 class MdItem(wx.BoxSizer):
-
     """main building blocks of generated GUI of editor"""
 
     def __init__(
@@ -662,7 +658,6 @@ class MdItem(wx.BoxSizer):
                 self.valueCtrl.Append(lng)
 
     def validators(self, validationStyle):
-
         if validationStyle == "email":
             return EmailValidator()
 
@@ -814,7 +809,6 @@ class MdItem(wx.BoxSizer):
             self.valueCtrl.SetValue(value)
 
     def getValue(self):
-
         value = mdutil.replaceXMLReservedChar(self.valueCtrl.GetValue())
         value = value.replace("\n", "")
         value = value.replace('"', "")
@@ -901,7 +895,6 @@ class MdItemKeyword(wx.BoxSizer):
 
 
 class MdNotebookPage(scrolled.ScrolledPanel):
-
     """
     every notebook page is initialized by jinjainfo::MdDescription.group (label)
     """
@@ -1162,7 +1155,6 @@ class MdKeywords(wx.BoxSizer):
 # MAIN FRAME
 # =========================================================================
 class MdMainEditor(wx.Panel):
-
     """
     main functions : self.generateGUI(): generating GUI from: editor:MdItem,MdBox,MdNotebookPage
                      self.createNewMD(): filling OWSLib.iso.MD_Metadata by values from generated GUI
@@ -1178,7 +1170,16 @@ class MdMainEditor(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         try:
-            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality, EX_Extent, EX_GeographicBoundingBox, GError, MD_Distribution, MD_ReferenceSystem
+            global \
+                CI_Date, \
+                CI_OnlineResource, \
+                CI_ResponsibleParty, \
+                DQ_DataQuality, \
+                EX_Extent, \
+                EX_GeographicBoundingBox, \
+                GError, \
+                MD_Distribution, \
+                MD_ReferenceSystem
 
             from owslib.iso import (
                 CI_Date,
@@ -1342,7 +1343,6 @@ class MdMainEditor(wx.Panel):
                     "for" not in str(tagStringLst[self.c]).split()
                     and "if" not in str(tagStringLst[self.c]).split()
                 ):
-
                     value = str(self.mdOWSTagStrList[self.c])
                     str1 += (
                         "\t"
@@ -1595,7 +1595,6 @@ class MdMainEditor(wx.Panel):
                                 except:
                                     pass
                     if not chcked:  # chckbox in gui
-
                         if forSTS:
                             forSTS = False
 
@@ -1833,7 +1832,6 @@ class MdMainEditor(wx.Panel):
                 self.plusC(numOfItems)
             # (1) 'no init IF'
             elif "if" in mdDes[cTmp].tag.split():
-
                 objStr = mdDes[cTmp].tag.replace(" md.", " self.md.") + ":\n"
 
                 for n in range(leng):

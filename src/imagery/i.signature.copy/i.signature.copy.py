@@ -14,64 +14,64 @@
 #
 #############################################################################
 
-#%module
-#% description: Copies signature file from a group/subgroup to another group/subgroup.
-#% keyword: imagery
-#% keyword: map management
-#% keyword: copy
-#% keyword: signature
-#% keyword: group
-#%end
+# %module
+# % description: Copies signature file from a group/subgroup to another group/subgroup.
+# % keyword: imagery
+# % keyword: map management
+# % keyword: copy
+# % keyword: signature
+# % keyword: group
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: igroup
-#% description: Input group for signature file to copy
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % key: igroup
+# % description: Input group for signature file to copy
+# % required : yes
+# %end
 
-#%option G_OPT_I_SUBGROUP
-#% key: isubgroup
-#% description: Input subgroup for signature file to copy
-#% required : yes
-#%end
+# %option G_OPT_I_SUBGROUP
+# % key: isubgroup
+# % description: Input subgroup for signature file to copy
+# % required : yes
+# %end
 
-#%option
-#% key: isignature
-#% type: string
-#% gisprompt: old,sig,sigfile
-#% label: Input signature file
-#% description: The name of the input signature file to copy
-#% required: yes
-#%end
+# %option
+# % key: isignature
+# % type: string
+# % gisprompt: old,sig,sigfile
+# % label: Input signature file
+# % description: The name of the input signature file to copy
+# % required: yes
+# %end
 
-#%option
-#% key: ogroup
-#% type: string
-#% gisprompt: old,group,group
-#% label: Output group where copy the signature file
-#% required : yes
-#%end
+# %option
+# % key: ogroup
+# % type: string
+# % gisprompt: old,group,group
+# % label: Output group where copy the signature file
+# % required : yes
+# %end
 
-#%option
-#% key: osubgroup
-#% type: string
-#% gisprompt: old,subgroup,subgroup
-#% description: Output subgroup where copy the signature file
-#% required : yes
-#%end
+# %option
+# % key: osubgroup
+# % type: string
+# % gisprompt: old,subgroup,subgroup
+# % description: Output subgroup where copy the signature file
+# % required : yes
+# %end
 
-#%option
-#% key: osignature
-#% type: string
-#% label: Output signature file
-#% description: The name of the output signature file
-#% required: no
-#%end
+# %option
+# % key: osignature
+# % type: string
+# % label: Output signature file
+# % description: The name of the output signature file
+# % required: no
+# %end
 
 import os
 import sys
 import shutil
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -86,7 +86,7 @@ def main():
     if not osign:
         osign = isign
 
-    gisenv = grass.gisenv()
+    gisenv = gs.gisenv()
 
     # try to split input group and mapset
     try:
@@ -106,7 +106,7 @@ def main():
         isign,
     )
     if not os.path.exists(ipath):
-        grass.fatal(_("Signature file <{}> does not exist".format(ipath)))
+        gs.fatal(_("Signature file <{}> does not exist").format(ipath))
 
     # try to split output group and mapset
     try:
@@ -125,34 +125,33 @@ def main():
         "sig",
     )
     if not os.path.exists(opath):
-        grass.fatal(
+        gs.fatal(
             _(
-                "<{pa}> does not exist, do group <{gr}> and "
-                "subgroup <{su}> exist?".format(pa=ipath, gr=ogroup, su=osub)
-            )
+                "<{pa}> does not exist, do group <{gr}> and subgroup <{su}> exist?"
+            ).format(pa=ipath, gr=ogroup, su=osub)
         )
     else:
         opath = os.path.join(opath, osign)
-        if os.path.exists(opath) and not grass.overwrite():
-            grass.fatal(
+        if os.path.exists(opath) and not gs.overwrite():
+            gs.fatal(
                 _(
                     "ERROR: option <osignature>: <{}> exists. To "
-                    "overwrite, use the --overwrite flag".format(osign)
-                )
+                    "overwrite, use the --overwrite flag"
+                ).format(osign)
             )
     # try to copy the signature file otherwise return an error
     try:
         shutil.copy2(ipath, opath)
         return
     except:
-        grass.fatal(_("ERROR: copying {inp} to {oup}".format(inp=ipath, oup=opath)))
+        gs.fatal(_("ERROR: copying {inp} to {oup}").format(inp=ipath, oup=opath))
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

@@ -75,4 +75,3 @@ echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 # clean
 rm ${map_names_file} ${created_map_names_file}
 g.remove -ef type=rast pattern=${map_basename}_[0-9]{3}
-

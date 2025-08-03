@@ -29,44 +29,44 @@
 #
 ##############################################################################
 
-#%Module
-#% description: Computes Lake Surface Water Temperatures (inland water bodies) from TOA Brightness Temperatures.
-#% keyword: imagery
-#% keyword: LSWT
-#% keyword: MODIS
-#% keyword: AVHRR
-#% keyword: AATSR
-#% keyword: SEVIRI
-#% keyword: IMG
-#%end
+# %Module
+# % description: Computes Lake Surface Water Temperatures (inland water bodies) from TOA Brightness Temperatures.
+# % keyword: imagery
+# % keyword: LSWT
+# % keyword: MODIS
+# % keyword: AVHRR
+# % keyword: AATSR
+# % keyword: SEVIRI
+# % keyword: IMG
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: ainput
-#% description: Brightness Temperature (10.5 - 11.5 micro m)
-#%end
-#%option G_OPT_R_INPUT
-#% key: binput
-#% description: Brightness Temperature (11.5 - 12.5 micro m)
-#%end
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: basename
-#% description: Name for output basename raster map(s)
-#%end
-#%option
-#% key: satellite
-#% type: string
-#% description: Satellite name
-#% required: yes
-#% multiple: no
-#% options: NOAA07-AVHRR,NOAA09-AVHRR,NOAA11-AVHRR,NOAA12-AVHRR,NOAA14-AVHRR,NOAA15-AVHRR,NOAA16-AVHRR,NOAA17-AVHRR,NOAA18-AVHRR,NOAA19-AVHRR,METOPA-AVHRR,ERS1-ATSR1,ERS2-ATSR2,Envisat-AATSR,Terra-MODIS,Aqua-MODIS,GOES8-IMG,GOES9-IMG,GOES10-IMG,GOES11-IMG,GOES12-IMG,GOES13-IMG,MSG1-SEVIRI,MSG2-SEVIRI
-#% descriptions: NOAA07-AVHRR;Use split-window coefficients for NOAA07-AVHRR;
-#%end
-#%flag
-#% key: i
-#% description: Display split-window coefficients and exit
-#%end
+# %option G_OPT_R_INPUT
+# % key: ainput
+# % description: Brightness Temperature (10.5 - 11.5 micro m)
+# %end
+# %option G_OPT_R_INPUT
+# % key: binput
+# % description: Brightness Temperature (11.5 - 12.5 micro m)
+# %end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: basename
+# % description: Name for output basename raster map(s)
+# %end
+# %option
+# % key: satellite
+# % type: string
+# % description: Satellite name
+# % required: yes
+# % multiple: no
+# % options: NOAA07-AVHRR,NOAA09-AVHRR,NOAA11-AVHRR,NOAA12-AVHRR,NOAA14-AVHRR,NOAA15-AVHRR,NOAA16-AVHRR,NOAA17-AVHRR,NOAA18-AVHRR,NOAA19-AVHRR,METOPA-AVHRR,ERS1-ATSR1,ERS2-ATSR2,Envisat-AATSR,Terra-MODIS,Aqua-MODIS,GOES8-IMG,GOES9-IMG,GOES10-IMG,GOES11-IMG,GOES12-IMG,GOES13-IMG,MSG1-SEVIRI,MSG2-SEVIRI
+# % descriptions: NOAA07-AVHRR;Use split-window coefficients for NOAA07-AVHRR;
+# %end
+# %flag
+# % key: i
+# % description: Display split-window coefficients and exit
+# %end
 
-import grass.script as grass
+import grass.script as gs
 
 coeffs = {
     "NOAA07-AVHRR": {
@@ -289,7 +289,7 @@ coeffs = {
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     bt1 = options["ainput"]
     bt2 = options["binput"]
     basename = options["basename"]
@@ -300,21 +300,21 @@ def main():
     c2 = coeffs.get(satellite).get("c2")[0]
     coeff = flags["i"]
     if coeff:
-        grass.message(
+        gs.message(
             "Split window coefficients for {satellite} are "
             "c0={c0};c1={c1};c2={c2}".format(satellite=satellite, c0=c0, c1=c1, c2=c2)
         )
         return
     elif (bool(bt1) == 0) or (bool(bt2) == 0) or (bool(basename) == 0):
         # logging.error('error: ', message)
-        grass.error("in1, in2 and basename are required for computing lswt")
+        gs.error("in1, in2 and basename are required for computing lswt")
     else:
-        grass.message(
+        gs.message(
             "Computing water surface temperature - Remember to set"
             " water mask: Output file is {basename}_lswt".format(basename=basename)
         )
         # Split window equation for water surface
-        grass.mapcalc(
+        gs.mapcalc(
             exp="{out} = {bt1} + {c1} * ({bt1} - {bt2}) + {c2} *"
             " ({bt1} - {bt2})^2 + {c0}".format(
                 out=output, bt1=bt1, bt2=bt2, c0=c0, c1=c1, c2=c2

@@ -14,118 +14,119 @@
 #
 ############################################################################
 
-#%module
-#% description: Downloads Sentinel-2 images in parallel using i.sentinel.download.
-#% keyword: imagery
-#% keyword: satellite
-#% keyword: Sentinel
-#% keyword: download
-#% keyword: parallel
-#%end
+# %module
+# % description: Downloads Sentinel-2 images in parallel using i.sentinel.download.
+# % keyword: imagery
+# % keyword: satellite
+# % keyword: Sentinel
+# % keyword: download
+# % keyword: parallel
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: settings
-#% label: Full path to settings file (user, password)
-#%end
+# %option G_OPT_F_INPUT
+# % key: settings
+# % required: no
+# % label: Full path to settings file (user, password)
+# %end
 
-#%option
-#% key: scene_name
-#% required: no
-#% multiple: yes
-#% label: Names of the scenes to be downloaded
-#%end
+# %option
+# % key: scene_name
+# % required: no
+# % multiple: yes
+# % label: Names of the scenes to be downloaded
+# %end
 
-#%option G_OPT_M_DIR
-#% key: output
-#% description: Name for output directory where to store downloaded Sentinel data
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_M_DIR
+# % key: output
+# % description: Name for output directory where to store downloaded Sentinel data
+# % required: no
+# % guisection: Output
+# %end
 
-#%option
-#% key: clouds
-#% type: integer
-#% description: Maximum cloud cover percentage for Sentinel scene
-#% required: no
-#% guisection: Filter
-#% answer: 20
-#%end
+# %option
+# % key: clouds
+# % type: integer
+# % description: Maximum cloud cover percentage for Sentinel scene
+# % required: no
+# % guisection: Filter
+# % answer: 20
+# %end
 
-#%option
-#% key: producttype
-#% type: string
-#% description: Sentinel product type to filter
-#% required: no
-#% options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
-#% answer: S2MSI2A
-#% guisection: Filter
-#%end
+# %option
+# % key: producttype
+# % type: string
+# % description: Sentinel product type to filter
+# % required: no
+# % options: SLC,GRD,OCN,S2MSI1C,S2MSI2A,S2MSI2Ap
+# % answer: S2MSI2A
+# % guisection: Filter
+# %end
 
-#%option
-#% key: start
-#% type: string
-#% description: Start date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: start
+# % type: string
+# % description: Start date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: end
-#% type: string
-#% description: End date ('YYYY-MM-DD')
-#% guisection: Filter
-#%end
+# %option
+# % key: end
+# % type: string
+# % description: End date ('YYYY-MM-DD')
+# % guisection: Filter
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Number of parallel processes
-#% description: Number of used CPUs
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Number of parallel processes
+# % description: Number of used CPUs
+# % answer: 1
+# %end
 
-#%option
-#% key: datasource
-#% description: Data-Hub to download scenes from
-#% label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
-#% options: ESA_COAH,USGS_EE,GCS
-#% answer: ESA_COAH
-#% guisection: Filter
-#%end
+# %option
+# % key: datasource
+# % description: Data-Hub to download scenes from
+# % label: Default is ESA Copernicus Open Access Hub (ESA_COAH), but Sentinel-2 L1C data can also be acquired from USGS Earth Explorer (USGS_EE) or Google Cloud Storage (GCS)
+# % options: ESA_COAH,USGS_EE,GCS
+# % answer: ESA_COAH
+# % guisection: Filter
+# %end
 
-#%option
-#% key: limit
-#% type: integer
-#% description: Maximum number of scenes to filter/download
-#% required: no
-#% guisection: Filter
-#%end
+# %option
+# % key: limit
+# % type: integer
+# % description: Maximum number of scenes to filter/download
+# % required: no
+# % guisection: Filter
+# %end
 
-#%flag
-#% key: s
-#% description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
-#%end
+# %flag
+# % key: s
+# % description: Use scenename/s instead of start/end/producttype to download specific S2 data (specify in the scene_name field)
+# %end
 
-#%flag
-#% key: f
-#% description: Download each Sentinel-2 datasat into an individual folder within the output folder
-#%end
+# %flag
+# % key: f
+# % description: Download each Sentinel-2 datasat into an individual folder within the output folder
+# %end
 
-#%flag
-#% key: e
-#% description: Use ESA-style scenename/s to download from USGS
-#%end
+# %flag
+# % key: e
+# % description: Use ESA-style scenename/s to download from USGS
+# %end
 
-#%rules
-#% collective: -s,scene_name
-#% requires_all: -e,-s,scene_name
-#%end
+# %rules
+# % collective: -s,scene_name
+# % requires_all: -e,-s,scene_name
+# %end
 
 import sys
 import os
 import multiprocessing as mp
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module, ParallelModuleQueue
 from datetime import datetime, timedelta
 
@@ -148,7 +149,7 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
                            date -1 day
         end_day(string): Date in the format YYYY-MM-DD, it is the acquisition
                            date +1 day
-        query_string(string): string in the format "filename=..."
+        query_string(string): string in the format "identifier=..."
 
     """
     if datasource == "ESA_COAH" or datasource == "GCS" or esa_name_for_usgs is True:
@@ -164,10 +165,7 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
         end_day_dt = dt_obj + timedelta(days=1)
         start_day = start_day_dt.strftime("%Y-%m-%d")
         end_day = end_day_dt.strftime("%Y-%m-%d")
-        # get query string
-        if not scenename.endswith(".SAFE"):
-            scenename = scenename + ".SAFE"
-        query_string = "filename={}".format(scenename)
+        query_string = f"identifier={scenename.replace('.SAFE', '')}"
     else:
         # when usgs downloads via identifier, start/end are ignored
         producttype = "S2MSI1C"
@@ -178,7 +176,6 @@ def scenename_split(scenename, datasource, esa_name_for_usgs=False):
 
 
 def main():
-
     settings = options["settings"]
     scene_names = options["scene_name"].split(",")
     output = options["output"]
@@ -190,16 +187,20 @@ def main():
     datasource = options["datasource"]
     use_scenenames = flags["s"]
     ind_folder = flags["f"]
+    if use_scenenames and datasource == "GCS":
+        settings_required = False
+    else:
+        settings_required = True
 
     if datasource == "USGS_EE" and producttype != "S2MSI1C":
-        grass.fatal(
+        gs.fatal(
             _(
                 "Download from USGS Earth Explorer only supports "
                 "Sentinel-2 Level 1C data (S2MSI1C)"
             )
         )
     elif datasource == "GCS" and producttype not in ["S2MSI2A", "S2MSI1C"]:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Download from GCS only supports Sentinel-2 Level"
                 "1C (S2MSI1C) or 2A (S2MSI2A)"
@@ -207,8 +208,8 @@ def main():
         )
 
     # check if we have the i.sentinel.download + i.sentinel.import addons
-    if not grass.find_program("i.sentinel.download", "--help"):
-        grass.fatal(
+    if not gs.find_program("i.sentinel.download", "--help"):
+        gs.fatal(
             _(
                 "The 'i.sentinel.download' module was not found, "
                 "install it first: \n g.extension i.sentinel"
@@ -216,8 +217,9 @@ def main():
         )
 
     # Test if all required data are there
-    if not os.path.isfile(settings):
-        grass.fatal(_("Settings file <{}> not found").format(settings))
+    if settings_required is True:
+        if not os.path.isfile(settings):
+            gs.fatal(_("Settings file <{}> not found").format(settings))
 
     # set some common environmental variables, like:
     os.environ.update(
@@ -230,17 +232,17 @@ def main():
 
     # test nprocs Settings
     if nprocs > mp.cpu_count():
-        grass.warning(
+        gs.warning(
             _(
                 "Using {} parallel processes but only {} CPUs available."
                 "Setting nprocs to {}"
             ).format(nprocs, mp.cpu_count(), mp.cpu_count() - 1)
         )
-        nprocs = mp.cpu_cound() - 1
+        nprocs = mp.cpu_count() - 1
 
     # sentinelsat allows only three parallel downloads
     elif nprocs > 2 and options["datasource"] == "ESA_COAH":
-        grass.message(
+        gs.message(
             _(
                 "Maximum number of parallel processes for Downloading"
                 " fixed to 2 due to sentinelsat API restrictions"
@@ -249,8 +251,8 @@ def main():
         nprocs = 2
 
     # usgs allows maximum 10 parallel downloads
-    elif nprocs > 10 and options["dataseource"] == "USGS_EE":
-        grass.message(
+    elif nprocs > 10 and options["datasource"] == "USGS_EE":
+        gs.message(
             _(
                 "Maximum number of parallel processes for Downloading"
                 " fixed to 10 due to Earth Explorer restrictions"
@@ -265,7 +267,7 @@ def main():
         if datasource == "ESA_COAH":
             for scene in scenenames:
                 if len(scene) < 10 or not scene.startswith("S2"):
-                    grass.fatal(
+                    gs.fatal(
                         _(
                             "Please provide scenenames in the format"
                             " S2X_LLLLLL_YYYYMMDDTHHMMSS_"
@@ -285,13 +287,13 @@ def main():
         }
         if options["limit"]:
             download_args["limit"] = options["limit"]
-        i_sentinel_download_string = grass.parse_command(
+        i_sentinel_download_string = gs.parse_command(
             "i.sentinel.download", **download_args
         )
         i_sentinel_keys = i_sentinel_download_string.keys()
         scenenames = [item.split(" ")[1] for item in i_sentinel_keys]
     # parallelize download
-    grass.message(_("Downloading Sentinel-2 data..."))
+    gs.message(_("Downloading Sentinel-2 data..."))
 
     # adapt nprocs to number of scenes
     nprocs_final = min(len(scenenames), nprocs)
@@ -305,21 +307,25 @@ def main():
             outpath = os.path.join(output, "dl_s2_%s" % str(idx + 1))
         else:
             outpath = output
+        download_kwargs = {
+            "start": start_date,
+            "end": end_date,
+            "producttype": producttype,
+            "query": query_string,
+            "output": outpath,
+            "datasource": datasource,
+        }
+        if settings_required is True:
+            download_kwargs["settings"] = settings
         i_sentinel_download = Module(
             "i.sentinel.download",
-            settings=settings,
-            start=start_date,
-            end=end_date,
-            producttype=producttype,
-            query=query_string,
-            output=outpath,
-            datasource=datasource,
             run_=False,
+            **download_kwargs,
         )
         queue_download.put(i_sentinel_download)
     queue_download.wait()
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

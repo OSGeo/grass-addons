@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 ########################################################################
 #
 # MODULE:       r.meb
@@ -19,7 +18,7 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 2014-2019 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2023 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -27,84 +26,84 @@
 #
 ########################################################################
 #
-#%Module
-#% description: Compute the multivariate environmental bias (MEB)
-#% keyword: similarity
-#% keyword: raster
-#% keyword: modelling
-#%End
+# %Module
+# % description: Compute the multivariate environmental bias (MEB)
+# % keyword: similarity
+# % keyword: raster
+# % keyword: modelling
+# %End
 
-#%option G_OPT_R_INPUTS
-#% key: env
-#% label: Environmental layers
-#% description: Raster map(s) of environmental conditions
-#% key_desc: names
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: env
+# % label: Environmental layers
+# % description: Raster map(s) of environmental conditions
+# % key_desc: names
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_INPUTS
-#% key: ref
-#% label: Reference area
-#% description: Sub-area (1) within region (1+0) for which to compute the EB
-#% key_desc: names
-#% multiple: no
-#% guisection: Input
-#%end
+# %option G_OPT_R_INPUTS
+# % key: ref
+# % label: Reference area
+# % description: Sub-area (1) within region (1+0) for which to compute the EB
+# % key_desc: names
+# % multiple: no
+# % guisection: Input
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% label: Root of name output layers
-#% description: Output MES layer (and root for IES layers if kept)
-#% key_desc: names
-#% required: no
-#% multiple: no
-#% guisection: Output
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % label: Root of name output layers
+# % description: Output MES layer (and root for IES layers if kept)
+# % key_desc: names
+# % required: no
+# % multiple: no
+# % guisection: Output
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key:file
-#% label: Name of output text file
-#% description: Name of output text file (csv format)
-#% key_desc: name
-#% required: no
-#% guisection: Output
-#%end
+# %option G_OPT_F_OUTPUT
+# % key:file
+# % label: Name of output text file
+# % description: Name of output text file (csv format)
+# % key_desc: name
+# % required: no
+# % guisection: Output
+# %end
 
-#%flag
-#% key: i
-#% description: Compute EB for individual variables
-#% guisection: Output
-#%end
+# %flag
+# % key: i
+# % description: Compute EB for individual variables
+# % guisection: Output
+# %end
 
-#%flag
-#% key: m
-#% description: Use mean values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: m
+# % description: Use mean values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%flag
-#% key: n
-#% description: Use median values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: n
+# % description: Use median values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%flag
-#% key: o
-#% description: Use minimum values of IES layers to compute MES
-#% guisection: Output
-#%end
+# %flag
+# % key: o
+# % description: Use minimum values of IES layers to compute MES
+# % guisection: Output
+# %end
 
-#%rules
-#% required: -m,-n,-o
-#%end
+# %rules
+# % required: -m,-n,-o
+# %end
 
-#%option
-#% key: digits
-#% type: integer
-#% description: Precision of your input layers values
-#% key_desc: string
-#% answer: 5
-#%end
+# %option
+# % key: digits
+# % type: integer
+# % description: Precision of your input layers values
+# % key_desc: string
+# % answer: 5
+# %end
 
 # ----------------------------------------------------------------------------
 # Standard
@@ -113,20 +112,16 @@
 # import libraries
 import os
 import sys
+import atexit
+import uuid
+import tempfile
+import operator
+from subprocess import PIPE
 import csv
 import numpy as np
-import uuid
-import operator
-import atexit
-import tempfile
-import string
 import grass.script as gs
+from grass.pygrass.modules import Module
 
-# for Python 3 compatibility
-try:
-    xrange
-except NameError:
-    xrange = range
 
 # Rules
 COLORS_MES = """\
@@ -139,7 +134,7 @@ COLORS_MES = """\
 # Functions
 # ---------------------------------------------------------------------------
 
-# create set to store names of temporary maps to be deleted upon exit
+# create set to store names of temporary maps to be deleted upon exit.
 CLEAN_RAST = []
 
 
@@ -151,21 +146,24 @@ def cleanup():
             gs.run_command("g.remove", type="raster", name=rast, quiet=True, flags="f")
 
 
-# Create temporary name
-def tmpname(prefix):
+def create_unique_name(name):
+    """Create unique name string."""
+    return name + str(uuid.uuid4().hex)
+
+
+def create_temporary_name(prefix):
     """Generate a tmp name which contains prefix
     Store the name in the global list.
     Use only for raster maps.
     """
-    tmpf = prefix + str(uuid.uuid4())
-    tmpf = string.replace(tmpf, "-", "_")
+    tmpf = create_unique_name(prefix)
     CLEAN_RAST.append(tmpf)
     return tmpf
 
 
 def raster_exists(envlay):
     """Check if the raster map exists, call GRASS fatal otherwise"""
-    for chl in xrange(len(envlay)):
+    for chl in range(len(envlay)):
         ffile = gs.find_file(envlay[chl], element="cell")
         if not ffile["fullname"]:
             gs.fatal(_("The layer {} does not exist").format(envlay[chl]))
@@ -175,19 +173,19 @@ def raster_exists(envlay):
 def EB(simlay, reflay):
     """Computation of the envirionmental bias and print to stdout"""
     # Median and mad for whole region (within current mask)
-    tmpf4 = tmpname("reb4")
+    tmpf4 = create_temporary_name("reb4")
     CLEAN_RAST.append(tmpf4)
     d = gs.read_command("r.quantile", quiet=True, input=simlay, percentiles="50")
     d = d.split(":")
-    d = float(string.replace(d[2], "\n", ""))
+    d = float(d[2].replace("\n", ""))
     gs.mapcalc("$tmpf4 = abs($map - $d)", map=simlay, tmpf4=tmpf4, d=d, quiet=True)
     mad = gs.read_command("r.quantile", quiet=True, input=tmpf4, percentiles="50")
     mad = mad.split(":")
-    mad = float(string.replace(mad[2], "\n", ""))
+    mad = float(mad[2].replace("\n", ""))
     gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=tmpf4)
 
     # Median and mad for reference layer
-    tmpf5 = tmpname("reb5")
+    tmpf5 = create_temporary_name("reb5")
     CLEAN_RAST.append(tmpf5)
     gs.mapcalc(
         "$tmpf5 = if($reflay==1, $simlay, null())",
@@ -198,7 +196,7 @@ def EB(simlay, reflay):
     )
     e = gs.read_command("r.quantile", quiet=True, input=tmpf5, percentiles="50")
     e = e.split(":")
-    e = float(string.replace(e[2], "\n", ""))
+    e = float(e[2].replace("\n", ""))
     EBstat = abs(d - e) / mad
 
     # Print results to screen and return results
@@ -213,7 +211,6 @@ def EB(simlay, reflay):
 
 
 def main(options, flags):
-
     # Check if running in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:
@@ -230,7 +227,7 @@ def main(options, flags):
     if out:
         tmpf0 = out
     else:
-        tmpf0 = tmpname("reb0")
+        tmpf0 = create_temporary_name("reb0")
     filename = options["file"]
     ref = options["ref"]
     flag_m = flags["m"]
@@ -255,8 +252,8 @@ def main(options, flags):
         )
 
     # Text for history in metadata
-    opt2 = dict((k, v) for k, v in options.iteritems() if v)
-    hist = " ".join("{!s}={!r}".format(k, v) for (k, v) in opt2.iteritems())
+    opt2 = dict((k, v) for k, v in options.items() if v)
+    hist = " ".join("{!s}={!r}".format(k, v) for (k, v) in opt2.items())
     hist = "r.meb {}".format(hist)
     unused, tmphist = tempfile.mkstemp()
     text_file = open(tmphist, "w")
@@ -268,14 +265,14 @@ def main(options, flags):
     # ------------------------------------------------------------------------
 
     # Create temporary copy of ref layer
-    tmpref0 = tmpname("reb1")
+    tmpref0 = create_temporary_name("reb1")
     CLEAN_RAST.append(tmpref0)
     gs.run_command("g.copy", quiet=True, raster=(ref, tmpref0))
 
     ipi = []
-    for j in xrange(len(ipl)):
+    for j in range(len(ipl)):
         # Calculate the frequency distribution
-        tmpf1 = tmpname("reb1")
+        tmpf1 = create_temporary_name("reb1")
         CLEAN_RAST.append(tmpf1)
         laytype = gs.raster_info(ipl[j])["datatype"]
         if laytype == "CELL":
@@ -288,14 +285,20 @@ def main(options, flags):
                 dignum=digits2,
                 quiet=True,
             )
-        p = gs.pipe_command(
-            "r.stats", quiet=True, flags="cn", input=tmpf1, sort="asc", sep=";"
-        )
+        stats_out = Module(
+            "r.stats",
+            flags="cn",
+            input=tmpf1,
+            sort="asc",
+            separator=";",
+            stdout_=PIPE,
+        ).outputs.stdout
         stval = {}
-        for line in p.stdout:
-            [val, count] = line.strip(os.linesep).split(";")
+        stats_outlines = stats_out.replace("\r", "").split("\n")
+        stats_outlines = [_f for _f in stats_outlines if _f]
+        for z in stats_outlines:
+            [val, count] = z.split(";")
             stval[float(val)] = float(count)
-        p.wait()
         sstval = sorted(stval.items(), key=operator.itemgetter(0))
         sstval = np.matrix(sstval)
         a = np.cumsum(np.array(sstval), axis=0)
@@ -316,11 +319,11 @@ def main(options, flags):
         text_file.close()
 
         # Create the recode layer and calculate the IES
-        tmpf2 = tmpname("reb2")
+        tmpf2 = create_temporary_name("reb2")
         CLEAN_RAST.append(tmpf2)
         gs.run_command("r.recode", input=tmpf1, output=tmpf2, rules=tmprule)
 
-        tmpf3 = tmpname("reb3")
+        tmpf3 = create_temporary_name("reb3")
         CLEAN_RAST.append(tmpf3)
 
         calcc = (
@@ -332,7 +335,6 @@ def main(options, flags):
             "g.remove", quiet=True, flags="f", type="raster", name=(tmpf2, tmpf1)
         )
         os.close(fd2)
-        os.remove(tmprule)
         ipi.append(tmpf3)
 
     # ----------------------------------------------------------------------
@@ -410,7 +412,7 @@ def main(options, flags):
     # EB individual layers
     if flag_i:
         ebi = {}
-        for mm in xrange(len(ipi)):
+        for mm in range(len(ipi)):
             nmn = "{}_{}".format(tmpf0, ipn[mm])
             if not out:
                 CLEAN_RAST.append(nmn)
@@ -424,16 +426,17 @@ def main(options, flags):
             gs.run_command(
                 "r.support",
                 map=nmn,
-                title="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                title="Environmental similarity (ES) for {}".format(ipn[mm]),
                 units="0-100 (relative score",
-                description="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                description="Environmental similarity (ES) for {}".format(ipn[mm]),
                 loadhistory=tmphist,
             )
+
     else:
         gs.run_command("g.remove", quiet=True, flags="f", type="raster", name=ipi)
 
     if filename:
-        with open(filename, "wb") as csvfile:
+        with open(filename, "wt") as csvfile:
             fieldnames = ["variable", "median_region", "median_reference", "mad", "eb"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()

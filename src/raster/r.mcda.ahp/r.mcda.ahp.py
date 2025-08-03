@@ -12,42 +12,42 @@
 #############################################################################
 
 
-#%Module
-#% description: Generates a raster map classified with analytic hierarchy process (AHP).
-#% keyword: raster
-#% keyword: Analytic Hierarchy Process (AHP)
-#% keyword: Multi Criteria Decision Analysis (MCDA)
-#%End
-#%option
-#% key: criteria
-#% type: string
-#% multiple: yes
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of criteria raster maps
-#% required: yes
-#%end
-#%option
-#% key: pairwise
-#% type: string
-#% gisprompt: old,file,input
-#% description: Pairwise comparison matrix
-#% required: yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new_file,cell,output
-#% description: output classified raster map
-#% required: yes
-#%end
-#%flag
-#% key:k
-#% description:build a void pairwise comparison matrix and exit (no yet implemented)
-#%end
+# %Module
+# % description: Generates a raster map classified with analytic hierarchy process (AHP).
+# % keyword: raster
+# % keyword: Analytic Hierarchy Process (AHP)
+# % keyword: Multi Criteria Decision Analysis (MCDA)
+# %End
+# %option
+# % key: criteria
+# % type: string
+# % multiple: yes
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of criteria raster maps
+# % required: yes
+# %end
+# %option
+# % key: pairwise
+# % type: string
+# % gisprompt: old,file,input
+# % description: Pairwise comparison matrix
+# % required: yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new_file,cell,output
+# % description: output classified raster map
+# % required: yes
+# %end
+# %flag
+# % key:k
+# % description:build a void pairwise comparison matrix and exit (no yet implemented)
+# %end
 
 import sys
-import grass.script as grass
+import grass.script as gs
 import numpy as np
 import warnings
 
@@ -74,7 +74,7 @@ def calculateMap(criteria, weight, outputMap):
     for i in range(len(criteria) - 1):
         formula += "%s*%s + " % (criteria[i], weight[i])
     formula += "%s*%s " % (criteria[len(criteria) - 1], weight[len(criteria) - 1])
-    grass.mapcalc(outputMap + "=" + formula)
+    gs.mapcalc(outputMap + "=" + formula)
     return 0
 
 
@@ -112,7 +112,7 @@ def main():
     criteria = options["criteria"].split(",")
     pairwise = options["pairwise"]
     outputMap = options["output"]
-    gregion = grass.region()
+    gregion = gs.region()
     nrows = gregion["rows"]
     ncols = gregion["cols"]
     ewres = int(gregion["ewres"])
@@ -124,5 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

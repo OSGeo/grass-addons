@@ -1,55 +1,55 @@
 #!/usr/bin/env python3
 
-#%module
-#% description: Calculates the multiscale topographic position index
-#% keyword: raster
-#%end
+# %module
+# % description: Calculates the multiscale topographic position index
+# % keyword: raster
+# % keyword: surface
+# % keyword: terrain
+# % keyword: topography
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: input
-#% label: Elevation
-#% description: Input DEM from which to calculate mTPI
-#% required : yes
-#% multiple: no
-#%end
+# %option G_OPT_R_INPUT
+# % key: input
+# % label: Elevation
+# % description: Input DEM from which to calculate mTPI
+# % required : yes
+# % multiple: no
+# %end
 
-#%option
-#% key: minradius
-#% type: integer
-#% label: Smoothing neighborhood radius size (minimum)
-#% description: Minimum neighborhood radius in cells for DEM smoothing
-#% answer: 1
-#% required: yes
-#%end
+# %option
+# % key: minradius
+# % type: integer
+# % label: Smoothing neighborhood radius size (minimum)
+# % description: Minimum neighborhood radius in cells for DEM smoothing
+# % answer: 1
+# % required: yes
+# %end
 
-#%option
-#% key: maxradius
-#% type: integer
-#% label: Smoothing neighborhood radius size (maximum)
-#% description: Maximum neighborhood radius in cells for DEM smoothing
-#% answer: 31
-#% required: yes
-#%end
+# %option
+# % key: maxradius
+# % type: integer
+# % label: Smoothing neighborhood radius size (maximum)
+# % description: Maximum neighborhood radius in cells for DEM smoothing
+# % answer: 31
+# % required: yes
+# %end
 
-#%option
-#% key: steps
-#% type: integer
-#% label: Number of scaling steps
-#% description: Number of steps to use for DEM generalization between minradius and maxradius
-#% answer: 5
-#% required: yes
-#%end
+# %option
+# % key: steps
+# % type: integer
+# % label: Number of scaling steps
+# % description: Number of steps to use for DEM generalization between minradius and maxradius
+# % answer: 5
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: output
-#% description: Multi-scale topographic position index
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: output
+# % description: Multi-scale topographic position index
+# % required: yes
+# %end
 
 import atexit
-import multiprocessing as mp
-import random
-import string
 import sys
 from subprocess import PIPE
 
@@ -93,7 +93,7 @@ def main():
 
     # calculate radi for generalization
     radi = np.logspace(
-        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype=np.int
+        np.log(minradius), np.log(maxradius), steps, base=np.exp(1), dtype="int"
     )
     radi = np.unique(radi)
     sizes = radi * 2 + 1

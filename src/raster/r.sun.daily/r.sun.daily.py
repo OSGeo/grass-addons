@@ -15,267 +15,278 @@
 #
 #############################################################################
 
-#%module
-#% description: Runs r.sun for multiple days in loop (mode 2)
-#% keyword: raster
-#% keyword: solar
-#% keyword: sun energy
-#%end
+# %module
+# % description: Runs r.sun for multiple days in loop (mode 2)
+# % keyword: raster
+# % keyword: solar
+# % keyword: sun energy
+# % keyword: parallel
+# %end
 
-#%option G_OPT_R_ELEV
-#% key: elevation
-#% type: string
-#% description: Name of the input elevation raster map [meters]
-#% gisprompt: old,cell,raster
-#% required : yes
-#%end
+# %option G_OPT_R_ELEV
+# % key: elevation
+# % type: string
+# % description: Name of the input elevation raster map [meters]
+# % gisprompt: old,cell,raster
+# % required : yes
+# %end
 
-#%option
-#% key: aspect
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
-#%end
+# %option
+# % key: aspect
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]
+# %end
 
-#%option
-#% key: slope
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
-#%end
+# %option
+# % key: slope
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: linke
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: linke
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the Linke atmospheric turbidity coefficient input raster map [-]
+# % required : no
+# %end
 
-#%option
-#% key: linke_value
-#% key_desc: float
-#% type: double
-#% description: A single value of the Linke atmospheric turbidity coefficient [-]
-#% options: 0.0-7.0
-#% answer: 3.0
-#% required : no
-#%end
+# %option
+# % key: linke_value
+# % key_desc: float
+# % type: double
+# % description: A single value of the Linke atmospheric turbidity coefficient [-]
+# % options: 0.0-
+# % answer: 3.0
+# % required : no
+# %end
 
-#% rules
-#%  exclusive: linke, linke_value
-#% end
+# % rules
+# %  exclusive: linke, linke_value
+# % end
 
-#%option G_OPT_R_INPUT
-#% key: albedo
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of the ground albedo coefficient input raster map [-]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: albedo
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of the ground albedo coefficient input raster map [-]
+# % required : no
+# %end
 
-#%option
-#% key: albedo_value
-#% key_desc: float
-#% type: double
-#% description: A single value of the ground albedo coefficient [-]
-#% options: 0.0-1.0
-#% answer: 0.2
-#% required : no
-#%end
+# %option
+# % key: albedo_value
+# % key_desc: float
+# % type: double
+# % description: A single value of the ground albedo coefficient [-]
+# % options: 0.0-1.0
+# % answer: 0.2
+# % required : no
+# %end
 
-#% rules
-#%  exclusive: albedo, albedo_value
-#% end
+# % rules
+# %  exclusive: albedo, albedo_value
+# % end
 
-#%option G_OPT_R_INPUT
-#% key: lat
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input raster map containing latitudes (if projection undefined) [decimal degrees]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: lat
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of input raster map containing latitudes (if projection undefined) [decimal degrees]
+# % required : no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: long
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of input raster map containing longitudes (if projection undefined) [decimal degrees]
-#% required : no
-#%end
+# %option G_OPT_R_INPUT
+# % key: long
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Name of input raster map containing longitudes (if projection undefined) [decimal degrees]
+# % required : no
+# %end
 
-#%option G_OPT_R_BASENAME_INPUT
-#% key: horizon_basename
-#% key_desc: basename
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: The horizon information input map basename
-#% required : no
-#%end
+# %option G_OPT_R_BASENAME_INPUT
+# % key: horizon_basename
+# % key_desc: basename
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: The horizon information input map basename
+# % required : no
+# %end
 
-#%option
-#% key: horizon_step
-#% key_desc: stepsize
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Angle step size for multidirectional horizon [degrees]
-#% required : no
-#%end
+# %option
+# % key: horizon_step
+# % key_desc: stepsize
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Angle step size for multidirectional horizon [degrees]
+# % required : no
+# %end
 
-#% rules
-#%  requires_all: horizon_basename, horizon_step
-#% end
+# % rules
+# %  requires_all: horizon_basename, horizon_step
+# % end
 
-#%option
-#% key: start_day
-#% type: integer
-#% description: Start day (of year) of interval
-#% options: 1-365
-#% required : yes
-#%end
+# %option
+# % key: start_day
+# % type: integer
+# % description: Start day (of year) of interval
+# % options: 1-365
+# % required : yes
+# %end
 
-#%option
-#% key: end_day
-#% type: integer
-#% description: End day (of year) of interval
-#% options: 1-365
-#% required : yes
-#%end
+# %option
+# % key: end_day
+# % type: integer
+# % description: End day (of year) of interval
+# % options: 1-365
+# % required : yes
+# %end
 
-#%option
-#% key: day_step
-#% type: integer
-#% description: Run r.sun for every n-th day [days]
-#% options: 1-365
-#% answer: 1
-#%end
+# %option
+# % key: day_step
+# % type: integer
+# % description: Run r.sun for every n-th day [days]
+# % options: 1-365
+# % answer: 1
+# %end
 
-#%option
-#% key: step
-#% type: double
-#% description: Time step when computing all-day radiation sums [decimal hours]
-#% answer: 0.5
-#%end
+# %option
+# % key: step
+# % type: double
+# % description: Time step when computing all-day radiation [decimal hours]
+# % answer: 0.5
+# %end
 
-#%option
-#% key: civil_time
-#% type: double
-#% description: Civil time zone value, if none, the time will be local solar time
-#%end
+# %option
+# % key: civil_time
+# % type: double
+# % description: Civil time zone value, if none, the time will be local solar time
+# %end
 
-#%option
-#% key: beam_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: beam_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output beam irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: diff_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: diff_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output diffuse irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: refl_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: refl_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output ground reflected irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: glob_rad
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
-#% required: no
-#%end
+# %option
+# % key: glob_rad
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output global (total) irradiance/irradiation raster map aggregated for the whole period of time [Wh.m-2.day-1]
+# % required: no
+# %end
 
-#%option
-#% key: insol_time
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Output insolation time raster map cumulated for the whole period of time [h]
-#% required: no
-#%end
+# %option
+# % key: insol_time
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Output insolation time raster map aggregated for the whole period of time [h]
+# % required: no
+# %end
 
-#%option
-#% key: beam_rad_basename
-#% type: string
-#% label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: beam_rad_basename
+# % type: string
+# % label: Base name for output beam irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: diff_rad_basename
-#% type: string
-#% label: Base name for output diffuse irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: diff_rad_basename
+# % type: string
+# % label: Base name for output diffuse irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: refl_rad_basename
-#% type: string
-#% label: Base name for output ground reflected irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: refl_rad_basename
+# % type: string
+# % label: Base name for output ground reflected irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: glob_rad_basename
-#% type: string
-#% label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: glob_rad_basename
+# % type: string
+# % label: Base name for output global (total) irradiance/irradiation raster maps [Wh.m-2.day-1]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: insol_time_basename
-#% type: string
-#% label: Base name for output insolation time raster map cumulated for the whole period of time [h]
-#% description: Underscore and day number are added to the base name for daily maps
-#%end
+# %option
+# % key: insol_time_basename
+# % type: string
+# % label: Base name for output insolation time raster map aggregated for the whole period of time [h]
+# % description: Underscore and day number are added to the base name for daily maps
+# %end
 
-#%option
-#% key: solar_constant
-#% type: double
-#% required: no
-#% multiple: no
-#% label: Solar constant [W/m^2]
-#% description: If not specified, r.sun default will be used.
-#%end
+# %option
+# % key: solar_constant
+# % type: double
+# % required: no
+# % multiple: no
+# % label: Solar constant [W/m^2]
+# % description: If not specified, r.sun default will be used.
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.sun processes to run in parallel
-#% options: 1-
-#% answer: 1
-#%end
+# %option
+# % key: method
+# % type: string
+# % required: no
+# % multiple: no
+# % label: Method for daily maps aggregation
+# % options: sum,average
+# % answer: sum
+# %end
 
-#%flag
-#% key: t
-#% description: Dataset name is the same as the base name for the output series of maps
-#% label: Register created series of output maps into temporal dataset
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.sun processes to run in parallel
+# % options: 1-
+# % answer: 1
+# %end
 
-#%flag
-#% key: p
-#% description: Do not incorporate the shadowing effect of terrain
-#%end
+# %flag
+# % key: t
+# % description: Dataset name is the same as the base name for the output series of maps
+# % label: Register created series of output maps into temporal dataset
+# %end
 
-#%flag
-#% key: m
-#% description: Use the low-memory version of the program
-#%end
+# %flag
+# % key: p
+# % description: Do not incorporate the shadowing effect of terrain
+# %end
+
+# %flag
+# % key: m
+# % description: Use the low-memory version of the program
+# %end
 
 import os
 import atexit
 from multiprocessing import Process
 
-import grass.script as grass
+import grass.script as gs
 import grass.script.core as core
 
 
@@ -290,9 +301,9 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
+        gs.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
     for pattern in MREMOVE:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             type="raster",
             pattern="{pattern}*".format(pattern=pattern),
@@ -378,7 +389,7 @@ def run_r_sun(
     if flags:
         params.update({"flags": flags})
 
-    grass.run_command(
+    gs.run_command(
         "r.sun",
         elevation=elevation,
         aspect=aspect,
@@ -387,7 +398,7 @@ def run_r_sun(
         step=step,
         overwrite=core.overwrite(),
         quiet=True,
-        **params
+        **params,
     )
 
 
@@ -395,14 +406,14 @@ def set_color_table(rasters):
     """
     Set 'gyr' color tables for raster maps
     """
-    grass.run_command("r.colors", map=rasters, col="gyr", quiet=True)
+    gs.run_command("r.colors", map=rasters, col="gyr", quiet=True)
 
 
 def set_time_stamp(raster, day):
     """
     Timestamp script's daily output map
     """
-    grass.run_command("r.timestamp", map=raster, date="%d days" % day, quiet=True)
+    gs.run_command("r.timestamp", map=raster, date="%d days" % day, quiet=True)
 
 
 def format_order(number, zeros=3):
@@ -420,28 +431,37 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
         return
     for day in range(start_day, end_day + 1, day_step):
         map_ = "{base}_{day}".format(base=basename, day=format_order(day))
-        if grass.find_file(map_, element="cell", mapset=mapset)["file"]:
-            grass.fatal(
+        if gs.find_file(map_, element="cell", mapset=mapset)["file"]:
+            gs.fatal(
                 _(
                     "Raster map <{name}> already exists. "
                     "Change the base name or allow overwrite."
-                    "".format(name=map_)
-                )
+                ).format(name=map_)
             )
 
 
-def sum_maps(sum_, basename, suffixes):
+def maps_sum(out_, basename, suffixes):
     """
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
-    grass.mapcalc(
-        "{sum_} = {new}".format(sum_=sum_, new=maps), overwrite=True, quiet=True
+    gs.mapcalc(f"{out_} = {maps}", overwrite=True, quiet=True)
+
+
+def maps_avg(out_, basename, suffixes):
+    """
+    Get average value from multiple raster maps.
+    """
+    maps = "+".join([basename + suf for suf in suffixes])
+    gs.mapcalc(
+        f"{out_} = ({maps}) / {len(suffixes)}",
+        overwrite=True,
+        quiet=True,
     )
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     # required
     elevation_input = options["elevation"]
@@ -457,6 +477,7 @@ def main():
     albedo_value = options["albedo_value"]
     horizon_basename = options["horizon_basename"]
     horizon_step = options["horizon_step"]
+    method = options["method"]
 
     # outputs
     beam_rad = options["beam_rad"]
@@ -485,22 +506,24 @@ def main():
             insol_time_basename,
         ]
     ):
-        grass.fatal(_("No output specified."))
+        gs.fatal(_("No output specified."))
 
     start_day = int(options["start_day"])
     end_day = int(options["end_day"])
     day_step = int(options["day_step"])
 
-    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time):
-        grass.fatal(
-            _("Day step higher then 1 would produce" " meaningless cumulative maps.")
-        )
+    if (
+        day_step > 1
+        and method == "sum"
+        and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time)
+    ):
+        gs.fatal(_("Day step higher then 1 would produce meaningless cumulative maps."))
 
     # check: start < end
     if start_day > end_day:
-        grass.fatal(_("Start day is after end day."))
+        gs.fatal(_("Start day is after end day."))
     if day_step >= end_day - start_day:
-        grass.fatal(_("Day step is too big."))
+        gs.fatal(_("Day step is too big."))
 
     step = float(options["step"])
 
@@ -512,7 +535,7 @@ def main():
     if solar_constant:
         # check it's newer version of r.sun
         if not module_has_parameter("r.sun", "solar_constant"):
-            grass.warning(
+            gs.warning(
                 _(
                     "This version of r.sun lacks solar_constant option, "
                     "it will be ignored. Use newer version of r.sun."
@@ -537,21 +560,21 @@ def main():
         MREMOVE.append(insol_time_basename)
 
     # check for existing identical map names
-    if not grass.overwrite():
+    if not gs.overwrite():
         check_daily_map_names(
-            beam_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            beam_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            diff_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            diff_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            refl_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            refl_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            glob_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            glob_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            insol_time_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            insol_time_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
 
     # check for slope/aspect
@@ -566,21 +589,21 @@ def main():
             params.update({"slope": slope_input})
             REMOVE.append(slope_input)
 
-        grass.info(_("Running r.slope.aspect..."))
-        grass.run_command(
+        gs.info(_("Running r.slope.aspect..."))
+        gs.run_command(
             "r.slope.aspect", elevation=elevation_input, quiet=True, **params
         )
 
     if beam_rad:
-        grass.mapcalc("{beam} = 0".format(beam=beam_rad), quiet=True)
+        gs.mapcalc("{beam} = 0".format(beam=beam_rad), quiet=True)
     if diff_rad:
-        grass.mapcalc("{diff} = 0".format(diff=diff_rad), quiet=True)
+        gs.mapcalc("{diff} = 0".format(diff=diff_rad), quiet=True)
     if refl_rad:
-        grass.mapcalc("{refl} = 0".format(refl=refl_rad), quiet=True)
+        gs.mapcalc("{refl} = 0".format(refl=refl_rad), quiet=True)
     if glob_rad:
-        grass.mapcalc("{glob} = 0".format(glob=glob_rad), quiet=True)
+        gs.mapcalc("{glob} = 0".format(glob=glob_rad), quiet=True)
     if insol_time:
-        grass.mapcalc("{insol} = 0".format(insol=insol_time), quiet=True)
+        gs.mapcalc("{insol} = 0".format(insol=insol_time), quiet=True)
 
     rsun_flags = ""
     if flags["m"]:
@@ -588,7 +611,7 @@ def main():
     if flags["p"]:
         rsun_flags += "p"
 
-    grass.info(_("Running r.sun in a loop..."))
+    gs.info(_("Running r.sun in a loop..."))
     count = 0
     # Parallel processing
     proc_list = []
@@ -648,16 +671,23 @@ def main():
             # Empty process list
             proc_list = []
 
+    # process multiple maps into the desired one
+    if method == "average":
+        stats_func = maps_avg
+    else:
+        # sum (original behavior) as a fallback
+        stats_func = maps_sum
+
     if beam_rad:
-        sum_maps(beam_rad, beam_rad_basename, suffixes_all)
+        stats_func(beam_rad, beam_rad_basename, suffixes_all)
     if diff_rad:
-        sum_maps(diff_rad, diff_rad_basename, suffixes_all)
+        stats_func(diff_rad, diff_rad_basename, suffixes_all)
     if refl_rad:
-        sum_maps(refl_rad, refl_rad_basename, suffixes_all)
+        stats_func(refl_rad, refl_rad_basename, suffixes_all)
     if glob_rad:
-        sum_maps(glob_rad, glob_rad_basename, suffixes_all)
+        stats_func(glob_rad, glob_rad_basename, suffixes_all)
     if insol_time:
-        sum_maps(insol_time, insol_time_basename, suffixes_all)
+        stats_func(insol_time, insol_time_basename, suffixes_all)
 
     # FIXME: how percent really works?
     # core.percent(1, 1, 1)
@@ -706,7 +736,7 @@ def main():
                 descr=desc,
                 semantic="sum",
                 dbif=None,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
             )
 
             tgis.register_maps_in_space_time_dataset(
@@ -724,7 +754,7 @@ def main():
         # Make sure the temporal database exists
         tgis.init()
 
-        mapset = grass.gisenv()["MAPSET"]
+        mapset = gs.gisenv()["MAPSET"]
         if beam_rad_basename_user:
             registerToTemporal(
                 beam_rad_basename,

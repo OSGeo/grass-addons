@@ -1,8 +1,7 @@
-
 /****************************************************************************
  *
  * MODULE:       v.in.ply
- *               
+ *
  * AUTHOR(S):    Markus Metz
  *
  * PURPOSE:      Convert PLY (Polygon file format) files to GRASS vectors
@@ -14,6 +13,7 @@
  *               for details.
  *
  *****************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -24,7 +24,7 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-int ply_type_size[] = { 0, 1, 1, 2, 2, 4, 4, 4, 8 };
+int ply_type_size[] = {0, 1, 1, 2, 2, 4, 4, 4, 8};
 
 int main(int argc, char *argv[])
 {
@@ -53,14 +53,14 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("vector"));
     G_add_keyword(_("import"));
-    module->description =
-	_("Creates a vector map from a PLY file.");
+    module->description = _("Creates a vector map from a PLY file.");
 
-    /************************** Command Parser ************************************/
+    /************************** Command Parser
+     * ************************************/
     old = G_define_standard_option(G_OPT_F_INPUT);
     old->label = _("Name of input file to be imported");
     old->description = ("'-' for standard input");
-    
+
     new = G_define_standard_option(G_OPT_V_OUTPUT);
 
     x_opt = G_define_option();
@@ -88,7 +88,8 @@ int main(int argc, char *argv[])
     z_opt->multiple = NO;
     z_opt->answer = "3";
     z_opt->label = _("Number of vertex property used as z coordinate");
-    z_opt->description = _("First vertex property is 1. If 0, z coordinate is not used");
+    z_opt->description =
+        _("First vertex property is 1. If 0, z coordinate is not used");
 
     notab_flag = G_define_flag();
     notab_flag->key = 't';
@@ -100,12 +101,13 @@ int main(int argc, char *argv[])
 
     prop_flag = G_define_flag();
     prop_flag->key = 'p';
-    prop_flag->description = _("Only print PLY element types and their properties.");
+    prop_flag->description =
+        _("Only print PLY element types and their properties.");
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
-    make_table = (!notab_flag->answer); 
+    make_table = (!notab_flag->answer);
 
     /* coords */
     xprop = atoi(x_opt->answer);
@@ -116,10 +118,10 @@ int main(int argc, char *argv[])
     zcoor = zprop > 0;
 
     if (xprop < 1 || yprop < 1)
-	G_fatal_error(_("x and y must be positive"));
-    
+        G_fatal_error(_("x and y must be positive"));
+
     if (xprop == yprop || xprop == zprop || yprop == zprop)
-	G_fatal_error(_("x, y, z must be three different numbers"));
+        G_fatal_error(_("x, y, z must be three different numbers"));
 
     /* init ply object */
     ply.fp = NULL;
@@ -139,118 +141,115 @@ int main(int argc, char *argv[])
 
     /* open input file */
     if ((ply.fp = fopen(old->answer, "r")) == NULL)
-	G_fatal_error(_("Can not open input file <%s>"), old->answer);
+        G_fatal_error(_("Can not open input file <%s>"), old->answer);
 
     /* read ply header */
     read_ply_header(&ply);
-    
-    if (prop_flag->answer) {
-	for (i = 0; i < ply.n_elements; i++) {
-	    fprintf(stdout, "element name: %s\n", ply.element[i]->name);
-	    fprintf(stdout, "element type: %d\n", ply.element[i]->type);
 
-	    for (j = 0; j < ply.element[i]->n_properties; j++) {
-		fprintf(stdout, "property name: %s\n", ply.element[i]->property[j]->name);
-		fprintf(stdout, "property type: %d\n", ply.element[i]->property[j]->type);
-	    }
-	}
-	exit(EXIT_SUCCESS);
+    if (prop_flag->answer) {
+        for (i = 0; i < ply.n_elements; i++) {
+            fprintf(stdout, "element name: %s\n", ply.element[i]->name);
+            fprintf(stdout, "element type: %d\n", ply.element[i]->type);
+
+            for (j = 0; j < ply.element[i]->n_properties; j++) {
+                fprintf(stdout, "property name: %s\n",
+                        ply.element[i]->property[j]->name);
+                fprintf(stdout, "property type: %d\n",
+                        ply.element[i]->property[j]->type);
+            }
+        }
+        exit(EXIT_SUCCESS);
     }
 
     /* vertices present ? */
     ply.curr_element = NULL;
     for (i = 0; i < ply.n_elements; i++) {
-	if (ply.element[i]->type == PLY_VERTEX) {
-	    ply.curr_element = ply.element[i];
-	}
-	else if (ply.element[i]->type == PLY_FACE) {
-	    if (ply.element[i]->n_properties != 1) {
-		G_fatal_error(_("PLY faces must have only one property"));
-	    }
-	    else if (ply.element[i]->property[0]->is_list != 1) {
-		G_fatal_error(_("PLY faces need a list of vertices"));
-	    }
-	}
+        if (ply.element[i]->type == PLY_VERTEX) {
+            ply.curr_element = ply.element[i];
+        }
+        else if (ply.element[i]->type == PLY_FACE) {
+            if (ply.element[i]->n_properties != 1) {
+                G_fatal_error(_("PLY faces must have only one property"));
+            }
+            else if (ply.element[i]->property[0]->is_list != 1) {
+                G_fatal_error(_("PLY faces need a list of vertices"));
+            }
+        }
     }
     if (!ply.curr_element)
-	G_fatal_error(_("No vertices in PLY file"));
+        G_fatal_error(_("No vertices in PLY file"));
     if (ply.curr_element->n == 0)
-	G_fatal_error(_("No vertices in PLY file"));
-    
+        G_fatal_error(_("No vertices in PLY file"));
+
     Vect_open_new(&Map, new->answer, zcoor);
     Vect_hist_command(&Map);
-    
+
     /* table for vertices only
      * otherwise we would need to put faces and edges into separate layers */
 
     /* Add DB link */
     if (make_table) {
-	db_init_string(&sql);
+        db_init_string(&sql);
 
-	Fi = Vect_default_field_info(&Map, 1, NULL, GV_MTABLE);
+        Fi = Vect_default_field_info(&Map, 1, NULL, GV_MTABLE);
 
-	Vect_map_add_dblink(&Map, 1, NULL, Fi->table,
-			    GV_KEY_COLUMN, Fi->database, Fi->driver);
+        Vect_map_add_dblink(&Map, 1, NULL, Fi->table, GV_KEY_COLUMN,
+                            Fi->database, Fi->driver);
 
-	/* Create table */
-	sprintf(buf, "create table %s (%s integer", Fi->table,
-		GV_KEY_COLUMN);
-	db_set_string(&sql, buf);
+        /* Create table */
+        sprintf(buf, "create table %s (%s integer", Fi->table, GV_KEY_COLUMN);
+        db_set_string(&sql, buf);
 
-	for (j = 0; j < ply.curr_element->n_properties; j++) {
-	    if (j == ply.x || j == ply.y || j == ply.z)
-		continue;
+        for (j = 0; j < ply.curr_element->n_properties; j++) {
+            if (j == ply.x || j == ply.y || j == ply.z)
+                continue;
 
-	    type = ply.curr_element->property[j]->type;
-	    colname = G_store(ply.curr_element->property[j]->name);
+            type = ply.curr_element->property[j]->type;
+            colname = G_store(ply.curr_element->property[j]->name);
 
-	    G_str_to_sql(colname);
+            G_str_to_sql(colname);
 
-	    if (type == PLY_UCHAR || type == PLY_CHAR ||
-		type == PLY_USHORT || type == PLY_SHORT ||
-		type == PLY_UINT || type == PLY_INT)
-		sprintf(buf, ", %s integer", colname);
-	    else if (type == PLY_FLOAT || type == PLY_DOUBLE)
-		sprintf(buf, ", %s double precision", colname);
+            if (type == PLY_UCHAR || type == PLY_CHAR || type == PLY_USHORT ||
+                type == PLY_SHORT || type == PLY_UINT || type == PLY_INT)
+                sprintf(buf, ", %s integer", colname);
+            else if (type == PLY_FLOAT || type == PLY_DOUBLE)
+                sprintf(buf, ", %s double precision", colname);
 
-	    G_free(colname);
-	    db_append_string(&sql, buf);
-	}
-	db_append_string(&sql, ")");
-	G_debug(3, "%s", db_get_string(&sql));
+            G_free(colname);
+            db_append_string(&sql, buf);
+        }
+        db_append_string(&sql, ")");
+        G_debug(3, "%s", db_get_string(&sql));
 
-	driver =
-	    db_start_driver_open_database(Fi->driver,
-					  Vect_subst_var(Fi->database,
-							 &Map));
-	if (driver == NULL) {
-	    G_fatal_error(_("Unable open database <%s> by driver <%s>"),
-			  Vect_subst_var(Fi->database, &Map), Fi->driver);
-	}
+        driver = db_start_driver_open_database(
+            Fi->driver, Vect_subst_var(Fi->database, &Map));
+        if (driver == NULL) {
+            G_fatal_error(_("Unable open database <%s> by driver <%s>"),
+                          Vect_subst_var(Fi->database, &Map), Fi->driver);
+        }
 
-	if (db_execute_immediate(driver, &sql) != DB_OK) {
-	    db_close_database(driver);
-	    db_shutdown_driver(driver);
-	    G_fatal_error(_("Unable to create table: '%s'"),
-			  db_get_string(&sql));
-	}
+        if (db_execute_immediate(driver, &sql) != DB_OK) {
+            db_close_database(driver);
+            db_shutdown_driver(driver);
+            G_fatal_error(_("Unable to create table: '%s'"),
+                          db_get_string(&sql));
+        }
 
-	if (db_create_index2(driver, Fi->table, GV_KEY_COLUMN) != DB_OK)
-	    G_warning(_("Unable to create index for table <%s>, key <%s>"),
-		      Fi->table, GV_KEY_COLUMN);
+        if (db_create_index2(driver, Fi->table, GV_KEY_COLUMN) != DB_OK)
+            G_warning(_("Unable to create index for table <%s>, key <%s>"),
+                      Fi->table, GV_KEY_COLUMN);
 
-	if (db_grant_on_table
-	    (driver, Fi->table, DB_PRIV_SELECT,
-	     DB_GROUP | DB_PUBLIC) != DB_OK)
-	    G_fatal_error(_("Unable to grant privileges on table <%s>"),
-			  Fi->table);
+        if (db_grant_on_table(driver, Fi->table, DB_PRIV_SELECT,
+                              DB_GROUP | DB_PUBLIC) != DB_OK)
+            G_fatal_error(_("Unable to grant privileges on table <%s>"),
+                          Fi->table);
 
-	db_begin_transaction(driver);
+        db_begin_transaction(driver);
     }
 
     /* alloc memory for vertex data */
-    data = (struct prop_data *)G_realloc(data,
-           sizeof(struct prop_data) * ply.curr_element->n_properties);
+    data = (struct prop_data *)G_realloc(
+        data, sizeof(struct prop_data) * ply.curr_element->n_properties);
 
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
@@ -259,124 +258,122 @@ int main(int argc, char *argv[])
 
     x = y = z = 0.0;
     for (i = 0; i < ply.curr_element->n; i++) {
-	G_percent(i, ply.curr_element->n, 4);
-	get_element_data(&ply, data);
-	
-	Vect_reset_line(Points);
-	Vect_reset_cats(Cats);
-	Vect_cat_set(Cats, 1, i);
+        G_percent(i, ply.curr_element->n, 4);
+        get_element_data(&ply, data);
 
-	/* Attributes */
-	if (make_table) {
-	    sprintf(buf, "insert into %s values ( %d", Fi->table, i);
-	    db_set_string(&sql, buf);
-	}
+        Vect_reset_line(Points);
+        Vect_reset_cats(Cats);
+        Vect_cat_set(Cats, 1, i);
 
-	/* x, y, z coord */
-	for (j = 0; j < ply.curr_element->n_properties; j++) {
-	    type = ply.curr_element->property[j]->type;
+        /* Attributes */
+        if (make_table) {
+            sprintf(buf, "insert into %s values ( %d", Fi->table, i);
+            db_set_string(&sql, buf);
+        }
 
-	    if (j == ply.x || j == ply.y || j == ply.z) {
-		coord = 0.0;
+        /* x, y, z coord */
+        for (j = 0; j < ply.curr_element->n_properties; j++) {
+            type = ply.curr_element->property[j]->type;
 
-		if (type == PLY_UCHAR)
-		    coord = data[j].int_val;
-		else if (type == PLY_CHAR)
-		    coord = data[j].int_val;
-		else if (type == PLY_USHORT)
-		    coord = data[j].int_val;
-		else if (type == PLY_SHORT)
-		    coord = data[j].int_val;
-		else if (type == PLY_UINT)
-		    coord = data[j].int_val;
-		else if (type == PLY_FLOAT || type == PLY_DOUBLE)
-		    coord = data[j].dbl_val;
-		    
-		if (j == ply.x)
-		    x = coord;
-		else if (j == ply.y)
-		    y = coord;
-		else if (j == ply.z)
-		    z = coord;
-	    }
-	    else if (make_table) {
-		/* other property, write to table */
-		if (type == PLY_UCHAR || type == PLY_CHAR ||
-		    type == PLY_USHORT || type == PLY_SHORT ||
-		    type == PLY_UINT || type == PLY_INT)
-		    sprintf(buf, ", %d", data[j].int_val);
-		else if (type == PLY_FLOAT || type == PLY_DOUBLE)
-		    sprintf(buf, ", %f", data[j].dbl_val);
+            if (j == ply.x || j == ply.y || j == ply.z) {
+                coord = 0.0;
 
-		db_append_string(&sql, buf);
-	    }
-	}
-	Vect_append_point(Points, x, y, z);
-	Vect_write_line(&Map, GV_POINT, Points, Cats);
+                if (type == PLY_UCHAR)
+                    coord = data[j].int_val;
+                else if (type == PLY_CHAR)
+                    coord = data[j].int_val;
+                else if (type == PLY_USHORT)
+                    coord = data[j].int_val;
+                else if (type == PLY_SHORT)
+                    coord = data[j].int_val;
+                else if (type == PLY_UINT)
+                    coord = data[j].int_val;
+                else if (type == PLY_FLOAT || type == PLY_DOUBLE)
+                    coord = data[j].dbl_val;
 
-	if (make_table) {
-	    db_append_string(&sql, " )");
-	    G_debug(3, "%s", db_get_string(&sql));
+                if (j == ply.x)
+                    x = coord;
+                else if (j == ply.y)
+                    y = coord;
+                else if (j == ply.z)
+                    z = coord;
+            }
+            else if (make_table) {
+                /* other property, write to table */
+                if (type == PLY_UCHAR || type == PLY_CHAR ||
+                    type == PLY_USHORT || type == PLY_SHORT ||
+                    type == PLY_UINT || type == PLY_INT)
+                    sprintf(buf, ", %d", data[j].int_val);
+                else if (type == PLY_FLOAT || type == PLY_DOUBLE)
+                    sprintf(buf, ", %f", data[j].dbl_val);
 
-	    if (db_execute_immediate(driver, &sql) != DB_OK) {
-		db_close_database(driver);
-		db_shutdown_driver(driver);
-		G_fatal_error(_("Cannot insert new row: %s"),
-			      db_get_string(&sql));
-	    }
-	}
+                db_append_string(&sql, buf);
+            }
+        }
+        Vect_append_point(Points, x, y, z);
+        Vect_write_line(&Map, GV_POINT, Points, Cats);
+
+        if (make_table) {
+            db_append_string(&sql, " )");
+            G_debug(3, "%s", db_get_string(&sql));
+
+            if (db_execute_immediate(driver, &sql) != DB_OK) {
+                db_close_database(driver);
+                db_shutdown_driver(driver);
+                G_fatal_error(_("Cannot insert new row: %s"),
+                              db_get_string(&sql));
+            }
+        }
     }
     G_percent(1, 1, 1);
     G_free(data);
 
     if (make_table) {
-	db_commit_transaction(driver);
-	db_close_database_shutdown_driver(driver);
+        db_commit_transaction(driver);
+        db_close_database_shutdown_driver(driver);
     }
-    
+
     /* other elements */
     ply.curr_element = NULL;
     for (i = 0; i < ply.n_elements; i++) {
-	if (ply.element[i]->type == PLY_VERTEX) {
-	    continue;
-	}
-	if (ply.element[i]->n == 0) {
-	    continue;
-	}
+        if (ply.element[i]->type == PLY_VERTEX) {
+            continue;
+        }
+        if (ply.element[i]->n == 0) {
+            continue;
+        }
 
-	ply.curr_element = ply.element[i];
-	
-	/* faces: get vertex list */
-	if (ply.element[i]->type == PLY_FACE) {
-	    for (j = 0; j < ply.element[i]->n; j++) {
-		int k;
+        ply.curr_element = ply.element[i];
 
-		get_element_list(&ply);
-		
-		/* fetch points from vector map, sequential reading
-		 * this is going to be slow */
-		Vect_reset_line(Points);
-		Vect_reset_cats(Cats);
-		Vect_cat_set(Cats, 2, j);
-		 
-		 for (k = 0; k < ply.list.n_values; k++) {
-		     append_vertex(&Map, Points, ply.list.index[k]);
-		 }
-		 if (ply.list.n_values > 2) {
-		     Vect_append_point(Points,
-		                       Points->x[Points->n_points - 1],
-		                       Points->y[Points->n_points - 1],
-		                       Points->z[Points->n_points - 1]);
-		    
-		    Vect_write_line(&Map, GV_FACE, Points, Cats);
-		 }
-	    }
-	}
+        /* faces: get vertex list */
+        if (ply.element[i]->type == PLY_FACE) {
+            for (j = 0; j < ply.element[i]->n; j++) {
+                int k;
 
+                get_element_list(&ply);
+
+                /* fetch points from vector map, sequential reading
+                 * this is going to be slow */
+                Vect_reset_line(Points);
+                Vect_reset_cats(Cats);
+                Vect_cat_set(Cats, 2, j);
+
+                for (k = 0; k < ply.list.n_values; k++) {
+                    append_vertex(&Map, Points, ply.list.index[k]);
+                }
+                if (ply.list.n_values > 2) {
+                    Vect_append_point(Points, Points->x[Points->n_points - 1],
+                                      Points->y[Points->n_points - 1],
+                                      Points->z[Points->n_points - 1]);
+
+                    Vect_write_line(&Map, GV_FACE, Points, Cats);
+                }
+            }
+        }
     }
 
     if (!notopo_flag->answer)
-	Vect_build(&Map);
+        Vect_build(&Map);
 
     Vect_close(&Map);
 

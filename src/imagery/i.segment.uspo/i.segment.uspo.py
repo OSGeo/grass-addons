@@ -19,283 +19,284 @@
 # (2006),
 # Parameter selection for region-growing image segmentation algorithms using
 # spatial autocorrelation, International Journal of Remote Sensing, Vol. 27, Iss.
-# 14, pp. 3035-3040, http://dx.doi.org/10.1080%2f01431160600617194
+# 14, pp. 3035-3040, https://doi.org/10.1080/01431160600617194
 #
 # B. A.  Johnson, M. Bragais, I. Endo, D. B. Magcale-Macandog, P. B. M. Macandog
 # (2015),
 # Image Segmentation Parameter Optimization Considering Within- and
 # Between-Segment Heterogeneity at Multiple Scale Levels: Test Case for Mapping
 # Residential Areas Using Landsat Imagery, ISPRS International Journal of
-# Geo-Information, 4(4), pp. 2292-2305, http://dx.doi.org/10.3390/ijgi4042292
+# Geo-Information, 4(4), pp. 2292-2305, https://doi.org/10.3390/ijgi4042292
 #############################################################################
 
-#%Module
-#% description: Unsupervised segmentation parameter optimization
-#% keyword: imagery
-#% keyword: variance
-#% keyword: segmentation
-#% keyword: threshold
-#%end
+# %Module
+# % description: Unsupervised segmentation parameter optimization
+# % keyword: imagery
+# % keyword: variance
+# % keyword: segmentation
+# % keyword: threshold
+# % keyword: parallel
+# %end
 #
-#%option G_OPT_I_GROUP
-#% description: Group to use for segmentation
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % description: Group to use for segmentation
+# % required : yes
+# %end
 #
-#%option G_OPT_R_MAPS
-#% key: maps
-#% description: Raster band(s) for  which to calculate variance (default: all group members)
-#% required : no
-#%end
+# %option G_OPT_R_MAPS
+# % key: maps
+# % description: Raster band(s) for  which to calculate variance (default: all group members)
+# % required : no
+# %end
 #
-#%option G_OPT_R_MAP
-#% key: seeds
-#% description: Seeds for segmentation
-#% required : no
-#%end
+# %option G_OPT_R_MAP
+# % key: seeds
+# % description: Seeds for segmentation
+# % required : no
+# %end
 #
-#%option G_OPT_F_OUTPUT
-#% description: Name for output file (- for standard output)
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Name for output file (- for standard output)
+# % required : no
+# %end
 #
-#%option G_OPT_R_OUTPUT
-#% key: segment_map
-#% description: Prefix for "best" output segmentation map per region
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: segment_map
+# % description: Prefix for "best" output segmentation map per region
+# % required : no
+# %end
 #
-#%option G_OPT_M_REGION
-#% key: regions
-#% description: Regions in which to analyze the variance
-#% required: yes
-#% multiple: yes
-#%end
+# %option G_OPT_M_REGION
+# % key: regions
+# % description: Regions in which to analyze the variance
+# % required: yes
+# % multiple: yes
+# %end
 #
-#%option
-#% key: segmentation_method
-#% type: string
-#% description: Segmentation method to use
-#% required: yes
-#% options: region_growing,mean_shift
-#% answer: region_growing
-#%end
+# %option
+# % key: segmentation_method
+# % type: string
+# % description: Segmentation method to use
+# % required: yes
+# % options: region_growing,mean_shift
+# % answer: region_growing
+# %end
 #
-#%option
-#% key: thresholds
-#% type: double
-#% description: Thresholds to test
-#% required: no
-#% multiple: yes
-#% guisection: General
-#%end
+# %option
+# % key: thresholds
+# % type: double
+# % description: Thresholds to test
+# % required: no
+# % multiple: yes
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_start
-#% type: double
-#% description: Lowest threshold to test
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_start
+# % type: double
+# % description: Lowest threshold to test
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_stop
-#% type: double
-#% description: Threshold at which to stop (not included)
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_stop
+# % type: double
+# % description: Threshold at which to stop (not included)
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: threshold_step
-#% type: double
-#% description: Step to use between thresholds
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: threshold_step
+# % type: double
+# % description: Step to use between thresholds
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsizes
-#% type: integer
-#% description: Minimum number of cells in a segment to test
-#% multiple: yes
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsizes
+# % type: integer
+# % description: Minimum number of cells in a segment to test
+# % multiple: yes
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_start
-#% type: integer
-#% description: Lowest minimum segment size to test
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_start
+# % type: integer
+# % description: Lowest minimum segment size to test
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_stop
-#% type: integer
-#% description: Value for minimum segment size at which to stop (not included)
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_stop
+# % type: integer
+# % description: Value for minimum segment size at which to stop (not included)
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: minsize_step
-#% type: integer
-#% description: Step to use between minimum segment sizes
-#% required: no
-#% guisection: General
-#%end
+# %option
+# % key: minsize_step
+# % type: integer
+# % description: Step to use between minimum segment sizes
+# % required: no
+# % guisection: General
+# %end
 #
-#%option
-#% key: radiuses
-#% type: double
-#% description: Radiuses to test
-#% required: no
-#% multiple: yes
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radiuses
+# % type: double
+# % description: Radiuses to test
+# % required: no
+# % multiple: yes
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_start
-#% type: double
-#% description: Lowest radius to test
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_start
+# % type: double
+# % description: Lowest radius to test
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_stop
-#% type: double
-#% description: Radius at which to stop (not included)
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_stop
+# % type: double
+# % description: Radius at which to stop (not included)
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: radius_step
-#% type: double
-#% description: Step to use between radiuses
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: radius_step
+# % type: double
+# % description: Step to use between radiuses
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hrs
-#% type: double
-#% description: Spectral bandwidths to test
-#% required: no
-#% multiple: yes
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hrs
+# % type: double
+# % description: Spectral bandwidths to test
+# % required: no
+# % multiple: yes
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_start
-#% type: double
-#% description: Lowest spectral bandwith to test
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_start
+# % type: double
+# % description: Lowest spectral bandwith to test
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_stop
-#% type: double
-#% description: Spectral bandwith at which to stop (not included)
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_stop
+# % type: double
+# % description: Spectral bandwith at which to stop (not included)
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: hr_step
-#% type: double
-#% description: Step to use between spectral bandwidths
-#% required: no
-#% guisection: Mean Shift
-#%end
+# %option
+# % key: hr_step
+# % type: double
+# % description: Step to use between spectral bandwidths
+# % required: no
+# % guisection: Mean Shift
+# %end
 #
-#%option
-#% key: autocorrelation_indicator
-#% type: string
-#% description: Indicator for measuring inter-segment heterogeneity
-#% required: no
-#% options: morans,geary
-#% answer: morans
-#% guisection: Evaluation
-#%end
+# %option
+# % key: autocorrelation_indicator
+# % type: string
+# % description: Indicator for measuring inter-segment heterogeneity
+# % required: no
+# % options: morans,geary
+# % answer: morans
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: optimization_function
-#% type: string
-#% description: Optimization function used to determine "best" parameters
-#% required: no
-#% options: sum,f
-#% answer: sum
-#% guisection: Evaluation
-#%end
+# %option
+# % key: optimization_function
+# % type: string
+# % description: Optimization function used to determine "best" parameters
+# % required: no
+# % options: sum,f
+# % answer: sum
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: f_function_alpha
-#% type: double
-#% description: Alpha value used for F-measure optimization function
-#% required: no
-#% answer: 1
-#% guisection: Evaluation
-#%end
+# %option
+# % key: f_function_alpha
+# % type: double
+# % description: Alpha value used for F-measure optimization function
+# % required: no
+# % answer: 1
+# % guisection: Evaluation
+# %end
 #
-#%option
-#% key: number_best
-#% type: integer
-#% description: Number of desired best parameter values and maps
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: number_best
+# % type: integer
+# % description: Number of desired best parameter values and maps
+# % required: no
+# % answer: 1
+# %end
 #
-#%option
-#% key: memory
-#% type: integer
-#% description: Total memory (in MB) to allocate (will be divided by processes)
-#% required: no
-#% answer: 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % description: Total memory (in MB) to allocate (will be divided by processes)
+# % required: no
+# % answer: 300
+# %end
 #
-#%option
-#% key: processes
-#% type: integer
-#% description: Number of processes to run in parallel
-#% required: no
-#% answer: 1
-#%end
+# %option
+# % key: processes
+# % type: integer
+# % description: Number of processes to run in parallel
+# % required: no
+# % answer: 1
+# %end
 #
-#%flag
-#% key: k
-#% description: Keep all segmented maps
-#%end
+# %flag
+# % key: k
+# % description: Keep all segmented maps
+# %end
 #
-#%flag
-#% key: h
-#% description: Use hierarchical segmentation
-#%end
+# %flag
+# % key: h
+# % description: Use hierarchical segmentation
+# %end
 #
-#%flag
-#% key: a
-#% description: Use adaptive spectral bandwidth (with mean shift)
-#% guisection: Mean Shift
-#%end
+# %flag
+# % key: a
+# % description: Use adaptive spectral bandwidth (with mean shift)
+# % guisection: Mean Shift
+# %end
 #
-#%rules
-#% required: thresholds,threshold_start
-#% excludes: thresholds,threshold_start,threshold_stop,threshold_step
-#% collective: threshold_start,threshold_stop,threshold_step
-#% required: minsizes,minsize_start
-#% excludes: minsizes,minsize_start,minsize_stop,minsize_step
-#% collective: minsize_start,minsize_stop,minsize_step
-#% excludes: radiuses,radius_start,radius_stop,radius_step
-#% excludes: hrs,hr_start,hr_stop,hr_step
-#% collective: radius_start,radius_stop,radius_step
-#% collective: hr_start,hr_stop,hr_step
-#%end
+# %rules
+# % required: thresholds,threshold_start
+# % excludes: thresholds,threshold_start,threshold_stop,threshold_step
+# % collective: threshold_start,threshold_stop,threshold_step
+# % required: minsizes,minsize_start
+# % excludes: minsizes,minsize_start,minsize_stop,minsize_step
+# % collective: minsize_start,minsize_stop,minsize_step
+# % excludes: radiuses,radius_start,radius_stop,radius_step
+# % excludes: hrs,hr_start,hr_stop,hr_step
+# % collective: radius_start,radius_stop,radius_step
+# % collective: hr_start,hr_stop,hr_step
+# %end
 
-import grass.script as gscript
+import grass.script as gs
 import sys
 import os
 import atexit
@@ -321,15 +322,14 @@ def iteritems(dict):
 def check_progs():
     found_missing = False
     for prog in ["r.neighborhoodmatrix"]:
-        if not gscript.find_program(prog, "--help"):
-
+        if not gs.find_program(prog, "--help"):
             found_missing = True
-            gscript.warning(
+            gs.warning(
                 _("'%s' required. Please install '%s' first using 'g.extension %s'")
                 % (prog, prog, prog)
             )
     if found_missing:
-        gscript.fatal(_("An ERROR occurred running i.segment.uspo"))
+        gs.fatal(_("An ERROR occurred running i.segment.uspo"))
 
 
 def cleanup():
@@ -337,7 +337,7 @@ def cleanup():
 
     if not keep:
         for mapname in maplist:
-            gscript.run_command(
+            gs.run_command(
                 "g.remove", flags="f", type="raster", pat=mapname, quiet=True
             )
 
@@ -358,7 +358,7 @@ def rg_hier_worker(parms, thresholds, minsize_queue, result_queue):
         for minsize in iter(minsize_queue.get, "STOP"):
             map_list = rg_hierarchical_seg(parms, thresholds, minsize)
             for mapname, threshold, minsize in map_list:
-                mapinfo = gscript.raster_info(mapname)
+                mapinfo = gs.raster_info(mapname)
                 if mapinfo["max"] > mapinfo["min"]:
                     variance_per_raster = []
                     autocor_per_raster = []
@@ -403,7 +403,7 @@ def rg_nonhier_worker(parms, parameter_queue, result_queue):
     try:
         for threshold, minsize in iter(parameter_queue.get, "STOP"):
             mapname = rg_non_hierarchical_seg(parms, threshold, minsize)
-            mapinfo = gscript.raster_info(mapname)
+            mapinfo = gs.raster_info(mapname)
             if mapinfo["max"] > mapinfo["min"]:
                 variance_per_raster = []
                 autocor_per_raster = []
@@ -458,7 +458,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
         temp_segment_map_thresh = outputs_prefix % threshold
         map_list.append([temp_segment_map_thresh, threshold, minsize])
         if previous is None:
-            gscript.run_command(
+            gs.run_command(
                 "i.segment",
                 group=parms["group"],
                 threshold=threshold,
@@ -470,7 +470,7 @@ def rg_hierarchical_seg(parms, thresholds, minsize):
             )
             previous = temp_segment_map_thresh
         else:
-            gscript.run_command(
+            gs.run_command(
                 "i.segment",
                 group=parms["group"],
                 threshold=threshold,
@@ -493,7 +493,7 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
     temp_segment_map_thresh += "__%.4f" % threshold
     temp_segment_map_thresh += "__%d" % minsize
     if parms["seeds"]:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -505,7 +505,7 @@ def rg_non_hierarchical_seg(parms, threshold, minsize):
             overwrite=True,
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -575,7 +575,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
     temp_segment_map_thresh += "__%.2f" % radius
     temp_segment_map_thresh += "__%d" % minsize
     if parms["adaptive"]:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -590,7 +590,7 @@ def ms_seg(parms, threshold, hr, radius, minsize):
             overwrite=True,
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "i.segment",
             group=parms["group"],
             threshold=threshold,
@@ -616,7 +616,7 @@ def get_variance(mapname, raster):
         os.getpid(),
         current_process().name.replace("-", "_"),
     )
-    gscript.run_command(
+    gs.run_command(
         "r.stats.zonal",
         base=mapname,
         cover=raster,
@@ -625,18 +625,16 @@ def get_variance(mapname, raster):
         overwrite=True,
         quiet=True,
     )
-    univar = gscript.parse_command("r.univar", map_=temp_map, flags="g", quiet=True)
+    univar = gs.parse_command("r.univar", map_=temp_map, flags="g", quiet=True)
     var = float(univar["mean"])
-    gscript.run_command(
-        "g.remove", type_="raster", name=temp_map, flags="f", quiet=True
-    )
+    gs.run_command("g.remove", type_="raster", name=temp_map, flags="f", quiet=True)
     return var
 
 
 def get_nb_matrix(mapname):
     """Create a dictionary with neighbors per segment"""
 
-    res = gscript.read_command(
+    res = gs.read_command(
         "r.neighborhoodmatrix", input_=mapname, output="-", sep="comma", quiet=True
     )
 
@@ -655,10 +653,10 @@ def get_nb_matrix(mapname):
 def get_autocorrelation(mapname, raster, neighbordict, indicator):
     """Calculate either Moran's I or Geary's C for values of the given raster"""
 
-    raster_vars = gscript.parse_command("r.univar", map_=raster, flags="g", quiet=True)
+    raster_vars = gs.parse_command("r.univar", map_=raster, flags="g", quiet=True)
     global_mean = float(raster_vars["mean"])
 
-    univar_res = gscript.read_command(
+    univar_res = gs.read_command(
         "r.univar",
         flags="t",
         map_=raster,
@@ -680,7 +678,7 @@ def get_autocorrelation(mapname, raster, neighbordict, indicator):
             means[l[0]] = float(l[i])
             mean_diffs[l[0]] = float(l[i]) - global_mean
 
-    sum_sq_mean_diffs = sum(x ** 2 for x in mean_diffs.values())
+    sum_sq_mean_diffs = sum(x**2 for x in mean_diffs.values())
 
     total_nb_neighbors = 0
     for region in neighbordict:
@@ -738,13 +736,15 @@ def create_optimization_list(variancelist, autocorlist, opt_function, alpha, dir
         optlist = [normvariance[x] + normautocor[x] for x in range(len(normvariance))]
     if opt_function == "f":
         optlist = [
-            (1 + alpha ** 2)
-            * (
-                (normvariance[x] * normautocor[x])
-                / float(alpha ** 2 * normautocor[x] + normvariance[x])
+            (
+                (1 + alpha**2)
+                * (
+                    (normvariance[x] * normautocor[x])
+                    / float(alpha**2 * normautocor[x] + normvariance[x])
+                )
+                if (normautocor[x] + normvariance[x]) > 0
+                else 0
             )
-            if (normautocor[x] + normvariance[x]) > 0
-            else 0
             for x in range(len(normvariance))
         ]
     return optlist
@@ -775,7 +775,7 @@ def main():
         hierarchical_segmentation = True
         message = "INFO: Using hierarchical segmentation.\n"
         message += "INFO: Note that this leads to less optimal parallization."
-        gscript.info(message)
+        gs.info(message)
 
     check_progs()
 
@@ -812,9 +812,7 @@ def main():
     if options["maps"]:
         rasters = options["maps"].split(",")
     else:
-        list_rasters = gscript.read_command(
-            "i.group", group=group, flags="gl", quiet=True
-        )
+        list_rasters = gs.read_command("i.group", group=group, flags="gl", quiet=True)
         rasters = list_rasters.split("\n")[:-1]
     parms["rasters"] = rasters
 
@@ -873,17 +871,16 @@ def main():
     parms["temp_segment_map"] = temp_segment_map
 
     # Don't change general mapset region settings when switching regions
-    gscript.use_temp_region()
+    gs.use_temp_region()
 
     regiondict = {}
     best_values = {}
     maps_to_keep = []
     for region in regions:
-
-        gscript.message("Working on region %s\n" % region)
+        gs.message("Working on region %s\n" % region)
         parms["region"] = region.replace("@", "_at_")
 
-        gscript.run_command("g.region", region=region, quiet=True)
+        gs.run_command("g.region", region=region, quiet=True)
 
         # Launch segmentation and optimization calculation in parallel processes
         processes_list = []
@@ -956,7 +953,7 @@ def main():
                     threshlist.append(threshold)
                     minsizelist.append(minsize)
                 else:
-                    gscript.message("Error in worker function: %s" % result)
+                    gs.message("Error in worker function: %s" % result)
         else:
             hrlist = []
             radiuslist = []
@@ -971,7 +968,7 @@ def main():
                     radiuslist.append(radius)
                     minsizelist.append(minsize)
                 else:
-                    gscript.message("Error in worker function: %s" % result)
+                    gs.message("Error in worker function: %s" % result)
 
         maplist += regional_maplist
         # Calculate optimization function values and get indices of best values
@@ -1065,22 +1062,22 @@ def main():
             msg += "%s\t" % region
             msg += "\t".join(map(str, result))
             msg += "\n"
-    gscript.message(msg)
+    gs.message(msg)
 
     # Keep copies of segmentation results with best values
 
     if segmented_map:
         for bestmap, rank, region in maps_to_keep:
             outputmap = segmented_map + "_" + region + "_rank%d" % rank
-            gscript.run_command(
+            gs.run_command(
                 "g.copy",
                 raster=[bestmap, outputmap],
                 quiet=True,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
             )
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

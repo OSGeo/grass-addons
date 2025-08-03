@@ -17,4 +17,3 @@ include $(MODULE_TOPDIR)/include/Make/Module.make
 #ifneq ($(USE_LIBREDWG),)
 default: cmd
 #endif
-

@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    file.c
@@ -12,11 +11,9 @@
 
 /***********************************************************************/
 
-
 #include <stdlib.h>
 #include <string.h>
 #include "file.h"
-
 
 /***********************************************************************/
 /* Public functions                                                    */
@@ -34,7 +31,7 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
         exists = 1;
 
     if ((exists) && (!overwrite)) {
-      sprintf(message, _("File <%s> exits "), name);
+        sprintf(message, _("File <%s> exits "), name);
         fclose(stream);
         return NULL;
     }
@@ -42,7 +39,7 @@ FILE *Create_file(char *name, char *suffix, char *message, int overwrite)
         stream = fopen(name, "w");
 
         if (stream == NULL) {
-	  sprintf(message, _("Can't create file <%s> "), name);
+            sprintf(message, _("Can't create file <%s> "), name);
             return NULL;
         }
     }

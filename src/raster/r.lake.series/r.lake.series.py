@@ -16,94 +16,94 @@
 #############################################################################
 
 
-#%module
-#% description: Fills lake at given point(s) to given levels.
-#% keyword: raster
-#% keyword: hydrology
-#% keyword: hazard
-#% keyword: flood
-#%end
-#%option G_OPT_R_ELEV
-#%end
-#%option G_OPT_STRDS_OUTPUT
-#% label: Name of the output space time raster dataset
-#% description: The name of the dataset is used as a base name for created output maps. Map names will consist of a base name, underscore and water level value or number depending on -c flag.
-#%end
-#%option
-#% key: start_water_level
-#% type: double
-#% label: Start water level
-#% description: Units should be meters?
-#% required: yes
-#% guisection: Water
-#%end
-#%option
-#% key: end_water_level
-#% type: double
-#% label: Final (maximal) water level
-#% description: Units should be meters?
-#% required: yes
-#% guisection: Water
-#%end
-#%option
-#% key: water_level_step
-#% type: double
-#% label: Water level step
-#% description: Units should be meters?
-#% guisection: Water
-#% required: yes
-#%end
-#%option G_OPT_M_COORDS
-#% label: Seed point coordinates
-#% description: Either this coordinates pair or a seed map name have to be specified.
-#% required: no
-#% guisection: Water
-#%end
-#%option G_OPT_R_INPUT
-#% key: seed_raster
-#% label: Name of input raster map with given starting point(s) (at least 1 cell > 0)
-#% description: Either this parameter or a coordinates pair have to be specified.
-#% required: no
-#% guisection: Water
-#%end
-#%option
-#% key: time_step
-#% type: integer
-#% label: Time increment
-#% description: Time increment between two states (maps) used to register output maps in space-time raster dataset. Used together with time_units parameter.
-#% required: no
-#% answer: 30
-#% options: 0-
-#% guisection: Time
-#%end
-#%option
-#% key: time_unit
-#% type: string
-#% label: Time units
-#% description: Time units used to register output maps in space-time raster dataset. Used together with time_step parameter.
-#% required: no
-#% options: years,months,days,hours,minutes,seconds
-#% answer: minutes
-#% guisection: Time
-#%end
-#%option
-#% key: nproc
-#% type: integer
-#% label: Number of processes to run in parallel (currently ignored)
-#% required: no
-#% answer: 1
-#% options: 1-
-#%end
-#%flag
-#% key: n
-#% label: Use negative depth values for lake raster map
-#% description: This flag is passed to r.lake module.
-#%end
-#%flag
-#% key: c
-#% label: Use map number instead of the water level in map name (currently ignored)
-#% description: This names are always in the right alphabetical order and are also valid vector map names.
-#%end
+# %module
+# % description: Fills lake at given point(s) to given levels.
+# % keyword: raster
+# % keyword: hydrology
+# % keyword: hazard
+# % keyword: flood
+# %end
+# %option G_OPT_R_ELEV
+# %end
+# %option G_OPT_STRDS_OUTPUT
+# % label: Name of the output space time raster dataset
+# % description: The name of the dataset is used as a base name for created output maps. Map names will consist of a base name, underscore and water level value or number depending on -c flag.
+# %end
+# %option
+# % key: start_water_level
+# % type: double
+# % label: Start water level
+# % description: Units should be meters?
+# % required: yes
+# % guisection: Water
+# %end
+# %option
+# % key: end_water_level
+# % type: double
+# % label: Final (maximal) water level
+# % description: Units should be meters?
+# % required: yes
+# % guisection: Water
+# %end
+# %option
+# % key: water_level_step
+# % type: double
+# % label: Water level step
+# % description: Units should be meters?
+# % guisection: Water
+# % required: yes
+# %end
+# %option G_OPT_M_COORDS
+# % label: Seed point coordinates
+# % description: Either this coordinates pair or a seed map name have to be specified.
+# % required: no
+# % guisection: Water
+# %end
+# %option G_OPT_R_INPUT
+# % key: seed_raster
+# % label: Name of input raster map with given starting point(s) (at least 1 cell > 0)
+# % description: Either this parameter or a coordinates pair have to be specified.
+# % required: no
+# % guisection: Water
+# %end
+# %option
+# % key: time_step
+# % type: integer
+# % label: Time increment
+# % description: Time increment between two states (maps) used to register output maps in space-time raster dataset. Used together with time_units parameter.
+# % required: no
+# % answer: 30
+# % options: 0-
+# % guisection: Time
+# %end
+# %option
+# % key: time_unit
+# % type: string
+# % label: Time units
+# % description: Time units used to register output maps in space-time raster dataset. Used together with time_step parameter.
+# % required: no
+# % options: years,months,days,hours,minutes,seconds
+# % answer: minutes
+# % guisection: Time
+# %end
+# %option
+# % key: nproc
+# % type: integer
+# % label: Number of processes to run in parallel (currently ignored)
+# % required: no
+# % answer: 1
+# % options: 1-
+# %end
+# %flag
+# % key: n
+# % label: Use negative depth values for lake raster map
+# % description: This flag is passed to r.lake module.
+# %end
+# %flag
+# % key: c
+# % label: Use map number instead of the water level in map name (currently ignored)
+# % description: This names are always in the right alphabetical order and are also valid vector map names.
+# %end
 
 """
 Created on Tue Oct 15 21:18:00 2013
@@ -117,6 +117,7 @@ Created on Tue Oct 15 21:18:00 2013
 # TODO: remove unused functions
 
 import sys
+import decimal
 
 from grass.script import core as gcore
 import grass.temporal as tgis
@@ -131,10 +132,14 @@ def format_order(number, zeros):
     return str(number).zfill(zeros)
 
 
-def frange(x, y, step):
-    while x <= y:
-        yield x
-        x += step
+def frange(x, y, step, precision):
+    scale = 10**precision
+    array = [
+        val / scale
+        for val in range(int(x * scale), int((y + step) * scale), int(step * scale))
+        if val / scale <= y
+    ]
+    return array
 
 
 def check_maps_exist(maps, mapset):
@@ -161,7 +166,7 @@ def main():
     basename = strds
     start_water_level = float(options["start_water_level"])
     end_water_level = float(options["end_water_level"])
-    water_level_step = float(options["water_level_step"])
+    water_level_step = options["water_level_step"]
     # if options['coordinates']:
     #    options['coordinates'].split(',')
     # passing coordinates parameter as is
@@ -179,17 +184,20 @@ def main():
     time_step = options["time_step"]  # temporal fucntions accepts only string now
     if int(time_step) <= 0:
         gcore.fatal(
-            _("Time step must be greater than zero." " Please specify number > 0.")
+            _("Time step must be greater than zero. Please specify number > 0.")
         )
 
     mapset = gcore.gisenv()["MAPSET"]
     title = _("r.lake series")
     desctiption = _("r.lake series")
 
-    water_levels = [
-        step for step in frange(start_water_level, end_water_level, water_level_step)
+    precision = abs(decimal.Decimal(water_level_step).as_tuple().exponent)
+    water_levels = frange(
+        start_water_level, end_water_level, float(water_level_step), precision
+    )
+    outputs = [
+        f"{basename}_{water_level:.{precision}f}" for water_level in water_levels
     ]
-    outputs = ["%s%s%s" % (basename, "_", water_level) for water_level in water_levels]
 
     if not gcore.overwrite():
         check_maps_exist(outputs, mapset)
@@ -214,7 +222,7 @@ def main():
                 lake=outputs[i],
                 water_level=water_level,
                 overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                **kwargs
+                **kwargs,
             )
         except CalledModuleError:
             # remove maps created so far, try to remove also i-th map

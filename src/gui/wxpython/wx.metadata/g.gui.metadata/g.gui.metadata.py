@@ -21,12 +21,12 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2014) (GSoC 2015)
 """
 
-#%module
-#% description: Graphical ISO/INSPIRE metadata editor.
-#% keyword: general
-#% keyword: GUI
-#% keyword: metadata
-#%end
+# %module
+# % description: Graphical ISO/INSPIRE metadata editor.
+# % keyword: general
+# % keyword: GUI
+# % keyword: metadata
+# %end
 
 import os
 import sys
@@ -34,7 +34,7 @@ import tempfile
 import webbrowser
 from functools import reduce
 
-import grass.script as grass
+import grass.script as gs
 import grass.temporal as tgis
 from grass.pydispatch import dispatcher
 from grass.pydispatch.signal import Signal
@@ -45,7 +45,7 @@ from core.debug import Debug
 
 # from datacatalog.tree import LocationMapTree
 
-grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
+gs.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 from mdlib import globalvar
 from mdlib import mdgrass
@@ -186,7 +186,7 @@ class LocationMapTree(wx.TreeCtrl):
         self.selected_mapset = None
         self.selected_location = None
 
-        self.gisdbase = grass.gisenv()["GISDBASE"]
+        self.gisdbase = gs.gisenv()["GISDBASE"]
         self.ctrldown = False
 
     def GetControl(self):
@@ -271,7 +271,7 @@ class LocationMapTree(wx.TreeCtrl):
 
     def MakeBackup(self):
         """Make backup for case of change"""
-        gisenv = grass.gisenv()
+        gisenv = gs.gisenv()
         self.glocation = gisenv["LOCATION_NAME"]
         self.gmapset = gisenv["MAPSET"]
 
@@ -292,7 +292,7 @@ class LocationMapTree(wx.TreeCtrl):
 
     def ExpandCurrentLocation(self):
         """Expand current location"""
-        location = grass.gisenv()["LOCATION_NAME"]
+        location = gs.gisenv()["LOCATION_NAME"]
         item = self.getItemByName(location, self.root)
         if item is not None:
             self.SelectItem(item)
@@ -1121,7 +1121,7 @@ class MdMainFrame(wx.Frame):
 
             self.ntbRight = NotebookRight(self.splitter, self.xmlPath)
 
-            self.splitter.SplitVertically(self.editor, self.ntbRight, sashPosition=0.65)
+            self.splitter.SplitVertically(self.editor, self.ntbRight)
             self.splitter.SetSashGravity(0.65)
             self.leftPanel.Hide()
             self.Hsizer.Add(self.splitter, proportion=1, flag=wx.EXPAND)
@@ -1169,7 +1169,6 @@ class MdMainFrame(wx.Frame):
             GMessage("Select map in data catalog...")
 
     def _layout(self):
-
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         # self.toolbarPanelSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1276,7 +1275,7 @@ class MdDataCatalog(LocationMapTree):
         var = self.AppendItem(self.root, "Spatial maps")
         self.root = var
 
-        gisenv = grass.gisenv()
+        gisenv = gs.gisenv()
         location = gisenv["LOCATION_NAME"]
         self.mapset = gisenv["MAPSET"]
         self.initGrassTree(location=location, mapset=self.mapset)
@@ -1349,7 +1348,7 @@ class MdDataCatalog(LocationMapTree):
         self.AppendItem(varloc, mapset)
         # get list of all maps in location
         vartype = None
-        env = grass.gisenv()
+        env = gs.gisenv()
         mapset = env["MAPSET"]
         try:
             for ml in allDatasets:
@@ -1573,7 +1572,7 @@ class TreeBrowser(wx.TreeCtrl):
             from lxml import etree
         except ModuleNotFoundError as e:
             msg = e.msg
-            grass.fatal(
+            gs.fatal(
                 globalvar.MODULE_NOT_FOUND.format(
                     lib=msg.split("'")[-2], url=globalvar.MODULE_URL
                 )
@@ -1658,7 +1657,7 @@ class MdValidator(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.text = wx.TextCtrl(
-            parent,
+            self,
             id=wx.ID_ANY,
             size=(0, 55),
             style=wx.VSCROLL
@@ -1723,5 +1722,5 @@ def main():
 
 
 if __name__ == "__main__":
-    grass.parser()
+    gs.parser()
     main()

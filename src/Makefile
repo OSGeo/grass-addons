@@ -1,18 +1,8 @@
 
 MODULE_TOPDIR = ..
 
-# display gui misc
-SUBDIRS = \
-	db \
-	display \
-	general \
-	imagery \
-	raster \
-	raster3d \
-	vector \
-	temporal
+SUBDIRS := ${sort ${dir ${wildcard */Makefile}}}
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 default: parsubdirs
-

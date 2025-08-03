@@ -19,10 +19,10 @@
 #
 ############################################################################
 
-#%Module
-#%  description: Generates a list of all modules' option and flag names.
-#%  keywords: infrastructure
-#%End
+# %Module
+# %  description: Generates a list of all modules' option and flag names.
+# %  keywords: infrastructure
+# %End
 
 
 if [ -z "$GISBASE" ] ; then
@@ -117,7 +117,7 @@ exit 0
 
 #########################################################################
 ### howto get this to work ????
-# see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=506788
+# see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=506788
 
 BASE="modules/task"
 FIELDS="
@@ -126,6 +126,6 @@ parameter/@name
 flag/@name
 "
 
-xml2 < "$TEMPFILE.xml" | grep '/@name=' | 
+xml2 < "$TEMPFILE.xml" | grep '/@name=' |
    grep -v '/flag/@name=verbose$\|/flag/@name=quiet' | \
    2csv -d'|' $BASE $FIELDS | less

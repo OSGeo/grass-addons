@@ -1,4 +1,3 @@
-
 /***********************************************************************/
 /*
    raster_file.h
@@ -16,7 +15,6 @@
  */
 
 /***********************************************************************/
-
 
 #ifndef RASTER_FILE_H
 #define RASTER_FILE_H
@@ -53,10 +51,10 @@ void Copy_raster_buf(void *, void *, RASTER_MAP_TYPE, RASTER_MAP_TYPE);
 /* Copy_raster_buf (pointer to input buffer, pointer to output buffer,
    input buffer data type, output buffer data type) */
 
-void Copy_raster_buf_with_rounding(void *, void *,
-                                   RASTER_MAP_TYPE, RASTER_MAP_TYPE);
-/* Copy_raster_buf_with_rounding (pointer to input buffer, 
-   pointer to output buffer, input buffer data type, 
+void Copy_raster_buf_with_rounding(void *, void *, RASTER_MAP_TYPE,
+                                   RASTER_MAP_TYPE);
+/* Copy_raster_buf_with_rounding (pointer to input buffer,
+   pointer to output buffer, input buffer data type,
    output buffer data type) */
 
 CELL Get_buffer_value_c_row_col(void *, RASTER_MAP_TYPE, int, int);
@@ -67,25 +65,25 @@ CELL Get_buffer_value_c_row_col(void *, RASTER_MAP_TYPE, int, int);
 
 CELL Get_buffer_value_rounded_c_row_col(void *, RASTER_MAP_TYPE, int, int);
 
-/* Get_buffer_value_rounded c_row_col (pointer to buffer, 
+/* Get_buffer_value_rounded c_row_col (pointer to buffer,
    buffer data type, row, column)
    Returns rounded CELL value at row, column */
 
 DCELL Get_buffer_value_d_row_col(void *, RASTER_MAP_TYPE, int, int);
 
-/* Get_buffer_value_d_row_col  (pointer to buffer, buffer data type, 
+/* Get_buffer_value_d_row_col  (pointer to buffer, buffer data type,
    row, column)
    Returns DCELL value at row, column */
 
 FCELL Get_buffer_value_f_row_col(void *, RASTER_MAP_TYPE, int, int);
 
-/* Get_buffer_value_f_row_col (pointer to buffer, buffer data type, 
+/* Get_buffer_value_f_row_col (pointer to buffer, buffer data type,
    row, column)
    Returns FCELL value at row, column */
 
 int Open_raster_infile(char *, char *, char *, RASTER_MAP_TYPE *, char *);
 
-/* Open_raster_infile (map name, mapset, search mapset, 
+/* Open_raster_infile (map name, mapset, search mapset,
    raster map data type, string to receive error message)
    Returns file descriptor */
 
@@ -110,27 +108,27 @@ void Read_raster_infile(void *, int, RASTER_MAP_TYPE, RASTER_MAP_TYPE);
 
 void Set_buffer_value_c_row_col(void *, CELL, RASTER_MAP_TYPE, int, int);
 
-/* Set_buffer_value_c_row_col (pointer to buffer, CELL value to set, 
+/* Set_buffer_value_c_row_col (pointer to buffer, CELL value to set,
    buffer data type, row, column) */
 
 void Set_buffer_value_d_row_col(void *, DCELL, RASTER_MAP_TYPE, int, int);
 
-/* Set_buffer_value_d_row_col (pointer to buffer, DCELL value to set, 
+/* Set_buffer_value_d_row_col (pointer to buffer, DCELL value to set,
    buffer data type, row, column) */
 
 void Set_buffer_value_f_row_col(void *, FCELL, RASTER_MAP_TYPE, int, int);
 
-/* Set_buffer_value_f_row_col (pointer to buffer, FCELL value to set, 
+/* Set_buffer_value_f_row_col (pointer to buffer, FCELL value to set,
    buffer data type, row, column) */
 
 void Write_raster_outfile(void *, int, RASTER_MAP_TYPE, RASTER_MAP_TYPE);
 
-/* Write_raster_outfile (pointer to buffer, file descriptor, 
+/* Write_raster_outfile (pointer to buffer, file descriptor,
    buffer data type, map data type) */
 
 void Write_raster_outfile_with_rounding(void *, int, RASTER_MAP_TYPE,
                                         RASTER_MAP_TYPE);
-/* Write_raster_outfile_with_rounding (pointer to buffer, file descriptor, 
+/* Write_raster_outfile_with_rounding (pointer to buffer, file descriptor,
    buffer data type, map data type) */
 
 #endif

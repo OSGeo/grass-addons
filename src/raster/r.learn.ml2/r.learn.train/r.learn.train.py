@@ -15,325 +15,326 @@
 # when class numeric ID-s were not continous increasing +1 each.
 # Bugfix for processing index list of nominal layers.
 
-#%module
-#% description: Supervised classification and regression of GRASS rasters using the python scikit-learn package.
-#% keyword: raster
-#% keyword: classification
-#% keyword: regression
-#% keyword: machine learning
-#% keyword: scikit-learn
-#% keyword: training
-#%end
+# %module
+# % description: Supervised classification and regression of GRASS rasters using the python scikit-learn package.
+# % keyword: raster
+# % keyword: classification
+# % keyword: regression
+# % keyword: machine learning
+# % keyword: scikit-learn
+# % keyword: training
+# % keyword: parallel
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: group
-#% label: Group of raster layers to be classified
-#% description: GRASS imagery group of raster maps representing predictor variables to be used in the machine learning model
-#% required: yes
-#% multiple: no
-#%end
+# %option G_OPT_I_GROUP
+# % key: group
+# % label: Group of raster layers to be classified
+# % description: GRASS imagery group of raster maps representing predictor variables to be used in the machine learning model
+# % required: yes
+# % multiple: no
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: training_map
-#% label: Labelled pixels
-#% description: Raster map with labelled pixels for training
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_R_INPUT
+# % key: training_map
+# % label: Labelled pixels
+# % description: Raster map with labelled pixels for training
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_V_INPUT
-#% key: training_points
-#% label: Vector map with training samples
-#% description: Vector points map where each point is used as training sample
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_V_INPUT
+# % key: training_points
+# % label: Vector map with training samples
+# % description: Vector points map where each point is used as training sample
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_DB_COLUMN
-#% key: field
-#% label: Response attribute column
-#% description: Name of attribute column in training_points table containing response values
-#% required: no
-#% guisection: Required
-#%end
+# %option G_OPT_DB_COLUMN
+# % key: field
+# % label: Response attribute column
+# % description: Name of attribute column in training_points table containing response values
+# % required: no
+# % guisection: Required
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: save_model
-#% label: Save model to file (for compression use e.g. '.gz' extension)
-#% description: Name of file to store model results using python joblib
-#% required: yes
-#% guisection: Required
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: save_model
+# % label: Save model to file (for compression use e.g. '.gz' extension)
+# % description: Name of file to store model results using python joblib
+# % required: yes
+# % guisection: Required
+# %end
 
-#%option string
-#% key: model_name
-#% label: model_name
-#% description: Supervised learning model to use
-#% answer: RandomForestClassifier
-#% options: LogisticRegression,LinearRegression,SGDClassifier,SGDRegressor,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,KNeighborsRegressor,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,HistGradientBoostingClassifier,HistGradientBoostingRegressor,SVC,SVR,MLPClassifier,MLPRegressor
-#% guisection: Estimator settings
-#% required: no
-#% multiple: no
-#%end
+# %option string
+# % key: model_name
+# % label: model_name
+# % description: Supervised learning model to use
+# % answer: RandomForestClassifier
+# % options: LogisticRegression,LinearRegression,SGDClassifier,SGDRegressor,LinearDiscriminantAnalysis,QuadraticDiscriminantAnalysis,KNeighborsClassifier,KNeighborsRegressor,GaussianNB,DecisionTreeClassifier,DecisionTreeRegressor,RandomForestClassifier,RandomForestRegressor,ExtraTreesClassifier,ExtraTreesRegressor,GradientBoostingClassifier,GradientBoostingRegressor,HistGradientBoostingClassifier,HistGradientBoostingRegressor,SVC,SVR,MLPClassifier,MLPRegressor
+# % guisection: Estimator settings
+# % required: no
+# % multiple: no
+# %end
 
-#%option string
-#% key: penalty
-#% label: The regularization method
-#% description: The regularization method to be used for the SGDClassifier and SGDRegressor
-#% answer: l2
-#% options: l1,l2,elasticnet
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option string
+# % key: penalty
+# % label: The regularization method
+# % description: The regularization method to be used for the SGDClassifier and SGDRegressor
+# % answer: l2
+# % options: l1,l2,elasticnet
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: alpha
-#% type: double
-#% label: Constant that multiplies the regularization term
-#% description: Constant that multiplies the regularization term for SGDClassifier/SGDRegressor/MLPClassifier/MLPRegressor
-#% answer: 0.0001
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: alpha
+# % type: double
+# % label: Constant that multiplies the regularization term
+# % description: Constant that multiplies the regularization term for SGDClassifier/SGDRegressor/MLPClassifier/MLPRegressor
+# % answer: 0.0001
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: l1_ratio
-#% type: double
-#% label: The Elastic Net mixing parameter
-#% description: The Elastic Net mixing parameter for SGDClassifier/SGDRegressor
-#% answer: 0.15
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: l1_ratio
+# % type: double
+# % label: The Elastic Net mixing parameter
+# % description: The Elastic Net mixing parameter for SGDClassifier/SGDRegressor
+# % answer: 0.15
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: c
-#% type: double
-#% label: Inverse of regularization strength
-#% description: Inverse of regularization strength (LogisticRegression and SVC/SVR)
-#% answer: 1.0
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: c
+# % type: double
+# % label: Inverse of regularization strength
+# % description: Inverse of regularization strength (LogisticRegression and SVC/SVR)
+# % answer: 1.0
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: epsilon
-#% type: double
-#% label: Epsilon in the SVR model
-#% description: Epsilon in the SVR model
-#% answer: 0.1
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: epsilon
+# % type: double
+# % label: Epsilon in the SVR model
+# % description: Epsilon in the SVR model
+# % answer: 0.1
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: max_features
-#% type: integer
-#% label: Number of features available during node splitting; zero uses estimator defaults
-#% description: Number of features available during node splitting (tree-based classifiers and regressors)
-#% answer:0
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: max_features
+# % type: integer
+# % label: Number of features available during node splitting; zero uses estimator defaults
+# % description: Number of features available during node splitting (tree-based classifiers and regressors)
+# % answer:0
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: max_depth
-#% type: integer
-#% label: Maximum tree depth; zero uses estimator defaults
-#% description: Maximum tree depth for tree-based method; zero uses estimator defaults (full-growing for Decision trees and Randomforest, 3 for GBM)
-#% answer:0
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: max_depth
+# % type: integer
+# % label: Maximum tree depth; zero uses estimator defaults
+# % description: Maximum tree depth for tree-based method; zero uses estimator defaults (full-growing for Decision trees and Randomforest, 3 for GBM)
+# % answer:0
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: min_samples_leaf
-#% type: integer
-#% label: The minimum number of samples required to form a leaf node
-#% description: The minimum number of samples required to form a leaf node in tree-based estimators
-#% answer: 1
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: min_samples_leaf
+# % type: integer
+# % label: The minimum number of samples required to form a leaf node
+# % description: The minimum number of samples required to form a leaf node in tree-based estimators
+# % answer: 1
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: n_estimators
-#% type: integer
-#% label: Number of estimators
-#% description: Number of estimators (trees) in ensemble tree-based estimators
-#% answer: 100
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: n_estimators
+# % type: integer
+# % label: Number of estimators
+# % description: Number of estimators (trees) in ensemble tree-based estimators
+# % answer: 100
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: learning_rate
-#% type: double
-#% label: learning rate
-#% description: learning rate (also known as shrinkage) for gradient boosting methods
-#% answer: 0.1
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: learning_rate
+# % type: double
+# % label: learning rate
+# % description: learning rate (also known as shrinkage) for gradient boosting methods
+# % answer: 0.1
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: subsample
-#% type: double
-#% label: The fraction of samples to be used for fitting
-#% description: The fraction of samples to be used for fitting, controls stochastic behaviour of gradient boosting methods
-#% answer: 1.0
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: subsample
+# % type: double
+# % label: The fraction of samples to be used for fitting
+# % description: The fraction of samples to be used for fitting, controls stochastic behaviour of gradient boosting methods
+# % answer: 1.0
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option
-#% key: n_neighbors
-#% type: integer
-#% label: Number of neighbors to use
-#% description: Number of neighbors to use
-#% answer: 5
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option
+# % key: n_neighbors
+# % type: integer
+# % label: Number of neighbors to use
+# % description: Number of neighbors to use
+# % answer: 5
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option string
-#% key: hidden_units
-#% label: Number of neurons to use in the hidden layers
-#% description: Number of neurons to use in each layer, i.e. (100;50) for two layers
-#% answer: (100;100)
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option string
+# % key: hidden_units
+# % label: Number of neurons to use in the hidden layers
+# % description: Number of neurons to use in each layer, i.e. (100;50) for two layers
+# % answer: (100;100)
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option string
-#% key: weights
-#% label: weight function
-#% description: Distance weight function for k-nearest neighbours model prediction
-#% answer: uniform
-#% options: uniform,distance
-#% multiple: yes
-#% guisection: Estimator settings
-#%end
+# %option string
+# % key: weights
+# % label: weight function
+# % description: Distance weight function for k-nearest neighbours model prediction
+# % answer: uniform
+# % options: uniform,distance
+# % multiple: yes
+# % guisection: Estimator settings
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: group_raster
-#% label: Custom group ids for training samples from GRASS raster
-#% description: GRASS raster containing group ids for training samples. Samples with the same group id will not be split between training and test cross-validation folds
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_R_INPUT
+# % key: group_raster
+# % label: Custom group ids for training samples from GRASS raster
+# % description: GRASS raster containing group ids for training samples. Samples with the same group id will not be split between training and test cross-validation folds
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: cv
-#% type: integer
-#% label: Number of cross-validation folds
-#% description: Number of cross-validation folds
-#% answer: 1
-#% guisection: Cross validation
-#%end
+# %option
+# % key: cv
+# % type: integer
+# % label: Number of cross-validation folds
+# % description: Number of cross-validation folds
+# % answer: 1
+# % guisection: Cross validation
+# %end
 
-#%flag
-#% key: f
-#% label: Compute Feature importances
-#% description: Compute feature importances using permutation
-#% guisection: Estimator settings
-#%end
+# %flag
+# % key: f
+# % label: Compute Feature importances
+# % description: Compute feature importances using permutation
+# % guisection: Estimator settings
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: preds_file
-#% label: Save cross-validation predictions to csv
-#% description: Name of output file in which to save the cross-validation predictions
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: preds_file
+# % label: Save cross-validation predictions to csv
+# % description: Name of output file in which to save the cross-validation predictions
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: classif_file
-#% label: Save classification report to csv
-#% description: Name of output file to save the classification report
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: classif_file
+# % label: Save classification report to csv
+# % description: Name of output file to save the classification report
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: category_maps
-#% required: no
-#% multiple: yes
-#% label: Names of categorical rasters within the imagery group
-#% description: Names of categorical rasters within the imagery group that will be one-hot encoded. Leave empty if none.
-#% guisection: Optional
-#%end
+# %option G_OPT_R_INPUT
+# % key: category_maps
+# % required: no
+# % multiple: yes
+# % label: Names of categorical rasters within the imagery group
+# % description: Names of categorical rasters within the imagery group that will be one-hot encoded. Leave empty if none.
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: fimp_file
-#% label: Save feature importances to csv
-#% descriptions: Name of file to save the permutation feature importance results
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: fimp_file
+# % label: Save feature importances to csv
+# % descriptions: Name of file to save the permutation feature importance results
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: param_file
-#% label: Save hyperparameter search scores to csv
-#% description: Name of file to save the hyperparameter tuning results
-#% required: no
-#% guisection: Cross validation
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: param_file
+# % label: Save hyperparameter search scores to csv
+# % description: Name of file to save the hyperparameter tuning results
+# % required: no
+# % guisection: Cross validation
+# %end
 
-#%option
-#% key: random_state
-#% type: integer
-#% label: Seed to use for random state
-#% description: Seed to use for random state to enable reproducible results for estimators that have stochastic components
-#% answer: 1
-#% guisection: Optional
-#%end
+# %option
+# % key: random_state
+# % type: integer
+# % label: Seed to use for random state
+# % description: Seed to use for random state to enable reproducible results for estimators that have stochastic components
+# % answer: 1
+# % guisection: Optional
+# %end
 
-#%option
-#% key: n_jobs
-#% type: integer
-#% label: Number of cores for multiprocessing
-#% description: Number of cores for multiprocessing, -2 is n_cores-1
-#% answer: -2
-#% guisection: Optional
-#%end
+# %option
+# % key: n_jobs
+# % type: integer
+# % label: Number of cores for multiprocessing
+# % description: Number of cores for multiprocessing, -2 is n_cores-1
+# % answer: -2
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: s
-#% label: Standardization preprocessing
-#% description: Standardize feature variables (convert values the get zero mean and unit variance)
-#% guisection: Optional
-#%end
+# %flag
+# % key: s
+# % label: Standardization preprocessing
+# % description: Standardize feature variables (convert values the get zero mean and unit variance)
+# % guisection: Optional
+# %end
 
-#%flag
-#% key: b
-#% label: Balance training data using class weights
-#% description: Automatically adjust weights inversely proportional to class frequencies
-#% guisection: Optional
-#%end
+# %flag
+# % key: b
+# % label: Balance training data using class weights
+# % description: Automatically adjust weights inversely proportional to class frequencies
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: save_training
-#% label: Save training data to csv
-#% description: Name of output file to save training data in comma-delimited format
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: save_training
+# % label: Save training data to csv
+# % description: Name of output file to save training data in comma-delimited format
+# % required: no
+# % guisection: Optional
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: load_training
-#% label: Load training data from csv
-#% description: Load previously extracted training data from a csv file
-#% required: no
-#% guisection: Optional
-#%end
+# %option G_OPT_F_INPUT
+# % key: load_training
+# % label: Load training data from csv
+# % description: Load previously extracted training data from a csv file
+# % required: no
+# % guisection: Optional
+# %end
 
-#%rules
-#% required: training_map,training_points,load_training
-#% exclusive: training_map,training_points,load_training
-#% exclusive: load_training,save_training
-#% requires: training_points,field
-#%end
+# %rules
+# % required: training_map,training_points,load_training
+# % exclusive: training_map,training_points,load_training
+# % exclusive: load_training,save_training
+# % requires: training_points,field
+# %end
 
 import atexit
 import os
@@ -423,14 +424,13 @@ def process_param_grid(hyperparams):
     if hyperparams["max_depth"] == 0:
         hyperparams["max_depth"] = None
     if hyperparams["max_features"] == 0:
-        hyperparams["max_features"] = "auto"
+        hyperparams["max_features"] = "sqrt"
     param_grid = {k: v for k, v in param_grid.items() if v is not None}
 
     return hyperparams, param_grid
 
 
 def main():
-
     # Lazy import libraries
     from rlearnlib.utils import (
         predefined_estimators,
@@ -445,11 +445,11 @@ def main():
     try:
         import sklearn
 
-        if sklearn.__version__ < "0.20":
-            gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+        if sklearn.__version__ < "1.2.2":
+            gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     except ImportError:
-        gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+        gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     try:
         import pandas as pd
@@ -535,8 +535,7 @@ def main():
     if importances:
         if sklearn.__version__ < "0.22":
             gs.fatal(
-                "Feature importances calculation requires scikit-learn "
-                "version >= 0.22"
+                "Feature importances calculation requires scikit-learn version >= 0.22"
             )
 
     if fimp_file:
@@ -565,6 +564,8 @@ def main():
 
     # extract training data ---------------------------------------------------
     if load_training != "":
+        gs.message("Loading training data ...")
+
         X, y, cat, class_labels, group_id = load_training_data(load_training)
 
         if class_labels is not None:
@@ -583,7 +584,6 @@ def main():
             y = y.flatten()
 
             with RasterRow(training_map) as src:
-
                 if mode == "classification":
                     src_cats = {v: k for (k, v, m) in src.cats}
                     class_labels = {k: k for k in np.unique(y)}
@@ -595,7 +595,7 @@ def main():
             X, y, cat = stack.extract_points(training_points, field)
             y = y.flatten()
 
-            if y.dtype in (np.object_, np.object):
+            if y.dtype in (np.object_, object):
                 from sklearn.preprocessing import LabelEncoder
 
                 le = LabelEncoder()
@@ -682,7 +682,7 @@ def main():
 
     # one-hot encoding
     elif norm_data is False and category_maps is not None:
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough", transformers=[("onehot", enc, stack.categorical)]
         )
@@ -690,7 +690,7 @@ def main():
     # standardization and one-hot encoding
     elif norm_data is True and category_maps is not None:
         scaler = StandardScaler()
-        enc = OneHotEncoder(handle_unknown="ignore", sparse=False)
+        enc = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
         trans = ColumnTransformer(
             remainder="passthrough",
             transformers=[
@@ -756,8 +756,7 @@ def main():
         ):
             gs.message(os.linesep)
             gs.fatal(
-                "Number of cv folds is greater than number of samples in "
-                "some classes "
+                "Number of cv folds is greater than number of samples in some classes "
             )
 
         gs.message(os.linesep)
@@ -773,7 +772,13 @@ def main():
         from sklearn.model_selection import cross_val_predict
 
         preds = cross_val_predict(
-            estimator, X, y, group_id, cv=outer, n_jobs=n_jobs, fit_params=fit_params
+            estimator=estimator,
+            X=X,
+            y=y,
+            groups=group_id,
+            cv=outer,
+            n_jobs=n_jobs,
+            fit_params=fit_params,
         )
 
         test_idx = [test for train, test in outer.split(X, y)]
@@ -803,9 +808,7 @@ def main():
                 .std()
             )
 
-            gs.message(
-                name + "\t" + str(score_mean.round(3)) + "\t" + str(score_std.round(3))
-            )
+            gs.message(f"{name}\t{score_mean:.3}\t{score_std:.3}")
 
         if mode == "classification":
             gs.message(os.linesep)

@@ -15,46 +15,46 @@
 #               for details.
 #
 # SEE ALSO:     GMT: The Generic Mapping Tools
-#                 http://gmt.soest.hawaii.edu
+#                 https://www.generic-mapping-tools.org/
 #
 #############################################################################
 
-#%module
-#% description: Convert or apply a GMT color table to a GRASS raster map
-#%end
-#%option G_OPT_F_INPUT
-#% description: Name of input GMT color table (.cpt file)
-#% required: no
-#% guisection: Input
-#%end
-#%option
-#% key: url
-#% type: string
-#% description: URL of the color table
-#% required: no
-#% guisection: Input
-#%end
-#%option G_OPT_R_INPUT
-#% key: map
-#% description: Raster map to apply it to
-#% required: no
-#% guisection: Input
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name for new rules file
-#% required: no
-#%end
-#%flag
-#% key: s
-#% description: Stretch color scale to match map data extent
-#%end
-#%rules
-#% required: input,url
-#% exclusive: input,url
-#%end
+# %module
+# % description: Convert or apply a GMT color table to a GRASS raster map
+# %end
+# %option G_OPT_F_INPUT
+# % description: Name of input GMT color table (.cpt file)
+# % required: no
+# % guisection: Input
+# %end
+# %option
+# % key: url
+# % type: string
+# % description: URL of the color table
+# % required: no
+# % guisection: Input
+# %end
+# %option G_OPT_R_INPUT
+# % key: map
+# % description: Raster map to apply it to
+# % required: no
+# % guisection: Input
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name for new rules file
+# % required: no
+# %end
+# %flag
+# % key: s
+# % description: Stretch color scale to match map data extent
+# %end
+# %rules
+# % required: input,url
+# % exclusive: input,url
+# %end
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def HSVtoRGB(h, s, v):
@@ -129,12 +129,9 @@ def main(options, flags):
     input_file = options["input"]
     input_url = options["url"]
     if input_url:
-        try:
-            from six.moves.urllib.request import urlopen
-        except ImportError:
-            from urllib2 import urlopen
+        from urllib.request import urlopen
 
-        txt = urlopen(input_url).readlines()
+        txt = [line.decode("utf-8") for line in urlopen(input_url).readlines()]
     else:
         with open(input_file, "r") as f:
             txt = f.readlines()
@@ -152,7 +149,7 @@ def main(options, flags):
             cpt_rules.append(line.strip())
 
     if model not in ("RGB", "HSV"):
-        gscript.fatal(_("Only the RGB and HSV color models are supported"))
+        gs.fatal(_("Only the RGB and HSV color models are supported"))
 
     rules = []
     if flags["s"]:
@@ -164,7 +161,7 @@ def main(options, flags):
         try:
             v1, r1, g1, b1, v2, r2, g2, b2 = line.split()
         except ValueError:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Parsing input failed. The expected format is 'value1 R G B value2 R G B'"
                 )
@@ -188,7 +185,7 @@ def main(options, flags):
             )
         )
     if options["map"]:
-        gscript.write_command(
+        gs.write_command(
             "r.colors", map=options["map"], rules="-", stdin="\n".join(rules)
         )
     if options["output"]:
@@ -200,5 +197,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main(options, flags))

@@ -23,219 +23,219 @@ from grass.exceptions import CalledModuleError
 ##########################################################
 ################## guisection: required ##################
 ##########################################################
-#%module
-#% description: Module for working with microwave links
-#% keyword: raster
-#% keyword: microwave
-#%end
+# %module
+# % description: Module for working with microwave links
+# % keyword: raster
+# % keyword: microwave
+# %end
 
-#%option
-#% key: database
-#% type: string
-#% key_desc : name
-#% gisprompt: old_dbname,dbname,dbname
-#% description: PostgreSQL database containing input data
-#% guisection: Database
-#% required : yes
-#%end
+# %option
+# % key: database
+# % type: string
+# % key_desc : name
+# % gisprompt: old_dbname,dbname,dbname
+# % description: PostgreSQL database containing input data
+# % guisection: Database
+# % required : yes
+# %end
 
 
 ##########################################################
 ############## guisection: Baseline #################
 ##########################################################
-#%option
-#% key: statfce
-#% label: Choose method for compute bs from time intervals
-#% options: avg,mode,quantile
+# %option
+# % key: statfce
+# % label: Choose method for compute bs from time intervals
+# % options: avg,mode,quantile
 
-#% answer: mode
+# % answer: mode
 
-#% guisection: Baseline
-#%end
+# % guisection: Baseline
+# %end
 
-#%option
-#% key: quantile
-#% label: Set quantile
-#% type: integer
-#% guisection: Baseline
-#% answer: 96
-#%end
+# %option
+# % key: quantile
+# % label: Set quantile
+# % type: integer
+# % guisection: Baseline
+# % answer: 96
+# %end
 
-#%option
-#% key: roundm
-#% label: Round to "m" decimal places for computing mode
-#% type: integer
-#% guisection: Baseline
-#% answer: 3
-#%end
+# %option
+# % key: roundm
+# % label: Round to "m" decimal places for computing mode
+# % type: integer
+# % guisection: Baseline
+# % answer: 3
+# %end
 
-#%option
-#% key: aw
-#% label: aw value
-#% description: Wetting antenna value Aw[dB]
-#% type: double
-#% guisection: Baseline
-#% answer: 1.5
-#%end
-#%option G_OPT_F_INPUT
-#% key: baseltime
-#% label: Set interval or just time when not raining (see the manual)
-#% guisection: Baseline
-#% required: no
-#%end
+# %option
+# % key: aw
+# % label: aw value
+# % description: Wetting antenna value Aw[dB]
+# % type: double
+# % guisection: Baseline
+# % answer: 1.5
+# %end
+# %option G_OPT_F_INPUT
+# % key: baseltime
+# % label: Set interval or just time when not raining (see the manual)
+# % guisection: Baseline
+# % required: no
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: baselfile
-#% label: Baseline values in format "linkid,baseline"
-#% guisection: Baseline
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: baselfile
+# % label: Baseline values in format "linkid,baseline"
+# % guisection: Baseline
+# % required: no
+# %end
 
 
 ##########################################################
 ################# guisection: Timewindows ##############
 ##########################################################
-#%option
-#% key: interval
-#% label: Summing precipitation per
-#% options: minute, hour, day
-#% guisection: Time-windows
-#% answer: minute
-#%end
+# %option
+# % key: interval
+# % label: Summing precipitation per
+# % options: minute, hour, day
+# % guisection: Time-windows
+# % answer: minute
+# %end
 
-#%option
-#% key: fromtime
-#% label: First timestamp "YYYY-MM-DD H:M:S"
-#% description: Set first timestamp to create timewindows
-#% type: string
-#% guisection: Time-windows
-#%end
+# %option
+# % key: fromtime
+# % label: First timestamp "YYYY-MM-DD H:M:S"
+# % description: Set first timestamp to create timewindows
+# % type: string
+# % guisection: Time-windows
+# %end
 
-#%option
-#% key: totime
-#% label: Last timestamp "YYYY-MM-DD H:M:S"
-#% description: Set last timestamp to create timewindows
-#% type: string
-#% guisection: Time-windows
-#%end
-
-
-#%option G_OPT_F_INPUT
-#% key: lignore
-#% label: Linkid ignore list
-#% guisection: Time-windows
-#% required: no
-#%end
+# %option
+# % key: totime
+# % label: Last timestamp "YYYY-MM-DD H:M:S"
+# % description: Set last timestamp to create timewindows
+# % type: string
+# % guisection: Time-windows
+# %end
 
 
-#%option G_OPT_M_DIR
-#% key: rgauges
-#% label: Path to folder with rain rauge files
-#% guisection:Time-windows
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: lignore
+# % label: Linkid ignore list
+# % guisection: Time-windows
+# % required: no
+# %end
+
+
+# %option G_OPT_M_DIR
+# % key: rgauges
+# % label: Path to folder with rain rauge files
+# % guisection:Time-windows
+# % required: no
+# %end
 
 ##########################################################
 ################# guisection: Interpolation ##############
 ##########################################################
 
-#%flag
-#% key:g
-#% description: Run GRASS analysis
-#% guisection: Interpolation
-#%end
+# %flag
+# % key:g
+# % description: Run GRASS analysis
+# % guisection: Interpolation
+# %end
 
-#%option
-#% key: interpolation
-#% label: Type of interpolation
-#% options: bspline, idw, rst
-#% guisection: Interpolation
-#% answer: rst
-#%end
-
-
-#%option
-#% key: isettings
-#% label: Interpolation command string
-#% description: Additional settings for choosen interpolation (see manual)
-#% type: string
-#% guisection: Interpolation
-#%end
+# %option
+# % key: interpolation
+# % label: Type of interpolation
+# % options: bspline, idw, rst
+# % guisection: Interpolation
+# % answer: rst
+# %end
 
 
-#%flag
-#% key:q
-#% description: Do not set region from modul settings
-#% guisection: Interpolation
-#%end
+# %option
+# % key: isettings
+# % label: Interpolation command string
+# % description: Additional settings for choosen interpolation (see manual)
+# % type: string
+# % guisection: Interpolation
+# %end
 
 
-#%option
-#% key: pmethod
-#% label: Type of interpolation
-#% options: permeter, count
-#% guisection: Interpolation
-#% answer: count
-#%end
+# %flag
+# % key:q
+# % description: Do not set region from modul settings
+# % guisection: Interpolation
+# %end
 
-#%option
-#% key: step
-#% label: Setting for parameter pmethod
-#% type: integer
-#% guisection: Interpolation
-#% answer: 1
-#%end
 
-#%option G_OPT_F_INPUT
-#% key: color
-#% label: Set color table
-#% guisection: Interpolation
-#% required: no
-#%end
+# %option
+# % key: pmethod
+# % label: Type of interpolation
+# % options: permeter, count
+# % guisection: Interpolation
+# % answer: count
+# %end
+
+# %option
+# % key: step
+# % label: Setting for parameter pmethod
+# % type: integer
+# % guisection: Interpolation
+# % answer: 1
+# %end
+
+# %option G_OPT_F_INPUT
+# % key: color
+# % label: Set color table
+# % guisection: Interpolation
+# % required: no
+# %end
 
 
 ##########################################################
 ############## guisection: database work #################
 ##########################################################
 
-#%option
-#% key: user
-#% type: string
-#% label: User name
-#% description: Connect to the database as the user username instead of the default.
-#% guisection: Database
-#% required : no
-#%end
+# %option
+# % key: user
+# % type: string
+# % label: User name
+# % description: Connect to the database as the user username instead of the default.
+# % guisection: Database
+# % required : no
+# %end
 
-#%option
-#% key: password
-#% type: string
-#% label: Password
-#% description: Password will be stored in file!
-#% guisection: Database
-#% required : no
-#%end
+# %option
+# % key: password
+# % type: string
+# % label: Password
+# % description: Password will be stored in file!
+# % guisection: Database
+# % required : no
+# %end
 
 ##########################################################
 ############### guisection: optional #####################
 ##########################################################
-#%flag
-#% key:p
-#% description: Print info about timestamp(first,last) in db
-#%end
+# %flag
+# % key:p
+# % description: Print info about timestamp(first,last) in db
+# %end
 
-#%flag
-#% key:r
-#% description: Remove temporary working schema and data folder
-#%end
+# %flag
+# % key:r
+# % description: Remove temporary working schema and data folder
+# %end
 
 
-#%option
-#% key: schema
-#% type: string
-#% label: Name of db schema for results
-#% answer: temp4
-#%end
+# %option
+# % key: schema
+# % type: string
+# % label: Name of db schema for results
+# % answer: temp4
+# %end
 
 
 # EXAMPLE
@@ -280,8 +280,8 @@ def intrpolatePoints(db):
     db.executeSql(sql, False, True)
 
     try:  # open file for interpol. points.
-        io = open(os.path.join(path, "linkpointsname"), "wr")
-    except IOError as e:
+        io = open(os.path.join(path, "linkpointsname"), "w")
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
     io.write(nametable)
     io.close
@@ -300,8 +300,8 @@ def intrpolatePoints(db):
     x = 0  # id in table with interpol. points
 
     try:
-        io = open(os.path.join(path, "linknode"), "wr")
-    except IOError as e:
+        io = open(os.path.join(path, "linknode"), "w")
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     temp = []
@@ -730,7 +730,7 @@ def removeLines(old_file, new_file, start, end):
     data_list = open(old_file, "r").readlines()
     temp_list = data_list[0:start]
     temp_list[len(temp_list) :] = data_list[end : len(data_list)]
-    open(new_file, "wr").writelines(temp_list)
+    open(new_file, "w").writelines(temp_list)
 
 
 def readRaingauge(db, path_file):
@@ -745,7 +745,7 @@ def readRaingauge(db, path_file):
             lat = f.next()
             lon = f.next()
         f.close()
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     ##make new file and remove metadata
@@ -766,15 +766,15 @@ def readRaingauge(db, path_file):
                 tmp.append(stri)
             f.close()
 
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     ## write list of string to database
     try:
-        with open(os.path.join(path, "gauge_tmp"), "wr") as x:
+        with open(os.path.join(path, "gauge_tmp"), "w") as x:
             x.writelines(tmp)
             x.close()
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     if not isTableExist(db, schema_name, "rgauge"):
@@ -874,7 +874,7 @@ def isCurrSetP():
         io0 = open(os.path.join(path, "compute_precip_info"), "r")
         curr_precip_conf = io0.readline()
         io0.close()
-    except IOError:
+    except OSError:
         pass
 
     if options["baseltime"]:
@@ -907,10 +907,10 @@ def getBaselDict(db):
     if options["baselfile"]:
         links_dict = readBaselineFromText(options["baselfile"])
         try:
-            io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+            io1 = open(os.path.join(path, "compute_precip_info"), "w")
             io1.write("fromfile|" + options["aw"])
             io1.close
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     elif options["baseltime"]:
@@ -948,17 +948,17 @@ def computeBaselinFromMode(db, linktb, recordtb):
     sql = "drop table %s.tempround" % (schema_name)
     db.executeSql(sql, False, True)
     try:
-        io0 = open(os.path.join(path, "baseline"), "wr")
+        io0 = open(os.path.join(path, "baseline"), "w")
         io0.writelines(tmp)
         io0.close()
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         io1.write("mode|" + options["aw"])
         io1.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
@@ -993,7 +993,6 @@ def computeBaselineFromTime(db):
             for line in f:
                 st = st + line.replace("\n", "")
                 if "i" in line.split("\n")[0]:  # get baseline form interval
-
                     fromt = f.next()
                     st += fromt.replace("\n", "")
                     tot = f.next()
@@ -1025,7 +1024,7 @@ def computeBaselineFromTime(db):
                     tmp.append(resu)
 
                     continue
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
         mydict = {}
@@ -1054,7 +1053,7 @@ def computeBaselineFromTime(db):
             break
 
         ##write values to baseline file
-        writer = csv.writer(open(os.path.join(path, "baseline"), "wr"))
+        writer = csv.writer(open(os.path.join(path, "baseline"), "w"))
         for key, value in mydict1.items():
             writer.writerow([key, value])
 
@@ -1065,11 +1064,9 @@ def computeBaselineFromTime(db):
             ##parse input file
 
             for line in f:
-
                 # print_message(line)
                 st = st + line.replace("\n", "")
                 if "i" in line.split("\n")[0]:  # get baseline form interval
-
                     fromt = f.next()
                     st += fromt.replace("\n", "")
                     tot = f.next()
@@ -1103,7 +1100,7 @@ def computeBaselineFromTime(db):
                     resu += resu
 
                     continue
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
         tmp.append(resu)
@@ -1116,7 +1113,7 @@ def computeBaselineFromTime(db):
         c = 0
         ##write values to flat file
         try:
-            io = open(os.path.join(path, "mode_tmp"), "wr")
+            io = open(os.path.join(path, "mode_tmp"), "w")
             c = 0
             for it in tmp:
                 for i in it:
@@ -1124,7 +1121,7 @@ def computeBaselineFromTime(db):
                     io.write(a)
                     c += 1
             io.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
         ##update table
@@ -1133,7 +1130,7 @@ def computeBaselineFromTime(db):
             db.copyfrom(io1, "%s.%s" % (schema_name, table_mode_tmp))
             io1.close()
             os.remove(os.path.join(path, "mode_tmp"))
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
         recname = schema_name + "." + table_mode_tmp
@@ -1149,11 +1146,11 @@ def computeBaselineFromTime(db):
 
     ##write  unique mark to file
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         st = st + "|" + options["aw"]
         io1.write(st)
         io1.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
@@ -1183,17 +1180,17 @@ def computeBaselineFromQuentile(db, linktb, recordtb):
         tmp.append(str(linkid) + "," + str(resu) + "\n")
 
     try:
-        io0 = open(os.path.join(path, "baseline"), "wr")
+        io0 = open(os.path.join(path, "baseline"), "w")
         io0.writelines(tmp)
         io0.close()
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     try:
-        io1 = open(os.path.join(path, "compute_precip_info"), "wr")
+        io1 = open(os.path.join(path, "compute_precip_info"), "w")
         io1.write("quantile" + quantile + "|" + options["aw"])
         io1.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
@@ -1220,7 +1217,7 @@ def grassWork():
         io = open(os.path.join(path, "linkpointsname"), "r")
         points = io.read()
         io.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     points_schema = schema_name + "." + points
@@ -1293,7 +1290,6 @@ def grassWork():
     try:
         with open(os.path.join(path, "l_timewindow"), "r") as f:
             for win in f.read().splitlines():
-
                 win = schema_name + "." + win
                 grass.run_command(
                     "v.db.connect",
@@ -1314,7 +1310,7 @@ def grassWork():
                     "v.db.connect", map=points_nat, layer="1", flags="d", quiet=True
                 )
 
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
@@ -1398,15 +1394,14 @@ def computePrecip(db):
     db.setIsoLvl(0)
 
     try:
-        io = open(os.path.join(path, "precip"), "wr")
-    except IOError as e:
+        io = open(os.path.join(path, "precip"), "w")
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     ##choose baseline source (quantile, user values, ) get dict linkid, baseline
     links_dict = getBaselDict(db)
     ##check if baseline from text is correct
     if len(links_dict) < link_num:
-
         sql = "select linkid from link"
         links = db.executeSql(sql, True, True)
         for link in links:
@@ -1433,7 +1428,6 @@ def computePrecip(db):
             # final precipiatation is R1
             Ar = record[1] - baseline_decibel - Aw
             if Ar > 0:
-
                 yr = Ar / (record[2] / 1000)
                 R1 = (yr / coef_a_k[1]) ** (1 / coef_a_k[0])
             else:
@@ -1448,7 +1442,7 @@ def computePrecip(db):
     try:
         io.writelines(temp)
         io.close()
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
     print_message("Writing precipitation to database...")
@@ -1472,19 +1466,22 @@ def makeTimeWin(db, typeid, table):
 
     ##summing values per (->user)timestep interval
     view_db = typeid + "_" + randomWord(3)
-    sql = "CREATE %s %s.%s as select\
+    sql = (
+        "CREATE %s %s.%s as select\
         %s ,round(avg(precip)::numeric,3) as precip_mm_h, date_trunc('%s',time)\
         as time  FROM %s.%s GROUP BY %s, date_trunc('%s',time)\
-        ORDER BY time" % (
-        view_statement,
-        schema_name,
-        view_db,
-        typeid,
-        sum_precip,
-        schema_name,
-        table,
-        typeid,
-        sum_precip,
+        ORDER BY time"
+        % (
+            view_statement,
+            schema_name,
+            view_db,
+            typeid,
+            sum_precip,
+            schema_name,
+            table,
+            typeid,
+            sum_precip,
+        )
     )
     data = db.executeSql(sql, False, True)
     stamp = ""
@@ -1507,7 +1504,7 @@ def makeTimeWin(db, typeid, table):
                     )
                     db.executeSql(sql, False, True)
 
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     ##num of rows
@@ -1538,8 +1535,8 @@ def makeTimeWin(db, typeid, table):
     ##save first and last timewindow to file. On first line file include time step "minute","hour"etc
     if typeid == "linkid":
         try:
-            io1 = open(os.path.join(path, "time_window_info"), "wr")
-        except IOError as e:
+            io1 = open(os.path.join(path, "time_window_info"), "w")
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
         io1.write(
             sum_precip
@@ -1576,7 +1573,6 @@ def makeTimeWin(db, typeid, table):
     ##make timewindows from time interval
     ###############################################
     while cur_timestamp <= timestamp_max:
-
         # create name of view
         a = time.strftime(
             "%Y_%m_%d_%H_%M", time.strptime(str(cur_timestamp), "%Y-%m-%d %H:%M:%S")
@@ -1603,7 +1599,6 @@ def makeTimeWin(db, typeid, table):
             tgrass_vector.append(tgrass)
 
         else:
-
             tgrass = view_name + "|" + str(cur_timestamp) + "\n"
             tgrass_vector.append(tgrass)
 
@@ -1624,17 +1619,17 @@ def makeTimeWin(db, typeid, table):
     ##write values to flat file
     if typeid == "linkid":
         try:
-            io2 = open(os.path.join(path, "l_timewindow"), "wr")
+            io2 = open(os.path.join(path, "l_timewindow"), "w")
             io2.writelines(temp)
             io2.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
     else:
         try:
-            io2 = open(os.path.join(path, "g_timewindow"), "wr")
+            io2 = open(os.path.join(path, "g_timewindow"), "w")
             io2.writelines(temp)
             io2.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     # make textfile for t.register input
@@ -1647,10 +1642,10 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io3 = open(os.path.join(path, filename), "wr")
+            io3 = open(os.path.join(path, filename), "w")
             io3.writelines(tgrass_interpol)
             io3.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
         filename = (
@@ -1661,10 +1656,10 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io3 = open(os.path.join(path, filename), "wr")
+            io3 = open(os.path.join(path, filename), "w")
             io3.writelines(tgrass_vector)
             io3.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     else:
@@ -1676,10 +1671,10 @@ def makeTimeWin(db, typeid, table):
             + str(timestamp_max).replace(" ", "_")
         )
         try:
-            io4 = open(os.path.join(path, filename), "wr")
+            io4 = open(os.path.join(path, filename), "w")
             io4.writelines(tgrass_vector)
             io4.close()
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     ##drop temp table

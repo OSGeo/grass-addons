@@ -9,5 +9,3 @@ It will create in your user directory:
 ~/.grass8/toolboxes/module_tree.xml
 
 once it has been run, launch grass 7 normally, and work with Isis and GRASS together.
-
-

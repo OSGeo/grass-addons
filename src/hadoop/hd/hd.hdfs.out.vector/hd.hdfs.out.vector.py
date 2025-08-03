@@ -13,49 +13,49 @@
 #
 #############################################################################
 
-#%module
-#% description: Module for creting map from HIVE table. Module convert esri GeoJson to Grass map
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% options: webhdfs
-#% description: HDFS driver
-#%end
-#%option
-#% key: table
-#% type: string
-#% description: Name of table for import
-#%end
-#%option
-#% key: hdfs
-#% type: string
-#% description: Hdfs path to the table. See hive.info table -h
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: out
-#% required: yes
-#%end
-#%flag
-#% key: r
-#% description: remove temporal file
-#% guisection: data
-#%end
-#%option
-#% key: attributes
-#% type: string
-#% description: list of attributes with datatype
-#% guisection: data
-#%end
+# %module
+# % description: Module for creting map from HIVE table. Module convert esri GeoJson to Grass map
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % options: webhdfs
+# % description: HDFS driver
+# %end
+# %option
+# % key: table
+# % type: string
+# % description: Name of table for import
+# %end
+# %option
+# % key: hdfs
+# % type: string
+# % description: Hdfs path to the table. See hive.info table -h
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: out
+# % required: yes
+# %end
+# %flag
+# % key: r
+# % description: remove temporal file
+# % guisection: data
+# %end
+# %option
+# % key: attributes
+# % type: string
+# % description: list of attributes with datatype
+# % guisection: data
+# %end
 
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import (
     GrassMapBuilderEsriToEsri,
@@ -82,7 +82,7 @@ def main():
         conn.get_current_connection("hiveserver2")
 
         if not conn.get_current_connection("hiveserver2"):
-            grass.fatal(
+            gs.fatal(
                 "Cannot connet to hive for table description. "
                 "Use param hdfs without param table"
             )
@@ -104,16 +104,16 @@ def main():
         try:
             map_build.build()
             map_string += "%s," % map
-        except Exception, e:
-            grass.warning("Error: %s\n     Map < %s >  conversion failed" % (e, block))
+        except Exception as e:
+            gs.warning("Error: %s\n     Map < %s >  conversion failed" % (e, block))
 
     path, folder_name = os.path.split(tmp_dir)
-    grass.message(
+    gs.message(
         "For merge map: v.patch output=%s -e --overwrite input=%s"
         % (folder_name, map_string)
     )
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

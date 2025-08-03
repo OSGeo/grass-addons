@@ -1,22 +1,23 @@
-/* write_output(): transfer the segmented regions from the segmented data file to a raster file */
+/* write_output(): transfer the segmented regions from the segmented data file
+ * to a raster file */
 /* close_files(): close SEG files and free memory */
 
 #include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include <grass/segment.h>	/* segmentation library */
+#include <grass/segment.h> /* segmentation library */
 #include "iseg.h"
 
 int write_output(struct files *files)
 {
-    int out_fd, mean_fd, row, col;	/* mean_fd for validiating/debug of means */
+    int out_fd, mean_fd, row, col; /* mean_fd for validiating/debug of means */
     CELL *outbuf;
     DCELL *meanbuf;
     struct Colors colors;
     struct History history;
 
-
-    outbuf = Rast_allocate_c_buf();	/* hold one row of data to put into raster */
+    outbuf =
+        Rast_allocate_c_buf(); /* hold one row of data to put into raster */
     meanbuf = Rast_allocate_d_buf();
 
     /* force all data to disk */
@@ -26,31 +27,32 @@ int write_output(struct files *files)
     /* open output raster map */
     out_fd = Rast_open_new(files->out_name, CELL_TYPE);
     if (files->out_band != NULL)
-	mean_fd = Rast_open_new(files->out_band, DCELL_TYPE);
+        mean_fd = Rast_open_new(files->out_band, DCELL_TYPE);
 
     /* transfer data from segmentation file to raster */
     for (row = 0; row < files->nrows; row++) {
-	Rast_set_c_null_value(outbuf, files->ncols);	/*set buffer to NULLs, only write those that weren't originally masked */
-	Rast_set_d_null_value(meanbuf, files->ncols);
-	for (col = 0; col < files->ncols; col++) {
-	    Segment_get(&files->bands_seg, (void *)files->bands_val, row,
-			col);
-	    if (!(FLAG_GET(files->null_flag, row, col))) {
-		Segment_get(&files->iseg_seg, &(outbuf[col]), row, col);
-		meanbuf[col] = files->bands_val[0];
-	    }
-	}
-	Rast_put_row(out_fd, outbuf, CELL_TYPE);
-	if (files->out_band != NULL)
-	    Rast_put_row(mean_fd, meanbuf, DCELL_TYPE);
+        Rast_set_c_null_value(
+            outbuf, files->ncols); /*set buffer to NULLs, only write those that
+                                      weren't originally masked */
+        Rast_set_d_null_value(meanbuf, files->ncols);
+        for (col = 0; col < files->ncols; col++) {
+            Segment_get(&files->bands_seg, (void *)files->bands_val, row, col);
+            if (!(FLAG_GET(files->null_flag, row, col))) {
+                Segment_get(&files->iseg_seg, &(outbuf[col]), row, col);
+                meanbuf[col] = files->bands_val[0];
+            }
+        }
+        Rast_put_row(out_fd, outbuf, CELL_TYPE);
+        if (files->out_band != NULL)
+            Rast_put_row(mean_fd, meanbuf, DCELL_TYPE);
 
-	G_percent(row, files->nrows, 1);
+        G_percent(row, files->nrows, 1);
     }
 
     /* close and save file */
     Rast_close(out_fd);
     if (files->out_band != NULL)
-	Rast_close(mean_fd);
+        Rast_close(mean_fd);
 
     /* set colors */
     Rast_init_colors(&colors);
@@ -77,7 +79,7 @@ int close_files(struct files *files)
     /* close segmentation files and output raster */
     Segment_close(&files->bands_seg);
     if (files->bounds_map != NULL)
-	Segment_close(&files->bounds_seg);
+        Segment_close(&files->bounds_seg);
 
     G_free(files->bands_val);
     G_free(files->second_val);

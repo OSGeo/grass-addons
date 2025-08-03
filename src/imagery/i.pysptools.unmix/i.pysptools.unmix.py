@@ -18,78 +18,78 @@ COPYRIGHT: (C) 2018 by the GRASS GIS Development Team,
            for details.
 """
 
-#%module
-#% description: Extract endmembers from imagery group and perform spectral unmixing using pysptools
-#% keyword: imagery
-#% keyword: endmember
-#% keyword: spectral unmixing
-#%end
+# %module
+# % description: Extract endmembers from imagery group and perform spectral unmixing using pysptools
+# % keyword: imagery
+# % keyword: endmember
+# % keyword: spectral unmixing
+# %end
 
-#%option G_OPT_I_GROUP
-#% key: input
-#% description: Input imagery group
-#% required : yes
-#%end
+# %option G_OPT_I_GROUP
+# % key: input
+# % description: Input imagery group
+# % required : yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% key: output
-#% guisection: output
-#% description: Text file storing endmember information for i.spec.unmix
-#% required : no
-#%end
+# %option G_OPT_F_OUTPUT
+# % key: output
+# % guisection: output
+# % description: Text file storing endmember information for i.spec.unmix
+# % required : no
+# %end
 
-#%option
-#% key: prefix
-#% description: Prefix for resulting raster maps
-#% guisection: output
-#% required : no
-#%end
+# %option
+# % key: prefix
+# % description: Prefix for resulting raster maps
+# % guisection: output
+# % required : no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#% key: endmembers
-#% description: Vector map representing identified endmembers
-#% guisection: output
-#% required : no
-#%end
+# %option G_OPT_V_OUTPUT
+# % key: endmembers
+# % description: Vector map representing identified endmembers
+# % guisection: output
+# % required : no
+# %end
 
-#%option
-#% key: endmember_n
-#% type: integer
-#% description: Number of endmembers to identify
-#% required: yes
-#%end
+# %option
+# % key: endmember_n
+# % type: integer
+# % description: Number of endmembers to identify
+# % required: yes
+# %end
 
-#%option
-#% key: extraction_method
-#% type: string
-#% description: Method for endmember extraction
-#% options: FIPPI,PPI,NFINDR
-#% answer: NFINDR
-#%end
+# %option
+# % key: extraction_method
+# % type: string
+# % description: Method for endmember extraction
+# % options: FIPPI,PPI,NFINDR
+# % answer: NFINDR
+# %end
 
-#%option
-#% key: unmixing_method
-#% type: string
-#% description: Algorithm for spectral unmixing
-#% options: FCLS,UCLS,NNLS
-#% answer: FCLS
-#%end
+# %option
+# % key: unmixing_method
+# % type: string
+# % description: Algorithm for spectral unmixing
+# % options: FCLS,UCLS,NNLS
+# % answer: FCLS
+# %end
 
-#%option
-#% key: maxit
-#% type: integer
-#% description: Maximal number of iterations for endmember extraction (default=3*number of bands)
-#% required: no
-#%end
+# %option
+# % key: maxit
+# % type: integer
+# % description: Maximal number of iterations for endmember extraction (default=3*number of bands)
+# % required: no
+# %end
 
-#%flag
-#% key: n
-#% description: Do not use Automatic Target Generation Process (ATGP)
-#%end
+# %flag
+# % key: n
+# % description: Do not use Automatic Target Generation Process (ATGP)
+# %end
 
-#%rules
-#% required: output,prefix
-#%end
+# %rules
+# % required: output,prefix
+# %end
 
 import os
 import sys
@@ -104,13 +104,12 @@ if "GISBASE" not in os.environ.keys():
 
 
 def get_rastertype(raster):
-
     if not isinstance(raster[0, 0], np.float32) and not isinstance(
         raster[0, 0], np.float64
     ):
-        map_type = u"INTEGER"
+        map_type = "INTEGER"
     else:
-        map_type = u"REAL"
+        map_type = "REAL"
 
     return map_type
 
@@ -127,14 +126,13 @@ def mask_rasternd(raster):
 
 
 def main():
-
     try:
         import pysptools.eea as eea
     except ImportError:
         gs.fatal(
             _(
                 "Cannot import pysptools \
-                      (https://pypi.python.org/pypi/pysptools) library."
+                      (https://pypi.org/project/pysptools) library."
                 " Please install it (pip install pysptools)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."
@@ -148,7 +146,7 @@ def main():
         gs.fatal(
             _(
                 "Cannot import sklearn \
-                      (https://pypi.python.org/pypi/scikit-learn) library."
+                      (https://pypi.org/project/scikit-learn) library."
                 " Please install it (pip install scikit-learn)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."
@@ -161,7 +159,7 @@ def main():
         gs.fatal(
             _(
                 "Cannot import cvxopt \
-                      (https://pypi.python.org/pypi/cvxopt) library."
+                      (https://pypi.org/project/cvxopt) library."
                 " Please install it (pip install cvxopt)"
                 " or ensure that it is on path"
                 " (use PYTHONPATH variable)."
@@ -208,9 +206,7 @@ def main():
     if endmember_n > len(maps) + 1:
         gs.warning(
             "More endmembers ({}) requested than bands in \
-                   input imagery group ({})".format(
-                endmember_n, len(maps)
-            )
+                   input imagery group ({})".format(endmember_n, len(maps))
         )
         if extraction_method != "PPI":
             gs.fatal(
@@ -234,14 +230,12 @@ def main():
 
         # Build numpy stack from imagery group
         raster = r.raster2numpy(map[0], mapset=map[1])
-        if raster == np.float64:
-            raster = float32(raster)
+        if raster.dtype == np.float64:
+            raster = raster.astype(np.float32)
             gs.warning(
                 "{} is of type Float64.\
                         Float64 is currently not supported.\
-                        Reducing precision to Float32".format(
-                    raster
-                )
+                        Reducing precision to Float32".format(raster)
             )
 
         # Determine map type
@@ -325,7 +319,7 @@ def main():
 
         # Build attribute table
         # Deinfe columns for attribute table
-        cols = [(u"cat", "INTEGER PRIMARY KEY")]
+        cols = [("cat", "INTEGER PRIMARY KEY")]
         for b in band_types.keys():
             cols.append((b.replace(".", "_"), band_types[b]))
 
@@ -345,9 +339,7 @@ def main():
             if len(idx[0]) == 0 or len(idx[1]) == 0:
                 gs.warning(
                     "Could not compute coordinated for endmember {}. \
-                            Please consider rescaling your data to integer".format(
-                        cat
-                    )
+                            Please consider rescaling your data to integer".format(cat)
                 )
                 cat = cat + 1
                 continue
@@ -359,7 +351,7 @@ def main():
             n = 0
             attr = []
             for b in band_types.keys():
-                if band_types[b] == u"INTEGER":
+                if band_types[b] == "INTEGER":
                     attr.append(int(e[n]))
                 else:
                     attr.append(float(e[n]))

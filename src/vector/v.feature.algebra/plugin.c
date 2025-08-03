@@ -7,7 +7,7 @@
 #include "list.h"
 #include "mapcalc.h"
 
-typedef char *(*func_t) (void);
+typedef char *(*func_t)(void);
 
 static int register_function(char *fname, void *func, char *proto);
 void init_plug(void);
@@ -19,7 +19,7 @@ static int register_function(char *fname, void *func, char *proto)
 
     sym = getsym(fname);
     if (sym)
-	symtab = (SYMBOL *) listdel((LIST *) symtab, (LIST *) sym, freesym);
+        symtab = (SYMBOL *)listdel((LIST *)symtab, (LIST *)sym, freesym);
 
     /*
      * This is quite incomplete
@@ -27,22 +27,22 @@ static int register_function(char *fname, void *func, char *proto)
 
     switch (proto[0]) {
     case 'd':
-	type = st_nfunc;
-	break;
+        type = st_nfunc;
+        break;
     case 'm':
-	type = st_mfunc;
-	break;
+        type = st_mfunc;
+        break;
     case 'p':
-	type = st_pfunc;
-	break;
+        type = st_pfunc;
+        break;
     default:
-	return 0;
+        return 0;
     }
 
     sym = putsym(fname);
     sym->v.p = func;
     sym->type = sym->itype = sym->rettype = type;
-    sym->proto = strdup(proto + 2);	/* skip "m=" */
+    sym->proto = strdup(proto + 2); /* skip "m=" */
 
     return 1;
 }
@@ -65,60 +65,60 @@ void init_plug(void)
 
     sym = getsym("pluginpath");
     if (sym && sym->v.p)
-	strcpy(path, sym->v.p);
+        strcpy(path, sym->v.p);
     else {
-	ptr = getenv("GISBASE");
-	if (ptr)
-	    strcpy(path, ptr);
-	else
-	    strcpy(path, getcwd(path, 4096));
-	if (path[strlen(path) - 1] != '/')
-	    strcat(path, "/");
-	strcat(path, "plugins");
+        ptr = getenv("GISBASE");
+        if (ptr)
+            strcpy(path, ptr);
+        else
+            strcpy(path, getcwd(path, 4096));
+        if (path[strlen(path) - 1] != '/')
+            strcat(path, "/");
+        strcat(path, "plugins");
     }
 
     dir = opendir(path);
     if (!dir)
-	return;
+        return;
 
     while ((ent = readdir(dir)) != NULL) {
-	if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
-	    continue;
-	strcpy(pathname, path);
-	strcat(pathname, "/");
-	strcat(pathname, ent->d_name);
-	if (access(pathname, R_OK | X_OK))
-	    continue;
-	handle = dlopen(pathname, RTLD_LAZY);
-	if (!handle)
-	    continue;
-	fh = dlsym(handle, "fname");
-	if (dlerror()) {
-	    dlclose(handle);
-	    continue;
-	}
-	fname = (*fh) ();
-	if (!fname) {
-	    dlclose(handle);
-	    continue;
-	}
-	ph = dlsym(handle, "proto");
-	if (dlerror()) {
-	    dlclose(handle);
-	    continue;
-	}
-	proto = (*ph) ();
-	if (!proto) {
-	    dlclose(handle);
-	    continue;
-	}
-	func = dlsym(handle, fname);
-	if (!func) {
-	    dlclose(handle);
-	    continue;
-	}
-	if (!register_function(fname, func, proto))
-	    dlclose(handle);
+        if (!strcmp(ent->d_name, ".") || !strcmp(ent->d_name, ".."))
+            continue;
+        strcpy(pathname, path);
+        strcat(pathname, "/");
+        strcat(pathname, ent->d_name);
+        if (access(pathname, R_OK | X_OK))
+            continue;
+        handle = dlopen(pathname, RTLD_LAZY);
+        if (!handle)
+            continue;
+        fh = dlsym(handle, "fname");
+        if (dlerror()) {
+            dlclose(handle);
+            continue;
+        }
+        fname = (*fh)();
+        if (!fname) {
+            dlclose(handle);
+            continue;
+        }
+        ph = dlsym(handle, "proto");
+        if (dlerror()) {
+            dlclose(handle);
+            continue;
+        }
+        proto = (*ph)();
+        if (!proto) {
+            dlclose(handle);
+            continue;
+        }
+        func = dlsym(handle, fname);
+        if (!func) {
+            dlclose(handle);
+            continue;
+        }
+        if (!register_function(fname, func, proto))
+            dlclose(handle);
     }
     closedir(dir);
 }

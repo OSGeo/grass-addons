@@ -7,7 +7,7 @@ AUTHOR(S):    Hamish Bowman
               Stefan Blumentrath, NINA: Port to GRASS GIS 7 / Python,
               label and opacity support
 PURPOSE:      Export GRASS raster color table to OGC SLD template v1.0.0
-COPYRIGHT:    (C) 2011 by Hamish Bowman, and the GRASS Development Team
+COPYRIGHT:    (C) 2011-2022 by Hamish Bowman, and the GRASS Development Team
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,40 +30,40 @@ TODO:
 - Support for interval ColorMap?
 """
 
-#%Module
-#% description: Exports the color table associated with a raster map layer in SLD format.
-#% keyword: raster
-#% keyword: export
-#% keyword: color table
-#%End
+# %Module
+# % description: Exports the color table associated with a raster map layer in SLD format.
+# % keyword: raster
+# % keyword: export
+# % keyword: color table
+# %End
 
-#%Option G_OPT_R_MAP
-#% required: yes
-#%End
+# %Option G_OPT_R_MAP
+# % required: yes
+# %End
 
-#%Option
-#% key: style_name
-#% required: no
-#% label: Name for style
-#% description: A name for the style which might be displayed on the server
-#% answer: GRASS color table
-#%End
+# %Option
+# % key: style_name
+# % required: no
+# % label: Name for style
+# % description: A name for the style which might be displayed on the server
+# % answer: GRASS GIS color table
+# %End
 
-#%Option G_OPT_F_OUTPUT
-#% required: no
-#% label: Name for output SLD rules file
-#% description: "-" to write to stdout
-#% answer: -
-#%End
+# %Option G_OPT_F_OUTPUT
+# % required: no
+# % label: Name for output SLD rules file
+# % description: "-" to write to stdout
+# % answer: -
+# %End
 
-#%flag
-#% key: n
-#% description: Propagate NULLs
-#%end
+# %flag
+# % key: n
+# % description: Propagate NULLs
+# %end
 
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 
 def set_output_encoding(encoding="utf-8"):
@@ -78,7 +78,6 @@ def set_output_encoding(encoding="utf-8"):
 
 
 def main():
-
     # Set output encoding to UTF-8
     set_output_encoding()
     # Parse input
@@ -86,24 +85,28 @@ def main():
     style_name = options["style_name"]  # done
     map = options["map"]  # done
 
+    # check if input file exists
+    if not gs.find_file(map)["file"]:
+        gs.fatal(_("Raster map <%s> not found") % map)
+
     # Get map metadata
-    mapinfo = grass.parse_command("r.info", flags="e", map=map)
+    mapinfo = gs.parse_command("r.info", flags="e", map=map)
 
     if mapinfo["title"]:
-        name = "{} : {}".format(mapinfo["map"], mapinfo["title"])
+        name = "{}: {}".format(mapinfo["map"], mapinfo["title"])
     else:
         name = mapinfo["map"]
 
     # Get color rules
-    color_rules = grass.read_command("r.colors.out", map=map).split("\n")
+    color_rules = gs.read_command("r.colors.out", map=map).split("\n")
 
     # Get maptype (CELL, FCELL, DCELL)
-    maptype = grass.parse_command("r.info", flags="g", map=map)["datatype"]
+    maptype = gs.parse_command("r.info", flags="g", map=map)["datatype"]
 
     # Check if map has categories if type is CELL
     if maptype == "CELL":
-        grass.verbose("Reading category lables, may take a while...")
-        categories = grass.parse_command("r.category", map=map, separator="=")
+        gs.verbose("Reading category lables, may take a while...")
+        categories = gs.parse_command("r.category", map=map, separator="=")
         if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
             use_categories = True
         else:
@@ -112,7 +115,7 @@ def main():
         use_categories = False
 
     # Initialize SLD with header
-    sld = u"""<?xml version="1.0" encoding="UTF-8"?>
+    sld = """<?xml version="1.0" encoding="UTF-8"?>
 <StyledLayerDescriptor version="1.0.0"
     xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
     xmlns="http://www.opengis.net/sld"
@@ -120,16 +123,13 @@ def main():
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
-    <Name>{}</Name>""".format(
-        style_name
-    )
-    sld += """    <UserStyle>
-      <Title>{}</Title>\n
+    <Name>{}</Name>""".format(style_name)
+    sld += """
+    <UserStyle>
+      <Title>{}</Title>
       <FeatureTypeStyle>
         <Rule>
-          <RasterSymbolizer>\n""".format(
-        name
-    )
+          <RasterSymbolizer>\n""".format(name)
 
     # Define type of ColorMap depending on data type of input map
     if use_categories:
@@ -140,8 +140,9 @@ def main():
         # sld+='            <ColorMap type={}>\n'.format('"ramp"')
         ColorMapEntry = '              <ColorMapEntry color="#{0:02x}{1:02x}{2:02x}" quantity="{3}" opacity="{4}" />\n'
 
-    #
-    for c in color_rules:
+    # loop over colors
+    for num, c in enumerate(color_rules):
+        gs.percent(num + 1, len(color_rules), 1)
         if len(c.split(" ")) == 2 and not c.split(" ")[0] == "default":
             q = c.split(" ")[0]
             if q == "nv":
@@ -187,5 +188,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

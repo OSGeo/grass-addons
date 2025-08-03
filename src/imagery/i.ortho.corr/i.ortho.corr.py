@@ -15,73 +15,73 @@
 #        for details.
 #
 #############################################################################
-#%module
-#% description: Corrects orthophoto taking part of the adjacent orthophotos using a camera angle map.
-#% keyword: imagery
-#% keyword: orthorectification
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: input raster
-#% key_desc: name
-#% description: Name of input raster map
-#% required: yes
-#%end
-#%option
-#% key: osuffix
-#% type: string
-#% gisprompt: suffix of ortophoto
-#% key_desc: ortho
-#% description: Suffix of ortophoto map, default is .ortho, use None for no suffix
-#% required: no
-#%end
-#%option
-#% key: csuffix
-#% type: string
-#% gisprompt: suffix of camera
-#% key_desc: ortho
-#% description: Suffix of camera angle map, default is .camera_angle, use None for no suffix
-#% required: no
-#%end
-#%option
-#% key: tiles
-#% type: string
-#% gisprompt: input vector tiles
-#% key_desc: name
-#% description: Name of input vector tiles map create by a list of orthophoto
-#% required: yes
-#%end
-#%option
-#% key: field
-#% type: string
-#% gisprompt: name of location's field
-#% key_desc: name
-#% description: Name of location's field in the input vector tiles map
-#% required: no
-#%end
-#%option
-#% key: exclude
-#% type: string
-#% gisprompt: pattern to exclude some tiles
-#% key_desc: name
-#% description: Pattern to use if you want exclude some tiles
-#% required: no
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: output raster
-#% key_desc: name
-#% description: Name of output raster map
-#% required: no
-#%end
+# %module
+# % description: Corrects orthophoto taking part of the adjacent orthophotos using a camera angle map.
+# % keyword: imagery
+# % keyword: orthorectification
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: input raster
+# % key_desc: name
+# % description: Name of input raster map
+# % required: yes
+# %end
+# %option
+# % key: osuffix
+# % type: string
+# % gisprompt: suffix of ortophoto
+# % key_desc: ortho
+# % description: Suffix of ortophoto map, default is .ortho, use None for no suffix
+# % required: no
+# %end
+# %option
+# % key: csuffix
+# % type: string
+# % gisprompt: suffix of camera
+# % key_desc: ortho
+# % description: Suffix of camera angle map, default is .camera_angle, use None for no suffix
+# % required: no
+# %end
+# %option
+# % key: tiles
+# % type: string
+# % gisprompt: input vector tiles
+# % key_desc: name
+# % description: Name of input vector tiles map create by a list of orthophoto
+# % required: yes
+# %end
+# %option
+# % key: field
+# % type: string
+# % gisprompt: name of location's field
+# % key_desc: name
+# % description: Name of location's field in the input vector tiles map
+# % required: no
+# %end
+# %option
+# % key: exclude
+# % type: string
+# % gisprompt: pattern to exclude some tiles
+# % key_desc: name
+# % description: Pattern to use if you want exclude some tiles
+# % required: no
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: output raster
+# % key_desc: name
+# % description: Name of output raster map
+# % required: no
+# %end
 
 # import library
 import os
 import sys
 import re
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -132,7 +132,7 @@ def controlPoints(inputmap):
     """
 
     # return r.info about input file
-    rinfo = grass.raster_info(inputmap)
+    rinfo = gs.raster_info(inputmap)
     nsres = rinfo["nsres"]
     ewres = rinfo["ewres"]
     # create a dictionary for Nord East
@@ -198,7 +198,7 @@ def vector_what(map, coor):
 
     result = {}
     # create string for east_north param
-    fields = grass.read_command("v.what", flags="ag", map=map, east_north=coor)
+    fields = gs.read_command("v.what", flags="ag", map=map, east_north=coor)
     # split lines
     fields = fields.splitlines()
     # value for number of features
@@ -254,7 +254,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
         camera_tile = prefix_tile + csuffix
         # first tile start the new map
         if i == 0:
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = if(isnull(${c_tile}), ${in_map}, "
                 "if(${c_input} >= ${maxV}, ${in_map}, "
                 "if(${c_tile} >= ${maxV}, ${tile}, ${in_map})))",
@@ -266,7 +266,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
                 maxV=maxValue,
             )
 
-            grass.mapcalc(
+            gs.mapcalc(
                 "temp_camera = if(isnull(${c_tile}), ${c_input}, "
                 "if(${c_input} >= ${maxV}, ${c_input}, "
                 "if(${c_tile} >= ${maxV}, ${c_tile}, ${c_input})))",
@@ -276,7 +276,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
             )
         # for the other tile check the outmap
         else:
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = if(isnull(${c_tile}), ${out}, "
                 "if(temp_camera >= ${maxV},${out}, "
                 "if(${c_tile} >= ${maxV}, ${tile}, ${out})))",
@@ -286,7 +286,7 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
                 maxV=maxValue,
             )
 
-            grass.mapcalc(
+            gs.mapcalc(
                 "temp_camera = if(isnull(${c_tile}), temp_camera, "
                 "if(temp_camera >= ${maxV}, ${c_input}, "
                 "if(${c_tile} >= ${maxV}, ${c_tile},${c_input})))",
@@ -298,5 +298,5 @@ def calcMap(inmap, outmap, tiles, osuffix, csuffix, exclude):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

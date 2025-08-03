@@ -56,7 +56,7 @@ void delineate_streams(struct Map_info *Map, struct cell_map *dir_buf,
                      * flow loop and has a flow higher than the threshold, the
                      * current cell is not a headwater */
                     if (dir_buf->c[row + i][col + j] ==
-                        dir_checks[i + 1][j + 1][0] &&
+                            dir_checks[i + 1][j + 1][0] &&
                         dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1] &&
                         get(accum_buf, row + i, col + j) >= thresh)
                         nup++;
@@ -93,9 +93,8 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
                        double thresh, char conf, int row, int col,
                        struct point_list *pl)
 {
-    static int next_cells[8][2] = {
-        {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}
-    };
+    static int next_cells[8][2] = {{-1, 1}, {-1, 0}, {-1, -1}, {0, -1},
+                                   {1, -1}, {1, 0},  {1, 1},   {0, 1}};
     int dir;
 
     /* if the current cell is outside the computational region or its
@@ -129,7 +128,7 @@ static void trace_down(struct cell_map *dir_buf, struct raster_map *accum_buf,
                  * if this cell is not starting a new stream at this confluence
                  */
                 if (dir_buf->c[row + i][col + j] ==
-                    dir_checks[i + 1][j + 1][0] &&
+                        dir_checks[i + 1][j + 1][0] &&
                     dir_buf->c[row][col] != dir_checks[i + 1][j + 1][1] &&
                     get(accum_buf, row + i, col + j) >= thresh && pl->n > 1 &&
                     ++nup > 1)

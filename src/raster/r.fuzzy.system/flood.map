@@ -10,7 +10,7 @@ $ near {right; 30,70; sshaped; 0; 1}
 $ medium {both; 30,70,100,150; sshaped; 0; 1}
 $ far {both; 100,150,200,300; sshaped; 0; 1}
 $ veryfar {left; 200,300; sshaped; 0; 1}
-	
+
 	%accum_abs
 $ low {right; 500,5000; sshaped; 0; 1}
 $ high {left; 500,5000; sshaped; 0; 1}

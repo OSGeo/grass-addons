@@ -10,7 +10,7 @@ Alessandro Casasso, Rajandrea Sethi, 2016,
 "G.POT: A quantitative method for the assessment and mapping of the
 shallow geothermal potential"
 Energy 106, p 765 -- 773
-http://dx.doi.org/10.1016/j.energy.2016.03.091
+https://doi.org/10.1016/j.energy.2016.03.091
 
 
 Variables
@@ -40,6 +40,7 @@ simulation parameters:
       geo-exchange is evaluated.
 
 """
+
 from numpy import log, pi, sqrt
 
 from grass.script import raster as grast
@@ -79,7 +80,7 @@ def norm_time(time, borehole_radius, ground_conductivity, ground_capacity):
     ...                                                   # doctest: +ELLIPSIS
     1.1147973744292237e-06
     """
-    return borehole_radius ** 2.0 / (
+    return borehole_radius**2.0 / (
         4 * ground_conductivity / ground_capacity * 0.000001 * time
     )
 
@@ -91,7 +92,7 @@ def r_norm_time(
     ground_conductivity,
     ground_capacity,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Normalized time in s
 
@@ -214,7 +215,7 @@ def r_power(
     borehole_resistence,
     gmax,
     execute=True,
-    **kwargs
+    **kwargs,
 ):
     """Return the potential power using the g.pot method in W
 

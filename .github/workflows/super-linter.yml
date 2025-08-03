@@ -1,32 +1,75 @@
+---
 name: General linting
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - grass[0-9]+
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
 
 jobs:
   super-linter:
     name: GitHub Super Linter
-
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
       - name: Lint code base
-        uses: docker://github/super-linter:v2.2.2
+        uses: super-linter/super-linter@5119dcd8011e92182ce8219d9e9efc82f16fddb6 # v8.0.0
         env:
-          # Listed but disabled linters would be nice to have.
-          # Python (supported using Pylint) and C/C++ (not supported) are
-          # handled separately due to the complexity of the settings.
-          # (The rest is simply disabled automatically as of v2.)
-          VALIDATE_BASH: false
-          VALIDATE_CSS: false
-          VALIDATE_DOCKER: false
-          VALIDATE_JAVASCRIPT_ES: true
-          VALIDATE_JAVASCRIPT_STANDARD: false
-          VALIDATE_JSON: true
-          VALIDATE_MD: false
-          VALIDATE_PERL: false
-          VALIDATE_POWERSHELL: true
-          VALIDATE_XML: false
-          VALIDATE_YAML: true
+          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # By default, super-linter expect all linters to have their config
+          # files inside .github/linters.
+          # Setting it to the root of the repo for easier configuration here.
+          LINTER_RULES_PATH: .
+          FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
+          IGNORE_GENERATED_FILES: true
+          VALIDATE_BASH: false # Until issues are fixed, some valid warnings
+          VALIDATE_CHECKOV: false # Until issues are fixed
+          VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
+          VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
+          VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
+          VALIDATE_HTML: false # Until configured, some valid findings
+          VALIDATE_HTML_PRETTIER: false # Until properly formatted
+          VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
+          VALIDATE_JSON_PRETTIER: false # Until fixed
+          VALIDATE_JSONC_PRETTIER: false
+          VALIDATE_JUPYTER_NBQA_BLACK: false # Handled by our ruff formatting
+          VALIDATE_JUPYTER_NBQA_ISORT: false # Until fixed and confirmed safe
+          VALIDATE_JUPYTER_NBQA_MYPY: false # Until fixed
+          VALIDATE_JUPYTER_NBQA_PYLINT: false # Until fixed
+          VALIDATE_JUPYTER_NBQA_RUFF: false # ruff version isn't updated at the same time as we do
+          VALIDATE_LATEX: false # Until issues are fixed, some valid findings
+          VALIDATE_MARKDOWN_PRETTIER: false # Until issues are fixed
+          VALIDATE_NATURAL_LANGUAGE: false # Until issues are fixed, lots of valid suggestions
+          VALIDATE_PERL: false # Until issues are fixed
+          VALIDATE_PYTHON_BLACK: false # We are using ruff format
+          VALIDATE_PYTHON_FLAKE8: false
+          VALIDATE_PYTHON_ISORT: false # Until issues are fixed
+          VALIDATE_PYTHON_MYPY: false # Issue with module name wx.wms
+          VALIDATE_PYTHON_PYINK: false # fork of black with different behavior
+          VALIDATE_PYTHON_PYLINT: false # Until issues are fixed
+          VALIDATE_PYTHON_RUFF: false # Until ruff is configured and most issues fixed
+          VALIDATE_R: false
+          VALIDATE_RENOVATE: false # Until configuration file is upgraded
+          VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          MARKDOWN_CONFIG_FILE: .markdownlint.yml
+          YAML_CONFIG_FILE: .yamllint

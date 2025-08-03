@@ -252,9 +252,10 @@ int test_schedule_end_of_simulation()
     Date end(2020, 3, 3);
 
     Scheduler scheduling1(st, end, StepUnit::Week, 1);
-    std::vector<bool> schedule = scheduling1.schedule_action_end_of_simulation();
-    if (!(get_number_of_scheduled_actions(schedule) == 1
-          && schedule[scheduling1.get_num_steps() - 1])) {
+    std::vector<bool> schedule =
+        scheduling1.schedule_action_end_of_simulation();
+    if (!(get_number_of_scheduled_actions(schedule) == 1 &&
+          schedule[scheduling1.get_num_steps() - 1])) {
         std::cout << "Failed scheduling of end of simulation" << std::endl;
         scheduling1.debug_schedule(schedule);
         num_errors++;
@@ -313,7 +314,7 @@ int test_unit_enum_from_string()
         step_unit_enum_from_string("invalid_input");
         num_errors++;
     }
-    catch (std::invalid_argument&) {
+    catch (std::invalid_argument &) {
         // OK
     }
     catch (...) {
@@ -339,7 +340,7 @@ int test_schedule_from_string()
         out = schedule_from_string(scheduling, "day");
         num_errors++;
     }
-    catch (std::invalid_argument&) {
+    catch (std::invalid_argument &) {
         // OK
     }
 
@@ -362,7 +363,7 @@ int test_schedule_from_string()
         out = schedule_from_string(scheduling3, "week");
         num_errors++;
     }
-    catch (std::invalid_argument&) {
+    catch (std::invalid_argument &) {
         // OK
     }
     out = schedule_from_string(scheduling3, "every_n_steps", 2);
@@ -412,8 +413,9 @@ int main()
     num_errors += test_get_step_length();
     num_errors += test_schedule_from_string();
 
-    std::cout << "Test scheduling number of errors: " << num_errors << std::endl;
+    std::cout << "Test scheduling number of errors: " << num_errors
+              << std::endl;
     return num_errors;
 }
 
-#endif  // POPS_TEST
+#endif // POPS_TEST

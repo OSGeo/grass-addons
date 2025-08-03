@@ -15,7 +15,7 @@ modules = ["d.", "db.", "g.", "i.", "m.", "r3.", "r.", "t.", "v.", "wxGUI."]
 
 
 def is_module(name):
-    """Check if html page is refering to a module or not"""
+    """Check if html page is referring to a module or not"""
     right = False
     for mod in modules:
         if name.startswith(mod):
@@ -104,9 +104,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
-        description="Check modules without " " examples or screenshots",
+        description="Check modules without examples or screenshots",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="Run into docs/html"
         " folder to get modules without examples:"

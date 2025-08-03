@@ -16,21 +16,21 @@
 #############################################################################
 #
 
-#%module
-#% description: Calculate the Ground Source Heat Pump technical potential using the ASHRAE method.
-#% keyword: raster
-#% keyword: geothermal
-#% keyword: renewable energy
-#%end
+# %module
+# % description: Calculate the Ground Source Heat Pump technical potential using the ASHRAE method.
+# % keyword: raster
+# % keyword: geothermal
+# % keyword: renewable energy
+# %end
 
 ##
 ## REQUIRED INPUTS
 ##
-#%option G_OPT_R_INPUT
-#% key: ground_conductivity
-#% description: Raster with depth-averaged ground thermal conductivity lambda [W m-1 K-1]
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % key: ground_conductivity
+# % description: Raster with depth-averaged ground thermal conductivity lambda [W m-1 K-1]
+# % required: yes
+# %end
 
 ##
 ## OPTIONAL INPUTS
@@ -39,254 +39,254 @@
 #######################
 ## Ground properties ##
 #######################
-#%option G_OPT_R_INPUT
-#% key: ground_diffusivity_rast
-#% description: Raster with depth-averaged ground diffusivity [m2 day-1]
-#% required: no
-#% guisection: Ground
-#%end
-#%option
-#% key: ground_diffusivity_value
-#% type: double
-#% key_desc: double
-#% description: Value with depth-averaged ground diffusivity  [m2 day-1]
-#% required: no
-#% answer: 0.086
-#% guisection: Ground
-#%end
+# %option G_OPT_R_INPUT
+# % key: ground_diffusivity_rast
+# % description: Raster with depth-averaged ground diffusivity [m2 day-1]
+# % required: no
+# % guisection: Ground
+# %end
+# %option
+# % key: ground_diffusivity_value
+# % type: double
+# % key_desc: double
+# % description: Value with depth-averaged ground diffusivity  [m2 day-1]
+# % required: no
+# % answer: 0.086
+# % guisection: Ground
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: ground_temp_rast
-#% description: Raster with the initial ground temperature T0 [degrees C]
-#% required: no
-#% guisection: Ground
-#%end
-#%option
-#% key: ground_temp_value
-#% type: double
-#% key_desc: double
-#% description: Value with the initial ground temperature T0 [degrees C]
-#% required: no
-#% answer: 10.
-#% guisection: Ground
-#%end
+# %option G_OPT_R_INPUT
+# % key: ground_temp_rast
+# % description: Raster with the initial ground temperature T0 [degrees C]
+# % required: no
+# % guisection: Ground
+# %end
+# %option
+# % key: ground_temp_value
+# % type: double
+# % key_desc: double
+# % description: Value with the initial ground temperature T0 [degrees C]
+# % required: no
+# % answer: 10.
+# % guisection: Ground
+# %end
 
 
 #############################
 ## Ground loads properties ##
 #############################
-#%option G_OPT_R_INPUT
-#% key: g_loads_6h_rast
-#% description: Peak of the maximum 6 hourly ground loads [W]
-#% required: no
-#% guisection: Ground loads
-#%end
-#%option
-#% key: g_loads_6h_value
-#% type: double
-#% key_desc: double
-#% description: Peak of the maximum 6 hourly ground loads [W]
-#% required: no
-#% answer: 60.
-#% guisection: Ground loads
-#%end
+# %option G_OPT_R_INPUT
+# % key: g_loads_6h_rast
+# % description: Peak of the maximum 6 hourly ground loads [W]
+# % required: no
+# % guisection: Ground loads
+# %end
+# %option
+# % key: g_loads_6h_value
+# % type: double
+# % key_desc: double
+# % description: Peak of the maximum 6 hourly ground loads [W]
+# % required: no
+# % answer: 60.
+# % guisection: Ground loads
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: g_loads_1m_rast
-#% description: Month with the maximum ground loads [W]
-#% required: no
-#% guisection: Ground loads
-#%end
-#%option
-#% key: g_loads_1m_value
-#% type: double
-#% key_desc: double
-#% description: Month with the maximum ground loads [W]
-#% required: no
-#% answer: 15.
-#% guisection: Ground loads
-#%end
+# %option G_OPT_R_INPUT
+# % key: g_loads_1m_rast
+# % description: Month with the maximum ground loads [W]
+# % required: no
+# % guisection: Ground loads
+# %end
+# %option
+# % key: g_loads_1m_value
+# % type: double
+# % key_desc: double
+# % description: Month with the maximum ground loads [W]
+# % required: no
+# % answer: 15.
+# % guisection: Ground loads
+# %end
 
-#%option G_OPT_R_INPUT
-#% key: g_loads_1y_rast
-#% description: Yearly average ground loads [W]
-#% required: no
-#% guisection: Ground loads
-#%end
-#%option
-#% key: g_loads_1y_value
-#% type: double
-#% key_desc: double
-#% description: Yearly average ground loads [W]
-#% required: no
-#% answer: 5.
-#% guisection: Ground loads
-#%end
+# %option G_OPT_R_INPUT
+# % key: g_loads_1y_rast
+# % description: Yearly average ground loads [W]
+# % required: no
+# % guisection: Ground loads
+# %end
+# %option
+# % key: g_loads_1y_value
+# % type: double
+# % key_desc: double
+# % description: Yearly average ground loads [W]
+# % required: no
+# % answer: 5.
+# % guisection: Ground loads
+# %end
 
 ######################
 ## Fluid properties ##
 ######################
-#%option
-#% key: fluid_capacity
-#% type: double
-#% key_desc: double
-#% description: Fluid capacity Cp [J kg-1 K-1]
-#% required: no
-#% answer: 4200.
-#% guisection: Fluid
-#%end
-#%option
-#% key: fluid_massflow
-#% type: double
-#% key_desc: double
-#% description: Fluid massflow  [kg s-1 kW-1]
-#% required: no
-#% answer: 0.050
-#% guisection: Fluid
-#%end
-#%option
-#% key: fluid_inlettemp
-#% type: double
-#% key_desc: double
-#% description: Inlet temperature  [degrees C]
-#% required: no
-#% answer: 2.
-#% guisection: Fluid
-#%end
+# %option
+# % key: fluid_capacity
+# % type: double
+# % key_desc: double
+# % description: Fluid capacity Cp [J kg-1 K-1]
+# % required: no
+# % answer: 4200.
+# % guisection: Fluid
+# %end
+# %option
+# % key: fluid_massflow
+# % type: double
+# % key_desc: double
+# % description: Fluid massflow  [kg s-1 kW-1]
+# % required: no
+# % answer: 0.050
+# % guisection: Fluid
+# %end
+# %option
+# % key: fluid_inlettemp
+# % type: double
+# % key_desc: double
+# % description: Inlet temperature  [degrees C]
+# % required: no
+# % answer: 2.
+# % guisection: Fluid
+# %end
 
 
 #########################
 ## Borehole properties ##
 #########################
-#%option
-#% key: bh_radius
-#% type: double
-#% key_desc: double
-#% description: Borehole radius [m]
-#% required: no
-#% answer: 0.06
-#% guisection: Borehole
-#%end
-#%option
-#% key: bh_convection
-#% type: double
-#% key_desc: double
-#% description: Internal convection coefficient [W m-2 K-1]
-#% required: no
-#% answer: 1.52
-#% guisection: Borehole
-#%end
-#%option
-#% key: bh_resistence
-#% type: double
-#% key_desc: double
-#% description: Borehole thermal resistence [m K W-1]
-#% required: no
-#% answer: nan
-#% guisection: Borehole
-#%end
+# %option
+# % key: bh_radius
+# % type: double
+# % key_desc: double
+# % description: Borehole radius [m]
+# % required: no
+# % answer: 0.06
+# % guisection: Borehole
+# %end
+# %option
+# % key: bh_convection
+# % type: double
+# % key_desc: double
+# % description: Internal convection coefficient [W m-2 K-1]
+# % required: no
+# % answer: 1.52
+# % guisection: Borehole
+# %end
+# %option
+# % key: bh_resistence
+# % type: double
+# % key_desc: double
+# % description: Borehole thermal resistence [m K W-1]
+# % required: no
+# % answer: nan
+# % guisection: Borehole
+# %end
 
-#%option
-#% key: pipe_inner_radius
-#% type: double
-#% key_desc: double
-#% description: Borehole pipe inner radius [m]
-#% required: no
-#% answer: 0.01365
-#% guisection: Borehole
-#%end
-#%option
-#% key: pipe_outer_radius
-#% type: double
-#% key_desc: double
-#% description: Borehole pipe outer radius [m]
-#% required: no
-#% answer: 0.0167
-#% guisection: Borehole
-#%end
-#%option
-#% key: pipe_distance
-#% type: double
-#% key_desc: double
-#% description: Center-to-center distance between pipes [m]
-#% required: no
-#% answer: 0.0511
-#% guisection: Borehole
-#%end
-#%option
-#% key: k_pipe
-#% type: double
-#% key_desc: double
-#% description: Pipe thermal conductivity [W m-1 K-1]
-#% required: no
-#% answer: 0.42
-#% guisection: Borehole
-#%end
-#%option
-#% key: k_grout
-#% type: double
-#% key_desc: double
-#% description: Grout thermal conductivity [W m-1 K-1]
-#% required: no
-#% answer: 1.52
-#% guisection: Borehole
-#%end
+# %option
+# % key: pipe_inner_radius
+# % type: double
+# % key_desc: double
+# % description: Borehole pipe inner radius [m]
+# % required: no
+# % answer: 0.01365
+# % guisection: Borehole
+# %end
+# %option
+# % key: pipe_outer_radius
+# % type: double
+# % key_desc: double
+# % description: Borehole pipe outer radius [m]
+# % required: no
+# % answer: 0.0167
+# % guisection: Borehole
+# %end
+# %option
+# % key: pipe_distance
+# % type: double
+# % key_desc: double
+# % description: Center-to-center distance between pipes [m]
+# % required: no
+# % answer: 0.0511
+# % guisection: Borehole
+# %end
+# %option
+# % key: k_pipe
+# % type: double
+# % key_desc: double
+# % description: Pipe thermal conductivity [W m-1 K-1]
+# % required: no
+# % answer: 0.42
+# % guisection: Borehole
+# %end
+# %option
+# % key: k_grout
+# % type: double
+# % key_desc: double
+# % description: Grout thermal conductivity [W m-1 K-1]
+# % required: no
+# % answer: 1.52
+# % guisection: Borehole
+# %end
 
 
 ###############################
 ## Borehole filed properties ##
 ###############################
-#%option
-#% key: field_distance
-#% type: double
-#% key_desc: double
-#% description: Distance between boreholes heat exchanger
-#% required: no
-#% answer: 6.1
-#% guisection: BHE Field
-#%end
-#%option
-#% key: field_number
-#% type: integer
-#% key_desc: integer
-#% description: Number of borehole heat exchanger
-#% required: no
-#% answer: 2
-#% guisection: BHE Field
-#%end
-#%option
-#% key: field_ratio
-#% type: double
-#% key_desc: double
-#% description: Borefield aspect ratio
-#% required: no
-#% answer: 1.2
-#% guisection: BHE Field
-#%end
+# %option
+# % key: field_distance
+# % type: double
+# % key_desc: double
+# % description: Distance between boreholes heat exchanger
+# % required: no
+# % answer: 6.1
+# % guisection: BHE Field
+# %end
+# %option
+# % key: field_number
+# % type: integer
+# % key_desc: integer
+# % description: Number of borehole heat exchanger
+# % required: no
+# % answer: 2
+# % guisection: BHE Field
+# %end
+# %option
+# % key: field_ratio
+# % type: double
+# % key_desc: double
+# % description: Borefield aspect ratio
+# % required: no
+# % answer: 1.2
+# % guisection: BHE Field
+# %end
 
 
 #############
 ## Outputs ##
 #############
-#%option G_OPT_R_OUTPUT
-#% key: bhe_length
-#% type: string
-#% key_desc: name
-#% description: Name of output raster map with the geothermal length of the BHE [m]
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: bhe_field_length
-#% type: string
-#% key_desc: name
-#% description: Name of output raster map with the geothermal length of the BHE field [m]
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: bhe_length
+# % type: string
+# % key_desc: name
+# % description: Name of output raster map with the geothermal length of the BHE [m]
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: bhe_field_length
+# % type: string
+# % key_desc: name
+# % description: Name of output raster map with the geothermal length of the BHE field [m]
+# % required: no
+# %end
 
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
 
 from __future__ import print_function
 

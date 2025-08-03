@@ -1,16 +1,14 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-struct neighbor
-{
+struct neighbor {
     int row;
     int col;
     char done;
     char parent;
 };
 
-struct neighbor_stack
-{
+struct neighbor_stack {
     struct neighbor *up;
     int n;
     int nalloc;
@@ -20,9 +18,8 @@ static int nrows, ncols;
 
 static void trace_up(struct cell_map *, struct raster_map *,
                      struct raster_map *, char **, char, int, int);
-static void find_up(struct cell_map *, struct raster_map *,
-                    struct raster_map *, char **, char, int, int,
-                    struct neighbor *, int *);
+static void find_up(struct cell_map *, struct raster_map *, struct raster_map *,
+                    char **, char, int, int, struct neighbor *, int *);
 static char is_incomplete(struct cell_map *, int, int);
 static void init_up_stack(struct neighbor_stack *);
 static void free_up_stack(struct neighbor_stack *);
@@ -127,7 +124,7 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
              * and the cell is on edges */
             if (neg && !incomplete)
                 incomplete = cur_up->done == 2 ||
-                    is_incomplete(dir_buf, cur_up->row, cur_up->col);
+                             is_incomplete(dir_buf, cur_up->row, cur_up->col);
 
             if (cur_up->done) {
                 double a = get(accum_buf, cur_up->row, cur_up->col);
@@ -138,9 +135,9 @@ static void trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
                 /* if a weight map is specified (no negative accumulation is
                  * implied), use the weight value at the current cell;
                  * otherwise use 1 */
-                accum +=
-                    weight_buf->map.v ? get(weight_buf, cur_up->row,
-                                            cur_up->col) : 1.0;
+                accum += weight_buf->cells.v
+                             ? get(weight_buf, cur_up->row, cur_up->col)
+                             : 1.0;
 
             /* if negative accumulation is desired and the current cell is
              * incomplete, use a negative cell count without weighting;
@@ -216,7 +213,7 @@ static void find_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
     if (!*nup) {
         /* if a weight map is specified (no negative accumulation is implied),
          * use the weight value at the current cell; otherwise use 1 */
-        double accum = weight_buf->map.v ? get(weight_buf, row, col) : 1.0;
+        double accum = weight_buf->cells.v ? get(weight_buf, row, col) : 1.0;
 
         /* if negative accumulation is desired and the current cell is
          * incomplete, use a negative cell count without weighting; otherwise
@@ -271,10 +268,8 @@ static void push_up(struct neighbor_stack *up_stack, struct neighbor *up)
 {
     if (up_stack->n == up_stack->nalloc) {
         up_stack->nalloc += REALLOC_INCREMENT;
-        up_stack->up =
-            (struct neighbor *)G_realloc(up_stack->up,
-                                         up_stack->nalloc *
-                                         sizeof(struct neighbor));
+        up_stack->up = (struct neighbor *)G_realloc(
+            up_stack->up, up_stack->nalloc * sizeof(struct neighbor));
     }
     up_stack->up[up_stack->n++] = *up;
 }
@@ -287,10 +282,8 @@ static struct neighbor pop_up(struct neighbor_stack *up_stack)
         up = up_stack->up[--up_stack->n];
         if (up_stack->n == up_stack->nalloc - REALLOC_INCREMENT) {
             up_stack->nalloc -= REALLOC_INCREMENT;
-            up_stack->up =
-                (struct neighbor *)G_realloc(up_stack->up,
-                                             up_stack->nalloc *
-                                             sizeof(struct neighbor));
+            up_stack->up = (struct neighbor *)G_realloc(
+                up_stack->up, up_stack->nalloc * sizeof(struct neighbor));
         }
     }
 

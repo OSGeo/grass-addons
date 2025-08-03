@@ -26,45 +26,45 @@
 #
 #############################################################################
 
-#%Module
-#%  description: r.denoise - denoise topographic data
-#%End
-#%option
-#% key: input
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Raster input map
-#% required : yes
-#%end
-#%option
-#% key: output
-#% type: string
-#% gisprompt: new,cell,raster
-#% description: Denoised raster output map
-#% required : yes
-#%end
-#%option
-#% key: iterations
-#% type: integer
-#% description: Number of normal-updating iterations
-#% answer: 5
-#% options: 1-50
-#% required : no
-#%end
-#%option
-#% key: threshold
-#% type: double
-#% description: Edge-sharpness threshold
-#% answer: 0.93
-#% options: 0.0-1.0
-#% required : no
-#%end
-#%option
-#% key: epsg
-#% type: integer
-#% description: EPSG projection code (required if current location is not projected)
-#% required : no
-#%end
+# %Module
+# %  description: r.denoise - denoise topographic data
+# %End
+# %option
+# % key: input
+# % type: string
+# % gisprompt: old,cell,raster
+# % description: Raster input map
+# % required : yes
+# %end
+# %option
+# % key: output
+# % type: string
+# % gisprompt: new,cell,raster
+# % description: Denoised raster output map
+# % required : yes
+# %end
+# %option
+# % key: iterations
+# % type: integer
+# % description: Number of normal-updating iterations
+# % answer: 5
+# % options: 1-50
+# % required : no
+# %end
+# %option
+# % key: threshold
+# % type: double
+# % description: Edge-sharpness threshold
+# % answer: 0.93
+# % options: 0.0-1.0
+# % required : no
+# %end
+# %option
+# % key: epsg
+# % type: integer
+# % description: EPSG projection code (required if current location is not projected)
+# % required : no
+# %end
 
 import os
 import atexit
@@ -73,17 +73,18 @@ try:
     from itertools import izip as zip
 except ImportError:  # included in py 3.x series
     pass
-import grass.script as grass
+import grass.script as gs
 
 # pyproj lazy imported at the end of the file
 
 # PID for temporary files
 tmp_rmaps = []
 
-# # what to do in case of user break:
+
+# what to do in case of user break:
 def cleanup():
     # delete any TMP files:
-    grass.message(_("Removing temporary files..."))
+    gs.message(_("Removing temporary files..."))
     global tmp_rmaps
     try:
         for fname in tmp_rmaps:
@@ -95,59 +96,44 @@ def cleanup():
 # test if requirements are present
 def check_requirements():
     # mdenoise
-    if not grass.find_program("mdenoise"):
-        grass.fatal(
+    if not gs.find_program("mdenoise"):
+        gs.fatal(
             _(
                 "mdenoise required. Follow instructions in html manual page to install it (g.manual r.denoise)."
             )
         )
 
 
-# Test for projected location
-def check_proj(epsg):
-    # check if location is in longlat
-    if grass.parse_command("g.proj", flags="j")["+proj"] == "longlat":
-        # if not projected, check if EPSG code was supplied for reprojection
-        if epsg:
-            # Check if EPSG code exists in database
-            try:
-                out_proj = pyproj.Proj(init="epsg:" + str(epsg))
-            except RuntimeError:
-                grass.fatal(_("EPSG code is not found. Please check."))
-            # With EPSG code, check that it corresponds to a projected locality. # WGS84 LatLong: 4326
-            if out_proj.is_latlong() == False:
-                reproject = True
-            else:
-                grass.fatal(
-                    _(
-                        "EPSG code is not suitable. A projected coordinate system is required."
-                    )
-                )
-        else:
-            grass.fatal(
-                _(
-                    "During processing r.denoise needs to convert the input map to a projected coordinate system; please specify a suitable EPSG code."
-                )
-            )
-    else:
-        grass.message(_("Projected coordinate system. No reprojection needed."))
-        reproject = False
-    return reproject
-
-
 # reproject data
-def do_proj(xyz_in, xyz_out, in_proj, out_proj):
-    grass.message(_("Projecting..."))
+def do_proj(xyz_in, xyz_out, epsg_code):
+    gs.message(_("Projecting..."))
+    # lazy import
+    # TODO: replace by pure GRASS GIS if pyproj not available
+    try:
+        import pyproj
+    except ImportError:
+        gs.fatal(
+            _(
+                "pyproj not found, install it first, e.g.:"
+                " pip install pyproj"
+                " (https://jswhit.github.io/pyproj)"
+            )
+        )
+    # define projections
+    loc_proj = gs.read_command("g.proj", flags="jf")
+    loc_proj = pyproj.Proj(loc_proj.strip())
+    epsg_proj = pyproj.Proj("epsg:" + str(epsg_code))
+    # Create transformation object
+    transformer = pyproj.Transformer.from_proj(loc_proj, epsg_proj)
     # open files
     f_in = open(xyz_in, "r")
     f_out = open(xyz_out, "w")
     # read input coordinates file
     for line in f_in.readlines():
-        xyz = line.split()
         # do the projection
-        x, y = pyproj.transform(in_proj, out_proj, xyz[0], xyz[1])
-        # write output to file
-        f_out.write("%.6f %.6f %s\n" % (x, y, xyz[2]))
+        for pnt in transformer.itransform([list(map(float, [line.split()]))]):
+            # write output to file
+            f_out.write("{} {} {}\n".format(*pnt))
     # close files
     f_in.close()
     f_out.close()
@@ -164,39 +150,33 @@ def main():
     epsg = options["epsg"]
 
     # check if input file exists
-    if not grass.find_file(in_raster)["file"]:
-        grass.fatal(_("Raster map <%s> not found") % in_raster)
+    if not gs.find_file(in_raster)["file"]:
+        gs.fatal(_("Raster map <%s> not found") % in_raster)
 
     # name the files
-    tmp_xyz = "{}.xyz".format(grass.tempfile())
-    tmp_xyz_proj = "{}.xyz".format(grass.tempfile())
-    tmp_out_dnoise = "{}.xyz".format(grass.tempfile())
-    tmp_xyz_merge = "{}.xyz".format(grass.tempfile())
+    tmp_xyz = "{}.xyz".format(gs.tempfile())
+    tmp_xyz_proj = "{}.xyz".format(gs.tempfile())
+    tmp_out_dnoise = "{}.xyz".format(gs.tempfile())
+    tmp_xyz_merge = "{}.xyz".format(gs.tempfile())
     # list for cleanup
     tmp_rmaps = [tmp_xyz, tmp_xyz_proj, tmp_out_dnoise, tmp_xyz_merge]
 
+    # check if current location is in a projected coordinate system
+    reproject = gs.locn_is_latlong()
+
     # Export the map to xyz points.
-    grass.message(_("Exporting points..."))
-    grass.run_command(
+    gs.message(_("Exporting points..."))
+    gs.run_command(
         "r.out.xyz", input=in_raster, output=tmp_xyz, separator="space", overwrite=True
     )
 
-    # check if current location is in a projected coordinate system
-    reproject = check_proj(epsg)
-
     # Reproject if necessary
     if reproject:
-        # define projections
-        loc_proj = grass.read_command("g.proj", flags="jf")
-        loc_proj = pyproj.Proj(loc_proj.strip())
-        epsg_proj = pyproj.Proj(init="epsg:" + str(epsg))
-        do_proj(
-            xyz_in=tmp_xyz, xyz_out=tmp_xyz_proj, in_proj=loc_proj, out_proj=epsg_proj
-        )
+        do_proj(tmp_xyz, tmp_xyz_proj, epsg)
         tmp_xyz = tmp_xyz_proj
 
     # Denoise.  The -z flag preserves the xy positions of the points.
-    grass.message(_("Denoising..."))
+    gs.message(_("Denoising..."))
     cmd = (
         ["mdenoise"]
         + ["-i"]
@@ -209,7 +189,7 @@ def main():
         + ["-o"]
         + [tmp_out_dnoise]
     )
-    grass.call(cmd)
+    gs.call(cmd)
 
     # As only the z coordinates have changed in denoising,
     # the new z coordinates are combined with the original xy coordinates.
@@ -226,8 +206,8 @@ def main():
     f_merged.close()
 
     # Reload data
-    grass.message(_("Reloading data..."))
-    grass.run_command(
+    gs.message(_("Reloading data..."))
+    gs.run_command(
         "r.in.xyz",
         flags="i",
         input=tmp_xyz_merge,
@@ -241,10 +221,10 @@ def main():
     )
 
     # Edit metadata to record denoising parameters
-    grass.run_command(
+    gs.run_command(
         "r.support", map=out_raster, title="A denoised version of <%s>" % in_raster
     )
-    grass.run_command(
+    gs.run_command(
         "r.support",
         map=out_raster,
         history="Generated by: r.denoise %s iterations=%s threshold=%s"
@@ -254,21 +234,7 @@ def main():
 
 # run the module
 if __name__ == "__main__":
-    options, flags = grass.parser()
-
-    # lazy import
-    # TODO: ideally, it should be done only if reprojection is needed
-    # or replace by pure GRASS GIS if pyproj not available
-    try:
-        import pyproj
-    except ImportError:
-        grass.fatal(
-            _(
-                "pyproj not found, install it first, e.g.:"
-                " pip install pyproj"
-                " (https://jswhit.github.io/pyproj)"
-            )
-        )
+    options, flags = gs.parser()
 
     atexit.register(cleanup)
     check_requirements()

@@ -16,192 +16,192 @@
 #############################################################################
 
 
-#%module
-#% description: Displays thematic map created from vector features and numeric attributes.
-#% keyword: display
-#% keyword: cartography
-#% keyword: vector
-#% keyword: thematic
-#% keyword: legend
-#%end
-#%option G_OPT_V_MAP
-#%end
-#%option G_OPT_V_FIELD
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column to use for thematic display (must be numeric)
-#% required: yes
-#%end
-#%option G_OPT_V_TYPE
-#%answer: point,line,area
-#%end
-#%option G_OPT_DB_WHERE
-#% guisection: Theme
-#%end
-#%option
-#% key: themetype
-#% type: string
-#% options: graduated_colors,graduated_points,graduated_lines
-#% answer: graduated_colors
-#% description: Type of thematic display
-#% required: yes
-#% guisection: Theme
-#%end
-#%option
-#% key: themecalc
-#% type: string
-#% options: interval,std_deviation,quartiles,custom_breaks
-#% answer: interval
-#% description: Thematic divisions of data for display
-#% required: yes
-#% guisection: Theme
-#%end
-#%option
-#% key: breakpoints
-#% type: string
-#% label: Break points for custom breaks option
-#% description: Separate values by spaces (0 10 20 30 ...)
-#% required: no
-#% guisection: Theme
-#%end
-#%option
-#% key: icon
-#% type: string
-#% description: Vector point icon for point data
-#% options: basic/box,basic/circle,basic/cross2,basic/diamond,basic/star,basic/cross1,basic/x
-#% answer: basic/circle
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: size
-#% type: double
-#% label: Icon size for point data
-#% description: Minimum icon size/line width for graduated points/lines)
-#% answer: 5
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: maxsize
-#% type: double
-#% description: Maximum icon size/line width for graduated points and lines
-#% answer: 20
-#% required: no
-#% guisection: Points
-#%end
-#%option
-#% key: nint
-#% type: integer
-#% description: Number of classes for interval theme (integer)
-#% answer: 4
-#% required: no
-#% guisection: Theme
-#%end
-#%option
-#% key: colorscheme
-#% type: string
-#% label: Color scheme for graduated color mapping
-#% description: Select 'single_color' for graduated point/line display
-#% options: blue-red,red-blue,green-red,red-green,blue-green,green-blue,cyan-yellow,yellow-cyan,custom_gradient,single_color
-#% answer: blue-red
-#% required: yes
-#% guisection: Color
-#%end
-#% option
-#% key: point_color
-#% type: string
-#% label: Color for graduated points map
-#% description: GRASS named color or R:G:B triplet. Set color scheme to single color
-#% answer: 255:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: line_color
-#% type: string
-#% label: Color for graduated lines or point/area outlines
-#% description: GRASS named color or R:G:B triplet. Set color scheme to single color.
-#% answer: 0:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: start_color
-#% type: string
-#% label: Beginning color for custom color gradient
-#% description: Must be expressed as R:G:B triplet
-#% answer: 255:0:0
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: end_color
-#% type: string
-#% label: Ending color for custom color gradient
-#% description: Must be expressed as R:G:B triplet
-#% answer: 0:0:255
-#% required: no
-#% guisection: Color
-#%end
-#% option
-#% key: monitor
-#% type: string
-#% description: Select WXGUI display monitor for legend
-#% options: wx0,wx1,wx2,wx3,wx4,wx5,wx6,none
-#% answer: wx1
-#% required: no
-#% guisection: Misc
-#%end
-#%flag
-#% guisection: Files
-#% key: g
-#%description: Save thematic map commands to group file for GIS Manager
-#%end
-#%option
-#% key: psmap
-#% type: string
-#% label: Root for the name of psmap instruction files to be in current directory
-#% description: If not set, no psmap instruction files will be created)
-#% required: no
-#% guisection: Files
-#%end
-#%option G_OPT_I_GROUP
-#% description: Name of group file where thematic map commands will be saved
-#% required: no
-#% guisection: Files
-#%end
-#%option G_OPT_DB_COLUMN
-#% key: rgb_column
-#% description: Name of color column to populate RGB values
-#%end
-#%flag
-#% guisection: Theme
-#%key: l
-#%description: Create graphic legend in x11 display monitor
-#%end
-#%flag
-#% guisection: Color
-#% key: f
-#% description: Only draw fills (no outlines) for areas and points
-#%end
-#%flag
-#% guisection: Misc
-#%key: s
-#%description: Output legend for GIS Manager (for scripting use only)
-#%end
-#%flag
-#% guisection: Misc
-#%key: m
-#%description: Use math notation brackets in legend
-#%end
+# %module
+# % description: Displays thematic map created from vector features and numeric attributes.
+# % keyword: display
+# % keyword: cartography
+# % keyword: vector
+# % keyword: thematic
+# % keyword: legend
+# %end
+# %option G_OPT_V_MAP
+# %end
+# %option G_OPT_V_FIELD
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column to use for thematic display (must be numeric)
+# % required: yes
+# %end
+# %option G_OPT_V_TYPE
+# %answer: point,line,area
+# %end
+# %option G_OPT_DB_WHERE
+# % guisection: Theme
+# %end
+# %option
+# % key: themetype
+# % type: string
+# % options: graduated_colors,graduated_points,graduated_lines
+# % answer: graduated_colors
+# % description: Type of thematic display
+# % required: yes
+# % guisection: Theme
+# %end
+# %option
+# % key: themecalc
+# % type: string
+# % options: interval,std_deviation,quartiles,custom_breaks
+# % answer: interval
+# % description: Thematic divisions of data for display
+# % required: yes
+# % guisection: Theme
+# %end
+# %option
+# % key: breakpoints
+# % type: string
+# % label: Break points for custom breaks option
+# % description: Separate values by spaces (0 10 20 30 ...)
+# % required: no
+# % guisection: Theme
+# %end
+# %option
+# % key: icon
+# % type: string
+# % description: Vector point icon for point data
+# % options: basic/box,basic/circle,basic/cross2,basic/diamond,basic/star,basic/cross1,basic/x
+# % answer: basic/circle
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: size
+# % type: double
+# % label: Icon size for point data
+# % description: Minimum icon size/line width for graduated points/lines)
+# % answer: 5
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: maxsize
+# % type: double
+# % description: Maximum icon size/line width for graduated points and lines
+# % answer: 20
+# % required: no
+# % guisection: Points
+# %end
+# %option
+# % key: nint
+# % type: integer
+# % description: Number of classes for interval theme (integer)
+# % answer: 4
+# % required: no
+# % guisection: Theme
+# %end
+# %option
+# % key: colorscheme
+# % type: string
+# % label: Color scheme for graduated color mapping
+# % description: Select 'single_color' for graduated point/line display
+# % options: blue-red,red-blue,green-red,red-green,blue-green,green-blue,cyan-yellow,yellow-cyan,custom_gradient,single_color
+# % answer: blue-red
+# % required: yes
+# % guisection: Color
+# %end
+# % option
+# % key: point_color
+# % type: string
+# % label: Color for graduated points map
+# % description: GRASS named color or R:G:B triplet. Set color scheme to single color
+# % answer: 255:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: line_color
+# % type: string
+# % label: Color for graduated lines or point/area outlines
+# % description: GRASS named color or R:G:B triplet. Set color scheme to single color.
+# % answer: 0:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: start_color
+# % type: string
+# % label: Beginning color for custom color gradient
+# % description: Must be expressed as R:G:B triplet
+# % answer: 255:0:0
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: end_color
+# % type: string
+# % label: Ending color for custom color gradient
+# % description: Must be expressed as R:G:B triplet
+# % answer: 0:0:255
+# % required: no
+# % guisection: Color
+# %end
+# % option
+# % key: monitor
+# % type: string
+# % description: Select WXGUI display monitor for legend
+# % options: wx0,wx1,wx2,wx3,wx4,wx5,wx6,none
+# % answer: wx1
+# % required: no
+# % guisection: Misc
+# %end
+# %flag
+# % guisection: Files
+# % key: g
+# %description: Save thematic map commands to group file for GIS Manager
+# %end
+# %option
+# % key: psmap
+# % type: string
+# % label: Root for the name of psmap instruction files to be in current directory
+# % description: If not set, no psmap instruction files will be created)
+# % required: no
+# % guisection: Files
+# %end
+# %option G_OPT_I_GROUP
+# % description: Name of group file where thematic map commands will be saved
+# % required: no
+# % guisection: Files
+# %end
+# %option G_OPT_DB_COLUMN
+# % key: rgb_column
+# % description: Name of color column to populate RGB values
+# %end
+# %flag
+# % guisection: Theme
+# %key: l
+# %description: Create graphic legend in x11 display monitor
+# %end
+# %flag
+# % guisection: Color
+# % key: f
+# % description: Only draw fills (no outlines) for areas and points
+# %end
+# %flag
+# % guisection: Misc
+# %key: s
+# %description: Output legend for GIS Manager (for scripting use only)
+# %end
+# %flag
+# % guisection: Misc
+# %key: m
+# %description: Use math notation brackets in legend
+# %end
 
 import sys
 import os
 import string
 import shutil
 import atexit
-import grass.script as grass
+import grass.script as gs
 
 # for Python 3 compatibility
 try:
@@ -219,7 +219,7 @@ tmp_gisleg = None
 def cleanup():
     for file in [tmp_graph, tmp_group, tmp_psmap, tmp_psleg, tmp_gisleg]:
         if file:
-            grass.try_remove(file)
+            gs.try_remove(file)
 
 
 # hard-coded parameter: the maximum number of legend items before
@@ -233,9 +233,9 @@ def subs(vars, tmpl):
 
 def msg(vars, tmpl, verbose=False):
     if not verbose:
-        grass.message(subs(vars, tmpl))
+        gs.message(subs(vars, tmpl))
     else:
-        grass.verbose(subs(vars, tmpl))
+        gs.verbose(subs(vars, tmpl))
 
 
 def out(fh, vars, tmpl):
@@ -279,21 +279,21 @@ def main():
     maxsize = float(maxsize)
 
     if (
-        "MONITOR" not in grass.gisenv().keys()
+        "MONITOR" not in gs.gisenv().keys()
         and "GRASS_RENDER_IMMEDIATE" not in os.environ
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "Neither MONITOR (managed by d.mon command) nor GRASS_RENDER_IMMEDIATE "
                 "(used for direct rendering) defined)"
             )
         )
 
-    mapset = grass.find_file(map, element="vector")["mapset"]
+    mapset = gs.find_file(map, element="vector")["mapset"]
     if not mapset:
-        grass.fatal(_("Vector map <%s> not found") % map)
-    if rgb_column and mapset != grass.gisenv()["MAPSET"]:
-        grass.warning(
+        gs.fatal(_("Vector map <%s> not found") % map)
+    if rgb_column and mapset != gs.gisenv()["MAPSET"]:
+        gs.warning(
             _(
                 "Vector map <%s> not found in the current mapset. "
                 "Updating RGB values <%s> skipped."
@@ -303,26 +303,26 @@ def main():
         rgb_column = None
 
     # check column type
-    inf = grass.vector_columns(map, layer)
+    inf = gs.vector_columns(map, layer)
     if column not in inf:
-        grass.fatal(_("No such column <%s>") % column)
+        gs.fatal(_("No such column <%s>") % column)
     coltype = inf[column]["type"].lower()
 
     if coltype not in ["integer", "double precision"]:
-        grass.fatal(
+        gs.fatal(
             _("Column <%s> is of type <%s> which is not numeric.") % (column, coltype)
         )
 
     # create temporary file to hold d.graph commands for legend
-    tmp_graph = grass.tempfile()
+    tmp_graph = gs.tempfile()
     # Create temporary file to commands for GIS Manager group
-    tmp_group = grass.tempfile()
+    tmp_group = gs.tempfile()
     # Create temporary file for commands for ps.map map file
-    tmp_psmap = grass.tempfile()
+    tmp_psmap = gs.tempfile()
     # Create temporary file for commands for ps.map legend file
-    tmp_psleg = grass.tempfile()
+    tmp_psleg = gs.tempfile()
     # create file to hold elements for GIS Manager legend
-    tmp_gisleg = grass.tempfile()
+    tmp_gisleg = gs.tempfile()
 
     # Set display variables for group
     atype = int(type == "area")
@@ -339,9 +339,9 @@ def main():
         os.environ["GRASS_RENDER_FILE_READ"] = "TRUE"
         os.environ["GRASS_PNG_AUTO_WRITE"] = "FALSE"
 
-    db = grass.vector_db(map)[1]
+    db = gs.vector_db(map)[1]
     if not db or not db["table"]:
-        grass.fatal(_("No table connected or layer <%s> does not exist.") % layer)
+        gs.fatal(_("No table connected or layer <%s> does not exist.") % layer)
     table = db["table"]
     database = db["database"]
     driver = db["driver"]
@@ -349,13 +349,11 @@ def main():
     # update color values to the table?
     if rgb_column:
         # test, if the rgb column is in the table
-        s = grass.read_command(
-            "db.columns", table=table, database=database, driver=driver
-        )
+        s = gs.read_command("db.columns", table=table, database=database, driver=driver)
         if rgb_column not in s.splitlines():
             msg(locals(), _("Creating column <$rgb_column> in table <$table>"))
             sql = "ALTER TABLE %s ADD COLUMN %s varchar(11)" % (table, rgb_column)
-            grass.write_command(
+            gs.write_command(
                 "db.execute", database=database, driver=driver, input="-", stdin=sql
             )
 
@@ -372,8 +370,8 @@ def main():
     else:
         stype = ["point", "centroid"]
 
-    grass.message(_("Calculating statistics..."))
-    stats = grass.read_command(
+    gs.message(_("Calculating statistics..."))
+    stats = gs.read_command(
         "v.univar",
         flags="eg",
         map=map,
@@ -383,14 +381,15 @@ def main():
         layer=layer,
     )
     if not stats:
-        grass.fatal(_("Unable to calculate statistics for vector map <%s>" % map))
-    stats = grass.parse_key_val(stats)
+        gs.fatal(_("Unable to calculate statistics for vector map <%s>") % map)
+    stats = gs.parse_key_val(stats)
     if "min" not in stats:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Unable to calculate statistics for vector map <%s> "
-                "(missing minimum/maximum value)" % map
+                "(missing minimum/maximum value)"
             )
+            % map
         )
 
     min = float(stats["min"])
@@ -405,7 +404,7 @@ def main():
     ptsize = size
 
     if breakpoints and themecalc != "custom_breaks":
-        grass.warning(_("Custom breakpoints ignored due to themecalc setting."))
+        gs.warning(_("Custom breakpoints ignored due to themecalc setting."))
 
     # set interval for each thematic map calculation type
     if themecalc == "interval":
@@ -439,12 +438,12 @@ def main():
         annotations = " %f; %f; %f; %f" % (q1, q2, q3, q4)
     elif themecalc == "custom_breaks":
         if not breakpoints:
-            grass.fatal(_("Required parameter <%s> not set") % "breakpoints")
+            gs.fatal(_("Required parameter <%s> not set") % "breakpoints")
         breakpoints = [int(x) for x in breakpoints.split()]
         numint = len(breakpoints) - 1
         annotations = ""
     else:
-        grass.fatal(_("Unknown themecalc type <%s>") % themecalc)
+        gs.fatal(_("Unknown themecalc type <%s>") % themecalc)
 
     pointstep = (maxsize - ptsize) / (numint - 1)
 
@@ -528,7 +527,7 @@ end
             else:
                 startc = endc = pointcolor
         else:
-            grass.fatal(
+            gs.fatal(
                 _("This should not happen: parser error. Unknown color scheme %s")
                 % colorscheme
             )
@@ -665,9 +664,9 @@ end
 """
         )
 
-        grass.message("")
-        grass.message(_("Color(R:G:B)\tValue"))
-        grass.message("============\t==========")
+        gs.message("")
+        gs.message(_("Color(R:G:B)\tValue"))
+        gs.message("============\t==========")
 
         line1 = 78
         line2 = 76
@@ -822,7 +821,7 @@ end
 
                 f_gisleg.write("text - - - {...}\n")
 
-            grass.message(
+            gs.message(
                 "%-15s %s%.3f - %.3f%s %s"
                 % (themecolor, openbracket, rangemin, rangemax, closebracket, extranote)
             )
@@ -843,7 +842,7 @@ end
                     locals(),
                     "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere",
                 )
-                grass.write_command(
+                gs.write_command(
                     "db.execute", database=database, driver=driver, input="-", stdin=sql
                 )
 
@@ -908,7 +907,7 @@ end
 
             # display theme vector map
 
-            grass.run_command(
+            gs.run_command(
                 "d.vect",
                 map=map,
                 type=type,
@@ -979,7 +978,6 @@ end
     # graduated points and line widths thematic mapping
 
     if themetype in ["graduated_points", "graduated_lines"]:
-
         # display graduated points/lines by intervals
         if themecalc == "interval":
             out(
@@ -1013,7 +1011,6 @@ end
 
         # display graduated points/lines for standard deviation units
         if themecalc == "std_deviation":
-
             out(
                 f_graph,
                 locals(),
@@ -1045,7 +1042,6 @@ end
 
         # display graduated points/lines for quartiles
         if themecalc == "quartiles":
-
             out(
                 f_graph,
                 locals(),
@@ -1112,9 +1108,9 @@ end
 """,
         )
 
-        grass.message("")
-        grass.message(_("Size/width\tValue"))
-        grass.message("==========\t=====")
+        gs.message("")
+        gs.message(_("Size/width\tValue"))
+        gs.message("==========\t=====")
 
         themecolor = pointcolor
 
@@ -1260,7 +1256,7 @@ end
 """,
                     )
 
-            grass.message(
+            gs.message(
                 "%-15d %s%.3f - %.3f%s %s"
                 % (ptsize, openbracket, rangemin, rangemax, closebracket, extranote)
             )
@@ -1282,7 +1278,7 @@ end
                     locals(),
                     "UPDATE $table SET $rgb_column = '$themecolor' WHERE $sqlwhere",
                 )
-                grass.write_command(
+                gs.write_command(
                     "db.execute", database=database, driver=driver, input="-", stdin=sql
                 )
 
@@ -1346,7 +1342,7 @@ end
             if themetype == "graduated_lines":
                 kwargs["width"] = ptsize
 
-            grass.run_command(
+            gs.run_command(
                 "d.vect",
                 map=map,
                 type=type,
@@ -1357,7 +1353,7 @@ end
                 icon=icon,
                 size=ptsize,
                 quiet=True,
-                **kwargs
+                **kwargs,
             )
 
             if themetype != "graduated_lines":
@@ -1387,8 +1383,8 @@ end
     # Create graphic legend
     f_graph.close()
     if flag_l:
-        grass.run_command("d.erase")
-        grass.run_command("d.graph", input=tmp_graph)
+        gs.run_command("d.erase")
+        gs.run_command("d.graph", input=tmp_graph)
 
     # Create group file for GIS Manager
     f_group.write("End\n")
@@ -1417,6 +1413,6 @@ end
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

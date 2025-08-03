@@ -17,85 +17,85 @@ for details.
 
 # g.parser information
 
-#%module
-#% description: Performs ordinary or block kriging for vector maps.
-#% keyword: vector
-#% keyword: interpolation
-#% keyword: raster
-#% keyword: kriging
-#%end
+# %module
+# % description: Performs ordinary or block kriging for vector maps.
+# % keyword: vector
+# % keyword: interpolation
+# % keyword: raster
+# % keyword: kriging
+# %end
 
-#%option G_OPT_V_INPUT
-#% description: Name of point vector map containing sample data
-#%end
-#%option G_OPT_DB_COLUMN
-#% description: Name of attribute column with numerical value to be interpolated
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% label: Name for output raster map
-#% description: If omitted, will be <input name>_kriging
-#% required : no
-#%end
-#%option
-#% key: package
-#% type: string
-#% options: gstat
-#% answer: gstat
-#% description: R package to use
-#% required: no
-#%end
-#%option
-#% key: model
-#% type: string
-#% options: Nug,Exp,Sph,Gau,Exc,Mat,Ste,Cir,Lin,Bes,Pen,Per,Hol,Log,Pow,Spl,Leg,Err,Int
-#% multiple: yes
-#% label: Variogram model(s)
-#% description: Leave empty to test all models (requires automap)
-#% required: no
-#%end
-#%option
-#% key: block
-#% type: integer
-#% multiple: no
-#% label: Block size (square block)
-#% description: Block size. Used by block kriging.
-#% required: no
-#%end
-#%option
-#% key: range
-#% type: integer
-#% label: Range value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: nugget
-#% type: integer
-#% label: Nugget value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: psill
-#% type: integer
-#% label: Partial sill value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option
-#% key: kappa
-#% type: double
-#% label: Kappa value
-#% description: Automatically fixed if not set
-#% required : no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: output_var
-#% label: Name for output variance raster map
-#% description: If omitted, will be <input name>_kriging.var
-#% required : no
-#%end
+# %option G_OPT_V_INPUT
+# % description: Name of point vector map containing sample data
+# %end
+# %option G_OPT_DB_COLUMN
+# % description: Name of attribute column with numerical value to be interpolated
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % label: Name for output raster map
+# % description: If omitted, will be <input name>_kriging
+# % required : no
+# %end
+# %option
+# % key: package
+# % type: string
+# % options: gstat
+# % answer: gstat
+# % description: R package to use
+# % required: no
+# %end
+# %option
+# % key: model
+# % type: string
+# % options: Nug,Exp,Sph,Gau,Exc,Mat,Ste,Cir,Lin,Bes,Pen,Per,Hol,Log,Pow,Spl,Leg,Err,Int
+# % multiple: yes
+# % label: Variogram model(s)
+# % description: Leave empty to test all models (requires automap)
+# % required: no
+# %end
+# %option
+# % key: block
+# % type: integer
+# % multiple: no
+# % label: Block size (square block)
+# % description: Block size. Used by block kriging.
+# % required: no
+# %end
+# %option
+# % key: range
+# % type: integer
+# % label: Range value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: nugget
+# % type: integer
+# % label: Nugget value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: psill
+# % type: integer
+# % label: Partial sill value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option
+# % key: kappa
+# % type: double
+# % label: Kappa value
+# % description: Automatically fixed if not set
+# % required : no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output_var
+# % label: Name for output variance raster map
+# % description: If omitted, will be <input name>_kriging.var
+# % required : no
+# %end
 
 import os
 import sys
@@ -122,7 +122,7 @@ sys.path.append(path)
 # dependencies to be checked once, as they are quite time-consuming. cfr. grass.parser.
 # GRASS binding
 try:
-    import grass.script as grass
+    import grass.script as gs
 except ImportError:
     sys.exit(_("No GRASS-python library found"))
 
@@ -179,18 +179,18 @@ class Controller:
 
         # GRASS checks for null values in the chosen column. R can hardly handle column as a variable,
         # looks for a hardcoded string.
-        cols = grass.vector_columns(map=map, layer=1)
+        cols = gs.vector_columns(map=map, layer=1)
         nulls = int(
-            grass.parse_command(
+            gs.parse_command(
                 "v.univar",
                 map=map,
                 column=column,
                 type="point",
-                parse=(grass.parse_key_val, {"sep": ": "}),
+                parse=(gs.parse_key_val, {"sep": ": "}),
             )["number of NULL attributes"]
         )
         if nulls > 0:
-            grass.fatal(
+            gs.fatal(
                 _(
                     "%d NULL value(s) in the selected column - unable to perform kriging."
                 )
@@ -199,7 +199,7 @@ class Controller:
         return Rpointmap
 
     def CreateGrid(self, inputdata):
-        Region = grass.region()
+        Region = gs.region()
         Grid = robjects.r.gmeta2grd()
 
         # addition of coordinates columns into dataframe.
@@ -229,7 +229,7 @@ class Controller:
 
         Variograms = {}
 
-        if model is "":
+        if model == "":
             robjects.r.require("automap")
             DottedParams = {}
             DottedParams["fix.values"] = robjects.r.c(nugget, range, psill)
@@ -267,7 +267,7 @@ class Controller:
 
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {"debug.level": -1}  # let krige() print percentage status
-        if block is not "":  # @FIXME(anne): but it's a string!! and krige accepts it!!
+        if block != "":  # @FIXME(anne): but it's a string!! and krige accepts it!!
             DottedParams["block"] = block
         KrigingResult = robjects.r.krige(
             formula, inputdata, grid, model, **DottedParams
@@ -277,16 +277,16 @@ class Controller:
     def ExportMap(self, map, column, name, overwrite, command, variograms):
         # add kriging parameters to raster map history
         robjects.r.writeRAST(map, vname=name, zcol=column, overwrite=overwrite)
-        grass.run_command(
+        gs.run_command(
             "r.support",
             map=name,
             title="Kriging output",
             history="Issued from command v.krige " + command,
         )
         if (
-            command.find("model") is -1
+            command.find("model") == -1
         ):  # if the command has no model option, add automap chosen model
-            grass.run_command(
+            gs.run_command(
                 "r.support",
                 map=name,
                 history="Model chosen by automatic fitting: " + variograms["model"],
@@ -308,15 +308,16 @@ class Controller:
         block,
         output_var,
         command,
-        **kwargs
+        **kwargs,
     ):
         """Wrapper for all functions above."""
 
         logger.message(
             _(
                 "Processing %d cells. Computing time raises "
-                "exponentially with resolution." % grass.region()["cells"]
+                "exponentially with resolution."
             )
+            % gs.region()["cells"]
         )
         logger.message(_("Importing data..."))
 
@@ -329,7 +330,7 @@ class Controller:
 
         logger.message(_("Fitting variogram..."))
 
-        if block is not "":
+        if block != "":
             self.predictor = "x+y"
         else:
             self.predictor = "1"
@@ -363,7 +364,7 @@ class Controller:
             command=command,
             variograms=self.Variogram,
         )
-        if output_var is not "":
+        if output_var != "":
             self.ExportMap(
                 map=KrigingResult,
                 column="var1.var",
@@ -405,13 +406,13 @@ def main(argv=None):
         options, flags = argv
 
         # @TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        if grass.find_file(options["input"], element="vector")["fullname"] is "":
-            grass.fatal(_("Vector map <%s> not found") % options["input"])
+        if gs.find_file(options["input"], element="vector")["fullname"] == "":
+            gs.fatal(_("Vector map <%s> not found") % options["input"])
 
         # @TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing on 64bit.
 
         # create output map name, if not specified
-        if options["output"] is "":
+        if options["output"] == "":
             try:  # to strip mapset name from fullname. Ugh.
                 options["input"] = options["input"].split("@")[0]
             except:
@@ -420,32 +421,32 @@ def main(argv=None):
 
         # check for output map with same name. g.parser can't handle this, afaik.
         if (
-            grass.find_file(options["output"], element="cell")["fullname"]
+            gs.find_file(options["output"], element="cell")["fullname"]
             and os.getenv("GRASS_OVERWRITE") is None
         ):
-            grass.fatal(_("option: <output>: Raster map already exists."))
+            gs.fatal(_("option: <output>: Raster map already exists."))
 
-        if options["output_var"] is not "" and (
-            grass.find_file(options["output_var"], element="cell")["fullname"]
+        if options["output_var"] != "" and (
+            gs.find_file(options["output_var"], element="cell")["fullname"]
             and os.getenv("GRASS_OVERWRITE") is None
         ):
-            grass.fatal(_("option: <output>: Variance raster map already exists."))
+            gs.fatal(_("option: <output>: Variance raster map already exists."))
 
         importR()
-        if options["model"] is "":
+        if options["model"] == "":
             try:
                 robjects.r.require("automap")
             except ImportError as e:
-                grass.fatal(
+                gs.fatal(
                     _("R package automap is missing, no variogram autofit available.")
                 )
         else:
             if (
-                options["psill"] is ""
-                or options["nugget"] is ""
-                or options["range"] is ""
+                options["psill"] == ""
+                or options["nugget"] == ""
+                or options["range"] == ""
             ):
-                grass.fatal(
+                gs.fatal(
                     _(
                         "You have specified model, but forgot at least one of psill, nugget and range."
                     )
@@ -455,7 +456,7 @@ def main(argv=None):
         command = ""
         notnulloptions = {}
         for k, v in list(options.items()):
-            if v is not "":
+            if v != "":
                 notnulloptions[k] = v
         command = command.join(
             "%s=%s " % (k, v) for k, v in list(notnulloptions.items())
@@ -463,7 +464,7 @@ def main(argv=None):
 
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("psill", "nugget", "range", "kappa"):
-            if options[each] is not "":
+            if options[each] != "":
                 options[each] = float(options[each])
             else:
                 options[each] = robjects.r("""NA""")
@@ -483,7 +484,7 @@ def main(argv=None):
             kappa=options["kappa"],
             output_var=options["output_var"],
             command=command,
-            logger=grass,
+            logger=gs,
         )
 
 
@@ -499,18 +500,18 @@ def importR():
     # rpy2
     global robjects
     global rinterface
-    grass.message(_("Loading dependencies, please wait..."))
+    gs.message(_("Loading dependencies, please wait..."))
     try:
         import rpy2.robjects as robjects
         import rpy2.rinterface as rinterface  # to speed up kriging? for plots.
     except ImportError:
         # ok for other OSes?
-        grass.fatal(
+        gs.fatal(
             _("Python module 'Rpy2' not found. Please install it and re-run v.krige.")
         )
 
     if not robjects.r.require("automap", quietly=True)[0]:
-        grass.warning(
+        gs.warning(
             _(
                 'R package "automap" is missing. It provides variogram autofitting functionality and thus is recomended.'
             )
@@ -522,14 +523,12 @@ def importR():
         if not robjects.r.require(each, quietly=True)[0]:
             missingPackagesList.append(each)
     if missingPackagesList:
-        errorString = _(
-            "R package(s) %s missing. Install it/them and re-run v.krige."
-        ) % ", ".join(map(str, missingPackagesList))
-        grass.fatal(errorString)
+        errorString = _("R package(s) %s missing. Install it/them and re-run v.krige.")
+        gs.fatal(errorString % ", ".join(map(str, missingPackagesList)))
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        sys.exit(main(argv=grass.parser()))
+        sys.exit(main(argv=gs.parser()))
     else:
         main()

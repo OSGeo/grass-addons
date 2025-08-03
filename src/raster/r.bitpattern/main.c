@@ -1,5 +1,3 @@
-
-
 /****************************************************************************
  *
  * MODULE:      r.bitpattern
@@ -15,10 +13,10 @@
  *
  *              128 64 32 16 8 4 2 1
  *              Example:
- *              1. Define position 
+ *              1. Define position
  *                      xx xx 1x xx
  *                      binary: 1000 -> integer: 8 -> pattern=8
- *              2. Define value 
+ *              2. Define value
  *                      Ex.: we want to check for 0 in that position
  *                      xx xx 0x xx
  *                      binary: 0000 -> integer: 0 -> patval=0
@@ -31,7 +29,6 @@
  *               for details.
  *
  *****************************************************************************/
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,7 +79,7 @@ int main(int argc, char *argv[])
     patval->description = _("Bit pattern value");
 
     if (G_parser(argc, argv))
-    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     name = input->answer;
     result = output->answer;
@@ -117,19 +114,18 @@ int main(int argc, char *argv[])
         /*process the data */
         for (col = 0; col < ncols; col++) {
 
-            c = ((CELL *) inrast)[col];
+            c = ((CELL *)inrast)[col];
             /*((CELL *) outrast)[col] = c; */
             if ((c & pat) == patv)
-                ((CELL *) outrast)[col] = 1;
+                ((CELL *)outrast)[col] = 1;
             else
-                ((CELL *) outrast)[col] = 0;
-
+                ((CELL *)outrast)[col] = 0;
         }
 
         Rast_put_row(outfd, outrast, data_type);
     }
     G_percent(1, 1, 1);
-    
+
     G_free(inrast);
     G_free(outrast);
     Rast_close(infd);

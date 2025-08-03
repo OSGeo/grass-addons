@@ -15,152 +15,152 @@
 #############################################################################
 #
 
-#%module
-#% description: Calculate average natural discharge and minimum flow following regional law an
-#% keyword: raster
-#% keyword: hydropower
-#% keyword: renewable energy
-#% overwrite: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: q_spec
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of the specific discharge [l/s/km2]
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: q_river
-#% type: string
-#% key_desc: name
-#% description: Name of raster map with the discharge along river [m3/s]
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: k_b
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of raster map with kb parameter
-#% required: no
-#% guisection: Regione Veneto
-#%end
-#%option G_OPT_R_INPUT
-#% key: k_n
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of raster map with kn parameter
-#% required: no
-#% guisection: Regione Veneto
-#%end
-#%option
-#% key: rain
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of the specific with rain [mm]
-#% required: no
-#%end
-#%option
-#% key: k_matrix
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of k area map with k parameter
-#% required: no
-#% guisection: Regione Piemonte
-#%end
-#%option
-#% key: m_matrix
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of M area map with M parameter
-#% required: no
-#% guisection: Regione Piemonte
-#%end
-#%option
-#% key: a_matrix
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of A area map with A parameter
-#% required: no
-#% guisection: Regione Piemonte
-#%end
+# %module
+# % description: Calculate average natural discharge and minimum flow following regional law an
+# % keyword: raster
+# % keyword: hydropower
+# % keyword: renewable energy
+# % overwrite: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: q_spec
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of the specific discharge [l/s/km2]
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: q_river
+# % type: string
+# % key_desc: name
+# % description: Name of raster map with the discharge along river [m3/s]
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: k_b
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of raster map with kb parameter
+# % required: no
+# % guisection: Regione Veneto
+# %end
+# %option G_OPT_R_INPUT
+# % key: k_n
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of raster map with kn parameter
+# % required: no
+# % guisection: Regione Veneto
+# %end
+# %option
+# % key: rain
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of the specific with rain [mm]
+# % required: no
+# %end
+# %option
+# % key: k_matrix
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of k area map with k parameter
+# % required: no
+# % guisection: Regione Piemonte
+# %end
+# %option
+# % key: m_matrix
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of M area map with M parameter
+# % required: no
+# % guisection: Regione Piemonte
+# %end
+# %option
+# % key: a_matrix
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of A area map with A parameter
+# % required: no
+# % guisection: Regione Piemonte
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: mfd
-#% type: string
-#% key_desc: name
-#% description: Name of raster map with minimum flow along the river [m3/s]
-#% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% key: a_river
-#% type: string
-#% key_desc: name
-#% description: Name of raster map with area of the basin along the river [m2]
-#% required: no
-#%end
-#%flag
-#% key: d
-#% description: Debug with intermediate maps
-#%end
-#%flag
-#% key: f
-#% description: compute the discharge in the river with q_spec=flow map
-#%end
-#%flag
-#% key: p
-#% description: compute the discharge in the river with q_spec computed as see manual
-#%end
-#%option G_OPT_R_ELEV
-#%  required: yes
-#%end
-#%option G_OPT_V_INPUT
-#% key: river
-#% label: Name of river network
-#% required: no
-#%end
-#%option G_OPT_V_INPUT
-#% key: lakes
-#% label: Name of lakes network
-#% required: no
-#%end
-#%option G_OPT_V_OUTPUT
-#% key: streams
-#% type: string
-#% key_desc: name
-#% description: Name of the new stream network
-#% required: yes
-#%end
-#%option
-#% key: corr_fact
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of corrective factors area map for environmental flow
+# %option G_OPT_R_OUTPUT
+# % key: mfd
+# % type: string
+# % key_desc: name
+# % description: Name of raster map with minimum flow along the river [m3/s]
+# % required: no
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: a_river
+# % type: string
+# % key_desc: name
+# % description: Name of raster map with area of the basin along the river [m2]
+# % required: no
+# %end
+# %flag
+# % key: d
+# % description: Debug with intermediate maps
+# %end
+# %flag
+# % key: f
+# % description: compute the discharge in the river with q_spec=flow map
+# %end
+# %flag
+# % key: p
+# % description: compute the discharge in the river with q_spec computed as see manual
+# %end
+# %option G_OPT_R_ELEV
+# %  required: yes
+# %end
+# %option G_OPT_V_INPUT
+# % key: river
+# % label: Name of river network
+# % required: no
+# %end
+# %option G_OPT_V_INPUT
+# % key: lakes
+# % label: Name of lakes network
+# % required: no
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: streams
+# % type: string
+# % key_desc: name
+# % description: Name of the new stream network
+# % required: yes
+# %end
+# %option
+# % key: corr_fact
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of corrective factors area map for environmental flow
 # TODO: list of maps
-#% required: no
-#%end
-#%option
-#% key: env_area
-#% type: string
-#% gisprompt: old,cell,raster
-#% key_desc: name
-#% description: Name of area with environmental restriction
-#% required: no
-#%end
-#%option
-#% key: threshold
-#% type: double
-#% description: Minimum size of exterior watershed basin
-#% required: yes
-#% answer: 100000
-#%END
+# % required: no
+# %end
+# %option
+# % key: env_area
+# % type: string
+# % gisprompt: old,cell,raster
+# % key_desc: name
+# % description: Name of area with environmental restriction
+# % required: no
+# %end
+# %option
+# % key: threshold
+# % type: double
+# % description: Minimum size of exterior watershed basin
+# % required: yes
+# % answer: 100000
+# %END
 
 import atexit
 

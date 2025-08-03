@@ -18,21 +18,21 @@
 #
 #############################################################################
 
-#%module
-#% description: Creates vector map of centroids from raster of "clumps".
-#% keyword: raster
-#% keyword: centroid
-#% keyword: clumps
-#% keyword: vector
-#% keyword: centerpoint
-#%end
+# %module
+# % description: Creates vector map of centroids from raster of "clumps".
+# % keyword: raster
+# % keyword: centroid
+# % keyword: clumps
+# % keyword: vector
+# % keyword: centerpoint
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Raster map of clumps, clusters of same-valued pixels
-#%end
+# %option G_OPT_R_INPUT
+# % description: Raster map of clumps, clusters of same-valued pixels
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%end
+# %option G_OPT_V_OUTPUT
+# %end
 
 import grass.script as gs
 import sys
@@ -42,8 +42,8 @@ def main():
     options, flags = gs.parser()
 
     # options and flags into variables
-    ipl = options["input"]
-    opl = options["output"]
+    in_raster = options["input"]
+    out_vector = options["output"]
     gs.run_command(
         "r.volume",
         quiet=True,

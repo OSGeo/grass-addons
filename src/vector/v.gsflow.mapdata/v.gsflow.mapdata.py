@@ -23,77 +23,77 @@
 # More information
 # Started December 2016
 
-#%module
-#% description: Upload data to PRMS data
-#% keyword: vector
-#% keyword: import
-#% keyword: hydrology
-#% keyword: GSFLOW
-#%end
+# %module
+# % description: Upload data to PRMS data
+# % keyword: vector
+# % keyword: import
+# % keyword: hydrology
+# % keyword: GSFLOW
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: map
-#%  label: GSFLOW vect: HRUs, MODFLOW grid, gravres, segments, or reaches
-#%  required: yes
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: map
+# %  label: GSFLOW vect: HRUs, MODFLOW grid, gravres, segments, or reaches
+# %  required: yes
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: vector_area
-#%  label: Input vector area (polygon) data set (e.g., geologic map)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: vector_area
+# %  label: Input vector area (polygon) data set (e.g., geologic map)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: vector_points
-#%  label: Input vector points data set (e.g., field surveys at points)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_INPUT
+# %  key: vector_points
+# %  label: Input vector points data set (e.g., field surveys at points)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: raster
-#%  label: Input raster gridded data set (e.g., gridded soils data)
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_R_INPUT
+# %  key: raster
+# %  label: Input raster gridded data set (e.g., gridded soils data)
+# %  required: no
+# %  guidependency: layer,column
+# %end
 
-#%option
-#%  key: dxy
-#%  type: string
-#%  description: Cell size for rasterization of vector_area, if needed
-#%  answer: 100
-#%  required: no
-#%end
+# %option
+# %  key: dxy
+# %  type: string
+# %  description: Cell size for rasterization of vector_area, if needed
+# %  answer: 100
+# %  required: no
+# %end
 
-#%option
-#%  key: column
-#%  type: string
-#%  description: Column to which to upload data (will create if doesn't exist)
-#%  required: no
-#%end
+# %option
+# %  key: column
+# %  type: string
+# %  description: Column to which to upload data (will create if doesn't exist)
+# %  required: no
+# %end
 
-#%option
-#%  key: from_column
-#%  type: string
-#%  description: Column from which to upload data (for vector input)
-#%  required: no
-#%end
+# %option
+# %  key: from_column
+# %  type: string
+# %  description: Column from which to upload data (for vector input)
+# %  required: no
+# %end
 
-#%option
-#%  key: attrtype
-#%  type: string
-#%  description: Data type in column; user may treat int as float
-#%  options: int,float,string
-#%  required: no
-#%end
+# %option
+# %  key: attrtype
+# %  type: string
+# %  description: Data type in column; user may treat int as float
+# %  options: int,float,string
+# %  required: no
+# %end
 
-#%rules
-#% exclusive: vector_area, vector_points, raster
-#% requires: vector_area, column, from_column, attrtype
-#% requires: vector_points, column, from_column, attrtype
-#%end
+# %rules
+# % exclusive: vector_area, vector_points, raster
+# % requires: vector_area, column, from_column, attrtype
+# % requires: vector_points, column, from_column, attrtype
+# %end
 
 
 ##################
@@ -113,7 +113,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ###############
 # MAIN MODULE #
@@ -130,7 +130,7 @@ def main():
     # OPTION PARSING #
     ##################
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # Parsing
     if options["attrtype"] == "int":
@@ -147,7 +147,7 @@ def main():
     ########################################
 
     if options["vector_area"] is not "":
-        gscript.use_temp_region()
+        gs.use_temp_region()
         g.region(vector=options["map"], res=options["dxy"])
         v.to_rast(
             input=options["vector_area"],
@@ -158,13 +158,13 @@ def main():
             overwrite=True,
         )
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
         if attrtype is "double precision":
             try:
-                gscript.message("Checking for existing column to overwrite")
+                gs.message("Checking for existing column to overwrite")
                 v.db_dropcolumn(map=options["map"], columns="tmp_average", quiet=True)
             except:
                 pass
@@ -192,7 +192,7 @@ def main():
                 )
             except:
                 pass
-            gscript.run_command(
+            gs.run_command(
                 "v.distance",
                 from_=options["map"],
                 to=options["vector_area"],
@@ -203,7 +203,7 @@ def main():
             )
     elif options["vector_points"] is not "":
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
             v.db_addcolumn(
                 map=options["map"],
@@ -212,7 +212,7 @@ def main():
             )
         except:
             pass
-        gscript.run_command(
+        gs.run_command(
             "v.distance",
             from_=options["map"],
             to=options["vector_points"],
@@ -224,7 +224,7 @@ def main():
 
     elif options["raster"] is not "":
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
@@ -240,7 +240,7 @@ def main():
             map=options["map"], column=["tmp_average", options["column"]], quiet=True
         )
 
-    gscript.message("Done.")
+    gs.message("Done.")
 
 
 if __name__ == "__main__":

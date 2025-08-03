@@ -4,11 +4,12 @@
 # MODULE:       v.stream.inbasin
 #
 # AUTHOR(S):    Andrew Wickert
+#               Vaclav Petras (v8 fixes and interface improvements)
 #
 # PURPOSE:      Build a drainage basin from the subwatersheds of a river
 #               network, based on the structure of the network.
 #
-# COPYRIGHT:    (c) 2016 Andrew Wickert
+# COPYRIGHT:    (c) 2016-2023 Andrew Wickert and the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,80 +20,73 @@
 # REQUIREMENTS:
 #      -  uses inputs from v.stream.network
 
-# More information
-# Started 14 October 2016
+# %module
+# % description: Subset a stream network into just one of its basins
+# % keyword: vector
+# % keyword: stream network
+# % keyword: basins
+# % keyword: hydrology
+# % keyword: geomorphology
+# %end
 
-#%module
-#% description: Subset a stream network into just one of its basins
-#% keyword: vector
-#% keyword: stream network
-#% keyword: basins
-#% keyword: hydrology
-#% keyword: geomorphology
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input_streams
+# %  label: Stream network
+# %  required: yes
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input_streams
-#%  label: Stream network
-#%  required: yes
-#%end
+# %option G_OPT_V_INPUT
+# %  key: input_basins
+# %  label: Subbasins built alongside stream network
+# %  required: no
+# %end
 
-#%option G_OPT_V_INPUT
-#%  key: input_basins
-#%  label: Subbasins built alongside stream network
-#%  required: no
-#%end
+# %option G_OPT_R_INPUT
+# %  key: draindir
+# %  label: Drainage directions (needed if exact coordinates used)
+# %  required: no
+# %end
 
-#%option G_OPT_R_INPUT
-#%  key: draindir
-#%  label: Drainage directions (needed if exact coordinates used)
-#%  required: no
-#%end
+# %option
+# %  key: cat
+# %  label: Farthest downstream segment category
+# %  required: no
+# %end
 
-#%option
-#%  key: cat
-#%  label: Farthest downstream segment category
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_M_COORDS
+# %  label: Pour point coordinates
+# %  description: The alogorithm will find the closest stream segment
+# %  required: no
+# %end
 
-#%option
-#%  key: x_outlet
-#%  label: Approx. pour point x/Easting: will find closest segment
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_basin
+# %  label: Vector output drainage basin
+# %  required: no
+# %end
 
-#%option
-#%  key: y_outlet
-#%  label: Approx. pour point y/Northing: will find closest segment
-#%  required: no
-#%  guidependency: layer,column
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_streams
+# %  label: Streams within vector output drainage basin
+# %  required: no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_basin
-#%  label: Vector output drainage basin
-#%  required: no
-#%end
+# %option G_OPT_V_OUTPUT
+# %  key: output_pour_point
+# %  label: Basin outlet
+# %  required: no
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_streams
-#%  label: Streams within vector output drainage basin
-#%  required: no
-#%end
+# %flag
+# %  key: s
+# %  description: Snap provided coordinates to nearest segment endpoint
+# %  guisection: Settings
+# %end
 
-#%option G_OPT_V_OUTPUT
-#%  key: output_pour_point
-#%  label: Basin outlet
-#%  required: no
-#%end
-
-#%flag
-#%  key: s
-#%  description: Snap provided coordinates to nearest segment endpoint
-#%  guisection: Settings
-#%end
+# %rules
+# % required: coordinates,cat
+# % exclusive: coordinates,cat
+# %end
 
 ##################
 # IMPORT MODULES #
@@ -101,16 +95,11 @@
 import numpy as np
 
 # GRASS
-from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
-from grass.pygrass.gis import region
-from grass.pygrass import vector  # Change to "v"?
+from grass.pygrass import vector
 from grass.script import vector_db_select
-from grass.pygrass.vector import Vector, VectorTopo
-from grass.pygrass.raster import RasterRow
-from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 from grass.pygrass.vector.geometry import Point
 
 ###############
@@ -132,13 +121,16 @@ def main():
     means that the river exits the map.
     """
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     streams = options["input_streams"]
     basins = options["input_basins"]
     downstream_cat = options["cat"]
-    x_outlet = float(options["x_outlet"])
-    y_outlet = float(options["y_outlet"])
+    if options["coordinates"]:
+        x_outlet, y_outlet = options["coordinates"].split(",")
+        x_outlet, y_outlet = float(x_outlet), float(y_outlet)
+    else:
+        x_outlet, y_outlet = None, None
     output_basins = options["output_basin"]
     output_streams = options["output_streams"]
     output_pour_point = options["output_pour_point"]
@@ -147,12 +139,6 @@ def main():
 
     # print options
     # print flags
-
-    # Check that either x,y or cat are set
-    if (downstream_cat != "") or ((x_outlet != "") and (y_outlet != "")):
-        pass
-    else:
-        gscript.fatal('You must set either "cat" or "x_outlet" and "y_outlet".')
 
     # NEED TO ADD IF-STATEMENT HERE TO AVOID AUTOMATIC OVERWRITING!!!!!!!!!!!
     if snapflag or (downstream_cat != ""):
@@ -165,10 +151,10 @@ def main():
                 pass
             tmp = vector.Vector("tmp")
             _cols = [
-                (u"cat", "INTEGER PRIMARY KEY"),
-                (u"x", "DOUBLE PRECISION"),
-                (u"y", "DOUBLE PRECISION"),
-                (u"strcat", "DOUBLE PRECISION"),
+                ("cat", "INTEGER PRIMARY KEY"),
+                ("x", "DOUBLE PRECISION"),
+                ("y", "DOUBLE PRECISION"),
+                ("strcat", "DOUBLE PRECISION"),
             ]
             tmp.open("w", tab_name="tmp", tab_cols=_cols)
             point0 = Point(x_outlet, y_outlet)
@@ -181,16 +167,16 @@ def main():
             tmp.build()
             tmp.close()
             # Now v.distance
-            gscript.run_command(
+            gs.run_command(
                 "v.distance", from_="tmp", to=streams, upload="cat", column="strcat"
             )
             # v.distance(_from_='tmp', to=streams, upload='cat', column='strcat')
-            downstream_cat = gscript.vector_db_select(map="tmp", columns="strcat")
-            downstream_cat = int(downstream_cat["values"].values()[0][0])
+            downstream_cat = gs.vector_db_select(map="tmp", columns="strcat")
+            downstream_cat = int(downstream_cat["values"][1][0])
 
         # Attributes of streams
         colNames = np.array(vector_db_select(streams)["columns"])
-        colValues = np.array(vector_db_select(streams)["values"].values())
+        colValues = np.array(list(vector_db_select(streams)["values"].values()))
         tostream = colValues[:, colNames == "tostream"].astype(int).squeeze()
         cats = colValues[:, colNames == "cat"].astype(int).squeeze()  # = "fromstream"
 
@@ -221,7 +207,7 @@ def main():
                 input=basins,
                 output=output_basins,
                 where=SQL_LIST,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
         if len(streams) > 0:
@@ -229,7 +215,7 @@ def main():
                 input=streams,
                 output=output_streams,
                 cats=basincats_str,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
 
@@ -243,14 +229,14 @@ def main():
         )
         r.to_vect(input="tmp", output="tmp", type="area", overwrite=True)
         v.clip(input=basins, clip="tmp", output=output_basins, overwrite=True)
-        basincats = gscript.vector_db_select("basins_inbasin").values()[0].keys()
+        basincats = gs.vector_db_select("basins_inbasin").values()[0].keys()
         basincats_str = ",".join(map(str, basincats))
         if len(streams) > 0:
             v.extract(
                 input=streams,
                 output=output_streams,
                 cats=basincats_str,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
 
@@ -262,10 +248,10 @@ def main():
         except:
             pass
         if snapflag or (downstream_cat != ""):
-            _pp = gscript.vector_db_select(
+            _pp = gs.vector_db_select(
                 map=streams, columns="x2,y2", where="cat=" + str(downstream_cat)
             )
-            _xy = np.squeeze(_pp["values"].values())
+            _xy = np.squeeze(list(_pp["values"].values()))
             _x = float(_xy[0])
             _y = float(_xy[1])
         else:
@@ -273,9 +259,9 @@ def main():
             _y = y_outlet
         pptmp = vector.Vector(output_pour_point)
         _cols = [
-            (u"cat", "INTEGER PRIMARY KEY"),
-            (u"x", "DOUBLE PRECISION"),
-            (u"y", "DOUBLE PRECISION"),
+            ("cat", "INTEGER PRIMARY KEY"),
+            ("x", "DOUBLE PRECISION"),
+            ("y", "DOUBLE PRECISION"),
         ]
         pptmp.open("w", tab_name=output_pour_point, tab_cols=_cols)
         point0 = Point(_x, _y)

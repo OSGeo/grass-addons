@@ -2,7 +2,7 @@
 
 # helper script to calculate pre-release event dates according to
 # https://trac.osgeo.org/grass/wiki/RFC/4_ReleaseProcedure
-# 
+#
 # Markus Neteler, 2017
 
 

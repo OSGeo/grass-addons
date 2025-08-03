@@ -13,110 +13,110 @@
 #
 #############################################################################
 
-#%module
-#% description: Connection manager for Hive and Hadoop database
-#% keyword: database
-#% keyword: hdfs
-#%end
-#%option
-#% key: driver
-#% type: string
-#% required: no
-#% description: Type of database driver
-#% options: hiveserver2, hdfs, webhdfs, hive_cli
-#% guisection: Connection
-#%end
-#%option
-#% key: conn_id
-#% type: string
-#% required: no
-#% description: Identificator of connection(free string)
-#% guisection: Connection
-#%end
-#%option
-#% key: host
-#% description: host
-#% type: string
-#% required: no
-#% guisection: Connection
-#%end
-#%option
-#% key: port
-#% type: integer
-#% required: no
-#% description: Port of db
-#% guisection: Connection
-#%end
-#%option
-#% key: login
-#% type: string
-#% required: no
-#% description: Login
-#% guisection: Connection
-#%end
-#%option
-#% key: passwd
-#% type: string
-#% required: no
-#% description: Password
-#% guisection: Connection
-#%end
-#%option
-#% key: schema
-#% type: string
-#% required: no
-#% description: schema
-#% guisection: Connection
-#%end
-#%option
-#% key: authmechanism
-#% type: string
-#% required: no
-#% options: PLAIN
-#% description: Authentification mechanism type
-#% guisection: Connection
-#%end
-#%option
-#% key: connectionuri
-#% type: string
-#% required: no
-#% description: connection uri string of database
-#% guisection: Connection uri
-#%end
-#%option
-#% key: rmid
-#% type: integer
-#% required: no
-#% description: Remove connection by id
-#% guisection: manager
-#%end
-#%flag
-#% key: c
-#% description: Print table of connection
-#% guisection: manager
-#%end
-#%flag
-#% key: p
-#% description: Print active connection
-#% guisection: manager
-#%end
-#%flag
-#% key: r
-#% description: Remove all connections
-#% guisection: manager
-#%end
-#%flag
-#% key: t
-#% description: Test connection by conn_type
-#% guisection: manager
-#%end
-#%flag
-#% key: a
-#% description: Set active connection by conn_id and driver
-#% guisection: manager
-#%end
+# %module
+# % description: Connection manager for Hive and Hadoop database
+# % keyword: database
+# % keyword: hdfs
+# %end
+# %option
+# % key: driver
+# % type: string
+# % required: no
+# % description: Type of database driver
+# % options: hiveserver2, hdfs, webhdfs, hive_cli
+# % guisection: Connection
+# %end
+# %option
+# % key: conn_id
+# % type: string
+# % required: no
+# % description: Identificator of connection(free string)
+# % guisection: Connection
+# %end
+# %option
+# % key: host
+# % description: host
+# % type: string
+# % required: no
+# % guisection: Connection
+# %end
+# %option
+# % key: port
+# % type: integer
+# % required: no
+# % description: Port of db
+# % guisection: Connection
+# %end
+# %option
+# % key: login
+# % type: string
+# % required: no
+# % description: Login
+# % guisection: Connection
+# %end
+# %option
+# % key: passwd
+# % type: string
+# % required: no
+# % description: Password
+# % guisection: Connection
+# %end
+# %option
+# % key: schema
+# % type: string
+# % required: no
+# % description: schema
+# % guisection: Connection
+# %end
+# %option
+# % key: authmechanism
+# % type: string
+# % required: no
+# % options: PLAIN
+# % description: Authentification mechanism type
+# % guisection: Connection
+# %end
+# %option
+# % key: connectionuri
+# % type: string
+# % required: no
+# % description: connection uri string of database
+# % guisection: Connection uri
+# %end
+# %option
+# % key: rmid
+# % type: integer
+# % required: no
+# % description: Remove connection by id
+# % guisection: manager
+# %end
+# %flag
+# % key: c
+# % description: Print table of connection
+# % guisection: manager
+# %end
+# %flag
+# % key: p
+# % description: Print active connection
+# % guisection: manager
+# %end
+# %flag
+# % key: r
+# % description: Remove all connections
+# % guisection: manager
+# %end
+# %flag
+# % key: t
+# % description: Test connection by conn_type
+# % guisection: manager
+# %end
+# %flag
+# % key: a
+# % description: Set active connection by conn_id and driver
+# % guisection: manager
+# %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -170,9 +170,9 @@ def main():
         if not options["driver"] and options["conn_id"]:
             conn.set_active_connection(options["driver"], options["conn_id"])
         else:
-            grass.fatal("ERROR parameter < driver > and 'conn_id' must be set")
+            gs.fatal("ERROR parameter < driver > and 'conn_id' must be set")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

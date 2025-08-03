@@ -26,8 +26,8 @@ def read_dict(fn):
                     dict_rap[key] = eval(val)
             f.close()
             return dict_rap
-        except IOError as e:
-            print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        except OSError as e:
+            print("I/O error({0}): {1}".format(e.errno, e.strerror))
     else:
         return {}
 

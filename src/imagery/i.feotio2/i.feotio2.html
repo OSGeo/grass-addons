@@ -12,7 +12,7 @@ wt%FeO = -137.97 ( R750 sin(theta) + (R950/R750) cos(theta) ) + 57.46	(2)
 
 with theta = 1.3885 rad, the 'average slope of the trends in the mare' from Wilcox et al (2005).
 
-<a href="http://www.mapaplanet.org/explorer/help/index.html">Map-a-Planet Explorer</a> mentions
+<a href="https://web.archive.org/web/20161203071556/http://www.mapaplanet.org/explorer/help/index.html">Map-a-Planet Explorer</a> mentions
 this set of equations:
 
 
@@ -23,12 +23,12 @@ double feolucey2000(double uvvis2, double uvvis4){
 }
 
 double feolawrence2002(double uvvis2, double uvvis4){
-	 //\cite{lawrence2002iron} 
+	 //\cite{lawrence2002iron}
 	 return(5.7*((-0.147+0.372*(-(uvvis4/uvvis2-1.22)/(uvvis2-0.04))+(-0.036)*pow((-(uvvis4/uvvis2-1.22)/(uvvis2-0.04)),2)))+2.15);
 }
 
 double feowilcox2005(double uvvis2, double uvvis4){
-	  //\cite{wilcox2005mapping}  
+	  //\cite{wilcox2005mapping}
 	  return(-137.97*((uvvis2*0.9834)+(uvvis4/uvvis2*0.1813))+57.46);
 }
 
@@ -60,11 +60,6 @@ Initially created for Clementine data.
 (3) Lawrence, DJ and Feldman, WC and Elphic, RC and Little, RC and Prettyman, TH and Maurice, S and Lucey, PG and Binder, AB, 2002. Iron abundances on the lunar surface as measured by the Lunar Prospector gamma-ray and neutron spectrometers. Journal of Geophysical Research: Planets (1991--2012), 107(E12):13-1.
 
 
-<h2>AUTHORS</h2>
+<h2>AUTHOR</h2>
 
 Yann Chemin (B.Sc. student), Birkbeck, University of London.
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

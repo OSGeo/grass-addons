@@ -1,144 +1,144 @@
 #!/usr/bin/env python
 
 """
- MODULE:       i.landsat.qa
+MODULE:     i.landsat.qa
 
- AUTHOR(S):    Stefan Blumentrath <stefan.blumentrath@nina.no>
+AUTHOR(S):  Stefan Blumentrath <stefan.blumentrath@nina.no>
 
- PURPOSE:      Reclass Landsat QA band according to acceptable pixel quality
-               as defined by the user
+PURPOSE:    Reclass Landsat QA band according to acceptable pixel quality
+            as defined by the user
 
- COPYRIGHT:    (C) 2016-2021 by the GRASS Development Team
+COPYRIGHT:  (C) 2016-2021 by the GRASS Development Team
 
-               This program is free software under the GNU General Public
-               License (>=v2). Read the file COPYING that comes with GRASS
-               for details.
+            This program is free software under the GNU General Public
+            License (>=v2). Read the file COPYING that comes with GRASS
+            for details.
 """
 
-#%Module
-#% description: Reclassifies Landsat QA band according to acceptable pixel quality as defined by the user.
-#% keyword: imagery
-#% keyword: pixel
-#% keyword: quality
-#% keyword: qa
-#% keyword: bitpattern
-#% keyword: mask
-#% keyword: landsat
-#%End
+# %Module
+# % description: Reclassifies Landsat QA band according to acceptable pixel quality as defined by the user.
+# % keyword: imagery
+# % keyword: pixel
+# % keyword: quality
+# % keyword: qa
+# % keyword: bitpattern
+# % keyword: mask
+# % keyword: landsat
+# %End
 
-#%option G_OPT_F_OUTPUT
-#% description: Output file with reclass rules
-#% required: no
-#%end
+# %option G_OPT_F_OUTPUT
+# % description: Output file with reclass rules
+# % required: no
+# %end
 
-#%option
-#% key: dataset
-#% type: string
-#% description: Landsat dataset to search for
-#% required: no
-#% options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
-#% answer: landsat_8_c1
-#% guisection: Filter
-#%end
+# %option
+# % key: dataset
+# % type: string
+# % description: Landsat dataset to search for
+# % required: no
+# % options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
+# % answer: landsat_8_c1
+# % guisection: Filter
+# %end
 
-#%option
-#% key: designated_fill
-#% multiple: No
-#% description: Unacceptable conditions for Designated Fill
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: designated_fill
+# % multiple: No
+# % description: Unacceptable conditions for Designated Fill
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: cloud
-#% multiple: No
-#% description: Unacceptable conditions for Clouds
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: cloud
+# % multiple: No
+# % description: Unacceptable conditions for Clouds
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: cloud_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cloud confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cloud_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cloud confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: cloud_shadow_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cloud Shaddow Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cloud_shadow_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cloud Shaddow Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: snow_ice_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Snow/Ice Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: snow_ice_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Snow/Ice Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: cirrus_confidence
-#% multiple: yes
-#% description: Unacceptable conditions for Cirrus Confidence
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: cirrus_confidence
+# % multiple: yes
+# % description: Unacceptable conditions for Cirrus Confidence
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%option
-#% key: dilated_cloud
-#% multiple: No
-#% description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: dilated_cloud
+# % multiple: No
+# % description: Unacceptable conditions for Pixels with Dilated Clouds (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: snow
-#% multiple: No
-#% description: Unacceptable conditions for Snow Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: snow
+# % multiple: No
+# % description: Unacceptable conditions for Snow Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: clear
-#% multiple: No
-#% description: Unacceptable conditions for Clear Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: clear
+# % multiple: No
+# % description: Unacceptable conditions for Clear Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: water
-#% description: Unacceptable conditions for Water Pixels (only collection 2)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: water
+# % description: Unacceptable conditions for Water Pixels (only collection 2)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: terrain_occlusion
-#% multiple: No
-#% description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels (only collection 1)
-#% options: No, Yes
-#% required : no
-#%end
+# %option
+# % key: terrain_occlusion
+# % multiple: No
+# % description: Unacceptable conditions for Terrain Occlusion / Dropped Pixels (only collection 1)
+# % options: No, Yes
+# % required : no
+# %end
 
-#%option
-#% key: radiometric_saturation
-#% multiple: yes
-#% description: Unacceptable conditions for Radiometric Saturation (only collection 1)
-#% options: Not Determined, Low, Medium, High
-#% required : no
-#%end
+# %option
+# % key: radiometric_saturation
+# % multiple: yes
+# % description: Unacceptable conditions for Radiometric Saturation (only collection 1)
+# % options: Not Determined, Low, Medium, High
+# % required : no
+# %end
 
-#%rules
-#% required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence,dilated_cloud,snow,clear,water,terrain_occlusion,radiometric_saturation
-#%end
+# %rules
+# % required: designated_fill,terrain_occlusion,radiometric_saturation,cloud,cloud_confidence,cloud_shadow_confidence,snow_ice_confidence,cirrus_confidence,dilated_cloud,snow,clear,water,terrain_occlusion,radiometric_saturation
+# %end
 
 # To do:
 # - implement other quality bands of esp. collection 2
@@ -150,7 +150,7 @@
 
 import os
 import sys
-import grass.script as grass
+import grass.script as gs
 
 if "GISBASE" not in os.environ:
     print(_("You must be in GRASS GIS to run this program."))
@@ -175,22 +175,19 @@ def check_user_input(user_input):
     # Check if propper input is provided:
     for o in bit_filter:
         if len(user_input[o].split(",")) >= 4:
-            grass.fatal(
+            gs.fatal(
                 _(
-                    """All conditions for {} specified as
-            unacceptable, this will result in an empty map.""".format(
-                        o
-                    )
-                )
+                    "All conditions for {} specified as unacceptable, "
+                    "this will result in an empty map."
+                ).format(o)
             )
+
         # Check if valid combination of options if provided
         if o in collection_unsupported[collection]:
-            grass.warning(
+            gs.warning(
                 _(
-                    "Condition {condition} is unsupported in Collection {collection}".format(
-                        condition=o, collection=user_input["collection"]
-                    )
-                )
+                    "Condition {condition} is unsupported in Collection {collection}"
+                ).format(condition=o, collection=user_input["collection"])
             )
     return sensor, collection, bit_filter
 
@@ -329,13 +326,11 @@ def main():
                 single_bits.keys() if bit_length[pattern] == 1 else double_bits.keys()
             )
             if not set(options[pattern].split(",")).issubset(set(bit_keys)):
-                grass.fatal(
+                gs.fatal(
                     _(
-                        "Invalid input for option <{opt}>.\
-                only the following are allowed: {valid}".format(
-                            opt=pattern, valid=",".join(bit_keys)
-                        )
-                    )
+                        "Invalid input for option <{opt}>. "
+                        "Only the following are allowed: {valid}"
+                    ).format(opt=pattern, valid=",".join(bit_keys))
                 )
 
     # List for categories representing pixels of unacceptable quality
@@ -356,7 +351,6 @@ def main():
 
             # Extract unnacceptable bitpatterns (bp) form bitpattern filter
             for bp in options[k].split(","):
-
                 if bit_length[k] == 1:
                     bits = single_bits[bp]
                 else:
@@ -383,5 +377,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

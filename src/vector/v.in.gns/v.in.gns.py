@@ -8,10 +8,10 @@
 #               Converted to Python by Glynn Clements
 #
 # PURPOSE:      Import GEOnet Names Server (GNS) country files into a GRASS vector map
-#               http://earth-info.nga.mil/gns/html/
+#               https://web.archive.org/web/20220625184957/https://geonames.nga.mil/gns/html/
 #                -> Download Names Files for Countries and Territories (FTP)
 #
-#               Column names: http://earth-info.nga.mil/gns/html/help.htm
+#               Column names: https://web.archive.org/web/20120702091908/http://earth-info.nga.mil/gns/html/help.htm
 #
 # COPYRIGHT:    (c) 2005 GRASS Development Team
 #
@@ -24,18 +24,18 @@
 #                 e.g. FC (Feature Classification)
 #############################################################################
 
-#%module
-#% description: Imports US-NGA GEOnet Names Server (GNS) country files into a GRASS vector points map.
-#% keyword: vector
-#% keyword: import
-#% keyword: gazetteer
-#%end
-#%option G_OPT_F_INPUT
-#% description: Name of input uncompressed GNS file from NGA (with .txt extension)
-#%end
-#%option G_OPT_V_OUTPUT
-#% required: no
-#%end
+# %module
+# % description: Imports US-NGA GEOnet Names Server (GNS) country files into a GRASS vector points map.
+# % keyword: vector
+# % keyword: import
+# % keyword: gazetteer
+# %end
+# %option G_OPT_F_INPUT
+# % description: Name of input uncompressed GNS file from NGA (with .txt extension)
+# %end
+# %option G_OPT_V_OUTPUT
+# % required: no
+# %end
 
 from grass.script.utils import try_remove, basename, parse_key_val
 from grass.script import core as grass

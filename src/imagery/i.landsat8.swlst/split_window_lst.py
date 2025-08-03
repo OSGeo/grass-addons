@@ -127,11 +127,10 @@ class SplitWindowLST:
         )
 
         if landcover in EMISSIVITIES.keys() or landcover == "Random":
-
             # a fixed land cover class requested
-            assert self._landcover_string_validity(
-                landcover_class
-            ), "Unknown land cover class name!"
+            assert self._landcover_string_validity(landcover_class), (
+                "Unknown land cover class name!"
+            )
             self.landcover_class = landcover
 
             # retrieve & set avg emissivities for channels t10, t11
@@ -152,7 +151,6 @@ class SplitWindowLST:
             )
 
         else:
-
             # if no fixed land cover class requested
             self.landcover_class = False
 
@@ -381,10 +379,10 @@ class SplitWindowLST:
 
         # addends
         a = b0
-        b1 = b1 + b2 * (1 - avg) / avg + b3 * delta / avg ** 2
+        b1 = b1 + b2 * (1 - avg) / avg + b3 * delta / avg**2
         b2 = (t10 + t11) / 2
         b = b1 * b2
-        c1 = b4 + b5 * (1 - avg) / avg + b6 * delta / avg ** 2
+        c1 = b4 + b5 * (1 - avg) / avg + b6 * delta / avg**2
         c2 = (t10 - t11) / 2
         c = c1 * c2
         d = b7 * (t10 - t11) ** 2
@@ -452,34 +450,34 @@ class SplitWindowLST:
         expression = (  # Cropland: (10, 11, 12, 13)
             "eval( class_10 = {landcover} >= 10 && {landcover} < 20,"
             # Forest: (20, 21, 22, 23, 24)
-            "\ \n class_20 = {landcover} >= 20 && {landcover} < 30,"
+            "\\ \n class_20 = {landcover} >= 20 && {landcover} < 30,"
             # Grasslands: (30, 31, 32, 51, 72)
-            "\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,"
+            "\\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,"
             # Shrublands: (40, 71)
-            "\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,"
+            "\\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,"
             # Wetlands: 50  --  Assigned below the 'average_60'
-            "\ \n class_50 = {landcover} >= 50 && {landcover} < 52,"
+            "\\ \n class_50 = {landcover} >= 50 && {landcover} < 52,"
             # Waterbodies: (50, 60, 61, 62, 63)
-            "\ \n class_60 = {landcover} >= 60 && {landcover} < 70,"
+            "\\ \n class_60 = {landcover} >= 60 && {landcover} < 70,"
             # Tundra: 70  --  Assigned belot the 'average_40'
-            "\ \n class_70 = {landcover} >= 70 && {landcover} < 72,"
+            "\\ \n class_70 = {landcover} >= 70 && {landcover} < 72,"
             # Impervious: (80, 81, 82)
-            "\ \n class_80 = {landcover} >= 80 && {landcover} < 90,"
+            "\\ \n class_80 = {landcover} >= 80 && {landcover} < 90,"
             # Barren Land: (90, 52, 91, 92, 93, 94, 95, 96)
-            "\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,"
+            "\\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,"
             # Snow and ice: (100, 101, 102)
-            "\ \n class_100 = {landcover} >= 100 && {landcover} < 120,"
+            "\\ \n class_100 = {landcover} >= 100 && {landcover} < 120,"
             # Cloud: (120) -- Should be masked, thus not included
-            "\ \n if( class_10, {average_10},"
-            "\ \n if( class_20, {average_20},"
-            "\ \n if( class_30, {average_30},"
-            "\ \n if( class_40, {average_40},"
-            "\ \n if( class_50, {average_60},"
-            "\ \n if( class_60, {average_60},"
-            "\ \n if( class_70, {average_40},"
-            "\ \n if( class_80, {average_80},"
-            "\ \n if( class_90, {average_90},"
-            "\ \n if( class_100, {average_100},"
+            "\\ \n if( class_10, {average_10},"
+            "\\ \n if( class_20, {average_20},"
+            "\\ \n if( class_30, {average_30},"
+            "\\ \n if( class_40, {average_40},"
+            "\\ \n if( class_50, {average_60},"
+            "\\ \n if( class_60, {average_60},"
+            "\\ \n if( class_70, {average_40},"
+            "\\ \n if( class_80, {average_80},"
+            "\\ \n if( class_90, {average_90},"
+            "\\ \n if( class_100, {average_100},"
             " null() )))))))))))"
         )
 
@@ -529,34 +527,34 @@ class SplitWindowLST:
         expression = (  # Cropland: (10, 11, 12, 13)
             "eval( class_10 = {landcover} >= 10 && {landcover} < 20,"
             # Forest: (20, 21, 22, 23, 24)
-            "\ \n class_20 = {landcover} >= 20 && {landcover} < 30,"
+            "\\ \n class_20 = {landcover} >= 20 && {landcover} < 30,"
             # Grasslands: (30, 31, 32, 51, 72)
-            "\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,"
+            "\\ \n class_30 = {landcover} == 51 || {landcover} == 72 || {landcover} >= 30 && {landcover} < 40,"
             # Shrublands: (40, 71)
-            "\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,"
+            "\\ \n class_40 = {landcover} == 71 || {landcover} >= 40 && {landcover} < 50,"
             # Wetlands: 50  -- Assigned below the 'delta_60'
-            "\ \n class_50 = {landcover} >= 50 && {landcover} < 52,"
+            "\\ \n class_50 = {landcover} >= 50 && {landcover} < 52,"
             # Waterbodies: (50, 60, 61, 62, 63)
-            "\ \n class_60 = {landcover} >= 60 && {landcover} < 70,"
+            "\\ \n class_60 = {landcover} >= 60 && {landcover} < 70,"
             # Tundra: 70  --  Assigned belot the 'delta_40'
-            "\ \n class_70 = {landcover} >= 70 && {landcover} < 72,"
+            "\\ \n class_70 = {landcover} >= 70 && {landcover} < 72,"
             # Impervious: (80, 81, 82)
-            "\ \n class_80 = {landcover} >= 80 && {landcover} < 90,"
+            "\\ \n class_80 = {landcover} >= 80 && {landcover} < 90,"
             # Barren Land: (90, 52, 91, 92, 93, 94, 95, 96)
-            "\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,"
+            "\\ \n class_90 = {landcover} == 52 || {landcover} >= 90 && {landcover} < 100,"
             # Snow and ice: (100, 101, 102)
-            "\ \n class_100 = {landcover} >= 100 && {landcover} < 120,"
+            "\\ \n class_100 = {landcover} >= 100 && {landcover} < 120,"
             # Cloud: (120) -- Should be masked, thus not included
-            "\ \n if( class_10, {delta_10},"
-            "\ \n if( class_20, {delta_20},"
-            "\ \n if( class_30, {delta_30},"
-            "\ \n if( class_40, {delta_40},"
-            "\ \n if( class_50, {delta_60},"
-            "\ \n if( class_60, {delta_60},"
-            "\ \n if( class_70, {delta_40},"
-            "\ \n if( class_80, {delta_80},"
-            "\ \n if( class_90, {delta_90},"
-            "\ \n if( class_100, {delta_100},"
+            "\\ \n if( class_10, {delta_10},"
+            "\\ \n if( class_20, {delta_20},"
+            "\\ \n if( class_30, {delta_30},"
+            "\\ \n if( class_40, {delta_40},"
+            "\\ \n if( class_50, {delta_60},"
+            "\\ \n if( class_60, {delta_60},"
+            "\\ \n if( class_70, {delta_40},"
+            "\\ \n if( class_80, {delta_80},"
+            "\\ \n if( class_90, {delta_90},"
+            "\\ \n if( class_100, {delta_100},"
             " null() )))))))))))"
         )
 
@@ -667,29 +665,29 @@ class SplitWindowLST:
         # build one big expression using mighty eval
         expression = (
             "eval( sw_lst_1 = {exp_1},"
-            "\ \n sw_lst_2 = {exp_2},"
-            "\ \n sw_lst_12 = (sw_lst_1 + sw_lst_2) / 2,"
-            "\ \n sw_lst_3 = {exp_3},"
-            "\ \n sw_lst_23 = (sw_lst_2 + sw_lst_3) / 2,"
-            "\ \n sw_lst_4 = {exp_4},"
-            "\ \n sw_lst_34 = (sw_lst_3 + sw_lst_4) / 2,"
-            "\ \n sw_lst_5 = {exp_5},"
-            "\ \n sw_lst_45 = (sw_lst_4 + sw_lst_5) / 2,"
-            "\ \n sw_lst_6 = {exp_6},"
-            "\ \n in_range_1 = {low_1} < {DUMMY_CWV} && {DUMMY_CWV} < {high_1},"
-            "\ \n in_range_2 = {low_2} < {DUMMY_CWV} && {DUMMY_CWV} < {high_2},"
-            "\ \n in_range_3 = {low_3} < {DUMMY_CWV} && {DUMMY_CWV} < {high_3},"
-            "\ \n in_range_4 = {low_4} < {DUMMY_CWV} && {DUMMY_CWV} < {high_4},"
-            "\ \n in_range_5 = {low_5} < {DUMMY_CWV} && {DUMMY_CWV} < {high_5},"
-            "\ \n if( in_range_1 && in_range_2, sw_lst_12,"
-            "\ \n if( in_range_2 && in_range_3, sw_lst_23,"
-            "\ \n if( in_range_3 && in_range_4, sw_lst_34,"
-            "\ \n if( in_range_4 && in_range_5, sw_lst_45,"
-            "\ \n if( in_range_1, sw_lst_1,"
-            "\ \n if( in_range_2, sw_lst_2,"
-            "\ \n if( in_range_3, sw_lst_3,"
-            "\ \n if( in_range_4, sw_lst_4,"
-            "\ \n if( in_range_5, sw_lst_5,"
+            "\\ \n sw_lst_2 = {exp_2},"
+            "\\ \n sw_lst_12 = (sw_lst_1 + sw_lst_2) / 2,"
+            "\\ \n sw_lst_3 = {exp_3},"
+            "\\ \n sw_lst_23 = (sw_lst_2 + sw_lst_3) / 2,"
+            "\\ \n sw_lst_4 = {exp_4},"
+            "\\ \n sw_lst_34 = (sw_lst_3 + sw_lst_4) / 2,"
+            "\\ \n sw_lst_5 = {exp_5},"
+            "\\ \n sw_lst_45 = (sw_lst_4 + sw_lst_5) / 2,"
+            "\\ \n sw_lst_6 = {exp_6},"
+            "\\ \n in_range_1 = {low_1} < {DUMMY_CWV} && {DUMMY_CWV} < {high_1},"
+            "\\ \n in_range_2 = {low_2} < {DUMMY_CWV} && {DUMMY_CWV} < {high_2},"
+            "\\ \n in_range_3 = {low_3} < {DUMMY_CWV} && {DUMMY_CWV} < {high_3},"
+            "\\ \n in_range_4 = {low_4} < {DUMMY_CWV} && {DUMMY_CWV} < {high_4},"
+            "\\ \n in_range_5 = {low_5} < {DUMMY_CWV} && {DUMMY_CWV} < {high_5},"
+            "\\ \n if( in_range_1 && in_range_2, sw_lst_12,"
+            "\\ \n if( in_range_2 && in_range_3, sw_lst_23,"
+            "\\ \n if( in_range_3 && in_range_4, sw_lst_34,"
+            "\\ \n if( in_range_4 && in_range_5, sw_lst_45,"
+            "\\ \n if( in_range_1, sw_lst_1,"
+            "\\ \n if( in_range_2, sw_lst_2,"
+            "\\ \n if( in_range_3, sw_lst_3,"
+            "\\ \n if( in_range_4, sw_lst_4,"
+            "\\ \n if( in_range_5, sw_lst_5,"
             " sw_lst_6 ))))))))))"
         )  # ' null() ))))))))))')
 

@@ -35,11 +35,11 @@ int main(int argc, char **argv)
     char gisrc[500];
 
     if (getenv("GISBASE") == NULL)
-	setenv("GISBASE",
-	       "/mpa_sw/ssi/BIO/software/GRASS5.0.0/grass5bin_cvs/grass5", 1);
+        setenv("GISBASE",
+               "/mpa_sw/ssi/BIO/software/GRASS5.0.0/grass5bin_cvs/grass5", 1);
     if (getenv("GISRC") == NULL) {
-	sprintf(gisrc, "/ssi0/ssi/%s/.grassrc5", getenv("LOGNAME"));
-	setenv("GISRC", gisrc, 1);
+        sprintf(gisrc, "/ssi0/ssi/%s/.grassrc5", getenv("LOGNAME"));
+        setenv("GISRC", gisrc, 1);
     }
 
     /* Initialize the GIS calls */
@@ -51,21 +51,23 @@ int main(int argc, char **argv)
     opt1->type = TYPE_STRING;
     opt1->required = YES;
     opt1->description =
-	"Input file containing the features (output of i.pr_features).";
+        "Input file containing the features (output of i.pr_features).";
 
     opt2 = G_define_option();
     opt2->key = "n_sets";
     opt2->type = TYPE_INTEGER;
     opt2->required = YES;
     opt2->description =
-	"Number of subsets (>=1). If you set n_sets=1 and select  cross-validation,\n\t\tleave one out cv will be implemented.";
+        "Number of subsets (>=1). If you set n_sets=1 and select  "
+        "cross-validation,\n\t\tleave one out cv will be implemented.";
 
     opt3 = G_define_option();
     opt3->key = "seed";
     opt3->type = TYPE_INTEGER;
     opt3->required = YES;
     opt3->description =
-	"Seed for the initialization (>=0), which specifies a starting point\n\t\tfor the random number sequence. Replicate same experiment.";
+        "Seed for the initialization (>=0), which specifies a starting "
+        "point\n\t\tfor the random number sequence. Replicate same experiment.";
     opt3->answer = "0";
 
     flag_c = G_define_flag();
@@ -76,315 +78,304 @@ int main(int argc, char **argv)
     flag_b->key = 'b';
     flag_b->description = "selected method: bootstrap.";
 
-
     if (G_parser(argc, argv))
-	exit(1);
-
+        exit(1);
 
     /*read parameters */
     sscanf(opt2->answer, "%d", &n_sets);
     if (n_sets <= 0) {
-	sprintf(tmpbuf, "n_sets must be >0");
-	G_fatal_error(tmpbuf);
+        sprintf(tmpbuf, "n_sets must be >0");
+        G_fatal_error(tmpbuf);
     }
 
     sscanf(opt3->answer, "%d", &seed);
     if (seed < 0) {
-	sprintf(tmpbuf, "seed must be >=0");
-	G_fatal_error(tmpbuf);
+        sprintf(tmpbuf, "seed must be >=0");
+        G_fatal_error(tmpbuf);
     }
 
     /*read features */
     read_features(opt1->answer, &features, -1);
 
-
-
     if (flag_b->answer) {
-	tr_features = (Features *) G_calloc(n_sets, sizeof(Features));
-	ts_features = (Features *) G_calloc(n_sets, sizeof(Features));
+        tr_features = (Features *)G_calloc(n_sets, sizeof(Features));
+        ts_features = (Features *)G_calloc(n_sets, sizeof(Features));
 
-	prob = (double *)G_calloc(features.nexamples, sizeof(double));
-	for (i = 0; i < features.nexamples; i++)
-	    prob[i] = 1. / features.nexamples;
-	random_labels = (int *)G_calloc(features.nexamples, sizeof(int));
-	non_extracted = (int *)G_calloc(features.nexamples, sizeof(int));
+        prob = (double *)G_calloc(features.nexamples, sizeof(double));
+        for (i = 0; i < features.nexamples; i++)
+            prob[i] = 1. / features.nexamples;
+        random_labels = (int *)G_calloc(features.nexamples, sizeof(int));
+        non_extracted = (int *)G_calloc(features.nexamples, sizeof(int));
 
+        for (i = 0; i < n_sets; i++) {
+            idum = i + seed;
+            Bootsamples_rseed(features.nexamples, prob, random_labels, &idum);
 
-	for (i = 0; i < n_sets; i++) {
-	    idum = i + seed;
-	    Bootsamples_rseed(features.nexamples, prob, random_labels, &idum);
+            /*training */
+            tr_features[i].file = features.file;
+            tr_features[i].nexamples = features.nexamples;
+            tr_features[i].examples_dim = features.examples_dim;
+            tr_features[i].value =
+                (double **)G_calloc(tr_features[i].nexamples, sizeof(double *));
+            tr_features[i].class =
+                (int *)G_calloc(tr_features[i].nexamples, sizeof(int));
+            for (j = 0; j < tr_features[i].nexamples; j++) {
+                tr_features[i].value[j] = features.value[random_labels[j]];
+                tr_features[i].class[j] = features.class[random_labels[j]];
+            }
+            tr_features[i].p_classes = features.p_classes;
+            tr_features[i].nclasses = features.nclasses;
+            tr_features[i].mean = features.mean;
+            tr_features[i].sd = features.sd;
+            tr_features[i].f_normalize = features.f_normalize;
+            tr_features[i].f_standardize = features.f_standardize;
+            tr_features[i].f_mean = features.f_mean;
+            tr_features[i].f_variance = features.f_variance;
+            tr_features[i].f_pca = features.f_pca;
+            tr_features[i].pca_class = features.pca_class;
+            tr_features[i].pca = features.pca;
+            tr_features[i].training = features.training;
+            tr_features[i].npc = features.npc;
+            tr_features[i].training.file = "generated by i.pr_subsets";
 
-	    /*training */
-	    tr_features[i].file = features.file;
-	    tr_features[i].nexamples = features.nexamples;
-	    tr_features[i].examples_dim = features.examples_dim;
-	    tr_features[i].value =
-		(double **)G_calloc(tr_features[i].nexamples,
-				    sizeof(double *));
-	    tr_features[i].class =
-		(int *)G_calloc(tr_features[i].nexamples, sizeof(int));
-	    for (j = 0; j < tr_features[i].nexamples; j++) {
-		tr_features[i].value[j] = features.value[random_labels[j]];
-		tr_features[i].class[j] = features.class[random_labels[j]];
-	    }
-	    tr_features[i].p_classes = features.p_classes;
-	    tr_features[i].nclasses = features.nclasses;
-	    tr_features[i].mean = features.mean;
-	    tr_features[i].sd = features.sd;
-	    tr_features[i].f_normalize = features.f_normalize;
-	    tr_features[i].f_standardize = features.f_standardize;
-	    tr_features[i].f_mean = features.f_mean;
-	    tr_features[i].f_variance = features.f_variance;
-	    tr_features[i].f_pca = features.f_pca;
-	    tr_features[i].pca_class = features.pca_class;
-	    tr_features[i].pca = features.pca;
-	    tr_features[i].training = features.training;
-	    tr_features[i].npc = features.npc;
-	    tr_features[i].training.file = "generated by i.pr_subsets";
+            sprintf(fileout, "%s__tr_bootstrap__%d", opt1->answer, i + 1);
+            write_features(fileout, &tr_features[i]);
 
-	    sprintf(fileout, "%s__tr_bootstrap__%d", opt1->answer, i + 1);
-	    write_features(fileout, &tr_features[i]);
+            /*test */
+            n_non_extracted = 0;
+            for (k = 0; k < tr_features[i].nexamples; k++) {
+                extracted = 0;
+                for (j = 0; j < tr_features[i].nexamples; j++) {
+                    if (k == random_labels[j]) {
+                        extracted = 1;
+                        break;
+                    }
+                }
+                if (!extracted) {
+                    non_extracted[n_non_extracted] = k;
+                    n_non_extracted++;
+                }
+            }
 
-	    /*test */
-	    n_non_extracted = 0;
-	    for (k = 0; k < tr_features[i].nexamples; k++) {
-		extracted = 0;
-		for (j = 0; j < tr_features[i].nexamples; j++) {
-		    if (k == random_labels[j]) {
-			extracted = 1;
-			break;
-		    }
-		}
-		if (!extracted) {
-		    non_extracted[n_non_extracted] = k;
-		    n_non_extracted++;
-		}
-	    }
+            ts_features[i].file = features.file;
+            ts_features[i].nexamples = n_non_extracted;
+            ts_features[i].examples_dim = features.examples_dim;
+            ts_features[i].value =
+                (double **)G_calloc(n_non_extracted, sizeof(double *));
+            ts_features[i].class =
+                (int *)G_calloc(n_non_extracted, sizeof(int));
+            for (j = 0; j < n_non_extracted; j++) {
+                ts_features[i].value[j] = features.value[non_extracted[j]];
+                ts_features[i].class[j] = features.class[non_extracted[j]];
+            }
+            ts_features[i].p_classes = features.p_classes;
+            ts_features[i].nclasses = features.nclasses;
+            ts_features[i].mean = features.mean;
+            ts_features[i].sd = features.sd;
+            ts_features[i].f_normalize = features.f_normalize;
+            ts_features[i].f_standardize = features.f_standardize;
+            ts_features[i].f_mean = features.f_mean;
+            ts_features[i].f_variance = features.f_variance;
+            ts_features[i].f_pca = features.f_pca;
+            ts_features[i].pca_class = features.pca_class;
+            ts_features[i].pca = features.pca;
+            ts_features[i].training = features.training;
+            ts_features[i].npc = features.npc;
+            ts_features[i].training.file = "generated by i.pr_subsets";
 
-	    ts_features[i].file = features.file;
-	    ts_features[i].nexamples = n_non_extracted;
-	    ts_features[i].examples_dim = features.examples_dim;
-	    ts_features[i].value = (double **)G_calloc(n_non_extracted,
-						       sizeof(double *));
-	    ts_features[i].class = (int *)G_calloc(n_non_extracted,
-						   sizeof(int));
-	    for (j = 0; j < n_non_extracted; j++) {
-		ts_features[i].value[j] = features.value[non_extracted[j]];
-		ts_features[i].class[j] = features.class[non_extracted[j]];
-	    }
-	    ts_features[i].p_classes = features.p_classes;
-	    ts_features[i].nclasses = features.nclasses;
-	    ts_features[i].mean = features.mean;
-	    ts_features[i].sd = features.sd;
-	    ts_features[i].f_normalize = features.f_normalize;
-	    ts_features[i].f_standardize = features.f_standardize;
-	    ts_features[i].f_mean = features.f_mean;
-	    ts_features[i].f_variance = features.f_variance;
-	    ts_features[i].f_pca = features.f_pca;
-	    ts_features[i].pca_class = features.pca_class;
-	    ts_features[i].pca = features.pca;
-	    ts_features[i].training = features.training;
-	    ts_features[i].npc = features.npc;
-	    ts_features[i].training.file = "generated by i.pr_subsets";
+            sprintf(fileout, "%s__ts_bootstrap__%d", opt1->answer, i + 1);
+            write_features(fileout, &ts_features[i]);
+        }
+        G_free(prob);
+        G_free(random_labels);
+        G_free(non_extracted);
 
-	    sprintf(fileout, "%s__ts_bootstrap__%d", opt1->answer, i + 1);
-	    write_features(fileout, &ts_features[i]);
-
-	}
-	G_free(prob);
-	G_free(random_labels);
-	G_free(non_extracted);
-
-	return 0;
+        return 0;
     }
 
-
     if (flag_c->answer) {
-	if (n_sets == 1) {
-	    tr_features =
-		(Features *) G_calloc(features.nexamples, sizeof(Features));
-	    ts_features =
-		(Features *) G_calloc(features.nexamples, sizeof(Features));
+        if (n_sets == 1) {
+            tr_features =
+                (Features *)G_calloc(features.nexamples, sizeof(Features));
+            ts_features =
+                (Features *)G_calloc(features.nexamples, sizeof(Features));
 
-	    /*training */
-	    for (i = 0; i < features.nexamples; i++) {
-		tr_features[i].file = features.file;
-		tr_features[i].nexamples = features.nexamples - 1;
-		tr_features[i].examples_dim = features.examples_dim;
-		tr_features[i].value =
-		    (double **)G_calloc(features.nexamples - 1,
-					sizeof(double *));
-		tr_features[i].class =
-		    (int *)G_calloc(features.nexamples - 1, sizeof(int));
-		indx = 0;
-		for (j = 0; j < features.nexamples; j++) {
-		    if (j != i) {
-			tr_features[i].value[indx] = features.value[j];
-			tr_features[i].class[indx++] = features.class[j];
-		    }
-		}
+            /*training */
+            for (i = 0; i < features.nexamples; i++) {
+                tr_features[i].file = features.file;
+                tr_features[i].nexamples = features.nexamples - 1;
+                tr_features[i].examples_dim = features.examples_dim;
+                tr_features[i].value = (double **)G_calloc(
+                    features.nexamples - 1, sizeof(double *));
+                tr_features[i].class =
+                    (int *)G_calloc(features.nexamples - 1, sizeof(int));
+                indx = 0;
+                for (j = 0; j < features.nexamples; j++) {
+                    if (j != i) {
+                        tr_features[i].value[indx] = features.value[j];
+                        tr_features[i].class[indx++] = features.class[j];
+                    }
+                }
 
-		tr_features[i].p_classes = features.p_classes;
-		tr_features[i].nclasses = features.nclasses;
-		tr_features[i].mean = features.mean;
-		tr_features[i].sd = features.sd;
-		tr_features[i].f_normalize = features.f_normalize;
-		tr_features[i].f_standardize = features.f_standardize;
-		tr_features[i].f_mean = features.f_mean;
-		tr_features[i].f_variance = features.f_variance;
-		tr_features[i].f_pca = features.f_pca;
-		tr_features[i].pca_class = features.pca_class;
-		tr_features[i].pca = features.pca;
-		tr_features[i].training = features.training;
-		tr_features[i].npc = features.npc;
-		tr_features[i].training.file = "generated by i.pr_subsets";
+                tr_features[i].p_classes = features.p_classes;
+                tr_features[i].nclasses = features.nclasses;
+                tr_features[i].mean = features.mean;
+                tr_features[i].sd = features.sd;
+                tr_features[i].f_normalize = features.f_normalize;
+                tr_features[i].f_standardize = features.f_standardize;
+                tr_features[i].f_mean = features.f_mean;
+                tr_features[i].f_variance = features.f_variance;
+                tr_features[i].f_pca = features.f_pca;
+                tr_features[i].pca_class = features.pca_class;
+                tr_features[i].pca = features.pca;
+                tr_features[i].training = features.training;
+                tr_features[i].npc = features.npc;
+                tr_features[i].training.file = "generated by i.pr_subsets";
 
-		sprintf(fileout, "%s__tr_l1ocv__%d", opt1->answer, i + 1);
-		write_features(fileout, &tr_features[i]);
+                sprintf(fileout, "%s__tr_l1ocv__%d", opt1->answer, i + 1);
+                write_features(fileout, &tr_features[i]);
 
-		/*test */
-		ts_features[i].file = features.file;
-		ts_features[i].nexamples = 1;
-		ts_features[i].examples_dim = features.examples_dim;
-		ts_features[i].value =
-		    (double **)G_calloc(1, sizeof(double *));
-		ts_features[i].class = (int *)G_calloc(1, sizeof(int));
-		ts_features[i].value[0] = features.value[i];
-		ts_features[i].class[0] = features.class[i];
+                /*test */
+                ts_features[i].file = features.file;
+                ts_features[i].nexamples = 1;
+                ts_features[i].examples_dim = features.examples_dim;
+                ts_features[i].value = (double **)G_calloc(1, sizeof(double *));
+                ts_features[i].class = (int *)G_calloc(1, sizeof(int));
+                ts_features[i].value[0] = features.value[i];
+                ts_features[i].class[0] = features.class[i];
 
+                ts_features[i].p_classes = features.p_classes;
+                ts_features[i].nclasses = features.nclasses;
+                ts_features[i].mean = features.mean;
+                ts_features[i].sd = features.sd;
+                ts_features[i].f_normalize = features.f_normalize;
+                ts_features[i].f_standardize = features.f_standardize;
+                ts_features[i].f_mean = features.f_mean;
+                ts_features[i].f_variance = features.f_variance;
+                ts_features[i].f_pca = features.f_pca;
+                ts_features[i].pca_class = features.pca_class;
+                ts_features[i].pca = features.pca;
+                ts_features[i].training = features.training;
+                ts_features[i].npc = features.npc;
+                ts_features[i].training.file = "generated by i.pr_subsets";
 
-		ts_features[i].p_classes = features.p_classes;
-		ts_features[i].nclasses = features.nclasses;
-		ts_features[i].mean = features.mean;
-		ts_features[i].sd = features.sd;
-		ts_features[i].f_normalize = features.f_normalize;
-		ts_features[i].f_standardize = features.f_standardize;
-		ts_features[i].f_mean = features.f_mean;
-		ts_features[i].f_variance = features.f_variance;
-		ts_features[i].f_pca = features.f_pca;
-		ts_features[i].pca_class = features.pca_class;
-		ts_features[i].pca = features.pca;
-		ts_features[i].training = features.training;
-		ts_features[i].npc = features.npc;
-		ts_features[i].training.file = "generated by i.pr_subsets";
+                sprintf(fileout, "%s__ts_l1ocv__%d", opt1->answer, i + 1);
+                write_features(fileout, &ts_features[i]);
+            }
+            return 0;
+        }
+        else {
+            tr_features = (Features *)G_calloc(n_sets, sizeof(Features));
+            ts_features = (Features *)G_calloc(n_sets, sizeof(Features));
 
-		sprintf(fileout, "%s__ts_l1ocv__%d", opt1->answer, i + 1);
-		write_features(fileout, &ts_features[i]);
-	    }
-	    return 0;
-	}
-	else {
-	    tr_features = (Features *) G_calloc(n_sets, sizeof(Features));
-	    ts_features = (Features *) G_calloc(n_sets, sizeof(Features));
+            if (n_sets > features.nexamples) {
+                sprintf(tmpbuf,
+                        "n_sets must be <= %d (=number of training data) if "
+                        "you want to use cross-validation",
+                        features.nexamples);
+                G_fatal_error(tmpbuf);
+            }
 
-	    if (n_sets > features.nexamples) {
-		sprintf(tmpbuf,
-			"n_sets must be <= %d (=number of training data) if you want to use cross-validation",
-			features.nexamples);
-		G_fatal_error(tmpbuf);
-	    }
+            probok = pow(1. - pow(1. - 1. / n_sets, (double)features.nexamples),
+                         (double)n_sets);
+            if (probok < 0.95) {
+                sprintf(tmpbuf,
+                        "the probability of extracting %d non empty test sets "
+                        "is less than 0.95 (the probability is exactly %e). "
+                        "Sorry but I don't like to take this risk.",
+                        n_sets, probok);
+                G_fatal_error(tmpbuf);
+            }
 
-	    probok =
-		pow(1. - pow(1. - 1. / n_sets, (double)features.nexamples),
-		    (double)n_sets);
-	    if (probok < 0.95) {
-		sprintf(tmpbuf,
-			"the probability of extracting %d non empty test sets is less than 0.95 (the probability is exactly %e). Sorry but I don't like to take this risk.",
-			n_sets, probok);
-		G_fatal_error(tmpbuf);
-	    }
+            random_labels = (int *)G_calloc(features.nexamples, sizeof(int));
+            for (i = 0; i < n_sets; i++) {
+                idum = i + seed;
+                for (j = 0; j < features.nexamples; j++)
+                    random_labels[j] = (int)(n_sets * ran1(&idum));
 
-	    random_labels = (int *)G_calloc(features.nexamples, sizeof(int));
-	    for (i = 0; i < n_sets; i++) {
-		idum = i + seed;
-		for (j = 0; j < features.nexamples; j++)
-		    random_labels[j] = (int)(n_sets * ran1(&idum));
+                /*training */
+                n_extracted = 0;
+                for (j = 0; j < features.nexamples; j++)
+                    if (random_labels[j] != i)
+                        n_extracted++;
 
-		/*training */
-		n_extracted = 0;
-		for (j = 0; j < features.nexamples; j++)
-		    if (random_labels[j] != i)
-			n_extracted++;
+                tr_features[i].file = features.file;
+                tr_features[i].nexamples = n_extracted;
+                tr_features[i].examples_dim = features.examples_dim;
+                tr_features[i].value =
+                    (double **)G_calloc(n_extracted, sizeof(double *));
+                tr_features[i].class =
+                    (int *)G_calloc(n_extracted, sizeof(int));
+                indx = 0;
+                for (j = 0; j < features.nexamples; j++) {
+                    if (random_labels[j] != i) {
+                        tr_features[i].value[indx] = features.value[j];
+                        tr_features[i].class[indx++] = features.class[j];
+                    }
+                }
 
-		tr_features[i].file = features.file;
-		tr_features[i].nexamples = n_extracted;
-		tr_features[i].examples_dim = features.examples_dim;
-		tr_features[i].value = (double **)G_calloc(n_extracted,
-							   sizeof(double *));
-		tr_features[i].class = (int *)G_calloc(n_extracted,
-						       sizeof(int));
-		indx = 0;
-		for (j = 0; j < features.nexamples; j++) {
-		    if (random_labels[j] != i) {
-			tr_features[i].value[indx] = features.value[j];
-			tr_features[i].class[indx++] = features.class[j];
-		    }
-		}
+                tr_features[i].p_classes = features.p_classes;
+                tr_features[i].nclasses = features.nclasses;
+                tr_features[i].mean = features.mean;
+                tr_features[i].sd = features.sd;
+                tr_features[i].f_normalize = features.f_normalize;
+                tr_features[i].f_standardize = features.f_standardize;
+                tr_features[i].f_mean = features.f_mean;
+                tr_features[i].f_variance = features.f_variance;
+                tr_features[i].f_pca = features.f_pca;
+                tr_features[i].pca_class = features.pca_class;
+                tr_features[i].pca = features.pca;
+                tr_features[i].training = features.training;
+                tr_features[i].npc = features.npc;
+                tr_features[i].training.file = "generated by i.pr_subsets";
 
-		tr_features[i].p_classes = features.p_classes;
-		tr_features[i].nclasses = features.nclasses;
-		tr_features[i].mean = features.mean;
-		tr_features[i].sd = features.sd;
-		tr_features[i].f_normalize = features.f_normalize;
-		tr_features[i].f_standardize = features.f_standardize;
-		tr_features[i].f_mean = features.f_mean;
-		tr_features[i].f_variance = features.f_variance;
-		tr_features[i].f_pca = features.f_pca;
-		tr_features[i].pca_class = features.pca_class;
-		tr_features[i].pca = features.pca;
-		tr_features[i].training = features.training;
-		tr_features[i].npc = features.npc;
-		tr_features[i].training.file = "generated by i.pr_subsets";
+                sprintf(fileout, "%s__tr_%dcv__%d", opt1->answer, n_sets,
+                        i + 1);
+                write_features(fileout, &tr_features[i]);
 
-		sprintf(fileout, "%s__tr_%dcv__%d", opt1->answer, n_sets,
-			i + 1);
-		write_features(fileout, &tr_features[i]);
+                /*test */
+                n_non_extracted = 0;
+                for (j = 0; j < features.nexamples; j++)
+                    if (random_labels[j] == i)
+                        n_non_extracted++;
 
+                tr_features[i].file = features.file;
+                tr_features[i].nexamples = n_non_extracted;
+                tr_features[i].examples_dim = features.examples_dim;
+                tr_features[i].value =
+                    (double **)G_calloc(n_non_extracted, sizeof(double *));
+                tr_features[i].class =
+                    (int *)G_calloc(n_non_extracted, sizeof(int));
+                indx = 0;
+                for (j = 0; j < features.nexamples; j++) {
+                    if (random_labels[j] == i) {
+                        tr_features[i].value[indx] = features.value[j];
+                        tr_features[i].class[indx++] = features.class[j];
+                    }
+                }
 
-		/*test */
-		n_non_extracted = 0;
-		for (j = 0; j < features.nexamples; j++)
-		    if (random_labels[j] == i)
-			n_non_extracted++;
+                tr_features[i].p_classes = features.p_classes;
+                tr_features[i].nclasses = features.nclasses;
+                tr_features[i].mean = features.mean;
+                tr_features[i].sd = features.sd;
+                tr_features[i].f_normalize = features.f_normalize;
+                tr_features[i].f_standardize = features.f_standardize;
+                tr_features[i].f_mean = features.f_mean;
+                tr_features[i].f_variance = features.f_variance;
+                tr_features[i].f_pca = features.f_pca;
+                tr_features[i].pca_class = features.pca_class;
+                tr_features[i].pca = features.pca;
+                tr_features[i].training = features.training;
+                tr_features[i].npc = features.npc;
+                tr_features[i].training.file = "generated by i.pr_subsets";
 
-		tr_features[i].file = features.file;
-		tr_features[i].nexamples = n_non_extracted;
-		tr_features[i].examples_dim = features.examples_dim;
-		tr_features[i].value = (double **)G_calloc(n_non_extracted,
-							   sizeof(double *));
-		tr_features[i].class = (int *)G_calloc(n_non_extracted,
-						       sizeof(int));
-		indx = 0;
-		for (j = 0; j < features.nexamples; j++) {
-		    if (random_labels[j] == i) {
-			tr_features[i].value[indx] = features.value[j];
-			tr_features[i].class[indx++] = features.class[j];
-		    }
-		}
-
-		tr_features[i].p_classes = features.p_classes;
-		tr_features[i].nclasses = features.nclasses;
-		tr_features[i].mean = features.mean;
-		tr_features[i].sd = features.sd;
-		tr_features[i].f_normalize = features.f_normalize;
-		tr_features[i].f_standardize = features.f_standardize;
-		tr_features[i].f_mean = features.f_mean;
-		tr_features[i].f_variance = features.f_variance;
-		tr_features[i].f_pca = features.f_pca;
-		tr_features[i].pca_class = features.pca_class;
-		tr_features[i].pca = features.pca;
-		tr_features[i].training = features.training;
-		tr_features[i].npc = features.npc;
-		tr_features[i].training.file = "generated by i.pr_subsets";
-
-		sprintf(fileout, "%s__ts_%dcv__%d", opt1->answer, n_sets,
-			i + 1);
-		write_features(fileout, &tr_features[i]);
-
-	    }
-	    G_free(random_labels);
-	    return 0;
-	}
+                sprintf(fileout, "%s__ts_%dcv__%d", opt1->answer, n_sets,
+                        i + 1);
+                write_features(fileout, &tr_features[i]);
+            }
+            G_free(random_labels);
+            return 0;
+        }
     }
 
     return 0;

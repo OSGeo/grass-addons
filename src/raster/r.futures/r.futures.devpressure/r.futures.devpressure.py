@@ -17,52 +17,54 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for computing development pressure
-#% keyword: raster
-#% keyword: filter
-#% keyword: statistics
-#%end
-#%option G_OPT_R_INPUT
-#% description: Name of input binary raster map representing development
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name of the output development pressure raster
-#%end
-#%option
-#% key: method
-#% type: string
-#% description: Method for computing development pressure
-#% required: yes
-#% answer: gravity
-#% options: occurrence,gravity,kernel
-#% descriptions: occurrence;number of developed cells in window;gravity;scaling_factor / pow(distance, gamma);kernel;scaling_factor * exp (-2*distance / gamma)
-#%end
-#%option
-#% key: size
-#% type: integer
-#% description: Half of neighborhood size
-#% required: yes
-#% answer: 8
-#%end
-#%option
-#% key: gamma
-#% type: double
-#% description: Coefficient controlling the influence of distance, needed for method gravity and kernel
-#% required: no
-#% answer: 1.5
-#%end
-#%option
-#% key: scaling_factor
-#% type: double
-#% description: Scaling factor needed for method gravity and kernel
-#% required: no
-#% answer: 1
-#%end
-#%flag
-#% key: n
-#% description: Do not propagate nulls
-#%end
+# %module
+# % description: Module for computing development pressure
+# % keyword: raster
+# % keyword: filter
+# % keyword: statistics
+# %end
+# %option G_OPT_R_INPUT
+# % description: Name of input binary raster map representing development
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Name of the output development pressure raster
+# %end
+# %option
+# % key: method
+# % type: string
+# % description: Method for computing development pressure
+# % required: yes
+# % answer: gravity
+# % options: occurrence,gravity,kernel
+# % descriptions: occurrence;number of developed cells in window;gravity;scaling_factor / pow(distance, gamma);kernel;scaling_factor * exp (-2*distance / gamma)
+# %end
+# %option
+# % key: size
+# % type: integer
+# % description: Half of neighborhood size
+# % required: yes
+# % answer: 8
+# %end
+# %option
+# % key: gamma
+# % type: double
+# % description: Coefficient controlling the influence of distance, needed for method gravity and kernel
+# % required: no
+# % answer: 1.5
+# %end
+# %option
+# % key: scaling_factor
+# % type: double
+# % description: Scaling factor needed for method gravity and kernel
+# % required: no
+# % answer: 1
+# %end
+# %option G_OPT_M_NPROCS
+# %end
+# %flag
+# % key: n
+# % description: Do not propagate nulls
+# %end
 
 
 import os
@@ -75,6 +77,8 @@ from math import sqrt
 import grass.script.core as gcore
 import grass.script.utils as gutils
 import grass.script.raster as grast
+from grass.script import task as gtask
+
 
 TMPFILE = None
 TMP = []
@@ -84,6 +88,11 @@ def cleanup():
     if TMP:
         gcore.run_command("g.remove", flags="f", type=["raster"], name=TMP)
     gutils.try_remove(TMPFILE)
+
+
+def module_has_parameter(module, parameter):
+    task = gtask.command_info(module)
+    return parameter in [each["name"] for each in task["params"]]
 
 
 def main():
@@ -154,7 +163,12 @@ def main():
     with open(path, "w") as f:
         f.write(write_filter(matrix))
     gcore.message(_("Running development pressure filter..."))
-    gcore.run_command("r.mfilter", input=rmfilter_inp, output=rmfilter_out, filter=path)
+    params = {}
+    if module_has_parameter("r.mfilter", "nprocs"):
+        params["nprocs"] = options["nprocs"]
+    gcore.run_command(
+        "r.mfilter", input=rmfilter_inp, output=rmfilter_out, filter=path, **params
+    )
 
     if flags["n"]:
         gcore.run_command(

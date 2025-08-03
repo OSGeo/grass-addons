@@ -13,4 +13,3 @@ EXTRA_LIBS=$(GISLIB) -lgomp $(MATHLIB)
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
 default: cmd
-

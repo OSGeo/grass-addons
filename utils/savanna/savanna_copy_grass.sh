@@ -22,7 +22,7 @@
 #       tiling_vector = vector containing rectangular polygons defining each tile
 #       overlapsize = buffering size in pixels to use for each tile
 #       tile = tile ID
-# TODO: This can probably be parallized, if we put a wait condition for any other similarly named jobs.
+# TODO: This can probably be parallelized, if we put a wait condition for any other similarly named jobs.
 
 outputs=($outputs)
 

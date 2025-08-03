@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<math.h>
-#include"functions.h"
+#include <stdio.h>
+#include <math.h>
+#include "functions.h"
 
 double h_0(double roh_air, double rah, double dtair)
 {

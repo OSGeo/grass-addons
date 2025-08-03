@@ -13,41 +13,41 @@
 #
 #############################################################################
 
-#%module
-#% description: Execute HIVEsql command
-#% keyword: database
-#% keyword: hdfs
-#% keyword: hive
-#%end
+# %module
+# % description: Execute HIVEsql command
+# % keyword: database
+# % keyword: hdfs
+# % keyword: hive
+# %end
 
-#%option
-#% key: driver
-#% type: string
-#% required: yes
-#% answer: hiveserver2
-#% description: Type of database driver
-#% options: hive_cli, hiveserver2
-#%end
-#%option
-#% key: hql
-#% type: string
-#% required: yes
-#% description: hive sql command
-#%end
-#%option
-#% key: schema
-#% type: string
-#% required: no
-#% description: hive db schema
-#%end
-#%G_OPT_F_OUTPUT
-#% key: out
-#% type: string
-#% required: no
-#% description: Name for output file (if omitted output to stdout)
-#%end
+# %option
+# % key: driver
+# % type: string
+# % required: yes
+# % answer: hiveserver2
+# % description: Type of database driver
+# % options: hive_cli, hiveserver2
+# %end
+# %option
+# % key: hql
+# % type: string
+# % required: yes
+# % description: hive sql command
+# %end
+# %option
+# % key: schema
+# % type: string
+# % required: no
+# % description: hive db schema
+# %end
+# %G_OPT_F_OUTPUT
+# % key: out
+# % type: string
+# % required: no
+# % description: Name for output file (if omitted output to stdout)
+# %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -64,13 +64,13 @@ def main():
     out = hive.get_results(hql=options["hql"], schema=options["schema"])
 
     if options["out"]:
-        with open(out, "rw") as io:
+        with open(out, "w") as io:
             io.writelines(out)
             io.close()
     else:
-        print out
+        print(out)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

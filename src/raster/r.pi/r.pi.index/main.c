@@ -1,5 +1,4 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
  * MODULE:       r.pi.index
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
@@ -25,13 +24,12 @@
 #include <grass/stats.h>
 #include "local_proto.h"
 
-typedef int (f_func) (DCELL *, Coords **, int);
+typedef int(f_func)(DCELL *, Coords **, int);
 
-struct menu
-{
-    f_func *method;		/* routine to compute new value */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
+struct menu {
+    f_func *method; /* routine to compute new value */
+    char *name;     /* method name */
+    char *text;     /* menu display - full description */
 };
 
 static struct menu menu[] = {
@@ -45,8 +43,7 @@ static struct menu menu[] = {
      "area-perimeter ratio of specified patches"},
     {f_frac_dim, "fractal", "fractal dimension of specified patches"},
     {f_nearest_dist, "ENN", "euclidean distance to nearest patch"},
-    {0, 0, 0}
-};
+    {0, 0, 0}};
 
 int main(int argc, char *argv[])
 {
@@ -80,15 +77,13 @@ int main(int argc, char *argv[])
     struct Range range;
     CELL min, max;
     struct GModule *module;
-    struct
-    {
-	struct Option *input, *output;
-	struct Option *keyval, *method;
-	struct Option *title;
+    struct {
+        struct Option *input, *output;
+        struct Option *keyval, *method;
+        struct Option *title;
     } parm;
-    struct
-    {
-	struct Flag *adjacent;
+    struct {
+        struct Flag *adjacent;
     } flag;
 
     DCELL *values;
@@ -100,6 +95,8 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     G_add_keyword(_("raster"));
+    G_add_keyword(_("landscape structure analysis"));
+    G_add_keyword(_("fragmentation analysis"));
     module->description = _("Basic patch based indices");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
@@ -120,11 +117,11 @@ int main(int argc, char *argv[])
     parm.method->required = YES;
     p = G_malloc(1024);
     for (n = 0; menu[n].name; n++) {
-	if (n)
-	    strcat(p, ",");
-	else
-	    *p = 0;
-	strcat(p, menu[n].name);
+        if (n)
+            strcat(p, ",");
+        else
+            *p = 0;
+        strcat(p, menu[n].name);
     }
     parm.method->options = p;
     parm.method->description = _("Operation to perform on fragments");
@@ -139,10 +136,10 @@ int main(int argc, char *argv[])
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
+        _("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     if (G_parser(argc, argv))
-	    exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname = parm.input->answer;
@@ -155,7 +152,7 @@ int main(int argc, char *argv[])
     /* check if the new file name is correct */
     newname = parm.output->answer;
     if (G_legal_filename(newname) < 0)
-	G_fatal_error(_("<%s> is an illegal file name"), newname);
+        G_fatal_error(_("<%s> is an illegal file name"), newname);
 
     /* get size */
     nrows = Rast_window_rows();
@@ -167,20 +164,20 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get map type */
-    map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
+    map_type = DCELL_TYPE; /* G_raster_map_type(oldname, oldmapset); */
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
 
     /* get the method */
     for (method = 0; (p = menu[method].name); method++)
-	if ((strcmp(p, parm.method->answer) == 0))
-	    break;
+        if ((strcmp(p, parm.method->answer) == 0))
+            break;
     if (!p) {
-	G_warning(_("<%s=%s> unknown %s"),
-		  parm.method->key, parm.method->answer, parm.method->key);
-	G_usage();
-	exit(EXIT_FAILURE);
+        G_warning(_("<%s=%s> unknown %s"), parm.method->key,
+                  parm.method->answer, parm.method->key);
+        G_usage();
+        exit(EXIT_FAILURE);
     }
 
     /* establish the newvalue routine */
@@ -190,35 +187,35 @@ int main(int argc, char *argv[])
     nbr_count = flag.adjacent->answer ? 8 : 4;
 
     /* allocate the cell buffers */
-    cells = (Coords *) G_malloc(nrows * ncols * sizeof(Coords));
+    cells = (Coords *)G_malloc(nrows * ncols * sizeof(Coords));
     actpos = cells;
-    fragments = (Coords **) G_malloc(nrows * ncols * sizeof(Coords *));
+    fragments = (Coords **)G_malloc(nrows * ncols * sizeof(Coords *));
     fragments[0] = cells;
     flagbuf = (int *)G_malloc(nrows * ncols * sizeof(int));
     result = Rast_allocate_d_buf();
 
     /* get title, initialize the category and stat info */
     if (parm.title->answer)
-	strcpy(title, parm.title->answer);
+        strcpy(title, parm.title->answer);
     else
-	sprintf(title, "Fragmentation of file: %s", oldname);
+        sprintf(title, "Fragmentation of file: %s", oldname);
 
     /* open the new cellfile  */
     out_fd = Rast_open_new(newname, map_type);
     if (out_fd < 0)
-	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
+        G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     G_message("Loading patches...");
 
     /* find fragments */
     for (row = 0; row < nrows; row++) {
-	Rast_get_d_row(in_fd, result, row);
-	for (col = 0; col < ncols; col++) {
-	    if (result[col] == keyval)
-		flagbuf[row * ncols + col] = 1;
-	}
+        Rast_get_d_row(in_fd, result, row);
+        for (col = 0; col < ncols; col++) {
+            if (result[col] == keyval)
+                flagbuf[row * ncols + col] = 1;
+        }
 
-	G_percent(row, nrows, 2);
+        G_percent(row, nrows, 2);
     }
     G_percent(nrows, nrows, 2);
 
@@ -227,26 +224,26 @@ int main(int argc, char *argv[])
 
     /* perform actual function on the patches */
     G_message("Performing operation...");
-    values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
+    values = (DCELL *)G_malloc(fragcount * sizeof(DCELL));
     compute_values(values, fragments, fragcount);
     G_percent(fragcount, fragcount, 2);
 
     /* write the output file */
     G_message("Writing output...");
     for (row = 0; row < nrows; row++) {
-	Rast_set_d_null_value(result, ncols);
+        Rast_set_d_null_value(result, ncols);
 
-	for (i = 0; i < fragcount; i++) {
-	    for (actpos = fragments[i]; actpos < fragments[i + 1]; actpos++) {
-		if (actpos->y == row) {
-		    result[actpos->x] = values[i];
-		}
-	    }
-	}
+        for (i = 0; i < fragcount; i++) {
+            for (actpos = fragments[i]; actpos < fragments[i + 1]; actpos++) {
+                if (actpos->y == row) {
+                    result[actpos->x] = values[i];
+                }
+            }
+        }
 
-	Rast_put_d_row(out_fd, result);
+        Rast_put_d_row(out_fd, result);
 
-	G_percent(row, nrows, 2);
+        G_percent(row, nrows, 2);
     }
 
     G_percent(nrows, nrows, 2);

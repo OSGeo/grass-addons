@@ -23,12 +23,12 @@ int allocate_bufs(struct rb *rbuf, int ncols, int bw, int fd)
     rbuf->nsize = bw * 2 + 1;
     rbuf->fd = fd;
     rbuf->row = 0;
-    
-    rbuf->buf = (DCELL **) G_malloc(rbuf->nsize * sizeof(DCELL *));
+
+    rbuf->buf = (DCELL **)G_malloc(rbuf->nsize * sizeof(DCELL *));
 
     for (i = 0; i < rbuf->nsize; i++) {
-	rbuf->buf[i] = (DCELL *) G_malloc(bufsize);
-	Rast_set_d_null_value(rbuf->buf[i], ncolsbw);
+        rbuf->buf[i] = (DCELL *)G_malloc(bufsize);
+        Rast_set_d_null_value(rbuf->buf[i], ncolsbw);
     }
 
     return 0;
@@ -39,7 +39,7 @@ int release_bufs(struct rb *rbuf)
     int i;
 
     for (i = 0; i < rbuf->nsize; i++) {
-	G_free(rbuf->buf[i]);
+        G_free(rbuf->buf[i]);
     }
 
     G_free(rbuf->buf);
@@ -59,7 +59,7 @@ static int rotate_bufs(struct rb *rbuf)
     temp = rbuf->buf[0];
 
     for (i = 1; i < rbuf->nsize; i++)
-	rbuf->buf[i - 1] = rbuf->buf[i];
+        rbuf->buf[i - 1] = rbuf->buf[i];
 
     rbuf->buf[rbuf->nsize - 1] = temp;
 
@@ -71,12 +71,13 @@ int readrast(struct rb *rbuf, int nrows, int ncols)
     rotate_bufs(rbuf);
 
     if (rbuf->row < nrows) {
-	Rast_get_d_row(rbuf->fd, rbuf->buf[rbuf->nsize - 1] + rbuf->bw, rbuf->row);
+        Rast_get_d_row(rbuf->fd, rbuf->buf[rbuf->nsize - 1] + rbuf->bw,
+                       rbuf->row);
     }
     else {
-	Rast_set_d_null_value(rbuf->buf[rbuf->nsize - 1] + rbuf->bw, ncols);
+        Rast_set_d_null_value(rbuf->buf[rbuf->nsize - 1] + rbuf->bw, ncols);
     }
-    
+
     rbuf->row++;
 
     return 0;

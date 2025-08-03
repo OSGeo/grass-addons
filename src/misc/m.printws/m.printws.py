@@ -17,158 +17,159 @@
 #
 #############################################################################
 
-#%module
-#% description: Opens a workspace file and creates a map sheet according to its visible contents.
-#% keyword: map
-#% keyword: print
-#% keyword: layout
-#% keyword: workspace
-#%end
-#%option G_OPT_F_BIN_INPUT
-#% key: input
-#% description: Name of workspace file to process
-#% required: YES
-#% gisprompt: old,bin,file
-#% guisection: Input
-#%end
-#%option
-#% key: dpi
-#% type: integer
-#% answer: 150
-#% multiple: no
-#% description: DPI for the generated page
-#% guisection: Output
-#%end
-#%option G_OPT_F_OUTPUT
-#% description: Name of output file without extension
-#% key: output
-#% gisprompt: new,file,file
-#% guisection: Output
-#%end
-#%option
-#% key: page
-#% type: string
-#% options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait,Flexi
-#% answer: A4landscape
-#% description: Output map page size
-#% guisection: Output
-#%end
-#%option
-#% key: format
-#% type: string
-#% options: pdf,png,tiff,bmp,ppm,jpg
-#% answer: pdf
-#% description: Output file format
-#% guisection: Output
-#%end
-#%option
-#% key: maintitle
-#% type: string
-#% description: Main title of map sheet
-#% guisection: Titles
-#%end
-#%option
-#% key: font
-#% type: string
-#% description: Font for title above and postscript under the map
-#% guisection: Titles
-#%end
-#%option G_OPT_C
-#% key: titlecolor
-#% type: string
-#% description: Title text color
-#% guisection: Titles
-#%end
-#%option
-#% key: maintitlesize
-#% type: integer
-#% description: Main title font size in layout units
-#% guisection: Titles
-#%end
-#%option
-#% key: subtitle
-#% type: string
-#% description: Subtitle text above the map sheet in the middle
-#% guisection: Titles
-#%end
-#%option
-#% key: subtitlesize
-#% type: integer
-#% description: Subtitle font size in layout units
-#% guisection: Titles
-#%end
-#%option
-#% key: psunderleft
-#% type: string
-#% description: Postscript text under the map sheet on the left
-#% guisection: Titles
-#%end
-#%option
-#% key: psunderright
-#% type: string
-#% description: Postscript text under the map sheet on the right
-#% guisection: Titles
-#%end
-#%option
-#% key: psundercentral
-#% type: string
-#% description: Postscript text under the map sheet, centered
-#% guisection: Titles
-#%end
-#%option
-#% key: pssize
-#% type: integer
-#% description: Postscript text font size in layout units
-#% guisection: Titles
-#%end
-#%option G_OPT_M_REGION
-#% key:region
-#% description: Name of region to use - uses workspace displayed area if empty
-#% required: NO
-#% gisprompt: old,windows,region
-#% guisection: Input
-#%end
-#%flag
-#% key: d
-#% description: Debug - Leave temp files as is for alternative usage or checkup
-#% guisection: Optional
-#% suppress_required: yes
-#%end
-#%option
-#% key: layunits
-#% type: string
-#% options: cm,mm,inch
-#% answer: mm
-#% description: Unit used for layout specification
-#% guisection: Layout
-#%end
-#%option
-#% key: pagemargin
-#% type: string
-#% description: Margins in layout units left,right,top,bottom
-#% guisection: Layout
-#%end
-#%option
-#% key: mapupperleft
-#% type: string
-#% answer: -1,-1
-#% description: Map frame upper left coordinates - negative means centering
-#% guisection: Layout
-#%end
-#%option
-#% key: mapsize
-#% type: string
-#% answer: 1000
-#% description: Map frame size in layout units as width,height
-#% guisection: Layout
-#%end
-#%option
-#% key: screendpi
-#% type: integer
-#% answer: 100
-#% description: The DPI of your monitor
-#% guisection: Layout
-#%end
+# %module
+# % description: Opens a workspace file and creates a map sheet according to its visible contents.
+# % keyword: misc
+# % keyword: printing
+# % keyword: map
+# % keyword: layout
+# % keyword: workspace
+# %end
+# %option G_OPT_F_BIN_INPUT
+# % key: input
+# % description: Name of workspace file to process
+# % required: YES
+# % gisprompt: old,bin,file
+# % guisection: Input
+# %end
+# %option
+# % key: dpi
+# % type: integer
+# % answer: 150
+# % multiple: no
+# % description: DPI for the generated page
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % description: Name of output file without extension
+# % key: output
+# % gisprompt: new,file,file
+# % guisection: Output
+# %end
+# %option
+# % key: page
+# % type: string
+# % options: A4landscape,A4portrait,LETTERlandscape,LETTERportrait,A3landscape,A3portrait,Flexi
+# % answer: A4landscape
+# % description: Output map page size
+# % guisection: Output
+# %end
+# %option
+# % key: format
+# % type: string
+# % options: pdf,png,tiff,bmp,ppm,jpg
+# % answer: pdf
+# % description: Output file format
+# % guisection: Output
+# %end
+# %option
+# % key: maintitle
+# % type: string
+# % description: Main title of map sheet
+# % guisection: Titles
+# %end
+# %option
+# % key: font
+# % type: string
+# % description: Font for title above and postscript under the map
+# % guisection: Titles
+# %end
+# %option G_OPT_C
+# % key: titlecolor
+# % type: string
+# % description: Title text color
+# % guisection: Titles
+# %end
+# %option
+# % key: maintitlesize
+# % type: integer
+# % description: Main title font size in layout units
+# % guisection: Titles
+# %end
+# %option
+# % key: subtitle
+# % type: string
+# % description: Subtitle text above the map sheet in the middle
+# % guisection: Titles
+# %end
+# %option
+# % key: subtitlesize
+# % type: integer
+# % description: Subtitle font size in layout units
+# % guisection: Titles
+# %end
+# %option
+# % key: psunderleft
+# % type: string
+# % description: Postscript text under the map sheet on the left
+# % guisection: Titles
+# %end
+# %option
+# % key: psunderright
+# % type: string
+# % description: Postscript text under the map sheet on the right
+# % guisection: Titles
+# %end
+# %option
+# % key: psundercentral
+# % type: string
+# % description: Postscript text under the map sheet, centered
+# % guisection: Titles
+# %end
+# %option
+# % key: pssize
+# % type: integer
+# % description: Postscript text font size in layout units
+# % guisection: Titles
+# %end
+# %option G_OPT_M_REGION
+# % key:region
+# % description: Name of region to use - uses workspace displayed area if empty
+# % required: NO
+# % gisprompt: old,windows,region
+# % guisection: Input
+# %end
+# %flag
+# % key: d
+# % description: Debug - Leave temp files as is for alternative usage or checkup
+# % guisection: Optional
+# % suppress_required: yes
+# %end
+# %option
+# % key: layunits
+# % type: string
+# % options: cm,mm,inch
+# % answer: mm
+# % description: Unit used for layout specification
+# % guisection: Layout
+# %end
+# %option
+# % key: pagemargin
+# % type: string
+# % description: Margins in layout units left,right,top,bottom
+# % guisection: Layout
+# %end
+# %option
+# % key: mapupperleft
+# % type: string
+# % answer: -1,-1
+# % description: Map frame upper left coordinates - negative means centering
+# % guisection: Layout
+# %end
+# %option
+# % key: mapsize
+# % type: string
+# % answer: 1000
+# % description: Map frame size in layout units as width,height
+# % guisection: Layout
+# %end
+# %option
+# % key: screendpi
+# % type: integer
+# % answer: 100
+# % description: The DPI of your monitor
+# % guisection: Layout
+# %end
 
 
 import sys
@@ -184,7 +185,7 @@ except ImportError:
 import atexit
 import re
 import tempfile
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.script.utils import try_rmdir
 import copy
@@ -255,11 +256,11 @@ def cleanthisandthat(intext):
     # Once workspace files are always good this function could be NOOP
     outtext = ""
     for line in intext.splitlines():
-        m = re.search("http\://", line)
+        m = re.search(r"http\://", line)
         if m:
-            line2 = re.sub("\&amp\;", "SAVED___amp\;", line)
-            line3 = re.sub("\&", "&amp;", line2)
-            line4 = re.sub("SAVED___amp\;", "&amp;", line3)
+            line2 = re.sub(r"\&amp\;", r"SAVED___amp\;", line)
+            line3 = re.sub(r"\&", "&amp;", line2)
+            line4 = re.sub(r"SAVED___amp\;", "&amp;", line3)
             outtext = outtext + line4 + "\n"
         else:
             outtext = outtext + line + "\n"
@@ -270,7 +271,7 @@ def cleanup():
     # No cleanup is done here
     # see end of main()
     # kept for later
-    grass.verbose(_("Module cleanup"))
+    gs.verbose(_("Module cleanup"))
 
 
 # test
@@ -376,7 +377,7 @@ def processoverlays(dom, l):
 def readworkspace(wspname):
     # READS WORKSPACE FILE
     displaydic = {}  # adding support for more displays
-    grass.verbose(_("Layers: "))
+    gs.verbose(_("Layers: "))
     f = open(wspname, "r")
     textraw = f.read()
     f.close()
@@ -549,8 +550,8 @@ def getmapframeindots(mapulindots, mapsizesindots, mxfd):
 
 
 def render(astring, pdic, fdic):
-    grass.verbose(_("printws: Rendering into - BASE: " + LASTFILE))
-    grass.verbose(_("printws: Rendering command: " + astring))
+    gs.verbose(_("printws: Rendering into - BASE: " + LASTFILE))
+    gs.verbose(_("printws: Rendering command: " + astring))
 
     pdic = copy.deepcopy(pdic)  # parameters
     fdic = copy.deepcopy(fdic)  # flags
@@ -566,7 +567,7 @@ def render(astring, pdic, fdic):
     del pdic["task"]
     # it should be replaced by grass.* API calls
     # os.system(astring)
-    grass.run_command(task, **pdic)  # migration is going on
+    gs.run_command(task, **pdic)  # migration is going on
 
 
 def getfontbypattern(kindpattern):
@@ -574,12 +575,12 @@ def getfontbypattern(kindpattern):
     # also some fonts with _ in names seemed to be utf8 for sure
     # fonts with space and : and without capital letter are excluded from
     # randomization
-    s = grass.read_command("d.fontlist")
+    s = gs.read_command("d.fontlist")
     safe = "romans"
     split = s.splitlines()
     for l in split:
         # check if it has : or space.
-        m = re.search("[\:\ ]+", l, re.IGNORECASE)
+        m = re.search(r"[\:\ ]+", l, re.IGNORECASE)
         if not m:
             m = re.search("(.*" + kindpattern + ".*)", l, re.IGNORECASE)
             if m:
@@ -590,7 +591,7 @@ def getfontbypattern(kindpattern):
     if safe == "romans":
         for l in split:
             # check if it has : or space.
-            m = re.search("[\:\ ]+", l, re.IGNORECASE)
+            m = re.search(r"[\:\ ]+", l, re.IGNORECASE)
             if not m:
                 m = re.search("[A-Z].+[_].+", l, re.IGNORECASE)
                 if m:
@@ -630,22 +631,22 @@ def main():
 
     # Check if ImageMagick is available since it is essential
     if os.name == "nt":
-        if grass.find_program("magick", "-version"):
-            grass.verbose(_("printws: ImageMagick is available: OK!"))
+        if gs.find_program("magick", "-version"):
+            gs.verbose(_("printws: ImageMagick is available: OK!"))
         else:
-            grass.fatal(
+            gs.fatal(
                 "ImageMagick is not accessible. See documentation of m.printws module for details."
             )
     else:
-        if grass.find_program("convert", "-version"):
-            grass.verbose(_("printws: ImageMagick is available: OK!"))
+        if gs.find_program("convert", "-version"):
+            gs.verbose(_("printws: ImageMagick is available: OK!"))
         else:
-            grass.fatal(
+            gs.fatal(
                 "ImageMagick is not accessible. See documentation of m.printws module for details."
             )
 
     textmacros = {}
-    #%nam% macros are kept for backward compatibility
+    # %nam% macros are kept for backward compatibility
     textmacros["%TIME24%"] = time.strftime("%H:%M:%S")
     textmacros["%DATEYMD%"] = time.strftime("%Y.%m.%d")
     textmacros["%DATEMDY%"] = time.strftime("%m/%d/%Y")
@@ -655,16 +656,16 @@ def main():
         textmacros["%USERNAME%"] = pwd.getpwuid(os.getuid())[0]
     # using $ for macros in the future. New items should be created
     # exclusively as $macros later on
-    textmacros["\$TIME24"] = textmacros["%TIME24%"]
-    textmacros["\$DATEYMD"] = textmacros["%DATEYMD%"]
-    textmacros["\$DATEMDY"] = textmacros["%DATEMDY%"]
-    textmacros["\$USERNAME"] = textmacros["%USERNAME%"]
+    textmacros[r"\$TIME24"] = textmacros["%TIME24%"]
+    textmacros[r"\$DATEYMD"] = textmacros["%DATEYMD%"]
+    textmacros[r"\$DATEMDY"] = textmacros["%DATEMDY%"]
+    textmacros[r"\$USERNAME"] = textmacros["%USERNAME%"]
 
-    textmacros["\$SPC"] = "\\u00A0"  # ?? d.text won't display this at string end hmmm
+    textmacros[r"\$SPC"] = "\\u00A0"  # ?? d.text won't display this at string end hmmm
 
     # saves region for restoring at end
     # doing with official method:
-    grass.use_temp_region()
+    gs.use_temp_region()
 
     # getting/setting screen/print dpi ratio
 
@@ -687,7 +688,7 @@ def main():
         quit()
 
     textmacros["%GXW%"] = options["input"]
-    textmacros["\$GXW"] = textmacros["%GXW%"]
+    textmacros[r"\$GXW"] = textmacros["%GXW%"]
 
     displaycounter = 0
 
@@ -695,25 +696,25 @@ def main():
     # each display is a whole and independent file assembly
     for key in displays:
         textmacros["%DISPLAY%"] = key
-        textmacros["\$DISPLAY"] = key
-        grass.verbose(_("printws: rendering display: " + key))
+        textmacros[r"\$DISPLAY"] = key
+        gs.verbose(_("printws: rendering display: " + key))
         displaycounter = displaycounter + 1
         layers = copy.deepcopy(displays[key])
 
         # extracting extent information from layers dic and erase the item
         # extents[0-5] w s e n minz maxz ;  extents [6-9] window x y w h
         extents = layers[0]
-        grass.verbose(
+        gs.verbose(
             "m.printws: EXTENTS from workspace:" + str(extents)
         )  # was debug message
         del layers[0]
 
         regionmode = ""
         if len(options["region"]) > 0:
-            grass.run_command("g.region", region=options["region"])
+            gs.run_command("g.region", region=options["region"])
             regionmode = "region"
         else:
-            grass.run_command(
+            gs.run_command(
                 "g.region", "", w=extents[0], s=extents[1], e=extents[2], n=extents[3]
             )
             regionmode = "window"
@@ -748,7 +749,7 @@ def main():
                 titlefont = options["font"]
         else:
             titlefont = getfontbypattern("Open")  # try to find something UTF-8
-        grass.verbose(_("printws: titlefont: " + titlefont))
+        gs.verbose(_("printws: titlefont: " + titlefont))
 
         if len(options["titlecolor"]) > 0:
             titlecolor = options["titlecolor"]
@@ -836,8 +837,8 @@ def main():
         # OR screen window edges depeding on "regionmode"
         # for later:     grass.use_temp_region()
         ISLATLONG = False
-        s = grass.read_command("g.region", flags="p")
-        kv = grass.parse_key_val(s, sep=":")
+        s = gs.read_command("g.region", flags="p")
+        kv = gs.parse_key_val(s, sep=":")
         regioncols = float(kv["cols"].strip())
         regionrows = float(kv["rows"].strip())
         ewrestemp = kv["ewres"].strip()
@@ -863,32 +864,28 @@ def main():
         sizex = regioncols * ewres
         sizey = regionrows * nsres
 
-        grass.verbose(_("printws: sizex " + str(sizex)))
-        grass.verbose(_("printws: sizey " + str(sizey)))
+        gs.verbose(_("printws: sizex " + str(sizex)))
+        gs.verbose(_("printws: sizey " + str(sizey)))
 
         if regionmode == "region":
             hregionratio = float(sizex) / float(sizey)
-            grass.verbose(_("printws: REGION MODE -> region "))
+            gs.verbose(_("printws: REGION MODE -> region "))
         else:  # surprisingly doing the SAME
             # using screen window ratio for map area
             # next line was a test for this but didn't help on gadgets positioning
             # hregionratio = float(extents[8]) / float(extents[9])
             hregionratio = float(sizex) / float(sizey)
-            grass.verbose(_("printws: REGION MODE -> window"))
+            gs.verbose(_("printws: REGION MODE -> window"))
         hmapratio = mapsizes["w"] / mapsizes["h"]
 
-        grass.verbose(_("printws: raw mapsizes: " + str(mapsizesindots)))
-        grass.verbose(_("printws: hr: " + str(hregionratio)))
-        grass.verbose(_("printws: hm: " + str(hmapratio)))
+        gs.verbose(_("printws: raw mapsizes: " + str(mapsizesindots)))
+        gs.verbose(_("printws: hr: " + str(hregionratio)))
+        gs.verbose(_("printws: hm: " + str(hmapratio)))
         if hregionratio > hmapratio:
-            grass.verbose(
-                _("printws: Map area height correction / " + str(hregionratio))
-            )
+            gs.verbose(_("printws: Map area height correction / " + str(hregionratio)))
             mapsizes["h"] = mapsizes["w"] / hregionratio
         elif hregionratio < hmapratio:
-            grass.verbose(
-                _("printws: Map area width correction * " + str(hregionratio))
-            )
+            gs.verbose(_("printws: Map area width correction * " + str(hregionratio)))
             mapsizes["w"] = mapsizes["h"] * hregionratio
         mapsizesindots = dictodots(mapsizes, dpioption)
 
@@ -917,7 +914,7 @@ def main():
         newewresstr = str(newewres)
         newnsresstr = str(newnsres)
 
-        grass.run_command("g.region", ewres=newewresstr, nsres=newnsresstr)
+        gs.run_command("g.region", ewres=newewresstr, nsres=newnsresstr)
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # it seems that d.wms uses the GRASS_REGION from region info
@@ -935,7 +932,7 @@ def main():
         # grass.message(str(kv2))
         # grass.message(grass.region_env(**kv2))
         # grass.message(s)
-        os.environ["GRASS_REGION"] = grass.region_env(**kv2)
+        os.environ["GRASS_REGION"] = gs.region_env(**kv2)
 
         # Getting mapping area in dots
         # Correcting mxfd to leave space for title and subscript
@@ -949,14 +946,14 @@ def main():
         if pageoption == "Flexi":
             # For 'Flexi' page we modify the setup to create
             # a page containing only the map without margins
-            grass.verbose(_("printws: pre Flexi mapframe: " + str(mpfd)))
+            gs.verbose(_("printws: pre Flexi mapframe: " + str(mpfd)))
             mpfd["b"] = mpfd["b"] - mpfd["t"]
             mpfd["t"] = 0
             mpfd["r"] = mpfd["r"] - mpfd["l"]
             mpfd["l"] = 0
             os.environ["GRASS_RENDER_WIDTH"] = str(mpfd["r"])
             os.environ["GRASS_RENDER_HEIGHT"] = str(mpfd["b"])
-            grass.verbose(_("printws: post Flexi mapframe: " + str(mpfd)))
+            gs.verbose(_("printws: post Flexi mapframe: " + str(mpfd)))
         mapframe = (
             str(mpfd["t"])
             + ","
@@ -967,17 +964,17 @@ def main():
             + str(mpfd["r"])
         )
 
-        grass.verbose(_("printws: DOT VALUES ARE:"))
-        grass.verbose(_("printws: maxframe: " + str(mxfd)))
-        grass.verbose(_("printws: maxframe: " + maxframe))
-        grass.verbose(_("printws: mapframe: " + str(mpfd)))
-        grass.verbose(_("printws: mapframe: " + mapframe))
-        grass.verbose(_("printws: page: " + str(pagesizesindots)))
-        grass.verbose(_("printws: margins: " + str(pagemarginsindots)))
-        grass.verbose(_("printws: mapUL: " + str(mapulindots)))
-        grass.verbose(_("printws: mapsizes (corrected): " + str(mapsizesindots)))
-        grass.verbose(_("printws: ewres (corrected): " + str(newewres)))
-        grass.verbose(_("printws: nsres (corrected): " + str(newnsres)))
+        gs.verbose(_("printws: DOT VALUES ARE:"))
+        gs.verbose(_("printws: maxframe: " + str(mxfd)))
+        gs.verbose(_("printws: maxframe: " + maxframe))
+        gs.verbose(_("printws: mapframe: " + str(mpfd)))
+        gs.verbose(_("printws: mapframe: " + mapframe))
+        gs.verbose(_("printws: page: " + str(pagesizesindots)))
+        gs.verbose(_("printws: margins: " + str(pagemarginsindots)))
+        gs.verbose(_("printws: mapUL: " + str(mapulindots)))
+        gs.verbose(_("printws: mapsizes (corrected): " + str(mapsizesindots)))
+        gs.verbose(_("printws: ewres (corrected): " + str(newewres)))
+        gs.verbose(_("printws: nsres (corrected): " + str(newnsres)))
 
         # quit()
 
@@ -996,11 +993,11 @@ def main():
 
         os.environ["GRASS_RENDER_FRAME"] = mapframe
 
-        grass.verbose(_("printws: Rendering: the following layers: "))
+        gs.verbose(_("printws: Rendering: the following layers: "))
         lastopacity = "-1"
 
         for lay in layers:
-            grass.verbose(_(lay[1] + " at: " + lay[0] + " opacity"))
+            gs.verbose(_(lay[1] + " at: " + lay[0] + " opacity"))
             if lay[0] == "1":
                 if lastopacity != "1":
                     LASTFILE = os.path.join(
@@ -1032,15 +1029,15 @@ def main():
                 )
                 LAYERCOUNT = LAYERCOUNT + 2
                 os.environ["GRASS_RENDER_FILE"] = LASTFILE
-                grass.verbose("LAY: " + str(lay))
+                gs.verbose("LAY: " + str(lay))
                 render(lay[1], lay[2], lay[3])
                 imcommand = (
                     imcommand
-                    + " \( "
+                    + r" \( "
                     + LASTFILE
                     + " -channel a -evaluate multiply "
                     + lay[0]
-                    + " +channel \)"
+                    + r" +channel \)"
                 )
 
         # setting resolution back to pre-script state since map rendering is
@@ -1052,7 +1049,7 @@ def main():
 
         # ------------------- OUTSIDE MAP texts, etc -------------------
         if pageoption == "Flexi":
-            grass.verbose(
+            gs.verbose(
                 _("m.printws: WARNING! Felxi mode, will not create titles, etc...")
             )
         else:
@@ -1138,16 +1135,16 @@ def main():
             + '"'
         )
 
-        grass.verbose(_("printws: And the imagemagick command is... " + imcommand))
+        gs.verbose(_("printws: And the imagemagick command is... " + imcommand))
         os.system(imcommand)
 
     if not flags["d"]:
-        grass.verbose(_("printws: Doing graceful cleanup..."))
+        gs.verbose(_("printws: Doing graceful cleanup..."))
         os.system("rm " + os.path.join(TMPDIR, str(os.getpid()) + "*_GEN_*"))
         if REMOVE_TMPDIR:
             try_rmdir(TMPDIR)
         else:
-            grass.message(
+            gs.message(
                 "\n%s\n" % _("printws: Temp dir remove failed. Do it yourself, please:")
             )
             sys.stderr.write("%s\n" % TMPDIR % " <---- this")
@@ -1159,7 +1156,7 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     global TMPDIR
     TMPDIR = tempfile.mkdtemp()
     atexit.register(cleanup)

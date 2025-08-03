@@ -7,7 +7,7 @@ Created on Thu Oct  2 18:24:22 2014
 
 # from grass.pygrass.vector.table import Link
 import time
-import grass.script as grass
+import grass.script as gs
 import grass.lib.vector as libvect
 from grass.pygrass.errors import GrassError
 from grass.pygrass.vector.geometry import Point
@@ -71,59 +71,59 @@ OUT_TABLES_NAMES = {
 
 # TABLES
 TABLES = {
-    "first": [(u"cat", u"INTEGER PRIMARY KEY"), (u"name", u"TEXT")],
+    "first": [("cat", "INTEGER PRIMARY KEY"), ("name", "TEXT")],
     "_Plan": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk_eje", u"DOUBLE PRECISION"),
-        (u"radio", u"DOUBLE PRECISION"),
-        (u"a_in", u"DOUBLE PRECISION"),
-        (u"a_out", u"DOUBLE PRECISION"),
-        (u"widening", u"DOUBLE PRECISION"),
-        (u"superelev", u"TEXT"),
-        (u"dc_", u"DOUBLE PRECISION"),
-        (u"lr_", u"DOUBLE PRECISION"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk_eje", "DOUBLE PRECISION"),
+        ("radio", "DOUBLE PRECISION"),
+        ("a_in", "DOUBLE PRECISION"),
+        ("a_out", "DOUBLE PRECISION"),
+        ("widening", "DOUBLE PRECISION"),
+        ("superelev", "TEXT"),
+        ("dc_", "DOUBLE PRECISION"),
+        ("lr_", "DOUBLE PRECISION"),
     ],
     "_Vert": [
-        (u"cat3", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"elev", u"DOUBLE PRECISION"),
-        (u"kv", u"DOUBLE PRECISION"),
-        (u"l", u"DOUBLE PRECISION"),
-        (u"b", u"DOUBLE PRECISION"),
+        ("cat3", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("elev", "DOUBLE PRECISION"),
+        ("kv", "DOUBLE PRECISION"),
+        ("l", "DOUBLE PRECISION"),
+        ("b", "DOUBLE PRECISION"),
     ],
     "_Displ": [
-        (u"cat4", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"sec_left", u"TEXT"),
-        (u"sec_right", u"TEXT"),
-        (u"type_left", u"TEXT"),
-        (u"type_right", u"TEXT"),
+        ("cat4", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("sec_left", "TEXT"),
+        ("sec_right", "TEXT"),
+        ("type_left", "TEXT"),
+        ("type_right", "TEXT"),
     ],
     "_Terr": [
-        (u"cat5", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"cut_left", u"DOUBLE PRECISION"),
-        (u"cut_right", u"DOUBLE PRECISION"),
-        (u"fill_left", u"DOUBLE PRECISION"),
-        (u"fill_right", u"DOUBLE PRECISION"),
-        (u"height", u"DOUBLE PRECISION"),
-        (u"leng", u"DOUBLE PRECISION"),
+        ("cat5", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("cut_left", "DOUBLE PRECISION"),
+        ("cut_right", "DOUBLE PRECISION"),
+        ("fill_left", "DOUBLE PRECISION"),
+        ("fill_right", "DOUBLE PRECISION"),
+        ("height", "DOUBLE PRECISION"),
+        ("leng", "DOUBLE PRECISION"),
     ],
     "_Trans": [
-        (u"cat6", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"dist_left", u"DOUBLE PRECISION"),
-        (u"dist_right", u"DOUBLE PRECISION"),
-        (u"npk", u"DOUBLE PRECISION"),
+        ("cat6", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("dist_left", "DOUBLE PRECISION"),
+        ("dist_right", "DOUBLE PRECISION"),
+        ("npk", "DOUBLE PRECISION"),
     ],
     "_Marks": [
-        (u"cat7", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"dist", u"TEXT"),
-        (u"elev", u"TEXT"),
-        (u"azi", u"TEXT"),
-        (u"name", u"TEXT"),
-        (u"cod", u"TEXT"),
+        ("cat7", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("dist", "TEXT"),
+        ("elev", "TEXT"),
+        ("azi", "TEXT"),
+        ("name", "TEXT"),
+        ("cod", "TEXT"),
     ],
 }
 
@@ -131,189 +131,189 @@ TABLES = {
 OUT_TABLES = {
     # Plant
     "__Plant": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"param", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("param", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Plant_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
     ],
-    "__Plant_C": [(u"cat3", u"INTEGER PRIMARY KEY"), (u"param", u"TEXT")],
+    "__Plant_C": [("cat3", "INTEGER PRIMARY KEY"), ("param", "TEXT")],
     # Vertical
     "__Vertical": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"param", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("param", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Vertical_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
     ],
     # Displaced
     "__Displaced": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"DOUBLE PRECISIO"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "DOUBLE PRECISIO"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Displaced_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
-        (u"displ", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
+        ("displ", "TEXT"),
     ],
-    "__Displaced_Areas": [(u"cat", u"INTEGER PRIMARY KEY"), (u"num", u"TEXT")],
+    "__Displaced_Areas": [("cat", "INTEGER PRIMARY KEY"), ("num", "TEXT")],
     # Trans
     "__Pks": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Trans": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"dist_left", u"DOUBLE PRECISION"),
-        (u"dist_right", u"DOUBLE PRECISION"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("dist_left", "DOUBLE PRECISION"),
+        ("dist_right", "DOUBLE PRECISION"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Trans_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"trans", u"TEXT"),
-        (u"param", u"TEXT"),
-        (u"type", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("trans", "TEXT"),
+        ("param", "TEXT"),
+        ("type", "TEXT"),
     ],
     "__Trans_PT": [
-        (u"cat3", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"trans", u"TEXT"),
-        (u"param", u"TEXT"),
-        (u"type", u"TEXT"),
+        ("cat3", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("trans", "TEXT"),
+        ("param", "TEXT"),
+        ("type", "TEXT"),
     ],
     # Taludes
     "__Slopes": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"DOUBLE PRECISION"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "DOUBLE PRECISION"),
+        ("GRASSRGB", "TEXT"),
     ],
     # Marks
     "__Marks": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"azimut", u"DOUBLE PRECISION"),
-        (u"name", u"TEXT"),
-        (u"cod", u"TEXT"),
-        (u"dist", u"DOUBLE PRECISION"),
-        (u"elev", u"DOUBLE PRECISION"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("azimut", "DOUBLE PRECISION"),
+        ("name", "TEXT"),
+        ("cod", "TEXT"),
+        ("dist", "DOUBLE PRECISION"),
+        ("elev", "DOUBLE PRECISION"),
     ],
     # Taludes
     "__Slopes_Areas": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     # LongProfile
     "__LongProfile": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"param", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("param", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__LProfile_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
     ],
     "__LProfile_Axis": [
-        (u"cat3", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
+        ("cat3", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
     ],
-    "__LProfile_Ticks": [(u"cat4", u"INTEGER PRIMARY KEY"), (u"param", u"TEXT")],
+    "__LProfile_Ticks": [("cat4", "INTEGER PRIMARY KEY"), ("param", "TEXT")],
     # TransProfiles
     "__TransProfiles": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"param", u"TEXT"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "TEXT"),
+        ("type", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("param", "TEXT"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__TProfile_PC": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"dist", u"TEXT"),
-        (u"elev", u"TEXT"),
-        (u"rel_elev", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("dist", "TEXT"),
+        ("elev", "TEXT"),
+        ("rel_elev", "TEXT"),
     ],
     "__TProfile_Axis": [
-        (u"cat3", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"type", u"TEXT"),
-        (u"param", u"TEXT"),
+        ("cat3", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("type", "TEXT"),
+        ("param", "TEXT"),
     ],
-    "__TProfile_Ticks": [(u"cat4", u"INTEGER PRIMARY KEY"), (u"param", u"TEXT")],
+    "__TProfile_Ticks": [("cat4", "INTEGER PRIMARY KEY"), ("param", "TEXT")],
     # Tri
     "__Topo": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"pk", u"DOUBLE PRECISION"),
-        (u"name", u"TEXT"),
-        (u"azi", u"DOUBLE PRECISION"),
-        (u"p_type", u"TEXT"),
-        (u"align", u"INTEGER"),
-        (u"vparam", u"DOUBLE PRECISION"),
-        (u"v_type", u"TEXT"),
-        (u"terr", u"DOUBLE PRECISION"),
-        (u"t_type", u"TEXT"),
-        (u"dist_d", u"DOUBLE PRECISION"),
-        (u"x", u"DOUBLE PRECISION"),
-        (u"y", u"DOUBLE PRECISION"),
-        (u"z", u"DOUBLE PRECISION"),
-        (u"action", u"TEXT"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("pk", "DOUBLE PRECISION"),
+        ("name", "TEXT"),
+        ("azi", "DOUBLE PRECISION"),
+        ("p_type", "TEXT"),
+        ("align", "INTEGER"),
+        ("vparam", "DOUBLE PRECISION"),
+        ("v_type", "TEXT"),
+        ("terr", "DOUBLE PRECISION"),
+        ("t_type", "TEXT"),
+        ("dist_d", "DOUBLE PRECISION"),
+        ("x", "DOUBLE PRECISION"),
+        ("y", "DOUBLE PRECISION"),
+        ("z", "DOUBLE PRECISION"),
+        ("action", "TEXT"),
     ],
     "__Topo_BreakLines": [
-        (u"cat2", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
-        (u"type", u"TEXT"),
-        (u"param", u"DOUBLE PRECISION"),
-        (u"GRASSRGB", u"TEXT"),
+        ("cat2", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
+        ("type", "TEXT"),
+        ("param", "DOUBLE PRECISION"),
+        ("GRASSRGB", "TEXT"),
     ],
     "__Topo_Hull": [
-        (u"cat", u"INTEGER PRIMARY KEY"),
-        (u"name", u"TEXT"),
-        (u"long", u"DOUBLE PRECISION"),
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("name", "TEXT"),
+        ("long", "DOUBLE PRECISION"),
     ],
 }
 
@@ -348,9 +348,10 @@ class RoadTable(object):
     def __getitem__(self, index):
         return dict(zip(self.cols_names, self.rows[index]))
 
-    def __setitem__(self, index, name, value):
-        ind = self.cols_names.index(name)
-        self.rows[index][ind] = value
+    def __setitem__(self, index, value):
+        ind1, name = index
+        ind2 = self.cols_names.index(name)
+        self.rows[ind1][ind2] = value
 
     def __delitem__(self, index):
         del self.rows[index]
@@ -399,7 +400,7 @@ class RoadTable(object):
         tab_sufix = self.name
         if self.name == "":
             tab_sufix = "first"
-        TABLES[tab_sufix][0] = (u"cat" + str(self.layer), u"INTEGER PRIMARY KEY")
+        TABLES[tab_sufix][0] = ("cat" + str(self.layer), "INTEGER PRIMARY KEY")
         if not table.exist():
             table.create(TABLES[tab_sufix])
             table.conn.commit()
@@ -425,7 +426,6 @@ class RoadTable(object):
 
         ult_i = 1
         for i in range(1, len(self.polyline[:-1])):
-
             dist2 = self.polyline[i].distance(self.polyline[i + 1])
             if map_plant:
                 values[-1] = dist2
@@ -457,7 +457,7 @@ class RoadTable(object):
             if col[0] not in self.cols_names:
                 cols_out.append(col)
         if cols_out != []:
-            grass.warning("adding columns " + ",".join([p[0] for p in cols_out]))
+            gs.warning("adding columns " + ",".join([p[0] for p in cols_out]))
             self._add_columns(cols_out)
 
     def _add_columns(self, columns):
@@ -494,8 +494,9 @@ class RoadTable(object):
             self.polygon.table.update(key=line.cat, values=attrs[1:])
         elif self.polygon.table is None and attrs:
             print(
-                "Table for vector {name} does not exist, attributes not"
-                " loaded".format(name=self.name)
+                "Table for vector {name} does not exist, attributes not loaded".format(
+                    name=self.name
+                )
             )
         # libvect.Vect_cat_set(obj.c_cats, self.layer, line.cat)
 
@@ -747,11 +748,9 @@ class RoadTable(object):
         ]
 
         for i, row in enumerate(self.rows):
-
             self.rewrite_obj(self.polyline[i], row)
 
         if len(self.rows) < len(self.polyline):
-
             self.polygon.open("rw", self.layer, with_z=True)
 
             for i in range(len(self), len(self.polyline)):
@@ -803,7 +802,6 @@ class RoadTables(object):
                 names.insert(0, [self.road_name, "", ""])
                 continue
             for tab in [link.table_name for link in self.polygon.dblinks]:
-
                 if tab_name in tab:
                     names.append(tab.split(tab_name))
                     names[-1].insert(1, tab_name)
@@ -847,7 +845,6 @@ class RoadTables(object):
     def gen_tables(self):
         """Return None"""
         for i, name in enumerate(self.get_tables_names()):
-
             namedic = name[1] + name[2]
             if name[1] == "":
                 namedic = "first"
@@ -876,12 +873,12 @@ class RoadTables(object):
     def add_table(self, tab_sufix, tab_subname):
         """Return"""
         if tab_sufix not in ["_Displ", "_Marks"]:
-            grass.warning("Only Displ or Marks tables can be used")
+            gs.warning("Only Displ or Marks tables can be used")
             return None
         tab_name = self.road_name + tab_sufix + tab_subname
         n_layer = self.polygon.dblinks.num_dblinks()
         if tab_name in [link.table_name for link in self.polygon.dblinks]:
-            grass.warning("table exist")
+            gs.warning("table exist")
         else:
             self.tables[tab_sufix + tab_subname] = RoadTable(
                 self.polygon, self.polyline, n_layer + 1, tab_name, tab_sufix

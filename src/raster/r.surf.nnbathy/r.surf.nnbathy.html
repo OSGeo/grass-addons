@@ -3,7 +3,7 @@
 <em>r.surf.nnbathy</em> is an interface between the
 external <em>nnbathy</em> utility and <em>GRASS</em>.
 <em>nnbathy</em> is a surface interpolation program provided with
-<a href="http://github.com/sakov/nn-c">nn</a> - a natural neighbor
+<a href="https://github.com/sakov/nn-c">nn</a> - a natural neighbor
 interpolation library, written by Pavel Sakov.
 
 <p>
@@ -53,16 +53,16 @@ GRASS raster map would actually occupy.</li>
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region raster=elevation@PERMANENT -p 
-r.random input=elevation@PERMANENT n=100000 raster_output=random_points 
-r.surf.nnbathy input=random_points output=raster_map 
+g.region raster=elevation@PERMANENT -p
+r.random input=elevation@PERMANENT n=100000 raster_output=random_points
+r.surf.nnbathy input=random_points output=raster_map
 d.rast map=raster_map
 </pre></div>
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
-  <li><a href="http://github.com/sakov/nn-c">nnbathy</a> library by Pavel Sakov</li>
+  <li><a href="https://github.com/sakov/nn-c">nnbathy</a> library by Pavel Sakov</li>
   <li><em><a href="v.surf.nnbathy.html">v.surf.nnbathy</a></em></li>
 </ul>
 
@@ -70,7 +70,7 @@ d.rast map=raster_map
 
 <em>
   <a href="v.surf.nnbathy.html">v.surf.nnbathy</a>
-</em> 
+</em>
 
 
 <h2>AUTHOR</h2>
@@ -81,8 +81,3 @@ Adam Laza, OSGeoREL, Czech Technical University in Prague (mentor: Martin Landa)
 based on v.surf.nnbathy from GRASS 6 by<br>
 Hamish Bowman, Otago University, New Zealand<br>
 Based on <em>r.surf.nnbathy</em> by Maciej Sieczka<br>
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

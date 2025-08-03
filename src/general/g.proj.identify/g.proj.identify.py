@@ -11,42 +11,42 @@ This program is free software under the GNU General Public License
 @author Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 """
 
-#%module
-#% description: Autoidentifies EPSG code from WKT CRS definition.
-#% keyword: general
-#% keyword: projection
-#% keyword: EPSG
-#% keyword: WKT
-#% keyword: .prj
-#%end
+# %module
+# % description: Autoidentifies EPSG code from WKT CRS definition.
+# % keyword: general
+# % keyword: projection
+# % keyword: EPSG
+# % keyword: WKT
+# % keyword: .prj
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: wkt
-#% description: Name of input file with WKT definition
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: wkt
+# % description: Name of input file with WKT definition
+# % required: no
+# %end
 
-#%option
-#% key: epsg
-#% type: integer
-#% description: Input EPSG code
-#% required: no
-#%end
+# %option
+# % key: epsg
+# % type: integer
+# % description: Input EPSG code
+# % required: no
+# %end
 
-#%flag
-#% key: p
-#% description: Print projection info in Proj4 format
-#%end
+# %flag
+# % key: p
+# % description: Print projection info in Proj4 format
+# %end
 
-#%flag
-#% key: w
-#% description: Print projection info in WKT format
-#%end
+# %flag
+# % key: w
+# % description: Print projection info in WKT format
+# %end
 
-#%flag
-#% key: s
-#% description: Save as default EPSG in the current location
-#%end
+# %flag
+# % key: s
+# % description: Save as default EPSG in the current location
+# %end
 
 import os
 from subprocess import PIPE
@@ -67,7 +67,7 @@ def writeEPSGtoPEMANENT(epsg):
                 io.write("epsg: %s" % epsg)
                 io.close()
                 grass.message("EPSG code have been written to <%s>" % path)
-            except IOError as e:
+            except OSError as e:
                 grass.error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
         else:
@@ -78,7 +78,7 @@ def writeEPSGtoPEMANENT(epsg):
             io.write("epsg: %s" % epsg)
             io.close()
             grass.message("EPSG code have been written to <%s>" % path)
-        except IOError as e:
+        except OSError as e:
             grass.error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
 
@@ -166,7 +166,7 @@ def main():
                 io = open(pathwkt, "r")
                 wkt = io.read().rstrip()
                 wkt2standards(wkt)
-            except IOError as e:
+            except OSError as e:
                 grass.error("Unable to open file <%s>: %s" % (e.errno, e.strerror))
         else:
             grassEpsg()

@@ -28,8 +28,7 @@ void accumulate_recursive(struct cell_map *dir_buf,
     G_percent(1, 1, 1);
 }
 
-static double trace_up(struct cell_map *dir_buf,
-                       struct raster_map *weight_buf,
+static double trace_up(struct cell_map *dir_buf, struct raster_map *weight_buf,
                        struct raster_map *accum_buf, char **done, char neg,
                        int row, int col)
 {
@@ -49,7 +48,7 @@ static double trace_up(struct cell_map *dir_buf,
 
     /* if a weight map is specified (no negative accumulation is implied), use
      * the weight value at the current cell; otherwise use 1 */
-    accum = weight_buf->map.v ? get(weight_buf, row, col) : 1.0;
+    accum = weight_buf->cells.v ? get(weight_buf, row, col) : 1.0;
 
     /* loop through all neighbor cells and see if any of them drains into the
      * current cell (are there upstream cells?) */
@@ -82,9 +81,8 @@ static double trace_up(struct cell_map *dir_buf,
                 /* for negative accumulation, trace_up() always returns a
                  * positive value, so accum is always positive (cell count);
                  * otherwise, accum is weighted accumulation */
-                accum +=
-                    trace_up(dir_buf, weight_buf, accum_buf, done, neg,
-                             row + i, col + j);
+                accum += trace_up(dir_buf, weight_buf, accum_buf, done, neg,
+                                  row + i, col + j);
 
                 /* if the neighbor cell is incomplete, the current cell also
                  * becomes incomplete */

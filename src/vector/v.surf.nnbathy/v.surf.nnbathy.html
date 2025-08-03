@@ -3,7 +3,7 @@
 <em>v.surf.nnbathy</em> is an interface between the
 external <em>nnbathy</em> utility and <em>GRASS</em>.
 <em>nnbathy</em> is a surface interpolation program provided with
-<a href="https://code.google.com/p/nn-c/">nn</a> - a natural neighbor
+<a href="https://github.com/sakov/nn-c">nn</a> - a natural neighbor
 interpolation library, written by Pavel Sakov.
 
 <p>
@@ -14,7 +14,7 @@ interpolation (<b>alg=nn</b>) and Belikov and Semenov's algorithm for
 non-Sibsonian natural neighbor interpolation (<b>alg=ns</b>). For performing
 the underlaying Delaunay triangulation in all cases <em>nnbathy</em> uses
 <em>triangle</em> software by
-<a href="http://www.cs.berkeley.edu/~jrs/">Jonathan Richard Shewchuk</a>.
+<a href="https://people.eecs.berkeley.edu/~jrs/">Jonathan Richard Shewchuk</a>.
 
 <p>
 The <b>output</b> raster map is a continous surface interpolated from the
@@ -53,8 +53,8 @@ GRASS raster map would actually occupy.</li>
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-g.region raster=elevationelev_lid792_randpts@PERMANENT -p 
-v.surf.nnbathy input=elevation_lid792_randpts@PERMANENT output=raster_map column=value 
+g.region raster=elevationelev_lid792_randpts@PERMANENT -p
+v.surf.nnbathy input=elevation_lid792_randpts@PERMANENT output=raster_map column=value
 d.rast map=raster_map
 </pre></div>
 
@@ -68,20 +68,14 @@ d.rast map=raster_map
 
 <em>
   <a href="r.surf.nnbathy.html">r.surf.nnbathy</a>
-</em> 
+</em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
 Adam Laza, OSGeoREL, Czech Technical University in Prague (mentor: Martin Landa)
 Corrected by Roberto Marzocchi, <a href="mailto:roberto.marzocchi@gter.it">roberto.marzocchi@gter.it</a>
 
-
 <p>
 Based on v.surf.nnbathy from GRASS 6 by:<br>
 Hamish Bowman, Otago University, New Zealand<br>
-Based on <em>r.surf.nnbathy</em> by Maciej Sieczka<br>
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->
+Based on <em>r.surf.nnbathy</em> by Maciej Sieczka

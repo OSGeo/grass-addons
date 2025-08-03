@@ -20,8 +20,7 @@ int Compute_equation(void);
 
 /* find_points.c */
 void Extract_matrix_auto(void);
-void Search_correlation_points_auto(DCELL *, DCELL *,
-				    int , int , double);
+void Search_correlation_points_auto(DCELL *, DCELL *, int, int, double);
 
 /* group.c */
 int get_group(void);

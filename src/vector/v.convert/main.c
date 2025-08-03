@@ -1,17 +1,16 @@
-
 /*****************************************************************
  *
  * MODULE:       v.convert
- * 
+ *
  * AUTHOR(S):    Radim Blazek - Radim.Blazek@dhv.cz
- *               
+ *
  * PURPOSE:      Convert GRASS vector maps versions:
  *               from 3 or 4 to 5.0
- *               
+ *
  * COPYRIGHT:    (C) 2001 by the GRASS Development Team
  *
- *               This program is free software under the 
- *               GNU General Public License (>=v2). 
+ *               This program is free software under the
+ *               GNU General Public License (>=v2).
  *               Read the file COPYING that comes with GRASS
  *               for details.
  *
@@ -59,18 +58,18 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* Numbers in portable format files are saved as big endians */
     if (opt_end->answer[0] == 'l')
-	endian = ENDIAN_LITTLE;
+        endian = ENDIAN_LITTLE;
     else
-	endian = ENDIAN_BIG;
+        endian = ENDIAN_BIG;
 
     if (opt_out->answer)
-	output = G_store(opt_out->answer);
+        output = G_store(opt_out->answer);
     else
-	output = G_store(opt_in->answer);
+        output = G_store(opt_in->answer);
 
     old2new(opt_in->answer, output, endian);
 

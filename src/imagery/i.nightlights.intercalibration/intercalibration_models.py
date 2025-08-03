@@ -103,12 +103,11 @@ class CalibrationModel:
         Control whether the given DN is valid
         """
         if not isinstance(dn, int):
-            raise ValueError("The provided Digital Number value is NOT an " "integer!")
+            raise ValueError("The provided Digital Number value is NOT an integer!")
 
         if 0 > dn or dn > 63:
             raise ValueError(
-                "The provided Digital Number value is out of the "
-                "expected range [0,63]"
+                "The provided Digital Number value is out of the expected range [0,63]"
             )
         else:
             return True
@@ -171,7 +170,7 @@ class Elvidge(CalibrationModel):
         """
         msg = "Calibration model proposed by Elvidge, "
         msg += str(self.version) + "\n  "
-        msg += "[DN adj. = C0 + C1\u00D7DN + C2\u00D7DN^2]\n"
+        msg += "[DN adj. = C0 + C1\u00d7DN + C2\u00d7DN^2]\n"
         return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
@@ -210,7 +209,7 @@ class Elvidge(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
         model = EQUATIONS[self.author].model  # look in equations.py
         self._model = model.format(dn=dn, cdn=cdn, c0=self.c0, c1=self.c1, c2=self.c2)
         return cdn
@@ -253,7 +252,7 @@ class Liu2012(CalibrationModel):
         Return a string representation of the calibration model
         """
         msg = "Calibration model by Liu, 2012: "
-        msg += "DNc = a \u00D7 DN^2 + b \u00D7 DN + c\n"
+        msg += "DNc = a \u00d7 DN^2 + b \u00d7 DN + c\n"
         return msg + "  " + self._model + "\n"
 
     def set_coefficients(self):
@@ -289,7 +288,7 @@ class Liu2012(CalibrationModel):
         build a calibration equation for the requested satellite and year.
         """
         if self.is_dn_valid(dn):
-            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn ** 2))
+            cdn = self.c0 + (self.c1 * dn) + (self.c2 * (dn**2))
 
         # Update _model as well!
         model = "{cdn} = ({c0}) + ({c1}) * {dn} + ({c2}) * {dn}^2"
@@ -327,7 +326,7 @@ class Wu2013(CalibrationModel):
     def __str__(self):
         """ """
         msg = "Calibration model by Wu, 2013: "
-        msg += "DNc + 1 = a \u00D7 (DN + 1)^b\n"
+        msg += "DNc + 1 = a \u00d7 (DN + 1)^b\n"
         return msg + "  " + self._model + "\n"
 
     def build_model(self):

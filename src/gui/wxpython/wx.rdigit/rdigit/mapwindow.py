@@ -43,7 +43,7 @@ class RDigitWindow(BufferedWindow):
         tree=None,
         lmgr=None,
         style=wx.NO_FULL_REPAINT_ON_RESIZE,
-        **kwargs
+        **kwargs,
     ):
         BufferedWindow.__init__(
             self,
@@ -54,7 +54,7 @@ class RDigitWindow(BufferedWindow):
             frame=frame,
             tree=tree,
             style=style,
-            **kwargs
+            **kwargs,
         )
         self.lmgr = lmgr
         self.pdcVector = wx.PseudoDC()
@@ -251,7 +251,7 @@ class RDigitWindow(BufferedWindow):
             GMessage(
                 parent=self,
                 message=_(
-                    "Nothing to do. " "Choose appropriate tool from digitizer toolbar."
+                    "Nothing to do. Choose appropriate tool from digitizer toolbar."
                 ),
             )
             event.Skip()
@@ -304,9 +304,7 @@ class RDigitWindow(BufferedWindow):
         action = self.toolbar.GetAction()
 
         if action in ("deleteLine", "deleteCircle", "deleteArea"):
-
             if action in ["deleteArea", "deleteLine"]:
-
                 x, y = event.GetPositionTuple()
                 ids = self.pdcVector.FindObjectsByBBox(x, y)
                 if len(ids) > 0:
@@ -331,7 +329,6 @@ class RDigitWindow(BufferedWindow):
 
         elif action == "addCircle":
             if len(self.polycoords) > 0:  # ignore 'one-point' lines
-
                 beginpt = self.polycoords[0]
                 endpt = event.GetPositionTuple()[:]
                 dist, (north, east) = self.Distance(beginpt, endpt, False)

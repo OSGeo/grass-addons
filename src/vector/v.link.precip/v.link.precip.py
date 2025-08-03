@@ -18,81 +18,81 @@ except ImportError:
 ##########################################################
 ################## guisection: required ##################
 ##########################################################
-#%module
-#% description: Links time-windows to vector link map.
-#% keyword: vector
-#%end
+# %module
+# % description: Links time-windows to vector link map.
+# % keyword: vector
+# %end
 
 
-#%option
-#% key: schema
-#% type: string
-#% label: Set schema name containing timewindows
-#% required : yes
-#%end
+# %option
+# % key: schema
+# % type: string
+# % label: Set schema name containing timewindows
+# % required : yes
+# %end
 
 
-#%option
-#% key: time
-#% type: string
-#% label: Set time "YYYY-MM-DD H:M:S"
+# %option
+# % key: time
+# % type: string
+# % label: Set time "YYYY-MM-DD H:M:S"
 
-#%end
+# %end
 
-#%option
-#% key: type
-#% label: Choose object type to connect
-#% options: raingauge, links
-#% multiple: yes
-#% required : yes
-#% answer: links
-#%end
+# %option
+# % key: type
+# % label: Choose object type to connect
+# % options: raingauge, links
+# % multiple: yes
+# % required : yes
+# % answer: links
+# %end
 
-#%option
-#% key: vector
-#% label: Choose MV representation
-#% options: lines, points
-#% multiple: yes
-#% required : yes
-#% answer: points
-#%end
+# %option
+# % key: vector
+# % label: Choose MV representation
+# % options: lines, points
+# % multiple: yes
+# % required : yes
+# % answer: points
+# %end
 
-#%flag
-#% key:c
-#% description: Create vector map
-#%end
+# %flag
+# % key:c
+# % description: Create vector map
+# %end
 
-#%flag
-#% key:a
-#% description: Create vector maps for all timewin
-#%end
+# %flag
+# % key:a
+# % description: Create vector maps for all timewin
+# %end
 
 
-#%option
-#% key: layername
-#% type: string
-#% label: Name of points layer to connect
-#%end
+# %option
+# % key: layername
+# % type: string
+# % label: Name of points layer to connect
+# %end
 
 ##########################################################
 ################## guisection: optional ##################
 ##########################################################
-#%option G_OPT_F_INPUT
-#% key: color
-#% label: Set color table
-#% required: no
-#%end
+# %option G_OPT_F_INPUT
+# % key: color
+# % label: Set color table
+# % required: no
+# %end
 
 
-#%flag
-#% key:p
-#% description: Print attribut table
-#%end
+# %flag
+# % key:p
+# % description: Print attribut table
+# %end
 
-#%flag
-#% key:r
-#% description: Remove temp file
-#%end
+# %flag
+# % key:r
+# % description: Remove temp file
+# %end
 
 
 schema = ""
@@ -116,15 +116,14 @@ def print_message(msg):
 
 def setFirstRun():
     try:
-        io = open(os.path.join(path, firstrun), "wr")
+        io = open(os.path.join(path, firstrun), "w")
         io.write(options["type"])
         io.close
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e))
 
 
 def firstConnect():
-
     print_message("v.in.ogr")
     grass.run_command(
         "v.in.ogr",
@@ -139,7 +138,6 @@ def firstConnect():
 
     # if vector already exits, remove dblink (original table)
     if grass.find_file(nat, element="vector")["fullname"]:
-
         grass.run_command("v.db.connect", map=nat, flags="d", layer="1", quiet=True)
 
         grass.run_command("v.db.connect", map=nat, flags="d", layer="2", quiet=True)
@@ -160,7 +158,6 @@ def firstConnect():
 
 
 def nextConnect():
-
     grass.run_command("v.db.connect", map=nat, layer="2", flags="d", quiet=True)
 
     grass.run_command(
@@ -183,7 +180,6 @@ def setColor(mapa):
 
 
 def createVect(view_nat):
-
     grass.run_command(
         "v.in.ogr",
         input="PG:",
@@ -256,7 +252,6 @@ def run():
             nextConnect()
 
     elif flags["c"]:
-
         view = (
             schema
             + ".%sview" % prefix
@@ -274,23 +269,20 @@ def run():
 
                     createVect(win)
 
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e))
 
     if flags["p"]:
-
         sql = "select %s, precip_mm_h from %s " % (key, view)
         grass.run_command("db.select", sql=sql, separator="  ")
 
 
 def isTimeValid(time):
-
     RE = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$")
     return bool(RE.search(time))
 
 
 def main():
-
     global schema, time, path, ogr, nat, layer, key, prefix, typ, firstrun, filetimewin
     schema = options["schema"]
 

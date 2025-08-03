@@ -13,7 +13,7 @@ PURPOSE:      Compute raw and/or logistic prediction maps from a lambdas
               are accessible from the current mapset.!!!
 
               This script will parse the specified lambdas-file from
-              MaxEnt >= 3.3.3e (see http://biodiversityinformatics.amnh.org/open_source/maxent/)
+              MaxEnt >= 3.3.3e (see https://biodiversityinformatics.amnh.org/open_source/maxent/)
               and translate it into an r.mapcalc-expression which can be stored
               in a file.
 
@@ -52,108 +52,109 @@ COPYRIGHT:    (C) 2019-2022 by the Norwegian Institute for Nature Research
               for details.
 """
 
-#%Module
-#% description: Computes raw or logistic prediction maps from MaxEnt lambdas files
-#% keyword: raster
-#% keyword: maxent
-#% keyword: ecology
-#% keyword: niche
-#%End
+# %Module
+# % description: Computes raw or logistic prediction maps from MaxEnt lambdas files
+# % keyword: raster
+# % keyword: maxent
+# % keyword: ecology
+# % keyword: niche
+# % keyword: parallel
+# %End
 
-#%flag
-#% key: p
-#% label: Print only
-#% description: Print mapcalculator expressions and exit
-#%end
+# %flag
+# % key: p
+# % label: Print only
+# % description: Print mapcalculator expressions and exit
+# %end
 
-#%flag
-#% key: n
-#% label: Do not include cells where any variabel contains no data
-#%end
+# %flag
+# % key: n
+# % label: Do not include cells where any variabel contains no data
+# %end
 
-#%flag
-#% key: N
-#% label: Do not include cells where all variabels contain no data
-#%end
+# %flag
+# % key: N
+# % label: Do not include cells where all variabels contain no data
+# %end
 
-#%flag
-#% key: c
-#% label: Clamp values in raster maps to value range seen by the MaxEnt model
-#%end
+# %flag
+# % key: c
+# % label: Clamp values in raster maps to value range seen by the MaxEnt model
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: lambdas_file
-#% description: MaxEnt lambdas-file to compute distribution-model from
-#% required : yes
-#%end
+# %option G_OPT_F_INPUT
+# % key: lambdas_file
+# % description: MaxEnt lambdas-file to compute distribution-model from
+# % required : yes
+# %end
 
-#%option G_OPT_F_INPUT
-#% key: alias_file
-#% description: CSV-file to replace alias names from MaxEnt by GRASS map names
-#% required : no
-#%end
+# %option G_OPT_F_INPUT
+# % key: alias_file
+# % description: CSV-file to replace alias names from MaxEnt by GRASS map names
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: logistic
-#% description: Raster map with logistic output
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: logistic
+# % description: Raster map with logistic output
+# % required : no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: raw
-#% description: Raster map with raw output
-#% required : no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: raw
+# % description: Raster map with raw output
+# % required : no
+# %end
 
-#%option
-#% key: ndigits
-#% type: integer
-#% description: Produce logistic output as integer map with this number of digits preserved
-#% required : no
-#% answer : 0
-#%end
+# %option
+# % key: ndigits
+# % type: integer
+# % description: Produce logistic output as integer map with this number of digits preserved
+# % required : no
+# % answer : 0
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.mapcalc processes to run in parallel (requires r.mapcalc.tiled addon)
-#% answer: 1
-#% required: no
-#% options: 1-
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel (requires r.mapcalc.tiled addon)
+# % answer: 1
+# % required: no
+# % options: 1-
+# %end
 
-#%option
-#% key: width
-#% type: integer
-#% description: Width of tiles (columns) (requires r.mapcalc.tiled addon and nprocs > 1)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: width
+# % type: integer
+# % description: Width of tiles (columns) (requires r.mapcalc.tiled addon and nprocs > 1)
+# % answer: 1000
+# % required: yes
+# %end
 #
-#%option
-#% key: height
-#% type: integer
-#% description: Height of tiles (requires r.mapcalc.tiled addon and nprocs > 1)
-#% answer: 1000
-#% required: yes
-#%end
+# %option
+# % key: height
+# % type: integer
+# % description: Height of tiles (requires r.mapcalc.tiled addon and nprocs > 1)
+# % answer: 1000
+# % required: yes
+# %end
 
-#%rules
-#% required: logistic,raw
-#% exclusive: logistic,raw
-#% exclusive: -n,-N
-#%end
+# %rules
+# % required: logistic,raw
+# % exclusive: logistic,raw
+# % exclusive: -n,-N
+# %end
 
 import os
 
 from grass.pygrass.raster import RasterRow
-import grass.script as gscript
+import grass.script as gs
 from grass.script.raster import mapcalc, raster_history
 from functools import partial
 
 
 def tiled_mapcalc(expression=None, width=None, height=None, nprocs=None):
-    gscript.run_command(
+    gs.run_command(
         "r.mapcalc.tiled",
         expression=expression,
         width=width,
@@ -167,12 +168,10 @@ def parse_alias(alias_file):
     """Parse alias file if provided"""
     if alias_file:
         if not os.access(alias_file, os.R_OK):
-            gscript.fatal(
-                _("Alias file <{}> not found or not readable".format(alias_file))
-            )
+            gs.fatal(_("Alias file <{}> not found or not readable").format(alias_file))
 
         with open(alias_file, "r") as a_f:
-            alias_dict = gscript.parse_key_val(a_f.read(), sep=",")
+            alias_dict = gs.parse_key_val(a_f.read(), sep=",")
     else:
         alias_dict = None
 
@@ -189,12 +188,10 @@ def parse_alias(alias_file):
             raster_map = RasterRow(full_name)  # raster, mapset)
             mapset = "." if not mapset else mapset
             if not raster_map.exist():
-                gscript.fatal(
+                gs.fatal(
                     _(
-                        "Could not find environmental parameter raster map <{}> in mapset <{}>.".format(
-                            raster, mapset
-                        )
-                    )
+                        "Could not find environmental parameter raster map <{0}> in mapset <{1}>."
+                    ).format(raster, mapset)
                 )
 
     return alias_dict
@@ -269,8 +266,8 @@ def parse_lambdas_row(row, coeff, alias_dict, clamp):
     if alias_dict:
         for rmap in mc_row[0]:
             if rmap not in alias_dict:
-                gscript.fatal(
-                    _("Invalid input: Variable {} not found in alias file".format(rmap))
+                gs.fatal(
+                    _("Invalid input: Variable {} not found in alias file").format(rmap)
                 )
             mc_row[1] = mc_row[1].replace(rmap, alias_dict[rmap])
         mc_row[0] = (alias_dict[rmap] for rmap in mc_row[0])
@@ -284,12 +281,12 @@ def main():
     alias_file = options["alias_file"]
 
     if not options["ndigits"].isdigit():
-        gscript.fatal(_("The ndigits option needs to be given as integer."))
+        gs.fatal(_("The ndigits option needs to be given as integer."))
 
     ndigits = int(options["ndigits"])
 
     if ndigits > 5 or ndigits < 0:
-        gscript.warning(
+        gs.warning(
             _(
                 "Valid range for ndigits is 0 to 5. \
         Setting to closest bound."
@@ -303,8 +300,8 @@ def main():
     logistic = options["logistic"]
 
     if int(options["nprocs"]) > 1:
-        if not gscript.find_program("r.mapcalc.tiled"):
-            gscript.fatal(
+        if not gs.find_program("r.mapcalc.tiled"):
+            gs.fatal(
                 _(
                     "Cannot find r.mapcalc.tiled for parallel processing.\n"
                     "Please install it with 'g.extension r.mapcalc.tiled'"
@@ -321,7 +318,7 @@ def main():
 
     # Check if input file exists and is readable
     if not os.access(lambdas_file, os.R_OK):
-        gscript.fatal(_("MaxEnt lambdas-file could not be found or is not readable."))
+        gs.fatal(_("MaxEnt lambdas-file could not be found or is not readable."))
 
     # Parse alias_file if provided
     alias_dict = parse_alias(alias_file)
@@ -388,11 +385,11 @@ def main():
             return 0
         rmapcalc(log_expr)
         if flags["N"]:
-            gscript.run_command("r.null", map=logistic, setnull=0)
+            gs.run_command("r.null", map=logistic, setnull=0)
         raster_history(logistic, overwrite=True)
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

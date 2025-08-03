@@ -15,7 +15,7 @@
 #            Riitters, K., J. Wickham, R. O'Neill, B. Jones, and
 #            E. Smith. 2000. in: Global-scalepatterns of forest
 #            fragmentation. Conservation Ecology 4(2): 3. [online]
-#            URL: http://www.consecol.org/vol4/iss2/art3/
+#            URL: https://www.ecologyandsociety.org/vol4/iss2/art3/
 #
 # COPYRIGHT: (C) 1997-2016 by the GRASS Development Team
 #
@@ -25,75 +25,75 @@
 #
 #############################################################################
 
-#%module
-#% description: Computes the forest fragmentation index (Riitters et al. 2000)
-#% keyword: raster
-#% keyword: landscape structure analysis
-#% keyword: forest
-#% keyword: fragmentation index
-#% keyword: Riitters
-#%end
+# %module
+# % description: Computes the forest fragmentation index (Riitters et al. 2000)
+# % keyword: raster
+# % keyword: landscape structure analysis
+# % keyword: forest
+# % keyword: fragmentation index
+# % keyword: Riitters
+# %end
 
-#%option G_OPT_R_INPUT
-#% description: Name of forest raster map (where forest=1, non-forest=0)
-#% required: yes
-#%end
+# %option G_OPT_R_INPUT
+# % description: Name of forest raster map (where forest=1, non-forest=0)
+# % required: yes
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% required: yes
-#%end
+# %option G_OPT_R_OUTPUT
+# % required: yes
+# %end
 
-#%option
-#% key: size
-#% type: integer
-#% description: Moving window size (odd number)
-#% key_desc: number
-#% options: 3-
-#% answer : 3
-#% required: no
-#%end
+# %option
+# % key: size
+# % type: integer
+# % description: Moving window size (odd number)
+# % key_desc: number
+# % options: 3-
+# % answer : 3
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: pf
-#% label: Name for output Pf (forest area density) raster map
-#% description: Proportion of area which is forested (amount of forest)
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: pf
+# % label: Name for output Pf (forest area density) raster map
+# % description: Proportion of area which is forested (amount of forest)
+# % required: no
+# %end
 
-#%option G_OPT_R_OUTPUT
-#% key: pff
-#% label: Name for output Pff (forest connectivity) raster map
-#% description: Conditional probability that neighboring cell is forest
-#% required: no
-#%end
+# %option G_OPT_R_OUTPUT
+# % key: pff
+# % label: Name for output Pff (forest connectivity) raster map
+# % description: Conditional probability that neighboring cell is forest
+# % required: no
+# %end
 
-#%flag
-#% key: r
-#% description: Set computational region to input raster map
-#%end
+# %flag
+# % key: r
+# % description: Set computational region to input raster map
+# %end
 
-#%flag
-#% key: t
-#% description: Keep Pf and Pff maps
-#%end
+# %flag
+# % key: t
+# % description: Keep Pf and Pff maps
+# %end
 
-#%flag
-#% key: s
-#% description: Run r.report on output map
-#%end
+# %flag
+# % key: s
+# % description: Run r.report on output map
+# %end
 
-#%flag
-#% key: a
-#% description: Trim the output map to avoid border effects
-#%end
+# %flag
+# % key: a
+# % description: Trim the output map to avoid border effects
+# %end
 
-#%option
-#% key: window
-#% type: integer
-#% label: This option is deprecated, use the option size instead
-#% options: 3-
-#% required: no
-#%end
+# %option
+# % key: window
+# % type: integer
+# % label: This option is deprecated, use the option size instead
+# % options: 3-
+# % required: no
+# %end
 
 import os
 import sys
@@ -192,30 +192,27 @@ def main(options, flags):
     if options["size"]:
         wz = int(options["size"])
     if options["window"]:
-        gs.warning(_("The window option is deprecated, use the option" " size instead"))
+        gs.warning(_("The window option is deprecated, use the option size instead"))
         wz = int(options["window"])
     if options["size"] and options["size"] != "3" and options["window"]:
         gs.warning(
-            _(
-                "When the obsolete window option is used, the"
-                " new size option is ignored"
-            )
+            _("When the obsolete window option is used, the new size option is ignored")
         )
     if wz % 2 == 0:
         gs.fatal(
-            _("Please provide an odd number for the moving" " window size, not %d") % wz
+            _("Please provide an odd number for the moving window size, not %d") % wz
         )
     # User wants pf or pff
     user_pf = options["pf"]
     user_pff = options["pff"]
     # Backwards compatibility
     if flags["t"]:
-        gs.warning(_("The -t flag is deprecated, use pf and pff options" " instead"))
+        gs.warning(_("The -t flag is deprecated, use pf and pff options instead"))
     if not user_pf and not user_pff and flags["t"]:
         user_pf = opl + "_pf"
         user_pff = opl + "_pff"
     elif flags["t"]:
-        gs.warning(_("When pf or pff option is used, the -t flag" " is ignored"))
+        gs.warning(_("When pf or pff option is used, the -t flag is ignored"))
     flag_r = flags["r"]
     flag_s = flags["s"]
     clip_output = flags["a"]
@@ -232,7 +229,7 @@ def main(options, flags):
     input_info = gs.raster_info(ipl)
     # We know what we are doing only when input is integer
     if input_info["datatype"] != "CELL":
-        gs.fatal(_("The input raster map must have type CELL" " (integer)"))
+        gs.fatal(_("The input raster map must have type CELL (integer)"))
     # For integer, we just need to text min and max
     if input_info["min"] != 0 or input_info["max"] != 1:
         gs.fatal(
@@ -328,7 +325,8 @@ def main(options, flags):
     else:
         indexfin2 = opl
     mapcalc(
-        "eval(" "dpf = $pf - $pff,"
+        "eval("
+        "dpf = $pf - $pff,"
         # Individual classes
         "patch = if($pf < 0.4, 1, 0),"
         "transitional = if($pf >= 0.4 && $pf < 0.6, 2, 0),"
@@ -404,7 +402,7 @@ def main(options, flags):
             title="Proportion forested",
             units="Proportion",
             source1="Based on %s" % ipl,
-            description="Proportion of pixels in the moving" " window that is forested",
+            description="Proportion of pixels in the moving window that is forested",
         )
         gs.raster_history(pf)
 
@@ -423,10 +421,10 @@ pixel of forest, its neighbor is also forest.
         gs.run_command(
             "r.support",
             map=pff,
-            title="Conditional probability neighboring cell" " is forest",
+            title="Conditional probability neighboring cell is forest",
             units="Proportion",
             source1="Based on %s" % ipl,
-            description="Probability neighbor of forest cell" " is forest",
+            description="Probability neighbor of forest cell is forest",
             loadhistory=tmphist,
         )
         gs.raster_history(pff)

@@ -6,7 +6,7 @@
 
 @brief GUI for r.stream.* modules
 
-See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
+See https://grasswiki.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - CoorWindow
@@ -32,7 +32,7 @@ import wx.lib.flatnotebook as FN
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
 
-import grass.script as grass
+import grass.script as gs
 import gselect
 import gcmd
 import dbm
@@ -62,7 +62,7 @@ class CoorWindow(wx.Dialog):
         net,
         drain,
         id=wx.ID_ANY,
-        **kwargs
+        **kwargs,
     ):
         wx.Dialog.__init__(self, parent, id, **kwargs)
         self.parent = parent
@@ -121,10 +121,9 @@ class CoorWindow(wx.Dialog):
         self.mapwin = mapwindow.GetWindow()
 
     def OnGenPrev(self, event):
-
         # read current region
-        infoRegion = grass.read_command("g.region", flags="p")
-        dictRegion = grass.parse_key_val(infoRegion, ":")
+        infoRegion = gs.read_command("g.region", flags="p")
+        dictRegion = gs.parse_key_val(infoRegion, ":")
         original_rows = int(dictRegion["rows"])
         original_cols = int(dictRegion["cols"])
         original_nsres = float(dictRegion["nsres"])
@@ -133,8 +132,6 @@ class CoorWindow(wx.Dialog):
         original_n = float(dictRegion["north"])
         original_s = float(dictRegion["south"])
         original_w = float(dictRegion["west"])
-
-        print original_rows, original_cols, original_nsres, original_ewres, original_e, original_n, original_s, original_w
 
         # new_ewres = 1/4 original_ewres
         # new_nsres = 1/4 original_nsres
@@ -182,16 +179,15 @@ class CoorWindow(wx.Dialog):
 
         # set new temporary region
 
-        grass.run_command("g.region", flags="ap", n=new_n, s=new_s, w=new_w, e=new_e)
+        gs.run_command("g.region", flags="ap", n=new_n, s=new_s, w=new_w, e=new_e)
 
         # run stream extraction on the smaller region
 
         # MFD
 
         if self.radioval2 == "True":
-            print self.radioval2
-            grass.message("Creating flow accumulation map with MFD algorithm..")
-            grass.run_command(
+            gs.message("Creating flow accumulation map with MFD algorithm..")
+            gs.run_command(
                 "r.watershed",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -199,9 +195,8 @@ class CoorWindow(wx.Dialog):
                 flags="a",
                 overwrite=True,
             )
-            print self.r_acc
 
-            grass.run_command(
+            gs.run_command(
                 "r.stream.extract",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -213,9 +208,8 @@ class CoorWindow(wx.Dialog):
 
         # SFD
         elif self.radioval3 == "True":
-            print self.radioval3
-            grass.message("Creating flow accumulation map with SFD algorithm..")
-            grass.run_command(
+            gs.message("Creating flow accumulation map with SFD algorithm..")
+            gs.run_command(
                 "r.watershed",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -224,9 +218,8 @@ class CoorWindow(wx.Dialog):
                 flags="sa",
                 overwrite=True,
             )
-            print self.r_acc
 
-            grass.run_command(
+            gs.run_command(
                 "r.stream.extract",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -237,8 +230,7 @@ class CoorWindow(wx.Dialog):
             )
 
         else:
-
-            grass.run_command(
+            gs.run_command(
                 "r.stream.extract",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -247,22 +239,20 @@ class CoorWindow(wx.Dialog):
                 direction=self.r_drain,
                 overwrite=True,
             )
-            print self.v_net
 
         # Create temporary files to be visualized in the preview
-        img_tmp = grass.tempfile() + ".png"
-        print img_tmp
-        grass.run_command("d.mon", start="png", output=img_tmp)
-        grass.run_command("d.rast", map=self.r_elev)
-        grass.run_command("d.vect", map=self.v_net)
-        print "Exported in file " + img_tmp
+        img_tmp = gs.tempfile() + ".png"
+        gs.run_command("d.mon", start="png", output=img_tmp)
+        gs.run_command("d.rast", map=self.r_elev)
+        gs.run_command("d.vect", map=self.v_net)
+        print("Exported in file " + img_tmp_)
 
         directory = os.path.dirname(img_tmp)
-        print directory
+        print(directory)
 
         # set region to original region
 
-        grass.run_command(
+        gs.run_command(
             "g.region",
             flags="ap",
             n=original_n,
@@ -278,7 +268,6 @@ class CoorWindow(wx.Dialog):
         ImgVvr.MainLoop()
 
     def OnButtonCoor(self, event):
-
         if self.mapwin.RegisterMouseEventHandler(
             wx.EVT_LEFT_DOWN, self.OnMouseAction, wx.StockCursor(wx.CURSOR_CROSS)
         ):
@@ -292,7 +281,6 @@ class CoorWindow(wx.Dialog):
 
     def OnMouseAction(self, event):
         coor = self.mapwin.Pixel2Cell(event.GetPositionTuple()[:])
-        print coor
 
         self.x, self.y = coor
         self.x, self.y = "%0.3f" % self.x, "%0.3f" % self.y
@@ -327,7 +315,6 @@ class TabPanelOne(wx.Panel):
         self._layout()
 
     def _layout(self):
-
         self.select = wx.GridBagSizer(20, 5)
 
         # ----------------------------
@@ -544,8 +531,6 @@ class TabPanelOne(wx.Panel):
         self.SelectedText = self.acc
         self.r_acc = self.acc.GetValue()
 
-        print self.r_acc
-
     def OnSelectSFDAcc(self, event):
         """!Gets new flow accum map and assign it to var"""
         if self.selectedText:
@@ -625,8 +610,6 @@ class TabPanelOne(wx.Panel):
         )
         self.retCode = self.msg.ShowModal()
         if self.retCode == wx.ID_OK:
-            print "OK"
-
             # Raise a new Map Display
             self.mapdisp = self.layerManager.NewDisplay()
 
@@ -653,20 +636,16 @@ class TabPanelOne(wx.Panel):
 
             coorWin.Show()
 
-        else:
-            print "Cancel"
-
     # -------------Network extraction-------------
 
     def OnRun(self, event):
-
         self.radioval2 = self.cb2.GetValue()
         self.radioval3 = self.cb3.GetValue()
 
         # MFD
         if self.radioval2 == "True":
-            grass.message("Creating flow accumulation map with MFD algorithm..")
-            grass.run_command(
+            gs.message("Creating flow accumulation map with MFD algorithm..")
+            gs.run_command(
                 "r.watershed",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -677,8 +656,8 @@ class TabPanelOne(wx.Panel):
 
         # SFD
         if self.radioval3 == "True":
-            grass.message("Creating flow accumulation map with SFD algorithm..")
-            grass.run_command(
+            gs.message("Creating flow accumulation map with SFD algorithm..")
+            gs.run_command(
                 "r.watershed",
                 elevation=self.r_elev,
                 accumulation=self.r_acc,
@@ -688,8 +667,8 @@ class TabPanelOne(wx.Panel):
                 overwrite=True,
             )
 
-        grass.message("Network extraction..")
-        grass.run_command(
+        gs.message("Network extraction..")
+        gs.run_command(
             "r.stream.extract",
             elevation=self.r_elev,
             accumulation=self.r_acc,
@@ -699,11 +678,3 @@ class TabPanelOne(wx.Panel):
             direction=self.r_drain,
             overwrite=True,
         )
-
-        # Debug
-        print self.r_elev
-        print self.r_acc
-        print self.thre
-        # print self.r_stre
-        print self.v_net
-        print self.r_drain

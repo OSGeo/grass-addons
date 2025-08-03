@@ -4,6 +4,7 @@ Created on Wed Nov  6 15:08:38 2013
 
 @author: pietro
 """
+
 from __future__ import absolute_import, division, print_function
 import time
 import random as rnd
@@ -12,9 +13,9 @@ import sys
 import pickle as pk
 
 import numpy as np
-import matplotlib  # required by windows
+import matplotlib as mpl  # required by windows
 
-matplotlib.use("wxAGG")  # required by windows
+mpl.use("wxAGG")  # required by windows
 import matplotlib.pyplot as plt
 
 
@@ -204,7 +205,7 @@ def plot_bias_variance(
     test_clr="r",
     alpha=0.2,
     fmt="png",
-    **kwargs
+    **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(6, 5))
     ax.set_ylim([0.0, 1.0])
@@ -401,7 +402,7 @@ def plot_extra(cls, labels, fmt="png", **kwargs):
             name=name,
             label=labels[cl],
         )
-    cnf = np.array(cls["confusion matrix"], dtype=np.float)
+    cnf = np.array(cls["confusion matrix"], dtype=float)
     sc = cnf.sum(axis=0)
     norm = sc / sc.sum(axis=1)[:, None]
     plot_confusion_matrix(
@@ -455,7 +456,7 @@ def explorer_clsfiers(
                     test_clr="r",
                     alpha=0.2,
                     fmt="png",
-                    **kw
+                    **kw,
                 )
             if extra:
                 extra_analysis(cls, Xd, Yd, labels)

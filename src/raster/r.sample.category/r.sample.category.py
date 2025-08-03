@@ -16,46 +16,46 @@
 ##############################################################################
 
 
-#%module
-#% description: Create sampling points from each category in a raster map
-#% keyword: raster
-#% keyword: sampling
-#% keyword: random
-#% keyword: points
-#% keyword: vector
-#% keyword: stratified random sampling
-#% keyword: category
-#%end
-#%option G_OPT_R_INPUT
-#% description: Name of input raster map with categories (classes)
-#%end
-#%option G_OPT_V_OUTPUT
-#% description: Name of output vector map with points at random locations
-#%end
-#%option G_OPT_R_INPUTS
-#% description: Names of input raster maps to be sampled
-#% key: sampled
-#% required: no
-#%end
-#%option
-#% label: Number of sampling points per category in the input map
-#% description: You can provide multiple numbers, one for each category in input raster (sorted ascending)
-#% key: npoints
-#% required: yes
-#% multiple: yes
-#% type: integer
-#%end
-#%option
-#% key: random_seed
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Seed for random number generator
-#%end
-#%flag
-#% key: s
-#% description: If number of cells in category < npoints, skip category
-#%end
+# %module
+# % description: Create sampling points from each category in a raster map
+# % keyword: raster
+# % keyword: sampling
+# % keyword: random
+# % keyword: points
+# % keyword: vector
+# % keyword: stratified random sampling
+# % keyword: category
+# %end
+# %option G_OPT_R_INPUT
+# % description: Name of input raster map with categories (classes)
+# %end
+# %option G_OPT_V_OUTPUT
+# % description: Name of output vector map with points at random locations
+# %end
+# %option G_OPT_R_INPUTS
+# % description: Names of input raster maps to be sampled
+# % key: sampled
+# % required: no
+# %end
+# %option
+# % label: Number of sampling points per category in the input map
+# % description: You can provide multiple numbers, one for each category in input raster (sorted ascending)
+# % key: npoints
+# % required: yes
+# % multiple: yes
+# % type: integer
+# %end
+# %option
+# % key: random_seed
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Seed for random number generator
+# %end
+# %flag
+# % key: s
+# % description: If number of cells in category < npoints, skip category
+# %end
 
 # TODO: Python tests for more advanced things such as overwrite or attributes
 # TODO: only optional sampling of the category raster
@@ -69,7 +69,7 @@
 import os
 import atexit
 
-import grass.script as gscript
+import grass.script as gs
 
 
 TMP = []
@@ -77,7 +77,7 @@ TMP = []
 
 def cleanup():
     if TMP:
-        gscript.run_command(
+        gs.run_command(
             "g.remove", flags="f", type=["raster", "vector"], name=TMP, quiet=True
         )
 
@@ -104,7 +104,7 @@ def strip_mapset(name):
 
 
 def main():
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     input_raster = options["input"]
     points = options["output"]
@@ -127,7 +127,7 @@ def main():
     TMP.append(points_nocats)
 
     # input must be CELL
-    rdescribe = gscript.read_command(
+    rdescribe = gs.read_command(
         "r.stats", flags="lnc", input=input_raster, separator="pipe"
     )
     catlab = rdescribe.splitlines()
@@ -138,7 +138,7 @@ def main():
         npoints = npoints * len(categories)
     else:
         if len(categories) != len(npoints):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Number of categories in raster does not match the number of provided sampling points numbers."
                 )
@@ -155,20 +155,20 @@ def main():
         nrc = int(pixlab[str(cat)])
         if nrc < npoints[i]:
             if flag_s:
-                gscript.info(
+                gs.info(
                     _("Not enough points in category {cat}. Skipping").format(
                         cat=categories[i]
                     )
                 )
                 continue
-            gscript.warning(
+            gs.warning(
                 _(
                     "Number of raster cells in category {cat} < {np}. Sampling {n} points"
                 ).format(cat=categories[i], np=npoints[i], n=nrc)
             )
             npoints[i] = nrc
 
-        gscript.info(
+        gs.info(
             _("Selecting {n} sampling locations at category {cat}...").format(
                 n=npoints[i], cat=cat
             )
@@ -176,7 +176,7 @@ def main():
 
         # Create reclass map with only pixels of current category
         rc_rule = "{0} = {0}\n* = NULL".format(cat)
-        gscript.write_command(
+        gs.write_command(
             "r.reclass",
             input=input_raster,
             output=temp_name,
@@ -193,15 +193,16 @@ def main():
         vector = temp_name + str(cat)
         vectors.append(vector)
         if seed is None:
-            gscript.run_command(
+            gs.run_command(
                 "r.random",
                 input=temp_name,
                 npoints=npoints[i],
                 vector=vector,
+                flags="s",
                 quiet=True,
             )
         else:
-            gscript.run_command(
+            gs.run_command(
                 "r.random",
                 input=temp_name,
                 npoints=npoints[i],
@@ -211,9 +212,9 @@ def main():
             )
         TMP.append(vector)
 
-    gscript.run_command("v.patch", input=vectors, output=points, quiet=True)
+    gs.run_command("v.patch", input=vectors, output=points, quiet=True)
     # remove and add gain cats so that they are unique
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input=points,
         option="del",
@@ -222,7 +223,7 @@ def main():
         quiet=True,
     )
     # overwrite to reuse the map
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input=points_nocats,
         option="add",
@@ -238,18 +239,16 @@ def main():
     for raster in sampled_rasters:
         column = escape_sql_column(strip_mapset(raster).lower())
         column_names.append(column)
-        datatype = gscript.parse_command("r.info", flags="g", map=raster)["datatype"]
+        datatype = gs.parse_command("r.info", flags="g", map=raster)["datatype"]
         if datatype == "CELL":
             datatype = "integer"
         else:
             datatype = "double precision"
         columns.append("{column} {datatype}".format(column=column, datatype=datatype))
-    gscript.run_command(
-        "v.db.addtable", map=points, columns=",".join(columns), quiet=True
-    )
+    gs.run_command("v.db.addtable", map=points, columns=",".join(columns), quiet=True)
     for raster, column in zip(sampled_rasters, column_names):
-        gscript.info(_("Sampling raster map %s...") % raster)
-        gscript.run_command(
+        gs.info(_("Sampling raster map %s...") % raster)
+        gs.run_command(
             "v.what.rast",
             map=points,
             type="point",
@@ -260,9 +259,9 @@ def main():
 
     # Add category labels
     if not list(set(catlab.values()))[0] and len(set(catlab.values())) == 1:
-        gscript.verbose(_("There are no category labels in the raster to add"))
+        gs.verbose(_("There are no category labels in the raster to add"))
     else:
-        gscript.run_command("v.db.addcolumn", map=points, columns="label varchar(250)")
+        gs.run_command("v.db.addcolumn", map=points, columns="label varchar(250)")
         table_name = escape_sql_column(strip_mapset(points).lower())
         for i in categories:
             sqlstat = (
@@ -275,9 +274,9 @@ def main():
                 + " == "
                 + str(i)
             )
-            gscript.run_command("db.execute", sql=sqlstat)
+            gs.run_command("db.execute", sql=sqlstat)
 
-    gscript.vector_history(points, replace=True)
+    gs.vector_history(points, replace=True)
 
 
 if __name__ == "__main__":

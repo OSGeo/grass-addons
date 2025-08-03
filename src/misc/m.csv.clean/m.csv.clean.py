@@ -8,77 +8,77 @@
 #            License (>=v2). Read the file COPYING that comes with GRASS
 #            for details.
 
-#%module
-#% label: Creates a cleaned-up copy a CSV files
-#% description: Creates CSV files which are ready to used in GRASS GIS
-#% keyword: miscellaneous
-#% keyword: CSV
-#% keyword: ASCII
-#%end
+# %module
+# % label: Creates a cleaned-up copy a CSV files
+# % description: Creates CSV files which are ready to used in GRASS GIS
+# % keyword: miscellaneous
+# % keyword: CSV
+# % keyword: ASCII
+# %end
 
-#%option G_OPT_F_INPUT
-#% label: Input CSV file to clean up
-#% required: yes
-#%end
+# %option G_OPT_F_INPUT
+# % label: Input CSV file to clean up
+# % required: yes
+# %end
 
-#%option G_OPT_F_SEP
-#% answer: comma
-#% required: yes
-#%end
+# %option G_OPT_F_SEP
+# % answer: comma
+# % required: yes
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% label: Clean CSV output file
-#% required: yes
-#%end
+# %option G_OPT_F_OUTPUT
+# % label: Clean CSV output file
+# % required: yes
+# %end
 
-#%option
-#% key: prefix
-#% label: Prefix for columns which don't start with a letter
-#% description: Prefix itself must start with a letter of English alphabeth
-#% type: string
-#% required: yes
-#% answer: col_
-#%end
+# %option
+# % key: prefix
+# % label: Prefix for columns which don't start with a letter
+# % description: Prefix itself must start with a letter of English alphabeth
+# % type: string
+# % required: yes
+# % answer: col_
+# %end
 
-#%option
-#% key: recognized_date
-#% label: Recognized date formats (e.g., %m/%d/%y)
-#% description: For example, %m/%d/%Y,%m/%d/%y matches 7/30/2021 and 7/30/21
-#% type: string
-#% required: no
-#% multiple: yes
-#% guisection: Date
-#%end
+# %option
+# % key: recognized_date
+# % label: Recognized date formats (e.g., %m/%d/%y)
+# % description: For example, %m/%d/%Y,%m/%d/%y matches 7/30/2021 and 7/30/21
+# % type: string
+# % required: no
+# % multiple: yes
+# % guisection: Date
+# %end
 
-#%option
-#% key: clean_date
-#% label: Format for new clean-up date
-#% description: For example, %Y-%m-%d for 2021-07-30
-#% type: string
-#% required: no
-#% answer: date_%Y-%m-%d
-#% guisection: Date
-#%end
+# %option
+# % key: clean_date
+# % label: Format for new clean-up date
+# % description: For example, %Y-%m-%d for 2021-07-30
+# % type: string
+# % required: no
+# % answer: date_%Y-%m-%d
+# % guisection: Date
+# %end
 
-#%option
-#% key: missing_names
-#% label: Names for the columns without a name in the header
-#% description: If only one is provided, but more than one is need, underscore and column number is added
-#% type: string
-#% required: yes
-#% answer: column
-#%end
+# %option
+# % key: missing_names
+# % label: Names for the columns without a name in the header
+# % description: If only one is provided, but more than one is need, underscore and column number is added
+# % type: string
+# % required: yes
+# % answer: column
+# %end
 
-#%option
-#% key: cell_clean
-#% label: Operations to apply to non-header cells in the body of the document
-#% description: If only one is provided, but more than one is need, underscore and column number is added
-#% type: string
-#% required: no
-#% multiple: yes
-#% options: strip_whitespace,collapse_whitespace,date_format,none
-#% answer: strip_whitespace,collapse_whitespace
-#%end
+# %option
+# % key: cell_clean
+# % label: Operations to apply to non-header cells in the body of the document
+# % description: If only one is provided, but more than one is need, underscore and column number is added
+# % type: string
+# % required: no
+# % multiple: yes
+# % options: strip_whitespace,collapse_whitespace,date_format,none
+# % answer: strip_whitespace,collapse_whitespace
+# %end
 
 import sys
 import csv

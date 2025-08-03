@@ -16,39 +16,39 @@
 #
 ##############################################################################
 
-#%module
-#% description: Module for computing development potential surface from CSV file created by r.futures.potential and predictors
-#% keyword: raster
-#% keyword: statistics
-#%end
-#%option G_OPT_F_INPUT
-#% description: CSV file with coefficients
-#% required: yes
-#%end
-#%option G_OPT_R_INPUT
-#% key: subregions
-#% description: Raster map of subregions
-#% required: yes
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Output probability raster
-#%end
-#%option G_OPT_F_SEP
-#% required: no
-#% label: Separator used in input CSV file
-#% answer: comma
-#%end
+# %module
+# % description: Module for computing development potential surface from CSV file created by r.futures.potential and predictors
+# % keyword: raster
+# % keyword: statistics
+# %end
+# %option G_OPT_F_INPUT
+# % description: CSV file with coefficients
+# % required: yes
+# %end
+# %option G_OPT_R_INPUT
+# % key: subregions
+# % description: Raster map of subregions
+# % required: yes
+# %end
+# %option G_OPT_R_OUTPUT
+# % description: Output probability raster
+# %end
+# %option G_OPT_F_SEP
+# % required: no
+# % label: Separator used in input CSV file
+# % answer: comma
+# %end
 
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def main():
     csv = options["input"]
     output = options["output"]
     subregions = options["subregions"]
-    sep = gscript.separator(options["separator"])
+    sep = gs.separator(options["separator"])
 
     data = {}
     with open(csv, "r") as f:
@@ -73,10 +73,10 @@ def main():
     expr += ")" * len(data.keys())
     expr += ")"  # for eval
     expr += "\n {new} = 1.0 / (1.0 + exp(-tmp))".format(new=output)
-    gscript.debug(expr, 1)
-    gscript.mapcalc(expr)
+    gs.debug(expr, 1)
+    gs.mapcalc(expr)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

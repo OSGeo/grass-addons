@@ -7,73 +7,73 @@
 # AUTHOR(S):    Steven Pawley
 #
 ##############################################################################
-#%module
-#% description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table
-#%end
+# %module
+# % description: Perform Minimum Redundancy Maximum Relevance Feature Selection on a GRASS Attribute Table
+# %end
 
-#%option G_OPT_V_INPUT
-#% description: Vector features
-#% key: table
-#% required : yes
-#%end
+# %option G_OPT_V_INPUT
+# % description: Vector features
+# % key: table
+# % required : yes
+# %end
 
-#%option G_OPT_V_FIELD
-#% key: layer
-#% required : yes
-#%end
+# %option G_OPT_V_FIELD
+# % key: layer
+# % required : yes
+# %end
 
-#%option
-#% description: Discretization threshold
-#% key: threshold
-#% type: double
-#% answer: 1.0
-#% required : no
-#% guisection: Options
-#%end
+# %option
+# % description: Discretization threshold
+# % key: threshold
+# % type: double
+# % answer: 1.0
+# % required : no
+# % guisection: Options
+# %end
 
-#%option
-#% description: Number of features (attributes)
-#% key: nfeatures
-#% type: integer
-#% answer: 50
-#% required : yes
-#% guisection: Options
-#%end
+# %option
+# % description: Number of features (attributes)
+# % key: nfeatures
+# % type: integer
+# % answer: 50
+# % required : yes
+# % guisection: Options
+# %end
 
-#%option
-#% description: Maximum number of samples
-#% key: nsamples
-#% type: integer
-#% answer: 1000
-#% required : yes
-#% guisection: Options
-#%end
+# %option
+# % description: Maximum number of samples
+# % key: nsamples
+# % type: integer
+# % answer: 1000
+# % required : yes
+# % guisection: Options
+# %end
 
-#%option
-#% description: Maximum number of variables/attributes
-#% key: maxvar
-#% type: integer
-#% answer: 10000
-#% required : yes
-#% guisection: Options
-#%end
+# %option
+# % description: Maximum number of variables/attributes
+# % key: maxvar
+# % type: integer
+# % answer: 10000
+# % required : yes
+# % guisection: Options
+# %end
 
-#%option
-#% description: Feature selection method
-#% key: method
-#% type: string
-#% options: MID,MIQ
-#% answer: MID
-#% required : yes
-#% guisection: Options
-#%end
+# %option
+# % description: Feature selection method
+# % key: method
+# % type: string
+# % options: MID,MIQ
+# % answer: MID
+# % required : yes
+# % guisection: Options
+# %end
 
 import sys
 import os
 import subprocess
 import shutil
 
-import grass.script as grass
+import grass.script as gs
 import tempfile
 import atexit
 import os.path
@@ -104,7 +104,7 @@ def main():
 
     os.chdir(tmpdir)
 
-    grass.run_command(
+    gs.run_command(
         "v.out.ogr",
         input=table,
         layer=layer,
@@ -135,6 +135,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

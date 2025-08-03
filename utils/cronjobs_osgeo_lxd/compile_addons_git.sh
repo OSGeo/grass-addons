@@ -31,10 +31,10 @@ fi
 if [ -z "$3" ]; then
     echo "Usage: $0 grass_major_version grass_minor_version git_path \
 topdir addons_path grass_startup_program [separate]"
-    echo "eg. $0 8 0 ~/src/grass_addons/grass${GMAJOR}/ \
-~/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \
-~/.grass${GMAJOR}/addons \
-~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR}"
+    echo "eg. $0 8 0 ${HOME}/src/grass_addons/grass${GMAJOR}/ \
+${HOME}/src/releasebranch_${GMAJOR}_${GMINOR}/dist.${PLATFORM}-pc-linux-gnu \
+${HOME}/.grass${GMAJOR}/addons \
+${HOME}/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR}"
     exit 1
 fi
 
@@ -51,7 +51,7 @@ if [ ! -d "$5" ] ; then
 fi
 
 if [ -z "$6" ] ; then
-    echo "ERROR: Set GRASS GIS startup program with full path (e.g., ~/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR})"
+    echo "ERROR: Set GRASS GIS startup program with full path (e.g., ${HOME}/src/releasebranch_${GMAJOR}_${GMINOR}/bin.${PLATFORM}-pc-linux-gnu/grass${GMAJOR})"
     exit 1
 fi
 
@@ -126,29 +126,36 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     else
         path="$ADDON_PATH"
     fi
-
     export GRASS_ADDON_BASE=$path
-    if [ ! -f $GRASS_ADDON_BASE ]; then
+    if [ ! -d $GRASS_ADDON_BASE ]; then
         # Create addon dir first for download addons_paths.json file if
-        # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
+        # addon has own dir e.g. ${HOME}/.grass8/addons/db.join/ with bin/ docs/
         # etc/ scripts/ subdir (check condition $SEP -eq 1)
         mkdir $GRASS_ADDON_BASE
     fi
-    # Try download Add-Ons json file paths
-    if [ ! -f "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ] && [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
-        $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j
-        # Prevent download addons_paths.json file for every addon compilation if
-        # addon has own dir e.g. ~/.grass8/addons/db.join/ with bin/ docs/
-        # etc/ scripts/ subdir (check condition $SEP -eq 1)
-        if [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
-            mv "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE"
+    # GRASS GIS 8.3.dev version g.extension module and utils/mkhtml.py
+    # script file use git addons repo instead of GitHub REST API and
+    # g.extension module -j flag was completely removed
+    # After GRASS GIS PR 2717 will be backported this condition can be removed
+    # (line 142-153)
+    if [ "$GMINOR" -lt "3" ]; then
+        # Try download Add-Ons json file paths
+        if [ ! -f "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" ] && [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+            $GRASS_STARTUP_PROGRAM --tmp-location EPSG:4326 --exec g.extension -j
+            # Prevent download addons_paths.json file for every addon compilation if
+            # addon has own dir e.g. ${HOME}/.grass8/addons/db.join/ with bin/ docs/
+            # etc/ scripts/ subdir (check condition $SEP -eq 1)
+            if [ ! -f "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE" ]; then
+                mv "$GRASS_ADDON_BASE/$ADDONS_PATHS_JSON_FILE" "$(dirname $GRASS_ADDON_BASE)/$ADDONS_PATHS_JSON_FILE"
+            fi
         fi
     fi
     echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
-    make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
-    make MODULE_TOPDIR="$TOPDIR" \
+    make -j2 MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
+    make -j2 MODULE_TOPDIR="$TOPDIR" \
         BIN="$path/bin" \
         HTMLDIR="$path/docs/html" \
+        MDDIR="$path/docs/md" \
         MANBASEDIR="$path/docs/man" \
         SCRIPTDIR="$path/scripts" \
         ETC="$path/etc" \
@@ -171,18 +178,39 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
     unset GRASS_ADDON_BASE
 done
 
+# After GRASS GIS PR 2717 will be backported this condition can be removed
+# (line 182-186)
+if [ "$GMINOR" -gt "2" ]; then
+    # Remove addons Git repo directory which is used for getting addon path inside
+    # utils/mkhtml.py script file for making HTML man page
+    rm -rf "$ADDON_PATH/grass-addons/"
+fi
+
 echo "</table><hr />
-<div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
+<div style=\"text-align: right\">Valid: <a href=\"https://validator.w3.org/check/referer\">XHTML</a></div>
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 
-echo ""
-bash ~/cronjobs/check_addons_urls.sh "$ADDON_PATH" \
-   "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.log" \
-   "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
+# If the script is available, run it. Otherwise just print the command.
+URL_CHECK_SCRIPT="${HOME}/cronjobs/check_addons_urls.sh"
+URL_CHECK_INDEX_LOG="$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.log"
+URL_CHECK_INDEX_HTML="$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
+if [ -f $URL_CHECK_SCRIPT ]; then
+    echo ""
+    bash $URL_CHECK_SCRIPT \
+        "$ADDON_PATH" \
+        "$URL_CHECK_INDEX_LOG" \
+        "$URL_CHECK_INDEX_HTML"
+else
+    echo "Run (modify script path as needed):"
+    echo bash $URL_CHECK_SCRIPT \
+        "$ADDON_PATH" \
+        "$URL_CHECK_INDEX_LOG" \
+        "$URL_CHECK_INDEX_HTML"
+fi
 echo ""
 
 echo "</table><hr />
-<div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
+<div style=\"text-align: right\">Valid: <a href=\"https://validator.w3.org/check/referer\">XHTML</a></div>
 </body></html>" >> "$ADDON_PATH/logs/${INDEX_MANUAL_PAGES_FILE}.html"
 
 echo "Log file written to <$ADDON_PATH/logs/>"

@@ -14,37 +14,37 @@
 #
 #############################################################################
 
-#%module
-#% description: Export space time raster dataset to a CSV file.
-#% keyword: temporal
-#% keyword: raster
-#% keyword: export
-#% keyword: ASCII
-#% keyword: conversion
-#%end
+# %module
+# % description: Export space time raster dataset to a CSV file.
+# % keyword: temporal
+# % keyword: raster
+# % keyword: export
+# % keyword: ASCII
+# % keyword: conversion
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#%end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# %end
 
-#%option G_OPT_F_OUTPUT
-#% required: no
-#% description: Name for the output file or "-" in case stdout should be used
-#% answer: -
-#%end
+# %option G_OPT_F_OUTPUT
+# % required: no
+# % description: Name for the output file or "-" in case stdout should be used
+# % answer: -
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option G_OPT_F_SEP
-#%end
+# %option G_OPT_F_SEP
+# %end
 
-#%flag
-#% key: i
-#% description: Include no data values
-#%end
+# %flag
+# % key: i
+# % description: Include no data values
+# %end
 
-import grass.script as gscript
+import grass.script as gs
 import grass.temporal as tgis
 
 
@@ -65,33 +65,28 @@ def main(options, flags):
     sp = tgis.open_old_stds(strds, "strds", dbif)
     maps = sp.get_registered_maps_as_objects(where, "start_time", None)
     if maps is None:
-        gscript.fatal(
-            _("Space time raster dataset {st} seems to be " "empty".format(st=strds))
-        )
+        gs.fatal(_("Space time raster dataset {st} seems to be empty").format(st=strds))
         return 1
     mapnames = [mapp.get_name() for mapp in maps]
     try:
-        gscript.run_command(
+        gs.run_command(
             "r.out.xyz",
             input=",".join(mapnames),
             output=out_name,
             separator=sep,
             flags=donodata,
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
         )
-        gscript.message(
-            _(
-                "Space time raster dataset {st} exported to "
-                "{pa}".format(st=strds, pa=out_name)
+        gs.message(
+            _("Space time raster dataset {st} exported to {pa}").format(
+                st=strds, pa=out_name
             )
         )
     except:
-        gscript.fatal(
-            _("Unable to export space time raster dataset " "{st}".format(st=strds))
-        )
+        gs.fatal(_("Unable to export space time raster dataset {st}").format(st=strds))
         return 1
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main(options, flags)

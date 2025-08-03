@@ -6,69 +6,69 @@ Uses pyproj for CRS transformation, temporary file for the intermediate data,
 and v.in.ascii for import.
 """
 
-#%module
-#% label: Import a CSV file using pyproj for CRS transformation
-#% keyword: vector
-#% keyword: import
-#% keyword: projection
-#% keyword: transformation
-#% keyword: point
-#% keyword: ASCII
-#% keyword: CSV
-#%end
-#%option G_OPT_F_INPUT
-#%end
-#%option G_OPT_V_OUTPUT
-#%end
-#%option G_OPT_F_SEP
-#% answer: comma
-#% required: yes
-#%end
-#%option
-#% key: latitude
-#% type: string
-#% required: yes
-#% multiple: no
-#% label: Name of column used as latitude
-#%end
-#%option
-#% key: longitude
-#% type: string
-#% required: yes
-#% multiple: no
-#% label: Name of column used as longitude
-#%end
-#%option
-#% key: crs
-#% type: string
-#% label: Coordinate reference system (CRS) of the coordinates
-#% description: EPSG code (e.g. 4326 or EPSG:4326), WKT string, and PROJ string are recognized
-#% required: yes
-#% answer: EPSG:4326
-#%end
-#%option
-#% key: limit
-#% type: integer
-#% label: Limit number of lines processed
-#% required: no
-#% options: 1-
-#%end
-#%option
-#% key: int_columns
-#% type: string
-#% required: no
-#% multiple: yes
-#% label: Names of columns which are integers
-#% guisection: Points
-#%end
-#%option
-#% key: real_columns
-#% type: string
-#% required: no
-#% multiple: yes
-#% label: Names of columns which are double floating point numbers (floats)
-#% guisection: Points
-#%end
+# %module
+# % label: Import a CSV file using pyproj for CRS transformation
+# % keyword: vector
+# % keyword: import
+# % keyword: projection
+# % keyword: transformation
+# % keyword: point
+# % keyword: ASCII
+# % keyword: CSV
+# %end
+# %option G_OPT_F_INPUT
+# %end
+# %option G_OPT_V_OUTPUT
+# %end
+# %option G_OPT_F_SEP
+# % answer: comma
+# % required: yes
+# %end
+# %option
+# % key: latitude
+# % type: string
+# % required: yes
+# % multiple: no
+# % label: Name of column used as latitude
+# %end
+# %option
+# % key: longitude
+# % type: string
+# % required: yes
+# % multiple: no
+# % label: Name of column used as longitude
+# %end
+# %option
+# % key: crs
+# % type: string
+# % label: Coordinate reference system (CRS) of the coordinates
+# % description: EPSG code (e.g. 4326 or EPSG:4326), WKT string, and PROJ string are recognized
+# % required: yes
+# % answer: EPSG:4326
+# %end
+# %option
+# % key: limit
+# % type: integer
+# % label: Limit number of lines processed
+# % required: no
+# % options: 1-
+# %end
+# %option
+# % key: int_columns
+# % type: string
+# % required: no
+# % multiple: yes
+# % label: Names of columns which are integers
+# % guisection: Points
+# %end
+# %option
+# % key: real_columns
+# % type: string
+# % required: no
+# % multiple: yes
+# % label: Names of columns which are double floating point numbers (floats)
+# % guisection: Points
+# %end
 
 import os
 import sys

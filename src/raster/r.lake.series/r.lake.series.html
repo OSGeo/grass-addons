@@ -29,7 +29,7 @@ Carolina sample dataset and included also visualization examples.
 # set computational region
 g.region raster=elev_lid792_1m
 # prepare input data
-v.to.rast -d input=streams output=rural_streams use=val val=1 
+v.to.rast -d input=streams output=rural_streams use=val val=1
 
 # compute a flooding scenario
 r.lake.series elevation=elev_lid792_1m seed=rural_streams \
@@ -87,8 +87,3 @@ different areas).
 
 Vaclav Petras, <a href="http://gis.ncsu.edu/osgeorel/">NCSU OSGeoREL</a>,<br>
 Maris Nartiss (author of <em><a href="https://grass.osgeo.org/grass-stable/manuals/r.lake.html">r.lake</a></em>)
-
-<!--
-<p>
-<i>Last changed: $Date$</i>
--->

@@ -43,7 +43,7 @@ class NewRasterDialog(ElementDialog):
         disableAdd=False,
         showType=False,
         style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
-        *kwargs
+        *kwargs,
     ):
         """!Dialog for creating new vector map
 

@@ -20,11 +20,11 @@ int allocate_bufs(void)
     bufsize = ncols * sizeof(CELL);
 
     for (i = 0; i < ncb.nin; i++) {
-	ncb.in[i].buf = (CELL **) G_malloc(ncb.nsize * sizeof(CELL *));
-	for (j = 0; j < ncb.nsize; j++) {
-	    ncb.in[i].buf[j] = (CELL *) G_malloc(bufsize);
-	    Rast_set_c_null_value(ncb.in[i].buf[j], ncols);
-	}
+        ncb.in[i].buf = (CELL **)G_malloc(ncb.nsize * sizeof(CELL *));
+        for (j = 0; j < ncb.nsize; j++) {
+            ncb.in[i].buf[j] = (CELL *)G_malloc(bufsize);
+            Rast_set_c_null_value(ncb.in[i].buf[j], ncols);
+        }
     }
 
     return 0;
@@ -36,12 +36,12 @@ int rotate_bufs(void)
     int i, j;
 
     for (i = 0; i < ncb.nin; i++) {
-	temp = ncb.in[i].buf[0];
+        temp = ncb.in[i].buf[0];
 
-	for (j = 1; j < ncb.nsize; j++)
-	    ncb.in[i].buf[j - 1] = ncb.in[i].buf[j];
+        for (j = 1; j < ncb.nsize; j++)
+            ncb.in[i].buf[j - 1] = ncb.in[i].buf[j];
 
-	ncb.in[i].buf[ncb.nsize - 1] = temp;
+        ncb.in[i].buf[ncb.nsize - 1] = temp;
     }
 
     return 0;

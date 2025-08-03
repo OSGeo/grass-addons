@@ -12,20 +12,19 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
               comes with GRASS for details.
 """
 
-#%module
-#% description: Vector map calculator.
-#% keyword: vector
-#% keyword: algebra
-#% overwrite: yes
-#%end
-#%option
-#% key: expression
-#% type: string
-#% description: Expression to evaluate
-#% key_desc: expression
-#% required: yes
-#%end
-
+# %module
+# % description: Vector map calculator.
+# % keyword: vector
+# % keyword: algebra
+# % overwrite: yes
+# %end
+# %option
+# % key: expression
+# % type: string
+# % description: Expression to evaluate
+# % key_desc: expression
+# % required: yes
+# %end
 
 import sys
 import re
@@ -35,7 +34,6 @@ import grass.pygrass.modules as mod
 
 
 class CmdMapList(object):
-
     """Listing and execution of PyGRASS module objects"""
 
     def __init__(self):
@@ -63,7 +61,6 @@ class CmdMapList(object):
 
 
 class VectorAlgebraLexer(object):
-
     """!Lexical analyzer for the GRASS GIS vector algebra"""
 
     # Buffer functions from v.buffer
@@ -163,7 +160,6 @@ class VectorAlgebraLexer(object):
 
 
 class VectorAlgebraParser(object):
-
     """This is the vector algebra parser class"""
 
     # Get the tokens from the lexer class

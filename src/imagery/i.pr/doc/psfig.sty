@@ -1,12 +1,12 @@
-% Psfig/TeX 
+% Psfig/TeX
 \def\PsfigVersion{1.9}
 % dvips version
 %
 % All psfig/tex software, documentation, and related files
-% in this distribution of psfig/tex are 
+% in this distribution of psfig/tex are
 % Copyright 1987, 1988, 1991 Trevor J. Darrell
 %
-% Permission is granted for use and non-profit distribution of psfig/tex 
+% Permission is granted for use and non-profit distribution of psfig/tex
 % providing that this notice is clearly maintained. The right to
 % distribute any portion of psfig/tex for profit or as part of any commercial
 % product is specifically reserved for the author(s) of that portion.
@@ -14,8 +14,8 @@
 % *** Feel free to make local modifications of psfig as you wish,
 % *** but DO NOT post any changed or modified versions of ``psfig''
 % *** directly to the net. Send them to me and I'll try to incorporate
-% *** them into future versions. If you want to take the psfig code 
-% *** and make a new program (subject to the copyright above), distribute it, 
+% *** them into future versions. If you want to take the psfig code
+% *** and make a new program (subject to the copyright above), distribute it,
 % *** (and maintain it) that's fine, just don't call it psfig.
 %
 % Bugs and improvements to trevor@media.mit.edu.
@@ -119,7 +119,7 @@
 %
 % @psdo control structure -- similar to Latex @for.
 % I redefined these with different names so that psfig can
-% be used with TeX as well as LaTeX, and so that it will not 
+% be used with TeX as well as LaTeX, and so that it will not
 % be vunerable to future changes in LaTeX's internal
 % control structure,
 %
@@ -130,15 +130,15 @@
     \expandafter\@psdoloop#2,\@nil,\@nil\@@#1{#3}\fi}
 \def\@psdoloop#1,#2,#3\@@#4#5{\def#4{#1}\ifx #4\@nnil \else
        #5\def#4{#2}\ifx #4\@nnil \else#5\@ipsdoloop #3\@@#4{#5}\fi\fi}
-\def\@ipsdoloop#1,#2\@@#3#4{\def#3{#1}\ifx #3\@nnil 
+\def\@ipsdoloop#1,#2\@@#3#4{\def#3{#1}\ifx #3\@nnil
        \let\@nextwhile=\@psdonoop \else
       #4\relax\let\@nextwhile=\@ipsdoloop\fi\@nextwhile#2\@@#3{#4}}
 \def\@tpsdo#1:=#2\do#3{\xdef\@psdotmp{#2}\ifx\@psdotmp\@empty \else
     \@tpsdoloop#2\@nil\@nil\@@#1{#3}\fi}
-\def\@tpsdoloop#1#2\@@#3#4{\def#3{#1}\ifx #3\@nnil 
+\def\@tpsdoloop#1#2\@@#3#4{\def#3{#1}\ifx #3\@nnil
        \let\@nextwhile=\@psdonoop \else
       #4\relax\let\@nextwhile=\@tpsdoloop\fi\@nextwhile#2\@@#3{#4}}
-% 
+%
 % \fbox is defined in latex.tex; so if \fbox is undefined, assume that
 % we are not in LaTeX.
 % Perhaps this could be done better???
@@ -155,7 +155,7 @@
    \hbox{\lower \ps@tempdima\hbox
   {\vbox{\hrule height \fboxrule
           \hbox{\vrule width \fboxrule \hskip\fboxsep
-          \vbox{\vskip\fboxsep \box\ps@tempboxa\vskip\fboxsep}\hskip 
+          \vbox{\vskip\fboxsep \box\ps@tempboxa\vskip\fboxsep}\hskip
                  \fboxsep\vrule width \fboxrule}
                  \hrule height \fboxrule}}}}
 \fi
@@ -243,7 +243,7 @@
    \def\epsf@testit{#2}\ifx\epsf@testit\epsf@bblit
 	\@atendfalse
         \epsf@atend #3 . \\%
-	\if@atend	
+	\if@atend
 	   \if@verbose{
 		\ps@typeout{psfig: found `(atend)'; continuing search}
 	   }\fi
@@ -265,7 +265,7 @@
 % Determine if the stuff following the %%BoundingBox is `(atend)'
 % J. Daniel Smith.  Copied from \epsf@grab above.
 %
-\def\epsf@atendlit{(atend)} 
+\def\epsf@atendlit{(atend)}
 \def\epsf@atend #1 #2 #3\\{%
    \def\epsf@tmp{#1}\ifx\epsf@tmp\empty
       \epsf@atend #2 #3 .\\\else
@@ -318,7 +318,7 @@
 			\Divide \dimen 0 by {\count 0}%
 			\Mess@ge {After division, term = \nodimen 0}%
 		\repeat
-		\Mess@ge {Final value for term #1 of 
+		\Mess@ge {Final value for term #1 of
 				\nodimen 2 \space is \nodimen 0}%
 		\xdef \Term {#3 = \nodimen 0 \r@dians}%
 		\aftergroup \Term
@@ -401,7 +401,7 @@
 		\dimen 4 = 0 \r@dian %%% ditto
 		\loop
 			\ifnum	\dimen 2 = 0 %%% then we've done
-			\then	\stillc@nvergingfalse 
+			\then	\stillc@nvergingfalse
 			\else	\stillc@nvergingtrue
 			\fi
 			\ifstillc@nverging %%% then calculate next term
@@ -414,7 +414,7 @@
 				\else	\advance \dimen 4 by -\dimen 2
 				\fi
 		\repeat
-	\fi		
+	\fi
 			\xdef \sine {\nodimen 4}%
        }}
 
@@ -424,7 +424,7 @@
 	{\dimen0=#1\r@dian\advance\dimen0 by 90\r@dian
 	 \Sine{\nodimen 0}
 	 \xdef\cosine{\sine}
-	 \xdef\sine{\Savesine}}}	      
+	 \xdef\sine{\Savesine}}}
 % end of trig stuff
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -580,7 +580,7 @@
 %		\dimen100=#1
 		\edef\@p@sangle{#1} %\number\dimen100}
 }
-\def\@p@@ssilent#1{ 
+\def\@p@@ssilent#1{
 		\@verbosefalse
 }
 \def\@p@@sprolog#1{\@prologfiletrue\def\@prologfileval{#1}}
@@ -629,7 +629,7 @@
 	\no@bbtrue
 	\epsf@getbb{\@p@sbbfile}
         \ifno@bb \else \bb@cull\epsf@llx\epsf@lly\epsf@urx\epsf@ury\fi
-}	
+}
 \def\bb@cull#1#2#3#4{
 	\dimen100=#1 bp\edef\@p@sbbllx{\number\dimen100}
 	\dimen100=#2 bp\edef\@p@sbblly{\number\dimen100}
@@ -663,7 +663,7 @@
 			\no-bb-error
 		\fi
 		%
-%\ps@typeout{BB: \@p@sbbllx, \@p@sbblly, \@p@sbburx, \@p@sbbury} 
+%\ps@typeout{BB: \@p@sbbllx, \@p@sbblly, \@p@sbburx, \@p@sbbury}
 %
 % store height/width of original (unrotated) bounding box
 		\count203=\@p@sbburx
@@ -673,7 +673,7 @@
 		\edef\ps@bbw{\number\count203}
 		\edef\ps@bbh{\number\count204}
 		%\ps@typeout{ psbbh = \ps@bbh, psbbw = \ps@bbw }
-		\if@angle 
+		\if@angle
 			\Sine{\@p@sangle}\Cosine{\@p@sangle}
 	        	{\dimen100=\maxdimen\xdef\r@p@sbbllx{\number\dimen100}
 					    \xdef\r@p@sbblly{\number\dimen100}
@@ -766,12 +766,12 @@
 		%\ps@typeout{h from w : height is \@p@sheight}
 }
 \def\compute@handw{
-		\if@height 
+		\if@height
 			\if@width
 			\else
 				\compute@wfromh
 			\fi
-		\else 
+		\else
 			\if@width
 				\compute@hfromw
 			\else
@@ -785,7 +785,7 @@
 		\if@rwidth \else \edef\@p@srwidth{\@p@swidth} \fi
 		%\ps@typeout{rheight = \@p@srheight, rwidth = \@p@srwidth}
 }
-%		
+%
 % Compute any missing values
 \def\compute@sizes{
 	\compute@bb
@@ -796,7 +796,7 @@
 % width=/height= value needs to be adjusted to match the new (rotated)
 % bounding box size (specifed in \@bbw and \@bbh).
 %    \ps@bbw       width=
-%    -------  =  ---------- 
+%    -------  =  ----------
 %    \@bbw       new width=
 % so `new width=' = (width= * \@bbw) / \ps@bbw; where \ps@bbw is the
 % width of the original (unrotated) bounding box.
@@ -834,7 +834,7 @@
 				\@p@sbburx \space \@p@sbbury \space
 				startTexFig \space }
 		\if@angle
-			\special {ps:: \@p@sangle \space rotate \space} 
+			\special {ps:: \@p@sangle \space rotate \space}
 		\fi
 		\if@clip{
 			\if@verbose{
@@ -869,7 +869,7 @@
 	}\else{
 		% draft figure, just reserve the space and print the
 		% path name.
-		\if@draftbox{		
+		\if@draftbox{
 			% Verbose draft: print file name in box
 			\hbox{\frame{\vbox to \@p@srheight sp{
 			\vss
@@ -883,7 +883,7 @@
 			\hbox to \@p@srwidth sp{\hss}
 			\vss
 			}
-		}\fi	
+		}\fi
 
 
 
@@ -891,6 +891,3 @@
 }}
 \psfigRestoreAt
 \let\@=\LaTeXAtSign
-
-
-

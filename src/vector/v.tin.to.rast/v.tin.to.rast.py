@@ -23,19 +23,19 @@
 #
 ############################################################################
 
-#%module
-#% description: Converts (rasterize) a TIN map into a raster map
-#% keyword: vector
-#% keyword: raster
-#% keyword: TIN
-#% keyword: conversion
-#%end
-#%option G_OPT_V_INPUT
-#% label: Name of input TIN map
-#% description: Name of input TIN map
-#%end
-#%option G_OPT_R_OUTPUT
-#%end
+# %module
+# % description: Converts (rasterize) a TIN map into a raster map
+# % keyword: vector
+# % keyword: raster
+# % keyword: TIN
+# % keyword: conversion
+# %end
+# %option G_OPT_V_INPUT
+# % label: Name of input TIN map
+# % description: Name of input TIN map
+# %end
+# %option G_OPT_R_OUTPUT
+# %end
 ############################################################################
 
 import sys
@@ -43,27 +43,23 @@ import os
 import atexit
 
 try:
-    import grass.script as grass
+    import grass.script as gs
 except:
     try:
-        from grass.script import core as grass
+        from grass.script import core as gs
     except:
         if "GISBASE" not in os.environ:
             print("You must be in GRASS GIS to run this program.")
             sys.exit(1)
 
-grass_version = grass.version().get("version")[0:2]
-if grass_version != "7.":
-    grass.fatal(_("Sorry, this script works in GRASS 7.* only"))
-else:
-    from grass.lib.gis import *
-    from grass.lib.vector import *
-    from grass.lib.raster import *
+from grass.lib.gis import *
+from grass.lib.vector import *
+from grass.lib.raster import *
 
 
 def cleanup():
     if tmp:
-        grass.run_command(
+        gs.run_command(
             "g.remove", type="raster", name="%s" % tmp, quiet=True, stderr=nuldev
         )
 
@@ -71,7 +67,6 @@ def cleanup():
 
 
 def main():
-
     global nuldev, tmp
     nuldev = open(os.devnull, "w")
     tmp = "v_tin_to_rast_%d" % os.getpid()
@@ -85,7 +80,7 @@ def main():
     # check if vector map exists
     mapset = G_find_vector2(input, "")
     if not mapset:
-        grass.fatal("Vector map <%s> not found" % input)
+        gs.fatal("Vector map <%s> not found" % input)
 
     # define map structure
     map_info = pointer(Map_info())
@@ -100,9 +95,9 @@ def main():
 
     # check if vector map is 3D
     if Vect_is_3d(map_info):
-        grass.message("Vector map <%s> is 3D" % input)
+        gs.message("Vector map <%s> is 3D" % input)
     else:
-        grass.fatal("Vector map <%s> is not 3D" % input)
+        gs.fatal("Vector map <%s> is not 3D" % input)
 
     # allocation of the output buffer using the values of the current region
     window = pointer(Cell_head())
@@ -121,21 +116,21 @@ def main():
     # create new raster
     outfd = Rast_open_new(output, DCELL_TYPE)
     if outfd < 0:
-        grass.fatal("Impossible to create a raster <%s>" % output)
+        gs.fatal("Impossible to create a raster <%s>" % output)
 
     # insert null values in cells
-    grass.message(_("Step 1/4: Inserting null values in cells..."))
+    gs.message(_("Step 1/4: Inserting null values in cells..."))
     for i in range(nrows):
         Rast_set_d_null_value(outrast[i], ncols)
         G_percent(i, nrows, 2)
 
     #####  main work #####
-    grass.message(_("Step 2/4: TIN preprocessing..."))
+    gs.message(_("Step 2/4: TIN preprocessing..."))
     z = c_double()
     G_percent(0, nrows, 2)
     Vect_tin_get_z(map_info, xref, yref, byref(z), None, None)
 
-    grass.message(_("Step 3/4: Converting TIN to raster..."))
+    gs.message(_("Step 3/4: Converting TIN to raster..."))
     for i in range(nrows):
         for j in range(ncols):
             x = xref + j * xres
@@ -144,7 +139,7 @@ def main():
             outrast[i][j] = z
         G_percent(i, nrows, 2)
 
-    grass.message(_("Step 4/4: Writing raster map..."))
+    gs.message(_("Step 4/4: Writing raster map..."))
 
     for i in range(nrows - 1, -1, -1):
         Rast_put_d_row(outfd, outrast[i])
@@ -161,13 +156,11 @@ def main():
     Vect_close(map_info)
 
     # cut output raster to TIN vertical range
-    vtop = grass.read_command("v.info", flags="g", map=input).rsplit()[4].split("=")[1]
-    vbottom = (
-        grass.read_command("v.info", flags="g", map=input).rsplit()[5].split("=")[1]
-    )
+    vtop = gs.read_command("v.info", flags="g", map=input).rsplit()[4].split("=")[1]
+    vbottom = gs.read_command("v.info", flags="g", map=input).rsplit()[5].split("=")[1]
 
     tmp = "v_tin_to_rast_%d" % os.getpid()
-    grass.mapcalc(
+    gs.mapcalc(
         "$tmp = if($vbottom < $output && $output < $vtop, $output, null())",
         tmp=tmp,
         output=output,
@@ -177,22 +170,22 @@ def main():
         stderr=nuldev,
     )
 
-    grass.parse_command("g.rename", rast=(tmp, output), quiet=True, stderr=nuldev)
+    gs.parse_command("g.rename", rast=(tmp, output), quiet=True, stderr=nuldev)
 
     # write cmd history:
-    grass.run_command(
+    gs.run_command(
         "r.support",
         map=output,
         title="%s" % output,
         history="",
         description="generated by v.tin.to.rast",
     )
-    grass.raster_history(output)
+    gs.raster_history(output)
 
-    grass.message(_("Done."))
+    gs.message(_("Done: generated raster map <%s>") % output)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

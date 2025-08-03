@@ -3,9 +3,9 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-import matplotlib  # required by windows
+import matplotlib as mpl  # required by windows
 
-matplotlib.use("wxAGG")  # required by windows
+mpl.use("wxAGG")  # required by windows
 import matplotlib.pyplot as plt
 
 from sklearn.ensemble import ExtraTreesClassifier
@@ -29,7 +29,7 @@ def importances(
     csv="",
     img="",
     clf=ExtraTreesClassifier(n_estimators=N_ESTIMATORS, random_state=RANDOM_STATE),
-    **savefig
+    **savefig,
 ):
     clf.fit(X, y)
     imp = clf.feature_importances_

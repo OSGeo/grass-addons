@@ -1,61 +1,57 @@
-
 /****************************************************************************
  *
- * MODULE: r.stream.segment
- * AUTHOR(S): Jarek Jasiewicz jarekj amu.edu.pl
- *							 
- * PURPOSE:	 Calculate geometrical attributes for segments of current order, 
- * 			 divide segments on near straight line portions and 
- * 			 segment orientation and angles between streams and its
- *           tributaries. For stream direction it use algorithm to divide
- *           particular streams of the same order into near-straight line
- *           portions.
- * 				
- *							
+ * MODULE:       r.stream.segment
+ * AUTHOR(S):    Jarek Jasiewicz jarekj amu.edu.pl
  *
- * COPYRIGHT:		 (C) 2002,2010-2014 by the GRASS Development Team
+ * PURPOSE:      Calculate geometrical attributes for segments of current
+ *               order, divide segments on near straight line portions and
+ *               segment orientation and angles between streams and its
+ *               tributaries. For stream direction it use algorithm to divide
+ *               particular streams of the same order into near-straight
+ *               line portions.
  *
- *			 This program is free software under the GNU General Public
- *			 License (>=v2). Read the file COPYING that comes with GRASS
- *			 for details.
+ * COPYRIGHT:    (C) 2002,2010-2014 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
  *
  *****************************************************************************/
+
 #define MAIN
+
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
+int nextr[9] = {0, -1, -1, -1, 0, 1, 1, 1, 0};
+int nextc[9] = {0, 1, 0, -1, -1, -1, 0, 1, 1};
 
 int main(int argc, char *argv[])
 {
 
-    struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *in_dir_opt,	/* options */
-     *in_stm_opt,
-	*in_elev_opt,
-	*out_segment_opt,
-	*out_sector_opt,
-	*opt_length, *opt_skip, *opt_threshold, *opt_swapsize;
+    struct GModule *module;    /* GRASS module for parsing arguments */
+    struct Option *in_dir_opt, /* options */
+        *in_stm_opt, *in_elev_opt, *out_segment_opt, *out_sector_opt,
+        *opt_length, *opt_skip, *opt_threshold, *opt_swapsize;
 
-    struct Flag *flag_radians, *flag_segmentation;	/* segmentation library */
+    struct Flag *flag_radians, *flag_segmentation; /* segmentation library */
 
     int i;
     int seg_length, seg_skip;
-    int radians, segmentation;	/* flags */
+    int radians, segmentation; /* flags */
     int number_of_segs, number_of_segs_total;
     double seg_size;
     double seg_treshold;
     int number_of_streams, ordered;
 
     /* initialize GIS environment */
-    G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
+    G_gisinit(
+        argv[0]); /* reads grass env, stores program name to G_program_name() */
 
     /* initialize module */
     module = G_define_module();
-    module->description =
-	_("Divides network into near straight-line segments and calculate its order.");
+    module->description = _("Divides network into near straight-line segments "
+                            "and calculate its order.");
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
     G_add_keyword(_("stream network"));
@@ -74,12 +70,12 @@ int main(int argc, char *argv[])
     out_segment_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_segment_opt->key = "segments";
     out_segment_opt->description =
-	_("Name for output vector map to write segment attributes");
+        _("Name for output vector map to write segment attributes");
 
     out_sector_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     out_sector_opt->key = "sectors";
     out_sector_opt->description =
-	_("Name for output vector map to write sector attributes");
+        _("Name for output vector map to write sector attributes");
 
     opt_length = G_define_option();
     opt_length->key = "length";
@@ -112,15 +108,15 @@ int main(int argc, char *argv[])
     flag_radians = G_define_flag();
     flag_radians->key = 'r';
     flag_radians->description =
-	_("Output angles in radians (default: degrees)");
+        _("Output angles in radians (default: degrees)");
 
     flag_segmentation = G_define_flag();
     flag_segmentation->key = 'm';
     flag_segmentation->description = _("Use memory swap (operation is slow)");
     flag_segmentation->guisection = _("Memory setings");
 
-    if (G_parser(argc, argv))	/* parser */
-	exit(EXIT_FAILURE);
+    if (G_parser(argc, argv)) /* parser */
+        exit(EXIT_FAILURE);
 
     seg_length = atoi(opt_length->answer);
     seg_treshold = atof(opt_threshold->answer);
@@ -131,9 +127,9 @@ int main(int argc, char *argv[])
     if (seg_length <= 0)
         G_fatal_error(_("Search's length must be > 0"));
     if (seg_treshold < 0 || seg_treshold > 180)
-	G_fatal_error(_("Threshold must be between 0 and 180"));
+        G_fatal_error(_("Threshold must be between 0 and 180"));
     if (seg_skip < 0)
-	G_fatal_error(_("Segment's length must be >= 0"));
+        G_fatal_error(_("Segment's length must be >= 0"));
 
     seg_treshold = DEG2RAD(seg_treshold);
     nrows = Rast_window_rows();
@@ -143,119 +139,115 @@ int main(int argc, char *argv[])
 
     number_of_segs = atoi(opt_swapsize->answer);
     if (number_of_segs < 3)
-	number_of_segs = 3;
+        number_of_segs = 3;
 
     /* segment size in MB */
-    seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20); 
+    seg_size = (sizeof(CELL) * 2.0 + sizeof(FCELL)) * SROWS * SCOLS / (1 << 20);
 
     number_of_segs = (int)(number_of_segs / seg_size);
 
-    number_of_segs_total = (nrows / SROWS + nrows % SROWS) *
-                           (ncols / SCOLS + ncols % SCOLS);
+    number_of_segs_total =
+        (nrows / SROWS + nrows % SROWS) * (ncols / SCOLS + ncols % SCOLS);
 
     if (!segmentation) {
-	/* force use of the segment version 
-	 * if not all segments can be kept in memory */
-	if (number_of_segs_total > number_of_segs)
-	    segmentation = 1;
+        /* force use of the segment version
+         * if not all segments can be kept in memory */
+        if (number_of_segs_total > number_of_segs)
+            segmentation = 1;
     }
 
     if (!segmentation) {
-	MAP map_dirs, map_streams, map_elevation, map_unique_streams;
-	CELL **streams, **dirs, **unique_streams = NULL;
-	FCELL **elevation;
-	DCELL nullval;
+        MAP map_dirs, map_streams, map_elevation, map_unique_streams;
+        CELL **streams, **dirs, **unique_streams = NULL;
+        FCELL **elevation;
+        DCELL nullval;
 
-	G_message(_("All in RAM calculation..."));
+        G_message(_("All in RAM calculation..."));
 
-	Rast_set_d_null_value(&nullval, 1);
+        Rast_set_d_null_value(&nullval, 1);
 
-	ram_create_map(&map_streams, CELL_TYPE);
-	ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
-	ram_create_map(&map_dirs, CELL_TYPE);
-	ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
-	ram_create_map(&map_elevation, FCELL_TYPE);
-	ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
+        ram_create_map(&map_streams, CELL_TYPE);
+        ram_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
+        ram_create_map(&map_dirs, CELL_TYPE);
+        ram_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
+        ram_create_map(&map_elevation, FCELL_TYPE);
+        ram_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
-	streams = (CELL **) map_streams.map;
-	dirs = (CELL **) map_dirs.map;
-	elevation = (FCELL **) map_elevation.map;
+        streams = (CELL **)map_streams.map;
+        dirs = (CELL **)map_dirs.map;
+        elevation = (FCELL **)map_elevation.map;
 
-	number_of_streams =
-	    ram_number_of_streams(streams, dirs, &ordered) + 1;
-	ram_build_streamlines(streams, dirs, elevation, number_of_streams);
+        number_of_streams = ram_number_of_streams(streams, dirs, &ordered) + 1;
+        ram_build_streamlines(streams, dirs, elevation, number_of_streams);
 
-	/* TODO: either always create unique streams 
-	 * or keep current mechanism of identify_next_stream, 
-	 * then unique streams are not needed */
-	if (ordered) {
-	    ram_create_map(&map_unique_streams, CELL_TYPE);
-	    unique_streams = (CELL **) map_unique_streams.map;
-	    ram_fill_streams(unique_streams, number_of_streams);
-	    ram_identify_next_stream(unique_streams, number_of_streams);
-	    ram_release_map(&map_unique_streams);
-	}
-	else
-	    ram_identify_next_stream(streams, number_of_streams);
+        /* TODO: either always create unique streams
+         * or keep current mechanism of identify_next_stream,
+         * then unique streams are not needed */
+        if (ordered) {
+            ram_create_map(&map_unique_streams, CELL_TYPE);
+            unique_streams = (CELL **)map_unique_streams.map;
+            ram_fill_streams(unique_streams, number_of_streams);
+            ram_identify_next_stream(unique_streams, number_of_streams);
+            ram_release_map(&map_unique_streams);
+        }
+        else
+            ram_identify_next_stream(streams, number_of_streams);
 
-	ram_release_map(&map_streams);
-	ram_release_map(&map_dirs);
-	ram_release_map(&map_elevation);
+        ram_release_map(&map_streams);
+        ram_release_map(&map_dirs);
+        ram_release_map(&map_elevation);
     }
     else {
-	SEG map_dirs, map_streams, map_elevation, map_unique_streams;
-	SEGMENT *streams, *dirs, *unique_streams = NULL;
-	SEGMENT *elevation;
-	DCELL nullval;
+        SEG map_dirs, map_streams, map_elevation, map_unique_streams;
+        SEGMENT *streams, *dirs, *unique_streams = NULL;
+        SEGMENT *elevation;
+        DCELL nullval;
 
         G_message(_("Memory swap calculation (may take some time)..."));
 
-	Rast_set_d_null_value(&nullval, 1);
+        Rast_set_d_null_value(&nullval, 1);
 
-	if (number_of_segs < 10)
-	    number_of_segs = 10;
+        if (number_of_segs < 10)
+            number_of_segs = 10;
 
-	seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
-	seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
-	seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
-	seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
-		       FCELL_TYPE);
-	seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
+        seg_create_map(&map_streams, SROWS, SCOLS, number_of_segs, CELL_TYPE);
+        seg_read_map(&map_streams, in_stm_opt->answer, 1, CELL_TYPE, 0);
+        seg_create_map(&map_dirs, SROWS, SCOLS, number_of_segs, CELL_TYPE);
+        seg_read_map(&map_dirs, in_dir_opt->answer, 1, CELL_TYPE, 0);
+        seg_create_map(&map_elevation, SROWS, SCOLS, number_of_segs,
+                       FCELL_TYPE);
+        seg_read_map(&map_elevation, in_elev_opt->answer, 0, -1, nullval);
 
-	streams = &map_streams.seg;
-	dirs = &map_dirs.seg;
-	elevation = &map_elevation.seg;
+        streams = &map_streams.seg;
+        dirs = &map_dirs.seg;
+        elevation = &map_elevation.seg;
 
-	number_of_streams =
-	    seg_number_of_streams(streams, dirs, &ordered) + 1;
-	seg_build_streamlines(streams, dirs, elevation, number_of_streams);
+        number_of_streams = seg_number_of_streams(streams, dirs, &ordered) + 1;
+        seg_build_streamlines(streams, dirs, elevation, number_of_streams);
 
-	/* TODO: either always create unique streams 
-	 * or keep current mechanism of identify_next_stream, 
-	 * then unique streams are not needed */
-	if (ordered) {
-	    seg_create_map(&map_unique_streams, SROWS, SCOLS, number_of_segs,
-			   CELL_TYPE);
-	    unique_streams = &map_unique_streams.seg;
-	    seg_fill_streams(unique_streams, number_of_streams);
-	    seg_identify_next_stream(unique_streams, number_of_streams);
-	    seg_release_map(&map_unique_streams);
-	}
-	else
-	    seg_identify_next_stream(streams, number_of_streams);
+        /* TODO: either always create unique streams
+         * or keep current mechanism of identify_next_stream,
+         * then unique streams are not needed */
+        if (ordered) {
+            seg_create_map(&map_unique_streams, SROWS, SCOLS, number_of_segs,
+                           CELL_TYPE);
+            unique_streams = &map_unique_streams.seg;
+            seg_fill_streams(unique_streams, number_of_streams);
+            seg_identify_next_stream(unique_streams, number_of_streams);
+            seg_release_map(&map_unique_streams);
+        }
+        else
+            seg_identify_next_stream(streams, number_of_streams);
 
-	seg_release_map(&map_streams);
-	seg_release_map(&map_dirs);
-	seg_release_map(&map_elevation);
+        seg_release_map(&map_streams);
+        seg_release_map(&map_dirs);
+        seg_release_map(&map_elevation);
     }
 
-
     for (i = 1; i < number_of_streams; ++i)
-	G_debug(1, "%d %d %d", stream_attributes[i].stream,
-		  stream_attributes[i].next_stream,
-		  stream_attributes[i].last_cell_dir);
-
+        G_debug(1, "%d %d %d", stream_attributes[i].stream,
+                stream_attributes[i].next_stream,
+                stream_attributes[i].last_cell_dir);
 
     /*
        for(i=1;i<number_of_streams;++i)
@@ -268,12 +260,11 @@ int main(int argc, char *argv[])
     G_message(_("Creating sectors and calculating attributes..."));
 
     for (i = 1; i < number_of_streams; ++i) {
-	create_sectors(&stream_attributes[i], seg_length, seg_skip,
-		       seg_treshold);
-	calc_tangents(&stream_attributes[i], seg_length, seg_skip,
-		      number_of_streams);
+        create_sectors(&stream_attributes[i], seg_length, seg_skip,
+                       seg_treshold);
+        calc_tangents(&stream_attributes[i], seg_length, seg_skip,
+                      number_of_streams);
     }
-
 
     /*
 
@@ -311,8 +302,7 @@ int main(int argc, char *argv[])
        }
      */
 
-    create_segment_vector(out_segment_opt->answer, number_of_streams,
-			  radians);
+    create_segment_vector(out_segment_opt->answer, number_of_streams, radians);
     create_sector_vector(out_sector_opt->answer, number_of_streams, radians);
 
     free_attributes(number_of_streams);

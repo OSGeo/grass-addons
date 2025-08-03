@@ -1,8 +1,7 @@
-
 /****************************************************************************
  *
  * MODULE:       r3.what
- *   	    	
+ *
  * AUTHOR(S):    Anna Petrasova (kratochanna gmail.com)
  *
  * PURPOSE:      Queries 3D raster at specified 2D or 3D coordinates
@@ -14,11 +13,11 @@
  *               for details.
  *
  *****************************************************************************/
+
 #include <grass/gis.h>
 #include <grass/raster3d.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
-
 
 FILE *openAscii(char *file)
 {
@@ -38,9 +37,8 @@ FILE *openAscii(char *file)
     return fp;
 }
 
-
-void query(RASTER3D_Map * input_map, double east, double north, FILE * fp,
-           char *fs, RASTER3D_Region * region, int type, char *null_val)
+void query(RASTER3D_Map *input_map, double east, double north, FILE *fp,
+           char *fs, RASTER3D_Region *region, int type, char *null_val)
 {
 
     int x, y, depth;
@@ -68,8 +66,8 @@ void query(RASTER3D_Map * input_map, double east, double north, FILE * fp,
     fprintf(fp, "\n");
 }
 
-void query3D(RASTER3D_Map * input_map, double east, double north, double top,
-             FILE * fp, char *fs, RASTER3D_Region * region, int type,
+void query3D(RASTER3D_Map *input_map, double east, double north, double top,
+             FILE *fp, char *fs, RASTER3D_Region *region, int type,
              char *null_val)
 {
 
@@ -95,7 +93,6 @@ void query3D(RASTER3D_Map * input_map, double east, double north, double top,
     }
     fprintf(fp, "\n");
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -189,11 +186,9 @@ int main(int argc, char *argv[])
     Rast3d_get_window(&region);
 
     /* Open the map and use XY cache mode */
-    input_map =
-        Rast3d_open_cell_old(input->answer,
-                             G_find_raster3d(input->answer, ""), &region,
-                             RASTER3D_TILE_SAME_AS_FILE,
-                             RASTER3D_USE_CACHE_DEFAULT);
+    input_map = Rast3d_open_cell_old(
+        input->answer, G_find_raster3d(input->answer, ""), &region,
+        RASTER3D_TILE_SAME_AS_FILE, RASTER3D_USE_CACHE_DEFAULT);
 
     if (!input_map)
         Rast3d_fatal_error(_("Unable to open 3D raster map <%s>"),
@@ -240,8 +235,8 @@ int main(int argc, char *argv[])
                 north = Points->y[0];
                 if (Vect_is_3d(&Map) && !z) {
                     top = Points->z[0];
-                    query3D(input_map, east, north, top, fp, fs, &region,
-                            type, null_val->answer);
+                    query3D(input_map, east, north, top, fp, fs, &region, type,
+                            null_val->answer);
                 }
                 else
                     query(input_map, east, north, fp, fs, &region, type,
@@ -253,8 +248,7 @@ int main(int argc, char *argv[])
         /* loop through coordinates */
         if (coords3d_opt->answer) {
             for (i = 0; coords3d_opt->answers[i] != NULL; i += 3) {
-                G_scan_easting(coords3d_opt->answers[i], &east,
-                               G_projection());
+                G_scan_easting(coords3d_opt->answers[i], &east, G_projection());
                 G_scan_northing(coords3d_opt->answers[i + 1], &north,
                                 G_projection());
                 top = atof(coords3d_opt->answers[i + 2]);

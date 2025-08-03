@@ -7,7 +7,7 @@ C-code:
 - fix remaining compiler warnings
 - there are LOTs of cloned files, put them into a r.pi library (example:
   ~/grass64/vector/lidar/lidarlib/)
-  
+
   File counts:
   - search.c 5
   - func.c 16
@@ -42,7 +42,7 @@ bt full
 
 This will generate a full backtrace if GRASS was compiled with "-g",
 i.e. debugging. See
-http://grass.osgeo.org/wiki/GRASS_Debugging#Using_GDB
+https://grasswiki.osgeo.org/wiki/GRASS_Debugging#Using_GDB
 
 Got it, too:
 
@@ -101,4 +101,3 @@ HTML Descriptions TODO:
 - Add North Carolina example to each module, a section has been included everywhere
 - ./description.html (overview): polish and update to current module names
 - module/description.html files: still TOO GENERAL
-

@@ -17,96 +17,96 @@
 #
 #############################################################################
 
-#%Module
-#% description: Performs filtering of raster time series X (in time domain).
-#% overwrite: yes
-#% keyword: raster
-#% keyword: statistics
-#% keyword: filter
-#%End
-#%flag
-#% key: c
-#% description: Try to find optimal parameters for filtering
-#% guisection: Parameters
-#%end
-#%flag
-#% key: u
-#% description: Fit the result curve by upper boundary
-#% guisection: Parameters
-#%end
-#%option
-#% key: input
-#% type: string
-#% gisprompt: list of raster names
-#% description: Raster names of equally spaced time series
-#% required : yes
-#% multiple: yes
-#%end
-#%option
-#% key: result_prefix
-#% type: string
-#% gisprompt: prefix of result raster names
-#% description: Prefix for raster names of filtered X(t)
-#% required : yes
-#% multiple: no
-#%end
-#%option
-#% key: method
-#% type: string
-#% required : no
-#% multiple: no
-#% answer: savgol
-#% description: Used method
-#% descriptions: savgol; Savitzky-Golay filter; median; Median filter
-#%end
-#%option
-#% key: winsize
-#% type: integer
-#% answer: 9
-#% required: no
-#% multiple: no
-#% description: Length of running window for the filter
-#%end
-#%option
-#% key: order
-#% type: integer
-#% answer: 2
-#% required: no
-#% multiple: no
-#% description: Order of the Savitzky-Golay filter
-#%end
-#%option
-#% key: opt_points
-#% type: integer
-#% answer: 50
-#% required: no
-#% multiple: no
-#% description: Count of random points used for parameter optimization
-#%end
-#%option
-#% key: diff_penalty
-#% type: double
-#% answer: 1.0
-#% required: no
-#% multiple: no
-#% description: Penalty for difference between original and filtered signals
-#%end
-#%option
-#% key: deriv_penalty
-#% type: double
-#% answer: 1.0
-#% required: no
-#% multiple: no
-#% description: Penalty for big derivates of the filtered signal
-#%end
-#%option
-#% key: iterations
-#% type: integer
-#% required: no
-#% multiple: no
-#% description: Number of iterations
-#% answer: 1
-#%end
+# %Module
+# % description: Performs filtering of raster time series X (in time domain).
+# % overwrite: yes
+# % keyword: raster
+# % keyword: statistics
+# % keyword: filter
+# %End
+# %flag
+# % key: c
+# % description: Try to find optimal parameters for filtering
+# % guisection: Parameters
+# %end
+# %flag
+# % key: u
+# % description: Fit the result curve by upper boundary
+# % guisection: Parameters
+# %end
+# %option
+# % key: input
+# % type: string
+# % gisprompt: list of raster names
+# % description: Raster names of equally spaced time series
+# % required : yes
+# % multiple: yes
+# %end
+# %option
+# % key: result_prefix
+# % type: string
+# % gisprompt: prefix of result raster names
+# % description: Prefix for raster names of filtered X(t)
+# % required : yes
+# % multiple: no
+# %end
+# %option
+# % key: method
+# % type: string
+# % required : no
+# % multiple: no
+# % answer: savgol
+# % description: Used method
+# % descriptions: savgol; Savitzky-Golay filter; median; Median filter
+# %end
+# %option
+# % key: winsize
+# % type: integer
+# % answer: 9
+# % required: no
+# % multiple: no
+# % description: Length of running window for the filter
+# %end
+# %option
+# % key: order
+# % type: integer
+# % answer: 2
+# % required: no
+# % multiple: no
+# % description: Order of the Savitzky-Golay filter
+# %end
+# %option
+# % key: opt_points
+# % type: integer
+# % answer: 50
+# % required: no
+# % multiple: no
+# % description: Count of random points used for parameter optimization
+# %end
+# %option
+# % key: diff_penalty
+# % type: double
+# % answer: 1.0
+# % required: no
+# % multiple: no
+# % description: Penalty for difference between original and filtered signals
+# %end
+# %option
+# % key: deriv_penalty
+# % type: double
+# % answer: 1.0
+# % required: no
+# % multiple: no
+# % description: Penalty for big derivates of the filtered signal
+# %end
+# %option
+# % key: iterations
+# % type: integer
+# % required: no
+# % multiple: no
+# % description: Number of iterations
+# % answer: 1
+# %end
 
 
 import os
@@ -116,7 +116,7 @@ if "GISBASE" not in os.environ:
     sys.stderr.write("You must be in GRASS GIS to run this program.\n")
     sys.exit(1)
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass import raster
 from grass.pygrass.raster.buffer import Buffer
 from grass.exceptions import OpenError
@@ -146,13 +146,13 @@ def open_rasters(raster_list, write=False):
         try:
             if write:
                 if r.exist():
-                    r.open("w", "DCELL", overwrite=grass.overwrite())
+                    r.open("w", "DCELL", overwrite=gs.overwrite())
                 else:
                     r.open("w", "DCELL")
             else:
                 r.open()
         except OpenError:
-            grass.fatal("Can't open raster %s" % (r.name,))
+            gs.fatal("Can't open raster %s" % (r.name,))
 
 
 def close_rasters(raster_list):
@@ -181,7 +181,7 @@ def _filter_up(method, arr, winsize, order):
         elif method == "median":
             trend = medfilt(arr, kernel_size=winsize)
         else:
-            grass.fatal("The method is not implemented")
+            gs.fatal("The method is not implemented")
 
         # Weights
         # import ipdb; ipdb.set_trace()
@@ -224,7 +224,7 @@ def _filter(method, row_data, winsize, order, itercount, fit_up):
                     for j in range(itercount):
                         arr = medfilt(arr, kernel_size=winsize)
                 else:
-                    grass.fatal("The method is not implemented")
+                    gs.fatal("The method is not implemented")
         result[:, i] = arr
 
     return result
@@ -283,11 +283,11 @@ def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercou
                 attempt = 0
             else:
                 attempt += 1
-                grass.warning(
+                gs.warning(
                     "Selected point contains NULL values in all input maps. Performing of selection another point."
                 )
                 if attempt >= npoints:
-                    grass.fatal("Can't find points with non NULL data.")
+                    gs.fatal("Can't find points with non NULL data.")
 
     finally:
         close_rasters(inputs)
@@ -303,7 +303,7 @@ def optimize_params(method, names, npoints, diff_penalty, deriv_penalty, itercou
             input_data, diff_penalty, deriv_penalty, itercount
         )
     else:
-        grass.fatal("The method is not implemented")
+        gs.fatal("The method is not implemented")
 
     return best_winsize, best_order
 
@@ -352,8 +352,7 @@ def _optimize_median(input_data, diff_penalty, deriv_penalty, itercount):
 
 
 def filter(method, names, winsize, order, prefix, itercount, fit_up):
-
-    current_mapset = grass.read_command("g.mapset", flags="p")
+    current_mapset = gs.read_command("g.mapset", flags="p")
     current_mapset = current_mapset.strip()
 
     inputs = init_rasters(names)
@@ -399,11 +398,10 @@ def _get_row_or_nan(raster, row_num):
 
 
 def main(options, flags):
-
     optimize = flags["c"]
     fit_up = flags["u"]
     if optimize and fit_up:
-        grass.fatal("Sorry, flags 'c' and 'u' can't be used together.")
+        gs.fatal("Sorry, flags 'c' and 'u' can't be used together.")
 
     method = options["method"]
 
@@ -432,35 +430,35 @@ def main(options, flags):
 
     N = len(xnames)
     if N < winsize:
-        grass.fatal(
+        gs.fatal(
             "The used running window size is to big. Decrease the paramether or add more rasters to the series."
         )
 
     _, rem = divmod(winsize, 2)
     if rem == 0:
-        grass.fatal("Window length must be odd.")
+        gs.fatal("Window length must be odd.")
 
     if order >= winsize:
-        grass.fatal("Order of the filter must be less than window length")
+        gs.fatal("Order of the filter must be less than window length")
 
     if optimize:
         winsize, order = optimize_params(
             method, xnames, opt_points, diff_penalty, deriv_penalty, itercount
         )
         if winsize is None:
-            grass.fatal("Optimization procedure doesn't convergence.")
+            gs.fatal("Optimization procedure doesn't convergence.")
 
     filter(method, xnames, winsize, order, res_prefix, itercount, fit_up)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     # import only after the parser finished and the code actually runs
     try:
         from scipy.signal import savgol_filter
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             "Cannot import savgol_filter from scipy."
             " Install python-scipy package version"
             " 0.14 or later first"
