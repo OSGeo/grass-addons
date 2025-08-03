@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 """
- MODULE:      i.sentinel.download
- AUTHOR(S):   Martin Landa (original contributor)
-              Hamed Elgizery <hamedashraf2004 gmail.com>
+MODULE:     i.sentinel.download
+AUTHOR(S):  Martin Landa (original contributor)
+            Hamed Elgizery <hamedashraf2004 gmail.com>
 
- PURPOSE:     Downloads Sentinel data from Copernicus Data Space Ecosystem,
-              using the EODAG API.
+PURPOSE:    Downloads Sentinel data from Copernicus Data Space Ecosystem,
+            using the EODAG API.
 
- COPYRIGHT:   (C) 2018-2024 by Martin Landa, and the GRASS development team
+COPYRIGHT:  (C) 2018-2024 by Martin Landa, and the GRASS development team
 
-              This program is free software under the GNU General Public
-              License (>=v2). Read the file COPYING that comes with GRASS
-              for details.
+            This program is free software under the GNU General Public
+            License (>=v2). Read the file COPYING that comes with GRASS
+            for details.
 
- CHANGELOG:   Use the EODAG API as a unified datasource - Hamed Elgizery
+CHANGELOG:  Use the EODAG API as a unified datasource - Hamed Elgizery
 """
 
 # %module
@@ -284,9 +284,9 @@ def main():
     global CLOUDCOVER_PRODUCTS
 
     if not options["datasource"] in DATASOURCE_MAP:
-        gs.fatal(_("{} is unrecognized".format(options["datasource"])))
+        gs.fatal(_("{} is unrecognized").format(options["datasource"]))
     if DATASOURCE_MAP[options["datasource"]] == "DEPRECATED":
-        gs.fatal(_("{} is no longer supported".format(options["datasource"])))
+        gs.fatal(_("{} is no longer supported").format(options["datasource"]))
 
     if options["output"]:
         outdir = options["output"]
@@ -388,7 +388,7 @@ def main():
                         password = lines[1].strip()
                         if len(lines) > 2:
                             api_url = lines[2].strip()
-                except IOError as e:
+                except OSError as e:
                     gs.fatal(_("Unable to open settings file: {}").format(e))
                 if user is None or password is None:
                     gs.fatal(_("No user or password given"))
@@ -429,7 +429,7 @@ def main():
                 )
             )
         except CalledModuleError:
-            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
+            gs.fatal(_("Connection to {} failed.\n").format(options["datasource"]))
     else:
         try:
             scenes = json.loads(
@@ -455,7 +455,7 @@ def main():
                 )
             )
         except CalledModuleError:
-            gs.fatal(_("Connection to {} faild.\n".format(options["datasource"])))
+            gs.fatal(_("Connection to {} failed.\n").format(options["datasource"]))
 
     headers_mapping = {
         "cop_dataspace": {
@@ -530,6 +530,6 @@ if __name__ == "__main__":
 
         gs.find_program("i.eodag", "--help")
     except ImportError:
-        gs.fatal(_("Addon i.eodag not found. Please intall it with g.extension."))
+        gs.fatal(_("Addon i.eodag not found. Please install it with g.extension."))
 
     sys.exit(main())

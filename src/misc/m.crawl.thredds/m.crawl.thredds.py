@@ -127,7 +127,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import grass.script as gscript
+import grass.script as gs
 
 
 def get_authentication(authentication_input):
@@ -155,7 +155,7 @@ def get_authentication(authentication_input):
             with open(authentication_input, "r", encoding="UTF8") as auth_file:
                 thredds_authentication = tuple(auth_file.read().split(os.linesep)[0:2])
         else:
-            gscript.fatal(
+            gs.fatal(
                 _("Unable to open file <{}> for reading.").format(authentication_input)
             )
     return thredds_authentication
@@ -177,7 +177,7 @@ def parse_isotime(options_dict, time_key):
         try:
             timestamp = datetime.strptime(time_string, time_format)
         except ValueError:
-            gscript.fatal(
+            gs.fatal(
                 _("Unable to parse {option} timestamp <{time_str}>.").format(
                     option=time_key, time_str=options_dict[time_key]
                 )
@@ -192,7 +192,7 @@ def main():
     try:
         from thredds_crawler.crawl import Crawl
     except ImportError:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Unable to import Python library: thredds_crawler.\n"
                 "Please make sure it is installed (pip install thredds_crawler).",
@@ -222,7 +222,7 @@ def main():
     # Check if before and after is set meaningfully
     if options["modified_before"] is not None and options["modified_after"] is not None:
         if options["modified_before"] < options["modified_after"]:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Date for modified_after needs to be before date for modified_before."
                 )
@@ -239,14 +239,14 @@ def main():
         output = Path(options["output"])
         if output.exists():
             if not output.is_file():
-                gscript.fatal(
+                gs.fatal(
                     _("Cannot write to <{}>. It exists and is not a file.").format(
                         options["output"]
                     )
                 )
 
-            if not gscript.overwrite():
-                gscript.fatal(
+            if not gs.overwrite():
+                gs.fatal(
                     _("File <{}> already exists. Use --o to overwrite.").format(
                         options["output"]
                     )
@@ -256,9 +256,7 @@ def main():
                 output.write_text("", encoding="UTF8")
                 output.unlink()
             except OSError:
-                gscript.fatal(
-                    _("Unable to write to file <{}>.").format(options["output"])
-                )
+                gs.fatal(_("Unable to write to file <{}>.").format(options["output"]))
     else:
         output = None
 
@@ -278,7 +276,7 @@ def main():
             auth=authentication,
         )
     except ValueError:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Unable to crawl <{url}> with the given input.\n"
                 "Please check provided options."
@@ -286,7 +284,7 @@ def main():
         )
 
     if len(catalog.datasets) == 0:
-        gscript.warning(
+        gs.warning(
             _(
                 "No datasets returned from server <{url}> with the given input.\n"
                 "Please check provided options."
@@ -306,7 +304,7 @@ def main():
 
         # Check if ANY requested service is provided by the server
         if options["services"].isdisjoint(services):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "The thredds server does not offer the requested service(s) <{}>."
                 ).format(",".join(options["services"]))
@@ -316,7 +314,7 @@ def main():
         for service in options["services"]:
             if service not in services:
                 options["services"].remove(service)
-                gscript.warning(
+                gs.warning(
                     _(
                         "The thredds server does not offer the requested service <{}>."
                     ).format(service)
@@ -353,5 +351,5 @@ def main():
 
 if __name__ == "__main__":
     # Parse options and flags
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())

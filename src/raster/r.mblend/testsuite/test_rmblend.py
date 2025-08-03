@@ -15,7 +15,6 @@ class TestRMblend(TestCase):
 
     @classmethod
     def setUpClass(cls):
-
         cls.runModule("g.region", s=0, n=100, w=0, e=100, res=2)
         cls.runModule("r.mapcalc", expression="{} = 2".format(cls.low_res))
         cls.runModule("g.region", s=0, n=100, w=0, e=60, res=1)
@@ -26,7 +25,6 @@ class TestRMblend(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-
         cls.runModule(
             "g.remove",
             type="raster",
@@ -35,7 +33,6 @@ class TestRMblend(TestCase):
         )
 
     def tearDown(self):
-
         self.runModule(
             "g.remove",
             type="raster",
@@ -44,7 +41,6 @@ class TestRMblend(TestCase):
         )
 
     def test_module_basic(self):
-
         self.assertModule(
             "r.mblend",
             high=self.high_res_1,
@@ -54,7 +50,6 @@ class TestRMblend(TestCase):
         self.assertRasterExists(name=self.result_1)
 
     def test_results(self):
-
         self.assertModule(
             "r.mblend",
             high=self.high_res_1,

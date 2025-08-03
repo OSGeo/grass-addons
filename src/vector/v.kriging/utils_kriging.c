@@ -713,7 +713,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
             correct_indices(direction, list, r, pnts, var_par);
 
             GM_sub = submatrix(list, GM,
-                               &xD->report);   // create submatrix using indices
+                               xD->report);    // create submatrix using indices
             GM_Inv = G_matrix_inverse(GM_sub); // inverse matrix
             G_matrix_free(GM_sub);
 
@@ -834,8 +834,8 @@ int compare_NN(struct ilist *list, struct ilist *list_new, int modified)
 {
     // local variables
     int n = list->n_values, n_new = list_new->n_values;
-    double *list_value = list->value;
-    double *list_new_value = list_new->value;
+    int *list_value = list->value;
+    int *list_new_value = list_new->value;
 
     int i, next = 0; // the samples are different
 
@@ -859,7 +859,7 @@ void make_subsamples(struct int_par *xD, struct ilist *list, double *r0,
     // Local variables
     int i3 = xD->i3;
     double *vals = pnts->invals;
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     int direction;
     mat_struct *GM_sub;

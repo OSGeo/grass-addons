@@ -39,13 +39,12 @@
 # % description: fetch results
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
 
 def main():
-
     conn = ConnectionManager()
 
     conn.get_current_connection(options["conn_type"])
@@ -57,5 +56,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

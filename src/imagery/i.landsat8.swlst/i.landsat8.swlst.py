@@ -64,7 +64,7 @@
                Zhao, Shaohua. 2015. "A Practical Split-Window Algorithm
                for Estimating Land Surface Temperature from Landsat 8 Data."
                Remote Sens. 7, no. 1: 647-665.
-               <http://www.mdpi.com/2072-4292/7/1/647/htm#sthash.ba1pt9hj.dpuf>
+               <https://www.mdpi.com/2072-4292/7/1/647#sthash.ba1pt9hj.dpuf>
 
                [1] [Look below for the publised paper!] Huazhong Ren, Chen Du,
                Qiming Qin, Rongyuan Liu, Jinjie Meng, and Jing Li. "Atmospheric
@@ -222,7 +222,7 @@
 # %option
 # % key: qapixel
 # % key_desc: pixelvalue
-# % description: Quality assessment pixel value for which to build a mask | Source: <http://landsat.usgs.gov/L8QualityAssessmentBand.php>.
+# % description: Quality assessment pixel value for which to build a mask | Source: <https://web.archive.org/web/20150712004428/https://landsat.usgs.gov/L8QualityAssessmentBand.php>.
 # % answer: 61440
 # % required: no
 # % multiple: yes
@@ -323,7 +323,7 @@ sys.path.insert(
 )
 
 import atexit
-import grass.script as grass
+import grass.script as gs
 
 # from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
@@ -453,7 +453,7 @@ def main():
 
     # Set Region
     if scene_extent:
-        grass.use_temp_region()  # safely modify the region
+        gs.use_temp_region()  # safely modify the region
         msg = "\n|! Matching region extent to map {name}"
 
         # ToDo: check if extent-B10 == extent-B11? Unnecessary?
@@ -470,7 +470,7 @@ def main():
         g.message(msg)
 
     elif not scene_extent:
-        grass.warning(_("Operating on current region"))
+        gs.warning(_("Operating on current region"))
 
     #
     # 1. Mask clouds
@@ -491,7 +491,6 @@ def main():
     #
 
     if mtl_file:
-
         # if MTL and b10 given, use it to compute at-satellite temperature t10
         if b10:
             # convert DNs to at-satellite temperatures
@@ -527,10 +526,9 @@ def main():
 
     # use given fixed class?
     if landcover_class:
-
         if split_window_lst.landcover_class is False:
             # replace with meaningful error
-            grass.warning(
+            gs.warning(
                 "Unknown land cover class string! Note, this string "
                 "input option is case sensitive."
             )
@@ -565,7 +563,6 @@ def main():
 
     # use the FROM-GLC map
     elif landcover_map:
-
         if average_emissivity_map:
             tmp_avg_lse = average_emissivity_map
 
@@ -621,7 +618,7 @@ def main():
 
     if info and landcover_class == "Random":
         msg = "\n|* Will pick a random emissivity class!"
-        grass.verbose(msg)
+        gs.verbose(msg)
 
     estimate_lst(
         lst_output,
@@ -696,7 +693,7 @@ def main():
 
     # restore region
     if scene_extent:
-        grass.del_temp_region()  # restoring previous region settings
+        gs.del_temp_region()  # restoring previous region settings
         g.message("|! Original Region restored")
 
     # print citation
@@ -705,6 +702,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

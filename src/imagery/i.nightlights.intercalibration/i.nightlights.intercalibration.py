@@ -57,43 +57,43 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 
                Overview
 
-   +----------------------------------------------------------------------+
-   |                                                                      |
-   |          +-----------------+                                         |
-   | DN  +--> |Calibration Model| +-->  Calibrated DN                     |
-   |          +---^-------------+            ^                            |
-   |              |                          |                            |
-   |              |             +--Evaluation+Methods-------------------+ |
-   |              |             |                                       | |
-   |              |             | ? Not Implemented                     | |
-   |              |             |                                       | |
-   |              |             +---------------------------------------+ |
-   |              |                                                       |
-   | +--Regression+Models-----------------------------------------------+ |
-   | |                                                                  | |
-   | |  Elvidge, 2009/2014:  DNc = C0 + C1×DN + C2×DNv2                 | |
-   | |                                                                  | |
-   | |  Liu, 2012:  based on Elvidge's model + optimal threshold method | |
-   | |                                                                  | |
-   | |  Wu, 2014:            DNc + 1 = a×(DN + 1)^b                     | |
-   | |                                                                  | |
-   | |  Others?                                                         | |
-   | |                                                                  | |
-   | +------------------------------------------------------------------+ |
-   |                                               http://asciiflow.com   |
-   +----------------------------------------------------------------------+
++----------------------------------------------------------------------+
+|                                                                      |
+|          +-----------------+                                         |
+| DN  +--> |Calibration Model| +-->  Calibrated DN                     |
+|          +---^-------------+            ^                            |
+|              |                          |                            |
+|              |             +--Evaluation+Methods-------------------+ |
+|              |             |                                       | |
+|              |             | ? Not Implemented                     | |
+|              |             |                                       | |
+|              |             +---------------------------------------+ |
+|              |                                                       |
+| +--Regression+Models-----------------------------------------------+ |
+| |                                                                  | |
+| |  Elvidge, 2009/2014:  DNc = C0 + C1×DN + C2×DNv2                 | |
+| |                                                                  | |
+| |  Liu, 2012:  based on Elvidge's model + optimal threshold method | |
+| |                                                                  | |
+| |  Wu, 2014:            DNc + 1 = a×(DN + 1)^b                     | |
+| |                                                                  | |
+| |  Others?                                                         | |
+| |                                                                  | |
+| +------------------------------------------------------------------+ |
+|                                              https://asciiflow.com   |
++----------------------------------------------------------------------+
 
 
                Sources
 
-               - <http://ngdc.noaa.gov/eog/dmsp.html>
+               - <https://ngdc.noaa.gov/eog/dmsp.html>
 
-               - <http://ngdc.noaa.gov/eog/dmsp/downloadV4composites.html>
+               - <https://ngdc.noaa.gov/eog/dmsp/downloadV4composites.html>
 
                - Metadata on DMSP-OLS:
                <https://catalog.data.gov/harvest/object/e84ef28f-7935-4ca2-b9c7-7a77cb156c4c/html>
 
-               - From <http://ngdc.noaa.gov/eog/gcv4_readme.txt> on the data
+               - From <https://ngdc.noaa.gov/eog/gcv4_readme.txt> on the data
                this module is meant to process:
 
                  F1?YYYY_v4b_stable_lights.avg_vis.tif: The cleaned up avg_vis
@@ -198,7 +198,6 @@ PURPOSE:        Performing inter-satellite calibration on DMSP-OLS Nighttime
 # % multiple : no
 # %end
 
-
 # required librairies -------------------------------------------------------
 import os
 import sys
@@ -209,7 +208,7 @@ sys.path.insert(
 )
 
 import atexit
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -230,8 +229,8 @@ def cleanup():
     """
     if len(temporary_maps) > 0:
         for temporary_map in temporary_maps:
-            grass.message(_("Removing temporary files..."))
-            grass.run_command(
+            gs.message(_("Removing temporary files..."))
+            gs.run_command(
                 "g.remove", flags="f", type="rast", name=temporary_map, quiet=True
             )
 
@@ -240,7 +239,7 @@ def run(cmd, **kwargs):
     """
     Pass required arguments to grass commands (?)
     """
-    grass.run_command(cmd, quiet=True, **kwargs)
+    gs.run_command(cmd, quiet=True, **kwargs)
 
 
 def retrieve_model_parameters(model_class, *args, **kwargs):
@@ -261,8 +260,8 @@ def total_light_index(ntl_image):
     """
     Evaluation index (TLI) which represents the sum of grey values in an area.
     """
-    univar = grass.parse_command(
-        "r.univar", map=ntl_image, flags="g", parse=(grass.parse_key_val, {"sep": "="})
+    univar = gs.parse_command(
+        "r.univar", map=ntl_image, flags="g", parse=(gs.parse_key_val, {"sep": "="})
     )
     return float(univar["sum"])
 
@@ -305,22 +304,21 @@ def main():
     global temporary_maps
     temporary_maps = []
 
-    msg = "|i Inter-satellite calibration of DMSP-OLS Nighttime Stable " "Lights"
+    msg = "|i Inter-satellite calibration of DMSP-OLS Nighttime Stable Lights"
     g.message(msg)
     del msg
 
     """Temporary Region and Files"""
 
     if extend_region:
-        grass.use_temp_region()  # to safely modify the region
+        gs.use_temp_region()  # to safely modify the region
 
-    tmpfile = grass.basename(grass.tempfile())
+    tmpfile = gs.basename(gs.tempfile())
     tmp = "tmp." + tmpfile
 
     """Loop over list of input images"""
 
     for image in input_list:
-
         satellite = image[0:3]
         year = image[3:7]
 
@@ -334,7 +332,7 @@ def main():
             del msg
 
         elif not extend_region:
-            grass.warning(_("Operating on current region"))
+            gs.warning(_("Operating on current region"))
 
         """Retrieve coefficients"""
 
@@ -399,21 +397,20 @@ def main():
             g.message(msg.format(formula=mapcalc_formula))
             del msg
 
-        grass.mapcalc(calibration_formula, overwrite=True)
+        gs.mapcalc(calibration_formula, overwrite=True)
 
         """Transfer timestamps, if any"""
 
         if timestamps:
-
             try:
-                datetime = grass.read_command("r.timestamp", map=image)
+                datetime = gs.read_command("r.timestamp", map=image)
                 run("r.timestamp", map=tmp_cdn, date=datetime)
 
                 msg = "\n|i Timestamping: {stamp}".format(stamp=datetime)
                 g.message(msg)
 
             except CalledModuleError:
-                grass.fatal(
+                gs.fatal(
                     _(
                         "\n|* Timestamp is missing! "
                         "Please add one to the input map if further times series "
@@ -423,7 +420,7 @@ def main():
                 )
 
         else:
-            grass.warning(_("As requested, timestamp transferring not attempted."))
+            gs.warning(_("As requested, timestamp transferring not attempted."))
 
         # -------------------------------------------------------------------------
         # add timestamps and register to spatio-temporal raster data set
@@ -460,7 +457,6 @@ def main():
 
         ndi = float()
         if evaluation:
-
             # total light indices for input, tmp_cdn images
             tli_image = total_light_index(image)
             tli_tmp_cdn = total_light_index(tmp_cdn)
@@ -490,7 +486,7 @@ def main():
             history_calibration += "NDI: {ndi}".format(ndi=round(ndi, 10))
         title_calibration = "Calibrated DMSP-OLS Stable Lights"
         description_calibration = (
-            "Inter-satellite calibrated average " "Digital Number values"
+            "Inter-satellite calibrated average Digital Number values"
         )
         units_calibration = "Digital Numbers (Calibrated)"
 
@@ -520,7 +516,7 @@ def main():
         """Restore previous computational region"""
 
         if extend_region:
-            grass.del_temp_region()
+            gs.del_temp_region()
             g.message("\n|! Original Region restored")
 
         """Things left to do..."""
@@ -532,6 +528,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

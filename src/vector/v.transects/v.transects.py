@@ -46,6 +46,7 @@
 # %end
 # %option G_OPT_V_TYPE
 # % multiple: no
+# % label: Output type
 # % options: point,line,area
 # % answer: line
 # %end
@@ -75,7 +76,7 @@
 from subprocess import Popen, PIPE, STDOUT
 from numpy import array
 from math import sqrt
-import grass.script as grass
+import grass.script as gs
 import tempfile
 import random
 
@@ -88,12 +89,12 @@ def tempmap():
     rand_number = [random.randint(0, 9) for i in range(6)]
     rand_number_str = "".join(map(str, rand_number))
     mapname = "temp_" + rand_number_str
-    maplist = grass.read_command("g.list", type="vector", mapset=".").split()
+    maplist = gs.read_command("g.list", type="vector", mapset=".").split()
     while mapname in maplist:
         rand_number = [random.randint(0, 9) for i in range(6)]
         rand_number_str = "".join(map(str, rand_number))
         mapname = "temp_" + rand_number_str
-        maplist = grass.read_command("g.list", type="vector", mapset=".").split()
+        maplist = gs.read_command("g.list", type="vector", mapset=".").split()
     return mapname
 
 
@@ -110,7 +111,7 @@ def loadVector(vector):
     # p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE,
     #          stderr=STDOUT, close_fds=False)
     vectorAscii = (
-        grass.read_command("v.out.ascii", format="standard", input=vector)
+        gs.read_command("v.out.ascii", format="standard", input=vector)
         .strip("\n")
         .split("\n")
     )
@@ -120,17 +121,21 @@ def loadVector(vector):
     while ":" in vectorAscii[l]:
         l += 1
     v = []
+    cats = []
     while l < len(vectorAscii):
         line = vectorAscii[l].split()
         if line[0] in ["L", "B", "A"]:
             skip = int(line[2])
+            ncat = int(line[2]) if len(line) > 2 else 0
             vertices = int(line[1])
             l += 1
             v.append([])
             for i in range(vertices):
                 v[-1].append(list(map(float, vectorAscii[l].split()[:2])))
                 l += 1
-            l += skip
+            if ncat > 0:
+                cats += [vectorAscii[l].split()[1]]
+            l += ncat
         elif line[0] in ["P", "C", "F", "K"]:
             skip = int(line[2])
             vertices = int(line[1])
@@ -139,10 +144,10 @@ def loadVector(vector):
                 l += 1
             l += skip
         else:
-            grass.fatal(_("Problem with line: <%s>") % vectorAscii[l])
+            gs.fatal(_("Problem with line: <%s>") % vectorAscii[l])
     if len(v) < 1:
-        grass.fatal(_("Zero lines found in vector map <%s>") % vector)
-    return v
+        gs.fatal(_("Zero lines found in vector map <%s>") % vector)
+    return v, cats
 
 
 def get_transects_locs(vector, transect_spacing, dist_function, last_point):
@@ -184,9 +189,9 @@ def get_transect_ends(transect_locs, vectors, trend, dleft, dright):
     if not trend:
         for k, transect in enumerate(transect_locs):
             # if a line in input vec was shorter than transect_spacing
+            transect_ends.append([])
             if len(transect) < 2:
                 continue  # then don't put a transect on it
-            transect_ends.append([])
             transect = array(transect)
             v = NR(*vectors[k][0])  # vector pointing parallel to transect
             transect_ends[-1].append(
@@ -200,9 +205,9 @@ def get_transect_ends(transect_locs, vectors, trend, dleft, dright):
     else:
         for transect in transect_locs:
             # if a line in input vec was shorter than transect_spacing
+            transect_ends.append([])
             if len(transect) < 2:
                 continue  # then don't put a transect on it
-            transect_ends.append([])
             transect = array(transect)
             v = NR(transect[0], transect[1])  # vector pointing parallel to transect
             transect_ends[-1].append(
@@ -240,27 +245,37 @@ def NR(ip, fp):
     return array([-y / r, x / r])
 
 
-def writeTransects(transects, output):
+def writeTransects(transects, cats, output):
     """!Writes transects."""
     transects_str = ""
-    for transect in transects:
+    ncats = 2 if cats else 1
+    cat = 1
+    linecat = True if cats else ""
+    for i, transect in enumerate(transects):
+        if len(transect) == 0:
+            continue
+        # add line category in layer 2
+        if linecat:
+            linecat = "2 %s\n" % cats[i]
         transects_str += "\n".join(
             [
-                "L 2\n"
+                "L 2 %s\n" % ncats
                 + " ".join(map(str, end_points[0]))
                 + "\n"
                 + " ".join(map(str, end_points[1]))
                 + "\n"
-                for end_points in transect
+                + "1 %s \n%s" % (cat + ii, linecat)
+                for ii, end_points in enumerate(transect)
             ]
         )
+        cat += len(transect)
     # JL Rewrote Temporary File Logic for Windows
     _, temp_path = tempfile.mkstemp()
     a = open(temp_path, "w")
     a.write(transects_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii", flags="n", input=temp_path, output=output, format="standard"
     )
 
@@ -270,6 +285,8 @@ def writeQuads(transects, output):
     quad_str = ""
     cnt = 1
     for line in transects:
+        if len(line) == 0:
+            continue
         for tran in range(len(line) - 1):
             pt1 = " ".join(map(str, line[tran][0]))
             pt2 = " ".join(map(str, line[tran][1]))
@@ -307,7 +324,7 @@ def writeQuads(transects, output):
     a.write(quad_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii", flags="n", input=a.name, output=output, format="standard"
     )
 
@@ -322,7 +339,7 @@ def writePoints(transect_locs, output):
     a.write(pt_str)
     a.seek(0)
     a.close()
-    grass.run_command(
+    gs.run_command(
         "v.in.ascii",
         input=a.name,
         output=output,
@@ -340,9 +357,9 @@ def main():
     try:
         transect_spacing = float(options["transect_spacing"])
     except:
-        grass.fatal(_("Invalid transect_spacing value."))
+        gs.fatal(_("Invalid transect_spacing value."))
     if transect_spacing == 0.0:
-        grass.fatal(_("Zero invalid transect_spacing value."))
+        gs.fatal(_("Zero invalid transect_spacing value."))
     dleft = options["dleft"]
     dright = options["dright"]
     shape = options["type"]
@@ -355,7 +372,7 @@ def main():
         try:
             dleft = float(dleft)
         except:
-            grass.fatal(_("Invalid dleft value."))
+            gs.fatal(_("Invalid dleft value."))
     if not dright:
         dright = transect_spacing
     else:
@@ -363,22 +380,22 @@ def main():
         try:
             dright = float(dright)
         except:
-            grass.fatal(_("Invalid dright value."))
+            gs.fatal(_("Invalid dright value."))
     # check if input file does not exists
-    if not grass.find_file(vector, element="vector")["file"]:
-        grass.fatal(_("<%s> does not exist.") % vector)
+    if not gs.find_file(vector, element="vector")["file"]:
+        gs.fatal(_("<%s> does not exist.") % vector)
     # check if output file exists
-    if grass.find_file(output, element="vector")["mapset"] == grass.gisenv()["MAPSET"]:
-        if not grass.overwrite():
-            grass.fatal(_("output map <%s> exists") % output)
+    if gs.find_file(output, element="vector")["mapset"] == gs.gisenv()["MAPSET"]:
+        if not gs.overwrite():
+            gs.fatal(_("output map <%s> exists") % output)
 
     # JL Is the vector a line and does if have at least one feature?
-    info = grass.parse_command("v.info", flags="t", map=vector)
+    info = gs.parse_command("v.info", flags="t", map=vector)
     if info["lines"] == "0":
-        grass.fatal(_("vector <%s> does not contain lines") % vector)
+        gs.fatal(_("vector <%s> does not contain lines") % vector)
 
     #################################
-    v = loadVector(vector)
+    v, cats = loadVector(vector)
     if options["metric"] == "straight":
         dist = dist_euclidean
     else:
@@ -391,19 +408,19 @@ def main():
     temp_map = tempmap()
     if shape == "line" or not shape:
         transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
-        writeTransects(transect_ends, temp_map)
+        writeTransects(transect_ends, cats, temp_map)
     elif shape == "area":
         transect_ends = get_transect_ends(transect_locs, vectors, trend, dleft, dright)
         writeQuads(transect_ends, temp_map)
     else:
         writePoints(transect_locs, temp_map)
 
-    grass.run_command(
+    gs.run_command(
         "v.category", input=temp_map, output=output, option="add", type=shape
     )
-    grass.run_command("g.remove", flags="f", type="vector", name=temp_map)
+    gs.run_command("g.remove", flags="f", type="vector", name=temp_map)
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

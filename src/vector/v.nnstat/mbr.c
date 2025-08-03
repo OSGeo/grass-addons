@@ -17,7 +17,7 @@ to hull's edges,
 /* ----------------------------
  * Obtain convex hull vertices: functions from  hull.c (Andrea Aime)
  * Theoretical background: Andrew's variant of Graham Scan
- * Source: Mark Nelson, 2007: http://marknelson.us/2007/08/22/convex/
+ * Source: Mark Nelson, 2007: https://marknelson.us/posts/2007/08/22/convex
  */
 
 /* Function to determine whether a point is above or below the line
@@ -78,7 +78,8 @@ int convexHull(struct points *pnts, struct convex *hull)
 
     /* sort points in ascending x order
      * modified according to
-     * http://www.physicsforums.com/showthread.php?t=546209 */
+     * https://www.physicsforums.com/threads/sorting-2d-array-with-qsort-keeping-rows-in-order-c.546209/
+     */
     qsort(&r[0][0], n, 3 * sizeof(double), cmpPoints);
 
     hull->hull = (int *)G_malloc(n * 3 * sizeof(int));

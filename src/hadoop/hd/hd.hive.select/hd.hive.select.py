@@ -47,7 +47,7 @@
 # % description: Name for output file (if omitted output to stdout)
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -64,7 +64,7 @@ def main():
     out = hive.get_results(hql=options["hql"], schema=options["schema"])
 
     if options["out"]:
-        with open(out, "rw") as io:
+        with open(out, "w") as io:
             io.writelines(out)
             io.close()
     else:
@@ -72,5 +72,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

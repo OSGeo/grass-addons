@@ -217,10 +217,8 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
                 "The number of unique raster values (based on column '{0}') is smaller "
                 "than the number of unique labels in the column '{1}'. This means "
                 "that there are raster value with more than one matching label."
-                "For those raster values, the first label in column '{1}' is used.".format(
-                    column_name, column_rat
-                )
-            )
+                "For those raster values, the first label in column '{1}' is used."
+            ).format(column_name, column_rat)
         )
 
     # Create category rules
@@ -239,7 +237,6 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat):
 
 
 def main(options, flags):
-
     ogr.UseExceptions()
 
     # Get variables
@@ -311,6 +308,13 @@ def main(options, flags):
     if data_type == "Integer":
         output_type = gdal.GDT_Int32
         nodata = 2**31 - 1
+    elif data_type == "Integer64":
+        gs.warning(
+            "Column has Integer64 type, which is not supported by many raster formats.\n"
+            "Falling back to Int32. Values > 2,147,483,647 may be truncated."
+        )
+        output_type = gdal.GDT_Int32
+        nodata = 2**31 - 1
     elif data_type == "Real":
         output_type = gdal.GDT_Float32
         nodata = -3.40282e38
@@ -318,10 +322,8 @@ def main(options, flags):
         gs.fatal(
             _(
                 "The data type of the selected column is '{}'.\n"
-                "To create a raster, the data type needs to be integer or float".format(
-                    data_type
-                )
-            )
+                "To create a raster, the data type needs to be integer or float"
+            ).format(data_type)
         )
 
     rasterize_options = gdal.RasterizeOptions(
@@ -354,7 +356,7 @@ def main(options, flags):
 
     # Create raster label
     if options["label_column"]:
-        if data_type == "Integer":
+        if data_type == "Integer" or data_type == "Integer64":
             gs.message(_("Writing raster labels"))
             raster_labels(
                 vector_file, vector_layer, raster, column_name, options["label_column"]

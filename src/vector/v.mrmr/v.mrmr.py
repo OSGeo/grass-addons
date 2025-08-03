@@ -73,7 +73,7 @@ import os
 import subprocess
 import shutil
 
-import grass.script as grass
+import grass.script as gs
 import tempfile
 import atexit
 import os.path
@@ -104,7 +104,7 @@ def main():
 
     os.chdir(tmpdir)
 
-    grass.run_command(
+    gs.run_command(
         "v.out.ogr",
         input=table,
         layer=layer,
@@ -135,6 +135,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

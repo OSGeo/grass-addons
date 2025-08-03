@@ -100,10 +100,7 @@ def main():
     if group_exists and subgroup_exists:
         if not add_to_group:  # and not overwrite:
             gs.fatal(
-                _(
-                    "Group <%s> and subgroup <%s> exist, use"
-                    " different name or -a flag"
-                )
+                _("Group <%s> and subgroup <%s> exist, use different name or -a flag")
                 % (group, subgroup)
             )
         # if overwrite:  # not implemented

@@ -57,7 +57,7 @@ import os
 import ftplib
 import re
 import datetime
-import grass.script as grass
+import grass.script as gs
 from grass.script.utils import separator
 
 
@@ -140,7 +140,7 @@ def fetch_nonyear_dirs(ftp, path=""):
                     else:
                         dirs.append(subpath)
     except ftplib.error_reply as e:
-        grass.fatal(_("Failed to fetch dataset list"))
+        gs.fatal(_("Failed to fetch dataset list"))
     return dirs
 
 
@@ -152,7 +152,7 @@ def fetch_nonyear_dataset_list():
             ftp.login()
             datasets.extend(fetch_nonyear_dirs(ftp))
     except ftplib.error_reply as e:
-        grass.fatal(_("Failed to fetch dataset list"))
+        gs.fatal(_("Failed to fetch dataset list"))
     return datasets
 
 
@@ -173,7 +173,7 @@ def fetch_dirs(ftp, path, depth):
                 else:
                     dirs.append(subpath)
     except ftplib.error_reply as e:
-        grass.fatal(_("Failed to fetch dataset list"))
+        gs.fatal(_("Failed to fetch dataset list"))
     return dirs
 
 
@@ -195,7 +195,7 @@ def fetch_dataset_list():
                     else:
                         datasets.append(subpath)
     except ftplib.error_reply as e:
-        grass.fatal(_("Failed to fetch dataset list"))
+        gs.fatal(_("Failed to fetch dataset list"))
     return datasets
 
 
@@ -239,7 +239,7 @@ def parse_dates(start_date, end_date):
     first_ymd = f"{first_year}-01-01"
 
     if start_ymd > end_ymd:
-        grass.fatal(
+        gs.fatal(
             _(
                 "<start_date={start_date}> cannot be later than <end_date={end_date}>"
             ).format(start_date=start_ymd, end_date=end_ymd)
@@ -250,14 +250,14 @@ def parse_dates(start_date, end_date):
         start_ymd = first_ymd
 
     if end_ymd < first_ymd:
-        grass.fatal(
+        gs.fatal(
             _(
                 "No data to download because <end_date={end_date}> is earlier than first data year {first_year}"
             ).format(end_date=end_ymd, first_year=first_year)
         )
 
     if start_ymd > today_ymd:
-        grass.fatal(
+        gs.fatal(
             _(
                 "No data to download because <start_date={start_date}> is later than today"
             ).format(start_date=start_ymd)
@@ -295,13 +295,11 @@ def retrieve_path(ftp, path, sep, action, start_ymd=None, end_ymd=None):
             url = f"https://{main_url}/{filepath}"
             if action == "download":
                 try:
-                    grass.message(
-                        _("Downloading {filename}...").format(filename=filename)
-                    )
+                    gs.message(_("Downloading {filename}...").format(filename=filename))
                     with open(filename, "wb") as f:
                         ftp.retrbinary(f"RETR {filepath}", f.write)
                 except:
-                    grass.warning(
+                    gs.warning(
                         _("Failed to download {filename}").format(filename=filename)
                     )
             elif action == "list_filenames":
@@ -332,9 +330,9 @@ def retrieve_data(datasets, start_date, end_date, sep, action):
                                 )
                             )
                         except ftplib.error_perm as e:
-                            grass.warning(e)
+                            gs.warning(e)
     except ftplib.error_reply as e:
-        grass.fatal(_("Failed to fetch dataset list"))
+        gs.fatal(_("Failed to fetch dataset list"))
 
     if list_items:
         print(sep.join(list_items))
@@ -354,12 +352,10 @@ def main():
         and start_date not in ("first", "today")
         and not re_ymd.match(start_date)
     ):
-        grass.fatal(
-            _("{start_date}: Invalid <start_date>").format(start_date=start_date)
-        )
+        gs.fatal(_("{start_date}: Invalid <start_date>").format(start_date=start_date))
 
     if end_date and end_date not in ("first", "today") and not re_ymd.match(end_date):
-        grass.fatal(_("{end_date}: Invalid <end_date>").format(end_date=end_date))
+        gs.fatal(_("{end_date}: Invalid <end_date>").format(end_date=end_date))
 
     if list_datasets:
         show_datasets(sep)
@@ -380,7 +376,7 @@ def main():
                         datasets.append(ds)
                     not_supported = False
             if not_supported:
-                grass.fatal(_("{dataset}: Dataset not supported").format(dataset=ds))
+                gs.fatal(_("{dataset}: Dataset not supported").format(dataset=ds))
 
     if list_urls:
         action = "list_urls"
@@ -393,5 +389,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

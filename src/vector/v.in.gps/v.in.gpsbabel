@@ -25,9 +25,9 @@
 #
 # REQUIREMENTS:
 #      -  gpsbabel from:
-#	     http://gpsbabel.sourceforge.net
+#	     https://www.gpsbabel.org
 #      -  unix tools: grep, cat, cut, paste, awk/nawk/gawk, sed
-#      -  cs2cs from PROJ.4    http://proj.maptools.org/
+#      -  cs2cs from PROJ.4    https://proj.org/
 #
 #      - report supported formats:
 #	 gpsbabel -^2 | tr '\t' ';' | sort -t';' -k3
@@ -118,14 +118,14 @@ PROG=`basename "$0"`
 #### check for gpsbabel
  if [ ! -x "`which gpsbabel`" ] ; then
     g.message -e "The gpsbabel program was not found, please install it first.
-                  http://gpsbabel.sourceforge.net"
+                  https://www.gpsbabel.org"
     exit 1
 fi
 
 #### check for cs2cs
 if [ ! -x "`which cs2cs`" ] ; then
     g.message -e "The cs2cs program was not found, please install it first.
-                   http://proj.maptools.org"
+                   https://proj.org/"
     exit 1
 fi
 
@@ -383,7 +383,7 @@ else # CREATE_LINES
     if [ $RTE -eq 1 ] ; then
 
 	if [ $ORG_GPX -eq 1 ] ; then
-	    # http://www.gdal.org/ogr/drv_gpx.html
+	    # https://gdal.org/drivers/vector/gpx.html
 	    # make it really easy ; but need to reproject from WGS84/LL.
 	    #   use '-c location=', then v.proj it in, then rm -rf the temp locn?
 	    #? GPX_USE_EXTENSIONS=YES

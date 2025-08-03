@@ -17,7 +17,7 @@
 #############################################################################
 #
 # REQUIREMENTS:
-#      -  gFlex: http://csdms.colorado.edu/wiki/gFlex
+#      -  gFlex: https://csdms.colorado.edu/wiki/Model:GFlex
 #         (should be downloaded automatically along with the module)
 #         github repository: https://github.com/awickert/gFlex
 
@@ -125,7 +125,7 @@
 import numpy as np
 
 # GRASS
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass import vector
 
 
@@ -137,7 +137,7 @@ from grass.pygrass import vector
 def get_points_xy(vect_name):
     """
     to find x and y using pygrass, see my (A. Wickert's) StackOverflow answer:
-    http://gis.stackexchange.com/questions/28061/how-to-access-vector-coordinates-in-grass-gis-from-python
+    https://gis.stackexchange.com/a/132786
     """
     points = vector.VectorTopo(vect_name)
     points.open("r")
@@ -159,7 +159,7 @@ def main():
     GRASS GIS
     """
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
@@ -175,7 +175,7 @@ def main():
         print("gFlex. The most recent development version is available from")
         print("https://github.com/awickert/gFlex")
         print("Installation instructions are available on the page.")
-        grass.fatal("Software dependency must be installed.")
+        gs.fatal("Software dependency must be installed.")
 
     ##########
     # SET-UP #
@@ -195,45 +195,43 @@ def main():
     # x, y, q
     flex.x, flex.y = get_points_xy(options["input"])
     # xw, yw: gridded output
-    if len(grass.parse_command("g.list", type="vect", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="vect", pattern=options["output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 "Vector map '"
                 + options["output"]
                 + "' already exists. Use '--o' to overwrite."
             )
     # Just check raster at the same time if it exists
-    if len(
-        grass.parse_command("g.list", type="rast", pattern=options["raster_output"])
-    ):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="rast", pattern=options["raster_output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 "Raster map '"
                 + options["raster_output"]
                 + "' already exists. Use '--o' to overwrite."
             )
-    grass.run_command(
+    gs.run_command(
         "v.mkgrid",
         map=options["output"],
         type="point",
-        overwrite=grass.overwrite(),
+        overwrite=gs.overwrite(),
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=options["output"],
         columns="w double precision",
         quiet=True,
     )
     flex.xw, flex.yw = get_points_xy(options["output"])  # gridded output coordinates
-    vect_db = grass.vector_db_select(options["input"])
+    vect_db = gs.vector_db_select(options["input"])
     col_names = np.array(vect_db["columns"])
     q_col = col_names == options["column"]
     if np.sum(q_col):
         col_values = np.array(list(vect_db["values"].values())).astype(float)
         flex.q = col_values[:, q_col].squeeze()  # Make it 1D for consistency w/ x, y
     else:
-        grass.fatal(
+        gs.fatal(
             "provided column name, "
             + options["column"]
             + " does not match\nany column in "
@@ -247,7 +245,7 @@ def main():
     elif options["te_units"] == "m":
         pass
     else:
-        grass.fatal("Inappropriate te_units. How? Options should be limited by GRASS.")
+        gs.fatal("Inappropriate te_units. How? Options should be limited by GRASS.")
     flex.rho_fill = float(options["rho_fill"])
 
     # Parameters that often stay at their default values
@@ -260,17 +258,17 @@ def main():
     flex.rho_m = float(options["rho_m"])
 
     # Set verbosity
-    if grass.verbosity() >= 2:
+    if gs.verbosity() >= 2:
         flex.Verbose = True
-    if grass.verbosity() >= 3:
+    if gs.verbosity() >= 3:
         flex.Debug = True
-    elif grass.verbosity() == 0:
+    elif gs.verbosity() == 0:
         flex.Quiet = True
 
     # Check if lat/lon and let user know if verbosity is True
-    if grass.region_env()[6] == "3":
+    if gs.region_env()[6] == "3":
         flex.latlon = True
-        flex.PlanetaryRadius = float(grass.parse_command("g.proj", flags="j")["+a"])
+        flex.PlanetaryRadius = float(gs.parse_command("g.proj", flags="j")["+a"])
         if flex.Verbose:
             print("Latitude/longitude grid.")
             print("Based on r_Earth = 6371 km")
@@ -287,7 +285,7 @@ def main():
     # Now to use lower-level GRASS vector commands to work with the database
     # table and update its entries
     # See for help:
-    # http://nbviewer.ipython.org/github/zarch/workshop-pygrass/blob/master/02_Vector.ipynb
+    # https://nbviewer.org/github/zarch/workshop-pygrass/blob/d183b7fb593623f23678bb597547a7b4378e2be5/02_Modules_pygrass.ipynb
     w = vector.VectorTopo(options["output"])
     w.open("rw")  # Get ready to read and write
     wdb = w.dblinks[0]
@@ -305,7 +303,7 @@ def main():
         wtable.update(key=i, values=wnewvalues)
     wtable.conn.commit()  # Save this
     w.close(build=False)  # don't build here b/c it is always verbose
-    grass.run_command("v.build", map=options["output"], quiet=True)
+    gs.run_command("v.build", map=options["output"], quiet=True)
 
     # And raster export
     # "w" vector defined by raster resolution, so can do direct v.to.rast
@@ -313,18 +311,18 @@ def main():
     # interpolation, which shouldn't introduce much error so long as these
     # outputs are spaced at << 1 flexural wavelength.
     if options["raster_output"]:
-        grass.run_command(
+        gs.run_command(
             "v.to.rast",
             input=options["output"],
             output=options["raster_output"],
             use="attr",
             attribute_column="w",
             type="point",
-            overwrite=grass.overwrite(),
+            overwrite=gs.overwrite(),
             quiet=True,
         )
         # And create a nice colormap!
-        grass.run_command(
+        gs.run_command(
             "r.colors", map=options["raster_output"], color="differences", quiet=True
         )
 

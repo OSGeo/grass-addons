@@ -28,7 +28,6 @@ from subprocess import PIPE
 
 
 class TestEodag(TestCase):
-
     available_providers = {
         "peps": True,
         "cop_dataspace": True,

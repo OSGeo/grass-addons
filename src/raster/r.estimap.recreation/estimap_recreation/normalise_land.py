@@ -56,11 +56,12 @@ def zerofy_component_null_cells(component):
     for dummy_index in component:
         land_map = component.pop(0)  # remove 'map' from 'land_component'
         suitability_map = zerofy_null_cells(land_map)  # process it
-        msg = ADDING_MAP_TO_COMPONENT.format(
-            raster=suitability_map,
-            component=RECREATION_POTENTIAL_COMPONENT,
+        grass.verbose(
+            _(ADDING_MAP_TO_COMPONENT).format(
+                raster=suitability_map,
+                component=RECREATION_POTENTIAL_COMPONENT,
+            )
         )
-        grass.verbose(_(msg))
         component.append(suitability_map)  # add back to 'land_component'
     return component
 
@@ -85,7 +86,7 @@ def normalise_land_component(land_component):
     remove_map_at_exit(land_component)
     zerofy_component_null_cells(land_component)
     if len(land_component) > 1:
-        grass.verbose(_(MESSAGE_NORMALISING.format(component=LAND_COMPONENT)))
+        grass.verbose(_(MESSAGE_NORMALISING).format(component=LAND_COMPONENT))
         land_component_map_name = temporary_filename(filename=LAND_COMPONENT_MAP_NAME)
         zerofy_and_normalise_component(
             land_component,
