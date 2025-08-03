@@ -35,6 +35,9 @@ jobs:
           - grass-version: releasebranch_8_4
             python-version: "3.10"
       fail-fast: false
+    env:
+      # renovate: datasource=github-tags depName=r-hub/R
+      R_VERSION: "4.5.1"
 
     steps:
       - name: Checkout core
@@ -116,7 +119,7 @@ jobs:
       - name: Set up R
         uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
         with:
-          r-version: 4.2.1
+          r-version: ${{ env.R_VERSION }}
           Ncpus: 4
       - name: Configure ccache for R package builds
         run: |
