@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 #
 # MODULE:       v.surf.icw
@@ -415,7 +415,7 @@ def main():
 
     #######################################################
     #### Step 3) find sum(cost^2)
-    grass.verbose("")
+    grass.verbose(" ")
     grass.verbose(_("Finding sum of squares ..."))
 
     # todo: test if MASK exists already, fatal exit if it does?
@@ -425,12 +425,10 @@ def main():
 
     grass.message(_("Summation of cost weights ..."))
 
-    input_maps = tmp_base + "1by_cost_site_sq.%05d" % 1
-
     global TMP_FILE
     TMP_FILE = grass.tempfile()
     with open(TMP_FILE, "w") as maplist:
-        for i in range(2, n + 1):
+        for i in range(1, n + 1):
             mapname = "%s1by_cost_site_sq.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
 
@@ -450,7 +448,7 @@ def main():
 
     #######################################################
     #### Step 4) ( 1/di^2 / sum(1/d^2) ) *  ai
-    grass.verbose("")
+    grass.verbose(" ")
     grass.message(_("Creating partial weights ..."))
 
     proc = {}
@@ -534,7 +532,7 @@ def main():
     # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
-    grass.message("")
+    grass.message(" ")
     grass.message(_("Calculating final values ..."))
 
     input_maps = tmp_base + "partial.%05d" % 1
@@ -550,7 +548,7 @@ def main():
 
     grass.run_command("r.colors", map=output, color="bcyr", quiet=True)
     grass.run_command(
-        "r.support", map=output, history="", title="Inverse cost-weighted interpolation"
+        "r.support", map=output, history=" ", title="Inverse cost-weighted interpolation"
     )
     grass.run_command("r.support", map=output, history="v.surf.icw interpolation:")
     grass.run_command(
