@@ -19,8 +19,8 @@ earth is added or removed
 by a height relative to the existing terrain.
 Slope is determined by a growth and decay function
 which can be set to
-linear, exponential, logistic, 
-Gaussian, Cauchy-Lorentz, 
+linear, exponential, logistic,
+Gaussian, Cauchy-Lorentz,
 quadratic, or cubic
 and then parameterized.
 
@@ -56,20 +56,20 @@ the existing terrain,
 while in relative mode
 a road would adapt to the terrain.
 The `function` parameter can be set to
-linear, exponential, logistic, 
-Gaussian, Cauchy-Lorentz, 
+linear, exponential, logistic,
+Gaussian, Cauchy-Lorentz,
 quadratic, or cubic
 to define the slope
 from the local minima or maxima
 to the existing terrain.
 A slope parameter - either
-`linear`, 
-`exponential`, 
-`logistic`, 
-`gaussian`, 
-`lorentz`, 
-`quadratic`, or 
-`cubic` - 
+`linear`,
+`exponential`,
+`logistic`,
+`gaussian`,
+`lorentz`,
+`quadratic`, or
+`cubic` -
 specifies the
 rate of growth and decay
 for a given slope function.
@@ -99,7 +99,7 @@ To speed computation,
 *r.earthworks* uses quadtree segmentation.
 The computational region is recursively divided into quadrants
 until each quadrant contains no more a given number of coordinates
-defined by a `threshold` parameter. 
+defined by a `threshold` parameter.
 Quadtree segmentation limits earthworking operations
 to quadrants containing input geometry.
 Each segmented subregion is grown by a `border` parameter
@@ -119,9 +119,9 @@ for large regions with a million cells or more.
 
 ## EXAMPLES
 
-For more detailed instructions and examples, see the 
-[earthworks](https://grass-tutorials.osgeo.org/content/tutorials/earthworks/earthworks.html) 
-tutorial collection. 
+For more detailed instructions and examples, see the
+[earthworks](https://grass-tutorials.osgeo.org/content/tutorials/earthworks/earthworks.html)
+tutorial collection.
 
 ### Cut & Fill Operations
 

@@ -277,10 +277,9 @@ def subdivision(coordinates, threshold, regions, cloud):
 
     # Find points in quadrant
     coordinates, count = points_in_region(coordinates, region, n, s, e, w)
-    
+
     # Check quadrant for points
     if count is not None and count > 0:
-
         # Append lists
         regions.append(region)
         cloud.append(coordinates)
@@ -293,50 +292,46 @@ def subdivision(coordinates, threshold, regions, cloud):
 
     # Check point count against threshold
     if count > threshold:
-    
         # Subdivide quadrants
         quadrants = ["nw", "ne", "sw", "se"]
         for quad in quadrants:
-    
             # Subdivide quadrant
-            quadrant(
-                quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold
-            )
+            quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold)
 
 
 def quadrant_nw(region, n, s, e, w, x, y):
     """Set north west quadrant"""
 
     # Set region to north west quadrant
-    gs.run_command("g.region", n=n, s=n-y/2, e=w+x/2, w=w, save=region)
+    gs.run_command("g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region)
 
 
 def quadrant_ne(region, n, s, e, w, x, y):
     """Set north east quadrant"""
 
     # Set region to north east quadrant
-    gs.run_command("g.region", n=n, s=n-y/2, e=e, w=e-x/2, save=region)
+    gs.run_command("g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region)
 
 
 def quadrant_sw(region, n, s, e, w, x, y):
     """Set south west quadrant"""
 
     # Set region to south west quadrant
-    gs.run_command("g.region", n=s+y/2, s=s, e=w+x/2, w=w, save=region)
+    gs.run_command("g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region)
 
 
 def quadrant_se(region, n, s, e, w, x, y):
     """Set south east quadrant"""
 
     # Set region to south east quadrant
-    gs.run_command("g.region", n=s+y/2, s=s, e=e, w=e-x/2, save=region)
+    gs.run_command("g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region)
 
 
 def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
     """Recursively subdivide quadrant"""
 
     # Set parameters
-    counter = len(regions)+1
+    counter = len(regions) + 1
     region = f"temporary_region_{counter}"
 
     # Set quadrant
@@ -349,7 +344,7 @@ def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
     if quad == "se":
         quadrant_se(region, n, s, e, w, x, y)
     gs.run_command("g.region", region=region)
-        
+
     # Subdivide quadrant
     subdivision(coordinates, threshold, regions, cloud)
 
@@ -382,13 +377,12 @@ def prune(threshold, regions, cloud):
     # Create empty lists
     quadrants = []
     coordinates = []
-    
+
     # Loop through points by quadrant
     for region, xyz in zip(regions, cloud):
-
         # Report point count in each quadrant
         count = np.size(xyz, axis=0)
-        
+
         # Save regions
         if count > 0 and count < threshold:
             quadrants.append(region)
@@ -397,11 +391,7 @@ def prune(threshold, regions, cloud):
         # Discard regions
         else:
             gs.run_command(
-                "g.remove",
-                type="region",
-                name=region,
-                flags="f",
-                superquiet=True
+                "g.remove", type="region", name=region, flags="f", superquiet=True
             )
 
     return quadrants, coordinates
@@ -419,7 +409,7 @@ def clean(temporary):
             type=["raster", "region"],
             name=[temporary],
             flags="f",
-            superquiet=True
+            superquiet=True,
         )
     except:
         pass
@@ -615,9 +605,7 @@ def grow_region(border, region, elevation):
         w = west
 
     # Set expanded region
-    gs.run_command(
-        "g.region", n=n, s=s, e=e, w=w, align=elevation, save=region
-    )
+    gs.run_command("g.region", n=n, s=s, e=e, w=w, align=elevation, save=region)
     gs.run_command("g.region", region=region)
 
 
@@ -694,7 +682,7 @@ def lorentz(rate, i, growth, decay):
     """
     Cauchy-Lorentz distribution
     z = (gamma ** 2 / (x ** 2 + gamma ** 2))
-    z = z0 * z 
+    z = z0 * z
     """
 
     # Compose Lorentz expression
@@ -772,7 +760,6 @@ def earthworking(
     fill_operations = []
 
     if not disable:
-
         # Set temporary region
         gs.run_command("g.region", region=region)
 
@@ -784,7 +771,6 @@ def earthworking(
 
     # Loop through coordinates
     for x, y, z in coordinates:
-
         # Append expression for calculating distance
         dxy.append(
             f"dxy_{i}= sqrt(((x() - {x})* (x() - {x}))+ ((y() - {y})* (y() - {y})))"
@@ -863,7 +849,7 @@ def earthworking(
                 f"{elevation} + decay_{i},"
                 f"null())"
             )
-        
+
         # Advance counter
         i = i + 1
 
@@ -955,8 +941,7 @@ def series(operation, function, cuts, fills, elevation, earthworks):
         )
         # Calculate net cut
         gs.mapcalc(
-            f"{earthworks} = if(isnull({cut}),{elevation},{cut})",
-            overwrite=True
+            f"{earthworks} = if(isnull({cut}),{elevation},{cut})", overwrite=True
         )
 
     # Model net fill
@@ -974,8 +959,7 @@ def series(operation, function, cuts, fills, elevation, earthworks):
         )
         # Calculate net fill
         gs.mapcalc(
-            f"{earthworks}= if(isnull({fill}),{elevation},{fill})",
-            overwrite=True
+            f"{earthworks}= if(isnull({fill}),{elevation},{fill})", overwrite=True
         )
 
     # Model net cut and fill
@@ -1005,7 +989,6 @@ def series(operation, function, cuts, fills, elevation, earthworks):
         )
 
         if function in ("linear", "lorentz"):
-
             # Calculate sum of cut and fill
             cutfill = gs.append_uuid("cutfill")
             temporary.append(cutfill)
@@ -1021,47 +1004,34 @@ def series(operation, function, cuts, fills, elevation, earthworks):
             # Calculate net elevation
             gs.mapcalc(
                 f"{earthworks} = if(isnull({cutfill}),{elevation},{cutfill})",
-                overwrite=True
+                overwrite=True,
             )
-        
-        if function in ("exponential", "logistic", "gaussian", "quadratic", "cubic"):
 
+        if function in ("exponential", "logistic", "gaussian", "quadratic", "cubic"):
             # Calculate net change in cut
             delta_cut = gs.append_uuid("delta_cut")
             temporary.append(delta_cut)
-            gs.mapcalc(
-                f"{delta_cut} = {elevation} - {cut}",
-                overwrite=True
-            )
+            gs.mapcalc(f"{delta_cut} = {elevation} - {cut}", overwrite=True)
 
             # Calculate net change in fill
             delta_fill = gs.append_uuid("delta_fill")
             temporary.append(delta_fill)
-            gs.mapcalc(
-                f"{delta_fill} = {fill} - {elevation}",
-                overwrite=True
-            )
+            gs.mapcalc(f"{delta_fill} = {fill} - {elevation}", overwrite=True)
 
             # Calculate net change in cut and fill
             delta_cutfill = gs.append_uuid("delta_cutfill")
             temporary.append(delta_cutfill)
-            gs.mapcalc(
-                f"{delta_cutfill} = {delta_fill} - {delta_cut}",
-                overwrite=True
-            )
+            gs.mapcalc(f"{delta_cutfill} = {delta_fill} - {delta_cut}", overwrite=True)
 
             # Calculate net cut and fill
             cutfill = gs.append_uuid("cutfill")
             temporary.append(cutfill)
-            gs.mapcalc(
-                f"{cutfill} = {elevation} + {delta_cutfill}",
-                overwrite=True
-            )
+            gs.mapcalc(f"{cutfill} = {elevation} + {delta_cutfill}", overwrite=True)
 
             # Calculate net elevation
             gs.mapcalc(
                 f"{earthworks}= if(isnull({cutfill}),{elevation},{cutfill})",
-                overwrite=True
+                overwrite=True,
             )
 
 
@@ -1179,23 +1149,21 @@ def main():
 
     # Check input options
     terms = [
-    "linear",
-    "exponential",
-    "logistic",
-    "gaussian",
-    "lorentz",
-    "quadratic",
-    "cubic"
+        "linear",
+        "exponential",
+        "logistic",
+        "gaussian",
+        "lorentz",
+        "quadratic",
+        "cubic",
     ]
     for term in terms:
-
         # Check validity
         if function == term and eval(function) <= 0:
             gs.error(
-                f"{function.capitalize()} slope parameter "
-                "must be greater than zero."
+                f"{function.capitalize()} slope parameter must be greater than zero."
             )
-        
+
         # Set rate of growth or decay
         elif function == term and eval(function) > 0:
             rate = eval(function)
@@ -1227,23 +1195,18 @@ def main():
 
         # Check segmentation
         if not disable:
-
             # Check cells
             gregion = gs.region()
             cells = gregion["cells"]
             if cells <= 100000:
-
                 # Disable segmentation
                 disable = True
                 regions.append(source)
                 cloud.append(coordinates)
-                gs.info(
-                    "Not enough cells for quadtree segmentation."
-                )
+                gs.info("Not enough cells for quadtree segmentation.")
 
             # Check threshold
             elif len(coordinates) <= threshold:
-
                 # Disable segmentation
                 disable = True
                 regions.append(source)
@@ -1271,7 +1234,6 @@ def main():
 
         # Iterate through quadtree
         for region, coordinates in zip(regions, cloud):
-
             # Create temporary rasters
             if operation == "cut":
                 cut = gs.append_uuid("cut")

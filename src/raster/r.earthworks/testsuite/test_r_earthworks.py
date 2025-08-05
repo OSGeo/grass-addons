@@ -36,7 +36,7 @@ class TestREarthworks(TestCase):
             function="linear",
             linear=0.5,
             z=1,
-            flat=2
+            flat=2,
         )
         self.assertRasterMinMax(
             map=self.fill, refmin=0, refmax=1, msg="Elevation must be between 0 and 1."
@@ -54,7 +54,7 @@ class TestREarthworks(TestCase):
             function="linear",
             linear=0.5,
             z=-1,
-            flat=2
+            flat=2,
         )
         self.assertRasterMinMax(
             map=self.cut, refmin=-1, refmax=0, msg="Elevation must be between -1 and 0."
@@ -72,7 +72,7 @@ class TestREarthworks(TestCase):
             function="linear",
             linear=0.5,
             z=[-1, 1],
-            flat=1
+            flat=1,
         )
         self.assertRasterMinMax(
             map=self.cutfill,
