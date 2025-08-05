@@ -170,10 +170,6 @@
 # % guisection: Plot format
 # %end
 
-# %rules
-# % requires: raster_statistics, zones
-# %end
-
 # %option G_OPT_CN
 # % key: bx_color
 # % label: Color of the boxplots
@@ -190,8 +186,13 @@
 # % guisection: Boxplot format
 # %end
 
-# %rules
-# % requires: -c, zones
+# %option
+# % key: area_label
+# % type: string
+# % description: Show the area above each boxplot
+# % required: no
+# % options: m2,ha,km2,acres,mi2
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -203,6 +204,15 @@
 # % guisection: Boxplot format
 # % answer: 0.75
 # % options: 0-1
+# %end
+
+# %option
+# % key: bx_width_variable
+# % type: string
+# % description: Set the width of the boxplots proportional to the area of the zones (linear) or the square root of the zones (sqrt).
+# % required: no
+# % options: linear,sqrt
+# % guisection: Boxplot format
 # %end
 
 # %option
@@ -273,9 +283,12 @@
 # %end
 
 # %rules
+# % requires: -c, zones
 # % requires: -s, zones
+# % requires: area_label, zones
+# % requires: raster_statistics, zones
+# % requires: bx_width_variable, zones
 # %end
-
 
 import atexit
 import sys
@@ -1059,10 +1072,82 @@ def bxp_zones(opt):
     boxprops = dict(linewidth=opt["bxp_linewidth"], facecolor=opt["bx_color"])
     whiskerprops = dict(linewidth=opt["whisker_linewidth"])
     medianprops = dict(linewidth=opt["median_lw"], color=opt["median_color"])
+
+    if opt.get("variable_box_width") or opt.get("area_label"):
+        # Compute area (number of cells) per zone for width scaling
+        areas_cats = Module(
+            "r.stats",
+            flags="cna",
+            separator="pipe",
+            input=opt["zones_raster"],
+            stdout_=PIPE,
+        ).outputs.stdout.splitlines()
+        areas_dict = {
+            int(line.split("|")[0]): float(line.split("|")[1]) for line in areas_cats
+        }
+        ordered_ids = [labelsids[i] for i in ordered_list]
+
+    if opt.get("variable_box_width"):
+        zone_areas = [areas_dict.get(zid, 1) for zid in ordered_ids]
+
+        # Use sqrt of areas if selected
+        if opt.get("variable_box_width") == "sqrt":
+            zone_areas = [a**0.5 for a in zone_areas]
+
+        total_area = sum(zone_areas)
+        raw_widths = [(a / total_area) for a in zone_areas]
+
+        # Scale to max width = opt["bxp_width"] and ensure final width <= 1.0
+        scale_factor = opt["bxp_width"] / max(raw_widths) if raw_widths else 1.0
+        widths = [w * scale_factor for w in raw_widths]
+    else:
+        widths = opt["bxp_width"]
+
+    if opt.get("area_label"):
+        areas_for_labels = [areas_dict.get(zid, 1.0) for zid in ordered_ids]
+        if opt["area_label"] == "ha":
+            area_labels = [
+                (
+                    "{:.1f} ha".format(a / 10000.0)
+                    if a / 10000.0 < 10
+                    else "{:.0f} ha".format(a / 10000.0)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "km2":
+            area_labels = [
+                (
+                    "{:.1f} km²".format(a / 1e6)
+                    if a / 1e6 < 10
+                    else "{:.0f} km²".format(a / 1e6)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "acres":
+            area_labels = [
+                (
+                    "{:.1f} ac".format(a / 4046.86)
+                    if a / 4046.86 < 10
+                    else "{:.0f} ac".format(a / 4046.86)
+                )
+                for a in areas_for_labels
+            ]
+        elif opt["area_label"] == "mi2":
+            area_labels = [
+                (
+                    "{:.2f} mi²".format(a / 2.59e6)
+                    if a / 2.59e6 < 10
+                    else "{:.0f} mi²".format(a / 2.59e6)
+                )
+                for a in areas_for_labels
+            ]
+        else:
+            area_labels = ["{:.0f} m²".format(a) for a in areas_for_labels]
+
     bxplot = ax.bxp(
         boxes,
         showfliers=True,
-        widths=opt["bxp_width"],
+        widths=widths,
         vert=bool(opt["vertical"]),
         shownotches=bool(opt["notch"]),
         patch_artist=True,
@@ -1077,6 +1162,28 @@ def bxp_zones(opt):
             "markeredgecolor": opt["flier_color"],
         },
     )
+
+    # Add area labels above each boxplot
+    if opt.get("area_label"):
+        for i, label in enumerate(area_labels):
+            if opt["vertical"]:
+                ax.text(
+                    i + 1,
+                    ax.get_ylim()[1],
+                    label,
+                    ha="center",
+                    va="bottom",
+                    fontsize=opt["fontsize"] * 0.85,
+                )
+            else:
+                ax.text(
+                    ax.get_xlim()[1],
+                    i + 1,
+                    label,
+                    va="center",
+                    ha="left",
+                    fontsize=opt["fontsize"] * 0.85,
+                )
 
     # Boxplots get colors matching category colors zonal map
     if bool(opt["bx_zonalcolors"]):
@@ -1221,6 +1328,8 @@ def main(options, flags):
                 "plot_rast_stats": options["raster_statistics"],
                 "raster_stat_color": raster_stat_color,
                 "raster_stat_alpha": float(options["raster_stat_alpha"]),
+                "variable_box_width": options["bx_width_variable"],
+                "area_label": options["area_label"],
             },
         }
 

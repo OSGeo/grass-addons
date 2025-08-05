@@ -308,6 +308,13 @@ def main(options, flags):
     if data_type == "Integer":
         output_type = gdal.GDT_Int32
         nodata = 2**31 - 1
+    elif data_type == "Integer64":
+        gs.warning(
+            "Column has Integer64 type, which is not supported by many raster formats.\n"
+            "Falling back to Int32. Values > 2,147,483,647 may be truncated."
+        )
+        output_type = gdal.GDT_Int32
+        nodata = 2**31 - 1
     elif data_type == "Real":
         output_type = gdal.GDT_Float32
         nodata = -3.40282e38
@@ -349,7 +356,7 @@ def main(options, flags):
 
     # Create raster label
     if options["label_column"]:
-        if data_type == "Integer":
+        if data_type == "Integer" or data_type == "Integer64":
             gs.message(_("Writing raster labels"))
             raster_labels(
                 vector_file, vector_layer, raster, column_name, options["label_column"]
