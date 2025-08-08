@@ -76,6 +76,25 @@ to generate a volumetric change raster.
 Use the <code>-p</code> flag
 to print the net volume of cut and fill.
 
+<h3>Adaptive Region</h3>
+To speed computation,
+<em>r.earthworks</em> uses an adaptive region.
+The adaptive region limits earthworking operations
+to subregions containing input geometry.
+The adaptive region is grown by a <b>border</b> parameter
+which has a default value of a thousand map units.
+If this border is not large enough,
+then the earthworking operations may be incomplete
+with artifacts along their edges.
+If artifacts occur, then increase the size of the border.
+A larger border, however, will increase computation time.
+When the input elevation raster has a hundred thousand cells or more,
+an adaptive region is used by default,
+but can be disabled with flag <code>-r</code>.
+When the adaptive region is not used,
+it can take a long time to model extensive earthworks
+for large elevation rasters with a million cells or more.
+
 <h2>EXAMPLE</h2>
 
 <h3> Cut &amp; Fill Operations</h3>
@@ -214,15 +233,8 @@ r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=63
 </div>
 
 <h2>REFERENCES</h2>
-Harmon, B. (2025). r.earthworks (Version 1.0.0) [Computer software].
+Harmon, B. (2025). r.earthworks (Version 1.2.0) [Computer software].
 <a href="https://doi.org/10.5281/zenodo.15507392">https://doi.org/10.5281/zenodo.15507392</a>
-
-<!--
-<h2>SEE ALSO</h2>
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
-</em>
--->
 
 <h2>AUTHORS</h2>
 

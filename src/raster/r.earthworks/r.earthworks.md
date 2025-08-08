@@ -77,7 +77,25 @@ to generate a volumetric change raster.
 Use the `-p` flag
 to print the net volume of cut and fill.
 
-<!-- ## NOTES -->
+### Adaptive Region
+
+To speed computation,
+*r.earthworks* uses an adaptive region.
+The adaptive region limits earthworking operations
+to subregions containing input geometry.
+The adaptive region is grown by a `border` parameter
+which has a default value of a thousand map units.
+If this border is not large enough,
+then the earthworking operations may be incomplete
+with artifacts along their edges.
+If artifacts occur, then increase the size of the border.
+A larger border, however, will increase computation time.
+When the input elevation raster has a hundred thousand cells or more,
+an adaptive region is used by default,
+but can be disabled with flag `-r`.
+When the adaptive region is not used,
+it can take a long time to model extensive earthworks
+for large elevation rasters with a million cells or more.
 
 ## EXAMPLES
 
@@ -207,15 +225,9 @@ r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=63
 | --------- | ---------- |
 | ![Dam](r_earthworks_09.png) | ![Dam Breach](r_earthworks_10.png) |
 
-<!-- ## TODO -->
-
-<!-- ## KNOWN ISSUES -->
-
 ## REFERENCES
 
-Harmon, B. (2025). r.earthworks (Version 1.0.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
-
-<!-- ## SEE ALSO -->
+Harmon, B. (2025). r.earthworks (Version 1.2.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
 
 ## AUTHORS
 

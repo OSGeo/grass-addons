@@ -711,7 +711,10 @@ def main():
             srs=product_srs,
             tile=TNM_file_titles_info,
         )
-    print(data_info)
+    if gui_i_flag:
+        print(data_info)
+    else:
+        gs.verbose(data_info)
 
     if gui_i_flag:
         gs.message(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))
