@@ -193,7 +193,7 @@ class PdfCreator(object):
 
     def createPDF(self, save=True):
         self.story = self._parseMDOWS()
-        self.doc = Pdf("Metadata file", "GRASS GIS")
+        self.doc = Pdf("Metadata file", "GRASS")
 
         self.doc.set_theme(self.my_theme)
 
