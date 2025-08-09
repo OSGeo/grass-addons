@@ -71,7 +71,7 @@ class RStreamFrame(wx.Frame):
         parent,
         id=wx.ID_ANY,
         style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
-        title=_("GRASS GIS Hydrological Modelling Utility"),
+        title=_("GRASS Hydrological Modelling Utility"),
         **kwargs,
     ):
         """!Main window of r.stream's GUI

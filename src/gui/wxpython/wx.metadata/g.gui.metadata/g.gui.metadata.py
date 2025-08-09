@@ -737,7 +737,7 @@ class MdMainFrame(wx.Frame):
         """Update r.support and v.support"""
         md = self.editor.saveMDfromGUI()
         self.mdCreator.updateGrassMd(md)
-        GMessage("GRASS GIS metadata has been updated")
+        GMessage("GRASS metadata has been updated")
 
     def onExportTemplate(self, outPath, outFileName):
         """Export defined(pre-filled) template"""
