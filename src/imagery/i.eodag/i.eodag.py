@@ -430,9 +430,10 @@ def search_by_ids(ids_set: set, module_options: dict, eodag_api=None):
         elif product.number_matched == 0 or not product[0].properties["id"].startswith(
             query_id,
         ):
-            gs.warning(_("{} not Found. Skipping...").format(query_id))
+            gs.warning(_("{} not found. Skipping...").format(query_id))
         else:
             search_result.append(product[0])
+    gs.verbose(_("Found {} scene(s).").format(len(search_result)))
     return SearchResult(search_result)
 
 
