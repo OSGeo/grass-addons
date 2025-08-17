@@ -35,17 +35,20 @@ jobs:
           - grass-version: releasebranch_8_4
             python-version: "3.10"
       fail-fast: false
+    env:
+      # renovate: datasource=github-tags depName=r-hub/R
+      R_VERSION: "4.5.1"
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
 
       - name: Checkout addons
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           path: grass-addons
       - name: ccache
@@ -99,12 +102,6 @@ jobs:
           if [ ! -e "$HOME/install/bin/grass" ] ; then \
             ln -s "$HOME"/install/bin/grass* "$HOME"/install/bin/grass ; fi
 
-      - name: Build addons
-        run: |
-          cd grass-addons/src
-          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
-          make MODULE_TOPDIR="$GRASS_INSTALL"
-
       - name: Get extra Python dependencies
         run: |
           GDAL_VERSION="$(gdal-config --version)"
@@ -113,10 +110,16 @@ jobs:
           export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
+      - name: Build addons
+        run: |
+          cd grass-addons/src
+          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
+          make MODULE_TOPDIR="$GRASS_INSTALL"
+
       - name: Set up R
         uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
         with:
-          r-version: 4.2.1
+          r-version: ${{ env.R_VERSION }}
           Ncpus: 4
       - name: Configure ccache for R package builds
         run: |
