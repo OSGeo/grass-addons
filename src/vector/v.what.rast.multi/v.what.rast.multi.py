@@ -84,7 +84,7 @@
 # % key: columns
 # % type: string
 # % required: no
-# % multiple: no
+# % multiple: yes
 # % key_desc: name
 # % description: Names of attribute columns to be updated with the query result
 # % gisprompt: old,dbcolumn,dbcolumn
@@ -149,11 +149,10 @@ def main():
         r = rasters[i]
         if columns != [""]:
             c = columns[i]
+        elif flags["m"]:
+            c = r.replace("@", "_")
         else:
-            if flags["m"]:
-                c = r.replace("@", "_")
-            else:
-                c = strip_mapset(r)
+            c = strip_mapset(r)
 
         # Sample using v.what.rast
         v.what_rast(
