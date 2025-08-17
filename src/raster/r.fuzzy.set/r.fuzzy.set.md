@@ -6,21 +6,20 @@
 
 - **points**  
     A list containing 4 (A,B,C,D) or 2 (A,B) points defining set
-    boundaries. Points do not have to be in map range, but this may lead
-    to only 0 o 1 membership for the whole map. For side parameter
-    "both", range between A and D defines base, but range between B and
-    C core of the fuzzy set. Between A and B and C and D are set's
-    boundaries. If side is "both" it require 4 points, else 2 points.
+    boundaries as defined in Figure 1.
+    Points do not have to be in map range, but this may lead
+    to only 0 or 1 membership for the whole map. For *side* parameter
+    "**both**", range between A and D defines base,
+    and the range between B and C defines the core of the fuzzy set.
+    Between A and B and between C and D are the set's boundaries.
+    If *side* is "**both**", *points* requires 4 points, or else 2 points.
 
-    ![Fuzzy set definition](set.png)  
-    *Fuzzy set definition*
+    ![Fuzzy set definition. Shows labels of points A, B, C, and D. Range A to D is base. Range B to C is core. Range A to B and range C to D are the set's boundaries.](set.png)  
+    *Figure 1: Fuzzy set definition*
 
 - **side**  
-    Option indicates if set is fuzzified of both sides (both), left or
-    right side. See description for details.
-
-    ![Boundary definition](boundary.png)  
-    *Boundary definition*
+    Option indicates if set is fuzzified of both sides (*both*), *left* or
+    *right* side. See description for details.
 
 ## OUTPUTS
 
@@ -36,6 +35,11 @@
     most popular is S-shaped, linear, J-shaped and G-shaped boundaries
     are also available. The same boundaries are applied to the both
     sides.
+    The available options are illustrated in Figure 2.
+
+    ![Illustration of the shape of boundaries: Linear, S-shaped, G-shaped, and J-shaped boundary parameter](boundary.png)  
+    *Figure 2: Boundary definition for **boundary** parameter values "*Linear*",
+    "*S-shaped*", "*G-shaped*", and "*J-shaped*"*
 
 - **shape**  
     Optional shape modifier. Range from -1 to 1. The default value is 0
@@ -44,12 +48,12 @@
     set. See NOTES for details.
 
     ![Impact of shape parameter on shape boundary](shape.png)  
-    *Impact of shape parameter on shape boundary*
+    *Figure 3: Impact of **shape** parameter on shape boundary*
 
 - **height**  
     Optional height modifier. Range from 0 to 1. The default value is 1
-    and indicates full membership. If height is less than one the
-    maximum membership is equal to height. See image: Fuzzy set
+    and indicates full membership. If height is less than one, the
+    maximum membership is equal to height. See Figure 1: Fuzzy set
     definition.
 
 ## DESCRIPTION
@@ -57,13 +61,13 @@
 ### Definition of fuzzy set
 
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh
-(1965) introduced Fuzzy sets as an extension of the classical notion of
+(1965) introduced fuzzy sets as an extension of the classical notion of
 sets. Classical membership of elements in a set are binary terms: an
 element either belongs or does not belong to the set. Fuzzy set theory
 use the gradual assessment of the membership of elements in a set. A
-membership function valued in the real unit interval \[0, 1\]. Classical
-sets, are special cases of the membership functions of fuzzy sets, if
-the latter only take values 0 or 1. Classical sets are in fuzzy set
+membership function is valued in the real unit interval \[0, 1\]. Classical
+sets are special cases of the membership functions of fuzzy sets, if
+the latter only takes values 0 or 1. Classical sets are in fuzzy set
 theory usually called crisp sets. Fuzzy set theory can be used in a wide
 range of domains in which information is imprecise, including many GIS
 operations.
@@ -72,7 +76,7 @@ operations.
 
 ### Calculation of boundary shape
 
-Depending on type of the boundary different equation are used to
+Depending on type of the boundary, different equations are used to
 determine its shape:
 
 **Linear:** the membership is calculated according following equation:
@@ -109,7 +113,7 @@ m = 2^(1-shape) (for positive shape parameter)
 For default shape=0, m = 2 (most common parameter for that equation).
 ```
 
-**J shaped:** it use following equations:
+**J shaped:** it uses following equations:
 
 ```text
 tan(x * Pi/4)^m
@@ -122,9 +126,9 @@ For default shape=0, m = 2 (most common parameter for that equation).
 
 ## SEE ALSO
 
-*[r.fuzzy.logic](r.fuzzy.logic.md) addon,
-[r.fuzzy.system](r.fuzzy.system.md) addon,
-[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html),*
+*[r.fuzzy.logic](r.fuzzy.logic.md),
+[r.fuzzy.system](r.fuzzy.system.md),
+[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
 
 ## REFERENCES
 
