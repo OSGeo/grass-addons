@@ -411,11 +411,10 @@ def search_by_ids(ids_set: set, module_options: dict, eodag_api=None):
     ids_set.discard("")
     # Search for products found from options["file"] or options["id"]
     gs.verbose(_("Searching for {} distinct ID(s).").format(len(ids_set)))
-    # Search for products found from options["file"] or options["id"]
     search_result = []
     for query_id in ids_set:
         gs.info(_("Searching for {}").format(query_id))
-        if module_options["producttype"] is None:
+        if not module_options["producttype"]:
             gs.warning(_("The producttype option is not set"))
         product = eodag_api.search(
             id=query_id,
@@ -622,9 +621,9 @@ def parse_query(query: str | None = None):
                     ).format(parameter),
                 )
             continue
-        operator = None
         values_operators = []
         for value in map(str.strip, values.split("|")):
+            operator = None
             if not value:
                 continue
             if value.find(";") != -1:
@@ -1229,6 +1228,12 @@ def main() -> None:
                     "Unable to read product IDs from file <{}>.",
                 ).format(options["file"]),
             )
+    elif id_file:
+        gs.fatal(
+            _(
+                "File type '{}' is not supported. Please use a '.geojson' or '.txt' file.",
+            ).format(id_file.suffix.lower()),
+        )
     else:
         # Search using given search parameters
         dates_to_iso_format()
