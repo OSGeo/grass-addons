@@ -531,7 +531,11 @@ def remove_duplicates(search_result):
             continue
         is_added.add(product.properties["id"])
         filtered_result.append(product)
-    gs.verbose(_("Filtered out {} duplicate products.").format(len(search_result)-len(filtered_result)))
+    gs.verbose(
+        _("Filtered out {} duplicate products.").format(
+            len(search_result) - len(filtered_result)
+        )
+    )
     return SearchResult(filtered_result)
 
 
