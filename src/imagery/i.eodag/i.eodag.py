@@ -531,6 +531,7 @@ def remove_duplicates(search_result):
             continue
         is_added.add(product.properties["id"])
         filtered_result.append(product)
+    gs.verbose(_("Filtered out {} duplicate products.").format(len(search_result)-len(filtered_result)))
     return SearchResult(filtered_result)
 
 
@@ -753,8 +754,7 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
             [p for p in search_result if pattern.fullmatch(p.properties["title"])],
         )
 
-    # Remove duplictes that might be created while filtering
-    search_result = remove_duplicates(search_result)
+    # Filter search results by sensing date
     if start_date or end_date:
         search_result = search_result.filter_date(start=start_date, end=end_date)
 
@@ -1265,6 +1265,9 @@ def main() -> None:
             queryables,
             **options,
         )
+
+    # Remove duplictes that might be created while filtering
+    search_result = remove_duplicates(search_result)
 
     # Check if search results were downloaded before
     if flags["s"]:
