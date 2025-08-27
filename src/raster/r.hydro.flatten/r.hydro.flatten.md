@@ -24,6 +24,10 @@ The **breaklines** parameter is an optional input that specifies a
 vector map of lines that represent e.g., a break between an impoundment
 and downstream river, allowing correct elevation computation.
 
+The **max_stddev** parameter filters areas that have higher standard deviation
+than provided limit, these areas are not included in the
+**water\_elevation** and **filled\_elevation**.
+
 To keep the intermediate results for inspection, use flag **-k**.
 
 ## NOTES
