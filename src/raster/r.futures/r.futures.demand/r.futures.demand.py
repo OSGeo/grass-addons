@@ -163,7 +163,7 @@ def main():
     for i in range(len(observed_times)):
         gcore.percent(i, len(observed_times), 1)
         data = gcore.read_command(
-            "r.univar", flags="gt", zones=subregions, map=developments[i]
+            "r.univar", flags="t", zones=subregions, map=developments[i]
         )
         for line in data.splitlines():
             stats = line.split("|")
