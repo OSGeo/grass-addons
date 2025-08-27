@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #########################################################################
 #
@@ -55,6 +55,12 @@
 # % answer: 5
 # %end
 # %option
+# % key: max_stddev
+# % type: double
+# % required: no
+# % description: Maximum value of standard deviation to fill the DEM
+# %end
+# %option
 # % key: min_size
 # % type: integer
 # % required: no
@@ -108,6 +114,11 @@ def main():
         size_threshold = int(size_threshold)
     else:
         size_threshold = None
+    max_stddev = options["max_stddev"]
+    if max_stddev:
+        max_stddev = float(max_stddev)
+    else:
+        max_stddev = None
     # r.fill.stats settings
     filling_distance = 3
     filling_cells = 6
@@ -247,14 +258,26 @@ def main():
             method="sum",
             output=tmp_size,
         )
-        gs.mapcalc(
-            f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_zonal_res}, null())"
-        )
+        if max_stddev:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, if(  isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_water_elevation_zonal_res}, null()), null())"
+            )
+        else:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_zonal_res}, null())"
+            )
         gs.mapcalc(
             f"{options['water_elevation_stddev']} = if ({tmp_size} > {size_threshold}, {tmp_water_elevation_stddev_zonal_res}, null())"
         )
     else:
-        gs.mapcalc(f"{options['water_elevation']} = {tmp_water_elevation_zonal_res}")
+        if max_stddev:
+            gs.mapcalc(
+                f"{options['water_elevation']} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_water_elevation_zonal_res}, null())"
+            )
+        else:
+            gs.mapcalc(
+                f"{options['water_elevation']} = {tmp_water_elevation_zonal_res}"
+            )
         gs.mapcalc(
             f"{options['water_elevation_stddev']} = {tmp_water_elevation_stddev_zonal_res}"
         )
@@ -272,11 +295,30 @@ def main():
         gs.mapcalc(
             f"{tmp_shore_3dep} = if ({tmp_water_elevation} >= {tmp_rfillstats}, ({tmp_water_elevation} + .001), {tmp_rfillstats})"
         )
-        gs.run_command(
-            "r.patch",
-            input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats],
-            output=options["filled_elevation"],
-        )
+        if max_stddev:
+            tmp_rfillstats_holes = get_name("rfillstats_holes")
+            # Running r.fillnulls from the original shoreline is more accurate than running r.fillnulls
+            # on the gaps left from the 3 cell idw interpolations for the areas with high standard deviation. This section
+            # punches holes for the high standard deviation areas in the original r.fill.stats result to be merged into the final
+            # filled elevation product.  This will leave holes in the raster that can be filled with r.fillnulls with the options
+            # left to the user.
+            f"{tmp_rfillstats_holes} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_rfillstats}, null())"
+            gs.run_command(
+                "r.patch",
+                input=[
+                    options["water_elevation"],
+                    tmp_shore_3dep,
+                    tmp_rfillstats_holes,
+                ],
+                output=options["filled_elevation"],
+            )
+
+        else:
+            gs.run_command(
+                "r.patch",
+                input=[options["water_elevation"], tmp_shore_3dep, tmp_rfillstats],
+                output=options["filled_elevation"],
+            )
         gs.run_command("r.colors", map=options["filled_elevation"], raster=ground)
         gs.raster_history(options["filled_elevation"])
 
