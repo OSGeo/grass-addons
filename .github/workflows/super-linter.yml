@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Lint code base
-        uses: super-linter/super-linter@5119dcd8011e92182ce8219d9e9efc82f16fddb6 # v8.0.0
+        uses: super-linter/super-linter@ffde3b2b33b745cb612d787f669ef9442b1339a6 # v8.1.0
         env:
           ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,5 +72,6 @@ jobs:
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          GITHUB_ACTIONS_ZIZMOR_CONFIG_FILE: zizmor.yml
           MARKDOWN_CONFIG_FILE: .markdownlint.yml
           YAML_CONFIG_FILE: .yamllint
