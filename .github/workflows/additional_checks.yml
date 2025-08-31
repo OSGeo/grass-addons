@@ -16,6 +16,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   additional-checks:
     name: Additional checks
@@ -23,6 +25,8 @@ jobs:
     env:
       # renovate: datasource=python-version depName=python
       PYTHON_VERSION: "3.13"
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository contents
