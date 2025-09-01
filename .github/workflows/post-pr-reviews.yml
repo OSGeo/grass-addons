@@ -2,7 +2,7 @@
 name: Post PR code suggestions
 
 on:
-  # zizmor: ignore[dangerous-triggers] Only selected branches, and whitelisted input values are used
+  # zizmor: ignore[dangerous-triggers] Only selected workflows, and whitelisted input values are used
   workflow_run:
     workflows:
       ["ClangFormat Check", "Python Black Formatting", "Linting & formatting"]
