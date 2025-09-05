@@ -302,7 +302,9 @@ def main():
             # punches holes for the high standard deviation areas in the original r.fill.stats result to be merged into the final
             # filled elevation product.  This will leave holes in the raster that can be filled with r.fillnulls with the options
             # left to the user.
-            f"{tmp_rfillstats_holes} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_rfillstats}, null())"
+            gs.mapcalc(
+                f"{tmp_rfillstats_holes} = if ( isnull({tmp_water_elevation_stddev_zonal_res}) ||| {tmp_water_elevation_stddev_zonal_res} <= {max_stddev}, {tmp_rfillstats}, null())"
+            )
             gs.run_command(
                 "r.patch",
                 input=[
