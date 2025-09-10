@@ -573,7 +573,7 @@ def main():
         TNM_file_title = f["title"]
         TNM_file_URL = str(f["downloadURL"])
         TNM_file_size = int(f["sizeInBytes"]) if f["sizeInBytes"] else None
-        TNM_file_name = TNM_file_URL.split(product_url_split)[-1]
+        TNM_file_name = TNM_file_URL.rsplit(product_url_split, maxsplit=1)[-1]
         if gui_product == "ned":
             local_file_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
             local_zip_path = os.path.join(work_dir, ned_data_abbrv + TNM_file_name)
@@ -711,7 +711,10 @@ def main():
             srs=product_srs,
             tile=TNM_file_titles_info,
         )
-    print(data_info)
+    if gui_i_flag:
+        print(data_info)
+    else:
+        gs.verbose(data_info)
 
     if gui_i_flag:
         gs.message(_("To download USGS data, remove <i> flag, and rerun r.in.usgs."))

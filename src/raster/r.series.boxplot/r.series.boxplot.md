@@ -35,7 +35,7 @@ computations and rendering of the plot.
 
 The examples use the North Carolina full dataset, which you can download
 from
-[here](https://grass.osgeo.org/download/data/#NorthCarolinaDataset).
+[https://grass.osgeo.org/download/data/#NorthCarolinaDataset](https://grass.osgeo.org/download/data/#NorthCarolinaDataset).
 
 ### Example 1
 
@@ -61,7 +61,7 @@ map=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 \
 bxcolor=green rotate_labels=45 fontsize=14
 ```
 
-See [here](https://matplotlib.org/stable/tutorials/colors/colors.html)
+See [(https://matplotlib.org/stable/tutorials/colors/colors.html](https://matplotlib.org/stable/tutorials/colors/colors.html)
 for the different formats in which colors can be specified.
 
 ![image-alt](r_series_boxplot_2.png)

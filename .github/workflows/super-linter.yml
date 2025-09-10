@@ -26,13 +26,14 @@ jobs:
       # To report GitHub Actions status checks
       statuses: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           # super-linter needs the full git history to get the
           # list of files that changed across commits
           fetch-depth: 0
+          persist-credentials: false
       - name: Lint code base
-        uses: super-linter/super-linter@4e8a7c2bf106c4c766c816b35ec612638dc9b6b2 # v7.3.0
+        uses: super-linter/super-linter@ffde3b2b33b745cb612d787f669ef9442b1339a6 # v8.1.0
         env:
           ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,5 +72,6 @@ jobs:
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          GITHUB_ACTIONS_ZIZMOR_CONFIG_FILE: zizmor.yml
           MARKDOWN_CONFIG_FILE: .markdownlint.yml
           YAML_CONFIG_FILE: .yamllint

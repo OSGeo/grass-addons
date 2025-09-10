@@ -45,7 +45,7 @@ cd $OUTPUT_DIR && rm -f $ZIP_OUTPUT
 echo "Changing into <$REPO_LOCAL>..."
 cd $REPO_LOCAL
 
-# use e.g. (read-only) TOKEN
+# use GitHub read-only TOKEN
 # cd src/main/
 # gh auth login
 # answers:
