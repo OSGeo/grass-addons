@@ -7,6 +7,7 @@ from grass.gunittest.gmodules import SimpleModule
 
 class TestRWindfetch(TestCase):
     input = "test_input"
+    input2 = "test_input2"
     input_points = "test_input_points"
     output = "test_output"
 
@@ -24,12 +25,17 @@ class TestRWindfetch(TestCase):
         )
         cls.runModule("r.null", map=cls.input, null=0)
         cls.runModule(
+            "r.mapcalc", expression=f"{cls.input2} = if (y() < 5, 1, {cls.input})"
+        )
+        cls.runModule(
             "v.in.ascii", input="-", output=cls.input_points, stdin="5.5|5.5\n5.5|5.5"
         )
 
     @classmethod
     def tearDownClass(cls):
-        cls.runModule("g.remove", flags="f", type="raster", name=cls.input)
+        cls.runModule(
+            "g.remove", flags="f", type="raster", name=[cls.input, cls.input2]
+        )
         cls.runModule("g.remove", flags="f", type="vector", name=cls.input_points)
         cls.del_temp_region()
 
@@ -69,6 +75,69 @@ class TestRWindfetch(TestCase):
         self.assertListEqual(reference_directions, stdout_json[0]["directions"])
         reference_fetch = [5.0] * len(reference_directions)
         self.assertListEqual(reference_fetch, stdout_json[0]["fetch"])
+
+    def test_json_multiple_minor_directions_different_step(self):
+        """Test json output with multiple minor directions and different steps"""
+        module = SimpleModule(
+            "r.windfetch",
+            input=self.input,
+            coordinates=(5.5, 5.5),
+            step=90,
+            direction=0,
+            minor_directions=3,
+            minor_step=10,
+            format="json",
+        )
+        self.assertModule(module)
+        stdout_json = json.loads(module.outputs.stdout)
+        reference_directions = list(range(0, 360, 90))
+        self.assertListEqual(reference_directions, stdout_json[0]["directions"])
+        reference_fetch = [5.066] * len(reference_directions)
+        self.assertListEqual(
+            reference_fetch, [round(f, 3) for f in stdout_json[0]["fetch"]]
+        )
+
+    def test_json_compass(self):
+        """Test json output with compass flag"""
+        module = SimpleModule(
+            "r.windfetch",
+            input=self.input2,
+            coordinates=(5.5, 5.5),
+            step=90,
+            direction=90,
+            minor_directions=3,
+            minor_step=10,
+            format="json",
+        )
+        self.assertModule(module)
+        stdout_json = json.loads(module.outputs.stdout)
+        default = dict(zip(stdout_json[0]["directions"], stdout_json[0]["fetch"]))
+
+        module = SimpleModule(
+            "r.windfetch",
+            input=self.input2,
+            coordinates=(5.5, 5.5),
+            step=90,
+            direction=90,
+            minor_directions=3,
+            minor_step=10,
+            format="json",
+            flags="c",
+        )
+        self.assertModule(module)
+        stdout_json_compass = json.loads(module.outputs.stdout)
+        compass = dict(
+            zip(stdout_json_compass[0]["directions"], stdout_json_compass[0]["fetch"])
+        )
+
+        # E direction
+        self.assertAlmostEqual(default[0], compass[90], places=6)
+        # N direction
+        self.assertAlmostEqual(default[90], compass[0], places=6)
+        # W direction
+        self.assertAlmostEqual(default[180], compass[270], places=6)
+        # S direction
+        self.assertAlmostEqual(default[270], compass[180], places=6)
 
     def test_csv_single_minor_direction(self):
         """Test csv output with single minor direction"""
