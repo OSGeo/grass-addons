@@ -190,21 +190,24 @@ int main(int argc, char *argv[])
 
 #ifdef _OPENMP
     num_threads = G_set_omp_num_threads(opt.nprocs);
-    G_message(_("Parallel computing using %d thread(s)..."), num_threads);
+    if (num_threads > 1) {
+        G_message(_("Parallel computing using %d threads..."), num_threads);
 #ifdef LOOP_THEN_TASK
-    tracing_stack_size = atoi(opt.tss->answer);
-    if (tracing_stack_size <= 0) {
-        G_message(
-            _("Guessing tracing stack size using sqrt(cells) / threads..."));
-        tracing_stack_size =
-            sqrt((size_t)Rast_window_rows() * Rast_window_cols()) / num_threads;
+        tracing_stack_size = atoi(opt.tss->answer);
+        if (tracing_stack_size <= 0) {
+            G_message(_(
+                "Guessing tracing stack size using sqrt(cells) / threads..."));
+            tracing_stack_size =
+                sqrt((size_t)Rast_window_rows() * Rast_window_cols()) /
+                num_threads;
+        }
+        G_message(_("Tracing stack size for loop-then-task: %d"),
+                  tracing_stack_size);
+#endif
     }
-    G_message(_("Tracing stack size for loop-then-task: %d"),
-              tracing_stack_size);
-#else
-    G_message(_("Sequential computing..."));
+    else
 #endif
-#endif
+        G_message(_("Sequantial computing..."));
 
     /* read flow direction raster */
     G_message(_("Reading flow direction raster <%s>..."), dir_name);
