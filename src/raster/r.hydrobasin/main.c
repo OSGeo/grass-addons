@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     char *desc;
     char *dir_name, *format, *outlets_name, *layer, *idcol, *wsheds_name;
 #ifdef _OPENMP
-    int nprocs;
+    int num_threads;
 #endif
     int use_less_memory;
     struct raster_map *dir_map;
@@ -114,18 +114,12 @@ int main(int argc, char *argv[])
     wsheds_name = opt.wsheds->answer;
 
 #ifdef _OPENMP
-    nprocs = atoi(opt.nprocs->answer);
-    if (nprocs < 1)
-        G_fatal_error(_("<%s> must be >= 1"), opt.nprocs->key);
-
-    omp_set_num_threads(nprocs);
-#pragma omp parallel
-#pragma omp single
-    nprocs = omp_get_num_threads();
-    G_message(n_("Using %d thread for serial computation",
-                 "Using %d threads for parallel computation", nprocs),
-              nprocs);
+    num_threads = G_set_omp_num_threads(opt.nprocs);
+    if (num_threads > 1)
+        G_message(_("Parallel computing using %d threads..."), num_threads);
+    else
 #endif
+        G_message(_("Sequantial computing..."));
 
     use_less_memory = flag.use_less_memory->answer;
 
