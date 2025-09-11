@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     char *desc;
     char *dir_name, *format, *weight_name, *accum_name, *type;
 #ifdef _OPENMP
-    int nprocs;
+    int num_threads;
 #endif
     int check_overflow, use_less_memory, use_zero, null_weight;
     int dir_fd, accum_fd;
@@ -146,18 +146,12 @@ int main(int argc, char *argv[])
     type = opt.type->answer;
 
 #ifdef _OPENMP
-    nprocs = atoi(opt.nprocs->answer);
-    if (nprocs < 1)
-        G_fatal_error(_("<%s> must be >= 1"), opt.nprocs->key);
-
-    omp_set_num_threads(nprocs);
-#pragma omp parallel
-#pragma omp single
-    nprocs = omp_get_num_threads();
-    G_message(n_("Using %d thread for serial computation",
-                 "Using %d threads for parallel computation", nprocs),
-              nprocs);
+    num_threads = G_set_omp_num_threads(opt.nprocs);
+    if (num_threads > 1)
+        G_message(_("Parallel computing using %d threads..."), num_threads);
+    else
 #endif
+        G_message(_("Sequantial computing..."));
 
     check_overflow = flag.check_overflow->answer;
     use_less_memory = flag.use_less_memory->answer;
