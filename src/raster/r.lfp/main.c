@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     }
     else
 #endif
-        G_message(_("Sequantial computing..."));
+        G_message(_("Sequential computing..."));
 
     /* read flow direction raster */
     G_message(_("Reading flow direction raster <%s>..."), dir_name);
