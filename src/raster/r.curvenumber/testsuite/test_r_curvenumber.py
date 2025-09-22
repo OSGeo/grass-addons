@@ -1,7 +1,6 @@
 import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
-from grass.gunittest.gmodules import SimpleModule
 
 
 class TestRCn(TestCase):
@@ -16,9 +15,27 @@ class TestRCn(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.use_temp_region()
-        cls.runModule("r.in.gdal", input=f"data/{cls.lc}.tif", output=cls.lc, flags="o", overwrite=True)
-        cls.runModule("r.in.gdal", input=f"data/{cls.hsg}.tif", output=cls.hsg, flags="o", overwrite=True)
-        cls.runModule("r.in.gdal", input=f"data/{cls.expected}.tif", output=cls.expected, flags="o", overwrite=True)
+        cls.runModule(
+            "r.in.gdal",
+            input=f"data/{cls.lc}.tif",
+            output=cls.lc,
+            flags="o",
+            overwrite=True,
+        )
+        cls.runModule(
+            "r.in.gdal",
+            input=f"data/{cls.hsg}.tif",
+            output=cls.hsg,
+            flags="o",
+            overwrite=True,
+        )
+        cls.runModule(
+            "r.in.gdal",
+            input=f"data/{cls.expected}.tif",
+            output=cls.expected,
+            flags="o",
+            overwrite=True,
+        )
         cls.runModule("g.region", raster=cls.lc)
 
     @classmethod
@@ -48,7 +65,8 @@ class TestRCn(TestCase):
         # 2) subtract expected from computed
         self.runModule(
             "r.mapcalc",
-            expression=f"{self.diff} = {self.computed} - {self.expected}", overwrite=True
+            expression=f"{self.diff} = {self.computed} - {self.expected}",
+            overwrite=True,
         )
 
         # 3) difference must be zero everywhere
