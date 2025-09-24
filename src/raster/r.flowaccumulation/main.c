@@ -146,7 +146,20 @@ int main(int argc, char *argv[])
     type = opt.type->answer;
 
 #ifdef _OPENMP
+#if GRASS_VERSION_MAJOR >= 8 && GRASS_VERSION_MINOR >= 5
     num_threads = G_set_omp_num_threads(opt.nprocs);
+#else
+    num_threads = atoi(opt.nprocs->answer);
+    if (num_threads == 0)
+        num_threads = omp_get_max_threads();
+    else {
+        if (num_threads < 1) {
+            num_threads += omp_get_num_procs();
+            num_threads = num_threads < 1 ? 1 : num_threads;
+        }
+        omp_set_num_threads(num_threads);
+    }
+#endif
     if (num_threads > 1)
         G_message(_("Parallel computing using %d threads..."), num_threads);
     else
