@@ -149,8 +149,7 @@ int main(int argc, char *argv[])
 #if GRASS_VERSION_MAJOR >= 8 && GRASS_VERSION_MINOR >= 5
     num_threads = G_set_omp_num_threads(opt.nprocs);
 #else
-    num_threads = atoi(opt.nprocs->answer);
-    if (num_threads == 0)
+    if ((num_threads = atoi(opt.nprocs->answer)) == 0)
         num_threads = omp_get_max_threads();
     else {
         if (num_threads < 1) {
