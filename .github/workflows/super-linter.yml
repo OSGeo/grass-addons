@@ -47,12 +47,15 @@ jobs:
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
+          VALIDATE_CSS_PRETTIER: false # Using Biome
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_HTML: false # Until configured, some valid findings
           VALIDATE_HTML_PRETTIER: false # Until properly formatted
+          VALIDATE_JAVASCRIPT_ES: false # Using Biome
           VALIDATE_JSCPD: false # Too many detections, should be enabled only for changed files
-          VALIDATE_JSON_PRETTIER: false # Until fixed
-          VALIDATE_JSONC_PRETTIER: false
+          VALIDATE_JSONC_PRETTIER: false # Using Biome
+          VALIDATE_JSON_PRETTIER: false # Using Biome
+          VALIDATE_JSX_PRETTIER: false # Using Biome
           VALIDATE_JUPYTER_NBQA_BLACK: false # Handled by our ruff formatting
           VALIDATE_JUPYTER_NBQA_ISORT: false # Until fixed and confirmed safe
           VALIDATE_JUPYTER_NBQA_MYPY: false # Until fixed
