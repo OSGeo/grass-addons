@@ -21,7 +21,6 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
       - id: end-of-file-fixer
@@ -31,7 +30,6 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
   - repo: https://github.com/igorshubovych/markdownlint-cli
