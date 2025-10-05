@@ -21,7 +21,6 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
       - id: end-of-file-fixer
@@ -31,7 +30,6 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -52,3 +50,7 @@ repos:
     rev: v1.37.1
     hooks:
       - id: yamllint
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v3.4.0
+    hooks:
+      - id: editorconfig-checker

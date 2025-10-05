@@ -28,6 +28,9 @@ env/
 # Visual Studio
 /.vs
 
+# Kate IDE swap files
+*.kate-swp
+
 # ignore gunittest helper and result files
 testreport/*
 testsuite/examples/testreports/
