@@ -74,4 +74,6 @@ jobs:
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
           GITHUB_ACTIONS_ZIZMOR_CONFIG_FILE: zizmor.yml
           MARKDOWN_CONFIG_FILE: .markdownlint.yml
+          PYTHON_RUFF_CONFIG_FILE: pyproject.toml
+          PYTHON_RUFF_FORMAT_CONFIG_FILE: pyproject.toml
           YAML_CONFIG_FILE: .yamllint
