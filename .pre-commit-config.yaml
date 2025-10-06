@@ -32,6 +32,13 @@ repos:
                 .*\.rtf$|
                 .*\.svg$
           )
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.2.4"
+    hooks:
+      - id: biome-check
+      - id: biome-lint
+      - id: biome-format
+      - id: biome-ci
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:
