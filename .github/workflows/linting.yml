@@ -13,7 +13,7 @@ concurrency:
     ${{ github.ref_protected != true }}
 env:
   # renovate: datasource=python-version depName=python
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.14"
   # renovate: datasource=pypi depName=ruff
   RUFF_VERSION: "0.14.0"
 permissions: {}
