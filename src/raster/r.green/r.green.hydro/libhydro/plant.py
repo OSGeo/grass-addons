@@ -94,9 +94,9 @@ def isinverted(line, elev, region):
 
 
 def not_overlaped(line):
-    """The countur lines are always a ring even if we see tham as line
-    they are just overlaped, we want to avoid this situation
-    therefore we return only the part of the line that is not overlaped
+    """The contour lines are always a ring even if we see them as line
+    they are just overlapped, we want to avoid this situation
+    therefore we return only the part of the line that is not overlapped
     """
     if len(line) >= 2 and line[1] == line[-2]:
         return Line(line[: len(line) // 2 + 1])
@@ -281,7 +281,7 @@ def write_structures(
                         closest(itk.elevation, ndigits=ndigits, resolution=resolution)
                     )
             levels = sorted(set(levels))
-            # generate the contur line that pass to the point
+            # generate the contour line that pass to the point
             r.contour(
                 input="%s@%s" % (elev.name, elev.mapset),
                 output=contour,
@@ -290,7 +290,7 @@ def write_structures(
                 overwrite=True,
             )
 
-        # open the contur lines
+        # open the contour lines
         with VectorTopo(contour, mode="r") as cnt:
             for plant in plants.values():
                 print(plant.id)
@@ -354,7 +354,7 @@ class Plant(object):
 
     def potential_power(self, efficiency=1.0, intakes=None):
         """Return the potential of the plant: input discharge [m3/s],
-        elevetion [m] and output [kW].
+        elevation [m] and output [kW].
 
         Parameters
         ----------
@@ -387,7 +387,7 @@ class Plant(object):
         Parameters
         ----------
 
-        strem: vector map
+        stream: vector map
             A vector map instance that is already opened containing lines with
             the streams.
         maxdist: float
@@ -396,7 +396,7 @@ class Plant(object):
         elev: raster map
             A rester map instance that it is already opened with the digital
             elevation values of the study area, if not given the function
-            will perform a network serach to find the path that link the
+            will perform a network search to find the path that link the
             intake and restoration points.
 
         Returns
@@ -506,7 +506,7 @@ class Plant(object):
         return lines, ids
 
     def structures(self, elev, stream=None, ndigits=0, resolution=None, contour=None):
-        r"""Return a tuple with lines structres options of a hypotetical plant.
+        r"""Return a tuple with lines structures options of a hypothetical plant.
 
         ::
 
@@ -543,7 +543,7 @@ class Plant(object):
                            HydroStruct(intake, conduct=cond1, penstock=pstk1))]
            Return a list of tuples, containing two HydroStruct the first with
            the shortest penstock and the second with the other option.
-        """
+        """  # noqa: DOC102
 
         def get_struct(contur, respoint):
             """Return the lines of the conduct and the penstock.
@@ -552,7 +552,7 @@ class Plant(object):
             ----------
 
             contur: line segment
-                It is a line segment of the contur line splited with splitline
+                It is a line segment of the contour line split with splitline
                 function, where the first point is the intake.
             respoint: point
                 It is the point of the plant restitution.
@@ -595,7 +595,7 @@ class Plant(object):
                 )
             )
 
-            # generate the contur line that pass to the point
+            # generate the contour line that pass to the point
             contour_tmp = "tmpvect%04d" % random.randint(1000, 9999)
             r.contour(
                 input="%s@%s" % (elev.name, elev.mapset),
@@ -611,27 +611,27 @@ class Plant(object):
             cnt = contour
 
         for itk in self.intakes:
-            # find the closest contur line
+            # find the closest contour line
             contur_res = cnt.find["by_point"].geo(
                 self.restitution.point, maxdist=100000.0
             )
 
-            # TODO: probably find the contur line for the intake and
+            # TODO: probably find the contour line for the intake and
             # the restitution it is not necessary, and we could also remove
             # the check bellow: contur_itk.id != contur_res.id
             contur_itk = cnt.find["by_point"].geo(itk.point, maxdist=100000.0)
             if contur_itk is None or contur_res is None:
                 msg = (
-                    "Not able to find the contur line closest to the "
+                    "Not able to find the contour line closest to the "
                     "intake point %r, of the plant %r"
-                    "from the contur line map: %s"
+                    "from the contour line map: %s"
                 )
                 raise TypeError(msg % (itk, self, cnt.name))
             if contur_itk.id != contur_res.id:
                 print("=" * 30)
                 print(itk)
                 msg = (
-                    "Contur lines are different! %d != %d, in %s."
+                    "Contour lines are different! %d != %d, in %s."
                     "Therefore %d will be used."
                 )
                 print(msg % (contur_itk.id, contur_res.id, cnt.name, contur_itk.id))

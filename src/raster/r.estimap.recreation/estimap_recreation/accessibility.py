@@ -35,10 +35,10 @@ def artificial_accessibility_expression(artificial_proximity, roads_proximity):
 
         Parameters
         ----------
-        artificial :
+        artificial_proximity :
             Proximity to artificial surfaces
 
-        roads :
+        roads_proximity :
             Proximity to roads
 
         Returns

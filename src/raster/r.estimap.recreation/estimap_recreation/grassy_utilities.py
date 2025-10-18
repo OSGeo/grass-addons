@@ -106,7 +106,7 @@ def string_to_file(string, filename=None):
     string :
         A string where commas will be replaced by a newline
 
-    name :
+    filename :
         A string for temporary_filename() to create a temporary file name 'filename'
 
     Returns
@@ -296,7 +296,7 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
 
     Parameters
     ----------
-    raster :
+    input_name :
         Input raster map name
 
     title :
