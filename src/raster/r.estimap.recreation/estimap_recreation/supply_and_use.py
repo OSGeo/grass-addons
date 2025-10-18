@@ -148,7 +148,7 @@ def compute_supply(
 
     Examples
     --------
-    """
+    """  # noqa: DOC102
     # Inputs
     flow_in_base = flow + "_" + base
     base_scores = base + ".scores"

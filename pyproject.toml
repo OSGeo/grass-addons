@@ -433,6 +433,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # See https://docs.astral.sh/ruff/settings/#lint_per-file-ignores
 "src/imagery/i.sam2/i.sam2.py" = ["DOC502"]
+"src/raster/r.estimap.recreation/estimap_recreation/distance.py" = ["DOC102"]
+"src/raster/r.green/r.green.gshp/r.green.gshp.technical/r.green.gshp.technical.py" = ["DOC102"]
+"src/raster/r.green/r.green.gshp/r.green.gshp.theoretical/r.green.gshp.theoretical.py" = ["DOC102"]
 
 [tool.ruff.lint.flake8-import-conventions.extend-aliases]
 # Declare a custom aliases, checked with rule ICN001

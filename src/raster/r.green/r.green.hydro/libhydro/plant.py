@@ -543,7 +543,7 @@ class Plant(object):
                            HydroStruct(intake, conduct=cond1, penstock=pstk1))]
            Return a list of tuples, containing two HydroStruct the first with
            the shortest penstock and the second with the other option.
-        """
+        """  # noqa: DOC102
 
         def get_struct(contur, respoint):
             """Return the lines of the conduct and the penstock.
