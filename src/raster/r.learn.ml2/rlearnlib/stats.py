@@ -93,7 +93,7 @@ class StatisticsMixin(object):
             estimate.
 
         residuals : str (opt)
-            Optionally specify a name to create a raste rmap of the residuals.
+            Optionally specify a name to create a raster map of the residuals.
 
         overwrite : bool (default is False)
             Overwrite existing GRASS GIS rasters for estimates and residuals.

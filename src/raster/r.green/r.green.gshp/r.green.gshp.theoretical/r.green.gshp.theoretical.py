@@ -263,7 +263,7 @@ def main(opts, flgs):
         Thermal conductivity of the borehole filling (geothermal grout).
         Default: 2
     borehole_resistence: [m K W-1]
-        Borehole thermal resistence
+        Borehole thermal resistance
     borehole_length: [m]
         Borehole length, default: 100m
     ground_temperature: [°C]

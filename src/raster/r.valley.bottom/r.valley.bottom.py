@@ -226,7 +226,7 @@ def focal_expr(radius, window_square=False):
 
 
 def elevation_percentile(input, radius=3, window_square=False):
-    """Calculates the percentile whichj is the ratio of the number of points of
+    """Calculates the percentile which is the ratio of the number of points of
     lower elevation to the total number of points in the surrounding region
     Args
     ----

@@ -42,7 +42,7 @@ def compile_use_table(supply):
     Parameters
     ----------
     supply :
-        A nested Python dictionary that is compiled when runnning the
+        A nested Python dictionary that is compiled when running the
         compute_supply() function
 
     Returns
@@ -100,7 +100,7 @@ def compute_supply(
 
     base :
         Base land types map for final zonal statistics. Specifically to
-        ESTIMAP's recrceation mapping algorithm
+        ESTIMAP's recreation mapping algorithm
 
     base_reclassification_rules :
         Reclassification rules for the input base map
