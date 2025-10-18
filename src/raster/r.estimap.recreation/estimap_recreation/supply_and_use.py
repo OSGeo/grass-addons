@@ -111,8 +111,6 @@ def compute_supply(
     reclassified_base_title :
         Title for the reclassified base map
 
-    ecosystem_types :
-
     flow :
         Map of visits, derived from the mobility function, depicting the
         number of people living inside zones 0, 1, 2, 3. Used as a cover map
@@ -123,8 +121,6 @@ def compute_supply(
     ns_resolution :
 
     ew_resolution :
-
-    statistics_filename :
 
     supply_filename :
         Name for CSV output file of the supply table
