@@ -187,7 +187,7 @@ def sel_columns(element, vector_column):
     Parameters
     ----------
 
-    elemet: element to be selected
+    element: element to be selected
     vector_column: prefix with namevector_column
 
     Returns
