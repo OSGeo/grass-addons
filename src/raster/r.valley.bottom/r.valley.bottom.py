@@ -230,8 +230,6 @@ def elevation_percentile(input, radius=3, window_square=False):
     lower elevation to the total number of points in the surrounding region
     Args
     ----
-    L : int
-        Processing step (level)
     input : str
         GRASS raster map (elevation) to perform calculation on
     radius : int
@@ -527,6 +525,14 @@ def refine(input, region, method="bilinear"):
 
 
 def step_message(L, xres, yres, ncells, t_slope):
+    """
+    Logs a message for a specific step
+
+    Args
+    ----
+    L : int
+        Processing step (level)
+    """
     gs.message(
         "step {L}, ew_res {ewres}, ns_res {nsres}, remaining cells {ncells}, threshold slope {t}".format(
             L=L + 1,
