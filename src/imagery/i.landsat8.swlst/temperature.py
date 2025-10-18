@@ -89,6 +89,13 @@ def estimate_lst(
     Produce a Land Surface Temperature map based on a mapcalc expression
     returned from a SplitWindowLST object.
 
+    Inputs are:
+
+    - brightness temperature maps t10, t11
+    - column water vapor map
+    - a temporary filename
+    - a valid mapcalc expression
+
     Parameters
     ----------
     outname
@@ -114,13 +121,6 @@ def estimate_lst(
     celsius
 
     quiet
-
-    Inputs are:
-
-    - brightness temperature maps t10, t11
-    - column water vapor map
-    - a temporary filename
-    - a valid mapcalc expression
     """
     msg = "\n|i Estimating land surface temperature "
     g.message(msg)
