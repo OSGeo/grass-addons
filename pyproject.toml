@@ -27,7 +27,7 @@ target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
 
 [tool.ruff]
 builtins = ["_"]
-required-version = ">=0.13.0"
+required-version = ">=0.14.1"
 
 [tool.ruff.lint]
 # See https://docs.astral.sh/ruff/rules/
