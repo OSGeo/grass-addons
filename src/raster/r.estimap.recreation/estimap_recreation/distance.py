@@ -206,7 +206,7 @@ def neighborhood_function(raster, method, size, distance_map):
     size :
         Size for r.neighbors
 
-    distance :
+    distance_map :
         A distance map
 
     Returns
