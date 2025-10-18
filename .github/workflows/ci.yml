@@ -54,7 +54,7 @@ jobs:
           path: grass-addons
           persist-credentials: false
       - name: ccache
-        uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 # v1.2.18
+        uses: hendrikmuhs/ccache-action@bfa03e1de4d7f7c3e80ad9109feedd05c4f5a716 # v1.2.19
         with:
           create-symlink: true
           verbose: 2
@@ -119,7 +119,7 @@ jobs:
           make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
+        uses: r-lib/actions/setup-r@6f6e5bc62fba3a704f74e7ad7ef7676c5c6a2590 # v2.11.4
         with:
           r-version: ${{ env.R_VERSION }}
           Ncpus: 4

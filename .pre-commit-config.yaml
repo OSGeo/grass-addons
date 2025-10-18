@@ -4,7 +4,7 @@ default_language_version:
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.12.12
+    rev: v0.14.0
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -21,7 +21,6 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
       - id: end-of-file-fixer
@@ -31,9 +30,15 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.2.6"
+    hooks:
+      - id: biome-check
+      - id: biome-lint
+      - id: biome-format
+      - id: biome-ci
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:
@@ -52,3 +57,7 @@ repos:
     rev: v1.37.1
     hooks:
       - id: yamllint
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v3.4.1
+    hooks:
+      - id: editorconfig-checker
