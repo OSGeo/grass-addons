@@ -529,7 +529,7 @@ def compute_supply(
                 )
 
                 # update columns of an user-fed vector map
-                # from the columns of vectorised flow-in-category raster map
+                # from the columns of vectorized flow-in-category raster map
                 raster_to_vector(
                     raster_category_flow=flow_in_category,
                     vector_category_flow=flow_in_category,

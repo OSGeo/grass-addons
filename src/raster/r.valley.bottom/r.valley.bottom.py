@@ -201,7 +201,7 @@ def focal_expr(radius, window_square=False):
     """
     offsets = []
 
-    # generate a list of spatial neighbourhood offsets for the chosen radius
+    # generate a list of spatial neighborhood offsets for the chosen radius
     # ignoring the centre cell
     if window_square:
         for i in range(-radius, radius + 1):

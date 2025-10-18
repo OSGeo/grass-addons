@@ -281,7 +281,7 @@ def write_structures(
                         closest(itk.elevation, ndigits=ndigits, resolution=resolution)
                     )
             levels = sorted(set(levels))
-            # generate the contur line that pass to the point
+            # generate the contour line that pass to the point
             r.contour(
                 input="%s@%s" % (elev.name, elev.mapset),
                 output=contour,
@@ -290,7 +290,7 @@ def write_structures(
                 overwrite=True,
             )
 
-        # open the contur lines
+        # open the contour lines
         with VectorTopo(contour, mode="r") as cnt:
             for plant in plants.values():
                 print(plant.id)
@@ -616,7 +616,7 @@ class Plant(object):
                 self.restitution.point, maxdist=100000.0
             )
 
-            # TODO: probably find the contur line for the intake and
+            # TODO: probably find the contour line for the intake and
             # the restitution it is not necessary, and we could also remove
             # the check bellow: contur_itk.id != contur_res.id
             contur_itk = cnt.find["by_point"].geo(itk.point, maxdist=100000.0)
