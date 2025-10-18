@@ -90,7 +90,7 @@ def build_distance_function(
 
 
 def compute_attractiveness(
-    raster, metric, constant, kappa, alpha, mask=None, output_name=None
+    raster, metric, constant, kappa, alpha, score=None, mask=None, output_name=None
 ):
     """
     Compute a raster map whose values follow an (euclidean) distance function
@@ -206,7 +206,7 @@ def neighborhood_function(raster, method, size, distance_map):
     size :
         Size for r.neighbors
 
-    distance :
+    distance_map :
         A distance map
 
     Returns
