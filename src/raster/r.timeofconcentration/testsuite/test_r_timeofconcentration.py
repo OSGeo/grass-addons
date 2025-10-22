@@ -111,7 +111,7 @@ class TestRTimeOfConcentrationRegression(TestCase):
             _("running scenario {i}: run {r}/{R}").format(i=idx, r=1, R=self.reps)
         )
         self.assertModule(
-            "r.timeofconcentration", output=outmap, overwrite=True, **kwargs
+            "r.timeofconcentration", time_concentration=outmap, overwrite=True, **kwargs
         )
         # sanity: output exists
         try:
@@ -131,7 +131,10 @@ class TestRTimeOfConcentrationRegression(TestCase):
                 )
             )
             self.assertModule(
-                "r.timeofconcentration", output=outmap, overwrite=True, **kwargs
+                "r.timeofconcentration",
+                time_concentration=outmap,
+                overwrite=True,
+                **kwargs,
             )
             try:
                 self.assertRasterExists(outmap)
