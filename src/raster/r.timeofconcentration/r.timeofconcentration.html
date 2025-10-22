@@ -1,0 +1,73 @@
+<h2>DESCRIPTION</h2>
+<p><em>r.timeofconcentration</em> generates a raster map of time of concentration (Tc) [h] for each cell, using the Kirpich equation based on the longest upstream flow-path length and path-average slope. This method, rooted in hydrologic practice, estimates how long it takes water to travel from the farthest point in a watershed to a given cell, aiding in runoff and flood analysis. The tool leverages elevation and flow direction data, optionally deriving streams if not provided, and supports diagnostic outputs like flow length and slope. All measurements use metric units [m], [h].</p>
+<p>It simplifies water travel time estimation for high-level watershed planning: water flows downhill along paths defined by terrain, and Tc reflects the slowest route’s duration, influenced by distance and slope steepness. This is key for understanding how quickly runoff reaches streams or outlets.</p>
+
+<h3>Inputs</h3>
+<ul>
+  <li><strong>elevation</strong>: Raster of elevation [m]. Required input to derive terrain slopes and flow paths.</li>
+  <li><strong>direction</strong>: Flow-direction raster (GRASS-coded; from <code>r.watershed</code> or <code>r.stream.extract</code>). Required to trace upstream flow paths; defines the drainage network for accumulation.</li>
+  <li><strong>streams</strong>: Optional input raster of streams, consistent with <code>direction</code>. If not provided, streams are derived using <code>r.watershed</code> with a threshold.</li>
+  <li><strong>threshold</strong>: Integer threshold [cells] to derive streams when <code>streams</code> is omitted (lower value = denser stream network; default inferred from <code>r.watershed</code>).</li>
+  <li><strong>outlets</strong>: Optional raster of outlet points; Tc is computed only at these cells (NULL elsewhere), respecting the current mask/region.</li>
+  <li><strong>slope_min</strong>: Minimum path-average slope [unitless] (default <code>1e-4</code>). Prevents division by zero on flat areas by setting a floor value.</li>
+  <li><strong>length_min</strong>: Minimum upstream flow-path length [m] (default <code>10</code>). Ensures Tc is reported only where flow paths are significant.</li>
+</ul>
+
+<h3>Outputs</h3>
+<ul>
+  <li><strong>output</strong>: A raster map of time of concentration per cell [h], computed using the Kirpich equation:<br>
+    <code>Tc = (K * L^a * S_avg^b) / 60</code><br>
+    where <code>L</code> is upstream flow-path length [m], <code>S_avg</code> is path-average slope [unitless], <code>K = 0.01947</code>, <code>a = 0.77</code>, <code>b = -0.385</code>; result converted from minutes to hours by dividing by 60. Tc is NULL if <code>L &lt; length_min</code> or outlets are undefined.
+  </li>
+  <li><strong>length</strong>: Optional output raster of longest upstream flow-path length per cell [m], derived from <code>r.stream.distance</code>.</li>
+  <li><strong>drop</strong>: Optional output raster of flow-path elevation drop per cell [m] (&ge; 0), computed as the maximum elevation difference.</li>
+  <li><strong>sbar</strong>: Optional raster of path-average slope per cell [unitless], calculated as <code>S_avg = max(Δz / L, slope_min)</code>, where <code>Δz</code> is the drop and <code>L</code> is the length.</li>
+</ul>
+
+<h3>Notes</h3>
+<ul>
+  <li><strong>SI units only.</strong> The module processes inputs and outputs in the metric system.</li>
+  <li><strong>CRS-aware areas.</strong> <code>r.stream.distance</code> returns lengths in meters, adjusted to the coordinate system.</li>
+  <li><strong>Stream derivation.</strong> If <code>streams</code> is omitted, <code>r.watershed</code> generates it, using <code>threshold</code> to control density.</li>
+  <li><strong>Static Tc.</strong> Tc is a steady-state estimate; no temporal routing or storage is modeled.</li>
+</ul>
+
+<h2>EXAMPLE</h2>
+<p>These examples use the North Carolina sample dataset.</p>
+<pre><code># set the region
+g.region -p raster=elevation
+
+# calculate positive flow accumulation and drainage directions using r.watershed
+r.watershed -sa elevation=elevation drainage=fdr threshold=10
+
+# compute the time of concentration (use same threshold as r.watershed)
+r.timeofconcentration elevation=elevation direction=fdr tc=tc_nc threshold=10
+
+# use length_min parameter for coarser tc on important streams only
+r.timeofconcentration elevation=elevation direction=fdr tc=tc_nc length_min=100
+</code></pre>
+
+<div style="text-align:center;">
+  <img src="tc_nc.png" alt="Example output from r.timeofconcentration" style="max-width:80%; height:auto;">
+  <p><em>Figure: Output from <code>r.timeofconcentration</code> on NC dataset</em></p>
+</div>
+
+<div style="text-align:center;">
+  <img src="tc_nc_zoomed.png" alt="Zoomed example near watershed outlet" style="max-width:80%; height:auto;">
+  <p><em>Figure: Output from <code>r.timeofconcentration</code> on NC dataset zoomed near the watershed outlet</em></p>
+</div>
+
+<h2>REFERENCES</h2>
+<ul>
+  <li>Kirpich, Z. P. (1940). Time of concentration of small agricultural watersheds. <em>Civil Engineering</em>, 10(6), 362.</li>
+  <li>United States Department of Agriculture, Natural Resources Conservation Service. (2008). <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter 15 – Time of Concentration (210-VI-NEH).</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+<ul>
+  <li><a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a></li>
+  <li><a href="https://grass.osgeo.org/grass64/manuals/addons/r.stream.distance.html">r.stream.distance</a></li>
+</ul>
+
+<h2>AUTHORS</h2>
+<p><a href="mailto:mabdazzam@outlook.com">Abdullah Azzam</a>, New Mexico State University</p>
