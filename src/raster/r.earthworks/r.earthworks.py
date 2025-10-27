@@ -611,7 +611,9 @@ def grow_region(border, region, elevation):
         w = west
 
     # Set expanded region
-    gs.run_command("g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True
+    )
     gs.run_command("g.region", region=region)
 
 
