@@ -303,28 +303,36 @@ def quadrant_nw(region, n, s, e, w, x, y):
     """Set north west quadrant"""
 
     # Set region to north west quadrant
-    gs.run_command("g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region, overwrite=True
+    )
 
 
 def quadrant_ne(region, n, s, e, w, x, y):
     """Set north east quadrant"""
 
     # Set region to north east quadrant
-    gs.run_command("g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region, overwrite=True
+    )
 
 
 def quadrant_sw(region, n, s, e, w, x, y):
     """Set south west quadrant"""
 
     # Set region to south west quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True
+    )
 
 
 def quadrant_se(region, n, s, e, w, x, y):
     """Set south east quadrant"""
 
     # Set region to south east quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True
+    )
 
 
 def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
@@ -605,7 +613,9 @@ def grow_region(border, region, elevation):
         w = west
 
     # Set expanded region
-    gs.run_command("g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True
+    )
     gs.run_command("g.region", region=region)
 
 
