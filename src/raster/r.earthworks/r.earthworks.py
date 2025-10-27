@@ -321,7 +321,9 @@ def quadrant_sw(region, n, s, e, w, x, y):
     """Set south west quadrant"""
 
     # Set region to south west quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True
+    )
 
 
 def quadrant_se(region, n, s, e, w, x, y):
