@@ -1,0 +1,107 @@
+<h2>DESCRIPTION</h2>
+
+The purpose of  <em>r.gravity.terrain</em> is to compute gravity terrain corrections used in Complete Bouguer anomaly calculations from digital elevation models (DEM).
+Parameter <b>input elevation raster map</b> is the DEM used in the terrain correction.  The region resolution should be set to match the DEM. Calculations are done in meters and so a UTM coordinate system should be used.  Parameter <b>input vector map</b> is the vector points file containing the measured gravity station locations. Parameter <b>output file</b> is the output file containing the calculated terrain corrections in mgal.
+This tool also allows for multi-thread parallel processing to speed calculations.
+
+<h2>Complete Bouguer Correction formula</h2>
+This tool calculates the final term in the below equation (g(Terrain correction)).
+
+<h4>g(Bouguer complete)=g(Observed) - g(Latitude) + g(Free Air) - g(Simple Bouguer) + g(Terrain correction)</h4>
+<p style="font-weight: normal;">A simple Bouguer correction approximates the gravity of rock from sea level to the measurement location as a flat slab. This works reasonably well in areas of low topographic relief. The gravity Terrain correction here takes into account the 3-D variability of crustal gravity due to spatial variations in elevation. In mountainous regions, this can be larger than the geological signature the gravity measurements are used to interpret.</p>
+
+<h2>NOTES</h2>
+<p style="font-weight: normal;">This GRASS tool uses the Nowell (1999) formula 7 (after Blais and Ferland, 1984 Eq 4) to calculate terrain corrections for each DEM point with respect to each gravity measurement location. The tool must be used in a UTM coordinate system as the calculations depend on Cartesian geometry.</p>
+<h3>Formula used in terrain correction</h3>
+<h4>g= G*rho*Acs* ((1/d) – (1/d’))<h4>
+
+
+<p style="font-weight: normal;">This (g) is the gravitational effect difference from a uniform slab correction for a single DEM pixel with respect to the gravity station measurement location.  It is a calculation for a flat-topped rectangular prism.  There are other methods that could be implemented, but this is computationally efficient.  Other methods include using prisms with slanted tops to better “fit" topography or fitting polynomial curves to topographic data.  The thought is that with higher resolution DEM's there will be less difference between the various methods, and the one implemented here is computationally fast so that higher resolution DEM's can used more readily.
+All of the calculations are done in meters, kg and seconds, but final terrain correction values are reported in mgal (m/s<sup>2</sup> *100,000).</p>
+
+<h4>Formula variables</h4>
+G  = 0.000000000066743:
+This is the universal gravitational constant ((m<sup>3</sup>/(kg*s<sup>2</sup>) ) and is therefore fixed.
+<h4>Formula variables</h4>
+Rho = 2670 kg/m<sup>2</sup>:
+This is the rock density at a particular DEM pixel.  Typically, in Bouguer terrain corrections this is a fixed value across all points.  This GRASS tool allows the user to determine the density used in the terrain correction. However, future versions could be made to spatially vary according to a raster map to be more realistic.  This is an entered variable.
+<h4>Formula variables</h4>
+Acs = 8100 m<sup>2</sup>: (for a 90 meter grid spacing)
+
+This is the cross-sectional area of a square DEM pixel in meters.  This should correspond the GRASS region grid spacing (and the actual DEM).
+<h4>Formula variables</h4>
+d = ((X2- X1)<sup>2</sup>+(Y2- Y1)<sup>1/2</sup>:
+
+Distance from Gravity station to the center of the DEM pixel at constant elevation (calculated using the distance formula)
+<h4>Formula variables</h4>
+X1= gravity station UTM easting,
+Y1= gravity station UTM northing,
+
+X2 = DEM pixel center point UTM easting,
+Y2= DEM pixel center point UTM northing
+
+<h4>Formula variables</h4>
+d’ = (((d<sup>2</sup>)+(hdif<sup>2</sup>))<sup>1/2</sup>)):
+
+Distance from the Gravity station to the top of the DEM prism point in meters (calculated using the Pythagorean theorem)
+<h4>Formula variables</h4>
+hdif = | Z2-Z1 | (absolute value)
+<h4>Formula variables</h4>
+Z1= Gravity station elevation in meters
+<h4>Formula variables</h4>
+Z2 = DEM point elevation in meters
+
+<h2>Use of minimum and maximum distance parameters:</h2>
+These parameters set a minimum and maximum distance (d) from the Gravity station measurement (X1, Y1) for DEM terrain correction values to be calculated and summed.
+
+The terrain correction formula is an approximation and gives incorrect results if the closest DEM center is too close to the Gravity measurement point.  The threshold value is empirically between 1/3 and 1/2 the DEM grid spacing value.   For example, when using a 90m DEM a minimum value of 45-90 m is suggested.
+
+The maximum value is also subjective.  Calculating a terrain correction for all DEM points out to 167 km from the station measurement point is considered complete as that is the horizon that effects an individual point on a spherical Earth.  However, historically full calculations out to 167 km at a single grid spacing are not done due to computational intensity.  This may or may not be an issue anymore.  To accommodate this issue an inner terrain correction at a smaller grid spacing and an outer terrain correction at larger grid spacing have been used.  The inner and outer terrain correction are summed together to create a complete gravity terrain correction.  It still might be useful to do this if high resolution DEM data (e.g. 3 meter LIDAR) is used for the inner terrain correction.  This would involve running the terrain correction routine twice with a different grid (region) spacing and minimum and maximum distances.  The outer and then inner terrain corrections are then summed together.
+
+
+<h2>EXAMPLE</h2>
+<div class="code"><pre>
+g.region raster=90mSRTM_DEM
+r.gravity.terrain input=90mSRTM_DEM maximum_distance=30000 minimum_distance=90 points=stations output=corrections.txt
+</pre></div>
+
+<div align="center" style="margin: 10px">
+    <a href="r_gravity_terrain.png">
+    <img src="r_gravity_terrain.png" width="700" height="600"
+         alt="r_gravity_terrain example" border="0">
+    </a><br>
+    <i>Figure 1: This is an example of a gravity terrain correction calculated out to 30km from the measurement site (located in the Sangre de Cristo Mountains / Spanish Peaks of Colorado).  This tool does not output the above raster, but instead it is a visualization of an intermediate calculation product.
+      The terrain correction value at each DEM pixel is summed and then output in this tool. The color scale shows gravity terrain correction values of individual pixels in mgal.  For the above gravity point, the total terrain correction is 8.56 mgal for an n of 3,0163,432 cells.</i>
+</div>
+<br>
+
+<div align="center" style="margin: 10px">
+    <a href="TC_compare.png">
+    <img src="TC_compare.png" width="650" height="400"
+         alt="r_gravity_terrain example" border="0">
+    </a><br>
+    <i>Figure 2: Above is a comparison of the terrain correction output of this tool with values from the El Paso PACES gravity database downloaded in 2015 using 90m SRTM DEM data out to 167 km.  The dataset is 131 gravity points from the Sangre de Cristo Mountains and Raton basin of Colorado.  There is a strong linear correlation between the two correction techniques (R<sup>2</sup> of 0.989), but the one used here outputs somewhat smaller values at high terrain correction magnitudes.
+    However, this could also be due to the small number of points with terrain correction values greater than 20 mgal. </i>
+</div>
+
+<h2>REFERENCES</h2>
+Nowell, D.A.G., 1999. Gravity terrain corrections—an overview. Journal of Applied Geophysics, 42(2), pp.117-134.
+<br>
+<br>
+Blais, J.A.R. and Ferland, R., 1984. Optimization in gravimetric terrain corrections. Canadian Journal of Earth Sciences, 21(5), pp.505-515.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+David W. Farris- East Carolina University
+<br>
+e-mail: farrisd19@ecu.edu
+<br>
+<a href="https://geology.ecu.edu/people/davidfarris/">https://geology.ecu.edu/people/davidfarris/</a>

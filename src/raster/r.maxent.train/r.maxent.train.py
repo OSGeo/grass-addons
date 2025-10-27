@@ -1121,9 +1121,9 @@ def main(options, flags):
             prediction_bgr = [
                 file
                 for file in all_files
-                if file.endswith("_obs_avg.csv")
-                or file.endswith("_obs_min.csv")
-                or file.endswith("_obs_max.csv")
+                if file.endswith("_avg.csv")
+                or file.endswith("_min.csv")
+                or file.endswith("_max.csv")
             ]
             prediction_bgr.sort()
             prediction_bgrlay = [

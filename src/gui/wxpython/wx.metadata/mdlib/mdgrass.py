@@ -395,7 +395,7 @@ class GrassMD:
 
         # Conformity/Title
         self.md.dataquality.conformancetitle.append(
-            "GRASS GIS basic metadata profile based on ISO 19115, 19139"
+            "GRASS basic metadata profile based on ISO 19115, 19139"
         )
 
         epsg = self.getEPSG()

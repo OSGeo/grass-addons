@@ -23,7 +23,7 @@ library.
     Path to folder with installed pycsw
 - database.homez  
     Path to database with data of catalog. By default is set to SQLite
-    database. E.g GRASS GIS sqlite database.
+    database. E.g GRASS sqlite database.
 - server.url  
     For using local serever this parameter should by set to
     <http://localhost:8000/>
