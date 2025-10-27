@@ -35,6 +35,12 @@ GNU General Public License for more details.
 # %end
 
 # %flag
+# % key: i
+# % description: Allow incomplete CF-dimensions (XY instead of XYZ)
+# % guisection: Settings
+# %end
+
+# %flag
 # % key: r
 # % description: Import only within current region
 # % guisection: Filter
@@ -583,6 +589,42 @@ def apply_temporal_filter(ref_window, relations, start, end):
     )
 
 
+def get_cf_time(metadata: dict, sds_url: str, sd) -> tuple[np.ndarray, np.ndarray]:
+    if "NETCDF_DIM_time_VALUES" in metadata:
+        time_values = np.fromstring(
+            metadata["NETCDF_DIM_time_VALUES"].strip("{").strip("}"),
+            sep=",",
+            dtype=np.float64,
+        )
+    elif sd.RasterCount > 0:
+        time_values = np.array(
+            [
+                sd.GetRasterBand(i).GetMetadata().get("NETCDF_DIM_time")
+                for i in range(1, sd.RasterCount + 1)
+            ]
+        ).astype(np.float64)
+    else:
+        gs.debug(
+            _("No time dimension detected for <{}>. Skipping...").format(sds_url)
+        )
+    if "time#units" not in metadata or "time#calendar" not in metadata:
+        gs.debug(
+            _(
+                "Invalid definition of time dimension detected for <{}>. Skipping..."
+            ).format(sds_url)
+        )
+    time_dimensions = get_time_dimensions(time_values, metadata)
+    end_times = get_end_time(time_dimensions)
+    return time_dimensions, end_times
+
+
+def get_acdd_time(metadata: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Extract ACDD time dimensions from metadata."""
+    start_time = datetime.fromisoformat(metadata.get("NC_GLOBAL#time_coverage_start").strip("z").strip("Z"))
+    end_time = datetime.fromisoformat(metadata.get("NC_GLOBAL#time_coverage_end").strip("z").strip("Z"))
+    return np.array([start_time]), np.array([end_time])
+
+
 def get_end_time(start_time_dimensions):
     """Compute end time from start time"""
     end_time_dimensions = None
@@ -801,7 +843,7 @@ def parse_netcdf(
                 len(sds[1].split(" ")[0].split("x")),
             ]
             for sds in ncdf.GetSubDatasets()
-            if len(sds[1].split(" ")[0].split("x")) == 3
+            if len(sds[1].split(" ")[0].split("x")) == 3 or flags["i"]
         ]
 
         # Filter based on semantic_label if provided
@@ -832,33 +874,15 @@ def parse_netcdf(
         sds_metadata = s_d[0].GetMetadata()
         sds_url = s_d[2]
         raster_count = s_d[0].RasterCount
-        if "NETCDF_DIM_time_VALUES" in sds_metadata:
-            time_values = np.fromstring(
-                sds_metadata["NETCDF_DIM_time_VALUES"].strip("{").strip("}"),
-                sep=",",
-                dtype=np.float64,
-            )
-        elif raster_count > 0:
-            time_values = np.array(
-                [
-                    s_d[0].GetRasterBand(i).GetMetadata().get("NETCDF_DIM_time")
-                    for i in range(1, s_d[0].RasterCount + 1)
-                ]
-            ).astype(np.float64)
-        else:
-            gs.warning(
-                _("No time dimension detected for <{}>. Skipping...").format(sds_url)
-            )
-            continue
-        if "time#units" not in sds_metadata or "time#calendar" not in sds_metadata:
-            gs.warning(
-                _(
-                    "Invalid definition of time dimension detected for <{}>. Skipping..."
-                ).format(sds_url)
-            )
-            continue
-        time_dimensions = get_time_dimensions(time_values, sds_metadata)
-        end_times = get_end_time(time_dimensions)
+        try:
+            time_dimensions, end_times = get_cf_time(sds_metadata, sds_url, s_d[0])
+        except Exception:
+            gs.warning(_("Cannot get time dimension from CF metadata from {}").format(sds_url))
+            try:
+                time_dimensions, end_times = get_acdd_time(sds_metadata)
+            except Exception:
+                gs.warning(_("Cannot get time dimension from ACDD metadata from {}. Skipping.").format(sds_url))
+                continue
 
         if valid_window is not None:
             requested_time_dimensions = np.array(
@@ -876,7 +900,7 @@ def parse_netcdf(
             end_time_dimensions = end_times
             # s_d["requested_time_dimensions"] = np.where(requested_time_dimensions)[0]
             start_time_dimensions = time_dimensions
-            requested_time_dimensions = time_values
+            requested_time_dimensions = start_time_dimensions
 
         requested_time_dimensions = np.where(requested_time_dimensions)[0]
         if requested_time_dimensions.size == 0:
@@ -1273,7 +1297,6 @@ if __name__ == "__main__":
     options, flags = gs.parser()
 
     # lazy imports
-    global gdal
     try:
         from osgeo import gdal, osr
 
