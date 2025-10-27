@@ -330,7 +330,9 @@ def quadrant_se(region, n, s, e, w, x, y):
     """Set south east quadrant"""
 
     # Set region to south east quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True)
+    gs.run_command(
+        "g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True
+    )
 
 
 def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
