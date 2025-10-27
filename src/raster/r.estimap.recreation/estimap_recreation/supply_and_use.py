@@ -42,7 +42,7 @@ def compile_use_table(supply):
     Parameters
     ----------
     supply :
-        A nested Python dictionary that is compiled when runnning the
+        A nested Python dictionary that is compiled when running the
         compute_supply() function
 
     Returns
@@ -100,7 +100,7 @@ def compute_supply(
 
     base :
         Base land types map for final zonal statistics. Specifically to
-        ESTIMAP's recrceation mapping algorithm
+        ESTIMAP's recreation mapping algorithm
 
     base_reclassification_rules :
         Reclassification rules for the input base map
@@ -110,8 +110,6 @@ def compute_supply(
 
     reclassified_base_title :
         Title for the reclassified base map
-
-    ecosystem_types :
 
     flow :
         Map of visits, derived from the mobility function, depicting the
@@ -123,8 +121,6 @@ def compute_supply(
     ns_resolution :
 
     ew_resolution :
-
-    statistics_filename :
 
     supply_filename :
         Name for CSV output file of the supply table
@@ -152,7 +148,7 @@ def compute_supply(
 
     Examples
     --------
-    """
+    """  # noqa: DOC102
     # Inputs
     flow_in_base = flow + "_" + base
     base_scores = base + ".scores"
@@ -529,7 +525,7 @@ def compute_supply(
                 )
 
                 # update columns of an user-fed vector map
-                # from the columns of vectorised flow-in-category raster map
+                # from the columns of vectorized flow-in-category raster map
                 raster_to_vector(
                     raster_category_flow=flow_in_category,
                     vector_category_flow=flow_in_category,

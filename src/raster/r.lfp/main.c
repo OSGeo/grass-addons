@@ -4,7 +4,7 @@
  *
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
- * PURPOSE:      Calculates the longest flow path from a flow direction raster
+ * PURPOSE:      Calculates the longest flow paths from a flow direction raster
  *               map and a outlets vector map using the Memory-Efficient
  *               Longest Flow Path (MELFP) OpenMP parallel algorithm by Cho
  *               (2025).
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("hydrology"));
     G_add_keyword(_("longest flow path"));
     module->description =
-        _("Calculates the longest flow path from a flow direction raster map "
+        _("Calculates the longest flow paths from a flow direction raster map "
           "and a outlets vector map using the Memory-Efficient Longest Flow "
           "Path (MELFP) OpenMP parallel algorithm by Cho (2025).");
 
@@ -189,22 +189,37 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Custom format requires <%s>"), opt.encoding->key);
 
 #ifdef _OPENMP
+#if GRASS_VERSION_MAJOR >= 8 && GRASS_VERSION_MINOR >= 5
     num_threads = G_set_omp_num_threads(opt.nprocs);
-    G_message(_("Parallel computing using %d thread(s)..."), num_threads);
-#ifdef LOOP_THEN_TASK
-    tracing_stack_size = atoi(opt.tss->answer);
-    if (tracing_stack_size <= 0) {
-        G_message(
-            _("Guessing tracing stack size using sqrt(cells) / threads..."));
-        tracing_stack_size =
-            sqrt((size_t)Rast_window_rows() * Rast_window_cols()) / num_threads;
-    }
-    G_message(_("Tracing stack size for loop-then-task: %d"),
-              tracing_stack_size);
 #else
-    G_message(_("Sequential computing..."));
+    if ((num_threads = atoi(opt.nprocs->answer)) == 0)
+        num_threads = omp_get_max_threads();
+    else {
+        if (num_threads < 1) {
+            num_threads += omp_get_num_procs();
+            num_threads = num_threads < 1 ? 1 : num_threads;
+        }
+        omp_set_num_threads(num_threads);
+    }
 #endif
+    if (num_threads > 1) {
+        G_message(_("Parallel computing using %d threads..."), num_threads);
+#ifdef LOOP_THEN_TASK
+        tracing_stack_size = atoi(opt.tss->answer);
+        if (tracing_stack_size <= 0) {
+            G_message(_(
+                "Guessing tracing stack size using sqrt(cells) / threads..."));
+            tracing_stack_size =
+                sqrt((size_t)Rast_window_rows() * Rast_window_cols()) /
+                num_threads;
+        }
+        G_message(_("Tracing stack size for loop-then-task: %d"),
+                  tracing_stack_size);
 #endif
+    }
+    else
+#endif
+        G_message(_("Sequential computing..."));
 
     /* read flow direction raster */
     G_message(_("Reading flow direction raster <%s>..."), dir_name);

@@ -132,10 +132,11 @@ r.lfp dir=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=nc_dcells lfp=
 
 ## REFERENCES
 
-Huidae Cho, Accepted in July 2025. *Loop Then Task: Hybridizing OpenMP
+Huidae Cho, September 2025. *Loop Then Task: Hybridizing OpenMP
 Parallelism to Improve Load Balancing and Memory Efficiency in
 Continental-Scale Longest Flow Path Computation.* Environmental
-Modelling & Software.
+Modelling & Software 193, 106630.
+[doi:10.1016/j.envsoft.2025.106630](https://doi.org/10.1016/j.envsoft.2025.106630)
 
 ## AUTHOR
 

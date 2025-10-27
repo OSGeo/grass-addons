@@ -376,7 +376,7 @@ def main():
     new = VectorTopo(output)
     new.open("w")
 
-    new.write(line)
+    new.write(line, cat=1)
     new.close()
 
 
