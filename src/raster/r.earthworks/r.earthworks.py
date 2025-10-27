@@ -303,28 +303,28 @@ def quadrant_nw(region, n, s, e, w, x, y):
     """Set north west quadrant"""
 
     # Set region to north west quadrant
-    gs.run_command("g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region)
+    gs.run_command("g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region, overwrite=True)
 
 
 def quadrant_ne(region, n, s, e, w, x, y):
     """Set north east quadrant"""
 
     # Set region to north east quadrant
-    gs.run_command("g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region)
+    gs.run_command("g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region, overwrite=True)
 
 
 def quadrant_sw(region, n, s, e, w, x, y):
     """Set south west quadrant"""
 
     # Set region to south west quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region)
+    gs.run_command("g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True)
 
 
 def quadrant_se(region, n, s, e, w, x, y):
     """Set south east quadrant"""
 
     # Set region to south east quadrant
-    gs.run_command("g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region)
+    gs.run_command("g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True)
 
 
 def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
@@ -605,7 +605,7 @@ def grow_region(border, region, elevation):
         w = west
 
     # Set expanded region
-    gs.run_command("g.region", n=n, s=s, e=e, w=w, align=elevation, save=region)
+    gs.run_command("g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True)
     gs.run_command("g.region", region=region)
 
 
@@ -855,67 +855,88 @@ def earthworking(
 
     # Model cut operation
     if operation == "cut":
-        gs.mapcalc(
-            f"{cut}"
-            f"= eval("
-            f"{','.join(dxy)},"
-            f"{','.join(flats)},"
-            f"{','.join(dz)},"
-            f"{','.join(growth)},"
-            f"nmin("
-            f"{','.join(cut_operations)}"
-            f")"
-            f")",
-            overwrite=True,
-        )
+        try:
+            gs.mapcalc(
+                f"{cut}"
+                f"= eval("
+                f"{','.join(dxy)},"
+                f"{','.join(flats)},"
+                f"{','.join(dz)},"
+                f"{','.join(growth)},"
+                f"nmin("
+                f"{','.join(cut_operations)}"
+                f")"
+                f")",
+                overwrite=True,
+            )
+        except:
+            gs.fatal(
+                "Exceeded open file limit. "
+                "Try setting higher resource limits "
+                "with ulimit in the command line."
+            )
 
     # Model fill operation
     elif operation == "fill":
-        gs.mapcalc(
-            f"{fill}"
-            f"= eval("
-            f"{','.join(dxy)},"
-            f"{','.join(flats)},"
-            f"{','.join(dz)},"
-            f"{','.join(decay)},"
-            f"nmax("
-            f"{','.join(fill_operations)}"
-            f")"
-            f")",
-            overwrite=True,
-        )
+        try:
+            gs.mapcalc(
+                f"{fill}"
+                f"= eval("
+                f"{','.join(dxy)},"
+                f"{','.join(flats)},"
+                f"{','.join(dz)},"
+                f"{','.join(decay)},"
+                f"nmax("
+                f"{','.join(fill_operations)}"
+                f")"
+                f")",
+                overwrite=True,
+            )
+        except:
+            gs.fatal(
+                "Exceeded open file limit. "
+                "Try setting higher resource limits "
+                "with ulimit in the command line."
+            )
 
     # Model cut-fill operation
     elif operation == "cutfill":
-        # Model cut
-        gs.mapcalc(
-            f"{cut}"
-            f"= eval("
-            f"{','.join(dxy)},"
-            f"{','.join(flats)},"
-            f"{','.join(dz)},"
-            f"{','.join(growth)},"
-            f"nmin("
-            f"{','.join(cut_operations)}"
-            f")"
-            f")",
-            overwrite=True,
-        )
+        try:
+            # Model cut
+            gs.mapcalc(
+                f"{cut}"
+                f"= eval("
+                f"{','.join(dxy)},"
+                f"{','.join(flats)},"
+                f"{','.join(dz)},"
+                f"{','.join(growth)},"
+                f"nmin("
+                f"{','.join(cut_operations)}"
+                f")"
+                f")",
+                overwrite=True,
+            )
 
-        # Model fill
-        gs.mapcalc(
-            f"{fill}"
-            f"= eval("
-            f"{','.join(dxy)},"
-            f"{','.join(flats)},"
-            f"{','.join(dz)},"
-            f"{','.join(decay)},"
-            f"nmax("
-            f"{','.join(fill_operations)}"
-            f")"
-            f")",
-            overwrite=True,
-        )
+            # Model fill
+            gs.mapcalc(
+                f"{fill}"
+                f"= eval("
+                f"{','.join(dxy)},"
+                f"{','.join(flats)},"
+                f"{','.join(dz)},"
+                f"{','.join(decay)},"
+                f"nmax("
+                f"{','.join(fill_operations)}"
+                f")"
+                f")",
+                overwrite=True,
+            )
+        except:
+            gs.fatal(
+                "Exceeded open file limit. "
+                "Try setting higher resource limits "
+                "with ulimit in the command line."
+            )
 
 
 def series(operation, function, cuts, fills, elevation, earthworks):

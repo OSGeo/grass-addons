@@ -250,6 +250,14 @@ r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=63
 | --------- | ---------- |
 | ![Dam](r_earthworks_09.png) | ![Dam Breach](r_earthworks_10.png) |
 
+## NOTES
+
+The current implementation of parallelization in r.mapcalc in the development version of GRASS can open too many files causing r.earthworks to fail for runs with multiple input coordinates depending on the open file limit of the user's system. This issue can be addressed by temporarily raising the open file limit:
+
+```bash
+ulimit -S -n 32768
+```
+
 ## REFERENCES
 
 Harmon, B. (2025). r.earthworks (Version 2.0.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
