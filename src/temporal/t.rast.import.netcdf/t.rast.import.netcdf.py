@@ -4,7 +4,7 @@
 AUTHOR(S):  Stefan Blumentrath
 PURPOSE:    Import netCDF files that adhere to the CF convention as a
             Space Time Raster Dataset (STRDS)
-COPYRIGHT:  (C) 2023 by stefan.blumentrath, and the GRASS Development Team
+COPYRIGHT:  (C) 2023-2025 by stefan.blumentrath, and the GRASS Development Team
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -196,10 +196,11 @@ GNU General Public License for more details.
 # %end
 
 # TODO:
-# Allow filtering based on metadata
-# Support more VRT options (gdal_datatype)
-# Implement e-flag
-# Allow to print subdataset information as semantic label json (useful defining custom semantic labels)
+# - Allow filtering based on metadata
+# - Support more VRT options (gdal_datatype)
+# - Implement e-flag
+# - Allow to print subdataset information as semantic label json
+#   (useful defining custom semantic labels)
 # - Make use of more metadata (units, scaling)
 
 from __future__ import annotations
@@ -246,7 +247,13 @@ RESAMPLE_DICT = {
 }
 
 GRASS_VERSION = list(map(int, gs.version()["version"].split(".")[0:2]))
-DEFAULT_CRS_WKT = """GEOGCS["WGS 84 (CRS84)",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AXIS["Longitude",EAST],AXIS["Latitude",NORTH],AUTHORITY["OGC","CRS84"]]"""
+DEFAULT_CRS_WKT = (
+    'GEOGCS["WGS 84 (CRS84)",DATUM["WGS_1984",'
+    'SPHEROID["WGS 84",6378137,298.257223563]],'
+    'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,'
+    'AUTHORITY["EPSG","9122"]],AXIS["Longitude",EAST],'
+    'AXIS["Latitude",NORTH],AUTHORITY["OGC","CRS84"]]'
+)
 TGIS_VERSION = 2
 ALIGN_REGION = None
 
@@ -384,23 +391,22 @@ def parse_semantic_label_conf(conf_file: str | None) -> dict | None:
                 conf_file=conf_file,
             ),
         )
-    with Path(conf_file).open() as c_file:
-        configuration = c_file.read()
-        for idx, line in enumerate(configuration.split("\n")):
-            if line.startswith("#") or "=" not in line:
-                continue
-            if len(line.split("=")) == 2:
-                line = line.split("=")
-                # Check if assigned semantic label has legal a name
-                if Rast_legal_semantic_label(line[1]) == 1:
-                    semantic_label[line[0]] = line[1]
-                else:
-                    gs.fatal(
-                        _(
-                            "Line {line_nr} in configuration file <{conf_file}> "
-                            "contains an illegal band name",
-                        ).format(line_nr=idx + 1, conf_file=conf_file),
-                    )
+    configuration = Path(conf_file).read_text()
+    for idx, line in enumerate(configuration.split("\n")):
+        if line.startswith("#") or "=" not in line:
+            continue
+        if len(line.split("=")) == 2:
+            line = line.split("=")
+            # Check if assigned semantic label has legal a name
+            if Rast_legal_semantic_label(line[1]) == 1:
+                semantic_label[line[0]] = line[1]
+            else:
+                gs.fatal(
+                    _(
+                        "Line {line_nr} in configuration file <{conf_file}> "
+                        "contains an illegal band name",
+                    ).format(line_nr=idx + 1, conf_file=conf_file),
+                )
     if not semantic_label:
         gs.fatal(
             _(
@@ -501,7 +507,9 @@ def transform_bounding_box(
     l_r = np.array((bbox[2], bbox[1]))
     u_r = np.array((bbox[2], bbox[3]))
 
-    def _transform_vertex(vertex):
+    def _transform_vertex(
+        vertex: tuple[int | float, int | float],
+    ) -> tuple[float, float]:
         try:
             x_transformed, y_transformed, _ = transform.TransformPoint(*vertex)
         except Exception:
@@ -515,7 +523,7 @@ def transform_bounding_box(
     # we generate `edge_samples` number of points between the upper left and
     # lower left point, transform them all to the new coordinate system
     # then get the minimum x coordinate "min(p[0] ...)" of the batch.
-    transformed_bounding_box = [
+    return [
         bounding_fn(
             [
                 _transform_vertex(p_a * v + p_b * (1 - v))
@@ -523,18 +531,18 @@ def transform_bounding_box(
             ],
         )
         for p_a, p_b, bounding_fn in [
-            (u_l, l_l, lambda point_list: min([p[0] for p in point_list])),
-            (l_l, l_r, lambda point_list: min([p[1] for p in point_list])),
-            (l_r, u_r, lambda point_list: max([p[0] for p in point_list])),
-            (u_r, u_l, lambda point_list: max([p[1] for p in point_list])),
+            (u_l, l_l, lambda point_list: min(p[0] for p in point_list)),
+            (l_l, l_r, lambda point_list: min(p[1] for p in point_list)),
+            (l_r, u_r, lambda point_list: max(p[0] for p in point_list)),
+            (u_r, u_l, lambda point_list: max(p[1] for p in point_list)),
         ]
     ]
-    return transformed_bounding_box
 
 
 def check_projection_match(reference_crs, subdataset):
-    """Check if projections match with projection of the location
-    using gdal/osr
+    """Check if projections match with projection of the location.
+
+    Projection check using gdal/osr.
     """
     subdataset_crs = subdataset.GetSpatialRef()
     location_crs = osr.SpatialReference()
@@ -562,10 +570,7 @@ def get_import_type(
     else:
         resample = None
     # Define import module
-    if flags_dict["l"] or flags_dict["f"]:
-        import_type = "r.external"
-    else:
-        import_type = "r.in.gdal"
+    import_type = "r.external" if flags_dict["l"] or flags_dict["f"] else "r.in.gdal"
 
     return import_type, resample, projection_match
 
@@ -746,7 +751,7 @@ def create_vrt(
     region_cropping: bool = False,
     recreate: bool = False,
 ) -> str:
-    """Create a GDAL VRT for import"""
+    """Create a GDAL VRT for import."""
     vrt_dir = Path(gisenv["GISDBASE"]).joinpath(
         gisenv["LOCATION_NAME"],
         gisenv["MAPSET"],
@@ -757,8 +762,9 @@ def create_vrt(
         / f"netcdf_{legalize_name_string(Path(subdataset.GetDescription()).name)}.vrt"
     )
     vrt_name = str(vrt)
-    # if vrt.exists() and not recreate:
-    #     return vrt_name
+    if vrt.exists() and not recreate:
+        return vrt_name
+    # Consider support of other kwargs: stats, outputType, outputBounds, ...
     kwargs = {"format": "VRT"}
     if equal_proj:
         if nodata is not None:
@@ -768,9 +774,6 @@ def create_vrt(
             subdataset,  # Use already opened dataset here
             options=gdal.TranslateOptions(
                 **kwargs,
-                # stats=True,
-                # outputType=gdal.GDT_Int16,
-                # outputBounds=
             ),
         )
     else:
@@ -809,13 +812,12 @@ def create_vrt(
             subdataset,
             options=gdal.WarpOptions(
                 **kwargs,
-                # outputType=gdal.GDT_Int16,
             ),
         )
+    # Close GDAL VRT dataset
     vrt = None
-    vrt = vrt_name
 
-    return vrt
+    return vrt_name
 
 
 def parse_netcdf(
@@ -863,6 +865,7 @@ def parse_netcdf(
 
     if sds:
         # Sub datasets containing variables have 3 dimensions (x,y,z)
+        expected_dimensions = 3
         sds = [
             # SDS_ID, SDS_url, SDS_dimension
             [
@@ -871,7 +874,7 @@ def parse_netcdf(
                 len(sds[1].split(" ")[0].split("x")),
             ]
             for sds in ncdf.GetSubDatasets()
-            if len(sds[1].split(" ")[0].split("x")) == 3 or flags["i"]
+            if len(sds[1].split(" ")[0].split("x")) == expected_dimensions or flags["i"]
         ]
 
         # Filter based on semantic_label if provided
@@ -879,7 +882,7 @@ def parse_netcdf(
             sds = [s for s in sds if s[0] in semantic_label]
 
         # Open subdatasets to get metadata
-        sds = [[gdal.Open(s[1])] + s for s in sds]
+        sds = [[gdal.Open(s[1])] + s for s in sds]  # noqa: RUF005
     elif not sds and ncdf.RasterCount == 0:
         gs.warning(_("No data to import from file {}").format(in_url))
         return None
@@ -1038,19 +1041,8 @@ def run_modules(mod_list: list[list[Module]]) -> None:
         ).run()
 
 
-def main():
+def main() -> None:
     """Run the main workflow."""
-    global cf_units
-    try:
-        import cf_units
-    except ImportError:
-        gs.fatal(
-            _(
-                "Cannot import Python library 'cf-units'\n"
-                "Please install it with (pip install cf-units)",
-            ),
-        )
-
     # Check if NetCDF driver is available
     if not gdal.GetDriverByName("netCDF"):
         gs.fatal(_("netCDF driver missing in GDAL. Please install netcdf binaries."))
@@ -1210,8 +1202,8 @@ def main():
         print_type = "{}_metadata".format(options["print"])
         print(
             sep.join(
-                ["id", "url", "rastercount", "time_dimensions"]
-                + list(next(iter(inputs_dict.values()))["sds"][0][print_type].keys()),
+                ["id", "url", "rastercount", "time_dimensions"],
+                *list(next(iter(inputs_dict.values()))["sds"][0][print_type].keys()),
             ),
         )
         print(
@@ -1223,8 +1215,8 @@ def main():
                             s_d["url"],
                             str(s_d["rastercount"]),
                             str(len(s_d["time_dimensions"])),
-                        ]
-                        + list(map(str, s_d[print_type].values())),
+                        ],
+                        *list(map(str, s_d[print_type].values())),
                     )
                     for s_d in chain.from_iterable(
                         [i["sds"] for i in inputs_dict.values()],
@@ -1343,6 +1335,16 @@ if __name__ == "__main__":
                 "Unable to load GDAL Python bindings (requires "
                 "package 'python-gdal' or Python library GDAL "
                 "to be installed).",
+            ),
+        )
+
+    try:
+        import cf_units
+    except ImportError:
+        gs.fatal(
+            _(
+                "Cannot import Python library 'cf-units'\n"
+                "Please install it with (pip install cf-units)",
             ),
         )
 
