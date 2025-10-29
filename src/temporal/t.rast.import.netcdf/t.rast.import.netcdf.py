@@ -238,7 +238,14 @@ RESAMPLE_DICT = {
     "Q3": "Q3",
 }
 
+# Minimal GRASS version required for semantic_label support
+MINIMAL_GRASS_VERSION = [8, 0]
+# Minimal TGIS version required for semantic_label support
+MINIMAL_TGIS_VERSION = 3
+
 GRASS_VERSION = list(map(int, gs.version()["version"].split(".")[0:2]))
+TGIS_VERSION = 2
+
 DEFAULT_CRS_WKT = (
     'GEOGCS["WGS 84 (CRS84)",DATUM["WGS_1984",'
     'SPHEROID["WGS 84",6378137,298.257223563]],'
@@ -246,7 +253,7 @@ DEFAULT_CRS_WKT = (
     'AUTHORITY["EPSG","9122"]],AXIS["Longitude",EAST],'
     'AXIS["Latitude",NORTH],AUTHORITY["OGC","CRS84"]]'
 )
-TGIS_VERSION = 2
+
 ALIGN_REGION = None
 
 
@@ -342,9 +349,7 @@ def get_time_dimensions(
 
 def check_semantic_label_support(module_options: dict) -> bool:
     """Check if the current version of GRASS and TGIS support semantic labels."""
-    minimal_grass_version = 8
-    minimal_tgis_version = 3
-    if GRASS_VERSION[0] < minimal_grass_version:
+    if GRASS_VERSION < MINIMAL_GRASS_VERSION:
         if module_options["semantic_labels"]:
             gs.warning(
                 _(
@@ -354,7 +359,7 @@ def check_semantic_label_support(module_options: dict) -> bool:
             )
         return False
 
-    if minimal_tgis_version > TGIS_VERSION:
+    if TGIS_VERSION < MINIMAL_TGIS_VERSION:
         if module_options["semantic_labels"]:
             gs.warning(
                 _(
