@@ -195,14 +195,6 @@ GNU General Public License for more details.
 # % description: Comma separated list of values representing nodata in the input dataset
 # %end
 
-# TODO:
-# - Allow filtering based on metadata
-# - Support more VRT options (gdal_datatype)
-# - Implement e-flag
-# - Allow to print subdataset information as semantic label json
-#   (useful defining custom semantic labels)
-# - Make use of more metadata (units, scaling)
-
 from __future__ import annotations
 
 import os
@@ -1075,7 +1067,7 @@ def main() -> None:
                 gs.fatal(_("Unable to read text from <{}>.").format(inputs[0]))
 
     inputs = [
-        "/vsicurl/" + in_url if in_url.startswith("http") else in_url
+        f"/vsicurl/{in_url}" if in_url.startswith("http") else in_url
         for in_url in inputs
     ]
 
@@ -1134,7 +1126,7 @@ def main() -> None:
             overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
-            flags=imp_flags + "ra" if flags["f"] else imp_flags + "ma",
+            flags=f"{imp_flags}ra" if flags["f"] else f"{imp_flags}ma",
         ),
         "r.in.gdal": Module(
             "r.in.gdal",
@@ -1142,7 +1134,7 @@ def main() -> None:
             overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
-            flags=imp_flags + "ra" if flags["r"] else imp_flags + "a",
+            flags=f"{imp_flags}ra" if flags["r"] else f"{imp_flags}a",
             memory=options["memory"],
         ),
         "r.timestamp": Module("r.timestamp", quiet=True, run_=False, finish_=False),
@@ -1303,16 +1295,16 @@ def main() -> None:
 
     for strds_name, r_maps in modified_strds.items():
         # Register raster maps in strds using tgis
-        tgis_strds = tgis.SpaceTimeRasterDataset(strds_name + "@" + grass_env["MAPSET"])
+        tgis_strds = tgis.SpaceTimeRasterDataset(f"{strds_name}@{grass_env['MAPSET']}")
         if GRASS_VERSION >= [8, 0] and TGIS_VERSION >= 3:
             map_file = StringIO("\n".join(r_maps))
         else:
-            map_file = Path(gs.tempfile())
-            map_file.write_text("\n".join(r_maps), encoding="UTF8")
+            map_file = gs.tempfile()
+            Path(map_file).write_text("\n".join(r_maps), encoding="UTF8")
         register_maps_in_space_time_dataset(
             "raster",
-            strds_name + "@" + grass_env["MAPSET"],
-            file=str(map_file),
+            f"{strds_name}@{grass_env['MAPSET']}",
+            file=map_file,
             update_cmd_list=False,
         )
 
