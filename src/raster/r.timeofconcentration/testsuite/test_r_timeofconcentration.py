@@ -3,175 +3,136 @@ from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
 
-class TestRTimeOfConcentrationRegression(TestCase):
+class TestRTimeOfConcentrationOutlets(TestCase):
     """
-    Regression test for r.timeofconcentration
+    outlet-based Tc verification.
 
-    what it checks:
-    verifies run-to-run stability: for a fixed region and inputs, repeated
-    executions must produce identical output statistics. each scenario runs the
-    module 'reps' times; run 1 becomes the baseline, and runs 2–reps must match
-    its r.univar statistics (min, max, mean, stddev, sum) and non-null count.
-
-    scenarios:
-    1) baseline: flow accumulation threshold=10
-    2) thr300: threshold=300
-    3) smin: threshold=10, slope_min=0.01
-
-    setup:
-    - region is set to a fixed bbox (nc spm sample data)
-    - flow direction (fdr) is derived from elevation using r.watershed
-    - no external data are required beyond the nc sample data 'elevation'
-      raster
-
-    outputs:
-    - no files are written; progress messages go through gs.message()
-    - temporary rasters created by the test are removed via class cleanups
-
-    how to run:
-        python3 test_r_timeofconcentration.py
+    For these five outlets, flow-path length was computed with r.lfp and the
+    Kirpich equation was solved manually on a calculator to obtain Tc. This
+    test runs r.timeofconcentration on the NC dataset, samples Tc at the same
+    outlet coordinates, and checks that the raster values match the manual Tc
+    within the allowed tolerance (honoring length_min, slope_min, and
+    vertical_units, and rounding off error in the manual calculation).
     """
 
     elev = "elevation"
-    fdr = "fdr"
-    acc_tmp = "acc_tmp"
-    tc_base = "tc_base"
-    tc_thr300 = "tc_thr300"
-    tc_smin = "tc_smin"
-    keys = ("min", "max", "mean", "stddev", "sum")
-    places = 5
-    reps = 3
+    fdr = "toc_fdr"
+    streams = "toc_streams"
+    tcmap = "toc_out"
+    Lmap = "toc_L"
+    DZmap = "toc_DZ"
+    Smap = "toc_S"
+
+    # (x, y, expected_tc)
+    outlets = [
+        (644725.2656813094, 223429.86091688852, 6.87),
+        (644726.739122, 221924.00112902367, 0.84),
+        (644726.7327240475, 222778.60964092897, 0.74),
+        (643609.8453361894, 222825.7149632604, 1.00),
+        (643499.3692589527, 222777.12340402367, 0.32),
+    ]
 
     @classmethod
     def setUpClass(cls):
-        # temp region for the whole test class
         cls.use_temp_region()
         cls.addClassCleanup(cls.del_temp_region)
 
-        gs.message(
-            _("running {n} scenarios with {r} runs each").format(n=3, r=cls.reps)
-        )
+        # full nc region
+        cls.runModule("g.region", raster=cls.elev)
 
-        # fixed bbox; optionally pin resolution for precaution (e.g., res=10)
-        cls.runModule(
-            "g.region",
-            w=642994.5376035355,
-            e=644732.0679188052,
-            s=221350.83582163436,
-            n=223653.82393179316,
-            # res=10,
-        )
-
-        # derive fdr once for all scenarios
+        # external derivation of direction + streams
         cls.runModule(
             "r.watershed",
             elevation=cls.elev,
-            accumulation=cls.acc_tmp,
             drainage=cls.fdr,
+            stream=cls.streams,
+            threshold=10,
             overwrite=True,
         )
 
-        # ensure rasters are cleaned even if tests abort
-        # tearDown class doesn't do it
-        def _cleanup_maps():
-            maps = [cls.acc_tmp, cls.fdr, cls.tc_base, cls.tc_thr300, cls.tc_smin]
+        def _cleanup():
             cls.runModule(
                 "g.remove",
-                flags="f",
                 type="raster",
-                name=",".join(maps),
+                name=",".join(
+                    [
+                        cls.fdr,
+                        cls.streams,
+                        cls.tcmap,
+                        cls.Lmap,
+                        cls.DZmap,
+                        cls.Smap,
+                    ]
+                ),
+                flags="f",
                 quiet=True,
             )
 
-        cls.addClassCleanup(_cleanup_maps)
+        cls.addClassCleanup(_cleanup)
 
-    def stats(self, rast):
-        ge = gs.parse_command("r.univar", flags="ge", map=rast)
-        g = gs.parse_command("r.univar", flags="g", map=rast)
-        out = {k: float(ge[k]) for k in self.keys if k in ge}
-        out["n"] = int(g["n"])
-        return out
-
-    def assert_same(self, base, cur, tag):
-        for k in self.keys:
-            self.assertAlmostEqual(
-                base[k],
-                cur[k],
-                places=self.places,
-                msg=_("{tag} {key} differs").format(tag=tag, key=k),
-            )
-        self.assertEqual(
-            base["n"],
-            cur["n"],
-            msg=_("{tag} n differs").format(tag=tag),
+    def sample_tc(self, x, y):
+        out = gs.read_command(
+            "r.what",
+            map=self.tcmap,
+            coordinates=f"{x},{y}",
+            flags="n",
         )
+        lines = [ln.strip() for ln in out.strip().splitlines() if ln.strip()]
+        if not lines:
+            self.fail(f"no output from r.what for {x},{y}")
 
-    def scenario(self, idx, label, kwargs, outmap):
-        gs.message(
-            _("running scenario {i}: run {r}/{R}").format(i=idx, r=1, R=self.reps)
-        )
+        data_line = lines[-1]
+        parts = data_line.split("|")
+        if len(parts) < 4:
+            self.fail(f"unexpected r.what output for {x},{y}: {data_line}")
+
+        val = parts[3]
+        if val in ("*", "", "NULL", "null"):
+            self.fail(f"no tc value at {x},{y} (got {data_line})")
+
+        return float(val)
+
+    def test_tc_at_outlets(self):
+        # run with diagnostics so we can inspect when it fails
         self.assertModule(
-            "r.timeofconcentration", time_concentration=outmap, overwrite=True, **kwargs
+            "r.timeofconcentration",
+            elevation=self.elev,
+            direction=self.fdr,
+            streams=self.streams,
+            time_concentration=self.tcmap,
+            length=self.Lmap,
+            drop=self.DZmap,
+            sbar=self.Smap,
+            overwrite=True,
         )
-        # sanity: output exists
-        try:
-            self.assertRasterExists(outmap)
-        except AttributeError:
-            ff = gs.find_file(name=outmap, element="cell")
-            self.assertTrue(
-                bool(ff and ff.get("name")),
-                msg=_("output raster {m} missing").format(m=outmap),
+
+        max_diff = 1.0 / 60.0  # 1 minute
+
+        for x, y, exp_tc in self.outlets:
+            got = self.sample_tc(x, y)
+            diff = abs(got - exp_tc)
+
+            # 1) hard hydrologic bound
+            self.assertLessEqual(
+                diff,
+                max_diff,
+                msg=(
+                    f"tc difference > 1 minute at {x},{y}: "
+                    f"got {got}, expected {exp_tc}, diff={diff} h"
+                ),
             )
-        base = self.stats(outmap)
 
-        for i in range(2, self.reps + 1):
-            gs.message(
-                _("running scenario {idx}: run {r}/{R}").format(
-                    idx=idx, r=i, R=self.reps
-                )
+            # 2) round-to-2dp agreement
+            got_r = round(got, 2)
+            exp_r = round(exp_tc, 2)
+            self.assertEqual(
+                got_r,
+                exp_r,
+                msg=(
+                    f"tc mismatch at {x},{y}: got {got_r} (raw {got}), "
+                    f"expected {exp_r} (raw {exp_tc})"
+                ),
             )
-            self.assertModule(
-                "r.timeofconcentration",
-                time_concentration=outmap,
-                overwrite=True,
-                **kwargs,
-            )
-            try:
-                self.assertRasterExists(outmap)
-            except AttributeError:
-                ff = gs.find_file(name=outmap, element="cell")
-                self.assertTrue(
-                    bool(ff and ff.get("name")),
-                    msg=_("output raster {m} missing").format(m=outmap),
-                )
-            cur = self.stats(outmap)
-            self.assert_same(base, cur, tag="{lbl} run{r}".format(lbl=label, r=i))
-
-        gs.message(_("scenario {i} passed").format(i=idx))
-
-    def test_01_baseline(self):
-        self.scenario(
-            1,
-            "baseline",
-            dict(elevation=self.elev, direction=self.fdr, threshold=10),
-            self.tc_base,
-        )
-
-    def test_02_thr300(self):
-        self.scenario(
-            2,
-            "thr300",
-            dict(elevation=self.elev, direction=self.fdr, threshold=300),
-            self.tc_thr300,
-        )
-
-    def test_03_smin(self):
-        self.scenario(
-            3,
-            "smin",
-            dict(elevation=self.elev, direction=self.fdr, threshold=10, slope_min=0.01),
-            self.tc_smin,
-        )
 
 
 if __name__ == "__main__":

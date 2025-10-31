@@ -5,8 +5,8 @@
 #
 # AUTHOR(S): Abdullah Azzam <mabdazzam@outlook.com>
 #
-# PURPOSE:   generates a time of concentration raster using upstream flow length and
-#            average slope
+# PURPOSE:   generates a time of concentration raster using the Kirpich
+#            Equation
 #
 # K: (C) 2025 by Abdullah Azzam and the GRASS Development Team
 #
@@ -15,7 +15,7 @@
 #            for details.
 ##############################################################################
 
-"""Generates a time of concentration raster using upstream flow length and slope"""
+"""Generates a time of concentration raster using the Kirpich Equation"""
 
 # %module
 # % description: Computes per-cell time of concentration (Tc) using the Kirpich equation from longest upstream flow-path length and path-average slope.
@@ -39,26 +39,18 @@
 # % guisection: inputs
 # %end
 
+# %option G_OPT_R_INPUT
+# % key: streams
+# % description: Name of input stream raster map consistent with 'direction' (from r.watershed or r.stream.extract)
+# % required: yes
+# % guisection: inputs
+# %end
+
 # %option G_OPT_R_OUTPUT
 # % key: time_concentration
 # % description: Name for output time of concentration raster map [hours]
 # % required: yes
 # % guisection: outputs
-# %end
-
-# %option G_OPT_R_INPUT
-# % key: streams
-# % description: Name of optional input stream raster map consistent with 'direction'; if not provided, a stream raster is derived using r.watershed
-# % required: no
-# % guisection: inputs
-# %end
-
-# %option
-# % key: threshold
-# % type: integer
-# % description: Threshold (number of cells) used to derive streams when 'streams' is not provided (lower value = denser network)
-# % required: no
-# % guisection: inputs
 # %end
 
 # %option G_OPT_R_INPUT
@@ -84,6 +76,24 @@
 # % description: Minimum upstream flow-path length to report Tc [m]
 # % required: no
 # % guisection: thresholds
+# %end
+
+# %option
+# % key: vertical_units
+# % type: string
+# % options: meters,feet,factor
+# % answer: meters
+# % description: Vertical units of elevation raster (converted to meters internally)
+# % required: no
+# % guisection: vertical
+# %end
+
+# %option
+# % key: factor
+# % type: double
+# % description: Conversion factor to meters when vertical_units=factor (ensure factor * units = meters)
+# % required: no
+# % guisection: vertical
 # %end
 
 # %option G_OPT_R_OUTPUT
@@ -121,16 +131,15 @@ def cleanup():
         gs.run_command(
             "g.remove",
             type="raster",
-            name=_TMP_RAST,  # list created above
+            name=",".join(_TMP_RAST),
             flags="f",
             quiet=True,
-            errors="ignore",  # don't complain if something is already gone
+            errors="ignore",
         )
 
 
 def tmp_rast(basename: str) -> str:
-    """Return a unique, style-compliant temp raster name and register it for cleanup."""
-    # recommended: all temps begin with 'TMP_' + module tag
+    """Return a unique temp raster name and register it for cleanup."""
     name = gs.append_node_pid(basename)
     _TMP_RAST.append(name)
     return name
@@ -140,119 +149,119 @@ def main():
     options, flags = gs.parser()
 
     # required
-    elev = options["elevation"]
-    fdr = options["direction"]
-    out = options["time_concentration"]
+    elevation = options["elevation"]
+    direction = options["direction"]
+    streams = options["streams"]
+    time_concentration = options["time_concentration"]
 
-    # optional inputs
-    streams_opt = options.get("streams")
-    threshold = int(options.get("threshold")) if options.get("threshold") else 1
+    # optional
     outlets = options.get("outlets")
 
-    # kirpich parameters fixed for meters (α,β as a,b)
+    slope_min = float(options["slope_min"]) if options.get("slope_min") else 1e-4
+    length_min = float(options["length_min"]) if options.get("length_min") else 10.0
+
+    vertical_units = options.get("vertical_units") or "meters"
+    factor = options.get("factor")
+
+    length = options.get("length")
+    drop = options.get("drop")
+    sbar = options.get("sbar")
+
+    # kirpich parameters (metric; α,β as a,b)
     a = 0.77
     b = -0.385
     K = 0.01947
 
-    # numeric floors to avoid blowup
-    slope_min = float(options["slope_min"]) if options.get("slope_min") else 1e-4
-    length_min = float(options["length_min"]) if options.get("length_min") else 10.0
-
-    # optional diagnostics to promote temps
-    out_L = options.get("length")
-    out_DZ = options.get("drop")
-    out_Savg = options.get("sbar")
-
-    # basic checks
     gs.message(_("Checking inputs..."))
-    res = gs.find_file(elev, element="raster")
-    if not res["file"]:
-        gs.fatal(_("Raster map <{name}> not found").format(name=elev))
 
-    res = gs.find_file(fdr, element="raster")
-    if not res["file"]:
-        gs.fatal(_("Raster map <{name}> not found").format(name=fdr))
+    if not gs.find_file(elevation, element="raster")["file"]:
+        gs.fatal(_("raster map <{name}> not found").format(name=elevation))
 
-    # optional: validate only if provided
-    if streams_opt:
-        res = gs.find_file(streams_opt, element="raster")
-        if not res["file"]:
-            gs.fatal(
-                _("Optional 'streams' raster <{name}> not found").format(
-                    name=streams_opt
-                )
-            )
+    if not gs.find_file(direction, element="raster")["file"]:
+        gs.fatal(_("raster map <{name}> not found").format(name=direction))
+
+    if not gs.find_file(streams, element="raster")["file"]:
+        gs.fatal(_("stream raster <{name}> not found").format(name=streams))
 
     if outlets:
-        res = gs.find_file(outlets, element="raster")
-        if not res["file"]:
+        if not gs.find_file(outlets, element="raster")["file"]:
             gs.fatal(
-                _("Optional 'outlets' raster <{name}> not found").format(name=outlets)
+                _("optional 'outlets' raster <{name}> not found").format(name=outlets)
             )
 
-    # temps; write directly to user outputs when provided
-    L = out_L if out_L else tmp_rast("TMP_r_toc_L")
-    DZ = tmp_rast("TMP_r_toc_DZ")
-    DZp = out_DZ if out_DZ else tmp_rast("TMP_r_toc_DZp")
-    Savg = out_Savg if out_Savg else tmp_rast("TMP_r_toc_Savg")
-
-    # streams: provided or derived?
-    if streams_opt:
-        gs.message(
-            _("Using provided streams raster <{name}>...").format(name=streams_opt)
-        )
-        streams_rast = streams_opt
+    # vertical conversion factor
+    factor = 1.0
+    if vertical_units == "meters":
+        factor = 1.0
+    elif vertical_units == "feet":
+        factor = 1.0 / 3.28084
+    elif vertical_units == "factor":
+        if not factor:
+            gs.fatal(_("vertical_units=factor requires 'factor=' to be set"))
+        factor = float(factor)
     else:
-        streams_rast = tmp_rast("TMP_r_toc_streams")
-        gs.message(
-            _("Deriving streams with r.watershed (threshold={thr})...").format(
-                thr=threshold
-            )
-        )
-        gs.run_command(
-            "r.watershed",
-            elevation=elev,
-            threshold=threshold,
-            stream=streams_rast,
-            quiet=True,
-        )
+        gs.fatal(_("unsupported vertical_units={vu}").format(vu=vertical_units))
 
-    # upstream metrics: L (distance), DZ (drop)
-    gs.message(_("Computing upstream distance and drop with r.stream.distance..."))
+    # temps / targets
+    L = length if length else tmp_rast("TMP_r_toc_L")
+    DZ = tmp_rast("TMP_r_toc_DZ")
+    DZ_m = tmp_rast("TMP_r_toc_DZ_m")
+    DZp = drop if drop else tmp_rast("TMP_r_toc_DZp")
+    Savg = sbar if sbar else tmp_rast("TMP_r_toc_Savg")
+
+    gs.message(
+        _("Computing upstream distance and elevation drop with r.stream.distance...")
+    )
     gs.run_command(
         "r.stream.distance",
-        stream_rast=streams_rast,
-        direction=fdr,
-        elevation=elev,
+        stream_rast=streams,
+        direction=direction,
+        elevation=elevation,
         method="upstream",
         distance=L,
         difference=DZ,
         quiet=True,
     )
 
-    outlets_expr = outlets if outlets else "1"
-    # slope and tc
-    if out_DZ or out_Savg:
-        gs.message(_("Computing diagnostics: drop and path-average slope..."))
-        # compute separately for diagnostics
-        gs.mapcalc(f"{DZp} = max({DZ}, 0)", quiet=True)
-        gs.mapcalc(f"{Savg} = if ({L} > 0, max({DZp}/{L}, {slope_min}), 0)", quiet=True)
-        Savg_expr = Savg
+    # convert vertical to meters if needed
+    if factor != 1.0:
+        gs.message(
+            _("converting elevation drops to meters (factor = {f})...").format(
+                f=f"{factor:.5f}"
+            )
+        )
+        gs.mapcalc(f"{DZ_m} = {DZ} * {factor}", quiet=True)
+        dz_src = DZ_m
     else:
-        # faster all at once
-        gs.message(_("Computing slope inline without diagnostics..."))
-        Savg_expr = f"if ({L} > 0, max(max({DZ}, 0)/{L}, {slope_min}), 0)"
+        dz_src = DZ
+
+    outlets_expr = outlets if outlets else "1"
+
+    # diagnostics or inline slope
+    if drop or sbar:
+        gs.message(_("Computing diagnostics: drop and path-average slope..."))
+        gs.mapcalc(f"{DZp} = max({dz_src}, 0)", quiet=True)
+        gs.mapcalc(
+            f"{Savg} = if ({L} > 0, max({DZp}/{L}, {slope_min}), 0)",
+            quiet=True,
+        )
+        savg_expr = Savg
+    else:
+        # gs.message(_("Computing slope inline without diagnostics..."))
+        savg_expr = f"if ({L} > 0, max(max({dz_src}, 0)/{L}, {slope_min}), 0)"
 
     gs.message(
-        _("Computing time of concentration to raster <{out}>...").format(out=out)
+        _("Computing time of concentration to raster <{out}>...").format(
+            out=time_concentration
+        )
     )
     gs.mapcalc(
-        f"{out} = if(!isnull({outlets_expr}) && {L} >= {length_min}, "
-        f"{K} * pow({L},{a}) * pow({Savg_expr},{b}) / 60.0, null())",
+        f"{time_concentration} = if(!isnull({outlets_expr}) && {L} >= {length_min}, "
+        f"{K} * pow({L},{a}) * pow({savg_expr},{b}) / 60.0, null())",
         quiet=True,
     )
 
-    gs.raster_history(out)
+    gs.raster_history(time_concentration)
 
 
 if __name__ == "__main__":

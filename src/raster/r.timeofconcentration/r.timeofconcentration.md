@@ -23,12 +23,9 @@ slopes and flow paths.
 `r.stream.extract`). Required to trace upstream flow paths; defines the
 drainage network for accumulation.
 
-**streams:** Optional input raster of streams, consistent with `direction`. If
-not provided, streams are derived using `r.watershed` with a threshold.
-
-**threshold:** Integer threshold [cells] to derive streams when `streams` is
-omitted (lower value = denser stream network; default inferred from
-`r.watershed`).
+**streams:** Stream raster and **must be consistent** with `direction` (i.e.,
+produced from the same run of `r.watershed` or from `r.stream.extract` on the
+same DEM).
 
 **outlets:** Optional raster of outlet points; Tc is computed only at these
 cells (NULL elsewhere), respecting the current mask/region.
@@ -38,6 +35,17 @@ Prevents division by zero on flat areas by setting a floor value.
 
 **length_min:** Minimum upstream flow-path length [m] ($10$ default). Ensures
 Tc is reported only where flow paths are significant.
+
+**vertical_units:** optional parameter that defines the vertical units of the
+elevation raster. It accepts three values: `meters`, `feet`, or `factor`, and
+defaults to `meters`. When `vertical_units=meters`, no conversion is applied.
+When `vertical_units=feet`, elevation drops are multiplied by `1/3.28084` to
+convert them to meters. When `vertical_units=factor`, the module multiplies
+elevation drops by the user-supplied factor.
+
+**factor:** Required only when `vertical_units=factor`. It must convert the
+user’s vertical unit to meters (`factor × <your vertical unit> = meters`), and
+the user is responsible for providing the correct factor.
 
 ### Outputs
 
@@ -65,11 +73,8 @@ where $\Delta z$ is the drop and $L$ is the length.
 
 ## Notes
 
-- **SI units only.** The module processes inputs and outputs in metric system
-- **CRS-aware areas.** `r.stream.distance` returns lengths in meters, adjusted
-  to the coordinate system.
-- **Stream derivation.** If 'streams' is omitted, `r.watershed` generates it,
-  using 'threshold' to control density.
+- **CRS-aware distance** `r.stream.distance` returns lengths in meters,
+  even if the CRS is geographic or projected (meters or feet).
 - **Static Tc** Tc is a steady-state estimate; no temporal
   routing or storage is modeled.
 
@@ -77,7 +82,7 @@ where $\Delta z$ is the drop and $L$ is the length.
 
 These examples use the North Carolina sample dataset.
 
-Calculate time of concentration using r.watershed and r.flowaccumulation:
+Calculate time of concentration using r.watershed and r.timeofconcentration:
 
 ```sh
 # set the region
@@ -87,16 +92,13 @@ g.region -p raster=elevation
 r.watershed -sa elevation=elevation drainage=fdr threshold=10
 
 # compute the time of concentration (use same threshold as r.watershed)
-r.timeofconcentration elevation=elevation direction=fdr tc=tc_nc threshold=10
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc
 
 # use length_min parameter for coarser tc on important streams only
-r.timeofconcentration elevation=elevation direction=fdr tc=tc_nc length_min=100
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc_100 length_min=100
 ```
 
 ![r_timeofconcentration example](tc_nc.png)
-*Figure: Output from r.timeofconcentration on NC dataset*
-
-![r_timeofconcentration example](tc_nc_zoomed.png)
 *Figure: Output from r.timeofconcentration on NC dataset zoomed near the
 watershed outlet*
 
@@ -115,4 +117,6 @@ watershed outlet*
 
 ## AUTHORS
 
-[Abdullah Azzam](mailto:mabdazzam@outlook.com), New Mexico State University
+[Abdullah Azzam](mailto:mabdazzam@outlook.com)
+([CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
+Engineering, New Mexico State University)
