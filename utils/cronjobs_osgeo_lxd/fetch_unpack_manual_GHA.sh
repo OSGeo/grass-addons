@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Purpose: Script to download GRASS "Documentation" artifact from GitHub (produced by GitHub action workflow) and unpack
+# Purpose: Script to download GRASS 8.5+ "Documentation" artifact from GitHub (produced by GitHub action workflow) and unpack
 #
 # (c) 2025, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
@@ -11,18 +11,17 @@
 ###################################################################
 #
 # How this script works:
-# GRASS 8.5 `main` mkdocs documentation update
 #
 # to be run on grass.osgeo.org, in "neteler" or "grassbot" userspace
 # - executes gh_cli_download_artifact.sh
 # - unpacks the Documentation artifact both in grass85 and grass-devel dirs on the server
+#########
 
 cd $HOME
-
 # fetch artifact
 bash /home/neteler/cronjobs/gh_cli_download_artifact.sh
 
-# update twice: version and devel
+# update twice: number-version and devel-version
 cd /var/www/code_and_data/grass85/manuals/ && rm -rf * && unzip -q /tmp/mkdocs-site.zip
 cd /var/www/code_and_data/grass-devel/manuals/ && rm -rf * && unzip -q /tmp/mkdocs-site.zip
 
