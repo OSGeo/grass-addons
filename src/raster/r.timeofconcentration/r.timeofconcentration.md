@@ -89,18 +89,24 @@ Calculate time of concentration using r.watershed and r.timeofconcentration:
 g.region -p raster=elevation
 
 # calculate positive flow accumulation and drainage directions using r.watershed
-r.watershed -sa elevation=elevation drainage=fdr threshold=10
+r.watershed -sa elevation=elevation drainage=fdr stream=str threshold=10
 
-# compute the time of concentration (use same threshold as r.watershed)
+# compute the time of concentration
 r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc
 
 # use length_min parameter for coarser tc on important streams only
-r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc_100 length_min=100
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc_250 length_min=250
+
+# if the vertical units of the DEM are in feet
+r.timeofconcentration elevation=elevation vunits=feet dir=fdr str=str tc=tc
+
+# if the vertical units of the DEM are in units other than meters or feet (e.g., cm)
+r.timeofconcentration elevation=elevation vunits=factor factor=0.1 dir=fdr str=str tc=tc
 ```
 
 ![r_timeofconcentration example](tc_nc.png)
-*Figure: Output from r.timeofconcentration on NC dataset zoomed near the
-watershed outlet*
+*Figure: Output from r.timeofconcentration with length_min=250 on NC dataset
+zoomed near the watershed outlet*
 
 ## REFERENCES
 

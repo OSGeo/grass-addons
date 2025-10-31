@@ -161,7 +161,14 @@ def main():
     length_min = float(options["length_min"]) if options.get("length_min") else 10.0
 
     vertical_units = options.get("vertical_units") or "meters"
-    factor = options.get("factor")
+    if vertical_units in ("meters", "feet"):
+        if options["factor"]:
+            gs.fatal(_("Factors must be used only when vertical_units=factor"))
+        factor = 1 if vertical_units == "meters" else 1.0 / 3.28084
+    elif options["factor"]:
+        factor = float(options.get("factor"))
+    else:
+        gs.fatal(_("Factor must be provided when vertical_units=factor"))
 
     length = options.get("length")
     drop = options.get("drop")
@@ -188,19 +195,6 @@ def main():
             gs.fatal(
                 _("optional 'outlets' raster <{name}> not found").format(name=outlets)
             )
-
-    # vertical conversion factor
-    factor = 1.0
-    if vertical_units == "meters":
-        factor = 1.0
-    elif vertical_units == "feet":
-        factor = 1.0 / 3.28084
-    elif vertical_units == "factor":
-        if not factor:
-            gs.fatal(_("vertical_units=factor requires 'factor=' to be set"))
-        factor = float(factor)
-    else:
-        gs.fatal(_("unsupported vertical_units={vu}").format(vu=vertical_units))
 
     # temps / targets
     L = length if length else tmp_rast("TMP_r_toc_L")
