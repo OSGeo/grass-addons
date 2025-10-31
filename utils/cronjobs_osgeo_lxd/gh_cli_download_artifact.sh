@@ -11,6 +11,7 @@
 ###################################################################
 # How this script works:
 # - generate a new read-only token: https://github.com/settings/personal-access-tokens
+# - activate token on target server which runs this script (see below): gh auth login
 # - cd to repo; login via gh auth login using the token
 # - CAVEAT: these tokens expire after three months!
 # - the last successful workflow run is identified via GH CLI
@@ -44,8 +45,13 @@ cd $OUTPUT_DIR && rm -f $ZIP_OUTPUT
 echo "Changing into <$REPO_LOCAL>..."
 cd $REPO_LOCAL
 
-# use e.g. (read-only) TOKEN
+# use GitHub read-only TOKEN
+# cd src/main/
 # gh auth login
+# answers:
+#  Where do you use GitHub? GitHub.com
+#  What is your preferred protocol for Git operations on this host? HTTPS
+#  How would you like to authenticate GitHub CLI? Paste an authentication token
 
 echo "Identifying last successful workflow run for '$WORKFLOW_NAME'..."
 
