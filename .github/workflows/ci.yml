@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
     env:
       # renovate: datasource=github-tags depName=r-hub/R
-      R_VERSION: "4.5.1"
+      R_VERSION: "4.5.2"
 
     steps:
       - name: Checkout core
