@@ -101,7 +101,7 @@ r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc_250
 r.timeofconcentration elevation=elevation vunits=feet dir=fdr str=str tc=tc
 
 # if the vertical units of the DEM are in units other than meters or feet (e.g., cm)
-r.timeofconcentration elevation=elevation vunits=factor factor=0.1 dir=fdr str=str tc=tc
+r.timeofconcentration elevation=elevation vunits=factor factor=0.01 dir=fdr str=str tc=tc
 ```
 
 ![r_timeofconcentration example](tc_nc.png)

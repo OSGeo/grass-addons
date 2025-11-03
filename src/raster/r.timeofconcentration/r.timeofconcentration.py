@@ -163,7 +163,7 @@ def main():
     vertical_units = options.get("vertical_units") or "meters"
     if vertical_units in ("meters", "feet"):
         if options["factor"]:
-            gs.fatal(_("Factors must be used only when vertical_units=factor"))
+            gs.fatal(_("Factor must be used only when vertical_units=factor"))
         factor = 1 if vertical_units == "meters" else 1.0 / 3.28084
     elif options["factor"]:
         factor = float(options.get("factor"))
