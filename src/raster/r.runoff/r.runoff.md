@@ -165,19 +165,29 @@ r.mapcalc "pcp = int(rand(15, 100))" seed=15100 --o
 # compute runoff depth and volume (simple SCS computation; does not require duration, tc or fdr)
 r.runoff rainfall=pcp cn=cn lambda=0.2 runoff_depth=runoff_depth runoff_volume=runoff_volume --o
 
-# compute cell by cell and upstream contirbuting runoff depth, runoff volume, and peak discharge 
+# compute cell by cell and upstream contributing runoff depth, runoff volume, and peak discharge
 r.runoff rainfall=pcp duration=1 cn=cn direction=fdr lambda=0.2 tc=tc runoff_depth=runoff_depth ttp=ttp runoff_volume=runoff_volume upstream_area=upstream_area upstream_runoff_depth=upstream_runoff_depth upstream_runoff_volume=upstream_runoff_volume peak_discharge=peak_discharge --o
+```
+
+*r.runoff* also prints some important statistics including total
+runoff volume, maximum runoff depth, and peak discharge.
+For example, terminal output from the last command is;
+
+```text
+Computing runoff depth [mm]
+Computing per-cell volume [m³]
+Total runoff volume: 2028504.82 m³
+Maximum runoff depth: 76.68 mm
+Computing upstream area [km²] and volume [m³]
+Computing upstream-average runoff depth [mm]
+Computing time to peak [hours]
+Computing peak discharge [m³/s]
+Peak discharge (max): 29.477 m³/s
 ```
 
 ![r_runoff example](us_ro_vol.png)
 *Figure1: Output upstream runoff volume raster from r.runoff sample run on NC
 dataset zoomed in near the outlet*
-
-*r.runoff* also prints some important statistics (Figure 2) including total
-runoff volume, maximum runoff depth, and peak discharge.
-
-![r_runoff stats](xterm_output.png)
-*Figure 2: Terminal standard output (summary) from r.runoff*
 
 ## REFERENCES
 

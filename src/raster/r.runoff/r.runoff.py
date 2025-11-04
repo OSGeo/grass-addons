@@ -146,14 +146,6 @@ def mktemp(prefix: str) -> str:
     return name
 
 
-# mapcalc wrapper (works with and without gs.mapcalc api)
-def mcalc(expr: str):
-    try:
-        gs.mapcalc(expr)
-    except AttributeError:
-        gs.run_command("r.mapcalc", expression=expr, quiet=True)
-
-
 def require_raster(name: str, label: str):
     if not name or not gs.find_file(name, element="cell")["name"]:
         gs.fatal(_("Raster map <{name}> not found").format(name=name))
@@ -211,14 +203,15 @@ def main():
 
     # S (storage) [mm] and Q (runoff depth) [m]
     S = mktemp("S_mm")
-    mcalc(f"{S} = if(isnull({cn}), null(), 25400.0/{cn} - 254.0)")
+    gs.mapcalc(f"{S} = if(isnull({cn}), null(), 25400.0/{cn} - 254.0)", quiet=True)
 
     gs.message(_("Computing runoff depth [mm]"))
-    mcalc(
+    gs.mapcalc(
         f"{qout} = if(isnull({rainfall}) || isnull({S}), null(), "
         f"if({rainfall} > {lambda_ratio}*{S}, "
         f"(({rainfall} - {lambda_ratio}*{S})^2) / ({rainfall} + (1.0 - {lambda_ratio})*{S}), "
-        f"0.0))"
+        f"0.0))",
+        quiet=True,
     )
 
     # per-cell volume [m3]
@@ -226,10 +219,10 @@ def main():
     q_m = mktemp("q_m")
     v_m3 = vout if vout else mktemp("v_m3")
 
-    mcalc(f"{area_m2} = area()")
+    gs.mapcalc(f"{area_m2} = area()", quiet=True)
     gs.message(_("Computing per-cell volume [m³]"))
-    mcalc(f"{q_m} = {qout} / 1000.0")
-    mcalc(f"{v_m3} = {q_m} * {area_m2}")
+    gs.mapcalc(f"{q_m} = {qout} / 1000.0", quiet=True)
+    gs.mapcalc(f"{v_m3} = {q_m} * {area_m2}", quiet=True)
 
     # totals & quick stats (using -g for 8.4 compatibility; printing stderr just for info)
     vst = gs.parse_command("r.univar", map=v_m3, flags="g", quiet=True)
@@ -245,7 +238,7 @@ def main():
         gs.message(_("Computing upstream area [km²] and volume [m³]"))
 
         w_km2 = mktemp("w_km2")
-        mcalc(f"{w_km2} = {area_m2} / 1000000.0")
+        gs.mapcalc(f"{w_km2} = {area_m2} / 1000000.0", quiet=True)
 
         a_up = upstream_area_out if upstream_area_out else mktemp("upstream_area_km2")
         v_up = (
@@ -280,20 +273,24 @@ def main():
             else mktemp("upstream_runoff_depth_mm")
         )
         gs.message(_("Computing upstream-average runoff depth [mm]"))
-        mcalc(f"{qavg} = if({a_up} > 0.0, {v_up} / ({a_up} * 1000.0), 0.0)")
+        gs.mapcalc(
+            f"{qavg} = if({a_up} > 0.0, {v_up} / ({a_up} * 1000.0), 0.0)", quiet=True
+        )
 
         # time to peak [hours] = 0.5*D + 0.6*Tc
         tp = ttp_out if ttp_out else mktemp("tp_h")
         gs.message(_("Computing time to peak [hours]"))
-        mcalc(
-            f"{tp} = if(isnull({time_conc}), null(), 0.5*{duration_hours} + 0.6*{time_conc})"
+        gs.mapcalc(
+            f"{tp} = if(isnull({time_conc}), null(), 0.5*{duration_hours} + 0.6*{time_conc})",
+            quiet=True,
         )
 
         # peak discharge [m3/s] = 0.208 * A[km2] * Q[mm] / tp[h]
         if peak_out:
             gs.message(_("Computing peak discharge [m³/s]"))
-            mcalc(
-                f"{peak_out} = if(isnull({tp}) || {tp} <= 0.0, 0.0, 0.208 * {a_up} * {qavg} / {tp})"
+            gs.mapcalc(
+                f"{peak_out} = if(isnull({tp}) || {tp} <= 0.0, 0.0, 0.208 * {a_up} * {qavg} / {tp})",
+                quiet=True,
             )
             pst = gs.parse_command("r.univar", map=peak_out, flags="g", quiet=True)
             pmax = float(pst.get("max", 0.0)) if pst else 0.0
