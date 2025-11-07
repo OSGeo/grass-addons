@@ -21,16 +21,18 @@ from grass.pygrass.modules import Module
 from prisma_reader import load_prisma_l2d, concatenate_hyperspectral
 
 COMPOSITES = {
-    "rgb":              [660.0, 572.0, 478.0],
-    "cir":              [848.0, 660.0, 572.0],
+    "rgb": [660.0, 572.0, 478.0],
+    "cir": [848.0, 660.0, 572.0],
     "swir_agriculture": [848.0, 1653.0, 660.0],
-    "swir_geology":     [2200.0, 848.0, 572.0],
+    "swir_geology": [2200.0, 848.0, 572.0],
 }
+
 
 # -------------------------- helpers --------------------------
 def _require(cond, msg):
     if not cond:
         gs.fatal(msg)
+
 
 def _resolve_he5(path_like):
     if os.path.isdir(path_like):
@@ -40,12 +42,15 @@ def _resolve_he5(path_like):
         gs.fatal("No .he5 file found in the provided folder.")
     return path_like
 
+
 def _find_nearest_band_1based(target_nm, wavelengths_nm):
     wl = np.asarray(wavelengths_nm, dtype=np.float32)
     return int(np.argmin(np.abs(wl - float(target_nm)))) + 1  # 1-based
 
+
 def _temp_name(prefix):
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
 
 # -------------------------- region --------------------------
 def _compute_edges_from_centers(ul_e, ul_n, ur_e, ur_n, ll_e, ll_n, rows, cols):
@@ -58,25 +63,35 @@ def _compute_edges_from_centers(ul_e, ul_n, ur_e, ur_n, ll_e, ll_n, rows, cols):
     if rows < 2 or cols < 2:
         gs.fatal("Invalid raster shape (<2).")
 
-    ew_c2c = (ur_e - ul_e) / float(cols - 1)   # columns axis = easting
-    ns_c2c = (ul_n - ll_n) / float(rows - 1)   # rows axis = northing
+    ew_c2c = (ur_e - ul_e) / float(cols - 1)  # columns axis = easting
+    ns_c2c = (ul_n - ll_n) / float(rows - 1)  # rows axis = northing
 
-    west  = ul_e - 0.5 * ew_c2c
-    east  = ur_e + 0.5 * ew_c2c
+    west = ul_e - 0.5 * ew_c2c
+    east = ur_e + 0.5 * ew_c2c
     north = ul_n + 0.5 * ns_c2c
     south = ll_n - 0.5 * ns_c2c
     return west, east, south, north
 
+
 def _force_region_exact_for_transposed(geo, rows_E, cols_N):
     west, east, south, north = _compute_edges_from_centers(
-        geo.ul_e, geo.ul_n, geo.ur_e, geo.ur_n, geo.ll_e, geo.ll_n,
-        rows=rows_E, cols=cols_N
+        geo.ul_e,
+        geo.ul_n,
+        geo.ur_e,
+        geo.ur_n,
+        geo.ll_e,
+        geo.ll_n,
+        rows=rows_E,
+        cols=cols_N,
     )
     gs.run_command("g.region", w=west, e=east, s=south, n=north, quiet=True)
     gs.run_command("g.region", rows=rows_E, cols=cols_N, quiet=True)
     reg = gs.region()
     if int(reg["rows"]) != rows_E or int(reg["cols"]) != cols_N:
-        gs.fatal(f"Region is {reg['rows']}x{reg['cols']} but transposed data is {rows_E}x{cols_N}")
+        gs.fatal(
+            f"Region is {reg['rows']}x{reg['cols']} but transposed data is {rows_E}x{cols_N}"
+        )
+
 
 # -------------------------- writers --------------------------
 def _write_float_raster(name, data_2d_float32):
@@ -84,8 +99,16 @@ def _write_float_raster(name, data_2d_float32):
     arr[:, :] = data_2d_float32
     arr.write(name, null="nan", overwrite=True)
 
+
 # -------------------------- public core --------------------------
-def import_prisma(input_path, output_name, composites=None, custom_wavelengths=None, strength_val=96, import_null=False):
+def import_prisma(
+    input_path,
+    output_name,
+    composites=None,
+    custom_wavelengths=None,
+    strength_val=96,
+    import_null=False,
+):
     """
     Writes composite rasters (only) following the EnMAP composite flow:
       - pick nearest bands by wavelength,
@@ -125,7 +148,7 @@ def import_prisma(input_path, output_name, composites=None, custom_wavelengths=N
         refl[bg_mask, :] = np.nan  # GRASS will store these as NULLs on write
 
     # Determine transposed shape (E,N) from any band
-    first_band = refl[:, :, 0].T                # (E,N)
+    first_band = refl[:, :, 0].T  # (E,N)
     rows_E, cols_N = first_band.shape
 
     # Fix region exactly to transposed shape and metadata extents
@@ -148,7 +171,9 @@ def import_prisma(input_path, output_name, composites=None, custom_wavelengths=N
 
     if custom_wavelengths:
         if len(custom_wavelengths) != 3:
-            gs.fatal("Custom composites must provide exactly 3 wavelengths (e.g., 850,1650,660)")
+            gs.fatal(
+                "Custom composites must provide exactly 3 wavelengths (e.g., 850,1650,660)"
+            )
         wanted.append(("CUSTOM", [float(x) for x in custom_wavelengths]))
 
     # create temp rasters only for bands we need, and reuse them via a dict keyed by 1-based band index.
@@ -219,8 +244,12 @@ def import_prisma(input_path, output_name, composites=None, custom_wavelengths=N
             cube[k, :, :] = refl[:, :, k].T.astype(np.float32)
 
         # write 3D raster under the final output name
-        cube.write(mapname=f"{output_name}", null="nan", overwrite=True)  # NaNs -> NULLs
-        gs.info(f"Created 3D raster with all bands: {output_name} ({bands_total} slices).")
+        cube.write(
+            mapname=f"{output_name}", null="nan", overwrite=True
+        )  # NaNs -> NULLs
+        gs.info(
+            f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
+        )
 
         # -------- r3 metadata --------
         try:
@@ -229,13 +258,15 @@ def import_prisma(input_path, output_name, composites=None, custom_wavelengths=N
             for i in range(count_meta):
                 wl_i = float(wavelengths[i])
                 fwhm_i = float(fwhm[i]) if i < len(fwhm) else float("nan")
-                desc_lines.append(f"Band {i+1}: {wl_i} nm, FWHM: {fwhm_i} nm")
-            Module("r3.support",
-                   map=output_name,
-                   title="PRISMA Hyperspectral Data",
-                   description="\n".join(desc_lines),
-                   vunit="nanometers",
-                   quiet=True)
+                desc_lines.append(f"Band {i + 1}: {wl_i} nm, FWHM: {fwhm_i} nm")
+            Module(
+                "r3.support",
+                map=output_name,
+                title="PRISMA Hyperspectral Data",
+                description="\n".join(desc_lines),
+                vunit="nanometers",
+                quiet=True,
+            )
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
         # -----------------------------------------------------------------
@@ -255,23 +286,50 @@ def import_prisma(input_path, output_name, composites=None, custom_wavelengths=N
 
         Module("g.region", raster=rgb_maps[0], quiet=True)
         if name.upper() == "rgb":
-            Module("i.colors.enhance", red=rgb_maps[0], green=rgb_maps[1], blue=rgb_maps[2],
-                   strength=str(strength_val), flags="p", quiet=True)
+            Module(
+                "i.colors.enhance",
+                red=rgb_maps[0],
+                green=rgb_maps[1],
+                blue=rgb_maps[2],
+                strength=str(strength_val),
+                flags="p",
+                quiet=True,
+            )
             outname = f"{output_name}_{name.lower().replace('-', '_')}"
         else:
-            Module("i.colors.enhance", red=rgb_maps[0], green=rgb_maps[1], blue=rgb_maps[2],
-                   strength=str(strength_val), quiet=True)
+            Module(
+                "i.colors.enhance",
+                red=rgb_maps[0],
+                green=rgb_maps[1],
+                blue=rgb_maps[2],
+                strength=str(strength_val),
+                quiet=True,
+            )
             outname = f"{output_name}_{name.lower().replace('-', '_')}"
 
-        Module("r.composite", red=rgb_maps[0], green=rgb_maps[1], blue=rgb_maps[2],
-               output=outname, quiet=True, overwrite=True)
+        Module(
+            "r.composite",
+            red=rgb_maps[0],
+            green=rgb_maps[1],
+            blue=rgb_maps[2],
+            output=outname,
+            quiet=True,
+            overwrite=True,
+        )
         gs.info(f"Generated composite raster: {outname}")
 
     # Clean up temp bands after all composites are made
     if created_names:
-        Module("g.remove", type="raster", name=",".join(created_names), flags="f", quiet=True)
+        Module(
+            "g.remove",
+            type="raster",
+            name=",".join(created_names),
+            flags="f",
+            quiet=True,
+        )
 
     gs.del_temp_region()
+
 
 def run_import(options, flags):
     custom = None
@@ -281,7 +339,9 @@ def run_import(options, flags):
             if len(custom) != 3:
                 raise ValueError
         except Exception:
-            gs.fatal("Invalid format for composites_custom. Usage example: 850,1650,660")
+            gs.fatal(
+                "Invalid format for composites_custom. Usage example: 850,1650,660"
+            )
 
     strength_opt = options.get("strength")
     if strength_opt is None or str(strength_opt).strip() == "":
@@ -294,7 +354,11 @@ def run_import(options, flags):
         if not (0 <= strength_val <= 100):
             gs.fatal("Invalid strength. Provide an integer 0-100.")
 
-    comps = [c.strip() for c in options["composites"].split(",")] if options.get("composites") else None
+    comps = (
+        [c.strip() for c in options["composites"].split(",")]
+        if options.get("composites")
+        else None
+    )
     import_null = bool(flags.get("n"))
 
     import_prisma(

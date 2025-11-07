@@ -58,7 +58,7 @@ this and adjusts the X-axis to component indices.
 :::
 
 ::: {align="center" style="margin: 10px"}
-![Reflectance spectra](explore_example1.png){width="1920" height="1088"
+![Reflectance spectra](explore_example1.jpg){width="1920" height="1088"
 border="0"}\
 *Figure: Reflectance spectra plots generated with i.hyper.explore*\
 [*Data source: Copyright © 2012--2025 EnMAP at Earth Observation Center
@@ -73,7 +73,7 @@ EOC of DLR.*]{.small}
 :::
 
 ::: {align="center" style="margin: 10px"}
-![Radiance spectra](explore_example2.png){width="1920" height="1088"
+![Radiance spectra](explore_example2.jpg){width="1920" height="1088"
 border="0"}\
 *Figure: Radiance spectra plots generated with i.hyper.explore*\
 [*Data source: Planet Labs -- Open Data, CC-BY-4.0.*]{.small}

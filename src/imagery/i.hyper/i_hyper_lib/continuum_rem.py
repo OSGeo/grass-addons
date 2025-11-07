@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 
+
 def _continuum_removal(spec):
     s = np.asarray(spec, dtype=np.float32)
     if np.any(np.isnan(s)):

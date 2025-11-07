@@ -25,17 +25,19 @@ from tanager_reader import (
 )
 
 COMPOSITES = {
-    "rgb":              [660.0, 572.0, 478.0],
-    "cir":              [848.0, 660.0, 572.0],
+    "rgb": [660.0, 572.0, 478.0],
+    "cir": [848.0, 660.0, 572.0],
     "swir_agriculture": [848.0, 1653.0, 660.0],
-    "swir_geology":     [2200.0, 848.0, 572.0],
+    "swir_geology": [2200.0, 848.0, 572.0],
 }
 
 # -------------------------- helpers --------------------------
 
+
 def _require(cond, msg):
     if not cond:
         gs.fatal(msg)
+
 
 def _resolve_h5(path_like):
     if os.path.isdir(path_like):
@@ -45,19 +47,24 @@ def _resolve_h5(path_like):
         gs.fatal("No .h5 file found in the provided folder.")
     return path_like
 
+
 def _find_nearest_band_1based(target_nm, wavelengths_nm):
     wl = np.asarray(wavelengths_nm, dtype=np.float32)
     return int(np.argmin(np.abs(wl - float(target_nm)))) + 1  # 1-based
 
+
 def _temp_name(prefix):
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
 
 def _write_float_raster(name, data_2d_float32):
     arr = garray.array(dtype=np.float32)
     arr[:, :] = data_2d_float32
     arr.write(name, null="nan", overwrite=True)  # NaNs -> NULLs
 
+
 # -------------------------- core --------------------------
+
 
 def import_tanager(
     input_path: str,
@@ -66,7 +73,7 @@ def import_tanager(
     custom_wavelengths=None,
     strength_val=96,
     import_null=False,
-    fill_8_neighbor=True
+    fill_8_neighbor=True,
 ):
     """
     Import, project, and resample Tanager BASIC to the target map grid. Writes:
@@ -81,12 +88,15 @@ def import_tanager(
     h5 = _resolve_h5(input_path)
     prod = load_tanager_basic(h5)
 
-    data = prod.data              # (rows, cols, bands), float32 with NaNs where nodata_pixels==1
-    wl   = prod.wavelengths_nm
+    data = prod.data  # (rows, cols, bands), float32 with NaNs where nodata_pixels==1
+    wl = prod.wavelengths_nm
     fwhm = prod.fwhm_nm
 
     _require(data is not None and data.ndim == 3, "Data cube missing or invalid.")
-    _require(prod.lat is not None and prod.lon is not None, "Latitude/Longitude grids missing.")
+    _require(
+        prod.lat is not None and prod.lon is not None,
+        "Latitude/Longitude grids missing.",
+    )
 
     # composites list
     wanted = []
@@ -104,16 +114,26 @@ def import_tanager(
 
     if custom_wavelengths:
         if len(custom_wavelengths) != 3:
-            gs.fatal("Custom composites must provide exactly 3 wavelengths, e.g. 850,1650,660")
+            gs.fatal(
+                "Custom composites must provide exactly 3 wavelengths, e.g. 850,1650,660"
+            )
         wanted.append(("CUSTOM", [float(x) for x in custom_wavelengths]))
 
     gs.use_temp_region()
 
     # Read Planet target map grid and set region
     grid = read_planet_map_grid(h5)
-    Module("g.region",
-           w=grid.west, e=grid.east, s=grid.south, n=grid.north,
-           ewres=grid.ewres, nsres=grid.nsres, flags="a", quiet=True)
+    Module(
+        "g.region",
+        w=grid.west,
+        e=grid.east,
+        s=grid.south,
+        n=grid.north,
+        ewres=grid.ewres,
+        nsres=grid.nsres,
+        flags="a",
+        quiet=True,
+    )
 
     # Precompute the per-scene splat plan.
     # Use a band-independent nodata mask (after loader has applied nodata across all bands).
@@ -129,9 +149,7 @@ def import_tanager(
             return temp_bands[idx1]
         k = idx1 - 1
         ortho2d = project_band_to_map_grid(
-            band2d=data[:, :, k],
-            plan=plan,
-            fill_8_neighbor=fill_8_neighbor
+            band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
         )
         name = _temp_name(f"{output_name}_b{idx1:03d}")
         _write_float_raster(name, ortho2d)
@@ -146,19 +164,27 @@ def import_tanager(
         reg2d = gs.region()
         nsres2d = float(reg2d["nsres"])
         ewres2d = float(reg2d["ewres"])
-        Module("g.region", nsres3=nsres2d, ewres3=ewres2d, b=0, t=bands_total, tbres=1, quiet=True)
+        Module(
+            "g.region",
+            nsres3=nsres2d,
+            ewres3=ewres2d,
+            b=0,
+            t=bands_total,
+            tbres=1,
+            quiet=True,
+        )
 
         cube = garray.array3d(dtype=np.float32)
         for k in range(bands_total):
             ortho2d = project_band_to_map_grid(
-                band2d=data[:, :, k],
-                plan=plan,
-                fill_8_neighbor=fill_8_neighbor
+                band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
             )
             cube[k, :, :] = ortho2d
 
         cube.write(mapname=f"{output_name}", null="nan", overwrite=True)
-        gs.info(f"Created 3D raster with all bands: {output_name} ({bands_total} slices).")
+        gs.info(
+            f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
+        )
 
         # r3 metadata (wavelengths & FWHM + Units + Data Field)
         try:
@@ -173,13 +199,15 @@ def import_tanager(
             for i in range(bands_total):
                 wl_i = float(wl[i])
                 fwhm_i = float(fwhm[i]) if i < len(fwhm) else float("nan")
-                desc.append(f"Band {i+1}: {wl_i} nm, FWHM: {fwhm_i} nm")
-            Module("r3.support",
-                   map=output_name,
-                   title="Tanager Hyperspectral Data (Projected to Map Grid)",
-                   description="\n".join(desc),
-                   vunit="nanometers",
-                   quiet=True)
+                desc.append(f"Band {i + 1}: {wl_i} nm, FWHM: {fwhm_i} nm")
+            Module(
+                "r3.support",
+                map=output_name,
+                title="Tanager Hyperspectral Data (Projected to Map Grid)",
+                description="\n".join(desc),
+                vunit="nanometers",
+                quiet=True,
+            )
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
     except Exception as e:
@@ -197,28 +225,58 @@ def import_tanager(
         bands_1b = [_find_nearest_band_1based(w, wl) for w in targets]
         maps = []
         for idx1 in bands_1b:
-            maps.append(temp_bands[idx1] if idx1 in temp_bands else ensure_band_written(idx1))
+            maps.append(
+                temp_bands[idx1] if idx1 in temp_bands else ensure_band_written(idx1)
+            )
 
         Module("g.region", raster=maps[0], quiet=True)
         if name.upper() == "rgb":
-            Module("i.colors.enhance", red=maps[0], green=maps[1], blue=maps[2],
-                   strength=str(strength_val), flags="p", quiet=True)
+            Module(
+                "i.colors.enhance",
+                red=maps[0],
+                green=maps[1],
+                blue=maps[2],
+                strength=str(strength_val),
+                flags="p",
+                quiet=True,
+            )
         else:
-            Module("i.colors.enhance", red=maps[0], green=maps[1], blue=maps[2],
-                   strength=str(strength_val), quiet=True)
+            Module(
+                "i.colors.enhance",
+                red=maps[0],
+                green=maps[1],
+                blue=maps[2],
+                strength=str(strength_val),
+                quiet=True,
+            )
 
         outname = f"{output_name}_{name.lower().replace('-', '_')}"
-        Module("r.composite", red=maps[0], green=maps[1], blue=maps[2],
-               output=outname, quiet=True, overwrite=True)
+        Module(
+            "r.composite",
+            red=maps[0],
+            green=maps[1],
+            blue=maps[2],
+            output=outname,
+            quiet=True,
+            overwrite=True,
+        )
         gs.info(f"Generated composite raster: {outname}")
 
     # cleanup
     if created_names:
-        Module("g.remove", type="raster", name=",".join(created_names), flags="f", quiet=True)
+        Module(
+            "g.remove",
+            type="raster",
+            name=",".join(created_names),
+            flags="f",
+            quiet=True,
+        )
 
     gs.del_temp_region()
 
+
 # -------------------------- entry --------------------------
+
 
 def run_import(options, flags):
     custom = None
@@ -241,7 +299,11 @@ def run_import(options, flags):
         if not (0 <= strength_val <= 100):
             gs.fatal("Invalid strength. Provide an integer 0–100.")
 
-    comps = [c.strip() for c in options["composites"].split(",")] if options.get("composites") else None
+    comps = (
+        [c.strip() for c in options["composites"].split(",")]
+        if options.get("composites")
+        else None
+    )
     import_null = bool(flags.get("n"))
 
     import_tanager(

@@ -241,7 +241,9 @@ def _fill_nans_1d(x):
     if m.sum() < 2:
         return v
     xi = np.arange(v.size, dtype=np.float32)
-    f = interp1d(xi[m], v[m], kind="linear", fill_value="extrapolate", assume_sorted=True)
+    f = interp1d(
+        xi[m], v[m], kind="linear", fill_value="extrapolate", assume_sorted=True
+    )
     return f(xi).astype(np.float32)
 
 
@@ -266,8 +268,12 @@ def _copy_r3_metadata(src, dst):
     with contextlib.suppress(FileNotFoundError):
         os.remove(tmp)
     try:
-        gs.run_command("r3.support", map=src, savehistory=tmp, overwrite=True, quiet=True)
-        gs.run_command("r3.support", map=dst, loadhistory=tmp, overwrite=True, quiet=True)
+        gs.run_command(
+            "r3.support", map=src, savehistory=tmp, overwrite=True, quiet=True
+        )
+        gs.run_command(
+            "r3.support", map=dst, loadhistory=tmp, overwrite=True, quiet=True
+        )
         gi = gs.parse_command("r3.info", flags="g", map=src)
         title = gi.get("title")
         vunit = gi.get("vertical_unit")
@@ -289,38 +295,70 @@ def _set_dr_metadata(outmap, method, info):
         "fastica": "FastICA",
         "truncatedsvd": "TruncatedSVD",
         "nmf": "NMF",
-        "sparsepca": "SparsePCA"
+        "sparsepca": "SparsePCA",
     }
     mdisp = name_map.get(method, method.upper())
     if method == "pca" and "explained_variance_ratio" in info:
         var = info["explained_variance_ratio"]
         lines.append(f"Principal Component Analysis ({mdisp})")
         for i, v in enumerate(var, 1):
-            lines.append(f"Component {i}: {v*100:.2f}% variance explained")
+            lines.append(f"Component {i}: {v * 100:.2f}% variance explained")
     elif method in ["kpca", "nystroem"]:
-        lines.append(f"{mdisp} (kernel={info.get('kernel')}, gamma={info.get('gamma')}, degree={info.get('degree')})")
+        lines.append(
+            f"{mdisp} (kernel={info.get('kernel')}, gamma={info.get('gamma')}, degree={info.get('degree')})"
+        )
         lines.append(f"Components: {info.get('n_components')}")
     if lines:
-        gs.run_command("r3.support", map=outmap, description="\n".join(lines), quiet=True)
+        gs.run_command(
+            "r3.support", map=outmap, description="\n".join(lines), quiet=True
+        )
 
 
 def preprocess_hyperspectral(
-    inp, out, window_length=11, polyorder=0, derivative_order=0,
-    interpolate_nodata=False, clamp_negative=False, baseline=False,
-    continuum=False, dr_method=None, dr_components=0, dr_kernel="rbf",
-    dr_gamma=0.01, dr_degree=3, dr_bands=None, dr_export=None,
-    dr_chunk_size=0, dr_max_iter=200, dr_tol=1e-4, dr_alpha=0.0,
-    dr_l1_ratio=0.0, dr_random_state=0):
-
-    _savgol_preserve_nan, _baseline_correction, _continuum_removal, _apply_dimensionality_reduction = _load_processing_libs()
+    inp,
+    out,
+    window_length=11,
+    polyorder=0,
+    derivative_order=0,
+    interpolate_nodata=False,
+    clamp_negative=False,
+    baseline=False,
+    continuum=False,
+    dr_method=None,
+    dr_components=0,
+    dr_kernel="rbf",
+    dr_gamma=0.01,
+    dr_degree=3,
+    dr_bands=None,
+    dr_export=None,
+    dr_chunk_size=0,
+    dr_max_iter=200,
+    dr_tol=1e-4,
+    dr_alpha=0.0,
+    dr_l1_ratio=0.0,
+    dr_random_state=0,
+):
+    (
+        _savgol_preserve_nan,
+        _baseline_correction,
+        _continuum_removal,
+        _apply_dimensionality_reduction,
+    ) = _load_processing_libs()
 
     if dr_method:
         dr_method = dr_method.lower()
 
-    if (int(polyorder) == 0 and not baseline and not continuum
-            and not clamp_negative and not interpolate_nodata
-            and not dr_method):
-        gs.fatal("No processing option selected. Use preprocessing or dimensionality reduction parameters.")
+    if (
+        int(polyorder) == 0
+        and not baseline
+        and not continuum
+        and not clamp_negative
+        and not interpolate_nodata
+        and not dr_method
+    ):
+        gs.fatal(
+            "No processing option selected. Use preprocessing or dimensionality reduction parameters."
+        )
 
     if int(window_length) % 2 == 0:
         gs.fatal("Window length must be an odd number")
@@ -344,15 +382,24 @@ def preprocess_hyperspectral(
     flat_filt = flat
     if polyorder > 0:
         flat_filt = np.apply_along_axis(
-            _savgol_preserve_nan, 1, flat,
-            window_length, polyorder, derivative_order, interpolate_nodata
+            _savgol_preserve_nan,
+            1,
+            flat,
+            window_length,
+            polyorder,
+            derivative_order,
+            interpolate_nodata,
         ).astype(np.float32)
 
     if baseline:
-        flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(np.float32)
+        flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(
+            np.float32
+        )
 
     if continuum:
-        flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(np.float32)
+        flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
+            np.float32
+        )
 
     if interpolate_nodata:
         gs.message("Interpolating missing values across spectral bands...")
@@ -386,7 +433,7 @@ def preprocess_hyperspectral(
             tol=dr_tol,
             alpha=dr_alpha,
             l1_ratio=dr_l1_ratio,
-            random_state=dr_random_state
+            random_state=dr_random_state,
         )
 
     n_bands = flat_filt.shape[1]
@@ -399,10 +446,16 @@ def preprocess_hyperspectral(
         try:
             gs.run_command(
                 "g.region",
-                n=orig_region["n"], s=orig_region["s"],
-                e=orig_region["e"], w=orig_region["w"],
-                nsres=orig_region["nsres"], ewres=orig_region["ewres"],
-                b=0, t=float(n_bands), tbres=1, quiet=True
+                n=orig_region["n"],
+                s=orig_region["s"],
+                e=orig_region["e"],
+                w=orig_region["w"],
+                nsres=orig_region["nsres"],
+                ewres=orig_region["ewres"],
+                b=0,
+                t=float(n_bands),
+                tbres=1,
+                quiet=True,
             )
             out_arr = garray.array3d(dtype=np.float32)
             out_arr[...] = arr_out

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 
+
 def _baseline_correction(spec):
     s = np.asarray(spec, dtype=np.float32)
     if not np.any(np.isfinite(s)):

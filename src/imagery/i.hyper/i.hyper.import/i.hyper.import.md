@@ -90,7 +90,7 @@ during import.
 
 :::::::::: {align="center" style="margin: 10px"}
 ::: {align="center" style="margin: 10px"}
-![PRISMA SWIR-geology composite example](import_example.png){width="600"
+![PRISMA SWIR-geology composite example](import_example.jpg){width="600"
 height="600" border="0"}\
 *Figure: PRISMA SWIR-geology composite generated with i.hyper.import*\
 [*Data source: PRISMA Product © Italian Space Agency (ASI), used under
@@ -110,7 +110,7 @@ ASI License to Use.*]{.small}
 ::::::: {align="center" style="margin: 10px"}
 ::: {align="center" style="margin: 10px"}
 ![EnMAP SWIR-agriculture composite
-example](import_example2.png){width="600" height="600" border="0"}\
+example](import_example2.jpg){width="600" height="600" border="0"}\
 *Figure: EnMAP SWIR-agriculture composite generated with
 i.hyper.import*\
 [*Data source: Copyright © 2012-2025 EnMAP at Earth Observation Center
@@ -129,7 +129,7 @@ EOC of DLR.*]{.small}
 
 :::: {align="center" style="margin: 10px"}
 ::: {align="center" style="margin: 10px"}
-![Tanager-1 RGB composite example](import_example3.png){width="600"
+![Tanager-1 RGB composite example](import_example3.jpg){width="600"
 height="600" border="0"}\
 *Figure: Tanager-1 RGB composite generated with i.hyper.import*\
 [*Data source: Planet Labs - Open Data, CC-BY-4.0.*]{.small}

@@ -67,6 +67,7 @@ COMPOSITES = {
     "swir_geology": [2200, 848, 572],
 }
 
+
 def _band_count(mapname):
     info = gs.parse_command("r3.info", flags="g", map=mapname)
     d = int(info["depths"])
@@ -74,13 +75,13 @@ def _band_count(mapname):
         gs.fatal("Invalid band count (depths) reported by r3.info")
     return d
 
+
 def _band_wavelengths_from_comments(mapname, expected):
     txt = gs.read_command("r3.info", map=mapname)
     wavelengths = [None] * expected
     num = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?"
     pat = re.compile(
-        rf"Band\s+(\d+)\s*:\s*({num})\s*nm(?:,\s*FWHM:\s*({num})\s*nm)?",
-        re.IGNORECASE
+        rf"Band\s+(\d+)\s*:\s*({num})\s*nm(?:,\s*FWHM:\s*({num})\s*nm)?", re.IGNORECASE
     )
     for line in txt.splitlines():
         line = line.strip()
@@ -92,9 +93,12 @@ def _band_wavelengths_from_comments(mapname, expected):
             if 1 <= idx <= expected:
                 wavelengths[idx - 1] = float(m.group(2))
     if any(w is None for w in wavelengths):
-        missing = [i+1 for i,w in enumerate(wavelengths) if w is None]
-        gs.fatal(f"Missing wavelengths in r3.info comments for bands: {missing[:10]}{'...' if len(missing)>10 else ''}")
+        missing = [i + 1 for i, w in enumerate(wavelengths) if w is None]
+        gs.fatal(
+            f"Missing wavelengths in r3.info comments for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
+        )
     return wavelengths
+
 
 def _explode_cube(cube, tmpbase):
     """Explode cube into 2D rasters using a temporary 3D region."""
@@ -102,35 +106,64 @@ def _explode_cube(cube, tmpbase):
     try:
         Module("g.region", raster_3d=cube, quiet=True)
         Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
-        maps = gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*").strip().split()
+        maps = (
+            gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*")
+            .strip()
+            .split()
+        )
         if not maps:
             gs.fatal("No 2D rasters were produced by r3.to.rast")
-        maps.sort(key=lambda m: int(re.search(r'(\d+)$', m).group(1)))
+        maps.sort(key=lambda m: int(re.search(r"(\d+)$", m).group(1)))
         return maps
     finally:
         Module("g.region", region="__tmp_orig_region__", quiet=True)
-        Module("g.remove", type="region", name="__tmp_orig_region__", flags="f", quiet=True)
+        Module(
+            "g.remove", type="region", name="__tmp_orig_region__", flags="f", quiet=True
+        )
+
 
 def _nearest_index(target_nm, wavelengths):
     diffs = [abs(w - target_nm) for w in wavelengths]
     return diffs.index(min(diffs))  # 0-based
 
+
 def _enhance_and_composite(r, g, b, outname, strength, rgb_preserve):
     if rgb_preserve:
-        Module("i.colors.enhance", red=r, green=g, blue=b,
-               strength=str(strength), flags="p", quiet=True)
+        Module(
+            "i.colors.enhance",
+            red=r,
+            green=g,
+            blue=b,
+            strength=str(strength),
+            flags="p",
+            quiet=True,
+        )
     else:
-        Module("i.colors.enhance", red=r, green=g, blue=b,
-               strength=str(strength), quiet=True)
-    Module("r.composite", red=r, green=g, blue=b,
-           output=outname, overwrite=True, quiet=True)
+        Module(
+            "i.colors.enhance",
+            red=r,
+            green=g,
+            blue=b,
+            strength=str(strength),
+            quiet=True,
+        )
+    Module(
+        "r.composite",
+        red=r,
+        green=g,
+        blue=b,
+        output=outname,
+        overwrite=True,
+        quiet=True,
+    )
+
 
 def main():
     options, flags = gs.parser()
-    cube    = options["map"]
+    cube = options["map"]
     outpref = options["output"]
-    comps   = options.get("composites")
-    custom  = options.get("composites_custom")
+    comps = options.get("composites")
+    custom = options.get("composites_custom")
 
     try:
         strength = int(options.get("strength") or 96)
@@ -144,7 +177,9 @@ def main():
         requested = [c.strip() for c in comps.split(",") if c.strip()]
         for c in requested:
             if c not in COMPOSITES:
-                gs.fatal(f"Unknown composite '{c}'. Allowed: {', '.join(COMPOSITES.keys())}")
+                gs.fatal(
+                    f"Unknown composite '{c}'. Allowed: {', '.join(COMPOSITES.keys())}"
+                )
 
     custom_wl = None
     if custom:
@@ -164,10 +199,13 @@ def main():
     maps = _explode_cube(cube, tmpbase)
 
     if len(maps) != band_count:
-        gs.warning(f"Expected {band_count} bands, got {len(maps)}. Using available maps only.")
-        maps = maps[:min(len(maps), band_count)]
+        gs.warning(
+            f"Expected {band_count} bands, got {len(maps)}. Using available maps only."
+        )
+        maps = maps[: min(len(maps), band_count)]
 
     try:
+
         def map_for_nm(nm):
             idx = _nearest_index(nm, wavelengths)
             return maps[idx]
@@ -176,17 +214,24 @@ def main():
             wl = COMPOSITES[comp]
             r, g, b = map_for_nm(wl[0]), map_for_nm(wl[1]), map_for_nm(wl[2])
             outname = f"{outpref}_{comp.lower().replace('-', '_')}"
-            _enhance_and_composite(r, g, b, outname, strength, rgb_preserve=(comp == "rgb"))
+            _enhance_and_composite(
+                r, g, b, outname, strength, rgb_preserve=(comp == "rgb")
+            )
             gs.info(f"Generated composite raster: {outname}")
 
         if custom_wl:
-            r, g, b = map_for_nm(custom_wl[0]), map_for_nm(custom_wl[1]), map_for_nm(custom_wl[2])
+            r, g, b = (
+                map_for_nm(custom_wl[0]),
+                map_for_nm(custom_wl[1]),
+                map_for_nm(custom_wl[2]),
+            )
             outname = f"{outpref}_custom"
             _enhance_and_composite(r, g, b, outname, strength, rgb_preserve=False)
             gs.info(f"Generated custom composite raster: {outname}")
 
     finally:
         Module("g.remove", type="raster", pattern="_ihc*", flags="f", quiet=True)
+
 
 if __name__ == "__main__":
     sys.exit(main())

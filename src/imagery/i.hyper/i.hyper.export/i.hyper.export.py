@@ -29,6 +29,7 @@
 import sys
 import grass.script as gs
 
+
 def main():
     options, flags = gs.parser()
     input_3d_full = options["input"]
@@ -44,10 +45,14 @@ def main():
     gs.run_command("r3.to.rast", input=input_3d_full, output=base, quiet=True)
 
     # Get the list of slices
-    raster_list = gs.parse_command("g.list", type="raster", pattern=f"{base}_*", flags="m")
+    raster_list = gs.parse_command(
+        "g.list", type="raster", pattern=f"{base}_*", flags="m"
+    )
+
     def _get_index(rname):
         r = rname.split("@")[0]
-        return int(r[len(base) + 1:])
+        return int(r[len(base) + 1 :])
+
     raster_list = sorted(raster_list, key=_get_index)
 
     if not raster_list:
@@ -61,21 +66,24 @@ def main():
     gs.run_command("g.region", raster=raster_list[0], align=raster_list[0], quiet=True)
 
     # Export the group as a multi-band GeoTIFF
-    gs.run_command("r.out.gdal",
-                   input=group_name,
-                   output=output_file,
-                   format="GTiff",
-                   createopt="COMPRESS=DEFLATE,PREDICTOR=3,BIGTIFF=YES,INTERLEAVE=BAND",
-                   nodata=-9999,
-                   flags='c',
-                   overwrite=True,
-                   superquiet=True)
+    gs.run_command(
+        "r.out.gdal",
+        input=group_name,
+        output=output_file,
+        format="GTiff",
+        createopt="COMPRESS=DEFLATE,PREDICTOR=3,BIGTIFF=YES,INTERLEAVE=BAND",
+        nodata=-9999,
+        flags="c",
+        overwrite=True,
+        superquiet=True,
+    )
 
     # Clean up temporary rasters and group
     gs.run_command("g.remove", type="raster", name=raster_list, flags="f", quiet=True)
     gs.run_command("g.remove", type="group", name=group_name, flags="f", quiet=True)
 
     gs.message(f"Exported {input_3d_full} to {output_file} as multi-band GeoTIFF")
+
 
 if __name__ == "__main__":
     sys.exit(main())
