@@ -5,6 +5,7 @@
 # PURPOSE:   Create RGB/CIR/SWIR and custom false color composites
 #            from a hyperspectral 3D raster.
 # COPYRIGHT: (C) 2025 by Alen Mangafic and the GRASS Development Team
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module

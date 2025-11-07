@@ -5,6 +5,7 @@
 # AUTHOR(S): Tomaz Zagar <tomaz.zagar@gis.si>
 # PURPOSE:   Visualize spectra from hyperspectral 3D raster maps.
 # COPYRIGHT: (C) 2025 by Tomaz Zagar and the GRASS Development Team
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module

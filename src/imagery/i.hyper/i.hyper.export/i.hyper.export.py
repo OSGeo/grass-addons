@@ -5,6 +5,7 @@
 # AUTHOR(S): Alen Mangafic and Tomaž Žagar, Geodetic Institute of Slovenia
 # PURPOSE:   Export 3D hyperspectral 3D raster map.
 # COPYRIGHT: (C) 2025 by Alen Mangafic and the GRASS Development Team
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
