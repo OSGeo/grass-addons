@@ -4,7 +4,7 @@
 AUTHOR(S):  Stefan Blumentrath
 PURPOSE:    Import netCDF files that adhere to the CF convention as a
             Space Time Raster Dataset (STRDS)
-COPYRIGHT:  (C) 2023-2025 by stefan.blumentrath, and the GRASS Development Team
+COPYRIGHT:  (C) 2023-2025 by Stefan Blumentrath and the GRASS Development Team
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ GNU General Public License for more details.
 
 # %flag
 # % key: i
-# % description: Allow incomplete CF-dimensions (XY instead of XYZ)
+# % description: Allow incomplete CF-dimensions (XY instead of XYT)
 # % guisection: Settings
 # %end
 
@@ -238,14 +238,6 @@ RESAMPLE_DICT = {
     "Q3": "Q3",
 }
 
-# Minimal GRASS version required for semantic_label support
-MINIMAL_GRASS_VERSION = [8, 0]
-# Minimal TGIS version required for semantic_label support
-MINIMAL_TGIS_VERSION = 3
-
-GRASS_VERSION = list(map(int, gs.version()["version"].split(".")[0:2]))
-TGIS_VERSION = 2
-
 DEFAULT_CRS_WKT = (
     'GEOGCS["WGS 84 (CRS84)",DATUM["WGS_1984",'
     'SPHEROID["WGS 84",6378137,298.257223563]],'
@@ -347,9 +339,18 @@ def get_time_dimensions(
     )
 
 
-def check_semantic_label_support(module_options: dict) -> bool:
+def check_semantic_label_support(
+    module_options: dict,
+    grass_version: list[int],
+    tgis_version: int,
+) -> bool:
     """Check if the current version of GRASS and TGIS support semantic labels."""
-    if GRASS_VERSION < MINIMAL_GRASS_VERSION:
+    # Minimal GRASS version required for semantic_label support
+    minimal_grass_version = [8, 0]
+    # Minimal TGIS version required for semantic_label support
+    minimal_tgis_version = 3
+
+    if grass_version < minimal_grass_version:
         if module_options["semantic_labels"]:
             gs.warning(
                 _(
@@ -359,7 +360,7 @@ def check_semantic_label_support(module_options: dict) -> bool:
             )
         return False
 
-    if TGIS_VERSION < MINIMAL_TGIS_VERSION:
+    if tgis_version < minimal_tgis_version:
         if module_options["semantic_labels"]:
             gs.warning(
                 _(
@@ -392,18 +393,17 @@ def parse_semantic_label_conf(conf_file: str | None) -> dict | None:
     for idx, line in enumerate(configuration.split("\n")):
         if line.startswith("#") or "=" not in line:
             continue
-        if len(line.split("=")) == 2:
-            line = line.split("=")
-            # Check if assigned semantic label has legal a name
-            if Rast_legal_semantic_label(line[1]) == 1:
-                semantic_label[line[0]] = line[1]
-            else:
-                gs.fatal(
-                    _(
-                        "Line {line_nr} in configuration file <{conf_file}> "
-                        "contains an illegal band name",
-                    ).format(line_nr=idx + 1, conf_file=conf_file),
-                )
+        line = line.split("=", 1)
+        # Check if assigned semantic label has legal a name
+        if Rast_legal_semantic_label(line[1]) == 1:
+            semantic_label[line[0]] = line[1]
+        else:
+            gs.fatal(
+                _(
+                    "Line {line_nr} in configuration file <{conf_file}> "
+                    "contains an illegal band name",
+                ).format(line_nr=idx + 1, conf_file=conf_file),
+            )
     if not semantic_label:
         gs.fatal(
             _(
@@ -424,14 +424,16 @@ def get_metadata(
 
     standard_name = None
     if not subdataset:
-        subdataset = [
-            k
-            for k in netcdf_metadata
-            if k.endswith("standard_name")
-            and not k.startswith("time")
-            and not k.startswith("latitude")
-            and not k.startswith("longitude")
-        ][0].split("#")[0]
+        subdataset = next(
+            next(
+                k
+                for k in netcdf_metadata
+                if k.endswith("standard_name")
+                and not k.startswith("time")
+                and not k.startswith("latitude")
+                and not k.startswith("longitude")
+            ).split("#", 1),
+        )
         standard_name = netcdf_metadata.get(f"{subdataset}#standard_name")
     meta = {}
     # title is required metadata for netCDF-CF
@@ -683,8 +685,6 @@ def read_data(
 
     queue = []
 
-    # Merge major functions?
-
     # Requires GRASS GIS >= 8.0
     # r.external [-feahvtr]
     # r.in.gdal [-eflakcrp]
@@ -703,12 +703,8 @@ def read_data(
     if not flags_dict["f"]:
         # Setup color module
         color_mod = modules["r.colors"]
-    # Parallel module
-    # mapname_list = []
-    # infile = Path(input_url).name.split(":")
-    # mapname_list.append(legalize_name_string(infile[0]))
-    # if is_subdataset:
-    # mapname_list.append(legalize_name_string(infile[1]))
+
+    # Queue import modules
     for i, raster_map in enumerate(maps):
         band = bands[i]
         mapname = raster_map.split("@")[0]
@@ -785,6 +781,7 @@ def create_vrt(
             transform,
             edge_densification=15,
         )
+
         kwargs["dstSRS"] = gisenv["LOCATION_PROJECTION"]
         kwargs["resampleAlg"] = resample
         if nodata is not None:
@@ -804,13 +801,20 @@ def create_vrt(
         if not subdataset.GetSpatialRef():
             kwargs["srcSRS"] = DEFAULT_CRS_WKT
 
-        vrt = gdal.Warp(
-            vrt_name,
-            subdataset,
-            options=gdal.WarpOptions(
-                **kwargs,
-            ),
-        )
+        try:
+            vrt = gdal.Warp(
+                vrt_name,
+                subdataset,
+                options=gdal.WarpOptions(
+                    **kwargs,
+                ),
+            )
+        except Exception:
+            gs.fatal(
+                _("Failed to reproject {}.").format(
+                    Path(subdataset.GetDescription()).name,
+                ),
+            )
     # Close GDAL VRT dataset
     vrt = None
 
@@ -861,7 +865,7 @@ def parse_netcdf(
     # default_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
     if sds:
-        # Sub datasets containing variables have 3 dimensions (x,y,z)
+        # Sub datasets containing variables should have 3 dimensions (x,y,t)
         expected_dimensions = 3
         sds = [
             # SDS_ID, SDS_url, SDS_dimension
@@ -893,20 +897,33 @@ def parse_netcdf(
         # Check raster layers
         sds = [[ncdf, "", in_url, 0]]
 
+    if not sds:
+        gs.warning(
+            _(
+                "No data found to import from file {}. Please consider the i-flag",
+            ).format(in_url),
+        )
+        return None
     # Extract metadata
     # Collect relevant inputs in a dictionary
-    inputs_dict[in_url] = {}
-    inputs_dict[in_url]["sds"] = []
+    inputs_dict[in_url] = {"sds": []}
 
     for s_d in sds:
         sds_metadata = s_d[0].GetMetadata()
         sds_url = s_d[2]
         raster_count = s_d[0].RasterCount
+        if not s_d[0].GetSpatialRef():
+            gs.warning(
+                _("Cannot get spatial reference for {}. skipping").format(sds_url),
+            )
+            continue
         try:
             time_dimensions, end_times = get_cf_time(sds_metadata, sds_url, s_d[0])
         except Exception:
             gs.warning(
-                _("Cannot get time dimension from CF metadata from {}").format(sds_url),
+                _(
+                    "Cannot get time dimension from CF metadata from {}. Trying ACDD format.",
+                ).format(sds_url),
             )
             try:
                 time_dimensions, end_times = get_acdd_time(sds_metadata)
@@ -1083,11 +1100,14 @@ def main() -> None:
 
     # Initialize TGIS
     tgis.init()
-    global TGIS_VERSION
-    TGIS_VERSION = tgis.get_tgis_db_version_from_metadata()
+    grass_version = list(map(int, gs.version()["version"].split(".")[0:2]))
 
     global SEMANTIC_LABEL_SUPPORT
-    SEMANTIC_LABEL_SUPPORT = check_semantic_label_support(options)
+    SEMANTIC_LABEL_SUPPORT = check_semantic_label_support(
+        options,
+        grass_version,
+        tgis.get_tgis_db_version_from_metadata(),
+    )
     semantic_label = parse_semantic_label_conf(options["semantic_labels"])
 
     # Get GRASS GIS environment info
@@ -1104,7 +1124,14 @@ def main() -> None:
             vrt_dir.mkdir()
 
     # Get projection of the current location
-    grass_env["LOCATION_PROJECTION"] = gs.read_command("g.proj", flags="wf").strip()
+    if grass_version >= [8, 5]:
+        grass_env["LOCATION_PROJECTION"] = gs.read_command(
+            "g.proj",
+            format="wkt",
+            flags="fp",
+        ).strip()
+    else:
+        grass_env["LOCATION_PROJECTION"] = gs.read_command("g.proj", flags="wf").strip()
 
     # Current region
     global ALIGN_REGION
@@ -1123,7 +1150,9 @@ def main() -> None:
     )
 
     # Setup module objects
-    imp_flags = "o" if flags["o"] else ""
+    imp_flags = "a"
+    if flags["o"]:
+        imp_flags += "o"
     modules = {
         "r.external": Module(
             "r.external",
@@ -1131,7 +1160,7 @@ def main() -> None:
             overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
-            flags=f"{imp_flags}ra" if flags["f"] else f"{imp_flags}ma",
+            flags=f"{imp_flags}r" if flags["f"] else f"{imp_flags}m",
         ),
         "r.in.gdal": Module(
             "r.in.gdal",
@@ -1139,7 +1168,7 @@ def main() -> None:
             overwrite=gs.overwrite(),
             run_=False,
             finish_=False,
-            flags=f"{imp_flags}ra" if flags["r"] else f"{imp_flags}a",
+            flags=f"{imp_flags}r" if flags["r"] else imp_flags,
             memory=options["memory"],
         ),
         "r.timestamp": Module("r.timestamp", quiet=True, run_=False, finish_=False),
@@ -1272,6 +1301,19 @@ def main() -> None:
             existing_strds.append(strds)
 
     # This is a time consuming part due to building of VRT files
+    if int(options["nprocs"]) <= 1 or len(inputs_dict) <= 1:
+        queueing_results = [
+            read_data(
+                sds_dict,
+                # options,
+                flags,
+                modules,
+                grass_env,
+                # nodata,
+            )
+            for url_dict in inputs_dict.values()
+            for sds_dict in url_dict["sds"]
+        ]
     with Pool(processes=int(options["nprocs"])) as pool:
         queueing_results = pool.starmap(
             read_data,
@@ -1293,15 +1335,24 @@ def main() -> None:
         modified_strds[qres[0]].extend(qres[1])
         queued_modules.extend(qres[2])
 
-    # Run modules in parallel
     use_cores = min(len(queued_modules), int(options["nprocs"]))
-    with Pool(processes=use_cores) as pool:
-        pool.map(run_modules, [queued_modules[i::use_cores] for i in range(use_cores)])
+    # Run modules serial
+    if use_cores <= 1:
+        run_modules(queued_modules)
+    # Run modules in parallel
+    else:
+        with Pool(processes=use_cores) as pool:
+            pool.map(
+                run_modules,
+                [queued_modules[i::use_cores] for i in range(use_cores)],
+            )
 
     for strds_name, r_maps in modified_strds.items():
         # Register raster maps in strds using tgis
         tgis_strds = tgis.SpaceTimeRasterDataset(f"{strds_name}@{grass_env['MAPSET']}")
-        if GRASS_VERSION >= [8, 0] and TGIS_VERSION >= 3:
+        # GRASS versions with semantic label support can use
+        # StringIO-objects for registering
+        if SEMANTIC_LABEL_SUPPORT:
             map_file = StringIO("\n".join(r_maps))
         else:
             map_file = gs.tempfile()
