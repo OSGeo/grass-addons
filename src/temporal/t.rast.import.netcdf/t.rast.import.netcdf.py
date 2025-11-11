@@ -538,7 +538,7 @@ def transform_bounding_box(
     ]
 
 
-def check_projection_match(reference_crs, subdataset):
+def check_projection_match(reference_crs: str, subdataset) -> bool:
     """Check if projections match with projection of the location.
 
     Projection check using gdal/osr.
@@ -550,13 +550,14 @@ def check_projection_match(reference_crs, subdataset):
 
 
 def get_import_type(
-    projection_match,
     resample: str,
     flags_dict: dict,
+    *,
+    equal_proj: bool = False,
 ) -> tuple[str, str, bool]:
     """Define import type ("r.in.gdal", "r.external")."""
     # Define resample algorithm
-    if not projection_match and not flags_dict["o"]:
+    if not equal_proj and not flags_dict["o"]:
         resample = resample or "nearest"
         if resample not in RESAMPLE_DICT:
             gs.fatal(
@@ -571,7 +572,7 @@ def get_import_type(
     # Define import module
     import_type = "r.external" if flags_dict["l"] or flags_dict["f"] else "r.in.gdal"
 
-    return import_type, resample, projection_match
+    return import_type, resample, equal_proj
 
 
 def setup_temporal_filter(
@@ -738,9 +739,9 @@ def create_vrt(
     gisenv: dict,
     resample: str,
     nodata: float | None,
-    equal_proj,
     transform,
     *,
+    equal_proj: bool = False,
     region_cropping: bool = False,
     recreate: bool = False,
 ) -> str:
@@ -825,7 +826,7 @@ def parse_netcdf(
     in_url: str,
     semantic_label: dict,
     reference_crs: str,
-    valid_window,
+    valid_window: TemporalExtent | None,
     valid_relations: list,
     options: dict,
     flags: dict,
@@ -974,9 +975,9 @@ def parse_netcdf(
         subdataset_crs = s_d[0].GetSpatialRef() or default_crs
         projections_match = subdataset_crs.IsSame(location_crs)
         import_type, resample, projections_match = get_import_type(
-            flags["o"] or projections_match,
             options["resample"],
             flags,
+            equal_proj=flags["o"] or projections_match,
         )
 
         transform = None
@@ -1020,8 +1021,8 @@ def parse_netcdf(
                         gisenv,
                         resample,
                         options["nodata"],
-                        projections_match,
                         transform,
+                        equal_proj=projections_match,
                         region_cropping=flags["r"],
                         recreate=gs.overwrite(),
                     )
