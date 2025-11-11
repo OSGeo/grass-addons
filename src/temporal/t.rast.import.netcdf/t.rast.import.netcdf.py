@@ -167,12 +167,17 @@ GNU General Public License for more details.
 # %end
 
 # %option
-# % key: nprocs
+# % key: default_crs
 # % type: integer
 # % required: no
 # % multiple: no
-# % key_desc: Number of cores
-# % label: Number of cores to use during import
+# % key_desc: Default CRS (EPSG code)
+# % label: Default Coordinate Reference System (EPSG code)
+# % description: EPSG code to assume if a (sub-) dataset has no CRS defined
+# % guisection: Settings
+# %end
+
+# %option G_OPT_M_NPROCS
 # % answer: 1
 # % guisection: Settings
 # %end
@@ -425,14 +430,18 @@ def get_metadata(
     standard_name = None
     if not subdataset:
         subdataset = next(
-            next(
-                k
-                for k in netcdf_metadata
-                if k.endswith("standard_name")
-                and not k.startswith("time")
-                and not k.startswith("latitude")
-                and not k.startswith("longitude")
-            ).split("#", 1),
+            iter(
+                next(
+                    iter(
+                        k
+                        for k in netcdf_metadata
+                        if k.endswith("standard_name")
+                        and not k.startswith("time")
+                        and not k.startswith("latitude")
+                        and not k.startswith("longitude")
+                    ),
+                ).split("#", 1),
+            ),
         )
         standard_name = netcdf_metadata.get(f"{subdataset}#standard_name")
     meta = {}
@@ -861,8 +870,10 @@ def parse_netcdf(
     # Can be replaced with:
     # gdal.OpenEx(..., open_options=["ASSUME_LONGLAT=YES"])
     # In GDAL >= 3.7
-    default_crs = osr.SpatialReference()
-    default_crs.ImportFromEPSG(4326)
+    default_crs = None
+    if options["default_crs"]:
+        default_crs = osr.SpatialReference()
+        default_crs.ImportFromEPSG(int(options["default_crs"]))
     # default_crs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
     if sds:
@@ -913,7 +924,7 @@ def parse_netcdf(
         sds_metadata = s_d[0].GetMetadata()
         sds_url = s_d[2]
         raster_count = s_d[0].RasterCount
-        if not s_d[0].GetSpatialRef():
+        if not s_d[0].GetSpatialRef() and not default_crs:
             gs.warning(
                 _("Cannot get spatial reference for {}. skipping").format(sds_url),
             )
@@ -1226,13 +1237,23 @@ def main() -> None:
     inputs_dict = {k: v for elem in inputs_dict if elem for k, v in elem.items()}
 
     if options["print"] in {"grass", "extended"}:
+        # Set print style
         print_type = "{}_metadata".format(options["print"])
+        # Print column headers
         print(
             sep.join(
-                ["id", "url", "rastercount", "time_dimensions"],
-                *list(next(iter(inputs_dict.values()))["sds"][0][print_type].keys()),
+                [
+                    "id",
+                    "url",
+                    "rastercount",
+                    "time_dimensions",
+                    *list(
+                        next(iter(inputs_dict.values()))["sds"][0][print_type].keys(),
+                    ),
+                ],
             ),
         )
+        # Print metadata values
         print(
             "\n".join(
                 [
@@ -1242,8 +1263,8 @@ def main() -> None:
                             s_d["url"],
                             str(s_d["rastercount"]),
                             str(len(s_d["time_dimensions"])),
+                            *list(map(str, s_d[print_type].values())),
                         ],
-                        *list(map(str, s_d[print_type].values())),
                     )
                     for s_d in chain.from_iterable(
                         [i["sds"] for i in inputs_dict.values()],
