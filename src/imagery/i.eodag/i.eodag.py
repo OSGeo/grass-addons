@@ -257,23 +257,27 @@
 # % exclusive: minimum_overlap, area_relation
 # %end
 
+from __future__ import annotations
 
-import sys
-import os
 import json
+import os
 import re
+import sys
+from datetime import datetime, timedelta, timezone
+from hashlib import md5
 from pathlib import Path
 from subprocess import PIPE
-from datetime import datetime, timedelta, timezone
-from functools import cmp_to_key
 
 import grass.script as gs
 from grass.pygrass.modules import Module
 
 
-def get_aoi_box(vector=None):
-    """Parses and returns the bounding box of the vector map,
-    or the current computational region.
+def get_aoi_box(vector: str | None = None) -> str:
+    """Get bounding box of the vector map or computational region.
+
+    Fetches the bounding box of the vector map or the current
+    computational region and returns it as a WKT Polygon it
+    with coordinates in CRS84.
 
     :param vector: Vector map
     :type vector: str
@@ -281,6 +285,10 @@ def get_aoi_box(vector=None):
     :return: Bounding box represented as a WKT Polygon.
     :rtype: str
     """
+    polygon_template = (
+        "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat},"
+        " {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))"
+    )
     args = {}
     if vector:
         args["vector"] = vector
@@ -289,11 +297,11 @@ def get_aoi_box(vector=None):
     kv = gs.parse_command("g.proj", flags="j")
     if "+proj" not in kv:
         gs.fatal(
-            _("Unable to get AOI bounding box: unprojected location not supported")
+            _("Unable to get AOI bounding box: unprojected location not supported"),
         )
     if kv["+proj"] != "longlat":
         info = gs.parse_command("g.region", flags="uplg", **args)
-        return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+        return polygon_template.format(
             nw_lat=info["nw_lat"],
             nw_lon=info["nw_long"],
             ne_lat=info["ne_lat"],
@@ -304,7 +312,7 @@ def get_aoi_box(vector=None):
             se_lon=info["se_long"],
         )
     info = gs.parse_command("g.region", flags="upg", **args)
-    return "POLYGON(({nw_lon} {nw_lat}, {ne_lon} {ne_lat}, {se_lon} {se_lat}, {sw_lon} {sw_lat}, {nw_lon} {nw_lat}))".format(
+    return polygon_template.format(
         nw_lat=info["n"],
         nw_lon=info["w"],
         ne_lat=info["n"],
@@ -316,8 +324,8 @@ def get_aoi_box(vector=None):
     )
 
 
-def get_aoi(vector=None):
-    """Parses and returns the AOI.
+def get_aoi(vector: str | None = None) -> str:
+    """Parse and return the AOI.
 
     :param vector: Vector map
     :type vector: str
@@ -325,7 +333,6 @@ def get_aoi(vector=None):
     :return: Area of Interest represented as a WKT Polygon.
     :rtype: str
     """
-
     # If the 'b' flag is set then we use the Polygon borders
     # If not set then we use the bounding box
     # If no vector map is set then we use the bounding box
@@ -339,7 +346,7 @@ def get_aoi(vector=None):
 
     if not gs.find_file(vector, element="vector")["file"]:
         gs.fatal(
-            _("Unable to get AOI: vector map <{}> could not be found").format(vector)
+            _("Unable to get AOI: vector map <{}> could not be found").format(vector),
         )
 
     args = {}
@@ -351,16 +358,16 @@ def get_aoi(vector=None):
         gs.warning(
             _(
                 "More than one area found in AOI map <{}>. \
-                      Using only the first area..."
-            ).format(vector)
+                      Using only the first area...",
+            ).format(vector),
         )
 
     geom_dict = gs.parse_command("v.out.ascii", format="wkt", **args)
     num_vertices = len(str(geom_dict.keys()).split(","))
-    geom = [key for key in geom_dict][0]
+    geom = next(iter(geom_dict))
     if proj["+proj"] != "longlat":
         gs.verbose(
-            _("Generating WKT from AOI map ({} vertices)...").format(num_vertices)
+            _("Generating WKT from AOI map ({} vertices)...").format(num_vertices),
         )
         # TODO: Might need to check for number of coordinates
         #       Make sure it won't cause problems like in:
@@ -383,54 +390,57 @@ def get_aoi(vector=None):
                 for poly_coords in coord_proj.outputs["stdout"]
                 .value.strip()
                 .split("\n")
-            ]
+            ],
         ) + "))"
         return projected_geom
     return geom
 
 
-def search_by_ids(products_ids):
+def search_by_ids(ids_set: set, module_options: dict, eodag_api=None):
     """Search for products based on their ids.
 
-    :param products_ids: List of products' ids.
-    :type products_ids: list
+    :param ids_set: Set of unique products' ids.
+    :type ids_set: list
+    :param module_options: Dict with GRASS module options.
+    :type module_options: dict
 
     :return: EO products found by searching with 'search_parameters'
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    gs.verbose("Searching for products...")
+    # Remove empty string
+    ids_set.discard("")
+    # Search for products found from options["file"] or options["id"]
+    gs.verbose(_("Searching for {} distinct ID(s).").format(len(ids_set)))
     search_result = []
-    for query_id in products_ids:
+    for query_id in ids_set:
         gs.info(_("Searching for {}").format(query_id))
-        if int(eodag.__version__.split(".")[0]) < 3:
-            product, count = dag.search(
-                id=query_id, provider=options["provider"] or None
-            )
-        else:
-            if options["producttype"] is None:
-                gs.warning(_("The producttype option is not set"))
-            product = dag.search(
-                id=query_id,
-                provider=options["provider"] or None,
-                productType=options["producttype"] or None,
-                count=True,
-            )
-            count = product.number_matched
-        if count > 1:
+        if not module_options["producttype"]:
+            gs.warning(_("The producttype option is not set"))
+        product = eodag_api.search(
+            id=query_id,
+            provider=module_options["provider"] or None,
+            productType=module_options["producttype"] or None,
+            count=True,
+        )
+        if product.number_matched > 1:
             gs.warning(
-                _("{}\nCould not be uniquely identified. Skipping...").format(query_id)
+                _("{}\nCould not be uniquely identified. Skipping...").format(query_id),
             )
-        elif count == 0 or not product[0].properties["id"].startswith(query_id):
-            gs.warning(_("{}\nNot Found. Skipping...").format(query_id))
+        elif product.number_matched == 0 or not product[0].properties["id"].startswith(
+            query_id,
+        ):
+            gs.warning(_("{} not found. Skipping...").format(query_id))
         else:
-            gs.info(_("Found."))
             search_result.append(product[0])
+    gs.verbose(_("Found {} scene(s).").format(len(search_result)))
     return SearchResult(search_result)
 
 
-def setup_environment_variables(env, **kwargs):
-    """Sets the eodag environment variables based on the provided options/flags.
+def setup_environment_variables(env: dict, **kwargs) -> None:
+    """Set the eodag environment variables based on the provided options/flags.
 
+    :param env: Environment variables dictionary to be updated.
+    :type env: dict
     :param kwargs: options/flags from gs.parser
     :type kwargs: dict
     """
@@ -444,8 +454,8 @@ def setup_environment_variables(env, **kwargs):
         env["EODAG_CFG_FILE"] = options["config"]
 
 
-def normalize_time(datetime_str: str):
-    """Unifies the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'
+def normalize_time(datetime_str: str) -> str:
+    """Unify the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'.
 
     :param datetime_str: Datetime in ISO format
     :type datetime_str: str
@@ -462,55 +472,14 @@ def normalize_time(datetime_str: str):
     return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def no_fallback_search(search_parameters, provider):
-    """Search in only one provider (fallback is disabled).
-
-    :param search_parameters: Queryables to which searching will take place
-    :type search_parameters: dict
-
-    :param provider: Provider to use for searching
-    :type provider: str
-
-    :return: EO products found by searching with 'search_parameters'
-    :rtype: class:'eodag.api.search_result.SearchResult'
-    """
-    try:
-        if int(eodag.__version__.split(".")[0]) < 3:
-            server_poke = dag.search(**search_parameters, provider=provider)
-        elif int(eodag.__version__.split(".")[0]) >= 3:
-            server_poke = dag.search(**search_parameters, provider=provider, count=True)
-        if (int(eodag.__version__.split(".")[0]) < 3 and server_poke[1] == 0) or (
-            int(eodag.__version__.split(".")[0]) >= 3
-            and server_poke.number_matched == 0
-        ):
-            gs.verbose(_("No products found"))
-            return SearchResult([])
-    except Exception as e:
-        gs.verbose(e)
-        gs.fatal(_("Server error, please try again."))
-
-    # https://eodag.readthedocs.io/en/stable/api_reference/core.html#eodag.api.core.EODataAccessGateway.search_iter_page
-    # This will use the prefered provider by default
-    search_result = dag.search_iter_page(**search_parameters)
-
-    # TODO: Would it be useful if user could iterate through
-    #       the pages manually, and look for the product themselves?
-    try:
-        # Merging the pages into one list with all products
-        return SearchResult([j for i in search_result for j in i])
-    except Exception as e:
-        gs.debug(e)
-        gs.fatal(_("Server error, please try again."))
-
-
-def list_products(products):
-    """Lists products on the Standard Output stream (shell).
+def list_products(products) -> None:
+    """List products on the Standard Output stream (shell).
 
     :param products: EO poducts to be listed
     :type products: class:'eodag.api.search_result.SearchResult'
     """
     columns = ["id", "startTimeFromAscendingNode", "cloudCover", "productType"]
-    columns_NA = ["id_NA", "time_NA", "cloudCover_NA", "productType_NA"]
+    columns_na = ["id_NA", "time_NA", "cloudCover_NA", "productType_NA"]
     for product in products:
         product_line = ""
         for i, column in enumerate(columns):
@@ -520,33 +489,32 @@ def list_products(products):
                 product_attribute_value = None
             # Display NA if not available
             if product_attribute_value is None:
-                product_attribute_value = columns_NA[i]
-            else:
-                if column == "cloudCover":
-                    # Special formatting for cloud cover
-                    product_attribute_value = f"{product_attribute_value:2.0f}%"
-                elif column == "startTimeFromAscendingNode":
-                    # Special formatting for datetime
-                    try:
-                        product_attribute_value = normalize_time(
-                            product_attribute_value
-                        )
-                    except ValueError:
-                        # Invalid ISO Format
-                        gs.warning(
-                            _("Timestamp {} is not compliant with ISO 8601").format(
-                                product_attribute_value
-                            )
-                        )
-                        product_attribute_value = product.properties[column]
+                product_attribute_value = columns_na[i]
+            elif column == "cloudCover":
+                # Special formatting for cloud cover
+                product_attribute_value = f"{product_attribute_value:2.0f}%"
+            elif column == "startTimeFromAscendingNode":
+                # Special formatting for datetime
+                try:
+                    product_attribute_value = normalize_time(
+                        product_attribute_value,
+                    )
+                except ValueError:
+                    # Invalid ISO Format
+                    gs.warning(
+                        _("Timestamp {} is not compliant with ISO 8601").format(
+                            product_attribute_value,
+                        ),
+                    )
+                    product_attribute_value = product.properties[column]
             if i != 0:
                 product_line += " "
             product_line += product_attribute_value
         print(product_line)
 
 
-def list_products_json(products):
-    """Lists products on the Standard Output stream (shell) in JSON format.
+def list_products_json(products) -> None:
+    """List products on the Standard Output stream (shell) in JSON format.
 
     :param products: EO poducts to be listed
     :type products: class:'eodag.api.search_result.SearchResult'
@@ -555,7 +523,7 @@ def list_products_json(products):
 
 
 def remove_duplicates(search_result):
-    """Removes duplicated products, in case a provider returns a product multiple times."""
+    """Remove duplicated products, in case a provider returns a product multiple times."""
     filtered_result = []
     is_added = set()
     for product in search_result:
@@ -563,11 +531,16 @@ def remove_duplicates(search_result):
             continue
         is_added.add(product.properties["id"])
         filtered_result.append(product)
+    gs.verbose(
+        _("Filtered out {} duplicate products.").format(
+            len(search_result) - len(filtered_result)
+        )
+    )
     return SearchResult(filtered_result)
 
 
-def dates_to_iso_format():
-    """Converts the start/end options to the isoformat and save them in-place.
+def dates_to_iso_format() -> None:
+    """Convert the start/end options to the isoformat and save them in-place.
 
     If options['end'] is not set, options['end'] will be today's date.
     If options['start'] is not set, options['start'] will be 60 days prior
@@ -578,7 +551,7 @@ def dates_to_iso_format():
         end_date = datetime.now(timezone.utc).isoformat()
     try:
         end_date = normalize_time(end_date)
-    except Exception as e:
+    except ValueError as e:
         gs.debug(e)
         gs.fatal(_("Could not parse 'end' time."))
 
@@ -588,21 +561,22 @@ def dates_to_iso_format():
         start_date = (datetime.fromisoformat(end_date) - delta_days).isoformat()
     try:
         start_date = normalize_time(start_date)
-    except Exception as e:
+    except ValueError as e:
         gs.debug(e)
         gs.fatal(_("Could not parse 'start' time."))
 
     if end_date < start_date:
         gs.fatal(
-            _("End Date ({}) can not come before Start Date ({})").format(
-                end_date, start_date
-            )
+            _("End Date <{}> can not come before start Date <{}>").format(
+                end_date,
+                start_date,
+            ),
         )
     options["start"] = start_date
     options["end"] = end_date
 
 
-def parse_query(query=None):
+def parse_query(query: str | None = None):
     """Parse query string.
 
     :param query: WKT String with the geometry to filter with respect to
@@ -615,60 +589,60 @@ def parse_query(query=None):
     :rtype: Dict[str, List(Tuple(str, str))]
 
     """
-    VALID_OPERATORS = ["eq", "ne", "ge", "gt", "le", "lt"]
-    DEFAULT_OPERATOR = "eq"
+    valid_operators = ["eq", "ne", "ge", "gt", "le", "lt"]
+    default_operator = "eq"
     query_list = []
     if query is None:
         return query_list
-    for parameter in map(str.strip, options["query"].split(",")):
-        if parameter == "":
+    for parameter in map(str.strip, query.split(",")):
+        if not parameter:
             continue
         try:
             key, values = map(str.strip, parameter.split("="))
-        except Exception as e:
+        except ValueError as e:
             gs.debug(e)
             gs.fatal(_("Queryable <{}> could not be parsed").format(parameter))
         if key == "start":
             try:
                 start_date = normalize_time(values)
-                query_list.append(("start", (start_date, DEFAULT_OPERATOR)))
-            except Exception as e:
+                query_list.append(("start", (start_date, default_operator)))
+            except ValueError as e:
                 gs.debug(e)
                 gs.fatal(
                     _(
-                        "Queryable <{}> could not be parsed\nDate must be ISO formated"
-                    ).format(parameter)
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated",
+                    ).format(parameter),
                 )
             continue
         if key == "end":
             try:
                 end_date = normalize_time(values)
-                query_list.append(("end", (end_date, DEFAULT_OPERATOR)))
-            except Exception as e:
+                query_list.append(("end", (end_date, default_operator)))
+            except ValueError as e:
                 gs.debug(e)
                 gs.fatal(
                     _(
-                        "Queryable <{}> could not be parsed\nDate must be ISO formated"
-                    ).format(parameter)
+                        "Queryable <{}> could not be parsed\nDate must be ISO formated",
+                    ).format(parameter),
                 )
             continue
-        operator = None
         values_operators = []
         for value in map(str.strip, values.split("|")):
-            if value == "":
+            operator = None
+            if not value:
                 continue
             if value.find(";") != -1:
                 try:
                     value, operator = map(str.strip, value.split(";"))
                 except ValueError:
                     gs.fatal(
-                        _("Queryable <{}> could not be parsed\n").format(parameter)
+                        _("Queryable <{}> could not be parsed\n").format(parameter),
                     )
-                if operator not in VALID_OPERATORS:
+                if operator not in valid_operators:
                     gs.fatal(
                         _(
-                            "Invalid operator <{0}> for queryable <{1}>. Available operators {2}"
-                        ).format(operator, key, VALID_OPERATORS)
+                            "Invalid operator <{0}> for queryable <{1}>. Available operators {2}",
+                        ).format(operator, key, valid_operators),
                     )
             try:
                 value = float(value)
@@ -684,6 +658,7 @@ def parse_query(query=None):
 
 def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     """Filter results to comply with options/flags.
+
     :param search_result: Search Result to filter
     :type search_result: class:'eodag.api.search_result.SearchResult'
 
@@ -700,7 +675,7 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     if search_result is None:
         search_result = SearchResult(None)
 
-    DEFAULT_OPERATOR = "eq"
+    default_operator = "eq"
 
     prefilter_count = len(search_result)
     area_relation = kwargs["area_relation"]
@@ -718,12 +693,14 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
         # Product's geometry intersects with AOI
         if area_relation == "Intersects":
             search_result = search_result.filter_overlap(
-                geometry=geometry, intersects=True
+                geometry=geometry,
+                intersects=True,
             )
         # Product's geometry contains the AOI
         elif area_relation == "Contains":
             search_result = search_result.filter_overlap(
-                geometry=geometry, contains=True
+                geometry=geometry,
+                contains=True,
             )
         # Product's geometry is within the AOI
         elif area_relation == "IsWithin":
@@ -732,12 +709,14 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     if minimum_overlap:
         # Percentage of the AOI area covered by the product's geometry
         search_result = search_result.filter_overlap(
-            geometry=geometry, minimum_overlap=int(minimum_overlap)
+            geometry=geometry,
+            minimum_overlap=int(minimum_overlap),
         )
 
     if cloud_cover:
         search_result = search_result.filter_property(
-            operator="le", cloudCover=int(cloud_cover)
+            operator="le",
+            cloudCover=int(cloud_cover),
         )
 
     # queryables are formatted as follow:
@@ -749,24 +728,26 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     # ]
     if queryables:
         for queryable, values in queryables:
-            if queryable in ["start", "end"]:
+            if queryable in {"start", "end"}:
                 continue
             tmp_search_result_list = []
             for value, operator in values:
                 try:
                     filtered_search_result_list = search_result.filter_property(
-                        operator=operator, **{queryable: value}
+                        operator=operator,
+                        **{queryable: value},
                     ).data
                     tmp_search_result_list.extend(filtered_search_result_list)
                 except TypeError:
                     gs.warning(
                         _(
                             "Invalid operator <{0}> for queryable <{1}>\n"
-                            "Operator <{2}> will be used instead"
-                        ).format(operator, queryable, DEFAULT_OPERATOR)
+                            "Operator <{2}> will be used instead",
+                        ).format(operator, queryable, default_operator),
                     )
                     filtered_search_result_list = search_result.filter_property(
-                        operator=DEFAULT_OPERATOR, **{queryable: value}
+                        operator=default_operator,
+                        **{queryable: value},
                     ).data
                     tmp_search_result_list.extend(filtered_search_result_list)
             search_result = SearchResult(tmp_search_result_list)
@@ -774,26 +755,25 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     if options["pattern"]:
         pattern = re.compile(options["pattern"])
         search_result = SearchResult(
-            [p for p in search_result if pattern.fullmatch(p.properties["title"])]
+            [p for p in search_result if pattern.fullmatch(p.properties["title"])],
         )
 
-    # Remove duplictes that might be created while filtering
-    search_result = remove_duplicates(search_result)
+    # Filter search results by sensing date
     if start_date or end_date:
         search_result = search_result.filter_date(start=start_date, end=end_date)
 
     postfilter_count = len(search_result)
     gs.verbose(
         _("{} product(s) filtered out in total.").format(
-            prefilter_count - postfilter_count
-        )
+            prefilter_count - postfilter_count,
+        ),
     )
 
     return search_result
 
 
 def sort_result(search_result):
-    """Sorts search results according to options['sort'] and options['order']
+    """Sorts search results according to options['sort'] and options['order'].
 
     options['sort'] parameters and options['order'] are matched correspondingly.
     If options['order'] parameters are not suffcient,
@@ -805,7 +785,7 @@ def sort_result(search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    sort_keys = list()
+    sort_keys = []
     for sort_key in options["sort"].split(","):
         if sort_key == "ingestiondate":
             sort_keys.append("startTimeFromAscendingNode")
@@ -828,7 +808,7 @@ def sort_result(search_result):
 
 
 def skip_existing(output, search_result):
-    """Remove products that is already downloaded and saved in 'output' directory.
+    """Remove products that are already downloaded and saved in 'output' directory.
 
     :param output: Output directory whose files will be compared with the scenes.
     :type output: class'eodag.api.search_result.SearchResult'
@@ -839,6 +819,8 @@ def skip_existing(output, search_result):
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
+    suffixes = {"", ".zip", ".ZIP"}
+
     # Check for previously downloaded scenes
     output = Path(output)
 
@@ -851,28 +833,27 @@ def skip_existing(output, search_result):
     if not downloaded_dir.exists() or next(os.scandir(downloaded_dir), None) is None:
         gs.verbose(
             _("The `.download` directory in '{}' is empty, no scenes to skip").format(
-                output
-            )
+                output,
+            ),
         )
         return search_result
-    from hashlib import md5
 
     for scene in search_result:
-        SUFFIXES = ["", ".zip", ".ZIP"]
-        for suffix in SUFFIXES:
+        for suffix in suffixes:
             scene_file = output / (scene.properties["title"] + suffix)
             if scene_file.exists():
                 creation_time = str(
-                    datetime.utcfromtimestamp(os.path.getctime(scene_file))
+                    datetime.utcfromtimestamp(os.path.getctime(scene_file)),
                 )
                 ingestion_time = scene.properties.get(
                     "modificationDate",
                     scene.properties.get(
-                        "publicationDate", scene.properties.get("creationDate")
+                        "publicationDate",
+                        scene.properties.get("creationDate"),
                     ),
                 )
                 if ingestion_time and normalize_time(ingestion_time) <= normalize_time(
-                    creation_time
+                    creation_time,
                 ):
                     # This is to check that the file was completely downloaded
                     # without interruptions.
@@ -885,23 +866,25 @@ def skip_existing(output, search_result):
                     hashed_file = (
                         downloaded_dir
                         / md5(
-                            (scene.product_type + "-" + scene.properties["id"]).encode()
+                            (
+                                scene.product_type + "-" + scene.properties["id"]
+                            ).encode(),
                         ).hexdigest()
                     )
                     if not hashed_file.exists():
                         continue
                     gs.message(
                         _("Skipping scene: {} which is already downloaded.").format(
-                            scene.properties["title"]
-                        )
+                            scene.properties["title"],
+                        ),
                     )
                     search_result.remove(scene)
                     break
     return search_result
 
 
-def save_footprints(search_result, map_name):
-    """Save products footprints as a vector map in the current mapset.
+def save_footprints(search_result, map_name, eodag_api) -> None:
+    """Save product-footprints as a vector map in the current mapset.
 
     Reprojection is done on the fly.
 
@@ -914,8 +897,8 @@ def save_footprints(search_result, map_name):
     gs.message(_("Writing footprints into <{}>...").format(map_name))
 
     geojson_temp_dir = gs.tempdir()
-    geojson_temp_file = os.path.join(geojson_temp_dir, "search_result.geojson")
-    save_search_result(search_result, geojson_temp_file)
+    geojson_temp_file = Path(geojson_temp_dir) / "search_result.geojson"
+    save_search_result(search_result, str(geojson_temp_file), eodag_api)
 
     # coordinates of footprints are in WKT -> fp precision issues
     # -> snap
@@ -928,8 +911,8 @@ def save_footprints(search_result, map_name):
     )
 
 
-def save_search_result(search_result, file_name):
-    """Save search results to files.
+def save_search_result(search_result, file_name, eodag_api) -> None:
+    """Save search results to file.
 
     The search result is saved using EODAG serialize method,
     saving it in a format that can be read again by i.eodag
@@ -947,14 +930,14 @@ def save_search_result(search_result, file_name):
             _(
                 "Search results are saved in geojson format, "
                 "which doesn't match the file extension. "
-                "Search result will be saved in '{}'"
-            ).format(file_name)
+                "Search result will be saved in '{}'",
+            ).format(file_name),
         )
     gs.verbose(_("Saving searchin result in '{}'").format(file_name))
-    dag.serialize(search_result, filename=file_name)
+    eodag_api.serialize(search_result, filename=file_name)
 
 
-def print_eodag_configuration(**kwargs):
+def print_eodag_configuration(eodag_api, **kwargs) -> None:
     """Print EODAG currently recognized configurations in JSON format.
 
     :param provider: Print the configuration for only the given provider.
@@ -963,7 +946,8 @@ def print_eodag_configuration(**kwargs):
     provider = kwargs["provider"]
 
     def to_dict(config):
-        ret_dict = dict()
+        """Convert EODAG configuration to a dictionary."""
+        ret_dict = {}
         if isinstance(config, dict):
             # If the current config is a dict of providers configs
             for key, val in config.items():
@@ -978,12 +962,12 @@ def print_eodag_configuration(**kwargs):
         return ret_dict
 
     if provider:
-        print(json.dumps(to_dict(dag.providers_config[provider]), indent=4))
+        print(json.dumps(to_dict(eodag_api.providers_config[provider]), indent=4))
     else:
-        print(json.dumps(to_dict(dag.providers_config), indent=4))
+        print(json.dumps(to_dict(eodag_api.providers_config), indent=4))
 
 
-def print_eodag_providers(**kwargs):
+def print_eodag_providers(eodag_api, **kwargs) -> None:
     """Print providers available in JSON format.
 
     :param kwargs: Restricts providers to providers offering specified product type.
@@ -996,12 +980,13 @@ def print_eodag_providers(**kwargs):
         gs.message(_("Recognized providers"))
     print(
         json.dumps(
-            {"providers": dag.available_providers(product_type or None)}, indent=4
-        )
+            {"providers": eodag_api.available_providers(product_type or None)},
+            indent=4,
+        ),
     )
 
 
-def print_eodag_products(**kwargs):
+def print_eodag_products(eodag_api, **kwargs) -> None:
     """Print products available in JSON format.
 
     :param kwargs: Restricts products to products offered by specific provider
@@ -1011,18 +996,25 @@ def print_eodag_products(**kwargs):
     provider = kwargs["provider"]
     product_type = kwargs["producttype"]
     if provider:
-        gs.message(_("Recognized products offered by {}").format(provider))
+        gs.message(_("Recognized product types offered by {}").format(provider))
     else:
-        gs.message(_("Recognized providers"))
-    products = dag.list_product_types(provider or None)
+        gs.message(_("Recognized product types"))
+    products = eodag_api.list_product_types(provider)
     if product_type:
-        for product in products:
-            if product["ID"] == product_type:
-                products = [product]
+        # Check for parial matches
+        product_type_pattern = re.compile(
+            re.escape(product_type),
+            re.IGNORECASE,
+        )
+        products = [
+            product
+            for product in products
+            if product_type_pattern.search(product["ID"])
+        ]
     print(json.dumps({"products": products}, indent=4))
 
 
-def print_eodag_queryables(**kwargs):
+def print_eodag_queryables(eodag_api, **kwargs) -> None:
     """Print queryables info for given provider and/or product type in JSON format.
 
     :param kwargs: options/flags from gs.parser, with the crietria that will
@@ -1032,15 +1024,16 @@ def print_eodag_queryables(**kwargs):
     provider = kwargs["provider"]
     product_type = kwargs["producttype"]
     gs.message(_("Available queryables"))
-    queryables = dag.list_queryables(
-        provider=provider or None, productType=product_type or None
+    queryables = eodag_api.list_queryables(
+        provider=provider or None,
+        productType=product_type or None,
     )
 
     # Literal is for queryables that have a certain list of options to choose from.
     # Annotated is for queryables that accept a certain range e.g. cloudCover has range [0, 100].
     # TODO: It is assumed that if the type is Annotated, then the nested type will be int
     #       but that might not be the case.
-    METADATA_TYPES = [
+    metadata_types = [
         "str",
         "int",
         "float",
@@ -1053,21 +1046,18 @@ def print_eodag_queryables(**kwargs):
 
     # Possible types to be passed through the query option
     # TODO: We can possibly extend the supported types
-    SUPPORTED_TYPES = ["str", "int", "float", "Literal"]
+    supported_types = ["str", "int", "float", "Literal"]
 
     def get_type(info):
         potential_type = info.__args__[0]
+        msg = "Unrecognized EODAG data type <>"
         if potential_type.__name__ != "Optional":
-            if potential_type.__name__ not in METADATA_TYPES:
-                raise AssertionError(
-                    f"Unrecognized EODAG data type <{potential_type.__name__}>"
-                )
+            if potential_type.__name__ not in metadata_types:
+                raise AssertionError(msg.format(potential_type.__name__))
             return potential_type.__name__
         potential_type = potential_type.__args__[0]
-        if potential_type.__name__ not in METADATA_TYPES:
-            raise AssertionError(
-                f"Unrecognized EODAG data type <{potential_type.__name__}>"
-            )
+        if potential_type.__name__ not in metadata_types:
+            raise AssertionError(msg.format(potential_type.__name__))
         return potential_type.__name__
 
     def is_required(info):
@@ -1078,9 +1068,7 @@ def print_eodag_queryables(**kwargs):
         return default if isinstance(default, str) else "None"
 
     def get_options(info):
-        potential_type = info.__args__[0]
-        potential_type = potential_type.__args__
-        return potential_type
+        return info.__args__[0].__args__
 
     def get_range(info):
         return (
@@ -1088,19 +1076,20 @@ def print_eodag_queryables(**kwargs):
             info.__args__[0].__args__[0].__metadata__[1].lt,
         )
 
-    queryables_dict = dict()
+    queryables_dict = {}
     for queryable, info in queryables.items():
-        queryable_dict = dict()
-        queryable_dict["required"] = is_required(info)
+        queryable_dict = {
+            "required": is_required(info),
+            "default": get_default(info),
+        }
         try:
             queryable_dict["type"] = get_type(info)
         except AssertionError as e:
             gs.debug(e)
             gs.warning(
-                "Unrecognized EODAG product type detected. Please report this issue, if accessible."
+                "Unrecognized EODAG product type detected. Please report this issue, if accessible.",
             )
             continue
-        queryable_dict["default"] = get_default(info)
         if queryable_dict["type"] == "Literal":
             # There is a restricted list of options to choose from
             queryable_dict["options"] = get_options(info)
@@ -1110,49 +1099,69 @@ def print_eodag_queryables(**kwargs):
             queryable_dict["range"] = get_range(info)
         if queryable_dict["type"] == "NoneType":
             queryable_dict["type"] = "str"
-        if queryable_dict["type"] in SUPPORTED_TYPES:
+        if queryable_dict["type"] in supported_types:
             queryables_dict[queryable] = queryable_dict
 
-    if "geom" in queryables_dict:
-        del queryables_dict["geom"]
+    queryables_dict.pop("geom", None)
     print(json.dumps(queryables_dict, indent=4))
 
 
-def print_query(geometry, queryables, **kwargs):
-    print(f"flags: {''.join([f for f in flags if flags[f] and f != 'p'])}")
-    print(f"AOI: {geometry}")
-    print(f"provider: {kwargs['provider'] if options['provider'] else ANY}")
-    print(f"producttype: {kwargs['producttype'] if options['producttype'] else ANY}")
-    print(
-        f"area_relation: {kwargs['area_relation'] if options['area_relation'] else 'ANY'}"
-    )
-    print(
-        f"minimum_overlap: {kwargs['minimum_overlap'] if options['minimum_overlap'] else 'ANY'}"
-    )
-    print(f"pattern: {kwargs['pattern'] if options['pattern'] else 'ANY'}")
-    print(f"start (ge): {kwargs['start'] if options['start'] else 'ANY'}")
-    print(f"end (le): {kwargs['end'] if options['end'] else 'ANY'}")
-    print(f"limit: {kwargs['limit'] if options['limit'] else 'ANY'}")
+def print_query(geometry, queryables, **kwargs) -> None:
+    """Print the query parameters that will be used to search for products."""
+    query_dict = {
+        "flags": "".join([f for f in flags if flags[f] and f != "p"]),
+        "AOI": geometry,
+        "provider": kwargs.get("provider") or "ANY",
+        "producttype": kwargs.get("producttype") or "ANY",
+        "area_relation": kwargs.get("area_relation") or "ANY",
+        "minimum_overlap": kwargs.get("minimum_overlap") or "ANY",
+        "pattern": kwargs.get("pattern") or "ANY",
+        "start (ge)": kwargs.get("start") or "ANY",
+        "end (le)": kwargs.get("end") or "ANY",
+        "limit": kwargs.get("limit") or "ANY",
+    }
     if kwargs["clouds"]:
-        print(f"cloudCover (le): {kwargs['clouds']}")
-    DEFAULT_OPERATOR = "eq"
+        query_dict["cloudCover (le)"] = kwargs["clouds"]
+    default_operator = "eq"
+    query_dict["queryables"] = {}
     for k, v in queryables:
         for value in v:
-            operator = value[1] if value[1] else DEFAULT_OPERATOR
-            print(f"{k} ({operator}): {value[0]}")
+            operator = value[1] or default_operator
+            query_dict["queryables"][f"{k} ({operator})"] = value[0]
+    print(json.dumps(query_dict, indent=4))
 
 
-def main():
+def main() -> None:
     # Products: https://github.com/CS-SI/eodag/blob/develop/eodag/resources/product_types.yml
 
-    global dag
     setup_environment_variables(os.environ, **options, **flags)
     dag = EODataAccessGateway()
+
+    # Check provider input
+    provider = None
     if options["provider"]:
+        # If no provider is given available providers are searched according to configured
+        # priorities, however, currently search in multiple providers at once is not supported
+        # Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
+        if options["provider"] not in dag.available_providers():
+            gs.fatal(_("Provider {} not available.").format(options["provider"]))
         dag.set_preferred_provider(options["provider"])
+        provider = options["provider"]
+
+    # Get AOI
     geometry = get_aoi(options["map"])
     gs.verbose(_("AOI: {}").format(geometry))
 
+    # Check producttype input
+
+    if options["producttype"] and options["producttype"] not in {
+        p["ID"] for p in dag.list_product_types(provider)
+    }:
+        gs.fatal(
+            _("Product type <{}> not available.").format(options["producttype"]),
+        )
+
+    # Get queryables
     queryables = parse_query(options["query"])
     for queryable, values in queryables:
         if queryable == "start":
@@ -1166,6 +1175,7 @@ def main():
             # there will only be one value in the values, values[0][0] is the date
             options["end"] = values[0][0]
 
+    # Setup print function if requested
     if options["print"]:
         print_functions = {
             "providers": print_eodag_providers,
@@ -1173,62 +1183,72 @@ def main():
             "config": print_eodag_configuration,
             "queryables": print_eodag_queryables,
         }
-        print_functions[options["print"]](**options)
+        print_functions[options["print"]](dag, **options)
         return
 
-    # Download by IDs
-    # Searching for additional products will not take place
-    ids_set = set()
-    if options["id"]:  # Parse IDs
-        ids_set = set(pid.strip() for pid in options["id"].split(","))
-    elif options["file"]:
-        if Path(options["file"]).is_file():
-            gs.verbose(_('Reading file "{}"').format(options["file"]))
-        else:
-            gs.fatal(_('Could not open file "{}"').format(options["file"]))
-        # Read IDs from TEXT file
-        if options["file"][-4:] == ".txt":
-            ids_set = set(
-                Path(options["file"]).read_text(encoding="UTF8").strip().split("\n")
-            )
-        elif options["file"][-8:] == ".geojson":
-            try:
-                search_result = dag.deserialize_and_register(options["file"])
-            except Exception as e:
-                gs.error(_(e))
-                gs.fatal(
-                    _(
-                        "File '{}' could not be read, file content is probably altered."
-                    ).format(options["file"])
-                )
-        else:
-            # Other unsupported file formats
-            gs.fatal(_("Could not read file '{}'").format(options["file"]))
+    if flags["p"]:
+        print_query(geometry, queryables, **options)
+        return
 
-    if ids_set:
-        # Remove empty string
-        ids_set.discard(str())
-        gs.message(_("Found {} distinct ID(s).").format(len(ids_set)))
-        gs.message("\n".join(ids_set))
-        # Search for products found from options["file"] or options["id"]
-        options["limit"] = len(ids_set)  # Disable limit option
-        if flags["p"]:
-            print_query(geometry, queryables, **options)
-            return
-        search_result = search_by_ids(ids_set)
-    elif "search_result" not in locals():
+    # Perform initial search or load previous search results
+    id_file = Path(options["file"]) if options["file"] else None
+    if id_file and not id_file.is_file():
+        gs.fatal(_('Could not open file "{}"').format(options["file"]))
+
+    if options["id"]:  # Parse IDs
+        search_result = search_by_ids(
+            {pid.strip() for pid in options["id"].split(",")},
+            options,
+            eodag_api=dag,
+        )
+    elif id_file and id_file.suffix.lower() == ".geojson":
+        gs.verbose(
+            _("Reading stored search result from file <{}>").format(options["file"]),
+        )
+        # Read saved EODAG search result from GeoJSON file
+        try:
+            search_result = dag.deserialize_and_register(options["file"])
+        except RuntimeError as e:
+            gs.error(_(e))
+            gs.fatal(
+                _(
+                    "File '{}' could not be read by EODAG, file content is probably altered.",
+                ).format(options["file"]),
+            )
+    elif id_file and id_file.suffix.lower() == ".txt":
+        # Read IDs from TEXT file
+        try:
+            search_result = search_by_ids(
+                {
+                    pid.strip()
+                    for pid in id_file.read_text(encoding="UTF8").strip().split("\n")
+                },
+                options,
+                eodag_api=dag,
+            )
+        except OSError:
+            gs.fatal(
+                _(
+                    "Unable to read product IDs from file <{}>.",
+                ).format(options["file"]),
+            )
+    elif id_file:
+        gs.fatal(
+            _(
+                "File type '{}' is not supported. Please use a '.geojson' or '.txt' file.",
+            ).format(id_file.suffix.lower()),
+        )
+    else:
+        # Search using given search parameters
         dates_to_iso_format()
-        items_per_page = 40
-        # TODO: Check that the product exists,
+        # TODO: Check that the product_type exists
         # could be handled by catching exceptions when searching...
         product_type = options["producttype"]
 
-        # HARDCODED VALUES FOR TESTING { "lonmin": 1.9, "latmin": 43.9, "lonmax": 2, "latmax": 45, }
-
         search_parameters = {
-            "items_per_page": items_per_page,
             "productType": product_type,
             "geom": geometry,
+            "provider": provider,
         }
 
         if options["clouds"]:
@@ -1238,40 +1258,39 @@ def main():
         search_parameters["end"] = options["end"]
         if not options["area_relation"]:
             options["area_relation"] = "Intersects"
-        if flags["p"]:
-            print_query(geometry, queryables, **options)
-            return
-        if options["provider"]:
-            search_result = no_fallback_search(search_parameters, options["provider"])
-        else:
-            search_result = dag.search_all(**search_parameters)
 
-    gs.verbose(_("Filtering results..."))
-    search_result = filter_result(
-        search_result,
-        geometry if "geometry" in locals() else None,
-        queryables,
-        **options,
-    )
+        # Conduct parameter search
+        search_result = dag.search_all(**search_parameters)
 
+        gs.verbose(_("Filtering results..."))
+        search_result = filter_result(
+            search_result,
+            geometry if "geometry" in locals() else None,
+            queryables,
+            **options,
+        )
+
+    # Remove duplictes that might be created while filtering
+    search_result = remove_duplicates(search_result)
+
+    # Check if search results were downloaded before
     if flags["s"]:
         search_result = skip_existing(options["output"], search_result)
 
     gs.verbose(_("Sorting results..."))
     search_result = sort_result(search_result)
 
-    if options["limit"]:
+    if options["limit"] and not (options["id"] or options["file"]):
         search_result = SearchResult(search_result[: int(options["limit"])])
 
     if options["footprints"]:
-        save_footprints(search_result, options["footprints"])
+        save_footprints(search_result, options["footprints"], dag)
 
-    gs.message(_("{} scene(s) found.").format(len(search_result)))
-    # TODO: Add a way to search in multiple providers at once
-    #       Check for when this feature is added https://github.com/CS-SI/eodag/issues/163
+    gs.verbose(_("{} scene(s) found.").format(len(search_result)))
 
+    # Save search results
     if options["save"]:
-        save_search_result(search_result, options["save"])
+        save_search_result(search_result, options["save"], dag)
 
     if flags["l"]:
         list_products(search_result)
@@ -1285,8 +1304,8 @@ def main():
             if "creodias" in providers:
                 gs.message(
                     _(
-                        "Please enter Creodias OTP, to discard Creodias scenes enter '-': "
-                    )
+                        "Please enter Creodias OTP, to discard Creodias scenes enter '-': ",
+                    ),
                 )
                 creodias_otp = input().strip()
                 if creodias_otp == "-":
@@ -1295,7 +1314,7 @@ def main():
                             scene
                             for scene in search_result
                             if scene.provider != "creodias"
-                        ]
+                        ],
                     )
                 else:
                     dag.providers_config["creodias"].auth.credentials["totp"] = (
@@ -1319,11 +1338,10 @@ if __name__ == "__main__":
     options, flags = gs.parser()
 
     try:
-        from eodag import EODataAccessGateway
-        from eodag import setup_logging
+        import eodag
+        from eodag import EODataAccessGateway, setup_logging
         from eodag.api.search_result import SearchResult
         from eodag.utils.exceptions import MisconfiguredError
-        import eodag
     except ImportError:
         gs.fatal(_("Cannot import eodag. Please install the library first."))
 
