@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 
-"""MODULE:     t.rast.import.netcdf
-AUTHOR(S):  Stefan Blumentrath
-PURPOSE:    Import netCDF files that adhere to the CF convention as a
-            Space Time Raster Dataset (STRDS)
-COPYRIGHT:  (C) 2023-2025 by Stefan Blumentrath and the GRASS Development Team
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-"""
+##############################################################################
+# MODULE:    t.rast.import.netcdf
+#
+# AUTHOR(S): Stefan Blumentrath
+#
+# PURPOSE:   Import netCDF files that adhere to the CF-convention as a
+#            Space Time Raster Dataset (STRDS)
+#
+# COPYRIGHT: (C) 2021-2025 by Stefan Blumentrath and the GRASS Development Team
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+##############################################################################
 
 # %module
 # % description: Import netCDF files that adhere to the CF convention as STRDS.
