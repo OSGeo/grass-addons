@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 ##############################################################################
-# MODULE:    Test of t.rast.import.netcdf
+# MODULE:    Test of t.rast.import.netcdf with Sentinel-2 data
 #
-# AUTHOR(S): Stefan Blumentrath <stefan dot blumentrath at nina dot no>
+# AUTHOR(S): Stefan Blumentrath
 #
-# PURPOSE:   Test of t.rast.import.netcdf (example of a simple test of a module)
+# PURPOSE:   Test of t.rast.import.netcdf with Sentinel-2 data
 #
 # COPYRIGHT: (C) 2021-2025 by Stefan Blumentrath and the GRASS Development Team
 #
@@ -30,11 +30,12 @@ class TestNetCDFImport(TestCase):
         "https://nbstds.met.no/thredds/fileServer/NBS/S2A/2025/11/10/S2A_MSIL2A_20251110T101251_N0511_R022_T34VDM_20251110T113613.nc",
         "https://nbstds.met.no/thredds/fileServer/NBS/S2A/2025/11/10/S2A_MSIL2A_20251110T101251_N0511_R022_T33VXK_20251110T113613.nc",
     )
-
     input_sentinel_dt = tuple(
         datetime.strptime(Path(url).stem.split("_")[2], "%Y%m%dT%H%M%S")
         for url in input_sentinel
     )
+    # Input file name
+    input_file = "url_list.txt"
     # STRDS to be used as output for sentinel data test
     output_sentinel = "S2"
 

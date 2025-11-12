@@ -3,7 +3,7 @@
 ##############################################################################
 # MODULE:    Test of t.rast.import.netcdf with chirps and seNorge data
 #
-# AUTHOR(S): Stefan Blumentrath <stefan dot blumentrath at nina dot no>
+# AUTHOR(S): Stefan Blumentrath
 #
 # PURPOSE:   Test of t.rast.import.netcdf with chirps and seNorge data
 #
@@ -27,8 +27,6 @@ class TestNetCDFImport(TestCase):
 
     # NetCDF URL to be used as input for climate data test
     input_climate = "https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc"
-    # Input file name
-    input_file = "url_list.txt"
     # STRDS to be used as output for climate data test
     output_climate = "se_norge"
     # NetCDF URL (CF-1.6) without subdataset and without defined CRS (=CRS84)
@@ -47,12 +45,6 @@ class TestNetCDFImport(TestCase):
         gs.run_command("g.region", raster="elevation", res="250", flags="a")
 
         tgis.init()
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        """Remove the temporary region (and anything else we created)."""
-        if Path(cls.input_file).exists():
-            Path(cls.input_file).unlink()
 
     def tearDown(self) -> None:
         """Remove the output created from the module.
