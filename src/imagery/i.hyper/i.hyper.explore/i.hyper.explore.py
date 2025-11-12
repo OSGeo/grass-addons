@@ -376,7 +376,7 @@ def _plot_results_multi(
             loc="lower right",
             fontsize="small",
             framealpha=0.9,
-        )    
+        )
 
     if output:
         fig.savefig(output, bbox_inches="tight", dpi=dpi)

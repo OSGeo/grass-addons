@@ -22,34 +22,34 @@ this and adjusts the X-axis to component indices.
 
 ## FUNCTIONALITY
 
--   Query spectra from one or more 3D raster maps at arbitrary
+- Query spectra from one or more 3D raster maps at arbitrary
     locations.
--   Plot spectral curves for all queried points, automatically handling
+- Plot spectral curves for all queried points, automatically handling
     units and wavelength axes.
--   Detects whether the data represent reflectance, radiance, or
+- Detects whether the data represent reflectance, radiance, or
     dimensional components from metadata.
--   Export plots to `.png`, `.pdf`, or `.svg` via `output=`.
--   Optionally output structured JSON data for external analysis with
+- Export plots to `.png`, `.pdf`, or `.svg` via `output=`.
+- Optionally output structured JSON data for external analysis with
     the **-p** flag.
--   Automatically labels plots based on measurement type, units, and
+- Automatically labels plots based on measurement type, units, and
     number of components.
--   Supports coordinate pairs (`coordinates=`) and vector point maps
+- Supports coordinate pairs (`coordinates=`) and vector point maps
     (`points=`).
 
 ## NOTES
 
--   Each band's wavelength and FWHM must be stored as comments in
+- Each band's wavelength and FWHM must be stored as comments in
     `r3.info` (automatically handled by *i.hyper.import*).
--   The module uses `r3.what` to extract band values at each 2D
+- The module uses `r3.what` to extract band values at each 2D
     location.
--   If the raster represents dimensional components (e.g., PCA, NMF),
+- If the raster represents dimensional components (e.g., PCA, NMF),
     the plot's X-axis switches to "Components".
--   The output plot resolution can be set with `dpi=`.
--   Line width and font size can be scaled with `style_scale=` (default:
+- The output plot resolution can be set with `dpi=`.
+- Line width and font size can be scaled with `style_scale=` (default:
     1.0).
--   Line colors correspond to query points; linestyles correspond to
+- Line colors correspond to query points; linestyles correspond to
     input maps.
--   Interactive plots support renaming legends and saving figures
+- Interactive plots support renaming legends and saving figures
     directly from the viewer.
 
 ## EXAMPLES
@@ -83,7 +83,7 @@ border="0"}\
 
 ## DEPENDENCIES
 
--   **GRASS** module: `r3.what`
+- **GRASS** module: `r3.what`
 
 ## AUTHORS
 
