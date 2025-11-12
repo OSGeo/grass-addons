@@ -78,7 +78,7 @@ class TestNetCDFImport(TestCase):
 
         for strds in existing_strds:
             gs.info("cleaning up " + strds)
-            if strds in {self.output_sentinel, self.output_climate, self.output_chirps}:
+            if strds in {self.output_climate, self.output_chirps}:
                 self.runModule("t.remove", flags="rdf", inputs=strds)
 
     def test_climate_print_extended(self) -> None:

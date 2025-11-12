@@ -80,10 +80,9 @@ class TestNetCDFImport(TestCase):
             else []
         )
 
-        for strds in existing_strds:
-            gs.info("cleaning up " + strds)
-            if strds in {self.output_sentinel, self.output_climate, self.output_chirps}:
-                self.runModule("t.remove", flags="rdf", inputs=strds)
+        if self.output_sentinel in existing_strds:
+            gs.info("cleaning up " + self.output_sentinel)
+            self.runModule("t.remove", flags="rdf", inputs=self.output_sentinel)
 
     def test_sentinel_output_created(self) -> None:
         """Check that output is created."""
