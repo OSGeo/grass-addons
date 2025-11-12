@@ -5,6 +5,12 @@ a GRASS GIS Space Time Raster Dataset (STRDS). NetCDF files are expected
 to follow the [CF-convention](https://cfconventions.org/). Files not
 adhering to those standards may fail to import.
 
+The [Attribute Convention for Data Discovery (ACDD)](
+https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3)
+that is related to the CF-Convention is partly supported. Datasets
+compliant with ACDD but not CF-Convention the **i-flag** may have to
+be used.
+
 Input URL(s) to NetCDF files can be provided in the **input** option as
 either a file, with one URL to a dataset per line, a comma-separated
 list of URLs or a single URL. "-" causes input to be taken from stdin.
@@ -51,6 +57,10 @@ posts on the [GDAL-dev mailing
 list](https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg37419.html).
 for reference.
 
+The Attribute Convention for Data Discovery (ACDD) is not yet fully
+supported, depending on the structure of the datasets, import may or
+may not work.
+
 ## REQUIREMENTS
 
 Support of semantic\_labels is only available with GRASS GIS 8.0 or
@@ -76,7 +86,7 @@ B2=S2_2" > semantic_labels.conf
 
 # Import data (link NetCDF files without downloading them)
 t.rast.import.netcdf -l input=nc.txt output=S2A semantic_labels=semantic_labels.conf \
-memory=2048 nprocs=2 nodata="-1"
+  memory=2048 nprocs=2 nodata="-1"
 ```
 
 ### Import Norwegian Climate data
@@ -88,8 +98,8 @@ tn=temperature_min" > semantic_labels.conf
 
 # Import data within a selected time window
 t.rast.import.netcdf output=SeNorge semantic_labels=semantic_labels.conf \
-memory=2048 nprocs=2 start_time="2020-08-01" end_time="2021-08-01" \
-input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2020.nc
+  memory=2048 nprocs=2 start_time="2020-08-01" end_time="2021-08-01" \
+  input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2020.nc
 ```
 
 ### Append to STRDS from previous imports
@@ -103,8 +113,23 @@ tn=temperature_min" > semantic_labels.conf
 
 # Import data within a selected time window
 t.rast.import.netcdf output=SeNorge semantic_labels=semantic_labels.conf \
-memory=2048 nprocs=2 -a start_time="2020-08-01" end_time="2021-08-01" \
-input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc
+  memory=2048 nprocs=2 -a start_time="2020-08-01" end_time="2021-08-01" \
+  input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seNorge2018_2021.nc
+```
+
+### Import ACDD but not CF-compliant dataset from SWOT
+
+```sh
+# Choose dataset to import (see also m.crawl.thredds module)
+
+# Create a semantic_label configuration file
+echo "wse=SWOT_wse
+wse_ucert=SWOT_wse_uncertainty" > semantic_labels.conf
+
+# Import data within a selected time window
+t.rast.import.netcdf -i output=SWOT semantic_labels=semantic_labels.conf \
+  memory=2048 nprocs=2 \
+  input=./SWOT_L2_HR_Raster_100m_UTM33W_N_x_x_x_020_113_138F_20240824T163805_20240824T163826_PIC0_01.nc
 ```
 
 ## TODO
@@ -120,10 +145,9 @@ input=https://thredds.met.no/thredds/fileServer/senorge/seNorge_2018/Archive/seN
 [r3.out.netcdf](https://grass.osgeo.org/grass-stable/manuals/r3.out.netcdf.html),
 [r.semantic\_labels](https://grass.osgeo.org/grass-stable/manuals/r.semantic_labels.html),
 [i.bands\_library](https://grass.osgeo.org/grass-stable/manuals/i.bands_library.html),
-[r.support](https://grass.osgeo.org/grass-stable/manuals/r.support.html)
-[m.crawl.thredds](https://grass.osgeo.org/grass-stable/manuals/addons/m.crawl.thredds.html),*
+[r.support](https://grass.osgeo.org/grass-stable/manuals/r.support.html),
+[m.crawl.thredds](https://grass.osgeo.org/grass-stable/manuals/addons/m.crawl.thredds.html)*
 
 ## AUTHORS
 
-Stefan Blumentrath, [Norwegian Institute for Nature Research (NINA),
-Oslo](https://www.nina.no/Kontakt/Ansatte/Ansattinformasjon.aspx?AnsattID=14230)
+Stefan Blumentrath, Oslo, Norway
