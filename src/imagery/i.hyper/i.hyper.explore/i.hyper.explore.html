@@ -1,0 +1,74 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>i.hyper.explore</em> visualizes spectra extracted from hyperspectral 3D raster maps (<code>raster_3d</code>).
+It allows users to interactively inspect spectral signatures at given map coordinates or from point vector maps.
+The module supports multiple 3D raster maps simultaneously for comparison (e.g., original data, preprocessed data, or reduced components).</p>
+
+<p>Each queried location is sampled across all spectral bands using <code>r3.what</code>.
+The resulting spectral curves are plotted or printed in JSON format (with the <b>-p</b> flag).
+If an output file is specified (<code>output=</code>), the figure is exported instead of being shown interactively.</p>
+
+<p><em>i.hyper.explore</em> automatically reads wavelength metadata, measurement type (e.g., <em>reflectance</em>, <em>radiance</em>), and units from <code>r3.info</code> comments produced by <a href="i.hyper.import.html">i.hyper.import</a> or <a href="i.hyper.preproc.html">i.hyper.preproc</a>.
+If the map contains principal components or other dimensionally reduced features, the module detects this and adjusts the X-axis to component indices.</p>
+
+<h2>FUNCTIONALITY</h2>
+
+<ul>
+  <li>Query spectra from one or more 3D raster maps at arbitrary locations.</li>
+  <li>Plot spectral curves for all queried points, automatically handling units and wavelength axes.</li>
+  <li>Detects whether the data represent reflectance, radiance, or dimensional components from metadata.</li>
+  <li>Export plots to <code>.png</code>, <code>.pdf</code>, or <code>.svg</code> via <code>output=</code>.</li>
+  <li>Optionally output structured JSON data for external analysis with the <b>-p</b> flag.</li>
+  <li>Automatically labels plots based on measurement type, units, and number of components.</li>
+  <li>Supports coordinate pairs (<code>coordinates=</code>) and vector point maps (<code>points=</code>).</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<ul>
+  <li>Each band’s wavelength and FWHM must be stored as comments in <code>r3.info</code> (automatically handled by <em>i.hyper.import</em>).</li>
+  <li>The module uses <code>r3.what</code> to extract band values at each 2D location.</li>
+  <li>If the raster represents dimensional components (e.g., PCA, NMF), the plot’s X-axis switches to “Components”.</li>
+  <li>The output plot resolution can be set with <code>dpi=</code>.</li>
+  <li>Line width and font size can be scaled with <code>style_scale=</code> (default: 1.0).</li>
+  <li>Line colors correspond to query points; linestyles correspond to input maps.</li>
+  <li>Interactive plots support renaming legends and saving figures directly from the viewer.</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+# Example 1: Compare spectra from EnMAP 3D raster map at two locations
+i.hyper.explore map=enmap@PERMANENT \
+                coordinates=4718536.78125,2587471.78125,4718504.625,2587623.375
+</pre></div>
+
+<div align="center" style="margin: 10px">
+  <img src="explore_example1.jpg" width="640" height="480"
+       alt="Reflectance spectra" border="0"><br>
+  <i>Figure: Reflectance spectra plots generated with i.hyper.explore</i><br>
+  <small><i>Data source: Copyright © 2012–2025 EnMAP at Earth Observation Center EOC of DLR.</i></small>
+</div>
+
+<div class="code"><pre>
+# Example 2: Explore multiple spectra from Tanager 3D raster map
+i.hyper.explore map=tanager@PERMANENT \
+                coordinates=481043.478,8184411.261,483979.826,8180452.435,472444.174,8181841.957
+</pre></div>
+
+<div align="center" style="margin: 10px">
+  <img src="explore_example2.jpg"  width="640" height="480"
+       alt="Radiance spectra" border="0"><br>
+  <i>Figure: Radiance spectra plots generated with i.hyper.explore</i><br>
+  <small><i>Data source: Planet Labs – Open Data, CC-BY-4.0.</i></small>
+</div>
+
+<h2>DEPENDENCIES</h2>
+
+<ul>
+  <li><b>GRASS</b> module: <code>r3.what</code></li>
+</ul>
+
+<h2>AUTHORS</h2>
+
+Tomaž Žagar and Alen Mangafić, Geodetic Institute of Slovenia
