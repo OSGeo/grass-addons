@@ -1,0 +1,53 @@
+<!-- meta page name: i.hyper -->
+<!-- meta page name description: i.hyper family modules -->
+
+<h2>DESCRIPTION</h2>
+
+The purpose of <em>i.hyper</em> is to provide a complete toolset for hyperspectral data processing in GRASS.
+It enables importing, preprocessing, visualization and exporting of hyperspectral datasets (<code>raster_3d</code>).
+
+<h2>NOTES</h2>
+Modules in the <em>i.hyper</em> suite operate together to handle hyperspectral workflows.
+They include tools for data import, spectral preprocessing, visualization, and export,
+fully integrated with the GRASS 3D raster environment.
+
+<h2>DEPENDENCIES</h2>
+<p>
+<em>i.hyper.*</em> modules require the following Python libraries for full functionality:
+</p>
+
+<ul>
+  <li>NumPy</li>
+  <li>SciPy</li>
+  <li>scikit-learn</li>
+  <li>Matplotlib</li>
+  <li>h5py</li>
+  <li>rasterio</li>
+  <li>pyproj</li>
+</ul>
+
+The <em>i.hyper.explore</em> module requires the GRASS addon <em>r3.what*</em>
+
+
+<p>
+After dependencies are installed, the toolset can be added to GRASS using:
+</p>
+
+<div class="code"><pre>
+g.extension extension=i.hyper
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="i.hyper.import.html">i.hyper.import</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="i.hyper.composite.html">i.hyper.composite</a>,
+<a href="i.hyper.export.html">i.hyper.export</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r3.what.html">r3.what</a>
+
+</em>
+
+<h2>AUTHORS</h2>
+
+Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia
