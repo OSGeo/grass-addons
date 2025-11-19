@@ -155,9 +155,9 @@
 import sys
 import os
 import zipfile
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.error import URLError, HTTPError
-from six.moves.urllib.parse import quote_plus
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+from urllib.parse import quote_plus
 from multiprocessing import Process, Manager
 import json
 import atexit
