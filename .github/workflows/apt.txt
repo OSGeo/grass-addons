@@ -20,4 +20,5 @@ pdal
 sqlite3
 subversion
 udunits-bin
+wxpython-tools
 zlib1g-dev
