@@ -110,8 +110,8 @@
 # IMPORT MODULES #
 ##################
 # PYTHON
-import numpy as np
 import sys
+import numpy as np
 
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
@@ -157,15 +157,15 @@ def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
     global mpl
     global plt
+
+    # lazy import matplotlib
     try:
         import matplotlib as mpl
 
         mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
-        gs.fatal(
-            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
-        )
+        gs.fatal(_("Matplotlib is not installed. Please, install it."))
 
 
 def main():
@@ -175,10 +175,8 @@ def main():
     means that the river exits the map.
     """
 
-    # lazy import modules
+    # lazy import py modules
     lazy_import_matplotlib()
-
-    options, flags = gs.parser()
 
     # Parsing
     window = float(options["window"])
@@ -401,4 +399,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(*gs.parser()))
