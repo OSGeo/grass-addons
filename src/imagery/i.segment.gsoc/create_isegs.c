@@ -540,7 +540,7 @@ int region_growing(struct files *files, struct functions *functions)
                                     set_candidate_flag(Ri_head, FALSE, files);
                                 }
 
-                            }      /* end if(Rin_head != NULL) */
+                            } /* end if(Rin_head != NULL) */
                             else { /* Ri didn't have a neighbor */
                                 G_debug(4, "Segment had no neighbors");
                                 set_candidate_flag(Ri_head, FALSE, files);
@@ -571,9 +571,9 @@ int region_growing(struct files *files, struct functions *functions)
                                     pathflag = FALSE;
                             }
                         } /*end pathflag do loop */
-                    }     /*end if pixel is candidate and seed pixel */
-                }         /*next column */
-            }             /*next row */
+                    } /*end if pixel is candidate and seed pixel */
+                } /*next column */
+            } /*next row */
 #ifdef PROFILE
             pass_end = clock();
             fprintf(stdout, "pass %d took: %g\n", t,
@@ -585,7 +585,7 @@ int region_growing(struct files *files, struct functions *functions)
         } while (t <= functions->end_t &&
                  endflag == FALSE); /*end t loop, either reached max iterations
                                        or didn't merge any segments */
-    }                               /* end if from the final_merge_only flag */
+    } /* end if from the final_merge_only flag */
 
     if (t == 2 && files->bounds_map == NULL)
         G_warning(_(
@@ -728,7 +728,7 @@ int region_growing(struct files *files, struct functions *functions)
                                     "small segment, this shouldn't happen!"));
 
                         } /* end else - pixel count was below minimum allowed */
-                    }     /* end if neighbors found */
+                    } /* end if neighbors found */
                     else { /* no neighbors were found */
                         if (files->bounds_map == NULL)
                             G_warning(_("no neighbors found, this means only "
@@ -737,10 +737,10 @@ int region_growing(struct files *files, struct functions *functions)
                         set_candidate_flag(Ri_head, FALSE, files);
                     }
                 } /* end if pixel is candidate pixel */
-            }     /* next column */
-        }         /* next row */
-        t++;      /* to count one more "iteration" */
-    }             /* end if for force merge */
+            } /* next column */
+        } /* next row */
+        t++; /* to count one more "iteration" */
+    } /* end if for force merge */
     else if (t > 2 && files->bounds_map == NULL)
         G_verbose_message(_("Number of passes completed: %d"), t - 1);
 #ifdef PROFILE
@@ -1014,7 +1014,7 @@ int find_segment_neighbors(struct pixels **R_head,
                 }
 
             } /* end for loop - next pixel neighbor */
-        }     /* end while to_check has more elements */
+        } /* end while to_check has more elements */
 
         /* clean up */
         rbtree_destroy(no_check_tree);

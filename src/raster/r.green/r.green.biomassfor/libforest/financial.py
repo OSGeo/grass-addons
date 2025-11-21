@@ -146,7 +146,7 @@ def productivity(
     )
     run_command("r.null", map=fell_productHFtr2, null=0)
     # FIXME: it is different from the paper, to check
-    expr = "{fell_proc_productC} = {m2}*" "(0.3-1.1*{soilp2_map})/(-4)*(1-{slope}/100)"
+    expr = "{fell_proc_productC} = {m2}*(0.3-1.1*{soilp2_map})/(-4)*(1-{slope}/100)"
     r.mapcalc(
         expr.format(
             fell_proc_productC=fell_proc_productC,
@@ -162,9 +162,7 @@ def productivity(
     # 9999: default value, if is present take into the process
     # the average value (in case of fertility is 33) Giulia is it 3?
 
-    expr = (
-        "{proc_productHFtr1} = {mt}*{cable_crane_extraction}" "*0.363*{tree_diam}^1.116"
-    )
+    expr = "{proc_productHFtr1} = {mt}*{cable_crane_extraction}*0.363*{tree_diam}^1.116"
     r.mapcalc(
         expr.format(
             proc_productHFtr1=proc_productHFtr1,

@@ -75,10 +75,6 @@ import math
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import raster as r
 
-gs.utils.set_path(modulename="r.learn.ml2", dirname="rlearnlib", path="..")
-
-from rlearnlib.raster import RasterStack
-
 
 def string_to_rules(string):
     """Converts a string to a file for input as a GRASS Rules File"""
@@ -99,6 +95,9 @@ def main():
 
     except ImportError:
         gs.fatal("Package python3-scikit-learn 0.20 or newer is not installed")
+
+    gs.utils.set_path(modulename="r.learn.ml2", dirname="rlearnlib", path="..")
+    from rlearnlib.raster import RasterStack
 
     # parser options
     group = options["group"]

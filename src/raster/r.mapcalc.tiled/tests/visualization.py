@@ -15,7 +15,7 @@
 
 # python3 visualization.py rmapcalctiled_test.csv images
 
-import grass.script as grass
+import grass.script as gs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -23,14 +23,14 @@ import pandas as pd
 import sys
 
 if len(sys.argv) == 1:
-    grass.fatal("No csv file and output folder given")
+    gs.fatal("No csv file and output folder given")
 else:
     csvfile = sys.argv[1]
     if not os.path.isfile(csvfile):
-        grass.fatal("%s is no file and cannot be used as csv file" % csvfile)
+        gs.fatal("%s is no file and cannot be used as csv file" % csvfile)
 
 if len(sys.argv) < 3:
-    grass.fatal("No output folder given")
+    gs.fatal("No output folder given")
 else:
     outputfolder = sys.argv[2]
     if not os.path.isdir(outputfolder):

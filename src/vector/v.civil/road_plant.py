@@ -90,9 +90,7 @@ class Aligns(object):
         if npk == -1:
             npk = self.length()
         for i in range(len(self.leng_accum) - 1):
-
             if self.leng_accum[i] <= npk <= self.leng_accum[i + 1]:
-
                 pnt = self.list_aligns[i].get_roadpoint(npk - self.leng_accum[i])[0]
                 pnt.npk = npk
 
@@ -129,7 +127,6 @@ class Aligns(object):
         # int_ant = interv
         rango_ant = []
         for i in range(ini, fin):
-
             rango = []
             if isinstance(self.list_aligns[i], Base.Straight):
                 inter = interv
@@ -243,7 +240,6 @@ class Aligns(object):
             list_obj.append(r_pnt)
         for i, ali in enumerate(self.list_aligns[::-1]):
             if ali is not None:
-
                 list_attrs.append(
                     [ali.get_leng_accum2(), r_pnt.get_azi(), r_pnt.p_type, "L=0"]
                 )
@@ -416,7 +412,6 @@ class PlantAlign(object):
             and self.dat["superelev"] is not None
             and self.dat["superelev"] != "None"
         ):
-
             dist1, dist2, bom1, peral, bom2, dist3, dist4 = [
                 float(p) for p in self.dat["superelev"].split(",")
             ]
@@ -442,7 +437,6 @@ class PlantAlign(object):
         elif (
             bombeo != 0 and self.cloth_in.length() != 0 and self.cloth_out.length() != 0
         ):
-
             super_lim = [
                 [
                     self.cloth_in.leng_accum - self.cloth_in.length() / 2,
@@ -523,7 +517,6 @@ class Plant(Aligns, object):
         leng_accum = 0
 
         for i, dat3 in enumerate(self.road_table):
-
             if i >= 2:
                 if i == 2:
                     end_pnt = line[0]
@@ -564,7 +557,6 @@ class Plant(Aligns, object):
         new_rows = []
 
         for i, dat in enumerate(self.road_table):
-
             new_rows.append(dat)
 
             if dat["lr_"] != 0:
@@ -579,7 +571,6 @@ class Plant(Aligns, object):
                 )
 
         for i, dat in enumerate(new_rows[:-1]):
-
             dat1 = new_rows[i]
             dat2 = new_rows[i + 1]
 

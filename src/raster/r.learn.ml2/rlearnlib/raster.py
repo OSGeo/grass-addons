@@ -204,11 +204,8 @@ class RasterStack(StatisticsMixin):
 
         # add rasters and metadata to stack
         for name, mapset in zip(raster_names, mapset_names):
-
             with RasterRow(name=name, mapset=mapset) as src:
-
                 if src.exist() is True:
-
                     # get mapname and mapset
                     ras_name = src.name
                     fullname = src.fullname()
@@ -605,7 +602,6 @@ class RasterStack(StatisticsMixin):
             )
         else:
             if height is not None:
-
                 with RasterRow(
                     output, mode="w", mtype=mtype, overwrite=overwrite
                 ) as dst:
@@ -895,7 +891,6 @@ class RasterStack(StatisticsMixin):
 
         # open grass vector
         with VectorTopo(name=vname, mapset=mapset, mode="r") as points:
-
             # retrieve key column
             key_col = points.table.key
 
@@ -971,7 +966,7 @@ class RasterStack(StatisticsMixin):
         # remove samples containing NaNs
         if na_rm is True:
             gs.message(
-                "Removing samples with NaN values in the raster " "feature variables..."
+                "Removing samples with NaN values in the raster feature variables..."
             )
             df = df.dropna()
 
