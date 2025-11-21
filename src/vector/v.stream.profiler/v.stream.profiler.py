@@ -110,8 +110,8 @@
 # IMPORT MODULES #
 ##################
 # PYTHON
-import numpy as np
 import sys
+import numpy as np
 
 # GRASS
 from grass.pygrass.modules.shortcuts import general as g
@@ -157,15 +157,15 @@ def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
     global mpl
     global plt
+
+    # lazy import matplotlib
     try:
         import matplotlib as mpl
 
         mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
-        gs.fatal(
-            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
-        )
+        gs.fatal(_("Matplotlib is not installed. Please, install it."))
 
 
 def main():
@@ -175,10 +175,8 @@ def main():
     means that the river exits the map.
     """
 
-    # lazy import modules
+    # lazy import py modules
     lazy_import_matplotlib()
-
-    options, flags = gs.parser()
 
     # Parsing
     window = float(options["window"])
@@ -249,7 +247,7 @@ def main():
         """
 
     # Network extraction
-    if options["outstream"] is not "":
+    if options["outstream"] != "":
         selected_cats_str = list(np.array(selected_cats).astype(str))
         selected_cats_csv = ",".join(selected_cats_str)
         v.extract(
@@ -276,7 +274,7 @@ def main():
             _i += 1
         DEM.close()
         z = np.array(z)
-        if options["window"] is not "":
+        if options["window"] != "":
             x_downstream, z = moving_average(x_downstream_0, z, window)
         gs.core.percent(1, 1, 1)
     else:
@@ -298,7 +296,7 @@ def main():
         slope.close()
         S = np.array(S)
         S_0 = S.copy()
-        if options["window"] is not "":
+        if options["window"] != "":
             x_downstream, S = moving_average(x_downstream_0, S, window)
         gs.core.percent(1, 1, 1)
     else:
@@ -320,7 +318,7 @@ def main():
         accumulation.close()
         A = np.array(A)
         A_0 = A.copy()
-        if options["window"] is not "":
+        if options["window"] != "":
             x_downstream, A = moving_average(x_downstream_0, A, window)
         gs.core.percent(1, 1, 1)
     else:
@@ -354,7 +352,7 @@ def main():
     plt.show()
 
     # Saving data
-    if options["outfile_original"] is not "":
+    if options["outfile_original"] != "":
         header = ["x_downstream", "E", "N"]
         outfile = np.hstack((np.expand_dims(x_downstream_0, axis=1), coords))
         if _include_S:
@@ -371,7 +369,7 @@ def main():
         header = np.array(header)
         outfile = np.vstack((header, outfile))
         np.savetxt(options["outfile_original"], outfile, "%s")
-    if options["outfile_smoothed"] is not "":
+    if options["outfile_smoothed"] != "":
         header = ["x_downstream", "E", "N"]
         # E, N on smoothed grid
         x_downstream, E = moving_average(x_downstream_0, coords[:, 0], window)
@@ -401,4 +399,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main(*gs.parser()))
