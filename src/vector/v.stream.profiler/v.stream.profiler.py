@@ -158,7 +158,7 @@ def lazy_import_matplotlib():
     global mpl
     global plt
 
-    # lazy import matplotlib
+    # lazy import optional dependencies
     try:
         import matplotlib as mpl
 
@@ -174,6 +174,8 @@ def main():
     network by referencing its category (cat) number in a new column. "0"
     means that the river exits the map.
     """
+
+    options, flags = gs.parser()
 
     # lazy import py modules
     lazy_import_matplotlib()
@@ -399,4 +401,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main(*gs.parser()))
+    main()
