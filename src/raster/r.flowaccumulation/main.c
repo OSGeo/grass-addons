@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
         G_message(_("Parallel computing using %d threads..."), num_threads);
     else
 #endif
-        G_message(_("Sequential computing..."));
+        G_message(_("Serial computing..."));
 
     check_overflow = flag.check_overflow->answer;
     use_less_memory = flag.use_less_memory->answer;
