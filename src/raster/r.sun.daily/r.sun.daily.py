@@ -385,7 +385,6 @@ def run_r_sun(
         params.update({"horizon_step": horizon_step})
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
-        
     if latitude:
         params.update({"lat": latitude})
     if longitude:
