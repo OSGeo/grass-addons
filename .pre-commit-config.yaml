@@ -33,7 +33,7 @@ repos:
                 .*\.svg$
           )
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.3.7"
+    rev: "v2.3.8"
     hooks:
       - id: biome-check
       - id: biome-lint
