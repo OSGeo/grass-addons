@@ -116,7 +116,7 @@ import time
 import zipfile as zfile
 import subprocess
 import urllib
-from six.moves.urllib import request as urllib2
+import urllib.request as urllib2
 
 try:
     from http.cookiejar import CookieJar
