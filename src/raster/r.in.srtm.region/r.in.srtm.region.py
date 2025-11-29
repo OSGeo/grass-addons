@@ -122,7 +122,7 @@ import os
 import atexit
 import numpy as np
 import subprocess
-from six.moves.urllib import request as urllib2
+import urllib.request as urllib2
 
 try:
     from http.cookiejar import CookieJar
