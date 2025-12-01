@@ -1,7 +1,10 @@
 MODULE_TOPDIR = ../..
 
-PGM=r.curvenumber
+PGM = r.curvenumber
 
-include $(MODULE_TOPDIR)/include/Make/Script.make
+LIBES = $(RASTERLIB) $(GISLIB) $(MATHLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
 
-default: script
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
