@@ -125,6 +125,6 @@ zoomed near the watershed outlet*
 
 ## AUTHORS
 
-[Abdullah Azzam](mailto:mabdazzam@outlook.com)
-([CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
-Engineering, New Mexico State University)
+[Abdullah Azzam](mailto:mabdazzam@outlook.com),
+[CLAWRIM](https://clawrim.isnew.info/),
+Department of Civil and Environmental Engineering, New Mexico State University
