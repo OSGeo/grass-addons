@@ -144,8 +144,8 @@ r.curvenumber \
 
 ## SEE ALSO
 
-[r.timeofconcentration](https://grass.osgeo.org/grass64/manuals/addons/r.timeofconcentration.html),
-[r.runoff](https://grass.osgeo.org/grass64/manuals/addons/r.runoff.html)
+[r.timeofconcentration](https://grass.osgeo.org/grass-stable/manuals/addons/r.timeofconcentration.html),
+[r.runoff](https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html)
 
 ## AUTHORS
 
