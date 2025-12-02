@@ -147,8 +147,8 @@ r.curvenumber \
 [r.timeofconcentration](https://grass.osgeo.org/grass64/manuals/addons/r.timeofconcentration.html),
 [r.runoff](https://grass.osgeo.org/grass64/manuals/addons/r.runoff.html)
 
-## AUTHOR
+## AUTHORS
 
 [Abdullah Azzam](mailto:mabdazzam@outlook.com),
-[CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
-Engineering, New Mexico State University)
+[CLAWRIM](https://clawrim.isnew.info/),
+Department of Civil and Environmental Engineering, New Mexico State University
