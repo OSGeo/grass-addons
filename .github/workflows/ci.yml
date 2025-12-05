@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
@@ -32,8 +32,10 @@ jobs:
         include:
           - grass-version: main
             python-version: "3.11"
+            os: ubuntu-24.04
           - grass-version: releasebranch_8_4
             python-version: "3.10"
+            os: ubuntu-22.04
       fail-fast: false
     env:
       # renovate: datasource=github-tags depName=r-hub/R
