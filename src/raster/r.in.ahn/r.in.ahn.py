@@ -412,7 +412,9 @@ def import_product(product, version, res, tiles, outname, memory, nprocs, max_in
         gs.fatal(_("Import of all requested AHN tiles failed."))
 
     # Patch tiles into a single raster
-    gs.message(f"Patching imported {product.upper()} tiles into a single raster layer ...")
+    gs.message(
+        f"Patching imported {product.upper()} tiles into a single raster layer ..."
+    )
     found = gs.find_file(name="MASK", element="cell")
     if nprocs > 1 and found["name"] == "MASK":
         if grass_version_at_least(8, 5):
