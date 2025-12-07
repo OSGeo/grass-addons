@@ -338,7 +338,7 @@ def patch_in_batches(input_maps, output, memory, nprocs, max_inputs):
         tmp = create_temporary_name(f"{output}_batch")
         gs.message(
             f"  Creating intermediate mosaic <{tmp}> from "
-            f"{len(chunk)} maps ({i}–{i+len(chunk)-1})"
+            f"{len(chunk)} maps ({i}–{i + len(chunk) - 1})"
         )
 
         args = {
