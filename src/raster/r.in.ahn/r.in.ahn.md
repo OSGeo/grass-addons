@@ -54,6 +54,9 @@ behavior, it does not alter the imported DTM or DSM. However, when computing
 the CHM, the MASK is applied to the DSM–DTM calculation, and the resulting CHM 
 will contain NULL values outside the MASKed area.
 
+Versions 5 and 6 do not cover the whole of the Netherlands yet. Check the 
+[AHN website](https://www.ahn.nl/) for information about which parts are covered.
+
 ## EXAMPLE
 
 ### Example 1
