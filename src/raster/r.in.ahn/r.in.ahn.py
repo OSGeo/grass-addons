@@ -4,10 +4,10 @@
 #
 # MODULE:       r.in.ahn
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Imports the dtm or dsm from the AHN (Actueel Hoogtebestand
-#               Nederland (AHN), versions 2–6) by downloading 1x1 km tiles,
-#               clipped to the region. Region is extended to ensure that it
-#               aligns with the original AHN
+# PURPOSE:      Imports dtm, dsm or laz data from the AHN (Actueel
+#               Hoogtebestand Nederland (AHN), versions 2–6) by downloading
+#               1x1 km tiles, clipped to the computational region. In
+#               addition, the chm can be computed as dsm - dtm.
 #
 # COPYRIGHT:    (c) 2024-2025 Paulo van Breugel, and the GRASS Development
 #               Team. This program is free software under the GNU General
@@ -17,7 +17,7 @@
 #############################################################################
 
 # %module
-# % description: Imports the dtm or dsm from the AHN (Actueel Hoogtebestand Nederland (AHN), versions 2–6.
+# % description: Imports dtm, dsm, chm or laz from the AHN (Actueel Hoogtebestand Nederland (AHN), versions 2–6.
 # % keyword: dem
 # % keyword: raster
 # % keyword: import
@@ -28,7 +28,7 @@
 # % type: string
 # % label: Product
 # % description: Choose which product to download (dtm, dsm or chm)
-# % options: dtm,dsm,chm
+# % options: dtm,dsm,chm,laz
 # % required: yes
 # %end
 
@@ -52,6 +52,27 @@
 # % required: yes
 # %end
 
+# %option G_OPT_R_OUTPUT
+# % guisection: Output
+# % required: no
+# %end
+
+# %option G_OPT_M_DIR
+# % key: directory
+# % label: Output directory for LAZ data
+# % description: Output directory to which the LAZ data is downloaded (default = working directory)
+# % required: no
+# % guisection: Output
+# %end
+
+# %option G_OPT_F_OUTPUT
+# % key: laz_files
+# % label: CSV file with list of downloaded LAZ files
+# % description: Save the path + names of the downloaded LAZ files to a file
+# % required: no
+# % guisection: Output
+# %end
+
 # %option G_OPT_MEMORYMB
 # %end
 
@@ -67,13 +88,14 @@
 # % answer: 250
 # %end
 
-# %option G_OPT_R_OUTPUT
-# %end
-
 # %flag
 # % key: g
 # % label: Set to original computational region
 # % description: After downloading and importing, set the region back to the original computation region.
+# %end
+
+# %rules
+# % exclusive: directory, output
 # %end
 
 import atexit
@@ -82,8 +104,13 @@ from math import floor, ceil
 from math import floor
 from multiprocessing import Pool
 import uuid
+import os
+from urllib.request import urlretrieve
+from urllib.error import URLError, HTTPError
 
 import grass.script as gs
+from grass.exceptions import CalledModuleError
+
 
 # AHN overall 1x1 km grid extent (EPSG:28992)
 AHN_MIN_X = 12000.0
@@ -135,8 +162,8 @@ def get_tile_url(version, product, resolution, x, y):
     Construct the download URL for a single 1x1 km tile.
 
     version: '2','3','4','5','6'
-    product: 'dtm' or 'dsm'
-    resolution: 0.5 or 5 (float)
+    product: 'dtm', 'dsm' or 'laz'
+    resolution: 0.5 or 5 (float) for dtm/dsm, ignored for laz
     x, y: lower-left corner coordinates (integers, EPSG:28992)
     """
 
@@ -153,7 +180,15 @@ def get_tile_url(version, product, resolution, x, y):
     else:
         gs.fatal(_("Unsupported AHN version: {v}").format(v=version))
 
-    # Product + resolution dependent subdir and suffix
+    # LiDAR (LAZ) tiles: separate pattern
+    if product == "laz":
+        subdir = "01_LAZ"
+        suffix = "C"
+        filename = f"{prefix_base}_{suffix}_{int(x):06d}_{int(y):06d}.COPC.LAZ"
+        url = f"{base}/{vdir}/{subdir}/{filename}"
+        return url
+
+    # Product + resolution dependent subdir and suffix for rasters
     if product == "dtm":
         if resolution == 0.5:
             subdir = "02a_DTM_50cm"
@@ -283,8 +318,8 @@ def _import_tile(args):
         in_args["memory"] = memory
 
     try:
-        gs.message(f"Downloading and importing tile {int(x)},{int(y)} from:\n{url}")
-        gs.run_command("r.in.gdal", **in_args)
+        gs.message(f"Downloading and importing tile {int(x)},{int(y)}")
+        gs.run_command("r.in.gdal", **in_args, quiet=True)
         return tmp_name
     except Exception as e:
         gs.warning(
@@ -296,23 +331,58 @@ def _import_tile(args):
         return None
 
 
+def _download_laz_tile(args):
+    """
+    Worker function to download a single LAZ tile.
+
+    args = (url, dest)
+    Returns dest on success, or None on failure.
+    """
+    url, dest = args
+    try:
+        gs.message(f"Downloading LAZ tile to {dest}\n")
+        urlretrieve(url, dest)
+        return dest
+    except (HTTPError, URLError, OSError) as e:
+        gs.warning(
+            _(
+                "Failed to download LAZ tile from {url} to {dest}. "
+                "Skipping this tile. Error: {err}"
+            ).format(url=url, dest=dest, err=e)
+        )
+        return None
+
+
 def patch_in_batches(input_maps, output, memory, nprocs, max_inputs):
     """
     Patch many maps safely, avoiding command-line length / r.patch limits.
 
-    If len(input_maps) <= max_inputs:
-        - run r.patch once directly into 'output'.
-
-    Else:
-        - split into chunks of size max_inputs
-        - patch each chunk into an intermediate mosaic
-        - recursively patch the intermediates into 'output'
+    - If len(input_maps) == 0, fatal error (nothing to patch).
+    - If len(input_maps) == 1, rename the single map to 'output'.
+    - If 2 <= len(input_maps) <= max_inputs, run r.patch once directly
+      into 'output'.
+    - If len(input_maps) > max_inputs, split into chunks of size
+      max_inputs, patch each chunk with r.patch (except chunks of
+      size 1, which are passed through), then recurse.
     """
-    if len(input_maps) <= max_inputs:
+
+    if not input_maps:
+        gs.fatal(_("No input raster maps provided to patch_in_batches."))
+
+    # Single input: no need to call r.patch (which requires at least 2 inputs)
+    if len(input_maps) == 1:
+        single = input_maps[0]
         gs.message(
-            f"Patching {len(input_maps)} maps into <{output}> "
-            f"(memory={memory}MB, nprocs={nprocs})"
+            f"Only one input map for patching; renaming <{single}> to <{output}>."
         )
+        if single != output:
+            gs.run_command("g.rename", raster=[single, output])
+        else:
+            gs.message("Single input map already has desired output name.")
+        return
+
+    # 2 .. max_inputs: one r.patch call is enough
+    if len(input_maps) <= max_inputs:
         args = {
             "input": ",".join(input_maps),
             "output": output,
@@ -324,10 +394,24 @@ def patch_in_batches(input_maps, output, memory, nprocs, max_inputs):
         if nprocs > 1:
             args["nprocs"] = nprocs
 
-        gs.run_command("r.patch", **args)
+        try:
+            gs.run_command("r.patch", **args)
+        except CalledModuleError as e:
+            msg = getattr(e, "errors", "") or str(e)
+            if "Too many open files" in msg:
+                gs.fatal(
+                    _(
+                        "r.patch failed because the system limit for open files "
+                        "was exceeded.\n"
+                        "Try reducing the 'max_inputs' option, lowering 'nprocs', "
+                        "or increasing the OS open-files limit (ulimit -n)."
+                    )
+                )
+            raise
+
         return
 
-    # Too many maps: batch them
+    # len(input_maps) > max_inputs: batch them
     gs.message(
         f"{len(input_maps)} maps > max_inputs={max_inputs}: patching in batches ..."
     )
@@ -335,11 +419,20 @@ def patch_in_batches(input_maps, output, memory, nprocs, max_inputs):
     intermediate = []
     for i in range(0, len(input_maps), max_inputs):
         chunk = input_maps[i : i + max_inputs]
+        chunk_idx = i // max_inputs + 1
+
+        # If this chunk has a single map, just carry it through without r.patch
+        if len(chunk) == 1:
+            single = chunk[0]
+            gs.message(
+                f"  Batch {chunk_idx}: single map <{single}> reused as "
+                "intermediate (no r.patch needed)."
+            )
+            intermediate.append(single)
+            continue
+
         tmp = create_temporary_name(f"{output}_batch")
-        gs.message(
-            f"  Creating intermediate mosaic <{tmp}> from "
-            f"{len(chunk)} maps ({i}–{i + len(chunk) - 1})"
-        )
+        gs.message(f"  Creating intermediate mosaic from {len(chunk)} maps")
 
         args = {
             "input": ",".join(chunk),
@@ -352,7 +445,21 @@ def patch_in_batches(input_maps, output, memory, nprocs, max_inputs):
         if nprocs > 1:
             args["nprocs"] = nprocs
 
-        gs.run_command("r.patch", **args)
+        try:
+            gs.run_command("r.patch", **args)
+        except CalledModuleError as e:
+            msg = getattr(e, "errors", "") or str(e)
+            if "Too many open files" in msg:
+                gs.fatal(
+                    _(
+                        "r.patch failed because the system limit for open files "
+                        "was exceeded.\n"
+                        "Try reducing the 'max_inputs' option, lowering 'nprocs', "
+                        "or increasing the OS open-files limit (ulimit -n)."
+                    )
+                )
+            raise
+
         intermediate.append(tmp)
 
     # Recursively patch the intermediates
@@ -386,41 +493,165 @@ def grass_version_at_least(major_req, minor_req):
 def import_product(product, version, res, tiles, outname, memory, nprocs, max_inputs):
     """
     Import and patch AHN tiles for a single product (dtm or dsm).
+
+    Tiles are processed in batches of at most max_inputs to limit the number
+    of simultaneously imported rasters. For each batch:
+      - tiles are downloaded and imported with r.in.gdal
+      - imported tiles are patched into an intermediate mosaic
+      - the individual tile rasters of that batch are removed
+
+    After all batches are processed, the intermediate mosaics are patched
+    into the final output map.
     """
 
-    # Build jobs for parallel download/import
-    jobs = []
-    for x, y in tiles:
-        url = get_tile_url(version, product, res, x, y)
-        tmp_name = create_temporary_name(f"{outname}")
-        jobs.append((url, tmp_name, x, y, memory))
+    if max_inputs < 1:
+        # Treat non-positive max_inputs as "no limit" for batching.
+        max_inputs = len(tiles)
 
-    # Download and import tiles (in parallel if nprocs > 1)
-    if nprocs > 1 and len(jobs) > 1:
-        gs.message(
-            f"Importing {len(jobs)} {product.upper()} tiles in parallel using {nprocs} processes ..."
-        )
-        with Pool(processes=nprocs) as pool:
-            results = pool.map(_import_tile, jobs)
-    else:
-        gs.message(f"Importing {len(jobs)} {product.upper()} tiles sequentially ...")
-        results = [_import_tile(job) for job in jobs]
+    # Initialise progress bar
+    total_tiles = len(tiles)
+    tiles_done = 0
+    gs.percent(0, total_tiles, 1)
 
-    tile_rasters = [r for r in results if r is not None]
+    intermediate_mosaics = []
+    total_imported_tiles = 0
 
-    if not tile_rasters:
+    # Process tiles in batches
+    for batch_start in range(0, len(tiles), max_inputs):
+        batch_tiles = tiles[batch_start : batch_start + max_inputs]
+
+        # Build jobs for this batch
+        jobs = []
+        for x, y in batch_tiles:
+            url = get_tile_url(version, product, res, x, y)
+            tmp_name = create_temporary_name(f"{outname}")
+            jobs.append((url, tmp_name, x, y, memory))
+
+        if not jobs:
+            continue
+
+        batch_index = batch_start // max_inputs + 1
+
+        # Download and import tiles in this batch
+        if nprocs > 1 and len(jobs) > 1:
+            gs.message(
+                f"Importing {len(jobs)} {product.upper()} tiles in parallel batch ({batch_index})"
+            )
+            with Pool(processes=nprocs) as pool:
+                results = pool.map(_import_tile, jobs)
+        else:
+            gs.message(
+                f"Importing {len(jobs)} {product.upper()} tiles sequentially "
+                f"(batch {batch_index}) ..."
+            )
+            results = [_import_tile(job) for job in jobs]
+
+        tile_rasters = [r for r in results if r is not None]
+
+        if not tile_rasters:
+            gs.warning(
+                _(
+                    "Import of all tiles in batch {b} failed; "
+                    "continuing with remaining batches."
+                ).format(b=batch_index)
+            )
+            continue
+
+        total_imported_tiles += len(tile_rasters)
+
+        # Patch this batch into an intermediate mosaic
+        if len(tile_rasters) == 1:
+            batch_mosaic = tile_rasters[0]
+            gs.message(
+                f"Batch {batch_index}: single imported {product.upper()} tile "
+                f"used directly as intermediate mosaic <{batch_mosaic}>."
+            )
+        else:
+            batch_mosaic = create_temporary_name(f"{outname}_batch")
+            gs.message(
+                f"Batch {batch_index}: patching {len(tile_rasters)} imported "
+                f"{product.upper()} tiles into intermediate raster"
+            )
+
+            # Patch this batch with full nprocs, handling MASK if needed
+            found = gs.find_file(name="MASK", element="cell")
+            number_of_tiles = len(tile_rasters)
+            if nprocs > 1 and found["name"] == "MASK" and number_of_tiles > 1:
+                if grass_version_at_least(8, 5):
+                    with gs.MaskManager():
+                        patch_in_batches(
+                            input_maps=tile_rasters,
+                            output=batch_mosaic,
+                            memory=memory,
+                            nprocs=nprocs,
+                            max_inputs=max_inputs,
+                        )
+                else:
+                    # GRASS < 8.5: emulate MaskManager by temporary renaming MASK
+                    backup_name = create_temporary_name("MASK_backup")
+                    gs.run_command(
+                        "g.rename",
+                        raster=f"MASK,{backup_name}",
+                        quiet=True,
+                    )
+                    try:
+                        patch_in_batches(
+                            input_maps=tile_rasters,
+                            output=batch_mosaic,
+                            memory=memory,
+                            nprocs=nprocs,
+                            max_inputs=max_inputs,
+                        )
+                    finally:
+                        # Restore original MASK
+                        gs.run_command(
+                            "g.rename",
+                            raster=f"{backup_name},MASK",
+                            quiet=True,
+                        )
+            else:
+                patch_in_batches(
+                    input_maps=tile_rasters,
+                    output=batch_mosaic,
+                    memory=memory,
+                    nprocs=nprocs,
+                    max_inputs=max_inputs,
+                )
+
+        # Remove individual tile rasters of this batch to free disk space
+        to_delete = [r for r in tile_rasters if r != batch_mosaic]
+        if to_delete:
+            try:
+                gs.run_command(
+                    "g.remove",
+                    type="raster",
+                    name=",".join(to_delete),
+                    flags="f",
+                    quiet=True,
+                )
+            except CalledModuleError:
+                # Non-fatal: these maps are already scheduled for cleanup on exit
+                pass
+
+        intermediate_mosaics.append(batch_mosaic)
+
+    # Finish progress bar (if anything was processed at all)
+    if tiles_done > 0:
+        gs.percent(1, 1, 1)
+
+    if not intermediate_mosaics:
         gs.fatal(_("Import of all requested AHN tiles failed."))
 
-    # Patch tiles into a single raster
-    gs.message(
-        f"Patching imported {product.upper()} tiles into a single raster layer ..."
-    )
+    # Patch intermediate mosaics into a single raster
+    gs.message(f"Patching {len(intermediate_mosaics)} intermediate mosaic(s)")
+
     found = gs.find_file(name="MASK", element="cell")
-    if nprocs > 1 and found["name"] == "MASK":
+    number_of_tiles = len(intermediate_mosaics)
+    if nprocs > 1 and found["name"] == "MASK" and number_of_tiles > 1:
         if grass_version_at_least(8, 5):
             with gs.MaskManager():
                 patch_in_batches(
-                    input_maps=tile_rasters,
+                    input_maps=intermediate_mosaics,
                     output=outname,
                     memory=memory,
                     nprocs=nprocs,
@@ -436,7 +667,7 @@ def import_product(product, version, res, tiles, outname, memory, nprocs, max_in
             )
             try:
                 patch_in_batches(
-                    input_maps=tile_rasters,
+                    input_maps=intermediate_mosaics,
                     output=outname,
                     memory=memory,
                     nprocs=nprocs,
@@ -449,14 +680,16 @@ def import_product(product, version, res, tiles, outname, memory, nprocs, max_in
                     raster=f"{backup_name},MASK",
                     quiet=True,
                 )
-    else:
+    elif number_of_tiles > 1:
         patch_in_batches(
-            input_maps=tile_rasters,
+            input_maps=intermediate_mosaics,
             output=outname,
             memory=memory,
             nprocs=nprocs,
             max_inputs=max_inputs,
         )
+    else:
+        gs.run_command("g.rename", raster=[intermediate_mosaics[0], outname])
 
     # Apply elevation color table
     gs.run_command("r.colors", map=outname, color="elevation")
@@ -483,15 +716,16 @@ def import_product(product, version, res, tiles, outname, memory, nprocs, max_in
     )
     hist_tiles = (
         f"Downloaded and patched AHN{version} {product} tiles "
-        f"({len(tile_rasters)} tiles, resolution {res} m, "
+        f"({total_imported_tiles} tiles, resolution {res} m, "
         f"memory={memory}MB, nprocs={nprocs})"
     )
     gs.run_command("r.support", map=outname, history=hist_tiles)
 
     gs.message(
-        "-----------------"
+        "-----------------\n"
         "The AHN {prod} (version {ver}, {res} m) has been downloaded and "
-        "imported as {out}".format(prod=product, ver=version, res=res, out=outname)
+        "imported as {out}\n"
+        "-----------------\n\n".format(prod=product, ver=version, res=res, out=outname)
     )
 
 
@@ -499,6 +733,7 @@ def main(options, flags):
     """
     Download AHN tiles (DTM/DSM, 0.5 or 5 m) and patch them into a single raster.
     If chm is selected, create the chm layer.
+    If laz is selected, download LiDAR tiles and print their paths.
     """
 
     # Check if the projection is RD New (EPSG:28992)
@@ -510,6 +745,15 @@ def main(options, flags):
     version = options["version"]
     res = float(options["resolution"])
     outname = options["output"]
+    directory = options["directory"]
+    laz_files = options["laz_files"]
+    if laz_files and product != "laz":
+        gs.warning(
+            _(
+                "The laz_files parameter is ignored because this is only used "
+                "when the 'laz' product is selected."
+            )
+        )
     memory = int(options["memory"])
     nprocs = int(options["nprocs"])
     if nprocs < 1:
@@ -531,6 +775,44 @@ def main(options, flags):
     if not tiles:
         gs.fatal(_("No AHN tiles intersect the requested region."))
 
+    # LiDAR tiles (LAZ) – only download, do not import
+    if product == "laz":
+        gs.message(_("Preparing to download {} LAZ tiles").format(len(tiles)))
+        jobs = []
+        for x, y in tiles:
+            url = get_tile_url(version, "laz", res, x, y)  # res ignored for laz
+            filename = os.path.basename(url)
+            if directory:
+                dest = os.path.join(directory, filename)
+            else:
+                dest = os.path.join(os.getcwd(), filename)
+            jobs.append((url, dest))
+
+        if nprocs > 1 and len(jobs) > 1:
+            gs.message(_("Downloading {} LAZ tiles").format(len(jobs)))
+            with Pool(processes=nprocs) as pool:
+                results = pool.map(_download_laz_tile, jobs)
+        else:
+            gs.message(_("Downloading {} LAZ tiles sequentially").format(len(jobs)))
+            results = [_download_laz_tile(job) for job in jobs]
+
+        downloaded = [p for p in results if p is not None]
+
+        if not downloaded:
+            gs.fatal(_("Download of all requested LAZ tiles failed."))
+
+        # Print or save list of full paths
+        if laz_files:
+            with open(laz_files, "w") as fh:
+                for p in downloaded:
+                    fh.write(p + "\n")
+        else:
+            for path in downloaded:
+                print(path)
+
+        gs.message(_("Finished downloading {} LAZ tiles").format(len(downloaded)))
+        return 0
+
     # Compute snapped region (NO clamping necessary)
     n_sn = res * ceil(n_ov / res)
     s_sn = res * floor(s_ov / res)
@@ -550,10 +832,12 @@ def main(options, flags):
     e_final = min(e_sn, e_tiles)
 
     gs.message(
-        "The region's extent and resolution have been adjusted to exactly "
-        "match the selected AHN tiles:\n"
-        f"  n={n_final}, s={s_final}, w={w_final}, e={e_final}, res={res}"
+        _(
+            "The region's extent and resolution have been adjusted "
+            "to exactly match the selected AHN tiles:\n "
+        )
     )
+
     gs.run_command("g.region", n=n_final, s=s_final, e=e_final, w=w_final, res=res)
 
     max_inputs = int(options["max_inputs"])
@@ -590,7 +874,7 @@ def main(options, flags):
         )
 
         # Compute CHM = DSM - DTM
-        gs.message("Calculating CHM (DSM - DTM) ...")
+        gs.message(_("Calculating CHM (DSM - DTM) ..."))
         expr = f"{chm_out} = {dsm_out} - {dtm_out}"
         gs.run_command("r.mapcalc", expression=expr, quiet=True)
         gs.run_command("r.colors", map=chm_out, color="elevation", quiet=True)
@@ -616,13 +900,7 @@ def main(options, flags):
             history="CHM = DSM - DTM calculated by r.in.ahn",
         )
 
-        gs.message(
-            "-----------------"
-            "The AHN CHM (version {ver}, {res} m) has been calculated as {chm} "
-            "from {dsm} (DSM) and {dtm} (DTM)".format(
-                ver=version, res=res, chm=chm_out, dsm=dsm_out, dtm=dtm_out
-            )
-        )
+        gs.message(_("Finished\n-----------------\n"))
 
     else:
         # Single product (DTM or DSM)

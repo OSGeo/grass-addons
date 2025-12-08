@@ -3,13 +3,14 @@
 *r.in.ahn* imports elevation data from the Actueel Hoogtebestand Nederland (AHN).
 AHN is the national digital elevation model of the Netherlands and provides
 both a digital terrain model (DTM) and a digital surface model (DSM) at
-resolutions of 0.5 m and 5 m. The dataset is available in multiple versions
+resolutions of 0.5 m and 5 m. In addition, the original LAZ point data is
+available for download. The dataset is available in multiple versions
 (AHN2 through AHN6), each corresponding to a different acquisition period and
 processing specification. An overview of these versions is provided on the
 [AHN](https://www.ahn.nl) website.
 
-The user specifies the AHN version, the product (*dtm*, *dsm*, or *chm*), and
-the desired resolution. When chm is selected, the module first downloads and
+The user specifies the AHN version, the product (*dtm*, *dsm*, *chm*), and the
+desired resolution. When chm is selected, the module first downloads and
 imports both the DTM and DSM and then computes the canopy height model (CHM) as
 the difference between DSM and DTM. In this case, all three layers are retained
 and written to the mapset using the user-defined output name with the suffixes
@@ -23,6 +24,17 @@ grid and uses the selected resolution. The resulting raster always covers the
 original region (or the portion overlapping the AHN extent). When the **-g** flag
 is used, the original computational region is restored after the import is
 completed.
+
+In addition to the three raster products, users may also download the LiDAR
+point cloud tiles by selecting the laz product option. This retrieves the 1 × 1
+km LAZ files and stores them in a user-specified directory; if no directory is
+provided, the files are saved in the current working directory. Optionally, the
+module can write the file paths and filenames of the downloaded tiles to a CSV
+file for later reference. Unlike the raster products, LAZ tiles are not
+imported into GRASS automatically. Users may import the point data afterwards
+using standard GRASS tools such as *v.in.pdal* for vector point clouds or
+*r.in.pdal* for generating raster products directly from the LAZ files.
+
 
 ## NOTE
 
@@ -101,6 +113,21 @@ r.in.ahn product=chm output=chm_crevecoeur resolution=0.5 version=4
 [![image-alt](r.in.ahn example)](r_in_ahn_03.png)
 *Figure: CHM map of Fort Crèvecoeur*
 
+### Example 4
+
+```python
+from subprocess import PIPE
+from grass.pygrass.modules import Module
+files = Module(
+        "r.in.ahn",
+        product="laz",
+        version=4,
+        stdout_=PIPE,
+    ).outputs.stdout
+paths = files.split("\n")
+paths = [_f for _f in paths if _f]
+```
+
 ## REFERENCES
 
 See the [AHN](https://www.ahn.nl) webpage for more information about the AHN
@@ -109,7 +136,9 @@ data (in Dutch).
 ## SEE ALSO
 
 *[r.in.srtm](https://grass.osgeo.org/grass-stable/manuals/r.in.srtm.html),
-[r.in.nasadem](https://grass.osgeo.org/grass-stable/manuals/r.in.nasadem.html)*
+[r.in.nasadem](https://grass.osgeo.org/grass-stable/manuals/r.in.nasadem.html),
+[r.in.pdal](https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html),
+[v.in.pdal](https://grass.osgeo.org/grass-stable/manuals/v.in.pdal.html)*
 
 ## AUTHOR
 
