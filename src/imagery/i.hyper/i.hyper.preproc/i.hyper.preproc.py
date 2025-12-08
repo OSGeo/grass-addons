@@ -10,7 +10,7 @@
 
 # %module
 # % description: General hyperspectral data preprocessing
-# % keyword: raster
+# % keyword: imagery
 # % keyword: hyperspectral
 # % keyword: preprocessing
 # %end
