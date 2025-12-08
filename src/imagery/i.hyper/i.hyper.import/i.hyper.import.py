@@ -10,6 +10,7 @@
 # %module
 # % description: Hyperspectral imagery import.
 # % keyword: imagery
+# % keyword: import
 # %end
 
 # %option G_OPT_F_INPUT
