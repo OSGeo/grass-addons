@@ -35,7 +35,6 @@ imported into GRASS automatically. Users may import the point data afterwards
 using standard GRASS tools such as *v.in.pdal* for vector point clouds or
 *r.in.pdal* for generating raster products directly from the LAZ files.
 
-
 ## NOTE
 
 This module can only be used in a location based on the Amersfoort / RD New
@@ -112,21 +111,6 @@ r.in.ahn product=chm output=chm_crevecoeur resolution=0.5 version=4
 
 [![image-alt](r.in.ahn example)](r_in_ahn_03.png)
 *Figure: CHM map of Fort Crèvecoeur*
-
-### Example 4
-
-```python
-from subprocess import PIPE
-from grass.pygrass.modules import Module
-files = Module(
-        "r.in.ahn",
-        product="laz",
-        version=4,
-        stdout_=PIPE,
-    ).outputs.stdout
-paths = files.split("\n")
-paths = [_f for _f in paths if _f]
-```
 
 ## REFERENCES
 
