@@ -17,6 +17,20 @@ workflows. They include tools for data import, spectral preprocessing,
 visualization, and export, fully integrated with the GRASS 3D raster
 environment.
 
+## POSSIBLE ROAD MAP
+
+- Importers for additional data (OCI, HySIS, EMIT, DESIS, Hyperion)
+- Additional preprocessing modules (e.g., wavelet transform)
+- Smarter metadata handling
+- Standardized export formats (Zarr, HDF5) (metadata in headers or separate files)
+- Aerial imagery module with multi-sensor harmonization
+- Atmospheric correction from radiance to reflectance
+- Integration of field spectrometry data
+- Support for regression and classification tasks
+- Improved read and write performance (including faster 3D garray access)
+- Refactoring Python components to native GRASS where possible
+- 3D hyperspectral cube visualization
+
 ## DEPENDENCIES
 
 *i.hyper.\** modules require the following Python libraries for full
