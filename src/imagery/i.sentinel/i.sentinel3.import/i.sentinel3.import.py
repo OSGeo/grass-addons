@@ -173,6 +173,7 @@ from grass.pygrass.modules import Module, MultiModule, ParallelModuleQueue
 from grass.temporal.datetime_math import (
     datetime_to_grass_datetime_string as grass_timestamp,
 )
+from typing import Optional
 
 S3_SUPPORTED_PRODUCTS = ["S3SL1RBT", "S3SL2LST"]
 
@@ -789,7 +790,7 @@ def get_geocoding(
     root: Path,
     geo_bands_dict: dict,
     sun_mask: np.array = None,
-    region_bounds: dict = None,
+    region_bounds: dict | None = None,
 ) -> tuple[dict, np.array, list[int]]:
     """Get ground control points from NetCDF file."""
     member = str(root / geo_bands_dict["nc_file"])
@@ -851,11 +852,11 @@ def get_geocoding(
 def setup_import_multi_module(
     tmp_ascii: Path,
     mapname: str,
-    distance: float = None,
+    distance: float | None = None,
     fill_flags: str | bool = False,
-    zrange: tuple[float, float] = None,
-    val_col: int = None,
-    data_type: str = None,
+    zrange: tuple[float, float] | None = None,
+    val_col: int | None = None,
+    data_type: str | None = None,
     method: str = "mean",
     solar_flux: float | None = None,
     rules: str | None = None,
@@ -967,8 +968,8 @@ def get_band_metadata(
     band_tuple: tuple,
     nc_variable: np.array,
     fmt: str,
-    file_metadata: dict = None,
-    basename: str = None,
+    file_metadata: dict | None = None,
+    basename: str | None = None,
     to_celsius: bool = False,
 ) -> tuple[dict, str]:
     """Extract band metadata from NetCDF variable."""
@@ -1080,7 +1081,7 @@ def write_xyz(
     tmp_ascii: str,
     nc_bands: np.array,
     mask: np.array,
-    fmt: str = None,
+    fmt: str | None = None,
     project: bool = True,
 ) -> None:
     """Write temporary XYZ ascii file."""
@@ -1125,7 +1126,7 @@ def write_xyz(
 def import_s3(
     s3_file: str,
     kwargs: dict,
-    s3_product: str = None,
+    s3_product: str | None = None,
 ) -> tuple[dict, list[str], dict]:
     """Import Sentinel-3 netCDF4 data."""
     # Unpack dictionary variables
@@ -1252,9 +1253,9 @@ class S3Product:
         self,
         product_type: str,
         view: str = "n",
-        bands: list[str] | str = None,
-        flag_bands: list[str] | str = None,
-        anxillary_bands: list[str] | str = None,
+        bands: list[str] | str | None = None,
+        flag_bands: list[str] | str | None = None,
+        anxillary_bands: list[str] | str | None = None,
     ) -> None:
         """Initialize a Sentinel-3 product."""
         self.product_type = product_type
@@ -1384,7 +1385,7 @@ class S3Product:
         module_queue: dict,
         module_flags: dict,
         tmp_ascii: str,
-        fmt: str = None,
+        fmt: str | None = None,
     ) -> tuple[list, dict, dict, str]:
         """Extract requested bands as numpy arrays from NetCDF file and setup import modules."""
         meta_information = {}
@@ -1521,7 +1522,7 @@ class S3Product:
         prefix: str,
         tmp_ascii: str,
         region_bounds: dict,
-        maximum_solar_angle: float = None,
+        maximum_solar_angle: float | None = None,
     ) -> tuple[dict, dict, dict]:
         """Extract sun parameters from S3 SLSTR product.
 
