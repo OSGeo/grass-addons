@@ -11,6 +11,32 @@ Modules in the <em>i.hyper</em> suite operate together to handle hyperspectral w
 They include tools for data import, spectral preprocessing, visualization, and export,
 fully integrated with the GRASS 3D raster environment.
 
+<h2>POSSIBLE ROAD MAP</h2>
+
+<ul>
+  <li>
+    Importers for additional data
+    (OCI, HySIS, EMIT, DESIS, Hyperion)
+  </li>
+  <li>
+    Additional preprocessing modules
+    (e.g., wavelet transform)
+  </li>
+  <li>Smarter metadata handling</li>
+  <li>
+    Standardized export formats (Zarr, HDF5)
+    (metadata in headers or separate files)
+  </li>
+  <li>Aerial imagery module with multi-sensor harmonization</li>
+  <li>Atmospheric correction from radiance to reflectance</li>
+  <li>Integration of field spectrometry data</li>
+  <li>Support for regression and classification tasks</li>
+  <li>Improved read and write performance
+      (including faster 3D garray access)</li>
+  <li>Refactoring Python components to native GRASS where possible</li>
+  <li>3D hyperspectral cube visualization</li>
+</ul>
+
 <h2>DEPENDENCIES</h2>
 <p>
 <em>i.hyper.*</em> modules require the following Python libraries for full functionality:
