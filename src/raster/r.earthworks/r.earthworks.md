@@ -285,7 +285,7 @@ ulimit -S -n 32768
 
 [1]: https://github.com/baharmon/r.earthworks/blob/main/paper/paper.pdf
 
-[2]: https://doi.org/10.5281/zenodo.15507392
+[2]: https://doi.org/10.5281/zenodo.15507391
 
 ## AUTHORS
 
