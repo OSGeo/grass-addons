@@ -263,7 +263,7 @@ depending on the open file limit of the user's system.
 This issue can be addressed
 by enabling quadtree segmentation,
 setting fewer threads for parallel computing,
-or by raising the open file limit.
+or raising the open file limit.
 If this error occurs, try setting
 smaller `threshold` and `border` parameters
 for quadtree segmentation.
@@ -279,11 +279,9 @@ ulimit -S -n 32768
 
 ## REFERENCES
 
-Harmon, B., Petrasova, A., and Petras, V. (2025).
-[r.earthworks: a GRASS tool for terrain modeling][1]
-\[Preprint\].
-
-Harmon, B. (2025). [r.earthworks][2] (Version 2.0.0) \[Computer software\].
+* Harmon, B., Petrasova, A., and Petras, V. (2025).
+    [r.earthworks: a GRASS tool for terrain modeling][1] \[Preprint\].
+* Harmon, B. (2025). [r.earthworks][2] (Version 2.0.0) \[Computer software\].
 
 [1]: https://github.com/baharmon/r.earthworks/blob/main/paper/paper.pdf
 
