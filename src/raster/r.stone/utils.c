@@ -94,10 +94,12 @@ long FRICT(runtimeParams *params, long piv)
  *
  * Returns 0 if it is NOT valid, else 1.
  */
-int pivIsValid(long piv, globalParams *gParams)
+int pivIsValid(long piv, globalParams *gParams, runtimeParams *params)
 {
     if (piv >= 0 && piv < gParams->glRowsxCols)
-        return 1;
+        // also check if the dem is valid
+        if (QUOTA(params, piv) > 0)
+            return 1;
     return 0;
 }
 
