@@ -127,7 +127,6 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
             C=p["C"],
             solver="liblinear",
             random_state=random_state,
-            multi_class="auto",
             n_jobs=1,
             fit_intercept=True,
         ),
