@@ -217,6 +217,16 @@
 # % guisection: Quadtree
 # %end
 
+# %option G_OPT_M_NPROCS
+# % key: nprocs
+# % label: Number of threads for parallel computing
+# % description: 0: use OpenMP default; >0: use nprocs; <0: use MAX-nprocs
+# % required: no
+# % multiple: no
+# % answer: 0
+# % type: integer
+# %end
+
 # %flag
 # % key: p
 # % description: Print volume
@@ -755,6 +765,7 @@ def earthworking(
     cut,
     fill,
     disable,
+    threads,
 ):
     """
     Model local earthworks
@@ -877,12 +888,15 @@ def earthworking(
                 f"{','.join(cut_operations)}"
                 f")"
                 f")",
+                nprocs=threads,
                 overwrite=True,
             )
         except:
             gs.fatal(
                 "Exceeded open file limit. "
-                "Try setting higher resource limits "
+                "Try enabling quadtree segmentation, "
+                "setting fewer threads for parallel computing, "
+                "or setting higher resource limits "
                 "with ulimit in the command line."
             )
 
@@ -900,12 +914,15 @@ def earthworking(
                 f"{','.join(fill_operations)}"
                 f")"
                 f")",
+                nprocs=threads,
                 overwrite=True,
             )
         except:
             gs.fatal(
                 "Exceeded open file limit. "
-                "Try setting higher resource limits "
+                "Try enabling quadtree segmentation, "
+                "setting fewer threads for parallel computing, "
+                "or setting higher resource limits "
                 "with ulimit in the command line."
             )
 
@@ -924,6 +941,7 @@ def earthworking(
                 f"{','.join(cut_operations)}"
                 f")"
                 f")",
+                nprocs=threads,
                 overwrite=True,
             )
 
@@ -939,17 +957,20 @@ def earthworking(
                 f"{','.join(fill_operations)}"
                 f")"
                 f")",
+                nprocs=threads,
                 overwrite=True,
             )
         except:
             gs.fatal(
                 "Exceeded open file limit. "
-                "Try setting higher resource limits "
+                "Try enabling quadtree segmentation, "
+                "setting fewer threads for parallel computing, "
+                "or setting higher resource limits "
                 "with ulimit in the command line."
             )
 
 
-def series(operation, function, cuts, fills, elevation, earthworks):
+def series(operation, function, cuts, fills, elevation, earthworks, threads):
     """
     Model cumulative earthworks
     """
@@ -972,7 +993,9 @@ def series(operation, function, cuts, fills, elevation, earthworks):
         )
         # Calculate net cut
         gs.mapcalc(
-            f"{earthworks} = if(isnull({cut}),{elevation},{cut})", overwrite=True
+            f"{earthworks} = if(isnull({cut}),{elevation},{cut})",
+            nprocs=threads,
+            overwrite=True,
         )
 
     # Model net fill
@@ -990,7 +1013,9 @@ def series(operation, function, cuts, fills, elevation, earthworks):
         )
         # Calculate net fill
         gs.mapcalc(
-            f"{earthworks}= if(isnull({fill}),{elevation},{fill})", overwrite=True
+            f"{earthworks}= if(isnull({fill}),{elevation},{fill})",
+            nprocs=threads,
+            overwrite=True,
         )
 
     # Model net cut and fill
@@ -1035,6 +1060,7 @@ def series(operation, function, cuts, fills, elevation, earthworks):
             # Calculate net elevation
             gs.mapcalc(
                 f"{earthworks} = if(isnull({cutfill}),{elevation},{cutfill})",
+                nprocs=threads,
                 overwrite=True,
             )
 
@@ -1042,31 +1068,44 @@ def series(operation, function, cuts, fills, elevation, earthworks):
             # Calculate net change in cut
             delta_cut = gs.append_uuid("delta_cut")
             temporary.append(delta_cut)
-            gs.mapcalc(f"{delta_cut} = {elevation} - {cut}", overwrite=True)
+            gs.mapcalc(
+                f"{delta_cut} = {elevation} - {cut}", nprocs=threads, overwrite=True
+            )
 
             # Calculate net change in fill
             delta_fill = gs.append_uuid("delta_fill")
             temporary.append(delta_fill)
-            gs.mapcalc(f"{delta_fill} = {fill} - {elevation}", overwrite=True)
+            gs.mapcalc(
+                f"{delta_fill} = {fill} - {elevation}", nprocs=threads, overwrite=True
+            )
 
             # Calculate net change in cut and fill
             delta_cutfill = gs.append_uuid("delta_cutfill")
             temporary.append(delta_cutfill)
-            gs.mapcalc(f"{delta_cutfill} = {delta_fill} - {delta_cut}", overwrite=True)
+            gs.mapcalc(
+                f"{delta_cutfill} = {delta_fill} - {delta_cut}",
+                nprocs=threads,
+                overwrite=True,
+            )
 
             # Calculate net cut and fill
             cutfill = gs.append_uuid("cutfill")
             temporary.append(cutfill)
-            gs.mapcalc(f"{cutfill} = {elevation} + {delta_cutfill}", overwrite=True)
+            gs.mapcalc(
+                f"{cutfill} = {elevation} + {delta_cutfill}",
+                nprocs=threads,
+                overwrite=True,
+            )
 
             # Calculate net elevation
             gs.mapcalc(
                 f"{earthworks}= if(isnull({cutfill}),{elevation},{cutfill})",
+                nprocs=threads,
                 overwrite=True,
             )
 
 
-def difference(elevation, earthworks, volume):
+def difference(elevation, earthworks, volume, threads):
     """
     Calculate elevation change
     """
@@ -1077,7 +1116,7 @@ def difference(elevation, earthworks, volume):
         temporary.append(volume)
 
     # Model volumetric change
-    gs.mapcalc(f"{volume} = {earthworks} - {elevation}", overwrite=True)
+    gs.mapcalc(f"{volume} = {earthworks} - {elevation}", nprocs=threads, overwrite=True)
 
     # Set color gradient
     gs.run_command("r.colors", map=volume, color="viridis", superquiet=True)
@@ -1088,7 +1127,7 @@ def difference(elevation, earthworks, volume):
     return volume
 
 
-def print_difference(operation, volume):
+def print_difference(operation, volume, threads):
     """
     Print elevation change
     """
@@ -1116,7 +1155,11 @@ def print_difference(operation, volume):
     if operation in {"cutfill", "fill"}:
         fill = gs.append_uuid("fill")
         temporary.append(fill)
-        gs.mapcalc(f"{fill} = if({volume} > 0, {volume}, null())", overwrite=True)
+        gs.mapcalc(
+            f"{fill} = if({volume} > 0, {volume}, null())",
+            nprocs=threads,
+            overwrite=True,
+        )
         univar = gs.parse_command("r.univar", map=fill, separator="newline", flags="g")
         net = nsres * ewres * float(univar["sum"])
         if math.isnan(net):
@@ -1127,7 +1170,11 @@ def print_difference(operation, volume):
     if operation in {"cutfill", "cut"}:
         cut = gs.append_uuid("cut")
         temporary.append(cut)
-        gs.mapcalc(f"{cut} = if({volume} < 0, {volume}, null())", overwrite=True)
+        gs.mapcalc(
+            f"{cut} = if({volume} < 0, {volume}, null())",
+            nprocs=threads,
+            overwrite=True,
+        )
         univar = gs.parse_command("r.univar", map=cut, separator="newline", flags="g")
         net = nsres * ewres * float(univar["sum"])
         if math.isnan(net):
@@ -1175,6 +1222,7 @@ def main():
     cubic = abs(float(options["cubic"]))
     threshold = float(options["threshold"])
     border = float(options["border"])
+    threads = int(options["nprocs"])
     print_volume = flags["p"]
     disable = flags["d"]
 
@@ -1299,18 +1347,19 @@ def main():
                 cut,
                 fill,
                 disable,
+                threads,
             )
 
         # Model composite earthworks
-        series(operation, function, cuts, fills, elevation, earthworks)
+        series(operation, function, cuts, fills, elevation, earthworks, threads)
 
         # Calculate volume
         if volume or print_volume:
-            volume = difference(elevation, earthworks, volume)
+            volume = difference(elevation, earthworks, volume, threads)
 
         # Print volume
         if print_volume:
-            print_difference(operation, volume)
+            print_difference(operation, volume, threads)
 
         # Postprocessing
         postprocess(earthworks)
