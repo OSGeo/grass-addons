@@ -119,7 +119,9 @@ zoomed near the watershed outlet*
 ## SEE ALSO
 
 [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
-[r.stream.distance](https://grass.osgeo.org/grass64/manuals/addons/r.stream.distance.html)
+[r.stream.distance](https://grass.osgeo.org/grass-stable/manuals/addons/r.stream.distance.html),
+[r.curvenumber](https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html),
+[r.runoff](https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html)
 
 ## AUTHORS
 
