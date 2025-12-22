@@ -46,11 +46,11 @@ The module supports the following boolean vector operations:
 
 And vector functions:
 
-```text
- buff_p(A, size)          Buffer the points of vector map layer A with size
- buff_l(A, size)          Buffer the lines of vector map layer A with size
- buff_a(A, size)          Buffer the areas of vector map layer A with size
-```
+| Function        | Description                                       |
+|-----------------|---------------------------------------------------|
+| buff_p(A, size) | Buffer the points of vector map layer A with size |
+| buff_l(A, size) | Buffer the lines of vector map layer A with size  |
+| buff_a(A, size) | Buffer the areas of vector map layer A with size  |
 
 ## NOTES
 
