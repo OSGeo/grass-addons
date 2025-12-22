@@ -36,13 +36,13 @@ will give the same result.
 
 The module supports the following boolean vector operations:  
 
-| Boolean Name | Operator | Meaning             | Precedence | Correspondent Function  |
-|--------------|----------|---------------------|------------|-------------------------|
-| AND          | &        | Intersection       | 1          | v.overlay operator=and  |
-| OR           | \|       | Union              | 1          | v.overlay operator=or   |
-| DISJOINT OR  | +        | Disjoint union     | 1          | v.patch                 |
-| XOR          | ^        | Symmetric difference | 1        | v.overlay operator=xor  |
-| NOT          | ~        | Complement         | 1          | v.overlay operator=not  |
+| Boolean Name | Operator | Meaning              | Precedence | Correspondent Function  |
+|--------------|----------|----------------------|------------|-------------------------|
+| AND          | &        | Intersection         | 1          | v.overlay operator=and  |
+| OR           | \|       | Union                | 1          | v.overlay operator=or   |
+| DISJOINT OR  | +        | Disjoint union       | 1          | v.patch                 |
+| XOR          | ^        | Symmetric difference | 1          | v.overlay operator=xor  |
+| NOT          | ~        | Complement           | 1          | v.overlay operator=not  |
 
 And vector functions:
 

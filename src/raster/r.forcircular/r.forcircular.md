@@ -88,11 +88,11 @@ weighted according to on-line questionnaire proposed to decision makers
 operating in the forest-based sector. The list of indicators used is the
 following:  
   
-| 4R      | INDICATORS                                                                 | DEFINITION                                                                 |
-|---------|---------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| Reduce  | i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass; i2 - CO2 emissions per unit of wood product | Improving of the process efficiency reducing the utilization of natural resources |
-| Reuse   | i5 - Ratio between the potential economic value of the wood assortment and the real value earned | Valorisation of the valuable wood high quality assortments |
-| Recover | i6 - Percentage of wood waste for bioenergy production; i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes | Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products |
+| 4R      | INDICATORS                                                                                                                              | DEFINITION                                                                                              |
+|---------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| Reduce  | i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass; i2 - CO2 emissions per unit of wood product | Improving of the process efficiency reducing the utilization of natural resources                       |
+| Reuse   | i5 - Ratio between the potential economic value of the wood assortment and the real value earned                                        | Valorisation of the valuable wood high quality assortments                                              |
+| Recover | i6 - Percentage of wood waste for bioenergy production; i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes   | Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products |
 
 The quantification of circular bioeconomy indicators is developed in the
 framework of provisioning forest ecosystem services. For this reason,

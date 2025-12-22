@@ -49,7 +49,7 @@ First, an overview of definitions:
     Spectrum*. It includes areas of very high recreational value which,
     at the same time, are very near to access.
 
-    | Potential Opportunity | Near | Midrange | Far |
+    | Potential Opportunity   | Near | Midrange | Far |
     | ----------------------- | ---- | -------- | --- |
     | Near                    | 1    | 2        | 3   |
     | Midrange                | 4    | 5        | 6   |
@@ -136,32 +136,34 @@ files will be prefixed with the string `output_`.
 Below, a table overviewing all input and output maps used or produced in
 the examples.
 
-| Input map name            | Spatial Resolution | Remarks |
-|---------------------------|--------------------|---------|
-| area_of_interest         | 50 m               | A map that can be used as a 'mask' |
-| land_suitability         | 50 m               | A map scoring the potential for recreation over CORINE land classes |
-| water_resources          | 50 m               | A map scoring access to water resources |
-| protected_areas          | 50 m               | A map scoring the recreational value of natural protected areas |
-| distance_to_infrastructure | 50 m             | A map scoring access to infrastructure |
-| population_2015          | 1000 m             | The resolution of the raster map given to the 'population' input option will define the resolution of the output maps 'demand', 'unmet' and 'flow' |
-| local_administrative_unit | 50 m              | A rasterised version of Eurostat's Local Administrative Units map |
+<!-- markdownlint-disable MD060 -->
+| Input map name             | Spatial Resolution | Remarks                                                             |
+|----------------------------|--------------------|---------------------------------------------------------------------|
+| area_of_interest           | 50 m               | A map that can be used as a 'mask'                                  |
+| land_suitability           | 50 m               | A map scoring the potential for recreation over CORINE land classes |
+| water_resources            | 50 m               | A map scoring access to water resources                             |
+| protected_areas            | 50 m               | A map scoring the recreational value of natural protected areas     |
+| distance_to_infrastructure | 50 m               | A map scoring access to infrastructure                              |
+| population_2015            | 1000 m             | The resolution of the raster map given to the 'population' input option will define the resolution of the output maps 'demand', 'unmet' and 'flow' |
+| local_administrative_unit  | 50 m               | A rasterised version of Eurostat's Local Administrative Units map   |
+<!-- markdownlint-restore -->
 
-| Output map name         | Spatial Resolution | Remarks |
-|-------------------------|--------------------|---------|
-| potential               | 50 m               |         |
-| potential_1             | 50 m               |         |
-| potential_2             | 50 m               |         |
-| potential_3             | 50 m               |         |
-| potential_4             | 50 m               |         |
-| spectrum                | 50 m               |         |
-| opportunity             | 50 m               | Requires to request for the 'spectrum' output |
-| demand                  | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
-| unmet                   | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
-| flow                    | 1000 m             | Depends on the 'population' input map |
+| Output map name | Spatial Resolution | Remarks                                                                         |
+|-----------------|--------------------|---------------------------------------------------------------------------------|
+| potential       | 50 m               |                                                                                 |
+| potential_1     | 50 m               |                                                                                 |
+| potential_2     | 50 m               |                                                                                 |
+| potential_3     | 50 m               |                                                                                 |
+| potential_4     | 50 m               |                                                                                 |
+| spectrum        | 50 m               |                                                                                 |
+| opportunity     | 50 m               | Requires to request for the 'spectrum' output                                   |
+| demand          | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
+| unmet           | 1000 m             | Depends on the 'flow' map which, in turn, depends on the 'population' input map |
+| flow            | 1000 m             | Depends on the 'population' input map                                           |
 
-| Output table name    | Remarks |
-|-------------------------|---------|
-| supply                  |         |
+| Output table name | Remarks |
+|-------------------|---------|
+| supply            |         |
 
 Before anything, we need to define the extent of interest by executing
 
