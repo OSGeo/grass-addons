@@ -30,7 +30,7 @@ processing steps: at-satellite temperatures, cloud and emissivity maps.
   the `i.landsat.toar` module. Note that `i.landsat.toar` does not
   process single bands selectively.
 
-- The `clouds` option can be any user-defined map. Essentialy, it applies
+- The `clouds` option can be any user-defined map. Essentially, it applies
   the given map as an inverted mask.
 
 - The emissivity maps, derived by the module itself, can be saved once

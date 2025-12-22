@@ -64,7 +64,7 @@ Other mandatory data:
 
 - vector tracks file
 - vector boundaries file
-- raster digital elevetion model file
+- raster digital elevation model file
 
 Optional data:
 
@@ -103,14 +103,14 @@ calculation of stumpage value is carried out following the approach of
 another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.html).
 
 The model in *r.forcircular* starts with importation of geodata and
-conversion of vector intp raster. Then, through a multistep approach,
+conversion of vector into raster. Then, through a multistep approach,
 the technical and the economic availability of biomass (both traditional
 wood assortments and woodchips for bioenergy production) are quantified.
 Technical availability depicts forest surface where the extraction of
-wood material is possible. The approach combines type of mechanisation,
+wood material is possible. The approach combines type of mechanization,
 limits for slope, distance from roads and roughness.  
 In forest area where extraction is possible, the stumpage value is
-quantified as a combination of differenct factors such as hourly unitary
+quantified as a combination of different factors such as hourly unitary
 cost of each production process, worker costs, hourly productivity and
 administrative costs.  
 The user can setthe upper and - if needed - lower limits for slope and
@@ -183,7 +183,7 @@ r.forcircular forest=parcel boundaries=study_Area dtm=dem tracks=forest_tracks \
 ```
 
 The output maps are: technical\_surface (forest surface where
-exploitation is technically possibile), economic\_surface (forest
+exploitation is technically possible), economic\_surface (forest
 surface where the exploitation is economically advantageous), emission
 (CO<sub>2</sub> produced by the exploitation), annual\_avoided\_emission
 (emissions avoided compared to the use of fossil fuels), revenues (map

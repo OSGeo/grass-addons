@@ -303,7 +303,7 @@ the map (however, we will skip for now important cartographic elements).
 ```
 
 The different output map names are purposefully selected so as to enable
-a visual comparison of the differences among the differenct examples.
+a visual comparison of the differences among the different examples.
 The output maps `output_potential_1`, `output_potential_2`,
 `output_potential_3` and `output_potential_4`, range within \[0,3\].
 Yet, they differ in the distribution of values due to the different set
