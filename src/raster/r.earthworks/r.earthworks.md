@@ -149,8 +149,8 @@ at the top of the peak.
 r.earthworks elevation=elevation earthworks=peak operation=fill coordinates=250,250 z=50 function=linear linear=0.5 flat=50
 ```
 
-| Fill | Fill 3D|
-| ---- | ------ |
+| Fill                                   | Fill 3D                                   |
+| -------------------------------------- | ----------------------------------------- |
 | ![Fill operation](r_earthworks_01.png) | ![3D fill operation](r_earthworks_02.png) |
 
 **Cut Operation**
@@ -161,8 +161,8 @@ Set a z-coordinate for the bottom of the pit.
 r.earthworks elevation=elevation earthworks=pit operation=cut coordinates=250,250 z=-50 function=linear linear=0.5 flat=50
 ```
 
-| Cut | Cut 3D|
-| ---- | ---- |
+| Cut                                   | Cut 3D                                   |
+| ------------------------------------- | ---------------------------------------- |
 | ![Cut operation](r_earthworks_03.png) | ![3D cut operation](r_earthworks_04.png) |
 
 **Cut & Fill Operation**
@@ -175,8 +175,8 @@ and another z-coordinate for the top of the peak.
 r.earthworks elevation=elevation earthworks=peak_and_pit operation=cutfill coordinates=180,180,320,320 z=-50,50 function=linear linear=0.5 flat=50
 ```
 
-| Cut & Fill | Cut & Fill 3D|
-| ---------- | ------------ |
+| Cut & Fill                                 | Cut & Fill 3D                                 |
+| ------------------------------------------ | --------------------------------------------- |
 | ![Cut-fill operation](r_earthworks_05.png) | ![3D cut-fill operation](r_earthworks_06.png) |
 
 ### Road Grading
@@ -209,8 +209,8 @@ r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 fun
 r.contour input=earthworks output=contours step=2
 ```
 
-| Elevation | Earthworks |
-| --------- | ---------- |
+| Elevation                         | Earthworks                         |
+| --------------------------------- | ---------------------------------- |
 | ![Elevation](r_earthworks_07.png) | ![Earthworks](r_earthworks_08.png) |
 
 When working with a large elevation raster,
@@ -245,8 +245,8 @@ r.earthworks elevation=elevation operation=cut coordinates=635235.4648198467,223
 r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=635150.7489931877,223203.9595016748
 ```
 
-| Dam | Dam Breach |
-| --------- | ---------- |
+| Dam                         | Dam Breach                         |
+| --------------------------- | ---------------------------------- |
 | ![Dam](r_earthworks_09.png) | ![Dam Breach](r_earthworks_10.png) |
 
 ## NOTES
