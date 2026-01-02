@@ -475,7 +475,7 @@ int NewPlane(runtimeParams *rtParams, globalParams *gParams, P3d *cp,
     y0 = r * gdCell + gdOffset;
 
     piv = Pivot(gParams, x0, y0);
-    if (!pivIsValid(piv, gParams)) {
+    if (!pivIsValid(piv, gParams, rtParams)) {
         G_debug(3, "%s", debug_msg);
         return 1;
     }
@@ -487,9 +487,9 @@ int NewPlane(runtimeParams *rtParams, globalParams *gParams, P3d *cp,
 
     if (y1 <= ym) /* Type 1: origin SW */
     {
-        if (!pivIsValid(piv, gParams) ||
-            !pivIsValid(piv + rtParams->gsKernel9[2], gParams) ||
-            !pivIsValid(piv + rtParams->gsKernel9[0], gParams)) {
+        if (!pivIsValid(piv, gParams, rtParams) ||
+            !pivIsValid(piv + rtParams->gsKernel9[2], gParams, rtParams) ||
+            !pivIsValid(piv + rtParams->gsKernel9[0], gParams, rtParams)) {
             G_debug(3, "%s", debug_msg);
             return 1;
         }
@@ -512,9 +512,9 @@ int NewPlane(runtimeParams *rtParams, globalParams *gParams, P3d *cp,
         gPlane->type = 2;
 
         piv += rtParams->gsKernel9[1];
-        if (!pivIsValid(piv, gParams) ||
-            !pivIsValid(piv + rtParams->gsKernel9[6], gParams) ||
-            !pivIsValid(piv + rtParams->gsKernel9[4], gParams)) {
+        if (!pivIsValid(piv, gParams, rtParams) ||
+            !pivIsValid(piv + rtParams->gsKernel9[6], gParams, rtParams) ||
+            !pivIsValid(piv + rtParams->gsKernel9[4], gParams, rtParams)) {
             G_debug(3, "%s", debug_msg);
             return 1;
         }
@@ -708,7 +708,7 @@ void MarkVelo(runtimeParams *rtParams, typeParams *tParams,
         pv = &p->v;
 
         piv = Pivot(gParams, pp->X, pp->Y);
-        if (!pivIsValid(piv, gParams))
+        if (!pivIsValid(piv, gParams, rtParams))
             continue;
 
         v = (long)(sqrt(pv->X * pv->X + pv->Y * pv->Y + pv->Z * pv->Z) * 1000. *
@@ -737,7 +737,7 @@ void MarkPath(runtimeParams *rtParams, globalParams *gParams)
 
         piv = Pivot(gParams, pp->X, pp->Y);
 
-        if (piv != rtParams->glLastPiv && pivIsValid(piv, gParams)) {
+        if (piv != rtParams->glLastPiv && pivIsValid(piv, gParams, rtParams)) {
             if (COUNT(rtParams, piv) == -1)
                 setCOUNT(rtParams, piv, 1);
             // COUNT(piv) = 1;
@@ -765,7 +765,7 @@ void MarkQuota(runtimeParams *rtParams, typeParams *tParams,
         pp = &p->pos;
 
         piv = Pivot(gParams, pp->X, pp->Y);
-        if (!pivIsValid(piv, gParams))
+        if (!pivIsValid(piv, gParams, rtParams))
             continue;
 
         ldz = (long)(p->dz * 1000 * tParams->gdQuotaUMFactor);

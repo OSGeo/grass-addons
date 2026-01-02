@@ -142,6 +142,13 @@ r.curvenumber \
    *National Engineering Handbook, Part 630 Hydrology:
    Chapter 10 – Estimation of Direct Runoff from Storm Rainfall* (210-VI-NEH)
 
-## AUTHOR
+## SEE ALSO
 
-[Abdullah Azzam](mailto:mabdazzam@outlook.com), New Mexico State University
+[r.timeofconcentration](https://grass.osgeo.org/grass-stable/manuals/addons/r.timeofconcentration.html),
+[r.runoff](https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html)
+
+## AUTHORS
+
+[Abdullah Azzam](mailto:mabdazzam@outlook.com)
+([CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
+Engineering, New Mexico State University)

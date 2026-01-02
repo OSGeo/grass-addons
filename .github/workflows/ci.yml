@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
@@ -32,27 +32,31 @@ jobs:
         include:
           - grass-version: main
             python-version: "3.11"
+            os: ubuntu-24.04
           - grass-version: releasebranch_8_4
             python-version: "3.10"
+            os: ubuntu-22.04
       fail-fast: false
     env:
       # renovate: datasource=github-tags depName=r-hub/R
-      R_VERSION: "4.5.1"
+      R_VERSION: "4.5.2"
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
+          persist-credentials: false
 
       - name: Checkout addons
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           path: grass-addons
+          persist-credentials: false
       - name: ccache
-        uses: hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1 # v1.2.18
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
         with:
           create-symlink: true
           verbose: 2
@@ -67,7 +71,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -117,7 +121,7 @@ jobs:
           make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@bd49c52ffe281809afa6f0fecbf37483c5dd0b93 # v2.11.3
+        uses: r-lib/actions/setup-r@6f6e5bc62fba3a704f74e7ad7ef7676c5c6a2590 # v2.11.4
         with:
           r-version: ${{ env.R_VERSION }}
           Ncpus: 4
@@ -139,7 +143,7 @@ jobs:
 
       - name: Make HTML test report available
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

@@ -13,7 +13,7 @@ None (yet)
 
 ## SEE ALSO
 
-*[v.stream.network](https://grass.osgeo.org/grass-stable/manuals/v.stream.network.html)*
+*[v.stream.network](https://grass.osgeo.org/grass-stable/manuals/addons/v.stream.network.html)*
 
 ## AUTHOR
 
