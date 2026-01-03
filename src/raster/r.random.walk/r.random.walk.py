@@ -211,7 +211,7 @@ def find_new_path(walk_output, current_pos, new_position, num_directions, step):
 
     while visited:
         if walker_is_stuck(tested_directions, num_directions):
-            gs.message(_("Walker stuck on step {0}".format(step)))
+            gs.message(_("Walker stuck on step {0}").format(step))
             raise GetOutOfLoop
         else:
             # continue to check cells for an unvisited cell until one is found or walker is stuck
@@ -356,7 +356,7 @@ def run_parallel(
 ):
     gs.message(_("Smoothed Walk"))
     max_cpus = os.cpu_count() - 1
-    gs.message(_("Max CPUs: {0}, Used CPUs: {1}".format(max_cpus, processes)))
+    gs.message(_("Max CPUs: {0}, Used CPUs: {1}").format(max_cpus, processes))
     start_pos = False
     if path_sampling:
         start_pos = starting_position(boundary[0], boundary[1])
@@ -409,7 +409,7 @@ def main():
     reg = Region()
     cols = reg.cols
     rows = reg.rows
-    gs.message(_("Region with {0} rows and {1} columns".format(rows, cols)))
+    gs.message(_("Region with {0} rows and {1} columns").format(rows, cols))
     boundary = [rows, cols]
     path_sampling = flags["t"]
     processes = int(options["nprocs"])
@@ -417,7 +417,7 @@ def main():
     _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
     TMP_RASTERS.append(_tmp_rasters)
     mem_for_process = math.floor(int(memory) / processes)
-    gs.message(_("Memory Per Process: {0}".format(mem_for_process)))
+    gs.message(_("Memory Per Process: {0}").format(mem_for_process))
     futures = run_parallel(
         _tmp_rasters,
         processes,
@@ -434,11 +434,11 @@ def main():
             data = future.result()
             TMP_SMOOTH_RASTERS.append(data)
         except Exception as exc:
-            gs.message(_("generated an exception: {0}".format(exc)))
+            gs.message(_("generated an exception: {0}").format(exc))
         else:
             continue
 
-    gs.message(_("Averaging: {0} Rasters".format(len(TMP_SMOOTH_RASTERS))))
+    gs.message(_("Averaging: {0} Rasters").format(len(TMP_SMOOTH_RASTERS)))
     if len(TMP_SMOOTH_RASTERS) > 0:
         # 1024 is the soft limit for most operating systems for number of allowed open files
         if len(TMP_SMOOTH_RASTERS) >= 1024:
@@ -459,7 +459,7 @@ def main():
 
     # cleanup()
     end = time.time()
-    gs.message(_("Runtime of the program is {0}".format(end - start)))
+    gs.message(_("Runtime of the program is {0}").format(end - start))
 
 
 if __name__ == "__main__":

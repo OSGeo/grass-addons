@@ -5,7 +5,7 @@
 | **label**      | **version meaning**                                        |
 | -------------- | ---------------------------------------------------------- |
 | legacy         | legacy stable version, no longer recommended               |
-| old            | old stable version, still in use                           |
+| old            | old stable version, still in use, no longer recommended    |
 | current stable | current stable version (recommended)                       |
 | preview        | devel. version, for developers and new feature enthusiasts |
 
@@ -34,17 +34,11 @@ programmer's manual.
   - `cron_grass_preview_src_snapshot.sh`
 - GRASS GIS Linux binary weekly snapshots:
   - `cron_grass_legacy_build_binaries.sh`
-  - `cron_grass_old_build_binaries.sh`
+  - `cron_grass_old_build_binaries.sh` (disabled)
   - `cron_grass_current_stable_build_binaries.sh`
   - `cron_grass_preview_build_binaries.sh`
 - GRASS GIS addons manual pages:
   - addon manual pages are generated within above Linux binary weekly snapshots
-- GRASS GIS 7 addons overview page at <https://grass.osgeo.org/grass7/manuals/addons/>:
-  - `compile_addons_git.sh` - called from `cron_grass_legacy_build_binaries.sh`
-  - `build-xml.py` - called from `cron_grass_legacy_build_binaries.sh`,
-    generates the modules.xml file required for the g.extension module
-  - `grass-addons-index.sh` - called from `cron_grass_legacy_build_binaries.sh`
-  - `get_page_description.py` - called from `grass-addons-index.sh`
 - GRASS GIS 8 addons overview page at <https://grass.osgeo.org/grass8/manuals/addons/>:
   - `compile_addons_git.sh` - called from `cron_grass_XXX_build_binaries.sh`
   - `build-xml.py` - called from `cron_grass_XXX_build_binaries.sh`
@@ -80,11 +74,13 @@ programmer's manual.
 
 ## Web site organisation
 
-Important: there are two web related directories on the server:
+Important: there are two web related directories on the server. The content
+of source code/data is blended via symlinks into the html directory which
+is served as grass.osgeo.org:
 
 - `/var/www/code_and_data/`: contains source code, sample data, etc.
 - `/var/www/html/`: contains the hugo generated files. The relevant
-  subdirectories of `/var/www/code_and_data/` are linked here.
+  subdirectories of `/var/www/code_and_data/` are linked into `/var/www/html/`.
 
 ## Infrastructure
 
@@ -141,7 +137,7 @@ ln -s /home/root/src /root/src
 ln -s $MAINDIR/cronjobs /root/cronjobs
 
 # repo release branches: get a shallow clone into docker container
-for REPO in releasebranch_7_8 releasebranch_8_3 releasebranch_8_4 ; do
+for REPO in releasebranch_7_8 releasebranch_8_4 ; do
  git clone -b $REPO --single-branch --depth=1 \
      https://github.com/OSGeo/grass.git $REPO
 done
@@ -164,7 +160,6 @@ bash cron_grass_current_stable_build_binaries.sh \
   && bash cron_grass_legacy_build_binaries.sh \
   && bash cron_grass_legacy_src_snapshot.sh \
   && bash cron_grass_old_build_binaries.sh \
-  && bash cron_grass_old_src_snapshot.sh \
   && bash cron_grass_preview_build_binaries.sh \
   && bash cron_grass_preview_src_snapshot.sh
 ```

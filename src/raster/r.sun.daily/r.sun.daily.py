@@ -286,7 +286,7 @@ import os
 import atexit
 from multiprocessing import Process
 
-import grass.script as grass
+import grass.script as gs
 import grass.script.core as core
 
 
@@ -301,9 +301,9 @@ def cleanup():
     if REMOVE or MREMOVE:
         core.info(_("Cleaning temporary maps..."))
     for rast in REMOVE:
-        grass.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
+        gs.run_command("g.remove", type="raster", name=rast, flags="f", quiet=True)
     for pattern in MREMOVE:
-        grass.run_command(
+        gs.run_command(
             "g.remove",
             type="raster",
             pattern="{pattern}*".format(pattern=pattern),
@@ -385,11 +385,15 @@ def run_r_sun(
         params.update({"horizon_step": horizon_step})
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
+    if latitude:
+        params.update({"lat": latitude})
+    if longitude:
+        params.update({"long": longitude})
 
     if flags:
         params.update({"flags": flags})
 
-    grass.run_command(
+    gs.run_command(
         "r.sun",
         elevation=elevation,
         aspect=aspect,
@@ -406,14 +410,14 @@ def set_color_table(rasters):
     """
     Set 'gyr' color tables for raster maps
     """
-    grass.run_command("r.colors", map=rasters, col="gyr", quiet=True)
+    gs.run_command("r.colors", map=rasters, col="gyr", quiet=True)
 
 
 def set_time_stamp(raster, day):
     """
     Timestamp script's daily output map
     """
-    grass.run_command("r.timestamp", map=raster, date="%d days" % day, quiet=True)
+    gs.run_command("r.timestamp", map=raster, date="%d days" % day, quiet=True)
 
 
 def format_order(number, zeros=3):
@@ -431,13 +435,12 @@ def check_daily_map_names(basename, mapset, start_day, end_day, day_step):
         return
     for day in range(start_day, end_day + 1, day_step):
         map_ = "{base}_{day}".format(base=basename, day=format_order(day))
-        if grass.find_file(map_, element="cell", mapset=mapset)["file"]:
-            grass.fatal(
+        if gs.find_file(map_, element="cell", mapset=mapset)["file"]:
+            gs.fatal(
                 _(
                     "Raster map <{name}> already exists. "
                     "Change the base name or allow overwrite."
-                    "".format(name=map_)
-                )
+                ).format(name=map_)
             )
 
 
@@ -446,7 +449,7 @@ def maps_sum(out_, basename, suffixes):
     Sum up multiple raster maps
     """
     maps = "+".join([basename + suf for suf in suffixes])
-    grass.mapcalc(f"{out_} = {maps}", overwrite=True, quiet=True)
+    gs.mapcalc(f"{out_} = {maps}", overwrite=True, quiet=True)
 
 
 def maps_avg(out_, basename, suffixes):
@@ -454,7 +457,7 @@ def maps_avg(out_, basename, suffixes):
     Get average value from multiple raster maps.
     """
     maps = "+".join([basename + suf for suf in suffixes])
-    grass.mapcalc(
+    gs.mapcalc(
         f"{out_} = ({maps}) / {len(suffixes)}",
         overwrite=True,
         quiet=True,
@@ -462,7 +465,7 @@ def maps_avg(out_, basename, suffixes):
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     # required
     elevation_input = options["elevation"]
@@ -507,7 +510,7 @@ def main():
             insol_time_basename,
         ]
     ):
-        grass.fatal(_("No output specified."))
+        gs.fatal(_("No output specified."))
 
     start_day = int(options["start_day"])
     end_day = int(options["end_day"])
@@ -518,15 +521,13 @@ def main():
         and method == "sum"
         and (beam_rad or diff_rad or refl_rad or glob_rad or insol_time)
     ):
-        grass.fatal(
-            _("Day step higher then 1 would produce" " meaningless cumulative maps.")
-        )
+        gs.fatal(_("Day step higher then 1 would produce meaningless cumulative maps."))
 
     # check: start < end
     if start_day > end_day:
-        grass.fatal(_("Start day is after end day."))
+        gs.fatal(_("Start day is after end day."))
     if day_step >= end_day - start_day:
-        grass.fatal(_("Day step is too big."))
+        gs.fatal(_("Day step is too big."))
 
     step = float(options["step"])
 
@@ -538,7 +539,7 @@ def main():
     if solar_constant:
         # check it's newer version of r.sun
         if not module_has_parameter("r.sun", "solar_constant"):
-            grass.warning(
+            gs.warning(
                 _(
                     "This version of r.sun lacks solar_constant option, "
                     "it will be ignored. Use newer version of r.sun."
@@ -563,21 +564,21 @@ def main():
         MREMOVE.append(insol_time_basename)
 
     # check for existing identical map names
-    if not grass.overwrite():
+    if not gs.overwrite():
         check_daily_map_names(
-            beam_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            beam_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            diff_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            diff_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            refl_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            refl_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            glob_rad_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            glob_rad_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
         check_daily_map_names(
-            insol_time_basename, grass.gisenv()["MAPSET"], start_day, end_day, day_step
+            insol_time_basename, gs.gisenv()["MAPSET"], start_day, end_day, day_step
         )
 
     # check for slope/aspect
@@ -592,21 +593,21 @@ def main():
             params.update({"slope": slope_input})
             REMOVE.append(slope_input)
 
-        grass.info(_("Running r.slope.aspect..."))
-        grass.run_command(
+        gs.info(_("Running r.slope.aspect..."))
+        gs.run_command(
             "r.slope.aspect", elevation=elevation_input, quiet=True, **params
         )
 
     if beam_rad:
-        grass.mapcalc("{beam} = 0".format(beam=beam_rad), quiet=True)
+        gs.mapcalc("{beam} = 0".format(beam=beam_rad), quiet=True)
     if diff_rad:
-        grass.mapcalc("{diff} = 0".format(diff=diff_rad), quiet=True)
+        gs.mapcalc("{diff} = 0".format(diff=diff_rad), quiet=True)
     if refl_rad:
-        grass.mapcalc("{refl} = 0".format(refl=refl_rad), quiet=True)
+        gs.mapcalc("{refl} = 0".format(refl=refl_rad), quiet=True)
     if glob_rad:
-        grass.mapcalc("{glob} = 0".format(glob=glob_rad), quiet=True)
+        gs.mapcalc("{glob} = 0".format(glob=glob_rad), quiet=True)
     if insol_time:
-        grass.mapcalc("{insol} = 0".format(insol=insol_time), quiet=True)
+        gs.mapcalc("{insol} = 0".format(insol=insol_time), quiet=True)
 
     rsun_flags = ""
     if flags["m"]:
@@ -614,7 +615,7 @@ def main():
     if flags["p"]:
         rsun_flags += "p"
 
-    grass.info(_("Running r.sun in a loop..."))
+    gs.info(_("Running r.sun in a loop..."))
     count = 0
     # Parallel processing
     proc_list = []
@@ -739,7 +740,7 @@ def main():
                 descr=desc,
                 semantic="sum",
                 dbif=None,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
             )
 
             tgis.register_maps_in_space_time_dataset(
@@ -757,7 +758,7 @@ def main():
         # Make sure the temporal database exists
         tgis.init()
 
-        mapset = grass.gisenv()["MAPSET"]
+        mapset = gs.gisenv()["MAPSET"]
         if beam_rad_basename_user:
             registerToTemporal(
                 beam_rad_basename,

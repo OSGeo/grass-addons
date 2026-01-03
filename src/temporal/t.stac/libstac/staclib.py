@@ -11,22 +11,23 @@
 #               comes with GRASS for details.
 #
 #############################################################################
-
+from __future__ import annotations
 
 import os
 import sys
 import base64
 import tempfile
 import json
-from datetime import datetime
-from dateutil import parser
-from io import StringIO
-from pprint import pprint
+from pathlib import Path
+from dateutil import parser as dateutil_parser
 import grass.script as gs
+import gettext
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
 from concurrent.futures import ThreadPoolExecutor
+
+from grass.jupyter.reprojection_renderer import ReprojectionRenderer
 
 # Import pystac_client modules
 try:
@@ -34,7 +35,10 @@ try:
     from pystac_client.exceptions import APIError
     from pystac_client.conformance import ConformanceClasses
 except ImportError as err:
-    gs.fatal(_("Unable to import pystac_client: {err}"))
+    gs.fatal(_("Unable to import pystac_client: %s") % err)
+
+# Set up translation function
+_ = gettext.gettext
 
 
 def _import_tqdm(error):
@@ -61,11 +65,33 @@ def _import_pystac_mediatype(error):
         return None
 
 
+def read_json_to_dict(file_path: str) -> dict:
+    """
+    Reads a JSON file and returns its content as a dictionary.
+
+    :param file_path: The path to the JSON file.
+    :type file_path: str
+    :return: A dictionary representing the JSON data. Returns an empty dictionary if the file does not exist, is empty, or contains invalid JSON.
+    :rtype: dict
+    """
+    path = Path(file_path)
+    try:
+        if path.exists() and path.stat().st_size > 0:
+            with path.open() as file:
+                data = json.load(file)
+            return data
+        else:
+            return {}
+    except json.JSONDecodeError:
+        return {}
+
+
 class STACHelper:
     """STAC Helper Class"""
 
     def __init__(self):
         self.client = None
+        self._renderer = ReprojectionRenderer(use_region=True)
 
     def connect_to_stac(self, url, headers=None):
         """Connect to a STAC catalog."""
@@ -89,7 +115,7 @@ class STACHelper:
             return [i.to_dict() for i in collection_list]
 
         except APIError as e:
-            gs.fatal(_("Error getting collections: {}".format(e)))
+            gs.fatal(_("Error getting collections: {}").format(e))
 
     def get_collection(self, collection_id):
         """Get a collection frofrom io import StringIOm STAC Client"""
@@ -99,7 +125,36 @@ class STACHelper:
             return self.collection
 
         except APIError as e:
-            gs.fatal(_("Error getting collection: {}".format(e)))
+            gs.fatal(_("Error getting collection: {}").format(e))
+
+    def wgs84_geojson_from_vector(self, vector_name: str) -> dict | None:
+        """Convert a vector to WGS84 GeoJSON"""
+        geojson_geom = None
+        if vector_name:
+            geojson_file = None
+            # Convert the vector to a geojson
+            gs.message(_("Converting %s to GeoJSON") % vector_name)
+            try:
+                geojson_file = self._renderer.render_vector(vector_name)
+            except Exception as e:
+                gs.fatal(_("Error creating GeoJSON from GRASS vector: %s") % e)
+
+            feature_collection = read_json_to_dict(geojson_file)
+            geojson_features = feature_collection.get("features")
+            if not geojson_features:
+                gs.fatal(_("No features found in GeoJSON file."))
+
+            if len(geojson_features) > 1:
+                gs.warning(
+                    _(
+                        "GeoJSON contains more than one feature. Only the first feature will be used."
+                    )
+                )
+
+            geojson_features = geojson_features[0]
+            geojson_geom = geojson_features.get("geometry")
+
+        return geojson_geom
 
     def search_api(self, **kwargs):
         """Search the STAC API"""
@@ -112,19 +167,22 @@ class STACHelper:
         if kwargs.get("query"):
             self.conforms_to_query()
 
+        for key, value in kwargs.items():
+            gs.debug(f"Searching STAC API with {key}: {value}")
+
         try:
             search = self.client.search(**kwargs)
         except APIError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("APIError searching STAC API: {}").format(e))
         except NotImplementedError as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("NotImplementedError searching STAC API: {}").format(e))
         except Exception as e:
-            gs.fatal(_("Error searching STAC API: {}".format(e)))
+            gs.fatal(_("Exception searching STAC API: {}").format(e, **kwargs))
 
         try:
-            gs.message(_(f"Search Matched: {search.matched()} items"))
-        except e:
-            gs.warning(_(f"No items found: {e}"))
+            gs.message(_("Search Matched: {} items").format(search.matched()))
+        except Exception as e:
+            gs.warning(_("No items found: {}").format(e))
             return None
 
         return search
@@ -151,16 +209,20 @@ class STACHelper:
         """Check if the STAC API conforms to the given conformance class"""
         if not self.client.conforms_to(conformance_class):
             if response == "fatal":
-                gs.fatal(_(f"STAC API does not conform to {conformance_class}"))
+                gs.fatal(_("STAC API does not conform to {}").format(conformance_class))
                 return False
             elif response == "warning":
-                gs.warning(_(f"STAC API does not conform to {conformance_class}"))
+                gs.warning(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "verbose":
-                gs.verbose(_(f"STAC API does not conform to {conformance_class}"))
+                gs.verbose(
+                    _("STAC API does not conform to {}").format(conformance_class)
+                )
                 return True
             elif response == "info":
-                gs.info(_(f"STAC API does not conform to {conformance_class}"))
+                gs.info(_("STAC API does not conform to {}").format(conformance_class))
                 return True
             elif response == "message":
                 sys.stdout.write(f"STAC API does not conform to {conformance_class}\n")
@@ -203,12 +265,12 @@ class STACHelper:
         return self._check_conformance(ConformanceClasses.CONTEXT, response="warning")
 
 
-def encode_credentials(username, password):
+def encode_credentials(username: str, password: str) -> bytes:
     """Encode username and password for basic authentication"""
     return base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("utf-8")
 
 
-def set_request_headers(settings):
+def set_request_headers(settings: str) -> dict:
     """Set request headers"""
     req_headers = {}
     username = password = None
@@ -230,7 +292,7 @@ def set_request_headers(settings):
                 username = lines[0].strip()
                 password = lines[1].strip()
 
-        except IOError as e:
+        except OSError as e:
             gs.fatal(_("Unable to open settings file: {}").format(e))
     else:
         return req_headers
@@ -243,6 +305,34 @@ def set_request_headers(settings):
         req_headers["Authorization"] = f"Basic {b64_userpass}"
 
     return req_headers
+
+
+def estimate_download_size(assets):
+    """Estimate the total download size of assets."""
+    total_size = 0
+    num_assets = len(assets)
+    for asset in assets:
+        url = asset.get("href")
+        size = asset.get("file:size")  # Check if size is available in metadata
+        if size:
+            total_size += size
+        else:
+            # Fetch size using HEAD request if not available in metadata
+            try:
+                import requests
+
+                response = requests.head(url, timeout=10)
+                if response.status_code == 200 and "Content-Length" in response.headers:
+                    total_size += int(response.headers["Content-Length"])
+                else:
+                    gs.warning(_("Could not fetch size for asset: %s") % url)
+            except ImportError as e:
+                gs.warning(_("requests module not available: %s") % e)
+            except Exception as e:
+                gs.warning(_("Error fetching size for asset %s: %s") % (url, e))
+
+    output = {"count": num_assets, "bytes": total_size}
+    return output
 
 
 def generate_indentation(depth):
@@ -270,14 +360,25 @@ def print_summary(data, depth=1):
 
 
 def print_json_to_stdout(data, pretty=False):
-    """Pretty print data to stdout"""
-    if pretty:
-        output = StringIO()
-        pprint(data, stream=output)
-        sys.stdout.write(output.getvalue())
-    else:
-        json_output = json.dumps(data)
-        sys.stdout.write(json_output)
+    """
+    Print JSON data to stdout.
+
+    :param data: The JSON-serializable data to print.
+    :type data: dict or list
+    :param pretty: Set to true to pretty-print the JSON with indentation.
+    :type pretty: bool
+    :return: The JSON string representation of the data.
+    :rtype: str
+    :raises grass.fatal: If the data cannot be serialized to JSON.
+    :raises TypeError: If the data is not JSON-serializable.
+    :raises ValueError: If there is an error during JSON serialization.
+    """
+    try:
+        json_output = json.dumps(data, indent=4 if pretty else None)
+        sys.stdout.write(json_output + "\n")
+        return json_output
+    except (TypeError, ValueError) as e:
+        gs.fatal(_("Failed to serialize data to JSON: {}").format(e))
 
 
 def print_list_attribute(data, title):
@@ -296,7 +397,7 @@ def print_attribute(item, attribute, message=None):
     try:
         sys.stdout.write(f"{message}: {getattr(item, attribute)}\n")
     except AttributeError:
-        gs.info(_(f"{message} not found."))
+        gs.info(_("{message} not found.").format(message=message))
 
 
 def print_basic_collection_info(collection):
@@ -419,46 +520,48 @@ def region_to_wgs84_decimal_degrees_bbox():
     return bbox
 
 
-def check_url_type(url):
+def check_url_type(url: str) -> str:
     """
     Check if the URL is 's3://', 'gs://', or 'http(s)://'.
 
-    Parameters:
-    - url (str): The URL to check.
-
-    Returns:
-    - str: 's3', 'gs', 'http', or 'unknown' based on the URL type.
+    :param url (str): The URL to check.
+    :type url: str
+    :return: The modified URL with the appropriate prefix for GDAL/OGR, or 'unknown' if the protocol is not recognized.
+    :rtype: str
+    :raises grass.fatal: If an error occurs while checking the URL type.
     """
-    if url.startswith("s3://"):
-        os.environ["AWS_PROFILE"] = "default"
-        os.environ["AWS_REQUEST_PAYER"] = "requester"
-        return url.replace("s3://", "/vsis3/")  # Amazon S3
-    elif url.startswith("gs://"):
-        return url.replace("gs://", "/vsigs/")  # Google Cloud Storage
-    elif url.startswith("abfs://"):
-        return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
-    elif url.startswith("https://"):
-        return url.replace("https://", "/vsicurl/https://")
-        # TODO: Add check for cloud provider that uses https
-        # return url.replace("https://", "/vsiaz/")  # Azure Blob File System
-        # return url
-    elif url.startswith("http://"):
-        gs.warning(_("HTTP is not secure. Using HTTPS instead."))
-        return url.replace("https://", "/vsicurl/https://")
-    else:
-        sys.stdout.write(f"Unknown Protocol: {url}\n")
-        return "unknown"
+    try:
+        if url.startswith("s3://"):
+            os.environ["AWS_PROFILE"] = "default"
+            os.environ["AWS_REQUEST_PAYER"] = "requester"
+            return url.replace("s3://", "/vsis3/")  # Amazon S3
+        elif url.startswith("gs://"):
+            return url.replace("gs://", "/vsigs/")  # Google Cloud Storage
+        elif url.startswith("abfs://"):
+            return url.replace("abfs://", "/vsiaz/")  # Azure Blob File System
+        elif url.startswith("https://"):
+            return url.replace("https://", "/vsicurl/https://")
+            # TODO: Add check for cloud provider that uses https
+            # return url.replace("https://", "/vsiaz/")  # Azure Blob File System
+            # return url
+        elif url.startswith("http://"):
+            gs.warning(_("HTTP is not secure. Using HTTPS instead."))
+            return url.replace("https://", "/vsicurl/https://")
+        else:
+            gs.warning(_("Unknown Protocol: %s") % url)
+            return url
+    except Exception as e:
+        gs.fatal(_("Error checking URL type: {}").format(e))
 
 
 def bbox_to_nodes(bbox):
     """
     Convert a bounding box to polygon coordinates.
 
-    Parameters:
-    bbox (dict): A dictionary with 'west', 'south', 'east', 'north' keys.
-
-    Returns:
-    list of tuples: Coordinates of the polygon [(lon, lat), ...].
+    :param bbox: A dictionary with 'west', 'south', 'east', 'north' keys.
+    :type bbox: dict
+    :return: A list of tuples representing the polygon coordinates in the order [(lon, lat), ...].
+    :rtype: list of tuples
     """
     w, s, e, n = bbox["west"], bbox["south"], bbox["east"], bbox["north"]
     # Define corners: bottom-left, top-left, top-right, bottom-right, close by returning to start
@@ -522,12 +625,10 @@ def polygon_centroid(polygon_coords):
     """
     Create a centroid for a given polygon.
 
-    Args:
-        polygon_coords (list(Point)): List of coordinates representing the polygon.
-
-    Returns:
-        Centroid: The centroid of the polygon.
-
+    :param polygon_coords: List of coordinates representing the polygon.
+    :type polygon_coords: list of Point
+    :return: A Centroid object representing the centroid of the polygon.
+    :rtype: grass.pygrass.vector.geometry.Centroid
     """
     # Calculate the sums of the x and y coordinates
     sum_x = sum(
@@ -586,8 +687,11 @@ def create_vector_from_feature_collection(vector, search, limit, max_items):
 
 
 def format_datetime(dt_str):
+    if not dt_str:
+        gs.warning(_("No datetime found for item."))
+        return None
     # Parse the datetime string
-    dt = parser.parse(dt_str)
+    dt = dateutil_parser.parse(dt_str)
     # Format the datetime object to the desired format
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -600,18 +704,13 @@ def register_strds_from_items(collection_items_assets, strds_output):
             semantic_label = asset.get("file_name").split(".")[-1]
             created_date = asset.get("datetime")
             eobands = asset.get("eo:bands")
+            filename = asset.get("file_name")
             if eobands:
                 for idx, band in enumerate(eobands):
-
+                    filename = f"{filename}.{idx + 1}" if len(eobands) > 1 else filename
                     band_name = band.get("common_name")
-                    if created_date:
-                        formatted_date = format_datetime(created_date)
-                        f.write(
-                            f"{asset['file_name']}.{idx + 1}|{formatted_date}|{band_name}\n"
-                        )
-                    else:
-                        gs.warning(_("No datetime found for item."))
-                        f.write(f"{asset['file_name']}.{idx + 1}|{None}|{band_name}\n")
+                    formatted_date = format_datetime(created_date)
+                    f.write(f"{filename}|{formatted_date}|{band_name}\n")
             else:
                 if created_date:
                     formatted_date = format_datetime(created_date)
@@ -626,12 +725,15 @@ def fetch_items_with_pagination(items_search, limit, max_items):
     Fetches items from a search result with pagination.
 
     Args:
-        items_search (SearchResult): The search result object.
-        limit (int): The maximum number of items to fetch.
-        max_items (int): The maximum number of items on a page.
-
-    Returns:
-        list: A list of items fetched from the search result.
+    :param items_search: The search result object.
+    :type items_search: pystac_client.search.Search
+    :param limit: The maximum number of items to fetch.
+    :type limit: int
+    :param max_items: The maximum number of items on a page.
+    :type max_items: int
+    :return: A list of items fetched from the search result.
+    :rtype: list
+    :raises Exception: If there is an error fetching items from the search result.
     """
     items = []
     n_matched = None
@@ -675,7 +777,6 @@ def create_metadata_vector(vector, metadata):
     with VectorTopo(
         vector, mode="w", tab_cols=COLS, layer=1, overwrite=True
     ) as new_vec:
-
         for i, item in enumerate(metadata):
             sys.stdout.write(f"Adding collection: {item.get('id')}\n")
             # Transform bbox to locations CRS
@@ -695,7 +796,11 @@ def create_metadata_vector(vector, metadata):
             if bbox_list and isinstance(bbox_list[0], list) and len(bbox_list[0]) == 4:
                 wgs84_bbox = bbox_list[0]
             else:
-                gs.warning(_(f"Invalid bbox. Skipping Collection {item.get('id')}.\n"))
+                gs.warning(
+                    _("Invalid bbox. Skipping Collection {id}.\n").format(
+                        id=item.get("id")
+                    )
+                )
                 continue
 
             bbox = wgs84_bbox_to_boundary(wgs84_bbox)
@@ -703,7 +808,7 @@ def create_metadata_vector(vector, metadata):
             # Iterate over the list of dictionaries and attempt to cast each value to float using safe_float_cast
             if not all(safe_float_cast(i) for i in bbox.values()):
                 gs.warning(
-                    _("Invalid bbox. Skipping Collection {}.".format(item.get("id")))
+                    _("Invalid bbox. Skipping Collection {}.").format(item.get("id"))
                 )
                 continue
 
@@ -762,7 +867,7 @@ def import_grass_raster(params):
             quiet=True,
         )
     except CalledModuleError as e:
-        gs.fatal(_("Error importing raster: {}".format(e.stderr)))
+        gs.fatal(_("Error importing raster: {}").format(e.stderr))
 
 
 def download_assets(
@@ -807,7 +912,7 @@ def download_assets(
                     if pbar:
                         pbar.update(1)
             except Exception as e:
-                gs.fatal(_("Error importing raster: {}".format(str(e))))
+                gs.fatal(_("Error importing raster: {}").format(str(e)))
 
     tqdm = _import_tqdm(False)
     if tqdm is None:

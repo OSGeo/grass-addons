@@ -15,6 +15,14 @@ a single value. The variation along the edge can be examined with the <b>water_e
 output representing the standard deviation of the lidar elevation values
 along the water body's edge. Higher deviation suggests problematic areas
 that need to be further inspected.
+The optional output <b>filled_elevation</b> is a raster map of the input ground surface
+filled with the computed <b>water_elevation</b> raster map.
+
+<p>
+The <b>breaklines</b> parameter is an optional input that specifies a vector map of lines
+that represent e.g., a break between an impoundment and downstream river, allowing
+correct elevation computation.
+</p>
 
 <p>
 To keep the intermediate results for inspection, use flag <b>-k</b>.
@@ -44,7 +52,7 @@ r.in.pdal input=/tmp/USGS_LPC_NC_Phase2_2014_LA_37_20164902_.laz output=ground -
 # convert elevation from feet to meters
 r.mapcalc "ground_m = ground * 0.304800609601219"
 # derive elevation of water bodies and standard deviation
-r.hydro.flatten input=ground_m water_elevation=water_elevation water_elevation_stddev=water_elevation_stddev percentile=10 misize=4000
+r.hydro.flatten input=ground_m water_elevation=water_elevation water_elevation_stddev=water_elevation_stddev filled_elevation=filled percentile=10 misize=4000
 </pre></div>
 
 <div align="center" style="margin: 10px">

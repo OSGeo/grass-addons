@@ -84,7 +84,7 @@ import atexit
 import string
 import re
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -104,21 +104,21 @@ def main():
 
     nflags = len(filter(None, [wpt, rte, trk]))
     if nflags > 1:
-        grass.fatal(_("One feature at a time please."))
+        gs.fatal(_("One feature at a time please."))
     if nflags < 1:
-        grass.fatal(_("No features requested for import."))
+        gs.fatal(_("No features requested for import."))
 
     #### check for gpsbabel
     ### FIXME: may need --help or similar?
-    if not grass.find_program("gpsbabel"):
-        grass.fatal(
+    if not gs.find_program("gpsbabel"):
+        gs.fatal(
             _("The gpsbabel program was not found, please install it first.\n")
             + "https://www.gpsbabel.org"
         )
 
     #### check for cs2cs
-    if not grass.find_program("cs2cs"):
-        grass.fatal(
+    if not gs.find_program("cs2cs"):
+        gs.fatal(
             _("The cs2cs program was not found, please install it first.\n")
             + "https://proj.org"
         )
@@ -129,7 +129,7 @@ def main():
     #        grass.fatal(_("Output file already exists."))
 
     #### set temporary files
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
 
     # import as GPX using v.in.ogr
     #     if trk:
@@ -144,7 +144,7 @@ def main():
         # todo
         #        grass.try_remove(output)
         #        os.rename(tmp_gpx, output)
-        grass.verbose("Fast exit.")
+        gs.verbose("Fast exit.")
         sys.exit()
 
     # run gpsbabel
@@ -157,20 +157,20 @@ def main():
     else:
         gtype = ""
 
-    grass.verbose("Running GPSBabel ...")
+    gs.verbose("Running GPSBabel ...")
 
-    ret = grass.call(
+    ret = gs.call(
         ["gpsbabel", gtype, "-i", format, "-f", output, "-o", "gpx", "-F", tmp + ".gpx"]
     )
 
     if ret != 0:
-        grass.fatal(_("Error running GPSBabel"))
+        gs.fatal(_("Error running GPSBabel"))
 
-    grass.verbose("Importing data ...")
+    gs.verbose("Importing data ...")
 
     tmp_gpx = tmp + ".gpx"
     try:
-        grass.run_command(
+        gs.run_command(
             "v.in.ogr",
             input=tmp_gpx,
             output=output,
@@ -181,7 +181,7 @@ def main():
             quiet=True,
         )
     except CalledModuleError:
-        grass.fatal(_("Error importing data"))
+        gs.fatal(_("Error importing data"))
 
     #### set up projection info
     # TODO: check if we are already in ll/WGS84.  If so skip m.proj step.
@@ -240,9 +240,9 @@ def main():
     #     if p3.returncode != 0:
     #         grass.fatal(_("Error reprojecting data"))
 
-    grass.verbose("Done.")
+    gs.verbose("Done.")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

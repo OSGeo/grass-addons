@@ -57,7 +57,7 @@
 import sys
 
 ##from grass.script import core as grass
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -66,7 +66,7 @@ def main():
     decision = options["decision"]
     output = options["output"]
 
-    gregion = grass.region()
+    gregion = gs.region()
     nrows = gregion["rows"]
     ncols = gregion["cols"]
     ewres = int(gregion["ewres"])
@@ -79,7 +79,7 @@ def main():
         outf.write("+ %s: (continuous)\n" % attributes[i])
     outf.write("+ %s: [" % decision)
     value = []
-    value = grass.read_command("r.describe", flags="1n", map=decision)
+    value = gs.read_command("r.describe", flags="1n", map=decision)
     v = value.split()
 
     for i in range(len(v) - 1):
@@ -98,16 +98,16 @@ def main():
     examples = []
     MATRIX = []
     for i in range(len(attributes)):
-        grass.mapcalc(
+        gs.mapcalc(
             "rast=if(isnull(${decision})==0,${attribute},null())",
             rast="rast",
             decision=decision,
             attribute=attributes[i],
         )
-        tmp = grass.read_command("r.stats", flags="1n", nv="?", input="rast")
+        tmp = gs.read_command("r.stats", flags="1n", nv="?", input="rast")
         example = tmp.split()
         examples.append(example)
-    tmp = grass.read_command("r.stats", flags="1n", nv="?", input=decision)
+    tmp = gs.read_command("r.stats", flags="1n", nv="?", input=decision)
     example = tmp.split()
 
     examples.append(example)
@@ -129,5 +129,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

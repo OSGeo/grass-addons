@@ -45,7 +45,7 @@
 import numpy as np
 
 # GRASS
-from grass import script as gscript
+from grass import script as gs
 from grass.script import array as garray
 from grass.pygrass.modules.shortcuts import general as g
 
@@ -75,7 +75,7 @@ def main():
     _output = options["output"]
 
     # Check for overwrite
-    _rasters = np.array(gscript.parse_command("g.list", type="raster").keys())
+    _rasters = np.array(gs.parse_command("g.list", type="raster").keys())
     if (_rasters == _output).any():
         g.message(flags="e", message="output would overwrite " + _output)
 
@@ -85,9 +85,9 @@ def main():
     rd_output = rd.ResolveFlats(rd_input)
 
     dem[:] = rd_output[:]
-    dem.write(_output, overwrite=gscript.overwrite())
+    dem.write(_output, overwrite=gs.overwrite())
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

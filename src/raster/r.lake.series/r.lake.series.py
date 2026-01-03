@@ -184,7 +184,7 @@ def main():
     time_step = options["time_step"]  # temporal fucntions accepts only string now
     if int(time_step) <= 0:
         gcore.fatal(
-            _("Time step must be greater than zero." " Please specify number > 0.")
+            _("Time step must be greater than zero. Please specify number > 0.")
         )
 
     mapset = gcore.gisenv()["MAPSET"]

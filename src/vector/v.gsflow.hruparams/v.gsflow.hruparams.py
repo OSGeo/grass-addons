@@ -99,7 +99,7 @@ from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ################
 # MAIN MODULES #
@@ -107,8 +107,8 @@ from grass import script as gscript
 
 
 def create_iterator(vect):
-    colNames = np.array(gscript.vector_db_select(vect, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(vect, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(vect, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(vect, layer=1)["values"].values())
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     _n = np.arange(1, len(cats) + 1)
     _n_cats = []
@@ -126,7 +126,7 @@ def main():
     # OPTION PARSING #
     ##################
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     basins = options["input"]
     HRU = options["output"]
     slope = options["slope"]
@@ -139,7 +139,7 @@ def main():
     # CREATE HRUs FROM SUB-BASINS  #
     ################################
 
-    g.copy(vector=(basins, HRU), overwrite=gscript.overwrite())
+    g.copy(vector=(basins, HRU), overwrite=gs.overwrite())
 
     ############################################
     # ATTRIBUTE COLUMNS (IN ORDER FROM MANUAL) #
@@ -210,8 +210,8 @@ def main():
     # UPDATE DATABASE ENTRIES #
     ###########################
 
-    colNames = np.array(gscript.vector_db_select(HRU, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(HRU, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(HRU, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(HRU, layer=1)["values"].values())
     number_of_hrus = colValues.shape[0]
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     rnums = colValues[:, colNames == "rnum"].astype(int).squeeze()
@@ -273,12 +273,8 @@ def main():
     # average -- x- and y-vectors
     # Geographic coordinates, so sin=x, cos=y.... not that it matters so long
     # as I am consistent in how I return to degrees
-    r.mapcalc(
-        "aspect_x = sin(" + aspect + ")", overwrite=gscript.overwrite(), quiet=True
-    )
-    r.mapcalc(
-        "aspect_y = cos(" + aspect + ")", overwrite=gscript.overwrite(), quiet=True
-    )
+    r.mapcalc("aspect_x = sin(" + aspect + ")", overwrite=gs.overwrite(), quiet=True)
+    r.mapcalc("aspect_y = cos(" + aspect + ")", overwrite=gs.overwrite(), quiet=True)
     # grass.run_command('v.db.addcolumn', map=HRU, columns='aspect_x_sum double precision, aspect_y_sum double precision, ncells_in_hru integer')
     v.rast_stats(
         map=HRU,
@@ -418,7 +414,7 @@ def main():
             + str(allcats[i])
         )
         # (un)Project to lat/lon
-        _centroid_ll = gscript.parse_command(
+        _centroid_ll = gs.parse_command(
             "m.proj", coordinates=list(hru_centroid_locations[i]), flags="od"
         ).keys()[0]
         _lon, _lat, _z = _centroid_ll.split("|")
@@ -466,10 +462,10 @@ def main():
             )
     else:
         # NEED TO UPDATE THIS TO MODAL VALUE!!!!
-        gscript.message(
+        gs.message(
             "Warning: values taken from HRU centroids. Code should be updated to"
         )
-        gscript.message("acquire modal values")
+        gs.message("acquire modal values")
         v.what_rast(
             map=HRU, type="centroid", raster=land_cover, column="cov_type", quiet=True
         )
@@ -493,10 +489,10 @@ def main():
             )
     else:
         # NEED TO UPDATE THIS TO MODAL VALUE!!!!
-        gscript.message(
+        gs.message(
             "Warning: values taken from HRU centroids. Code should be updated to"
         )
-        gscript.message("acquire modal values")
+        gs.message("acquire modal values")
         v.what_rast(
             map=HRU, type="centroid", raster=soil, column="soil_type", quiet=True
         )

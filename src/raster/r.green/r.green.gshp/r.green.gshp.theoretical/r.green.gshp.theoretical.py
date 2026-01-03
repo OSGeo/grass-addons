@@ -113,7 +113,7 @@
 # % key: borehole_resistence
 # % type: double
 # % key_desc: double
-# % description: Borehole thermal resistence [m K W-1]
+# % description: Borehole thermal resistance [m K W-1]
 # % required: no
 # % answer: nan
 # % guisection: Borehole
@@ -263,7 +263,7 @@ def main(opts, flgs):
         Thermal conductivity of the borehole filling (geothermal grout).
         Default: 2
     borehole_resistence: [m K W-1]
-        Borehole thermal resistence
+        Borehole thermal resistance
     borehole_length: [m]
         Borehole length, default: 100m
     ground_temperature: [°C]
@@ -301,11 +301,11 @@ def main(opts, flgs):
     borehole_radius = float(opts["borehole_radius"])
     borehole_length = float(opts["borehole_length"])
     if opts["borehole_resistence"] == "nan":
-        borehole_resistence = gpot.get_borehole_resistence(
+        borehole_resistance = gpot.get_borehole_resistence(
             borehole_radius, pipe_radius, number_pipes, grout_conductivity
         )
     else:
-        borehole_resistence = float(opts["borehole_resistence"])
+        borehole_resistance = float(opts["borehole_resistence"])
 
     # START COMPUTATIONS
     uc = tmpbase + "_uc"
@@ -345,7 +345,7 @@ def main(opts, flgs):
         ground_temperature,
         fluid_limit_temperature,
         borehole_length,
-        borehole_resistence,
+        borehole_resistance,
         gmax,
         execute=True,
         overwrite=OVER,

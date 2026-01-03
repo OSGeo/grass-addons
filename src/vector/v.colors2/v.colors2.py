@@ -84,19 +84,17 @@ import sys
 import os
 import atexit
 import string
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
 def cleanup():
     if tmp:
-        grass.try_remove(tmp)
+        gs.try_remove(tmp)
     if tmp_vcol:
-        grass.try_remove(tmp_vcol)
+        gs.try_remove(tmp_vcol)
     if tmp_colr:
-        grass.run_command(
-            "g.remove", flags="f", type="raster", name=tmp_colr, quiet=True
-        )
+        gs.run_command("g.remove", flags="f", type="raster", name=tmp_colr, quiet=True)
 
 
 def main():
@@ -114,77 +112,77 @@ def main():
     pid = os.getpid()
     tmp = tmp_colr = tmp_vcol = None
 
-    mapset = grass.gisenv()["MAPSET"]
+    mapset = gs.gisenv()["MAPSET"]
     gisbase = os.getenv("GISBASE")
 
     # does map exist in CURRENT mapset?
-    kv = grass.find_file(map, element="vector", mapset=mapset)
+    kv = gs.find_file(map, element="vector", mapset=mapset)
     if not kv["file"]:
-        grass.fatal(_("Vector map <%s> not found in current mapset") % map)
+        gs.fatal(_("Vector map <%s> not found in current mapset") % map)
 
     vector = map.split("@", 1)
 
     # sanity check mutually exclusive color options
     if not options["color"] and not options["raster"] and not options["rules"]:
-        grass.fatal(_("Pick one of color, rules, or raster options"))
+        gs.fatal(_("Pick one of color, rules, or raster options"))
 
     if color:
         #### check the color rule is valid
         color_opts = os.listdir(os.path.join(gisbase, "etc", "colors"))
         color_opts += ["random", "grey.eq", "grey.log", "rules"]
         if color not in color_opts:
-            grass.fatal(
+            gs.fatal(
                 _("Invalid color rule <%s>\n") % color
                 + _("Valid options are: %s") % " ".join(color_opts)
             )
     elif raster:
-        if not grass.find_file(raster)["name"]:
-            grass.fatal(_("Raster raster map <%s> not found") % raster)
+        if not gs.find_file(raster)["name"]:
+            gs.fatal(_("Raster raster map <%s> not found") % raster)
     elif rules:
         if not os.access(rules, os.R_OK):
-            grass.fatal(_("Unable to read color rules file <%s>") % rules)
+            gs.fatal(_("Unable to read color rules file <%s>") % rules)
 
     # column checks
     # check input data column
-    cols = grass.vector_columns(map, layer=layer)
+    cols = gs.vector_columns(map, layer=layer)
     if column not in cols:
-        grass.fatal(_("Column <%s> not found") % column)
+        gs.fatal(_("Column <%s> not found") % column)
     ncolumn_type = cols[column]["type"]
     if ncolumn_type not in ["INTEGER", "DOUBLE PRECISION"]:
-        grass.fatal(_("Column <%s> is not numeric but %s") % (column, ncolumn_type))
+        gs.fatal(_("Column <%s> is not numeric but %s") % (column, ncolumn_type))
 
     # check if GRASSRGB column exists, make it if it doesn't
-    table = grass.vector_db(map)[int(layer)]["table"]
+    table = gs.vector_db(map)[int(layer)]["table"]
     if rgb_column not in cols:
         # RGB Column not found, create it
-        grass.message(_("Creating column <%s>...") % rgb_column)
+        gs.message(_("Creating column <%s>...") % rgb_column)
         try:
-            grass.run_command(
+            gs.run_command(
                 "v.db.addcolumn",
                 map=map,
                 layer=layer,
                 column="%s varchar(11)" % rgb_column,
             )
         except CalledModuleError:
-            grass.fatal(_("Creating color column"))
+            gs.fatal(_("Creating color column"))
     else:
         column_type = cols[rgb_column]["type"]
         if column_type not in ["CHARACTER", "TEXT"]:
-            grass.fatal(
+            gs.fatal(
                 _("Column <%s> is not of compatible type (found %s)")
                 % (rgb_column, column_type)
             )
         else:
             num_chars = dict(
-                [(v[0], int(v[2])) for v in grass.db_describe(table)["cols"]]
+                [(v[0], int(v[2])) for v in gs.db_describe(table)["cols"]]
             )[rgb_column]
             if num_chars < 11:
-                grass.fatal(
+                gs.fatal(
                     _("Color column <%s> is not wide enough (needs 11 characters)"),
                     rgb_column,
                 )
 
-    cvals = grass.vector_db_select(map, layer=int(layer), columns=column)[
+    cvals = gs.vector_db_select(map, layer=int(layer), columns=column)[
         "values"
     ].values()
 
@@ -193,32 +191,32 @@ def main():
         # order doesn't matter
         vals = range.split(",")
     else:
-        grass.message(_("Scanning values..."))
+        gs.message(_("Scanning values..."))
         vals = [float(x[0]) for x in cvals]
 
     minval = min(vals)
     maxval = max(vals)
 
-    grass.verbose(_("Range: [%s, %s]") % (minval, maxval))
+    gs.verbose(_("Range: [%s, %s]") % (minval, maxval))
     if minval is None or maxval is None:
-        grass.fatal(_("Scanning data range"))
+        gs.fatal(_("Scanning data range"))
 
     # setup internal region
-    grass.use_temp_region()
-    grass.run_command("g.region", rows=2, cols=2)
+    gs.use_temp_region()
+    gs.run_command("g.region", rows=2, cols=2)
 
     tmp_colr = "tmp_colr_%d" % pid
 
     # create dummy raster map
     if ncolumn_type == "INTEGER":
-        grass.mapcalc(
+        gs.mapcalc(
             "$tmp_colr = int(if(row() == 1, $minval, $maxval))",
             tmp_colr=tmp_colr,
             minval=minval,
             maxval=maxval,
         )
     else:
-        grass.mapcalc(
+        gs.mapcalc(
             "$tmp_colr = double(if(row() == 1, $minval, $maxval))",
             tmp_colr=tmp_colr,
             minval=minval,
@@ -237,17 +235,15 @@ def main():
     else:
         flip_flag = ""
 
-    grass.run_command(
-        "r.colors", map=tmp_colr, flags=flip_flag, quiet=True, **color_cmd
-    )
+    gs.run_command("r.colors", map=tmp_colr, flags=flip_flag, quiet=True, **color_cmd)
 
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
 
     # calculate colors and write SQL command file
-    grass.message(_("Looking up colors..."))
+    gs.message(_("Looking up colors..."))
 
     f = open(tmp, "w")
-    p = grass.feed_command("r.what.color", flags="i", input=tmp_colr, stdout=f)
+    p = gs.feed_command("r.what.color", flags="i", input=tmp_colr, stdout=f)
     lastval = None
     for v in sorted(vals):
         if v == lastval:
@@ -283,22 +279,22 @@ def main():
     fo.close()
 
     if not found:
-        grass.fatal(_("No values found in color range"))
+        gs.fatal(_("No values found in color range"))
 
     # apply SQL commands to update the table with values
-    grass.message(_("Writing %s colors...") % found)
+    gs.message(_("Writing %s colors...") % found)
 
     try:
-        grass.run_command("db.execute", input=tmp_vcol)
+        gs.run_command("db.execute", input=tmp_vcol)
     except CalledModuleError:
-        grass.fatal(_("Processing SQL transaction"))
+        gs.fatal(_("Processing SQL transaction"))
 
     if flags["s"]:
         vcolors = "vcolors_%d" % pid
-        grass.run_command("g.rename", raster=(tmp_colr, vcolors), quiet=True)
-        grass.message(_("Raster map containing color rules saved to <%s>") % vcolors)
+        gs.run_command("g.rename", raster=(tmp_colr, vcolors), quiet=True)
+        gs.message(_("Raster map containing color rules saved to <%s>") % vcolors)
         # TODO save full v.colors command line history
-        grass.run_command(
+        gs.run_command(
             "r.support",
             map=vcolors,
             history="",
@@ -307,7 +303,7 @@ def main():
             title=_("Dummy raster to use as thematic vector legend"),
             description="generated by v.colors using r.mapcalc",
         )
-        grass.run_command(
+        gs.run_command(
             "r.support",
             map=vcolors,
             history=_("RGB saved into <%s> using <%s%s%s>")
@@ -316,6 +312,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

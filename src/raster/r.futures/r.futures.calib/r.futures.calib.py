@@ -301,7 +301,7 @@ except ImportError:
         """Add a random part to of a specified length to a name (string)
         >>> append_random("tmp", 8)
         >>> append_random("tmp", total_length=16)
-        ..note::
+        .. note::
             This function is copied from grass79.
         """
         if suffix_length and total_length:
@@ -347,7 +347,7 @@ def check_addon_installed(addon, fatal=True):
         call = gcore.fatal if fatal else gcore.warning
         call(
             _(
-                "Addon {a} is not installed." " Please install it using g.extension."
+                "Addon {a} is not installed. Please install it using g.extension."
             ).format(a=addon)
         )
 
@@ -395,13 +395,13 @@ def run_one_combination(
         gcore.message(
             _(
                 "Running calibration combination {comb_count}/{comb_all}"
-                " of simulation attempt {i}/{repeat} with random seed {s}...".format(
-                    comb_count=comb_count,
-                    comb_all=comb_all,
-                    i=i + 1,
-                    repeat=repeat,
-                    s=f_seed,
-                )
+                " of simulation attempt {i}/{repeat} with random seed {s}..."
+            ).format(
+                comb_count=comb_count,
+                comb_all=comb_all,
+                i=i + 1,
+                repeat=repeat,
+                s=f_seed,
             )
         )
         try:

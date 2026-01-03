@@ -8,7 +8,7 @@
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
-@modified for GRASS GIS by Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
+@modified for GRASS by Matej Krejci <matejkrejci gmail.com> (GSoC 2015)
 @originaly created by  "# Copyright (c) 2010 Tom Kralidis"
 
 

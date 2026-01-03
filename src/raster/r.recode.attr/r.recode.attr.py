@@ -106,7 +106,7 @@ def main(options, flags):
     try:
         myData = np.genfromtxt(rules, delimiter=separator, skip_header=1)
     except Exception as e:
-        gs.fatal(_("Error loading data with delimiter '{}': {}".format(separator, e)))
+        gs.fatal(_("Error loading data with delimiter '{}': {}").format(separator, e))
     nmsData = np.genfromtxt(rules, delimiter=separator, names=True)
     dimData = myData.shape
     nmsData = nmsData.dtype.names
