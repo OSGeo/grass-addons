@@ -19,8 +19,7 @@ int main(int argc, char *argv[])
     double testmat2[5][3] = {7.3, 0.5, 2.6, 6.9, 1.2, 2.8, 5.5, 1.9,
                              5.1, 9.3, 7.7, 7.0, 0.5, 3.1, 3.8};
 
-    double testvec1[5] =
-    { 1 2 3 4 5 }
+    double testvec1[5] = {1 2 3 4 5}
 
     double testc = 4.3;
 
