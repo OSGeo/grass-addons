@@ -1251,9 +1251,9 @@ def main(options, flags):
         predlays = options["predictionlayer"]
         asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
         grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
-        result = {Path(f).stem.removesuffix("_clamping") for f in grasslayers}
+        result = [Path(f).stem.removesuffix("_clamping") for f in grasslayers]
         if bool(predlays):
-            grasslayers = [x.replace(result, predlays) for x in grasslayers]
+            grasslayers = [x.replace(result[0], predlays) for x in grasslayers]
         for idx, asci in enumerate(asciilayers):
             gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)
