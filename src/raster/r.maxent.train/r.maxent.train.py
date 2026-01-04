@@ -445,6 +445,7 @@ import subprocess
 import sys
 import uuid
 import grass.script as gs
+from pathlib import Path
 
 
 CLEAN_LAY = []
@@ -1250,10 +1251,9 @@ def main(options, flags):
         predlays = options["predictionlayer"]
         asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
         grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
-        pattern = re.compile(r"_([^_]+\.asc)$")
-        result = re.sub(pattern, "", asciilayers[0])
+        result = [Path(f).stem.removesuffix("_clamping") for f in grasslayers]
         if bool(predlays):
-            grasslayers = [x.replace(result, predlays) for x in grasslayers]
+            grasslayers = [x.replace(result[0], predlays) for x in grasslayers]
         for idx, asci in enumerate(asciilayers):
             gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)
