@@ -7,4 +7,14 @@
         "github>OSGeo/grass:renovate.json5",
         "customManagers:biomeVersions",
     ],
+
+    "packageRules": [
+        {
+            "groupName": "biome",
+            "matchPackageNames": [
+                "biomejs/pre-commit",
+                "@biomejs/biome",
+            ],
+        },
+    ],
 }
