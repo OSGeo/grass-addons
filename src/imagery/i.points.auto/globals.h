@@ -24,8 +24,3 @@ GLOBAL char interrupt_char;
 GLOBAL char *tempfile1;
 GLOBAL char *tempfile2;
 GLOBAL char *tempfile3;
-
-double row_to_northing();
-double col_to_easting();
-double northing_to_row();
-double easting_to_col();
