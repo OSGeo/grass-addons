@@ -20,6 +20,9 @@ using the **value** parameter. Alternatively, the user can use the
 vector map's attribute table. The values in that column will be used as
 raster values in the output raster map.
 
+Optionally, the only features selected with the **where** option can be 
+imported.
+
 ## Notes
 
 By default, *r.in.vect* will only affect data in areas lying inside the
@@ -46,8 +49,7 @@ updated, not just those on the line render path, or which center point
 is within the polygon. For lines, this is similar to setting the **-d**
 flag in *v.to.rast*.
 
-Note that this will make a difference for complex and large vector
-layers. For simple and small vector layers, it is probably faster to
+For simple and small vector layers, it is probably faster to
 import the vector layer first and converting it to a raster in GRASS.
 
 ## EXAMPLE
