@@ -133,7 +133,7 @@ def cleanup():
 
 def get_grass_crs_wkt():
     """Get the CRS of the computational region"""
-    
+
     # Get the projection information in WKT format
     projection_info = gs.read_command("g.proj", flags="wf")
     return projection_info.rstrip()
@@ -306,7 +306,9 @@ def main(options, flags):
     match_wkt = check_wkt_match(grass_wkt, vector_wkt)
 
     if not match_wkt:
-        gs.message(_("reprojecting vector layer to match the CRS of the current mapset"))
+        gs.message(
+            _("reprojecting vector layer to match the CRS of the current mapset")
+        )
         temp_vect = os.path.join(gs.tempdir(), f"{gs.tempname(4)}.gpkg")
 
         ogr2ogr_command = [
