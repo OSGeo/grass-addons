@@ -20,6 +20,9 @@ using the **value** parameter. Alternatively, the user can use the
 vector map's attribute table. The values in that column will be used as
 raster values in the output raster map.
 
+Optionally, the only features selected with the **where** option can be
+imported.
+
 ## Notes
 
 By default, *r.in.vect* will only affect data in areas lying inside the
@@ -46,8 +49,7 @@ updated, not just those on the line render path, or which center point
 is within the polygon. For lines, this is similar to setting the **-d**
 flag in *v.to.rast*.
 
-Note that this will make a difference for complex and large vector
-layers. For simple and small vector layers, it is probably faster to
+For simple and small vector layers, it is probably faster to
 import the vector layer first and converting it to a raster in GRASS.
 
 ## EXAMPLE
@@ -80,7 +82,7 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im01.png)](r_in_vect_im01.png)  
+[![image-alt](r_in_vect_im01.png)](r_in_vect_im01.png)
 *Figure 1: The geology vector file was converted to, and imported as a
 raster into GRASS GIS, using the default settings.*
 
@@ -106,7 +108,7 @@ memory=2000
 r.colors map=geology_rast2 color=random
 ```
 
-[![image-alt](r_in_vect_im02.png)](r_in_vect_im02.png)  
+[![image-alt](r_in_vect_im02.png)](r_in_vect_im02.png)
 *Figure 2: The geology vector file converted to raster and imported into
 GRASS GIS using the values from the vector attribute column GEOL250\_ as
 raster values.*
@@ -136,7 +138,7 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im03.png)](r_in_vect_im03.png)  
+[![image-alt](r_in_vect_im03.png)](r_in_vect_im03.png)
 *Figure 3: The busroute6 vector file converted to raster and imported
 into GRASS GIS using the extent of the vector map.*
 
@@ -153,18 +155,18 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im04.png)](r_in_vect_im04.png)  
+[![image-alt](r_in_vect_im04.png)](r_in_vect_im04.png)
 *Figure 4: Rasterize the busroute 6 vector map using the **-d** flag to
 create densified lines by adding extra cells (shown in red). This avoids
 gaps or lines that consist of cells that are only diagonally connected.*
 
 ## SEE ALSO
 
-*[v.to.rast](https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html),*
+*[v.to.rast](https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html)*
 
 ## AUTHORS
 
-Paulo van Breugel ([ecodiv.earth](https://ecodiv.earth))  
-Applied Geo-information Sciences  
+Paulo van Breugel ([ecodiv.earth](https://ecodiv.earth))
+Applied Geo-information Sciences
 [HAS green academy, University of Applied
 Sciences](https://www.has.nl/)
