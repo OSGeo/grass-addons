@@ -23,6 +23,10 @@ using the <b>value</b> parameter. Alternatively, the user can use the
 the vector map's attribute table. The values in that column will be
 used as raster values in the output raster map.
 
+<p>
+Optionally, only features selected with the <b>where</b> option can be
+imported.
+
 <h2>Notes</h2>
 
 By default, <em>r.in.vect</em> will only affect data in areas lying
@@ -54,8 +58,7 @@ point is within the polygon. For lines, this is similar to setting the
 <b>-d</b> flag in <em>v.to.rast</em>.
 
 <p>
-Note that this will make a difference for complex and large vector
-layers. For simple and small vector layers, it is probably faster to
+For simple and small vector layers, it is probably faster to
 import the vector layer first and converting it to a raster in GRASS.
 
 <h2>EXAMPLE</h2>
@@ -186,7 +189,7 @@ diagonally connected.</i> </div>
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html">v.to.rast</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.to.rast.html">v.to.rast</a>
 </em>
 
 <h2>AUTHORS</h2>
