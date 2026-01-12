@@ -349,6 +349,7 @@ ignore = [
     "RUF052",  # used-dummy-variable
     "RUF055",  # unnecessary-regular-expression
     "RUF059",  # unused-unpacked-variable
+    "RUF067",  # non-empty-init-module
     "RUF100",  # unused-noqa
     "S101",    # assert
     "S102",    # exec-builtin
