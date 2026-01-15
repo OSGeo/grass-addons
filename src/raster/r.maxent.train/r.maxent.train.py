@@ -1248,12 +1248,21 @@ def main(options, flags):
         gs.info(_("-----------------------\n"))
         gs.info(_("Importing the raster projection layers"))
 
-        predlays = options["predictionlayer"]
-        asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
-        grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
-        result = [Path(f).stem.removesuffix("_clamping") for f in grasslayers]
-        if bool(predlays):
-            grasslayers = [x.replace(result[0], predlays) for x in grasslayers]
+        asciilayers = [a for a in all_files if a.endswith(".asc")]
+        predictionraster = options["predictionlayer"]
+
+        grasslayers = []
+        for asc in asciilayers:
+            stem = Path(asc).stem.removesuffix("_clamping")
+            stat = stem.split("_")[-1]
+
+            if predictionraster:
+                outname = f"{predictionraster}_{stat}{options['suffix']}"
+            else:
+                outname = f"{stem}{options['suffix']}"
+
+            grasslayers.append(outname)
+
         for idx, asci in enumerate(asciilayers):
             gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)
