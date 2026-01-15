@@ -1,10 +1,10 @@
 ## DESCRIPTION
 
-*r.colors.qml* applies raster symbology defined in QGIS to the same raster in
-GRASS. The user provides the qml file and the raster to which to apply the
-symbology (color and labels) from that file.
+*r.colors.qml* applies raster symbology defined in QGIS in a QML style file to
+the same raster in GRASS. The user provides the QML style file and the raster to
+which to apply the symbology (color and labels) from that file.
 
-![From QGIS through QML to GRASS color table and categories](r_color_qml.png)
+![From QGIS through QML to GRASS color table and categories](r_colors_qml.png)
 
 QML is a format for storing layer styling in QGIS, including the colors and
 labels that are defined under symbology. The addon extracts the raster colors
