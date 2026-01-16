@@ -63,8 +63,7 @@ r.colors.toqml -r map=cfactor output=cfactor.qml discrete=yes
 
 ## SEE ALSO
 
-*[r.colors.out](https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html),
-[r.colors.qml](https://grass.osgeo.org/grass-stable/manuals/addons/r.colors.qml.html)*
+*[r.colors.out](https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html)*
 
 ## AUTHOR
 

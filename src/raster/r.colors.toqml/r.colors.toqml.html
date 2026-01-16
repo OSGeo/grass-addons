@@ -18,11 +18,13 @@ From GRASS through QML to QGIS raster symbology.
 
 <p>
 The addon supports:
+
+<p>
 <ul>
-  <li><strong>Categorical rasters</strong> (CELL with categories), exported as
-  paletted QGIS renderers.</li>
-  <li><strong>Continuous rasters</strong> (FCELL/DCELL), exported as
-  singleband pseudocolor renderers with interpolated or discrete color ramps.</li>
+<li><strong>Categorical rasters</strong> (CELL with categories), exported as
+paletted QGIS renderers.</li>
+<li><strong>Continuous rasters</strong> (FCELL/DCELL), exported as singleband
+pseudocolor renderers with interpolated or discrete color ramps.</li>
 </ul>
 
 <p>
@@ -43,7 +45,6 @@ region is narrower than the color table domain, QGIS will still show the full
 ramp domain defined by the breakpoints.
 
 <p>
-
 Category subset in current region: for categorical rasters, the exported palette
 is filtered to categories present in the current region/MASK. If you want a
 palette for the full raster extent, set the computational region to the full
@@ -55,37 +56,43 @@ Export the color table and category labels of a categorical raster to a QML
 file:
 
 <p>
-<div class="code"><pre>
+<div class="code">
+<pre>
 r.colors.toqml map=landclass96 output=landclass96.qml
-</pre></div><br>
+</pre>
+</div><br>
 
-<p> Export a continuous raster color table to QML and export the corresponding
+<p>
+Export a continuous raster color table to QML and export the corresponding
 raster to GeoTIFF:
 
 <p>
-<div class="code"><pre>
+<div class="code">
+<pre>
 r.colors.toqml -r map=cfactor output=cfactor.qml
-</pre></div><br>
+</pre>
+</div><br>
 
 <p>
 Force a discrete color ramp for a continuous raster:
 
-<div class="code"><pre>
+<div class="code">
+<pre>
 r.colors.toqml -r map=cfactor output=cfactor.qml discrete=yes
-</pre></div><br>
+</pre>
+</div><br>
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html">r.colors.out</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.colors.qml.html">r.colors.qml</a>
+<em> <a
+href="https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html">r.colors.out</a>
 </em>
 
 <h2>AUTHOR</h2>
 
-<a href="https://ecodiv.earth">Paulo van Breugel</a>,
-<a href="https://has.nl">HAS green academy</a>,
-<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">
-Innovative Biomonitoring research group</a>,
-<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,<a
+href="https://has.nl">HAS green academy</a>,<a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">
+Innovative Biomonitoring research group</a>,<a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">
 Climate-robust Landscapes research group</a>

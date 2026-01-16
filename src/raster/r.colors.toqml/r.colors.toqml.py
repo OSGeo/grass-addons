@@ -138,7 +138,9 @@ def present_cell_values(raster: str):
     try:
         txt = gs.read_command("r.stats", input=raster, flags="n", separator=sep)
     except Exception as e:
-        gs.fatal(_("Failed to run r.stats to determine present categories: {}").format(e))
+        gs.fatal(
+            _("Failed to run r.stats to determine present categories: {}").format(e)
+        )
 
     vals = set()
     for raw in txt.splitlines():
@@ -181,7 +183,9 @@ def read_color_rules(raster: str):
     Always fails fast on percentage-based breakpoints.
     """
     try:
-        txt = gs.read_command("r.colors.out", map=raster, format="plain", color_format="hex")
+        txt = gs.read_command(
+            "r.colors.out", map=raster, format="plain", color_format="hex"
+        )
     except Exception:
         txt = gs.read_command("r.colors.out", map=raster)
 
@@ -262,7 +266,10 @@ def build_qml_paletted(entries, labels: dict, allowed_values=None):
     If allowed_values is provided (set of strings), only those categories are written
     (categories actually present in current region/MASK).
     """
-    qgis = ET.Element("qgis", attrib={"version": "3.34.0", "styleCategories": "LayerConfiguration|Symbology"})
+    qgis = ET.Element(
+        "qgis",
+        attrib={"version": "3.34.0", "styleCategories": "LayerConfiguration|Symbology"},
+    )
     pipe = ET.SubElement(qgis, "pipe")
     renderer = ET.SubElement(
         pipe,
@@ -296,12 +303,17 @@ def build_qml_paletted(entries, labels: dict, allowed_values=None):
     return qgis
 
 
-def build_qml_singleband(entries, labels: dict, color_ramp_type: str, vmin: float, vmax: float):
+def build_qml_singleband(
+    entries, labels: dict, color_ramp_type: str, vmin: float, vmax: float
+):
     """
     Build minimal QML for singlebandpseudocolor with a color ramp shader.
     Explicitly writes min/max into the QML to avoid QGIS defaulting to 0..0.
     """
-    qgis = ET.Element("qgis", attrib={"version": "3.34.0", "styleCategories": "LayerConfiguration|Symbology"})
+    qgis = ET.Element(
+        "qgis",
+        attrib={"version": "3.34.0", "styleCategories": "LayerConfiguration|Symbology"},
+    )
     pipe = ET.SubElement(qgis, "pipe")
 
     renderer = ET.SubElement(
@@ -318,14 +330,16 @@ def build_qml_singleband(entries, labels: dict, color_ramp_type: str, vmin: floa
         },
     )
 
-    ET.SubElement(renderer, "rasterTransparency")  # matches QGIS files; harmless if empty
+    ET.SubElement(
+        renderer, "rasterTransparency"
+    )  # matches QGIS files; harmless if empty
 
     shader = ET.SubElement(renderer, "rastershader")
     crs = ET.SubElement(
         shader,
         "colorrampshader",
         attrib={
-            "colorRampType": color_ramp_type,   # INTERPOLATED or DISCRETE
+            "colorRampType": color_ramp_type,  # INTERPOLATED or DISCRETE
             "classificationMode": "1",
             "clip": "0",
             "minimumValue": str(vmin),
