@@ -81,7 +81,7 @@ import grass.script as gs
 
 
 def _strip_ns(tag: str) -> str:
-    return tag.split("}")[-1] if "}" in tag else tag
+    return tag.rsplit("}", maxsplit=1)[-1] if "}" in tag else tag
 
 
 def _hex_to_rgb(color_hex: str):
@@ -301,7 +301,7 @@ def write_r_colors_rules(entries, path, default_color):
     with open(path, "w", encoding="utf-8") as f:
         for e in entries:
             r, g, b = e["rgb"]
-            f.write(f'{e["value"]} {r}:{g}:{b}\n')
+            f.write(f"{e['value']} {r}:{g}:{b}\n")
         f.write(f"nv {default_color}\n")
         f.write(f"default {default_color}\n")
 
@@ -310,7 +310,7 @@ def write_r_category_rules(entries, path, sep_char):
     with open(path, "w", encoding="utf-8") as f:
         for e in entries:
             lbl = clean_label(e.get("label", ""), sep_char)
-            f.write(f'{e["value"]}{sep_char}{lbl}\n')
+            f.write(f"{e['value']}{sep_char}{lbl}\n")
 
 
 def main(options, flags):
@@ -360,14 +360,14 @@ def main(options, flags):
             gs.message("### r.colors rules ###")
             for e in color_entries:
                 r, g, b = e["rgb"]
-                sys.stdout.write(f'{e["value"]} {r}:{g}:{b}\n')
+                sys.stdout.write(f"{e['value']} {r}:{g}:{b}\n")
             sys.stdout.write(f"nv {default_color_opt}\n")
             sys.stdout.write(f"default {default_color_opt}\n\n")
         if do_labels:
             gs.message("### r.category rules ###")
             for e in entries:
                 lbl = clean_label(e.get("label", ""), sep_char)
-                sys.stdout.write(f'{e["value"]}{sep_char}{lbl}\n')
+                sys.stdout.write(f"{e['value']}{sep_char}{lbl}\n")
         return 0
 
     colors_rules = "/home/paulo/Desktop/test.txt"
