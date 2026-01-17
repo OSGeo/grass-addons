@@ -11,9 +11,7 @@ labels that are defined under symbology. The addon extracts the raster colors
 and the raster labels and uses these to construct the color table and raster
 categories in GRASS.
 
-### Handling color definition
-
-**Singleband Pseudocolor**
+### Singleband Pseudocolor
 
 - Continuous (Interpolated): Generates a smooth color gradient.
 - Discrete: QGIS discrete classes are translated into GRASS "step" rules by
@@ -22,19 +20,19 @@ categories in GRASS.
 - Forced Discrete: Users can force a continuous QGIS ramp to be interpreted as
   discrete steps using the **-d** flag.
 
-**Paletted (Unique Values)**
+### Paletted (Unique Values)
 
 Treated as an exact mapping. Each unique value in the palette is assigned its
 specific color and label. Other colors are assigned the default color (white or
 user-defined).
 
-**Range and Clipping Behavior**
+### Range and Clipping Behavior
 
 The effective range is determined by the minimum and maximum values defined in
 the QGIS settings. If undefined, the lowest and highest values found in the
 color ramp items are used.
 
-By default, for raster values outsite the effective range, the color ramp is
+By default, for raster values outside the effective range, the color ramp is
 extended to infinity. I.e., values below the defined minimum inherit the start
 color, and values above the defined maximum inherit the end color. If clipping
 is enabled, values outside the effective range are assigned the default color
@@ -42,7 +40,7 @@ is enabled, values outside the effective range are assigned the default color
 
 ## NOTE
 
-Transparancy is silently ignored, as this is not supported by GRASS.
+Transparency is silently ignored, as this is not supported by GRASS.
 
 There are many different ways to style a raster in QGIS, and not all
 combinations have been checked. In case a QML file does not result in the
