@@ -1,0 +1,46 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.colors.qml</em> applies raster symbology defined in QGIS in a QML style
+file to the same raster in GRASS. The user provides the QML style file and the
+raster to which to apply the symbology (color and labels) from that file.
+
+<p>
+<center>
+<img src="r_colors_qml.png" width="600" border="0"><br>
+From QGIS through QML to GRASS color table and categories.
+</center>
+
+<p>
+QML is a format for storing layer styling in QGIS, including the colors and
+labels that are defined under symbology. The addon extracts the raster colors
+and the raster labels and uses these to construct the color table and raster
+categories in GRASS.
+
+<h2>NOTE</h2>
+
+Transparancy is silently ignored, as this is not supported by GRASS.
+
+<h2>EXAMPLES</h2>
+
+Apply both colors and labels defined in the landclass96.qml file to the raster
+layer <tt>landclass96</tt> in GRASS.
+
+<div class="code"><pre>
+r.colors.qml map=landclass96 qml=landclass96.qml
+</pre>
+</div><br>
+
+<h2>SEE ALSO</h2>
+
+<em> <a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/r.category.trim.html">r.category.trim</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>
