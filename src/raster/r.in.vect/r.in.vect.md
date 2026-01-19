@@ -13,7 +13,7 @@ user-defined vector file to an intermediate geoTIF file (using
 [gdal.rasterize](https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize))
 and imports it into GRASS GIS.
 
-The objects in the vector map will be assigned an user-defined value using the
+The objects in the vector map will be assigned a user-defined value using the
 **value** parameter. Alternatively, the user can use the **attribute_column** to
 specify the name of an existing column from the vector map's attribute table.
 The values in that column will be used as raster values in the output raster
@@ -25,7 +25,7 @@ assigns that count as the raster value, effectively creating a heatmap.
 Optionally, only features selected with the **where** or **sql** option can be
 imported.
 
-## Notes
+## NOTES
 
 By default, *r.in.vect* will only affect data in areas lying inside the
 boundaries of the current computational region. Before running the function,
@@ -50,14 +50,13 @@ one label, the first from the label column will be used (and a warning will be
 printed).
 
 With the **-d** flag, all pixels touched by lines or polygons will be updated,
-not just those on the line render path, or which center point is within the
+not just those on the line render path, or whose center point is within the
 polygon. For lines, this is similar to setting the **-d** flag in *v.to.rast*.
 
 For simple and small vector layers, it is probably faster to import the vector
 layer first and converting it to a raster in GRASS.
 
-
-## EXAMPLE
+## EXAMPLES
 
 The examples of *r.in.vect* use vector maps from the [North Carolina sample data
 set](https://grass.osgeo.org/download/data/).
@@ -104,7 +103,7 @@ as raster values and the column holding the labels for the raster values.
 r.in.vect input=geology.gpkg \
 output=geology_rast2 \
 attribute_column=GEOL250_ \
-label_column=GEO_NAME
+label_column=GEO_NAME \
 memory=2000
 
 # Assign random colors
@@ -126,7 +125,7 @@ raster map will match that of the current computational region).
 # Set the resolution to 1 m
 g.region -a res=1
 
-# Export the busrout6 vector layer
+# Export the busroute6 vector layer
 v.out.ogr input=busroute6@PERMANENT \
 type=line \
 output=busroute6.gpkg \
