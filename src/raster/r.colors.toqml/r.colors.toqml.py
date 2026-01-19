@@ -410,7 +410,7 @@ def main(options, flags):
 
     # Export GeoTIFF if requested
     if flags["r"]:
-        base, _ = os.path.splitext(out_qml)
+        base, _ext = os.path.splitext(out_qml)
         gs.run_command(
             "r.out.gdal",
             input=raster,
