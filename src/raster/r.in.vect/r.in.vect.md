@@ -1,16 +1,15 @@
 ## DESCRIPTION
 
-*r.in.vect* transforms an external vector file (like GeoPackage) into a
-raster file and imports it into GRASS GIS. Optionally, attributes from
-the vector layer can be converted to raster category labels.
+*r.in.vect* transforms an external vector file (like GeoPackage) into a raster
+file and imports it into GRASS GIS. Optionally, attributes from the vector layer
+can be converted to raster category labels.
 
-When users have a vector file that they want to convert to a raster map,
-they would normally import the vector map into GRASS GIS using, e.g.,
-*v.in.ogr*, and subsequently convert the resulting vector into a raster
-map using *v.to.rast*. Because of the topological vector format of GRASS
-GIS, importing large complex vector maps can be slow. To speed up the
-process, *r.in.vect* converts the user-defined vector file to an
-intermediate geoTIF file (using
+When users have a vector file that they want to convert to a raster map, they
+would normally import the vector map into GRASS GIS using, e.g., *v.in.ogr*, and
+subsequently convert the resulting vector into a raster map using *v.to.rast*.
+Because of the topological vector format of GRASS GIS, importing large complex
+vector maps can be slow. To speed up the process, *r.in.vect* converts the
+user-defined vector file to an intermediate geoTIF file (using
 [gdal.rasterize](https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize))
 and imports it into GRASS GIS.
 
@@ -60,8 +59,8 @@ layer first and converting it to a raster in GRASS.
 
 ## EXAMPLE
 
-The examples of *r.in.vect* use vector maps from the [North Carolina
-sample data set](https://grass.osgeo.org/download/data/).
+The examples of *r.in.vect* use vector maps from the [North Carolina sample data
+set](https://grass.osgeo.org/download/data/).
 
 ### Example 1
 
@@ -72,10 +71,9 @@ First, export a vector layer as a GeoPackage.
 v.out.ogr input=geology@PERMANENT output=geology.gpkg format=GPKG
 ```
 
-Import the geology.gpkg as raster. Raster cells overlapping with the
-vector features will be assigned a value of 1, and the other raster
-cells null. If you have RAM to spare, increase the memory to speed up
-the import.
+Import the geology.gpkg as raster. Raster cells overlapping with the vector
+features will be assigned a value of 1, and the other raster cells null. If you
+have RAM to spare, increase the memory to speed up the import.
 
 ```sh
 # Set the region
@@ -88,19 +86,18 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im01.png)](r_in_vect_im01.png)
-*Figure 1: The geology vector file was converted to, and imported as a
-raster into GRASS GIS, using the default settings.*
+[![image-alt](r_in_vect_im01.png)](r_in_vect_im01.png) *Figure 1: The geology
+vector file was converted to, and imported as a raster into GRASS GIS, using the
+default settings.*
 
-If the GeoPackage file (or any other data source) has multiple layers,
-users need to specify which layer to use with the **layer** parameter.
-Otherwise, the first layer will be selected.
+If the GeoPackage file (or any other data source) has multiple layers, users
+need to specify which layer to use with the **layer** parameter. Otherwise, the
+first layer will be selected.
 
 ### Example 2
 
-Import the geology.gpkg as raster. Specify the column holding the values
-to use as raster values and the column holding the labels for the raster
-values.
+Import the geology.gpkg as raster. Specify the column holding the values to use
+as raster values and the column holding the labels for the raster values.
 
 ```sh
 # Import the layer
@@ -114,18 +111,16 @@ memory=2000
 r.colors map=geology_rast2 color=random
 ```
 
-[![image-alt](r_in_vect_im02.png)](r_in_vect_im02.png)
-*Figure 2: The geology vector file converted to raster and imported into
-GRASS GIS using the values from the vector attribute column GEOL250\_ as
-raster values.*
+[![image-alt](r_in_vect_im02.png)](r_in_vect_im02.png) *Figure 2: The geology
+vector file converted to raster and imported into GRASS GIS using the values
+from the vector attribute column GEOL250\_ as raster values.*
 
 ### Example 3
 
-First, set the resolution to 1 meter. Next, export the busroute6 vector
-map as GeoPackage, and import it as a raster. Use the **-v** flag to
-ensure the extent of the raster matches that of the vector (by default,
-the bounding box of the raster map will match that of the current
-computational region).
+First, set the resolution to 1 meter. Next, export the busroute6 vector map as
+GeoPackage, and import it as a raster. Use the **-v** flag to ensure the extent
+of the raster matches that of the vector (by default, the bounding box of the
+raster map will match that of the current computational region).
 
 ```sh
 # Set the resolution to 1 m
@@ -144,9 +139,9 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im03.png)](r_in_vect_im03.png)
-*Figure 3: The busroute6 vector file converted to raster and imported
-into GRASS GIS using the extent of the vector map.*
+[![image-alt](r_in_vect_im03.png)](r_in_vect_im03.png) *Figure 3: The busroute6
+vector file converted to raster and imported into GRASS GIS using the extent of
+the vector map.*
 
 ### Example 4
 
@@ -161,10 +156,10 @@ value=1 \
 memory=2000
 ```
 
-[![image-alt](r_in_vect_im04.png)](r_in_vect_im04.png)
-*Figure 4: Rasterize the busroute 6 vector map using the **-d** flag to
-create densified lines by adding extra cells (shown in red). This avoids
-gaps or lines that consist of cells that are only diagonally connected.*
+[![image-alt](r_in_vect_im04.png)](r_in_vect_im04.png) *Figure 4: Rasterize the
+busroute 6 vector map using the **-d** flag to create densified lines by adding
+extra cells (shown in red). This avoids gaps or lines that consist of cells that
+are only diagonally connected.*
 
 ## SEE ALSO
 
@@ -172,10 +167,9 @@ gaps or lines that consist of cells that are only diagonally connected.*
 
 ## AUTHORS
 
-Paulo van Breugel | [HAS green academy](https://has.nl), University of
-Applied Sciences | [Climate-robust Landscapes research
+Paulo van Breugel | [HAS green academy](https://has.nl), University of Applied
+Sciences | [Climate-robust Landscapes research
 group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
 | [Innovative Bio-Monitoring research
 group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/)
 | Contact: [Ecodiv.earth](https://ecodiv.earth)
-
