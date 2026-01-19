@@ -24,8 +24,12 @@ the vector map's attribute table. The values in that column will be
 used as raster values in the output raster map.
 
 <p>
-Optionally, only features selected with the <b>where</b> option can be
-imported.
+Setting the <b>-c</b> flag counts the number of overlapping features per pixel
+and assigns that count as the raster value, effectively creating a heatmap.
+
+<p>
+Optionally, only features selected with the <b>where</b> or <b>sql</b> option
+can be imported.
 
 <h2>Notes</h2>
 
@@ -33,11 +37,15 @@ By default, <em>r.in.vect</em> will only affect data in areas lying
 inside the boundaries of the current computational region. Before
 running the function, users should therefore ensure that the
 computational region is correctly set, and that the region's resolution
-is at the desired level. Alternatively, users can use the <b>-v</b>
-flag to set the exent of the raster layer to that of the vector layer.
-To ensure that the resulting raster map cleanly aligns with the
-computational region, the extent may be slightly larger than that of
-the vector layer.
+is at the desired level.
+
+<p>
+Alternatively, use the <b>-v</b> flag to import the entire vector extent,
+ignoring the current region boundaries. By default, this produces a full-map
+raster without modifying the current computational region. To update the region
+to match the imported raster, include the <b>-r</b> flag. This extends the
+region bounds to encompass the new layer while ensuring the grid remains aligned
+with the existing resolution.
 
 <p>
 If the coordinate reference system (CRS) of the vector file differs
@@ -117,13 +125,14 @@ the raster values.
 r.in.vect input=geology.gpkg \
 output=geology_rast2 \
 attribute_column=GEOL250_ \
-rat_column=GEO_NAME
+label_column=GEO_NAME
 memory=2000
 
 # Assign random colors
 r.colors map=geology_rast2 color=random
 </pre></div>
 
+<p>
 <div align="left" style="margin: 10px"> <a href="r_in_vect_im02.png">
 <img src="r_in_vect_im02.png" alt="The geology vector file converted
 to, and imported as raster in GRASS GIS. Example 2" border="0">
@@ -157,6 +166,7 @@ value=1 \
 memory=2000
 </pre></div>
 
+<p>
 <div align="left" style="margin: 10px"> <a href="r_in_vect_im03.png">
 <img src="r_in_vect_im03.png" alt="The busroute6 vector file converted
 to raster and imported into GRASS GIS. Example 3" border="0">
@@ -178,6 +188,7 @@ value=1 \
 memory=2000
 </pre></div>
 
+<p>
 <div align="left" style="margin: 10px"> <a href="r_in_vect_im04.png">
 <img src="r_in_vect_im04.png" alt="The busroute6 vector file converted
 to raster and imported into GRASS GIS. Example 4" border="0">
@@ -194,6 +205,9 @@ diagonally connected.</i> </div>
 
 <h2>AUTHORS</h2>
 
-Paulo van Breugel (<a href="https://ecodiv.earth">ecodiv.earth</a>)<br>
-Applied Geo-information Sciences<br> <a href="https://www.has.nl/">HAS
-green academy, University of Applied Sciences</a><br>
+Paulo van Breugel  |  <a href="https://has.nl">HAS green academy</a>,
+University of Applied Sciences  |  <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>  |
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative Bio-Monitoring research group</a>  |
+Contact: <a href="https://ecodiv.earth">Ecodiv.earth</a>

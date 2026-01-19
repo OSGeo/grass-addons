@@ -14,43 +14,49 @@ intermediate geoTIF file (using
 [gdal.rasterize](https://gdal.org/api/python/utilities.html#osgeo.gdal.Rasterize))
 and imports it into GRASS GIS.
 
-The objects in the vector map will be assigned an user-defined value
-using the **value** parameter. Alternatively, the user can use the
-**attribute\_column** to specify the name of an existing column from the
-vector map's attribute table. The values in that column will be used as
-raster values in the output raster map.
+The objects in the vector map will be assigned an user-defined value using the
+**value** parameter. Alternatively, the user can use the **attribute_column** to
+specify the name of an existing column from the vector map's attribute table.
+The values in that column will be used as raster values in the output raster
+map.
 
-Optionally, the only features selected with the **where** option can be
+Setting the **-c** flag counts the number of overlapping features per pixel and
+assigns that count as the raster value, effectively creating a heatmap.
+
+Optionally, only features selected with the **where** or **sql** option can be
 imported.
 
 ## Notes
 
 By default, *r.in.vect* will only affect data in areas lying inside the
-boundaries of the current computational region. Before running the
-function, users should therefore ensure that the computational region is
-correctly set, and that the region's resolution is at the desired level.
-Alternatively, users can use the **-v** flag to set the exent of the
-raster layer to that of the vector layer. To ensure that the resulting
-raster map cleanly aligns with the computational region, the extent may
-be slightly larger than that of the vector layer.
+boundaries of the current computational region. Before running the function,
+users should therefore ensure that the computational region is correctly set,
+and that the region's resolution is at the desired level.
 
-If the coordinate reference system (CRS) of the vector file differs from
-that of the mapset in which users want to import the raster, the vector
-file will be first reprojected using *ogr2ogr*.
+Alternatively, use the **-v** flag to import the entire vector extent, ignoring
+the current region boundaries. By default, this produces a full-map raster
+without modifying the current computational region. To update the region to
+match the imported raster, include the **-r** flag. This extends the region
+bounds to encompass the new layer while ensuring the grid remains aligned with
+the existing resolution.
 
-The **label\_column** parameter can be used to assign raster category
-labels. Users should check if each unique value from the category column
-has one corresponding label in the label column. If there are categories
-with more than one label, the first from the label column will be used
-(and a warning will be printed).
+If the coordinate reference system (CRS) of the vector file differs from that of
+the mapset in which users want to import the raster, the vector file will be
+first reprojected using *ogr2ogr*.
 
-With the **-d** flag, all pixels touched by lines or polygons will be
-updated, not just those on the line render path, or which center point
-is within the polygon. For lines, this is similar to setting the **-d**
-flag in *v.to.rast*.
+The **label_column** parameter can be used to assign raster category labels.
+Users should check if each unique value from the category column has one
+corresponding label in the label column. If there are categories with more than
+one label, the first from the label column will be used (and a warning will be
+printed).
 
-For simple and small vector layers, it is probably faster to
-import the vector layer first and converting it to a raster in GRASS.
+With the **-d** flag, all pixels touched by lines or polygons will be updated,
+not just those on the line render path, or which center point is within the
+polygon. For lines, this is similar to setting the **-d** flag in *v.to.rast*.
+
+For simple and small vector layers, it is probably faster to import the vector
+layer first and converting it to a raster in GRASS.
+
 
 ## EXAMPLE
 
@@ -101,7 +107,7 @@ values.
 r.in.vect input=geology.gpkg \
 output=geology_rast2 \
 attribute_column=GEOL250_ \
-rat_column=GEO_NAME
+label_column=GEO_NAME
 memory=2000
 
 # Assign random colors
@@ -166,7 +172,10 @@ gaps or lines that consist of cells that are only diagonally connected.*
 
 ## AUTHORS
 
-Paulo van Breugel ([ecodiv.earth](https://ecodiv.earth))
-Applied Geo-information Sciences
-[HAS green academy, University of Applied
-Sciences](https://www.has.nl/)
+Paulo van Breugel | [HAS green academy](https://has.nl), University of
+Applied Sciences | [Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
+| [Innovative Bio-Monitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/)
+| Contact: [Ecodiv.earth](https://ecodiv.earth)
+
