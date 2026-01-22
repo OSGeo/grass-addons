@@ -1,9 +1,9 @@
 ## DESCRIPTION
 
-*r.colors.toqml* exports raster symbology defined in GRASS GIS to a QGIS
-QML style file. The addon reads the GRASS raster color table and, where
-applicable, raster category labels, and writes a QML file that can be used to
-style the raster in QGIS.
+*r.colors.toqml* exports raster symbology defined in GRASS GIS to a QGIS QML
+style file. The addon reads the GRASS raster color table and, where applicable,
+raster category labels, and writes a QML file that can be used to style the
+raster in QGIS.
 
 Optionally, the raster itself can be exported simultaneously to GeoTIFF, using
 the same basename as the QML file. As long as the two files are kept in the same
@@ -11,12 +11,10 @@ folder, opening the GeoTIFF in QGIS will automatically apply the style.
 
 ![From GRASS through QML to QGIS raster symbology](r_colors_toqml.png)
 
-The addon supports both:
-
-- **Categorical rasters** (CELL with/without categories), exported as *paletted*
-  QGIS renderers.
-- **Continuous rasters** (FCELL/DCELL), exported as *singleband pseudocolor*
-  renderers with interpolated or discrete color ramps.
+The addon supports both **Categorical rasters** (CELL with/without categories),
+exported as *paletted* QGIS renderers and **Continuous rasters** (FCELL/DCELL),
+exported as *singleband pseudocolor* renderers with interpolated or discrete
+color ramps.
 
 For categorical rasters, only categories actually present in the current
 computational region and MASK are included in the QML file.
@@ -63,7 +61,8 @@ r.colors.toqml -r map=cfactor output=cfactor.qml discrete=yes
 
 ## SEE ALSO
 
-*[r.colors.out](https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html)*
+*[r.colors.out](https://grass.osgeo.org/grass-stable/manuals/r.colors.out.html)*,
+*[r.colors.qml](https://grass.osgeo.org/grass-stable/manuals/addons/r.colors.qml.html)*
 
 ## AUTHOR
 
