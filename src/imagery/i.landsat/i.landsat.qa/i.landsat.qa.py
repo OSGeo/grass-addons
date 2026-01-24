@@ -37,7 +37,7 @@ COPYRIGHT:  (C) 2016-2021 by the GRASS Development Team
 # % description: Landsat dataset to search for
 # % required: no
 # % options: landsat_tm_c1, landsat_etm_c1, landsat_8_c1, landsat_tm_c2_l1, landsat_tm_c2_l2, landsat_etm_c2_l1, landsat_etm_c2_l2, landsat_ot_c2_l1, landsat_ot_c2_l2
-# % answer: landsat_8_c1
+# % answer: landsat_ot_c2_l2
 # % guisection: Filter
 # %end
 
