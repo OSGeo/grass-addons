@@ -103,6 +103,21 @@
 # % required: no
 # % description: Name of input raster map containing latitudes [decimal degrees]
 # %end
+
+# %option
+# % key: horizon_basename
+# % type: string
+# % required: no
+# % description: The horizon information input map basename
+# %end
+
+# %option
+# % key: horizon_step
+# % type: double
+# % required: no
+# % description: Angle step size for multidirectional horizon [degrees]
+# %end
+
 # %option G_OPT_R_INPUT
 # % key: long
 # % required: no
@@ -254,6 +269,10 @@
 # % key: m
 # % description: Use the low-memory version of the program
 # %end
+# %rules
+# % requires_all: -m,horizon_basename,horizon_step
+# %end
+
 
 import os
 import datetime
@@ -314,6 +333,8 @@ def run_r_sun(
     time_step,
     distance_step,
     solar_constant,
+    horizon_basename,
+    horizon_step,
     flags,
 ):
     params = {}
@@ -351,6 +372,10 @@ def run_r_sun(
         params.update({"distance_step": distance_step})
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
+    if horizon_basename is not None:
+        params.update({"horizon_basename": horizon_basename})    
+    if horizon_step is not None:
+        params.update({"horizon_step": horizon_step}) 
 
     gs.run_command(
         "r.sun",
@@ -537,6 +562,13 @@ def main():
     coeff_dh_strds = options["coeff_dh_strds"]
     lat = options["lat"]
     long_ = options["long"]
+    horizon_basename = options["horizon_basename"]
+    if options["horizon_step"]:
+            horizon_step = float(options["horizon_step"])
+            if horizon_step.is_integer():
+                horizon_step = int(horizon_step)
+    else:
+        horizon_step = None
 
     beam_rad_basename = beam_rad_basename_user = options["beam_rad_basename"]
     diff_rad_basename = diff_rad_basename_user = options["diff_rad_basename"]
@@ -736,6 +768,8 @@ def main():
                     None if mode1 else time_step,
                     distance_step,
                     solar_constant,
+                    horizon_basename,
+                    horizon_step,
                     rsun_flags,
                 ),
             )
