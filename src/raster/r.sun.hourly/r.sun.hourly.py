@@ -103,21 +103,18 @@
 # % required: no
 # % description: Name of input raster map containing latitudes [decimal degrees]
 # %end
-
 # %option
 # % key: horizon_basename
 # % type: string
 # % required: no
 # % description: The horizon information input map basename
 # %end
-
 # %option
 # % key: horizon_step
 # % type: double
 # % required: no
 # % description: Angle step size for multidirectional horizon [degrees]
 # %end
-
 # %option G_OPT_R_INPUT
 # % key: long
 # % required: no
@@ -373,9 +370,9 @@ def run_r_sun(
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
     if horizon_basename is not None:
-        params.update({"horizon_basename": horizon_basename})    
+        params.update({"horizon_basename": horizon_basename})
     if horizon_step is not None:
-        params.update({"horizon_step": horizon_step}) 
+        params.update({"horizon_step": horizon_step})
 
     gs.run_command(
         "r.sun",
@@ -564,9 +561,9 @@ def main():
     long_ = options["long"]
     horizon_basename = options["horizon_basename"]
     if options["horizon_step"]:
-            horizon_step = float(options["horizon_step"])
-            if horizon_step.is_integer():
-                horizon_step = int(horizon_step)
+        horizon_step = float(options["horizon_step"])
+        if horizon_step.is_integer():
+            horizon_step = int(horizon_step)
     else:
         horizon_step = None
 
