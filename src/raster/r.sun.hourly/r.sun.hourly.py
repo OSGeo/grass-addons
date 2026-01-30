@@ -274,7 +274,9 @@
 # %rules
 # % requires_all: -m,horizon_basename,horizon_step
 # %end
-
+# %rules
+# % requires_all: npartitions,horizon_basename,horizon_step
+# %end
 
 import os
 import datetime
