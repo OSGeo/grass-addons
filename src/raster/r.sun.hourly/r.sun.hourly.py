@@ -103,9 +103,8 @@
 # % required: no
 # % description: Name of input raster map containing latitudes [decimal degrees]
 # %end
-# %option
+# %option G_OPT_R_BASENAME_INPUT
 # % key: horizon_basename
-# % type: string
 # % required: no
 # % description: The horizon information input map basename
 # %end
