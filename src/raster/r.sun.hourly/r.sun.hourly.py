@@ -238,6 +238,12 @@
 # % description: If not specified, r.sun default will be used.
 # %end
 # %option
+# % key: npartitions
+# % type: integer
+# % description: Read the input files in this number of chunks
+# % answer: 1
+# %end
+# %option
 # % key: nprocs
 # % type: integer
 # % description: Number of r.sun processes to run in parallel
@@ -331,6 +337,7 @@ def run_r_sun(
     solar_constant,
     horizon_basename,
     horizon_step,
+    npartitions,
     flags,
 ):
     params = {}
@@ -372,6 +379,8 @@ def run_r_sun(
         params.update({"horizon_basename": horizon_basename})
     if horizon_step is not None:
         params.update({"horizon_step": horizon_step})
+    if npartitions is not None:
+        params.update({"npartitions": npartitions})
 
     gs.run_command(
         "r.sun",
@@ -617,6 +626,7 @@ def main():
         rsun_flags += "m"
     if flags["p"]:
         rsun_flags += "p"
+    partitions = int(options["npartitions"])
 
     # check: start < end
     if start_time > end_time:
@@ -766,6 +776,7 @@ def main():
                     solar_constant,
                     horizon_basename,
                     horizon_step,
+                    partitions,
                     rsun_flags,
                 ),
             )
