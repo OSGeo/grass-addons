@@ -242,6 +242,7 @@
 # % type: integer
 # % description: Read the input files in this number of chunks
 # % answer: 1
+# % required: no
 # %end
 # %option
 # % key: nprocs
@@ -628,8 +629,10 @@ def main():
         rsun_flags += "m"
     if flags["p"]:
         rsun_flags += "p"
-    partitions = int(options["npartitions"])
-
+    if options["npartitions"]:
+        partitions = int(options["npartitions"])
+    else:
+        partitions = 1
     # check: start < end
     if start_time > end_time:
         gs.fatal(_("Start time is after end time."))
