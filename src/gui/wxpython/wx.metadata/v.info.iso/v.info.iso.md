@@ -3,7 +3,7 @@
 *v.info.iso* creates metadata of vector maps according to [ISO
 19115](https://www.iso.org/standard/26020.html).
 
-The module also allows conversion of metadata from native GRASS GIS
+The module also allows conversion of metadata from native GRASS
 format to ISO-based format.
 
 ## NOTES

@@ -1,0 +1,140 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>i.hyper.import</em> imports hyperspectral imagery into a 3D raster map (<code>raster_3d</code>).</p>
+
+<p>The module reads supported hyperspectral products and converts their spectral bands into a single 3D raster map.
+The vertical (<em>z</em>) dimension of the 3D raster represents the spectral dimension, where each cell (<em>voxel</em>)
+contains the reflectance value for a specific spatial position (<em>x, y</em>) and spectral band index.</p>
+
+<p><em>i.hyper.import</em> is part of the <b>i.hyper</b> module family designed for hyperspectral data import,
+processing, and analysis in GRASS. It is typically used in combination with
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="i.hyper.composite.html">i.hyper.composite</a>, and
+<a href="i.hyper.export.html">i.hyper.export</a>.</p>
+
+<p>The module currently supports the following hyperspectral products:</p>
+
+<ul>
+  <li><b>PRISMA</b> – PRecursore IperSpettrale della Missione Applicativa (ASI)</li>
+  <li><b>EnMAP</b> – Environmental Mapping and Analysis Program (DLR / GFZ)</li>
+  <li><b>Tanager</b> – Planet Labs hyperspectral mission</li>
+</ul>
+
+<p>During import, the appropriate product library from <code>i_hyper_lib</code> is automatically loaded
+(for example, <code>enmap</code>, <code>prisma</code>, or <code>tanager</code>).
+Metadata are parsed, bands are validated, and the resulting 3D raster map is created with per-band metadata:
+<b>wavelength</b>, <b>FWHM</b>, <b>valid</b>, and <b>unit</b>.</p>
+<p>The metadata are used by other <em>i.hyper.*</em> modules, so data imported with <em>i.hyper.import</em> or created with the same metadata structure are fully compatible across the toolset.</p>
+
+<p>The resulting <code>raster_3d</code> map can be analysed with standard GRASS 3D raster tools
+(<code>r3.mapcalc</code>, <code>r3.stats</code>, <code>r3.univar</code>)
+or processed further with the <em>i.hyper</em> suite of modules.</p>
+
+<h2>NOTES</h2>
+
+<p>Imported 3D raster maps store hyperspectral reflectance or radiance values (depending on the product).
+Bands containing only zeros, NULLs, or invalid values are flagged with <code>valid: 0</code>;
+others are flagged as <code>valid: 1</code>.</p>
+
+<p>When the <em>composites</em> option is used, predefined or custom band combinations
+are exported as 2D raster composites (e.g., RGB, CIR, SWIR).
+All temporary rasters are automatically removed after import.</p>
+
+During import, <em>i.hyper.import</em> temporarily adjusts the computational region to match the input data, ensuring consistent alignment between imported bands.
+This region setting is temporary and restored at the end of processing.
+The module does not perform any on-the-fly spatial or spectral resampling.
+The imported cube retains the native resolution and extent of the input product, but the region settings are not changed during import.
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+# EnMAP example
+# Create a new GRASS project with EPSG:32633 (UTM Zone 33N)
+grass -c EPSG:32633 -e ~/grassdata/hyper_33N
+
+# Initialize and enter the new project (PERMANENT Mapset)
+grass ~/grassdata/hyper_33N/PERMANENT
+</pre></div>
+
+<div class="code"><pre>
+# PRISMA L2D example
+i.hyper.import input=/data/PRISMA.he5 \
+               product=prisma \
+               output=prisma \
+               composites='rgb,cir,swir_agriculture,swir_geology'
+
+# Console output:
+Importing product: PRISMA
+Loading floating point  data with 4  bytes ...  (1254x1222x234)
+Created 3D raster map with all bands: prisma (234 bands).
+Generated composite raster: prisma_rgb
+Generated composite raster: prisma_cir
+Generated composite raster: prisma_swir_agriculture
+Generated composite raster: prisma_swir_geology
+(Fri Nov  5 13:12:00 2025) Command finished (1 min 23 sec)
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<div align="center" style="margin: 10px">
+  <img src="import_example.jpg" width="600" height="600"
+       alt="PRISMA SWIR-geology composite example" border="0"><br>
+  <i>Figure: PRISMA SWIR-geology composite generated with i.hyper.import</i><br>
+  <small><i>Data source: PRISMA Product © Italian Space Agency (ASI), used under ASI License to Use.</i></small>
+</div>
+
+<div class="code"><pre>
+# Import an EnMAP L2A product and create RGB and CIR composites
+i.hyper.import input=/data/EnMAP_data_folder/ \
+               product=enmap \
+               output=enmap \
+               composites='cir,swir_agriculture'
+               composites_custom='650,1650,2200'
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<div align="center" style="margin: 10px">
+  <img src="import_example2.jpg" width="600" height="600"
+       alt="EnMAP SWIR-agriculture composite example" border="0"><br>
+  <i>Figure: EnMAP SWIR-agriculture composite generated with i.hyper.import</i><br>
+  <small><i>Data source: Copyright © 2012-2025 EnMAP at Earth Observation Center EOC of DLR.</i></small>
+</div>
+
+<div class="code"><pre>
+# Tanager example with a custom-defined composite
+# This one has radiance values
+i.hyper.import input=/data/Tanager.h5 \
+               product=tanager \
+               output=tanager \
+               composites='rgb' \
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<div align="center" style="margin: 10px">
+  <img src="import_example3.jpg" width="600" height="600"
+       alt="Tanager-1 RGB composite example" border="0"><br>
+  <i>Figure: Tanager-1 RGB composite generated with i.hyper.import</i><br>
+  <small><i>Data source: Planet Labs - Open Data, CC-BY-4.0.</i></small>
+</div>
+
+<h2>SEE ALSO</h2>
+<a href="https://www.enmap.org/data_tools/exampledata/">EnMAP Example Data Products</a>,
+<a href="https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.json">Tanager Core Imagery</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="i.hyper.composite.html">i.hyper.composite</a>,
+<a href="i.hyper.export.html">i.hyper.export</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.support.html">r3.support</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.stats.html">r3.stats</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.univar.html">r3.stats</a>
+
+<h2>DEPENDENCIES</h2>
+
+<ul>
+  <li><b>NumPy</b> – Core numerical operations and array manipulation.</li>
+  <li><b>h5py</b> – Interface for reading and writing <code>.h5</code> (HDF5) hyperspectral data products such as PRISMA and Tanager.</li>
+  <li><b>pyproj</b> – Coordinate reference system and geospatial transformation library.</li>
+</ul>
+
+<h2>AUTHORS</h2>
+
+ Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia

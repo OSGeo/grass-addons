@@ -188,6 +188,6 @@ for details about contributions.
 
 Permission to use, copy, modify, and distribute this software and its documentation
 under the terms of the GNU General Public License version 2 or higher is hereby
-granted. No representations are made about the suitability of this software for any
-purpose. It is provided "as is" without express or implied warranty.
+granted. No representations are made about the suitability of this software for
+any purpose. It is provided "as is" without express or implied warranty.
 See the GNU General Public License for more details.

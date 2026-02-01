@@ -7,10 +7,10 @@
 - **ymap**  
     Name of input y membership operand. This map must be of type FCELL
     with range 0 :1 and may require null values. Otherwise program will
-    print error message and stops. This map is optional bit is required
-    for all operation except NOT
+    print error message and stops. This map is required
+    for all operations except **NOT**.
 - **operator**  
-    A fuzzy set operators are generalization of crisp operators. There
+    Fuzzy set operators are a generalization of crisp set operators. There
     is more than one possible generalization of every operator. There
     are three operations: fuzzy complements, fuzzy intersections, and
     fuzzy unions. Additional implication operator is also provided.
@@ -24,9 +24,9 @@
 - **family**  
     T-norms, T-conorms and residuals are a generalization of the
     two-valued logical conjunction, disjunction and implication used by
-    boolean logic, for fuzzy logics. Because there is more than one
+    boolean logic, for fuzzy logic. Because there is more than one
     possible generalisation of logical operations, *r.fuzzy.logic*
-    provides 6 most popular families for fuzzy operations:
+    provides 6 of the most popular families for fuzzy operations:
   - **Zadeh** with minimum (Godel) t-norm and maximum T-conorm;
   - **product** with product T-norm and probabilistic sum as
         T-conorm;
@@ -45,14 +45,14 @@
 ## OUTPUTS
 
 - **output**  
-    Map containing result of two-values operations. Map is always of
+    Map containing the result of two-values operations. Map is always of
     type FCELL and contains values from 0 (no membership) to 1 (full
     membership). Values between 0 and 1 indicate partial membership
 
 ## SEE ALSO
 
-*[r.fuzzy.set](r.fuzzy.set.md) addon,
-[r.fuzzy.system](r.fuzzy.system.md) addon,
+*[r.fuzzy.set](r.fuzzy.set.md),
+[r.fuzzy.system](r.fuzzy.system.md),
 [r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
 
 ## REFERENCES
