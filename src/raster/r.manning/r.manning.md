@@ -73,13 +73,17 @@ in shallow overland flow applications.
 
 ### Basic usage with NLCD land cover
 
-Convert NLCD land cover to Manning's n using Kalyanapu values for
+Import NLCD into North Carolina sample dataset and
+convert it to Manning's n using Kalyanapu values for
 shallow overland flow:
 
 ```sh
 r.manning input=nlcd_landcover output=mannings_n \
           landcover=nlcd source=kalyanapu
 ```
+
+![Map of Manning's n values](r_manning.png)  
+*Figure: Manning's n values for 2024 NLCD using Kalyanapu et al.*
 
 ### Deep flow modeling
 
