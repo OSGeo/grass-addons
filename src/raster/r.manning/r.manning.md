@@ -12,7 +12,10 @@ supports two standard land cover classification systems specified by
 **landcover**: NLCD (National Land Cover Database) used in the United States,
 and ESA WorldCover used globally.
 
-The **source** parameter selects the source of Manning's n coefficients:
+Manning's coefficients for ESA WorldCover are based on values
+used by [QGIS Manning's Roughness Generator plugin by Azzam](https://github.com/mabdazzam/mannings_roughness_generator).
+For NLCD, the **source** parameter selects the source
+of Manning's n coefficients.
 
 - **kalyanapu**: Values from Kalyanapu et al. (2009), suitable for
   shallow overland flow modeling (flow depths in mm to cm range).
@@ -156,7 +159,7 @@ r.sim.water elevation=dem dx=dx dy=dy \
 
 - Chow, V. T. (1959). *Open-Channel Hydraulics*. McGraw-Hill.
 
-- Abdazzam, M. QGIS Manning's Roughness Generator plugin.
+- Azzam, A. QGIS Manning's Roughness Generator plugin.
   [https://github.com/mabdazzam/mannings_roughness_generator](https://github.com/mabdazzam/mannings_roughness_generator)
 
 ## SEE ALSO
