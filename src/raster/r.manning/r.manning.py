@@ -80,7 +80,7 @@ import grass.script as gs
 
 # Values from Kalyanapu et al. (2009) Table 2
 # Min/max ranges estimated using ×0.75/×1.33 multipliers (except 82).
-# 11 from HECRAS, 82 is conventianal tillage from McCuen (2005), missing the Kalyanapu
+# 11 from HECRAS, 82 is conventional tillage from McCuen (2005), missing in Kalyanapu
 NLCD_KALYANAPU = {
     11: [0.025, 0.040, 0.050],  # Open Water
     21: [0.030, 0.040, 0.054],  # Developed, Open Space
