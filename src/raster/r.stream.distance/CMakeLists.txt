@@ -16,6 +16,6 @@ set(doc_files
 
 build_addon(
   ${PROJECT_NAME}
-  GRASSLIBS gis raster
+  GRASSLIBS gis raster segment
   SOURCES ${sources}
   DOCFILES ${doc_files})
