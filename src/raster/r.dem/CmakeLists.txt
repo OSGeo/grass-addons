@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(r.dem)
+
+include(build_addon)
+
+build_addon(
+  ${PROJECT_NAME}
+  ADDONS
+    r.dem.icp
+    r.dem.nk
+  DOCFILES
+    r.dem.html
+    r.dem.md)

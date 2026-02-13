@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(r.dem.nk)
+
+include(build_addon)
+
+# find_OpenMP()
+find_M()
+
+set(sources
+    main.c)
+
+set(doc_files
+    r.dem.nk.html
+    r.dem.nk.md)
+
+build_addon(
+  ${PROJECT_NAME}
+  GRASSLIBS gis raster
+  SOURCES ${sources}
+  DOCFILES ${doc_files}
+  DEPENDS
+    LIBM)

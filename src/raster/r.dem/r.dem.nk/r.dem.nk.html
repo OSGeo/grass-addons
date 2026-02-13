@@ -1,0 +1,55 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.dem.nk</b></em> - Implements the Nuth and Kääb (2011) algorithm for co-registering
+two Digital Elevation Models (DEMs). The algorithm estimates and corrects for
+vertical and horizontal offsets between the DEMs by minimizing elevation.
+
+
+<h3>Model</h3>
+
+For stable terrain pixels:
+dh = SfM - LiDAR ≈ Δx *tan(slope)* cos(aspect)
++ Δy *tan(slope)* sin(aspect)
++ Δz
+Where Δx (east), Δy (north), Δz (vertical) are solved by
+ordinary least squares using raster-wide sums computed
+with `r.mapcalc` + `r.univar`.
+
+<h3>HORIZONTAL APPLICATION (native)</h3>
+
+Apply Δz directly via raster algebra, and apply (Δx,Δy) as a sub-cell
+translation by temporarily shifting the computational region
+by (-Δx, -Δy) and resampling with `r.resamp.interp`, then
+resampling back to the LiDAR grid.
+
+<h3>ROBUSTNESS</h3>
+
+Optional iterative sigma-clipping on residuals to reduce outlier influence.
+
+<h2>EXAMPLES</h2>
+
+<div class="code">
+    <pre>
+r.dem.nk sfm=sfm_dsm lidar=lidar_dsm stable_mask=stable
+output=sfm_coreg interp=bilinear iters=2 sigma=2.5
+</pre>
+</div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+    <li>
+    Nuth, C., and A. Kääb. 2011. “Co-Registration and Bias Corrections of
+    Satellite Elevation Data Sets for Quantifying Glacier Thickness Change.
+    ”The Cryosphere 5 (1): 271–90. <a herf="https://doi.org/10.5194/tc-5-271-2011" target="_blank"><https://doi.org/10.5194/tc-5-271-2011></a>.
+    </li>
+</ul>
+
+<h2>AUTHORS</h2>
+Corey White, <a
+    href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
+
+<h2>SEE ALSO</h2>
+<em>
+
+</em>
