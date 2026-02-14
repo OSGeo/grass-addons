@@ -445,6 +445,7 @@ import subprocess
 import sys
 import uuid
 import grass.script as gs
+from pathlib import Path
 
 
 CLEAN_LAY = []
@@ -1247,13 +1248,21 @@ def main(options, flags):
         gs.info(_("-----------------------\n"))
         gs.info(_("Importing the raster projection layers"))
 
-        predlays = options["predictionlayer"]
-        asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
-        grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
-        pattern = re.compile(r"_([^_]+\.asc)$")
-        result = re.sub(pattern, "", asciilayers[0])
-        if bool(predlays):
-            grasslayers = [x.replace(result, predlays) for x in grasslayers]
+        asciilayers = [a for a in all_files if a.endswith(".asc")]
+        predictionraster = options["predictionlayer"]
+
+        grasslayers = []
+        for asc in asciilayers:
+            stem = Path(asc).stem.removesuffix("_clamping")
+            stat = stem.split("_")[-1]
+
+            if predictionraster:
+                outname = f"{predictionraster}_{stat}{options['suffix']}"
+            else:
+                outname = f"{stem}{options['suffix']}"
+
+            grasslayers.append(outname)
+
         for idx, asci in enumerate(asciilayers):
             gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)
