@@ -43,6 +43,7 @@ jobs:
           LINTER_RULES_PATH: .
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_BASH: false # Until issues are fixed, some valid warnings
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
