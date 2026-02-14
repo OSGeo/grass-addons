@@ -44,6 +44,7 @@ jobs:
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
           VALIDATE_BASH: false # Until issues are fixed, some valid warnings
+          VALIDATE_BIOME_LINT: false # Checked by biome in pre-commit, and with different versions
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
