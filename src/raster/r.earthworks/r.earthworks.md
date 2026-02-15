@@ -279,13 +279,13 @@ ulimit -S -n 32768
 
 ## REFERENCES
 
-* Harmon, B., Petrasova, A., and Petras, V. (2025).
-    [r.earthworks: a GRASS tool for terrain modeling][1] \[Preprint\].
-* Harmon, B. (2025). [r.earthworks][2] (Version 2.0.0) \[Computer software\].
-
-[1]: https://github.com/baharmon/r.earthworks/blob/main/paper/paper.pdf
-
-[2]: https://doi.org/10.5281/zenodo.15507391
+* Harmon, B., Petrasova, A., & Petras, V. (2026).
+    r.earthworks: a GRASS tool for terrain modeling.
+    Journal of Open Source Software, 11(118), 9270.
+    <https://doi.org/10.21105/joss.09270>
+* Harmon, B., Petrasova, A., & Petras, V. (2026).
+    r.earthworks: a GRASS tool for terrain modeling (3.0.0). Zenodo.
+    <https://doi.org/10.5281/zenodo.18407200>
 
 ## AUTHORS
 
