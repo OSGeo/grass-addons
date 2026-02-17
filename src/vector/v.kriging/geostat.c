@@ -240,10 +240,9 @@ void E_variogram(int type, struct int_par *xD, struct points *pnts,
                                 dir; // difference between bearing and azimuth
                             ddir2 = tv + (PI - dir); // reverse
 
-                            if (fabsf(ddir1) <= td ||
-                                fabsf(ddir2) <=
-                                    td) { // angle test: compare the diff with
-                                          // critical value
+                            if (fabs(ddir1) <= td ||
+                                fabs(ddir2) <= td) { // angle test: compare the
+                                                     // diff with critical value
                                 // test squared distance: vertical variogram =>
                                 // 0., ...
                                 rv = type == 1 ? 0.
