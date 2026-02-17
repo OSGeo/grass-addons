@@ -4,6 +4,8 @@ project(r.skyline)
 
 include(build_addon)
 
+find_M()
+
 set(sources
     azimuth.c
     file.c
@@ -21,5 +23,6 @@ set(doc_files
 
 build_addon(${PROJECT_NAME}
   GRASSLIBS gis raster
+  DEPENDS LIBM
   SOURCES ${sources}
   DOCFILES ${doc_files})
