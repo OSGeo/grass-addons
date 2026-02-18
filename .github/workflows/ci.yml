@@ -33,6 +33,9 @@ jobs:
           - grass-version: main
             python-version: "3.11"
             os: ubuntu-24.04
+          - grass-version: releasebranch_8_5
+            python-version: "3.11"
+            os: ubuntu-24.04
           - grass-version: releasebranch_8_4
             python-version: "3.10"
             os: ubuntu-22.04

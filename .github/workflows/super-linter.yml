@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Lint code base
-        uses: super-linter/super-linter@2bdd90ed3262e023ac84bf8fe35dc480721fc1f2 # v8.2.1
+        uses: super-linter/super-linter@61abc07d755095a68f4987d1c2c3d1d64408f1f9 # v8.5.0
         env:
           ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,6 +44,8 @@ jobs:
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
           VALIDATE_BASH: false # Until issues are fixed, some valid warnings
+          VALIDATE_BIOME_FORMAT: false # Checked by biome in pre-commit, and with a different version
+          VALIDATE_BIOME_LINT: false # Checked by biome in pre-commit, and with a different version
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
@@ -81,6 +83,7 @@ jobs:
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          VALIDATE_SPELL_CODESPELL: false # Until typos are fixed or excluded
           VALIDATE_TSX: false # Using Biome instead of ESLint
           VALIDATE_TYPESCRIPT_ES: false # Using Biome instead of ESLint
           VALIDATE_TYPESCRIPT_PRETTIER: false # Using Biome instead of Prettier
