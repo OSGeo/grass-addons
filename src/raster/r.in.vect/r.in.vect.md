@@ -25,6 +25,11 @@ assigns that count as the raster value, effectively creating a heatmap.
 Optionally, only features selected with the **where** or **sql** option can be
 imported.
 
+By selecting the **Count overlapping features** options, overlapping features
+are counted, or if **Column with raster values** is selected, the values of the
+overlapping features are summed up. This enables the creation of density- or
+heatmap-style rasters.
+
 ## NOTES
 
 By default, *r.in.vect* will only affect data in areas lying inside the
