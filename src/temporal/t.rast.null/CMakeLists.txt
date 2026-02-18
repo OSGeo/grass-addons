@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(t.rast.null)
+project(t.rast.null LANGUAGES NONE)
 
 include(build_addon)
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(t.rast.import.netcdf)
+project(t.rast.import.netcdf LANGUAGES NONE)
 
 include(build_addon)
 

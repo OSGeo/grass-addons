@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(t.rast.kappa)
+project(t.rast.kappa LANGUAGES NONE)
 
 include(build_addon)
 

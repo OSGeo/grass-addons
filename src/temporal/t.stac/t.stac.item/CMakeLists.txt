@@ -1,4 +1,4 @@
-project(t.stac.item)
+project(t.stac.item LANGUAGES NONE)
 
 build_addon(
   ${PROJECT_NAME}

@@ -1,4 +1,4 @@
-project(t.stac.catalog)
+project(t.stac.catalog LANGUAGES NONE)
 
 build_addon(
   ${PROJECT_NAME}
