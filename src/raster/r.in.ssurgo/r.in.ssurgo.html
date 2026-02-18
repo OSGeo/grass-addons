@@ -1,0 +1,66 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.ssurgo</em> - Import soil data from the USDA NRCS Soil Survey Geographic
+Database (SSURGO) into GRASS from either a local copy of the the SSURGO file
+geodatabase or from the Soil Data Access (SDA) online API interface. The module
+is heavily inspired by the [SoilDB (2.8.9)](https://ncss-tech.github.io/soilDB/index.html)
+R package (Beaudette et al., 2025).
+
+The *r.in.ssurgo* imports the Saturated Hydraulic Conductivity of Soils (Ksat) and
+the Hydrologic Soil Group (HSG) aggregated for the specified depth range or
+master horizon using the the Map Unit Key (mukey) as the spatial unit.
+The Ksat values represents the infiltration rateof water through soil when the
+soil is 100% saturated are provided. Ksat values are provided in units of cm/hr
+and include the low (**ksat_l**), representative (**ksat_r**), and high (**ksat_h**)
+estimates of Ksat for each map unit.
+
+The HSG is a soil classification system that groups soils based on their runoff
+potential, which is influenced by factors such as texture, structure, and
+permeability. The HGS raster (**hydgrp**) are used in rainfall excess models
+such as the SCS Curve Number method to estimate runoff from rainfall
+events (see *r.curvenumber*).
+
+**ssurgo_areas** is an optional output vector contining the source Multipolygons
+and attribute data from the SSURGO Map Unit polygons. This can be used for reference
+or to create custom rasters for Curve Number or other applications based on the
+SSURGO attributes.
+
+<h2>NOTES</h2>
+
+<h2>REQUIREMENTS</h2>
+
+
+<ul>
+    <li><a href=""></a></li>
+    <li><a href=""></a></li>
+</ul>
+
+<h2>NOTES</h2>
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href=""></a></li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+    <a href=""></a>,
+    <a href=""></a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White<br>
+
+<h2>Sponsors</h2>
+<ul>
+    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
+</ul>
+
+Center for Geospatial Analytics at North Carolina State University
