@@ -478,6 +478,8 @@ def local_ssurgo_query(
     # ksat_h: (high) (micrometers per second)
     # ksat_l: (low) (micrometers per second)
     # desgnmaster: Designation of master horizon
+
+    # TODO: Additional fields to consider for future outputs:
     # hydgrpdcd: Hydrologic Group - Dominant Conditions
     # sandtotal_r: Sand content of the horizon (percent)
     # claytotal_r: Clay content of the horizon (percent)
@@ -640,7 +642,7 @@ def local_ssurgo_query(
                 session_env = t.g_gisenv(
                     get="GISDBASE,LOCATION_NAME,MAPSET", sep="/"
                 ).text
-                gs.message(f"Temp Session info: {session_env}")
+                gs.debug(f"Temp Session info: {session_env}")
                 t.v_in_ogr(
                     input=tmp_filepath,
                     output=output_layer,
@@ -650,20 +652,18 @@ def local_ssurgo_query(
                 )
 
                 new_vect = t.g_list(type="vector", format="json").json
-                gs.message(f"Temp Session Vectors: {new_vect}")
+                gs.debug(f"Temp Session Vectors: {new_vect}")
 
-            gs.message("#" * 50)
+            gs.debug("#" * 50)
             tmp_project_name = Path(tempdir.name).name
-            gs.message(f"Project Name: {tmp_project_name}")
+            gs.debug(f"Project Name: {tmp_project_name}")
             tmp_dbpath = Path(tempdir.name).parent
-            gs.message(f"Temp DB Path: {tmp_dbpath}")
+            gs.debug(f"Temp DB Path: {tmp_dbpath}")
 
         with gs.setup.init(Path(SESSION)) as session:
-            gs.message(f"Original Session info: {session}")
+            gs.debug(f"Original Session info: {session}")
             with Tools(session=session) as tools:
                 gs.message("Reprojecting ssurgo data...")
-                gs.message(f"Temp Dir {tempdir}")
-                gs.message(f"Temp Dir {tempdir.name}")
 
                 tools.v_proj(
                     project=tmp_project_name,
@@ -675,18 +675,18 @@ def local_ssurgo_query(
                 )
 
     except CalledModuleError as e:
-        gs.message(f"Import failed: {e}")
+        gs.fatal(f"Import failed: {e}")
 
     except Exception as e:
-        gs.message(f"An error occurred: {e}")
+        gs.fatal(f"An error occurred: {e}")
 
     finally:
-        gs.message("cleaning up temp project")
+        gs.debug("cleaning up temp project")
         tempdir.cleanup()
-        gs.message(f"Tempfile Name: {tmp_filepath=}")
+        gs.debug(f"Tempfile Name: {tmp_filepath=}")
         os.close(fd)
         os.remove(tmp_filepath)
-        gs.message("cleaned up temp FlatGeoBuff")
+        gs.debug("cleaned up temp FlatGeoBuff")
 
     return output_layer
 
