@@ -478,13 +478,64 @@ def local_ssurgo_query(
     # ksat_h: (high) (micrometers per second)
     # ksat_l: (low) (micrometers per second)
     # desgnmaster: Designation of master horizon
-    query = f"""
-    WITH mu AS (
+    # hydgrpdcd: Hydrologic Group - Dominant Conditions
+    # sandtotal_r: Sand content of the horizon (percent)
+    # claytotal_r: Clay content of the horizon (percent)
+    # wtdepannmin_r: Minimum annual water table depth (cm)
+
+    # ---- Materialise each SSURGO layer into temporary tables so that ----
+    # ---- DuckDB can build indexes and avoid repeated full-file scans. ---
+    gs.message(_("Loading SSURGO layers into memory..."))
+
+    con.execute(
+        f"""
+        CREATE OR REPLACE TEMP TABLE mu AS
         SELECT mukey, shape AS geom
-        FROM ST_Read('{ssurgo_path}', layer='MUPOLYGON', spatial_filter_box=ST_EXTENT(ST_AsWKB(ST_GeomFromText(?))))
-    ),
-    -- choose dominant component per mukey (deterministic tiebreaker on cokey)
-    dom_comp AS (
+        FROM ST_Read(
+            '{ssurgo_path}',
+            layer = 'MUPOLYGON',
+            spatial_filter_box = ST_EXTENT(
+                ST_AsWKB(ST_GeomFromText(?))
+            )
+        )
+        """,
+        [wkt_bbox],
+    )
+    mu_count = con.execute("SELECT count(*) FROM mu").fetchone()[0]
+    gs.message(_("Loaded %d map unit polygons.") % mu_count)
+
+    if mu_count == 0:
+        gs.warning(_("No records found in your region."))
+        return None
+
+    # Load component and chorizon once; join-filter by mukey list
+    con.execute(
+        f"""
+        CREATE OR REPLACE TEMP TABLE comp AS
+        SELECT c.*
+        FROM ST_Read('{ssurgo_path}', layer = 'component') AS c
+        WHERE c.mukey IN (SELECT mukey FROM mu)
+          AND c.comppct_r IS NOT NULL
+        """
+    )
+
+    con.execute(
+        f"""
+        CREATE OR REPLACE TEMP TABLE horiz AS
+        SELECT h.*
+        FROM ST_Read('{ssurgo_path}', layer = 'chorizon') AS h
+        WHERE h.cokey IN (SELECT cokey FROM comp)
+          AND h.ksat_r IS NOT NULL
+          AND h.hzdept_r = 0
+          AND h.hzdepb_r > 0
+          AND h.desgnmaster = '{desgnmaster}'
+        """
+    )
+
+    gs.message(_("SSURGO layers loaded. Running analysis query..."))
+
+    query = f"""
+    WITH dom_comp AS (
         SELECT mu.geom,
                c.mukey,
                c.cokey,
@@ -495,42 +546,27 @@ def local_ssurgo_query(
                c.hydricon,
                c.hydricrating,
                c.drainagecl,
-               ROW_NUMBER() OVER (PARTITION BY c.mukey ORDER BY c.comppct_r DESC) AS rn
-        FROM ST_Read('{ssurgo_path}', layer='component') AS c
+               ROW_NUMBER() OVER (
+                   PARTITION BY c.mukey
+                   ORDER BY c.comppct_r DESC, c.cokey
+               ) AS rn
+        FROM comp c
         INNER JOIN mu ON mu.mukey = c.mukey
-        WHERE c.comppct_r IS NOT NULL
     ),
     dom AS (
-        SELECT
-            mukey,
-            cokey,
-            comppct_r,
-            compname,
-            runoff,
-            hydgrp,
-            hydricon,
-            hydricrating,
-            drainagecl,
-            geom
+        SELECT mukey, cokey, comppct_r, compname, runoff,
+               hydgrp, hydricon, hydricrating, drainagecl, geom
         FROM dom_comp
-       -- WHERE rn = 1
+        WHERE rn = 1
     ),
-    -- compute weighted ksat for the dominant component's horizons within [top,bottom]
     hz AS (
-        SELECT
-            mukey,
-            CASE
-                WHEN SUM(thk) = 0 THEN NULL
-                ELSE SUM(thk * ksat_l) / SUM(thk)
-            END AS ksat_l,
-            CASE
-                WHEN SUM(thk) = 0 THEN NULL
-                ELSE SUM(thk * ksat_r) / SUM(thk)
-            END AS ksat_r,
-            CASE
-                WHEN SUM(thk) = 0 THEN NULL
-                ELSE SUM(thk * ksat_h) / SUM(thk)
-            END AS ksat_h
+        SELECT mukey,
+            CASE WHEN SUM(thk) = 0 THEN NULL
+                 ELSE SUM(thk * ksat_l) / SUM(thk) END AS ksat_l,
+            CASE WHEN SUM(thk) = 0 THEN NULL
+                 ELSE SUM(thk * ksat_r) / SUM(thk) END AS ksat_r,
+            CASE WHEN SUM(thk) = 0 THEN NULL
+                 ELSE SUM(thk * ksat_h) / SUM(thk) END AS ksat_h
         FROM (
             SELECT
                 d.mukey,
@@ -549,16 +585,10 @@ def local_ssurgo_query(
                         END
                 END AS thk
             FROM dom d
-            INNER JOIN ST_Read('{ssurgo_path}', layer='chorizon') AS h ON h.cokey = d.cokey
-            WHERE h.ksat_r IS NOT NULL
-              AND h.hzdept_r = 0
-              AND h.hzdepb_r > 0
-              AND h.desgnmaster = 'A'
+            INNER JOIN horiz h ON h.cokey = d.cokey
         ) x
-        GROUP BY
-            mukey
+        GROUP BY mukey
     )
-    -- final: one row per mukey (dominant component attributes + aggregated ksat)
     SELECT
         d.geom,
         d.mukey,
@@ -577,7 +607,7 @@ def local_ssurgo_query(
     FROM dom d
     LEFT JOIN hz ON hz.mukey = d.mukey
     """
-    ksat_data = con.execute(query, [wkt_bbox]).fetchdf()
+    ksat_data = con.execute(query).fetchdf()
     if ksat_data.size == 0:
         gs.warning(_("No records found in your region."))
         return None
@@ -596,10 +626,7 @@ def local_ssurgo_query(
         (FORMAT GDAL, DRIVER 'FlatGeobuf', SRS 'EPSG:5070');
         """
 
-        con.execute(
-            export_sql,
-            [wkt_bbox],
-        )
+        con.execute(export_sql)
 
         # Export to GRASS using GDAL/OGR_GRASS driver
         tempdir = tempfile.TemporaryDirectory()
@@ -618,7 +645,7 @@ def local_ssurgo_query(
                     input=tmp_filepath,
                     output=output_layer,
                     type="boundary",
-                    snap=1e-6,
+                    snap=1e-7,
                     flags="",
                 )
 
