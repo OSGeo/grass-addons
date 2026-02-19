@@ -119,7 +119,9 @@ from contextlib import contextmanager
 from io import StringIO
 import gettext
 import json
+import re
 from enum import Enum
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 import textwrap
@@ -130,6 +132,9 @@ _ = gettext.gettext
 # Active GRASS session tools
 tools = Tools()
 SESSION = tools.g_gisenv(get="GISDBASE,LOCATION_NAME,MAPSET", sep="/").text
+# --- Unit conversion constant ---
+MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6
+
 gs.message(f"Active GRASS session: {SESSION}")
 
 
@@ -286,20 +291,43 @@ def hydrologic_group_categories(hydgrp_code):
     return lookup.get(hydgrp_code, "Unknown")
 
 
+def hydrologic_soil_group_categories(map_name: str) -> None:
+    """Assign descriptive category labels to the hydrologic soil group raster.
+
+    Maps integer HSG codes to human-readable labels using *r.category*.
+
+    :param str map_name: Name of the hydrologic soil group raster map.
+    """
+    category_rules = [
+        ("1", "A: Low runoff potential"),
+        ("2", "B: Moderate runoff potential"),
+        ("3", "C: High runoff potential"),
+        ("4", "D: Very high runoff potential"),
+        ("11", "A/D: Between A and D"),
+        ("12", "B/D: Between B and D"),
+        ("13", "C/D: Between C and D"),
+        ("14", "D/D: Very high runoff potential (drained/undrained)"),
+    ]
+    rules_str = "\n".join(f"{code}|{label}" for code, label in category_rules) + "\n"
+    tools.r_category(
+        map=map_name,
+        rules=StringIO(rules_str),
+        separator="pipe",
+    )
+
+
 def hydrologic_soil_group_color_scheme(map_name: str) -> None:
     """Apply brown color scheme to elevation map."""
     print("Applying brown elevation color scheme...")
     hydgrp_color_palette = [
-        # Single hydrologic soil groups (fast → slow infiltration)
-        ("1", "#E7F5FF"),  # A: very fast infiltration (very light cool)
-        ("2", "#A6D9FF"),  # B: fast (light cool)
-        ("3", "#FFD27A"),  # C: slow (warm / amber)
-        ("4", "#7A2E1B"),  # D: very slow (dark warm)
-        # Dual groups (drained vs undrained behavior) — perceptual “in-between” blends toward D
-        ("11", "#C6A8A1"),  # A/D
-        ("12", "#B1846B"),  # B/D
-        ("13", "#C06A44"),  # C/D
-        ("14", "#4A1A10"),  # strongest D-like / very restricted
+        ("1", "#E7F5FF"),  # A Low runoff potential
+        ("2", "#A6D9FF"),  # B Moderate runoff potential
+        ("3", "#FFD27A"),  # C High runoff potential
+        ("4", "#7A2E1B"),  # D Very high runoff potential
+        ("11", "#C6A8A1"),  # A/D Between A and D
+        ("12", "#B1846B"),  # B/D Between B and D
+        ("13", "#C06A44"),  # C/D Between C and D
+        ("14", "#4A1A10"),  # D/D Very high runoff potential (drained/undrained)
     ]
     # Convert palette list to rules string for r_colors
     hydgrp_color_scheme = (
@@ -597,9 +625,6 @@ def local_ssurgo_query(
                 new_vect = t.g_list(type="vector", format="json").json
                 gs.message(f"Temp Session Vectors: {new_vect}")
 
-            # Reproject dataset from temp project to the current GRASS project
-            # new_session = gj.init(f"{gisdb}/{project_name}/PERMANENT")
-            # with Tools(session=new_session, overwrite=True) as mtools:
             gs.message("#" * 50)
             tmp_project_name = Path(tempdir.name).name
             gs.message(f"Project Name: {tmp_project_name}")
@@ -639,6 +664,242 @@ def local_ssurgo_query(
     return output_layer
 
 
+def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
+    """Convert imported SSURGO vector attributes to raster maps and apply color schemes.
+
+    :param str ssurgo_areas: Name of the imported SSURGO vector map.
+    :param str hydgrp: Output name for hydrologic soil group raster (or empty to skip).
+    :param str ksat_h: Output name for Ksat high raster (or empty to skip).
+    :param str ksat_r: Output name for Ksat regular raster (or empty to skip).
+    :param str ksat_l: Output name for Ksat low raster (or empty to skip).
+    :param str mukey: Output name for map unit key raster (or empty to skip).
+    """
+    with gs.setup.init(Path(SESSION)) as session:
+        with Tools(session=session) as stools:
+            update_hydrologic_group(stools, ssurgo_areas)
+            _output_maps = [
+                ("hsg", hydgrp, "hydgrp"),
+                ("ksat_h", ksat_h, None),
+                ("ksat_r", ksat_r, None),
+                ("ksat_l", ksat_l, None),
+                ("mukey_int", mukey, None),
+            ]
+            for col, map_name, label_column in _output_maps:
+                if not map_name:
+                    continue
+
+                stools.v_to_rast(
+                    input=ssurgo_areas,
+                    type="area",
+                    use="attr",
+                    attribute_column=col,
+                    output=map_name,
+                    label_column=label_column if label_column else "",
+                )
+
+                if col in ("ksat_l", "ksat_r", "ksat_h"):
+                    ksat_color_scheme(map_name)
+
+                if col == "mukey_int":
+                    stools.r_colors(map=map_name, color="random")
+
+                if col == "hsg":
+                    hydrologic_soil_group_categories(map_name)
+                    hydrologic_soil_group_color_scheme(map_name)
+
+
+def _parse_wkt_coordinates(coord_string):
+    """Parse a WKT coordinate string into a list of coordinate pairs.
+
+    :param str coord_string: Comma-separated coordinate pairs, e.g. ``"x1 y1, x2 y2"``.
+    :return: List of ``[x, y]`` pairs.
+    :rtype: list[list[float]]
+    """
+    coords = []
+    for pair in coord_string.strip().split(","):
+        parts = pair.strip().split()
+        if len(parts) >= 2:
+            coords.append([float(parts[0]), float(parts[1])])
+    return coords
+
+
+def _wkt_to_geojson_geometry(wkt_str):
+    """Convert a WKT POLYGON or MULTIPOLYGON string to a GeoJSON geometry dict.
+
+    :param str wkt_str: Well-Known Text geometry string (WGS 84).
+    :return: GeoJSON geometry dict or None if unsupported type.
+    :rtype: dict or None
+    """
+    wkt_str = wkt_str.strip()
+    upper = wkt_str.upper()
+
+    # Regex matching the innermost parenthesised coordinate groups
+    ring_re = re.compile(r"\(\s*([^()]+?)\s*\)")
+
+    if upper.startswith("MULTIPOLYGON"):
+        body = wkt_str[len("MULTIPOLYGON") :].strip()
+        # Remove outermost parens
+        body = body[1:-1].strip()
+
+        # Split polygon groups at depth-0 commas
+        polygon_strings = []
+        depth = 0
+        start = 0
+        for i, ch in enumerate(body):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            elif ch == "," and depth == 0:
+                polygon_strings.append(body[start:i].strip())
+                start = i + 1
+        polygon_strings.append(body[start:].strip())
+
+        mp_coords = []
+        for pstr in polygon_strings:
+            rings = [_parse_wkt_coordinates(m.group(1)) for m in ring_re.finditer(pstr)]
+            if rings:
+                mp_coords.append(rings)
+
+        return {"type": "MultiPolygon", "coordinates": mp_coords}
+
+    if upper.startswith("POLYGON"):
+        body = wkt_str[len("POLYGON") :].strip()
+        rings = [_parse_wkt_coordinates(m.group(1)) for m in ring_re.finditer(body)]
+        return {"type": "Polygon", "coordinates": rings}
+
+    gs.warning(_("Unsupported WKT geometry type, skipping."))
+    return None
+
+
+def sda_ssurgo_query(
+    aoi_wkt,
+    desgnmaster,
+    hzdept_r,
+    hzdepb_r,
+    ssurgo_areas_out,
+):
+    """Import SSURGO data from the Soil Data Access (SDA) web service.
+
+    Fetches soil polygon geometry and attribute data for the area of interest
+    defined by *aoi_wkt* (WGS 84), writes the result to a temporary GeoJSON
+    file, imports it into a temporary GRASS project, and reprojects into the
+    current project.
+
+    :param str aoi_wkt: WKT polygon of the area of interest in WGS 84.
+    :param str desgnmaster: Designation of master horizon.
+    :param int hzdept_r: Horizon depth top (cm).
+    :param int hzdepb_r: Horizon depth bottom (cm).
+    :param str ssurgo_areas_out: Name for the output vector map.
+    :return: Name of the imported vector map or None on failure.
+    :rtype: str or None
+    """
+    client = SDAClient()
+    results = client.fetch_sda(
+        aoi_wkt=aoi_wkt,
+        top_cm=hzdept_r,
+        bottom_cm=hzdepb_r,
+        desgnmaster=desgnmaster,
+        agg=SoilAggMethod.DOMINANT_COMPONENT,
+    )
+
+    if not results or "Table" not in results:
+        gs.fatal(_("No records returned from Soil Data Access (SDA)."))
+        return None
+
+    rows = results["Table"]
+    if not rows:
+        gs.fatal(_("SDA query returned empty results for the current region."))
+        return None
+
+    gs.message(_("Received {} records from SDA.").format(len(rows)))
+
+    # Build GeoJSON FeatureCollection from SDA response
+    features = []
+    for row in rows:
+        wkt = row.get("wkt")
+        if not wkt:
+            continue
+        geom = _wkt_to_geojson_geometry(wkt)
+        if geom is None:
+            continue
+        properties = {}
+        for key, val in row.items():
+            if key == "wkt":
+                continue
+            # Convert numeric strings to appropriate Python types
+            if val is None or val == "":
+                properties[key] = None
+            else:
+                try:
+                    if "." in str(val):
+                        properties[key] = float(val)
+                    else:
+                        properties[key] = int(val)
+                except (ValueError, TypeError):
+                    properties[key] = val
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": geom,
+                "properties": properties,
+            }
+        )
+
+    if not features:
+        gs.fatal(_("No valid geometries found in SDA response."))
+        return None
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+
+    # Write GeoJSON to temporary file and import into GRASS
+    fd, geojson_path = tempfile.mkstemp(suffix=".geojson")
+    tempdir = tempfile.TemporaryDirectory()
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(geojson, f)
+
+        # Import into temporary GRASS project in WGS 84 (EPSG:4326)
+        gs.create_project(path=tempdir.name, epsg=4326, overwrite=True)
+        with gs.setup.init(Path(tempdir.name)) as temp_session:
+            with Tools(session=temp_session) as t:
+                gs.message(_("Importing SDA data into temporary project..."))
+                t.v_in_ogr(
+                    input=geojson_path,
+                    output=ssurgo_areas_out,
+                    type="boundary",
+                    snap=1e-6,
+                )
+
+        # Reproject from temporary WGS 84 project to the current project
+        tmp_project_name = Path(tempdir.name).name
+        tmp_dbpath = Path(tempdir.name).parent
+
+        with gs.setup.init(Path(SESSION)) as session:
+            with Tools(session=session) as stools:
+                gs.message(_("Reprojecting SDA data to current project..."))
+                stools.v_proj(
+                    project=tmp_project_name,
+                    input=ssurgo_areas_out,
+                    dbase=tmp_dbpath,
+                    mapset="PERMANENT",
+                    output=ssurgo_areas_out,
+                )
+
+    except CalledModuleError as e:
+        gs.fatal(_("SDA import failed: {}").format(e))
+
+    finally:
+        tempdir.cleanup()
+        if os.path.exists(geojson_path):
+            os.remove(geojson_path)
+
+    return ssurgo_areas_out
+
+
 class SoilAggMethod(Enum):
     DOMINANT_COMPONENT = "dominant_component"
     WEIGHTED_COMPONENT = "weighted_component"
@@ -652,194 +913,300 @@ class SDAClient:
     and retrieve soil data based on specified parameters.
     """
 
-    REST_URL = (
-        "https://SDMDataAccess.sc.egov.usda.gov/Tabular/SDMTabularService/post.rest"
-    )
+    REST_URL = "https://sdmdataaccess.sc.egov.usda.gov/tabular/post.rest"
 
-    def _build_sda_sql(self, aoi_wkt, top_cm: int, bottom_cm: int, agg: SoilAggMethod):
+    def _build_sda_sql(
+        self,
+        aoi_wkt,
+        top_cm: int,
+        bottom_cm: int,
+        desgnmaster: str = "A",
+        agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+    ):
         """
-        Build one SQL batch that:
-        1) gets intersecting mukeys from AOI WKT (WGS84)
-        2) aggregates ksat to mapunit (mukey)
-        3) returns mupolygon WKT + mukey + ksat
+        Build a T-SQL batch that:
 
-        Uses SDA helper functions described in Advanced Queries.
+        1. Finds intersecting mukeys from an AOI WKT (WGS 84).
+        2. Picks the dominant component per mukey.
+        3. Aggregates depth-weighted Ksat (low, representative, high) in mm/hr.
+        4. Returns mupolygon WKT, mukey, component attributes, and Ksat values.
+
+        :param str aoi_wkt: WKT polygon (WGS 84) of the area of interest.
+        :param int top_cm: Horizon depth top (cm).
+        :param int bottom_cm: Horizon depth bottom (cm).
+        :param str desgnmaster: Master horizon designation filter (default ``'A'``).
+        :param SoilAggMethod agg: Aggregation method.
+        :return: T-SQL query string.
+        :rtype: str
         """
-        # Depth-weighted mean within [top_cm, bottom_cm]
-        # thickness = max(0, min(hzdepb_r, bottom) - max(hzdept_r, top))
-        # Ksat RV: chorizon.ksat_r
-        #
-        # dominant_component: pick component with max comppct_r for each mukey
-        #
-        # weighted_component: weight components by comppct_r and depth-weight horizons per component
-
         top = float(top_cm)
         bottom = float(bottom_cm)
+        conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
 
         if agg == SoilAggMethod.DOMINANT_COMPONENT:
-            ksat_cte = f"""
+            sql = f"""
             WITH mu AS (
-            SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
+              SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
             ),
             dom_comp AS (
-            SELECT c.mukey, c.cokey, c.comppct_r,
-                    ROW_NUMBER() OVER (PARTITION BY c.mukey ORDER BY c.comppct_r DESC) AS rn
-            FROM component c
-            INNER JOIN mu ON mu.mukey = c.mukey
-            WHERE c.comppct_r IS NOT NULL
+              SELECT c.mukey, c.cokey, c.comppct_r, c.compname,
+                     c.hydgrp, c.drainagecl,
+                     ROW_NUMBER() OVER (
+                       PARTITION BY c.mukey
+                       ORDER BY c.comppct_r DESC, c.cokey
+                     ) AS rn
+              FROM component c
+              INNER JOIN mu ON mu.mukey = c.mukey
+              WHERE c.comppct_r IS NOT NULL
             ),
             dom AS (
-            SELECT mukey, cokey FROM dom_comp WHERE rn = 1
+              SELECT mukey, cokey, comppct_r, compname, hydgrp, drainagecl
+              FROM dom_comp WHERE rn = 1
             ),
             hz AS (
-            SELECT d.mukey,
-                    CASE
-                    WHEN SUM(thk) = 0 THEN NULL
-                    ELSE SUM(thk * ksat_r) / SUM(thk)
-                    END AS ksat
-            FROM (
+              SELECT x.mukey,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                     ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                     ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                     ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+              FROM (
                 SELECT d.mukey,
-                    h.ksat_r,
-                    CASE
-                        WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                        ELSE
-                        CASE
-                            WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END) > 0
-                            THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END)
-                            ELSE 0
-                        END
-                    END AS thk
+                  h.ksat_l * {conv} AS ksat_l,
+                  h.ksat_r * {conv} AS ksat_r,
+                  h.ksat_h * {conv} AS ksat_h,
+                  CASE
+                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+                    ELSE
+                      CASE
+                        WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
+                                   ELSE {bottom} END)
+                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
+                                   ELSE {top} END) > 0
+                        THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
+                                   ELSE {bottom} END)
+                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
+                                   ELSE {top} END)
+                        ELSE 0
+                      END
+                  END AS thk
                 FROM dom d
                 INNER JOIN chorizon h ON h.cokey = d.cokey
                 WHERE h.ksat_r IS NOT NULL
-            ) x
-            GROUP BY d.mukey
+                  AND h.hzdept_r = 0
+                  AND h.hzdepb_r > 0
+                  AND h.desgnmaster = '{desgnmaster}'
+              ) x
+              GROUP BY x.mukey
             ),
             poly AS (
-            -- get all polygons for the intersecting mukeys
-            SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
-            FROM (SELECT mukey FROM mu) t
-            CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
+              SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
+              FROM (SELECT mukey FROM mu) t
+              CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
             )
-            SELECT poly.mukey, hz.ksat, poly.wkt
+            SELECT poly.mukey,
+                   CAST(poly.mukey AS INT) AS mukey_int,
+                   dom.compname,
+                   dom.comppct_r,
+                   dom.hydgrp,
+                   dom.drainagecl,
+                   hz.ksat_l,
+                   hz.ksat_r,
+                   hz.ksat_h,
+                   poly.wkt
             FROM poly
+            LEFT JOIN dom ON dom.mukey = poly.mukey
             LEFT JOIN hz ON hz.mukey = poly.mukey
             """
         else:
             # weighted_component
-            ksat_cte = f"""
+            sql = f"""
             WITH mu AS (
-            SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
+              SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
             ),
             comp AS (
-            SELECT c.mukey, c.cokey, c.comppct_r
-            FROM component c
-            INNER JOIN mu ON mu.mukey = c.mukey
-            WHERE c.comppct_r IS NOT NULL
+              SELECT c.mukey, c.cokey, c.comppct_r
+              FROM component c
+              INNER JOIN mu ON mu.mukey = c.mukey
+              WHERE c.comppct_r IS NOT NULL
+            ),
+            -- pick dominant component for categorical attributes (hydgrp, etc.)
+            dom_comp AS (
+              SELECT c.mukey, c.compname, c.hydgrp, c.drainagecl,
+                     ROW_NUMBER() OVER (
+                       PARTITION BY c.mukey
+                       ORDER BY c.comppct_r DESC, c.cokey
+                     ) AS rn
+              FROM component c
+              INNER JOIN mu ON mu.mukey = c.mukey
+              WHERE c.comppct_r IS NOT NULL
+            ),
+            dom AS (
+              SELECT mukey, compname, hydgrp, drainagecl
+              FROM dom_comp WHERE rn = 1
             ),
             comp_hz AS (
-            SELECT c.mukey, c.cokey, c.comppct_r,
-                    CASE
-                    WHEN SUM(thk) = 0 THEN NULL
-                    ELSE SUM(thk * ksat_r) / SUM(thk)
-                    END AS ksat_comp
-            FROM (
+              SELECT z.mukey, z.cokey, z.comppct_r,
+                CASE WHEN SUM(z.thk) = 0 THEN NULL
+                     ELSE SUM(z.thk * z.ksat_l) / SUM(z.thk) END AS ksat_l_comp,
+                CASE WHEN SUM(z.thk) = 0 THEN NULL
+                     ELSE SUM(z.thk * z.ksat_r) / SUM(z.thk) END AS ksat_r_comp,
+                CASE WHEN SUM(z.thk) = 0 THEN NULL
+                     ELSE SUM(z.thk * z.ksat_h) / SUM(z.thk) END AS ksat_h_comp
+              FROM (
                 SELECT c.mukey, c.cokey, c.comppct_r,
-                    h.ksat_r,
-                    CASE
-                        WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                        ELSE
-                        CASE
-                            WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END) > 0
-                            THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END)
-                            ELSE 0
-                        END
-                    END AS thk
+                  h.ksat_l * {conv} AS ksat_l,
+                  h.ksat_r * {conv} AS ksat_r,
+                  h.ksat_h * {conv} AS ksat_h,
+                  CASE
+                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+                    ELSE
+                      CASE
+                        WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
+                                   ELSE {bottom} END)
+                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
+                                   ELSE {top} END) > 0
+                        THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
+                                   ELSE {bottom} END)
+                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
+                                   ELSE {top} END)
+                        ELSE 0
+                      END
+                  END AS thk
                 FROM comp c
                 INNER JOIN chorizon h ON h.cokey = c.cokey
                 WHERE h.ksat_r IS NOT NULL
-            ) z
-            GROUP BY mukey, cokey, comppct_r
+                  AND h.hzdept_r = 0
+                  AND h.hzdepb_r > 0
+                  AND h.desgnmaster = '{desgnmaster}'
+              ) z
+              GROUP BY z.mukey, z.cokey, z.comppct_r
             ),
             hz AS (
-            SELECT mukey,
-                    CASE
-                    WHEN SUM(comppct_r) = 0 THEN NULL
-                    ELSE SUM(comppct_r * ksat_comp) / SUM(comppct_r)
-                    END AS ksat
-            FROM comp_hz
-            WHERE ksat_comp IS NOT NULL
-            GROUP BY mukey
+              SELECT mukey,
+                CASE WHEN SUM(comppct_r) = 0 THEN NULL
+                     ELSE SUM(comppct_r * ksat_l_comp) / SUM(comppct_r) END AS ksat_l,
+                CASE WHEN SUM(comppct_r) = 0 THEN NULL
+                     ELSE SUM(comppct_r * ksat_r_comp) / SUM(comppct_r) END AS ksat_r,
+                CASE WHEN SUM(comppct_r) = 0 THEN NULL
+                     ELSE SUM(comppct_r * ksat_h_comp) / SUM(comppct_r) END AS ksat_h
+              FROM comp_hz
+              WHERE ksat_r_comp IS NOT NULL
+              GROUP BY mukey
             ),
             poly AS (
-            SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
-            FROM (SELECT mukey FROM mu) t
-            CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
+              SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
+              FROM (SELECT mukey FROM mu) t
+              CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
             )
-            SELECT poly.mukey, hz.ksat, poly.wkt
+            SELECT poly.mukey,
+                   CAST(poly.mukey AS INT) AS mukey_int,
+                   dom.compname,
+                   dom.hydgrp,
+                   dom.drainagecl,
+                   hz.ksat_l,
+                   hz.ksat_r,
+                   hz.ksat_h,
+                   poly.wkt
             FROM poly
+            LEFT JOIN dom ON dom.mukey = poly.mukey
             LEFT JOIN hz ON hz.mukey = poly.mukey
             """
 
-        # SDA likes a single batch; keep it as-is
-        return textwrap.dedent(ksat_cte).strip()
+        return textwrap.dedent(sql).strip()
 
-    def _sda_post_sql(self, sql, sda_url, timeout=120):
+    def _sda_post_sql(self, sql, sda_url=None, timeout=120):
         """
-        POST SQL to SDA post.rest. Request JSON output.
-        SDA post.rest documented on SDA web service help page.
+        POST SQL to SDA post.rest endpoint and return parsed JSON.
+
+        The response is converted so that ``result["Table"]`` is a list of
+        dicts keyed by column name, which matches the format expected by
+        the rest of the pipeline.
+
+        :param str sql: T-SQL query string.
+        :param str sda_url: SDA REST URL (defaults to *REST_URL*).
+        :param int timeout: HTTP request timeout in seconds.
+        :return: Parsed JSON response dict with ``{"Table": [row_dict, ...]}``.
+        :rtype: dict
         """
+        if sda_url is None:
+            sda_url = self.REST_URL
+        form_data = urlencode({"QUERY": sql, "FORMAT": "JSON+COLUMNNAME"})
         headers = {
-            "Content-Type": "text/sql",
-            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
         }
-        req = Request(sda_url, data=sql.encode("utf-8"), headers=headers, method="POST")
+        req = Request(
+            sda_url, data=form_data.encode("utf-8"), headers=headers, method="POST"
+        )
+        gs.debug(_("SDA request URL: {}").format(sda_url))
         try:
             with urlopen(req, timeout=timeout) as resp:
-                data = resp.read().decode("utf-8", errors="replace")
-                return json.loads(data)
+                raw = resp.read().decode("utf-8", errors="replace")
+                result = json.loads(raw)
         except HTTPError as e:
-            raise gs.fatal(f"SDA HTTP error {e.code}: {e.reason}")
-        except URLError as e:
-            raise gs.fatal(f"SDA connection error: {e.reason}")
-        except json.JSONDecodeError:
-            raise gs.fatal(
-                "SDA did not return JSON. Try changing SDA format or check service status."
+            gs.fatal(
+                _("SDA HTTP error {code}: {reason}").format(
+                    code=e.code, reason=e.reason
+                )
             )
+            return None
+        except URLError as e:
+            gs.fatal(_("SDA connection error: {}").format(e.reason))
+            return None
+        except json.JSONDecodeError:
+            gs.fatal(
+                _(
+                    "SDA did not return valid JSON. "
+                    "Check the service status or query syntax."
+                )
+            )
+            return None
 
-    @classmethod
+        # Convert JSON+COLUMNNAME array format to list of dicts.
+        # First row = column names, remaining rows = data.
+        table = result.get("Table")
+        if not table or len(table) < 2:
+            return result
+        columns = table[0]
+        result["Table"] = [dict(zip(columns, row)) for row in table[1:]]
+        return result
+
     def fetch_sda(
-        cls,
+        self,
         aoi_wkt,
         top_cm: int,
         bottom_cm: int,
+        desgnmaster: str = "A",
         agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
     ):
-        """Fetch data from SDA for the given AOI and parameters."""
-        cls._debug("fetch_sda", "started")
-        sql = cls._build_sda_sql(aoi_wkt, top_cm, bottom_cm, agg)
-        cls._debug("fetch_sda", f"SQL built: {sql}")
-        result = cls.sda_post_sql(sql, cls.REST_URL)
-        cls._debug("fetch_sda", f"SDA result: {result}")
-        cls._debug("fetch_sda", "ended")
+        """Fetch SSURGO data from SDA for the given area of interest.
+
+        :param str aoi_wkt: WKT polygon of the AOI in WGS 84.
+        :param int top_cm: Horizon depth top (cm).
+        :param int bottom_cm: Horizon depth bottom (cm).
+        :param str desgnmaster: Master horizon designation filter.
+        :param SoilAggMethod agg: Aggregation method.
+        :return: Parsed JSON response from SDA containing a ``Table`` key.
+        :rtype: dict or None
+        """
+        gs.debug(_("SDAClient.fetch_sda: building SQL query..."))
+        sql = self._build_sda_sql(aoi_wkt, top_cm, bottom_cm, desgnmaster, agg)
+        gs.debug(_("SDAClient.fetch_sda: SQL built, querying SDA..."))
+        result = self._sda_post_sql(sql)
+        gs.debug(_("SDAClient.fetch_sda: received response from SDA."))
         return result
 
 
 def main():
     # Inputs
-    ssurgo_path = Path(options["ssurgo_path"])
+    ssurgo_path = options["ssurgo_path"]
 
     # TODO: Add ability to specify different Horizons
     desgnmaster = options["desgnmaster"]
     hzdept_r = int(options["hzdept_r"])
-    hzdepb_r = int(options["hzdepb_r"])
-    flag_d = flags[
-        "d"
-    ]  # Use Soil Data Access (SDA) to query and download data for the specified map unit key (mukey) instead of using a local SSURGO ZIP file.
+    hzdepb_r = int(options["hzdepb_r"]) if options["hzdepb_r"] else 25
+    flag_d = flags["d"]
 
     # Outputs
     ###################################################
@@ -853,7 +1220,9 @@ def main():
     # Vector outputs
     ssurgo_areas = options["ssurgo_areas"]
 
-    # Proccessing options
+    # TODO: Add raster3d output option for depth-varying Ksat
+
+    # Processing options
     nprocs = int(options["nprocs"])  # optional
 
     # Error if no duckdb and flag d is not set.
@@ -866,18 +1235,26 @@ def main():
         try:
             if flag_d:
                 gs.message(
-                    "Using Soil Data Access (SDA) to query and download data for the specified map unit key (mukey)."
+                    _(
+                        "Using Soil Data Access (SDA) to query and download "
+                        "data for the current computational region."
+                    )
                 )
                 aoi_wkt = region_to_wkt_wgs84()
-                SDAClient.fetch_sda(
+                ssurgo_areas = sda_ssurgo_query(
                     aoi_wkt=aoi_wkt,
-                    top_cm=hzdept_r,
-                    bottom_cm=hzdepb_r,
-                    agg=SoilAggMethod.DOMINANT_COMPONENT,
+                    desgnmaster=desgnmaster,
+                    hzdept_r=hzdept_r,
+                    hzdepb_r=hzdepb_r,
+                    ssurgo_areas_out=ssurgo_areas,
                 )
+                if ssurgo_areas:
+                    _rasterize_and_style(
+                        ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey
+                    )
             else:
-                gs.message("Importing SSURGO data from local file.")
-                _ssurgo_path = check_if_zipfile(ssurgo_path)
+                gs.message(_("Importing SSURGO data from local file."))
+                _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
                 wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
                 con = connect_duckdb(threads=nprocs)
                 ssurgo_areas = local_ssurgo_query(
@@ -894,40 +1271,10 @@ def main():
                     mukey_out=mukey,
                     ssurgo_areas_out=ssurgo_areas,
                 )
-                with gs.setup.init(Path(SESSION)) as session:
-                    with Tools(session=session) as tools:
-                        update_hydrologic_group(tools, ssurgo_areas)
-                        # Column, map name, label column (for categorical)
-                        _output_maps = [
-                            ("hsg", hydgrp, "hydgrp"),
-                            ("ksat_h", ksat_h, None),
-                            ("ksat_r", ksat_r, None),
-                            ("ksat_l", ksat_l, None),
-                            ("mukey_int", mukey, None),
-                        ]
-                        for col, map_name, label_column in _output_maps:
-                            if map_name is None:
-                                continue
-
-                            tools.v_to_rast(
-                                input=ssurgo_areas,
-                                type="area",
-                                use="attr",
-                                attribute_column=col,
-                                output=map_name,
-                                label_column=label_column if label_column else "",
-                            )
-
-                            ksat_cols = ["ksat_l", "ksat_r", "ksat_h"]
-                            if col in ksat_cols:
-                                ksat_color_scheme(map_name)
-
-                            if col == "mukey_int":
-                                # Apply categorical color scheme to mukey raster
-                                tools.r_colors(map=map_name, color="random")
-
-                            if col == "hsg":
-                                hydrologic_soil_group_color_scheme(map_name)
+                if ssurgo_areas:
+                    _rasterize_and_style(
+                        ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey
+                    )
         finally:
             if os.path.exists(tif_path):
                 os.remove(tif_path)
