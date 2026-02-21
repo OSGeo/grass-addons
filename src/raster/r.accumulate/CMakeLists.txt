@@ -14,6 +14,7 @@ set(sources
     delineate_streams.c
     delineate_subwatersheds_iterative.c
     delineate_subwatersheds_recursive.c
+    global.h
     line_list.c
     point_list.c
     main.c

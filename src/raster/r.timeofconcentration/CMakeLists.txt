@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(r.timeofconcentration)
+project(r.timeofconcentration LANGUAGES NONE)
 
 include(build_addon)
 

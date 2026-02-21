@@ -23,13 +23,12 @@ set(doc_files
 build_addon(
   ${PROJECT_NAME}
   GRASSLIBS
-    gis
-    raster
-    vector
-    segment
     dbmibase
     dbmiclient
-    dbmidriver
+    gis
+    raster
+    segment
+    vector
   DEPENDS
     LIBM
   SOURCES ${sources}

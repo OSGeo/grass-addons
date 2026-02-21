@@ -17,13 +17,8 @@ set(doc_files
 build_addon(
   ${PROJECT_NAME}
   GRASSLIBS
-    dbmibase
-    dbmiclient
-    dbmidriver
-    gmath
     gis
     raster
-    vector
   DEPENDS
     LIBM
   SOURCES ${sources}
