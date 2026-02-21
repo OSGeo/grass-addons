@@ -28,8 +28,6 @@ build_addon(
   GRASSLIBS
     dbmibase
     dbmiclient
-    dbmidriver
-    gmath
     gis
     raster
     vector
