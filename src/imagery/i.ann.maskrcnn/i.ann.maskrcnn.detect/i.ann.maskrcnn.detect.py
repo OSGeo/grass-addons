@@ -495,6 +495,7 @@ def parse_instances(
                 target.SetGeoTransform(trans)
                 target.SetProjection(proj)
                 target.FlushCache()
+                target = None  # close dataset so GeoTIFF IFD metadata is written to disk
                 mList.append(maskName)
                 if class_ids[index] not in cList:
                     cList.append(class_ids[index])
@@ -573,6 +574,7 @@ def parse_instances(
                 target.SetGeoTransform(trans)
                 target.SetProjection(proj)
                 target.FlushCache()
+                target = None  # close dataset so GeoTIFF IFD metadata is written to disk
                 mList.append(maskName)
                 if class_ids[index] not in cList:
                     cList.append(class_ids[index])
