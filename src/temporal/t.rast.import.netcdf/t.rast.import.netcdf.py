@@ -891,6 +891,8 @@ def parse_netcdf(
 
         # Open subdatasets to get metadata
         sds = [[gdal.Open(s[1])] + s for s in sds]  # noqa: RUF005
+        # Parent dataset no longer needed; close before processing loop
+        ncdf = None
     elif not sds and ncdf.RasterCount == 0:
         gs.warning(_("No data to import from file {}").format(in_url))
         return None
@@ -1046,7 +1048,7 @@ def parse_netcdf(
             },
         )
         # Close open GDAL datasets
-        s_d = None
+        s_d[0] = None
     # Close open GDAL datasets
     sds = None
     return inputs_dict
