@@ -25,6 +25,14 @@ and attribute data from the SSURGO Map Unit polygons. This can be used for refer
 or to create custom rasters for Curve Number or other applications based on the
 SSURGO attributes.
 
+### SSURGO Download
+
+* [SSURGO CONUS](https://nrcs.app.box.com/v/soils/folder/233395259341)
+* [SSURGO by State](https://nrcs.app.box.com/v/soils/folder/233398887779)
+
+> If you choose to use the downloaded dataset instead of the SDA API you do
+> not need to unzip the folder. `r.in.ssurgo` expects the data to be zipped.
+
 ## REQUIREMENTS
 
 [duckdb>=4.1](https://duckdb.org/) Python package for querying and processing data
