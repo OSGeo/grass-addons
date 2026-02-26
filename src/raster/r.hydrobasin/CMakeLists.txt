@@ -7,10 +7,12 @@ find_OpenMP()
 find_M()
 
 set(sources
+    delineate_funcs.h
     delineate.c
     delineate_lessmem.c
     delineate_moremem.c
     gettimeofday.c
+    global.h
     main.c
     outlet_list.c
     raster_map.c
