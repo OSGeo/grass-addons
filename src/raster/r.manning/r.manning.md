@@ -35,6 +35,17 @@ a **rules** file in CSV format.
 
 ## NOTES
 
+### Source of values
+
+Kalyanapu et al. (2009) does not include ranges for Manning's n values.
+These were estimated using ×0.75/×1.33 multipliers on the original single
+values to reflect ranges from Chow (1959).
+These multipliers were also used to estimate deafult values from ranges
+in the HEC-RAS 2D User's Manual.
+
+Kalyanapu et al. (2009) does not include NLCD value for cultivated crops,
+this tools uses conventional tillage from McCuen (2005).
+
 ### Custom rules file
 
 For custom land cover classifications, provide a CSV file with the

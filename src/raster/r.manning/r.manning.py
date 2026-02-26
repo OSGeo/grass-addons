@@ -100,23 +100,25 @@ NLCD_KALYANAPU = {
 }
 
 # range from HEC-RAS 2D User's Manual Version 6.6
-# initial values from https://rashms.com/wp-content/uploads/2021/01/Mannings-n-values-NLCD-NRCS.pdf
+# initial values are roughly estimated using ×0.75/×1.33 multipliers matching Chow
 NLCD_HECRAS = {
-    11: [0.025, 0.040, 0.050],  # Open Water
+    11: [0.025, 0.035, 0.050],  # Open Water
     21: [0.030, 0.040, 0.050],  # Developed, Open Space
-    22: [0.080, 0.100, 0.120],  # Developed, Low Intensity
-    23: [0.060, 0.080, 0.140],  # Developed, Medium Intensity
-    24: [0.120, 0.150, 0.200],  # Developed, High Intensity
-    31: [0.023, 0.025, 0.030],  # Barren Land
-    41: [0.100, 0.160, 0.200],  # Deciduous Forest
-    42: [0.080, 0.160, 0.160],  # Evergreen Forest
-    43: [0.080, 0.160, 0.200],  # Mixed Forest
-    52: [0.070, 0.100, 0.016],  # Shrub/Scrub
+    22: [0.060, 0.085, 0.120],  # Developed, Low Intensity
+    23: [0.080, 0.100, 0.160],  # Developed, Medium Intensity
+    24: [0.120, 0.160, 0.200],  # Developed, High Intensity
+    31: [0.023, 0.030, 0.030],  # Barren Land
+    41: [0.100, 0.140, 0.200],  # Deciduous Forest
+    42: [0.080, 0.120, 0.160],  # Evergreen Forest
+    43: [0.080, 0.130, 0.200],  # Mixed Forest
+    51: [0.025, 0.035, 0.050],  # Dwarf Scrub
+    52: [0.070, 0.100, 0.160],  # Shrub/Scrub
     71: [0.025, 0.035, 0.050],  # Grassland/Herbaceous
-    81: [0.025, 0.033, 0.050],  # Pasture/Hay
-    82: [0.025, 0.035, 0.050],  # Cultivated Crops
-    90: [0.045, 0.120, 0.150],  # Woody Wetlands
-    95: [0.050, 0.070, 0.085],  # Emergent Herbaceous Wetlands
+    72: [0.025, 0.035, 0.050],  # Sedge/Herbaceous
+    81: [0.025, 0.035, 0.050],  # Pasture/Hay
+    82: [0.020, 0.030, 0.050],  # Cultivated Crops
+    90: [0.045, 0.100, 0.150],  # Woody Wetlands
+    95: [0.050, 0.060, 0.085],  # Emergent Herbaceous Wetlands
 }
 
 # Values from QGIS Manning's Roughness Generator plugin
