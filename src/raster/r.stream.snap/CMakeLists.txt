@@ -8,6 +8,9 @@ find_M()
 
 set(sources
     io.c
+    io.h
+    local_proto.h
+    local_vars.h
     main.c
     points_io.c
     snap.c

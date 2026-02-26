@@ -6,6 +6,7 @@ include(build_addon)
 find_M()
 
 set(sources
+    global.h
     lut.c
     main.c)
 

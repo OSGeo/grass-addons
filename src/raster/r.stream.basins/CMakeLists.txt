@@ -10,6 +10,9 @@ set(sources
     basins_fill.c
     basins_inputs.c
     io.c
+    local_proto.h
+    local_vars.h
+    main.c
     main.c)
 
 set(doc_files
