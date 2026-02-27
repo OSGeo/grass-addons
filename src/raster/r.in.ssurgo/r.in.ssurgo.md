@@ -104,11 +104,11 @@ tools.r_in_ssurgo(
 
 ## REFERENCES
 
-- Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025). soilDB
+* Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025). soilDB
 Soil Database Interface. R package version 2.8.9
 [https://CRAN.R-project.org/package=soilDB](https://CRAN.R-project.org/package=soilDB)
 
-- Soil Survey Staff, Natural Resources Conservation Service, United States
+* Soil Survey Staff, Natural Resources Conservation Service, United States
 Department of Agriculture. Web Soil Survey. Available online at
 [<https://websoilsurvey.nrcs.usda.gov/>](https://websoilsurvey.nrcs.usda.gov).
 Accessed [04/23/2025].
