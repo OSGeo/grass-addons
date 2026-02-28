@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import io
+import os
 import sys
 import json
 import grass.script as gs
@@ -8,7 +9,8 @@ from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 from grass.pygrass.utils import get_lib_path
 from grass.pygrass.vector.geometry import Point
-from unittest.mock import patch, MagicMock
+from grass.exceptions import CalledModuleError
+from unittest.mock import patch, MagicMock, call
 import base64
 import tempfile
 
@@ -478,6 +480,298 @@ class TestReadJsonToDict(TestCase):
                 self.helper.wgs84_geojson_from_vector("test_vector")
             mock_renderer.render_vector.assert_called_once_with("test_vector")
             mock_fatal.assert_called_once()
+
+
+class TestImportGrassRaster(TestCase):
+    """Tests for import_grass_raster worker function."""
+
+    def _make_params(self, href="http://example.com/asset0.tif", file_name="asset_0"):
+        return (
+            {"href": href, "file_name": file_name},
+            "bilinear",
+            "region",
+            "value",
+            30.0,
+            300,
+        )
+
+    @patch("staclib.gs.parse_command")
+    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
+    def test_calls_r_import_with_correct_args(self, mock_check_url, mock_parse):
+        libstac.import_grass_raster(self._make_params())
+        mock_parse.assert_called_once_with(
+            "r.import",
+            input="http://example.com/asset0.tif",
+            output="asset_0",
+            resample="bilinear",
+            extent="region",
+            resolution="value",
+            resolution_value=30.0,
+            title="asset_0",
+            memory=300,
+            quiet=True,
+        )
+
+    @patch("staclib.gs.parse_command")
+    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
+    def test_check_url_type_called_with_href(self, mock_check_url, mock_parse):
+        params = self._make_params()
+        libstac.import_grass_raster(params)
+        mock_check_url.assert_called_once_with("http://example.com/asset0.tif")
+
+    @patch("staclib.gs.parse_command")
+    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
+    def test_sets_gdal_env_vars(self, mock_check_url, mock_parse):
+        for key in (
+            "GDAL_HTTP_MAX_RETRY",
+            "GDAL_HTTP_RETRY_DELAY",
+            "CPL_VSIL_CURL_CACHE_SIZE",
+            "GDAL_MAX_CONNECTIONS",
+        ):
+            os.environ.pop(key, None)
+
+        libstac.import_grass_raster(self._make_params())
+
+        self.assertEqual(os.environ.get("GDAL_HTTP_MAX_RETRY"), "3")
+        self.assertEqual(os.environ.get("GDAL_HTTP_RETRY_DELAY"), "2")
+        self.assertEqual(os.environ.get("CPL_VSIL_CURL_CACHE_SIZE"), "0")
+        self.assertEqual(os.environ.get("GDAL_MAX_CONNECTIONS"), "2")
+
+    @patch("staclib.gs.parse_command")
+    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
+    def test_gdal_env_vars_not_overwritten_if_already_set(
+        self, mock_check_url, mock_parse
+    ):
+        os.environ["GDAL_MAX_CONNECTIONS"] = "10"
+        try:
+            libstac.import_grass_raster(self._make_params())
+            self.assertEqual(os.environ.get("GDAL_MAX_CONNECTIONS"), "10")
+        finally:
+            os.environ.pop("GDAL_MAX_CONNECTIONS", None)
+
+    @patch("staclib.gs.fatal")
+    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
+    @patch("staclib.gs.parse_command")
+    def test_called_module_error_calls_fatal(
+        self, mock_parse, mock_check_url, mock_fatal
+    ):
+        err = CalledModuleError("r.import", [], 1, "", "r.import failed")
+        mock_parse.side_effect = err
+        mock_fatal.side_effect = SystemExit
+
+        with self.assertRaises(SystemExit):
+            libstac.import_grass_raster(self._make_params())
+
+        mock_fatal.assert_called_once_with("Error importing raster: r.import failed")
+
+
+class TestDownloadAssets(TestCase):
+    """Tests for download_assets."""
+
+    def _make_assets(self, n=2):
+        return [
+            {"href": f"http://example.com/asset{i}.tif", "file_name": f"asset_{i}"}
+            for i in range(n)
+        ]
+
+    def _setup_pool_mock(self, mock_pool_cls, n_assets):
+        """Wire mock_pool_cls to return a mock executor whose submit()
+        returns fresh MagicMock futures in submission order."""
+        futures = [MagicMock() for _ in range(n_assets)]
+        for f in futures:
+            f.result.return_value = None
+
+        call_count = [0]
+
+        def mock_submit(fn, p):
+            f = futures[call_count[0]]
+            call_count[0] += 1
+            return f
+
+        mock_executor = MagicMock()
+        mock_executor.submit.side_effect = mock_submit
+        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
+        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
+        return mock_executor, futures
+
+    @staticmethod
+    def _as_completed_one_at_a_time(pending):
+        """Simulate as_completed by yielding one future per call so the
+        sliding-window loop advances one step at a time."""
+        yield next(iter(pending))
+
+    # ------------------------------------------------------------------
+    # nprocs capping
+    # ------------------------------------------------------------------
+
+    @patch("staclib.gs.warning")
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    @patch("os.cpu_count", return_value=4)
+    def test_nprocs_capped_at_cpu_count_minus_one(
+        self, mock_cpu, mock_pool_cls, mock_ac, mock_warning
+    ):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        # nprocs=10 exceeds cpu_count-1=3
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=10)
+
+        mock_warning.assert_any_call(
+            "Number of processes {nprocs} is greater than the number of CPUs {max_cpus}."
+        )
+        mock_pool_cls.assert_called_once_with(max_workers=3)
+
+    @patch("staclib.gs.warning")
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    @patch("os.cpu_count", return_value=64)
+    def test_nprocs_capped_at_max_concurrent_downloads(
+        self, mock_cpu, mock_pool_cls, mock_ac, mock_warning
+    ):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        # nprocs=32 exceeds MAX_CONCURRENT_DOWNLOADS=8 but not cpu_count-1=63
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=32)
+
+        mock_warning.assert_any_call(
+            "Capping concurrent downloads at {max} to avoid overwhelming the network "
+            "(requested {nprocs}).".format(
+                max=libstac.MAX_CONCURRENT_DOWNLOADS, nprocs=32
+            )
+        )
+        mock_pool_cls.assert_called_once_with(
+            max_workers=libstac.MAX_CONCURRENT_DOWNLOADS
+        )
+
+    # ------------------------------------------------------------------
+    # executor and submission behaviour
+    # ------------------------------------------------------------------
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_executor_created_with_nprocs(self, mock_pool_cls, mock_ac):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=3)
+
+        mock_pool_cls.assert_called_once_with(max_workers=3)
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_all_assets_submitted(self, mock_pool_cls, mock_ac):
+        n = 4
+        assets = self._make_assets(n)
+        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, n)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
+
+        self.assertEqual(mock_executor.submit.call_count, n)
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_result_called_for_every_future(self, mock_pool_cls, mock_ac):
+        n = 3
+        assets = self._make_assets(n)
+        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, n)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
+
+        for f in futures:
+            f.result.assert_called_once()
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_correct_params_passed_to_submit(self, mock_pool_cls, mock_ac):
+        assets = self._make_assets(2)
+        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, 2)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets(
+            assets, "bilinear", "region", "value", 30.0, memory=512, nprocs=2
+        )
+
+        submitted_params = [c.args[1] for c in mock_executor.submit.call_args_list]
+        for i, asset in enumerate(assets):
+            self.assertEqual(
+                submitted_params[i],
+                (asset, "bilinear", "region", "value", 30.0, 512),
+            )
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_empty_assets_no_submissions(self, mock_pool_cls, mock_ac):
+        mock_executor = MagicMock()
+        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
+        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets([], "bilinear", "region", "value", 30.0, nprocs=2)
+
+        mock_executor.submit.assert_not_called()
+
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_exception_from_future_propagates(self, mock_pool_cls, mock_ac):
+        assets = self._make_assets(2)
+        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, 2)
+        futures[0].result.side_effect = RuntimeError("Download failed")
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        with self.assertRaises(RuntimeError, msg="Download failed"):
+            libstac.download_assets(
+                assets, "bilinear", "region", "value", 30.0, nprocs=1
+            )
+
+    # ------------------------------------------------------------------
+    # tqdm integration
+    # ------------------------------------------------------------------
+
+    @patch("staclib._import_tqdm")
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_pbar_updated_once_per_asset(
+        self, mock_pool_cls, mock_ac, mock_import_tqdm
+    ):
+        n = 3
+        assets = self._make_assets(n)
+        self._setup_pool_mock(mock_pool_cls, n)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        mock_pbar = MagicMock()
+        mock_tqdm_cls = MagicMock()
+        mock_tqdm_cls.return_value.__enter__ = MagicMock(return_value=mock_pbar)
+        mock_tqdm_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_import_tqdm.return_value = mock_tqdm_cls
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
+
+        self.assertEqual(mock_pbar.update.call_count, n)
+        mock_tqdm_cls.assert_called_once_with(total=n, desc="Downloading assets")
+
+    @patch("staclib.gs.warning")
+    @patch("staclib._import_tqdm", return_value=None)
+    @patch("staclib.as_completed")
+    @patch("staclib.ProcessPoolExecutor")
+    def test_warning_and_runs_without_tqdm(
+        self, mock_pool_cls, mock_ac, mock_import_tqdm, mock_warning
+    ):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=1)
+
+        mock_warning.assert_any_call(
+            "tqdm module not found. Progress bar will not be displayed."
+        )
 
 
 if __name__ == "__main__":

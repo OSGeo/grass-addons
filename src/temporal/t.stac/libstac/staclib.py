@@ -25,7 +25,7 @@ import gettext
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from grass.jupyter.reprojection_renderer import ReprojectionRenderer
 
@@ -848,6 +848,12 @@ def create_metadata_vector(vector, metadata):
 
 def import_grass_raster(params):
     assets, resample_method, extent, resolution, resolution_value, memory = params
+    # Limit GDAL to 2 concurrent HTTP connections per process to avoid
+    # overwhelming the network when multiple processes run in parallel.
+    os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "3")
+    os.environ.setdefault("GDAL_HTTP_RETRY_DELAY", "2")
+    os.environ.setdefault("CPL_VSIL_CURL_CACHE_SIZE", "0")
+    os.environ.setdefault("GDAL_MAX_CONNECTIONS", "2")
     sys.stdout.write(f"Downloading Asset: {assets}\n")
     input_url = check_url_type(assets["href"])
     sys.stdout.write(f"Import Url: {input_url}\n")
@@ -870,6 +876,9 @@ def import_grass_raster(params):
         gs.fatal(_("Error importing raster: {}").format(e.stderr))
 
 
+MAX_CONCURRENT_DOWNLOADS = 8
+
+
 def download_assets(
     assets,
     resample_method,
@@ -881,11 +890,6 @@ def download_assets(
 ):
     """Downloads a list of images from the given URLs to the given filenames."""
     number_of_assets = len(assets)
-    resample_extent_list = [resample_extent] * number_of_assets
-    resolution_list = [resolution] * number_of_assets
-    resolution_value_list = [resolution_value] * number_of_assets
-    resample_method_list = [resample_method] * number_of_assets
-    memory_list = [memory] * number_of_assets
     max_cpus = os.cpu_count() - 1
     if nprocs > max_cpus:
         gs.warning(
@@ -895,29 +899,53 @@ def download_assets(
         )
         nprocs = max_cpus
 
-    def execute_import_grass_raster(pbar=None):
-        with ThreadPoolExecutor(max_workers=nprocs) as executor:
-            try:
-                for _a in executor.map(
-                    import_grass_raster,
-                    zip(
-                        assets,
-                        resample_method_list,
-                        resample_extent_list,
-                        resolution_list,
-                        resolution_value_list,
-                        memory_list,
-                    ),
-                ):
+    if nprocs > MAX_CONCURRENT_DOWNLOADS:
+        gs.warning(
+            _(
+                "Capping concurrent downloads at {max} to avoid overwhelming the network "
+                "(requested {nprocs})."
+            ).format(max=MAX_CONCURRENT_DOWNLOADS, nprocs=nprocs)
+        )
+        nprocs = MAX_CONCURRENT_DOWNLOADS
+
+    params = [
+        (asset, resample_method, resample_extent, resolution, resolution_value, memory)
+        for asset in assets
+    ]
+
+    tqdm_cls = _import_tqdm(False)
+    if tqdm_cls is None:
+        gs.warning(_("tqdm module not found. Progress bar will not be displayed."))
+
+    def _run(pbar=None):
+        with ProcessPoolExecutor(max_workers=nprocs) as executor:
+            # Submit jobs in a sliding window of nprocs to avoid queuing all
+            # tasks at once, which provides backpressure on the network.
+            pending = {}
+            params_iter = iter(params)
+
+            # Seed the pool up to max_workers
+            for p in params_iter:
+                if len(pending) >= nprocs:
+                    break
+                f = executor.submit(import_grass_raster, p)
+                pending[f] = p
+
+            while pending:
+                for future in as_completed(pending):
+                    del pending[future]
+                    future.result()
                     if pbar:
                         pbar.update(1)
-            except Exception as e:
-                gs.fatal(_("Error importing raster: {}").format(str(e)))
+                    # Submit the next job as a slot opens
+                    p = next(params_iter, None)
+                    if p is not None:
+                        f = executor.submit(import_grass_raster, p)
+                        pending[f] = p
+                    break  # re-enter as_completed with updated pending
 
-    tqdm = _import_tqdm(False)
-    if tqdm is None:
-        gs.warning(_("tqdm module not found. Progress bar will not be displayed."))
-        execute_import_grass_raster()
+    if tqdm_cls is not None:
+        with tqdm_cls(total=number_of_assets, desc="Downloading assets") as pbar:
+            _run(pbar)
     else:
-        with tqdm(total=number_of_assets, desc="Downloading assets") as pbar:
-            execute_import_grass_raster(pbar)
+        _run()
