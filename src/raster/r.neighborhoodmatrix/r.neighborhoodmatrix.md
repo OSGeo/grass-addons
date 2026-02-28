@@ -59,7 +59,7 @@ Idem, but also calculating neighborhood length, sending the output to a
 file:
 
 ```sh
-r.neighborhoodmatrix -l n=bc_int sep=comma output=county_neighbors.csv
+r.neighborhoodmatrix -l in=bc_int sep=comma output=county_neighbors.csv
 ```
 
 ## SEE ALSO
