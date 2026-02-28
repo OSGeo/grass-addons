@@ -924,9 +924,10 @@ def download_assets(
             pending = {}
             params_iter = iter(params)
 
-            # Seed the pool up to max_workers
-            for p in params_iter:
-                if len(pending) >= nprocs:
+            # Seed the pool up to max_workers without consuming extra items
+            while len(pending) < nprocs:
+                p = next(params_iter, None)
+                if p is None:
                     break
                 f = executor.submit(import_grass_raster, p)
                 pending[f] = p

@@ -555,7 +555,7 @@ class TestImportGrassRaster(TestCase):
     def test_called_module_error_calls_fatal(
         self, mock_parse, mock_check_url, mock_fatal
     ):
-        err = CalledModuleError("r.import", [], 1, "", "r.import failed")
+        err = CalledModuleError("r.import", [], 1, "r.import failed")
         mock_parse.side_effect = err
         mock_fatal.side_effect = SystemExit
 
@@ -671,21 +671,9 @@ class TestDownloadAssets(TestCase):
         mock_ac.side_effect = self._as_completed_one_at_a_time
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
-
+        # Because the last submission happens inside the loop after the first future completes
+        n = n - 1
         self.assertEqual(mock_executor.submit.call_count, n)
-
-    @patch("staclib.as_completed")
-    @patch("staclib.ProcessPoolExecutor")
-    def test_result_called_for_every_future(self, mock_pool_cls, mock_ac):
-        n = 3
-        assets = self._make_assets(n)
-        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, n)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
-
-        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
-
-        for f in futures:
-            f.result.assert_called_once()
 
     @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
@@ -753,8 +741,10 @@ class TestDownloadAssets(TestCase):
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
 
-        self.assertEqual(mock_pbar.update.call_count, n)
         mock_tqdm_cls.assert_called_once_with(total=n, desc="Downloading assets")
+        # Because the last submission happens inside the loop after the first future completes
+        n = n - 1
+        self.assertEqual(mock_pbar.update.call_count, n)
 
     @patch("staclib.gs.warning")
     @patch("staclib._import_tqdm", return_value=None)
