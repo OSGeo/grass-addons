@@ -1,0 +1,315 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>GRASS GIS manual: v.in.ags</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="Author" content="GRASS Development Team">
+  <link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
+
+<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
+<hr class="header">
+
+<h2>NAME</h2>
+<em><b>v.in.ags</b></em> - Imports vector data from an ArcGIS Server feature service.
+
+<h2>KEYWORDS</h2>
+<a href="vector.html">vector</a>,
+<a href="topic_import.html">import</a>,
+ArcGIS Server,
+REST API,
+OGR
+
+<h2>SYNOPSIS</h2>
+<div id="name"><b>v.in.ags</b><br></div>
+<b>v.in.ags --help</b><br>
+<div id="synopsis">
+<b>v.in.ags</b>
+[<b>-rl</b>]
+<b>url</b>=<em>string</em>
+<b>output</b>=<em>name</em>
+[<b>where</b>=<em>sql_query</em>]
+[<b>fields</b>=<em>string</em>]
+[<b>extent</b>=<em>string</em>]
+[<b>layer</b>=<em>integer</em>]
+[--<b>overwrite</b>]
+[--<b>verbose</b>]
+[--<b>quiet</b>]
+[--<b>help</b>]
+</div>
+
+<h3>Flags</h3>
+<dl>
+  <dt><b>-r</b></dt>
+  <dd>Reproject data to match the current GRASS project CRS (uses v.import)</dd>
+  <dt><b>-l</b></dt>
+  <dd>List available layers in the service and exit without importing</dd>
+  <dt><b>--overwrite</b></dt>
+  <dd>Allow output files to overwrite existing files</dd>
+  <dt><b>--verbose</b></dt>
+  <dd>Verbose module output</dd>
+  <dt><b>--quiet</b></dt>
+  <dd>Quiet module output</dd>
+  <dt><b>--help</b></dt>
+  <dd>Print usage summary</dd>
+</dl>
+
+<h3>Parameters</h3>
+<dl>
+  <dt><b>url</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
+  <dd>ArcGIS Server feature layer URL</dd>
+  <dd>URL of the ArcGIS Server FeatureServer or MapServer layer
+    (e.g., https://host/arcgis/rest/services/Name/FeatureServer/0).
+    If a service root URL is given (without a layer index), use the
+    <b>layer</b> option to specify which layer to import.</dd>
+
+  <dt><b>output</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+  <dd>Name of the output vector map</dd>
+
+  <dt><b>where</b>=<em>sql_query</em></dt>
+  <dd>SQL WHERE clause to filter features</dd>
+  <dd>SQL expression used to select a subset of features.
+    Default is <tt>1=1</tt> which selects all features.</dd>
+  <dd>Default: <em>1=1</em></dd>
+
+  <dt><b>fields</b>=<em>string</em></dt>
+  <dd>Comma-separated list of fields to retrieve</dd>
+  <dd>Attribute fields to include in the output.
+    Use <tt>*</tt> to retrieve all fields (default).</dd>
+  <dd>Default: <em>*</em></dd>
+
+  <dt><b>extent</b>=<em>string</em></dt>
+  <dd>Bounding box spatial filter (xmin,ymin,xmax,ymax in WGS84)</dd>
+  <dd>Comma-separated bounding box in geographic degrees (EPSG:4326)
+    used to spatially filter features before download.</dd>
+
+  <dt><b>layer</b>=<em>integer</em></dt>
+  <dd>Layer index within the service</dd>
+  <dd>Zero-based layer index to use when the URL points to a FeatureServer
+    or MapServer root rather than a specific layer endpoint.</dd>
+  <dd>Default: <em>0</em></dd>
+</dl>
+
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>v.in.ags</em> imports vector features from an <b>ArcGIS Server (AGS)
+REST API</b> feature service or map service layer into a GRASS vector map.
+The module constructs query URLs automatically, handles server-side pagination
+transparently, and delegates the final import to <em>v.in.ogr</em> (default)
+or <em>v.import</em> (with the <b>-r</b> flag for on-the-fly reprojection).
+</p>
+
+<p>
+Geometry is always requested from the server in WGS84 (EPSG:4326) so that
+the intermediate GeoJSON file is standards-compliant (RFC 7946). When the
+current GRASS project is not in WGS84, use <b>-r</b> to reproject the data
+during import.
+</p>
+
+<h3>Supported service types</h3>
+
+<p>
+Both <b>FeatureServer</b> and <b>MapServer</b> layer endpoints are supported,
+provided the layer exposes the <tt>/query</tt> operation and supports GeoJSON
+output (<tt>f=geojson</tt>). ArcGIS Server 10.3 or later is required for
+pagination support; on older servers only the first page of results (up to
+<tt>maxRecordCount</tt>) is downloaded.
+</p>
+
+<h3>URL formats</h3>
+
+<p>The <b>url</b> parameter accepts:</p>
+<ul>
+  <li>A layer URL ending with a numeric layer index:<br>
+      <tt>https://host/arcgis/rest/services/Name/FeatureServer/0</tt></li>
+  <li>A service root URL (without a layer index); in this case use the
+      <b>layer</b> option to specify which layer to import:<br>
+      <tt>https://host/arcgis/rest/services/Name/FeatureServer</tt></li>
+</ul>
+
+<p>Use the <b>-l</b> flag to print all available layers in a service before
+importing.</p>
+
+<h2>NOTES</h2>
+
+<h3>Attribute filtering</h3>
+
+<p>
+The <b>where</b> option accepts any SQL expression supported by the ArcGIS
+Server being queried (standard SQL-92 subset). Examples:
+</p>
+
+<div class="code"><pre>
+STATE_NAME = 'California'
+POP2020 &gt; 100000
+TYPE IN ('city', 'town') AND AREA_KM2 &lt; 500
+</pre></div>
+
+<h3>Spatial filtering</h3>
+
+<p>
+The <b>extent</b> option accepts a bounding box
+<tt>xmin,ymin,xmax,ymax</tt> in geographic degrees (WGS84 / EPSG:4326).
+This is applied as an intersects filter on the server side before features
+are downloaded, which can significantly reduce transfer size for large layers.
+</p>
+
+<h3>Field selection</h3>
+
+<p>
+Use <b>fields</b> to restrict which attribute columns are retrieved. This
+reduces download size when only a subset of attributes is needed. The default
+<tt>*</tt> retrieves all fields.
+</p>
+
+<h3>Pagination</h3>
+
+<p>
+<em>v.in.ags</em> queries the service metadata to obtain
+<tt>maxRecordCount</tt> and then issues successive requests using
+<tt>resultOffset</tt>/<tt>resultRecordCount</tt> until all matching features
+have been retrieved. No manual batching is required.
+</p>
+
+<p>
+If the service reports <tt>supportsPagination: false</tt>, a warning is issued
+and only the first page of results is imported.
+</p>
+
+<h3>Coordinate reference system</h3>
+
+<p>
+All data is downloaded in WGS84. When using the default <em>v.in.ogr</em>
+import the output map will be in WGS84; ensure your project is in WGS84 or
+use <b>-r</b> so that <em>v.import</em> reprojects the data automatically.
+</p>
+
+<h2>EXAMPLES</h2>
+
+<h3>List layers available in a service</h3>
+
+<div class="code"><pre>
+v.in.ags -l url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer
+</pre></div>
+
+<h3>Import all features from a FeatureServer layer</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states
+</pre></div>
+
+<h3>Import with attribute filter and reprojection</h3>
+
+<p>Import only Californian counties, reprojecting to the current project CRS:</p>
+
+<div class="code"><pre>
+v.in.ags -r \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=california_counties \
+  where="STATE_NAME = 'California'"
+</pre></div>
+
+<h3>Import with a spatial bounding-box filter</h3>
+
+<p>Import features intersecting a bounding box over the US Pacific Northwest:</p>
+
+<div class="code"><pre>
+v.in.ags -r \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=pnw_states \
+  extent="-125,42,-116,49"
+</pre></div>
+
+<h3>Import selected fields only</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states_simple \
+  fields="STATE_NAME,STATE_ABBR,POP2020"
+</pre></div>
+
+<h3>Import from a MapServer layer using the service root URL</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer \
+  layer=2 \
+  output=usa_highways
+</pre></div>
+
+<h3>Python scripting example</h3>
+
+<div class="code"><pre>
+import grass.script as gs
+
+gs.run_command(
+    "v.in.ags",
+    flags="r",
+    url="https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+    output="usa_states",
+    where="POP2020 &gt; 1000000",
+    overwrite=True,
+)
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>
+    <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm">
+      ArcGIS REST API &ndash; Query (Feature Service)
+    </a>
+  </li>
+  <li>
+    <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-map-service-layer-.htm">
+      ArcGIS REST API &ndash; Query (Map Service)
+    </a>
+  </li>
+  <li>
+    <a href="https://gdal.org/drivers/vector/geojson.html">
+      OGR GeoJSON driver
+    </a>
+  </li>
+  <li>
+    <a href="https://www.rfc-editor.org/rfc/rfc7946">
+      RFC 7946 &ndash; The GeoJSON Format
+    </a>
+  </li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.import.html">v.import</a>,
+<a href="v.in.ogr.html">v.in.ogr</a>,
+<a href="v.in.wfs.html">v.in.wfs</a>,
+<a href="v.proj.html">v.proj</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey White
+
+<hr class="header">
+<p>
+<a href="index.html">Main index</a> |
+<a href="vector.html">Vector index</a> |
+<a href="topics.html">Topics index</a> |
+<a href="keywords.html">Keywords index</a> |
+<a href="graphical_index.html">Graphical index</a> |
+<a href="full_index.html">Full index</a>
+</p>
+<p>&copy; 2003-2024 <a href="http://grass.osgeo.org">GRASS Development Team</a>,
+GRASS GIS comes with ABSOLUTELY NO WARRANTY, and is
+<a href="http://www.gnu.org/licenses/gpl.html">Free Software</a>.
+Read about <a href="http://grass.osgeo.org/introduction/licensing/">licensing</a>.</p>
+
+</div>
+</body>
+</html>
