@@ -216,17 +216,15 @@ int main(int argc, char **argv)
                 soil_val = 4;
 
             /* resolve dual HSG codes (11-14) to single codes (1-4) */
-            {
-                int resolved = resolve_dual_hsg((int)soil_val, drained);
+            int resolved = resolve_dual_hsg((int)soil_val, drained);
 
-                if (resolved < 0) {
-                    G_warning(_("Invalid HSG value %d at row %d col %d"),
-                              (int)soil_val, row, col);
-                    Rast_set_c_null_value(&out_row[col], 1);
-                    continue;
-                }
-                soil_val = (CELL)resolved;
+            if (resolved < 0) {
+                G_warning(_("Invalid HSG value %d at row %d col %d"),
+                          (int)soil_val, row, col);
+                Rast_set_c_null_value(&out_row[col], 1);
+                continue;
             }
+            soil_val = (CELL)resolved;
 
             ok = lookup_lut_cn_ii(&cn_tbl, (int)lc_val, (int)soil_val, hc_idx,
                                   &cn_ii);
