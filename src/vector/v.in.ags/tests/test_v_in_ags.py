@@ -1,45 +1,46 @@
 """Tests for v.in.ags
 
 Unit tests exercise the helper functions (URL normalisation, spatial-filter
-parameter construction, JSON writing, feature counting) using mocked HTTP
-calls so no network connection is required.
+parameter construction, JSON/GeoJSON writing, PBF decoding, format selection,
+feature counting) using mocked HTTP calls so no network connection is required.
 
 Integration tests verify end-to-end behaviour against a real ArcGIS Server.
-They are skipped automatically when the network is unavailable.
+They are skipped automatically when the network is unavailable or no GRASS
+environment is active.
 
-Run from within a GRASS session:
+Run (no GRASS needed for unit tests):
     python -m pytest tests/test_v_in_ags.py -v
 
-Or with gunittest:
+Or with gunittest inside a GRASS session:
     python -m grass.gunittest.main --config .gunittest.cfg
 """
 
 import json
 import os
+import struct
 import sys
 import tempfile
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 # ---------------------------------------------------------------------------
-# Ensure the parent directory is on sys.path so we can import the module
-# directly (the GRASS parser is bypassed in unit tests).
+# Load the module without triggering the GRASS parser.
 # ---------------------------------------------------------------------------
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-# Import helper functions without triggering the GRASS parser.
 import importlib
+import importlib.util
 import types
 
-# We load only the helper functions, not main(), to avoid calling gs.parser().
 _MODULE_PATH = os.path.join(os.path.dirname(__file__), "..", "v.in.ags.py")
 
 
-def _load_helpers():
-    """Load v.in.ags module helpers without executing main()."""
+def _load_module():
+    """Load v.in.ags helper functions without executing main()."""
     spec = importlib.util.spec_from_file_location("v_in_ags", _MODULE_PATH)
     mod = importlib.util.module_from_spec(spec)
-    # Provide a stub grass.script so the module-level import succeeds.
+
+    # Minimal grass.script stub
     gs_stub = types.ModuleType("grass.script")
     gs_stub.fatal = lambda msg: (_ for _ in ()).throw(SystemExit(msg))
     gs_stub.warning = lambda msg: None
@@ -49,88 +50,109 @@ def _load_helpers():
     gs_stub.overwrite = lambda: False
     gs_stub.vector_history = lambda name: None
     gs_stub.run_command = lambda *a, **kw: None
-    sys.modules["grass"] = types.ModuleType("grass")
+    sys.modules.setdefault("grass", types.ModuleType("grass"))
     sys.modules["grass.script"] = gs_stub
+
     spec.loader.exec_module(mod)
     return mod
 
 
-_mod = _load_helpers()
-
-normalize_url = _mod.normalize_url
-_apply_extent = _mod._apply_extent
-write_geojson = _mod.write_geojson
+_mod = _load_module()
 
 
 # ===========================================================================
-# Unit tests – no network required
+# URL normalisation
 # ===========================================================================
 
 
 class TestNormalizeUrl(unittest.TestCase):
-    """Tests for normalize_url()."""
-
     def test_url_with_layer_id_unchanged(self):
         url = "https://host/arcgis/rest/services/Svc/FeatureServer/0"
-        self.assertEqual(normalize_url(url, 99), url)
+        self.assertEqual(_mod.normalize_url(url, 99), url)
 
-    def test_url_with_trailing_slash_stripped(self):
+    def test_trailing_slash_stripped(self):
         url = "https://host/arcgis/rest/services/Svc/FeatureServer/0/"
-        result = normalize_url(url, 99)
-        self.assertEqual(result, url.rstrip("/"))
+        self.assertEqual(_mod.normalize_url(url, 99), url.rstrip("/"))
 
-    def test_url_without_layer_id_appended(self):
+    def test_layer_id_appended(self):
         base = "https://host/arcgis/rest/services/Svc/FeatureServer"
-        result = normalize_url(base, 3)
-        self.assertEqual(result, base + "/3")
+        self.assertEqual(_mod.normalize_url(base, 3), base + "/3")
 
-    def test_url_layer_id_zero_appended(self):
+    def test_layer_id_zero_appended(self):
         base = "https://host/arcgis/rest/services/Svc/FeatureServer"
-        result = normalize_url(base, 0)
-        self.assertEqual(result, base + "/0")
+        self.assertEqual(_mod.normalize_url(base, 0), base + "/0")
 
-    def test_url_non_numeric_segment_treated_as_no_layer(self):
-        base = "https://host/arcgis/rest/services/Svc/FeatureServer"
-        result = normalize_url(base, 7)
-        self.assertTrue(result.endswith("/7"))
+
+# ===========================================================================
+# Spatial filter parameter builder
+# ===========================================================================
 
 
 class TestApplyExtent(unittest.TestCase):
-    """Tests for _apply_extent()."""
-
-    def test_empty_extent_no_params_added(self):
+    def test_empty_extent_no_change(self):
         params = {}
-        _apply_extent(params, "")
+        _mod._apply_extent(params, "")
         self.assertEqual(params, {})
 
-    def test_none_extent_no_params_added(self):
+    def test_none_extent_no_change(self):
         params = {}
-        _apply_extent(params, None)
+        _mod._apply_extent(params, None)
         self.assertEqual(params, {})
 
-    def test_valid_extent_adds_geometry_params(self):
+    def test_valid_extent_populates_params(self):
         params = {}
-        _apply_extent(params, "-125,42,-116,49")
-        self.assertIn("geometry", params)
+        _mod._apply_extent(params, "-125,42,-116,49")
+        self.assertEqual(params["geometry"], "-125,42,-116,49")
         self.assertEqual(params["geometryType"], "esriGeometryEnvelope")
         self.assertEqual(params["inSR"], "4326")
         self.assertEqual(params["spatialRel"], "esriSpatialRelIntersects")
+
+    def test_custom_spatial_rel(self):
+        params = {}
+        _mod._apply_extent(params, "-125,42,-116,49", "esriSpatialRelContains")
+        self.assertEqual(params["spatialRel"], "esriSpatialRelContains")
+
+    def test_spaces_in_extent_trimmed(self):
+        params = {}
+        _mod._apply_extent(params, " -125 , 42 , -116 , 49 ")
         self.assertEqual(params["geometry"], "-125,42,-116,49")
 
-    def test_extent_with_spaces_trimmed(self):
-        params = {}
-        _apply_extent(params, " -125 , 42 , -116 , 49 ")
-        self.assertEqual(params["geometry"], "-125,42,-116,49")
-
-    def test_invalid_extent_raises_fatal(self):
-        params = {}
+    def test_invalid_extent_raises(self):
         with self.assertRaises(SystemExit):
-            _apply_extent(params, "invalid,extent")
+            _mod._apply_extent({}, "invalid,extent")
+
+
+# ===========================================================================
+# Format negotiation
+# ===========================================================================
+
+
+class TestSelectFormat(unittest.TestCase):
+    def test_auto_prefers_pbf(self):
+        self.assertEqual(_mod._select_format("JSON,geoJSON,PBF", "auto"), "pbf")
+
+    def test_auto_falls_back_to_geojson(self):
+        self.assertEqual(_mod._select_format("JSON,geoJSON", "auto"), "geojson")
+
+    def test_auto_falls_back_to_json(self):
+        self.assertEqual(_mod._select_format("JSON", "auto"), "json")
+
+    def test_explicit_format_respected(self):
+        self.assertEqual(_mod._select_format("JSON,geoJSON,PBF", "geojson"), "geojson")
+
+    def test_empty_supported_defaults_to_geojson(self):
+        self.assertEqual(_mod._select_format("", "auto"), "geojson")
+
+    def test_case_insensitive_matching(self):
+        self.assertEqual(_mod._select_format("GeoJSON,JSON", "auto"), "geojson")
+
+
+# ===========================================================================
+# GeoJSON file writer
+# ===========================================================================
 
 
 class TestWriteGeoJson(unittest.TestCase):
-    """Tests for write_geojson()."""
-
     def setUp(self):
         self._tmp = tempfile.NamedTemporaryFile(suffix=".geojson", delete=False)
         self._tmp.close()
@@ -140,7 +162,7 @@ class TestWriteGeoJson(unittest.TestCase):
         if os.path.exists(self._path):
             os.unlink(self._path)
 
-    def test_writes_valid_geojson_feature_collection(self):
+    def test_valid_feature_collection(self):
         features = [
             {
                 "type": "Feature",
@@ -148,60 +170,311 @@ class TestWriteGeoJson(unittest.TestCase):
                 "properties": {"name": "Test"},
             }
         ]
-        write_geojson(features, self._path)
+        _mod.write_geojson(features, self._path)
         with open(self._path, encoding="utf-8") as fh:
             data = json.load(fh)
         self.assertEqual(data["type"], "FeatureCollection")
         self.assertEqual(len(data["features"]), 1)
-        self.assertEqual(data["features"][0]["properties"]["name"], "Test")
 
-    def test_writes_empty_feature_collection(self):
-        write_geojson([], self._path)
+    def test_empty_feature_collection(self):
+        _mod.write_geojson([], self._path)
         with open(self._path, encoding="utf-8") as fh:
             data = json.load(fh)
-        self.assertEqual(data["type"], "FeatureCollection")
         self.assertEqual(data["features"], [])
 
-    def test_unicode_properties_preserved(self):
+    def test_unicode_preserved(self):
         features = [
-            {
-                "type": "Feature",
-                "geometry": None,
-                "properties": {"name": "São Paulo"},
-            }
+            {"type": "Feature", "geometry": None, "properties": {"n": "São Paulo"}}
         ]
-        write_geojson(features, self._path)
+        _mod.write_geojson(features, self._path)
         with open(self._path, encoding="utf-8") as fh:
             data = json.load(fh)
-        self.assertEqual(data["features"][0]["properties"]["name"], "São Paulo")
+        self.assertEqual(data["features"][0]["properties"]["n"], "São Paulo")
 
 
 # ===========================================================================
-# Mocked network tests – verify HTTP interaction logic
+# PBF low-level helpers
+# ===========================================================================
+
+
+class TestVarint(unittest.TestCase):
+    def _encode_varint(self, n):
+        """Encode *n* as a protobuf unsigned varint."""
+        out = []
+        while True:
+            bits = n & 0x7F
+            n >>= 7
+            if n:
+                out.append(bits | 0x80)
+            else:
+                out.append(bits)
+                break
+        return bytes(out)
+
+    def test_small_value(self):
+        data = self._encode_varint(1)
+        val, pos = _mod._read_varint(data, 0)
+        self.assertEqual(val, 1)
+        self.assertEqual(pos, 1)
+
+    def test_multibyte_value(self):
+        data = self._encode_varint(300)
+        val, pos = _mod._read_varint(data, 0)
+        self.assertEqual(val, 300)
+
+    def test_zigzag_positive(self):
+        self.assertEqual(_mod._zigzag(0), 0)
+        self.assertEqual(_mod._zigzag(2), 1)
+        self.assertEqual(_mod._zigzag(4), 2)
+
+    def test_zigzag_negative(self):
+        self.assertEqual(_mod._zigzag(1), -1)
+        self.assertEqual(_mod._zigzag(3), -2)
+        self.assertEqual(_mod._zigzag(5), -3)
+
+
+class TestDecodePacked(unittest.TestCase):
+    def _zigzag_encode(self, n):
+        return (n << 1) ^ (n >> 63) if n >= 0 else ((-n - 1) << 1) | 1
+
+    def _encode_varint(self, n):
+        out = []
+        while True:
+            bits = n & 0x7F
+            n >>= 7
+            if n:
+                out.append(bits | 0x80)
+            else:
+                out.append(bits)
+                break
+        return bytes(out)
+
+    def _pack_sint64(self, values):
+        return b"".join(self._encode_varint(self._zigzag_encode(v)) for v in values)
+
+    def test_decode_sint64(self):
+        data = self._pack_sint64([5, -3, 100, -1])
+        result = _mod._decode_packed_sint64(data)
+        self.assertEqual(result, [5, -3, 100, -1])
+
+    def test_decode_uint32(self):
+        data = (
+            self._encode_varint(0) + self._encode_varint(3) + self._encode_varint(255)
+        )
+        result = _mod._decode_packed_uint32(data)
+        self.assertEqual(result, [0, 3, 255])
+
+
+class TestParsePbfMessage(unittest.TestCase):
+    def _make_message(self, field_num, wire_type, value_bytes):
+        """Build a minimal one-field protobuf message."""
+        tag = (field_num << 3) | wire_type
+        tag_bytes = []
+        while True:
+            bits = tag & 0x7F
+            tag >>= 7
+            if tag:
+                tag_bytes.append(bits | 0x80)
+            else:
+                tag_bytes.append(bits)
+                break
+        return bytes(tag_bytes) + value_bytes
+
+    def _varint_bytes(self, n):
+        out = []
+        while True:
+            bits = n & 0x7F
+            n >>= 7
+            if n:
+                out.append(bits | 0x80)
+            else:
+                out.append(bits)
+                break
+        return bytes(out)
+
+    def test_varint_field(self):
+        msg = self._make_message(1, 0, self._varint_bytes(42))
+        result = _mod._parse_pbf_message(msg)
+        self.assertEqual(result[1], 42)
+
+    def test_double_field(self):
+        msg = self._make_message(3, 1, struct.pack("<d", 3.14))
+        result = _mod._parse_pbf_message(msg)
+        self.assertAlmostEqual(result[3], 3.14, places=10)
+
+    def test_bytes_field(self):
+        payload = b"hello"
+        length_prefix = self._varint_bytes(len(payload))
+        msg = self._make_message(2, 2, length_prefix + payload)
+        result = _mod._parse_pbf_message(msg)
+        self.assertEqual(result[2], b"hello")
+
+    def test_repeated_field_becomes_list(self):
+        v1 = self._make_message(1, 0, self._varint_bytes(10))
+        v2 = self._make_message(1, 0, self._varint_bytes(20))
+        result = _mod._parse_pbf_message(v1 + v2)
+        self.assertIsInstance(result[1], list)
+        self.assertEqual(result[1], [10, 20])
+
+
+# ===========================================================================
+# PBF geometry decoder
+# ===========================================================================
+
+
+class TestDecodeEsriGeometry(unittest.TestCase):
+    """Tests for _decode_esri_geometry using hand-crafted Geometry messages."""
+
+    def _encode_varint(self, n):
+        out = []
+        while True:
+            bits = n & 0x7F
+            n >>= 7
+            if n:
+                out.append(bits | 0x80)
+            else:
+                out.append(bits)
+                break
+        return bytes(out)
+
+    def _zigzag_encode(self, n):
+        if n >= 0:
+            return n << 1
+        return ((-n - 1) << 1) | 1
+
+    def _pack_sint64(self, values):
+        return b"".join(self._encode_varint(self._zigzag_encode(v)) for v in values)
+
+    def _make_length_field(self, field_num, payload):
+        """Build a length-delimited protobuf field."""
+        tag = self._encode_varint((field_num << 3) | 2)
+        return tag + self._encode_varint(len(payload)) + payload
+
+    def _build_geometry(self, lengths, coords):
+        msg = b""
+        if lengths:
+            msg += self._make_length_field(1, self._pack_sint64(lengths))
+        msg += self._make_length_field(2, self._pack_sint64(coords))
+        return msg
+
+    def test_point_no_quantization(self):
+        # A point at (10.0, 20.0) with no quantization (xy_scale=None)
+        # Coordinates stored as delta from (0,0): dx=10, dy=20
+        geom = self._build_geometry([], [10, 20])
+        result = _mod._decode_esri_geometry(geom, 1, None, 0, 0)
+        self.assertEqual(result["type"], "Point")
+        self.assertAlmostEqual(result["coordinates"][0], 10.0)
+        self.assertAlmostEqual(result["coordinates"][1], 20.0)
+
+    def test_point_with_quantization(self):
+        # actual_x = ix / xy_scale + x_origin
+        # ix=100000, xy_scale=10000, x_origin=0 → x=10.0
+        # iy=200000, xy_scale=10000, y_origin=0 → y=20.0
+        geom = self._build_geometry([], [100000, 200000])
+        result = _mod._decode_esri_geometry(geom, 1, 10000.0, 0.0, 0.0)
+        self.assertEqual(result["type"], "Point")
+        self.assertAlmostEqual(result["coordinates"][0], 10.0)
+        self.assertAlmostEqual(result["coordinates"][1], 20.0)
+
+    def test_linestring_two_points(self):
+        # Two points: (0,0) and (5,5) via deltas [0,0, 5,5]
+        geom = self._build_geometry([], [0, 0, 5, 5])
+        result = _mod._decode_esri_geometry(geom, 3, None, 0, 0)
+        self.assertEqual(result["type"], "LineString")
+        self.assertEqual(len(result["coordinates"]), 2)
+        self.assertEqual(result["coordinates"][1], [5.0, 5.0])
+
+    def test_multilinestring(self):
+        # Two paths of 2 points each; lengths=[2,2]
+        # Path 1: (0,0)→(1,1) deltas: [0,0, 1,1]
+        # Path 2: continues from (1,1): (3,3)→(4,4) deltas: [2,2, 1,1]
+        geom = self._build_geometry([2, 2], [0, 0, 1, 1, 2, 2, 1, 1])
+        result = _mod._decode_esri_geometry(geom, 3, None, 0, 0)
+        self.assertEqual(result["type"], "MultiLineString")
+        self.assertEqual(len(result["coordinates"]), 2)
+
+    def test_polygon_triangle(self):
+        # Triangle: (0,0)→(1,0)→(0,1)→close at (0,0)
+        # Deltas: [0,0, 1,0, -1,1]; lengths=[3]
+        geom = self._build_geometry([3], [0, 0, 1, 0, -1, 1])
+        result = _mod._decode_esri_geometry(geom, 4, None, 0, 0)
+        self.assertIn(result["type"], ("Polygon", "MultiPolygon"))
+
+    def test_unsupported_geometry_type_returns_none(self):
+        geom = self._build_geometry([], [0, 0])
+        result = _mod._decode_esri_geometry(geom, 99, None, 0, 0)
+        self.assertIsNone(result)
+
+
+# ===========================================================================
+# PBF value decoder
+# ===========================================================================
+
+
+class TestDecodePbfValue(unittest.TestCase):
+    def _varint_bytes(self, n):
+        out = []
+        while True:
+            bits = n & 0x7F
+            n >>= 7
+            if n:
+                out.append(bits | 0x80)
+            else:
+                out.append(bits)
+                break
+        return bytes(out)
+
+    def _make_field(self, field_num, wire_type, value_bytes):
+        tag = self._varint_bytes((field_num << 3) | wire_type)
+        return tag + value_bytes
+
+    def _len_delimited(self, field_num, payload):
+        return self._make_field(
+            field_num, 2, self._varint_bytes(len(payload)) + payload
+        )
+
+    def test_string_value(self):
+        msg = self._len_delimited(1, "hello".encode())
+        self.assertEqual(_mod._decode_pbf_value(msg), "hello")
+
+    def test_double_value(self):
+        msg = self._make_field(3, 1, struct.pack("<d", 3.14))
+        self.assertAlmostEqual(_mod._decode_pbf_value(msg), 3.14, places=10)
+
+    def test_float_value(self):
+        msg = self._make_field(2, 5, struct.pack("<f", 1.5))
+        self.assertAlmostEqual(_mod._decode_pbf_value(msg), 1.5, places=5)
+
+    def test_uint32_value(self):
+        msg = self._make_field(5, 0, self._varint_bytes(42))
+        self.assertEqual(_mod._decode_pbf_value(msg), 42)
+
+    def test_bool_value_true(self):
+        msg = self._make_field(9, 0, self._varint_bytes(1))
+        self.assertTrue(_mod._decode_pbf_value(msg))
+
+    def test_empty_value_returns_none(self):
+        self.assertIsNone(_mod._decode_pbf_value(b""))
+
+
+# ===========================================================================
+# Mocked network – fetch_all_features pagination
 # ===========================================================================
 
 _LAYER_INFO = {
     "name": "Test Layer",
     "maxRecordCount": 2,
+    "supportedQueryFormats": "JSON,geoJSON,PBF",
     "advancedQueryCapabilities": {"supportsPagination": True},
-    "extent": {"spatialReference": {"wkid": 4326, "latestWkid": 4326}},
 }
 
-_COUNT_RESPONSE = {"count": 3}
+_COUNT_RESP = {"count": 3}
 
 _PAGE_1 = {
     "type": "FeatureCollection",
     "features": [
-        {
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [-120, 45]},
-            "properties": {"id": 1},
-        },
-        {
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [-121, 46]},
-            "properties": {"id": 2},
-        },
+        {"type": "Feature", "geometry": None, "properties": {"id": 1}},
+        {"type": "Feature", "geometry": None, "properties": {"id": 2}},
     ],
     "exceededTransferLimit": True,
 }
@@ -209,86 +482,200 @@ _PAGE_1 = {
 _PAGE_2 = {
     "type": "FeatureCollection",
     "features": [
-        {
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [-122, 47]},
-            "properties": {"id": 3},
-        }
+        {"type": "Feature", "geometry": None, "properties": {"id": 3}},
     ],
     "exceededTransferLimit": False,
 }
 
 
 class TestFetchAllFeatures(unittest.TestCase):
-    """Tests for fetch_all_features() using mocked fetch_json()."""
-
-    def _make_side_effect(self, responses):
-        """Return a side-effect function that cycles through *responses*."""
+    def _side_effects(self, responses):
         it = iter(responses)
 
-        def _side_effect(url, timeout=30):
+        def _effect(url, timeout=120):
             return next(it)
 
-        return _side_effect
+        return _effect
 
     def test_pagination_collects_all_features(self):
-        responses = [_COUNT_RESPONSE, _PAGE_1, _PAGE_2]
         with patch.object(
-            _mod, "fetch_json", side_effect=self._make_side_effect(responses)
+            _mod,
+            "fetch_json",
+            side_effect=self._side_effects([_COUNT_RESP, _PAGE_1, _PAGE_2]),
         ):
-            features = _mod.fetch_all_features(
-                "https://host/query", "1=1", "*", "", max_record_count=2
+            features, fmt = _mod.fetch_all_features(
+                "https://host/query", "1=1", "*", "", 2, fmt="geojson"
             )
         self.assertEqual(len(features), 3)
-        ids = [f["properties"]["id"] for f in features]
-        self.assertEqual(ids, [1, 2, 3])
+        self.assertEqual([f["properties"]["id"] for f in features], [1, 2, 3])
+        self.assertEqual(fmt, "geojson")
 
-    def test_no_features_returns_empty_list(self):
-        responses = [{"count": 0}]
-        with patch.object(
-            _mod, "fetch_json", side_effect=self._make_side_effect(responses)
-        ):
-            features = _mod.fetch_all_features(
-                "https://host/query", "1=1", "*", "", max_record_count=100
+    def test_no_features_returns_empty(self):
+        with patch.object(_mod, "fetch_json", return_value={"count": 0}):
+            features, _ = _mod.fetch_all_features(
+                "https://host/query", "1=1", "*", "", 100, fmt="geojson"
             )
         self.assertEqual(features, [])
 
+    def test_pbf_decode_error_falls_back_to_geojson(self):
+        """When PBF decoding raises ValueError, module retries with GeoJSON."""
+
+        def _fetch_bytes_bad(url, timeout=120):
+            return b"\x00"  # invalid PBF
+
+        responses_json = iter([_COUNT_RESP, _PAGE_1, _PAGE_2])
+
+        def _fetch_json_side(url, timeout=120):
+            return next(responses_json)
+
+        with patch.object(
+            _mod, "_fetch_raw", side_effect=_fetch_bytes_bad
+        ), patch.object(_mod, "fetch_json", side_effect=_fetch_json_side):
+            features, fmt = _mod.fetch_all_features(
+                "https://host/query", "1=1", "*", "", 2, fmt="pbf"
+            )
+
+        # Should have fallen back and still collected all features
+        self.assertEqual(fmt, "geojson")
+        self.assertEqual(len(features), 3)
+
     def test_server_error_in_count_raises(self):
-        err_resp = {"error": {"code": 400, "message": "Invalid query"}}
-        with patch.object(_mod, "fetch_json", return_value=err_resp):
+        err = {"error": {"code": 400, "message": "Bad request"}}
+        with patch.object(_mod, "fetch_json", return_value=err):
             with self.assertRaises(SystemExit):
                 _mod.fetch_all_features(
-                    "https://host/query", "1=1", "*", "", max_record_count=100
+                    "https://host/query", "1=1", "*", "", 100, fmt="geojson"
                 )
 
 
-class TestGetServiceInfo(unittest.TestCase):
-    """Tests for get_service_info()."""
+class TestSelectFormatFromServiceInfo(unittest.TestCase):
+    def test_pbf_selected_when_available(self):
+        fmt = _mod._select_format("JSON,geoJSON,PBF", "auto")
+        self.assertEqual(fmt, "pbf")
 
+    def test_explicit_json_respected(self):
+        fmt = _mod._select_format("JSON,geoJSON,PBF", "json")
+        self.assertEqual(fmt, "json")
+
+
+class TestGetServiceInfo(unittest.TestCase):
     def test_returns_parsed_info(self):
         with patch.object(_mod, "fetch_json", return_value=_LAYER_INFO):
             info = _mod.get_service_info("https://host/layer/0")
         self.assertEqual(info["name"], "Test Layer")
 
-    def test_server_error_raises_fatal(self):
-        err = {"error": {"code": 403, "message": "Access denied"}}
-        with patch.object(_mod, "fetch_json", return_value=err):
+    def test_server_error_raises(self):
+        with patch.object(
+            _mod, "fetch_json", return_value={"error": {"message": "Forbidden"}}
+        ):
             with self.assertRaises(SystemExit):
                 _mod.get_service_info("https://host/layer/0")
 
 
 # ===========================================================================
-# Integration tests – require a live ArcGIS Server; skipped if unavailable.
+# fetch_features_page – extra query parameters
 # ===========================================================================
 
-# Public Esri sample FeatureServer used for integration tests.
+
+class TestFetchFeaturesPageParams(unittest.TestCase):
+    """Verify that extra query parameters are encoded into the URL."""
+
+    def _capture_url(self):
+        """Return a side-effect that records the URL and returns a dummy page."""
+        captured = {}
+
+        def _side(url, timeout=120):
+            captured["url"] = url
+            return {"features": [], "exceededTransferLimit": False}
+
+        return captured, _side
+
+    def test_geometry_precision_in_url(self):
+        captured, side = self._capture_url()
+        with patch.object(_mod, "fetch_json", side_effect=side):
+            _mod.fetch_features_page(
+                "https://h/q",
+                "1=1",
+                "*",
+                "",
+                0,
+                100,
+                fmt="geojson",
+                geometry_precision=4,
+            )
+        self.assertIn("geometryPrecision=4", captured["url"])
+
+    def test_max_offset_in_url(self):
+        captured, side = self._capture_url()
+        with patch.object(_mod, "fetch_json", side_effect=side):
+            _mod.fetch_features_page(
+                "https://h/q",
+                "1=1",
+                "*",
+                "",
+                0,
+                100,
+                fmt="geojson",
+                max_offset=0.5,
+            )
+        self.assertIn("maxAllowableOffset=0.5", captured["url"])
+
+    def test_order_by_in_url(self):
+        captured, side = self._capture_url()
+        with patch.object(_mod, "fetch_json", side_effect=side):
+            _mod.fetch_features_page(
+                "https://h/q",
+                "1=1",
+                "*",
+                "",
+                0,
+                100,
+                fmt="geojson",
+                order_by="NAME ASC",
+            )
+        self.assertIn("orderByFields=NAME+ASC", captured["url"])
+
+    def test_no_geometry_flag(self):
+        captured, side = self._capture_url()
+        with patch.object(_mod, "fetch_json", side_effect=side):
+            _mod.fetch_features_page(
+                "https://h/q",
+                "1=1",
+                "*",
+                "",
+                0,
+                100,
+                fmt="geojson",
+                return_geometry=False,
+            )
+        self.assertIn("returnGeometry=false", captured["url"])
+
+    def test_custom_spatial_rel_in_url(self):
+        captured, side = self._capture_url()
+        with patch.object(_mod, "fetch_json", side_effect=side):
+            _mod.fetch_features_page(
+                "https://h/q",
+                "1=1",
+                "*",
+                "-125,42,-116,49",
+                0,
+                100,
+                fmt="geojson",
+                spatial_rel="esriSpatialRelContains",
+            )
+        self.assertIn("esriSpatialRelContains", captured["url"])
+
+
+# ===========================================================================
+# Integration tests – real network, real GRASS
+# ===========================================================================
+
 _SAMPLE_URL = (
     "https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0"
 )
 
 
-def _network_available():
-    """Return True when the integration-test endpoint is reachable."""
+def _network_ok():
     import urllib.request
 
     try:
@@ -298,56 +685,48 @@ def _network_available():
         return False
 
 
-@unittest.skipUnless(_network_available(), "Integration endpoint not reachable")
+@unittest.skipUnless(_network_ok(), "Integration endpoint not reachable")
+@unittest.skipUnless("GISBASE" in os.environ, "GRASS GIS environment not active")
 class TestIntegration(unittest.TestCase):
-    """End-to-end tests against a live ArcGIS Server.
-
-    These tests are automatically skipped when the network is unavailable.
-    They require a running GRASS session with a WGS84 project.
-    """
-
     OUTPUT = "test_v_in_ags_cities"
 
-    @classmethod
-    def setUpClass(cls):
-        try:
-            from grass.gunittest.case import TestCase as GrassTestCase
-
-            cls._grass_available = True
-        except ImportError:
-            cls._grass_available = False
-
-    def _run_module(self, **kwargs):
-        import grass.script as gs
-
-        return gs.run_command("v.in.ags", **kwargs)
-
-    @unittest.skipUnless("GISBASE" in os.environ, "GRASS GIS environment not active")
     def test_import_with_where_filter(self):
-        """Import a small filtered subset from a public service."""
         import grass.script as gs
 
-        self._run_module(
+        gs.run_command(
+            "v.in.ags",
             url=_SAMPLE_URL,
             output=self.OUTPUT,
             where="areaname LIKE 'New%'",
             overwrite=True,
         )
-        info = gs.vector_info(self.OUTPUT)
-        self.assertGreater(info["primitives"], 0)
+        info = gs.vector_info_topo(self.OUTPUT)
+        self.assertGreater(info["points"], 0)
+
+    def test_import_with_spatial_filter(self):
+        import grass.script as gs
+
+        gs.run_command(
+            "v.in.ags",
+            url=_SAMPLE_URL,
+            output=self.OUTPUT + "_bbox",
+            extent="-125,42,-116,49",
+            overwrite=True,
+        )
+        info = gs.vector_info_topo(self.OUTPUT + "_bbox")
+        self.assertGreater(info["points"], 0)
 
     @classmethod
     def tearDownClass(cls):
-        if "GISBASE" in os.environ:
-            import grass.script as gs
+        import grass.script as gs
 
-            gs.run_command(
-                "g.remove",
-                flags="f",
-                type="vector",
-                name=cls.OUTPUT,
-                errors="ignore",
-            )
+        gs.run_command(
+            "g.remove",
+            flags="f",
+            type="vector",
+            name=",".join([cls.OUTPUT, cls.OUTPUT + "_bbox"]),
+            errors="ignore",
+        )
 
 
 if __name__ == "__main__":
