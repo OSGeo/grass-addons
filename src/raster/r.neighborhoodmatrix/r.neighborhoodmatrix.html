@@ -61,14 +61,14 @@ Send the neighborhood matrix of the counties in the boundary_county map of the
 North Carolina dataset to standard output:
 
 <div class="code"><pre>
-r.neighborhoodmatrix in=bc_int sep=comma
+r.neighborhoodmatrix input=bc_int sep=comma
 </pre></div>
 
 <p>
 Idem, but also calculating neighborhood length, sending the output to a file:
 
 <div class="code"><pre>
-r.neighborhoodmatrix -l n=bc_int sep=comma output=county_neighbors.csv
+r.neighborhoodmatrix -l input=bc_int sep=comma output=county_neighbors.csv
 </pre></div>
 
 <h2>SEE ALSO</h2>
