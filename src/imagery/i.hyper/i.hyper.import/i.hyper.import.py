@@ -90,10 +90,15 @@ def import_by_product(product, options, flags):
         gs.fatal(f"Library path for {module_name} not found.")
     sys.path.append(path)
     spec = importlib.util.find_spec(module_name)
-    if not spec:
+    if not spec or not spec.loader:
         gs.fatal(f"Module {module_name} not found at {path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
     return module
 
 

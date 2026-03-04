@@ -70,11 +70,16 @@ def _import_hyper_meta():
         sys.path.append(path)
     
     spec = importlib.util.find_spec("hyper_meta")
-    if not spec:
+    if not spec or not spec.loader:
         gs.fatal(f"Module hyper_meta not found at {path}")
-    
+
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
     return module
 
 

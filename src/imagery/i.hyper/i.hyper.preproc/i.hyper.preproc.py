@@ -215,10 +215,15 @@ def _import_from_i_hyper_lib(module_name):
     if path not in sys.path:
         sys.path.append(path)
     spec = importlib.util.find_spec(module_name)
-    if not spec:
+    if not spec or not spec.loader:
         gs.fatal(f"Module {module_name} not found at {path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
     return module
 
 
@@ -245,7 +250,12 @@ def _load_hyper_meta_class():
     if not spec or not spec.loader:
         return None
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        return None
     return module.HyperMetadata
 
 

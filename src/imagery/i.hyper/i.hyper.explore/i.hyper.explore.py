@@ -89,7 +89,12 @@ def _get_hyper_meta_class():
         return None
 
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        return None
     _HYPER_META_CLASS = module.HyperMetadata
     return _HYPER_META_CLASS
 
