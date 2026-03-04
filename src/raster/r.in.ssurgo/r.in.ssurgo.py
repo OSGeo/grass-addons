@@ -345,7 +345,6 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
     """
     # Ensure target column exists
     cols = tools.v_info(map=vector_map, format="json", flags="c").json
-    print(f"{cols=}")
 
     # Handles previous json repsonse structure from GRASS 8.4.1
     if type(cols) is dict:
