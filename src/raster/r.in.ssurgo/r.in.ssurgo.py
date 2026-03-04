@@ -287,8 +287,8 @@ def hydrologic_soil_group_categories(map_name: str) -> None:
 
 
 def hydrologic_soil_group_color_scheme(map_name: str) -> None:
-    """Apply brown color scheme to elevation map."""
-    print("Applying brown elevation color scheme...")
+    """Apply hydrologic soil group color scheme to elevation map."""
+    gs.verbose(_("Applying hydrologic soil group color scheme..."))
     hydgrp_color_palette = [
         ("1", "#E7F5FF"),  # A Low runoff potential
         ("2", "#A6D9FF"),  # B Moderate runoff potential
@@ -307,8 +307,8 @@ def hydrologic_soil_group_color_scheme(map_name: str) -> None:
 
 
 def ksat_color_scheme(map_name: str) -> None:
-    """Apply brown color scheme to elevation map."""
-    print("Applying brown elevation color scheme...")
+    """Apply ksat color scheme to elevation map."""
+    gs.verbose(_("Applying ksat color scheme..."))
     ksat_color_palette = [
         # Very low Ksat (clays, compacted soils)
         ("0%", "#3B1F0E"),  # very slow infiltration
@@ -345,10 +345,6 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
     """
     # Ensure target column exists
     cols = tools.v_info(map=vector_map, format="json", flags="c").json
-
-    # Handles previous json repsonse structure from GRASS 8.4.1
-    if type(cols) is dict:
-        cols = cols.get("columns", [])
 
     col_names = [c["name"] for c in cols]
     if target_col not in col_names:
@@ -389,11 +385,6 @@ def local_ssurgo_query(
     desgnmaster,
     hzdept_r,
     hzdepb_r,
-    hydgrp_out,
-    ksat_h_out,
-    ksat_r_out,
-    ksat_l_out,
-    mukey_out,
     ssurgo_areas_out,
 ):
     """
@@ -409,11 +400,6 @@ def local_ssurgo_query(
         desgnmaster (str): Designation of master horizon.
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
-        hydgrp_out (str): Name for output hydrologic soil group raster.
-        ksat_h_out (str): Name for output Ksat high raster.
-        ksat_r_out (str): Name for output Ksat regular raster.
-        ksat_l_out (str): Name for output Ksat low raster.
-        mukey_out (str): Name for output map unit key raster.
         ssurgo_areas_out (str): Name for output soil grid vector layer.
 
     Returns:
@@ -454,8 +440,8 @@ def local_ssurgo_query(
     # claytotal_r: Clay content of the horizon (percent)
     # wtdepannmin_r: Minimum annual water table depth (cm)
 
-    # ---- Materialise each SSURGO layer into temporary tables so that ----
-    # ---- DuckDB can build indexes and avoid repeated full-file scans. ---
+    # Materialise each SSURGO layer into temporary tables so that
+    # DuckDB can build indexes and avoid repeated full-file scans.
     gs.message(_("Loading SSURGO layers into memory..."))
 
     con.execute(
