@@ -2,11 +2,12 @@
 
 *i.hyper.composite* creates RGB, CIR, SWIR and custom false-color
 composites from a hyperspectral 3D raster map (`raster_3d`). The module
-reads per-band wavelength metadata from the 3D raster (as written by
-[i.hyper.import](i.hyper.import.html) /
-[i.hyper.preproc](i.hyper.preproc.html)), selects the nearest available
-bands to requested wavelengths, enhances contrast, and composes a 2D
-color raster.
+reads per-band wavelength metadata from `hyper.json` when available
+(as written by [i.hyper.import](i.hyper.import.html) /
+[i.hyper.preproc](i.hyper.preproc.html)), and falls back to legacy
+`r3.info` comments when JSON metadata is not present. It then selects the
+nearest available bands to requested wavelengths, enhances contrast, and
+composes a 2D color raster.
 
 Internally, the cube is temporarily exploded into 2D rasters (one per
 band) using `r3.to.rast`. For each composite, the nearest bands to
@@ -35,9 +36,9 @@ resample spectrally.
 
 ## NOTES
 
-- The input 3D raster must contain per-band wavelength comments in
-  `r3.info` (e.g., lines like `Band 17: 848 nm`); otherwise the module
-  aborts with a clear error.
+- The input 3D raster must contain per-band wavelength metadata, ideally
+  in `hyper.json`. Legacy `r3.info` comments (e.g., `Band 17: 848 nm`)
+  are supported as fallback.
 - Nearest-band selection is used (no spectral resampling). If your
   cube's wavelengths differ from the requested targets, the closest
   bands are chosen.
