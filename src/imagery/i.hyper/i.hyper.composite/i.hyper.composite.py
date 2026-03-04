@@ -57,8 +57,10 @@
 import sys
 import re
 import uuid
+import importlib.util
 import grass.script as gs
 from grass.pygrass.modules import Module
+from grass.script.utils import get_lib_path
 
 COMPOSITES = {
     "rgb": [660, 572, 478],
@@ -66,6 +68,23 @@ COMPOSITES = {
     "swir_agriculture": [848, 1653, 660],
     "swir_geology": [2200, 848, 572],
 }
+
+
+def _get_hyper_meta_class():
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        return None
+
+    if path not in sys.path:
+        sys.path.append(path)
+
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.HyperMetadata
 
 
 def _band_count(mapname):
@@ -98,6 +117,27 @@ def _band_wavelengths_from_comments(mapname, expected):
             f"Missing wavelengths in r3.info comments for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
         )
     return wavelengths
+
+
+def _band_wavelengths(mapname, expected, hyper_meta_class):
+    if hyper_meta_class is not None:
+        try:
+            meta = hyper_meta_class.load(mapname)
+            if meta.wavelengths is not None:
+                wavelengths = list(meta.wavelengths)
+                if len(wavelengths) >= expected:
+                    wavelengths = wavelengths[:expected]
+                else:
+                    wavelengths = wavelengths + [None] * (expected - len(wavelengths))
+
+                if all(w is not None for w in wavelengths):
+                    return [float(w) for w in wavelengths]
+        except Exception as error:
+            gs.warning(
+                f"Failed to read JSON metadata for {mapname}, falling back to r3.info comments: {error}"
+            )
+
+    return _band_wavelengths_from_comments(mapname, expected)
 
 
 def _explode_cube(cube, tmpbase):
@@ -193,7 +233,8 @@ def main():
     band_count = _band_count(cube)
     if band_count < 3:
         gs.fatal(f"{cube} contains only {band_count} band(s). Cannot build composites.")
-    wavelengths = _band_wavelengths_from_comments(cube, band_count)
+    hyper_meta_class = _get_hyper_meta_class()
+    wavelengths = _band_wavelengths(cube, band_count, hyper_meta_class)
 
     tmpbase = f"_ihc_{uuid.uuid4().hex[:8]}_b_"
     maps = _explode_cube(cube, tmpbase)
