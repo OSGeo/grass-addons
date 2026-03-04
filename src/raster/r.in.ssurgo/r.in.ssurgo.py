@@ -115,7 +115,6 @@ from requests import options
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.tools import Tools
-from contextlib import contextmanager
 from io import StringIO
 import gettext
 import json
@@ -148,35 +147,6 @@ def _import_duckdb(error):
         if error:
             raise err
         return None
-
-
-# https://ncss-tech.github.io/soilDB/reference/downloadSSURGO.html
-# https://github.com/ncss-tech/soilDB/blob/master/R/mukey-WCS.R
-# https://ncss-tech.github.io/AQP/soilDB/WCS-demonstration-01.html
-@contextmanager
-def add_sys_path(new_path: str):
-    """
-    Context manager to temporarily add a directory to the Python module search path (sys.path).
-
-    This function allows you to temporarily include a specified directory in the Python
-    module search path. Once the context is exited, the original sys.path is restored.
-
-    Args:
-        new_path (str): The directory path to be added to sys.path.
-
-    Yields:
-        None: This context manager does not return any value.
-
-    Example:
-        with add_sys_path('/path/to/directory'):
-        # After the context, sys.path is restored to its original state.
-    """
-    original_sys_path = sys.path[:]
-    sys.path.append(new_path)
-    try:
-        yield
-    finally:
-        sys.path = original_sys_path
 
 
 def region_to_crs_bbox(target_crs: str) -> list[float]:
