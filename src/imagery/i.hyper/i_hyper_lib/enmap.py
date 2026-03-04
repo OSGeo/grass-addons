@@ -8,6 +8,8 @@ from grass.pygrass.modules import Module
 import contextlib
 from statistics import mean
 
+from hyper_meta import HyperMetadata
+
 COMPOSITES = {
     "rgb": [660, 572, 478],
     "cir": [848, 660, 572],
@@ -283,19 +285,30 @@ def import_enmap(
                 )
             Module("g.remove", type="raster", name=band_names, flags="f", quiet=True)
 
-        # r3 metadata
-        desc = ["Hyperspectral Metadata:", f"Valid Bands: {len(valid_bands)}"]
-        for idx, b in enumerate(valid_bands, 1):
-            meta = band_meta[b]
-            desc.append(f"Band {idx}: {meta['wavelength']} nm, FWHM: {meta['fwhm']} nm")
-        Module(
-            "r3.support",
-            map=output,
-            title="EnMAP Hyperspectral Data",
-            description="\n".join(desc),
-            vunit="nanometers",
-            quiet=True,
-        )
+        # hyperspectral metadata (JSON + legacy r3.support)
+        try:
+            wavelengths_meta = [band_meta[b]["wavelength"] for b in valid_bands]
+            fwhm_meta = [band_meta[b]["fwhm"] for b in valid_bands]
+            gain_meta = [band_meta[b]["gain"] for b in valid_bands]
+            offset_meta = [band_meta[b]["offset"] for b in valid_bands]
+
+            meta = HyperMetadata.for_spectral_data(
+                wavelengths=wavelengths_meta,
+                fwhm=fwhm_meta,
+                sensor="EnMAP",
+                radiometric_quantity="surface_reflectance",
+                radiometric_units="unitless",
+            )
+            meta.gain = gain_meta
+            meta.offset = offset_meta
+            meta.add_processing_step(
+                operation="import",
+                module="i.hyper.import",
+                params={"product": "enmap", "input": folder},
+            )
+            meta.save(output)
+        except Exception as e_meta:
+            gs.warning(f"Failed to write r3 metadata: {e_meta}")
 
         gs.del_temp_region()
 

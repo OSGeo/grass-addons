@@ -18,6 +18,7 @@ import grass.script as gs
 import grass.script.array as garray
 from grass.pygrass.modules import Module
 
+from hyper_meta import HyperMetadata
 from prisma_reader import load_prisma_l2d, concatenate_hyperspectral
 
 COMPOSITES = {
@@ -251,22 +252,22 @@ def import_prisma(
             f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
         )
 
-        # -------- r3 metadata --------
+        # -------- hyperspectral metadata (JSON + legacy r3.support) --------
         try:
             count_meta = int(min(bands_total, len(wavelengths)))
-            desc_lines = ["Hyperspectral Metadata:", f"Valid Bands: {count_meta}"]
-            for i in range(count_meta):
-                wl_i = float(wavelengths[i])
-                fwhm_i = float(fwhm[i]) if i < len(fwhm) else float("nan")
-                desc_lines.append(f"Band {i + 1}: {wl_i} nm, FWHM: {fwhm_i} nm")
-            Module(
-                "r3.support",
-                map=output_name,
-                title="PRISMA Hyperspectral Data",
-                description="\n".join(desc_lines),
-                vunit="nanometers",
-                quiet=True,
+            meta = HyperMetadata.for_spectral_data(
+                wavelengths=wavelengths[:count_meta],
+                fwhm=fwhm[:count_meta] if fwhm is not None else None,
+                sensor="PRISMA",
+                radiometric_quantity="surface_reflectance",
+                radiometric_units="unitless",
             )
+            meta.add_processing_step(
+                operation="import",
+                module="i.hyper.import",
+                params={"product": "prisma", "input": he5},
+            )
+            meta.save(output_name)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
         # -----------------------------------------------------------------

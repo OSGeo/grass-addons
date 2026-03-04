@@ -235,6 +235,20 @@ def _load_processing_libs():
     )
 
 
+def _load_hyper_meta_class():
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        return None
+    if path not in sys.path:
+        sys.path.append(path)
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.HyperMetadata
+
+
 def _fill_nans_1d(x):
     v = np.asarray(x, dtype=np.float32)
     m = np.isfinite(v)
@@ -262,6 +276,33 @@ def _get_wavelengths_from_r3info(mapname):
     return wl if wl else None
 
 
+def _get_wavelengths(mapname, hyper_meta_class):
+    if hyper_meta_class is not None:
+        with contextlib.suppress(Exception):
+            meta = hyper_meta_class.load(mapname)
+            arr = meta.get_wavelengths_array()
+            if arr is not None:
+                return arr
+    return _get_wavelengths_from_r3info(mapname)
+
+
+def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_class):
+    if hyper_meta_class is None:
+        return
+    try:
+        meta = hyper_meta_class.load(src)
+        if meta.wavelengths is None and not meta.is_components:
+            return
+        meta.add_processing_step(
+            operation="preprocessing",
+            module="i.hyper.preproc",
+            params=processing_params,
+        )
+        meta.save(dst)
+    except Exception as error:
+        gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
+
+
 def _copy_r3_metadata(src, dst):
     fd, tmp = tempfile.mkstemp(prefix="r3hist_", suffix=".txt")
     os.close(fd)
@@ -286,7 +327,47 @@ def _copy_r3_metadata(src, dst):
             os.remove(tmp)
 
 
-def _set_dr_metadata(outmap, method, info):
+def _set_dr_metadata(
+    outmap, method, info, source_map=None, hyper_meta_class=None
+):
+    if hyper_meta_class is not None:
+        try:
+            explained = info.get("explained_variance_ratio")
+            if explained is not None and hasattr(explained, "tolist"):
+                explained = explained.tolist()
+
+            n_components = info.get("n_components")
+            if n_components is None:
+                n_components = len(explained or [])
+
+            meta = hyper_meta_class.for_components(
+                n_components=int(n_components or 0),
+                method=method,
+                explained_variance_ratio=explained,
+                source_map=source_map,
+            )
+
+            if method in ["kpca", "nystroem"]:
+                meta.custom["kernel"] = info.get("kernel")
+                meta.custom["gamma"] = info.get("gamma")
+                meta.custom["degree"] = info.get("degree")
+
+            meta.add_processing_step(
+                operation="dimensionality_reduction",
+                module="i.hyper.preproc",
+                params={
+                    "method": method,
+                    "n_components": int(n_components or 0),
+                    "kernel": info.get("kernel"),
+                    "gamma": info.get("gamma"),
+                    "degree": info.get("degree"),
+                },
+            )
+            meta.save(outmap)
+            return
+        except Exception as error:
+            gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
+
     lines = []
     name_map = {
         "pca": "PCA",
@@ -344,6 +425,7 @@ def preprocess_hyperspectral(
         _continuum_removal,
         _apply_dimensionality_reduction,
     ) = _load_processing_libs()
+    hyper_meta_class = _load_hyper_meta_class()
 
     if dr_method:
         dr_method = dr_method.lower()
@@ -411,7 +493,7 @@ def preprocess_hyperspectral(
     if clamp_negative:
         flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
 
-    wavelengths = _get_wavelengths_from_r3info(inp)
+    wavelengths = _get_wavelengths(inp, hyper_meta_class)
     if dr_bands and wavelengths is None:
         gs.message("No wavelength metadata found; ignoring dr_bands filter.")
 
@@ -469,7 +551,30 @@ def preprocess_hyperspectral(
 
     _copy_r3_metadata(inp, out)
     if dr_method:
-        _set_dr_metadata(out, dr_method, dr_info or {})
+        dr_meta_info = dict(dr_info or {})
+        dr_meta_info.setdefault("n_components", n_bands)
+        _set_dr_metadata(
+            out,
+            dr_method,
+            dr_meta_info,
+            source_map=inp,
+            hyper_meta_class=hyper_meta_class,
+        )
+    else:
+        _copy_and_update_hyper_metadata(
+            inp,
+            out,
+            {
+                "polyorder": int(polyorder),
+                "derivative_order": int(derivative_order),
+                "window_length": int(window_length),
+                "baseline": bool(baseline),
+                "continuum": bool(continuum),
+                "interpolate_nodata": bool(interpolate_nodata),
+                "clamp_negative": bool(clamp_negative),
+            },
+            hyper_meta_class,
+        )
 
     cmd_line = "i.hyper.preproc " + " ".join(sys.argv[1:])
     gs.run_command("r3.support", map=out, history=cmd_line, quiet=True)

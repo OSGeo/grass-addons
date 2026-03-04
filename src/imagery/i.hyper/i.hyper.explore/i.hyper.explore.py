@@ -65,6 +65,40 @@
 import grass.script as gs
 import json
 import re
+import sys
+import importlib.util
+from grass.script.utils import get_lib_path
+
+_HYPER_META_CLASS = None
+
+
+def _get_hyper_meta_class():
+    global _HYPER_META_CLASS
+    if _HYPER_META_CLASS is not None:
+        return _HYPER_META_CLASS
+
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        return None
+
+    if path not in sys.path:
+        sys.path.append(path)
+
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _HYPER_META_CLASS = module.HyperMetadata
+    return _HYPER_META_CLASS
+
+
+def _pad_or_trim(values, expected):
+    values = list(values or [])
+    if len(values) >= expected:
+        return values[:expected]
+    return values + [None] * (expected - len(values))
 
 
 def _band_count(mapname):
@@ -460,21 +494,41 @@ def main(options, flags):
     gs.use_temp_region()
 
     datasets = []
+    HyperMetadata = _get_hyper_meta_class()
     for mapname in maps:
         gs.run_command("g.region", raster_3d=mapname)
         band_count = _band_count(mapname)
-        wavelengths, fwhm = _band_wavelengths(mapname, band_count)
+        wavelengths = None
+        measurement = None
+        units = None
+        has_comp = 0
+
+        if HyperMetadata is not None:
+            try:
+                meta = HyperMetadata.load(mapname)
+                if meta.wavelengths is not None:
+                    wavelengths = _pad_or_trim(meta.wavelengths, band_count)
+                measurement = meta.radiometric_quantity
+                units = meta.radiometric_units
+                if meta.is_components:
+                    has_comp = int(meta.n_components or band_count)
+            except Exception as error:
+                gs.warning(
+                    f"Metadata load failed for {mapname}, falling back to legacy parser: {error}"
+                )
+
+        if wavelengths is None:
+            wavelengths, _fwhm = _band_wavelengths(mapname, band_count)
+            measurement = _band_measurement(mapname)
+            units = _band_units(
+                mapname
+            )  # may be None -> assumed reflectance later (if not components)
+            has_comp = _has_components(mapname)  # PCA -> axis switch
 
         points = []
         for e, n in coords_pairs:
             values = _sample_all_bands_at_point(mapname, e, n, band_count)
             points.append({"x": e, "y": n, "values": values})
-
-        measurement = _band_measurement(mapname)
-        units = _band_units(
-            mapname
-        )  # may be None → assumed reflectance later (if not components)
-        has_comp = _has_components(mapname)  # PCA → axis switch
 
         datasets.append(
             {

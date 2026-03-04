@@ -1,0 +1,51 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.hyper.metadata</em> reads and manages metadata for hyperspectral 3D raster maps
+created by the <em>i.hyper</em> toolchain.
+
+Metadata is loaded from <code>hyper.json</code> when present and falls back to
+legacy <code>r3.support</code> description parsing for backward compatibility.
+
+<h2>NOTES</h2>
+
+Supported operations:
+<ul>
+  <li><code>view</code>: human-readable metadata summary</li>
+  <li><code>json</code>: metadata as JSON</li>
+  <li><code>bands</code>: list spectral bands (optionally filtered by wavelength range)</li>
+  <li><code>history</code>: print processing history</li>
+  <li><code>validate</code>: check metadata consistency</li>
+  <li><code>upgrade</code>: convert legacy metadata to JSON</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+View metadata summary:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=view
+</pre></div>
+
+Show bands in visible range:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=bands wavelength_range=400-700
+</pre></div>
+
+Upgrade legacy map metadata to JSON:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=upgrade
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.hyper.html">i.hyper</a>,
+<a href="i.hyper.import.html">i.hyper.import</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.info.html">r3.info</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.support.html">r3.support</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+GRASS Development Team

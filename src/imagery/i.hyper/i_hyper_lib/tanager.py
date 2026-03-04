@@ -17,6 +17,7 @@ import grass.script as gs
 import grass.script.array as garray
 from grass.pygrass.modules import Module
 
+from hyper_meta import HyperMetadata
 from tanager_reader import (
     load_tanager_basic,
     read_planet_map_grid,
@@ -186,28 +187,22 @@ def import_tanager(
             f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
         )
 
-        # r3 metadata (wavelengths & FWHM + Units + Data Field)
+        # hyperspectral metadata (JSON + legacy r3.support)
         try:
-            desc = ["Hyperspectral Metadata:", f"Valid Bands: {bands_total}"]
-
-            if getattr(prod, "data_field", None):
-                desc.append(f"Measurement: {prod.data_field}")
-
-            if getattr(prod, "data_units", None):
-                desc.append(f"Measurement Units: {prod.data_units}")
-
-            for i in range(bands_total):
-                wl_i = float(wl[i])
-                fwhm_i = float(fwhm[i]) if i < len(fwhm) else float("nan")
-                desc.append(f"Band {i + 1}: {wl_i} nm, FWHM: {fwhm_i} nm")
-            Module(
-                "r3.support",
-                map=output_name,
-                title="Tanager Hyperspectral Data (Projected to Map Grid)",
-                description="\n".join(desc),
-                vunit="nanometers",
-                quiet=True,
+            count_meta = int(min(bands_total, len(wl)))
+            meta = HyperMetadata.for_spectral_data(
+                wavelengths=wl[:count_meta],
+                fwhm=fwhm[:count_meta] if fwhm is not None else None,
+                sensor="Tanager",
+                radiometric_quantity=getattr(prod, "data_field", None),
+                radiometric_units=getattr(prod, "data_units", None),
             )
+            meta.add_processing_step(
+                operation="import",
+                module="i.hyper.import",
+                params={"product": "tanager", "input": h5},
+            )
+            meta.save(output_name)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
     except Exception as e:
