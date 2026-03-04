@@ -151,8 +151,19 @@ def view_metadata(meta, shell_style=False):
             print(f"\nCustom fields: {list(meta.custom.keys())}")
 
 
-def print_json(meta):
+def print_json(meta, map_name=None, hyper_meta_class=None):
     """Print raw JSON metadata."""
+    if hyper_meta_class is not None and map_name:
+        try:
+            json_path = hyper_meta_class._get_metadata_path(map_name)
+            if json_path.exists():
+                with open(json_path, "r") as f:
+                    print(json.dumps(json.load(f), indent=2))
+                return
+        except Exception:
+            pass
+
+    # Fallback for legacy-only maps (no hyper.json yet)
     data = {
         "schema_version": meta.schema_version,
         "dataset": {
@@ -169,10 +180,13 @@ def print_json(meta):
             "wavelength": meta.wavelengths,
             "fwhm": meta.fwhm,
             "bad_band": meta.bad_bands,
+            "gain": meta.gain,
+            "offset": meta.offset,
         },
         "components": {
             "count": meta.n_components,
             "explained_variance_ratio": meta.explained_variance_ratio,
+            "labels": meta.component_labels,
         },
         "processing_history": meta.processing_history,
         "custom": meta.custom,
@@ -320,7 +334,7 @@ def main():
     if operation == "view":
         view_metadata(meta, shell_style)
     elif operation == "json":
-        print_json(meta)
+        print_json(meta, map_name=map_name, hyper_meta_class=HyperMetadata)
     elif operation == "bands":
         list_bands(meta, output_format, wavelength_range)
     elif operation == "history":
