@@ -25,6 +25,14 @@ and attribute data from the SSURGO Map Unit polygons. This can be used for refer
 or to create custom rasters for Curve Number or other applications based on the
 SSURGO attributes.
 
+### SSURGO Download
+
+* [SSURGO CONUS](https://nrcs.app.box.com/v/soils/folder/233395259341)
+* [SSURGO by State](https://nrcs.app.box.com/v/soils/folder/233398887779)
+
+> If you choose to use the downloaded dataset instead of the SDA API you do
+> not need to unzip the folder. `r.in.ssurgo` expects the data to be zipped.
+
 ## REQUIREMENTS
 
 [duckdb>=4.1](https://duckdb.org/) Python package for querying and processing data
@@ -96,11 +104,11 @@ tools.r_in_ssurgo(
 
 ## REFERENCES
 
-- Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025). soilDB
+* Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025). soilDB
 Soil Database Interface. R package version 2.8.9
 [https://CRAN.R-project.org/package=soilDB](https://CRAN.R-project.org/package=soilDB)
 
-- Soil Survey Staff, Natural Resources Conservation Service, United States
+* Soil Survey Staff, Natural Resources Conservation Service, United States
 Department of Agriculture. Web Soil Survey. Available online at
 [<https://websoilsurvey.nrcs.usda.gov/>](https://websoilsurvey.nrcs.usda.gov).
 Accessed [04/23/2025].
