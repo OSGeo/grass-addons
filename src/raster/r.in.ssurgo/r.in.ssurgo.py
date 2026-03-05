@@ -284,23 +284,6 @@ def connect_duckdb(threads=None):
     return con
 
 
-def hydrologic_group_categories(hydgrp_code):
-    """Lookup table for hydrologic group codes to descriptions."""
-    lookup = {
-        "A": "Low runoff potential",
-        "B": "Moderate runoff potential",
-        "C": "High runoff potential",
-        "D": "Very high runoff potential",
-        "A/B": "Between A and B",
-        "A/C": "Between A and C",
-        "A/D": "Between A and D",
-        "B/C": "Between B and C",
-        "B/D": "Between B and D",
-        "C/D": "Between C and D",
-    }
-    return lookup.get(hydgrp_code, "Unknown")
-
-
 def hydrologic_soil_group_categories(map_name: str) -> None:
     """Assign descriptive category labels to the hydrologic soil group raster.
 
