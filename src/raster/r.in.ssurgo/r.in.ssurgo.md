@@ -8,16 +8,30 @@ R package (Beaudette et al., 2025).
 
 The tool will either use the SDA API to query and download data for the current
 computational region or read from a local copy of the SSURGO file geodatabase.
-The SSURGO data can be downloaded from USDA NRCS at the following links:
+The SDA API is used unless a local path to the SSURGO file geodatabase
+is provided to `ssurgo_path`. The SSURGO data can be downloaded from USDA
+NRCS at the following links:
 
 * [SSURGO CONUS](https://nrcs.app.box.com/v/soils/folder/233395259341)
 * [SSURGO by State](https://nrcs.app.box.com/v/soils/folder/233398887779)
 
-You do not need to unzip the downloaded file geodatabase. *r.in.ssurgo* can read
-the zipped file geodatabase directly using GDAL's virtual file system. However,
-you may also pass the path to an unzipped file geodatabase if you prefer.
+The downloaded gSSURGO files can be used directly without unzipping
+the file geodatabase. *r.in.ssurgo* can readthe zipped
+file geodatabase directly using GDAL's virtual file system.
 
-*r.in.ssurgo* imports the Saturated Hydraulic Conductivity of Soils (Ksat) and
+```bash
+ssurgo_path="path/to/gSSURGO_NC.zip"
+```
+
+However, you may also pass the path to an unzipped file geodatabase if you prefer.
+
+```bash
+ssurgo_path="path/to/gSSURGO_NC/gSSURGO_NC.gdb"
+```
+
+## Notes
+
+The Saturated Hydraulic Conductivity of Soils (Ksat) and
 the Hydrologic Soil Group (HSG) aggregated for the specified depth range or
 master horizon using the the Map Unit Key (mukey) as the spatial unit.
 The Ksat values represents the infiltration rateof water through soil when the
@@ -97,7 +111,7 @@ r.in.ssurgo \
 gs.run_command(
     "r.in.ssurgo",
     ssurgo_path="gSSURGO_NC.zip",
-    ssurgo_areas="soil_areas",
+    soils="soils",
     hydgrp="hydgrp",
     ksat_l="ksat_l",
     ksat_r="ksat_r",
@@ -115,7 +129,59 @@ gs.run_command(
 tools = Tools()
 tools.r_in_ssurgo(
     ssurgo_path="../data/gSSURGO_CONUS.zip",
-    ssurgo_areas="soil_areas",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+```
+
+=== Command line
+
+```sh
+r.in.ssurgo \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_l="ksat_l" \
+    ksat_r="ksat_r" \
+    ksat_h="ksat_h" \
+    mukey="mukey" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+```
+
+Import hydrologic soil group (HSG) data for the current region from the Soil
+Data Access (SDA) online API interface:
+
+=== Python (grass.script)
+
+```python
+gs.run_command(
+    "r.in.ssurgo",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+```
+
+=== Python (grass.tools)
+
+```python
+tools = Tools()
+tools.r_in_ssurgo(
+    soils="soils",
     hydgrp="hydgrp",
     ksat_l="ksat_l",
     ksat_r="ksat_r",

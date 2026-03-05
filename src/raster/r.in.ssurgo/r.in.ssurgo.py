@@ -101,11 +101,6 @@
 # %option G_OPT_M_NPROCS
 # %end
 
-# %flag
-# % key: d
-# % description: Use Soil Data Access (SDA) to query and download data for the specified map unit key (mukey) instead of using a local SSURGO ZIP file.
-# %end
-
 from __future__ import annotations
 import os
 from pathlib import Path
@@ -1154,7 +1149,6 @@ def main():
     desgnmaster = options["desgnmaster"]
     hzdept_r = int(options["hzdept_r"])
     hzdepb_r = int(options["hzdepb_r"]) if options["hzdepb_r"] else 25
-    flag_d = flags["d"]
 
     # Outputs
     ###################################################
@@ -1173,7 +1167,7 @@ def main():
     # Processing options
     nprocs = int(options["nprocs"])  # optional
 
-    if flag_d:
+    if not ssurgo_path:
         gs.message(
             _(
                 "Using Soil Data Access (SDA) to query and download "
