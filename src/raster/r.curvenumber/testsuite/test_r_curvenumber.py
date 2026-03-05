@@ -88,15 +88,18 @@ class TestDualHSG(TestCase):
     hsg_dual = "hsg_dual_test"
     hsg_single_a = "hsg_single_a_test"
     hsg_single_d = "hsg_single_d_test"
-    lc_null_soil = "lc_null_soil_test"
+    lc_null = "lc_null_test"
     hsg_null = "hsg_null_test"
     hsg_d_only = "hsg_d_only_test"
+    hsg_invalid = "hsg_invalid_test"
     out_drained = "cn_drained"
     out_undrained = "cn_undrained"
     out_expected_a = "cn_expected_a"
     out_expected_d = "cn_expected_d"
     out_null_soil = "cn_null_soil"
     out_null_expected = "cn_null_expected"
+    out_null_lc = "cn_null_lc"
+    out_invalid_hsg = "cn_invalid_hsg"
     diff = "cn_dual_diff"
 
     @classmethod
@@ -112,10 +115,14 @@ class TestDualHSG(TestCase):
         cls.runModule("r.mapcalc", expression=f"{cls.hsg_single_a} = 1")
         # single HSG D = 4 (expected result for undrained)
         cls.runModule("r.mapcalc", expression=f"{cls.hsg_single_d} = 4")
+        # null landcover raster
+        cls.runModule("r.mapcalc", expression=f"{cls.lc_null} = null()")
         # null soil raster
         cls.runModule("r.mapcalc", expression=f"{cls.hsg_null} = null()")
         # HSG D only (expected result for null soil fallback)
         cls.runModule("r.mapcalc", expression=f"{cls.hsg_d_only} = 4")
+        # invalid HSG value
+        cls.runModule("r.mapcalc", expression=f"{cls.hsg_invalid} = 99")
 
     @classmethod
     def tearDownClass(cls):
@@ -126,11 +133,13 @@ class TestDualHSG(TestCase):
             type="raster",
             name=(
                 cls.lc_single,
+                cls.lc_null,
                 cls.hsg_dual,
                 cls.hsg_single_a,
                 cls.hsg_single_d,
                 cls.hsg_null,
                 cls.hsg_d_only,
+                cls.hsg_invalid,
             ),
         )
 
@@ -146,6 +155,8 @@ class TestDualHSG(TestCase):
                 self.out_expected_d,
                 self.out_null_soil,
                 self.out_null_expected,
+                self.out_null_lc,
+                self.out_invalid_hsg,
                 self.diff,
             ),
         )
@@ -205,6 +216,34 @@ class TestDualHSG(TestCase):
         )
         self.assertAlmostEqual(
             float(stats["max"]), 0.0, msg="Undrained dual HSG A/D != single HSG D"
+        )
+
+    def test_invalid_hsg_produces_null(self):
+        """Invalid HSG value should produce null output."""
+        self.assertModule(
+            "r.curvenumber",
+            landcover=self.lc_single,
+            soil=self.hsg_invalid,
+            landcover_source="esa",
+            output=self.out_invalid_hsg,
+        )
+        stats = gs.parse_command("r.univar", flags="g", map=self.out_invalid_hsg)
+        self.assertEqual(
+            int(stats["n"]), 0, msg="Invalid HSG should produce all null cells"
+        )
+
+    def test_null_landcover_produces_null(self):
+        """Null landcover should produce null output."""
+        self.assertModule(
+            "r.curvenumber",
+            landcover=self.lc_null,
+            soil=self.hsg_single_d,
+            landcover_source="esa",
+            output=self.out_null_lc,
+        )
+        stats = gs.parse_command("r.univar", flags="g", map=self.out_null_lc)
+        self.assertEqual(
+            int(stats["n"]), 0, msg="Null landcover should produce all null cells"
         )
 
     def test_null_soil_fallback(self):

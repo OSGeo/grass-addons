@@ -46,6 +46,7 @@ int main(int argc, char **argv)
     struct cn_table cn_tbl;
     struct arc_table arc_tbl;
     int hc_idx, arc_idx, drained;
+    int null_soil_warned = 0;
 
     G_gisinit(argv[0]);
 
@@ -211,9 +212,15 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            /* null soil → fall back to HSG D (most conservative) */
-            if (Rast_is_c_null_value(&soil_val))
+            /* null soil: fall back to HSG D (most conservative) */
+            if (Rast_is_c_null_value(&soil_val)) {
+                if (!null_soil_warned) {
+                    G_verbose_message(
+                        _("Null soil value(s) found, falling back to HSG D"));
+                    null_soil_warned = 1;
+                }
                 soil_val = 4;
+            }
 
             /* resolve dual HSG codes (11-14) to single codes (1-4) */
             int resolved = resolve_dual_hsg((int)soil_val, drained);
