@@ -81,7 +81,7 @@ import grass.script as gs
 
 
 # Values from Kalyanapu et al. (2009) Table 2
-# Min/max ranges estimated using ×0.75/×1.33 multipliers (except 82).
+# Min/max ranges estimated using 0.75/1.33 multipliers (except 82).
 # 11 from HECRAS, 82 is conventional tillage from McCuen (2005), missing in Kalyanapu
 NLCD_KALYANAPU = {
     11: [0.025, 0.040, 0.050],  # Open Water
@@ -102,7 +102,7 @@ NLCD_KALYANAPU = {
 }
 
 # range from HEC-RAS 2D User's Manual Version 6.6
-# initial values are roughly estimated using ×0.75/×1.33 multipliers matching Chow
+# initial values are roughly estimated using 0.75/1.33 multipliers matching Chow
 NLCD_HECRAS = {
     11: [0.025, 0.035, 0.050],  # Open Water
     21: [0.030, 0.040, 0.050],  # Developed, Open Space

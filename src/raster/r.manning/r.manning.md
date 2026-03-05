@@ -38,7 +38,7 @@ a **rules** file in CSV format.
 ### Source of values
 
 Kalyanapu et al. (2009) does not include ranges for Manning's n values.
-These were estimated using ×0.75/×1.33 multipliers on the original single
+These were estimated using 0.75/1.33 multipliers on the original single
 values to reflect ranges from Chow (1959).
 These multipliers were also used to estimate default values from ranges
 in the HEC-RAS 2D User's Manual.
@@ -78,10 +78,6 @@ variability in vegetation density, surface conditions, and flow characteristics.
 The **method=random** option generates spatially uniform random values
 between low and high bounds for each land cover class, which can be used
 for Monte Carlo uncertainty analysis.
-
-For Kalyanapu values, min/max ranges were estimated using ×0.75/×1.33
-multipliers on the original single values to reflect typical variability
-in shallow overland flow applications.
 
 ## EXAMPLES
 

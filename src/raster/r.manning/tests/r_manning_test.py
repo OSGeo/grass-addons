@@ -169,11 +169,11 @@ def test_nlcd_hecras_medium(setup_nlcd):
     )
 
     # Expected values from NLCD_HECRAS (medium index)
-    # 11 (Open Water): 0.040
-    # 41 (Deciduous Forest): 0.160
+    # 11 (Open Water): 0.035
+    # 41 (Deciduous Forest): 0.140
     # 71 (Grassland): 0.035
-    assert get_cell_value("mannings_n", 0, 0, session.env) == pytest.approx(0.040)
-    assert get_cell_value("mannings_n", 0, 1, session.env) == pytest.approx(0.160)
+    assert get_cell_value("mannings_n", 0, 0, session.env) == pytest.approx(0.035)
+    assert get_cell_value("mannings_n", 0, 1, session.env) == pytest.approx(0.140)
     assert get_cell_value("mannings_n", 0, 2, session.env) == pytest.approx(0.035)
 
 
