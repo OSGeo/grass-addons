@@ -6,7 +6,18 @@ geodatabase or from the Soil Data Access (SDA) online API interface. The module
 is heavily inspired by the [SoilDB (2.8.9)](https://ncss-tech.github.io/soilDB/index.html)
 R package (Beaudette et al., 2025).
 
-The *r.in.ssurgo* imports the Saturated Hydraulic Conductivity of Soils (Ksat) and
+The tool will either use the SDA API to query and download data for the current
+computational region or read from a local copy of the SSURGO file geodatabase.
+The SSURGO data can be downloaded from USDA NRCS at the following links:
+
+* [SSURGO CONUS](https://nrcs.app.box.com/v/soils/folder/233395259341)
+* [SSURGO by State](https://nrcs.app.box.com/v/soils/folder/233398887779)
+
+You do not need to unzip the downloaded file geodatabase. *r.in.ssurgo* can read
+the zipped file geodatabase directly using GDAL's virtual file system. However,
+you may also pass the path to an unzipped file geodatabase if you prefer.
+
+*r.in.ssurgo* imports the Saturated Hydraulic Conductivity of Soils (Ksat) and
 the Hydrologic Soil Group (HSG) aggregated for the specified depth range or
 master horizon using the the Map Unit Key (mukey) as the spatial unit.
 The Ksat values represents the infiltration rateof water through soil when the
@@ -20,10 +31,24 @@ permeability. The HGS raster (**hydgrp**) are used in rainfall excess models
 such as the SCS Curve Number method to estimate runoff from rainfall
 events (see *r.curvenumber*).
 
-**ssurgo_areas** is an optional output vector contining the source Multipolygons
-and attribute data from the SSURGO Map Unit polygons. This can be used for reference
-or to create custom rasters for Curve Number or other applications based on the
-SSURGO attributes.
+The **soils** output is a vector layer containing the source SSURGO Map Unit polygons
+and attribute data. This can be used for reference or to create custom rasters for
+Curve Number or other applications based on the SSURGO attributes.
+
+### Filtering by Depth or Master Horizon
+
+The user can specify a depth range [cm] (top and bottom) or a master horizon
+designation (`desgnmaster`). The master horizon is the most representative horizon
+of a soil profile and is designated by a capital letter (A, E, B, C, R) in the
+SSURGO database. If a master horizon is specified, the Ksat and HSG values will
+be based on the specified master horizon. If a depth range is specified, the
+Ksat and HSG values will be aggregated for the specified depth range.
+
+### Aggregation Methods
+
+Soils are aggregated using either the dominant component or a weighted average
+of all components in the map unit, depending on the specified depth range or
+master horizon.
 
 ### SSURGO Download
 
@@ -54,7 +79,7 @@ Import Ksat data for the current region from a local copy of the SSURGO file geo
 
 ```sh
 r.in.ssurgo \
-    ssurgo_path="gSSURGO_NC.zip/gSSURGO_NC.gdb" \
+    ssurgo_path="gSSURGO_NC.zip" \
     ssurgo_areas="soil_areas" \
     hydgrp="hydgrp" \
     ksat_l="ksat_l" \
@@ -71,7 +96,7 @@ r.in.ssurgo \
 ```python
 gs.run_command(
     "r.in.ssurgo",
-    ssurgo_path="gSSURGO_NC.zip/gSSURGO_NC.gdb",
+    ssurgo_path="gSSURGO_NC.zip",
     ssurgo_areas="soil_areas",
     hydgrp="hydgrp",
     ksat_l="ksat_l",
@@ -89,7 +114,7 @@ gs.run_command(
 ```python
 tools = Tools()
 tools.r_in_ssurgo(
-    ssurgo_path="../data/gSSURGO_CONUS.zip/gSSURGO_CONUS.gdb",
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
     ssurgo_areas="soil_areas",
     hydgrp="hydgrp",
     ksat_l="ksat_l",

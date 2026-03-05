@@ -27,9 +27,16 @@
 # % required: no
 # %end
 
+# %option G_OPT_V_OUTPUT
+# % key: soils
+# % description: Name for output soil vecotor layer containing the source SSURGO map unit polygons and attributes.
+# % guisection: Outputs
+# % required: yes
+# %end
+
 # %option G_OPT_R_OUTPUT
 # % key: hydgrp
-# % description: Hydrologic soil group
+# % description: Hydrologic soil group (HSG) raster map output
 # % guisection: Outputs
 # % required: no
 # %end
@@ -58,13 +65,6 @@
 # %option G_OPT_R_OUTPUT
 # % key: mukey
 # % description: Map unit key
-# % guisection: Outputs
-# % required: no
-# %end
-
-# %option G_OPT_V_OUTPUT
-# % key: ssurgo_areas
-# % description: Name for output soil grid
 # % guisection: Outputs
 # % required: no
 # %end
@@ -1166,7 +1166,7 @@ def main():
     mukey = options["mukey"]
 
     # Vector outputs
-    ssurgo_areas = options["ssurgo_areas"]
+    ssurgo_areas = options["soils"]
 
     # TODO: Add raster3d output option for depth-varying Ksat
 
