@@ -128,6 +128,11 @@ _ = gettext.gettext
 MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6
 
 
+class SoilAggMethod(Enum):
+    DOMINANT_COMPONENT = "dominant_component"
+    WEIGHTED_COMPONENT = "weighted_component"
+
+
 def _import_duckdb(error):
     """Import duckdb module"""
     try:
@@ -397,7 +402,14 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
 
 
 def local_ssurgo_query(
-    con, tmp_filepath, wkt_bbox, ssurgo_path, desgnmaster, hzdept_r, hzdepb_r
+    con,
+    tmp_filepath,
+    wkt_bbox,
+    ssurgo_path,
+    desgnmaster,
+    hzdept_r,
+    hzdepb_r,
+    agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
 ):
     """
     Import SSURGO data from a local ZIP file.
@@ -413,10 +425,11 @@ def local_ssurgo_query(
         desgnmaster (str): Designation of master horizon.
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
-
+        agg (SoilAggMethod): Aggregation method.
     Returns:
         None: This function does not return any value. It creates raster and vector layers in the GRASS environment.
     """
+    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
     top = hzdept_r
     bottom = hzdepb_r
     # Table mu polygon fields used:
@@ -456,127 +469,153 @@ def local_ssurgo_query(
     gs.message(_("Loading SSURGO layers into memory..."))
 
     con.execute(
-        f"""
+        """
         CREATE OR REPLACE TEMP TABLE mu AS
         SELECT mukey, shape AS geom
         FROM ST_Read(
-            '{ssurgo_path}',
+            $ssurgo_path,
             layer = 'MUPOLYGON',
-            spatial_filter_box = ST_EXTENT(
-                ST_AsWKB(ST_GeomFromText(?))
-            )
+            spatial_filter =
+                ST_AsWKB(ST_GeomFromText($wkt_bbox))
         )
         """,
-        [wkt_bbox],
+        {"ssurgo_path": ssurgo_path, "wkt_bbox": wkt_bbox},
     )
     mu_count = con.execute("SELECT count(*) FROM mu").fetchone()[0]
     gs.message(_("Loaded %d map unit polygons.") % mu_count)
 
+    con.execute("CREATE INDEX mu_idx ON mu USING RTREE (geom);")
+    gs.message(_("Created spatial index on map unit polygons."))
+
+    # Load component and chorizon once; join-filter by mukey list
+    con.execute(
+        """
+        CREATE OR REPLACE TEMP TABLE comp AS
+        SELECT c.*
+        FROM ST_Read($1, layer = 'component') AS c
+        WHERE c.mukey IN (SELECT mukey FROM mu)
+        AND c.comppct_r IS NOT NULL
+        """,
+        [ssurgo_path],
+    )
+
+    con.execute(
+        """
+        CREATE OR REPLACE TEMP TABLE horiz AS
+        SELECT h.*
+        FROM ST_Read($1, layer = 'chorizon') AS h
+        WHERE h.cokey IN (SELECT cokey FROM comp)
+        """,
+        [ssurgo_path],
+    )
+    gs.message(_("SSURGO layers loaded. Running analysis query..."))
     if mu_count == 0:
         gs.warning(_("No records found in your region."))
         return None
 
-    # Load component and chorizon once; join-filter by mukey list
-    con.execute(
-        f"""
-        CREATE OR REPLACE TEMP TABLE comp AS
-        SELECT c.*
-        FROM ST_Read('{ssurgo_path}', layer = 'component') AS c
-        WHERE c.mukey IN (SELECT mukey FROM mu)
-          AND c.comppct_r IS NOT NULL
-        """
-    )
-
-    con.execute(
-        f"""
-        CREATE OR REPLACE TEMP TABLE horiz AS
-        SELECT h.*
-        FROM ST_Read('{ssurgo_path}', layer = 'chorizon') AS h
-        WHERE h.cokey IN (SELECT cokey FROM comp)
-          AND h.ksat_r IS NOT NULL
-          AND h.hzdept_r = 0
-          AND h.hzdepb_r > 0
-          AND h.desgnmaster = '{desgnmaster}'
-        """
-    )
-
-    gs.message(_("SSURGO layers loaded. Running analysis query..."))
-
-    query = f"""
-    WITH dom_comp AS (
-        SELECT mu.geom,
-               c.mukey,
-               c.cokey,
-               c.comppct_r,
-               c.compname,
-               c.runoff,
-               c.hydgrp,
-               c.hydricon,
-               c.hydricrating,
-               c.drainagecl,
-               ROW_NUMBER() OVER (
-                   PARTITION BY c.mukey
-                   ORDER BY c.comppct_r DESC, c.cokey
-               ) AS rn
-        FROM comp c
-        INNER JOIN mu ON mu.mukey = c.mukey
-    ),
-    dom AS (
-        SELECT mukey, cokey, comppct_r, compname, runoff,
-               hydgrp, hydricon, hydricrating, drainagecl, geom
-        FROM dom_comp
-        WHERE rn = 1
-    ),
-    hz AS (
-        SELECT mukey,
-            CASE WHEN SUM(thk) = 0 THEN NULL
-                 ELSE SUM(thk * ksat_l) / SUM(thk) END AS ksat_l,
-            CASE WHEN SUM(thk) = 0 THEN NULL
-                 ELSE SUM(thk * ksat_r) / SUM(thk) END AS ksat_r,
-            CASE WHEN SUM(thk) = 0 THEN NULL
-                 ELSE SUM(thk * ksat_h) / SUM(thk) END AS ksat_h
-        FROM (
+    if agg == SoilAggMethod.DOMINANT_COMPONENT:
+        gs.message(_("Using dominant component aggregation method."))
+        # Dominant component aggregation method:
+        query = f"""
+        WITH dom_comp AS (
             SELECT
-                d.mukey,
-                h.ksat_l * {MICROMETERS_PER_SECOND_TO_MM_PER_HOUR} AS ksat_l,
-                h.ksat_r * {MICROMETERS_PER_SECOND_TO_MM_PER_HOUR} AS ksat_r,
-                h.ksat_h * {MICROMETERS_PER_SECOND_TO_MM_PER_HOUR} AS ksat_h,
-                CASE
-                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                    ELSE
-                        CASE
-                            WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                 - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END) > 0
-                            THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
-                                 - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r ELSE {top} END)
-                            ELSE 0
-                        END
-                END AS thk
-            FROM dom d
-            INNER JOIN horiz h ON h.cokey = d.cokey
-        ) x
-        GROUP BY mukey
-    )
-    SELECT
-        d.geom,
-        d.mukey,
-        CAST(d.mukey AS INTEGER) AS mukey_int,
-        d.cokey,
-        d.compname,
-        d.comppct_r,
-        d.runoff,
-        d.hydgrp,
-        d.hydricon,
-        d.hydricrating,
-        d.drainagecl,
-        hz.ksat_l,
-        hz.ksat_r,
-        hz.ksat_h
-    FROM dom d
-    LEFT JOIN hz ON hz.mukey = d.mukey
-    """
-    ksat_data = con.execute(query).fetchdf()
-    if ksat_data.size == 0:
+                c.mukey,
+                c.cokey,
+                c.comppct_r,
+                c.hydgrp,
+                ROW_NUMBER() OVER (
+                    PARTITION BY c.mukey
+                    ORDER BY c.comppct_r DESC, c.cokey
+                ) AS rn
+            FROM comp c
+            INNER JOIN mu ON mu.mukey = c.mukey
+            WHERE c.comppct_r IS NOT NULL
+        ),
+        dom AS (
+            SELECT mukey, cokey, comppct_r, hydgrp
+            FROM dom_comp
+            WHERE rn = 1
+        ),
+        hz AS (
+            SELECT x.mukey,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                    ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                    ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
+                CASE WHEN SUM(x.thk) = 0 THEN NULL
+                    ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+            FROM (
+                SELECT d.mukey,
+                    h.ksat_l * {conv} AS ksat_l,
+                    h.ksat_r * {conv} AS ksat_r,
+                    h.ksat_h * {conv} AS ksat_h,
+                    CASE
+                        WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL
+                            THEN 0
+                        ELSE
+                            CASE
+                                WHEN (
+                                    CASE
+                                        WHEN h.hzdepb_r < {bottom}
+                                            THEN h.hzdepb_r
+                                        ELSE {bottom}
+                                    END
+                                )
+                                - (
+                                    CASE
+                                        WHEN h.hzdept_r > {top}
+                                            THEN h.hzdept_r
+                                        ELSE {top}
+                                    END
+                                ) > 0
+                                THEN (
+                                    CASE
+                                        WHEN h.hzdepb_r < {bottom}
+                                            THEN h.hzdepb_r
+                                        ELSE {bottom}
+                                    END
+                                    )
+                                    - (
+                                        CASE
+                                            WHEN h.hzdept_r > {top}
+                                                THEN h.hzdept_r
+                                            ELSE {top}
+                                        END
+                                    )
+                                ELSE 0
+                            END
+                    END AS thk
+                FROM dom d
+                INNER JOIN horiz h ON h.cokey = d.cokey
+                WHERE h.ksat_r IS NOT NULL
+                  AND h.hzdept_r = 0
+                  AND h.hzdepb_r > 0
+                  AND h.desgnmaster = '{desgnmaster}'
+            ) x
+            GROUP BY x.mukey
+        )
+        SELECT mu.mukey,
+            CAST(mu.mukey AS INTEGER) AS mukey_int,
+            d.cokey,
+            d.comppct_r,
+            d.hydgrp,
+            hz.ksat_l,
+            hz.ksat_r,
+            hz.ksat_h,
+            mu.geom
+        FROM mu
+        LEFT JOIN dom d ON d.mukey = mu.mukey
+        LEFT JOIN hz ON hz.mukey  = mu.mukey
+        """
+
+    else:
+        # weighted_component
+        gs.message(_("Using dominant component aggregation method."))
+        gs.warning(_("Weighted component aggregation method not yet implemented."))
+        pass
+
+    ssurgo_data = con.execute(query).fetchdf()
+    if ssurgo_data.size == 0:
         gs.warning(_("No records found in your region."))
         return None
 
@@ -790,11 +829,6 @@ def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r):
         return None
 
 
-class SoilAggMethod(Enum):
-    DOMINANT_COMPONENT = "dominant_component"
-    WEIGHTED_COMPONENT = "weighted_component"
-
-
 class SDAClient:
     """
     Client for interacting with the Soil Data Access (SDA) database.
@@ -836,12 +870,15 @@ class SDAClient:
         if agg == SoilAggMethod.DOMINANT_COMPONENT:
             sql = f"""
             WITH mu AS (
-              SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
+              SELECT DISTINCT mukey
+              FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
             ),
             dom_comp AS (
-              SELECT c.mukey, c.cokey, c.comppct_r, c.compname,
-                     c.hydgrp, c.drainagecl,
-                     ROW_NUMBER() OVER (
+              SELECT c.mukey,
+                    c.cokey,
+                    c.comppct_r,
+                    c.hydgrp,
+                    ROW_NUMBER() OVER (
                        PARTITION BY c.mukey
                        ORDER BY c.comppct_r DESC, c.cokey
                      ) AS rn
@@ -850,8 +887,9 @@ class SDAClient:
               WHERE c.comppct_r IS NOT NULL
             ),
             dom AS (
-              SELECT mukey, cokey, comppct_r, compname, hydgrp, drainagecl
-              FROM dom_comp WHERE rn = 1
+              SELECT mukey, cokey, comppct_r, hydgrp
+              FROM dom_comp
+              WHERE rn = 1
             ),
             hz AS (
               SELECT x.mukey,
@@ -867,20 +905,41 @@ class SDAClient:
                   h.ksat_r * {conv} AS ksat_r,
                   h.ksat_h * {conv} AS ksat_h,
                   CASE
-                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL
+                        THEN 0
                     ELSE
-                      CASE
-                        WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
-                                   ELSE {bottom} END)
-                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
-                                   ELSE {top} END) > 0
-                        THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
-                                   ELSE {bottom} END)
-                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
-                                   ELSE {top} END)
-                        ELSE 0
-                      END
-                  END AS thk
+                        CASE
+                            WHEN (
+                                CASE
+                                    WHEN h.hzdepb_r < {bottom}
+                                        THEN h.hzdepb_r
+                                    ELSE {bottom}
+                                END
+                            )
+                            - (
+                                CASE
+                                    WHEN h.hzdept_r > {top}
+                                        THEN h.hzdept_r
+                                    ELSE {top}
+                                END
+                            ) > 0
+                            THEN (
+                                CASE
+                                    WHEN h.hzdepb_r < {bottom}
+                                        THEN h.hzdepb_r
+                                    ELSE {bottom}
+                                END
+                            )
+                            - (
+                                CASE
+                                    WHEN h.hzdept_r > {top}
+                                        THEN h.hzdept_r
+                                    ELSE {top}
+                                END
+                            )
+                            ELSE 0
+                        END
+                    END AS thk
                 FROM dom d
                 INNER JOIN chorizon h ON h.cokey = d.cokey
                 WHERE h.ksat_r IS NOT NULL
@@ -897,16 +956,15 @@ class SDAClient:
             )
             SELECT poly.mukey,
                    CAST(poly.mukey AS INT) AS mukey_int,
-                   dom.compname,
-                   dom.comppct_r,
-                   dom.hydgrp,
-                   dom.drainagecl,
+                   d.cokey,
+                   d.comppct_r,
+                   d.hydgrp,
                    hz.ksat_l,
                    hz.ksat_r,
                    hz.ksat_h,
                    poly.wkt
             FROM poly
-            LEFT JOIN dom ON dom.mukey = poly.mukey
+            LEFT JOIN dom d ON d.mukey = poly.mukey
             LEFT JOIN hz ON hz.mukey = poly.mukey
             """
         else:
@@ -1113,7 +1171,7 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
                     input=tmp_filepath,
                     output=ssurgo_areas_out,
                     type="boundary",
-                    snap=1e-6,
+                    snap=1e-8,
                 )
 
         # Reproject from temporary project to the current project
