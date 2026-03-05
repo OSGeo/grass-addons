@@ -35,11 +35,13 @@
 # % description: Name of output Manning's n raster map
 # %end
 
-# %option G_OPT_R_INPUT
+# %option
 # % key: landcover
+# % type: string
+# % required: yes
 # % options: nlcd,worldcover,custom
 # % description: Land cover classification system
-# % descriptions: nlcd;National Land Cover Database (NLCD);worldcover; ESA WorldCover;custom;custom created land cover
+# % descriptions: nlcd;National Land Cover Database (NLCD);worldcover;ESA WorldCover;custom;custom created land cover
 # %end
 
 # %option

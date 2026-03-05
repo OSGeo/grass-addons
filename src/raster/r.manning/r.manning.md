@@ -40,11 +40,11 @@ a **rules** file in CSV format.
 Kalyanapu et al. (2009) does not include ranges for Manning's n values.
 These were estimated using ×0.75/×1.33 multipliers on the original single
 values to reflect ranges from Chow (1959).
-These multipliers were also used to estimate deafult values from ranges
+These multipliers were also used to estimate default values from ranges
 in the HEC-RAS 2D User's Manual.
 
 Kalyanapu et al. (2009) does not include NLCD value for cultivated crops,
-this tools uses conventional tillage from McCuen (2005).
+this tool uses conventional tillage from McCuen (2005).
 
 ### Custom rules file
 
@@ -176,7 +176,7 @@ r.sim.water elevation=dem dx=dx dy=dy \
 ## SEE ALSO
 
 *[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html)*,
-*[r.recode](https://grass.osgeo.org/grass-stable/manuals/r.recode.html)*,
+*[r.recode](https://grass.osgeo.org/grass-stable/manuals/r.recode.html)*
 
 ## AUTHORS
 
