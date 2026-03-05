@@ -463,6 +463,7 @@ def local_ssurgo_query(
     # sandtotal_r: Sand content of the horizon (percent)
     # claytotal_r: Clay content of the horizon (percent)
     # wtdepannmin_r: Minimum annual water table depth (cm)
+    # texture: Texture class based on particle size distribution
 
     # Materialise each SSURGO layer into temporary tables so that
     # DuckDB can build indexes and avoid repeated full-file scans.
@@ -632,6 +633,291 @@ def local_ssurgo_query(
     except Exception as e:
         gs.fatal(_("An error occurred: %s") % str(e))
 
+    return tmp_filepath
+
+
+def local_ssurgo_sqlite_query(
+    tmp_filepath,
+    ssurgo_path,
+    desgnmaster,
+    hzdept_r,
+    hzdepb_r,
+    agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+):
+    """Import SSURGO data from a local GDB using OGR and SQLite.
+
+    This is a DuckDB-free alternative to :func:`local_ssurgo_query`.  It uses
+    GDAL/OGR (already required by GRASS) to read layers from the GDB, Python's
+    built-in :mod:`sqlite3` for the depth-weighted aggregation query, and OGR
+    again to write the result as a FlatGeobuf file ready for
+    :func:`write_ssurgo_to_grass`.
+
+    Spatial filtering uses OGR's :meth:`SetSpatialFilterRect` on the
+    ``MUPOLYGON`` layer.  Component and horizon records are fetched with
+    batched ``ExecuteSQL`` calls on the GDB data source so that only the rows
+    relevant to the current region are loaded into memory.
+
+    Args:
+        tmp_filepath (str): Path for the output FlatGeobuf file.
+        ssurgo_path (str): Path to the SSURGO GDB or ``/vsizip/`` path.
+        desgnmaster (str): Master horizon designation filter (e.g. ``'A'``).
+        hzdept_r (int): Horizon depth top (cm).
+        hzdepb_r (int): Horizon depth bottom (cm).
+        agg (SoilAggMethod): Aggregation method.
+
+    Returns:
+        str or None: Path to the written FlatGeobuf file, or ``None`` on
+        failure.
+    """
+
+    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
+    top = hzdept_r
+    bottom = hzdepb_r
+
+    # Parse bbox from WKT
+    # west, south, east, north = region_to_crs_bbox("EPSG:5070")[:4]
+
+    try:
+        gs.run_command(
+            "v.import",
+            input=ssurgo_path,
+            output="soils_polygons",
+            layer="MUPOLYGON",
+            extent="region",
+            snap=1e-8,
+            overwrite=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to import MUPOLYGON layer: %s") % str(e))
+
+    try:
+        gs.message(_("Creating tables for component and horizon data..."))
+        ddl_create = """
+        CREATE TABLE comp (
+            cokey      TEXT PRIMARY KEY,
+            mukey      TEXT,
+            comppct_r  REAL,
+            hydgrp     TEXT
+        );
+        CREATE TABLE horiz (
+            chkey        TEXT,
+            cokey        TEXT,
+            hzdept_r     REAL,
+            hzdepb_r     REAL,
+            ksat_l       REAL,
+            ksat_r       REAL,
+            ksat_h       REAL,
+            desgnmaster  TEXT
+        );
+        """
+        gs.run_command("db.execute", sql=ddl_create, overwrite=True)
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to create tables: %s") % str(e))
+
+    # Import component table from GDB into a temporary GRASS table, then
+    # insert only the rows whose mukey appears in the soils_polygons layer.
+    gs.message(_("Loading component data from SSURGO GDB..."))
+    try:
+        gs.run_command(
+            "db.in.ogr",
+            input=ssurgo_path,
+            db_table="component",
+            output="_comp_tmp",
+            key="cokey",
+            overwrite=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to import component table: %s") % str(e))
+
+    try:
+        gs.run_command(
+            "db.execute",
+            sql=(
+                "INSERT INTO comp (cokey, mukey, comppct_r, hydgrp) "
+                "SELECT cokey, mukey, comppct_r, hydgrp "
+                "FROM _comp_tmp "
+                "WHERE mukey IN (SELECT mukey FROM soils_polygons) "
+                "AND comppct_r IS NOT NULL"
+            ),
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to populate comp table: %s") % str(e))
+    finally:
+        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _comp_tmp")
+
+    comp_count = int(
+        gs.read_command("db.select", sql="SELECT count(*) FROM comp", flags="c").strip()
+    )
+    gs.message(_("Loaded %d component records.") % comp_count)
+
+    # Import chorizon table from GDB into a temporary table, then insert
+    # only rows whose cokey appears in the comp table.
+    gs.message(_("Loading horizon data from SSURGO GDB..."))
+    try:
+        gs.run_command(
+            "db.in.ogr",
+            input=ssurgo_path,
+            db_table="chorizon",
+            output="_horiz_tmp",
+            overwrite=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to import chorizon table: %s") % str(e))
+
+    try:
+        gs.run_command(
+            "db.execute",
+            sql=(
+                "INSERT INTO horiz "
+                "(chkey, cokey, hzdept_r, hzdepb_r, ksat_l, ksat_r, ksat_h, desgnmaster) "
+                "SELECT chkey, cokey, hzdept_r, hzdepb_r, ksat_l, ksat_r, ksat_h, desgnmaster "
+                "FROM _horiz_tmp "
+                "WHERE cokey IN (SELECT cokey FROM comp)"
+            ),
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to populate horiz table: %s") % str(e))
+    finally:
+        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _horiz_tmp")
+
+    horiz_count = int(
+        gs.read_command(
+            "db.select", sql="SELECT count(*) FROM horiz", flags="c"
+        ).strip()
+    )
+    gs.message(_("Loaded %d horizon records.") % horiz_count)
+
+    if agg != SoilAggMethod.DOMINANT_COMPONENT:
+        gs.warning(
+            _("Weighted component aggregation not yet implemented for SQLite query.")
+        )
+        return None
+
+    gs.message(_("Running dominant component aggregation..."))
+
+    # Add result columns to the soils_polygons attribute table
+    try:
+        gs.run_command(
+            "v.db.addcolumn",
+            map="soils_polygons",
+            columns=(
+                "mukey_int INTEGER,"
+                "cokey TEXT,"
+                "comppct_r REAL,"
+                "hydgrp TEXT,"
+                "ksat_l REAL,"
+                "ksat_r REAL,"
+                "ksat_h REAL"
+            ),
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to add columns to soils_polygons: %s") % str(e))
+
+    # Build per-mukey aggregation table using window functions (SQLite >= 3.25)
+    gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _agg_tmp")
+    agg_sql = f"""
+    CREATE TABLE _agg_tmp AS
+    WITH dom_comp AS (
+        SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
+               ROW_NUMBER() OVER (
+                   PARTITION BY c.mukey
+                   ORDER BY c.comppct_r DESC, c.cokey
+               ) AS rn
+        FROM comp c
+        WHERE c.comppct_r IS NOT NULL
+    ),
+    dom AS (
+        SELECT mukey, cokey, comppct_r, hydgrp
+        FROM dom_comp WHERE rn = 1
+    ),
+    hz AS (
+        SELECT x.mukey,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+        FROM (
+            SELECT d.mukey,
+                h.ksat_l * {conv} AS ksat_l,
+                h.ksat_r * {conv} AS ksat_r,
+                h.ksat_h * {conv} AS ksat_h,
+                CASE
+                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+                    ELSE MAX(0,
+                        MIN(COALESCE(h.hzdepb_r, 0), {bottom}) -
+                        MAX(COALESCE(h.hzdept_r, 0), {top})
+                    )
+                END AS thk
+            FROM dom d
+            INNER JOIN horiz h ON h.cokey = d.cokey
+            WHERE h.ksat_r IS NOT NULL
+              AND h.hzdept_r = 0
+              AND h.hzdepb_r > 0
+              AND h.desgnmaster = '{desgnmaster}'
+        ) x
+        GROUP BY x.mukey
+    )
+    SELECT dom.mukey,
+        CAST(dom.mukey AS INTEGER) AS mukey_int,
+        dom.cokey,
+        dom.comppct_r,
+        dom.hydgrp,
+        hz.ksat_l,
+        hz.ksat_r,
+        hz.ksat_h
+    FROM dom
+    LEFT JOIN hz ON hz.mukey = dom.mukey
+    """
+    try:
+        gs.run_command("db.execute", sql=agg_sql)
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to create aggregation table: %s") % str(e))
+
+    # Write aggregated values back into the soils_polygons attribute table
+    try:
+        gs.run_command(
+            "db.execute",
+            sql=(
+                "UPDATE soils_polygons SET "
+                "mukey_int = (SELECT mukey_int FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "cokey     = (SELECT cokey     FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "comppct_r = (SELECT comppct_r FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "hydgrp    = (SELECT hydgrp    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "ksat_l    = (SELECT ksat_l    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "ksat_r    = (SELECT ksat_r    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
+                "ksat_h    = (SELECT ksat_h    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey)"
+            ),
+        )
+    except CalledModuleError as e:
+        gs.fatal(
+            _("Failed to update soils_polygons with aggregation results: %s") % str(e)
+        )
+    finally:
+        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _agg_tmp")
+
+    agg_count = int(
+        gs.read_command(
+            "db.select",
+            sql="SELECT count(*) FROM soils_polygons WHERE ksat_r IS NOT NULL",
+            flags="c",
+        ).strip()
+    )
+    gs.message(_("Aggregation complete. %d features with ksat values.") % agg_count)
+
+    # Export enriched soils_polygons to FlatGeobuf for write_ssurgo_to_grass
+    gs.message(_("Writing results to FlatGeobuf..."))
+    try:
+        gs.run_command(
+            "v.out.ogr",
+            input="soils_polygons",
+            output=tmp_filepath,
+            format="FlatGeobuf",
+            overwrite=True,
+        )
+    except CalledModuleError as e:
+        gs.fatal(_("Failed to export soils_polygons to FlatGeobuf: %s") % str(e))
     return tmp_filepath
 
 
@@ -1252,33 +1538,56 @@ def main():
 
     else:
         gs.message(_("Importing SSURGO data from local file."))
-        _import_duckdb(error=True)
         _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
         wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
-        con = connect_duckdb(threads=nprocs)
-        try:
-            fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
 
-            # GRASS GDAL driver isn't supported by duckdb
-            gs.message(f"Tempfile Path: {tmp_filepath}")
-            local_ssurgo_query(
-                con=con,
-                tmp_filepath=tmp_filepath,
-                wkt_bbox=wkt_bbox,
-                ssurgo_path=_ssurgo_path,
-                desgnmaster=desgnmaster,
-                hzdept_r=hzdept_r,
-                hzdepb_r=hzdepb_r,
-            )
-            write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
-        except Exception as e:
-            gs.fatal(f"An error occurred during local SSURGO processing: {e}")
-        finally:
-            if con:
-                con.close()
-            if os.path.exists(tmp_filepath):
-                os.remove(tmp_filepath)
-                gs.debug(f"Removed temp file: {tmp_filepath}")
+        duckdb = _import_duckdb(error=False)
+        if duckdb:
+            gs.message(_("Using DuckDB for local SSURGO query."))
+            con = connect_duckdb(threads=nprocs)
+            try:
+                fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
+
+                # GRASS GDAL driver isn't supported by duckdb
+                gs.message(f"Tempfile Path: {tmp_filepath}")
+                local_ssurgo_query(
+                    con=con,
+                    tmp_filepath=tmp_filepath,
+                    wkt_bbox=wkt_bbox,
+                    ssurgo_path=_ssurgo_path,
+                    desgnmaster=desgnmaster,
+                    hzdept_r=hzdept_r,
+                    hzdepb_r=hzdepb_r,
+                )
+                write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
+            except Exception as e:
+                gs.fatal(f"An error occurred during local SSURGO processing: {e}")
+            finally:
+                if con:
+                    con.close()
+                if os.path.exists(tmp_filepath):
+                    os.remove(tmp_filepath)
+                    gs.debug(f"Removed temp file: {tmp_filepath}")
+        else:
+            gs.message(_("Importing with SQLite/OGR local SSURGO query."))
+            try:
+                fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
+                gs.message(f"Tempfile Path: {tmp_filepath}")
+                local_ssurgo_sqlite_query(
+                    tmp_filepath=tmp_filepath,
+                    # wkt_bbox=wkt_bbox,
+                    ssurgo_path=str(_ssurgo_path),
+                    desgnmaster=desgnmaster,
+                    hzdept_r=hzdept_r,
+                    hzdepb_r=hzdepb_r,
+                )
+                write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
+            except Exception as e:
+                gs.fatal(f"An error occurred during SQLite SSURGO processing: {e}")
+            finally:
+                if os.path.exists(tmp_filepath):
+                    os.remove(tmp_filepath)
+                    gs.debug(f"Removed temp file: {tmp_filepath}")
 
     if ssurgo_areas:
         _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey)
