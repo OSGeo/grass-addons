@@ -359,6 +359,28 @@ int load_builtin_arc(struct arc_table *tbl)
     return 0;
 }
 
+/* resolve dual HSG codes to single codes */
+int resolve_dual_hsg(int hsg, int drained)
+{
+    switch (hsg) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        return hsg;
+    case 11: /* A/D */
+        return drained ? 1 : 4;
+    case 12: /* B/D */
+        return drained ? 2 : 4;
+    case 13: /* C/D */
+        return drained ? 3 : 4;
+    case 14: /* D/D */
+        return 4;
+    default:
+        return -1;
+    }
+}
+
 /* lookups */
 int lookup_lut_cn_ii(const struct cn_table *tbl, int lc, int hsg, int hc_idx,
                      int *cn_ii_out)
