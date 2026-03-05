@@ -128,13 +128,9 @@ import textwrap
 # Set up translation function
 _ = gettext.gettext
 
-# Active GRASS session tools
-tools = Tools()
-SESSION = tools.g_gisenv(get="GISDBASE,LOCATION_NAME,MAPSET", sep="/").text
-# --- Unit conversion constant ---
-MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6
 
-gs.message(f"Active GRASS session: {SESSION}")
+# Unit conversion constant
+MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6
 
 
 def _import_duckdb(error):
@@ -221,12 +217,56 @@ def region_to_wkt_wgs84():
 
 
 def check_if_zipfile(file_path: Path) -> Path:
-    """Check if the provided file path is a ZIP file."""
-    # if not file_path.is_file():
-    #     raise FileNotFoundError(f"File not found: {file_path}")
-    # if file_path.suffix.lower() == ".zip":
-    return Path("/vsizip") / file_path.relative_to(file_path.anchor)
-    # return file_path
+    """Check if the provided file path is a ZIP file and construct /vsizip/ path."""
+    # Check if the path exists
+    absolute_path = file_path.resolve(strict=False)
+    if not absolute_path.exists():
+        raise FileNotFoundError(
+            _("File not found: <{}> Parent: <{}>").format(
+                absolute_path, file_path.parent
+            )
+        )
+    # If it is a ZIP file, return the path prefixed with /vsizip/ for GDAL virtual file system access
+    if absolute_path.suffix.lower() == ".zip":
+        # Use zipfile to validate and handle the archive
+        import zipfile
+
+        # Verify it's a valid ZIP file
+        if not zipfile.is_zipfile(absolute_path):
+            raise ValueError(
+                _(
+                    "File <{}> appears to be corrupted or not a valid ZIP archive"
+                ).format(file_path)
+            )
+
+        # Extract the base name without extension and append .gdb
+        # gSSURGO_CONUS.zip -> /vsizip//path/to/gSSURGO_CONUS.zip/gSSURGO_CONUS.gdb
+        # This allows users to point to the zip file directly and we can handle the internal pathing.
+        base_name = absolute_path.stem
+        gdb_name = f"{base_name}.gdb/"
+
+        # Construct the /vsizip/ path - note: use str() to avoid Path issues with /vsizip/
+        vsizip_path = f"/vsizip/{absolute_path}/{gdb_name}"
+        gs.message(_("Expected gdb path within ZIP: %s") % vsizip_path)
+
+        # Verify the .gdb directory exists within the ZIP archive
+        with zipfile.ZipFile(absolute_path, "r") as zip_ref:
+            zip_contents = zip_ref.namelist()
+            # Check if any file starts with gdb_name/ (indicating a directory)
+            gdb_found = any(
+                name.startswith(f"{gdb_name}") or name == f"{gdb_name}"
+                for name in zip_contents
+            )
+            if gdb_found:
+                return vsizip_path
+            else:
+                raise ValueError(
+                    _(
+                        "Expected geodatabase directory <{}> not found in ZIP archive <{}>"
+                    ).format(gdb_name, absolute_path)
+                )
+
+    return absolute_path
 
 
 def connect_duckdb(threads=None):
@@ -379,13 +419,7 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
 
 
 def local_ssurgo_query(
-    con,
-    wkt_bbox,
-    ssurgo_path,
-    desgnmaster,
-    hzdept_r,
-    hzdepb_r,
-    ssurgo_areas_out,
+    con, tmp_filepath, wkt_bbox, ssurgo_path, desgnmaster, hzdept_r, hzdepb_r
 ):
     """
     Import SSURGO data from a local ZIP file.
@@ -395,17 +429,16 @@ def local_ssurgo_query(
 
     Args:
         con (duckdb.Connection): An active connection to a DuckDB database with the spatial extension loaded.
+        tmp_filepath (str): Path to a temporary file for intermediate data storage.
         wkt_bbox (str): WKT polygon representing the bounding box.
         ssurgo_path (str): Path to the local SSURGO file.
         desgnmaster (str): Designation of master horizon.
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
-        ssurgo_areas_out (str): Name for output soil grid vector layer.
 
     Returns:
         None: This function does not return any value. It creates raster and vector layers in the GRASS environment.
     """
-    MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6  # Conversion factor
     top = hzdept_r
     bottom = hzdepb_r
     # Table mu polygon fields used:
@@ -570,12 +603,6 @@ def local_ssurgo_query(
         return None
 
     try:
-        output_layer = ssurgo_areas_out
-        fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
-
-        # GRASS GDAL driver isn't supported by duckdb
-        gs.message(f"Tempfile Path: {tmp_filepath}")
-
         export_sql = f"""
         COPY (
             {query.strip()}
@@ -585,65 +612,10 @@ def local_ssurgo_query(
 
         con.execute(export_sql)
 
-        # Export to GRASS using GDAL/OGR_GRASS driver
-        tempdir = tempfile.TemporaryDirectory()
-
-        gs.create_project(path=tempdir.name, epsg=5070, overwrite=True)
-        with gs.setup.init(Path(tempdir.name)) as temp_session:
-            # Create a new GRASS session for the temp dataset
-            with Tools(session=temp_session) as t:
-                gs.message("#" * 50)
-                gs.message("Starting temp GRASS session for SSURGO import...")
-                session_env = t.g_gisenv(
-                    get="GISDBASE,LOCATION_NAME,MAPSET", sep="/"
-                ).text
-                gs.debug(f"Temp Session info: {session_env}")
-                t.v_in_ogr(
-                    input=tmp_filepath,
-                    output=output_layer,
-                    type="boundary",
-                    snap=1e-7,
-                    flags="",
-                )
-
-                new_vect = t.g_list(type="vector", format="json").json
-                gs.debug(f"Temp Session Vectors: {new_vect}")
-
-            gs.debug("#" * 50)
-            tmp_project_name = Path(tempdir.name).name
-            gs.debug(f"Project Name: {tmp_project_name}")
-            tmp_dbpath = Path(tempdir.name).parent
-            gs.debug(f"Temp DB Path: {tmp_dbpath}")
-
-        with gs.setup.init(Path(SESSION)) as session:
-            gs.debug(f"Original Session info: {session}")
-            with Tools(session=session) as tools:
-                gs.message("Reprojecting ssurgo data...")
-
-                tools.v_proj(
-                    project=tmp_project_name,
-                    input=output_layer,
-                    dbase=tmp_dbpath,
-                    mapset="PERMANENT",
-                    output=output_layer,
-                    verbose=False,
-                )
-
-    except CalledModuleError as e:
-        gs.fatal(f"Import failed: {e}")
-
     except Exception as e:
-        gs.fatal(f"An error occurred: {e}")
+        gs.fatal(_("An error occurred: %s") % str(e))
 
-    finally:
-        gs.debug("cleaning up temp project")
-        tempdir.cleanup()
-        gs.debug(f"Tempfile Name: {tmp_filepath=}")
-        os.close(fd)
-        os.remove(tmp_filepath)
-        gs.debug("cleaned up temp FlatGeoBuff")
-
-    return output_layer
+    return tmp_filepath
 
 
 def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
@@ -754,13 +726,7 @@ def _wkt_to_geojson_geometry(wkt_str):
     return None
 
 
-def sda_ssurgo_query(
-    aoi_wkt,
-    desgnmaster,
-    hzdept_r,
-    hzdepb_r,
-    ssurgo_areas_out,
-):
+def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r):
     """Import SSURGO data from the Soil Data Access (SDA) web service.
 
     Fetches soil polygon geometry and attribute data for the area of interest
@@ -769,10 +735,10 @@ def sda_ssurgo_query(
     current project.
 
     :param str aoi_wkt: WKT polygon of the area of interest in WGS 84.
+    :param int tmp_fd: File descriptor for a temporary file to write the GeoJSON output.
     :param str desgnmaster: Designation of master horizon.
     :param int hzdept_r: Horizon depth top (cm).
     :param int hzdepb_r: Horizon depth bottom (cm).
-    :param str ssurgo_areas_out: Name for the output vector map.
     :return: Name of the imported vector map or None on failure.
     :rtype: str or None
     """
@@ -838,48 +804,12 @@ def sda_ssurgo_query(
     }
 
     # Write GeoJSON to temporary file and import into GRASS
-    fd, geojson_path = tempfile.mkstemp(suffix=".geojson")
-    tempdir = tempfile.TemporaryDirectory()
     try:
-        with os.fdopen(fd, "w") as f:
+        with os.fdopen(tmp_fd, "w") as f:
             json.dump(geojson, f)
-
-        # Import into temporary GRASS project in WGS 84 (EPSG:4326)
-        gs.create_project(path=tempdir.name, epsg=4326, overwrite=True)
-        with gs.setup.init(Path(tempdir.name)) as temp_session:
-            with Tools(session=temp_session) as t:
-                gs.message(_("Importing SDA data into temporary project..."))
-                t.v_in_ogr(
-                    input=geojson_path,
-                    output=ssurgo_areas_out,
-                    type="boundary",
-                    snap=1e-6,
-                )
-
-        # Reproject from temporary WGS 84 project to the current project
-        tmp_project_name = Path(tempdir.name).name
-        tmp_dbpath = Path(tempdir.name).parent
-
-        with gs.setup.init(Path(SESSION)) as session:
-            with Tools(session=session) as stools:
-                gs.message(_("Reprojecting SDA data to current project..."))
-                stools.v_proj(
-                    project=tmp_project_name,
-                    input=ssurgo_areas_out,
-                    dbase=tmp_dbpath,
-                    mapset="PERMANENT",
-                    output=ssurgo_areas_out,
-                )
-
-    except CalledModuleError as e:
-        gs.fatal(_("SDA import failed: {}").format(e))
-
-    finally:
-        tempdir.cleanup()
-        if os.path.exists(geojson_path):
-            os.remove(geojson_path)
-
-    return ssurgo_areas_out
+    except Exception as e:
+        gs.fatal(_("Failed to write GeoJSON to temporary file: %s") % e)
+        return None
 
 
 class SoilAggMethod(Enum):
@@ -1180,6 +1110,59 @@ class SDAClient:
         return result
 
 
+def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
+    """Write SSURGO data to a GRASS vector layer.
+
+    :param data: List of dicts containing SSURGO attributes and WKT geometry.
+    :param ssurgo_areas_out: Name of the output GRASS vector map.
+    :param src_srs: EPSG code of the input
+           5070 for the FlatGeobuf file 4326 for the GeoJSON file.
+    :return: Name of the created GRASS vector map.
+    """
+
+    try:
+        # Create temporary GRASS project for the source data
+        tempdir = tempfile.TemporaryDirectory()
+        tmp_project_name = Path(tempdir.name).name
+        tmp_dbpath = Path(tempdir.name).parent
+
+        # Import data into temporary GRASS project
+        gs.create_project(path=tempdir.name, epsg=src_srs, overwrite=True)
+        with gs.setup.init(Path(tempdir.name)) as temp_session:
+            with Tools(session=temp_session) as t:
+                gs.message(_("Importing data into temporary project..."))
+                t.v_in_ogr(
+                    input=tmp_filepath,
+                    output=ssurgo_areas_out,
+                    type="boundary",
+                    snap=1e-6,
+                )
+
+        # Reproject from temporary project to the current project
+        with gs.setup.init(Path(SESSION)) as session:
+            with Tools(session=session) as stools:
+                gs.message(_("Reprojecting data to current project..."))
+                stools.v_proj(
+                    project=tmp_project_name,
+                    input=ssurgo_areas_out,
+                    dbase=tmp_dbpath,
+                    mapset="PERMANENT",
+                    output=ssurgo_areas_out,
+                )
+
+    except CalledModuleError as e:
+        gs.fatal(_("GRASS module error during data import: %s") % e)
+
+    finally:
+        gs.debug("cleaning up temp project")
+        tempdir.cleanup()
+        if os.path.exists(tmp_filepath):
+            os.remove(tmp_filepath)
+            gs.debug(f"Removed temp file: {tmp_filepath}")
+
+    return ssurgo_areas_out
+
+
 def main():
     # Inputs
     ssurgo_path = options["ssurgo_path"]
@@ -1207,61 +1190,69 @@ def main():
     # Processing options
     nprocs = int(options["nprocs"])  # optional
 
-    # Error if no duckdb and flag d is not set.
-    if not flag_d:
-        _import_duckdb(error=True)
-
-    with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
-        tif_path = tmp.name
-
+    if flag_d:
+        gs.message(
+            _(
+                "Using Soil Data Access (SDA) to query and download "
+                "data for the current computational region."
+            )
+        )
+        aoi_wkt = region_to_wkt_wgs84()
         try:
-            if flag_d:
-                gs.message(
-                    _(
-                        "Using Soil Data Access (SDA) to query and download "
-                        "data for the current computational region."
-                    )
-                )
-                aoi_wkt = region_to_wkt_wgs84()
-                ssurgo_areas = sda_ssurgo_query(
-                    aoi_wkt=aoi_wkt,
-                    desgnmaster=desgnmaster,
-                    hzdept_r=hzdept_r,
-                    hzdepb_r=hzdepb_r,
-                    ssurgo_areas_out=ssurgo_areas,
-                )
-                if ssurgo_areas:
-                    _rasterize_and_style(
-                        ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey
-                    )
-            else:
-                gs.message(_("Importing SSURGO data from local file."))
-                _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
-                wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
-                con = connect_duckdb(threads=nprocs)
-                ssurgo_areas = local_ssurgo_query(
-                    con=con,
-                    wkt_bbox=wkt_bbox,
-                    ssurgo_path=_ssurgo_path,
-                    desgnmaster=desgnmaster,
-                    hzdept_r=hzdept_r,
-                    hzdepb_r=hzdepb_r,
-                    hydgrp_out=hydgrp,
-                    ksat_h_out=ksat_h,
-                    ksat_r_out=ksat_r,
-                    ksat_l_out=ksat_l,
-                    mukey_out=mukey,
-                    ssurgo_areas_out=ssurgo_areas,
-                )
-                if ssurgo_areas:
-                    _rasterize_and_style(
-                        ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey
-                    )
+            fd, tmp_filepath = tempfile.mkstemp(suffix=".geojson")
+            sda_ssurgo_query(
+                aoi_wkt=aoi_wkt,
+                tmp_fd=fd,
+                desgnmaster=desgnmaster,
+                hzdept_r=hzdept_r,
+                hzdepb_r=hzdepb_r,
+            )
+            write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=4326)
+        except Exception as e:
+            gs.fatal(f"An error occurred during SDA processing: {e}")
         finally:
-            if os.path.exists(tif_path):
-                os.remove(tif_path)
+            if os.path.exists(tmp_filepath):
+                os.remove(tmp_filepath)
+                gs.debug(f"Removed temp file: {tmp_filepath}")
+
+    else:
+        gs.message(_("Importing SSURGO data from local file."))
+        _import_duckdb(error=True)
+        _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
+        wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
+        con = connect_duckdb(threads=nprocs)
+        try:
+            fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
+
+            # GRASS GDAL driver isn't supported by duckdb
+            gs.message(f"Tempfile Path: {tmp_filepath}")
+            local_ssurgo_query(
+                con=con,
+                tmp_filepath=tmp_filepath,
+                wkt_bbox=wkt_bbox,
+                ssurgo_path=_ssurgo_path,
+                desgnmaster=desgnmaster,
+                hzdept_r=hzdept_r,
+                hzdepb_r=hzdepb_r,
+            )
+            write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
+        except Exception as e:
+            gs.fatal(f"An error occurred during local SSURGO processing: {e}")
+        finally:
+            if con:
+                con.close()
+            if os.path.exists(tmp_filepath):
+                os.remove(tmp_filepath)
+                gs.debug(f"Removed temp file: {tmp_filepath}")
+
+    if ssurgo_areas:
+        _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey)
 
 
 if __name__ == "__main__":
     options, flags = gs.parser()
+    # Active GRASS session tools
+    tools = Tools()
+    SESSION = tools.g_gisenv(get="GISDBASE,LOCATION_NAME,MAPSET", sep="/").text
+    gs.message(f"Active GRASS session: {SESSION}")
     main()
