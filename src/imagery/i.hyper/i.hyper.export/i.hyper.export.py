@@ -12,6 +12,8 @@
 # % description: Export 3D hyperspectral 3D raster map (for now, only available compressed multi-band GeoTIFF)
 # % keyword: raster3d
 # % keyword: export
+# % keyword: output
+# % keyword: voxel
 # %end
 
 # %option G_OPT_R3_INPUT
