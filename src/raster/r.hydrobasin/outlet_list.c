@@ -1,5 +1,7 @@
+#include <grass/raster.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
+
 #include "global.h"
 
 static struct Cell_head window;
