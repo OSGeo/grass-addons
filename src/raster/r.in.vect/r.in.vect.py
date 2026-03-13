@@ -282,9 +282,9 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat, wher
     # Use SQL to fetch only unique id/label pairs instead of iterating all features
     table = layer_name if layer_name else datasource.GetLayer(0).GetName()
     sql = (
-        f"SELECT DISTINCT \"{column_name}\", \"{column_rat}\" "
-        f"FROM \"{table}\" "
-        f"WHERE \"{column_name}\" IS NOT NULL AND \"{column_rat}\" IS NOT NULL"
+        f'SELECT DISTINCT "{column_name}", "{column_rat}" '
+        f'FROM "{table}" '
+        f'WHERE "{column_name}" IS NOT NULL AND "{column_rat}" IS NOT NULL'
     )
     if where:
         sql += f" AND ({where})"
