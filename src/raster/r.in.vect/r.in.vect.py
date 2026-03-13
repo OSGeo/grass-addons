@@ -109,6 +109,12 @@
 # %end
 
 # %flag
+# % key: l
+# % label: Linearize curved geometries
+# % description: Convert curved geometry types (e.g., MultiSurface, CurvePolygon) to their linear equivalents before rasterizing. Required for sources like the Dutch BGT that use curve-based GML geometries.
+# %end
+
+# %flag
 # % key: a
 # % label: Print attribute table columns
 # % description: Print the names of the columns in the attribute table and exit
@@ -140,7 +146,6 @@ import sys
 import numpy as np
 from osgeo import ogr, gdal, osr
 import grass.script as gs
-import subprocess
 
 clean_maps = []
 _temp_region_used = False
@@ -271,29 +276,32 @@ def get_data_type(vector_file, layer_name, column_name, sql=None):
 def raster_labels(vector_file, layer_name, raster, column_name, column_rat, where=None):
     """Add labels to raster layer"""
     datasource = ogr.Open(vector_file)
-    if layer_name:
-        layer = datasource.GetLayerByName(layer_name)
-        if layer is None:
-            datasource = None
-            raise ValueError(f"Layer {layer_name} not found in {vector_file}")
-    else:
-        layer = datasource.GetLayer(0)
+    if datasource is None:
+        raise FileNotFoundError(f"Could not open {vector_file}")
 
-    # Apply optional attribute filter so labels match the selected subset
+    # Use SQL to fetch only unique id/label pairs instead of iterating all features
+    table = layer_name if layer_name else datasource.GetLayer(0).GetName()
+    sql = (
+        f"SELECT DISTINCT \"{column_name}\", \"{column_rat}\" "
+        f"FROM \"{table}\" "
+        f"WHERE \"{column_name}\" IS NOT NULL AND \"{column_rat}\" IS NOT NULL"
+    )
     if where:
-        layer.SetAttributeFilter(where)
+        sql += f" AND ({where})"
+
+    layer = datasource.ExecuteSQL(sql, dialect="SQLITE")
+    if layer is None:
+        datasource = None
+        raise ValueError("SQL query for raster labels returned no results")
 
     ids = []
     labels = []
 
     for feature in layer:
-        if (
-            feature.GetField(column_name) is not None
-            and feature.GetField(column_rat) is not None
-        ):
-            ids.append(feature.GetField(column_name))
-            labels.append(feature.GetField(column_rat))
+        ids.append(feature.GetField(0))
+        labels.append(feature.GetField(1))
 
+    datasource.ReleaseResultSet(layer)
     datasource = None
 
     # Print warning if number of unique ids do not match number of unique labels
@@ -404,33 +412,50 @@ def main(options, flags):
     grass_wkt = get_grass_crs_wkt()
     vector_wkt = get_vector_crs_wkt(vector_file, vector_layer)
     match_wkt = check_wkt_match(grass_wkt, vector_wkt)
+    linearize = flags["l"]
 
-    if not match_wkt:
-        gs.message(
-            _("reprojecting vector layer to match the CRS of the current mapset")
-        )
-        temp_vect = os.path.join(gs.tempdir(), f"{gs.tempname(4)}.gpkg")
-
-        ogr2ogr_command = [
-            "ogr2ogr",
-            "-f",
-            "GPKG",
-            "-t_srs",
-            grass_wkt,
-            temp_vect,
-            vector_file,
-        ]
-        if vector_layer:
-            ogr2ogr_command.append(vector_layer)
+    # Reproject and/or linearize if needed (combined into a single step)
+    where_consumed = False
+    if not match_wkt or linearize:
+        actions = []
+        translate_options = {
+            "format": "GPKG",
+            "layers": [vector_layer] if vector_layer else None,
+        }
 
         if where:
-            ogr2ogr_command.extend(["-where", where])
+            translate_options["where"] = where
+
+        if not match_wkt:
+            actions.append("reprojecting")
+            translate_options["dstSRS"] = grass_wkt
+            translate_options["reproject"] = True
+
+        if linearize:
+            actions.append("linearizing curved geometries")
+            translate_options["geometryType"] = "CONVERT_TO_LINEAR"
 
         # Note: -sql is not passed here,
         # sql is applied during the gdal.Rasterize step.
-        subprocess.run(ogr2ogr_command, text=True, check=True)
+
+        gs.message(_("{} vector layer").format(" and ".join(actions).capitalize()))
+
+        temp_vect = os.path.join(gs.tempdir(), f"{gs.tempname(4)}.gpkg")
+        result = gdal.VectorTranslate(temp_vect, vector_file, **translate_options)
+        if result is None:
+            gs.fatal(
+                _("gdal.VectorTranslate failed during: {}").format(
+                    " and ".join(actions)
+                )
+            )
+        result = None  # close dataset
 
         vector_file = temp_vect
+        # After conversion to a single-layer GPKG, reset layer name
+        # and mark where as consumed (already applied during VectorTranslate)
+        vector_layer = None
+        if where:
+            where_consumed = True
         clean_maps.append(temp_vect)
 
     # Get computational region
@@ -528,6 +553,8 @@ def main(options, flags):
 
     # Fix for multi-layer datasources: explicitly select the layer when provided
     layers = [vector_layer] if vector_layer else None
+    # Only pass where to Rasterize if it was not already applied during VectorTranslate
+    rasterize_where = where if (where and not where_consumed) else None
 
     rasterize_options = gdal.RasterizeOptions(
         creationOptions=["COMPRESS=DEFLATE"],
@@ -541,7 +568,7 @@ def main(options, flags):
         allTouched=all_touched,
         attribute=column_name,
         burnValues=raster_value,
-        where=where,
+        where=rasterize_where,
         layers=layers,
         SQLStatement=sql,
         SQLDialect="SQLITE" if sql else None,
