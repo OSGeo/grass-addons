@@ -149,11 +149,9 @@
 # %end
 
 # %option G_OPT_F_FORMAT
-# % key: format
-# % label: Output format
-# % options: json,text
+# % options: plain,json
+# % descriptions: plain;Plain text output;json;JSON (JavaScript Object Notation);
 # % required: no
-# % description: Output format for the results
 # % guisection: Output
 # %end
 
