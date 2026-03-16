@@ -61,16 +61,11 @@ void Bootsamples(int n, double *prob, int *random_labels)
     G_free(random_labels_flag);
 }
 
-void Bootsamples_rseed(n, prob, random_labels, idum)
-    /*
-       given an array of probabilities of length n, extract a bootstrap sample
-       of n elements according to the vector of probabilities
-     */
-    int n;
-double *prob;
-int *random_labels;
-int *idum;
-
+void Bootsamples_rseed(int n, double *prob, int *random_labels, int *idum)
+/*
+   given an array of probabilities of length n, extract a bootstrap sample
+   of n elements according to the vector of probabilities
+ */
 {
     int i, j;
     int *random_labels_flag;

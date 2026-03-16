@@ -14,7 +14,7 @@
 #define ALN2I 1.442695022
 #define TINY  1.0e-5
 
-static void indexx();
+static void indexx(int, double[], int[]);
 
 void shell(int n, double *arr)
 

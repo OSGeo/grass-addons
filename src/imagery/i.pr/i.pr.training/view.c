@@ -36,7 +36,7 @@ int In_view(View *view, int x, int y)
 
 void Erase_view(View *view)
 {
-    R_standard_color(BLACK);
+    R_standard_color(IPR_BLACK);
     R_box_abs(view->left, view->top, view->right, view->bottom);
 }
 

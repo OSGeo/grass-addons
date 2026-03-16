@@ -4,12 +4,14 @@
 #include "globals.h"
 #include <grass/glocale.h>
 
-void write_map(struct Cell_head *cellhd, char *name, char *mapset, char *dest)
+void write_map(struct Cell_head *cellhd, char *name, const char *mapset,
+               char *dest)
 {
-    int fd_to, fd_from, row, nrows, ncols;
+    int fd_to, fd_from, row, nrows;
     CELL *buf;
     char command[500];
-    char *lp, *lm;
+    char *lp;
+    const char *lm;
     char *coldir;
     struct stat statdir;
 
@@ -27,7 +29,6 @@ void write_map(struct Cell_head *cellhd, char *name, char *mapset, char *dest)
 
     buf = Rast_allocate_buf(CELL_TYPE);
 
-    ncols = Rast_window_cols();
     nrows = Rast_window_rows();
 
     for (row = 0; row < nrows; row++) {

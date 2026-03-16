@@ -22,12 +22,6 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-double probks();
-double probks2();
-double betai();
-double gammln();
-double betacf();
-
 void ksone_normal(double *data, int n, double p1, double p2, double *d,
                   double *prob)
 
@@ -132,14 +126,13 @@ double probks2(double alam, int ndata)
     return (p);
 }
 
-double normal_distribution(x, mu, sigma)
+double normal_distribution(double x, double mu, double sigma)
 /*
    normal distribution with mean mu and
    standard deviation sigma computed at point x
 
    1/(sigma*sqrt(PIG) exp(-(x-mu)^2/2sigma^2)
  */
-double x, mu, sigma;
 {
     return exp(-1 * (x - mu) * (x - mu) / (2.0 * sigma * sigma)) /
            (sigma * sqrt(2 * PIG));
@@ -242,9 +235,10 @@ double betai(double a, double b, double x)
     }
 }
 
-double sqrarg;
-
-#define SQR(a) (sqrarg = (a), sqrarg * sqrarg)
+static inline double SQR(double a)
+{
+    return a * a;
+}
 
 void tutest(double *data1, int n1, double *data2, int n2, double *t,
             double *prob)

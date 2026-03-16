@@ -1,7 +1,7 @@
 MODULE_TOPDIR = ../../..
 
 PRINCLUDE = ../include/
-EXTRA_CFLAGS = $(VECT_CFLAGS) -I$(PRINCLUDE)
+EXTRA_CFLAGS = $(VECT_CFLAGS) -I$(PRINCLUDE) $(PQINCPATH)
 PRLIB = -lgrass_pr.$(GRASS_LIB_VERSION_NUMBER)
 
 PGM = i.pr.sites_aggregate

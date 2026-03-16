@@ -24,8 +24,6 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-void write_matrix();
-
 int main(int argc, char **argv)
 {
     struct GModule *module;
@@ -40,7 +38,6 @@ int main(int argc, char **argv)
     Features *tr_features;
     Features *ts_features;
 
-    char tmpbuf[500];
     int n_sets;
     int i, j, k;
     char fileout[500], filelab[500];
@@ -115,19 +112,16 @@ int main(int argc, char **argv)
     /*read parameters */
     sscanf(opt2->answer, "%d", &n_sets);
     if (n_sets <= 0) {
-        sprintf(tmpbuf, "n_sets must be >0");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("n_sets must be >0");
     }
 
     sscanf(opt3->answer, "%d", &seed);
     if (seed < 0) {
-        sprintf(tmpbuf, "seed must be >=0");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("seed must be >=0");
     }
 
     if (!flag_b->answer && !flag_c->answer) {
-        sprintf(tmpbuf, "Neither -b nor -c flag set!\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Neither -b nor -c flag set!\n");
     }
 
     /*read features */
@@ -482,22 +476,19 @@ int main(int argc, char **argv)
             ts_features = (Features *)G_calloc(n_sets, sizeof(Features));
 
             if (n_sets > features.nexamples) {
-                sprintf(tmpbuf,
-                        "n_sets must be <= %d (=number of training data) if "
-                        "you want to use cross-validation",
-                        features.nexamples);
-                G_fatal_error(tmpbuf);
+                G_fatal_error("n_sets must be <= %d (=number of training data) "
+                              "if you want to use cross-validation",
+                              features.nexamples);
             }
 
             probok = pow(1. - pow(1. - 1. / n_sets, (double)features.nexamples),
                          (double)n_sets);
             if (probok < 0.95) {
-                sprintf(tmpbuf,
-                        "the probability of extracting %d non empty test sets "
-                        "is less than 0.95 (the probability is exactly %e). "
-                        "Sorry but I don't like to take this risk.",
-                        n_sets, probok);
-                G_fatal_error(tmpbuf);
+                G_fatal_error(
+                    "the probability of extracting %d non empty test sets is "
+                    "less than 0.95 (the probability is exactly %e). Sorry but "
+                    "I don't like to take this risk.",
+                    n_sets, probok);
             }
 
             random_labels = (int *)G_calloc(features.nexamples, sizeof(int));

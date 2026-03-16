@@ -70,7 +70,6 @@ int main(int argc, char **argv)
     BTree btree;
     BSupportVectorMachine bsvm;
 
-    char tmpbuf[500];
     int tree_stamps, tree_minsize;
     char svm_kernel_type[100];
     double svm_kp, svm_C, svm_tol, svm_eps;
@@ -115,7 +114,7 @@ int main(int argc, char **argv)
     opt1->type = TYPE_STRING;
     opt1->required = YES;
     opt1->description =
-        "Input file containing the features (output of i.pr_features).";
+        "Input file containing the features (output of i.pr.features).";
 
     opt2 = G_define_option();
     opt2->key = "model";
@@ -241,8 +240,8 @@ int main(int argc, char **argv)
     opt21->type = TYPE_INTEGER;
     opt21->required = NO;
     opt21->description = "For boosting: if soft_margin_boosting = 1, sof "
-                         "margin of Ababoost\n\t\t\t will bee used. "
-                         "Implemented only with trees. (Sperimental!!!!!!!!!!)";
+                         "margin of Ababoost\n\t\t\t will be used. "
+                         "Implemented only with trees. (Experimental!!!!!!!!)";
     opt21->answer = "0";
     opt21->options = "0,1";
 
@@ -288,7 +287,7 @@ int main(int argc, char **argv)
                         "are using gaussian kernel).";
 
     opt8 = G_define_option();
-    opt8->key = "svm_C";
+    opt8->key = "svm_c";
     opt8->type = TYPE_DOUBLE;
     opt8->required = NO;
     opt8->description = "For svm: optimization parameter (Required parameter).";
@@ -310,7 +309,7 @@ int main(int argc, char **argv)
     opt9->key = "svm_tol";
     opt9->type = TYPE_DOUBLE;
     opt9->required = NO;
-    opt9->description = "For svm: tollerance parameter.";
+    opt9->description = "For svm: tolerance parameter.";
     opt9->answer = "0.001";
 
     opt10 = G_define_option();
@@ -382,25 +381,21 @@ int main(int argc, char **argv)
     if (flag_n->answer) {
         sscanf(opt17->answer, "%d", &(nn.k));
         if (nn.k <= 0) {
-            sprintf(tmpbuf, "number of neighbor must be > 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("number of neighbor must be > 0\n");
         }
         if (nn.k % 2 == 0) {
-            sprintf(tmpbuf, "number of neighbor must be odd\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("number of neighbor must be odd\n");
         }
     }
 
     if (flag_t->answer) {
         sscanf(opt4->answer, "%d", &tree_stamps);
         if ((tree_stamps != 0) && (tree_stamps != 1)) {
-            sprintf(tmpbuf, "stamps must be 0 or 1\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("stamps must be 0 or 1\n");
         }
         sscanf(opt5->answer, "%d", &tree_minsize);
         if (tree_minsize < 0) {
-            sprintf(tmpbuf, "minsize must be >= 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("minsize must be >= 0\n");
         }
     }
 
@@ -418,19 +413,16 @@ int main(int argc, char **argv)
             svm_kernel = SVM_KERNEL_DIRECT;
         }
         else {
-            sprintf(tmpbuf, "kernel type not implemended!\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("kernel type not implemended!\n");
         }
         if (svm_kernel == SVM_KERNEL_GAUSSIAN) {
             if (!opt7->answer) {
-                sprintf(tmpbuf, "Please set kernel parameter\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("Please set kernel parameter\n");
             }
             else {
                 sscanf(opt7->answer, "%lf", &svm_kp);
                 if (svm_kp <= 0) {
-                    sprintf(tmpbuf, "kernel parameter must be > 0\n");
-                    G_fatal_error(tmpbuf);
+                    G_fatal_error("kernel parameter must be > 0\n");
                 }
             }
         }
@@ -438,30 +430,25 @@ int main(int argc, char **argv)
             svm_kp = 0.0;
 
         if (!opt8->answer) {
-            sprintf(tmpbuf, "Please set optimization parameter\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("Please set optimization parameter\n");
         }
         else {
             sscanf(opt8->answer, "%lf", &svm_C);
             if (svm_C <= 0) {
-                sprintf(tmpbuf, "optimization parameter must be > 0\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("optimization parameter must be > 0\n");
             }
         }
         sscanf(opt9->answer, "%lf", &svm_tol);
         if (svm_tol <= 0) {
-            sprintf(tmpbuf, "tol must be > 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("tol must be > 0\n");
         }
         sscanf(opt10->answer, "%lf", &svm_eps);
         if (svm_eps <= 0) {
-            sprintf(tmpbuf, "eps must be > 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("eps must be > 0\n");
         }
         sscanf(opt12->answer, "%d", &svm_maxloops);
         if (svm_maxloops <= 0) {
-            sprintf(tmpbuf, "maximum number of loops must be > 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("maximum number of loops must be > 0\n");
         }
         sscanf(opt11->answer, "%d", &svm_l1o);
         sscanf(opt22->answer, "%d", &svm_verbose);
@@ -475,13 +462,11 @@ int main(int argc, char **argv)
 
     sscanf(opt28->answer, "%lf", &misclass_ratio);
     if ((misclass_ratio < 0) || (misclass_ratio > 1)) {
-        sprintf(tmpbuf, "misclassification ratio must be > 0 and < 1\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("misclassification ratio must be > 0 and < 1\n");
     }
     if ((misclass_ratio < 1) && (reg > 0)) {
-        sprintf(tmpbuf, "Please select only one between shaving the training "
-                        "set and regularized AdaBoost\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Please select only one between shaving the training set "
+                      "and regularized AdaBoost\n");
     }
     if (bagging < 0) {
         bagging = 0;
@@ -496,32 +481,26 @@ int main(int argc, char **argv)
     }
 
     if ((bagging > 0) && (boosting > 0)) {
-        sprintf(tmpbuf,
-                "Please select only one between bagging and boosting\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Please select only one between bagging and boosting\n");
     }
 
     if (boosting > 0) {
         sscanf(opt15->answer, "%lf", &w);
         if (w < 0.0 || w > 2.0) {
-            sprintf(tmpbuf, "boosting cost in [0,2]\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("boosting cost in [0,2]\n");
         }
         sscanf(opt19->answer, "%d", &weights_boosting);
         if ((weights_boosting != 0) && (weights_boosting != 1)) {
-            sprintf(tmpbuf, "weights_boosting must be 0 or 1\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("weights_boosting must be 0 or 1\n");
         }
         sscanf(opt21->answer, "%d", &soft_margin_boosting);
         if ((soft_margin_boosting != 0) && (soft_margin_boosting != 1)) {
-            sprintf(tmpbuf, "soft_margin_boosting must be 0 or 1\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("soft_margin_boosting must be 0 or 1\n");
         }
         if (opt24->answer) {
             sscanf(opt24->answer, "%d", &parallel_boosting);
             if ((parallel_boosting <= boosting) && (parallel_boosting > 0)) {
-                sprintf(tmpbuf, "parallel_boosting must be > boosting\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("parallel_boosting must be > boosting\n");
             }
         }
     }
@@ -698,8 +677,7 @@ int main(int argc, char **argv)
             /*svm */
 
             if (features.nclasses != 2) {
-                sprintf(tmpbuf, "svm works only with 2 class problems\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("svm works only with 2 class problems\n");
             }
 
             /*svm costs */
@@ -746,16 +724,12 @@ int main(int argc, char **argv)
     /*bagging models */
     if (bagging > 0) {
         if (flag_n->answer) {
-            sprintf(
-                tmpbuf,
+            G_fatal_error(
                 "Sorry, bagging of nearest neighbor not yet implemented\n\n");
-            G_fatal_error(tmpbuf);
         }
         if (flag_g->answer) {
-            sprintf(
-                tmpbuf,
+            G_fatal_error(
                 "Sorry, bagging of gaussian mixture not yet implemented\n\n");
-            G_fatal_error(tmpbuf);
         }
         if (flag_t->answer) {
             /*trees */
@@ -785,8 +759,7 @@ int main(int argc, char **argv)
         if (flag_s->answer) {
             /*svm */
             if (features.nclasses != 2) {
-                sprintf(tmpbuf, "svm works only with 2 class problems\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("svm works only with 2 class problems\n");
             }
 
             svm_W = (double *)G_calloc(features.nexamples, sizeof(double));
@@ -822,21 +795,16 @@ int main(int argc, char **argv)
     /*boosting models */
     if (boosting > 0) {
         if (flag_n->answer) {
-            sprintf(
-                tmpbuf,
+            G_fatal_error(
                 "Sorry, boosting of nearest neighbor not yet implemented\n\n");
-            G_fatal_error(tmpbuf);
         }
         if (flag_g->answer) {
-            sprintf(
-                tmpbuf,
+            G_fatal_error(
                 "Sorry, boosting of gaussian mixture not yet implemented\n\n");
-            G_fatal_error(tmpbuf);
         }
 
         if (features.nclasses != 2) {
-            sprintf(tmpbuf, "boosting works only with 2 class problems\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("boosting works only with 2 class problems\n");
         }
         if (flag_t->answer) {
             /*trees */
@@ -1068,7 +1036,6 @@ int main(int argc, char **argv)
         }
     }
 
-    sprintf(tmpbuf, "please select a model\n");
-    G_warning(tmpbuf);
+    G_warning("please select a model\n");
     return 0;
 }

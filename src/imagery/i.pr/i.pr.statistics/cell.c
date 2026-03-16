@@ -6,7 +6,9 @@
 /*#include "edit.h" */
 #include "localproto.h"
 
-static int cell_draw(char *, char *, struct Colors *, int);
+#include "global.h"
+
+static int cell_draw(char *, const char *, struct Colors *, int);
 
 /*!
  * \brief
@@ -22,7 +24,7 @@ static int cell_draw(char *, char *, struct Colors *, int);
  *  \return int
  */
 
-int Dcell(char *name, char *mapset, int overlay)
+int Dcell(char *name, const char *mapset, int overlay)
 {
     struct Cell_head wind;
     struct Colors colors;
@@ -33,8 +35,7 @@ int Dcell(char *name, char *mapset, int overlay)
     if (D_check_map_window(&wind))
         G_fatal_error(_("Setting map window"));
 
-    if (G_set_window(&wind) == -1)
-        G_fatal_error(_("Current window not settable"));
+    G_set_window(&wind);
 
     /* Get existing map window for this graphics window, or save window */
     /* cell maps wipe out a picture, so we clear info on the window too */
@@ -70,7 +71,7 @@ int Dcell(char *name, char *mapset, int overlay)
 }
 
 /* I modified this function to read and draw raster cell as doubles */
-static int cell_draw(char *name, char *mapset, struct Colors *colors,
+static int cell_draw(char *name, const char *mapset, struct Colors *colors,
                      int overlay)
 {
     int cellfile;

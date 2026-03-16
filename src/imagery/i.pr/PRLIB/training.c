@@ -55,13 +55,11 @@ void read_training(char *file, Training *training)
 
     fp = fopen(file, "r");
     if (fp == NULL) {
-        sprintf(tempbuf, "read_training-> Can't open file %s for reading",
-                file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("read_training-> Can't open file %s for reading", file);
     }
     if (G_getl2(tempbuf, sizeof(tempbuf) - 1, fp) == 0) {
-        G_fatal_error("read_training-> File %s is empty", file);
         fclose(fp);
+        G_fatal_error("read_training-> File %s is empty", file);
     }
 
     training->file = file;
@@ -85,10 +83,8 @@ void read_training(char *file, Training *training)
             line = GetLine(fp);
             sscanf(line, "%d", &(training->nlayers));
             if (training->nlayers > TRAINING_MAX_LAYERS) {
-                sprintf(tempbuf,
-                        "read_training-> Maximum number of layers is %d",
-                        TRAINING_MAX_LAYERS);
-                G_fatal_error(tempbuf);
+                G_fatal_error("read_training-> Maximum number of layers is %d",
+                              TRAINING_MAX_LAYERS);
             }
             line = GetLine(fp);
             line = GetLine(fp);
@@ -100,9 +96,8 @@ void read_training(char *file, Training *training)
             line = GetLine(fp);
             sscanf(line, "%d", &nlayers);
             if (nlayers != training->nlayers) {
-                sprintf(tempbuf, "read_training-> Training files must contain "
-                                 "same number of layers");
-                G_fatal_error(tempbuf);
+                G_fatal_error("read_training-> Training files must contain "
+                              "same number of layers");
             }
             line = GetLine(fp);
             line = GetLine(fp);
@@ -171,33 +166,26 @@ void read_training(char *file, Training *training)
 
             if (training->nexamples > 0) {
                 if ((tmprow != training->rows) || (tmpcol != training->cols)) {
-                    sprintf(tempbuf,
-                            "read_training-> Example %d: different number of "
-                            "rows or cols",
-                            training->nexamples + 1);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("read_training-> Example %d: different "
+                                  "number of rows or cols",
+                                  training->nexamples + 1);
                 }
                 if (fabs((tmpew - training->ew_res) / training->ew_res) > 0.1) {
-                    sprintf(tempbuf,
-                            "read_training-> Example %d: EW-resolution differs "
-                            "more than 10%%",
-                            training->nexamples + 1);
-                    G_warning(tempbuf);
+                    G_warning("read_training-> Example %d: EW-resolution "
+                              "differs more than 10%%",
+                              training->nexamples + 1);
                 }
                 if (fabs((tmpns - training->ns_res) / training->ns_res) > 0.1) {
-                    sprintf(tempbuf,
-                            "read_training-> Example %d: NS-resolution differs "
-                            "more than 10%%",
-                            training->nexamples + 1);
-                    G_warning(tempbuf);
+                    G_warning("read_training-> Example %d: NS-resolution "
+                              "differs more than 10%%",
+                              training->nexamples + 1);
                 }
             }
             training->nexamples += 1;
             if (training->nexamples == TRAINING_MAX_EXAMPLES) {
-                sprintf(tempbuf,
-                        "read_training-> Maximum number of training data is %d",
-                        TRAINING_MAX_EXAMPLES);
-                G_fatal_error(tempbuf);
+                G_fatal_error(
+                    "read_training-> Maximum number of training data is %d",
+                    TRAINING_MAX_EXAMPLES);
             }
         }
         break;
@@ -217,9 +205,8 @@ void read_training(char *file, Training *training)
             line = GetLine(fp);
             sscanf(line, "%d", &(tmpc));
             if (tmpc != training->cols) {
-                sprintf(tempbuf, "read_training-> training data must have same "
-                                 "number of columns");
-                G_fatal_error(tempbuf);
+                G_fatal_error("read_training-> training data must have same "
+                              "number of columns");
             }
         }
         line = GetLine(fp);
@@ -234,18 +221,15 @@ void read_training(char *file, Training *training)
             sscanf(line, "%d", &(training->class[training->nexamples]));
             training->nexamples += 1;
             if (training->nexamples == TRAINING_MAX_EXAMPLES) {
-                sprintf(tempbuf,
-                        "read_training-> Maximum number of training data is %d",
-                        TRAINING_MAX_EXAMPLES);
-                G_fatal_error(tempbuf);
+                G_fatal_error(
+                    "read_training-> Maximum number of training data is %d",
+                    TRAINING_MAX_EXAMPLES);
             }
         }
         break;
 
     default:
-        sprintf(tempbuf, "read_training-> Format not recognized");
-        G_fatal_error(tempbuf);
-        break;
+        G_fatal_error("read_training-> Format not recognized");
     }
     fclose(fp);
 }

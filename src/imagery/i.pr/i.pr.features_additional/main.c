@@ -24,7 +24,7 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-void generate_features();
+void generate_features(Features *, Features *);
 
 int main(int argc, char **argv)
 {
@@ -37,7 +37,6 @@ int main(int argc, char **argv)
     int ntraining_file;
     int i;
     Features features, features_out;
-    char tempbuf[500];
     char opt1desc[500];
 
     /* Initialize the GIS calls */
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
     sprintf(opt1desc,
             "Input files (max %d) containing training data.\n\t\t2 formats are "
             "currently supported:\n\t\t1) GRASS_data (output of "
-            "i.pr_training)\n\t\t2) TABLE_data.",
+            "i.pr.training)\n\t\t2) TABLE_data.",
             TRAINING_MAX_INPUTFILES);
 
     /* set up command line */
@@ -89,9 +88,8 @@ int main(int argc, char **argv)
     for (i = 0; (training_file[ntraining_file] = opt1->answers[i]); i++) {
         ntraining_file += 1;
         if (ntraining_file > TRAINING_MAX_INPUTFILES) {
-            sprintf(tempbuf, "Maximum nomber of allowed training files is %d",
-                    TRAINING_MAX_INPUTFILES);
-            G_fatal_error(tempbuf);
+            G_fatal_error("Maximum nomber of allowed training files is %d",
+                          TRAINING_MAX_INPUTFILES);
         }
     }
 
@@ -133,7 +131,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void generate_features(Features *features, Features *features_out)
+void generate_features(Features *features IPR_UNUSED, Features *features_out)
 {
     int i, j, k, l;
     char *mapset;
@@ -143,7 +141,6 @@ void generate_features(Features *features, Features *features_out)
     DCELL *tf;
     DCELL **matrix;
     int r, c;
-    char tempbuf[500];
     int *compute_features;
     int dim;
     DCELL *mean = NULL, *sd = NULL;
@@ -246,18 +243,15 @@ void generate_features(Features *features, Features *features_out)
             case GRASS_data:
                 if ((mapset = (char *)G_find_raster(
                          features_out->training.mapnames[i][j], "")) == NULL) {
-                    sprintf(tempbuf,
-                            "generate_features-> Can't find raster map <%s>",
-                            features_out->training.mapnames[i][j]);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error(
+                        "generate_features-> Can't find raster map <%s>",
+                        features_out->training.mapnames[i][j]);
                 }
                 if ((fp = Rast_open_old(features_out->training.mapnames[i][j],
                                         mapset)) < 0) {
-                    sprintf(tempbuf,
-                            "generate_features-> Can't open raster map <%s> "
-                            "for reading",
-                            features_out->training.mapnames[i][j]);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("generate_features-> Can't open raster map "
+                                  "<%s> for reading",
+                                  features_out->training.mapnames[i][j]);
                 }
 
                 Rast_get_cellhd(features_out->training.mapnames[i][j], mapset,
@@ -266,8 +260,7 @@ void generate_features(Features *features, Features *features_out)
                 if ((cellhd.rows != features_out->training.rows) ||
                     (cellhd.cols != features_out->training.cols)) {
                     /*      fprintf(stderr,"map number = %d\n",i); */
-                    sprintf(tempbuf, "generate_features-> Dimension Error");
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("generate_features-> Dimension Error");
                 }
                 rowbuf = (DCELL *)G_calloc(dim, sizeof(DCELL));
                 tf = rowbuf;
@@ -289,8 +282,7 @@ void generate_features(Features *features, Features *features_out)
                 matrix[i] = features_out->training.data[i];
                 break;
             default:
-                sprintf(tempbuf, "generate_features-> Format not recognized");
-                G_fatal_error(tempbuf);
+                G_fatal_error("generate_features-> Format not recognized");
                 break;
             }
         }

@@ -15,10 +15,8 @@
 #include <string.h>
 #include <math.h>
 
-void compute_valoriDJ(svm, features, H_tot, H_tmp,
-                      valoriDJ) SupportVectorMachine *svm;
-Features *features;
-double **H_tot, **H_tmp, **valoriDJ;
+void compute_valoriDJ(SupportVectorMachine *svm, Features *features,
+                      double **H_tot, double **H_tmp, double **valoriDJ)
 {
     double diag, resto;
     int i, j, t;
@@ -69,7 +67,7 @@ double **H_tot, **H_tmp, **valoriDJ;
     }
 }
 
-void free_svm(svm) SupportVectorMachine *svm;
+void free_svm(SupportVectorMachine *svm)
 {
     int j;
 
@@ -84,13 +82,9 @@ void free_svm(svm) SupportVectorMachine *svm;
     G_free(svm->precomputed_self_dot_product);
 }
 
-void e_rfe_lin(svm, features, names, selected, i, rimanenti, fp_fs_w,
-               fp_fs_stats) SupportVectorMachine *svm;
-Features *features;
-int *names, *selected;
-int i;
-int *rimanenti;
-FILE *fp_fs_w, *fp_fs_stats;
+void e_rfe_lin(SupportVectorMachine *svm, Features *features, int *names,
+               int *selected, int i IPR_UNUSED, int *rimanenti, FILE *fp_fs_w,
+               FILE *fp_fs_stats)
 {
     double *wsquare;
     int j;
@@ -270,15 +264,10 @@ FILE *fp_fs_w, *fp_fs_stats;
     G_free(wsquare);
 }
 
-void e_rfe_gauss(valoriDJ, features, names, selected, i, H_tot, H_tmp,
-                 rimanenti, svm_kp, fp_fs_w, fp_fs_stats) double *valoriDJ;
-Features *features;
-double **H_tot, **H_tmp;
-int *names, *selected;
-int i;
-int *rimanenti;
-double svm_kp;
-FILE *fp_fs_w, *fp_fs_stats;
+void e_rfe_gauss(double *valoriDJ, Features *features, int *names,
+                 int *selected, int i IPR_UNUSED, double **H_tot,
+                 double **H_tmp, int *rimanenti, double svm_kp, FILE *fp_fs_w,
+                 FILE *fp_fs_stats)
 {
     int j;
     int *h;
@@ -461,9 +450,8 @@ FILE *fp_fs_w, *fp_fs_stats;
     G_free(valorieliminati);
 }
 
-void one_rfe_lin(svm, names, selected, fp_fs_w) SupportVectorMachine *svm;
-int *names, *selected;
-FILE *fp_fs_w;
+void one_rfe_lin(SupportVectorMachine *svm, int *names, int *selected,
+                 FILE *fp_fs_w)
 {
     double *wsquare;
     int i, j;
@@ -494,10 +482,8 @@ FILE *fp_fs_w;
     G_free(sortindex);
 }
 
-void one_rfe_gauss(valoriDJ, names, selected, n, fp_fs_w) double *valoriDJ;
-int *names, *selected;
-int n;
-FILE *fp_fs_w;
+void one_rfe_gauss(double *valoriDJ, int *names, int *selected, int n,
+                   FILE *fp_fs_w)
 {
     int i, j;
     int *sortindex;
@@ -521,12 +507,8 @@ FILE *fp_fs_w;
     G_free(sortindex);
 }
 
-void rfe_lin(svm, features, names, selected, i,
-             fp_fs_w) SupportVectorMachine *svm;
-Features *features;
-int *names, *selected;
-int i;
-FILE *fp_fs_w;
+void rfe_lin(SupportVectorMachine *svm, Features *features, int *names,
+             int *selected, int i, FILE *fp_fs_w)
 {
     double *wsquare;
     double wmin;
@@ -568,14 +550,9 @@ FILE *fp_fs_w;
     G_free(wsquare);
 }
 
-void rfe_gauss(valoriDJ, features, names, selected, i, H_tot, H_tmp, svm_kp,
-               fp_fs_w) Features *features;
-double *valoriDJ;
-int *names, *selected;
-double **H_tot, **H_tmp;
-int i;
-double svm_kp;
-FILE *fp_fs_w;
+void rfe_gauss(double *valoriDJ, Features *features, int *names, int *selected,
+               int i, double **H_tot, double **H_tmp, double svm_kp,
+               FILE *fp_fs_w)
 {
     double wmin;
     int wmin_index;
@@ -618,10 +595,8 @@ FILE *fp_fs_w;
     }
 }
 
-void compute_H(matrix, XX, y, ndati, nfeat, sigma) double **matrix, **XX;
-int *y;
-double sigma;
-int ndati, nfeat;
+void compute_H(double **matrix, double **XX, int *y, int ndati, int nfeat,
+               double sigma)
 {
     int r, s;
 
@@ -634,12 +609,8 @@ int ndati, nfeat;
     }
 }
 
-void compute_H_perdiff(Hvecchia, Hnuova, XX, ndati, sigma,
-                       featdaelim) double **Hvecchia,
-    **Hnuova, **XX;
-double sigma;
-int ndati, featdaelim;
-
+void compute_H_perdiff(double **Hvecchia, double **Hnuova, double **XX,
+                       int ndati, double sigma, int featdaelim)
 // featdaelim e' la variabile numerata come numera C (0...nfeat-1)
 {
     int r, s;
@@ -655,8 +626,7 @@ int ndati, featdaelim;
     }
 }
 
-void traslo(x, n) double *x;
-int n;
+void traslo(double *x, int n)
 {
     int j;
     double m, M;

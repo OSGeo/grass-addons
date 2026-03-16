@@ -115,10 +115,8 @@ int main(int argc, char *argv[])
     while ((line = GetLine(fp)) != NULL) {
         sscanf(line, "%lf", &(data[npoints][0]));
         line = (char *)strchr(line, '|');
-        *line++;
         sscanf(line, "%lf", &(data[npoints][1]));
         line = (char *)strchr(line, '|');
-        *line++;
         sscanf(line, "%lf", &(data[npoints][2]));
         npoints++;
         data = (double **)G_realloc(data, (npoints + 1) * sizeof(double *));

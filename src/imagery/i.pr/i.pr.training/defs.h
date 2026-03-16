@@ -1,3 +1,5 @@
+#pragma once
+
 #include <grass/imagery.h>
 
 /* this is a graphics structure */

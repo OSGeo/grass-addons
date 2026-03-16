@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "globals.h"
 #include <grass/raster.h>
 #include <grass/display.h>
@@ -40,7 +41,7 @@ static View *makeview(double bottom, double top, double left, double right)
     return view;
 }
 
-void Init_graphics2()
+void Init_graphics2(void)
 {
     /*
        R_color_table_fixed();
@@ -55,18 +56,18 @@ void Init_graphics2()
     SCREEN_LEFT = R_screen_left();
     SCREEN_RIGHT = R_screen_rite();
 
-    BLACK = D_translate_color("black");
-    BLUE = D_translate_color("blue");
-    BROWN = D_translate_color("brown");
-    GREEN = D_translate_color("green");
-    GREY = D_translate_color("grey");
-    ORANGE = D_translate_color("orange");
-    PURPLE = D_translate_color("purple");
-    RED = D_translate_color("red");
-    WHITE = D_translate_color("white");
-    YELLOW = D_translate_color("yellow");
+    IPR_BLACK = D_translate_color("black");
+    IPR_BLUE = D_translate_color("blue");
+    IPR_BROWN = D_translate_color("brown");
+    IPR_GREEN = D_translate_color("green");
+    IPR_GREY = D_translate_color("grey");
+    IPR_ORANGE = D_translate_color("orange");
+    IPR_PURPLE = D_translate_color("purple");
+    IPR_RED = D_translate_color("red");
+    IPR_WHITE = D_translate_color("white");
+    IPR_YELLOW = D_translate_color("yellow");
 
-    R_standard_color(WHITE);
+    R_standard_color(IPR_WHITE);
 
     VIEW_TITLE1 = makeview(97.5, 100.0, 0.0, 100.0);
     VIEW_TITLE_IMAGE = makeview(97.5, 100.0, 50.0, 100.0);
@@ -83,7 +84,7 @@ void Init_graphics2()
     Rast_init_colors(&VIEW_IMAGE->cell.colors);
 }
 
-void Init_graphics()
+void Init_graphics(void)
 {
     /*
        R_color_table_fixed();
@@ -98,18 +99,18 @@ void Init_graphics()
     SCREEN_LEFT = R_screen_left();
     SCREEN_RIGHT = R_screen_rite();
 
-    BLACK = D_translate_color("black");
-    BLUE = D_translate_color("blue");
-    BROWN = D_translate_color("brown");
-    GREEN = D_translate_color("green");
-    GREY = D_translate_color("grey");
-    ORANGE = D_translate_color("orange");
-    PURPLE = D_translate_color("purple");
-    RED = D_translate_color("red");
-    WHITE = D_translate_color("white");
-    YELLOW = D_translate_color("yellow");
+    IPR_BLACK = D_translate_color("black");
+    IPR_BLUE = D_translate_color("blue");
+    IPR_BROWN = D_translate_color("brown");
+    IPR_GREEN = D_translate_color("green");
+    IPR_GREY = D_translate_color("grey");
+    IPR_ORANGE = D_translate_color("orange");
+    IPR_PURPLE = D_translate_color("purple");
+    IPR_RED = D_translate_color("red");
+    IPR_WHITE = D_translate_color("white");
+    IPR_YELLOW = D_translate_color("yellow");
 
-    R_standard_color(WHITE);
+    R_standard_color(IPR_WHITE);
 
     VIEW_TITLE1 = makeview(97.5, 100.0, 0.0, 50.0);
     VIEW_TITLE_IMAGE = makeview(97.5, 100.0, 50.0, 100.0);
@@ -126,7 +127,7 @@ void Init_graphics()
     Rast_init_colors(&VIEW_IMAGE->cell.colors);
 }
 
-void Outline_box(top, bottom, left, right)
+void Outline_box(int top, int bottom, int left, int right)
 {
     R_move_abs(left, top);
     R_cont_abs(left, bottom);
@@ -135,8 +136,7 @@ void Outline_box(top, bottom, left, right)
     R_cont_abs(left, top);
 }
 
-int Text_width(text)
-char *text;
+int Text_width(char *text)
 {
     int top, bottom, left, right;
 
@@ -148,7 +148,7 @@ char *text;
         return left - right + 1;
 }
 
-void Text(text, top, bottom, left, right, edge) char *text;
+void Text(char *text, int top, int bottom, int left, int right, int edge)
 {
     R_set_window(top, bottom, left, right);
     R_move_abs(left + edge, bottom - edge);
@@ -156,7 +156,7 @@ void Text(text, top, bottom, left, right, edge) char *text;
     R_set_window(SCREEN_TOP, SCREEN_BOTTOM, SCREEN_LEFT, SCREEN_RIGHT);
 }
 
-void Uparrow(top, bottom, left, right)
+void Uparrow(int top, int bottom, int left, int right)
 {
     R_move_abs((left + right) / 2, bottom);
     R_cont_abs((left + right) / 2, top);
@@ -165,7 +165,7 @@ void Uparrow(top, bottom, left, right)
     R_cont_rel((right - left) / 2, (bottom - top) / 2);
 }
 
-void Downarrow(top, bottom, left, right)
+void Downarrow(int top, int bottom, int left, int right)
 {
     R_move_abs((left + right) / 2, top);
     R_cont_abs((left + right) / 2, bottom);
@@ -174,18 +174,14 @@ void Downarrow(top, bottom, left, right)
     R_cont_rel((right - left) / 2, (top - bottom) / 2);
 }
 
-void display_map(cellhd, view, name, mapset) struct Cell_head *cellhd;
-View *view;
-char *name;
-char *mapset;
+void display_map(struct Cell_head *cellhd, View *view, char *name, char *mapset)
 {
-
     G_adjust_window_to_box(cellhd, &view->cell.head, view->nrows, view->ncols);
     Configure_view(view, name, mapset, cellhd->ns_res, cellhd->ew_res);
     drawcell(view);
 }
 
-void drawcell(view) View *view;
+void drawcell(View *view)
 {
     int fd;
     int left, top;
@@ -195,10 +191,9 @@ void drawcell(view) View *view;
     int repeat;
     struct Colors *colors;
     int read_colors;
-    char msg[100];
 
     if (!view->cell.configured)
-        return 0;
+        return;
     if (view == VIEW_MAP1 || view == VIEW_MAP1_ZOOM) {
         colors = &VIEW_MAP1->cell.colors;
         read_colors = view == VIEW_MAP1;
@@ -210,7 +205,7 @@ void drawcell(view) View *view;
     if (read_colors) {
         Rast_free_colors(colors);
         if (Rast_read_colors(view->cell.name, view->cell.mapset, colors) < 0)
-            return 0;
+            return;
     }
 
     display_title(view);
@@ -227,15 +222,13 @@ void drawcell(view) View *view;
     Outline_box(top, top + nrows - 1, left, left + ncols - 1);
 
     {
-        char *getenv();
-
         if (getenv("NO_DRAW"))
-            return 1;
+            return;
     }
 
     fd = Rast_open_old(view->cell.name, view->cell.mapset);
     if (fd < 0)
-        return 0;
+        return;
     cell = G_allocate_cell_buf();
 
     /*
@@ -255,52 +248,52 @@ void drawcell(view) View *view;
     /*    if(colors != &VIEW_MAP1->cell.colors)
        D_set_colors(&VIEW_MAP1->cell.colors);
      */
-    return row == nrows;
+    return; // row == nrows;
 }
 
-void exit_button()
+void exit_button(void)
 {
     int size;
 
     Erase_view(VIEW_EXIT);
-    R_standard_color(RED);
+    R_standard_color(IPR_RED);
     size = VIEW_EXIT->nrows - 4;
     R_text_size(size, size);
     Text("exit", VIEW_EXIT->top, VIEW_EXIT->bottom, VIEW_EXIT->left,
          VIEW_EXIT->right, 2);
-    R_standard_color(WHITE);
+    R_standard_color(IPR_WHITE);
 }
 
-void info_button()
+void info_button(void)
 {
     int size;
 
     Erase_view(VIEW_INFO);
-    R_standard_color(GREEN);
+    R_standard_color(IPR_GREEN);
     size = VIEW_INFO->nrows / 13;
     R_text_size(size, size);
     Text("UPPER LEFT PANEL:", VIEW_INFO->top, VIEW_INFO->top + size,
          VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(YELLOW);
+    R_standard_color(IPR_YELLOW);
     Text("left: mark 1", VIEW_INFO->top + size, VIEW_INFO->top + 2 * size,
          VIEW_INFO->left, VIEW_INFO->right, 1);
     Text("left: mark 2", VIEW_INFO->top + 2 * size, VIEW_INFO->top + 3 * size,
          VIEW_INFO->left, VIEW_INFO->right, 1);
     Text("", VIEW_INFO->top + 4 * size, VIEW_INFO->top + 5 * size,
          VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(GREEN);
+    R_standard_color(IPR_GREEN);
     Text("LOWER LEFT PANEL:", VIEW_INFO->top + 5 * size,
          VIEW_INFO->top + 6 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(YELLOW);
+    R_standard_color(IPR_YELLOW);
     Text("left(double): select", VIEW_INFO->top + 6 * size,
          VIEW_INFO->top + 7 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
     Text("", VIEW_INFO->top + 8 * size, VIEW_INFO->top + 9 * size,
          VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(GREEN);
+    R_standard_color(IPR_GREEN);
     Text("UPPER RIGHT PANEL:", VIEW_INFO->top + 9 * size,
          VIEW_INFO->top + 10 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(YELLOW);
+    R_standard_color(IPR_YELLOW);
     Text("right(double): save", VIEW_INFO->top + 10 * size,
          VIEW_INFO->top + 11 * size, VIEW_INFO->left, VIEW_INFO->right, 1);
-    R_standard_color(WHITE);
+    R_standard_color(IPR_WHITE);
 }

@@ -30,8 +30,8 @@
 #define TINY      1.0e-20
 #define MAXLIMITS 10000
 
-void pearsn();
-double erfcc();
+void pearsn(double[], double[], int, double *, double *, double *);
+double erfcc(double);
 
 int main(int argc, char *argv[])
 {
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     opt1->type = TYPE_STRING;
     opt1->required = YES;
     opt1->description =
-        "Input file containing the features (output of i.pr_features).";
+        "Input file containing the features (output of i.pr.features).";
 
     opt3 = G_define_option();
     opt3->key = "layer";
@@ -125,8 +125,7 @@ int main(int argc, char *argv[])
 
     read_features(opt1->answer, &features, -1);
     if ((layer <= 0) || (layer > features.training.nlayers)) {
-        sprintf(tempbuf, "Number of layers is %d\n", features.training.nlayers);
-        G_fatal_error(tempbuf);
+        G_fatal_error("Number of layers is %d\n", features.training.nlayers);
     }
 
     ncorr = 0;
@@ -144,14 +143,12 @@ int main(int argc, char *argv[])
                 break;
             }
             if (corr[i] < 0 || corr[i] > features.examples_dim) {
-                sprintf(tempbuf, "Negative index of columns or wrong index\n");
-                G_fatal_error(tempbuf);
+                G_fatal_error("Negative index of columns or wrong index\n");
             }
         }
 
         if (ncorr == 1) {
-            sprintf(tempbuf, "Can't do correlation with 1 column!!\n");
-            G_fatal_error(tempbuf);
+            G_fatal_error("Can't do correlation with 1 column!!\n");
         }
 
         /* calcolo la correlazione tra le varie variabili */
@@ -276,8 +273,7 @@ int main(int argc, char *argv[])
                 else {
                     sscanf(opt2->answer, "%d", &npca);
                     if (npca <= 0) {
-                        sprintf(tempbuf, "npca must be > 0");
-                        G_fatal_error(tempbuf);
+                        G_fatal_error("npca must be > 0");
                     }
                 }
                 if (npca > maxeig)
@@ -314,20 +310,16 @@ int main(int argc, char *argv[])
                     cellhd.south = .0;
                     cellhd.east = (double)(cellhd.cols);
                     cellhd.west = .0;
-                    if (G_set_window(&cellhd) == -1) {
-                        sprintf(tempbuf, "error setting working window");
-                        G_fatal_error(tempbuf);
-                    }
+                    G_set_window(&cellhd);
 
                     /*open output raster map */
 
                     sprintf(outputmap_name, "%s_tmpimage", opt1->answer);
 
-                    if (outputmap_name != NULL)
+                    if (outputmap_name[0] != '\0')
                         FD = open_new_CELL(outputmap_name);
                     else {
-                        sprintf(tempbuf, "error setting the output name");
-                        G_fatal_error(tempbuf);
+                        G_fatal_error("error setting the output name");
                     }
 
                     /* alloc memory */
@@ -372,11 +364,9 @@ int main(int argc, char *argv[])
                                 if (max != min)
                                     a = (NEWmax - NEWmin) / (max - min);
                                 else {
-                                    sprintf(tempbuf,
-                                            "min of eigenvect %d = max of "
-                                            "eigenvect %d",
-                                            index, index);
-                                    G_fatal_error(tempbuf);
+                                    G_fatal_error("min of eigenvect %d = max "
+                                                  "of eigenvect %d",
+                                                  index, index);
                                 }
 
                                 for (i = 0; i < features.training.rows; i++)
@@ -393,14 +383,10 @@ int main(int argc, char *argv[])
                     /*write output map */
                     for (i = 0; i < cellhd.rows; i++)
                         if (G_put_map_row(FD, intmat[i]) == -1) {
-                            sprintf(tempbuf, "error writing tmp raster map");
-                            G_fatal_error(tempbuf);
+                            G_fatal_error("error writing tmp raster map");
                         }
 
-                    if (Rast_close(FD) == -1) {
-                        sprintf(tempbuf, "error closing tmp raster map");
-                        G_fatal_error(tempbuf);
-                    }
+                    Rast_close(FD);
 
                     /*colors */
                     sprintf(tempbuf, "r.colors map=%s color=grey",
@@ -409,8 +395,7 @@ int main(int argc, char *argv[])
 
                     /*graphics */
                     if (G_put_window(&cellhd) == -1) {
-                        sprintf(tempbuf, "error writing working region");
-                        G_fatal_error(tempbuf);
+                        G_fatal_error("error writing working region");
                     }
                     sprintf(tempbuf, "d.frame -e");
                     system(tempbuf);
@@ -419,9 +404,7 @@ int main(int argc, char *argv[])
                     Dcell(outputmap_name, G_mapset(), 0);
                     R_close_driver();
                     if (G_put_window(&cellhd_orig) == -1) {
-                        sprintf(tempbuf,
-                                "error writing original working region");
-                        G_fatal_error(tempbuf);
+                        G_fatal_error("error writing original working region");
                     }
 
                     /*remove */
@@ -435,8 +418,7 @@ int main(int argc, char *argv[])
                 /*xgraph 1 */
                 outputxgraph_name = G_tempfile();
                 if ((FP = fopen(outputxgraph_name, "w")) == NULL) {
-                    sprintf(tempbuf, "error opening tmp file for xgraph");
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("error opening tmp file for xgraph");
                 }
 
                 fprintf(stdout,
@@ -465,8 +447,7 @@ int main(int argc, char *argv[])
                     }
                 }
                 else {
-                    sprintf(tempbuf, "divide by 0");
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("divide by 0");
                 }
 
                 fclose(FP);
@@ -487,7 +468,6 @@ void pearsn(double x[], double y[], int n, double *r, double *prob, double *z)
     int j;
     double yt, xt, t, df;
     double syy = 0.0, sxy = 0.0, sxx = 0.0, ay = 0.0, ax = 0.0;
-    double betai(), erfcc();
 
     /*calcolo della media */
 

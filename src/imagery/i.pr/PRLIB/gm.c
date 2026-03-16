@@ -12,8 +12,8 @@
 #include <string.h>
 #include <math.h>
 
-static void compute_covar();
-static void compute_mean();
+static void compute_covar(double ***, GaussianMixture *, int);
+static void compute_mean(double ***, GaussianMixture *, int);
 
 void compute_gm(GaussianMixture *gm, int nsamples, int nvar, double **data,
                 int *data_class, int nclasses, int *classes)
@@ -133,12 +133,10 @@ void write_gm(char *file, GaussianMixture *gm, Features *features)
 {
     FILE *fpout;
     int i, j, k;
-    char tempbuf[500];
 
     fpout = fopen(file, "w");
     if (fpout == NULL) {
-        sprintf(tempbuf, "write_gm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("write_gm-> Can't open file %s for writing", file);
     }
 
     write_header_features(fpout, features);
@@ -209,7 +207,6 @@ void test_gm(GaussianMixture *gm, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     int predI;
     double predD;
     double *error;
@@ -217,8 +214,7 @@ void test_gm(GaussianMixture *gm, Features *features, char *file)
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_gm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_gm-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -322,7 +318,6 @@ int predict_gm_multiclass(GaussianMixture *gm, double *x)
     double delta;
     double max_posterior;
     int max_posterior_index;
-    char tempbuf[500];
 
     tmpVect = (double *)G_calloc(gm->nvars, sizeof(double));
     distmean = (double *)G_calloc(gm->nvars, sizeof(double));
@@ -347,11 +342,9 @@ int predict_gm_multiclass(GaussianMixture *gm, double *x)
             posteriors[c] = exp(-0.5 * delta) / sqrt(gm->det[c]);
         }
         else {
-            sprintf(
-                tempbuf,
+            G_fatal_error(
                 "predict_gm_multiclass-> det. of cov. matrix of class %d = 0",
                 c);
-            G_fatal_error(tempbuf);
         }
         posteriors[c] = posteriors[c] * gm->priors[c];
     }
@@ -383,7 +376,6 @@ double predict_gm_2class(GaussianMixture *gm, double *x)
     double *distmean;
     double *posteriors;
     double delta;
-    char tempbuf[500];
 
     tmpVect = (double *)G_calloc(gm->nvars, sizeof(double));
     distmean = (double *)G_calloc(gm->nvars, sizeof(double));
@@ -408,10 +400,8 @@ double predict_gm_2class(GaussianMixture *gm, double *x)
             posteriors[c] = exp(-0.5 * delta) / sqrt(gm->det[c]);
         }
         else {
-            sprintf(tempbuf,
-                    "predict_gm_2class-> det. of cov. matrix of class %d = 0",
-                    c);
-            G_fatal_error(tempbuf);
+            G_fatal_error(
+                "predict_gm_2class-> det. of cov. matrix of class %d = 0", c);
         }
         posteriors[c] = posteriors[c] * gm->priors[c];
     }

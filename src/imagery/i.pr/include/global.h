@@ -1,5 +1,16 @@
+#pragma once
+
 #include <grass/gis.h>
-#include "func.h"
+#include <grass/raster.h>
+
+#ifndef __has_attribute
+#define __has_attribute(x) 0
+#endif
+#if __has_attribute(unused)
+#define IPR_UNUSED __attribute__((unused))
+#else
+#define IPR_UNUSED
+#endif
 
 #define PIG                     M_PI
 
@@ -154,7 +165,7 @@ typedef struct {
     double b;
 } SVM_direct_kernel;
 
-typedef struct {
+typedef struct SupportVectorMachine {
     int N; /*number of examples */
     int d; /*number of features */
     int orig_d;
@@ -171,9 +182,10 @@ typedef struct {
     int *target;           /*class labels */
     int kernel_type;   /*kernel type:1 linear, 2 gaussian, 3 squared gaussian */
     int end_support_i; /*set to N, never changed */
-    double (*learned_func)(); /*the SVM */
-    double (*kernel_func)();  /*the kernel */
-    double delta_b;           /*gap between old and updated offset */
+    double (*learned_func)(int, struct SupportVectorMachine *); /*the SVM */
+    double (*kernel_func)(int, int,
+                          struct SupportVectorMachine *); /*the kernel */
+    double delta_b; /*gap between old and updated offset */
     double *precomputed_self_dot_product; /*squared norm of the training data */
     double *Cw; /*weighted bias/variance parameter (sen/spe tuning) */
     SVM_direct_kernel *models;
@@ -216,3 +228,5 @@ typedef struct
     double max;   /*minimum value of the blob */
     int n;        /*number of points whitin the blob */
 } BlobSites;
+
+#include "func.h"
