@@ -281,7 +281,12 @@ def _get_wavelengths(mapname, hyper_meta_class):
 def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_class):
     try:
         meta = hyper_meta_class.load(src)
-        if meta.wavelengths is None and not meta.is_components:
+        is_components = (
+            (meta.n_components is not None and meta.n_components > 0)
+            or meta.explained_variance_ratio is not None
+            or meta.component_labels is not None
+        )
+        if meta.wavelengths is None and not is_components:
             return
         meta.add_processing_step(
             operation="preprocessing",
@@ -293,9 +298,7 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
         gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _set_dr_metadata(
-    outmap, method, info, source_map=None, hyper_meta_class=None
-):
+def _set_dr_metadata(outmap, method, info, hyper_meta_class=None):
     try:
         explained = info.get("explained_variance_ratio")
         if explained is not None and hasattr(explained, "tolist"):
@@ -307,9 +310,7 @@ def _set_dr_metadata(
 
         meta = hyper_meta_class.for_components(
             n_components=int(n_components or 0),
-            method=method,
             explained_variance_ratio=explained,
-            source_map=source_map,
         )
 
         if method in ["kpca", "nystroem"]:
@@ -494,7 +495,6 @@ def preprocess_hyperspectral(
             out,
             dr_method,
             dr_meta_info,
-            source_map=inp,
             hyper_meta_class=hyper_meta_class,
         )
     else:

@@ -125,9 +125,13 @@ def _dataset_metadata(mapname, band_count, hyper_meta_class):
 
     measurement = meta.radiometric_quantity
     units = meta.radiometric_units
-    has_components = int(meta.n_components or band_count) if meta.is_components else 0
+    has_components = int(
+        meta.n_components
+        or (len(meta.explained_variance_ratio) if meta.explained_variance_ratio else 0)
+        or (len(meta.component_labels) if meta.component_labels else 0)
+    )
 
-    if meta.is_components:
+    if has_components > 0:
         wavelengths = [None] * band_count
     else:
         if meta.wavelengths is None:

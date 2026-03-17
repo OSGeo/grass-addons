@@ -45,11 +45,6 @@ class HyperMetadata:
     radiometric_quantity: Optional[str] = None  # e.g., "surface_reflectance", "toa_radiance"
     radiometric_units: Optional[str] = None  # e.g., "unitless", "W/(m^2 sr um)"
 
-    # Dataset-level (component mode - mutually exclusive with spectral)
-    is_components: bool = False
-    component_method: Optional[str] = None  # e.g., "pca", "kpca", "fastica"
-    source_map: Optional[str] = None  # original map this was derived from
-
     # Band-level arrays (spectral mode)
     n_bands: Optional[int] = None
     wavelengths: Optional[list[float]] = None
@@ -128,10 +123,6 @@ class HyperMetadata:
         meta.wavelength_units = ds.get("wavelength_units", "nm")
         meta.radiometric_quantity = ds.get("radiometric_quantity")
         meta.radiometric_units = ds.get("radiometric_units")
-        meta.is_components = ds.get("is_components", False)
-        meta.component_method = ds.get("component_method")
-        meta.source_map = ds.get("source_map")
-
         # Band level
         bands = data.get("bands", {})
         meta.n_bands = bands.get("count")
@@ -179,9 +170,6 @@ class HyperMetadata:
                 "wavelength_units": self.wavelength_units,
                 "radiometric_quantity": self.radiometric_quantity,
                 "radiometric_units": self.radiometric_units,
-                "is_components": self.is_components,
-                "component_method": self.component_method,
-                "source_map": self.source_map,
             },
             "bands": {},
             "components": {},
@@ -203,8 +191,15 @@ class HyperMetadata:
             data["bands"]["offset"] = self.offset
 
         # Component arrays
-        if self.is_components:
+        if self.n_components is not None and self.n_components > 0:
             data["components"]["count"] = self.n_components
+            if self.explained_variance_ratio is not None:
+                data["components"]["explained_variance_ratio"] = (
+                    self.explained_variance_ratio
+                )
+            if self.component_labels is not None:
+                data["components"]["labels"] = self.component_labels
+        elif self.explained_variance_ratio is not None or self.component_labels is not None:
             if self.explained_variance_ratio is not None:
                 data["components"]["explained_variance_ratio"] = (
                     self.explained_variance_ratio
@@ -325,7 +320,13 @@ class HyperMetadata:
         """Return list of validation issues (empty if valid)."""
         issues = []
 
-        if self.is_components:
+        is_components = (
+            (self.n_components is not None and self.n_components > 0)
+            or self.explained_variance_ratio is not None
+            or self.component_labels is not None
+        )
+
+        if is_components:
             if self.n_components is None or self.n_components <= 0:
                 issues.append("Component count not set")
         else:
@@ -366,16 +367,11 @@ class HyperMetadata:
     def for_components(
         cls,
         n_components: int,
-        method: str,
         explained_variance_ratio=None,
-        source_map: Optional[str] = None,
     ) -> "HyperMetadata":
         """Create metadata for dimensionality reduction output (PCA, etc.)."""
         meta = cls()
-        meta.is_components = True
-        meta.component_method = method.lower()
         meta.n_components = n_components
-        meta.source_map = source_map
         if explained_variance_ratio is not None:
             meta.set_explained_variance(explained_variance_ratio)
         return meta

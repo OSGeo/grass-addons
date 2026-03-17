@@ -58,6 +58,14 @@ import json
 import grass.script as gs
 
 
+def _is_component_metadata(meta):
+    return (
+        (meta.n_components is not None and meta.n_components > 0)
+        or meta.explained_variance_ratio is not None
+        or meta.component_labels is not None
+    )
+
+
 def _import_hyper_meta():
     """Import the hyper_meta module from i_hyper_lib."""
     from grass.script.utils import get_lib_path
@@ -85,14 +93,13 @@ def _import_hyper_meta():
 
 def view_metadata(meta, shell_style=False):
     """Print human-readable metadata summary."""
+    is_components = _is_component_metadata(meta)
     if shell_style:
         # Parseable output
         print(f"schema_version={meta.schema_version}")
-        print(f"is_components={meta.is_components}")
-        if meta.is_components:
-            print(f"component_method={meta.component_method or ''}")
+        print(f"data_type={'components' if is_components else 'spectral'}")
+        if is_components:
             print(f"n_components={meta.n_components or 0}")
-            print(f"source_map={meta.source_map or ''}")
         else:
             print(f"sensor={meta.sensor or ''}")
             print(f"n_bands={meta.n_bands or 0}")
@@ -112,12 +119,9 @@ def view_metadata(meta, shell_style=False):
         print(f"Schema version: {meta.schema_version}")
         print()
         
-        if meta.is_components:
+        if is_components:
             print("Type: Dimensionality Reduction Output")
-            print(f"Method: {meta.component_method or 'Unknown'}")
             print(f"Components: {meta.n_components or 'Unknown'}")
-            if meta.source_map:
-                print(f"Source map: {meta.source_map}")
             if meta.explained_variance_ratio:
                 print("\nExplained variance:")
                 cumulative = 0
@@ -176,9 +180,6 @@ def print_json(meta, map_name=None, hyper_meta_class=None):
             "wavelength_units": meta.wavelength_units,
             "radiometric_quantity": meta.radiometric_quantity,
             "radiometric_units": meta.radiometric_units,
-            "is_components": meta.is_components,
-            "component_method": meta.component_method,
-            "source_map": meta.source_map,
         },
         "bands": {
             "count": meta.n_bands,
