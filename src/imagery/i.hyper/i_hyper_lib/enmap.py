@@ -285,7 +285,7 @@ def import_enmap(
                 )
             Module("g.remove", type="raster", name=band_names, flags="f", quiet=True)
 
-        # hyperspectral metadata (JSON + legacy r3.support)
+        # hyperspectral metadata (JSON)
         try:
             wavelengths_meta = [band_meta[b]["wavelength"] for b in valid_bands]
             fwhm_meta = [band_meta[b]["fwhm"] for b in valid_bands]

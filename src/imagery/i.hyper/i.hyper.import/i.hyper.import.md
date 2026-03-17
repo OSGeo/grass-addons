@@ -144,7 +144,6 @@ Imagery](https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.j
 [i.hyper.explore](i.hyper.explore.html),
 [i.hyper.composite](i.hyper.composite.html),
 [i.hyper.export](i.hyper.export.html)
-[r3.support](https://grass.osgeo.org/grass-stable/manuals/r3.support.html),
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html)
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
 

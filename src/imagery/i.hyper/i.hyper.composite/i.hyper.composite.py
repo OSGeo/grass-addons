@@ -100,49 +100,32 @@ def _band_count(mapname):
     return d
 
 
-def _band_wavelengths_from_comments(mapname, expected):
-    txt = gs.read_command("r3.info", map=mapname)
-    wavelengths = [None] * expected
-    num = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?"
-    pat = re.compile(
-        rf"Band\s+(\d+)\s*:\s*({num})\s*nm(?:,\s*FWHM:\s*({num})\s*nm)?", re.IGNORECASE
-    )
-    for line in txt.splitlines():
-        line = line.strip()
-        if line.startswith("|"):
-            line = line.strip("| ").rstrip("| ").strip()
-        m = pat.search(line)
-        if m:
-            idx = int(m.group(1))
-            if 1 <= idx <= expected:
-                wavelengths[idx - 1] = float(m.group(2))
+def _band_wavelengths(mapname, expected, hyper_meta_class):
+    if hyper_meta_class is None:
+        gs.fatal("Failed to load hyper_meta library. JSON metadata support is required.")
+
+    try:
+        meta = hyper_meta_class.load(mapname)
+    except Exception as error:
+        gs.fatal(f"Failed to read JSON metadata for {mapname}: {error}")
+
+    if meta.wavelengths is None:
+        gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
+
+    wavelengths = list(meta.wavelengths)
+    if len(wavelengths) < expected:
+        gs.fatal(
+            f"Metadata wavelength count ({len(wavelengths)}) is lower than band count ({expected}) for {mapname}."
+        )
+
+    wavelengths = wavelengths[:expected]
     if any(w is None for w in wavelengths):
         missing = [i + 1 for i, w in enumerate(wavelengths) if w is None]
         gs.fatal(
-            f"Missing wavelengths in r3.info comments for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
+            f"Missing JSON wavelengths for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
         )
-    return wavelengths
 
-
-def _band_wavelengths(mapname, expected, hyper_meta_class):
-    if hyper_meta_class is not None:
-        try:
-            meta = hyper_meta_class.load(mapname)
-            if meta.wavelengths is not None:
-                wavelengths = list(meta.wavelengths)
-                if len(wavelengths) >= expected:
-                    wavelengths = wavelengths[:expected]
-                else:
-                    wavelengths = wavelengths + [None] * (expected - len(wavelengths))
-
-                if all(w is not None for w in wavelengths):
-                    return [float(w) for w in wavelengths]
-        except Exception as error:
-            gs.warning(
-                f"Failed to read JSON metadata for {mapname}, falling back to r3.info comments: {error}"
-            )
-
-    return _band_wavelengths_from_comments(mapname, expected)
+    return [float(w) for w in wavelengths]
 
 
 def _explode_cube(cube, tmpbase):

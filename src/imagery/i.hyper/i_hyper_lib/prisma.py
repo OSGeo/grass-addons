@@ -252,7 +252,7 @@ def import_prisma(
             f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
         )
 
-        # -------- hyperspectral metadata (JSON + legacy r3.support) --------
+        # -------- hyperspectral metadata (JSON) --------
         try:
             count_meta = int(min(bands_total, len(wavelengths)))
             meta = HyperMetadata.for_spectral_data(

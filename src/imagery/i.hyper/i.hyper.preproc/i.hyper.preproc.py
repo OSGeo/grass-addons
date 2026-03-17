@@ -196,16 +196,12 @@
 # %end
 
 import sys
-import os
-import tempfile
-import contextlib
 import numpy as np
 from scipy.interpolate import interp1d
 import grass.script as gs
 import grass.script.array as garray
 from grass.script.utils import get_lib_path
 import importlib.util
-import re
 
 
 def _import_from_i_hyper_lib(module_name):
@@ -243,19 +239,19 @@ def _load_processing_libs():
 def _load_hyper_meta_class():
     path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
     if not path:
-        return None
+        gs.fatal("Library path for hyper_meta not found.")
     if path not in sys.path:
         sys.path.append(path)
     spec = importlib.util.find_spec("hyper_meta")
     if not spec or not spec.loader:
-        return None
+        gs.fatal(f"Module hyper_meta not found at {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     try:
         spec.loader.exec_module(module)
     except Exception:
         sys.modules.pop(spec.name, None)
-        return None
+        raise
     return module.HyperMetadata
 
 
@@ -271,34 +267,18 @@ def _fill_nans_1d(x):
     return f(xi).astype(np.float32)
 
 
-def _get_wavelengths_from_r3info(mapname):
+def _get_wavelengths(mapname, hyper_meta_class):
     try:
-        meta = gs.read_command("r3.info", map=mapname)
+        meta = hyper_meta_class.load(mapname)
     except Exception:
         return None
-    wl = []
-    for line in meta.splitlines():
-        if "wavelength" in line.lower():
-            vals = re.findall(r"[\d.]+", line)
-            if vals:
-                wl = [float(v) for v in vals]
-                break
-    return wl if wl else None
-
-
-def _get_wavelengths(mapname, hyper_meta_class):
-    if hyper_meta_class is not None:
-        with contextlib.suppress(Exception):
-            meta = hyper_meta_class.load(mapname)
-            arr = meta.get_wavelengths_array()
-            if arr is not None:
-                return arr
-    return _get_wavelengths_from_r3info(mapname)
+    arr = meta.get_wavelengths_array()
+    if arr is not None:
+        return arr
+    return None
 
 
 def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_class):
-    if hyper_meta_class is None:
-        return
     try:
         meta = hyper_meta_class.load(src)
         if meta.wavelengths is None and not meta.is_components:
@@ -313,96 +293,44 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
         gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _copy_r3_metadata(src, dst):
-    fd, tmp = tempfile.mkstemp(prefix="r3hist_", suffix=".txt")
-    os.close(fd)
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(tmp)
-    try:
-        gs.run_command(
-            "r3.support", map=src, savehistory=tmp, overwrite=True, quiet=True
-        )
-        gs.run_command(
-            "r3.support", map=dst, loadhistory=tmp, overwrite=True, quiet=True
-        )
-        gi = gs.parse_command("r3.info", flags="g", map=src)
-        title = gi.get("title")
-        vunit = gi.get("vertical_unit")
-        if title:
-            gs.run_command("r3.support", map=dst, title=title, quiet=True)
-        if vunit:
-            gs.run_command("r3.support", map=dst, vunit=vunit, quiet=True)
-    finally:
-        with contextlib.suppress(Exception):
-            os.remove(tmp)
-
-
 def _set_dr_metadata(
     outmap, method, info, source_map=None, hyper_meta_class=None
 ):
-    if hyper_meta_class is not None:
-        try:
-            explained = info.get("explained_variance_ratio")
-            if explained is not None and hasattr(explained, "tolist"):
-                explained = explained.tolist()
+    try:
+        explained = info.get("explained_variance_ratio")
+        if explained is not None and hasattr(explained, "tolist"):
+            explained = explained.tolist()
 
-            n_components = info.get("n_components")
-            if n_components is None:
-                n_components = len(explained or [])
+        n_components = info.get("n_components")
+        if n_components is None:
+            n_components = len(explained or [])
 
-            meta = hyper_meta_class.for_components(
-                n_components=int(n_components or 0),
-                method=method,
-                explained_variance_ratio=explained,
-                source_map=source_map,
-            )
-
-            if method in ["kpca", "nystroem"]:
-                meta.custom["kernel"] = info.get("kernel")
-                meta.custom["gamma"] = info.get("gamma")
-                meta.custom["degree"] = info.get("degree")
-
-            meta.add_processing_step(
-                operation="dimensionality_reduction",
-                module="i.hyper.preproc",
-                params={
-                    "method": method,
-                    "n_components": int(n_components or 0),
-                    "kernel": info.get("kernel"),
-                    "gamma": info.get("gamma"),
-                    "degree": info.get("degree"),
-                },
-            )
-            meta.save(outmap)
-            return
-        except Exception as error:
-            gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
-
-    lines = []
-    name_map = {
-        "pca": "PCA",
-        "kpca": "Kernel PCA",
-        "nystroem": "Nystroem",
-        "fastica": "FastICA",
-        "truncatedsvd": "TruncatedSVD",
-        "nmf": "NMF",
-        "sparsepca": "SparsePCA",
-    }
-    mdisp = name_map.get(method, method.upper())
-    if method == "pca" and "explained_variance_ratio" in info:
-        var = info["explained_variance_ratio"]
-        lines.append(f"Principal Component Analysis ({mdisp})")
-        for i, v in enumerate(var, 1):
-            lines.append(f"Component {i}: {v * 100:.2f}% variance explained")
-    elif method in ["kpca", "nystroem"]:
-        lines.append(
-            f"{mdisp} (kernel={info.get('kernel')}, gamma={info.get('gamma')}, degree={info.get('degree')})"
+        meta = hyper_meta_class.for_components(
+            n_components=int(n_components or 0),
+            method=method,
+            explained_variance_ratio=explained,
+            source_map=source_map,
         )
-        lines.append(f"Components: {info.get('n_components')}")
-    if lines:
-        gs.run_command(
-            "r3.support", map=outmap, description="\n".join(lines), quiet=True
+
+        if method in ["kpca", "nystroem"]:
+            meta.custom["kernel"] = info.get("kernel")
+            meta.custom["gamma"] = info.get("gamma")
+            meta.custom["degree"] = info.get("degree")
+
+        meta.add_processing_step(
+            operation="dimensionality_reduction",
+            module="i.hyper.preproc",
+            params={
+                "method": method,
+                "n_components": int(n_components or 0),
+                "kernel": info.get("kernel"),
+                "gamma": info.get("gamma"),
+                "degree": info.get("degree"),
+            },
         )
+        meta.save(outmap)
+    except Exception as error:
+        gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
 def preprocess_hyperspectral(
@@ -559,7 +487,6 @@ def preprocess_hyperspectral(
         out_arr[...] = arr_out
         out_arr.write(mapname=out, null="nan", overwrite=True)
 
-    _copy_r3_metadata(inp, out)
     if dr_method:
         dr_meta_info = dict(dr_info or {})
         dr_meta_info.setdefault("n_components", n_bands)
@@ -585,9 +512,6 @@ def preprocess_hyperspectral(
             },
             hyper_meta_class,
         )
-
-    cmd_line = "i.hyper.preproc " + " ".join(sys.argv[1:])
-    gs.run_command("r3.support", map=out, history=cmd_line, quiet=True)
 
 
 def main():

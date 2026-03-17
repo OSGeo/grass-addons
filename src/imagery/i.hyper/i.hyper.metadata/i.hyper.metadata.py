@@ -26,10 +26,10 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: view,json,upgrade,validate,bands,history
+# % options: view,json,validate,bands,history
 # % answer: view
 # % description: Operation to perform
-# % descriptions: view;Print human-readable metadata summary;json;Print raw JSON metadata;upgrade;Upgrade legacy metadata to JSON format;validate;Check metadata for issues;bands;List bands with wavelengths;history;Show processing history
+# % descriptions: view;Print human-readable metadata summary;json;Print raw JSON metadata;validate;Check metadata for issues;bands;List bands with wavelengths;history;Show processing history
 # %end
 
 # %option
@@ -168,7 +168,7 @@ def print_json(meta, map_name=None, hyper_meta_class=None):
         except Exception:
             pass
 
-    # Fallback for legacy-only maps (no hyper.json yet)
+    # Fallback for in-memory metadata object representation
     data = {
         "schema_version": meta.schema_version,
         "dataset": {
@@ -287,27 +287,6 @@ def validate_metadata(meta):
     return 1
 
 
-def upgrade_metadata(hyper_meta_module, map_name):
-    """Upgrade legacy metadata to JSON format."""
-    HyperMetadata = hyper_meta_module.HyperMetadata
-    
-    if HyperMetadata.exists(map_name):
-        gs.message(f"Map '{map_name}' already has JSON metadata")
-        return 0
-    
-    # Load from legacy
-    meta = HyperMetadata._load_from_r3info(map_name)
-    
-    if meta.wavelengths is None and not meta.is_components:
-        gs.warning(f"No metadata found to upgrade for '{map_name}'")
-        return 1
-    
-    # Save in new format
-    meta.save(map_name)
-    gs.message(f"✓ Upgraded metadata for '{map_name}'")
-    return 0
-
-
 def main():
     options, flags = gs.parser()
     
@@ -324,10 +303,6 @@ def main():
     # Check map exists
     if not gs.find_file(map_name, element="grid3")["fullname"]:
         gs.fatal(f"3D raster map '{map_name}' not found")
-    
-    # Handle upgrade separately (doesn't need to load first)
-    if operation == "upgrade":
-        return upgrade_metadata(hyper_meta, map_name)
     
     # Load metadata
     try:
