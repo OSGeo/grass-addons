@@ -202,7 +202,7 @@ def import_tanager(
                 module="i.hyper.import",
                 params={"product": "tanager", "input": h5},
             )
-            meta.save(output_name)
+            meta.save(output_name, save_region=True)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
     except Exception as e:

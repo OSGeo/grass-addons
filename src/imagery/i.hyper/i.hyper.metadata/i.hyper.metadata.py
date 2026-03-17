@@ -180,6 +180,7 @@ def print_json(meta, map_name=None, hyper_meta_class=None):
             "wavelength_units": meta.wavelength_units,
             "radiometric_quantity": meta.radiometric_quantity,
             "radiometric_units": meta.radiometric_units,
+            "region": meta.region,
         },
         "bands": {
             "count": meta.n_bands,

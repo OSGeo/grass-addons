@@ -306,7 +306,7 @@ def import_enmap(
                 module="i.hyper.import",
                 params={"product": "enmap", "input": folder},
             )
-            meta.save(output)
+            meta.save(output, save_region=True)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
 

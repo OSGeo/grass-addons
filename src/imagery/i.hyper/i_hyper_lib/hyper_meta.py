@@ -44,6 +44,7 @@ class HyperMetadata:
     wavelength_units: str = "nm"
     radiometric_quantity: Optional[str] = None  # e.g., "surface_reflectance", "toa_radiance"
     radiometric_units: Optional[str] = None  # e.g., "unitless", "W/(m^2 sr um)"
+    region: Optional[dict[str, Any]] = None
 
     # Band-level arrays (spectral mode)
     n_bands: Optional[int] = None
@@ -123,6 +124,7 @@ class HyperMetadata:
         meta.wavelength_units = ds.get("wavelength_units", "nm")
         meta.radiometric_quantity = ds.get("radiometric_quantity")
         meta.radiometric_units = ds.get("radiometric_units")
+        meta.region = ds.get("region")
         # Band level
         bands = data.get("bands", {})
         meta.n_bands = bands.get("count")
@@ -146,7 +148,12 @@ class HyperMetadata:
 
     # ---------- Save ----------
 
-    def save(self, map_name: str, mapset: Optional[str] = None) -> None:
+    def save(
+        self,
+        map_name: str,
+        mapset: Optional[str] = None,
+        save_region: bool = False,
+    ) -> None:
         """
         Save metadata for a hyperspectral 3D raster.
         """
@@ -161,6 +168,7 @@ class HyperMetadata:
         # Update computed fields
         if self.wavelengths is not None:
             self.n_bands = len(self.wavelengths)
+        region = self._get_region_json(map_name, mapset) if save_region else None
 
         # Build JSON structure
         data = {
@@ -176,6 +184,8 @@ class HyperMetadata:
             "processing_history": self.processing_history,
             "custom": self.custom,
         }
+        if region is not None:
+            data["dataset"]["region"] = region
 
         # Band arrays
         if self.wavelengths is not None:
@@ -210,6 +220,17 @@ class HyperMetadata:
         # Write JSON
         with open(path, "w") as f:
             json.dump(data, f, indent=2)
+
+    @classmethod
+    def _get_region_json(
+        cls, map_name: str, mapset: Optional[str] = None
+    ) -> Optional[dict[str, Any]]:
+        """Get current computational region as JSON from g.region."""
+        try:
+            out = gs.read_command("g.region", flags="p3", format="json", quiet=True)
+            return json.loads(out)
+        except Exception:
+            return None
 
     # ---------- Setters for numpy arrays ----------
 
@@ -386,10 +407,13 @@ def load_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> HyperMet
 
 
 def save_hyper_metadata(
-    meta: HyperMetadata, map_name: str, mapset: Optional[str] = None
+    meta: HyperMetadata,
+    map_name: str,
+    mapset: Optional[str] = None,
+    save_region: bool = False,
 ) -> None:
     """Save metadata for a hyperspectral 3D raster."""
-    meta.save(map_name, mapset)
+    meta.save(map_name, mapset, save_region=save_region)
 
 
 def has_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> bool:

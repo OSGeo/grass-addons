@@ -267,7 +267,7 @@ def import_prisma(
                 module="i.hyper.import",
                 params={"product": "prisma", "input": he5},
             )
-            meta.save(output_name)
+            meta.save(output_name, save_region=True)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
         # -----------------------------------------------------------------
