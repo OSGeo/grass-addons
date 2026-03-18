@@ -622,9 +622,7 @@ def main(options, flags):
             _("The environmental layers file does not exist:\n {}").format(envir_layers)
         )
     if not os.path.isfile(sample_layers):
-        gs.fatal(
-            _("The samples file does not exist:\n {}").format(sample_layers)
-        )
+        gs.fatal(_("The samples file does not exist:\n {}").format(sample_layers))
     with open(envir_layers) as f:
         header_environ = f.readline().strip("\n").split(",")
     with open(sample_layers) as f:
@@ -794,8 +792,10 @@ def main(options, flags):
     statistics_file = os.path.join(options["outputdirectory"], "maxentResults.csv")
     if not os.path.isfile(statistics_file):
         gs.fatal(
-            _("The Maxent results file was not created:\n {}\n"
-              "Check the Maxent output above for errors.").format(statistics_file)
+            _(
+                "The Maxent results file was not created:\n {}\n"
+                "Check the Maxent output above for errors."
+            ).format(statistics_file)
         )
     with open(statistics_file, "r") as file:
         stats = csv.reader(file)
