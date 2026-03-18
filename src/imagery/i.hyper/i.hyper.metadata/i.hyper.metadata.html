@@ -16,6 +16,42 @@ Supported operations:
   <li><code>validate</code>: check metadata consistency</li>
 </ul>
 
+<h3>JSON metadata structure</h3>
+
+Dataset-level fields are stored in <code>dataset</code> in <code>hyper.json</code>.
+
+<div class="code"><pre>
+{
+  "schema_version": "1.0",
+  "dataset": {
+    "sensor": "EnMAP",
+    "wavelength_units": "nm",
+    "radiometric_quantity": "surface_reflectance",
+    "radiometric_units": "unitless",
+    "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
+    "solar_zenith_angle": 24.475721,
+    "solar_azimuth_angle": 156.193067,
+    "satellite_zenith_angle": 21.917226,
+    "satellite_azimuth_angle": 14.116742
+  },
+  "bands": { ... },
+  "components": { ... },
+  "processing_history": [ ... ],
+  "custom": { ... }
+}
+</pre></div>
+
+<h3>EnMAP mapping used for dataset fields</h3>
+
+When metadata is produced by <code>i.hyper.import product=enmap</code>, values are mapped from EnMAP <code>*-METADATA.XML</code> as:
+<ul>
+  <li><code>Date of acquisition</code> &lt;- <code>datatakeStart</code> (fallback <code>temporalCoverage/startTime</code>)</li>
+  <li><code>Solar zenith angle</code> &lt;- <code>90 - sunElevationAngle/center</code></li>
+  <li><code>Solar azimuth angle</code> &lt;- <code>sunAzimuthAngle/center</code></li>
+  <li><code>Satellite azimuth angle</code> &lt;- <code>sceneAzimuthAngle/center</code></li>
+  <li><code>Satellite zenith angle</code> &lt;- direct zenith tag if present, otherwise derived from <code>acrossOffNadirAngle/center</code> + <code>alongOffNadirAngle/center</code></li>
+</ul>
+
 <h2>EXAMPLES</h2>
 
 View metadata summary:

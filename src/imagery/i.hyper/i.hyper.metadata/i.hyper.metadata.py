@@ -106,6 +106,19 @@ def view_metadata(meta, shell_style=False):
             print(f"wavelength_units={meta.wavelength_units}")
             print(f"radiometric_quantity={meta.radiometric_quantity or ''}")
             print(f"radiometric_units={meta.radiometric_units or ''}")
+            print(f"acquisition_datetime={meta.acquisition_datetime or ''}")
+            print(
+                f"solar_zenith_angle={meta.solar_zenith_angle if meta.solar_zenith_angle is not None else ''}"
+            )
+            print(
+                f"solar_azimuth_angle={meta.solar_azimuth_angle if meta.solar_azimuth_angle is not None else ''}"
+            )
+            print(
+                f"satellite_zenith_angle={meta.satellite_zenith_angle if meta.satellite_zenith_angle is not None else ''}"
+            )
+            print(
+                f"satellite_azimuth_angle={meta.satellite_azimuth_angle if meta.satellite_azimuth_angle is not None else ''}"
+            )
             if meta.wavelengths:
                 wl = [w for w in meta.wavelengths if w is not None]
                 if wl:
@@ -139,6 +152,16 @@ def view_metadata(meta, shell_style=False):
                 print(f"Radiometric quantity: {meta.radiometric_quantity}")
             if meta.radiometric_units:
                 print(f"Radiometric units: {meta.radiometric_units}")
+            if meta.acquisition_datetime:
+                print(f"Date of acquisition: {meta.acquisition_datetime}")
+            if meta.solar_zenith_angle is not None:
+                print(f"Solar zenith angle: {meta.solar_zenith_angle:.6f} deg")
+            if meta.solar_azimuth_angle is not None:
+                print(f"Solar azimuth angle: {meta.solar_azimuth_angle:.6f} deg")
+            if meta.satellite_zenith_angle is not None:
+                print(f"Satellite zenith angle: {meta.satellite_zenith_angle:.6f} deg")
+            if meta.satellite_azimuth_angle is not None:
+                print(f"Satellite azimuth angle: {meta.satellite_azimuth_angle:.6f} deg")
             
             if meta.wavelengths:
                 wl = [w for w in meta.wavelengths if w is not None]
@@ -180,6 +203,11 @@ def print_json(meta, map_name=None, hyper_meta_class=None):
             "wavelength_units": meta.wavelength_units,
             "radiometric_quantity": meta.radiometric_quantity,
             "radiometric_units": meta.radiometric_units,
+            "acquisition_datetime": meta.acquisition_datetime,
+            "solar_zenith_angle": meta.solar_zenith_angle,
+            "solar_azimuth_angle": meta.solar_azimuth_angle,
+            "satellite_zenith_angle": meta.satellite_zenith_angle,
+            "satellite_azimuth_angle": meta.satellite_azimuth_angle,
             "region": meta.region,
         },
         "bands": {

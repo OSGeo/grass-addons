@@ -2,6 +2,7 @@
 import sys
 import os
 import xml.etree.ElementTree as ET
+import math
 import rasterio
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -16,6 +17,30 @@ COMPOSITES = {
     "swir_agriculture": [848, 1653, 660],
     "swir_geology": [2200, 848, 572],
 }
+
+
+def _to_float(value):
+    if value is None:
+        return None
+    try:
+        return float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _first_nonempty_text(root, paths):
+    for path in paths:
+        text = root.findtext(path)
+        if text is None:
+            continue
+        text = text.strip()
+        if text:
+            return text
+    return None
+
+
+def _first_float(root, paths):
+    return _to_float(_first_nonempty_text(root, paths))
 
 
 @contextlib.contextmanager
@@ -84,6 +109,91 @@ def parse_band_metadata(meta_xml_path, tif_path, total_bands):
     return band_data
 
 
+def parse_dataset_metadata(meta_xml_path):
+    """Read dataset-level acquisition and geometry metadata from EnMAP XML."""
+    tree = ET.parse(meta_xml_path)
+    root = tree.getroot()
+
+    acquisition_datetime = _first_nonempty_text(
+        root,
+        [
+            ".//datatakeStart",
+            ".//temporalCoverage/startTime",
+            ".//startTime",
+        ],
+    )
+
+    sun_elevation = _first_float(
+        root,
+        [
+            ".//sunElevationAngle/center",
+            ".//sunElevationAngle",
+        ],
+    )
+    solar_zenith_angle = 90.0 - sun_elevation if sun_elevation is not None else None
+
+    solar_azimuth_angle = _first_float(
+        root,
+        [
+            ".//sunAzimuthAngle/center",
+            ".//sunAzimuthAngle",
+        ],
+    )
+
+    satellite_azimuth_angle = _first_float(
+        root,
+        [
+            ".//sceneAzimuthAngle/center",
+            ".//sceneAzimuthAngle",
+            ".//satelliteAzimuthAngle/center",
+            ".//satelliteAzimuthAngle",
+            ".//viewAzimuthAngle/center",
+            ".//viewAzimuthAngle",
+        ],
+    )
+
+    satellite_zenith_angle = _first_float(
+        root,
+        [
+            ".//satelliteZenithAngle/center",
+            ".//satelliteZenithAngle",
+            ".//viewZenithAngle/center",
+            ".//viewZenithAngle",
+            ".//offNadirAngle/center",
+            ".//offNadirAngle",
+        ],
+    )
+    if satellite_zenith_angle is None:
+        across = _first_float(
+            root,
+            [
+                ".//acrossOffNadirAngle/center",
+                ".//acrossOffNadirAngle",
+            ],
+        )
+        along = _first_float(
+            root,
+            [
+                ".//alongOffNadirAngle/center",
+                ".//alongOffNadirAngle",
+            ],
+        )
+        if across is not None and along is not None:
+            satellite_zenith_angle = math.hypot(across, along)
+        elif across is not None:
+            satellite_zenith_angle = abs(across)
+        elif along is not None:
+            satellite_zenith_angle = abs(along)
+
+    return {
+        "acquisition_datetime": acquisition_datetime,
+        "solar_zenith_angle": solar_zenith_angle,
+        "solar_azimuth_angle": solar_azimuth_angle,
+        "satellite_zenith_angle": satellite_zenith_angle,
+        "satellite_azimuth_angle": satellite_azimuth_angle,
+    }
+
+
 def find_nearest_band(wavelength, wavelengths):
     return (
         min(range(len(wavelengths)), key=lambda i: abs(wavelengths[i] - wavelength)) + 1
@@ -99,6 +209,7 @@ def import_enmap(
     meta_path = os.path.join(
         folder, next(f for f in os.listdir(folder) if f.endswith("METADATA.XML"))
     )
+    dataset_meta = parse_dataset_metadata(meta_path)
     with rasterio.open(tif_path) as src:
         total_bands = src.count
         band_meta = parse_band_metadata(meta_path, tif_path, total_bands)
@@ -298,6 +409,11 @@ def import_enmap(
                 sensor="EnMAP",
                 radiometric_quantity="surface_reflectance",
                 radiometric_units="unitless",
+                acquisition_datetime=dataset_meta.get("acquisition_datetime"),
+                solar_zenith_angle=dataset_meta.get("solar_zenith_angle"),
+                solar_azimuth_angle=dataset_meta.get("solar_azimuth_angle"),
+                satellite_zenith_angle=dataset_meta.get("satellite_zenith_angle"),
+                satellite_azimuth_angle=dataset_meta.get("satellite_azimuth_angle"),
             )
             meta.gain = gain_meta
             meta.offset = offset_meta

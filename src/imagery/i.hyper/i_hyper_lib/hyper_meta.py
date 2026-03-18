@@ -44,6 +44,11 @@ class HyperMetadata:
     wavelength_units: str = "nm"
     radiometric_quantity: Optional[str] = None  # e.g., "surface_reflectance", "toa_radiance"
     radiometric_units: Optional[str] = None  # e.g., "unitless", "W/(m^2 sr um)"
+    acquisition_datetime: Optional[str] = None
+    solar_zenith_angle: Optional[float] = None
+    solar_azimuth_angle: Optional[float] = None
+    satellite_zenith_angle: Optional[float] = None
+    satellite_azimuth_angle: Optional[float] = None
     region: Optional[dict[str, Any]] = None
 
     # Band-level arrays (spectral mode)
@@ -124,6 +129,11 @@ class HyperMetadata:
         meta.wavelength_units = ds.get("wavelength_units", "nm")
         meta.radiometric_quantity = ds.get("radiometric_quantity")
         meta.radiometric_units = ds.get("radiometric_units")
+        meta.acquisition_datetime = ds.get("acquisition_datetime")
+        meta.solar_zenith_angle = ds.get("solar_zenith_angle")
+        meta.solar_azimuth_angle = ds.get("solar_azimuth_angle")
+        meta.satellite_zenith_angle = ds.get("satellite_zenith_angle")
+        meta.satellite_azimuth_angle = ds.get("satellite_azimuth_angle")
         meta.region = ds.get("region")
         # Band level
         bands = data.get("bands", {})
@@ -178,6 +188,11 @@ class HyperMetadata:
                 "wavelength_units": self.wavelength_units,
                 "radiometric_quantity": self.radiometric_quantity,
                 "radiometric_units": self.radiometric_units,
+                "acquisition_datetime": self.acquisition_datetime,
+                "solar_zenith_angle": self.solar_zenith_angle,
+                "solar_azimuth_angle": self.solar_azimuth_angle,
+                "satellite_zenith_angle": self.satellite_zenith_angle,
+                "satellite_azimuth_angle": self.satellite_azimuth_angle,
             },
             "bands": {},
             "components": {},
@@ -373,12 +388,22 @@ class HyperMetadata:
         sensor: Optional[str] = None,
         radiometric_quantity: Optional[str] = None,
         radiometric_units: Optional[str] = None,
+        acquisition_datetime: Optional[str] = None,
+        solar_zenith_angle: Optional[float] = None,
+        solar_azimuth_angle: Optional[float] = None,
+        satellite_zenith_angle: Optional[float] = None,
+        satellite_azimuth_angle: Optional[float] = None,
     ) -> "HyperMetadata":
         """Create metadata for spectral (hyperspectral) data."""
         meta = cls()
         meta.sensor = sensor
         meta.radiometric_quantity = radiometric_quantity
         meta.radiometric_units = radiometric_units
+        meta.acquisition_datetime = acquisition_datetime
+        meta.solar_zenith_angle = solar_zenith_angle
+        meta.solar_azimuth_angle = solar_azimuth_angle
+        meta.satellite_zenith_angle = satellite_zenith_angle
+        meta.satellite_azimuth_angle = satellite_azimuth_angle
         meta.set_wavelengths(wavelengths)
         if fwhm is not None:
             meta.set_fwhm(fwhm)
