@@ -617,6 +617,14 @@ def main(options, flags):
     # ------------------------------------------------------------------
     envir_layers = os.path.normpath(options["environmentallayersfile"])
     sample_layers = os.path.normpath(options["samplesfile"])
+    if not os.path.isfile(envir_layers):
+        gs.fatal(
+            _("The environmental layers file does not exist:\n {}").format(envir_layers)
+        )
+    if not os.path.isfile(sample_layers):
+        gs.fatal(
+            _("The samples file does not exist:\n {}").format(sample_layers)
+        )
     with open(envir_layers) as f:
         header_environ = f.readline().strip("\n").split(",")
     with open(sample_layers) as f:
@@ -628,6 +636,12 @@ def main(options, flags):
         gs.fatal(_(msg).format(envp, samp))
     if bool(options["projectionlayers"]):
         projection_layers = os.path.normpath(options["projectionlayers"])
+        if not os.path.isdir(projection_layers):
+            gs.fatal(
+                _("The projection layers directory does not exist:\n {}").format(
+                    projection_layers
+                )
+            )
         envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
@@ -637,6 +651,21 @@ def main(options, flags):
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
+    # Check output directory
+    output_directory = os.path.normpath(options["outputdirectory"])
+    if not os.path.isdir(output_directory):
+        gs.fatal(
+            _("The output directory does not exist:\n {}").format(output_directory)
+        )
+
+    # Check test samples file if provided
+    if options["testsamplesfile"]:
+        test_samples = os.path.normpath(options["testsamplesfile"])
+        if not os.path.isfile(test_samples):
+            gs.fatal(
+                _("The test samples file does not exist:\n {}").format(test_samples)
+            )
+
     # names options
     maxent_command = [
         path_to_java,
@@ -763,6 +792,11 @@ def main(options, flags):
         gs.info(_("Basic stats about the model are printed below:\n"))
 
     statistics_file = os.path.join(options["outputdirectory"], "maxentResults.csv")
+    if not os.path.isfile(statistics_file):
+        gs.fatal(
+            _("The Maxent results file was not created:\n {}\n"
+              "Check the Maxent output above for errors.").format(statistics_file)
+        )
     with open(statistics_file, "r") as file:
         stats = csv.reader(file)
         variables = []
@@ -1249,12 +1283,10 @@ def main(options, flags):
         for asc in asciilayers:
             full_stem = Path(asc).stem
             is_clamping = full_stem.endswith("_clamping")
-            stem = full_stem.removesuffix("_clamping")
-            stat = stem.split("_")[-1]
             clamping_tag = "_clamping" if is_clamping else ""
 
             if predictionraster:
-                outname = f"{predictionraster}_{stat}{clamping_tag}{options['suffix']}"
+                outname = f"{predictionraster}{clamping_tag}{options['suffix']}"
             else:
                 outname = f"{full_stem}{options['suffix']}"
 
