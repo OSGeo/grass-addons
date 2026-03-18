@@ -585,7 +585,7 @@ def main(options, flags):
     elif java_functional("java"):
         path_to_java = "java"
     else:
-        gs.warning(
+        gs.fatal(
             _(
                 "Java cannot be found. Please ensure Java is installed "
                 "and/or properly configured to be accessible from GRASS. \n"
@@ -699,11 +699,6 @@ def main(options, flags):
         "x": "addallsamplestobackground=true",
     }
     maxent_command += [val for key, val in bool_flags.items() if flags.get(key)]
-    bool_flags = {
-        "v": "visible=false",
-        "m": "autorun=true",
-    }
-    maxent_command += [val for key, val in bool_flags.items() if not flags.get(key)]
 
     # Building the command line string - conditional on multiple input value
     if bool(flags["v"]):
@@ -802,7 +797,7 @@ def main(options, flags):
     # -----------------------------------------------------------------
     # Get list with all files in the output folder
     # -----------------------------------------------------------------
-    all_files = all_files = os.listdir(options["outputdirectory"])
+    all_files = os.listdir(options["outputdirectory"])
     # Create list of addons. Is later used to check if v.db.pyupdate is installed
     outputs = gs.read_command("g.extension", flags="a", quiet=function_verbosity)
     plugins_installed = [addon.strip() for addon in outputs.splitlines()]
@@ -1048,7 +1043,6 @@ def main(options, flags):
                     "These might be output files from earlier models? Please make sure\n"
                     "there is only one backgroundPrediction file and run the model again."
                 )
-            prediction_bgrlay = [create_temporary_name("x")]
             if bool(bkgrpoints):
                 prediction_bgrlay = f"{bkgrpoints}{options['suffix']}"
             else:
@@ -1253,13 +1247,16 @@ def main(options, flags):
 
         grasslayers = []
         for asc in asciilayers:
-            stem = Path(asc).stem.removesuffix("_clamping")
+            full_stem = Path(asc).stem
+            is_clamping = full_stem.endswith("_clamping")
+            stem = full_stem.removesuffix("_clamping")
             stat = stem.split("_")[-1]
+            clamping_tag = "_clamping" if is_clamping else ""
 
             if predictionraster:
-                outname = f"{predictionraster}_{stat}{options['suffix']}"
+                outname = f"{predictionraster}_{stat}{clamping_tag}{options['suffix']}"
             else:
-                outname = f"{stem}{options['suffix']}"
+                outname = f"{full_stem}{options['suffix']}"
 
             grasslayers.append(outname)
 
