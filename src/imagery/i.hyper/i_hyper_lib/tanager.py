@@ -12,6 +12,7 @@ Tanager BASIC → GRASS
 
 import os
 import uuid
+import shlex
 import numpy as np
 import grass.script as gs
 import grass.script.array as garray
@@ -98,6 +99,19 @@ def import_tanager(
         prod.lat is not None and prod.lon is not None,
         "Latitude/Longitude grids missing.",
     )
+
+    source_wavelengths = np.asarray(wl)
+    source_fwhm = np.asarray(fwhm) if fwhm is not None else None
+
+    # Per-band validity before reprojection (nodata already set to NaN in loader)
+    band_validity = [bool(np.isfinite(data[:, :, k]).any()) for k in range(data.shape[2])]
+    keep = [k for k, valid in enumerate(band_validity) if valid]
+    if not keep:
+        gs.fatal("No non-NULL bands found.")
+    data = data[:, :, keep]
+    wl = np.asarray(wl)[keep]
+    if fwhm is not None:
+        fwhm = np.asarray(fwhm)[keep]
 
     # composites list
     wanted = []
@@ -189,18 +203,51 @@ def import_tanager(
 
         # hyperspectral metadata (JSON)
         try:
-            count_meta = int(min(bands_total, len(wl)))
+            if import_null:
+                wavelengths_meta = source_wavelengths.tolist()
+                fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
+                validity_meta = [bool(v) for v in band_validity]
+            else:
+                wavelengths_meta = wl.tolist()
+                fwhm_meta = fwhm.tolist() if fwhm is not None else None
+                validity_meta = [True] * len(wavelengths_meta)
+
             meta = HyperMetadata.for_spectral_data(
-                wavelengths=wl[:count_meta],
-                fwhm=fwhm[:count_meta] if fwhm is not None else None,
+                wavelengths=wavelengths_meta,
+                fwhm=fwhm_meta,
                 sensor="Tanager",
                 radiometric_quantity=getattr(prod, "data_field", None),
                 radiometric_units=getattr(prod, "data_units", None),
             )
-            meta.add_processing_step(
-                operation="import",
-                module="i.hyper.import",
-                params={"product": "tanager", "input": h5},
+            meta.set_validity(validity_meta)
+
+            mapset = gs.gisenv().get("MAPSET", "")
+            out_full = (
+                f"{output_name}@{mapset}"
+                if mapset and "@" not in output_name
+                else output_name
+            )
+            cmd = [
+                "i.hyper.import",
+                f"input={shlex.quote(h5)}",
+                "product=tanager",
+                f"output={output_name}",
+                f"strength={strength_val}",
+            ]
+            if composites:
+                cmd.append(f"composites={','.join(composites)}")
+            if custom_wavelengths:
+                cmd.append(
+                    "composites_custom="
+                    + ",".join(str(v) for v in custom_wavelengths)
+                )
+            if import_null:
+                cmd.append("-n")
+
+            meta.add_history_entry(
+                command=" ".join(cmd),
+                inputs=[],
+                outputs=[{"id": meta.dataset_id, "map_name": out_full}],
             )
             meta.save(output_name, save_region=True)
         except Exception as e_meta:

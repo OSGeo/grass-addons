@@ -109,10 +109,13 @@ def _band_wavelengths(mapname, expected, hyper_meta_class):
     except Exception as error:
         gs.fatal(f"Failed to read JSON metadata for {mapname}: {error}")
 
-    if meta.wavelengths is None:
+    wl_arr = meta.get_wavelengths_array()
+    if wl_arr is None:
         gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
 
-    wavelengths = list(meta.wavelengths)
+    wavelengths = [
+        None if (w is None or w != w) else float(w) for w in wl_arr.tolist()
+    ]
     if len(wavelengths) < expected:
         gs.fatal(
             f"Metadata wavelength count ({len(wavelengths)}) is lower than band count ({expected}) for {mapname}."

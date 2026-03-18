@@ -13,6 +13,7 @@ Requires: prisma_reader.{load_prisma_l2d, concatenate_hyperspectral}
 
 import os
 import uuid
+import shlex
 import numpy as np
 import grass.script as gs
 import grass.script.array as garray
@@ -148,6 +149,19 @@ def import_prisma(
     if bg_mask is not None:
         refl[bg_mask, :] = np.nan  # GRASS will store these as NULLs on write
 
+    source_wavelengths = np.asarray(wavelengths)
+    source_fwhm = np.asarray(fwhm) if fwhm is not None else None
+
+    # Per-band validity after masking
+    band_validity = [bool(np.isfinite(refl[:, :, k]).any()) for k in range(refl.shape[2])]
+    keep = [k for k, valid in enumerate(band_validity) if valid]
+    if not keep:
+        gs.fatal("No non-NULL bands found.")
+    refl = refl[:, :, keep]
+    wavelengths = np.asarray(wavelengths)[keep]
+    if fwhm is not None:
+        fwhm = np.asarray(fwhm)[keep]
+
     # Determine transposed shape (E,N) from any band
     first_band = refl[:, :, 0].T  # (E,N)
     rows_E, cols_N = first_band.shape
@@ -254,18 +268,51 @@ def import_prisma(
 
         # -------- hyperspectral metadata (JSON) --------
         try:
-            count_meta = int(min(bands_total, len(wavelengths)))
+            if import_null:
+                wavelengths_meta = source_wavelengths.tolist()
+                fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
+                validity_meta = [bool(v) for v in band_validity]
+            else:
+                wavelengths_meta = wavelengths.tolist()
+                fwhm_meta = fwhm.tolist() if fwhm is not None else None
+                validity_meta = [True] * len(wavelengths_meta)
+
             meta = HyperMetadata.for_spectral_data(
-                wavelengths=wavelengths[:count_meta],
-                fwhm=fwhm[:count_meta] if fwhm is not None else None,
+                wavelengths=wavelengths_meta,
+                fwhm=fwhm_meta,
                 sensor="PRISMA",
                 radiometric_quantity="surface_reflectance",
                 radiometric_units="unitless",
             )
-            meta.add_processing_step(
-                operation="import",
-                module="i.hyper.import",
-                params={"product": "prisma", "input": he5},
+            meta.set_validity(validity_meta)
+
+            mapset = gs.gisenv().get("MAPSET", "")
+            out_full = (
+                f"{output_name}@{mapset}"
+                if mapset and "@" not in output_name
+                else output_name
+            )
+            cmd = [
+                "i.hyper.import",
+                f"input={shlex.quote(he5)}",
+                "product=prisma",
+                f"output={output_name}",
+                f"strength={strength_val}",
+            ]
+            if composites:
+                cmd.append(f"composites={','.join(composites)}")
+            if custom_wavelengths:
+                cmd.append(
+                    "composites_custom="
+                    + ",".join(str(v) for v in custom_wavelengths)
+                )
+            if import_null:
+                cmd.append("-n")
+
+            meta.add_history_entry(
+                command=" ".join(cmd),
+                inputs=[],
+                outputs=[{"id": meta.dataset_id, "map_name": out_full}],
             )
             meta.save(output_name, save_region=True)
         except Exception as e_meta:

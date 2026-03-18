@@ -59,11 +59,7 @@ import grass.script as gs
 
 
 def _is_component_metadata(meta):
-    return (
-        (meta.n_components is not None and meta.n_components > 0)
-        or meta.explained_variance_ratio is not None
-        or meta.component_labels is not None
-    )
+    return str(getattr(meta, "data_type", "spectral")) == "component"
 
 
 def _import_hyper_meta():
@@ -97,12 +93,15 @@ def view_metadata(meta, shell_style=False):
     if shell_style:
         # Parseable output
         print(f"schema_version={meta.schema_version}")
-        print(f"data_type={'components' if is_components else 'spectral'}")
+        print(f"dataset_id={meta.dataset_id or ''}")
+        print(f"data_type={'component' if is_components else 'spectral'}")
         if is_components:
-            print(f"n_components={meta.n_components or 0}")
+            print(f"n_bands={meta.n_bands or meta.n_components or 0}")
         else:
             print(f"sensor={meta.sensor or ''}")
             print(f"n_bands={meta.n_bands or 0}")
+            print(f"n_bands_total={meta.n_bands_source or meta.n_bands or 0}")
+            print(f"n_bands_valid={meta.n_bands_valid or meta.n_bands or 0}")
             print(f"wavelength_units={meta.wavelength_units}")
             print(f"radiometric_quantity={meta.radiometric_quantity or ''}")
             print(f"radiometric_units={meta.radiometric_units or ''}")
@@ -130,22 +129,21 @@ def view_metadata(meta, shell_style=False):
         print("HYPERSPECTRAL METADATA")
         print("=" * 60)
         print(f"Schema version: {meta.schema_version}")
+        print(f"Dataset ID: {meta.dataset_id}")
         print()
         
         if is_components:
-            print("Type: Dimensionality Reduction Output")
-            print(f"Components: {meta.n_components or 'Unknown'}")
-            if meta.explained_variance_ratio:
-                print("\nExplained variance:")
-                cumulative = 0
-                for i, var in enumerate(meta.explained_variance_ratio, 1):
-                    cumulative += var
-                    print(f"  Component {i}: {var*100:.2f}% (cumulative: {cumulative*100:.2f}%)")
+            print("Type: Component Data")
+            print(f"Bands (layers): {meta.n_bands or meta.n_components or 'Unknown'}")
         else:
             print("Type: Spectral Data")
             if meta.sensor:
                 print(f"Sensor: {meta.sensor}")
-            print(f"Bands: {meta.n_bands or 'Unknown'}")
+            print(f"Bands in raster: {meta.n_bands or 'Unknown'}")
+            if meta.n_bands_source is not None:
+                print(f"Bands total (source): {meta.n_bands_source}")
+            if meta.n_bands_valid is not None:
+                print(f"Bands valid: {meta.n_bands_valid}")
             print(f"Wavelength units: {meta.wavelength_units}")
             
             if meta.radiometric_quantity:
@@ -198,29 +196,24 @@ def print_json(meta, map_name=None, hyper_meta_class=None):
     # Fallback for in-memory metadata object representation
     data = {
         "schema_version": meta.schema_version,
-        "dataset": {
-            "sensor": meta.sensor,
-            "wavelength_units": meta.wavelength_units,
-            "radiometric_quantity": meta.radiometric_quantity,
-            "radiometric_units": meta.radiometric_units,
-            "acquisition_datetime": meta.acquisition_datetime,
-            "solar_zenith_angle": meta.solar_zenith_angle,
-            "solar_azimuth_angle": meta.solar_azimuth_angle,
-            "satellite_zenith_angle": meta.satellite_zenith_angle,
-            "satellite_azimuth_angle": meta.satellite_azimuth_angle,
-            "region": meta.region,
-        },
+        "dataset_id": meta.dataset_id,
+        "data_type": meta.data_type,
+        "sensor": meta.sensor,
+        "wavelength_units": meta.wavelength_units,
+        "radiometric_quantity": meta.radiometric_quantity,
+        "radiometric_units": meta.radiometric_units,
+        "acquisition_datetime": meta.acquisition_datetime,
+        "solar_zenith_angle": meta.solar_zenith_angle,
+        "solar_azimuth_angle": meta.solar_azimuth_angle,
+        "satellite_zenith_angle": meta.satellite_zenith_angle,
+        "satellite_azimuth_angle": meta.satellite_azimuth_angle,
+        "region": meta.region,
         "bands": {
-            "count": meta.n_bands,
+            "count": meta.n_bands_source if meta.n_bands_source is not None else meta.n_bands,
+            "count_valid": meta.n_bands_valid,
             "wavelength": meta.wavelengths,
             "fwhm": meta.fwhm,
-            "bad_band": meta.bad_bands,
-            "gain": meta.gain,
-            "offset": meta.offset,
-        },
-        "components": {
-            "count": meta.n_components,
-            "explained_variance_ratio": meta.explained_variance_ratio,
+            "validity": meta.validity,
             "labels": meta.component_labels,
         },
         "processing_history": meta.processing_history,
@@ -256,7 +249,16 @@ def list_bands(meta, output_format="text", wavelength_range=None):
             continue
         
         fwhm = meta.fwhm[i] if meta.fwhm and i < len(meta.fwhm) else None
-        bad = meta.bad_bands[i] if meta.bad_bands and i < len(meta.bad_bands) else False
+        validity = (
+            meta.validity[i]
+            if getattr(meta, "validity", None) and i < len(meta.validity)
+            else None
+        )
+        bad = (
+            not bool(validity)
+            if validity is not None
+            else (meta.bad_bands[i] if meta.bad_bands and i < len(meta.bad_bands) else False)
+        )
         bands.append({
             "index": i + 1,  # 1-based for display
             "wavelength": wl,
@@ -292,15 +294,18 @@ def show_history(meta):
     print("=" * 60)
     for i, step in enumerate(meta.processing_history, 1):
         print(f"\nStep {i}:")
-        print(f"  Operation: {step.get('operation', 'Unknown')}")
-        if step.get('module'):
-            print(f"  Module: {step['module']}")
+        if step.get("command"):
+            print(f"  Command: {step['command']}")
         if step.get('timestamp'):
             print(f"  Timestamp: {step['timestamp']}")
-        if step.get('params'):
-            print(f"  Parameters:")
-            for k, v in step['params'].items():
-                print(f"    {k}: {v}")
+        if step.get("inputs"):
+            print("  Inputs:")
+            for item in step["inputs"]:
+                print(f"    id={item.get('id')} map_name={item.get('map_name')}")
+        if step.get("outputs"):
+            print("  Outputs:")
+            for item in step["outputs"]:
+                print(f"    id={item.get('id')} map_name={item.get('map_name')}")
 
 
 def validate_metadata(meta):

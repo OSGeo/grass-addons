@@ -41,9 +41,12 @@ further with the *i.hyper* suite of modules.
 ## NOTES
 
 Imported 3D raster maps store hyperspectral reflectance or radiance
-values (depending on the product). Bands containing only zeros, NULLs,
-or invalid values are flagged with `valid: 0`; others are flagged as
-`valid: 1`.
+values (depending on the product). Bands containing only NULL values
+are not added to the output `raster_3d`.
+
+With the `-n` flag, source-band validity is recorded directly in
+`bands.validity` (with `bands.count` and `bands.count_valid`) without
+adding all-NULL bands to the output cube.
 
 When the *composites* option is used, predefined or custom band
 combinations are exported as 2D raster composites (e.g., RGB, CIR,

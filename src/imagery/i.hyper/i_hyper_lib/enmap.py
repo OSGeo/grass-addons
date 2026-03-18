@@ -3,6 +3,7 @@ import sys
 import os
 import xml.etree.ElementTree as ET
 import math
+import shlex
 import rasterio
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -201,7 +202,12 @@ def find_nearest_band(wavelength, wavelengths):
 
 
 def import_enmap(
-    folder, output, composites=None, custom_wavelengths=None, strength_val=96
+    folder,
+    output,
+    composites=None,
+    custom_wavelengths=None,
+    strength_val=96,
+    import_null=False,
 ):
     tif_path = os.path.join(
         folder, next(f for f in os.listdir(folder) if f.endswith("SPECTRAL_IMAGE.TIF"))
@@ -214,11 +220,15 @@ def import_enmap(
         total_bands = src.count
         band_meta = parse_band_metadata(meta_path, tif_path, total_bands)
 
-        valid_bands = [
+        source_bands = [
             b
             for b in range(1, total_bands + 1)
+            if band_meta.get(b, {}).get("wavelength") is not None
+        ]
+        valid_bands = [
+            b
+            for b in source_bands
             if band_meta.get(b, {}).get("valid", 0) == 1
-            and band_meta.get(b, {}).get("wavelength") is not None
         ]
         if not valid_bands:
             gs.fatal("No valid bands after XML-based selection.")
@@ -398,10 +408,14 @@ def import_enmap(
 
         # hyperspectral metadata (JSON)
         try:
-            wavelengths_meta = [band_meta[b]["wavelength"] for b in valid_bands]
-            fwhm_meta = [band_meta[b]["fwhm"] for b in valid_bands]
-            gain_meta = [band_meta[b]["gain"] for b in valid_bands]
-            offset_meta = [band_meta[b]["offset"] for b in valid_bands]
+            if import_null:
+                wavelengths_meta = [band_meta[b]["wavelength"] for b in source_bands]
+                fwhm_meta = [band_meta[b]["fwhm"] for b in source_bands]
+                validity_meta = [bool(band_meta[b].get("valid", 0)) for b in source_bands]
+            else:
+                wavelengths_meta = [band_meta[b]["wavelength"] for b in valid_bands]
+                fwhm_meta = [band_meta[b]["fwhm"] for b in valid_bands]
+                validity_meta = [True] * len(valid_bands)
 
             meta = HyperMetadata.for_spectral_data(
                 wavelengths=wavelengths_meta,
@@ -415,12 +429,32 @@ def import_enmap(
                 satellite_zenith_angle=dataset_meta.get("satellite_zenith_angle"),
                 satellite_azimuth_angle=dataset_meta.get("satellite_azimuth_angle"),
             )
-            meta.gain = gain_meta
-            meta.offset = offset_meta
-            meta.add_processing_step(
-                operation="import",
-                module="i.hyper.import",
-                params={"product": "enmap", "input": folder},
+            meta.set_validity(validity_meta)
+
+            mapset = gs.gisenv().get("MAPSET", "")
+            out_full = f"{output}@{mapset}" if mapset and "@" not in output else output
+
+            cmd = [
+                "i.hyper.import",
+                f"input={shlex.quote(folder)}",
+                "product=enmap",
+                f"output={output}",
+                f"strength={strength_val}",
+            ]
+            if composites:
+                cmd.append(f"composites={','.join(composites)}")
+            if custom_wavelengths:
+                cmd.append(
+                    "composites_custom="
+                    + ",".join(str(v) for v in custom_wavelengths)
+                )
+            if import_null:
+                cmd.append("-n")
+
+            meta.add_history_entry(
+                command=" ".join(cmd),
+                inputs=[],
+                outputs=[{"id": meta.dataset_id, "map_name": out_full}],
             )
             meta.save(output, save_region=True)
         except Exception as e_meta:
@@ -469,4 +503,5 @@ def run_import(options, flags):
         else None,
         custom_wavelengths=custom,
         strength_val=strength_val,
+        import_null=bool(flags.get("n")),
     )

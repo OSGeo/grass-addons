@@ -114,7 +114,7 @@ def _band_count(mapname):
 
 
 def _dataset_metadata(mapname, band_count, hyper_meta_class):
-    """Return wavelengths, measurement, units and component count from JSON metadata."""
+    """Return wavelengths, validity, measurement, units and component count."""
     if hyper_meta_class is None:
         gs.fatal("Failed to load hyper_meta library. JSON metadata support is required.")
 
@@ -133,12 +133,41 @@ def _dataset_metadata(mapname, band_count, hyper_meta_class):
 
     if has_components > 0:
         wavelengths = [None] * band_count
+        validity = None
     else:
         if meta.wavelengths is None:
             gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
-        wavelengths = _pad_or_trim(meta.wavelengths, band_count)
+        wavelengths_raw = list(meta.wavelengths or [])
+        validity_raw = list(getattr(meta, "validity", []) or [])
+        has_full_validity = (
+            len(validity_raw) == len(wavelengths_raw)
+            and any(not bool(v) for v in validity_raw)
+        )
 
-    return wavelengths, measurement, units, has_components
+        if has_full_validity:
+            # Keep full source axis to allow visual gaps at invalid bands.
+            wavelengths = wavelengths_raw
+            validity = [bool(v) for v in validity_raw]
+        else:
+            # Backward-compatible behavior for old metadata.
+            wavelengths = _pad_or_trim(wavelengths_raw, band_count)
+            validity = None
+
+    return wavelengths, validity, measurement, units, has_components
+
+
+def _expand_values_with_validity(values, validity):
+    """Expand sampled valid-band values to full source-band length using validity flags."""
+    if not validity:
+        return None
+    n_valid = sum(1 for v in validity if bool(v))
+    if n_valid != len(values):
+        return None
+    out = []
+    it = iter(values)
+    for v in validity:
+        out.append(next(it) if bool(v) else None)
+    return out
 
 
 def _sample_all_bands_at_point(mapname, e, n, band_count, sep="|", null_marker="*"):
@@ -298,13 +327,21 @@ def _plot_results_multi(
                     [np.nan if w is None else float(w) for w in ds["wavelength_nm"]],
                     dtype=float,
                 )
+                raw_vals = ds["points"][pi]["values"]
+                expanded_vals = _expand_values_with_validity(raw_vals, ds.get("validity"))
+                vals_src = expanded_vals if expanded_vals is not None else raw_vals
                 vals = np.asarray(
-                    [
-                        np.nan if v is None else float(v)
-                        for v in ds["points"][pi]["values"]
-                    ],
-                    dtype=float,
+                    [np.nan if v is None else float(v) for v in vals_src], dtype=float
                 )
+
+                if expanded_vals is not None and len(vals) == len(wl):
+                    # Keep NaNs from invalid bands to force visible line breaks.
+                    if np.any(np.isfinite(vals)):
+                        ls = linestyles[mi % len(linestyles)]
+                        lw = 1.6 * (float(style_scale) if (output and style_scale) else 1.0)
+                        ax.plot(wl, vals, linestyle=ls, linewidth=lw, color=color)
+                    continue
+
                 mask = np.isfinite(wl) & np.isfinite(vals)
 
             if not np.any(mask):
@@ -454,7 +491,7 @@ def main(options, flags):
     for mapname in maps:
         gs.run_command("g.region", raster_3d=mapname)
         band_count = _band_count(mapname)
-        wavelengths, measurement, units, has_comp = _dataset_metadata(
+        wavelengths, validity, measurement, units, has_comp = _dataset_metadata(
             mapname, band_count, HyperMetadata
         )
 
@@ -467,6 +504,7 @@ def main(options, flags):
             {
                 "map": mapname,
                 "wavelength_nm": wavelengths,
+                "validity": validity,
                 "points": points,
                 "measurement": measurement,
                 "units": units,

@@ -22,25 +22,37 @@ Supported operations:
 
 ### JSON metadata structure
 
-Dataset-level fields are stored in `dataset` in `hyper.json`.
+Dataset-level fields are stored at the top level in `hyper.json`.
 
 ::: code
 {
   "schema_version": "1.0",
-  "dataset": {
-    "sensor": "EnMAP",
-    "wavelength_units": "nm",
-    "radiometric_quantity": "surface_reflectance",
-    "radiometric_units": "unitless",
-    "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
-    "solar_zenith_angle": 24.475721,
-    "solar_azimuth_angle": 156.193067,
-    "satellite_zenith_angle": 21.917226,
-    "satellite_azimuth_angle": 14.116742
+  "dataset_id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d",
+  "data_type": "spectral",
+  "sensor": "EnMAP",
+  "wavelength_units": "nm",
+  "radiometric_quantity": "surface_reflectance",
+  "radiometric_units": "unitless",
+  "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
+  "solar_zenith_angle": 24.475721,
+  "solar_azimuth_angle": 156.193067,
+  "satellite_zenith_angle": 21.917226,
+  "satellite_azimuth_angle": 14.116742,
+  "bands": {
+    "count": 250,
+    "count_valid": 167,
+    "wavelength": [ ... ],
+    "fwhm": [ ... ],
+    "validity": [true, true, false, ...]
   },
-  "bands": { ... },
-  "components": { ... },
-  "processing_history": [ ... ],
+  "processing_history": [
+    {
+      "command": "i.hyper.import input=/data/... product=enmap output=enmap -n",
+      "timestamp": "2026-03-18T11:25:39.596678",
+      "inputs": [],
+      "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
+    }
+  ],
   "custom": { ... }
 }
 :::

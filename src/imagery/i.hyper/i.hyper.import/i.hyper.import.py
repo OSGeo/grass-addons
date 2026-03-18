@@ -64,7 +64,7 @@
 
 # %flag
 # % key: n
-# % description: Import also all-NULL bands
+# % description: Record full source-band validity in bands.validity (do not add NULL bands to raster_3d)
 # % guisection: Optional
 # %end
 
