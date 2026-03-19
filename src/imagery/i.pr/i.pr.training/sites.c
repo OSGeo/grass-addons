@@ -1,12 +1,11 @@
 #include <grass/gis.h>
-// #include <grass/site.h>
+#include <grass/site.h>
 #include "global.h"
 #include "globals.h"
 
 int read_points_from_file(Training *training, char *site_file)
 {
     char *mapset;
-    // FILE *out;
     struct Map_info *out;
     Site *site;
     int dims = 0, cat = 0, strs = 0, dbls = 0;

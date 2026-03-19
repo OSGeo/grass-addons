@@ -272,7 +272,6 @@ int main(int argc, char **argv)
             sscanf(opt24->answer, "%d", &fs_rfe);
 
         if (fs_rfe <= 1) {
-            sprintf(tmpbuf, "fs_rfe must be > 1\n");
             G_fatal_error("fs_rfe must be > 1\n");
         }
     }

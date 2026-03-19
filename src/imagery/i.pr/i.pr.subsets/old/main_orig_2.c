@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
     sscanf(opt3->answer, "%d", &seed);
     if (seed < 0) {
-        G_fatal_error("seed must be >=0";
+        G_fatal_error("seed must be >=0");
     }
 
     /*read features */
