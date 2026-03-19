@@ -336,22 +336,14 @@ def import_enmap(
             )
             gs.info(f"Generated custom composite raster: {output}_custom")
 
-        # spectral axis
-        wl = wavelengths
-        if len(wl) > 1:
-            diffs = [wl[i + 1] - wl[i] for i in range(len(wl) - 1)]
-            tbres_nm = float(f"{max(1e-6, mean(diffs)):.6f}")
-        else:
-            tbres_nm = 1.0
-        bottom_nm = wl[0]
-        top_nm = bottom_nm + tbres_nm * (len(band_names) - 1)
-
+        # Use band-index Z axis to keep depth exactly equal to number of imported bands.
+        bands_total = len(band_names)
         Module(
             "g.region",
             raster=band_names[0],
-            b=bottom_nm,
-            t=top_nm,
-            tbres=tbres_nm,
+            b=0,
+            t=bands_total,
+            tbres=1,
             quiet=True,
         )
 
@@ -371,6 +363,7 @@ def import_enmap(
                     quiet=True,
                     overwrite=True,
                 )
+                Module("g.region", raster_3d=output, quiet=True)
                 g0, o0 = gains[0], offs[0]
                 Module(
                     "r3.mapcalc",
