@@ -48,11 +48,6 @@
 # % description: Filter bands by wavelength range (e.g., 400-700)
 # %end
 
-# %flag
-# % key: g
-# % description: Shell script style output (parseable)
-# %end
-
 import sys
 import json
 import grass.script as gs
@@ -87,98 +82,64 @@ def _import_hyper_meta():
     return module
 
 
-def view_metadata(meta, shell_style=False):
+def view_metadata(meta):
     """Print human-readable metadata summary."""
     is_components = _is_component_metadata(meta)
-    if shell_style:
-        # Parseable output
-        print(f"schema_version={meta.schema_version}")
-        print(f"dataset_id={meta.dataset_id or ''}")
-        print(f"data_type={'component' if is_components else 'spectral'}")
-        if is_components:
-            print(f"n_bands={meta.n_bands or meta.n_components or 0}")
-        else:
-            print(f"sensor={meta.sensor or ''}")
-            print(f"n_bands={meta.n_bands or 0}")
-            print(f"n_bands_total={meta.n_bands_source or meta.n_bands or 0}")
-            print(f"n_bands_valid={meta.n_bands_valid or meta.n_bands or 0}")
-            print(f"wavelength_units={meta.wavelength_units}")
-            print(f"radiometric_quantity={meta.radiometric_quantity or ''}")
-            print(f"radiometric_units={meta.radiometric_units or ''}")
-            print(f"acquisition_datetime={meta.acquisition_datetime or ''}")
-            print(
-                f"solar_zenith_angle={meta.solar_zenith_angle if meta.solar_zenith_angle is not None else ''}"
-            )
-            print(
-                f"solar_azimuth_angle={meta.solar_azimuth_angle if meta.solar_azimuth_angle is not None else ''}"
-            )
-            print(
-                f"satellite_zenith_angle={meta.satellite_zenith_angle if meta.satellite_zenith_angle is not None else ''}"
-            )
-            print(
-                f"satellite_azimuth_angle={meta.satellite_azimuth_angle if meta.satellite_azimuth_angle is not None else ''}"
-            )
-            if meta.wavelengths:
-                wl = [w for w in meta.wavelengths if w is not None]
-                if wl:
-                    print(f"wavelength_min={min(wl):.2f}")
-                    print(f"wavelength_max={max(wl):.2f}")
+    # Human readable
+    print("=" * 60)
+    print("HYPERSPECTRAL METADATA")
+    print("=" * 60)
+    print(f"Schema version: {meta.schema_version}")
+    print(f"Dataset ID: {meta.dataset_id}")
+    print()
+
+    if is_components:
+        print("Type: Component Data")
+        print(f"Bands (layers): {meta.n_bands or meta.n_components or 'Unknown'}")
     else:
-        # Human readable
-        print("=" * 60)
-        print("HYPERSPECTRAL METADATA")
-        print("=" * 60)
-        print(f"Schema version: {meta.schema_version}")
-        print(f"Dataset ID: {meta.dataset_id}")
-        print()
-        
-        if is_components:
-            print("Type: Component Data")
-            print(f"Bands (layers): {meta.n_bands or meta.n_components or 'Unknown'}")
-        else:
-            print("Type: Spectral Data")
-            if meta.sensor:
-                print(f"Sensor: {meta.sensor}")
-            print(f"Bands in raster: {meta.n_bands or 'Unknown'}")
-            if meta.n_bands_source is not None:
-                print(f"Bands total (source): {meta.n_bands_source}")
-            if meta.n_bands_valid is not None:
-                print(f"Bands valid: {meta.n_bands_valid}")
-            print(f"Wavelength units: {meta.wavelength_units}")
-            
-            if meta.radiometric_quantity:
-                print(f"Radiometric quantity: {meta.radiometric_quantity}")
-            if meta.radiometric_units:
-                print(f"Radiometric units: {meta.radiometric_units}")
-            if meta.acquisition_datetime:
-                print(f"Date of acquisition: {meta.acquisition_datetime}")
-            if meta.solar_zenith_angle is not None:
-                print(f"Solar zenith angle: {meta.solar_zenith_angle:.6f} deg")
-            if meta.solar_azimuth_angle is not None:
-                print(f"Solar azimuth angle: {meta.solar_azimuth_angle:.6f} deg")
-            if meta.satellite_zenith_angle is not None:
-                print(f"Satellite zenith angle: {meta.satellite_zenith_angle:.6f} deg")
-            if meta.satellite_azimuth_angle is not None:
-                print(f"Satellite azimuth angle: {meta.satellite_azimuth_angle:.6f} deg")
-            
-            if meta.wavelengths:
-                wl = [w for w in meta.wavelengths if w is not None]
-                if wl:
-                    print(f"\nWavelength range: {min(wl):.2f} - {max(wl):.2f} {meta.wavelength_units}")
-                    
-                    # Count bad bands
-                    if meta.bad_bands:
-                        n_bad = sum(meta.bad_bands)
-                        if n_bad > 0:
-                            print(f"Bad bands flagged: {n_bad}")
-        
-        # Processing history
-        if meta.processing_history:
-            print(f"\nProcessing steps: {len(meta.processing_history)}")
-        
-        # Custom fields
-        if meta.custom:
-            print(f"\nCustom fields: {list(meta.custom.keys())}")
+        print("Type: Spectral Data")
+        if meta.sensor:
+            print(f"Sensor: {meta.sensor}")
+        print(f"Bands in raster: {meta.n_bands or 'Unknown'}")
+        if meta.n_bands_source is not None:
+            print(f"Bands total (source): {meta.n_bands_source}")
+        if meta.n_bands_valid is not None:
+            print(f"Bands valid: {meta.n_bands_valid}")
+        print(f"Wavelength units: {meta.wavelength_units}")
+
+        if meta.radiometric_quantity:
+            print(f"Radiometric quantity: {meta.radiometric_quantity}")
+        if meta.radiometric_units:
+            print(f"Radiometric units: {meta.radiometric_units}")
+        if meta.acquisition_datetime:
+            print(f"Date of acquisition: {meta.acquisition_datetime}")
+        if meta.solar_zenith_angle is not None:
+            print(f"Solar zenith angle: {meta.solar_zenith_angle:.6f} deg")
+        if meta.solar_azimuth_angle is not None:
+            print(f"Solar azimuth angle: {meta.solar_azimuth_angle:.6f} deg")
+        if meta.satellite_zenith_angle is not None:
+            print(f"Satellite zenith angle: {meta.satellite_zenith_angle:.6f} deg")
+        if meta.satellite_azimuth_angle is not None:
+            print(f"Satellite azimuth angle: {meta.satellite_azimuth_angle:.6f} deg")
+
+        if meta.wavelengths:
+            wl = [w for w in meta.wavelengths if w is not None]
+            if wl:
+                print(f"\nWavelength range: {min(wl):.2f} - {max(wl):.2f} {meta.wavelength_units}")
+
+                # Count bad bands
+                if meta.bad_bands:
+                    n_bad = sum(meta.bad_bands)
+                    if n_bad > 0:
+                        print(f"Bad bands flagged: {n_bad}")
+
+    # Processing history
+    if meta.processing_history:
+        print(f"\nProcessing steps: {len(meta.processing_history)}")
+
+    # Custom fields
+    if meta.custom:
+        print(f"\nCustom fields: {list(meta.custom.keys())}")
 
 
 def print_json(meta, map_name=None, hyper_meta_class=None):
@@ -323,14 +284,13 @@ def validate_metadata(meta):
 
 
 def main():
-    options, flags = gs.parser()
+    options, _ = gs.parser()
     
     map_name = options["map"]
     operation = options["operation"]
     output_format = options["format"]
     wavelength_range = options.get("wavelength_range")
-    shell_style = flags.get("g", False)
-    
+
     # Import the metadata module
     hyper_meta = _import_hyper_meta()
     HyperMetadata = hyper_meta.HyperMetadata
@@ -347,7 +307,7 @@ def main():
     
     # Perform operation
     if operation == "view":
-        view_metadata(meta, shell_style)
+        view_metadata(meta)
     elif operation == "json":
         print_json(meta, map_name=map_name, hyper_meta_class=HyperMetadata)
     elif operation == "bands":
