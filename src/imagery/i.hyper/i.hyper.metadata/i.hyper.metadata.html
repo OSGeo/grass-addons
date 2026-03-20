@@ -27,6 +27,12 @@ For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> r
 <code>inputs/outputs</code> map names from current maps by <code>dataset_id</code>
 (display only; stored command is unchanged).
 
+<p>Dataset provenance is stored in top-level key <code>derived</code>:</p>
+<ul>
+  <li><code>derived=false</code>: original imported dataset</li>
+  <li><code>derived=true</code>: any dataset created from other dataset(s)</li>
+</ul>
+
 <h3>JSON metadata structure</h3>
 
 Dataset-level fields are stored at the top level in <code>hyper.json</code>.
@@ -35,6 +41,7 @@ Dataset-level fields are stored at the top level in <code>hyper.json</code>.
 {
   "schema_version": "1.0",
   "dataset_id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d",
+  "derived": false,
   "data_type": "spectral",
   "sensor": "EnMAP",
   "wavelength_units": "nm",
@@ -45,6 +52,14 @@ Dataset-level fields are stored at the top level in <code>hyper.json</code>.
   "solar_azimuth_angle": 156.193067,
   "satellite_zenith_angle": 21.917226,
   "satellite_azimuth_angle": 14.116742,
+  "region": {
+    "north": 2615535,
+    "south": 2581725,
+    "west": 4705605,
+    "east": 4743495,
+    "top": 2445.3,
+    "bottom": 418.416
+  },
   "bands": {
     "count": 250,
     "count_valid": 167,

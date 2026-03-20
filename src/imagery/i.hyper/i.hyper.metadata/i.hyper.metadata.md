@@ -29,6 +29,11 @@ Output format (`format`) is global for all operations:
 For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs` map names
 from current maps by `dataset_id` (display only; stored command is unchanged).
 
+Dataset provenance is stored in top-level key `derived`:
+
+- `derived=false`: original imported dataset
+- `derived=true`: any dataset created from other dataset(s)
+
 ### JSON metadata structure
 
 Dataset-level fields are stored at the top level in `hyper.json`.
@@ -37,6 +42,7 @@ Dataset-level fields are stored at the top level in `hyper.json`.
 {
   "schema_version": "1.0",
   "dataset_id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d",
+  "derived": false,
   "data_type": "spectral",
   "sensor": "EnMAP",
   "wavelength_units": "nm",
@@ -47,6 +53,14 @@ Dataset-level fields are stored at the top level in `hyper.json`.
   "solar_azimuth_angle": 156.193067,
   "satellite_zenith_angle": 21.917226,
   "satellite_azimuth_angle": 14.116742,
+  "region": {
+    "north": 2615535,
+    "south": 2581725,
+    "west": 4705605,
+    "east": 4743495,
+    "top": 2445.3,
+    "bottom": 418.416
+  },
   "bands": {
     "count": 250,
     "count_valid": 167,

@@ -48,6 +48,10 @@ With the `-n` flag, source-band validity is recorded directly in
 `bands.validity` (with `bands.count` and `bands.count_valid`) without
 adding all-NULL bands to the output cube.
 
+Imported datasets are written with metadata key `derived=false`. Datasets
+produced later by processing modules (for example *i.hyper.preproc*) are
+written as `derived=true`.
+
 When the *composites* option is used, predefined or custom band
 combinations are exported as 2D raster composites (e.g., RGB, CIR,
 SWIR). All temporary rasters are automatically removed after import.
