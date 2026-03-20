@@ -4,18 +4,18 @@ include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 SUBDIRS = \
         PRLIB \
-	i.pr_blob \
-	i.pr_classify \
-	i.pr_features \
-	i.pr_features_additional \
-	i.pr_features_extract \
-	i.pr_features_selection \
-	i.pr_model \
-	i.pr_statistics \
-	i.pr_subsets \
-	i.pr_training \
-	i.pr_uxb \
-	i.pr_sites_aggregate
+	i.pr.blob \
+	i.pr.classify \
+	i.pr.features \
+	i.pr.features_additional \
+	i.pr.features_extract \
+	i.pr.features_selection \
+	i.pr.model \
+	i.pr.statistics \
+	i.pr.subsets \
+	i.pr.training \
+	i.pr.uxb \
+	i.pr.sites_aggregate
 
 default: subdirs
 
