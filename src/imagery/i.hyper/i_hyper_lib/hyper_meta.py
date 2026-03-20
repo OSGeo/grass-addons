@@ -41,6 +41,7 @@ class HyperMetadata:
     # Schema
     schema_version: str = SCHEMA_VERSION
     dataset_id: str = field(default_factory=lambda: uuid.uuid4().hex)
+    derived: bool = False
     data_type: str = "spectral"  # spectral | component
 
     # Dataset-level
@@ -158,6 +159,10 @@ class HyperMetadata:
         meta = cls()
         meta.schema_version = data.get("schema_version", "unknown")
         meta.dataset_id = str(data.get("dataset_id") or cls.new_dataset_id())
+        if "derived" in data:
+            meta.derived = bool(data.get("derived"))
+        else:
+            meta.derived = cls._is_derived_from_history(data.get("processing_history", []))
 
         # New schema (top-level dataset fields)
         if "dataset" not in data:
@@ -301,6 +306,10 @@ class HyperMetadata:
             self.n_bands_valid = int(self.n_bands_source)
 
         self.n_bands = self.n_bands_valid
+        # Enforce provenance rule: datasets with lineage inputs are derived.
+        self.derived = bool(self.derived) or self._is_derived_from_history(
+            self.processing_history
+        )
 
         region = self._get_region_json(map_name, mapset) if save_region else self.region
         self.region = region
@@ -309,6 +318,7 @@ class HyperMetadata:
         data = {
             "schema_version": self.schema_version,
             "dataset_id": self.dataset_id or self.new_dataset_id(),
+            "derived": bool(self.derived),
             "data_type": self.data_type or "spectral",
             "sensor": self.sensor,
             "wavelength_units": self.wavelength_units,
@@ -559,6 +569,7 @@ class HyperMetadata:
     ) -> "HyperMetadata":
         """Create metadata for spectral (hyperspectral) data."""
         meta = cls()
+        meta.derived = False
         meta.data_type = "spectral"
         meta.sensor = sensor
         meta.radiometric_quantity = radiometric_quantity
@@ -581,6 +592,7 @@ class HyperMetadata:
     ) -> "HyperMetadata":
         """Create metadata for dimensionality reduction output (PCA, etc.)."""
         meta = cls()
+        meta.derived = True
         meta.data_type = "component"
         meta.n_components = n_components
         meta.n_bands_source = int(n_components or 0)
@@ -609,6 +621,16 @@ class HyperMetadata:
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc)
+
+    @staticmethod
+    def _is_derived_from_history(entries: list[Any]) -> bool:
+        """Infer derived flag from history when explicit flag is missing."""
+        for step in entries or []:
+            if not isinstance(step, dict):
+                continue
+            if step.get("inputs"):
+                return True
+        return False
 
     @staticmethod
     def _command_from_module_params(module: str, params: dict[str, Any]) -> str:
@@ -798,6 +820,7 @@ class HyperMetadata:
         return {
             "schema_version": data.get("schema_version"),
             "dataset_id": data.get("dataset_id"),
+            "derived": data.get("derived"),
             "data_type": data.get("data_type"),
             "sensor": data.get("sensor"),
             "bands_count": bands.get("count"),
@@ -875,6 +898,9 @@ class HyperMetadata:
         ):
             if required not in raw_data:
                 issues.append(f"Missing required top-level key: {required}")
+
+        if "derived" in raw_data and not isinstance(raw_data.get("derived"), bool):
+            issues.append("derived must be boolean")
 
         bands = raw_data.get("bands") or {}
         count = bands.get("count")

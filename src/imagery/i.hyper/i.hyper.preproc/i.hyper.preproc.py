@@ -299,6 +299,7 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
 
         # Derived dataset gets a new stable identity and its own local history entry.
         meta.dataset_id = hyper_meta_class.new_dataset_id()
+        meta.derived = True
         meta.processing_history = []
 
         cmd_params = {
