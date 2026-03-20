@@ -14,11 +14,20 @@ Metadata is loaded from `hyper.json`.
 
 Supported operations:
 
-- `view`: human-readable metadata summary
-- `json`: metadata as JSON
-- `bands`: list spectral bands (optionally filtered by wavelength range)
-- `history`: print processing history
-- `validate`: check metadata consistency
+- `summary`: concise metadata summary for current dataset
+- `full`: full metadata object for current dataset
+- `bands`: list source bands (optionally filtered by wavelength range)
+- `history`: recursive aggregated lineage history, ordered by timestamp
+- `validate`: metadata and lineage consistency checks
+
+Output format (`format`) is global for all operations:
+
+- `json` (default)
+- `text`
+- `csv`
+
+For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs` map names
+from current maps by `dataset_id` (display only; stored command is unchanged).
 
 ### JSON metadata structure
 
@@ -73,7 +82,7 @@ View metadata summary:
 
 ::: code
 
-    i.hyper.metadata map=my_hyper_cube operation=view
+    i.hyper.metadata map=my_hyper_cube operation=summary format=text
 :::
 
 Show bands in visible range:
@@ -81,6 +90,13 @@ Show bands in visible range:
 ::: code
 
     i.hyper.metadata map=my_hyper_cube operation=bands wavelength_range=400-700
+:::
+
+Show full recursive history with current map names:
+
+::: code
+
+    i.hyper.metadata map=my_hyper_cube operation=history resolve_names=yes
 :::
 
 ## SEE ALSO
