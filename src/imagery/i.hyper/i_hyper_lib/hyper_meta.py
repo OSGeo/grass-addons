@@ -78,7 +78,7 @@ class HyperMetadata:
     processing_history: list[dict] = field(default_factory=list)
 
     # Extensibility
-    custom: dict[str, Any] = field(default_factory=dict)
+    extended_metadata: dict[str, Any] = field(default_factory=dict)
 
     # ---------- Path resolution ----------
 
@@ -209,7 +209,7 @@ class HyperMetadata:
             meta.processing_history = cls._normalize_history_entries(
                 data.get("processing_history", [])
             )
-            meta.custom = data.get("custom", {})
+            meta.extended_metadata = data.get("extended_metadata", {})
             return meta
 
         # Legacy schema fallback (dataset + bands + components)
@@ -257,7 +257,7 @@ class HyperMetadata:
         meta.processing_history = cls._normalize_history_entries(
             data.get("processing_history", [])
         )
-        meta.custom = data.get("custom", {})
+        meta.extended_metadata = data.get("extended_metadata", {})
 
         return meta
 
@@ -334,7 +334,7 @@ class HyperMetadata:
             "processing_history": self._normalize_history_entries(
                 self.processing_history
             ),
-            "custom": self.custom,
+            "extended_metadata": self.extended_metadata,
         }
 
         # Band arrays

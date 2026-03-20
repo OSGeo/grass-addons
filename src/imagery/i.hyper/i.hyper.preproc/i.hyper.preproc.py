@@ -344,11 +344,6 @@ def _set_dr_metadata(inmap, outmap, method, info, hyper_meta_class=None):
             explained_variance_ratio=explained,
         )
 
-        if method in ["kpca", "nystroem"]:
-            meta.custom["kernel"] = info.get("kernel")
-            meta.custom["gamma"] = info.get("gamma")
-            meta.custom["degree"] = info.get("degree")
-
         cmd_params = {
             "input": inmap,
             "output": outmap,

@@ -76,7 +76,7 @@ Dataset-level fields are stored at the top level in `hyper.json`.
       "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
     }
   ],
-  "custom": { ... }
+  "extended_metadata": { ... }
 }
 :::
 
