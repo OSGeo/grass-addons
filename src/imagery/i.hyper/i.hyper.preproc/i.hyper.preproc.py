@@ -196,7 +196,6 @@
 # %end
 
 import sys
-import uuid
 import numpy as np
 from scipy.interpolate import interp1d
 import grass.script as gs
@@ -299,7 +298,7 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
             return
 
         # Derived dataset gets a new stable identity and its own local history entry.
-        meta.dataset_id = uuid.uuid4().hex
+        meta.dataset_id = hyper_meta_class.new_dataset_id()
         meta.processing_history = []
 
         cmd_params = {

@@ -16,7 +16,7 @@ import json
 import shlex
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -82,6 +82,11 @@ class HyperMetadata:
     # ---------- Path resolution ----------
 
     @staticmethod
+    def new_dataset_id() -> str:
+        """Create a new dataset identifier."""
+        return uuid.uuid4().hex
+
+    @staticmethod
     def _get_mapset_path(mapset: Optional[str] = None) -> Path:
         """Get the filesystem path to a mapset."""
         env = gs.gisenv()
@@ -99,6 +104,27 @@ class HyperMetadata:
             map_name, mapset = map_name.split("@", 1)
         mapset_path = cls._get_mapset_path(mapset)
         return mapset_path / "grid3" / map_name / METADATA_FILENAME
+
+    @classmethod
+    def load_raw(cls, map_name: str, mapset: Optional[str] = None) -> dict[str, Any]:
+        """Load raw JSON metadata for a map."""
+        path = cls._get_metadata_path(map_name, mapset)
+        if not path.exists():
+            raise FileNotFoundError(
+                f"JSON metadata file not found for map '{map_name}' at '{path}'."
+            )
+        with open(path, "r") as f:
+            return json.load(f)
+
+    @staticmethod
+    def to_full_map_name(map_name: str, mapset: Optional[str] = None) -> str:
+        """Normalize map name to map@mapset format."""
+        if "@" in map_name:
+            return map_name
+        if mapset:
+            return f"{map_name}@{mapset}"
+        env = gs.gisenv()
+        return f"{map_name}@{env.get('MAPSET', '')}".rstrip("@")
 
     # ---------- Existence check ----------
 
@@ -131,7 +157,7 @@ class HyperMetadata:
 
         meta = cls()
         meta.schema_version = data.get("schema_version", "unknown")
-        meta.dataset_id = str(data.get("dataset_id") or uuid.uuid4().hex)
+        meta.dataset_id = str(data.get("dataset_id") or cls.new_dataset_id())
 
         # New schema (top-level dataset fields)
         if "dataset" not in data:
@@ -282,7 +308,7 @@ class HyperMetadata:
         # Build JSON structure (new schema)
         data = {
             "schema_version": self.schema_version,
-            "dataset_id": self.dataset_id or uuid.uuid4().hex,
+            "dataset_id": self.dataset_id or self.new_dataset_id(),
             "data_type": self.data_type or "spectral",
             "sensor": self.sensor,
             "wavelength_units": self.wavelength_units,
@@ -567,6 +593,24 @@ class HyperMetadata:
     # ---------- Internal normalization ----------
 
     @staticmethod
+    def _parse_timestamp(ts: Optional[str]) -> datetime:
+        """Parse ISO timestamp for sorting; invalid timestamps are ordered last."""
+        if not ts:
+            return datetime.max.replace(tzinfo=timezone.utc)
+        text = str(ts).strip()
+        if not text:
+            return datetime.max.replace(tzinfo=timezone.utc)
+        if text.endswith("Z"):
+            text = text[:-1] + "+00:00"
+        try:
+            value = datetime.fromisoformat(text)
+        except ValueError:
+            return datetime.max.replace(tzinfo=timezone.utc)
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
+    @staticmethod
     def _command_from_module_params(module: str, params: dict[str, Any]) -> str:
         if not module:
             return ""
@@ -625,6 +669,307 @@ class HyperMetadata:
                 }
             )
         return normalized
+
+    # ---------- Dataset graph helpers ----------
+
+    @classmethod
+    def discover_dataset_index(
+        cls,
+    ) -> tuple[dict[str, dict[str, Any]], dict[str, list[str]]]:
+        """
+        Build dataset_id -> metadata record index by scanning current LOCATION mapsets.
+        Returns (index, duplicates).
+        """
+        env = gs.gisenv()
+        location_path = Path(env["GISDBASE"]) / env["LOCATION_NAME"]
+        index: dict[str, dict[str, Any]] = {}
+        duplicates: dict[str, list[str]] = {}
+
+        for mapset_dir in location_path.iterdir():
+            if not mapset_dir.is_dir():
+                continue
+            grid3_dir = mapset_dir / "grid3"
+            if not grid3_dir.is_dir():
+                continue
+            for map_dir in grid3_dir.iterdir():
+                if not map_dir.is_dir():
+                    continue
+                meta_path = map_dir / METADATA_FILENAME
+                if not meta_path.is_file():
+                    continue
+                try:
+                    with open(meta_path, "r") as f:
+                        data = json.load(f)
+                except Exception:
+                    continue
+
+                dataset_id = data.get("dataset_id")
+                if not dataset_id:
+                    continue
+                full_map_name = f"{map_dir.name}@{mapset_dir.name}"
+                if dataset_id in index:
+                    duplicates.setdefault(dataset_id, [index[dataset_id]["map_name"]]).append(
+                        full_map_name
+                    )
+                    continue
+                index[dataset_id] = {
+                    "map_name": full_map_name,
+                    "data": data,
+                    "path": str(meta_path),
+                }
+        return index, duplicates
+
+    @classmethod
+    def resolve_history_names(
+        cls,
+        history_entries: list[dict[str, Any]],
+        dataset_index: dict[str, dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Resolve history IO map names from dataset ids for display."""
+        out = []
+        for step in history_entries or []:
+            step_out = {
+                "command": step.get("command"),
+                "timestamp": step.get("timestamp"),
+                "inputs": cls._normalize_io_refs(step.get("inputs") or []),
+                "outputs": cls._normalize_io_refs(step.get("outputs") or []),
+            }
+            for side in ("inputs", "outputs"):
+                for ref in step_out[side]:
+                    ref_id = ref.get("id")
+                    if ref_id and ref_id in dataset_index:
+                        ref["map_name"] = dataset_index[ref_id]["map_name"]
+            out.append(step_out)
+        return out
+
+    @classmethod
+    def collect_aggregated_history(
+        cls,
+        root_data: dict[str, Any],
+        dataset_index: dict[str, dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """
+        Recursively collect all history entries from origin to current dataset,
+        following inputs[].id references.
+        """
+        root_id = root_data.get("dataset_id")
+        visited_dataset_ids = set()
+        collected = []
+        order = 0
+
+        def visit_dataset(dataset_id: Optional[str]):
+            nonlocal order
+            if not dataset_id or dataset_id in visited_dataset_ids:
+                return
+            visited_dataset_ids.add(dataset_id)
+
+            record = dataset_index.get(dataset_id)
+            data = (
+                record["data"]
+                if record
+                else (root_data if dataset_id == root_id else None)
+            )
+            if data is None:
+                return
+
+            for step in data.get("processing_history", []) or []:
+                entry = {
+                    "command": step.get("command"),
+                    "timestamp": step.get("timestamp"),
+                    "inputs": cls._normalize_io_refs(step.get("inputs") or []),
+                    "outputs": cls._normalize_io_refs(step.get("outputs") or []),
+                }
+                collected.append((cls._parse_timestamp(entry.get("timestamp")), order, entry))
+                order += 1
+                for inp in entry["inputs"]:
+                    visit_dataset(inp.get("id"))
+
+        visit_dataset(root_id)
+        collected.sort(key=lambda item: (item[0], item[1]))
+        return [item[2] for item in collected]
+
+    @staticmethod
+    def summarize_data(data: dict[str, Any]) -> dict[str, Any]:
+        """Build summary payload from raw metadata."""
+        bands = data.get("bands") or {}
+        wavelengths = [
+            w for w in (bands.get("wavelength") or []) if isinstance(w, (int, float))
+        ]
+        return {
+            "schema_version": data.get("schema_version"),
+            "dataset_id": data.get("dataset_id"),
+            "data_type": data.get("data_type"),
+            "sensor": data.get("sensor"),
+            "bands_count": bands.get("count"),
+            "bands_count_valid": bands.get("count_valid"),
+            "wavelength_units": data.get("wavelength_units"),
+            "radiometric_quantity": data.get("radiometric_quantity"),
+            "radiometric_units": data.get("radiometric_units"),
+            "acquisition_datetime": data.get("acquisition_datetime"),
+            "solar_zenith_angle": data.get("solar_zenith_angle"),
+            "solar_azimuth_angle": data.get("solar_azimuth_angle"),
+            "satellite_zenith_angle": data.get("satellite_zenith_angle"),
+            "satellite_azimuth_angle": data.get("satellite_azimuth_angle"),
+            "wavelength_min": min(wavelengths) if wavelengths else None,
+            "wavelength_max": max(wavelengths) if wavelengths else None,
+            "processing_steps_local": len(data.get("processing_history", []) or []),
+        }
+
+    @staticmethod
+    def build_band_rows(
+        data: dict[str, Any],
+        wavelength_range: Optional[str] = None,
+    ) -> list[dict[str, Any]]:
+        """Build band rows for listing output."""
+        bands = data.get("bands") or {}
+        wavelengths = bands.get("wavelength") or []
+        fwhm = bands.get("fwhm") or []
+        validity = bands.get("validity") or []
+
+        wl_min, wl_max = None, None
+        if wavelength_range:
+            try:
+                parts = wavelength_range.split("-")
+                wl_min = float(parts[0]) if parts[0] else None
+                wl_max = float(parts[1]) if len(parts) > 1 and parts[1] else None
+            except ValueError as e:
+                raise ValueError(f"Invalid wavelength range: {wavelength_range}") from e
+
+        rows = []
+        for i, wl in enumerate(wavelengths, start=1):
+            if wl is None:
+                continue
+            if wl_min is not None and wl < wl_min:
+                continue
+            if wl_max is not None and wl > wl_max:
+                continue
+            rows.append(
+                {
+                    "index": i,
+                    "wavelength": wl,
+                    "fwhm": fwhm[i - 1] if i - 1 < len(fwhm) else None,
+                    "validity": validity[i - 1] if i - 1 < len(validity) else None,
+                }
+            )
+        return rows
+
+    @classmethod
+    def validate_strict(
+        cls,
+        meta: "HyperMetadata",
+        raw_data: dict[str, Any],
+        map_name: str,
+        dataset_index: dict[str, dict[str, Any]],
+        duplicate_dataset_ids: Optional[dict[str, list[str]]] = None,
+    ) -> list[str]:
+        """Validate strict schema + lineage consistency."""
+        issues = []
+        issues.extend(meta.validate())
+
+        for required in (
+            "schema_version",
+            "dataset_id",
+            "data_type",
+            "bands",
+            "processing_history",
+        ):
+            if required not in raw_data:
+                issues.append(f"Missing required top-level key: {required}")
+
+        bands = raw_data.get("bands") or {}
+        count = bands.get("count")
+        count_valid = bands.get("count_valid")
+        wavelengths = bands.get("wavelength")
+        fwhm = bands.get("fwhm")
+        validity = bands.get("validity")
+
+        if count is None:
+            issues.append("bands.count is missing")
+        if count_valid is None:
+            issues.append("bands.count_valid is missing")
+        if wavelengths is not None and not isinstance(wavelengths, list):
+            issues.append("bands.wavelength must be an array")
+        if fwhm is not None and not isinstance(fwhm, list):
+            issues.append("bands.fwhm must be an array")
+        if validity is not None and not isinstance(validity, list):
+            issues.append("bands.validity must be an array")
+
+        if isinstance(count, int) and count >= 0:
+            if isinstance(wavelengths, list) and len(wavelengths) != count:
+                issues.append("bands.count does not match len(bands.wavelength)")
+            if isinstance(fwhm, list) and len(fwhm) != count:
+                issues.append("bands.count does not match len(bands.fwhm)")
+            if isinstance(validity, list) and len(validity) != count:
+                issues.append("bands.count does not match len(bands.validity)")
+
+        if isinstance(count, int) and isinstance(count_valid, int) and count_valid > count:
+            issues.append("bands.count_valid cannot be larger than bands.count")
+        if isinstance(validity, list) and isinstance(count_valid, int):
+            valid_sum = int(sum(bool(v) for v in validity))
+            if valid_sum != count_valid:
+                issues.append("bands.count_valid does not match sum(bands.validity)")
+
+        try:
+            info = gs.parse_command("r3.info", map=map_name, flags="g")
+            depth = int(float(info.get("depths")))
+            expected_depth = (
+                count_valid if isinstance(count_valid, int) else count if isinstance(count, int) else None
+            )
+            if expected_depth is not None and depth != expected_depth:
+                issues.append(f"Raster depth mismatch: depths={depth}, expected={expected_depth}")
+        except Exception as exc:
+            issues.append(f"Could not validate raster depth with r3.info: {exc}")
+
+        aggregated = cls.collect_aggregated_history(raw_data, dataset_index)
+        producer_counts = {}
+        referenced_input_ids = set()
+        for step in aggregated:
+            for out in step.get("outputs", []) or []:
+                out_id = out.get("id")
+                if out_id:
+                    producer_counts[out_id] = producer_counts.get(out_id, 0) + 1
+            for inp in step.get("inputs", []) or []:
+                in_id = inp.get("id")
+                if in_id:
+                    referenced_input_ids.add(in_id)
+
+        for dataset_id, n_producers in producer_counts.items():
+            if n_producers > 1:
+                issues.append(
+                    f"Dataset '{dataset_id}' has multiple producing history entries ({n_producers})"
+                )
+
+        root_dataset_id = raw_data.get("dataset_id")
+        if root_dataset_id:
+            n_root = producer_counts.get(root_dataset_id, 0)
+            if n_root == 0:
+                issues.append(
+                    f"Current dataset_id '{root_dataset_id}' has no producing history entry"
+                )
+            elif n_root > 1:
+                issues.append(
+                    f"Current dataset_id '{root_dataset_id}' has multiple producing history entries ({n_root})"
+                )
+
+        for input_id in sorted(referenced_input_ids):
+            if input_id not in dataset_index and input_id not in producer_counts:
+                issues.append(
+                    f"Input dataset_id '{input_id}' cannot be resolved in current LOCATION"
+                )
+
+        if duplicate_dataset_ids:
+            for dsid, maps in sorted(duplicate_dataset_ids.items()):
+                joined = ", ".join(maps)
+                issues.append(f"Duplicate dataset_id '{dsid}' found in maps: {joined}")
+
+        unique = []
+        seen = set()
+        for issue in issues:
+            if issue in seen:
+                continue
+            seen.add(issue)
+            unique.append(issue)
+        return unique
 
 
 # ---------- Convenience functions ----------
