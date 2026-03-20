@@ -133,6 +133,7 @@ def _discover_dataset_index():
     env = gs.gisenv()
     location_path = Path(env["GISDBASE"]) / env["LOCATION_NAME"]
     index = {}
+    duplicates = {}
     for mapset_dir in location_path.iterdir():
         if not mapset_dir.is_dir():
             continue
@@ -152,14 +153,18 @@ def _discover_dataset_index():
             dataset_id = data.get("dataset_id")
             if not dataset_id:
                 continue
+            map_name = f"{map_dir.name}@{mapset_dir.name}"
             if dataset_id in index:
+                duplicates.setdefault(dataset_id, [index[dataset_id]["map_name"]]).append(
+                    map_name
+                )
                 continue
             index[dataset_id] = {
-                "map_name": f"{map_dir.name}@{mapset_dir.name}",
+                "map_name": map_name,
                 "data": data,
                 "path": str(meta_path),
             }
-    return index
+    return index, duplicates
 
 
 def _normalize_io_ref(item):
@@ -421,7 +426,7 @@ def _print_history(entries, output_format):
             print(f"    id={item.get('id')} map_name={item.get('map_name')}")
 
 
-def _validate_metadata(meta, data, map_name, dataset_index):
+def _validate_metadata(meta, data, map_name, dataset_index, duplicate_dataset_ids=None):
     issues = []
 
     # Base API validation
@@ -523,6 +528,11 @@ def _validate_metadata(meta, data, map_name, dataset_index):
                 f"Input dataset_id '{input_id}' cannot be resolved in current LOCATION"
             )
 
+    if duplicate_dataset_ids:
+        for dsid, maps in sorted(duplicate_dataset_ids.items()):
+            joined = ", ".join(maps)
+            issues.append(f"Duplicate dataset_id '{dsid}' found in maps: {joined}")
+
     # Deduplicate while keeping order
     unique = []
     seen = set()
@@ -587,9 +597,12 @@ def main():
 
     # Build dataset index where needed
     need_index = operation in ("full", "history", "validate") or resolve_names
-    dataset_index = _discover_dataset_index() if need_index else {}
+    if need_index:
+        dataset_index, duplicate_dataset_ids = _discover_dataset_index()
+    else:
+        dataset_index, duplicate_dataset_ids = {}, {}
     dataset_id = raw.get("dataset_id")
-    if dataset_id and dataset_id not in dataset_index:
+    if dataset_id:
         dataset_index[dataset_id] = {
             "map_name": full_map_name,
             "data": raw,
@@ -623,7 +636,13 @@ def main():
         return 0
 
     if operation == "validate":
-        issues = _validate_metadata(meta, raw, full_map_name, dataset_index)
+        issues = _validate_metadata(
+            meta,
+            raw,
+            full_map_name,
+            dataset_index,
+            duplicate_dataset_ids=duplicate_dataset_ids,
+        )
         return _print_validate(issues, output_format)
 
     gs.fatal(f"Unsupported operation: {operation}")

@@ -196,6 +196,7 @@
 # %end
 
 import sys
+import uuid
 import numpy as np
 from scipy.interpolate import interp1d
 import grass.script as gs
@@ -278,9 +279,17 @@ def _get_wavelengths(mapname, hyper_meta_class):
     return None
 
 
+def _to_full_map_name(mapname):
+    if "@" in mapname:
+        return mapname
+    mapset = gs.gisenv().get("MAPSET", "")
+    return f"{mapname}@{mapset}" if mapset else mapname
+
+
 def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_class):
     try:
         meta = hyper_meta_class.load(src)
+        src_dataset_id = meta.dataset_id
         is_components = (
             (meta.n_components is not None and meta.n_components > 0)
             or meta.explained_variance_ratio is not None
@@ -288,18 +297,40 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
         )
         if meta.wavelengths is None and not is_components:
             return
-        meta.add_processing_step(
-            operation="preprocessing",
-            module="i.hyper.preproc",
-            params=processing_params,
+
+        # Derived dataset gets a new stable identity and its own local history entry.
+        meta.dataset_id = uuid.uuid4().hex
+        meta.processing_history = []
+
+        cmd_params = {
+            "input": src,
+            "output": dst,
+            **processing_params,
+        }
+        command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
+        meta.add_history_entry(
+            command=command,
+            inputs=[
+                {
+                    "id": src_dataset_id,
+                    "map_name": _to_full_map_name(src),
+                }
+            ],
+            outputs=[
+                {
+                    "id": meta.dataset_id,
+                    "map_name": _to_full_map_name(dst),
+                }
+            ],
         )
         meta.save(dst)
     except Exception as error:
         gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _set_dr_metadata(outmap, method, info, hyper_meta_class=None):
+def _set_dr_metadata(inmap, outmap, method, info, hyper_meta_class=None):
     try:
+        src_meta = hyper_meta_class.load(inmap)
         explained = info.get("explained_variance_ratio")
         if explained is not None and hasattr(explained, "tolist"):
             explained = explained.tolist()
@@ -318,16 +349,30 @@ def _set_dr_metadata(outmap, method, info, hyper_meta_class=None):
             meta.custom["gamma"] = info.get("gamma")
             meta.custom["degree"] = info.get("degree")
 
-        meta.add_processing_step(
-            operation="dimensionality_reduction",
-            module="i.hyper.preproc",
-            params={
-                "method": method,
-                "n_components": int(n_components or 0),
-                "kernel": info.get("kernel"),
-                "gamma": info.get("gamma"),
-                "degree": info.get("degree"),
-            },
+        cmd_params = {
+            "input": inmap,
+            "output": outmap,
+            "dr_method": method,
+            "dr_components": int(n_components or 0),
+            "dr_kernel": info.get("kernel"),
+            "dr_gamma": info.get("gamma"),
+            "dr_degree": info.get("degree"),
+        }
+        command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
+        meta.add_history_entry(
+            command=command,
+            inputs=[
+                {
+                    "id": src_meta.dataset_id,
+                    "map_name": _to_full_map_name(inmap),
+                }
+            ],
+            outputs=[
+                {
+                    "id": meta.dataset_id,
+                    "map_name": _to_full_map_name(outmap),
+                }
+            ],
         )
         meta.save(outmap)
     except Exception as error:
@@ -492,6 +537,7 @@ def preprocess_hyperspectral(
         dr_meta_info = dict(dr_info or {})
         dr_meta_info.setdefault("n_components", n_bands)
         _set_dr_metadata(
+            inp,
             out,
             dr_method,
             dr_meta_info,
