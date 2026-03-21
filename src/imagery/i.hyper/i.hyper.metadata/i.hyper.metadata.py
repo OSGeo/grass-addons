@@ -26,10 +26,10 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: summary,full,bands,history,validate
+# % options: summary,full,extended,bands,history,validate
 # % answer: summary
 # % description: Operation to perform
-# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency
+# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency
 # %end
 
 # %option
@@ -56,6 +56,15 @@
 # % options: yes,no
 # % answer: no
 # % description: Resolve map names by dataset_id for display (full and history)
+# %end
+
+# %option
+# % key: extended_select
+# % type: string
+# % required: no
+# % multiple: yes
+# % answer: all
+# % description: Selector for operation=extended: all, branch, or dot path (e.g., acquisition,geometry.sun_zenith_deg)
 # %end
 
 import copy
@@ -146,6 +155,90 @@ def _print_full(data, output_format):
         return
     rows = [(key, _to_csv_value(value)) for key, value in data.items()]
     _write_csv(["key", "value"], rows)
+
+
+def _parse_extended_selectors(selector_text):
+    """Parse extended metadata selectors from option string."""
+    if not selector_text:
+        return ["all"]
+
+    selectors = []
+    for token in str(selector_text).split(","):
+        item = token.strip()
+        if not item:
+            continue
+        if item == "extended_metadata":
+            selectors.append("all")
+        elif item.startswith("extended_metadata."):
+            selectors.append(item[len("extended_metadata.") :])
+        else:
+            selectors.append(item)
+
+    if not selectors:
+        return ["all"]
+    if "all" in selectors:
+        return ["all"]
+
+    # Deduplicate while preserving order
+    seen = set()
+    out = []
+    for item in selectors:
+        if item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return out
+
+
+def _get_nested_value(data, selector):
+    """Get nested dict value by dot path; return (found, value)."""
+    current = data
+    for part in selector.split("."):
+        if not isinstance(current, dict) or part not in current:
+            return False, None
+        current = current[part]
+    return True, current
+
+
+def _set_nested_value(data, selector, value):
+    """Set nested dict value by dot path."""
+    parts = selector.split(".")
+    current = data
+    for part in parts[:-1]:
+        next_val = current.get(part)
+        if not isinstance(next_val, dict):
+            next_val = {}
+            current[part] = next_val
+        current = next_val
+    current[parts[-1]] = value
+
+
+def _select_extended_metadata(raw_data, selector_text):
+    """
+    Return selected extended metadata.
+
+    Selector supports:
+    - all
+    - branch name (e.g. acquisition)
+    - dot path (e.g. geometry.sun_zenith_deg)
+    - multiple selectors (comma-separated)
+    """
+    ext = raw_data.get("extended_metadata", {})
+    if not isinstance(ext, dict):
+        return {}
+
+    selectors = _parse_extended_selectors(selector_text)
+    if selectors == ["all"]:
+        return copy.deepcopy(ext)
+
+    selected = {}
+    for selector in selectors:
+        found, value = _get_nested_value(ext, selector)
+        if not found:
+            gs.warning(f"extended_select item not found: {selector}")
+            continue
+        _set_nested_value(selected, selector, copy.deepcopy(value))
+    return selected
 
 
 def _build_band_rows(data, wavelength_range=None, hyper_metadata_class=None):
@@ -295,6 +388,7 @@ def main():
     output_format = options["format"]
     wavelength_range = options.get("wavelength_range")
     resolve_names = options.get("resolve_names", "no") == "yes"
+    extended_select = options.get("extended_select")
 
     # Import metadata API
     hyper_meta = _import_hyper_meta()
@@ -339,6 +433,11 @@ def main():
                 full_data.get("processing_history", []), dataset_index, HyperMetadata
             )
         _print_full(full_data, output_format)
+        return 0
+
+    if operation == "extended":
+        selected = _select_extended_metadata(raw, extended_select)
+        _print_full(selected, output_format)
         return 0
 
     if operation == "bands":

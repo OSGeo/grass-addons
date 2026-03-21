@@ -50,10 +50,6 @@ class HyperMetadata:
     radiometric_quantity: Optional[str] = None  # e.g., "surface_reflectance", "toa_radiance"
     radiometric_units: Optional[str] = None  # e.g., "unitless", "W/(m^2 sr um)"
     acquisition_datetime: Optional[str] = None
-    solar_zenith_angle: Optional[float] = None
-    solar_azimuth_angle: Optional[float] = None
-    satellite_zenith_angle: Optional[float] = None
-    satellite_azimuth_angle: Optional[float] = None
     region: Optional[dict[str, Any]] = None
 
     # Band-level arrays
@@ -172,10 +168,6 @@ class HyperMetadata:
             meta.radiometric_quantity = data.get("radiometric_quantity")
             meta.radiometric_units = data.get("radiometric_units")
             meta.acquisition_datetime = data.get("acquisition_datetime")
-            meta.solar_zenith_angle = data.get("solar_zenith_angle")
-            meta.solar_azimuth_angle = data.get("solar_azimuth_angle")
-            meta.satellite_zenith_angle = data.get("satellite_zenith_angle")
-            meta.satellite_azimuth_angle = data.get("satellite_azimuth_angle")
             meta.region = data.get("region")
 
             bands = data.get("bands", {})
@@ -209,7 +201,15 @@ class HyperMetadata:
             meta.processing_history = cls._normalize_history_entries(
                 data.get("processing_history", [])
             )
-            meta.extended_metadata = data.get("extended_metadata", {})
+            ext = data.get("extended_metadata", {})
+            meta.extended_metadata = ext if isinstance(ext, dict) else {}
+            cls._set_scene_geometry(
+                meta.extended_metadata,
+                solar_zenith_angle=data.get("solar_zenith_angle"),
+                solar_azimuth_angle=data.get("solar_azimuth_angle"),
+                satellite_zenith_angle=data.get("satellite_zenith_angle"),
+                satellite_azimuth_angle=data.get("satellite_azimuth_angle"),
+            )
             return meta
 
         # Legacy schema fallback (dataset + bands + components)
@@ -219,10 +219,6 @@ class HyperMetadata:
         meta.radiometric_quantity = ds.get("radiometric_quantity")
         meta.radiometric_units = ds.get("radiometric_units")
         meta.acquisition_datetime = ds.get("acquisition_datetime")
-        meta.solar_zenith_angle = ds.get("solar_zenith_angle")
-        meta.solar_azimuth_angle = ds.get("solar_azimuth_angle")
-        meta.satellite_zenith_angle = ds.get("satellite_zenith_angle")
-        meta.satellite_azimuth_angle = ds.get("satellite_azimuth_angle")
         meta.region = ds.get("region")
 
         bands = data.get("bands", {})
@@ -257,7 +253,15 @@ class HyperMetadata:
         meta.processing_history = cls._normalize_history_entries(
             data.get("processing_history", [])
         )
-        meta.extended_metadata = data.get("extended_metadata", {})
+        ext = data.get("extended_metadata", {})
+        meta.extended_metadata = ext if isinstance(ext, dict) else {}
+        cls._set_scene_geometry(
+            meta.extended_metadata,
+            solar_zenith_angle=ds.get("solar_zenith_angle"),
+            solar_azimuth_angle=ds.get("solar_azimuth_angle"),
+            satellite_zenith_angle=ds.get("satellite_zenith_angle"),
+            satellite_azimuth_angle=ds.get("satellite_azimuth_angle"),
+        )
 
         return meta
 
@@ -325,10 +329,6 @@ class HyperMetadata:
             "radiometric_quantity": self.radiometric_quantity,
             "radiometric_units": self.radiometric_units,
             "acquisition_datetime": self.acquisition_datetime,
-            "solar_zenith_angle": self.solar_zenith_angle,
-            "solar_azimuth_angle": self.solar_azimuth_angle,
-            "satellite_zenith_angle": self.satellite_zenith_angle,
-            "satellite_azimuth_angle": self.satellite_azimuth_angle,
             "region": self.region,
             "bands": {},
             "processing_history": self._normalize_history_entries(
@@ -575,10 +575,13 @@ class HyperMetadata:
         meta.radiometric_quantity = radiometric_quantity
         meta.radiometric_units = radiometric_units
         meta.acquisition_datetime = acquisition_datetime
-        meta.solar_zenith_angle = solar_zenith_angle
-        meta.solar_azimuth_angle = solar_azimuth_angle
-        meta.satellite_zenith_angle = satellite_zenith_angle
-        meta.satellite_azimuth_angle = satellite_azimuth_angle
+        cls._set_scene_geometry(
+            meta.extended_metadata,
+            solar_zenith_angle=solar_zenith_angle,
+            solar_azimuth_angle=solar_azimuth_angle,
+            satellite_zenith_angle=satellite_zenith_angle,
+            satellite_azimuth_angle=satellite_azimuth_angle,
+        )
         meta.set_wavelengths(wavelengths)
         if fwhm is not None:
             meta.set_fwhm(fwhm)
@@ -689,8 +692,34 @@ class HyperMetadata:
                     "inputs": [],
                     "outputs": [],
                 }
-            )
+                )
         return normalized
+
+    @staticmethod
+    def _set_scene_geometry(
+        extended_metadata: dict[str, Any],
+        *,
+        solar_zenith_angle: Optional[float] = None,
+        solar_azimuth_angle: Optional[float] = None,
+        satellite_zenith_angle: Optional[float] = None,
+        satellite_azimuth_angle: Optional[float] = None,
+    ) -> None:
+        """Store scene geometry angles in extended_metadata.scene.geometry."""
+        geometry = {}
+        if solar_zenith_angle is not None:
+            geometry["solar_zenith_angle"] = float(solar_zenith_angle)
+        if solar_azimuth_angle is not None:
+            geometry["solar_azimuth_angle"] = float(solar_azimuth_angle)
+        if satellite_zenith_angle is not None:
+            geometry["satellite_zenith_angle"] = float(satellite_zenith_angle)
+        if satellite_azimuth_angle is not None:
+            geometry["satellite_azimuth_angle"] = float(satellite_azimuth_angle)
+        if not geometry:
+            return
+
+        scene = extended_metadata.setdefault("scene", {})
+        scene_geometry = scene.setdefault("geometry", {})
+        scene_geometry.update(geometry)
 
     # ---------- Dataset graph helpers ----------
 
@@ -829,10 +858,6 @@ class HyperMetadata:
             "radiometric_quantity": data.get("radiometric_quantity"),
             "radiometric_units": data.get("radiometric_units"),
             "acquisition_datetime": data.get("acquisition_datetime"),
-            "solar_zenith_angle": data.get("solar_zenith_angle"),
-            "solar_azimuth_angle": data.get("solar_azimuth_angle"),
-            "satellite_zenith_angle": data.get("satellite_zenith_angle"),
-            "satellite_azimuth_angle": data.get("satellite_azimuth_angle"),
             "wavelength_min": min(wavelengths) if wavelengths else None,
             "wavelength_max": max(wavelengths) if wavelengths else None,
             "processing_steps_local": len(data.get("processing_history", []) or []),

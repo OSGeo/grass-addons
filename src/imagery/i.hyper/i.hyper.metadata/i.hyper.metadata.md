@@ -16,6 +16,7 @@ Supported operations:
 
 - `summary`: concise metadata summary for current dataset
 - `full`: full metadata object for current dataset
+- `extended`: selected `extended_metadata` only (all, branch, key path, or multiple selectors)
 - `bands`: list source bands (optionally filtered by wavelength range)
 - `history`: recursive aggregated lineage history, ordered by timestamp
 - `validate`: metadata and lineage consistency checks
@@ -29,6 +30,13 @@ Output format (`format`) is global for all operations:
 For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs` map names
 from current maps by `dataset_id` (display only; stored command is unchanged).
 
+For `operation=extended`, option `extended_select=` supports:
+
+- `all` (default): full `extended_metadata`
+- one branch (e.g., `acquisition`)
+- one key path (e.g., `geometry.sun_zenith_deg`)
+- multiple selectors at once (comma-separated), e.g., `acquisition,geometry.sun_zenith_deg,processing`
+
 Dataset provenance is stored in top-level key `derived`:
 
 - `derived=false`: original imported dataset
@@ -36,7 +44,8 @@ Dataset provenance is stored in top-level key `derived`:
 
 ### JSON metadata structure
 
-Dataset-level fields are stored at the top level in `hyper.json`.
+Core dataset fields are stored at the top level in `hyper.json`.
+Additional product and correction metadata are stored in `extended_metadata`.
 
 ::: code
 {
@@ -49,10 +58,6 @@ Dataset-level fields are stored at the top level in `hyper.json`.
   "radiometric_quantity": "surface_reflectance",
   "radiometric_units": "unitless",
   "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
-  "solar_zenith_angle": 24.475721,
-  "solar_azimuth_angle": 156.193067,
-  "satellite_zenith_angle": 21.917226,
-  "satellite_azimuth_angle": 14.116742,
   "region": {
     "north": 2615535,
     "south": 2581725,
@@ -76,19 +81,46 @@ Dataset-level fields are stored at the top level in `hyper.json`.
       "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
     }
   ],
-  "extended_metadata": { ... }
+  "extended_metadata": {
+    "acquisition": { "...": "..." },
+    "geometry": { "...": "..." },
+    "radiometry": { "...": "..." },
+    "atmosphere": { "...": "..." },
+    "quality": { "...": "..." },
+    "processing": { "...": "..." },
+    "uncertainty": { "...": "..." },
+    "enmap": { "...": "raw product-specific keys" },
+    "prisma": { "...": "raw product-specific keys" },
+    "tanager": { "...": "raw product-specific keys" }
+  }
 }
 :::
 
-### EnMAP mapping used for dataset fields
+### Extended Metadata Branches
 
-When metadata is produced by `i.hyper.import product=enmap`, values are mapped from EnMAP `*-METADATA.XML` as:
+Common unified branches:
 
-- `Date of acquisition` <- `datatakeStart` (fallback `temporalCoverage/startTime`)
-- `Solar zenith angle` <- `90 - sunElevationAngle/center`
-- `Solar azimuth angle` <- `sunAzimuthAngle/center`
-- `Satellite azimuth angle` <- `sceneAzimuthAngle/center`
-- `Satellite zenith angle` <- direct zenith tag if present, otherwise derived from `acrossOffNadirAngle/center` + `alongOffNadirAngle/center`
+- `acquisition`
+- `geometry`
+- `radiometry`
+- `atmosphere`
+- `quality`
+- `processing`
+- `uncertainty`
+
+Product-specific branches:
+
+- `enmap`
+- `prisma`
+- `tanager`
+
+Legacy compatibility:
+
+- older imports may still use `extended_metadata.scene.geometry`
+
+For full key mapping and exhaustive inventories from demo products, see:
+
+- `src/imagery/i.hyper/extended_metadata_unification.md`
 
 ## EXAMPLES
 
@@ -111,6 +143,29 @@ Show full recursive history with current map names:
 ::: code
 
     i.hyper.metadata map=my_hyper_cube operation=history resolve_names=yes
+:::
+
+Show all extended metadata:
+
+::: code
+
+    i.hyper.metadata map=my_hyper_cube operation=extended extended_select=all
+:::
+
+Show one specific extended metadata key:
+
+::: code
+
+    i.hyper.metadata map=my_hyper_cube operation=extended \
+      extended_select=geometry.sun_zenith_deg
+:::
+
+Show selected branches and key paths at the same time:
+
+::: code
+
+    i.hyper.metadata map=my_hyper_cube operation=extended \
+      extended_select=acquisition,geometry.sun_zenith_deg,processing
 :::
 
 ## SEE ALSO

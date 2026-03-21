@@ -1,0 +1,1602 @@
+# Extended Metadata Unification (EnMAP / PRISMA / Tanager)
+
+## Scope
+This document is rebuilt from the demo dataset in:
+- `/media/tomazz/Data1/hsi_data/metadata/`
+
+Files analyzed:
+- EnMAP XML: 3 files
+- PRISMA HE5: 2 files
+- Tanager H5: 3 files
+- PDFs: PRISMA ATBD, PRISMA Product Specifications, Planet Tanager User Documentation
+
+Goal: include all discoverable metadata keys from demo files, while unifying names for the same physical parameters across products.
+
+## Unification Rules
+- Shared physical parameters use common keys under `extended_metadata.*` (acquisition, geometry, radiometry, atmosphere, quality, processing).
+- Product-only metadata are still included under product namespaces:
+  - `extended_metadata.enmap.*`
+  - `extended_metadata.prisma.*`
+  - `extended_metadata.tanager.*`
+- Same physical parameter uses one name; source-specific names are only kept as provenance.
+
+## Unified Cross-Product Keys (Physical Parameter Unification)
+
+| Unified key | EnMAP source | PRISMA source | Tanager source | Notes |
+|---|---|---|---|---|
+| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` | `min(Time)` from Unix epoch | required |
+| `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | `max(Time)` from Unix epoch | optional |
+| `acquisition.center_latitude_deg` | `base/spatialCoverage/... point[frame=center]/latitude` | `Product_center_lat` | mean/center of latitude map | required |
+| `acquisition.center_longitude_deg` | `base/spatialCoverage/... point[frame=center]/longitude` | `Product_center_long` | mean/center of longitude map | required |
+| `acquisition.day_of_year` | derived | derived | derived | required by atcorr |
+| `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | required by atcorr |
+| `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` | `Sun_azimuth_angle` | map mean `sun_azimuth` | required by atcorr |
+| `geometry.view_zenith_deg` | `sqrt(acrossOffNadir^2+alongOffNadir^2)` | map mean `Observing_Angle` | map mean `sensor_zenith` | required by atcorr |
+| `geometry.view_azimuth_deg` | `sceneAzimuthAngle/center` | not explicit scalar | map mean `sensor_azimuth` | optional |
+| `geometry.relative_azimuth_deg` | derived from SAA/VAA | map mean `Rel_Azimuth_Angle` | derived from SAA/VAA | optional |
+| `geometry.sensor_altitude_m` | candidate: `base/altitudeCoverage` | not found | not found | candidate only |
+| `radiometry.quantity` | L2A: surface reflectance | L2D: surface reflectance | basic: TOA radiance; ortho SR: surface reflectance | required |
+| `radiometry.units` | derived dimensionless | derived dimensionless | dataset `Unit` | required |
+| `radiometry.scale` | `GainOfBand` | `(L2ScaleMax-L2ScaleMin)/65535` | none in float products | optional |
+| `radiometry.offset` | `OffsetOfBand` | `L2Scale*Min` | none in float products | optional |
+| `radiometry.wavelengths_nm` | `wavelengthCenterOfBand` | `List_Cw_*` | dataset attr `wavelengths` | recommended |
+| `radiometry.fwhm_nm` | `FWHMOfBand` | `List_Fwhm_*` | dataset attr `fwhm` | recommended |
+| `radiometry.good_wavelengths_mask` | not found | not found | ortho SR attr `good_wavelengths` | tanager-only |
+| `atmosphere.ozone_du` | `processing/ozoneValue` | not found | not found | enmap-only in demos |
+| `atmosphere.aod_550` | not found | not found in L2D | ortho SR map `aerosol_optical_depth` | map/mean form must be tagged |
+| `atmosphere.h2o_g_cm2` | not found | not found in L2D | ortho SR map `column_water_vapour` | map/mean form must be tagged |
+| `atmosphere.surface_pressure_hpa` | not found | not found | not found | missing in demos |
+| `atmosphere.atmosphere_model` | not found | `Atmo_profile_info` | not found | prisma-only in demos |
+| `atmosphere.aerosol_model` | not found | not found | not found | missing in demos |
+| `quality.quality_atmosphere_flag` | `specific/qualityFlag/qualityAtmosphere` | `L2d_Quality_flags` | not found | different semantics |
+| `quality.cloudy_pixels_percent` | not found | `Cloudy_pixels_percentage` | not found | prisma-only |
+| `quality.sea_pixels_percent` | not found | `Sea_pixels_percentage` | not found | prisma-only |
+| `quality.water_type` | `processing/waterType` | not found | not found | enmap-only |
+| `quality.beta_cloud_mask_present` | not found | not found | `beta_cloud_mask` exists | tanager |
+| `quality.beta_cirrus_mask_present` | not found | not found | `beta_cirrus_mask` exists | tanager |
+| `quality.nodata_mask_present` | not found | not found | `nodata_pixels` exists | tanager |
+| `uncertainty.reflectance_uncertainty_present` | not found | `*_PIXEL_L2_ERR_MATRIX` exists | `surface_reflectance_uncertainty` exists | supported |
+| `processing.processing_datetime_utc` | `specific/processingDateTime` | `Processing_Time` | group attr `created_at` | provenance |
+| `processing.software` | not explicit software version | `Processor_Name` + `Processor_Version` | not explicit processor id | provenance |
+| `processing.lut_version` | not found | `Atm_Lut_version` | not found | prisma-only |
+| `processing.cirrus_haze_removal` | `processing/cirrusHazeRemoval` | not found | not found | enmap-only |
+
+## EnMAP Metadata Inventory (All Discoverable Keys In Demo XML)
+
+- Unique XML paths discovered: `748`
+- Top-level `processing/*` keys (12):
+- `DEMDBVersion`
+- `bandInterpolation`
+- `cirrusHazeRemoval`
+- `correctionType`
+- `imageResampling`
+- `mapProjection`
+- `ozoneValue`
+- `productFormat`
+- `season`
+- `terrainCorrection`
+- `waterReflectanceProduct`
+- `waterType`
+
+- Top-level `base/*` keys (9):
+- `altitudeCoverage`
+- `archivedVersion`
+- `format`
+- `level`
+- `revision`
+- `size`
+- `spatialCoverage`
+- `sphere`
+- `temporalCoverage`
+
+- Top-level `specific/*` keys (65):
+- `MCSequenceId`
+- `URLToProductType`
+- `acquisitionMode`
+- `acquisitionSubtype`
+- `acquisitionType`
+- `acrossOffNadirAngle`
+- `alongOffNadirAngle`
+- `archivingDateTime`
+- `archivingStation`
+- `auxDataVersion`
+- `backgroundValue`
+- `bandCharacterisation`
+- `biomeType`
+- `code`
+- `compressionType`
+- `cyclogramType`
+- `cyclogramVersion`
+- `datatakeID`
+- `datatakeStart`
+- `datatakeStop`
+- `digitalElevationModelDatabase`
+- `digitalElevationModelDatabaseAccuracy`
+- `downlink`
+- `heightOfOrthoScene`
+- `heightOfScene`
+- `imageID`
+- `inputDatatake`
+- `instrumentStatus`
+- `macrocommandVersion`
+- `meanGroundElevation`
+- `meanSlope`
+- `mission`
+- `missionPhase`
+- `numberOfSWIRBands`
+- `numberOfTiles`
+- `numberOfVNIRBands`
+- `orbitDirection`
+- `orbitNo`
+- `orbitType`
+- `pixelSize`
+- `pixelSizeOfOrthoScene`
+- `processible`
+- `processingCenter`
+- `processingDateTime`
+- `processingNode`
+- `productQuality`
+- `productType`
+- `qualityFlag`
+- `receivingDateTime`
+- `receivingStations`
+- `referenceDatabase`
+- `referenceImageDatabaseAccuracy`
+- `satelliteID`
+- `sceneAzimuthAngle`
+- `sensor`
+- `spatialCoverageOfDatatake`
+- `spatialCoverageOfOrthoScene`
+- `status`
+- `sunAzimuthAngle`
+- `sunElevationAngle`
+- `swirProductQuality`
+- `tileID`
+- `vnirProductQuality`
+- `widthOfOrthoScene`
+- `widthOfScene`
+
+- `specific/qualityFlag/*` keys (54):
+- `cirrusCover`
+- `cloudCover`
+- `cloudShadow`
+- `deadPixelsSWIR`
+- `deadPixelsVNIR`
+- `defectivePixelsSWIR`
+- `defectivePixelsVNIR`
+- `generalArtifactsSWIR`
+- `generalArtifactsVNIR`
+- `hazeCover`
+- `levelOfRejection`
+- `noncloudShadow`
+- `numPointsAll`
+- `numPointsDiscardedGCP`
+- `numPointsGCP`
+- `numPointsICP`
+- `numTilesUsed`
+- `orthoMean`
+- `orthoMean_x`
+- `orthoMean_y`
+- `orthoRMSE`
+- `orthoRMSE_x`
+- `orthoRMSE_y`
+- `orthoResidual`
+- `orthoResidual_x`
+- `orthoResidual_y`
+- `orthoTerrain`
+- `overallQuality`
+- `overallQualitySWIR`
+- `overallQualityVNIR`
+- `processorLogSWIR`
+- `processorLogVNIR`
+- `qualityAtmosphere`
+- `qualityRadiometrySWIR`
+- `qualityRadiometryVNIR`
+- `saturationCrosstalkSWIR`
+- `saturationCrosstalkVNIR`
+- `sceneAOT`
+- `sceneAtmParam`
+- `sceneSZA`
+- `sceneSunglint`
+- `sceneTerrain`
+- `sceneWV`
+- `sensorLogSWIR`
+- `sensorLogVNIR`
+- `smileIndicationSWIR`
+- `smileIndicationVNIR`
+- `snowCover`
+- `spare_1`
+- `spare_2`
+- `spare_3`
+- `stripingBandingSWIR`
+- `stripingBandingVNIR`
+- `waterCover`
+
+- `specific/bandCharacterisation/bandID/*` keys (4):
+- `FWHMOfBand`
+- `GainOfBand`
+- `OffsetOfBand`
+- `wavelengthCenterOfBand`
+
+- `metadata/*` paths (10):
+- `level_X/metadata/citation`
+- `level_X/metadata/comment`
+- `level_X/metadata/copyright`
+- `level_X/metadata/name`
+- `level_X/metadata/schema`
+- `level_X/metadata/schema/copyright`
+- `level_X/metadata/schema/crc`
+- `level_X/metadata/schema/name`
+- `level_X/metadata/schema/processingLevel`
+- `level_X/metadata/schema/versionSchema`
+
+- `product/*` paths (349):
+- `level_X/product/bandStatistics`
+- `level_X/product/bandStatistics/bandID`
+- `level_X/product/bandStatistics/bandID/mean`
+- `level_X/product/bandStatistics/bandID/stdDeviation`
+- `level_X/product/bandStatistics/bandID/waveLength`
+- `level_X/product/calibration`
+- `level_X/product/calibration/attitude`
+- `level_X/product/calibration/attitude/accuracy`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames/fromFrame`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames/toFrame`
+- `level_X/product/calibration/attitude/stateVector`
+- `level_X/product/calibration/attitude/stateVector/q0`
+- `level_X/product/calibration/attitude/stateVector/q1`
+- `level_X/product/calibration/attitude/stateVector/q2`
+- `level_X/product/calibration/attitude/stateVector/q3`
+- `level_X/product/calibration/attitude/stateVector/timeGPS`
+- `level_X/product/calibration/attitude/stateVector/timeGPSFraction`
+- `level_X/product/calibration/attitude/stateVector/timeUTC`
+- `level_X/product/calibration/attitude/timeInterval`
+- `level_X/product/calibration/orbit`
+- `level_X/product/calibration/orbit/absOrbit`
+- `level_X/product/calibration/orbit/phase`
+- `level_X/product/calibration/orbit/positionAccuracy`
+- `level_X/product/calibration/orbit/stateVector`
+- `level_X/product/calibration/orbit/stateVector/posX`
+- `level_X/product/calibration/orbit/stateVector/posY`
+- `level_X/product/calibration/orbit/stateVector/posZ`
+- `level_X/product/calibration/orbit/stateVector/timeGPS`
+- `level_X/product/calibration/orbit/stateVector/timeGPSFraction`
+- `level_X/product/calibration/orbit/stateVector/timeUTC`
+- `level_X/product/calibration/orbit/stateVector/velX`
+- `level_X/product/calibration/orbit/stateVector/velY`
+- `level_X/product/calibration/orbit/stateVector/velZ`
+- `level_X/product/calibration/orbit/timeInterval`
+- `level_X/product/calibration/orbit/velocityAccuracy`
+- `level_X/product/image`
+- `level_X/product/image/merge`
+- `level_X/product/image/merge/channels`
+- `level_X/product/image/merge/dimension`
+- `level_X/product/image/merge/dimension/columns`
+- `level_X/product/image/merge/dimension/rows`
+- `level_X/product/image/merge/dimensionGeographic`
+- `level_X/product/image/merge/dimensionGeographic/latitude`
+- `level_X/product/image/merge/dimensionGeographic/longitude`
+- `level_X/product/image/merge/format`
+- `level_X/product/image/merge/name`
+- `level_X/product/image/merge/qlChannelsSWIR`
+- `level_X/product/image/merge/qlChannelsSWIR/blue`
+- `level_X/product/image/merge/qlChannelsSWIR/green`
+- `level_X/product/image/merge/qlChannelsSWIR/red`
+- `level_X/product/image/merge/qlChannelsVNIR`
+- `level_X/product/image/merge/qlChannelsVNIR/blue`
+- `level_X/product/image/merge/qlChannelsVNIR/green`
+- `level_X/product/image/merge/qlChannelsVNIR/red`
+- `level_X/product/image/merge/size`
+- `level_X/product/image/merge/version`
+- `level_X/product/matching`
+- `level_X/product/matching/match`
+- `level_X/product/matching/match/percent`
+- `level_X/product/matching/match/points`
+- `level_X/product/matching/pyramidLevel`
+- `level_X/product/navigation`
+- `level_X/product/navigation/RPC`
+- `level_X/product/navigation/RPC/bandID`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_01`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_02`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_03`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_04`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_05`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_06`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_07`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_08`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_09`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_10`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_11`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_12`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_13`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_14`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_15`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_16`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_17`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_18`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_19`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_20`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_01`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_02`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_03`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_04`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_05`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_06`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_07`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_08`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_09`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_10`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_11`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_12`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_13`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_14`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_15`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_16`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_17`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_18`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_19`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_20`
+- `level_X/product/navigation/RPC/bandID/COL_OFF`
+- `level_X/product/navigation/RPC/bandID/COL_SCALE`
+- `level_X/product/navigation/RPC/bandID/HEIGHT_OFF`
+- `level_X/product/navigation/RPC/bandID/HEIGHT_SCALE`
+- `level_X/product/navigation/RPC/bandID/LAT_OFF`
+- `level_X/product/navigation/RPC/bandID/LAT_SCALE`
+- `level_X/product/navigation/RPC/bandID/LONG_OFF`
+- `level_X/product/navigation/RPC/bandID/LONG_SCALE`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_01`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_02`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_03`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_04`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_05`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_06`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_07`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_08`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_09`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_10`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_11`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_12`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_13`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_14`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_15`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_16`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_17`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_18`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_19`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_20`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_01`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_02`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_03`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_04`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_05`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_06`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_07`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_08`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_09`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_10`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_11`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_12`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_13`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_14`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_15`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_16`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_17`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_18`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_19`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_20`
+- `level_X/product/navigation/RPC/bandID/ROW_OFF`
+- `level_X/product/navigation/RPC/bandID/ROW_SCALE`
+- `level_X/product/navigation/boresight`
+- `level_X/product/navigation/boresight/swir`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/KAPPA_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/OMEGA_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/PHI_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/KAPPA_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/OMEGA_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/PHI_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_9`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_9`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_9`
+- `level_X/product/navigation/boresight/vnir`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/KAPPA_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/OMEGA_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/PHI_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/KAPPA_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/OMEGA_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/PHI_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_9`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_9`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_9`
+- `level_X/product/navigation/interiorOrientation`
+- `level_X/product/navigation/interiorOrientation/swir`
+- `level_X/product/navigation/interiorOrientation/swir/A_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/A_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/A_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_3_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_3_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir`
+- `level_X/product/navigation/interiorOrientation/vnir/A_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/A_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/A_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_3_Y`
+- `level_X/product/ortho`
+- `level_X/product/ortho/projection`
+- `level_X/product/ortho/resampling`
+- `level_X/product/ortho/resolution`
+- `level_X/product/productFileInformation`
+- `level_X/product/productFileInformation/file`
+- `level_X/product/productFileInformation/file/format`
+- `level_X/product/productFileInformation/file/name`
+- `level_X/product/productFileInformation/file/size`
+- `level_X/product/productFileInformation/file/version`
+- `level_X/product/quicklook`
+- `level_X/product/quicklook/swir`
+- `level_X/product/quicklook/swir/channels`
+- `level_X/product/quicklook/swir/dimension`
+- `level_X/product/quicklook/swir/dimension/columns`
+- `level_X/product/quicklook/swir/dimension/rows`
+- `level_X/product/quicklook/swir/dimensionGeographic`
+- `level_X/product/quicklook/swir/dimensionGeographic/latitude`
+- `level_X/product/quicklook/swir/dimensionGeographic/longitude`
+- `level_X/product/quicklook/swir/format`
+- `level_X/product/quicklook/swir/name`
+- `level_X/product/quicklook/swir/qlChannels`
+- `level_X/product/quicklook/swir/qlChannels/blue`
+- `level_X/product/quicklook/swir/qlChannels/green`
+- `level_X/product/quicklook/swir/qlChannels/red`
+- `level_X/product/quicklook/swir/size`
+- `level_X/product/quicklook/swir/version`
+- `level_X/product/quicklook/vnir`
+- `level_X/product/quicklook/vnir/channels`
+- `level_X/product/quicklook/vnir/dimension`
+- `level_X/product/quicklook/vnir/dimension/columns`
+- `level_X/product/quicklook/vnir/dimension/rows`
+- `level_X/product/quicklook/vnir/dimensionGeographic`
+- `level_X/product/quicklook/vnir/dimensionGeographic/latitude`
+- `level_X/product/quicklook/vnir/dimensionGeographic/longitude`
+- `level_X/product/quicklook/vnir/format`
+- `level_X/product/quicklook/vnir/name`
+- `level_X/product/quicklook/vnir/qlChannels`
+- `level_X/product/quicklook/vnir/qlChannels/blue`
+- `level_X/product/quicklook/vnir/qlChannels/green`
+- `level_X/product/quicklook/vnir/qlChannels/red`
+- `level_X/product/quicklook/vnir/size`
+- `level_X/product/quicklook/vnir/version`
+- `level_X/product/smileCorrection`
+- `level_X/product/smileCorrection/SWIR`
+- `level_X/product/smileCorrection/SWIR/bandID`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff0`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff1`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff2`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff3`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff4`
+- `level_X/product/smileCorrection/SWIR/bandID/wavelength`
+- `level_X/product/smileCorrection/VNIR`
+- `level_X/product/smileCorrection/VNIR/bandID`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff0`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff1`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff2`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff3`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff4`
+- `level_X/product/smileCorrection/VNIR/bandID/wavelength`
+- `level_X/product/time`
+- `level_X/product/time/swir`
+- `level_X/product/time/swir/frameTime`
+- `level_X/product/time/vnir`
+- `level_X/product/time/vnir/frameTime`
+- `level_X/product/time/vnir/jitter`
+
+### EnMAP Full Raw Path Inventory (All 748 Paths)
+
+- `level_X`
+- `level_X/@{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation`
+- `level_X/base`
+- `level_X/base/altitudeCoverage`
+- `level_X/base/archivedVersion`
+- `level_X/base/format`
+- `level_X/base/level`
+- `level_X/base/revision`
+- `level_X/base/size`
+- `level_X/base/spatialCoverage`
+- `level_X/base/spatialCoverage/boundingPolygon`
+- `level_X/base/spatialCoverage/boundingPolygon/point`
+- `level_X/base/spatialCoverage/boundingPolygon/point/frame`
+- `level_X/base/spatialCoverage/boundingPolygon/point/latitude`
+- `level_X/base/spatialCoverage/boundingPolygon/point/latitude/@unit`
+- `level_X/base/spatialCoverage/boundingPolygon/point/longitude`
+- `level_X/base/spatialCoverage/boundingPolygon/point/longitude/@unit`
+- `level_X/base/spatialCoverage/boundingPolygon/point/utcTime`
+- `level_X/base/sphere`
+- `level_X/base/temporalCoverage`
+- `level_X/base/temporalCoverage/startTime`
+- `level_X/base/temporalCoverage/stopTime`
+- `level_X/metadata`
+- `level_X/metadata/citation`
+- `level_X/metadata/comment`
+- `level_X/metadata/copyright`
+- `level_X/metadata/name`
+- `level_X/metadata/schema`
+- `level_X/metadata/schema/copyright`
+- `level_X/metadata/schema/crc`
+- `level_X/metadata/schema/name`
+- `level_X/metadata/schema/processingLevel`
+- `level_X/metadata/schema/versionSchema`
+- `level_X/processing`
+- `level_X/processing/DEMDBVersion`
+- `level_X/processing/bandInterpolation`
+- `level_X/processing/cirrusHazeRemoval`
+- `level_X/processing/correctionType`
+- `level_X/processing/imageResampling`
+- `level_X/processing/mapProjection`
+- `level_X/processing/ozoneValue`
+- `level_X/processing/productFormat`
+- `level_X/processing/season`
+- `level_X/processing/terrainCorrection`
+- `level_X/processing/waterReflectanceProduct`
+- `level_X/processing/waterType`
+- `level_X/product`
+- `level_X/product/bandStatistics`
+- `level_X/product/bandStatistics/bandID`
+- `level_X/product/bandStatistics/bandID/@number`
+- `level_X/product/bandStatistics/bandID/mean`
+- `level_X/product/bandStatistics/bandID/stdDeviation`
+- `level_X/product/bandStatistics/bandID/waveLength`
+- `level_X/product/calibration`
+- `level_X/product/calibration/attitude`
+- `level_X/product/calibration/attitude/accuracy`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames/fromFrame`
+- `level_X/product/calibration/attitude/attitudeDataRefFrames/toFrame`
+- `level_X/product/calibration/attitude/stateVector`
+- `level_X/product/calibration/attitude/stateVector/@num`
+- `level_X/product/calibration/attitude/stateVector/@qualInd`
+- `level_X/product/calibration/attitude/stateVector/@sensor`
+- `level_X/product/calibration/attitude/stateVector/q0`
+- `level_X/product/calibration/attitude/stateVector/q1`
+- `level_X/product/calibration/attitude/stateVector/q2`
+- `level_X/product/calibration/attitude/stateVector/q3`
+- `level_X/product/calibration/attitude/stateVector/timeGPS`
+- `level_X/product/calibration/attitude/stateVector/timeGPSFraction`
+- `level_X/product/calibration/attitude/stateVector/timeUTC`
+- `level_X/product/calibration/attitude/timeInterval`
+- `level_X/product/calibration/orbit`
+- `level_X/product/calibration/orbit/absOrbit`
+- `level_X/product/calibration/orbit/phase`
+- `level_X/product/calibration/orbit/positionAccuracy`
+- `level_X/product/calibration/orbit/stateVector`
+- `level_X/product/calibration/orbit/stateVector/@maneuver`
+- `level_X/product/calibration/orbit/stateVector/@num`
+- `level_X/product/calibration/orbit/stateVector/@qualInd`
+- `level_X/product/calibration/orbit/stateVector/posX`
+- `level_X/product/calibration/orbit/stateVector/posY`
+- `level_X/product/calibration/orbit/stateVector/posZ`
+- `level_X/product/calibration/orbit/stateVector/timeGPS`
+- `level_X/product/calibration/orbit/stateVector/timeGPSFraction`
+- `level_X/product/calibration/orbit/stateVector/timeUTC`
+- `level_X/product/calibration/orbit/stateVector/velX`
+- `level_X/product/calibration/orbit/stateVector/velY`
+- `level_X/product/calibration/orbit/stateVector/velZ`
+- `level_X/product/calibration/orbit/timeInterval`
+- `level_X/product/calibration/orbit/velocityAccuracy`
+- `level_X/product/image`
+- `level_X/product/image/merge`
+- `level_X/product/image/merge/channels`
+- `level_X/product/image/merge/dimension`
+- `level_X/product/image/merge/dimension/columns`
+- `level_X/product/image/merge/dimension/rows`
+- `level_X/product/image/merge/dimensionGeographic`
+- `level_X/product/image/merge/dimensionGeographic/latitude`
+- `level_X/product/image/merge/dimensionGeographic/latitude/@unit`
+- `level_X/product/image/merge/dimensionGeographic/longitude`
+- `level_X/product/image/merge/dimensionGeographic/longitude/@unit`
+- `level_X/product/image/merge/format`
+- `level_X/product/image/merge/name`
+- `level_X/product/image/merge/qlChannelsSWIR`
+- `level_X/product/image/merge/qlChannelsSWIR/blue`
+- `level_X/product/image/merge/qlChannelsSWIR/green`
+- `level_X/product/image/merge/qlChannelsSWIR/red`
+- `level_X/product/image/merge/qlChannelsVNIR`
+- `level_X/product/image/merge/qlChannelsVNIR/blue`
+- `level_X/product/image/merge/qlChannelsVNIR/green`
+- `level_X/product/image/merge/qlChannelsVNIR/red`
+- `level_X/product/image/merge/size`
+- `level_X/product/image/merge/size/@unit`
+- `level_X/product/image/merge/version`
+- `level_X/product/matching`
+- `level_X/product/matching/match`
+- `level_X/product/matching/match/@ident`
+- `level_X/product/matching/match/percent`
+- `level_X/product/matching/match/points`
+- `level_X/product/matching/pyramidLevel`
+- `level_X/product/navigation`
+- `level_X/product/navigation/RPC`
+- `level_X/product/navigation/RPC/bandID`
+- `level_X/product/navigation/RPC/bandID/@number`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_01`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_02`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_03`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_04`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_05`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_06`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_07`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_08`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_09`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_10`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_11`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_12`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_13`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_14`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_15`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_16`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_17`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_18`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_19`
+- `level_X/product/navigation/RPC/bandID/COL_DEN_20`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_01`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_02`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_03`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_04`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_05`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_06`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_07`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_08`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_09`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_10`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_11`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_12`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_13`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_14`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_15`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_16`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_17`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_18`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_19`
+- `level_X/product/navigation/RPC/bandID/COL_NUM_20`
+- `level_X/product/navigation/RPC/bandID/COL_OFF`
+- `level_X/product/navigation/RPC/bandID/COL_SCALE`
+- `level_X/product/navigation/RPC/bandID/HEIGHT_OFF`
+- `level_X/product/navigation/RPC/bandID/HEIGHT_SCALE`
+- `level_X/product/navigation/RPC/bandID/LAT_OFF`
+- `level_X/product/navigation/RPC/bandID/LAT_SCALE`
+- `level_X/product/navigation/RPC/bandID/LONG_OFF`
+- `level_X/product/navigation/RPC/bandID/LONG_SCALE`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_01`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_02`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_03`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_04`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_05`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_06`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_07`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_08`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_09`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_10`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_11`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_12`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_13`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_14`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_15`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_16`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_17`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_18`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_19`
+- `level_X/product/navigation/RPC/bandID/ROW_DEN_20`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_01`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_02`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_03`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_04`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_05`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_06`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_07`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_08`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_09`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_10`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_11`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_12`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_13`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_14`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_15`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_16`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_17`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_18`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_19`
+- `level_X/product/navigation/RPC/bandID/ROW_NUM_20`
+- `level_X/product/navigation/RPC/bandID/ROW_OFF`
+- `level_X/product/navigation/RPC/bandID/ROW_SCALE`
+- `level_X/product/navigation/boresight`
+- `level_X/product/navigation/boresight/swir`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/KAPPA_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/KAPPA_EST/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/OMEGA_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/OMEGA_EST/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/PHI_EST`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/estimatedValues/PHI_EST/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/KAPPA_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/KAPPA_INIT/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/OMEGA_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/OMEGA_INIT/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/PHI_INIT`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/initialValues/PHI_INIT/@unit`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_X_9`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Y_9`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_0`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_1`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_10`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_2`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_3`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_4`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_5`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_6`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_7`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_8`
+- `level_X/product/navigation/boresight/swir/instrumentMountingAngles/variationValues/N_Z_9`
+- `level_X/product/navigation/boresight/vnir`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/KAPPA_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/KAPPA_EST/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/OMEGA_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/OMEGA_EST/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/PHI_EST`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/estimatedValues/PHI_EST/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/KAPPA_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/KAPPA_INIT/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/OMEGA_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/OMEGA_INIT/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/PHI_INIT`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/initialValues/PHI_INIT/@unit`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_X_9`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Y_9`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_0`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_1`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_10`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_2`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_3`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_4`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_5`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_6`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_7`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_8`
+- `level_X/product/navigation/boresight/vnir/instrumentMountingAngles/variationValues/N_Z_9`
+- `level_X/product/navigation/interiorOrientation`
+- `level_X/product/navigation/interiorOrientation/swir`
+- `level_X/product/navigation/interiorOrientation/swir/A_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/A_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/A_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/A_3_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/B_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/B_3_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_1_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_1_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_2_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_2_Y`
+- `level_X/product/navigation/interiorOrientation/swir/C_3_X`
+- `level_X/product/navigation/interiorOrientation/swir/C_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir`
+- `level_X/product/navigation/interiorOrientation/vnir/A_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/A_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/A_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/A_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/B_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/B_3_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_1_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_1_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_2_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_2_Y`
+- `level_X/product/navigation/interiorOrientation/vnir/C_3_X`
+- `level_X/product/navigation/interiorOrientation/vnir/C_3_Y`
+- `level_X/product/ortho`
+- `level_X/product/ortho/projection`
+- `level_X/product/ortho/resampling`
+- `level_X/product/ortho/resolution`
+- `level_X/product/productFileInformation`
+- `level_X/product/productFileInformation/file`
+- `level_X/product/productFileInformation/file/@number`
+- `level_X/product/productFileInformation/file/format`
+- `level_X/product/productFileInformation/file/name`
+- `level_X/product/productFileInformation/file/size`
+- `level_X/product/productFileInformation/file/size/@unit`
+- `level_X/product/productFileInformation/file/version`
+- `level_X/product/quicklook`
+- `level_X/product/quicklook/swir`
+- `level_X/product/quicklook/swir/channels`
+- `level_X/product/quicklook/swir/dimension`
+- `level_X/product/quicklook/swir/dimension/columns`
+- `level_X/product/quicklook/swir/dimension/rows`
+- `level_X/product/quicklook/swir/dimensionGeographic`
+- `level_X/product/quicklook/swir/dimensionGeographic/latitude`
+- `level_X/product/quicklook/swir/dimensionGeographic/latitude/@unit`
+- `level_X/product/quicklook/swir/dimensionGeographic/longitude`
+- `level_X/product/quicklook/swir/dimensionGeographic/longitude/@unit`
+- `level_X/product/quicklook/swir/format`
+- `level_X/product/quicklook/swir/name`
+- `level_X/product/quicklook/swir/qlChannels`
+- `level_X/product/quicklook/swir/qlChannels/blue`
+- `level_X/product/quicklook/swir/qlChannels/green`
+- `level_X/product/quicklook/swir/qlChannels/red`
+- `level_X/product/quicklook/swir/size`
+- `level_X/product/quicklook/swir/size/@unit`
+- `level_X/product/quicklook/swir/version`
+- `level_X/product/quicklook/vnir`
+- `level_X/product/quicklook/vnir/channels`
+- `level_X/product/quicklook/vnir/dimension`
+- `level_X/product/quicklook/vnir/dimension/columns`
+- `level_X/product/quicklook/vnir/dimension/rows`
+- `level_X/product/quicklook/vnir/dimensionGeographic`
+- `level_X/product/quicklook/vnir/dimensionGeographic/latitude`
+- `level_X/product/quicklook/vnir/dimensionGeographic/latitude/@unit`
+- `level_X/product/quicklook/vnir/dimensionGeographic/longitude`
+- `level_X/product/quicklook/vnir/dimensionGeographic/longitude/@unit`
+- `level_X/product/quicklook/vnir/format`
+- `level_X/product/quicklook/vnir/name`
+- `level_X/product/quicklook/vnir/qlChannels`
+- `level_X/product/quicklook/vnir/qlChannels/blue`
+- `level_X/product/quicklook/vnir/qlChannels/green`
+- `level_X/product/quicklook/vnir/qlChannels/red`
+- `level_X/product/quicklook/vnir/size`
+- `level_X/product/quicklook/vnir/size/@unit`
+- `level_X/product/quicklook/vnir/version`
+- `level_X/product/smileCorrection`
+- `level_X/product/smileCorrection/@applied`
+- `level_X/product/smileCorrection/@parametrization`
+- `level_X/product/smileCorrection/SWIR`
+- `level_X/product/smileCorrection/SWIR/bandID`
+- `level_X/product/smileCorrection/SWIR/bandID/@number`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff0`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff0/@unit`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff1`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff1/@unit`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff2`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff2/@unit`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff3`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff3/@unit`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff4`
+- `level_X/product/smileCorrection/SWIR/bandID/coeff4/@unit`
+- `level_X/product/smileCorrection/SWIR/bandID/wavelength`
+- `level_X/product/smileCorrection/SWIR/bandID/wavelength/@unit`
+- `level_X/product/smileCorrection/VNIR`
+- `level_X/product/smileCorrection/VNIR/bandID`
+- `level_X/product/smileCorrection/VNIR/bandID/@number`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff0`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff0/@unit`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff1`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff1/@unit`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff2`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff2/@unit`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff3`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff3/@unit`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff4`
+- `level_X/product/smileCorrection/VNIR/bandID/coeff4/@unit`
+- `level_X/product/smileCorrection/VNIR/bandID/wavelength`
+- `level_X/product/smileCorrection/VNIR/bandID/wavelength/@unit`
+- `level_X/product/time`
+- `level_X/product/time/swir`
+- `level_X/product/time/swir/frameTime`
+- `level_X/product/time/swir/frameTime/@number`
+- `level_X/product/time/vnir`
+- `level_X/product/time/vnir/frameTime`
+- `level_X/product/time/vnir/frameTime/@number`
+- `level_X/product/time/vnir/jitter`
+- `level_X/product/time/vnir/jitter/@number`
+- `level_X/specific`
+- `level_X/specific/MCSequenceId`
+- `level_X/specific/URLToProductType`
+- `level_X/specific/acquisitionMode`
+- `level_X/specific/acquisitionSubtype`
+- `level_X/specific/acquisitionType`
+- `level_X/specific/acrossOffNadirAngle`
+- `level_X/specific/acrossOffNadirAngle/center`
+- `level_X/specific/acrossOffNadirAngle/center/@unit`
+- `level_X/specific/acrossOffNadirAngle/lower_left`
+- `level_X/specific/acrossOffNadirAngle/lower_left/@unit`
+- `level_X/specific/acrossOffNadirAngle/lower_right`
+- `level_X/specific/acrossOffNadirAngle/lower_right/@unit`
+- `level_X/specific/acrossOffNadirAngle/upper_left`
+- `level_X/specific/acrossOffNadirAngle/upper_left/@unit`
+- `level_X/specific/acrossOffNadirAngle/upper_right`
+- `level_X/specific/acrossOffNadirAngle/upper_right/@unit`
+- `level_X/specific/alongOffNadirAngle`
+- `level_X/specific/alongOffNadirAngle/center`
+- `level_X/specific/alongOffNadirAngle/center/@unit`
+- `level_X/specific/alongOffNadirAngle/lower_left`
+- `level_X/specific/alongOffNadirAngle/lower_left/@unit`
+- `level_X/specific/alongOffNadirAngle/lower_right`
+- `level_X/specific/alongOffNadirAngle/lower_right/@unit`
+- `level_X/specific/alongOffNadirAngle/upper_left`
+- `level_X/specific/alongOffNadirAngle/upper_left/@unit`
+- `level_X/specific/alongOffNadirAngle/upper_right`
+- `level_X/specific/alongOffNadirAngle/upper_right/@unit`
+- `level_X/specific/archivingDateTime`
+- `level_X/specific/archivingStation`
+- `level_X/specific/auxDataVersion`
+- `level_X/specific/auxDataVersion/attitudeVersion`
+- `level_X/specific/auxDataVersion/calTabAtmSpecVersion`
+- `level_X/specific/auxDataVersion/calTabDPMVersion`
+- `level_X/specific/auxDataVersion/calTabDeepSpaceVersion`
+- `level_X/specific/auxDataVersion/calTabGeoVersion`
+- `level_X/specific/auxDataVersion/calTabLinearityVersion`
+- `level_X/specific/auxDataVersion/calTabRadVersion`
+- `level_X/specific/auxDataVersion/orbitVersion`
+- `level_X/specific/auxDataVersion/refTabDarkVersion`
+- `level_X/specific/backgroundValue`
+- `level_X/specific/bandCharacterisation`
+- `level_X/specific/bandCharacterisation/bandID`
+- `level_X/specific/bandCharacterisation/bandID/@number`
+- `level_X/specific/bandCharacterisation/bandID/FWHMOfBand`
+- `level_X/specific/bandCharacterisation/bandID/GainOfBand`
+- `level_X/specific/bandCharacterisation/bandID/OffsetOfBand`
+- `level_X/specific/bandCharacterisation/bandID/wavelengthCenterOfBand`
+- `level_X/specific/biomeType`
+- `level_X/specific/code`
+- `level_X/specific/compressionType`
+- `level_X/specific/cyclogramType`
+- `level_X/specific/cyclogramVersion`
+- `level_X/specific/datatakeID`
+- `level_X/specific/datatakeStart`
+- `level_X/specific/datatakeStop`
+- `level_X/specific/digitalElevationModelDatabase`
+- `level_X/specific/digitalElevationModelDatabaseAccuracy`
+- `level_X/specific/downlink`
+- `level_X/specific/downlink/dtakeNumErrorIsps`
+- `level_X/specific/downlink/dtakeNumMissingIsps`
+- `level_X/specific/heightOfOrthoScene`
+- `level_X/specific/heightOfScene`
+- `level_X/specific/heightOfScene/@unit`
+- `level_X/specific/imageID`
+- `level_X/specific/inputDatatake`
+- `level_X/specific/inputDatatake/datatakeAssemblyTime`
+- `level_X/specific/inputDatatake/datatakeRevision`
+- `level_X/specific/instrumentStatus`
+- `level_X/specific/instrumentStatus/SWIRAOrSWIRBSelected`
+- `level_X/specific/instrumentStatus/configSWIR`
+- `level_X/specific/instrumentStatus/configVNIR`
+- `level_X/specific/instrumentStatus/emergencyStatusOfSCM`
+- `level_X/specific/instrumentStatus/emergencyStatusOfSDH`
+- `level_X/specific/instrumentStatus/emergencyStatusOfSSM`
+- `level_X/specific/instrumentStatus/mcsSequenceType`
+- `level_X/specific/instrumentStatus/statusDiffuserProtectionHatch`
+- `level_X/specific/instrumentStatus/statusOK`
+- `level_X/specific/instrumentStatus/statusSCM`
+- `level_X/specific/instrumentStatus/statusSWIR`
+- `level_X/specific/instrumentStatus/statusSunDiffuserHatch`
+- `level_X/specific/instrumentStatus/statusVNIR`
+- `level_X/specific/macrocommandVersion`
+- `level_X/specific/meanGroundElevation`
+- `level_X/specific/meanSlope`
+- `level_X/specific/mission`
+- `level_X/specific/missionPhase`
+- `level_X/specific/numberOfSWIRBands`
+- `level_X/specific/numberOfTiles`
+- `level_X/specific/numberOfVNIRBands`
+- `level_X/specific/orbitDirection`
+- `level_X/specific/orbitNo`
+- `level_X/specific/orbitType`
+- `level_X/specific/pixelSize`
+- `level_X/specific/pixelSizeOfOrthoScene`
+- `level_X/specific/processible`
+- `level_X/specific/processingCenter`
+- `level_X/specific/processingDateTime`
+- `level_X/specific/processingNode`
+- `level_X/specific/productQuality`
+- `level_X/specific/productQuality/screeningResult`
+- `level_X/specific/productQuality/screeningResult/failedGroups`
+- `level_X/specific/productQuality/screeningResult/status`
+- `level_X/specific/productQuality/screeningResultCurr`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/@name`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/description`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/device`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/info`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/maxValue`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/minValue`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/status`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/units`
+- `level_X/specific/productQuality/screeningResultCurr/listOfCurrents/parameter/value`
+- `level_X/specific/productQuality/screeningResultCurr/status`
+- `level_X/specific/productQuality/screeningResultDevStatus`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/@name`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/description`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/device`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/info`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/maxValue`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/minValue`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/status`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/units`
+- `level_X/specific/productQuality/screeningResultDevStatus/listOfDevStatus/parameter/value`
+- `level_X/specific/productQuality/screeningResultDevStatus/status`
+- `level_X/specific/productQuality/screeningResultTemp`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/@name`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/description`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/device`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/info`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/maxValue`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/minValue`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/status`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/units`
+- `level_X/specific/productQuality/screeningResultTemp/listOfTemps/parameter/value`
+- `level_X/specific/productQuality/screeningResultTemp/status`
+- `level_X/specific/productQuality/screeningResultVolt`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/@name`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/description`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/device`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/info`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/maxValue`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/minValue`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/status`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/units`
+- `level_X/specific/productQuality/screeningResultVolt/listOfVoltages/parameter/value`
+- `level_X/specific/productQuality/screeningResultVolt/status`
+- `level_X/specific/productType`
+- `level_X/specific/qualityFlag`
+- `level_X/specific/qualityFlag/cirrusCover`
+- `level_X/specific/qualityFlag/cloudCover`
+- `level_X/specific/qualityFlag/cloudShadow`
+- `level_X/specific/qualityFlag/deadPixelsSWIR`
+- `level_X/specific/qualityFlag/deadPixelsVNIR`
+- `level_X/specific/qualityFlag/defectivePixelsSWIR`
+- `level_X/specific/qualityFlag/defectivePixelsVNIR`
+- `level_X/specific/qualityFlag/generalArtifactsSWIR`
+- `level_X/specific/qualityFlag/generalArtifactsVNIR`
+- `level_X/specific/qualityFlag/hazeCover`
+- `level_X/specific/qualityFlag/levelOfRejection`
+- `level_X/specific/qualityFlag/noncloudShadow`
+- `level_X/specific/qualityFlag/numPointsAll`
+- `level_X/specific/qualityFlag/numPointsDiscardedGCP`
+- `level_X/specific/qualityFlag/numPointsGCP`
+- `level_X/specific/qualityFlag/numPointsICP`
+- `level_X/specific/qualityFlag/numTilesUsed`
+- `level_X/specific/qualityFlag/orthoMean`
+- `level_X/specific/qualityFlag/orthoMean_x`
+- `level_X/specific/qualityFlag/orthoMean_y`
+- `level_X/specific/qualityFlag/orthoRMSE`
+- `level_X/specific/qualityFlag/orthoRMSE_x`
+- `level_X/specific/qualityFlag/orthoRMSE_y`
+- `level_X/specific/qualityFlag/orthoResidual`
+- `level_X/specific/qualityFlag/orthoResidual_x`
+- `level_X/specific/qualityFlag/orthoResidual_y`
+- `level_X/specific/qualityFlag/orthoTerrain`
+- `level_X/specific/qualityFlag/overallQuality`
+- `level_X/specific/qualityFlag/overallQualitySWIR`
+- `level_X/specific/qualityFlag/overallQualityVNIR`
+- `level_X/specific/qualityFlag/processorLogSWIR`
+- `level_X/specific/qualityFlag/processorLogVNIR`
+- `level_X/specific/qualityFlag/qualityAtmosphere`
+- `level_X/specific/qualityFlag/qualityRadiometrySWIR`
+- `level_X/specific/qualityFlag/qualityRadiometryVNIR`
+- `level_X/specific/qualityFlag/saturationCrosstalkSWIR`
+- `level_X/specific/qualityFlag/saturationCrosstalkVNIR`
+- `level_X/specific/qualityFlag/sceneAOT`
+- `level_X/specific/qualityFlag/sceneAtmParam`
+- `level_X/specific/qualityFlag/sceneSZA`
+- `level_X/specific/qualityFlag/sceneSunglint`
+- `level_X/specific/qualityFlag/sceneTerrain`
+- `level_X/specific/qualityFlag/sceneWV`
+- `level_X/specific/qualityFlag/sensorLogSWIR`
+- `level_X/specific/qualityFlag/sensorLogVNIR`
+- `level_X/specific/qualityFlag/smileIndicationSWIR`
+- `level_X/specific/qualityFlag/smileIndicationVNIR`
+- `level_X/specific/qualityFlag/snowCover`
+- `level_X/specific/qualityFlag/spare_1`
+- `level_X/specific/qualityFlag/spare_2`
+- `level_X/specific/qualityFlag/spare_3`
+- `level_X/specific/qualityFlag/stripingBandingSWIR`
+- `level_X/specific/qualityFlag/stripingBandingVNIR`
+- `level_X/specific/qualityFlag/waterCover`
+- `level_X/specific/receivingDateTime`
+- `level_X/specific/receivingStations`
+- `level_X/specific/referenceDatabase`
+- `level_X/specific/referenceImageDatabaseAccuracy`
+- `level_X/specific/satelliteID`
+- `level_X/specific/sceneAzimuthAngle`
+- `level_X/specific/sceneAzimuthAngle/center`
+- `level_X/specific/sceneAzimuthAngle/center/@unit`
+- `level_X/specific/sceneAzimuthAngle/lower_left`
+- `level_X/specific/sceneAzimuthAngle/lower_left/@unit`
+- `level_X/specific/sceneAzimuthAngle/lower_right`
+- `level_X/specific/sceneAzimuthAngle/lower_right/@unit`
+- `level_X/specific/sceneAzimuthAngle/upper_left`
+- `level_X/specific/sceneAzimuthAngle/upper_left/@unit`
+- `level_X/specific/sceneAzimuthAngle/upper_right`
+- `level_X/specific/sceneAzimuthAngle/upper_right/@unit`
+- `level_X/specific/sensor`
+- `level_X/specific/spatialCoverageOfDatatake`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/frame`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/latitude`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/latitude/@unit`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/longitude`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/longitude/@unit`
+- `level_X/specific/spatialCoverageOfDatatake/boundingPolygon/point/utcTime`
+- `level_X/specific/spatialCoverageOfOrthoScene`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/frame`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/latitude`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/latitude/@unit`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/longitude`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/longitude/@unit`
+- `level_X/specific/spatialCoverageOfOrthoScene/boundingPolygon/point/utcTime`
+- `level_X/specific/status`
+- `level_X/specific/sunAzimuthAngle`
+- `level_X/specific/sunAzimuthAngle/center`
+- `level_X/specific/sunAzimuthAngle/center/@unit`
+- `level_X/specific/sunAzimuthAngle/lower_left`
+- `level_X/specific/sunAzimuthAngle/lower_left/@unit`
+- `level_X/specific/sunAzimuthAngle/lower_right`
+- `level_X/specific/sunAzimuthAngle/lower_right/@unit`
+- `level_X/specific/sunAzimuthAngle/upper_left`
+- `level_X/specific/sunAzimuthAngle/upper_left/@unit`
+- `level_X/specific/sunAzimuthAngle/upper_right`
+- `level_X/specific/sunAzimuthAngle/upper_right/@unit`
+- `level_X/specific/sunElevationAngle`
+- `level_X/specific/sunElevationAngle/center`
+- `level_X/specific/sunElevationAngle/center/@unit`
+- `level_X/specific/sunElevationAngle/lower_left`
+- `level_X/specific/sunElevationAngle/lower_left/@unit`
+- `level_X/specific/sunElevationAngle/lower_right`
+- `level_X/specific/sunElevationAngle/lower_right/@unit`
+- `level_X/specific/sunElevationAngle/upper_left`
+- `level_X/specific/sunElevationAngle/upper_left/@unit`
+- `level_X/specific/sunElevationAngle/upper_right`
+- `level_X/specific/sunElevationAngle/upper_right/@unit`
+- `level_X/specific/swirProductQuality`
+- `level_X/specific/swirProductQuality/affectedDSHAIssueChannels`
+- `level_X/specific/swirProductQuality/expectedChannelsList`
+- `level_X/specific/swirProductQuality/missingChannelsList`
+- `level_X/specific/swirProductQuality/numChannelsDSHAIssue`
+- `level_X/specific/swirProductQuality/numChannelsExpected`
+- `level_X/specific/swirProductQuality/numChannelsMissing`
+- `level_X/specific/swirProductQuality/swirDarkAfterQuality`
+- `level_X/specific/swirProductQuality/swirDarkAfterQuality/available`
+- `level_X/specific/swirProductQuality/swirDarkAfterQuality/screeningResult`
+- `level_X/specific/swirProductQuality/swirDarkBeforeQuality`
+- `level_X/specific/swirProductQuality/swirDarkBeforeQuality/available`
+- `level_X/specific/swirProductQuality/swirDarkBeforeQuality/screeningResult`
+- `level_X/specific/swirProductQuality/swirProductStatus`
+- `level_X/specific/tileID`
+- `level_X/specific/vnirProductQuality`
+- `level_X/specific/vnirProductQuality/affectedDSHAIssueChannels`
+- `level_X/specific/vnirProductQuality/expectedChannelsList`
+- `level_X/specific/vnirProductQuality/missingChannelsList`
+- `level_X/specific/vnirProductQuality/numChannelsDSHAIssue`
+- `level_X/specific/vnirProductQuality/numChannelsExpected`
+- `level_X/specific/vnirProductQuality/numChannelsMissing`
+- `level_X/specific/vnirProductQuality/vnirDarkAfterQuality`
+- `level_X/specific/vnirProductQuality/vnirDarkAfterQuality/available`
+- `level_X/specific/vnirProductQuality/vnirDarkAfterQuality/screeningResult`
+- `level_X/specific/vnirProductQuality/vnirDarkBeforeQuality`
+- `level_X/specific/vnirProductQuality/vnirDarkBeforeQuality/available`
+- `level_X/specific/vnirProductQuality/vnirDarkBeforeQuality/screeningResult`
+- `level_X/specific/vnirProductQuality/vnirProductStatus`
+- `level_X/specific/widthOfOrthoScene`
+- `level_X/specific/widthOfScene`
+- `level_X/specific/widthOfScene/@unit`
+
+## PRISMA Metadata Inventory (All Discoverable Keys In Demo HE5)
+
+- Root attributes discovered per file: `119`
+- Root attribute keys (all):
+  - `Acquisition_Purpose` -> `extended_metadata.prisma.acquisition_purpose`
+  - `Acquisition_Size` -> `extended_metadata.prisma.acquisition_size`
+  - `Acquisition_Station` -> `extended_metadata.prisma.acquisition_station`
+  - `Acquisition_Type` -> `extended_metadata.prisma.acquisition_type`
+  - `Atm_LutGeomInfo_RelativeAzimuth` -> `extended_metadata.prisma.atm_lut_geom_info_relative_azimuth`
+  - `Atm_LutGeomInfo_SunZenith` -> `extended_metadata.prisma.atm_lut_geom_info_sun_zenith`
+  - `Atm_LutGeomInfo_ViewZenith` -> `extended_metadata.prisma.atm_lut_geom_info_view_zenith`
+  - `Atm_Lut_version` -> `extended_metadata.prisma.atm_lut_version`
+  - `Atmo_RTM_info` -> `extended_metadata.prisma.atmo_rtm_info`
+  - `Atmo_profile_info` -> `extended_metadata.prisma.atmo_profile_info`
+  - `Aux_SunEarthDistance` -> `extended_metadata.prisma.aux_sun_earth_distance`
+  - `Aux_SunIrradiance` -> `extended_metadata.prisma.aux_sun_irradiance`
+  - `CNM_L2_BINNING` -> `extended_metadata.prisma.cnm_l2_binning`
+  - `CNM_L2_BIN_ON` -> `extended_metadata.prisma.cnm_l2_bin_on`
+  - `CNM_L2_BSEL_ON` -> `extended_metadata.prisma.cnm_l2_bsel_on`
+  - `CNM_L2_HGRP` -> `extended_metadata.prisma.cnm_l2_hgrp`
+  - `CNM_PAN_ACQ` -> `extended_metadata.prisma.cnm_pan_acq`
+  - `CNM_SWIR_ACQ` -> `extended_metadata.prisma.cnm_swir_acq`
+  - `CNM_SWIR_SELECT` -> `extended_metadata.prisma.cnm_swir_select`
+  - `CNM_VNIR_ACQ` -> `extended_metadata.prisma.cnm_vnir_acq`
+  - `CNM_VNIR_SELECT` -> `extended_metadata.prisma.cnm_vnir_select`
+  - `Cloudy_pixels_percentage` -> `extended_metadata.prisma.cloudy_pixels_percentage`
+  - `DEM_info` -> `extended_metadata.prisma.dem_info`
+  - `Epsg_Code` -> `extended_metadata.prisma.epsg_code`
+  - `Exit_Code` -> `extended_metadata.prisma.exit_code`
+  - `Frame_Type` -> `extended_metadata.prisma.frame_type`
+  - `GCP_info` -> `extended_metadata.prisma.gcp_info`
+  - `ISF_ID_Start` -> `extended_metadata.prisma.isf_id_start`
+  - `Image_ID` -> `extended_metadata.prisma.image_id`
+  - `Integration_Time` -> `extended_metadata.prisma.integration_time`
+  - `L1_Processor_Version` -> `extended_metadata.prisma.l1_processor_version`
+  - `L1_Quality_CCPerc` -> `extended_metadata.prisma.l1_quality_ccperc`
+  - `L2ScalePanMax` -> `extended_metadata.prisma.l2_scale_pan_max`
+  - `L2ScalePanMin` -> `extended_metadata.prisma.l2_scale_pan_min`
+  - `L2ScaleSwirMax` -> `extended_metadata.prisma.l2_scale_swir_max`
+  - `L2ScaleSwirMin` -> `extended_metadata.prisma.l2_scale_swir_min`
+  - `L2ScaleVnirMax` -> `extended_metadata.prisma.l2_scale_vnir_max`
+  - `L2ScaleVnirMin` -> `extended_metadata.prisma.l2_scale_vnir_min`
+  - `L2d_Quality_flags` -> `extended_metadata.prisma.l2d_quality_flags`
+  - `List_Cw_Swir` -> `extended_metadata.prisma.list_cw_swir`
+  - `List_Cw_Swir_Flags` -> `extended_metadata.prisma.list_cw_swir_flags`
+  - `List_Cw_Vnir` -> `extended_metadata.prisma.list_cw_vnir`
+  - `List_Cw_Vnir_Flags` -> `extended_metadata.prisma.list_cw_vnir_flags`
+  - `List_Fwhm_Swir` -> `extended_metadata.prisma.list_fwhm_swir`
+  - `List_Fwhm_Vnir` -> `extended_metadata.prisma.list_fwhm_vnir`
+  - `Main_Electornic_Unit` -> `extended_metadata.prisma.main_electornic_unit`
+  - `Map_AOT_accuracy` -> `extended_metadata.prisma.map_aot_accuracy`
+  - `Map_WV_accuracy` -> `extended_metadata.prisma.map_wv_accuracy`
+  - `Num_Frames` -> `extended_metadata.prisma.num_frames`
+  - `Number_of_ISF` -> `extended_metadata.prisma.number_of_isf`
+  - `PANCorruptedFrameList` -> `extended_metadata.prisma.pancorrupted_frame_list`
+  - `PAN_ACQ` -> `extended_metadata.prisma.pan_acq`
+  - `PAN_Corrupted_Frame_Percentage` -> `extended_metadata.prisma.pan_corrupted_frame_percentage`
+  - `PAN_HGRP` -> `extended_metadata.prisma.pan_hgrp`
+  - `PAN_HYP_ACT_RESIDUAL_m` -> `extended_metadata.prisma.pan_hyp_act_residual_m`
+  - `PAN_HYP_ALT_RESIDUAL_m` -> `extended_metadata.prisma.pan_hyp_alt_residual_m`
+  - `PAN_HYP_START_SYNC_FRAME` -> `extended_metadata.prisma.pan_hyp_start_sync_frame`
+  - `PAN_HYP_START_SYNC_SUBFRAME` -> `extended_metadata.prisma.pan_hyp_start_sync_subframe`
+  - `PAN_HYP_STOP_SYNC_FRAME` -> `extended_metadata.prisma.pan_hyp_stop_sync_frame`
+  - `PAN_HYP_STOP_SYNC_SUBFRAME` -> `extended_metadata.prisma.pan_hyp_stop_sync_subframe`
+  - `PAN_Int_Time` -> `extended_metadata.prisma.pan_int_time`
+  - `PE_Gain_SWIR` -> `extended_metadata.prisma.pe_gain_swir`
+  - `PE_Gain_VNIR` -> `extended_metadata.prisma.pe_gain_vnir`
+  - `Pan_N_Int` -> `extended_metadata.prisma.pan_n_int`
+  - `Pan_Num_Frames` -> `extended_metadata.prisma.pan_num_frames`
+  - `Prev_Cdp_File_Name` -> `extended_metadata.prisma.prev_cdp_file_name`
+  - `Prev_FKdp_File_Name` -> `extended_metadata.prisma.prev_fkdp_file_name`
+  - `Prev_Gkdp_File_Name` -> `extended_metadata.prisma.prev_gkdp_file_name`
+  - `Processing_Level` -> `extended_metadata.prisma.processing_level`
+  - `Processing_Station` -> `extended_metadata.prisma.processing_station`
+  - `Processing_Time` -> `extended_metadata.prisma.processing_time`
+  - `Processor_Name` -> `extended_metadata.prisma.processor_name`
+  - `Processor_Version` -> `extended_metadata.prisma.processor_version`
+  - `Product_ID` -> `extended_metadata.prisma.product_id`
+  - `Product_LLcorner_easting` -> `extended_metadata.prisma.product_llcorner_easting`
+  - `Product_LLcorner_lat` -> `extended_metadata.prisma.product_llcorner_lat`
+  - `Product_LLcorner_long` -> `extended_metadata.prisma.product_llcorner_long`
+  - `Product_LLcorner_northing` -> `extended_metadata.prisma.product_llcorner_northing`
+  - `Product_LRcorner_easting` -> `extended_metadata.prisma.product_lrcorner_easting`
+  - `Product_LRcorner_lat` -> `extended_metadata.prisma.product_lrcorner_lat`
+  - `Product_LRcorner_long` -> `extended_metadata.prisma.product_lrcorner_long`
+  - `Product_LRcorner_northing` -> `extended_metadata.prisma.product_lrcorner_northing`
+  - `Product_Name` -> `extended_metadata.prisma.product_name`
+  - `Product_StartTime` -> `extended_metadata.prisma.product_start_time`
+  - `Product_StopTime` -> `extended_metadata.prisma.product_stop_time`
+  - `Product_ULcorner_easting` -> `extended_metadata.prisma.product_ulcorner_easting`
+  - `Product_ULcorner_lat` -> `extended_metadata.prisma.product_ulcorner_lat`
+  - `Product_ULcorner_long` -> `extended_metadata.prisma.product_ulcorner_long`
+  - `Product_ULcorner_northing` -> `extended_metadata.prisma.product_ulcorner_northing`
+  - `Product_URcorner_easting` -> `extended_metadata.prisma.product_urcorner_easting`
+  - `Product_URcorner_lat` -> `extended_metadata.prisma.product_urcorner_lat`
+  - `Product_URcorner_long` -> `extended_metadata.prisma.product_urcorner_long`
+  - `Product_URcorner_northing` -> `extended_metadata.prisma.product_urcorner_northing`
+  - `Product_center_easting` -> `extended_metadata.prisma.product_center_easting`
+  - `Product_center_lat` -> `extended_metadata.prisma.product_center_lat`
+  - `Product_center_long` -> `extended_metadata.prisma.product_center_long`
+  - `Product_center_northing` -> `extended_metadata.prisma.product_center_northing`
+  - `Projection_Id` -> `extended_metadata.prisma.projection_id`
+  - `Projection_Name` -> `extended_metadata.prisma.projection_name`
+  - `Reference_Ellipsoid` -> `extended_metadata.prisma.reference_ellipsoid`
+  - `SWIRCorruptedFrameList` -> `extended_metadata.prisma.swircorrupted_frame_list`
+  - `SWIR_BNSTART` -> `extended_metadata.prisma.swir_bnstart`
+  - `SWIR_BNSTOP` -> `extended_metadata.prisma.swir_bnstop`
+  - `SWIR_Corrupted_Frame_Percentage` -> `extended_metadata.prisma.swir_corrupted_frame_percentage`
+  - `SWIR_HGRP` -> `extended_metadata.prisma.swir_hgrp`
+  - `SWIR_X` -> `extended_metadata.prisma.swir_x`
+  - `Sea_pixels_percentage` -> `extended_metadata.prisma.sea_pixels_percentage`
+  - `Soi_L0a_EO-EOS` -> `extended_metadata.prisma.soi_l0a_eo_eos`
+  - `Soi_Post_Dark_Calibration_L0aFile` -> `extended_metadata.prisma.soi_post_dark_calibration_l0a_file`
+  - `Soi_Prev_Dark_Calibration_L0aFile` -> `extended_metadata.prisma.soi_prev_dark_calibration_l0a_file`
+  - `Sun_azimuth_angle` -> `extended_metadata.prisma.sun_azimuth_angle`
+  - `Sun_zenith_angle` -> `extended_metadata.prisma.sun_zenith_angle`
+  - `Synch_Time` -> `extended_metadata.prisma.synch_time`
+  - `VNIRCorruptedFrameList` -> `extended_metadata.prisma.vnircorrupted_frame_list`
+  - `VNIR_BNSTART` -> `extended_metadata.prisma.vnir_bnstart`
+  - `VNIR_BNSTOP` -> `extended_metadata.prisma.vnir_bnstop`
+  - `VNIR_Corrupted_Frame_Percentage` -> `extended_metadata.prisma.vnir_corrupted_frame_percentage`
+  - `VNIR_HGRP` -> `extended_metadata.prisma.vnir_hgrp`
+  - `VNIR_X` -> `extended_metadata.prisma.vnir_x`
+
+- Dataset paths discovered: `71`
+- Dataset paths (all):
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/SWIR_Cube`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/SWIR_PIXEL_L2_ERR_MATRIX`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/VNIR_Cube`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/VNIR_PIXEL_L2_ERR_MATRIX`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geolocation Fields/Latitude`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geolocation Fields/Longitude`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geolocation Fields/Time`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geometric Fields/Observing_Angle`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geometric Fields/Rel_Azimuth_Angle`
+  - `HDFEOS/SWATHS/PRS_L2D_HCO/Geometric Fields/Solar_Zenith_Angle`
+  - `HDFEOS/SWATHS/PRS_L2D_PCO/Data Fields/Cube`
+  - `HDFEOS/SWATHS/PRS_L2D_PCO/Data Fields/PIXEL_L2_ERR_MATRIX`
+  - `HDFEOS/SWATHS/PRS_L2D_PCO/Geolocation Fields/Latitude`
+  - `HDFEOS/SWATHS/PRS_L2D_PCO/Geolocation Fields/Longitude`
+  - `HDFEOS/SWATHS/PRS_L2D_PCO/Geolocation Fields/Time`
+  - `Info/Ancillary/GyroData/Gyro_1_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_1_data_byte`
+  - `Info/Ancillary/GyroData/Gyro_2_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_2_data_byte`
+  - `Info/Ancillary/GyroData/Gyro_3_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_3_data_byte`
+  - `Info/Ancillary/GyroData/Gyro_4_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_4_data_byte`
+  - `Info/Ancillary/GyroData/Gyro_5_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_5_data_byte`
+  - `Info/Ancillary/GyroData/Gyro_6_data_angle`
+  - `Info/Ancillary/GyroData/Gyro_6_data_byte`
+  - `Info/Ancillary/GyroData/Star_sensors__Gyros_Data_validity`
+  - `Info/Ancillary/PVSdata/AOCS_Stat`
+  - `Info/Ancillary/PVSdata/Clock_Bias`
+  - `Info/Ancillary/PVSdata/Clock_Bias_Rate`
+  - `Info/Ancillary/PVSdata/GPS_Time_of_Last_Position`
+  - `Info/Ancillary/PVSdata/Gdop`
+  - `Info/Ancillary/PVSdata/Number_of_Satellites`
+  - `Info/Ancillary/PVSdata/Week_Number`
+  - `Info/Ancillary/PVSdata/Wgs84_pos_x`
+  - `Info/Ancillary/PVSdata/Wgs84_pos_y`
+  - `Info/Ancillary/PVSdata/Wgs84_pos_z`
+  - `Info/Ancillary/PVSdata/Wgs84_vel_x`
+  - `Info/Ancillary/PVSdata/Wgs84_vel_y`
+  - `Info/Ancillary/PVSdata/Wgs_84_vel_z`
+  - `Info/Ancillary/StarTracker1/NAV_APROP_EKF_values`
+  - `Info/Ancillary/StarTracker1/Navigation_time`
+  - `Info/Ancillary/StarTracker1/q_ECI_2_Body_1`
+  - `Info/Ancillary/StarTracker1/q_ECI_2_Body_2`
+  - `Info/Ancillary/StarTracker1/q_ECI_2_Body_3`
+  - `Info/Ancillary/StarTracker1/q_ECI_2_Body_4`
+  - `Info/Ancillary/StarTracker1/w_body_1`
+  - `Info/Ancillary/StarTracker1/w_body_2`
+  - `Info/Ancillary/StarTracker1/w_body_3`
+  - `Info/Ancillary/StarTracker2/Attitude_status_ss`
+  - `Info/Ancillary/StarTracker2/Data_valid_ss`
+  - `Info/Ancillary/StarTracker2/Omega_x_ss`
+  - `Info/Ancillary/StarTracker2/Omega_y_ss`
+  - `Info/Ancillary/StarTracker2/Omega_z_ss`
+  - `Info/Ancillary/StarTracker2/Quaternion_1_ss`
+  - `Info/Ancillary/StarTracker2/Quaternion_2_ss`
+  - `Info/Ancillary/StarTracker2/Quaternion_3_ss`
+  - `Info/Ancillary/StarTracker2/Quaternion_4_ss`
+  - `Info/Ancillary/StarTracker2/Time_day_ss`
+  - `Info/Ancillary/StarTracker2/Time_msec_ss`
+  - `Info/Header/FrameNumber`
+  - `Info/Header/Frame_Corrupted`
+  - `Info/Header/Frame_Missing`
+  - `KDP_AUX/Cw_Swir_Matrix`
+  - `KDP_AUX/Cw_Vnir_Matrix`
+  - `KDP_AUX/Fwhm_Swir_Matrix`
+  - `KDP_AUX/Fwhm_Vnir_Matrix`
+  - `KDP_AUX/LOS_Pan`
+  - `KDP_AUX/LOS_Swir`
+  - `KDP_AUX/LOS_Vnir`
+
+PRISMA notes:
+- L2D demos contain geometry maps (`Observing_Angle`, `Rel_Azimuth_Angle`, `Solar_Zenith_Angle`).
+- L2D demos do not contain L2C atmospheric constituent map datasets (`AOT/WVM/AEX/COT`).
+
+## Tanager Metadata Inventory (All Discoverable Keys In Demo H5)
+
+- Dataset paths discovered (union over basic + ortho SR): `26`
+- Dataset paths (all):
+  - `HDFEOS INFORMATION/StructMetadata.0`
+  - `HDFEOS/GRIDS/HYP/Data Fields/aerosol_optical_depth`
+  - `HDFEOS/GRIDS/HYP/Data Fields/beta_cirrus_mask`
+  - `HDFEOS/GRIDS/HYP/Data Fields/beta_cloud_mask`
+  - `HDFEOS/GRIDS/HYP/Data Fields/column_water_vapour`
+  - `HDFEOS/GRIDS/HYP/Data Fields/nodata_pixels`
+  - `HDFEOS/GRIDS/HYP/Data Fields/sensor_azimuth`
+  - `HDFEOS/GRIDS/HYP/Data Fields/sensor_to_ground_path_length`
+  - `HDFEOS/GRIDS/HYP/Data Fields/sensor_zenith`
+  - `HDFEOS/GRIDS/HYP/Data Fields/sun_azimuth`
+  - `HDFEOS/GRIDS/HYP/Data Fields/sun_zenith`
+  - `HDFEOS/GRIDS/HYP/Data Fields/surface_reflectance`
+  - `HDFEOS/GRIDS/HYP/Data Fields/surface_reflectance_uncertainty`
+  - `HDFEOS/GRIDS/HYP/Data Fields/time`
+  - `HDFEOS/SWATHS/HYP/Data Fields/beta_cirrus_mask`
+  - `HDFEOS/SWATHS/HYP/Data Fields/beta_cloud_mask`
+  - `HDFEOS/SWATHS/HYP/Data Fields/nodata_pixels`
+  - `HDFEOS/SWATHS/HYP/Data Fields/sensor_azimuth`
+  - `HDFEOS/SWATHS/HYP/Data Fields/sensor_to_ground_path_length`
+  - `HDFEOS/SWATHS/HYP/Data Fields/sensor_zenith`
+  - `HDFEOS/SWATHS/HYP/Data Fields/sun_azimuth`
+  - `HDFEOS/SWATHS/HYP/Data Fields/sun_zenith`
+  - `HDFEOS/SWATHS/HYP/Data Fields/toa_radiance`
+  - `HDFEOS/SWATHS/HYP/Geolocation Fields/Latitude`
+  - `HDFEOS/SWATHS/HYP/Geolocation Fields/Longitude`
+  - `HDFEOS/SWATHS/HYP/Geolocation Fields/Time`
+
+- Group/object attributes discovered:
+  - `HDFEOS INFORMATION`: `HDFEOSVersion`
+  - `HDFEOS/GRIDS/HYP`: `created_at`, `epsg_code`, `strip_id`
+  - `HDFEOS/SWATHS/HYP`: `created_at`, `strip_id`
+  - `HDFEOS/SWATHS/HYP/Geolocation Fields`: `Planet_Ortho_Framing`
+
+Tanager notes:
+- `basic_radiance`: uses `HDFEOS/SWATHS/HYP` with line-based `Geolocation Fields/Time`.
+- `ortho_sr_hdf5`: uses `HDFEOS/GRIDS/HYP` with per-pixel `time`, `aerosol_optical_depth`, `column_water_vapour`, and `surface_reflectance_uncertainty`.
+
+## Parameters Requested For i.hyper.atcorr: Coverage Check
+
+| Requested parameter | Included now | Source in demo data |
+|---|---|---|
+| Acquisition time | Yes | EnMAP/PRISMA direct; Tanager time datasets |
+| Scene center lat/lon | Yes | EnMAP center point; PRISMA center attrs; Tanager lat/lon maps |
+| Sun zenith / azimuth | Yes | All three products |
+| View zenith / azimuth | Yes (PRISMA azimuth derived/nullable) | EnMAP/PRISMA/Tanager |
+| Sensor altitude | Candidate only | EnMAP altitudeCoverage only (unconfirmed semantics) |
+| Radiance units/scale/offset | Yes | All where applicable |
+| AOD 550 | Yes where present | Tanager ortho SR map |
+| Column H2O | Yes where present | Tanager ortho SR map |
+| Ozone | Yes where present | EnMAP ozoneValue |
+| Surface pressure | No (not found) | Not present in demo metadata |
+| Atmosphere model | Yes where present | PRISMA Atmo_profile_info |
+| cirrusHazeRemoval | Yes | EnMAP processing/cirrusHazeRemoval |
+| Processing datetime | Yes | EnMAP specific/processingDateTime, PRISMA Processing_Time, Tanager created_at |
+| Software/version | Yes where present | PRISMA Processor_Name/Version |
+| LUT version/file | Version only | PRISMA Atm_Lut_version; LUT file path not found |
+
+## Implementation Guidance (Schema)
+- Keep shared physical keys in common groups (`acquisition`, `geometry`, `radiometry`, `atmosphere`, `quality`, `processing`, `uncertainty`).
+- Keep full product-specific metadata in namespaces: `enmap.*`, `prisma.*`, `tanager.*` (snake_case).
+- Keep source-path provenance for every derived shared field to prevent ambiguity.
+- For map-vs-scalar atmospheric fields (`aod_550`, `h2o_g_cm2`), add form tag in implementation (`scalar`, `map_mean`, `map_name`).

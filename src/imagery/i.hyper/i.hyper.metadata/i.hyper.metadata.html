@@ -11,6 +11,7 @@ Supported operations:
 <ul>
   <li><code>summary</code>: concise metadata summary for current dataset</li>
   <li><code>full</code>: full metadata object for current dataset</li>
+  <li><code>extended</code>: selected <code>extended_metadata</code> only (all, branch, key path, or multiple selectors)</li>
   <li><code>bands</code>: list source bands (optionally filtered by wavelength range)</li>
   <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp</li>
   <li><code>validate</code>: metadata and lineage consistency checks</li>
@@ -27,6 +28,15 @@ For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> r
 <code>inputs/outputs</code> map names from current maps by <code>dataset_id</code>
 (display only; stored command is unchanged).
 
+<p>For <code>operation=extended</code>, option <code>extended_select=</code> supports:</p>
+<ul>
+  <li><code>all</code> (default): full <code>extended_metadata</code></li>
+  <li>one branch (e.g., <code>acquisition</code>)</li>
+  <li>one key path (e.g., <code>geometry.sun_zenith_deg</code>)</li>
+  <li>multiple selectors at once (comma-separated), e.g.
+    <code>acquisition,geometry.sun_zenith_deg,processing</code></li>
+</ul>
+
 <p>Dataset provenance is stored in top-level key <code>derived</code>:</p>
 <ul>
   <li><code>derived=false</code>: original imported dataset</li>
@@ -35,7 +45,8 @@ For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> r
 
 <h3>JSON metadata structure</h3>
 
-Dataset-level fields are stored at the top level in <code>hyper.json</code>.
+Core dataset fields are stored at the top level in <code>hyper.json</code>.
+Additional product and correction metadata are stored in <code>extended_metadata</code>.
 
 <div class="code"><pre>
 {
@@ -48,10 +59,6 @@ Dataset-level fields are stored at the top level in <code>hyper.json</code>.
   "radiometric_quantity": "surface_reflectance",
   "radiometric_units": "unitless",
   "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
-  "solar_zenith_angle": 24.475721,
-  "solar_azimuth_angle": 156.193067,
-  "satellite_zenith_angle": 21.917226,
-  "satellite_azimuth_angle": 14.116742,
   "region": {
     "north": 2615535,
     "south": 2581725,
@@ -75,20 +82,33 @@ Dataset-level fields are stored at the top level in <code>hyper.json</code>.
       "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
     }
   ],
-  "extended_metadata": { ... }
+  "extended_metadata": {
+    "acquisition": { "...": "..." },
+    "geometry": { "...": "..." },
+    "radiometry": { "...": "..." },
+    "atmosphere": { "...": "..." },
+    "quality": { "...": "..." },
+    "processing": { "...": "..." },
+    "uncertainty": { "...": "..." },
+    "enmap": { "...": "raw product-specific keys" },
+    "prisma": { "...": "raw product-specific keys" },
+    "tanager": { "...": "raw product-specific keys" }
+  }
 }
 </pre></div>
 
-<h3>EnMAP mapping used for dataset fields</h3>
+<h3>Extended Metadata Branches</h3>
 
-When metadata is produced by <code>i.hyper.import product=enmap</code>, values are mapped from EnMAP <code>*-METADATA.XML</code> as:
 <ul>
-  <li><code>Date of acquisition</code> &lt;- <code>datatakeStart</code> (fallback <code>temporalCoverage/startTime</code>)</li>
-  <li><code>Solar zenith angle</code> &lt;- <code>90 - sunElevationAngle/center</code></li>
-  <li><code>Solar azimuth angle</code> &lt;- <code>sunAzimuthAngle/center</code></li>
-  <li><code>Satellite azimuth angle</code> &lt;- <code>sceneAzimuthAngle/center</code></li>
-  <li><code>Satellite zenith angle</code> &lt;- direct zenith tag if present, otherwise derived from <code>acrossOffNadirAngle/center</code> + <code>alongOffNadirAngle/center</code></li>
+  <li>Common unified branches:
+    <code>acquisition</code>, <code>geometry</code>, <code>radiometry</code>,
+    <code>atmosphere</code>, <code>quality</code>, <code>processing</code>, <code>uncertainty</code></li>
+  <li>Product-specific branches:
+    <code>enmap</code>, <code>prisma</code>, <code>tanager</code></li>
+  <li>Legacy compatibility: older imports may still use <code>extended_metadata.scene.geometry</code></li>
 </ul>
+<p>For full key mapping and exhaustive inventories from demo products, see
+<code>src/imagery/i.hyper/extended_metadata_unification.md</code>.</p>
 
 <h2>EXAMPLES</h2>
 
@@ -105,6 +125,23 @@ i.hyper.metadata map=my_hyper_cube operation=bands wavelength_range=400-700
 Show full recursive history with current map names:
 <div class="code"><pre>
 i.hyper.metadata map=my_hyper_cube operation=history resolve_names=yes
+</pre></div>
+
+Show all extended metadata:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended extended_select=all
+</pre></div>
+
+Show one specific extended metadata key:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended \
+  extended_select=geometry.sun_zenith_deg
+</pre></div>
+
+Show selected branches and key paths at the same time:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended \
+  extended_select=acquisition,geometry.sun_zenith_deg,processing
 </pre></div>
 
 <h2>SEE ALSO</h2>
