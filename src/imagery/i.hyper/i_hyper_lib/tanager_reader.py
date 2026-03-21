@@ -45,6 +45,8 @@ except Exception:
 HYP = "/HDFEOS/SWATHS/HYP"
 DF = f"{HYP}/Data Fields"
 GF = f"{HYP}/Geolocation Fields"
+HYP_GRID = "/HDFEOS/GRIDS/HYP"
+DF_GRID = f"{HYP_GRID}/Data Fields"
 
 DS_ORDER = ("surface_reflectance", "toa_radiance")
 DS_WL_ATTR = "wavelengths"
@@ -169,8 +171,18 @@ def load_tanager_basic(product_path):
                 chosen_name = name
                 break
         if dset is None:
+            # Ortho SR products use /HDFEOS/GRIDS/HYP/... and are not supported by this BASIC reader.
+            for name in DS_ORDER:
+                p_grid = f"{DF_GRID}/{name}"
+                if p_grid in f:
+                    raise ValueError(
+                        "Detected Tanager ortho product (/HDFEOS/GRIDS/HYP). "
+                        "Only BASIC products with /HDFEOS/SWATHS/HYP are supported."
+                    )
             raise ValueError(
-                "No 'surface_reflectance' or 'toa_radiance' dataset found."
+                "No Tanager BASIC dataset found: expected "
+                "'/HDFEOS/SWATHS/HYP/Data Fields/surface_reflectance' or "
+                "'/HDFEOS/SWATHS/HYP/Data Fields/toa_radiance'."
             )
 
         arr_raw = dset[()]  # (Band, Y, X)
@@ -244,6 +256,16 @@ def read_planet_map_grid(product_path):
       epsg_code, rows, cols, geotransform [west, ewres, 0, north, 0, -nsres]
     """
     with h5py.File(product_path, "r") as f:
+        if GF not in f:
+            raise ValueError(
+                "Missing '/HDFEOS/SWATHS/HYP/Geolocation Fields'. "
+                "Expected Tanager BASIC product."
+            )
+        if "Planet_Ortho_Framing" not in f[GF].attrs:
+            raise ValueError(
+                "Missing 'Planet_Ortho_Framing' geolocation attribute. "
+                "Expected Tanager BASIC product metadata."
+            )
         meta = f[GF].attrs["Planet_Ortho_Framing"]
         if isinstance(meta, (bytes, bytearray)):
             meta = meta.decode(errors="ignore")

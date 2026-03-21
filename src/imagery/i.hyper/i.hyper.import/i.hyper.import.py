@@ -88,16 +88,20 @@ def import_by_product(product, options, flags):
     path = get_lib_path(modname="i_hyper_lib", libname=module_name)
     if not path:
         gs.fatal(f"Library path for {module_name} not found.")
-    sys.path.append(path)
-    spec = importlib.util.find_spec(module_name)
+    module_file = os.path.join(path, f"{module_name}.py")
+    if not os.path.exists(module_file):
+        gs.fatal(f"Module file not found: {module_file}")
+    if path not in sys.path:
+        sys.path.append(path)
+    spec = importlib.util.spec_from_file_location(module_name, module_file)
     if not spec or not spec.loader:
-        gs.fatal(f"Module {module_name} not found at {path}")
+        gs.fatal(f"Failed to load module spec from {module_file}")
     module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
+    sys.modules[module_name] = module
     try:
         spec.loader.exec_module(module)
     except Exception:
-        sys.modules.pop(spec.name, None)
+        sys.modules.pop(module_name, None)
         raise
     return module
 

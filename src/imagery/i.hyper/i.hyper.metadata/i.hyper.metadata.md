@@ -36,11 +36,42 @@ For `operation=extended`, option `extended_select=` supports:
 - one branch (e.g., `acquisition`)
 - one key path (e.g., `geometry.sun_zenith_deg`)
 - multiple selectors at once (comma-separated), e.g., `acquisition,geometry.sun_zenith_deg,processing`
+- selectors with `extended_metadata.` prefix are also accepted
+  (for example, `extended_metadata.geometry.sun_zenith_deg`)
 
 Dataset provenance is stored in top-level key `derived`:
 
 - `derived=false`: original imported dataset
 - `derived=true`: any dataset created from other dataset(s)
+
+### API (CLI)
+
+Main options:
+
+- `map=`: input `raster_3d` map
+- `operation=`: `summary|full|extended|bands|history|validate`
+- `format=`: `json|text|csv`
+- `resolve_names=`: `yes|no` (for `full` and `history`)
+- `wavelength_range=`: for `operation=bands` (example: `400-700`)
+- `extended_select=`: for `operation=extended` (all/branch/path/multiple)
+
+API examples:
+
+::: code
+
+    # Full metadata as JSON
+    i.hyper.metadata map=my_cube operation=full format=json
+
+    # Bands as CSV in 700-900 nm
+    i.hyper.metadata map=my_cube operation=bands wavelength_range=700-900 format=csv
+
+    # One extended branch
+    i.hyper.metadata map=my_cube operation=extended extended_select=geometry
+
+    # Multiple extended selectors
+    i.hyper.metadata map=my_cube operation=extended \
+      extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
+:::
 
 ### JSON metadata structure
 

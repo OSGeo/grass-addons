@@ -79,23 +79,27 @@ def _import_hyper_meta():
     """Import the hyper_meta module from i_hyper_lib."""
     from grass.script.utils import get_lib_path
     import importlib.util
+    import os
 
     path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
     if not path:
         gs.fatal("Library path for hyper_meta not found.")
+    module_file = os.path.join(path, "hyper_meta.py")
+    if not os.path.exists(module_file):
+        gs.fatal(f"Module file not found: {module_file}")
     if path not in sys.path:
         sys.path.append(path)
 
-    spec = importlib.util.find_spec("hyper_meta")
+    spec = importlib.util.spec_from_file_location("hyper_meta", module_file)
     if not spec or not spec.loader:
-        gs.fatal(f"Module hyper_meta not found at {path}")
+        gs.fatal(f"Failed to load module spec from {module_file}")
 
     module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
+    sys.modules["hyper_meta"] = module
     try:
         spec.loader.exec_module(module)
     except Exception:
-        sys.modules.pop(spec.name, None)
+        sys.modules.pop("hyper_meta", None)
         raise
     return module
 

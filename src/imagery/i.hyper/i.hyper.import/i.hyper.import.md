@@ -59,10 +59,15 @@ SWIR). All temporary rasters are automatically removed after import.
 During import, *i.hyper.import* temporarily adjusts the computational
 region to match the input data, ensuring consistent alignment between
 imported bands. This region setting is temporary and restored at the end
-of processing. The module does not perform any on-the-fly spatial or
-spectral resampling. The imported cube retains the native resolution and
-extent of the input product, but the region settings are not changed
-during import.
+of processing.
+
+Product notes:
+
+- **EnMAP** and **PRISMA** are imported in their native product geometry.
+- **Tanager** currently supports only **BASIC** products
+  (`/HDFEOS/SWATHS/HYP/...`) and uses `Planet_Ortho_Framing` for gridding.
+- Tanager **ortho** products (`/HDFEOS/GRIDS/HYP/...`) are not supported by
+  `i.hyper.import product=tanager` and raise a clear error.
 
 ## EXAMPLES
 

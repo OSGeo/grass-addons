@@ -38,7 +38,7 @@ def _require(cond, msg):
 
 def _resolve_he5(path_like):
     if os.path.isdir(path_like):
-        for n in os.listdir(path_like):
+        for n in sorted(os.listdir(path_like)):
             if n.lower().endswith(".he5"):
                 return os.path.join(path_like, n)
         gs.fatal("No .he5 file found in the provided folder.")

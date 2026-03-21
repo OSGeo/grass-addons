@@ -195,6 +195,25 @@ def parse_dataset_metadata(meta_xml_path):
     }
 
 
+def _find_required_file(folder, suffix):
+    """Return first file (sorted) in folder ending with suffix, or fatal."""
+    try:
+        matches = sorted(
+            [
+                f
+                for f in os.listdir(folder)
+                if f.endswith(suffix) and os.path.isfile(os.path.join(folder, f))
+            ]
+        )
+    except Exception as e:
+        gs.fatal(f"Cannot read EnMAP folder '{folder}': {e}")
+
+    if not matches:
+        gs.fatal(f"Required EnMAP file '*{suffix}' not found in folder: {folder}")
+
+    return os.path.join(folder, matches[0])
+
+
 def find_nearest_band(wavelength, wavelengths):
     return (
         min(range(len(wavelengths)), key=lambda i: abs(wavelengths[i] - wavelength)) + 1
@@ -209,12 +228,8 @@ def import_enmap(
     strength_val=96,
     import_null=False,
 ):
-    tif_path = os.path.join(
-        folder, next(f for f in os.listdir(folder) if f.endswith("SPECTRAL_IMAGE.TIF"))
-    )
-    meta_path = os.path.join(
-        folder, next(f for f in os.listdir(folder) if f.endswith("METADATA.XML"))
-    )
+    tif_path = _find_required_file(folder, "SPECTRAL_IMAGE.TIF")
+    meta_path = _find_required_file(folder, "METADATA.XML")
     dataset_meta = parse_dataset_metadata(meta_path)
     with rasterio.open(tif_path) as src:
         total_bands = src.count

@@ -43,7 +43,11 @@ def _require(cond, msg):
 
 def _resolve_h5(path_like):
     if os.path.isdir(path_like):
-        for n in os.listdir(path_like):
+        try:
+            names = sorted(os.listdir(path_like))
+        except Exception as e:
+            gs.fatal(f"Cannot read folder '{path_like}': {e}")
+        for n in names:
             if n.lower().endswith(".h5"):
                 return os.path.join(path_like, n)
         gs.fatal("No .h5 file found in the provided folder.")
