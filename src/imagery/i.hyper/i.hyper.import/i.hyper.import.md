@@ -27,8 +27,8 @@ The module currently supports the following hyperspectral products:
 During import, the appropriate product library from `i_hyper_lib` is
 automatically loaded (for example, `enmap`, `prisma`, or `tanager`).
 Metadata are parsed, bands are validated, and the resulting 3D raster
-map is created with per-band metadata: **wavelength**, **FWHM**,
-**valid**, and **unit**.
+map is created with band metadata (**wavelength**, **FWHM**, **validity**)
+and scene radiometric metadata (**radiometric_quantity**, **radiometric_units**).
 
 The metadata are used by other *i.hyper.\** modules, so data imported
 with *i.hyper.import* or created with the same metadata structure are
@@ -115,7 +115,7 @@ ASI License to Use.*]{.small}
     i.hyper.import input=/data/EnMAP_data_folder/ \
                    product=enmap \
                    output=enmap \
-                   composites='cir,swir_agriculture'
+                   composites='cir,swir_agriculture' \
                    composites_custom='650,1650,2200'
 :::
 
@@ -131,12 +131,11 @@ EOC of DLR.*]{.small}
 
 ::: code
 
-    # Tanager example with a custom-defined composite
-    # This one has radiance values
+    # Tanager BASIC radiance example
     i.hyper.import input=/data/Tanager.h5 \
                    product=tanager \
                    output=tanager \
-                   composites='rgb' \
+                   composites='rgb'
 :::
 
 :::: {align="center" style="margin: 10px"}
@@ -155,9 +154,9 @@ Imagery](https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.j
 [i.hyper.preproc](i.hyper.preproc.html),
 [i.hyper.explore](i.hyper.explore.html),
 [i.hyper.composite](i.hyper.composite.html),
-[i.hyper.export](i.hyper.export.html)
-[r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html)
-[r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
+[i.hyper.export](i.hyper.export.html),
+[r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html),
+[r3.univar](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
 
 ## DEPENDENCIES
 

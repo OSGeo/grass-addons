@@ -49,7 +49,7 @@
 # %option
 # % key: composites_custom
 # % type: string
-# % description: Wavelenghts for custom composites
+# % description: Wavelengths for custom composites
 # % guisection: Optional
 # %end
 

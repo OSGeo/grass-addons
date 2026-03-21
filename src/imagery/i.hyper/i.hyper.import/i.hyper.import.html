@@ -23,8 +23,9 @@ processing, and analysis in GRASS. It is typically used in combination with
 
 <p>During import, the appropriate product library from <code>i_hyper_lib</code> is automatically loaded
 (for example, <code>enmap</code>, <code>prisma</code>, or <code>tanager</code>).
-Metadata are parsed, bands are validated, and the resulting 3D raster map is created with per-band metadata:
-<b>wavelength</b>, <b>FWHM</b>, <b>valid</b>, and <b>unit</b>.</p>
+Metadata are parsed, bands are validated, and the resulting 3D raster map is created with band metadata
+(<b>wavelength</b>, <b>FWHM</b>, <b>validity</b>) and scene radiometric metadata
+(<b>radiometric_quantity</b>, <b>radiometric_units</b>).</p>
 <p>The metadata are used by other <em>i.hyper.*</em> modules, so data imported with <em>i.hyper.import</em> or created with the same metadata structure are fully compatible across the toolset.</p>
 
 <p>The resulting <code>raster_3d</code> map can be analysed with standard GRASS 3D raster tools
@@ -99,7 +100,7 @@ Generated composite raster: prisma_swir_geology
 i.hyper.import input=/data/EnMAP_data_folder/ \
                product=enmap \
                output=enmap \
-               composites='cir,swir_agriculture'
+               composites='cir,swir_agriculture' \
                composites_custom='650,1650,2200'
 </pre></div>
 
@@ -112,12 +113,11 @@ i.hyper.import input=/data/EnMAP_data_folder/ \
 </div>
 
 <div class="code"><pre>
-# Tanager example with a custom-defined composite
-# This one has radiance values
+# Tanager BASIC radiance example
 i.hyper.import input=/data/Tanager.h5 \
                product=tanager \
                output=tanager \
-               composites='rgb' \
+               composites='rgb'
 </pre></div>
 
 <div align="center" style="margin: 10px">
@@ -134,9 +134,9 @@ i.hyper.import input=/data/Tanager.h5 \
 <a href="i.hyper.preproc.html">i.hyper.preproc</a>,
 <a href="i.hyper.explore.html">i.hyper.explore</a>,
 <a href="i.hyper.composite.html">i.hyper.composite</a>,
-<a href="i.hyper.export.html">i.hyper.export</a>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r3.stats.html">r3.stats</a>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r3.univar.html">r3.stats</a>
+<a href="i.hyper.export.html">i.hyper.export</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.stats.html">r3.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.univar.html">r3.univar</a>
 
 <h2>DEPENDENCIES</h2>
 

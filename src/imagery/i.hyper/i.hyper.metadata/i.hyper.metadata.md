@@ -151,7 +151,7 @@ Legacy compatibility:
 
 For full key mapping and exhaustive inventories from demo products, see:
 
-- `src/imagery/i.hyper/i.hyper.metadata/extended_metadata_unification.md`
+- `extended_metadata_unification.md`
 
 ## EXAMPLES
 
