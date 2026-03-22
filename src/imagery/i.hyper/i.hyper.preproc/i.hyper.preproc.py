@@ -435,76 +435,80 @@ def preprocess_hyperspectral(
         steps.append(dr_method.upper())
     gs.message(" → ".join(steps) if steps else "No operations selected")
 
-    arr_in = garray.array3d(mapname=inp, null="nan", dtype=np.float32)
-    depth, rows, cols = arr_in.shape
-    exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
-    flat = arr_in.reshape(depth, -1).T
+    gs.use_temp_region()
+    try:
+        # Always operate in input cube region (XY and Z) to avoid region-driven
+        # shape mismatches and all-NULL outputs.
+        gs.run_command("g.region", raster_3d=inp, quiet=True)
 
-    flat_filt = flat
-    if polyorder > 0:
-        flat_filt = np.apply_along_axis(
-            _savgol_preserve_nan,
-            1,
-            flat,
-            window_length,
-            polyorder,
-            derivative_order,
-            interpolate_nodata,
-        ).astype(np.float32)
+        arr_in = garray.array3d(mapname=inp, null="nan", dtype=np.float32)
+        depth, rows, cols = arr_in.shape
+        exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
+        flat = arr_in.reshape(depth, -1).T
 
-    if baseline:
-        flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(
-            np.float32
-        )
+        flat_filt = flat
+        if polyorder > 0:
+            flat_filt = np.apply_along_axis(
+                _savgol_preserve_nan,
+                1,
+                flat,
+                window_length,
+                polyorder,
+                derivative_order,
+                interpolate_nodata,
+            ).astype(np.float32)
 
-    if continuum:
-        flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
-            np.float32
-        )
+        if baseline:
+            flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(
+                np.float32
+            )
 
-    if interpolate_nodata:
-        gs.message("Interpolating missing values across spectral bands...")
-        for i in range(flat_filt.shape[0]):
-            row = flat_filt[i, :]
-            if np.isnan(row).any():
-                flat_filt[i, :] = _fill_nans_1d(row)
+        if continuum:
+            flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
+                np.float32
+            )
 
-    if clamp_negative:
-        flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
+        if interpolate_nodata:
+            gs.message("Interpolating missing values across spectral bands...")
+            for i in range(flat_filt.shape[0]):
+                row = flat_filt[i, :]
+                if np.isnan(row).any():
+                    flat_filt[i, :] = _fill_nans_1d(row)
 
-    wavelengths = _get_wavelengths(inp, hyper_meta_class)
-    if dr_bands and wavelengths is None:
-        gs.message("No wavelength metadata found; ignoring dr_bands filter.")
+        if clamp_negative:
+            flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
 
-    dr_info = None
-    if dr_method:
-        flat_filt, dr_info = _apply_dimensionality_reduction(
-            flat_filt,
-            method=dr_method,
-            n_components=dr_components,
-            kernel=dr_kernel,
-            gamma=dr_gamma,
-            degree=dr_degree,
-            bands=dr_bands,
-            wavelengths=wavelengths,
-            export_path=dr_export,
-            chunk_size=dr_chunk_size if dr_chunk_size > 0 else None,
-            memory_limit_gb=8,
-            max_iter=dr_max_iter,
-            tol=dr_tol,
-            alpha=dr_alpha,
-            l1_ratio=dr_l1_ratio,
-            random_state=dr_random_state,
-        )
+        wavelengths = _get_wavelengths(inp, hyper_meta_class)
+        if dr_bands and wavelengths is None:
+            gs.message("No wavelength metadata found; ignoring dr_bands filter.")
 
-    n_bands = flat_filt.shape[1]
-    arr_out = flat_filt.T.reshape(n_bands, rows, cols)
-    arr_out[:, exterior_mask] = np.nan
+        dr_info = None
+        if dr_method:
+            flat_filt, dr_info = _apply_dimensionality_reduction(
+                flat_filt,
+                method=dr_method,
+                n_components=dr_components,
+                kernel=dr_kernel,
+                gamma=dr_gamma,
+                degree=dr_degree,
+                bands=dr_bands,
+                wavelengths=wavelengths,
+                export_path=dr_export,
+                chunk_size=dr_chunk_size if dr_chunk_size > 0 else None,
+                memory_limit_gb=8,
+                max_iter=dr_max_iter,
+                tol=dr_tol,
+                alpha=dr_alpha,
+                l1_ratio=dr_l1_ratio,
+                random_state=dr_random_state,
+            )
 
-    if dr_method:
-        orig_region = gs.region()
-        gs.use_temp_region()
-        try:
+        n_bands = flat_filt.shape[1]
+        arr_out = flat_filt.T.reshape(n_bands, rows, cols)
+        arr_out[:, exterior_mask] = np.nan
+
+        if dr_method:
+            orig_region = gs.region()
             gs.run_command(
                 "g.region",
                 n=orig_region["n"],
@@ -518,41 +522,38 @@ def preprocess_hyperspectral(
                 tbres=1,
                 quiet=True,
             )
-            out_arr = garray.array3d(dtype=np.float32)
-            out_arr[...] = arr_out
-            out_arr.write(mapname=out, null="nan", overwrite=True)
-        finally:
-            gs.del_temp_region()
-    else:
+
         out_arr = garray.array3d(dtype=np.float32)
         out_arr[...] = arr_out
         out_arr.write(mapname=out, null="nan", overwrite=True)
 
-    if dr_method:
-        dr_meta_info = dict(dr_info or {})
-        dr_meta_info.setdefault("n_components", n_bands)
-        _set_dr_metadata(
-            inp,
-            out,
-            dr_method,
-            dr_meta_info,
-            hyper_meta_class=hyper_meta_class,
-        )
-    else:
-        _copy_and_update_hyper_metadata(
-            inp,
-            out,
-            {
-                "polyorder": int(polyorder),
-                "derivative_order": int(derivative_order),
-                "window_length": int(window_length),
-                "baseline": bool(baseline),
-                "continuum": bool(continuum),
-                "interpolate_nodata": bool(interpolate_nodata),
-                "clamp_negative": bool(clamp_negative),
-            },
-            hyper_meta_class,
-        )
+        if dr_method:
+            dr_meta_info = dict(dr_info or {})
+            dr_meta_info.setdefault("n_components", n_bands)
+            _set_dr_metadata(
+                inp,
+                out,
+                dr_method,
+                dr_meta_info,
+                hyper_meta_class=hyper_meta_class,
+            )
+        else:
+            _copy_and_update_hyper_metadata(
+                inp,
+                out,
+                {
+                    "polyorder": int(polyorder),
+                    "derivative_order": int(derivative_order),
+                    "window_length": int(window_length),
+                    "baseline": bool(baseline),
+                    "continuum": bool(continuum),
+                    "interpolate_nodata": bool(interpolate_nodata),
+                    "clamp_negative": bool(clamp_negative),
+                },
+                hyper_meta_class,
+            )
+    finally:
+        gs.del_temp_region()
 
 
 def main():
