@@ -285,28 +285,16 @@ def _to_full_map_name(mapname):
     return f"{mapname}@{mapset}" if mapset else mapname
 
 
-def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_class):
+def _copy_and_update_hyper_metadata(src, dst, cmd_params, hyper_meta_class):
     try:
         meta = hyper_meta_class.load(src)
         src_dataset_id = meta.dataset_id
-        is_components = (
-            (meta.n_components is not None and meta.n_components > 0)
-            or meta.explained_variance_ratio is not None
-            or meta.component_labels is not None
-        )
-        if meta.wavelengths is None and not is_components:
-            return
 
         # Derived dataset gets a new stable identity and its own local history entry.
         meta.dataset_id = hyper_meta_class.new_dataset_id()
         meta.derived = True
         meta.processing_history = []
 
-        cmd_params = {
-            "input": src,
-            "output": dst,
-            **processing_params,
-        }
         command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
         meta.add_history_entry(
             command=command,
@@ -328,7 +316,43 @@ def _copy_and_update_hyper_metadata(src, dst, processing_params, hyper_meta_clas
         gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _set_dr_metadata(inmap, outmap, method, info, hyper_meta_class=None):
+def _set_dr_extended_metadata(meta, method, info, n_components):
+    processing = meta.extended_metadata.setdefault("processing", {})
+    dr_meta = processing.setdefault("dimensionality_reduction", {})
+    name_map = {
+        "pca": "PCA",
+        "kpca": "Kernel PCA",
+        "nystroem": "Nystroem",
+        "fastica": "FastICA",
+        "truncatedsvd": "TruncatedSVD",
+        "nmf": "NMF",
+        "sparsepca": "SparsePCA",
+    }
+
+    dr_meta["method"] = method
+    dr_meta["method_display"] = name_map.get(method, method.upper())
+    dr_meta["n_components"] = int(n_components or 0)
+
+    kernel = info.get("kernel")
+    if kernel is not None:
+        dr_meta["kernel"] = str(kernel)
+    gamma = info.get("gamma")
+    if gamma is not None:
+        dr_meta["gamma"] = float(gamma)
+    degree = info.get("degree")
+    if degree is not None:
+        dr_meta["degree"] = int(degree)
+
+    explained = info.get("explained_variance_ratio")
+    if explained is not None:
+        if hasattr(explained, "tolist"):
+            explained = explained.tolist()
+        explained = [float(v) for v in explained]
+        dr_meta["explained_variance_ratio"] = explained
+        dr_meta["explained_variance_percent"] = [float(v * 100.0) for v in explained]
+
+
+def _set_dr_metadata(inmap, outmap, method, info, cmd_params, hyper_meta_class=None):
     try:
         src_meta = hyper_meta_class.load(inmap)
         explained = info.get("explained_variance_ratio")
@@ -338,21 +362,15 @@ def _set_dr_metadata(inmap, outmap, method, info, hyper_meta_class=None):
         n_components = info.get("n_components")
         if n_components is None:
             n_components = len(explained or [])
+        if n_components is None:
+            n_components = cmd_params.get("dr_components", 0)
 
         meta = hyper_meta_class.for_components(
             n_components=int(n_components or 0),
             explained_variance_ratio=explained,
         )
+        _set_dr_extended_metadata(meta, method, info, n_components)
 
-        cmd_params = {
-            "input": inmap,
-            "output": outmap,
-            "dr_method": method,
-            "dr_components": int(n_components or 0),
-            "dr_kernel": info.get("kernel"),
-            "dr_gamma": info.get("gamma"),
-            "dr_degree": info.get("degree"),
-        }
         command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
         meta.add_history_entry(
             command=command,
@@ -434,6 +452,36 @@ def preprocess_hyperspectral(
     if dr_method:
         steps.append(dr_method.upper())
     gs.message(" → ".join(steps) if steps else "No operations selected")
+
+    metadata_cmd_params = {
+        "input": inp,
+        "output": out,
+        "polyorder": int(polyorder),
+        "derivative_order": int(derivative_order),
+        "window_length": int(window_length),
+        "baseline": bool(baseline),
+        "continuum": bool(continuum),
+        "interpolate_nodata": bool(interpolate_nodata),
+        "clamp_negative": bool(clamp_negative),
+    }
+    if dr_method:
+        metadata_cmd_params.update(
+            {
+                "dr_method": dr_method,
+                "dr_components": int(dr_components),
+                "dr_kernel": dr_kernel,
+                "dr_gamma": float(dr_gamma),
+                "dr_degree": int(dr_degree),
+                "dr_bands": dr_bands,
+                "dr_export": dr_export,
+                "dr_chunk_size": int(dr_chunk_size),
+                "dr_max_iter": int(dr_max_iter),
+                "dr_tol": float(dr_tol),
+                "dr_alpha": float(dr_alpha),
+                "dr_l1_ratio": float(dr_l1_ratio),
+                "dr_random_state": int(dr_random_state),
+            }
+        )
 
     gs.use_temp_region()
     try:
@@ -535,21 +583,14 @@ def preprocess_hyperspectral(
                 out,
                 dr_method,
                 dr_meta_info,
+                metadata_cmd_params,
                 hyper_meta_class=hyper_meta_class,
             )
         else:
             _copy_and_update_hyper_metadata(
                 inp,
                 out,
-                {
-                    "polyorder": int(polyorder),
-                    "derivative_order": int(derivative_order),
-                    "window_length": int(window_length),
-                    "baseline": bool(baseline),
-                    "continuum": bool(continuum),
-                    "interpolate_nodata": bool(interpolate_nodata),
-                    "clamp_negative": bool(clamp_negative),
-                },
+                metadata_cmd_params,
                 hyper_meta_class,
             )
     finally:
