@@ -26,10 +26,10 @@ Reference basis:
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
 |---|---|---|---|---|---|
-| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` | `min(Time/time)` | all products | ISO-8601 UTC |
-| `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | `max(Time/time)` | all products | supplementary |
-| `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean/center latitude map | all products | decimal degrees |
-| `acquisition.center_longitude_deg` | center point longitude | `Product_center_long` | mean/center longitude map | all products | decimal degrees |
+| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | ISO-8601 UTC |
+| `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | valid max of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | supplementary |
+| `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean lat map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
+| `acquisition.center_longitude_deg` | center point longitude | `Product_center_long` | mean lon map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
 | `acquisition.day_of_year` | derived | derived | derived | all products | integer 1..366 |
 | `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | all products | core |
 | `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` | `Sun_azimuth_angle` | map mean `sun_azimuth` | all products | core |
@@ -56,7 +56,7 @@ Reference basis:
 |---|---|---|---|---|---|
 | `quality.cloudy_pixels_percent` | `qualityFlag/cloudCover` | `Cloudy_pixels_percentage` | not found | two products | unified cloud fraction metric |
 | `quality.quality_atmosphere_flag` | `qualityFlag/qualityAtmosphere` | `L2d_Quality_flags` | not found | two products | semantics differ by product |
-| `radiometry.valid_band_mask` | `expectedChannelsList` + `missingChannelsList` | `List_Cw_Vnir_Flags` + `List_Cw_Swir_Flags` | `good_wavelengths` | all products | per-band validity vector |
+| `radiometry.valid_band_mask` | `expectedChannelsList` + `missingChannelsList` | `List_Cw_Vnir_Flags` + `List_Cw_Swir_Flags` | `good_wavelengths` (SR) or derived validity (basic radiance) | all products | per-band validity vector |
 | `radiometry.valid_band_count` | derived from valid mask | derived from valid mask | derived from valid mask | all products | integer count of valid bands |
 | `processing.processor_version` | `archivedVersion` | `Processor_Version` (or `L1_Processor_Version`) | not found | two products | processing provenance |
 | `quality.coverage_percent.cloud` | `cloudCover` | `Cloudy_pixels_percentage` | derived from cloud mask if needed | all products | percent of scene |
@@ -97,7 +97,7 @@ Keep only keys that support derivation/provenance for A+B. Avoid dumping full en
 - map names/refs for: `aerosol_optical_depth`, `column_water_vapour`
 - map names/refs for: `surface_reflectance_uncertainty`
 - quality masks present flags: `beta_cloud_mask`, `beta_cirrus_mask`, `nodata_pixels`
-- provenance attrs: `created_at`, `strip_id`, `epsg_code`
+- provenance attrs: `created_at`, `strip_id`, optional `epsg_code`
 
 ## D. Recommended `hyper.json` Representation Notes
 - Geometry keys are scalar scene summaries in degrees.
@@ -112,6 +112,7 @@ Keep only keys that support derivation/provenance for A+B. Avoid dumping full en
 - For `quality.coverage_percent.*`, use percent in `[0,100]`.
 - For `quality.mask_layers`, store map names and/or boolean availability flags.
 - Keep all timestamps in ISO-8601 UTC.
+- For time maps, ignore fill/nodata values before min/max or summary statistics.
 
 ## E. Explicitly Out Of Scope For This Spec
 - Full raw metadata inventories (all XML/HDF paths and all engineering telemetry keys).
@@ -127,8 +128,8 @@ This section defines unified keys for atmospheric-correction metadata.
 
 | Concept | Unified key | Product availability | Source examples |
 |---|---|---|---|
-| Acquisition time | `acquisition.start_time_utc` | all products | EnMAP `datatakeStart`, PRISMA `Product_StartTime`, Tanager `Time/time` |
-| Scene center lat/lon | `acquisition.center_latitude_deg`, `acquisition.center_longitude_deg` | all products | EnMAP spatial center, PRISMA `Product_center_*`, Tanager lat/lon maps |
+| Acquisition time | `acquisition.start_time_utc` | all products | EnMAP `datatakeStart`, PRISMA `Product_StartTime`, Tanager valid min of `Data Fields/time` (GRIDS) or `Geolocation Fields/Time` (SWATHS) |
+| Scene center lat/lon | `acquisition.center_latitude_deg`, `acquisition.center_longitude_deg` | all products | EnMAP spatial center, PRISMA `Product_center_*`, Tanager lat/lon maps (SWATHS) or map-grid+EPSG derivation (GRIDS) |
 | Day of year | `acquisition.day_of_year` | all products (derived) | derived from acquisition time |
 | Sun zenith / azimuth | `geometry.sun_zenith_deg`, `geometry.sun_azimuth_deg` | all products | product geometry fields/maps |
 | View zenith / azimuth | `geometry.view_zenith_deg`, `geometry.view_azimuth_deg` | all products (azimuth may be derived) | EnMAP scene angle or viewing angle, PRISMA geometric maps, Tanager sensor maps |
@@ -197,6 +198,6 @@ This allows downstream tools to distinguish scene-uniform assumptions from spati
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
 |---|---|---|---|---|---|
-| `acquisition.line_time_summary` | from `frameTime` sequence | from geolocation `Time` | from geolocation/time map | all products | store compact stats only (min/max/step/count) |
+| `acquisition.line_time_summary` | from `frameTime` sequence | from geolocation `Time` | from geolocation/time map (filter fill/nodata where present) | all products | store compact stats only (min/max/step/count) |
 | `geometry.jitter_summary` | from `jitter` sequence | not found | not found | single product | optional EnMAP stability summary |
 | `radiometry.applied_radiometric_coefficients` | not found | not found | `applied_radiometric_coefficients` | single product | optional provenance for radiance scaling |

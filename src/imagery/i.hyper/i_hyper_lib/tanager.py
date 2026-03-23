@@ -13,7 +13,9 @@ Tanager BASIC → GRASS
 import os
 import uuid
 import shlex
+from datetime import datetime, timezone
 import numpy as np
+import h5py
 import grass.script as gs
 import grass.script.array as garray
 from grass.pygrass.modules import Module
@@ -67,6 +69,302 @@ def _write_float_raster(name, data_2d_float32):
     arr = garray.array(dtype=np.float32)
     arr[:, :] = data_2d_float32
     arr.write(name, null="nan", overwrite=True)  # NaNs -> NULLs
+
+
+def _decode_text(value):
+    if value is None:
+        return None
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            return value.decode("utf-8", errors="ignore")
+        except Exception:
+            return str(value)
+    if isinstance(value, np.ndarray):
+        if value.ndim == 0:
+            return _decode_text(value.item())
+        if value.dtype.kind in ("S", "U"):
+            return [str(_decode_text(x)) for x in value.tolist()]
+        return value.tolist()
+    return str(value) if isinstance(value, (np.str_,)) else value
+
+
+def _to_iso_utc(text):
+    if text is None:
+        return None
+    value = str(_decode_text(text)).strip()
+    if not value:
+        return None
+    if value.endswith("Z"):
+        return value
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _day_of_year(iso_text):
+    if not iso_text:
+        return None
+    text = str(iso_text).strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timetuple().tm_yday)
+
+
+def _relative_azimuth(sun_azimuth, view_azimuth):
+    if sun_azimuth is None or view_azimuth is None:
+        return None
+    return abs((float(view_azimuth) - float(sun_azimuth) + 180.0) % 360.0 - 180.0)
+
+
+def _to_int(value):
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _to_iso_from_epoch(value):
+    if value is None:
+        return None
+    try:
+        fv = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(fv) or fv <= 0:
+        return None
+    # Planet/Tanager time fields are Unix seconds in available samples.
+    if fv < 1e8 or fv > 1e11:
+        return None
+    return datetime.fromtimestamp(fv, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _line_time_summary(values):
+    vals = np.asarray(values).ravel()
+    vals = vals[np.isfinite(vals)]
+    vals = vals[vals > 0]
+    if vals.size == 0:
+        return None
+    vals = np.sort(vals.astype(np.float64, copy=False))
+    diffs = np.diff(vals) if vals.size > 1 else np.array([], dtype=np.float64)
+    diffs = diffs[np.isfinite(diffs)]
+    return {
+        "count": int(vals.size),
+        "min": _to_iso_from_epoch(vals[0]) or float(vals[0]),
+        "max": _to_iso_from_epoch(vals[-1]) or float(vals[-1]),
+        "step_seconds": float(np.nanmean(diffs)) if diffs.size else None,
+    }
+
+
+def _mean_dataset(h5obj, path, nodata_mask=None):
+    if path not in h5obj:
+        return None
+    ds = h5obj[path]
+    arr = np.asarray(ds[()], dtype=np.float64)
+    valid = np.isfinite(arr)
+    fill = ds.attrs.get("_FillValue") if hasattr(ds, "attrs") else None
+    if fill is not None:
+        valid &= arr != float(fill)
+    if nodata_mask is not None and nodata_mask.shape == arr.shape:
+        valid &= ~nodata_mask
+    vals = arr[valid]
+    if vals.size == 0:
+        return None
+    return float(np.nanmean(vals))
+
+
+def _coverage_percent(mask_arr, nodata_mask=None):
+    if mask_arr is None:
+        return None
+    arr = np.asarray(mask_arr)
+    if arr.size == 0:
+        return None
+    valid = np.isfinite(arr)
+    if nodata_mask is not None and nodata_mask.shape == arr.shape:
+        valid &= ~nodata_mask
+    vals = arr[valid]
+    if vals.size == 0:
+        return None
+    return float(np.mean(vals.astype(np.float64) > 0) * 100.0)
+
+
+def _populate_tanager_extended_metadata(
+    meta,
+    h5_path,
+    prod,
+    wavelengths_meta,
+    fwhm_meta,
+    validity_meta,
+):
+    with h5py.File(h5_path, "r") as f:
+        if "/HDFEOS/SWATHS/HYP" in f:
+            root = "/HDFEOS/SWATHS/HYP"
+        elif "/HDFEOS/GRIDS/HYP" in f:
+            root = "/HDFEOS/GRIDS/HYP"
+        else:
+            return
+
+        data_group = f"{root}/Data Fields"
+        geo_group = f"{root}/Geolocation Fields"
+
+        created_at = _to_iso_utc(f[root].attrs.get("created_at"))
+        strip_id = _decode_text(f[root].attrs.get("strip_id"))
+        epsg_code = _to_int(f[root].attrs.get("epsg_code"))
+
+        nodata_mask = None
+        nodata_path = f"{data_group}/nodata_pixels"
+        if nodata_path in f:
+            nodata_mask = np.asarray(f[nodata_path][()]) > 0
+
+        time_path = None
+        if f"{data_group}/time" in f:
+            time_path = f"{data_group}/time"
+        elif f"{geo_group}/Time" in f:
+            time_path = f"{geo_group}/Time"
+
+        start_time = None
+        end_time = None
+        line_time = None
+        if time_path is not None:
+            tds = f[time_path]
+            tarr = np.asarray(tds[()], dtype=np.float64)
+            valid = np.isfinite(tarr)
+            fill = tds.attrs.get("_FillValue") if hasattr(tds, "attrs") else None
+            if fill is not None:
+                valid &= tarr != float(fill)
+            if nodata_mask is not None and nodata_mask.shape == tarr.shape:
+                valid &= ~nodata_mask
+            valid &= tarr > 0
+            tvals = tarr[valid]
+            if tvals.size > 0:
+                tmin = float(np.min(tvals))
+                tmax = float(np.max(tvals))
+                start_time = _to_iso_from_epoch(tmin)
+                end_time = _to_iso_from_epoch(tmax)
+                line_time = _line_time_summary(tvals)
+
+        if start_time:
+            meta.acquisition_datetime = start_time
+
+        center_lat = None
+        center_lon = None
+        if getattr(prod, "lat", None) is not None and getattr(prod, "lon", None) is not None:
+            lat = np.asarray(prod.lat, dtype=np.float64)
+            lon = np.asarray(prod.lon, dtype=np.float64)
+            vlat = np.isfinite(lat)
+            vlon = np.isfinite(lon)
+            if nodata_mask is not None and nodata_mask.shape == lat.shape:
+                vlat &= ~nodata_mask
+                vlon &= ~nodata_mask
+            if np.any(vlat):
+                center_lat = float(np.nanmean(lat[vlat]))
+            if np.any(vlon):
+                center_lon = float(np.nanmean(lon[vlon]))
+
+        sun_zenith = _mean_dataset(f, f"{data_group}/sun_zenith", nodata_mask=nodata_mask)
+        sun_azimuth = _mean_dataset(f, f"{data_group}/sun_azimuth", nodata_mask=nodata_mask)
+        view_zenith = _mean_dataset(f, f"{data_group}/sensor_zenith", nodata_mask=nodata_mask)
+        view_azimuth = _mean_dataset(f, f"{data_group}/sensor_azimuth", nodata_mask=nodata_mask)
+        rel_azimuth = _relative_azimuth(sun_azimuth, view_azimuth)
+
+        aod_mean = _mean_dataset(
+            f, f"{data_group}/aerosol_optical_depth", nodata_mask=nodata_mask
+        )
+        h2o_mean = _mean_dataset(
+            f, f"{data_group}/column_water_vapour", nodata_mask=nodata_mask
+        )
+
+        cloud_mask = np.asarray(f[f"{data_group}/beta_cloud_mask"][()]) if f"{data_group}/beta_cloud_mask" in f else None
+        cirrus_mask = np.asarray(f[f"{data_group}/beta_cirrus_mask"][()]) if f"{data_group}/beta_cirrus_mask" in f else None
+
+        cloud_pct = _coverage_percent(cloud_mask, nodata_mask=nodata_mask)
+        cirrus_pct = _coverage_percent(cirrus_mask, nodata_mask=nodata_mask)
+
+        uncertainty_present = f"{data_group}/surface_reflectance_uncertainty" in f
+
+        applied_coeffs = None
+        if f"{data_group}/toa_radiance" in f:
+            ds_rad = f[f"{data_group}/toa_radiance"]
+            if "applied_radiometric_coefficients" in ds_rad.attrs:
+                applied_coeffs = np.asarray(
+                    ds_rad.attrs["applied_radiometric_coefficients"]
+                ).tolist()
+
+        meta.set_extended_value("acquisition.start_time_utc", start_time)
+        meta.set_extended_value("acquisition.end_time_utc", end_time)
+        meta.set_extended_value("acquisition.center_latitude_deg", center_lat)
+        meta.set_extended_value("acquisition.center_longitude_deg", center_lon)
+        meta.set_extended_value("acquisition.day_of_year", _day_of_year(start_time))
+        meta.set_extended_value("acquisition.line_time_summary", line_time)
+
+        meta.set_extended_value("geometry.sun_zenith_deg", sun_zenith)
+        meta.set_extended_value("geometry.sun_azimuth_deg", sun_azimuth)
+        meta.set_extended_value("geometry.view_zenith_deg", view_zenith)
+        meta.set_extended_value("geometry.view_azimuth_deg", view_azimuth)
+        meta.set_extended_value("geometry.relative_azimuth_deg", rel_azimuth)
+
+        meta.set_extended_value("radiometry.quantity", getattr(prod, "data_field", None))
+        meta.set_extended_value("radiometry.units", getattr(prod, "data_units", None))
+        meta.set_extended_value("radiometry.wavelengths_nm", wavelengths_meta)
+        meta.set_extended_value("radiometry.fwhm_nm", fwhm_meta)
+        mask = [1 if bool(v) else 0 for v in validity_meta]
+        meta.set_extended_value("radiometry.valid_band_mask", mask)
+        meta.set_extended_value("radiometry.valid_band_count", int(sum(mask)))
+        meta.set_extended_value("radiometry.applied_radiometric_coefficients", applied_coeffs)
+
+        if aod_mean is not None:
+            meta.set_extended_form_value(
+                "atmosphere.aod_550",
+                value=aod_mean,
+                form="map_mean",
+                source="aerosol_optical_depth",
+            )
+        if h2o_mean is not None:
+            meta.set_extended_form_value(
+                "atmosphere.h2o_g_cm2",
+                value=h2o_mean,
+                form="map_mean",
+                source="column_water_vapour",
+            )
+
+        meta.set_extended_value("quality.coverage_percent.cloud", cloud_pct)
+        meta.set_extended_value("quality.coverage_percent.cirrus", cirrus_pct)
+        meta.set_extended_value(
+            "quality.mask_layers",
+            {
+                "beta_cloud_mask": f"{data_group}/beta_cloud_mask" in f,
+                "beta_cirrus_mask": f"{data_group}/beta_cirrus_mask" in f,
+                "nodata_pixels": nodata_path in f,
+            },
+        )
+
+        meta.set_extended_value("processing.processing_datetime_utc", created_at)
+        meta.set_extended_value("uncertainty.reflectance_uncertainty_present", bool(uncertainty_present))
+
+        meta.set_extended_value("tanager.map_refs.sun_zenith", f"{data_group}/sun_zenith" if f"{data_group}/sun_zenith" in f else None)
+        meta.set_extended_value("tanager.map_refs.sun_azimuth", f"{data_group}/sun_azimuth" if f"{data_group}/sun_azimuth" in f else None)
+        meta.set_extended_value("tanager.map_refs.sensor_zenith", f"{data_group}/sensor_zenith" if f"{data_group}/sensor_zenith" in f else None)
+        meta.set_extended_value("tanager.map_refs.sensor_azimuth", f"{data_group}/sensor_azimuth" if f"{data_group}/sensor_azimuth" in f else None)
+        meta.set_extended_value("tanager.map_refs.aerosol_optical_depth", f"{data_group}/aerosol_optical_depth" if f"{data_group}/aerosol_optical_depth" in f else None)
+        meta.set_extended_value("tanager.map_refs.column_water_vapour", f"{data_group}/column_water_vapour" if f"{data_group}/column_water_vapour" in f else None)
+        meta.set_extended_value("tanager.map_refs.surface_reflectance_uncertainty", f"{data_group}/surface_reflectance_uncertainty" if f"{data_group}/surface_reflectance_uncertainty" in f else None)
+        meta.set_extended_value("tanager.quality_masks.beta_cloud_mask", f"{data_group}/beta_cloud_mask" in f)
+        meta.set_extended_value("tanager.quality_masks.beta_cirrus_mask", f"{data_group}/beta_cirrus_mask" in f)
+        meta.set_extended_value("tanager.quality_masks.nodata_pixels", nodata_path in f)
+        meta.set_extended_value("tanager.created_at", created_at)
+        meta.set_extended_value("tanager.strip_id", strip_id)
+        meta.set_extended_value("tanager.epsg_code", epsg_code)
 
 
 # -------------------------- core --------------------------
@@ -224,6 +522,15 @@ def import_tanager(
                 radiometric_units=getattr(prod, "data_units", None),
             )
             meta.set_validity(validity_meta)
+
+            _populate_tanager_extended_metadata(
+                meta=meta,
+                h5_path=h5,
+                prod=prod,
+                wavelengths_meta=wavelengths_meta,
+                fwhm_meta=fwhm_meta,
+                validity_meta=validity_meta,
+            )
 
             mapset = gs.gisenv().get("MAPSET", "")
             out_full = (

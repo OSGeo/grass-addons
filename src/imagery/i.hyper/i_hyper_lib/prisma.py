@@ -14,7 +14,9 @@ Requires: prisma_reader.{load_prisma_l2d, concatenate_hyperspectral}
 import os
 import uuid
 import shlex
+from datetime import datetime, timezone
 import numpy as np
+import h5py
 import grass.script as gs
 import grass.script.array as garray
 from grass.pygrass.modules import Module
@@ -52,6 +54,256 @@ def _find_nearest_band_1based(target_nm, wavelengths_nm):
 
 def _temp_name(prefix):
     return f"{prefix}_{uuid.uuid4().hex[:8]}"
+
+
+def _to_float(value):
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _decode_text(value):
+    if value is None:
+        return None
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            return value.decode("utf-8", errors="ignore")
+        except Exception:
+            return str(value)
+    if isinstance(value, np.ndarray):
+        if value.ndim == 0:
+            return _decode_text(value.item())
+        if value.dtype.kind in ("S", "U"):
+            return [str(_decode_text(x)) for x in value.tolist()]
+        return value.tolist()
+    return str(value) if isinstance(value, (np.str_,)) else value
+
+
+def _to_iso_utc(text):
+    if text is None:
+        return None
+    value = str(_decode_text(text)).strip()
+    if not value:
+        return None
+    if value.endswith("Z"):
+        return value
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _day_of_year(iso_text):
+    if not iso_text:
+        return None
+    text = str(iso_text).strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timetuple().tm_yday)
+
+
+def _mean_dataset(h5obj, path):
+    if path not in h5obj:
+        return None
+    arr = np.asarray(h5obj[path][()]).astype(np.float64, copy=False)
+    finite = arr[np.isfinite(arr)]
+    if finite.size == 0:
+        return None
+    return float(np.nanmean(finite))
+
+
+def _line_time_summary(arr):
+    vals = np.asarray(arr).ravel()
+    vals = vals[np.isfinite(vals)]
+    if vals.size == 0:
+        return None
+    vals = np.sort(vals.astype(np.float64, copy=False))
+    if vals.size > 1:
+        diffs = np.diff(vals)
+        diffs = diffs[np.isfinite(diffs)]
+        step = float(np.nanmean(diffs)) if diffs.size else None
+    else:
+        step = None
+    return {
+        "count": int(vals.size),
+        "min": float(vals[0]),
+        "max": float(vals[-1]),
+        "step": step,
+    }
+
+
+def _populate_prisma_extended_metadata(
+    meta,
+    he5_path,
+    prod,
+    wavelengths_meta,
+    fwhm_meta,
+    validity_meta,
+):
+    attrs = getattr(prod, "attrs", {}) or {}
+
+    start_time = _to_iso_utc(attrs.get("Product_StartTime"))
+    end_time = _to_iso_utc(attrs.get("Product_StopTime"))
+    center_lat = _to_float(attrs.get("Product_center_lat"))
+    center_lon = _to_float(attrs.get("Product_center_long"))
+    sun_zenith = _to_float(attrs.get("Sun_zenith_angle"))
+    sun_azimuth = _to_float(attrs.get("Sun_azimuth_angle"))
+
+    observing_mean = None
+    rel_azimuth_mean = None
+    line_time = None
+    uncertainty_present = False
+
+    with h5py.File(he5_path, "r") as f:
+        observing_mean = _mean_dataset(
+            f,
+            "/HDFEOS/SWATHS/PRS_L2D_HCO/Geometric Fields/Observing_Angle",
+        )
+        rel_azimuth_mean = _mean_dataset(
+            f,
+            "/HDFEOS/SWATHS/PRS_L2D_HCO/Geometric Fields/Rel_Azimuth_Angle",
+        )
+        if "/HDFEOS/SWATHS/PRS_L2D_HCO/Geolocation Fields/Time" in f:
+            line_time = _line_time_summary(
+                f["/HDFEOS/SWATHS/PRS_L2D_HCO/Geolocation Fields/Time"][()]
+            )
+        uncertainty_present = any(
+            p in f
+            for p in (
+                "/HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/VNIR_PIXEL_L2_ERR_MATRIX",
+                "/HDFEOS/SWATHS/PRS_L2D_HCO/Data Fields/SWIR_PIXEL_L2_ERR_MATRIX",
+                "/HDFEOS/SWATHS/PRS_L2D_PCO/Data Fields/PIXEL_L2_ERR_MATRIX",
+            )
+        )
+
+    view_azimuth = None
+    if sun_azimuth is not None and rel_azimuth_mean is not None:
+        view_azimuth = float((sun_azimuth + rel_azimuth_mean) % 360.0)
+
+    vmin = _to_float(attrs.get("L2ScaleVnirMin"))
+    vmax = _to_float(attrs.get("L2ScaleVnirMax"))
+    smin = _to_float(attrs.get("L2ScaleSwirMin"))
+    smax = _to_float(attrs.get("L2ScaleSwirMax"))
+    pmin = _to_float(attrs.get("L2ScalePanMin"))
+    pmax = _to_float(attrs.get("L2ScalePanMax"))
+
+    scale = {}
+    if vmin is not None and vmax is not None:
+        scale["vnir"] = (vmax - vmin) / 65535.0
+    if smin is not None and smax is not None:
+        scale["swir"] = (smax - smin) / 65535.0
+    if pmin is not None and pmax is not None:
+        scale["pan"] = (pmax - pmin) / 65535.0
+
+    offset = {}
+    if vmin is not None:
+        offset["vnir"] = vmin
+    if smin is not None:
+        offset["swir"] = smin
+    if pmin is not None:
+        offset["pan"] = pmin
+
+    cloud_pct = _to_float(attrs.get("Cloudy_pixels_percentage"))
+    quality_atm = _decode_text(attrs.get("L2d_Quality_flags"))
+    processing_dt = _to_iso_utc(attrs.get("Processing_Time"))
+    processor_name = _decode_text(attrs.get("Processor_Name"))
+    processor_version = _decode_text(attrs.get("Processor_Version"))
+    l1_processor_version = _decode_text(attrs.get("L1_Processor_Version"))
+
+    meta.set_extended_value("acquisition.start_time_utc", start_time)
+    meta.set_extended_value("acquisition.end_time_utc", end_time)
+    meta.set_extended_value("acquisition.center_latitude_deg", center_lat)
+    meta.set_extended_value("acquisition.center_longitude_deg", center_lon)
+    meta.set_extended_value("acquisition.day_of_year", _day_of_year(start_time))
+    meta.set_extended_value("acquisition.line_time_summary", line_time)
+
+    meta.set_extended_value("geometry.sun_zenith_deg", sun_zenith)
+    meta.set_extended_value("geometry.sun_azimuth_deg", sun_azimuth)
+    meta.set_extended_value("geometry.view_zenith_deg", observing_mean)
+    meta.set_extended_value("geometry.view_azimuth_deg", view_azimuth)
+    meta.set_extended_value("geometry.relative_azimuth_deg", rel_azimuth_mean)
+
+    meta.set_extended_value("radiometry.quantity", "surface_reflectance")
+    meta.set_extended_value("radiometry.units", "unitless")
+    if scale:
+        meta.set_extended_value("radiometry.scale", scale)
+    if offset:
+        meta.set_extended_value("radiometry.offset", offset)
+    meta.set_extended_value("radiometry.wavelengths_nm", wavelengths_meta)
+    meta.set_extended_value("radiometry.fwhm_nm", fwhm_meta)
+    mask = [1 if bool(v) else 0 for v in validity_meta]
+    meta.set_extended_value("radiometry.valid_band_mask", mask)
+    meta.set_extended_value("radiometry.valid_band_count", int(sum(mask)))
+
+    meta.set_extended_value("atmosphere.atmosphere_model", _decode_text(attrs.get("Atmo_profile_info")))
+
+    meta.set_extended_value("quality.cloudy_pixels_percent", cloud_pct)
+    meta.set_extended_value("quality.quality_atmosphere_flag", quality_atm)
+    meta.set_extended_value("quality.coverage_percent.cloud", cloud_pct)
+
+    meta.set_extended_value(
+        "processing.processor_version",
+        processor_version or l1_processor_version,
+    )
+    meta.set_extended_value("processing.processing_datetime_utc", processing_dt)
+    meta.set_extended_value("processing.rtm_engine", _decode_text(attrs.get("Atmo_RTM_info")))
+    meta.set_extended_value("processing.lut_version", _decode_text(attrs.get("Atm_Lut_version")))
+    if processor_name or processor_version:
+        meta.set_extended_value(
+            "processing.software",
+            {
+                "name": processor_name,
+                "version": processor_version,
+            },
+        )
+    aux_sun_dist = _decode_text(attrs.get("Aux_SunEarthDistance"))
+    aux_sun_irr = _decode_text(attrs.get("Aux_SunIrradiance"))
+    if aux_sun_dist is not None or aux_sun_irr is not None:
+        meta.set_extended_value(
+            "processing.aux_solar_refs",
+            {
+                "sun_earth_distance": aux_sun_dist,
+                "sun_irradiance": aux_sun_irr,
+            },
+        )
+
+    meta.set_extended_value("uncertainty.reflectance_uncertainty_present", bool(uncertainty_present))
+
+    for key in (
+        "Atm_LutGeomInfo_RelativeAzimuth",
+        "Atm_LutGeomInfo_SunZenith",
+        "Atm_LutGeomInfo_ViewZenith",
+        "Atmo_profile_info",
+        "Atmo_RTM_info",
+        "Atm_Lut_version",
+        "Aux_SunEarthDistance",
+        "Aux_SunIrradiance",
+        "Processor_Name",
+        "Processor_Version",
+        "Processing_Time",
+        "Sun_azimuth_angle",
+        "Sun_zenith_angle",
+        "Product_StartTime",
+        "Product_StopTime",
+        "Product_center_lat",
+        "Product_center_long",
+        "Cloudy_pixels_percentage",
+        "L2d_Quality_flags",
+    ):
+        if key in attrs:
+            meta.set_extended_value(f"prisma.{key}", _decode_text(attrs.get(key)))
 
 
 # -------------------------- region --------------------------
@@ -277,14 +529,26 @@ def import_prisma(
                 fwhm_meta = fwhm.tolist() if fwhm is not None else None
                 validity_meta = [True] * len(wavelengths_meta)
 
+            acquisition_datetime = _to_iso_utc(prod.attrs.get("Product_StartTime"))
+
             meta = HyperMetadata.for_spectral_data(
                 wavelengths=wavelengths_meta,
                 fwhm=fwhm_meta,
                 sensor="PRISMA",
                 radiometric_quantity="surface_reflectance",
                 radiometric_units="unitless",
+                acquisition_datetime=acquisition_datetime,
             )
             meta.set_validity(validity_meta)
+
+            _populate_prisma_extended_metadata(
+                meta=meta,
+                he5_path=he5,
+                prod=prod,
+                wavelengths_meta=wavelengths_meta,
+                fwhm_meta=fwhm_meta,
+                validity_meta=validity_meta,
+            )
 
             mapset = gs.gisenv().get("MAPSET", "")
             out_full = (

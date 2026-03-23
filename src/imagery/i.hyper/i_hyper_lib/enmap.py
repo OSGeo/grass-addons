@@ -4,6 +4,7 @@ import os
 import xml.etree.ElementTree as ET
 import math
 import shlex
+from datetime import datetime, timezone
 import rasterio
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -42,6 +43,136 @@ def _first_nonempty_text(root, paths):
 
 def _first_float(root, paths):
     return _to_float(_first_nonempty_text(root, paths))
+
+
+def _to_int(value):
+    if value is None:
+        return None
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _to_iso_utc(text):
+    if text is None:
+        return None
+    value = str(text).strip()
+    if not value:
+        return None
+    if value.endswith("Z"):
+        return value
+    try:
+        dt = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _day_of_year(iso_text):
+    if not iso_text:
+        return None
+    text = str(iso_text).strip()
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return int(dt.timetuple().tm_yday)
+
+
+def _relative_azimuth(sun_azimuth, view_azimuth):
+    if sun_azimuth is None or view_azimuth is None:
+        return None
+    diff = abs((float(view_azimuth) - float(sun_azimuth) + 180.0) % 360.0 - 180.0)
+    return diff
+
+
+def _to_int_list(text):
+    if text is None:
+        return []
+    out = []
+    for item in str(text).split(","):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            out.append(int(item))
+        except ValueError:
+            continue
+    return out
+
+
+def _enmap_center_latlon(root):
+    point_paths = [
+        ".//specific/spatialCoverageOfOrthoScene/boundingPolygon/point",
+        ".//base/spatialCoverage/boundingPolygon/point",
+        ".//specific/spatialCoverageOfDatatake/boundingPolygon/point",
+    ]
+    for ppath in point_paths:
+        points = root.findall(ppath)
+        coords = []
+        for point in points:
+            lat = _to_float(point.findtext("latitude"))
+            lon = _to_float(point.findtext("longitude"))
+            if lat is not None and lon is not None:
+                coords.append((lat, lon))
+        if not coords:
+            continue
+        # Prefer first four polygon corners; this avoids closure and auxiliary points.
+        sample = coords[:4] if len(coords) >= 4 else coords
+        lats = [c[0] for c in sample]
+        lons = [c[1] for c in sample]
+        return mean(lats), mean(lons)
+    return None, None
+
+
+def _enmap_line_time_summary(root):
+    vals = []
+    for node in root.findall(".//product/time//frameTime"):
+        iso = _to_iso_utc(node.text)
+        if not iso:
+            continue
+        txt = iso[:-1] + "+00:00" if iso.endswith("Z") else iso
+        try:
+            vals.append(datetime.fromisoformat(txt).astimezone(timezone.utc))
+        except ValueError:
+            continue
+    if not vals:
+        return None
+    vals.sort()
+    steps = []
+    for a, b in zip(vals, vals[1:]):
+        delta = (b - a).total_seconds()
+        if delta >= 0:
+            steps.append(delta)
+    return {
+        "count": len(vals),
+        "min": vals[0].isoformat().replace("+00:00", "Z"),
+        "max": vals[-1].isoformat().replace("+00:00", "Z"),
+        "step_seconds": (sum(steps) / len(steps)) if steps else None,
+    }
+
+
+def _enmap_jitter_summary(root):
+    vals = []
+    for node in root.findall(".//product/time//jitter"):
+        val = _to_float(node.text)
+        if val is not None:
+            vals.append(val)
+    if not vals:
+        return None
+    return {
+        "count": len(vals),
+        "min": min(vals),
+        "max": max(vals),
+        "mean": sum(vals) / float(len(vals)),
+    }
 
 
 @contextlib.contextmanager
@@ -115,13 +246,15 @@ def parse_dataset_metadata(meta_xml_path):
     tree = ET.parse(meta_xml_path)
     root = tree.getroot()
 
-    acquisition_datetime = _first_nonempty_text(
-        root,
-        [
-            ".//datatakeStart",
-            ".//temporalCoverage/startTime",
-            ".//startTime",
-        ],
+    acquisition_datetime = _to_iso_utc(
+        _first_nonempty_text(
+            root,
+            [
+                ".//datatakeStart",
+                ".//temporalCoverage/startTime",
+                ".//startTime",
+            ],
+        )
     )
 
     sun_elevation = _first_float(
@@ -193,6 +326,214 @@ def parse_dataset_metadata(meta_xml_path):
         "satellite_zenith_angle": satellite_zenith_angle,
         "satellite_azimuth_angle": satellite_azimuth_angle,
     }
+
+
+def _populate_enmap_extended_metadata(
+    meta,
+    meta_xml_path,
+    band_meta,
+    band_indices,
+    validity_mask,
+):
+    tree = ET.parse(meta_xml_path)
+    root = tree.getroot()
+
+    start_time = _to_iso_utc(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/datatakeStart",
+                ".//datatakeStart",
+                ".//base/temporalCoverage/startTime",
+                ".//temporalCoverage/startTime",
+                ".//startTime",
+            ],
+        )
+    )
+    end_time = _to_iso_utc(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/datatakeStop",
+                ".//datatakeStop",
+                ".//base/temporalCoverage/stopTime",
+                ".//temporalCoverage/stopTime",
+                ".//stopTime",
+            ],
+        )
+    )
+
+    center_lat, center_lon = _enmap_center_latlon(root)
+
+    sun_elevation = _first_float(root, [".//sunElevationAngle/center", ".//sunElevationAngle"])
+    sun_zenith = 90.0 - sun_elevation if sun_elevation is not None else None
+    sun_azimuth = _first_float(root, [".//sunAzimuthAngle/center", ".//sunAzimuthAngle"])
+
+    view_azimuth = _first_float(
+        root,
+        [
+            ".//sceneAzimuthAngle/center",
+            ".//sceneAzimuthAngle",
+            ".//satelliteAzimuthAngle/center",
+            ".//satelliteAzimuthAngle",
+            ".//viewAzimuthAngle/center",
+            ".//viewAzimuthAngle",
+        ],
+    )
+
+    view_zenith = _first_float(
+        root,
+        [
+            ".//satelliteZenithAngle/center",
+            ".//satelliteZenithAngle",
+            ".//viewZenithAngle/center",
+            ".//viewZenithAngle",
+            ".//offNadirAngle/center",
+            ".//offNadirAngle",
+        ],
+    )
+    if view_zenith is None:
+        across = _first_float(root, [".//acrossOffNadirAngle/center", ".//acrossOffNadirAngle"])
+        along = _first_float(root, [".//alongOffNadirAngle/center", ".//alongOffNadirAngle"])
+        if across is not None and along is not None:
+            view_zenith = math.hypot(across, along)
+        elif across is not None:
+            view_zenith = abs(across)
+        elif along is not None:
+            view_zenith = abs(along)
+
+    relative_azimuth = _relative_azimuth(sun_azimuth, view_azimuth)
+    sensor_altitude = _first_float(root, [".//base/altitudeCoverage", ".//altitudeCoverage"])
+
+    processing_dt = _to_iso_utc(
+        _first_nonempty_text(root, [".//specific/processingDateTime", ".//processingDateTime"])
+    )
+    archived_version = _first_nonempty_text(root, [".//base/archivedVersion", ".//archivedVersion"])
+
+    scene_aot = _first_float(root, [".//specific/qualityFlag/sceneAOT", ".//qualityFlag/sceneAOT", ".//sceneAOT"])
+    scene_wv = _first_float(root, [".//specific/qualityFlag/sceneWV", ".//qualityFlag/sceneWV", ".//sceneWV"])
+    ozone_du = _first_float(root, [".//processing/ozoneValue", ".//ozoneValue"])
+
+    cloud_cover = _first_float(root, [".//specific/qualityFlag/cloudCover", ".//qualityFlag/cloudCover", ".//cloudCover"])
+    cirrus_cover = _first_float(root, [".//specific/qualityFlag/cirrusCover", ".//qualityFlag/cirrusCover", ".//cirrusCover"])
+    haze_cover = _first_float(root, [".//specific/qualityFlag/hazeCover", ".//qualityFlag/hazeCover", ".//hazeCover"])
+    snow_cover = _first_float(root, [".//specific/qualityFlag/snowCover", ".//qualityFlag/snowCover", ".//snowCover"])
+    water_cover = _first_float(root, [".//specific/qualityFlag/waterCover", ".//qualityFlag/waterCover", ".//waterCover"])
+    cloud_shadow = _first_float(root, [".//specific/qualityFlag/cloudShadow", ".//qualityFlag/cloudShadow", ".//cloudShadow"])
+    noncloud_shadow = _first_float(root, [".//specific/qualityFlag/noncloudShadow", ".//qualityFlag/noncloudShadow", ".//noncloudShadow"])
+    sunglint = _first_float(root, [".//specific/qualityFlag/sceneSunglint", ".//qualityFlag/sceneSunglint", ".//sceneSunglint"])
+
+    quality_atm_text = _first_nonempty_text(
+        root,
+        [
+            ".//specific/qualityFlag/qualityAtmosphere",
+            ".//qualityFlag/qualityAtmosphere",
+            ".//qualityAtmosphere",
+        ],
+    )
+    quality_atm = _to_int(quality_atm_text)
+    if quality_atm is None:
+        quality_atm = quality_atm_text
+
+    cirrus_haze_removal = _first_nonempty_text(root, [".//processing/cirrusHazeRemoval", ".//cirrusHazeRemoval"])
+    water_type = _first_nonempty_text(root, [".//processing/waterType", ".//waterType"])
+
+    expected_vnir = _to_int_list(root.findtext(".//vnirProductQuality/expectedChannelsList"))
+    expected_swir = _to_int_list(root.findtext(".//swirProductQuality/expectedChannelsList"))
+    missing_vnir = _to_int_list(root.findtext(".//vnirProductQuality/missingChannelsList"))
+    missing_swir = _to_int_list(root.findtext(".//swirProductQuality/missingChannelsList"))
+
+    line_time_summary = _enmap_line_time_summary(root)
+    jitter_summary = _enmap_jitter_summary(root)
+
+    band_indices = list(band_indices or [])
+    validity_mask = [bool(v) for v in (validity_mask or [])]
+    radiometry_scale = [band_meta[b].get("gain") for b in band_indices]
+    radiometry_offset = [band_meta[b].get("offset") for b in band_indices]
+    radiometry_wl = [band_meta[b].get("wavelength") for b in band_indices]
+    radiometry_fwhm = [band_meta[b].get("fwhm") for b in band_indices]
+
+    meta.set_extended_value("acquisition.start_time_utc", start_time)
+    meta.set_extended_value("acquisition.end_time_utc", end_time)
+    meta.set_extended_value("acquisition.center_latitude_deg", center_lat)
+    meta.set_extended_value("acquisition.center_longitude_deg", center_lon)
+    meta.set_extended_value("acquisition.day_of_year", _day_of_year(start_time))
+    meta.set_extended_value("acquisition.line_time_summary", line_time_summary)
+
+    meta.set_extended_value("geometry.sun_zenith_deg", sun_zenith)
+    meta.set_extended_value("geometry.sun_azimuth_deg", sun_azimuth)
+    meta.set_extended_value("geometry.view_zenith_deg", view_zenith)
+    meta.set_extended_value("geometry.view_azimuth_deg", view_azimuth)
+    meta.set_extended_value("geometry.relative_azimuth_deg", relative_azimuth)
+    meta.set_extended_value("geometry.sensor_altitude_m", sensor_altitude)
+    meta.set_extended_value("geometry.jitter_summary", jitter_summary)
+
+    meta.set_extended_value("radiometry.quantity", "surface_reflectance")
+    meta.set_extended_value("radiometry.units", "unitless")
+    meta.set_extended_value("radiometry.scale", radiometry_scale)
+    meta.set_extended_value("radiometry.offset", radiometry_offset)
+    meta.set_extended_value("radiometry.wavelengths_nm", radiometry_wl)
+    meta.set_extended_value("radiometry.fwhm_nm", radiometry_fwhm)
+    meta.set_extended_value("radiometry.valid_band_mask", [1 if v else 0 for v in validity_mask])
+    meta.set_extended_value("radiometry.valid_band_count", int(sum(validity_mask)))
+
+    if scene_aot is not None:
+        meta.set_extended_form_value(
+            "atmosphere.aod_550",
+            value=float(scene_aot) / 1000.0,
+            form="scalar",
+            source="qualityFlag/sceneAOT",
+        )
+    if scene_wv is not None:
+        meta.set_extended_form_value(
+            "atmosphere.h2o_g_cm2",
+            value=float(scene_wv) / 1000.0,
+            form="scalar",
+            source="qualityFlag/sceneWV",
+        )
+    meta.set_extended_value("atmosphere.ozone_du", ozone_du)
+
+    meta.set_extended_value("quality.cloudy_pixels_percent", cloud_cover)
+    meta.set_extended_value("quality.quality_atmosphere_flag", quality_atm)
+    meta.set_extended_value("quality.coverage_percent.cloud", cloud_cover)
+    meta.set_extended_value("quality.coverage_percent.cirrus", cirrus_cover)
+    meta.set_extended_value("quality.coverage_percent.haze", haze_cover)
+    meta.set_extended_value("quality.coverage_percent.snow", snow_cover)
+    meta.set_extended_value("quality.coverage_percent.water", water_cover)
+    meta.set_extended_value("quality.coverage_percent.cloud_shadow", cloud_shadow)
+    meta.set_extended_value("quality.coverage_percent.noncloud_shadow", noncloud_shadow)
+    meta.set_extended_value("quality.coverage_percent.sunglint", sunglint)
+    if root.find(".//product/quicklook") is not None:
+        meta.set_extended_value("quality.mask_layers", {"quicklook": True})
+
+    meta.set_extended_value("processing.processor_version", archived_version)
+    meta.set_extended_value("processing.processing_datetime_utc", processing_dt)
+    meta.set_extended_value("processing.cirrus_haze_removal", cirrus_haze_removal)
+
+    if water_type is not None:
+        meta.set_extended_value("quality.water_type", water_type)
+
+    meta.set_extended_value("uncertainty.reflectance_uncertainty_present", False)
+
+    meta.set_extended_value("enmap.processing.cirrusHazeRemoval", cirrus_haze_removal)
+    meta.set_extended_value("enmap.processing.waterType", water_type)
+    meta.set_extended_value("enmap.qualityFlag.cloudCover", cloud_cover)
+    meta.set_extended_value("enmap.qualityFlag.cirrusCover", cirrus_cover)
+    meta.set_extended_value("enmap.qualityFlag.hazeCover", haze_cover)
+    meta.set_extended_value("enmap.qualityFlag.snowCover", snow_cover)
+    meta.set_extended_value("enmap.qualityFlag.waterCover", water_cover)
+    meta.set_extended_value("enmap.qualityFlag.cloudShadow", cloud_shadow)
+    meta.set_extended_value("enmap.qualityFlag.noncloudShadow", noncloud_shadow)
+    meta.set_extended_value("enmap.qualityFlag.sceneSunglint", sunglint)
+    meta.set_extended_value("enmap.qualityFlag.qualityAtmosphere", quality_atm)
+    meta.set_extended_value("enmap.qualityFlag.sceneAOT", scene_aot)
+    meta.set_extended_value("enmap.qualityFlag.sceneWV", scene_wv)
+    meta.set_extended_value("enmap.base.archivedVersion", archived_version)
+    meta.set_extended_value("enmap.specific.processingDateTime", processing_dt)
+    meta.set_extended_value("enmap.vnirProductQuality.expectedChannelsList", expected_vnir)
+    meta.set_extended_value("enmap.vnirProductQuality.missingChannelsList", missing_vnir)
+    meta.set_extended_value("enmap.swirProductQuality.expectedChannelsList", expected_swir)
+    meta.set_extended_value("enmap.swirProductQuality.missingChannelsList", missing_swir)
 
 
 def _find_required_file(folder, suffix):
@@ -438,6 +779,15 @@ def import_enmap(
                 satellite_azimuth_angle=dataset_meta.get("satellite_azimuth_angle"),
             )
             meta.set_validity(validity_meta)
+
+            selected_bands = source_bands if import_null else valid_bands
+            _populate_enmap_extended_metadata(
+                meta=meta,
+                meta_xml_path=meta_path,
+                band_meta=band_meta,
+                band_indices=selected_bands,
+                validity_mask=validity_meta,
+            )
 
             mapset = gs.gisenv().get("MAPSET", "")
             out_full = f"{output}@{mapset}" if mapset and "@" not in output else output

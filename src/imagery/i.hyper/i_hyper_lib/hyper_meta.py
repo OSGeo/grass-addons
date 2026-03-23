@@ -721,6 +721,59 @@ class HyperMetadata:
         scene_geometry = scene.setdefault("geometry", {})
         scene_geometry.update(geometry)
 
+    def set_extended_value(
+        self,
+        key_path: str,
+        value: Any,
+        *,
+        skip_none: bool = True,
+    ) -> None:
+        """Set one extended metadata value by dotted path."""
+        if skip_none and value is None:
+            return
+        parts = [p for p in str(key_path).split(".") if p]
+        if not parts:
+            return
+        node = self.extended_metadata
+        for part in parts[:-1]:
+            child = node.get(part)
+            if not isinstance(child, dict):
+                child = {}
+                node[part] = child
+            node = child
+        node[parts[-1]] = value
+
+    def set_extended_form_value(
+        self,
+        key_path: str,
+        *,
+        value: Any = None,
+        form: Optional[str] = None,
+        source: Optional[str] = None,
+    ) -> None:
+        """Set `<key>.value/.form/.source` triplet for map-vs-scalar fields."""
+        self.set_extended_value(f"{key_path}.value", value, skip_none=True)
+        self.set_extended_value(f"{key_path}.form", form, skip_none=True)
+        self.set_extended_value(f"{key_path}.source", source, skip_none=True)
+
+    def merge_extended_metadata(self, payload: dict[str, Any]) -> None:
+        """Deep-merge extended metadata payload, skipping None leaf values."""
+        if not isinstance(payload, dict):
+            return
+
+        def merge(dst: dict[str, Any], src: dict[str, Any]) -> None:
+            for key, value in src.items():
+                if isinstance(value, dict):
+                    child = dst.get(key)
+                    if not isinstance(child, dict):
+                        child = {}
+                        dst[key] = child
+                    merge(child, value)
+                elif value is not None:
+                    dst[key] = value
+
+        merge(self.extended_metadata, payload)
+
     # ---------- Dataset graph helpers ----------
 
     @classmethod
