@@ -262,8 +262,8 @@ def main(options, flags):
                         "All layers specified in 'retain' must also be listed "
                         "in 'maps'. If the layer does exist in your maps list, "
                         "check that the mapset name matches (e.g., 'layer@mapset' "
-                        "vs 'layer').".format(retain_map)
-                    )
+                        "vs 'layer')."
+                    ).format(retain_map)
                 )
     input_map_names = [i.split("@")[0] for i in input_maps]
     retain_map_names = [i.split("@")[0] for i in retain_maps]
