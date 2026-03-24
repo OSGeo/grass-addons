@@ -52,6 +52,13 @@ Imported datasets are written with metadata key `derived=false`. Datasets
 produced later by processing modules (for example *i.hyper.preproc*) are
 written as `derived=true`.
 
+Extended metadata are written under unified branches
+(`extended_metadata.acquisition`, `geometry`, `radiometry`, `atmosphere`,
+`quality`, `processing`, `uncertainty`) and product-native provenance
+branches (`extended_metadata.enmap`, `prisma`, `tanager`). Unified and
+product-native keys may contain the same value when a unified key is
+derived directly from a source product key.
+
 When the *composites* option is used, predefined or custom band
 combinations are exported as 2D raster composites (e.g., RGB, CIR,
 SWIR). All temporary rasters are automatically removed after import.

@@ -120,9 +120,9 @@ Additional product and correction metadata are stored in `extended_metadata`.
     "quality": { "...": "..." },
     "processing": { "...": "..." },
     "uncertainty": { "...": "..." },
-    "enmap": { "...": "raw product-specific keys" },
-    "prisma": { "...": "raw product-specific keys" },
-    "tanager": { "...": "raw product-specific keys" }
+    "enmap": { "...": "product-native provenance keys" },
+    "prisma": { "...": "product-native provenance keys" },
+    "tanager": { "...": "product-native provenance keys" }
   }
 }
 :::
@@ -145,11 +145,15 @@ Product-specific branches:
 - `prisma`
 - `tanager`
 
+Unified branches store cross-product keys. Product-specific branches store
+source product keys used to derive unified values (provenance).
+The same value may appear in both locations by design.
+
 Legacy compatibility:
 
 - older imports may still use `extended_metadata.scene.geometry`
 
-For full key mapping and exhaustive inventories from demo products, see:
+For key mapping and provenance rules, see:
 
 - `extended_metadata_unification.md`
 

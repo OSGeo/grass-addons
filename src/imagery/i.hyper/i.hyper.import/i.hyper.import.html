@@ -45,6 +45,8 @@ without adding all-NULL bands to the output cube.</p>
 Datasets produced later by processing modules (for example
 <em>i.hyper.preproc</em>) are written as <code>derived=true</code>.</p>
 
+<p>Extended metadata are written under unified branches (<code>extended_metadata.acquisition</code>, <code>geometry</code>, <code>radiometry</code>, <code>atmosphere</code>, <code>quality</code>, <code>processing</code>, <code>uncertainty</code>) and product-native provenance branches (<code>extended_metadata.enmap</code>, <code>prisma</code>, <code>tanager</code>). Unified and product-native keys may contain the same value when a unified key is derived directly from a source product key.</p>
+
 <p>When the <em>composites</em> option is used, predefined or custom band combinations
 are exported as 2D raster composites (e.g., RGB, CIR, SWIR).
 All temporary rasters are automatically removed after import.</p>
