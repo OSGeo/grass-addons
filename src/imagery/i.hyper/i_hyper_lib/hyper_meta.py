@@ -12,6 +12,7 @@ Provides:
 
 from __future__ import annotations
 
+import copy
 import json
 import shlex
 import uuid
@@ -75,6 +76,9 @@ class HyperMetadata:
 
     # Extensibility
     extended_metadata: dict[str, Any] = field(default_factory=dict)
+
+    # Snapshots of all input datasets (direct + recursive ancestors), keyed by dataset_id.
+    input_datasets_metadata: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     # ---------- Path resolution ----------
 
@@ -203,6 +207,10 @@ class HyperMetadata:
             )
             ext = data.get("extended_metadata", {})
             meta.extended_metadata = ext if isinstance(ext, dict) else {}
+            input_meta = data.get("input_datasets_metadata", {})
+            meta.input_datasets_metadata = (
+                input_meta if isinstance(input_meta, dict) else {}
+            )
             cls._set_scene_geometry(
                 meta.extended_metadata,
                 solar_zenith_angle=data.get("solar_zenith_angle"),
@@ -255,6 +263,10 @@ class HyperMetadata:
         )
         ext = data.get("extended_metadata", {})
         meta.extended_metadata = ext if isinstance(ext, dict) else {}
+        input_meta = data.get("input_datasets_metadata", {})
+        meta.input_datasets_metadata = (
+            input_meta if isinstance(input_meta, dict) else {}
+        )
         cls._set_scene_geometry(
             meta.extended_metadata,
             solar_zenith_angle=ds.get("solar_zenith_angle"),
@@ -315,6 +327,23 @@ class HyperMetadata:
             self.processing_history
         )
 
+        self.input_datasets_metadata = {}
+        if self._is_derived_from_history(self.processing_history):
+            try:
+                dataset_index, _ = self.discover_dataset_index()
+                snapshots, missing_ids = self.collect_input_datasets_metadata(
+                    {"processing_history": self.processing_history},
+                    dataset_index,
+                )
+                self.input_datasets_metadata = snapshots
+                if missing_ids:
+                    joined = ", ".join(missing_ids)
+                    gs.warning(
+                        f"Input dataset metadata snapshots not found for dataset_id(s): {joined}"
+                    )
+            except Exception as error:
+                gs.warning(f"Failed to collect input dataset metadata snapshots: {error}")
+
         region = self._get_region_json(map_name, mapset) if save_region else self.region
         self.region = region
 
@@ -335,7 +364,11 @@ class HyperMetadata:
                 self.processing_history
             ),
             "extended_metadata": self.extended_metadata,
+            "input_datasets_metadata": self.input_datasets_metadata,
         }
+
+        if not self.input_datasets_metadata:
+            data.pop("input_datasets_metadata", None)
 
         # Band arrays
         if self.n_bands_source is not None:
@@ -847,6 +880,51 @@ class HyperMetadata:
         return out
 
     @classmethod
+    def collect_input_datasets_metadata(
+        cls,
+        root_data: dict[str, Any],
+        dataset_index: dict[str, dict[str, Any]],
+    ) -> tuple[dict[str, dict[str, Any]], list[str]]:
+        """Collect full metadata snapshots for all input datasets recursively."""
+        snapshots: dict[str, dict[str, Any]] = {}
+        missing_ids: set[str] = set()
+        visited_dataset_ids: set[str] = set()
+
+        def visit_dataset(dataset_id: Optional[str]) -> None:
+            if not dataset_id or dataset_id in visited_dataset_ids:
+                return
+            visited_dataset_ids.add(dataset_id)
+
+            record = dataset_index.get(dataset_id)
+            if not record:
+                missing_ids.add(dataset_id)
+                return
+
+            data = record.get("data")
+            if not isinstance(data, dict):
+                missing_ids.add(dataset_id)
+                return
+
+            snapshot = copy.deepcopy(data)
+            snapshot.pop("input_datasets_metadata", None)
+            snapshots[dataset_id] = snapshot
+
+            for step in snapshot.get("processing_history", []) or []:
+                if not isinstance(step, dict):
+                    continue
+                for inp in cls._normalize_io_refs(step.get("inputs") or []):
+                    visit_dataset(inp.get("id"))
+
+        for step in root_data.get("processing_history", []) or []:
+            if not isinstance(step, dict):
+                continue
+            for inp in cls._normalize_io_refs(step.get("inputs") or []):
+                visit_dataset(inp.get("id"))
+
+        ordered = {dataset_id: snapshots[dataset_id] for dataset_id in sorted(snapshots)}
+        return ordered, sorted(missing_ids)
+
+    @classmethod
     def collect_aggregated_history(
         cls,
         root_data: dict[str, Any],
@@ -857,6 +935,9 @@ class HyperMetadata:
         following inputs[].id references.
         """
         root_id = root_data.get("dataset_id")
+        embedded_snapshots = root_data.get("input_datasets_metadata")
+        if not isinstance(embedded_snapshots, dict):
+            embedded_snapshots = {}
         visited_dataset_ids = set()
         collected = []
         order = 0
@@ -868,11 +949,12 @@ class HyperMetadata:
             visited_dataset_ids.add(dataset_id)
 
             record = dataset_index.get(dataset_id)
-            data = (
-                record["data"]
-                if record
-                else (root_data if dataset_id == root_id else None)
-            )
+            if record:
+                data = record["data"]
+            elif dataset_id == root_id:
+                data = root_data
+            else:
+                data = embedded_snapshots.get(dataset_id)
             if data is None:
                 return
 
@@ -1024,6 +1106,21 @@ class HyperMetadata:
         except Exception as exc:
             issues.append(f"Could not validate raster depth with r3.info: {exc}")
 
+        input_datasets_metadata = raw_data.get("input_datasets_metadata")
+        embedded_snapshot_ids = set()
+        if input_datasets_metadata is not None and not isinstance(input_datasets_metadata, dict):
+            issues.append("input_datasets_metadata must be an object keyed by dataset_id")
+        elif isinstance(input_datasets_metadata, dict):
+            for dsid, snapshot in input_datasets_metadata.items():
+                embedded_snapshot_ids.add(str(dsid))
+                if not isinstance(snapshot, dict):
+                    issues.append(f"input_datasets_metadata[{dsid}] must be an object")
+                    continue
+                if "input_datasets_metadata" in snapshot:
+                    issues.append(
+                        f"input_datasets_metadata[{dsid}] must not contain nested input_datasets_metadata"
+                    )
+
         aggregated = cls.collect_aggregated_history(raw_data, dataset_index)
         producer_counts = {}
         referenced_input_ids = set()
@@ -1056,7 +1153,7 @@ class HyperMetadata:
                 )
 
         for input_id in sorted(referenced_input_ids):
-            if input_id not in dataset_index and input_id not in producer_counts:
+            if input_id not in dataset_index and input_id not in producer_counts and input_id not in embedded_snapshot_ids:
                 issues.append(
                     f"Input dataset_id '{input_id}' cannot be resolved in current LOCATION"
                 )

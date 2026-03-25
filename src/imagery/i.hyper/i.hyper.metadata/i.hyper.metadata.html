@@ -13,7 +13,7 @@ Supported operations:
   <li><code>full</code>: full metadata object for current dataset</li>
   <li><code>extended</code>: selected <code>extended_metadata</code> only (all, branch, key path, or multiple selectors)</li>
   <li><code>bands</code>: list source bands (optionally filtered by wavelength range)</li>
-  <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp</li>
+  <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp (uses <code>input_datasets_metadata</code> snapshots when referenced inputs are unavailable in current LOCATION)</li>
   <li><code>validate</code>: metadata and lineage consistency checks</li>
 </ul>
 
@@ -112,6 +112,9 @@ Additional product and correction metadata are stored in <code>extended_metadata
       "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
     }
   ],
+  "input_datasets_metadata": {
+    "43b042696578492095397fd343f43b47": { "...": "full parent metadata snapshot" }
+  },
   "extended_metadata": {
     "acquisition": { "...": "..." },
     "geometry": { "...": "..." },
@@ -135,6 +138,7 @@ Additional product and correction metadata are stored in <code>extended_metadata
     <code>atmosphere</code>, <code>quality</code>, <code>processing</code>, <code>uncertainty</code></li>
   <li>Product-specific branches:
     <code>enmap</code>, <code>prisma</code>, <code>tanager</code></li>
+  <li>For derived datasets, top-level <code>input_datasets_metadata</code> stores full metadata snapshots for all input datasets recursively to origin, keyed by <code>dataset_id</code>. Embedded snapshots exclude nested <code>input_datasets_metadata</code>. <code>operation=history</code> uses these snapshots when referenced input metadata are unavailable in the current LOCATION.</li>
   <li>Unified branches store cross-product keys. Product-specific branches store source product keys used to derive unified values (provenance). The same value may appear in both locations by design.</li>
   <li>Legacy compatibility: older imports may still use <code>extended_metadata.scene.geometry</code></li>
 </ul>

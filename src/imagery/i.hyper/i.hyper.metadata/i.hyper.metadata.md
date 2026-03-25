@@ -18,7 +18,7 @@ Supported operations:
 - `full`: full metadata object for current dataset
 - `extended`: selected `extended_metadata` only (all, branch, key path, or multiple selectors)
 - `bands`: list source bands (optionally filtered by wavelength range)
-- `history`: recursive aggregated lineage history, ordered by timestamp
+- `history`: recursive aggregated lineage history, ordered by timestamp (uses `input_datasets_metadata` snapshots when referenced inputs are unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
 
 Output format (`format`) is global for all operations:
@@ -112,6 +112,9 @@ Additional product and correction metadata are stored in `extended_metadata`.
       "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
     }
   ],
+  "input_datasets_metadata": {
+    "43b042696578492095397fd343f43b47": { "...": "full parent metadata snapshot" }
+  },
   "extended_metadata": {
     "acquisition": { "...": "..." },
     "geometry": { "...": "..." },
@@ -144,6 +147,12 @@ Product-specific branches:
 - `enmap`
 - `prisma`
 - `tanager`
+
+For derived datasets, top-level `input_datasets_metadata` stores full metadata
+snapshots for all input datasets recursively to origin, keyed by `dataset_id`.
+Embedded snapshots exclude nested `input_datasets_metadata`.
+`operation=history` uses these snapshots when referenced input metadata are
+unavailable in the current LOCATION.
 
 Unified branches store cross-product keys. Product-specific branches store
 source product keys used to derive unified values (provenance).
