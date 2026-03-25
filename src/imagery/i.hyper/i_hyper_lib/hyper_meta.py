@@ -211,6 +211,10 @@ class HyperMetadata:
             meta.input_datasets_metadata = (
                 input_meta if isinstance(input_meta, dict) else {}
             )
+            if meta.acquisition_datetime is None:
+                acquisition = meta.extended_metadata.get("acquisition", {})
+                if isinstance(acquisition, dict):
+                    meta.acquisition_datetime = acquisition.get("start_time_utc")
             cls._set_scene_geometry(
                 meta.extended_metadata,
                 solar_zenith_angle=data.get("solar_zenith_angle"),
@@ -267,6 +271,10 @@ class HyperMetadata:
         meta.input_datasets_metadata = (
             input_meta if isinstance(input_meta, dict) else {}
         )
+        if meta.acquisition_datetime is None:
+            acquisition = meta.extended_metadata.get("acquisition", {})
+            if isinstance(acquisition, dict):
+                meta.acquisition_datetime = acquisition.get("start_time_utc")
         cls._set_scene_geometry(
             meta.extended_metadata,
             solar_zenith_angle=ds.get("solar_zenith_angle"),
@@ -327,6 +335,8 @@ class HyperMetadata:
             self.processing_history
         )
 
+        self.set_extended_value("acquisition.start_time_utc", self.acquisition_datetime)
+
         self.input_datasets_metadata = {}
         if self._is_derived_from_history(self.processing_history):
             try:
@@ -357,7 +367,6 @@ class HyperMetadata:
             "wavelength_units": self.wavelength_units,
             "radiometric_quantity": self.radiometric_quantity,
             "radiometric_units": self.radiometric_units,
-            "acquisition_datetime": self.acquisition_datetime,
             "region": self.region,
             "bands": {},
             "processing_history": self._normalize_history_entries(
@@ -981,6 +990,13 @@ class HyperMetadata:
         wavelengths = [
             w for w in (bands.get("wavelength") or []) if isinstance(w, (int, float))
         ]
+        acquisition_datetime = data.get("acquisition_datetime")
+        if acquisition_datetime is None:
+            ext = data.get("extended_metadata", {})
+            if isinstance(ext, dict):
+                acquisition = ext.get("acquisition", {})
+                if isinstance(acquisition, dict):
+                    acquisition_datetime = acquisition.get("start_time_utc")
         return {
             "schema_version": data.get("schema_version"),
             "dataset_id": data.get("dataset_id"),
@@ -992,7 +1008,7 @@ class HyperMetadata:
             "wavelength_units": data.get("wavelength_units"),
             "radiometric_quantity": data.get("radiometric_quantity"),
             "radiometric_units": data.get("radiometric_units"),
-            "acquisition_datetime": data.get("acquisition_datetime"),
+            "acquisition_datetime": acquisition_datetime,
             "wavelength_min": min(wavelengths) if wavelengths else None,
             "wavelength_max": max(wavelengths) if wavelengths else None,
             "processing_steps_local": len(data.get("processing_history", []) or []),

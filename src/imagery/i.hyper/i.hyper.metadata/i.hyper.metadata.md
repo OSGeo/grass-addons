@@ -88,7 +88,6 @@ Additional product and correction metadata are stored in `extended_metadata`.
   "wavelength_units": "nm",
   "radiometric_quantity": "surface_reflectance",
   "radiometric_units": "unitless",
-  "acquisition_datetime": "2024-06-20T10:18:39.026423Z",
   "region": {
     "north": 2615535,
     "south": 2581725,
@@ -116,7 +115,7 @@ Additional product and correction metadata are stored in `extended_metadata`.
     "43b042696578492095397fd343f43b47": { "...": "full parent metadata snapshot" }
   },
   "extended_metadata": {
-    "acquisition": { "...": "..." },
+    "acquisition": { "start_time_utc": "2024-06-20T10:18:39.026423Z", "...": "..." },
     "geometry": { "...": "..." },
     "radiometry": { "...": "..." },
     "atmosphere": { "...": "..." },
