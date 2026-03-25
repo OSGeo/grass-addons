@@ -75,59 +75,53 @@ i.hyper.metadata map=my_cube operation=extended \
 
 <h3>JSON metadata structure</h3>
 
-Core dataset fields are stored at the top level in <code>hyper.json</code>.
-Additional product and correction metadata are stored in <code>extended_metadata</code>.
+<p>Imported datasets store full dataset description at top level.
+Derived datasets store mandatory provenance keys and only local overrides.</p>
 
 <div class="code"><pre>
 {
   "schema_version": "1.0",
-  "dataset_id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d",
-  "derived": false,
-  "data_type": "spectral",
-  "sensor": "EnMAP",
-  "wavelength_units": "nm",
-  "radiometric_quantity": "surface_reflectance",
-  "radiometric_units": "unitless",
-  "region": {
-    "north": 2615535,
-    "south": 2581725,
-    "west": 4705605,
-    "east": 4743495,
-    "top": 2445.3,
-    "bottom": 418.416
-  },
-  "bands": {
-    "count": 250,
-    "count_valid": 167,
-    "wavelength": [ ... ],
-    "fwhm": [ ... ],
-    "validity": [true, true, false, ...]
-  },
+  "dataset_id": "5bc6cb5c55b44993afeb78f2da5c8ccf",
+  "derived": true,
   "processing_history": [
     {
-      "command": "i.hyper.import input=/data/... product=enmap output=enmap -n",
-      "timestamp": "2026-03-18T11:25:39.596678",
-      "inputs": [],
-      "outputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}]
+      "command": "i.hyper.preproc input=enmap output=enmap_sg steps=sav_gol window_length=7 polyorder=3",
+      "timestamp": "2026-03-25T12:41:05.281173",
+      "inputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}],
+      "outputs": [{"id": "5bc6cb5c55b44993afeb78f2da5c8ccf", "map_name": "enmap_sg@PERMANENT"}]
     }
   ],
   "input_datasets_metadata": {
-    "43b042696578492095397fd343f43b47": { "...": "full parent metadata snapshot" }
-  },
-  "extended_metadata": {
-    "acquisition": { "start_time_utc": "2024-06-20T10:18:39.026423Z", "...": "..." },
-    "geometry": { "...": "..." },
-    "radiometry": { "...": "..." },
-    "atmosphere": { "...": "..." },
-    "quality": { "...": "..." },
-    "processing": { "...": "..." },
-    "uncertainty": { "...": "..." },
-    "enmap": { "...": "product-native provenance keys" },
-    "prisma": { "...": "product-native provenance keys" },
-    "tanager": { "...": "product-native provenance keys" }
+    "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d": { "...": "full parent metadata snapshot" }
   }
 }
 </pre></div>
+
+<p>Derived dataset required top-level keys:</p>
+<ul>
+  <li><code>schema_version</code></li>
+  <li><code>dataset_id</code></li>
+  <li><code>derived</code></li>
+  <li><code>processing_history</code></li>
+</ul>
+
+<p>Optional local override keys in derived datasets:</p>
+<ul>
+  <li><code>data_type</code></li>
+  <li><code>sensor</code></li>
+  <li><code>wavelength_units</code></li>
+  <li><code>radiometric_quantity</code></li>
+  <li><code>radiometric_units</code></li>
+  <li><code>region</code></li>
+  <li><code>bands</code></li>
+  <li><code>extended_metadata</code></li>
+</ul>
+
+<p>Inheritance rule:</p>
+<ul>
+  <li>if an optional key is missing in a derived dataset, value is inherited through lineage</li>
+  <li>for multiple direct inputs, value is inherited only when all direct inputs resolve to the same value</li>
+</ul>
 
 <h3>Extended Metadata Branches</h3>
 

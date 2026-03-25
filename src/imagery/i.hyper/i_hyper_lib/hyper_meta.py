@@ -166,15 +166,70 @@ class HyperMetadata:
 
         # New schema (top-level dataset fields)
         if "dataset" not in data:
-            meta.data_type = str(data.get("data_type") or "spectral")
-            meta.sensor = data.get("sensor")
-            meta.wavelength_units = data.get("wavelength_units", "nm")
-            meta.radiometric_quantity = data.get("radiometric_quantity")
-            meta.radiometric_units = data.get("radiometric_units")
-            meta.acquisition_datetime = data.get("acquisition_datetime")
-            meta.region = data.get("region")
+            inherited_data_type, has_inherited_data_type = cls.resolve_inherited_value(
+                data, "data_type"
+            )
+            if "data_type" in data:
+                meta.data_type = str(data.get("data_type") or "spectral")
+            elif has_inherited_data_type and inherited_data_type is not None:
+                meta.data_type = str(inherited_data_type)
+            else:
+                meta.data_type = "spectral"
 
-            bands = data.get("bands", {})
+            inherited_sensor, has_inherited_sensor = cls.resolve_inherited_value(
+                data, "sensor"
+            )
+            meta.sensor = (
+                data.get("sensor")
+                if "sensor" in data
+                else inherited_sensor if has_inherited_sensor else None
+            )
+
+            inherited_wu, has_inherited_wu = cls.resolve_inherited_value(
+                data, "wavelength_units"
+            )
+            if "wavelength_units" in data and data.get("wavelength_units") is not None:
+                meta.wavelength_units = str(data.get("wavelength_units"))
+            elif has_inherited_wu and inherited_wu is not None:
+                meta.wavelength_units = str(inherited_wu)
+            else:
+                meta.wavelength_units = "nm"
+
+            inherited_rq, has_inherited_rq = cls.resolve_inherited_value(
+                data, "radiometric_quantity"
+            )
+            meta.radiometric_quantity = (
+                data.get("radiometric_quantity")
+                if "radiometric_quantity" in data
+                else inherited_rq if has_inherited_rq else None
+            )
+
+            inherited_ru, has_inherited_ru = cls.resolve_inherited_value(
+                data, "radiometric_units"
+            )
+            meta.radiometric_units = (
+                data.get("radiometric_units")
+                if "radiometric_units" in data
+                else inherited_ru if has_inherited_ru else None
+            )
+
+            inherited_region, has_inherited_region = cls.resolve_inherited_value(
+                data, "region"
+            )
+            if "region" in data:
+                meta.region = data.get("region")
+            else:
+                meta.region = inherited_region if has_inherited_region else None
+
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
+                data, "bands"
+            )
+            if "bands" in data and isinstance(data.get("bands"), dict):
+                bands = data.get("bands", {})
+            elif has_inherited_bands and isinstance(inherited_bands, dict):
+                bands = inherited_bands
+            else:
+                bands = {}
             meta.n_bands_source = bands.get("count")
             meta.n_bands_valid = bands.get("count_valid")
             meta.wavelengths = bands.get("wavelength")
@@ -205,16 +260,34 @@ class HyperMetadata:
             meta.processing_history = cls._normalize_history_entries(
                 data.get("processing_history", [])
             )
-            ext = data.get("extended_metadata", {})
-            meta.extended_metadata = ext if isinstance(ext, dict) else {}
+
+            ext_raw = data.get("extended_metadata", {})
+            ext_raw = ext_raw if isinstance(ext_raw, dict) else {}
+            inherited_ext, has_inherited_ext = cls.resolve_inherited_value(
+                data, "extended_metadata"
+            )
+            if has_inherited_ext and isinstance(inherited_ext, dict):
+                ext = copy.deepcopy(inherited_ext)
+                cls._deep_merge_dict(ext, ext_raw)
+                meta.extended_metadata = ext
+            else:
+                meta.extended_metadata = ext_raw
+
             input_meta = data.get("input_datasets_metadata", {})
             meta.input_datasets_metadata = (
                 input_meta if isinstance(input_meta, dict) else {}
             )
+            meta.acquisition_datetime = data.get("acquisition_datetime")
             if meta.acquisition_datetime is None:
                 acquisition = meta.extended_metadata.get("acquisition", {})
                 if isinstance(acquisition, dict):
                     meta.acquisition_datetime = acquisition.get("start_time_utc")
+            if meta.acquisition_datetime is None:
+                inherited_acq, has_inherited_acq = cls.resolve_inherited_value(
+                    data, "acquisition_datetime"
+                )
+                if has_inherited_acq:
+                    meta.acquisition_datetime = inherited_acq
             cls._set_scene_geometry(
                 meta.extended_metadata,
                 solar_zenith_angle=data.get("solar_zenith_angle"),
@@ -338,6 +411,7 @@ class HyperMetadata:
         self.set_extended_value("acquisition.start_time_utc", self.acquisition_datetime)
 
         self.input_datasets_metadata = {}
+        dataset_index: dict[str, dict[str, Any]] = {}
         if self._is_derived_from_history(self.processing_history):
             try:
                 dataset_index, _ = self.discover_dataset_index()
@@ -357,41 +431,88 @@ class HyperMetadata:
         region = self._get_region_json(map_name, mapset) if save_region else self.region
         self.region = region
 
+        normalized_history = self._normalize_history_entries(self.processing_history)
+
+        bands_data: dict[str, Any] = {}
+        if self.n_bands_source is not None:
+            bands_data["count"] = int(self.n_bands_source)
+        if self.n_bands_valid is not None:
+            bands_data["count_valid"] = int(self.n_bands_valid)
+        if self.wavelengths is not None:
+            bands_data["wavelength"] = self.wavelengths
+        if self.fwhm is not None:
+            bands_data["fwhm"] = self.fwhm
+        if self.validity is not None:
+            bands_data["validity"] = [bool(v) for v in self.validity]
+        if self.component_labels is not None:
+            bands_data["labels"] = self.component_labels
+
         # Build JSON structure (new schema)
         data = {
             "schema_version": self.schema_version,
             "dataset_id": self.dataset_id or self.new_dataset_id(),
             "derived": bool(self.derived),
-            "data_type": self.data_type or "spectral",
-            "sensor": self.sensor,
-            "wavelength_units": self.wavelength_units,
-            "radiometric_quantity": self.radiometric_quantity,
-            "radiometric_units": self.radiometric_units,
-            "region": self.region,
-            "bands": {},
-            "processing_history": self._normalize_history_entries(
-                self.processing_history
-            ),
-            "extended_metadata": self.extended_metadata,
-            "input_datasets_metadata": self.input_datasets_metadata,
+            "processing_history": normalized_history,
         }
 
-        if not self.input_datasets_metadata:
-            data.pop("input_datasets_metadata", None)
+        if self.input_datasets_metadata:
+            data["input_datasets_metadata"] = self.input_datasets_metadata
 
-        # Band arrays
-        if self.n_bands_source is not None:
-            data["bands"]["count"] = int(self.n_bands_source)
-        if self.n_bands_valid is not None:
-            data["bands"]["count_valid"] = int(self.n_bands_valid)
-        if self.wavelengths is not None:
-            data["bands"]["wavelength"] = self.wavelengths
-        if self.fwhm is not None:
-            data["bands"]["fwhm"] = self.fwhm
-        if self.validity is not None:
-            data["bands"]["validity"] = [bool(v) for v in self.validity]
-        if self.component_labels is not None:
-            data["bands"]["labels"] = self.component_labels
+        if not bool(self.derived):
+            data.update(
+                {
+                    "data_type": self.data_type or "spectral",
+                    "sensor": self.sensor,
+                    "wavelength_units": self.wavelength_units,
+                    "radiometric_quantity": self.radiometric_quantity,
+                    "radiometric_units": self.radiometric_units,
+                    "region": self.region,
+                    "bands": bands_data,
+                    "extended_metadata": self.extended_metadata,
+                }
+            )
+        else:
+            lineage_root = {
+                "processing_history": normalized_history,
+                "input_datasets_metadata": self.input_datasets_metadata,
+            }
+
+            candidates = {
+                "data_type": self.data_type,
+                "sensor": self.sensor,
+                "wavelength_units": self.wavelength_units,
+                "radiometric_quantity": self.radiometric_quantity,
+                "radiometric_units": self.radiometric_units,
+                "region": self.region,
+                "bands": bands_data,
+            }
+            for key, value in candidates.items():
+                if value is None:
+                    continue
+                if isinstance(value, dict) and not value:
+                    continue
+                inherited_value, has_inherited = self.resolve_inherited_value(
+                    lineage_root,
+                    key,
+                    dataset_index=dataset_index,
+                )
+                if has_inherited and value == inherited_value:
+                    continue
+                data[key] = value
+
+            current_ext = self.extended_metadata if isinstance(self.extended_metadata, dict) else {}
+            if current_ext:
+                inherited_ext, has_inherited_ext = self.resolve_inherited_value(
+                    lineage_root,
+                    "extended_metadata",
+                    dataset_index=dataset_index,
+                )
+                if has_inherited_ext and isinstance(inherited_ext, dict):
+                    diff_ext = self._dict_diff(current_ext, inherited_ext)
+                else:
+                    diff_ext = copy.deepcopy(current_ext)
+                if diff_ext:
+                    data["extended_metadata"] = diff_ext
 
         # Write JSON
         with open(path, "w") as f:
@@ -738,6 +859,127 @@ class HyperMetadata:
         return normalized
 
     @staticmethod
+    def _deep_merge_dict(dst: dict[str, Any], src: dict[str, Any]) -> None:
+        """Deep-merge dicts; None leaf values are ignored."""
+        for key, value in src.items():
+            if isinstance(value, dict):
+                child = dst.get(key)
+                if not isinstance(child, dict):
+                    child = {}
+                    dst[key] = child
+                HyperMetadata._deep_merge_dict(child, value)
+            elif value is not None:
+                dst[key] = value
+
+    @staticmethod
+    def _dict_diff(current: dict[str, Any], inherited: dict[str, Any]) -> dict[str, Any]:
+        """Return keys from current that differ from inherited."""
+        out: dict[str, Any] = {}
+        for key, value in current.items():
+            inherited_value = inherited.get(key) if isinstance(inherited, dict) else None
+            if isinstance(value, dict):
+                if isinstance(inherited_value, dict):
+                    child = HyperMetadata._dict_diff(value, inherited_value)
+                    if child:
+                        out[key] = child
+                else:
+                    out[key] = copy.deepcopy(value)
+                continue
+            if value != inherited_value:
+                out[key] = copy.deepcopy(value)
+        return out
+
+    @classmethod
+    def _direct_input_dataset_ids(cls, data: dict[str, Any]) -> list[str]:
+        """Collect unique direct input dataset IDs from local processing history."""
+        out: list[str] = []
+        seen: set[str] = set()
+        for step in data.get("processing_history", []) or []:
+            if not isinstance(step, dict):
+                continue
+            for inp in cls._normalize_io_refs(step.get("inputs") or []):
+                dataset_id = inp.get("id")
+                if not dataset_id or dataset_id in seen:
+                    continue
+                seen.add(dataset_id)
+                out.append(dataset_id)
+        return out
+
+    @classmethod
+    def _resolve_dataset_data(
+        cls,
+        dataset_id: str,
+        embedded_snapshots: dict[str, dict[str, Any]],
+        dataset_index: Optional[dict[str, dict[str, Any]]] = None,
+    ) -> Optional[dict[str, Any]]:
+        """Resolve one dataset JSON record from index or embedded snapshots."""
+        if dataset_index and dataset_id in dataset_index:
+            record = dataset_index.get(dataset_id) or {}
+            data = record.get("data")
+            if isinstance(data, dict):
+                return data
+        snapshot = embedded_snapshots.get(dataset_id)
+        if isinstance(snapshot, dict):
+            return snapshot
+        return None
+
+    @classmethod
+    def resolve_inherited_value(
+        cls,
+        root_data: dict[str, Any],
+        key: str,
+        dataset_index: Optional[dict[str, dict[str, Any]]] = None,
+    ) -> tuple[Any, bool]:
+        """Resolve inherited value by following input lineage recursively.
+
+        Rules:
+        - If key exists in current dataset and is not None, use it.
+        - For single-input chains, inherit recursively.
+        - For multiple inputs, inherit only when all resolved input values are equal.
+        """
+        embedded_snapshots = root_data.get("input_datasets_metadata")
+        if not isinstance(embedded_snapshots, dict):
+            embedded_snapshots = {}
+
+        visiting: set[str] = set()
+
+        def _visit(data: Optional[dict[str, Any]]) -> tuple[Any, bool]:
+            if not isinstance(data, dict):
+                return None, False
+
+            if key in data and data.get(key) is not None:
+                return copy.deepcopy(data.get(key)), True
+
+            marker = str(data.get("dataset_id") or f"obj:{id(data)}")
+            if marker in visiting:
+                return None, False
+
+            visiting.add(marker)
+            try:
+                values = []
+                for input_id in cls._direct_input_dataset_ids(data):
+                    input_data = cls._resolve_dataset_data(
+                        input_id,
+                        embedded_snapshots,
+                        dataset_index=dataset_index,
+                    )
+                    value, found = _visit(input_data)
+                    if found:
+                        values.append(value)
+
+                if not values:
+                    return None, False
+
+                first = values[0]
+                if all(value == first for value in values[1:]):
+                    return copy.deepcopy(first), True
+                return None, False
+            finally:
+                visiting.discard(marker)
+
+        return _visit(root_data)
+
+    @staticmethod
     def _set_scene_geometry(
         extended_metadata: dict[str, Any],
         *,
@@ -983,44 +1225,112 @@ class HyperMetadata:
         collected.sort(key=lambda item: (item[0], item[1]))
         return [item[2] for item in collected]
 
-    @staticmethod
-    def summarize_data(data: dict[str, Any]) -> dict[str, Any]:
+    @classmethod
+    def summarize_data(cls, data: dict[str, Any]) -> dict[str, Any]:
         """Build summary payload from raw metadata."""
         bands = data.get("bands") or {}
+        if not isinstance(bands, dict) or not bands:
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(data, "bands")
+            if has_inherited_bands and isinstance(inherited_bands, dict):
+                bands = inherited_bands
+            else:
+                bands = {}
+
         wavelengths = [
             w for w in (bands.get("wavelength") or []) if isinstance(w, (int, float))
         ]
+
+        data_type = data.get("data_type")
+        if data_type is None:
+            inherited_data_type, has_inherited_data_type = cls.resolve_inherited_value(
+                data, "data_type"
+            )
+            if has_inherited_data_type:
+                data_type = inherited_data_type
+
+        sensor = data.get("sensor")
+        if sensor is None:
+            inherited_sensor, has_inherited_sensor = cls.resolve_inherited_value(data, "sensor")
+            if has_inherited_sensor:
+                sensor = inherited_sensor
+
+        wavelength_units = data.get("wavelength_units")
+        if wavelength_units is None:
+            inherited_wu, has_inherited_wu = cls.resolve_inherited_value(
+                data, "wavelength_units"
+            )
+            if has_inherited_wu:
+                wavelength_units = inherited_wu
+
+        radiometric_quantity = data.get("radiometric_quantity")
+        if radiometric_quantity is None:
+            inherited_rq, has_inherited_rq = cls.resolve_inherited_value(
+                data, "radiometric_quantity"
+            )
+            if has_inherited_rq:
+                radiometric_quantity = inherited_rq
+
+        radiometric_units = data.get("radiometric_units")
+        if radiometric_units is None:
+            inherited_ru, has_inherited_ru = cls.resolve_inherited_value(
+                data, "radiometric_units"
+            )
+            if has_inherited_ru:
+                radiometric_units = inherited_ru
+
+        ext = data.get("extended_metadata")
+        if not isinstance(ext, dict):
+            ext = {}
+        inherited_ext, has_inherited_ext = cls.resolve_inherited_value(data, "extended_metadata")
+        if has_inherited_ext and isinstance(inherited_ext, dict):
+            merged_ext = copy.deepcopy(inherited_ext)
+            cls._deep_merge_dict(merged_ext, ext)
+            ext = merged_ext
+
         acquisition_datetime = data.get("acquisition_datetime")
         if acquisition_datetime is None:
-            ext = data.get("extended_metadata", {})
-            if isinstance(ext, dict):
-                acquisition = ext.get("acquisition", {})
-                if isinstance(acquisition, dict):
-                    acquisition_datetime = acquisition.get("start_time_utc")
+            acquisition = ext.get("acquisition", {})
+            if isinstance(acquisition, dict):
+                acquisition_datetime = acquisition.get("start_time_utc")
+        if acquisition_datetime is None:
+            inherited_acq, has_inherited_acq = cls.resolve_inherited_value(
+                data, "acquisition_datetime"
+            )
+            if has_inherited_acq:
+                acquisition_datetime = inherited_acq
+
         return {
             "schema_version": data.get("schema_version"),
             "dataset_id": data.get("dataset_id"),
             "derived": data.get("derived"),
-            "data_type": data.get("data_type"),
-            "sensor": data.get("sensor"),
+            "data_type": data_type,
+            "sensor": sensor,
             "bands_count": bands.get("count"),
             "bands_count_valid": bands.get("count_valid"),
-            "wavelength_units": data.get("wavelength_units"),
-            "radiometric_quantity": data.get("radiometric_quantity"),
-            "radiometric_units": data.get("radiometric_units"),
+            "wavelength_units": wavelength_units,
+            "radiometric_quantity": radiometric_quantity,
+            "radiometric_units": radiometric_units,
             "acquisition_datetime": acquisition_datetime,
             "wavelength_min": min(wavelengths) if wavelengths else None,
             "wavelength_max": max(wavelengths) if wavelengths else None,
             "processing_steps_local": len(data.get("processing_history", []) or []),
         }
 
-    @staticmethod
+    @classmethod
     def build_band_rows(
+        cls,
         data: dict[str, Any],
         wavelength_range: Optional[str] = None,
     ) -> list[dict[str, Any]]:
         """Build band rows for listing output."""
         bands = data.get("bands") or {}
+        if not isinstance(bands, dict) or not bands:
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(data, "bands")
+            if has_inherited_bands and isinstance(inherited_bands, dict):
+                bands = inherited_bands
+            else:
+                bands = {}
+
         wavelengths = bands.get("wavelength") or []
         fwhm = bands.get("fwhm") or []
         validity = bands.get("validity") or []
@@ -1065,20 +1375,30 @@ class HyperMetadata:
         issues = []
         issues.extend(meta.validate())
 
-        for required in (
-            "schema_version",
-            "dataset_id",
-            "data_type",
-            "bands",
-            "processing_history",
-        ):
-            if required not in raw_data:
-                issues.append(f"Missing required top-level key: {required}")
+        derived_flag = bool(raw_data.get("derived"))
+
+        required = ["schema_version", "dataset_id", "processing_history"]
+        if not derived_flag:
+            required.extend(["data_type", "bands"])
+
+        for key in required:
+            if key not in raw_data:
+                issues.append(f"Missing required top-level key: {key}")
 
         if "derived" in raw_data and not isinstance(raw_data.get("derived"), bool):
             issues.append("derived must be boolean")
 
         bands = raw_data.get("bands") or {}
+        if (not isinstance(bands, dict) or not bands) and derived_flag:
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
+                raw_data,
+                "bands",
+                dataset_index=dataset_index,
+            )
+            if has_inherited_bands and isinstance(inherited_bands, dict):
+                bands = inherited_bands
+            else:
+                bands = {}
         count = bands.get("count")
         count_valid = bands.get("count_valid")
         wavelengths = bands.get("wavelength")
