@@ -1334,6 +1334,20 @@ class HyperMetadata:
         wavelengths = bands.get("wavelength") or []
         fwhm = bands.get("fwhm") or []
         validity = bands.get("validity") or []
+        count = bands.get("count")
+
+        if not wavelengths and isinstance(count, int) and count > 0:
+            rows = []
+            for i in range(1, count + 1):
+                rows.append(
+                    {
+                        "index": i,
+                        "wavelength": None,
+                        "fwhm": None,
+                        "validity": validity[i - 1] if i - 1 < len(validity) else True,
+                    }
+                )
+            return rows
 
         wl_min, wl_max = None, None
         if wavelength_range:

@@ -267,6 +267,8 @@ def _print_bands(rows, output_format):
     print(f"{'Band':>5} {'Wavelength':>12} {'FWHM':>10} {'Validity':>10}")
     print("-" * 45)
     for row in rows:
+        wl = row["wavelength"]
+        wl_str = f"{wl:.2f}" if wl is not None else "-"
         fwhm_str = f"{row['fwhm']:.2f}" if row["fwhm"] is not None else "-"
         validity = row["validity"]
         if validity is True:
@@ -275,7 +277,7 @@ def _print_bands(rows, output_format):
             status = "INVALID"
         else:
             status = "UNKNOWN"
-        print(f"{row['index']:>5} {row['wavelength']:>12.2f} {fwhm_str:>10} {status:>10}")
+        print(f"{row['index']:>5} {wl_str:>12} {fwhm_str:>10} {status:>10}")
     print(f"\nTotal: {len(rows)} bands")
 
 
