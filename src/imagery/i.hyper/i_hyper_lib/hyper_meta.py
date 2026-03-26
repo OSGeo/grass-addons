@@ -261,10 +261,19 @@ class HyperMetadata:
                 data.get("processing_history", [])
             )
 
+            input_meta = data.get("input_datasets_metadata", {})
+            meta.input_datasets_metadata = (
+                input_meta if isinstance(input_meta, dict) else {}
+            )
+
             ext_raw = data.get("extended_metadata", {})
             ext_raw = ext_raw if isinstance(ext_raw, dict) else {}
+            lineage_root = {
+                "processing_history": meta.processing_history,
+                "input_datasets_metadata": meta.input_datasets_metadata,
+            }
             inherited_ext, has_inherited_ext = cls.resolve_inherited_value(
-                data, "extended_metadata"
+                lineage_root, "extended_metadata"
             )
             if has_inherited_ext and isinstance(inherited_ext, dict):
                 ext = copy.deepcopy(inherited_ext)
@@ -272,11 +281,6 @@ class HyperMetadata:
                 meta.extended_metadata = ext
             else:
                 meta.extended_metadata = ext_raw
-
-            input_meta = data.get("input_datasets_metadata", {})
-            meta.input_datasets_metadata = (
-                input_meta if isinstance(input_meta, dict) else {}
-            )
             meta.acquisition_datetime = data.get("acquisition_datetime")
             if meta.acquisition_datetime is None:
                 acquisition = meta.extended_metadata.get("acquisition", {})
