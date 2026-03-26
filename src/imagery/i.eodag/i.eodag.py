@@ -1340,6 +1340,7 @@ if __name__ == "__main__":
 
     try:
         import eodag
+
         if int(eodag.__version__.split(".")[0]) != 3:
             gs.fatal(_("Only EODAG version 3.x is currently supported"))
         from eodag import EODataAccessGateway, setup_logging
