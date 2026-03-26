@@ -56,7 +56,10 @@ This region setting is temporary and restored at the end of processing.</p>
 
 <p>Product notes:</p>
 <ul>
-  <li><b>EnMAP</b> and <b>PRISMA</b> are imported in their native product geometry.</li>
+  <li><b>EnMAP L2</b> products are imported from the native single spectral image.</li>
+  <li><b>EnMAP L1B</b> products use two detector images (VNIR, SWIR). The importer first creates temporary north-up GeoTIFF files with <code>gdalwarp</code>, then runs the same band selection, composite, and <code>r.to.rast3</code> steps as for L2.</li>
+  <li>Because of the north-up preprocessing step, EnMAP L1B import usually takes longer than EnMAP L2 import.</li>
+  <li><b>PRISMA</b> is imported in native product geometry.</li>
   <li><b>Tanager</b> currently supports only <b>BASIC</b> products (<code>/HDFEOS/SWATHS/HYP/...</code>) and uses <code>Planet_Ortho_Framing</code> for gridding.</li>
   <li>Tanager <b>ortho</b> products (<code>/HDFEOS/GRIDS/HYP/...</code>) are not supported by <code>i.hyper.import product=tanager</code> and raise a clear error.</li>
 </ul>
@@ -146,6 +149,7 @@ i.hyper.import input=/data/Tanager.h5 \
   <li><b>NumPy</b> – Core numerical operations and array manipulation.</li>
   <li><b>h5py</b> – Interface for reading and writing <code>.h5</code> (HDF5) hyperspectral data products such as PRISMA and Tanager.</li>
   <li><b>pyproj</b> – Coordinate reference system and geospatial transformation library.</li>
+  <li><b>GDAL command line tools</b> – <code>gdalwarp</code> is used for EnMAP L1B detector-image north-up preprocessing.</li>
 </ul>
 
 <h2>AUTHORS</h2>
