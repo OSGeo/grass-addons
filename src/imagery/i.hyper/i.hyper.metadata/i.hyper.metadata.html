@@ -117,12 +117,14 @@ Derived datasets store mandatory provenance keys and only local overrides.</p>
   <li><code>region</code></li>
   <li><code>bands</code></li>
   <li><code>extended_metadata</code></li>
+  <li><code>dimensionality_reduction</code> (written only for outputs where dimensionality reduction is applied)</li>
 </ul>
 
 <p>Inheritance rule:</p>
 <ul>
   <li>if an optional key is missing in a derived dataset, value is inherited through lineage</li>
   <li>for multiple direct inputs, value is inherited only when all direct inputs resolve to the same value</li>
+  <li><code>dimensionality_reduction</code> is not inherited; it is present only when DR is applied for the current output dataset</li>
 </ul>
 
 <h3>Extended Metadata Branches</h3>
@@ -133,6 +135,7 @@ Derived datasets store mandatory provenance keys and only local overrides.</p>
     <code>atmosphere</code>, <code>quality</code>, <code>processing</code>, <code>uncertainty</code></li>
   <li>Product-specific branches:
     <code>enmap</code>, <code>prisma</code>, <code>tanager</code></li>
+  <li>Dimensionality reduction metadata is stored in top-level <code>dimensionality_reduction</code>, not in <code>extended_metadata.processing</code>.</li>
   <li>For derived datasets, top-level <code>input_datasets_metadata</code> stores full metadata snapshots for all input datasets recursively to origin, keyed by <code>dataset_id</code>. Embedded snapshots exclude nested <code>input_datasets_metadata</code>. <code>operation=history</code> uses these snapshots when referenced input metadata are unavailable in the current LOCATION.</li>
   <li>Unified branches store cross-product keys. Product-specific branches store source product keys used to derive unified values (provenance). The same value may appear in both locations by design.</li>
   <li>Legacy compatibility: older imports may still use <code>extended_metadata.scene.geometry</code></li>

@@ -72,6 +72,8 @@ Operations are reported in the console as a sequential pipeline.
 When using PCA, KPCA, FastICA, NMF, or SparsePCA, the number of output
 components can be controlled using the `dr_components` parameter.
 
+When dimensionality reduction is applied, output `hyper.json` stores DR parameters in top-level key `dimensionality_reduction`.
+
 **Chunked dimensionality reduction:**\
 Large hyperspectral datasets can be processed in smaller portions using
 the `dr_chunk_size` option. This enables dimensionality reduction on

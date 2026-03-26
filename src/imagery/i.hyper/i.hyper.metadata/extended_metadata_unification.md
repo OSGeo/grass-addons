@@ -21,6 +21,7 @@ Reference basis:
   - `extended_metadata.prisma.*`
   - `extended_metadata.tanager.*`
 - For map-vs-scalar quantities, store value + form metadata (`scalar`, `map_mean`, `map_name`).
+- Dimensionality reduction output metadata is stored in top-level `dimensionality_reduction` (outside `extended_metadata`).
 
 ## A. i.hyper.atcorr Unified Keys
 

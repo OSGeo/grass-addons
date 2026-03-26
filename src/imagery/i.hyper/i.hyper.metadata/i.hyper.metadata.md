@@ -116,11 +116,13 @@ Optional local override keys in derived datasets:
 - `region`
 - `bands`
 - `extended_metadata`
+- `dimensionality_reduction` (written only for outputs where dimensionality reduction is applied)
 
 Inheritance rule:
 
 - if an optional key is missing in derived dataset, value is inherited through lineage
 - for multiple direct inputs, value is inherited only when all direct inputs resolve to the same value
+- `dimensionality_reduction` is not inherited; it is present only when DR is applied for the current output dataset
 
 ### Extended Metadata Branches
 
@@ -139,6 +141,8 @@ Product-specific branches:
 - `enmap`
 - `prisma`
 - `tanager`
+
+Dimensionality reduction metadata is stored in top-level `dimensionality_reduction`, not in `extended_metadata.processing`.
 
 For derived datasets, top-level `input_datasets_metadata` stores full metadata
 snapshots for all input datasets recursively to origin, keyed by `dataset_id`.

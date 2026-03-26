@@ -294,6 +294,7 @@ def _copy_and_update_hyper_metadata(src, dst, cmd_params, hyper_meta_class):
         meta.dataset_id = hyper_meta_class.new_dataset_id()
         meta.derived = True
         meta.processing_history = []
+        meta.dimensionality_reduction = None
 
         command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
         meta.add_history_entry(
@@ -316,9 +317,8 @@ def _copy_and_update_hyper_metadata(src, dst, cmd_params, hyper_meta_class):
         gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _set_dr_extended_metadata(meta, method, info, n_components):
-    processing = meta.extended_metadata.setdefault("processing", {})
-    dr_meta = processing.setdefault("dimensionality_reduction", {})
+def _set_dr_metadata_payload(meta, method, info, n_components):
+    dr_meta = {}
     name_map = {
         "pca": "PCA",
         "kpca": "Kernel PCA",
@@ -350,6 +350,7 @@ def _set_dr_extended_metadata(meta, method, info, n_components):
         explained = [float(v) for v in explained]
         dr_meta["explained_variance_ratio"] = explained
         dr_meta["explained_variance_percent"] = [float(v * 100.0) for v in explained]
+    meta.dimensionality_reduction = dr_meta
 
 
 def _set_dr_metadata(inmap, outmap, method, info, cmd_params, hyper_meta_class=None):
@@ -369,7 +370,7 @@ def _set_dr_metadata(inmap, outmap, method, info, cmd_params, hyper_meta_class=N
             n_components=int(n_components or 0),
             explained_variance_ratio=explained,
         )
-        _set_dr_extended_metadata(meta, method, info, n_components)
+        _set_dr_metadata_payload(meta, method, info, n_components)
 
         command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
         meta.add_history_entry(

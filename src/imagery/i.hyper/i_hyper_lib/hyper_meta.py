@@ -70,6 +70,7 @@ class HyperMetadata:
     n_components: Optional[int] = None
     explained_variance_ratio: Optional[list[float]] = None
     component_labels: Optional[list[str]] = None
+    dimensionality_reduction: Optional[dict[str, Any]] = None
 
     # Processing history
     processing_history: list[dict] = field(default_factory=list)
@@ -257,6 +258,21 @@ class HyperMetadata:
 
             meta.n_bands = meta.n_bands_valid
 
+            dr_meta = data.get("dimensionality_reduction")
+            if isinstance(dr_meta, dict) and dr_meta:
+                meta.dimensionality_reduction = copy.deepcopy(dr_meta)
+                n_components = dr_meta.get("n_components")
+                if n_components is not None:
+                    try:
+                        meta.n_components = int(n_components)
+                    except (TypeError, ValueError):
+                        pass
+                explained = dr_meta.get("explained_variance_ratio")
+                if isinstance(explained, list):
+                    meta.explained_variance_ratio = explained
+            else:
+                meta.dimensionality_reduction = None
+
             meta.processing_history = cls._normalize_history_entries(
                 data.get("processing_history", [])
             )
@@ -329,6 +345,21 @@ class HyperMetadata:
         meta.n_components = comps.get("count")
         meta.explained_variance_ratio = comps.get("explained_variance_ratio")
         meta.component_labels = comps.get("labels")
+
+        dr_meta = data.get("dimensionality_reduction")
+        if isinstance(dr_meta, dict) and dr_meta:
+            meta.dimensionality_reduction = copy.deepcopy(dr_meta)
+            n_components = dr_meta.get("n_components")
+            if n_components is not None:
+                try:
+                    meta.n_components = int(n_components)
+                except (TypeError, ValueError):
+                    pass
+            explained = dr_meta.get("explained_variance_ratio")
+            if isinstance(explained, list):
+                meta.explained_variance_ratio = explained
+        else:
+            meta.dimensionality_reduction = None
 
         has_components = (
             (meta.n_components is not None and meta.n_components > 0)
@@ -461,6 +492,9 @@ class HyperMetadata:
 
         if self.input_datasets_metadata:
             data["input_datasets_metadata"] = self.input_datasets_metadata
+
+        if isinstance(self.dimensionality_reduction, dict) and self.dimensionality_reduction:
+            data["dimensionality_reduction"] = copy.deepcopy(self.dimensionality_reduction)
 
         if not bool(self.derived):
             data.update(
