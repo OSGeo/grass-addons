@@ -71,10 +71,9 @@ of processing.
 Product notes:
 
 - **EnMAP** and **PRISMA** are imported in their native product geometry.
-- **Tanager** currently supports only **BASIC** products
-  (`/HDFEOS/SWATHS/HYP/...`) and uses `Planet_Ortho_Framing` for gridding.
-- Tanager **ortho** products (`/HDFEOS/GRIDS/HYP/...`) are not supported by
-  `i.hyper.import product=tanager` and raise a clear error.
+- **Tanager BASIC** products (`/HDFEOS/SWATHS/HYP/...`) use per-pixel geolocation and `Planet_Ortho_Framing` for projection and gridding.
+- **Tanager ortho** products (`/HDFEOS/GRIDS/HYP/...`) are imported directly in native map grid geometry (no geolocation reprojection).
+- For Tanager ortho products, map grid parameters are read from `/HDFEOS INFORMATION/StructMetadata.0` (UL/LR corners), `/HDFEOS/GRIDS/HYP` attribute `epsg_code`, and spectral dataset shape (rows/cols).
 
 ## EXAMPLES
 

@@ -93,11 +93,11 @@ Keep only keys that support derivation/provenance for A+B. Avoid dumping full en
 - `Cloudy_pixels_percentage`, `L2d_Quality_flags`
 
 ### `extended_metadata.tanager`
-- map names/refs for: `sun_zenith`, `sun_azimuth`, `sensor_zenith`, `sensor_azimuth`
+- map names/refs for: `sun_zenith`, `sun_azimuth`, `sensor_zenith`, `sensor_azimuth`, `sensor_to_ground_path_length`
 - map names/refs for: `aerosol_optical_depth`, `column_water_vapour`
 - map names/refs for: `surface_reflectance_uncertainty`
 - quality masks present flags: `beta_cloud_mask`, `beta_cirrus_mask`, `nodata_pixels`
-- provenance attrs: `created_at`, `strip_id`, optional `epsg_code`
+- provenance attrs: `created_at`, `strip_id`, optional `epsg_code`, `product_layout`
 
 ## D. Recommended `hyper.json` Representation Notes
 - Geometry keys are scalar scene summaries in degrees.
@@ -135,6 +135,7 @@ This section defines unified keys for atmospheric-correction metadata.
 | View zenith / azimuth | `geometry.view_zenith_deg`, `geometry.view_azimuth_deg` | all products (azimuth may be derived) | EnMAP scene angle or viewing angle, PRISMA geometric maps, Tanager sensor maps |
 | Relative azimuth | `geometry.relative_azimuth_deg` | all products (derived or map) | PRISMA `Rel_Azimuth_Angle` map or derived |
 | Sensor altitude | `geometry.sensor_altitude_m` | single product | EnMAP `base/altitudeCoverage` (interpretation-dependent) |
+| Sensor-to-ground path length | `geometry.sensor_to_ground_path_length_m` | single product | Tanager `sensor_to_ground_path_length` map mean |
 | Radiance units | `radiometry.units` | single product explicit | explicit in Tanager `Unit`; reflectance products are unitless |
 | Radiance scale | `radiometry.scale` | two products | EnMAP `GainOfBand`, PRISMA `L2Scale*` |
 | Radiance offset | `radiometry.offset` | two products | EnMAP `OffsetOfBand`, PRISMA `L2Scale*Min` |

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Tanager BASIC → GRASS
+Tanager → GRASS
 
-- Imports Tanager BASIC (radiance or surface_reflectance)
-- Projects and resamples to the target map grid defined by Planet_Ortho_Framing
+- Imports Tanager BASIC and orthorectified products (radiance or surface_reflectance)
+- BASIC: projects and resamples to target map grid defined by Planet_Ortho_Framing
   using bilinear forward splatting with small-neighborhood nearest fill for purely
   geometric gaps (optional; SciPy if available)
+- ORTHO: imports directly in native map grid
 - Writes a full 3D raster (bands in Z) and per-band composites
 - Preserves nodata (nodata_pixels==1) as NULLs in GRASS
 """
@@ -24,6 +25,7 @@ from hyper_meta import HyperMetadata
 from tanager_reader import (
     load_tanager_basic,
     read_planet_map_grid,
+    map_grid_center_lonlat,
     build_splat_plan,
     project_band_to_map_grid,
 )
@@ -206,12 +208,15 @@ def _populate_tanager_extended_metadata(
     wavelengths_meta,
     fwhm_meta,
     validity_meta,
+    grid=None,
 ):
     with h5py.File(h5_path, "r") as f:
         if "/HDFEOS/SWATHS/HYP" in f:
             root = "/HDFEOS/SWATHS/HYP"
+            product_layout = "swaths"
         elif "/HDFEOS/GRIDS/HYP" in f:
             root = "/HDFEOS/GRIDS/HYP"
+            product_layout = "grids"
         else:
             return
 
@@ -272,6 +277,13 @@ def _populate_tanager_extended_metadata(
             if np.any(vlon):
                 center_lon = float(np.nanmean(lon[vlon]))
 
+        if (center_lat is None or center_lon is None) and grid is not None:
+            latc, lonc = map_grid_center_lonlat(grid)
+            if center_lat is None:
+                center_lat = latc
+            if center_lon is None:
+                center_lon = lonc
+
         sun_zenith = _mean_dataset(f, f"{data_group}/sun_zenith", nodata_mask=nodata_mask)
         sun_azimuth = _mean_dataset(f, f"{data_group}/sun_azimuth", nodata_mask=nodata_mask)
         view_zenith = _mean_dataset(f, f"{data_group}/sensor_zenith", nodata_mask=nodata_mask)
@@ -283,6 +295,9 @@ def _populate_tanager_extended_metadata(
         )
         h2o_mean = _mean_dataset(
             f, f"{data_group}/column_water_vapour", nodata_mask=nodata_mask
+        )
+        path_length_mean = _mean_dataset(
+            f, f"{data_group}/sensor_to_ground_path_length", nodata_mask=nodata_mask
         )
 
         cloud_mask = np.asarray(f[f"{data_group}/beta_cloud_mask"][()]) if f"{data_group}/beta_cloud_mask" in f else None
@@ -313,6 +328,13 @@ def _populate_tanager_extended_metadata(
         meta.set_extended_value("geometry.view_zenith_deg", view_zenith)
         meta.set_extended_value("geometry.view_azimuth_deg", view_azimuth)
         meta.set_extended_value("geometry.relative_azimuth_deg", rel_azimuth)
+        if path_length_mean is not None:
+            meta.set_extended_form_value(
+                "geometry.sensor_to_ground_path_length_m",
+                value=path_length_mean,
+                form="map_mean",
+                source="sensor_to_ground_path_length",
+            )
 
         meta.set_extended_value("radiometry.quantity", getattr(prod, "data_field", None))
         meta.set_extended_value("radiometry.units", getattr(prod, "data_units", None))
@@ -351,11 +373,13 @@ def _populate_tanager_extended_metadata(
 
         meta.set_extended_value("processing.processing_datetime_utc", created_at)
         meta.set_extended_value("uncertainty.reflectance_uncertainty_present", bool(uncertainty_present))
+        meta.set_extended_value("tanager.product_layout", product_layout)
 
         meta.set_extended_value("tanager.map_refs.sun_zenith", f"{data_group}/sun_zenith" if f"{data_group}/sun_zenith" in f else None)
         meta.set_extended_value("tanager.map_refs.sun_azimuth", f"{data_group}/sun_azimuth" if f"{data_group}/sun_azimuth" in f else None)
         meta.set_extended_value("tanager.map_refs.sensor_zenith", f"{data_group}/sensor_zenith" if f"{data_group}/sensor_zenith" in f else None)
         meta.set_extended_value("tanager.map_refs.sensor_azimuth", f"{data_group}/sensor_azimuth" if f"{data_group}/sensor_azimuth" in f else None)
+        meta.set_extended_value("tanager.map_refs.sensor_to_ground_path_length", f"{data_group}/sensor_to_ground_path_length" if f"{data_group}/sensor_to_ground_path_length" in f else None)
         meta.set_extended_value("tanager.map_refs.aerosol_optical_depth", f"{data_group}/aerosol_optical_depth" if f"{data_group}/aerosol_optical_depth" in f else None)
         meta.set_extended_value("tanager.map_refs.column_water_vapour", f"{data_group}/column_water_vapour" if f"{data_group}/column_water_vapour" in f else None)
         meta.set_extended_value("tanager.map_refs.surface_reflectance_uncertainty", f"{data_group}/surface_reflectance_uncertainty" if f"{data_group}/surface_reflectance_uncertainty" in f else None)
@@ -380,7 +404,7 @@ def import_tanager(
     fill_8_neighbor=True,
 ):
     """
-    Import, project, and resample Tanager BASIC to the target map grid. Writes:
+    Import Tanager BASIC and orthorectified products to the target map grid. Writes:
       - 3D raster (bands as slices)
       - per-band temporary rasters for composites
       - color-enhanced composites
@@ -397,10 +421,13 @@ def import_tanager(
     fwhm = prod.fwhm_nm
 
     _require(data is not None and data.ndim == 3, "Data cube missing or invalid.")
-    _require(
-        prod.lat is not None and prod.lon is not None,
-        "Latitude/Longitude grids missing.",
-    )
+
+    use_splat = getattr(prod, "product_layout", "swaths") == "swaths"
+    if use_splat:
+        _require(
+            prod.lat is not None and prod.lon is not None,
+            "Latitude/Longitude grids missing.",
+        )
 
     source_wavelengths = np.asarray(wl)
     source_fwhm = np.asarray(fwhm) if fwhm is not None else None
@@ -440,22 +467,41 @@ def import_tanager(
 
     # Read Planet target map grid and set region
     grid = read_planet_map_grid(h5)
-    Module(
-        "g.region",
-        w=grid.west,
-        e=grid.east,
-        s=grid.south,
-        n=grid.north,
-        ewres=grid.ewres,
-        nsres=grid.nsres,
-        flags="a",
-        quiet=True,
-    )
+    if use_splat:
+        Module(
+            "g.region",
+            w=grid.west,
+            e=grid.east,
+            s=grid.south,
+            n=grid.north,
+            ewres=grid.ewres,
+            nsres=grid.nsres,
+            flags="a",
+            quiet=True,
+        )
+    else:
+        Module(
+            "g.region",
+            w=grid.west,
+            e=grid.east,
+            s=grid.south,
+            n=grid.north,
+            rows=grid.rows,
+            cols=grid.cols,
+            quiet=True,
+        )
 
-    # Precompute the per-scene splat plan.
-    # Use a band-independent nodata mask (after loader has applied nodata across all bands).
-    base_mask = np.isnan(data[..., 0])
-    plan = build_splat_plan(prod.lon, prod.lat, grid, nodata_mask=base_mask)
+    # Precompute the per-scene splat plan for BASIC products.
+    plan = None
+    if use_splat:
+        # Use a band-independent nodata mask (after loader has applied nodata across all bands).
+        base_mask = np.isnan(data[..., 0])
+        plan = build_splat_plan(prod.lon, prod.lat, grid, nodata_mask=base_mask)
+    else:
+        _require(
+            data.shape[0] == grid.rows and data.shape[1] == grid.cols,
+            "Orthorectified Tanager dimensions do not match product map grid.",
+        )
 
     # Band writer using projection + gridding and caching
     temp_bands = {}
@@ -465,9 +511,12 @@ def import_tanager(
         if idx1 in temp_bands:
             return temp_bands[idx1]
         k = idx1 - 1
-        ortho2d = project_band_to_map_grid(
-            band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
-        )
+        if use_splat:
+            ortho2d = project_band_to_map_grid(
+                band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
+            )
+        else:
+            ortho2d = np.asarray(data[:, :, k], dtype=np.float32)
         name = _temp_name(f"{output_name}_b{idx1:03d}")
         _write_float_raster(name, ortho2d)
         temp_bands[idx1] = name
@@ -493,9 +542,12 @@ def import_tanager(
 
         cube = garray.array3d(dtype=np.float32)
         for k in range(bands_total):
-            ortho2d = project_band_to_map_grid(
-                band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
-            )
+            if use_splat:
+                ortho2d = project_band_to_map_grid(
+                    band2d=data[:, :, k], plan=plan, fill_8_neighbor=fill_8_neighbor
+                )
+            else:
+                ortho2d = np.asarray(data[:, :, k], dtype=np.float32)
             cube[k, :, :] = ortho2d
 
         cube.write(mapname=f"{output_name}", null="nan", overwrite=True)
@@ -530,6 +582,7 @@ def import_tanager(
                 wavelengths_meta=wavelengths_meta,
                 fwhm_meta=fwhm_meta,
                 validity_meta=validity_meta,
+                grid=grid,
             )
 
             mapset = gs.gisenv().get("MAPSET", "")

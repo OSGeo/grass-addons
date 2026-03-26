@@ -58,10 +58,11 @@ This region setting is temporary and restored at the end of processing.</p>
 <ul>
   <li><b>EnMAP L2</b> products are imported from the native single spectral image.</li>
   <li><b>EnMAP L1B</b> products use two detector images (VNIR, SWIR). The importer first creates temporary north-up GeoTIFF files with <code>gdalwarp</code>, then runs the same band selection, composite, and <code>r.to.rast3</code> steps as for L2.</li>
-  <li>Because of the north-up preprocessing step, EnMAP L1B import usually takes longer than EnMAP L2 import.</li>
+  <li>Because of the north-up preprocessing step, EnMAP L1B import usually takes substantially longer than EnMAP L2 import.</li>
   <li><b>PRISMA</b> is imported in native product geometry.</li>
-  <li><b>Tanager</b> currently supports only <b>BASIC</b> products (<code>/HDFEOS/SWATHS/HYP/...</code>) and uses <code>Planet_Ortho_Framing</code> for gridding.</li>
-  <li>Tanager <b>ortho</b> products (<code>/HDFEOS/GRIDS/HYP/...</code>) are not supported by <code>i.hyper.import product=tanager</code> and raise a clear error.</li>
+  <li><b>Tanager BASIC</b> products (<code>/HDFEOS/SWATHS/HYP/...</code>) use per-pixel geolocation and <code>Planet_Ortho_Framing</code> for projection and gridding.</li>
+  <li><b>Tanager ortho</b> products (<code>/HDFEOS/GRIDS/HYP/...</code>) are imported directly in native map grid geometry (no geolocation reprojection).</li>
+  <li>For Tanager ortho products, map grid parameters are read from <code>/HDFEOS INFORMATION/StructMetadata.0</code> (UL/LR corners), <code>/HDFEOS/GRIDS/HYP</code> attribute <code>epsg_code</code>, and spectral dataset shape (rows/cols).</li>
 </ul>
 <h2>EXAMPLES</h2>
 
