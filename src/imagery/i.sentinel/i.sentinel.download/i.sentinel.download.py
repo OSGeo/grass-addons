@@ -404,7 +404,9 @@ def main():
         # Checking credentials early
         dag = EODataAccessGateway()
         try:
-            cop_plugin = next(dag._plugins_manager.get_search_plugins(provider="cop_dataspace"))
+            cop_plugin = next(
+                dag._plugins_manager.get_search_plugins(provider="cop_dataspace")
+            )
             dag._plugins_manager.get_auth_plugin(cop_plugin).authenticate()
         except (MisconfiguredError, HTTPError) as e:
             gs.fatal(e)
