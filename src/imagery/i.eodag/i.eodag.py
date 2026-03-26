@@ -999,6 +999,7 @@ def print_eodag_products(eodag_api, **kwargs) -> None:
         gs.message(_("Recognized product types offered by {}").format(provider))
     else:
         gs.message(_("Recognized product types"))
+
     products = eodag_api.list_product_types(provider)
     if product_type:
         # Check for parial matches
@@ -1339,6 +1340,9 @@ if __name__ == "__main__":
 
     try:
         import eodag
+
+        if int(eodag.__version__.split(".")[0]) != 3:
+            gs.fatal(_("Only EODAG version 3.x is currently supported"))
         from eodag import EODataAccessGateway, setup_logging
         from eodag.api.search_result import SearchResult
         from eodag.utils.exceptions import MisconfiguredError
