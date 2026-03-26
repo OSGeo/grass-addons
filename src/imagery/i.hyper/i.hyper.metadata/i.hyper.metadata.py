@@ -442,7 +442,12 @@ def main():
         return 0
 
     if operation == "extended":
-        selected = _select_extended_metadata(raw, extended_select)
+        # Use resolved metadata from HyperMetadata.load(), so selectors work
+        # for derived datasets that inherit extended_metadata from lineage.
+        selected = _select_extended_metadata(
+            {"extended_metadata": meta.extended_metadata or {}},
+            extended_select,
+        )
         _print_full(selected, output_format)
         return 0
 
