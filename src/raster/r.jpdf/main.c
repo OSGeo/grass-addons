@@ -19,7 +19,7 @@
 
 #include <grass/gis.h>
 #include <grass/glocale.h>
-#include <grass/stats.h>
+#include <grass/raster.h>
 
 void findBins(double start, double end, int numBins, double val, int *pos)
 {
