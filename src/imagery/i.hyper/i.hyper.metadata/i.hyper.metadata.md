@@ -16,7 +16,7 @@ Supported operations:
 
 - `summary`: concise metadata summary for current dataset
 - `full`: full metadata object for current dataset
-- `extended`: selected `extended_metadata` only (all, branch, key path, or multiple selectors)
+- `extended`: selected `extended_metadata` only (all, branch, key path, or multiple selectors; resolved through lineage inheritance for derived datasets)
 - `bands`: list source bands (optionally filtered by wavelength range)
 - `history`: recursive aggregated lineage history, ordered by timestamp (uses `input_datasets_metadata` snapshots when referenced inputs are unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
@@ -38,6 +38,8 @@ For `operation=extended`, option `extended_select=` supports:
 - multiple selectors at once (comma-separated), e.g., `acquisition,geometry.sun_zenith_deg,processing`
 - selectors with `extended_metadata.` prefix are also accepted
   (for example, `extended_metadata.geometry.sun_zenith_deg`)
+
+Selectors are evaluated on resolved `extended_metadata` (current dataset overrides plus inherited values from lineage).
 
 Dataset provenance is stored in top-level key `derived`:
 
@@ -200,6 +202,15 @@ Show selected branches and key paths at the same time:
 
     i.hyper.metadata map=my_hyper_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,processing
+:::
+
+Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
+
+::: code
+
+    i.hyper.metadata map=my_hyper_cube operation=extended \
+      extended_select=acquisition.start_time_utc,acquisition.day_of_year,geometry.sun_zenith_deg,geometry.sun_azimuth_deg,geometry.view_zenith_deg,geometry.view_azimuth_deg,geometry.relative_azimuth_deg,atmosphere.aod_550,atmosphere.h2o_g_cm2,atmosphere.ozone_du \
+      format=json
 :::
 
 ## SEE ALSO
