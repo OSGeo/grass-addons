@@ -57,4 +57,9 @@ int lookup_lut_cn_ii(const struct cn_table *tbl, int lc, int hsg, int hc_idx,
    returns cn_ii unchanged if not found in table */
 int convert_arc_from_table(const struct arc_table *tbl, int cn_ii, int arc_idx);
 
+/* resolve dual HSG codes (11-14) to single codes (1-4)
+   drained=1: use first group (A/D->A), drained=0: use second group (A/D->D)
+   returns -1 for invalid HSG values */
+int resolve_dual_hsg(int hsg, int drained);
+
 #endif

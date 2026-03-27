@@ -29,6 +29,7 @@ int main(int argc, char **argv)
     struct GModule *module;
     struct Option *opt_land, *opt_soil, *opt_source, *opt_lookup;
     struct Option *opt_hc, *opt_arc, *opt_out;
+    struct Flag *flag_drained;
     struct Cell_head region;
 
     const char *land_name, *soil_name, *out_name;
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
 
     struct cn_table cn_tbl;
     struct arc_table arc_tbl;
-    int hc_idx, arc_idx;
+    int hc_idx, arc_idx, drained;
+    int null_soil_warned = 0;
 
     G_gisinit(argv[0]);
 
@@ -100,6 +102,11 @@ int main(int argc, char **argv)
     opt_arc->description = _("Antecedent Runoff Condition (the degree of "
                              "wetness of a watershed before a rainfall event)");
 
+    flag_drained = G_define_flag();
+    flag_drained->key = 'd';
+    flag_drained->description =
+        _("Use drained condition for dual hydrologic soil groups (e.g. A/D)");
+
     opt_out = G_define_standard_option(G_OPT_R_OUTPUT);
     opt_out->description = _("Name for output curve number raster");
 
@@ -116,6 +123,7 @@ int main(int argc, char **argv)
     lookup = opt_lookup->answer;
     hc_str = opt_hc->answer ? opt_hc->answer : "fair";
     arc_str = opt_arc->answer ? opt_arc->answer : "ii";
+    drained = flag_drained->answer;
 
     /* map hydrologic condition */
     if (G_strcasecmp(hc_str, "poor") == 0)
@@ -199,11 +207,31 @@ int main(int argc, char **argv)
             int cn_ii, cn;
             int ok;
 
-            if (Rast_is_c_null_value(&lc_val) ||
-                Rast_is_c_null_value(&soil_val)) {
+            if (Rast_is_c_null_value(&lc_val)) {
                 Rast_set_c_null_value(&out_row[col], 1);
                 continue;
             }
+
+            /* null soil: fall back to HSG D (most conservative) */
+            if (Rast_is_c_null_value(&soil_val)) {
+                if (!null_soil_warned) {
+                    G_verbose_message(
+                        _("Null soil value(s) found, falling back to HSG D"));
+                    null_soil_warned = 1;
+                }
+                soil_val = 4;
+            }
+
+            /* resolve dual HSG codes (11-14) to single codes (1-4) */
+            int resolved = resolve_dual_hsg((int)soil_val, drained);
+
+            if (resolved < 0) {
+                G_warning(_("Invalid HSG value %d at row %d col %d"),
+                          (int)soil_val, row, col);
+                Rast_set_c_null_value(&out_row[col], 1);
+                continue;
+            }
+            soil_val = (CELL)resolved;
 
             ok = lookup_lut_cn_ii(&cn_tbl, (int)lc_val, (int)soil_val, hc_idx,
                                   &cn_ii);
