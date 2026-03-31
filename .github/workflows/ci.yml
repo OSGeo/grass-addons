@@ -142,7 +142,7 @@ jobs:
         timeout-minutes: 45
         run: |
           cd grass-addons/src
-          ../.github/workflows/test.sh --config ../.gunittest.cfg
+            ../.github/workflows/test.sh --config ../.gunittest.cfg || exit 1
 
       - name: Make HTML test report available
         if: ${{ always() }}
