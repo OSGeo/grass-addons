@@ -104,7 +104,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-postgres --with-postgres-includes=/usr/include/postgresql \
   --with-freetype --with-freetype-includes=/usr/include/freetype2 \
   --with-netcdf \
-  --with-pdal \
+  --without-pdal \
   --with-fftw \
   --with-nls \
   --with-libsvm \
