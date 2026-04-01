@@ -62,7 +62,7 @@ jobs:
         id: diff-ruff
         # To run after ruff step exits with failure when rules don't have fixes available
         if: ${{ !cancelled() }}
-        uses: OSGeo/grass/.github/actions/create-upload-suggestions@main
+        uses: OSGeo/grass/.github/actions/create-upload-suggestions@215b91cbb7ef096bf7aee79314e57f5c31e51e17 # main
         with:
           tool-name: ruff
           # To keep repo's file structure in formatted changes artifact
