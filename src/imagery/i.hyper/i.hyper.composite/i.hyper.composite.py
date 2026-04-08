@@ -133,24 +133,17 @@ def _band_wavelengths(mapname, expected, hyper_meta_class):
 
 def _explode_cube(cube, tmpbase):
     """Explode cube into 2D rasters using a temporary 3D region."""
-    Module("g.region", save="__tmp_orig_region__", quiet=True)
-    try:
-        Module("g.region", raster_3d=cube, quiet=True)
-        Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
-        maps = (
-            gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*")
-            .strip()
-            .split()
-        )
-        if not maps:
-            gs.fatal("No 2D rasters were produced by r3.to.rast")
-        maps.sort(key=lambda m: int(re.search(r"(\d+)$", m).group(1)))
-        return maps
-    finally:
-        Module("g.region", region="__tmp_orig_region__", quiet=True)
-        Module(
-            "g.remove", type="region", name="__tmp_orig_region__", flags="f", quiet=True
-        )
+    Module("g.region", raster_3d=cube, quiet=True)
+    Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
+    maps = (
+        gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*")
+        .strip()
+        .split()
+    )
+    if not maps:
+        gs.fatal("No 2D rasters were produced by r3.to.rast")
+    maps.sort(key=lambda m: int(re.search(r"(\d+)$", m).group(1)))
+    return maps
 
 
 def _nearest_index(target_nm, wavelengths):
@@ -159,6 +152,7 @@ def _nearest_index(target_nm, wavelengths):
 
 
 def _enhance_and_composite(r, g, b, outname, strength, rgb_preserve):
+    Module("g.region", raster=r, quiet=True)
     if rgb_preserve:
         Module(
             "i.colors.enhance",
@@ -228,15 +222,15 @@ def main():
     wavelengths = _band_wavelengths(cube, band_count, hyper_meta_class)
 
     tmpbase = f"_ihc_{uuid.uuid4().hex[:8]}_b_"
-    maps = _explode_cube(cube, tmpbase)
-
-    if len(maps) != band_count:
-        gs.warning(
-            f"Expected {band_count} bands, got {len(maps)}. Using available maps only."
-        )
-        maps = maps[: min(len(maps), band_count)]
-
+    gs.use_temp_region()
     try:
+        maps = _explode_cube(cube, tmpbase)
+
+        if len(maps) != band_count:
+            gs.warning(
+                f"Expected {band_count} bands, got {len(maps)}. Using available maps only."
+            )
+            maps = maps[: min(len(maps), band_count)]
 
         def map_for_nm(nm):
             idx = _nearest_index(nm, wavelengths)
@@ -263,6 +257,7 @@ def main():
 
     finally:
         Module("g.remove", type="raster", pattern="_ihc*", flags="f", quiet=True)
+        gs.del_temp_region()
 
 
 if __name__ == "__main__":
