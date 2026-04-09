@@ -70,7 +70,7 @@ of processing.
 
 Product notes:
 
-- **EnMAP** and **PRISMA** are imported in their native product geometry.
+- Product levels that are not orthorectified are imported using product geolocation and nearest-neighbor assignment onto the current GRASS grid. This preserves original values, but may leave small holes or irregular borders where no source pixel maps to an output cell, which can be interpolated or otherwise handled later with existing GRASS tools.
 - **Tanager BASIC** products (`/HDFEOS/SWATHS/HYP/...`) use per-pixel geolocation and `Planet_Ortho_Framing` for projection and gridding.
 - **Tanager ortho** products (`/HDFEOS/GRIDS/HYP/...`) are imported directly in native map grid geometry (no geolocation reprojection).
 - For Tanager ortho products, map grid parameters are read from `/HDFEOS INFORMATION/StructMetadata.0` (UL/LR corners), `/HDFEOS/GRIDS/HYP` attribute `epsg_code`, and spectral dataset shape (rows/cols).
