@@ -24,7 +24,7 @@
 # % type: string
 # % required: yes
 # % multiple: no
-# % options: prisma, enmap, tanager
+# % options: prisma, enmap, tanager, ihyper
 # % answer: prisma
 # % description: Define the hyperspectral product you want to import (lowercase).
 # % guisection: Input
@@ -91,61 +91,86 @@ def _mapset_path():
     return Path(env["GISDBASE"]) / env["LOCATION_NAME"] / env["MAPSET"]
 
 
+def _open_ihyper_archive(input_path):
+    archive_path = Path(input_path)
+    try:
+        tar = tarfile.open(archive_path, "r:gz")
+    except (tarfile.TarError, OSError) as error:
+        gs.fatal(f"Input file is not a valid native i.hyper archive: {error}")
+
+    names = tar.getnames()
+    if "manifest.json" not in names:
+        tar.close()
+        gs.fatal("Invalid native archive: manifest.json missing.")
+
+    manifest_member = tar.extractfile("manifest.json")
+    if manifest_member is None:
+        tar.close()
+        gs.fatal("Invalid native archive: cannot read manifest.json.")
+
+    try:
+        manifest = json.load(manifest_member)
+    except json.JSONDecodeError as error:
+        tar.close()
+        gs.fatal(f"Invalid native archive: manifest.json is not valid JSON: {error}")
+
+    archived_name = manifest.get("map_name")
+    if not archived_name:
+        tar.close()
+        gs.fatal("Invalid native archive: map_name missing in manifest.")
+
+    expected_prefix = f"grid3/{archived_name}/"
+    members = [m for m in tar.getmembers() if m.name.startswith(expected_prefix)]
+    if not members:
+        tar.close()
+        gs.fatal(f"Invalid native archive: {expected_prefix} missing.")
+
+    return tar, manifest, archived_name, members
+
+
 def _safe_extract_ihyper(input_path, output_name):
     archive_path = Path(input_path)
-    if archive_path.suffix.lower() != ".ihyper":
-        return False
+    tar, _manifest, archived_name, members = _open_ihyper_archive(input_path)
 
     mapset_path = _mapset_path()
     grid3_root = mapset_path / "grid3"
     grid3_root.mkdir(parents=True, exist_ok=True)
 
-    with tarfile.open(archive_path, "r:gz") as tar:
-        names = tar.getnames()
-        if "manifest.json" not in names:
-            gs.fatal("Invalid .ihyper archive: manifest.json missing.")
+    target_path = grid3_root / archived_name
+    if target_path.exists():
+        tar.close()
+        gs.fatal(f"Target 3D raster '{archived_name}' already exists in current mapset.")
 
-        manifest_member = tar.extractfile("manifest.json")
-        if manifest_member is None:
-            gs.fatal("Invalid .ihyper archive: cannot read manifest.json.")
-        manifest = json.load(manifest_member)
-        archived_name = manifest.get("map_name")
-        if not archived_name:
-            gs.fatal("Invalid .ihyper archive: map_name missing in manifest.")
+    with tempfile.TemporaryDirectory(prefix="ihyper_import_") as tmpdir:
+        tmp_root = Path(tmpdir)
+        for member in members:
+            rel = Path(member.name).relative_to("grid3")
+            dest = tmp_root / rel
+            if member.isdir():
+                dest.mkdir(parents=True, exist_ok=True)
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            extracted = tar.extractfile(member)
+            if extracted is None:
+                tar.close()
+                gs.fatal(f"Invalid native archive: cannot read member '{member.name}'.")
+            with extracted as src, open(dest, "wb") as dst:
+                shutil.copyfileobj(src, dst)
 
-        expected_prefix = f"grid3/{archived_name}/"
-        members = [m for m in tar.getmembers() if m.name.startswith(expected_prefix)]
-        if not members:
-            gs.fatal(f"Invalid .ihyper archive: {expected_prefix} missing.")
+        restored = tmp_root / archived_name
+        if not (restored / "hyper.json").exists():
+            tar.close()
+            gs.fatal("Invalid native archive: hyper.json missing in grid3 map directory.")
+        shutil.move(str(restored), str(target_path))
 
-        target_path = grid3_root / archived_name
-        if target_path.exists():
-            gs.fatal(f"Target 3D raster '{archived_name}' already exists in current mapset.")
-
-        with tempfile.TemporaryDirectory(prefix="ihyper_import_") as tmpdir:
-            tmp_root = Path(tmpdir)
-            for member in members:
-                rel = Path(member.name).relative_to("grid3")
-                dest = tmp_root / rel
-                if member.isdir():
-                    dest.mkdir(parents=True, exist_ok=True)
-                    continue
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                with tar.extractfile(member) as src, open(dest, "wb") as dst:
-                    shutil.copyfileobj(src, dst)
-
-            restored = tmp_root / archived_name
-            if not (restored / "hyper.json").exists():
-                gs.fatal("Invalid .ihyper archive: hyper.json missing in grid3 map directory.")
-            shutil.move(str(restored), str(target_path))
+    tar.close()
 
     if output_name and output_name != archived_name:
         gs.warning(
-            f"Output name '{output_name}' ignored for .ihyper import; restored archive map '{archived_name}'."
+            f"Output name '{output_name}' ignored for native import; restored archive map '{archived_name}'."
         )
 
     gs.message(f"Imported native hyperspectral archive {archive_path} as {archived_name}")
-    return True
 
 
 def import_by_product(product, options, flags):
@@ -174,10 +199,12 @@ def import_by_product(product, options, flags):
 
 
 def main(options, flags):
-    if _safe_extract_ihyper(options["input"], options.get("output")):
+    product = options["product"]
+
+    if product == "ihyper":
+        _safe_extract_ihyper(options["input"], options.get("output"))
         return
 
-    product = options["product"]
     gs.info(f"Importing product: {product}")
     import_hyper = import_by_product(product, options, flags)
     import_hyper.run_import(options, flags)

@@ -69,9 +69,11 @@ imported bands. This region setting is temporary and restored at the end
 of processing.
 
 *i.hyper.import* can also restore hyperspectral data directly from a
-native `.ihyper` gzip archive. Such archives are unpacked into the
-current mapset and restore the native `raster_3d` together with its
-metadata.
+native GRASS archive with `product=ihyper`. The archive structure is
+validated from its contents rather than the filename suffix, so any
+input filename is accepted as long as it contains a valid native
+archive. Native archives are unpacked into the current mapset and
+restore the native `raster_3d` together with its metadata.
 
 Product notes:
 
@@ -164,8 +166,12 @@ height="600" border="0"}\
 
     # Restore a native hyperspectral archive into the current mapset
     i.hyper.import input=/data/hyperspectral_data.ihyper \
-                   product=prisma
+                   product=ihyper \
+                   output=ignored_name
 :::
+
+For native archive restore, the archived map name is restored as-is and
+the `output` option is ignored.
 
 ## SEE ALSO
 
