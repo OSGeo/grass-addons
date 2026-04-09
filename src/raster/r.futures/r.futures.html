@@ -52,7 +52,7 @@ and the spatial structure of conversion events (PGA submodel).
   and a contextually aware region growing mechanism.
   Simulations of change at each time step feed development pressure back
   to the POTENTIAL submodel, influencing site suitability for the next step.
-  PGA is implemented in <a href="r.futures.pga.html">r.futures.pga</a>.</dd>
+  PGA is implemented in <a href="r.futures.simulation.html">r.futures.simulation</a>.</dd>
 </dl>
 
 <center>
@@ -156,7 +156,7 @@ r.futures.calib -l development_start=urban_1987 development_end=urban_2002 patch
 
 Run patch growing to get final results:
 <div class="code"><pre>
-r.futures.pga developed=urban_2002 subregions=zipcodes output=futures output_series=futures predictors=slope,lakes_dist_km,streets_dist_km devpot_params=potential.csv \
+r.futures.simulation developed=urban_2002 subregions=zipcodes output=futures output_series=futures predictors=slope,lakes_dist_km,streets_dist_km devpot_params=potential.csv \
   development_pressure=devpressure n_dev_neighbourhood=15 development_pressure_approach=gravity gamma=1.5 scaling_factor=1 demand=demand.csv discount_factor=0.1 \
   compactness_mean=0.4 compactness_range=0.05 num_neighbors=4 seed_search=probability patch_sizes=patches.txt random_seed=1
 </pre></div>
@@ -191,7 +191,7 @@ where yellow is the latest.</i>
 
 
 <h2>SEE ALSO</h2>
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
+<em><a href="r.futures.simulation.html">r.futures.simulation</a></em>,
 <em><a href="r.futures.parallelpga.html">r.futures.parallelpga</a></em>,
 <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
 <em><a href="r.futures.calib.html">r.futures.calib</a></em>,

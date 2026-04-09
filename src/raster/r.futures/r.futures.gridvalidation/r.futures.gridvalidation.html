@@ -1,6 +1,10 @@
 <h2>DESCRIPTION</h2>
-Module <em>r.futures.gridvalidation</em> allows to
-validate land change simulation results on a spatial grid.
+Tool <em>r.futures.gridvalidation</em> allows to
+validate land change simulation results spatially.
+It is a wrapper around
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>
+that computes validation metrics for each cell of a grid
+or for each polygon of a vector layer.
 It computes:
 <ul>
 <li>Allocation disagreement (total and per class), see Pontius et al, 2011</li>
@@ -9,46 +13,64 @@ It computes:
 <li>Kappa simulation, see van Vliet et al, 2011</li>
 </ul>
 
-These metrics are computed for each cell of a region
-provided in <b>region</b> option resulting in spatially
-variable validation results. Cell size of the region
-should be larger than the cell size of the current region.
-<p>
-This module can be used for any number of classes.
-Input raster <b>original</b> represents the initial conditions
-and is needed only for Kappa simulation.
+When <b>original</b> is provided and the input rasters contain
+only binary categories (0 for undeveloped and 1 for developed),
+the tool additionally computes change detection metrics
+(see <em><a href="r.futures.validation.html">r.futures.validation</a></em>
+for details).
+When more than two categories are present, these metrics are skipped.
 
+<p>
+The tool operates in two modes:
+<ul>
+<li><b>Grid mode</b> (<b>region</b>):
+    A saved region is divided into grid cells and metrics are computed
+    for each cell. Cell size of the region should be larger than the cell size
+    of the current computational region.
+    The output is a point vector layer
+    with each point at the center of a grid cell.</li>
+<li><b>Subregion mode</b> (<b>subregions</b>):
+    Metrics are computed for each polygon of the input vector layer.
+    The output is a copy of the input vector with metrics
+    added as attribute columns.</li>
+</ul>
+
+This tool can be used for any number of classes.
+Input raster <b>original</b> represents the initial conditions
+and is needed for Kappa simulation and for change detection metrics.
 
 <h2>EXAMPLES</h2>
-Validate FUTURES output by computing quantity and allocation disagreement
+Validate FUTURES output by computing validation metrics
 on a 5km grid.
-First reclassify FUTURES output to 0 (undeveloped) and 1 (developed)
-by creating a text file "rules.txt" with the following content:
-<pre>
--1 = 0
-0 thru 100 = 1
-</pre>
-Then save a region used as a grid:
+First, reclassify FUTURES output
+(where -1 is undeveloped, 0 is initially developed,
+and 1 to N is the step when a cell became developed)
+to binary (0 = undeveloped, 1 = developed).
+Create a file <tt>reclass_rules.txt</tt> with the following content:
+
+<div class="code"><pre>
+-1 = 0 undeveloped
+0 thru 1000 = 1 developed
+</pre></div>
+
+Then save a region used as a grid and reclassify:
 <div class="code"><pre>
 g.region res=5000 -a save=grid
+r.reclass input=simulated_2016 output=simulated_2016_reclass rules=reclass_rules.txt
 </pre></div>
 
-Reclass FUTURES output:
+Run the grid validation:
 <div class="code"><pre>
-r.reclass input=simulated_2016 output=simulated_2016_reclass rules=rules.txt
-</pre></div>
-
-Validate FUTURES output by computing kappa simulation
-on a 5km grid:
-<div class="code"><pre>
-r.futures.gridvalidation simulated=simulated_2016_reclass reference=reference_2016 original=orig_2001 kappasimulation=kappasim
+r.futures.gridvalidation simulated=simulated_2016_reclass reference=reference_2016 \
+    original=orig_2001 output=validation_grid region=grid nprocs=4
 </pre></div>
 
 
 <h2>SEE ALSO</h2>
 
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>,
 <a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
+<em><a href="r.futures.simulation.html">r.futures.simulation</a></em>,
 <em><a href="r.futures.potential.html">r.futures.potential</a></em>,
 <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
 <em><a href="r.futures.demand.html">r.futures.demand</a></em>,

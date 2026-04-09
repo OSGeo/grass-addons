@@ -2,17 +2,13 @@
 Module <em>r.futures.calibration</em> is part of <a href="r.futures.html">FUTURES</a>,
 land change model.
 It is used for calibrating certain input variables for patch growing
-algorithm <em>r.futures.pga</em>, specifically patch size and compactness parameters.
+algorithm <em>r.futures.simulation</em>, specifically patch size and compactness parameters.
 The calibration process is conducted to match observed urban growth patterns
 to those simulated by the model, including the sizes and shapes of new development.
 The calibration is achieved by varying the values of the patch parameters,
 comparing the distribution of simulated patch sizes to those observed
 for the reference period, and choosing the values that provide the closest match.
 For the details about calibration see below.
-
-<p>
-This module depends on addon
-<a href="r.object.geometry.html">r.object.geometry</a>.
 
 <h3>Patch size</h3>
 As part of the calibration process, module <em>r.futures.calibration</em>
@@ -39,7 +35,7 @@ This variable doesn't represent actual patch compactness, it is rather
 an adjustable scaling factor that controls patch compactness
 through a distance decay effect.
 By specifying the mean and range of this parameter in module
-<em>r.futures.pga</em>, we allow for variation in patch shape.
+<em>r.futures.simulation</em>, we allow for variation in patch shape.
 As the value of the parameter increases, patches become more compact.
 Calibration is achieved by varying the values specified in <b>compactness_mean</b>
 and <b>compactness_range</b> and comparing the distribution
@@ -56,11 +52,11 @@ It is possible to set the minimum number of cells of a patch in <b>patch_thresho
 to ignore too small patches.
 For each combination of values provided in <b>compactness_mean</b>,
 <b>compactness_range</b> and <b>discount_factor</b>, it runs
-module <em>r.futures.pga</em> which creates new development pattern.
+module <em>r.futures.simulation</em> which creates new development pattern.
 From this new simulated development, patch characteristics are derived
 and compared with the observed characteristics by histogram comparison
 and an error (histogram distance) is computed.
-Since <em>r.futures.pga</em> is a stochastic module, multiple
+Since <em>r.futures.simulation</em> is a stochastic module, multiple
 runs (specified in <b>repeat</b>) are recommended, the error is then averaged.
 Calibration results are saved in a CSV file specified in <b>calibration_results</b>:
 
@@ -90,7 +86,7 @@ that patch sizes and shapes are close to being consistent across the entire stud
 
 <p>
 For all other parameters not mentioned above, please refer to
-<em>r.futures.pga</em> documentation.
+<em>r.futures.simulation</em> documentation.
 
 <h2>NOTES</h2>
 This module depends on addon
@@ -107,7 +103,7 @@ g.extension r.object.geometry
 
 <em>
 <a href="r.futures.html">FUTURES overview</a>,
-<a href="r.futures.pga.html">r.futures.pga</a>,
+<a href="r.futures.simulation.html">r.futures.simulation</a>,
 <a href="r.futures.devpressure.html">r.futures.devpressure</a>,
 <a href="r.futures.demand.html">r.futures.demand</a>,
 <a href="r.futures.potential.html">r.futures.potential</a>,
