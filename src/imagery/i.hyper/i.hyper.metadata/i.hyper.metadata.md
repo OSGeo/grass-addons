@@ -227,3 +227,5 @@ Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
 ## AUTHORS
 
 GRASS Development Team
+Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia
+Anna Petrasova, NCSU GeoForAll Lab

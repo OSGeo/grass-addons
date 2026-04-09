@@ -71,6 +71,11 @@
 import sys
 import os
 import importlib.util
+import json
+from pathlib import Path
+import shutil
+import tarfile
+import tempfile
 import grass.script as gs
 from grass.script.utils import get_lib_path
 
@@ -79,6 +84,68 @@ PRODUCT_MODULE_MAP = {
     "prisma": "prisma",
     "tanager": "tanager",
 }
+
+
+def _mapset_path():
+    env = gs.gisenv()
+    return Path(env["GISDBASE"]) / env["LOCATION_NAME"] / env["MAPSET"]
+
+
+def _safe_extract_ihyper(input_path, output_name):
+    archive_path = Path(input_path)
+    if archive_path.suffix.lower() != ".ihyper":
+        return False
+
+    mapset_path = _mapset_path()
+    grid3_root = mapset_path / "grid3"
+    grid3_root.mkdir(parents=True, exist_ok=True)
+
+    with tarfile.open(archive_path, "r:gz") as tar:
+        names = tar.getnames()
+        if "manifest.json" not in names:
+            gs.fatal("Invalid .ihyper archive: manifest.json missing.")
+
+        manifest_member = tar.extractfile("manifest.json")
+        if manifest_member is None:
+            gs.fatal("Invalid .ihyper archive: cannot read manifest.json.")
+        manifest = json.load(manifest_member)
+        archived_name = manifest.get("map_name")
+        if not archived_name:
+            gs.fatal("Invalid .ihyper archive: map_name missing in manifest.")
+
+        expected_prefix = f"grid3/{archived_name}/"
+        members = [m for m in tar.getmembers() if m.name.startswith(expected_prefix)]
+        if not members:
+            gs.fatal(f"Invalid .ihyper archive: {expected_prefix} missing.")
+
+        target_path = grid3_root / archived_name
+        if target_path.exists():
+            gs.fatal(f"Target 3D raster '{archived_name}' already exists in current mapset.")
+
+        with tempfile.TemporaryDirectory(prefix="ihyper_import_") as tmpdir:
+            tmp_root = Path(tmpdir)
+            for member in members:
+                rel = Path(member.name).relative_to("grid3")
+                dest = tmp_root / rel
+                if member.isdir():
+                    dest.mkdir(parents=True, exist_ok=True)
+                    continue
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                with tar.extractfile(member) as src, open(dest, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+            restored = tmp_root / archived_name
+            if not (restored / "hyper.json").exists():
+                gs.fatal("Invalid .ihyper archive: hyper.json missing in grid3 map directory.")
+            shutil.move(str(restored), str(target_path))
+
+    if output_name and output_name != archived_name:
+        gs.warning(
+            f"Output name '{output_name}' ignored for .ihyper import; restored archive map '{archived_name}'."
+        )
+
+    gs.message(f"Imported native hyperspectral archive {archive_path} as {archived_name}")
+    return True
 
 
 def import_by_product(product, options, flags):
@@ -107,6 +174,9 @@ def import_by_product(product, options, flags):
 
 
 def main(options, flags):
+    if _safe_extract_ihyper(options["input"], options.get("output")):
+        return
+
     product = options["product"]
     gs.info(f"Importing product: {product}")
     import_hyper = import_by_product(product, options, flags)

@@ -54,6 +54,8 @@ All temporary rasters are automatically removed after import.</p>
 <p>During import, <em>i.hyper.import</em> temporarily adjusts the computational region to match the input data, ensuring consistent alignment between imported bands.
 This region setting is temporary and restored at the end of processing.</p>
 
+<p><em>i.hyper.import</em> can also restore hyperspectral data directly from a native <code>.ihyper</code> gzip archive. Such archives are unpacked into the current mapset and restore the native <code>raster_3d</code> together with its metadata.</p>
+
 <p>Product notes:</p>
 <ul>
   <li><b>EnMAP L2</b> products are imported from the native single spectral image.</li>
@@ -100,6 +102,7 @@ Generated composite raster: prisma_swir_geology
   <i>Figure: PRISMA SWIR-geology composite generated with i.hyper.import</i><br>
   <small><i>Data source: PRISMA Product © Italian Space Agency (ASI), used under ASI License to Use.</i></small>
 </div>
+</div>
 
 <div class="code"><pre>
 # Import an EnMAP L2A product and create RGB and CIR composites
@@ -117,6 +120,7 @@ i.hyper.import input=/data/EnMAP_data_folder/ \
   <i>Figure: EnMAP SWIR-agriculture composite generated with i.hyper.import</i><br>
   <small><i>Data source: Copyright © 2012-2025 EnMAP at Earth Observation Center EOC of DLR.</i></small>
 </div>
+</div>
 
 <div class="code"><pre>
 # Tanager BASIC radiance example
@@ -133,11 +137,19 @@ i.hyper.import input=/data/Tanager.h5 \
   <i>Figure: Tanager-1 RGB composite generated with i.hyper.import</i><br>
   <small><i>Data source: Planet Labs - Open Data, CC-BY-4.0.</i></small>
 </div>
+</div>
+
+<div class="code"><pre>
+# Restore a native hyperspectral archive into the current mapset
+i.hyper.import input=/data/hyperspectral_data.ihyper \
+               product=prisma
+</pre></div>
 
 <h2>SEE ALSO</h2>
 <a href="https://www.enmap.org/data_tools/exampledata/">EnMAP Example Data Products</a>,
 <a href="https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.json">Tanager Core Imagery</a>,
 <a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
 <a href="i.hyper.explore.html">i.hyper.explore</a>,
 <a href="i.hyper.composite.html">i.hyper.composite</a>,
 <a href="i.hyper.export.html">i.hyper.export</a>,

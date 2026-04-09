@@ -68,6 +68,11 @@ region to match the input data, ensuring consistent alignment between
 imported bands. This region setting is temporary and restored at the end
 of processing.
 
+*i.hyper.import* can also restore hyperspectral data directly from a
+native `.ihyper` gzip archive. Such archives are unpacked into the
+current mapset and restore the native `raster_3d` together with its
+metadata.
+
 Product notes:
 
 - Product levels that are not orthorectified are imported using product geolocation and nearest-neighbor assignment onto the current GRASS grid. This preserves original values, but may leave small holes or irregular borders where no source pixel maps to an output cell, which can be interpolated or otherwise handled later with existing GRASS tools.
@@ -114,6 +119,7 @@ height="600" border="0"}\
 [*Data source: PRISMA Product © Italian Space Agency (ASI), used under
 ASI License to Use.*]{.small}
 :::
+::::::::::
 
 ::: code
 
@@ -134,6 +140,7 @@ i.hyper.import*\
 [*Data source: Copyright © 2012-2025 EnMAP at Earth Observation Center
 EOC of DLR.*]{.small}
 :::
+:::::::
 
 ::: code
 
@@ -151,6 +158,14 @@ height="600" border="0"}\
 *Figure: Tanager-1 RGB composite generated with i.hyper.import*\
 [*Data source: Planet Labs - Open Data, CC-BY-4.0.*]{.small}
 :::
+::::
+
+::: code
+
+    # Restore a native hyperspectral archive into the current mapset
+    i.hyper.import input=/data/hyperspectral_data.ihyper \
+                   product=prisma
+:::
 
 ## SEE ALSO
 
@@ -158,6 +173,7 @@ height="600" border="0"}\
 Products](https://www.enmap.org/data_tools/exampledata/), [Tanager Core
 Imagery](https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.json),
 [i.hyper.preproc](i.hyper.preproc.html),
+[i.hyper.metadata](i.hyper.metadata.html),
 [i.hyper.explore](i.hyper.explore.html),
 [i.hyper.composite](i.hyper.composite.html),
 [i.hyper.export](i.hyper.export.html),
@@ -175,6 +191,3 @@ Imagery](https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.j
 ## AUTHORS
 
 Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia
-::::
-:::::::
-::::::::::

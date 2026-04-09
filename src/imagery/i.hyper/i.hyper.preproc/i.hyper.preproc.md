@@ -172,6 +172,7 @@ or exported with *i.hyper.export* for further analysis.
 
 ## SEE ALSO
 
+[i.hyper.metadata](i.hyper.metadata.html),
 [i.hyper.explore](i.hyper.explore.html),
 [i.hyper.composite](i.hyper.composite.html),
 [i.hyper.export](i.hyper.export.html),

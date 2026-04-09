@@ -3,8 +3,10 @@
 ##############################################################################
 # MODULE:    i.hyper.metadata
 # AUTHOR(S): Based on hyper_meta.py design
+#            Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia
+#            Anna Petrasova, NCSU GeoForAll Lab
 # PURPOSE:   View and manage hyperspectral metadata for 3D raster maps.
-# COPYRIGHT: (C) 2025 by the GRASS Development Team
+# COPYRIGHT: (C) 2025 by the authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
