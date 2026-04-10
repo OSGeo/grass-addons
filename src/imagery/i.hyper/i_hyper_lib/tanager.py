@@ -467,29 +467,19 @@ def import_tanager(
 
     # Read Planet target map grid and set region
     grid = read_planet_map_grid(h5)
-    if use_splat:
-        Module(
-            "g.region",
-            w=grid.west,
-            e=grid.east,
-            s=grid.south,
-            n=grid.north,
-            ewres=grid.ewres,
-            nsres=grid.nsres,
-            flags="a",
-            quiet=True,
-        )
-    else:
-        Module(
-            "g.region",
-            w=grid.west,
-            e=grid.east,
-            s=grid.south,
-            n=grid.north,
-            rows=grid.rows,
-            cols=grid.cols,
-            quiet=True,
-        )
+    # Always lock region dimensions to product grid rows/cols. Using resolution
+    # alignment (-a) can expand the region by 1-2 cells on some platforms and
+    # break array writes when projected bands keep original metadata dimensions.
+    Module(
+        "g.region",
+        w=grid.west,
+        e=grid.east,
+        s=grid.south,
+        n=grid.north,
+        rows=grid.rows,
+        cols=grid.cols,
+        quiet=True,
+    )
 
     # Precompute the per-scene splat plan for BASIC products.
     plan = None
