@@ -241,7 +241,7 @@ def main():
             r, g, b = map_for_nm(wl[0]), map_for_nm(wl[1]), map_for_nm(wl[2])
             outname = f"{outpref}_{comp.lower().replace('-', '_')}"
             _enhance_and_composite(
-                r, g, b, outname, strength, rgb_preserve=(comp == "rgb")
+                r, g, b, outname, strength, rgb_preserve=(comp.upper() == "RGB")
             )
             gs.info(f"Generated composite raster: {outname}")
 

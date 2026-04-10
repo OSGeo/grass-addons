@@ -747,7 +747,7 @@ def import_prisma(
                 rgb_maps.append(ensure_band_written(idx1))
 
         Module("g.region", raster=rgb_maps[0], quiet=True)
-        if name.upper() == "rgb":
+        if name.upper() == "RGB":
             Module(
                 "i.colors.enhance",
                 red=rgb_maps[0],

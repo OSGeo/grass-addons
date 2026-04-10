@@ -626,7 +626,7 @@ def import_tanager(
             )
 
         Module("g.region", raster=maps[0], quiet=True)
-        if name.upper() == "rgb":
+        if name.upper() == "RGB":
             Module(
                 "i.colors.enhance",
                 red=maps[0],

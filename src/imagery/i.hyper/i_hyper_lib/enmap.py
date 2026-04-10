@@ -841,7 +841,7 @@ def import_enmap(
                 continue
             bands = [find_nearest_band(wl, wavelengths) for wl in COMPOSITES[comp]]
             rgb_maps = [rgb_enhanced.get(b, band_names[b - 1]) for b in bands]
-            if comp.upper() == "rgb":
+            if comp.upper() == "RGB":
                 Module(
                     "i.colors.enhance",
                     red=rgb_maps[0],
