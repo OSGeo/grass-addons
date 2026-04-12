@@ -48,6 +48,43 @@ def _first_float(root, paths):
     return _to_float(_first_nonempty_text(root, paths))
 
 
+def _enmap_sun_zenith(root):
+    """Return solar zenith angle in degrees from EnMAP XML variants."""
+    sun_zenith = _first_float(
+        root,
+        [
+            ".//illuminationZenithAngle/center",
+            ".//illuminationZenithAngle",
+            ".//sunZenithAngle/center",
+            ".//sunZenithAngle",
+        ],
+    )
+    if sun_zenith is not None:
+        return sun_zenith
+
+    sun_elevation = _first_float(
+        root,
+        [
+            ".//sunElevationAngle/center",
+            ".//sunElevationAngle",
+        ],
+    )
+    return 90.0 - sun_elevation if sun_elevation is not None else None
+
+
+def _enmap_sun_azimuth(root):
+    """Return solar azimuth angle in degrees from EnMAP XML variants."""
+    return _first_float(
+        root,
+        [
+            ".//sunAzimuthAngle/center",
+            ".//sunAzimuthAngle",
+            ".//illuminationAzimuthAngle/center",
+            ".//illuminationAzimuthAngle",
+        ],
+    )
+
+
 def _to_int(value):
     if value is None:
         return None
@@ -304,22 +341,8 @@ def parse_dataset_metadata(meta_xml_path):
         )
     )
 
-    sun_elevation = _first_float(
-        root,
-        [
-            ".//sunElevationAngle/center",
-            ".//sunElevationAngle",
-        ],
-    )
-    solar_zenith_angle = 90.0 - sun_elevation if sun_elevation is not None else None
-
-    solar_azimuth_angle = _first_float(
-        root,
-        [
-            ".//sunAzimuthAngle/center",
-            ".//sunAzimuthAngle",
-        ],
-    )
+    solar_zenith_angle = _enmap_sun_zenith(root)
+    solar_azimuth_angle = _enmap_sun_azimuth(root)
 
     satellite_azimuth_angle = _first_float(
         root,
@@ -415,9 +438,8 @@ def _populate_enmap_extended_metadata(
 
     center_lat, center_lon = _enmap_center_latlon(root)
 
-    sun_elevation = _first_float(root, [".//sunElevationAngle/center", ".//sunElevationAngle"])
-    sun_zenith = 90.0 - sun_elevation if sun_elevation is not None else None
-    sun_azimuth = _first_float(root, [".//sunAzimuthAngle/center", ".//sunAzimuthAngle"])
+    sun_zenith = _enmap_sun_zenith(root)
+    sun_azimuth = _enmap_sun_azimuth(root)
 
     view_azimuth = _first_float(
         root,

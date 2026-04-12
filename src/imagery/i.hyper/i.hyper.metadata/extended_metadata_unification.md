@@ -27,13 +27,13 @@ Reference basis:
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
 |---|---|---|---|---|---|
-| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | ISO-8601 UTC |
+| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` (alias: `Acquisition_Start_Time`) | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | ISO-8601 UTC |
 | `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | valid max of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | supplementary |
 | `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean lat map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
 | `acquisition.center_longitude_deg` | center point longitude | `Product_center_long` | mean lon map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
 | `acquisition.day_of_year` | derived | derived | derived | all products | integer 1..366 |
-| `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | all products | core |
-| `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` | `Sun_azimuth_angle` | map mean `sun_azimuth` | all products | core |
+| `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` (aliases: `illuminationZenithAngle/center`, `sunZenithAngle/center`) | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | all products | core |
+| `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` (aliases: `illuminationAzimuthAngle/center`) | `Sun_azimuth_angle` | map mean `sun_azimuth` | all products | core |
 | `geometry.view_zenith_deg` | `viewingZenithAngle/center` if available, otherwise derived from off-nadir angles | map mean `.../Observing_Angle` | map mean `sensor_zenith` | all products | core |
 | `geometry.view_azimuth_deg` | `viewingAzimuthAngle/center` if available, otherwise `sceneAzimuthAngle/center` | nullable/derived | map mean `sensor_azimuth` | all products | supplementary |
 | `geometry.relative_azimuth_deg` | derived from SAA/VAA | map mean `.../Rel_Azimuth_Angle` | derived from SAA/VAA | all products | supplementary |
@@ -50,6 +50,10 @@ Reference basis:
 | `atmosphere.surface_pressure_hpa` | not found | not found | not found | not available in current products | schema-reserved key |
 | `atmosphere.atmosphere_model` | not found | `Atmo_profile_info` | not found | single product | keep nullable |
 | `atmosphere.aerosol_model` | not found | not found | not found | not available in current products | schema-reserved key |
+
+Scalar extraction rule for EnMAP angular fields:
+- When an EnMAP angle block provides corner values (`upper_left`, `upper_right`, `lower_left`, `lower_right`) plus `center`, unified scalar keys use the `center` value.
+- Example: `geometry.sun_zenith_deg = 90 - sunElevationAngle/center`, `geometry.sun_azimuth_deg = sunAzimuthAngle/center`.
 
 ## B. Additional Unified Keys Present In >=2 Products
 
@@ -129,10 +133,10 @@ This section defines unified keys for atmospheric-correction metadata.
 
 | Concept | Unified key | Product availability | Source examples |
 |---|---|---|---|
-| Acquisition time | `acquisition.start_time_utc` | all products | EnMAP `datatakeStart`, PRISMA `Product_StartTime`, Tanager valid min of `Data Fields/time` (GRIDS) or `Geolocation Fields/Time` (SWATHS) |
+| Acquisition time | `acquisition.start_time_utc` | all products | EnMAP `datatakeStart`, PRISMA `Product_StartTime` (alias: `Acquisition_Start_Time`), Tanager valid min of `Data Fields/time` (GRIDS) or `Geolocation Fields/Time` (SWATHS) |
 | Scene center lat/lon | `acquisition.center_latitude_deg`, `acquisition.center_longitude_deg` | all products | EnMAP spatial center, PRISMA `Product_center_*`, Tanager lat/lon maps (SWATHS) or map-grid+EPSG derivation (GRIDS) |
 | Day of year | `acquisition.day_of_year` | all products (derived) | derived from acquisition time |
-| Sun zenith / azimuth | `geometry.sun_zenith_deg`, `geometry.sun_azimuth_deg` | all products | product geometry fields/maps |
+| Sun zenith / azimuth | `geometry.sun_zenith_deg`, `geometry.sun_azimuth_deg` | all products | EnMAP `sunElevationAngle`/`sunAzimuthAngle` and illumination aliases (`illuminationZenithAngle`, `illuminationAzimuthAngle`) using `center` when corner+center values are present; PRISMA `Sun_zenith_angle`/`Sun_azimuth_angle` |
 | View zenith / azimuth | `geometry.view_zenith_deg`, `geometry.view_azimuth_deg` | all products (azimuth may be derived) | EnMAP scene angle or viewing angle, PRISMA geometric maps, Tanager sensor maps |
 | Relative azimuth | `geometry.relative_azimuth_deg` | all products (derived or map) | PRISMA `Rel_Azimuth_Angle` map or derived |
 | Sensor altitude | `geometry.sensor_altitude_m` | single product | EnMAP `base/altitudeCoverage` (interpretation-dependent) |

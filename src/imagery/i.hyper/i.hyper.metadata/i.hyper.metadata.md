@@ -154,9 +154,7 @@ Unified branches store cross-product keys. Product-specific branches store
 source product keys used to derive unified values (provenance).
 The same value may appear in both locations by design.
 
-Legacy compatibility:
-
-- older imports may still use `extended_metadata.scene.geometry`
+Only unified geometry keys under `extended_metadata.geometry` are used.
 
 For key mapping and provenance rules, see:
 

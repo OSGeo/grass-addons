@@ -138,7 +138,7 @@ Derived datasets store mandatory provenance keys and only local overrides.</p>
   <li>Dimensionality reduction metadata is stored in top-level <code>dimensionality_reduction</code>, not in <code>extended_metadata.processing</code>.</li>
   <li>For derived datasets, top-level <code>input_datasets_metadata</code> stores full metadata snapshots for all input datasets recursively to origin, keyed by <code>dataset_id</code>. Embedded snapshots exclude nested <code>input_datasets_metadata</code>. <code>operation=history</code> uses these snapshots when referenced input metadata are unavailable in the current LOCATION.</li>
   <li>Unified branches store cross-product keys. Product-specific branches store source product keys used to derive unified values (provenance). The same value may appear in both locations by design.</li>
-  <li>Legacy compatibility: older imports may still use <code>extended_metadata.scene.geometry</code></li>
+  <li>Only unified geometry keys under <code>extended_metadata.geometry</code> are used.</li>
 </ul>
 <p>For key mapping and provenance rules, see
 <code>extended_metadata_unification.md</code>.</p>

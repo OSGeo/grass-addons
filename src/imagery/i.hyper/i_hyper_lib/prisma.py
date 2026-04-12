@@ -85,6 +85,21 @@ def _decode_text(value):
     return str(value) if isinstance(value, (np.str_,)) else value
 
 
+def _first_attr(attrs, keys):
+    """Return first present non-empty attribute as (key, value)."""
+    for key in keys:
+        if key not in attrs:
+            continue
+        value = attrs.get(key)
+        if value is None:
+            continue
+        decoded = _decode_text(value)
+        if isinstance(decoded, str) and not decoded.strip():
+            continue
+        return key, value
+    return None, None
+
+
 def _to_iso_utc(text):
     if text is None:
         return None
@@ -168,12 +183,39 @@ def _populate_prisma_extended_metadata(
         f"/HDFEOS/SWATHS/PRS_{product_type}_PCO/Data Fields/PIXEL_L2_ERR_MATRIX",
     )
 
-    start_time = _to_iso_utc(attrs.get("Product_StartTime"))
-    end_time = _to_iso_utc(attrs.get("Product_StopTime"))
+    start_time_key, start_time_raw = _first_attr(
+        attrs,
+        (
+            "Product_StartTime",
+            "Acquisition_Start_Time",
+        ),
+    )
+    end_time_key, end_time_raw = _first_attr(
+        attrs,
+        (
+            "Product_StopTime",
+            "Acquisition_Stop_Time",
+        ),
+    )
+    sun_zenith_key, sun_zenith_raw = _first_attr(
+        attrs,
+        (
+            "Sun_zenith_angle",
+        ),
+    )
+    sun_azimuth_key, sun_azimuth_raw = _first_attr(
+        attrs,
+        (
+            "Sun_azimuth_angle",
+        ),
+    )
+
+    start_time = _to_iso_utc(start_time_raw)
+    end_time = _to_iso_utc(end_time_raw)
     center_lat = _to_float(attrs.get("Product_center_lat"))
     center_lon = _to_float(attrs.get("Product_center_long"))
-    sun_zenith = _to_float(attrs.get("Sun_zenith_angle"))
-    sun_azimuth = _to_float(attrs.get("Sun_azimuth_angle"))
+    sun_zenith = _to_float(sun_zenith_raw)
+    sun_azimuth = _to_float(sun_azimuth_raw)
 
     observing_mean = None
     rel_azimuth_mean = None
@@ -301,7 +343,7 @@ def _populate_prisma_extended_metadata(
         "uncertainty.reflectance_uncertainty_present", bool(uncertainty_present)
     )
 
-    for key in (
+    raw_attr_keys = {
         "Atm_LutGeomInfo_RelativeAzimuth",
         "Atm_LutGeomInfo_SunZenith",
         "Atm_LutGeomInfo_ViewZenith",
@@ -317,11 +359,18 @@ def _populate_prisma_extended_metadata(
         "Sun_zenith_angle",
         "Product_StartTime",
         "Product_StopTime",
+        "Acquisition_Start_Time",
+        "Acquisition_Stop_Time",
         "Product_center_lat",
         "Product_center_long",
         "Cloudy_pixels_percentage",
         "L2d_Quality_flags",
-    ):
+    }
+    for key in (start_time_key, end_time_key, sun_azimuth_key, sun_zenith_key):
+        if key:
+            raw_attr_keys.add(key)
+
+    for key in sorted(raw_attr_keys):
         if key in attrs:
             meta.set_extended_value(f"prisma.{key}", _decode_text(attrs.get(key)))
 
@@ -677,7 +726,14 @@ def import_prisma(
                 fwhm_meta = fwhm.tolist() if fwhm is not None else None
                 validity_meta = [True] * len(wavelengths_meta)
 
-            acquisition_datetime = _to_iso_utc(prod.attrs.get("Product_StartTime"))
+            _, acquisition_start_raw = _first_attr(
+                prod.attrs,
+                (
+                    "Product_StartTime",
+                    "Acquisition_Start_Time",
+                ),
+            )
+            acquisition_datetime = _to_iso_utc(acquisition_start_raw)
 
             meta = HyperMetadata.for_spectral_data(
                 wavelengths=wavelengths_meta,

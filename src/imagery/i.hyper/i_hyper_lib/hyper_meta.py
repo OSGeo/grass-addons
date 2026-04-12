@@ -308,12 +308,13 @@ class HyperMetadata:
                 )
                 if has_inherited_acq:
                     meta.acquisition_datetime = inherited_acq
-            cls._set_scene_geometry(
+            cls._set_unified_geometry(
                 meta.extended_metadata,
                 solar_zenith_angle=data.get("solar_zenith_angle"),
                 solar_azimuth_angle=data.get("solar_azimuth_angle"),
                 satellite_zenith_angle=data.get("satellite_zenith_angle"),
                 satellite_azimuth_angle=data.get("satellite_azimuth_angle"),
+                skip_existing=True,
             )
             return meta
 
@@ -383,14 +384,14 @@ class HyperMetadata:
             acquisition = meta.extended_metadata.get("acquisition", {})
             if isinstance(acquisition, dict):
                 meta.acquisition_datetime = acquisition.get("start_time_utc")
-        cls._set_scene_geometry(
+        cls._set_unified_geometry(
             meta.extended_metadata,
             solar_zenith_angle=ds.get("solar_zenith_angle"),
             solar_azimuth_angle=ds.get("solar_azimuth_angle"),
             satellite_zenith_angle=ds.get("satellite_zenith_angle"),
             satellite_azimuth_angle=ds.get("satellite_azimuth_angle"),
+            skip_existing=True,
         )
-
         return meta
 
     # ---------- Save ----------
@@ -444,7 +445,6 @@ class HyperMetadata:
         )
 
         self.set_extended_value("acquisition.start_time_utc", self.acquisition_datetime)
-
         self.input_datasets_metadata = {}
         dataset_index: dict[str, dict[str, Any]] = {}
         if self._is_derived_from_history(self.processing_history):
@@ -776,7 +776,7 @@ class HyperMetadata:
         meta.radiometric_quantity = radiometric_quantity
         meta.radiometric_units = radiometric_units
         meta.acquisition_datetime = acquisition_datetime
-        cls._set_scene_geometry(
+        cls._set_unified_geometry(
             meta.extended_metadata,
             solar_zenith_angle=solar_zenith_angle,
             solar_azimuth_angle=solar_azimuth_angle,
@@ -1018,30 +1018,39 @@ class HyperMetadata:
         return _visit(root_data)
 
     @staticmethod
-    def _set_scene_geometry(
+    def _set_unified_geometry(
         extended_metadata: dict[str, Any],
         *,
         solar_zenith_angle: Optional[float] = None,
         solar_azimuth_angle: Optional[float] = None,
         satellite_zenith_angle: Optional[float] = None,
         satellite_azimuth_angle: Optional[float] = None,
+        skip_existing: bool = False,
     ) -> None:
-        """Store scene geometry angles in extended_metadata.scene.geometry."""
-        geometry = {}
-        if solar_zenith_angle is not None:
-            geometry["solar_zenith_angle"] = float(solar_zenith_angle)
-        if solar_azimuth_angle is not None:
-            geometry["solar_azimuth_angle"] = float(solar_azimuth_angle)
-        if satellite_zenith_angle is not None:
-            geometry["satellite_zenith_angle"] = float(satellite_zenith_angle)
-        if satellite_azimuth_angle is not None:
-            geometry["satellite_azimuth_angle"] = float(satellite_azimuth_angle)
-        if not geometry:
+        """Store geometry angles in unified extended_metadata.geometry.* keys."""
+        if not isinstance(extended_metadata, dict):
             return
 
-        scene = extended_metadata.setdefault("scene", {})
-        scene_geometry = scene.setdefault("geometry", {})
-        scene_geometry.update(geometry)
+        geometry = extended_metadata.setdefault("geometry", {})
+        if not isinstance(geometry, dict):
+            geometry = {}
+            extended_metadata["geometry"] = geometry
+
+        for key, value in (
+            ("sun_zenith_deg", solar_zenith_angle),
+            ("sun_azimuth_deg", solar_azimuth_angle),
+            ("view_zenith_deg", satellite_zenith_angle),
+            ("view_azimuth_deg", satellite_azimuth_angle),
+        ):
+            if value is None:
+                continue
+            try:
+                cast_value = float(value)
+            except (TypeError, ValueError):
+                continue
+            if skip_existing and key in geometry and geometry.get(key) is not None:
+                continue
+            geometry[key] = cast_value
 
     def set_extended_value(
         self,
