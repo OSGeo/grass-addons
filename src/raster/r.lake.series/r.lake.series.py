@@ -122,6 +122,8 @@ import decimal
 from grass.script import core as gcore
 import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
+from grass.pygrass.modules import Module
+from multiprocessing import Pool
 
 
 def format_time(time):
@@ -158,6 +160,29 @@ def remove_raster_maps(maps, quiet=False):
         gcore.run_command("g.remove", flags="f", type="raster", name=map_, quiet=quiet)
 
 
+def run_lake_task(args):
+    elevation, output, water_level, kwargs, flags, overwrite = args
+
+    mod = Module(
+        "r.lake",
+        run_=False,
+        finish_=True,
+        elevation=elevation,
+        lake=output,
+        water_level=water_level,
+        overwrite=overwrite,
+        flags=flags,
+        **kwargs,
+    )
+    try:
+        mod.run()
+    except CalledModuleError as e:
+        # Show the error message
+        gcore.error(f"r.lake failed for output <{output}>: {e}")
+        return None
+    return output
+
+
 def main():
     options, flags = gcore.parser()
 
@@ -186,6 +211,8 @@ def main():
         gcore.fatal(
             _("Time step must be greater than zero. Please specify number > 0.")
         )
+    
+    nprocs = options["nproc"]
 
     mapset = gcore.gisenv()["MAPSET"]
     title = _("r.lake series")
@@ -213,26 +240,33 @@ def main():
     else:
         pass_flags = None
 
-    for i, water_level in enumerate(water_levels):
-        try:
-            gcore.run_command(
-                "r.lake",
-                flags=pass_flags,
-                elevation=elevation,
-                lake=outputs[i],
-                water_level=water_level,
-                overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                **kwargs,
-            )
-        except CalledModuleError:
-            # remove maps created so far, try to remove also i-th map
-            remove_raster_maps(outputs[:i], quiet=True)
-            gcore.fatal(
-                _(
-                    "r.lake command failed. Check above error messages."
-                    " Try different water levels or seed points."
-                )
-            )
+    tasks = [
+        (
+            elevation,
+            outputs[i],
+            water_level,
+            kwargs,
+            pass_flags,
+            gcore.overwrite(),
+        )
+        for i, water_level in enumerate(water_levels)
+    ]
+
+    use_cores = min(int(nprocs), len(tasks))
+
+    # Run tasks in series
+    if use_cores <= 1:
+        outputs = [run_lake_task(t) for t in tasks]
+    # Run tasks in parallel
+    else:
+        with Pool(processes=use_cores) as pool:
+            outputs = pool.map(run_lake_task, tasks)
+
+    if None in outputs:
+        valid_outputs = [m for m in outputs if m is not None]
+        remove_raster_maps(valid_outputs, quiet=True)
+        gcore.fatal("Parallel r.lake execution failed.")
+
     gcore.info(_("Registering created maps into temporal dataset..."))
 
     # Make sure the temporal database exists
