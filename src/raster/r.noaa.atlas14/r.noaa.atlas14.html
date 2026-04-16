@@ -66,17 +66,36 @@ tables so they can be queried later with <code>v.db.select</code> /
 
 <h3>Grid mode</h3>
 
-<p>Grid autodiscovery parses the HTTPS directory listing at
-<code>base_gis_url=</code> and filters by a region code
-(<code>region=</code>), e.g. <code>se</code> for Volume 9 Southeastern
-States. Filenames are parsed heuristically to extract bound, statistic,
-units, series, duration, and ARI; these are then matched against the
-user-supplied filters.</p>
+<p>NOAA organizes Atlas 14 GIS archives under per-volume
+subdirectories of <code>base_gis_url=</code>, e.g.
+<code>https://hdsc.nws.noaa.gov/pub/hdsc/data/se/</code> for Volume 9
+Southeastern States. When <code>region=</code> is given, autodiscovery
+fetches the listing at
+<code>&lt;base_gis_url&gt;/&lt;region&gt;/</code> and parses every
+<code>*.zip</code> href.</p>
 
-<p>Because NOAA naming conventions vary across volumes, autodiscovery
-may miss some archives. In that case, pass <code>archive_url=</code>
-directly with either a ZIP URL or a directory listing URL that contains
-the ZIPs.</p>
+<p>Filenames follow a compact convention
+<code>&lt;region&gt;&lt;ari&gt;yr&lt;NN&gt;&lt;unit&gt;a[l|u][_ams].zip</code>,
+e.g.:</p>
+
+<ul>
+<li><code>se2yr24ha.zip</code> — Southeastern, 2-year ARI, 24-hour,
+expected, PDS</li>
+<li><code>orb1000yr30mau_ams.zip</code> — Ohio River Basin, 1000-year,
+30-minute, upper bound, AMS</li>
+<li><code>se1000yr60dal.zip</code> — Southeastern, 1000-year, 60-day,
+lower bound, PDS</li>
+</ul>
+
+<p>where <code>&lt;unit&gt;</code> is <code>m</code>, <code>h</code>, or
+<code>d</code> (minute/hour/day), bound is absent for the expected value
+and <code>l</code>/<code>u</code> for the lower/upper 90% confidence
+bounds, and <code>_ams</code> marks the annual-maximum series (absent =
+partial-duration series).</p>
+
+<p>If autodiscovery fails or a custom mirror is used, pass
+<code>archive_url=</code> directly with either a <code>.zip</code> URL
+or a directory listing URL that contains the ZIPs.</p>
 
 <p>The <code>-l</code> flag lists matching archives (as JSON lines)
 without downloading them.</p>
@@ -100,6 +119,18 @@ projection check when using <em>r.in.gdal</em>. Imported raster names
 follow the pattern
 <code>&lt;output_prefix&gt;_&lt;statistic&gt;_&lt;bound&gt;_&lt;duration&gt;_&lt;ari&gt;yr_&lt;units&gt;_&lt;series&gt;_&lt;region&gt;</code>,
 with missing parts omitted.</p>
+
+<h3>Value encoding</h3>
+
+<p>NOAA Atlas 14 GIS grids encode precipitation depth as <b>integer
+1000ths of an inch</b> with a NODATA value of <b>-9</b> (see each ZIP's
+<code>.xml</code> metadata). To convert an imported raster to inches:</p>
+
+<div class="code"><pre>
+r.mapcalc "a14_inches = if(a14_raster == -9, null(), a14_raster / 1000.0)"
+</pre></div>
+
+<p>For millimeters, multiply by 25.4 / 1000 = 0.0254.</p>
 
 <h3>Safety</h3>
 
@@ -146,7 +177,8 @@ r.noaa.atlas14 mode=grid region=se -l
 
 <h3>Import a known archive directly</h3>
 <div class="code"><pre>
-r.noaa.atlas14 mode=grid archive_url="https://hdsc.nws.noaa.gov/pub/hdsc/data/se/se_100yr_24hr.zip" \
+r.noaa.atlas14 mode=grid \
+    archive_url="https://hdsc.nws.noaa.gov/pub/hdsc/data/se/se100yr24ha.zip" \
     output_prefix=a14 -i
 </pre></div>
 

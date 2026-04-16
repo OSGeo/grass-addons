@@ -611,107 +611,79 @@ def create_point_vector(
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def discover_grid_archives(base_url: str, region: str) -> list[GridCandidate]:
-    """
-    Discover ZIP archives from NOAA HTTPS directory listing.
+# NOAA Atlas 14 GIS grid archive naming convention, e.g.:
+#   se2yr24ha.zip          — Southeastern, 2-year ARI, 24-hour, expected, PDS
+#   orb1000yr30mau_ams.zip — Ohio River Basin, 1000-yr, 30-min, upper, AMS
+#   se1000yr60dal.zip      — Southeastern, 1000-yr, 60-day, lower, PDS
+# The inner rasters share the same stem (.asc/.prj/.xml).
+_NOAA_GRID_RE = re.compile(
+    r"^(?P<region>[a-z]{2,4})"
+    r"(?P<ari>\d+)yr"
+    r"(?P<dur_num>\d+)(?P<dur_unit>[mhd])"
+    r"a(?P<bound>[lu]?)"
+    r"(?:_(?P<series>ams))?"
+    r"\.(?:zip|asc|prj|xml|tif|tiff|adf)$",
+    re.IGNORECASE,
+)
+_DUR_UNIT_SUFFIX = {"m": "min", "h": "hr", "d": "day"}
+_BOUND_LETTER = {"": "expected", "l": "lower", "u": "upper"}
 
-    This is necessarily heuristic because NOAA naming conventions vary across
-    archives/volumes. Users can override with archive_url= if needed.
+
+def discover_grid_archives(listing_url: str) -> list[GridCandidate]:
+    """Discover ZIP archive candidates in a single HTTPS directory listing.
+
+    NOAA organizes Atlas 14 GIS archives under per-region subdirectories
+    (e.g. /pub/hdsc/data/se/), so callers must supply the listing URL that
+    directly contains the ZIPs — see resolve_archive_candidates().
     """
-    html = http_get_text(base_url.rstrip("/") + "/")
+    url = listing_url.rstrip("/") + "/"
+    html = http_get_text(url)
     hrefs = re.findall(r'href=["\']([^"\']+)["\']', html, flags=re.IGNORECASE)
     candidates: list[GridCandidate] = []
+    seen: set[str] = set()
     for href in hrefs:
         link = unescape(href)
         if not link.lower().endswith(".zip"):
             continue
-        url = urljoin(base_url.rstrip("/") + "/", link)
-        filename = os.path.basename(urlparse(url).path)
-        if region and region.lower() not in filename.lower():
+        abs_url = urljoin(url, link)
+        if abs_url in seen:
             continue
+        seen.add(abs_url)
+        filename = os.path.basename(urlparse(abs_url).path)
         meta = parse_grid_filename(filename)
-        meta.url = url
+        meta.url = abs_url
         candidates.append(meta)
     return candidates
 
 
 def parse_grid_filename(filename: str) -> GridCandidate:
-    name = filename.lower()
-    region = next(
-        (
-            r
-            for r in REGION_INFO
-            if re.search(rf"(?:^|[_\-]){re.escape(r)}(?:[_\-.]|$)", name)
-        ),
-        None,
-    )
+    """Parse a NOAA Atlas 14 GIS grid filename into a GridCandidate.
 
-    if any(tok in name for tok in ["upper", "upl", "u90"]):
-        bound = "upper"
-    elif any(tok in name for tok in ["lower", "lwr", "low", "l90"]):
-        bound = "lower"
-    else:
-        bound = "expected"
-
-    statistic = None
-    if "intensity" in name or re.search(r"(?:^|[_\-])i(?:[_\-.]|$)", name):
-        statistic = "intensity"
-    elif "depth" in name or re.search(r"(?:^|[_\-])d(?:[_\-.]|$)", name):
-        statistic = "depth"
-
-    units = None
-    if "metric" in name:
-        units = "metric"
-    elif "english" in name or "inch" in name:
-        units = "english"
-
-    series = None
-    if "pds" in name:
-        series = "pds"
-    elif "ams" in name:
-        series = "ams"
-
-    duration = None
-    duration_patterns = [
-        (r"5[\-_]?min", "5min"),
-        (r"10[\-_]?min", "10min"),
-        (r"15[\-_]?min", "15min"),
-        (r"30[\-_]?min", "30min"),
-        (r"60[\-_]?min", "60min"),
-        (r"2[\-_]?(?:hr|hour)", "2hr"),
-        (r"3[\-_]?(?:hr|hour)", "3hr"),
-        (r"6[\-_]?(?:hr|hour)", "6hr"),
-        (r"12[\-_]?(?:hr|hour)", "12hr"),
-        (r"24[\-_]?(?:hr|hour)", "24hr"),
-        (r"2[\-_]?day", "2day"),
-        (r"3[\-_]?day", "3day"),
-        (r"4[\-_]?day", "4day"),
-        (r"7[\-_]?day", "7day"),
-        (r"10[\-_]?day", "10day"),
-        (r"20[\-_]?day", "20day"),
-        (r"30[\-_]?day", "30day"),
-        (r"45[\-_]?day", "45day"),
-        (r"60[\-_]?day", "60day"),
-    ]
-    for pat, norm in duration_patterns:
-        if re.search(pat, name):
-            duration = norm
-            break
-
-    ari = None
-    m = re.search(r"(?:^|[_\-])(\d{1,4})[\-_]?(?:yr|year|ari)(?:[_\-.]|$)", name)
+    Returns a candidate with all metadata fields None if the filename does
+    not match the NOAA naming convention, so the caller can still use it to
+    download and import a user-supplied archive via archive_url=.
+    """
+    m = _NOAA_GRID_RE.match(filename.lower())
     if not m:
-        m = re.search(r"ari[\-_]?(\d{1,4})", name)
-    if m:
-        ari = int(m.group(1))
+        return GridCandidate(url="", filename=filename)
+
+    region = m.group("region")
+    if region not in REGION_INFO:
+        region = None
+
+    ari = int(m.group("ari"))
+    dur_num = int(m.group("dur_num"))
+    duration = f"{dur_num}{_DUR_UNIT_SUFFIX[m.group('dur_unit')]}"
+    bound = _BOUND_LETTER[m.group("bound") or ""]
+    series = "ams" if m.group("series") else "pds"
 
     return GridCandidate(
         url="",
         filename=filename,
         region=region,
         bound=bound,
-        statistic=statistic,
-        units=units,
+        statistic="depth",
+        units="english",
         series=series,
         duration=duration,
         ari=ari,
@@ -750,6 +722,67 @@ def filter_candidates(
     return out
 
 
+# NOAA Atlas 14 GIS grids encode precipitation depth as integer 1000ths of
+# an inch. NODATA varies by volume (-9 or -999 depending on file) but
+# r.import / r.in.gdal read the ASCII header and produce GRASS NULL cells
+# directly, so no sentinel test is needed here — we just scale. Grid mode
+# always sources depth-english rasters and, if the user asked for a
+# different statistic or units, converts them here. PFDS (point mode) does
+# its own unit/statistic handling server-side.
+_DURATION_UNIT_HOURS = {"min": 1.0 / 60.0, "hr": 1.0, "day": 24.0}
+
+
+def duration_to_hours(duration: str) -> float:
+    """Return hours for a normalized duration string like '5min', '24hr', '2day'."""
+    m = re.match(r"^(\d+)(min|hr|day)$", duration)
+    if not m:
+        raise Atlas14Error(f"Cannot parse duration {duration!r} to hours")
+    return int(m.group(1)) * _DURATION_UNIT_HOURS[m.group(2)]
+
+
+def rescale_noaa_raster(
+    raster: str,
+    source_duration: str | None,
+    output_statistic: str,
+    output_units: str,
+) -> str:
+    """Scale an imported NOAA raster (1000ths of inches) to the requested
+    statistic/units in-place. Returns a human-readable unit label.
+
+    Depth:       raw / 1000                 (inches)   or  raw * 0.0254   (mm)
+    Intensity:   depth / duration_in_hours  (in/hr)    or  (mm/hr)
+    """
+    if output_units == "metric":
+        factor = 25.4 / 1000.0
+        unit_label = "mm"
+    else:
+        factor = 1.0 / 1000.0
+        unit_label = "inches"
+
+    if output_statistic == "intensity":
+        if not source_duration:
+            gs.warning(
+                f"Cannot compute intensity for <{raster}> — source duration "
+                "unknown; leaving raster as depth"
+            )
+        else:
+            hours = duration_to_hours(source_duration)
+            factor = factor / hours
+            unit_label = f"{unit_label}/hr"
+
+    tmp = f"{raster}__a14_raw__"
+    gs.run_command("g.rename", raster=f"{raster},{tmp}", overwrite=True)
+    try:
+        gs.run_command(
+            "r.mapcalc",
+            expression=f"{raster} = {tmp} * {factor}",
+            overwrite=True,
+        )
+    finally:
+        gs.run_command("g.remove", type="raster", name=tmp, flags="f")
+    return unit_label
+
+
 def _safe_extract_zip(zf: zipfile.ZipFile, dest: Path) -> None:
     dest_resolved = dest.resolve()
     for member in zf.infolist():
@@ -771,6 +804,8 @@ def import_zip_archive(
     *,
     use_r_import: bool,
     override_proj: bool,
+    output_statistic: str,
+    output_units: str,
 ) -> None:
     tmp_extract = Path(tempfile.mkdtemp(prefix="atlas14_unzip_"))
     try:
@@ -790,6 +825,10 @@ def import_zip_archive(
 
         for raster in raster_files:
             meta = parse_grid_filename(raster.name)
+            # Name reflects the *output* content, not the raw NOAA encoding,
+            # since we rescale to the user-requested statistic/units below.
+            meta.statistic = output_statistic
+            meta.units = output_units
             outname = build_raster_name(output_prefix, meta, raster.stem)
             gs.message(f"Importing {raster.name} -> {outname}")
             if use_r_import:
@@ -800,7 +839,6 @@ def import_zip_archive(
                     resample=resample,
                     overwrite=gs.overwrite(),
                 )
-                # save history into the output raster
                 gs.raster_history(outname, overwrite=True)
             else:
                 kwargs = {
@@ -812,17 +850,41 @@ def import_zip_archive(
                     kwargs["flags"] = "o"
                 gs.run_command("r.in.gdal", **kwargs)
 
+            unit_label = rescale_noaa_raster(
+                outname,
+                source_duration=meta.duration,
+                output_statistic=output_statistic,
+                output_units=output_units,
+            )
+            try:
+                gs.run_command(
+                    "r.support",
+                    map=outname,
+                    units=unit_label,
+                    title=(
+                        f"NOAA Atlas 14 {output_statistic} "
+                        f"({meta.bound or 'expected'}) "
+                        f"{meta.duration or '?'} "
+                        f"{meta.ari or '?'}-yr ARI"
+                    ),
+                )
+            except Exception as exc:  # noqa: BLE001
+                gs.warning(f"r.support metadata update failed for {outname}: {exc}")
+
             history = json.dumps(
                 {
                     "source_archive": archive_path.name,
                     "source_file": raster.name,
                     "parsed": meta.__dict__,
+                    "output_statistic": output_statistic,
+                    "output_units": output_units,
+                    "unit_label": unit_label,
                 }
             )
             try:
                 gs.run_command("r.support", map=outname, history=history)
-            except Exception:
-                pass
+            except Exception as exc:  # noqa: BLE001
+                gs.warning(f"r.support history update failed for {outname}: {exc}")
 
             manifest_rows.append(
                 {
@@ -1015,9 +1077,16 @@ def resolve_archive_candidates(options: dict[str, str]) -> list[GridCandidate]:
             c = parse_grid_filename(os.path.basename(urlparse(archive_url).path))
             c.url = archive_url
             return [c]
-        return discover_grid_archives(archive_url, region)
+        return discover_grid_archives(archive_url)
 
-    return discover_grid_archives(options["base_gis_url"], region)
+    if region and region not in REGION_INFO:
+        gs.warning(
+            f"Region code {region!r} is not a known Atlas 14 volume code; "
+            f"autodiscovery will try {options['base_gis_url'].rstrip('/')}/{region}/ anyway"
+        )
+
+    base = options["base_gis_url"].rstrip("/")
+    return discover_grid_archives(f"{base}/{region}/")
 
 
 def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
@@ -1036,11 +1105,15 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
             "No candidate grid archives found. Try archive_url= with a direct NOAA ZIP link."
         )
 
+    # statistic and units are output specifications in grid mode — NOAA only
+    # publishes depth in 1000ths of an inch, so we always source english
+    # depth and rescale after import. Only bound/series/durations/aris filter
+    # which archives to download.
     filtered = filter_candidates(
         candidates,
         bound=options["bound"],
-        statistic=options["statistic"],
-        units=options["units"],
+        statistic=None,
+        units=None,
         series=options["series"],
         durations=durations,
         aris=aris,
@@ -1057,6 +1130,12 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
     if not filtered:
         gs.fatal("No grid archives matched the supplied filters")
 
+    if len(filtered) > 50:
+        gs.warning(
+            f"{len(filtered)} archives matched; at ~10 MB each this will download "
+            f"~{len(filtered) * 10} MB. Consider narrowing with durations= and aris=."
+        )
+
     workdir = Path(tempfile.mkdtemp(prefix="atlas14_grid_"))
     manifest_rows: list[dict[str, Any]] = []
     try:
@@ -1071,6 +1150,8 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
                 use_r_import=flags["i"],
                 override_proj=flags["o"],
                 manifest_rows=manifest_rows,
+                output_statistic=options["statistic"],
+                output_units=options["units"],
             )
             if flags["k"]:
                 gs.message(f"Kept archive at {dst}")

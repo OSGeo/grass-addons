@@ -13,6 +13,7 @@ import sys
 import zipfile
 from pathlib import Path
 
+import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -88,40 +89,54 @@ class TestParsePfdsResponse(TestCase):
 
 
 class TestParseGridFilename(TestCase):
-    def test_extracts_region_duration_ari_bound(self):
-        c = r_noaa.parse_grid_filename("se_100yr_24hr.zip")
+    """Filenames here are verified against the actual NOAA HDSC index."""
+
+    def test_expected_pds_hour(self):
+        c = r_noaa.parse_grid_filename("se2yr24ha.zip")
         self.assertEqual(c.region, "se")
-        self.assertEqual(c.ari, 100)
+        self.assertEqual(c.ari, 2)
         self.assertEqual(c.duration, "24hr")
         self.assertEqual(c.bound, "expected")
+        self.assertEqual(c.series, "pds")
+        self.assertEqual(c.statistic, "depth")
+        self.assertEqual(c.units, "english")
 
-    def test_upper_bound_detected(self):
-        c = r_noaa.parse_grid_filename("sw_upper_2yr_60min.zip")
+    def test_upper_bound_ams_minute(self):
+        c = r_noaa.parse_grid_filename("orb1000yr30mau_ams.zip")
+        self.assertEqual(c.region, "orb")
+        self.assertEqual(c.ari, 1000)
+        self.assertEqual(c.duration, "30min")
         self.assertEqual(c.bound, "upper")
-        self.assertEqual(c.ari, 2)
-        self.assertEqual(c.duration, "60min")
+        self.assertEqual(c.series, "ams")
 
-    def test_lower_bound_detected(self):
-        c = r_noaa.parse_grid_filename("orb_lwr_100yr_24hr.zip")
+    def test_lower_bound_day(self):
+        c = r_noaa.parse_grid_filename("se1000yr60dal.zip")
+        self.assertEqual(c.region, "se")
+        self.assertEqual(c.ari, 1000)
+        self.assertEqual(c.duration, "60day")
         self.assertEqual(c.bound, "lower")
+        self.assertEqual(c.series, "pds")
 
-    def test_metric_units_detected(self):
-        c = r_noaa.parse_grid_filename("se_metric_10yr_24hr.zip")
-        self.assertEqual(c.units, "metric")
+    def test_leading_zero_duration_stripped(self):
+        # NOAA uses 05m, 02h, 03d — we normalize to 5min/2hr/3day.
+        c = r_noaa.parse_grid_filename("se1yr05ma.zip")
+        self.assertEqual(c.duration, "5min")
 
-    def test_ams_vs_pds(self):
-        self.assertEqual(
-            r_noaa.parse_grid_filename("se_ams_10yr_24hr.zip").series, "ams"
-        )
-        self.assertEqual(
-            r_noaa.parse_grid_filename("se_pds_10yr_24hr.zip").series, "pds"
-        )
+    def test_inner_raster_stem_parses(self):
+        c = r_noaa.parse_grid_filename("se2yr24ha.asc")
+        self.assertEqual(c.region, "se")
+        self.assertEqual(c.ari, 2)
 
-    def test_no_match_returns_none_fields(self):
+    def test_unknown_region_code_becomes_none(self):
+        c = r_noaa.parse_grid_filename("xx2yr24ha.zip")
+        self.assertIsNone(c.region)
+
+    def test_non_matching_returns_empty_metadata(self):
         c = r_noaa.parse_grid_filename("unrelated_file.zip")
         self.assertIsNone(c.region)
         self.assertIsNone(c.ari)
         self.assertIsNone(c.duration)
+        self.assertIsNone(c.bound)
 
 
 class TestSanitizeName(TestCase):
@@ -296,6 +311,90 @@ class TestMultiPointCsv(TestCase):
         data_rows = lines[1:]
         lons = {row.split(",")[0] for row in data_rows}
         self.assertEqual(lons, {"-78.6", "-81.0"})
+
+
+class TestDurationToHours(TestCase):
+    def test_minute_to_hour(self):
+        self.assertAlmostEqual(r_noaa.duration_to_hours("5min"), 5 / 60)
+        self.assertAlmostEqual(r_noaa.duration_to_hours("60min"), 1.0)
+
+    def test_hour(self):
+        self.assertEqual(r_noaa.duration_to_hours("24hr"), 24.0)
+
+    def test_day(self):
+        self.assertEqual(r_noaa.duration_to_hours("2day"), 48.0)
+
+    def test_unparseable_raises(self):
+        with self.assertRaises(r_noaa.Atlas14Error):
+            r_noaa.duration_to_hours("fortnight")
+
+
+class TestRescaleNoaaRaster(TestCase):
+    """End-to-end: build a raw-encoded raster, run rescale, check values."""
+
+    input_raster = "a14_rescale_input"
+
+    def setUp(self):
+        self.use_temp_region()
+        self.runModule("g.region", n=10, s=0, e=10, w=0, res=1)
+        # Raw value 2500 = 2.500 inches in NOAA 1000ths-of-inch encoding.
+        self.runModule(
+            "r.mapcalc",
+            expression=f"{self.input_raster} = 2500",
+            overwrite=True,
+        )
+
+    def tearDown(self):
+        self.runModule(
+            "g.remove",
+            type="raster",
+            name=f"{self.input_raster},{self.input_raster}_test",
+            flags="f",
+        )
+        self.del_temp_region()
+
+    def _copy_input(self):
+        out = f"{self.input_raster}_test"
+        self.runModule(
+            "r.mapcalc",
+            expression=f"{out} = {self.input_raster}",
+            overwrite=True,
+        )
+        return out
+
+    def test_depth_english_scales_to_inches(self):
+        r = self._copy_input()
+        label = r_noaa.rescale_noaa_raster(
+            r, source_duration="24hr", output_statistic="depth", output_units="english"
+        )
+        self.assertEqual(label, "inches")
+        stats = gs.parse_command("r.univar", map=r, flags="g")
+        # All valid cells were 2500 -> 2.5 inches
+        self.assertAlmostEqual(float(stats["min"]), 2.5, places=4)
+        self.assertAlmostEqual(float(stats["max"]), 2.5, places=4)
+
+    def test_depth_metric_scales_to_mm(self):
+        r = self._copy_input()
+        label = r_noaa.rescale_noaa_raster(
+            r, source_duration="24hr", output_statistic="depth", output_units="metric"
+        )
+        self.assertEqual(label, "mm")
+        stats = gs.parse_command("r.univar", map=r, flags="g")
+        # 2500 * 0.0254 = 63.5 mm
+        self.assertAlmostEqual(float(stats["min"]), 63.5, places=3)
+
+    def test_intensity_metric_per_hour(self):
+        r = self._copy_input()
+        label = r_noaa.rescale_noaa_raster(
+            r,
+            source_duration="24hr",
+            output_statistic="intensity",
+            output_units="metric",
+        )
+        self.assertEqual(label, "mm/hr")
+        stats = gs.parse_command("r.univar", map=r, flags="g")
+        # 2500 * 0.0254 / 24 hr = 2.645833... mm/hr
+        self.assertAlmostEqual(float(stats["min"]), 2500 * 0.0254 / 24.0, places=4)
 
 
 class TestSafeExtractZip(TestCase):
