@@ -162,14 +162,12 @@ int main(int argc, char **argv)
             *scalingFactor, *gamma, *potentialFile, *numNeighbors,
             *discountFactor, *seedSearch, *patchMean, *patchRange,
             *incentivePower, *potentialWeight, *zoning, *zoningFile,
-            *cellDemandFile, *populationDemandFile, *separator, *density,
-            *densityCapacity, *outputDensity, *redevelopmentLag,
-            *redevelopmentPotentialFile, *redistributionMatrix,
-            *redistributionMatrixOutput, *HAND, *HAND_percentile,
-            *floodInputFile, *floodLog, *depthDamageFunc, *ddf_subregions,
-            *response_func, *responseStddev, *adaptations, *adaptiveCapacity,
-            *HUCs, *outputAdaptation, *patchFile, *numSteps, *output,
-            *outputSeries, *seed, *memory;
+            *cellDemandFile, *populationDemandFile, *separator,
+            *redistributionMatrix, *redistributionMatrixOutput, *HAND,
+            *HAND_percentile, *floodInputFile, *floodLog, *depthDamageFunc,
+            *ddf_subregions, *response_func, *responseStddev, *adaptations,
+            *adaptiveCapacity, *HUCs, *outputAdaptation, *patchFile, *numSteps,
+            *output, *outputSeries, *seed, *memory;
     } opt;
 
     struct {
@@ -310,38 +308,6 @@ int main(int argc, char **argv)
         _("Scaling factor of development pressure");
     opt.scalingFactor->guisection = _("Development pressure");
 
-    opt.density = G_define_standard_option(G_OPT_R_INPUT);
-    opt.density->key = "density";
-    opt.density->required = NO;
-    opt.density->description = _("Raster map of population density");
-    opt.density->guisection = _("Density");
-
-    opt.densityCapacity = G_define_standard_option(G_OPT_R_INPUT);
-    opt.densityCapacity->key = "density_capacity";
-    opt.densityCapacity->required = NO;
-    opt.densityCapacity->description = _("Raster map of maximum capacity");
-    opt.densityCapacity->guisection = _("Density");
-
-    opt.redevelopmentPotentialFile = G_define_standard_option(G_OPT_F_INPUT);
-    opt.redevelopmentPotentialFile->key = "redevpot_params";
-    opt.redevelopmentPotentialFile->required = NO;
-    opt.redevelopmentPotentialFile->label =
-        _("CSV file with redevelopment potential parameters for each region");
-    opt.redevelopmentPotentialFile->description = _(
-        "Each line should contain region ID followed"
-        " by parameters (intercepts, development pressure, other predictors).");
-    opt.redevelopmentPotentialFile->guisection = _("Density");
-
-    opt.redevelopmentLag = G_define_option();
-    opt.redevelopmentLag->key = "redevelopment_lag";
-    opt.redevelopmentLag->type = TYPE_INTEGER;
-    opt.redevelopmentLag->required = NO;
-    opt.redevelopmentLag->options = "1-";
-    opt.redevelopmentLag->description =
-        _("Number of steps before redevelopment can happen again in a cell "
-          "developed during simulation");
-    opt.redevelopmentLag->guisection = _("Density");
-
     opt.output = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.output->key = "output";
     opt.output->required = YES;
@@ -355,13 +321,6 @@ int main(int argc, char **argv)
     opt.outputSeries->label =
         _("Basename for raster maps of development generated after each step");
     opt.outputSeries->guisection = _("Output");
-
-    opt.outputDensity = G_define_standard_option(G_OPT_R_BASENAME_OUTPUT);
-    opt.outputDensity->key = "output_density";
-    opt.outputDensity->required = NO;
-    opt.outputDensity->label =
-        _("Basename for raster maps of density generated after each step");
-    opt.outputDensity->guisection = _("Output");
 
     opt.potentialFile = G_define_standard_option(G_OPT_F_INPUT);
     opt.potentialFile->key = "devpot_params";
@@ -634,10 +593,6 @@ int main(int argc, char **argv)
     // provided XOR generated
     G_option_exclusive(opt.seed, flg.generateSeed, NULL);
     G_option_required(opt.seed, flg.generateSeed, NULL);
-    G_option_requires_all(opt.density, opt.populationDemandFile, NULL);
-    G_option_collective(opt.density, opt.densityCapacity, opt.outputDensity,
-                        opt.redevelopmentLag, opt.redevelopmentPotentialFile,
-                        NULL);
     G_option_collective(opt.floodInputFile, opt.redistributionMatrix,
                         opt.populationDemandFile, opt.adaptiveCapacity,
                         opt.HUCs, opt.depthDamageFunc, opt.response_func,
@@ -688,8 +643,6 @@ int main(int argc, char **argv)
     patch_info.compactness_range = atof(opt.patchRange->answer);
     patch_info.num_neighbors = atoi(opt.numNeighbors->answer);
     patch_info.strategy = SKIP;
-    if (opt.redevelopmentLag->answer)
-        patch_info.redevelopment_lag = atoi(opt.redevelopmentLag->answer);
 
     num_steps = 0;
     if (opt.numSteps->answer)
@@ -712,9 +665,6 @@ int main(int argc, char **argv)
         segments.use_potential_subregions = true;
     }
     segments.use_density = false;
-    if (opt.density->answer) {
-        segments.use_density = true;
-    }
     segments.use_climate = false;
     if (opt.floodInputFile->answer) {
         segments.use_climate = true;
@@ -738,15 +688,6 @@ int main(int argc, char **argv)
         if (exponent != 1) /* 1 is no-op */
             initialize_incentive(&potential_info, exponent);
     }
-    if (opt.redevelopmentPotentialFile->answer) {
-        redev_potential_info.incentive_transform_size = 0;
-        redev_potential_info.incentive_transform = NULL;
-        if (opt.incentivePower->answer) {
-            exponent = atof(opt.incentivePower->answer);
-            if (exponent != 1) /* 1 is no-op */
-                initialize_incentive(&redev_potential_info, exponent);
-        }
-    }
 
     raster_inputs.developed = opt.developed->answer;
     raster_inputs.regions = opt.subregions->answer;
@@ -758,10 +699,6 @@ int main(int argc, char **argv)
         raster_inputs.zones = opt.zoning->answer;
     if (opt.potentialSubregions->answer)
         raster_inputs.potential_regions = opt.potentialSubregions->answer;
-    if (opt.density->answer) {
-        raster_inputs.density = opt.density->answer;
-        raster_inputs.density_capacity = opt.densityCapacity->answer;
-    }
     if (opt.redistributionMatrix->answer) {
         redistr_matrix.filename = opt.redistributionMatrix->answer;
         read_redistribution_matrix(&redistr_matrix);
@@ -854,15 +791,6 @@ int main(int argc, char **argv)
                         opt.potentialSubregions->answer ? &potential_region_map
                                                         : &region_map,
                         &predictor_map);
-    if (opt.redevelopmentPotentialFile->answer) {
-        redev_potential_info.filename = opt.redevelopmentPotentialFile->answer;
-        redev_potential_info.separator = G_option_to_separator(opt.separator);
-        read_potential_file(&redev_potential_info,
-                            opt.potentialSubregions->answer
-                                ? &potential_region_map
-                                : &region_map,
-                            &predictor_map);
-    }
     /* read in predictors and aggregate to save memory */
     G_verbose_message("Reading predictors...");
     read_predictors(raster_inputs, &segments, &potential_info, segment_info);
@@ -1007,13 +935,6 @@ int main(int argc, char **argv)
                                   segments.use_climate ? true : false);
         }
         /* export density for that step */
-        if (opt.outputDensity->answer) {
-            name_step =
-                name_for_step(opt.outputDensity->answer, step, num_steps);
-            output_step(&segments.density, &segments.developed, name_step,
-                        FCELL_TYPE);
-        }
-        /* export density for that step */
         if (opt.outputAdaptation->answer) {
             name_step =
                 name_for_step(opt.outputAdaptation->answer, step, num_steps);
@@ -1090,14 +1011,6 @@ int main(int argc, char **argv)
         G_free(potential_info.devpressure);
         G_free(potential_info.intercept);
         G_free(potential_info.predictor_indices);
-    }
-    if (opt.redevelopmentPotentialFile->answer) {
-        for (int i = 0; i < redev_potential_info.max_predictors; i++)
-            G_free(redev_potential_info.predictors[i]);
-        G_free(redev_potential_info.predictors);
-        G_free(redev_potential_info.devpressure);
-        G_free(redev_potential_info.intercept);
-        G_free(redev_potential_info.predictor_indices);
     }
     for (int i = 0; i < devpressure_info.neighborhood * 2 + 1; i++)
         G_free(devpressure_info.matrix[i]);
