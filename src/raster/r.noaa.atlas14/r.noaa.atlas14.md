@@ -33,6 +33,12 @@ the module queries the center of the current computational region; the
 region bounds are reprojected to WGS84 lon/lat via `g.region -b` so this
 works from any GRASS location CRS.
 
+![NOAA Atlas 14 precipitation-frequency curves for Raleigh, NC](r_noaa_atlas14.png)  
+*Figure: Precipitation-frequency (depth vs. duration) curves for Raleigh,
+North Carolina, produced from an `r.noaa.atlas14 mode=point` query to the
+NOAA Precipitation Frequency Data Server. Each curve is the expected value
+for the labeled return period.*
+
 When multiple points are queried, JSON output is emitted as a list of
 per-point result objects, and CSV output prepends `lon,lat,bound` columns so
 rows from different points and bounds can be disambiguated. Single-point

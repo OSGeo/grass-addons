@@ -10,9 +10,7 @@
 #
 # COPYRIGHT: (C) 2026 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 """
@@ -224,6 +222,7 @@ PFDS point queries or official GIS-compatible grid downloads.
 # % guisection: Grid
 # %end
 from __future__ import annotations
+
 import csv
 import io
 import json
@@ -236,14 +235,20 @@ import zipfile
 from dataclasses import dataclass
 from html import unescape
 from pathlib import Path
-from typing import Any, Iterable, Literal
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
 
 import grass.script as gs
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
 PFDS_POINT_URL = "https://hdsc.nws.noaa.gov/cgi-bin/new/fe_text.csv"
 USER_AGENT = "Mozilla/5.0 (compatible; r.noaa.atlas14/0.1)"
+
+# Warn when more than this many grid archives would be downloaded at once.
+LARGE_DOWNLOAD_THRESHOLD = 50
 
 REGION_INFO = {
     "sw": "Volume 1 Semiarid Southwest / Volume 6 California",
@@ -559,7 +564,9 @@ def write_point_output(
 
     if output:
         Path(output).write_text(text, encoding="utf-8")
-        gs.message(f"Wrote {fmt.upper()} output to {output}")
+        gs.message(
+            _("Wrote {fmt} output to '{path}'.").format(fmt=fmt.upper(), path=output)
+        )
     if print_stdout or not output:
         sys.stdout.write(text)
         if not text.endswith("\n"):
@@ -604,8 +611,10 @@ def create_point_vector(
                 ),
             )
         gs.message(
-            f"Created vector point map <{mapname}> with {len(points)} point(s) "
-            "and JSON attributes"
+            _(
+                "Created vector point map <{name}> with {count} point(s) "
+                "and JSON attributes."
+            ).format(name=mapname, count=len(points))
         )
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
@@ -762,8 +771,10 @@ def rescale_noaa_raster(
     if output_statistic == "intensity":
         if not source_duration:
             gs.warning(
-                f"Cannot compute intensity for <{raster}> — source duration "
-                "unknown; leaving raster as depth"
+                _(
+                    "Cannot compute intensity for <{name}>: "
+                    "source duration unknown; leaving raster as depth."
+                ).format(name=raster)
             )
         else:
             hours = duration_to_hours(source_duration)
@@ -789,10 +800,11 @@ def _safe_extract_zip(zf: zipfile.ZipFile, dest: Path) -> None:
         target = (dest / member.filename).resolve()
         try:
             target.relative_to(dest_resolved)
-        except ValueError:
+        except ValueError as exc:
             raise Atlas14Error(
-                f"Refusing to extract archive member outside destination: {member.filename!r}"
-            )
+                f"Refusing to extract archive member outside destination: "
+                f"{member.filename!r}"
+            ) from exc
     zf.extractall(dest)
 
 
@@ -813,14 +825,16 @@ def import_zip_archive(
             _safe_extract_zip(zf, tmp_extract)
 
         raster_files = []
-        for root, _, files in os.walk(tmp_extract):
+        for root, _dirs, files in os.walk(tmp_extract):
             for f in files:
                 lower = f.lower()
                 if lower.endswith((".asc", ".tif", ".tiff", ".adf")):
                     raster_files.append(Path(root) / f)
 
         if not raster_files:
-            gs.warning(f"No raster files found in {archive_path.name}")
+            gs.warning(
+                _("No raster files found in '{name}'.").format(name=archive_path.name)
+            )
             return
 
         for raster in raster_files:
@@ -830,7 +844,11 @@ def import_zip_archive(
             meta.statistic = output_statistic
             meta.units = output_units
             outname = build_raster_name(output_prefix, meta, raster.stem)
-            gs.message(f"Importing {raster.name} -> {outname}")
+            gs.message(
+                _("Importing '{src}' as <{dst}>...").format(
+                    src=raster.name, dst=outname
+                )
+            )
             if use_r_import:
                 gs.run_command(
                     "r.import",
@@ -868,8 +886,12 @@ def import_zip_archive(
                         f"{meta.ari or '?'}-yr ARI"
                     ),
                 )
-            except Exception as exc:  # noqa: BLE001
-                gs.warning(f"r.support metadata update failed for {outname}: {exc}")
+            except Exception as exc:
+                gs.warning(
+                    _("r.support metadata update failed for <{name}>: {err}").format(
+                        name=outname, err=exc
+                    )
+                )
 
             history = json.dumps(
                 {
@@ -883,8 +905,12 @@ def import_zip_archive(
             )
             try:
                 gs.run_command("r.support", map=outname, history=history)
-            except Exception as exc:  # noqa: BLE001
-                gs.warning(f"r.support history update failed for {outname}: {exc}")
+            except Exception as exc:
+                gs.warning(
+                    _("r.support history update failed for <{name}>: {err}").format(
+                        name=outname, err=exc
+                    )
+                )
 
             manifest_rows.append(
                 {
@@ -944,7 +970,7 @@ def write_manifest(rows: list[dict[str, Any]], path: str) -> None:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
-    gs.message(f"Wrote grid import manifest to {path}")
+    gs.message(_("Wrote grid import manifest to '{path}'.").format(path=path))
 
 
 def normalize_duration(value: str) -> str:
@@ -1034,15 +1060,19 @@ def run_point_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
     else:
         lon, lat = region_center_lonlat()
         gs.message(
-            f"No coordinates given; using computational region center: "
-            f"lon={lon:.6f}, lat={lat:.6f}"
+            _(
+                "No coordinates given; using computational region center: "
+                "lon={lon:.6f}, lat={lat:.6f}."
+            ).format(lon=lon, lat=lat)
         )
         points = [(lon, lat)]
 
     results: list[dict[str, Any]] = []
     vector_points: list[tuple[float, float, dict[str, Any]]] = []
     for lon, lat in points:
-        gs.message(f"Querying PFDS for lon={lon}, lat={lat}")
+        gs.message(
+            _("Querying PFDS for lon={lon}, lat={lat}...").format(lon=lon, lat=lat)
+        )
         data = fetch_pfds_point(
             lat=lat,
             lon=lon,
@@ -1070,7 +1100,11 @@ def resolve_archive_candidates(options: dict[str, str]) -> list[GridCandidate]:
     archive_url = options["archive_url"]
     region = (options["region"] or "").strip().lower()
     if not region and not archive_url:
-        gs.fatal("region= is required for mode=grid unless archive_url= is provided")
+        gs.fatal(
+            _(
+                "Option <region> is required for mode=grid unless <archive_url> is provided."
+            )
+        )
 
     if archive_url:
         if archive_url.lower().endswith(".zip"):
@@ -1081,8 +1115,10 @@ def resolve_archive_candidates(options: dict[str, str]) -> list[GridCandidate]:
 
     if region and region not in REGION_INFO:
         gs.warning(
-            f"Region code {region!r} is not a known Atlas 14 volume code; "
-            f"autodiscovery will try {options['base_gis_url'].rstrip('/')}/{region}/ anyway"
+            _(
+                "Region code '{region}' is not a known Atlas 14 volume code; "
+                "autodiscovery will try '{url}/{region}/' anyway."
+            ).format(region=region, url=options["base_gis_url"].rstrip("/"))
         )
 
     base = options["base_gis_url"].rstrip("/")
@@ -1102,7 +1138,10 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
     candidates = resolve_archive_candidates(options)
     if not candidates:
         gs.fatal(
-            "No candidate grid archives found. Try archive_url= with a direct NOAA ZIP link."
+            _(
+                "No candidate grid archives found. "
+                "Try <archive_url> with a direct NOAA ZIP link."
+            )
         )
 
     # statistic and units are output specifications in grid mode — NOAA only
@@ -1121,19 +1160,21 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
 
     if flags["l"]:
         if not filtered:
-            gs.message("No matching archives found")
+            gs.message(_("No matching archives found."))
             return
         for c in filtered:
             sys.stdout.write(json.dumps(c.__dict__) + "\n")
         return
 
     if not filtered:
-        gs.fatal("No grid archives matched the supplied filters")
+        gs.fatal(_("No grid archives matched the supplied filters."))
 
-    if len(filtered) > 50:
+    if len(filtered) > LARGE_DOWNLOAD_THRESHOLD:
         gs.warning(
-            f"{len(filtered)} archives matched; at ~10 MB each this will download "
-            f"~{len(filtered) * 10} MB. Consider narrowing with durations= and aris=."
+            _(
+                "{count} archives matched; at ~10 MB each this will download "
+                "~{total} MB. Consider narrowing with <durations> and <aris>."
+            ).format(count=len(filtered), total=len(filtered) * 10)
         )
 
     workdir = Path(tempfile.mkdtemp(prefix="atlas14_grid_"))
@@ -1141,7 +1182,7 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
     try:
         for c in filtered:
             dst = workdir / c.filename
-            gs.message(f"Downloading {c.url}")
+            gs.message(_("Downloading '{url}'...").format(url=c.url))
             http_download(c.url, dst)
             import_zip_archive(
                 archive_path=dst,
@@ -1154,7 +1195,7 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
                 output_units=options["units"],
             )
             if flags["k"]:
-                gs.message(f"Kept archive at {dst}")
+                gs.message(_("Kept archive at '{path}'.").format(path=dst))
             else:
                 try:
                     dst.unlink()
@@ -1164,10 +1205,16 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
         if options["output"]:
             write_manifest(manifest_rows, options["output"])
         else:
-            gs.message(f"Imported {len(manifest_rows)} raster(s)")
+            gs.message(
+                _("Imported {count} raster(s).").format(count=len(manifest_rows))
+            )
     finally:
         if flags["k"]:
-            gs.message(f"Temporary grid download directory retained: {workdir}")
+            gs.message(
+                _("Temporary grid download directory retained at '{path}'.").format(
+                    path=workdir
+                )
+            )
         else:
             shutil.rmtree(workdir, ignore_errors=True)
 
@@ -1180,7 +1227,7 @@ def main() -> int:
         elif options["mode"] == "grid":
             run_grid_mode(options, flags)
         else:
-            gs.fatal("Unsupported mode")
+            gs.fatal(_("Unsupported mode: '{mode}'.").format(mode=options["mode"]))
         return 0
     except Atlas14Error as e:
         gs.fatal(str(e))

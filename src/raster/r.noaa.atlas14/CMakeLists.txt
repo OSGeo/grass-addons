@@ -8,5 +8,6 @@ build_addon(
   ${PROJECT_NAME}
   SOURCES ${PROJECT_NAME}.py
   DOCFILES
+    r_noaa_atlas14.png
     ${PROJECT_NAME}.html
     ${PROJECT_NAME}.md)
