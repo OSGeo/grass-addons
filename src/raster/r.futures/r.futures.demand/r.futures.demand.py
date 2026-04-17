@@ -251,7 +251,7 @@ def main():
         import matplotlib as mpl
 
         mpl.use("Agg")
-        import mpl.pyplot as plt
+        import matplotlib.pyplot as plt
 
         n_plots = int(np.ceil(np.sqrt(len(subregionIds))))
         fig = plt.figure(figsize=(5 * n_plots, 5 * n_plots))
