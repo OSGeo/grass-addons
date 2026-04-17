@@ -1,6 +1,10 @@
 <h2>DESCRIPTION</h2>
-Module <em>r.futures.gridvalidation</em> allows to
-validate land change simulation results on a spatial grid.
+Tool <em>r.futures.gridvalidation</em> allows to
+validate land change simulation results spatially.
+It is a wrapper around
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>
+that computes validation metrics for each cell of a grid
+or for each polygon of a vector layer.
 It computes:
 <ul>
 <li>Allocation disagreement (total and per class), see Pontius et al, 2011</li>
@@ -9,53 +13,62 @@ It computes:
 <li>Kappa simulation, see van Vliet et al, 2011</li>
 </ul>
 
-These metrics are computed for each cell of a region
-provided in <b>region</b> option resulting in spatially
-variable validation results. Cell size of the region
-should be larger than the cell size of the current region.
-<p>
-This module can be used for any number of classes.
-Input raster <b>original</b> represents the initial conditions
-and is needed only for Kappa simulation.
+When <b>original</b> is provided and the input rasters contain
+only binary categories (0 for undeveloped and 1 for developed),
+the tool additionally computes change detection metrics
+(see <em><a href="r.futures.validation.html">r.futures.validation</a></em>
+for details).
+When more than two categories are present, these metrics are skipped.
 
+<p>
+The tool operates in two modes:
+<ul>
+<li><b>Grid mode</b> (<b>region</b>):
+    A saved region is divided into grid cells and metrics are computed
+    for each cell. Cell size of the region should be larger than the cell size
+    of the current computational region.
+    The output is a point vector layer
+    with each point at the center of a grid cell.</li>
+<li><b>Subregion mode</b> (<b>subregions</b>):
+    Metrics are computed for each polygon of the input vector layer.
+    The output is a copy of the input vector with metrics
+    added as attribute columns.</li>
+</ul>
+
+This tool can be used for any number of classes.
+Input raster <b>original</b> represents the initial conditions
+and is needed for Kappa simulation and for change detection metrics.
 
 <h2>EXAMPLES</h2>
-Validate FUTURES output by computing quantity and allocation disagreement
+Validate FUTURES output by computing validation metrics
 on a 5km grid.
-First reclassify FUTURES output to 0 (undeveloped) and 1 (developed)
-by creating a text file "rules.txt" with the following content:
-<pre>
--1 = 0
-0 thru 100 = 1
-</pre>
-Then save a region used as a grid:
+First, reclassify FUTURES output
+(where -1 is undeveloped, 0 is initially developed,
+and 1 to N is the step when a cell became developed)
+to binary (0 = undeveloped, 1 = developed).
+Create a file <tt>reclass_rules.txt</tt> with the following content:
+
+<div class="code"><pre>
+-1 = 0 undeveloped
+0 thru 1000 = 1 developed
+</pre></div>
+
+Then save a region used as a grid and reclassify:
 <div class="code"><pre>
 g.region res=5000 -a save=grid
+r.reclass input=simulated_2016 output=simulated_2016_reclass rules=reclass_rules.txt
 </pre></div>
 
-Reclass FUTURES output:
+Run the grid validation:
 <div class="code"><pre>
-r.reclass input=simulated_2016 output=simulated_2016_reclass rules=rules.txt
+r.futures.gridvalidation simulated=simulated_2016_reclass reference=reference_2016 \
+    original=orig_2001 output=validation_grid region=grid nprocs=4
 </pre></div>
 
-Validate FUTURES output by computing kappa simulation
-on a 5km grid:
-<div class="code"><pre>
-r.futures.gridvalidation simulated=simulated_2016_reclass reference=reference_2016 original=orig_2001 kappasimulation=kappasim
-</pre></div>
-
-
-<h2>SEE ALSO</h2>
-
-<a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
-<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
-<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
-<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>
 
 <h2>REFERENCES</h2>
+
+<p>Validation references:
 <ul>
 <li>
     Robert Gilmore Pontius Jr &amp; Marco Millones (2011).
@@ -67,23 +80,91 @@ r.futures.gridvalidation simulated=simulated_2016_reclass reference=reference_20
     <a href="https://doi.org/10.1016/j.ecolmodel.2011.01.017">Revisiting Kappa to account for change in the accuracy assessment of land-use change models</a>.
     Ecological Modelling, Volume 222, Issue 8.
 </li>
+</ul>
+</p>
+<p>FUTURES references:
+<ul>
 <li>
     Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
-    <a href="https://doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
-    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
+    <em>FUTURES: Multilevel Simulations of Emerging Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</em>.
     Annals of the Association of American Geographers, 103(4), 785-807.
-    DOI: 10.1080/00045608.2012.707591
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
-   <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
-    tradeoffs between conservation planning strategies</a>.
+    DOI: <a href="https://doi.org/10.1080/00045608.2012.707591">10.1080/00045608.2012.707591</a>
+</li>
+<li>
+    Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+    <em>Simulating urbanization scenarios reveals tradeoffs between conservation planning strategies</em>.
     Landscape and Urban Planning, 136, 28-39.
-    DOI: 10.1016/j.landurbplan.2014.11.011</li>
-<li>Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H.,  &amp; Meentemeyer, R. K. (2016).
-   <a href="https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf">Open Source Approach to Urban Growth Simulation</a>.
-   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
-   DOI: 10.5194/isprsarchives-XLI-B7-953-2016</li>
+    DOI: <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">10.1016/j.landurbplan.2014.11.011</a>
+</li>
+<li>
+    Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H., &amp; Meentemeyer, R. K. (2016).
+    <em>Open Source Approach to Urban Growth Simulation</em>.
+    Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
+    DOI: <a href="https://doi.org/10.5194/isprsarchives-XLI-B7-953-2016">10.5194/isprsarchives-XLI-B7-953-2016</a>
+</li>
+<li>
+    Sanchez, G.M., A. Petrasova, A., M.M. Skrip, E.L. Collins, M.A. Lawrimore,
+    J.B. Vogler, A. Terando, J. Vukomanovic, H. Mitasova, and R.K. Meentemeyer (2023).
+    <em>Spatially interactive modeling of land change identifies location-specific adaptations most likely to lower future flood risk</em>.
+    Sci Rep 13, 18869.
+    DOI: <a href="https://doi.org/10.1038/s41598-023-46195-9">10.1038/s41598-023-46195-9</a>
+</li>
 </ul>
+</p>
 
-<h2>AUTHOR</h2>
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
+<h2>SEE ALSO</h2>
+
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>,
+<a href="r.futures.html">FUTURES</a>,
+<em><a href="r.futures.simulation.html">r.futures.simulation</a></em>,
+<em><a href="r.futures.parallelpga.html">r.futures.parallelpga</a></em>,
+<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.potsurface.html">r.futures.potsurface</a></em>,
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.sample.category.html">r.sample.category</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>
+<em>Corresponding author:</em><br>
+Anna Petrasova, akratoc ncsu edu,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Original standalone version:</em><br>
+Ross K. Meentemeyer,<br>
+Wenwu Tang,<br>
+Monica A. Dorning,<br>
+John B. Vogler,<br>
+Nik J. Cunniffe,<br>
+Douglas A. Shoemaker<br>
+(Department of Geography and Earth Sciences, UNC Charlotte)<br>
+Jennifer A. Koch
+(<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>)
+
+<p>
+<em>Port to GRASS and GRASS-specific additions:</em><br>
+Vaclav Petras,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Development pressure, demand, calibration, validation, preprocessing tools and maintenance:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Climate forcing submodel:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
+Georgina Sanchez,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Zoning:</em><br>
+Margaret Lawrimore,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
