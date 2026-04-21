@@ -46,31 +46,31 @@ class HyperMetadata:
     data_type: str = "spectral"  # spectral | component
 
     # Dataset-level
-    sensor: Optional[str] = None
+    sensor: str | None = None
     wavelength_units: str = "nm"
-    radiometric_quantity: Optional[str] = None  # e.g., "surface_reflectance", "toa_radiance"
-    radiometric_units: Optional[str] = None  # e.g., "unitless", "W/(m^2 sr um)"
-    acquisition_datetime: Optional[str] = None
-    region: Optional[dict[str, Any]] = None
+    radiometric_quantity: str | None = None  # e.g., "surface_reflectance", "toa_radiance"
+    radiometric_units: str | None = None  # e.g., "unitless", "W/(m^2 sr um)"
+    acquisition_datetime: str | None = None
+    region: dict[str, Any] | None = None
 
     # Band-level arrays
-    n_bands: Optional[int] = None
-    n_bands_source: Optional[int] = None
-    n_bands_valid: Optional[int] = None
-    wavelengths: Optional[list[float]] = None
-    fwhm: Optional[list[float]] = None
-    validity: Optional[list[bool]] = None
+    n_bands: int | None = None
+    n_bands_source: int | None = None
+    n_bands_valid: int | None = None
+    wavelengths: list[float] | None = None
+    fwhm: list[float] | None = None
+    validity: list[bool] | None = None
 
     # Backward-compatibility aliases for old callers
-    bad_bands: Optional[list[bool]] = None
-    gain: Optional[list[float]] = None
-    offset: Optional[list[float]] = None
+    bad_bands: list[bool] | None = None
+    gain: list[float] | None = None
+    offset: list[float] | None = None
 
     # Backward-compatibility aliases for old callers (component mode)
-    n_components: Optional[int] = None
-    explained_variance_ratio: Optional[list[float]] = None
-    component_labels: Optional[list[str]] = None
-    dimensionality_reduction: Optional[dict[str, Any]] = None
+    n_components: int | None = None
+    explained_variance_ratio: list[float] | None = None
+    component_labels: list[str] | None = None
+    dimensionality_reduction: dict[str, Any] | None = None
 
     # Processing history
     processing_history: list[dict] = field(default_factory=list)
@@ -89,7 +89,7 @@ class HyperMetadata:
         return uuid.uuid4().hex
 
     @staticmethod
-    def _get_mapset_path(mapset: Optional[str] = None) -> Path:
+    def _get_mapset_path(mapset: str | None = None) -> Path:
         """Get the filesystem path to a mapset."""
         env = gs.gisenv()
         if mapset is None:
@@ -99,7 +99,7 @@ class HyperMetadata:
         return Path(gisdbase) / location / mapset
 
     @classmethod
-    def _get_metadata_path(cls, map_name: str, mapset: Optional[str] = None) -> Path:
+    def _get_metadata_path(cls, map_name: str, mapset: str | None = None) -> Path:
         """Get path to hyper.json for a 3D raster map."""
         # Handle map@mapset format
         if "@" in map_name:
@@ -108,7 +108,7 @@ class HyperMetadata:
         return mapset_path / "grid3" / map_name / METADATA_FILENAME
 
     @classmethod
-    def load_raw(cls, map_name: str, mapset: Optional[str] = None) -> dict[str, Any]:
+    def load_raw(cls, map_name: str, mapset: str | None = None) -> dict[str, Any]:
         """Load raw JSON metadata for a map."""
         path = cls._get_metadata_path(map_name, mapset)
         if not path.exists():
@@ -119,7 +119,7 @@ class HyperMetadata:
             return json.load(f)
 
     @staticmethod
-    def to_full_map_name(map_name: str, mapset: Optional[str] = None) -> str:
+    def to_full_map_name(map_name: str, mapset: str | None = None) -> str:
         """Normalize map name to map@mapset format."""
         if "@" in map_name:
             return map_name
@@ -131,14 +131,14 @@ class HyperMetadata:
     # ---------- Existence check ----------
 
     @classmethod
-    def exists(cls, map_name: str, mapset: Optional[str] = None) -> bool:
+    def exists(cls, map_name: str, mapset: str | None = None) -> bool:
         """Check if JSON metadata exists for a map."""
         return cls._get_metadata_path(map_name, mapset).exists()
 
     # ---------- Load ----------
 
     @classmethod
-    def load(cls, map_name: str, mapset: Optional[str] = None) -> "HyperMetadata":
+    def load(cls, map_name: str, mapset: str | None = None) -> HyperMetadata:
         """
         Load metadata from a hyperspectral 3D raster.
         """
@@ -152,7 +152,7 @@ class HyperMetadata:
         return cls._load_from_json(path)
 
     @classmethod
-    def _load_from_json(cls, path: Path) -> "HyperMetadata":
+    def _load_from_json(cls, path: Path) -> HyperMetadata:
         """Load metadata from JSON file."""
         with open(path, "r") as f:
             data = json.load(f)
@@ -399,7 +399,8 @@ class HyperMetadata:
     def save(
         self,
         map_name: str,
-        mapset: Optional[str] = None,
+        mapset: str | None = None,
+        *,
         save_region: bool = False,
     ) -> None:
         """
@@ -558,8 +559,8 @@ class HyperMetadata:
 
     @classmethod
     def _get_region_json(
-        cls, map_name: str, mapset: Optional[str] = None
-    ) -> Optional[dict[str, Any]]:
+        cls, _map_name: str, _mapset: str | None = None
+    ) -> dict[str, Any] | None:
         """Get current computational region as JSON from g.region."""
         try:
             out = gs.read_command("g.region", flags="p3", format="json", quiet=True)
@@ -629,7 +630,7 @@ class HyperMetadata:
 
     # ---------- Query methods ----------
 
-    def get_wavelengths_array(self) -> Optional[np.ndarray]:
+    def get_wavelengths_array(self) -> np.ndarray | None:
         """Return wavelengths as numpy array (None values become NaN)."""
         if self.wavelengths is None:
             return None
@@ -640,7 +641,7 @@ class HyperMetadata:
             [w if w is not None else np.nan for w in values], dtype=np.float32
         )
 
-    def get_fwhm_array(self) -> Optional[np.ndarray]:
+    def get_fwhm_array(self) -> np.ndarray | None:
         """Return FWHM as numpy array."""
         if self.fwhm is None:
             return None
@@ -660,7 +661,7 @@ class HyperMetadata:
         return np.array([i for i, bad in enumerate(self.bad_bands) if not bad])
 
     def select_bands_by_wavelength(
-        self, min_wl: Optional[float] = None, max_wl: Optional[float] = None
+        self, min_wl: float | None = None, max_wl: float | None = None
     ) -> np.ndarray:
         """Return indices (0-based) of bands within wavelength range."""
         if self.wavelengths is None:
@@ -674,7 +675,7 @@ class HyperMetadata:
         return np.where(mask)[0]
 
     def select_good_bands_by_wavelength(
-        self, min_wl: Optional[float] = None, max_wl: Optional[float] = None
+        self, min_wl: float | None = None, max_wl: float | None = None
     ) -> np.ndarray:
         """Return indices of good bands within wavelength range."""
         range_bands = set(self.select_bands_by_wavelength(min_wl, max_wl))
@@ -693,9 +694,9 @@ class HyperMetadata:
     def add_processing_step(
         self,
         operation: str,
-        module: Optional[str] = None,
-        params: Optional[dict] = None,
-        timestamp: Optional[str] = None,
+        module: str | None = None,
+        params: dict | None = None,
+        timestamp: str | None = None,
     ) -> None:
         """Backward-compatible wrapper that records history as command + I/O."""
         command = self._command_from_module_params(module or operation, params or {})
@@ -709,9 +710,9 @@ class HyperMetadata:
     def add_history_entry(
         self,
         command: str,
-        inputs: Optional[list[dict[str, Any]]] = None,
-        outputs: Optional[list[dict[str, Any]]] = None,
-        timestamp: Optional[str] = None,
+        inputs: list[dict[str, Any]] | None = None,
+        outputs: list[dict[str, Any]] | None = None,
+        timestamp: str | None = None,
     ) -> None:
         """Record a processing history entry in the compact schema."""
         entry = {
@@ -724,7 +725,7 @@ class HyperMetadata:
 
     # ---------- Validation ----------
 
-    def validate(self, require_wavelengths: bool = True) -> list[str]:
+    def validate(self, *, require_wavelengths: bool = True) -> list[str]:
         """Return list of validation issues (empty if valid)."""
         issues = []
 
@@ -759,15 +760,15 @@ class HyperMetadata:
         cls,
         wavelengths,
         fwhm=None,
-        sensor: Optional[str] = None,
-        radiometric_quantity: Optional[str] = None,
-        radiometric_units: Optional[str] = None,
-        acquisition_datetime: Optional[str] = None,
-        solar_zenith_angle: Optional[float] = None,
-        solar_azimuth_angle: Optional[float] = None,
-        satellite_zenith_angle: Optional[float] = None,
-        satellite_azimuth_angle: Optional[float] = None,
-    ) -> "HyperMetadata":
+        sensor: str | None = None,
+        radiometric_quantity: str | None = None,
+        radiometric_units: str | None = None,
+        acquisition_datetime: str | None = None,
+        solar_zenith_angle: float | None = None,
+        solar_azimuth_angle: float | None = None,
+        satellite_zenith_angle: float | None = None,
+        satellite_azimuth_angle: float | None = None,
+    ) -> HyperMetadata:
         """Create metadata for spectral (hyperspectral) data."""
         meta = cls()
         meta.derived = False
@@ -793,7 +794,7 @@ class HyperMetadata:
         cls,
         n_components: int,
         explained_variance_ratio=None,
-    ) -> "HyperMetadata":
+    ) -> HyperMetadata:
         """Create metadata for dimensionality reduction output (PCA, etc.)."""
         meta = cls()
         meta.derived = True
@@ -809,7 +810,7 @@ class HyperMetadata:
     # ---------- Internal normalization ----------
 
     @staticmethod
-    def _parse_timestamp(ts: Optional[str]) -> datetime:
+    def _parse_timestamp(ts: str | None) -> datetime:
         """Parse ISO timestamp for sorting; invalid timestamps are ordered last."""
         if not ts:
             return datetime.max.replace(tzinfo=timezone.utc)
@@ -893,7 +894,7 @@ class HyperMetadata:
                     "inputs": [],
                     "outputs": [],
                 }
-                )
+            )
         return normalized
 
     @staticmethod
@@ -948,8 +949,8 @@ class HyperMetadata:
         cls,
         dataset_id: str,
         embedded_snapshots: dict[str, dict[str, Any]],
-        dataset_index: Optional[dict[str, dict[str, Any]]] = None,
-    ) -> Optional[dict[str, Any]]:
+        dataset_index: dict[str, dict[str, Any]] | None = None,
+    ) -> dict[str, Any] | None:
         """Resolve one dataset JSON record from index or embedded snapshots."""
         if dataset_index and dataset_id in dataset_index:
             record = dataset_index.get(dataset_id) or {}
@@ -966,7 +967,7 @@ class HyperMetadata:
         cls,
         root_data: dict[str, Any],
         key: str,
-        dataset_index: Optional[dict[str, dict[str, Any]]] = None,
+        dataset_index: dict[str, dict[str, Any]] | None = None,
     ) -> tuple[Any, bool]:
         """Resolve inherited value by following input lineage recursively.
 
@@ -981,7 +982,7 @@ class HyperMetadata:
 
         visiting: set[str] = set()
 
-        def _visit(data: Optional[dict[str, Any]]) -> tuple[Any, bool]:
+        def _visit(data: dict[str, Any] | None) -> tuple[Any, bool]:
             if not isinstance(data, dict):
                 return None, False
 
@@ -1021,10 +1022,10 @@ class HyperMetadata:
     def _set_unified_geometry(
         extended_metadata: dict[str, Any],
         *,
-        solar_zenith_angle: Optional[float] = None,
-        solar_azimuth_angle: Optional[float] = None,
-        satellite_zenith_angle: Optional[float] = None,
-        satellite_azimuth_angle: Optional[float] = None,
+        solar_zenith_angle: float | None = None,
+        solar_azimuth_angle: float | None = None,
+        satellite_zenith_angle: float | None = None,
+        satellite_azimuth_angle: float | None = None,
         skip_existing: bool = False,
     ) -> None:
         """Store geometry angles in unified extended_metadata.geometry.* keys."""
@@ -1079,8 +1080,8 @@ class HyperMetadata:
         key_path: str,
         *,
         value: Any = None,
-        form: Optional[str] = None,
-        source: Optional[str] = None,
+        form: str | None = None,
+        source: str | None = None,
     ) -> None:
         """Set `<key>.value/.form/.source` triplet for map-vs-scalar fields."""
         self.set_extended_value(f"{key_path}.value", value, skip_none=True)
@@ -1188,7 +1189,7 @@ class HyperMetadata:
         missing_ids: set[str] = set()
         visited_dataset_ids: set[str] = set()
 
-        def visit_dataset(dataset_id: Optional[str]) -> None:
+        def visit_dataset(dataset_id: str | None) -> None:
             if not dataset_id or dataset_id in visited_dataset_ids:
                 return
             visited_dataset_ids.add(dataset_id)
@@ -1240,7 +1241,7 @@ class HyperMetadata:
         collected = []
         order = 0
 
-        def visit_dataset(dataset_id: Optional[str]):
+        def visit_dataset(dataset_id: str | None):
             nonlocal order
             if not dataset_id or dataset_id in visited_dataset_ids:
                 return
@@ -1367,7 +1368,7 @@ class HyperMetadata:
     def build_band_rows(
         cls,
         data: dict[str, Any],
-        wavelength_range: Optional[str] = None,
+        wavelength_range: str | None = None,
     ) -> list[dict[str, Any]]:
         """Build band rows for listing output."""
         bands = data.get("bands") or {}
@@ -1426,11 +1427,11 @@ class HyperMetadata:
     @classmethod
     def validate_strict(
         cls,
-        meta: "HyperMetadata",
+        meta: HyperMetadata,
         raw_data: dict[str, Any],
         map_name: str,
         dataset_index: dict[str, dict[str, Any]],
-        duplicate_dataset_ids: Optional[dict[str, list[str]]] = None,
+        duplicate_dataset_ids: dict[str, list[str]] | None = None,
     ) -> list[str]:
         """Validate strict schema + lineage consistency."""
         issues = []
@@ -1573,7 +1574,7 @@ class HyperMetadata:
 # ---------- Convenience functions ----------
 
 
-def load_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> HyperMetadata:
+def load_hyper_metadata(map_name: str, mapset: str | None = None) -> HyperMetadata:
     """Load metadata for a hyperspectral 3D raster."""
     return HyperMetadata.load(map_name, mapset)
 
@@ -1581,14 +1582,15 @@ def load_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> HyperMet
 def save_hyper_metadata(
     meta: HyperMetadata,
     map_name: str,
-    mapset: Optional[str] = None,
+    mapset: str | None = None,
+    *,
     save_region: bool = False,
 ) -> None:
     """Save metadata for a hyperspectral 3D raster."""
     meta.save(map_name, mapset, save_region=save_region)
 
 
-def has_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> bool:
+def has_hyper_metadata(map_name: str, mapset: str | None = None) -> bool:
     """Check if a map has hyperspectral JSON metadata."""
     return HyperMetadata.exists(map_name, mapset)
 
@@ -1596,15 +1598,15 @@ def has_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> bool:
 def copy_hyper_metadata(
     src_map: str,
     dst_map: str,
-    src_mapset: Optional[str] = None,
-    dst_mapset: Optional[str] = None,
+    src_mapset: str | None = None,
+    dst_mapset: str | None = None,
 ) -> None:
     """Copy hyperspectral metadata from one map to another."""
     meta = HyperMetadata.load(src_map, src_mapset)
     meta.save(dst_map, dst_mapset)
 
 
-def remove_hyper_metadata(map_name: str, mapset: Optional[str] = None) -> bool:
+def remove_hyper_metadata(map_name: str, mapset: str | None = None) -> bool:
     """Remove hyperspectral metadata file. Returns True if file existed."""
     path = HyperMetadata._get_metadata_path(map_name, mapset)
     if path.exists():

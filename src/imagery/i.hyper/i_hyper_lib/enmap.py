@@ -227,7 +227,6 @@ def suppress_stderr():
         os.close(old)
 
 
-
 def _enmap_product_level(root):
     text = _first_nonempty_text(root, [".//processingLevel", ".//base/level", ".//level"])
     if text is None:
@@ -1053,6 +1052,7 @@ def import_enmap(
 
     if warp_tmpdir:
         shutil.rmtree(warp_tmpdir, ignore_errors=True)
+
 
 def _resolve_enmap_dir(path_like):
     """Accept either a folder or any file in the EnMAP product folder."""

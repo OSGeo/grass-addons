@@ -65,6 +65,7 @@ HCO_LON_L1 = "/HDFEOS/SWATHS/PRS_L1_HCO/Geolocation Fields/Longitude"
 PCO_LAT_L1 = "/HDFEOS/SWATHS/PRS_L1_PCO/Geolocation Fields/Latitude"
 PCO_LON_L1 = "/HDFEOS/SWATHS/PRS_L1_PCO/Geolocation Fields/Longitude"
 
+
 # Product type detection function
 def _detect_prisma_product_type(f):
     """Detect PRISMA product type from HDF5 file structure"""
@@ -72,7 +73,7 @@ def _detect_prisma_product_type(f):
     l2d_swath = "/HDFEOS/SWATHS/PRS_L2D_HCO"
     l2c_swath = "/HDFEOS/SWATHS/PRS_L2C_HCO"
     l1_swath = "/HDFEOS/SWATHS/PRS_L1_HCO"
-    
+
     if l2d_swath in f:
         return "L2D"
     elif l2c_swath in f:
@@ -81,6 +82,7 @@ def _detect_prisma_product_type(f):
         return "L1"
     else:
         return "unknown"
+
 
 def _get_prisma_paths(product_type):
     """Get appropriate paths for the specified PRISMA product type"""
@@ -125,6 +127,7 @@ def _get_prisma_paths(product_type):
         }
     else:
         raise ValueError(f"Unknown PRISMA product type: {product_type}")
+
 
 # ---- Global attributes (per spec) ----
 ATTR_CW_VNIR = "List_Cw_Vnir"
@@ -401,7 +404,7 @@ def load_prisma_l2d(product_path, load_pan=False):
         # Detect product type
         product_type = _detect_prisma_product_type(f)
         paths = _get_prisma_paths(product_type)
-        
+
         # Global attrs (kept for reference)
         attrs = {}
         for k, v in f.attrs.items():
