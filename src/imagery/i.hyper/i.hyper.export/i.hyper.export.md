@@ -1,9 +1,9 @@
 ## DESCRIPTION
 
 *i.hyper.export* exports a hyperspectral 3D raster map (`raster_3d`)
-from GRASS to an external file. The module supports export to a
-**compressed multi-band GeoTIFF**, **HDF5**, **Zarr**, or a native
-`.ihyper` gzip archive.
+from GRASS to an external file. By default, the module writes a native
+`.ihyper` gzip archive. It also supports export to **compressed
+multi-band GeoTIFF**, **HDF5**, or **Zarr**.
 
 The export process converts the 3D raster map into 2D raster slices
 using `r3.to.rast`, creates a temporary imagery group, and writes all
@@ -51,8 +51,8 @@ exported by default. HDF5 and Zarr exports write the cube in
 
 - `input` -- Input 3D raster map (required).
 - `output` -- Output file name (required). Example:
-  `output=prisma_3d.tif`.
-- `format` -- Export format: `gtiff`, `ihyper`, `h5`, or `zarr`.
+  `output=prisma_3d.ihyper`.
+- `format` -- Export format: `ihyper` (default), `gtiff`, `h5`, or `zarr`.
 - `chunks` -- Chunk sizes in `band,row,col` order. The first value is
   the spectral axis. This option is shown for all formats but used only
   for `h5` and `zarr`. Use `0,0,0` for automatic chunk sizes.
@@ -61,9 +61,9 @@ exported by default. HDF5 and Zarr exports write the cube in
 
 ::: code
 
-    # Example 1: Export PRISMA 3D raster map to compressed GeoTIFF
+    # Example 1: Export PRISMA 3D raster map to native .ihyper archive (default)
     i.hyper.export input=prisma@PERMANENT \
-                   output=/data/prisma_3d.tif
+                   output=/data/prisma_3d.ihyper
 :::
 
 ::: code
@@ -93,11 +93,11 @@ exported by default. HDF5 and Zarr exports write the cube in
 
 ## OUTPUT
 
-The output is a **multi-band GeoTIFF**, **HDF5**, **Zarr**, or native
-archive containing one spectral layer per band along the spectral axis.
-GeoTIFF uses compression (**DEFLATE** + **PREDICTOR=3**) and stores
-per-band hyperspectral metadata. HDF5 and Zarr store the full cube in
-`(band,row,col)` order together with embedded metadata.
+The output is a native `.ihyper` archive by default, or a **multi-band
+GeoTIFF**, **HDF5**, or **Zarr** dataset when `format=` is set
+explicitly. GeoTIFF uses compression (**DEFLATE** + **PREDICTOR=3**) and
+stores per-band hyperspectral metadata. HDF5 and Zarr store the full
+cube in `(band,row,col)` order together with embedded metadata.
 
 ## SEE ALSO
 

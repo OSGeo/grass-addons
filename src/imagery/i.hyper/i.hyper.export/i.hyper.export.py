@@ -34,7 +34,7 @@
 # % required: no
 # % multiple: no
 # % options: gtiff,ihyper,h5,zarr
-# % answer: gtiff
+# % answer: ihyper
 # % description: Export format
 # % guisection: Output
 # %end
