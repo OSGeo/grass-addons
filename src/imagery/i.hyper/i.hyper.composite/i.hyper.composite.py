@@ -102,7 +102,9 @@ def _band_count(mapname):
 
 def _band_wavelengths(mapname, expected, hyper_meta_class):
     if hyper_meta_class is None:
-        gs.fatal("Failed to load hyper_meta library. JSON metadata support is required.")
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
 
     try:
         meta = hyper_meta_class.load(mapname)
@@ -113,9 +115,7 @@ def _band_wavelengths(mapname, expected, hyper_meta_class):
     if wl_arr is None:
         gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
 
-    wavelengths = [
-        None if (w is None or w != w) else float(w) for w in wl_arr.tolist()
-    ]
+    wavelengths = [None if (w is None or w != w) else float(w) for w in wl_arr.tolist()]
     if len(wavelengths) < expected:
         gs.fatal(
             f"Metadata wavelength count ({len(wavelengths)}) is lower than band count ({expected}) for {mapname}."
@@ -136,9 +136,7 @@ def _explode_cube(cube, tmpbase):
     Module("g.region", raster_3d=cube, quiet=True)
     Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
     maps = (
-        gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*")
-        .strip()
-        .split()
+        gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*").strip().split()
     )
     if not maps:
         gs.fatal("No 2D rasters were produced by r3.to.rast")

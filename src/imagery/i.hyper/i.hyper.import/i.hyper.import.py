@@ -139,7 +139,9 @@ def _safe_extract_ihyper(input_path, output_name):
     target_path = grid3_root / archived_name
     if target_path.exists():
         tar.close()
-        gs.fatal(f"Target 3D raster '{archived_name}' already exists in current mapset.")
+        gs.fatal(
+            f"Target 3D raster '{archived_name}' already exists in current mapset."
+        )
 
     with tempfile.TemporaryDirectory(prefix="ihyper_import_") as tmpdir:
         tmp_root = Path(tmpdir)
@@ -160,7 +162,9 @@ def _safe_extract_ihyper(input_path, output_name):
         restored = tmp_root / archived_name
         if not (restored / "hyper.json").exists():
             tar.close()
-            gs.fatal("Invalid native archive: hyper.json missing in grid3 map directory.")
+            gs.fatal(
+                "Invalid native archive: hyper.json missing in grid3 map directory."
+            )
         shutil.move(str(restored), str(target_path))
 
     tar.close()
@@ -170,7 +174,9 @@ def _safe_extract_ihyper(input_path, output_name):
             f"Output name '{output_name}' ignored for native import; restored archive map '{archived_name}'."
         )
 
-    gs.message(f"Imported native hyperspectral archive {archive_path} as {archived_name}")
+    gs.message(
+        f"Imported native hyperspectral archive {archive_path} as {archived_name}"
+    )
 
 
 def import_by_product(product, options, flags):

@@ -199,15 +199,11 @@ def _populate_prisma_extended_metadata(
     )
     sun_zenith_key, sun_zenith_raw = _first_attr(
         attrs,
-        (
-            "Sun_zenith_angle",
-        ),
+        ("Sun_zenith_angle",),
     )
     sun_azimuth_key, sun_azimuth_raw = _first_attr(
         attrs,
-        (
-            "Sun_azimuth_angle",
-        ),
+        ("Sun_azimuth_angle",),
     )
 
     start_time = _to_iso_utc(start_time_raw)
@@ -307,7 +303,9 @@ def _populate_prisma_extended_metadata(
     meta.set_extended_value("radiometry.valid_band_mask", mask)
     meta.set_extended_value("radiometry.valid_band_count", int(sum(mask)))
 
-    meta.set_extended_value("atmosphere.atmosphere_model", _decode_text(attrs.get("Atmo_profile_info")))
+    meta.set_extended_value(
+        "atmosphere.atmosphere_model", _decode_text(attrs.get("Atmo_profile_info"))
+    )
 
     meta.set_extended_value("quality.cloudy_pixels_percent", cloud_pct)
     meta.set_extended_value("quality.quality_atmosphere_flag", quality_atm)
@@ -318,8 +316,12 @@ def _populate_prisma_extended_metadata(
         processor_version or l1_processor_version,
     )
     meta.set_extended_value("processing.processing_datetime_utc", processing_dt)
-    meta.set_extended_value("processing.rtm_engine", _decode_text(attrs.get("Atmo_RTM_info")))
-    meta.set_extended_value("processing.lut_version", _decode_text(attrs.get("Atm_Lut_version")))
+    meta.set_extended_value(
+        "processing.rtm_engine", _decode_text(attrs.get("Atmo_RTM_info"))
+    )
+    meta.set_extended_value(
+        "processing.lut_version", _decode_text(attrs.get("Atm_Lut_version"))
+    )
     if processor_name or processor_version:
         meta.set_extended_value(
             "processing.software",
@@ -600,7 +602,9 @@ def import_prisma(
     source_fwhm = np.asarray(fwhm) if fwhm is not None else None
 
     # Per-band validity after masking
-    band_validity = [bool(np.isfinite(data_cube[:, :, k]).any()) for k in range(data_cube.shape[2])]
+    band_validity = [
+        bool(np.isfinite(data_cube[:, :, k]).any()) for k in range(data_cube.shape[2])
+    ]
     keep = [k for k, valid in enumerate(band_validity) if valid]
     if not keep:
         gs.fatal("No non-NULL bands found.")
@@ -773,8 +777,7 @@ def import_prisma(
                 cmd.append(f"composites={','.join(composites)}")
             if custom_wavelengths:
                 cmd.append(
-                    "composites_custom="
-                    + ",".join(str(v) for v in custom_wavelengths)
+                    "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
                 )
             if import_null:
                 cmd.append("-n")

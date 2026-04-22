@@ -100,7 +100,9 @@ def _copy_tree(src, dst):
 
 
 def _list_related_composites(base_name):
-    result = gs.read_command("g.list", type="raster", pattern=f"{base_name}_*", flags="m")
+    result = gs.read_command(
+        "g.list", type="raster", pattern=f"{base_name}_*", flags="m"
+    )
     names = [line.strip() for line in result.splitlines() if line.strip()]
     return sorted(set(name.split("@")[0] for name in names))
 
@@ -267,7 +269,9 @@ def _create_slices(input_3d_full):
     try:
         gs.run_command("g.region", raster_3d=input_3d_full, quiet=True)
         gs.run_command("r3.to.rast", input=input_3d_full, output=base, quiet=True)
-        raster_list = gs.read_command("g.list", type="raster", pattern=f"{base}_*", flags="m")
+        raster_list = gs.read_command(
+            "g.list", type="raster", pattern=f"{base}_*", flags="m"
+        )
         rasters = [line.strip() for line in raster_list.splitlines() if line.strip()]
 
         def _index(rname):
@@ -286,9 +290,13 @@ def _create_slices(input_3d_full):
 def _cleanup_slices(raster_list, group_name=None):
     try:
         if raster_list:
-            gs.run_command("g.remove", type="raster", name=raster_list, flags="f", quiet=True)
+            gs.run_command(
+                "g.remove", type="raster", name=raster_list, flags="f", quiet=True
+            )
         if group_name:
-            gs.run_command("g.remove", type="group", name=group_name, flags="f", quiet=True)
+            gs.run_command(
+                "g.remove", type="group", name=group_name, flags="f", quiet=True
+            )
     finally:
         gs.del_temp_region()
 
@@ -305,7 +313,9 @@ def _write_gtiff_metadata(output_file, meta):
     try:
         from osgeo import gdal
     except ImportError as error:
-        gs.warning(f"GDAL Python bindings not available, skipping GeoTIFF metadata write: {error}")
+        gs.warning(
+            f"GDAL Python bindings not available, skipping GeoTIFF metadata write: {error}"
+        )
         return
 
     dataset = gdal.OpenEx(str(output_file), gdal.OF_RASTER | gdal.OF_UPDATE)
@@ -320,8 +330,12 @@ def _write_gtiff_metadata(output_file, meta):
         "IHYPER_SENSOR": str(meta["hyper"].get("sensor", "") or ""),
         "IHYPER_DATA_TYPE": str(meta["hyper"].get("data_type", "") or ""),
         "IHYPER_WAVELENGTH_UNITS": str(meta["hyper"].get("wavelength_units", "") or ""),
-        "IHYPER_RADIOMETRIC_QUANTITY": str(meta["hyper"].get("radiometric_quantity", "") or ""),
-        "IHYPER_RADIOMETRIC_UNITS": str(meta["hyper"].get("radiometric_units", "") or ""),
+        "IHYPER_RADIOMETRIC_QUANTITY": str(
+            meta["hyper"].get("radiometric_quantity", "") or ""
+        ),
+        "IHYPER_RADIOMETRIC_UNITS": str(
+            meta["hyper"].get("radiometric_units", "") or ""
+        ),
         "IHYPER_AXIS_ORDER": "band,row,col",
         "IHYPER_HYPER_JSON": meta["hyper_json"],
         "IHYPER_GRID3_INFO_JSON": meta["grid3_info_json"],
@@ -338,8 +352,12 @@ def _write_gtiff_metadata(output_file, meta):
         band_meta = {
             "band_index": str(index + 1),
             "validity": str(bool(validity[index])) if index < len(validity) else "",
-            "wavelength": "" if index >= len(wavelengths) or wavelengths[index] is None else str(wavelengths[index]),
-            "fwhm": "" if index >= len(fwhm) or fwhm[index] is None else str(fwhm[index]),
+            "wavelength": ""
+            if index >= len(wavelengths) or wavelengths[index] is None
+            else str(wavelengths[index]),
+            "fwhm": ""
+            if index >= len(fwhm) or fwhm[index] is None
+            else str(fwhm[index]),
             "wavelength_units": str(meta["hyper"].get("wavelength_units", "") or ""),
         }
         band.SetMetadata(band_meta, "IHYPER")
@@ -383,7 +401,9 @@ def _export_native_archive(input_3d_full, output_file, include_composites):
             "composites": sorted(composite_files),
             "composite_files": composite_files,
         }
-        (tmp_root / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        (tmp_root / "manifest.json").write_text(
+            json.dumps(manifest, indent=2), encoding="utf-8"
+        )
 
         with tarfile.open(archive_path, "w:gz") as tar:
             tar.add(tmp_root / "manifest.json", arcname="manifest.json")
@@ -401,8 +421,12 @@ def _export_gtiff(input_3d_full, output_file, meta):
 
     try:
         raster_list = _create_slices(input_3d_full)
-        gs.run_command("i.group", group=group_name, input=",".join(raster_list), quiet=True)
-        gs.run_command("g.region", raster=raster_list[0], align=raster_list[0], quiet=True)
+        gs.run_command(
+            "i.group", group=group_name, input=",".join(raster_list), quiet=True
+        )
+        gs.run_command(
+            "g.region", raster=raster_list[0], align=raster_list[0], quiet=True
+        )
         gs.run_command(
             "r.out.gdal",
             input=group_name,
@@ -429,7 +453,9 @@ def _write_h5_metadata(h5file, meta):
 
     string_dtype = h5py.string_dtype(encoding="utf-8")
     meta_group.create_dataset("hyper_json", data=meta["hyper_json"], dtype=string_dtype)
-    meta_group.create_dataset("grid3_info_json", data=meta["grid3_info_json"], dtype=string_dtype)
+    meta_group.create_dataset(
+        "grid3_info_json", data=meta["grid3_info_json"], dtype=string_dtype
+    )
     meta_group.attrs["axis_order"] = "band,row,col"
     meta_group.attrs["projection_wkt"] = meta["projection_wkt"]
     meta_group.attrs["transform"] = meta["transform"]
@@ -479,7 +505,9 @@ def _export_h5(input_3d_full, output_file, meta, chunks_option):
         dataset.attrs["nodata"] = np.nan
         _write_h5_metadata(h5file, meta)
 
-    gs.message(f"Exported {input_3d_full} to {output_path} as HDF5 cube with shape {cube.shape}")
+    gs.message(
+        f"Exported {input_3d_full} to {output_path} as HDF5 cube with shape {cube.shape}"
+    )
 
 
 def _export_zarr(input_3d_full, output_file, meta, chunks_option):
@@ -533,7 +561,9 @@ def _export_zarr(input_3d_full, output_file, meta, chunks_option):
     if len(validity):
         bands_group.create_array("validity", data=validity, overwrite=True)
 
-    gs.message(f"Exported {input_3d_full} to {output_path} as Zarr cube with shape {cube.shape}")
+    gs.message(
+        f"Exported {input_3d_full} to {output_path} as Zarr cube with shape {cube.shape}"
+    )
 
 
 def main():
@@ -547,7 +577,9 @@ def main():
     _validate_hyper_map(input_name)
 
     if export_format == "ihyper":
-        _export_native_archive(input_3d_full, output_file, include_composites=bool(flags.get("c")))
+        _export_native_archive(
+            input_3d_full, output_file, include_composites=bool(flags.get("c"))
+        )
         return
 
     meta = _build_export_metadata(input_3d_full)

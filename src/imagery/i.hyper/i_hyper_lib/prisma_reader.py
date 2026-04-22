@@ -97,7 +97,7 @@ def _get_prisma_paths(product_type):
             "lat": HCO_LAT_L2D,
             "lon": HCO_LON_L2D,
             "pco_lat": PCO_LAT_L2D,
-            "pco_lon": PCO_LON_L2D
+            "pco_lon": PCO_LON_L2D,
         }
     elif product_type == "L2C":
         return {
@@ -110,7 +110,7 @@ def _get_prisma_paths(product_type):
             "lat": HCO_LAT_L2C,
             "lon": HCO_LON_L2C,
             "pco_lat": PCO_LAT_L2C,
-            "pco_lon": PCO_LON_L2C
+            "pco_lon": PCO_LON_L2C,
         }
     elif product_type == "L1":
         return {
@@ -123,7 +123,7 @@ def _get_prisma_paths(product_type):
             "lat": "/HDFEOS/SWATHS/PRS_L1_HCO/Geolocation Fields/Latitude_VNIR",
             "lon": "/HDFEOS/SWATHS/PRS_L1_HCO/Geolocation Fields/Longitude_VNIR",
             "pco_lat": PCO_LAT_L1,
-            "pco_lon": PCO_LON_L1
+            "pco_lon": PCO_LON_L1,
         }
     else:
         raise ValueError(f"Unknown PRISMA product type: {product_type}")
@@ -343,10 +343,22 @@ def _project_lonlat_corners(attrs, epsg_meta):
         return None, {}
 
     pairs = {
-        "ll": (_read_attr_scalar(attrs, ATTR_LL_LON), _read_attr_scalar(attrs, ATTR_LL_LAT)),
-        "lr": (_read_attr_scalar(attrs, ATTR_LR_LON), _read_attr_scalar(attrs, ATTR_LR_LAT)),
-        "ul": (_read_attr_scalar(attrs, ATTR_UL_LON), _read_attr_scalar(attrs, ATTR_UL_LAT)),
-        "ur": (_read_attr_scalar(attrs, ATTR_UR_LON), _read_attr_scalar(attrs, ATTR_UR_LAT)),
+        "ll": (
+            _read_attr_scalar(attrs, ATTR_LL_LON),
+            _read_attr_scalar(attrs, ATTR_LL_LAT),
+        ),
+        "lr": (
+            _read_attr_scalar(attrs, ATTR_LR_LON),
+            _read_attr_scalar(attrs, ATTR_LR_LAT),
+        ),
+        "ul": (
+            _read_attr_scalar(attrs, ATTR_UL_LON),
+            _read_attr_scalar(attrs, ATTR_UL_LAT),
+        ),
+        "ur": (
+            _read_attr_scalar(attrs, ATTR_UR_LON),
+            _read_attr_scalar(attrs, ATTR_UR_LAT),
+        ),
     }
     if any(lon is None or lat is None for lon, lat in pairs.values()):
         return target_epsg, {}

@@ -116,7 +116,9 @@ def _band_count(mapname):
 def _dataset_metadata(mapname, band_count, hyper_meta_class):
     """Return wavelengths, validity, measurement, units and component count."""
     if hyper_meta_class is None:
-        gs.fatal("Failed to load hyper_meta library. JSON metadata support is required.")
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
 
     try:
         meta = hyper_meta_class.load(mapname)
@@ -139,9 +141,8 @@ def _dataset_metadata(mapname, band_count, hyper_meta_class):
             gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
         wavelengths_raw = list(meta.wavelengths or [])
         validity_raw = list(getattr(meta, "validity", []) or [])
-        has_full_validity = (
-            len(validity_raw) == len(wavelengths_raw)
-            and any(not bool(v) for v in validity_raw)
+        has_full_validity = len(validity_raw) == len(wavelengths_raw) and any(
+            not bool(v) for v in validity_raw
         )
 
         if has_full_validity:
@@ -328,7 +329,9 @@ def _plot_results_multi(
                     dtype=float,
                 )
                 raw_vals = ds["points"][pi]["values"]
-                expanded_vals = _expand_values_with_validity(raw_vals, ds.get("validity"))
+                expanded_vals = _expand_values_with_validity(
+                    raw_vals, ds.get("validity")
+                )
                 vals_src = expanded_vals if expanded_vals is not None else raw_vals
                 vals = np.asarray(
                     [np.nan if v is None else float(v) for v in vals_src], dtype=float
@@ -338,7 +341,9 @@ def _plot_results_multi(
                     # Keep NaNs from invalid bands to force visible line breaks.
                     if np.any(np.isfinite(vals)):
                         ls = linestyles[mi % len(linestyles)]
-                        lw = 1.6 * (float(style_scale) if (output and style_scale) else 1.0)
+                        lw = 1.6 * (
+                            float(style_scale) if (output and style_scale) else 1.0
+                        )
                         ax.plot(wl, vals, linestyle=ls, linewidth=lw, color=color)
                     continue
 
@@ -487,7 +492,9 @@ def main(options, flags):
     datasets = []
     HyperMetadata = _get_hyper_meta_class()
     if HyperMetadata is None:
-        gs.fatal("Failed to load hyper_meta library. JSON metadata support is required.")
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
     for mapname in maps:
         gs.run_command("g.region", raster_3d=mapname)
         band_count = _band_count(mapname)

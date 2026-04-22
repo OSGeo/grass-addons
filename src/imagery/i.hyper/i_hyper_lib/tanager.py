@@ -149,7 +149,9 @@ def _to_iso_from_epoch(value):
     # Planet/Tanager time fields are Unix seconds in available samples.
     if fv < 1e8 or fv > 1e11:
         return None
-    return datetime.fromtimestamp(fv, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.fromtimestamp(fv, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+    )
 
 
 def _line_time_summary(values):
@@ -264,7 +266,10 @@ def _populate_tanager_extended_metadata(
 
         center_lat = None
         center_lon = None
-        if getattr(prod, "lat", None) is not None and getattr(prod, "lon", None) is not None:
+        if (
+            getattr(prod, "lat", None) is not None
+            and getattr(prod, "lon", None) is not None
+        ):
             lat = np.asarray(prod.lat, dtype=np.float64)
             lon = np.asarray(prod.lon, dtype=np.float64)
             vlat = np.isfinite(lat)
@@ -284,10 +289,18 @@ def _populate_tanager_extended_metadata(
             if center_lon is None:
                 center_lon = lonc
 
-        sun_zenith = _mean_dataset(f, f"{data_group}/sun_zenith", nodata_mask=nodata_mask)
-        sun_azimuth = _mean_dataset(f, f"{data_group}/sun_azimuth", nodata_mask=nodata_mask)
-        view_zenith = _mean_dataset(f, f"{data_group}/sensor_zenith", nodata_mask=nodata_mask)
-        view_azimuth = _mean_dataset(f, f"{data_group}/sensor_azimuth", nodata_mask=nodata_mask)
+        sun_zenith = _mean_dataset(
+            f, f"{data_group}/sun_zenith", nodata_mask=nodata_mask
+        )
+        sun_azimuth = _mean_dataset(
+            f, f"{data_group}/sun_azimuth", nodata_mask=nodata_mask
+        )
+        view_zenith = _mean_dataset(
+            f, f"{data_group}/sensor_zenith", nodata_mask=nodata_mask
+        )
+        view_azimuth = _mean_dataset(
+            f, f"{data_group}/sensor_azimuth", nodata_mask=nodata_mask
+        )
         rel_azimuth = _relative_azimuth(sun_azimuth, view_azimuth)
 
         aod_mean = _mean_dataset(
@@ -300,8 +313,16 @@ def _populate_tanager_extended_metadata(
             f, f"{data_group}/sensor_to_ground_path_length", nodata_mask=nodata_mask
         )
 
-        cloud_mask = np.asarray(f[f"{data_group}/beta_cloud_mask"][()]) if f"{data_group}/beta_cloud_mask" in f else None
-        cirrus_mask = np.asarray(f[f"{data_group}/beta_cirrus_mask"][()]) if f"{data_group}/beta_cirrus_mask" in f else None
+        cloud_mask = (
+            np.asarray(f[f"{data_group}/beta_cloud_mask"][()])
+            if f"{data_group}/beta_cloud_mask" in f
+            else None
+        )
+        cirrus_mask = (
+            np.asarray(f[f"{data_group}/beta_cirrus_mask"][()])
+            if f"{data_group}/beta_cirrus_mask" in f
+            else None
+        )
 
         cloud_pct = _coverage_percent(cloud_mask, nodata_mask=nodata_mask)
         cirrus_pct = _coverage_percent(cirrus_mask, nodata_mask=nodata_mask)
@@ -336,14 +357,18 @@ def _populate_tanager_extended_metadata(
                 source="sensor_to_ground_path_length",
             )
 
-        meta.set_extended_value("radiometry.quantity", getattr(prod, "data_field", None))
+        meta.set_extended_value(
+            "radiometry.quantity", getattr(prod, "data_field", None)
+        )
         meta.set_extended_value("radiometry.units", getattr(prod, "data_units", None))
         meta.set_extended_value("radiometry.wavelengths_nm", wavelengths_meta)
         meta.set_extended_value("radiometry.fwhm_nm", fwhm_meta)
         mask = [1 if bool(v) else 0 for v in validity_meta]
         meta.set_extended_value("radiometry.valid_band_mask", mask)
         meta.set_extended_value("radiometry.valid_band_count", int(sum(mask)))
-        meta.set_extended_value("radiometry.applied_radiometric_coefficients", applied_coeffs)
+        meta.set_extended_value(
+            "radiometry.applied_radiometric_coefficients", applied_coeffs
+        )
 
         if aod_mean is not None:
             meta.set_extended_form_value(
@@ -372,19 +397,63 @@ def _populate_tanager_extended_metadata(
         )
 
         meta.set_extended_value("processing.processing_datetime_utc", created_at)
-        meta.set_extended_value("uncertainty.reflectance_uncertainty_present", bool(uncertainty_present))
+        meta.set_extended_value(
+            "uncertainty.reflectance_uncertainty_present", bool(uncertainty_present)
+        )
         meta.set_extended_value("tanager.product_layout", product_layout)
 
-        meta.set_extended_value("tanager.map_refs.sun_zenith", f"{data_group}/sun_zenith" if f"{data_group}/sun_zenith" in f else None)
-        meta.set_extended_value("tanager.map_refs.sun_azimuth", f"{data_group}/sun_azimuth" if f"{data_group}/sun_azimuth" in f else None)
-        meta.set_extended_value("tanager.map_refs.sensor_zenith", f"{data_group}/sensor_zenith" if f"{data_group}/sensor_zenith" in f else None)
-        meta.set_extended_value("tanager.map_refs.sensor_azimuth", f"{data_group}/sensor_azimuth" if f"{data_group}/sensor_azimuth" in f else None)
-        meta.set_extended_value("tanager.map_refs.sensor_to_ground_path_length", f"{data_group}/sensor_to_ground_path_length" if f"{data_group}/sensor_to_ground_path_length" in f else None)
-        meta.set_extended_value("tanager.map_refs.aerosol_optical_depth", f"{data_group}/aerosol_optical_depth" if f"{data_group}/aerosol_optical_depth" in f else None)
-        meta.set_extended_value("tanager.map_refs.column_water_vapour", f"{data_group}/column_water_vapour" if f"{data_group}/column_water_vapour" in f else None)
-        meta.set_extended_value("tanager.map_refs.surface_reflectance_uncertainty", f"{data_group}/surface_reflectance_uncertainty" if f"{data_group}/surface_reflectance_uncertainty" in f else None)
-        meta.set_extended_value("tanager.quality_masks.beta_cloud_mask", f"{data_group}/beta_cloud_mask" in f)
-        meta.set_extended_value("tanager.quality_masks.beta_cirrus_mask", f"{data_group}/beta_cirrus_mask" in f)
+        meta.set_extended_value(
+            "tanager.map_refs.sun_zenith",
+            f"{data_group}/sun_zenith" if f"{data_group}/sun_zenith" in f else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.sun_azimuth",
+            f"{data_group}/sun_azimuth" if f"{data_group}/sun_azimuth" in f else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.sensor_zenith",
+            f"{data_group}/sensor_zenith"
+            if f"{data_group}/sensor_zenith" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.sensor_azimuth",
+            f"{data_group}/sensor_azimuth"
+            if f"{data_group}/sensor_azimuth" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.sensor_to_ground_path_length",
+            f"{data_group}/sensor_to_ground_path_length"
+            if f"{data_group}/sensor_to_ground_path_length" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.aerosol_optical_depth",
+            f"{data_group}/aerosol_optical_depth"
+            if f"{data_group}/aerosol_optical_depth" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.column_water_vapour",
+            f"{data_group}/column_water_vapour"
+            if f"{data_group}/column_water_vapour" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.map_refs.surface_reflectance_uncertainty",
+            f"{data_group}/surface_reflectance_uncertainty"
+            if f"{data_group}/surface_reflectance_uncertainty" in f
+            else None,
+        )
+        meta.set_extended_value(
+            "tanager.quality_masks.beta_cloud_mask",
+            f"{data_group}/beta_cloud_mask" in f,
+        )
+        meta.set_extended_value(
+            "tanager.quality_masks.beta_cirrus_mask",
+            f"{data_group}/beta_cirrus_mask" in f,
+        )
         meta.set_extended_value("tanager.quality_masks.nodata_pixels", nodata_path in f)
         meta.set_extended_value("tanager.created_at", created_at)
         meta.set_extended_value("tanager.strip_id", strip_id)
@@ -433,7 +502,9 @@ def import_tanager(
     source_fwhm = np.asarray(fwhm) if fwhm is not None else None
 
     # Per-band validity before reprojection (nodata already set to NaN in loader)
-    band_validity = [bool(np.isfinite(data[:, :, k]).any()) for k in range(data.shape[2])]
+    band_validity = [
+        bool(np.isfinite(data[:, :, k]).any()) for k in range(data.shape[2])
+    ]
     keep = [k for k, valid in enumerate(band_validity) if valid]
     if not keep:
         gs.fatal("No non-NULL bands found.")
@@ -592,8 +663,7 @@ def import_tanager(
                 cmd.append(f"composites={','.join(composites)}")
             if custom_wavelengths:
                 cmd.append(
-                    "composites_custom="
-                    + ",".join(str(v) for v in custom_wavelengths)
+                    "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
                 )
             if import_null:
                 cmd.append("-n")

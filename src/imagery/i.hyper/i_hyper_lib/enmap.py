@@ -228,7 +228,9 @@ def suppress_stderr():
 
 
 def _enmap_product_level(root):
-    text = _first_nonempty_text(root, [".//processingLevel", ".//base/level", ".//level"])
+    text = _first_nonempty_text(
+        root, [".//processingLevel", ".//base/level", ".//level"]
+    )
     if text is None:
         return None
     return str(text).strip().upper()
@@ -259,8 +261,12 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
             "valid": 0,
         }
 
-    expected_vnir = _to_int_list(root.findtext(".//vnirProductQuality/expectedChannelsList"))
-    expected_swir = _to_int_list(root.findtext(".//swirProductQuality/expectedChannelsList"))
+    expected_vnir = _to_int_list(
+        root.findtext(".//vnirProductQuality/expectedChannelsList")
+    )
+    expected_swir = _to_int_list(
+        root.findtext(".//swirProductQuality/expectedChannelsList")
+    )
     expected = set(expected_vnir) | set(expected_swir)
 
     band_entries = []
@@ -282,7 +288,15 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
 
             for local_band in range(1, src.count + 1):
                 global_band = global_ids[local_band - 1]
-                valid = 1 if (source_type != "single" or not expected or global_band in expected) else 0
+                valid = (
+                    1
+                    if (
+                        source_type != "single"
+                        or not expected
+                        or global_band in expected
+                    )
+                    else 0
+                )
                 sv = src.tags(local_band).get("STATISTICS_VALID_PERCENT")
                 if sv is not None:
                     try:
@@ -327,7 +341,9 @@ def parse_dataset_metadata(meta_xml_path):
     root = tree.getroot()
 
     product_level = _enmap_product_level(root)
-    radiometric_quantity, radiometric_units = _enmap_radiometry_from_level(product_level)
+    radiometric_quantity, radiometric_units = _enmap_radiometry_from_level(
+        product_level
+    )
 
     acquisition_datetime = _to_iso_utc(
         _first_nonempty_text(
@@ -464,8 +480,12 @@ def _populate_enmap_extended_metadata(
         ],
     )
     if view_zenith is None:
-        across = _first_float(root, [".//acrossOffNadirAngle/center", ".//acrossOffNadirAngle"])
-        along = _first_float(root, [".//alongOffNadirAngle/center", ".//alongOffNadirAngle"])
+        across = _first_float(
+            root, [".//acrossOffNadirAngle/center", ".//acrossOffNadirAngle"]
+        )
+        along = _first_float(
+            root, [".//alongOffNadirAngle/center", ".//alongOffNadirAngle"]
+        )
         if across is not None and along is not None:
             view_zenith = math.hypot(across, along)
         elif across is not None:
@@ -474,25 +494,93 @@ def _populate_enmap_extended_metadata(
             view_zenith = abs(along)
 
     relative_azimuth = _relative_azimuth(sun_azimuth, view_azimuth)
-    sensor_altitude = _first_float(root, [".//base/altitudeCoverage", ".//altitudeCoverage"])
+    sensor_altitude = _first_float(
+        root, [".//base/altitudeCoverage", ".//altitudeCoverage"]
+    )
 
     processing_dt = _to_iso_utc(
-        _first_nonempty_text(root, [".//specific/processingDateTime", ".//processingDateTime"])
+        _first_nonempty_text(
+            root, [".//specific/processingDateTime", ".//processingDateTime"]
+        )
     )
-    archived_version = _first_nonempty_text(root, [".//base/archivedVersion", ".//archivedVersion"])
+    archived_version = _first_nonempty_text(
+        root, [".//base/archivedVersion", ".//archivedVersion"]
+    )
 
-    scene_aot = _first_float(root, [".//specific/qualityFlag/sceneAOT", ".//qualityFlag/sceneAOT", ".//sceneAOT"])
-    scene_wv = _first_float(root, [".//specific/qualityFlag/sceneWV", ".//qualityFlag/sceneWV", ".//sceneWV"])
+    scene_aot = _first_float(
+        root,
+        [".//specific/qualityFlag/sceneAOT", ".//qualityFlag/sceneAOT", ".//sceneAOT"],
+    )
+    scene_wv = _first_float(
+        root,
+        [".//specific/qualityFlag/sceneWV", ".//qualityFlag/sceneWV", ".//sceneWV"],
+    )
     ozone_du = _first_float(root, [".//processing/ozoneValue", ".//ozoneValue"])
 
-    cloud_cover = _first_float(root, [".//specific/qualityFlag/cloudCover", ".//qualityFlag/cloudCover", ".//cloudCover"])
-    cirrus_cover = _first_float(root, [".//specific/qualityFlag/cirrusCover", ".//qualityFlag/cirrusCover", ".//cirrusCover"])
-    haze_cover = _first_float(root, [".//specific/qualityFlag/hazeCover", ".//qualityFlag/hazeCover", ".//hazeCover"])
-    snow_cover = _first_float(root, [".//specific/qualityFlag/snowCover", ".//qualityFlag/snowCover", ".//snowCover"])
-    water_cover = _first_float(root, [".//specific/qualityFlag/waterCover", ".//qualityFlag/waterCover", ".//waterCover"])
-    cloud_shadow = _first_float(root, [".//specific/qualityFlag/cloudShadow", ".//qualityFlag/cloudShadow", ".//cloudShadow"])
-    noncloud_shadow = _first_float(root, [".//specific/qualityFlag/noncloudShadow", ".//qualityFlag/noncloudShadow", ".//noncloudShadow"])
-    sunglint = _first_float(root, [".//specific/qualityFlag/sceneSunglint", ".//qualityFlag/sceneSunglint", ".//sceneSunglint"])
+    cloud_cover = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/cloudCover",
+            ".//qualityFlag/cloudCover",
+            ".//cloudCover",
+        ],
+    )
+    cirrus_cover = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/cirrusCover",
+            ".//qualityFlag/cirrusCover",
+            ".//cirrusCover",
+        ],
+    )
+    haze_cover = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/hazeCover",
+            ".//qualityFlag/hazeCover",
+            ".//hazeCover",
+        ],
+    )
+    snow_cover = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/snowCover",
+            ".//qualityFlag/snowCover",
+            ".//snowCover",
+        ],
+    )
+    water_cover = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/waterCover",
+            ".//qualityFlag/waterCover",
+            ".//waterCover",
+        ],
+    )
+    cloud_shadow = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/cloudShadow",
+            ".//qualityFlag/cloudShadow",
+            ".//cloudShadow",
+        ],
+    )
+    noncloud_shadow = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/noncloudShadow",
+            ".//qualityFlag/noncloudShadow",
+            ".//noncloudShadow",
+        ],
+    )
+    sunglint = _first_float(
+        root,
+        [
+            ".//specific/qualityFlag/sceneSunglint",
+            ".//qualityFlag/sceneSunglint",
+            ".//sceneSunglint",
+        ],
+    )
 
     quality_atm_text = _first_nonempty_text(
         root,
@@ -506,13 +594,23 @@ def _populate_enmap_extended_metadata(
     if quality_atm is None:
         quality_atm = quality_atm_text
 
-    cirrus_haze_removal = _first_nonempty_text(root, [".//processing/cirrusHazeRemoval", ".//cirrusHazeRemoval"])
+    cirrus_haze_removal = _first_nonempty_text(
+        root, [".//processing/cirrusHazeRemoval", ".//cirrusHazeRemoval"]
+    )
     water_type = _first_nonempty_text(root, [".//processing/waterType", ".//waterType"])
 
-    expected_vnir = _to_int_list(root.findtext(".//vnirProductQuality/expectedChannelsList"))
-    expected_swir = _to_int_list(root.findtext(".//swirProductQuality/expectedChannelsList"))
-    missing_vnir = _to_int_list(root.findtext(".//vnirProductQuality/missingChannelsList"))
-    missing_swir = _to_int_list(root.findtext(".//swirProductQuality/missingChannelsList"))
+    expected_vnir = _to_int_list(
+        root.findtext(".//vnirProductQuality/expectedChannelsList")
+    )
+    expected_swir = _to_int_list(
+        root.findtext(".//swirProductQuality/expectedChannelsList")
+    )
+    missing_vnir = _to_int_list(
+        root.findtext(".//vnirProductQuality/missingChannelsList")
+    )
+    missing_swir = _to_int_list(
+        root.findtext(".//swirProductQuality/missingChannelsList")
+    )
 
     line_time_summary = _enmap_line_time_summary(root)
     jitter_summary = _enmap_jitter_summary(root)
@@ -521,49 +619,222 @@ def _populate_enmap_extended_metadata(
     product_format = _first_nonempty_text(root, [".//base/format", ".//format"])
     radiometry_quantity, radiometry_units = _enmap_radiometry_from_level(product_level)
 
-    orbit_no = _to_int(_first_nonempty_text(root, [".//specific/orbitNo", ".//orbitNo"]))
-    orbit_direction = _first_nonempty_text(root, [".//specific/orbitDirection", ".//orbitDirection"])
+    orbit_no = _to_int(
+        _first_nonempty_text(root, [".//specific/orbitNo", ".//orbitNo"])
+    )
+    orbit_direction = _first_nonempty_text(
+        root, [".//specific/orbitDirection", ".//orbitDirection"]
+    )
     orbit_type = _first_nonempty_text(root, [".//specific/orbitType", ".//orbitType"])
-    mission_phase = _first_nonempty_text(root, [".//specific/missionPhase", ".//missionPhase"])
-    acquisition_mode = _first_nonempty_text(root, [".//specific/acquisitionMode", ".//acquisitionMode"])
+    mission_phase = _first_nonempty_text(
+        root, [".//specific/missionPhase", ".//missionPhase"]
+    )
+    acquisition_mode = _first_nonempty_text(
+        root, [".//specific/acquisitionMode", ".//acquisitionMode"]
+    )
     biome_type = _first_nonempty_text(root, [".//specific/biomeType", ".//biomeType"])
 
-    mean_ground_elevation = _first_float(root, [".//specific/meanGroundElevation", ".//meanGroundElevation"])
+    mean_ground_elevation = _first_float(
+        root, [".//specific/meanGroundElevation", ".//meanGroundElevation"]
+    )
     mean_slope = _first_float(root, [".//specific/meanSlope", ".//meanSlope"])
-    dem_database = _first_nonempty_text(root, [".//specific/digitalElevationModelDatabase", ".//digitalElevationModelDatabase"])
-    dem_accuracy = _first_float(root, [".//specific/digitalElevationModelDatabaseAccuracy", ".//digitalElevationModelDatabaseAccuracy"])
-    reference_database = _first_nonempty_text(root, [".//specific/referenceDatabase", ".//referenceDatabase"])
-    reference_accuracy = _first_float(root, [".//specific/referenceImageDatabaseAccuracy", ".//referenceImageDatabaseAccuracy"])
+    dem_database = _first_nonempty_text(
+        root,
+        [
+            ".//specific/digitalElevationModelDatabase",
+            ".//digitalElevationModelDatabase",
+        ],
+    )
+    dem_accuracy = _first_float(
+        root,
+        [
+            ".//specific/digitalElevationModelDatabaseAccuracy",
+            ".//digitalElevationModelDatabaseAccuracy",
+        ],
+    )
+    reference_database = _first_nonempty_text(
+        root, [".//specific/referenceDatabase", ".//referenceDatabase"]
+    )
+    reference_accuracy = _first_float(
+        root,
+        [
+            ".//specific/referenceImageDatabaseAccuracy",
+            ".//referenceImageDatabaseAccuracy",
+        ],
+    )
 
-    processing_center = _first_nonempty_text(root, [".//specific/processingCenter", ".//processingCenter"])
-    receiving_stations = _first_nonempty_text(root, [".//specific/receivingStations", ".//receivingStations"])
-    receiving_datetime = _to_iso_utc(_first_nonempty_text(root, [".//specific/receivingDateTime", ".//receivingDateTime"]))
+    processing_center = _first_nonempty_text(
+        root, [".//specific/processingCenter", ".//processingCenter"]
+    )
+    receiving_stations = _first_nonempty_text(
+        root, [".//specific/receivingStations", ".//receivingStations"]
+    )
+    receiving_datetime = _to_iso_utc(
+        _first_nonempty_text(
+            root, [".//specific/receivingDateTime", ".//receivingDateTime"]
+        )
+    )
 
-    overall_quality = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/overallQuality", ".//qualityFlag/overallQuality"]))
-    overall_quality_vnir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/overallQualityVNIR", ".//qualityFlag/overallQualityVNIR"]))
-    overall_quality_swir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/overallQualitySWIR", ".//qualityFlag/overallQualitySWIR"]))
-    quality_radiometry_vnir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/qualityRadiometryVNIR", ".//qualityFlag/qualityRadiometryVNIR"]))
-    quality_radiometry_swir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/qualityRadiometrySWIR", ".//qualityFlag/qualityRadiometrySWIR"]))
-    dead_pixels_vnir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/deadPixelsVNIR", ".//qualityFlag/deadPixelsVNIR"]))
-    dead_pixels_swir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/deadPixelsSWIR", ".//qualityFlag/deadPixelsSWIR"]))
-    defective_pixels_vnir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/defectivePixelsVNIR", ".//qualityFlag/defectivePixelsVNIR"]))
-    defective_pixels_swir = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/defectivePixelsSWIR", ".//qualityFlag/defectivePixelsSWIR"]))
-    num_points_gcp = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/numPointsGCP", ".//qualityFlag/numPointsGCP"]))
-    num_points_icp = _to_int(_first_nonempty_text(root, [".//specific/qualityFlag/numPointsICP", ".//qualityFlag/numPointsICP"]))
-    ortho_residual = _first_float(root, [".//specific/qualityFlag/orthoResidual", ".//qualityFlag/orthoResidual"])
-    ortho_rmse = _first_float(root, [".//specific/qualityFlag/orthoRMSE", ".//qualityFlag/orthoRMSE"])
+    overall_quality = _to_int(
+        _first_nonempty_text(
+            root,
+            [".//specific/qualityFlag/overallQuality", ".//qualityFlag/overallQuality"],
+        )
+    )
+    overall_quality_vnir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/overallQualityVNIR",
+                ".//qualityFlag/overallQualityVNIR",
+            ],
+        )
+    )
+    overall_quality_swir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/overallQualitySWIR",
+                ".//qualityFlag/overallQualitySWIR",
+            ],
+        )
+    )
+    quality_radiometry_vnir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/qualityRadiometryVNIR",
+                ".//qualityFlag/qualityRadiometryVNIR",
+            ],
+        )
+    )
+    quality_radiometry_swir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/qualityRadiometrySWIR",
+                ".//qualityFlag/qualityRadiometrySWIR",
+            ],
+        )
+    )
+    dead_pixels_vnir = _to_int(
+        _first_nonempty_text(
+            root,
+            [".//specific/qualityFlag/deadPixelsVNIR", ".//qualityFlag/deadPixelsVNIR"],
+        )
+    )
+    dead_pixels_swir = _to_int(
+        _first_nonempty_text(
+            root,
+            [".//specific/qualityFlag/deadPixelsSWIR", ".//qualityFlag/deadPixelsSWIR"],
+        )
+    )
+    defective_pixels_vnir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/defectivePixelsVNIR",
+                ".//qualityFlag/defectivePixelsVNIR",
+            ],
+        )
+    )
+    defective_pixels_swir = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/qualityFlag/defectivePixelsSWIR",
+                ".//qualityFlag/defectivePixelsSWIR",
+            ],
+        )
+    )
+    num_points_gcp = _to_int(
+        _first_nonempty_text(
+            root,
+            [".//specific/qualityFlag/numPointsGCP", ".//qualityFlag/numPointsGCP"],
+        )
+    )
+    num_points_icp = _to_int(
+        _first_nonempty_text(
+            root,
+            [".//specific/qualityFlag/numPointsICP", ".//qualityFlag/numPointsICP"],
+        )
+    )
+    ortho_residual = _first_float(
+        root, [".//specific/qualityFlag/orthoResidual", ".//qualityFlag/orthoResidual"]
+    )
+    ortho_rmse = _first_float(
+        root, [".//specific/qualityFlag/orthoRMSE", ".//qualityFlag/orthoRMSE"]
+    )
 
-    status_ok = _first_nonempty_text(root, [".//specific/instrumentStatus/statusOK", ".//instrumentStatus/statusOK"])
-    status_vnir = _first_nonempty_text(root, [".//specific/instrumentStatus/statusVNIR", ".//instrumentStatus/statusVNIR"])
-    status_swir = _first_nonempty_text(root, [".//specific/instrumentStatus/statusSWIR", ".//instrumentStatus/statusSWIR"])
-    swir_selector = _first_nonempty_text(root, [".//specific/instrumentStatus/SWIRAOrSWIRBSelected", ".//instrumentStatus/SWIRAOrSWIRBSelected"])
+    status_ok = _first_nonempty_text(
+        root, [".//specific/instrumentStatus/statusOK", ".//instrumentStatus/statusOK"]
+    )
+    status_vnir = _first_nonempty_text(
+        root,
+        [".//specific/instrumentStatus/statusVNIR", ".//instrumentStatus/statusVNIR"],
+    )
+    status_swir = _first_nonempty_text(
+        root,
+        [".//specific/instrumentStatus/statusSWIR", ".//instrumentStatus/statusSWIR"],
+    )
+    swir_selector = _first_nonempty_text(
+        root,
+        [
+            ".//specific/instrumentStatus/SWIRAOrSWIRBSelected",
+            ".//instrumentStatus/SWIRAOrSWIRBSelected",
+        ],
+    )
 
-    vnir_product_status = _first_nonempty_text(root, [".//specific/vnirProductQuality/vnirProductStatus", ".//vnirProductQuality/vnirProductStatus"])
-    swir_product_status = _first_nonempty_text(root, [".//specific/swirProductQuality/swirProductStatus", ".//swirProductQuality/swirProductStatus"])
-    vnir_channels_expected = _to_int(_first_nonempty_text(root, [".//specific/vnirProductQuality/numChannelsExpected", ".//vnirProductQuality/numChannelsExpected"]))
-    vnir_channels_missing = _to_int(_first_nonempty_text(root, [".//specific/vnirProductQuality/numChannelsMissing", ".//vnirProductQuality/numChannelsMissing"]))
-    swir_channels_expected = _to_int(_first_nonempty_text(root, [".//specific/swirProductQuality/numChannelsExpected", ".//swirProductQuality/numChannelsExpected"]))
-    swir_channels_missing = _to_int(_first_nonempty_text(root, [".//specific/swirProductQuality/numChannelsMissing", ".//swirProductQuality/numChannelsMissing"]))
+    vnir_product_status = _first_nonempty_text(
+        root,
+        [
+            ".//specific/vnirProductQuality/vnirProductStatus",
+            ".//vnirProductQuality/vnirProductStatus",
+        ],
+    )
+    swir_product_status = _first_nonempty_text(
+        root,
+        [
+            ".//specific/swirProductQuality/swirProductStatus",
+            ".//swirProductQuality/swirProductStatus",
+        ],
+    )
+    vnir_channels_expected = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/vnirProductQuality/numChannelsExpected",
+                ".//vnirProductQuality/numChannelsExpected",
+            ],
+        )
+    )
+    vnir_channels_missing = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/vnirProductQuality/numChannelsMissing",
+                ".//vnirProductQuality/numChannelsMissing",
+            ],
+        )
+    )
+    swir_channels_expected = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/swirProductQuality/numChannelsExpected",
+                ".//swirProductQuality/numChannelsExpected",
+            ],
+        )
+    )
+    swir_channels_missing = _to_int(
+        _first_nonempty_text(
+            root,
+            [
+                ".//specific/swirProductQuality/numChannelsMissing",
+                ".//swirProductQuality/numChannelsMissing",
+            ],
+        )
+    )
 
     band_indices = list(band_indices or [])
     validity_mask = [bool(v) for v in (validity_mask or [])]
@@ -593,7 +864,9 @@ def _populate_enmap_extended_metadata(
     meta.set_extended_value("radiometry.offset", radiometry_offset)
     meta.set_extended_value("radiometry.wavelengths_nm", radiometry_wl)
     meta.set_extended_value("radiometry.fwhm_nm", radiometry_fwhm)
-    meta.set_extended_value("radiometry.valid_band_mask", [1 if v else 0 for v in validity_mask])
+    meta.set_extended_value(
+        "radiometry.valid_band_mask", [1 if v else 0 for v in validity_mask]
+    )
     meta.set_extended_value("radiometry.valid_band_count", int(sum(validity_mask)))
 
     if scene_aot is not None:
@@ -648,14 +921,26 @@ def _populate_enmap_extended_metadata(
     meta.set_extended_value("enmap.qualityFlag.sceneAOT", scene_aot)
     meta.set_extended_value("enmap.qualityFlag.sceneWV", scene_wv)
     meta.set_extended_value("enmap.qualityFlag.overallQuality", overall_quality)
-    meta.set_extended_value("enmap.qualityFlag.overallQualityVNIR", overall_quality_vnir)
-    meta.set_extended_value("enmap.qualityFlag.overallQualitySWIR", overall_quality_swir)
-    meta.set_extended_value("enmap.qualityFlag.qualityRadiometryVNIR", quality_radiometry_vnir)
-    meta.set_extended_value("enmap.qualityFlag.qualityRadiometrySWIR", quality_radiometry_swir)
+    meta.set_extended_value(
+        "enmap.qualityFlag.overallQualityVNIR", overall_quality_vnir
+    )
+    meta.set_extended_value(
+        "enmap.qualityFlag.overallQualitySWIR", overall_quality_swir
+    )
+    meta.set_extended_value(
+        "enmap.qualityFlag.qualityRadiometryVNIR", quality_radiometry_vnir
+    )
+    meta.set_extended_value(
+        "enmap.qualityFlag.qualityRadiometrySWIR", quality_radiometry_swir
+    )
     meta.set_extended_value("enmap.qualityFlag.deadPixelsVNIR", dead_pixels_vnir)
     meta.set_extended_value("enmap.qualityFlag.deadPixelsSWIR", dead_pixels_swir)
-    meta.set_extended_value("enmap.qualityFlag.defectivePixelsVNIR", defective_pixels_vnir)
-    meta.set_extended_value("enmap.qualityFlag.defectivePixelsSWIR", defective_pixels_swir)
+    meta.set_extended_value(
+        "enmap.qualityFlag.defectivePixelsVNIR", defective_pixels_vnir
+    )
+    meta.set_extended_value(
+        "enmap.qualityFlag.defectivePixelsSWIR", defective_pixels_swir
+    )
     meta.set_extended_value("enmap.qualityFlag.numPointsGCP", num_points_gcp)
     meta.set_extended_value("enmap.qualityFlag.numPointsICP", num_points_icp)
     meta.set_extended_value("enmap.qualityFlag.orthoResidual", ortho_residual)
@@ -675,31 +960,61 @@ def _populate_enmap_extended_metadata(
     meta.set_extended_value("enmap.specific.biomeType", biome_type)
     meta.set_extended_value("enmap.specific.meanGroundElevation", mean_ground_elevation)
     meta.set_extended_value("enmap.specific.meanSlope", mean_slope)
-    meta.set_extended_value("enmap.specific.digitalElevationModelDatabase", dem_database)
-    meta.set_extended_value("enmap.specific.digitalElevationModelDatabaseAccuracy", dem_accuracy)
+    meta.set_extended_value(
+        "enmap.specific.digitalElevationModelDatabase", dem_database
+    )
+    meta.set_extended_value(
+        "enmap.specific.digitalElevationModelDatabaseAccuracy", dem_accuracy
+    )
     meta.set_extended_value("enmap.specific.referenceDatabase", reference_database)
-    meta.set_extended_value("enmap.specific.referenceImageDatabaseAccuracy", reference_accuracy)
+    meta.set_extended_value(
+        "enmap.specific.referenceImageDatabaseAccuracy", reference_accuracy
+    )
     meta.set_extended_value("enmap.instrumentStatus.statusOK", status_ok)
     meta.set_extended_value("enmap.instrumentStatus.statusVNIR", status_vnir)
     meta.set_extended_value("enmap.instrumentStatus.statusSWIR", status_swir)
-    meta.set_extended_value("enmap.instrumentStatus.SWIRAOrSWIRBSelected", swir_selector)
-    meta.set_extended_value("enmap.vnirProductQuality.vnirProductStatus", vnir_product_status)
-    meta.set_extended_value("enmap.swirProductQuality.swirProductStatus", swir_product_status)
-    meta.set_extended_value("enmap.vnirProductQuality.numChannelsExpected", vnir_channels_expected)
-    meta.set_extended_value("enmap.vnirProductQuality.numChannelsMissing", vnir_channels_missing)
-    meta.set_extended_value("enmap.swirProductQuality.numChannelsExpected", swir_channels_expected)
-    meta.set_extended_value("enmap.swirProductQuality.numChannelsMissing", swir_channels_missing)
+    meta.set_extended_value(
+        "enmap.instrumentStatus.SWIRAOrSWIRBSelected", swir_selector
+    )
+    meta.set_extended_value(
+        "enmap.vnirProductQuality.vnirProductStatus", vnir_product_status
+    )
+    meta.set_extended_value(
+        "enmap.swirProductQuality.swirProductStatus", swir_product_status
+    )
+    meta.set_extended_value(
+        "enmap.vnirProductQuality.numChannelsExpected", vnir_channels_expected
+    )
+    meta.set_extended_value(
+        "enmap.vnirProductQuality.numChannelsMissing", vnir_channels_missing
+    )
+    meta.set_extended_value(
+        "enmap.swirProductQuality.numChannelsExpected", swir_channels_expected
+    )
+    meta.set_extended_value(
+        "enmap.swirProductQuality.numChannelsMissing", swir_channels_missing
+    )
 
     aux_node = root.find(".//specific/auxDataVersion")
     if aux_node is not None:
         for child in list(aux_node):
             if child.text is not None and child.text.strip() != "":
-                meta.set_extended_value(f"enmap.auxDataVersion.{child.tag}", child.text.strip())
+                meta.set_extended_value(
+                    f"enmap.auxDataVersion.{child.tag}", child.text.strip()
+                )
 
-    meta.set_extended_value("enmap.vnirProductQuality.expectedChannelsList", expected_vnir)
-    meta.set_extended_value("enmap.vnirProductQuality.missingChannelsList", missing_vnir)
-    meta.set_extended_value("enmap.swirProductQuality.expectedChannelsList", expected_swir)
-    meta.set_extended_value("enmap.swirProductQuality.missingChannelsList", missing_swir)
+    meta.set_extended_value(
+        "enmap.vnirProductQuality.expectedChannelsList", expected_vnir
+    )
+    meta.set_extended_value(
+        "enmap.vnirProductQuality.missingChannelsList", missing_vnir
+    )
+    meta.set_extended_value(
+        "enmap.swirProductQuality.expectedChannelsList", expected_swir
+    )
+    meta.set_extended_value(
+        "enmap.swirProductQuality.missingChannelsList", missing_swir
+    )
 
 
 def _find_optional_file(folder, suffix):
@@ -897,9 +1212,7 @@ def import_enmap(
         custom_indices = [
             find_nearest_band(wl, wavelengths) for wl in custom_wavelengths
         ]
-        custom_maps = [
-            rgb_enhanced.get(b, band_names[b - 1]) for b in custom_indices
-        ]
+        custom_maps = [rgb_enhanced.get(b, band_names[b - 1]) for b in custom_indices]
         Module(
             "i.colors.enhance",
             red=custom_maps[0],
@@ -977,9 +1290,7 @@ def import_enmap(
             )
     finally:
         if float_names:
-            Module(
-                "g.remove", type="raster", name=float_names, flags="f", quiet=True
-            )
+            Module("g.remove", type="raster", name=float_names, flags="f", quiet=True)
         Module("g.remove", type="raster", name=band_names, flags="f", quiet=True)
 
     # hyperspectral metadata (JSON)
@@ -1033,8 +1344,7 @@ def import_enmap(
             cmd.append(f"composites={','.join(composites)}")
         if custom_wavelengths:
             cmd.append(
-                "composites_custom="
-                + ",".join(str(v) for v in custom_wavelengths)
+                "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
             )
         if import_null:
             cmd.append("-n")

@@ -48,7 +48,9 @@ class HyperMetadata:
     # Dataset-level
     sensor: str | None = None
     wavelength_units: str = "nm"
-    radiometric_quantity: str | None = None  # e.g., "surface_reflectance", "toa_radiance"
+    radiometric_quantity: str | None = (
+        None  # e.g., "surface_reflectance", "toa_radiance"
+    )
     radiometric_units: str | None = None  # e.g., "unitless", "W/(m^2 sr um)"
     acquisition_datetime: str | None = None
     region: dict[str, Any] | None = None
@@ -163,7 +165,9 @@ class HyperMetadata:
         if "derived" in data:
             meta.derived = bool(data.get("derived"))
         else:
-            meta.derived = cls._is_derived_from_history(data.get("processing_history", []))
+            meta.derived = cls._is_derived_from_history(
+                data.get("processing_history", [])
+            )
 
         # New schema (top-level dataset fields)
         if "dataset" not in data:
@@ -183,7 +187,9 @@ class HyperMetadata:
             meta.sensor = (
                 data.get("sensor")
                 if "sensor" in data
-                else inherited_sensor if has_inherited_sensor else None
+                else inherited_sensor
+                if has_inherited_sensor
+                else None
             )
 
             inherited_wu, has_inherited_wu = cls.resolve_inherited_value(
@@ -202,7 +208,9 @@ class HyperMetadata:
             meta.radiometric_quantity = (
                 data.get("radiometric_quantity")
                 if "radiometric_quantity" in data
-                else inherited_rq if has_inherited_rq else None
+                else inherited_rq
+                if has_inherited_rq
+                else None
             )
 
             inherited_ru, has_inherited_ru = cls.resolve_inherited_value(
@@ -211,7 +219,9 @@ class HyperMetadata:
             meta.radiometric_units = (
                 data.get("radiometric_units")
                 if "radiometric_units" in data
-                else inherited_ru if has_inherited_ru else None
+                else inherited_ru
+                if has_inherited_ru
+                else None
             )
 
             inherited_region, has_inherited_region = cls.resolve_inherited_value(
@@ -462,7 +472,9 @@ class HyperMetadata:
                         f"Input dataset metadata snapshots not found for dataset_id(s): {joined}"
                     )
             except Exception as error:
-                gs.warning(f"Failed to collect input dataset metadata snapshots: {error}")
+                gs.warning(
+                    f"Failed to collect input dataset metadata snapshots: {error}"
+                )
 
         region = self._get_region_json(map_name, mapset) if save_region else self.region
         self.region = region
@@ -494,8 +506,13 @@ class HyperMetadata:
         if self.input_datasets_metadata:
             data["input_datasets_metadata"] = self.input_datasets_metadata
 
-        if isinstance(self.dimensionality_reduction, dict) and self.dimensionality_reduction:
-            data["dimensionality_reduction"] = copy.deepcopy(self.dimensionality_reduction)
+        if (
+            isinstance(self.dimensionality_reduction, dict)
+            and self.dimensionality_reduction
+        ):
+            data["dimensionality_reduction"] = copy.deepcopy(
+                self.dimensionality_reduction
+            )
 
         if not bool(self.derived):
             data.update(
@@ -539,7 +556,11 @@ class HyperMetadata:
                     continue
                 data[key] = value
 
-            current_ext = self.extended_metadata if isinstance(self.extended_metadata, dict) else {}
+            current_ext = (
+                self.extended_metadata
+                if isinstance(self.extended_metadata, dict)
+                else {}
+            )
             if current_ext:
                 inherited_ext, has_inherited_ext = self.resolve_inherited_value(
                     lineage_root,
@@ -741,7 +762,9 @@ class HyperMetadata:
                     issues.append("Wavelength and FWHM arrays have different lengths")
             if self.wavelengths is not None and self.validity is not None:
                 if len(self.wavelengths) != len(self.validity):
-                    issues.append("Wavelength and validity arrays have different lengths")
+                    issues.append(
+                        "Wavelength and validity arrays have different lengths"
+                    )
 
             if self.wavelength_units not in ("nm", "um", "cm-1"):
                 issues.append(f"Unknown wavelength units: {self.wavelength_units}")
@@ -876,7 +899,8 @@ class HyperMetadata:
                 normalized.append(
                     {
                         "command": str(step.get("command", "")),
-                        "timestamp": step.get("timestamp") or datetime.now().isoformat(),
+                        "timestamp": step.get("timestamp")
+                        or datetime.now().isoformat(),
                         "inputs": cls._normalize_io_refs(step.get("inputs") or []),
                         "outputs": cls._normalize_io_refs(step.get("outputs") or []),
                     }
@@ -911,11 +935,15 @@ class HyperMetadata:
                 dst[key] = value
 
     @staticmethod
-    def _dict_diff(current: dict[str, Any], inherited: dict[str, Any]) -> dict[str, Any]:
+    def _dict_diff(
+        current: dict[str, Any], inherited: dict[str, Any]
+    ) -> dict[str, Any]:
         """Return keys from current that differ from inherited."""
         out: dict[str, Any] = {}
         for key, value in current.items():
-            inherited_value = inherited.get(key) if isinstance(inherited, dict) else None
+            inherited_value = (
+                inherited.get(key) if isinstance(inherited, dict) else None
+            )
             if isinstance(value, dict):
                 if isinstance(inherited_value, dict):
                     child = HyperMetadata._dict_diff(value, inherited_value)
@@ -1144,9 +1172,9 @@ class HyperMetadata:
                     continue
                 full_map_name = f"{map_dir.name}@{mapset_dir.name}"
                 if dataset_id in index:
-                    duplicates.setdefault(dataset_id, [index[dataset_id]["map_name"]]).append(
-                        full_map_name
-                    )
+                    duplicates.setdefault(
+                        dataset_id, [index[dataset_id]["map_name"]]
+                    ).append(full_map_name)
                     continue
                 index[dataset_id] = {
                     "map_name": full_map_name,
@@ -1220,7 +1248,9 @@ class HyperMetadata:
             for inp in cls._normalize_io_refs(step.get("inputs") or []):
                 visit_dataset(inp.get("id"))
 
-        ordered = {dataset_id: snapshots[dataset_id] for dataset_id in sorted(snapshots)}
+        ordered = {
+            dataset_id: snapshots[dataset_id] for dataset_id in sorted(snapshots)
+        }
         return ordered, sorted(missing_ids)
 
     @classmethod
@@ -1264,7 +1294,9 @@ class HyperMetadata:
                     "inputs": cls._normalize_io_refs(step.get("inputs") or []),
                     "outputs": cls._normalize_io_refs(step.get("outputs") or []),
                 }
-                collected.append((cls._parse_timestamp(entry.get("timestamp")), order, entry))
+                collected.append(
+                    (cls._parse_timestamp(entry.get("timestamp")), order, entry)
+                )
                 order += 1
                 for inp in entry["inputs"]:
                     visit_dataset(inp.get("id"))
@@ -1278,7 +1310,9 @@ class HyperMetadata:
         """Build summary payload from raw metadata."""
         bands = data.get("bands") or {}
         if not isinstance(bands, dict) or not bands:
-            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(data, "bands")
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
+                data, "bands"
+            )
             if has_inherited_bands and isinstance(inherited_bands, dict):
                 bands = inherited_bands
             else:
@@ -1298,7 +1332,9 @@ class HyperMetadata:
 
         sensor = data.get("sensor")
         if sensor is None:
-            inherited_sensor, has_inherited_sensor = cls.resolve_inherited_value(data, "sensor")
+            inherited_sensor, has_inherited_sensor = cls.resolve_inherited_value(
+                data, "sensor"
+            )
             if has_inherited_sensor:
                 sensor = inherited_sensor
 
@@ -1329,7 +1365,9 @@ class HyperMetadata:
         ext = data.get("extended_metadata")
         if not isinstance(ext, dict):
             ext = {}
-        inherited_ext, has_inherited_ext = cls.resolve_inherited_value(data, "extended_metadata")
+        inherited_ext, has_inherited_ext = cls.resolve_inherited_value(
+            data, "extended_metadata"
+        )
         if has_inherited_ext and isinstance(inherited_ext, dict):
             merged_ext = copy.deepcopy(inherited_ext)
             cls._deep_merge_dict(merged_ext, ext)
@@ -1373,7 +1411,9 @@ class HyperMetadata:
         """Build band rows for listing output."""
         bands = data.get("bands") or {}
         if not isinstance(bands, dict) or not bands:
-            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(data, "bands")
+            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
+                data, "bands"
+            )
             if has_inherited_bands and isinstance(inherited_bands, dict):
                 bands = inherited_bands
             else:
@@ -1486,7 +1526,11 @@ class HyperMetadata:
             if isinstance(validity, list) and len(validity) != count:
                 issues.append("bands.count does not match len(bands.validity)")
 
-        if isinstance(count, int) and isinstance(count_valid, int) and count_valid > count:
+        if (
+            isinstance(count, int)
+            and isinstance(count_valid, int)
+            and count_valid > count
+        ):
             issues.append("bands.count_valid cannot be larger than bands.count")
         if isinstance(validity, list) and isinstance(count_valid, int):
             valid_sum = int(sum(bool(v) for v in validity))
@@ -1497,17 +1541,27 @@ class HyperMetadata:
             info = gs.parse_command("r3.info", map=map_name, flags="g")
             depth = int(float(info.get("depths")))
             expected_depth = (
-                count_valid if isinstance(count_valid, int) else count if isinstance(count, int) else None
+                count_valid
+                if isinstance(count_valid, int)
+                else count
+                if isinstance(count, int)
+                else None
             )
             if expected_depth is not None and depth != expected_depth:
-                issues.append(f"Raster depth mismatch: depths={depth}, expected={expected_depth}")
+                issues.append(
+                    f"Raster depth mismatch: depths={depth}, expected={expected_depth}"
+                )
         except Exception as exc:
             issues.append(f"Could not validate raster depth with r3.info: {exc}")
 
         input_datasets_metadata = raw_data.get("input_datasets_metadata")
         embedded_snapshot_ids = set()
-        if input_datasets_metadata is not None and not isinstance(input_datasets_metadata, dict):
-            issues.append("input_datasets_metadata must be an object keyed by dataset_id")
+        if input_datasets_metadata is not None and not isinstance(
+            input_datasets_metadata, dict
+        ):
+            issues.append(
+                "input_datasets_metadata must be an object keyed by dataset_id"
+            )
         elif isinstance(input_datasets_metadata, dict):
             for dsid, snapshot in input_datasets_metadata.items():
                 embedded_snapshot_ids.add(str(dsid))
@@ -1551,7 +1605,11 @@ class HyperMetadata:
                 )
 
         for input_id in sorted(referenced_input_ids):
-            if input_id not in dataset_index and input_id not in producer_counts and input_id not in embedded_snapshot_ids:
+            if (
+                input_id not in dataset_index
+                and input_id not in producer_counts
+                and input_id not in embedded_snapshot_ids
+            ):
                 issues.append(
                     f"Input dataset_id '{input_id}' cannot be resolved in current LOCATION"
                 )
