@@ -165,8 +165,6 @@ def run_lake_task(args):
 
     mod = Module(
         "r.lake",
-        run_=False,
-        finish_=True,
         elevation=elevation,
         lake=output,
         water_level=water_level,
@@ -233,12 +231,17 @@ def main():
     if seed_raster:
         kwargs["seed"] = seed_raster
     elif coordinates:
-        kwargs["coordinates"] = coordinates
+        # Convert coordinates to a tuple for the module
+        try:
+            east, north = coordinates.split(",")
+            kwargs["coordinates"] = (float(east), float(north))
+        except Exception:
+            gcore.fatal(_("Coordinates must be 'east,north'"))
 
     if flags["n"]:
         pass_flags = "n"
     else:
-        pass_flags = None
+        pass_flags = ""
 
     tasks = [
         (
