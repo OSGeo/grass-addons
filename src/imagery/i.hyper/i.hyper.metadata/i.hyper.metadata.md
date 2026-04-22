@@ -16,9 +16,13 @@ Supported operations:
 
 - `summary`: concise metadata summary for current dataset
 - `full`: full metadata object for current dataset
-- `extended`: selected `extended_metadata` only (all, branch, key path, or multiple selectors; resolved through lineage inheritance for derived datasets)
+- `extended`: selected `extended_metadata` only
+  (all, branch, key path, or multiple selectors; resolved through lineage
+  inheritance for derived datasets)
 - `bands`: list source bands (optionally filtered by wavelength range)
-- `history`: recursive aggregated lineage history, ordered by timestamp (uses `input_datasets_metadata` snapshots when referenced inputs are unavailable in current LOCATION)
+- `history`: recursive aggregated lineage history, ordered by timestamp
+  (uses `input_datasets_metadata` snapshots when referenced inputs are
+  unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
 
 Output format (`format`) is global for all operations:
@@ -27,19 +31,22 @@ Output format (`format`) is global for all operations:
 - `text`
 - `csv`
 
-For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs` map names
-from current maps by `dataset_id` (display only; stored command is unchanged).
+For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs`
+map names from current maps by `dataset_id` (display only; stored command
+is unchanged).
 
 For `operation=extended`, option `extended_select=` supports:
 
 - `all` (default): full `extended_metadata`
 - one branch (e.g., `acquisition`)
 - one key path (e.g., `geometry.sun_zenith_deg`)
-- multiple selectors at once (comma-separated), e.g., `acquisition,geometry.sun_zenith_deg,processing`
+- multiple selectors at once (comma-separated), e.g.,
+  `acquisition,geometry.sun_zenith_deg,processing`
 - selectors with `extended_metadata.` prefix are also accepted
   (for example, `extended_metadata.geometry.sun_zenith_deg`)
 
-Selectors are evaluated on resolved `extended_metadata` (current dataset overrides plus inherited values from lineage).
+Selectors are evaluated on resolved `extended_metadata` (current dataset
+overrides plus inherited values from lineage).
 
 Dataset provenance is stored in top-level key `derived`:
 
@@ -87,14 +94,17 @@ Derived datasets store mandatory provenance keys and only local overrides.
   "derived": true,
   "processing_history": [
     {
-      "command": "i.hyper.preproc input=enmap output=enmap_sg steps=sav_gol window_length=7 polyorder=3",
+      "command": "i.hyper.preproc input=enmap output=enmap_sg steps=sav_gol
+      window_length=7 polyorder=3",
       "timestamp": "2026-03-25T12:41:05.281173",
       "inputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}],
       "outputs": [{"id": "5bc6cb5c55b44993afeb78f2da5c8ccf", "map_name": "enmap_sg@PERMANENT"}]
     }
   ],
   "input_datasets_metadata": {
-    "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d": { "...": "full parent metadata snapshot" }
+    "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d": {
+      "...": "full parent metadata snapshot"
+    }
   }
 }
 :::
@@ -116,13 +126,17 @@ Optional local override keys in derived datasets:
 - `region`
 - `bands`
 - `extended_metadata`
-- `dimensionality_reduction` (written only for outputs where dimensionality reduction is applied)
+- `dimensionality_reduction` (written only for outputs where dimensionality
+  reduction is applied)
 
 Inheritance rule:
 
-- if an optional key is missing in derived dataset, value is inherited through lineage
-- for multiple direct inputs, value is inherited only when all direct inputs resolve to the same value
-- `dimensionality_reduction` is not inherited; it is present only when DR is applied for the current output dataset
+- if an optional key is missing in derived dataset, value is inherited through
+  lineage
+- for multiple direct inputs, value is inherited only when all direct inputs
+  resolve to the same value
+- `dimensionality_reduction` is not inherited; it is present only when DR is
+  applied for the current output dataset
 
 ### Extended Metadata Branches
 
@@ -142,7 +156,8 @@ Product-specific branches:
 - `prisma`
 - `tanager`
 
-Dimensionality reduction metadata is stored in top-level `dimensionality_reduction`, not in `extended_metadata.processing`.
+Dimensionality reduction metadata is stored in top-level
+`dimensionality_reduction`, not in `extended_metadata.processing`.
 
 For derived datasets, top-level `input_datasets_metadata` stores full metadata
 snapshots for all input datasets recursively to origin, keyed by `dataset_id`.

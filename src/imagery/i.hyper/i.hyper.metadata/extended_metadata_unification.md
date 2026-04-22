@@ -1,13 +1,17 @@
 # Extended Metadata Unification (EnMAP / PRISMA / Tanager)
 
 ## Scope
-This document is the implementation spec for `hyper.json` `extended_metadata` unification.
+
+This document is the implementation spec for `hyper.json`
+`extended_metadata` unification.
 
 Reference basis:
+
 - EnMAP, PRISMA, and Tanager product metadata schemas
 - Product specification documentation for PRISMA and Tanager
 
 ## Unification Rules
+
 - Use common keys for the same physical quantity under:
   - `extended_metadata.acquisition`
   - `extended_metadata.geometry`
@@ -20,13 +24,15 @@ Reference basis:
   - `extended_metadata.enmap.*`
   - `extended_metadata.prisma.*`
   - `extended_metadata.tanager.*`
-- For map-vs-scalar quantities, store value + form metadata (`scalar`, `map_mean`, `map_name`).
-- Dimensionality reduction output metadata is stored in top-level `dimensionality_reduction` (outside `extended_metadata`).
+- For map-vs-scalar quantities, store value + form metadata
+  (`scalar`, `map_mean`, `map_name`).
+- Dimensionality reduction output metadata is stored in top-level
+  `dimensionality_reduction` (outside `extended_metadata`).
 
 ## A. i.hyper.atcorr Unified Keys
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` (alias: `Acquisition_Start_Time`) | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | ISO-8601 UTC |
 | `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | valid max of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | supplementary |
 | `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean lat map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
@@ -52,13 +58,17 @@ Reference basis:
 | `atmosphere.aerosol_model` | not found | not found | not found | not available in current products | schema-reserved key |
 
 Scalar extraction rule for EnMAP angular fields:
-- When an EnMAP angle block provides corner values (`upper_left`, `upper_right`, `lower_left`, `lower_right`) plus `center`, unified scalar keys use the `center` value.
-- Example: `geometry.sun_zenith_deg = 90 - sunElevationAngle/center`, `geometry.sun_azimuth_deg = sunAzimuthAngle/center`.
+
+- When an EnMAP angle block provides corner values (`upper_left`,
+  `upper_right`, `lower_left`, `lower_right`) plus `center`, unified
+  scalar keys use the `center` value.
+- Example: `geometry.sun_zenith_deg = 90 - sunElevationAngle/center`,
+  `geometry.sun_azimuth_deg = sunAzimuthAngle/center`.
 
 ## B. Additional Unified Keys Present In >=2 Products
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `quality.cloudy_pixels_percent` | `qualityFlag/cloudCover` | `Cloudy_pixels_percentage` | not found | two products | unified cloud fraction metric |
 | `quality.quality_atmosphere_flag` | `qualityFlag/qualityAtmosphere` | `L2d_Quality_flags` | not found | two products | semantics differ by product |
 | `radiometry.valid_band_mask` | `expectedChannelsList` + `missingChannelsList` | `List_Cw_Vnir_Flags` + `List_Cw_Swir_Flags` | `good_wavelengths` (SR) or derived validity (basic radiance) | all products | per-band validity vector |
@@ -77,14 +87,19 @@ Scalar extraction rule for EnMAP angular fields:
 | `processing.processing_datetime_utc` | `specific/processingDateTime` | `Processing_Time` | `created_at` | all products | provenance |
 
 ## C. Product-Specific Keys Kept For Provenance
-Keep only keys that support derivation/provenance for A+B. Avoid dumping full engineering trees.
+
+Keep only keys that support derivation/provenance for A+B. Avoid dumping
+full engineering trees.
 
 ### `extended_metadata.enmap`
-- `processing.cirrusHazeRemoval` (source for unified `processing.cirrus_haze_removal`)
+
+- `processing.cirrusHazeRemoval` (source for unified
+  `processing.cirrus_haze_removal`)
 - `processing.waterType` (source for unified `quality.water_type`)
 - supporting quality fields used in derivations (`cloudCover`, etc.)
 
 ### `extended_metadata.prisma`
+
 - `Atm_LutGeomInfo_RelativeAzimuth`
 - `Atm_LutGeomInfo_SunZenith`
 - `Atm_LutGeomInfo_ViewZenith`
@@ -94,17 +109,23 @@ Keep only keys that support derivation/provenance for A+B. Avoid dumping full en
 - `Aux_SunEarthDistance`, `Aux_SunIrradiance`
 - `Processor_Name`, `Processor_Version`, `Processing_Time`
 - `Sun_azimuth_angle`, `Sun_zenith_angle`
-- `Product_StartTime`, `Product_StopTime`, `Product_center_lat`, `Product_center_long`
+- `Product_StartTime`, `Product_StopTime`
+- `Product_center_lat`, `Product_center_long`
 - `Cloudy_pixels_percentage`, `L2d_Quality_flags`
 
 ### `extended_metadata.tanager`
-- map names/refs for: `sun_zenith`, `sun_azimuth`, `sensor_zenith`, `sensor_azimuth`, `sensor_to_ground_path_length`
+
+- map names/refs for: `sun_zenith`, `sun_azimuth`, `sensor_zenith`,
+  `sensor_azimuth`, `sensor_to_ground_path_length`
 - map names/refs for: `aerosol_optical_depth`, `column_water_vapour`
 - map names/refs for: `surface_reflectance_uncertainty`
-- quality masks present flags: `beta_cloud_mask`, `beta_cirrus_mask`, `nodata_pixels`
-- provenance attrs: `created_at`, `strip_id`, optional `epsg_code`, `product_layout`
+- quality masks present flags: `beta_cloud_mask`, `beta_cirrus_mask`,
+  `nodata_pixels`
+- provenance attrs: `created_at`, `strip_id`, optional `epsg_code`,
+  `product_layout`
 
 ## D. Recommended `hyper.json` Representation Notes
+
 - Geometry keys are scalar scene summaries in degrees.
 - Atmospheric keys that come from maps should include:
   - `<key>.value`
@@ -120,10 +141,13 @@ Keep only keys that support derivation/provenance for A+B. Avoid dumping full en
 - For time maps, ignore fill/nodata values before min/max or summary statistics.
 
 ## E. Explicitly Out Of Scope For This Spec
-- Full raw metadata inventories (all XML/HDF paths and all engineering telemetry keys).
+
+- Full raw metadata inventories (all XML/HDF paths and all engineering
+  telemetry keys).
 - Internal discovery-only path templates such as `level_X/...`.
 
-Those can be maintained in a separate technical appendix if needed, but should not drive the operational `hyper.json` schema.
+Those can be maintained in a separate technical appendix if needed, but
+should not drive the operational `hyper.json` schema.
 
 ## F. Atmospheric-Correction Metadata Mapping
 
@@ -132,7 +156,7 @@ This section defines unified keys for atmospheric-correction metadata.
 ### F1. Keys Available from Input Metadata
 
 | Concept | Unified key | Product availability | Source examples |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Acquisition time | `acquisition.start_time_utc` | all products | EnMAP `datatakeStart`, PRISMA `Product_StartTime` (alias: `Acquisition_Start_Time`), Tanager valid min of `Data Fields/time` (GRIDS) or `Geolocation Fields/Time` (SWATHS) |
 | Scene center lat/lon | `acquisition.center_latitude_deg`, `acquisition.center_longitude_deg` | all products | EnMAP spatial center, PRISMA `Product_center_*`, Tanager lat/lon maps (SWATHS) or map-grid+EPSG derivation (GRIDS) |
 | Day of year | `acquisition.day_of_year` | all products (derived) | derived from acquisition time |
@@ -162,10 +186,11 @@ This section defines unified keys for atmospheric-correction metadata.
 
 ### F2. Keys Defined for i.hyper.atcorr Output Metadata
 
-These keys are written by `i.hyper.atcorr` to record correction configuration, runtime flags, and produced outputs.
+These keys are written by `i.hyper.atcorr` to record correction
+configuration, runtime flags, and produced outputs.
 
 | Concept | Recommended unified key |
-|---|---|
+| --- | --- |
 | Source radiance map | `processing.atcorr.source_radiance_map` |
 | LUT file/path | `processing.atcorr.lut_file` |
 | Physical output type (BOA / TOA / NBAR) | `processing.atcorr.output_type` |
@@ -194,16 +219,18 @@ These keys are written by `i.hyper.atcorr` to record correction configuration, r
 ### F3. Form requirements for scalar vs map atmospheric values
 
 For `atmosphere.aod_550` and `atmosphere.h2o_g_cm2`, include:
+
 - `value`
 - `form` in `{scalar,map_mean,map_name}`
 - `source` (native key/dataset name)
 
-This allows downstream tools to distinguish scene-uniform assumptions from spatially varying corrections.
+This allows downstream tools to distinguish scene-uniform assumptions
+from spatially varying corrections.
 
 ## G. Optional Additional Keys
 
 | Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `acquisition.line_time_summary` | from `frameTime` sequence | from geolocation `Time` | from geolocation/time map (filter fill/nodata where present) | all products | store compact stats only (min/max/step/count) |
 | `geometry.jitter_summary` | from `jitter` sequence | not found | not found | single product | optional EnMAP stability summary |
 | `radiometry.applied_radiometric_coefficients` | not found | not found | `applied_radiometric_coefficients` | single product | optional provenance for radiance scaling |

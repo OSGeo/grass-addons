@@ -28,7 +28,8 @@ During import, the appropriate product library from `i_hyper_lib` is
 automatically loaded (for example, `enmap`, `prisma`, or `tanager`).
 Metadata are parsed, bands are validated, and the resulting 3D raster
 map is created with band metadata (**wavelength**, **FWHM**, **validity**)
-and scene radiometric metadata (**radiometric_quantity**, **radiometric_units**).
+and scene radiometric metadata (**radiometric_quantity**,
+**radiometric_units**).
 
 The metadata are used by other *i.hyper.\** modules, so data imported
 with *i.hyper.import* or created with the same metadata structure are
@@ -77,10 +78,19 @@ restore the native `raster_3d` together with its metadata.
 
 Product notes:
 
-- Product levels that are not orthorectified are imported using product geolocation and nearest-neighbor assignment onto the current GRASS grid. This preserves original values, but may leave small holes or irregular borders where no source pixel maps to an output cell, which can be interpolated or otherwise handled later with existing GRASS tools.
-- **Tanager BASIC** products (`/HDFEOS/SWATHS/HYP/...`) use per-pixel geolocation and `Planet_Ortho_Framing` for projection and gridding.
-- **Tanager ortho** products (`/HDFEOS/GRIDS/HYP/...`) are imported directly in native map grid geometry (no geolocation reprojection).
-- For Tanager ortho products, map grid parameters are read from `/HDFEOS INFORMATION/StructMetadata.0` (UL/LR corners), `/HDFEOS/GRIDS/HYP` attribute `epsg_code`, and spectral dataset shape (rows/cols).
+- Product levels that are not orthorectified are imported using product
+  geolocation and nearest-neighbor assignment onto the current GRASS grid.
+  This preserves original values, but may leave small holes or irregular
+  borders where no source pixel maps to an output cell, which can be
+  interpolated or otherwise handled later with existing GRASS tools.
+- **Tanager BASIC** products (`/HDFEOS/SWATHS/HYP/...`) use per-pixel
+  geolocation and `Planet_Ortho_Framing` for projection and gridding.
+- **Tanager ortho** products (`/HDFEOS/GRIDS/HYP/...`) are imported
+  directly in native map grid geometry (no geolocation reprojection).
+- For Tanager ortho products, map grid parameters are read from
+  `/HDFEOS INFORMATION/StructMetadata.0` (UL/LR corners),
+  `/HDFEOS/GRIDS/HYP` attribute `epsg_code`, and spectral dataset shape
+  (rows/cols).
 
 ## EXAMPLES
 
@@ -176,8 +186,8 @@ the `output` option is ignored.
 ## SEE ALSO
 
 [EnMAP Example Data
-Products](https://www.enmap.org/data_tools/exampledata/), [Tanager Core
-Imagery](https://www.planet.com/data/stac/browser/tanager-core-imagery/catalog.json),
+Products](https://www.enmap.org/data_tools/exampledata/), Tanager Core
+Imagery,
 [i.hyper.preproc](i.hyper.preproc.html),
 [i.hyper.metadata](i.hyper.metadata.html),
 [i.hyper.explore](i.hyper.explore.html),
