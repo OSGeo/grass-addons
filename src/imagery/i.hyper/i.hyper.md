@@ -17,7 +17,7 @@ workflows. They include tools for data import, spectral preprocessing,
 visualization, and export, fully integrated with the GRASS 3D raster
 environment.
 
-The *i.hyper* toolset requires GRASS GIS 8.5 or newer.
+The *i.hyper* toolset requires GRASS GIS or newer.
 
 ## POSSIBLE ROAD MAP
 
