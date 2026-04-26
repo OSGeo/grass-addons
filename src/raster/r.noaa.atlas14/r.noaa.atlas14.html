@@ -1,18 +1,5 @@
 <h2>DESCRIPTION</h2>
 
-<div align="center" style="margin: 10px">
-  <a href="r_noaa_atlas14.png">
-    <img src="r_noaa_atlas14.png"
-         alt="NOAA Atlas 14 precipitation-frequency curves for Raleigh, NC"
-         width="600">
-  </a><br>
-  <i>Figure: Precipitation-frequency (depth vs. duration) curves for
-  Raleigh, North Carolina, produced from an
-  <code>r.noaa.atlas14 mode=point</code> query to the NOAA Precipitation
-  Frequency Data Server. Each curve is the expected value for the labeled
-  return period.</i>
-</div>
-
 <em>r.noaa.atlas14</em> downloads and imports NOAA Atlas 14
 precipitation-frequency data into GRASS. It supports two acquisition
 modes:
@@ -56,6 +43,17 @@ pairs, e.g.
 the current computational region; the region bounds are reprojected to
 WGS84 lon/lat via <code>g.region -b</code> so this works from any GRASS
 location CRS.</p>
+
+<div align="center" style="margin: 10px">
+    <a href="r_noaa_atlas14.png">
+        <img src="r_noaa_atlas14.png" alt="NOAA Atlas 14 precipitation-frequency curves for Raleigh, NC" width="600">
+    </a><br>
+    <i>Figure: Precipitation-frequency (depth vs. duration) curves for
+        Raleigh, North Carolina, produced from an
+        <code>r.noaa.atlas14 mode=point</code> query to the NOAA Precipitation
+        Frequency Data Server. Each curve is the expected value for the labeled
+        return period.</i>
+</div>
 
 <p>When multiple points are queried, JSON output is emitted as a list of
 per-point result objects, and CSV output prepends
