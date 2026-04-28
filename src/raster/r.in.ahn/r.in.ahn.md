@@ -3,8 +3,7 @@
 *r.in.ahn* imports elevation data from the Actueel Hoogtebestand Nederland (AHN).
 AHN is the national digital elevation model of the Netherlands and provides
 both a digital terrain model (DTM) and a digital surface model (DSM) at
-resolutions of 0.5 m and 5 m. In addition, the original LAZ point data is
-available for download. The dataset is available in multiple versions
+resolutions of 0.5 m and 5 m. The dataset is available in multiple versions
 (AHN2 through AHN6), each corresponding to a different acquisition period and
 processing specification. An overview of these versions is provided on the
 [AHN](https://www.ahn.nl) website.
@@ -24,16 +23,6 @@ grid and uses the selected resolution. The resulting raster always covers the
 original region (or the portion overlapping the AHN extent). When the **-g** flag
 is used, the original computational region is restored after the import is
 completed.
-
-In addition to the three raster products, users may also download the LiDAR
-point cloud tiles by selecting the laz product option. This retrieves the 1 × 1
-km LAZ files and stores them in a user-specified directory; if no directory is
-provided, the files are saved in the current working directory. Optionally, the
-module can write the file paths and filenames of the downloaded tiles to a CSV
-file for later reference. Unlike the raster products, LAZ tiles are not
-imported into GRASS automatically. Users may import the point data afterwards
-using standard GRASS tools such as *v.in.pdal* for vector point clouds or
-*r.in.pdal* for generating raster products directly from the LAZ files.
 
 ## NOTE
 
