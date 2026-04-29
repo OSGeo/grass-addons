@@ -123,7 +123,7 @@ from grass.script import core as gcore
 import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules import Module
-from multiprocessing import Pool
+from multiprocessing import Process
 
 
 def format_time(time):
@@ -177,7 +177,7 @@ def run_lake_task(args):
     except CalledModuleError as e:
         # Show the error message
         gcore.error(f"r.lake failed for output <{output}>: {e}")
-        return None
+        sys.exit(1)
     return output
 
 
@@ -257,18 +257,29 @@ def main():
 
     use_cores = min(int(nprocs), len(tasks))
 
-    # Run tasks in series
-    if use_cores <= 1:
-        outputs = [run_lake_task(t) for t in tasks]
-    # Run tasks in parallel
-    else:
-        with Pool(processes=use_cores) as pool:
-            outputs = pool.map(run_lake_task, tasks)
+    # Run tasks
+    proc_list = []
+    proc_count = 0
 
-    if None in outputs:
-        valid_outputs = [m for m in outputs if m is not None]
-        remove_raster_maps(valid_outputs, quiet=True)
-        gcore.fatal("Parallel r.lake execution failed.")
+    for task in tasks:
+        p = Process(target=run_lake_task, args=(task,))
+        proc_list.append(p)
+        p.start()
+        proc_count += 1
+
+        if proc_count < use_cores and len(proc_list) < len(tasks):
+            continue
+
+        exitcodes = 0
+        for proc in proc_list:
+            proc.join()
+            exitcodes += proc.exitcode
+
+        if exitcodes != 0:
+            gcore.fatal("Parallel r.lake execution failed.")
+
+        proc_list = []
+        proc_count = 0
 
     gcore.info(_("Registering created maps into temporal dataset..."))
 
