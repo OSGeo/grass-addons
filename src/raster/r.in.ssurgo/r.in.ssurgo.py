@@ -375,11 +375,9 @@ def update_hydrologic_group(vector_map, source_col="hydgrp", target_col="hsg"):
       A/D->11, B/D->12, C/D->13, D/D->14 (dual drained/undrained codes)
     Skips unknown/ambiguous codes.
     """
-    # Ensure target column exists
-    cols = json.loads(
-        gs.read_command("v.info", map=vector_map, format="json", flags="c")
-    )
-
+    # Ensure target column exists. parse_command already parses JSON output
+    # when format="json" is requested, so use the returned list directly.
+    cols = gs.parse_command("v.info", map=vector_map, format="json", flags="c")
     col_names = [c["name"] for c in cols]
     if target_col not in col_names:
         gs.run_command(
@@ -1468,9 +1466,13 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
         tmp_project_name = Path(tempdir.name).name
         tmp_dbpath = Path(tempdir.name).parent
 
-        # Import data into temporary GRASS project
+        # Import data into temporary GRASS project. Pass an isolated env so
+        # that the temp session's GISRC/GIS_LOCK are confined to a copy and
+        # the caller's global GRASS session remains intact when the context
+        # exits (gs.setup.init's finish() deletes GISRC from the env it was
+        # given — which would otherwise be os.environ).
         gs.create_project(path=tempdir.name, epsg=src_srs, overwrite=True)
-        with gs.setup.init(Path(tempdir.name)) as temp_session:
+        with gs.setup.init(Path(tempdir.name), env=os.environ.copy()) as temp_session:
             gs.message(_("Importing data into temporary project..."))
             gs.run_command(
                 "v.in.ogr",
@@ -1481,44 +1483,40 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
                 env=temp_session.env,
             )
 
-        # Reproject from temporary project to the current project
-        with gs.setup.init(Path(SESSION)) as session:
-            gs.message(_("Reprojecting data to current project..."))
-            gs.run_command(
-                "v.proj",
-                project=tmp_project_name,
-                input=ssurgo_areas_out,
-                dbase=str(tmp_dbpath),
-                mapset="PERMANENT",
-                output=ssurgo_areas_out,
-                env=session.env,
-            )
+        # Reproject from temporary project to the current (already active) project.
+        # Do NOT wrap in `gs.setup.init(SESSION)` — exiting that context tears
+        # down GISRC for the calling session.
+        gs.message(_("Reprojecting data to current project..."))
+        gs.run_command(
+            "v.proj",
+            project=tmp_project_name,
+            input=ssurgo_areas_out,
+            dbase=str(tmp_dbpath),
+            mapset="PERMANENT",
+            output=ssurgo_areas_out,
+        )
 
-            # Clip reprojected polygons to the current computational region.
-            # -r: clip by region (no clip map needed)
-            # -d: keep map-unit boundaries (do not dissolve)
-            gs.message(_("Clipping output to current computational region..."))
-            clipped_name = f"{ssurgo_areas_out}_clipped"
-            gs.run_command(
-                "v.clip",
-                input=ssurgo_areas_out,
-                output=clipped_name,
-                flags="rd",
-                overwrite=True,
-                env=session.env,
-            )
-            gs.run_command(
-                "g.remove",
-                type="vector",
-                name=ssurgo_areas_out,
-                flags="f",
-                env=session.env,
-            )
-            gs.run_command(
-                "g.rename",
-                vector=f"{clipped_name},{ssurgo_areas_out}",
-                env=session.env,
-            )
+        # Clip reprojected polygons to the current computational region.
+        # -r: clip by region (no clip map needed)
+        gs.message(_("Clipping output to current computational region..."))
+        clipped_name = f"{ssurgo_areas_out}_clipped"
+        gs.run_command(
+            "v.clip",
+            input=ssurgo_areas_out,
+            output=clipped_name,
+            flags="r",
+            overwrite=True,
+        )
+        gs.run_command(
+            "g.remove",
+            type="vector",
+            name=ssurgo_areas_out,
+            flags="f",
+        )
+        gs.run_command(
+            "g.rename",
+            vector=f"{clipped_name},{ssurgo_areas_out}",
+        )
 
     except CalledModuleError as e:
         gs.fatal(_("GRASS module error during data import: %s") % e)
