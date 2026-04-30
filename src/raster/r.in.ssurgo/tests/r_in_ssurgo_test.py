@@ -355,6 +355,30 @@ class TestBuildSdaSql:
         )
         assert "GROUP BY mukey" in sql
 
+    def test_horizon_filter_uses_depth_overlap(self, SDAClient, SoilAggMethod):
+        """Horizons must be selected by overlap with [top, bottom], not by
+        starting at the surface. The previous filter (`hzdept_r = 0`) silently
+        dropped any horizon that didn't begin at depth 0, so depth ranges like
+        5–100 cm or 0–100 cm with split A horizons returned no ksat values.
+        """
+        client = SDAClient()
+        for agg_method in (
+            SoilAggMethod.DOMINANT_COMPONENT,
+            SoilAggMethod.WEIGHTED_COMPONENT,
+        ):
+            sql = client._build_sda_sql(
+                aoi_wkt=self.AOI,
+                top_cm=10,
+                bottom_cm=80,
+                agg=agg_method,
+            )
+            # Old buggy form must be gone for both aggregation methods.
+            assert "hzdept_r = 0" not in sql
+            assert "hzdepb_r > 0" not in sql
+            # New form: horizon overlaps requested [top, bottom].
+            assert "hzdept_r < 80.0" in sql
+            assert "hzdepb_r > 10.0" in sql
+
 
 class TestSdaPostSql:
     """Tests for SDAClient._sda_post_sql with mocked HTTP."""

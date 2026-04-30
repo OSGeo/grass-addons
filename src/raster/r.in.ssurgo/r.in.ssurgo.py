@@ -645,8 +645,8 @@ def local_ssurgo_query(
                 FROM dom d
                 INNER JOIN horiz h ON h.cokey = d.cokey
                 WHERE h.ksat_r IS NOT NULL
-                  AND h.hzdept_r = 0
-                  AND h.hzdepb_r > 0
+                  AND h.hzdept_r < {bottom}
+                  AND h.hzdepb_r > {top}
                   AND h.desgnmaster = '{desgnmaster}'
             ) x
             GROUP BY x.mukey
@@ -885,8 +885,8 @@ def local_ssurgo_sqlite_query(
                     FROM dom d
                     INNER JOIN chorizon h ON h.cokey = d.cokey
                     WHERE h.ksat_r IS NOT NULL
-                      AND h.hzdept_r = 0
-                      AND h.hzdepb_r > 0
+                      AND h.hzdept_r < {bottom}
+                      AND h.hzdepb_r > {top}
                       AND h.desgnmaster = '{desgnmaster}'
                 ) x
                 GROUP BY x.mukey
@@ -1293,8 +1293,8 @@ class SDAClient:
                 FROM dom d
                 INNER JOIN chorizon h ON h.cokey = d.cokey
                 WHERE h.ksat_r IS NOT NULL
-                  AND h.hzdept_r = 0
-                  AND h.hzdepb_r > 0
+                  AND h.hzdept_r < {bottom}
+                  AND h.hzdepb_r > {top}
                   AND h.desgnmaster = '{desgnmaster}'
               ) x
               GROUP BY x.mukey
@@ -1375,8 +1375,8 @@ class SDAClient:
                 FROM comp c
                 INNER JOIN chorizon h ON h.cokey = c.cokey
                 WHERE h.ksat_r IS NOT NULL
-                  AND h.hzdept_r = 0
-                  AND h.hzdepb_r > 0
+                  AND h.hzdept_r < {bottom}
+                  AND h.hzdepb_r > {top}
                   AND h.desgnmaster = '{desgnmaster}'
               ) z
               GROUP BY z.mukey, z.cokey, z.comppct_r
