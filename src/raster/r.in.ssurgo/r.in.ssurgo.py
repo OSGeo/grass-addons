@@ -106,11 +106,8 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-from requests import options
 import grass.script as gs
 from grass.exceptions import CalledModuleError
-from grass.tools import Tools
-from io import StringIO
 import gettext
 import json
 import re
@@ -302,10 +299,12 @@ def hydrologic_soil_group_categories(map_name: str) -> None:
         ("14", "D/D: Very high runoff potential (drained/undrained)"),
     ]
     rules_str = "\n".join(f"{code}|{label}" for code, label in category_rules) + "\n"
-    tools.r_category(
+    gs.write_command(
+        "r.category",
         map=map_name,
-        rules=StringIO(rules_str),
+        rules="-",
         separator="pipe",
+        stdin=rules_str,
     )
 
 
@@ -322,11 +321,16 @@ def hydrologic_soil_group_color_scheme(map_name: str) -> None:
         ("13", "#C06A44"),  # C/D Between C and D
         ("14", "#4A1A10"),  # D/D Very high runoff potential (drained/undrained)
     ]
-    # Convert palette list to rules string for r_colors
+    # Convert palette list to rules string for r.colors
     hydgrp_color_scheme = (
         "\n".join(f"{pos} {color}" for pos, color in hydgrp_color_palette) + "\n"
     )
-    tools.r_colors(map=map_name, rules=StringIO(hydgrp_color_scheme), flags="")
+    gs.write_command(
+        "r.colors",
+        map=map_name,
+        rules="-",
+        stdin=hydgrp_color_scheme,
+    )
 
 
 def ksat_color_scheme(map_name: str) -> None:
@@ -351,14 +355,19 @@ def ksat_color_scheme(map_name: str) -> None:
         # Very high Ksat (gravel / macroporous)
         ("100%", "#1E5E8C"),
     ]
-    # Convert palette list to rules string for r_colors
+    # Convert palette list to rules string for r.colors
     ksat_color_scheme = (
         "\n".join(f"{pos} {color}" for pos, color in ksat_color_palette) + "\n"
     )
-    tools.r_colors(map=map_name, rules=StringIO(ksat_color_scheme), flags="")
+    gs.write_command(
+        "r.colors",
+        map=map_name,
+        rules="-",
+        stdin=ksat_color_scheme,
+    )
 
 
-def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="hsg"):
+def update_hydrologic_group(vector_map, source_col="hydgrp", target_col="hsg"):
     """
     Ensure an integer Hydrologic Soil Group (HSG) column exists on the vector and populate it from source_col.
     Mapping:
@@ -367,11 +376,15 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
     Skips unknown/ambiguous codes.
     """
     # Ensure target column exists
-    cols = tools.v_info(map=vector_map, format="json", flags="c").json
+    cols = json.loads(
+        gs.read_command("v.info", map=vector_map, format="json", flags="c")
+    )
 
     col_names = [c["name"] for c in cols]
     if target_col not in col_names:
-        tools.v_db_addcolumn(map=vector_map, columns=f"{target_col} INTEGER")
+        gs.run_command(
+            "v.db.addcolumn", map=vector_map, columns=f"{target_col} INTEGER"
+        )
 
     # Mapping from hydgrp text to numeric HSG
     mapping = {
@@ -389,13 +402,21 @@ def update_hydrologic_group(tools, vector_map, source_col="hydgrp", target_col="
     # Update rows for each mapping entry (handle uppercase/lowercase)
     for code, num in mapping.items():
         where = f"{source_col} = '{code}' OR {source_col} = '{code.lower()}'"
-        tools.v_db_update(
-            map=vector_map, column=target_col, value=str(num), where=where
+        gs.run_command(
+            "v.db.update",
+            map=vector_map,
+            column=target_col,
+            value=str(num),
+            where=where,
         )
 
     # Optionally set unmatched values to NULL (skip here) or 0:
-    tools.v_db_update(
-        map=vector_map, column=target_col, value="NULL", where=f"{target_col} IS NULL"
+    gs.run_command(
+        "v.db.update",
+        map=vector_map,
+        column=target_col,
+        value="NULL",
+        where=f"{target_col} IS NULL",
     )
 
     return target_col
@@ -931,38 +952,37 @@ def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
     :param str ksat_l: Output name for Ksat low raster (or empty to skip).
     :param str mukey: Output name for map unit key raster (or empty to skip).
     """
-    with gs.setup.init(Path(SESSION)) as session:
-        with Tools(session=session) as stools:
-            update_hydrologic_group(stools, ssurgo_areas)
-            _output_maps = [
-                ("hsg", hydgrp, "hydgrp"),
-                ("ksat_h", ksat_h, None),
-                ("ksat_r", ksat_r, None),
-                ("ksat_l", ksat_l, None),
-                ("mukey_int", mukey, None),
-            ]
-            for col, map_name, label_column in _output_maps:
-                if not map_name:
-                    continue
+    update_hydrologic_group(ssurgo_areas)
+    _output_maps = [
+        ("hsg", hydgrp, "hydgrp"),
+        ("ksat_h", ksat_h, None),
+        ("ksat_r", ksat_r, None),
+        ("ksat_l", ksat_l, None),
+        ("mukey_int", mukey, None),
+    ]
+    for col, map_name, label_column in _output_maps:
+        if not map_name:
+            continue
 
-                stools.v_to_rast(
-                    input=ssurgo_areas,
-                    type="area",
-                    use="attr",
-                    attribute_column=col,
-                    output=map_name,
-                    label_column=label_column if label_column else "",
-                )
+        gs.run_command(
+            "v.to.rast",
+            input=ssurgo_areas,
+            type="area",
+            use="attr",
+            attribute_column=col,
+            output=map_name,
+            label_column=label_column if label_column else "",
+        )
 
-                if col in ("ksat_l", "ksat_r", "ksat_h"):
-                    ksat_color_scheme(map_name)
+        if col in ("ksat_l", "ksat_r", "ksat_h"):
+            ksat_color_scheme(map_name)
 
-                if col == "mukey_int":
-                    stools.r_colors(map=map_name, color="random")
+        if col == "mukey_int":
+            gs.run_command("r.colors", map=map_name, color="random")
 
-                if col == "hsg":
-                    hydrologic_soil_group_categories(map_name)
-                    hydrologic_soil_group_color_scheme(map_name)
+        if col == "hsg":
+            hydrologic_soil_group_categories(map_name)
+            hydrologic_soil_group_color_scheme(map_name)
 
 
 def _parse_wkt_coordinates(coord_string):
@@ -1451,26 +1471,28 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
         # Import data into temporary GRASS project
         gs.create_project(path=tempdir.name, epsg=src_srs, overwrite=True)
         with gs.setup.init(Path(tempdir.name)) as temp_session:
-            with Tools(session=temp_session) as t:
-                gs.message(_("Importing data into temporary project..."))
-                t.v_in_ogr(
-                    input=tmp_filepath,
-                    output=ssurgo_areas_out,
-                    type="boundary",
-                    snap=1e-8,
-                )
+            gs.message(_("Importing data into temporary project..."))
+            gs.run_command(
+                "v.in.ogr",
+                input=tmp_filepath,
+                output=ssurgo_areas_out,
+                type="boundary",
+                snap=1e-8,
+                env=temp_session.env,
+            )
 
         # Reproject from temporary project to the current project
         with gs.setup.init(Path(SESSION)) as session:
-            with Tools(session=session) as stools:
-                gs.message(_("Reprojecting data to current project..."))
-                stools.v_proj(
-                    project=tmp_project_name,
-                    input=ssurgo_areas_out,
-                    dbase=tmp_dbpath,
-                    mapset="PERMANENT",
-                    output=ssurgo_areas_out,
-                )
+            gs.message(_("Reprojecting data to current project..."))
+            gs.run_command(
+                "v.proj",
+                project=tmp_project_name,
+                input=ssurgo_areas_out,
+                dbase=str(tmp_dbpath),
+                mapset="PERMANENT",
+                output=ssurgo_areas_out,
+                env=session.env,
+            )
 
     except CalledModuleError as e:
         gs.fatal(_("GRASS module error during data import: %s") % e)
@@ -1595,8 +1617,8 @@ def main():
 
 if __name__ == "__main__":
     options, flags = gs.parser()
-    # Active GRASS session tools
-    tools = Tools()
-    SESSION = tools.g_gisenv(get="GISDBASE,LOCATION_NAME,MAPSET", sep="/").text
+    # Active GRASS session path: GISDBASE/LOCATION/MAPSET
+    gisenv = gs.gisenv()
+    SESSION = f"{gisenv['GISDBASE']}/{gisenv['LOCATION_NAME']}/{gisenv['MAPSET']}"
     gs.message(f"Active GRASS session: {SESSION}")
     main()
