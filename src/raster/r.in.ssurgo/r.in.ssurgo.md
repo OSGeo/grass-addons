@@ -64,6 +64,17 @@ Soils are aggregated using either the dominant component or a weighted average
 of all components in the map unit, depending on the specified depth range or
 master horizon.
 
+### Choosing the local-import backend
+
+When importing from a local SSURGO file geodatabase, *r.in.ssurgo* uses the
+[DuckDB](https://duckdb.org/) Python package by default if it is installed.
+If DuckDB is unavailable, the tool falls back to a pure GDAL/OGR + SQLite
+implementation that uses GRASS's bundled attribute database. The `-s` flag
+forces the SQLite/OGR backend even when DuckDB is importable, which is
+useful for testing the fallback path or running on environments where DuckDB
+should be avoided. The flag has no effect on Soil Data Access (SDA) queries
+(used when `ssurgo_path` is not set).
+
 ### SSURGO Download
 
 * [SSURGO CONUS](https://nrcs.app.box.com/v/soils/folder/233395259341)
@@ -138,6 +149,32 @@ tools.r_in_ssurgo(
     hzdept_r=0,
     hzdepb_r=100,
     desgnmaster="A",
+)
+```
+
+Force the SQLite/OGR backend (skip DuckDB) for a local import:
+
+```sh
+r.in.ssurgo -s \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+```
+
+```python
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_r="ksat_r",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+    flags="s",
 )
 ```
 

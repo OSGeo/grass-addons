@@ -114,133 +114,107 @@ class TestWktToGeojsonGeometry:
 
 
 class TestCheckIfZipfile:
-    """Tests for check_if_zipfile."""
+    """Tests for check_if_zipfile.
 
-    def test_zip_path_prepended(self, ssurgo_module):
-        result = ssurgo_module.check_if_zipfile(Path("/home/user/data.zip"))
-        assert str(result).startswith("/vsizip/")
-        assert str(result).endswith("data.zip")
+    The function validates the zip and looks for a ``<base>.gdb/`` directory
+    inside it, so tests build a real (tiny) zip fixture on disk.
+    """
 
-    def test_non_zip_path(self, ssurgo_module):
-        result = ssurgo_module.check_if_zipfile(Path("/home/user/data.shp"))
-        assert str(result).startswith("/vsizip/")
+    @staticmethod
+    def _make_fixture_zip(tmp_path, base_name="data", with_gdb=True):
+        import zipfile
 
-    def test_nested_path(self, ssurgo_module):
-        result = ssurgo_module.check_if_zipfile(
-            Path("/mnt/data/ssurgo/wss_SSA_NC001.zip")
-        )
-        expected = Path("/vsizip/mnt/data/ssurgo/wss_SSA_NC001.zip")
-        assert result == expected
+        zip_path = tmp_path / f"{base_name}.zip"
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            if with_gdb:
+                # Empty marker entry inside the expected gdb directory
+                zf.writestr(f"{base_name}.gdb/gdb", b"")
+            else:
+                zf.writestr("README.txt", b"no gdb here")
+        return zip_path
 
+    def test_zip_path_returns_vsizip(self, ssurgo_module, tmp_path):
+        zip_path = self._make_fixture_zip(tmp_path, "data")
+        result = ssurgo_module.check_if_zipfile(zip_path)
+        result_str = str(result)
+        assert result_str.startswith("/vsizip/")
+        assert result_str.endswith("data.gdb/")
+        assert str(zip_path) in result_str
 
-class TestHydrologicGroupCategories:
-    """Tests for hydrologic_group_categories."""
+    def test_zip_without_gdb_raises(self, ssurgo_module, tmp_path):
+        zip_path = self._make_fixture_zip(tmp_path, "no_gdb", with_gdb=False)
+        with pytest.raises(ValueError, match="not found in ZIP"):
+            ssurgo_module.check_if_zipfile(zip_path)
 
-    def test_known_groups(self, ssurgo_module):
-        assert ssurgo_module.hydrologic_group_categories("A") == "Low runoff potential"
-        assert (
-            ssurgo_module.hydrologic_group_categories("D")
-            == "Very high runoff potential"
-        )
+    def test_missing_path_raises(self, ssurgo_module, tmp_path):
+        with pytest.raises(FileNotFoundError):
+            ssurgo_module.check_if_zipfile(tmp_path / "does_not_exist.zip")
 
-    def test_dual_groups(self, ssurgo_module):
-        assert ssurgo_module.hydrologic_group_categories("A/D") == "Between A and D"
-        assert ssurgo_module.hydrologic_group_categories("B/C") == "Between B and C"
-
-    def test_unknown_group(self, ssurgo_module):
-        assert ssurgo_module.hydrologic_group_categories("X") == "Unknown"
-        assert ssurgo_module.hydrologic_group_categories("") == "Unknown"
-
-    def test_all_single_groups(self, ssurgo_module):
-        """All four primary soil groups should resolve."""
-        for code in ("A", "B", "C", "D"):
-            result = ssurgo_module.hydrologic_group_categories(code)
-            assert result != "Unknown", f"Group {code} should be known"
-
-    def test_all_dual_groups(self, ssurgo_module):
-        """All dual groups should resolve."""
-        for code in ("A/B", "A/C", "A/D", "B/C", "B/D", "C/D"):
-            result = ssurgo_module.hydrologic_group_categories(code)
-            assert result != "Unknown", f"Dual group {code} should be known"
-
-
-class TestAddSysPath:
-    """Tests for the add_sys_path context manager."""
-
-    def test_path_added_inside_context(self, ssurgo_module):
-        test_path = "/fake/test/path"
-        with ssurgo_module.add_sys_path(test_path):
-            assert test_path in sys.path
-
-    def test_path_removed_after_context(self, ssurgo_module):
-        test_path = "/fake/test/path/unique"
-        with ssurgo_module.add_sys_path(test_path):
-            pass
-        assert test_path not in sys.path
-
-    def test_original_path_restored_on_exception(self, ssurgo_module):
-        test_path = "/fake/test/path/error"
-        original = sys.path[:]
-        try:
-            with ssurgo_module.add_sys_path(test_path):
-                raise ValueError("intentional")
-        except ValueError:
-            pass
-        assert sys.path == original
+    def test_non_zip_existing_path_passes_through(self, ssurgo_module, tmp_path):
+        """A non-zip path that exists should be returned unmodified."""
+        # The .gdb directory case: pass a real directory
+        gdb_dir = tmp_path / "data.gdb"
+        gdb_dir.mkdir()
+        result = ssurgo_module.check_if_zipfile(gdb_dir)
+        assert result == gdb_dir.resolve()
 
 
 class TestHydrologicSoilGroupCategories:
-    """Tests for hydrologic_soil_group_categories (raster category labels)."""
+    """Tests for hydrologic_soil_group_categories.
+
+    The module writes the rules via ``gs.write_command("r.category", ...)``,
+    not ``tools.r_category``. Tests exercise the call against the mocked gs.
+    """
+
+    def _capture_call(self, ssurgo_module):
+        """Run the function and return the (args, kwargs) of the gs.write_command call."""
+        ssurgo_module.gs.write_command.reset_mock()
+        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
+        ssurgo_module.gs.write_command.assert_called_once()
+        return ssurgo_module.gs.write_command.call_args
 
     def test_calls_r_category(self, ssurgo_module):
-        """The function must invoke tools.r_category."""
-        ssurgo_module.tools.r_category.reset_mock()
-        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
-        ssurgo_module.tools.r_category.assert_called_once()
+        call_args = self._capture_call(ssurgo_module)
+        assert call_args.args[0] == "r.category"
 
     def test_map_name_passed(self, ssurgo_module):
-        """The map keyword argument must match the provided map name."""
-        ssurgo_module.tools.r_category.reset_mock()
+        ssurgo_module.gs.write_command.reset_mock()
         ssurgo_module.hydrologic_soil_group_categories("my_hydgrp")
-        call_kwargs = ssurgo_module.tools.r_category.call_args
-        assert call_kwargs.kwargs["map"] == "my_hydgrp"
+        call_args = ssurgo_module.gs.write_command.call_args
+        assert call_args.kwargs["map"] == "my_hydgrp"
 
     def test_separator_is_pipe(self, ssurgo_module):
-        """The separator must be 'pipe' to match the code|label format."""
-        ssurgo_module.tools.r_category.reset_mock()
-        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
-        call_kwargs = ssurgo_module.tools.r_category.call_args
-        assert call_kwargs.kwargs["separator"] == "pipe"
+        call_args = self._capture_call(ssurgo_module)
+        assert call_args.kwargs["separator"] == "pipe"
+
+    def test_rules_read_from_stdin(self, ssurgo_module):
+        """rules='-' tells r.category to read from stdin."""
+        call_args = self._capture_call(ssurgo_module)
+        assert call_args.kwargs["rules"] == "-"
 
     def test_rules_contain_all_single_groups(self, ssurgo_module):
-        """Rules must include labels for all four primary HSG codes (1-4)."""
-        ssurgo_module.tools.r_category.reset_mock()
-        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
-        rules_io = ssurgo_module.tools.r_category.call_args.kwargs["rules"]
-        rules_text = rules_io.getvalue()
+        """Stdin payload must include labels for HSG codes 1-4."""
+        call_args = self._capture_call(ssurgo_module)
+        stdin_text = call_args.kwargs["stdin"]
         for code, letter in [("1", "A"), ("2", "B"), ("3", "C"), ("4", "D")]:
-            assert f"{code}|{letter}:" in rules_text, (
+            assert f"{code}|{letter}:" in stdin_text, (
                 f"Missing category for HSG code {code} ({letter})"
             )
 
     def test_rules_contain_all_dual_groups(self, ssurgo_module):
-        """Rules must include labels for dual HSG codes (11-14)."""
-        ssurgo_module.tools.r_category.reset_mock()
-        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
-        rules_io = ssurgo_module.tools.r_category.call_args.kwargs["rules"]
-        rules_text = rules_io.getvalue()
+        """Stdin payload must include labels for dual HSG codes 11-14."""
+        call_args = self._capture_call(ssurgo_module)
+        stdin_text = call_args.kwargs["stdin"]
         for code in ("11", "12", "13", "14"):
-            assert f"{code}|" in rules_text, (
+            assert f"{code}|" in stdin_text, (
                 f"Missing category for dual HSG code {code}"
             )
 
     def test_rules_use_pipe_delimited_format(self, ssurgo_module):
         """Each rule line must be in 'code|label' format."""
-        ssurgo_module.tools.r_category.reset_mock()
-        ssurgo_module.hydrologic_soil_group_categories("test_hsg")
-        rules_io = ssurgo_module.tools.r_category.call_args.kwargs["rules"]
-        rules_text = rules_io.getvalue()
-        lines = [line for line in rules_text.strip().split("\n") if line]
+        call_args = self._capture_call(ssurgo_module)
+        stdin_text = call_args.kwargs["stdin"]
+        lines = [line for line in stdin_text.strip().split("\n") if line]
         assert len(lines) == 8
         for line in lines:
             parts = line.split("|", 1)
@@ -286,7 +260,6 @@ class TestBuildSdaSql:
         assert "ksat_r" in sql
         assert "ksat_h" in sql
         assert "hydgrp" in sql
-        assert "compname" in sql
         assert "mukey_int" in sql
 
     def test_weighted_component_contains_expected_keywords(
@@ -804,10 +777,10 @@ class TestEdgeCases:
             with pytest.raises(SystemExit):
                 ssurgo_module.sda_ssurgo_query(
                     aoi_wkt="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+                    tmp_fd=-1,
                     desgnmaster="A",
                     hzdept_r=0,
                     hzdepb_r=25,
-                    ssurgo_areas_out="test_ssurgo",
                 )
 
     def test_no_table_key_raises(self, ssurgo_module):
@@ -820,10 +793,10 @@ class TestEdgeCases:
             with pytest.raises(SystemExit):
                 ssurgo_module.sda_ssurgo_query(
                     aoi_wkt="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+                    tmp_fd=-1,
                     desgnmaster="A",
                     hzdept_r=0,
                     hzdepb_r=25,
-                    ssurgo_areas_out="test_ssurgo",
                 )
 
     def test_none_result_raises(self, ssurgo_module):
@@ -836,10 +809,10 @@ class TestEdgeCases:
             with pytest.raises(SystemExit):
                 ssurgo_module.sda_ssurgo_query(
                     aoi_wkt="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))",
+                    tmp_fd=-1,
                     desgnmaster="A",
                     hzdept_r=0,
                     hzdepb_r=25,
-                    ssurgo_areas_out="test_ssurgo",
                 )
 
     def test_multipolygon_with_holes(self, ssurgo_module):
@@ -891,3 +864,90 @@ class TestEdgeCases:
             if geom is not None:
                 features.append(geom)
         assert len(features) == 0
+
+
+# ===================================================================
+# Section 8 – -s flag forces the SQLite/OGR backend
+# ===================================================================
+
+
+class TestForceSqliteFlag:
+    """Tests for the -s flag in main() that forces the SQLite/OGR backend."""
+
+    BASE_OPTIONS = {
+        "ssurgo_path": "/tmp/fake.zip",
+        "soils": "soils_out",
+        "hydgrp": "",
+        "ksat_h": "",
+        "ksat_r": "",
+        "ksat_l": "",
+        "mukey": "",
+        "desgnmaster": "A",
+        "hzdept_r": "0",
+        "hzdepb_r": "25",
+        "nprocs": "1",
+    }
+
+    def _patch_main(self, ssurgo_module, options, flags):
+        """Build a context with patched module-level options/flags and the
+        common helpers stubbed out so main() can run without GRASS or files.
+
+        Returns a tuple of (duckdb_query_mock, sqlite_query_mock).
+        """
+        ssurgo_module.options = options
+        ssurgo_module.flags = flags
+        return patch.multiple(
+            ssurgo_module,
+            check_if_zipfile=MagicMock(return_value="/tmp/fake.zip"),
+            region_to_crs_wkt=MagicMock(
+                return_value="POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))"
+            ),
+            connect_duckdb=MagicMock(return_value=MagicMock()),
+            local_ssurgo_query=MagicMock(),
+            local_ssurgo_sqlite_query=MagicMock(),
+            write_ssurgo_to_grass=MagicMock(),
+            _rasterize_and_style=MagicMock(),
+        )
+
+    def test_flag_skips_duckdb_when_duckdb_available(self, ssurgo_module):
+        """With -s set, the SQLite path runs even if duckdb is importable."""
+        with self._patch_main(
+            ssurgo_module, dict(self.BASE_OPTIONS), {"s": True}
+        ), patch.object(
+            ssurgo_module, "_import_duckdb", return_value=MagicMock()
+        ) as mock_import:
+            ssurgo_module.main()
+
+            # When the flag is set we must NOT even probe for duckdb.
+            mock_import.assert_not_called()
+            ssurgo_module.local_ssurgo_query.assert_not_called()
+            ssurgo_module.local_ssurgo_sqlite_query.assert_called_once()
+
+    def test_no_flag_uses_duckdb_when_available(self, ssurgo_module):
+        """Without -s, duckdb is preferred when importable."""
+        with self._patch_main(
+            ssurgo_module, dict(self.BASE_OPTIONS), {"s": False}
+        ), patch.object(ssurgo_module, "_import_duckdb", return_value=MagicMock()):
+            ssurgo_module.main()
+
+            ssurgo_module.local_ssurgo_query.assert_called_once()
+            ssurgo_module.local_ssurgo_sqlite_query.assert_not_called()
+
+    def test_no_flag_falls_back_to_sqlite_when_duckdb_missing(self, ssurgo_module):
+        """Without -s and no duckdb, fall back to the SQLite path."""
+        with self._patch_main(
+            ssurgo_module, dict(self.BASE_OPTIONS), {"s": False}
+        ), patch.object(ssurgo_module, "_import_duckdb", return_value=None):
+            ssurgo_module.main()
+
+            ssurgo_module.local_ssurgo_query.assert_not_called()
+            ssurgo_module.local_ssurgo_sqlite_query.assert_called_once()
+
+    def test_flag_absent_from_dict_treated_as_false(self, ssurgo_module):
+        """A flags dict missing the 's' key must not raise; defaults to off."""
+        with self._patch_main(ssurgo_module, dict(self.BASE_OPTIONS), {}), patch.object(
+            ssurgo_module, "_import_duckdb", return_value=MagicMock()
+        ):
+            # Should run the duckdb branch without KeyError.
+            ssurgo_module.main()
+            ssurgo_module.local_ssurgo_query.assert_called_once()

@@ -101,6 +101,11 @@
 # %option G_OPT_M_NPROCS
 # %end
 
+# %flag
+# % key: s
+# % description: Force the SQLite/OGR backend for local SSURGO import (skip DuckDB)
+# %end
+
 from __future__ import annotations
 import os
 from pathlib import Path
@@ -1587,7 +1592,11 @@ def main():
         _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
         wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
 
-        duckdb = _import_duckdb(error=False)
+        # The -s flag forces the SQLite/OGR backend even when duckdb is
+        # importable. This lets users (and CI) exercise the SQLite path
+        # without uninstalling duckdb.
+        force_sqlite = bool(flags.get("s"))
+        duckdb = None if force_sqlite else _import_duckdb(error=False)
         if duckdb:
             gs.message(_("Using DuckDB for local SSURGO query."))
             con = connect_duckdb(threads=nprocs)
