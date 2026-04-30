@@ -148,23 +148,41 @@ def _import_duckdb(error):
 
 
 def region_to_crs_bbox(target_crs: str) -> list[float]:
-    """Convert GRASS region bounds to a bounding box in another CRS using m.proj."""
+    """Reproject the GRASS region's bounds to a bounding box in another CRS.
+
+    Reprojects the four corners *and* densified points along each edge so that
+    the returned bbox is a strict superset of the projected region. Reprojecting
+    only two corners (the previous behaviour) gives a bbox that is smaller than
+    the actual projected region whenever the source and target CRS differ —
+    e.g. UTM → Albers — because the rectangle becomes a rotated/skewed
+    quadrilateral. SSURGO polygons whose bbox lies in those edge slivers were
+    being filtered out by ``-spat`` / ``ST_GeomFromText`` spatial filters.
+    """
     region = gs.region()
-    # Extract corner coordinates
     west, south, east, north = region["w"], region["s"], region["e"], region["n"]
     nsres = region["nsres"]
     ewres = region["ewres"]
 
-    # Format input coordinates for m.proj (as string input to stdin)
-    coords = f"{west}|{south}\n{east}|{north}\n"
+    # Sample 4 corners + 9 intermediate points per edge (10 segments) so that
+    # projection curvature is captured for any sane projection pair.
+    edge_steps = 10
+    sample_points = []
+    for i in range(edge_steps + 1):
+        t = i / edge_steps
+        ew = west + t * (east - west)
+        ns = south + t * (north - south)
+        sample_points.append((ew, north))  # top edge
+        sample_points.append((ew, south))  # bottom edge
+        sample_points.append((west, ns))  # left edge
+        sample_points.append((east, ns))  # right edge
+    coords = "\n".join(f"{x}|{y}" for x, y in sample_points) + "\n"
 
     proj_in = gs.parse_command("g.proj", format="proj4", flags="pf")
     gs.debug(_("region_to_crs_bbox: proj_in: %s") % proj_in)
     proj_out = gs.parse_command("g.proj", format="proj4", srid=target_crs, flags="pf")
     gs.debug(_("region_to_crs_bbox: proj_out: %s") % proj_out)
 
-    # We currently dont have an easy way to get arround needing a tempfile when
-    # we want to both pass an argument to stdin and we want the results added to the stdout
+    # m.proj wants stdin AND a file output, so go via a tempfile.
     with tempfile.NamedTemporaryFile(
         mode="w+t", prefix="r_soildb", suffix=".txt"
     ) as fp:
@@ -183,14 +201,28 @@ def region_to_crs_bbox(target_crs: str) -> list[float]:
         except CalledModuleError as e:
             gs.fatal(f"Projection failed: {e}")
 
-        # Parse the tempfile output
         lines = fp.readlines()
-        gs.message(_("Reproject Bounds for WCS query: %s") % lines)
-        clean_lines = [line.strip() for line in lines]
-        ll_x, ll_y, ll_z = map(float, clean_lines[0].split("|"))  # Lower-left
-        ur_x, ur_y, ur_z = map(float, clean_lines[1].split("|"))  # Upper-right
 
-        return [ll_x, ll_y, ur_x, ur_y, ewres, nsres]
+    xs, ys = [], []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("|")
+        if len(parts) < 2:
+            continue
+        try:
+            xs.append(float(parts[0]))
+            ys.append(float(parts[1]))
+        except ValueError:
+            continue
+
+    if not xs or not ys:
+        gs.fatal(_("region_to_crs_bbox: failed to reproject any boundary points"))
+
+    bbox = [min(xs), min(ys), max(xs), max(ys)]
+    gs.message(_("Reprojected region bbox in %s: %s") % (target_crs, bbox))
+    return [*bbox, ewres, nsres]
 
 
 def region_to_crs_wkt(target_crs: str = "EPSG:5070") -> str:
@@ -668,281 +700,290 @@ def local_ssurgo_sqlite_query(
     hzdepb_r,
     agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
 ):
-    """Import SSURGO data from a local GDB using OGR and SQLite.
+    """Import SSURGO data from a local GDB using ogr2ogr + Python sqlite3.
 
-    This is a DuckDB-free alternative to :func:`local_ssurgo_query`.  It uses
-    GDAL/OGR (already required by GRASS) to read layers from the GDB, Python's
-    built-in :mod:`sqlite3` for the depth-weighted aggregation query, and OGR
-    again to write the result as a FlatGeobuf file ready for
+    DuckDB-free alternative to :func:`local_ssurgo_query`. Uses the
+    ``ogr2ogr`` CLI (bundled with GDAL, a hard dependency of GRASS) to extract
+    ``MUPOLYGON``, ``component``, and ``chorizon`` from the gSSURGO GDB into a
+    working GeoPackage, then opens that GeoPackage with the standard library
+    :mod:`sqlite3` module to run the depth-weighted dominant-component
+    aggregation. Finally ``ogr2ogr`` is invoked again to JOIN MUPOLYGON to the
+    aggregation table and write the output FlatGeobuf consumed by
     :func:`write_ssurgo_to_grass`.
 
-    Spatial filtering uses OGR's :meth:`SetSpatialFilterRect` on the
-    ``MUPOLYGON`` layer.  Component and horizon records are fetched with
-    batched ``ExecuteSQL`` calls on the GDB data source so that only the rows
-    relevant to the current region are loaded into memory.
+    Requires only ``ogr2ogr`` on PATH and Python's stdlib — no DuckDB and no
+    GDAL Python bindings.
 
     Args:
         tmp_filepath (str): Path for the output FlatGeobuf file.
-        ssurgo_path (str): Path to the SSURGO GDB or ``/vsizip/`` path.
+        ssurgo_path (str): Path to the SSURGO GDB or ``/vsizip/...`` path.
         desgnmaster (str): Master horizon designation filter (e.g. ``'A'``).
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
         agg (SoilAggMethod): Aggregation method.
 
     Returns:
-        str or None: Path to the written FlatGeobuf file, or ``None`` on
-        failure.
+        str or None: Path to the written FlatGeobuf file, or ``None`` if the
+        current region contains no MUPOLYGON features.
     """
-
-    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
-    top = hzdept_r
-    bottom = hzdepb_r
-
-    # Parse bbox from WKT
-    # west, south, east, north = region_to_crs_bbox("EPSG:5070")[:4]
-
-    try:
-        gs.run_command(
-            "v.import",
-            input=ssurgo_path,
-            output="soils_polygons",
-            layer="MUPOLYGON",
-            extent="region",
-            snap=1e-8,
-            overwrite=True,
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to import MUPOLYGON layer: %s") % str(e))
-
-    try:
-        gs.message(_("Creating tables for component and horizon data..."))
-        ddl_create = """
-        CREATE TABLE comp (
-            cokey      TEXT PRIMARY KEY,
-            mukey      TEXT,
-            comppct_r  REAL,
-            hydgrp     TEXT
-        );
-        CREATE TABLE horiz (
-            chkey        TEXT,
-            cokey        TEXT,
-            hzdept_r     REAL,
-            hzdepb_r     REAL,
-            ksat_l       REAL,
-            ksat_r       REAL,
-            ksat_h       REAL,
-            desgnmaster  TEXT
-        );
-        """
-        gs.run_command("db.execute", sql=ddl_create, overwrite=True)
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to create tables: %s") % str(e))
-
-    # Import component table from GDB into a temporary GRASS table, then
-    # insert only the rows whose mukey appears in the soils_polygons layer.
-    gs.message(_("Loading component data from SSURGO GDB..."))
-    try:
-        gs.run_command(
-            "db.in.ogr",
-            input=ssurgo_path,
-            db_table="component",
-            output="_comp_tmp",
-            key="cokey",
-            overwrite=True,
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to import component table: %s") % str(e))
-
-    try:
-        gs.run_command(
-            "db.execute",
-            sql=(
-                "INSERT INTO comp (cokey, mukey, comppct_r, hydgrp) "
-                "SELECT cokey, mukey, comppct_r, hydgrp "
-                "FROM _comp_tmp "
-                "WHERE mukey IN (SELECT mukey FROM soils_polygons) "
-                "AND comppct_r IS NOT NULL"
-            ),
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to populate comp table: %s") % str(e))
-    finally:
-        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _comp_tmp")
-
-    comp_count = int(
-        gs.read_command("db.select", sql="SELECT count(*) FROM comp", flags="c").strip()
-    )
-    gs.message(_("Loaded %d component records.") % comp_count)
-
-    # Import chorizon table from GDB into a temporary table, then insert
-    # only rows whose cokey appears in the comp table.
-    gs.message(_("Loading horizon data from SSURGO GDB..."))
-    try:
-        gs.run_command(
-            "db.in.ogr",
-            input=ssurgo_path,
-            db_table="chorizon",
-            output="_horiz_tmp",
-            overwrite=True,
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to import chorizon table: %s") % str(e))
-
-    try:
-        gs.run_command(
-            "db.execute",
-            sql=(
-                "INSERT INTO horiz "
-                "(chkey, cokey, hzdept_r, hzdepb_r, ksat_l, ksat_r, ksat_h, desgnmaster) "
-                "SELECT chkey, cokey, hzdept_r, hzdepb_r, ksat_l, ksat_r, ksat_h, desgnmaster "
-                "FROM _horiz_tmp "
-                "WHERE cokey IN (SELECT cokey FROM comp)"
-            ),
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to populate horiz table: %s") % str(e))
-    finally:
-        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _horiz_tmp")
-
-    horiz_count = int(
-        gs.read_command(
-            "db.select", sql="SELECT count(*) FROM horiz", flags="c"
-        ).strip()
-    )
-    gs.message(_("Loaded %d horizon records.") % horiz_count)
-
     if agg != SoilAggMethod.DOMINANT_COMPONENT:
         gs.warning(
             _("Weighted component aggregation not yet implemented for SQLite query.")
         )
         return None
 
-    gs.message(_("Running dominant component aggregation..."))
+    # Validate desgnmaster — embedded directly in SQL below. The module's
+    # option list restricts this to a single character, but we double-check
+    # to keep the SQL safe if that ever changes.
+    if not re.fullmatch(r"[A-Za-z/]+", desgnmaster):
+        gs.fatal(_("Invalid desgnmaster value: %s") % desgnmaster)
 
-    # Add result columns to the soils_polygons attribute table
-    try:
-        gs.run_command(
-            "v.db.addcolumn",
-            map="soils_polygons",
-            columns=(
-                "mukey_int INTEGER,"
-                "cokey TEXT,"
-                "comppct_r REAL,"
-                "hydgrp TEXT,"
-                "ksat_l REAL,"
-                "ksat_r REAL,"
-                "ksat_h REAL"
-            ),
-        )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to add columns to soils_polygons: %s") % str(e))
+    import shutil
+    import sqlite3
+    import subprocess
 
-    # Build per-mukey aggregation table using window functions (SQLite >= 3.25)
-    gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _agg_tmp")
-    agg_sql = f"""
-    CREATE TABLE _agg_tmp AS
-    WITH dom_comp AS (
-        SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
-               ROW_NUMBER() OVER (
-                   PARTITION BY c.mukey
-                   ORDER BY c.comppct_r DESC, c.cokey
-               ) AS rn
-        FROM comp c
-        WHERE c.comppct_r IS NOT NULL
-    ),
-    dom AS (
-        SELECT mukey, cokey, comppct_r, hydgrp
-        FROM dom_comp WHERE rn = 1
-    ),
-    hz AS (
-        SELECT x.mukey,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
-        FROM (
-            SELECT d.mukey,
-                h.ksat_l * {conv} AS ksat_l,
-                h.ksat_r * {conv} AS ksat_r,
-                h.ksat_h * {conv} AS ksat_h,
-                CASE
-                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                    ELSE MAX(0,
-                        MIN(COALESCE(h.hzdepb_r, 0), {bottom}) -
-                        MAX(COALESCE(h.hzdept_r, 0), {top})
-                    )
-                END AS thk
-            FROM dom d
-            INNER JOIN horiz h ON h.cokey = d.cokey
-            WHERE h.ksat_r IS NOT NULL
-              AND h.hzdept_r = 0
-              AND h.hzdepb_r > 0
-              AND h.desgnmaster = '{desgnmaster}'
-        ) x
-        GROUP BY x.mukey
-    )
-    SELECT dom.mukey,
-        CAST(dom.mukey AS INTEGER) AS mukey_int,
-        dom.cokey,
-        dom.comppct_r,
-        dom.hydgrp,
-        hz.ksat_l,
-        hz.ksat_r,
-        hz.ksat_h
-    FROM dom
-    LEFT JOIN hz ON hz.mukey = dom.mukey
-    """
-    try:
-        gs.run_command("db.execute", sql=agg_sql)
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to create aggregation table: %s") % str(e))
-
-    # Write aggregated values back into the soils_polygons attribute table
-    try:
-        gs.run_command(
-            "db.execute",
-            sql=(
-                "UPDATE soils_polygons SET "
-                "mukey_int = (SELECT mukey_int FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "cokey     = (SELECT cokey     FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "comppct_r = (SELECT comppct_r FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "hydgrp    = (SELECT hydgrp    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "ksat_l    = (SELECT ksat_l    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "ksat_r    = (SELECT ksat_r    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey), "
-                "ksat_h    = (SELECT ksat_h    FROM _agg_tmp WHERE _agg_tmp.mukey = soils_polygons.mukey)"
-            ),
-        )
-    except CalledModuleError as e:
+    ogr2ogr_bin = shutil.which("ogr2ogr")
+    if ogr2ogr_bin is None:
         gs.fatal(
-            _("Failed to update soils_polygons with aggregation results: %s") % str(e)
+            _(
+                "ogr2ogr not found on PATH. The SQLite SSURGO backend requires "
+                "GDAL's ogr2ogr CLI (bundled with any GRASS install)."
+            )
         )
-    finally:
-        gs.run_command("db.execute", sql="DROP TABLE IF EXISTS _agg_tmp")
 
-    agg_count = int(
-        gs.read_command(
-            "db.select",
-            sql="SELECT count(*) FROM soils_polygons WHERE ksat_r IS NOT NULL",
-            flags="c",
-        ).strip()
-    )
-    gs.message(_("Aggregation complete. %d features with ksat values.") % agg_count)
+    def _run_ogr2ogr(args, label):
+        """Wrap subprocess.run with consistent error reporting."""
+        result = subprocess.run([ogr2ogr_bin, *args], capture_output=True, text=True)
+        if result.returncode != 0:
+            gs.fatal(_("ogr2ogr failed (%s): %s") % (label, result.stderr.strip()))
 
-    # Export enriched soils_polygons to FlatGeobuf for write_ssurgo_to_grass
-    gs.message(_("Writing results to FlatGeobuf..."))
+    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
+    top = hzdept_r
+    bottom = hzdepb_r
+
+    # Bbox in MUPOLYGON's CRS (gSSURGO is CONUS Albers, EPSG:5070).
+    bbox = region_to_crs_bbox("EPSG:5070")
+    west, south, east, north = bbox[:4]
+
+    # Working GeoPackage that will hold the GDB extract + the agg result.
+    fd, tmp_gpkg = tempfile.mkstemp(suffix=".gpkg")
+    os.close(fd)
+    os.remove(tmp_gpkg)  # ogr2ogr will create it from scratch
+
     try:
-        gs.run_command(
-            "v.out.ogr",
-            input="soils_polygons",
-            output=tmp_filepath,
-            format="FlatGeobuf",
-            overwrite=True,
+        gs.message(_("Extracting MUPOLYGON to working GeoPackage..."))
+        _run_ogr2ogr(
+            [
+                "-f",
+                "GPKG",
+                tmp_gpkg,
+                str(ssurgo_path),
+                "MUPOLYGON",
+                "-nln",
+                "mupolygon",
+                "-spat",
+                str(west),
+                str(south),
+                str(east),
+                str(north),
+                "-spat_srs",
+                "EPSG:5070",
+                "-lco",
+                "GEOMETRY_NAME=geom",
+            ],
+            "MUPOLYGON",
         )
-    except CalledModuleError as e:
-        gs.fatal(_("Failed to export soils_polygons to FlatGeobuf: %s") % str(e))
-    return tmp_filepath
+
+        gs.message(_("Extracting component and chorizon tables..."))
+        for layer in ("component", "chorizon"):
+            _run_ogr2ogr(
+                [
+                    "-update",
+                    "-append",
+                    "-f",
+                    "GPKG",
+                    tmp_gpkg,
+                    str(ssurgo_path),
+                    layer,
+                ],
+                layer,
+            )
+
+        # Run the aggregation directly inside the GeoPackage with stdlib
+        # sqlite3 — the GPKG file is just a SQLite database.
+        gs.message(_("Running dominant component aggregation..."))
+        conn = sqlite3.connect(tmp_gpkg)
+        try:
+            cur = conn.cursor()
+
+            # Speed-up indexes; harmless if they already exist.
+            cur.execute("CREATE INDEX IF NOT EXISTS comp_mukey_idx ON component(mukey)")
+            cur.execute("CREATE INDEX IF NOT EXISTS horiz_cokey_idx ON chorizon(cokey)")
+
+            mu_count = cur.execute("SELECT count(*) FROM mupolygon").fetchone()[0]
+            if mu_count == 0:
+                gs.warning(_("No SSURGO polygons found in the current region."))
+                return None
+            gs.message(_("Loaded %d MUPOLYGON features.") % mu_count)
+
+            # Pre-create agg with explicit column affinities so SQLite stores
+            # each value with the right type. Using `CREATE TABLE agg AS
+            # SELECT ...` would leave affinities unset for computed expressions,
+            # which downstream causes ogr2ogr's type inference to fall back to
+            # String when leading rows have NULL ksat / hydgrp values.
+            cur.execute("DROP TABLE IF EXISTS agg")
+            cur.execute(
+                """
+                CREATE TABLE agg (
+                    mukey      TEXT,
+                    mukey_int  INTEGER,
+                    cokey      TEXT,
+                    comppct_r  REAL,
+                    hydgrp     TEXT,
+                    ksat_l     REAL,
+                    ksat_r     REAL,
+                    ksat_h     REAL
+                )
+                """
+            )
+            agg_sql = f"""
+            INSERT INTO agg
+            WITH dom_comp AS (
+                SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY c.mukey
+                           ORDER BY c.comppct_r DESC, c.cokey
+                       ) AS rn
+                FROM component c
+                WHERE c.comppct_r IS NOT NULL
+                  AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)
+            ),
+            dom AS (
+                SELECT mukey, cokey, comppct_r, hydgrp
+                FROM dom_comp WHERE rn = 1
+            ),
+            hz AS (
+                SELECT x.mukey,
+                    CASE WHEN SUM(x.thk) = 0 THEN NULL
+                         ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
+                    CASE WHEN SUM(x.thk) = 0 THEN NULL
+                         ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
+                    CASE WHEN SUM(x.thk) = 0 THEN NULL
+                         ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+                FROM (
+                    SELECT d.mukey,
+                        h.ksat_l * {conv} AS ksat_l,
+                        h.ksat_r * {conv} AS ksat_r,
+                        h.ksat_h * {conv} AS ksat_h,
+                        CASE
+                            WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+                            ELSE MAX(0,
+                                MIN(COALESCE(h.hzdepb_r, 0), {bottom}) -
+                                MAX(COALESCE(h.hzdept_r, 0), {top})
+                            )
+                        END AS thk
+                    FROM dom d
+                    INNER JOIN chorizon h ON h.cokey = d.cokey
+                    WHERE h.ksat_r IS NOT NULL
+                      AND h.hzdept_r = 0
+                      AND h.hzdepb_r > 0
+                      AND h.desgnmaster = '{desgnmaster}'
+                ) x
+                GROUP BY x.mukey
+            )
+            SELECT dom.mukey,
+                CAST(dom.mukey AS INTEGER) AS mukey_int,
+                dom.cokey,
+                dom.comppct_r,
+                dom.hydgrp,
+                hz.ksat_l,
+                hz.ksat_r,
+                hz.ksat_h
+            FROM dom
+            LEFT JOIN hz ON hz.mukey = dom.mukey
+            """
+            cur.execute(agg_sql)
+            cur.execute("CREATE INDEX agg_mukey_idx ON agg(mukey)")
+            agg_count = cur.execute("SELECT count(*) FROM agg").fetchone()[0]
+            gs.message(_("Aggregation produced %d map-unit rows.") % agg_count)
+
+            # Drop GPKG triggers on mupolygon before the UPDATE below. They
+            # reference SQL functions (ST_IsEmpty, ST_GeometryType, ST_MinX,
+            # ...) that are provided by GDAL/spatialite at runtime. Stdlib
+            # sqlite3 doesn't load those extensions, so any UPDATE on
+            # mupolygon — even of non-geometry columns — fails when SQLite
+            # compiles a trigger body that references them. The GPKG is a
+            # disposable scratch file; the rtree index would only go stale
+            # (we're not modifying geometry), and ogr2ogr re-reads the
+            # geometry type from gpkg_geometry_columns at export time, so
+            # losing the triggers is harmless here.
+            triggers = cur.execute(
+                "SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name = ?",
+                ("mupolygon",),
+            ).fetchall()
+            for (trigger_name,) in triggers:
+                cur.execute(f'DROP TRIGGER IF EXISTS "{trigger_name}"')
+
+            # Materialize the agg columns onto mupolygon directly. This is the
+            # only reliable way to get correct field types in the output
+            # FlatGeobuf: ogr2ogr's SQLite-dialect `-sql` CASTs do not always
+            # propagate to OGR field types, so the result FlatGeobuf can end
+            # up with String columns even for `CAST(... AS REAL)`. Adding
+            # columns with explicit affinities via ALTER TABLE means ogr2ogr
+            # reads the schema from sqlite_master and emits OFTReal /
+            # OFTInteger64 / OFTString correctly.
+            cur.executescript(
+                """
+                ALTER TABLE mupolygon ADD COLUMN mukey_int INTEGER;
+                ALTER TABLE mupolygon ADD COLUMN cokey     TEXT;
+                ALTER TABLE mupolygon ADD COLUMN comppct_r REAL;
+                ALTER TABLE mupolygon ADD COLUMN hydgrp    TEXT;
+                ALTER TABLE mupolygon ADD COLUMN ksat_l    REAL;
+                ALTER TABLE mupolygon ADD COLUMN ksat_r    REAL;
+                ALTER TABLE mupolygon ADD COLUMN ksat_h    REAL;
+                """
+            )
+            cur.execute(
+                """
+                UPDATE mupolygon SET
+                    mukey_int = (SELECT mukey_int FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    cokey     = (SELECT cokey     FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    comppct_r = (SELECT comppct_r FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    hydgrp    = (SELECT hydgrp    FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    ksat_l    = (SELECT ksat_l    FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    ksat_r    = (SELECT ksat_r    FROM agg WHERE agg.mukey = mupolygon.mukey),
+                    ksat_h    = (SELECT ksat_h    FROM agg WHERE agg.mukey = mupolygon.mukey)
+                """
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        # Export the now-enriched mupolygon table directly. No `-sql` JOIN —
+        # ogr2ogr reads the column affinities from the table schema, so
+        # ksat_l/r/h come through as OFTReal in the FlatGeobuf and arrive in
+        # GRASS as DOUBLE PRECISION (which v.to.rast accepts).
+        gs.message(_("Writing results to FlatGeobuf..."))
+        if os.path.exists(tmp_filepath):
+            os.remove(tmp_filepath)
+        _run_ogr2ogr(
+            [
+                "-f",
+                "FlatGeobuf",
+                tmp_filepath,
+                tmp_gpkg,
+                "mupolygon",
+                "-nln",
+                "ssurgo",
+                "-a_srs",
+                "EPSG:5070",
+            ],
+            "FlatGeobuf export",
+        )
+        return tmp_filepath
+    finally:
+        if os.path.exists(tmp_gpkg):
+            os.remove(tmp_gpkg)
 
 
 def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
