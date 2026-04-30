@@ -1,57 +1,198 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.in.ssurgo</em> - Import soil data from the USDA NRCS Soil Survey Geographic
-Database (SSURGO) into GRASS from either a local copy of the the SSURGO file
-geodatabase or from the Soil Data Access (SDA) online API interface. The module
-is heavily inspired by the [SoilDB (2.8.9)](https://ncss-tech.github.io/soilDB/index.html)
-R package (Beaudette et al., 2025).
+<em>r.in.ssurgo</em> imports soil data from the USDA NRCS Soil Survey
+Geographic Database (SSURGO) into GRASS, either from a local copy of the
+SSURGO File Geodatabase or from the Soil Data Access (SDA) online API. The
+module is heavily inspired by the
+<a href="https://ncss-tech.github.io/soilDB/index.html">soilDB</a> R
+package (Beaudette et al., 2025).
 
-The *r.in.ssurgo* imports the Saturated Hydraulic Conductivity of Soils (Ksat) and
-the Hydrologic Soil Group (HSG) aggregated for the specified depth range or
-master horizon using the the Map Unit Key (mukey) as the spatial unit.
-The Ksat values represents the infiltration rateof water through soil when the
-soil is 100% saturated are provided. Ksat values are provided in units of cm/hr
-and include the low (**ksat_l**), representative (**ksat_r**), and high (**ksat_h**)
-estimates of Ksat for each map unit.
-
-The HSG is a soil classification system that groups soils based on their runoff
-potential, which is influenced by factors such as texture, structure, and
-permeability. The HGS raster (**hydgrp**) are used in rainfall excess models
-such as the SCS Curve Number method to estimate runoff from rainfall
-events (see *r.curvenumber*).
-
-**ssurgo_areas** is an optional output vector contining the source Multipolygons
-and attribute data from the SSURGO Map Unit polygons. This can be used for reference
-or to create custom rasters for Curve Number or other applications based on the
-SSURGO attributes.
-
-<h2>NOTES</h2>
-
-<h2>REQUIREMENTS</h2>
-
+<p>
+The tool uses the SDA API to query and download data for the current
+computational region by default, and switches to a local file when an
+<b>ssurgo_path</b> is given. The data can be downloaded from USDA NRCS:
 
 <ul>
-    <li><a href=""></a></li>
-    <li><a href=""></a></li>
+    <li><a href="https://nrcs.app.box.com/v/soils/folder/233395259341">SSURGO CONUS</a></li>
+    <li><a href="https://nrcs.app.box.com/v/soils/folder/233398887779">SSURGO by State</a></li>
 </ul>
 
+The downloaded ZIP can be passed directly — *r.in.ssurgo* reads the
+geodatabase inside through GDAL's virtual file system:
+
+<div class="code"><pre>
+ssurgo_path="path/to/gSSURGO_NC.zip"
+</pre></div>
+
+You may also pass an unzipped <code>.gdb</code> directory:
+
+<div class="code"><pre>
+ssurgo_path="path/to/gSSURGO_NC/gSSURGO_NC.gdb"
+</pre></div>
+
 <h2>NOTES</h2>
+
+The module produces depth- and component-aggregated estimates of Saturated
+Hydraulic Conductivity (Ksat) and the Hydrologic Soil Group (HSG), keyed by
+the SSURGO Map Unit Key (mukey). Ksat values are reported in mm/hr as low
+(<b>ksat_l</b>), representative (<b>ksat_r</b>), and high (<b>ksat_h</b>)
+estimates per map unit.
+
+<p>
+HSG (<b>hydgrp</b>) classifies soils by runoff potential. It is consumed by
+rainfall-excess models such as the SCS Curve Number method (see
+<em>r.curvenumber</em>).
+
+<p>
+The <b>soils</b> output is the source SSURGO Map Unit polygon vector with all
+aggregated attributes attached. Use it for reference or to derive custom
+rasters from the SSURGO attribute set.
+
+<h3>Filtering by depth or master horizon</h3>
+
+A depth range (<b>hzdept_r</b>, <b>hzdepb_r</b> in cm) and/or a master horizon
+designation (<b>desgnmaster</b>) select the chorizon rows that contribute to
+the aggregation. Horizons whose depth interval overlaps the requested range
+are included; thickness is clipped to that range when computing the
+weighted mean.
+
+<h3>Aggregation methods</h3>
+
+Aggregation uses the dominant component (the largest <code>comppct_r</code>
+within each map unit). A weighted-component method is planned.
+
+<h3>Choosing the local-import backend</h3>
+
+For local-file imports, *r.in.ssurgo* uses
+<a href="https://duckdb.org/">DuckDB</a> when the Python package is
+installed, and falls back to a pure <code>ogr2ogr</code> + Python stdlib
+<code>sqlite3</code> implementation otherwise. The <b>-s</b> flag forces the
+SQLite/OGR backend even when DuckDB is importable, which is useful for
+testing the fallback path. The flag has no effect on SDA queries.
 
 <h2>REQUIREMENTS</h2>
 
 <ul>
-    <li><a href=""></a></li>
+    <li><a href="https://gdal.org/">GDAL &ge; 3.1</a> — required by GRASS;
+        provides <code>ogr2ogr</code> and the FlatGeobuf driver.</li>
+    <li><a href="https://duckdb.org/">DuckDB &ge; 0.10</a> (Python package) —
+        optional, accelerates local-file imports. Install with
+        <code>pip install duckdb</code>. The SQLite fallback is used
+        automatically when DuckDB is not available.</li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
+<h3>Import from a local SSURGO geodatabase</h3>
 
+<div class="code"><pre>
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soil_areas" \
+    hydgrp="hydgrp" \
+    ksat_l="ksat_l" \
+    ksat_r="ksat_r" \
+    ksat_h="ksat_h" \
+    mukey="mukey" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+Python (<code>grass.script</code>):
+
+<div class="code"><pre>
+gs.run_command(
+    "r.in.ssurgo",
+    ssurgo_path="gSSURGO_NC.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+</pre></div>
+
+Python (<code>grass.tools</code>):
+
+<div class="code"><pre>
+tools = Tools()
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+</pre></div>
+
+<h3>Force the SQLite/OGR backend (skip DuckDB)</h3>
+
+<div class="code"><pre>
+r.in.ssurgo -s \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+<div class="code"><pre>
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_r="ksat_r",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+    flags="s",
+)
+</pre></div>
+
+<h3>Import via the SDA API (no local file)</h3>
+
+<div class="code"><pre>
+r.in.ssurgo \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_l="ksat_l" \
+    ksat_r="ksat_r" \
+    ksat_h="ksat_h" \
+    mukey="mukey" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+    <li>Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025).
+        soilDB &mdash; Soil Database Interface. R package version 2.8.9.
+        <a href="https://CRAN.R-project.org/package=soilDB">https://CRAN.R-project.org/package=soilDB</a></li>
+    <li>Soil Survey Staff, Natural Resources Conservation Service, USDA.
+        Web Soil Survey.
+        <a href="https://websoilsurvey.nrcs.usda.gov/">https://websoilsurvey.nrcs.usda.gov/</a></li>
+</ul>
 
 <h2>SEE ALSO</h2>
 
 <em>
-    <a href=""></a>,
-    <a href=""></a>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html">r.curvenumber</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html">r.runoff</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>
 </em>
 
 <h2>AUTHORS</h2>
@@ -59,8 +200,14 @@ SSURGO attributes.
 Corey T. White<br>
 
 <h2>Sponsors</h2>
+
 <ul>
     <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
 </ul>
 
-Center for Geospatial Analytics at North Carolina State University
+<p>
+<em>r.in.ssurgo</em> was developed as part of an agreement between the
+U.S. Department of Agriculture (USDA), Natural Resources Conservation Service
+(NRCS) and North Carolina State University (NCSU) to adapt the SIMulation of
+Water and Erosion (SIMWE) model for the integration of Dynamic Soil Survey
+data.

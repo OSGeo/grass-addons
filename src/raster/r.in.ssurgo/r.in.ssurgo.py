@@ -126,8 +126,25 @@ import textwrap
 _ = gettext.gettext
 
 
-# Unit conversion constant
+# Unit conversion constant.
+# 1 µm/s × 3600 s/hr × 1 mm / 1000 µm = 3.6 mm/hr
 MICROMETERS_PER_SECOND_TO_MM_PER_HOUR = 3.6
+
+# ---------------------------------------------------------------------------
+# gSSURGO schema and CRS constants
+# ---------------------------------------------------------------------------
+# Layer and table names inside the gSSURGO File Geodatabase. Case matters in
+# the GDB — keep these exactly as USDA publishes them.
+SSURGO_LAYER_MUPOLYGON = "MUPOLYGON"
+SSURGO_TABLE_COMPONENT = "component"
+SSURGO_TABLE_CHORIZON = "chorizon"
+
+# Native CRS of the gSSURGO datasets (CONUS Albers Equal Area Conic).
+SSURGO_NATIVE_EPSG = 5070
+SSURGO_NATIVE_CRS = f"EPSG:{SSURGO_NATIVE_EPSG}"
+
+# Soil Data Access (SDA) returns geographic coordinates (WGS 84).
+SDA_GEOGRAPHIC_EPSG = 4326
 
 
 class SoilAggMethod(Enum):
@@ -225,7 +242,7 @@ def region_to_crs_bbox(target_crs: str) -> list[float]:
     return [*bbox, ewres, nsres]
 
 
-def region_to_crs_wkt(target_crs: str = "EPSG:5070") -> str:
+def region_to_crs_wkt(target_crs: str = SSURGO_NATIVE_CRS) -> str:
     """Convert GRASS region bounds to a WKT polygon in another CRS using m.proj."""
     west, south, east, north = region_to_crs_bbox(target_crs)[:4]
     wkt = f"POLYGON(({west} {south}, {east} {south}, {east} {north}, {west} {north}, {west} {south}))"
@@ -526,12 +543,12 @@ def local_ssurgo_query(
     gs.message(_("Loading SSURGO layers into memory..."))
 
     con.execute(
-        """
+        f"""
         CREATE OR REPLACE TEMP TABLE mu AS
         SELECT mukey, shape AS geom
         FROM ST_Read(
             $ssurgo_path,
-            layer = 'MUPOLYGON',
+            layer = '{SSURGO_LAYER_MUPOLYGON}',
             spatial_filter =
                 ST_AsWKB(ST_GeomFromText($wkt_bbox))
         )
@@ -546,10 +563,10 @@ def local_ssurgo_query(
 
     # Load component and chorizon once; join-filter by mukey list
     con.execute(
-        """
+        f"""
         CREATE OR REPLACE TEMP TABLE comp AS
         SELECT c.*
-        FROM ST_Read($1, layer = 'component') AS c
+        FROM ST_Read($1, layer = '{SSURGO_TABLE_COMPONENT}') AS c
         WHERE c.mukey IN (SELECT mukey FROM mu)
         AND c.comppct_r IS NOT NULL
         """,
@@ -557,10 +574,10 @@ def local_ssurgo_query(
     )
 
     con.execute(
-        """
+        f"""
         CREATE OR REPLACE TEMP TABLE horiz AS
         SELECT h.*
-        FROM ST_Read($1, layer = 'chorizon') AS h
+        FROM ST_Read($1, layer = '{SSURGO_TABLE_CHORIZON}') AS h
         WHERE h.cokey IN (SELECT cokey FROM comp)
         """,
         [ssurgo_path],
@@ -681,7 +698,7 @@ def local_ssurgo_query(
         COPY (
             {query.strip()}
         ) TO '{tmp_filepath}'
-        (FORMAT GDAL, DRIVER 'FlatGeobuf', SRS 'EPSG:5070');
+        (FORMAT GDAL, DRIVER 'FlatGeobuf', SRS '{SSURGO_NATIVE_CRS}');
         """
 
         con.execute(export_sql)
@@ -761,8 +778,8 @@ def local_ssurgo_sqlite_query(
     top = hzdept_r
     bottom = hzdepb_r
 
-    # Bbox in MUPOLYGON's CRS (gSSURGO is CONUS Albers, EPSG:5070).
-    bbox = region_to_crs_bbox("EPSG:5070")
+    # Bbox in MUPOLYGON's CRS (gSSURGO is CONUS Albers).
+    bbox = region_to_crs_bbox(SSURGO_NATIVE_CRS)
     west, south, east, north = bbox[:4]
 
     # Working GeoPackage that will hold the GDB extract + the agg result.
@@ -778,7 +795,7 @@ def local_ssurgo_sqlite_query(
                 "GPKG",
                 tmp_gpkg,
                 str(ssurgo_path),
-                "MUPOLYGON",
+                SSURGO_LAYER_MUPOLYGON,
                 "-nln",
                 "mupolygon",
                 "-spat",
@@ -787,15 +804,15 @@ def local_ssurgo_sqlite_query(
                 str(east),
                 str(north),
                 "-spat_srs",
-                "EPSG:5070",
+                SSURGO_NATIVE_CRS,
                 "-lco",
                 "GEOMETRY_NAME=geom",
             ],
-            "MUPOLYGON",
+            SSURGO_LAYER_MUPOLYGON,
         )
 
         gs.message(_("Extracting component and chorizon tables..."))
-        for layer in ("component", "chorizon"):
+        for layer in (SSURGO_TABLE_COMPONENT, SSURGO_TABLE_CHORIZON):
             _run_ogr2ogr(
                 [
                     "-update",
@@ -976,7 +993,7 @@ def local_ssurgo_sqlite_query(
                 "-nln",
                 "ssurgo",
                 "-a_srs",
-                "EPSG:5070",
+                SSURGO_NATIVE_CRS,
             ],
             "FlatGeobuf export",
         )
@@ -1620,7 +1637,9 @@ def main():
                 hzdept_r=hzdept_r,
                 hzdepb_r=hzdepb_r,
             )
-            write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=4326)
+            write_ssurgo_to_grass(
+                tmp_filepath, ssurgo_areas, src_srs=SDA_GEOGRAPHIC_EPSG
+            )
         except Exception as e:
             gs.fatal(f"An error occurred during SDA processing: {e}")
         finally:
@@ -1631,7 +1650,7 @@ def main():
     else:
         gs.message(_("Importing SSURGO data from local file."))
         _ssurgo_path = check_if_zipfile(Path(ssurgo_path))
-        wkt_bbox = region_to_crs_wkt(target_crs="EPSG:5070")
+        wkt_bbox = region_to_crs_wkt(target_crs=SSURGO_NATIVE_CRS)
 
         # The -s flag forces the SQLite/OGR backend even when duckdb is
         # importable. This lets users (and CI) exercise the SQLite path
@@ -1655,7 +1674,9 @@ def main():
                     hzdept_r=hzdept_r,
                     hzdepb_r=hzdepb_r,
                 )
-                write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
+                write_ssurgo_to_grass(
+                    tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
+                )
             except Exception as e:
                 gs.fatal(f"An error occurred during local SSURGO processing: {e}")
             finally:
@@ -1677,7 +1698,9 @@ def main():
                     hzdept_r=hzdept_r,
                     hzdepb_r=hzdepb_r,
                 )
-                write_ssurgo_to_grass(tmp_filepath, ssurgo_areas, src_srs=5070)
+                write_ssurgo_to_grass(
+                    tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
+                )
             except Exception as e:
                 gs.fatal(f"An error occurred during SQLite SSURGO processing: {e}")
             finally:
