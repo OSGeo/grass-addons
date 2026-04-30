@@ -1494,6 +1494,32 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
                 env=session.env,
             )
 
+            # Clip reprojected polygons to the current computational region.
+            # -r: clip by region (no clip map needed)
+            # -d: keep map-unit boundaries (do not dissolve)
+            gs.message(_("Clipping output to current computational region..."))
+            clipped_name = f"{ssurgo_areas_out}_clipped"
+            gs.run_command(
+                "v.clip",
+                input=ssurgo_areas_out,
+                output=clipped_name,
+                flags="rd",
+                overwrite=True,
+                env=session.env,
+            )
+            gs.run_command(
+                "g.remove",
+                type="vector",
+                name=ssurgo_areas_out,
+                flags="f",
+                env=session.env,
+            )
+            gs.run_command(
+                "g.rename",
+                vector=f"{clipped_name},{ssurgo_areas_out}",
+                env=session.env,
+            )
+
     except CalledModuleError as e:
         gs.fatal(_("GRASS module error during data import: %s") % e)
 
