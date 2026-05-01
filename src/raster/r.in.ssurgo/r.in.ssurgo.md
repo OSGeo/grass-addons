@@ -16,7 +16,7 @@ NRCS at the following links:
 * [SSURGO by State](https://nrcs.app.box.com/v/soils/folder/233398887779)
 
 The downloaded gSSURGO files can be used directly without unzipping
-the file geodatabase. *r.in.ssurgo* can readthe zipped
+the file geodatabase. *r.in.ssurgo* can read the zipped
 file geodatabase directly using GDAL's virtual file system.
 
 ```bash
@@ -29,15 +29,15 @@ However, you may also pass the path to an unzipped file geodatabase if you prefe
 ssurgo_path="path/to/gSSURGO_NC/gSSURGO_NC.gdb"
 ```
 
-## Notes
+## NOTES
 
-The Saturated Hydraulic Conductivity of Soils (Ksat) and
-the Hydrologic Soil Group (HSG) aggregated for the specified depth range or
-master horizon using the the Map Unit Key (mukey) as the spatial unit.
-The Ksat values represents the infiltration rateof water through soil when the
-soil is 100% saturated are provided. Ksat values are provided in units of cm/hr
-and include the low (**ksat_l**), representative (**ksat_r**), and high (**ksat_h**)
-estimates of Ksat for each map unit.
+The Saturated Hydraulic Conductivity (Ksat) and the Hydrologic Soil Group
+(HSG) are aggregated for the specified depth range or master horizon using the
+Map Unit Key (mukey) as the spatial unit. Ksat is the rate at which water
+moves vertically through saturated soil; values are provided in **mm/hr**
+(SSURGO stores them as µm/s and the module multiplies by 3.6) and include
+the low (**ksat_l**), representative (**ksat_r**), and high (**ksat_h**)
+estimates per map unit.
 
 The HSG is a soil classification system that groups soils based on their runoff
 potential, which is influenced by factors such as texture, structure, and
@@ -179,7 +179,7 @@ Import Ksat data for the current region from a local copy of the SSURGO file geo
 ```sh
 r.in.ssurgo \
     ssurgo_path="gSSURGO_NC.zip" \
-    ssurgo_areas="soil_areas" \
+    soils="soil_areas" \
     hydgrp="hydgrp" \
     ksat_l="ksat_l" \
     ksat_r="ksat_r" \

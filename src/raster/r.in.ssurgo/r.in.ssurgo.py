@@ -767,38 +767,14 @@ def local_ssurgo_query(
     """
     top = hzdept_r
     bottom = hzdepb_r
-    # Table mu polygon fields used:
-    # mukey: Map unit key
-    # shape: Geometry field
-
-    # Table component fields used:
-    # mukey: Map unit key
-    # cokey: Component key
-    # comppct_r: Component percentage of map unit
-    # compname: Component name
-    # runoff: Runoff curve number
-    # hydgrp: Hydrologic soil group
-    # hydricon: Hydric condition
-    # hydricrating: Hydric rating
-    # drainagecl: Drainage class
-
-    # Table chorizon fields used:
-    # hzdept_r: Horizon depth top (cm)
-    # hzdepb_r: Horizon depth bottom (cm)
-    # ksat_r: (representative) (micrometers per second)
-    #    The amount of water that would move vertically
-    #    through a unit area of saturated soil in unit
-    #    time under unit hydraulic gradient.
-    # ksat_h: (high) (micrometers per second)
-    # ksat_l: (low) (micrometers per second)
-    # desgnmaster: Designation of master horizon
-
-    # TODO: Additional fields to consider for future outputs:
-    # hydgrpdcd: Hydrologic Group - Dominant Conditions
-    # sandtotal_r: Sand content of the horizon (percent)
-    # claytotal_r: Clay content of the horizon (percent)
-    # wtdepannmin_r: Minimum annual water table depth (cm)
-    # texture: Texture class based on particle size distribution
+    # The set of SSURGO fields exposed on the output is defined by the
+    # _DOM_COMPONENT_FIELDS / _HORIZON_WEIGHTED_FIELDS tables at module top.
+    # Add a new field there to surface it through every backend at once.
+    #
+    # Candidates not yet wired up (would also need v.to.rast logic if any
+    # need a default raster output): hydgrpdcd (Hydrologic Group – Dominant
+    # Conditions), wtdepannmin_r (Minimum annual water-table depth), texture
+    # (Texture class based on particle size distribution).
 
     # Materialise each SSURGO layer into temporary tables so that
     # DuckDB can build indexes and avoid repeated full-file scans.
@@ -1299,7 +1275,7 @@ def _rasterize_3d(ssurgo_areas, *, base_field: str, output: str, slices):
 
     temp_2d = []
     try:
-        for i, _slice in enumerate(slices):
+        for i in range(len(slices)):
             col = f"{base_field}{_slice_suffix(i)}"
             tmp = f"_tmp_{output}_s{i}"
             gs.run_command(
@@ -1842,7 +1818,11 @@ def main():
     # Inputs
     ssurgo_path = options["ssurgo_path"]
 
-    # TODO: Add ability to specify different Horizons
+    # desgnmaster currently accepts a single master horizon code (default 'A').
+    # If multi-horizon support is needed in the future the simplest route is to
+    # extend the option to `multiple: yes` and run the dominant-component
+    # aggregation per horizon, suffixing the per-horizon output columns the
+    # same way `depths=` suffixes per-slice columns.
     desgnmaster = options["desgnmaster"]
     hzdept_r = int(options["hzdept_r"])
     hzdepb_r = int(options["hzdepb_r"]) if options["hzdepb_r"] else 25
@@ -1919,6 +1899,9 @@ def main():
             con = connect_duckdb(threads=nprocs)
             try:
                 fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
+                # We pass tmp_filepath to DuckDB by name; the fd from mkstemp
+                # is unused by either side, so close it to avoid leaking.
+                os.close(fd)
 
                 # GRASS GDAL driver isn't supported by duckdb
                 gs.message(f"Tempfile Path: {tmp_filepath}")
@@ -1947,6 +1930,7 @@ def main():
             gs.message(_("Importing with SQLite/OGR local SSURGO query."))
             try:
                 fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
+                os.close(fd)  # ogr2ogr writes by path; fd unused
                 gs.message(f"Tempfile Path: {tmp_filepath}")
                 local_ssurgo_sqlite_query(
                     tmp_filepath=tmp_filepath,
