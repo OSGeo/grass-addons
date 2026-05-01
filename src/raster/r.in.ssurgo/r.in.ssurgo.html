@@ -91,6 +91,38 @@ weighted mean.
 Aggregation uses the dominant component (the largest <code>comppct_r</code>
 within each map unit). A weighted-component method is planned.
 
+<h3>r3 (3D raster) output for depth profiles</h3>
+
+When <b>depths</b> is set (a comma-separated, strictly-increasing list of
+cm boundaries with at least 2 values), the depth-weighted Ksat outputs
+(<b>ksat_l</b>, <b>ksat_r</b>, <b>ksat_h</b>) are produced as <b>3D
+rasters</b> with one z-slice per depth bin instead of a single 2D
+average. The number of slices is <code>len(depths) - 1</code>.
+<b>hzdept_r</b> and <b>hzdepb_r</b> are ignored when <b>depths</b> is
+set; the aggregation runs once per slice.
+
+<p>
+<b>hydgrp</b> and <b>mukey</b> remain 2D — they're profile-level /
+identity values, not depth-dependent. The 3D region is set with
+<code>b=0, t=max(depths)</code> so the z-axis represents depth (cm) from
+the surface.
+
+<div class="code"><pre>
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soil_areas" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    depths="0,15,30,60,100" \
+    desgnmaster="A"
+# produces: hydgrp (2D), ksat_r (3D, 4 slices)
+</pre></div>
+
+The intermediate per-slice columns (<code>ksat_r__s0</code>,
+<code>ksat_r__s1</code>, ...) also appear on the <b>soils</b> vector so
+you can query them with <code>v.db.select</code> or rasterize any one
+slice with <code>v.to.rast use=attr</code>.
+
 <h3>Choosing the local-import backend</h3>
 
 For local-file imports, *r.in.ssurgo* uses

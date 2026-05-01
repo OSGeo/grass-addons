@@ -98,6 +98,15 @@
 # % description: Horizon depth bottom (cm)
 # %end
 
+# %option
+# % key: depths
+# % guisection: Options
+# % type: double
+# % multiple: yes
+# % required: no
+# % description: Comma-separated depth boundaries in cm (>=2 values, strictly increasing). When set, depth-weighted REAL outputs (ksat_l/r/h) become 3D rasters with slices defined by these boundaries; hzdept_r/hzdepb_r are ignored.
+# %end
+
 # %option G_OPT_M_NPROCS
 # %end
 
@@ -270,8 +279,10 @@ def _depth_weighted_hz_cte(
     top: float,
     bottom: float,
     fields=_HORIZON_WEIGHTED_FIELDS,
+    cte_name: str = "hz",
+    output_suffix: str = "",
 ) -> str:
-    """Build the ``hz`` CTE that computes per-mukey depth-weighted means.
+    """Build a ``hz``-style CTE that computes per-mukey depth-weighted means.
 
     Joins the ``dom`` CTE to the chorizon table, restricts to horizons that
     overlap ``[top, bottom]`` with the given master horizon designation, and
@@ -282,17 +293,23 @@ def _depth_weighted_hz_cte(
 
     :param fields: Iterable of ``(column_name, sql_type, conv)`` tuples.
         Defaults to ``_HORIZON_WEIGHTED_FIELDS``.
+    :param cte_name: Name of the resulting CTE; defaults to ``hz``.
+        ``_depth_sliced_hz_ctes`` uses ``hz_s0``, ``hz_s1``, ... to keep
+        each slice's CTE name unique within a multi-slice query.
+    :param output_suffix: String appended to each output column name.
+        ``_depth_sliced_hz_ctes`` uses ``__s0``, ``__s1``, ... to keep
+        slice columns unique when joined together.
     """
     thk = _horizon_thickness_sql(top, bottom)
     weighted = ",\n            ".join(
         f"CASE WHEN SUM(x.thk) = 0 THEN NULL "
-        f"ELSE SUM(x.thk * x.{name}) / SUM(x.thk) END AS {name}"
+        f"ELSE SUM(x.thk * x.{name}) / SUM(x.thk) END AS {name}{output_suffix}"
         for name, _t, _conv in fields
     )
     inner = ",\n                ".join(
         f"h.{name} * {conv} AS {name}" for name, _t, conv in fields
     )
-    return f"""hz AS (
+    return f"""{cte_name} AS (
         SELECT x.mukey,
             {weighted}
         FROM (
@@ -308,6 +325,89 @@ def _depth_weighted_hz_cte(
         ) x
         GROUP BY x.mukey
     )"""
+
+
+def _slice_suffix(i: int) -> str:
+    """Return the column-name suffix used for slice ``i`` (e.g. ``__s0``).
+
+    The double underscore is intentional — it avoids accidental collisions
+    with an existing SSURGO column name and is easy to split on when the
+    rasterizer needs to recover ``(base_field, slice_index)``.
+    """
+    return f"__s{i}"
+
+
+def _slice_cte_name(i: int) -> str:
+    """Return the SQL CTE name for slice ``i`` (e.g. ``hz_s0``)."""
+    return f"hz_s{i}"
+
+
+def _depth_sliced_hz_ctes(
+    *,
+    chorizon_table: str,
+    desgnmaster: str,
+    slices,
+    fields=_HORIZON_WEIGHTED_FIELDS,
+) -> str:
+    """Build N hz CTEs, one per ``(top, bottom)`` slice in ``slices``.
+
+    Each CTE is named ``hz_sN`` and produces columns suffixed ``__sN`` so
+    callers can join all of them together against ``dom`` and project per-slice
+    values in a single result row per mukey.
+    """
+    return ",\n".join(
+        _depth_weighted_hz_cte(
+            chorizon_table=chorizon_table,
+            desgnmaster=desgnmaster,
+            top=top,
+            bottom=bottom,
+            fields=fields,
+            cte_name=_slice_cte_name(i),
+            output_suffix=_slice_suffix(i),
+        )
+        for i, (top, bottom) in enumerate(slices)
+    )
+
+
+def _horizon_slice_columns(slices, fields=_HORIZON_WEIGHTED_FIELDS):
+    """Expand ``fields`` × ``slices`` into per-slice ``(name, sql_type)`` pairs.
+
+    Returns a flat list of ``(slice_column_name, sql_type)`` tuples in
+    slice-major order (slice 0 fields, then slice 1 fields, ...). The
+    ``conv`` factor is applied inside the SQL, so it doesn't need to be
+    carried at this layer.
+    """
+    out = []
+    for i in range(len(slices)):
+        suffix = _slice_suffix(i)
+        for name, sql_type, _conv in fields:
+            out.append((f"{name}{suffix}", sql_type))
+    return out
+
+
+def _parse_depths(depths_str: str):
+    """Parse a comma-separated cm depth-boundary string into ``(slices, max)``.
+
+    Returns ``(None, None)`` when the string is empty (caller falls back to the
+    single-range path). Otherwise returns ``(slices, max_depth)`` where
+    ``slices`` is a list of ``(top, bottom)`` cm tuples for each adjacent pair.
+
+    Raises a fatal error if the values aren't numeric, aren't strictly
+    monotonically increasing, or there are fewer than two boundaries.
+    """
+    if not depths_str:
+        return None, None
+    try:
+        values = [float(v.strip()) for v in depths_str.split(",") if v.strip()]
+    except ValueError as exc:
+        gs.fatal(_("Invalid depths value: %s") % exc)
+    if len(values) < 2:
+        gs.fatal(_("depths must contain at least 2 boundaries (got %d)") % len(values))
+    for a, b in zip(values, values[1:]):
+        if not b > a:
+            gs.fatal(_("depths must be strictly increasing: got %s") % values)
+    slices = list(zip(values, values[1:]))
+    return slices, values[-1]
 
 
 def _import_duckdb(error):
@@ -641,6 +741,7 @@ def local_ssurgo_query(
     hzdept_r,
     hzdepb_r,
     agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+    slices=None,
 ):
     """
     Import SSURGO data from a local ZIP file.
@@ -657,6 +758,10 @@ def local_ssurgo_query(
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
         agg (SoilAggMethod): Aggregation method.
+        slices (list[tuple[float, float]] | None): Optional list of
+            ``(top, bottom)`` cm slices. When provided, the output has one
+            set of depth-weighted columns per slice (suffixed ``__s0``,
+            ``__s1``, ...) and ``hzdept_r`` / ``hzdepb_r`` are ignored.
     Returns:
         None: This function does not return any value. It creates raster and vector layers in the GRASS environment.
     """
@@ -746,25 +851,41 @@ def local_ssurgo_query(
 
     if agg == SoilAggMethod.DOMINANT_COMPONENT:
         gs.message(_("Using dominant component aggregation method."))
-        cte_chain = ",\n".join(
-            [
-                _dominant_component_ctes(
-                    component_table="comp",
-                    mu_filter_clause=(
-                        "INNER JOIN mu ON mu.mukey = c.mukey "
-                        "WHERE c.comppct_r IS NOT NULL"
-                    ),
-                ),
-                _depth_weighted_hz_cte(
-                    chorizon_table="horiz",
-                    desgnmaster=desgnmaster,
-                    top=top,
-                    bottom=bottom,
-                ),
-            ]
+        dom_cte = _dominant_component_ctes(
+            component_table="comp",
+            mu_filter_clause=(
+                "INNER JOIN mu ON mu.mukey = c.mukey WHERE c.comppct_r IS NOT NULL"
+            ),
         )
+        if slices:
+            hz_ctes = _depth_sliced_hz_ctes(
+                chorizon_table="horiz",
+                desgnmaster=desgnmaster,
+                slices=slices,
+            )
+            hz_join = "\n        ".join(
+                f"LEFT JOIN {_slice_cte_name(i)} "
+                f"ON {_slice_cte_name(i)}.mukey = mu.mukey"
+                for i in range(len(slices))
+            )
+            hz_cols = ", ".join(
+                f"{_slice_cte_name(i)}.{name}{_slice_suffix(i)}"
+                for i in range(len(slices))
+                for name, _t, _c in _HORIZON_WEIGHTED_FIELDS
+            )
+        else:
+            hz_ctes = _depth_weighted_hz_cte(
+                chorizon_table="horiz",
+                desgnmaster=desgnmaster,
+                top=top,
+                bottom=bottom,
+            )
+            hz_join = "LEFT JOIN hz ON hz.mukey = mu.mukey"
+            hz_cols = ", ".join(
+                f"hz.{name}" for name, _t, _c in _HORIZON_WEIGHTED_FIELDS
+            )
+        cte_chain = ",\n".join([dom_cte, hz_ctes])
         dom_cols = ", ".join(f"d.{name}" for name, _t in _DOM_COMPONENT_FIELDS)
-        hz_cols = ", ".join(f"hz.{name}" for name, _t, _c in _HORIZON_WEIGHTED_FIELDS)
         query = f"""
         WITH {cte_chain}
         SELECT mu.mukey,
@@ -776,7 +897,7 @@ def local_ssurgo_query(
             mu.geom
         FROM mu
         LEFT JOIN dom d ON d.mukey = mu.mukey
-        LEFT JOIN hz ON hz.mukey  = mu.mukey
+        {hz_join}
         """
 
     else:
@@ -813,6 +934,7 @@ def local_ssurgo_sqlite_query(
     hzdept_r,
     hzdepb_r,
     agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+    slices=None,
 ):
     """Import SSURGO data from a local GDB using ogr2ogr + Python sqlite3.
 
@@ -835,6 +957,10 @@ def local_ssurgo_sqlite_query(
         hzdept_r (int): Horizon depth top (cm).
         hzdepb_r (int): Horizon depth bottom (cm).
         agg (SoilAggMethod): Aggregation method.
+        slices (list[tuple[float, float]] | None): Optional list of
+            ``(top, bottom)`` cm slices. When provided, the output has one
+            set of depth-weighted columns per slice (suffixed ``__s0``,
+            ``__s1``, ...) and ``hzdept_r`` / ``hzdepb_r`` are ignored.
 
     Returns:
         str or None: Path to the written FlatGeobuf file, or ``None`` if the
@@ -940,10 +1066,14 @@ def local_ssurgo_sqlite_query(
             gs.message(_("Loaded %d MUPOLYGON features.") % mu_count)
 
             # Output schema for the agg table and (later) the augmented
-            # mupolygon table. The first four columns are fixed identifiers;
-            # the rest come from the field tables. Keeping the schema
-            # data-driven means adding/removing a SSURGO field is a one-line
-            # change in `_DOM_COMPONENT_FIELDS` / `_HORIZON_WEIGHTED_FIELDS`.
+            # mupolygon table. Identifiers + dominant-component fields are
+            # always present; horizon-weighted fields are produced once
+            # (column names unsuffixed) for a single depth range, or N times
+            # (suffixed __s0, __s1, ...) when slicing for r3 output.
+            if slices:
+                hz_schema = _horizon_slice_columns(slices)
+            else:
+                hz_schema = [(n, t) for n, t, _c in _HORIZON_WEIGHTED_FIELDS]
             output_fields = (
                 [
                     ("mukey", "TEXT"),
@@ -952,7 +1082,7 @@ def local_ssurgo_sqlite_query(
                     ("comppct_r", "REAL"),
                 ]
                 + [(n, t) for n, t in _DOM_COMPONENT_FIELDS]
-                + [(n, t) for n, t, _c in _HORIZON_WEIGHTED_FIELDS]
+                + hz_schema
             )
 
             # Pre-create agg with explicit column affinities so SQLite stores
@@ -962,27 +1092,43 @@ def local_ssurgo_sqlite_query(
             # String when leading rows have NULL ksat / hydgrp values.
             cur.execute("DROP TABLE IF EXISTS agg")
             create_cols = ",\n                    ".join(
-                f"{n:13} {t}" for n, t in output_fields
+                f"{n:18} {t}" for n, t in output_fields
             )
             cur.execute(f"CREATE TABLE agg ({create_cols})")
 
-            cte_chain = ",\n".join(
-                [
-                    _dominant_component_ctes(
-                        component_table=SSURGO_TABLE_COMPONENT,
-                        mu_filter_clause=(
-                            "WHERE c.comppct_r IS NOT NULL "
-                            "AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)"
-                        ),
-                    ),
-                    _depth_weighted_hz_cte(
-                        chorizon_table=SSURGO_TABLE_CHORIZON,
-                        desgnmaster=desgnmaster,
-                        top=top,
-                        bottom=bottom,
-                    ),
-                ]
+            dom_cte = _dominant_component_ctes(
+                component_table=SSURGO_TABLE_COMPONENT,
+                mu_filter_clause=(
+                    "WHERE c.comppct_r IS NOT NULL "
+                    "AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)"
+                ),
             )
+            if slices:
+                hz_ctes = _depth_sliced_hz_ctes(
+                    chorizon_table=SSURGO_TABLE_CHORIZON,
+                    desgnmaster=desgnmaster,
+                    slices=slices,
+                )
+                hz_join = "\n            ".join(
+                    f"LEFT JOIN {_slice_cte_name(i)} "
+                    f"ON {_slice_cte_name(i)}.mukey = dom.mukey"
+                    for i in range(len(slices))
+                )
+                hz_select = [
+                    f"{_slice_cte_name(i)}.{name}{_slice_suffix(i)}"
+                    for i in range(len(slices))
+                    for name, _t, _c in _HORIZON_WEIGHTED_FIELDS
+                ]
+            else:
+                hz_ctes = _depth_weighted_hz_cte(
+                    chorizon_table=SSURGO_TABLE_CHORIZON,
+                    desgnmaster=desgnmaster,
+                    top=top,
+                    bottom=bottom,
+                )
+                hz_join = "LEFT JOIN hz ON hz.mukey = dom.mukey"
+                hz_select = [f"hz.{name}" for name, _t, _c in _HORIZON_WEIGHTED_FIELDS]
+            cte_chain = ",\n".join([dom_cte, hz_ctes])
             select_cols = (
                 [
                     "dom.mukey",
@@ -991,14 +1137,14 @@ def local_ssurgo_sqlite_query(
                     "dom.comppct_r",
                 ]
                 + [f"dom.{n}" for n, _t in _DOM_COMPONENT_FIELDS]
-                + [f"hz.{n}" for n, _t, _c in _HORIZON_WEIGHTED_FIELDS]
+                + hz_select
             )
             agg_sql = f"""
             INSERT INTO agg
             WITH {cte_chain}
             SELECT {", ".join(select_cols)}
             FROM dom
-            LEFT JOIN hz ON hz.mukey = dom.mukey
+            {hz_join}
             """
             cur.execute(agg_sql)
             cur.execute("CREATE INDEX agg_mukey_idx ON agg(mukey)")
@@ -1071,7 +1217,9 @@ def local_ssurgo_sqlite_query(
             os.remove(tmp_gpkg)
 
 
-def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
+def _rasterize_and_style(
+    ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=None
+):
     """Convert imported SSURGO vector attributes to raster maps and apply color schemes.
 
     :param str ssurgo_areas: Name of the imported SSURGO vector map.
@@ -1080,19 +1228,31 @@ def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
     :param str ksat_r: Output name for Ksat regular raster (or empty to skip).
     :param str ksat_l: Output name for Ksat low raster (or empty to skip).
     :param str mukey: Output name for map unit key raster (or empty to skip).
+    :param slices: Optional list of ``(top, bottom)`` cm slices. When set,
+        ``ksat_l/r/h`` are produced as r3 (3D) rasters with one slice per
+        depth bin; ``hydgrp`` and ``mukey`` are still produced as 2D rasters
+        because they're profile-level / identity values.
     """
     update_hydrologic_group(ssurgo_areas)
-    _output_maps = [
+
+    # 2D outputs always: hydgrp, mukey
+    _2d_maps = [
         ("hsg", hydgrp, "hydgrp"),
-        ("ksat_h", ksat_h, None),
-        ("ksat_r", ksat_r, None),
-        ("ksat_l", ksat_l, None),
         ("mukey_int", mukey, None),
     ]
-    for col, map_name, label_column in _output_maps:
+    if not slices:
+        # No slicing — depth-weighted Ksat rasters are 2D too (legacy path).
+        _2d_maps.extend(
+            [
+                ("ksat_h", ksat_h, None),
+                ("ksat_r", ksat_r, None),
+                ("ksat_l", ksat_l, None),
+            ]
+        )
+
+    for col, map_name, label_column in _2d_maps:
         if not map_name:
             continue
-
         gs.run_command(
             "v.to.rast",
             input=ssurgo_areas,
@@ -1102,16 +1262,71 @@ def _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey):
             output=map_name,
             label_column=label_column if label_column else "",
         )
-
         if col in ("ksat_l", "ksat_r", "ksat_h"):
             ksat_color_scheme(map_name)
-
         if col == "mukey_int":
             gs.run_command("r.colors", map=map_name, color="random")
-
         if col == "hsg":
             hydrologic_soil_group_categories(map_name)
             hydrologic_soil_group_color_scheme(map_name)
+
+    if slices:
+        for base, name in (("ksat_l", ksat_l), ("ksat_r", ksat_r), ("ksat_h", ksat_h)):
+            if not name:
+                continue
+            _rasterize_3d(ssurgo_areas, base_field=base, output=name, slices=slices)
+
+
+def _rasterize_3d(ssurgo_areas, *, base_field: str, output: str, slices):
+    """Build a 3D raster ``output`` from per-slice attribute columns.
+
+    For each slice ``i`` in ``slices``, rasterizes
+    ``<ssurgo_areas>.<base_field>__sN`` to a temporary 2D raster, then stacks
+    all of them into a 3D raster with ``r.to.rast3``. The 3D region is set to
+    ``b=0 t=max_depth`` so the z-axis represents depth from the surface.
+
+    Temporary 2D rasters are deleted on completion.
+    """
+    gs.message(_("Building 3D raster %s from %d slices...") % (output, len(slices)))
+    max_depth = max(b for _t, b in slices)
+    nz = len(slices)
+    tbres = max_depth / nz
+    # Set the 3D region. The 2D extent / xy-resolution are inherited from the
+    # current region; we only override z. b=0, t=max_depth means slice 0 is at
+    # the bottom (z=0) and slice N-1 is at the top — for a soil-as-depth
+    # interpretation, see the docs (the user can flip with `g.region -3`).
+    gs.run_command("g.region", t=max_depth, b=0, tbres=tbres)
+
+    temp_2d = []
+    try:
+        for i, _slice in enumerate(slices):
+            col = f"{base_field}{_slice_suffix(i)}"
+            tmp = f"_tmp_{output}_s{i}"
+            gs.run_command(
+                "v.to.rast",
+                input=ssurgo_areas,
+                type="area",
+                use="attr",
+                attribute_column=col,
+                output=tmp,
+                overwrite=True,
+            )
+            temp_2d.append(tmp)
+        gs.run_command(
+            "r.to.rast3",
+            input=",".join(temp_2d),
+            output=output,
+            overwrite=True,
+        )
+        ksat_color_scheme(output)
+    finally:
+        if temp_2d:
+            gs.run_command(
+                "g.remove",
+                type="raster",
+                name=",".join(temp_2d),
+                flags="f",
+            )
 
 
 def _parse_wkt_coordinates(coord_string):
@@ -1178,7 +1393,7 @@ def _wkt_to_geojson_geometry(wkt_str):
     return None
 
 
-def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r):
+def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r, slices=None):
     """Import SSURGO data from the Soil Data Access (SDA) web service.
 
     Fetches soil polygon geometry and attribute data for the area of interest
@@ -1191,6 +1406,7 @@ def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r):
     :param str desgnmaster: Designation of master horizon.
     :param int hzdept_r: Horizon depth top (cm).
     :param int hzdepb_r: Horizon depth bottom (cm).
+    :param slices: Optional list of ``(top, bottom)`` cm slices for r3 output.
     :return: Name of the imported vector map or None on failure.
     :rtype: str or None
     """
@@ -1201,6 +1417,7 @@ def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r):
         bottom_cm=hzdepb_r,
         desgnmaster=desgnmaster,
         agg=SoilAggMethod.DOMINANT_COMPONENT,
+        slices=slices,
     )
 
     if not results or "Table" not in results:
@@ -1281,6 +1498,7 @@ class SDAClient:
         bottom_cm: int,
         desgnmaster: str = "A",
         agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+        slices=None,
     ):
         """
         Build a T-SQL batch that:
@@ -1295,6 +1513,9 @@ class SDAClient:
         :param int bottom_cm: Horizon depth bottom (cm).
         :param str desgnmaster: Master horizon designation filter (default ``'A'``).
         :param SoilAggMethod agg: Aggregation method.
+        :param slices: Optional list of ``(top, bottom)`` cm slices for
+            multi-depth (r3) output. When provided, the SQL projects one
+            set of depth-weighted columns per slice, suffixed ``__sN``.
         :return: T-SQL query string.
         :rtype: str
         """
@@ -1303,31 +1524,51 @@ class SDAClient:
         conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
 
         if agg == SoilAggMethod.DOMINANT_COMPONENT:
-            cte_chain = ",\n".join(
-                [
-                    f"mu AS (SELECT DISTINCT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}'))",
-                    _dominant_component_ctes(
-                        component_table=SSURGO_TABLE_COMPONENT,
-                        mu_filter_clause=(
-                            "INNER JOIN mu ON mu.mukey = c.mukey "
-                            "WHERE c.comppct_r IS NOT NULL"
-                        ),
-                    ),
-                    _depth_weighted_hz_cte(
-                        chorizon_table=SSURGO_TABLE_CHORIZON,
-                        desgnmaster=desgnmaster,
-                        top=top,
-                        bottom=bottom,
-                    ),
-                    """poly AS (
-                  SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
-                  FROM (SELECT mukey FROM mu) t
-                  CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
-                )""",
-                ]
+            mu_cte = (
+                f"mu AS (SELECT DISTINCT mukey FROM "
+                f"SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}'))"
             )
+            dom_cte = _dominant_component_ctes(
+                component_table=SSURGO_TABLE_COMPONENT,
+                mu_filter_clause=(
+                    "INNER JOIN mu ON mu.mukey = c.mukey WHERE c.comppct_r IS NOT NULL"
+                ),
+            )
+            poly_cte = (
+                "poly AS (\n"
+                "                  SELECT t.mukey, p.MupolygonWktWgs84 AS wkt\n"
+                "                  FROM (SELECT mukey FROM mu) t\n"
+                "                  CROSS APPLY"
+                " SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p\n"
+                "                )"
+            )
+            if slices:
+                hz_ctes = _depth_sliced_hz_ctes(
+                    chorizon_table=SSURGO_TABLE_CHORIZON,
+                    desgnmaster=desgnmaster,
+                    slices=slices,
+                )
+                hz_join = "\n            ".join(
+                    f"LEFT JOIN {_slice_cte_name(i)} "
+                    f"ON {_slice_cte_name(i)}.mukey = poly.mukey"
+                    for i in range(len(slices))
+                )
+                hz_cols = ", ".join(
+                    f"{_slice_cte_name(i)}.{name}{_slice_suffix(i)}"
+                    for i in range(len(slices))
+                    for name, _t, _c in _HORIZON_WEIGHTED_FIELDS
+                )
+            else:
+                hz_ctes = _depth_weighted_hz_cte(
+                    chorizon_table=SSURGO_TABLE_CHORIZON,
+                    desgnmaster=desgnmaster,
+                    top=top,
+                    bottom=bottom,
+                )
+                hz_join = "LEFT JOIN hz ON hz.mukey = poly.mukey"
+                hz_cols = ", ".join(f"hz.{n}" for n, _t, _c in _HORIZON_WEIGHTED_FIELDS)
+            cte_chain = ",\n".join([mu_cte, dom_cte, hz_ctes, poly_cte])
             dom_cols = ", ".join(f"d.{n}" for n, _t in _DOM_COMPONENT_FIELDS)
-            hz_cols = ", ".join(f"hz.{n}" for n, _t, _c in _HORIZON_WEIGHTED_FIELDS)
             sql = f"""
             WITH {cte_chain}
             SELECT poly.mukey,
@@ -1339,7 +1580,7 @@ class SDAClient:
                    poly.wkt
             FROM poly
             LEFT JOIN dom d ON d.mukey = poly.mukey
-            LEFT JOIN hz ON hz.mukey = poly.mukey
+            {hz_join}
             """
         else:
             # weighted_component — uses a different aggregation shape than the
@@ -1492,6 +1733,7 @@ class SDAClient:
         bottom_cm: int,
         desgnmaster: str = "A",
         agg: SoilAggMethod = SoilAggMethod.DOMINANT_COMPONENT,
+        slices=None,
     ):
         """Fetch SSURGO data from SDA for the given area of interest.
 
@@ -1500,11 +1742,15 @@ class SDAClient:
         :param int bottom_cm: Horizon depth bottom (cm).
         :param str desgnmaster: Master horizon designation filter.
         :param SoilAggMethod agg: Aggregation method.
+        :param slices: Optional list of ``(top, bottom)`` cm slices for r3
+            output. Plumbed through to :meth:`_build_sda_sql`.
         :return: Parsed JSON response from SDA containing a ``Table`` key.
         :rtype: dict or None
         """
         gs.debug(_("SDAClient.fetch_sda: building SQL query..."))
-        sql = self._build_sda_sql(aoi_wkt, top_cm, bottom_cm, desgnmaster, agg)
+        sql = self._build_sda_sql(
+            aoi_wkt, top_cm, bottom_cm, desgnmaster, agg, slices=slices
+        )
         gs.debug(_("SDAClient.fetch_sda: SQL built, querying SDA..."))
         result = self._sda_post_sql(sql)
         gs.debug(_("SDAClient.fetch_sda: received response from SDA."))
@@ -1613,7 +1859,19 @@ def main():
     # Vector outputs
     ssurgo_areas = options["soils"]
 
-    # TODO: Add raster3d output option for depth-varying Ksat
+    # Optional depth slices for r3 output. When set, ksat_l/r/h are produced
+    # as 3D rasters with one band per slice, and hzdept_r/hzdepb_r are ignored
+    # (the aggregation runs once per slice).
+    slices, slices_max_depth = _parse_depths(options.get("depths", ""))
+    if slices:
+        gs.message(
+            _("depths is set; producing r3 outputs over %d slices (0-%g cm).")
+            % (len(slices), slices_max_depth)
+        )
+        # When slicing, the per-slice aggregations carry their own bottom
+        # bounds. The single-slice hzdept_r/hzdepb_r values become irrelevant.
+        hzdept_r = 0
+        hzdepb_r = int(slices_max_depth)
 
     # Processing options
     nprocs = int(options["nprocs"])  # optional
@@ -1634,6 +1892,7 @@ def main():
                 desgnmaster=desgnmaster,
                 hzdept_r=hzdept_r,
                 hzdepb_r=hzdepb_r,
+                slices=slices,
             )
             write_ssurgo_to_grass(
                 tmp_filepath, ssurgo_areas, src_srs=SDA_GEOGRAPHIC_EPSG
@@ -1671,6 +1930,7 @@ def main():
                     desgnmaster=desgnmaster,
                     hzdept_r=hzdept_r,
                     hzdepb_r=hzdepb_r,
+                    slices=slices,
                 )
                 write_ssurgo_to_grass(
                     tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
@@ -1690,11 +1950,11 @@ def main():
                 gs.message(f"Tempfile Path: {tmp_filepath}")
                 local_ssurgo_sqlite_query(
                     tmp_filepath=tmp_filepath,
-                    # wkt_bbox=wkt_bbox,
                     ssurgo_path=str(_ssurgo_path),
                     desgnmaster=desgnmaster,
                     hzdept_r=hzdept_r,
                     hzdepb_r=hzdepb_r,
+                    slices=slices,
                 )
                 write_ssurgo_to_grass(
                     tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
@@ -1707,7 +1967,9 @@ def main():
                     gs.debug(f"Removed temp file: {tmp_filepath}")
 
     if ssurgo_areas:
-        _rasterize_and_style(ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey)
+        _rasterize_and_style(
+            ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=slices
+        )
 
 
 if __name__ == "__main__":

@@ -12,8 +12,6 @@ Tests are organised into sections:
 from __future__ import annotations
 
 import json
-import sys
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -940,6 +938,7 @@ class TestForceSqliteFlag:
         "hzdept_r": "0",
         "hzdepb_r": "25",
         "nprocs": "1",
+        "depths": "",
     }
 
     def _patch_main(self, ssurgo_module, options, flags):
@@ -1005,3 +1004,136 @@ class TestForceSqliteFlag:
             # Should run the duckdb branch without KeyError.
             ssurgo_module.main()
             ssurgo_module.local_ssurgo_query.assert_called_once()
+
+
+# ===================================================================
+# Section 9 – depth-slice (r3) support
+# ===================================================================
+
+
+class TestParseDepths:
+    """Tests for _parse_depths."""
+
+    def test_empty_returns_none(self, ssurgo_module):
+        slices, max_depth = ssurgo_module._parse_depths("")
+        assert slices is None
+        assert max_depth is None
+
+    def test_basic_slices(self, ssurgo_module):
+        slices, max_depth = ssurgo_module._parse_depths("0,15,30,60,100")
+        assert slices == [(0.0, 15.0), (15.0, 30.0), (30.0, 60.0), (60.0, 100.0)]
+        assert max_depth == 100.0
+
+    def test_floats_accepted(self, ssurgo_module):
+        slices, max_depth = ssurgo_module._parse_depths("0,12.5,25")
+        assert slices == [(0.0, 12.5), (12.5, 25.0)]
+        assert max_depth == 25.0
+
+    def test_whitespace_tolerated(self, ssurgo_module):
+        slices, _ = ssurgo_module._parse_depths(" 0 , 15 , 30 ")
+        assert slices == [(0.0, 15.0), (15.0, 30.0)]
+
+    def test_single_value_fatal(self, ssurgo_module):
+        with patch.object(ssurgo_module.gs, "fatal", side_effect=SystemExit):
+            with pytest.raises(SystemExit):
+                ssurgo_module._parse_depths("0")
+
+    def test_non_increasing_fatal(self, ssurgo_module):
+        with patch.object(ssurgo_module.gs, "fatal", side_effect=SystemExit):
+            with pytest.raises(SystemExit):
+                ssurgo_module._parse_depths("0,30,15")
+
+    def test_duplicate_boundary_fatal(self, ssurgo_module):
+        # Equal adjacent values produce a zero-thickness slice → reject.
+        with patch.object(ssurgo_module.gs, "fatal", side_effect=SystemExit):
+            with pytest.raises(SystemExit):
+                ssurgo_module._parse_depths("0,15,15,30")
+
+    def test_non_numeric_fatal(self, ssurgo_module):
+        with patch.object(ssurgo_module.gs, "fatal", side_effect=SystemExit):
+            with pytest.raises(SystemExit):
+                ssurgo_module._parse_depths("0,abc,30")
+
+
+class TestSlicedSqlGeneration:
+    """Tests for the SDA SQL builder with slices."""
+
+    AOI = "POLYGON((-79 35, -79 36, -78 36, -78 35, -79 35))"
+
+    def test_single_slice_uses_unsuffixed_columns(self, SDAClient, SoilAggMethod):
+        """Without slices the SQL keeps the unsuffixed (`hz.ksat_r`) form."""
+        client = SDAClient()
+        sql = client._build_sda_sql(
+            aoi_wkt=self.AOI,
+            top_cm=0,
+            bottom_cm=100,
+            agg=SoilAggMethod.DOMINANT_COMPONENT,
+        )
+        assert "hz.ksat_r" in sql
+        assert "ksat_r__s0" not in sql
+        assert "hz_s0" not in sql
+
+    def test_slices_produce_per_slice_columns(self, SDAClient, SoilAggMethod):
+        """With slices set, the SQL projects per-slice columns and CTEs."""
+        client = SDAClient()
+        sql = client._build_sda_sql(
+            aoi_wkt=self.AOI,
+            top_cm=0,
+            bottom_cm=100,
+            agg=SoilAggMethod.DOMINANT_COMPONENT,
+            slices=[(0.0, 15.0), (15.0, 30.0), (30.0, 60.0)],
+        )
+        # One hz_sN CTE per slice
+        for i in range(3):
+            assert f"hz_s{i} AS (" in sql
+        # Per-slice ksat columns appear in the outer SELECT
+        for i in range(3):
+            assert f"hz_s{i}.ksat_r__s{i}" in sql
+        # Each slice's hz CTE gets its own LEFT JOIN
+        for i in range(3):
+            assert f"LEFT JOIN hz_s{i}" in sql
+        # Single-slice aliases are gone
+        assert "LEFT JOIN hz ON" not in sql
+        assert "hz.ksat_r" not in sql
+
+    def test_slice_thickness_bounds_in_sql(self, SDAClient, SoilAggMethod):
+        """Each slice's WHERE filter must use that slice's own (top, bottom)."""
+        client = SDAClient()
+        sql = client._build_sda_sql(
+            aoi_wkt=self.AOI,
+            top_cm=0,
+            bottom_cm=100,
+            agg=SoilAggMethod.DOMINANT_COMPONENT,
+            slices=[(0.0, 15.0), (15.0, 30.0)],
+        )
+        # Slice 0 filter: hzdept_r < 15.0 AND hzdepb_r > 0.0
+        assert "hzdept_r < 15.0" in sql
+        # Slice 1 filter: hzdept_r < 30.0 AND hzdepb_r > 15.0
+        assert "hzdept_r < 30.0" in sql
+        assert "hzdepb_r > 15.0" in sql
+
+
+class TestHorizonSliceColumns:
+    """Tests for _horizon_slice_columns."""
+
+    def test_expansion_count(self, ssurgo_module):
+        """N slices × M fields → N*M output columns."""
+        slices = [(0.0, 15.0), (15.0, 30.0), (30.0, 60.0)]
+        cols = ssurgo_module._horizon_slice_columns(slices)
+        assert len(cols) == len(slices) * len(ssurgo_module._HORIZON_WEIGHTED_FIELDS)
+
+    def test_naming_convention(self, ssurgo_module):
+        """Column names are `<field>__s<i>`; types come from the field table."""
+        slices = [(0.0, 15.0), (15.0, 30.0)]
+        cols = ssurgo_module._horizon_slice_columns(slices)
+        names = [n for n, _ in cols]
+        # First slice: ksat_l__s0, ksat_r__s0, ...
+        assert "ksat_l__s0" in names
+        assert "ksat_r__s0" in names
+        assert "awc_r__s0" in names
+        # Second slice: same fields, __s1
+        assert "ksat_l__s1" in names
+        assert "claytotal_r__s1" in names
+        # All types are inherited from the field definitions
+        for _name, sql_type in cols:
+            assert sql_type in ("REAL", "INTEGER", "TEXT")

@@ -96,6 +96,48 @@ Soils are aggregated using either the dominant component or a weighted average
 of all components in the map unit, depending on the specified depth range or
 master horizon.
 
+### r3 (3D raster) output for depth profiles
+
+When `depths` is set (a comma-separated, strictly-increasing list of cm
+boundaries with at least 2 values), the depth-weighted Ksat outputs
+(**ksat_l**, **ksat_r**, **ksat_h**) are produced as **3D rasters** with
+one z-slice per depth bin instead of a single 2D average. The number of
+slices is `len(depths) - 1`. `hzdept_r` and `hzdepb_r` are ignored when
+`depths` is set; the aggregation runs once per slice.
+
+`hydgrp` and `mukey` always remain 2D — they're profile-level / identity
+values, not depth-dependent.
+
+The 3D region is set with `b=0`, `t=max(depths)` so the z-axis represents
+depth (cm) from the surface; slice 0 is at z=0 to z=depths[1], slice
+N-1 is at z=depths[-2] to z=depths[-1]. Adjust with `g.region -3` if you
+prefer a different convention.
+
+```sh
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soil_areas" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    depths="0,15,30,60,100" \
+    desgnmaster="A"
+# produces: hydgrp (2D), ksat_r (3D, 4 slices)
+```
+
+```python
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soil_areas",
+    ksat_r="ksat_r",
+    depths="0,15,30,60,100",
+    desgnmaster="A",
+)
+```
+
+The intermediate per-slice columns (`ksat_r__s0`, `ksat_r__s1`, …) also
+appear on the **soils** vector if you want to access them as 2D rasters
+or query them via `v.db.select`.
+
 ### Choosing the local-import backend
 
 When importing from a local SSURGO file geodatabase, *r.in.ssurgo* uses the
