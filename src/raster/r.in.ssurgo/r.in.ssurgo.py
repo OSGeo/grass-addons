@@ -152,6 +152,112 @@ class SoilAggMethod(Enum):
     WEIGHTED_COMPONENT = "weighted_component"
 
 
+# ---------------------------------------------------------------------------
+# Shared SQL fragments for the dominant-component depth-weighted aggregation.
+# Used by all three backends (DuckDB, SQLite, SDA T-SQL) so that depth math,
+# the dominant-component pick, and the weighted Ksat aggregation live in
+# exactly one place. CASE-based thickness math is intentionally portable
+# across all three SQL dialects (no scalar MIN/MAX dependency).
+# ---------------------------------------------------------------------------
+
+
+def _horizon_thickness_sql(top: float, bottom: float) -> str:
+    """SQL CASE expression for a horizon's thickness clamped to ``[top, bottom]``.
+
+    Returns 0 when the horizon doesn't overlap the requested range. The
+    expression assumes the horizon is aliased ``h`` (i.e., ``h.hzdept_r`` and
+    ``h.hzdepb_r`` are in scope at the call site).
+    """
+    return f"""CASE
+        WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
+        ELSE
+            CASE
+                WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
+                   - (CASE WHEN h.hzdept_r > {top}    THEN h.hzdept_r ELSE {top}    END) > 0
+                THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r ELSE {bottom} END)
+                   - (CASE WHEN h.hzdept_r > {top}    THEN h.hzdept_r ELSE {top}    END)
+                ELSE 0
+            END
+    END"""
+
+
+def _dominant_component_ctes(
+    *,
+    component_table: str,
+    mu_filter_clause: str,
+) -> str:
+    """Build the ``dom_comp`` and ``dom`` CTE definitions.
+
+    Selects the largest-percentage component per mukey using ROW_NUMBER. The
+    caller composes the result into a ``WITH ...`` chain alongside any
+    backend-specific CTEs (e.g. the source ``mu`` set or a ``poly`` lookup).
+
+    :param component_table: Name (or alias) of the component table/CTE in
+        scope; e.g. ``"comp"`` (DuckDB temp table) or ``"component"`` (raw GDB
+        layer in SQLite/SDA).
+    :param mu_filter_clause: SQL fragment placed immediately after
+        ``FROM <component_table> c``. Backends that have a ``mu`` table use
+        ``"INNER JOIN mu ON mu.mukey = c.mukey WHERE c.comppct_r IS NOT NULL"``;
+        the SQLite path uses
+        ``"WHERE c.comppct_r IS NOT NULL AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)"``.
+    """
+    return f"""dom_comp AS (
+        SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
+               ROW_NUMBER() OVER (
+                   PARTITION BY c.mukey
+                   ORDER BY c.comppct_r DESC, c.cokey
+               ) AS rn
+        FROM {component_table} c
+        {mu_filter_clause}
+    ),
+    dom AS (
+        SELECT mukey, cokey, comppct_r, hydgrp
+        FROM dom_comp WHERE rn = 1
+    )"""
+
+
+def _depth_weighted_hz_cte(
+    *,
+    chorizon_table: str,
+    desgnmaster: str,
+    top: float,
+    bottom: float,
+    conv: float = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR,
+) -> str:
+    """Build the ``hz`` CTE that computes depth-weighted Ksat per mukey.
+
+    Joins the ``dom`` CTE to the chorizon table, restricts to horizons that
+    overlap ``[top, bottom]`` with the given master horizon designation, and
+    produces SUM(thk × ksat) / SUM(thk) per mukey for the L/R/H Ksat estimates.
+    Output Ksat values are converted from µm/s (the SSURGO storage unit) to
+    mm/hr.
+    """
+    thk = _horizon_thickness_sql(top, bottom)
+    return f"""hz AS (
+        SELECT x.mukey,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
+            CASE WHEN SUM(x.thk) = 0 THEN NULL
+                 ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+        FROM (
+            SELECT d.mukey,
+                h.ksat_l * {conv} AS ksat_l,
+                h.ksat_r * {conv} AS ksat_r,
+                h.ksat_h * {conv} AS ksat_h,
+                {thk} AS thk
+            FROM dom d
+            INNER JOIN {chorizon_table} h ON h.cokey = d.cokey
+            WHERE h.ksat_r IS NOT NULL
+              AND h.hzdept_r < {bottom}
+              AND h.hzdepb_r > {top}
+              AND h.desgnmaster = '{desgnmaster}'
+        ) x
+        GROUP BY x.mukey
+    )"""
+
+
 def _import_duckdb(error):
     """Import duckdb module"""
     try:
@@ -589,85 +695,26 @@ def local_ssurgo_query(
 
     if agg == SoilAggMethod.DOMINANT_COMPONENT:
         gs.message(_("Using dominant component aggregation method."))
-        # Dominant component aggregation method:
-        query = f"""
-        WITH dom_comp AS (
-            SELECT
-                c.mukey,
-                c.cokey,
-                c.comppct_r,
-                c.hydgrp,
-                ROW_NUMBER() OVER (
-                    PARTITION BY c.mukey
-                    ORDER BY c.comppct_r DESC, c.cokey
-                ) AS rn
-            FROM comp c
-            INNER JOIN mu ON mu.mukey = c.mukey
-            WHERE c.comppct_r IS NOT NULL
-        ),
-        dom AS (
-            SELECT mukey, cokey, comppct_r, hydgrp
-            FROM dom_comp
-            WHERE rn = 1
-        ),
-        hz AS (
-            SELECT x.mukey,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                    ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                    ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                    ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
-            FROM (
-                SELECT d.mukey,
-                    h.ksat_l * {conv} AS ksat_l,
-                    h.ksat_r * {conv} AS ksat_r,
-                    h.ksat_h * {conv} AS ksat_h,
-                    CASE
-                        WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL
-                            THEN 0
-                        ELSE
-                            CASE
-                                WHEN (
-                                    CASE
-                                        WHEN h.hzdepb_r < {bottom}
-                                            THEN h.hzdepb_r
-                                        ELSE {bottom}
-                                    END
-                                )
-                                - (
-                                    CASE
-                                        WHEN h.hzdept_r > {top}
-                                            THEN h.hzdept_r
-                                        ELSE {top}
-                                    END
-                                ) > 0
-                                THEN (
-                                    CASE
-                                        WHEN h.hzdepb_r < {bottom}
-                                            THEN h.hzdepb_r
-                                        ELSE {bottom}
-                                    END
-                                    )
-                                    - (
-                                        CASE
-                                            WHEN h.hzdept_r > {top}
-                                                THEN h.hzdept_r
-                                            ELSE {top}
-                                        END
-                                    )
-                                ELSE 0
-                            END
-                    END AS thk
-                FROM dom d
-                INNER JOIN horiz h ON h.cokey = d.cokey
-                WHERE h.ksat_r IS NOT NULL
-                  AND h.hzdept_r < {bottom}
-                  AND h.hzdepb_r > {top}
-                  AND h.desgnmaster = '{desgnmaster}'
-            ) x
-            GROUP BY x.mukey
+        cte_chain = ",\n".join(
+            [
+                _dominant_component_ctes(
+                    component_table="comp",
+                    mu_filter_clause=(
+                        "INNER JOIN mu ON mu.mukey = c.mukey "
+                        "WHERE c.comppct_r IS NOT NULL"
+                    ),
+                ),
+                _depth_weighted_hz_cte(
+                    chorizon_table="horiz",
+                    desgnmaster=desgnmaster,
+                    top=top,
+                    bottom=bottom,
+                    conv=conv,
+                ),
+            ]
         )
+        query = f"""
+        WITH {cte_chain}
         SELECT mu.mukey,
             CAST(mu.mukey AS INTEGER) AS mukey_int,
             d.cokey,
@@ -863,51 +910,27 @@ def local_ssurgo_sqlite_query(
                 )
                 """
             )
+            cte_chain = ",\n".join(
+                [
+                    _dominant_component_ctes(
+                        component_table=SSURGO_TABLE_COMPONENT,
+                        mu_filter_clause=(
+                            "WHERE c.comppct_r IS NOT NULL "
+                            "AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)"
+                        ),
+                    ),
+                    _depth_weighted_hz_cte(
+                        chorizon_table=SSURGO_TABLE_CHORIZON,
+                        desgnmaster=desgnmaster,
+                        top=top,
+                        bottom=bottom,
+                        conv=conv,
+                    ),
+                ]
+            )
             agg_sql = f"""
             INSERT INTO agg
-            WITH dom_comp AS (
-                SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY c.mukey
-                           ORDER BY c.comppct_r DESC, c.cokey
-                       ) AS rn
-                FROM component c
-                WHERE c.comppct_r IS NOT NULL
-                  AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)
-            ),
-            dom AS (
-                SELECT mukey, cokey, comppct_r, hydgrp
-                FROM dom_comp WHERE rn = 1
-            ),
-            hz AS (
-                SELECT x.mukey,
-                    CASE WHEN SUM(x.thk) = 0 THEN NULL
-                         ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
-                    CASE WHEN SUM(x.thk) = 0 THEN NULL
-                         ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
-                    CASE WHEN SUM(x.thk) = 0 THEN NULL
-                         ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
-                FROM (
-                    SELECT d.mukey,
-                        h.ksat_l * {conv} AS ksat_l,
-                        h.ksat_r * {conv} AS ksat_r,
-                        h.ksat_h * {conv} AS ksat_h,
-                        CASE
-                            WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                            ELSE MAX(0,
-                                MIN(COALESCE(h.hzdepb_r, 0), {bottom}) -
-                                MAX(COALESCE(h.hzdept_r, 0), {top})
-                            )
-                        END AS thk
-                    FROM dom d
-                    INNER JOIN chorizon h ON h.cokey = d.cokey
-                    WHERE h.ksat_r IS NOT NULL
-                      AND h.hzdept_r < {bottom}
-                      AND h.hzdepb_r > {top}
-                      AND h.desgnmaster = '{desgnmaster}'
-                ) x
-                GROUP BY x.mukey
-            )
+            WITH {cte_chain}
             SELECT dom.mukey,
                 CAST(dom.mukey AS INTEGER) AS mukey_int,
                 dom.cokey,
@@ -929,11 +952,7 @@ def local_ssurgo_sqlite_query(
             # ...) that are provided by GDAL/spatialite at runtime. Stdlib
             # sqlite3 doesn't load those extensions, so any UPDATE on
             # mupolygon — even of non-geometry columns — fails when SQLite
-            # compiles a trigger body that references them. The GPKG is a
-            # disposable scratch file; the rtree index would only go stale
-            # (we're not modifying geometry), and ogr2ogr re-reads the
-            # geometry type from gpkg_geometry_columns at export time, so
-            # losing the triggers is harmless here.
+            # compiles a trigger body that references them.
             triggers = cur.execute(
                 "SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name = ?",
                 ("mupolygon",),
@@ -1235,92 +1254,32 @@ class SDAClient:
         conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
 
         if agg == SoilAggMethod.DOMINANT_COMPONENT:
-            sql = f"""
-            WITH mu AS (
-              SELECT DISTINCT mukey
-              FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
-            ),
-            dom_comp AS (
-              SELECT c.mukey,
-                    c.cokey,
-                    c.comppct_r,
-                    c.hydgrp,
-                    ROW_NUMBER() OVER (
-                       PARTITION BY c.mukey
-                       ORDER BY c.comppct_r DESC, c.cokey
-                     ) AS rn
-              FROM component c
-              INNER JOIN mu ON mu.mukey = c.mukey
-              WHERE c.comppct_r IS NOT NULL
-            ),
-            dom AS (
-              SELECT mukey, cokey, comppct_r, hydgrp
-              FROM dom_comp
-              WHERE rn = 1
-            ),
-            hz AS (
-              SELECT x.mukey,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                     ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                     ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
-                CASE WHEN SUM(x.thk) = 0 THEN NULL
-                     ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
-              FROM (
-                SELECT d.mukey,
-                  h.ksat_l * {conv} AS ksat_l,
-                  h.ksat_r * {conv} AS ksat_r,
-                  h.ksat_h * {conv} AS ksat_h,
-                  CASE
-                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL
-                        THEN 0
-                    ELSE
-                        CASE
-                            WHEN (
-                                CASE
-                                    WHEN h.hzdepb_r < {bottom}
-                                        THEN h.hzdepb_r
-                                    ELSE {bottom}
-                                END
-                            )
-                            - (
-                                CASE
-                                    WHEN h.hzdept_r > {top}
-                                        THEN h.hzdept_r
-                                    ELSE {top}
-                                END
-                            ) > 0
-                            THEN (
-                                CASE
-                                    WHEN h.hzdepb_r < {bottom}
-                                        THEN h.hzdepb_r
-                                    ELSE {bottom}
-                                END
-                            )
-                            - (
-                                CASE
-                                    WHEN h.hzdept_r > {top}
-                                        THEN h.hzdept_r
-                                    ELSE {top}
-                                END
-                            )
-                            ELSE 0
-                        END
-                    END AS thk
-                FROM dom d
-                INNER JOIN chorizon h ON h.cokey = d.cokey
-                WHERE h.ksat_r IS NOT NULL
-                  AND h.hzdept_r < {bottom}
-                  AND h.hzdepb_r > {top}
-                  AND h.desgnmaster = '{desgnmaster}'
-              ) x
-              GROUP BY x.mukey
-            ),
-            poly AS (
-              SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
-              FROM (SELECT mukey FROM mu) t
-              CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
+            cte_chain = ",\n".join(
+                [
+                    f"mu AS (SELECT DISTINCT mukey FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}'))",
+                    _dominant_component_ctes(
+                        component_table=SSURGO_TABLE_COMPONENT,
+                        mu_filter_clause=(
+                            "INNER JOIN mu ON mu.mukey = c.mukey "
+                            "WHERE c.comppct_r IS NOT NULL"
+                        ),
+                    ),
+                    _depth_weighted_hz_cte(
+                        chorizon_table=SSURGO_TABLE_CHORIZON,
+                        desgnmaster=desgnmaster,
+                        top=top,
+                        bottom=bottom,
+                        conv=conv,
+                    ),
+                    """poly AS (
+                  SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
+                  FROM (SELECT mukey FROM mu) t
+                  CROSS APPLY SDA_Get_MupolygonWktWgs84_from_Mukey(t.mukey) p
+                )""",
+                ]
             )
+            sql = f"""
+            WITH {cte_chain}
             SELECT poly.mukey,
                    CAST(poly.mukey AS INT) AS mukey_int,
                    d.cokey,
@@ -1335,7 +1294,12 @@ class SDAClient:
             LEFT JOIN hz ON hz.mukey = poly.mukey
             """
         else:
-            # weighted_component
+            # weighted_component — uses a different aggregation shape than the
+            # dominant-component path (mukey × component pivot, then weighted
+            # mean across components by comppct_r). The thickness expression
+            # is shared with `_horizon_thickness_sql` so depth math stays in
+            # one place.
+            thk = _horizon_thickness_sql(top, bottom)
             sql = f"""
             WITH mu AS (
               SELECT * FROM SDA_Get_Mukey_from_intersection_with_WktWgs84('{aoi_wkt}')
@@ -1374,21 +1338,7 @@ class SDAClient:
                   h.ksat_l * {conv} AS ksat_l,
                   h.ksat_r * {conv} AS ksat_r,
                   h.ksat_h * {conv} AS ksat_h,
-                  CASE
-                    WHEN h.hzdept_r IS NULL OR h.hzdepb_r IS NULL THEN 0
-                    ELSE
-                      CASE
-                        WHEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
-                                   ELSE {bottom} END)
-                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
-                                   ELSE {top} END) > 0
-                        THEN (CASE WHEN h.hzdepb_r < {bottom} THEN h.hzdepb_r
-                                   ELSE {bottom} END)
-                           - (CASE WHEN h.hzdept_r > {top} THEN h.hzdept_r
-                                   ELSE {top} END)
-                        ELSE 0
-                      END
-                  END AS thk
+                  {thk} AS thk
                 FROM comp c
                 INNER JOIN chorizon h ON h.cokey = c.cokey
                 WHERE h.ksat_r IS NOT NULL
