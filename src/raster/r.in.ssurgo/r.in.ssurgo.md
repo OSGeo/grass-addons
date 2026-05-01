@@ -49,6 +49,38 @@ The **soils** output is a vector layer containing the source SSURGO Map Unit pol
 and attribute data. This can be used for reference or to create custom rasters for
 Curve Number or other applications based on the SSURGO attributes.
 
+### Attributes on the **soils** vector
+
+In addition to **mukey** / **mukey_int**, the soils vector carries the
+following dominant-component and depth-weighted attributes for the requested
+[hzdept_r, hzdepb_r] range and master horizon designation. Use them with
+`v.to.rast use=attr attribute_column=<field>` to derive any of these as
+rasters on demand.
+
+| Field | Type | Description |
+| ------ | ------ | ------ |
+| `cokey` | TEXT | Component key of the dominant component |
+| `comppct_r` | REAL | Dominant component's percentage of the map unit |
+| `hydgrp` | TEXT | Hydrologic Soil Group (A, B, C, D, A/D, …) |
+| `compname` | TEXT | Component name |
+| `drainagecl` | TEXT | Drainage class |
+| `slope_r` | REAL | Component slope (%) |
+| `ksat_l` | REAL | Saturated hydraulic conductivity, low (mm/hr) |
+| `ksat_r` | REAL | Saturated hydraulic conductivity, representative (mm/hr) |
+| `ksat_h` | REAL | Saturated hydraulic conductivity, high (mm/hr) |
+| `sandtotal_r` | REAL | Sand content (%) |
+| `silttotal_r` | REAL | Silt content (%) |
+| `claytotal_r` | REAL | Clay content (%) |
+| `awc_r` | REAL | Available water capacity (cm/cm) |
+| `om_r` | REAL | Organic matter (%) |
+| `dbthirdbar_r` | REAL | Bulk density at 1/3 bar (g/cm³) |
+| `ph1to1h2o_r` | REAL | Soil reaction (pH 1:1 H₂O) |
+| `cec7_r` | REAL | Cation exchange capacity at pH 7 (meq/100 g) |
+
+Depth-weighted REAL fields are aggregated as
+`SUM(thk × value) / SUM(thk)` over horizons that overlap the requested
+depth range, where `thk` is each horizon's thickness clipped to that range.
+
 ### Filtering by Depth or Master Horizon
 
 The user can specify a depth range [cm] (top and bottom) or a master horizon

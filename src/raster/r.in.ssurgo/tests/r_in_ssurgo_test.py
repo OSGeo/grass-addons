@@ -355,6 +355,36 @@ class TestBuildSdaSql:
         )
         assert "GROUP BY mukey" in sql
 
+    def test_dominant_includes_extended_horizon_fields(self, SDAClient, SoilAggMethod):
+        """The dominant-component SQL must project the depth-weighted SSURGO
+        fields beyond Ksat (texture, AWC, OM, bulk density, pH, CEC) plus
+        component-level dominants (compname, drainagecl, slope_r).
+        """
+        client = SDAClient()
+        sql = client._build_sda_sql(
+            aoi_wkt=self.AOI,
+            top_cm=0,
+            bottom_cm=100,
+            agg=SoilAggMethod.DOMINANT_COMPONENT,
+        )
+        for fld in (
+            "sandtotal_r",
+            "silttotal_r",
+            "claytotal_r",
+            "awc_r",
+            "om_r",
+            "dbthirdbar_r",
+            "ph1to1h2o_r",
+            "cec7_r",
+        ):
+            assert f"hz.{fld}" in sql, (
+                f"Depth-weighted field {fld} missing from dominant SQL"
+            )
+        for fld in ("compname", "drainagecl", "slope_r"):
+            assert f"d.{fld}" in sql, (
+                f"Component-dominant field {fld} missing from dominant SQL"
+            )
+
     def test_horizon_filter_uses_depth_overlap(self, SDAClient, SoilAggMethod):
         """Horizons must be selected by overlap with [top, bottom], not by
         starting at the surface. The previous filter (`hzdept_r = 0`) silently

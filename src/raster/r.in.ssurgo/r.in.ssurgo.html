@@ -46,7 +46,37 @@ rainfall-excess models such as the SCS Curve Number method (see
 <p>
 The <b>soils</b> output is the source SSURGO Map Unit polygon vector with all
 aggregated attributes attached. Use it for reference or to derive custom
-rasters from the SSURGO attribute set.
+rasters from the SSURGO attribute set with
+<code>v.to.rast use=attr attribute_column=&lt;field&gt;</code>.
+
+<p>
+In addition to <b>mukey</b> / <b>mukey_int</b>, the soils vector carries the
+following dominant-component and depth-weighted attributes:
+
+<table border="1" cellpadding="4" cellspacing="0">
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>cokey</code></td><td>TEXT</td><td>Component key of the dominant component</td></tr>
+  <tr><td><code>comppct_r</code></td><td>REAL</td><td>Dominant component's percentage of the map unit</td></tr>
+  <tr><td><code>hydgrp</code></td><td>TEXT</td><td>Hydrologic Soil Group</td></tr>
+  <tr><td><code>compname</code></td><td>TEXT</td><td>Component name</td></tr>
+  <tr><td><code>drainagecl</code></td><td>TEXT</td><td>Drainage class</td></tr>
+  <tr><td><code>slope_r</code></td><td>REAL</td><td>Component slope (%)</td></tr>
+  <tr><td><code>ksat_l</code> / <code>ksat_r</code> / <code>ksat_h</code></td><td>REAL</td><td>Saturated hydraulic conductivity (mm/hr); low / representative / high</td></tr>
+  <tr><td><code>sandtotal_r</code></td><td>REAL</td><td>Sand content (%)</td></tr>
+  <tr><td><code>silttotal_r</code></td><td>REAL</td><td>Silt content (%)</td></tr>
+  <tr><td><code>claytotal_r</code></td><td>REAL</td><td>Clay content (%)</td></tr>
+  <tr><td><code>awc_r</code></td><td>REAL</td><td>Available water capacity (cm/cm)</td></tr>
+  <tr><td><code>om_r</code></td><td>REAL</td><td>Organic matter (%)</td></tr>
+  <tr><td><code>dbthirdbar_r</code></td><td>REAL</td><td>Bulk density at 1/3 bar (g/cm³)</td></tr>
+  <tr><td><code>ph1to1h2o_r</code></td><td>REAL</td><td>Soil reaction (pH 1:1 H&#8322;O)</td></tr>
+  <tr><td><code>cec7_r</code></td><td>REAL</td><td>Cation exchange capacity at pH 7 (meq/100 g)</td></tr>
+</table>
+
+<p>
+Depth-weighted REAL fields are aggregated as
+<code>SUM(thk &times; value) / SUM(thk)</code> over horizons that overlap the
+requested depth range, where <code>thk</code> is each horizon's thickness
+clipped to that range.
 
 <h3>Filtering by depth or master horizon</h3>
 

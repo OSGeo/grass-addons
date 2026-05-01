@@ -153,6 +153,46 @@ class SoilAggMethod(Enum):
 
 
 # ---------------------------------------------------------------------------
+# SSURGO fields exposed on the output vector.
+#
+# Adding a new SSURGO field is a one-line edit in the appropriate list below:
+# the SQL aggregation, the SQLite agg/mupolygon schema, and the FlatGeobuf
+# output all derive from these constants.
+#
+# `_DOM_COMPONENT_FIELDS` — component-table columns carried unchanged from the
+#     dominant component (one row per mukey).
+# `_HORIZON_WEIGHTED_FIELDS` — chorizon columns aggregated as a thickness-
+#     weighted mean over horizons that overlap [hzdept_r, hzdepb_r]. ``conv``
+#     is a per-field unit conversion factor applied at aggregation time
+#     (e.g. Ksat is stored as µm/s in SSURGO; we multiply by 3.6 to get
+#     mm/hr; most other fields pass through with conv=1.0).
+# ---------------------------------------------------------------------------
+
+# (column_name, sql_type)
+_DOM_COMPONENT_FIELDS = [
+    ("hydgrp", "TEXT"),
+    ("compname", "TEXT"),
+    ("drainagecl", "TEXT"),
+    ("slope_r", "REAL"),
+]
+
+# (column_name, sql_type, source_unit_conv_factor)
+_HORIZON_WEIGHTED_FIELDS = [
+    ("ksat_l", "REAL", MICROMETERS_PER_SECOND_TO_MM_PER_HOUR),
+    ("ksat_r", "REAL", MICROMETERS_PER_SECOND_TO_MM_PER_HOUR),
+    ("ksat_h", "REAL", MICROMETERS_PER_SECOND_TO_MM_PER_HOUR),
+    ("sandtotal_r", "REAL", 1.0),
+    ("silttotal_r", "REAL", 1.0),
+    ("claytotal_r", "REAL", 1.0),
+    ("awc_r", "REAL", 1.0),
+    ("om_r", "REAL", 1.0),
+    ("dbthirdbar_r", "REAL", 1.0),
+    ("ph1to1h2o_r", "REAL", 1.0),
+    ("cec7_r", "REAL", 1.0),
+]
+
+
+# ---------------------------------------------------------------------------
 # Shared SQL fragments for the dominant-component depth-weighted aggregation.
 # Used by all three backends (DuckDB, SQLite, SDA T-SQL) so that depth math,
 # the dominant-component pick, and the weighted Ksat aggregation live in
@@ -185,11 +225,13 @@ def _dominant_component_ctes(
     *,
     component_table: str,
     mu_filter_clause: str,
+    fields=_DOM_COMPONENT_FIELDS,
 ) -> str:
     """Build the ``dom_comp`` and ``dom`` CTE definitions.
 
-    Selects the largest-percentage component per mukey using ROW_NUMBER. The
-    caller composes the result into a ``WITH ...`` chain alongside any
+    Selects the largest-percentage component per mukey using ROW_NUMBER and
+    carries the fields listed in ``fields`` through to ``dom``. The caller
+    composes the result into a ``WITH ...`` chain alongside any
     backend-specific CTEs (e.g. the source ``mu`` set or a ``poly`` lookup).
 
     :param component_table: Name (or alias) of the component table/CTE in
@@ -200,9 +242,14 @@ def _dominant_component_ctes(
         ``"INNER JOIN mu ON mu.mukey = c.mukey WHERE c.comppct_r IS NOT NULL"``;
         the SQLite path uses
         ``"WHERE c.comppct_r IS NOT NULL AND c.mukey IN (SELECT DISTINCT mukey FROM mupolygon)"``.
+    :param fields: Iterable of ``(column_name, sql_type)`` tuples for the
+        component-table columns to project. Defaults to
+        ``_DOM_COMPONENT_FIELDS``.
     """
+    c_cols = ", ".join(f"c.{name}" for name, _t in fields)
+    bare_cols = ", ".join(name for name, _t in fields)
     return f"""dom_comp AS (
-        SELECT c.mukey, c.cokey, c.comppct_r, c.hydgrp,
+        SELECT c.mukey, c.cokey, c.comppct_r, {c_cols},
                ROW_NUMBER() OVER (
                    PARTITION BY c.mukey
                    ORDER BY c.comppct_r DESC, c.cokey
@@ -211,7 +258,7 @@ def _dominant_component_ctes(
         {mu_filter_clause}
     ),
     dom AS (
-        SELECT mukey, cokey, comppct_r, hydgrp
+        SELECT mukey, cokey, comppct_r, {bare_cols}
         FROM dom_comp WHERE rn = 1
     )"""
 
@@ -222,30 +269,35 @@ def _depth_weighted_hz_cte(
     desgnmaster: str,
     top: float,
     bottom: float,
-    conv: float = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR,
+    fields=_HORIZON_WEIGHTED_FIELDS,
 ) -> str:
-    """Build the ``hz`` CTE that computes depth-weighted Ksat per mukey.
+    """Build the ``hz`` CTE that computes per-mukey depth-weighted means.
 
     Joins the ``dom`` CTE to the chorizon table, restricts to horizons that
     overlap ``[top, bottom]`` with the given master horizon designation, and
-    produces SUM(thk × ksat) / SUM(thk) per mukey for the L/R/H Ksat estimates.
-    Output Ksat values are converted from µm/s (the SSURGO storage unit) to
-    mm/hr.
+    produces SUM(thk × value) / SUM(thk) per mukey for each entry in
+    ``fields``. Each field's source value is multiplied by its per-field
+    ``conv`` factor before aggregation (e.g. Ksat fields multiply by 3.6 to
+    convert from µm/s to mm/hr; pass-through fields use 1.0).
+
+    :param fields: Iterable of ``(column_name, sql_type, conv)`` tuples.
+        Defaults to ``_HORIZON_WEIGHTED_FIELDS``.
     """
     thk = _horizon_thickness_sql(top, bottom)
+    weighted = ",\n            ".join(
+        f"CASE WHEN SUM(x.thk) = 0 THEN NULL "
+        f"ELSE SUM(x.thk * x.{name}) / SUM(x.thk) END AS {name}"
+        for name, _t, _conv in fields
+    )
+    inner = ",\n                ".join(
+        f"h.{name} * {conv} AS {name}" for name, _t, conv in fields
+    )
     return f"""hz AS (
         SELECT x.mukey,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_l) / SUM(x.thk) END AS ksat_l,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_r) / SUM(x.thk) END AS ksat_r,
-            CASE WHEN SUM(x.thk) = 0 THEN NULL
-                 ELSE SUM(x.thk * x.ksat_h) / SUM(x.thk) END AS ksat_h
+            {weighted}
         FROM (
             SELECT d.mukey,
-                h.ksat_l * {conv} AS ksat_l,
-                h.ksat_r * {conv} AS ksat_r,
-                h.ksat_h * {conv} AS ksat_h,
+                {inner},
                 {thk} AS thk
             FROM dom d
             INNER JOIN {chorizon_table} h ON h.cokey = d.cokey
@@ -608,7 +660,6 @@ def local_ssurgo_query(
     Returns:
         None: This function does not return any value. It creates raster and vector layers in the GRASS environment.
     """
-    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
     top = hzdept_r
     bottom = hzdepb_r
     # Table mu polygon fields used:
@@ -709,20 +760,19 @@ def local_ssurgo_query(
                     desgnmaster=desgnmaster,
                     top=top,
                     bottom=bottom,
-                    conv=conv,
                 ),
             ]
         )
+        dom_cols = ", ".join(f"d.{name}" for name, _t in _DOM_COMPONENT_FIELDS)
+        hz_cols = ", ".join(f"hz.{name}" for name, _t, _c in _HORIZON_WEIGHTED_FIELDS)
         query = f"""
         WITH {cte_chain}
         SELECT mu.mukey,
             CAST(mu.mukey AS INTEGER) AS mukey_int,
             d.cokey,
             d.comppct_r,
-            d.hydgrp,
-            hz.ksat_l,
-            hz.ksat_r,
-            hz.ksat_h,
+            {dom_cols},
+            {hz_cols},
             mu.geom
         FROM mu
         LEFT JOIN dom d ON d.mukey = mu.mukey
@@ -821,7 +871,6 @@ def local_ssurgo_sqlite_query(
         if result.returncode != 0:
             gs.fatal(_("ogr2ogr failed (%s): %s") % (label, result.stderr.strip()))
 
-    conv = MICROMETERS_PER_SECOND_TO_MM_PER_HOUR
     top = hzdept_r
     bottom = hzdepb_r
 
@@ -890,26 +939,33 @@ def local_ssurgo_sqlite_query(
                 return None
             gs.message(_("Loaded %d MUPOLYGON features.") % mu_count)
 
+            # Output schema for the agg table and (later) the augmented
+            # mupolygon table. The first four columns are fixed identifiers;
+            # the rest come from the field tables. Keeping the schema
+            # data-driven means adding/removing a SSURGO field is a one-line
+            # change in `_DOM_COMPONENT_FIELDS` / `_HORIZON_WEIGHTED_FIELDS`.
+            output_fields = (
+                [
+                    ("mukey", "TEXT"),
+                    ("mukey_int", "INTEGER"),
+                    ("cokey", "TEXT"),
+                    ("comppct_r", "REAL"),
+                ]
+                + [(n, t) for n, t in _DOM_COMPONENT_FIELDS]
+                + [(n, t) for n, t, _c in _HORIZON_WEIGHTED_FIELDS]
+            )
+
             # Pre-create agg with explicit column affinities so SQLite stores
             # each value with the right type. Using `CREATE TABLE agg AS
             # SELECT ...` would leave affinities unset for computed expressions,
-            # which downstream causes ogr2ogr's type inference to fall back to
+            # which causes ogr2ogr's downstream type inference to fall back to
             # String when leading rows have NULL ksat / hydgrp values.
             cur.execute("DROP TABLE IF EXISTS agg")
-            cur.execute(
-                """
-                CREATE TABLE agg (
-                    mukey      TEXT,
-                    mukey_int  INTEGER,
-                    cokey      TEXT,
-                    comppct_r  REAL,
-                    hydgrp     TEXT,
-                    ksat_l     REAL,
-                    ksat_r     REAL,
-                    ksat_h     REAL
-                )
-                """
+            create_cols = ",\n                    ".join(
+                f"{n:13} {t}" for n, t in output_fields
             )
+            cur.execute(f"CREATE TABLE agg ({create_cols})")
+
             cte_chain = ",\n".join(
                 [
                     _dominant_component_ctes(
@@ -924,21 +980,23 @@ def local_ssurgo_sqlite_query(
                         desgnmaster=desgnmaster,
                         top=top,
                         bottom=bottom,
-                        conv=conv,
                     ),
                 ]
+            )
+            select_cols = (
+                [
+                    "dom.mukey",
+                    "CAST(dom.mukey AS INTEGER) AS mukey_int",
+                    "dom.cokey",
+                    "dom.comppct_r",
+                ]
+                + [f"dom.{n}" for n, _t in _DOM_COMPONENT_FIELDS]
+                + [f"hz.{n}" for n, _t, _c in _HORIZON_WEIGHTED_FIELDS]
             )
             agg_sql = f"""
             INSERT INTO agg
             WITH {cte_chain}
-            SELECT dom.mukey,
-                CAST(dom.mukey AS INTEGER) AS mukey_int,
-                dom.cokey,
-                dom.comppct_r,
-                dom.hydgrp,
-                hz.ksat_l,
-                hz.ksat_r,
-                hz.ksat_h
+            SELECT {", ".join(select_cols)}
             FROM dom
             LEFT JOIN hz ON hz.mukey = dom.mukey
             """
@@ -968,29 +1026,20 @@ def local_ssurgo_sqlite_query(
             # columns with explicit affinities via ALTER TABLE means ogr2ogr
             # reads the schema from sqlite_master and emits OFTReal /
             # OFTInteger64 / OFTString correctly.
+            #
+            # mupolygon already has its own `mukey` column from the GDB; only
+            # add the rest.
+            mu_extra = [(n, t) for n, t in output_fields if n != "mukey"]
             cur.executescript(
-                """
-                ALTER TABLE mupolygon ADD COLUMN mukey_int INTEGER;
-                ALTER TABLE mupolygon ADD COLUMN cokey     TEXT;
-                ALTER TABLE mupolygon ADD COLUMN comppct_r REAL;
-                ALTER TABLE mupolygon ADD COLUMN hydgrp    TEXT;
-                ALTER TABLE mupolygon ADD COLUMN ksat_l    REAL;
-                ALTER TABLE mupolygon ADD COLUMN ksat_r    REAL;
-                ALTER TABLE mupolygon ADD COLUMN ksat_h    REAL;
-                """
+                "\n".join(
+                    f"ALTER TABLE mupolygon ADD COLUMN {n} {t};" for n, t in mu_extra
+                )
             )
-            cur.execute(
-                """
-                UPDATE mupolygon SET
-                    mukey_int = (SELECT mukey_int FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    cokey     = (SELECT cokey     FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    comppct_r = (SELECT comppct_r FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    hydgrp    = (SELECT hydgrp    FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    ksat_l    = (SELECT ksat_l    FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    ksat_r    = (SELECT ksat_r    FROM agg WHERE agg.mukey = mupolygon.mukey),
-                    ksat_h    = (SELECT ksat_h    FROM agg WHERE agg.mukey = mupolygon.mukey)
-                """
+            update_set = ",\n                    ".join(
+                f"{n} = (SELECT {n} FROM agg WHERE agg.mukey = mupolygon.mukey)"
+                for n, _t in mu_extra
             )
+            cur.execute(f"UPDATE mupolygon SET {update_set}")
             conn.commit()
         finally:
             conn.close()
@@ -1269,7 +1318,6 @@ class SDAClient:
                         desgnmaster=desgnmaster,
                         top=top,
                         bottom=bottom,
-                        conv=conv,
                     ),
                     """poly AS (
                   SELECT t.mukey, p.MupolygonWktWgs84 AS wkt
@@ -1278,16 +1326,16 @@ class SDAClient:
                 )""",
                 ]
             )
+            dom_cols = ", ".join(f"d.{n}" for n, _t in _DOM_COMPONENT_FIELDS)
+            hz_cols = ", ".join(f"hz.{n}" for n, _t, _c in _HORIZON_WEIGHTED_FIELDS)
             sql = f"""
             WITH {cte_chain}
             SELECT poly.mukey,
                    CAST(poly.mukey AS INT) AS mukey_int,
                    d.cokey,
                    d.comppct_r,
-                   d.hydgrp,
-                   hz.ksat_l,
-                   hz.ksat_r,
-                   hz.ksat_h,
+                   {dom_cols},
+                   {hz_cols},
                    poly.wkt
             FROM poly
             LEFT JOIN dom d ON d.mukey = poly.mukey
