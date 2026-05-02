@@ -22,11 +22,8 @@ import unittest
 from datetime import datetime
 from subprocess import PIPE
 
-from grass.exceptions import CalledModuleError
 from grass.gunittest.case import TestCase
-from grass.gunittest.gutils import get_current_mapset, is_map_in_mapset
 from grass.pygrass.modules import Module
-from grass.pygrass.modules.interface import Module as PygrassModule
 
 try:
     import eodag
@@ -34,6 +31,27 @@ try:
     EODAG_VERSION = int(eodag.__version__.split(".")[0])
 except ImportError:
     EODAG_VERSION = None
+
+# Version-specific constants
+EODAG_TEST_MAP = {
+    3: {
+        "product_type_key": "productType",
+        "cloud_cover_key": "cloudCover",
+        "relative_orbit_key": "relativeOrbitNumber",
+        "sensor_mode_key": "sensorMode",
+        "s2_l2a_type": "S2MSI2A",
+        "s2_l1c_type": "S2MSI1C",
+    },
+    4: {
+        "product_type_key": "collection",
+        "cloud_cover_key": "eo:cloud_cover",
+        "relative_orbit_key": "sat:relative_orbit",
+        "sensor_mode_key": "instrumentMode",
+        "s2_l2a_type": "S2_MSI_L2A",
+        "s2_l1c_type": "S2_MSI_L1C",
+    },
+}
+VER = EODAG_TEST_MAP.get(EODAG_VERSION, EODAG_TEST_MAP[3])
 
 
 class TestEodag(TestCase):
@@ -47,6 +65,8 @@ class TestEodag(TestCase):
     @classmethod
     def setUpClass(cls):
         """Use temporary region settings."""
+        if EODAG_VERSION is None:
+            raise unittest.SkipTest("eodag is not installed, skipping all tests.")
         cls.use_temp_region()
         cls.runModule(
             "v.extract",
@@ -59,7 +79,7 @@ class TestEodag(TestCase):
         # Lazy import
         from eodag import EODataAccessGateway
 
-        product_key = "collection" if EODAG_VERSION >= 4 else "productType"
+        product_key = VER["product_type_key"]
         search_parameters = {
             product_key: "S1_SAR_GRD",
             "start": "2024-01-01",
@@ -85,7 +105,7 @@ class TestEodag(TestCase):
     def test_can_connect_to_at_least_one_provider(self):
         """Test whether we are able to connect
         and access data from any of the four proivders."""
-        self.assertTrue(any([v for k, v in self.__class__.available_providers.items()]))
+        self.assertTrue(any(self.__class__.available_providers.values()))
 
     def test_search_without_date(self):
         """Test search without specifying dates."""
@@ -123,9 +143,16 @@ class TestEodag(TestCase):
         )
         self.assertModule(i_eodag)
         for line in i_eodag.outputs["stdout"].value.strip().split("\n"):
-            title, sensing_time, clouds, producttype = [
-                i.strip() for i in line.split(" ") if i != ""
-            ]
+            parts = [i.strip() for i in line.split(" ") if i]
+            self.assertGreaterEqual(
+                len(parts), 4, f"Unexpected output line format: {line!r}"
+            )
+            title, sensing_time, clouds, producttype = (
+                parts[0],
+                parts[1],
+                parts[2],
+                parts[3],
+            )
             sensing_time = datetime.fromisoformat(sensing_time)
             clouds = int(clouds[:-1])
             self.assertTrue(
@@ -135,10 +162,7 @@ class TestEodag(TestCase):
             self.assertTrue(sensing_time <= end_time)
             self.assertTrue(clouds <= 30)
             # For EODAG v4, product type is 'S2_MSI_L2A', for v3 it's 'S2MSI2A'
-            if EODAG_VERSION >= 4:
-                self.assertEqual(producttype, "S2_MSI_L2A")
-            else:
-                self.assertEqual(producttype, "S2MSI2A")
+            self.assertEqual(producttype, VER["s2_l2a_type"])
 
     def test_pattern_option(self):
         """Test pattern option using Landsat Collection 2 Level 2,
@@ -182,17 +206,16 @@ class TestEodag(TestCase):
             limit=10,
             quiet=True,
             stdout_=PIPE,
+            run_=False,
         )
+        self.assertModule(i_eodag)
         result = json.loads(i_eodag.outputs["stdout"].value.strip())
         self.assertTrue("features" in result)
         for scene in result["features"]:
             props = scene["properties"]
-            if EODAG_VERSION >= 4:
-                self.assertTrue("sat:relative_orbit" in props)
-                self.assertEqual(props["sat:relative_orbit"], 97)
-            else:
-                self.assertTrue("relativeOrbitNumber" in props)
-                self.assertEqual(props["relativeOrbitNumber"], 97)
+            key = VER["relative_orbit_key"]
+            self.assertIn(key, props)
+            self.assertEqual(props[key], 97)
 
     def test_query_and_pattern(self):
         """Test multi query filtering, while using the pattern option to get only S2B scenes."""
@@ -212,23 +235,17 @@ class TestEodag(TestCase):
             limit=20,
             quiet=True,
             stdout_=PIPE,
+            run_=False,
         )
+        self.assertModule(i_eodag)
         result = json.loads(i_eodag.outputs["stdout"].value.strip())
         self.assertTrue("features" in result)
         for scene in result["features"]:
             props = scene["properties"]
             # Use the correct STAC property names for v4
             self.assertTrue(scene["properties"]["title"].startswith("S2B"))
-            if EODAG_VERSION >= 4:
-                self.assertEqual(props.get("sat:relative_orbit"), 97)
-                # EODAG v4 maps sensorMode to instrumentMode or platform:instrument:mode
-                # Check for both possibilities or use a more generic check if needed
-                # For this test, we expect 'INS-NOBS' to be present under 'instrumentMode'
-                # or 'platform:instrument:mode' or 'sat:instrument_mode'
-                self.assertEqual(props.get("instrumentMode"), "INS-NOBS")
-            else:
-                self.assertEqual(props.get("relativeOrbitNumber"), 97)
-                self.assertEqual(props.get("sensorMode"), "INS-NOBS")
+            self.assertEqual(props.get(VER["relative_orbit_key"]), 97)
+            self.assertEqual(props.get(VER["sensor_mode_key"]), "INS-NOBS")
 
     def test_query_multiple_value(self):
         """Testing querying with multiple values covering both the AND and OR relations."""
@@ -249,7 +266,9 @@ class TestEodag(TestCase):
             limit=10,
             quiet=True,
             stdout_=PIPE,
+            run_=False,
         )
+        self.assertModule(i_eodag)
         result = json.loads(i_eodag.outputs["stdout"].value.strip())
         self.assertTrue("features" in result)
         self.assertTrue(len(result["features"]) <= 10)
@@ -257,19 +276,9 @@ class TestEodag(TestCase):
             props = scene["properties"]
             # Use the correct STAC property names for v4
             self.assertTrue(scene["properties"]["title"].startswith("S2B"))
-            if EODAG_VERSION >= 4:
-                cloud_cover = props.get("eo:cloud_cover")
-                orbit_number = props.get("sat:relative_orbit")
-                # Check for instrumentMode or platform:instrument:mode
-                sensor_mode = (
-                    props.get("instrumentMode")
-                    or props.get("platform:instrument:mode")
-                    or props.get("sat:instrument_mode")
-                )
-            else:
-                cloud_cover = props.get("cloudCover")
-                orbit_number = props.get("relativeOrbitNumber")
-                sensor_mode = props.get("sensorMode")
+            cloud_cover = props.get(VER["cloud_cover_key"])
+            orbit_number = props.get(VER["relative_orbit_key"])
+            sensor_mode = props.get(VER["sensor_mode_key"])
 
             # Assertions remain the same, but values are retrieved correctly
             self.assertTrue(30 <= cloud_cover <= 70)
@@ -280,10 +289,11 @@ class TestEodag(TestCase):
         """Test searching for products from a text file."""
         if not self.__class__.available_providers["cop_dataspace"]:
             self.skipTest("Provider 'cop_dataspace' is unavailable.")
-        if EODAG_VERSION >= 4:
-            output = r"""S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T105453 2024-05-29T08:16:09  1% S2_MSI_L2A"""
-        else:
-            output = r"""S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T105453 2024-05-29T08:16:09  1% S2MSI2A"""
+        expected_product_type = VER["s2_l2a_type"]
+        output = (
+            f"S2B_MSIL2A_20240529T081609_N0510_R121_T37SED_20240529T105453 "
+            f"2024-05-29T08:16:09  1% {expected_product_type}"
+        )
 
         i_eodag = Module(
             "i.eodag",
@@ -369,7 +379,9 @@ class TestEodag(TestCase):
         """Test saving scenes footprints"""
         if not self.__class__.available_providers["peps"]:
             self.skipTest("Provider 'peps' is unavailable.")
-        return
+        self.skipTest(
+            "Known bug: v.import fails with 'Unable to create location from OGR datasource'"
+        )
         # TODO: Fix bug
         # The commands runs from the terminal, but fials with:
         # ERROR: Unable to create location from OGR datasource
