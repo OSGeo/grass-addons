@@ -298,7 +298,7 @@ class TestEodag(TestCase):
         i_eodag = Module(
             "i.eodag",
             flags="l",
-            file="testsuite/data/ids_list.txt",
+            file="data/ids_list.txt",
             provider="cop_dataspace",
             producttype="S2_MSI_L2A",
             sort="cloudcover",
