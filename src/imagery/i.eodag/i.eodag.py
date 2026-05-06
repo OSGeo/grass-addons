@@ -689,7 +689,10 @@ def list_products_json(products) -> None:
     :param products: EO poducts to be listed
     :type products: class:'eodag.api.search_result.SearchResult'
     """
-    print(json.dumps(products.as_geojson_object(), indent=4))
+    if hasattr(products, "as_dict"):
+        print(json.dumps(products.as_dict(), indent=4))
+    else:
+        print(json.dumps(products.as_geojson_object(), indent=4))
 
 
 def remove_duplicates(search_result):
