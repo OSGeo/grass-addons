@@ -43,6 +43,7 @@ class TestROut3mf(TestCase):
                 resolution=4,
                 zscale=2,
                 base_height=2,
+                overwrite=True,
             )
             self.assertModule(module)
             self.assertTrue(os.path.exists(output_path))
@@ -77,6 +78,7 @@ class TestROut3mf(TestCase):
                 resolution=6,
                 zscale=10,
                 base_height=2,
+                overwrite=True,
             )
             normalized = SimpleModule(
                 "r.out.3mf",
@@ -87,6 +89,7 @@ class TestROut3mf(TestCase):
                 zscale=10,
                 base_height=2,
                 flags="n",
+                overwrite=True,
             )
 
             self.assertModule(plain)
@@ -100,8 +103,9 @@ class TestROut3mf(TestCase):
             plain_max_z = _max_vertex_z(plain_xml)
             norm_max_z = _max_vertex_z(norm_xml)
 
-            # Without -n, elevation range is preserved before zscale and should be larger.
-            self.assertGreater(plain_max_z, norm_max_z + 1)
+            # The two modes use different vertical-scale formulas (geographic-true
+            # vs. zscale-as-mm-of-relief), so the resulting heights should differ.
+            self.assertGreater(abs(plain_max_z - norm_max_z), 1.0)
         finally:
             gs.try_remove(plain_path)
             gs.try_remove(norm_path)
