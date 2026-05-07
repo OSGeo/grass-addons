@@ -1,37 +1,321 @@
 <h2>DESCRIPTION</h2>
-Module <em><a href="r.futures.pga.html">r.futures.pga</a></em> will be renamed to <em>r.futures.simulation</em>.
-This module is only a wrapper for <em>r.futures.pga</em> for forward compatibility.
+
+Module <em>r.futures.simulation</em> is part of <a href="r.futures.html">FUTURES</a>
+land change model.
+This module uses stochastic Patch-Growing Algorithm (PGA)
+and a combination of field-based and object-based representations
+to simulate land changes.
+
+PGA simulates undeveloped to developed land change by iterative site selection
+and a contextually aware region growing mechanism.
+Simulations of change at each time step feed development pressure back
+to the POTENTIAL submodel, influencing site suitability for the next step.
+
+<h3>Patch growing</h3>
+Patches are constructed in
+three steps. First, a potential seed is randomly selected from available cells.
+In case <b>seed_search</b> is <em>probability</em>, the probability value (based on POTENTIAL)
+of the seed is tested using Monte Carlo approach, and if it doesn't survive,
+new potential seed is selected and tested.
+Second, using a 4- or 8-neighbor (see <b>num_neighbors</b>) search rule PGA grows the patch.
+PGA decides on the suitability of contiguous cells based on their
+underlying development potential and distance to the seed adjusted
+by compactness parameter given in <b>compactness_mean</b> and <b>compactness_range</b>.
+The size of the patch is determined by randomly selecting a patch size from <b>patch sizes</b> file
+and multiplied by <b>discount_factor</b>. To find optimal values
+for patch sizes and compactness, use module
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>.
+Once a cell is converted, it remains developed.
+PGA continues to grow patches until the per capita land demand is satisfied.
+
+<h3>Development pressure</h3>
+Development pressure is a dynamic spatial variable
+derived from the patch-building process of PGA and associated with the POTENTIAL submodel.
+At each time step, PGA updates the POTENTIAL probability surface based on land change,
+and the new development pressure then affects future land change.
+The initial development pressure is computed using module
+<em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>.
+The same input parameters of this module
+(<b>gamma</b>, <b>scaling factor</b> and <b>n_dev_neighbourhood</b>)
+are then used as input for
+<em><a href="r.futures.simulation.html">r.futures.simulation</a></em>.
+
+<h3>Scenarios</h3>
+Scenarios involving policies that encourage infill versus sprawl
+can be explored using the <b>incentive_power</b> parameter,
+which uses a power function to transform the probability in POTENTIAL.
+
+<center>
+<img src="incentive.png">
+<p>
+Figure: Transforming development potential surface using incentive tables with different power functions.
+<p>
+<img src="r_futures_scenario_infill.png">
+<img src="r_futures_scenario_status_quo.png">
+<img src="r_futures_scenario_sprawl.png">
+<p>
+Figure: Effect of incentive table on development probability:
+infill (left), status quo (middle), sprawl (right) scenario.
+</center>
+
+<p>
+Additionally, parameter <b>potential_weight</b> (raster map from -1 to 1)
+enables users to include policies (such as new regulations or fees) which limit or encourage
+development in certain areas.
+Where <b>potential_weight</b> values are lower than 0,
+the probability surface is simply multiplied by the values,
+which results in decreased site suitability.
+Similarly, values greater than 0 result in increased site suitability.
+The probability surface is transformed from initial probability <em>p</em>
+with value <em>w</em> to p + w - p * w.
+
+<p>
+Parameters <b>zoning</b> (raster containing zoning district IDs) and <b>zoning_effects</b>
+(table containing zoning effects corresponding to zoning district IDs) enable users to include
+land use regulations (e.g., zoning) which constrain or incentivize development. <b>zoning</b> can be used
+alone or in combination with <b>zoning_effects</b>. If <b>zoning_effects</b> is not provided,
+any or all of the following zoning IDs should be present in the <b>zoning</b> raster and the predefined
+zoning effects are applied.
+<br><br>
+<table>
+<tr><th>Zoning District</th><th>Zoning ID</th><th>Zoning Effect</th></tr>
+<tr><td>High-Density Residential</td><td>100</td><td>0</td></tr>
+<tr><td>Medium-High Density Residential</td><td>101</td><td>-0.124</td></tr>
+<tr><td>Medium Density Residential</td><td>110</td><td>-0.440</td></tr>
+<tr><td>Medium-Low Density Residential</td><td>120</td><td>-0.656</td></tr>
+<tr><td>Low-Density Residential</td><td>130</td><td>-0.780</td></tr>
+<tr><td>Rural Residential</td><td>131</td><td>-0.790</td></tr>
+<tr><td>Commercial</td><td>200</td><td>-0.157</td></tr>
+<tr><td>Industrial</td><td>201</td><td>-0.026</td></tr>
+<tr><td>Office</td><td>202</td><td>-0.127</td></tr>
+<tr><td>Parks and Recreation</td><td>203</td><td>-0.817</td></tr>
+<tr><td>Mixed Use</td><td>300</td><td>-0.105</td></tr>
+<tr><td>Planned Use</td><td>301</td><td>0.115</td></tr>
+<tr><td>Downtown</td><td>302</td><td>-1</td></tr>
+<tr><td>No Zoning</td><td>0</td><td>0</td></tr>
+</table>
+<br>
+Where zoning effects are lower than 0, site suitability is decreased, when greater than 0
+site suitability is increased. For zoning effect (<em>w'</em>) less than 0, site suitability (<em>p</em>)
+is adjusted following p(1 - |w'|). If zoning effects are greater than 0, site suitability is adjusted
+following p + w' - p * w'. Note: If part of your study region does not have zoning, or you do not wish to apply the zoning
+effect to part of your study region, you may assign zoning ID 0 to those areas. <br>
+<br>
+Users can also optionally provide unique zoning effects (values between -1 and 1)
+or regional stringency values (values between 0 and 2) in <b>zoning_effects</b> table.
+Stringency values adjust the magnitude of the effect of each zoning district by region.
+Values less than 1 reduce the magnitude of zoning effects while values greater than
+1 increase the magnitude. Given zoning effect <em>w</em> and stringency <em>s</em>,
+adjusted zoning effects <em>w'</em> = max(-1, min(1, w * s)). <br>
+
+<br>Examples of <b>zoning_effects</b> table<br>
+
+Region_ID values in the first column should align with region IDs in <b>subregions</b> raster
+and zoning ID column headers should align with zoning IDs in <b>zoning</b> raster. <br> <br>
+
+Providing unique zoning IDs (1, 2) and effects, but no regional stringency (set to 1):
+<pre>
+Region_ID,stringency,1,2
+1,1,-0.5,0.5
+2,1,-0.8,0.3
+</pre>
+
+Using default zoning IDs and effects, but providing regional stringency values:
+<pre>
+Region_ID,stringency
+1,0.5
+2,1.5
+</pre>
+
+<h3>Output</h3>
+After the simulation ends, raster specified in parameter <b>output</b> is written.
+If optional parameter <b>output_series</b> is specified, additional output
+is a series of raster maps for each step.
+Cells with value 0 represents the initial development, values >= 1 then represent
+the step in which the cell was developed. Undeveloped cells have value -1.
+<p>
+<center>
+<img src="r_futures.png">
+<p>
+Figure: Output map of developed areas
+</center>
+
+<p>
+<center>
+<img src="r_futures_detail.png">
+<p>
+Figure: Detail of output map
+</center>
+
+<h3>Climate forcing</h3>
+Climate forcing submodel estimates the probability that a developed pixel will experience flood damage
+and the likely adaptation response (protect and armour, retreat, or stay trapped).
+Response is based on flood probability, level of damage, and local estimates of adaptive capacity.
+Climate forcing submodel integrates current and future flood probability and flood depth data
+with the adaptive capacity of developed pixels to probabilistically predict flood severity
+and the response evoked by flooding in a developed pixel. The model also predicts the within- or
+between-county destinations of displaced residents.
+
+<p>
+The input <b>flood_maps_file</b> includes flood depth data for different flood probabilities
+for different steps of the simulation:
+<pre>
+step,probability,raster
+1,0.05,flood_20yr_2020_depth
+1,0.01,flood_100yr_2020_depth
+1,0.002,flood_500yr_2020_depth
+11,0.05,flood_20yr_2030_depth
+11,0.01,flood_100yr_2030_depth
+11,0.002,flood_500yr_2030_depth
+</pre>
+
+Alternatively, if such detailed data are not available, one can use floodplain raster
+of given flood return period together with HAND (Height Above Nearest Drainage) raster
+(<b>hand</b> option) derived from a DEM
+to estimate flood depth automatically (experimental). Flood probablity raster
+then contains the probability values (e.g., 0.01 for a 100-yr flood).
+<pre>
+step,raster
+1,flood_probability_2020
+11,flood_probability_2030
+</pre>
+Option <b>hand_percentile</b> influences the derived depth, high values (> 90)
+tend to overestimate the flood depth.
+
+<p>Flood events are stochastically simulated on the level of HUCs (e.g., HUC 12),
+use <b>huc</b> input option for raster representation of HUCs.
+Use <b>flood_logfile</b> to log the simulated flood events into a CSV file
+for further information (step, HUC ID, flood probability).
+
+<p>Once a flood event is simulated, local damage is estimated
+  using flood-damage curves provided in a CSV file in option <b>depth_damage_functions</b>.
+Its header includes inundation levels in vertical units.
+The first column is an id of a subregion given in <b>ddf_subregions</b>
+and the values are percentages of structural damage.
+<pre>
+ID,0.3,0.6,0.9
+101,0,15,20
+102,10,20,30
+</pre>
+
+Once the damage is established, response is stochastically evaluated based
+on the <b>adaptive_capacity</b> raster with values ranging from -1 (most vulnerable)
+to 1 (most resilient). Option <b>response_func</b> evaluates the response
+based on the damage and adaptive capacity, e.g., with high damage vulnerable populations are
+less likely to protect and armour (adapt) than higly resilient populations.
+Responses include 1) retreat resulting in pixel abandonment,
+2) stay and adapt, and 3) stay trapped.
+When a pixel is abandoned, the <b>redistribution_matrix</b>
+is used to decide to which subregion the pixel is moved.
+It contains probabilities of moving from one subregion to another:
+<pre>
+ID,37013,37014,...
+37013,0.6,0.01,...
+37014,0.05,0.3,...
+</pre>
+Output file <b>redistribution_output</b> can be used to log the redistribution
+happening during the simulation.
+
+
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+r.futures.simulation -s developed=lc96 predictors=d2urbkm,d2intkm,d2rdskm,slope \
+  demand=demand.txt devpot_params=devpotParams.csv discount_factor=0.6 \
+  compactness_mean=0.4 compactness_range=0.08 num_neighbors=4 seed_search=probability \
+  patch_sizes=patch_sizes.txt development_pressure=gdp n_dev_neighbourhood=10 \
+  development_pressure_approach=gravity gamma=2 scaling_factor=1 \
+  subregions=subregions incentive_power=2 \
+  potential_weight=weight_1 output=final_results output_series=development
+</pre></div>
+
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>
+    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
+    <em>FUTURES: Multilevel Simulations of Emerging Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</em>.
+    Annals of the Association of American Geographers, 103(4), 785-807.
+    DOI: <a href="https://doi.org/10.1080/00045608.2012.707591">10.1080/00045608.2012.707591</a>
+</li>
+<li>
+    Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+    <em>Simulating urbanization scenarios reveals tradeoffs between conservation planning strategies</em>.
+    Landscape and Urban Planning, 136, 28-39.
+    DOI: <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">10.1016/j.landurbplan.2014.11.011</a>
+</li>
+<li>
+    Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H., &amp; Meentemeyer, R. K. (2016).
+    <em>Open Source Approach to Urban Growth Simulation</em>.
+    Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
+    DOI: <a href="https://doi.org/10.5194/isprsarchives-XLI-B7-953-2016">10.5194/isprsarchives-XLI-B7-953-2016</a>
+</li>
+<li>
+    Sanchez, G.M., A. Petrasova, A., M.M. Skrip, E.L. Collins, M.A. Lawrimore,
+    J.B. Vogler, A. Terando, J. Vukomanovic, H. Mitasova, and R.K. Meentemeyer (2023).
+    <em>Spatially interactive modeling of land change identifies location-specific adaptations most likely to lower future flood risk</em>.
+    Sci Rep 13, 18869.
+    DOI: <a href="https://doi.org/10.1038/s41598-023-46195-9">10.1038/s41598-023-46195-9</a>
+</li>
+</ul>
 
 
 <h2>SEE ALSO</h2>
 
 <a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.parallelpga.html">r.futures.parallelpga</a></em>,
 <em><a href="r.futures.devpressure.html">r.futures.devpressure</a></em>,
+<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.potsurface.html">r.futures.potsurface</a></em>,
 <em><a href="r.futures.demand.html">r.futures.demand</a></em>,
 <em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.futures.gridvalidation.html">r.futures.gridvalidation</a></em>,
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>,
 <em><a href="r.sample.category.html">r.sample.category</a></em>
 
-<h2>REFERENCES</h2>
-<ul>
-<li>
-    Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
-    <a href="https://doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
-    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
-    Annals of the Association of American Geographers, 103(4), 785-807.
-    DOI: 10.1080/00045608.2012.707591
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
-   <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
-    tradeoffs between conservation planning strategies</a>.
-    Landscape and Urban Planning, 136, 28-39.
-    DOI: 10.1016/j.landurbplan.2014.11.011</li>
-<li>Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H.,  &amp; Meentemeyer, R. K. (2016).
-   <a href="https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf">Open Source Approach to Urban Growth Simulation</a>.
-   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
-   DOI: 10.5194/isprsarchives-XLI-B7-953-2016</li>
-</ul>
 
-<h2>AUTHOR</h2>
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+<h2>AUTHORS</h2>
+
+<p>
+<em>Corresponding author:</em><br>
+Anna Petrasova, akratoc ncsu edu,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Original standalone version:</em><br>
+Ross K. Meentemeyer,<br>
+Wenwu Tang,<br>
+Monica A. Dorning,<br>
+John B. Vogler,<br>
+Nik J. Cunniffe,<br>
+Douglas A. Shoemaker<br>
+(Department of Geography and Earth Sciences, UNC Charlotte)<br>
+Jennifer A. Koch
+(<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>)
+
+<p>
+<em>Port to GRASS and GRASS-specific additions:</em><br>
+Vaclav Petras,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Development pressure, demand, calibration, validation, preprocessing tools and maintenance:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Climate forcing submodel:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
+Georgina Sanchez,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Zoning:</em><br>
+Margaret Lawrimore,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
