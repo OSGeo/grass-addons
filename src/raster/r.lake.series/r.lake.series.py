@@ -122,8 +122,7 @@ import decimal
 from grass.script import core as gcore
 import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
-from grass.pygrass.modules import Module
-from multiprocessing import Process
+from concurrent.futures import ThreadPoolExecutor
 
 
 def format_time(time):
@@ -163,21 +162,21 @@ def remove_raster_maps(maps, quiet=False):
 def run_lake_task(args):
     elevation, output, water_level, kwargs, flags, overwrite = args
 
-    mod = Module(
-        "r.lake",
-        elevation=elevation,
-        lake=output,
-        water_level=water_level,
-        overwrite=overwrite,
-        flags=flags,
-        **kwargs,
-    )
     try:
-        mod.run()
+        gcore.run_command(
+            "r.lake",
+            flags=flags,
+            elevation=elevation,
+            lake=output,
+            water_level=water_level,
+            overwrite=overwrite,  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+            **kwargs,
+        )
+
     except CalledModuleError as e:
         # Show the error message
         gcore.error(f"r.lake failed for output <{output}>: {e}")
-        sys.exit(1)
+        return None
     return output
 
 
@@ -258,28 +257,11 @@ def main():
     use_cores = min(int(nprocs), len(tasks))
 
     # Run tasks
-    proc_list = []
-    proc_count = 0
-
-    for task in tasks:
-        p = Process(target=run_lake_task, args=(task,))
-        proc_list.append(p)
-        p.start()
-        proc_count += 1
-
-        if proc_count < use_cores and len(proc_list) < len(tasks):
-            continue
-
-        exitcodes = 0
-        for proc in proc_list:
-            proc.join()
-            exitcodes += proc.exitcode
-
-        if exitcodes != 0:
-            gcore.fatal("Parallel r.lake execution failed.")
-
-        proc_list = []
-        proc_count = 0
+    with ThreadPoolExecutor(max_workers=use_cores) as executor:
+        outputs = [
+            out for out in executor.map(run_lake_task, tasks)
+            if out is not None
+        ]
 
     gcore.info(_("Registering created maps into temporal dataset..."))
 
