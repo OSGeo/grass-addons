@@ -286,7 +286,7 @@ def _depth_weighted_hz_cte(
 
     Joins the ``dom`` CTE to the chorizon table, restricts to horizons that
     overlap ``[top, bottom]`` with the given master horizon designation, and
-    produces SUM(thk × value) / SUM(thk) per mukey for each entry in
+    produces SUM(thk x value) / SUM(thk) per mukey for each entry in
     ``fields``. Each field's source value is multiplied by its per-field
     ``conv`` factor before aggregation (e.g. Ksat fields multiply by 3.6 to
     convert from µm/s to mm/hr; pass-through fields use 1.0).
@@ -370,7 +370,7 @@ def _depth_sliced_hz_ctes(
 
 
 def _horizon_slice_columns(slices, fields=_HORIZON_WEIGHTED_FIELDS):
-    """Expand ``fields`` × ``slices`` into per-slice ``(name, sql_type)`` pairs.
+    """Expand ``fields`` x ``slices`` into per-slice ``(name, sql_type)`` pairs.
 
     Returns a flat list of ``(slice_column_name, sql_type)`` tuples in
     slice-major order (slice 0 fields, then slice 1 fields, ...). The
