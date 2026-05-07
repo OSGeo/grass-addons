@@ -89,7 +89,7 @@
 # %option
 # % key: nproc
 # % type: integer
-# % label: Number of processes to run in parallel (currently ignored)
+# % label: Number of processes to run in parallel
 # % required: no
 # % answer: 1
 # % options: 1-
@@ -111,7 +111,6 @@ Created on Tue Oct 15 21:18:00 2013
 @author: Vaclav Petras <wenzeslaus gmail.com>
 """
 
-# TODO: support parallel
 # TODO: generate SQL valid map names (replace decimal dot by underscore)
 # TODO: use numbers instead of water levels flag
 # TODO: remove unused functions
@@ -169,7 +168,7 @@ def run_lake_task(args):
             elevation=elevation,
             lake=output,
             water_level=water_level,
-            overwrite=overwrite,  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+            overwrite=overwrite,
             **kwargs,
         )
 
