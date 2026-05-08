@@ -77,7 +77,7 @@ jobs:
         id: diff-pre-commit
         # To run after pre-commit step exits with failure
         if: ${{ !cancelled() }}
-        uses: OSGeo/grass/.github/actions/create-upload-suggestions@main
+        uses: OSGeo/grass/.github/actions/create-upload-suggestions@c90c9a4ccee4cd6454a5555a0cd6f3cdb542475c # main
         with:
           tool-name: pre-commit
           # To keep repo's file structure in formatted changes artifact
