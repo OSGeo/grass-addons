@@ -36,9 +36,6 @@ jobs:
           - grass-version: releasebranch_8_5
             python-version: "3.11"
             os: ubuntu-24.04
-          - grass-version: releasebranch_8_4
-            python-version: "3.10"
-            os: ubuntu-22.04
       fail-fast: false
     env:
       # renovate: datasource=github-tags depName=r-hub/R
