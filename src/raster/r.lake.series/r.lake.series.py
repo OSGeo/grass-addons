@@ -117,6 +117,7 @@ Created on Tue Oct 15 21:18:00 2013
 
 import sys
 import decimal
+import os
 
 from grass.script import core as gcore
 import grass.temporal as tgis
@@ -177,6 +178,36 @@ def run_lake_task(args):
         gcore.error(f"r.lake failed for output <{output}>: {e}")
         return None
     return output
+
+
+def _available_cpus():
+    """Number of CPUs this process may actually use.
+
+    Prefers affinity-aware sources over ``os.cpu_count()``, which reports
+    the host total and overcounts in containers and cgroup-limited jobs.
+    """
+    if hasattr(os, "process_cpu_count"):  # Python 3.13+
+        return os.process_cpu_count() or 1
+    if hasattr(os, "sched_getaffinity"):  # Linux
+        return len(os.sched_getaffinity(0))
+    return os.cpu_count() or 1
+
+
+def _resolve_nprocs(nprocs):
+    """Resolve G_OPT_M_NPROCS into a worker count for ThreadPoolExecutor.
+
+    Mirrors the semantics of G_set_omp_num_threads() in
+    lib/gis/omp_threads.c: 0 means use all available cores, a positive
+    number is used as-is, a negative number means cpu_count + nprocs
+    (clamped to at least 1). Belongs in a library helper eventually.
+    """
+    nprocs = int(nprocs)
+    if nprocs > 0:
+        return nprocs
+    available = _available_cpus()
+    if nprocs == 0:
+        return available
+    return max(1, available + nprocs)
 
 
 def main():
@@ -253,7 +284,7 @@ def main():
         for i, water_level in enumerate(water_levels)
     ]
 
-    use_cores = min(int(nprocs), len(tasks))
+    use_cores = _resolve_nprocs(nprocs)
 
     # Run tasks
     with ThreadPoolExecutor(max_workers=use_cores) as executor:
