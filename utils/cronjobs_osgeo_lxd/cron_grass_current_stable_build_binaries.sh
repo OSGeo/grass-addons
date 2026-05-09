@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# script to build GRASS GIS new current binaries + addons + progman from the `releasebranch_8_4` branch
-# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# script to build GRASS GIS current binaries + addons from the `releasebranch_8_5` branch
+# (c) 2002-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -19,13 +19,14 @@
 
 # Preparations, on server (neteler@grasslxd:$):
 # - install dependencies:
-#     cd $HOME/src/releasebranch_8_4/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
-# - install further dependencies:
+#     cd $HOME/src/releasebranch_8_5/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+# - install further dependencies (not needed for mkdocs used in G85+):
 #     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
-#     ln -s /var/www/code_and_data/grass84 .
+#     ln -s /var/www/code_and_data/grass85 .
+#     ln -s /var/www/code_and_data/grass-stable .
 #
 #################################
 # variables for build environment (grass.osgeo.org specific)
@@ -35,8 +36,8 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=4
-GPATCH=1  # required by grass-addons-index.sh
+GMINOR=5
+GPATCH=0  # required by grass-addons-index.sh
 BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -58,7 +59,7 @@ TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# progman not built for older dev versions or old stable, only for preview version
+# progman not built for older dev versions, stable, old, legacy (only done for preview version)
 #TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -198,7 +199,7 @@ $MYMAKE htmldocs-single || (echo "$0 htmldocs-single: an error occurred" ; exit 
 
 cd $GRASSBUILDDIR/
 
-#### unused, only done in "preview" script
+#### unused, programmer's manual is only built in "preview" script
 ## clean old TARGETPROGMAN stuff from last run
 #if  [ -z "$TARGETPROGMAN" ] ; then
 # echo "\$TARGETPROGMAN undefined, error!"
@@ -245,7 +246,7 @@ if [ $? -ne 0 ] ; then
    halt_on_error "make bindist."
 fi
 
-# report system:
+# report system details:
 echo "System:
 $ARCH, compiled with:" > grass-$DOTVERSION\_$ARCH\_bin.txt
 ## echo "Including precompiled $GDALVERSION library for r.in.gdal" >> grass-$DOTVERSION\_$ARCH\_bin.txt
@@ -261,7 +262,7 @@ echo "Copy new binary version into web space:"
 cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh $TARGETDIR
 rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh
 
-# generate manual ZIP package
+# generate ZIP package of manual pages (mkdocs generated with GHA)
 (cd $TARGETHTMLDIR/.. ; rm -f $TARGETHTMLDIR/*html_manual.zip ; zip -r /tmp/grass-${DOTVERSION}_html_manual.zip manuals/)
 mv /tmp/grass-${DOTVERSION}_html_manual.zip $TARGETHTMLDIR/
 
@@ -298,11 +299,14 @@ for dir in `find $MAINDIR/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
         if [ "$(ls -A $dir/docs/html/)" ]; then
             for f in $dir/docs/html/*; do
+                # TODO: in cron_grass_preview_build_binaries.sh this is skipped. What is right?
                 cp $f $TARGETHTMLDIR/addons/
             done
         fi
     fi
 done
+
+# TODO: still needed for new mkdocs based manual pages?
 sh $MAINDIR/cronjobs/grass-addons-index.sh $GMAJOR $GMINOR $GPATCH $TARGETHTMLDIR/addons/
 # copy over hamburger menu assets
 cp $TARGETHTMLDIR/grass_logo.png \
@@ -344,7 +348,7 @@ rm -f $TARGETHTMLDIRSTABLE/*.*
 cp -rp $TARGETHTMLDIR/* $TARGETHTMLDIRSTABLE/
 
 ############################################
-# SEO: inject canonical link into versioned manual pages (e.g, grass84/)
+# SEO: inject canonical link into versioned manual pages (e.g, grass85/)
 # - cd back into folder of versioned HTML manual pages
 # - run sed to replace an existing HTML header string in the upper part of the HTML file
 #   with itself + canonical link of stable version
@@ -367,7 +371,7 @@ process_files "$TARGETHTMLDIR" ""
 process_files "$TARGETHTMLDIR/addons" "addons/"
 process_files "$TARGETHTMLDIR/libpython" "libpython/"
 
-# SEO: "stable" manual pages (grass-stable/) is canonical link
+# SEO: "stable" manual pages (grass-stable/) is using canonical link
 
 ############################################
 # create sitemaps to expand the hugo sitemap
