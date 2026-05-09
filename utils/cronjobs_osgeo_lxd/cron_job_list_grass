@@ -22,8 +22,8 @@
 
 # run at 00:30:00 and 12:30:00 each day: fetches code from GitHub and builds it with hugo (target dir: /var/www/html/)
 30 */12 * * * nice bash /home/neteler/cronjobs/hugo_clean_and_update_job.sh
-# run at 00:40:00 and 12:40:00 each day:
-40 */12 * * * nice bash /home/neteler/cronjobs/fetch_unpack_manual_GHA.sh > /home/neteler/fetch_unpack_manual_GHA.log  2>&1
+# run at 00:40:00 and 12:40:00 each day (disabled May 2026, integrated in the respective build scripts)
+#40 */12 * * * nice bash /home/neteler/cronjobs/fetch_unpack_manual_GHA.sh > /home/neteler/fetch_unpack_manual_GHA.log  2>&1
 
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 # legacy
