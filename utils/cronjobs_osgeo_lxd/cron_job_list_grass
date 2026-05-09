@@ -42,9 +42,9 @@
 ## old stable (no more releases planned, 8.3 compilation disabled on May 6th, 2025)
 #35 05 * * * nice bash /home/neteler/cronjobs/cron_grass_old_build_binaries.sh > /var/www/code_and_data/grass83/binary/linux/snapshot/build.log.txt 2>&1
 # new stable
-10 06 * * * nice bash /home/neteler/cronjobs/cron_grass_current_stable_build_binaries.sh > /var/www/code_and_data/grass84/binary/linux/snapshot/build.log.txt 2>&1
+10 06 * * * nice bash /home/neteler/cronjobs/cron_grass_current_stable_build_binaries.sh > /var/www/code_and_data/grass85/binary/linux/snapshot/build.log.txt 2>&1
 # preview
-45 06 * * * nice bash /home/neteler/cronjobs/cron_grass_preview_build_binaries.sh     > /var/www/code_and_data/grass85/binary/linux/snapshot/build.log.txt 2>&1
+45 06 * * * nice bash /home/neteler/cronjobs/cron_grass_preview_build_binaries.sh     > /var/www/code_and_data/grass86/binary/linux/snapshot/build.log.txt 2>&1
 
 
 # generate osgeo_mailman_stats/ + email
