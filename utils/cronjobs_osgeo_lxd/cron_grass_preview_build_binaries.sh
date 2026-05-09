@@ -58,7 +58,7 @@ TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
 # progman compiled below (i.e., only for preview version)
-# progman not built for older dev versions or old stable
+# progman not built for older dev versions or stable
 TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
