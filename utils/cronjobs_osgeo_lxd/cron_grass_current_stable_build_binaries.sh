@@ -247,7 +247,7 @@ sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
 ### fetch manual from GH actions
 # fetch artifacts for releasebranch_8_X (stable)
 bash $HOME/cronjobs/gh_cli_download_artifact.sh $BRANCH
-cd $TARGETHTMLDIR && rm -rf * && unzip -q /tmp/mkdocs-site.zip
+unzip -t /tmp/mkdocs-site.zip && cd $TARGETHTMLDIR && rm -rf * && unzip -q /tmp/mkdocs-site.zip
 
 #### generate developer stuff: pygrass docs + gunittest docs
 # generate pyGRASS sphinx manual (in python/grass/docs/)
