@@ -40,7 +40,7 @@ REPO="grass"
 REPO_LOCAL="$HOME/src/$MYBRANCH/"       # e.g., neteler@grasslxd:~/src/main/ or ~/src/releasebranch_8_5/
 WORKFLOW_NAME="documentation.yml"  # or the workflow filename/id
 ARTIFACT_NAME="mkdocs-site" # the name of the artifact
-ZIP_OUTPUT="$ARTIFACT_NAME.zip"
+ZIP_OUTPUT="$ARTIFACT_NAME_$MYBRANCH.zip"
 OUTPUT_DIR="/tmp"
 
 # === Script ===
