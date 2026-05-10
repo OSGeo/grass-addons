@@ -20,9 +20,6 @@
 # - git clone the correct GRASS source code version into $HOME/src/
 # - install dependencies:
 #     cd $HOME/src/main/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
-# - install further dependencies (libpython and developers docs):
-#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc python3-sphinx-sitemap
-#     pip install sphinx-last-updated-by-git sphinx_material --break-system-packages # to avoid virtenv
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
@@ -244,12 +241,6 @@ sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
 # fetch artifacts for main (devel)
 bash $HOME/cronjobs/gh_cli_download_artifact.sh $BRANCH
 unzip -t /tmp/mkdocs-site_$BRANCH.zip && cd $TARGETHTMLDIR && rm -rf * && unzip -q /tmp/mkdocs-site_$BRANCH.zip && rm -f /tmp/mkdocs-site_$BRANCH.zip
-
-#### generate developer stuff: pygrass docs + gunittest docs
-# generate pyGRASS sphinx manual (in python/grass/docs/)
-# including source code
-cd $GRASSBUILDDIR
-$MYMAKE sphinxdoclib
 
 # copy over logs from $MAINDIR/.grass$GMAJOR/addons/logs/
 mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
