@@ -4,7 +4,7 @@
 #
 # MODULE:       r.in.ahn
 # AUTHOR:       Paulo van Breugel
-# PURPOSE:      Imports dtm, dsm or laz data from the AHN (Actueel
+# PURPOSE:      Imports dtm, dsm data from the AHN (Actueel
 #               Hoogtebestand Nederland (AHN), versions 2–6) by downloading
 #               1x1 km tiles, clipped to the computational region. In
 #               addition, the chm can be computed as dsm - dtm.
@@ -17,7 +17,7 @@
 #############################################################################
 
 # %module
-# % description: Imports dtm, dsm, chm or laz from the AHN (Actueel Hoogtebestand Nederland (AHN), versions 2–6.
+# % description: Imports dtm, dsm or chm from the AHN (Actueel Hoogtebestand Nederland (AHN), versions 2–6.
 # % keyword: dem
 # % keyword: raster
 # % keyword: import
@@ -28,7 +28,7 @@
 # % type: string
 # % label: Product
 # % description: Choose which product to download (dtm, dsm or chm)
-# % options: dtm,dsm,chm,laz
+# % options: dtm,dsm,chm
 # % required: yes
 # %end
 
@@ -54,23 +54,7 @@
 
 # %option G_OPT_R_OUTPUT
 # % guisection: Output
-# % required: no
-# %end
-
-# %option G_OPT_M_DIR
-# % key: directory
-# % label: Output directory for LAZ data
-# % description: Output directory to which the LAZ data is downloaded (default = working directory)
-# % required: no
-# % guisection: Output
-# %end
-
-# %option G_OPT_F_OUTPUT
-# % key: laz_files
-# % label: CSV file with list of downloaded LAZ files
-# % description: Save the path + names of the downloaded LAZ files to a file
-# % required: no
-# % guisection: Output
+# % required: yes
 # %end
 
 # %option G_OPT_MEMORYMB
@@ -94,19 +78,11 @@
 # % description: After downloading and importing, set the region back to the original computation region.
 # %end
 
-# %rules
-# % exclusive: directory, output
-# %end
-
 import atexit
 import sys
 from math import floor, ceil
-from math import floor
 from multiprocessing import Pool
 import uuid
-import os
-from urllib.request import urlretrieve
-from urllib.error import URLError, HTTPError
 
 import grass.script as gs
 from grass.exceptions import CalledModuleError
@@ -162,8 +138,8 @@ def get_tile_url(version, product, resolution, x, y):
     Construct the download URL for a single 1x1 km tile.
 
     version: '2','3','4','5','6'
-    product: 'dtm', 'dsm' or 'laz'
-    resolution: 0.5 or 5 (float) for dtm/dsm, ignored for laz
+    product: 'dtm', 'dsm'
+    resolution: 0.5 or 5 (float)
     x, y: lower-left corner coordinates (integers, EPSG:28992)
     """
 
@@ -179,14 +155,6 @@ def get_tile_url(version, product, resolution, x, y):
         prefix_base = "AHN6_2025"
     else:
         gs.fatal(_("Unsupported AHN version: {v}").format(v=version))
-
-    # LiDAR (LAZ) tiles: separate pattern
-    if product == "laz":
-        subdir = "01_LAZ"
-        suffix = "C"
-        filename = f"{prefix_base}_{suffix}_{int(x):06d}_{int(y):06d}.COPC.LAZ"
-        url = f"{base}/{vdir}/{subdir}/{filename}"
-        return url
 
     # Product + resolution dependent subdir and suffix for rasters
     if product == "dtm":
@@ -327,28 +295,6 @@ def _import_tile(args):
                 "Failed to import tile {x}_{y} from {url}. "
                 "Skipping this tile. Error: {err}"
             ).format(x=int(x), y=int(y), url=url, err=e)
-        )
-        return None
-
-
-def _download_laz_tile(args):
-    """
-    Worker function to download a single LAZ tile.
-
-    args = (url, dest)
-    Returns dest on success, or None on failure.
-    """
-    url, dest = args
-    try:
-        gs.message(f"Downloading LAZ tile to {dest}\n")
-        urlretrieve(url, dest)
-        return dest
-    except (HTTPError, URLError, OSError) as e:
-        gs.warning(
-            _(
-                "Failed to download LAZ tile from {url} to {dest}. "
-                "Skipping this tile. Error: {err}"
-            ).format(url=url, dest=dest, err=e)
         )
         return None
 
@@ -733,7 +679,6 @@ def main(options, flags):
     """
     Download AHN tiles (DTM/DSM, 0.5 or 5 m) and patch them into a single raster.
     If chm is selected, create the chm layer.
-    If laz is selected, download LiDAR tiles and print their paths.
     """
 
     # Check if the projection is RD New (EPSG:28992)
@@ -745,15 +690,6 @@ def main(options, flags):
     version = options["version"]
     res = float(options["resolution"])
     outname = options["output"]
-    directory = options["directory"]
-    laz_files = options["laz_files"]
-    if laz_files and product != "laz":
-        gs.warning(
-            _(
-                "The laz_files parameter is ignored because this is only used "
-                "when the 'laz' product is selected."
-            )
-        )
     memory = int(options["memory"])
     nprocs = int(options["nprocs"])
     if nprocs < 1:
@@ -774,44 +710,6 @@ def main(options, flags):
     tiles = tiles_for_region(n_ov, s_ov, w_ov, e_ov)
     if not tiles:
         gs.fatal(_("No AHN tiles intersect the requested region."))
-
-    # LiDAR tiles (LAZ) – only download, do not import
-    if product == "laz":
-        gs.message(_("Preparing to download {} LAZ tiles").format(len(tiles)))
-        jobs = []
-        for x, y in tiles:
-            url = get_tile_url(version, "laz", res, x, y)  # res ignored for laz
-            filename = os.path.basename(url)
-            if directory:
-                dest = os.path.join(directory, filename)
-            else:
-                dest = os.path.join(os.getcwd(), filename)
-            jobs.append((url, dest))
-
-        if nprocs > 1 and len(jobs) > 1:
-            gs.message(_("Downloading {} LAZ tiles").format(len(jobs)))
-            with Pool(processes=nprocs) as pool:
-                results = pool.map(_download_laz_tile, jobs)
-        else:
-            gs.message(_("Downloading {} LAZ tiles sequentially").format(len(jobs)))
-            results = [_download_laz_tile(job) for job in jobs]
-
-        downloaded = [p for p in results if p is not None]
-
-        if not downloaded:
-            gs.fatal(_("Download of all requested LAZ tiles failed."))
-
-        # Print or save list of full paths
-        if laz_files:
-            with open(laz_files, "w") as fh:
-                for p in downloaded:
-                    fh.write(p + "\n")
-        else:
-            for path in downloaded:
-                print(path)
-
-        gs.message(_("Finished downloading {} LAZ tiles").format(len(downloaded)))
-        return 0
 
     # Compute snapped region (NO clamping necessary)
     n_sn = res * ceil(n_ov / res)
