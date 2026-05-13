@@ -189,6 +189,7 @@ import json
 
 
 from datetime import datetime, timezone, timedelta, date
+from requests.exceptions import HTTPError
 import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
@@ -403,8 +404,11 @@ def main():
         # Checking credentials early
         dag = EODataAccessGateway()
         try:
-            dag._plugins_manager.get_auth_plugin("cop_dataspace").authenticate()
-        except MisconfiguredError as e:
+            cop_plugin = next(
+                dag._plugins_manager.get_search_plugins(provider="cop_dataspace")
+            )
+            dag._plugins_manager.get_auth_plugin(cop_plugin).authenticate()
+        except (MisconfiguredError, HTTPError) as e:
             gs.fatal(e)
         except AuthenticationError:
             gs.fatal(
