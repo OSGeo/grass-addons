@@ -189,7 +189,6 @@ import json
 
 
 from datetime import datetime, timezone, timedelta, date
-from requests.exceptions import HTTPError
 import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.exceptions import CalledModuleError
@@ -531,6 +530,7 @@ if __name__ == "__main__":
         import eodag
         from eodag import EODataAccessGateway
         from eodag.utils.exceptions import AuthenticationError, MisconfiguredError
+        from requests.exceptions import HTTPError
 
         gs.find_program("i.eodag", "--help")
     except ImportError:
