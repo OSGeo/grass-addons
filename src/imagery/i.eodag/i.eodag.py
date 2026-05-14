@@ -265,7 +265,9 @@ import os
 import re
 import sys
 import typing
+import urllib.request
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from hashlib import md5
 from pathlib import Path
 from subprocess import PIPE
@@ -274,7 +276,13 @@ import grass.script as gs
 from grass.pygrass.modules import Module
 
 try:
+    import pyotp
+except ImportError:
+    pyotp = None
+
+try:
     import eodag
+    import yaml
 
     EODAG_VERSION = int(eodag.__version__.split(".")[0])
 except ImportError:
@@ -1293,6 +1301,40 @@ def print_query(geometry, queryables, **kwargs) -> None:
     print(json.dumps(query_dict, indent=4))
 
 
+def get_time_offset():
+    """Returns timedelta offset between server and local time. 0 if unreachable."""
+    try:
+        response = urllib.request.urlopen("https://creodias.eu", timeout=3)
+        server_date_str = response.headers.get("Date")
+        if server_date_str:
+            server_time = parsedate_to_datetime(server_date_str)
+            local_time = datetime.now(timezone.utc)
+            # Return the offset to be added to local time to get server time
+            return server_time - local_time
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError):
+        pass
+
+    return timedelta(0)
+
+
+def get_creodias_totp_secret(dag):
+    """Read TOTP seed from EODAG yaml config file."""
+    try:
+        cfg_file = Path(Path(dag.conf_dir) / "eodag.yml")
+        if Path(cfg_file).exists():
+            with open(cfg_file) as f:
+                cfg = yaml.safe_load(f)
+            return (
+                cfg.get("creodias", {})
+                .get("auth", {})
+                .get("credentials", {})
+                .get("totp")
+            )
+    except (AttributeError, OSError, yaml.YAMLError, TypeError) as e:
+        gs.debug(_("Error reading TOTP secret: {}").format(e))
+    return None
+
+
 def main() -> None:
     """Main execution logic for the i.eodag GRASS module."""
     # Setup environment variables for EODAG configuration
@@ -1457,34 +1499,40 @@ def main() -> None:
         # TODO: Consider adding a quicklook flag
         # --- Download Logic with Automatic OTP ---
         try:
-            # TODO: Would be better if we could find a way to not ask the user for the OTP manually
             providers = {scene.provider for scene in search_result}
             if "creodias" in providers:
-                gs.message(
-                    _(
-                        "Please enter Creodias OTP, to discard Creodias scenes enter '-': ",
-                    ),
-                )
-                creodias_otp = input().strip()
+                creodias_otp = None
+                totp_secret = get_creodias_totp_secret(dag)
+                if pyotp and totp_secret:
+                    gs.info(_("Generating Creodias OTP automatically..."))
+                    offset = get_time_offset()
+                    adjusted_time = datetime.now() + offset
+                    creodias_otp = pyotp.TOTP(totp_secret.replace(" ", "")).at(
+                        adjusted_time
+                    )
+
+                if not creodias_otp:
+                    gs.message(
+                        _(
+                            "Please enter Creodias OTP, to discard Creodias scenes enter '-': ",
+                        ),
+                    )
+                    creodias_otp = input().strip()
 
                 if creodias_otp == "-":
                     search_result = SearchResult(
-                        [
-                            scene
-                            for scene in search_result
-                            if scene.provider != "creodias"
-                        ],
+                        [s for s in search_result if s.provider != "creodias"]
                     )
                 else:
-                    providers_cfg = get_eodag_providers(dag)
-                    if "creodias" in providers_cfg:
-                        providers_cfg["creodias"].auth.credentials["totp"] = (
-                            creodias_otp
+                    if totp_secret or creodias_otp:
+                        dag.update_providers_config(
+                            yaml_conf=f"""
+creodias:
+    auth:
+        credentials:
+            totp: "{creodias_otp}"
+"""
                         )
-                        if hasattr(dag, "_plugins_manager"):
-                            dag._plugins_manager.get_auth_plugin(
-                                "creodias"
-                            ).authenticate()
                     else:
                         gs.warning(
                             _(
@@ -1492,13 +1540,15 @@ def main() -> None:
                             )
                         )
 
+            if not search_result:
+                gs.message(_("Nothing to download.\nExiting..."))
+                return
+
             custom_config = {
                 "timeout": int(options["timeout"]),
                 "wait": int(options["wait"]),
             }
-            if not search_result:
-                gs.message(_("Nothing to download.\nExiting..."))
-                return
+
             if options["output"]:
                 custom_config["output_dir"] = options["output"]
 
