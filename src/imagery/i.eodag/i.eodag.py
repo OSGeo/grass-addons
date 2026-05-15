@@ -273,6 +273,7 @@ from pathlib import Path
 from subprocess import PIPE
 
 import grass.script as gs
+from eodag.utils.exceptions import AuthenticationError
 from grass.pygrass.modules import Module
 
 try:
@@ -1503,9 +1504,17 @@ def main() -> None:
             if "creodias" in providers:
                 creodias_otp = None
                 totp_secret = get_creodias_totp_secret(dag)
+                offset = get_time_offset()
                 if pyotp and totp_secret:
                     gs.info(_("Generating Creodias OTP automatically..."))
-                    offset = get_time_offset()
+                    # offset > 0 means local clock is behind the server
+                    if offset.total_seconds() > 0:
+                        gs.warning(
+                            _(
+                                "Local clock is {}s behind the Creodias server. "
+                                "Authentication may fail. Please synchronize your system clock."
+                            ).format(round(offset.total_seconds(), 2))
+                        )
                     adjusted_time = datetime.now() + offset
                     creodias_otp = pyotp.TOTP(totp_secret.replace(" ", "")).at(
                         adjusted_time
@@ -1554,6 +1563,19 @@ creodias:
 
             dag.download_all(search_result, **custom_config)
 
+        except AuthenticationError as e:
+            if (
+                "iat" in str(e)
+                and "creodias" in providers
+                and offset.total_seconds() > 0
+            ):
+                gs.fatal(
+                    _(
+                        "Authentication failed due to clock skew ({}s behind server). "
+                        "Please synchronize your system clock."
+                    ).format(round(offset.total_seconds(), 2))
+                )
+            gs.fatal(_("Authentication failed: {}").format(e))
         except MisconfiguredError as e:
             gs.fatal(_("EODAG configuration error: {}").format(e))
         except KeyError as e:
