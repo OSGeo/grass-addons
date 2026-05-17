@@ -179,19 +179,6 @@ def run_lake_task(args):
     return output
 
 
-def _available_cpus():
-    """Number of CPUs this process may actually use.
-
-    Prefers affinity-aware sources over ``os.cpu_count()``, which reports
-    the host total and overcounts in containers and cgroup-limited jobs.
-    """
-    if hasattr(os, "process_cpu_count"):  # Python 3.13+
-        return os.process_cpu_count() or 1
-    if hasattr(os, "sched_getaffinity"):  # Linux
-        return len(os.sched_getaffinity(0))
-    return os.cpu_count() or 1
-
-
 def _resolve_nprocs(nprocs):
     """Resolve G_OPT_M_NPROCS into a worker count for ThreadPoolExecutor.
 
@@ -203,7 +190,7 @@ def _resolve_nprocs(nprocs):
     nprocs = int(nprocs)
     if nprocs > 0:
         return nprocs
-    available = _available_cpus()
+    available = os.cpu_count()
     if nprocs == 0:
         return available
     return max(1, available + nprocs)
