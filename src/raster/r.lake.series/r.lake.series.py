@@ -86,13 +86,12 @@
 # % answer: minutes
 # % guisection: Time
 # %end
-# %option
-# % key: nproc
+# %option G_OPT_M_NPROCS
+# % key: nprocs
 # % type: integer
 # % label: Number of processes to run in parallel
 # % required: no
 # % answer: 1
-# % options: 1-
 # %end
 # %flag
 # % key: n
@@ -239,7 +238,7 @@ def main():
             _("Time step must be greater than zero. Please specify number > 0.")
         )
     
-    nprocs = options["nproc"]
+    nprocs = options["nprocs"]
 
     mapset = gcore.gisenv()["MAPSET"]
     title = _("r.lake series")
