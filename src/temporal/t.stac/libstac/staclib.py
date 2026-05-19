@@ -25,7 +25,7 @@ import gettext
 from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
 
 from grass.jupyter.reprojection_renderer import ReprojectionRenderer
 
@@ -918,32 +918,14 @@ def download_assets(
         gs.warning(_("tqdm module not found. Progress bar will not be displayed."))
 
     def _run(pbar=None):
+        # ProcessPoolExecutor (not threads) is required: grass.script relies on
+        # process-global state (GISRC, WIND_OVERRIDE, GIS_LOCK, computational
+        # region) and the per-worker GDAL_* env vars set in import_grass_raster.
+        # Concurrent r.import calls in the same process race on that state.
         with ProcessPoolExecutor(max_workers=nprocs) as executor:
-            # Submit jobs in a sliding window of nprocs to avoid queuing all
-            # tasks at once, which provides backpressure on the network.
-            pending = {}
-            params_iter = iter(params)
-
-            # Seed the pool up to max_workers without consuming extra items
-            while len(pending) < nprocs:
-                p = next(params_iter, None)
-                if p is None:
-                    break
-                f = executor.submit(import_grass_raster, p)
-                pending[f] = p
-
-            while pending:
-                for future in as_completed(pending):
-                    del pending[future]
-                    future.result()
-                    if pbar:
-                        pbar.update(1)
-                    # Submit the next job as a slot opens
-                    p = next(params_iter, None)
-                    if p is not None:
-                        f = executor.submit(import_grass_raster, p)
-                        pending[f] = p
-                    break  # re-enter as_completed with updated pending
+            for _ in executor.map(import_grass_raster, params):
+                if pbar:
+                    pbar.update(1)
 
     if tqdm_cls is not None:
         with tqdm_cls(total=number_of_assets, desc="Downloading assets") as pbar:

@@ -574,46 +574,30 @@ class TestDownloadAssets(TestCase):
             for i in range(n)
         ]
 
-    def _setup_pool_mock(self, mock_pool_cls, n_assets):
-        """Wire mock_pool_cls to return a mock executor whose submit()
-        returns fresh MagicMock futures in submission order."""
-        futures = [MagicMock() for _ in range(n_assets)]
-        for f in futures:
-            f.result.return_value = None
-
-        call_count = [0]
-
-        def mock_submit(fn, p):
-            f = futures[call_count[0]]
-            call_count[0] += 1
-            return f
+    def _setup_pool_mock(self, mock_pool_cls, n_assets, map_results=None):
+        """Wire mock_pool_cls to return a mock executor whose map() yields
+        one result per asset."""
+        if map_results is None:
+            map_results = [None] * n_assets
 
         mock_executor = MagicMock()
-        mock_executor.submit.side_effect = mock_submit
+        mock_executor.map.return_value = iter(map_results)
         mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
         mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
-        return mock_executor, futures
-
-    @staticmethod
-    def _as_completed_one_at_a_time(pending):
-        """Simulate as_completed by yielding one future per call so the
-        sliding-window loop advances one step at a time."""
-        yield next(iter(pending))
+        return mock_executor
 
     # ------------------------------------------------------------------
     # nprocs capping
     # ------------------------------------------------------------------
 
     @patch("staclib.gs.warning")
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
     @patch("os.cpu_count", return_value=4)
     def test_nprocs_capped_at_cpu_count_minus_one(
-        self, mock_cpu, mock_pool_cls, mock_ac, mock_warning
+        self, mock_cpu, mock_pool_cls, mock_warning
     ):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
 
         # nprocs=10 exceeds cpu_count-1=3
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=10)
@@ -624,15 +608,13 @@ class TestDownloadAssets(TestCase):
         mock_pool_cls.assert_called_once_with(max_workers=3)
 
     @patch("staclib.gs.warning")
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
     @patch("os.cpu_count", return_value=64)
     def test_nprocs_capped_at_max_concurrent_downloads(
-        self, mock_cpu, mock_pool_cls, mock_ac, mock_warning
+        self, mock_cpu, mock_pool_cls, mock_warning
     ):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
 
         # nprocs=32 exceeds MAX_CONCURRENT_DOWNLOADS=8 but not cpu_count-1=63
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=32)
@@ -648,70 +630,68 @@ class TestDownloadAssets(TestCase):
         )
 
     # ------------------------------------------------------------------
-    # executor and submission behaviour
+    # executor.map behaviour
     # ------------------------------------------------------------------
 
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
-    def test_executor_created_with_nprocs(self, mock_pool_cls, mock_ac):
+    def test_executor_created_with_nprocs(self, mock_pool_cls):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=3)
 
         mock_pool_cls.assert_called_once_with(max_workers=3)
 
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
-    def test_all_assets_submitted(self, mock_pool_cls, mock_ac):
+    def test_map_called_once_with_all_params(self, mock_pool_cls):
         n = 4
         assets = self._make_assets(n)
-        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, n)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
+        mock_executor = self._setup_pool_mock(mock_pool_cls, n)
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
-        # Because the last submission happens inside the loop after the first future completes
-        n = n - 1
-        self.assertEqual(mock_executor.submit.call_count, n)
 
-    @patch("staclib.as_completed")
+        self.assertEqual(mock_executor.map.call_count, 1)
+        fn_arg, params_arg = mock_executor.map.call_args.args
+        self.assertIs(fn_arg, libstac.import_grass_raster)
+        self.assertEqual(len(params_arg), n)
+
     @patch("staclib.ProcessPoolExecutor")
-    def test_correct_params_passed_to_submit(self, mock_pool_cls, mock_ac):
+    def test_correct_params_passed_to_map(self, mock_pool_cls):
         assets = self._make_assets(2)
-        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, 2)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
+        mock_executor = self._setup_pool_mock(mock_pool_cls, 2)
 
         libstac.download_assets(
             assets, "bilinear", "region", "value", 30.0, memory=512, nprocs=2
         )
 
-        submitted_params = [c.args[1] for c in mock_executor.submit.call_args_list]
+        _fn, params_arg = mock_executor.map.call_args.args
         for i, asset in enumerate(assets):
             self.assertEqual(
-                submitted_params[i],
+                params_arg[i],
                 (asset, "bilinear", "region", "value", 30.0, 512),
             )
 
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
-    def test_empty_assets_no_submissions(self, mock_pool_cls, mock_ac):
-        mock_executor = MagicMock()
-        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
-        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
+    def test_empty_assets_map_with_empty_list(self, mock_pool_cls):
+        mock_executor = self._setup_pool_mock(mock_pool_cls, 0)
 
         libstac.download_assets([], "bilinear", "region", "value", 30.0, nprocs=2)
 
-        mock_executor.submit.assert_not_called()
+        _fn, params_arg = mock_executor.map.call_args.args
+        self.assertEqual(params_arg, [])
 
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
-    def test_exception_from_future_propagates(self, mock_pool_cls, mock_ac):
+    def test_exception_from_worker_propagates(self, mock_pool_cls):
         assets = self._make_assets(2)
-        mock_executor, futures = self._setup_pool_mock(mock_pool_cls, 2)
-        futures[0].result.side_effect = RuntimeError("Download failed")
-        mock_ac.side_effect = self._as_completed_one_at_a_time
+
+        def raising_iter():
+            yield None
+            raise RuntimeError("Download failed")
+
+        mock_executor = MagicMock()
+        mock_executor.map.return_value = raising_iter()
+        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
+        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         with self.assertRaises(RuntimeError, msg="Download failed"):
             libstac.download_assets(
@@ -723,15 +703,11 @@ class TestDownloadAssets(TestCase):
     # ------------------------------------------------------------------
 
     @patch("staclib._import_tqdm")
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
-    def test_pbar_updated_once_per_asset(
-        self, mock_pool_cls, mock_ac, mock_import_tqdm
-    ):
+    def test_pbar_updated_once_per_asset(self, mock_pool_cls, mock_import_tqdm):
         n = 3
         assets = self._make_assets(n)
         self._setup_pool_mock(mock_pool_cls, n)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
 
         mock_pbar = MagicMock()
         mock_tqdm_cls = MagicMock()
@@ -742,20 +718,16 @@ class TestDownloadAssets(TestCase):
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
 
         mock_tqdm_cls.assert_called_once_with(total=n, desc="Downloading assets")
-        # Because the last submission happens inside the loop after the first future completes
-        n = n - 1
         self.assertEqual(mock_pbar.update.call_count, n)
 
     @patch("staclib.gs.warning")
     @patch("staclib._import_tqdm", return_value=None)
-    @patch("staclib.as_completed")
     @patch("staclib.ProcessPoolExecutor")
     def test_warning_and_runs_without_tqdm(
-        self, mock_pool_cls, mock_ac, mock_import_tqdm, mock_warning
+        self, mock_pool_cls, mock_import_tqdm, mock_warning
     ):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
-        mock_ac.side_effect = self._as_completed_one_at_a_time
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=1)
 
