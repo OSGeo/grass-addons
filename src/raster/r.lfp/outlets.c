@@ -1,7 +1,9 @@
+#include <grass/dbmi.h>
 #include <grass/gis.h>
-#include <grass/vector.h>
-#include <grass/raster.h>
 #include <grass/glocale.h>
+#include <grass/raster.h>
+#include <grass/vector.h>
+
 #include "global.h"
 
 static struct Cell_head window;
