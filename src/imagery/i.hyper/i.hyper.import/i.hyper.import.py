@@ -91,6 +91,41 @@ def _mapset_path():
     return Path(env["GISDBASE"]) / env["LOCATION_NAME"] / env["MAPSET"]
 
 
+def _is_safe_archive_member_name(name):
+    path = Path(name)
+    return not path.is_absolute() and ".." not in path.parts
+
+
+def _manifest_composite_members(manifest):
+    composite_files = manifest.get("composite_files") or {}
+    if not isinstance(composite_files, dict):
+        gs.fatal("Invalid native archive: composite_files in manifest must be a dict.")
+
+    members = set()
+    for archived_paths in composite_files.values():
+        if not isinstance(archived_paths, list):
+            gs.fatal(
+                "Invalid native archive: composite_files entries must be path lists."
+            )
+        for archived_path in archived_paths:
+            if not isinstance(archived_path, str):
+                gs.fatal(
+                    "Invalid native archive: composite_files entries must be strings."
+                )
+            clean = archived_path.rstrip("/")
+            if (
+                not clean.startswith("raster/")
+                or not _is_safe_archive_member_name(clean)
+                or len(Path(clean).parts) < 3
+            ):
+                gs.fatal(
+                    "Invalid native archive: unsafe composite path in manifest: "
+                    f"'{archived_path}'."
+                )
+            members.add(clean)
+    return members
+
+
 def _open_ihyper_archive(input_path):
     archive_path = Path(input_path)
     try:
@@ -118,19 +153,40 @@ def _open_ihyper_archive(input_path):
     if not archived_name:
         tar.close()
         gs.fatal("Invalid native archive: map_name missing in manifest.")
+    if not gs.legal_name(archived_name):
+        tar.close()
+        gs.fatal(f"Invalid native archive: illegal map_name '{archived_name}'.")
 
-    expected_prefix = f"grid3/{archived_name}/"
-    members = [m for m in tar.getmembers() if m.name.startswith(expected_prefix)]
+    expected_root = f"grid3/{archived_name}"
+    composite_members = _manifest_composite_members(manifest)
+    members = []
+    for member in tar.getmembers():
+        name = member.name.rstrip("/")
+        if not _is_safe_archive_member_name(name):
+            tar.close()
+            gs.fatal(f"Invalid native archive: unsafe member path '{member.name}'.")
+
+        include = name == expected_root or name.startswith(f"{expected_root}/")
+        if not include:
+            include = any(
+                name == root or name.startswith(f"{root}/")
+                for root in composite_members
+            )
+        if include:
+            members.append(member)
+
     if not members:
         tar.close()
-        gs.fatal(f"Invalid native archive: {expected_prefix} missing.")
+        gs.fatal(f"Invalid native archive: {expected_root}/ missing.")
 
-    return tar, manifest, archived_name, members
+    return tar, manifest, archived_name, members, composite_members
 
 
 def _safe_extract_ihyper(input_path, output_name):
     archive_path = Path(input_path)
-    tar, _manifest, archived_name, members = _open_ihyper_archive(input_path)
+    tar, _manifest, archived_name, members, composite_members = _open_ihyper_archive(
+        input_path
+    )
 
     mapset_path = _mapset_path()
     grid3_root = mapset_path / "grid3"
@@ -145,9 +201,23 @@ def _safe_extract_ihyper(input_path, output_name):
 
     with tempfile.TemporaryDirectory(prefix="ihyper_import_") as tmpdir:
         tmp_root = Path(tmpdir)
+        tmp_root_resolved = tmp_root.resolve()
         for member in members:
-            rel = Path(member.name).relative_to("grid3")
-            dest = tmp_root / rel
+            if not (member.isdir() or member.isfile()):
+                tar.close()
+                gs.fatal(
+                    f"Invalid native archive: unsupported member type '{member.name}'."
+                )
+            member_path = Path(member.name.rstrip("/"))
+            dest = tmp_root / member_path
+            if tmp_root_resolved not in dest.resolve().parents and (
+                dest.resolve() != tmp_root_resolved
+            ):
+                tar.close()
+                gs.fatal(
+                    "Invalid native archive: member escapes extraction root: "
+                    f"'{member.name}'."
+                )
             if member.isdir():
                 dest.mkdir(parents=True, exist_ok=True)
                 continue
@@ -159,13 +229,33 @@ def _safe_extract_ihyper(input_path, output_name):
             with extracted as src, open(dest, "wb") as dst:
                 shutil.copyfileobj(src, dst)
 
-        restored = tmp_root / archived_name
+        restored = tmp_root / "grid3" / archived_name
         if not (restored / "hyper.json").exists():
             tar.close()
             gs.fatal(
                 "Invalid native archive: hyper.json missing in grid3 map directory."
             )
         shutil.move(str(restored), str(target_path))
+
+        for member_name in sorted(composite_members):
+            source = tmp_root / member_name
+            if not source.exists():
+                tar.close()
+                gs.fatal(
+                    "Invalid native archive: manifest references missing member "
+                    f"'{member_name}'."
+                )
+            target = mapset_path / Path(member_name).relative_to("raster")
+            if target.exists():
+                gs.warning(
+                    f"Skipping existing raster support path during import: {target}"
+                )
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if source.is_dir():
+                shutil.copytree(source, target)
+            else:
+                shutil.copy2(source, target)
 
     tar.close()
 
