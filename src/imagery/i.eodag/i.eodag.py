@@ -1322,7 +1322,7 @@ def get_creodias_totp_secret(dag):
     """Read TOTP seed from EODAG yaml config file."""
     try:
         cfg_file = Path(Path(dag.conf_dir) / "eodag.yml")
-        if Path(cfg_file).exists():
+        if cfg_file.exists():
             with open(cfg_file) as f:
                 cfg = yaml.safe_load(f)
             return (
