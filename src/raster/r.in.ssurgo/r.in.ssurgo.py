@@ -71,7 +71,6 @@
 
 # %option
 # % key: desgnmaster
-# % guisection: Options
 # % type: string
 # % required: no
 # % multiple: no
@@ -82,7 +81,6 @@
 
 # %option
 # % key: hzdept_r
-# % guisection: Options
 # % type: integer
 # % required: no
 # % multiple: no
@@ -92,7 +90,6 @@
 
 # %option
 # % key: hzdepb_r
-# % guisection: Options
 # % type: integer
 # % required: no
 # % description: Horizon depth bottom (cm)
@@ -100,7 +97,6 @@
 
 # %option
 # % key: depths
-# % guisection: Options
 # % type: double
 # % multiple: yes
 # % required: no
