@@ -403,8 +403,11 @@ def main():
         # Checking credentials early
         dag = EODataAccessGateway()
         try:
-            dag._plugins_manager.get_auth_plugin("cop_dataspace").authenticate()
-        except MisconfiguredError as e:
+            cop_plugin = next(
+                dag._plugins_manager.get_search_plugins(provider="cop_dataspace")
+            )
+            dag._plugins_manager.get_auth_plugin(cop_plugin).authenticate()
+        except (MisconfiguredError, HTTPError) as e:
             gs.fatal(e)
         except AuthenticationError:
             gs.fatal(
@@ -527,6 +530,7 @@ if __name__ == "__main__":
         import eodag
         from eodag import EODataAccessGateway
         from eodag.utils.exceptions import AuthenticationError, MisconfiguredError
+        from requests.exceptions import HTTPError
 
         gs.find_program("i.eodag", "--help")
     except ImportError:
