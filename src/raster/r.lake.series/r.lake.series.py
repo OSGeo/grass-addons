@@ -87,11 +87,6 @@
 # % guisection: Time
 # %end
 # %option G_OPT_M_NPROCS
-# % key: nprocs
-# % type: integer
-# % label: Number of processes to run in parallel
-# % required: no
-# % answer: 1
 # %end
 # %flag
 # % key: n
