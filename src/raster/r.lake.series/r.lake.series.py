@@ -219,7 +219,7 @@ def main():
         gcore.fatal(
             _("Time step must be greater than zero. Please specify number > 0.")
         )
-    
+
     nprocs = options["nprocs"]
 
     mapset = gcore.gisenv()["MAPSET"]
@@ -269,10 +269,7 @@ def main():
 
     # Run tasks
     with ThreadPoolExecutor(max_workers=use_cores) as executor:
-        outputs = [
-            out for out in executor.map(run_lake_task, tasks)
-            if out is not None
-        ]
+        outputs = [out for out in executor.map(run_lake_task, tasks) if out is not None]
 
     gcore.info(_("Registering created maps into temporal dataset..."))
 
