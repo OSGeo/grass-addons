@@ -13,6 +13,7 @@ build_addon(
     i.hyper.explore
     i.hyper.export
     i.hyper.import
+    i.hyper.metadata
     i.hyper.preproc
   DOCFILES
     i.hyper.html
