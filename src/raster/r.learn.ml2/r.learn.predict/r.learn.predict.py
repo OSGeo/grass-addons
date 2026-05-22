@@ -161,6 +161,9 @@ def main():
         rules_file = string_to_rules(rules)
         r.category(map=output, rules=rules_file, separator="pipe")
 
+    # write cmd history:
+    gs.raster_history(output)
+
 
 if __name__ == "__main__":
     options, flags = gs.parser()
