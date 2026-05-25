@@ -33,7 +33,7 @@ class TestRBoxplot(TestCase):
         cls.runModule("g.region", n=10, s=0, w=0, e=10, res=1)
         cls.runModule(
             "r.mapcalc",
-            expression=f"{cls.value_raster} = rand(1, 100)",
+            expression=f"{cls.value_raster} = (row() - 1) * 10 + col()",
             overwrite=True,
         )
         cls.runModule(
@@ -103,11 +103,17 @@ class TestRBoxplot(TestCase):
 
     def test_fails_without_required_input(self):
         """Module exits with error when required map= parameter is missing"""
-        self.assertModuleFail("r.boxplot", output="/tmp/should_not_exist.png")
+        output_path = os.path.join(tempfile.gettempdir(), "r_boxplot_no_input.png")
+        try:
+            self.assertModuleFail("r.boxplot", output=output_path)
+        finally:
+            if os.path.exists(output_path):
+                os.remove(output_path)
 
     def test_fails_with_float_zones(self):
         """Module exits with error when zones raster is not integer type"""
         float_raster = "test_boxplot_float_zones"
+        output_path = os.path.join(tempfile.gettempdir(), "r_boxplot_float_zones.png")
         try:
             self.runModule(
                 "r.mapcalc",
@@ -118,10 +124,12 @@ class TestRBoxplot(TestCase):
                 "r.boxplot",
                 map=self.value_raster,
                 zones=float_raster,
-                output="/tmp/should_not_exist.png",
+                output=output_path,
             )
         finally:
-            self.runModule("g.remove", flags="f", type="raster", name=float_raster)
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            self.runModule("g.remove", flags="f", type="raster", name=[float_raster])
 
     def test_horizontal_orientation(self):
         """Module runs successfully with horizontal flag"""
