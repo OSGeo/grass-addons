@@ -223,7 +223,7 @@
 # %end
 
 # %option G_OPT_V_OUTPUT
-# % key: outliers_map
+# % key: map_outliers
 # % required: no
 # % label: Vector map with the outliers
 # % description: Create a vector map with the outlier features, classified by how many other groups they overlap with (n_overlap), on which side and how far they lie from their own group (side, iqr_dist), with matching colors in a GRASSRGB column.
@@ -428,8 +428,8 @@ def outlier_rgb(side, n_overlap, max_overlap):
     return "{}:{}:{}".format(round(r * 255), round(g * 255), round(b * 255))
 
 
-def write_outliers_map(
-    records, vector, layer, column, group_by, key_column, overlap_basis, outliers_map
+def write_map_outliers(
+    records, vector, layer, column, group_by, key_column, overlap_basis, map_outliers
 ):
     """Create a vector map of the outliers with classification columns.
 
@@ -457,17 +457,17 @@ def write_outliers_map(
         "v.extract",
         input=vector,
         layer=layer,
-        output=outliers_map,
+        output=map_outliers,
         cats=",".join(str(c) for c in cats),
         quiet=True,
     )
 
     try:
-        out = gs.vector_db(outliers_map)[int(layer)]
+        out = gs.vector_db(map_outliers)[int(layer)]
     except KeyError:
         gs.fatal(
             _("No attribute table connected to layer {} of <{}>.").format(
-                layer, outliers_map
+                layer, map_outliers
             )
         )
 
@@ -478,7 +478,7 @@ def write_outliers_map(
     if has_group:
         wanted.append(("n_overlap", "integer"))
     wanted.append(("GRASSRGB", "varchar(11)"))
-    existing = {c.lower() for c in gs.vector_columns(outliers_map, layer)}
+    existing = {c.lower() for c in gs.vector_columns(map_outliers, layer)}
     to_add = [
         "{} {}".format(name, ctype)
         for name, ctype in wanted
@@ -487,7 +487,7 @@ def write_outliers_map(
     if to_add:
         gs.run_command(
             "v.db.addcolumn",
-            map_=outliers_map,
+            map_=map_outliers,
             columns=",".join(to_add),
             quiet=True,
         )
@@ -521,7 +521,7 @@ def write_outliers_map(
 
     gs.message(
         _("Outlier map <{}> created with {} outlier features.").format(
-            outliers_map, len(cats)
+            map_outliers, len(cats)
         )
     )
 
@@ -574,7 +574,7 @@ def main():
     }
     bxp_width = float(options["bx_width"])
     group_by = options["group_by"] if options["group_by"] else None
-    outliers_map = options["outliers_map"] if options["outliers_map"] else None
+    map_outliers = options["map_outliers"] if options["map_outliers"] else None
     overlap_basis = options["overlap_basis"] if options["overlap_basis"] else "whisker"
     where = build_where(options["where"], column)
     sort = options["order"] if options["order"] else None
@@ -584,7 +584,7 @@ def main():
     flag_r = flags["r"]
 
     # The key column is only needed to identify features for the outlier map.
-    if outliers_map:
+    if map_outliers:
         try:
             key_column = gs.vector_db(vector)[int(layer)]["key"]
         except KeyError:
@@ -687,8 +687,8 @@ def main():
         ax.yaxis.grid(bool(grid))
 
     # Create the outlier map (optional)
-    if outliers_map:
-        write_outliers_map(
+    if map_outliers:
+        write_map_outliers(
             records=records,
             vector=vector,
             layer=layer,
@@ -696,7 +696,7 @@ def main():
             group_by=group_by,
             key_column=key_column,
             overlap_basis=overlap_basis,
-            outliers_map=outliers_map,
+            map_outliers=map_outliers,
         )
 
     if output:
