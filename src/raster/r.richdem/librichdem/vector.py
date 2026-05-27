@@ -187,6 +187,7 @@ def depressions_from_grass(map_name):
 
     cur.execute("SELECT dep_label, linked_label FROM ocean_links ORDER BY dep_label")
     from collections import defaultdict
+
     ocean_linked = defaultdict(list)
     for dep_label, linked_label in cur.fetchall():
         ocean_linked[dep_label].append(linked_label)
