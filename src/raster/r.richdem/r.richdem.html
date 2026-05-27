@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="Author" content="GRASS Development Team">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>r.richdem - GRASS GIS manual</title>
+<meta name="description" content="r.richdem: Collection of terrain-analysis modules wrapping the RichDEM library.">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
+
+<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
+<hr class="header">
+
+<h2>NAME</h2>
+<em><b>r.richdem</b></em> - Collection of terrain-analysis modules wrapping the RichDEM library.
+
+<h2>KEYWORDS</h2>
+<a href="raster.html">raster</a>, <a href="topic_hydrology.html">hydrology</a>, <a href="keywords.html#terrain">terrain</a>, <a href="keywords.html#depression">depression</a>, <a href="keywords.html#flow accumulation">flow accumulation</a>
+
+<h2>DESCRIPTION</h2>
+
+<em>r.richdem</em> is a collection of seven GRASS GIS modules that expose
+algorithms from the <a href="https://github.com/r-barnes/richdem">RichDEM</a>
+terrain-analysis library through standard GRASS raster and vector interfaces.
+RichDEM provides high-performance, research-grade algorithms for hydrological
+conditioning of digital elevation models (DEMs), flow routing, and terrain
+attribute calculation, with particular strength in handling real topographic
+depressions rather than removing them.
+
+<h3>Modules</h3>
+
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Module</th><th>Description</th></tr>
+<tr>
+  <td><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></td>
+  <td>Fill depressions in a DEM using the Priority-Flood algorithm; optional
+      &epsilon;-gradient for flat areas</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a></td>
+  <td>Breach depressions by carving least-cost channels (Lindsay 2016)</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></td>
+  <td>Impose a local &epsilon;-gradient on flat areas to ensure unique flow directions</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a></td>
+  <td>Flow accumulation with 13 SFD/MFD algorithms (D8, D-infinity, Quinn,
+      Holmgren, Freeman, &hellip;)</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.terrainattribute.html">r.richdem.terrainattribute</a></td>
+  <td>Terrain attributes: slope (4 unit systems), aspect, total/planform/profile
+      curvature</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.dephier.html">r.richdem.dephier</a></td>
+  <td>Compute the depression hierarchy of a DEM (required first step for
+      Fill&ndash;Spill&ndash;Merge)</td>
+</tr>
+<tr>
+  <td><a href="r.richdem.fsm.html">r.richdem.fsm</a></td>
+  <td>Fill&ndash;Spill&ndash;Merge: route surface water through the depression
+      hierarchy without removing depressions</td>
+</tr>
+</table>
+
+<p>
+All modules share a <em>librichdem</em> helper library for GRASS &harr; RichDEM
+raster and vector conversion, installed to
+<tt>$GISBASE/etc/r.richdem/librichdem/</tt>.
+</p>
+
+<h3>Workflows</h3>
+
+<h4>Classic flow-accumulation workflow</h4>
+
+Depressions must be removed before computing flow accumulation with most
+algorithms. Two approaches:
+
+<div class="code"><pre>
+# Option A: fill depressions, impose epsilon gradient on flat areas
+r.richdem.filldepressions -e input=dem output=dem_filled
+r.richdem.flowaccumulation input=dem_filled output=flow_accum
+
+# Option B: breach depressions, resolve remaining flats
+r.richdem.breachdepressions input=dem output=dem_breached
+r.richdem.resolveflats input=dem_breached output=dem_conditioned
+r.richdem.flowaccumulation input=dem_conditioned output=flow_accum method=Dinf
+</pre></div>
+
+<h4>Fill&ndash;Spill&ndash;Merge workflow</h4>
+
+Fill&ndash;Spill&ndash;Merge (Barnes et al., 2021) routes water through real
+depressions without removing them, producing an equilibrium water-table depth
+map. This requires first computing the depression hierarchy:
+
+<div class="code"><pre>
+# Step 1: build the depression hierarchy (run once per DEM)
+r.richdem.dephier input=dem \
+    output_labels=dep_labels \
+    output_flowdirs=dep_flowdirs \
+    output_hierarchy=dep_hierarchy
+
+# Step 2: create an initial water-table depth map
+r.mapcalc "wtd = -0.5"
+
+# Step 3: run Fill-Spill-Merge
+r.richdem.fsm input=dem \
+    labels=dep_labels \
+    flowdirs=dep_flowdirs \
+    hierarchy=dep_hierarchy \
+    water_depth=wtd \
+    output=wtd_after
+</pre></div>
+
+<h2>REQUIREMENTS</h2>
+
+All modules in this collection require the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+
+If <tt>pip install richdem</tt> fails (the package requires a C++ compiler),
+build from source:
+
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+
+<p>
+Ensure that RichDEM is installed into the same Python environment used by
+GRASS GIS.
+</p>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Barnes, R., Callaghan, K.L., Wickert, A.D. (2021).
+    Computing water flow through complex landscapes &ndash; Part 3:
+    Fill&ndash;Spill&ndash;Merge: flow routing in depression hierarchies.
+    <em>Earth Surface Dynamics</em> 9(1), 105&ndash;121.
+    DOI: <a href="https://doi.org/10.5194/esurf-9-105-2021">10.5194/esurf-9-105-2021</a></li>
+<li>Barnes, R., Callaghan, K.L., Wickert, A.D. (2020).
+    Computing water flow through complex landscapes &ndash; Part 2:
+    Finding hierarchies in depressions and morphological segmentations.
+    <em>Earth Surface Dynamics</em> 8(2), 431&ndash;445.
+    DOI: <a href="https://doi.org/10.5194/esurf-8-431-2020">10.5194/esurf-8-431-2020</a></li>
+<li>Lindsay, J.B. (2016). Efficient hybrid breaching-filling sink removal
+    methods for flow path enforcement in digital elevation models.
+    <em>Hydrological Processes</em> 30(6), 846&ndash;857.
+    DOI: <a href="https://doi.org/10.1002/hyp.10648">10.1002/hyp.10648</a></li>
+<li>Barnes, R. (2016). RichDEM: Terrain Analysis Software.
+    URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/richdem</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a>,
+<a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
+<a href="r.richdem.terrainattribute.html">r.richdem.terrainattribute</a>,
+<a href="r.richdem.dephier.html">r.richdem.dephier</a>,
+<a href="r.richdem.fsm.html">r.richdem.fsm</a>,
+<a href="r.watershed.html">r.watershed</a>,
+<a href="r.fill.dir.html">r.fill.dir</a>,
+<a href="r.slope.aspect.html">r.slope.aspect</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Richard Barnes, Kerry L. Callaghan, Andrew D. Wickert
+(algorithm design and RichDEM library &mdash; see references above)
+<p>
+GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6
+
+<hr class="footer">
+<p>
+<a href="index.html">Main index</a> |
+<a href="raster.html">Raster index</a> |
+<a href="topics.html">Topics index</a> |
+<a href="keywords.html">Keywords index</a> |
+<a href="full_index.html">Full index</a>
+</p>
+
+</div>
+</body>
+</html>

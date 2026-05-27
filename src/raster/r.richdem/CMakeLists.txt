@@ -15,4 +15,7 @@ build_addon(
     r.richdem.flowaccumulation
     r.richdem.terrainattribute
     r.richdem.dephier
-    r.richdem.fsm)
+    r.richdem.fsm
+  DOCFILES
+    ${PROJECT_NAME}.html
+    ${PROJECT_NAME}.md)
