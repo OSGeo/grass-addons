@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="Author" content="GRASS Development Team">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>r.richdem.terrain - GRASS GIS manual</title>
+<meta name="description" content="r.richdem.terrain: Calculate terrain attributes using RichDEM.">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<div id="container">
+
+<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
+<hr class="header">
+
+<h2>NAME</h2>
+<em><b>r.richdem.terrain</b></em> - Calculate terrain attributes using RichDEM.
+
+<h2>KEYWORDS</h2>
+<a href="raster.html">raster</a>,
+<a href="topic_terrain.html">terrain</a>,
+<a href="keywords.html#geomorphology">geomorphology</a>,
+<a href="keywords.html#slope">slope</a>,
+<a href="keywords.html#aspect">aspect</a>,
+<a href="keywords.html#curvature">curvature</a>
+
+<h2>SYNOPSIS</h2>
+<div id="name"><b>r.richdem.terrain</b><br></div>
+<b>r.richdem.terrain --help</b><br>
+<div id="synopsis">
+<b>r.richdem.terrain</b>
+<b>input</b>=<em>name</em>
+<b>output</b>=<em>name</em>
+<b>attribute</b>=<em>string</em>
+[<b>zscale</b>=<em>value</em>]
+[--<b>overwrite</b>]
+[--<b>help</b>]
+[--<b>verbose</b>]
+[--<b>quiet</b>]
+</div>
+
+<div id="parameters">
+<h3>Parameters:</h3>
+<dl>
+<dt><b>input</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Input elevation raster</dd>
+
+<dt><b>output</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Output terrain attribute raster</dd>
+
+<dt><b>attribute</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
+<dd>Terrain attribute to calculate</dd>
+<dd>Options: <em>slope_riserun, slope_percentage, slope_degrees, slope_radians,
+    aspect, curvature, planform_curvature, profile_curvature</em></dd>
+
+<dt><b>zscale</b>=<em>value</em></dt>
+<dd>Z-axis scale factor applied to elevations before calculation</dd>
+<dd>Default: <em>1.0</em></dd>
+</dl>
+</div>
+
+<h2>DESCRIPTION</h2>
+
+<em><b>r.richdem.terrain</b></em> calculates first- and second-order terrain
+attributes from a digital elevation model. Available attributes are slope (in
+four unit systems), aspect, and three curvature measures.
+
+<h3>Slope</h3>
+
+Slope is the magnitude of the terrain gradient—the rate of elevation change in
+the steepest downhill direction. It is computed using the Horn (1981) method,
+which uses a weighted average of finite differences over a 3×3 neighborhood to
+estimate the east–west and north–south gradient components. Slope is available
+in four unit systems:
+
+<ul>
+  <li><b>slope_riserun</b> — dimensionless rise/run ratio (tan of slope angle)</li>
+  <li><b>slope_percentage</b> — rise/run expressed as a percentage</li>
+  <li><b>slope_degrees</b> — angle in degrees from horizontal</li>
+  <li><b>slope_radians</b> — angle in radians from horizontal</li>
+</ul>
+
+<h3>Aspect</h3>
+
+<b>aspect</b> is the compass direction of the steepest downhill gradient,
+measured in degrees clockwise from north (0–360°), using the Horn (1981)
+method.
+
+<h3>Curvature</h3>
+
+Curvature describes the rate of change of slope and is useful for identifying
+ridges, valleys, and areas of flow convergence or divergence. Three curvature
+attributes are available, following Zevenbergen and Thorne (1987):
+
+<ul>
+  <li><b>curvature</b> — total (mean) curvature; positive values indicate
+      convex surfaces, negative indicate concave surfaces.</li>
+  <li><b>planform_curvature</b> — curvature of the contour line perpendicular
+      to the slope direction; positive values indicate flow divergence,
+      negative indicate convergence.</li>
+  <li><b>profile_curvature</b> — curvature in the slope direction; positive
+      values indicate slope acceleration (convex profile), negative indicate
+      slope deceleration (concave profile).</li>
+</ul>
+
+<h3>Z-axis scaling</h3>
+
+The optional <b>zscale</b> parameter multiplies elevation values before
+computation. This is useful when the vertical and horizontal units differ
+(e.g., elevation in meters, horizontal units in degrees for geographic
+coordinates). A common choice for degree-unit data is
+zscale&nbsp;=&nbsp;1/111000 to convert degrees to meters.
+
+<h2>NOTES</h2>
+
+Computations use a 3×3 moving window and assume a planar local coordinate
+system. For data in geographic (latitude/longitude) coordinates, the
+horizontal scale varies with latitude and slope results will be approximate.
+In such cases, project to an equal-area or conformal coordinate system before
+computing terrain attributes, or apply an appropriate <b>zscale</b>.
+
+<p>
+To compute slope and aspect simultaneously in GRASS, consider
+<em><a href="r.slope.aspect.html">r.slope.aspect</a></em>. For more
+morphometric parameters computed over variable window sizes, see
+<em><a href="r.param.scale.html">r.param.scale</a></em>.
+
+<h2>EXAMPLES</h2>
+
+Calculate slope in degrees:
+<div class="code"><pre>
+r.richdem.terrain input=dem output=slope attribute=slope_degrees
+</pre></div>
+
+Calculate aspect:
+<div class="code"><pre>
+r.richdem.terrain input=dem output=aspect attribute=aspect
+</pre></div>
+
+Calculate planform curvature:
+<div class="code"><pre>
+r.richdem.terrain input=dem output=planform_curv attribute=planform_curvature
+</pre></div>
+
+Scale vertical units (elevation in feet, horizontal in feet):
+<div class="code"><pre>
+r.richdem.terrain input=dem_ft output=slope attribute=slope_degrees zscale=1.0
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Horn, B.K.P. (1981).
+Hill shading and the reflectance map.
+<em>Proceedings of the IEEE</em> Vol 69(1), pp 14–47.
+DOI: <a href="https://doi.org/10.1109/PROC.1981.11918">10.1109/PROC.1981.11918</a>
+</li>
+<li>Zevenbergen, L.W., Thorne, C.R. (1987).
+Quantitative analysis of land surface topography.
+<em>Earth Surface Processes and Landforms</em> Vol 12(1), pp 47–56.
+DOI: <a href="https://doi.org/10.1002/esp.3290120107">10.1002/esp.3290120107</a>
+</li>
+<li>Barnes, R. (2016). RichDEM: Terrain Analysis Software.
+URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/richdem</a>
+</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.slope.aspect.html">r.slope.aspect</a>,
+<a href="r.param.scale.html">r.param.scale</a>,
+<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Richard Barnes (RichDEM library)
+
+<p>
+GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6</p>
+
+<hr class="header">
+<p>
+<a href="index.html">Main index</a> |
+<a href="raster.html">Raster index</a> |
+<a href="topics.html">Topics index</a> |
+<a href="keywords.html">Keywords index</a> |
+<a href="full_index.html">Full index</a>
+</p>
+
+</div>
+</body>
+</html>
