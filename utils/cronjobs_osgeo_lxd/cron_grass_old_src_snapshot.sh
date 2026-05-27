@@ -69,6 +69,7 @@ touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 rm -f grass-$GMAJOR.*-install.sh grass-$GMAJOR.*.tar.gz grass-$GMAJOR.*_bin.txt
 
+
 # cleanup leftover garbage
 git status | grep '.rst' | xargs rm -f
 rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
@@ -115,7 +116,7 @@ rm -f $PACKAGENAME\src_snapshot$DATE.tar.gz
 chmod a+r,g+w $TARGETDIR/* 2> /dev/null
 # chgrp grass $TARGETDIR/*   2> /dev/null
 
-# "latest" link for convenience:
+# "LATEST" link for convenience:
 (cd $TARGETDIR ; rm -f $PACKAGENAME\src_snapshot_latest.tar.gz ; ln -s $PACKAGENAME\src_snapshot$DATE.tar.gz $PACKAGENAME\src_snapshot_latest.tar.gz)
 
 echo "Written to: $TARGETDIR
