@@ -1,6 +1,6 @@
-MODULE_TOPDIR = ../..
+MODULE_TOPDIR = ../../..
 
-PGM = r.richdem.terrain
+PGM = r.richdem.flowaccumulation
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

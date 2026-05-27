@@ -1,4 +1,4 @@
-"""Tests for r.richdem.fill
+"""Tests for r.richdem.filldepressions
 
 Synthetic DEM (5 x 5, 1 m resolution):
 
@@ -43,7 +43,7 @@ _DEM_EXPR = (
     "set PYTHONPATH to richdem/wrappers/pyrichdem",
 )
 class TestRichdemFill(TestCase):
-    """Functional tests for r.richdem.fill requiring the RichDEM extension."""
+    """Functional tests for r.richdem.filldepressions requiring the RichDEM extension."""
 
     @classmethod
     def setUpClass(cls):
@@ -65,19 +65,19 @@ class TestRichdemFill(TestCase):
 
     def test_output_created(self):
         """Filling a DEM with one depression produces an output raster."""
-        self.assertModule("r.richdem.fill", input=_DEM, output=_FILLED, overwrite=True)
+        self.assertModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
         self.assertRasterExists(_FILLED)
 
     def test_fill_raises_pit_to_pour_point(self):
         """Pit cell is raised to the pour-point elevation (3); max unchanged (5)."""
-        self.runModule("r.richdem.fill", input=_DEM, output=_FILLED, overwrite=True)
+        self.runModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
         self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
 
     def test_fill_never_lowers(self):
         """No cell in the filled DEM has a lower elevation than the input."""
         # Use assertModule so a module failure surfaces immediately, not as a
         # confusing null-cell artifact in the diff raster.
-        self.assertModule("r.richdem.fill", input=_DEM, output=_FILLED, overwrite=True)
+        self.assertModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
         diff = "tmp_richdem_fill_diff"
         # filled - input should be >= 0 everywhere (filling only raises cells)
         self.runModule(
@@ -96,7 +96,7 @@ class TestRichdemFill(TestCase):
     def test_epsilon_flag_removes_flats(self):
         """With -e, the filled output has no value strictly below the pour point."""
         self.assertModule(
-            "r.richdem.fill", input=_DEM, output=_FILLED_E, flags="e", overwrite=True
+            "r.richdem.filldepressions", input=_DEM, output=_FILLED_E, flags="e", overwrite=True
         )
         stats = gs.parse_command("r.univar", map=_FILLED_E, flags="g")
         self.assertGreaterEqual(
@@ -108,7 +108,7 @@ class TestRichdemFill(TestCase):
     def test_d4_topology(self):
         """D4 topology option completes without error and produces output."""
         self.assertModule(
-            "r.richdem.fill",
+            "r.richdem.filldepressions",
             input=_DEM,
             output=_FILLED,
             topology="D4",

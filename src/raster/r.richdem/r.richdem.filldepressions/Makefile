@@ -1,6 +1,6 @@
-MODULE_TOPDIR = ../..
+MODULE_TOPDIR = ../../..
 
-PGM = r.richdem.flowaccum
+PGM = r.richdem.filldepressions
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

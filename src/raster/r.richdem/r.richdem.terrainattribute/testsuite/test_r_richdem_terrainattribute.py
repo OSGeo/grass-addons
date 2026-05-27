@@ -1,4 +1,4 @@
-"""Tests for r.richdem.terrain
+"""Tests for r.richdem.terrainattribute
 
 Synthetic DEM (5 x 5, 1 m resolution) — uniform south-facing slope:
 
@@ -56,7 +56,7 @@ _ALL_ATTRIBUTES = [
     "set PYTHONPATH to richdem/wrappers/pyrichdem",
 )
 class TestRichdemTerrain(TestCase):
-    """Functional tests for r.richdem.terrain requiring the RichDEM extension."""
+    """Functional tests for r.richdem.terrainattribute requiring the RichDEM extension."""
 
     @classmethod
     def setUpClass(cls):
@@ -78,7 +78,7 @@ class TestRichdemTerrain(TestCase):
         for attr in _ALL_ATTRIBUTES:
             with self.subTest(attribute=attr):
                 self.assertModule(
-                    "r.richdem.terrain",
+                    "r.richdem.terrainattribute",
                     input=_DEM,
                     output=_OUT,
                     attribute=attr,
@@ -89,7 +89,7 @@ class TestRichdemTerrain(TestCase):
     def test_slope_degrees_max_is_45(self):
         """Interior N-S cells on a 1:1 slope have slope = arctan(1) = 45°."""
         self.runModule(
-            "r.richdem.terrain",
+            "r.richdem.terrainattribute",
             input=_DEM,
             output=_OUT,
             attribute="slope_degrees",
@@ -106,7 +106,7 @@ class TestRichdemTerrain(TestCase):
     def test_slope_radians_max_is_pi_over_4(self):
         """Interior N-S cells on a 1:1 slope have slope = π/4 radians."""
         self.runModule(
-            "r.richdem.terrain",
+            "r.richdem.terrainattribute",
             input=_DEM,
             output=_OUT,
             attribute="slope_radians",
@@ -123,7 +123,7 @@ class TestRichdemTerrain(TestCase):
     def test_aspect_mean_south(self):
         """Mean aspect of a uniform south-facing slope is 180°."""
         self.runModule(
-            "r.richdem.terrain",
+            "r.richdem.terrainattribute",
             input=_DEM,
             output=_OUT,
             attribute="aspect",
@@ -140,7 +140,7 @@ class TestRichdemTerrain(TestCase):
     def test_curvature_mean_zero(self):
         """Mean curvature of a planar surface is 0."""
         self.runModule(
-            "r.richdem.terrain",
+            "r.richdem.terrainattribute",
             input=_DEM,
             output=_OUT,
             attribute="curvature",

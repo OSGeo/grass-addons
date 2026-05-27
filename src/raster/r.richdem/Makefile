@@ -1,12 +1,12 @@
-MODULE_TOPDIR = ..
+MODULE_TOPDIR = ../..
 
 SUBDIRS = \
     librichdem \
-    r.richdem.fill \
-    r.richdem.breach \
+    r.richdem.filldepressions \
+    r.richdem.breachdepressions \
     r.richdem.resolveflats \
-    r.richdem.flowaccum \
-    r.richdem.terrain \
+    r.richdem.flowaccumulation \
+    r.richdem.terrainattribute \
     r.richdem.dephier \
     r.richdem.fsm
 

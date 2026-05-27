@@ -1,4 +1,4 @@
-"""Tests for r.richdem.flowaccum
+"""Tests for r.richdem.flowaccumulation
 
 Synthetic DEM (5 x 5, 1 m resolution) — uniform south-facing slope:
 
@@ -44,7 +44,7 @@ _DEM_EXPR = "6 - row()"
     "set PYTHONPATH to richdem/wrappers/pyrichdem",
 )
 class TestRichdemFlowaccum(TestCase):
-    """Functional tests for r.richdem.flowaccum requiring the RichDEM extension."""
+    """Functional tests for r.richdem.flowaccumulation requiring the RichDEM extension."""
 
     @classmethod
     def setUpClass(cls):
@@ -67,7 +67,7 @@ class TestRichdemFlowaccum(TestCase):
     def test_output_created(self):
         """D8 flow accumulation produces an output raster."""
         self.assertModule(
-            "r.richdem.flowaccum",
+            "r.richdem.flowaccumulation",
             input=_DEM,
             output=_FA_D8,
             method="D8",
@@ -78,7 +78,7 @@ class TestRichdemFlowaccum(TestCase):
     def test_min_is_one(self):
         """Minimum flow accumulation is 1 — every cell counts at least itself."""
         self.runModule(
-            "r.richdem.flowaccum",
+            "r.richdem.flowaccumulation",
             input=_DEM,
             output=_FA_D8,
             method="D8",
@@ -95,7 +95,7 @@ class TestRichdemFlowaccum(TestCase):
     def test_accumulation_occurs(self):
         """Maximum FA exceeds 1 — interior cells accumulate upstream drainage."""
         self.runModule(
-            "r.richdem.flowaccum",
+            "r.richdem.flowaccumulation",
             input=_DEM,
             output=_FA_D8,
             method="D8",
@@ -111,7 +111,7 @@ class TestRichdemFlowaccum(TestCase):
     def test_no_null_cells(self):
         """Every cell has a valid (non-null) flow accumulation value."""
         self.runModule(
-            "r.richdem.flowaccum",
+            "r.richdem.flowaccumulation",
             input=_DEM,
             output=_FA_D8,
             method="D8",
@@ -127,7 +127,7 @@ class TestRichdemFlowaccum(TestCase):
     def test_dinf_method(self):
         """D-infinity (Tarboton) method produces an output raster."""
         self.assertModule(
-            "r.richdem.flowaccum",
+            "r.richdem.flowaccumulation",
             input=_DEM,
             output=_FA_DINF,
             method="Dinf",

@@ -4,8 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="Author" content="GRASS Development Team">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r.richdem.breach - GRASS GIS manual</title>
-<meta name="description" content="r.richdem.breach: Breach depressions in a DEM using RichDEM.">
+<title>r.richdem.breachdepressions - GRASS GIS manual</title>
+<meta name="description" content="r.richdem.breachdepressions: Breach depressions in a DEM using RichDEM.">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
 <body bgcolor="white">
@@ -15,7 +15,7 @@
 <hr class="header">
 
 <h2>NAME</h2>
-<em><b>r.richdem.breach</b></em> - Breach depressions in a DEM using RichDEM.
+<em><b>r.richdem.breachdepressions</b></em> - Breach depressions in a DEM using RichDEM.
 
 <h2>KEYWORDS</h2>
 <a href="raster.html">raster</a>,
@@ -23,10 +23,10 @@
 <a href="keywords.html#depression breaching">depression breaching</a>
 
 <h2>SYNOPSIS</h2>
-<div id="name"><b>r.richdem.breach</b><br></div>
-<b>r.richdem.breach --help</b><br>
+<div id="name"><b>r.richdem.breachdepressions</b><br></div>
+<b>r.richdem.breachdepressions --help</b><br>
 <div id="synopsis">
-<b>r.richdem.breach</b>
+<b>r.richdem.breachdepressions</b>
 <b>input</b>=<em>name</em>
 <b>output</b>=<em>name</em>
 [<b>topology</b>=<em>string</em>]
@@ -54,7 +54,7 @@
 
 <h2>DESCRIPTION</h2>
 
-<em><b>r.richdem.breach</b></em> removes topographic depressions from a digital
+<em><b>r.richdem.breachdepressions</b></em> removes topographic depressions from a digital
 elevation model (DEM) by carving a channel from each pit cell to the nearest
 drainage outlet, following the complete-breaching mode of the priority-flood
 algorithm of Lindsay (2016) as implemented in RichDEM by Richard Barnes.
@@ -132,27 +132,51 @@ The priority metric used during traversal combines cell elevation and
 insertion order using fixed-precision concatenation. This ensures correct
 handling of flat areas — no separate flat-resolution step is needed after
 breaching, unlike after
-<em><a href="r.richdem.fill.html">r.richdem.fill</a></em> (without the
+<em><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></em> (without the
 <b>-e</b> flag). If flat areas do persist, apply
 <em><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></em>
 before computing flow directions or accumulation.
+
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
 
 <h2>EXAMPLES</h2>
 
 Breach depressions using D8 topology:
 <div class="code"><pre>
-r.richdem.breach input=dem output=dem_breached
+r.richdem.breachdepressions input=dem output=dem_breached
 </pre></div>
 
 Breach using D4 topology (cardinal neighbors only):
 <div class="code"><pre>
-r.richdem.breach input=dem output=dem_breached_d4 topology=D4
+r.richdem.breachdepressions input=dem output=dem_breached_d4 topology=D4
 </pre></div>
 
 Compare filling versus breaching on the same DEM:
 <div class="code"><pre>
-r.richdem.fill input=dem output=dem_filled
-r.richdem.breach input=dem output=dem_breached
+r.richdem.filldepressions input=dem output=dem_filled
+r.richdem.breachdepressions input=dem output=dem_breached
 r.mapcalc "diff = dem_filled - dem_breached"
 </pre></div>
 
@@ -173,9 +197,9 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.richdem.fill.html">r.richdem.fill</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
 <a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
 <a href="r.richdem.dephier.html">r.richdem.dephier</a>,
 <a href="r.fill.dir.html">r.fill.dir</a>,
 <a href="r.watershed.html">r.watershed</a>

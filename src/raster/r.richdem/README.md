@@ -15,11 +15,11 @@ workflow that retains real depressions rather than filling them.
 
 | Module | Description |
 |---|---|
-| `r.richdem.fill` | Fill depressions using the Priority-Flood algorithm; optional ε-gradient for flat areas |
-| `r.richdem.breach` | Breach depressions by carving least-cost channels |
+| `r.richdem.filldepressions` | Fill depressions using the Priority-Flood algorithm; optional ε-gradient for flat areas |
+| `r.richdem.breachdepressions` | Breach depressions by carving least-cost channels |
 | `r.richdem.resolveflats` | Impose a local ε-gradient on flat areas to define unique flow directions |
-| `r.richdem.flowaccum` | Flow accumulation with 13 SFD/MFD algorithms (D8, D-infinity, Quinn, Holmgren, …) |
-| `r.richdem.terrain` | Terrain attributes: slope (4 unit systems), aspect, total/planform/profile curvature |
+| `r.richdem.flowaccumulation` | Flow accumulation with 13 SFD/MFD algorithms (D8, D-infinity, Quinn, Holmgren, …) |
+| `r.richdem.terrainattribute` | Terrain attributes: slope (4 unit systems), aspect, total/planform/profile curvature |
 | `r.richdem.dephier` | Compute the depression hierarchy of a DEM (required first step for FSM) |
 | `r.richdem.fsm` | Fill–Spill–Merge: route surface water through the depression hierarchy |
 
@@ -34,13 +34,13 @@ algorithms. Two approaches:
 
 ```bash
 # Option A: fill depressions (with epsilon gradient for flat handling)
-r.richdem.fill -e input=dem output=dem_filled
-r.richdem.flowaccum input=dem_filled output=flow_accum
+r.richdem.filldepressions -e input=dem output=dem_filled
+r.richdem.flowaccumulation input=dem_filled output=flow_accum
 
 # Option B: breach, then resolve remaining flats
-r.richdem.breach input=dem output=dem_breached
+r.richdem.breachdepressions input=dem output=dem_breached
 r.richdem.resolveflats input=dem_breached output=dem_conditioned
-r.richdem.flowaccum input=dem_conditioned output=flow_accum method=Dinf
+r.richdem.flowaccumulation input=dem_conditioned output=flow_accum method=Dinf
 ```
 
 ### Fill–Spill–Merge workflow
@@ -71,9 +71,9 @@ r.richdem.fsm input=dem \
 ### Terrain attributes
 
 ```bash
-r.richdem.terrain input=dem output=slope attribute=slope_degrees
-r.richdem.terrain input=dem output=aspect attribute=aspect
-r.richdem.terrain input=dem output=planform_curv attribute=planform_curvature
+r.richdem.terrainattribute input=dem output=slope attribute=slope_degrees
+r.richdem.terrainattribute input=dem output=aspect attribute=aspect
+r.richdem.terrainattribute input=dem output=planform_curv attribute=planform_curvature
 ```
 
 ---

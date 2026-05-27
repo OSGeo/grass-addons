@@ -49,6 +49,10 @@ def main():
 
     import richdem as rd
 
+    method = options["method"]
+    if method in ("Holmgren", "Freeman") and not options["exponent"]:
+        gs.fatal("Method {} requires the exponent parameter.".format(method))
+
     dem = rdarray_from_grass(options["input"])
     exponent = float(options["exponent"]) if options["exponent"] else None
     weights = rdarray_from_grass(options["weights"]) if options["weights"] else None

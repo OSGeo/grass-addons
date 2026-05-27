@@ -178,6 +178,30 @@ GRASS as a DCELL (double-precision float) map because GRASS has no native
 unsigned 32-bit integer raster type. All label values up to 2<sup>32</sup>&nbsp;−&nbsp;2
 are representable exactly as doubles.
 
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Compute the depression hierarchy:
@@ -234,8 +258,8 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 
 <em>
 <a href="r.richdem.fsm.html">r.richdem.fsm</a>,
-<a href="r.richdem.fill.html">r.richdem.fill</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
 <a href="r.watershed.html">r.watershed</a>,
 <a href="r.stream.extract.html">r.stream.extract</a>
 </em>

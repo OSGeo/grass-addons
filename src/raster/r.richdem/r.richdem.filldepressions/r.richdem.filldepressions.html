@@ -4,8 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="Author" content="GRASS Development Team">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r.richdem.fill - GRASS GIS manual</title>
-<meta name="description" content="r.richdem.fill: Fill depressions in a DEM using RichDEM.">
+<title>r.richdem.filldepressions - GRASS GIS manual</title>
+<meta name="description" content="r.richdem.filldepressions: Fill depressions in a DEM using RichDEM.">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
 <body bgcolor="white">
@@ -15,7 +15,7 @@
 <hr class="header">
 
 <h2>NAME</h2>
-<em><b>r.richdem.fill</b></em> - Fill depressions in a DEM using RichDEM.
+<em><b>r.richdem.filldepressions</b></em> - Fill depressions in a DEM using RichDEM.
 
 <h2>KEYWORDS</h2>
 <a href="raster.html">raster</a>,
@@ -23,10 +23,10 @@
 <a href="keywords.html#depression filling">depression filling</a>
 
 <h2>SYNOPSIS</h2>
-<div id="name"><b>r.richdem.fill</b><br></div>
-<b>r.richdem.fill --help</b><br>
+<div id="name"><b>r.richdem.filldepressions</b><br></div>
+<b>r.richdem.filldepressions --help</b><br>
 <div id="synopsis">
-<b>r.richdem.fill</b>
+<b>r.richdem.filldepressions</b>
 [<b>-e</b>]
 <b>input</b>=<em>name</em>
 <b>output</b>=<em>name</em>
@@ -73,7 +73,7 @@
 
 <h2>DESCRIPTION</h2>
 
-<em><b>r.richdem.fill</b></em> fills all topographic depressions (pits, sinks)
+<em><b>r.richdem.filldepressions</b></em> fills all topographic depressions (pits, sinks)
 in a digital elevation model (DEM) so that every cell drains to the map
 boundary. Depression filling is a common pre-processing step before computing
 flow directions or flow accumulation.
@@ -104,7 +104,7 @@ Depression filling removes all interior basins by raising their elevations.
 This is appropriate when depressions are considered artifacts (e.g., errors
 in lidar or SRTM data). When depressions represent real landscape features
 (lakes, prairie potholes, endorheic basins), consider using
-<em><a href="r.richdem.breach.html">r.richdem.breach</a></em> or the
+<em><a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a></em> or the
 <em><a href="r.richdem.dephier.html">r.richdem.dephier</a></em> /
 <em><a href="r.richdem.fsm.html">r.richdem.fsm</a></em> workflow instead.
 
@@ -114,21 +114,45 @@ to the same elevation as the pour point. Use the <b>-e</b> flag or
 <em><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></em>
 to impose drainage gradients on such areas.
 
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Fill depressions using D8 topology:
 <div class="code"><pre>
-r.richdem.fill input=dem output=dem_filled
+r.richdem.filldepressions input=dem output=dem_filled
 </pre></div>
 
 Fill depressions and impose an epsilon gradient on flat areas:
 <div class="code"><pre>
-r.richdem.fill -e input=dem output=dem_filled_eps
+r.richdem.filldepressions -e input=dem output=dem_filled_eps
 </pre></div>
 
 Fill using D4 topology:
 <div class="code"><pre>
-r.richdem.fill input=dem output=dem_filled_d4 topology=D4
+r.richdem.filldepressions input=dem output=dem_filled_d4 topology=D4
 </pre></div>
 
 <h2>REFERENCES</h2>
@@ -148,9 +172,9 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.richdem.breach.html">r.richdem.breach</a>,
+<a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a>,
 <a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
 <a href="r.richdem.dephier.html">r.richdem.dephier</a>,
 <a href="r.fill.dir.html">r.fill.dir</a>,
 <a href="r.watershed.html">r.watershed</a>

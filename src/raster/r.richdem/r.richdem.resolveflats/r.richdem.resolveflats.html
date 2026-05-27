@@ -67,13 +67,13 @@ the DEM's topographic properties.
 <h2>NOTES</h2>
 
 <em><b>r.richdem.resolveflats</b></em> is typically applied after
-<em><a href="r.richdem.fill.html">r.richdem.fill</a></em> or
-<em><a href="r.richdem.breach.html">r.richdem.breach</a></em> to handle any flat
+<em><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></em> or
+<em><a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a></em> to handle any flat
 areas created by the conditioning step.
 
 <p>
 An alternative approach is to use the <b>-e</b> flag in
-<em><a href="r.richdem.fill.html">r.richdem.fill</a></em> directly, which
+<em><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></em> directly, which
 combines filling and epsilon-gradient imposition in one step.
 
 <p>
@@ -81,18 +81,42 @@ This module is not needed before running
 <em><a href="r.richdem.dephier.html">r.richdem.dephier</a></em>, which handles
 flat areas internally.
 
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Resolve flat areas after depression filling:
 <div class="code"><pre>
-r.richdem.fill input=dem output=dem_filled
+r.richdem.filldepressions input=dem output=dem_filled
 r.richdem.resolveflats input=dem_filled output=dem_conditioned
 </pre></div>
 
 Resolve flats on a raw DEM before computing flow accumulation:
 <div class="code"><pre>
 r.richdem.resolveflats input=dem output=dem_noflats
-r.richdem.flowaccum input=dem_noflats output=flow_accum
+r.richdem.flowaccumulation input=dem_noflats output=flow_accum
 </pre></div>
 
 <h2>REFERENCES</h2>
@@ -112,9 +136,9 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.richdem.fill.html">r.richdem.fill</a>,
-<a href="r.richdem.breach.html">r.richdem.breach</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
 <a href="r.fill.dir.html">r.fill.dir</a>,
 <a href="r.watershed.html">r.watershed</a>
 </em>

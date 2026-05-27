@@ -1,4 +1,4 @@
-"""Tests for r.richdem.breach
+"""Tests for r.richdem.breachdepressions
 
 Synthetic DEM (5 x 5, 1 m resolution):
 
@@ -51,7 +51,7 @@ _DEM_EXPR = (
     "set PYTHONPATH to richdem/wrappers/pyrichdem",
 )
 class TestRichdemBreach(TestCase):
-    """Functional tests for r.richdem.breach requiring the RichDEM extension."""
+    """Functional tests for r.richdem.breachdepressions requiring the RichDEM extension."""
 
     @classmethod
     def setUpClass(cls):
@@ -74,14 +74,14 @@ class TestRichdemBreach(TestCase):
     def test_output_created(self):
         """Breaching a DEM with one depression produces an output raster."""
         self.assertModule(
-            "r.richdem.breach", input=_DEM, output=_BREACHED, overwrite=True
+            "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
         self.assertRasterExists(_BREACHED)
 
     def test_max_unchanged(self):
         """Border cells (maximum elevation 5) are never modified by breaching."""
         self.runModule(
-            "r.richdem.breach", input=_DEM, output=_BREACHED, overwrite=True
+            "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
         stats = gs.parse_command("r.univar", map=_BREACHED, flags="g")
         self.assertAlmostEqual(
@@ -99,7 +99,7 @@ class TestRichdemBreach(TestCase):
         original pit elevation (1).
         """
         self.runModule(
-            "r.richdem.breach", input=_DEM, output=_BREACHED, overwrite=True
+            "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
         stats = gs.parse_command("r.univar", map=_BREACHED, flags="g")
         self.assertGreater(
@@ -111,7 +111,7 @@ class TestRichdemBreach(TestCase):
     def test_d4_topology(self):
         """D4 topology option completes without error and produces output."""
         self.assertModule(
-            "r.richdem.breach",
+            "r.richdem.breachdepressions",
             input=_DEM,
             output=_BREACHED_D4,
             topology="D4",

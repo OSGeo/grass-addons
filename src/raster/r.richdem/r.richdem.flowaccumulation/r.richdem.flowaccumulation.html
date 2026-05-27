@@ -4,8 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="Author" content="GRASS Development Team">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r.richdem.flowaccum - GRASS GIS manual</title>
-<meta name="description" content="r.richdem.flowaccum: Calculate flow accumulation using RichDEM.">
+<title>r.richdem.flowaccumulation - GRASS GIS manual</title>
+<meta name="description" content="r.richdem.flowaccumulation: Calculate flow accumulation using RichDEM.">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
 <body bgcolor="white">
@@ -15,7 +15,7 @@
 <hr class="header">
 
 <h2>NAME</h2>
-<em><b>r.richdem.flowaccum</b></em> - Calculate flow accumulation using RichDEM.
+<em><b>r.richdem.flowaccumulation</b></em> - Calculate flow accumulation using RichDEM.
 
 <h2>KEYWORDS</h2>
 <a href="raster.html">raster</a>,
@@ -24,10 +24,10 @@
 <a href="keywords.html#flow direction">flow direction</a>
 
 <h2>SYNOPSIS</h2>
-<div id="name"><b>r.richdem.flowaccum</b><br></div>
-<b>r.richdem.flowaccum --help</b><br>
+<div id="name"><b>r.richdem.flowaccumulation</b><br></div>
+<b>r.richdem.flowaccumulation --help</b><br>
 <div id="synopsis">
-<b>r.richdem.flowaccum</b>
+<b>r.richdem.flowaccumulation</b>
 <b>input</b>=<em>name</em>
 <b>output</b>=<em>name</em>
 [<b>method</b>=<em>string</em>]
@@ -66,7 +66,7 @@
 
 <h2>DESCRIPTION</h2>
 
-<em><b>r.richdem.flowaccum</b></em> calculates the contributing (upslope) area
+<em><b>r.richdem.flowaccumulation</b></em> calculates the contributing (upslope) area
 for each cell in a DEM using one of several flow routing algorithms. The
 accumulation value at each cell equals the total number of cells—or total
 weighted flow—draining through it.
@@ -81,7 +81,7 @@ conditioned (depressions filled or breached) before running this module.
 
 <h3>Flow routing methods</h3>
 
-<em><b>r.richdem.flowaccum</b></em> supports both single-flow-direction (SFD)
+<em><b>r.richdem.flowaccumulation</b></em> supports both single-flow-direction (SFD)
 and multiple-flow-direction (MFD) algorithms:
 
 <p>
@@ -127,33 +127,57 @@ source.
 <h3>Pre-processing</h3>
 
 Depressions and flat areas cause incorrect or undefined flow directions.
-Apply <em><a href="r.richdem.fill.html">r.richdem.fill</a></em> (with
+Apply <em><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></em> (with
 optional <b>-e</b> flag) or
-<em><a href="r.richdem.breach.html">r.richdem.breach</a></em> followed by
+<em><a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a></em> followed by
 <em><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></em>
 before computing flow accumulation.
+
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
 
 <h2>EXAMPLES</h2>
 
 Compute D8 flow accumulation on a pre-filled DEM:
 <div class="code"><pre>
-r.richdem.fill input=dem output=dem_filled
-r.richdem.flowaccum input=dem_filled output=accum_d8
+r.richdem.filldepressions input=dem output=dem_filled
+r.richdem.flowaccumulation input=dem_filled output=accum_d8
 </pre></div>
 
 Use D-infinity flow routing:
 <div class="code"><pre>
-r.richdem.flowaccum input=dem_filled output=accum_dinf method=Dinf
+r.richdem.flowaccumulation input=dem_filled output=accum_dinf method=Dinf
 </pre></div>
 
 Use the Holmgren algorithm with exponent 4 (moderately convergent):
 <div class="code"><pre>
-r.richdem.flowaccum input=dem_filled output=accum_holmgren method=Holmgren exponent=4
+r.richdem.flowaccumulation input=dem_filled output=accum_holmgren method=Holmgren exponent=4
 </pre></div>
 
 Weight flow accumulation by a precipitation raster:
 <div class="code"><pre>
-r.richdem.flowaccum input=dem_filled output=discharge method=D8 weights=precip_mm
+r.richdem.flowaccumulation input=dem_filled output=discharge method=D8 weights=precip_mm
 </pre></div>
 
 <h2>REFERENCES</h2>
@@ -200,10 +224,10 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.richdem.fill.html">r.richdem.fill</a>,
-<a href="r.richdem.breach.html">r.richdem.breach</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a>,
 <a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
-<a href="r.richdem.terrain.html">r.richdem.terrain</a>,
+<a href="r.richdem.terrainattribute.html">r.richdem.terrainattribute</a>,
 <a href="r.watershed.html">r.watershed</a>,
 <a href="r.stream.extract.html">r.stream.extract</a>
 </em>

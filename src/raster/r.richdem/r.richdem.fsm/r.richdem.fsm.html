@@ -147,6 +147,30 @@ Fill–Spill–Merge runs approximately 90–2600× faster than iterative
 algebraically using the hierarchy structure rather than by iterative relaxation
 (Barnes et al., 2021).
 
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Full Fill–Spill–Merge workflow starting from a raw DEM:
@@ -205,8 +229,8 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 
 <em>
 <a href="r.richdem.dephier.html">r.richdem.dephier</a>,
-<a href="r.richdem.fill.html">r.richdem.fill</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
 <a href="r.watershed.html">r.watershed</a>,
 <a href="r.lakefill.html">r.lakefill</a>
 </em>

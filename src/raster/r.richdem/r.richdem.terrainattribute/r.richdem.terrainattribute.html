@@ -4,8 +4,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="Author" content="GRASS Development Team">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r.richdem.terrain - GRASS GIS manual</title>
-<meta name="description" content="r.richdem.terrain: Calculate terrain attributes using RichDEM.">
+<title>r.richdem.terrainattribute - GRASS GIS manual</title>
+<meta name="description" content="r.richdem.terrainattribute: Calculate terrain attributes using RichDEM.">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
 <body bgcolor="white">
@@ -15,7 +15,7 @@
 <hr class="header">
 
 <h2>NAME</h2>
-<em><b>r.richdem.terrain</b></em> - Calculate terrain attributes using RichDEM.
+<em><b>r.richdem.terrainattribute</b></em> - Calculate terrain attributes using RichDEM.
 
 <h2>KEYWORDS</h2>
 <a href="raster.html">raster</a>,
@@ -26,10 +26,10 @@
 <a href="keywords.html#curvature">curvature</a>
 
 <h2>SYNOPSIS</h2>
-<div id="name"><b>r.richdem.terrain</b><br></div>
-<b>r.richdem.terrain --help</b><br>
+<div id="name"><b>r.richdem.terrainattribute</b><br></div>
+<b>r.richdem.terrainattribute --help</b><br>
 <div id="synopsis">
-<b>r.richdem.terrain</b>
+<b>r.richdem.terrainattribute</b>
 <b>input</b>=<em>name</em>
 <b>output</b>=<em>name</em>
 <b>attribute</b>=<em>string</em>
@@ -62,7 +62,7 @@
 
 <h2>DESCRIPTION</h2>
 
-<em><b>r.richdem.terrain</b></em> calculates first- and second-order terrain
+<em><b>r.richdem.terrainattribute</b></em> calculates first- and second-order terrain
 attributes from a digital elevation model. Available attributes are slope (in
 four unit systems), aspect, and three curvature measures.
 
@@ -126,26 +126,50 @@ To compute slope and aspect simultaneously in GRASS, consider
 morphometric parameters computed over variable window sizes, see
 <em><a href="r.param.scale.html">r.param.scale</a></em>.
 
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Calculate slope in degrees:
 <div class="code"><pre>
-r.richdem.terrain input=dem output=slope attribute=slope_degrees
+r.richdem.terrainattribute input=dem output=slope attribute=slope_degrees
 </pre></div>
 
 Calculate aspect:
 <div class="code"><pre>
-r.richdem.terrain input=dem output=aspect attribute=aspect
+r.richdem.terrainattribute input=dem output=aspect attribute=aspect
 </pre></div>
 
 Calculate planform curvature:
 <div class="code"><pre>
-r.richdem.terrain input=dem output=planform_curv attribute=planform_curvature
+r.richdem.terrainattribute input=dem output=planform_curv attribute=planform_curvature
 </pre></div>
 
 Scale vertical units (elevation in feet, horizontal in feet):
 <div class="code"><pre>
-r.richdem.terrain input=dem_ft output=slope attribute=slope_degrees zscale=1.0
+r.richdem.terrainattribute input=dem_ft output=slope attribute=slope_degrees zscale=1.0
 </pre></div>
 
 <h2>REFERENCES</h2>
@@ -171,7 +195,7 @@ URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/ric
 <em>
 <a href="r.slope.aspect.html">r.slope.aspect</a>,
 <a href="r.param.scale.html">r.param.scale</a>,
-<a href="r.richdem.flowaccum.html">r.richdem.flowaccum</a>
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>
 </em>
 
 <h2>AUTHORS</h2>
