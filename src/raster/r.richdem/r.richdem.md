@@ -76,10 +76,10 @@ Ensure that RichDEM is installed into the same Python environment used by GRASS 
 
 ## REFERENCES
 
--   Barnes, R., Callaghan, K.L., Wickert, A.D. (2021). Computing water flow through complex landscapes -- Part 3: Fill--Spill--Merge: flow routing in depression hierarchies. *Earth Surface Dynamics* 9(1), 105--121. DOI: [10.5194/esurf-9-105-2021](https://doi.org/10.5194/esurf-9-105-2021)
--   Barnes, R., Callaghan, K.L., Wickert, A.D. (2020). Computing water flow through complex landscapes -- Part 2: Finding hierarchies in depressions and morphological segmentations. *Earth Surface Dynamics* 8(2), 431--445. DOI: [10.5194/esurf-8-431-2020](https://doi.org/10.5194/esurf-8-431-2020)
--   Lindsay, J.B. (2016). Efficient hybrid breaching-filling sink removal methods for flow path enforcement in digital elevation models. *Hydrological Processes* 30(6), 846--857. DOI: [10.1002/hyp.10648](https://doi.org/10.1002/hyp.10648)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Barnes, R., Callaghan, K.L., Wickert, A.D. (2021). Computing water flow through complex landscapes -- Part 3: Fill--Spill--Merge: flow routing in depression hierarchies. *Earth Surface Dynamics* 9(1), 105--121. DOI: [10.5194/esurf-9-105-2021](https://doi.org/10.5194/esurf-9-105-2021)
+- Barnes, R., Callaghan, K.L., Wickert, A.D. (2020). Computing water flow through complex landscapes -- Part 2: Finding hierarchies in depressions and morphological segmentations. *Earth Surface Dynamics* 8(2), 431--445. DOI: [10.5194/esurf-8-431-2020](https://doi.org/10.5194/esurf-8-431-2020)
+- Lindsay, J.B. (2016). Efficient hybrid breaching-filling sink removal methods for flow path enforcement in digital elevation models. *Hydrological Processes* 30(6), 846--857. DOI: [10.1002/hyp.10648](https://doi.org/10.1002/hyp.10648)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

@@ -4,9 +4,9 @@
 
 The algorithm operates in three stages:
 
-1.  **Downslope routing** --- surface water (positive water-table depth values) is routed downslope to pit cells using the precomputed flow directions, accumulating in the bottoms of depressions.
-2.  **Hierarchy traversal** --- the depression hierarchy is traversed depth-first. When a depression fills to its pour-point elevation, excess water spills into the adjacent depression identified by the geolink. If both depressions are full they merge into their parent meta-depression, and water is redistributed across the combined volume. This continues until all water is accounted for or reaches the ocean.
-3.  **Water surface mapping** --- the equilibrium water surface elevation in each depression is computed from the total water volume and the depression's hypsometry, then written back to the output raster as water-table depth.
+1. **Downslope routing** --- surface water (positive water-table depth values) is routed downslope to pit cells using the precomputed flow directions, accumulating in the bottoms of depressions.
+2. **Hierarchy traversal** --- the depression hierarchy is traversed depth-first. When a depression fills to its pour-point elevation, excess water spills into the adjacent depression identified by the geolink. If both depressions are full they merge into their parent meta-depression, and water is redistributed across the combined volume. This continues until all water is accounted for or reaches the ocean.
+3. **Water surface mapping** --- the equilibrium water surface elevation in each depression is computed from the total water volume and the depression's hypsometry, then written back to the output raster as water-table depth.
 
 ![Ten-panel overview of the three Fill-Spill-Merge stages: move water downhill to pits (a-b), overflow and merge depressions (c-f), flood the landscape (g-j)](esurf-9-105-2021-f04.png)
 *The three stages of the Fill--Spill--Merge algorithm illustrated on a synthetic landscape. (a--b) Downslope routing moves surface water to pit cells. (c--f) Hierarchy traversal: depressions fill, overflow at pour points, and merge into meta-depressions. (g--j) Water surface mapping back-calculates the equilibrium water-table depth in each depression from the accumulated volume. Figure 4 from Barnes, Callaghan & Wickert (2021), CC-BY 4.0.*
@@ -15,9 +15,9 @@ The algorithm operates in three stages:
 
 The **water_depth** and **output** maps use a signed depth convention:
 
--   Values \< 0: water table is below the land surface by that magnitude (e.g., −0.5 means 0.5 m below surface).
--   Value = 0: water table is exactly at the land surface (saturated).
--   Values \> 0: standing surface water of that depth above the land surface (the cell is inundated).
+- Values \< 0: water table is below the land surface by that magnitude (e.g., −0.5 means 0.5 m below surface).
+- Value = 0: water table is exactly at the land surface (saturated).
+- Values \> 0: standing surface water of that depth above the land surface (the cell is inundated).
 
 ### Equilibrium solution
 
@@ -88,9 +88,9 @@ v.db.select map=dep_hierarchy layer=1 columns=dep_label,water_vol where="water_v
 
 ## REFERENCES
 
--   Barnes, R., Callaghan, K.L., Wickert, A.D. (2021). Computing water flow through complex landscapes -- Part 3: Fill--Spill--Merge: flow routing in depression hierarchies. *Earth Surface Dynamics* Vol 9(1), pp 105--121. DOI: [10.5194/esurf-9-105-2021](https://doi.org/10.5194/esurf-9-105-2021)
--   Barnes, R., Callaghan, K.L., Wickert, A.D. (2020). Computing water flow through complex landscapes -- Part 2: Finding hierarchies in depressions and morphological segmentations. *Earth Surface Dynamics* Vol 8(2), pp 431--445. DOI: [10.5194/esurf-8-431-2020](https://doi.org/10.5194/esurf-8-431-2020)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Barnes, R., Callaghan, K.L., Wickert, A.D. (2021). Computing water flow through complex landscapes -- Part 3: Fill--Spill--Merge: flow routing in depression hierarchies. *Earth Surface Dynamics* Vol 9(1), pp 105--121. DOI: [10.5194/esurf-9-105-2021](https://doi.org/10.5194/esurf-9-105-2021)
+- Barnes, R., Callaghan, K.L., Wickert, A.D. (2020). Computing water flow through complex landscapes -- Part 2: Finding hierarchies in depressions and morphological segmentations. *Earth Surface Dynamics* Vol 8(2), pp 431--445. DOI: [10.5194/esurf-8-431-2020](https://doi.org/10.5194/esurf-8-431-2020)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

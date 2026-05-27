@@ -12,17 +12,17 @@ Flow accumulation is a fundamental quantity in terrain analysis: large values id
 
 **Single flow direction (SFD) --- each cell drains entirely to one neighbor:**
 
--   **D8** / **OCallaghanD8** --- steepest descent among 8 neighbors. Classic algorithm for hydrological applications (O'Callaghan and Mark, 1984).
--   **D4** / **OCallaghanD4** --- steepest descent among 4 cardinal neighbors only.
--   **Rho8** / **FairfieldLeymarieD8** --- stochastic D8: the downhill neighbor is selected probabilistically in proportion to slope, reducing the parallel-flow artifact of D8 (Fairfield and Leymarie, 1991).
--   **Rho4** / **FairfieldLeymarieD4** --- stochastic D4.
+- **D8** / **OCallaghanD8** --- steepest descent among 8 neighbors. Classic algorithm for hydrological applications (O'Callaghan and Mark, 1984).
+- **D4** / **OCallaghanD4** --- steepest descent among 4 cardinal neighbors only.
+- **Rho8** / **FairfieldLeymarieD8** --- stochastic D8: the downhill neighbor is selected probabilistically in proportion to slope, reducing the parallel-flow artifact of D8 (Fairfield and Leymarie, 1991).
+- **Rho4** / **FairfieldLeymarieD4** --- stochastic D4.
 
 **Multiple flow direction (MFD) --- flow is distributed across multiple downhill neighbors:**
 
--   **Dinf** / **Tarboton** --- flow is apportioned between the two neighbors bracketing the steepest downhill direction (Tarboton, 1997). Reduces flow concentration artifacts compared to D8.
--   **Quinn** --- flow distributed to all lower neighbors weighted by slope; equivalent to Holmgren with exponent = 1 (Quinn et al., 1991).
--   **Holmgren** --- flow distributed to all lower neighbors weighted by slope raised to an exponent (requires **exponent** parameter). Larger exponents produce more concentrated flow similar to D8; exponent = 1 is equivalent to Quinn (Holmgren, 1994).
--   **Freeman** --- similar to Holmgren; distributes flow using slope raised to an exponent (requires **exponent** parameter) (Freeman, 1991).
+- **Dinf** / **Tarboton** --- flow is apportioned between the two neighbors bracketing the steepest downhill direction (Tarboton, 1997). Reduces flow concentration artifacts compared to D8.
+- **Quinn** --- flow distributed to all lower neighbors weighted by slope; equivalent to Holmgren with exponent = 1 (Quinn et al., 1991).
+- **Holmgren** --- flow distributed to all lower neighbors weighted by slope raised to an exponent (requires **exponent** parameter). Larger exponents produce more concentrated flow similar to D8; exponent = 1 is equivalent to Quinn (Holmgren, 1994).
+- **Freeman** --- similar to Holmgren; distributes flow using slope raised to an exponent (requires **exponent** parameter) (Freeman, 1991).
 
 ### Weighted accumulation
 
@@ -79,13 +79,13 @@ r.richdem.flowaccumulation input=dem_filled output=discharge method=D8 weights=p
 
 ## REFERENCES
 
--   O'Callaghan, J.F., Mark, D.M. (1984). The extraction of drainage networks from digital elevation data. *Computer Vision, Graphics, and Image Processing* Vol 28(3), pp 323--344. DOI: [10.1016/S0734-189X(84)80011-0](https://doi.org/10.1016/S0734-189X(84)80011-0)
--   Fairfield, J., Leymarie, P. (1991). Drainage networks from grid digital elevation models. *Water Resources Research* Vol 27(5), pp 709--717. DOI: [10.1029/90WR02658](https://doi.org/10.1029/90WR02658)
--   Freeman, T.G. (1991). Calculating catchment area with divergent flow based on a regular grid. *Computers & Geosciences* Vol 17(3), pp 413--422. DOI: [10.1016/0098-3004(91)90048-I](https://doi.org/10.1016/0098-3004(91)90048-I)
--   Quinn, P., Beven, K., Chevallier, P., Planchon, O. (1991). The prediction of hillslope flow paths for distributed hydrological modelling using digital terrain models. *Hydrological Processes* Vol 5(1), pp 59--79. DOI: [10.1002/hyp.3360050106](https://doi.org/10.1002/hyp.3360050106)
--   Holmgren, P. (1994). Multiple flow direction algorithms for runoff modelling in grid based elevation models: An empirical evaluation. *Hydrological Processes* Vol 8(4), pp 327--334. DOI: [10.1002/hyp.3360080405](https://doi.org/10.1002/hyp.3360080405)
--   Tarboton, D.G. (1997). A new method for the determination of flow directions and upslope areas in grid digital elevation models. *Water Resources Research* Vol 33(2), pp 309--319. DOI: [10.1029/96WR03137](https://doi.org/10.1029/96WR03137)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- O'Callaghan, J.F., Mark, D.M. (1984). The extraction of drainage networks from digital elevation data. *Computer Vision, Graphics, and Image Processing* Vol 28(3), pp 323--344. DOI: [10.1016/S0734-189X(84)80011-0](https://doi.org/10.1016/S0734-189X(84)80011-0)
+- Fairfield, J., Leymarie, P. (1991). Drainage networks from grid digital elevation models. *Water Resources Research* Vol 27(5), pp 709--717. DOI: [10.1029/90WR02658](https://doi.org/10.1029/90WR02658)
+- Freeman, T.G. (1991). Calculating catchment area with divergent flow based on a regular grid. *Computers & Geosciences* Vol 17(3), pp 413--422. DOI: [10.1016/0098-3004(91)90048-I](https://doi.org/10.1016/0098-3004(91)90048-I)
+- Quinn, P., Beven, K., Chevallier, P., Planchon, O. (1991). The prediction of hillslope flow paths for distributed hydrological modelling using digital terrain models. *Hydrological Processes* Vol 5(1), pp 59--79. DOI: [10.1002/hyp.3360050106](https://doi.org/10.1002/hyp.3360050106)
+- Holmgren, P. (1994). Multiple flow direction algorithms for runoff modelling in grid based elevation models: An empirical evaluation. *Hydrological Processes* Vol 8(4), pp 327--334. DOI: [10.1002/hyp.3360080405](https://doi.org/10.1002/hyp.3360080405)
+- Tarboton, D.G. (1997). A new method for the determination of flow directions and upslope areas in grid digital elevation models. *Water Resources Research* Vol 33(2), pp 309--319. DOI: [10.1029/96WR03137](https://doi.org/10.1029/96WR03137)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

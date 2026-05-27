@@ -51,13 +51,13 @@ def main():
     import numpy as np
     import richdem as rd
 
-    dem  = rdarray_from_grass(options["input"])
-    wtd  = rdarray_from_grass(options["water_depth"])
+    dem = rdarray_from_grass(options["input"])
+    wtd = rdarray_from_grass(options["water_depth"])
     deps = depressions_from_grass(options["hierarchy"])
 
     # FSM requires labels as uint32 and flowdirs as int8; GRASS stores both
     # as DCELL (float64), so we cast after reading.
-    _labels_f   = rdarray_from_grass(options["labels"])
+    _labels_f = rdarray_from_grass(options["labels"])
     _flowdirs_f = rdarray_from_grass(options["flowdirs"])
     labels   = rd.rdarray(np.array(_labels_f,   dtype=np.uint32), no_data=2**32-1,
                           geotransform=_labels_f.geotransform)

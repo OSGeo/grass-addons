@@ -42,12 +42,16 @@ def main():
     import richdem as rd
 
     dem = rdarray_from_grass(options["input"])
-    labels = rd.get_new_depression_hierarchy_labels(dem.shape, geotransform=dem.geotransform)
+    labels = rd.get_new_depression_hierarchy_labels(
+        dem.shape, geotransform=dem.geotransform
+    )
     deps, flowdirs = rd.get_depression_hierarchy(dem, labels)
 
     rdarray_to_grass(labels, options["output_labels"], overwrite=gs.overwrite())
     rdarray_to_grass(flowdirs, options["output_flowdirs"], overwrite=gs.overwrite())
-    depressions_to_grass(deps, labels, flowdirs, options["output_hierarchy"], overwrite=gs.overwrite())
+    depressions_to_grass(
+        deps, labels, flowdirs, options["output_hierarchy"], overwrite=gs.overwrite()
+    )
 
 
 if __name__ == "__main__":

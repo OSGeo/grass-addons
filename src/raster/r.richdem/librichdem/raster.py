@@ -12,10 +12,16 @@ _NO_DATA = -9999.0
 def rdarray_from_grass(name):
     """Read a GRASS raster map into a RichDEM rdarray."""
     region = gs.region()
-    geotransform = np.array([
-        region["w"], region["ewres"], 0,
-        region["n"], 0, -region["nsres"],
-    ])
+    geotransform = np.array(
+        [
+            region["w"],
+            region["ewres"],
+            0,
+            region["n"],
+            0,
+            -region["nsres"],
+        ]
+    )
 
     r = RasterRow(name)
     r.open()

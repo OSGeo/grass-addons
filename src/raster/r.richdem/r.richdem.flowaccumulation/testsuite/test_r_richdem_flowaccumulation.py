@@ -50,9 +50,7 @@ class TestRichdemFlowaccum(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
 
     @classmethod
     def tearDownClass(cls):

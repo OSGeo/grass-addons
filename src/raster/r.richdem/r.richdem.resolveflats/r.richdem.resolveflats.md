@@ -48,8 +48,8 @@ r.richdem.flowaccumulation input=dem_noflats output=flow_accum
 
 ## REFERENCES
 
--   Barnes, R., Lehman, C., Mulla, D. (2014). An efficient assignment of drainage direction over flat surfaces in raster digital elevation models. *Computers & Geosciences* Vol 62, pp 128--135. DOI: [10.1016/j.cageo.2013.01.009](https://doi.org/10.1016/j.cageo.2013.01.009)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Barnes, R., Lehman, C., Mulla, D. (2014). An efficient assignment of drainage direction over flat surfaces in raster digital elevation models. *Computers & Geosciences* Vol 62, pp 128--135. DOI: [10.1016/j.cageo.2013.01.009](https://doi.org/10.1016/j.cageo.2013.01.009)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

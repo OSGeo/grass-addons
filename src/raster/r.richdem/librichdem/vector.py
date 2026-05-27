@@ -44,12 +44,20 @@ def _dep_row(dep):
     """Return the 15 data-column values for a Depression, in _DATA_COLS order."""
     return (
         "leaf" if int(dep.lchild) == _NO_VALUE else "meta",
-        int(dep.pit_cell), int(dep.out_cell),
-        _null_int(dep.parent), _null_int(dep.odep),
-        _null_int(dep.lchild), _null_int(dep.rchild), _null_int(dep.geolink),
-        _null_float(dep.pit_elev), _null_float(dep.out_elev),
-        int(dep.ocean_parent), int(dep.cell_count),
-        float(dep.dep_vol), float(dep.water_vol), float(dep.total_elevation),
+        int(dep.pit_cell),
+        int(dep.out_cell),
+        _null_int(dep.parent),
+        _null_int(dep.odep),
+        _null_int(dep.lchild),
+        _null_int(dep.rchild),
+        _null_int(dep.geolink),
+        _null_float(dep.pit_elev),
+        _null_float(dep.out_elev),
+        int(dep.ocean_parent),
+        int(dep.cell_count),
+        float(dep.dep_vol),
+        float(dep.water_vol),
+        float(dep.total_elevation),
     )
 
 
@@ -74,14 +82,22 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
     gs.run_command("r.null", map=tmp, setnull=str(OCEAN_val), quiet=True)
     gs.run_command(
         "r.to.vect",
-        input=tmp, output=map_name, type="area",
-        column="dep_label", flags="s", overwrite=overwrite, quiet=True,
+        input=tmp,
+        output=map_name,
+        type="area",
+        column="dep_label",
+        flags="s",
+        overwrite=overwrite,
+        quiet=True,
     )
     gs.run_command("g.remove", type="raster", name=tmp, flags="f", quiet=True)
 
     # --- Step 2: add schema columns ---
     gs.run_command(
-        "v.db.addcolumn", map=map_name, columns=_SCHEMA_COLS, quiet=True,
+        "v.db.addcolumn",
+        map=map_name,
+        columns=_SCHEMA_COLS,
+        quiet=True,
     )
 
     # --- Step 3: populate attribute table ---
@@ -108,7 +124,9 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
     next_cat = (cur.fetchone()[0] or 0) + 1
 
     # Assign a stable cat to each metadepression and write the point geometry.
-    meta_deps = [d for d in deps if d.dep_label != OCEAN_val and int(d.lchild) != _NO_VALUE]
+    meta_deps = [
+        d for d in deps if d.dep_label != OCEAN_val and int(d.lchild) != _NO_VALUE
+    ]
     meta_cat = {dep.dep_label: next_cat + i for i, dep in enumerate(meta_deps)}
 
     with VectorTopo(map_name, mode="rw") as vmap:
@@ -137,8 +155,12 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
     conn.close()
 
     gs.run_command(
-        "v.db.connect", map=map_name, table="ocean_links",
-        layer=2, key="cat", quiet=True,
+        "v.db.connect",
+        map=map_name,
+        table="ocean_links",
+        layer=2,
+        key="cat",
+        quiet=True,
     )
 
 
@@ -183,27 +205,41 @@ def depressions_from_grass(map_name):
 
     deps = []
     for row in rows:
-        (dep_label, pit_cell, out_cell, parent, odep, lchild, rchild,
-         geolink, pit_elev, out_elev, ocean_parent, cell_count,
-         dep_vol, water_vol, total_elevation) = row
+        (
+            dep_label,
+            pit_cell,
+            out_cell,
+            parent,
+            odep,
+            lchild,
+            rchild,
+            geolink,
+            pit_elev,
+            out_elev,
+            ocean_parent,
+            cell_count,
+            dep_vol,
+            water_vol,
+            total_elevation,
+        ) = row
 
         d = Depression()
-        d.dep_label       = int(dep_label)
-        d.pit_cell        = int(pit_cell)
-        d.out_cell        = int(out_cell)
-        d.parent          = restore_int(parent)
-        d.odep            = restore_int(odep)
-        d.lchild          = restore_int(lchild)
-        d.rchild          = restore_int(rchild)
-        d.geolink         = restore_int(geolink)
-        d.pit_elev        = restore_float(pit_elev)
-        d.out_elev        = restore_float(out_elev)
-        d.ocean_parent    = bool(ocean_parent)
-        d.cell_count      = int(cell_count)
-        d.dep_vol         = float(dep_vol)
-        d.water_vol       = float(water_vol)
+        d.dep_label = int(dep_label)
+        d.pit_cell = int(pit_cell)
+        d.out_cell = int(out_cell)
+        d.parent = restore_int(parent)
+        d.odep = restore_int(odep)
+        d.lchild = restore_int(lchild)
+        d.rchild = restore_int(rchild)
+        d.geolink = restore_int(geolink)
+        d.pit_elev = restore_float(pit_elev)
+        d.out_elev = restore_float(out_elev)
+        d.ocean_parent = bool(ocean_parent)
+        d.cell_count = int(cell_count)
+        d.dep_vol = float(dep_vol)
+        d.water_vol = float(water_vol)
         d.total_elevation = float(total_elevation)
-        d.ocean_linked    = ocean_linked.get(dep_label, [])
+        d.ocean_linked = ocean_linked.get(dep_label, [])
         deps.append(d)
 
     return deps

@@ -40,8 +40,8 @@ _BREACHED = "tmp_richdem_breach_out"
 _BREACHED_D4 = "tmp_richdem_breach_out_d4"
 
 _DEM_EXPR = (
-    f"if(row()==3 && col()==3, 1,"
-    f" if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    "if(row()==3 && col()==3, 1,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
 )
 
 
@@ -57,9 +57,7 @@ class TestRichdemBreach(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
 
     @classmethod
     def tearDownClass(cls):

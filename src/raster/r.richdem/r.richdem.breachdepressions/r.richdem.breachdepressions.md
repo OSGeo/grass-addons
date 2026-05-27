@@ -6,9 +6,9 @@
 
 The algorithm proceeds in three phases:
 
-1.  **Initialization.** Each pit cell is *shallowed*: its elevation is raised to just below that of its lowest neighbor. This removes isolated single-cell pits cheaply and reduces the depth and length of breach channels required for larger depressions, thereby limiting the algorithm\'s impact on the DEM.
-2.  **Priority-flood traversal.** DEM edge cells are inserted into a min-heap priority queue. The priority of each cell combines its elevation and insertion order, which correctly handles flat areas without a separate preprocessing step. Cells are removed from the queue in priority order; their unvisited neighbors are added, and a back-link is recorded for each newly encountered cell. When a pit cell is dequeued, the back-link chain is traced downslope to find the path to the nearest cell that is lower or on the DEM edge. Elevations along that path are lowered to form a monotonically descending breach channel.
-3.  **Output.** In complete-breaching mode all depressions are resolved by breaching. (Lindsay (2016) also describes selective and constrained hybrid modes that fall back to filling for depressions whose breach channel would exceed specified depth or length thresholds; those modes are not exposed by this module.)
+1. **Initialization.** Each pit cell is *shallowed*: its elevation is raised to just below that of its lowest neighbor. This removes isolated single-cell pits cheaply and reduces the depth and length of breach channels required for larger depressions, thereby limiting the algorithm\'s impact on the DEM.
+2. **Priority-flood traversal.** DEM edge cells are inserted into a min-heap priority queue. The priority of each cell combines its elevation and insertion order, which correctly handles flat areas without a separate preprocessing step. Cells are removed from the queue in priority order; their unvisited neighbors are added, and a back-link is recorded for each newly encountered cell. When a pit cell is dequeued, the back-link chain is traced downslope to find the path to the nearest cell that is lower or on the DEM edge. Elevations along that path are lowered to form a monotonically descending breach channel.
+3. **Output.** In complete-breaching mode all depressions are resolved by breaching. (Lindsay (2016) also describes selective and constrained hybrid modes that fall back to filling for depressions whose breach channel would exceed specified depth or length thresholds; those modes are not exposed by this module.)
 
 Complete-breaching processes DEMs in approximately 87% of the time required by an equivalent depression-filling algorithm (Lindsay, 2016).
 
@@ -18,15 +18,15 @@ Breaching is preferred for high-relief landscapes dominated by fluvial processes
 
 Filling is preferable for:
 
--   Very deep real depressions --- lakes, wetlands, sinkholes, open-pit mines --- where a breach channel would be unrealistically long and deeply incised.
--   Landscapes where the modelling goal is topographic depression mapping rather than surface flow routing.
+- Very deep real depressions --- lakes, wetlands, sinkholes, open-pit mines --- where a breach channel would be unrealistically long and deeply incised.
+- Landscapes where the modelling goal is topographic depression mapping rather than surface flow routing.
 
 For landscapes that genuinely contain both artifact and real depressions, consider the Fill--Spill--Merge workflow (*[r.richdem.dephier](r.richdem.dephier.md)* + *[r.richdem.fsm](r.richdem.fsm.md)*), which retains real depressions and routes water through them explicitly.
 
 ### Flow topology
 
--   **D8** (default) --- breach channels connect cells through any of the 8 neighbors (including diagonals).
--   **D4** --- breach channels connect cells through the 4 cardinal neighbors only, producing orthogonal channel paths.
+- **D8** (default) --- breach channels connect cells through any of the 8 neighbors (including diagonals).
+- **D4** --- breach channels connect cells through the 4 cardinal neighbors only, producing orthogonal channel paths.
 
 ## NOTES
 
@@ -74,8 +74,8 @@ r.mapcalc "diff = dem_filled - dem_breached"
 
 ## REFERENCES
 
--   Lindsay, J.B. (2016). Efficient hybrid breaching-filling sink removal methods for flow path enforcement in digital elevation models. *Hydrological Processes* Vol 30(6), pp 846--857. DOI: [10.1002/hyp.10648](https://doi.org/10.1002/hyp.10648)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Lindsay, J.B. (2016). Efficient hybrid breaching-filling sink removal methods for flow path enforcement in digital elevation models. *Hydrological Processes* Vol 30(6), pp 846--857. DOI: [10.1002/hyp.10648](https://doi.org/10.1002/hyp.10648)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

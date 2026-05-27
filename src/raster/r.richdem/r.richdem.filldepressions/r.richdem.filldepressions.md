@@ -8,8 +8,8 @@ When the **-e** flag is set, an epsilon (ε) gradient is imposed on the filled f
 
 Two flow topologies are supported:
 
--   **D8** (default) --- each cell drains to one of its 8 neighbors.
--   **D4** --- each cell drains to one of its 4 cardinal neighbors only.
+- **D8** (default) --- each cell drains to one of its 8 neighbors.
+- **D4** --- each cell drains to one of its 4 cardinal neighbors only.
 
 ## NOTES
 
@@ -57,8 +57,8 @@ r.richdem.filldepressions input=dem output=dem_filled_d4 topology=D4
 
 ## REFERENCES
 
--   Barnes, R., Lehman, C., Mulla, D. (2014). Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models. *Computers & Geosciences* Vol 62, pp 117--127. DOI: [10.1016/j.cageo.2013.04.024](https://doi.org/10.1016/j.cageo.2013.04.024)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Barnes, R., Lehman, C., Mulla, D. (2014). Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models. *Computers & Geosciences* Vol 62, pp 117--127. DOI: [10.1016/j.cageo.2013.04.024](https://doi.org/10.1016/j.cageo.2013.04.024)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

@@ -6,10 +6,10 @@
 
 Slope is the magnitude of the terrain gradient---the rate of elevation change in the steepest downhill direction. It is computed using the Horn (1981) method, which uses a weighted average of finite differences over a 3×3 neighborhood to estimate the east--west and north--south gradient components. Slope is available in four unit systems:
 
--   **slope_riserun** --- dimensionless rise/run ratio (tan of slope angle)
--   **slope_percentage** --- rise/run expressed as a percentage
--   **slope_degrees** --- angle in degrees from horizontal
--   **slope_radians** --- angle in radians from horizontal
+- **slope_riserun** --- dimensionless rise/run ratio (tan of slope angle)
+- **slope_percentage** --- rise/run expressed as a percentage
+- **slope_degrees** --- angle in degrees from horizontal
+- **slope_radians** --- angle in radians from horizontal
 
 ### Aspect
 
@@ -19,9 +19,9 @@ Slope is the magnitude of the terrain gradient---the rate of elevation change in
 
 Curvature describes the rate of change of slope and is useful for identifying ridges, valleys, and areas of flow convergence or divergence. Three curvature attributes are available, following Zevenbergen and Thorne (1987):
 
--   **curvature** --- total (mean) curvature; positive values indicate convex surfaces, negative indicate concave surfaces.
--   **planform_curvature** --- curvature of the contour line perpendicular to the slope direction; positive values indicate flow divergence, negative indicate convergence.
--   **profile_curvature** --- curvature in the slope direction; positive values indicate slope acceleration (convex profile), negative indicate slope deceleration (concave profile).
+- **curvature** --- total (mean) curvature; positive values indicate convex surfaces, negative indicate concave surfaces.
+- **planform_curvature** --- curvature of the contour line perpendicular to the slope direction; positive values indicate flow divergence, negative indicate convergence.
+- **profile_curvature** --- curvature in the slope direction; positive values indicate slope acceleration (convex profile), negative indicate slope deceleration (concave profile).
 
 ### Z-axis scaling
 
@@ -79,9 +79,9 @@ r.richdem.terrainattribute input=dem_ft output=slope attribute=slope_degrees zsc
 
 ## REFERENCES
 
--   Horn, B.K.P. (1981). Hill shading and the reflectance map. *Proceedings of the IEEE* Vol 69(1), pp 14--47. DOI: [10.1109/PROC.1981.11918](https://doi.org/10.1109/PROC.1981.11918)
--   Zevenbergen, L.W., Thorne, C.R. (1987). Quantitative analysis of land surface topography. *Earth Surface Processes and Landforms* Vol 12(1), pp 47--56. DOI: [10.1002/esp.3290120107](https://doi.org/10.1002/esp.3290120107)
--   Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
+- Horn, B.K.P. (1981). Hill shading and the reflectance map. *Proceedings of the IEEE* Vol 69(1), pp 14--47. DOI: [10.1109/PROC.1981.11918](https://doi.org/10.1109/PROC.1981.11918)
+- Zevenbergen, L.W., Thorne, C.R. (1987). Quantitative analysis of land surface topography. *Earth Surface Processes and Landforms* Vol 12(1), pp 47--56. DOI: [10.1002/esp.3290120107](https://doi.org/10.1002/esp.3290120107)
+- Barnes, R. (2016). RichDEM: Terrain Analysis Software. URL: <http://github.com/r-barnes/richdem>
 
 ## SEE ALSO
 

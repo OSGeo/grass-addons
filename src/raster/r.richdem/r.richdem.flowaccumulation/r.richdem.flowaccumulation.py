@@ -57,7 +57,9 @@ def main():
     exponent = float(options["exponent"]) if options["exponent"] else None
     weights = rdarray_from_grass(options["weights"]) if options["weights"] else None
 
-    accum = rd.FlowAccumulation(dem, method=options["method"], exponent=exponent, weights=weights)
+    accum = rd.FlowAccumulation(
+        dem, method=options["method"], exponent=exponent, weights=weights
+    )
     rdarray_to_grass(accum, options["output"], overwrite=gs.overwrite())
 
 

@@ -32,8 +32,8 @@ _FILLED_E = "tmp_richdem_fill_out_e"
 
 # 5x5: border=5, inner ring=3, centre=1
 _DEM_EXPR = (
-    f"if(row()==3 && col()==3, 1,"
-    f" if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    "if(row()==3 && col()==3, 1,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
 )
 
 
@@ -49,9 +49,7 @@ class TestRichdemFill(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -65,19 +63,25 @@ class TestRichdemFill(TestCase):
 
     def test_output_created(self):
         """Filling a DEM with one depression produces an output raster."""
-        self.assertModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
+        self.assertModule(
+            "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
+        )
         self.assertRasterExists(_FILLED)
 
     def test_fill_raises_pit_to_pour_point(self):
         """Pit cell is raised to the pour-point elevation (3); max unchanged (5)."""
-        self.runModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
+        self.runModule(
+            "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
+        )
         self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
 
     def test_fill_never_lowers(self):
         """No cell in the filled DEM has a lower elevation than the input."""
         # Use assertModule so a module failure surfaces immediately, not as a
         # confusing null-cell artifact in the diff raster.
-        self.assertModule("r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True)
+        self.assertModule(
+            "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
+        )
         diff = "tmp_richdem_fill_diff"
         # filled - input should be >= 0 everywhere (filling only raises cells)
         self.runModule(
@@ -96,7 +100,11 @@ class TestRichdemFill(TestCase):
     def test_epsilon_flag_removes_flats(self):
         """With -e, the filled output has no value strictly below the pour point."""
         self.assertModule(
-            "r.richdem.filldepressions", input=_DEM, output=_FILLED_E, flags="e", overwrite=True
+            "r.richdem.filldepressions",
+            input=_DEM,
+            output=_FILLED_E,
+            flags="e",
+            overwrite=True,
         )
         stats = gs.parse_command("r.univar", map=_FILLED_E, flags="g")
         self.assertGreaterEqual(
