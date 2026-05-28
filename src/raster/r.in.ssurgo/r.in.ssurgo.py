@@ -1191,11 +1191,11 @@ def local_ssurgo_sqlite_query(
 
 
 def _rasterize_and_style(
-    ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=None
+    ssurgo_vector, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=None
 ):
     """Convert imported SSURGO vector attributes to raster maps and apply color schemes.
 
-    :param str ssurgo_areas: Name of the imported SSURGO vector map.
+    :param str ssurgo_vector: Name of the imported SSURGO vector map.
     :param str hydgrp: Output name for hydrologic soil group raster (or empty to skip).
     :param str ksat_h: Output name for Ksat high raster (or empty to skip).
     :param str ksat_r: Output name for Ksat regular raster (or empty to skip).
@@ -1206,7 +1206,7 @@ def _rasterize_and_style(
         depth bin; ``hydgrp`` and ``mukey`` are still produced as 2D rasters
         because they're profile-level / identity values.
     """
-    update_hydrologic_group(ssurgo_areas)
+    update_hydrologic_group(ssurgo_vector)
 
     # 2D outputs always: hydgrp, mukey
     _2d_maps = [
@@ -1228,7 +1228,7 @@ def _rasterize_and_style(
             continue
         gs.run_command(
             "v.to.rast",
-            input=ssurgo_areas,
+            input=ssurgo_vector,
             type="area",
             use="attr",
             attribute_column=col,
@@ -1247,14 +1247,14 @@ def _rasterize_and_style(
         for base, name in (("ksat_l", ksat_l), ("ksat_r", ksat_r), ("ksat_h", ksat_h)):
             if not name:
                 continue
-            _rasterize_3d(ssurgo_areas, base_field=base, output=name, slices=slices)
+            _rasterize_3d(ssurgo_vector, base_field=base, output=name, slices=slices)
 
 
-def _rasterize_3d(ssurgo_areas, *, base_field: str, output: str, slices):
+def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
     """Build a 3D raster ``output`` from per-slice attribute columns.
 
     For each slice ``i`` in ``slices``, rasterizes
-    ``<ssurgo_areas>.<base_field>__sN`` to a temporary 2D raster, then stacks
+    ``<ssurgo_vector>.<base_field>__sN`` to a temporary 2D raster, then stacks
     all of them into a 3D raster with ``r.to.rast3``. The 3D region is set to
     ``b=0 t=max_depth`` so the z-axis represents depth from the surface.
 
@@ -1277,7 +1277,7 @@ def _rasterize_3d(ssurgo_areas, *, base_field: str, output: str, slices):
             tmp = f"_tmp_{output}_s{i}"
             gs.run_command(
                 "v.to.rast",
-                input=ssurgo_areas,
+                input=ssurgo_vector,
                 type="area",
                 use="attr",
                 attribute_column=col,
@@ -1834,7 +1834,7 @@ def main():
     mukey = options["mukey"]
 
     # Vector outputs
-    ssurgo_areas = options["soils"]
+    ssurgo_vector = options["soils"]
 
     # Optional depth slices for r3 output. When set, ksat_l/r/h are produced
     # as 3D rasters with one band per slice, and hzdept_r/hzdepb_r are ignored
@@ -1872,7 +1872,7 @@ def main():
                 slices=slices,
             )
             write_ssurgo_to_grass(
-                tmp_filepath, ssurgo_areas, src_srs=SDA_GEOGRAPHIC_EPSG
+                tmp_filepath, ssurgo_vector, src_srs=SDA_GEOGRAPHIC_EPSG
             )
         except Exception as e:
             gs.fatal(f"An error occurred during SDA processing: {e}")
@@ -1913,7 +1913,7 @@ def main():
                     slices=slices,
                 )
                 write_ssurgo_to_grass(
-                    tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
+                    tmp_filepath, ssurgo_vector, src_srs=SSURGO_NATIVE_EPSG
                 )
             except Exception as e:
                 gs.fatal(f"An error occurred during local SSURGO processing: {e}")
@@ -1938,7 +1938,7 @@ def main():
                     slices=slices,
                 )
                 write_ssurgo_to_grass(
-                    tmp_filepath, ssurgo_areas, src_srs=SSURGO_NATIVE_EPSG
+                    tmp_filepath, ssurgo_vector, src_srs=SSURGO_NATIVE_EPSG
                 )
             except Exception as e:
                 gs.fatal(f"An error occurred during SQLite SSURGO processing: {e}")
@@ -1947,9 +1947,9 @@ def main():
                     os.remove(tmp_filepath)
                     gs.debug(f"Removed temp file: {tmp_filepath}")
 
-    if ssurgo_areas:
+    if ssurgo_vector:
         _rasterize_and_style(
-            ssurgo_areas, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=slices
+            ssurgo_vector, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=slices
         )
 
 
