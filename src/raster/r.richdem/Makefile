@@ -18,3 +18,4 @@ default: parsubdirs htmldir
 
 install: installsubdirs
 	$(INSTALL_DATA) $(HTMLDIR)/$(PGM).html $(INST_DIR)/docs/html/
+	$(INSTALL) $(PGM).py $(INST_DIR)/scripts/$(PGM)
