@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ../..
 
+PGM = r.richdem
+
 SUBDIRS = \
     librichdem \
     r.richdem.filldepressions \
@@ -15,3 +17,4 @@ include $(MODULE_TOPDIR)/include/Make/Dir.make
 default: parsubdirs htmldir
 
 install: installsubdirs
+	$(INSTALL_DATA) $(HTMLDIR)/$(PGM).html $(INST_DIR)/docs/html/
