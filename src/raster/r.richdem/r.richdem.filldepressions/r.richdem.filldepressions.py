@@ -27,11 +27,11 @@
 
 import sys
 import grass.script as gs
-from grass.pygrass.utils import get_lib_path
-
 
 def main():
     options, flags = gs.parser()
+
+    from grass.script.utils import get_lib_path
 
     path = get_lib_path(modname="r.richdem", libname="librichdem")
     if path is None:
