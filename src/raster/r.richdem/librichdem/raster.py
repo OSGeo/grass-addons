@@ -1,9 +1,10 @@
 """Conversion between GRASS rasters and RichDEM rdarray objects."""
 
+import os
+import tempfile
+
 import numpy as np
 import grass.script as gs
-from grass.pygrass.raster import RasterRow
-from grass.pygrass.raster.buffer import Buffer
 import richdem as rd
 
 _NO_DATA = -9999.0
@@ -23,13 +24,27 @@ def rdarray_from_grass(name):
         ]
     )
 
-    r = RasterRow(name)
-    r.open()
-    data = np.array([np.array(r[i]) for i in range(r.info.rows)], dtype="float64")
-    r.close()
+    rows = region["rows"]
+    cols = region["cols"]
 
-    # GRASS nulls come back as NaN for float types; replace with _NO_DATA
-    data[np.isnan(data)] = _NO_DATA
+    # r.out.bin -f bytes=8: IEEE-754 double-precision, native byte order.
+    # null=-9999 writes _NO_DATA for GRASS null cells.
+    tmp = tempfile.NamedTemporaryFile(suffix=".bin", delete=False)
+    tmp.close()
+    try:
+        gs.run_command(
+            "r.out.bin",
+            flags="f",
+            input=name,
+            output=tmp.name,
+            bytes=8,
+            null=_NO_DATA,
+            overwrite=True,
+            quiet=True,
+        )
+        data = np.fromfile(tmp.name, dtype="float64").reshape(rows, cols).copy()
+    finally:
+        os.unlink(tmp.name)
 
     return rd.rdarray(data, no_data=_NO_DATA, geotransform=geotransform)
 
@@ -37,20 +52,36 @@ def rdarray_from_grass(name):
 def rdarray_to_grass(rda, name, overwrite=False):
     """Write a RichDEM rdarray to a GRASS raster map."""
     data = np.array(rda, dtype="float64")
-    # Convert no_data sentinel and any algorithm-produced NaN to GRASS null.
-    # NaN == NaN is False in IEEE 754, so a plain == rda.no_data check would
-    # silently pass through NaN values produced by C++ edge cases; the
-    # explicit | np.isnan(data) guard catches those and normalises them to
-    # Python's canonical quiet NaN, which PyGRASS writes as GRASS DCELL null.
+    # Convert no_data sentinel and any algorithm-produced NaN to _NO_DATA so
+    # that r.in.bin can identify and null them out.
+    # NaN == NaN is False in IEEE 754, so the explicit | np.isnan(data) guard
+    # catches NaN values produced by C++ edge cases.
     # (r.univar misreports max=nan on GRASS <= 8.3.2 when the true maximum is
     # exactly 0.0 — a separate upstream bug fixed in OSGeo/grass PR #3512,
     # included in GRASS 8.4.0.)
-    data[(data == rda.no_data) | np.isnan(data)] = np.nan
+    data[(data == rda.no_data) | np.isnan(data)] = _NO_DATA
 
-    w = RasterRow(name)
-    w.open("w", mtype="DCELL", overwrite=overwrite)
-    for row in data:
-        buf = Buffer(row.shape, mtype="DCELL")
-        buf[:] = row
-        w.put_row(buf)
-    w.close()
+    region = gs.region()
+    rows, cols = data.shape
+
+    tmp = tempfile.NamedTemporaryFile(suffix=".bin", delete=False)
+    try:
+        tmp.write(data.tobytes())
+        tmp.close()
+        gs.run_command(
+            "r.in.bin",
+            flags="d",
+            input=tmp.name,
+            output=name,
+            north=region["n"],
+            south=region["s"],
+            east=region["e"],
+            west=region["w"],
+            rows=rows,
+            cols=cols,
+            anull=_NO_DATA,
+            overwrite=overwrite,
+            quiet=True,
+        )
+    finally:
+        os.unlink(tmp.name)
