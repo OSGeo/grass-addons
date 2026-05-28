@@ -51,9 +51,9 @@ except ImportError:
 HAS_LINDSAY2016 = False
 if HAS_RICHDEM:
     try:
-        import richdem as _rd
+        import _richdem as _rd_ext
 
-        HAS_LINDSAY2016 = hasattr(_rd, "BreachDepressionsEps")
+        HAS_LINDSAY2016 = hasattr(_rd_ext, "rdBreachDepressionsEpsD8")
     except ImportError:
         pass
 
@@ -201,9 +201,9 @@ class TestRichdemBreachEps(TestCase):
             msg="min of eps-breached DEM >= 4.0; pit was not shallowed below saddle",
         )
 
-    def test_d4_topology(self):
-        """D4 topology with -e completes without error and shallows pit below saddle."""
-        self.assertModule(
+    def test_d4_topology_rejected(self):
+        """D4 topology with -e is rejected: Lindsay2016 eps is D8-only."""
+        self.assertModuleFail(
             "r.richdem.breachdepressions",
             input=_DEM,
             output=_BREACHED_EPS,
@@ -211,8 +211,6 @@ class TestRichdemBreachEps(TestCase):
             topology="D4",
             overwrite=True,
         )
-        stats = gs.parse_command("r.univar", map=_BREACHED_EPS, flags="g")
-        self.assertLess(float(stats["min"]), 4.0)
 
 
 if __name__ == "__main__":
