@@ -80,7 +80,7 @@
 
 # %option
 # % key: hzdept_r
-# % type: integer
+# % type: double
 # % required: no
 # % multiple: no
 # % answer: 0
@@ -89,8 +89,9 @@
 
 # %option
 # % key: hzdepb_r
-# % type: integer
+# % type: double
 # % required: no
+# % answer: 25.4
 # % description: Horizon depth bottom (cm)
 # %end
 
@@ -1819,8 +1820,8 @@ def main():
     # aggregation per horizon, suffixing the per-horizon output columns the
     # same way `depths=` suffixes per-slice columns.
     desgnmaster = options["desgnmaster"]
-    hzdept_r = int(options["hzdept_r"])
-    hzdepb_r = int(options["hzdepb_r"]) if options["hzdepb_r"] else 25
+    hzdept_r = float(options["hzdept_r"])
+    hzdepb_r = float(options["hzdepb_r"])
 
     # Outputs
     ###################################################
@@ -1846,7 +1847,7 @@ def main():
         # When slicing, the per-slice aggregations carry their own bottom
         # bounds. The single-slice hzdept_r/hzdepb_r values become irrelevant.
         hzdept_r = 0
-        hzdepb_r = int(slices_max_depth)
+        hzdepb_r = float(slices_max_depth)
 
     # Processing options
     nprocs = int(options["nprocs"])  # optional
@@ -1899,7 +1900,7 @@ def main():
                 os.close(fd)
 
                 # GRASS GDAL driver isn't supported by duckdb
-                gs.message(f"Tempfile Path: {tmp_filepath}")
+                gs.debug(f"Tempfile Path: {tmp_filepath}")
                 local_ssurgo_query(
                     con=con,
                     tmp_filepath=tmp_filepath,
@@ -1926,7 +1927,7 @@ def main():
             try:
                 fd, tmp_filepath = tempfile.mkstemp(suffix=".fgb")
                 os.close(fd)  # ogr2ogr writes by path; fd unused
-                gs.message(f"Tempfile Path: {tmp_filepath}")
+                gs.debug(f"Tempfile Path: {tmp_filepath}")
                 local_ssurgo_sqlite_query(
                     tmp_filepath=tmp_filepath,
                     ssurgo_path=str(_ssurgo_path),
