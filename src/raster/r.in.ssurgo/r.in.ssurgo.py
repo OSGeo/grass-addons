@@ -753,8 +753,8 @@ def local_ssurgo_query(
         wkt_bbox (str): WKT polygon representing the bounding box.
         ssurgo_path (str): Path to the local SSURGO file.
         desgnmaster (str): Designation of master horizon.
-        hzdept_r (int): Horizon depth top (cm).
-        hzdepb_r (int): Horizon depth bottom (cm).
+        hzdept_r (float): Horizon depth top (cm).
+        hzdepb_r (float): Horizon depth bottom (cm).
         agg (SoilAggMethod): Aggregation method.
         slices (list[tuple[float, float]] | None): Optional list of
             ``(top, bottom)`` cm slices. When provided, the output has one
@@ -927,8 +927,8 @@ def local_ssurgo_sqlite_query(
         tmp_filepath (str): Path for the output FlatGeobuf file.
         ssurgo_path (str): Path to the SSURGO GDB or ``/vsizip/...`` path.
         desgnmaster (str): Master horizon designation filter (e.g. ``'A'``).
-        hzdept_r (int): Horizon depth top (cm).
-        hzdepb_r (int): Horizon depth bottom (cm).
+        hzdept_r (float): Horizon depth top (cm).
+        hzdepb_r (float): Horizon depth bottom (cm).
         agg (SoilAggMethod): Aggregation method.
         slices (list[tuple[float, float]] | None): Optional list of
             ``(top, bottom)`` cm slices. When provided, the output has one
@@ -1379,8 +1379,8 @@ def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r, slices=No
     :param str aoi_wkt: WKT polygon of the area of interest in WGS 84.
     :param int tmp_fd: File descriptor for a temporary file to write the GeoJSON output.
     :param str desgnmaster: Designation of master horizon.
-    :param int hzdept_r: Horizon depth top (cm).
-    :param int hzdepb_r: Horizon depth bottom (cm).
+    :param float hzdept_r: Horizon depth top (cm).
+    :param float hzdepb_r: Horizon depth bottom (cm).
     :param slices: Optional list of ``(top, bottom)`` cm slices for r3 output.
     :return: Name of the imported vector map or None on failure.
     :rtype: str or None
@@ -1849,7 +1849,7 @@ def main():
         )
         # When slicing, the per-slice aggregations carry their own bottom
         # bounds. The single-slice hzdept_r/hzdepb_r values become irrelevant.
-        hzdept_r = 0
+        hzdept_r = 0.0
         hzdepb_r = float(slices_max_depth)
 
     # Processing options
