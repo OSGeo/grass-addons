@@ -50,7 +50,12 @@ def main():
                 "not available in this RichDEM build. A patch exposing this function "
                 "via the Python bindings is needed upstream."
             )
-        breached = rd.BreachDepressionsEps(dem, topology=options["topology"])
+        if options["topology"] == "D4":
+            gs.fatal(
+                "Lindsay2016 (flag -e) does not support D4 topology; "
+                "only D8 is available."
+            )
+        breached = rd.BreachDepressionsEps(dem)
     else:
         breached = rd.BreachDepressions(dem, topology=options["topology"])
 
