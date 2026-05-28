@@ -707,25 +707,19 @@ def update_hydrologic_group(vector_map, source_col="hydgrp", target_col="hsg"):
         # keep ambiguous combos out (AB, AC, BC, etc.) unless you have a rule
     }
 
-    # Update rows for each mapping entry (handle uppercase/lowercase)
-    for code, num in mapping.items():
-        where = f"{source_col} = '{code}' OR {source_col} = '{code.lower()}'"
-        gs.run_command(
-            "v.db.update",
-            map=vector_map,
-            column=target_col,
-            value=str(num),
-            where=where,
-        )
-
-    # Optionally set unmatched values to NULL (skip here) or 0:
-    gs.run_command(
-        "v.db.update",
-        map=vector_map,
-        column=target_col,
-        value="NULL",
-        where=f"{target_col} IS NULL",
+    # Single SQL pass: matched codes get their numeric HSG, unmatched -> NULL
+    # (no ELSE on CASE returns NULL for any UPPER(source_col) not in mapping)
+    db_info = gs.vector_db(vector_map)
+    table = db_info[1]["table"]
+    when_clauses = "\n        ".join(
+        f"WHEN '{code}' THEN {num}" for code, num in mapping.items()
     )
+    sql = (
+        f"UPDATE {table} SET {target_col} = CASE UPPER({source_col})\n"
+        f"        {when_clauses}\n"
+        f"    END"
+    )
+    gs.run_command("db.execute", sql=sql)
 
     return target_col
 
