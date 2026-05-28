@@ -3,8 +3,9 @@
 GRASS GIS add-on collection wrapping the [RichDEM](http://github.com/r-barnes/richdem)
 terrain-analysis library.
 
-RichDEM provides fast, research-grade algorithms for hydrological conditioning of
-digital elevation models (DEMs), flow routing, and terrain attribute calculation.
+RichDEM provides fast, research-grade algorithms for hydrological
+conditioning of digital elevation models (DEMs), flow routing, and terrain
+attribute calculation.
 This collection exposes those algorithms as standard GRASS GIS raster and vector
 modules, including the full **Fill–Spill–Merge** (FSM) surface-water routing
 workflow that retains real depressions rather than filling them.
@@ -14,7 +15,7 @@ workflow that retains real depressions rather than filling them.
 ## Modules
 
 | Module | Description |
-|---|---|
+| --- | --- |
 | `r.richdem.filldepressions` | Fill depressions using the Priority-Flood algorithm; optional ε-gradient for flat areas |
 | `r.richdem.breachdepressions` | Breach depressions by carving least-cost channels |
 | `r.richdem.resolveflats` | Impose a local ε-gradient on flat areas to define unique flow directions |
@@ -115,7 +116,7 @@ export PYTHONPATH=/path/to/richdem/wrappers/pyrichdem:$PYTHONPATH
 g.extension extension=r.richdem
 ```
 
-*(Not yet submitted to the official grass-addons repository.)*
+Not yet submitted to the official grass-addons repository.
 
 ### Manual installation from this repository
 
@@ -146,7 +147,8 @@ in depressions and morphological segmentations.
 DOI: [10.5194/esurf-8-431-2020](https://doi.org/10.5194/esurf-8-431-2020)
 
 Lindsay, J.B. (2016).
-Efficient hybrid breaching-filling sink removal methods for flow path enforcement in digital elevation models.
+Efficient hybrid breaching-filling sink removal methods for flow path
+enforcement in digital elevation models.
 *Hydrological Processes* 30(6), 846–857.
 DOI: [10.1002/hyp.10648](https://doi.org/10.1002/hyp.10648)
 
