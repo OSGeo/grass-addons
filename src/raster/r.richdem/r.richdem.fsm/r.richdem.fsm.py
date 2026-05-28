@@ -59,10 +59,16 @@ def main():
     # as DCELL (float64), so we cast after reading.
     _labels_f = rdarray_from_grass(options["labels"])
     _flowdirs_f = rdarray_from_grass(options["flowdirs"])
-    labels   = rd.rdarray(np.array(_labels_f,   dtype=np.uint32), no_data=2**32-1,
-                          geotransform=_labels_f.geotransform)
-    flowdirs = rd.rdarray(np.array(_flowdirs_f, dtype=np.int8),   no_data=-1,
-                          geotransform=_flowdirs_f.geotransform)
+    labels = rd.rdarray(
+        np.array(_labels_f, dtype=np.uint32),
+        no_data=2**32 - 1,
+        geotransform=_labels_f.geotransform,
+    )
+    flowdirs = rd.rdarray(
+        np.array(_flowdirs_f, dtype=np.int8),
+        no_data=-1,
+        geotransform=_flowdirs_f.geotransform,
+    )
 
     rd.fill_spill_merge(dem, labels, flowdirs, deps, wtd)
 

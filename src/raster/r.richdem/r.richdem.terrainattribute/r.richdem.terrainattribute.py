@@ -43,7 +43,9 @@ def main():
     import richdem as rd
 
     dem = rdarray_from_grass(options["input"])
-    result = rd.TerrainAttribute(dem, attrib=options["attribute"], zscale=float(options["zscale"]))
+    result = rd.TerrainAttribute(
+        dem, attrib=options["attribute"], zscale=float(options["zscale"])
+    )
     rdarray_to_grass(result, options["output"], overwrite=gs.overwrite())
 
 

@@ -46,8 +46,8 @@ _OUT_DRY = "tmp_richdem_fsm_out_dry"
 _OUT_WET = "tmp_richdem_fsm_out_wet"
 
 _DEM_EXPR = (
-    f"if(row()==3 && col()==3, 1,"
-    f" if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    "if(row()==3 && col()==3, 1,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
 )
 
 
@@ -63,9 +63,7 @@ class TestRichdemFsm(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
         cls.runModule(
             "r.richdem.dephier",
             input=_DEM,
@@ -75,9 +73,7 @@ class TestRichdemFsm(TestCase):
             overwrite=True,
         )
         # Dry: no ponded water anywhere
-        cls.runModule(
-            "r.mapcalc", expression=f"{_WTD_DRY} = -1.0", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_WTD_DRY} = -1.0", overwrite=True)
         # Wet: 1.5 m of ponded water in depression cells
         cls.runModule(
             "r.mapcalc",

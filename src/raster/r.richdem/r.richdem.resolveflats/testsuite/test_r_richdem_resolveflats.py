@@ -36,9 +36,7 @@ _DEM = "tmp_richdem_resolveflats_dem"
 _RESOLVED = "tmp_richdem_resolveflats_out"
 
 # Border=5, inner flat=3; no pit
-_DEM_EXPR = (
-    f"if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)"
-)
+_DEM_EXPR = "if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)"
 
 
 @unittest.skipUnless(
@@ -53,9 +51,7 @@ class TestRichdemResolveFlats(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
 
     @classmethod
     def tearDownClass(cls):
