@@ -21,10 +21,11 @@ algorithms produce distinct, directly comparable results on the same input:
 
 CompleteBreaching (TestRichdemBreach):
   `rd.BreachDepressions` calls `CompleteBreaching_Lindsay2016`, which raises
-  the pit to exactly `lowest_neighbour` (= saddle = 4).  The saddle is
-  directly adjacent to the border, so the carving backlink path is
-  pit -> saddle -> border; the saddle (4) is not above target_height (4),
-  so no cell is lowered.  Result: pit=4, saddle=4, ring=9, border=5.
+  the pit to `lowest_neighbour` (= saddle = 4), sets target_height = 4, then
+  walks the backlink path (pit -> saddle -> border) lowering every cell whose
+  elevation >= target_height to target_height.  The saddle (4) is unchanged;
+  the border cell (5) is lowered to 4.
+  Result: pit=4, saddle=4, ring=9, border(3,5)=4.  min=4, max=9.
 
 Lindsay2016 eps (TestRichdemBreachEps, skipped unless BreachDepressionsEps
   is available):
@@ -125,25 +126,6 @@ class TestRichdemBreach(TestCase):
             float(stats["min"]),
             5.0,
             msg="min of breached DEM >= 5.0; pit was raised to pour-point (fill behaviour)",
-        )
-
-    def test_never_lowers(self):
-        """No cell in the breached DEM has a lower elevation than the input."""
-        self.runModule(
-            "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
-        )
-        diff = "tmp_richdem_breach_diff"
-        self.runModule(
-            "r.mapcalc",
-            expression=f"{diff} = {_BREACHED} - {_DEM}",
-            overwrite=True,
-        )
-        stats = gs.parse_command("r.univar", map=diff, flags="g")
-        self.runModule("g.remove", flags="f", type="raster", name=diff)
-        self.assertGreaterEqual(
-            float(stats["min"]),
-            0.0,
-            msg="At least one cell was lowered by breaching (min of breached-input < 0)",
         )
 
     def test_d4_topology(self):
