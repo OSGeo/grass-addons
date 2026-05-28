@@ -1268,10 +1268,11 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
     # current region; we only override z. b=0, t=max_depth means slice 0 is at
     # the bottom (z=0) and slice N-1 is at the top — for a soil-as-depth
     # interpretation, see the docs (the user can flip with `g.region -3`).
-    gs.run_command("g.region", t=max_depth, b=0, tbres=tbres)
-
     temp_2d = []
     try:
+        gs.use_temp_region()
+        gs.run_command("g.region", t=max_depth, b=0, tbres=tbres)
+
         for i in range(len(slices)):
             col = f"{base_field}{_slice_suffix(i)}"
             tmp = f"_tmp_{output}_s{i}"
@@ -1300,6 +1301,7 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
                 name=",".join(temp_2d),
                 flags="f",
             )
+        gs.del_temp_region()
 
 
 def _parse_wkt_coordinates(coord_string):
