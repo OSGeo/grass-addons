@@ -3,9 +3,8 @@
 import math
 import os
 import sqlite3
+import tempfile
 import grass.script as gs
-from grass.pygrass.vector import VectorTopo
-from grass.pygrass.vector.geometry import Point
 
 # std::numeric_limits<uint32_t>::max() — used as NO_VALUE / NO_PARENT sentinel
 _NO_VALUE = 2**32 - 1
@@ -129,10 +128,43 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
     ]
     meta_cat = {dep.dep_label: next_cat + i for i, dep in enumerate(meta_deps)}
 
-    with VectorTopo(map_name, mode="rw") as vmap:
-        for dep in meta_deps:
-            x, y = _flat_to_xy(dep.out_cell, region)
-            vmap.write(Point(x, y), cat=meta_cat[dep.dep_label])
+    # Write metadepression point geometries using v.in.ascii standard format +
+    # v.patch -a (append to existing map), avoiding grass.pygrass C library deps.
+    if meta_deps:
+        tmp_ascii = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False)
+        try:
+            tmp_ascii.write(
+                "ORGANIZATION: \nDIGIT DATE:   \nDIGIT NAME:   \n"
+                "MAP NAME:     \nMAP DATE:     \nMAP SCALE:    1\n"
+                "OTHER INFO:   \nZONE:         0\nMAP THRESH:   0.000000\nVERTI:\n"
+            )
+            for dep in meta_deps:
+                x, y = _flat_to_xy(dep.out_cell, region)
+                cat = meta_cat[dep.dep_label]
+                tmp_ascii.write(f"P  1  1\n {x} {y}\n 1  {cat}\n")
+            tmp_ascii.close()
+            tmp_pts = f"tmp_rdmeta_{os.getpid()}"
+            gs.run_command(
+                "v.in.ascii",
+                format="standard",
+                input=tmp_ascii.name,
+                output=tmp_pts,
+                overwrite=True,
+                quiet=True,
+            )
+            gs.run_command(
+                "v.patch",
+                flags="a",
+                input=tmp_pts,
+                output=map_name,
+                overwrite=True,
+                quiet=True,
+            )
+            gs.run_command(
+                "g.remove", type="vector", name=tmp_pts, flags="f", quiet=True
+            )
+        finally:
+            os.unlink(tmp_ascii.name)
 
     insert_cols = f"cat, dep_label, {', '.join(_DATA_COLS)}"
     insert_placeholders = ", ".join(["?"] * (2 + len(_DATA_COLS)))
