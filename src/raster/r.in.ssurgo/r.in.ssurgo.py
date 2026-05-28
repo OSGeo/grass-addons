@@ -18,6 +18,7 @@
 # % keyword: import
 # % keyword: soils
 # % keyword: SSURGO
+# % keyword: raster3d
 # %end
 
 # %option G_OPT_F_BIN_INPUT
