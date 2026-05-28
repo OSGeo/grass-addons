@@ -22,11 +22,14 @@
 # %end
 # %option G_OPT_V_INPUT
 # % key: hierarchy
-# % description: Depression hierarchy vector map (from r.richdem.dephier)
+# % label: Depression hierarchy vector map (from r.richdem.dephier)
 # %end
-# %option G_OPT_R_INPUT
+# %option
 # % key: water_depth
-# % description: Input water table depth raster (negative = unsaturated, positive = surface water)
+# % type: string
+# % required: yes
+# % label: Depth of water to add (float value or raster map name)
+# % description: Uniform depth as a float (e.g. 0.5) or a raster map name. Negative values mean water table is below the surface; positive values mean surface inundation.
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: output
@@ -52,7 +55,16 @@ def main():
     import richdem as rd
 
     dem = rdarray_from_grass(options["input"])
-    wtd = rdarray_from_grass(options["water_depth"])
+    _wd = options["water_depth"]
+    try:
+        _val = float(_wd)
+        wtd = rd.rdarray(
+            np.full(dem.shape, _val, dtype=np.float64),
+            no_data=-9999.0,
+            geotransform=dem.geotransform,
+        )
+    except ValueError:
+        wtd = rdarray_from_grass(_wd)
     deps = depressions_from_grass(options["hierarchy"])
 
     # FSM requires labels as uint32 and flowdirs as int8; GRASS stores both

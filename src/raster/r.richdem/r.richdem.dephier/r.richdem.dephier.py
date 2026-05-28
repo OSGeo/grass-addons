@@ -13,15 +13,21 @@
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: output_labels
+# % required: no
 # % description: Output depression labels raster (leaf depression index per cell)
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: output_flowdirs
+# % required: no
 # % description: Output flow directions raster
 # %end
 # %option G_OPT_V_OUTPUT
 # % key: output_hierarchy
-# % description: Output depression hierarchy vector map
+# % required: no
+# % label: Output depression hierarchy vector map
+# %end
+# %rules
+# % required: output_labels, output_flowdirs, output_hierarchy
 # %end
 
 import sys
@@ -47,11 +53,15 @@ def main():
     )
     deps, flowdirs = rd.get_depression_hierarchy(dem, labels)
 
-    rdarray_to_grass(labels, options["output_labels"], overwrite=gs.overwrite())
-    rdarray_to_grass(flowdirs, options["output_flowdirs"], overwrite=gs.overwrite())
-    depressions_to_grass(
-        deps, labels, flowdirs, options["output_hierarchy"], overwrite=gs.overwrite()
-    )
+    if options["output_labels"]:
+        rdarray_to_grass(labels, options["output_labels"], overwrite=gs.overwrite())
+    if options["output_flowdirs"]:
+        rdarray_to_grass(flowdirs, options["output_flowdirs"], overwrite=gs.overwrite())
+    if options["output_hierarchy"]:
+        depressions_to_grass(
+            deps, labels, flowdirs, options["output_hierarchy"],
+            overwrite=gs.overwrite()
+        )
 
 
 if __name__ == "__main__":
