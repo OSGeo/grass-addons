@@ -20,7 +20,7 @@
 # % keyword: SSURGO
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: ssurgo_path
 # % description: Path to the SSURGO ZIP file downloaded from Web Soil Survey
 # % guisection: Inputs
@@ -29,7 +29,7 @@
 
 # %option G_OPT_V_OUTPUT
 # % key: soils
-# % description: Name for output soil vecotor layer containing the source SSURGO map unit polygons and attributes.
+# % description: Name for output soil vector layer containing the source SSURGO map unit polygons and attributes.
 # % guisection: Outputs
 # % required: yes
 # %end
@@ -874,7 +874,6 @@ def local_ssurgo_query(
 
     else:
         # weighted_component
-        gs.message(_("Using dominant component aggregation method."))
         gs.warning(_("Weighted component aggregation method not yet implemented."))
         pass
 
