@@ -619,6 +619,7 @@ def hydrologic_soil_group_color_scheme(map_name: str) -> None:
     """Apply hydrologic soil group color scheme to elevation map."""
     gs.verbose(_("Applying hydrologic soil group color scheme..."))
     hydgrp_color_palette = [
+        ("0", "#FFFFFF"),  # No data / unknown
         ("1", "#E7F5FF"),  # A Low runoff potential
         ("2", "#A6D9FF"),  # B Moderate runoff potential
         ("3", "#FFD27A"),  # C High runoff potential
