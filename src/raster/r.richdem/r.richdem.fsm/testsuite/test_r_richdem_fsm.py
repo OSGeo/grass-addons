@@ -4,9 +4,12 @@ Synthetic DEM (5 x 5, 1 m resolution):
 
     5 5 5 5 5
     5 3 3 3 5
-    5 3 1 3 5   <- centre pit, elevation 1
+    5 3 1 3 3   <- centre pit (1); channel exits at right border (3)
     5 3 3 3 5
     5 5 5 5 5
+
+Pour-point elevation = 3 (the channel row connects the pit directly to
+the right border at elevation 3).
 
 r.richdem.dephier is run once in setUpClass; its outputs feed FSM.
 Water-table depth (wtd) convention: negative = unsaturated (below
@@ -16,6 +19,10 @@ Two water scenarios are tested:
 
   Dry   wtd = −1 everywhere (no ponded water)
   Wet   wtd = +1.5 in depression cells, −1 elsewhere
+
+With the pour point at elevation 3 and 1.5 m of ponded water on inner
+ring cells (surface elevation 3 + 1.5 = 4.5 m > pour point), water
+spills and FSM redistributes it, reducing the domain mean wtd.
 
 Note: when the maximum value in a DCELL raster is exactly 0.0, GRASS
 r.univar reports max=nan and range=nan even though no null or NaN cells
@@ -45,9 +52,11 @@ _WTD_WET = "tmp_richdem_fsm_wtd_wet"
 _OUT_DRY = "tmp_richdem_fsm_out_dry"
 _OUT_WET = "tmp_richdem_fsm_out_wet"
 
+# 5x5: border=5, inner ring=3, centre=1; outlet at right border (row 3, col 5 = 3)
 _DEM_EXPR = (
     "if(row()==3 && col()==3, 1,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    " if(row()==3 && col()==5, 3,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)))"
 )
 
 
@@ -63,7 +72,9 @@ class TestRichdemFsm(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
+        cls.runModule(
+            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
+        )
         cls.runModule(
             "r.richdem.dephier",
             input=_DEM,
@@ -73,7 +84,9 @@ class TestRichdemFsm(TestCase):
             overwrite=True,
         )
         # Dry: no ponded water anywhere
-        cls.runModule("r.mapcalc", expression=f"{_WTD_DRY} = -1.0", overwrite=True)
+        cls.runModule(
+            "r.mapcalc", expression=f"{_WTD_DRY} = -1.0", overwrite=True
+        )
         # Wet: 1.5 m of ponded water in depression cells
         cls.runModule(
             "r.mapcalc",

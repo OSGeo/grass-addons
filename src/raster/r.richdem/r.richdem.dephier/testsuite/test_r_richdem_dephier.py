@@ -4,16 +4,19 @@ Synthetic DEM (5 x 5, 1 m resolution):
 
     5 5 5 5 5
     5 3 3 3 5
-    5 3 1 3 5   <- centre pit, elevation 1
+    5 3 1 3 3   <- centre pit (1); channel exits at right border (3)
     5 3 3 3 5
     5 5 5 5 5
 
+Pour-point elevation = 3 (the channel row connects the pit directly to
+the right border at elevation 3).
+
 Expected hierarchy properties:
   - One leaf depression: the inner 3 x 3 basin draining to the centre pit.
-  - Pour-point elevation = 3 (lowest rim cell adjacent to a border cell).
+  - Pour-point elevation = 3 (channel border cell at row 3, col 5).
   - Depression volume > 0 (centre cell is 2 m below the pour point).
   - Border cells drain directly to the DEM boundary (label 0 / OCEAN).
-  - Flow directions are in [0, 7] for all non-pit cells.
+  - Flow directions are in [0, 8] for all cells (8 marks the pit).
 """
 
 import unittest
@@ -34,9 +37,11 @@ _LABELS = "tmp_richdem_dephier_labels"
 _FLOWDIRS = "tmp_richdem_dephier_flowdirs"
 _HIERARCHY = "tmp_richdem_dephier_hierarchy"
 
+# 5x5: border=5, inner ring=3, centre=1; outlet at right border (row 3, col 5 = 3)
 _DEM_EXPR = (
     "if(row()==3 && col()==3, 1,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    " if(row()==3 && col()==5, 3,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)))"
 )
 
 
@@ -52,7 +57,9 @@ class TestRichdemDephier(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
+        cls.runModule(
+            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
+        )
         # Run once; individual tests query the outputs
         cls.runModule(
             "r.richdem.dephier",
@@ -135,7 +142,7 @@ class TestRichdemDephier(TestCase):
             layer=1,
             columns="type",
             where="type = 'leaf'",
-            flags="c",  # column headers suppressed
+            flags="c",   # column headers suppressed
         ).strip()
         self.assertTrue(
             len(rows) > 0,
@@ -144,18 +151,14 @@ class TestRichdemDephier(TestCase):
 
     def test_hierarchy_depression_has_volume(self):
         """Leaf depression has a positive water-storage volume."""
-        rows = (
-            gs.read_command(
-                "v.db.select",
-                map=_HIERARCHY,
-                layer=1,
-                columns="dep_vol",
-                where="type = 'leaf'",
-                flags="c",
-            )
-            .strip()
-            .splitlines()
-        )
+        rows = gs.read_command(
+            "v.db.select",
+            map=_HIERARCHY,
+            layer=1,
+            columns="dep_vol",
+            where="type = 'leaf'",
+            flags="c",
+        ).strip().splitlines()
         dep_vols = [float(r) for r in rows if r]
         self.assertTrue(
             any(v > 0 for v in dep_vols),
@@ -165,29 +168,14 @@ class TestRichdemDephier(TestCase):
     def test_hierarchy_expected_columns(self):
         """Layer-1 attribute table contains the expected schema columns."""
         required = {
-            "cat",
-            "dep_label",
-            "type",
-            "pit_cell",
-            "out_cell",
-            "parent",
-            "lchild",
-            "rchild",
-            "odep",
-            "geolink",
-            "pit_elev",
-            "out_elev",
-            "ocean_parent",
-            "cell_count",
-            "dep_vol",
-            "water_vol",
-            "total_elevation",
+            "cat", "dep_label", "type", "pit_cell", "out_cell",
+            "parent", "lchild", "rchild", "odep", "geolink",
+            "pit_elev", "out_elev", "ocean_parent",
+            "cell_count", "dep_vol", "water_vol", "total_elevation",
         }
-        cols = (
-            gs.read_command("v.info", map=_HIERARCHY, layer=1, flags="c")
-            .strip()
-            .splitlines()
-        )
+        cols = gs.read_command(
+            "v.info", map=_HIERARCHY, layer=1, flags="c"
+        ).strip().splitlines()
         # v.info -c output: "type|name"
         found = {line.split("|")[1] for line in cols if "|" in line}
         missing = required - found

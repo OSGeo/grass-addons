@@ -1,16 +1,26 @@
 """Tests for r.richdem.filldepressions
 
-Synthetic DEM (5 x 5, 1 m resolution):
+Synthetic DEM (5 x 5, 1 m resolution) with a closed rim:
 
     5 5 5 5 5
-    5 3 3 3 5
-    5 3 1 3 5   <- centre pit, elevation 1
-    5 3 3 3 5
+    5 4 4 4 5
+    5 4 1 4 5   <- centre pit (1) surrounded by uniform rim at elevation 4
+    5 4 4 4 5
     5 5 5 5 5
 
-The entire inner 3 x 3 drains toward the centre pit.  The pour-point
-elevation is 3 (the lowest rim cell).  After complete filling, the pit
-rises from 1 to 3; all other cells are unchanged.
+The pit is completely enclosed: the only drainage outlet is over the rim
+at elevation 4.  After filling, the pit and all inner cells rise to the
+pour-point elevation (4); the border cells (5) are unchanged.
+
+Expected outcomes:
+  - min of filled DEM = 4.0  (pit raised to pour-point)
+  - max of filled DEM = 5.0  (border cells unchanged)
+  - filled - input >= 0 everywhere  (filling never lowers)
+
+This DEM is intentionally different from the breach-depressions test so
+that the two algorithms produce distinct, verifiable results:
+  - fill  => min == 4.0  (entire interior raised to rim level)
+  - breach => min <  4.0  (pit shallowed but not raised to rim; channel cut)
 """
 
 import unittest
@@ -30,10 +40,10 @@ _DEM = "tmp_richdem_fill_dem"
 _FILLED = "tmp_richdem_fill_out"
 _FILLED_E = "tmp_richdem_fill_out_e"
 
-# 5x5: border=5, inner ring=3, centre=1
+# 5x5: border=5, rim=4, centre pit=1
 _DEM_EXPR = (
-    "if(row()==3 && col()==3, 1,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3))"
+    "if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
+    " if(row()==3 && col()==3, 1, 4))"
 )
 
 
@@ -49,7 +59,9 @@ class TestRichdemFill(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
+        cls.runModule(
+            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -69,21 +81,18 @@ class TestRichdemFill(TestCase):
         self.assertRasterExists(_FILLED)
 
     def test_fill_raises_pit_to_pour_point(self):
-        """Pit cell is raised to the pour-point elevation (3); max unchanged (5)."""
+        """Pit is raised to the pour-point elevation (4); border stays at 5."""
         self.runModule(
             "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
         )
-        self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED, refmin=4.0, refmax=5.0)
 
     def test_fill_never_lowers(self):
         """No cell in the filled DEM has a lower elevation than the input."""
-        # Use assertModule so a module failure surfaces immediately, not as a
-        # confusing null-cell artifact in the diff raster.
-        self.assertModule(
+        self.runModule(
             "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
         )
         diff = "tmp_richdem_fill_diff"
-        # filled - input should be >= 0 everywhere (filling only raises cells)
         self.runModule(
             "r.mapcalc",
             expression=f"{diff} = {_FILLED} - {_DEM}",
@@ -97,8 +106,8 @@ class TestRichdemFill(TestCase):
             msg="At least one cell was lowered by filling (min of filled-input < 0)",
         )
 
-    def test_epsilon_flag_removes_flats(self):
-        """With -e, the filled output has no value strictly below the pour point."""
+    def test_epsilon_flag_preserves_min(self):
+        """With -e, epsilon gradients are imposed on flats but min stays at pour-point."""
         self.assertModule(
             "r.richdem.filldepressions",
             input=_DEM,
@@ -106,15 +115,10 @@ class TestRichdemFill(TestCase):
             flags="e",
             overwrite=True,
         )
-        stats = gs.parse_command("r.univar", map=_FILLED_E, flags="g")
-        self.assertGreaterEqual(
-            float(stats["min"]),
-            3.0,
-            msg="Epsilon-filled DEM has a cell below the pour-point elevation",
-        )
+        self.assertRasterMinMax(_FILLED_E, refmin=4.0, refmax=5.0)
 
     def test_d4_topology(self):
-        """D4 topology option completes without error and produces output."""
+        """D4 topology option completes without error and raises pit to pour-point."""
         self.assertModule(
             "r.richdem.filldepressions",
             input=_DEM,
@@ -122,7 +126,7 @@ class TestRichdemFill(TestCase):
             topology="D4",
             overwrite=True,
         )
-        self.assertRasterExists(_FILLED)
+        self.assertRasterMinMax(_FILLED, refmin=4.0, refmax=5.0)
 
 
 if __name__ == "__main__":
