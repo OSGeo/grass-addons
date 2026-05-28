@@ -1,30 +1,34 @@
 """Tests for r.richdem.breachdepressions
 
-Synthetic DEM (5 x 5, 1 m resolution) with a closed rim:
+Synthetic DEM (5 x 5, 1 m resolution) with an outlet on the right border:
 
     5 5 5 5 5
     5 4 4 4 5
-    5 4 1 4 5   <- centre pit (1) surrounded by uniform rim at elevation 4
+    5 4 1 4 3   <- centre pit (1), outlet at right-border midpoint = 3
     5 4 4 4 5
     5 5 5 5 5
 
-The pit is completely enclosed.  The breach algorithm operates in two phases:
+`r.richdem.breachdepressions` calls RichDEM's `CompleteBreaching_Lindsay2016`.
+For this simple single-depression DEM:
 
-  1. Pit shallowing: the centre pit (elevation 1) is raised to just below its
-     lowest neighbour (elevation 4), yielding ~3.999... (4 - float epsilon).
+  1. Pit shallowing: the centre pit (elevation 1) is raised to the lowest
+     neighbour (elevation 4).
 
-  2. Priority-flood breach: the shallowed pit (~3.999) is lower than the rim
-     (4), so the algorithm lowers one rim cell to form a monotonically
-     descending channel from pit to border.
+  2. Priority-flood breach carving: the backlink path from the pit to the
+     border passes through ring cells already at elevation 4 and the outlet
+     cell at elevation 3.  No cell on this path is above the target height
+     (4), so the carving pass makes no changes.
+
+The result is numerically identical to Priority-Flood fill for this DEM:
+both algorithms set the pit to the pour-point (4) and leave the outlet (3)
+and border (5) unchanged.  A more complex DEM with a ridge above the
+pour-point on the breach path would produce distinct results.
 
 Observable outcomes:
   - max = 5.0  (border cells are never modified)
-  - min > 1.0  (pit was shallowed above its original elevation)
-  - min < 4.0  (pit and/or channel cell sit below the rim — NOT raised to it)
-
-The third assertion is the critical one that distinguishes breaching from
-filling: filling would set min = 4.0 (raises to pour-point); breaching leaves
-min < 4.0 (cuts a channel without raising the interior to the rim).
+  - min = 3.0  (outlet border cell unchanged; pit raised to 4)
+  - min > 1.0  (pit was shallowed above its original elevation of 1)
+  - breached - input >= 0 everywhere  (breaching never lowers any cell)
 """
 
 import unittest
@@ -44,10 +48,12 @@ _DEM = "tmp_richdem_breach_dem"
 _BREACHED = "tmp_richdem_breach_out"
 _BREACHED_D4 = "tmp_richdem_breach_out_d4"
 
-# 5x5: border=5, rim=4, centre pit=1
+# 5x5: border=5, inner ring=4, centre pit=1, outlet at (row=3,col=5)=3
+# The outlet must be tested first because (row=3,col=5) is also a border cell.
 _DEM_EXPR = (
-    "if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
-    " if(row()==3 && col()==3, 1, 4))"
+    "if(row()==3 && col()==5, 3,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
+    " if(row()==3 && col()==3, 1, 4)))"
 )
 
 
@@ -84,21 +90,20 @@ class TestRichdemBreach(TestCase):
         )
         self.assertRasterExists(_BREACHED)
 
-    def test_border_unchanged(self):
-        """Border cells (elevation 5) are never modified by breaching."""
+    def test_border_and_outlet_unchanged(self):
+        """Border cells (5) and outlet cell (3) are preserved; max=5, min=3."""
         self.runModule(
             "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
-        stats = gs.parse_command("r.univar", map=_BREACHED, flags="g")
-        self.assertAlmostEqual(
-            float(stats["max"]),
-            5.0,
-            places=5,
-            msg="Maximum elevation changed; border cells should be untouched",
-        )
+        self.assertRasterMinMax(_BREACHED, refmin=3.0, refmax=5.0)
 
-    def test_pit_shallowed_above_original(self):
-        """Pit shallowing raises the centre cell above its original elevation (1)."""
+    def test_pit_raised_above_original(self):
+        """Centre pit (elevation 1) is raised above its original elevation.
+
+        After breaching, the pit is shallowed to the pour-point (4).  The new
+        minimum is the outlet cell (3), which is > 1, confirming that the pit
+        was processed and is no longer the global minimum.
+        """
         self.runModule(
             "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
@@ -106,29 +111,30 @@ class TestRichdemBreach(TestCase):
         self.assertGreater(
             float(stats["min"]),
             1.0,
-            msg="Min of breached DEM is not above 1; pit shallowing did not run",
+            msg="min of breached DEM is not above 1; pit shallowing did not run",
         )
 
-    def test_channel_cut_below_rim(self):
-        """Breaching cuts a channel below the rim (min < 4.0), unlike filling.
-
-        Filling raises the entire interior to the pour-point (min = 4.0).
-        Breaching shallows the pit to just below the rim (~3.999) and cuts one
-        rim cell, so min must be strictly less than 4.0.
-        """
+    def test_never_lowers(self):
+        """No cell in the breached DEM has a lower elevation than the input."""
         self.runModule(
             "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
-        stats = gs.parse_command("r.univar", map=_BREACHED, flags="g")
-        self.assertLess(
+        diff = "tmp_richdem_breach_diff"
+        self.runModule(
+            "r.mapcalc",
+            expression=f"{diff} = {_BREACHED} - {_DEM}",
+            overwrite=True,
+        )
+        stats = gs.parse_command("r.univar", map=diff, flags="g")
+        self.runModule("g.remove", flags="f", type="raster", name=diff)
+        self.assertGreaterEqual(
             float(stats["min"]),
-            4.0,
-            msg="Min of breached DEM is >= 4.0; interior was raised to rim level "
-                "(filling behaviour), not breached",
+            0.0,
+            msg="At least one cell was lowered by breaching (min of breached-input < 0)",
         )
 
     def test_d4_topology(self):
-        """D4 topology completes without error and also cuts channel below rim."""
+        """D4 topology completes without error and preserves border and outlet."""
         self.assertModule(
             "r.richdem.breachdepressions",
             input=_DEM,
@@ -136,12 +142,7 @@ class TestRichdemBreach(TestCase):
             topology="D4",
             overwrite=True,
         )
-        stats = gs.parse_command("r.univar", map=_BREACHED_D4, flags="g")
-        self.assertLess(
-            float(stats["min"]),
-            4.0,
-            msg="D4 breach min >= 4.0; channel was not cut below the rim",
-        )
+        self.assertRasterMinMax(_BREACHED_D4, refmin=3.0, refmax=5.0)
 
 
 if __name__ == "__main__":

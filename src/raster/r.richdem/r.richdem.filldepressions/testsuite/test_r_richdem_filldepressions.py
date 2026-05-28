@@ -1,26 +1,23 @@
 """Tests for r.richdem.filldepressions
 
-Synthetic DEM (5 x 5, 1 m resolution) with a closed rim:
+Synthetic DEM (5 x 5, 1 m resolution) with an outlet on the right border:
 
     5 5 5 5 5
     5 4 4 4 5
-    5 4 1 4 5   <- centre pit (1) surrounded by uniform rim at elevation 4
+    5 4 1 4 3   <- centre pit (1), outlet at right-border midpoint = 3
     5 4 4 4 5
     5 5 5 5 5
 
-The pit is completely enclosed: the only drainage outlet is over the rim
-at elevation 4.  After filling, the pit and all inner cells rise to the
-pour-point elevation (4); the border cells (5) are unchanged.
+The pit is drained through the outlet (elevation 3) on the right border.
+Priority-Flood fill raises the pit to the pour-point (elevation 4 — the
+lowest ring cell adjacent to the outlet path).  The outlet cell itself (3)
+is a border cell and is never modified by the algorithm.
 
 Expected outcomes:
-  - min of filled DEM = 4.0  (pit raised to pour-point)
-  - max of filled DEM = 5.0  (border cells unchanged)
-  - filled - input >= 0 everywhere  (filling never lowers)
-
-This DEM is intentionally different from the breach-depressions test so
-that the two algorithms produce distinct, verifiable results:
-  - fill  => min == 4.0  (entire interior raised to rim level)
-  - breach => min <  4.0  (pit shallowed but not raised to rim; channel cut)
+  - min = 3  (outlet border cell, unchanged)
+  - max = 5  (remaining border cells, unchanged)
+  - filled - input >= 0 everywhere  (filling never lowers any cell)
+  - centre pit raised from 1 to 4  (the pour-point elevation)
 """
 
 import unittest
@@ -40,10 +37,12 @@ _DEM = "tmp_richdem_fill_dem"
 _FILLED = "tmp_richdem_fill_out"
 _FILLED_E = "tmp_richdem_fill_out_e"
 
-# 5x5: border=5, rim=4, centre pit=1
+# 5x5: border=5, inner ring=4, centre pit=1, outlet at (row=3,col=5)=3
+# The outlet must be tested first because (row=3,col=5) is also a border cell.
 _DEM_EXPR = (
-    "if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
-    " if(row()==3 && col()==3, 1, 4))"
+    "if(row()==3 && col()==5, 3,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
+    " if(row()==3 && col()==3, 1, 4)))"
 )
 
 
@@ -81,11 +80,11 @@ class TestRichdemFill(TestCase):
         self.assertRasterExists(_FILLED)
 
     def test_fill_raises_pit_to_pour_point(self):
-        """Pit is raised to the pour-point elevation (4); border stays at 5."""
+        """Pit raised to pour-point (4); outlet (3) and border (5) unchanged."""
         self.runModule(
             "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
         )
-        self.assertRasterMinMax(_FILLED, refmin=4.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
 
     def test_fill_never_lowers(self):
         """No cell in the filled DEM has a lower elevation than the input."""
@@ -106,8 +105,8 @@ class TestRichdemFill(TestCase):
             msg="At least one cell was lowered by filling (min of filled-input < 0)",
         )
 
-    def test_epsilon_flag_preserves_min(self):
-        """With -e, epsilon gradients are imposed on flats but min stays at pour-point."""
+    def test_epsilon_flag_preserves_range(self):
+        """With -e, epsilon gradients on flats keep min=3 (outlet) and max=5 (border)."""
         self.assertModule(
             "r.richdem.filldepressions",
             input=_DEM,
@@ -115,7 +114,7 @@ class TestRichdemFill(TestCase):
             flags="e",
             overwrite=True,
         )
-        self.assertRasterMinMax(_FILLED_E, refmin=4.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED_E, refmin=3.0, refmax=5.0)
 
     def test_d4_topology(self):
         """D4 topology option completes without error and raises pit to pour-point."""
@@ -126,7 +125,7 @@ class TestRichdemFill(TestCase):
             topology="D4",
             overwrite=True,
         )
-        self.assertRasterMinMax(_FILLED, refmin=4.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
 
 
 if __name__ == "__main__":
