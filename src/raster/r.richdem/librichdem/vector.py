@@ -143,12 +143,16 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
         )
 
     # --- Step 5: ocean_links junction table as layer 2 ---
+    # Use a map-specific table name to avoid collisions between hierarchy maps
+    # in the same mapset (all share one SQLite DB file).
+    ocean_table = f"{tbl}_ocean_links"
+    cur.execute(f"DROP TABLE IF EXISTS {ocean_table}")
     cur.execute(
-        "CREATE TABLE ocean_links "
+        f"CREATE TABLE {ocean_table} "
         "(cat INTEGER PRIMARY KEY, dep_label INTEGER, linked_label INTEGER)"
     )
     cur.executemany(
-        "INSERT INTO ocean_links (dep_label, linked_label) VALUES (?, ?)",
+        f"INSERT INTO {ocean_table} (dep_label, linked_label) VALUES (?, ?)",
         [(dep.dep_label, lnk) for dep in deps for lnk in dep.ocean_linked],
     )
     conn.commit()
@@ -157,7 +161,7 @@ def depressions_to_grass(deps, labels, flowdirs, map_name, overwrite=False):
     gs.run_command(
         "v.db.connect",
         map=map_name,
-        table="ocean_links",
+        table=ocean_table,
         layer=2,
         key="cat",
         quiet=True,
@@ -185,7 +189,8 @@ def depressions_from_grass(map_name):
     """)
     rows = cur.fetchall()
 
-    cur.execute("SELECT dep_label, linked_label FROM ocean_links ORDER BY dep_label")
+    ocean_table = f"{tbl}_ocean_links"
+    cur.execute(f"SELECT dep_label, linked_label FROM {ocean_table} ORDER BY dep_label")
     from collections import defaultdict
 
     ocean_linked = defaultdict(list)
