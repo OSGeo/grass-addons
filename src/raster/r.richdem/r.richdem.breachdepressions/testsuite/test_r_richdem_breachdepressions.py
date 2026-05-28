@@ -32,11 +32,19 @@ Lindsay2016 eps (TestRichdemBreachEps, skipped unless BreachDepressionsEps
   `rd.BreachDepressionsEps` calls `Lindsay2016` with `eps_gradients=True`,
   which uses `std::nextafter` to shallow the pit to just BELOW
   `lowest_neighbour` (~3.9999...) rather than exactly to it.
-  Result: pit ~= 3.9999, saddle=4, ring=9, border=5.  min < 4.0.
+  Result: pit ~= 3.9999, saddle=4, ring=9, border=5.  binary min < 4.0.
+
+  NOTE: r.univar rounds nextafter(4.0, -inf) to "4" in text output because
+  the difference from 4.0 is ~1 ULP (~1.8e-15), below text-format precision.
+  The epsilon test therefore reads the raster via r.out.bin binary export to
+  get full IEEE-754 double precision rather than relying on r.univar.
 """
 
+import os
+import tempfile
 import unittest
 
+import numpy as np
 import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
@@ -181,11 +189,16 @@ class TestRichdemBreachEps(TestCase):
         self.assertRasterExists(_BREACHED_EPS)
 
     def test_epsilon_shallows_below_saddle(self):
-        """Lindsay2016 eps shallows pit to just below saddle (min < 4.0).
+        """Lindsay2016 eps shallows pit to just below saddle (binary min < 4.0).
 
         Unlike CompleteBreaching (min == 4.0), eps_gradients uses
-        std::nextafter to raise the pit to nextafter(4.0, -inf) ~= 3.9999,
+        std::nextafter to raise the pit to nextafter(4.0, -inf) ~= 3.9999...,
         leaving it strictly below the saddle elevation.
+
+        Note: r.univar rounds the stored value to 4.0 in text output because
+        nextafter(4.0, -inf) differs from 4.0 by only ~1 ULP (~1.8e-15), which
+        is below text reporting precision.  We verify via r.out.bin binary
+        export instead.
         """
         self.runModule(
             "r.richdem.breachdepressions",
@@ -194,11 +207,29 @@ class TestRichdemBreachEps(TestCase):
             flags="e",
             overwrite=True,
         )
-        stats = gs.parse_command("r.univar", map=_BREACHED_EPS, flags="g")
+        # Read the DCELL raster as raw double-precision binary to get full
+        # IEEE-754 precision; r.univar rounds nextafter values to 4.0 in text.
+        tmp = tempfile.NamedTemporaryFile(suffix=".bin", delete=False)
+        tmp.close()
+        try:
+            gs.run_command(
+                "r.out.bin",
+                flags="f",
+                input=_BREACHED_EPS,
+                output=tmp.name,
+                bytes=8,
+                null=-9999,
+                overwrite=True,
+                quiet=True,
+            )
+            data = np.fromfile(tmp.name, dtype="float64")
+        finally:
+            os.unlink(tmp.name)
+        valid = data[data != -9999.0]
         self.assertLess(
-            float(stats["min"]),
+            float(valid.min()),
             4.0,
-            msg="min of eps-breached DEM >= 4.0; pit was not shallowed below saddle",
+            msg="binary min of eps-breached DEM >= 4.0; pit was not shallowed below saddle",
         )
 
     def test_d4_topology_rejected(self):
