@@ -1,53 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="Author" content="GRASS Development Team">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>r.richdem.resolveflats - GRASS GIS manual</title>
-<meta name="description" content="r.richdem.resolveflats: Resolve flat areas in a DEM by imposing a local gradient using RichDEM.">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
-
-<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
-
-<h2>NAME</h2>
-<em><b>r.richdem.resolveflats</b></em> - Resolve flat areas in a DEM by imposing
-a local gradient using RichDEM.
-
-<h2>KEYWORDS</h2>
-<a href="raster.html">raster</a>,
-<a href="topic_hydrology.html">hydrology</a>,
-<a href="keywords.html#flat areas">flat areas</a>,
-<a href="keywords.html#flow direction">flow direction</a>
-
-<h2>SYNOPSIS</h2>
-<div id="name"><b>r.richdem.resolveflats</b><br></div>
-<b>r.richdem.resolveflats --help</b><br>
-<div id="synopsis">
-<b>r.richdem.resolveflats</b>
-<b>input</b>=<em>name</em>
-<b>output</b>=<em>name</em>
-[--<b>overwrite</b>]
-[--<b>help</b>]
-[--<b>verbose</b>]
-[--<b>quiet</b>]
-</div>
-
-<div id="parameters">
-<h3>Parameters:</h3>
-<dl>
-<dt><b>input</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Input elevation raster</dd>
-
-<dt><b>output</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-<dd>Output elevation raster with resolved flats</dd>
-</dl>
-</div>
-
 <h2>DESCRIPTION</h2>
 
 <em><b>r.richdem.resolveflats</b></em> imposes a small epsilon gradient on flat
@@ -150,15 +100,3 @@ Richard Barnes (RichDEM library)
 <p>
 GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6</p>
 
-<hr class="header">
-<p>
-<a href="index.html">Main index</a> |
-<a href="raster.html">Raster index</a> |
-<a href="topics.html">Topics index</a> |
-<a href="keywords.html">Keywords index</a> |
-<a href="full_index.html">Full index</a>
-</p>
-
-</div>
-</body>
-</html>
