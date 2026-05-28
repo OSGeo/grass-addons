@@ -74,9 +74,8 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: A
 # % answer: A
-# % description: Designation of master horizon
+# % description: Designation of master horizon. Common values include O, A, B, C and E, but you can specify any master horizon designation present in the chorizon table.
 # %end
 
 # %option
