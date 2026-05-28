@@ -1,34 +1,37 @@
 """Tests for r.richdem.breachdepressions
 
-Synthetic DEM (5 x 5, 1 m resolution) with an outlet on the right border:
+Synthetic DEM (5 x 5, 1 m resolution) with a low saddle adjacent to the
+right border:
 
     5 5 5 5 5
-    5 4 4 4 5
-    5 4 1 4 3   <- centre pit (1), outlet at right-border midpoint = 3
-    5 4 4 4 5
+    5 9 9 9 5
+    5 9 1 4 5   <- pit=1, saddle=4 immediately left of right border (5)
+    5 9 9 9 5
     5 5 5 5 5
 
-`r.richdem.breachdepressions` calls RichDEM's `CompleteBreaching_Lindsay2016`.
-For this simple single-depression DEM:
+The pit (1) is enclosed by the outer ring (9) except for the saddle (4) at
+(row=3, col=4), which is directly adjacent to the right border (5).
 
-  1. Pit shallowing: the centre pit (elevation 1) is raised to the lowest
-     neighbour (elevation 4).
+This DEM is shared with r.richdem.filldepressions tests so that all three
+algorithms produce distinct, directly comparable results on the same input:
 
-  2. Priority-flood breach carving: the backlink path from the pit to the
-     border passes through ring cells already at elevation 4 and the outlet
-     cell at elevation 3.  No cell on this path is above the target height
-     (4), so the carving pass makes no changes.
+  fill              => min == 5.0  (pit and saddle raised to pour-point 5)
+  CompleteBreaching => min == 4.0  (pit raised to saddle; saddle preserved)
+  Lindsay2016 eps   => min <  4.0  (pit shallowed to just below saddle)
 
-The result is numerically identical to Priority-Flood fill for this DEM:
-both algorithms set the pit to the pour-point (4) and leave the outlet (3)
-and border (5) unchanged.  A more complex DEM with a ridge above the
-pour-point on the breach path would produce distinct results.
+CompleteBreaching (TestRichdemBreach):
+  `rd.BreachDepressions` calls `CompleteBreaching_Lindsay2016`, which raises
+  the pit to exactly `lowest_neighbour` (= saddle = 4).  The saddle is
+  directly adjacent to the border, so the carving backlink path is
+  pit -> saddle -> border; the saddle (4) is not above target_height (4),
+  so no cell is lowered.  Result: pit=4, saddle=4, ring=9, border=5.
 
-Observable outcomes:
-  - max = 5.0  (border cells are never modified)
-  - min = 3.0  (outlet border cell unchanged; pit raised to 4)
-  - min > 1.0  (pit was shallowed above its original elevation of 1)
-  - breached - input >= 0 everywhere  (breaching never lowers any cell)
+Lindsay2016 eps (TestRichdemBreachEps, skipped unless BreachDepressionsEps
+  is available):
+  `rd.BreachDepressionsEps` calls `Lindsay2016` with `eps_gradients=True`,
+  which uses `std::nextafter` to shallow the pit to just BELOW
+  `lowest_neighbour` (~3.9999...) rather than exactly to it.
+  Result: pit ~= 3.9999, saddle=4, ring=9, border=5.  min < 4.0.
 """
 
 import unittest
@@ -44,16 +47,27 @@ try:
 except ImportError:
     HAS_RICHDEM = False
 
+HAS_LINDSAY2016 = False
+if HAS_RICHDEM:
+    try:
+        import richdem as _rd
+
+        HAS_LINDSAY2016 = hasattr(_rd, "BreachDepressionsEps")
+    except ImportError:
+        pass
+
 _DEM = "tmp_richdem_breach_dem"
 _BREACHED = "tmp_richdem_breach_out"
 _BREACHED_D4 = "tmp_richdem_breach_out_d4"
+_BREACHED_EPS = "tmp_richdem_breach_out_eps"
 
-# 5x5: border=5, inner ring=4, centre pit=1, outlet at (row=3,col=5)=3
-# The outlet must be tested first because (row=3,col=5) is also a border cell.
+# 5x5: border=5, outer ring=9, centre pit=1, saddle at (row=3,col=4)=4.
+# The saddle is the pit's lowest neighbour and sits directly adjacent to the
+# right border, making the pour-point unambiguously the border elevation (5).
 _DEM_EXPR = (
-    "if(row()==3 && col()==5, 3,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
-    " if(row()==3 && col()==3, 1, 4)))"
+    "if(row()==3 && col()==3, 1,"
+    " if(row()==3 && col()==4, 4,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 9)))"
 )
 
 
@@ -63,7 +77,7 @@ _DEM_EXPR = (
     "set PYTHONPATH to richdem/wrappers/pyrichdem",
 )
 class TestRichdemBreach(TestCase):
-    """Functional tests for r.richdem.breachdepressions requiring the RichDEM extension."""
+    """Tests for CompleteBreaching_Lindsay2016 (rd.BreachDepressions)."""
 
     @classmethod
     def setUpClass(cls):
@@ -90,28 +104,27 @@ class TestRichdemBreach(TestCase):
         )
         self.assertRasterExists(_BREACHED)
 
-    def test_border_and_outlet_unchanged(self):
-        """Border cells (5) and outlet cell (3) are preserved; max=5, min=3."""
+    def test_pit_raised_to_saddle(self):
+        """Pit raised to saddle (4); ring (9) and border (5) unchanged; min=4, max=9."""
         self.runModule(
             "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
-        self.assertRasterMinMax(_BREACHED, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_BREACHED, refmin=4.0, refmax=9.0)
 
-    def test_pit_raised_above_original(self):
-        """Centre pit (elevation 1) is raised above its original elevation.
+    def test_breach_below_pour_point(self):
+        """CompleteBreaching leaves min (4.0) below the fill pour-point (5.0).
 
-        After breaching, the pit is shallowed to the pour-point (4).  The new
-        minimum is the outlet cell (3), which is > 1, confirming that the pit
-        was processed and is no longer the global minimum.
+        Fill raises pit and saddle to the border elevation (5); breach raises
+        the pit only to the saddle elevation (4) and preserves the saddle.
         """
         self.runModule(
             "r.richdem.breachdepressions", input=_DEM, output=_BREACHED, overwrite=True
         )
         stats = gs.parse_command("r.univar", map=_BREACHED, flags="g")
-        self.assertGreater(
+        self.assertLess(
             float(stats["min"]),
-            1.0,
-            msg="min of breached DEM is not above 1; pit shallowing did not run",
+            5.0,
+            msg="min of breached DEM >= 5.0; pit was raised to pour-point (fill behaviour)",
         )
 
     def test_never_lowers(self):
@@ -134,7 +147,7 @@ class TestRichdemBreach(TestCase):
         )
 
     def test_d4_topology(self):
-        """D4 topology completes without error and preserves border and outlet."""
+        """D4 topology completes without error; pit raised to saddle (min=4, max=9)."""
         self.assertModule(
             "r.richdem.breachdepressions",
             input=_DEM,
@@ -142,7 +155,82 @@ class TestRichdemBreach(TestCase):
             topology="D4",
             overwrite=True,
         )
-        self.assertRasterMinMax(_BREACHED_D4, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_BREACHED_D4, refmin=4.0, refmax=9.0)
+
+
+@unittest.skipUnless(
+    HAS_LINDSAY2016,
+    "BreachDepressionsEps not available in this RichDEM build; "
+    "a patch exposing Lindsay2016 eps_gradients via the Python bindings is needed upstream",
+)
+class TestRichdemBreachEps(TestCase):
+    """Tests for Lindsay2016 epsilon-gradient breaching (rd.BreachDepressionsEps, -e flag).
+
+    Skipped unless the upstream RichDEM Python bindings expose BreachDepressionsEps.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
+        cls.runModule(
+            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.del_temp_region()
+        cls.runModule(
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=[_DEM, _BREACHED_EPS],
+        )
+
+    def test_output_created(self):
+        """Lindsay2016 eps breaching produces an output raster."""
+        self.assertModule(
+            "r.richdem.breachdepressions",
+            input=_DEM,
+            output=_BREACHED_EPS,
+            flags="e",
+            overwrite=True,
+        )
+        self.assertRasterExists(_BREACHED_EPS)
+
+    def test_epsilon_shallows_below_saddle(self):
+        """Lindsay2016 eps shallows pit to just below saddle (min < 4.0).
+
+        Unlike CompleteBreaching (min == 4.0), eps_gradients uses
+        std::nextafter to raise the pit to nextafter(4.0, -inf) ~= 3.9999,
+        leaving it strictly below the saddle elevation.
+        """
+        self.runModule(
+            "r.richdem.breachdepressions",
+            input=_DEM,
+            output=_BREACHED_EPS,
+            flags="e",
+            overwrite=True,
+        )
+        stats = gs.parse_command("r.univar", map=_BREACHED_EPS, flags="g")
+        self.assertLess(
+            float(stats["min"]),
+            4.0,
+            msg="min of eps-breached DEM >= 4.0; pit was not shallowed below saddle",
+        )
+
+    def test_d4_topology(self):
+        """D4 topology with -e completes without error and shallows pit below saddle."""
+        self.assertModule(
+            "r.richdem.breachdepressions",
+            input=_DEM,
+            output=_BREACHED_EPS,
+            flags="e",
+            topology="D4",
+            overwrite=True,
+        )
+        stats = gs.parse_command("r.univar", map=_BREACHED_EPS, flags="g")
+        self.assertLess(float(stats["min"]), 4.0)
 
 
 if __name__ == "__main__":

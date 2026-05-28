@@ -20,6 +20,10 @@
 # % answer: D8
 # % description: Flow topology
 # %end
+# %flag
+# % key: e
+# % description: Use Lindsay2016 epsilon-gradient shallowing (pit raised to just below lowest neighbour rather than exactly to it)
+# %end
 
 import sys
 import grass.script as gs
@@ -38,7 +42,18 @@ def main():
     import richdem as rd
 
     dem = rdarray_from_grass(options["input"])
-    breached = rd.BreachDepressions(dem, topology=options["topology"])
+
+    if flags["e"]:
+        if not hasattr(rd, "BreachDepressionsEps"):
+            gs.fatal(
+                "Lindsay2016 epsilon-gradient breaching (BreachDepressionsEps) is "
+                "not available in this RichDEM build. A patch exposing this function "
+                "via the Python bindings is needed upstream."
+            )
+        breached = rd.BreachDepressionsEps(dem, topology=options["topology"])
+    else:
+        breached = rd.BreachDepressions(dem, topology=options["topology"])
+
     rdarray_to_grass(breached, options["output"], overwrite=gs.overwrite())
 
 

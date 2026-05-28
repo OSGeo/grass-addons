@@ -1,23 +1,30 @@
 """Tests for r.richdem.filldepressions
 
-Synthetic DEM (5 x 5, 1 m resolution) with an outlet on the right border:
+Synthetic DEM (5 x 5, 1 m resolution) with a low saddle adjacent to the
+right border:
 
     5 5 5 5 5
-    5 4 4 4 5
-    5 4 1 4 3   <- centre pit (1), outlet at right-border midpoint = 3
-    5 4 4 4 5
+    5 9 9 9 5
+    5 9 1 4 5   <- pit=1, saddle=4 immediately left of right border (5)
+    5 9 9 9 5
     5 5 5 5 5
 
-The pit is drained through the outlet (elevation 3) on the right border.
-Priority-Flood fill raises the pit to the pour-point (elevation 4 — the
-lowest ring cell adjacent to the outlet path).  The outlet cell itself (3)
-is a border cell and is never modified by the algorithm.
+The pit (1) is enclosed by the outer ring (9) except for the saddle (4) at
+(row=3, col=4), which is directly adjacent to the right border (5).
+Priority-Flood fill raises both the pit and the saddle to the pour-point
+(= border elevation = 5, since the saddle connects directly to the border).
+The ring (9) and border (5) cells are never lowered.
 
 Expected outcomes:
-  - min = 3  (outlet border cell, unchanged)
-  - max = 5  (remaining border cells, unchanged)
+  - min = 5.0  (pit and saddle raised to pour-point; border unchanged)
+  - max = 9.0  (ring cells unchanged)
   - filled - input >= 0 everywhere  (filling never lowers any cell)
-  - centre pit raised from 1 to 4  (the pour-point elevation)
+
+This DEM is shared with r.richdem.breachdepressions tests so that all three
+algorithms produce distinct, directly comparable results on the same input:
+  fill              => min == 5.0  (everything raised to pour-point)
+  CompleteBreaching => min == 4.0  (pit raised to saddle; saddle preserved)
+  Lindsay2016 eps   => min <  4.0  (pit shallowed to just below saddle)
 """
 
 import unittest
@@ -37,12 +44,13 @@ _DEM = "tmp_richdem_fill_dem"
 _FILLED = "tmp_richdem_fill_out"
 _FILLED_E = "tmp_richdem_fill_out_e"
 
-# 5x5: border=5, inner ring=4, centre pit=1, outlet at (row=3,col=5)=3
-# The outlet must be tested first because (row=3,col=5) is also a border cell.
+# 5x5: border=5, outer ring=9, centre pit=1, saddle at (row=3,col=4)=4.
+# The saddle is the pit's lowest neighbour and sits directly adjacent to the
+# right border, making the pour-point unambiguously the border elevation (5).
 _DEM_EXPR = (
-    "if(row()==3 && col()==5, 3,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5,"
-    " if(row()==3 && col()==3, 1, 4)))"
+    "if(row()==3 && col()==3, 1,"
+    " if(row()==3 && col()==4, 4,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 9)))"
 )
 
 
@@ -79,12 +87,12 @@ class TestRichdemFill(TestCase):
         )
         self.assertRasterExists(_FILLED)
 
-    def test_fill_raises_pit_to_pour_point(self):
-        """Pit raised to pour-point (4); outlet (3) and border (5) unchanged."""
+    def test_fill_raises_to_pour_point(self):
+        """Pit and saddle raised to pour-point (5); ring (9) and border (5) unchanged."""
         self.runModule(
             "r.richdem.filldepressions", input=_DEM, output=_FILLED, overwrite=True
         )
-        self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED, refmin=5.0, refmax=9.0)
 
     def test_fill_never_lowers(self):
         """No cell in the filled DEM has a lower elevation than the input."""
@@ -106,7 +114,7 @@ class TestRichdemFill(TestCase):
         )
 
     def test_epsilon_flag_preserves_range(self):
-        """With -e, epsilon gradients on flats keep min=3 (outlet) and max=5 (border)."""
+        """With -e, epsilon gradients on flats keep min=5 (pour-point) and max=9 (ring)."""
         self.assertModule(
             "r.richdem.filldepressions",
             input=_DEM,
@@ -114,7 +122,7 @@ class TestRichdemFill(TestCase):
             flags="e",
             overwrite=True,
         )
-        self.assertRasterMinMax(_FILLED_E, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED_E, refmin=5.0, refmax=9.0)
 
     def test_d4_topology(self):
         """D4 topology option completes without error and raises pit to pour-point."""
@@ -125,7 +133,7 @@ class TestRichdemFill(TestCase):
             topology="D4",
             overwrite=True,
         )
-        self.assertRasterMinMax(_FILLED, refmin=3.0, refmax=5.0)
+        self.assertRasterMinMax(_FILLED, refmin=5.0, refmax=9.0)
 
 
 if __name__ == "__main__":
