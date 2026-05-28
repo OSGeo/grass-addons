@@ -1369,7 +1369,7 @@ def _wkt_to_geojson_geometry(wkt_str):
 
 
 def sda_ssurgo_query(aoi_wkt, tmp_fd, desgnmaster, hzdept_r, hzdepb_r, slices=None):
-    """Import SSURGO data from the Soil Data Access (SDA) web service.
+    """Query and download SSURGO data from the Soil Data Access (SDA) web service.
 
     Fetches soil polygon geometry and attribute data for the area of interest
     defined by *aoi_wkt* (WGS 84), writes the result to a temporary GeoJSON
