@@ -159,8 +159,8 @@ should be avoided. The flag has no effect on Soil Data Access (SDA) queries
 
 ## REQUIREMENTS
 
-[duckdb>=4.1](https://duckdb.org/) Python package for querying and processing data
-from the SSURGO file geodatabase.
+[duckdb>=1.4.4](https://duckdb.org/) Python package for querying and processing
+data from the SSURGO file geodatabase.
 
 ```sh
 pip install duckdb
