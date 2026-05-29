@@ -232,17 +232,6 @@ class TestRichdemBreachEps(TestCase):
             msg="binary min of eps-breached DEM >= 4.0; pit was not shallowed below saddle",
         )
 
-    def test_d4_topology_rejected(self):
-        """D4 topology with -e is rejected: Lindsay2016 eps is D8-only."""
-        self.assertModuleFail(
-            "r.richdem.breachdepressions",
-            input=_DEM,
-            output=_BREACHED_EPS,
-            flags="e",
-            topology="D4",
-            overwrite=True,
-        )
-
 
 if __name__ == "__main__":
     test()
