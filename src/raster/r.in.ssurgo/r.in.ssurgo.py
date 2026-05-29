@@ -101,7 +101,7 @@
 # % type: double
 # % multiple: yes
 # % required: no
-# % description: Comma-separated depth boundaries in cm (>=2 values, strictly increasing). When set, depth-weighted REAL outputs (ksat_l/r/h) become 3D rasters with slices defined by these boundaries; hzdept_r/hzdepb_r are ignored.
+# % description: Comma-separated depth boundaries in cm (>=2 values, strictly increasing). When set, depth-weighted double precision outputs (ksat_l/r/h) become 3D rasters with slices defined by these boundaries; hzdept_r/hzdepb_r are ignored.
 # %end
 
 # %option G_OPT_M_NPROCS
@@ -643,8 +643,8 @@ def hydrologic_soil_group_color_scheme(map_name: str) -> None:
     )
 
 
-def ksat_color_scheme(map_names: list[str]) -> None:
-    """Apply ksat color scheme to elevation map."""
+def _ksat_color_scheme() -> str:
+    """Get ksat color scheme."""
     gs.verbose(_("Applying ksat color scheme..."))
     ksat_color_palette = [
         # Very low Ksat (clays, compacted soils)
@@ -666,11 +666,25 @@ def ksat_color_scheme(map_names: list[str]) -> None:
         ("100%", "#1E5E8C"),
     ]
     # Convert palette list to rules string for r.colors
-    ksat_color_scheme = (
+    ksat_colors = (
         "\n".join(f"{pos} {color}" for pos, color in ksat_color_palette) + "\n"
     )
+    return ksat_colors
+
+
+def ksat_color_scheme(map_names: list[str]) -> None:
+    """Apply ksat color scheme to 2D map."""
+    gs.verbose(_("Applying ksat color scheme..."))
+    ksat_colors = _ksat_color_scheme(map_names)
+    gs.write_command("r.colors", map=map_names, rules="-", stdin=ksat_colors, flags="e")
+
+
+def ksat_color_scheme_3d(map_names: list[str]) -> None:
+    """Apply ksat color scheme to 3D map."""
+    gs.verbose(_("Applying 3D ksat color scheme..."))
+    ksat_colors = _ksat_color_scheme(map_names)
     gs.write_command(
-        "r.colors", map=map_names, rules="-", stdin=ksat_color_scheme, flags="e"
+        "r3.colors", map=map_names, rules="-", stdin=ksat_colors, flags="e"
     )
 
 
@@ -1239,11 +1253,39 @@ def _rasterize_and_style(
                 continue
             _rasterize_3d(ssurgo_vector, base_field=base, output=name, slices=slices)
 
-    # Apply the ksat color scheme on all ksat maps, whether 2D or 3D.
-    # For 3D rasters, the color scheme applies to all slices.
-    ksat_map_names = [name for name in (ksat_l, ksat_r, ksat_h) if name]
-    if ksat_map_names:
-        ksat_color_scheme(ksat_map_names)
+    else:
+        ksat_map_names = [name for name in (ksat_l, ksat_r, ksat_h) if name]
+        if ksat_map_names:
+            ksat_color_scheme(ksat_map_names)
+
+
+def _ensure_numeric_column(vector_map, col):
+    """Cast a vector attribute column to double precision if it isn't already numeric.
+
+    The SDA path serializes results as GeoJSON, which has no schema. When a
+    per-slice column (e.g. ``ksat_l__s3`` for a deep slice) is all-NULL across
+    every feature, OGR's GeoJSON driver falls back to String, so v.in.ogr
+    stores it as TEXT and v.to.rast later rejects it with "Column type
+    (CHARACTER) not supported". Recast it here via the standard SQLite
+    add/copy/drop/rename dance.
+    """
+    cols = gs.parse_command("v.info", map=vector_map, format="json", flags="c")
+    info = next((c for c in cols if c["name"] == col), None)
+    if info is None or info.get("is_number"):
+        return
+
+    tmp_col = f"{col}__cast"
+    db_info = gs.vector_db(vector_map)
+    table = db_info[1]["table"]
+    gs.run_command(
+        "v.db.addcolumn", map=vector_map, columns=f"{tmp_col} double precision"
+    )
+    gs.run_command(
+        "db.execute",
+        sql=f"UPDATE {table} SET {tmp_col} = CAST({col} AS double precision)",
+    )
+    gs.run_command("v.db.dropcolumn", map=vector_map, columns=col)
+    gs.run_command("v.db.renamecolumn", map=vector_map, column=f"{tmp_col},{col}")
 
 
 def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
@@ -1271,6 +1313,7 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
 
         for i in range(len(slices)):
             col = f"{base_field}{_slice_suffix(i)}"
+            _ensure_numeric_column(ssurgo_vector, col)
             tmp = f"_tmp_{output}_s{i}"
             gs.run_command(
                 "v.to.rast",
@@ -1288,7 +1331,7 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
             output=output,
             overwrite=True,
         )
-        ksat_color_scheme(output)
+        ksat_color_scheme_3d(output)
     finally:
         if temp_2d:
             gs.run_command(
