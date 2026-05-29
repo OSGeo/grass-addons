@@ -7,29 +7,27 @@ OpenMP parallel algorithm by Cho (2026).
 ## NOTES
 
 *r.upflowlength* can automatically recognize the following three different
-formats of flow directions: **degree**, **45degree**, and **power2**.
-The **degree** format starts just above 0° at East (excluding 0°
-itself) and goes counterclockwise up to 360°, which also corresponds to
-East. The **45degree** format divides the degree format by 45°. The
-**power2** format starts from 1 at East and doubles clockwise up to
-Northeast.
+formats of flow directions: **degree**, **45degree**, and **power2**. The
+**degree** format starts just above 0° at East (excluding 0° itself) and goes
+counterclockwise up to 360°, which also corresponds to East. The **45degree**
+format divides the degree format by 45°. The **power2** format starts from 1 at
+East and doubles clockwise up to Northeast.
 
 ![Auto-detected flow direction formats](r_upflowlength_formats.png)
 
 *r.upflowlength* also supports the **taudem** format, which is used by
-[TauDEM](https://github.com/dtarb/TauDEM)'s D8FlowDir. This
-format is not auto-detected because it shares the same encoding range of the
-**45degree** format. Additionally, the module can accept any integer
-encodings with the **custom** format and **encoding** option, which uses
-eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
-**45degree** format using this method, one can use **format=custom
-encoding=8,7,6,5,4,3,2,1**.
+[TauDEM](https://github.com/dtarb/TauDEM)'s D8FlowDir. This format is not
+auto-detected because it shares the same encoding range of the **45degree**
+format. Additionally, the module can accept any integer encodings with the
+**custom** format and **encoding** option, which uses eight numbers for E, SE,
+S, SW, W, NW, N, and NE. For example, to encode the **45degree** format using
+this method, one can use **format=custom encoding=8,7,6,5,4,3,2,1**.
 
 ![Custom flow direction formats](r_upflowlength_custom_formats.png)
 
 When parallel processing is enabled with the **nprocs** option,
-*r.upflowlength* uses OpenMP&apos;s shared-memory model and the
-specified number of threads to parallelize the computation.
+*r.upflowlength* uses OpenMP's shared-memory model and the specified number of
+threads to parallelize the computation.
 
 ## EXAMPLES
 
@@ -84,7 +82,7 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 
 Huidae Cho, Accepted in May 2026. *Flow in Float: Memory-Efficient Upstream
 Flow Length Parallel Computation Using an IEEE-754&ndash;Based Union Encoding.*
-Environmental Modelling &amp; Software.
+Environmental Modelling & Software.
 
 ## AUTHOR
 

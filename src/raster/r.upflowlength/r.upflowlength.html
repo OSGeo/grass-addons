@@ -6,21 +6,21 @@ OpenMP parallel algorithm by Cho (2026).
 
 <h2>NOTES</h2>
 
-<em>r.upflowlength</em> can automatically recognize the following three different
-formats of flow directions: <b>degree</b>, <b>45degree</b>, and <b>power2</b>.
-The <b>degree</b> format starts just above 0&deg; at East (excluding 0&deg;
-itself) and goes counterclockwise up to 360&deg;, which also corresponds to
-East. The <b>45degree</b> format divides the degree format by 45&deg;. The
-<b>power2</b> format starts from 1 at East and doubles clockwise up to
-Northeast.
+<em>r.upflowlength</em> can automatically recognize the following three
+different formats of flow directions: <b>degree</b>, <b>45degree</b>, and
+<b>power2</b>. The <b>degree</b> format starts just above 0&deg; at East
+(excluding 0&deg; itself) and goes counterclockwise up to 360&deg;, which also
+corresponds to East. The <b>45degree</b> format divides the degree format by
+45&deg;. The <b>power2</b> format starts from 1 at East and doubles clockwise
+up to Northeast.
 <div align="center">
 <img src="r_upflowlength_formats.png" alt="Auto-detected flow direction formats">
 </div>
 
-<p><em>r.upflowlength</em> also supports the <b>taudem</b> format, which is used by
-<a href="https://github.com/dtarb/TauDEM">TauDEM</a>&apos;s D8FlowDir. This
-format is not auto-detected because it shares the same encoding range of the
-<b>45degree</b> format. Additionally, the module can accept any integer
+<p><em>r.upflowlength</em> also supports the <b>taudem</b> format, which is
+used by <a href="https://github.com/dtarb/TauDEM">TauDEM</a>&apos;s D8FlowDir.
+This format is not auto-detected because it shares the same encoding range of
+the <b>45degree</b> format. Additionally, the module can accept any integer
 encodings with the <b>custom</b> format and <b>encoding</b> option, which uses
 eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
 <b>45degree</b> format using this method, one can use <b>format=custom
@@ -89,8 +89,8 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 <h2>REFERENCES</h2>
 
 Huidae Cho, Accepted in May 2026. <em>Flow in Float: Memory-Efficient Upstream
-Flow Length Parallel Computation Using an IEEE-754&ndash;Based Union Encoding.</em>
-Environmental Modelling &amp; Software.
+Flow Length Parallel Computation Using an IEEE-754&ndash;Based Union
+Encoding.</em> Environmental Modelling &amp; Software.
 
 <h2>AUTHOR</h2>
 
