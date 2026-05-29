@@ -868,7 +868,7 @@ def local_ssurgo_query(
     else:
         # weighted_component
         gs.warning(_("Weighted component aggregation method not yet implemented."))
-        pass
+        return None
 
     ssurgo_data = con.execute(query).fetchdf()
     if ssurgo_data.size == 0:
@@ -1731,7 +1731,7 @@ class SDAClient:
 def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
     """Write SSURGO data to a GRASS vector layer.
 
-    :param data: List of dicts containing SSURGO attributes and WKT geometry.
+    :param tmp_filepath: Path to the temporary file containing SSURGO data.
     :param ssurgo_areas_out: Name of the output GRASS vector map.
     :param src_srs: EPSG code of the input
            5070 for the FlatGeobuf file 4326 for the GeoJSON file.
