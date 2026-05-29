@@ -643,7 +643,7 @@ def hydrologic_soil_group_color_scheme(map_name: str) -> None:
     )
 
 
-def ksat_color_scheme(map_name: str) -> None:
+def ksat_color_scheme(map_names: list[str]) -> None:
     """Apply ksat color scheme to elevation map."""
     gs.verbose(_("Applying ksat color scheme..."))
     ksat_color_palette = [
@@ -670,10 +670,7 @@ def ksat_color_scheme(map_name: str) -> None:
         "\n".join(f"{pos} {color}" for pos, color in ksat_color_palette) + "\n"
     )
     gs.write_command(
-        "r.colors",
-        map=map_name,
-        rules="-",
-        stdin=ksat_color_scheme,
+        "r.colors", map=map_names, rules="-", stdin=ksat_color_scheme, flags="e"
     )
 
 
@@ -1229,8 +1226,7 @@ def _rasterize_and_style(
             output=map_name,
             label_column=label_column if label_column else "",
         )
-        if col in ("ksat_l", "ksat_r", "ksat_h"):
-            ksat_color_scheme(map_name)
+
         if col == "mukey_int":
             gs.run_command("r.colors", map=map_name, color="random")
         if col == "hsg":
@@ -1242,6 +1238,12 @@ def _rasterize_and_style(
             if not name:
                 continue
             _rasterize_3d(ssurgo_vector, base_field=base, output=name, slices=slices)
+
+    # Apply the ksat color scheme on all ksat maps, whether 2D or 3D.
+    # For 3D rasters, the color scheme applies to all slices.
+    ksat_map_names = [name for name in (ksat_l, ksat_r, ksat_h) if name]
+    if ksat_map_names:
+        ksat_color_scheme(ksat_map_names)
 
 
 def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
