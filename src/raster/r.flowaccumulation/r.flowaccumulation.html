@@ -68,7 +68,7 @@ g.region -p raster=elevation
 r.watershed -sa elevation=elevation accumulation=flow_accum drainage=drain_directions
 
 # calculate flow accumulation using r.flowaccumulation
-r.flowaccumulation input=drain_directions output=flow_accum_new
+r.flowaccumulation direction=drain_directions output=flow_accum_new
 
 # copy color table
 r.colors map=flow_accum_new raster=flow_accum
