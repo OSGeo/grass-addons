@@ -36,6 +36,7 @@
 import sys
 import grass.script as gs
 
+
 def main():
     options, flags = gs.parser()
 

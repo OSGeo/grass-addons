@@ -33,6 +33,7 @@
 import sys
 import grass.script as gs
 
+
 def main():
     options, flags = gs.parser()
 
@@ -59,8 +60,11 @@ def main():
         rdarray_to_grass(flowdirs, options["output_flowdirs"], overwrite=gs.overwrite())
     if options["output_hierarchy"]:
         depressions_to_grass(
-            deps, labels, flowdirs, options["output_hierarchy"],
-            overwrite=gs.overwrite()
+            deps,
+            labels,
+            flowdirs,
+            options["output_hierarchy"],
+            overwrite=gs.overwrite(),
         )
 
 

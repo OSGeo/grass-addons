@@ -57,9 +57,7 @@ class TestRichdemDephier(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         cls.runModule("g.region", n=5, s=0, e=5, w=0, res=1)
-        cls.runModule(
-            "r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression=f"{_DEM} = {_DEM_EXPR}", overwrite=True)
         # Run once; individual tests query the outputs
         cls.runModule(
             "r.richdem.dephier",
@@ -142,7 +140,7 @@ class TestRichdemDephier(TestCase):
             layer=1,
             columns="type",
             where="type = 'leaf'",
-            flags="c",   # column headers suppressed
+            flags="c",  # column headers suppressed
         ).strip()
         self.assertTrue(
             len(rows) > 0,
@@ -151,14 +149,18 @@ class TestRichdemDephier(TestCase):
 
     def test_hierarchy_depression_has_volume(self):
         """Leaf depression has a positive water-storage volume."""
-        rows = gs.read_command(
-            "v.db.select",
-            map=_HIERARCHY,
-            layer=1,
-            columns="dep_vol",
-            where="type = 'leaf'",
-            flags="c",
-        ).strip().splitlines()
+        rows = (
+            gs.read_command(
+                "v.db.select",
+                map=_HIERARCHY,
+                layer=1,
+                columns="dep_vol",
+                where="type = 'leaf'",
+                flags="c",
+            )
+            .strip()
+            .splitlines()
+        )
         dep_vols = [float(r) for r in rows if r]
         self.assertTrue(
             any(v > 0 for v in dep_vols),
@@ -168,14 +170,29 @@ class TestRichdemDephier(TestCase):
     def test_hierarchy_expected_columns(self):
         """Layer-1 attribute table contains the expected schema columns."""
         required = {
-            "cat", "dep_label", "type", "pit_cell", "out_cell",
-            "parent", "lchild", "rchild", "odep", "geolink",
-            "pit_elev", "out_elev", "ocean_parent",
-            "cell_count", "dep_vol", "water_vol", "total_elevation",
+            "cat",
+            "dep_label",
+            "type",
+            "pit_cell",
+            "out_cell",
+            "parent",
+            "lchild",
+            "rchild",
+            "odep",
+            "geolink",
+            "pit_elev",
+            "out_elev",
+            "ocean_parent",
+            "cell_count",
+            "dep_vol",
+            "water_vol",
+            "total_elevation",
         }
-        cols = gs.read_command(
-            "v.info", map=_HIERARCHY, layer=1, flags="c"
-        ).strip().splitlines()
+        cols = (
+            gs.read_command("v.info", map=_HIERARCHY, layer=1, flags="c")
+            .strip()
+            .splitlines()
+        )
         # v.info -c output: "type|name"
         found = {line.split("|")[1] for line in cols if "|" in line}
         missing = required - found
