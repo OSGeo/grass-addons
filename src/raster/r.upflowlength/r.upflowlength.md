@@ -88,5 +88,5 @@ Environmental Modelling &amp; Software.
 
 ## AUTHOR
 
-[Huidae Cho](mailto:grass4u@gmail-com),
-[CLAWRIM](https://clawrim.isnew.info/), New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com)
+([CLAWRIM](https://clawrim.isnew.info/), New Mexico State University)
