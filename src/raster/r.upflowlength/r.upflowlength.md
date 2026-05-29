@@ -14,7 +14,7 @@ East. The **45degree** format divides the degree format by 45°. The
 **power2** format starts from 1 at East and doubles clockwise up to
 Northeast.
 
-![Auto-detected flow direction formats](r.upflowlength_formats.png)
+![Auto-detected flow direction formats](r_upflowlength_formats.png)
 
 *r.upflowlength* also supports the **taudem** format, which is used by
 [TauDEM](https://github.com/dtarb/TauDEM)'s D8FlowDir. This
@@ -25,7 +25,7 @@ eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
 **45degree** format using this method, one can use **format=custom
 encoding=8,7,6,5,4,3,2,1**.
 
-![Custom flow direction formats](r.upflowlength_custom_formats.png)
+![Custom flow direction formats](r_upflowlength_custom_formats.png)
 
 When parallel processing is enabled with the **nprocs** option,
 *r.upflowlength* uses OpenMP&apos;s shared-memory model and the
@@ -52,7 +52,7 @@ r.upflowlength input=drain output=uflen
 r.upflowlength input=drain format=custom encoding=8,7,6,5,4,3,2,1 output=uflen2
 ```
 
-![Elevation example](r.upflowlength_elevation_example.png)
+![Elevation example](r_upflowlength_elevation_example.png)
 
 Perform the same analysis using the statewide DEM, elev_state_500m:
 
@@ -70,7 +70,7 @@ r.upflowlength input=nc_drain output=nc_uflen
 r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_uflen2
 ```
 
-![NC elevation example](r.upflowlength_elev_state_500m_example.png)
+![NC elevation example](r_upflowlength_elev_state_500m_example.png)
 
 ## SEE ALSO
 

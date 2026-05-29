@@ -14,7 +14,7 @@ East. The <b>45degree</b> format divides the degree format by 45&deg;. The
 <b>power2</b> format starts from 1 at East and doubles clockwise up to
 Northeast.
 <div align="center">
-<img src="r.upflowlength_formats.png" alt="Auto-detected flow direction formats">
+<img src="r_upflowlength_formats.png" alt="Auto-detected flow direction formats">
 </div>
 
 <p><em>r.upflowlength</em> also supports the <b>taudem</b> format, which is used by
@@ -26,7 +26,7 @@ eight numbers for E, SE, S, SW, W, NW, N, and NE. For example, to encode the
 <b>45degree</b> format using this method, one can use <b>format=custom
 encoding=8,7,6,5,4,3,2,1</b>.
 <div align="center">
-<img src="r.upflowlength_custom_formats.png" alt="Custom flow direction formats">
+<img src="r_upflowlength_custom_formats.png" alt="Custom flow direction formats">
 </div>
 
 <p>When parallel processing is enabled with the <b>nprocs</b> option,
@@ -54,7 +54,7 @@ r.upflowlength input=drain format=custom encoding=8,7,6,5,4,3,2,1 output=uflen2
 </pre></div>
 
 <div align="center">
-<img src="r.upflowlength_elevation_example.png">
+<img src="r_upflowlength_elevation_example.png">
 </div>
 
 <p>Perform the same analysis using the statewide DEM, elev_state_500m:
@@ -73,7 +73,7 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 </pre></div>
 
 <div align="center">
-<img src="r.upflowlength_elev_state_500m_example.png">
+<img src="r_upflowlength_elev_state_500m_example.png">
 </div>
 
 <h2>SEE ALSO</h2>
