@@ -675,14 +675,14 @@ def _ksat_color_scheme() -> str:
 def ksat_color_scheme(map_names: list[str]) -> None:
     """Apply ksat color scheme to 2D map."""
     gs.verbose(_("Applying ksat color scheme..."))
-    ksat_colors = _ksat_color_scheme(map_names)
+    ksat_colors = _ksat_color_scheme()
     gs.write_command("r.colors", map=map_names, rules="-", stdin=ksat_colors, flags="e")
 
 
 def ksat_color_scheme_3d(map_names: list[str]) -> None:
     """Apply ksat color scheme to 3D map."""
     gs.verbose(_("Applying 3D ksat color scheme..."))
-    ksat_colors = _ksat_color_scheme(map_names)
+    ksat_colors = _ksat_color_scheme()
     gs.write_command(
         "r3.colors", map=map_names, rules="-", stdin=ksat_colors, flags="e"
     )
