@@ -138,7 +138,7 @@ static double recode_encoding(double value, void *data)
     int internal_encoding[8] = {E, SE, S, SW, W, NW, N, NE};
     int i;
 
-    for (i = 0; i < 8 && value != encoding[i]; i++)
+    for (i = 0; i < 8 && abs(value) != encoding[i]; i++)
         ;
     if (i < 8)
         value = internal_encoding[i];
