@@ -1762,8 +1762,6 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
             )
 
         # Reproject from temporary project to the current (already active) project.
-        # Do NOT wrap in `gs.setup.init(SESSION)` — exiting that context tears
-        # down GISRC for the calling session.
         gs.message(_("Reprojecting data to current project..."))
         gs.run_command(
             "v.proj",
@@ -1775,7 +1773,6 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
         )
 
         # Clip reprojected polygons to the current computational region.
-        # -r: clip by region (no clip map needed)
         gs.message(_("Clipping output to current computational region..."))
         clipped_name = f"{ssurgo_areas_out}_clipped"
         gs.run_command(
