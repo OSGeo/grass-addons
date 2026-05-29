@@ -60,7 +60,7 @@ Extract all draining cells (all outlets for the elevation raster), and
 calculate all watersheds and longest flow paths:
 
 ```sh
-# set computational region
+[#](#) set computational region
 g.region -ap rast=elevation
 
 # calculate drainage directions using r.watershed
