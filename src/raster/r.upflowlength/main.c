@@ -41,17 +41,8 @@ int main(int argc, char *argv[])
         struct Option *dir;
         struct Option *format;
         struct Option *encoding;
-        struct Option *outlets;
-        struct Option *layer;
-        struct Option *idcol;
-        struct Option *ufl;
-        struct Option *heads;
-        struct Option *coors;
-        struct Option *oidcol;
+        struct Option *uflen;
 #ifdef _OPENMP
-#ifdef LOOP_THEN_TASK
-        struct Option *tss;
-#endif
         struct Option *nprocs;
 #endif
     } opt;
@@ -100,8 +91,8 @@ int main(int argc, char *argv[])
     opt.encoding->required = NO;
     opt.encoding->description = _("Eight integers for E,SE,S,SW,W,NW,N,NE");
 
-    opt.ufl = G_define_standard_option(G_OPT_R_OUTPUT);
-    opt.ufl->description = _("Name for output longest flow paths vector map");
+    opt.uflen = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt.uflen->description = _("Name for output longest flow paths vector map");
 
 #ifdef _OPENMP
     opt.nprocs = G_define_standard_option(G_OPT_M_NPROCS);
@@ -113,7 +104,7 @@ int main(int argc, char *argv[])
     dir_name = opt.dir->answer;
     format = opt.format->answer;
     encoding = opt.encoding->answer;
-    uflen_name = opt.ufl->answer;
+    uflen_name = opt.uflen->answer;
 
     if (strcmp(format, "custom") == 0 && !encoding)
         G_fatal_error(_("Custom format requires <%s>"), opt.encoding->key);
