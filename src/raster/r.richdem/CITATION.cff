@@ -1,0 +1,246 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "r.richdem: GRASS GIS add-on collection wrapping the RichDEM terrain-analysis library"
+abstract: >
+  A collection of seven GRASS GIS modules that expose the RichDEM Python
+  bindings for depression filling, depression breaching, flat resolution,
+  flow accumulation, terrain attributes, depression-hierarchy construction,
+  and Fill-Spill-Merge surface-water routing.
+authors:
+  - family-names: "Wickert"
+    given-names: "Andrew D."
+    orcid: "https://orcid.org/0000-0002-9545-3365"
+contributors:
+  - name: "Claude Sonnet 4.6 (Anthropic)"
+    alias: "claude-sonnet-4-6"
+    role: "software"
+    notes: >
+      AI assistant used to develop the GRASS GIS bindings, module code,
+      shared library, and HTML documentation. Listed as contributor per
+      emerging convention for AI-assisted software development; the AI
+      system holds no copyright.
+url: "https://github.com/awickert/r.richdem"
+license: GPL-3.0
+keywords:
+  - GRASS GIS
+  - RichDEM
+  - terrain analysis
+  - hydrology
+  - depression hierarchy
+  - fill-spill-merge
+  - flow accumulation
+  - digital elevation model
+references:
+  # Core r.richdem / RichDEM algorithm papers
+  - type: article
+    title: >
+      Computing water flow through complex landscapes – Part 3:
+      Fill–Spill–Merge: flow routing in depression hierarchies
+    authors:
+      - family-names: "Barnes"
+        given-names: "Richard"
+      - family-names: "Callaghan"
+        given-names: "Kerry L."
+      - family-names: "Wickert"
+        given-names: "Andrew D."
+        orcid: "https://orcid.org/0000-0002-9545-3365"
+    journal: "Earth Surface Dynamics"
+    volume: 9
+    issue: 1
+    start: 105
+    end: 121
+    year: 2021
+    doi: 10.5194/esurf-9-105-2021
+  - type: article
+    title: >
+      Computing water flow through complex landscapes – Part 2:
+      Finding hierarchies in depressions and morphological segmentations
+    authors:
+      - family-names: "Barnes"
+        given-names: "Richard"
+      - family-names: "Callaghan"
+        given-names: "Kerry L."
+      - family-names: "Wickert"
+        given-names: "Andrew D."
+        orcid: "https://orcid.org/0000-0002-9545-3365"
+    journal: "Earth Surface Dynamics"
+    volume: 8
+    issue: 2
+    start: 431
+    end: 445
+    year: 2020
+    doi: 10.5194/esurf-8-431-2020
+  - type: article
+    title: >
+      Priority-Flood: An optimal depression-filling and watershed-labeling
+      algorithm for digital elevation models
+    authors:
+      - family-names: "Barnes"
+        given-names: "Richard"
+      - family-names: "Lehman"
+        given-names: "Clarence"
+      - family-names: "Mulla"
+        given-names: "David"
+    journal: "Computers & Geosciences"
+    volume: 62
+    start: 117
+    end: 127
+    year: 2014
+    doi: 10.1016/j.cageo.2013.04.024
+  - type: article
+    title: >
+      An efficient assignment of drainage direction over flat surfaces in
+      raster digital elevation models
+    authors:
+      - family-names: "Barnes"
+        given-names: "Richard"
+      - family-names: "Lehman"
+        given-names: "Clarence"
+      - family-names: "Mulla"
+        given-names: "David"
+    journal: "Computers & Geosciences"
+    volume: 62
+    start: 128
+    end: 135
+    year: 2014
+    doi: 10.1016/j.cageo.2013.01.009
+  - type: article
+    title: >
+      Efficient hybrid breaching-filling sink removal methods for flow path
+      enforcement in digital elevation models
+    authors:
+      - family-names: "Lindsay"
+        given-names: "John B."
+    journal: "Hydrological Processes"
+    volume: 30
+    issue: 6
+    start: 846
+    end: 857
+    year: 2016
+    doi: 10.1002/hyp.10648
+  # Flow-accumulation algorithm papers (implemented via RichDEM)
+  - type: article
+    title: >
+      The extraction of drainage networks from digital elevation data
+    authors:
+      - family-names: "O'Callaghan"
+        given-names: "John F."
+      - family-names: "Mark"
+        given-names: "David M."
+    journal: "Computer Vision, Graphics, and Image Processing"
+    volume: 28
+    issue: 3
+    start: 323
+    end: 344
+    year: 1984
+    doi: 10.1016/S0734-189X(84)80011-0
+  - type: article
+    title: "Drainage networks from grid digital elevation models"
+    authors:
+      - family-names: "Fairfield"
+        given-names: "John"
+      - family-names: "Leymarie"
+        given-names: "Pierre"
+    journal: "Water Resources Research"
+    volume: 27
+    issue: 5
+    start: 709
+    end: 717
+    year: 1991
+    doi: 10.1029/90WR02658
+  - type: article
+    title: >
+      Calculating catchment area with divergent flow based on a regular grid
+    authors:
+      - family-names: "Freeman"
+        given-names: "T. G."
+    journal: "Computers & Geosciences"
+    volume: 17
+    issue: 3
+    start: 413
+    end: 422
+    year: 1991
+    doi: 10.1016/0098-3004(91)90048-I
+  - type: article
+    title: >
+      The prediction of hillslope flow paths for distributed hydrological
+      modelling using digital terrain models
+    authors:
+      - family-names: "Quinn"
+        given-names: "P."
+      - family-names: "Beven"
+        given-names: "K."
+      - family-names: "Chevallier"
+        given-names: "P."
+      - family-names: "Planchon"
+        given-names: "O."
+    journal: "Hydrological Processes"
+    volume: 5
+    issue: 1
+    start: 59
+    end: 79
+    year: 1991
+    doi: 10.1002/hyp.3360050106
+  - type: article
+    title: >
+      Multiple flow direction algorithms for runoff modelling in grid based
+      elevation models: An empirical evaluation
+    authors:
+      - family-names: "Holmgren"
+        given-names: "Peter"
+    journal: "Hydrological Processes"
+    volume: 8
+    issue: 4
+    start: 327
+    end: 334
+    year: 1994
+    doi: 10.1002/hyp.3360080405
+  - type: article
+    title: >
+      A new method for the determination of flow directions and upslope areas
+      in grid digital elevation models
+    authors:
+      - family-names: "Tarboton"
+        given-names: "David G."
+    journal: "Water Resources Research"
+    volume: 33
+    issue: 2
+    start: 309
+    end: 319
+    year: 1997
+    doi: 10.1029/96WR03137
+  # Terrain-attribute algorithm papers (implemented via RichDEM)
+  - type: article
+    title: "Hill shading and the reflectance map"
+    authors:
+      - family-names: "Horn"
+        given-names: "Berthold K. P."
+    journal: "Proceedings of the IEEE"
+    volume: 69
+    issue: 1
+    start: 14
+    end: 47
+    year: 1981
+    doi: 10.1109/PROC.1981.11918
+  - type: article
+    title: "Quantitative analysis of land surface topography"
+    authors:
+      - family-names: "Zevenbergen"
+        given-names: "Lyle W."
+      - family-names: "Thorne"
+        given-names: "Colin R."
+    journal: "Earth Surface Processes and Landforms"
+    volume: 12
+    issue: 1
+    start: 47
+    end: 56
+    year: 1987
+    doi: 10.1002/esp.3290120107
+  - type: software
+    title: "RichDEM: Terrain Analysis Software"
+    authors:
+      - family-names: "Barnes"
+        given-names: "Richard"
+    year: 2016
+    url: "http://github.com/r-barnes/richdem"
