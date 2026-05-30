@@ -4,11 +4,11 @@ Synthetic DEM (5 x 5, 1 m resolution):
 
     5 5 5 5 5
     5 9 9 9 5
-    5 9 1 4 5   <- pit=1, saddle=4 immediately left of right border
+    5 9 1 4 5   <- pit=1, step=4 immediately left of right border
     5 9 9 9 5
     5 5 5 5 5
 
-Pour-point elevation = 5 (border cell adjacent to the saddle at elevation 4).
+Pour-point elevation = 5 (border cell adjacent to the step at elevation 4).
 
 Expected hierarchy properties:
   - One leaf depression: the basin draining to the centre pit.
@@ -36,7 +36,7 @@ _LABELS = "tmp_richdem_dephier_labels"
 _FLOWDIRS = "tmp_richdem_dephier_flowdirs"
 _HIERARCHY = "tmp_richdem_dephier_hierarchy"
 
-# 5x5: border=5, ring=9, pit=1, saddle=4 at (row=3, col=4)
+# 5x5: border=5, ring=9, pit=1, step=4 at (row=3, col=4)
 _DEM_EXPR = (
     "if(row()==3 && col()==3, 1,"
     " if(row()==3 && col()==4, 4,"
