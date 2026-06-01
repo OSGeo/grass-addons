@@ -1,0 +1,13 @@
+MODULE_TOPDIR = ../..
+
+PGM = r.upflowlength
+
+LIBES = $(RASTERLIB) $(GISLIB) $(MATHLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
+EXTRA_LIBS = $(OPENMP_LIBPATH) $(OPENMP_LIB)
+EXTRA_INC = $(OPENMP_INCPATH)
+EXTRA_CFLAGS = $(OPENMP_CFLAGS)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
