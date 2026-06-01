@@ -51,7 +51,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.4.10"
+    rev: "v2.4.16"
     hooks:
       - id: biome-check
       - id: biome-lint
