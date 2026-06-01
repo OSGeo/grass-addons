@@ -273,7 +273,6 @@ from pathlib import Path
 from subprocess import PIPE
 
 import grass.script as gs
-from eodag.utils.exceptions import AuthenticationError
 from grass.pygrass.modules import Module
 
 try:
@@ -284,6 +283,7 @@ except ImportError:
 try:
     import eodag
     import yaml
+    from eodag.utils.exceptions import AuthenticationError
 
     EODAG_VERSION = int(eodag.__version__.split(".")[0])
 except ImportError:
