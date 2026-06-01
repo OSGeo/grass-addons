@@ -3,18 +3,17 @@
 Synthetic DEM (5 x 5, 1 m resolution):
 
     5 5 5 5 5
-    5 3 3 3 5
-    5 3 1 3 3   <- centre pit (1); channel exits at right border (3)
-    5 3 3 3 5
+    5 9 9 9 5
+    5 9 1 4 5   <- pit=1, step=4 immediately left of right border
+    5 9 9 9 5
     5 5 5 5 5
 
-Pour-point elevation = 3 (the channel row connects the pit directly to
-the right border at elevation 3).
+Pour-point elevation = 5 (border cell adjacent to the step at elevation 4).
 
 Expected hierarchy properties:
-  - One leaf depression: the inner 3 x 3 basin draining to the centre pit.
-  - Pour-point elevation = 3 (channel border cell at row 3, col 5).
-  - Depression volume > 0 (centre cell is 2 m below the pour point).
+  - One leaf depression: the basin draining to the centre pit.
+  - Pour-point elevation = 5 (border cell at row 3, col 5).
+  - Depression volume > 0 (centre cell is below the pour point).
   - Border cells drain directly to the DEM boundary (label 0 / OCEAN).
   - Flow directions are in [0, 8] for all cells (8 marks the pit).
 """
@@ -37,11 +36,11 @@ _LABELS = "tmp_richdem_dephier_labels"
 _FLOWDIRS = "tmp_richdem_dephier_flowdirs"
 _HIERARCHY = "tmp_richdem_dephier_hierarchy"
 
-# 5x5: border=5, inner ring=3, centre=1; outlet at right border (row 3, col 5 = 3)
+# 5x5: border=5, ring=9, pit=1, step=4 at (row=3, col=4)
 _DEM_EXPR = (
     "if(row()==3 && col()==3, 1,"
-    " if(row()==3 && col()==5, 3,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)))"
+    " if(row()==3 && col()==4, 4,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 9)))"
 )
 
 

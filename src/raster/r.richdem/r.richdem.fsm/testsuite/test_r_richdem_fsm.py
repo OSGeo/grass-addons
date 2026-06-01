@@ -3,13 +3,12 @@
 Synthetic DEM (5 x 5, 1 m resolution):
 
     5 5 5 5 5
-    5 3 3 3 5
-    5 3 1 3 3   <- centre pit (1); channel exits at right border (3)
-    5 3 3 3 5
+    5 9 9 9 5
+    5 9 1 4 5   <- pit=1, step=4 immediately left of right border
+    5 9 9 9 5
     5 5 5 5 5
 
-Pour-point elevation = 3 (the channel row connects the pit directly to
-the right border at elevation 3).
+Pour-point elevation = 5 (border cell adjacent to the step at elevation 4).
 
 r.richdem.dephier is run once in setUpClass; its outputs feed FSM.
 Water-table depth (wtd) convention: negative = unsaturated (below
@@ -20,8 +19,8 @@ Two water scenarios are tested:
   Dry   wtd = −1 everywhere (no ponded water)
   Wet   wtd = +1.5 in depression cells, −1 elsewhere
 
-With the pour point at elevation 3 and 1.5 m of ponded water on inner
-ring cells (surface elevation 3 + 1.5 = 4.5 m > pour point), water
+With the pour point at elevation 5 and 1.5 m of ponded water on ring
+cells (surface elevation 9 + 1.5 = 10.5 m > pour point), water
 spills and FSM redistributes it, reducing the domain mean wtd.
 
 Note: when the maximum value in a DCELL raster is exactly 0.0, GRASS
@@ -52,11 +51,11 @@ _WTD_WET = "tmp_richdem_fsm_wtd_wet"
 _OUT_DRY = "tmp_richdem_fsm_out_dry"
 _OUT_WET = "tmp_richdem_fsm_out_wet"
 
-# 5x5: border=5, inner ring=3, centre=1; outlet at right border (row 3, col 5 = 3)
+# 5x5: border=5, ring=9, pit=1, step=4 at (row=3, col=4)
 _DEM_EXPR = (
     "if(row()==3 && col()==3, 1,"
-    " if(row()==3 && col()==5, 3,"
-    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 3)))"
+    " if(row()==3 && col()==4, 4,"
+    " if(row()==1 || row()==5 || col()==1 || col()==5, 5, 9)))"
 )
 
 

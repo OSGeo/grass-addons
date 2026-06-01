@@ -7,7 +7,7 @@
 # %end
 # %option G_OPT_R_INPUT
 # % key: input
-# % description: Input elevation raster
+# % description: Input (filled or breached) elevation raster
 # %end
 # %option G_OPT_R_OUTPUT
 # % key: output
