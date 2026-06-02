@@ -312,6 +312,23 @@ class TestMultiPointCsv(TestCase):
         lons = {row.split(",")[0] for row in data_rows}
         self.assertEqual(lons, {"-78.6", "-81.0"})
 
+    def test_custom_separator_applied(self):
+        d1 = r_noaa.parse_pfds_response(SAMPLE_PFDS)
+        d1["request"] = {"lon": -78.6, "lat": 35.7}
+        text = r_noaa._multi_point_csv_text([d1], "expected", ".3f", separator="|")
+        header = text.strip().splitlines()[0]
+        self.assertEqual(header.split("|")[:4], ["lon", "lat", "bound", "duration"])
+        self.assertNotIn(",", header)
+
+
+class TestPfdsToCsvText(TestCase):
+    def test_custom_separator_applied(self):
+        data = r_noaa.parse_pfds_response(SAMPLE_PFDS)
+        text = r_noaa.pfds_to_csv_text(data, "expected", ".3f", separator="\t")
+        header = text.splitlines()[0]
+        self.assertEqual(header.split("\t")[0], "duration")
+        self.assertNotIn(",", header)
+
 
 class TestDurationToHours(TestCase):
     def test_minute_to_hour(self):

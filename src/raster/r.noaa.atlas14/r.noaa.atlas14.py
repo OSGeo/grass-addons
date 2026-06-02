@@ -453,12 +453,16 @@ def fetch_pfds_point(
     )
 
 
-def pfds_to_csv_text(data: dict[str, Any], bound: str, float_format: str) -> str:
+def pfds_to_csv_text(
+    data: dict[str, Any], bound: str, float_format: str, separator: str = ","
+) -> str:
     if bound == "all":
         parts = []
         for section in ("expected", "upper", "lower"):
             parts.append(f"# {section}")
-            parts.append(pfds_to_csv_text(data, section, float_format).rstrip())
+            parts.append(
+                pfds_to_csv_text(data, section, float_format, separator).rstrip()
+            )
             parts.append("")
         return "\n".join(parts).rstrip() + "\n"
 
@@ -466,7 +470,7 @@ def pfds_to_csv_text(data: dict[str, Any], bound: str, float_format: str) -> str
     rps = table["return_periods_years"]
     rows = table["rows"]
     out = io.StringIO()
-    writer = csv.writer(out, lineterminator="\n")
+    writer = csv.writer(out, delimiter=separator, lineterminator="\n")
     writer.writerow(["duration"] + [_format_rp(x) for x in rps])
     for row in rows:
         vals = [row["duration"]]
@@ -522,7 +526,7 @@ def _pfds_to_csv_rows_with_coords(
 
 
 def _multi_point_csv_text(
-    results: list[dict[str, Any]], bound: str, float_format: str
+    results: list[dict[str, Any]], bound: str, float_format: str, separator: str = ","
 ) -> str:
     """Combined CSV over multiple points. Assumes all points share the same
     return-period header (NOAA PFDS returns the same RPs for all lat/lon)."""
@@ -530,7 +534,7 @@ def _multi_point_csv_text(
     first_section = "expected" if bound == "all" else bound
     rps = first["tables"][first_section]["return_periods_years"]
     out = io.StringIO()
-    writer = csv.writer(out, lineterminator="\n")
+    writer = csv.writer(out, delimiter=separator, lineterminator="\n")
     writer.writerow(["lon", "lat", "bound", "duration"] + [_format_rp(x) for x in rps])
     for data in results:
         lon = data["request"]["lon"]
@@ -546,6 +550,7 @@ def write_point_output(
     bound: str,
     output: str | None,
     float_format: str,
+    separator: str,
     *,
     print_stdout: bool,
 ) -> None:
@@ -558,9 +563,9 @@ def write_point_output(
         text = json.dumps(payload, indent=2)
     else:
         if multi:
-            text = _multi_point_csv_text(results, bound, float_format)
+            text = _multi_point_csv_text(results, bound, float_format, separator)
         else:
-            text = pfds_to_csv_text(results[0], bound, float_format)
+            text = pfds_to_csv_text(results[0], bound, float_format, separator)
 
     if output:
         Path(output).write_text(text, encoding="utf-8")
@@ -954,7 +959,7 @@ def build_raster_name(prefix: str, meta: GridCandidate, fallback_stem: str) -> s
     return sanitize_name("_".join(parts))
 
 
-def write_manifest(rows: list[dict[str, Any]], path: str) -> None:
+def write_manifest(rows: list[dict[str, Any]], path: str, separator: str = ",") -> None:
     if not rows:
         return
     fieldnames = [
@@ -970,7 +975,7 @@ def write_manifest(rows: list[dict[str, Any]], path: str) -> None:
         "ari",
     ]
     with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=separator)
         writer.writeheader()
         writer.writerows(rows)
     gs.message(_("Wrote grid import manifest to '{path}'.").format(path=path))
@@ -1093,6 +1098,7 @@ def run_point_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
         output=options["output"] or None,
         print_stdout=flags["c"],
         float_format=options["float_format"],
+        separator=gs.separator(options["separator"]),
     )
 
     if options["vector_output"]:
@@ -1206,7 +1212,9 @@ def run_grid_mode(options: dict[str, str], flags: dict[str, bool]) -> None:
                     pass
 
         if options["output"]:
-            write_manifest(manifest_rows, options["output"])
+            write_manifest(
+                manifest_rows, options["output"], gs.separator(options["separator"])
+            )
         else:
             gs.message(
                 _("Imported {count} raster(s).").format(count=len(manifest_rows))
