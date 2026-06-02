@@ -247,6 +247,9 @@ if TYPE_CHECKING:
 PFDS_POINT_URL = "https://hdsc.nws.noaa.gov/cgi-bin/new/fe_text.csv"
 USER_AGENT = "Mozilla/5.0 (compatible; r.noaa.atlas14/0.1)"
 
+# Seconds to wait on a stalled connection before failing.
+HTTP_TIMEOUT = 60
+
 # Warn when more than this many grid archives would be downloaded at once.
 LARGE_DOWNLOAD_THRESHOLD = 50
 
@@ -325,13 +328,13 @@ class GridCandidate:
 
 def http_get_text(url: str) -> str:
     req = Request(url, headers={"User-Agent": USER_AGENT})
-    with urlopen(req) as resp:
+    with urlopen(req, timeout=HTTP_TIMEOUT) as resp:
         return resp.read().decode("utf-8", errors="replace")
 
 
 def http_download(url: str, dst: Path) -> None:
     req = Request(url, headers={"User-Agent": USER_AGENT})
-    with urlopen(req) as resp, open(dst, "wb") as f:
+    with urlopen(req, timeout=HTTP_TIMEOUT) as resp, open(dst, "wb") as f:
         shutil.copyfileobj(resp, f)
 
 
@@ -845,9 +848,21 @@ def import_zip_archive(
 
         for raster in raster_files:
             meta = parse_grid_filename(raster.name)
+            # Intensity needs a known duration to divide by; if the filename
+            # did not encode one, fall back to depth so the name, title, and
+            # values all describe what was actually written.
+            effective_statistic = output_statistic
+            if output_statistic == "intensity" and not meta.duration:
+                gs.warning(
+                    _(
+                        "Cannot compute intensity for '{src}': source duration "
+                        "unknown; importing as depth instead."
+                    ).format(src=raster.name)
+                )
+                effective_statistic = "depth"
             # Name reflects the *output* content, not the raw NOAA encoding,
             # since we rescale to the user-requested statistic/units below.
-            meta.statistic = output_statistic
+            meta.statistic = effective_statistic
             meta.units = output_units
             outname = build_raster_name(output_prefix, meta, raster.stem)
             gs.message(
@@ -876,7 +891,7 @@ def import_zip_archive(
             unit_label = rescale_noaa_raster(
                 outname,
                 source_duration=meta.duration,
-                output_statistic=output_statistic,
+                output_statistic=effective_statistic,
                 output_units=output_units,
             )
             # Record history on the final raster, after rescale_noaa_raster
@@ -888,7 +903,7 @@ def import_zip_archive(
                     map=outname,
                     units=unit_label,
                     title=(
-                        f"NOAA Atlas 14 {output_statistic} "
+                        f"NOAA Atlas 14 {effective_statistic} "
                         f"({meta.bound or 'expected'}) "
                         f"{meta.duration or '?'} "
                         f"{meta.ari or '?'}-yr ARI"
@@ -906,7 +921,7 @@ def import_zip_archive(
                     "source_archive": archive_path.name,
                     "source_file": raster.name,
                     "parsed": meta.__dict__,
-                    "output_statistic": output_statistic,
+                    "output_statistic": effective_statistic,
                     "output_units": output_units,
                     "unit_label": unit_label,
                 }
