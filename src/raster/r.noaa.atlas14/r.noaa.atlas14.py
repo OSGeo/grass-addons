@@ -581,52 +581,92 @@ def write_point_output(
             sys.stdout.write("\n")
 
 
+def _reproject_lonlat_to_project(
+    points: list[tuple[float, float, dict[str, Any]]],
+) -> list[tuple[float, float]]:
+    """Reproject WGS84 lon/lat pairs into the current project's CRS.
+
+    Uses m.proj (as grass.jupyter does) so it works from any project CRS.
+    Returns east/north pairs in the same order as the input points.
+    """
+    coord_text = "".join(f"{lon} {lat}\n" for lon, lat, _data in points)
+    proc = gs.start_command(
+        "m.proj",
+        input="-",
+        flags="i",
+        separator=",",
+        stdin=gs.PIPE,
+        stdout=gs.PIPE,
+        stderr=gs.PIPE,
+    )
+    out, err = proc.communicate(input=coord_text)
+    out = out.decode() if isinstance(out, bytes) else out
+    err = err.decode() if isinstance(err, bytes) else err
+    if proc.returncode != 0:
+        raise Atlas14Error(
+            _("Coordinate reprojection with m.proj failed: {err}").format(
+                err=err.strip()
+            )
+        )
+    projected: list[tuple[float, float]] = []
+    for line in out.splitlines():
+        if not line.strip():
+            continue
+        east, north, _elev = (float(v) for v in line.split(","))
+        projected.append((east, north))
+    if len(projected) != len(points):
+        raise Atlas14Error("m.proj returned an unexpected number of coordinates")
+    return projected
+
+
 def create_point_vector(
     mapname: str, points: list[tuple[float, float, dict[str, Any]]]
 ) -> None:
-    tmpdir = Path(tempfile.mkdtemp(prefix="atlas14_point_"))
-    try:
-        ascii_path = tmpdir / "points.csv"
-        with ascii_path.open("w", encoding="utf-8") as f:
-            for cat, (lon, lat, _data) in enumerate(points, start=1):
-                f.write(f"{cat}|{lon}|{lat}\n")
+    """Create a vector point map from PFDS results.
 
-        gs.run_command(
-            "v.in.ascii",
-            input=str(ascii_path),
-            output=mapname,
-            separator="pipe",
-            x=2,
-            y=3,
-            cat=1,
-            format="point",
-            overwrite=gs.overwrite(),
-        )
-        gs.run_command(
-            "v.db.addtable",
-            map=mapname,
-            columns="lon double precision, lat double precision, expected_json text, upper_json text, lower_json text",
-        )
-        for cat, (lon, lat, data) in enumerate(points, start=1):
-            gs.run_command(
-                "db.execute",
-                sql=(
-                    f"UPDATE {mapname} SET lon = {lon}, lat = {lat}, "
-                    f"expected_json = '{_sql_escape(json.dumps(data['tables']['expected']))}', "
-                    f"upper_json = '{_sql_escape(json.dumps(data['tables']['upper']))}', "
-                    f"lower_json = '{_sql_escape(json.dumps(data['tables']['lower']))}' "
-                    f"WHERE cat = {cat}"
+    Points are queried in WGS84 lon/lat and reprojected into the project CRS
+    so the features land in the correct location regardless of the project.
+    """
+    from grass.pygrass.vector import VectorTopo
+    from grass.pygrass.vector.geometry import Point
+
+    projected = _reproject_lonlat_to_project(points)
+
+    cols = [
+        ("cat", "INTEGER PRIMARY KEY"),
+        ("lon", "DOUBLE PRECISION"),
+        ("lat", "DOUBLE PRECISION"),
+        ("expected_json", "TEXT"),
+        ("upper_json", "TEXT"),
+        ("lower_json", "TEXT"),
+    ]
+    new_vec = VectorTopo(mapname)
+    new_vec.open("w", tab_cols=cols, overwrite=gs.overwrite())
+    try:
+        for cat, ((lon, lat, data), (east, north)) in enumerate(
+            zip(points, projected), start=1
+        ):
+            new_vec.write(
+                Point(east, north),
+                cat=cat,
+                attrs=(
+                    lon,
+                    lat,
+                    json.dumps(data["tables"]["expected"]),
+                    json.dumps(data["tables"]["upper"]),
+                    json.dumps(data["tables"]["lower"]),
                 ),
             )
-        gs.vector_history(mapname)
-        gs.message(
-            _(
-                "Created vector point map <{name}> with {count} point(s) "
-                "and JSON attributes."
-            ).format(name=mapname, count=len(points))
-        )
+        new_vec.table.conn.commit()
     finally:
-        shutil.rmtree(tmpdir, ignore_errors=True)
+        new_vec.close()
+    gs.vector_history(mapname)
+    gs.message(
+        _(
+            "Created vector point map <{name}> with {count} point(s) "
+            "and JSON attributes."
+        ).format(name=mapname, count=len(points))
+    )
 
 
 # NOAA Atlas 14 GIS grid archive naming convention, e.g.:
@@ -1028,10 +1068,6 @@ def _format_rp(value: float | str) -> str:
     if isinstance(value, float):
         return str(int(value)) if value.is_integer() else format(value, "g")
     return str(value)
-
-
-def _sql_escape(value: str) -> str:
-    return value.replace("'", "''")
 
 
 def parse_coordinates(coords_str: str) -> list[tuple[float, float]]:

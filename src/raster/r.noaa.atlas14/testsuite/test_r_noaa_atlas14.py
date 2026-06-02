@@ -298,6 +298,26 @@ class TestRegionCenterLonLat(TestCase):
             self.del_temp_region()
 
 
+class TestReprojectLonlat(TestCase):
+    """Exercises _reproject_lonlat_to_project() against the NC SPM CRS."""
+
+    def test_raleigh_reprojects_into_nc_spm(self):
+        # Downtown Raleigh in WGS84 lon/lat -> NC SPM meters (EPSG:3358).
+        projected = r_noaa._reproject_lonlat_to_project([(-78.6382, 35.7796, {})])
+        self.assertEqual(len(projected), 1)
+        east, north = projected[0]
+        # Raleigh sits around 642000 E, 225000 N in the NC SPM project.
+        self.assertAlmostEqual(east, 642310, delta=2000)
+        self.assertAlmostEqual(north, 225207, delta=2000)
+
+    def test_order_preserved_for_multiple_points(self):
+        pts = [(-78.6382, 35.7796, {}), (-80.8431, 35.2271, {})]
+        projected = r_noaa._reproject_lonlat_to_project(pts)
+        self.assertEqual(len(projected), 2)
+        # Charlotte (second point) is west of Raleigh in NC SPM.
+        self.assertLess(projected[1][0], projected[0][0])
+
+
 class TestMultiPointCsv(TestCase):
     def test_combined_csv_has_lon_lat_columns(self):
         d1 = r_noaa.parse_pfds_response(SAMPLE_PFDS)

@@ -51,7 +51,9 @@ through to PFDS.
 
 If `vector_output=` is given, the module creates a vector point map with one
 feature per queried point and columns `lon`, `lat`, `expected_json`,
-`upper_json`, `lower_json`. The JSON
+`upper_json`, `lower_json`. Point geometries are reprojected from WGS84 into
+the current project's CRS, while the `lon`/`lat` columns keep the original
+WGS84 coordinates. The JSON
 columns contain the full per-duration tables so they can be queried later with
 `v.db.select` / `db.select`.
 

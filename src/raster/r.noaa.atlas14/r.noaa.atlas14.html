@@ -71,9 +71,11 @@ PFDS.</p>
 <p>If <code>vector_output=</code> is given, the module creates a vector
 point map with one feature per queried point and columns <code>lon</code>,
 <code>lat</code>, <code>expected_json</code>, <code>upper_json</code>,
-<code>lower_json</code>. The JSON columns contain the full per-duration
-tables so they can be queried later with <code>v.db.select</code> /
-<code>db.select</code>.</p>
+<code>lower_json</code>. Point geometries are reprojected from WGS84 into
+the current project's CRS, while the <code>lon</code>/<code>lat</code>
+columns keep the original WGS84 coordinates. The JSON columns contain the
+full per-duration tables so they can be queried later with
+<code>v.db.select</code> / <code>db.select</code>.</p>
 
 <h3>Grid mode</h3>
 
