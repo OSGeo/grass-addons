@@ -588,7 +588,7 @@ def create_point_vector(
     try:
         ascii_path = tmpdir / "points.csv"
         with ascii_path.open("w", encoding="utf-8") as f:
-            for cat, (lon, lat, _) in enumerate(points, start=1):
+            for cat, (lon, lat, _data) in enumerate(points, start=1):
                 f.write(f"{cat}|{lon}|{lat}\n")
 
         gs.run_command(
