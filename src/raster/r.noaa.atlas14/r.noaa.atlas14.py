@@ -610,6 +610,7 @@ def create_point_vector(
                     f"WHERE cat = {cat}"
                 ),
             )
+        gs.vector_history(mapname)
         gs.message(
             _(
                 "Created vector point map <{name}> with {count} point(s) "
@@ -857,7 +858,6 @@ def import_zip_archive(
                     resample=resample,
                     overwrite=gs.overwrite(),
                 )
-                gs.raster_history(outname, overwrite=True)
             else:
                 kwargs = {
                     "input": str(raster),
@@ -874,6 +874,9 @@ def import_zip_archive(
                 output_statistic=output_statistic,
                 output_units=output_units,
             )
+            # Record history on the final raster, after rescale_noaa_raster
+            # recreates <outname> via r.mapcalc. Covers both import paths.
+            gs.raster_history(outname, overwrite=True)
             try:
                 gs.run_command(
                     "r.support",
