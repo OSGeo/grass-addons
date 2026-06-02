@@ -793,11 +793,17 @@ def rescale_noaa_raster(
     tmp = f"{raster}__a14_raw__"
     gs.run_command("g.rename", raster=f"{raster},{tmp}", overwrite=True)
     try:
-        gs.run_command(
-            "r.mapcalc",
-            expression=f"{raster} = {tmp} * {factor}",
-            overwrite=True,
-        )
+        # Rescale over the imported raster's own extent and resolution rather
+        # than the user's current region, so the full imported grid is kept
+        # instead of being clipped to whatever region happens to be active.
+        env = os.environ.copy()
+        with gs.RegionManager(raster=tmp, env=env) as manager:
+            gs.run_command(
+                "r.mapcalc",
+                expression=f"{raster} = {tmp} * {factor}",
+                env=manager.env,
+                overwrite=True,
+            )
     finally:
         gs.run_command("g.remove", type="raster", name=tmp, flags="f")
     return unit_label
