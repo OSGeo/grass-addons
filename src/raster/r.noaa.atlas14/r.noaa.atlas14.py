@@ -54,7 +54,7 @@ PFDS point queries or official GIS-compatible grid downloads.
 # % required: no
 # % options: english,metric
 # % answer: english
-# % description: Units for point queries or for filtering grids
+# % description: Units for point queries; output units for grid rasters (does not filter grids)
 # % guisection: General
 # %end
 
@@ -200,7 +200,7 @@ PFDS point queries or official GIS-compatible grid downloads.
 
 # %flag
 # % key: k
-# % description: Keep downloaded archives and unpacked files
+# % description: Keep downloaded archives
 # % guisection: Grid
 # %end
 

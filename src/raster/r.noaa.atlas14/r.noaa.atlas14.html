@@ -6,9 +6,9 @@ modes:
 
 <ul>
 <li><b>mode=point</b> queries the NOAA Precipitation Frequency Data
-Server (PFDS) point-query endpoint for a single longitude/latitude and
-writes the returned precipitation-frequency estimates as JSON or CSV.
-Optionally, a GRASS vector point map is created with the
+Server (PFDS) point-query endpoint for one or more longitude/latitude
+pairs and writes the returned precipitation-frequency estimates as JSON
+or CSV. Optionally, a GRASS vector point map is created with the
 expected/upper/lower tables stored as JSON attributes.</li>
 <li><b>mode=grid</b> discovers, downloads, and imports NOAA Atlas 14
 GIS-compatible grid archives (ZIP) for a given Atlas 14
@@ -68,9 +68,9 @@ and <code>series</code> option (<code>pds</code> or <code>ams</code> —
 partial-duration or annual-maximum series) are passed through to
 PFDS.</p>
 
-<p>If <code>vector_output=</code> is given, the module creates a
-one-point vector map with columns <code>lon</code>, <code>lat</code>,
-<code>expected_json</code>, <code>upper_json</code>,
+<p>If <code>vector_output=</code> is given, the module creates a vector
+point map with one feature per queried point and columns <code>lon</code>,
+<code>lat</code>, <code>expected_json</code>, <code>upper_json</code>,
 <code>lower_json</code>. The JSON columns contain the full per-duration
 tables so they can be queried later with <code>v.db.select</code> /
 <code>db.select</code>.</p>
@@ -117,10 +117,13 @@ without downloading them.</p>
 <li><code>durations=</code> and <code>aris=</code> are <em>strict</em>:
 candidates whose duration or ARI could not be inferred from the filename
 are rejected.</li>
-<li><code>bound=</code>, <code>statistic=</code>, <code>units=</code>,
-<code>series=</code> are <em>permissive</em>: a candidate with an
-unknown attribute is allowed through, to avoid discarding rasters whose
-filenames don't encode every attribute.</li>
+<li><code>bound=</code> and <code>series=</code> are <em>permissive</em>:
+a candidate with an unknown attribute is allowed through, to avoid
+discarding rasters whose filenames do not encode every attribute.</li>
+<li><code>statistic=</code> and <code>units=</code> do <b>not</b> filter
+archives in grid mode. NOAA only publishes depth in english units, so the
+module always downloads that and rescales the imported rasters to the
+requested <code>statistic</code>/<code>units</code> as output targets.</li>
 </ul>
 
 <p>Rasters are imported with <em>r.in.gdal</em> by default; pass
@@ -134,14 +137,14 @@ with missing parts omitted.</p>
 <h3>Value encoding</h3>
 
 <p>NOAA Atlas 14 GIS grids encode precipitation depth as <b>integer
-1000ths of an inch</b> with a NODATA value of <b>-9</b> (see each ZIP's
-<code>.xml</code> metadata). To convert an imported raster to inches:</p>
-
-<div class="code"><pre>
-r.mapcalc "a14_inches = if(a14_raster == -9, null(), a14_raster / 1000.0)"
-</pre></div>
-
-<p>For millimeters, multiply by 25.4 / 1000 = 0.0254.</p>
+1000ths of an inch</b> in the raw archives. Grid mode converts the
+imported rasters automatically, so no manual rescaling is needed: depth
+is written in inches (or mm with <code>units=metric</code>) and intensity
+in in/hr (or mm/hr), according to the requested <code>statistic</code>
+and <code>units</code>. The raster <code>units</code> and title set by
+<em>r.support</em> describe the converted values. NODATA cells become
+GRASS NULLs on import, so the sentinel value (which varies by volume)
+does not need to be handled.</p>
 
 <h3>Safety</h3>
 
@@ -214,14 +217,13 @@ Maryland.</li>
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html">r.in.gdal</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html">r.in.gdal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>
 </em>
 
 <h2>AUTHORS</h2>
 
 Corey T. White,
-<a href="https://openplains.com">OpenPlains Inc.</a> &amp;
-Center for Geospatial Analytics, North Carolina State University
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>

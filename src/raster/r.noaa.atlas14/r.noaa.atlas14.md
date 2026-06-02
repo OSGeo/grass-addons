@@ -4,10 +4,10 @@
 data into GRASS. It supports two acquisition modes:
 
 - **mode=point** queries the NOAA Precipitation Frequency Data Server (PFDS)
-  point-query endpoint for a single longitude/latitude and writes the returned
-  precipitation-frequency estimates as JSON or CSV. Optionally, a GRASS vector
-  point map is created with the expected/upper/lower tables stored as JSON
-  attributes.
+  point-query endpoint for one or more longitude/latitude pairs and writes the
+  returned precipitation-frequency estimates as JSON or CSV. Optionally, a GRASS
+  vector point map is created with the expected/upper/lower tables stored as
+  JSON attributes.
 - **mode=grid** discovers, downloads, and imports NOAA Atlas 14 GIS-compatible
   grid archives (ZIP) for a given Atlas 14 volume/subregion, optionally filtered
   by duration, average recurrence interval (ARI), bound, statistic, units, and
@@ -49,8 +49,9 @@ The `statistic` option controls whether PFDS returns precipitation *depth* or
 (`pds` or `ams` — partial-duration or annual-maximum series) are passed
 through to PFDS.
 
-If `vector_output=` is given, the module creates a one-point vector map with
-columns `lon`, `lat`, `expected_json`, `upper_json`, `lower_json`. The JSON
+If `vector_output=` is given, the module creates a vector point map with one
+feature per queried point and columns `lon`, `lat`, `expected_json`,
+`upper_json`, `lower_json`. The JSON
 columns contain the full per-duration tables so they can be queried later with
 `v.db.select` / `db.select`.
 
@@ -84,9 +85,13 @@ Filtering behavior:
 
 - `durations=` and `aris=` are *strict*: candidates whose duration or ARI
   could not be inferred from the filename are rejected.
-- `bound=`, `statistic=`, `units=`, `series=` are *permissive*: a candidate
-  with an unknown attribute is allowed through, to avoid discarding rasters
-  whose filenames don't encode every attribute.
+- `bound=` and `series=` are *permissive*: a candidate with an unknown attribute
+  is allowed through, to avoid discarding rasters whose filenames do not encode
+  every attribute.
+- `statistic=` and `units=` do **not** filter archives in grid mode. NOAA only
+  publishes depth in english units, so the module always downloads that and
+  rescales the imported rasters to the requested `statistic`/`units` as output
+  targets.
 
 Rasters are imported with `r.in.gdal` by default; pass `-i` to use `r.import`
 (which supports reprojection via `resample=`). Pass `-o` to override the
@@ -97,14 +102,13 @@ with missing parts omitted.
 #### Value encoding
 
 NOAA Atlas 14 GIS grids encode precipitation depth as **integer 1000ths of
-an inch** with a NODATA value of **-9** (see each ZIP's `.xml` metadata). To
-convert an imported raster to inches:
-
-```sh
-r.mapcalc "a14_inches = if(a14_raster == -9, null(), a14_raster / 1000.0)"
-```
-
-For millimeters, multiply by 25.4 / 1000 = 0.0254.
+an inch** in the raw archives. Grid mode converts the imported rasters
+automatically, so no manual rescaling is needed: depth is written in inches
+(or mm with `units=metric`) and intensity in in/hr (or mm/hr), according to
+the requested `statistic` and `units`. The raster `units` and title set by
+`r.support` describe the converted values. NODATA cells become GRASS NULLs on
+import, so the sentinel value (which varies by volume) does not need to be
+handled.
 
 ### Safety
 
@@ -180,12 +184,12 @@ r.noaa.atlas14 mode=grid region=se \
 
 ## SEE ALSO
 
-- *[r.in.gdal](https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html)*,
 - *[r.import](https://grass.osgeo.org/grass-stable/manuals/r.import.html)*,
-- *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*,
-- *[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html)*
+- *[r.in.gdal](https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html)*,
+- *[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html)*,
+- *[v.in.ascii](https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html)*
 
 ## AUTHORS
 
-Corey T. White, [OpenPlains Inc.](https://openplains.com) &amp; Center for
-Geospatial Analytics, North Carolina State University
+Corey T. White, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)
