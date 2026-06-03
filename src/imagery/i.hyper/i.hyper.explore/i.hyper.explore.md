@@ -14,8 +14,8 @@ format (with the **-p** flag). If an output file is specified
 interactively.
 
 *i.hyper.explore* automatically reads wavelength metadata, measurement
-type (e.g., *reflectance*, *radiance*), and units from `r3.info`
-comments produced by [i.hyper.import](i.hyper.import.html) or
+type (e.g., *reflectance*, *radiance*), and units from `hyper.json`
+produced by [i.hyper.import](i.hyper.import.html) or
 [i.hyper.preproc](i.hyper.preproc.html). If the map contains principal
 components or other dimensionally reduced features, the module detects
 this and adjusts the X-axis to component indices.
@@ -38,8 +38,7 @@ this and adjusts the X-axis to component indices.
 
 ## NOTES
 
-- Each band's wavelength and FWHM must be stored as comments in
-    `r3.info` (automatically handled by *i.hyper.import*).
+- Wavelength metadata must be available in `hyper.json`.
 - The module uses `r3.what` to extract band values at each 2D
     location.
 - If the raster represents dimensional components (e.g., PCA, NMF),

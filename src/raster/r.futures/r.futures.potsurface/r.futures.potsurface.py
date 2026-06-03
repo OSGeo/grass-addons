@@ -60,7 +60,6 @@ def main():
             continue
         items = line.strip().split(sep)
         data[items[0]] = items[1:]
-
     expr = "eval(tmp = "
     for i in data.keys():
         expr += "if ({sub} == {ind}, {interc}".format(

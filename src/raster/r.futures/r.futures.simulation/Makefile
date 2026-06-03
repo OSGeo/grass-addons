@@ -2,6 +2,9 @@ MODULE_TOPDIR = ../..
 
 PGM = r.futures.simulation
 
-include $(MODULE_TOPDIR)/include/Make/Script.make
+LIBES = $(SEGMENTLIB) $(RASTERLIB) $(GISLIB) $(MATHLIB) $(DATETIMELIB)
+DEPENDENCIES = $(SEGMENTDEP) $(RASTERDEP) $(GISDEP) $(DATETIMEDEP)
 
-default: script
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
