@@ -17,8 +17,6 @@
  *****************************************************************************/
 #include <stdlib.h>
 #include <string.h>
-#include <gdal.h>
-#include <cpl_conv.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
