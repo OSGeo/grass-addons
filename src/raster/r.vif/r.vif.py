@@ -133,10 +133,49 @@ def prGreen(skk):
 
 CLEAN_RAST = []
 
+mask_backup_name = None
+
+
+def restore_mask_backup():
+    """Best-effort restore of MASK from the tracked backup.
+
+    If a MASK already exists, it is one r.vif created internally (the script
+    held control throughout, so the user could not have set one). Remove it
+    before renaming the backup back. On success, clears mask_backup_name.
+    On failure, leaves it set and emits a warning with the backup name so the
+    user can restore manually. Never raises.
+    """
+    global mask_backup_name
+    if mask_backup_name is None:
+        return
+    mapset = gs.gisenv()["MAPSET"]
+    found_backup = gs.find_file(name=mask_backup_name, element="cell", mapset=mapset)
+    if not found_backup["fullname"]:
+        mask_backup_name = None
+        return
+    found_mask = gs.find_file(name="MASK", element="cell", mapset=mapset)
+    if found_mask["fullname"]:
+        try:
+            gs.run_command("r.mask", flags="r", quiet=True)
+        except Exception:
+            pass  # best effort; the rename below will fail with a clear warning
+    try:
+        gs.run_command(
+            "g.rename", raster=[mask_backup_name, "MASK"], quiet=True
+        )
+        mask_backup_name = None
+    except Exception as exc:
+        gs.warning(
+            _(
+                "Failed to restore MASK from backup <{name}>: {err}. "
+                "Restore manually with: g.rename raster={name},MASK"
+            ).format(name=mask_backup_name, err=exc)
+        )
+
 
 def cleanup():
-    """Remove temporary maps specified in the global list. In addition,
-    remove temporary files"""
+    """Restore the original MASK if needed, then remove temporary maps."""
+    restore_mask_backup()
     cleanrast = list(reversed(CLEAN_RAST))
     for rast in cleanrast:
         gs.run_command("g.remove", flags="f", type="all", name=rast, quiet=True)
@@ -165,7 +204,9 @@ def check_layer(envlay):
 
 def read_data(raster, n, flag_s, seed):
     """Read in the raster layers as a numpy array."""
+    global mask_backup_name
     gs.message("Reading in the data ...")
+    exist_mask = None
     if n:
         # Create mask random locations
         new_mask = tmpname("rvif")
@@ -191,22 +232,35 @@ def read_data(raster, n, flag_s, seed):
             name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
         )
         if exist_mask["fullname"]:
-            mask_backup = tmpname("rvifoldmask")
-            gs.run_command("g.rename", raster=["MASK", mask_backup], quiet=True)
-        gs.run_command("r.mask", raster=new_mask, quiet=True)
+            # Track the backup in mask_backup_name (NOT CLEAN_RAST) so that
+            # cleanup() can restore it via restore_mask_backup() if the script
+            # exits with an error. Set only after a successful rename.
+            backup = create_unique_name("rvifoldmask")
+            gs.run_command("g.rename", raster=["MASK", backup], quiet=True)
+            mask_backup_name = backup
 
-    # Get the raster values at sample points
-    tmpcov = StringIO(
-        gs.read_command(
-            "r.stats", flags="1n", input=raster, quiet=True, separator="comma"
-        ).rstrip("\n")
-    )
-    p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
-
-    if n:
-        gs.run_command("r.mask", flags="r", quiet=True)
-        if exist_mask["fullname"]:
-            gs.run_command("g.rename", raster=[mask_backup, "MASK"], quiet=True)
+    try:
+        if n:
+            # Apply the random-sampling mask. If this raises, the finally
+            # block (and the atexit cleanup() as a backstop) restores MASK.
+            gs.run_command("r.mask", raster=new_mask, quiet=True)
+        # Get the raster values at sample points
+        tmpcov = StringIO(
+            gs.read_command(
+                "r.stats", flags="1n", input=raster, quiet=True, separator="comma"
+            ).rstrip("\n")
+        )
+        p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
+    finally:
+        if n:
+            # Best-effort removal of the internal mask before restoring the
+            # user's MASK. Failures here are reported by restore_mask_backup().
+            try:
+                gs.run_command("r.mask", flags="r", quiet=True)
+            except Exception:
+                pass
+            if exist_mask and exist_mask["fullname"]:
+                restore_mask_backup()
     return p
 
 
