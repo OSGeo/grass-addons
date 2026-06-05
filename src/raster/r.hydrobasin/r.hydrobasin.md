@@ -83,7 +83,9 @@ r.hydrobasin dir=drain_state outlets=bridges output=bridge_wsheds nproc=$(nproc)
 
 ## SEE ALSO
 
-*[r.flowaccumulation](r.flowaccumulation.md),
+*[r.upflowlength](r.upflowlength.md),
+[r.lfp](r.lfp.md),
+[r.flowaccumulation](r.flowaccumulation.md),
 [r.accumulate](r.accumulate.md),
 [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
 [r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
@@ -98,4 +100,5 @@ CONUS-Scale Watershed Delineation Using OpenMP.* Environmental Modelling
 
 ## AUTHOR
 
-[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)
