@@ -142,4 +142,4 @@ Modelling & Software 193, 106630.
 ## AUTHOR
 
 [Huidae Cho](mailto:grass4u@gmail-com)
-([HydroCS](https://hydro.isnew.info), New Mexico State University)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)
