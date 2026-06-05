@@ -101,4 +101,4 @@ CONUS-Scale Watershed Delineation Using OpenMP.* Environmental Modelling
 ## AUTHOR
 
 [Huidae Cho](mailto:grass4u@gmail-com)
-([HydroCS](https://hydro.isnew.info), New Mexico State University)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)
