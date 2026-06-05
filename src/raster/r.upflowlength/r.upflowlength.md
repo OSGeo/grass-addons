@@ -72,11 +72,11 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 
 ## SEE ALSO
 
-[r.hydrobasin](r.hydrobasin.html),
+*[r.hydrobasin](r.hydrobasin.html),
 [r.lfp](r.lfp.html),
 [r.flowaccumulation](r.flowaccumulation.html),
 [r.accumulate](r.accumulate.html),
-[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
 
 ## REFERENCES
 
