@@ -73,7 +73,7 @@ def main():
                 + "' already exists. Use '--o' to overwrite."
             )
 
-    projunits = str(projinfo["units"])  # Unicode to str
+    projunits = str(projinfo.get("units", ""))
     # Then compute
     if (projunits == "meters") or (projunits == "Meters"):
         if units == "m2":
@@ -98,7 +98,7 @@ def main():
                 + " * 6371. * cos(y()) )"
             )
     else:
-        print("Units: ", projunits, " not currently supported")
+        gs.fatal(_("Projection units '{}' are not supported".format(projunits)))
 
 
 if __name__ == "__main__":
