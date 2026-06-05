@@ -43,14 +43,10 @@
 ##################
 
 # PYTHON
-import os
-import glob
 import numpy as np
 
 # GRASS
 import grass.script as gs
-from grass.script import array as garray
-from grass.pygrass.vector import VectorTopo
 
 
 def main():
