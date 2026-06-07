@@ -1,0 +1,275 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.ssurgo</em> imports soil data from the USDA NRCS Soil Survey
+Geographic Database (SSURGO) into GRASS, either from a local copy of the
+SSURGO File Geodatabase or from the Soil Data Access (SDA) online API. The
+module is heavily inspired by the
+<a href="https://ncss-tech.github.io/soilDB/index.html">soilDB</a> R
+package (Beaudette et al., 2025).
+
+<p>
+The tool uses the SDA API to query and download data for the current
+computational region by default, and switches to a local file when an
+<b>ssurgo_path</b> is given. The data can be downloaded from USDA NRCS:
+
+<ul>
+    <li><a href="https://nrcs.app.box.com/v/soils/folder/233395259341">SSURGO CONUS</a></li>
+    <li><a href="https://nrcs.app.box.com/v/soils/folder/233398887779">SSURGO by State</a></li>
+</ul>
+
+The downloaded ZIP can be passed directly — *r.in.ssurgo* reads the
+geodatabase inside through GDAL's virtual file system:
+
+<div class="code"><pre>
+ssurgo_path="path/to/gSSURGO_NC.zip"
+</pre></div>
+
+You may also pass an unzipped <code>.gdb</code> directory:
+
+<div class="code"><pre>
+ssurgo_path="path/to/gSSURGO_NC/gSSURGO_NC.gdb"
+</pre></div>
+
+<h2>NOTES</h2>
+
+The module produces depth- and component-aggregated estimates of Saturated
+Hydraulic Conductivity (Ksat) and the Hydrologic Soil Group (HSG), keyed by
+the SSURGO Map Unit Key (mukey). Ksat values are reported in mm/hr as low
+(<b>ksat_l</b>), representative (<b>ksat_r</b>), and high (<b>ksat_h</b>)
+estimates per map unit.
+
+<p>
+HSG (<b>hydgrp</b>) classifies soils by runoff potential. It is consumed by
+rainfall-excess models such as the SCS Curve Number method (see
+<em>r.curvenumber</em>).
+
+<p>
+The <b>soils</b> output is the source SSURGO Map Unit polygon vector with all
+aggregated attributes attached. Use it for reference or to derive custom
+rasters from the SSURGO attribute set with
+<code>v.to.rast use=attr attribute_column=&lt;field&gt;</code>.
+
+<p>
+In addition to <b>mukey</b> / <b>mukey_int</b>, the soils vector carries the
+following dominant-component and depth-weighted attributes:
+
+<table border="1" cellpadding="4" cellspacing="0">
+  <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>cokey</code></td><td>TEXT</td><td>Component key of the dominant component</td></tr>
+  <tr><td><code>comppct_r</code></td><td>REAL</td><td>Dominant component's percentage of the map unit</td></tr>
+  <tr><td><code>hydgrp</code></td><td>TEXT</td><td>Hydrologic Soil Group</td></tr>
+  <tr><td><code>compname</code></td><td>TEXT</td><td>Component name</td></tr>
+  <tr><td><code>drainagecl</code></td><td>TEXT</td><td>Drainage class</td></tr>
+  <tr><td><code>slope_r</code></td><td>REAL</td><td>Component slope (%)</td></tr>
+  <tr><td><code>ksat_l</code> / <code>ksat_r</code> / <code>ksat_h</code></td><td>REAL</td><td>Saturated hydraulic conductivity (mm/hr); low / representative / high</td></tr>
+  <tr><td><code>sandtotal_r</code></td><td>REAL</td><td>Sand content (%)</td></tr>
+  <tr><td><code>silttotal_r</code></td><td>REAL</td><td>Silt content (%)</td></tr>
+  <tr><td><code>claytotal_r</code></td><td>REAL</td><td>Clay content (%)</td></tr>
+  <tr><td><code>awc_r</code></td><td>REAL</td><td>Available water capacity (cm/cm)</td></tr>
+  <tr><td><code>om_r</code></td><td>REAL</td><td>Organic matter (%)</td></tr>
+  <tr><td><code>dbthirdbar_r</code></td><td>REAL</td><td>Bulk density at 1/3 bar (g/cm³)</td></tr>
+  <tr><td><code>ph1to1h2o_r</code></td><td>REAL</td><td>Soil reaction (pH 1:1 H&#8322;O)</td></tr>
+  <tr><td><code>cec7_r</code></td><td>REAL</td><td>Cation exchange capacity at pH 7 (meq/100 g)</td></tr>
+</table>
+
+<p>
+Depth-weighted REAL fields are aggregated as
+<code>SUM(thk &times; value) / SUM(thk)</code> over horizons that overlap the
+requested depth range, where <code>thk</code> is each horizon's thickness
+clipped to that range.
+
+<h3>Filtering by depth or master horizon</h3>
+
+A depth range (<b>hzdept_r</b>, <b>hzdepb_r</b> in cm) and/or a master horizon
+designation (<b>desgnmaster</b>) select the chorizon rows that contribute to
+the aggregation. Horizons whose depth interval overlaps the requested range
+are included; thickness is clipped to that range when computing the
+weighted mean.
+
+<h3>Aggregation methods</h3>
+
+Aggregation uses the dominant component (the largest <code>comppct_r</code>
+within each map unit). A weighted-component method is planned.
+
+<h3>r3 (3D raster) output for depth profiles</h3>
+
+When <b>depths</b> is set (a comma-separated, strictly-increasing list of
+cm boundaries with at least 2 values), the depth-weighted Ksat outputs
+(<b>ksat_l</b>, <b>ksat_r</b>, <b>ksat_h</b>) are produced as <b>3D
+rasters</b> with one z-slice per depth bin instead of a single 2D
+average. The number of slices is <code>len(depths) - 1</code>.
+<b>hzdept_r</b> and <b>hzdepb_r</b> are ignored when <b>depths</b> is
+set; the aggregation runs once per slice.
+
+<p>
+<b>hydgrp</b> and <b>mukey</b> remain 2D — they're profile-level /
+identity values, not depth-dependent. The 3D region is set with
+<code>b=0, t=max(depths)</code> so the z-axis represents depth (cm) from
+the surface.
+
+<div class="code"><pre>
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soil_areas" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    depths="0,15,30,60,100" \
+    desgnmaster="A"
+# produces: hydgrp (2D), ksat_r (3D, 4 slices)
+</pre></div>
+
+The intermediate per-slice columns (<code>ksat_r__s0</code>,
+<code>ksat_r__s1</code>, ...) also appear on the <b>soils</b> vector so
+you can query them with <code>v.db.select</code> or rasterize any one
+slice with <code>v.to.rast use=attr</code>.
+
+<h3>Choosing the local-import backend</h3>
+
+For local-file imports, *r.in.ssurgo* uses
+<a href="https://duckdb.org/">DuckDB</a> when the Python package is
+installed, and falls back to a pure <code>ogr2ogr</code> + Python stdlib
+<code>sqlite3</code> implementation otherwise. The <b>-s</b> flag forces the
+SQLite/OGR backend even when DuckDB is importable, which is useful for
+testing the fallback path. The flag has no effect on SDA queries.
+
+<h2>REQUIREMENTS</h2>
+
+<ul>
+    <li><a href="https://gdal.org/">GDAL &ge; 3.1</a> — required by GRASS;
+        provides <code>ogr2ogr</code> and the FlatGeobuf driver.</li>
+    <li><a href="https://duckdb.org/">DuckDB &ge; 0.10</a> (Python package) —
+        optional, accelerates local-file imports. Install with
+        <code>pip install duckdb</code>. The SQLite fallback is used
+        automatically when DuckDB is not available.</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+<h3>Import from a local SSURGO geodatabase</h3>
+
+<div class="code"><pre>
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soil_areas" \
+    hydgrp="hydgrp" \
+    ksat_l="ksat_l" \
+    ksat_r="ksat_r" \
+    ksat_h="ksat_h" \
+    mukey="mukey" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+Python (<code>grass.script</code>):
+
+<div class="code"><pre>
+gs.run_command(
+    "r.in.ssurgo",
+    ssurgo_path="gSSURGO_NC.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+</pre></div>
+
+Python (<code>grass.tools</code>):
+
+<div class="code"><pre>
+tools = Tools()
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_l="ksat_l",
+    ksat_r="ksat_r",
+    ksat_h="ksat_h",
+    mukey="mukey",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+)
+</pre></div>
+
+<h3>Force the SQLite/OGR backend (skip DuckDB)</h3>
+
+<div class="code"><pre>
+r.in.ssurgo -s \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_r="ksat_r" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+<div class="code"><pre>
+tools.r_in_ssurgo(
+    ssurgo_path="../data/gSSURGO_CONUS.zip",
+    soils="soils",
+    hydgrp="hydgrp",
+    ksat_r="ksat_r",
+    hzdept_r=0,
+    hzdepb_r=100,
+    desgnmaster="A",
+    flags="s",
+)
+</pre></div>
+
+<h3>Import via the SDA API (no local file)</h3>
+
+<div class="code"><pre>
+r.in.ssurgo \
+    soils="soils" \
+    hydgrp="hydgrp" \
+    ksat_l="ksat_l" \
+    ksat_r="ksat_r" \
+    ksat_h="ksat_h" \
+    mukey="mukey" \
+    hzdept_r=0 \
+    hzdepb_r=100 \
+    desgnmaster="A"
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+    <li>Beaudette, D., Skovlin, J., Roecker, S., Brown, A. (2025).
+        soilDB &mdash; Soil Database Interface. R package version 2.8.9.
+        <a href="https://CRAN.R-project.org/package=soilDB">https://CRAN.R-project.org/package=soilDB</a></li>
+    <li>Soil Survey Staff, Natural Resources Conservation Service, USDA.
+        Web Soil Survey.
+        <a href="https://websoilsurvey.nrcs.usda.gov/">https://websoilsurvey.nrcs.usda.gov/</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html">r.curvenumber</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html">r.runoff</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White<br>
+
+<h2>Sponsors</h2>
+
+<ul>
+    <li><a target="_blank" href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></li>
+</ul>
+
+<p>
+<em>r.in.ssurgo</em> was developed as part of an agreement between the
+U.S. Department of Agriculture (USDA), Natural Resources Conservation Service
+(NRCS) and North Carolina State University (NCSU) to adapt the SIMulation of
+Water and Erosion (SIMWE) model for the integration of Dynamic Soil Survey
+data.
