@@ -77,18 +77,14 @@ class TestRCellAreaMeters(TestCase):
     def setUpClass(cls):
         cls.use_temp_region()
         # Small region with an exact 10 m resolution
-        cls.runModule(
-            "g.region", n=228500, s=228000, e=637000, w=636500, res=10
-        )
+        cls.runModule("g.region", n=228500, s=228000, e=637000, w=636500, res=10)
 
     @classmethod
     def tearDownClass(cls):
         cls.del_temp_region()
 
     def tearDown(self):
-        self.runModule(
-            "g.remove", flags="f", type="raster", name=OUTPUT, quiet=True
-        )
+        self.runModule("g.remove", flags="f", type="raster", name=OUTPUT, quiet=True)
 
     def test_m2_with_10m_cells(self):
         """10 m × 10 m cells in UTM → every cell = 100.0 m²."""
