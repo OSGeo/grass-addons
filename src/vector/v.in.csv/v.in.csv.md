@@ -5,9 +5,14 @@ vector map as points with attributes. The separator for CSV is comma
 (`,`) by default, but it can be set to any single character such as
 semicolon (`;`), pipe (`|`), or tabulator.
 
-## NOTES
+## REQUIREMENTS
 
-The module requires the "pyproj" Python package to work.
+The module requires [PROJ](https://proj.org/en/stable/) and the
+[pyproj](https://pyproj4.github.io/pyproj/stable/index.html#)
+Python package to work.
+
+- [pyproj (>=3.1.0)](https://pyproj4.github.io/pyproj/stable/index.html#)
+- [PROJ (>=7.2.0)](https://proj.org/en/stable/)
 
 ## EXAMPLES
 
