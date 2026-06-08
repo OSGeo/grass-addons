@@ -29,9 +29,7 @@ def _grass_tmp_flag():
     The result is cached after the first call.
     """
     if not hasattr(_grass_tmp_flag, "_cached"):
-        result = subprocess.run(
-            ["grass", "--help"], capture_output=True, text=True
-        )
+        result = subprocess.run(["grass", "--help"], capture_output=True, text=True)
         combined = result.stdout + result.stderr
         _grass_tmp_flag._cached = (
             "--tmp-project" if "--tmp-project" in combined else "--tmp-location"
@@ -119,9 +117,7 @@ class TestRCellAreaMeters(TestCase):
     def test_overwrite_flag(self):
         """Running with overwrite=True when the output already exists must succeed."""
         self.runModule("r.cell.area", output=OUTPUT, units="m2")
-        self.assertModule(
-            "r.cell.area", output=OUTPUT, units="m2", overwrite=True
-        )
+        self.assertModule("r.cell.area", output=OUTPUT, units="m2", overwrite=True)
         self.assertRasterExists(OUTPUT)
 
 
@@ -175,7 +171,7 @@ class TestRCellAreaDegrees(TestCase):
             delta=self._expected_m2 * self._rel_tol,
             msg=(
                 f"m² value {stats['min']:.0f} differs from expected "
-                f"{self._expected_m2:.0f} by more than {self._rel_tol*100}%"
+                f"{self._expected_m2:.0f} by more than {self._rel_tol * 100}%"
             ),
         )
 
@@ -234,7 +230,7 @@ class TestRCellAreaFeet(TestCase):
             delta=self._expected_m2 * self._rel_tol,
             msg=(
                 f"m² value {stats['min']:.6f} differs from expected "
-                f"{self._expected_m2:.6f} by more than {self._rel_tol*100}%"
+                f"{self._expected_m2:.6f} by more than {self._rel_tol * 100}%"
             ),
         )
 
@@ -248,7 +244,7 @@ class TestRCellAreaFeet(TestCase):
             delta=self._expected_km2 * self._rel_tol,
             msg=(
                 f"km² value {stats['min']:.9f} differs from expected "
-                f"{self._expected_km2:.9f} by more than {self._rel_tol*100}%"
+                f"{self._expected_km2:.9f} by more than {self._rel_tol * 100}%"
             ),
         )
 
