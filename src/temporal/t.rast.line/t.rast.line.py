@@ -9,7 +9,7 @@
 #               of the raster values. If a zonal map is set, trendlines are
 #               drawn for each of the zones of the zonal layer.
 #
-# COPYRIGHT:    (c) 2024 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2024-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -208,6 +208,16 @@ import atexit
 import os
 import sys
 from datetime import datetime
+
+
+def _parse_dt(value):
+    """Parse a datetime string, tolerating optional fractional seconds."""
+    for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    raise ValueError("Unrecognized datetime format: %s" % value)
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 from math import sqrt
@@ -399,13 +409,13 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    _parse_dt(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    _parse_dt(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
@@ -413,9 +423,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                 e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        _parse_dt(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else _parse_dt(x[idx_start])
                     )
                     for x in e_tmp
                 ]
@@ -433,7 +443,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         for s, e in zip(date_start, date_end)
                     ]
                     date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
+                        _parse_dt(dp) for dp in date_points
                     ]
         else:
             if not bool(idx_end):
@@ -488,20 +498,20 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    _parse_dt(x[idx_start])
                     for x in univar[1:]
                 ]
             else:
                 s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    _parse_dt(x[idx_start])
                     for x in univar[1:]
                 ]
                 # Check if end slots have date or None
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        _parse_dt(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else _parse_dt(x[idx_start])
                     )
                     for x in univar[1:]
                 ]
@@ -519,7 +529,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         for s, e in zip(date_start, date_end)
                     ]
                     date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
+                        _parse_dt(dp) for dp in date_points
                     ]
         else:
             if not bool(idx_end):
