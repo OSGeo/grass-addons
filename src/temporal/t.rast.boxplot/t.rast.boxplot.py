@@ -795,7 +795,7 @@ def main(options, flags):
         else:
             ax.yaxis.set_major_locator(locator)
             ax.yaxis.set_major_formatter(formatter)
-    else:
+    elif temp_unit is not None:
         ax = set_axis(
             ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
         )
