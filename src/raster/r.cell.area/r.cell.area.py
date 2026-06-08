@@ -43,14 +43,10 @@
 ##################
 
 # PYTHON
-import os
-import glob
 import numpy as np
 
 # GRASS
 import grass.script as gs
-from grass.script import array as garray
-from grass.pygrass.vector import VectorTopo
 
 
 def main():
@@ -73,32 +69,37 @@ def main():
                 + "' already exists. Use '--o' to overwrite."
             )
 
-    projunits = str(projinfo["units"])  # Unicode to str
-    # Then compute
-    if (projunits == "meters") or (projunits == "Meters"):
-        if units == "m2":
-            gs.mapcalc(output + " = nsres() * ewres()")
-        elif units == "km2":
-            gs.mapcalc(output + " = nsres() * ewres() / 10.^6")
-    elif (projunits == "degrees") or (projunits == "Degrees"):
+    projunits = str(projinfo.get("units", ""))
+
+    if projunits.lower() in ("degrees", "degree"):
         if units == "m2":
             gs.mapcalc(
-                output
-                + " = ( 111195. * nsres() ) * \
-                          ( ewres() * "
-                + str(np.pi / 180.0)
-                + " * 6371000. * cos(y()) )"
+                "{out} = ( 111195. * nsres() )"
+                " * ( ewres() * {rad} * 6371000. * cos(y()) )".format(
+                    out=output, rad=np.pi / 180.0
+                )
             )
         elif units == "km2":
             gs.mapcalc(
-                output
-                + " = ( 111.195 * nsres() ) * \
-                          ( ewres() * "
-                + str(np.pi / 180.0)
-                + " * 6371. * cos(y()) )"
+                "{out} = ( 111.195 * nsres() )"
+                " * ( ewres() * {rad} * 6371. * cos(y()) )".format(
+                    out=output, rad=np.pi / 180.0
+                )
             )
+    elif not projunits:
+        gs.fatal(_("Projection units are unknown; XY locations are not supported"))
     else:
-        print("Units: ", projunits, " not currently supported")
+        # Any projected CRS: use the meters-per-map-unit conversion factor so
+        # that feet, US survey feet, and all other linear units work correctly.
+        m = float(projinfo.get("meters", 0))
+        if m <= 0:
+            gs.fatal(_("Projection units '%s' are not supported") % projunits)
+        if units == "m2":
+            gs.mapcalc("{out} = nsres() * ewres() * {m2}".format(out=output, m2=m**2))
+        elif units == "km2":
+            gs.mapcalc(
+                "{out} = nsres() * ewres() * {m2} / 1.e6".format(out=output, m2=m**2)
+            )
 
 
 if __name__ == "__main__":
