@@ -99,6 +99,9 @@ accumulated from the headwater cells.
 ## SEE ALSO
 
 *[r.accumulate](r.accumulate.md),
+[r.hydrobasin](r.hydrobasin.md),
+[r.upflowlength](r.upflowlength.md),
+[r.lfp](r.lfp.md),
 [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
 [r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
 [r.stream.distance](r.stream.distance.md)*
@@ -112,4 +115,5 @@ Modelling & Software 167, 105771.
 
 ## AUTHOR
 
-[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)

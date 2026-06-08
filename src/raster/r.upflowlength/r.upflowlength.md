@@ -72,19 +72,20 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 
 ## SEE ALSO
 
-[r.hydrobasin](r.hydrobasin.html),
+*[r.hydrobasin](r.hydrobasin.html),
 [r.lfp](r.lfp.html),
 [r.flowaccumulation](r.flowaccumulation.html),
 [r.accumulate](r.accumulate.html),
-[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)
+[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
 
 ## REFERENCES
 
 Huidae Cho, Accepted in May 2026. *Flow in Float: Memory-Efficient Upstream
-Flow Length Parallel Computation Using an IEEE-754&ndash;Based Union Encoding.*
-Environmental Modelling & Software.
+Flow Length Parallel Computation Using an IEEE-754-Based Union Encoding.*
+Environmental Modelling & Software, 107045.
+[doi:10.1016/j.envsoft.2026.107045](https://doi.org/10.1016/j.envsoft.2026.107045).
 
 ## AUTHOR
 
 [Huidae Cho](mailto:grass4u@gmail-com)
-([CLAWRIM](https://clawrim.isnew.info/), New Mexico State University)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)
