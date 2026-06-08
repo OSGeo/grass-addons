@@ -218,6 +218,8 @@ def _parse_dt(value):
         except ValueError:
             continue
     raise ValueError("Unrecognized datetime format: %s" % value)
+
+
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 from math import sqrt
@@ -442,9 +444,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        _parse_dt(dp) for dp in date_points
-                    ]
+                    date_points = [_parse_dt(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [
@@ -497,15 +497,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
     else:
         if temp_type == "absolute":
             if not bool(idx_end):
-                date_points = [
-                    _parse_dt(x[idx_start])
-                    for x in univar[1:]
-                ]
+                date_points = [_parse_dt(x[idx_start]) for x in univar[1:]]
             else:
-                s_points = [
-                    _parse_dt(x[idx_start])
-                    for x in univar[1:]
-                ]
+                s_points = [_parse_dt(x[idx_start]) for x in univar[1:]]
                 # Check if end slots have date or None
                 e_points = [
                     (
@@ -528,9 +522,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        _parse_dt(dp) for dp in date_points
-                    ]
+                    date_points = [_parse_dt(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
