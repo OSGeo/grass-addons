@@ -1,0 +1,50 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.strds.copy</em> copies a space time raster dataset (STRDS) together with
+all of its registered raster maps from a source mapset into the <b>current</b>
+mapset, preserving the temporal type and the start/end timestamps of every map.
+
+<p>
+GRASS keeps raster data and the temporal database separate and per-mapset, so
+duplicating an STRDS requires copying the raster maps with <em>g.copy</em>,
+recreating the STRDS with <em>t.create</em>, and re-registering the maps with
+<em>t.register</em>. This module performs all three steps in one call.
+
+<h2>NOTES</h2>
+
+The <b>output</b> STRDS is always created in the current mapset; you cannot
+write into another mapset. The <b>input</b> should be given fully qualified as
+<tt>name@mapset</tt> when the source lives in a different mapset, and that
+mapset must be in the search path (see <em>g.mapsets</em>).
+
+<p>
+The new STRDS inherits the title and description of the source STRDS.
+
+<h2>EXAMPLES</h2>
+
+Copy an STRDS from another mapset into the current one:
+
+<div class="code"><pre>
+t.strds.copy input=S2_ndvi@source_mapset output=S2_ndvi
+</pre></div>
+
+Copy an STRDS, overwriting an existing output of the same name:
+
+<div class="code"><pre>
+t.strds.copy input=S2_ndvi@source_mapset output=S2_ndvi_copy --overwrite
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="t.create.html">t.create</a>,
+<a href="t.register.html">t.register</a>,
+<a href="t.rast.list.html">t.rast.list</a>,
+</em>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,
+<a href="https://has.nl">HAS green academy</a>,
+<a href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative Biomonitoring research group</a>,
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust Landscapes research group</a>
