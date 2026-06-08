@@ -404,6 +404,8 @@ def get_bx_width(option_bxp_width, temp_type, strds):
         bxp_width = 0.7
     if temp_type == "relative":
         bxp_width = 0.7
+        temp_lngt = None
+        temp_unit = None
     else:
         strds_info = Module(
             "t.info", flags="g", input=strds, stdout_=PIPE
