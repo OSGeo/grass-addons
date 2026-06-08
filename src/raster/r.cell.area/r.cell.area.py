@@ -93,18 +93,12 @@ def main():
         # that feet, US survey feet, and all other linear units work correctly.
         m = float(projinfo.get("meters", 0))
         if m <= 0:
-            gs.fatal(
-                _("Projection units '{}' are not supported".format(projunits))
-            )
+            gs.fatal(_("Projection units '%s' are not supported") % projunits)
         if units == "m2":
-            gs.mapcalc(
-                "{out} = nsres() * ewres() * {m2}".format(out=output, m2=m**2)
-            )
+            gs.mapcalc("{out} = nsres() * ewres() * {m2}".format(out=output, m2=m**2))
         elif units == "km2":
             gs.mapcalc(
-                "{out} = nsres() * ewres() * {m2} / 1.e6".format(
-                    out=output, m2=m**2
-                )
+                "{out} = nsres() * ewres() * {m2} / 1.e6".format(out=output, m2=m**2)
             )
 
 
