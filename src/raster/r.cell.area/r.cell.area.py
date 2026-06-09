@@ -54,11 +54,11 @@ def main():
     Compute cell areas
     """
 
-    projinfo = gs.parse_command("g.proj", flags="g")
-
     options, flags = gs.parser()
     output = options["output"]
     units = options["units"]
+
+    projinfo = gs.parse_command("g.proj", flags="g")
 
     # First check if output exists
     if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
