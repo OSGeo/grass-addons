@@ -25,7 +25,7 @@ Run inside a GRASS session (e.g., with --tmp-location XY):
 
 import unittest
 
-import grass.script as grass
+import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -242,7 +242,6 @@ class TestRFlexure(TestCase):
             westbc="mirror",
         )
 
-
     def test_fd_pinned_bc(self):
         """FD method with pinned BC (simply-supported: zero displacement, zero moment)."""
         self._run_and_check(
@@ -322,7 +321,7 @@ class TestRFlexure(TestCase):
                 te_units="m",
                 output=output,
             )
-            stats = grass.parse_command("r.univar", map=output, flags="g")
+            stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
             self.assertLess(min_w, 0,
                             "Deflection under a downward load must be negative")
@@ -348,8 +347,8 @@ class TestRFlexure(TestCase):
                 "r.flexure", method="sas", input=self.load,
                 te="10", te_units="km", output=out_km,
             )
-            stats_d = grass.parse_command("r.univar", map=out_default, flags="g")
-            stats_k = grass.parse_command("r.univar", map=out_km, flags="g")
+            stats_d = gs.parse_command("r.univar", map=out_default, flags="g")
+            stats_k = gs.parse_command("r.univar", map=out_km, flags="g")
             self.assertAlmostEqual(
                 float(stats_d["min"]), float(stats_k["min"]), places=10,
                 msg="Default te_units=km must match explicit te_units=km",
@@ -375,8 +374,8 @@ class TestRFlexure(TestCase):
                 "r.flexure", method="sas", input=self.load,
                 te="10000", te_units="m", output=out_m,
             )
-            stats_km = grass.parse_command("r.univar", map=out_km, flags="g")
-            stats_m = grass.parse_command("r.univar", map=out_m, flags="g")
+            stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
+            stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
             self.assertAlmostEqual(
                 float(stats_km["min"]), float(stats_m["min"]), places=10,
                 msg="Te in km and m must give identical min deflection",
@@ -405,7 +404,7 @@ class TestRFlexure(TestCase):
                 eastbc="free",
                 westbc="free",
             )
-            stats = grass.parse_command("r.univar", map=output, flags="g")
+            stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
             self.assertLess(min_w, 0,
                             "FD deflection under a downward load must be negative")
@@ -426,7 +425,7 @@ class TestRFlexure(TestCase):
                 te_units="m",
                 output=output,
             )
-            stats = grass.parse_command("r.univar", map=output, flags="g")
+            stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
             self.assertLess(min_w, 0,
                             "FFT deflection under a downward load must be negative")
@@ -467,7 +466,7 @@ class TestRFlexure(TestCase):
             self.assertRasterFitsUnivar(
                 raster=output, reference={"n": 100}, precision=0
             )
-            stats = grass.parse_command("r.univar", map=output, flags="g")
+            stats = gs.parse_command("r.univar", map=output, flags="g")
             self.assertLess(float(stats["min"]), 0,
                             "FFT deflection under a downward load must be negative")
         finally:
