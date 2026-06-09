@@ -26,7 +26,7 @@ Run inside a GRASS session (e.g., with --tmp-location XY):
 
 import unittest
 
-import grass.script as grass
+import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -102,7 +102,7 @@ class TestVFlexure(TestCase):
         self.assertRasterFitsUnivar(
             raster=self.output, reference={"n": 100}, precision=0
         )
-        stats = grass.parse_command("r.univar", map=self.output, flags="g")
+        stats = gs.parse_command("r.univar", map=self.output, flags="g")
         min_w = float(stats["min"])
         self.assertLess(min_w, 0,
                         "Deflection under a downward load must be negative")
@@ -134,7 +134,7 @@ class TestVFlexure(TestCase):
             )
             self.assertRasterExists(self.output)
             # The w column should now exist and be populated
-            db = grass.vector_db_select(w_pts)
+            db = gs.vector_db_select(w_pts)
             col_lower = [c.lower() for c in db["columns"]]
             self.assertIn("w", col_lower,
                           "w column should be present in w_points map")
@@ -176,7 +176,7 @@ class TestVFlexure(TestCase):
                 w_points=w_pts,
                 w_column="deflection",
             )
-            db = grass.vector_db_select(w_pts)
+            db = gs.vector_db_select(w_pts)
             self.assertIn("deflection", [c.lower() for c in db["columns"]],
                           "deflection column should be present in w_points map")
         finally:
@@ -228,8 +228,8 @@ class TestVFlexure(TestCase):
                 "v.flexure", input=self.loads, column="q",
                 te="10000", te_units="m", output=out_m,
             )
-            stats_km = grass.parse_command("r.univar", map=out_km, flags="g")
-            stats_m = grass.parse_command("r.univar", map=out_m, flags="g")
+            stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
+            stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
             self.assertAlmostEqual(
                 float(stats_km["min"]), float(stats_m["min"]), places=10,
                 msg="Te in km and m must give identical min deflection",
@@ -255,7 +255,7 @@ class TestVFlexure(TestCase):
             te_units="m",
             output=self.output,
         )
-        stats = grass.parse_command("r.univar", map=self.output, flags="g")
+        stats = gs.parse_command("r.univar", map=self.output, flags="g")
         min_w = float(stats["min"])
         mean_w = float(stats["mean"])
         self.assertLess(
@@ -317,8 +317,8 @@ class TestVFlexure(TestCase):
                 "v.flexure", input=self.loads, column="q",
                 te="10", te_units="km", output=out_km,
             )
-            stats_d = grass.parse_command("r.univar", map=out_default, flags="g")
-            stats_k = grass.parse_command("r.univar", map=out_km, flags="g")
+            stats_d = gs.parse_command("r.univar", map=out_default, flags="g")
+            stats_k = gs.parse_command("r.univar", map=out_km, flags="g")
             self.assertAlmostEqual(
                 float(stats_d["min"]), float(stats_k["min"]), places=10,
                 msg="Default te_units=km must match explicit te_units=km",
@@ -362,8 +362,8 @@ class TestVFlexure(TestCase):
                 "v.flexure", input=loads_2x, column="q",
                 te="10000", te_units="m", output=out_2x,
             )
-            stats_1x = grass.parse_command("r.univar", map=out_1x, flags="g")
-            stats_2x = grass.parse_command("r.univar", map=out_2x, flags="g")
+            stats_1x = gs.parse_command("r.univar", map=out_1x, flags="g")
+            stats_2x = gs.parse_command("r.univar", map=out_2x, flags="g")
             self.assertAlmostEqual(
                 float(stats_2x["min"]), 2.0 * float(stats_1x["min"]), places=6,
                 msg="Peak deflection must scale linearly with load force",
@@ -390,8 +390,8 @@ class TestVFlexure(TestCase):
                 "v.flexure", input=self.loads, column="q",
                 te="20000", te_units="m", output=out_stiff,
             )
-            stats_soft = grass.parse_command("r.univar", map=out_soft, flags="g")
-            stats_stiff = grass.parse_command("r.univar", map=out_stiff, flags="g")
+            stats_soft = gs.parse_command("r.univar", map=out_soft, flags="g")
+            stats_stiff = gs.parse_command("r.univar", map=out_stiff, flags="g")
             self.assertLess(
                 float(stats_soft["min"]), float(stats_stiff["min"]),
                 msg="Softer plate (Te=5 km) must deflect more than stiffer (Te=20 km)",
@@ -465,7 +465,7 @@ class TestVFlexureForebulge(TestCase):
             te_units="km",
             output=self.output,
         )
-        stats = grass.parse_command("r.univar", map=self.output, flags="g")
+        stats = gs.parse_command("r.univar", map=self.output, flags="g")
         self.assertLess(float(stats["min"]), 0,
                         "Central subsidence must be negative")
         self.assertGreater(float(stats["max"]), 0,
