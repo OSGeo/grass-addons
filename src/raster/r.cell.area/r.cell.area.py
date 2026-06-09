@@ -42,14 +42,6 @@
 # %  required: yes
 # %end
 
-##################
-# IMPORT MODULES #
-##################
-
-# PYTHON
-import math
-
-# GRASS
 import grass.script as gs
 
 
@@ -70,24 +62,12 @@ def main():
 
     projinfo = gs.parse_command("g.proj", flags="g")
 
-    projunits = str(projinfo.get("units", ""))
-    factor = _M2_TO_UNIT[units]
-
-    if projunits.lower() in ("degrees", "degree"):
-        rad = math.pi / 180.0
-        gs.mapcalc(
-            f"{output} = ( 111195. * nsres() )"
-            f" * ( ewres() * {rad} * 6371000. * cos(y()) ) * {factor}"
-        )
-    elif not projunits:
+    if not str(projinfo.get("units", "")):
         gs.fatal(_("Projection units are unknown; XY locations are not supported"))
-    else:
-        # Any projected CRS: use the meters-per-map-unit conversion factor so
-        # that feet, US survey feet, and all other linear units work correctly.
-        m = float(projinfo.get("meters", 0))
-        if m <= 0:
-            gs.fatal(_("Projection units '%s' are not supported") % projunits)
-        gs.mapcalc(f"{output} = nsres() * ewres() * {m**2 * factor}")
+
+    factor = _M2_TO_UNIT[units]
+    gs.warning(_("r.cell.area is deprecated; use r.mapcalc area() instead"))
+    gs.mapcalc(f"{output} = area() * {factor}")
 
 
 if __name__ == "__main__":
