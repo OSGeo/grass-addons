@@ -79,10 +79,8 @@ def main():
     if projunits.lower() in ("degrees", "degree"):
         rad = math.pi / 180.0
         gs.mapcalc(
-            "{out} = ( 111195. * nsres() )"
-            " * ( ewres() * {rad} * 6371000. * cos(y()) ) * {f}".format(
-                out=output, rad=rad, f=factor
-            )
+            f"{output} = ( 111195. * nsres() )"
+            f" * ( ewres() * {rad} * 6371000. * cos(y()) ) * {factor}"
         )
     elif not projunits:
         gs.fatal(_("Projection units are unknown; XY locations are not supported"))
@@ -92,11 +90,7 @@ def main():
         m = float(projinfo.get("meters", 0))
         if m <= 0:
             gs.fatal(_("Projection units '%s' are not supported") % projunits)
-        gs.mapcalc(
-            "{out} = nsres() * ewres() * {coeff}".format(
-                out=output, coeff=m**2 * factor
-            )
-        )
+        gs.mapcalc(f"{output} = nsres() * ewres() * {m**2 * factor}")
 
 
 if __name__ == "__main__":
