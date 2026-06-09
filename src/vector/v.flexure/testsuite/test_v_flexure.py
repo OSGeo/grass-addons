@@ -142,6 +142,12 @@ class TestVFlexure(TestCase):
             w_vals = [float(row[w_idx]) for row in db["values"].values()]
             self.assertTrue(any(v < 0 for v in w_vals),
                             "At least one deflection value should be negative")
+            # cat=2 is (500, 500) — the load location; must be the most negative
+            w_at_load = float(db["values"][2][w_idx])
+            self.assertEqual(
+                w_at_load, min(w_vals),
+                "Deflection at load point (500, 500) must be the most negative",
+            )
         finally:
             self.runModule(
                 "g.remove", flags="f", type="vector", name=w_pts, quiet=True
@@ -191,7 +197,7 @@ class TestVFlexure(TestCase):
         self.assertRasterExists(self.output)
 
     def test_custom_material_params(self):
-        """Non-default Young's modulus and mantle density are accepted."""
+        """Non-default Young's modulus, mantle density, and fill density are accepted."""
         self.assertModule(
             "v.flexure",
             input=self.loads,
@@ -201,6 +207,7 @@ class TestVFlexure(TestCase):
             output=self.output,
             ym="70E9",
             rho_m="3200",
+            rho_fill="500",
         )
         self.assertRasterExists(self.output)
 
