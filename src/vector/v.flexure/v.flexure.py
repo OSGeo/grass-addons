@@ -142,7 +142,7 @@ import warnings
 import numpy as np
 
 # GRASS
-import grass.script as grass
+import grass.script as gs
 
 
 ####################
@@ -152,7 +152,7 @@ import grass.script as grass
 
 def get_points_xy(vect_name):
     """Return (x, y) coordinate arrays for all points in a vector map."""
-    out = grass.read_command(
+    out = gs.read_command(
         "v.out.ascii", input=vect_name, format="point",
         separator="space", quiet=True
     )
@@ -172,7 +172,7 @@ def main():
     GRASS GIS
     """
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
@@ -186,7 +186,7 @@ def main():
             )
             import gflex
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Cannot import gFlex. Install it from source with:\n"
                 "  pip install -e /path/to/gFlex\n"
@@ -199,7 +199,7 @@ def main():
         for x in gflex.__version__.split(".")[:3]
     )
     if _gver < (2, 0, 0):
-        grass.fatal(
+        gs.fatal(
             _("v.flexure requires gFlex >= 2.0.0; installed: ")
             + gflex.__version__
         )
@@ -221,22 +221,22 @@ def main():
 
     # x, y, q — load point coordinates and magnitudes
     flex.x, flex.y = get_points_xy(options["input"])
-    vect_db = grass.vector_db_select(options["input"])
+    vect_db = gs.vector_db_select(options["input"])
     col_names = np.array(vect_db["columns"])
     q_col = col_names == options["column"]
     if np.sum(q_col):
         col_values = np.array(list(vect_db["values"].values())).astype(float)
         flex.q = col_values[:, q_col].reshape(-1)  # always 1-D, even for a single point
     else:
-        grass.fatal(
+        gs.fatal(
             _("Column <%s> not found in vector map <%s>.")
             % (options["column"], options["input"])
         )
 
     # Overwrite check for raster output
-    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 _("Raster map <%s> already exists. Use '--o' to overwrite.")
                 % options["output"]
             )
@@ -245,8 +245,8 @@ def main():
     # The raster grid is always needed; w_points coordinates (if provided) are
     # appended so both are evaluated in a single gFlex solve.
     _tmp_vect = "tmp_vflex_{}".format(os.getpid())
-    grass.run_command("v.mkgrid", map=_tmp_vect, type="point", overwrite=True, quiet=True)
-    grass.run_command("v.db.addcolumn", map=_tmp_vect, columns="w double precision", quiet=True)
+    gs.run_command("v.mkgrid", map=_tmp_vect, type="point", overwrite=True, quiet=True)
+    gs.run_command("v.db.addcolumn", map=_tmp_vect, columns="w double precision", quiet=True)
     grid_x, grid_y = get_points_xy(_tmp_vect)
     n_grid = len(grid_x)
 
@@ -264,7 +264,7 @@ def main():
     elif options["te_units"] == "m":
         pass
     else:
-        grass.fatal(_("Inappropriate te_units; this should not be reachable."))
+        gs.fatal(_("Inappropriate te_units; this should not be reachable."))
     flex.rho_fill = float(options["rho_fill"])
 
     # Parameters that often stay at their default values
@@ -277,18 +277,18 @@ def main():
     flex.rho_m = float(options["rho_m"])
 
     # gFlex defaults to quiet (WARNING log level); opt in at --verbose (level 3).
-    if grass.verbosity() >= 3:
+    if gs.verbosity() >= 3:
         flex.verbose = True
         flex.quiet = False
 
     # Check if lat/lon and let user know if verbosity is True
-    if grass.region_env()[6] == "3":
+    if gs.region_env()[6] == "3":
         flex.latlon = True
-        flex.planetary_radius = float(grass.parse_command("g.proj", flags="j")["+a"])
+        flex.planetary_radius = float(gs.parse_command("g.proj", flags="j")["+a"])
         if flex.verbose:
-            grass.message(_("Latitude/longitude grid."))
-            grass.message(_("Based on r_Earth = 6371 km"))
-            grass.message(
+            gs.message(_("Latitude/longitude grid."))
+            gs.message(_("Based on r_Earth = 6371 km"))
+            gs.message(
                 _("Computing distances between load points using great circle paths")
             )
 
@@ -296,7 +296,7 @@ def main():
     # SOLVE! #
     ##########
 
-    grass.message(_("Computing deflections..."))
+    gs.message(_("Computing deflections..."))
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         flex.initialize()
@@ -305,7 +305,7 @@ def main():
         w_out = np.array(flex.w)
         flex.finalize()
     for warninfo in caught:
-        grass.warning(str(warninfo.message))
+        gs.warning(str(warninfo.message))
 
     # Split results: first n_grid values go to the raster grid
     w_grid = w_out[:n_grid]
@@ -322,26 +322,26 @@ def main():
         f.write("\n".join(sql_lines))
         sql_file = f.name
     try:
-        grass.run_command("db.execute", input=sql_file, quiet=True)
+        gs.run_command("db.execute", input=sql_file, quiet=True)
     finally:
         os.unlink(sql_file)
-    grass.run_command("v.build", map=_tmp_vect, quiet=True)
+    gs.run_command("v.build", map=_tmp_vect, quiet=True)
 
     # Raster output (primary, required)
-    grass.run_command(
+    gs.run_command(
         "v.to.rast",
         input=_tmp_vect,
         output=options["output"],
         use="attr",
         attribute_column="w",
         type="point",
-        overwrite=grass.overwrite(),
+        overwrite=gs.overwrite(),
         quiet=True,
     )
-    grass.run_command(
+    gs.run_command(
         "r.colors", map=options["output"], color="differences", quiet=True
     )
-    grass.run_command("g.remove", flags="f", type="vector", name=_tmp_vect, quiet=True)
+    gs.run_command("g.remove", flags="f", type="vector", name=_tmp_vect, quiet=True)
 
     # Write deflection values to the user-supplied w_points map
     if options["w_points"]:
@@ -350,16 +350,16 @@ def main():
         # Add column if it does not already exist
         existing_cols = [
             c.lower()
-            for c in grass.vector_db_select(options["w_points"])["columns"]
+            for c in gs.vector_db_select(options["w_points"])["columns"]
         ]
         if col.lower() not in existing_cols:
-            grass.run_command(
+            gs.run_command(
                 "v.db.addcolumn",
                 map=options["w_points"],
                 columns="{} double precision".format(col),
                 quiet=True,
             )
-        pts_cats = list(grass.vector_db_select(options["w_points"])["values"].keys())
+        pts_cats = list(gs.vector_db_select(options["w_points"])["values"].keys())
         sql_lines = [
             "UPDATE {t} SET {col} = {val} WHERE cat = {cat};".format(
                 t=options["w_points"].split("@")[0],
@@ -373,10 +373,10 @@ def main():
             f.write("\n".join(sql_lines))
             sql_file = f.name
         try:
-            grass.run_command("db.execute", input=sql_file, quiet=True)
+            gs.run_command("db.execute", input=sql_file, quiet=True)
         finally:
             os.unlink(sql_file)
-        grass.run_command("v.build", map=options["w_points"], quiet=True)
+        gs.run_command("v.build", map=options["w_points"], quiet=True)
 
 
 if __name__ == "__main__":
