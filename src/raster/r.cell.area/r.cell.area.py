@@ -34,7 +34,8 @@
 # %  key: units
 # %  type: string
 # %  description: Units for output areas
-# %  options: m2, km2
+# %  options: m2, km2, ha, acres, mi2
+# %  descriptions: m2;Square meters;km2;Square kilometers;ha;Hectares;acres;Acres;mi2;Square miles
 # %  required: yes
 # %end
 
@@ -49,6 +50,16 @@ import math
 import grass.script as gs
 
 
+# Conversion factors from m² — values match GRASS G_meters_to_units_factor_sq()
+_M2_TO_UNIT = {
+    "m2": 1.0,
+    "km2": 1.0e-6,
+    "ha": 1.0e-4,
+    "acres": 1.0 / 4046.8564224,
+    "mi2": 1.0 / 2589988.110336,
+}
+
+
 def main():
     """
     Compute cell areas
@@ -61,22 +72,16 @@ def main():
     projinfo = gs.parse_command("g.proj", flags="g")
 
     projunits = str(projinfo.get("units", ""))
+    factor = _M2_TO_UNIT[units]
 
     if projunits.lower() in ("degrees", "degree"):
-        if units == "m2":
-            gs.mapcalc(
-                "{out} = ( 111195. * nsres() )"
-                " * ( ewres() * {rad} * 6371000. * cos(y()) )".format(
-                    out=output, rad=math.pi / 180.0
-                )
+        rad = math.pi / 180.0
+        gs.mapcalc(
+            "{out} = ( 111195. * nsres() )"
+            " * ( ewres() * {rad} * 6371000. * cos(y()) ) * {f}".format(
+                out=output, rad=rad, f=factor
             )
-        elif units == "km2":
-            gs.mapcalc(
-                "{out} = ( 111.195 * nsres() )"
-                " * ( ewres() * {rad} * 6371. * cos(y()) )".format(
-                    out=output, rad=math.pi / 180.0
-                )
-            )
+        )
     elif not projunits:
         gs.fatal(_("Projection units are unknown; XY locations are not supported"))
     else:
@@ -85,12 +90,11 @@ def main():
         m = float(projinfo.get("meters", 0))
         if m <= 0:
             gs.fatal(_("Projection units '%s' are not supported") % projunits)
-        if units == "m2":
-            gs.mapcalc("{out} = nsres() * ewres() * {m2}".format(out=output, m2=m**2))
-        elif units == "km2":
-            gs.mapcalc(
-                "{out} = nsres() * ewres() * {m2} / 1.e6".format(out=output, m2=m**2)
+        gs.mapcalc(
+            "{out} = nsres() * ewres() * {coeff}".format(
+                out=output, coeff=m**2 * factor
             )
+        )
 
 
 if __name__ == "__main__":
