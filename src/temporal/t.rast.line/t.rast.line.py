@@ -208,20 +208,9 @@ import atexit
 import os
 import sys
 from datetime import datetime
-
-
-def _parse_dt(value):
-    """Parse a datetime string, tolerating optional fractional seconds."""
-    for fmt in ("%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
-        try:
-            return datetime.strptime(value, fmt)
-        except ValueError:
-            continue
-    raise ValueError("Unrecognized datetime format: %s" % value)
-
-
 import grass.script as gs
 from grass.exceptions import CalledModuleError
+from grass.temporal.datetime_math import string_to_datetime
 from math import sqrt
 import matplotlib.dates as mdates
 from random import random
@@ -411,13 +400,13 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
-                    _parse_dt(x[idx_start])
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 s_points = [
-                    _parse_dt(x[idx_start])
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
@@ -425,9 +414,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                 e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
                 e_points = [
                     (
-                        _parse_dt(x[idx_end])
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else _parse_dt(x[idx_start])
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in e_tmp
                 ]
@@ -444,7 +433,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [_parse_dt(dp) for dp in date_points]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [
@@ -497,15 +486,15 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
     else:
         if temp_type == "absolute":
             if not bool(idx_end):
-                date_points = [_parse_dt(x[idx_start]) for x in univar[1:]]
+                date_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
             else:
-                s_points = [_parse_dt(x[idx_start]) for x in univar[1:]]
+                s_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
                 # Check if end slots have date or None
                 e_points = [
                     (
-                        _parse_dt(x[idx_end])
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else _parse_dt(x[idx_start])
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in univar[1:]
                 ]
@@ -522,7 +511,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [_parse_dt(dp) for dp in date_points]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
