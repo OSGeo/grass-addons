@@ -20,22 +20,23 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # %module
-# % description: Calculate cell sizes within the computational region
+# % description: Calculates the area of each raster cell for the computational region
 # % keyword: raster
-# % keyword: statistics
+# % keyword: geometry
 # %end
 
 # %option G_OPT_R_OUTPUT
 # %  key: output
-# %  type: string
-# %  description: Output grid of cell sizes
+# %  label: Output raster of cell areas
+# %  description: Name of output raster map containing cell areas
 # %  required: yes
 # %end
 
 # %option
 # %  key: units
 # %  type: string
-# %  description: Units for output areas
+# %  label: Output units
+# %  description: Units for output cell areas
 # %  options: m2, km2, ha, acres, mi2
 # %  descriptions: m2;Square meters;km2;Square kilometers;ha;Hectares;acres;Acres;mi2;Square miles
 # %  required: yes
