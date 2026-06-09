@@ -106,7 +106,7 @@ r.mapcalc expression="te_sigmoid = 15000 + 20000 / (1 + exp(-(x()-375000) / 2000
 
 # Circular volcanic load (30 MPa) within 61.3 km of the domain centre
 # 30 MPa ≈ 1055 m of mantle-density rock; radius is 1.5 × the flexural parameter α
-r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 3e7, 0)"
+r.mapcalc expression="load_volcano = if(sqrt((x()-375000)^2+(y()-375000)^2) &lt;= 61300, 30000000.0, 0)"
 
 # FD flexural deflection; default infinite BCs approximate an unbounded plate
 r.flexure method=fd \
