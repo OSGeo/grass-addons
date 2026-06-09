@@ -46,7 +46,6 @@ int main(int argc, char **argv)
     SupportVectorMachine *svm_models;
     SupportVectorMachine svm;
 
-    char tmpbuf[500];
     char svm_kernel_type[100];
     char fs_type_string[100];
     double svm_kp, svm_C, svm_tol, svm_eps;

@@ -22,9 +22,11 @@ features previously calculated and not layers in the training file.
 ## SEE ALSO
 
 *[i.pr.training](i.pr.training.md)*
+
 *[i.pca](https://grass.osgeo.org/grass-stable/manuals/i.pca.html)*
 
 ## AUTHORS
 
 Stefano Merler, FBK, Trento, Italy
+
 Documentation: Daniel McInerney (daniel.mcinerney ucd.ie)

@@ -151,7 +151,7 @@ int main(int argc, char **argv)
         sscanf(opt5->answer, "%d", &num_class);
     }
     if (opt6->answer && opt5->answer) {
-        G_warning("Option class ignored\nLabels will be directlly read from "
+        G_warning("Option class ignored\nLabels will be directly read from "
                   "site file\n");
     }
     sscanf(opt2->answer, "%d", &window_rows);

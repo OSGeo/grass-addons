@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
                             &btree, &bsvm);
 
     if (features.training.data_type != GRASS_data) {
-        G_fatal_error("Model build using othe than GRASS data\n");
+        G_fatal_error("Model build using other than GRASS data\n");
     }
     if (model_type == 0) {
         G_fatal_error("Model not recognized\n");
