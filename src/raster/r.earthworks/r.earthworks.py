@@ -1249,6 +1249,10 @@ def main():
 
     # Run processes
     try:
+        # Use a temporary region so the user's computational region is
+        # restored on exit, including when the module exits with an error
+        gs.use_temp_region()
+
         # Convert inputs
         if raster:
             coordinates = convert_raster(raster)
