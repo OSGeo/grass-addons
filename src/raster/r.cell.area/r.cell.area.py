@@ -60,15 +60,6 @@ def main():
 
     projinfo = gs.parse_command("g.proj", flags="g")
 
-    # First check if output exists
-    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not gs.overwrite():
-            gs.fatal(
-                "Raster map '"
-                + options["output"]
-                + "' already exists. Use '--o' to overwrite."
-            )
-
     projunits = str(projinfo.get("units", ""))
 
     if projunits.lower() in ("degrees", "degree"):
