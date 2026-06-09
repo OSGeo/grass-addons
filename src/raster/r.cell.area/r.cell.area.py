@@ -16,6 +16,8 @@
 #
 #############################################################################
 #
+# SPDX-FileCopyrightText: 2017 Andrew Wickert
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # %module
 # % description: Calculate cell sizes within the computational region
