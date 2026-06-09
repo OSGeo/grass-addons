@@ -80,9 +80,9 @@ r.upflowlength input=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 output=nc_u
 
 ## REFERENCES
 
-Huidae Cho, Accepted in May 2026. *Flow in Float: Memory-Efficient Upstream
-Flow Length Parallel Computation Using an IEEE-754-Based Union Encoding.*
-Environmental Modelling & Software, 107045.
+Huidae Cho, September 2026. *Flow in Float: Memory-Efficient Upstream Flow
+Length Parallel Computation Using an IEEE-754-Based Union Encoding.*
+Environmental Modelling & Software 204, 107045.
 [doi:10.1016/j.envsoft.2026.107045](https://doi.org/10.1016/j.envsoft.2026.107045).
 
 ## AUTHOR
