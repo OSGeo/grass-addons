@@ -43,7 +43,7 @@
 ##################
 
 # PYTHON
-import numpy as np
+import math
 
 # GRASS
 import grass.script as gs
@@ -67,14 +67,14 @@ def main():
             gs.mapcalc(
                 "{out} = ( 111195. * nsres() )"
                 " * ( ewres() * {rad} * 6371000. * cos(y()) )".format(
-                    out=output, rad=np.pi / 180.0
+                    out=output, rad=math.pi / 180.0
                 )
             )
         elif units == "km2":
             gs.mapcalc(
                 "{out} = ( 111.195 * nsres() )"
                 " * ( ewres() * {rad} * 6371. * cos(y()) )".format(
-                    out=output, rad=np.pi / 180.0
+                    out=output, rad=math.pi / 180.0
                 )
             )
     elif not projunits:
