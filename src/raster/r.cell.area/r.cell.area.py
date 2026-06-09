@@ -64,10 +64,6 @@ _M2_TO_UNIT = {
 
 
 def main():
-    """
-    Compute cell areas
-    """
-
     options, flags = gs.parser()
     output = options["output"]
     units = options["units"]
