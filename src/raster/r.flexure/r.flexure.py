@@ -196,7 +196,7 @@ import warnings
 import numpy as np
 
 # GRASS
-import grass.script as grass
+import grass.script as gs
 import grass.script.array as garray
 
 ############################
@@ -209,7 +209,7 @@ def main():
     Gridded flexural isostatic solutions
     """
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     # if just interface description is requested, it will not get to this point
     # so gflex will not be needed
 
@@ -223,7 +223,7 @@ def main():
             )
             import gflex
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Cannot import gFlex. Install it from source with:\n"
                 "  pip install -e /path/to/gFlex\n"
@@ -236,7 +236,7 @@ def main():
         for x in gflex.__version__.split(".")[:3]
     )
     if _gver < (2, 0, 0):
-        grass.fatal(
+        gs.fatal(
             _("r.flexure requires gFlex >= 2.0.0; installed: ")
             + gflex.__version__
         )
@@ -280,53 +280,53 @@ def main():
     if flex.method in ("fd", "fft"):
         flex.bc_north = options["northbc"]
         flex.bc_south = options["southbc"]
-        flex.bc_west  = options["westbc"]
-        flex.bc_east  = options["eastbc"]
+        flex.bc_west = options["westbc"]
+        flex.bc_east = options["eastbc"]
 
     # gFlex defaults to quiet (WARNING log level); opt in at --verbose (level 3).
     # GRASS default verbosity is 2; level 3 is --verbose; there is no level 4.
-    if grass.verbosity() >= 3:
+    if gs.verbosity() >= 3:
         flex.verbose = True
         flex.quiet = False
 
     # First check if output exists
-    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
+    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
+        if not gs.overwrite():
+            gs.fatal(
                 _("Raster map <%s> already exists. Use '--o' to overwrite.")
                 % options["output"]
             )
 
     # Get grid spacing from GRASS
     # Check if lat/lon and proceed as directed
-    if grass.region_env()[6] == "3":
+    if gs.region_env()[6] == "3":
         if latlon_override:
             if flex.verbose:
-                grass.message(_("Latitude/longitude grid."))
-                grass.message(_("Based on r_Earth = 6371 km"))
-                grass.message(_("Setting y-resolution [m] to 111,195 * [degrees]"))
-            flex.dy = grass.region()["nsres"] * 111195.0
-            NSmid = (grass.region()["n"] + grass.region()["s"]) / 2.0
+                gs.message(_("Latitude/longitude grid."))
+                gs.message(_("Based on r_Earth = 6371 km"))
+                gs.message(_("Setting y-resolution [m] to 111,195 * [degrees]"))
+            flex.dy = gs.region()["nsres"] * 111195.0
+            NSmid = (gs.region()["n"] + gs.region()["s"]) / 2.0
             dx_at_mid_latitude = (
                 (3.14159 / 180.0) * 6371000.0 * np.cos(np.deg2rad(NSmid))
             )
             if flex.verbose:
-                grass.message(
+                gs.message(
                     _("Setting x-resolution [m] to %.2f * [degrees]")
                     % dx_at_mid_latitude
                 )
-            flex.dx = grass.region()["ewres"] * dx_at_mid_latitude
+            flex.dx = gs.region()["ewres"] * dx_at_mid_latitude
         else:
-            grass.fatal(
+            gs.fatal(
                 _("Need the '-l' flag to enable lat/lon solution approximation.")
             )
     # Otherwise straightforward
     else:
-        flex.dx = grass.region()["ewres"]
-        flex.dy = grass.region()["nsres"]
+        flex.dx = gs.region()["ewres"]
+        flex.dy = gs.region()["nsres"]
 
     # CALCULATE!
-    grass.message(_("Computing deflections..."))
+    gs.message(_("Computing deflections..."))
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         flex.initialize()
@@ -335,17 +335,17 @@ def main():
         w = flex.w
         flex.finalize()
     for warninfo in caught:
-        grass.warning(str(warninfo.message))
+        gs.warning(str(warninfo.message))
 
     # Write to GRASS
     # Create a new garray buffer and write to it
     outbuffer = garray.array()  # Instantiate output buffer
     outbuffer[...] = w
     outbuffer.write(
-        options["output"], overwrite=grass.overwrite()
+        options["output"], overwrite=gs.overwrite()
     )  # Write it with the desired name
     # And create a nice colormap!
-    grass.run_command(
+    gs.run_command(
         "r.colors", map=options["output"], color="differences", quiet=True
     )
 
