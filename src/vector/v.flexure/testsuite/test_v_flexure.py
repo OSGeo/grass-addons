@@ -297,6 +297,173 @@ class TestVFlexure(TestCase):
                 "g.remove", flags="f", type="raster", name=output2, quiet=True
             )
 
+    def test_te_units_default_km(self):
+        """Omitting te_units uses the km default; result must match explicit te_units=km."""
+        out_default = "test_vflex_te_default"
+        out_km = "test_vflex_te_km_explicit"
+        try:
+            self.assertModule(
+                "v.flexure", input=self.loads, column="q",
+                te="10", output=out_default,
+            )
+            self.assertModule(
+                "v.flexure", input=self.loads, column="q",
+                te="10", te_units="km", output=out_km,
+            )
+            stats_d = grass.parse_command("r.univar", map=out_default, flags="g")
+            stats_k = grass.parse_command("r.univar", map=out_km, flags="g")
+            self.assertAlmostEqual(
+                float(stats_d["min"]), float(stats_k["min"]), places=10,
+                msg="Default te_units=km must match explicit te_units=km",
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster",
+                name=",".join([out_default, out_km]), quiet=True,
+            )
+
+    def test_linearity(self):
+        """Doubling the load force doubles the peak deflection.
+
+        The elastic plate equation is linear in the load, so deflection scales
+        exactly with load magnitude.
+        """
+        loads_2x = "test_vflex_loads_2x"
+        out_1x = "test_vflex_linear_1x"
+        out_2x = "test_vflex_linear_2x"
+        try:
+            self.runModule(
+                "v.in.ascii",
+                format="point",
+                input="-",
+                stdin_="500 500",
+                separator="space",
+                output=loads_2x,
+            )
+            self.runModule("v.db.addtable", map=loads_2x)
+            self.runModule(
+                "v.db.addcolumn", map=loads_2x, columns="q double precision"
+            )
+            self.runModule(
+                "v.db.update", map=loads_2x, column="q", value="2e15", where="cat=1"
+            )
+            self.assertModule(
+                "v.flexure", input=self.loads, column="q",
+                te="10000", te_units="m", output=out_1x,
+            )
+            self.assertModule(
+                "v.flexure", input=loads_2x, column="q",
+                te="10000", te_units="m", output=out_2x,
+            )
+            stats_1x = grass.parse_command("r.univar", map=out_1x, flags="g")
+            stats_2x = grass.parse_command("r.univar", map=out_2x, flags="g")
+            self.assertAlmostEqual(
+                float(stats_2x["min"]), 2.0 * float(stats_1x["min"]), places=6,
+                msg="Peak deflection must scale linearly with load force",
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="vector", name=loads_2x, quiet=True
+            )
+            self.runModule(
+                "g.remove", flags="f", type="raster",
+                name=",".join([out_1x, out_2x]), quiet=True,
+            )
+
+    def test_stiffer_te_less_deflection(self):
+        """A stiffer plate (larger Te) deflects less under the same load."""
+        out_soft = "test_vflex_soft_te"
+        out_stiff = "test_vflex_stiff_te"
+        try:
+            self.assertModule(
+                "v.flexure", input=self.loads, column="q",
+                te="5000", te_units="m", output=out_soft,
+            )
+            self.assertModule(
+                "v.flexure", input=self.loads, column="q",
+                te="20000", te_units="m", output=out_stiff,
+            )
+            stats_soft = grass.parse_command("r.univar", map=out_soft, flags="g")
+            stats_stiff = grass.parse_command("r.univar", map=out_stiff, flags="g")
+            self.assertLess(
+                float(stats_soft["min"]), float(stats_stiff["min"]),
+                msg="Softer plate (Te=5 km) must deflect more than stiffer (Te=20 km)",
+            )
+        finally:
+            self.runModule(
+                "g.remove", flags="f", type="raster",
+                name=",".join([out_soft, out_stiff]), quiet=True,
+            )
+
+
+@unittest.skipUnless(_gflex_ok(), "gFlex not available")
+class TestVFlexureForebulge(TestCase):
+    """Test forebulge on a domain large enough to resolve it.
+
+    For Te=10 km, the flexural parameter α≈52 km and the forebulge peaks at
+    ~4.87α≈253 km from the load.  A 600×600 km domain (300 km half-width)
+    at 10 km resolution captures the forebulge ring.
+    """
+
+    loads = "test_vflex_fb_loads"
+    output = "test_vflex_fb_rout"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule(
+            "g.region", n=600000, s=0, e=600000, w=0, res=10000
+        )
+        cls.runModule(
+            "v.in.ascii",
+            format="point",
+            input="-",
+            stdin_="300000 300000",
+            separator="space",
+            output=cls.loads,
+        )
+        cls.runModule("v.db.addtable", map=cls.loads)
+        cls.runModule(
+            "v.db.addcolumn", map=cls.loads, columns="q double precision"
+        )
+        cls.runModule(
+            "v.db.update", map=cls.loads, column="q", value="1e18", where="cat=1"
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.del_temp_region()
+        cls.runModule(
+            "g.remove", flags="f", type="vector", name=cls.loads, quiet=True
+        )
+
+    def tearDown(self):
+        self.runModule(
+            "g.remove", flags="f", type="raster", name=self.output, quiet=True
+        )
+
+    def test_forebulge_present(self):
+        """SAS_NG produces a forebulge: some cells have positive (upward) deflection.
+
+        The analytical solution for a point load on an infinite elastic plate
+        predicts a ring of positive uplift (forebulge) at radius ~4.87α from
+        the load.  On a 600×600 km domain with Te=10 km this ring falls well
+        within the domain.
+        """
+        self.assertModule(
+            "v.flexure",
+            input=self.loads,
+            column="q",
+            te="10",
+            te_units="km",
+            output=self.output,
+        )
+        stats = grass.parse_command("r.univar", map=self.output, flags="g")
+        self.assertLess(float(stats["min"]), 0,
+                        "Central subsidence must be negative")
+        self.assertGreater(float(stats["max"]), 0,
+                           "Forebulge uplift must be positive on a 600 km domain")
+
 
 if __name__ == "__main__":
     test()
