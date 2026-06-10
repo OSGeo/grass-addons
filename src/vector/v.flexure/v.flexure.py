@@ -156,6 +156,8 @@ def get_points_xy(vect_name):
         "v.out.ascii", input=vect_name, format="point", separator="space", quiet=True
     )
     rows = [line.split() for line in out.strip().splitlines() if line.strip()]
+    if not rows:
+        return np.array([]), np.array([])
     coords = np.array([[float(r[0]), float(r[1])] for r in rows], dtype=float)
     return coords[:, 0], coords[:, 1]  # x, y
 
