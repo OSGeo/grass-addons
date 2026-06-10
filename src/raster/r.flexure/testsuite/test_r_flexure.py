@@ -365,28 +365,28 @@ class TestRFlexure(TestCase):
         """
         out_km = "test_rflex_te_km"
         out_m = "test_rflex_te_m"
-        try:
-            self.assertModule(
-                "r.flexure", method="sas", input=self.load,
-                te="10", te_units="km", output=out_km,
-            )
-            self.assertModule(
-                "r.flexure", method="sas", input=self.load,
-                te="10000", te_units="m", output=out_m,
-            )
-            stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
-            stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
-            self.assertAlmostEqual(
-                float(stats_km["min"]), float(stats_m["min"]), places=10,
-                msg="Te in km and m must give identical min deflection",
-            )
-            self.assertAlmostEqual(
-                float(stats_km["mean"]), float(stats_m["mean"]), places=10,
-                msg="Te in km and m must give identical mean deflection",
-            )
-        finally:
-            self.runModule("g.remove", flags="f", type="raster",
-                           name=",".join([out_km, out_m]), quiet=True)
+        self.addCleanup(
+            self.runModule, "g.remove", flags="f", type="raster",
+            name=",".join([out_km, out_m]), quiet=True,
+        )
+        self.assertModule(
+            "r.flexure", method="sas", input=self.load,
+            te="10", te_units="km", output=out_km,
+        )
+        self.assertModule(
+            "r.flexure", method="sas", input=self.load,
+            te="10000", te_units="m", output=out_m,
+        )
+        stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
+        stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
+        self.assertAlmostEqual(
+            float(stats_km["min"]), float(stats_m["min"]), places=10,
+            msg="Te in km and m must give identical min deflection",
+        )
+        self.assertAlmostEqual(
+            float(stats_km["mean"]), float(stats_m["mean"]), places=10,
+            msg="Te in km and m must give identical mean deflection",
+        )
 
     def test_deflection_is_downward_fd(self):
         """FD deflection under a positive load is negative and physically plausible."""
