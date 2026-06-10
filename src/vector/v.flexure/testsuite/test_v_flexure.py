@@ -526,5 +526,102 @@ class TestVFlexureForebulge(TestCase):
         )
 
 
+class TestVFlexureParserErrors(TestCase):
+    """Parser-level rejection — fires before main() and requires no gFlex."""
+
+    loads = "test_vflex_perr_loads"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule("g.region", n=1000, s=0, e=1000, w=0, res=100)
+        cls.runModule(
+            "v.in.ascii",
+            format="point",
+            input="-",
+            stdin_="500 500",
+            separator="space",
+            output=cls.loads,
+        )
+        cls.runModule("v.db.addtable", map=cls.loads)
+        cls.runModule(
+            "v.db.addcolumn",
+            map=cls.loads,
+            columns="q double precision",
+        )
+        cls.runModule(
+            "v.db.update",
+            map=cls.loads,
+            column="q",
+            value="1e15",
+            where="cat=1",
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.del_temp_region()
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.loads, quiet=True)
+
+    def test_bad_te_units(self):
+        """Parser rejects te_units values outside the allowed set {m, km}."""
+        self.assertModuleFail(
+            "v.flexure",
+            input=self.loads,
+            column="q",
+            te="10",
+            te_units="feet",
+            output="dummy_out",
+        )
+
+
+@unittest.skipUnless(_gflex_ok(), "gFlex not available")
+class TestVFlexureInputErrors(TestCase):
+    """Input-validation errors raised inside main() — gFlex must be importable."""
+
+    loads = "test_vflex_ierr_loads"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule("g.region", n=1000, s=0, e=1000, w=0, res=100)
+        cls.runModule(
+            "v.in.ascii",
+            format="point",
+            input="-",
+            stdin_="500 500",
+            separator="space",
+            output=cls.loads,
+        )
+        cls.runModule("v.db.addtable", map=cls.loads)
+        cls.runModule(
+            "v.db.addcolumn",
+            map=cls.loads,
+            columns="q double precision",
+        )
+        cls.runModule(
+            "v.db.update",
+            map=cls.loads,
+            column="q",
+            value="1e15",
+            where="cat=1",
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.del_temp_region()
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.loads, quiet=True)
+
+    def test_missing_column(self):
+        """Module exits with error when the named column is absent from the input map."""
+        self.assertModuleFail(
+            "v.flexure",
+            input=self.loads,
+            column="nonexistent",
+            te="10000",
+            te_units="m",
+            output="dummy_out",
+        )
+
+
 if __name__ == "__main__":
     test()
