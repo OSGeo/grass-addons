@@ -237,8 +237,7 @@ def main():
     )
     if _gver < (2, 0, 0):
         gs.fatal(
-            _("r.flexure requires gFlex >= 2.0.0; installed: ")
-            + gflex.__version__
+            _("r.flexure requires gFlex >= 2.0.0; installed: ") + gflex.__version__
         )
 
     # This code is for 2D flexural isostasy
@@ -317,9 +316,7 @@ def main():
                 )
             flex.dx = gs.region()["ewres"] * dx_at_mid_latitude
         else:
-            gs.fatal(
-                _("Need the '-l' flag to enable lat/lon solution approximation.")
-            )
+            gs.fatal(_("Need the '-l' flag to enable lat/lon solution approximation."))
     # Otherwise straightforward
     else:
         flex.dx = gs.region()["ewres"]
@@ -345,9 +342,7 @@ def main():
         options["output"], overwrite=gs.overwrite()
     )  # Write it with the desired name
     # And create a nice colormap!
-    gs.run_command(
-        "r.colors", map=options["output"], color="differences", quiet=True
-    )
+    gs.run_command("r.colors", map=options["output"], color="differences", quiet=True)
 
 
 if __name__ == "__main__":

@@ -323,12 +323,18 @@ class TestRFlexure(TestCase):
             )
             stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
-            self.assertLess(min_w, 0,
-                            "Deflection under a downward load must be negative")
-            self.assertGreater(min_w, -1000,
-                               "Deflection magnitude must be physically plausible (< 1 km)")
+            self.assertLess(
+                min_w, 0, "Deflection under a downward load must be negative"
+            )
+            self.assertGreater(
+                min_w,
+                -1000,
+                "Deflection magnitude must be physically plausible (< 1 km)",
+            )
         finally:
-            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
 
     def test_te_units_default_km(self):
         """Omitting te_units uses the km default; result must match explicit te_units=km.
@@ -340,22 +346,36 @@ class TestRFlexure(TestCase):
         out_km = "test_rflex_te_explicit_km_def"
         try:
             self.assertModule(
-                "r.flexure", method="sas", input=self.load,
-                te="10", output=out_default,
+                "r.flexure",
+                method="sas",
+                input=self.load,
+                te="10",
+                output=out_default,
             )
             self.assertModule(
-                "r.flexure", method="sas", input=self.load,
-                te="10", te_units="km", output=out_km,
+                "r.flexure",
+                method="sas",
+                input=self.load,
+                te="10",
+                te_units="km",
+                output=out_km,
             )
             stats_d = gs.parse_command("r.univar", map=out_default, flags="g")
             stats_k = gs.parse_command("r.univar", map=out_km, flags="g")
             self.assertAlmostEqual(
-                float(stats_d["min"]), float(stats_k["min"]), places=10,
+                float(stats_d["min"]),
+                float(stats_k["min"]),
+                places=10,
                 msg="Default te_units=km must match explicit te_units=km",
             )
         finally:
-            self.runModule("g.remove", flags="f", type="raster",
-                           name=",".join([out_default, out_km]), quiet=True)
+            self.runModule(
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=",".join([out_default, out_km]),
+                quiet=True,
+            )
 
     def test_te_km_m_equivalence(self):
         """Te=10 km and Te=10000 m must produce identical deflections.
@@ -366,25 +386,41 @@ class TestRFlexure(TestCase):
         out_km = "test_rflex_te_km"
         out_m = "test_rflex_te_m"
         self.addCleanup(
-            self.runModule, "g.remove", flags="f", type="raster",
-            name=",".join([out_km, out_m]), quiet=True,
+            self.runModule,
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=",".join([out_km, out_m]),
+            quiet=True,
         )
         self.assertModule(
-            "r.flexure", method="sas", input=self.load,
-            te="10", te_units="km", output=out_km,
+            "r.flexure",
+            method="sas",
+            input=self.load,
+            te="10",
+            te_units="km",
+            output=out_km,
         )
         self.assertModule(
-            "r.flexure", method="sas", input=self.load,
-            te="10000", te_units="m", output=out_m,
+            "r.flexure",
+            method="sas",
+            input=self.load,
+            te="10000",
+            te_units="m",
+            output=out_m,
         )
         stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
         stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
         self.assertAlmostEqual(
-            float(stats_km["min"]), float(stats_m["min"]), places=10,
+            float(stats_km["min"]),
+            float(stats_m["min"]),
+            places=10,
             msg="Te in km and m must give identical min deflection",
         )
         self.assertAlmostEqual(
-            float(stats_km["mean"]), float(stats_m["mean"]), places=10,
+            float(stats_km["mean"]),
+            float(stats_m["mean"]),
+            places=10,
             msg="Te in km and m must give identical mean deflection",
         )
 
@@ -406,12 +442,18 @@ class TestRFlexure(TestCase):
             )
             stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
-            self.assertLess(min_w, 0,
-                            "FD deflection under a downward load must be negative")
-            self.assertGreater(min_w, -1000,
-                               "FD deflection magnitude must be physically plausible (< 1 km)")
+            self.assertLess(
+                min_w, 0, "FD deflection under a downward load must be negative"
+            )
+            self.assertGreater(
+                min_w,
+                -1000,
+                "FD deflection magnitude must be physically plausible (< 1 km)",
+            )
         finally:
-            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
 
     def test_deflection_is_downward_fft(self):
         """FFT deflection under a positive load is negative and physically plausible."""
@@ -427,12 +469,18 @@ class TestRFlexure(TestCase):
             )
             stats = gs.parse_command("r.univar", map=output, flags="g")
             min_w = float(stats["min"])
-            self.assertLess(min_w, 0,
-                            "FFT deflection under a downward load must be negative")
-            self.assertGreater(min_w, -1000,
-                               "FFT deflection magnitude must be physically plausible (< 1 km)")
+            self.assertLess(
+                min_w, 0, "FFT deflection under a downward load must be negative"
+            )
+            self.assertGreater(
+                min_w,
+                -1000,
+                "FFT deflection magnitude must be physically plausible (< 1 km)",
+            )
         finally:
-            self.runModule("g.remove", flags="f", type="raster", name=output, quiet=True)
+            self.runModule(
+                "g.remove", flags="f", type="raster", name=output, quiet=True
+            )
 
     def test_fft_sigma_stresses(self):
         """FFT method with non-zero in-plane stresses."""
@@ -457,21 +505,34 @@ class TestRFlexure(TestCase):
         output = "test_rflex_fft_bc_clamp"
         try:
             self.assertModule(
-                "r.flexure", method="fft", input=self.load,
-                te="10000", te_units="m", output=output,
-                northbc="clamped", southbc="clamped",
-                eastbc="clamped", westbc="clamped",
+                "r.flexure",
+                method="fft",
+                input=self.load,
+                te="10000",
+                te_units="m",
+                output=output,
+                northbc="clamped",
+                southbc="clamped",
+                eastbc="clamped",
+                westbc="clamped",
             )
             self.assertRasterExists(output)
             self.assertRasterFitsUnivar(
                 raster=output, reference={"n": 100}, precision=0
             )
             stats = gs.parse_command("r.univar", map=output, flags="g")
-            self.assertLess(float(stats["min"]), 0,
-                            "FFT deflection under a downward load must be negative")
+            self.assertLess(
+                float(stats["min"]),
+                0,
+                "FFT deflection under a downward load must be negative",
+            )
         finally:
             self.runModule(
-                "g.remove", flags="f", type="raster", name=output, quiet=True,
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=output,
+                quiet=True,
             )
 
 
@@ -495,9 +556,7 @@ class TestRFlexurePadded(TestCase):
         cls.runModule(
             "r.in.ascii", input="-", stdin_=LOAD_PAD_ASCII, output=cls.load_pad
         )
-        cls.runModule(
-            "r.in.ascii", input="-", stdin_=TE_PAD_ASCII, output=cls.te_pad
-        )
+        cls.runModule("r.in.ascii", input="-", stdin_=TE_PAD_ASCII, output=cls.te_pad)
         cls.runModule("g.region", raster=cls.load_pad)
 
     @classmethod
