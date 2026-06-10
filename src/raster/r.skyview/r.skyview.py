@@ -80,6 +80,10 @@
 # %  multiple: no
 # %  description: Set the basename for the intermediate maps
 # %end
+# %option G_OPT_M_NPROCS
+# %end
+# %option G_OPT_MEMORYMB
+# %end
 # %flag
 # % key: o
 # % label: Compute openness instead of skyview factor
@@ -120,6 +124,14 @@ def main():
     elev = options["input"]
     output = options["output"]
     n_dir = int(options["ndir"])
+    nprocs = int(options["nprocs"])
+    memory = int(options["memory"])
+    version = gcore.version()["version"].split(".")
+    major = int(version[0])
+    minor = int("".join(c for c in version[1] if c.isdigit()))
+    if (major, minor) < (8, 5):
+        nprocs = None
+        memory = None
     global TMP_NAME, CLEANUP
     if options["basename"]:
         TMP_NAME = options["basename"]
@@ -182,6 +194,8 @@ def main():
         params = {}
         if options["maxdistance"]:
             params["maxdistance"] = options["maxdistance"]
+        if nprocs is not None:
+            params["nprocs"] = nprocs
         gcore.run_command(
             "r.horizon",
             elevation=elev,
@@ -207,7 +221,10 @@ def main():
                 expr += "+ sin( if({name} < 0, 0, {name}) ) ".format(name=horizon)
             expr += ") / {n}.".format(n=len(new_maps))
 
-        grast.mapcalc(exp=expr)
+        if nprocs is not None:
+            grast.mapcalc(exp=expr, nprocs=nprocs)
+        else:
+            grast.mapcalc(exp=expr)
         gcore.run_command("r.colors", map=output, color="grey")
     except CalledModuleError:
         msgr.fatal(
@@ -218,12 +235,32 @@ def main():
         )
         return 1
     if colorized_output:
+        sa_params = {}
+        if nprocs is not None:
+            sa_params["nprocs"] = nprocs
+        if memory is not None:
+            sa_params["memory"] = memory
         if color_raster_type == "slope":
-            gcore.run_command("r.slope.aspect", elevation=elev, slope=color_raster_tmp)
+            gcore.run_command(
+                "r.slope.aspect",
+                elevation=elev,
+                slope=color_raster_tmp,
+                **sa_params,
+            )
         elif color_raster_type == "aspect":
-            gcore.run_command("r.slope.aspect", elevation=elev, aspect=color_raster_tmp)
+            gcore.run_command(
+                "r.slope.aspect",
+                elevation=elev,
+                aspect=color_raster_tmp,
+                **sa_params,
+            )
         elif color_raster_type == "dxy":
-            gcore.run_command("r.slope.aspect", elevation=elev, dxy=color_raster_tmp)
+            gcore.run_command(
+                "r.slope.aspect",
+                elevation=elev,
+                dxy=color_raster_tmp,
+                **sa_params,
+            )
         elif color_raster_type == "color_input":
             color_raster_tmp = color_input
         else:
