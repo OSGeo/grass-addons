@@ -221,6 +221,8 @@ def main():
 
     # x, y, q — load point coordinates and magnitudes
     flex.x, flex.y = get_points_xy(options["input"])
+    if len(flex.x) == 0:
+        gs.fatal(_("Input vector map <%s> contains no points.") % options["input"])
     vect_db = gs.vector_db_select(options["input"])
     col_names = np.array(vect_db["columns"])
     q_col = col_names == options["column"]
