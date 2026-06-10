@@ -153,8 +153,7 @@ import grass.script as gs
 def get_points_xy(vect_name):
     """Return (x, y) coordinate arrays for all points in a vector map."""
     out = gs.read_command(
-        "v.out.ascii", input=vect_name, format="point",
-        separator="space", quiet=True
+        "v.out.ascii", input=vect_name, format="point", separator="space", quiet=True
     )
     rows = [line.split() for line in out.strip().splitlines() if line.strip()]
     coords = np.array([[float(r[0]), float(r[1])] for r in rows], dtype=float)
@@ -200,8 +199,7 @@ def main():
     )
     if _gver < (2, 0, 0):
         gs.fatal(
-            _("v.flexure requires gFlex >= 2.0.0; installed: ")
-            + gflex.__version__
+            _("v.flexure requires gFlex >= 2.0.0; installed: ") + gflex.__version__
         )
 
     ##########
@@ -246,7 +244,9 @@ def main():
     # appended so both are evaluated in a single gFlex solve.
     _tmp_vect = "tmp_vflex_{}".format(os.getpid())
     gs.run_command("v.mkgrid", map=_tmp_vect, type="point", overwrite=True, quiet=True)
-    gs.run_command("v.db.addcolumn", map=_tmp_vect, columns="w double precision", quiet=True)
+    gs.run_command(
+        "v.db.addcolumn", map=_tmp_vect, columns="w double precision", quiet=True
+    )
     grid_x, grid_y = get_points_xy(_tmp_vect)
     n_grid = len(grid_x)
 
@@ -338,9 +338,7 @@ def main():
         overwrite=gs.overwrite(),
         quiet=True,
     )
-    gs.run_command(
-        "r.colors", map=options["output"], color="differences", quiet=True
-    )
+    gs.run_command("r.colors", map=options["output"], color="differences", quiet=True)
     gs.run_command("g.remove", flags="f", type="vector", name=_tmp_vect, quiet=True)
 
     # Write deflection values to the user-supplied w_points map
@@ -349,8 +347,7 @@ def main():
         col = options["w_column"]
         # Add column if it does not already exist
         existing_cols = [
-            c.lower()
-            for c in gs.vector_db_select(options["w_points"])["columns"]
+            c.lower() for c in gs.vector_db_select(options["w_points"])["columns"]
         ]
         if col.lower() not in existing_cols:
             gs.run_command(

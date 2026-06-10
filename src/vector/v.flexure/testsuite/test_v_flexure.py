@@ -79,9 +79,7 @@ class TestVFlexure(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.del_temp_region()
-        cls.runModule(
-            "g.remove", flags="f", type="vector", name=cls.loads, quiet=True
-        )
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.loads, quiet=True)
 
     def tearDown(self):
         self.runModule(
@@ -104,10 +102,10 @@ class TestVFlexure(TestCase):
         )
         stats = gs.parse_command("r.univar", map=self.output, flags="g")
         min_w = float(stats["min"])
-        self.assertLess(min_w, 0,
-                        "Deflection under a downward load must be negative")
-        self.assertGreater(min_w, -1000,
-                           "Deflection magnitude must be physically plausible (< 1 km)")
+        self.assertLess(min_w, 0, "Deflection under a downward load must be negative")
+        self.assertGreater(
+            min_w, -1000, "Deflection magnitude must be physically plausible (< 1 km)"
+        )
 
     def test_w_points_output(self):
         """w_points writes deflection values into an existing vector map."""
@@ -138,16 +136,18 @@ class TestVFlexure(TestCase):
         # The w column should now exist and be populated
         db = gs.vector_db_select(w_pts)
         col_lower = [c.lower() for c in db["columns"]]
-        self.assertIn("w", col_lower,
-                      "w column should be present in w_points map")
+        self.assertIn("w", col_lower, "w column should be present in w_points map")
         w_idx = col_lower.index("w")
         w_vals = [float(row[w_idx]) for row in db["values"].values()]
-        self.assertTrue(any(v < 0 for v in w_vals),
-                        "At least one deflection value should be negative")
+        self.assertTrue(
+            any(v < 0 for v in w_vals),
+            "At least one deflection value should be negative",
+        )
         # cat=2 is (500, 500) — the load location; must be the most negative
         w_at_load = float(db["values"][2][w_idx])
         self.assertEqual(
-            w_at_load, min(w_vals),
+            w_at_load,
+            min(w_vals),
             "Deflection at load point (500, 500) must be the most negative",
         )
 
@@ -175,12 +175,13 @@ class TestVFlexure(TestCase):
                 w_column="deflection",
             )
             db = gs.vector_db_select(w_pts)
-            self.assertIn("deflection", [c.lower() for c in db["columns"]],
-                          "deflection column should be present in w_points map")
-        finally:
-            self.runModule(
-                "g.remove", flags="f", type="vector", name=w_pts, quiet=True
+            self.assertIn(
+                "deflection",
+                [c.lower() for c in db["columns"]],
+                "deflection column should be present in w_points map",
             )
+        finally:
+            self.runModule("g.remove", flags="f", type="vector", name=w_pts, quiet=True)
 
     def test_te_km_units(self):
         """Te in km produces output without error."""
@@ -219,23 +220,36 @@ class TestVFlexure(TestCase):
         out_m = "test_vflex_te_m"
         try:
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="10", te_units="km", output=out_km,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="10",
+                te_units="km",
+                output=out_km,
             )
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="10000", te_units="m", output=out_m,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="10000",
+                te_units="m",
+                output=out_m,
             )
             stats_km = gs.parse_command("r.univar", map=out_km, flags="g")
             stats_m = gs.parse_command("r.univar", map=out_m, flags="g")
             self.assertAlmostEqual(
-                float(stats_km["min"]), float(stats_m["min"]), places=10,
+                float(stats_km["min"]),
+                float(stats_m["min"]),
+                places=10,
                 msg="Te in km and m must give identical min deflection",
             )
         finally:
             self.runModule(
-                "g.remove", flags="f", type="raster",
-                name=",".join([out_km, out_m]), quiet=True,
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=",".join([out_km, out_m]),
+                quiet=True,
             )
 
     def test_deflection_decays_with_distance(self):
@@ -257,7 +271,8 @@ class TestVFlexure(TestCase):
         min_w = float(stats["min"])
         mean_w = float(stats["mean"])
         self.assertLess(
-            min_w, mean_w,
+            min_w,
+            mean_w,
             "Peak subsidence at load centre must exceed mean deflection",
         )
         self.assertLess(mean_w, 0, "Mean deflection must be negative")
@@ -267,10 +282,20 @@ class TestVFlexure(TestCase):
         loads2 = "test_vflex_loads2"
         output2 = "test_vflex_rout2"
         self.addCleanup(
-            self.runModule, "g.remove", flags="f", type="vector", name=loads2, quiet=True
+            self.runModule,
+            "g.remove",
+            flags="f",
+            type="vector",
+            name=loads2,
+            quiet=True,
         )
         self.addCleanup(
-            self.runModule, "g.remove", flags="f", type="raster", name=output2, quiet=True
+            self.runModule,
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=output2,
+            quiet=True,
         )
         self.runModule(
             "v.in.ascii",
@@ -281,9 +306,7 @@ class TestVFlexure(TestCase):
             output=loads2,
         )
         self.runModule("v.db.addtable", map=loads2)
-        self.runModule(
-            "v.db.addcolumn", map=loads2, columns="q double precision"
-        )
+        self.runModule("v.db.addcolumn", map=loads2, columns="q double precision")
         self.runModule(
             "v.db.update", map=loads2, column="q", value="1e15", where="cat=1"
         )
@@ -306,23 +329,35 @@ class TestVFlexure(TestCase):
         out_km = "test_vflex_te_km_explicit"
         try:
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="10", output=out_default,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="10",
+                output=out_default,
             )
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="10", te_units="km", output=out_km,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="10",
+                te_units="km",
+                output=out_km,
             )
             stats_d = gs.parse_command("r.univar", map=out_default, flags="g")
             stats_k = gs.parse_command("r.univar", map=out_km, flags="g")
             self.assertAlmostEqual(
-                float(stats_d["min"]), float(stats_k["min"]), places=10,
+                float(stats_d["min"]),
+                float(stats_k["min"]),
+                places=10,
                 msg="Default te_units=km must match explicit te_units=km",
             )
         finally:
             self.runModule(
-                "g.remove", flags="f", type="raster",
-                name=",".join([out_default, out_km]), quiet=True,
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=",".join([out_default, out_km]),
+                quiet=True,
             )
 
     def test_linearity(self):
@@ -335,11 +370,20 @@ class TestVFlexure(TestCase):
         out_1x = "test_vflex_linear_1x"
         out_2x = "test_vflex_linear_2x"
         self.addCleanup(
-            self.runModule, "g.remove", flags="f", type="vector", name=loads_2x, quiet=True
+            self.runModule,
+            "g.remove",
+            flags="f",
+            type="vector",
+            name=loads_2x,
+            quiet=True,
         )
         self.addCleanup(
-            self.runModule, "g.remove", flags="f", type="raster",
-            name=",".join([out_1x, out_2x]), quiet=True,
+            self.runModule,
+            "g.remove",
+            flags="f",
+            type="raster",
+            name=",".join([out_1x, out_2x]),
+            quiet=True,
         )
         self.runModule(
             "v.in.ascii",
@@ -350,24 +394,32 @@ class TestVFlexure(TestCase):
             output=loads_2x,
         )
         self.runModule("v.db.addtable", map=loads_2x)
-        self.runModule(
-            "v.db.addcolumn", map=loads_2x, columns="q double precision"
-        )
+        self.runModule("v.db.addcolumn", map=loads_2x, columns="q double precision")
         self.runModule(
             "v.db.update", map=loads_2x, column="q", value="2e15", where="cat=1"
         )
         self.assertModule(
-            "v.flexure", input=self.loads, column="q",
-            te="10000", te_units="m", output=out_1x,
+            "v.flexure",
+            input=self.loads,
+            column="q",
+            te="10000",
+            te_units="m",
+            output=out_1x,
         )
         self.assertModule(
-            "v.flexure", input=loads_2x, column="q",
-            te="10000", te_units="m", output=out_2x,
+            "v.flexure",
+            input=loads_2x,
+            column="q",
+            te="10000",
+            te_units="m",
+            output=out_2x,
         )
         stats_1x = gs.parse_command("r.univar", map=out_1x, flags="g")
         stats_2x = gs.parse_command("r.univar", map=out_2x, flags="g")
         self.assertAlmostEqual(
-            float(stats_2x["min"]), 2.0 * float(stats_1x["min"]), places=6,
+            float(stats_2x["min"]),
+            2.0 * float(stats_1x["min"]),
+            places=6,
             msg="Peak deflection must scale linearly with load force",
         )
 
@@ -377,23 +429,35 @@ class TestVFlexure(TestCase):
         out_stiff = "test_vflex_stiff_te"
         try:
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="5000", te_units="m", output=out_soft,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="5000",
+                te_units="m",
+                output=out_soft,
             )
             self.assertModule(
-                "v.flexure", input=self.loads, column="q",
-                te="20000", te_units="m", output=out_stiff,
+                "v.flexure",
+                input=self.loads,
+                column="q",
+                te="20000",
+                te_units="m",
+                output=out_stiff,
             )
             stats_soft = gs.parse_command("r.univar", map=out_soft, flags="g")
             stats_stiff = gs.parse_command("r.univar", map=out_stiff, flags="g")
             self.assertLess(
-                float(stats_soft["min"]), float(stats_stiff["min"]),
+                float(stats_soft["min"]),
+                float(stats_stiff["min"]),
                 msg="Softer plate (Te=5 km) must deflect more than stiffer (Te=20 km)",
             )
         finally:
             self.runModule(
-                "g.remove", flags="f", type="raster",
-                name=",".join([out_soft, out_stiff]), quiet=True,
+                "g.remove",
+                flags="f",
+                type="raster",
+                name=",".join([out_soft, out_stiff]),
+                quiet=True,
             )
 
 
@@ -412,9 +476,7 @@ class TestVFlexureForebulge(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.use_temp_region()
-        cls.runModule(
-            "g.region", n=600000, s=0, e=600000, w=0, res=10000
-        )
+        cls.runModule("g.region", n=600000, s=0, e=600000, w=0, res=10000)
         cls.runModule(
             "v.in.ascii",
             format="point",
@@ -424,9 +486,7 @@ class TestVFlexureForebulge(TestCase):
             output=cls.loads,
         )
         cls.runModule("v.db.addtable", map=cls.loads)
-        cls.runModule(
-            "v.db.addcolumn", map=cls.loads, columns="q double precision"
-        )
+        cls.runModule("v.db.addcolumn", map=cls.loads, columns="q double precision")
         cls.runModule(
             "v.db.update", map=cls.loads, column="q", value="1e18", where="cat=1"
         )
@@ -434,9 +494,7 @@ class TestVFlexureForebulge(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.del_temp_region()
-        cls.runModule(
-            "g.remove", flags="f", type="vector", name=cls.loads, quiet=True
-        )
+        cls.runModule("g.remove", flags="f", type="vector", name=cls.loads, quiet=True)
 
     def tearDown(self):
         self.runModule(
@@ -460,10 +518,12 @@ class TestVFlexureForebulge(TestCase):
             output=self.output,
         )
         stats = gs.parse_command("r.univar", map=self.output, flags="g")
-        self.assertLess(float(stats["min"]), 0,
-                        "Central subsidence must be negative")
-        self.assertGreater(float(stats["max"]), 0,
-                           "Forebulge uplift must be positive on a 600 km domain")
+        self.assertLess(float(stats["min"]), 0, "Central subsidence must be negative")
+        self.assertGreater(
+            float(stats["max"]),
+            0,
+            "Forebulge uplift must be positive on a 600 km domain",
+        )
 
 
 if __name__ == "__main__":
