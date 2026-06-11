@@ -82,17 +82,18 @@ void apply_transform_and_resample(const RasterD *src, const Grid *g,
                 double x2 = x1;
                 double y2 = cri * y1 + (-sri) * z1;
                 double z2 = sri * y1 + cri * z1;
-                /* Undo yaw (around Z) */
-                double x3 = cyi * x2 + syi * y2;
-                double y3 = -syi * x2 + cyi * y2;
+                /* Undo yaw (around Z): inverse of forward Rz(yaw) is Rz(-yaw).
+                 */
+                double x3 = cyi * x2 - syi * y2;
+                double y3 = syi * x2 + cyi * y2;
                 xi = x3;
                 yi = y3;
                 zi = z2;
             }
             else {
-                /* 4‑DoF: only yaw */
-                double x2 = cos(-T->yaw) * xi + sin(-T->yaw) * yi;
-                double y2 = -sin(-T->yaw) * xi + cos(-T->yaw) * yi;
+                /* 4-DoF: only yaw. Inverse of forward Rz(yaw) is Rz(-yaw). */
+                double x2 = cyaw * xi + sy * yi;
+                double y2 = -sy * xi + cyaw * yi;
                 xi = x2;
                 yi = y2;
                 zi = 0.0;
