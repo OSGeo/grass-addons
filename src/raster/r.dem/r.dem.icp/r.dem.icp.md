@@ -30,10 +30,17 @@ A good `init_dz` is often the **median** of `(source - reference)` over stable t
 relax `max_iterations`.
 * **Robustness:** Use a conservative `trim` (0.6–0.9). If many changes
 (landslides/forest canopy), lower `trim` and/or `huber`.
-* **Constraints:** For airborne photogrammetry vs LiDAR, 4‑DoF usually suffices.
-Use 6‑DoF only if you suspect tilt (roll/pitch).
+* **Constraints:** 4‑DoF (`dof=4`) is the supported mode and usually suffices
+(e.g., airborne photogrammetry vs LiDAR). **6‑DoF (`dof=6`) is experimental:**
+the rigid roll/pitch rotation is ill‑conditioned for height‑field DEMs and its
+resample is approximate. To correct a vertical **tilt** between two DEMs, run
+*[r.dem.nk](r.dem.nk.md)* (Nuth & Kääb) after ICP rather than using 6‑DoF.
 * **Validation:** After alignment, inspect the residual DoD and the stats file;
 residual bias should be \~0 on stable terrain.
+
+## See also
+
+*[r.dem.nk](r.dem.nk.md)*
 
 ## Authors
 

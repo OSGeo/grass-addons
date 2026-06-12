@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
     dof_opt->type = TYPE_INTEGER;
     dof_opt->answer = "4";
     dof_opt->options = "4,6";
-    dof_opt->description =
-        "Degrees of freedom (4: dx,dy,dz,yaw; 6: add roll,pitch)";
+    dof_opt->description = "Degrees of freedom (4: dx,dy,dz,yaw; 6: add "
+                           "roll,pitch - experimental)";
     levels_opt = G_define_option();
     levels_opt->key = "levels";
     levels_opt->type = TYPE_INTEGER;
@@ -172,6 +172,11 @@ int main(int argc, char *argv[])
 
     if (P.dof != 4 && P.dof != 6)
         G_fatal_error("dof must be 4 or 6");
+    if (P.dof == 6)
+        G_warning("dof=6 (roll/pitch) is experimental: the rigid rotation is "
+                  "ill-conditioned for height-field DEMs and the 6-DoF "
+                  "resample is approximate. Use dof=4 and correct any vertical "
+                  "tilt with r.dem.nk.");
     if (P.trim <= 0.0 || P.trim > 1.0)
         G_fatal_error("trim must be (0,1]");
 
