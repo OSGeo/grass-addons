@@ -716,15 +716,6 @@ def run_stl(
     :return statsmodels DecomposeResult: with .observed/.trend/.seasonal/.resid
     """
 
-    def _odd_window(value, name, minimum):
-        """Validate an odd-integer LOESS window length."""
-        value = int(value)
-        if value < minimum or value % 2 == 0:
-            gs.fatal(
-                _("'{n}' must be an odd integer >= {m}.").format(n=name, m=minimum)
-            )
-        return value
-
     kwargs = {
         "period": period,
         "robust": robust,
@@ -736,12 +727,13 @@ def run_stl(
         "low_pass_jump": int(low_pass_jump),
     }
 
+    # Window lengths and jumps are validated up front in validate_options().
     if seasonal:
-        kwargs["seasonal"] = _odd_window(seasonal, "seasonal", 7)
+        kwargs["seasonal"] = validate_odd_window(seasonal, "seasonal", 7)
     if trend:
-        kwargs["trend"] = _odd_window(trend, "trend", 3)
+        kwargs["trend"] = validate_odd_window(trend, "trend", 3)
     if low_pass:
-        kwargs["low_pass"] = _odd_window(low_pass, "low_pass", 3)
+        kwargs["low_pass"] = validate_odd_window(low_pass, "low_pass", 3)
 
     for key in ("seasonal_jump", "trend_jump", "low_pass_jump"):
         if kwargs[key] < 1:
@@ -1053,6 +1045,64 @@ def plot_result(
         plt.close(fig)
 
 
+def validate_odd_window(value, name, minimum):
+    """Validate an odd-integer LOESS window length, returning the int value.
+
+    :param str|int value: the option value (may be empty/None)
+    :param str name: option name, for the error message
+    :param int minimum: smallest allowed value
+    :return int|None: the validated integer, or None if unset
+    """
+    if not value:
+        return None
+    value = int(value)
+    if value < minimum or value % 2 == 0:
+        gs.fatal(_("'{n}' must be an odd integer >= {m}.").format(n=name, m=minimum))
+    return value
+
+
+def validate_options(options, flags, temporal_type):
+    """Validate option values that depend only on user input (and the cheap
+    t.info temporal type), so the module fails fast before the potentially
+    expensive t.rast.what sampling step.
+
+    Checks performed here:
+      * seasonal / trend / low_pass are odd integers >= their minimum
+      * the *_jump options are positive integers
+      * spline / polynomial interpolation requires 'order'
+      * a relative-time 'step' override is a positive integer
+
+    Data-dependent checks (period vs. length, gaps after interpolation, etc.)
+    are intentionally left to run later, once the series is available.
+
+    :param dict options: parsed module options
+    :param dict flags: parsed module flags (unused for now, kept for symmetry)
+    :param str temporal_type: 'absolute' or 'relative' (from t.info)
+    """
+    # STL LOESS window lengths: odd integers, each with its own minimum.
+    validate_odd_window(options["seasonal"], "seasonal", 7)
+    validate_odd_window(options["trend"], "trend", 3)
+    validate_odd_window(options["low_pass"], "low_pass", 3)
+
+    # LOESS jump steps must be positive integers.
+    for key in ("seasonal_jump", "trend_jump", "low_pass_jump"):
+        if options[key] and int(options[key]) < 1:
+            gs.fatal(_("'{}' must be a positive integer.").format(key))
+
+    # Spline/polynomial interpolation needs an explicit order.
+    if options["interpolation"] in ("spline", "polynomial") and not options["order"]:
+        gs.fatal(
+            _("The '{}' interpolation method requires the 'order' option.").format(
+                options["interpolation"]
+            )
+        )
+
+    # Relative-time step override, when given, must be a positive integer.
+    if temporal_type == "relative" and options["step"]:
+        if int(options["step"]) <= 0:
+            gs.fatal(_("The 'step' option must be a positive integer."))
+
+
 def main(options, flags):
     """Extract a point series from an strds and run an STL decomposition."""
 
@@ -1105,6 +1155,9 @@ def main(options, flags):
     except CalledModuleError:
         gs.fatal(_("Space-time raster dataset '{}' not found.").format(strds))
     temporal_type = tinfo.get("temporal_type", "absolute")
+
+    # Validate option-only requirements up front.
+    validate_options(options, flags, temporal_type)
 
     # Extract the data (date, value) series at the point.
     gs.message(_("Extracting the point time series..."))

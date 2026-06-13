@@ -250,7 +250,7 @@ The following is borrowed from the
 [NSCU-Geoforall](https://ncsu-geoforall-lab.github.io/grass-temporal-workshop/)
 tutorial. We create temporal datasets which serve as containers for the time
 series. First step is to create empty datasets of type strds (space-time raster
-dataset). Note, that we use absolute time.  
+dataset). Note, that we use absolute time.
 
 ```sh
 t.create output=tempmean type=strds temporaltype=absolute title="Average temperature" description="Monthly temperature average in NC [deg C]"
@@ -314,19 +314,20 @@ Resulting image:
 
 ## REFERENCES
 
-Cleveland, R. B., Cleveland, W. S., McRae, J. E., & Terpenning, I. (1990). STL: a seasonal-trend decomposition procedure based on loess. *Journal of Official Statistics*, 6, 3–73.
-
-Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1): Decomposition
-and Baseline Models. *Towards Data Science*.
-<https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models/>
-
-Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2): Customizing
-Baseline Models. *Towards Data Science*.
-https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/
-
-Local regression. (2026). In *Wikipedia*. https://en.wikipedia.org/wiki/Local_regression
-
-statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]. https://github.com/statsmodels/statsmodels/
+- Cleveland, R. B., Cleveland, W. S., McRae, J. E., & Terpenning, I. (1990).
+  STL: a seasonal-trend decomposition procedure based on loess. *Journal of
+  Official Statistics*, 6, 3–73:
+  [link](https://www.math.unm.edu/~lil/Stat581/STL.pdf).
+- Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1):
+  Decomposition and Baseline Models. *Towards Data Science*
+  [link](https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models).
+- Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2): Customizing
+  Baseline Models. *Towards Data Science*
+  [link](https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/).
+- Local regression. (2026). In *Wikipedia*
+  [link](https://en.wikipedia.org/wiki/Local_regression).
+- statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
+  [link](https://github.com/statsmodels/statsmodels/).
 
 
 ## AUTHOR
