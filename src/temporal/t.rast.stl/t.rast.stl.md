@@ -31,7 +31,7 @@ of:
 STL is a procedure that separates these three temporal patterns. It models the
 observed value at each date as
 
-```
+```text
 observed = trend + seasonal + residual
 ```
 
@@ -297,7 +297,9 @@ Resulting image:
 
 ### Add linear trend lines
 
-The previous result suggests a steady increase in temperatures between 2000 and 2012. To further explore this, the OLS and Theil-Sen trend lines and their statistics can be included.
+The previous result suggests a steady increase in temperatures between 2000 and
+2012. To further explore this, the OLS and Theil-Sen trend lines and their
+statistics can be included.
 
 ```sh
 t.rast.stl -os strds=tempmean coordinates=636000,221000 trend=85 frequency=MS period=12 output=t_rast_stl_03.png
@@ -317,17 +319,17 @@ Resulting image:
 - Cleveland, R. B., Cleveland, W. S., McRae, J. E., & Terpenning, I. (1990).
   STL: a seasonal-trend decomposition procedure based on loess. *Journal of
   Official Statistics*, 6, 3–73:
-  [link](https://www.math.unm.edu/~lil/Stat581/STL.pdf).
+  [STL paper (PDF)](https://www.math.unm.edu/~lil/Stat581/STL.pdf).
 - Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1):
   Decomposition and Baseline Models. *Towards Data Science*
-  [link](https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models).
+  [Part I article](https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models).
 - Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2): Customizing
   Baseline Models. *Towards Data Science*
-  [link](https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/).
+  [Part II article](https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/).
 - Local regression. (2026). In *Wikipedia*
-  [link](https://en.wikipedia.org/wiki/Local_regression).
+  [Wikipedia local regression article](https://en.wikipedia.org/wiki/Local_regression).
 - statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
-  [link](https://github.com/statsmodels/statsmodels/).
+  [statsmodels repository](https://github.com/statsmodels/statsmodels/).
 
 ## AUTHOR
 
