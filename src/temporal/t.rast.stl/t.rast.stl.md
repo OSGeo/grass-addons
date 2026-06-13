@@ -329,7 +329,6 @@ Resulting image:
 - statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
   [link](https://github.com/statsmodels/statsmodels/).
 
-
 ## AUTHOR
 
 [Paulo van Breugel](https://ecodiv.earth),
