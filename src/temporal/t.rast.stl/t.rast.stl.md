@@ -295,10 +295,9 @@ Resulting image:
 
 ![Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines.](t_rast_stl_02.png)
 
-
 ### Add linear trend lines
 
-The previous result suggests a steady increase in temperatures between 2000 and 2012. To further explore this, the OLS and Theil-Sen trend lines and their statistics can be included. 
+The previous result suggests a steady increase in temperatures between 2000 and 2012. To further explore this, the OLS and Theil-Sen trend lines and their statistics can be included.
 
 ```sh
 t.rast.stl -os strds=tempmean coordinates=636000,221000 trend=85 frequency=MS period=12 output=t_rast_stl_03.png
@@ -307,7 +306,6 @@ t.rast.stl -os strds=tempmean coordinates=636000,221000 trend=85 frequency=MS pe
 Resulting image:
 
 ![Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines.](t_rast_stl_03.png)
- 
 
 ## SEE ALSO
 
@@ -320,7 +318,7 @@ Cleveland, R. B., Cleveland, W. S., McRae, J. E., & Terpenning, I. (1990). STL: 
 
 Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1): Decomposition
 and Baseline Models. *Towards Data Science*.
-https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models/
+<https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models/>
 
 Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2): Customizing
 Baseline Models. *Towards Data Science*.
