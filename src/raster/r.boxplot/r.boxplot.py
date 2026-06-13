@@ -822,7 +822,6 @@ def bxp_nozones(opt):
         fliers = []
 
     if opt["name_outliers_map"] and bool(fliers):
-        print(vect_name)
         Module("v.db.dropcolumn", map=vect_name[0], columns=["value", "label"])
         Module("g.rename", vector=[vect_name[0], opt["name_outliers_map"]])
         gs.message("Point vector map '{}' created".format(opt["name_outliers_map"]))
