@@ -6,12 +6,12 @@ Tests for r.cell.area
 Coverage
 --------
 - Projected CRS (UTM, metres): m² and km² values, overwrite protection
-- Geographic CRS (degrees): m² and km² via spherical formula
+- Geographic CRS (degrees): output matches r.mapcalc area() directly
 - Projected CRS (US survey feet): m² and km² via meters conversion factor
 - XY (unprojected) location: module must exit non-zero
+- Deprecation warning: emitted on every successful run
 """
 
-import math
 import subprocess
 
 import grass.script as gs
@@ -120,18 +120,6 @@ class TestRCellAreaMeters(TestCase):
 class TestRCellAreaDegrees(TestCase):
     """Geographic CRS (EPSG:4326) — spawns a temporary GRASS project."""
 
-    # 1°×1° cell centred at lat=0.5° (equator region)
-    # Expected values computed from the spherical formula in r.cell.area:
-    #   m2  = (111195 * nsres) * (ewres * pi/180 * 6371000 * cos(lat_centre))
-    #   km2 = (111.195 * nsres) * (ewres * pi/180 * 6371    * cos(lat_centre))
-    _lat_centre = 0.5  # degrees
-    _expected_m2 = (111195.0 * 1.0) * (
-        1.0 * (math.pi / 180.0) * 6371000.0 * math.cos(_lat_centre * math.pi / 180.0)
-    )
-    _expected_km2 = _expected_m2 / 1.0e6
-    # Allow 0.01 % relative tolerance (rounding in mapcalc float arithmetic)
-    _rel_tol = 1e-4
-
     def _run_and_parse(self, units):
         """Run r.cell.area in EPSG:4326 at res=1 and return univar stats."""
         rc, stdout, stderr = _run_in_tmp_project(
@@ -149,26 +137,28 @@ class TestRCellAreaDegrees(TestCase):
         )
         return _parse_univar(stdout)
 
-    def test_m2_spherical_formula(self):
-        """Geographic CRS m² matches the spherical approximation."""
-        stats = self._run_and_parse("m2")
-        self.assertIn("min", stats)
-        self.assertIn("max", stats)
-        # Single cell → min == max
-        self.assertAlmostEqual(
-            stats["min"],
-            stats["max"],
-            delta=1.0,
-            msg="min and max should be equal for a single-cell region",
-        )
-        self.assertAlmostEqual(
-            stats["min"],
-            self._expected_m2,
-            delta=self._expected_m2 * self._rel_tol,
-            msg=(
-                f"m² value {stats['min']:.0f} differs from expected "
-                f"{self._expected_m2:.0f} by more than {self._rel_tol * 100}%"
+    def test_m2_matches_area_function(self):
+        """Geographic CRS m² output matches r.mapcalc area() directly."""
+        rc, stdout, stderr = _run_in_tmp_project(
+            "EPSG:4326",
+            (
+                "g.region n=1 s=0 e=1 w=0 res=1 && "
+                "r.cell.area output=area units=m2 && "
+                "r.mapcalc 'ref = area()' && "
+                "r.univar map=area flags=g separator='=' && "
+                "echo '---' && "
+                "r.univar map=ref flags=g separator='='"
             ),
+        )
+        self.assertEqual(rc, 0, msg=f"test failed:\n{stderr}")
+        parts = stdout.split("---")
+        stats_area = _parse_univar(parts[0])
+        stats_ref = _parse_univar(parts[1])
+        self.assertAlmostEqual(
+            stats_area["min"],
+            stats_ref["min"],
+            delta=stats_ref["min"] * 1e-9,
+            msg="r.cell.area m² does not match r.mapcalc area()",
         )
 
     def test_km2_consistent_with_m2(self):
@@ -179,7 +169,7 @@ class TestRCellAreaDegrees(TestCase):
         self.assertAlmostEqual(
             ratio,
             1.0e6,
-            delta=1.0e6 * self._rel_tol,
+            delta=1.0e6 * 1e-9,
             msg=f"km² / m² ratio {ratio:.2f} differs from 1 000 000",
         )
 
@@ -258,6 +248,23 @@ class TestRCellAreaXY(TestCase):
             rc,
             0,
             msg="r.cell.area should exit non-zero in an XY (unprojected) location",
+        )
+
+
+class TestRCellAreaDeprecationWarning(TestCase):
+    """Deprecation warning is emitted on every successful run."""
+
+    def test_warning_emitted(self):
+        """r.cell.area emits a deprecation warning on every successful run."""
+        rc, _stdout, stderr = _run_in_tmp_project(
+            "EPSG:4326",
+            "g.region n=1 s=0 e=1 w=0 res=1 && r.cell.area output=area units=m2",
+        )
+        self.assertEqual(rc, 0, msg=f"r.cell.area failed:\n{stderr}")
+        self.assertIn(
+            "deprecated",
+            stderr.lower(),
+            msg="No deprecation warning found in stderr",
         )
 
 
