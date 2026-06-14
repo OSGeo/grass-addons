@@ -1,0 +1,213 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.richdem.dephier</b></em> computes the depression hierarchy of a
+digital elevation model (DEM) and stores the results in two raster maps and
+one vector map. The depression hierarchy is a data structure that encodes all
+nested depressions in a landscape and their hydrological connectivity, without
+removing them by filling or breaching.
+
+<p>
+This module is the required first step of the Fill–Spill–Merge workflow
+(Barnes et al., 2020, 2021). Its outputs feed directly into
+<em><a href="r.richdem.fsm.html">r.richdem.fsm</a></em>.
+
+<h3>Depression hierarchy concept</h3>
+
+Every topographic depression, from a small pit cell to a large endorheic
+basin, can be described as part of a hierarchy. Small <em>leaf depressions</em>
+contain no sub-depressions. When a leaf depression fills to its pour point
+(lowest outlet), water spills into an adjacent depression; the two merge into a
+<em>meta-depression</em> that itself can fill and spill into its neighbor. This
+nesting continues until water eventually reaches the ocean (or the map boundary,
+treated as the ultimate outlet).
+
+<p>
+The hierarchy is stored as a forest of binary trees: each node represents a
+depression (leaf or meta), and the two children of any meta-depression are the
+two depressions that merged to form it. Separately, ocean links record
+depressions that drain directly to the ocean rather than to another depression.
+
+<p>
+<img src="esurf-9-105-2021-f02.png" alt="Conceptual diagram of depression hierarchy terminology: binary tree, cross-sections of nested depressions, and volume diagram" style="max-width:100%">
+<br>
+<small>Depression hierarchy terminology. (a) Binary tree relating leaf and meta depressions.
+(b&ndash;d) Cross-sections illustrating nested leaf, marginal, and meta depressions.
+(e) Volume&ndash;elevation relationship with Parent, Leaf, and Spillover components.
+Figure 2 from Barnes, Callaghan &amp; Wickert (2021), CC-BY 4.0.</small>
+
+<p>
+<img src="esurf-8-431-2020-f01.png" alt="Forest of binary trees schematic showing depression hierarchy with numbered nodes, parent-child links, geolinks, and ocean links" style="max-width:100%">
+<br>
+<small>A forest of binary trees representing the depression hierarchy of a landscape.
+Solid lines connect parent meta-depressions to their two child depressions; dashed
+arrows show geolinks (overflow connections between adjacent depressions) and ocean
+links. Each numbered node corresponds to a leaf or meta depression label stored in
+<b>output_labels</b> and <b>output_hierarchy</b>.
+Figure 1 from Barnes, Callaghan &amp; Wickert (2020), CC-BY 4.0.</small>
+
+<h3>Output rasters</h3>
+
+<b>output_labels</b> assigns each cell its leaf-depression label—an integer
+identifying which leaf depression it is part of. Cells that drain directly to
+the ocean receive label 0 (OCEAN).
+
+<p>
+<b>output_flowdirs</b> contains a D8 flow direction for each cell. Directions
+are encoded as integers 0–7 counting counter-clockwise from east (matching the
+RichDEM convention). Pit cells, which have no outflow direction, are stored
+with value 8.
+
+<h3>Output vector map (two-layer)</h3>
+
+<b>output_hierarchy</b> is a two-layer GRASS vector map whose attribute
+database holds the complete depression hierarchy:
+
+<p>
+<b>Layer 1 — depressions table</b> contains one feature per depression.
+Leaf depressions are represented as area polygons (derived from the labels
+raster). Meta-depressions are represented as points located at the saddle cell
+(<em>out_cell</em>) where their two child depressions merge. Attribute columns
+include:
+
+<dl>
+<dt><b>dep_label</b></dt><dd>Unique integer label for the depression</dd>
+<dt><b>type</b></dt><dd><em>leaf</em> or <em>meta</em></dd>
+<dt><b>pit_cell</b></dt><dd>Flat-index of the lowest cell (pit) in the depression</dd>
+<dt><b>out_cell</b></dt><dd>Flat-index of the pour-point cell (lowest outlet)</dd>
+<dt><b>parent</b></dt><dd>Label of the parent meta-depression (NULL if directly ocean-linked)</dd>
+<dt><b>lchild, rchild</b></dt><dd>Labels of the two child depressions (NULL for leaves)</dd>
+<dt><b>odep</b></dt><dd>Label of the depression this one overflows into via its geolink</dd>
+<dt><b>geolink</b></dt><dd>Label of the depression on the other side of the pour point</dd>
+<dt><b>pit_elev</b></dt><dd>Elevation of the pit cell</dd>
+<dt><b>out_elev</b></dt><dd>Elevation of the pour-point cell</dd>
+<dt><b>ocean_parent</b></dt><dd>1 if this depression drains directly to the ocean, 0 otherwise</dd>
+<dt><b>cell_count</b></dt><dd>Number of cells in the depression</dd>
+<dt><b>dep_vol</b></dt><dd>Depression volume (integrated depth below the pour point)</dd>
+<dt><b>water_vol</b></dt><dd>Volume of water currently in the depression (updated by r.richdem.fsm)</dd>
+<dt><b>total_elevation</b></dt><dd>Sum of elevations of all cells in the depression</dd>
+</dl>
+
+<p>
+<b>Layer 2 — ocean_links table</b> is a junction table with one row per
+direct ocean connection. Some depressions drain to the ocean through multiple
+independent pathways; this table records each (dep_label, linked_label) pair.
+Columns: <em>cat</em>, <em>dep_label</em>, <em>linked_label</em>.
+
+<p>
+<img src="esurf-8-431-2020-f09.png" alt="Three-panel figure showing depression labels on a Madagascar DEM: (a) leaf-level labels, (b) top-level labels, (c) filtered labels above area threshold" style="max-width:100%">
+<br>
+<small>Example <b>output_labels</b> outputs for a DEM of northern Madagascar.
+(a) Leaf-depression labels: each distinct color is a separate leaf depression.
+(b) Top-level (root) depression labels: only the largest containing hierarchy level is shown.
+(c) Filtered labels retaining only depressions above a minimum area threshold.
+Figure 9 from Barnes, Callaghan &amp; Wickert (2020), CC-BY 4.0.</small>
+
+<h2>NOTES</h2>
+
+The depression hierarchy algorithm runs in O(N) time, where N is the total
+number of cells, making it suitable for very large DEMs (Barnes et al., 2020).
+
+<p>
+The input DEM does not need to be pre-conditioned (filled or breached);
+the algorithm handles all depressions, including nested ones. Raw DEMs with
+noise may produce a large number of very small leaf depressions.
+
+<p>
+The output labels raster stores uint32 values internally but is written to
+GRASS as a DCELL (double-precision float) map because GRASS has no native
+unsigned 32-bit integer raster type. All label values up to 2<sup>32</sup>&nbsp;−&nbsp;2
+are representable exactly as doubles.
+
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
+<h2>EXAMPLES</h2>
+
+Compute the depression hierarchy:
+<div class="code"><pre>
+r.richdem.dephier input=dem \
+    output_labels=dep_labels \
+    output_flowdirs=dep_flowdirs \
+    output_hierarchy=dep_hierarchy
+</pre></div>
+
+Inspect the hierarchy table:
+<div class="code"><pre>
+v.db.select map=dep_hierarchy layer=1 | head -20
+</pre></div>
+
+Display leaf depression areas colored by depression volume:
+<div class="code"><pre>
+# Select only leaf depressions
+v.extract input=dep_hierarchy layer=1 where="type='leaf'" output=leaf_deps
+v.colors map=leaf_deps use=attr column=dep_vol color=blues
+</pre></div>
+
+Use the output to run Fill–Spill–Merge:
+<div class="code"><pre>
+r.richdem.fsm input=dem \
+    labels=dep_labels \
+    flowdirs=dep_flowdirs \
+    hierarchy=dep_hierarchy \
+    water_depth=wtd \
+    output=wtd_after
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Barnes, R., Callaghan, K.L., Wickert, A.D. (2020).
+Computing water flow through complex landscapes – Part 2: Finding hierarchies
+in depressions and morphological segmentations.
+<em>Earth Surface Dynamics</em> Vol 8(2), pp 431–445.
+DOI: <a href="https://doi.org/10.5194/esurf-8-431-2020">10.5194/esurf-8-431-2020</a>
+</li>
+<li>Barnes, R., Callaghan, K.L., Wickert, A.D. (2021).
+Computing water flow through complex landscapes – Part 3: Fill–Spill–Merge:
+flow routing in depression hierarchies.
+<em>Earth Surface Dynamics</em> Vol 9(1), pp 105–121.
+DOI: <a href="https://doi.org/10.5194/esurf-9-105-2021">10.5194/esurf-9-105-2021</a>
+</li>
+<li>Barnes, R. (2016). RichDEM: Terrain Analysis Software.
+URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/richdem</a>
+</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.richdem.fsm.html">r.richdem.fsm</a>,
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Richard Barnes, Kerry L. Callaghan, Andrew D. Wickert
+(Barnes et al., 2020)
+
+<p>
+GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6</p>
