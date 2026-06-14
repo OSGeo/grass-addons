@@ -11,12 +11,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void read_bsvm();
-static void read_btree();
-static void read_tree();
-static void read_svm();
-static void read_gm();
-static void read_nn();
+static void read_bsvm(FILE *fp, BSupportVectorMachine **bsvm);
+static void read_btree(FILE *fp, BTree **btree);
+static void read_tree(FILE *fp, Tree **tree);
+static void read_svm(FILE *fp, SupportVectorMachine **svm);
+static void read_gm(FILE *fp, GaussianMixture **gm);
+static void read_nn(FILE *fp, NearestNeighbor **nn);
 
 int read_model(char *file, Features *features, NearestNeighbor *nn,
                GaussianMixture *gm, Tree *tree, SupportVectorMachine *svm,
@@ -27,14 +27,12 @@ int read_model(char *file, Features *features, NearestNeighbor *nn,
 {
     int model_type;
     FILE *fp;
-    char tempbuf[500];
     char *line = NULL;
     int i;
 
     fp = fopen(file, "r");
     if (fp == NULL) {
-        sprintf(tempbuf, "read_model-> Can't open file %s for reading", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("read_model-> Can't open file %s for reading", file);
     }
 
     read_header_features(fp, features);

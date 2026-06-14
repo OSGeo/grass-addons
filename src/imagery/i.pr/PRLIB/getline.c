@@ -10,11 +10,10 @@
 #include <stdio.h>
 #include "global.h"
 
-char *GetLine(fp)
+char *GetLine(FILE *fp)
 /*
    get a line from a buffered stream (pointed from fp)
  */
-FILE *fp;
 {
     char line[BUFFSIZE], *p = NULL;
 

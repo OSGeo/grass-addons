@@ -23,7 +23,6 @@ int main(int argc, char **argv)
     char *mapset[TRAINING_MAX_LAYERS];
     char *name[TRAINING_MAX_LAYERS];
     int nmaps;
-    char buf[256];
     int window_rows, window_cols;
     FILE *fp;
     int num_class;
@@ -41,8 +40,6 @@ int main(int argc, char **argv)
     char opt1desc[500];
     char *vis_map;
     char *vis_mapset;
-
-    char gisrc[500];
 
     /* Initialize the GIS calls */
     G_gisinit(argv[0]);
@@ -123,17 +120,15 @@ int main(int argc, char **argv)
 
     /* informations from command line */
     nmaps = 0;
-    for (i = 0; name[nmaps] = opt1->answers[i]; i++) {
+    for (i = 0; (name[nmaps] = opt1->answers[i]); i++) {
         mapset[i] = (char *)G_find_raster2(name[i], "");
         if (mapset[i] == NULL) {
-            sprintf(buf, "Can't find raster map <%s>", name[i]);
-            G_fatal_error(buf);
+            G_fatal_error("Can't find raster map <%s>", name[i]);
         }
         nmaps += 1;
         if (nmaps > TRAINING_MAX_LAYERS) {
-            sprintf(buf, "Too many raster maps\nMaximum number allowed = %d",
-                    TRAINING_MAX_LAYERS);
-            G_fatal_error(buf);
+            G_fatal_error("Too many raster maps\nMaximum number allowed = %d",
+                          TRAINING_MAX_LAYERS);
         }
     }
 
@@ -141,8 +136,7 @@ int main(int argc, char **argv)
         vis_map = opt7->answer;
         vis_mapset = (char *)G_find_raster2(vis_map, "");
         if (vis_mapset == NULL) {
-            sprintf(buf, "Can't find raster map <%s>", vis_map);
-            G_fatal_error(buf);
+            G_fatal_error("Can't find raster map <%s>", vis_map);
         }
     }
     else {
@@ -151,30 +145,26 @@ int main(int argc, char **argv)
     }
 
     if (!opt6->answer && !opt5->answer) {
-        sprintf(buf, "Please select a class for the examples\n");
-        G_fatal_error(buf);
+        G_fatal_error("Please select a class for the examples\n");
     }
     if (!opt6->answer) {
         sscanf(opt5->answer, "%d", &num_class);
     }
     if (opt6->answer && opt5->answer) {
-        sprintf(buf, "Option class ignored\nLabels will be directlly read from "
-                     "site file\n");
-        G_warning(buf);
+        G_warning("Option class ignored\nLabels will be directly read from "
+                  "site file\n");
     }
     sscanf(opt2->answer, "%d", &window_rows);
     sscanf(opt3->answer, "%d", &window_cols);
     if (window_rows % 2 == 0 || window_cols % 2 == 0) {
-        sprintf(buf, "Number of rows and columns must be odd\n");
-        G_fatal_error(buf);
+        G_fatal_error("Number of rows and columns must be odd\n");
     }
 
     /*open output file and read/initialize training */
     inizialize_training(&training);
     if (fopen(opt4->answer, "r") == NULL) {
         if ((fp = fopen(opt4->answer, "w")) == NULL) {
-            sprintf(buf, "Can't open file %s for writing\n", opt4->answer);
-            G_fatal_error(buf);
+            G_fatal_error("Can't open file %s for writing\n", opt4->answer);
         }
         fprintf(fp, "Data type:\n");
         fprintf(fp, "GrassTraining\n");
@@ -190,8 +180,7 @@ int main(int argc, char **argv)
     }
     else {
         if ((fp = fopen(opt4->answer, "a")) == NULL) {
-            sprintf(buf, "Can't open file %s for appending\n", opt4->answer);
-            G_fatal_error(buf);
+            G_fatal_error("Can't open file %s for appending\n", opt4->answer);
         }
         read_training(opt4->answer, &training);
     }
@@ -211,7 +200,7 @@ int main(int argc, char **argv)
 
         /*plot map */
         display_map(&cellhd, VIEW_MAP1, vis_map, vis_mapset);
-        R_standard_color(RED);
+        R_standard_color(IPR_RED);
         for (i = 0; i < training.nexamples; i++) {
             display_one_point(VIEW_MAP1, training.east[i], training.north[i]);
         }
@@ -221,7 +210,7 @@ int main(int argc, char **argv)
         while (other == TRUE) {
             Mouse_pointer(&x_screen1, &y_screen1, &button1);
             if (In_view(VIEW_MAP1, x_screen1, y_screen1) && button1 == 1) {
-                R_standard_color(GREEN);
+                R_standard_color(IPR_GREEN);
                 point(x_screen1, y_screen1);
                 R_flush();
             }
@@ -239,9 +228,9 @@ int main(int argc, char **argv)
             if (In_view(VIEW_MAP1, x_screen1, y_screen1) &&
                 In_view(VIEW_MAP1, x_screen2, y_screen2) && button1 == 1 &&
                 button2 == 1) {
-                R_standard_color(GREEN);
+                R_standard_color(IPR_GREEN);
                 rectangle(x_screen1, y_screen1, x_screen2, y_screen2);
-                R_standard_color(GREY);
+                R_standard_color(IPR_GREY);
                 point(X1, Y1);
                 rectangle(X1, Y1, X2, Y2);
                 R_flush();
@@ -275,7 +264,7 @@ int main(int argc, char **argv)
                 Erase_view(VIEW_MAP1_ZOOM);
                 display_map(&zoomed_cellhd, VIEW_MAP1_ZOOM, vis_map,
                             vis_mapset);
-                R_standard_color(RED);
+                R_standard_color(IPR_RED);
                 for (i = 0; i < training.nexamples; i++) {
                     display_one_point(VIEW_MAP1_ZOOM, training.east[i],
                                       training.north[i]);
@@ -290,7 +279,7 @@ int main(int argc, char **argv)
                                        &east, &north);
                     compute_temp_region2(&map_cellhd, &zoomed_cellhd, east,
                                          north, window_rows, window_cols);
-                    R_standard_color(BLUE);
+                    R_standard_color(IPR_BLUE);
                     display_one_point(VIEW_MAP1, east, north);
                     display_one_point(VIEW_MAP1_ZOOM, east, north);
                     display_map(&map_cellhd, VIEW_IMAGE, vis_map, vis_mapset);
@@ -306,7 +295,7 @@ int main(int argc, char **argv)
                         training.east[training.nexamples] = east;
                         training.north[training.nexamples] = north;
 
-                        R_standard_color(RED);
+                        R_standard_color(IPR_RED);
 
                         display_one_point(VIEW_MAP1,
                                           training.east[training.nexamples],
@@ -340,14 +329,13 @@ int main(int argc, char **argv)
         R_flush();
         orig_nexamples = training.nexamples;
         if (read_points_from_file(&training, opt6->answer) == 0) {
-            sprintf(buf, "Error readining site file <%s>", opt6->answer);
-            G_fatal_error(buf);
+            G_fatal_error("Error readining site file <%s>", opt6->answer);
         }
-        R_standard_color(BLUE);
+        R_standard_color(IPR_BLUE);
         for (i = 0; i < orig_nexamples; i++) {
             display_one_point(VIEW_MAP1, training.east[i], training.north[i]);
         }
-        R_standard_color(RED);
+        R_standard_color(IPR_RED);
         for (i = orig_nexamples; i < training.nexamples; i++) {
             display_one_point(VIEW_MAP1, training.east[i], training.north[i]);
             R_flush();

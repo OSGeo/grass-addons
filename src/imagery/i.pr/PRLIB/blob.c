@@ -13,8 +13,9 @@
 #include <grass/raster.h>
 #include "global.h"
 
-static void add_points_to_blob();
-static int in_blob();
+static void add_points_to_blob(Blob ***, int *, int, double **, int, int, int,
+                               int, double, double);
+static int in_blob(int, int, Blob *, int);
 
 void extract_sites_from_blob(Blob *blobs, int npoints, int nblobs,
                              struct Cell_head *cellhd, BlobSites *sites,

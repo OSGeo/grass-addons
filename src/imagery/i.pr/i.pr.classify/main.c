@@ -24,7 +24,7 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-int extract_array_with_null();
+int extract_array_with_null(int, int, int, int, double **, double *);
 
 int main(int argc, char *argv[])
 {
@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
     SupportVectorMachine svm;
     BTree btree;
     BSupportVectorMachine bsvm;
-    char tmpbuf[500];
     char *mapset;
     struct Cell_head cellhd;
     double ***matrix;
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
     opt2->type = TYPE_STRING;
     opt2->required = YES;
     opt2->description =
-        "Input file containing the model (output of i .pr_model).\n\t\tIf the "
+        "Input file containing the model (output of i .pr.model).\n\t\tIf the "
         "data used for model development are not GRASS_data the program will "
         "abort.";
 
@@ -119,12 +118,10 @@ int main(int argc, char *argv[])
                             &btree, &bsvm);
 
     if (features.training.data_type != GRASS_data) {
-        sprintf(tmpbuf, "Model build using othe than GRASS data\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Model build using othe than GRASS data\n");
     }
     if (model_type == 0) {
-        sprintf(tmpbuf, "Model not recognized\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Model not recognized\n");
     }
 
     if (model_type == GM_model) {
@@ -135,15 +132,13 @@ int main(int argc, char *argv[])
     G_get_window(&cellhd);
     if (fabs((cellhd.ew_res - features.training.ew_res) /
              features.training.ew_res) > 0.1) {
-        sprintf(tmpbuf, "EW resolution of training data and test map differs "
-                        "more than 10%%\n");
-        G_warning(tmpbuf);
+        G_warning("EW resolution of training data and test map differs more "
+                  "than 10%%\n");
     }
     if (fabs((cellhd.ns_res - features.training.ns_res) /
              features.training.ns_res) > 0.1) {
-        sprintf(tmpbuf, "NS resolution of training data and test map differs "
-                        "more than 10%%\n");
-        G_warning(tmpbuf);
+        G_warning("NS resolution of training data and test map differs more "
+                  "than 10%%\n");
     }
 
     /*compute features space */
@@ -207,26 +202,21 @@ int main(int argc, char *argv[])
     n_input_map = 0;
     for (l = 0; opt1->answers[l]; l++) {
         if ((mapset = (char *)G_find_raster2(opt1->answers[l], "")) == NULL) {
-            sprintf(tmpbuf, "raster map [%s] not available", opt1->answers[l]);
-            G_fatal_error(tmpbuf);
+            G_fatal_error("raster map [%s] not available", opt1->answers[l]);
         }
 
         if ((fd[l] = Rast_open_old(opt1->answers[l], mapset)) < 0) {
-            sprintf(tmpbuf, "error opening raster map [%s]", opt1->answers[l]);
-            G_fatal_error(tmpbuf);
+            G_fatal_error("error opening raster map [%s]", opt1->answers[l]);
         }
         n_input_map += 1;
     }
 
     if (n_input_map < features.training.nlayers) {
-        sprintf(tmpbuf, "Model requires %d input maps\n",
-                features.training.nlayers);
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Model requires %d input maps\n",
+                      features.training.nlayers);
     }
     if (n_input_map > features.training.nlayers) {
-        sprintf(tmpbuf, "Only first %d maps considered\n",
-                features.training.nlayers);
-        G_warning(tmpbuf);
+        G_warning("Only first %d maps considered\n", features.training.nlayers);
     }
 
     /*open the output map */

@@ -46,12 +46,10 @@ void write_nn(char *file, NearestNeighbor *nn, Features *features)
 {
     FILE *fpout;
     int i, j;
-    char tempbuf[500];
 
     fpout = fopen(file, "w");
     if (fpout == NULL) {
-        sprintf(tempbuf, "write_nn-> Can't open file <%s> for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("write_nn-> Can't open file <%s> for writing", file);
     }
 
     write_header_features(fpout, features);
@@ -210,7 +208,6 @@ void test_nn(NearestNeighbor *nn, Features *features, int k, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     int predI;
     double predD;
     double *error;
@@ -218,8 +215,7 @@ void test_nn(NearestNeighbor *nn, Features *features, int k, char *file)
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_nn-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_nn-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));

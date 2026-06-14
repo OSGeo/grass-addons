@@ -7,7 +7,6 @@ void display_title(View *view)
     View *title;
     char center[100];
     int size;
-    double magnification();
 
     *center = 0;
 
@@ -30,10 +29,10 @@ void display_title(View *view)
     size = title->nrows - 4;
     R_text_size(size, size);
     if (*center) {
-        R_standard_color(YELLOW);
+        R_standard_color(IPR_YELLOW);
         Text(center, title->top, title->bottom,
              (title->left + title->right - Text_width(center)) / 2,
              title->right, 2);
     }
-    R_standard_color(WHITE);
+    R_standard_color(IPR_WHITE);
 }

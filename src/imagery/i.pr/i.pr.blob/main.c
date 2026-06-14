@@ -32,7 +32,6 @@ int main(int argc, char *argv[])
     struct Option *opt3;
     struct Option *opt4;
     struct Option *opt5;
-    char tempbuf[500];
     char *mapset;
     struct Cell_head cellhd;
     double **matrix;
@@ -104,14 +103,11 @@ int main(int argc, char *argv[])
     sscanf(opt5->answer, "%lf", &maxv);
 
     if ((mapset = (char *)G_find_raster2(opt1->answer, "")) == NULL) {
-        sprintf(tempbuf, "can't open raster map <%s> for reading",
-                opt1->answer);
-        G_fatal_error(tempbuf);
+        G_fatal_error("can't open raster map <%s> for reading", opt1->answer);
     }
 
     if ((fd = Rast_open_old(opt1->answer, mapset)) < 0) {
-        sprintf(tempbuf, "error opening raster map <%s>", opt1->answer);
-        G_fatal_error(tempbuf);
+        G_fatal_error("error opening raster map <%s>", opt1->answer);
     }
 
     G_get_window(&cellhd);

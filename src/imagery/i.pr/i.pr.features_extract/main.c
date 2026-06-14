@@ -26,7 +26,7 @@
 
 #define MAXLIMITS 20
 
-int read_selection();
+int read_selection(char *, int **);
 
 int main(int argc, char **argv)
 {
@@ -68,14 +68,14 @@ int main(int argc, char **argv)
     opt1->type = TYPE_STRING;
     opt1->required = YES;
     opt1->description =
-        "Input file containing the features (output of i.pr_features).";
+        "Input file containing the features (output of i.pr.features).";
 
     opt2 = G_define_option();
     opt2->key = "selected";
     opt2->type = TYPE_STRING;
     opt2->required = YES;
     opt2->description = "File containing the results of the features selection "
-                        "procedure\n\t\t(output of i.pr_features_selection).";
+                        "procedure\n\t\t(output of i.pr.features_selection).";
 
     opt3 = G_define_option();
     opt3->key = "nvar";
@@ -156,13 +156,11 @@ int main(int argc, char **argv)
 int read_selection(char *file, int **selection)
 {
     FILE *fp;
-    char tmpbuf[500];
     char *line = NULL;
     int index = 0;
 
     if ((fp = fopen(file, "r")) == NULL) {
-        sprintf(tmpbuf, "Error opening file %s for reading", file);
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Error opening file %s for reading", file);
     }
 
     *selection = (int *)G_calloc(1, sizeof(int));

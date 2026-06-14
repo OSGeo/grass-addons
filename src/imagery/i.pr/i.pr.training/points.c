@@ -13,7 +13,7 @@ void display_one_point(View *view, double east, double north)
     dot(x, y);
 }
 
-void dot(x, y)
+void dot(int x, int y)
 {
     int vx[5], vy[5];
 
@@ -31,9 +31,7 @@ void dot(x, y)
     R_polygon_abs(vx, vy, 5);
 }
 
-int point_in_view(view, east, north)
-View *view;
-double north, east;
+int point_in_view(View *view, double east, double north)
 {
     if ((north <= view->cell.head.north) && (north >= view->cell.head.south) &&
         (east <= view->cell.head.east) && (east >= view->cell.head.west))
@@ -42,7 +40,7 @@ double north, east;
         return 0;
 }
 
-void rectangle(x_screen1, y_screen1, x_screen2, y_screen2)
+void rectangle(int x_screen1, int y_screen1, int x_screen2, int y_screen2)
 {
     R_move_abs(x_screen1, y_screen1);
     R_cont_abs(x_screen1, y_screen2);
@@ -51,7 +49,7 @@ void rectangle(x_screen1, y_screen1, x_screen2, y_screen2)
     R_cont_abs(x_screen1, y_screen1);
 }
 
-void point(x, y)
+void point(int x, int y)
 {
     int vx[5], vy[5];
 

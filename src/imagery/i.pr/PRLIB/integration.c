@@ -19,14 +19,11 @@
 #define EPS     1.0e-5
 #define JMAX    1000
 
-double trapzd(func, a, b, n)
+double trapzd(double (*func)(double), double a, double b, int n)
 /*
    trapezoidal rule for func=func(x) on interval [a,b]
    n = steps number
  */
-double a, b;
-double (*func)();
-int n;
 {
     double x, tnm, sum, del;
     double s;
@@ -46,16 +43,13 @@ int n;
     }
 }
 
-double trapzd1(func, p1, a, b, n)
+double trapzd1(double (*func)(double, double), double p1, double a, double b,
+               int n)
 /*
    trapezoidal rule for func=func(x; p1) on interval [a,b]
    p1 free parameter
    n = steps number
  */
-double a, b;
-double p1;
-double (*func)();
-int n;
 {
     double x, tnm, sum, del;
     double s;
@@ -75,16 +69,13 @@ int n;
     }
 }
 
-double trapzd2(func, p1, p2, a, b, n)
+double trapzd2(double (*func)(double, double, double), double p1, double p2,
+               double a, double b, int n)
 /*
    trapezoidal rule for func=func(x; p1,p2) on interval [a,b]
    p1 and p2 free parameters
    n = steps number
  */
-double a, b;
-double p1, p2;
-double (*func)();
-int n;
 {
     double x, tnm, sum, del;
     double s;
@@ -104,12 +95,10 @@ int n;
     }
 }
 
-double qtrap(func, a, b)
+double qtrap(double (*func)(double), double a, double b)
 /*
    trapezoidal rule for func=func(x) with stopping rule
  */
-double a, b;
-double (*func)();
 {
     int j;
     double s, olds;
@@ -127,15 +116,12 @@ double (*func)();
     return s;
 }
 
-double qtrap1(func, p1, a, b)
+double qtrap1(double (*func)(double, double), double p1, double a, double b)
 /*
    trapezoidal rule for func=func(x) on interval [a,b]
    with internal stopping rule
    p1  free parameter
  */
-double a, b;
-double p1;
-double (*func)();
 {
     int j;
     double s, olds;
@@ -143,7 +129,7 @@ double (*func)();
     olds = -1.0e-30;
 
     for (j = 1; j <= JMAX; j++) {
-        s = trapzd(func, p1, a, b, j);
+        s = trapzd1(func, p1, a, b, j);
         if (fabs(s - olds) < EPS * fabs(olds))
             return s;
         olds = s;
@@ -153,15 +139,13 @@ double (*func)();
     return s;
 }
 
-double qtrap2(func, p1, p2, a, b)
+double qtrap2(double (*func)(double, double, double), double p1, double p2,
+              double a, double b)
 /*
    trapezoidal rule for func=func(x) on interval [a,b]
    with internal stopping rule
    p1 and p2 free parameters
  */
-double a, b;
-double p1, p2;
-double (*func)();
 {
     int j;
     double s, olds;
@@ -169,7 +153,7 @@ double (*func)();
     olds = -1.0e-30;
 
     for (j = 1; j <= JMAX; j++) {
-        s = trapzd(func, p1, p2, a, b, j);
+        s = trapzd2(func, p1, p2, a, b, j);
         if (fabs(s - olds) < EPS * fabs(olds))
             return s;
         olds = s;

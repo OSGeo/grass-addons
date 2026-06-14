@@ -10,51 +10,39 @@
 #include <grass/raster.h>
 #include <stdlib.h>
 
-int open_new_CELL(name)
+int open_new_CELL(char *name)
 /*
    open a new raster map of name name in CELL format
  */
-char *name;
 {
     int fd;
-    char err[400];
 
     if (G_legal_filename(name) < 0) {
-        sprintf(err, "open_new_CELL-> %s - ** illegal name **", name);
-        G_fatal_error(err);
-        exit(1);
+        G_fatal_error("open_new_CELL-> %s - ** illegal name **", name);
     }
 
     fd = Rast_open_new(name, CELL_TYPE);
     if (fd < 0) {
-        sprintf(err, "open_new_CELL-> failed in attempt to open %s\n", name);
-        G_fatal_error(err);
-        exit(1);
+        G_fatal_error("open_new_CELL-> failed in attempt to open %s\n", name);
     }
 
     return fd;
 }
 
 int open_new_DCELL(char *name)
-
 /*
    open a new raster map of name name in DELL format
  */
 {
     int fd;
-    char err[400];
 
     if (G_legal_filename(name) < 0) {
-        sprintf(err, "open_new_DCELL-> %s - ** illegal name **", name);
-        G_fatal_error(err);
-        exit(1);
+        G_fatal_error("open_new_DCELL-> %s - ** illegal name **", name);
     }
 
     fd = Rast_open_new(name, DCELL_TYPE);
     if (fd < 0) {
-        sprintf(err, "open_new_DCELL-> failed in attempt to open %s\n", name);
-        G_fatal_error(err);
-        exit(1);
+        G_fatal_error("open_new_DCELL-> failed in attempt to open %s\n", name);
     }
 
     return fd;

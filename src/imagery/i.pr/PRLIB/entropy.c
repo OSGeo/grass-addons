@@ -6,7 +6,7 @@
    Entropy management
  */
 
-#include "func.h"
+#include "global.h"
 #include <math.h>
 
 double Entropy(double *data, int n, double zero)

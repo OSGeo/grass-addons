@@ -43,7 +43,6 @@ int main(int argc, char **argv)
     Features features;
     char *tmpbuf;
     int nclasses_for_pca;
-    char tempbuf[500];
     char opt1desc[500];
     FILE *fp;
 
@@ -143,9 +142,8 @@ int main(int argc, char **argv)
     for (i = 0; (training_file[ntraining_file] = opt1->answers[i]); i++) {
         ntraining_file += 1;
         if (ntraining_file > TRAINING_MAX_INPUTFILES) {
-            sprintf(tempbuf, "Maximum nomber of allowed training files is %d",
-                    TRAINING_MAX_INPUTFILES);
-            G_fatal_error(tempbuf);
+            G_fatal_error("Maximum nomber of allowed training files is %d",
+                          TRAINING_MAX_INPUTFILES);
         }
     }
 
@@ -157,8 +155,7 @@ int main(int argc, char **argv)
 
     if (flag_s->answer) {
         if ((fp = fopen(opt2->answer, "w")) == NULL) {
-            sprintf(tempbuf, "Can't open file %s for writing", opt2->answer);
-            G_fatal_error(tempbuf);
+            G_fatal_error("Can't open file %s for writing", opt2->answer);
         }
         for (i = 0; i < features.training.nexamples; i++) {
             fprintf(fp, "%f|%f|#%d\n", features.training.east[i],
@@ -192,8 +189,7 @@ int main(int argc, char **argv)
             sscanf(opt4->answers[i - 2], "%d", &(features.f_normalize[i]));
             if ((features.f_normalize[i] <= 0) ||
                 (features.f_normalize[i] > features.training.nlayers)) {
-                sprintf(tempbuf, "nlayers = %d\n", features.training.nlayers);
-                G_fatal_error(tempbuf);
+                G_fatal_error("nlayers = %d\n", features.training.nlayers);
             }
             features.f_normalize[i] -= 1;
         }
@@ -214,8 +210,7 @@ int main(int argc, char **argv)
             sscanf(opt6->answers[i - 2], "%d", &(features.f_mean[i]));
             if ((features.f_mean[i] <= 0) ||
                 (features.f_mean[i] > features.training.nlayers)) {
-                sprintf(tempbuf, "nlayers = %d\n", features.training.nlayers);
-                G_fatal_error(tempbuf);
+                G_fatal_error("nlayers = %d\n", features.training.nlayers);
             }
             features.f_mean[i] -= 1;
         }
@@ -236,8 +231,7 @@ int main(int argc, char **argv)
             sscanf(opt7->answers[i - 2], "%d", &(features.f_variance[i]));
             if ((features.f_variance[i] <= 0) ||
                 (features.f_variance[i] > features.training.nlayers)) {
-                sprintf(tempbuf, "nlayers = %d\n", features.training.nlayers);
-                G_fatal_error(tempbuf);
+                G_fatal_error("nlayers = %d\n", features.training.nlayers);
             }
             features.f_variance[i] -= 1;
         }
@@ -258,8 +252,7 @@ int main(int argc, char **argv)
             sscanf(opt8->answers[i - 2], "%d", &(features.f_pca[i]));
             if ((features.f_pca[i] <= 0) ||
                 (features.f_pca[i] > features.training.nlayers)) {
-                sprintf(tempbuf, "nlayers = %d\n", features.training.nlayers);
-                G_fatal_error(tempbuf);
+                G_fatal_error("nlayers = %d\n", features.training.nlayers);
             }
             features.f_pca[i] -= 1;
         }

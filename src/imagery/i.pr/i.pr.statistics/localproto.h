@@ -1,2 +1,2 @@
 /* cell.c */
-int Dcell(char *, char *, int);
+int Dcell(char *, const char *, int);

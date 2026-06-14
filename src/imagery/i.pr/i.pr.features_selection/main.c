@@ -46,7 +46,6 @@ int main(int argc, char **argv)
     SupportVectorMachine *svm_models;
     SupportVectorMachine svm;
 
-    char tmpbuf[500];
     char svm_kernel_type[100];
     char fs_type_string[100];
     double svm_kp, svm_C, svm_tol, svm_eps;
@@ -119,7 +118,7 @@ int main(int argc, char **argv)
                         "are using gaussian kernel).";
 
     opt8 = G_define_option();
-    opt8->key = "svm_C";
+    opt8->key = "svm_c";
     opt8->type = TYPE_DOUBLE;
     opt8->required = NO;
     opt8->description = "For svm: optimization parameter (Required parameter).";
@@ -211,19 +210,16 @@ int main(int argc, char **argv)
         svm_kernel = SVM_KERNEL_GAUSSIAN;
     }
     else {
-        sprintf(tmpbuf, "kernel type not implemended!\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("kernel type not implemended!\n");
     }
     if (svm_kernel == SVM_KERNEL_GAUSSIAN) {
         if (!opt7->answer) {
-            sprintf(tmpbuf, "Please set kernel parameter\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("Please set kernel parameter\n");
         }
         else {
             sscanf(opt7->answer, "%lf", &svm_kp);
             if (svm_kp <= 0) {
-                sprintf(tmpbuf, "kernel parameter must be > 0\n");
-                G_fatal_error(tmpbuf);
+                G_fatal_error("kernel parameter must be > 0\n");
             }
         }
     }
@@ -231,30 +227,25 @@ int main(int argc, char **argv)
         svm_kp = 0.0;
 
     if (!opt8->answer) {
-        sprintf(tmpbuf, "Please set optimization parameter\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("Please set optimization parameter\n");
     }
     else {
         sscanf(opt8->answer, "%lf", &svm_C);
         if (svm_C <= 0) {
-            sprintf(tmpbuf, "optimization parameter must be > 0\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("optimization parameter must be > 0\n");
         }
     }
     sscanf(opt9->answer, "%lf", &svm_tol);
     if (svm_tol <= 0) {
-        sprintf(tmpbuf, "tol must be > 0\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("tol must be > 0\n");
     }
     sscanf(opt10->answer, "%lf", &svm_eps);
     if (svm_eps <= 0) {
-        sprintf(tmpbuf, "eps must be > 0\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("eps must be > 0\n");
     }
     sscanf(opt12->answer, "%d", &svm_maxloops);
     if (svm_maxloops <= 0) {
-        sprintf(tmpbuf, "maximum number of loops must be > 0\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("maximum number of loops must be > 0\n");
     }
     sscanf(opt22->answer, "%d", &svm_verbose);
     /* read features selection parameters (PLease check consistence!!!!) */
@@ -269,22 +260,18 @@ int main(int argc, char **argv)
     else if (strcmp(fs_type_string, "sqrt_rfe") == 0)
         fs_type = FS_SQRT_RFE;
     else {
-        sprintf(tmpbuf, "features selection method not recognized!\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("features selection method not recognized!\n");
     }
 
     if (fs_type == FS_E_RFE) {
         if (!opt24->answer) {
-            sprintf(tmpbuf,
-                    "You selected e_rfe: please set fs_rfe parameter!\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("You selected e_rfe: please set fs_rfe parameter!\n");
         }
         else
             sscanf(opt24->answer, "%d", &fs_rfe);
 
         if (fs_rfe <= 1) {
-            sprintf(tmpbuf, "fs_rfe must be > 1\n");
-            G_fatal_error(tmpbuf);
+            G_fatal_error("fs_rfe must be > 1\n");
         }
     }
 
@@ -344,8 +331,7 @@ int main(int argc, char **argv)
         }
     }
     if (features.nclasses != 2) {
-        sprintf(tmpbuf, "svm works only with 2 class problems\n");
-        G_fatal_error(tmpbuf);
+        G_fatal_error("svm works only with 2 class problems\n");
     }
 
     /*set svm parameters */

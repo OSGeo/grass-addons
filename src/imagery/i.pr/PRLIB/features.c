@@ -31,7 +31,6 @@ void compute_features(Features *features)
     DCELL *tf;
     DCELL **matrix;
     int r, c;
-    char tempbuf[500];
     int *compute_features;
     int dim;
     DCELL *mean = NULL, *sd = NULL;
@@ -151,10 +150,9 @@ void compute_features(Features *features)
                     }
                 }
                 if (!thisclassok) {
-                    sprintf(tempbuf,
-                            "compute_features-> Class %d for pc not recognized",
-                            features->pca_class[1 + l]);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error(
+                        "compute_features-> Class %d for pc not recognized",
+                        features->pca_class[1 + l]);
                 }
             }
             fprintf(stderr, "\n");
@@ -182,18 +180,15 @@ void compute_features(Features *features)
                 fprintf(stdout, "%s\n", features->training.mapnames[i][j]);
                 if ((mapset = (char *)G_find_raster(
                          features->training.mapnames[i][j], "")) == NULL) {
-                    sprintf(tempbuf,
-                            "compute_features-> Can't find raster map <%s>",
-                            features->training.mapnames[i][j]);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error(
+                        "compute_features-> Can't find raster map <%s>",
+                        features->training.mapnames[i][j]);
                 }
                 if ((fp = Rast_open_old(features->training.mapnames[i][j],
                                         mapset)) < 0) {
-                    sprintf(tempbuf,
-                            "compute_features-> Can't open raster map <%s> for "
-                            "reading",
-                            features->training.mapnames[i][j]);
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("compute_features-> Can't open raster map "
+                                  "<%s> for reading",
+                                  features->training.mapnames[i][j]);
                 }
 
                 Rast_get_cellhd(features->training.mapnames[i][j], mapset,
@@ -201,8 +196,7 @@ void compute_features(Features *features)
                 G_set_window(&cellhd);
                 if ((cellhd.rows != features->training.rows) ||
                     (cellhd.cols != features->training.cols)) {
-                    sprintf(tempbuf, "compute_features-> Dimension Error");
-                    G_fatal_error(tempbuf);
+                    G_fatal_error("compute_features-> Dimension Error");
                 }
                 rowbuf = (DCELL *)G_calloc(dim, sizeof(DCELL));
                 tf = rowbuf;
@@ -225,8 +219,7 @@ void compute_features(Features *features)
                 matrix[i] = features->training.data[i];
                 break;
             default:
-                sprintf(tempbuf, "compute_features-> Format not recognized");
-                G_fatal_error(tempbuf);
+                G_fatal_error("compute_features-> Format not recognized");
                 break;
             }
         }
@@ -338,14 +331,11 @@ void write_features(char *file, Features *features)
     FILE *fp;
     int i, j, l, k;
     int dim;
-    char tempbuf[500];
     int write_x;
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "write_features-> Can't open file %s for writing",
-                file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("write_features-> Can't open file %s for writing", file);
     }
 
     fprintf(fp, "#####################\n");
@@ -546,16 +536,13 @@ void standardize_features(Features *features)
     int j, k;
 
     double *tmparray;
-    char tempbuf[500];
 
     for (j = 2; j < 2 + features->f_standardize[1]; j++) {
         if ((features->f_standardize[j] < 0) ||
             (features->f_standardize[j] >= features->examples_dim)) {
-            sprintf(tempbuf,
-                    "standardize_features-> Can't standardize var number %d: "
-                    "no such variable",
-                    features->f_standardize[j] + 1);
-            G_fatal_error(tempbuf);
+            G_fatal_error("standardize_features-> Can't standardize var number "
+                          "%d: no such variable",
+                          features->f_standardize[j] + 1);
         }
     }
 
@@ -575,11 +562,9 @@ void standardize_features(Features *features)
         features->sd[j - 2] = sd_of_double_array_given_mean(
             tmparray, features->nexamples, features->mean[j - 2]);
         if (features->sd[j - 2] == 0) {
-            sprintf(
-                tempbuf,
+            G_fatal_error(
                 "standardize_features-> Can't standardize var number %d: sd=0",
                 features->f_standardize[j] + 1);
-            G_fatal_error(tempbuf);
         }
         for (k = 0; k < features->nexamples; k++) {
             features->value[k][features->f_standardize[j]] =
@@ -597,7 +582,6 @@ void write_header_features(FILE *fp, Features *features)
  */
 {
     int i;
-    int dim;
 
     fprintf(fp, "#####################\n");
     fprintf(fp, "TRAINING:\n");
@@ -611,8 +595,6 @@ void write_header_features(FILE *fp, Features *features)
 
     fprintf(fp, "Training dimensions:\n");
     fprintf(fp, "%d\t%d\n", features->training.rows, features->training.cols);
-
-    dim = features->training.rows * features->training.cols;
 
     fprintf(fp, "EW-res\tNS-res\n");
     fprintf(fp, "%f\t%f\n", features->training.ew_res,
@@ -728,7 +710,6 @@ void read_features(char *file, Features *features, int npc)
  */
 {
     FILE *fp;
-    char tempbuf[500];
     char *line = NULL;
     int i, j, l, r;
     int dim;
@@ -739,9 +720,7 @@ void read_features(char *file, Features *features, int npc)
 
     fp = fopen(file, "r");
     if (fp == NULL) {
-        sprintf(tempbuf, "read_features-> Can't open file %s for reading",
-                file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("read_features-> Can't open file %s for reading", file);
     }
 
     features->file = file;

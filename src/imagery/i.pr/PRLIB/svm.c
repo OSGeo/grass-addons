@@ -12,16 +12,19 @@
 #include <math.h>
 #include <stdlib.h>
 
-static void svm_smo();
-static double learned_func_linear();
-static double learned_func_nonlinear();
-static double rbf_kernel();
-static double direct_kernel();
-static double dot_product_func();
-static int examineExample();
-static int takeStep();
-static int distance_from_span_sv();
-double dot_product();
+static void svm_smo(SupportVectorMachine *SVM);
+static double learned_func_linear(int k, SupportVectorMachine *SVM);
+static double learned_func_nonlinear(int k, SupportVectorMachine *SVM);
+static double rbf_kernel(int i1, int i2, SupportVectorMachine *SVM);
+// static double direct_kernel();
+static double dot_product_func(int i1, int i2, SupportVectorMachine *SVM);
+static int examineExample(int i1, SupportVectorMachine *SVM);
+static int takeStep(int i1, int i2, SupportVectorMachine *SVM);
+static int distance_from_span_sv(double **M, double *m, int n, double Const,
+                                 double **H, double *h, int mH, double **K,
+                                 double *k, int mK, double eps,
+                                 double threshold);
+// double dot_product();
 
 void compute_svm(SupportVectorMachine *svm, int n, int d, double **x, int *y,
                  int svm_kernel, double svm_kp, double svm_C, double svm_tol,
@@ -916,7 +919,6 @@ void write_svm(char *file, SupportVectorMachine *svm, Features *features)
 {
     FILE *fpout;
     int i, j;
-    char tempbuf[500];
     int np_weights = 0;
 
     for (i = 0; i < svm->N; i++) {
@@ -926,8 +928,7 @@ void write_svm(char *file, SupportVectorMachine *svm, Features *features)
     }
 
     if ((fpout = fopen(file, "w")) == NULL) {
-        sprintf(tempbuf, "write_svm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("write_svm-> Can't open file %s for writing", file);
     }
 
     write_header_features(fpout, features);
@@ -1023,15 +1024,13 @@ void test_svm(SupportVectorMachine *svm, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     double pred;
     double *error;
     double accuracy;
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_svm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_svm-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1232,16 +1231,14 @@ void write_bagging_boosting_svm(char *file, BSupportVectorMachine *bsvm,
 {
     int i, j;
     FILE *fp;
-    char tempbuf[500];
     int b;
     int np_weights;
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf,
-                "write_bagging_boosting_svm-> Can't open file %s for writing",
-                file);
-        G_fatal_error(tempbuf);
+        G_fatal_error(
+            "write_bagging_boosting_svm-> Can't open file %s for writing",
+            file);
     }
 
     write_header_features(fp, features);
@@ -1342,10 +1339,10 @@ void write_bagging_boosting_svm(char *file, BSupportVectorMachine *bsvm,
 
 void compute_svm_boosting(BSupportVectorMachine *bsvm, int boosting, double w,
                           int nsamples, int nvar, double **data,
-                          int *data_class, int nclasses, int *classes,
-                          int svm_kernel, double kp, double C, double tol,
-                          double svm_eps, int maxloops, int svm_verbose,
-                          double *svm_W, int weights_boosting)
+                          int *data_class, int nclasses IPR_UNUSED,
+                          int *classes, int svm_kernel, double kp, double C,
+                          double tol, double svm_eps, int maxloops,
+                          int svm_verbose, double *svm_W, int weights_boosting)
 {
     int i, b;
     int *bsamples;
@@ -1535,15 +1532,13 @@ void test_bsvm(BSupportVectorMachine *bsvm, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     double pred;
     double *error;
     double accuracy;
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_bsvm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_bsvm-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1613,7 +1608,6 @@ void test_bsvm_progressive(BSupportVectorMachine *bsvm, Features *features,
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     double pred;
     double *error;
     double accuracy;
@@ -1621,8 +1615,7 @@ void test_bsvm_progressive(BSupportVectorMachine *bsvm, Features *features,
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_bsvm-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_bsvm-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1726,8 +1719,10 @@ double dot_product(double *x, double *y, int n)
     double out = .0;
 
     n--;
-    while (n >= 0)
-        out += x[n] * y[n--];
+    while (n >= 0) {
+        out += x[n] * y[n - 1];
+        n--;
+    }
 
     return out;
 }

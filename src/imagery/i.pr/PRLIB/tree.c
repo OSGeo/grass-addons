@@ -12,7 +12,7 @@
 #include <string.h>
 #include <math.h>
 
-static void split_node();
+static void split_node(Node *, Node *, Node *, int *, int, double *);
 
 void compute_tree(Tree *tree, int nsamples, int nvar, double **data,
                   int *data_class, int nclasses, int *classes, int stamps,
@@ -328,12 +328,10 @@ void write_tree(char *file, Tree *tree, Features *features)
 {
     int i, j;
     FILE *fp;
-    char tempbuf[500];
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "write_tree-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("write_tree-> Can't open file %s for writing", file);
     }
 
     write_header_features(fp, features);
@@ -1224,15 +1222,13 @@ void write_bagging_boosting_tree(char *file, BTree *btree, Features *features)
 {
     int i, j;
     FILE *fp;
-    char tempbuf[500];
     int b;
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf,
-                "write_bagging_boosting_tree-> Can't open file %s for writing",
-                file);
-        G_fatal_error(tempbuf);
+        G_fatal_error(
+            "write_bagging_boosting_tree-> Can't open file %s for writing",
+            file);
     }
 
     write_header_features(fp, features);
@@ -1369,7 +1365,6 @@ void test_tree(Tree *tree, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     int predI;
     double predD;
     double *error;
@@ -1377,8 +1372,7 @@ void test_tree(Tree *tree, Features *features, char *file)
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_tree-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_tree-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1513,7 +1507,6 @@ void test_btree(BTree *btree, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     int predI;
     double predD;
     double *error;
@@ -1521,8 +1514,7 @@ void test_btree(BTree *btree, Features *features, char *file)
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_btree-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_btree-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1603,7 +1595,6 @@ void test_btree_progressive(BTree *btree, Features *features, char *file)
     int i, j;
     int *data_in_each_class;
     FILE *fp;
-    char tempbuf[500];
     int predI;
     double predD;
     double *error;
@@ -1612,8 +1603,7 @@ void test_btree_progressive(BTree *btree, Features *features, char *file)
 
     fp = fopen(file, "w");
     if (fp == NULL) {
-        sprintf(tempbuf, "test_btree-> Can't open file %s for writing", file);
-        G_fatal_error(tempbuf);
+        G_fatal_error("test_btree-> Can't open file %s for writing", file);
     }
 
     data_in_each_class = (int *)G_calloc(features->nclasses, sizeof(int));
@@ -1758,12 +1748,10 @@ int predict_btree_multiclass_progressive(BTree *btree, double *x, int nclasses,
     return classes[max_class];
 }
 
-void compute_tree_boosting_parallel(BTree *btree, int boosting,
-                                    int parallel_boosting, double w,
-                                    int nsamples, int nvar, double **data,
-                                    int *data_class, int nclasses, int *classes,
-                                    int stamps, int minsize,
-                                    int weights_boosting, double *costs)
+void compute_tree_boosting_parallel(
+    BTree *btree, int boosting, int parallel_boosting, double w, int nsamples,
+    int nvar, double **data, int *data_class, int nclasses, int *classes,
+    int stamps, int minsize, int weights_boosting IPR_UNUSED, double *costs)
 
 /*
    receives in input training data of dimensions nsamples x nvar,

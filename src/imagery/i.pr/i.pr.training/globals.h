@@ -1,4 +1,7 @@
+#pragma once
+
 #include "defs.h"
+#include "global.h"
 
 #ifndef GLOBAL
 #define GLOBAL extern
@@ -6,8 +9,6 @@
 #else
 #define INIT(x) = x
 #endif
-
-GLOBAL int G_get_color();
 
 GLOBAL int SCREEN_TOP;
 GLOBAL int SCREEN_BOTTOM;
@@ -29,15 +30,15 @@ GLOBAL int dotsize INIT(4);
 
 GLOBAL int THE_COLORS[10];
 
-#define BLACK  THE_COLORS[0]
-#define BLUE   THE_COLORS[1]
-#define BROWN  THE_COLORS[2]
-#define GREEN  THE_COLORS[3]
-#define GREY   THE_COLORS[4]
-#define ORANGE THE_COLORS[5]
-#define PURPLE THE_COLORS[6]
-#define RED    THE_COLORS[7]
-#define WHITE  THE_COLORS[8]
-#define YELLOW THE_COLORS[9]
+#define IPR_BLACK  THE_COLORS[0]
+#define IPR_BLUE   THE_COLORS[1]
+#define IPR_BROWN  THE_COLORS[2]
+#define IPR_GREEN  THE_COLORS[3]
+#define IPR_GREY   THE_COLORS[4]
+#define IPR_ORANGE THE_COLORS[5]
+#define IPR_PURPLE THE_COLORS[6]
+#define IPR_RED    THE_COLORS[7]
+#define IPR_WHITE  THE_COLORS[8]
+#define IPR_YELLOW THE_COLORS[9]
 
 #undef INIT

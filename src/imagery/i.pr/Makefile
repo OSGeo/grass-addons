@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ../..
 
+PGM = i.pr
+
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 SUBDIRS = \
@@ -11,14 +13,15 @@ SUBDIRS = \
 	i.pr.features_extract \
 	i.pr.features_selection \
 	i.pr.model \
-	i.pr.statistics \
 	i.pr.subsets \
-	i.pr.training \
 	i.pr.uxb \
 	i.pr.sites_aggregate
 
-default: subdirs
+# currently unsupported
+# i.pr.statistics
+# i.pr.training
 
-clean: cleansubdirs
+default: subdirs htmldir
 
 install: installsubdirs
+	$(INSTALL_DATA) $(PGM).html $(INST_DIR)/docs/html/
