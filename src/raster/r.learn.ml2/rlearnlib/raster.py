@@ -337,8 +337,6 @@ class RasterStack(StatisticsMixin):
     def read(self, row=None, rows=None):
         """Read data from RasterStack as a masked 3D numpy array
 
-        Notes
-        -----
         Read an entire RasterStack into a numpy array
 
         If the row parameter is used then a single row is read into a 3d numpy
