@@ -357,6 +357,12 @@ def restore_mask_backup():
         mask_backup_name = None
         return
     try:
+        # A MASK present here was created by r.boxplot itself (for example a
+        # temporary zonal mask left behind by a failure), so remove it first
+        # so the original can be renamed back from the backup.
+        leftover = gs.find_file(name="MASK", element="cell", mapset=mapset)
+        if leftover["file"]:
+            Module("g.remove", flags="f", type="raster", name="MASK", quiet=True)
         Module("g.rename", raster=[mask_backup_name, "MASK"], quiet=True)
         mask_backup_name = None
     except Exception as exc:
@@ -717,29 +723,34 @@ def compute_outliers(
 
     # Extract outliers values of ith zone
     if bool(outliers) and bool(recode_rules):
-        if bool(zones):
-            Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
-        tmpname = create_temporary_name("tmp02")
-        tmpvect = create_temporary_name("tmpvec02")
-        Module(
-            "r.recode",
-            input=rastername,
-            output=tmpname,
-            rules="-",
-            stdin_=recode_rules,
-            quiet=True,
-        )
-        vectornames.append(tmpvect)
-        Module(
-            "r.to.vect",
-            input=tmpname,
-            output=tmpvect,
-            type="point",
-            quiet=True,
-        )
-        Module("g.remove", type="raster", name=tmpname, flags="f")
-        if zones:
-            Module("r.mask", flags="r")
+        try:
+            if bool(zones):
+                Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
+            tmpname = create_temporary_name("tmp02")
+            tmpvect = create_temporary_name("tmpvec02")
+            Module(
+                "r.recode",
+                input=rastername,
+                output=tmpname,
+                rules="-",
+                stdin_=recode_rules,
+                quiet=True,
+            )
+            vectornames.append(tmpvect)
+            Module(
+                "r.to.vect",
+                input=tmpname,
+                output=tmpvect,
+                type="point",
+                quiet=True,
+            )
+            Module("g.remove", type="raster", name=tmpname, flags="f")
+        finally:
+            # Always remove the temporary zonal mask, even if the steps above
+            # raise, so it is not left behind for cleanup() to trip over when
+            # it tries to restore the original MASK from the backup.
+            if zones:
+                Module("r.mask", flags="r")
 
         # Get values input raster and write to outlier points
         colname = strip_mapset(rastername)
