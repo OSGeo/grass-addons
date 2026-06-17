@@ -1,0 +1,65 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.screen</em> performs a rapid regional triage that fuses topographic
+change (from a DEM of Difference) with optional spectral change (NDVI or VARI),
+and can overlay the result with infrastructure to flag hazard hotspots. It is
+intended as a coarse-resolution first pass that directs detailed analysis toward
+the highest-priority areas.</p>
+
+<h3>Triage</h3>
+
+<p>The <b>output</b> raster classifies each cell into a priority class. With a
+<b>spectral_change</b> raster supplied: 0 = no significant change, 1 = spectral
+change only (vegetation damage), 2 = topographic change only (geomorphic),
+3 = topographic and spectral change (highest priority).</p>
+
+<p>A cell is flagged for topographic change when
+<code>|dod| &gt;= topo_threshold</code>, and for spectral change when
+<code>spectral_change &lt;= spectral_threshold</code> (negative values indicate
+vegetation loss). Without a spectral input only topographic change is classified
+(classes 0 and 2).</p>
+
+<h3>Hazard overlay</h3>
+
+<p>When both an <b>infrastructure</b> vector and a <b>hazard_output</b> name are
+given, the infrastructure is buffered by <b>infra_buffer_m</b> and intersected
+with the triage result: 0 = no change and no infrastructure, 1 = infrastructure
+with no change detected, 2 = change detected with no infrastructure,
+3 = CRITICAL, change intersects infrastructure.</p>
+
+<h2>NOTES</h2>
+
+<p>The tool reports per-class cell counts and areas. Both outputs carry category
+labels. Run the tool at the regional screening resolution (for example 10 m);
+the <b>dod</b> input is expected to be a significant-change raster, such as the
+significant DoD from <em>r.dem.change</em>.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Topographic and spectral triage:</p>
+
+<div class="code"><pre>
+r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
+    output=triage_10m topo_threshold=1.0 spectral_threshold=-0.15
+</pre></div>
+
+<p>Add an infrastructure hazard overlay:</p>
+
+<div class="code"><pre>
+r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
+    output=triage_10m infrastructure=roads \
+    hazard_output=hazard_10m infra_buffer_m=30
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.change.html">r.dem.change</a>,
+<a href="r.dem.errprop.html">r.dem.errprop</a>,
+<a href="v.buffer.html">v.buffer</a>,
+<a href="v.to.rast.html">v.to.rast</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
