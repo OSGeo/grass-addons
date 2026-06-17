@@ -1,0 +1,55 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.coregister</em> co-registers a post-event DSM to a reference DEM
+using pseudo ground control points (PGCPs) sampled along road centerlines,
+terrain assumed stable between surveys. It removes a robust vertical bias and
+can optionally chain horizontal (Nuth and Kaab) and ICP refinement.</p>
+
+<h3>method=pgcp_vertical (default)</h3>
+
+<p>The <b>roads</b> vector is buffered by <b>buffer</b> metres and rasterized,
+the elevation residual <code>dem - reference</code> is sampled within that road
+mask, and a robust median vertical bias is estimated. The bias is removed with
+<code>output = dem - median_bias</code>. Robust statistics (median bias, NMAD,
+RMSE) are reported, and with the <b>-v</b> flag per-PGCP residuals are written to
+<b>bias_output</b> as CSV.</p>
+
+<p>If fewer than <b>min_points</b> PGCP samples are found the tool warns and
+proceeds.</p>
+
+<h3>method=nk and method=nk_icp</h3>
+
+<p>These chain additional alignment after the PGCP vertical step: <code>nk</code>
+adds a horizontal and vertical Nuth and Kaab correction (<em>r.dem.nk</em>), and
+<code>nk_icp</code> further adds a point-to-plane ICP refinement
+(<em>r.dem.icp</em>).</p>
+
+<h2>NOTES</h2>
+
+<p>The PGCP approach assumes roads are stable reference surfaces. Choose
+<b>buffer</b> to stay within the paved surface and avoid curbs, vegetation, and
+vehicles. The computational region should match the input DEM resolution.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Vertical co-registration from road PGCPs, writing residuals to CSV:</p>
+
+<div class="code"><pre>
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+    output=sfm_dsm_coreg method=pgcp_vertical buffer=2.0 \
+    bias_output=pgcp_residuals.csv -v
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.nk.html">r.dem.nk</a>,
+<a href="r.dem.icp.html">r.dem.icp</a>,
+<a href="r.dem.change.html">r.dem.change</a>,
+<a href="v.buffer.html">v.buffer</a>,
+<a href="v.to.rast.html">v.to.rast</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
