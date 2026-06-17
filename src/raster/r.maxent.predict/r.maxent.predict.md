@@ -191,12 +191,12 @@ BCC-CSM2-MR and SSP 585.*
     files and prediction rasters that can be used directly by the
     *r.maxent.train* addon (or the Maxent software itself) to create
     species distribution models.
-- [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
+- [r.out.maxent\_swd](r.out.maxent_swd.md), creating species and
     background swd files based on species distribution data in raster
     format.
 - [r.maxent.train](r.maxent.train.md), creates a maxent model based on
     presence point data a set of environmental predictor layers.
-- [r.maxent.setup](r.maxent.setup.html), helper function to allow
+- [r.maxent.setup](r.maxent.setup.md), helper function to allow
     GRASS to use Maxent.
 
 ## AUTHOR

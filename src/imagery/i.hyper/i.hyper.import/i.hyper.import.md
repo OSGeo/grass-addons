@@ -12,10 +12,10 @@ of the 3D raster represents the spectral dimension, where each cell
 *i.hyper.import* is part of the **i.hyper** module family designed for
 hyperspectral data import, processing, and analysis in GRASS. It is
 typically used in combination with
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.composite](i.hyper.composite.html), and
-[i.hyper.export](i.hyper.export.html).
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.composite](i.hyper.composite.md), and
+[i.hyper.export](i.hyper.export.md).
 
 The module currently supports the following hyperspectral products:
 
@@ -188,11 +188,11 @@ the `output` option is ignored.
 [EnMAP Example Data
 Products](https://www.enmap.org/data_tools/exampledata/), Tanager Core
 Imagery,
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.metadata](i.hyper.metadata.html),
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.composite](i.hyper.composite.html),
-[i.hyper.export](i.hyper.export.html),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.metadata](i.hyper.metadata.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.composite](i.hyper.composite.md),
+[i.hyper.export](i.hyper.export.md),
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html),
 [r3.univar](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
 

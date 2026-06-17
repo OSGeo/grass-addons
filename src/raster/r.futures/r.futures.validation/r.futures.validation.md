@@ -129,7 +129,7 @@ FUTURES references:
 
 For alternative validation metrics see
 [r.confusionmatrix](r.confusionmatrix.md),
-[r.kappa](r.kappa.md)
+[r.kappa](https://grass.osgeo.org/grass-stable/manuals/r.kappa.html)
 
 ## AUTHORS
 

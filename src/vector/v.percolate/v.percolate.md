@@ -139,7 +139,7 @@ threshold difference, a situation which DBSCAN avoids.
 
 ## SEE ALSO
 
-*[v.cluster](v.cluster.md)*.
+*[v.cluster](https://grass.osgeo.org/grass-stable/manuals/v.cluster.html)*.
 
 ## AUTHORS
 
