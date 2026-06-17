@@ -24,7 +24,7 @@ For more details on the algorithms see \[1\].
 
 ## SEE ALSO
 
-*[i.latlon](i.latlon.md)*
+*[r.latlong](https://grass.osgeo.org/grass-stable/manuals/r.latlong.html)*
 
 ## REFERENCES
 
