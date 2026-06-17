@@ -126,7 +126,7 @@ For all other parameters not mentioned above, please refer to
 [r.futures.gridvalidation](r.futures.gridvalidation.md),
 [r.futures.validation](r.futures.validation.md),
 [r.sample.category](r.sample.category.md),
-[r.object.geometry](r.object.geometry.md)
+[r.object.geometry](https://grass.osgeo.org/grass-stable/manuals/r.object.geometry.html)
 
 ## AUTHORS
 
