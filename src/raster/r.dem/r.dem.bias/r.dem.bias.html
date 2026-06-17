@@ -1,0 +1,90 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.bias</em> removes terrain-correlated systematic bias that remains
+in a DEM of Difference (DoD) after rigid co-registration. Alignment tools such
+as <em>r.dem.coregister</em>, <em>r.dem.nk</em>, and <em>r.dem.icp</em> remove
+translation and rotation, but a residual elevation difference often still varies
+with terrain (for example a positive canopy bump in forest, or error that scales
+with slope, roughness, or point density). This tool models that residual and
+subtracts it.</p>
+
+<p>Two methods are provided through the <b>method</b> option.</p>
+
+<h3>method=regression</h3>
+
+<p>Fits a multivariable linear model of the DoD on z-scored terrain predictors
+over stable terrain, then subtracts the fitted surface from the full DoD.</p>
+
+<ul>
+  <li>The dependent variable is the DoD restricted to the <b>stable_mask</b>
+  region.</li>
+  <li>Each <b>predictors</b> raster is standardized to zero mean and unit
+  variance. Strongly skewed predictors (Pearson second skewness coefficient
+  <code>|3 * (mean - median) / stddev| &gt; 0.75</code>) are log-transformed
+  before standardization (positive values only).</li>
+  <li><em>r.regression.multi</em> estimates the intercept and per-predictor
+  coefficients, and the fitted bias field <code>b0 + sum(b_i * z_i)</code> is
+  subtracted from the DoD.</li>
+</ul>
+
+<p>Predictor rasters are typically produced by <em>r.dem.stats</em> (slope,
+roughness, landform diversity, local sigma) together with a reference-DEM
+uncertainty surface.</p>
+
+<h3>method=forest</h3>
+
+<p>Estimates a local trimmed-median bias field over a masked subset of cells
+(classically a forest canopy bump) and subtracts it.</p>
+
+<ul>
+  <li>Within the <b>mask</b> region the DoD is trimmed to its
+  [<b>trim_low</b>, <b>trim_high</b>] percentile core to exclude outliers.</li>
+  <li>A moving-window median of that core over a <b>window</b>-cell window gives
+  the local bias field.</li>
+  <li>Outside the mask the bias field is zero, so unmasked cells are
+  unchanged.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The optional <b>bias_field</b> output stores the estimated correction surface
+that was subtracted, which is useful for inspection and reporting.</p>
+
+<p>The mask used by <code>method=forest</code> is applied through a temporary
+mask context and is removed automatically; the user's existing mask and
+computational region are left untouched. Intermediate rasters are removed on
+exit.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Regression correction using terrain predictors over stable ground:</p>
+
+<div class="code"><pre>
+r.dem.stats input=dem output=roughness metric=roughness_std window=13
+r.dem.stats input=dem output=slope metric=slope
+
+r.dem.bias method=regression dod=dod_1m \
+    predictors=roughness,slope,sigma_lidar \
+    stable_mask=stable output=dod_corrected bias_field=dod_bias
+</pre></div>
+
+<p>Forest canopy bump removal:</p>
+
+<div class="code"><pre>
+r.dem.bias method=forest dod=dod_1m mask=forest \
+    window=21 trim_low=2.5 trim_high=97.5 output=dod_corrected
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.coregister.html">r.dem.coregister</a>,
+<a href="r.dem.errprop.html">r.dem.errprop</a>,
+<a href="r.dem.stats.html">r.dem.stats</a>,
+<a href="r.regression.multi.html">r.regression.multi</a>,
+<a href="r.neighbors.html">r.neighbors</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
