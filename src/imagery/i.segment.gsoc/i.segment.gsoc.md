@@ -225,7 +225,8 @@ available on the wiki.
 [i.maxlik](https://grass.osgeo.org/grass-stable/manuals/i.maxlik.html),
 [r.fuzzy](r.fuzzy),
 [i.smap](https://grass.osgeo.org/grass-stable/manuals/i.smap.html),
-[r.seg](r.seg.md) (Addon)*
+[i.segment](https://grass.osgeo.org/grass-stable/manuals/i.segment.html),
+r.seg (GRASS 6 addon)*
 
 ## AUTHORS
 
