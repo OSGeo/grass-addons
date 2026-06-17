@@ -1,0 +1,75 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.change</em> computes a DEM of Difference (DoD) between a
+co-registered post-event DEM and a reference DEM, applies a Level of Detection
+(LoD) threshold to isolate significant change, and reports volumetric erosion,
+deposition, and net change. Optional cleanup stages remove gross blunders and
+isolated significant cells.</p>
+
+<p>The pipeline is:</p>
+
+<ol>
+  <li><b>Raw DoD</b> &mdash; <code>output_dod = dem - reference</code>, the
+  unmodified difference.</li>
+  <li><b>Blunder trimming</b> (optional, <b>trim_percentile</b>) &mdash; cells
+  whose absolute difference exceeds a percentile of <code>|DoD|</code> are
+  dropped before thresholding. The threshold is estimated over
+  <b>stable_mask</b> when supplied, otherwise over the whole DoD.</li>
+  <li><b>LoD thresholding</b> &mdash; <code>output_sig</code> keeps cells where
+  <code>|DoD|</code> exceeds the per-cell <b>lod</b> value (from
+  <em>r.dem.lod</em> or <em>r.dem.errprop</em>).</li>
+  <li><b>Speckle removal</b> (optional, <b>-n</b>) &mdash; isolated significant
+  cells (no significant neighbour among the eight surrounding cells) are
+  removed.</li>
+  <li><b>Volumetric summary</b> &mdash; erosion, deposition, and net volume in
+  cubic metres (and cubic yards), optionally written to <b>volume_csv</b>.</li>
+</ol>
+
+<p>With the <b>-k</b> flag the Fisher and Pearson kurtosis of the raw DoD
+distribution are reported as a diagnostic of noise and tail behaviour.</p>
+
+<h2>NOTES</h2>
+
+<p>The <b>lod</b> input is a per-cell raster, so a spatially varying Level of
+Detection from <em>r.dem.lod</em> (local mode) or <em>r.dem.errprop</em> can be
+used directly. A uniform LoD is simply a constant raster.</p>
+
+<p><code>output_dod</code> always holds the raw, unmodified difference. Blunder
+trimming and speckle removal affect only <code>output_sig</code> and the
+reported volumes, so the raw difference remains available for inspection.</p>
+
+<p>Volumes are computed from significant cells only, using the current region
+cell size. Ensure the computational region matches the input DEM
+resolution.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Basic DoD with a spatially varying LoD and a volume report:</p>
+
+<div class="code"><pre>
+r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
+    output_dod=dod output_sig=dod_sig volume_csv=volumes.csv
+</pre></div>
+
+<p>Trim blunders above the 99th percentile estimated on stable terrain, then
+remove speckle and report kurtosis:</p>
+
+<div class="code"><pre>
+r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
+    output_dod=dod output_sig=dod_sig \
+    trim_percentile=99 stable_mask=stable -n -k
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.errprop.html">r.dem.errprop</a>,
+<a href="r.dem.lod.html">r.dem.lod</a>,
+<a href="r.dem.coregister.html">r.dem.coregister</a>,
+<a href="r.neighbors.html">r.neighbors</a>,
+<a href="r.univar.html">r.univar</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
