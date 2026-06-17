@@ -39,7 +39,7 @@ GRASS Development Team (2015)
 
 [*r.mcda.ahp*](r.mcda.ahp.md),
 [*r.mcda.electre*](r.mcda.electre.md),
-[*r.mcda.roughet*](r.mcda.roughet.html),
+[*r.mcda.roughset*](r.mcda.roughset.md),
 [*r.mapcalc*](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)
 
 ## AUTHORS
