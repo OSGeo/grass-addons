@@ -1,0 +1,85 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.errprop</em> propagates per-source vertical uncertainty into a DEM
+of Difference (DoD) and derives change-significance products from the combined
+uncertainty. It is the analytical core of a DoD workflow: it answers <em>how
+much of the measured elevation change is real</em> rather than measurement
+noise.</p>
+
+<p>Given a DoD raster and one or more uncertainty (1 sigma) rasters, the tool
+combines the uncertainty sources in quadrature:</p>
+
+<pre>
+sigma_DoD = sqrt(sigma_1^2 + sigma_2^2 + ... + sigma_n^2)
+</pre>
+
+<p>Cells where any source is NULL are left NULL, so the propagated uncertainty
+is only defined where every contributing source is defined. Typical sources are
+a vertical-accuracy raster for each input DEM (for example derived from
+land-cover class), plus optional co-registration or interpolation error
+terms.</p>
+
+<p>From the propagated <b>output_sigma</b> the tool can additionally produce:</p>
+
+<ul>
+  <li><b>output_lod</b> &mdash; a Level of Detection raster,
+  <code>LoD = z(confidence) * sigma_DoD</code>, where <code>z</code> is the
+  two-tailed normal critical value. Cells of the DoD whose magnitude exceeds the
+  LoD are considered significant change.</li>
+  <li><b>output_tvalue</b> &mdash; the standardized change magnitude
+  <code>|DoD| / sigma_DoD</code>.</li>
+  <li><b>output_pvalue</b> &mdash; a two-tailed p-value raster, using either a
+  normal approximation (Abramowitz and Stegun 26.2.17, evaluated in
+  <em>r.mapcalc</em>) or a Student-t distribution with <b>df</b> degrees of
+  freedom.</li>
+  <li><b>output_class</b> &mdash; a categorical erosion/deposition significance
+  map. Each cell is labelled by the highest confidence level (68/90/95/99%) at
+  which the change exceeds the corresponding LoD, signed by the direction of
+  change.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The categorical output uses signed integer classes: -4 Erosion &ge;99%,
+-3 Erosion &ge;95%, -2 Erosion &ge;90%, -1 Erosion &ge;68%, 0 Not significant,
+1 Deposition &ge;68%, 2 Deposition &ge;90%, 3 Deposition &ge;95%,
+4 Deposition &ge;99%. Category labels and a diverging color table are written
+automatically.</p>
+
+<p>The propagated uncertainty raster pairs naturally with <em>r.dem.change</em>,
+which applies an LoD threshold and reports volumetric change. The
+<b>output_sigma</b> raster can be supplied to <em>r.dem.lod</em> as a
+precomputed uncertainty surface.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Propagate two land-cover-based uncertainty rasters into a DoD and produce a
+95% Level of Detection plus the categorical significance map:</p>
+
+<div class="code"><pre>
+r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
+    output_sigma=sigma_dod output_lod=lod_95 \
+    output_class=dod_significance confidence=0.95
+</pre></div>
+
+<p>Add a two-tailed p-value raster using a Student-t distribution:</p>
+
+<div class="code"><pre>
+r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
+    output_sigma=sigma_dod output_pvalue=dod_p \
+    pmethod=student df=120
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.change.html">r.dem.change</a>,
+<a href="r.dem.lod.html">r.dem.lod</a>,
+<a href="r.dem.stats.html">r.dem.stats</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.univar.html">r.univar</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
