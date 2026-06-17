@@ -1,0 +1,78 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.stats</em> computes terrain surface metrics from a DEM (or a DEM of
+Difference). The outputs are the predictor rasters used to model
+terrain-correlated DoD uncertainty and systematic bias, for example as inputs
+to <em>r.dem.bias</em> or as an uncertainty source for
+<em>r.dem.errprop</em>.</p>
+
+<p>A single metric is selected per run through the <b>metric</b> option:</p>
+
+<ul>
+  <li><b>slope</b> &mdash; surface slope from <em>r.slope.aspect</em> (degrees
+  or radians).</li>
+  <li><b>roughness_std</b> &mdash; local roughness as the Gaussian-weighted
+  focal standard deviation of elevation (<em>r.neighbors</em>).</li>
+  <li><b>diversity_geomorphon</b> &mdash; landform category richness in a moving
+  window, computed from <em>r.geomorphon</em> forms.</li>
+  <li><b>diversity_shannon</b> &mdash; local Shannon diversity
+  <code>H' = -sum(p * log(p))</code> over category proportions in a window,
+  computed from a categorical input such as a geomorphon forms map. With the
+  <b>-e</b> flag the matching Shannon evenness <code>J = H' / log(S)</code> is
+  also written as <code>&lt;output&gt;_evenness</code>.</li>
+  <li><b>error_sigma_local</b> &mdash; a robust local standard deviation via the
+  median absolute deviation,
+  <code>sigma = 1.4826 * median(|x - median(x)|)</code> in a moving window. Use
+  a DoD raster as <b>input</b> to obtain a spatially varying DoD uncertainty
+  surface.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The <b>window</b> must be an odd integer of at least 3 cells. Focal metrics
+use a Gaussian weighting whose falloff is derived from the window radius,
+matching the focal behaviour used throughout the DoD workflow.</p>
+
+<p>For <b>diversity_shannon</b> the input is expected to be categorical (integer
+classes). A natural pairing is to first compute a geomorphon forms map and then
+run <em>r.dem.stats</em> with <code>metric=diversity_shannon</code> on that
+map.</p>
+
+<p>Intermediate rasters are removed on exit. The tool honours the current
+computational region and the <code>--overwrite</code> flag.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Local roughness over a 13-cell window:</p>
+
+<div class="code"><pre>
+r.dem.stats input=dem output=dem_roughness metric=roughness_std window=13
+</pre></div>
+
+<p>Spatially varying DoD uncertainty from a difference raster:</p>
+
+<div class="code"><pre>
+r.dem.stats input=dod output=sigma_local metric=error_sigma_local window=21
+</pre></div>
+
+<p>Shannon diversity with evenness from a geomorphon forms map:</p>
+
+<div class="code"><pre>
+r.geomorphon elevation=dem forms=dem_forms search=7 flat=4
+r.dem.stats input=dem_forms output=dem_shannon \
+    metric=diversity_shannon window=15 -e
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.bias.html">r.dem.bias</a>,
+<a href="r.dem.errprop.html">r.dem.errprop</a>,
+<a href="r.geomorphon.html">r.geomorphon</a>,
+<a href="r.neighbors.html">r.neighbors</a>,
+<a href="r.slope.aspect.html">r.slope.aspect</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
