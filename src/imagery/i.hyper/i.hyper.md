@@ -65,12 +65,12 @@ using:
 
 ## SEE ALSO
 
-*[i.hyper.import](i.hyper.import.html),
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.metadata](i.hyper.metadata.html),
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.composite](i.hyper.composite.html),
-[i.hyper.export](i.hyper.export.html)
+*[i.hyper.import](i.hyper.import.md),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.metadata](i.hyper.metadata.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.composite](i.hyper.composite.md),
+[i.hyper.export](i.hyper.export.md)
 [r3.what](https://grass.osgeo.org/grass-stable/manuals/addons/r3.what.html)*
 
 ## AUTHORS
