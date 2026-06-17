@@ -2,9 +2,15 @@ MODULE_TOPDIR =../..
 
 PGM = r.dem
 
-SUBDIRS = libstac \
-        r.dem.nk \
-        t.dem.icp \
+SUBDIRS = r.dem.nk \
+        r.dem.icp \
+        r.dem.bias \
+        r.dem.stats \
+        r.dem.errprop \
+        r.dem.change \
+        r.dem.lod \
+        r.dem.coregister \
+        r.dem.screen \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
