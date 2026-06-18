@@ -19,10 +19,18 @@ proceeds.</p>
 
 <h3>method=nk and method=nk_icp</h3>
 
-<p>These chain additional alignment after the PGCP vertical step: <code>nk</code>
-adds a horizontal and vertical Nuth and Kaab correction (<em>r.dem.nk</em>), and
-<code>nk_icp</code> further adds a point-to-plane ICP refinement
-(<em>r.dem.icp</em>).</p>
+<p>These chain additional alignment after the PGCP vertical step, operating on
+the PGCP-corrected DSM: <code>nk</code> adds a horizontal and vertical Nuth and
+Kaab correction (<em>r.dem.nk</em>), and <code>nk_icp</code> further adds a
+point-to-plane ICP refinement (<em>r.dem.icp</em>). The full chain is PGCP
+vertical, then N&amp;K, then ICP.</p>
+
+<p>Both methods require a <b>stable_mask</b> raster (1=stable). The Nuth and Kaab
+method regresses the elevation difference against slope and aspect, so the mask
+must cover <b>broad, sloped, unchanged terrain</b>. The flat road centerlines
+used for the PGCP step are unsuitable here (they are filtered out by the N&amp;K
+slope limits), so a separate stable mask must be supplied. The same mask is
+passed to <em>r.dem.icp</em> to restrict ICP to stable terrain.</p>
 
 <h2>NOTES</h2>
 
@@ -38,6 +46,13 @@ vehicles. The computational region should match the input DEM resolution.</p>
 r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
     output=sfm_dsm_coreg method=pgcp_vertical buffer=2.0 \
     bias_output=pgcp_residuals.csv -v
+</pre></div>
+
+<p>Full PGCP + Nuth &amp; Kaab + ICP chain with a stable-terrain mask:</p>
+
+<div class="code"><pre>
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+    stable_mask=stable_terrain output=sfm_dsm_coreg method=nk_icp
 </pre></div>
 
 <h2>SEE ALSO</h2>

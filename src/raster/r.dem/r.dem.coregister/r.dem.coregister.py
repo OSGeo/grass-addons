@@ -74,6 +74,12 @@
 # % required: no
 # %end
 
+# %option G_OPT_R_INPUT
+# % key: stable_mask
+# % description: Stable-terrain mask (1=stable); required by method nk and nk_icp
+# % required: no
+# %end
+
 # %option G_OPT_F_OUTPUT
 # % key: bias_output
 # % description: CSV file path for per-PGCP residual statistics
@@ -147,10 +153,8 @@ def pgcp_vertical_correction(
     if len(residuals) < int(min_points):
         gs.warning(
             _(
-                "Only {len_residuals} PGCP samples found "
-                "(minimum {min_points}). Proceeding with caution."
-            )
-            % {"len_residuals": len(residuals), "min_points": min_points}
+                "Only {n} PGCP samples found (minimum {min}). Proceeding with caution."
+            ).format(n=len(residuals), min=min_points)
         )
 
     # Robust statistics
@@ -208,11 +212,26 @@ def main():
     method = options["method"]
     buffer = float(options["buffer"])
     min_points = int(options["min_points"])
+    stable_mask = options["stable_mask"]
     bias_out = options.get("bias_output", "")
     verbose = flags["v"]
 
-    # PGCP vertical correction (always runs first)
+    # The N&K regression needs broad stable terrain with slope variation; the
+    # flat road centerlines used for the PGCP step are unsuitable, so require a
+    # user-supplied stable mask for the nk and nk_icp methods.
+    if method in ("nk", "nk_icp") and not stable_mask:
+        gs.fatal(
+            _(
+                "method={m} requires a stable_mask of broad, sloped, unchanged "
+                "terrain. Road centerlines are too flat for the Nuth & Kaeaeb "
+                "regression."
+            ).format(m=method)
+        )
+
     tmp_pgcp = f"tmp_rdemcoreg_pgcp_{os.getpid()}"
+    tmp_nk = f"tmp_rdemcoreg_nk_{os.getpid()}"
+
+    # Stage 1: PGCP vertical correction (always runs first).
     pgcp_vertical_correction(
         dem=dem,
         reference=reference,
@@ -225,34 +244,34 @@ def main():
     )
 
     if method == "pgcp_vertical":
-        gs.message("Method: pgcp_vertical — done.")
+        gs.message(_("Method: pgcp_vertical - done."))
         return
 
-    # N&K horizontal + vertical refinement
-    if method in ("nk", "nk_icp"):
-        nk_out = f"tmp_rdemcoreg_nk_{os.getpid()}" if method == "nk_icp" else output
-        gs.run_command(
-            "r.dem.nk",
-            dem=nk_out if method == "nk" else tmp_pgcp,
-            reference=reference,
-            output=nk_out,
-            overwrite=True,
-        )
-        if method == "nk":
-            return
+    # Stage 2: Nuth & Kaeaeb horizontal + vertical refinement on the
+    # PGCP-corrected DSM.
+    nk_out = output if method == "nk" else tmp_nk
+    gs.run_command(
+        "r.dem.nk",
+        sfm=tmp_pgcp,
+        lidar=reference,
+        stable_mask=stable_mask,
+        output=nk_out,
+        overwrite=gs.overwrite(),
+    )
 
-    # Stage 3: ICP refinement
+    # Stage 3: ICP refinement of the N&K result.
     if method == "nk_icp":
         gs.run_command(
             "r.dem.icp",
-            dem=f"tmp_rdemcoreg_nk_{os.getpid()}",
             reference=reference,
+            source=tmp_nk,
             output=output,
-            overwrite=True,
+            mask=stable_mask,
+            overwrite=gs.overwrite(),
         )
 
     # Cleanup intermediates
-    for tmp in [tmp_pgcp, f"tmp_rdemcoreg_nk_{os.getpid()}"]:
+    for tmp in [tmp_pgcp, tmp_nk]:
         if gs.find_file(tmp, element="raster")["name"]:
             gs.run_command("g.remove", type="raster", name=tmp, flags="f", quiet=True)
 
