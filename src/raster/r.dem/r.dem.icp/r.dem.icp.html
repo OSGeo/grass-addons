@@ -7,6 +7,59 @@
 
 <h2>REFERENCES</h2>
 
+<ul>
+  <li><b>ICP framework (point-to-point origin).</b> Besl, P.J. and McKay, N.D.
+    (1992). A method for registration of 3-D shapes. <em>IEEE Transactions on
+      Pattern Analysis and Machine Intelligence</em>, 14(2), 239-256.
+    <a href="https://doi.org/10.1109/34.121791">doi:10.1109/34.121791</a>
+  </li>
+  <li><b>Point-to-plane error metric (minimized here).</b> Chen, Y. and Medioni,
+    G. (1992). Object modelling by registration of multiple range images. <em>Image
+      and Vision Computing</em>, 10(3), 145-155.
+    <a href="https://doi.org/10.1016/0262-8856%2892%2990066-C">doi:10.1016/0262-8856(92)90066-C</a>
+  </li>
+  <li><b>Projective correspondences (target sampled at the transformed x, y).</b>
+    Blais, G. and Levine, M.D. (1995). Registering multiview range data to create 3D
+    computer objects. <em>IEEE Transactions on Pattern Analysis and Machine
+      Intelligence</em>, 17(8), 820-824.
+    <a href="https://doi.org/10.1109/34.400574">doi:10.1109/34.400574</a>
+  </li>
+  <li><b>Efficient ICP variants (sampling, rejection, coarse-to-fine).</b>
+    Rusinkiewicz, S. and Levoy, M. (2001). Efficient variants of the ICP algorithm.
+    <em>Proceedings Third International Conference on 3-D Digital Imaging and
+      Modeling (3DIM)</em>, 145-152.
+    <a href="https://doi.org/10.1109/IM.2001.924423">doi:10.1109/IM.2001.924423</a>
+  </li>
+  <li><b>Linearized least-squares point-to-plane solve.</b> Low, K.-L. (2004).
+    Linear least-squares optimization for point-to-plane ICP surface registration.
+    Technical Report TR04-004, Department of Computer Science, University of North
+    Carolina at Chapel Hill.
+    <a href="https://www.cs.unc.edu/techreports/04-004.pdf">PDF</a>
+  </li>
+  <li><b>Trimmed ICP (robust to partial overlap and change).</b> Chetverikov, D.,
+    Stepanov, D. and Krsek, P. (2005). Robust Euclidean alignment of 3D point sets:
+    the trimmed iterative closest point algorithm. <em>Image and Vision
+      Computing</em>, 23(3), 299-309.
+    <a href="https://doi.org/10.1016/j.imavis.2004.05.007">doi:10.1016/j.imavis.2004.05.007</a>
+  </li>
+  <li><b>Robust M-estimator weighting.</b> Huber, P.J. (1964). Robust estimation
+    of a location parameter. <em>The Annals of Mathematical Statistics</em>, 35(1),
+    73-101.
+    <a href="https://doi.org/10.1214/aoms/1177703732">doi:10.1214/aoms/1177703732</a>
+  </li>
+  <li><b>Convergence analysis of point-to-plane registration.</b> Pottmann, H.,
+    Huang, Q.-X., Yang, Y.-L. and Hu, S.-M. (2006). Geometry and convergence
+    analysis of algorithms for registration of 3D shapes. <em>International Journal
+      of Computer Vision</em>, 67(3), 277-296.
+    <a href="https://doi.org/10.1007/s11263-006-5167-2">doi:10.1007/s11263-006-5167-2</a>
+  </li>
+</ul>
+
+<p>Related methods not implemented here: Nuth, C. and Kaeaeb, A. (2011),
+<em>The Cryosphere</em> 5:271-290 (aspect/slope vertical-bias coregistration,
+provided as <em><a href="r.dem.nk.html">r.dem.nk</a></em>); Segal, A., Haehnel, D.
+and Thrun, S. (2009), Generalized-ICP, <em>Robotics: Science and Systems</em>.</p>
+
 <h2>AUTHORS</h2>
 Corey White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
 <h2>SEE ALSO</h2>
