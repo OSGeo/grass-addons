@@ -175,8 +175,8 @@ int main(int argc, char *argv[])
     if (P.dof == 6)
         G_warning("dof=6 (roll/pitch) is experimental: the rigid rotation is "
                   "ill-conditioned for height-field DEMs and the 6-DoF "
-                  "resample is approximate. Use dof=4 and correct any vertical "
-                  "tilt with r.dem.nk.");
+                  "resample is approximate. Use dof=4 and remove any residual "
+                  "horizontal shift and vertical offset with r.dem.nk.");
     if (P.trim <= 0.0 || P.trim > 1.0)
         G_fatal_error("trim must be (0,1]");
 

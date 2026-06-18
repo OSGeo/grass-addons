@@ -1,42 +1,54 @@
-## Description
+## DESCRIPTION
 
-**r.dem.icp** - Rigid (3D or 4-DoF constrained) co-registration of two DEM rasters.
+*r.dem.icp* performs constrained-rigid (4-DoF) co-registration of two DEM
+rasters, with an experimental full 6-DoF mode, aligning a **source** DEM to a
+**reference** DEM with an Iterative Closest Point (ICP) solver. Key properties
+of the implementation:
 
-* Point‑to‑plane ICP with projective correspondences (sample target DEM at
-transformed (x, y))
-* Multiscale (coarse→fine) via adjustable sampling stride
-* Trimmed ICP (keep best residual fraction) + Huber robust weighting
-* OpenMP parallelization of main loops
-* DEM‑specific: normals from DEM gradients; optional slope limit;
-optional stable‑terrain mask
+* Point-to-plane ICP with projective correspondences (the target DEM is
+  sampled at the transformed (x, y) location).
+* Multiscale, coarse-to-fine alignment via an adjustable sampling **stride**.
+* Trimmed ICP (keep the best residual fraction) with Huber robust weighting.
+* OpenMP parallelization of the main loops.
+* DEM-specific handling: surface normals from DEM gradients, an optional
+  slope limit, and an optional stable-terrain **mask**.
 
-## Examples
+## NOTES
 
-```bash
+* **Initialization:** If you already know an approximate horizontal shift or
+  yaw (for example from metadata or phase correlation), pass it via the
+  **init_dx**, **init_dy**, **init_dz**, and **init_yaw** options. A good
+  **init_dz** is often the median of `source - reference` over stable terrain.
+* **Speed knobs:** Increase **stride** and reduce **levels** for quick tests,
+  and relax **max_iterations**.
+* **Robustness:** Use a conservative **trim** (`0.6`-`0.9`). Where there is a
+  lot of real change (landslides, forest canopy), lower **trim** and/or
+  **huber**.
+* **Constraints:** 4-DoF (`dof=4`) is the supported mode and usually suffices
+  (e.g., airborne photogrammetry vs LiDAR). The four solved parameters are the
+  three translations plus yaw (planimetric rotation about the vertical axis),
+  which absorbs residual georeferencing rotation; roll and pitch are
+  deliberately excluded. **6-DoF (`dof=6`) is experimental:** rigid roll/pitch
+  rotation is ill-conditioned for height-field DEMs and its resample is
+  approximate, so leave it off unless you specifically need to model tilt. The
+  residual that typically remains after 4-DoF is a sub-pixel horizontal shift
+  and vertical offset; remove it by running *[r.dem.nk](r.dem.nk.md)* (Nuth &
+  Kaeaeb) after ICP.
+* **Validation:** After alignment, inspect the residual DoD and the stats
+  file; residual bias should be near zero on stable terrain.
+
+## EXAMPLES
+
+Align a source DEM to a reference DEM over stable terrain:
+
+```sh
 g.region raster=reference_dem
 r.dem.icp reference=reference_dem source=source_dem output=aligned_dem \
-  mask=stable_mask dof=4 levels=3 stride=2 max_iterations=30 trim=0.8 huber=1.0 \
-  tolerance=1e-5 distance_max=10 slope_max=90 \
+  mask=stable_mask dof=4 levels=3 stride=2 max_iterations=30 trim=0.8 \
+  huber=1.0 tolerance=1e-5 distance_max=10 slope_max=90 \
   init_dx=0 init_dy=0 init_dz=0 init_yaw=0 \
   transform_out=transform.txt stats_out=stats.txt
 ```
-
-## Notes
-
-* **Initialization:** If you already know an approximate horizontal shift or
-yaw (e.g., from metadata or phase correlation), pass it via `init_*`.
-A good `init_dz` is often the **median** of `(source - reference)` over stable terrain.
-* **Speed knobs:** Increase `stride` and reduce `levels` for quick tests;
-relax `max_iterations`.
-* **Robustness:** Use a conservative `trim` (0.6–0.9). If many changes
-(landslides/forest canopy), lower `trim` and/or `huber`.
-* **Constraints:** 4‑DoF (`dof=4`) is the supported mode and usually suffices
-(e.g., airborne photogrammetry vs LiDAR). **6‑DoF (`dof=6`) is experimental:**
-the rigid roll/pitch rotation is ill‑conditioned for height‑field DEMs and its
-resample is approximate. To correct a vertical **tilt** between two DEMs, run
-*[r.dem.nk](r.dem.nk.md)* (Nuth & Kääb) after ICP rather than using 6‑DoF.
-* **Validation:** After alignment, inspect the residual DoD and the stats file;
-residual bias should be \~0 on stable terrain.
 
 ## REFERENCES
 
@@ -76,10 +88,15 @@ residual bias should be \~0 on stable terrain.
   Vision*, 67(3), 277-296.
   [doi:10.1007/s11263-006-5167-2](https://doi.org/10.1007/s11263-006-5167-2)
 
-## See also
+Related methods not implemented here: Nuth, C. and Kaeaeb, A. (2011),
+*The Cryosphere* 5:271-290 (aspect/slope vertical-bias coregistration, provided
+as *[r.dem.nk](r.dem.nk.md)*); Segal, A., Haehnel, D. and Thrun, S. (2009),
+Generalized-ICP, *Robotics: Science and Systems*.
 
-*[r.dem.nk](r.dem.nk.md)*
+## SEE ALSO
 
-## Authors
+*[r.dem](r.dem.md), [r.dem.coregister](r.dem.coregister.md), [r.dem.nk](r.dem.nk.md)*
 
-Corey T. White [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
+## AUTHORS
+
+Corey T. White, [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)

@@ -1,9 +1,62 @@
 <h2>DESCRIPTION</h2>
 
-<em><b>r.dem.icp</b></em> -
+<p><em>r.dem.icp</em> performs constrained-rigid (4-DoF) co-registration of two
+DEM rasters, with an experimental full 6-DoF mode, aligning a <b>source</b> DEM
+to a <b>reference</b> DEM with an Iterative Closest Point (ICP) solver. Key
+properties of the implementation:</p>
+
+<ul>
+  <li>Point-to-plane ICP with projective correspondences (the target DEM is
+  sampled at the transformed (x, y) location).</li>
+  <li>Multiscale, coarse-to-fine alignment via an adjustable sampling
+  <b>stride</b>.</li>
+  <li>Trimmed ICP (keep the best residual fraction) with Huber robust
+  weighting.</li>
+  <li>OpenMP parallelization of the main loops.</li>
+  <li>DEM-specific handling: surface normals from DEM gradients, an optional
+  slope limit, and an optional stable-terrain <b>mask</b>.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<ul>
+  <li><b>Initialization:</b> If you already know an approximate horizontal shift
+  or yaw (for example from metadata or phase correlation), pass it via the
+  <b>init_dx</b>, <b>init_dy</b>, <b>init_dz</b>, and <b>init_yaw</b> options. A
+  good <b>init_dz</b> is often the median of <code>source - reference</code> over
+  stable terrain.</li>
+  <li><b>Speed knobs:</b> Increase <b>stride</b> and reduce <b>levels</b> for
+  quick tests, and relax <b>max_iterations</b>.</li>
+  <li><b>Robustness:</b> Use a conservative <b>trim</b>
+  (<code>0.6</code>-<code>0.9</code>). Where there is a lot of real change
+  (landslides, forest canopy), lower <b>trim</b> and/or <b>huber</b>.</li>
+  <li><b>Constraints:</b> 4-DoF (<code>dof=4</code>) is the supported mode and
+  usually suffices (e.g., airborne photogrammetry vs LiDAR). The four solved
+  parameters are the three translations plus yaw (planimetric rotation about the
+  vertical axis), which absorbs residual georeferencing rotation; roll and pitch
+  are deliberately excluded. <b>6-DoF (<code>dof=6</code>) is experimental:</b>
+  rigid roll/pitch rotation is ill-conditioned for height-field DEMs and its
+  resample is approximate, so leave it off unless you specifically need to model
+  tilt. The residual that typically remains after 4-DoF is a sub-pixel
+  horizontal shift and vertical offset; remove it by running
+  <em><a href="r.dem.nk.html">r.dem.nk</a></em> (Nuth &amp; Kaeaeb) after
+  ICP.</li>
+  <li><b>Validation:</b> After alignment, inspect the residual DoD and the stats
+  file; residual bias should be near zero on stable terrain.</li>
+</ul>
 
 <h2>EXAMPLES</h2>
 
+<p>Align a source DEM to a reference DEM over stable terrain:</p>
+
+<div class="code"><pre>
+g.region raster=reference_dem
+r.dem.icp reference=reference_dem source=source_dem output=aligned_dem \
+  mask=stable_mask dof=4 levels=3 stride=2 max_iterations=30 trim=0.8 \
+  huber=1.0 tolerance=1e-5 distance_max=10 slope_max=90 \
+  init_dx=0 init_dy=0 init_dz=0 init_yaw=0 \
+  transform_out=transform.txt stats_out=stats.txt
+</pre></div>
 
 <h2>REFERENCES</h2>
 
@@ -60,9 +113,15 @@
 provided as <em><a href="r.dem.nk.html">r.dem.nk</a></em>); Segal, A., Haehnel, D.
 and Thrun, S. (2009), Generalized-ICP, <em>Robotics: Science and Systems</em>.</p>
 
-<h2>AUTHORS</h2>
-Corey White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
 <h2>SEE ALSO</h2>
-<em>
 
+<em>
+<a href="r.dem.html">r.dem</a>,
+<a href="r.dem.coregister.html">r.dem.coregister</a>,
+<a href="r.dem.nk.html">r.dem.nk</a>
 </em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></p>
