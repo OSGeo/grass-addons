@@ -329,12 +329,50 @@ static void write_history(const char *name)
     Rast_write_history(name, &hist);
 }
 
+static void write_nk_transform(const char *path, double dz, double dx,
+                               double dy)
+{
+    FILE *f = fopen(path, "w");
+    if (!f) {
+        G_warning(_("Unable to write transform file <%s>."), path);
+        return;
+    }
+    fprintf(f, "# r.dem.nk transform\n");
+    fprintf(f, "dz=%.10f\ndx=%.10f\ndy=%.10f\n", dz, dx, dy);
+    fclose(f);
+}
+
+static void read_nk_transform(const char *path, double *dz, double *dx,
+                              double *dy)
+{
+    FILE *f = fopen(path, "r");
+    if (!f)
+        G_fatal_error(_("Unable to read transform file <%s>."), path);
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        if (line[0] == '#')
+            continue;
+        char key[64];
+        double val;
+        if (sscanf(line, "%63[^=]=%lf", key, &val) == 2) {
+            if (strcmp(key, "dz") == 0)
+                *dz = val;
+            else if (strcmp(key, "dx") == 0)
+                *dx = val;
+            else if (strcmp(key, "dy") == 0)
+                *dy = val;
+        }
+    }
+    fclose(f);
+}
+
 int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct Option *sfm_opt, *lidar_opt, *stable_opt, *out_opt;
     struct Option *interp_opt, *slope_min_opt, *slope_max_opt, *iters_opt,
         *sigma_opt;
+    struct Option *xfout_opt, *xfin_opt;
     struct Flag *keep_flag;
 
     G_gisinit(argv[0]);
@@ -408,6 +446,18 @@ int main(int argc, char *argv[])
     sigma_opt->description =
         _("Sigma threshold for residual clipping (|resid| <= sigma * stddev)");
 
+    xfout_opt = G_define_standard_option(G_OPT_F_OUTPUT);
+    xfout_opt->key = "transform_output";
+    xfout_opt->required = NO;
+    xfout_opt->description =
+        _("Write the solved transform (dz, dx, dy) to a file");
+
+    xfin_opt = G_define_standard_option(G_OPT_F_INPUT);
+    xfin_opt->key = "apply_transform";
+    xfin_opt->required = NO;
+    xfin_opt->description =
+        _("Apply a saved transform (dz, dx, dy) instead of solving");
+
     keep_flag = G_define_flag();
     keep_flag->key = 'k';
     keep_flag->description = _("Keep intermediate rasters");
@@ -427,6 +477,8 @@ int main(int argc, char *argv[])
         iters = 0;
     const double sigma = atof(sigma_opt->answer);
     const bool keep = keep_flag->answer ? true : false;
+    const char *xform_out = xfout_opt->answer;
+    const char *xform_in = xfin_opt->answer;
 
     /* Set local processing region to LiDAR grid without changing user's region
      */
@@ -457,13 +509,21 @@ int main(int argc, char *argv[])
     G_message(_("Computing slope, aspect, and predictors..."));
     compute_slope_aspect_pq(&lidar, &g, slope_deg, aspect_deg, P, Q);
 
-    /* Iterative sigma clipping */
+    /* Iterative sigma clipping, unless a saved transform is applied. */
     double b0 = 0.0, b1 = 0.0, b2 = 0.0;
     double prev_b0 = 0.0, prev_b1 = 0.0, prev_b2 = 0.0;
     double prev_thresh = 0.0;
     bool prev_has_clip = false;
 
-    for (int iter = 0; iter <= iters; iter++) {
+    int niter = iters;
+    if (xform_in) {
+        read_nk_transform(xform_in, &b0, &b1, &b2);
+        G_message(_("Applying saved transform: dz=%.6f dx=%.6f dy=%.6f"), b0,
+                  b1, b2);
+        niter = -1; /* skip the solve loop */
+    }
+
+    for (int iter = 0; iter <= niter; iter++) {
         G_message(_("Estimating coefficients (iteration %d)..."), iter);
 
         double n = 0.0;
@@ -554,6 +614,9 @@ int main(int argc, char *argv[])
         G_message(_("  Clipping threshold: %.6f (sigma=%.3f, stddev=%.6f)"),
                   prev_thresh, sigma, std);
     }
+
+    if (xform_out)
+        write_nk_transform(xform_out, b0, b1, b2);
 
     /* Two-stage resampling to mimic region shift + resamp back */
     G_message(_("Applying vertical correction (dz) and horizontal translation "

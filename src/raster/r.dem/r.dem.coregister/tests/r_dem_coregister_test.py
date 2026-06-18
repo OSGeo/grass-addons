@@ -116,3 +116,91 @@ def test_nk_icp_runs(session):
         env=env,
     )
     assert _exists("dsm_nk_icp", env)
+
+
+def test_transform_output_and_replay(session, tmp_path):
+    if not (shutil.which("r.dem.nk") and shutil.which("r.dem.icp")):
+        pytest.skip("r.dem.nk and/or r.dem.icp not installed")
+    env = session.env
+    xform = str(tmp_path / "xf.txt")
+    # Non-degenerate terrain: the radial cone in the fixture is ill-conditioned
+    # for the ICP yaw estimate, so build a varied surface with full aspect range.
+    gs.run_command(
+        "r.mapcalc",
+        expression="ref_v = 5.0 * sin(col() * 18.0) + 5.0 * cos(row() * 18.0)",
+        overwrite=True,
+        env=env,
+    )
+    # Two SfM surfaces sharing a 1-cell east shift but different vertical bias.
+    gs.run_command(
+        "r.mapcalc",
+        expression="sfm_dtm_v = ref_v[0,-1] + 0.5",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.mapcalc",
+        expression="sfm_dsm_v = ref_v[0,-1] + 1.0",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command("r.mapcalc", expression="stable_v = 1", overwrite=True, env=env)
+    gs.run_command(
+        "r.mapcalc",
+        expression="road_rv = if(row() == 25, 1, null())",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.to.vect",
+        input="road_rv",
+        output="roads_v",
+        type="line",
+        overwrite=True,
+        env=env,
+    )
+
+    # Solve the full chain on the DTM and write the transform.
+    gs.run_command(
+        "r.dem.coregister",
+        dem="sfm_dtm_v",
+        reference="ref_v",
+        roads="roads_v",
+        stable_mask="stable_v",
+        method="nk_icp",
+        output="dtm_coreg_v",
+        transform_output=xform,
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    with open(xform) as f:
+        text = f.read()
+    assert "method=nk_icp" in text
+    assert "nk_dx=" in text
+    assert "icp_tx=" in text
+
+    # Replay onto the DSM; horizontal is shared, vertical re-estimated per surface.
+    gs.run_command(
+        "r.dem.coregister",
+        dem="sfm_dsm_v",
+        reference="ref_v",
+        roads="roads_v",
+        apply_transform=xform,
+        output="dsm_coreg_v",
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    assert _exists("dsm_coreg_v", env)
+    gs.run_command(
+        "r.mapcalc",
+        expression="resid2 = abs(dsm_coreg_v - ref_v)",
+        overwrite=True,
+        env=env,
+    )
+    stats = gs.parse_command("r.univar", map="resid2", format="json", env=env)
+    # The +1.0 m DSM bias and the shift are both removed: small residual.
+    assert float(stats["mean"]) < 0.2

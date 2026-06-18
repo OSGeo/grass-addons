@@ -30,6 +30,18 @@ for the PGCP step are unsuitable here (they are filtered out by the N&K slope
 limits), so a separate stable mask must be supplied. The same mask is passed to
 *r.dem.icp* to restrict ICP to stable terrain.
 
+### Solving once and replaying onto another surface
+
+**transform_output** writes the composed PGCP, N&K, and ICP transform to a file.
+**apply_transform** replays a saved transform onto another DEM, skipping the
+solve. This is intended for surfaces from the same acquisition (for example a
+DSM and a DTM): solve the alignment on the cleaner bare-earth DTM, then replay it
+onto the DSM so both share the same horizontal alignment. On replay the
+**horizontal** components (N&K dx, dy and ICP dx, dy, yaw) are shared, while the
+**vertical** bias is re-estimated per surface with the PGCP step, since the DSM
+and DTM vertical offsets differ. Replay therefore still needs **roads** but not
+a **stable_mask**.
+
 ## Notes
 
 The PGCP approach assumes roads are stable reference surfaces. Choose **buffer**
@@ -51,6 +63,17 @@ Full PGCP + Nuth & Kaab + ICP chain with a stable-terrain mask:
 ```sh
 r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
     stable_mask=stable_terrain output=sfm_dsm_coreg method=nk_icp
+```
+
+Solve on the bare-earth DTM, then replay the alignment onto the DSM:
+
+```sh
+r.dem.coregister dem=sfm_dtm reference=lidar_dtm roads=road_centerlines \
+    stable_mask=stable_terrain output=sfm_dtm_coreg method=nk_icp \
+    transform_output=align.txt
+
+r.dem.coregister dem=sfm_dsm reference=lidar_dsm roads=road_centerlines \
+    output=sfm_dsm_coreg apply_transform=align.txt
 ```
 
 ## See also
