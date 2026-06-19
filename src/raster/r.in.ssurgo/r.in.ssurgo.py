@@ -730,7 +730,12 @@ def update_hydrologic_group(vector_map, source_col="hydgrp", target_col="hsg"):
         f"        {when_clauses}\n"
         f"    END"
     )
-    gs.run_command("db.execute", sql=sql)
+    gs.run_command(
+        "db.execute",
+        sql=sql,
+        driver=db_info[1]["driver"],
+        database=db_info[1]["database"],
+    )
 
     return target_col
 
@@ -1793,7 +1798,8 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
         # exits (gs.setup.init's finish() deletes GISRC from the env it was
         # given — which would otherwise be os.environ).
         gs.create_project(path=tempdir.name, epsg=src_srs, overwrite=True)
-        with gs.setup.init(Path(tempdir.name), env=os.environ.copy()) as temp_session:
+        temp_env = gs.sanitize_mapset_environment(os.environ.copy())
+        with gs.setup.init(Path(tempdir.name), env=temp_env) as temp_session:
             gs.message(_("Importing data into temporary project..."))
             gs.run_command(
                 "v.in.ogr",
@@ -1806,6 +1812,7 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
 
         # Reproject from temporary project to the current (already active) project.
         gs.message(_("Reprojecting data to current project..."))
+        # sanitize env due to bug in v.proj
         gs.run_command(
             "v.proj",
             project=tmp_project_name,
@@ -1813,6 +1820,7 @@ def write_ssurgo_to_grass(tmp_filepath, ssurgo_areas_out, src_srs: int):
             dbase=str(tmp_dbpath),
             mapset="PERMANENT",
             output=ssurgo_areas_out,
+            env=gs.sanitize_mapset_environment(os.environ.copy()),
         )
 
         # Clip reprojected polygons to the current computational region.
