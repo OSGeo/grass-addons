@@ -37,7 +37,6 @@ categorical prediction. In that case, four rasters are created using the
 **output** parameter as basename, with suffixes *_clear*, *_thick_cloud*,
 *_thin_cloud*, and *_cloud_shadow*.
 
-
 ## NOTES
 
 This addon requires the opens-source Python package *omnicloudmask* to be

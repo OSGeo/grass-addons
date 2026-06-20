@@ -289,7 +289,7 @@ CONFIDENCE_TITLES = [
     "Cloud shadow confidence",
 ]
 
-TEMP_PATHS: List[Path] = []
+TEMP_PATHS: list[Path] = []
 
 
 def cleanup() -> None:
@@ -315,7 +315,7 @@ def ensure_dependencies() -> None:
         )
 
 
-def parse_band_order(text: str) -> List[int]:
+def parse_band_order(text: str) -> list[int]:
     """Parse a comma-separated GeoTIFF band order specification.
 
     OmniCloudMask expects 1-indexed band numbers for load_multiband().
@@ -334,8 +334,8 @@ def parse_band_order(text: str) -> List[int]:
 
 
 def omnicloud_common_kwargs(
-    options: Dict[str, str], flags: Dict[str, bool]
-) -> Dict[str, object]:
+    options: dict[str, str], flags: dict[str, bool]
+) -> dict[str, object]:
     """Build the keyword arguments shared by predict_from_array() and predict_from_load_func().
 
     Covers patch_size, patch_overlap, batch_size, device settings, no-data
@@ -344,7 +344,7 @@ def omnicloud_common_kwargs(
     When -l is set, softmax_output is False so OmniCloudMask returns raw
     logits; softmax will be computed in GRASS via r.mapcalc instead.
     """
-    kwargs: Dict[str, object] = {
+    kwargs: dict[str, object] = {
         "patch_size": int(options["patch_size"]),
         "patch_overlap": int(options["patch_overlap"]),
         "batch_size": int(options["batch_size"]),
@@ -370,7 +370,7 @@ def omnicloud_common_kwargs(
     return kwargs
 
 
-def none_if_auto(value: str) -> Optional[str]:
+def none_if_auto(value: str) -> str | None:
     """Translate the UI value 'auto' to None for OmniCloudMask."""
     if not value or value == "auto":
         return None
@@ -391,7 +391,7 @@ def raster_to_numpy(map_name: str, dtype: np.dtype = np.float32) -> np.ndarray:
 
 
 def write_numpy_to_raster(
-    array: np.ndarray, map_name: str, title: Optional[str] = None
+    array: np.ndarray, map_name: str, title: str | None = None
 ) -> None:
     """Write a 2-D NumPy array to a GRASS raster map."""
     grass_array = garray.array(dtype=array.dtype)
@@ -567,7 +567,7 @@ def import_raster_from_geotiff(
 
 
 def build_inference_description(
-    options: Dict[str, str], flags: Dict[str, bool], export_confidence: bool
+    options: dict[str, str], flags: dict[str, bool], export_confidence: bool
 ) -> str:
     """Create a history string summarising inference settings."""
     parts = [
@@ -591,7 +591,7 @@ def build_inference_description(
     return ", ".join(parts)
 
 
-def _handle_inference_error(error: RuntimeError, options: Dict[str, str]) -> None:
+def _handle_inference_error(error: RuntimeError, options: dict[str, str]) -> None:
     """Translate common inference errors into actionable GRASS fatal messages.
 
     CUDA and MPS out-of-memory errors are RuntimeError in PyTorch. This
@@ -623,8 +623,8 @@ def run_array_prediction(
     red: str,
     green: str,
     nir: str,
-    options: Dict[str, str],
-    flags: Dict[str, bool],
+    options: dict[str, str],
+    flags: dict[str, bool],
 ) -> np.ndarray:
     """Run OmniCloudMask on GRASS rasters and return the class prediction.
 
@@ -650,8 +650,8 @@ def run_array_confidence_prediction(
     red: str,
     green: str,
     nir: str,
-    options: Dict[str, str],
-    flags: Dict[str, bool],
+    options: dict[str, str],
+    flags: dict[str, bool],
 ) -> np.ndarray:
     """Run OmniCloudMask on GRASS rasters and return confidence maps.
 
@@ -696,7 +696,7 @@ def write_class_raster(
 def write_confidence_rasters(
     confidence_array: np.ndarray,
     basename: str,
-) -> List[str]:
+) -> list[str]:
     """Write four confidence rasters and return their map names."""
     if confidence_array.shape[0] != 4:
         gs.fatal(
@@ -704,7 +704,7 @@ def write_confidence_rasters(
             f"got shape {confidence_array.shape}"
         )
 
-    created_maps: List[str] = []
+    created_maps: list[str] = []
     for index, suffix in enumerate(CONFIDENCE_SUFFIXES):
         map_name = f"{basename}_{suffix}"
         band = np.asarray(confidence_array[index], dtype=np.float32)
@@ -750,10 +750,10 @@ def select_loader_for_geotiff(band_order: Sequence[int]):
 
 def run_geotiff_prediction(
     geotiff: str,
-    options: Dict[str, str],
-    flags: Dict[str, bool],
+    options: dict[str, str],
+    flags: dict[str, bool],
     export_confidence: bool,
-) -> List[Path]:
+) -> list[Path]:
     """Run the file-based workflow using predict_from_load_func().
 
     predict_from_load_func() saves GeoTIFF outputs into a temporary directory
@@ -782,7 +782,7 @@ def run_geotiff_prediction(
     return [Path(path) for path in outputs]
 
 
-def process_raster_inputs(options: Dict[str, str], flags: Dict[str, bool]) -> None:
+def process_raster_inputs(options: dict[str, str], flags: dict[str, bool]) -> None:
     """Main workflow for GRASS raster inputs.
 
     Without -c the module writes a single categorical prediction raster to
@@ -827,7 +827,7 @@ def process_raster_inputs(options: Dict[str, str], flags: Dict[str, bool]) -> No
     )
 
 
-def process_geotiff_input(options: Dict[str, str], flags: Dict[str, bool]) -> None:
+def process_geotiff_input(options: dict[str, str], flags: dict[str, bool]) -> None:
     """Main workflow for external GeoTIFF input.
 
     This path processes the whole raster file and then imports the generated
@@ -929,7 +929,7 @@ def check_output_exists(output_name: str, export_confidence: bool) -> None:
         )
 
 
-def validate_options(options: Dict[str, str], flags: Dict[str, bool]) -> None:
+def validate_options(options: dict[str, str], flags: dict[str, bool]) -> None:
     """Validate cross-option logic."""
     has_geotiff = bool(options["geotiff"])
 
