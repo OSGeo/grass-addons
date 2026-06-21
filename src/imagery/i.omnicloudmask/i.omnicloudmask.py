@@ -552,6 +552,7 @@ def import_raster_from_geotiff(
     input_path: Path,
     output_name: str,
     memory_mb: int,
+    *,
     limit_to_region: bool,
 ) -> None:
     """Import a single-band GeoTIFF result into GRASS using r.in.gdal."""
@@ -567,7 +568,7 @@ def import_raster_from_geotiff(
 
 
 def build_inference_description(
-    options: dict[str, str], flags: dict[str, bool], export_confidence: bool
+    options: dict[str, str], flags: dict[str, bool], *, export_confidence: bool
 ) -> str:
     """Create a history string summarising inference settings."""
     parts = [
@@ -752,6 +753,7 @@ def run_geotiff_prediction(
     geotiff: str,
     options: dict[str, str],
     flags: dict[str, bool],
+    *,
     export_confidence: bool,
 ) -> list[Path]:
     """Run the file-based workflow using predict_from_load_func().
@@ -855,7 +857,7 @@ def process_geotiff_input(options: dict[str, str], flags: dict[str, bool]) -> No
             confidence_paths[0],
             options["output"],
             memory_mb,
-            limit_to_region,
+            limit_to_region=limit_to_region,
         )
         if flags["l"]:
             apply_softmax_in_grass(options["output"], nprocs=int(options["nprocs"]))
@@ -874,7 +876,7 @@ def process_geotiff_input(options: dict[str, str], flags: dict[str, bool]) -> No
         gs.fatal(f"Expected one prediction file, received {len(prediction_paths)}")
 
     import_raster_from_geotiff(
-        prediction_paths[0], options["output"], memory_mb, limit_to_region
+        prediction_paths[0], options["output"], memory_mb, limit_to_region=limit_to_region
     )
     apply_categories_and_colors(options["output"])
     write_support_metadata(
@@ -889,6 +891,7 @@ def import_confidence_geotiff(
     geotiff_path: Path,
     basename: str,
     memory_mb: int,
+    *,
     limit_to_region: bool,
 ) -> None:
     """Import a 4-band confidence GeoTIFF into four GRASS rasters."""
@@ -907,7 +910,7 @@ def import_confidence_geotiff(
         )
 
 
-def check_output_exists(output_name: str, export_confidence: bool) -> None:
+def check_output_exists(output_name: str, *, export_confidence: bool) -> None:
     """Check whether output rasters already exist and --overwrite is not set."""
     if gs.overwrite():
         return

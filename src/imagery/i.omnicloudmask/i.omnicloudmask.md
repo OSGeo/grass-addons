@@ -73,7 +73,7 @@ i.omnicloudmask \
 This creates the categorical raster *cloudmask* in the current mapset, with
 category labels: Clear, Thick Cloud, Thin Cloud, and Cloud Shadow.
 
-![](i_omnicloudmask.png)
+![OmniCloudMask categorical prediction output showing cloud and cloud shadow classifications](i_omnicloudmask.png)
 
 ### 2: Create confidence rasters from GRASS rasters
 
