@@ -16,90 +16,58 @@
 #
 #############################################################################
 #
+# SPDX-FileCopyrightText: 2017 Andrew Wickert
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # %module
-# % description: Calculate cell sizes within the computational region
+# % description: Calculates the area of each raster cell for the computational region
 # % keyword: raster
-# % keyword: statistics
+# % keyword: geometry
 # %end
 
 # %option G_OPT_R_OUTPUT
 # %  key: output
-# %  type: string
-# %  description: Output grid of cell sizes
+# %  label: Output raster of cell areas
+# %  description: Name of output raster map containing cell areas
 # %  required: yes
 # %end
 
 # %option
 # %  key: units
 # %  type: string
-# %  description: Units for output areas
-# %  options: m2, km2
+# %  label: Output units
+# %  description: Units for output cell areas
+# %  options: m2, km2, ha, acres, mi2
+# %  descriptions: m2;Square meters;km2;Square kilometers;ha;Hectares;acres;Acres;mi2;Square miles
 # %  required: yes
 # %end
 
-##################
-# IMPORT MODULES #
-##################
-
-# PYTHON
-import numpy as np
-
-# GRASS
 import grass.script as gs
 
 
+# Conversion factors from m² — values match GRASS G_meters_to_units_factor_sq()
+_M2_TO_UNIT = {
+    "m2": 1.0,
+    "km2": 1.0e-6,
+    "ha": 1.0e-4,
+    "acres": 1.0 / 4046.8564224,
+    "mi2": 1.0 / 2589988.110336,
+}
+
+
 def main():
-    """
-    Compute cell areas
-    """
-
-    projinfo = gs.parse_command("g.proj", flags="g")
-
     options, flags = gs.parser()
     output = options["output"]
     units = options["units"]
 
-    # First check if output exists
-    if len(gs.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not gs.overwrite():
-            gs.fatal(
-                "Raster map '"
-                + options["output"]
-                + "' already exists. Use '--o' to overwrite."
-            )
+    projinfo = gs.parse_command("g.proj", flags="g")
 
-    projunits = str(projinfo.get("units", ""))
-
-    if projunits.lower() in ("degrees", "degree"):
-        if units == "m2":
-            gs.mapcalc(
-                "{out} = ( 111195. * nsres() )"
-                " * ( ewres() * {rad} * 6371000. * cos(y()) )".format(
-                    out=output, rad=np.pi / 180.0
-                )
-            )
-        elif units == "km2":
-            gs.mapcalc(
-                "{out} = ( 111.195 * nsres() )"
-                " * ( ewres() * {rad} * 6371. * cos(y()) )".format(
-                    out=output, rad=np.pi / 180.0
-                )
-            )
-    elif not projunits:
+    if not str(projinfo.get("units", "")):
         gs.fatal(_("Projection units are unknown; XY locations are not supported"))
-    else:
-        # Any projected CRS: use the meters-per-map-unit conversion factor so
-        # that feet, US survey feet, and all other linear units work correctly.
-        m = float(projinfo.get("meters", 0))
-        if m <= 0:
-            gs.fatal(_("Projection units '%s' are not supported") % projunits)
-        if units == "m2":
-            gs.mapcalc("{out} = nsres() * ewres() * {m2}".format(out=output, m2=m**2))
-        elif units == "km2":
-            gs.mapcalc(
-                "{out} = nsres() * ewres() * {m2} / 1.e6".format(out=output, m2=m**2)
-            )
+
+    factor = _M2_TO_UNIT[units]
+    gs.warning(_("r.cell.area is deprecated; use r.mapcalc area() instead"))
+    gs.mapcalc(f"{output} = area() * {factor}")
 
 
 if __name__ == "__main__":
