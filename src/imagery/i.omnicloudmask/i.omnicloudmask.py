@@ -876,7 +876,10 @@ def process_geotiff_input(options: dict[str, str], flags: dict[str, bool]) -> No
         gs.fatal(f"Expected one prediction file, received {len(prediction_paths)}")
 
     import_raster_from_geotiff(
-        prediction_paths[0], options["output"], memory_mb, limit_to_region=limit_to_region
+        prediction_paths[0],
+        options["output"],
+        memory_mb,
+        limit_to_region=limit_to_region,
     )
     apply_categories_and_colors(options["output"])
     write_support_metadata(
