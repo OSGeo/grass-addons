@@ -4,10 +4,12 @@
 space-time raster dataset (strds), runs an **STL decomposition** (Seasonal-Trend
 decomposition using LOESS) on it, and produces a multi-panel plot of the
 observed series together with its *trend*, *seasonal* and *residual* (remainder)
-components. A straight-line trend regression is fitted to the extracted trend
-component and reported on the plot.
+components. Optionally, one or more trend regressions are fitted to the
+deseasonalized series and drawn on the trend panel: an ordinary least-squares
+(OLS) line, a robust Theil-Sen line, and/or a shape-constrained (monotone)
+Generalized Additive Model (GAM) curve.
 
-The module is a standalone tool that works on *any* strds, with either absolute
+The module is a standalone tool that works on any strds, with either absolute
 (calendar-dated) or relative (integer-stepped) time. Internally it uses
 *[t.rast.what](t.rast.what.md)* to sample the pixel value at every registered
 timestep, regularizes the resulting irregular series onto an evenly spaced time
@@ -65,6 +67,42 @@ work).
 The module samples the value at the point in the *current computational
 region*'s resolution. Set the region with *[g.region](g.region.md)* before
 running if needed. The point must fall inside the current region.
+
+### Comparing two datasets
+
+A second space-time raster dataset can be supplied with **strds2**. When given,
+the full analysis (regularization, STL decomposition and trend regression) is
+run on both datasets and the two are drawn together on the same four panels
+(Observed, Trend, Seasonal, Residual). By default the first dataset is plotted
+against the left y-axis and the second against its own twin right y-axis on each
+panel, so two quantities with very different units or ranges (for example
+temperature and precipitation) can be compared on a shared time axis. The two
+series are distinguished by colour, with the y-axis tick numbers coloured to
+match and a single legend in the Observed panel naming each dataset.
+
+The trend regression lines requested with **-o**, **-s** and **-g** are drawn on
+the Trend panel for both datasets. Each dataset's regression lines use a colour
+family matching its series, while the line style identifies the regression type
+(OLS dashed, Theil-Sen dash-dot, GAM dotted). The **-t** flag adds the
+slope/R²/*p* statistics to it. The full statistics for each dataset are always
+printed to the terminal regardless.
+
+When the two datasets are in comparable units, the **-y** flag forces them onto
+a single common y-axis range per panel (instead of separate left/right axes), so
+their magnitudes can be read directly against one another. This flag has no
+effect unless **strds2** is given.
+
+The series line colours can be set with **color** (for **strds**) and **color2**
+(for **strds2**). Each accepts a standard GRASS colour name (such as `blue` or
+`aqua`), an `R:G:B` triplet with each component in 0-255 (such as `0:0:255`),
+hex code (`#1f77b4`) or a `tab:` name. The trend regression lines for a dataset
+are drawn in a darker family derived from its series colour. In the
+single-dataset case **color** sets the series colour while the OLS/Theil-Sen/GAM
+lines keep their default (red/green/purple).
+
+Both datasets must share the same temporal type (both absolute or both
+relative). The second series is extracted at the same point and regularized with
+the same **frequency**/**step** and **interpolation** settings as the first.
 
 ### Absolute vs. relative time
 
@@ -153,48 +191,75 @@ most exact.
 outliers. This is worth enabling when residual cloud or sensor spikes are
 distorting the fit.
 
-### Trend regression on the trend component
+### Trend lines
 
 Beyond the visual decomposition, the tool quantifies the long-term change by
-fitting two straight-line regressions to the STL **trend** component and drawing
-them on the trend panel. The first is an ordinary least-squares (OLS) line,
+fitting regressions to the **deseasonalized observed** series and drawing them
+on the trend panel. The deseasonalized series is `trend + residual`
+(equivalently `observed - seasonal`)
+
+Three fits are available. The first is an ordinary least-squares (OLS) line,
 reported with its **slope** and **R²**. The second is a robust Theil-Sen line
 (SciPy's
 [theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html)),
-reported with its slope and a monotonic-trend p-value from Kendall's
+reported with its slope and a monotonic-trend *p*-value from Kendall's
 rank-correlation test (SciPy's
 [kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
 Note that this differs from a full Mann-Kendall test, which applies tie and
-variance corrections. The reported p-values may terefore differ slightly when
+variance corrections. The reported *p*-values may therefore differ slightly when
 the data contain ties.
 
-In both cases, the slope is expressed per observation of the regularized series,
-i.e., per step of the chosen **frequency** (absolute series) or **step**
-(relative series). For a daily (D) series this is per day; for a 16-day
-composite (16D) it is per 16-day step, for a monthly (MS) series per month, and
-so on.
+Which line(s) appear on the trend panel is controlled by flags: **-o** draws the
+OLS line, **-s** draws the Theil-Sen line, and **-g** draws a monotone GAM curve
+(see below). Note that the Theil-Sen slope with the non-parametric Kendall test
+is more resistant to outliers and does not assume normal residuals.
 
-Which line(s) appear on the trend panel is controlled by two flags: **-o** draws
-the OLS line, and **-s** draws the Theil-Sen line. Note that the Theil-Sen slope
-with the non-parametric Kendall test is more resistant to outliers and does not
-assume normal residuals. It is therefore often the safer choice for ecological
-series.
+The **-t** flag adds the trend-line statistics (slope, R², Mann-Kendall
+*p*-value, and GAM net change) to the legend. The statistics are always printed
+to the terminal regardless of this flag.
 
-The trend LOESS has to **extrapolate** at both ends of the series because, near
-the boundaries,it can only use data from one side. As a result, the first and
-last trend estimates are less reliable and disproportionately influence the
-fitted regression line. The trend_trim option reduces this edge effect by
-excluding a portion of the trend before fitting the regression. The trimming
-amount is specified as a fraction of the effective trend window:
+The third fit, enabled with **-g**, is a shape-constrained (monotone)
+**Generalized Additive Model** fitted with
+[pyGAM](https://pygam.readthedocs.io/). It is a smooth, flexible curve, but
+constrained to never reverse direction. The **gam_direction** option sets the
+constraint direction: `increasing`, `decreasing`, or `auto` (the default, which
+picks the direction from the sign of the Theil-Sen slope). The GAM is summarised
+by its **net change** (fitted value at the last point minus the first, over the
+fitted span) and the **explained deviance**. The **-b** flag additionally shades
+the GAM's 95% confidence band.
 
-- `none` (default) uses the whole trend;
+The slopes (OLS, Theil-Sen) and the GAM net change are expressed per observation
+of the regularized series, i.e., per step of the chosen **frequency** (absolute
+series) or **step** (relative series). For a daily (D) series this is per day;
+for a 16-day composite (16D) it is per 16-day step, for a monthly (MS) series
+per month, and so on.
+
+**A note on significance.** The reported *p*-values (both the OLS slope test and
+the Kendall test behind Theil-Sen) assume independent residuals. Deseasonalized
+environmental series are almost always serially autocorrelated, which inflates
+significance (*p*-values come out too small). The values here therefore do
+**not** account for serial autocorrelation; for formal inference, consider a
+trend-free pre-whitening of the series, or a variance correction such as the
+Hamed–Rao modification of the Mann-Kendall test, before drawing conclusions
+about significance.
+
+The STL trend LOESS has to **extrapolate** at both ends of the series because,
+near the boundaries, it can only use data from one side. The corresponding ends
+of the deseasonalized series are therefore the least reliable and can
+disproportionately influence the fitted regressions. The **trend_trim** option
+reduces this edge effect by dropping a portion of each end before fitting. The
+same trim is applied to all three fits (OLS, Theil-Sen and GAM) so they describe
+the same span. The trimming amount is specified as a fraction of the effective
+trend window:
+
+- `none` (default) uses the whole series;
 - `0.1` / `0.25` remove only the outermost, most biased points;
 - `0.5` removes the entire theoretically-extrapolated zone (about half the trend
   window at each end);
 - `1` is the most conservative.
 
-If you see the regression line being pulled by an upswing or downswing right at
-the edge of the plot, increasing **trend_trim** is the appropriate fix.
+If you see a fitted line or curve being pulled by an upswing or downswing right
+at the edge of the plot, increasing **trend_trim** is the appropriate fix.
 
 ### Output
 
@@ -214,7 +279,9 @@ residual components per date, so they can be replotted or analysed in your
 software tool of choice.
 
 The **vector** option creates a point vector layer at the selected location,
-carrying the trend regression results (slope, R², *p*-value) as attributes.
+carrying the trend regression results (OLS slope, R², *p*-value, Theil-Sen
+slope, Mann-Kendall tau and *p*-value) as attributes. When a monotone GAM was
+fitted (**-g**), its net change and explained deviance are stored as well.
 
 ### Subsetting and performance
 
@@ -236,7 +303,27 @@ pip install numpy pandas scipy matplotlib statsmodels
 ```
 
 If a dependency is missing the module exits with a message indicating which
-package to install.
+package to install. Exception is *pygam*, which is an optional dependency
+(`pip install pygam`). It is imported only when **-g** is used, so the rest of
+the module works without it.
+
+Computation depend on the following libraries:
+
+- **pandas** builds the time-indexed series, resamples it onto the regular axis
+  (`Series.resample`) and fills gaps (`Series.interpolate`).
+- **statsmodels** performs the STL decomposition
+  ([statsmodels.tsa.seasonal.STL](https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html)),
+  splitting the series into trend, seasonal and residual components.
+- **scipy** fits the trend regressions: the OLS line
+  ([scipy.stats.linregress](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.linregress.html)),
+  the robust Theil-Sen line
+  ([scipy.stats.theilslopes](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html)),
+  and the monotonic-trend *p*-value from Kendall's rank correlation
+  ([scipy.stats.kendalltau](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html)).
+- **pygam** fits the optional shape-constrained (monotone) GAM curve
+  ([LinearGAM](https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html)).
+- **numpy** provides the array operations underlying the above, and
+  **matplotlib** renders the multi-panel plot.
 
 ## EXAMPLES
 
@@ -253,7 +340,8 @@ series. First step is to create empty datasets of type strds (space-time raster
 dataset). Note, that we use absolute time.
 
 ```sh
-t.create output=tempmean type=strds temporaltype=absolute title="Average temperature" description="Monthly temperature average in NC [deg C]"
+t.create output=tempmean type=strds temporaltype=absolute title="Average
+temperature" description="Monthly temperature average in NC [deg C]"
 ```
 
 Now we register raster maps into the space-time raster datasets we just created.
@@ -263,7 +351,8 @@ chronologically which is what we need. Using backticks to pass the maps directly
 to t.register
 
 ```sh
-t.register -i input=tempmean type=raster start=2000-01-01 increment="1 months" maps=`g.list type=raster pattern="*tempmean" separator=comma --quiet`
+t.register -i input=tempmean type=raster start=2000-01-01 increment="1 months"
+maps=`g.list type=raster pattern="*tempmean" separator=comma --quiet`
 ```
 
 ### Decompose monthly temperature series
@@ -273,7 +362,7 @@ Decompose the monthly temperature series at a point and save the outcome as PNG:
 ```sh
 g.region raster=2000_01_tempmean -p
 
-t.rast.stl strds=tempmean coordinates=636000,221000 frequency=MS period=12 output=t_rast_stl_01.png
+t.rast.stl strds=tempmean coordinates=636000,221000 output=t_rast_stl_02.png
 ```
 
 Resulting image:
@@ -288,31 +377,108 @@ rather than the inter-annual swings, set trend= to something larger. For
 example, set the trend to 85.
 
 ```sh
-t.rast.stl strds=tempmean coordinates=636000,221000 trend=85 frequency=MS period=12 output=t_rast_stl_02.png
+t.rast.stl strds=tempmean coordinates=636000,221000 trend=85 output=t_rast_stl_02.png
 ```
 
 Resulting image:
 
-![Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines.](t_rast_stl_02.png)
+![Decomposed monthly temperature series for location 636000,221000, with trend set at 85.](t_rast_stl_02.png)
 
 ### Add linear trend lines
 
 The previous result suggests a steady increase in temperatures between 2000 and
-2012. To further explore this, the OLS and Theil-Sen trend lines and their
-statistics can be included.
+2012. To further explore this, the OLS and Theil-Sen trend lines can be added
+with **-o** and **-s**, and the **-t** flag shows their statistics in the legend.
 
 ```sh
-t.rast.stl -os strds=tempmean coordinates=636000,221000 trend=85 frequency=MS period=12 output=t_rast_stl_03.png
+t.rast.stl -ost strds=tempmean coordinates=636000,221000
+output=t_rast_stl_03.png
 ```
 
 Resulting image:
 
 ![Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines.](t_rast_stl_03.png)
 
+### Choose the slope reporting unit
+
+By default the reported OLS and Theil-Sen slopes are expressed per a calendar
+unit chosen automatically from the series span (here, with a multi-year monthly
+series, per year). Use **slope_unit** to force a specific unit, for example to
+report the warming rate per year explicitly, or per month to match the sampling:
+
+```sh
+t.rast.stl -ost strds=tempmean coordinates=636000,221000 slope_unit=month
+output=t_rast_stl_04.png
+```
+
+Resulting image:
+
+![Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines. Slopes are expressed as change per month.](t_rast_stl_04.png)
+
+Note, the fitted lines on the plot are identical regardless of **slope_unit**;
+only the slope numbers in the legend (shown with **-t**) and the terminal report
+change.
+
+### Add a monotone GAM trend curve
+
+Where a one-directional change is expected, a shape-constrained GAM curve can
+summarise the trajectory. The **-g** flag adds it (with **-b** to shade its 95%
+confidence band); the direction is chosen automatically from the Theil-Sen slope
+unless **gam_direction** is set. Drop the outer values before fitting the trend
+lines seting `trend_trim=0.25`.
+
+```sh
+t.rast.stl -sgb strds=tempmean coordinates=636000,221000 trend_trim=0.25
+output=t_rast_stl_05.png
+```
+
+Resulting image:
+
+![Decomposed monthly temperature series for location 636000,221000, with Theil-Sen and GAM trend line.](t_rast_stl_05.png)
+
+The trend regressions, including the GAM, are fitted on the deseasonalized
+series (`trend + residual`), so the confidence band reflects the genuine
+short-term scatter. Keep in mind that the reported *p*-values do not account for
+serial autocorrelation (see the trend regression section above).
+
+### Compare two datasets
+
+Supply a second strds with **strds2** to decompose and analyze it alongside the
+first. Both are drawn on the same panels, the second on its own (right) y-axis
+(here temperature against precipitation). Set the line colours with
+**color**/**color2** (for example comparing minimum and maximum temperature):
+
+```sh
+t.rast.stl -s strds=tempmean strds2=precip_sum coordinates=636000,221000
+color=127:191:123 color2=#af8dc3 output=t_rast_stl_06.svg
+```
+
+Resulting image:
+
+![Decomposed monthly temperature and rainfall series for location 636000,221000, with Theil-Sen trend line.](t_rast_stl_06.png)
+
+And reported (excerpt) on the console:
+
+```text
+[tempmean] Trend (Theil-Sen / Mann-Kendall): slope=0.07793 /year, tau=0.156,
+p=0.00389
+
+[precip_sum] Trend (Theil-Sen / Mann-Kendall): slope=-0.07590 /year,
+tau=-0.006, p=0.917
+```
+
+The trend lines are drawn for both datasets; their slopes and statistics are
+printed to the terminal (prefixed with each dataset's name). Tip: write as svg
+file to make it easier to improve the plot, like placing legends, etc. manually
+in e.g., Inkscape.
+
+When the two datasets are in comparable units, add **-y** to put them on one
+shared y-axis.
+
 ## SEE ALSO
 
-*[t.rast.line](t.rast.line.md), [t.rast.what](t.rast.what.md),
-[t.rast.list](t.rast.list.md), [t.rast.univar](t.rast.univar.md)*
+*[t.rast.line](t.rast.line.md),
+[t.rast.what](t.rast.what.md),[t.rast.univar](t.rast.univar.md)*
 
 ## REFERENCES
 
@@ -330,6 +496,10 @@ Resulting image:
   [Wikipedia local regression article](https://en.wikipedia.org/wiki/Local_regression).
 - statsmodels. (2025). *Statsmodels* (Version 0.14.6) [Python]
   [statsmodels repository](https://github.com/statsmodels/statsmodels/).
+- Servén, D., & Brummitt, C. (2018). pyGAM: Generalized Additive Models in
+  Python. *Zenodo*. [pyGAM documentation](https://pygam.readthedocs.io/).
+- Hamed, K. H., & Rao, A. R. (1998). A modified Mann-Kendall trend test for
+  autocorrelated data. *Journal of Hydrology*, 204(1–4), 182–196.
 
 ## AUTHOR
 
