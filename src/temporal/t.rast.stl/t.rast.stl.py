@@ -2178,7 +2178,7 @@ def main(options, flags):
     # is present, its terminal messages are prefixed with its name.
     results = []
     for index, (ds_name, ds_tinfo) in enumerate(datasets):
-        label = strds2 and ds_name or None
+        label = (strds2 and ds_name) or None
         if index == 0:
             gs.message(_("Extracting the point time series..."))
         else:
