@@ -413,13 +413,11 @@ def lazy_import_py_modules(backend="WXAgg"):
         )
 
     try:
-        from scipy.stats import linregress as _linregress
-        from scipy.stats import theilslopes as _theilslopes
-        from scipy.stats import kendalltau as _kendalltau
-
-        linregress = _linregress
-        theilslopes = _theilslopes
-        kendalltau = _kendalltau
+        from scipy.stats import (
+            kendalltau as _kendalltau,
+            linregress as _linregress,
+            theilslopes as _theilslopes,
+        )
     except ModuleNotFoundError:
         gs.fatal(
             _(
@@ -428,6 +426,10 @@ def lazy_import_py_modules(backend="WXAgg"):
                 "'pip install scipy'."
             )
         )
+
+    linregress = _linregress
+    theilslopes = _theilslopes
+    kendalltau = _kendalltau
 
     try:
         import matplotlib as mpl
