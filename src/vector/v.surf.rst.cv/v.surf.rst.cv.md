@@ -147,7 +147,7 @@ Philadelphia, Pennsylvania.
 
 ## SEE ALSO
 
-*[v.surf.rst](v.surf.rst.md)*
+*[v.surf.rst](https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html)*
 
 ## AUTHORS
 

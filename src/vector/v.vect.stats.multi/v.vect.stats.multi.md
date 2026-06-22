@@ -126,7 +126,8 @@ v.vect.stats.multi points=firestations areas=zipcodes method=sum \
     table,
 - *[v.what.rast.multi](v.what.rast.multi.md)* for querying multiple
     raster maps by one vector points map,
-- *[g.copy](g.copy.md)* for creating a copy of vector map to update
+- *[g.copy](https://grass.osgeo.org/grass-stable/manuals/g.copy.html)*
+    for creating a copy of vector map to update
     (to preserve the original data given that this module performs a
     large automated operation).
 
