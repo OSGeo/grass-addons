@@ -197,7 +197,7 @@
 
 import sys
 import numpy as np
-from scipy.interpolate import interp1d
+
 import grass.script as gs
 import grass.script.array as garray
 from grass.script.utils import get_lib_path
@@ -600,6 +600,10 @@ def preprocess_hyperspectral(
 
 def main():
     options, flags = gs.parser()
+    try:
+        from scipy.interpolate import interp1d  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("SciPy library not installed"))
 
     preprocess_hyperspectral(
         inp=options["input"],
