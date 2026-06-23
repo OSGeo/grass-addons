@@ -325,6 +325,7 @@
 # % label: Line color for the first dataset
 # % description: Color of the 'strds' series lines. Accepts a GRASS color name (e.g. 'blue'), an R:G:B triplet (e.g. '0:0:255'), or any matplotlib color such as a hex code ('#1f77b4') or 'tab:' name. The trend-regression lines for this dataset are drawn in a matching darker/lighter family. Defaults to a blue.
 # % required: no
+# % answer: 51:125:255
 # % guisection: Optional
 # %end
 
@@ -334,6 +335,7 @@
 # % label: Line color for the second dataset
 # % description: Color of the 'strds2' series lines. Accepts a GRASS color name, an R:G:B triplet, or any matplotlib color (hex code or 'tab:' name). Used only when strds2 is given. Its trend-regression lines use a matching family. Defaults to an orange.
 # % required: no
+# % answer: 0:128:0
 # % guisection: Optional
 # %end
 
@@ -347,7 +349,6 @@
 # % requires: -b, -g
 # % requires: gam_direction, -g
 # % requires: -y, strds2
-# % requires: color2, strds2
 # %end
 
 
