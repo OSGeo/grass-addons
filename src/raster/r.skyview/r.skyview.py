@@ -99,6 +99,7 @@
 
 import sys
 import os
+import re
 import atexit
 
 from grass.exceptions import CalledModuleError
@@ -126,12 +127,14 @@ def main():
     n_dir = int(options["ndir"])
     nprocs = int(options["nprocs"])
     memory = int(options["memory"])
-    version = gcore.version()["version"].split(".")
-    major = int(version[0])
-    minor = int("".join(c for c in version[1] if c.isdigit()))
+    version_str = gcore.version()["version"]
+    major, minor = map(int, re.match(r"(\d+)\.(\d+)", version_str).groups())
     if (major, minor) < (8, 5):
         nprocs = None
         memory = None
+        gcore.warning(
+            _("Parallelization is not available when running on GRASS version < 8.5")
+        )
     global TMP_NAME, CLEANUP
     if options["basename"]:
         TMP_NAME = options["basename"]
@@ -238,7 +241,6 @@ def main():
         sa_params = {}
         if nprocs is not None:
             sa_params["nprocs"] = nprocs
-        if memory is not None:
             sa_params["memory"] = memory
         if color_raster_type == "slope":
             gcore.run_command(
