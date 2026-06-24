@@ -12,19 +12,29 @@ dh = SfM - LiDAR ≈ Δx *tan(slope)* cos(aspect)
 + Δy *tan(slope)* sin(aspect)
 + Δz
 Where Δx (east), Δy (north), Δz (vertical) are solved by
-ordinary least squares using raster-wide sums computed
-with `r.mapcalc` + `r.univar`.
+ordinary least squares using raster-wide sums computed internally.
+
+<h3>ITERATIVE SOLVE</h3>
+
+The linear model above is only first order, so a single pass under-estimates
+shifts larger than one cell. The module solves the increment on a working
+surface, accumulates it into the running transform, re-warps the working
+surface from the original SfM by the accumulated transform, and repeats until
+the increment falls below <b>tol</b> (in map units) or <b>max_iter</b> outer
+passes are reached. If the passes do not converge, a warning is issued and the
+last estimate is used.
 
 <h3>HORIZONTAL APPLICATION (native)</h3>
 
-Apply Δz directly via raster algebra, and apply (Δx,Δy) as a sub-cell
-translation by temporarily shifting the computational region
-by (-Δx, -Δy) and resampling with `r.resamp.interp`, then
-resampling back to the LiDAR grid.
+The solved offsets are applied as a single inverse warp: each output cell at
+map coordinate (x, y) samples the original SfM at (x + Δx, y + Δy) (using
+<b>interp</b>) and subtracts Δz. No region shifting or external resampling tool
+is involved.
 
 <h3>ROBUSTNESS</h3>
 
-Optional iterative sigma-clipping on residuals to reduce outlier influence.
+Optional iterative sigma-clipping on residuals (<b>iters</b> per outer pass)
+reduces outlier influence during each solve.
 
 <h3>SAVING AND REUSING A TRANSFORM</h3>
 
@@ -72,6 +82,4 @@ Corey White, <a
     href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
 
 <h2>SEE ALSO</h2>
-<em>
-
-</em>
+<em><a href="r.dem.icp.html">r.dem.icp</a></em>

@@ -18,16 +18,27 @@ $$
 Where $\Delta x$ (east), $\Delta y$ (north), $\Delta z$ (vertical) are solved by
 ordinary least squares using raster-wide sums computed internally.
 
+### ITERATIVE SOLVE
+
+The linear model above is only first order, so a single pass under-estimates
+shifts larger than one cell. The module therefore solves the increment on a
+working surface, accumulates it into the running transform, re-warps the
+working surface from the original SfM by the accumulated transform, and
+repeats until the increment falls below **tol** (in map units) or **max_iter**
+outer passes are reached. If the passes do not converge, a warning is issued
+and the last estimate is used.
+
 ### HORIZONTAL APPLICATION (native)
 
-Apply $\Delta z$ directly via raster algebra, and apply
-$\left(\Delta x, \Delta y\right)$ as a sub-cell translation by temporarily
-shifting the computational region by ($-\Delta x$, $-\Delta y$) and
-resampling with `r.resamp.interp`, then resampling back to the LiDAR grid.
+The solved offsets are applied as a single inverse warp: each output cell at
+map coordinate $(x, y)$ samples the original SfM at
+$(x + \Delta x,\; y + \Delta y)$ (using **interp**) and subtracts $\Delta z$.
+No region shifting or external resampling tool is involved.
 
 ### ROBUSTNESS
 
-Optional iterative sigma-clipping on residuals to reduce outlier influence.
+Optional iterative sigma-clipping on residuals (**iters** per outer pass)
+reduces outlier influence during each solve.
 
 The module always writes a residual raster named `output_resid` which contains
 `output - lidar` on the stable-terrain mask used for regression.
