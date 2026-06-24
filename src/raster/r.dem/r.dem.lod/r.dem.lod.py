@@ -1,25 +1,18 @@
 #!/usr/bin/env python3
-"""
-r.dem.lod - Compute Level of Detection (LoD) for DEM differencing.
 
-Implements both global (uniform) and local (spatially-variable) LoD
-following the uncertainty propagation framework of Wheaton et al. (2010),
-extended with the spatial autocorrelation considerations of He et al. (2023).
-
-Global LoD:   LoD = t * sqrt(sigma_dem² + sigma_ref²)
-              where sigma estimated from NMAD of stable pixels
-              t = inverse CDF of normal at (1+confidence)/2
-
-Local LoD:    Computed in a moving window; sigma varies by slope and point density.
-
-References:
-  Wheaton et al. (2010) ESPL 35:136–156
-  He et al. (2023) Geo-spatial Information Science
-  Höhle & Höhle (2009) ISPRS J. Photogramm. Remote Sens. 64:398–406
-
-AUTHOR: Corey T. White
-GRASS addon — part of r.dem toolbox
-"""
+##############################################################################
+# MODULE:    r.dem.lod
+#
+# AUTHOR(S): Corey T. White <smortopahri@gmail.com>
+#
+# PURPOSE:   Compute Level of Detection (LoD) for DEM differencing.
+#
+# COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
+#
+#            This program is free software under the GNU General Public
+#            License (>=v2). Read the file COPYING that comes with GRASS
+#            for details.
+##############################################################################
 
 # %module
 # % description: Compute Level of Detection (LoD) for DEM difference maps
