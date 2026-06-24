@@ -189,8 +189,9 @@ static void compute_slope_aspect_pq(const RasterD *lidar, const Grid *g,
 
             double dzdx =
                 ((z3 + 2.0 * z6 + z9) - (z1 + 2.0 * z4 + z7)) / (8.0 * ew);
+
             double dzdy =
-                ((z7 + 2.0 * z8 + z9) - (z1 + 2.0 * z2 + z3)) / (8.0 * ns);
+                ((z1 + 2.0 * z2 + z3) - (z7 + 2.0 * z8 + z9)) / (8.0 * ns);
 
             double slope_rad = atan(sqrt(dzdx * dzdx + dzdy * dzdy));
             slope_deg[idx] = rad2deg(slope_rad);
@@ -321,6 +322,39 @@ static double sample_xy(const double *z, const Grid *g, double x, double y,
     return bilinear_sample_xy(z, g, x, y);
 }
 
+/* Apply the accumulated NK transform to the original SfM at map coords (x, y):
+ * sample the SfM at (x + b1, y + b2) and subtract the vertical bias b0. Shared
+ * by the per-pass re-warp and the final output so the surface the solver
+ * converged on cannot drift from the surface written out. */
+static inline double warp_sfm_xy(const double *sfm_z, const Grid *g, double x,
+                                 double y, double b0, double b1, double b2,
+                                 const char *interp)
+{
+    double zs = sample_xy(sfm_z, g, x + b1, y + b2, interp);
+    return isnan(zs) ? NAN : zs - b0;
+}
+
+/* Height difference dh = work - lidar at idx, and whether the pixel takes part
+ * in the current solve. Returns false (leaving *dh_out untouched) when the
+ * warped SfM is undefined or the pixel is rejected by the previous iteration's
+ * sigma clip. base_valid() must already hold for idx. */
+static inline bool nk_residual(const double *work, const RasterD *lidar,
+                               const double *P, const double *Q, size_t idx,
+                               bool has_clip, double cb0, double cb1,
+                               double cb2, double thresh, double *dh_out)
+{
+    if (isnan(work[idx]))
+        return false;
+    double dh = work[idx] - lidar->z[idx];
+    if (has_clip) {
+        double resid_prev = dh - (cb0 + cb1 * P[idx] + cb2 * Q[idx]);
+        if (fabs(resid_prev) > thresh)
+            return false;
+    }
+    *dh_out = dh;
+    return true;
+}
+
 static void write_history(const char *name)
 {
     struct History hist;
@@ -371,7 +405,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct Option *sfm_opt, *lidar_opt, *stable_opt, *out_opt;
     struct Option *interp_opt, *slope_min_opt, *slope_max_opt, *iters_opt,
-        *sigma_opt;
+        *sigma_opt, *maxiter_opt, *tol_opt;
     struct Option *xfout_opt, *xfin_opt;
     struct Flag *keep_flag;
 
@@ -435,8 +469,8 @@ int main(int argc, char *argv[])
     iters_opt->type = TYPE_INTEGER;
     iters_opt->required = NO;
     iters_opt->answer = "2";
-    iters_opt->description =
-        _("Iterations of sigma-clipping refinement (0 disables)");
+    iters_opt->description = _(
+        "Sigma-clipping iterations per co-registration pass (0 disables clip)");
 
     sigma_opt = G_define_option();
     sigma_opt->key = "sigma";
@@ -445,6 +479,22 @@ int main(int argc, char *argv[])
     sigma_opt->answer = "2.5";
     sigma_opt->description =
         _("Sigma threshold for residual clipping (|resid| <= sigma * stddev)");
+
+    maxiter_opt = G_define_option();
+    maxiter_opt->key = "max_iter";
+    maxiter_opt->type = TYPE_INTEGER;
+    maxiter_opt->required = NO;
+    maxiter_opt->answer = "20";
+    maxiter_opt->description =
+        _("Maximum outer co-registration passes (re-warp and re-solve)");
+
+    tol_opt = G_define_option();
+    tol_opt->key = "tol";
+    tol_opt->type = TYPE_DOUBLE;
+    tol_opt->required = NO;
+    tol_opt->answer = "0.01";
+    tol_opt->description =
+        _("Convergence tolerance in map units for the outer passes");
 
     xfout_opt = G_define_standard_option(G_OPT_F_OUTPUT);
     xfout_opt->key = "transform_output";
@@ -476,6 +526,10 @@ int main(int argc, char *argv[])
     if (iters < 0)
         iters = 0;
     const double sigma = atof(sigma_opt->answer);
+    int max_outer = atoi(maxiter_opt->answer);
+    if (max_outer < 1)
+        max_outer = 1;
+    const double conv_tol = atof(tol_opt->answer);
     const bool keep = keep_flag->answer ? true : false;
     const char *xform_out = xfout_opt->answer;
     const char *xform_in = xfin_opt->answer;
@@ -509,137 +563,167 @@ int main(int argc, char *argv[])
     G_message(_("Computing slope, aspect, and predictors..."));
     compute_slope_aspect_pq(&lidar, &g, slope_deg, aspect_deg, P, Q);
 
-    /* Iterative sigma clipping, unless a saved transform is applied. */
+    /* Accumulated transform (sfm -> reference). */
     double b0 = 0.0, b1 = 0.0, b2 = 0.0;
-    double prev_b0 = 0.0, prev_b1 = 0.0, prev_b2 = 0.0;
-    double prev_thresh = 0.0;
-    bool prev_has_clip = false;
 
-    int niter = iters;
     if (xform_in) {
         read_nk_transform(xform_in, &b0, &b1, &b2);
         G_message(_("Applying saved transform: dz=%.6f dx=%.6f dy=%.6f"), b0,
                   b1, b2);
-        niter = -1; /* skip the solve loop */
     }
+    else {
+        /* Iterative Nuth & Kaeaeb. A single linear pass under-estimates shifts
+         * larger than a pixel (dh ~ shift*grad is only first order), so solve
+         * the incremental (db0,db1,db2) on a working surface, accumulate, and
+         * re-warp the SfM from the original each outer pass until the increment
+         * is negligible. Sigma clipping runs as the inner solve each pass. */
+        double *work = (double *)G_malloc(ncell * sizeof(double));
+        for (size_t i = 0; i < ncell; i++)
+            work[i] = sfm.z[i];
 
-    for (int iter = 0; iter <= niter; iter++) {
-        G_message(_("Estimating coefficients (iteration %d)..."), iter);
-
-        double n = 0.0;
-        double SP = 0.0, SQ = 0.0;
-        double SPP = 0.0, SQQ = 0.0, SPQ = 0.0;
-        double Sdh = 0.0, SPdh = 0.0, SQdh = 0.0;
-
-        for (size_t idx = 0; idx < ncell; idx++) {
-            if (!base_valid(&sfm, &lidar, stable_mask, slope_deg, P, Q, idx,
-                            slope_min, slope_max))
-                continue;
-
-            double dh = sfm.z[idx] - lidar.z[idx];
-            if (prev_has_clip) {
-                double resid_prev =
-                    dh - (prev_b0 + prev_b1 * P[idx] + prev_b2 * Q[idx]);
-                if (fabs(resid_prev) > prev_thresh)
-                    continue;
-            }
-
-            double p = P[idx];
-            double q = Q[idx];
-
-            n += 1.0;
-            SP += p;
-            SQ += q;
-            SPP += p * p;
-            SQQ += q * q;
-            SPQ += p * q;
-            Sdh += dh;
-            SPdh += p * dh;
-            SQdh += q * dh;
-        }
-
-        if (n <= 3.0)
+        /* base_valid() depends only on static inputs (mask, slope, P, Q), so
+         * gather the eligible cells once and reuse the list every pass. */
+        size_t *valid = (size_t *)G_malloc(ncell * sizeof(size_t));
+        size_t nvalid = 0;
+        for (size_t idx = 0; idx < ncell; idx++)
+            if (base_valid(&sfm, &lidar, stable_mask, slope_deg, P, Q, idx,
+                           slope_min, slope_max))
+                valid[nvalid++] = idx;
+        if (nvalid <= 3)
             G_fatal_error(
                 _("Not enough valid pixels in mask to estimate coefficients."));
 
-        solve_normal_equations(n, SP, SQ, SPP, SPQ, SQQ, Sdh, SPdh, SQdh, &b0,
-                               &b1, &b2);
+        bool converged = false;
+        for (int outer = 0; outer < max_outer; outer++) {
+            double db0 = 0.0, db1 = 0.0, db2 = 0.0;
+            double cb0 = 0.0, cb1 = 0.0, cb2 = 0.0;
+            double thresh = 0.0;
+            bool has_clip = false;
+            bool starved = false;
 
-        G_message(
-            _("  dz = %.6f (vertical)  dx = %.6f (east)  dy = %.6f (north)"),
-            b0, b1, b2);
+            for (int iter = 0; iter <= iters; iter++) {
+                double n = 0.0;
+                double SP = 0.0, SQ = 0.0;
+                double SPP = 0.0, SQQ = 0.0, SPQ = 0.0;
+                double Sdh = 0.0, SPdh = 0.0, SQdh = 0.0;
 
-        if (iter == iters)
-            break;
+                for (size_t v = 0; v < nvalid; v++) {
+                    size_t idx = valid[v];
+                    double dh;
+                    if (!nk_residual(work, &lidar, P, Q, idx, has_clip, cb0,
+                                     cb1, cb2, thresh, &dh))
+                        continue;
+                    double p = P[idx];
+                    double q = Q[idx];
+                    n += 1.0;
+                    SP += p;
+                    SQ += q;
+                    SPP += p * p;
+                    SQQ += q * q;
+                    SPQ += p * q;
+                    Sdh += dh;
+                    SPdh += p * dh;
+                    SQdh += q * dh;
+                }
 
-        /* Compute residual stddev over current selection (mask + previous clip)
-         */
-        double mean = 0.0;
-        double M2 = 0.0;
-        double k = 0.0;
-        for (size_t idx = 0; idx < ncell; idx++) {
-            if (!base_valid(&sfm, &lidar, stable_mask, slope_deg, P, Q, idx,
-                            slope_min, slope_max))
-                continue;
-            double dh = sfm.z[idx] - lidar.z[idx];
-            if (prev_has_clip) {
-                double resid_prev =
-                    dh - (prev_b0 + prev_b1 * P[idx] + prev_b2 * Q[idx]);
-                if (fabs(resid_prev) > prev_thresh)
-                    continue;
+                if (n <= 3.0) {
+                    /* Pass 0 sees the full valid set, so too few pixels is a
+                     * genuine input problem. On later passes the warp has
+                     * pushed the stable mask off valid data, so keep the
+                     * transform solved so far instead of aborting. */
+                    if (outer == 0)
+                        G_fatal_error(_("Not enough valid pixels in mask to "
+                                        "estimate coefficients."));
+                    G_warning(_("Stable pixels exhausted after warping; "
+                                "stopping at outer pass %d."),
+                              outer);
+                    starved = true;
+                    break;
+                }
+
+                solve_normal_equations(n, SP, SQ, SPP, SPQ, SQQ, Sdh, SPdh,
+                                       SQdh, &db0, &db1, &db2);
+
+                if (iter == iters)
+                    break;
+
+                double mean = 0.0, M2 = 0.0, k = 0.0;
+                for (size_t v = 0; v < nvalid; v++) {
+                    size_t idx = valid[v];
+                    double dh;
+                    if (!nk_residual(work, &lidar, P, Q, idx, has_clip, cb0,
+                                     cb1, cb2, thresh, &dh))
+                        continue;
+                    double resid = dh - (db0 + db1 * P[idx] + db2 * Q[idx]);
+                    k += 1.0;
+                    double delta = resid - mean;
+                    mean += delta / k;
+                    M2 += delta * (resid - mean);
+                }
+                double std = (k > 0.0) ? sqrt(M2 / k) : NAN;
+                if (!(std > 0.0) || isnan(std))
+                    break;
+                cb0 = db0;
+                cb1 = db1;
+                cb2 = db2;
+                thresh = sigma * std;
+                has_clip = true;
+                G_verbose_message(
+                    _("  Clip threshold %.4f (sigma=%.3f, stddev=%.4f)"),
+                    thresh, sigma, std);
             }
-            double resid = dh - (b0 + b1 * P[idx] + b2 * Q[idx]);
-            k += 1.0;
-            double delta = resid - mean;
-            mean += delta / k;
-            double delta2 = resid - mean;
-            M2 += delta * delta2;
+
+            if (starved)
+                break;
+
+            b0 += db0;
+            b1 += db1;
+            b2 += db2;
+            G_message(_("Outer pass %d: cumulative dz=%.4f dx=%.4f dy=%.4f "
+                        "(increment |dxy|=%.4f)"),
+                      outer, b0, b1, b2, hypot(db1, db2));
+
+            if (hypot(db1, db2) < conv_tol && fabs(db0) < conv_tol) {
+                converged = true;
+                break;
+            }
+
+            /* Re-warp the working surface from the ORIGINAL SfM by the
+             * accumulated transform for the next pass:
+             * work(x,y) = sfm(x+b1, y+b2) - b0. */
+            for (int r = 0; r < g.rows; r++) {
+                for (int c = 0; c < g.cols; c++) {
+                    double x = g.west + (c + 0.5) * g.ewres;
+                    double y = g.north - (r + 0.5) * g.nsres;
+                    work[(size_t)r * g.cols + (size_t)c] =
+                        warp_sfm_xy(sfm.z, &g, x, y, b0, b1, b2, interp);
+                }
+            }
         }
-
-        double std = NAN;
-        if (k > 0.0)
-            std = sqrt(M2 / k);
-
-        if (!(std > 0.0) || isnan(std)) {
-            G_message(
-                _("Residual stddev non-positive; skipping further clipping."));
-            break;
-        }
-
-        prev_b0 = b0;
-        prev_b1 = b1;
-        prev_b2 = b2;
-        prev_thresh = sigma * std;
-        prev_has_clip = true;
-        G_message(_("  Clipping threshold: %.6f (sigma=%.3f, stddev=%.6f)"),
-                  prev_thresh, sigma, std);
+        G_free(work);
+        G_free(valid);
+        if (converged)
+            G_message(_("Converged transform: dz=%.6f dx=%.6f dy=%.6f"), b0, b1,
+                      b2);
+        else
+            G_warning(_("Did not converge within %d passes; using last "
+                        "estimate: dz=%.6f dx=%.6f dy=%.6f"),
+                      max_outer, b0, b1, b2);
     }
 
     if (xform_out)
         write_nk_transform(xform_out, b0, b1, b2);
 
-    /* Two-stage resampling to mimic region shift + resamp back */
+    /* Single-stage inverse warp. The model solved sfm - lidar = b0 + b1*P +
+     * b2*Q with P=-dz/dx, Q=-dz/dy, so (b1,b2) is the horizontal offset of the
+     * SfM relative to the reference and b0 the vertical bias. To realign,
+     * sample the SfM at (x+b1, y+b2) and subtract b0.
+     * NOTE: the previous two-stage "region shift + resample back" used the same
+     * shifted grid for both passes, which cancelled to a net identity and
+     * applied only the vertical term, leaving the horizontal misregistration.
+     */
     G_message(_("Applying vertical correction (dz) and horizontal translation "
                 "(dx, dy)..."));
-
-    Grid g2 = g;
-    g2.north = g.north - b2;
-    g2.south = g.south - b2;
-    g2.east = g.east - b1;
-    g2.west = g.west - b1;
-
-    double *shifted = (double *)G_malloc(ncell * sizeof(double));
-    for (int r = 0; r < g2.rows; r++) {
-        for (int c = 0; c < g2.cols; c++) {
-            double x = g2.west + (c + 0.5) * g2.ewres;
-            double y = g2.north - (r + 0.5) * g2.nsres;
-            double zs = sample_xy(sfm.z, &g, x, y, interp);
-            if (isnan(zs))
-                shifted[(size_t)r * g2.cols + (size_t)c] = NAN;
-            else
-                shifted[(size_t)r * g2.cols + (size_t)c] = zs - b0;
-        }
-    }
 
     int outfd = Rast_open_new(out_name, FCELL_TYPE);
     char resid_name[GNAME_MAX];
@@ -655,7 +739,7 @@ int main(int argc, char *argv[])
             double x = g.west + (c + 0.5) * g.ewres;
             double y = g.north - (r + 0.5) * g.nsres;
 
-            double zout = sample_xy(shifted, &g2, x, y, interp);
+            double zout = warp_sfm_xy(sfm.z, &g, x, y, b0, b1, b2, interp);
             if (isnan(zout))
                 Rast_set_f_null_value(&out_row[c], 1);
             else
@@ -738,7 +822,6 @@ int main(int argc, char *argv[])
     G_free(aspect_deg);
     G_free(P);
     G_free(Q);
-    G_free(shifted);
     G_free(out_row);
     G_free(res_row);
 
