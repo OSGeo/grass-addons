@@ -38,6 +38,7 @@
 # %end
 
 # %option G_OPT_V_OUTPUT
+# % required: no 
 # %end
 
 # %option
@@ -122,7 +123,7 @@
 # %end
 
 # %option
-# % key: format
+# % key: download_format
 # % type: string
 # % required: no
 # % label: Download format
@@ -986,7 +987,7 @@ def main():
         int(options["geometry_precision"]) if options["geometry_precision"] else None
     )
     max_offset = float(options["max_offset"]) if options["max_offset"] else None
-    preferred_fmt = options["format"] or "auto"
+    preferred_fmt = options["download_format"] or "auto"
 
     flag_reproject = flags["r"]
     flag_list = flags["l"]
