@@ -7,7 +7,7 @@
 #
 # PURPOSE:   Compute Level of Detection (LoD) for DEM differencing.
 #
-# COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
+# COPYRIGHT: (C) 2025-2026 by Corey T. White and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
