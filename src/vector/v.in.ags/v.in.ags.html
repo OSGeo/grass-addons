@@ -1,175 +1,29 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <title>GRASS GIS manual: v.in.ags</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="Author" content="GRASS Development Team">
-  <link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
-
-<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
-
-<h2>NAME</h2>
-<em><b>v.in.ags</b></em> - Imports vector data from an ArcGIS Server feature service.
-
-<h2>KEYWORDS</h2>
-<a href="vector.html">vector</a>,
-<a href="topic_import.html">import</a>,
-ArcGIS Server,
-REST API,
-OGR
-
-<h2>SYNOPSIS</h2>
-<div id="name"><b>v.in.ags</b><br></div>
-<b>v.in.ags --help</b><br>
-<div id="synopsis">
-<b>v.in.ags</b>
-[<b>-rlg</b>]
-<b>url</b>=<em>string</em>
-[<b>output</b>=<em>name</em>]
-[<b>where</b>=<em>string</em>]
-[<b>fields</b>=<em>string</em>]
-[<b>extent</b>=<em>string</em>]
-[<b>layer</b>=<em>integer</em>]
-[<b>spatial_rel</b>=<em>string</em>]
-[<b>order_by</b>=<em>string</em>]
-[<b>geometry_precision</b>=<em>integer</em>]
-[<b>max_offset</b>=<em>float</em>]
-[<b>download_format</b>=<em>string</em>]
-<b>format</b>=<em>name</em>
-[--<b>overwrite</b>]
-[--<b>verbose</b>]
-[--<b>quiet</b>]
-[--<b>help</b>]
-</div>
-
-<h3>Flags</h3>
-<dl>
-  <dt><b>-r</b></dt>
-  <dd>Reproject data to match the current GRASS project CRS (uses v.import)</dd>
-  <dt><b>-l</b></dt>
-  <dd>List available layers in the service and exit without importing</dd>
-  <dt><b>-g</b></dt>
-  <dd>Skip geometry; import attribute table only</dd>
-  <dt><b>--overwrite</b></dt>
-  <dd>Allow output files to overwrite existing files</dd>
-  <dt><b>--verbose</b></dt>
-  <dd>Verbose module output</dd>
-  <dt><b>--quiet</b></dt>
-  <dd>Quiet module output</dd>
-  <dt><b>--help</b></dt>
-  <dd>Print usage summary</dd>
-</dl>
-
-<h3>Parameters</h3>
-<dl>
-  <dt><b>url</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
-  <dd>ArcGIS Server feature layer URL</dd>
-  <dd>URL of the ArcGIS Server FeatureServer or MapServer layer
-    (e.g., https://host/arcgis/rest/services/Name/FeatureServer/0).
-    If a service root URL is given (without a layer index), use the
-    <b>layer</b> option.</dd>
-
-  <dt><b>output</b>=<em>name</em></dt>
-  <dd>Name for output vector map</dd>
-  <dd>When omitted (and <b>-l</b> is not used), the layer metadata is
-    printed and no import is performed.</dd>
-
-  <dt><b>where</b>=<em>string</em></dt>
-  <dd>SQL WHERE clause to filter features</dd>
-  <dd>SQL expression used to select a subset of features.
-    Default is <tt>1=1</tt> which selects all features.</dd>
-  <dd>Default: <em>1=1</em></dd>
-
-  <dt><b>fields</b>=<em>string</em></dt>
-  <dd>Comma-separated list of fields to retrieve</dd>
-  <dd>Attribute fields to include in the output.
-    Use <tt>*</tt> to retrieve all fields (default).</dd>
-  <dd>Default: <em>*</em></dd>
-
-  <dt><b>extent</b>=<em>string</em></dt>
-  <dd>Bounding box spatial filter (xmin,ymin,xmax,ymax in WGS84)</dd>
-  <dd>Comma-separated bounding box in geographic degrees (EPSG:4326)
-    used to spatially filter features before download.</dd>
-
-  <dt><b>layer</b>=<em>integer</em></dt>
-  <dd>Layer index within the service</dd>
-  <dd>Zero-based layer index to use when the URL points to a FeatureServer
-    or MapServer root rather than a specific layer endpoint.</dd>
-  <dd>Default: <em>0</em></dd>
-
-  <dt><b>spatial_rel</b>=<em>string</em></dt>
-  <dd>Spatial relationship used with the extent filter</dd>
-  <dd>ArcGIS Server spatial relationship constant that controls how
-    features are matched against the bounding box (<b>extent</b> option).
-    Only used when <b>extent</b> is specified.</dd>
-  <dd>Options: <em>esriSpatialRelIntersects, esriSpatialRelContains,
-    esriSpatialRelCrosses, esriSpatialRelEnvelopeIntersects,
-    esriSpatialRelIndexIntersects, esriSpatialRelOverlaps,
-    esriSpatialRelTouches, esriSpatialRelWithin</em></dd>
-  <dd>Default: <em>esriSpatialRelIntersects</em></dd>
-
-  <dt><b>order_by</b>=<em>string</em></dt>
-  <dd>ORDER BY fields</dd>
-  <dd>Comma-separated list of field names optionally followed by
-    <tt>ASC</tt> or <tt>DESC</tt>, for example
-    <tt>STATE_NAME ASC, POP2020 DESC</tt>.</dd>
-
-  <dt><b>geometry_precision</b>=<em>integer</em></dt>
-  <dd>Number of decimal places for output coordinates</dd>
-  <dd>Limits coordinate precision in the downloaded data. Reduces transfer
-    size at the cost of spatial accuracy. Leave unset to use the server
-    default.</dd>
-
-  <dt><b>max_offset</b>=<em>float</em></dt>
-  <dd>Maximum allowable offset for geometry generalisation</dd>
-  <dd>Simplification tolerance in the output spatial reference units. Larger
-    values produce fewer vertices. Leave unset to disable generalisation.</dd>
-
-  <dt><b>download_format</b>=<em>string</em></dt>
-  <dd>Download format</dd>
-  <dd>Transfer format to request from the server. <tt>auto</tt> detects the
-    best format supported by the service (pbf &gt; geojson &gt; json).
-    Explicit values override auto-detection.</dd>
-  <dd>Options: <em>auto, pbf, geojson, json</em></dd>
-  <dd>Default: <em>auto</em></dd>
-
-  <dt><b>format</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-  <dd>Output format</dd>
-  <dd>Controls how text output is printed for the <b>-l</b> listing and the
-    layer-inspection mode. Ignored when importing.</dd>
-  <dd>Options: <em>plain, shell, json</em></dd>
-  <dd>Default: <em>plain</em></dd>
-</dl>
-
 <h2>DESCRIPTION</h2>
 
 <p>
 <em>v.in.ags</em> imports vector features from an <b>ArcGIS Server (AGS)
 REST API</b> feature service or map service layer into a GRASS vector map.
-The module constructs query URLs automatically, handles server-side pagination
-transparently, and delegates the final import to <em>v.in.ogr</em> (default)
-or <em>v.import</em> (with the <b>-r</b> flag for on-the-fly reprojection).
+The module constructs the query URL automatically and imports through
+<em>v.import</em>, which reprojects the data into the current project CRS.
 </p>
 
-<h3>Transfer format</h3>
+<h3>Download strategy</h3>
 
 <p>
-<em>v.in.ags</em> negotiates the most efficient download format automatically
-(<tt>download_format=auto</tt>, the default). When the service advertises
-support for <b>Esri Feature Buffer (PBF)</b>, that format is used; otherwise
-the module falls back to <b>GeoJSON</b>, and then to <b>ESRI JSON</b>. PBF is
-a compact binary format that reduces transfer size significantly compared with
-text formats. If PBF decoding fails at runtime the module retries the affected
-page with GeoJSON automatically.
+By default (<tt>download_format=auto</tt>), <em>v.in.ags</em> builds the
+<tt>/query</tt> URL and hands it to GDAL's <b>ESRIJSON</b> driver via
+<em>v.import</em>. GDAL reads the service directly and scrolls through all
+pages automatically, so no intermediate file is written.
+<tt>download_format=json</tt> is equivalent; <tt>download_format=geojson</tt>
+requests GeoJSON and uses GDAL's <b>GeoJSON</b> driver instead.
 </p>
 
 <p>
-The transfer format can also be set explicitly with the
-<b>download_format</b> option.
+For large layers, <tt>download_format=pbf</tt> enables a fast path that
+downloads and decodes <b>Esri Feature Buffer (PBF)</b>, a compact binary
+format, in-process and writes a temporary GeoJSON file for import. If PBF
+decoding fails at runtime the module retries the affected page with GeoJSON
+automatically.
 </p>
 
 <h3>Supported service types</h3>
@@ -177,8 +31,8 @@ The transfer format can also be set explicitly with the
 <p>
 Both <b>FeatureServer</b> and <b>MapServer</b> layer endpoints are supported,
 provided the layer exposes the <tt>/query</tt> operation. ArcGIS Server 10.3
-or later is required for pagination and GeoJSON support; PBF support requires
-ArcGIS Server 10.6 or ArcGIS Online.
+or later is required for pagination; the <tt>pbf</tt> strategy requires ArcGIS
+Server 10.6 or ArcGIS Online.
 </p>
 
 <h3>URL formats</h3>
@@ -281,30 +135,30 @@ only.
 <h3>Pagination</h3>
 
 <p>
-<em>v.in.ags</em> queries the service metadata to obtain
-<tt>maxRecordCount</tt> and then issues successive requests using
-<tt>resultOffset</tt>/<tt>resultRecordCount</tt> until all matching features
-have been retrieved. No manual batching is required.
-</p>
-
-<p>
-If the service reports <tt>supportsPagination: false</tt>, a warning is issued
-and only the first page of results is imported.
+Pagination is automatic. In the default strategy GDAL scrolls through all
+pages of the service. In the <tt>pbf</tt> strategy <em>v.in.ags</em> reads
+<tt>maxRecordCount</tt> from the service metadata and issues successive
+<tt>resultOffset</tt>/<tt>resultRecordCount</tt> requests until all matching
+features have been retrieved; if that service reports
+<tt>supportsPagination: false</tt>, a warning is issued and only the first page
+is imported.
 </p>
 
 <h3>Coordinate reference system</h3>
 
 <p>
-All data is requested from the server in WGS84 (EPSG:4326). The default import
-with <em>v.in.ogr</em> produces a map in WGS84; use <b>-r</b> so that
-<em>v.import</em> reprojects into the current project CRS automatically.
+All data is requested from the server in WGS84 (EPSG:4326) and imported with
+<em>v.import</em>, which reprojects it into the current project CRS
+automatically (and imports directly, without reprojection overhead, when the
+project is already WGS84).
 </p>
 
 <h3>Temporary files</h3>
 
 <p>
-A temporary file (GeoJSON or ESRI JSON) is created in the system temporary
-directory during import and removed automatically on exit.
+Only the <tt>pbf</tt> strategy writes a temporary GeoJSON file (in the system
+temporary directory, removed automatically on exit). The default strategy
+streams the service through GDAL and creates no temporary file.
 </p>
 
 <h2>EXAMPLES</h2>
@@ -315,7 +169,9 @@ directory during import and removed automatically on exit.
 v.in.ags -l url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer
 </pre></div>
 
-<h3>Import all features (auto format negotiation)</h3>
+<h3>Import all features</h3>
+
+<p>Data is reprojected into the current project CRS automatically:</p>
 
 <div class="code"><pre>
 v.in.ags \
@@ -323,12 +179,12 @@ v.in.ags \
   output=usa_states
 </pre></div>
 
-<h3>Import with attribute filter and reprojection</h3>
+<h3>Import with an attribute filter</h3>
 
-<p>Import only Californian counties, reprojecting to the current project CRS:</p>
+<p>Import only Californian counties:</p>
 
 <div class="code"><pre>
-v.in.ags -r \
+v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
   output=california_counties \
   where="STATE_NAME = 'California'"
@@ -340,7 +196,7 @@ v.in.ags -r \
 (WGS84 coordinates):</p>
 
 <div class="code"><pre>
-v.in.ags -r \
+v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
   output=pnw_states \
   extent="-125,42,-116,49"
@@ -378,13 +234,13 @@ v.in.ags \
   order_by="POP2020 DESC"
 </pre></div>
 
-<h3>Force GeoJSON transfer format (disable PBF)</h3>
+<h3>Use the PBF fast path for a large layer</h3>
 
 <div class="code"><pre>
 v.in.ags \
-  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
-  output=usa_states \
-  download_format=geojson
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=usa_counties \
+  download_format=pbf
 </pre></div>
 
 <h3>Inspect a layer as JSON without importing</h3>
@@ -410,7 +266,6 @@ import grass.script as gs
 
 gs.run_command(
     "v.in.ags",
-    flags="r",
     url="https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
     output="usa_states",
     where="POP2020 &gt; 1000000",
@@ -467,22 +322,4 @@ gs.run_command(
 
 <h2>AUTHORS</h2>
 
-Corey White
-
-<hr class="header">
-<p>
-<a href="index.html">Main index</a> |
-<a href="vector.html">Vector index</a> |
-<a href="topics.html">Topics index</a> |
-<a href="keywords.html">Keywords index</a> |
-<a href="graphical_index.html">Graphical index</a> |
-<a href="full_index.html">Full index</a>
-</p>
-<p>&copy; 2003-2024 <a href="http://grass.osgeo.org">GRASS Development Team</a>,
-GRASS GIS comes with ABSOLUTELY NO WARRANTY, and is
-<a href="http://www.gnu.org/licenses/gpl.html">Free Software</a>.
-Read about <a href="http://grass.osgeo.org/introduction/licensing/">licensing</a>.</p>
-
-</div>
-</body>
-</html>
+Corey T. White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>

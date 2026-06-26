@@ -2,29 +2,28 @@
 
 *v.in.ags* imports vector features from an **ArcGIS Server (AGS) REST API**
 feature service or map service layer into a GRASS vector map. The module
-constructs query URLs automatically, handles server-side pagination
-transparently, and delegates the final import to *v.in.ogr* (default) or
-*v.import* (with the **-r** flag for on-the-fly reprojection).
+constructs the query URL automatically and imports through *v.import*, which
+reprojects the data into the current project CRS.
 
-### Transfer format
+### Download strategy
 
-*v.in.ags* negotiates the most efficient download format automatically
-(`download_format=auto`, the default). When the service advertises support for
-**Esri Feature Buffer (PBF)**, that format is used; otherwise the module
-falls back to **GeoJSON**, and then to **ESRI JSON**. PBF is a compact
-binary format that reduces transfer size significantly compared with text
-formats. If PBF decoding fails at runtime the module retries the affected
-page with GeoJSON automatically.
+By default (`download_format=auto`), *v.in.ags* builds the `/query` URL and
+hands it to GDAL's **ESRIJSON** driver via *v.import*. GDAL reads the service
+directly and scrolls through all pages automatically, so no intermediate file
+is written. `download_format=json` is equivalent; `download_format=geojson`
+requests GeoJSON and uses GDAL's **GeoJSON** driver instead.
 
-The transfer format can also be set explicitly with the **download_format**
-option.
+For large layers, `download_format=pbf` enables a fast path that downloads and
+decodes **Esri Feature Buffer (PBF)**, a compact binary format, in-process and
+writes a temporary GeoJSON file for import. If PBF decoding fails at runtime
+the module retries the affected page with GeoJSON automatically.
 
 ### Supported service types
 
 Both **FeatureServer** and **MapServer** layer endpoints are supported,
 provided the layer exposes the `/query` operation. ArcGIS Server 10.3 or
-later is required for pagination and GeoJSON support; PBF support requires
-ArcGIS Server 10.6 or ArcGIS Online.
+later is required for pagination; the `pbf` strategy requires ArcGIS Server
+10.6 or ArcGIS Online.
 
 ### URL formats
 
@@ -104,23 +103,25 @@ only.
 
 ### Pagination
 
-*v.in.ags* queries the service metadata to obtain `maxRecordCount` and then
-issues successive requests using `resultOffset`/`resultRecordCount` until
-all matching features have been retrieved. No manual batching is required.
-
-If the service reports `supportsPagination: false`, a warning is issued and
-only the first page of results is imported.
+Pagination is automatic. In the default strategy GDAL scrolls through all
+pages of the service. In the `pbf` strategy *v.in.ags* reads `maxRecordCount`
+from the service metadata and issues successive
+`resultOffset`/`resultRecordCount` requests until all matching features have
+been retrieved; if that service reports `supportsPagination: false`, a warning
+is issued and only the first page is imported.
 
 ### Coordinate reference system
 
-All data is requested from the server in WGS84 (EPSG:4326). The default
-import with *v.in.ogr* produces a map in WGS84; use **-r** so that
-*v.import* reprojects into the current project CRS automatically.
+All data is requested from the server in WGS84 (EPSG:4326) and imported with
+*v.import*, which reprojects it into the current project CRS automatically (and
+imports directly, without reprojection overhead, when the project is already
+WGS84).
 
 ### Temporary files
 
-A temporary file (GeoJSON or ESRI JSON) is created in the system temporary
-directory during import and removed automatically on exit.
+Only the `pbf` strategy writes a temporary GeoJSON file (in the system
+temporary directory, removed automatically on exit). The default strategy
+streams the service through GDAL and creates no temporary file.
 
 ## EXAMPLES
 
@@ -130,7 +131,9 @@ directory during import and removed automatically on exit.
 v.in.ags -l url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer
 ```
 
-### Import all features (auto format negotiation)
+### Import all features
+
+Data is reprojected into the current project CRS automatically:
 
 ```sh
 v.in.ags \
@@ -138,12 +141,12 @@ v.in.ags \
   output=usa_states
 ```
 
-### Import with attribute filter and reprojection
+### Import with an attribute filter
 
-Import only Californian counties, reprojecting to the current project CRS:
+Import only Californian counties:
 
 ```sh
-v.in.ags -r \
+v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
   output=california_counties \
   where="STATE_NAME = 'California'"
@@ -155,7 +158,7 @@ Import features intersecting a bounding box over the US Pacific Northwest
 (WGS84 coordinates):
 
 ```sh
-v.in.ags -r \
+v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
   output=pnw_states \
   extent="-125,42,-116,49"
@@ -193,13 +196,13 @@ v.in.ags \
   order_by="POP2020 DESC"
 ```
 
-### Force GeoJSON transfer format (disable PBF)
+### Use the PBF fast path for a large layer
 
 ```sh
 v.in.ags \
-  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
-  output=usa_states \
-  download_format=geojson
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=usa_counties \
+  download_format=pbf
 ```
 
 ### Inspect a layer as JSON without importing
@@ -225,7 +228,6 @@ import grass.script as gs
 
 gs.run_command(
     "v.in.ags",
-    flags="r",
     url="https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
     output="usa_states",
     where="POP2020 > 1000000",
@@ -254,4 +256,4 @@ gs.run_command(
 
 ## AUTHORS
 
-Corey White
+Corey T. White [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)

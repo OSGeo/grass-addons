@@ -2,15 +2,15 @@
 ##############################################################################
 # MODULE:    v.in.ags
 #
-# AUTHOR(S): Corey White <ctwhite448 at gmail com>
+# AUTHOR(S): Corey T. White, NCSU GeoForAll Lab
 #
 # PURPOSE:   Import vector data from an ArcGIS Server (AGS) feature service
-#            using the AGS REST API. Constructs the query URL automatically,
-#            negotiates the most efficient transfer format (PBF > GeoJSON >
-#            ESRI JSON), handles pagination, and delegates the final import
-#            to v.in.ogr or v.import.
+#            using the AGS REST API. Constructs the query URL automatically
+#            and, by default, hands it to GDAL's ESRIJSON driver via v.import
+#            (which auto-pages and reprojects to the project CRS). An optional
+#            Esri Feature Buffer (PBF) fast path decodes features in-process.
 #
-# COPYRIGHT: (C) 2024 by Corey White and the GRASS Development Team
+# COPYRIGHT: (C) 2026 by Corey White and the GRASS Development Team
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
@@ -18,8 +18,8 @@
 # %module
 # % label: Imports vector data from an ArcGIS Server feature service.
 # % description: Downloads features from an ArcGIS Server REST API endpoint \
-#     and imports them as a GRASS vector map. Handles pagination automatically \
-#     and prefers Esri Feature Buffer (PBF) transfer format when available.
+#     and imports them as a GRASS vector map, reprojecting to the project CRS. \
+#     Pagination is handled automatically.
 # % keyword: vector
 # % keyword: import
 # % keyword: ArcGIS Server
@@ -126,10 +126,10 @@
 # % key: download_format
 # % type: string
 # % required: no
-# % label: Download format
-# % description: Transfer format to request from the server. \
-#     auto detects the best format supported by the service \
-#     (pbf > geojson > json). Explicit values override auto-detection.
+# % label: Feature download strategy
+# % description: How features are fetched. auto and json read the service \
+#     directly with GDAL's ESRIJSON driver (recommended); geojson uses GDAL's \
+#     GeoJSON driver; pbf uses the built-in Esri Feature Buffer fast path.
 # % options: auto,pbf,geojson,json
 # % answer: auto
 # %end
@@ -138,11 +138,6 @@
 # % options: plain,shell,json
 # % descriptions: plain;Human readable text output;shell;Shell script style text output;json;JSON (JavaScript Object Notation)
 # % guisection: Output
-# %end
-
-# %flag
-# % key: r
-# % description: Reproject data to match the current GRASS project CRS (uses v.import)
 # %end
 
 # %flag
@@ -177,9 +172,9 @@ def cleanup():
         gs.try_remove(path)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # HTTP helpers
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _fetch_raw(url, timeout=120):
@@ -222,9 +217,9 @@ def fetch_json(url, timeout=120):
         gs.fatal(_("Invalid JSON response from '{}': {}").format(url, str(exc)))
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # PBF (Esri Feature Buffer) decoder
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _read_varint(data, pos):
@@ -607,9 +602,9 @@ def _pbf_to_geojson(pbf_bytes):
     }
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # Service metadata helpers
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def normalize_url(url, layer_id):
@@ -803,30 +798,9 @@ def describe_layer(
     print(_format_layer_info(info, output_format))
 
 
-def _select_format(supported_formats_str, preferred):
-    """Choose the best download format given server capabilities and user preference.
-
-    When *preferred* is ``auto``, priority is ``pbf`` > ``geojson`` > ``json``.
-
-    :param str supported_formats_str: Comma-separated format list from service info.
-    :param str preferred: User preference (``auto``, ``pbf``, ``geojson``, ``json``).
-    :return: Format string (``pbf``, ``geojson``, or ``json``).
-    :rtype: str
-    """
-    if preferred != "auto":
-        return preferred.lower()
-    if not supported_formats_str:
-        return "geojson"
-    supported = {f.strip().lower() for f in supported_formats_str.split(",")}
-    for fmt in ("pbf", "geojson", "json"):
-        if fmt in supported:
-            return fmt
-    return "geojson"
-
-
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # Query helpers
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _apply_extent(params, extent, spatial_rel="esriSpatialRelIntersects"):
@@ -850,6 +824,63 @@ def _apply_extent(params, extent, spatial_rel="esriSpatialRelIntersects"):
     params["geometryType"] = "esriGeometryEnvelope"
     params["inSR"] = "4326"
     params["spatialRel"] = spatial_rel
+
+
+def build_query_url(
+    query_url,
+    where,
+    fields,
+    extent,
+    out_format="json",
+    outsr="4326",
+    geometry_precision=None,
+    max_offset=None,
+    order_by=None,
+    return_geometry=True,
+    spatial_rel="esriSpatialRelIntersects",
+    offset=None,
+    record_count=None,
+):
+    """Build a fully-encoded AGS ``/query`` URL from the request parameters.
+
+    When *offset* is omitted the URL contains no ``resultOffset``, which lets
+    GDAL's ESRIJSON/GeoJSON driver scroll through all pages automatically.
+
+    :param str query_url: AGS query endpoint URL.
+    :param str where: SQL WHERE expression.
+    :param str fields: Comma-separated field names or ``*``.
+    :param str extent: Optional bounding box or ``""``.
+    :param str out_format: Server response format (``json`` or ``geojson``).
+    :param str outsr: Output spatial reference WKID (default ``4326``).
+    :param int geometry_precision: Coordinate decimal places or ``None``.
+    :param float max_offset: Simplification tolerance or ``None``.
+    :param str order_by: ORDER BY clause or ``None``.
+    :param bool return_geometry: Include geometry in the response.
+    :param str spatial_rel: Spatial relationship constant.
+    :param int offset: Zero-based pagination offset or ``None``.
+    :param int record_count: Records per page or ``None``.
+    :return: Encoded request URL.
+    :rtype: str
+    """
+    params = {
+        "where": where,
+        "outFields": fields,
+        "outSR": outsr,
+        "returnGeometry": "true" if return_geometry else "false",
+        "f": out_format,
+    }
+    if offset is not None:
+        params["resultOffset"] = offset
+    if record_count is not None:
+        params["resultRecordCount"] = record_count
+    if geometry_precision is not None:
+        params["geometryPrecision"] = int(geometry_precision)
+    if max_offset is not None:
+        params["maxAllowableOffset"] = max_offset
+    if order_by:
+        params["orderByFields"] = order_by
+    _apply_extent(params, extent, spatial_rel)
+    return "{}?{}".format(query_url, urlencode(params))
 
 
 def get_feature_count(query_url, where, extent, spatial_rel="esriSpatialRelIntersects"):
@@ -892,9 +923,9 @@ def fetch_features_page(
 ):
     """Download one page of features.
 
-    Supports GeoJSON, ESRI JSON (``json``), and Esri Feature Buffer
-    (``pbf``).  PBF data is decoded on the fly to a GeoJSON-compatible dict
-    so that callers always receive the same structure.
+    Supports GeoJSON and Esri Feature Buffer (``pbf``).  PBF data is decoded
+    on the fly to a GeoJSON-compatible dict so that callers always receive the
+    same structure.
 
     :param str query_url: AGS query endpoint URL.
     :param str where: SQL WHERE expression.
@@ -902,7 +933,7 @@ def fetch_features_page(
     :param str extent: Optional bounding box or ``""``.
     :param int offset: Zero-based pagination offset.
     :param int record_count: Records per page.
-    :param str fmt: One of ``pbf``, ``geojson``, ``json``.
+    :param str fmt: One of ``pbf`` or ``geojson``.
     :param str outsr: Output spatial reference WKID (default ``4326``).
     :param int geometry_precision: Coordinate decimal places or ``None``.
     :param float max_offset: Simplification tolerance or ``None``.
@@ -914,24 +945,21 @@ def fetch_features_page(
     :raises SystemExit: On server error.
     :raises ValueError: On PBF decoding failure (caller should retry with geojson).
     """
-    params = {
-        "where": where,
-        "outFields": fields,
-        "outSR": outsr,
-        "returnGeometry": "true" if return_geometry else "false",
-        "f": fmt,
-        "resultOffset": offset,
-        "resultRecordCount": record_count,
-    }
-    if geometry_precision is not None:
-        params["geometryPrecision"] = int(geometry_precision)
-    if max_offset is not None:
-        params["maxAllowableOffset"] = max_offset
-    if order_by:
-        params["orderByFields"] = order_by
-    _apply_extent(params, extent, spatial_rel)
-
-    url = "{}?{}".format(query_url, urlencode(params))
+    url = build_query_url(
+        query_url,
+        where,
+        fields,
+        extent,
+        out_format=fmt,
+        outsr=outsr,
+        geometry_precision=geometry_precision,
+        max_offset=max_offset,
+        order_by=order_by,
+        return_geometry=return_geometry,
+        spatial_rel=spatial_rel,
+        offset=offset,
+        record_count=record_count,
+    )
 
     if fmt == "pbf":
         raw = _fetch_raw(url)
@@ -969,9 +997,9 @@ def fetch_all_features(
     For ``pbf`` format, a PBF decode failure on the first page automatically
     triggers a retry with ``geojson`` for all subsequent pages.
 
-    :return: Flat list of GeoJSON feature dicts (or ESRI JSON feature dicts
-        when *fmt* is ``json``).
-    :rtype: list
+    :return: ``(features, active_fmt)`` where *features* is a flat list of
+        GeoJSON feature dicts and *active_fmt* is the format actually used.
+    :rtype: tuple[list, str]
     """
     gs.message(_("Querying feature count..."))
     total_count = get_feature_count(query_url, where, extent, spatial_rel)
@@ -1055,9 +1083,9 @@ def fetch_all_features(
     return all_features, active_fmt
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # Output helpers
-# ──────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def write_geojson(features, path):
@@ -1072,31 +1100,6 @@ def write_geojson(features, path):
             fh,
             ensure_ascii=False,
         )
-
-
-def write_esri_json(first_page_data, all_features, path):
-    """Write an ESRI JSON FeatureCollection to *path*.
-
-    The non-feature metadata (geometryType, spatialReference, fields) is
-    taken from *first_page_data*; features are replaced with *all_features*.
-
-    :param dict first_page_data: First page response dict (for metadata).
-    :param list all_features: All collected ESRI JSON feature dicts.
-    :param str path: Destination file path.
-    """
-    merged = {
-        k: v
-        for k, v in first_page_data.items()
-        if k not in ("features", "exceededTransferLimit")
-    }
-    merged["features"] = all_features
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(merged, fh, ensure_ascii=False)
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Entry point
-# ──────────────────────────────────────────────────────────────────────────────
 
 
 def main():
@@ -1117,7 +1120,6 @@ def main():
     preferred_fmt = options["download_format"] or "auto"
     output_format = options["format"]
 
-    flag_reproject = flags["r"]
     flag_list = flags["l"]
     flag_no_geom = flags["g"]
 
@@ -1125,29 +1127,19 @@ def main():
 
     atexit.register(cleanup)
 
-    # ------------------------------------------------------------------
     # Layer-listing mode
-    # ------------------------------------------------------------------
     if flag_list:
         list_layers(url, output_format)
         return
 
-    # ------------------------------------------------------------------
     # Resolve the layer URL and query endpoint
-    # ------------------------------------------------------------------
     layer_url = normalize_url(url, layer_id)
     query_url = "{}/query".format(layer_url)
 
-    # ------------------------------------------------------------------
-    # Service metadata
-    # ------------------------------------------------------------------
-    gs.message(_("Connecting to ArcGIS Server..."))
-    layer_info = get_service_info(layer_url)
-
-    # ------------------------------------------------------------------
-    # Layer-info mode: no output requested -> describe and exit.
-    # ------------------------------------------------------------------
+    # Layer-info mode: no output requested describe and exit.
     if not output:
+        gs.message(_("Connecting to ArcGIS Server..."))
+        layer_info = get_service_info(layer_url)
         describe_layer(
             layer_info,
             query_url,
@@ -1158,120 +1150,91 @@ def main():
         )
         return
 
-    max_record_count = layer_info.get("maxRecordCount", 1000)
-    if max_record_count <= 0:
-        max_record_count = 1000
-
-    supports_pagination = layer_info.get("advancedQueryCapabilities", {}).get(
-        "supportsPagination", True
-    )
-    if not supports_pagination:
-        gs.warning(
-            _(
-                "This service does not advertise pagination support. "
-                "Only the first {} features will be imported."
-            ).format(max_record_count)
-        )
-
-    # ------------------------------------------------------------------
-    # Format negotiation
-    # ------------------------------------------------------------------
-    supported_formats_str = layer_info.get("supportedQueryFormats", "")
-    fmt = _select_format(supported_formats_str, preferred_fmt)
-    gs.verbose(
-        _("Layer: '{}', max record count: {}, transfer format: {}.").format(
-            layer_info.get("name", "unknown"), max_record_count, fmt.upper()
-        )
-    )
-
-    # For GeoJSON/PBF always request WGS84 (the temp file must be in a known CRS).
-    # ESRI JSON (f=json) also defaults to WGS84; the GDAL ESRIJson driver reads
-    # the spatialReference field to determine the actual CRS.
+    # All data is requested in WGS84 (EPSG:4326); v.import reprojects to the
+    # current project CRS below.
+    # NOTE: The to_crs could be set in as part of the query.
     outsr = "4326"
 
-    # ------------------------------------------------------------------
-    # Download all features
-    # ------------------------------------------------------------------
-    result = fetch_all_features(
-        query_url,
-        where,
-        fields,
-        extent,
-        max_record_count,
-        fmt=fmt,
-        outsr=outsr,
-        geometry_precision=geometry_precision,
-        max_offset=max_offset,
-        order_by=order_by,
-        return_geometry=return_geometry,
-        spatial_rel=spatial_rel,
-    )
-    features, active_fmt = result
+    if preferred_fmt == "pbf":
+        # ------------------------------------------------------------------
+        # Esri Feature Buffer fast path: download and decode PBF ourselves,
+        # write a temporary GeoJSON, then import.
+        # ------------------------------------------------------------------
+        gs.message(_("Connecting to ArcGIS Server..."))
+        layer_info = get_service_info(layer_url)
 
-    if not features:
-        gs.warning(
-            _(
-                "No features were returned from the service. "
-                "The output vector map will not be created."
-            )
+        max_record_count = layer_info.get("maxRecordCount", 1000)
+        if max_record_count <= 0:
+            max_record_count = 1000
+
+        supports_pagination = layer_info.get("advancedQueryCapabilities", {}).get(
+            "supportsPagination", True
         )
-        return
+        if not supports_pagination:
+            gs.warning(
+                _(
+                    "This service does not advertise pagination support. "
+                    "Only the first {} features will be imported."
+                ).format(max_record_count)
+            )
 
-    # ------------------------------------------------------------------
-    # Write to temporary file
-    # For PBF and GeoJSON the features list contains GeoJSON feature dicts.
-    # For ESRI JSON the features list contains ESRI JSON feature dicts;
-    # we keep the first-page metadata and write a single merged ESRI JSON file.
-    # ------------------------------------------------------------------
-    if active_fmt == "json":
-        suffix = ".json"
-    else:
-        suffix = ".geojson"
-
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_file:
-        tmp_path = tmp_file.name
-    _TMP_FILES.append(tmp_path)
-
-    if active_fmt == "json":
-        # Re-download only the first page to get the metadata wrapper,
-        # then substitute the full feature list.
-        first_page = fetch_features_page(
+        features, _active_fmt = fetch_all_features(
             query_url,
             where,
             fields,
             extent,
-            0,
-            1,
-            fmt="json",
+            max_record_count,
+            fmt="pbf",
             outsr=outsr,
+            geometry_precision=geometry_precision,
+            max_offset=max_offset,
+            order_by=order_by,
             return_geometry=return_geometry,
             spatial_rel=spatial_rel,
         )
-        write_esri_json(first_page, features, tmp_path)
-        gs.verbose(_("Temporary ESRI JSON written to '{}'.").format(tmp_path))
-    else:
+
+        if not features:
+            gs.warning(
+                _(
+                    "No features were returned from the service. "
+                    "The output vector map will not be created."
+                )
+            )
+            return
+
+        with tempfile.NamedTemporaryFile(suffix=".geojson", delete=False) as tmp_file:
+            tmp_path = tmp_file.name
+        _TMP_FILES.append(tmp_path)
         write_geojson(features, tmp_path)
         gs.verbose(_("Temporary GeoJSON written to '{}'.").format(tmp_path))
-
-    # ------------------------------------------------------------------
-    # Import into GRASS
-    # ------------------------------------------------------------------
-    if flag_reproject:
-        gs.message(_("Importing and reprojecting to project CRS with v.import..."))
-        gs.run_command(
-            "v.import",
-            input=tmp_path,
-            output=output,
-            overwrite=gs.overwrite(),
-        )
+        datasource = tmp_path
     else:
-        gs.message(_("Importing data with v.in.ogr..."))
-        gs.run_command(
-            "v.in.ogr",
-            input=tmp_path,
-            output=output,
-            overwrite=gs.overwrite(),
+        # Default: let GDAL read the service directly and auto-page
+        out_format = "geojson" if preferred_fmt == "geojson" else "json"
+        driver = "GeoJSON" if out_format == "geojson" else "ESRIJSON"
+        full_url = build_query_url(
+            query_url,
+            where,
+            fields,
+            extent,
+            out_format=out_format,
+            outsr=outsr,
+            geometry_precision=geometry_precision,
+            max_offset=max_offset,
+            order_by=order_by,
+            return_geometry=return_geometry,
+            spatial_rel=spatial_rel,
         )
+        datasource = "{}:{}".format(driver, full_url)
+        gs.verbose(_("Reading service with GDAL: '{}'.").format(datasource))
+
+    gs.message(_("Importing data and reprojecting to the project CRS..."))
+    gs.run_command(
+        "v.import",
+        input=datasource,
+        output=output,
+        overwrite=gs.overwrite(),
+    )
 
     gs.vector_history(output)
     gs.message(_("Vector map <{}> successfully imported.").format(output))

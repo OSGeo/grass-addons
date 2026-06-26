@@ -123,28 +123,64 @@ class TestApplyExtent(unittest.TestCase):
 
 
 # ===========================================================================
-# Format negotiation
+# Query URL builder
 # ===========================================================================
 
 
-class TestSelectFormat(unittest.TestCase):
-    def test_auto_prefers_pbf(self):
-        self.assertEqual(_mod._select_format("JSON,geoJSON,PBF", "auto"), "pbf")
+class TestBuildQueryUrl(unittest.TestCase):
+    def test_basic_params_present(self):
+        url = _mod.build_query_url(
+            "https://h/q", "1=1", "STATE_NAME,POP", "", out_format="json"
+        )
+        self.assertTrue(url.startswith("https://h/q?"))
+        self.assertIn("where=1%3D1", url)
+        self.assertIn("outFields=STATE_NAME%2CPOP", url)
+        self.assertIn("outSR=4326", url)
+        self.assertIn("f=json", url)
+        self.assertIn("returnGeometry=true", url)
 
-    def test_auto_falls_back_to_geojson(self):
-        self.assertEqual(_mod._select_format("JSON,geoJSON", "auto"), "geojson")
+    def test_geojson_format(self):
+        url = _mod.build_query_url("https://h/q", "1=1", "*", "", out_format="geojson")
+        self.assertIn("f=geojson", url)
 
-    def test_auto_falls_back_to_json(self):
-        self.assertEqual(_mod._select_format("JSON", "auto"), "json")
+    def test_no_offset_by_default(self):
+        # No resultOffset lets GDAL auto-page.
+        url = _mod.build_query_url("https://h/q", "1=1", "*", "")
+        self.assertNotIn("resultOffset", url)
 
-    def test_explicit_format_respected(self):
-        self.assertEqual(_mod._select_format("JSON,geoJSON,PBF", "geojson"), "geojson")
+    def test_offset_and_record_count_included(self):
+        url = _mod.build_query_url(
+            "https://h/q", "1=1", "*", "", offset=200, record_count=100
+        )
+        self.assertIn("resultOffset=200", url)
+        self.assertIn("resultRecordCount=100", url)
 
-    def test_empty_supported_defaults_to_geojson(self):
-        self.assertEqual(_mod._select_format("", "auto"), "geojson")
+    def test_optional_params(self):
+        url = _mod.build_query_url(
+            "https://h/q",
+            "1=1",
+            "*",
+            "",
+            geometry_precision=4,
+            max_offset=0.5,
+            order_by="NAME ASC",
+            return_geometry=False,
+        )
+        self.assertIn("geometryPrecision=4", url)
+        self.assertIn("maxAllowableOffset=0.5", url)
+        self.assertIn("orderByFields=NAME+ASC", url)
+        self.assertIn("returnGeometry=false", url)
 
-    def test_case_insensitive_matching(self):
-        self.assertEqual(_mod._select_format("GeoJSON,JSON", "auto"), "geojson")
+    def test_extent_spatial_filter(self):
+        url = _mod.build_query_url(
+            "https://h/q",
+            "1=1",
+            "*",
+            "-125,42,-116,49",
+            spatial_rel="esriSpatialRelContains",
+        )
+        self.assertIn("geometryType=esriGeometryEnvelope", url)
+        self.assertIn("esriSpatialRelContains", url)
 
 
 # ===========================================================================
@@ -546,16 +582,6 @@ class TestFetchAllFeatures(unittest.TestCase):
                 _mod.fetch_all_features(
                     "https://host/query", "1=1", "*", "", 100, fmt="geojson"
                 )
-
-
-class TestSelectFormatFromServiceInfo(unittest.TestCase):
-    def test_pbf_selected_when_available(self):
-        fmt = _mod._select_format("JSON,geoJSON,PBF", "auto")
-        self.assertEqual(fmt, "pbf")
-
-    def test_explicit_json_respected(self):
-        fmt = _mod._select_format("JSON,geoJSON,PBF", "json")
-        self.assertEqual(fmt, "json")
 
 
 class TestGetServiceInfo(unittest.TestCase):
