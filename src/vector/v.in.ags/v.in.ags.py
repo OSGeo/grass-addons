@@ -65,9 +65,20 @@
 # % key: extent
 # % type: string
 # % required: no
-# % label: Bounding box spatial filter (xmin,ymin,xmax,ymax in WGS84)
-# % description: Comma-separated bounding box in geographic degrees \
-#     (EPSG:4326) used to spatially filter features before download.
+# % options: input,region
+# % label: Output vector map extent
+# % descriptions: input;extent of input data;region;extent of current computational region
+# % guisection: Selection
+# %end
+
+# %option
+# % key: bbox_filter
+# % type: string
+# % required: no
+# % label: Server-side bounding box filter (xmin,ymin,xmax,ymax in WGS84)
+# % description: Comma-separated bounding box in geographic degrees (EPSG:4326) \
+#     used to spatially filter features on the server before download.
+# % guisection: Selection
 # %end
 
 # %option
@@ -84,10 +95,10 @@
 # % key: spatial_rel
 # % type: string
 # % required: no
-# % label: Spatial relationship used with the extent filter
+# % label: Spatial relationship used with the bounding box filter
 # % description: ArcGIS Server spatial relationship constant that controls \
-#     how features are matched against the bounding box (extent option). \
-#     Only used when extent is specified.
+#     how features are matched against the bounding box. Only used with \
+#     bbox_filter or extent=region.
 # % options: esriSpatialRelIntersects,esriSpatialRelContains,esriSpatialRelCrosses,esriSpatialRelEnvelopeIntersects,esriSpatialRelIndexIntersects,esriSpatialRelOverlaps,esriSpatialRelTouches,esriSpatialRelWithin
 # % answer: esriSpatialRelIntersects
 # %end
@@ -144,6 +155,27 @@
 #     CRS on import. Ignored by the pbf download strategy.
 # %end
 
+# %option
+# % key: snap
+# % type: double
+# % required: no
+# % answer: -1
+# % label: Snapping threshold for boundaries (map units)
+# % description: '-1' for no snap. Use a small positive value to fix invalid \
+#     polygon topology common in ArcGIS Server data.
+# % guisection: Selection
+# %end
+
+# %option
+# % key: datum_trans
+# % type: integer
+# % required: no
+# % options: -1-100
+# % label: Index number of datum transform parameters
+# % description: -1 to list available datum transform parameters
+# % guisection: Output
+# %end
+
 # %option G_OPT_F_FORMAT
 # % options: plain,shell,json
 # % descriptions: plain;Human readable text output;shell;Shell script style text output;json;JSON (JavaScript Object Notation)
@@ -158,6 +190,16 @@
 # %flag
 # % key: g
 # % description: Skip geometry; import attribute table only
+# %end
+
+# %flag
+# % key: o
+# % label: Override projection check (use current project's CRS)
+# % description: Assume that the dataset has the same CRS as the current project
+# %end
+
+# %rules
+# % exclusive: extent, bbox_filter
 # %end
 
 import json
@@ -766,7 +808,7 @@ def describe_layer(
     layer_info,
     query_url,
     where,
-    extent,
+    bbox,
     spatial_rel="esriSpatialRelIntersects",
     output_format="plain",
 ):
@@ -775,7 +817,7 @@ def describe_layer(
     :param dict layer_info: Service metadata from :func:`get_service_info`.
     :param str query_url: AGS query endpoint URL (for the feature count).
     :param str where: SQL WHERE expression.
-    :param str extent: Optional bounding box or ``""``.
+    :param str bbox: Optional WGS84 bounding box or ``""``.
     :param str spatial_rel: Spatial relationship constant.
     :param str output_format: One of ``plain``, ``shell``, ``json``.
     """
@@ -783,7 +825,7 @@ def describe_layer(
     # already in hand from get_service_info. Treat a count failure as
     # non-fatal so the inspection still prints the rest of the metadata.
     try:
-        count = get_feature_count(query_url, where, extent, spatial_rel)
+        count = get_feature_count(query_url, where, bbox, spatial_rel)
     except SystemExit:
         gs.warning(_("Could not determine the feature count for this layer."))
         count = None
@@ -813,21 +855,21 @@ def describe_layer(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _apply_extent(params, extent, spatial_rel="esriSpatialRelIntersects"):
-    """Add spatial-filter parameters to *params* when *extent* is provided.
+def _apply_bbox(params, bbox, spatial_rel="esriSpatialRelIntersects"):
+    """Add spatial-filter parameters to *params* when *bbox* is provided.
 
     :param dict params: Parameter dictionary to update in-place.
-    :param str extent: Bounding box ``xmin,ymin,xmax,ymax`` (WGS84) or ``""``.
+    :param str bbox: Bounding box ``xmin,ymin,xmax,ymax`` (WGS84) or ``""``.
     :param str spatial_rel: AGS spatial relationship constant.
     """
-    if not extent:
+    if not bbox:
         return
-    parts = [v.strip() for v in extent.split(",")]
+    parts = [v.strip() for v in bbox.split(",")]
     if len(parts) != 4:
         gs.fatal(
             _(
-                "Invalid extent format: '{}'. Expected xmin,ymin,xmax,ymax in WGS84."
-            ).format(extent)
+                "Invalid bounding box '{}'. Expected xmin,ymin,xmax,ymax in WGS84."
+            ).format(bbox)
         )
     xmin, ymin, xmax, ymax = parts
     params["geometry"] = "{},{},{},{}".format(xmin, ymin, xmax, ymax)
@@ -840,7 +882,7 @@ def build_query_url(
     query_url,
     where,
     fields,
-    extent,
+    bbox,
     out_format="json",
     outsr="4326",
     geometry_precision=None,
@@ -859,7 +901,7 @@ def build_query_url(
     :param str query_url: AGS query endpoint URL.
     :param str where: SQL WHERE expression.
     :param str fields: Comma-separated field names or ``*``.
-    :param str extent: Optional bounding box or ``""``.
+    :param str bbox: Optional WGS84 bounding box or ``""``.
     :param str out_format: Server response format (``json`` or ``geojson``).
     :param str outsr: Output spatial reference WKID (default ``4326``).
     :param int geometry_precision: Coordinate decimal places or ``None``.
@@ -889,23 +931,23 @@ def build_query_url(
         params["maxAllowableOffset"] = max_offset
     if order_by:
         params["orderByFields"] = order_by
-    _apply_extent(params, extent, spatial_rel)
+    _apply_bbox(params, bbox, spatial_rel)
     return "{}?{}".format(query_url, urlencode(params))
 
 
-def get_feature_count(query_url, where, extent, spatial_rel="esriSpatialRelIntersects"):
+def get_feature_count(query_url, where, bbox, spatial_rel="esriSpatialRelIntersects"):
     """Return the number of features matching the query.
 
     :param str query_url: AGS query endpoint URL.
     :param str where: SQL WHERE expression.
-    :param str extent: Optional bounding box or ``""``.
+    :param str bbox: Optional WGS84 bounding box or ``""``.
     :param str spatial_rel: Spatial relationship constant.
     :return: Total matching feature count.
     :rtype: int
     :raises SystemExit: If the server returns an error.
     """
     params = {"where": where, "f": "json", "returnCountOnly": "true"}
-    _apply_extent(params, extent, spatial_rel)
+    _apply_bbox(params, bbox, spatial_rel)
     data = fetch_json("{}?{}".format(query_url, urlencode(params)))
     if "error" in data:
         gs.fatal(
@@ -920,7 +962,7 @@ def fetch_features_page(
     query_url,
     where,
     fields,
-    extent,
+    bbox,
     offset,
     record_count,
     fmt="geojson",
@@ -940,7 +982,7 @@ def fetch_features_page(
     :param str query_url: AGS query endpoint URL.
     :param str where: SQL WHERE expression.
     :param str fields: Comma-separated field names or ``*``.
-    :param str extent: Optional bounding box or ``""``.
+    :param str bbox: Optional WGS84 bounding box or ``""``.
     :param int offset: Zero-based pagination offset.
     :param int record_count: Records per page.
     :param str fmt: One of ``pbf`` or ``geojson``.
@@ -959,7 +1001,7 @@ def fetch_features_page(
         query_url,
         where,
         fields,
-        extent,
+        bbox,
         out_format=fmt,
         outsr=outsr,
         geometry_precision=geometry_precision,
@@ -992,7 +1034,7 @@ def fetch_all_features(
     query_url,
     where,
     fields,
-    extent,
+    bbox,
     max_record_count,
     fmt="geojson",
     outsr="4326",
@@ -1012,7 +1054,7 @@ def fetch_all_features(
     :rtype: tuple[list, str]
     """
     gs.message(_("Querying feature count..."))
-    total_count = get_feature_count(query_url, where, extent, spatial_rel)
+    total_count = get_feature_count(query_url, where, bbox, spatial_rel)
     gs.message(_("Features matching query: {}.").format(total_count))
 
     if total_count == 0:
@@ -1035,7 +1077,7 @@ def fetch_all_features(
                 query_url,
                 where,
                 fields,
-                extent,
+                bbox,
                 offset,
                 max_record_count,
                 fmt=active_fmt,
@@ -1058,7 +1100,7 @@ def fetch_all_features(
                     query_url,
                     where,
                     fields,
-                    extent,
+                    bbox,
                     offset,
                     max_record_count,
                     fmt="geojson",
@@ -1119,7 +1161,8 @@ def main():
     output = options["output"]
     where = options["where"] if options["where"] else "1=1"
     fields = options["fields"] if options["fields"] else "*"
-    extent = options["extent"]
+    vector_extent = options["extent"] or "input"
+    bbox_filter = options["bbox_filter"]
     layer_id = int(options["layer"]) if options["layer"] else 0
     spatial_rel = options["spatial_rel"] or "esriSpatialRelIntersects"
     order_by = options["order_by"] or None
@@ -1129,10 +1172,13 @@ def main():
     max_offset = float(options["max_offset"]) if options["max_offset"] else None
     preferred_fmt = options["download_format"] or "auto"
     requested_outsr = options["outsr"]
+    snap = options["snap"]
+    datum_trans = options["datum_trans"]
     output_format = options["format"]
 
     flag_list = flags["l"]
     flag_no_geom = flags["g"]
+    flag_override = flags["o"]
 
     return_geometry = not flag_no_geom
 
@@ -1147,6 +1193,17 @@ def main():
     layer_url = normalize_url(url, layer_id)
     query_url = "{}/query".format(layer_url)
 
+    # Resolve the server-side bounding-box filter. bbox_filter and extent=region
+    # are mutually exclusive (enforced by the parser); extent=region derives the
+    # WGS84 bbox of the current region so the download is limited at the server.
+    if bbox_filter:
+        bbox = bbox_filter
+    elif vector_extent == "region":
+        reg = gs.parse_command("g.region", flags="bg")
+        bbox = "{},{},{},{}".format(reg["ll_w"], reg["ll_s"], reg["ll_e"], reg["ll_n"])
+    else:
+        bbox = ""
+
     # Layer-info mode: no output requested describe and exit.
     if not output:
         gs.message(_("Connecting to ArcGIS Server..."))
@@ -1155,7 +1212,7 @@ def main():
             layer_info,
             query_url,
             where,
-            extent,
+            bbox,
             spatial_rel,
             output_format,
         )
@@ -1199,7 +1256,7 @@ def main():
             query_url,
             where,
             fields,
-            extent,
+            bbox,
             max_record_count,
             fmt="pbf",
             outsr="4326",
@@ -1233,7 +1290,7 @@ def main():
             query_url,
             where,
             fields,
-            extent,
+            bbox,
             out_format=out_format,
             outsr=outsr,
             geometry_precision=geometry_precision,
@@ -1246,12 +1303,18 @@ def main():
         gs.verbose(_("Reading service with GDAL: '{}'.").format(datasource))
 
     gs.message(_("Importing data and reprojecting to the project CRS..."))
-    gs.run_command(
-        "v.import",
-        input=datasource,
-        output=output,
-        overwrite=gs.overwrite(),
-    )
+    import_kwargs = {
+        "input": datasource,
+        "output": output,
+        "extent": vector_extent,
+        "snap": snap,
+        "overwrite": gs.overwrite(),
+    }
+    if datum_trans:
+        import_kwargs["datum_trans"] = datum_trans
+    if flag_override:
+        import_kwargs["flags"] = "o"
+    gs.run_command("v.import", **import_kwargs)
 
     gs.vector_history(output)
     gs.message(_("Vector map <{}> successfully imported.").format(output))

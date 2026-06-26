@@ -92,15 +92,39 @@ POP2020 &gt; 100000
 TYPE IN ('city', 'town') AND AREA_KM2 &lt; 500
 </pre></div>
 
-<h3>Spatial filtering</h3>
+<h3>Output extent and spatial filtering</h3>
 
 <p>
-The <b>extent</b> option accepts a bounding box
-<tt>xmin,ymin,xmax,ymax</tt> in geographic degrees (WGS84 / EPSG:4326).
-This is applied as a server-side spatial filter before features are
-downloaded, which can significantly reduce transfer size for large layers.
-The relationship between features and the bounding box is controlled by
+The <b>extent</b> option matches <em>v.import</em>: <tt>input</tt> (default)
+imports the full input, <tt>region</tt> limits the output to the current
+computational region. With <tt>extent=region</tt> the region is also converted
+to a WGS84 bounding box and used as a server-side filter, so only features
+overlapping the region are downloaded.
+</p>
+
+<p>
+The <b>bbox_filter</b> option accepts an explicit bounding box
+<tt>xmin,ymin,xmax,ymax</tt> in geographic degrees (WGS84 / EPSG:4326), applied
+as a server-side spatial filter before features are downloaded. This
+significantly reduces transfer size for large layers.
+</p>
+
+<p>
+<b>extent</b> and <b>bbox_filter</b> are mutually exclusive. The relationship
+between features and the bounding box (either source) is controlled by
 <b>spatial_rel</b> (default: <tt>esriSpatialRelIntersects</tt>).
+</p>
+
+<h3>Topology and snapping</h3>
+
+<p>
+Polygon layers served by ArcGIS Server frequently have invalid topology, which
+can import with <b>no areas</b> (the polygons do not appear). Use <b>snap</b>
+(in map units of the downloaded data, that is degrees for the default WGS84
+download or <b>outsr</b> units otherwise) to snap boundary vertices so areas
+build. The default <tt>-1</tt> disables snapping. As with <em>v.import</em>,
+start small (for example <tt>snap=1e-6</tt>) and increase only if areas are
+still missing.
 </p>
 
 <h3>Field selection</h3>
@@ -162,6 +186,13 @@ project CRS regardless. <b>outsr</b> is ignored by the <tt>pbf</tt> strategy,
 which always uses EPSG:4326.
 </p>
 
+<p>
+As in <em>v.import</em>, <b>datum_trans</b> selects the datum transform used
+during reprojection (<tt>-1</tt> lists the available transforms), and the
+<b>-o</b> flag overrides the projection check, assuming the downloaded data
+already has the project's CRS (pairs well with <tt>outsr=&lt;project WKID&gt;</tt>).
+</p>
+
 <h3>Temporary files</h3>
 
 <p>
@@ -208,7 +239,31 @@ v.in.ags \
 v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
   output=pnw_states \
-  extent="-125,42,-116,49"
+  bbox_filter="-125,42,-116,49"
+</pre></div>
+
+<h3>Limit the import to the current region</h3>
+
+<p><tt>extent=region</tt> filters on the server by the current region and clips
+the output to it:</p>
+
+<div class="code"><pre>
+g.region n=49 s=42 w=-125 e=-116
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=pnw_states \
+  extent=region
+</pre></div>
+
+<h3>Fix polygon topology with snapping</h3>
+
+<p>If imported polygons show no areas, snap boundary vertices:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  snap=1e-6
 </pre></div>
 
 <h3>Change spatial relationship</h3>
@@ -219,7 +274,7 @@ v.in.ags \
 v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
   output=pnw_states_within \
-  extent="-125,42,-116,49" \
+  bbox_filter="-125,42,-116,49" \
   spatial_rel=esriSpatialRelWithin
 </pre></div>
 

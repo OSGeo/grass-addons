@@ -91,17 +91,17 @@ class TestNormalizeUrl(unittest.TestCase):
 class TestApplyExtent(unittest.TestCase):
     def test_empty_extent_no_change(self):
         params = {}
-        _mod._apply_extent(params, "")
+        _mod._apply_bbox(params, "")
         self.assertEqual(params, {})
 
     def test_none_extent_no_change(self):
         params = {}
-        _mod._apply_extent(params, None)
+        _mod._apply_bbox(params, None)
         self.assertEqual(params, {})
 
     def test_valid_extent_populates_params(self):
         params = {}
-        _mod._apply_extent(params, "-125,42,-116,49")
+        _mod._apply_bbox(params, "-125,42,-116,49")
         self.assertEqual(params["geometry"], "-125,42,-116,49")
         self.assertEqual(params["geometryType"], "esriGeometryEnvelope")
         self.assertEqual(params["inSR"], "4326")
@@ -109,17 +109,17 @@ class TestApplyExtent(unittest.TestCase):
 
     def test_custom_spatial_rel(self):
         params = {}
-        _mod._apply_extent(params, "-125,42,-116,49", "esriSpatialRelContains")
+        _mod._apply_bbox(params, "-125,42,-116,49", "esriSpatialRelContains")
         self.assertEqual(params["spatialRel"], "esriSpatialRelContains")
 
     def test_spaces_in_extent_trimmed(self):
         params = {}
-        _mod._apply_extent(params, " -125 , 42 , -116 , 49 ")
+        _mod._apply_bbox(params, " -125 , 42 , -116 , 49 ")
         self.assertEqual(params["geometry"], "-125,42,-116,49")
 
     def test_invalid_extent_raises(self):
         with self.assertRaises(SystemExit):
-            _mod._apply_extent({}, "invalid,extent")
+            _mod._apply_bbox({}, "invalid,extent")
 
 
 # ===========================================================================
@@ -885,7 +885,7 @@ class TestIntegration(unittest.TestCase):
             "v.in.ags",
             url=_SAMPLE_URL,
             output=self.OUTPUT + "_bbox",
-            extent="-125,42,-116,49",
+            bbox_filter="-125,42,-116,49",
             overwrite=True,
         )
         info = gs.vector_info_topo(self.OUTPUT + "_bbox")
