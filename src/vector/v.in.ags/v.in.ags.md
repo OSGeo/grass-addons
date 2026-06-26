@@ -112,10 +112,16 @@ is issued and only the first page is imported.
 
 ### Coordinate reference system
 
-All data is requested from the server in WGS84 (EPSG:4326) and imported with
-*v.import*, which reprojects it into the current project CRS automatically (and
-imports directly, without reprojection overhead, when the project is already
-WGS84).
+By default data is requested from the server in WGS84 (EPSG:4326) and imported
+with *v.import*, which reprojects it into the current project CRS automatically
+(and imports directly, without reprojection overhead, when the project is
+already WGS84).
+
+Use **outsr** to request a different output spatial reference (an ArcGIS
+`outSR` WKID, for example `3358`). Setting **outsr** to the project's WKID makes
+the server do the reprojection, so *v.import* imports directly with no
+client-side transform. The final map is always in the project CRS regardless.
+**outsr** is ignored by the `pbf` strategy, which always uses EPSG:4326.
 
 ### Temporary files
 
@@ -194,6 +200,18 @@ v.in.ags \
   output=usa_states_slim \
   fields="STATE_NAME,STATE_ABBR,POP2020" \
   order_by="POP2020 DESC"
+```
+
+### Request data already in the project CRS
+
+Ask the server for the project's spatial reference (here NC State Plane,
+EPSG:3358) so no client-side reprojection is needed:
+
+```sh
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  outsr=3358
 ```
 
 ### Use the PBF fast path for a large layer

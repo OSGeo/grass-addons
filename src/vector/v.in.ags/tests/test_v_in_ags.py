@@ -143,6 +143,10 @@ class TestBuildQueryUrl(unittest.TestCase):
         url = _mod.build_query_url("https://h/q", "1=1", "*", "", out_format="geojson")
         self.assertIn("f=geojson", url)
 
+    def test_custom_outsr(self):
+        url = _mod.build_query_url("https://h/q", "1=1", "*", "", outsr="3358")
+        self.assertIn("outSR=3358", url)
+
     def test_no_offset_by_default(self):
         # No resultOffset lets GDAL auto-page.
         url = _mod.build_query_url("https://h/q", "1=1", "*", "")

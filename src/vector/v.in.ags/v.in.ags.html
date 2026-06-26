@@ -147,10 +147,19 @@ is imported.
 <h3>Coordinate reference system</h3>
 
 <p>
-All data is requested from the server in WGS84 (EPSG:4326) and imported with
-<em>v.import</em>, which reprojects it into the current project CRS
+By default data is requested from the server in WGS84 (EPSG:4326) and imported
+with <em>v.import</em>, which reprojects it into the current project CRS
 automatically (and imports directly, without reprojection overhead, when the
 project is already WGS84).
+</p>
+
+<p>
+Use <b>outsr</b> to request a different output spatial reference (an ArcGIS
+<tt>outSR</tt> WKID, for example <tt>3358</tt>). Setting <b>outsr</b> to the
+project's WKID makes the server do the reprojection, so <em>v.import</em>
+imports directly with no client-side transform. The final map is always in the
+project CRS regardless. <b>outsr</b> is ignored by the <tt>pbf</tt> strategy,
+which always uses EPSG:4326.
 </p>
 
 <h3>Temporary files</h3>
@@ -232,6 +241,18 @@ v.in.ags \
   output=usa_states_slim \
   fields="STATE_NAME,STATE_ABBR,POP2020" \
   order_by="POP2020 DESC"
+</pre></div>
+
+<h3>Request data already in the project CRS</h3>
+
+<p>Ask the server for the project's spatial reference (here NC State Plane,
+EPSG:3358) so no client-side reprojection is needed:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  outsr=3358
 </pre></div>
 
 <h3>Use the PBF fast path for a large layer</h3>

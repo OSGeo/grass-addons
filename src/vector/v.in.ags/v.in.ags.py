@@ -134,6 +134,16 @@
 # % answer: auto
 # %end
 
+# %option
+# % key: outsr
+# % type: string
+# % required: no
+# % label: Output spatial reference (WKID) to request from the server
+# % description: ArcGIS outSR well-known ID (e.g. 3358) for the downloaded \
+#     data. Default is 4326 (WGS84); the result is reprojected to the project \
+#     CRS on import. Ignored by the pbf download strategy.
+# %end
+
 # %option G_OPT_F_FORMAT
 # % options: plain,shell,json
 # % descriptions: plain;Human readable text output;shell;Shell script style text output;json;JSON (JavaScript Object Notation)
@@ -1118,6 +1128,7 @@ def main():
     )
     max_offset = float(options["max_offset"]) if options["max_offset"] else None
     preferred_fmt = options["download_format"] or "auto"
+    requested_outsr = options["outsr"]
     output_format = options["format"]
 
     flag_list = flags["l"]
@@ -1150,16 +1161,22 @@ def main():
         )
         return
 
-    # All data is requested in WGS84 (EPSG:4326); v.import reprojects to the
-    # current project CRS below.
-    # NOTE: The to_crs could be set in as part of the query.
-    outsr = "4326"
+    # Output spatial reference requested from the server. Defaults to WGS84
+    # (EPSG:4326); v.import reprojects to the current project CRS on import.
+    # A user-supplied outsr lets the server reproject before download.
+    outsr = requested_outsr if requested_outsr else "4326"
 
     if preferred_fmt == "pbf":
         # ------------------------------------------------------------------
         # Esri Feature Buffer fast path: download and decode PBF ourselves,
-        # write a temporary GeoJSON, then import.
+        # write a temporary GeoJSON, then import. The decoded output is written
+        # as RFC-7946 GeoJSON (WGS84), so outsr cannot apply here.
         # ------------------------------------------------------------------
+        if requested_outsr and requested_outsr != "4326":
+            gs.warning(
+                _("Option outsr is ignored for download_format=pbf; using EPSG:4326.")
+            )
+
         gs.message(_("Connecting to ArcGIS Server..."))
         layer_info = get_service_info(layer_url)
 
@@ -1185,7 +1202,7 @@ def main():
             extent,
             max_record_count,
             fmt="pbf",
-            outsr=outsr,
+            outsr="4326",
             geometry_precision=geometry_precision,
             max_offset=max_offset,
             order_by=order_by,
