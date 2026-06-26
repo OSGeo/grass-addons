@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # script to build GRASS GIS preview source package from the `main` branch
-# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# (c) 2002-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -23,7 +23,7 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=5
+GMINOR=6
 BRANCH=main
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR

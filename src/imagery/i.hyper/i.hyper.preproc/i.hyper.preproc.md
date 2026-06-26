@@ -7,7 +7,7 @@ representations better suited for scientific analysis and machine
 learning workflows.
 
 The module operates directly on hyperspectral cubes imported with
-[i.hyper.import](i.hyper.import.html) or other compatible 3D raster
+[i.hyper.import](i.hyper.import.md) or other compatible 3D raster
 datasets. All transformations are performed along the spectral (*z*)
 dimension for each spatial position (*x, y*).
 
@@ -71,6 +71,9 @@ Operations are reported in the console as a sequential pipeline.
 
 When using PCA, KPCA, FastICA, NMF, or SparsePCA, the number of output
 components can be controlled using the `dr_components` parameter.
+
+When dimensionality reduction is applied, output `hyper.json` stores DR
+parameters in top-level key `dimensionality_reduction`.
 
 **Chunked dimensionality reduction:**\
 Large hyperspectral datasets can be processed in smaller portions using
@@ -170,10 +173,11 @@ or exported with *i.hyper.export* for further analysis.
 
 ## SEE ALSO
 
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.composite](i.hyper.composite.html),
-[i.hyper.export](i.hyper.export.html),
-[i.hyper.import](i.hyper.import.html),
+[i.hyper.metadata](i.hyper.metadata.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.composite](i.hyper.composite.md),
+[i.hyper.export](i.hyper.export.md),
+[i.hyper.import](i.hyper.import.md),
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html)
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
 

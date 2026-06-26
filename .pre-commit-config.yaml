@@ -43,7 +43,7 @@ repos:
       - id: detect-private-key
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
-    rev: v0.14.14
+    rev: v0.15.17
     hooks:
       # Run the linter.
       - id: ruff-check
@@ -51,14 +51,14 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.4.5"
+    rev: "v2.5.0"
     hooks:
       - id: biome-check
       - id: biome-lint
       - id: biome-format
       - id: biome-ci
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint-fix
   - repo: https://github.com/pycqa/flake8
@@ -77,11 +77,11 @@ repos:
     hooks:
       - id: yamllint
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.11
+    rev: v1.7.12
     hooks:
       - id: actionlint
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: v1.22.0
+    rev: v1.23.1
     hooks:
       - id: zizmor
         args:
@@ -89,6 +89,6 @@ repos:
           # https://github.com/zizmorcore/zizmor-pre-commit/blob/120fe9ac3c965ab7decf67e8b9ca24b274230eed/.pre-commit-hooks.yaml#L10
           - "--no-progress"
   - repo: https://github.com/editorconfig-checker/editorconfig-checker
-    rev: v3.6.1
+    rev: v3.7.0
     hooks:
       - id: editorconfig-checker

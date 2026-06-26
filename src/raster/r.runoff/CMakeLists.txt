@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(r.runoff LANGUAGES NONE))
+project(r.runoff LANGUAGES NONE)
 
 include(build_addon)
 

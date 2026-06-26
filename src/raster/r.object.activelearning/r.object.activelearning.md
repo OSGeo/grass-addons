@@ -150,7 +150,7 @@ added to the update file.
 
 This module requires the *scikit-learn* python package. This module
 needs to be installed in your GRASS GIS Python environment. Please refer
-to [*r.learn.ml*](r.learn.ml.html)'s notes on how to install this
+to [*r.learn.ml*](r.learn.ml.md)'s notes on how to install this
 package.
 
 The memory usage for \~1450 samples of 52 features each is around \~650

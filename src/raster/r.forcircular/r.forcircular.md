@@ -100,7 +100,7 @@ the indicators and results of SMCA process are computed on forest
 surface with financial efficiency of production process or, in other
 terms, the area where a positive stumpage value can be reached. The
 calculation of stumpage value is carried out following the approach of
-another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.html).
+another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.md).
 
 The model in *r.forcircular* starts with importation of geodata and
 conversion of vector into raster. Then, through a multistep approach,
