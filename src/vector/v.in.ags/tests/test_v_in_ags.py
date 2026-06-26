@@ -706,7 +706,7 @@ class TestFormatLayerInfo(unittest.TestCase):
         "geometry_type": "esriGeometryPolygon",
         "feature_count": 51,
         "max_record_count": 2000,
-        "supported_formats": "JSON,geoJSON,PBF",
+        "supported_formats": ["JSON", "geoJSON", "PBF"],
         "fields": ["STATE_NAME", "POP2020"],
     }
 
@@ -725,6 +725,90 @@ class TestFormatLayerInfo(unittest.TestCase):
         self.assertIn("States", out)
         self.assertIn("51", out)
         self.assertIn("STATE_NAME,POP2020", out)
+
+    def test_shell_quotes_names_with_spaces(self):
+        info = dict(self.INFO, name="USA States Generalized")
+        out = _mod._format_layer_info(info, "shell")
+        # The line must be safely sourceable: the space-containing value is quoted.
+        self.assertIn("name='USA States Generalized'", out)
+
+    def test_shell_supported_formats_joined(self):
+        out = _mod._format_layer_info(self.INFO, "shell")
+        self.assertIn("supported_formats=JSON,geoJSON,PBF", out)
+
+    def test_json_feature_count_none_serialises_to_null(self):
+        info = dict(self.INFO, feature_count=None)
+        data = json.loads(_mod._format_layer_info(info, "json"))
+        self.assertIsNone(data["feature_count"])
+
+
+# ===========================================================================
+# list_layers – empty service honours machine-output contract
+# ===========================================================================
+
+
+class TestListLayersEmpty(unittest.TestCase):
+    def _run(self, output_format):
+        import contextlib
+        import io
+
+        buf = io.StringIO()
+        with patch.object(
+            _mod, "fetch_json", return_value={"layers": [], "tables": []}
+        ):
+            with contextlib.redirect_stdout(buf):
+                _mod.list_layers("https://host/FeatureServer", output_format)
+        return buf.getvalue()
+
+    def test_json_empty_prints_empty_array(self):
+        self.assertEqual(json.loads(self._run("json")), [])
+
+    def test_shell_empty_prints_no_rows(self):
+        self.assertEqual(self._run("shell").strip(), "")
+
+    def test_plain_empty_prints_nothing_to_stdout(self):
+        # The human-readable "not found" notice goes to gs.message (stderr).
+        self.assertEqual(self._run("plain"), "")
+
+
+# ===========================================================================
+# describe_layer – feature-count failure degrades gracefully
+# ===========================================================================
+
+
+class TestDescribeLayerCountFailure(unittest.TestCase):
+    LAYER_INFO = {
+        "id": 0,
+        "name": "States",
+        "geometryType": "esriGeometryPolygon",
+        "maxRecordCount": 2000,
+        "supportedQueryFormats": "JSON,geoJSON,PBF",
+        "fields": [{"name": "STATE_NAME"}],
+    }
+
+    def test_count_failure_still_prints_metadata(self):
+        import contextlib
+        import io
+
+        def _boom(*a, **kw):
+            raise SystemExit("query disabled")
+
+        buf = io.StringIO()
+        with patch.object(_mod, "get_feature_count", side_effect=_boom):
+            with contextlib.redirect_stdout(buf):
+                _mod.describe_layer(
+                    self.LAYER_INFO,
+                    "https://host/q",
+                    "1=1",
+                    "",
+                    output_format="json",
+                )
+        data = json.loads(buf.getvalue())
+        self.assertIsNone(data["feature_count"])
+        self.assertEqual(data["name"], "States")
+        # supported_formats is normalised to a list (consistent with fields)
+        self.assertEqual(data["supported_formats"], ["JSON", "geoJSON", "PBF"])
+        self.assertEqual(data["fields"], ["STATE_NAME"])
 
 
 # ===========================================================================

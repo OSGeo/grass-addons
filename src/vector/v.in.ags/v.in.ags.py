@@ -156,6 +156,7 @@
 # %end
 
 import json
+import shlex
 import struct
 import tempfile
 import atexit
@@ -654,19 +655,19 @@ def _format_layer_list(items, output_format):
     :rtype: str
     """
     if output_format == "json":
-        return json.dumps(items, indent=4)
+        return json.dumps(items, indent=4, ensure_ascii=False)
     if output_format == "shell":
         return "\n".join(
             "{}|{}|{}".format(it["id"], it["type"], it["name"]) for it in items
         )
-    # plain: aligned table
+    # plain: aligned table ("Feature Layer" is 13 chars, so the type column is 14)
     lines = [
-        "{:<4} {:<12} {}".format("ID", "Type", "Name"),
-        "{} {} {}".format("-" * 4, "-" * 12, "-" * 40),
+        "{:<4} {:<14} {}".format("ID", "Type", "Name"),
+        "{} {} {}".format("-" * 4, "-" * 14, "-" * 40),
     ]
     for it in items:
         lines.append(
-            "{:<4} {:<12} {}".format(it["id"], str(it["type"])[:12], it["name"])
+            "{:<4} {:<14} {}".format(it["id"], str(it["type"])[:14], it["name"])
         )
     return "\n".join(lines)
 
@@ -675,25 +676,33 @@ def _format_layer_info(info, output_format):
     """Render single-layer metadata in the requested output format.
 
     :param dict info: Layer metadata (``id``, ``name``, ``geometry_type``,
-        ``feature_count``, ``max_record_count``, ``supported_formats``,
-        ``fields``).
+        ``feature_count``, ``max_record_count``, ``supported_formats`` (list),
+        ``fields`` (list)).
     :param str output_format: One of ``plain``, ``shell``, ``json``.
     :return: Formatted string ready to print.
     :rtype: str
     """
     if output_format == "json":
-        return json.dumps(info, indent=4)
+        return json.dumps(info, indent=4, ensure_ascii=False)
 
     fields_str = ",".join(info.get("fields", []))
+    formats_str = ",".join(info.get("supported_formats", []))
+    feature_count = info.get("feature_count")
+    feature_count = "" if feature_count is None else feature_count
+
     if output_format == "shell":
+        # Quote values so the output stays safely sourceable with `eval`
+        # (layer names routinely contain spaces).
         lines = [
-            "id={}".format(info.get("id", "")),
-            "name={}".format(info.get("name", "")),
-            "geometry_type={}".format(info.get("geometry_type", "")),
-            "feature_count={}".format(info.get("feature_count", "")),
-            "max_record_count={}".format(info.get("max_record_count", "")),
-            "supported_formats={}".format(info.get("supported_formats", "")),
-            "fields={}".format(fields_str),
+            "id={}".format(shlex.quote(str(info.get("id", "")))),
+            "name={}".format(shlex.quote(str(info.get("name", "")))),
+            "geometry_type={}".format(shlex.quote(str(info.get("geometry_type", "")))),
+            "feature_count={}".format(shlex.quote(str(feature_count))),
+            "max_record_count={}".format(
+                shlex.quote(str(info.get("max_record_count", "")))
+            ),
+            "supported_formats={}".format(shlex.quote(formats_str)),
+            "fields={}".format(shlex.quote(fields_str)),
         ]
         return "\n".join(lines)
 
@@ -702,9 +711,9 @@ def _format_layer_info(info, output_format):
         "{:<18} {}".format("ID:", info.get("id", "")),
         "{:<18} {}".format("Name:", info.get("name", "")),
         "{:<18} {}".format("Geometry type:", info.get("geometry_type", "")),
-        "{:<18} {}".format("Feature count:", info.get("feature_count", "")),
+        "{:<18} {}".format("Feature count:", feature_count),
         "{:<18} {}".format("Max record count:", info.get("max_record_count", "")),
-        "{:<18} {}".format("Supported formats:", info.get("supported_formats", "")),
+        "{:<18} {}".format("Supported formats:", formats_str),
         "{:<18} {}".format("Fields:", fields_str),
     ]
     return "\n".join(lines)
@@ -732,10 +741,6 @@ def list_layers(service_url, output_format="plain"):
         )
 
     raw_items = info.get("layers", []) + info.get("tables", [])
-    if not raw_items:
-        gs.message(_("No layers or tables found at the given service URL."))
-        return
-
     items = [
         {
             "id": item.get("id", "?"),
@@ -744,6 +749,11 @@ def list_layers(service_url, output_format="plain"):
         }
         for item in raw_items
     ]
+    if not items and output_format == "plain":
+        gs.message(_("No layers or tables found at the given service URL."))
+        return
+    # For shell/json the empty case still emits valid machine output
+    # (an empty JSON array / no lines) so downstream parsers do not break.
     print(_format_layer_list(items, output_format))
 
 
@@ -764,17 +774,29 @@ def describe_layer(
     :param str spatial_rel: Spatial relationship constant.
     :param str output_format: One of ``plain``, ``shell``, ``json``.
     """
-    count = get_feature_count(query_url, where, extent, spatial_rel)
+    # The feature count needs an extra /query request; everything else is
+    # already in hand from get_service_info. Treat a count failure as
+    # non-fatal so the inspection still prints the rest of the metadata.
+    try:
+        count = get_feature_count(query_url, where, extent, spatial_rel)
+    except SystemExit:
+        gs.warning(_("Could not determine the feature count for this layer."))
+        count = None
+
     info = {
         "id": layer_info.get("id", ""),
         "name": layer_info.get("name", ""),
         "geometry_type": layer_info.get("geometryType", ""),
         "feature_count": count,
         "max_record_count": layer_info.get("maxRecordCount", ""),
-        "supported_formats": layer_info.get("supportedQueryFormats", ""),
+        "supported_formats": [
+            s.strip()
+            for s in (layer_info.get("supportedQueryFormats") or "").split(",")
+            if s.strip()
+        ],
         "fields": [
             f.get("name", "")
-            for f in layer_info.get("fields", [])
+            for f in (layer_info.get("fields") or [])
             if isinstance(f, dict)
         ],
     }
@@ -1093,7 +1115,7 @@ def main():
     )
     max_offset = float(options["max_offset"]) if options["max_offset"] else None
     preferred_fmt = options["download_format"] or "auto"
-    output_format = options["format"] or "plain"
+    output_format = options["format"]
 
     flag_reproject = flags["r"]
     flag_list = flags["l"]
