@@ -38,7 +38,7 @@
 # %end
 
 # %option G_OPT_V_OUTPUT
-# % required: no 
+# % required: no
 # %end
 
 # %option
@@ -132,6 +132,12 @@
 #     (pbf > geojson > json). Explicit values override auto-detection.
 # % options: auto,pbf,geojson,json
 # % answer: auto
+# %end
+
+# %option G_OPT_F_FORMAT
+# % options: plain,shell,json
+# % descriptions: plain;Human readable text output;shell;Shell script style text output;json;JSON (JavaScript Object Notation)
+# % guisection: Output
 # %end
 
 # %flag
@@ -639,10 +645,76 @@ def get_service_info(layer_url):
     return info
 
 
-def list_layers(service_url):
-    """Print a table of layers and tables available in a feature service.
+def _format_layer_list(items, output_format):
+    """Render a layer/table listing in the requested output format.
+
+    :param list items: List of ``{"id", "type", "name"}`` dicts.
+    :param str output_format: One of ``plain``, ``shell``, ``json``.
+    :return: Formatted string ready to print.
+    :rtype: str
+    """
+    if output_format == "json":
+        return json.dumps(items, indent=4)
+    if output_format == "shell":
+        return "\n".join(
+            "{}|{}|{}".format(it["id"], it["type"], it["name"]) for it in items
+        )
+    # plain: aligned table
+    lines = [
+        "{:<4} {:<12} {}".format("ID", "Type", "Name"),
+        "{} {} {}".format("-" * 4, "-" * 12, "-" * 40),
+    ]
+    for it in items:
+        lines.append(
+            "{:<4} {:<12} {}".format(it["id"], str(it["type"])[:12], it["name"])
+        )
+    return "\n".join(lines)
+
+
+def _format_layer_info(info, output_format):
+    """Render single-layer metadata in the requested output format.
+
+    :param dict info: Layer metadata (``id``, ``name``, ``geometry_type``,
+        ``feature_count``, ``max_record_count``, ``supported_formats``,
+        ``fields``).
+    :param str output_format: One of ``plain``, ``shell``, ``json``.
+    :return: Formatted string ready to print.
+    :rtype: str
+    """
+    if output_format == "json":
+        return json.dumps(info, indent=4)
+
+    fields_str = ",".join(info.get("fields", []))
+    if output_format == "shell":
+        lines = [
+            "id={}".format(info.get("id", "")),
+            "name={}".format(info.get("name", "")),
+            "geometry_type={}".format(info.get("geometry_type", "")),
+            "feature_count={}".format(info.get("feature_count", "")),
+            "max_record_count={}".format(info.get("max_record_count", "")),
+            "supported_formats={}".format(info.get("supported_formats", "")),
+            "fields={}".format(fields_str),
+        ]
+        return "\n".join(lines)
+
+    # plain: aligned label/value
+    lines = [
+        "{:<18} {}".format("ID:", info.get("id", "")),
+        "{:<18} {}".format("Name:", info.get("name", "")),
+        "{:<18} {}".format("Geometry type:", info.get("geometry_type", "")),
+        "{:<18} {}".format("Feature count:", info.get("feature_count", "")),
+        "{:<18} {}".format("Max record count:", info.get("max_record_count", "")),
+        "{:<18} {}".format("Supported formats:", info.get("supported_formats", "")),
+        "{:<18} {}".format("Fields:", fields_str),
+    ]
+    return "\n".join(lines)
+
+
+def list_layers(service_url, output_format="plain"):
+    """Print the layers and tables available in a feature service.
 
     :param str service_url: URL of the FeatureServer or MapServer root.
+    :param str output_format: One of ``plain``, ``shell``, ``json``.
     """
     base = service_url.rstrip("/")
     try:
@@ -659,21 +731,54 @@ def list_layers(service_url):
             )
         )
 
-    all_items = info.get("layers", []) + info.get("tables", [])
-    if not all_items:
+    raw_items = info.get("layers", []) + info.get("tables", [])
+    if not raw_items:
         gs.message(_("No layers or tables found at the given service URL."))
         return
 
-    gs.message("{:<4} {:<12} {}".format("ID", "Type", "Name"))
-    gs.message("{} {} {}".format("-" * 4, "-" * 12, "-" * 40))
-    for item in all_items:
-        gs.message(
-            "{:<4} {:<12} {}".format(
-                item.get("id", "?"),
-                item.get("type", "Unknown")[:12],
-                item.get("name", "Unknown"),
-            )
-        )
+    items = [
+        {
+            "id": item.get("id", "?"),
+            "type": item.get("type", "Unknown"),
+            "name": item.get("name", "Unknown"),
+        }
+        for item in raw_items
+    ]
+    print(_format_layer_list(items, output_format))
+
+
+def describe_layer(
+    layer_info,
+    query_url,
+    where,
+    extent,
+    spatial_rel="esriSpatialRelIntersects",
+    output_format="plain",
+):
+    """Print metadata for a single layer without importing it.
+
+    :param dict layer_info: Service metadata from :func:`get_service_info`.
+    :param str query_url: AGS query endpoint URL (for the feature count).
+    :param str where: SQL WHERE expression.
+    :param str extent: Optional bounding box or ``""``.
+    :param str spatial_rel: Spatial relationship constant.
+    :param str output_format: One of ``plain``, ``shell``, ``json``.
+    """
+    count = get_feature_count(query_url, where, extent, spatial_rel)
+    info = {
+        "id": layer_info.get("id", ""),
+        "name": layer_info.get("name", ""),
+        "geometry_type": layer_info.get("geometryType", ""),
+        "feature_count": count,
+        "max_record_count": layer_info.get("maxRecordCount", ""),
+        "supported_formats": layer_info.get("supportedQueryFormats", ""),
+        "fields": [
+            f.get("name", "")
+            for f in layer_info.get("fields", [])
+            if isinstance(f, dict)
+        ],
+    }
+    print(_format_layer_info(info, output_format))
 
 
 def _select_format(supported_formats_str, preferred):
@@ -988,6 +1093,7 @@ def main():
     )
     max_offset = float(options["max_offset"]) if options["max_offset"] else None
     preferred_fmt = options["download_format"] or "auto"
+    output_format = options["format"] or "plain"
 
     flag_reproject = flags["r"]
     flag_list = flags["l"]
@@ -1001,7 +1107,7 @@ def main():
     # Layer-listing mode
     # ------------------------------------------------------------------
     if flag_list:
-        list_layers(url)
+        list_layers(url, output_format)
         return
 
     # ------------------------------------------------------------------
@@ -1015,6 +1121,20 @@ def main():
     # ------------------------------------------------------------------
     gs.message(_("Connecting to ArcGIS Server..."))
     layer_info = get_service_info(layer_url)
+
+    # ------------------------------------------------------------------
+    # Layer-info mode: no output requested -> describe and exit.
+    # ------------------------------------------------------------------
+    if not output:
+        describe_layer(
+            layer_info,
+            query_url,
+            where,
+            extent,
+            spatial_rel,
+            output_format,
+        )
+        return
 
     max_record_count = layer_info.get("maxRecordCount", 1000)
     if max_record_count <= 0:

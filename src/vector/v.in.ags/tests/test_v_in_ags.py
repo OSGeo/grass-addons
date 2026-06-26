@@ -667,6 +667,67 @@ class TestFetchFeaturesPageParams(unittest.TestCase):
 
 
 # ===========================================================================
+# Output formatting – layer list
+# ===========================================================================
+
+
+class TestFormatLayerList(unittest.TestCase):
+    ITEMS = [
+        {"id": 0, "type": "Feature Layer", "name": "States"},
+        {"id": 1, "type": "Table", "name": "Stats"},
+    ]
+
+    def test_json_roundtrips(self):
+        out = _mod._format_layer_list(self.ITEMS, "json")
+        self.assertEqual(json.loads(out), self.ITEMS)
+
+    def test_shell_is_pipe_delimited(self):
+        out = _mod._format_layer_list(self.ITEMS, "shell")
+        lines = out.splitlines()
+        self.assertEqual(lines[0], "0|Feature Layer|States")
+        self.assertEqual(lines[1], "1|Table|Stats")
+
+    def test_plain_contains_names_and_header(self):
+        out = _mod._format_layer_list(self.ITEMS, "plain")
+        self.assertIn("Name", out)
+        self.assertIn("States", out)
+        self.assertIn("Stats", out)
+
+
+# ===========================================================================
+# Output formatting – layer info
+# ===========================================================================
+
+
+class TestFormatLayerInfo(unittest.TestCase):
+    INFO = {
+        "id": 0,
+        "name": "States",
+        "geometry_type": "esriGeometryPolygon",
+        "feature_count": 51,
+        "max_record_count": 2000,
+        "supported_formats": "JSON,geoJSON,PBF",
+        "fields": ["STATE_NAME", "POP2020"],
+    }
+
+    def test_json_roundtrips(self):
+        out = _mod._format_layer_info(self.INFO, "json")
+        self.assertEqual(json.loads(out), self.INFO)
+
+    def test_shell_has_key_value_pairs(self):
+        out = _mod._format_layer_info(self.INFO, "shell")
+        self.assertIn("name=States", out)
+        self.assertIn("feature_count=51", out)
+        self.assertIn("fields=STATE_NAME,POP2020", out)
+
+    def test_plain_contains_values(self):
+        out = _mod._format_layer_info(self.INFO, "plain")
+        self.assertIn("States", out)
+        self.assertIn("51", out)
+        self.assertIn("STATE_NAME,POP2020", out)
+
+
+# ===========================================================================
 # Integration tests – real network, real GRASS
 # ===========================================================================
 

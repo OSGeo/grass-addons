@@ -9,14 +9,15 @@ transparently, and delegates the final import to *v.in.ogr* (default) or
 ### Transfer format
 
 *v.in.ags* negotiates the most efficient download format automatically
-(`format=auto`, the default). When the service advertises support for
+(`download_format=auto`, the default). When the service advertises support for
 **Esri Feature Buffer (PBF)**, that format is used; otherwise the module
 falls back to **GeoJSON**, and then to **ESRI JSON**. PBF is a compact
 binary format that reduces transfer size significantly compared with text
 formats. If PBF decoding fails at runtime the module retries the affected
 page with GeoJSON automatically.
 
-The format can also be set explicitly with the **format** option.
+The transfer format can also be set explicitly with the **download_format**
+option.
 
 ### Supported service types
 
@@ -38,7 +39,28 @@ The **url** parameter accepts:
 Use the **-l** flag to print all available layers in a service before
 importing.
 
+### Inspecting a layer without importing
+
+If **output** is omitted (and **-l** is not used), *v.in.ags* prints
+metadata for the resolved layer (id, name, geometry type, feature count,
+maximum record count, supported transfer formats, and field names) and
+exits without importing anything. This is useful for inspecting a service
+before committing to a download.
+
 ## NOTES
+
+### Output format
+
+The **format** option controls how text output is printed and applies to
+the **-l** layer listing and the layer-inspection mode described above:
+
+- `plain` (default): human-readable text.
+- `shell`: shell-script style output (`key=value` for layer info,
+  `id|type|name` per line for the layer listing).
+- `json`: JSON for downstream parsing.
+
+The **format** option does not affect imports; it is ignored when
+**output** is given.
 
 ### Attribute filtering
 
@@ -171,13 +193,21 @@ v.in.ags \
   order_by="POP2020 DESC"
 ```
 
-### Force GeoJSON format (disable PBF)
+### Force GeoJSON transfer format (disable PBF)
 
 ```sh
 v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
   output=usa_states \
-  format=geojson
+  download_format=geojson
+```
+
+### Inspect a layer as JSON without importing
+
+```sh
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  format=json
 ```
 
 ### Import attribute table only (no geometry)
@@ -201,7 +231,7 @@ gs.run_command(
     where="POP2020 > 1000000",
     fields="STATE_NAME,STATE_ABBR,POP2020",
     order_by="POP2020 DESC",
-    format="auto",
+    download_format="auto",
     overwrite=True,
 )
 ```

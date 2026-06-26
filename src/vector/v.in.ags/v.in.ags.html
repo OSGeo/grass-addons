@@ -27,13 +27,19 @@ OGR
 <b>v.in.ags --help</b><br>
 <div id="synopsis">
 <b>v.in.ags</b>
-[<b>-rl</b>]
+[<b>-rlg</b>]
 <b>url</b>=<em>string</em>
-<b>output</b>=<em>name</em>
-[<b>where</b>=<em>sql_query</em>]
+[<b>output</b>=<em>name</em>]
+[<b>where</b>=<em>string</em>]
 [<b>fields</b>=<em>string</em>]
 [<b>extent</b>=<em>string</em>]
 [<b>layer</b>=<em>integer</em>]
+[<b>spatial_rel</b>=<em>string</em>]
+[<b>order_by</b>=<em>string</em>]
+[<b>geometry_precision</b>=<em>integer</em>]
+[<b>max_offset</b>=<em>float</em>]
+[<b>download_format</b>=<em>string</em>]
+<b>format</b>=<em>name</em>
 [--<b>overwrite</b>]
 [--<b>verbose</b>]
 [--<b>quiet</b>]
@@ -46,6 +52,8 @@ OGR
   <dd>Reproject data to match the current GRASS project CRS (uses v.import)</dd>
   <dt><b>-l</b></dt>
   <dd>List available layers in the service and exit without importing</dd>
+  <dt><b>-g</b></dt>
+  <dd>Skip geometry; import attribute table only</dd>
   <dt><b>--overwrite</b></dt>
   <dd>Allow output files to overwrite existing files</dd>
   <dt><b>--verbose</b></dt>
@@ -63,12 +71,14 @@ OGR
   <dd>URL of the ArcGIS Server FeatureServer or MapServer layer
     (e.g., https://host/arcgis/rest/services/Name/FeatureServer/0).
     If a service root URL is given (without a layer index), use the
-    <b>layer</b> option to specify which layer to import.</dd>
+    <b>layer</b> option.</dd>
 
-  <dt><b>output</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
-  <dd>Name of the output vector map</dd>
+  <dt><b>output</b>=<em>name</em></dt>
+  <dd>Name for output vector map</dd>
+  <dd>When omitted (and <b>-l</b> is not used), the layer metadata is
+    printed and no import is performed.</dd>
 
-  <dt><b>where</b>=<em>sql_query</em></dt>
+  <dt><b>where</b>=<em>string</em></dt>
   <dd>SQL WHERE clause to filter features</dd>
   <dd>SQL expression used to select a subset of features.
     Default is <tt>1=1</tt> which selects all features.</dd>
@@ -90,6 +100,49 @@ OGR
   <dd>Zero-based layer index to use when the URL points to a FeatureServer
     or MapServer root rather than a specific layer endpoint.</dd>
   <dd>Default: <em>0</em></dd>
+
+  <dt><b>spatial_rel</b>=<em>string</em></dt>
+  <dd>Spatial relationship used with the extent filter</dd>
+  <dd>ArcGIS Server spatial relationship constant that controls how
+    features are matched against the bounding box (<b>extent</b> option).
+    Only used when <b>extent</b> is specified.</dd>
+  <dd>Options: <em>esriSpatialRelIntersects, esriSpatialRelContains,
+    esriSpatialRelCrosses, esriSpatialRelEnvelopeIntersects,
+    esriSpatialRelIndexIntersects, esriSpatialRelOverlaps,
+    esriSpatialRelTouches, esriSpatialRelWithin</em></dd>
+  <dd>Default: <em>esriSpatialRelIntersects</em></dd>
+
+  <dt><b>order_by</b>=<em>string</em></dt>
+  <dd>ORDER BY fields</dd>
+  <dd>Comma-separated list of field names optionally followed by
+    <tt>ASC</tt> or <tt>DESC</tt>, for example
+    <tt>STATE_NAME ASC, POP2020 DESC</tt>.</dd>
+
+  <dt><b>geometry_precision</b>=<em>integer</em></dt>
+  <dd>Number of decimal places for output coordinates</dd>
+  <dd>Limits coordinate precision in the downloaded data. Reduces transfer
+    size at the cost of spatial accuracy. Leave unset to use the server
+    default.</dd>
+
+  <dt><b>max_offset</b>=<em>float</em></dt>
+  <dd>Maximum allowable offset for geometry generalisation</dd>
+  <dd>Simplification tolerance in the output spatial reference units. Larger
+    values produce fewer vertices. Leave unset to disable generalisation.</dd>
+
+  <dt><b>download_format</b>=<em>string</em></dt>
+  <dd>Download format</dd>
+  <dd>Transfer format to request from the server. <tt>auto</tt> detects the
+    best format supported by the service (pbf &gt; geojson &gt; json).
+    Explicit values override auto-detection.</dd>
+  <dd>Options: <em>auto, pbf, geojson, json</em></dd>
+  <dd>Default: <em>auto</em></dd>
+
+  <dt><b>format</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+  <dd>Output format</dd>
+  <dd>Controls how text output is printed for the <b>-l</b> listing and the
+    layer-inspection mode. Ignored when importing.</dd>
+  <dd>Options: <em>plain, shell, json</em></dd>
+  <dd>Default: <em>plain</em></dd>
 </dl>
 
 <h2>DESCRIPTION</h2>
@@ -102,21 +155,30 @@ transparently, and delegates the final import to <em>v.in.ogr</em> (default)
 or <em>v.import</em> (with the <b>-r</b> flag for on-the-fly reprojection).
 </p>
 
+<h3>Transfer format</h3>
+
 <p>
-Geometry is always requested from the server in WGS84 (EPSG:4326) so that
-the intermediate GeoJSON file is standards-compliant (RFC 7946). When the
-current GRASS project is not in WGS84, use <b>-r</b> to reproject the data
-during import.
+<em>v.in.ags</em> negotiates the most efficient download format automatically
+(<tt>download_format=auto</tt>, the default). When the service advertises
+support for <b>Esri Feature Buffer (PBF)</b>, that format is used; otherwise
+the module falls back to <b>GeoJSON</b>, and then to <b>ESRI JSON</b>. PBF is
+a compact binary format that reduces transfer size significantly compared with
+text formats. If PBF decoding fails at runtime the module retries the affected
+page with GeoJSON automatically.
+</p>
+
+<p>
+The transfer format can also be set explicitly with the
+<b>download_format</b> option.
 </p>
 
 <h3>Supported service types</h3>
 
 <p>
 Both <b>FeatureServer</b> and <b>MapServer</b> layer endpoints are supported,
-provided the layer exposes the <tt>/query</tt> operation and supports GeoJSON
-output (<tt>f=geojson</tt>). ArcGIS Server 10.3 or later is required for
-pagination support; on older servers only the first page of results (up to
-<tt>maxRecordCount</tt>) is downloaded.
+provided the layer exposes the <tt>/query</tt> operation. ArcGIS Server 10.3
+or later is required for pagination and GeoJSON support; PBF support requires
+ArcGIS Server 10.6 or ArcGIS Online.
 </p>
 
 <h3>URL formats</h3>
@@ -133,13 +195,41 @@ pagination support; on older servers only the first page of results (up to
 <p>Use the <b>-l</b> flag to print all available layers in a service before
 importing.</p>
 
+<h3>Inspecting a layer without importing</h3>
+
+<p>
+If <b>output</b> is omitted (and <b>-l</b> is not used), <em>v.in.ags</em>
+prints metadata for the resolved layer (id, name, geometry type, feature
+count, maximum record count, supported transfer formats, and field names) and
+exits without importing anything. This is useful for inspecting a service
+before committing to a download.
+</p>
+
 <h2>NOTES</h2>
+
+<h3>Output format</h3>
+
+<p>
+The <b>format</b> option controls how text output is printed and applies to
+the <b>-l</b> layer listing and the layer-inspection mode described above:
+</p>
+<ul>
+  <li><tt>plain</tt> (default): human-readable text.</li>
+  <li><tt>shell</tt>: shell-script style output (<tt>key=value</tt> for layer
+      info, <tt>id|type|name</tt> per line for the layer listing).</li>
+  <li><tt>json</tt>: JSON for downstream parsing.</li>
+</ul>
+
+<p>
+The <b>format</b> option does not affect imports; it is ignored when
+<b>output</b> is given.
+</p>
 
 <h3>Attribute filtering</h3>
 
 <p>
 The <b>where</b> option accepts any SQL expression supported by the ArcGIS
-Server being queried (standard SQL-92 subset). Examples:
+Server being queried (SQL-92 subset). Examples:
 </p>
 
 <div class="code"><pre>
@@ -153,16 +243,39 @@ TYPE IN ('city', 'town') AND AREA_KM2 &lt; 500
 <p>
 The <b>extent</b> option accepts a bounding box
 <tt>xmin,ymin,xmax,ymax</tt> in geographic degrees (WGS84 / EPSG:4326).
-This is applied as an intersects filter on the server side before features
-are downloaded, which can significantly reduce transfer size for large layers.
+This is applied as a server-side spatial filter before features are
+downloaded, which can significantly reduce transfer size for large layers.
+The relationship between features and the bounding box is controlled by
+<b>spatial_rel</b> (default: <tt>esriSpatialRelIntersects</tt>).
 </p>
 
 <h3>Field selection</h3>
 
 <p>
-Use <b>fields</b> to restrict which attribute columns are retrieved. This
-reduces download size when only a subset of attributes is needed. The default
-<tt>*</tt> retrieves all fields.
+Use <b>fields</b> to restrict which attribute columns are retrieved. The
+default <tt>*</tt> retrieves all fields.
+</p>
+
+<h3>Result ordering</h3>
+
+<p>
+<b>order_by</b> accepts a comma-separated list of field names optionally
+followed by <tt>ASC</tt> or <tt>DESC</tt>, for example
+<tt>STATE_NAME ASC, POP2020 DESC</tt>.
+</p>
+
+<h3>Geometry options</h3>
+
+<p>
+Use <b>geometry_precision</b> to cap the number of coordinate decimal places
+returned by the server (reduces transfer size at the cost of spatial
+accuracy). Use <b>max_offset</b> to request server-side geometry
+generalisation; larger values produce fewer vertices.
+</p>
+
+<p>
+The <b>-g</b> flag skips geometry entirely and imports the attribute table
+only.
 </p>
 
 <h3>Pagination</h3>
@@ -182,9 +295,16 @@ and only the first page of results is imported.
 <h3>Coordinate reference system</h3>
 
 <p>
-All data is downloaded in WGS84. When using the default <em>v.in.ogr</em>
-import the output map will be in WGS84; ensure your project is in WGS84 or
-use <b>-r</b> so that <em>v.import</em> reprojects the data automatically.
+All data is requested from the server in WGS84 (EPSG:4326). The default import
+with <em>v.in.ogr</em> produces a map in WGS84; use <b>-r</b> so that
+<em>v.import</em> reprojects into the current project CRS automatically.
+</p>
+
+<h3>Temporary files</h3>
+
+<p>
+A temporary file (GeoJSON or ESRI JSON) is created in the system temporary
+directory during import and removed automatically on exit.
 </p>
 
 <h2>EXAMPLES</h2>
@@ -195,7 +315,7 @@ use <b>-r</b> so that <em>v.import</em> reprojects the data automatically.
 v.in.ags -l url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer
 </pre></div>
 
-<h3>Import all features from a FeatureServer layer</h3>
+<h3>Import all features (auto format negotiation)</h3>
 
 <div class="code"><pre>
 v.in.ags \
@@ -216,7 +336,8 @@ v.in.ags -r \
 
 <h3>Import with a spatial bounding-box filter</h3>
 
-<p>Import features intersecting a bounding box over the US Pacific Northwest:</p>
+<p>Import features intersecting a bounding box over the US Pacific Northwest
+(WGS84 coordinates):</p>
 
 <div class="code"><pre>
 v.in.ags -r \
@@ -225,22 +346,61 @@ v.in.ags -r \
   extent="-125,42,-116,49"
 </pre></div>
 
-<h3>Import selected fields only</h3>
+<h3>Change spatial relationship</h3>
+
+<p>Import only features <b>completely within</b> the bounding box:</p>
 
 <div class="code"><pre>
 v.in.ags \
   url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
-  output=usa_states_simple \
-  fields="STATE_NAME,STATE_ABBR,POP2020"
+  output=pnw_states_within \
+  extent="-125,42,-116,49" \
+  spatial_rel=esriSpatialRelWithin
 </pre></div>
 
-<h3>Import from a MapServer layer using the service root URL</h3>
+<h3>Import with reduced precision and simplified geometry</h3>
 
 <div class="code"><pre>
 v.in.ags \
-  url=https://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer \
-  layer=2 \
-  output=usa_highways
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=counties_simplified \
+  geometry_precision=4 \
+  max_offset=0.001
+</pre></div>
+
+<h3>Import selected fields in a sorted order</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states_slim \
+  fields="STATE_NAME,STATE_ABBR,POP2020" \
+  order_by="POP2020 DESC"
+</pre></div>
+
+<h3>Force GeoJSON transfer format (disable PBF)</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  download_format=geojson
+</pre></div>
+
+<h3>Inspect a layer as JSON without importing</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  format=json
+</pre></div>
+
+<h3>Import attribute table only (no geometry)</h3>
+
+<div class="code"><pre>
+v.in.ags -g \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_state_attrs
 </pre></div>
 
 <h3>Python scripting example</h3>
@@ -254,6 +414,9 @@ gs.run_command(
     url="https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
     output="usa_states",
     where="POP2020 &gt; 1000000",
+    fields="STATE_NAME,STATE_ABBR,POP2020",
+    order_by="POP2020 DESC",
+    download_format="auto",
     overwrite=True,
 )
 </pre></div>
@@ -272,8 +435,18 @@ gs.run_command(
     </a>
   </li>
   <li>
+    <a href="https://github.com/Esri/arcgis-pbf">
+      Esri Feature Buffer (PBF) specification
+    </a>
+  </li>
+  <li>
     <a href="https://gdal.org/drivers/vector/geojson.html">
       OGR GeoJSON driver
+    </a>
+  </li>
+  <li>
+    <a href="https://gdal.org/drivers/vector/esrijson.html">
+      OGR ESRI JSON driver
     </a>
   </li>
   <li>
