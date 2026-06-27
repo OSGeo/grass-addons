@@ -259,7 +259,7 @@ def write_stl(output_path, vertices, triangles):
 
     Format: 80-byte header + uint32 triangle count +
             (float32 normal[3] + float32 v0[3] + float32 v1[3] + float32 v2[3]
-             + uint16 attribute) × n_triangles  =  50 bytes per triangle.
+             + uint16 attribute) x n_triangles  =  50 bytes per triangle.
 
     Normals are computed from the cross product of the first two edge vectors
     and stored as unit vectors, which is what most slicers expect (though many
