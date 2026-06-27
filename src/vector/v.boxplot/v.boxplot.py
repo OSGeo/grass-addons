@@ -83,6 +83,15 @@
 # %end
 
 # %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
 # % key: order
 # % type: string
 # % label: Sort boxplots
@@ -130,7 +139,7 @@
 # %end
 
 # %option G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % label: Color of the boxplots
 # % description: Color of boxplots
 # % required: no
@@ -139,7 +148,7 @@
 # %end
 
 # %option G_OPT_CN
-# % key: bx_blcolor
+# % key: box_bordercolor
 # % label: Color of the borders of the boxplots
 # % description: Color of the borderlines of the boxplots
 # % required: no
@@ -148,7 +157,7 @@
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
 # % description: The width of the boxplots (0,1])
@@ -159,18 +168,29 @@
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
-# % label: boxplot linewidth
-# % description: The boxplots border, whisker and cap line width
+# % label: Boxplot line width
+# % description: Width of the boxplot border lines.
 # % required: no
 # % guisection: Boxplot format
 # % answer: 1
 # %end
 
 # %option
-# % key: median_lw
+# % key: whisker_linewidth
 # % type: double
+# % label: Whisker line width
+# % description: Width of the whisker and cap lines.
+# % required: no
+# % guisection: Boxplot format
+# % answer: 1
+# %end
+
+# %option
+# % key: median_linewidth
+# % type: double
+# % label: Median line width
 # % description: width of the boxplot median line
 # % required: no
 # % guisection: Boxplot format
@@ -544,24 +564,26 @@ def main():
             dimensions = [6, 4]
         else:
             dimensions = [4, 6]
-    blcolor = get_valid_color(options["bx_blcolor"])
-    bxcolor = get_valid_color(options["bx_color"])
+    blcolor = get_valid_color(options["box_bordercolor"])
+    bxcolor = get_valid_color(options["box_color"])
+    box_linewidth = float(options["box_linewidth"])
+    whisker_linewidth = float(options["whisker_linewidth"])
     boxprops = {
         "color": blcolor,
         "facecolor": bxcolor,
-        "linewidth": float(options["bx_lw"]),
+        "linewidth": box_linewidth,
     }
     median_color = get_valid_color(options["median_color"])
     medianprops = {
         "color": median_color,
-        "linewidth": float(options["median_lw"]),
+        "linewidth": float(options["median_linewidth"]),
     }
     whiskerprops = {
-        "linewidth": float(options["bx_lw"]),
+        "linewidth": whisker_linewidth,
         "color": blcolor,
     }
     capprops = {
-        "linewidth": float(options["bx_lw"]),
+        "linewidth": whisker_linewidth,
         "color": blcolor,
     }
     flier_color = get_valid_color(options["flier_color"])
@@ -570,9 +592,9 @@ def main():
         "markersize": float(options["flier_size"]),
         "markerfacecolor": flier_color,
         "markeredgecolor": flier_color,
-        "markeredgewidth": float(options["bx_lw"]),
+        "markeredgewidth": box_linewidth,
     }
-    bxp_width = float(options["bx_width"])
+    bxp_width = float(options["box_width"])
     group_by = options["group_by"] if options["group_by"] else None
     map_outliers = options["map_outliers"] if options["map_outliers"] else None
     overlap_basis = options["overlap_basis"] if options["overlap_basis"] else "whisker"
@@ -670,6 +692,11 @@ def main():
     # Rotate the labels on the categorical (group) axis
     if flag_r:
         ax.tick_params(axis="y" if horizontal else "x", labelrotation=90)
+
+    # Plot title (empty means no title)
+    if options["title"]:
+        ax.set_title(options["title"])
+
     plt.tight_layout()
 
     # Set limits value axis (the value axis is x when horizontal, else y)

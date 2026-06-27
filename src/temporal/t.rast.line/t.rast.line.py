@@ -102,6 +102,15 @@
 # %end
 
 # %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
 # % key: x_value
 # % type: string
 # % label: date points
@@ -691,6 +700,10 @@ def main(options, flags):
         plt.ylabel(options["y_label"])
     else:
         plt.ylabel(t_info["name"])
+
+    # Set plot title (empty means no title)
+    if options["title"]:
+        plt.title(options["title"])
 
     # Set x-axis label if relative strds
     if temp_type == "relative":

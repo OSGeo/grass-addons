@@ -92,6 +92,24 @@
 # %end
 
 # %option
+# % key: x_label
+# % type: string
+# % label: x-axis label
+# % description: Label for the x-axis. If left empty, the name of the x column is used.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
+# % key: y_label
+# % type: string
+# % label: y-axis label
+# % description: Label for the y-axis. If left empty, the name of the y column is used.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
 # % key: fontsize
 # % type: double
 # % label: Font size
@@ -630,6 +648,11 @@ def main(options, flags):
         where=sql_stat,
     ).splitlines()
     X_name, Y_name = df[0].split("|")[0:2]
+    # Optional axis-label overrides; fall back to the column names.
+    if options["x_label"]:
+        X_name = options["x_label"]
+    if options["y_label"]:
+        Y_name = options["y_label"]
     X = [float(i.split("|")[0]) for i in df[1:]]
     Y = [float(j.split("|")[1]) for j in df[1:]]
     n = 2

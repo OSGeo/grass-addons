@@ -104,12 +104,21 @@
 # %end
 
 # %option
-# % key: boxplot_width
+# % key: box_width
 # % type: double
 # % label: Set boxplot width
 # % description: The width of the boxplots (0,1])
 # % required: no
 # % guisection: Plot format
+# %end
+
+# %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
 # %end
 
 # %flag
@@ -120,11 +129,49 @@
 # %end
 
 # %options G_OPT_CN
-# % key: bxcolor
+# % key: box_color
 # % type: string
 # % label: Boxplot color
 # % description: Color of the boxplots. See manual page for color notation options.
 # % required: no
+# % guisection: Boxplot format
+# %end
+
+# %option
+# % key: box_linewidth
+# % type: double
+# % label: Boxplot line width
+# % description: Width of the boxplot border lines.
+# % required: no
+# % answer: 1
+# % guisection: Boxplot format
+# %end
+
+# %option
+# % key: median_linewidth
+# % type: double
+# % label: Median line width
+# % description: Width of the boxplot median line.
+# % required: no
+# % answer: 1.1
+# % guisection: Boxplot format
+# %end
+
+# %option G_OPT_C
+# % key: median_color
+# % label: Median line color
+# % description: Color of the boxplot median line. If left empty, a contrasting color is chosen automatically based on the box color.
+# % required: no
+# % guisection: Boxplot format
+# %end
+
+# %option
+# % key: whisker_linewidth
+# % type: double
+# % label: Whisker line width
+# % description: Width of the whisker and cap lines.
+# % required: no
+# % answer: 1
 # % guisection: Boxplot format
 # %end
 
@@ -274,14 +321,34 @@ def main(options, flags):
             dimensions = [6, 6]
         else:
             dimensions = [8, 4]
-    bxp_width = options["boxplot_width"]
+    bxp_width = options["box_width"]
     if bool(bxp_width):
         bxp_width = float(bxp_width)
         if bxp_width > 1 or bxp_width <= 0:
             gs.fatal(_("The boxplot width needs to in the interval (0,1]"))
     else:
         bxp_width = 0.65
-    set_bxcolor = options["bxcolor"]
+    # Line widths for box border, median and whisker/cap lines.
+    box_linewidth = float(options["box_linewidth"]) if options["box_linewidth"] else 1
+    median_linewidth = (
+        float(options["median_linewidth"]) if options["median_linewidth"] else 1.1
+    )
+    whisker_linewidth = (
+        float(options["whisker_linewidth"]) if options["whisker_linewidth"] else 1
+    )
+    # Optional explicit median color (overrides the automatic contrast color).
+    if options["median_color"]:
+        if ":" in options["median_color"]:
+            user_median_color = [
+                int(_x) / 255 for _x in options["median_color"].split(":")
+            ]
+        else:
+            user_median_color = options["median_color"]
+        if not mpl.colors.is_color_like(user_median_color):
+            gs.fatal(_("{} is not a valid color").format(options["median_color"]))
+    else:
+        user_median_color = None
+    set_bxcolor = options["box_color"]
     if set_bxcolor:
         if set_bxcolor[0] == "#":
             bxcolor = set_bxcolor[1:]
@@ -304,7 +371,9 @@ def main(options, flags):
                 )
             )
         brightness = bxcolor[0] * 0.299 + bxcolor[1] * 0.587 + bxcolor[2] * 0.114
-        if bxcolor == (0.0, 0.0, 0.0, 0.0):
+        if user_median_color is not None:
+            mcolor = user_median_color
+        elif bxcolor == (0.0, 0.0, 0.0, 0.0):
             mcolor = "black"
         elif brightness > 149 / 255:
             mcolor = [0, 0, 0, 0.7]
@@ -450,6 +519,9 @@ def main(options, flags):
 
     # Plot the figure
     _, ax = plt.subplots(figsize=dimensions)
+    medianprops = {"linewidth": median_linewidth}
+    if user_median_color is not None and not set_bxcolor:
+        medianprops["color"] = user_median_color
     bxplot = ax.bxp(
         boxes,
         showfliers=True,
@@ -457,6 +529,10 @@ def main(options, flags):
         vert=vertical,
         shownotches=notch,
         patch_artist=set_bxcolor,
+        boxprops={"linewidth": box_linewidth},
+        medianprops=medianprops,
+        whiskerprops={"linewidth": whisker_linewidth},
+        capprops={"linewidth": whisker_linewidth},
         flierprops={
             "marker": flier_marker,
             "markersize": flier_size,
@@ -469,6 +545,10 @@ def main(options, flags):
             patch.set_facecolor(color)
         for median, mcolor in zip(bxplot["medians"], mcolor):
             median.set_color(mcolor)
+
+    # Plot title (empty means no title)
+    if options["title"]:
+        ax.set_title(options["title"])
 
     # Label orientation
     if bool(options["rotate_labels"]) and vertical:

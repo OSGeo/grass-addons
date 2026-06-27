@@ -312,6 +312,35 @@
 # % guisection: Output
 # %end
 
+# %option
+# % key: fontsize
+# % type: double
+# % label: Font size
+# % description: Base font size of plot text.
+# % answer: 10
+# % required: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: line_width
+# % type: double
+# % label: Line width
+# % description: Width of the series lines.
+# % answer: 1
+# % required: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
 # %flag
 # % key: y
 # % label: Use a common y-axis scale for both datasets
@@ -1625,6 +1654,9 @@ def plot_result(
     same_yscale=False,
     line_color=None,
     line_color2=None,
+    fontsize=10,
+    line_width=1,
+    title=None,
 ):
     """Build the multi-panel STL plot, in the style of R's plot(stl(...)).
 
@@ -1676,6 +1708,7 @@ def plot_result(
     # A shared y-axis only makes sense with two datasets.
     shared_scale = have_second and same_yscale
 
+    plt.rcParams["font.size"] = fontsize
     fig, axes = plt.subplots(4, 1, figsize=dimensions, sharex=True)
     panels = [
         ("Observed", result.observed, result2.observed if have_second else None),
@@ -1705,7 +1738,7 @@ def plot_result(
                 color=primary_color,
             )
         else:
-            ax.plot(comp.index, comp.values, linewidth=1, color=primary_color)
+            ax.plot(comp.index, comp.values, linewidth=line_width, color=primary_color)
 
         if label == "Trend" and trend_fit is not None:
             trend_handles += draw_trend_lines(
@@ -1723,7 +1756,7 @@ def plot_result(
             if not have_second:
                 # Single-dataset: legend on the panel (stats or plain names).
                 if ax.get_legend_handles_labels()[0]:
-                    ax.legend(loc="best", fontsize="small", frameon=False)
+                    ax.legend(loc="best", fontsize=fontsize * 0.9, frameon=False)
 
         # Colour the left-axis ticks to match the first series only when the two
         # datasets sit on separate (twin) axes; with a shared scale the axis is
@@ -1748,7 +1781,7 @@ def plot_result(
                     color=color2,
                 )
             else:
-                ax2.plot(comp2.index, comp2.values, linewidth=1, color=color2)
+                ax2.plot(comp2.index, comp2.values, linewidth=line_width, color=color2)
             if not shared_scale:
                 ax2.tick_params(axis="y", labelcolor=color2)
                 ax2.margins(x=0.01)
@@ -1769,7 +1802,7 @@ def plot_result(
 
         if have_second and label == "Trend" and trend_handles:
             ax.legend(
-                handles=trend_handles, loc="best", fontsize="small", frameon=False
+                handles=trend_handles, loc="best", fontsize=fontsize * 0.9, frameon=False
             )
 
         ax.set_ylabel(label)
@@ -1781,11 +1814,15 @@ def plot_result(
         line1 = mpl.lines.Line2D([], [], color=color1, linewidth=1, label=label1)
         line2 = mpl.lines.Line2D([], [], color=color2, linewidth=1, label=label2)
         observed_ax.legend(
-            handles=[line1, line2], loc="best", fontsize="small", frameon=False
+            handles=[line1, line2], loc="best", fontsize=fontsize * 0.9, frameon=False
         )
 
     axes[-1].set_xlabel("Time step" if temporal_type == "relative" else "Date")
     fig.align_ylabels(axes)
+
+    # Plot title (empty means no title)
+    if title:
+        fig.suptitle(title)
 
     if output:
         fig.tight_layout()
@@ -2112,6 +2149,9 @@ def main(options, flags):
     vector = options["vector"]
     plot_dimensions = options["plot_dimensions"]
     dpi = float(options["dpi"]) if options["dpi"] else 300
+    fontsize = float(options["fontsize"]) if options["fontsize"] else 10
+    line_width = float(options["line_width"]) if options["line_width"] else 1
+    title = options["title"]
 
     robust = flags["r"]
     show_ols = flags["o"]
@@ -2276,6 +2316,9 @@ def main(options, flags):
         same_yscale=same_yscale,
         line_color=line_color,
         line_color2=line_color2,
+        fontsize=fontsize,
+        line_width=line_width,
+        title=title,
     )
 
 
