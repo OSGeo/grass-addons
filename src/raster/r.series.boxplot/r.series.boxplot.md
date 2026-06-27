@@ -58,7 +58,7 @@ the colors for the boxplots, rotates the labels and sets the fontsize to
 ```sh
 r.series.boxplot plot_dimensions=12,6 \
 map=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 \
-bxcolor=green rotate_labels=45 fontsize=14
+box_color=green rotate_labels=45 fontsize=14
 ```
 
 See [(https://matplotlib.org/stable/tutorials/colors/colors.html](https://matplotlib.org/stable/tutorials/colors/colors.html)
@@ -74,7 +74,7 @@ Same example as above, but this time, the outliers are plotted as well
 ```sh
 r.series.boxplot -o plot_dimensions=12,6 rotate_labels=45 fontsize=14 \
 map=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50 \
-flier_color=blue bxcolor=green \
+flier_color=blue box_color=green \
 text_labels="2002 10,2002 20,2002 30,2002 40,2002 50"
 ```
 

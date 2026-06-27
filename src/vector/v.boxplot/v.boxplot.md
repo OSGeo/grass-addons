@@ -14,12 +14,12 @@ the colors of various boxplot components. By default, the resulting plot
 is displayed on the screen. However, users can save the plot to a file
 by specifying the desired width, height, and resolution. The format of
 the saved file is determined by the provided file extension. For
-example, if `plot_output = outputfile.png`, the plot will be saved as a
+example, if `output = outputfile.png`, the plot will be saved as a
 PNG file.
 
 ### Outlier map
 
-Setting **outliers_map** creates a vector map with only features whose
+Setting **map_outliers** creates a vector map with only features whose
 **column** value is a boxplot outlier. With **group_by**, outliers are computed
 separately per group. The output keeps the original attributes and adds:
 
