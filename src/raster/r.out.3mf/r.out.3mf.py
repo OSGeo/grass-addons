@@ -9,9 +9,7 @@
 #
 # COPYRIGHT: (C) 2026 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+#            SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
@@ -113,12 +111,17 @@
 
 # %flag
 # % key: m
-# % description: Hollow mold mode — open-bottom shell for kinetic sand or casting molds
+# % description: Hollow mold mode (open-bottom shell for kinetic sand or casting molds)
+# %end
+
+# %flag
+# % key: r
+# % description: Export the full input raster extent instead of the current region
 # %end
 
 import os
-import sys
 import math
+import atexit
 import zipfile
 from io import BytesIO
 
@@ -217,8 +220,8 @@ def _model_xml(vertices, triangles, tri_colors, color_palette, units):
         '<?xml version="1.0" encoding="UTF-8"?>',
         f'<model unit="{units}" xml:lang="en-US"',
         f"       {ns_block}>",
-        '  <metadata name="Application">GRASS GIS r.out.3mf</metadata>',
-        '  <metadata name="Description">DEM exported from GRASS GIS</metadata>',
+        '  <metadata name="Application">GRASS r.out.3mf</metadata>',
+        '  <metadata name="Description">DEM exported from GRASS</metadata>',
         "  <resources>",
     ]
     if use_color:
@@ -264,7 +267,8 @@ def write_stl(output_path, vertices, triangles):
     """
     import struct
 
-    header = b"GRASS GIS r.out.3mf binary STL export" + b"\x00" * (80 - 37)
+    title = b"GRASS r.out.3mf binary STL export"
+    header = title + b"\x00" * (80 - len(title))
     n_tris = len(triangles)
 
     buf = BytesIO()
@@ -574,33 +578,37 @@ def read_raster(name, resolution):
     """
     Read a GRASS raster into a float64 numpy array via grass.script.array.
 
-    Null cells are filled by nearest-neighbour distance transform.
+    Null cells are filled with the native *r.fillnulls* spline interpolation
+    into a temporary raster (removed at exit) before the array is read, so a
+    watertight mesh can be built without holes. This keeps null handling inside
+    GRASS instead of relying on an optional NumPy/SciPy fill.
     """
     if resolution > 1:
         region = gs.region()
         new_res = region["ewres"] * resolution
         gs.run_command("g.region", res=new_res, flags="a", quiet=True)
-        gs.message(f"Region resampled to {new_res:.2f} m resolution.")
+        gs.message(_("Region resampled to {:.2f} resolution.").format(new_res))
+
+    null_cells = int(
+        gs.parse_command("r.univar", map=name, flags="g", quiet=True)["null_cells"]
+    )
+    if null_cells > 0:
+        gs.message(_("Filling null cells with r.fillnulls..."))
+        filled = gs.append_node_pid("tmp_r_out_3mf_filled")
+        atexit.register(
+            gs.run_command,
+            "g.remove",
+            type="raster",
+            name=filled,
+            flags="f",
+            quiet=True,
+            errors="ignore",
+        )
+        gs.run_command("r.fillnulls", input=name, output=filled, quiet=True)
+        name = filled
 
     arr = garray.array(mapname=name)
-    data = np.array(arr, dtype=np.float64)
-
-    null_mask = None
-    if hasattr(arr, "mask") and np.any(arr.mask):
-        null_mask = np.asarray(arr.mask, dtype=bool)
-    elif np.any(np.isnan(data)):
-        null_mask = np.isnan(data)
-
-    if null_mask is not None and null_mask.any():
-        gs.message("Filling null cells with nearest-neighbour interpolation ...")
-        from scipy.ndimage import distance_transform_edt
-
-        idx = distance_transform_edt(
-            null_mask, return_distances=False, return_indices=True
-        )
-        data = data[tuple(idx)]
-
-    return data
+    return np.array(arr, dtype=np.float64)
 
 
 def main():
@@ -618,6 +626,7 @@ def main():
     out_format = options["format"].lower()
     normalize = flags["n"]
     hollow = flags["m"]
+    full_raster = flags["r"]
 
     # Enforce correct extension regardless of what the user typed
     for ext in (".3mf", ".stl"):
@@ -626,20 +635,51 @@ def main():
             break
     output_path += f".{out_format}"
 
-    # STL carries no color data — warn rather than silently discard
-    if out_format == "stl" and color_scheme == "elevation":
-        gs.warning(
-            "colors=elevation is ignored for STL output. "
-            "Use format=3mf to retain color metadata."
+    # The parser checks --overwrite against the name the user typed, but the
+    # extension may have just been rewritten, so re-check the real output file.
+    if os.path.exists(output_path) and not gs.overwrite():
+        gs.fatal(
+            _("Output file '{}' already exists. Use --overwrite to replace it.").format(
+                output_path
+            )
         )
 
-    gs.run_command("g.region", raster=input_raster, quiet=True)
-    gs.message(f"Reading raster: {input_raster}")
+    # STL carries no color data, warn rather than silently discard
+    if out_format == "stl" and color_scheme == "elevation":
+        gs.warning(
+            _(
+                "Option colors=elevation is ignored for STL output. "
+                "Use format=3mf to retain color metadata."
+            )
+        )
+
+    # Work in a temporary region so the user's current region is restored
+    # when the tool exits, even on error. By default the current region is
+    # respected; -r expands to the full input raster extent.
+    gs.use_temp_region()
+    atexit.register(gs.del_temp_region)
+    if full_raster:
+        gs.run_command("g.region", raster=input_raster, quiet=True)
+    gs.message(_("Reading raster map <{}>...").format(input_raster))
 
     try:
         elev = read_raster(input_raster, resolution)
     except Exception as e:
-        gs.fatal(f"Failed to read raster: {e}")
+        gs.fatal(
+            _("Failed to read raster map <{name}>: {error}").format(
+                name=input_raster, error=e
+            )
+        )
+
+    rows, cols = elev.shape
+    if rows < 2 or cols < 2:
+        gs.fatal(
+            _(
+                "Region too small to build a mesh: {rows} rows x {cols} cols. "
+                "At least 2 rows and 2 columns are required; adjust the region "
+                "or lower the resolution value."
+            ).format(rows=rows, cols=cols)
+        )
 
     # Read resolution after read_raster — it may have changed the region if
     # resolution > 1, and ewres/nsres drive the XY aspect ratio of the mesh.
@@ -648,9 +688,17 @@ def main():
     nsres = region["nsres"]
 
     gs.message(
-        f"Raster: {elev.shape[1]} cols x {elev.shape[0]} rows  "
-        f"(Z range: {elev.min():.2f} to {elev.max():.2f}  "
-        f"res: {ewres:.2f} x {nsres:.2f})"
+        _(
+            "Raster: {cols} cols x {rows} rows "
+            "(Z range: {zmin:.2f} to {zmax:.2f}, res: {ewres:.2f} x {nsres:.2f})"
+        ).format(
+            cols=cols,
+            rows=rows,
+            zmin=elev.min(),
+            zmax=elev.max(),
+            ewres=ewres,
+            nsres=nsres,
+        )
     )
 
     if normalize:
@@ -658,10 +706,12 @@ def main():
         z_max = elev.max()
         z_rng = z_max - z_min if z_max != z_min else 1.0
         elev = (elev - z_min) / z_rng
-        gs.message("Z values normalized to 0-1 range.")
+        gs.message(_("Z values normalized to 0-1 range."))
 
-    mode = "hollow mold" if hollow else "solid"
-    gs.message(f"Building {mode} mesh ...")
+    if hollow:
+        gs.message(_("Building hollow mold mesh..."))
+    else:
+        gs.message(_("Building solid mesh..."))
 
     vertices, triangles, n_terrain_tris, z_surf_min, z_surf_max, model_dims = (
         build_mesh(
@@ -678,23 +728,31 @@ def main():
     )
 
     gs.message(
-        f"Mesh: {len(vertices):,} vertices, {len(triangles):,} triangles "
-        f"({n_terrain_tris:,} terrain surface)"
+        _(
+            "Mesh: {nverts:,} vertices, {ntris:,} triangles "
+            "({nterrain:,} terrain surface)"
+        ).format(
+            nverts=len(vertices),
+            ntris=len(triangles),
+            nterrain=n_terrain_tris,
+        )
     )
     gs.message(
-        f"Model dimensions: {model_dims[0]:.1f} x {model_dims[1]:.1f} x {model_dims[2]:.1f} mm"
+        _("Model dimensions: {x:.1f} x {y:.1f} x {z:.1f} mm").format(
+            x=model_dims[0], y=model_dims[1], z=model_dims[2]
+        )
     )
 
     tri_colors = None
     color_palette = None
     if color_scheme == "elevation":
-        gs.message("Assigning elevation color bands ...")
+        gs.message(_("Assigning elevation color bands..."))
         color_palette = _make_palette()
         tri_colors = assign_colors(
             triangles, vertices, n_terrain_tris, z_surf_min, z_surf_max
         )
 
-    gs.message(f"Writing {output_path} ...")
+    gs.message(_("Writing '{}'...").format(output_path))
     try:
         if out_format == "stl":
             write_stl(output_path, vertices, triangles)
@@ -703,10 +761,14 @@ def main():
                 output_path, vertices, triangles, tri_colors, color_palette, units
             )
     except Exception as e:
-        gs.fatal(f"Failed to write output: {e}")
+        gs.fatal(_("Failed to write output file '{}': {}").format(output_path, e))
 
     size_kb = os.path.getsize(output_path) / 1024
-    gs.message(f"Done.  {output_path}  ({size_kb:.1f} KB)")
+    gs.message(
+        _("Done. Wrote '{path}' ({size:.1f} KB).").format(
+            path=output_path, size=size_kb
+        )
+    )
 
 
 if __name__ == "__main__":
