@@ -53,7 +53,7 @@
 # % key: method
 # % type: string
 # % description: Co-registration method
-# % options: pgcp_vertical,nk,nk_icp
+# % options: pgcp_vertical,nk,nk_icp,icp
 # % answer: pgcp_vertical
 # % required: no
 # %end
@@ -267,34 +267,39 @@ def apply_saved_transform(
     full_mask = f"tmp_rdemcoreg_amask_{pid}"
     tmp_h = f"tmp_rdemcoreg_h_{pid}"
     tmp_hi = f"tmp_rdemcoreg_hi_{pid}"
-    nk_xform = gs.tempfile()
 
-    # r.dem.nk requires a mask; in apply mode it only defines the residual map,
-    # so a full-coverage mask is sufficient.
-    gs.mapcalc(
-        f"{full_mask} = if(!isnull({dem}), 1, null())", overwrite=True, quiet=True
-    )
+    # The icp method has no N&K component, so skip r.dem.nk entirely and feed
+    # the original DEM straight into the ICP apply step.
+    if method == "icp":
+        horiz = dem
+    else:
+        nk_xform = gs.tempfile()
+        # r.dem.nk requires a mask; in apply mode it only defines the residual
+        # map, so a full-coverage mask is sufficient.
+        gs.mapcalc(
+            f"{full_mask} = if(!isnull({dem}), 1, null())", overwrite=True, quiet=True
+        )
 
-    # Apply the N&K horizontal shift only (dz = 0; vertical handled by PGCP).
-    with open(nk_xform, "w") as f:
-        f.write(f"dz=0.0\ndx={nk_dx:.10f}\ndy={nk_dy:.10f}\n")
-    gs.run_command(
-        "r.dem.nk",
-        sfm=dem,
-        lidar=reference,
-        stable_mask=full_mask,
-        output=tmp_h,
-        apply_transform=nk_xform,
-        overwrite=True,
-    )
-    horiz = tmp_h
+        # Apply the N&K horizontal shift only (dz = 0; vertical handled by PGCP).
+        with open(nk_xform, "w") as f:
+            f.write(f"dz=0.0\ndx={nk_dx:.10f}\ndy={nk_dy:.10f}\n")
+        gs.run_command(
+            "r.dem.nk",
+            sfm=dem,
+            lidar=reference,
+            stable_mask=full_mask,
+            output=tmp_h,
+            apply_transform=nk_xform,
+            overwrite=True,
+        )
+        horiz = tmp_h
 
     # Apply the ICP horizontal + yaw (tz = 0); init_yaw is in degrees.
-    if method == "nk_icp":
+    if method in ("nk_icp", "icp"):
         gs.run_command(
             "r.dem.icp",
             reference=reference,
-            source=tmp_h,
+            source=horiz,
             output=tmp_hi,
             max_iterations=0,
             init_dx=icp_tx,
@@ -317,8 +322,9 @@ def apply_saved_transform(
         verbose=verbose,
     )
 
-    cleanup = [full_mask, tmp_h, f"{tmp_h}_resid"]
-    if method == "nk_icp":
+    # The icp method never creates the N&K full_mask or tmp_h intermediates.
+    cleanup = [] if method == "icp" else [full_mask, tmp_h, f"{tmp_h}_resid"]
+    if method in ("nk_icp", "icp"):
         cleanup.append(tmp_hi)
     for tmp in cleanup:
         if gs.find_file(tmp, element="raster")["name"]:
@@ -391,6 +397,33 @@ def main():
                 xform_out, method, pgcp_stats["median_bias"], zero_nk, zero_icp
             )
         gs.message(_("Method: pgcp_vertical - done."))
+        return
+
+    # PGCP vertical correction followed by ICP, skipping the N&K stage. The
+    # stable_mask is optional here and only restricts ICP to stable terrain
+    # when supplied.
+    if method == "icp":
+        icp_xform = gs.tempfile()
+        icp_kwargs = dict(
+            reference=reference,
+            source=tmp_pgcp,
+            output=output,
+            transform_out=icp_xform,
+            overwrite=gs.overwrite(),
+        )
+        if stable_mask:
+            icp_kwargs["mask"] = stable_mask
+        gs.run_command("r.dem.icp", **icp_kwargs)
+        icp = {k: float(v) for k, v in read_keyval(icp_xform).items() if k in zero_icp}
+        if xform_out:
+            write_combined_transform(
+                xform_out, method, pgcp_stats["median_bias"], zero_nk, icp
+            )
+        if gs.find_file(tmp_pgcp, element="raster")["name"]:
+            gs.run_command(
+                "g.remove", type="raster", name=tmp_pgcp, flags="f", quiet=True
+            )
+        gs.message(_("Method: icp - done."))
         return
 
     # Stage 2: Nuth & Kaeaeb horizontal + vertical refinement on the

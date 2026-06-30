@@ -118,6 +118,46 @@ def test_nk_icp_runs(session):
     assert _exists("dsm_nk_icp", env)
 
 
+def test_icp_runs(session):
+    if not shutil.which("r.dem.icp"):
+        pytest.skip("r.dem.icp not installed")
+    env = session.env
+    gs.run_command(
+        "r.dem.coregister",
+        dem="dsm",
+        reference="reference",
+        roads="roads",
+        stable_mask="stable",
+        output="dsm_icp",
+        method="icp",
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    assert _exists("dsm_icp", env)
+
+
+def test_icp_runs_without_stable_mask(session):
+    if not shutil.which("r.dem.icp"):
+        pytest.skip("r.dem.icp not installed")
+    env = session.env
+    # stable_mask is optional for method=icp; ICP runs over all terrain.
+    gs.run_command(
+        "r.dem.coregister",
+        dem="dsm",
+        reference="reference",
+        roads="roads",
+        output="dsm_icp_nomask",
+        method="icp",
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    assert _exists("dsm_icp_nomask", env)
+
+
 def test_transform_output_and_replay(session, tmp_path):
     if not (shutil.which("r.dem.nk") and shutil.which("r.dem.icp")):
         pytest.skip("r.dem.nk and/or r.dem.icp not installed")
@@ -202,5 +242,93 @@ def test_transform_output_and_replay(session, tmp_path):
         env=env,
     )
     stats = gs.parse_command("r.univar", map="resid2", format="json", env=env)
+    # The +1.0 m DSM bias and the shift are both removed: small residual.
+    assert float(stats["mean"]) < 0.2
+
+
+def test_icp_transform_output_and_replay(session, tmp_path):
+    if not shutil.which("r.dem.icp"):
+        pytest.skip("r.dem.icp not installed")
+    env = session.env
+    xform = str(tmp_path / "xf_icp.txt")
+    # Varied surface with full aspect range so the ICP yaw estimate is well posed.
+    gs.run_command(
+        "r.mapcalc",
+        expression="ref_vi = 5.0 * sin(col() * 18.0) + 5.0 * cos(row() * 18.0)",
+        overwrite=True,
+        env=env,
+    )
+    # Two SfM surfaces sharing a 1-cell east shift but different vertical bias.
+    gs.run_command(
+        "r.mapcalc",
+        expression="sfm_dtm_vi = ref_vi[0,-1] + 0.5",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.mapcalc",
+        expression="sfm_dsm_vi = ref_vi[0,-1] + 1.0",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command("r.mapcalc", expression="stable_vi = 1", overwrite=True, env=env)
+    gs.run_command(
+        "r.mapcalc",
+        expression="road_rvi = if(row() == 25, 1, null())",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.to.vect",
+        input="road_rvi",
+        output="roads_vi",
+        type="line",
+        overwrite=True,
+        env=env,
+    )
+
+    # Solve PGCP + ICP on the DTM and write the transform.
+    gs.run_command(
+        "r.dem.coregister",
+        dem="sfm_dtm_vi",
+        reference="ref_vi",
+        roads="roads_vi",
+        stable_mask="stable_vi",
+        method="icp",
+        output="dtm_coreg_vi",
+        transform_output=xform,
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    with open(xform) as f:
+        text = f.read()
+    assert "method=icp" in text
+    # The icp method carries no N&K horizontal component.
+    assert "nk_dx=0.0000000000" in text
+    assert "icp_tx=" in text
+
+    # Replay onto the DSM; ICP horizontal is shared, vertical re-estimated.
+    gs.run_command(
+        "r.dem.coregister",
+        dem="sfm_dsm_vi",
+        reference="ref_vi",
+        roads="roads_vi",
+        apply_transform=xform,
+        output="dsm_coreg_vi",
+        buffer=2.0,
+        min_points=10,
+        overwrite=True,
+        env=env,
+    )
+    assert _exists("dsm_coreg_vi", env)
+    gs.run_command(
+        "r.mapcalc",
+        expression="resid_icp = abs(dsm_coreg_vi - ref_vi)",
+        overwrite=True,
+        env=env,
+    )
+    stats = gs.parse_command("r.univar", map="resid_icp", format="json", env=env)
     # The +1.0 m DSM bias and the shift are both removed: small residual.
     assert float(stats["mean"]) < 0.2

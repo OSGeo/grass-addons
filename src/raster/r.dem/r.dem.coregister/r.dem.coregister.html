@@ -32,6 +32,16 @@ used for the PGCP step are unsuitable here (they are filtered out by the N&amp;K
 slope limits), so a separate stable mask must be supplied. The same mask is
 passed to <em>r.dem.icp</em> to restrict ICP to stable terrain.</p>
 
+<h3>method=icp</h3>
+
+<p>This chains a point-to-plane ICP refinement (<em>r.dem.icp</em>) directly onto
+the PGCP-corrected DSM, skipping the Nuth and Kaab step. The chain is PGCP
+vertical, then ICP. Unlike <code>nk</code> and <code>nk_icp</code>,
+<b>stable_mask</b> is <b>optional</b> for this method: when supplied it is passed
+to <em>r.dem.icp</em> to restrict the alignment to unchanged terrain (recommended
+in change-detection contexts); when omitted, ICP aligns over all valid
+terrain.</p>
+
 <h3>Solving once and replaying onto another surface</h3>
 
 <p><b>transform_output</b> writes the composed PGCP, N&amp;K, and ICP transform
@@ -65,6 +75,13 @@ r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
 <div class="code"><pre>
 r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
     stable_mask=stable_terrain output=sfm_dsm_coreg method=nk_icp
+</pre></div>
+
+<p>PGCP vertical plus ICP, skipping the Nuth and Kaab step:</p>
+
+<div class="code"><pre>
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+    stable_mask=stable_terrain output=sfm_dsm_coreg method=icp
 </pre></div>
 
 <p>Solve on the bare-earth DTM, then replay the alignment onto the DSM:</p>
