@@ -223,10 +223,10 @@ available on the wiki.
 
 *[i.group](https://grass.osgeo.org/grass-stable/manuals/i.group.html),
 [i.maxlik](https://grass.osgeo.org/grass-stable/manuals/i.maxlik.html),
-[r.fuzzy](r.fuzzy),
+[r.fuzzy](r.fuzzy.md),
 [i.smap](https://grass.osgeo.org/grass-stable/manuals/i.smap.html),
 [i.segment](https://grass.osgeo.org/grass-stable/manuals/i.segment.html),
-r.seg (GRASS 6 addon)*
+[r.smooth.seg](r.smooth.seg.md)*
 
 ## AUTHORS
 
