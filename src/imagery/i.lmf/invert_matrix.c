@@ -120,5 +120,5 @@ int invert_matrix(double a[][MAXF], int order)
             break;
         }
     }
-    return;
+    return 0;
 }

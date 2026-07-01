@@ -138,5 +138,5 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix)
     for (k = 0; k < nbands; k++) {
         outpix[k] = vfit[k];
     }
-    return;
+    return 0;
 }

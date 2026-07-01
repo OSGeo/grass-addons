@@ -46,5 +46,5 @@ int maxmin(int n, int nwin, double *dat)
             dat[i] = 0.0;
         }
     }
-    return;
+    return 0;
 }

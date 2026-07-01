@@ -82,5 +82,5 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
         }
         vfit[i] = sum;
     }
-    return;
+    return 0;
 }

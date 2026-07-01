@@ -46,5 +46,5 @@ int make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF])
         f[i][0] = 1.0;
         f[i][1] = 1.0E-1 * (double)(i + 1);
     }
-    return;
+    return 0;
 }
