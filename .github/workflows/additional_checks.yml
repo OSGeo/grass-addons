@@ -26,7 +26,7 @@ jobs:
       contents: read
     env:
       # renovate: datasource=pypi depName=prek
-      PREK_VERSION: 0.4.4
+      PREK_VERSION: 0.4.6
       # renovate: datasource=python-version depName=python
       PYTHON_VERSION: "3.14"
 
