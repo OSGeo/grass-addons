@@ -53,7 +53,7 @@ i.ortho.corr input=image.photo tiles=tile_images osuffix=.photo csuffix=.camera
 ## SEE ALSO
 
 *[i.ortho.photo](https://grass.osgeo.org/grass-stable/manuals/i.ortho.photo.html),
-[i.ortho.rectify](i.ortho.rectify.md)*
+[i.ortho.rectify](https://grass.osgeo.org/grass-stable/manuals/i.ortho.rectify.html)*
 
 ## AUTHOR
 

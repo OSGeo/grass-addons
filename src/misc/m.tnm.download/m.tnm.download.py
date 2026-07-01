@@ -85,7 +85,6 @@
 
 import sys
 import os
-import requests
 import grass.script as gs
 from grass.script.utils import separator
 
@@ -225,6 +224,11 @@ def download_file(item, code, compare_file_size):
 
 
 def main():
+    try:
+        import requests  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("requests library not installed."))
+
     dataset = options["dataset"].split(",")
     type_ = options["type"]
     code = options["code"].split(",")
