@@ -1,14 +1,16 @@
 <h2>DESCRIPTION</h2>
 
 <p><em>r.dem.coregister</em> co-registers a post-event DSM to a reference DEM
-using pseudo ground control points (PGCPs) sampled along road centerlines,
-terrain assumed stable between surveys. It removes a robust vertical bias and
-can optionally chain horizontal (Nuth and Kaab) and ICP refinement.</p>
+using pseudo ground control points (PGCPs) sampled from stable features, terrain
+assumed unchanged between surveys. Roads are the typical source, but any stable
+feature works: buildings, parking lots, or fire hydrants. It removes a robust
+vertical bias and can optionally chain horizontal (Nuth and Kaab) and ICP
+refinement.</p>
 
 <h3>method=pgcp_vertical (default)</h3>
 
-<p>The <b>roads</b> vector is buffered by <b>buffer</b> metres and rasterized,
-the elevation residual <code>dem - reference</code> is sampled within that road
+<p>The <b>pgcp</b> vector is buffered by <b>buffer</b> metres and rasterized,
+the elevation residual <code>dem - reference</code> is sampled within that PGCP
 mask, and a robust median vertical bias is estimated. The bias is removed with
 <code>output = dem - median_bias</code>. Robust statistics (median bias, NMAD,
 RMSE) are reported, and with the <b>-v</b> flag per-PGCP residuals are written to
@@ -27,7 +29,7 @@ vertical, then N&amp;K, then ICP.</p>
 
 <p>Both methods require a <b>stable_mask</b> raster (1=stable). The Nuth and Kaab
 method regresses the elevation difference against slope and aspect, so the mask
-must cover <b>broad, sloped, unchanged terrain</b>. The flat road centerlines
+must cover <b>broad, sloped, unchanged terrain</b>. The flat PGCP features
 used for the PGCP step are unsuitable here (they are filtered out by the N&amp;K
 slope limits), so a separate stable mask must be supplied. The same mask is
 passed to <em>r.dem.icp</em> to restrict ICP to stable terrain.</p>
@@ -52,20 +54,21 @@ replay it onto the DSM so both share the same horizontal alignment. On replay th
 <b>horizontal</b> components (N&amp;K dx, dy and ICP dx, dy, yaw) are shared,
 while the <b>vertical</b> bias is re-estimated per surface with the PGCP step,
 since the DSM and DTM vertical offsets differ. Replay therefore still needs
-<b>roads</b> but not a <b>stable_mask</b>.</p>
+<b>pgcp</b> but not a <b>stable_mask</b>.</p>
 
 <h2>NOTES</h2>
 
-<p>The PGCP approach assumes roads are stable reference surfaces. Choose
-<b>buffer</b> to stay within the paved surface and avoid curbs, vegetation, and
-vehicles. The computational region should match the input DEM resolution.</p>
+<p>The PGCP approach assumes the supplied features are stable reference surfaces.
+When using roads, choose <b>buffer</b> to stay within the paved surface and avoid
+curbs, vegetation, and vehicles. The computational region should match the input
+DEM resolution.</p>
 
 <h2>EXAMPLES</h2>
 
 <p>Vertical co-registration from road PGCPs, writing residuals to CSV:</p>
 
 <div class="code"><pre>
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
     output=sfm_dsm_coreg method=pgcp_vertical buffer=2.0 \
     bias_output=pgcp_residuals.csv -v
 </pre></div>
@@ -73,25 +76,25 @@ r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
 <p>Full PGCP + Nuth &amp; Kaab + ICP chain with a stable-terrain mask:</p>
 
 <div class="code"><pre>
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
     stable_mask=stable_terrain output=sfm_dsm_coreg method=nk_icp
 </pre></div>
 
 <p>PGCP vertical plus ICP, skipping the Nuth and Kaab step:</p>
 
 <div class="code"><pre>
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm roads=road_centerlines \
+r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
     stable_mask=stable_terrain output=sfm_dsm_coreg method=icp
 </pre></div>
 
 <p>Solve on the bare-earth DTM, then replay the alignment onto the DSM:</p>
 
 <div class="code"><pre>
-r.dem.coregister dem=sfm_dtm reference=lidar_dtm roads=road_centerlines \
+r.dem.coregister dem=sfm_dtm reference=lidar_dtm pgcp=road_centerlines \
     stable_mask=stable_terrain output=sfm_dtm_coreg method=nk_icp \
     transform_output=align.txt
 
-r.dem.coregister dem=sfm_dsm reference=lidar_dsm roads=road_centerlines \
+r.dem.coregister dem=sfm_dsm reference=lidar_dsm pgcp=road_centerlines \
     output=sfm_dsm_coreg apply_transform=align.txt
 </pre></div>
 

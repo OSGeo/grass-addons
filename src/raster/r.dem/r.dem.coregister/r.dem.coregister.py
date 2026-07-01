@@ -6,7 +6,7 @@
 #
 # AUTHOR(S): Corey T. White <smortopahri@gmail.com>
 #
-# PURPOSE:   Co-register post-event DSM to reference DEM using road PGCPs
+# PURPOSE:   Co-register post-event DSM to reference DEM using PGCPs
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
@@ -16,7 +16,7 @@
 ##############################################################################
 
 # %module
-# % description: Co-register post-event DSM to reference DEM using road PGCPs
+# % description: Co-register post-event DSM to reference DEM using PGCPs
 # % keyword: raster
 # % keyword: terrain
 # % keyword: coregistration
@@ -38,8 +38,8 @@
 # %end
 
 # %option G_OPT_V_INPUT
-# % key: roads
-# % description: Road centerlines vector for PGCP extraction
+# % key: pgcp
+# % description: Pseudo ground control points (PGCPs) (e.g. roads, buildings, fire hydrants) vector for PGCP extraction
 # % required: yes
 # %end
 
@@ -61,7 +61,7 @@
 # %option
 # % key: buffer
 # % type: double
-# % description: Buffer distance (m) around road centerlines for PGCP sampling
+# % description: Buffer distance (m) around PGCP features for residual sampling
 # % answer: 2.0
 # % required: no
 # %end
@@ -146,10 +146,10 @@ def write_combined_transform(path, method, pgcp_dz, nk, icp):
 
 
 def pgcp_vertical_correction(
-    dem, reference, roads, output, buffer, min_points, bias_output, verbose
+    dem, reference, pgcp, output, buffer, min_points, bias_output, verbose
 ):
     """
-    Extract elevation residuals from stable road pixels, compute robust
+    Extract elevation residuals from stable PGCP pixels, compute robust
     median vertical bias, and apply correction via r.mapcalc.
 
     Returns: dict of bias statistics
@@ -159,10 +159,10 @@ def pgcp_vertical_correction(
     buf_r = f"{tmp_prefix}_bufr"
     diff_r = f"{tmp_prefix}_diff"
 
-    # Buffer road centerlines
+    # Buffer the PGCP features
     gs.run_command(
         "v.buffer",
-        input=roads,
+        input=pgcp,
         output=buf_v,
         distance=buffer,
         overwrite=True,
@@ -178,7 +178,7 @@ def pgcp_vertical_correction(
         quiet=True,
     )
 
-    # Difference DSM - Reference within road buffer
+    # Difference DSM - Reference within PGCP buffer
     gs.mapcalc(
         f"{diff_r} = if({buf_r} == 1, {dem} - {reference}, null())",
         overwrite=True,
@@ -188,7 +188,7 @@ def pgcp_vertical_correction(
     # Read residuals
     raw = gs.read_command("r.stats", input=diff_r, flags="1n", separator=",").strip()
     if not raw:
-        gs.fatal(_("No PGCP samples extracted. Check road vector and region."))
+        gs.fatal(_("No PGCP samples extracted. Check PGCP vector and region."))
 
     residuals = np.array([float(v) for v in raw.split("\n") if v.strip()])
 
@@ -247,7 +247,7 @@ def pgcp_vertical_correction(
 
 
 def apply_saved_transform(
-    dem, reference, roads, output, xform_path, buffer, min_points, bias_out, verbose
+    dem, reference, pgcp, output, xform_path, buffer, min_points, bias_out, verbose
 ):
     """Replay a saved transform onto a new surface.
 
@@ -314,7 +314,7 @@ def apply_saved_transform(
     pgcp_vertical_correction(
         dem=horiz,
         reference=reference,
-        roads=roads,
+        pgcp=pgcp,
         output=output,
         buffer=buffer,
         min_points=min_points,
@@ -334,7 +334,7 @@ def apply_saved_transform(
 def main():
     dem = options["dem"]
     reference = options["reference"]
-    roads = options["roads"]
+    pgcp = options["pgcp"]
     output = options["output"]
     method = options["method"]
     buffer = float(options["buffer"])
@@ -350,7 +350,7 @@ def main():
         apply_saved_transform(
             dem,
             reference,
-            roads,
+            pgcp,
             output,
             xform_in,
             buffer,
@@ -361,13 +361,13 @@ def main():
         return
 
     # The N&K regression needs broad stable terrain with slope variation; the
-    # flat road centerlines used for the PGCP step are unsuitable, so require a
+    # flat PGCP features used for the PGCP step are unsuitable, so require a
     # user-supplied stable mask for the nk and nk_icp methods.
     if method in ("nk", "nk_icp") and not stable_mask:
         gs.fatal(
             _(
                 "method={m} requires a stable_mask of broad, sloped, unchanged "
-                "terrain. Road centerlines are too flat for the Nuth & Kaeaeb "
+                "terrain. PGCP features are too flat for the Nuth & Kaeaeb "
                 "regression."
             ).format(m=method)
         )
@@ -380,7 +380,7 @@ def main():
     pgcp_stats = pgcp_vertical_correction(
         dem=dem,
         reference=reference,
-        roads=roads,
+        pgcp=pgcp,
         output=tmp_pgcp if method != "pgcp_vertical" else output,
         buffer=buffer,
         min_points=min_points,
