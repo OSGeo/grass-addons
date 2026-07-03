@@ -5,7 +5,8 @@ shadows in Sentinel-2 images. The algorithm works on reflectance values
 (Bottom of Atmosphere Reflectance - BOA). Therefore, the atmospheric
 correction has to be applied to all input bands (see
 [i.sentinel.preproc](i.sentinel.preproc.md) or
-[i.atcorr](i.atcorr.html)) (level 1C and 2A).
+[i.atcorr](https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html))
+(level 1C and 2A).
 
 The following figures show the difference between the standard cloud
 mask as provided in Sentinel-2 SAFE products and the cloud detection
