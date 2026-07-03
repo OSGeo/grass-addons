@@ -17,8 +17,8 @@ input, the addon requires two comma-separated files, one with the
 species locations and another of background points locations. Both need
 to include columns with the X, Y and sample values of the environmental
 variables that you want to use as predictor variables. You can use the
-[r.out.maxent\_swd](r.out.maxent_swd.html) or
-[v.maxent.swd](v.maxent.swd.html) addons to create these files. For more
+[r.out.maxent\_swd](r.out.maxent_swd.md) or
+[v.maxent.swd](v.maxent.swd.md) addons to create these files. For more
 details about the structure of these files, see the [Maxent
 website](https://biodiversityinformatics.amnh.org/open_source/maxent/).
 
@@ -209,13 +209,13 @@ BCC-CSM2-MR and SSP 585.*
     files and prediction rasters that can be used directly by the
     *r.maxent.train* addon (or the Maxent software itself) to create
     species distribution models.
-- [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
+- [r.out.maxent\_swd](r.out.maxent_swd.md), creating species and
     background swd files based on species distribution data in raster
     format.
 - [r.maxent.predict](r.maxent.predict.md), creating a suitability
     layer based on a set of environmental layers and a Maxent model,
     e.g., created using the r.maxent.train addon.
-- [r.maxent.setup](r.maxent.setup.html), helper function to allow
+- [r.maxent.setup](r.maxent.setup.md), helper function to allow
     GRASS to use Maxent.
 
 ## AUTHOR
