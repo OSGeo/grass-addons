@@ -121,6 +121,13 @@ except ImportError:
     from cStringIO import StringIO
 import grass.script as gs
 
+try:
+    from grass.script import MaskManager
+
+    HAS_MASK_MANAGER = True
+except ImportError:
+    HAS_MASK_MANAGER = False
+
 
 # Functions
 def prRed(skk):
@@ -204,62 +211,66 @@ def read_data(raster, n, flag_s, seed):
     """Read in the raster layers as a numpy array."""
     global mask_backup_name
     gs.message("Reading in the data ...")
-    exist_mask = None
-    if n:
-        # Create mask random locations
-        new_mask = tmpname("rvif")
-        if flag_s:
-            gs.run_command(
-                "r.random",
-                input=raster[0],
-                flags="s",
-                npoints=n,
-                raster=new_mask,
-                quiet=True,
-            )
-        else:
-            gs.run_command(
-                "r.random",
-                input=raster[0],
-                seed=seed,
-                npoints=n,
-                raster=new_mask,
-                quiet=True,
-            )
-        exist_mask = gs.find_file(
-            name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"]
-        )
-        if exist_mask["fullname"]:
-            # Track the backup in mask_backup_name (NOT CLEAN_RAST) so that
-            # cleanup() can restore it via restore_mask_backup() if the script
-            # exits with an error. Set only after a successful rename.
-            backup = create_unique_name("rvifoldmask")
-            gs.run_command("g.rename", raster=["MASK", backup], quiet=True)
-            mask_backup_name = backup
 
-    try:
-        if n:
-            # Apply the random-sampling mask. If this raises, the finally
-            # block (and the atexit cleanup() as a backstop) restores MASK.
-            gs.run_command("r.mask", raster=new_mask, quiet=True)
-        # Get the raster values at sample points
+    def read_sampled():
+        """Read the raster values at the currently unmasked cells."""
         tmpcov = StringIO(
             gs.read_command(
                 "r.stats", flags="1n", input=raster, quiet=True, separator="comma"
             ).rstrip("\n")
         )
-        p = np.loadtxt(tmpcov, skiprows=0, delimiter=",")
+        return np.loadtxt(tmpcov, skiprows=0, delimiter=",")
+
+    def random_sample(out):
+        """Write a raster of n random sample points from raster[0] to <out>."""
+        kwargs = {"input": raster[0], "npoints": n, "raster": out, "quiet": True}
+        if flag_s:
+            kwargs["flags"] = "s"
+        else:
+            kwargs["seed"] = seed
+        gs.run_command("r.random", **kwargs)
+
+    if not n:
+        return read_sampled()
+
+    if HAS_MASK_MANAGER:
+        # GRASS 8.5+: draw the sample first so it respects any active user MASK
+        # (as on 8.4), then let MaskManager apply the sample as the mask for
+        # reading and restore the user's MASK automatically on exit, including
+        # on error. No manual backup or rename is needed.
+        sample = tmpname("rvif")
+        random_sample(sample)
+        with MaskManager() as manager:
+            gs.mapcalc(
+                "{m} = if(isnull({s}), null(), 1)".format(
+                    m=manager.mask_name, s=sample
+                ),
+                quiet=True,
+            )
+            return read_sampled()
+
+    # GRASS 8.4: no MaskManager. Back up the user's MASK, apply the sample
+    # mask, and restore it in the finally block (with the atexit cleanup() as
+    # a backstop if the process is killed).
+    sample = tmpname("rvif")
+    random_sample(sample)
+    exist_mask = gs.find_file(name="MASK", element="cell", mapset=gs.gisenv()["MAPSET"])
+    if exist_mask["fullname"]:
+        # Track the backup in mask_backup_name (NOT CLEAN_RAST) so cleanup()
+        # can restore it. Set only after a successful rename.
+        backup = create_unique_name("rvifoldmask")
+        gs.run_command("g.rename", raster=["MASK", backup], quiet=True)
+        mask_backup_name = backup
+    try:
+        gs.run_command("r.mask", raster=sample, quiet=True)
+        return read_sampled()
     finally:
-        if n:
-            # Best-effort removal of the internal mask before restoring the
-            # user's MASK. Failures here are reported by restore_mask_backup().
-            try:
-                gs.run_command("r.mask", flags="r", quiet=True)
-            except Exception:
-                pass
-            if exist_mask and exist_mask["fullname"]:
-                restore_mask_backup()
-    return p
+        try:
+            gs.run_command("r.mask", flags="r", quiet=True)
+        except Exception:
+            pass
+        if exist_mask["fullname"]:
+            restore_mask_backup()
 
 
 def compute_vif(mapx, mapy):
