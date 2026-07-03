@@ -160,9 +160,7 @@ def restore_mask_backup():
         except Exception:
             pass  # best effort; the rename below will fail with a clear warning
     try:
-        gs.run_command(
-            "g.rename", raster=[mask_backup_name, "MASK"], quiet=True
-        )
+        gs.run_command("g.rename", raster=[mask_backup_name, "MASK"], quiet=True)
         mask_backup_name = None
     except Exception as exc:
         gs.warning(
