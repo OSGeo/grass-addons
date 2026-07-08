@@ -19,7 +19,7 @@ double sensi_h(int iteration, double tempk_water, double tempk_desert,
 
     double h[ITER_MAX + 1];
 
-    double ustar[ITER_MAX+1], zom[ITER_MAX+1];
+    double ustar[ITER_MAX + 1], zom[ITER_MAX + 1];
 
     /* Declarations */
     int i, j, ic, debug = 0;
