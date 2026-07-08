@@ -43,7 +43,6 @@ double sensi_h(int iteration, double tempk_water, double tempk_desert,
     if (u2m < 1.0) {
         u2m = 1.0;
     }
-    
     if (debug == 1) {
         printf("*****************************\n");
         printf("t0_dem = %5.3f\n", t0_dem);
