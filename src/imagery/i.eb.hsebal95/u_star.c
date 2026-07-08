@@ -18,7 +18,6 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
     double hv = 0.15; /* crop height (m)              */
 
     double bh = 200; /* blending height (m)          */
-    
     if (u2m < 1.0) {
         u2m = 1.0;
     }
