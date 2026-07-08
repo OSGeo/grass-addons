@@ -22,7 +22,6 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
     if (u2m < 1.0) {
       u2m = 1.0;
     }
-    
     if (h != 0.0) {
         n5_temp =
             (-1004 * roh_air * pow(ustar, 3) * t0_dem) / (0.41 * 9.81 * h);
