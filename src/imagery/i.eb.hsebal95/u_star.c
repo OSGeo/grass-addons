@@ -20,7 +20,7 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
     double bh = 200; /* blending height (m)          */
     
     if (u2m < 1.0) {
-      u2m = 1.0;
+        u2m = 1.0;
     }
     if (h != 0.0) {
         n5_temp =
