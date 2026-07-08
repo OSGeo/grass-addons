@@ -1,0 +1,401 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>v.in.ags</em> imports vector features from an <b>ArcGIS Server (AGS)
+REST API</b> feature service or map service layer into a GRASS vector map.
+The module constructs the query URL automatically and imports through
+<em>v.import</em>, which reprojects the data into the current project CRS.
+</p>
+
+<h3>Download strategy</h3>
+
+<p>
+By default (<tt>download_format=auto</tt>), <em>v.in.ags</em> builds the
+<tt>/query</tt> URL and hands it to GDAL's <b>ESRIJSON</b> driver via
+<em>v.import</em>. GDAL reads the service directly and scrolls through all
+pages automatically, so no intermediate file is written.
+<tt>download_format=json</tt> is equivalent; <tt>download_format=geojson</tt>
+requests GeoJSON and uses GDAL's <b>GeoJSON</b> driver instead.
+</p>
+
+<p>
+For large layers, <tt>download_format=pbf</tt> enables a fast path that
+downloads and decodes <b>Esri Feature Buffer (PBF)</b>, a compact binary
+format, in-process and writes a temporary GeoJSON file for import. If PBF
+decoding fails at runtime the module retries the affected page with GeoJSON
+automatically.
+</p>
+
+<h3>Supported service types</h3>
+
+<p>
+Both <b>FeatureServer</b> and <b>MapServer</b> layer endpoints are supported,
+provided the layer exposes the <tt>/query</tt> operation. ArcGIS Server 10.3
+or later is required for pagination; the <tt>pbf</tt> strategy requires ArcGIS
+Server 10.6 or ArcGIS Online.
+</p>
+
+<h3>URL formats</h3>
+
+<p>The <b>url</b> parameter accepts:</p>
+<ul>
+  <li>A layer URL ending with a numeric layer index:<br>
+      <tt>https://host/arcgis/rest/services/Name/FeatureServer/0</tt></li>
+  <li>A service root URL (without a layer index); in this case use the
+      <b>layer</b> option to specify which layer to import:<br>
+      <tt>https://host/arcgis/rest/services/Name/FeatureServer</tt></li>
+</ul>
+
+<p>Use the <b>-l</b> flag to print all available layers in a service before
+importing.</p>
+
+<h3>Inspecting a layer without importing</h3>
+
+<p>
+If <b>output</b> is omitted (and <b>-l</b> is not used), <em>v.in.ags</em>
+prints metadata for the resolved layer (id, name, geometry type, feature
+count, maximum record count, supported transfer formats, and field names) and
+exits without importing anything. This is useful for inspecting a service
+before committing to a download.
+</p>
+
+<h2>NOTES</h2>
+
+<h3>Output format</h3>
+
+<p>
+The <b>format</b> option controls how text output is printed and applies to
+the <b>-l</b> layer listing and the layer-inspection mode described above:
+</p>
+<ul>
+  <li><tt>plain</tt> (default): human-readable text.</li>
+  <li><tt>shell</tt>: shell-script style output (<tt>key=value</tt> for layer
+      info, <tt>id|type|name</tt> per line for the layer listing).</li>
+  <li><tt>json</tt>: JSON for downstream parsing.</li>
+</ul>
+
+<p>
+The <b>format</b> option does not affect imports; it is ignored when
+<b>output</b> is given.
+</p>
+
+<h3>Attribute filtering</h3>
+
+<p>
+The <b>where</b> option accepts any SQL expression supported by the ArcGIS
+Server being queried (SQL-92 subset). Examples:
+</p>
+
+<div class="code"><pre>
+STATE_NAME = 'California'
+POP2020 &gt; 100000
+TYPE IN ('city', 'town') AND AREA_KM2 &lt; 500
+</pre></div>
+
+<h3>Output extent and spatial filtering</h3>
+
+<p>
+The <b>extent</b> option matches <em>v.import</em>: <tt>input</tt> (default)
+imports the full input, <tt>region</tt> limits the output to the current
+computational region. With <tt>extent=region</tt> the region is also converted
+to a WGS84 bounding box and used as a server-side filter, so only features
+overlapping the region are downloaded.
+</p>
+
+<p>
+The <b>bbox_filter</b> option accepts an explicit bounding box
+<tt>xmin,ymin,xmax,ymax</tt> in geographic degrees (WGS84 / EPSG:4326), applied
+as a server-side spatial filter before features are downloaded. This
+significantly reduces transfer size for large layers.
+</p>
+
+<p>
+<b>extent</b> and <b>bbox_filter</b> are mutually exclusive. The relationship
+between features and the bounding box (either source) is controlled by
+<b>spatial_rel</b> (default: <tt>esriSpatialRelIntersects</tt>).
+</p>
+
+<h3>Topology and snapping</h3>
+
+<p>
+Polygon layers served by ArcGIS Server frequently have invalid topology, which
+can import with <b>no areas</b> (the polygons do not appear). Use <b>snap</b>
+(in map units of the downloaded data, that is degrees for the default WGS84
+download or <b>outsr</b> units otherwise) to snap boundary vertices so areas
+build. The default <tt>-1</tt> disables snapping. As with <em>v.import</em>,
+start small (for example <tt>snap=1e-6</tt>) and increase only if areas are
+still missing.
+</p>
+
+<h3>Field selection</h3>
+
+<p>
+Use <b>fields</b> to restrict which attribute columns are retrieved. The
+default <tt>*</tt> retrieves all fields.
+</p>
+
+<h3>Result ordering</h3>
+
+<p>
+<b>order_by</b> accepts a comma-separated list of field names optionally
+followed by <tt>ASC</tt> or <tt>DESC</tt>, for example
+<tt>STATE_NAME ASC, POP2020 DESC</tt>.
+</p>
+
+<h3>Geometry options</h3>
+
+<p>
+Use <b>geometry_precision</b> to cap the number of coordinate decimal places
+returned by the server (reduces transfer size at the cost of spatial
+accuracy). Use <b>max_offset</b> to request server-side geometry
+generalisation; larger values produce fewer vertices.
+</p>
+
+<p>
+The <b>-g</b> flag skips geometry entirely and imports the attribute table
+only.
+</p>
+
+<h3>Pagination</h3>
+
+<p>
+Pagination is automatic. In the default strategy GDAL scrolls through all
+pages of the service. In the <tt>pbf</tt> strategy <em>v.in.ags</em> reads
+<tt>maxRecordCount</tt> from the service metadata and issues successive
+<tt>resultOffset</tt>/<tt>resultRecordCount</tt> requests until all matching
+features have been retrieved; if that service reports
+<tt>supportsPagination: false</tt>, a warning is issued and only the first page
+is imported.
+</p>
+
+<h3>Coordinate reference system</h3>
+
+<p>
+By default data is requested from the server in WGS84 (EPSG:4326) and imported
+with <em>v.import</em>, which reprojects it into the current project CRS
+automatically (and imports directly, without reprojection overhead, when the
+project is already WGS84).
+</p>
+
+<p>
+Use <b>outsr</b> to request a different output spatial reference (an ArcGIS
+<tt>outSR</tt> WKID, for example <tt>3358</tt>). Setting <b>outsr</b> to the
+project's WKID makes the server do the reprojection, so <em>v.import</em>
+imports directly with no client-side transform. The final map is always in the
+project CRS regardless. <b>outsr</b> is ignored by the <tt>pbf</tt> strategy,
+which always uses EPSG:4326.
+</p>
+
+<p>
+As in <em>v.import</em>, <b>datum_trans</b> selects the datum transform used
+during reprojection (<tt>-1</tt> lists the available transforms), and the
+<b>-o</b> flag overrides the projection check, assuming the downloaded data
+already has the project's CRS (pairs well with <tt>outsr=&lt;project WKID&gt;</tt>).
+</p>
+
+<h3>Temporary files</h3>
+
+<p>
+Only the <tt>pbf</tt> strategy writes a temporary GeoJSON file (in the system
+temporary directory, removed automatically on exit). The default strategy
+streams the service through GDAL and creates no temporary file.
+</p>
+
+<h2>EXAMPLES</h2>
+
+<h3>List layers available in a service</h3>
+
+<div class="code"><pre>
+v.in.ags -l url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer
+</pre></div>
+
+<h3>Import all features</h3>
+
+<p>Data is reprojected into the current project CRS automatically:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states
+</pre></div>
+
+<h3>Import with an attribute filter</h3>
+
+<p>Import only Californian counties:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=california_counties \
+  where="STATE_NAME = 'California'"
+</pre></div>
+
+<h3>Import with a spatial bounding-box filter</h3>
+
+<p>Import features intersecting a bounding box over the US Pacific Northwest
+(WGS84 coordinates):</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=pnw_states \
+  bbox_filter="-125,42,-116,49"
+</pre></div>
+
+<h3>Limit the import to the current region</h3>
+
+<p><tt>extent=region</tt> filters on the server by the current region and clips
+the output to it:</p>
+
+<div class="code"><pre>
+g.region n=49 s=42 w=-125 e=-116
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=pnw_states \
+  extent=region
+</pre></div>
+
+<h3>Fix polygon topology with snapping</h3>
+
+<p>If imported polygons show no areas, snap boundary vertices:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  snap=1e-6
+</pre></div>
+
+<h3>Change spatial relationship</h3>
+
+<p>Import only features <b>completely within</b> the bounding box:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=pnw_states_within \
+  bbox_filter="-125,42,-116,49" \
+  spatial_rel=esriSpatialRelWithin
+</pre></div>
+
+<h3>Import with reduced precision and simplified geometry</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=counties_simplified \
+  geometry_precision=4 \
+  max_offset=0.001
+</pre></div>
+
+<h3>Import selected fields in a sorted order</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states_slim \
+  fields="STATE_NAME,STATE_ABBR,POP2020" \
+  order_by="POP2020 DESC"
+</pre></div>
+
+<h3>Request data already in the project CRS</h3>
+
+<p>Ask the server for the project's spatial reference (here NC State Plane,
+EPSG:3358) so no client-side reprojection is needed:</p>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_states \
+  outsr=3358
+</pre></div>
+
+<h3>Use the PBF fast path for a large layer</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Counties_Generalized/FeatureServer/0 \
+  output=usa_counties \
+  download_format=pbf
+</pre></div>
+
+<h3>Inspect a layer as JSON without importing</h3>
+
+<div class="code"><pre>
+v.in.ags \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  format=json
+</pre></div>
+
+<h3>Import attribute table only (no geometry)</h3>
+
+<div class="code"><pre>
+v.in.ags -g \
+  url=https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0 \
+  output=usa_state_attrs
+</pre></div>
+
+<h3>Python scripting example</h3>
+
+<div class="code"><pre>
+import grass.script as gs
+
+gs.run_command(
+    "v.in.ags",
+    url="https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_States_Generalized/FeatureServer/0",
+    output="usa_states",
+    where="POP2020 &gt; 1000000",
+    fields="STATE_NAME,STATE_ABBR,POP2020",
+    order_by="POP2020 DESC",
+    download_format="auto",
+    overwrite=True,
+)
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>
+    <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-feature-service-layer-.htm">
+      ArcGIS REST API &ndash; Query (Feature Service)
+    </a>
+  </li>
+  <li>
+    <a href="https://developers.arcgis.com/rest/services-reference/enterprise/query-map-service-layer-.htm">
+      ArcGIS REST API &ndash; Query (Map Service)
+    </a>
+  </li>
+  <li>
+    <a href="https://github.com/Esri/arcgis-pbf">
+      Esri Feature Buffer (PBF) specification
+    </a>
+  </li>
+  <li>
+    <a href="https://gdal.org/drivers/vector/geojson.html">
+      OGR GeoJSON driver
+    </a>
+  </li>
+  <li>
+    <a href="https://gdal.org/drivers/vector/esrijson.html">
+      OGR ESRI JSON driver
+    </a>
+  </li>
+  <li>
+    <a href="https://www.rfc-editor.org/rfc/rfc7946">
+      RFC 7946 &ndash; The GeoJSON Format
+    </a>
+  </li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.import.html">v.import</a>,
+<a href="v.in.ogr.html">v.in.ogr</a>,
+<a href="v.in.wfs.html">v.in.wfs</a>,
+<a href="v.proj.html">v.proj</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
