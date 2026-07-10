@@ -25,7 +25,7 @@ t.rast.out.xyz -i strds=mystrds output=/tmp/mystrds.csv \
 ## SEE ALSO
 
 [r.out.xyz](https://grass.osgeo.org/grass-stable/manuals/r.out.xyz.html),
-[t.rast.out.vtk](t.rast.out.vtk.md)
+[t.rast.out.vtk](https://grass.osgeo.org/grass-stable/manuals/t.rast.out.vtk.html)
 
 ## AUTHOR
 
