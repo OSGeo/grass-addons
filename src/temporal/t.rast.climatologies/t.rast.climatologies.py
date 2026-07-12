@@ -206,7 +206,7 @@ def main():
                 )
                 map_layer.set_temporal_extent(extent=extent)
                 outmaps.append(map_layer)
-            gscript.percent(month, 12, 1)
+            gs.percent(month, 12, 1)
 
     if not space_time:
         # create new space time raster dataset
