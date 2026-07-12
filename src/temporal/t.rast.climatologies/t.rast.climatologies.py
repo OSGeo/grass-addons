@@ -89,7 +89,7 @@ from datetime import datetime
 
 def main():
     import grass.pygrass.modules as pymod
-    import grass.script as gscript
+    import grass.script as gs
     import grass.temporal as tgis
 
     options, flags = gscript.parser()
