@@ -182,6 +182,10 @@ import grass.temporal as tgis
 import grass.pygrass.modules as pymod
 
 
+if not callable(globals().get("_")):
+    from gettext import gettext as _
+
+
 def check_temporal_exist(name, stdtype="strds"):
     if not name:
         return None
@@ -211,7 +215,7 @@ def check_map_numbers(where, **kwargs):
                 name = sp.get_name()
             else:
                 if numrast != len(maps):
-                    grass.warning(
+                    gscript.warning(
                         _(
                             "The number of raster maps in {} strds and {} strds differs.".format(
                                 name, sp.get_name()
