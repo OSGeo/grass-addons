@@ -128,7 +128,7 @@ def main():
     insp = tgis.open_old_stds(strds, "strds", dbif)
     temporal_type, semantic_type, title, description = insp.get_initial_values()
     if temporal_type != "absolute":
-        gscript.fatal(
+        gs.fatal(
             _(
                 "Space time raster dataset temporal type is not absolute, this module requires absolute time"
             )
