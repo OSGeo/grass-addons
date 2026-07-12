@@ -65,7 +65,7 @@
 # % label: Aggregate by day or month
 # % required: yes
 # % multiple: no
-# % options: day, month
+# % options: day, 15 days, month
 # % answer: day
 # %end
 
@@ -85,6 +85,9 @@
 
 import copy
 from datetime import datetime
+
+if not callable(globals().get("_")):
+    from gettext import gettext as _
 
 
 def main():
@@ -106,7 +109,9 @@ def main():
     if "quantile" in method and not quantile:
         gs.fatal(_("Number requested methods and output maps do not match."))
     elif quantile and "quantile" not in method:
-        gs.warning(_("Quantile option set but quantile not selected in method option"))
+        gs.warning(
+            _("Quantile option set but quantile not selected in method option")
+        )
 
     # Check if number of methods and output maps matches
     if "quantile" in method:
@@ -137,9 +142,9 @@ def main():
     if maps is None:
         gs.fatal(
             _(
-                "No maps selected in the space time raster dataset {};"
-                " it might be empty or the where option returns no data".format(strds)
-            )
+                "No maps selected in the space time raster dataset %s;"
+                " it might be empty or the where option returns no data"
+            ) % strds
         )
     # start the r.series module to be used in a ParallelModuleQueue
     mod = pymod.Module("r.series")
@@ -174,6 +179,34 @@ def main():
                 extent = tgis.RelativeTemporalExtent(
                     start_time=doy - 1,
                     end_time=doy,
+                    unit=outunit,
+                )
+                map_layer.set_temporal_extent(extent=extent)
+                outmaps.append(map_layer)
+
+            if doy % 10 == 0:
+                gs.percent(doy, 366, 1)
+    elif gran == "15 days":
+        outunit = "days"
+        for doy in range(1, 367, 15):
+            doystr = datetime.strptime(f"2000 {doy}", "%Y %j").strftime("%m_%d")
+            thiswhere = f"strftime('%m_%d', start_time) >= '{doystr}' and strftime('%m_%d', start_time) < '{datetime.strptime(f'2000 {doy + 15}', '%Y %j').strftime('%m_%d')}'"
+            selemaps = insp.get_registered_maps_as_objects(
+                thiswhere, "start_time", dbif
+            )
+            maps_name = [sam.get_id() for sam in selemaps]
+            if len(maps_name) > 0:
+                outname = f"{basename}_{doystr}"
+                runmod = copy.deepcopy(mod)
+                runmod.inputs.input = ",".join(maps_name)
+                runmod.outputs.output = outname
+                process_queue.put(runmod)
+                map_layer = tgis.space_time_datasets.RasterDataset(
+                    f"{outname}@{mapset}"
+                )
+                extent = tgis.RelativeTemporalExtent(
+                    start_time=doy,
+                    end_time=doy + 15,
                     unit=outunit,
                 )
                 map_layer.set_temporal_extent(extent=extent)

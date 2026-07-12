@@ -18,6 +18,18 @@ long term average for each day along years.
     </pre>
 </div>
 
+<h3>15 days climatologies</h3>
+
+Starting from a space time raster dataset of daily granularity (or granularity lower than one day),
+the module will create a new space time raster dataset of relative temporal type containing the long
+term average every 15 days starting from 1st January.
+
+<div class="code">
+    <pre>
+        t.rast.climatologies input=myinput output=dailyoutput granularity="15 days"
+    </pre>
+</div>
+
 <h3>Monthly climatologies</h3>
 
 Starting from a space time raster dataset of monthly granularity (or lower than one month),
