@@ -180,7 +180,7 @@ def main():
                 outmaps.append(map_layer)
 
             if doy % 10 == 0:
-                gscript.percent(doy, 366, 1)
+                gs.percent(doy, 366, 1)
     else:
         outunit = "months"
         for month in range(1, 13):
