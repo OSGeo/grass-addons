@@ -118,7 +118,7 @@ def main():
         if (len(list(filter(None, quantile.split(",")))) + len_method) != len(
             output.split(",")
         ):
-            gscript.fatal(_("Number requested methods and output maps do not match."))
+            gs.fatal(_("Number requested methods and output maps do not match."))
 
     tgis.init()
     # We need a database interface
