@@ -1,0 +1,30 @@
+# Addon-specific dependencies (install as needed)
+# For i.sentinel-2.dlr-import:
+remotezip
+# For r.colors.fuzzy_lc:
+fuzzywuzzy
+# For r.dop.import:
+wget
+# For v.alkis.nutzung.import:
+py7zr
+# For r.import.probav_lc:
+zenodo_get
+# For r.worldpop.import:
+git+https://github.com/wpgp/wpgpDownloadPy
+# For i.up42.import:
+# up42-py==0.15.0
+# GDAL bindings for various addons (g.region.bbox, r.classify, etc.):
+gdal
+# for i.eodag
+eodag
+# for i.s2_id.filter
+pystac
+# for r.import.probav_lc
+zenodo-get
+# for t.rast.udf
+xarray
+# for t.rast.udf
+openeo_udf
+
+# Script runtime dependency
+gh
