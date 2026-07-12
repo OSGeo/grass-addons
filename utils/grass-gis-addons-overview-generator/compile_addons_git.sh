@@ -594,63 +594,62 @@ module_prefix() {
   case "$1" in
     "ace")
       label="actinia"
-      anchor="a"
+      anchor="actinia"
       ;;
     "db")
       label="Database"
-      anchor="db"
+      anchor="database"
       ;;
     "d")
       label="Display"
-      anchor="d"
+      anchor="display"
       ;;
     "exporter")
       label="exporter (actinia)"
-      anchor="a"
+      anchor="exporter"
       ;;
     "g")
       label="General"
-      anchor="g"
+      anchor="general"
       ;;
     "i")
       label="Imagery"
-      anchor="i"
+      anchor="imagery"
       ;;
     "importer")
       label="importer (actinia)"
-      anchor="a"
+      anchor="importer"
       ;;
     "m")
       label="Miscellaneous"
-      anchor="m"
+      anchor="miscellaneous"
       ;;
     "r")
       label="Raster"
-      anchor="r"
+      anchor="raster"
       ;;
     "r3")
       label="3D raster"
-      anchor="r3"
+      anchor="3d-raster"
       ;;
     "v")
       label="Vector"
-      anchor="v"
+      anchor="vector"
       ;;
     "t")
       label="Temporal"
-      anchor="t"
+      anchor="temporal"
       ;;
     "ps")
       label="Postscript"
-      anchor="ps"
+      anchor="postscript"
       ;;
     *)
       label="unknown"
       anchor="unknown"
       ;;
   esac
-  echo "<a name=\"$anchor\"></a>"
-  echo "<h3>$label</h3>"
+  echo "<h3 id=\"${anchor}-tools-$1\">$label tools ($1.)</h3>"
 }
 
 generate() {
@@ -666,71 +665,134 @@ generate() {
   fi
 
   LASTDATE=$(date +"%d %b %Y")
+  year=$(date +%Y)
 
-  echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">
-<html>
+  echo '<!DOCTYPE html>
+<html lang="en">
 <head>
- <title>GRASS GIS ${major}.${minor} Addons Manual pages</title>
- <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
- <meta name=\"Author\" content=\"GRASS Development Team\">
- <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
- <link rel=\"stylesheet\" href=\"grassdocs.css\" type=\"text/css\">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="The GRASS Development Team">
+  <title>GRASS GIS '"${major}.${minor}"' Addons Manual pages</title>
+  <link rel="stylesheet" href="grassdocs.css">
+  <style>
+    body {
+      font-family: 'Fira Sans Regular', 'Roboto', -apple-system, sans-serif;
+      color: #021905;
+      line-height: 1.6;
+      padding: 20px 28px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #27575c;
+      font-weight: 700;
+      font-size: 2.25em;
+      line-height: 1.3;
+      margin: 0 0 1em;
+    }
+    h2 {
+      color: #4a787d;
+      font-size: 2em;
+      font-weight: 300;
+      line-height: 1.4;
+      margin: .64em 0;
+      text-transform: capitalize;
+    }
+    h3 {
+      color: #4a787d;
+      font-size: 1.25em;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1.5;
+      margin: 1.6em 0 .8em;
+    }
+    a {
+      color: #4cb05b;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #6ed079;
+    }
+    table {
+      display: block;
+      max-width: 100%;
+      overflow: auto;
+      border-collapse: collapse;
+      font-size: .8rem;
+      width: 100%;
+      margin-bottom: 1em;
+    }
+    table th, table td {
+      border: 1px solid #d8d8d8;
+      padding: 10px 16px;
+      text-align: left;
+      vertical-align: top;
+    }
+    table th {
+      background-color: rgba(76, 176, 91, 0.071);
+      font-weight: 700;
+    }
+    table tbody tr:hover {
+      background-color: transparent;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #d8d8d8;
+      margin: 1.5em 0;
+    }
+  </style>
 </head>
-<body bgcolor=\"#FFFFFF\">
-<h2>$MYTITLE</h2>
+<body>
+<h1 id="addon-tools">'"$MYTITLE"'</h1>
 
-<table><tr><td>
-<img src=\"https://grass.osgeo.org/images/logos/grass-logo/grass-gradient.svg\" width=200>
-</td><td>
-<a href=\"https://grass.osgeo.org\">GRASS GIS</a> is free software,
+<p>GRASS GIS is free software,
 anyone may develop their own extensions (addons). The addons listed
-here are currently not part of the core software package.<br>
+here are currently not part of the core software package.
 Addons can easily be <b>installed</b> in your local GRASS GIS installation
 through the graphical user interface (<i>Menu - Settings - Addons
 Extension - Install</i>) or via the <a
-href=\"https://grass.osgeo.org/grass-stable/manuals/g.extension.html\">g.extension</a> command.  <p> <i>These
-manual pages are updated daily. Last run: $LASTDATE</i>
-<p> How to contribute?
-<p> See instructions here: <a href=\"https://github.com/mundialis/grass-gis-helpers/blob/main/How-to-create-a-GRASS-GIS-addon.md\">How to create a GRASS GIS addon</a>.
-<p>
-See also log files of compilation:
-<a href=\"$ADDON_PATH/logs/index.html\">Linux log files</a>
-<p>
-The GRASS addons here are generated from the
-<a href=\"https://github.com/topics/grass-gis-addons\">GitHub topic: grass-gis-addons</a>.
+href="https://grass.osgeo.org/grass-stable/manuals/g.extension.html">g.extension</a> command.</p>
 
-</tr></table>
-<hr>
-<div class=\"toc\">
-<h4 class=\"toc\">Table of contents</h4>
-<ul class=\"toc\">
-<li class=\"toc\"><a class=\"toc\" href=\"#d\">Display commands (d.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#db\">Database commands (db.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#g\">General commands (g.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#i\">Imagery commands (i.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#m\">Miscellaneous commands (m.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#r\">Raster commands (r.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#r3\">3D raster commands (r3.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#t\">Temporal commands (t.*)</a></li>
-<li class=\"toc\"><a class=\"toc\" href=\"#v\">Vector commands (v.*)</a></li>
-</ul>
-</div>" >> index.html
+<h2 id="how-to-contribute">How to contribute?</h2>
+<p>See instructions here:
+<a href="https://github.com/mundialis/grass-gis-helpers/blob/main/How-to-create-a-GRASS-GIS-addon.md">How to create a GRASS GIS addon</a>.</p>
+<p><em>These manual pages are updated daily. Last run: '"$LASTDATE"'</em></p>
+<p>See also <a href="'"$ADDON_PATH/logs/index.html"'">log files of compilation</a>.</p>
+<p>The GRASS addons here are generated from the
+<a href="https://github.com/topics/grass-gis-addons">GitHub topic: grass-gis-addons</a>.</p>
+
+<h2 id="tools">Tools</h2>' >> index.html
 
   prefix_last=""
+  addon_count=0
   for currfile in $(ls -1 *.html 2>/dev/null | grep -v index.html); do
     # module prefix
     prefix=$(echo "$currfile" | cut -d'.' -f1)
     if [ -z "$prefix_last" ] || [ "$prefix" != "$prefix_last" ]; then
       if [ "$prefix_last" != "" ]; then
-        echo "</ul>" >> index.html
+        echo '</tbody>
+</table>' >> index.html
       fi
       module_prefix "$prefix" >> index.html
-      echo "<ul>" >> index.html
+      echo '<table>
+<thead>
+<tr>
+  <th>Name</th>
+  <th>Description</th>
+  <th>Repository</th>
+  <th>Testsuite</th>
+</tr>
+</thead>
+<tbody>' >> index.html
       prefix_last=$prefix
     fi
 
     module=$(echo "$currfile" | sed 's+\.html$++g')
-    echo "<li style=\"margin-left: 20px\"><a href=\"$currfile\">$module</a>: " >> index.html
+    addon_count=$((addon_count + 1))
+    echo '<tr>
+  <td><a href="'"$currfile"'">'"$module"'</a></td>
+  <td>' >> index.html
 
     # Extract description from the first <meta name="description"> tag in the manual page
     if [ -f "$currfile" ]; then
@@ -740,39 +802,50 @@ The GRASS addons here are generated from the
         echo "$desc" >> index.html
       fi
     fi
+    echo '</td>
+  <td>' >> index.html
 
     # Annotate with source repository
     sourcerepo="${ADDON_REPO[$module]}"
     if [ -z "$sourcerepo" ]; then
       sourcerepo="unknown"
     fi
-    echo " <font color=\"#AAAAAA\">(repo: <a href=\"https://github.com/$sourcerepo\">$sourcerepo</a>)</font>" >> index.html
+    if [ "$sourcerepo" = "unknown" ]; then
+      echo "$sourcerepo" >> index.html
+    else
+      echo '<a href="https://github.com/'"$sourcerepo"'">'"$sourcerepo"'</a>' >> index.html
+    fi
+    echo '</td>
+  <td>' >> index.html
 
     # check if testsuite is present
     if test -d "$ALLADDONSSRC/$module/testsuite"; then
-      echo "<font color=\"#AAAAAA\">[testsuite: </font><font color=\"#77FF77\">yes</font><font color=\"#AAAAAA\">]</font>" >> index.html
+      echo 'yes' >> index.html
     else
       if test -d "$ALLADDONSSRC/$module/"*/testsuite 2>/dev/null; then
-        echo "<font color=\"#AAAAAA\">[testsuite: </font><font color=\"#77FF77\">yes</font><font color=\"#AAAAAA\">]</font>" >> index.html
+        echo 'yes' >> index.html
       else
-        echo "<font color=\"#AAAAAA\">[testsuite: </font><font color=\"#FF7777\">no</font><font color=\"#AAAAAA\">]</font>" >> index.html
+        echo 'no' >> index.html
       fi
     fi
-
-    echo "" >> index.html
+    echo '</td>
+</tr>' >> index.html
   done
 
-  ADDONCOUNT=$(grep "margin-left" index.html | wc -l)
-  echo "<p>
-<hr>
-Found $ADDONCOUNT addons
-<p>" >> index.html
+  if [ -n "$prefix_last" ]; then
+    echo '</tbody>
+</table>' >> index.html
+  fi
 
-  year=$(date +%Y)
-  echo "</ul><hr>
-&copy; 2015-${year} <a href=\"https://grass.osgeo.org\">GRASS Development Team</a>, $MYTITLE<br>" >> index.html
-  echo "<i><small>$(date -u)</small></i>" >> index.html
-  echo "</body></html>" >> index.html
+  echo '<p>
+Found '"$addon_count"' addons
+</p>
+
+<hr>
+<p>&copy; 2015-'"$year"' <a href="https://grass.osgeo.org">GRASS Development Team</a>, '"$MYTITLE"'<br>
+<em><small>'"$(date -u)"'</small></em></p>
+</body>
+</html>' >> index.html
   rm -f index.html.bak
 }
 
