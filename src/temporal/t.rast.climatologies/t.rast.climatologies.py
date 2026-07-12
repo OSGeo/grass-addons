@@ -104,7 +104,7 @@ def main():
 
     # check if quantile value is used correctly
     if "quantile" in method and not quantile:
-        gscript.fatal(_("Number requested methods and output maps do not match."))
+        gs.fatal(_("Number requested methods and output maps do not match."))
     elif quantile and "quantile" not in method:
         gscript.warning(
             _("Quantile option set but quantile not selected in method option")
