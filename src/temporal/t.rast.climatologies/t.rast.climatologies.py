@@ -135,7 +135,7 @@ def main():
         )
     maps = insp.get_registered_maps_as_objects(None, "start_time", dbif)
     if maps is None:
-        gscript.fatal(
+        gs.fatal(
             _(
                 "No maps selected in the space time raster dataset {};"
                 " it might be empty or the where option returns no data".format(strds)
