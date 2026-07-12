@@ -92,7 +92,7 @@ def main():
     import grass.script as gs
     import grass.temporal as tgis
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     strds = options["input"]
     output = options["output"]
     method = options["method"]
