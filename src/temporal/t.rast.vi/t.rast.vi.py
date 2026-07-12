@@ -16,168 +16,168 @@
 #
 #############################################################################
 
-#%Module
-#% description: Calculate vegetation indices for temporal datasets
-#% keyword: temporal
-#% keyword: vegetation
-#% keyword: raster
-#% keyword: time
-#%end
+# %Module
+# % description: Calculate vegetation indices for temporal datasets
+# % keyword: temporal
+# % keyword: vegetation
+# % keyword: raster
+# % keyword: time
+# %end
 
-#%option
-#% key: red
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with red band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: red
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with red band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: green
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with green band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: green
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with green band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: blue
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with blue band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: blue
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with blue band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: nir
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with nir band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: nir
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with nir band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: band5
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with 5th channel surface reflectance band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: band5
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with 5th channel surface reflectance band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: band7
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time raster dataset with 7th channel surface reflectance band
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: band7
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time raster dataset with 7th channel surface reflectance band
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: output
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: name
-#% description: Name of the output space time raster dataset
-#% gisprompt: new,strds,strds
-#%end
+# %option
+# % key: output
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: name
+# % description: Name of the output space time raster dataset
+# % gisprompt: new,strds,strds
+# %end
 
-#%option
-#% key: prefix
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: name
-#% description: Prefix of the output raster names within the space time raster dataset
-#% gisprompt: new,strds,strds
-#%end
+# %option
+# % key: prefix
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Prefix of the output raster names within the space time raster dataset
+# % gisprompt: new,strds,strds
+# %end
 
-#%option
-#% key: clouds
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time dataset with clouds
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: clouds
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time dataset with clouds
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: shadows
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Name of the input space time dataset with shadow
-#% gisprompt: old,strds,strds
-#%end
+# %option
+# % key: shadows
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Name of the input space time dataset with shadow
+# % gisprompt: old,strds,strds
+# %end
 
-#%option
-#% key: viname
-#% type: string
-#% required: no
-#% multiple: no
-#% description: Type of vegetation index
-#% options: arvi, dvi, evi, evi2, gvi, gari, gemi, ipvi, msavi, msavi2, ndvi, ndwi, pvi, savi, sr, vari, wdvi
-#% answer: ndvi
-#%end
+# %option
+# % key: viname
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Type of vegetation index
+# % options: arvi, dvi, evi, evi2, gvi, gari, gemi, ipvi, msavi, msavi2, ndvi, ndwi, pvi, savi, sr, vari, wdvi
+# % answer: ndvi
+# %end
 
-#%option G_OPT_T_WHERE
-#%end
+# %option G_OPT_T_WHERE
+# %end
 
-#%option
-#% key: soil_line_slope
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Value of the slope of the soil line (MSAVI only)
-#% guisection: MSAVI settings
-#%end
+# %option
+# % key: soil_line_slope
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Value of the slope of the soil line (MSAVI only)
+# % guisection: MSAVI settings
+# %end
 
-#%option
-#% key: soil_line_intercept
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Value of the intercept of the soil line (MSAVI only)
-#% guisection: MSAVI settings
-#%end
+# %option
+# % key: soil_line_intercept
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Value of the intercept of the soil line (MSAVI only)
+# % guisection: MSAVI settings
+# %end
 
-#%option
-#% key: soil_noise_reduction
-#% type: double
-#% required: no
-#% multiple: no
-#% description: Value of the factor of reduction of soil noise (MSAVI only)
-#% guisection: MSAVI settings
-#%end
+# %option
+# % key: soil_noise_reduction
+# % type: double
+# % required: no
+# % multiple: no
+# % description: Value of the factor of reduction of soil noise (MSAVI only)
+# % guisection: MSAVI settings
+# %end
 
 
-#%option
-#% key: nprocs
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Number of parallel processes to run
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Number of parallel processes to run
+# % answer: 1
+# %end
 
-#%option
-#% key: memory
-#% type: integer
-#% required: no
-#% multiple: no
-#% label: Maximum memory to be used if vector to raster operation is needed (in MB)
-#% answer: 300
-#%end
+# %option
+# % key: memory
+# % type: integer
+# % required: no
+# % multiple: no
+# % label: Maximum memory to be used if vector to raster operation is needed (in MB)
+# % answer: 300
+# %end
 
 import sys
 import copy
-import grass.script as gscript
+import grass.script as gs
 import grass.temporal as tgis
 import grass.pygrass.modules as pymod
 
@@ -198,10 +198,11 @@ def check_map_numbers(where, **kwargs):
         sp = kwargs[kw]
         maps = sp.get_registered_maps_as_objects(where, "start_time", None)
         if maps is None:
-            gscript.fatal(
+            gs.fatal(
                 _(
-                    "Space time raster dataset {st} seems to be "
-                    "empty".format(st=sp.get_name())
+                    "Space time raster dataset {st} seems to be empty".format(
+                        st=sp.get_name()
+                    )
                 )
             )
         else:
@@ -249,60 +250,60 @@ def main():
     sl_int = options["soil_line_intercept"]
     sl_red = options["soil_noise_reduction"]
     memory = int(options["memory"])
-    overwrite = gscript.overwrite()
+    overwrite = gs.overwrite()
 
     list_strds = {}
     if viname == "sr" and (not red or not nir):
-        gscript.fatal(_("sr index requires red and nir strds"))
+        gs.fatal(_("sr index requires red and nir strds"))
     elif viname == "sr":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "ndvi" and (not red or not nir):
-        gscript.fatal(_("ndvi index requires red and nir maps"))
+        gs.fatal(_("ndvi index requires red and nir maps"))
     elif viname == "ndvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "ndwi" and (not green or not nir):
-        gscript.fatal(_("ndwi index requires green and nir maps"))
+        gs.fatal(_("ndwi index requires green and nir maps"))
     elif viname == "ndwi":
         check_map_numbers(where, green=green, nir=nir)
         list_strds["green"] = green
         list_strds["nir"] = nir
 
     if viname == "ipvi" and (not red or not nir):
-        gscript.fatal(_("ipvi index requires red and nir maps"))
+        gs.fatal(_("ipvi index requires red and nir maps"))
     elif viname == "ipvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "dvi" and (not red or not nir):
-        gscript.fatal(_("dvi index requires red and nir maps"))
+        gs.fatal(_("dvi index requires red and nir maps"))
     elif viname == "dvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "pvi" and (not red or not nir):
-        gscript.fatal(_("pvi index requires red and nir maps"))
+        gs.fatal(_("pvi index requires red and nir maps"))
     elif viname == "pvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "wdvi" and (not red or not nir):
-        gscript.fatal(_("wdvi index requires red and nir maps"))
+        gs.fatal(_("wdvi index requires red and nir maps"))
     elif viname == "wdvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "savi" and (not red or not nir):
-        gscript.fatal(_("savi index requires red and nir maps"))
+        gs.fatal(_("savi index requires red and nir maps"))
     elif viname == "savi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
@@ -311,7 +312,7 @@ def main():
     if viname == "msavi" and (
         not red or not nir or not sl_slope or not sl_int or not sl_red
     ):
-        gscript.fatal(
+        gs.fatal(
             _(
                 "msavi index requires red and nir maps, and 3 parameters related to soil line"
             )
@@ -322,21 +323,21 @@ def main():
         list_strds["nir"] = nir
 
     if viname == "msavi2" and (not red or not nir):
-        gscript.fatal(_("msavi2 index requires red and nir maps"))
+        gs.fatal(_("msavi2 index requires red and nir maps"))
     elif viname == "msavi2":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "gemi" and (not red or not nir):
-        gscript.fatal(_("gemi index requires red and nir maps"))
+        gs.fatal(_("gemi index requires red and nir maps"))
     elif viname == "gemi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "arvi" and (not red or not nir or not blue):
-        gscript.fatal(_("arvi index requires blue, red and nir maps"))
+        gs.fatal(_("arvi index requires blue, red and nir maps"))
     elif viname == "arvi":
         check_map_numbers(where, red=red, nir=nir, blue=blue)
         list_strds["red"] = red
@@ -344,7 +345,7 @@ def main():
         list_strds["blue"] = blue
 
     if viname == "evi" and (not red or not nir or not blue):
-        gscript.fatal(_("evi index requires blue, red and nir maps"))
+        gs.fatal(_("evi index requires blue, red and nir maps"))
     elif viname == "evi":
         check_map_numbers(where, red=red, nir=nir, blue=blue)
         list_strds["red"] = red
@@ -352,14 +353,14 @@ def main():
         list_strds["blue"] = blue
 
     if viname == "evi2" and (not red or not nir):
-        gscript.fatal(_("evi2 index requires red and nir maps"))
+        gs.fatal(_("evi2 index requires red and nir maps"))
     elif viname == "evi2":
         check_map_numbers(where, red=red, nir=nir)
         list_strds["red"] = red
         list_strds["nir"] = nir
 
     if viname == "vari" and (not red or not green or not blue):
-        gscript.fatal(_("vari index requires blue, green and red maps"))
+        gs.fatal(_("vari index requires blue, green and red maps"))
     elif viname == "vari":
         check_map_numbers(where, red=red, green=green, blue=blue)
         list_strds["red"] = red
@@ -367,7 +368,7 @@ def main():
         list_strds["blue"] = blue
 
     if viname == "gari" and (not red or not nir or not blue or not green):
-        gscript.fatal(_("gari index requires blue, green, red and nir maps"))
+        gs.fatal(_("gari index requires blue, green, red and nir maps"))
     elif viname == "gari":
         check_map_numbers(where, red=red, nir=nir, green=green, blue=blue)
         list_strds.extend([red, green, blue, nir])
@@ -379,9 +380,7 @@ def main():
     if viname == "gvi" and (
         not red or not nir or not blue or not green or not band5 or not band7
     ):
-        gscript.fatal(
-            _("gvi index requires blue, green, red, nir, chan5 and chan7 maps")
-        )
+        gs.fatal(_("gvi index requires blue, green, red, nir, chan5 and chan7 maps"))
     elif viname == "gvi":
         check_map_numbers(where, red=red, nir=nir)
         list_strds.extend([red, green, blue, nir, band5, band7])
@@ -446,11 +445,11 @@ def main():
         if clouds:
             maps = clouds.get_registered_maps_as_objects(mywhere, "start_time", None)
             if len(maps) == 0:
-                gscript.warning(_("No clouds map for {}").format(ti[0]))
+                gs.warning(_("No clouds map for {}").format(ti[0]))
             else:
                 cloud_exists = True
                 if len(maps) > 1:
-                    gscript.warning(_("To many clouds maps, only first will be used"))
+                    gs.warning(_("To many clouds maps, only first will be used"))
                 if clouds.get_type() == "stvds":
                     cloud_map = "cloud_{}".format(ti[0].strftime("%Y_%m_%d_%H_%M"))
 
@@ -475,11 +474,11 @@ def main():
         if shadows:
             maps = shadows.get_registered_maps_as_objects(mywhere, "start_time", None)
             if len(maps) == 0:
-                gscript.warning(_("No shadow map for {}").format(ti[0]))
+                gs.warning(_("No shadow map for {}").format(ti[0]))
             else:
                 shadow_exists = True
                 if len(maps) > 1:
-                    gscript.warning(_("To many shadows maps, only first will be used"))
+                    gs.warning(_("To many shadows maps, only first will be used"))
                 if shadows.get_type() == "stvds":
                     shadow_map = "cloud_{}".format(ti[0].strftime("%Y_%m_%d_%H_%M"))
                     vtoshadow = copy.deepcopy(vtorast)
@@ -516,7 +515,7 @@ def main():
                 thisivi.inputs[k].value = rast
             else:
                 if len(rast) > 1:
-                    gscript.warning(_("To many map as input, only first will be used"))
+                    gs.warning(_("To many map as input, only first will be used"))
                 thisivi.inputs[k].value = rast[0].get_name()
         if options["prefix"]:
             out = "{pre}_{ti}_{vi}".format(
@@ -567,7 +566,7 @@ def main():
         count += 1
 
         if count % 10 == 0:
-            gscript.percent(count, num_maps, 1)
+            gs.percent(count, num_maps, 1)
 
         # Do not register empty maps
         mapp.load()
@@ -581,10 +580,10 @@ def main():
 
     # Update the spatio-temporal extent and the metadata table entries
     strdsout.update_from_registered_maps(dbif)
-    gscript.percent(1, 1, 1)
+    gs.percent(1, 1, 1)
     dbif.close()
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     sys.exit(main())
