@@ -218,7 +218,7 @@ def main():
             f"Climatologies created from {strds}, {gran} {method} maps",
             semantic_type,
             dbif,
-            gscript.overwrite(),
+            gs.overwrite(),
         )
         register_null = False
         # register maps into space time raster dataset
