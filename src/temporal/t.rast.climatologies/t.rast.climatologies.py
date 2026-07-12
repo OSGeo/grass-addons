@@ -106,9 +106,7 @@ def main():
     if "quantile" in method and not quantile:
         gs.fatal(_("Number requested methods and output maps do not match."))
     elif quantile and "quantile" not in method:
-        gscript.warning(
-            _("Quantile option set but quantile not selected in method option")
-        )
+        gs.warning(_("Quantile option set but quantile not selected in method option"))
 
     # Check if number of methods and output maps matches
     if "quantile" in method:
