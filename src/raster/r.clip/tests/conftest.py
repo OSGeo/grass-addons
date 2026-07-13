@@ -1,52 +1,45 @@
-"""Fixtures for the r.clip tests.
-
-Each fixture builds a throwaway project with a single input raster, so tests
-can re-clip it under different computational regions and flags.
-"""
+"""Fixtures for the r.clip tests."""
 
 from types import SimpleNamespace
 
 import pytest
 
 import grass.script as gs
+from grass.experimental import TemporaryMapsetSession
 
 
-def _clip_dataset(tmp_path, name, *, epsg, extent, res):
-    """Create a project with one input raster and yield a handle to it.
+def dataset_session(tmp_path, name, *, epsg, extent, res):
+    """Create a project with input raster ``name`` and yield a handle to it.
 
-    The input raster is a 10x10 grid where each cell value equals its column
-    number, which makes clipped values easy to check. *extent* is passed to
-    ``g.region`` as its ``n``/``s``/``e``/``w`` keyword arguments. Yields a
-    namespace with the raster ``input`` name and its ``res`` (resolution).
+    The raster is a 10x10 grid of ``col()`` values in PERMANENT; each test runs
+    in its own temporary mapset, reached through the yielded ``env``.
     """
-    gs.create_project(tmp_path, "test", epsg=epsg)
-    with gs.setup.init(tmp_path / "test"):
+    project = tmp_path / "project"
+    gs.create_project(project, epsg=epsg)
+    with gs.setup.init(project):
         gs.run_command("g.region", res=res, **extent)
         gs.mapcalc(f"{name} = col()")
-        yield SimpleNamespace(input=name, res=res)
+        with TemporaryMapsetSession() as session:
+            yield SimpleNamespace(env=session.env, input=name, res=res)
 
 
 @pytest.fixture
-def clip_dataset(tmp_path_factory):
-    """XY project: a 10x10 raster at resolution 10 covering 0..100."""
-    yield from _clip_dataset(
-        tmp_path_factory.mktemp("clip_xy"),
+def clip_ll(tmp_path):
+    """WGS84 lat/lon project (EPSG:4326), 10x10 raster at 1 degree over 0..10."""
+    yield from dataset_session(
+        tmp_path,
         "input_map",
-        epsg=None,
-        extent={"n": 100, "s": 0, "e": 100, "w": 0},
-        res=10,
+        epsg="4326",
+        extent={"n": 10, "s": 0, "e": 10, "w": 0},
+        res=1,
     )
 
 
 @pytest.fixture
-def clip_dataset_utm(tmp_path_factory):
-    """Projected project: a 10x10 raster at resolution 100 covering 0..1000.
-
-    Uses WGS84 / UTM zone 33N (EPSG:32633) so cell sizes are real metres, to
-    check that r.clip behaves the same way in a projected CRS as in XY.
-    """
-    yield from _clip_dataset(
-        tmp_path_factory.mktemp("clip_utm"),
+def clip_utm(tmp_path):
+    """UTM 33N project (EPSG:32633), 10x10 raster at resolution 100 over 0..1000."""
+    yield from dataset_session(
+        tmp_path,
         "input_utm",
         epsg="32633",
         extent={"n": 1000, "s": 0, "e": 1000, "w": 0},
