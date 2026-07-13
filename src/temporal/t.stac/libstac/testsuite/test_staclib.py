@@ -10,7 +10,7 @@ from grass.gunittest.main import test
 from grass.pygrass.utils import get_lib_path
 from grass.pygrass.vector.geometry import Point
 from grass.exceptions import CalledModuleError
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 import base64
 import tempfile
 
@@ -519,36 +519,6 @@ class TestImportGrassRaster(TestCase):
         libstac.import_grass_raster(params)
         mock_check_url.assert_called_once_with("http://example.com/asset0.tif")
 
-    @patch("staclib.gs.parse_command")
-    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
-    def test_sets_gdal_env_vars(self, mock_check_url, mock_parse):
-        for key in (
-            "GDAL_HTTP_MAX_RETRY",
-            "GDAL_HTTP_RETRY_DELAY",
-            "CPL_VSIL_CURL_CACHE_SIZE",
-            "GDAL_MAX_CONNECTIONS",
-        ):
-            os.environ.pop(key, None)
-
-        libstac.import_grass_raster(self._make_params())
-
-        self.assertEqual(os.environ.get("GDAL_HTTP_MAX_RETRY"), "3")
-        self.assertEqual(os.environ.get("GDAL_HTTP_RETRY_DELAY"), "2")
-        self.assertEqual(os.environ.get("CPL_VSIL_CURL_CACHE_SIZE"), "0")
-        self.assertEqual(os.environ.get("GDAL_MAX_CONNECTIONS"), "2")
-
-    @patch("staclib.gs.parse_command")
-    @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
-    def test_gdal_env_vars_not_overwritten_if_already_set(
-        self, mock_check_url, mock_parse
-    ):
-        os.environ["GDAL_MAX_CONNECTIONS"] = "10"
-        try:
-            libstac.import_grass_raster(self._make_params())
-            self.assertEqual(os.environ.get("GDAL_MAX_CONNECTIONS"), "10")
-        finally:
-            os.environ.pop("GDAL_MAX_CONNECTIONS", None)
-
     @patch("staclib.gs.fatal")
     @patch("staclib.check_url_type", return_value="http://example.com/asset0.tif")
     @patch("staclib.gs.parse_command")
@@ -575,15 +545,13 @@ class TestDownloadAssets(TestCase):
         ]
 
     def _setup_pool_mock(self, mock_pool_cls, n_assets, map_results=None):
-        """Wire mock_pool_cls to return a mock executor whose map() yields
-        one result per asset."""
+        """Wire mock_pool_cls so entering its context yields an executor
+        whose map() yields one result per asset."""
         if map_results is None:
             map_results = [None] * n_assets
 
-        mock_executor = MagicMock()
+        mock_executor = mock_pool_cls.return_value.__enter__.return_value
         mock_executor.map.return_value = iter(map_results)
-        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
-        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
         return mock_executor
 
     # ------------------------------------------------------------------
@@ -591,32 +559,14 @@ class TestDownloadAssets(TestCase):
     # ------------------------------------------------------------------
 
     @patch("staclib.gs.warning")
-    @patch("staclib.ProcessPoolExecutor")
-    @patch("os.cpu_count", return_value=4)
-    def test_nprocs_capped_at_cpu_count_minus_one(
-        self, mock_cpu, mock_pool_cls, mock_warning
-    ):
-        assets = self._make_assets(2)
-        self._setup_pool_mock(mock_pool_cls, 2)
-
-        # nprocs=10 exceeds cpu_count-1=3
-        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=10)
-
-        mock_warning.assert_any_call(
-            "Number of processes {nprocs} is greater than the number of CPUs {max_cpus}."
-        )
-        mock_pool_cls.assert_called_once_with(max_workers=3)
-
-    @patch("staclib.gs.warning")
-    @patch("staclib.ProcessPoolExecutor")
-    @patch("os.cpu_count", return_value=64)
+    @patch("staclib.ThreadPoolExecutor")
     def test_nprocs_capped_at_max_concurrent_downloads(
-        self, mock_cpu, mock_pool_cls, mock_warning
+        self, mock_pool_cls, mock_warning
     ):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
 
-        # nprocs=32 exceeds MAX_CONCURRENT_DOWNLOADS=8 but not cpu_count-1=63
+        # nprocs=32 exceeds MAX_CONCURRENT_DOWNLOADS=8
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=32)
 
         mock_warning.assert_any_call(
@@ -629,11 +579,56 @@ class TestDownloadAssets(TestCase):
             max_workers=libstac.MAX_CONCURRENT_DOWNLOADS
         )
 
+    @patch("staclib.ThreadPoolExecutor")
+    def test_nprocs_floor_at_one(self, mock_pool_cls):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+
+        libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=0)
+
+        mock_pool_cls.assert_called_once_with(max_workers=1)
+
+    # ------------------------------------------------------------------
+    # GDAL retry environment defaults
+    # ------------------------------------------------------------------
+
+    @patch("staclib.ThreadPoolExecutor")
+    def test_sets_gdal_retry_env_defaults(self, mock_pool_cls):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        for key in ("GDAL_HTTP_MAX_RETRY", "GDAL_HTTP_RETRY_DELAY"):
+            os.environ.pop(key, None)
+
+        try:
+            libstac.download_assets(
+                assets, "bilinear", "region", "value", 30.0, nprocs=1
+            )
+            self.assertEqual(os.environ.get("GDAL_HTTP_MAX_RETRY"), "3")
+            self.assertEqual(os.environ.get("GDAL_HTTP_RETRY_DELAY"), "2")
+        finally:
+            for key in ("GDAL_HTTP_MAX_RETRY", "GDAL_HTTP_RETRY_DELAY"):
+                os.environ.pop(key, None)
+
+    @patch("staclib.ThreadPoolExecutor")
+    def test_gdal_retry_env_not_overwritten_if_already_set(self, mock_pool_cls):
+        assets = self._make_assets(2)
+        self._setup_pool_mock(mock_pool_cls, 2)
+        os.environ["GDAL_HTTP_MAX_RETRY"] = "10"
+
+        try:
+            libstac.download_assets(
+                assets, "bilinear", "region", "value", 30.0, nprocs=1
+            )
+            self.assertEqual(os.environ.get("GDAL_HTTP_MAX_RETRY"), "10")
+        finally:
+            for key in ("GDAL_HTTP_MAX_RETRY", "GDAL_HTTP_RETRY_DELAY"):
+                os.environ.pop(key, None)
+
     # ------------------------------------------------------------------
     # executor.map behaviour
     # ------------------------------------------------------------------
 
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_executor_created_with_nprocs(self, mock_pool_cls):
         assets = self._make_assets(2)
         self._setup_pool_mock(mock_pool_cls, 2)
@@ -642,7 +637,7 @@ class TestDownloadAssets(TestCase):
 
         mock_pool_cls.assert_called_once_with(max_workers=3)
 
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_map_called_once_with_all_params(self, mock_pool_cls):
         n = 4
         assets = self._make_assets(n)
@@ -655,7 +650,7 @@ class TestDownloadAssets(TestCase):
         self.assertIs(fn_arg, libstac.import_grass_raster)
         self.assertEqual(len(params_arg), n)
 
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_correct_params_passed_to_map(self, mock_pool_cls):
         assets = self._make_assets(2)
         mock_executor = self._setup_pool_mock(mock_pool_cls, 2)
@@ -671,7 +666,7 @@ class TestDownloadAssets(TestCase):
                 (asset, "bilinear", "region", "value", 30.0, 512),
             )
 
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_empty_assets_map_with_empty_list(self, mock_pool_cls):
         mock_executor = self._setup_pool_mock(mock_pool_cls, 0)
 
@@ -680,39 +675,38 @@ class TestDownloadAssets(TestCase):
         _fn, params_arg = mock_executor.map.call_args.args
         self.assertEqual(params_arg, [])
 
-    @patch("staclib.ProcessPoolExecutor")
-    def test_exception_from_worker_propagates(self, mock_pool_cls):
+    @patch("staclib.gs.fatal")
+    @patch("staclib.ThreadPoolExecutor")
+    def test_worker_exception_calls_fatal(self, mock_pool_cls, mock_fatal):
         assets = self._make_assets(2)
 
         def raising_iter():
             yield None
             raise RuntimeError("Download failed")
 
-        mock_executor = MagicMock()
-        mock_executor.map.return_value = raising_iter()
-        mock_pool_cls.return_value.__enter__ = MagicMock(return_value=mock_executor)
-        mock_pool_cls.return_value.__exit__ = MagicMock(return_value=False)
+        self._setup_pool_mock(mock_pool_cls, 2, map_results=raising_iter())
+        mock_fatal.side_effect = SystemExit
 
-        with self.assertRaises(RuntimeError, msg="Download failed"):
+        with self.assertRaises(SystemExit):
             libstac.download_assets(
                 assets, "bilinear", "region", "value", 30.0, nprocs=1
             )
+
+        mock_fatal.assert_called_once_with("Error importing raster: Download failed")
 
     # ------------------------------------------------------------------
     # tqdm integration
     # ------------------------------------------------------------------
 
     @patch("staclib._import_tqdm")
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_pbar_updated_once_per_asset(self, mock_pool_cls, mock_import_tqdm):
         n = 3
         assets = self._make_assets(n)
         self._setup_pool_mock(mock_pool_cls, n)
 
-        mock_pbar = MagicMock()
         mock_tqdm_cls = MagicMock()
-        mock_tqdm_cls.return_value.__enter__ = MagicMock(return_value=mock_pbar)
-        mock_tqdm_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_pbar = mock_tqdm_cls.return_value.__enter__.return_value
         mock_import_tqdm.return_value = mock_tqdm_cls
 
         libstac.download_assets(assets, "bilinear", "region", "value", 30.0, nprocs=2)
@@ -722,7 +716,7 @@ class TestDownloadAssets(TestCase):
 
     @patch("staclib.gs.warning")
     @patch("staclib._import_tqdm", return_value=None)
-    @patch("staclib.ProcessPoolExecutor")
+    @patch("staclib.ThreadPoolExecutor")
     def test_warning_and_runs_without_tqdm(
         self, mock_pool_cls, mock_import_tqdm, mock_warning
     ):
