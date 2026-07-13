@@ -109,9 +109,7 @@ def main():
     if "quantile" in method and not quantile:
         gs.fatal(_("Number requested methods and output maps do not match."))
     elif quantile and "quantile" not in method:
-        gs.warning(
-            _("Quantile option set but quantile not selected in method option")
-        )
+        gs.warning(_("Quantile option set but quantile not selected in method option"))
 
     # Check if number of methods and output maps matches
     if "quantile" in method:
@@ -144,7 +142,8 @@ def main():
             _(
                 "No maps selected in the space time raster dataset %s;"
                 " it might be empty or the where option returns no data"
-            ) % strds
+            )
+            % strds
         )
     # start the r.series module to be used in a ParallelModuleQueue
     mod = pymod.Module("r.series")

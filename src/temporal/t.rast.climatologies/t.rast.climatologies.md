@@ -20,7 +20,6 @@ Starting from a space time raster dataset of daily granularity (or granularity l
 t.rast.climatologies input=myinput output=dailyoutput granularity='15 days'
 ```
 
-
 ### Monthly climatologies
 
 Starting from a space time raster dataset of monthly granularity (or lower than one month), the module will create two new space time raster datasets containing the long term minimum and maximum for each month along years.
@@ -34,6 +33,5 @@ t.rast.climatologies input=myinput granularity=month method=min,max output=month
 [r.series](r.series.md), [t.rast.series](t.rast.series.md)
 
 ## AUTHOR
-
 
 Luca Delucchi, *Fondazione Edmund Mach*
