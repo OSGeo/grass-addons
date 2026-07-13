@@ -1,0 +1,231 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.noaa.atlas14</em> downloads and imports NOAA Atlas 14
+precipitation-frequency data into GRASS. It supports two acquisition
+modes:
+
+<ul>
+<li><b>mode=point</b> queries the NOAA Precipitation Frequency Data
+Server (PFDS) point-query endpoint for one or more longitude/latitude
+pairs and writes the returned precipitation-frequency estimates as JSON
+or CSV. Optionally, a GRASS vector point map is created with the
+expected/upper/lower tables stored as JSON attributes.</li>
+<li><b>mode=grid</b> discovers, downloads, and imports NOAA Atlas 14
+GIS-compatible grid archives (ZIP) for a given Atlas 14
+volume/subregion, optionally filtered by duration, average recurrence
+interval (ARI), bound, statistic, units, and series. A manifest CSV
+describing the imported rasters can be written.</li>
+</ul>
+
+<p>The module retrieves data directly from NOAA's public services:</p>
+
+<ul>
+<li>PFDS point query:
+<code>https://hdsc.nws.noaa.gov/cgi-bin/new/fe_text.csv</code></li>
+<li>GIS grid archives:
+<code>https://hdsc.nws.noaa.gov/pub/hdsc/data/</code> (autodiscovery),
+or any user-supplied <code>archive_url=</code>.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<h3>Point mode</h3>
+
+<p>Point results include the <em>expected</em> value and the
+<em>upper</em>/<em>lower</em> bounds of the 90% confidence interval, for
+each duration/return-period combination published by NOAA. Use
+<code>bound=expected|upper|lower|all</code> to select the table(s).</p>
+
+<p><code>coordinates=</code> accepts one or more <code>lon,lat</code>
+pairs, e.g.
+<code>coordinates=-78.6382,35.7796,-81.0,29.5</code>. When
+<code>coordinates=</code> is omitted, the module queries the center of
+the current computational region; the region bounds are reprojected to
+WGS84 lon/lat via <code>g.region -b</code> so this works from any GRASS
+location CRS.</p>
+
+<div align="center" style="margin: 10px">
+    <a href="r_noaa_atlas14.png">
+        <img src="r_noaa_atlas14.png" alt="NOAA Atlas 14 precipitation-frequency curves for Raleigh, NC" width="600">
+    </a><br>
+    <i>Figure: Precipitation-frequency (depth vs. duration) curves for
+        Raleigh, North Carolina, produced from an
+        <code>r.noaa.atlas14 mode=point</code> query to the NOAA Precipitation
+        Frequency Data Server. Each curve is the expected value for the labeled
+        return period.</i>
+</div>
+
+<p>When multiple points are queried, JSON output is emitted as a list of
+per-point result objects, and CSV output prepends
+<code>lon,lat,bound</code> columns so rows from different points and
+bounds can be disambiguated. Single-point output keeps the original
+unwrapped format for backward compatibility.</p>
+
+<p>The <code>statistic</code> option controls whether PFDS returns
+precipitation <em>depth</em> or <em>intensity</em>. The
+<code>units</code> option (<code>english</code> or <code>metric</code>)
+and <code>series</code> option (<code>pds</code> or <code>ams</code> —
+partial-duration or annual-maximum series) are passed through to
+PFDS.</p>
+
+<p>If <code>vector_output=</code> is given, the module creates a vector
+point map with one feature per queried point and columns <code>lon</code>,
+<code>lat</code>, <code>expected_json</code>, <code>upper_json</code>,
+<code>lower_json</code>. Point geometries are reprojected from WGS84 into
+the current project's CRS, while the <code>lon</code>/<code>lat</code>
+columns keep the original WGS84 coordinates. The JSON columns contain the
+full per-duration tables so they can be queried later with
+<code>v.db.select</code> / <code>db.select</code>.</p>
+
+<h3>Grid mode</h3>
+
+<p>NOAA organizes Atlas 14 GIS archives under per-volume
+subdirectories of <code>base_gis_url=</code>, e.g.
+<code>https://hdsc.nws.noaa.gov/pub/hdsc/data/se/</code> for Volume 9
+Southeastern States. When <code>region=</code> is given, autodiscovery
+fetches the listing at
+<code>&lt;base_gis_url&gt;/&lt;region&gt;/</code> and parses every
+<code>*.zip</code> href.</p>
+
+<p>Filenames follow a compact convention
+<code>&lt;region&gt;&lt;ari&gt;yr&lt;NN&gt;&lt;unit&gt;a[l|u][_ams].zip</code>,
+e.g.:</p>
+
+<ul>
+<li><code>se2yr24ha.zip</code> — Southeastern, 2-year ARI, 24-hour,
+expected, PDS</li>
+<li><code>orb1000yr30mau_ams.zip</code> — Ohio River Basin, 1000-year,
+30-minute, upper bound, AMS</li>
+<li><code>se1000yr60dal.zip</code> — Southeastern, 1000-year, 60-day,
+lower bound, PDS</li>
+</ul>
+
+<p>where <code>&lt;unit&gt;</code> is <code>m</code>, <code>h</code>, or
+<code>d</code> (minute/hour/day), bound is absent for the expected value
+and <code>l</code>/<code>u</code> for the lower/upper 90% confidence
+bounds, and <code>_ams</code> marks the annual-maximum series (absent =
+partial-duration series).</p>
+
+<p>If autodiscovery fails or a custom mirror is used, pass
+<code>archive_url=</code> directly with either a <code>.zip</code> URL
+or a directory listing URL that contains the ZIPs.</p>
+
+<p>The <code>-l</code> flag lists matching archives (as JSON lines)
+without downloading them.</p>
+
+<p>Filtering behavior:</p>
+
+<ul>
+<li><code>durations=</code> and <code>aris=</code> are <em>strict</em>:
+candidates whose duration or ARI could not be inferred from the filename
+are rejected.</li>
+<li><code>bound=</code> and <code>series=</code> are <em>permissive</em>:
+a candidate with an unknown attribute is allowed through, to avoid
+discarding rasters whose filenames do not encode every attribute.</li>
+<li><code>statistic=</code> and <code>units=</code> do <b>not</b> filter
+archives in grid mode. NOAA only publishes depth in english units, so the
+module always downloads that and rescales the imported rasters to the
+requested <code>statistic</code>/<code>units</code> as output targets.</li>
+</ul>
+
+<p>Rasters are imported with <em>r.in.gdal</em> by default; pass
+<code>-i</code> to use <em>r.import</em> (which supports reprojection
+via <code>resample=</code>). Pass <code>-o</code> to override the
+projection check when using <em>r.in.gdal</em>. Imported raster names
+follow the pattern
+<code>&lt;output_prefix&gt;_&lt;statistic&gt;_&lt;bound&gt;_&lt;duration&gt;_&lt;ari&gt;yr_&lt;units&gt;_&lt;series&gt;_&lt;region&gt;</code>,
+with missing parts omitted.</p>
+
+<h3>Value encoding</h3>
+
+<p>NOAA Atlas 14 GIS grids encode precipitation depth as <b>integer
+1000ths of an inch</b> in the raw archives. Grid mode converts the
+imported rasters automatically, so no manual rescaling is needed: depth
+is written in inches (or mm with <code>units=metric</code>) and intensity
+in in/hr (or mm/hr), according to the requested <code>statistic</code>
+and <code>units</code>. The raster <code>units</code> and title set by
+<em>r.support</em> describe the converted values. NODATA cells become
+GRASS NULLs on import, so the sentinel value (which varies by volume)
+does not need to be handled.</p>
+
+<h3>Safety</h3>
+
+<p>Extracted ZIP members are validated against path traversal
+(zip-slip): any member whose resolved path escapes the temporary
+extraction directory causes the import to abort.</p>
+
+<h2>EXAMPLES</h2>
+
+<h3>Point query to CSV</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=point coordinates=-78.6382,35.7796 \
+    statistic=intensity units=english series=pds bound=expected \
+    format=csv output=/tmp/raleigh_idf.csv
+</pre></div>
+
+<h3>Point query to JSON and create a vector point</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=point coordinates=-78.6382,35.7796 \
+    statistic=depth units=english series=pds bound=all \
+    format=json output=/tmp/raleigh_atlas14.json \
+    vector_output=atlas14_raleigh
+</pre></div>
+
+<h3>Multiple points as a single CSV and a multi-point vector</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=point \
+    coordinates=-78.6382,35.7796,-80.8431,35.2271,-77.8868,34.2257 \
+    statistic=depth units=english series=pds bound=expected \
+    format=csv output=/tmp/nc_cities_idf.csv \
+    vector_output=atlas14_nc_cities
+</pre></div>
+
+<h3>Query the center of the current computational region</h3>
+<div class="code"><pre>
+g.region raster=elevation
+r.noaa.atlas14 mode=point format=json bound=expected
+</pre></div>
+
+<h3>List matching grid archives without importing</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=grid region=se -l
+</pre></div>
+
+<h3>Import a known archive directly</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=grid \
+    archive_url="https://hdsc.nws.noaa.gov/pub/hdsc/data/se/se100yr24ha.zip" \
+    output_prefix=a14 -i
+</pre></div>
+
+<h3>Import filtered subset and write a manifest</h3>
+<div class="code"><pre>
+r.noaa.atlas14 mode=grid region=se \
+    durations=24hr,2day aris=10,100 bound=expected \
+    output_prefix=a14 output=/tmp/a14_manifest.csv -i
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Bonnin, G. M., D. Martin, B. Lin, T. Parzybok, M. Yekta, and D.
+Riley (2004–2019), NOAA Atlas 14: Precipitation-Frequency Atlas of the
+United States. NOAA, National Weather Service, Silver Spring,
+Maryland.</li>
+<li>NOAA Precipitation Frequency Data Server (PFDS):
+<a href="https://hdsc.nws.noaa.gov/pfds/">https://hdsc.nws.noaa.gov/pfds/</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.import.html">r.import</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.gdal.html">r.in.gdal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ascii.html">v.in.ascii</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>

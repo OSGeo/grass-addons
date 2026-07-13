@@ -65,7 +65,7 @@ r.mapcalc 'NSR=0.0036\*(beam+diffuse+reflected)';
 ## SEE ALSO
 
 *[i.eb.h\_iter](i.eb.h_iter.md), [i.eb.h0](i.eb.h0.md),
-[i.evapo.pm](i.evapo.pm.md)*
+[i.evapo.pm](https://grass.osgeo.org/grass-stable/manuals/i.evapo.pm.html)*
 
 ## REFERENCES
 

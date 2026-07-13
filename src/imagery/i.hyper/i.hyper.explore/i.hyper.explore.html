@@ -8,7 +8,7 @@ The module supports multiple 3D raster maps simultaneously for comparison (e.g.,
 The resulting spectral curves are plotted or printed in JSON format (with the <b>-p</b> flag).
 If an output file is specified (<code>output=</code>), the figure is exported instead of being shown interactively.</p>
 
-<p><em>i.hyper.explore</em> automatically reads wavelength metadata, measurement type (e.g., <em>reflectance</em>, <em>radiance</em>), and units from <code>r3.info</code> comments produced by <a href="i.hyper.import.html">i.hyper.import</a> or <a href="i.hyper.preproc.html">i.hyper.preproc</a>.
+<p><em>i.hyper.explore</em> automatically reads wavelength metadata, measurement type (e.g., <em>reflectance</em>, <em>radiance</em>), and units from <code>hyper.json</code> produced by <a href="i.hyper.import.html">i.hyper.import</a> or <a href="i.hyper.preproc.html">i.hyper.preproc</a>.
 If the map contains principal components or other dimensionally reduced features, the module detects this and adjusts the X-axis to component indices.</p>
 
 <h2>FUNCTIONALITY</h2>
@@ -26,7 +26,7 @@ If the map contains principal components or other dimensionally reduced features
 <h2>NOTES</h2>
 
 <ul>
-  <li>Each band’s wavelength and FWHM must be stored as comments in <code>r3.info</code> (automatically handled by <em>i.hyper.import</em>).</li>
+  <li>Wavelength metadata must be available in <code>hyper.json</code>.</li>
   <li>The module uses <code>r3.what</code> to extract band values at each 2D location.</li>
   <li>If the raster represents dimensional components (e.g., PCA, NMF), the plot’s X-axis switches to “Components”.</li>
   <li>The output plot resolution can be set with <code>dpi=</code>.</li>

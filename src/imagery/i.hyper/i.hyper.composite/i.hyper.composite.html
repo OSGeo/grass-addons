@@ -1,7 +1,7 @@
 <h2>DESCRIPTION</h2>
 
 <p><em>i.hyper.composite</em> creates RGB, CIR, SWIR and custom false-color composites from a hyperspectral 3D raster map (<code>raster_3d</code>).
-The module reads per-band wavelength metadata from the 3D raster (as written by <a href="i.hyper.import.html">i.hyper.import</a> / <a href="i.hyper.preproc.html">i.hyper.preproc</a>), selects the nearest available bands to requested wavelengths, enhances contrast, and composes a 2D color raster.</p>
+The module reads per-band wavelength metadata from <code>hyper.json</code> (as written by <a href="i.hyper.import.html">i.hyper.import</a> / <a href="i.hyper.preproc.html">i.hyper.preproc</a>). It then selects the nearest available bands to requested wavelengths, enhances contrast, and composes a 2D color raster.</p>
 
 <p>Internally, the cube is temporarily exploded into 2D rasters (one per band) using <code>r3.to.rast</code>. For each composite, the nearest bands to target wavelengths are chosen, optional color enhancement is applied with <code>i.colors.enhance</code>, and the final composite is produced with <code>r.composite</code>. Temporary rasters and the temporary region are automatically cleaned up.</p>
 
@@ -22,7 +22,7 @@ The module reads per-band wavelength metadata from the 3D raster (as written by 
 <h2>NOTES</h2>
 
 <ul>
-  <li>The input 3D raster must contain per-band wavelength comments in <code>r3.info</code> (e.g., lines like <code>Band 17: 848 nm</code>); otherwise the module aborts with a clear error.</li>
+  <li>The input 3D raster must contain per-band wavelength metadata in <code>hyper.json</code>.</li>
   <li>Nearest-band selection is used (no spectral resampling). If your cube’s wavelengths differ from the requested targets, the closest bands are chosen.</li>
   <li><code>i.colors.enhance</code> is run with the provided <code>strength</code> (0–100). For the <b>rgb</b> composite, the <code>-p</code> flag is used to preserve natural RGB balance; other composites run without <code>-p</code>.</li>
   <li>A temporary 3D region is set to the cube; the original region is restored. Temporary 2D rasters are removed on exit.</li>
