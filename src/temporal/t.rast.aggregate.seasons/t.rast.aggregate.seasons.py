@@ -161,7 +161,7 @@ def main():
         if strds.find("@") >= 0:
             id_ = strds
         else:
-            id_ = f'{strds}@{gs.gisenv()["MAPSET"]}'
+            id_ = f"{strds}@{gs.gisenv()['MAPSET']}"
         dataset = tgis.dataset_factory("strds", id_)
         dataset.select(dbif)
         ext = dataset.get_temporal_extent()
