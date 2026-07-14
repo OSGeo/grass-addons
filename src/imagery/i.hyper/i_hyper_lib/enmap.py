@@ -1100,10 +1100,12 @@ def import_enmap(
     import_null=False,
 ):
     meta_path = _find_required_file(folder, "METADATA.XML")
-    tif_path = _find_optional_file(folder, "SPECTRAL_IMAGE.TIF")
+    spectral_path = _find_optional_file(folder, "SPECTRAL_IMAGE.TIF")
+    if spectral_path is None:
+        spectral_path = _find_optional_file(folder, "SPECTRAL_IMAGE.BSQ")
     warp_tmpdir = None
-    if tif_path:
-        spectral_sources = [{"type": "single", "path": tif_path}]
+    if spectral_path:
+        spectral_sources = [{"type": "single", "path": spectral_path}]
     else:
         vnir_path = _find_required_file(folder, "SPECTRAL_IMAGE_VNIR.TIF")
         swir_path = _find_required_file(folder, "SPECTRAL_IMAGE_SWIR.TIF")
