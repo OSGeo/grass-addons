@@ -89,7 +89,7 @@
 
 <table>
   <tr><th>Product</th><th>Spatial handling</th><th>GRASS project requirement</th></tr>
-  <tr><td>EnMAP L1B</td><td>Separate detectors are converted to north-up images and combined in native sensor geometry; the result is not map-projected or orthorectified</td><td>Use L1C when georeferenced radiance is required</td></tr>
+  <tr><td>EnMAP L1B</td><td>Separate detectors are converted to north-up images and combined in native sensor geometry; the result is not map-projected or orthorectified</td><td>Only XY location (sensor geometry cannot be imported into a map-projected location)</td></tr>
   <tr><td>EnMAP L1C/L2A</td><td>Existing product map grid is used directly</td><td>Project CRS must match the EnMAP image CRS</td></tr>
   <tr><td>PRISMA L1/L2C</td><td>Per-pixel latitude/longitude is transformed to the current project CRS and assigned to an importer-derived grid using nearest-cell assignment</td><td>Current project CRS is the target CRS</td></tr>
   <tr><td>PRISMA L2D</td><td>Existing product grid is used directly</td><td>Project CRS must match the PRISMA product CRS</td></tr>
@@ -98,10 +98,15 @@
 </table>
 
 <p>
+  Products in local/sensor geometry (EnMAP L1B) are supported only in an
+  <code>XY</code> location (created with <code>grass -c XY</code>). Import
+  into a map-projected location will fail with an error.
+
   The importer does not generally reproject already gridded products into a
-  different GRASS project CRS. Check the product CRS before import and create
-  or select a matching GRASS project. CRS compatibility is not checked for all
-  direct-grid imports, so a mismatch may produce an incorrectly located map.
+  different GRASS project CRS. Use the <code>-p</code> flag to check the
+  product CRS, <em>i.hyper.import</em> behavior, and project requirements before import and create or select a matching GRASS project.
+  CRS compatibility is not checked for all direct-grid imports, so a mismatch
+  may produce an incorrectly located map.
   PRISMA nearest-cell assignment can leave unassigned cells as NULL. Tanager
   BASIC uses a limited local gap fill when SciPy is available; remaining
   unvisited or nodata cells stay NULL.

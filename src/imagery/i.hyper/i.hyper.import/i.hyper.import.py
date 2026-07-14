@@ -31,7 +31,7 @@
 # %end
 
 # %option G_OPT_R3_OUTPUT
-# % required: yes
+# % required: no
 # % description: Set the name of the output hyperspectral 3D raster map.
 # % guisection: Input
 # %end
@@ -65,6 +65,12 @@
 # %flag
 # % key: n
 # % description: Record full source-band validity in bands.validity (do not add NULL bands to raster_3d)
+# % guisection: Optional
+# %end
+
+# %flag
+# % key: p
+# % description: Print dataset spatial reference, i.hyper.import behavior, and project requirements, then exit
 # % guisection: Optional
 # %end
 
@@ -296,10 +302,34 @@ def import_by_product(product, options, flags):
 
 def main(options, flags):
     product = options["product"]
+    output = options.get("output")
+
+    path = get_lib_path(modname="i_hyper_lib", libname="check_proj")
+    if path and path not in sys.path:
+        sys.path.append(path)
+    import check_proj
+
+    if product == "enmap":
+        import_hyper = import_by_product(product, options, flags)
+        options["input"] = import_hyper._resolve_enmap_dir(options["input"])
+
+    if flags.get("p"):
+        if product == "ihyper":
+            gs.fatal("The -p flag is not supported for product=ihyper.")
+        check_proj.print_proj_info(product, options["input"])
+        return
 
     if product == "ihyper":
-        _safe_extract_ihyper(options["input"], options.get("output"))
+        _safe_extract_ihyper(options["input"], output)
         return
+
+    if not output:
+        gs.fatal(
+            "Parameter <output> is required. "
+            "Set the name of the output hyperspectral 3D raster map."
+        )
+
+    check_proj.check_import_allowed(product, options["input"])
 
     gs.info(f"Importing product: {product}")
     import_hyper = import_by_product(product, options, flags)

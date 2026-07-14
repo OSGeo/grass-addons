@@ -68,17 +68,21 @@ values are imported without radiometric rescaling.
 
 | Product | Spatial handling | GRASS project requirement |
 | --- | --- | --- |
-| EnMAP L1B | Separate detectors are converted to north-up images and combined in native sensor geometry; the result is not map-projected or orthorectified | Use L1C when georeferenced radiance is required |
+| EnMAP L1B | Separate detectors are converted to north-up images and combined in native sensor geometry; the result is not map-projected or orthorectified | Only XY location (sensor geometry cannot be imported into a map-projected location) |
 | EnMAP L1C/L2A | Existing product map grid is used directly | Project CRS must match the EnMAP image CRS |
 | PRISMA L1/L2C | Per-pixel latitude/longitude is transformed to the current project CRS and assigned to an importer-derived grid using nearest-cell assignment | Current project CRS is the target CRS |
 | PRISMA L2D | Existing product grid is used directly | Project CRS must match the PRISMA product CRS |
 | Tanager BASIC | Per-pixel latitude/longitude is projected onto the `Planet_Ortho_Framing` grid using bilinear forward assignment | Project CRS must match the framing EPSG |
 | Tanager ORTHO | Existing product grid is used directly | Project CRS must match the product EPSG |
+Products in local/sensor geometry (EnMAP L1B) are supported only in an
+`XY` location (created with `grass -c XY`). Import into a map-projected
+location will fail with an error.
 
 The importer does not generally reproject already gridded products into a
-different GRASS project CRS. Check the product CRS before import and create
-or select a matching GRASS project. CRS compatibility is not checked for all
-direct-grid imports, so a mismatch may produce an incorrectly located map.
+different GRASS project CRS. Use the `-p` flag to check the product CRS
+before import and create or select a matching GRASS project. CRS
+compatibility is not checked for all direct-grid imports, so a mismatch may
+produce an incorrectly located map.
 PRISMA nearest-cell assignment can leave unassigned cells as NULL. Tanager
 BASIC uses a limited local gap fill when SciPy is available; remaining
 unvisited or nodata cells stay NULL.
@@ -89,6 +93,10 @@ Only bands retained by product-specific filtering are added to the output
 cube. EnMAP uses wavelength metadata, expected channel lists, and available
 valid-pixel statistics. PRISMA applies its wavelength flags before import.
 Tanager removes bands without any finite pixels after nodata masking.
+
+The `-p` flag prints dataset spatial reference information together with
+*i.hyper.import* behavior and GRASS project requirements, then exits
+without importing.
 
 The `-n` flag records validity for represented source bands in
 `bands.validity`, `bands.count`, and `bands.count_valid`; it does not add
@@ -139,6 +147,9 @@ already exists in the current mapset.
 :::
 
 ::: code
+
+    # Inspect a PRISMA L2D product's CRS and spatial information before import
+    i.hyper.import -p input=/data/PRISMA.he5 product=prisma
 
     # PRISMA L2D example
     i.hyper.import input=/data/PRISMA.he5 \

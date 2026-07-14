@@ -22,6 +22,7 @@ from typing import Any
 import numpy as np
 import h5py
 from pyproj import Transformer
+import grass.script as gs
 
 # ---- HDF5 paths (from PRISMA spec for all product types) ----
 # L2D paths (original)
@@ -419,10 +420,13 @@ def _l2d_bil_to_rows_cols_bands(arr):
 
 # ---- Public API ----
 def load_prisma_l2d(product_path, load_pan=False):
-    with h5py.File(product_path, "r") as f:
+    with _open_prisma_h5(product_path) as f:
         # Detect product type
-        product_type = _detect_prisma_product_type(f)
-        paths = _get_prisma_paths(product_type)
+        try:
+            product_type = _detect_prisma_product_type(f)
+            paths = _get_prisma_paths(product_type)
+        except ValueError as error:
+            gs.fatal(f"Input does not match product=prisma. {error}")
 
         # Global attrs (kept for reference)
         attrs = {}
@@ -579,6 +583,109 @@ def load_prisma_l2d(product_path, load_pan=False):
     )
 
 
+# ---- Projection info query (for -p flag) ----
+
+
+def get_prisma_proj_info(product_path):
+    """Return CRS/spatial info dict for a PRISMA product.
+    
+    L2D → grid layout: SRID, west/south/east/north, rows/cols, ewres/nsres.
+    L2C/L1 → swath layout: SRID=EPSG:4326, Center, optional Corners, rows/cols.
+    """
+    with _open_prisma_h5(product_path) as f:
+        try:
+            product_type = _detect_prisma_product_type(f)
+            paths = _get_prisma_paths(product_type)
+        except ValueError as error:
+            gs.fatal(f"Input does not match product=prisma. {error}")
+
+        if product_type == "L2D":
+            epsg = _read_attr_scalar(f.attrs, ATTR_EPSG)
+            ul_e = _read_attr_scalar(f.attrs, ATTR_UL_E)
+            ul_n = _read_attr_scalar(f.attrs, ATTR_UL_N)
+            ur_e = _read_attr_scalar(f.attrs, ATTR_UR_E)
+            ur_n = _read_attr_scalar(f.attrs, ATTR_UR_N)
+            ll_e = _read_attr_scalar(f.attrs, ATTR_LL_E)
+            ll_n = _read_attr_scalar(f.attrs, ATTR_LL_N)
+            lr_e = _read_attr_scalar(f.attrs, ATTR_LR_E)
+            lr_n = _read_attr_scalar(f.attrs, ATTR_LR_N)
+
+            vnir_raw = _maybe_read(f, paths["vnir_data"])
+            if vnir_raw is not None and vnir_raw.ndim == 3:
+                rows = int(vnir_raw.shape[2])
+                cols = int(vnir_raw.shape[0])
+            else:
+                rows = cols = None
+
+            if all(v is not None for v in (ul_e, ur_e, ll_e, lr_e)):
+                west = float(min(ul_e, ll_e))
+                east = float(max(ur_e, lr_e))
+            else:
+                west = east = None
+            if all(v is not None for v in (ul_n, ur_n, ll_n, lr_n)):
+                south = float(min(ll_n, lr_n))
+                north = float(max(ul_n, ur_n))
+            else:
+                south = north = None
+
+            ewres = (east - west) / cols if (east is not None and west is not None and cols and cols > 0) else None
+            nsres = (north - south) / rows if (north is not None and south is not None and rows and rows > 0) else None
+
+            return {
+                "product_type": product_type,
+                "layout": "grid",
+                "srid": f"EPSG:{int(epsg)}" if epsg is not None else "not available",
+                "west": west,
+                "east": east,
+                "south": south,
+                "north": north,
+                "rows": rows,
+                "cols": cols,
+                "ewres": ewres,
+                "nsres": nsres,
+                "import_behavior": "Imports the data directly on the existing product grid. No additional geocoding or reprojection is performed.",
+                "project_requirements": "Use a GRASS project whose CRS matches the product CRS.",
+            }
+
+        elif product_type in ("L2C", "L1"):
+            center_lat = _read_attr_scalar(f.attrs, ATTR_CENTER_LAT)
+            center_lon = _read_attr_scalar(f.attrs, ATTR_CENTER_LON)
+
+            corners = {}
+            for key, lat_attr, lon_attr in [
+                ("ul", ATTR_UL_LAT, ATTR_UL_LON),
+                ("ur", ATTR_UR_LAT, ATTR_UR_LON),
+                ("ll", ATTR_LL_LAT, ATTR_LL_LON),
+                ("lr", ATTR_LR_LAT, ATTR_LR_LON),
+            ]:
+                lat = _read_attr_scalar(f.attrs, lat_attr)
+                lon = _read_attr_scalar(f.attrs, lon_attr)
+                if lat is not None and lon is not None:
+                    corners[key] = (float(lat), float(lon))
+
+            vnir_raw = _maybe_read(f, paths["vnir_data"])
+            if vnir_raw is not None and vnir_raw.ndim == 3:
+                rows = int(vnir_raw.shape[2])
+                cols = int(vnir_raw.shape[0])
+            else:
+                rows = cols = None
+
+            return {
+                "product_type": product_type,
+                "layout": "swath",
+                "srid": "EPSG:4326",
+                "center_lat": float(center_lat) if center_lat is not None else None,
+                "center_lon": float(center_lon) if center_lon is not None else None,
+                "corners": corners if corners else None,
+                "rows": rows,
+                "cols": cols,
+                "import_behavior": "Uses the per-pixel longitude and latitude arrays to geocode the image data onto an output grid generated by the importer in the current GRASS project CRS. Source pixels are assigned to the nearest output cells.",
+                "project_requirements": "The current GRASS project CRS defines the output CRS.",
+            }
+
+        return {"layout": "unknown"}
+
+
 def concatenate_hyperspectral(product):
     """
     Concatenate VNIR and SWIR reflectance along band axis (bands-last), **after filtering**
@@ -634,3 +741,12 @@ def concatenate_hyperspectral(product):
     refl = refl[:, :, order]
 
     return refl, wavelengths, fwhm
+def _open_prisma_h5(product_path):
+    try:
+        return h5py.File(product_path, "r")
+    except OSError as error:
+        gs.fatal(
+            "Input does not match product=prisma. "
+            f"Expected a PRISMA HDF5 (.he5) product. {error}"
+        )
+

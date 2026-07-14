@@ -3,6 +3,7 @@ add_files_to_etc_dir(
   FILES
     __init__.py
     base_corr.py
+    check_proj.py
     continuum_rem.py
     dim_red.py
     enmap.py

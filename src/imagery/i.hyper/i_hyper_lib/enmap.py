@@ -1251,6 +1251,66 @@ def _warp_to_northup_tif(input_path, workdir):
     return out_tif
 
 
+# ---- Projection info query (for -p flag) ----
+
+
+def get_enmap_proj_info(folder):
+    """Return CRS/spatial info dict for an EnMAP product.
+    
+    L1C/L2A → grid layout: SRID, bounds, rows/cols, ewres/nsres.
+    L1B      → local sensor geometry: SRID not available, CRS XY, rows/cols.
+    """
+    meta_path = _find_required_file(folder, "METADATA.XML")
+    tree = ET.parse(meta_path)
+    root = tree.getroot()
+    level = _enmap_product_level(root)
+    sources = _enmap_spectral_sources(meta_path, folder)
+
+    if len(sources) > 1:
+        with rasterio.open(sources[0]["path"]) as src:
+            shape = (src.height, src.width)
+            bounds = src.bounds
+        return {
+            "product_type": level,
+            "layout": "local sensor geometry",
+            "srid": "not available",
+            "crs": "XY",
+            "rows": int(shape[0]),
+            "cols": int(shape[1]),
+            "west": float(bounds.left),
+            "east": float(bounds.right),
+            "south": float(bounds.bottom),
+            "north": float(bounds.top),
+            "ewres": float((bounds.right - bounds.left) / shape[1]) if shape[1] > 0 else None,
+            "nsres": float((bounds.top - bounds.bottom) / shape[0]) if shape[0] > 0 else None,
+            "import_behavior": "Imports the data in image geometry, reorients and resamples the VNIR and SWIR detector rasters to a common axis-aligned raster layout, maps the detector bands to the global EnMAP band order, and stacks them into a single cube. The data are not projected onto a map grid or orthorectified, and the product RPCs are not applied.",
+            "project_requirements": "Use a GRASS project with a generic Cartesian coordinate system (XY).",
+        }
+    elif len(sources) == 1:
+        with rasterio.open(sources[0]["path"]) as src:
+            crs = src.crs
+            bounds = src.bounds
+            shape = (src.height, src.width)
+            res = src.res
+        srid = crs.to_string() if crs else "not available"
+        return {
+            "product_type": level,
+            "layout": "grid",
+            "srid": srid,
+            "west": float(bounds.left),
+            "east": float(bounds.right),
+            "south": float(bounds.bottom),
+            "north": float(bounds.top),
+            "rows": int(shape[0]),
+            "cols": int(shape[1]),
+            "ewres": float(res[0]),
+            "nsres": float(res[1]),
+            "import_behavior": "Imports the data directly on the existing product grid. The importer does not generate a new output grid or reproject the data.",
+            "project_requirements": "Use a GRASS project whose CRS matches the product CRS.",
+        }
+    return {"layout": "unknown"}
+
+
 def import_enmap(
     folder,
     output,

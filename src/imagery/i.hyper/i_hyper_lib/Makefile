@@ -3,7 +3,7 @@ MODULE_TOPDIR = ../../..
 include $(MODULE_TOPDIR)/include/Make/Other.make
 include $(MODULE_TOPDIR)/include/Make/Python.make
 
-MODULES = __init__ enmap prisma prisma_reader tanager tanager_reader sav_gol base_corr continuum_rem dim_red hyper_meta specresamp
+MODULES = __init__ check_proj enmap prisma prisma_reader tanager tanager_reader sav_gol base_corr continuum_rem dim_red hyper_meta specresamp
 
 ETCDIR = $(ETC)/i_hyper_lib
 

@@ -485,6 +485,12 @@ def import_tanager(
     h5 = _resolve_h5(input_path)
     prod = load_tanager_basic(h5)
 
+    if getattr(prod, "product_layout", None) == "swaths":
+        gs.warning(
+            "Tanager BASIC is in swath geometry; "
+            "data will be projected to the target map grid during import."
+        )
+
     data = prod.data  # (rows, cols, bands), float32 with NaNs where nodata_pixels==1
     wl = prod.wavelengths_nm
     fwhm = prod.fwhm_nm

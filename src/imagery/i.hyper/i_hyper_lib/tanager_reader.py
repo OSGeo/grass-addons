@@ -27,6 +27,7 @@ import json
 import re
 import numpy as np
 import h5py
+import grass.script as gs
 
 # Optional imports
 try:
@@ -153,95 +154,86 @@ def _units_from_attrs(attrs, fallback):
 
 
 def load_tanager_basic(product_path):
-    with h5py.File(product_path, "r") as f:
+    with _open_tanager_h5(product_path) as f:
+        try:
         # file-level attributes (optional)
-        attrs = {}
-        for k, v in f.attrs.items():
-            try:
-                attrs[k] = (
-                    v.decode(errors="ignore")
-                    if isinstance(v, (bytes, bytearray))
-                    else (np.array(v).tolist() if isinstance(v, np.ndarray) else v)
-                )
-            except Exception:
-                attrs[k] = v
+            attrs = {}
+            for k, v in f.attrs.items():
+                try:
+                    attrs[k] = (
+                        v.decode(errors="ignore")
+                        if isinstance(v, (bytes, bytearray))
+                        else (np.array(v).tolist() if isinstance(v, np.ndarray) else v)
+                    )
+                except Exception:
+                    attrs[k] = v
 
-        if HYP in f:
-            data_root = DF
-            nodata_path = f"{DF}/nodata_pixels"
-            lat = _maybe(f, DS_LAT)
-            lon = _maybe(f, DS_LON)
-            layout = "swaths"
-        elif HYP_GRID in f:
-            data_root = DF_GRID
-            nodata_path = f"{DF_GRID}/nodata_pixels"
-            lat = None
-            lon = None
-            layout = "grids"
-        else:
-            raise ValueError(
-                "No supported Tanager layout found: expected '/HDFEOS/SWATHS/HYP' "
-                "or '/HDFEOS/GRIDS/HYP'."
-            )
-
-        # choose data field
-        dset = None
-        chosen_name = None
-        for name in DS_ORDER:
-            p = f"{data_root}/{name}"
-            if p in f:
-                dset = f[p]
-                chosen_name = name
-                break
-        if dset is None:
-            raise ValueError(
-                f"No Tanager dataset found in '{data_root}': expected "
-                "'surface_reflectance' or 'toa_radiance'."
-            )
-
-        arr_raw = dset[()]  # (Band, Y, X)
-        if arr_raw.ndim != 3:
-            raise ValueError(f"Unexpected dataset shape {arr_raw.shape} (expected 3D)")
-
-        # to (rows, cols, bands)
-        data = np.transpose(arr_raw, (1, 2, 0)).astype(np.float32, copy=False)
-
-        # spectral metadata
-        wl = np.array(dset.attrs[DS_WL_ATTR], dtype=np.float32)
-        fwhm = np.array(
-            dset.attrs.get(DS_FWHM_ATTR, np.full_like(wl, np.nan, dtype=np.float32)),
-            dtype=np.float32,
-        )
-
-        # enforce ascending wavelengths (reorder cube accordingly)
-        order = np.argsort(wl.astype(np.float32))
-        wl = wl[order]
-        fwhm = fwhm[order]
-        data = data[:, :, order]
-
-        # geolocation (BASIC only) & nodata
-        nd = _maybe(f, nodata_path)
-        if nd is not None:
-            if nd.shape != data.shape[:2]:
+            if HYP in f:
+                data_root = DF
+                nodata_path = f"{DF}/nodata_pixels"
+                lat = _maybe(f, DS_LAT)
+                lon = _maybe(f, DS_LON)
+                layout = "swaths"
+            elif HYP_GRID in f:
+                data_root = DF_GRID
+                nodata_path = f"{DF_GRID}/nodata_pixels"
+                lat = None
+                lon = None
+                layout = "grids"
+            else:
                 raise ValueError(
-                    f"nodata_pixels shape {nd.shape} != image plane {data.shape[:2]}"
+                    "Expected Tanager BASIC or ORTHO metadata under '/HDFEOS/SWATHS/HYP' or '/HDFEOS/GRIDS/HYP'."
                 )
-            m = nd.astype(bool)
-            if m.any():
-                data[m, :] = np.nan
 
-        # derive human-friendly units
-        # 1) prefer dataset attribute if present (e.g., ":Unit = 'W/(m^2 sr um)'")
-        # 2) fallback to a reasonable default from the chosen dataset
-        fallback_units = (
-            "unitless (reflectance)"
-            if chosen_name == "surface_reflectance"
-            else "W/(m^2 sr um)"
-        )
-        data_units = _units_from_attrs(dset.attrs, fallback_units)
-        # normalize a couple of common textual variants
-        if data_units.lower() in ("unitless", "none", "1", "ratio"):
-            data_units = "unitless (reflectance)"
+            dset = None
+            chosen_name = None
+            for name in DS_ORDER:
+                p = f"{data_root}/{name}"
+                if p in f:
+                    dset = f[p]
+                    chosen_name = name
+                    break
+            if dset is None:
+                raise ValueError(
+                    f"No Tanager dataset found in '{data_root}': expected 'surface_reflectance' or 'toa_radiance'."
+                )
+
+            arr_raw = dset[()]
+            if arr_raw.ndim != 3:
+                raise ValueError(f"Unexpected dataset shape {arr_raw.shape} (expected 3D)")
+
+            data = np.transpose(arr_raw, (1, 2, 0)).astype(np.float32, copy=False)
+            wl = np.array(dset.attrs[DS_WL_ATTR], dtype=np.float32)
+            fwhm = np.array(
+                dset.attrs.get(DS_FWHM_ATTR, np.full_like(wl, np.nan, dtype=np.float32)),
+                dtype=np.float32,
+            )
+
+            order = np.argsort(wl.astype(np.float32))
+            wl = wl[order]
+            fwhm = fwhm[order]
+            data = data[:, :, order]
+
+            nd = _maybe(f, nodata_path)
+            if nd is not None:
+                if nd.shape != data.shape[:2]:
+                    raise ValueError(
+                        f"nodata_pixels shape {nd.shape} != image plane {data.shape[:2]}"
+                    )
+                m = nd.astype(bool)
+                if m.any():
+                    data[m, :] = np.nan
+
+            fallback_units = (
+                "unitless (reflectance)"
+                if chosen_name == "surface_reflectance"
+                else "W/(m^2 sr um)"
+            )
+            data_units = _units_from_attrs(dset.attrs, fallback_units)
+            if data_units.lower() in ("unitless", "none", "1", "ratio"):
+                data_units = "unitless (reflectance)"
+        except ValueError as error:
+            gs.fatal(f"Input does not match product=tanager. {error}")
 
     return TanagerProduct(
         path=product_path,
@@ -278,82 +270,120 @@ def read_planet_map_grid(product_path):
       /HDFEOS INFORMATION/StructMetadata.0 (UL/LR corners) +
       spectral dataset shape (rows, cols)
     """
-    with h5py.File(product_path, "r") as f:
+    try:
+        with _open_tanager_h5(product_path) as f:
+            if GF in f and "Planet_Ortho_Framing" in f[GF].attrs:
+                meta = f[GF].attrs["Planet_Ortho_Framing"]
+                if isinstance(meta, (bytes, bytearray)):
+                    meta = meta.decode(errors="ignore")
+                meta = json.loads(meta)
+
+                epsg = int(meta["epsg_code"])
+                rows = int(meta["rows"])
+                cols = int(meta["cols"])
+                west, ewres, north, nsres = (
+                    float(meta["geotransform"][0]),
+                    float(meta["geotransform"][1]),
+                    float(meta["geotransform"][3]),
+                    float(-meta["geotransform"][5]),
+                )
+                return MapGrid(epsg, west, north, ewres, nsres, rows, cols)
+
+            if HYP_GRID in f:
+                epsg_raw = f[HYP_GRID].attrs.get("epsg_code")
+                epsg = int(epsg_raw) if epsg_raw is not None else None
+
+                rows = None
+                cols = None
+                for name in DS_ORDER:
+                    dpath = f"{DF_GRID}/{name}"
+                    if dpath in f:
+                        shape = f[dpath].shape
+                        if len(shape) == 3:
+                            rows = int(shape[1])
+                            cols = int(shape[2])
+                            break
+
+                struct_path = "/HDFEOS INFORMATION/StructMetadata.0"
+                if struct_path not in f:
+                    raise ValueError(
+                        "Missing '/HDFEOS INFORMATION/StructMetadata.0' for Tanager ortho map grid."
+                    )
+                meta = f[struct_path][()]
+                if isinstance(meta, (bytes, bytearray)):
+                    meta = meta.decode(errors="ignore")
+                else:
+                    meta = str(meta)
+
+                ul = _parse_structmetadata_pair(meta, "UpperLeftPointMtrs")
+                lr = _parse_structmetadata_pair(meta, "LowerRightMtrs")
+
+                if (
+                    epsg is None
+                    or ul is None
+                    or lr is None
+                    or rows is None
+                    or cols is None
+                    or rows <= 0
+                    or cols <= 0
+                ):
+                    raise ValueError(
+                        "Incomplete Tanager ortho map grid metadata (epsg_code, UL/LR corners, spectral dataset shape)."
+                    )
+
+                west, north = float(ul[0]), float(ul[1])
+                ewres = float((float(lr[0]) - float(ul[0])) / float(cols))
+                nsres = float((float(ul[1]) - float(lr[1])) / float(rows))
+                if ewres <= 0 or nsres <= 0:
+                    raise ValueError(
+                        "Invalid Tanager ortho map grid resolution parsed from StructMetadata.0."
+                    )
+                return MapGrid(epsg, west, north, ewres, nsres, rows, cols)
+
+        raise ValueError(
+            "Unsupported Tanager product metadata: expected BASIC Planet_Ortho_Framing or ORTHO StructMetadata.0 grid definition."
+        )
+    except ValueError as error:
+        gs.fatal(f"Input does not match product=tanager. {error}")
+
+
+# ---- Projection info query (for -p flag) ----
+
+
+def get_tanager_proj_info(product_path):
+    """Return CRS/spatial info dict for a Tanager product.
+    
+    Both BASIC and ORTHO → grid layout with SRID, bounds, rows/cols, ewres/nsres.
+    """
+    product_type = "ORTHO"
+    with _open_tanager_h5(product_path) as f:
         if GF in f and "Planet_Ortho_Framing" in f[GF].attrs:
-            meta = f[GF].attrs["Planet_Ortho_Framing"]
-            if isinstance(meta, (bytes, bytearray)):
-                meta = meta.decode(errors="ignore")
-            meta = json.loads(meta)
+            product_type = "BASIC"
 
-            epsg = int(meta["epsg_code"])
-            rows = int(meta["rows"])
-            cols = int(meta["cols"])
-            west, ewres, north, nsres = (
-                float(meta["geotransform"][0]),
-                float(meta["geotransform"][1]),
-                float(meta["geotransform"][3]),
-                float(-meta["geotransform"][5]),
-            )
-            return MapGrid(epsg, west, north, ewres, nsres, rows, cols)
-
-        if HYP_GRID in f:
-            epsg_raw = f[HYP_GRID].attrs.get("epsg_code")
-            epsg = int(epsg_raw) if epsg_raw is not None else None
-
-            rows = None
-            cols = None
-            for name in DS_ORDER:
-                dpath = f"{DF_GRID}/{name}"
-                if dpath in f:
-                    shape = f[dpath].shape
-                    if len(shape) == 3:
-                        rows = int(shape[1])
-                        cols = int(shape[2])
-                        break
-
-            struct_path = "/HDFEOS INFORMATION/StructMetadata.0"
-            if struct_path not in f:
-                raise ValueError(
-                    "Missing '/HDFEOS INFORMATION/StructMetadata.0' for "
-                    "Tanager ortho map grid."
-                )
-            meta = f[struct_path][()]
-            if isinstance(meta, (bytes, bytearray)):
-                meta = meta.decode(errors="ignore")
-            else:
-                meta = str(meta)
-
-            ul = _parse_structmetadata_pair(meta, "UpperLeftPointMtrs")
-            lr = _parse_structmetadata_pair(meta, "LowerRightMtrs")
-
-            if (
-                epsg is None
-                or ul is None
-                or lr is None
-                or rows is None
-                or cols is None
-                or rows <= 0
-                or cols <= 0
-            ):
-                raise ValueError(
-                    "Incomplete Tanager ortho map grid metadata "
-                    "(epsg_code, UL/LR corners, spectral dataset shape)."
-                )
-
-            west, north = float(ul[0]), float(ul[1])
-            ewres = float((float(lr[0]) - float(ul[0])) / float(cols))
-            nsres = float((float(ul[1]) - float(lr[1])) / float(rows))
-            if ewres <= 0 or nsres <= 0:
-                raise ValueError(
-                    "Invalid Tanager ortho map grid resolution parsed from "
-                    "StructMetadata.0."
-                )
-            return MapGrid(epsg, west, north, ewres, nsres, rows, cols)
-
-    raise ValueError(
-        "Unsupported Tanager product metadata: expected BASIC "
-        "Planet_Ortho_Framing or ORTHO StructMetadata.0 grid definition."
-    )
+    grid = read_planet_map_grid(product_path)
+    return {
+        "product_type": product_type,
+        "layout": "grid",
+        "srid": f"EPSG:{grid.epsg}",
+        "west": grid.west,
+        "east": grid.east,
+        "south": grid.south,
+        "north": grid.north,
+        "rows": grid.rows,
+        "cols": grid.cols,
+        "ewres": grid.ewres,
+        "nsres": grid.nsres,
+        "import_behavior": (
+            "Uses the per-pixel longitude and latitude arrays to geocode the image data onto the target grid defined in the product metadata, using bilinear forward splatting."
+            if product_type == "BASIC"
+            else "Imports the data directly on the existing product grid. No additional geocoding or reprojection is performed."
+        ),
+        "project_requirements": (
+            "Use a GRASS project whose CRS matches the target-grid EPSG code specified in the product metadata."
+            if product_type == "BASIC"
+            else "Use a GRASS project whose CRS matches the product CRS."
+        ),
+    }
 
 
 def _transform_lonlat(lon, lat, epsg):
@@ -511,3 +541,11 @@ def project_band_to_map_grid(band2d, plan, fill_8_neighbor=True):
             ortho[ok] = ortho[ri[ok], ci[ok]]
 
     return ortho
+def _open_tanager_h5(product_path):
+    try:
+        return h5py.File(product_path, "r")
+    except OSError as error:
+        gs.fatal(
+            "Input does not match product=tanager. "
+            f"Expected a Tanager HDF5 (.h5) product. {error}"
+        )

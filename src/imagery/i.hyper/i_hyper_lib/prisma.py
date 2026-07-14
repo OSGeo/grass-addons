@@ -563,6 +563,13 @@ def import_prisma(
     prod = load_prisma_l2d(he5, load_pan=False)
     is_l1 = getattr(prod, "product_type", None) == "L1"
 
+    prod_type = getattr(prod, "product_type", None)
+    if prod_type in ("L1", "L2C"):
+        gs.warning(
+            f"PRISMA {prod_type} is in swath geometry; "
+            "data will be geocoded to the target CRS during import."
+        )
+
     _require(prod.hco_geo is not None, "HCO geolocation missing.")
     _require(prod.vnir and prod.vnir.dn is not None, "VNIR cube missing.")
     _require(prod.swir and prod.swir.dn is not None, "SWIR cube missing.")
