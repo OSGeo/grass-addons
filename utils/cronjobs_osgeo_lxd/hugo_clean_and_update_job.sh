@@ -11,7 +11,7 @@
 #
 #############################################################################
 
-# The website is no longer built on this server. GitHub Actions
+# The website is no longer built on the grass.osgeo.org server. GitHub Actions
 # (grass-website: .github/workflows/build-production-site.yml) builds the
 # site with the pinned Hugo Extended + Dart Sass + Node toolchain on every
 # push to master and publishes it as a checksummed tarball on a per-deploy
