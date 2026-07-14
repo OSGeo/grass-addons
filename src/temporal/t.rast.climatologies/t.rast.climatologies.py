@@ -69,6 +69,9 @@
 # % answer: day
 # %end
 
+# %option G_OPT_T_WHERE
+# %end
+
 # %option
 # % key: nprocs
 # % type: integer
@@ -104,6 +107,7 @@ def main():
     nprocs = options["nprocs"]
     quantile = options["quantile"]
     space_time = flags["s"]
+    where = options["where"]
 
     # check if quantile value is used correctly
     if "quantile" in method and not quantile:
@@ -160,7 +164,10 @@ def main():
         # for each day
         for doy in range(1, 367):
             doystr = datetime.strptime(f"2000 {doy}", "%Y %j").strftime("%m_%d")
-            thiswhere = f"strftime('%m_%d', start_time) == '{doystr}'"
+            if where:
+                thiswhere = f"strftime('%m_%d', start_time) == '{doystr}' and {where}"
+            else:
+                thiswhere = f"strftime('%m_%d', start_time) == '{doystr}'"
             selemaps = insp.get_registered_maps_as_objects(
                 thiswhere, "start_time", dbif
             )
@@ -189,7 +196,17 @@ def main():
         outunit = "days"
         for doy in range(1, 367, 15):
             doystr = datetime.strptime(f"2000 {doy}", "%Y %j").strftime("%m_%d")
-            thiswhere = f"strftime('%m_%d', start_time) >= '{doystr}' and strftime('%m_%d', start_time) < '{datetime.strptime(f'2000 {doy + 15}', '%Y %j').strftime('%m_%d')}'"
+            if doy + 15 > 366:
+                end_doystr = datetime.strptime(f"2000 366", "%Y %j").strftime("%m_%d")
+            else:
+                end_doystr = datetime.strptime(f"2000 {doy + 15}", "%Y %j").strftime(
+                    "%m_%d"
+                )
+            print(f"Calculating climatology for day of year {doy} ({doystr})")
+            if where:
+                thiswhere = f"(strftime('%m_%d', start_time) >= '{doystr}' and strftime('%m_%d', start_time) < '{end_doystr}') and {where}"
+            else:
+                thiswhere = f"strftime('%m_%d', start_time) >= '{doystr}' and strftime('%m_%d', start_time) < '{end_doystr}'"
             selemaps = insp.get_registered_maps_as_objects(
                 thiswhere, "start_time", dbif
             )
@@ -217,7 +234,10 @@ def main():
         outunit = "months"
         for month in range(1, 13):
             monthstr = "{:02d}".format(month)
-            thiswhere = f"strftime('%m', start_time) == '{monthstr}'"
+            if where:
+                thiswhere = f"strftime('%m', start_time) == '{monthstr}' and {where}"
+            else:
+                thiswhere = f"strftime('%m', start_time) == '{monthstr}'"
             selemaps = insp.get_registered_maps_as_objects(
                 thiswhere, "start_time", None
             )
