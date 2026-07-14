@@ -236,10 +236,64 @@ def _enmap_product_level(root):
     return str(text).strip().upper()
 
 
-def _enmap_radiometry_from_level(level):
-    if str(level or "").upper() == "L1B":
-        return "toa_radiance", "W/m^2/sr/nm"
-    return "surface_reflectance", "unitless"
+def _enmap_radiometry_from_metadata(root, level):
+    """Return the physical quantity declared by the EnMAP product XML."""
+    level = str(level or "").upper()
+    format_paths = {
+        "L1B": [
+            ".//product/image/vnir/format",
+            ".//product/image/swir/format",
+        ],
+        "L1C": [".//product/image/merge/format"],
+        "L2A": [".//product/image/merge/format"],
+    }
+    declared_formats = [root.findtext(path) for path in format_paths.get(level, [])]
+    formats = [text.strip().lower() for text in declared_formats if text and text.strip()]
+
+    quantities = []
+    for text in formats:
+        if "radiance" in text:
+            quantities.append(("toa_radiance", "W/m^2/sr/nm"))
+        elif "reflectance" in text:
+            quantities.append(("surface_reflectance", "unitless"))
+
+    if formats and len(formats) != len(declared_formats):
+        raise ValueError("EnMAP metadata has incomplete radiometric format declarations.")
+    if formats and len(quantities) != len(formats):
+        raise ValueError("EnMAP metadata has an unrecognized radiometric format.")
+
+    if quantities:
+        if any(quantity != quantities[0] for quantity in quantities[1:]):
+            raise ValueError("EnMAP metadata contains inconsistent radiometric formats.")
+        quantity, units = quantities[0]
+    else:
+        # Older metadata may omit the product image format. Keep a safe,
+        # explicit fallback while making the missing declaration visible.
+        fallback = {
+            "L1B": ("toa_radiance", "W/m^2/sr/nm"),
+            "L1C": ("toa_radiance", "W/m^2/sr/nm"),
+            "L2A": ("surface_reflectance", "unitless"),
+        }
+        if level not in fallback:
+            raise ValueError(
+                "Cannot determine EnMAP radiometry: unsupported or missing processing level."
+            )
+        gs.warning(
+            "EnMAP radiometric format is missing from metadata; using the processing-level fallback."
+        )
+        quantity, units = fallback[level]
+
+    expected = {
+        "L1B": "toa_radiance",
+        "L1C": "toa_radiance",
+        "L2A": "surface_reflectance",
+    }
+    if level in expected and quantity != expected[level]:
+        raise ValueError(
+            f"EnMAP metadata conflicts with processing level {level}: "
+            f"declares {quantity}."
+        )
+    return quantity, units
 
 
 def parse_band_metadata(meta_xml_path, spectral_sources):
@@ -285,6 +339,24 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
                 gs.fatal(
                     "EnMAP L1B metadata mismatch: expectedChannelsList length does not match detector band count."
                 )
+            if source_type in ("vnir", "swir"):
+                declared_channels = _to_int(
+                    root.findtext(f".//product/image/{source_type}/channels")
+                )
+                if declared_channels is not None and declared_channels != src.count:
+                    gs.fatal(
+                        f"EnMAP {source_type.upper()} metadata mismatch: "
+                        f"declares {declared_channels} bands but the image contains {src.count}."
+                    )
+            elif source_type == "single":
+                declared_channels = _to_int(
+                    root.findtext(".//product/image/merge/channels")
+                )
+                if declared_channels is not None and declared_channels != src.count:
+                    gs.fatal(
+                        "EnMAP merged-image metadata mismatch: "
+                        f"declares {declared_channels} bands but the image contains {src.count}."
+                    )
 
             for local_band in range(1, src.count + 1):
                 global_band = global_ids[local_band - 1]
@@ -341,8 +413,8 @@ def parse_dataset_metadata(meta_xml_path):
     root = tree.getroot()
 
     product_level = _enmap_product_level(root)
-    radiometric_quantity, radiometric_units = _enmap_radiometry_from_level(
-        product_level
+    radiometric_quantity, radiometric_units = _enmap_radiometry_from_metadata(
+        root, product_level
     )
 
     acquisition_datetime = _to_iso_utc(
@@ -617,7 +689,9 @@ def _populate_enmap_extended_metadata(
 
     product_level = _enmap_product_level(root)
     product_format = _first_nonempty_text(root, [".//base/format", ".//format"])
-    radiometry_quantity, radiometry_units = _enmap_radiometry_from_level(product_level)
+    radiometry_quantity, radiometry_units = _enmap_radiometry_from_metadata(
+        root, product_level
+    )
 
     orbit_no = _to_int(
         _first_nonempty_text(root, [".//specific/orbitNo", ".//orbitNo"])
@@ -1052,6 +1126,77 @@ def _find_required_file(folder, suffix):
     return os.path.join(folder, matches[0])
 
 
+def _find_product_image(folder, root, path, suffixes, description):
+    """Find an image named by metadata, with a suffix fallback for old products."""
+    declared = root.findtext(path)
+    if declared:
+        declared = os.path.basename(declared.strip())
+        candidate = os.path.join(folder, declared)
+        if os.path.isfile(candidate):
+            return candidate
+
+    for suffix in suffixes:
+        candidate = _find_optional_file(folder, suffix)
+        if candidate:
+            return candidate
+
+    expected = " or ".join(f"*{suffix}" for suffix in suffixes)
+    gs.fatal(
+        f"Required EnMAP {description} image not found. Expected {expected} "
+        f"in product folder: {folder}"
+    )
+
+
+def _enmap_spectral_sources(meta_xml_path, folder):
+    """Return spectral source descriptors for the product processing level."""
+    tree = ET.parse(meta_xml_path)
+    root = tree.getroot()
+    level = _enmap_product_level(root)
+
+    if level == "L1B":
+        return [
+            {
+                "type": "vnir",
+                "path": _find_product_image(
+                    folder,
+                    root,
+                    ".//product/image/vnir/name",
+                    ("SPECTRAL_IMAGE_VNIR.TIF", "SPECTRAL_IMAGE_VNIR.BSQ"),
+                    "VNIR",
+                ),
+            },
+            {
+                "type": "swir",
+                "path": _find_product_image(
+                    folder,
+                    root,
+                    ".//product/image/swir/name",
+                    ("SPECTRAL_IMAGE_SWIR.TIF", "SPECTRAL_IMAGE_SWIR.BSQ"),
+                    "SWIR",
+                ),
+            },
+        ]
+
+    if level in ("L1C", "L2A"):
+        return [
+            {
+                "type": "single",
+                "path": _find_product_image(
+                    folder,
+                    root,
+                    ".//product/image/merge/name",
+                    ("SPECTRAL_IMAGE.TIF", "SPECTRAL_IMAGE.BSQ"),
+                    "merged spectral",
+                ),
+            }
+        ]
+
+    gs.fatal(
+        f"Unsupported or missing EnMAP processing level '{level}'. "
+        "Supported levels are L1B, L1C, and L2A."
+    )
+
+
 def find_nearest_band(wavelength, wavelengths):
     return (
         min(range(len(wavelengths)), key=lambda i: abs(wavelengths[i] - wavelength)) + 1
@@ -1100,23 +1245,27 @@ def import_enmap(
     import_null=False,
 ):
     meta_path = _find_required_file(folder, "METADATA.XML")
-    spectral_path = _find_optional_file(folder, "SPECTRAL_IMAGE.TIF")
-    if spectral_path is None:
-        spectral_path = _find_optional_file(folder, "SPECTRAL_IMAGE.BSQ")
+    spectral_sources = _enmap_spectral_sources(meta_path, folder)
     warp_tmpdir = None
-    if spectral_path:
-        spectral_sources = [{"type": "single", "path": spectral_path}]
-    else:
-        vnir_path = _find_required_file(folder, "SPECTRAL_IMAGE_VNIR.TIF")
-        swir_path = _find_required_file(folder, "SPECTRAL_IMAGE_SWIR.TIF")
+    if len(spectral_sources) > 1:
         warp_tmpdir = tempfile.mkdtemp(prefix="ihyper_enmap_l1b_")
         spectral_sources = [
-            {"type": "vnir", "path": _warp_to_northup_tif(vnir_path, warp_tmpdir)},
-            {"type": "swir", "path": _warp_to_northup_tif(swir_path, warp_tmpdir)},
+            {
+                "type": source["type"],
+                "path": _warp_to_northup_tif(source["path"], warp_tmpdir),
+            }
+            for source in spectral_sources
         ]
 
-    dataset_meta = parse_dataset_metadata(meta_path)
-    band_meta, band_entries = parse_band_metadata(meta_path, spectral_sources)
+    try:
+        dataset_meta = parse_dataset_metadata(meta_path)
+    except ValueError as error:
+        gs.fatal(str(error))
+
+    try:
+        band_meta, band_entries = parse_band_metadata(meta_path, spectral_sources)
+    except ValueError as error:
+        gs.fatal(f"Invalid EnMAP spectral metadata: {error}")
 
     source_entries = [
         entry

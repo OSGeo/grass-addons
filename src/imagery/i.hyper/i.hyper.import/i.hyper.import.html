@@ -110,17 +110,36 @@
   its metadata.
 </p>
 
-<p>Product notes:</p>
-<ul>
-  <li>
-    <b>EnMAP L2</b>
-    products are imported from the native single spectral image.
+  <p>Product notes:</p>
+  <ul>
+    <li>
+      <b>EnMAP L1B</b> products contain separate VNIR and SWIR spectral images
+      in either <code>.TIF</code> or <code>.BSQ</code> format. Their values are
+      at-sensor radiance in <code>W/m^2/sr/nm</code>.
+    </li>
+    <li>
+      <b>EnMAP L1C</b> products contain one merged spectral image in either
+      <code>.TIF</code> or <code>.BSQ</code> format. Their values are at-sensor
+      radiance in <code>W/m^2/sr/nm</code>.
+    </li>
+    <li>
+      <b>EnMAP L2A</b> products contain one merged spectral image in either
+      <code>.TIF</code> or <code>.BSQ</code> format. Their values are surface
+      reflectance.
+    </li>
+    <li>
+      Image filenames and physical units are read from the product metadata
+      and validated against the processing level.
+    </li>
+    <li>
+      <b>EnMAP L2</b>
+      products are imported from the native single spectral image.
   </li>
   <li>
-    <b>EnMAP L1B</b>
-    products use two detector images (VNIR, SWIR). The importer first creates
-    temporary north-up GeoTIFF files with <code>gdalwarp</code>, then runs the
-    same band selection, composite, and <code>r.to.rast3</code> steps as for L2.
+      <b>EnMAP L1B</b>
+      products use two detector images (VNIR, SWIR). The importer first creates
+      temporary north-up GeoTIFF files with <code>gdalwarp</code>, then runs the
+      same band selection, composite, and <code>r.to.rast3</code> steps as for L2.
   </li>
   <li>
     Because of the north-up preprocessing step, EnMAP L1B import usually takes

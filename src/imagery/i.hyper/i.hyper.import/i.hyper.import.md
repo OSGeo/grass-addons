@@ -78,6 +78,15 @@ restore the native `raster_3d` together with its metadata.
 
 Product notes:
 
+- **EnMAP L1B** products contain separate VNIR and SWIR spectral images.
+  Both `.TIF` and `.BSQ` images are supported. Their XML-declared radiometry
+  is at-sensor radiance in `W/m^2/sr/nm`.
+- **EnMAP L1C** products contain one merged spectral image in either `.TIF`
+  or `.BSQ` format. They contain at-sensor radiance in `W/m^2/sr/nm`.
+- **EnMAP L2A** products contain one merged spectral image in either `.TIF`
+  or `.BSQ` format. They contain surface reflectance.
+- The importer reads the image filenames and physical units from the product
+  metadata and validates them against the processing level.
 - Product levels that are not orthorectified are imported using product
   geolocation and nearest-neighbor assignment onto the current GRASS grid.
   This preserves original values, but may leave small holes or irregular
