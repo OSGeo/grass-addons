@@ -1217,8 +1217,19 @@ class HyperMetadata:
         missing_ids: set[str] = set()
         visited_dataset_ids: set[str] = set()
 
+        root_produced_ids = set()
+        for step in root_data.get("processing_history", []) or []:
+            if not isinstance(step, dict):
+                continue
+            for out in cls._normalize_io_refs(step.get("outputs") or []):
+                out_id = out.get("id")
+                if out_id:
+                    root_produced_ids.add(out_id)
+
         def visit_dataset(dataset_id: str | None) -> None:
             if not dataset_id or dataset_id in visited_dataset_ids:
+                return
+            if dataset_id in root_produced_ids:
                 return
             visited_dataset_ids.add(dataset_id)
 
@@ -1267,6 +1278,14 @@ class HyperMetadata:
         embedded_snapshots = root_data.get("input_datasets_metadata")
         if not isinstance(embedded_snapshots, dict):
             embedded_snapshots = {}
+        root_produced_ids = set()
+        for step in root_data.get("processing_history", []) or []:
+            if not isinstance(step, dict):
+                continue
+            for out in cls._normalize_io_refs(step.get("outputs") or []):
+                out_id = out.get("id")
+                if out_id:
+                    root_produced_ids.add(out_id)
         visited_dataset_ids = set()
         collected = []
         order = 0
@@ -1274,6 +1293,8 @@ class HyperMetadata:
         def visit_dataset(dataset_id: str | None):
             nonlocal order
             if not dataset_id or dataset_id in visited_dataset_ids:
+                return
+            if dataset_id != root_id and dataset_id in root_produced_ids:
                 return
             visited_dataset_ids.add(dataset_id)
 
@@ -1475,7 +1496,7 @@ class HyperMetadata:
     ) -> list[str]:
         """Validate strict schema + lineage consistency."""
         issues = []
-        issues.extend(meta.validate())
+        issues.extend(meta.validate(require_wavelengths=False))
 
         derived_flag = bool(raw_data.get("derived"))
 
@@ -1501,6 +1522,15 @@ class HyperMetadata:
                 bands = inherited_bands
             else:
                 bands = {}
+        data_type = raw_data.get("data_type")
+        if data_type is None:
+            inherited_data_type, has_inherited_data_type = cls.resolve_inherited_value(
+                raw_data,
+                "data_type",
+                dataset_index=dataset_index,
+            )
+            if has_inherited_data_type:
+                data_type = inherited_data_type
         count = bands.get("count")
         count_valid = bands.get("count_valid")
         wavelengths = bands.get("wavelength")
@@ -1511,6 +1541,8 @@ class HyperMetadata:
             issues.append("bands.count is missing")
         if count_valid is None:
             issues.append("bands.count_valid is missing")
+        if data_type == "spectral" and wavelengths is None:
+            issues.append("Missing wavelengths")
         if wavelengths is not None and not isinstance(wavelengths, list):
             issues.append("bands.wavelength must be an array")
         if fwhm is not None and not isinstance(fwhm, list):
@@ -1540,13 +1572,7 @@ class HyperMetadata:
         try:
             info = gs.parse_command("r3.info", map=map_name, flags="g")
             depth = int(float(info.get("depths")))
-            expected_depth = (
-                count_valid
-                if isinstance(count_valid, int)
-                else count
-                if isinstance(count, int)
-                else None
-            )
+            expected_depth = count if isinstance(count, int) else None
             if expected_depth is not None and depth != expected_depth:
                 issues.append(
                     f"Raster depth mismatch: depths={depth}, expected={expected_depth}"

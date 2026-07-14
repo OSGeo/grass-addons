@@ -24,8 +24,10 @@ Supported operations:
   (uses `input_datasets_metadata` snapshots when referenced inputs are
   unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
-- `copy`: copy metadata from another hyperspectral cube and append this map's
-  last local processing step to the copied history
+- `copy`: initialize or replace metadata from another hyperspectral cube;
+  with existing target metadata, `--overwrite` is required and this map's last
+  local processing step is preserved; the copy action itself is added to
+  history
 
 Output format (`format`) is global for all operations:
 
@@ -84,8 +86,11 @@ API examples:
     i.hyper.metadata map=my_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
 
-    # Copy metadata from another hypercube and keep this map's last local step
+    # Initialize metadata on a target cube from another hypercube
     i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
+
+    # Replace existing target metadata and preserve the target's last local step
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube --overwrite
 :::
 
 ### JSON metadata structure

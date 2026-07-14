@@ -78,6 +78,7 @@
 import copy
 import csv
 import json
+import os
 import sys
 
 import grass.script as gs
@@ -115,6 +116,33 @@ def _import_hyper_meta():
 def _load_raw_metadata(hyper_metadata_class, map_name):
     """Load raw JSON metadata for one map."""
     return hyper_metadata_class.load_raw(map_name)
+
+
+def _get_raster_depth(map_name):
+    """Return the actual 3D raster depth for a map."""
+    try:
+        info = gs.parse_command("r3.info", map=map_name, flags="g")
+        return int(float(info["depths"]))
+    except Exception as error:
+        gs.fatal(f"Failed to read 3D raster depth for '{map_name}': {error}")
+
+
+def _get_metadata_band_count(meta, map_name):
+    """Return the total number of bands described by metadata."""
+    count = meta.n_bands_source
+    if count is None:
+        gs.fatal(
+            f"Metadata for '{map_name}' does not define bands.count and cannot be copied"
+        )
+    try:
+        return int(count)
+    except (TypeError, ValueError) as error:
+        gs.fatal(f"Invalid bands.count in metadata for '{map_name}': {error}")
+
+
+def _get_copy_command():
+    """Return the executed command line for history recording."""
+    return os.environ.get("CMDLINE") or " ".join(sys.argv)
 
 
 def _discover_dataset_index(hyper_metadata_class):
@@ -394,13 +422,39 @@ def _print_validate(issues, output_format):
     return 1
 
 
-def _copy_metadata_from_other_cube(hyper_metadata_class, source_map, target_map):
+def _copy_metadata_from_other_cube(
+    hyper_metadata_class,
+    source_map,
+    target_map,
+    *,
+    overwrite=False,
+):
     try:
         source_meta = hyper_metadata_class.load(source_map)
         source_raw = _load_raw_metadata(hyper_metadata_class, source_map)
-        target_raw = _load_raw_metadata(hyper_metadata_class, target_map)
     except Exception as error:
         gs.fatal(f"Failed to load metadata for copy: {error}")
+
+    target_has_metadata = hyper_metadata_class.exists(target_map)
+    if target_has_metadata and not overwrite:
+        gs.fatal(
+            f"Metadata already exists for target map '{target_map}'. Use --overwrite to replace it"
+        )
+
+    target_raw = {}
+    if target_has_metadata:
+        try:
+            target_raw = _load_raw_metadata(hyper_metadata_class, target_map)
+        except Exception as error:
+            gs.fatal(f"Failed to load existing target metadata for copy: {error}")
+
+    source_band_count = _get_metadata_band_count(source_meta, source_map)
+    target_depth = _get_raster_depth(target_map)
+    if target_depth != source_band_count:
+        gs.fatal(
+            f"Cannot copy metadata from '{source_map}' to '{target_map}': "
+            f"target raster depth is {target_depth}, but source metadata bands.count is {source_band_count}"
+        )
 
     source_history = hyper_metadata_class._normalize_history_entries(
         source_raw.get("processing_history", [])
@@ -431,10 +485,26 @@ def _copy_metadata_from_other_cube(hyper_metadata_class, source_map, target_map)
     source_meta.processing_history = source_history
     if target_last_step:
         source_meta.processing_history.append(target_last_step)
-    else:
+    elif target_has_metadata:
         gs.warning(
             "The current map has no local processing history. Metadata was copied without appending a local last step."
         )
+
+    source_meta.add_history_entry(
+        command=_get_copy_command(),
+        inputs=[
+            {
+                "id": source_raw.get("dataset_id"),
+                "map_name": source_map,
+            }
+        ],
+        outputs=[
+            {
+                "map_name": target_map,
+                **({"id": source_meta.dataset_id} if not target_last_step else {}),
+            }
+        ],
+    )
 
     try:
         source_meta.save(target_map, save_region=True)
@@ -484,6 +554,7 @@ def main():
             HyperMetadata,
             source_found["fullname"],
             full_map_name,
+            overwrite=gs.overwrite(),
         )
         return 0
 
