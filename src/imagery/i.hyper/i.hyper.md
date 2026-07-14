@@ -41,7 +41,7 @@ Core Python dependency:
 
 Optional dependencies by module or format:
 
-- SciPy: preprocessing utilities
+- SciPy: preprocessing utilities and optional Tanager BASIC gap filling
 - scikit-learn: dimensionality reduction in `i.hyper.preproc`
 - Matplotlib: plotting in `i.hyper.explore`
 - rasterio: EnMAP import
