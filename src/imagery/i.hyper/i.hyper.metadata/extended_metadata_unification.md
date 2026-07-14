@@ -58,6 +58,31 @@ Reference basis:
 | `atmosphere.atmosphere_model` | not found | `Atmo_profile_info` | not found | single product | keep nullable |
 | `atmosphere.aerosol_model` | not found | not found | not found | not available in current products | schema-reserved key |
 
+### EMIT Product Sources (L2A Reflectance / L1B Radiance)
+
+EMIT provides the following unified keys via its NetCDF global attributes and
+datasets:
+
+| Unified key | EMIT source | Availability |
+| --- | --- | --- |
+| `acquisition.start_time_utc` | global attr `time_coverage_start` | both |
+| `acquisition.end_time_utc` | global attr `time_coverage_end` | both |
+| `acquisition.center_latitude_deg` | mean of `location/lat` (valid > -9990) | both |
+| `acquisition.center_longitude_deg` | mean of `location/lon` (valid > -9990) | both |
+| `acquisition.day_of_year` | derived from start_time | both |
+| `geometry.sun_zenith_deg` | global attr `solar_zenith` | both |
+| `geometry.sun_azimuth_deg` | global attr `solar_azimuth` | both |
+| `geometry.view_zenith_deg` | global attr `sensor_zenith` | both |
+| `geometry.view_azimuth_deg` | global attr `sensor_azimuth` | both |
+| `geometry.relative_azimuth_deg` | derived from sun/view azimuth | both |
+| `radiometry.quantity` | `surface_reflectance` (L2A) / `at-sensor_radiance` (L1B) | level-dependent |
+| `radiometry.units` | `unitless (reflectance)` / `W/m^2/sr/nm` | level-dependent |
+| `radiometry.wavelengths_nm` | `sensor_band_parameters/wavelengths` | both |
+| `radiometry.fwhm_nm` | `sensor_band_parameters/fwhm` | both |
+| `processing.processing_datetime_utc` | global attr `date_created` | both |
+| `processing.software_build_version` | global attr `software_build_version` | both |
+| `processing.product_version` | global attr `product_version` | both |
+
 Scalar extraction rule for EnMAP angular fields:
 
 - When an EnMAP angle block provides corner values (`upper_left`,
@@ -87,6 +112,16 @@ Scalar extraction rule for EnMAP angular fields:
 | `uncertainty.reflectance_uncertainty_present` | not found | `*_PIXEL_L2_ERR_MATRIX` datasets | `surface_reflectance_uncertainty` | two products | boolean capability flag |
 | `processing.processing_datetime_utc` | `specific/processingDateTime` | `Processing_Time` | `created_at` | all products | provenance |
 
+### EMIT Product Sources
+
+| Unified key | EMIT source | Notes |
+| --- | --- | --- |
+| `processing.processing_datetime_utc` | global attr `date_created` | ISO-8601 UTC |
+| `radiometry.valid_band_mask` | derived from `good_wavelengths` + finite-data check | 0/1 per band |
+| `radiometry.valid_band_count` | derived from valid mask | integer |
+| `processing.software_build_version` | global attr `software_build_version` | provenance |
+| `processing.product_version` | global attr `product_version` | provenance |
+
 ## C. Product-Specific Keys Kept For Provenance
 
 Keep only keys that support derivation/provenance for A+B. Avoid dumping
@@ -113,6 +148,14 @@ full engineering trees.
 - `Product_StartTime`, `Product_StopTime`
 - `Product_center_lat`, `Product_center_long`
 - `Cloudy_pixels_percentage`, `L2d_Quality_flags`
+
+### `extended_metadata.emit`
+
+- `flight_line` (global attr `flight_line`)
+- `day_night_flag` (global attr `day_night_flag`)
+- `geotransform` (global attr `geotransform`)
+- `spatial_resolution_deg` (derived from geotransform ewres)
+- `quality.coverage_percent.ortho_grid` (derived from GLT valid-pixel count)
 
 ### `extended_metadata.tanager`
 

@@ -334,12 +334,13 @@ def get_emit_proj_info(path):
         "ewres": ewres,
         "nsres": nsres,
         "import_behavior": (
-            "Imports the data on the native EMIT orthorectified grid (WGS84). "
-            "The importer does not generate a new output grid."
+            "Uses the product GLT lookup tables to orthorectify the raw data "
+            "onto a WGS84 grid."
         ),
         "project_requirements": (
-            "Use a GRASS project whose CRS matches the product CRS (EPSG:4326) "
-            "or any projected CRS — the importer auto-reprojects the grid corners."
+            "Use a GRASS project whose CRS matches the product CRS for best "
+            "results, but also supports any projected CRS — grid corners are "
+            "auto-reprojected from EPSG:4326."
         ),
     }
 
