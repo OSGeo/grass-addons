@@ -197,7 +197,7 @@ def main():
         for doy in range(1, 367, 15):
             doystr = datetime.strptime(f"2000 {doy}", "%Y %j").strftime("%m_%d")
             if doy + 15 > 366:
-                end_doystr = datetime.strptime(f"2000 366", "%Y %j").strftime("%m_%d")
+                end_doystr = datetime.strptime("2000 366", "%Y %j").strftime("%m_%d")
             else:
                 end_doystr = datetime.strptime(f"2000 {doy + 15}", "%Y %j").strftime(
                     "%m_%d"
