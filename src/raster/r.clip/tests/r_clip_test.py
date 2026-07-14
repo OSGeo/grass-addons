@@ -24,8 +24,7 @@ def test_r_flag_resamples_to_region_resolution(clip_ll):
     tools.r_clip(input=clip_ll.input, output="clip_resample", flags="r")
 
     info = tools.r_info(map="clip_resample", format="json")
-    assert info["nsres"] == pytest.approx(0.5)
-    assert info["ewres"] == pytest.approx(0.5)
+    assert (info["nsres"], info["ewres"]) == pytest.approx((0.5, 0.5), abs=1e-9)
 
 
 def test_clipped_values_match_input(clip_ll):
@@ -34,10 +33,10 @@ def test_clipped_values_match_input(clip_ll):
     tools.g_region(n=5, s=0, e=5, w=0, res=clip_ll.res)
     tools.r_clip(input=clip_ll.input, output="clip_values")
 
+    # Diff is zero everywhere the clip has data, i.e. clipped cells match the input.
     tools.r_mapcalc(expression=f"clip_diff = {clip_ll.input} - clip_values")
     stats = tools.r_univar(map="clip_diff", format="json")
-    assert stats["min"] == 0
-    assert stats["max"] == 0
+    assert (stats["min"], stats["max"]) == (0, 0)
 
 
 def test_overwrite_protection(clip_ll):
