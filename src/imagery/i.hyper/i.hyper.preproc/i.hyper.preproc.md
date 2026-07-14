@@ -121,7 +121,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=enmap
 
     # Performs PCA
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     i.hyper.preproc input=enmap output=enmap_pca \
                     dr_method=pca dr_components=10 -q
 
@@ -139,7 +139,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=tanager
 
     # Savitzky–Golay derivative + baseline correction + continuum removal + Nystroem
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     # Processes the hyperspectral 3D map in chunks and exports the fitted Nystroem model
     i.hyper.preproc input=tanager output=tanager_ml \
                     polyorder=3 derivative_order=1 window_length=9 \

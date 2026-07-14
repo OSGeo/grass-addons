@@ -185,7 +185,7 @@
 
 # %flag
 # % key: q
-# % description: Interpolate missing values in valid bands
+# % description: Interpolate missing values in valid bands: linear interpolation with extrapolation at spectral edges
 # % guisection: Additional corrections
 # %end
 
@@ -202,6 +202,11 @@ import grass.script as gs
 import grass.script.array as garray
 from grass.script.utils import get_lib_path
 import importlib.util
+
+try:
+    from scipy.interpolate import interp1d
+except ModuleNotFoundError:
+    interp1d = None
 
 
 def _import_from_i_hyper_lib(module_name):
@@ -450,6 +455,8 @@ def preprocess_hyperspectral(
         steps.append("Baseline correction")
     if continuum:
         steps.append("Continuum removal")
+    if interpolate_nodata:
+        steps.append("Interpolation")
     if dr_method:
         steps.append(dr_method.upper())
     gs.message(" → ".join(steps) if steps else "No operations selected")
@@ -600,9 +607,7 @@ def preprocess_hyperspectral(
 
 def main():
     options, flags = gs.parser()
-    try:
-        from scipy.interpolate import interp1d  # noqa: E402
-    except ModuleNotFoundError:
+    if interp1d is None:
         gs.fatal(_("SciPy library not installed"))
 
     preprocess_hyperspectral(
