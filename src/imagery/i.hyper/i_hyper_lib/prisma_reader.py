@@ -5,6 +5,7 @@ PRISMA importer
 - Reads VNIR/SWIR/PAN cubes + error matrices from PRISMA L2D, L2C, and L1 HDF-EOS5.
 - Converts DN->reflectance on demand using product's L2 scale attributes:
     refl = Min + (DN * (Max - Min)) / 65535
+- Converts L1 DN->radiance using the required detector scale factor.
 - Extracts wavelengths/FWHM from global attributes and filters by *_Flags==1.
 - Normalizes VNIR/SWIR arrays to (rows, cols, bands) with bands-last.
 - Exposes per-pixel lat/lon grids and scalar corner easting/northing attributes in meters.
@@ -204,9 +205,15 @@ class PrismaCube:
     def to_radiance(self):
         if self.dn is None:
             return None
-        if self.scale_factor in (None, 0):
-            return self.dn.astype(np.float32)
-        return self.dn.astype(np.float32) / float(self.scale_factor)
+        try:
+            scale_factor = float(self.scale_factor)
+        except (TypeError, ValueError):
+            scale_factor = None
+        if scale_factor is None or not np.isfinite(scale_factor) or scale_factor <= 0:
+            raise ValueError(
+                f"Missing or invalid PRISMA L1 {self.name} radiance scale factor."
+            )
+        return self.dn.astype(np.float32) / scale_factor
 
     def valid_mask(self):
         return (self.err == 0) if self.err is not None else None

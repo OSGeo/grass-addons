@@ -310,8 +310,8 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
         band_data[idx] = {
             "wavelength": float(wl) if wl is not None else None,
             "fwhm": float(fwhm) if fwhm is not None else None,
-            "gain": float(gain) if gain is not None else None,
-            "offset": float(off) if off is not None else 0.0,
+            "gain": _to_float(gain),
+            "offset": _to_float(off) if off is not None else 0.0,
             "valid": 0,
         }
 
@@ -398,11 +398,26 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
             gs.fatal(f"EnMAP band mapping produced duplicate global band id: {gid}")
         seen_global.add(gid)
 
-    for b in band_data:
-        if band_data[b]["gain"] is None:
-            band_data[b]["gain"] = 0.0001
-        if band_data[b]["offset"] is None:
-            band_data[b]["offset"] = 0.0
+    source_bands = sorted({entry["global_band"] for entry in band_entries})
+    invalid_gains = [
+        band
+        for band in source_bands
+        if band_data[band]["gain"] is None
+        or not math.isfinite(band_data[band]["gain"])
+        or band_data[band]["gain"] <= 0
+    ]
+    if invalid_gains:
+        listed = ", ".join(str(band) for band in invalid_gains[:10])
+        if len(invalid_gains) > 10:
+            listed += f", ... ({len(invalid_gains)} bands total)"
+        raise ValueError(
+            "Missing or invalid EnMAP GainOfBand calibration for source "
+            f"band(s): {listed}."
+        )
+
+    for band in source_bands:
+        if band_data[band]["offset"] is None:
+            band_data[band]["offset"] = 0.0
 
     return band_data, band_entries
 
