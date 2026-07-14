@@ -15,6 +15,7 @@ build_addon(
     i.hyper.import
     i.hyper.metadata
     i.hyper.preproc
+    i.hyper.specresamp
   DOCFILES
     i.hyper.html
     i.hyper.md)
