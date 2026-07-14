@@ -70,7 +70,8 @@ using:
 [i.hyper.metadata](i.hyper.metadata.md),
 [i.hyper.explore](i.hyper.explore.md),
 [i.hyper.composite](i.hyper.composite.md),
-[i.hyper.export](i.hyper.export.md)
+[i.hyper.export](i.hyper.export.md),
+[i.hyper.specresamp](i.hyper.specresamp.md),
 [r3.what](https://grass.osgeo.org/grass-stable/manuals/addons/r3.what.html)*
 
 ## AUTHORS
