@@ -71,7 +71,9 @@ def main():
     overwrite = os.getenv("GRASS_OVERWRITE")
     # if output is not set return to stdout
     if map_name == "-":
-        grass.message(output)
+        # Data output goes to stdout via print(); grass.message() is for
+        # informational messages, which are sent to stderr.
+        print(output)
     # else
     else:
         # output file
