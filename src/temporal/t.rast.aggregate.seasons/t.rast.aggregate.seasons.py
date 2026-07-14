@@ -222,7 +222,7 @@ def main():
                     )
             elif seas == "winter":
                 if meteorological:
-                    if leap_year(year):
+                    if leap_year(year_int):
                         extent = tgis.AbsoluteTemporalExtent(
                             start_time=datetime(year_int, 12, 1),
                             end_time=datetime(year_int + 1, 2, 29),
