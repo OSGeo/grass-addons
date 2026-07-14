@@ -203,11 +203,7 @@ def check_map_numbers(where, **kwargs):
         maps = sp.get_registered_maps_as_objects(where, "start_time", None)
         if maps is None:
             gs.fatal(
-                _(
-                    "Space time raster dataset {st} seems to be empty".format(
-                        st=sp.get_name()
-                    )
-                )
+                _("Space time raster dataset {%s} seems to be empty") % sp.get_name()
             )
         else:
             if numrast is None:
@@ -215,12 +211,11 @@ def check_map_numbers(where, **kwargs):
                 name = sp.get_name()
             else:
                 if numrast != len(maps):
-                    gscript.warning(
+                    gs.warning(
                         _(
-                            "The number of raster maps in {} strds and {} strds differs.".format(
-                                name, sp.get_name()
-                            )
+                            "The number of raster maps in {%s} strds and {%s} strds differs."
                         )
+                        % (name, sp.get_name())
                     )
     return 0
 
@@ -515,7 +510,7 @@ def main():
             inputs = rasters_shadow
         thisivi = copy.deepcopy(ivi)
         for k, rast in inputs.items():
-            if type(rast) == str:
+            if isinstance(rast, str):
                 thisivi.inputs[k].value = rast
             else:
                 if len(rast) > 1:
@@ -552,14 +547,14 @@ def main():
     # error = 0
     # for proc in proc_list:
     #     if proc.returncode != 0:
-    #         gscript.error(
+    #         gs.error(
     #             _("Error running module: %\n    stderr: %s")
     #             % (proc.get_bash(), proc.outputs.stderr)
     #         )
     #         error += 1
 
     # if error > 0:
-    #     gscript.fatal(_("Error running modules."))
+    #     gs.fatal(_("Error running modules."))
     num_maps = len(outlist)
     # collect empty maps to remove them
     empty_maps = []

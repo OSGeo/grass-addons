@@ -1,18 +1,50 @@
 <h2>DESCRIPTION</h2>
-This module calculates vegetation indices from several space time raster datasets,
-using <em>i.vi</em> module.<br>
+This module calculates vegetation indices from several space time raster
+datasets, using <em>i.vi</em> module.<br>
 
-It can apply cloud and shadow masks stored as space time datasets (raster or vector).
+It can apply cloud and shadow masks stored as space time datasets (raster
+or vector).
 
 The output space time raster dataset can be a new dataset or an existing one,
-in this case the new created maps will be added to the existing space time raster dataset.
+in this case the new created maps will be added to the existing space time
+raster dataset.
 
 <h2>EXAMPLE</h2>
+
+Calculate the NDVI for your Red and NIR STDRS bands
+
+```bash
+
+```
+
+<div class="code">
+    <pre>
+t.rast.vi red=red_monthly nir=nir_monthly output=ndvi_monthly \
+    prefix=ndvimonthly
+    </pre>
+</div>
+
+If you have to calculate different index that require more info as EVI or MSAVI you
+need to set the correct parameters.
+
+<div class="code">
+    <pre>
+t.rast.vi red=red_monthly nir=nir_monthly blue=blue_monthly output=evi_monthly viname=evi \
+    prefix=evimonthly
+    </pre>
+</div>
+
+<div class="code">
+    <pre>
+t.rast.vi red=red_monthly nir=nir_monthly output=evi_monthly viname=msavi \
+    prefix=msavimonthly soil_line_slope=0.8 soil_line_intercept=0.5 soil_noise_reduction=1
+    </pre>
+</div>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.vi.html">i.vi</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/i.vi.html">i.vi</a>,
 </em>
 
 <h2>AUTHOR</h2>
