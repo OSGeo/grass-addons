@@ -13,4 +13,5 @@ add_files_to_etc_dir(
     sav_gol.py
     specresamp.py
     tanager_reader.py
-    tanager.py)
+    tanager.py
+    emit.py)

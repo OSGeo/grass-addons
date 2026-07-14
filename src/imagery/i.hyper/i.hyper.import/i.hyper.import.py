@@ -24,7 +24,7 @@
 # % type: string
 # % required: yes
 # % multiple: no
-# % options: prisma, enmap, tanager, ihyper
+# % options: prisma, enmap, tanager, emit, ihyper
 # % answer: prisma
 # % description: Define the hyperspectral product you want to import (lowercase).
 # % guisection: Input
@@ -89,6 +89,7 @@ PRODUCT_MODULE_MAP = {
     "enmap": "enmap",
     "prisma": "prisma",
     "tanager": "tanager",
+    "emit" : "emit"
 }
 
 

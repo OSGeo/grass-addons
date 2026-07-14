@@ -15,6 +15,7 @@ def _load_proj_module(product):
         "prisma": "prisma_reader",
         "enmap": "enmap",
         "tanager": "tanager_reader",
+        "emit": "emit",
     }.get(product)
     if not name:
         gs.fatal(f"Unsupported product for -p: {product}")
@@ -40,6 +41,7 @@ _FUNC_NAMES = {
     "prisma": "get_prisma_proj_info",
     "enmap": "get_enmap_proj_info",
     "tanager": "get_tanager_proj_info",
+    "emit": "get_emit_proj_info",
 }
 
 
