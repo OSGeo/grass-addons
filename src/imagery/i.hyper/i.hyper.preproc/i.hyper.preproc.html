@@ -35,10 +35,6 @@ All output maps are 3D rasters (<code>raster_3d</code>) compatible with the rest
   <li><b>Sparse Principal Component Analysis (sparsepca)</b> – PCA variant enforcing sparsity on component loadings for interpretability.</li>
 </ul>
 
-<p>Multiple steps can be combined in one command by listing them in <code>steps=</code> (comma-separated).
-For example, <code>steps='sav_gol,baseline,cont_rem,kpca'</code> will execute all four in sequence.
-Intermediate rasters are handled internally and automatically cleaned up.</p>
-
 <p>All dimensionality reduction methods are implemented using the
 <a href="https://scikit-learn.org/stable/api/sklearn.decomposition.html">scikit-learn</a> library.
 For detailed algorithmic descriptions and parameter explanations, refer to the official

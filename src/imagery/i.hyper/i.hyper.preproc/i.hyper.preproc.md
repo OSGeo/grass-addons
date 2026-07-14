@@ -52,12 +52,6 @@ The following preprocessing methods are supported:
 - **Sparse Principal Component Analysis (sparsepca)** -- PCA variant
   enforcing sparsity on component loadings for interpretability.
 
-Multiple steps can be combined in one command by listing them in
-`steps=` (comma-separated). For example,
-`steps='sav_gol,baseline,cont_rem,kpca'` will execute all four in
-sequence. Intermediate rasters are handled internally and automatically
-cleaned up.
-
 All dimensionality reduction methods are implemented using the
 [scikit-learn](https://scikit-learn.org/stable/api/sklearn.decomposition.html)
 library. For detailed algorithmic descriptions and parameter
