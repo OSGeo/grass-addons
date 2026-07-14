@@ -24,6 +24,8 @@ Supported operations:
   (uses `input_datasets_metadata` snapshots when referenced inputs are
   unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
+- `copy`: copy metadata from another hyperspectral cube and append this map's
+  last local processing step to the copied history
 
 Output format (`format`) is global for all operations:
 
@@ -58,7 +60,8 @@ Dataset provenance is stored in top-level key `derived`:
 Main options:
 
 - `map=`: input `raster_3d` map
-- `operation=`: `summary|full|extended|bands|history|validate`
+- `operation=`: `summary|full|extended|bands|history|validate|copy`
+- `source_map=`: source `raster_3d` map for `operation=copy`
 - `format=`: `json|text|csv`
 - `resolve_names=`: `yes|no` (for `full` and `history`)
 - `wavelength_range=`: for `operation=bands` (example: `400-700`)
@@ -80,6 +83,9 @@ API examples:
     # Multiple extended selectors
     i.hyper.metadata map=my_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
+
+    # Copy metadata from another hypercube and keep this map's last local step
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
 :::
 
 ### JSON metadata structure
@@ -219,6 +225,14 @@ Show selected branches and key paths at the same time:
 
     i.hyper.metadata map=my_hyper_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,processing
+:::
+
+Copy metadata from another hypercube while preserving the current cube's last
+local processing step:
+
+::: code
+
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
 :::
 
 Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
