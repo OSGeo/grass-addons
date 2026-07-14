@@ -30,13 +30,17 @@ programmer's manual.
   - The website is built by GitHub Actions in the
     [grass-website](https://github.com/OSGeo/grass-website) repo
     (`.github/workflows/build-production-site.yml`) on every push to `master`
-    and published as a checksummed tarball on the rolling
-    [`production` release](https://github.com/OSGeo/grass-website/releases/tag/production).
-    This job downloads the tarball, verifies its SHA256 checksum, and rsyncs it
-    into `/var/www/html/`. It only needs `curl`, `tar`, `sha256sum`, and
-    `rsync`; no Hugo, Node.js, or Dart Sass on the server, and no GitHub token
-    (public release URL over HTTPS). The formerly used `~/grass-website`
-    checkout and the go-installed `hugo` binary are no longer needed.
+    and published as a checksummed tarball on a per-deploy GitHub release, the
+    newest of which is marked
+    [`latest`](https://github.com/OSGeo/grass-website/releases/latest).
+    This job downloads the tarball from the `latest` release, verifies its
+    SHA256 checksum, and rsyncs it into `/var/www/html/`. It only needs `curl`,
+    `tar`, `sha256sum`, and `rsync`; no Hugo, Node.js, or Dart Sass on the
+    server, and no GitHub token (public release URL over HTTPS). To roll back a
+    bad build, mark an older release as latest (`gh release edit <tag>
+    --latest`) and this job deploys it on its next run. The formerly used
+    `~/grass-website` checkout and the go-installed `hugo` binary are no longer
+    needed.
 - GRASS GIS source code weekly snapshots:
   - `cron_grass_legacy_src_snapshot.sh`
   - `cron_grass_old_src_snapshot.sh`

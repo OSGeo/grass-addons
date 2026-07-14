@@ -14,13 +14,15 @@
 # The website is no longer built on this server. GitHub Actions
 # (grass-website: .github/workflows/build-production-site.yml) builds the
 # site with the pinned Hugo Extended + Dart Sass + Node toolchain on every
-# push to master and publishes it as a checksummed tarball on the rolling
-# "production" release:
-#   https://github.com/OSGeo/grass-website/releases/tag/production
+# push to master and publishes it as a checksummed tarball on a per-deploy
+# GitHub release, marking the newest one "latest":
+#   https://github.com/OSGeo/grass-website/releases/latest
 #
-# This job downloads that tarball, verifies its SHA256 checksum, and rsyncs
-# it into the web root. It requires only curl, tar, sha256sum, and rsync.
-# No GitHub token is needed (public release URL over HTTPS).
+# This job downloads that tarball from the "latest" release, verifies its
+# SHA256 checksum, and rsyncs it into the web root. It requires only curl,
+# tar, sha256sum, and rsync. No GitHub token is needed (public release URL
+# over HTTPS). To roll back a bad build, mark an older release as latest
+# (gh release edit <tag> --latest) and this job deploys it on the next run.
 ####
 # Procedure:
 #  1. fetch the published checksum; exit early if it matches the deployed one
@@ -32,7 +34,7 @@
 ####
 
 # Overridable for testing (e.g. RELEASE_URL="file:///tmp/fake" TARGET=/tmp/www ...)
-RELEASE_URL="${RELEASE_URL:-https://github.com/OSGeo/grass-website/releases/download/production}"
+RELEASE_URL="${RELEASE_URL:-https://github.com/OSGeo/grass-website/releases/latest/download}"
 WORK="${WORK:-${HOME}/grass-website-deploy}"
 TARGET="${TARGET:-/var/www/html}"
 CODE_AND_DATA="${CODE_AND_DATA:-/var/www/code_and_data}"
