@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
           "Cho (2023).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
+    opt.dir->key = "direction";
     opt.dir->description = _("Name of input direction raster map");
 
     opt.format = G_define_option();
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
         G_message(_("Parallel computing using %d threads..."), num_threads);
     else
 #endif
-        G_message(_("Sequential computing..."));
+        G_message(_("Serial computing..."));
 
     check_overflow = flag.check_overflow->answer;
     use_less_memory = flag.use_less_memory->answer;

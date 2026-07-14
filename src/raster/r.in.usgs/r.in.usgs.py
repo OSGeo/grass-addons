@@ -59,6 +59,17 @@
 # %end
 
 # %option
+# % key: ned_release
+# % required: no
+# % options: current,historical,all
+# % answer: current
+# % label: NED data release
+# % description: Restrict the NED dataset to the current (most recent) tiles, superseded historical tiles, or all of them
+# % descriptions: current;Current (most recent) tiles only;historical;Historical (superseded) tiles only;all;Current and historical tiles
+# % guisection: NED
+# %end
+
+# %option
 # % key: input_srs
 # % type: string
 # % required: no
@@ -155,9 +166,9 @@
 import sys
 import os
 import zipfile
-from six.moves.urllib.request import urlopen
-from six.moves.urllib.error import URLError, HTTPError
-from six.moves.urllib.parse import quote_plus
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+from urllib.parse import quote_plus
 from multiprocessing import Process, Manager
 import json
 import atexit
@@ -382,6 +393,24 @@ def main():
             ned_data_abbrv = "ned_19arc_"
             ned_api_name = "1/9 arc-second"
         product_tag = product + " " + ned_api_name
+        # The TNM API exposes the data release as a suffix on the dataset tag.
+        # "Current" returns the most recent tiles, "Historical" the superseded
+        # ones. The combined "Current and Historical" tag is not queryable in
+        # the products endpoint, so "all" uses the bare tag, which returns both.
+        # Only the 1 and 1/3 arc-second datasets are split this way; the
+        # 1/9 arc-second dataset is not, so its tag is always used as is.
+        if options["ned_dataset"] in ("ned1sec", "ned13sec"):
+            if options["ned_release"] == "current":
+                product_tag += " Current"
+            elif options["ned_release"] == "historical":
+                product_tag += " Historical"
+        elif options["ned_release"] != "all":
+            gs.verbose(
+                _(
+                    "The ned_release option is not applicable to the {dataset}"
+                    " dataset; all available tiles will be used."
+                ).format(dataset=ned_api_name)
+            )
 
     if gui_product == "nlcd":
         gui_dataset = options["nlcd_dataset"]

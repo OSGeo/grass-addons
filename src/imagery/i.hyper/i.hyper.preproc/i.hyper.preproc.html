@@ -53,6 +53,8 @@ Operations are reported in the console as a sequential pipeline.</p>
 <p>When using PCA, KPCA, FastICA, NMF, or SparsePCA, the number of output components can be controlled using the
 <code>dr_components</code> parameter.</p>
 
+<p>When dimensionality reduction is applied, output <code>hyper.json</code> stores DR parameters in top-level key <code>dimensionality_reduction</code>.</p>
+
 <p><b>Chunked dimensionality reduction:</b><br>
 Large hyperspectral datasets can be processed in smaller portions using the <code>dr_chunk_size</code> option.
 This enables dimensionality reduction on datasets exceeding system memory capacity.
@@ -144,6 +146,7 @@ spectra_reduced = pca_after.transform(Z)
 
 <h2>SEE ALSO</h2>
 
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
 <a href="i.hyper.explore.html">i.hyper.explore</a>,
 <a href="i.hyper.composite.html">i.hyper.composite</a>,
 <a href="i.hyper.export.html">i.hyper.export</a>,

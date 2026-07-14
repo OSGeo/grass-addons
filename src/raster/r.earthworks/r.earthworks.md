@@ -149,8 +149,8 @@ at the top of the peak.
 r.earthworks elevation=elevation earthworks=peak operation=fill coordinates=250,250 z=50 function=linear linear=0.5 flat=50
 ```
 
-| Fill | Fill 3D|
-| ---- | ------ |
+| Fill                                   | Fill 3D                                   |
+| -------------------------------------- | ----------------------------------------- |
 | ![Fill operation](r_earthworks_01.png) | ![3D fill operation](r_earthworks_02.png) |
 
 **Cut Operation**
@@ -161,8 +161,8 @@ Set a z-coordinate for the bottom of the pit.
 r.earthworks elevation=elevation earthworks=pit operation=cut coordinates=250,250 z=-50 function=linear linear=0.5 flat=50
 ```
 
-| Cut | Cut 3D|
-| ---- | ---- |
+| Cut                                   | Cut 3D                                   |
+| ------------------------------------- | ---------------------------------------- |
 | ![Cut operation](r_earthworks_03.png) | ![3D cut operation](r_earthworks_04.png) |
 
 **Cut & Fill Operation**
@@ -175,8 +175,8 @@ and another z-coordinate for the top of the peak.
 r.earthworks elevation=elevation earthworks=peak_and_pit operation=cutfill coordinates=180,180,320,320 z=-50,50 function=linear linear=0.5 flat=50
 ```
 
-| Cut & Fill | Cut & Fill 3D|
-| ---------- | ------------ |
+| Cut & Fill                                 | Cut & Fill 3D                                 |
+| ------------------------------------------ | --------------------------------------------- |
 | ![Cut-fill operation](r_earthworks_05.png) | ![3D cut-fill operation](r_earthworks_06.png) |
 
 ### Road Grading
@@ -195,6 +195,7 @@ operation set to `fill`,
 function set to `linear`,
 linear set to `0.25`,
 and flat set to `25`.
+Use flag `-p` to print the volume of fill.
 This will grade an embankment through the valley
 with a 50 meter wide roadway
 at a constant elevation of 95 meters
@@ -204,15 +205,13 @@ Optionally, compute contours with
 
 ```sh
 g.region n=217700 s=216200 w=639200 e=640700 res=10
-r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 function=linear linear=0.25 operation=fill flat=25
+r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 function=linear linear=0.25 operation=fill flat=25 -p
 r.contour input=earthworks output=contours step=2
 ```
 
-| Elevation | Earthworks |
-| --------- | ---------- |
+| Elevation                         | Earthworks                         |
+| --------------------------------- | ---------------------------------- |
 | ![Elevation](r_earthworks_07.png) | ![Earthworks](r_earthworks_08.png) |
-
-<!-- Print volume of fill -->
 
 When working with a large elevation raster,
 set the region to your area of interest
@@ -246,20 +245,33 @@ r.earthworks elevation=elevation operation=cut coordinates=635235.4648198467,223
 r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=635150.7489931877,223203.9595016748
 ```
 
-| Dam | Dam Breach |
-| --------- | ---------- |
+| Dam                         | Dam Breach                         |
+| --------------------------- | ---------------------------------- |
 | ![Dam](r_earthworks_09.png) | ![Dam Breach](r_earthworks_10.png) |
 
 ## NOTES
 
-The current implementation of parallelization in r.mapcalc
-in the development version of GRASS
+In GRASS 8.5 and above,
+map algebra uses parallel computing
+for faster raster calculations.
+The current implementation
+of parallelization in r.mapcalc
 can open too many files
-causing r.earthworks to fail
+causing *r.earthworks* to fail
 for runs with multiple input coordinates
 depending on the open file limit of the user's system.
 This issue can be addressed
-by temporarily raising the open file limit:
+by enabling quadtree segmentation,
+setting fewer threads for parallel computing,
+or raising the open file limit.
+If this error occurs, try setting
+smaller `threshold` and `border` parameters
+for quadtree segmentation.
+Alternatively, try setting
+the number of threads for parallel computing
+with the `nprocs` parameter.
+Use the shell command `ulimit`
+to temporarily raise the open file limit:
 
 ```bash
 ulimit -S -n 32768
@@ -267,7 +279,13 @@ ulimit -S -n 32768
 
 ## REFERENCES
 
-Harmon, B. (2025). r.earthworks (Version 2.0.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
+* Harmon, B., Petrasova, A., & Petras, V. (2026).
+    r.earthworks: a GRASS tool for terrain modeling.
+    Journal of Open Source Software, 11(118), 9270.
+    <https://doi.org/10.21105/joss.09270>
+* Harmon, B., Petrasova, A., & Petras, V. (2026).
+    r.earthworks: a GRASS tool for terrain modeling (3.0.0). Zenodo.
+    <https://doi.org/10.5281/zenodo.18407200>
 
 ## AUTHORS
 

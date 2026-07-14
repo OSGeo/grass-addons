@@ -5,7 +5,7 @@
 #
 # AUTHOR(S): Abdullah Azzam <mabdazzam@outlook.com>
 #
-# PURPOSE:   generates a time of concentration raster using the Kirpich
+# PURPOSE:   Generates a time of concentration raster using the Kirpich
 #            Equation
 #
 # K: (C) 2025 by Abdullah Azzam and the GRASS Development Team

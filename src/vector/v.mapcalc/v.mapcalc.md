@@ -36,21 +36,21 @@ will give the same result.
 
 The module supports the following boolean vector operations:  
 
-| Boolean Name | Operator | Meaning             | Precedence | Correspondent Function  |
-|--------------|----------|---------------------|------------|-------------------------|
-| AND          | &        | Intersection       | 1          | v.overlay operator=and  |
-| OR           | \|       | Union              | 1          | v.overlay operator=or   |
-| DISJOINT OR  | +        | Disjoint union     | 1          | v.patch                 |
-| XOR          | ^        | Symmetric difference | 1        | v.overlay operator=xor  |
-| NOT          | ~        | Complement         | 1          | v.overlay operator=not  |
+| Boolean Name | Operator | Meaning              | Precedence | Correspondent Function  |
+|--------------|----------|----------------------|------------|-------------------------|
+| AND          | &        | Intersection         | 1          | v.overlay operator=and  |
+| OR           | \|       | Union                | 1          | v.overlay operator=or   |
+| DISJOINT OR  | +        | Disjoint union       | 1          | v.patch                 |
+| XOR          | ^        | Symmetric difference | 1          | v.overlay operator=xor  |
+| NOT          | ~        | Complement           | 1          | v.overlay operator=not  |
 
 And vector functions:
 
-```text
- buff_p(A, size)          Buffer the points of vector map layer A with size
- buff_l(A, size)          Buffer the lines of vector map layer A with size
- buff_a(A, size)          Buffer the areas of vector map layer A with size
-```
+| Function        | Description                                       |
+|-----------------|---------------------------------------------------|
+| buff_p(A, size) | Buffer the points of vector map layer A with size |
+| buff_l(A, size) | Buffer the lines of vector map layer A with size  |
+| buff_a(A, size) | Buffer the areas of vector map layer A with size  |
 
 ## NOTES
 

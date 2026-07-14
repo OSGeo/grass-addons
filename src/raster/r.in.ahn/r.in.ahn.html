@@ -1,42 +1,59 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.in.ahn</em> imports the Actueel Hoogtebestand Nederland (<a
-href="https://www.ahn.nl">AHN</a>, version 4) for the current region.
-The AHN is a digital elevation model (DEM) of the Netherlands with a
-resolution of of 0.5 meter.
+<em>r.in.ahn</em> r.in.ahn imports elevation data from the Actueel Hoogtebestand Nederland (AHN).
+AHN is the national digital elevation model of the Netherlands and provides
+both a digital terrain model (DTM) and a digital surface model (DSM) at
+resolutions of 0.5 m and 5 m. The dataset is available in multiple versions
+(AHN2 through AHN6), each corresponding to a different acquisition period and
+processing specification. An overview of these versions is provided on the
+<a href="https://www.ahn.nl">AHN</a> wThe dataset is available in multiple versions
+(AHN2 through AHN6), eacebsite.
 
 <p>
-There are two different layers available: the digital terrain model
-(DTM) and a digital surface model (DSM). The user needs to select which
-to download. The selected product will be downloaded for the
-computation region. However, note that the region will adjusted to
-ensure that the imported raster layer neatly aligns with and has the
-same resolution (0.5 meter) as the original AHN data. The resulting
-will always have the same or a larger extent than the original
-computation region. If you want to store the current computational
-region, make sure to first save it using <em>g.region</em>.
+The user specifies the AHN version, the product (<i>dtm</i>, <i>dsm</i>, or <i>chm</i>), and
+the desired resolution. When chm is selected, the module first downloads and
+imports both the DTM and DSM and then computes the canopy height model (CHM) as
+the difference between DSM and DTM. In this case, all three layers are retained
+and written to the mapset using the user-defined output name with the suffixes
+<i>_dtm</i>, <i>_dsm</i>, or <i>_chm</i>.
 
 <p>
-The AHN can also be downloaded in map sheets (tiles) of 6.5 by 5
-kilometer. To download the area covered by one or more of these tiles,
-the user can set the <b>-t</b> flag. This wil to download the area for
-the tiles that overlap with the current computational region.
+The module determines which 1 × 1 km tiles intersect the current computational
+region, downloads the required tiles, imports them into the GRASS mapset and
+combines them in one layer. During this process, the computational region is
+(temporarily) adjusted so that the imported raster aligns with the native AHN
+grid and uses the selected resolution. The resulting raster always covers the
+original region (or the portion overlapping the AHN extent). When the <b>-g</b> flag
+is used, the original computational region is restored after the import is
+completed.
 
 <h2>NOTE</h2>
 
-This location only works in a location with the project 'RD New'
-(EPSG:28992). Attempts to run it in a location with another CRS will
-result in an error message.
+This module can only be used in a location based on the Amersfoort / RD New
+coordinate reference system (EPSG:28992). Running it in a location with a
+different CRS will result in an error.
 
 <p>
-The region will be adjusted to ensure that the imported raster layer
-neatly aligns with and has the same resolution (0.5 meter) as the
-original AHN data. The user can set the <b>-g</b> flag to return the
-region to the original computation region after the data is imported.
+The computational region is modified during import to ensure that the resulting
+raster aligns with the AHN grid and matches the chosen resolution (0.5 m or 5
+m). If the <b>-g</b> flag is provided, the region is reset to its original extent
+after the import.
 
 <p>
-The addon uses the <em>r.in.wcs</em> addon in the background, so the
-user will first need to install this addon.
+All AHN versions are provided as 1 x 1 km tiles. Earlier datasets (AHN2 -AHN5),
+originally published as larger map sheets (5 x 6.25 km), have been reprocessed
+as 1 x 1 km tiles following the AHN6 specification. In the 0.5 m DTM, cell
+values represent an unweighted average of ground-level points; in the 0.5 m
+DSM, cell values represent the highest point. The earlier versions retain the
+original differences related to high-voltage structures: AHN4 DSM excludes
+high-voltage power lines but includes pylons, while AHN2 and AHN3 DSM include
+both lines and pylons. See the documentation on the <a
+href="https://www.ahn.nl/dataroom">AHN dataroom</a>
+
+<p>
+Versions 5 and 6 do not cover the whole of the Netherlands yet. Check the <a
+href="https://www.ahn.nl/">AHN website</a> for information about which parts
+are covered.
 
 <h2>EXAMPLE</h2>
 
@@ -51,7 +68,7 @@ Dieze</i> flows into the <i>Maas</i> river.
 g.region n=416562 s=415957 w=145900 e=147003 res=0.5
 
 # Download the DSM
-r.in.ahn product=dsm output=dsm_crevecoeur
+r.in.ahn product=dtm output=dtm_crevecoeur resolution=0.5 version=4
 </pre></div>
 
 <p>
@@ -59,68 +76,61 @@ r.in.ahn product=dsm output=dsm_crevecoeur
 <a href="r_in_ahn_01.png">
 <img src="r_in_ahn_01.png" alt="r.in.ahn example" width="600" border="0">
 </a><br>
-<i>Figure: DSM map of Fort Crèvecoeur</i>
+<i>Figure: DTM map of Fort Crèvecoeur</i>
 </div>
 
 <h3>Example 2</h3>
 
-Import the DTM for the tile that overlaps with the current region. Do
-this by setting the <b>-t flag</b>.
+Import the DSM version 5 with a resolution of 5 meter. Set the <b>-g flag</b> flag to
+keep the current computation region after importing the requested data. Note,
+the imported data will still have the resolution of, and will be aligned to,
+the original AHN data.
 
 <p>
 <div class="code"><pre>
-# Set the region for Fort Crèvecoeur
-g.region n=416562 s=415957 w=145900 e=147003 res=0.5
-
-# Download the DSM
-r.in.ahn -t product=dsm output=dsm_crevecoeur2
+r.in.ahn -g product=dsm output=dsm_crevecoeur resolution=5 version=4
 </pre></div>
-
-<p>
-The result will be a raster layer <i>dsm_crevecoeur2</i> and a vector
-layer <i>dsm_crevecoeur2_tiles</i>
 
 <p>
 <div align="center" style="margin: 10px">
 <a href="r_in_ahn_02.png">
 <img src="r_in_ahn_02.png" alt="r.in.ahn example" width="600" border="0">
 </a><br>
-<i>Figure: DSM map of Fort Crèvecoeur. Left shows the extent (red
-outline) after running example 2. The extent equals the extent of the
-area (tile) for which the data was downloaded. Right shows the extent
-(red outline) after running example 3. In this case, the extent is the
-same as before running the example because the <b>-g</b> flag was
-set.</i>
+<i>Figure: DSM map of Fort Crèvecoeur with a resolution of 5m.</i>
 </div>
 
 <h3>Example 3</h3>
 
-Set the <b>-t</b> flag to import the DTM for the tile that overlaps
-with the current region. Set the <b>-g</b> flag to keep the current
-computation region after importing the requested data. Note, the
-imported data will still have the resolution of, and will be aligned
-to, the original AHN data.
+Import the CHM based on version 4 of DTM and DSM with a resolution of 0.5 meter.
 
 <p>
 <div class="code"><pre>
-# Set the region for Fort Crèvecoeur
-g.region n=416562 s=415957 w=145900 e=147003 res=0.5
-
-# Download the DSM
-r.in.ahn -t -g product=dsm output=dsm_crevecoeur3
+r.in.ahn product=chm output=chm_crevecoeur resolution=0.5 version=4
 </pre></div>
 
 <p>
-The result will be a raster layer <i>dsm_crevecoeur3</i> and a vector
-layer <i>dsm_crevecoeur3_tiles</i>
-
+<div align="center" style="margin: 10px">
+<a href="r_in_ahn_03.png">
+<img src="r_in_ahn_03.png" alt="r.in.ahn example" width="600" border="0">
+</a><br>
+<i>Figure: CHM map of Fort Crèvecoeur</i>
+</div>
 
 <h2>REFERENCES</h2>
 
 See the <a href="https://ahn.nl">AHN</a> webpage for more information
 about the AHN data (in Dutch).
 
-<h2>AUTHORS</h2>
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.srtm.html">r.in.srtm</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.nasadem.html">r.in.nasadem</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html">r.in.pdal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.in.pdal.html">v.in.pdal</a>
+</em>
+
+<h2>AUTHOR</h2>
 
 Paulo van Breugel  |  <a href="https://has.nl">HAS green academy</a>,
 University of Applied Sciences  |  <a

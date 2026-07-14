@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # script to build GRASS GIS preview binaries + addons from the `main` branch
-# (c) 2002-2025, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# (c) 2002-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -23,7 +23,7 @@
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
-#     ln -s /var/www/code_and_data/grass85 .
+#     ln -s /var/www/code_and_data/grass86 .
 #     ln -s /var/www/code_and_data/grass-devel .
 #
 #################################
@@ -34,7 +34,7 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=5
+GMINOR=6
 GPATCH="0dev"  # required by grass-addons-index.sh
 BRANCH=main
 DOTVERSION=$GMAJOR.$GMINOR
@@ -58,7 +58,7 @@ TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
 # progman compiled below (i.e., only for preview version)
-# progman not built for older dev versions or old stable
+# progman not built for older dev versions or stable
 TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -104,7 +104,7 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-postgres --with-postgres-includes=/usr/include/postgresql \
   --with-freetype --with-freetype-includes=/usr/include/freetype2 \
   --with-netcdf \
-  --with-pdal \
+  --without-pdal \
   --with-fftw \
   --with-nls \
   --with-libsvm \

@@ -6,10 +6,9 @@
 #include <signal.h>
 
 #include <grass/config.h>
-#ifdef HAVE_FFTW3_H
+#if defined(HAVE_FFTW3_H)
 #include <fftw3.h>
-#endif
-#ifdef HAVE_DFFTW_H
+#elif defined(HAVE_DFFTW_H)
 #include <dfftw.h>
 #endif
 

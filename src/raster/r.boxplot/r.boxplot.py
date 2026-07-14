@@ -299,6 +299,7 @@ import grass.script as gs
 from grass.pygrass.modules import Module
 
 clean_maps = []
+mask_backup_name = None
 
 
 def lazy_import_py_modules(backend):
@@ -341,10 +342,43 @@ def create_temporary_name(prefix):
     return tmpf
 
 
-def cleanup():
-    """Remove temporary maps specified in the global list"""
-    maps = reversed(clean_maps)
+def restore_mask_backup():
+    """Best-effort restore of MASK from the tracked backup.
+
+    On success, clears mask_backup_name. On failure, leaves it set and emits a
+    warning with the backup name so the user can restore manually. Never raises.
+    """
+    global mask_backup_name
+    if mask_backup_name is None:
+        return
     mapset = gs.gisenv()["MAPSET"]
+    found = gs.find_file(name=mask_backup_name, element="raster", mapset=mapset)
+    if not found["file"]:
+        mask_backup_name = None
+        return
+    try:
+        # A MASK present here was created by r.boxplot itself (for example a
+        # temporary zonal mask left behind by a failure), so remove it first
+        # so the original can be renamed back from the backup.
+        leftover = gs.find_file(name="MASK", element="cell", mapset=mapset)
+        if leftover["file"]:
+            Module("g.remove", flags="f", type="raster", name="MASK", quiet=True)
+        Module("g.rename", raster=[mask_backup_name, "MASK"], quiet=True)
+        mask_backup_name = None
+    except Exception as exc:
+        gs.warning(
+            _(
+                "Failed to restore MASK from backup <{name}>: {err}. "
+                "Restore manually with: g.rename raster={name},MASK"
+            ).format(name=mask_backup_name, err=exc)
+        )
+
+
+def cleanup():
+    """Restore the original MASK if needed, then remove temporary maps"""
+    restore_mask_backup()
+    mapset = gs.gisenv()["MAPSET"]
+    maps = reversed(clean_maps)
     for map_name in maps:
         for element in ("raster", "vector"):
             found = gs.find_file(
@@ -689,29 +723,34 @@ def compute_outliers(
 
     # Extract outliers values of ith zone
     if bool(outliers) and bool(recode_rules):
-        if bool(zones):
-            Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
-        tmpname = create_temporary_name("tmp02")
-        tmpvect = create_temporary_name("tmpvec02")
-        Module(
-            "r.recode",
-            input=rastername,
-            output=tmpname,
-            rules="-",
-            stdin_=recode_rules,
-            quiet=True,
-        )
-        vectornames.append(tmpvect)
-        Module(
-            "r.to.vect",
-            input=tmpname,
-            output=tmpvect,
-            type="point",
-            quiet=True,
-        )
-        Module("g.remove", type="raster", name=tmpname, flags="f")
-        if zones:
-            Module("r.mask", flags="r")
+        try:
+            if bool(zones):
+                Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
+            tmpname = create_temporary_name("tmp02")
+            tmpvect = create_temporary_name("tmpvec02")
+            Module(
+                "r.recode",
+                input=rastername,
+                output=tmpname,
+                rules="-",
+                stdin_=recode_rules,
+                quiet=True,
+            )
+            vectornames.append(tmpvect)
+            Module(
+                "r.to.vect",
+                input=tmpname,
+                output=tmpvect,
+                type="point",
+                quiet=True,
+            )
+            Module("g.remove", type="raster", name=tmpname, flags="f")
+        finally:
+            # Always remove the temporary zonal mask, even if the steps above
+            # raise, so it is not left behind for cleanup() to trip over when
+            # it tries to restore the original MASK from the backup.
+            if zones:
+                Module("r.mask", flags="r")
 
         # Get values input raster and write to outlier points
         colname = strip_mapset(rastername)
@@ -822,7 +861,6 @@ def bxp_nozones(opt):
         fliers = []
 
     if opt["name_outliers_map"] and bool(fliers):
-        print(vect_name)
         Module("v.db.dropcolumn", map=vect_name[0], columns=["value", "label"])
         Module("g.rename", vector=[vect_name[0], opt["name_outliers_map"]])
         gs.message("Point vector map '{}' created".format(opt["name_outliers_map"]))
@@ -1231,6 +1269,7 @@ def main(options, flags):
     Draws the boxplot of raster values. Optionally, this is done per category
     of a zonal raster layer
     """
+    global mask_backup_name
 
     # lazy import matplotlib
     output = options["output"] if options["output"] else None
@@ -1287,10 +1326,13 @@ def main(options, flags):
         else:
             zonal_raster = options["zones"]
 
-        # Remove mask (save temp backup)
+        # Temporarily disable the active mask by renaming the MASK raster.
+        # mask_backup_name is set only after a successful rename so that
+        # cleanup() does nothing if the rename itself failed (MASK still intact).
         if mask_present:
-            backup_mask = create_temporary_name("maskbackup")
-            Module("g.rename", raster=["MASK", backup_mask])
+            backup_name = create_unique_name("maskbackup")
+            Module("g.rename", raster=["MASK", backup_name])
+            mask_backup_name = backup_name
 
     # Collect options
     base_options = {
@@ -1345,9 +1387,10 @@ def main(options, flags):
     else:
         bxp_nozones(base_options)
 
-    # Restore original mask
+    # Restore the original mask after a successful run.
+    # cleanup() handles restoration if the script exits with an error.
     if mask_present and bool(options["zones"]):
-        Module("g.rename", raster=[backup_mask, "MASK"])
+        restore_mask_backup()
 
 
 if __name__ == "__main__":

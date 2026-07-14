@@ -64,7 +64,7 @@ int convexHull(struct points *pnts, struct convex *hull)
 
     double *ro, (*ri)[3], (*r)[3]; /* r = [xyz] */
 
-    r = (double(*)[3])G_malloc(n * 3 * sizeof(double));
+    r = (double (*)[3])G_malloc(n * 3 * sizeof(double));
     ri = &r[0];
     ro = &pnts->r[0];
 

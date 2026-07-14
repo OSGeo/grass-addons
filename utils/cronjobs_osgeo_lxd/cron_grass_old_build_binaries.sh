@@ -1,7 +1,13 @@
 #!/bin/bash
 
-# script to build GRASS GIS old current binaries + addons from the `releasebranch_8_3` branch
-# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# old stable (no more releases planned, 8.3 compilation disabled on May 6th, 2025 in cron_job_list_grass)
+# ###
+# kept for posterity
+
+exit 0
+
+# script to build GRASS GIS old current binaries + addons from the `releasebranch_8_4` branch
+# (c) 2002-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -18,13 +24,13 @@
 
 # Preparations, on server (neteler@grasslxd:$):
 # - install dependencies:
-#     cd $HOME/src/releasebranch_8_3/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+#     cd $HOME/src/releasebranch_8_4/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
 # - install further dependencies:
 #     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
-#     ln -s /var/www/code_and_data/grass83 .
+#     ln -s /var/www/code_and_data/grass84 .
 #
 #################################
 # variables for build environment (grass.osgeo.org specific)
@@ -34,12 +40,12 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=3
+GMINOR=4
 GPATCH=2 # required by grass-addons-index.sh
 BRANCH=releasebranch_${GMAJOR}_$GMINOR
 
 # NEW_CURRENT: set to GMINOR from above + 1:
-NEW_CURRENT=84
+NEW_CURRENT=$(( GMINOR + 1 ))
 
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -61,7 +67,7 @@ TARGETMAIN=/var/www/code_and_data
 TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
-# progman not built for older dev versions or old stable, only for preview version
+# progman not built for older dev versions, stable, old, legacy (only done for preview version)
 #TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -107,9 +113,10 @@ CFLAGS=$CFLAGSSTRING LDFLAGS=$LDFLAGSSTRING ./configure \
   --with-postgres --with-postgres-includes=/usr/include/postgresql \
   --with-freetype --with-freetype-includes=/usr/include/freetype2 \
   --with-netcdf \
-  --with-pdal \
+  --without-pdal \
   --with-fftw \
   --with-nls \
+  --with-libsvm \
   --with-blas \
   --with-lapack \
   --with-zstd \
@@ -194,7 +201,7 @@ cp -p AUTHORS CITING CITATION.cff COPYING GPL.TXT INSTALL.md REQUIREMENTS.md $TA
 ############
 
 # generate doxygen programmers's G8 manual
-## -> no, only in GRASS GIS 8 versions in later versions
+## -> no, only built in GRASS GIS devel version
 
 ##### generate i18N stats for HTML page path:
 # note: the gettext POT files are managed in git and OSGeo Weblate
@@ -222,7 +229,7 @@ if [ $? -ne 0 ] ; then
    halt_on_error "make bindist."
 fi
 
-# report system:
+# report system details:
 echo "System:
 $ARCH, compiled with:" > grass-$DOTVERSION\_$ARCH\_bin.txt
 ## echo "Including precompiled $GDALVERSION library for r.in.gdal" >> grass-$DOTVERSION\_$ARCH\_bin.txt
@@ -238,7 +245,7 @@ echo "Copy new binary version into web space:"
 cp -p grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh $TARGETDIR
 rm -f grass-$DOTVERSION\_$ARCH\_bin.txt grass-${DOTVERSION}*.tar.gz grass-${DOTVERSION}*install.sh
 
-# generate manual ZIP package
+# generate ZIP package of manual pages (mkdocs generated with GHA)
 (cd $TARGETHTMLDIR/.. ; rm -f $TARGETHTMLDIR/*html_manual.zip ; zip -r /tmp/grass-${DOTVERSION}_html_manual.zip manuals/)
 mv /tmp/grass-${DOTVERSION}_html_manual.zip $TARGETHTMLDIR/
 
@@ -275,6 +282,7 @@ for dir in `find $MAINDIR/.grass$GMAJOR/addons -maxdepth 1 -type d`; do
     if [ -d $dir/docs/html ] ; then
         if [ "$(ls -A $dir/docs/html/)" ]; then
             for f in $dir/docs/html/*; do
+                # TODO: in cron_grass_preview_build_binaries.sh this is skipped. What is right?
                 cp $f $TARGETHTMLDIR/addons/
             done
         fi
@@ -294,7 +302,7 @@ mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
 cp -p $MAINDIR/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
 
 # generate addons modules.xml file (required for g.extension module)
-$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-location EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
+$SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
 cp $MAINDIR/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 # regenerate keywords.html file with addons modules keywords
@@ -306,7 +314,7 @@ python3 $GRASSBUILDDIR/man/build_keywords.py $TARGETMAIN/grass$GMAJOR$GMINOR/man
 unset ARCH ARCH_DISTDIR GISBASE VERSION_NUMBER
 
 ############################################
-# Inject hint to new current version hint in a red box into each manual page
+# Inject hint to new stable version hint in a red box into each manual page
 # - cd into folder of HTML manual pages
 # - run sed to replace an existing HTML string in the upper part of the HTML file
 #   with itself + the red box pointing to the respective stable version manual page
@@ -379,7 +387,7 @@ process_files "$TARGETHTMLDIR/addons" "addons/"
 process_files "$TARGETHTMLDIR/libpython" "libpython/"
 
 ############################################
-# create local sitemap
+# create sitemaps to expand the hugo sitemap
 
 # versioned manual:
 python3 $HOME/src/grass$GMAJOR-addons/utils/create_manuals_sitemap.py --dir=/var/www/code_and_data/grass$GMAJOR$GMINOR/manuals/ --url=https://grass.osgeo.org/grass$GMAJOR$GMINOR/manuals/ -o
