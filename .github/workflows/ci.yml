@@ -149,7 +149,8 @@ jobs:
           # Addons that bundle a Python package install it under etc/<tool>/;
           # add those dirs so their tests can import the package.
           etc_paths="$(find "$GISBASE/etc" -maxdepth 1 -type d -name '*.*' | paste -sd: -)"
-          export PYTHONPATH="$(grass --config python_path):${etc_paths}:${PYTHONPATH}"
+          PYTHONPATH="$(grass --config python_path):${etc_paths}:${PYTHONPATH}"
+          export PYTHONPATH
           export LD_LIBRARY_PATH="${GISBASE}/lib:${LD_LIBRARY_PATH}"
           status=0
           while IFS= read -r tests_dir; do
