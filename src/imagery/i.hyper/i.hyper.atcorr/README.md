@@ -784,6 +784,15 @@ grass --tmp-project XY --exec python3 -m pytest testsuite/ -v
 | [libsixsv](https://github.com/yannchemin/libsixsv) | **Upstream dependency** | 6SV2.1 RT physics library; provides LUT computation, per-pixel inversion, BRDF models, retrievals |
 | [libras3d](https://github.com/yannchemin/libras3d) | **Upstream dependency — Debian only** | Standalone GRASS raster3d replacement; enables `DEBIAN_BUILD=1` without a GRASS installation |
 
+## Subtree dependency
+
+[libsixsv/](../libsixsv/) is vendored from
+https://github.com/YannChemin/libsixsv via **git subtree**.
+To pull upstream changes:
+
+    git subtree pull --prefix src/imagery/i.hyper/libsixsv \
+        https://github.com/YannChemin/libsixsv.git main --squash
+
 ## License
 
 This is free and unencumbered software released into the public domain.  
