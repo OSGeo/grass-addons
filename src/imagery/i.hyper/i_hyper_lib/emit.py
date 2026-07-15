@@ -184,6 +184,9 @@ def _read_emit_netcdf(path):
         lon_ds = f["location/lon"][()] if "location/lon" in f else None
         lat = np.asarray(lat_ds, dtype=np.float64) if lat_ds is not None else None
         lon = np.asarray(lon_ds, dtype=np.float64) if lon_ds is not None else None
+        if lon is not None and lat is not None:
+            if lon.ndim == 1 and lat.ndim == 1:
+                lon, lat = np.meshgrid(lon, lat)
 
         attrs = {}
         for k in f.attrs.keys():
