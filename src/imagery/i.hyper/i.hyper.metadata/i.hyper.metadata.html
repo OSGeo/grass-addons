@@ -15,6 +15,7 @@ Supported operations:
   <li><code>bands</code>: list source bands (optionally filtered by wavelength range)</li>
   <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp (uses <code>input_datasets_metadata</code> snapshots when referenced inputs are unavailable in current LOCATION)</li>
   <li><code>validate</code>: metadata and lineage consistency checks</li>
+  <li><code>copy</code>: initialize or replace metadata from another hyperspectral cube; with existing target metadata, <code>--overwrite</code> is required and this map's last local processing step is preserved; the copy action itself is added to history</li>
 </ul>
 
 Output format (<code>format</code>) is global for all operations:
@@ -52,7 +53,8 @@ For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> r
 <p>Main options:</p>
 <ul>
   <li><code>map=</code>: input <code>raster_3d</code> map</li>
-  <li><code>operation=</code>: <code>summary|full|extended|bands|history|validate</code></li>
+  <li><code>operation=</code>: <code>summary|full|extended|bands|history|validate|copy</code></li>
+  <li><code>source_map=</code>: source <code>raster_3d</code> map for <code>operation=copy</code></li>
   <li><code>format=</code>: <code>json|text|csv</code></li>
   <li><code>resolve_names=</code>: <code>yes|no</code> (for <code>full</code> and <code>history</code>)</li>
   <li><code>wavelength_range=</code>: for <code>operation=bands</code> (example: <code>400-700</code>)</li>
@@ -73,6 +75,12 @@ i.hyper.metadata map=my_cube operation=extended extended_select=geometry
 # Multiple extended selectors
 i.hyper.metadata map=my_cube operation=extended \
   extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
+
+# Initialize metadata on a target cube from another hypercube
+i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
+
+# Replace existing target metadata and preserve the target's last local step
+i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube --overwrite
 </pre></div>
 
 <h3>JSON metadata structure</h3>
@@ -175,6 +183,12 @@ Show selected branches and key paths at the same time:
 <div class="code"><pre>
 i.hyper.metadata map=my_hyper_cube operation=extended \
   extended_select=acquisition,geometry.sun_zenith_deg,processing
+</pre></div>
+
+Copy metadata from another hypercube while preserving the current cube's last
+local processing step:
+<div class="code"><pre>
+i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
 </pre></div>
 
 Show ATCORR-ready metadata subset (geometry + atmosphere + timing):

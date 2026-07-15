@@ -28,10 +28,16 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: summary,full,extended,bands,history,validate
+# % options: summary,full,extended,bands,history,validate,copy
 # % answer: summary
 # % description: Operation to perform
-# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency
+# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step
+# %end
+
+# %option G_OPT_R3_INPUT
+# % key: source_map
+# % description: Source 3D raster map to copy metadata from (required for operation=copy)
+# % required: no
 # %end
 
 # %option
@@ -72,6 +78,7 @@
 import copy
 import csv
 import json
+import os
 import sys
 
 import grass.script as gs
@@ -109,6 +116,33 @@ def _import_hyper_meta():
 def _load_raw_metadata(hyper_metadata_class, map_name):
     """Load raw JSON metadata for one map."""
     return hyper_metadata_class.load_raw(map_name)
+
+
+def _get_raster_depth(map_name):
+    """Return the actual 3D raster depth for a map."""
+    try:
+        info = gs.parse_command("r3.info", map=map_name, flags="g")
+        return int(float(info["depths"]))
+    except Exception as error:
+        gs.fatal(f"Failed to read 3D raster depth for '{map_name}': {error}")
+
+
+def _get_metadata_band_count(meta, map_name):
+    """Return the total number of bands described by metadata."""
+    count = meta.n_bands_source
+    if count is None:
+        gs.fatal(
+            f"Metadata for '{map_name}' does not define bands.count and cannot be copied"
+        )
+    try:
+        return int(count)
+    except (TypeError, ValueError) as error:
+        gs.fatal(f"Invalid bands.count in metadata for '{map_name}': {error}")
+
+
+def _get_copy_command():
+    """Return the executed command line for history recording."""
+    return os.environ.get("CMDLINE") or " ".join(sys.argv)
 
 
 def _discover_dataset_index(hyper_metadata_class):
@@ -388,6 +422,105 @@ def _print_validate(issues, output_format):
     return 1
 
 
+def _copy_metadata_from_other_cube(
+    hyper_metadata_class,
+    source_map,
+    target_map,
+    *,
+    overwrite=False,
+):
+    try:
+        source_meta = hyper_metadata_class.load(source_map)
+        source_raw = _load_raw_metadata(hyper_metadata_class, source_map)
+    except Exception as error:
+        gs.fatal(f"Failed to load metadata for copy: {error}")
+
+    target_has_metadata = hyper_metadata_class.exists(target_map)
+    if target_has_metadata and not overwrite:
+        gs.fatal(
+            f"Metadata already exists for target map '{target_map}'. Use --overwrite to replace it"
+        )
+
+    target_raw = {}
+    if target_has_metadata:
+        try:
+            target_raw = _load_raw_metadata(hyper_metadata_class, target_map)
+        except Exception as error:
+            gs.fatal(f"Failed to load existing target metadata for copy: {error}")
+
+    source_band_count = _get_metadata_band_count(source_meta, source_map)
+    target_depth = _get_raster_depth(target_map)
+    if target_depth != source_band_count:
+        gs.fatal(
+            f"Cannot copy metadata from '{source_map}' to '{target_map}': "
+            f"target raster depth is {target_depth}, but source metadata bands.count is {source_band_count}"
+        )
+
+    source_history = hyper_metadata_class._normalize_history_entries(
+        source_raw.get("processing_history", [])
+    )
+    target_history = hyper_metadata_class._normalize_history_entries(
+        target_raw.get("processing_history", [])
+    )
+    target_last_step = copy.deepcopy(target_history[-1]) if target_history else None
+
+    source_dataset_id = source_raw.get("dataset_id")
+    if target_last_step and source_dataset_id:
+        input_ids = {
+            item.get("id")
+            for item in hyper_metadata_class._normalize_io_refs(
+                target_last_step.get("inputs") or []
+            )
+            if item.get("id")
+        }
+        if input_ids and source_dataset_id not in input_ids:
+            gs.warning(
+                "The current map's last processing step does not reference the selected source_map dataset_id. "
+                "Copied metadata will keep that last local step unchanged."
+            )
+
+    source_meta.dataset_id = str(
+        target_raw.get("dataset_id") or hyper_metadata_class.new_dataset_id()
+    )
+    source_meta.processing_history = source_history
+    if target_last_step:
+        source_meta.processing_history.append(target_last_step)
+    elif target_has_metadata:
+        gs.warning(
+            "The current map has no local processing history. Metadata was copied without appending a local last step."
+        )
+
+    source_meta.add_history_entry(
+        command=_get_copy_command(),
+        inputs=[
+            {
+                "id": source_raw.get("dataset_id"),
+                "map_name": source_map,
+            }
+        ],
+        outputs=[
+            {
+                "map_name": target_map,
+                **({"id": source_meta.dataset_id} if not target_last_step else {}),
+            }
+        ],
+    )
+
+    try:
+        source_meta.save(target_map, save_region=True)
+    except Exception as error:
+        gs.fatal(f"Failed to save copied metadata: {error}")
+
+    gs.message(
+        f"Copied metadata from '{source_map}' to '{target_map}'"
+        + (
+            " and appended the current map's last local processing step."
+            if target_last_step
+            else "."
+        )
+    )
+
+
 def main():
     options, _ = gs.parser()
 
@@ -397,6 +530,7 @@ def main():
     wavelength_range = options.get("wavelength_range")
     resolve_names = options.get("resolve_names", "no") == "yes"
     extended_select = options.get("extended_select")
+    source_map = options.get("source_map")
 
     # Import metadata API
     hyper_meta = _import_hyper_meta()
@@ -407,6 +541,22 @@ def main():
     if not found["fullname"]:
         gs.fatal(f"3D raster map '{map_name}' not found")
     full_map_name = found["fullname"]
+
+    if operation == "copy":
+        if not source_map:
+            gs.fatal("Option <source_map> is required for operation=copy")
+        source_found = gs.find_file(source_map, element="grid3")
+        if not source_found["fullname"]:
+            gs.fatal(f"Source 3D raster map '{source_map}' not found")
+        if source_found["fullname"] == full_map_name:
+            gs.fatal("source_map must be different from map")
+        _copy_metadata_from_other_cube(
+            HyperMetadata,
+            source_found["fullname"],
+            full_map_name,
+            overwrite=gs.overwrite(),
+        )
+        return 0
 
     # Load both object and raw JSON
     try:

@@ -146,15 +146,47 @@ def _is_xy_location():
         return False
 
 
+def _normalize_srid(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text or text.lower() == "not available":
+        return None
+    return text.upper()
+
+
+def _current_location_srid():
+    try:
+        proj = gs.parse_command("g.proj", flags="g")
+    except Exception:
+        return None
+    return _normalize_srid(proj.get("srid"))
+
+
 def check_import_allowed(product, path):
-    """Fatal if product is in local/sensor geometry and GRASS location is not XY."""
+    """Fatal if product cannot be imported safely into the current location."""
     info = get_proj_info(product, path)
-    if info.get("layout") != "local sensor geometry":
+    layout = info.get("layout")
+
+    if layout == "local sensor geometry":
+        if _is_xy_location():
+            return
+        gs.fatal(
+            "This dataset is in local/sensor geometry (CRS: XY), not in a map-projected CRS.\n"
+            "Import into the current GRASS location is not supported.\n"
+            "Use an XY location for sensor-geometry data, or use a georeferenced product."
+        )
+
+    if layout != "grid":
         return
-    if _is_xy_location():
+
+    product_srid = _normalize_srid(info.get("srid"))
+    current_srid = _current_location_srid()
+    if not product_srid or not current_srid or product_srid == current_srid:
         return
+
     gs.fatal(
-        "This dataset is in local/sensor geometry (CRS: XY), not in a map-projected CRS.\n"
-        "Import into the current GRASS location is not supported.\n"
-        "Use an XY location for sensor-geometry data, or use a georeferenced product."
+        f"Product CRS '{product_srid}' does not match current GRASS project CRS '{current_srid}'.\n"
+        "Import into a different projected CRS is not supported for products that use an existing map grid.\n"
+        "Create or switch to a GRASS project with the matching CRS before import."
     )
