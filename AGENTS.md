@@ -88,7 +88,8 @@ tests run a tool by name, so it must be on `PATH`.
 
 **pytest** (preferred for new tests, as in core) goes in a `tests/`
 directory next to the tool, named `<tool>_test.py` or `test_<tool>.py`. Use
-synthetic data and `grass.tools`. pytest configuration is in the top-level
+synthetic data and `grass.tools`. CI runs the pytest suites; test collection
+and configuration (markers, timeouts) are defined in the top-level
 `pyproject.toml`. Run a tool's tests with:
 
 ```bash
