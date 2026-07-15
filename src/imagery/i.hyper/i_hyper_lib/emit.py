@@ -184,10 +184,6 @@ def _read_emit_netcdf(path):
         lon_ds = f["location/lon"][()] if "location/lon" in f else None
         lat = np.asarray(lat_ds, dtype=np.float64) if lat_ds is not None else None
         lon = np.asarray(lon_ds, dtype=np.float64) if lon_ds is not None else None
-        if lon is not None and lat is not None:
-            if lon.ndim == 1 and lat.ndim == 1:
-                lon, lat = np.meshgrid(lon, lat)
-
         attrs = {}
         for k in f.attrs.keys():
             try:
@@ -421,9 +417,22 @@ def import_emit(
     ortho_r, ortho_c = np.where(glt_valid)
 
     if location_crs != emit_crs:
-        lon = prod["lon"][glt_valid]
-        lat = prod["lat"][glt_valid]
-        finite_ll = np.isfinite(lon) & np.isfinite(lat) & (lon > -9990) & (lat > -9990)
+        w_deg = prod["west"]
+        e_deg = prod["east"]
+        s_deg = prod["south"]
+        n_deg = prod["north"]
+        ewres_deg = prod["ewres"]
+        nsres_deg = prod["nsres"]
+        lon_1d = np.linspace(
+            w_deg + 0.5 * ewres_deg, e_deg - 0.5 * ewres_deg, prod["ortho_cols"]
+        )
+        lat_1d = np.linspace(
+            n_deg - 0.5 * nsres_deg, s_deg + 0.5 * nsres_deg, prod["ortho_rows"]
+        )
+        lon2d, lat2d = np.meshgrid(lon_1d, lat_1d)
+        lon = lon2d[glt_valid]
+        lat = lat2d[glt_valid]
+        finite_ll = np.isfinite(lon) & np.isfinite(lat)
         transformer = Transformer.from_crs(emit_crs, location_crs, always_xy=True)
         x, y = transformer.transform(lon, lat)
         x[~finite_ll] = np.nan
