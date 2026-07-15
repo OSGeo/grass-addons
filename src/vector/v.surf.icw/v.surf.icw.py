@@ -93,7 +93,6 @@
 # % description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 # %end
 # %option G_OPT_M_NPROCS
-# % options: 1-1024
 # % description: Number of parallel processes to launch
 # %end
 
@@ -105,6 +104,9 @@ import os
 import atexit
 import grass.script as gs
 from grass.exceptions import CalledModuleError
+
+if not callable(globals().get("_")):
+    from gettext import gettext as _
 
 TMP_FILE = None
 
@@ -390,7 +392,6 @@ def main():
         pattern=tmp_base + "cost_site.*",
         quiet=True,
     )
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
     #### Step 3) find sum(cost^2)
@@ -408,8 +409,6 @@ def main():
         for i in range(1, n + 1):
             mapname = "%s1by_cost_site_sq.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
-
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     sum_of_1by_cost_sqs = tmp_base + "sum_of_1by_cost_sqs"
     try:
@@ -490,9 +489,6 @@ def main():
         if num % workers == 0:
             proc[num - 1].wait()
 
-        # free up disk space ASAP
-        # grass.run_command('g.remove', flags = 'f', type = 'raster', name = one_by_cost_site_sq, quiet = True)
-
         num += 1
         if num > n:
             break
@@ -509,13 +505,12 @@ def main():
         pattern=tmp_base + "1by_cost_site_sq.*",
         quiet=True,
     )
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
     gs.verbose("\n")
     gs.message(_("Calculating final values ..."))
 
-    TMP_FILE = grass.tempfile()
+    TMP_FILE = gs.tempfile()
     with open(TMP_FILE, "w") as maplist:
         for i in range(1, n + 1):
             mapname = "%spartial.%05d" % (tmp_base, i)
