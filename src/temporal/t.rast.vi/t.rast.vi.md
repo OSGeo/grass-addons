@@ -18,8 +18,8 @@ t.rast.vi red=red_monthly nir=nir_monthly output=ndvi_monthly viname=ndvi \
     prefix=ndvimonthly
 ```
 
-If you have to calculate different index that require more info as EVI or MSAVI
-you need to set the correct parameters.% (name, sp.get_name()
+If you have to calculate different indices that require more info, such as EVI or MSAVI
+you need to set the correct parameters.
 
 ```bash
 t.rast.vi red=red_monthly nir=nir_monthly blue=blue_monthly output=evi_monthly \
