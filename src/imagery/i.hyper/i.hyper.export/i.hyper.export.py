@@ -138,6 +138,16 @@ def _normalize_output_path(output_file, export_format):
     return output_path.with_suffix(wanted)
 
 
+def _dms_to_decimal(dms_str):
+    parts = dms_str.strip().split(":")
+    if len(parts) != 3:
+        raise ValueError
+    deg, mins, secs = float(parts[0]), float(parts[1]), float(parts[2])
+    if deg < 0:
+        return deg - mins / 60 - secs / 3600
+    return deg + mins / 60 + secs / 3600
+
+
 def _normalize_r3_info(map_name):
     info = gs.parse_command("r3.info", map=map_name, flags="g")
     normalized = {}
@@ -166,8 +176,11 @@ def _normalize_r3_info(map_name):
         if key in numeric_keys:
             try:
                 normalized[key] = int(clean)
-            except ValueError:
-                normalized[key] = float(clean)
+            except (ValueError, TypeError):
+                try:
+                    normalized[key] = float(clean)
+                except (ValueError, TypeError):
+                    normalized[key] = _dms_to_decimal(clean)
         else:
             normalized[key] = clean
     return normalized
@@ -194,25 +207,25 @@ def _build_export_metadata(input_3d):
     info = _normalize_r3_info(input_3d)
 
     transform = [
-        float(info["west"]),
-        float(info["ewres"]),
+        info["west"],
+        info["ewres"],
         0.0,
-        float(info["north"]),
+        info["north"],
         0.0,
-        -float(info["nsres"]),
+        -info["nsres"],
     ]
     bounds = {
-        "west": float(info["west"]),
-        "east": float(info["east"]),
-        "south": float(info["south"]),
-        "north": float(info["north"]),
-        "bottom": float(info["bottom"]),
-        "top": float(info["top"]),
+        "west": info["west"],
+        "east": info["east"],
+        "south": info["south"],
+        "north": info["north"],
+        "bottom": info["bottom"],
+        "top": info["top"],
     }
     resolution = {
-        "nsres": float(info["nsres"]),
-        "ewres": float(info["ewres"]),
-        "tbres": float(info["tbres"]),
+        "nsres": info["nsres"],
+        "ewres": info["ewres"],
+        "tbres": info["tbres"],
     }
 
     return {
@@ -224,7 +237,7 @@ def _build_export_metadata(input_3d):
         "grid3_info_json": json.dumps(info, indent=2, sort_keys=True),
         "projection_wkt": _get_projection_wkt(),
         "axis_order": ["band", "row", "col"],
-        "shape": [int(info["depths"]), int(info["rows"]), int(info["cols"])],
+        "shape": [info["depths"], info["rows"], info["cols"]],
         "bounds": bounds,
         "resolution": resolution,
         "transform": transform,
