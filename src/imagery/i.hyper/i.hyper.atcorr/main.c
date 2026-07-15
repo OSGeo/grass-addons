@@ -56,6 +56,7 @@
 #  include <grass/glocale.h>
 #  include <grass/raster.h>
 #  include <grass/raster3d.h>
+#  include <grass/spawn.h>
 #endif
 
 #include <ctype.h>
@@ -132,6 +133,419 @@ typedef struct {
     const char *dasf_output;      /* 2-D raster name, or NULL */
     int         do_dasf;          /* 1 = accumulate + write DASF */
 } IsoFitParams;
+
+/* ── Metadata handling (i.hyper.metadata schema) ─────────────────────────── */
+
+/**
+ * \brief Hyperspectral metadata fields read from the input map's hyper.json
+ *        sidecar (i.hyper.metadata schema).
+ *
+ * Populated by read_hyperjson_meta(); used to apply metadata fallback for
+ * the overridable CLI options.
+ */
+typedef struct {
+    /* Band info (wavelengths/FWHM are handled separately by parse_band_wl) */
+    char   dataset_id[64];
+
+    /* Extended-metadata fields (from extended_metadata key). */
+    /* Geometry */
+    int    has_sun_zenith;
+    float  sun_zenith_deg;
+    int    has_view_zenith;
+    float  view_zenith_deg;
+    int    has_relative_azimuth;
+    float  relative_azimuth_deg;
+    int    has_sun_azimuth;
+    float  sun_azimuth_deg;
+    int    has_altitude;
+    float  altitude_km;
+
+    /* Atmosphere */
+    int    has_aod;
+    float  aod_550;
+    int    has_h2o;
+    float  h2o_g_cm2;
+    int    has_ozone;
+    float  ozone_du;
+    int    has_atmo_model;
+    char   atmosphere_model[32];
+    int    has_aerosol_model;
+    char   aerosol_model[32];
+
+    /* Acquisition */
+    int    has_doy;
+    int    day_of_year;
+} HyperMeta;
+
+/* ── Internal JSON scanner helpers ───────────────────────────────────────── */
+
+/** \cond INTERNAL — forward declarations from existing JSON scanner */
+static int json_extract_array(const char *json, const char *key,
+                               double *out, int max_n);
+/** \endcond */
+
+/**
+ * \brief Extract a JSON string value by key from a JSON text buffer.
+ *
+ * Finds the first occurrence of ``"key": "value"`` and copies the
+ * unquoted value into \c out.
+ *
+ * \param[in]  json  NUL-terminated JSON text.
+ * \param[in]  key   Key name (without quotes).
+ * \param[out] out   Destination buffer.
+ * \param[in]  n     Size of \c out.
+ * \return 1 on success, 0 if key not found.
+ */
+static int json_extract_string(const char *json, const char *key,
+                                char *out, size_t n)
+{
+    char pattern[64];
+    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+    const char *p = strstr(json, pattern);
+    if (!p) return 0;
+    p = strchr(p + strlen(pattern), ':');
+    if (!p) return 0;
+    p++; while (*p && isspace((unsigned char)*p)) p++;
+    if (*p != '"') return 0;
+    p++;
+    size_t i = 0;
+    while (*p && *p != '"' && i + 1 < n) out[i++] = *p++;
+    out[i] = '\0';
+    return (i > 0) ? 1 : 0;
+}
+
+/**
+ * \brief Extract a nested JSON float by dotted path.
+ *
+ * Finds ``"parent": { ... "key": <number> ... }`` in the JSON text.
+ * Path is a single dot-separated name like \c "geometry.sun_zenith_deg".
+ * Only two-level nesting is supported.
+ *
+ * \param[in]  json  NUL-terminated JSON text.
+ * \param[in]  path  Dotted path, e.g. \c "geometry.sun_zenith_deg".
+ * \param[out] out   Parsed double value.
+ * \return 1 on success, 0 if path not found.
+ */
+static int json_extract_nested_float(const char *json, const char *path,
+                                      double *out)
+{
+    /* Split path into parent and key */
+    const char *dot = strchr(path, '.');
+    if (!dot) return 0;
+    size_t plen = (size_t)(dot - path);
+    char parent[64], key[64];
+    if (plen >= sizeof(parent)) return 0;
+    memcpy(parent, path, plen); parent[plen] = '\0';
+    snprintf(key, sizeof(key), "%s", dot + 1);
+
+    /* Find parent object */
+    char pbuf[80];
+    snprintf(pbuf, sizeof(pbuf), "\"%s\"", parent);
+    const char *p = strstr(json, pbuf);
+    if (!p) return 0;
+    p = strchr(p + strlen(pbuf), ':');
+    if (!p) return 0;
+    p = strchr(p, '{');
+    if (!p) return 0;
+    p++;
+
+    /* Within the parent object, scan for the key */
+    size_t klen = strlen(key);
+    while (*p && *p != '}') {
+        while (*p && isspace((unsigned char)*p)) p++;
+        if (*p == '}') break;
+        if (*p == '"') {
+            const char *kp = p + 1;
+            const char *ke = strchr(kp, '"');
+            if (ke && (size_t)(ke - kp) == klen && strncmp(kp, key, klen) == 0) {
+                p = ke + 1;
+                while (*p && isspace((unsigned char)*p)) p++;
+                if (*p == ':') {
+                    p++;
+                    while (*p && isspace((unsigned char)*p)) p++;
+                    char *endp;
+                    *out = strtod(p, &endp);
+                    if (endp > p) return 1;
+                    break;
+                }
+            }
+            else if (ke) {
+                p = ke + 1;
+            }
+        }
+        while (*p && *p != ',' && *p != '}') p++;
+        if (*p == ',') p++;
+    }
+    return 0;
+}
+
+/**
+ * \brief Extract a nested JSON string by dotted path.
+ *
+ * Like json_extract_nested_float() but for string values.
+ *
+ * \param[in]  json  NUL-terminated JSON text.
+ * \param[in]  path  Dotted path, e.g. \c "atmosphere.model".
+ * \param[out] out   Destination buffer.
+ * \param[in]  n     Size of \c out.
+ * \return 1 on success, 0 if path not found.
+ */
+static int json_extract_nested_string(const char *json, const char *path,
+                                       char *out, size_t n)
+{
+    const char *dot = strchr(path, '.');
+    if (!dot) return 0;
+    size_t plen = (size_t)(dot - path);
+    char parent[64], key[64];
+    if (plen >= sizeof(parent)) return 0;
+    memcpy(parent, path, plen); parent[plen] = '\0';
+    snprintf(key, sizeof(key), "%s", dot + 1);
+
+    char pbuf[80];
+    snprintf(pbuf, sizeof(pbuf), "\"%s\"", parent);
+    const char *p = strstr(json, pbuf);
+    if (!p) return 0;
+    p = strchr(p + strlen(pbuf), ':');
+    if (!p) return 0;
+    p = strchr(p, '{');
+    if (!p) return 0;
+    p++;
+
+    size_t klen = strlen(key);
+    while (*p && *p != '}') {
+        while (*p && isspace((unsigned char)*p)) p++;
+        if (*p == '}') break;
+        if (*p == '"') {
+            const char *kp = p + 1;
+            const char *ke = strchr(kp, '"');
+            if (ke && (size_t)(ke - kp) == klen && strncmp(kp, key, klen) == 0) {
+                p = ke + 1;
+                while (*p && isspace((unsigned char)*p)) p++;
+                if (*p == ':') {
+                    p++;
+                    while (*p && isspace((unsigned char)*p)) p++;
+                    if (*p == '"') {
+                        p++;
+                        size_t i = 0;
+                        while (*p && *p != '"' && i + 1 < n) out[i++] = *p++;
+                        out[i] = '\0';
+                        return (i > 0) ? 1 : 0;
+                    }
+                }
+            }
+            else if (ke) p = ke + 1;
+        }
+        while (*p && *p != ',' && *p != '}') p++;
+        if (*p == ',') p++;
+    }
+    return 0;
+}
+
+/**
+ * \brief Read hyperspectral metadata from a JSON string buffer.
+ *
+ * Extracts band wavelengths, FWHM (calling json_extract_array), as well as
+ * the nested extended_metadata fields used for CLI-override resolution.
+ *
+ * \param[in]  json  NUL-terminated JSON text.
+ * \param[out] wl    Band centre wavelengths (µm), length \c max_n.
+ * \param[out] fwhm  Band FWHM values (µm), may be NULL.
+ * \param[in]  max_n Maximum number of bands.
+ * \param[out] meta  Populated HyperMeta struct.
+ * \return Number of bands parsed (0 = not found / parse error).
+ */
+static int parse_hyperjson_buffer(const char *json, float *wl, float *fwhm,
+                                   int max_n, HyperMeta *meta)
+{
+    if (!json || !json[0]) return 0;
+
+    /* Band wavelengths / FWHM */
+    double *wl_nm = G_malloc(sizeof(double) * (size_t)max_n);
+    int n = json_extract_array(json, "wavelength", wl_nm, max_n);
+    if (n == 0) { G_free(wl_nm); return 0; }
+
+    double *fwhm_nm = fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
+    int n_fwhm = fwhm ? json_extract_array(json, "fwhm", fwhm_nm, max_n) : 0;
+
+    for (int i = 0; i < max_n; i++) {
+        wl[i] = (i < n) ? (float)(wl_nm[i] * 1e-3) : -1.0f;
+        if (fwhm)
+            fwhm[i] = (i < n_fwhm) ? (float)(fwhm_nm[i] * 1e-3) : 0.0f;
+    }
+    G_free(wl_nm);
+    if (fwhm_nm) G_free(fwhm_nm);
+
+    /* Dataset ID */
+    json_extract_string(json, "dataset_id", meta->dataset_id,
+                         sizeof(meta->dataset_id));
+
+    /* Extended metadata */
+    double dv;
+    if (json_extract_nested_float(json, "geometry.sun_zenith_deg", &dv)) {
+        meta->sun_zenith_deg = (float)dv; meta->has_sun_zenith = 1;
+    }
+    if (json_extract_nested_float(json, "geometry.view_zenith_deg", &dv)) {
+        meta->view_zenith_deg = (float)dv; meta->has_view_zenith = 1;
+    }
+    if (json_extract_nested_float(json, "geometry.relative_azimuth_deg", &dv)) {
+        meta->relative_azimuth_deg = (float)dv; meta->has_relative_azimuth = 1;
+    }
+    if (json_extract_nested_float(json, "geometry.sun_azimuth_deg", &dv)) {
+        meta->sun_azimuth_deg = (float)dv; meta->has_sun_azimuth = 1;
+    }
+    if (json_extract_nested_float(json, "atmosphere.aod_550", &dv)) {
+        meta->aod_550 = (float)dv; meta->has_aod = 1;
+    }
+    if (json_extract_nested_float(json, "atmosphere.h2o_g_cm2", &dv)) {
+        meta->h2o_g_cm2 = (float)dv; meta->has_h2o = 1;
+    }
+    if (json_extract_nested_float(json, "atmosphere.ozone_du", &dv)) {
+        meta->ozone_du = (float)dv; meta->has_ozone = 1;
+    }
+    if (json_extract_nested_float(json, "acquisition.day_of_year", &dv)) {
+        meta->day_of_year = (int)dv; meta->has_doy = 1;
+    }
+    if (json_extract_nested_float(json, "sensor.sensor_altitude_km", &dv)) {
+        meta->altitude_km = (float)dv; meta->has_altitude = 1;
+    }
+    if (json_extract_nested_string(json, "atmosphere.model",
+                                    meta->atmosphere_model,
+                                    sizeof(meta->atmosphere_model))) {
+        meta->has_atmo_model = 1;
+    }
+    if (json_extract_nested_string(json, "atmosphere.aerosol_model",
+                                    meta->aerosol_model,
+                                    sizeof(meta->aerosol_model))) {
+        meta->has_aerosol_model = 1;
+    }
+
+    return n;
+}
+
+/**
+ * \brief Read hyperspectral metadata from the input map.
+ *
+ * Tries \c i.hyper.metadata via \c G_popen_read() first (provides schema
+ * normalisation), then falls back to reading \c hyper.json directly from
+ * the filesystem (existing \c parse_band_wl_hyperjson() path).
+ *
+ * \param[in]  mapname  Name of the input Raster3D map.
+ * \param[out] wl       Band centre wavelengths (µm), length \c max_n.
+ * \param[out] fwhm     Band FWHM (µm), may be NULL.
+ * \param[in]  max_n    Maximum number of bands.
+ * \param[out] meta     Populated HyperMeta struct.
+ * \return Number of bands parsed (0 on failure).
+ */
+static int read_hyperjson_meta(const char *mapname, float *wl, float *fwhm,
+                                int max_n, HyperMeta *meta)
+{
+    memset(meta, 0, sizeof(*meta));
+
+    /* Try i.hyper.metadata via G_popen_read */
+    char maparg[GPATH_MAX];
+    snprintf(maparg, sizeof(maparg), "map=%s", mapname);
+
+    const char *args[5];
+    args[0] = "i.hyper.metadata";
+    args[1] = maparg;
+    args[2] = "operation=full";
+    args[3] = "format=json";
+    args[4] = NULL;
+
+    struct Popen child;
+    FILE *fp = G_popen_read(&child, "i.hyper.metadata", args);
+    if (fp) {
+        /* Read entire JSON output into a buffer */
+        size_t cap = 65536, len = 0;
+        char *buf = G_malloc(cap);
+        size_t nrd;
+        while ((nrd = fread(buf + len, 1, cap - len - 1, fp)) > 0) {
+            len += nrd;
+            if (len + 1 >= cap) {
+                cap *= 2;
+                buf = G_realloc(buf, cap);
+            }
+        }
+        buf[len] = '\0';
+
+        int n = parse_hyperjson_buffer(buf, wl, fwhm, max_n, meta);
+        G_free(buf);
+        G_popen_close(&child);
+        if (n > 0) return n;
+    }
+    else {
+        /* G_popen_read failed; try direct file access */
+        char nbuf[512], mset[512];
+        const char *at = strchr(mapname, '@');
+        if (at) {
+            size_t nlen = (size_t)(at - mapname);
+            if (nlen >= sizeof(nbuf)) return 0;
+            memcpy(nbuf, mapname, nlen); nbuf[nlen] = '\0';
+            snprintf(mset, sizeof(mset), "%s", at + 1);
+        }
+        else {
+            snprintf(nbuf, sizeof(nbuf), "%s", mapname);
+            const char *found = G_find_raster3d(mapname, "");
+            if (!found) return 0;
+            snprintf(mset, sizeof(mset), "%s", found);
+        }
+
+        char path[GPATH_MAX];
+        snprintf(path, sizeof(path), "%s/%s/%s/grid3/%s/hyper.json",
+                 G_gisdbase(), G_location(), mset, nbuf);
+
+        FILE *ff = fopen(path, "rb");
+        if (!ff) return 0;
+        fseek(ff, 0, SEEK_END);
+        long fsz = ftell(ff);
+        fseek(ff, 0, SEEK_SET);
+        if (fsz <= 0) { fclose(ff); return 0; }
+        char *fbuf = G_malloc((size_t)fsz + 1);
+        size_t nrd = fread(fbuf, 1, (size_t)fsz, ff);
+        fclose(ff);
+        fbuf[nrd] = '\0';
+
+        int n = parse_hyperjson_buffer(fbuf, wl, fwhm, max_n, meta);
+        G_free(fbuf);
+        return n;
+    }
+
+    return 0;
+}
+
+/** \brief Resolve a double option: CLI → metadata → hardcoded default.
+  *
+  * \param[in]  opt        GRASS Option (may be NULL for unconditional default).
+  * \param[in]  meta_val   Metadata value (used only when \c has_meta is set).
+  * \param[in]  has_meta   Non-zero if the metadata field was found.
+  * \param[in]  def_val    Hardcoded fallback default.
+  * \param[in]  required   If 1 and no value is resolved, calls G_fatal_error.
+  * \return Resolved value.
+  */
+static float resolve_float_opt(struct Option *opt, float meta_val,
+                                int has_meta, float def_val, int required)
+{
+    if (opt && opt->answer)
+        return (float)atof(opt->answer);
+    if (has_meta)
+        return meta_val;
+    if (required)
+        G_fatal_error(_("Required option <%s> not provided and not in metadata"),
+                      opt ? opt->key : "?");
+    return def_val;
+}
+
+/** \brief Resolve a string option: CLI → metadata → hardcoded default. */
+static const char *resolve_str_opt(struct Option *opt,
+                                    const char *meta_val, int has_meta,
+                                    const char *def_val)
+{
+    if (opt && opt->answer)
+        return opt->answer;
+    if (has_meta && meta_val && meta_val[0])
+        return meta_val;
+    return def_val;
+}
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -1381,26 +1795,26 @@ int main(int argc, char *argv[])
 
     /* ── Geometry ── */
     struct Option *opt_sza = G_define_option();
-    opt_sza->key = "sza"; opt_sza->type = TYPE_DOUBLE; opt_sza->required = YES;
-    opt_sza->label = _("Solar zenith angle (degrees, 0–89)");
+    opt_sza->key = "sza"; opt_sza->type = TYPE_DOUBLE; opt_sza->required = NO;
+    opt_sza->label = _("Solar zenith angle (degrees, 0–89) (overrides metadata)");
     opt_sza->guisection = _("Geometry");
 
     struct Option *opt_vza = G_define_option();
     opt_vza->key = "vza"; opt_vza->type = TYPE_DOUBLE;
     opt_vza->required = NO; opt_vza->answer = "0";
-    opt_vza->label = _("View zenith angle (degrees, 0–60)");
+    opt_vza->label = _("View zenith angle (degrees, 0–60) (overrides metadata)");
     opt_vza->guisection = _("Geometry");
 
     struct Option *opt_raa = G_define_option();
     opt_raa->key = "raa"; opt_raa->type = TYPE_DOUBLE;
     opt_raa->required = NO; opt_raa->answer = "0";
-    opt_raa->label = _("Relative azimuth angle (degrees)");
+    opt_raa->label = _("Relative azimuth angle (degrees) (overrides metadata)");
     opt_raa->guisection = _("Geometry");
 
     struct Option *opt_altitude = G_define_option();
     opt_altitude->key = "altitude"; opt_altitude->type = TYPE_DOUBLE;
     opt_altitude->required = NO; opt_altitude->answer = "1000";
-    opt_altitude->label = _("Sensor altitude (km; > 900 = satellite)");
+    opt_altitude->label = _("Sensor altitude (km; > 900 = satellite) (overrides metadata)");
     opt_altitude->guisection = _("Geometry");
 
     /* ── Atmosphere ── */
@@ -1408,14 +1822,14 @@ int main(int argc, char *argv[])
     opt_atmo->key = "atmosphere"; opt_atmo->type = TYPE_STRING;
     opt_atmo->required = NO; opt_atmo->answer = "us62";
     opt_atmo->options = "us62,midsum,midwin,tropical,subsum,subwin";
-    opt_atmo->description = _("Standard atmosphere model");
+    opt_atmo->description = _("Standard atmosphere model (overrides metadata)");
     opt_atmo->guisection = _("Atmosphere");
 
     struct Option *opt_aerosol = G_define_option();
     opt_aerosol->key = "aerosol"; opt_aerosol->type = TYPE_STRING;
     opt_aerosol->required = NO; opt_aerosol->answer = "continental";
     opt_aerosol->options = "none,continental,maritime,urban,desert,custom";
-    opt_aerosol->description = _("Aerosol model (use 'custom' with mie_r/mie_sigma/mie_mr/mie_mi)");
+    opt_aerosol->description = _("Aerosol model (use 'custom' with mie_r/mie_sigma/mie_mr/mie_mi) (overrides metadata)");
     opt_aerosol->guisection = _("Atmosphere");
 
     struct Option *opt_mie_r = G_define_option();
@@ -1445,7 +1859,7 @@ int main(int argc, char *argv[])
     struct Option *opt_ozone = G_define_option();
     opt_ozone->key = "ozone"; opt_ozone->type = TYPE_DOUBLE;
     opt_ozone->required = NO; opt_ozone->answer = "300";
-    opt_ozone->description = _("Total ozone column (Dobson units)");
+    opt_ozone->description = _("Total ozone column (Dobson units) (overrides metadata)");
     opt_ozone->guisection = _("Atmosphere");
 
     /* ── Surface BRDF ── */
@@ -1512,19 +1926,19 @@ int main(int argc, char *argv[])
     struct Option *opt_doy = G_define_option();
     opt_doy->key = "doy"; opt_doy->type = TYPE_INTEGER;
     opt_doy->required = NO; opt_doy->answer = "180";
-    opt_doy->label = _("Day of year for Earth-Sun distance (1–365)");
+    opt_doy->label = _("Day of year for Earth-Sun distance (1–365) (overrides metadata)");
     opt_doy->guisection = _("Correction");
 
     struct Option *opt_aod_val = G_define_option();
     opt_aod_val->key = "aod_val"; opt_aod_val->type = TYPE_DOUBLE;
     opt_aod_val->required = NO; opt_aod_val->answer = "0.1";
-    opt_aod_val->label = _("Scene AOD at 550 nm for correction (scalar fallback)");
+    opt_aod_val->label = _("Scene AOD at 550 nm for correction (scalar fallback) (overrides metadata)");
     opt_aod_val->guisection = _("Correction");
 
     struct Option *opt_h2o_val = G_define_option();
     opt_h2o_val->key = "h2o_val"; opt_h2o_val->type = TYPE_DOUBLE;
     opt_h2o_val->required = NO; opt_h2o_val->answer = "2.0";
-    opt_h2o_val->label = _("Scene column water vapour g/cm² (scalar fallback)");
+    opt_h2o_val->label = _("Scene column water vapour g/cm² (scalar fallback) (overrides metadata)");
     opt_h2o_val->guisection = _("Correction");
 
     /* ── ISOFIT improvements ── */
@@ -1750,7 +2164,7 @@ int main(int argc, char *argv[])
     opt_sun_az->type        = TYPE_DOUBLE;
     opt_sun_az->required    = NO;
     opt_sun_az->answer      = "180";
-    opt_sun_az->label       = _("Solar azimuth angle [degrees, CW from North]");
+    opt_sun_az->label       = _("Solar azimuth angle [degrees, CW from North] (overrides metadata)");
     opt_sun_az->description =
         _("Used for terrain illumination (cos_incidence) and NBAR relative "
           "azimuth computation. Typically from r.sunmask or scene metadata.");
@@ -1905,18 +2319,48 @@ int main(int argc, char *argv[])
                             "provided for FlexBRDF spectral disaggregation"));
     }
 
-    /* ── Parse scalar parameters ── */
-    float sza      = (float)atof(opt_sza->answer);
-    float vza      = (float)atof(opt_vza->answer);
-    float raa      = (float)atof(opt_raa->answer);
-    float altitude = (float)atof(opt_altitude->answer);
-    float ozone    = (float)atof(opt_ozone->answer);
+    /* ── Read metadata (i.hyper.metadata / hyper.json) ── */
+    HyperMeta meta;
+    float *meta_wl   = NULL;
+    float *meta_fwhm = NULL;
+    {
+        /* Use max 2048 bands for metadata extraction; proper arrays are
+         * allocated inside correct_raster3d() once ndepths is known. */
+        const int meta_nmax = 2048;
+        meta_wl   = G_malloc(meta_nmax * sizeof(float));
+        meta_fwhm = G_malloc(meta_nmax * sizeof(float));
+        (void)read_hyperjson_meta(opt_input->answer, meta_wl, meta_fwhm,
+                                   meta_nmax, &meta);
+    }
+
+    /* ── Parse scalar parameters (CLI → metadata → hardcoded default) ── */
+    float sza      = resolve_float_opt(opt_sza,
+                        meta.sun_zenith_deg, meta.has_sun_zenith,
+                        0.0f, 1);
+    float vza      = resolve_float_opt(opt_vza,
+                        meta.view_zenith_deg, meta.has_view_zenith,
+                        0.0f, 0);
+    float raa      = resolve_float_opt(opt_raa,
+                        meta.relative_azimuth_deg, meta.has_relative_azimuth,
+                        0.0f, 0);
+    float altitude = resolve_float_opt(opt_altitude,
+                        meta.altitude_km, meta.has_altitude,
+                        1000.0f, 0);
+    float ozone    = resolve_float_opt(opt_ozone,
+                        meta.ozone_du, meta.has_ozone,
+                        300.0f, 0);
+    float aod_val  = resolve_float_opt(opt_aod_val,
+                        meta.aod_550, meta.has_aod,
+                        0.1f, 0);
+    float h2o_val  = resolve_float_opt(opt_h2o_val,
+                        meta.h2o_g_cm2, meta.has_h2o,
+                        2.0f, 0);
+    int   doy      = (int)resolve_float_opt(opt_doy,
+                        (float)meta.day_of_year, meta.has_doy,
+                        180.0f, 0);
     float wl_min   = (float)atof(opt_wl_min->answer);
     float wl_max   = (float)atof(opt_wl_max->answer);
     float wl_step  = (float)atof(opt_wl_step->answer);
-    float aod_val  = (float)atof(opt_aod_val->answer);
-    float h2o_val  = (float)atof(opt_h2o_val->answer);
-    int   doy      = atoi(opt_doy->answer);
 
     if (sza < 0.0f || sza >= 90.0f)
         G_fatal_error(_("sza must be in [0, 90)"));
@@ -1927,7 +2371,9 @@ int main(int argc, char *argv[])
     if (doy < 1 || doy > 365)
         G_fatal_error(_("doy must be in [1, 365]"));
 
-    float sun_azimuth = (float)atof(opt_sun_az->answer);
+    float sun_azimuth = resolve_float_opt(opt_sun_az,
+                            meta.sun_azimuth_deg, meta.has_sun_azimuth,
+                            180.0f, 0);
 
     /* Terrain: slope= and aspect= must be specified together */
     if ((opt_slope->answer && !opt_aspect->answer) ||
@@ -1943,23 +2389,32 @@ int main(int argc, char *argv[])
                         "provided for NBAR normalization"));
     int do_nbar = (nbar_count == 3);
 
-    int atmo_model;
-    if      (!strcmp(opt_atmo->answer, "us62"))     atmo_model = ATMO_US62;
-    else if (!strcmp(opt_atmo->answer, "midsum"))   atmo_model = ATMO_MIDSUM;
-    else if (!strcmp(opt_atmo->answer, "midwin"))   atmo_model = ATMO_MIDWIN;
-    else if (!strcmp(opt_atmo->answer, "tropical")) atmo_model = ATMO_TROPICAL;
-    else if (!strcmp(opt_atmo->answer, "subsum"))   atmo_model = ATMO_SUBSUM;
-    else if (!strcmp(opt_atmo->answer, "subwin"))   atmo_model = ATMO_SUBWIN;
-    else G_fatal_error(_("Unknown atmosphere model: %s"), opt_atmo->answer);
+    int atmo_model, aerosol_model;
+    const char *atmo_str, *aero_str;
 
-    int aerosol_model;
-    if      (!strcmp(opt_aerosol->answer, "none"))        aerosol_model = AEROSOL_NONE;
-    else if (!strcmp(opt_aerosol->answer, "continental")) aerosol_model = AEROSOL_CONTINENTAL;
-    else if (!strcmp(opt_aerosol->answer, "maritime"))    aerosol_model = AEROSOL_MARITIME;
-    else if (!strcmp(opt_aerosol->answer, "urban"))       aerosol_model = AEROSOL_URBAN;
-    else if (!strcmp(opt_aerosol->answer, "desert"))      aerosol_model = AEROSOL_DESERT;
-    else if (!strcmp(opt_aerosol->answer, "custom"))      aerosol_model = AEROSOL_CUSTOM;
-    else G_fatal_error(_("Unknown aerosol model: %s"), opt_aerosol->answer);
+    atmo_str = resolve_str_opt(
+        opt_atmo, meta.atmosphere_model, meta.has_atmo_model, "us62");
+    {
+        if      (!strcmp(atmo_str, "us62"))     atmo_model = ATMO_US62;
+        else if (!strcmp(atmo_str, "midsum"))   atmo_model = ATMO_MIDSUM;
+        else if (!strcmp(atmo_str, "midwin"))   atmo_model = ATMO_MIDWIN;
+        else if (!strcmp(atmo_str, "tropical")) atmo_model = ATMO_TROPICAL;
+        else if (!strcmp(atmo_str, "subsum"))   atmo_model = ATMO_SUBSUM;
+        else if (!strcmp(atmo_str, "subwin"))   atmo_model = ATMO_SUBWIN;
+        else G_fatal_error(_("Unknown atmosphere model: %s"), atmo_str);
+    }
+
+    aero_str = resolve_str_opt(
+        opt_aerosol, meta.aerosol_model, meta.has_aerosol_model, "continental");
+    {
+        if      (!strcmp(aero_str, "none"))        aerosol_model = AEROSOL_NONE;
+        else if (!strcmp(aero_str, "continental")) aerosol_model = AEROSOL_CONTINENTAL;
+        else if (!strcmp(aero_str, "maritime"))    aerosol_model = AEROSOL_MARITIME;
+        else if (!strcmp(aero_str, "urban"))       aerosol_model = AEROSOL_URBAN;
+        else if (!strcmp(aero_str, "desert"))      aerosol_model = AEROSOL_DESERT;
+        else if (!strcmp(aero_str, "custom"))      aerosol_model = AEROSOL_CUSTOM;
+        else G_fatal_error(_("Unknown aerosol model: %s"), aero_str);
+    }
 
     if (aerosol_model == AEROSOL_CUSTOM) {
         double mie_r     = atof(opt_mie_r->answer);
@@ -2044,6 +2499,9 @@ int main(int argc, char *argv[])
                     "(alpha=%.2f); f_iso_858=%.4f f_vol_858=%.4f f_geo_858=%.4f"),
                   n_wl, alpha_mcd43, flex_fiso_ref, flex_fvol_ref, flex_fgeo_ref);
     }
+
+    G_free(meta_wl);
+    G_free(meta_fwhm);
 
     /* ── Build LUT config ── */
     LutConfig cfg = {
@@ -2653,6 +3111,88 @@ int main(int argc, char *argv[])
 
         correct_raster3d(opt_input->answer, opt_output->answer,
                          &cfg, &lut, aod_val, h2o_val, doy, sza, &iso);
+
+        /* ── Merge output metadata overrides ── */
+        {
+            char overrides[2048];
+            snprintf(overrides, sizeof(overrides),
+                     "{"
+                     "\"radiometric_quantity\":\"surface_reflectance\","
+                     "\"radiometric_units\":\"unitless\","
+                     "\"extended_metadata\":{"
+                     "\"radiometry\":{"
+                     "\"quantity\":\"surface_reflectance\","
+                     "\"units\":\"unitless\""
+                     "},"
+                     "\"processing\":{"
+                     "\"atcorr\":{"
+                     "\"source_radiance_map\":\"%s\","
+                     "\"output_type\":\"boa_surface_reflectance\","
+                     "\"output_units\":\"unitless\","
+                     "\"output_valid_range\":\"unclipped\","
+                     "\"geometry_used\":{"
+                     "\"sza\":%.2f,\"vza\":%.2f,"
+                     "\"raa\":%.2f,\"sun_azimuth\":%.2f,"
+                     "\"altitude_km\":%.1f"
+                     "},"
+                     "\"atmosphere_used\":{"
+                     "\"aod_550\":%.4f,\"h2o_g_cm2\":%.2f,"
+                     "\"ozone_du\":%.1f,\"doy\":%d,"
+                     "\"atmosphere_model\":\"%s\","
+                     "\"aerosol_model\":\"%s\""
+                     "},"
+                     "\"spectral_response\":{"
+                     "\"type\":\"gaussian\","
+                     "\"source\":\"band_center_and_fwhm\""
+                     "}"
+                     "}"
+                     "}"
+                     "}"
+                     "}",
+                     opt_input->answer,
+                     sza, vza, raa, sun_azimuth, altitude,
+                     aod_val, h2o_val, ozone, doy,
+                     atmo_str, aero_str);
+
+            char maparg[GPATH_MAX], ovrarg[4096];
+            snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
+            snprintf(ovrarg, sizeof(ovrarg), "overrides=%s", overrides);
+
+            const char *margs[5];
+            margs[0] = "i.hyper.metadata";
+            margs[1] = maparg;
+            margs[2] = "operation=merge-overrides";
+            margs[3] = ovrarg;
+            margs[4] = NULL;
+
+            if (G_vspawn_ex("i.hyper.metadata", margs) != 0)
+                G_warning(_("Failed to merge output metadata for <%s>"),
+                          opt_output->answer);
+        }
+
+        /* ── Add processing history entry ── */
+        {
+            char maparg[GPATH_MAX], srcarg[GPATH_MAX];
+            snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
+            snprintf(srcarg, sizeof(srcarg), "source_map=%s", opt_input->answer);
+
+            char cmdarg[4096];
+            const char *cmdline = getenv("CMDLINE");
+            if (!cmdline) cmdline = "i.hyper.atcorr";
+            snprintf(cmdarg, sizeof(cmdarg), "command=%s", cmdline);
+
+            const char *hargs[6];
+            hargs[0] = "i.hyper.metadata";
+            hargs[1] = maparg;
+            hargs[2] = "operation=add-history";
+            hargs[3] = srcarg;
+            hargs[4] = cmdarg;
+            hargs[5] = NULL;
+
+            if (G_vspawn_ex("i.hyper.metadata", hargs) != 0)
+                G_warning(_("Failed to add history entry for <%s>"),
+                          opt_output->answer);
+        }
 
         /* ── Write quality bitmask as 2-D GRASS raster ── */
         if (flag_m->answer && retrieved_quality && opt_quality->answer) {
