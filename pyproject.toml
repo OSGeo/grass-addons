@@ -5,6 +5,24 @@ name = "grass-addons"
 # RFC 8). Ruff has no target version configured and derives it from this value.
 requires-python = ">=3.8"
 
+[tool.pytest.ini_options]
+addopts = """
+    --import-mode=importlib
+    --ignore-glob='bin.*'
+    --ignore-glob='dist.*'
+    --ignore-glob='*/tests/data/*'
+"""
+minversion = "8.2"
+python_files = """
+    */tests/*_test.py
+    */tests/test_*.py
+"""
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "needs_solo_run: marks tests that must be run without any other tests running in parallel",
+]
+timeout = 300
+
 [tool.black]
 extend-exclude = '''
 (
