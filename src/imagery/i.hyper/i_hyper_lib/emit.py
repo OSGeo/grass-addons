@@ -339,8 +339,8 @@ def get_emit_proj_info(path):
         ),
         "project_requirements": (
             "Use a GRASS project whose CRS matches the product CRS for best "
-            "results, but also supports any projected CRS — grid corners are "
-            "auto-reprojected from EPSG:4326."
+            "results, but also supports any projected CRS via forward "
+            "bilinear splatting."
         ),
     }
 
@@ -413,35 +413,95 @@ def import_emit(
     location_crs = CRS.from_wkt(wkt) if wkt else CRS.from_epsg(4326)
     emit_crs = CRS.from_epsg(4326)
 
+    splat_plan = None
+    glt_valid = (prod["glt_y"] > 0) & (prod["glt_x"] > 0)
+    ortho_r, ortho_c = np.where(glt_valid)
+
     if location_crs != emit_crs:
+        lon = prod["lon"][glt_valid]
+        lat = prod["lat"][glt_valid]
+        finite_ll = np.isfinite(lon) & np.isfinite(lat) & (lon > -9990) & (lat > -9990)
         transformer = Transformer.from_crs(emit_crs, location_crs, always_xy=True)
-        cx = [prod["west"], prod["east"], prod["east"], prod["west"]]
-        cy = [prod["north"], prod["north"], prod["south"], prod["south"]]
-        tx, ty = transformer.transform(cx, cy)
-        region_w = min(tx)
-        region_e = max(tx)
-        region_s = min(ty)
-        region_n = max(ty)
+        x, y = transformer.transform(lon, lat)
+        x[~finite_ll] = np.nan
+        y[~finite_ll] = np.nan
+        finite = np.isfinite(x) & np.isfinite(y)
+        if not np.any(finite):
+            gs.fatal("No valid geolocation points after CRS transform.")
+        pixel_size = max(
+            float(np.nanmedian(np.abs(np.diff(x)))),
+            float(np.nanmedian(np.abs(np.diff(y)))),
+        )
+        t_west = float(np.nanmin(x[finite])) - 0.5 * pixel_size
+        t_east = float(np.nanmax(x[finite])) + 0.5 * pixel_size
+        t_south = float(np.nanmin(y[finite])) - 0.5 * pixel_size
+        t_north = float(np.nanmax(y[finite])) + 0.5 * pixel_size
+        t_cols = max(1, round((t_east - t_west) / pixel_size))
+        t_rows = max(1, round((t_north - t_south) / pixel_size))
+        fx = (x - t_west) / pixel_size - 0.5
+        fy = (t_north - y) / pixel_size - 0.5
+        c0 = np.floor(fx).astype(np.int64)
+        r0 = np.floor(fy).astype(np.int64)
+        dc = fx - c0
+        dr = fy - r0
+        inb = (
+            (c0 >= 0) & (c0 + 1 < t_cols) & (r0 >= 0) & (r0 + 1 < t_rows)
+            & finite
+        )
+        i_inb = np.where(inb)[0]
+        splat_plan = {
+            "rows": t_rows,
+            "cols": t_cols,
+            "pixel_size": pixel_size,
+            "ri": ortho_r[i_inb],
+            "ci": ortho_c[i_inb],
+            "r0": r0[i_inb],
+            "c0": c0[i_inb],
+            "w_ul": ((1 - dr) * (1 - dc))[i_inb],
+            "w_ur": ((1 - dr) * dc)[i_inb],
+            "w_ll": (dr * (1 - dc))[i_inb],
+            "w_lr": (dr * dc)[i_inb],
+        }
         gs.info(
-            "Reprojected EMIT grid corners from EPSG:4326 to location CRS "
-            f"(w={region_w:.2f} e={region_e:.2f} s={region_s:.2f} n={region_n:.2f})"
+            f"Built splat plan: {t_rows}x{t_cols} ({t_rows*t_cols} cells)"
+        )
+        Module(
+            "g.region",
+            w=t_west, e=t_east, s=t_south, n=t_north,
+            rows=t_rows, cols=t_cols,
+            quiet=True,
         )
     else:
-        region_w = prod["west"]
-        region_e = prod["east"]
-        region_s = prod["south"]
-        region_n = prod["north"]
+        Module(
+            "g.region",
+            w=prod["west"], e=prod["east"],
+            s=prod["south"], n=prod["north"],
+            rows=prod["ortho_rows"], cols=prod["ortho_cols"],
+            quiet=True,
+        )
 
-    Module(
-        "g.region",
-        w=region_w,
-        e=region_e,
-        s=region_s,
-        n=region_n,
-        rows=prod["ortho_rows"],
-        cols=prod["ortho_cols"],
-        quiet=True,
-    )
+    def _splat_band(band2d):
+        plan = splat_plan
+        vals = band2d[plan["ri"], plan["ci"]]
+        out = np.zeros((plan["rows"], plan["cols"]), dtype=np.float64)
+        wts = np.zeros((plan["rows"], plan["cols"]), dtype=np.float64)
+        good = np.isfinite(vals)
+
+        def _scatter(rr, cc, ww):
+            m = good & (ww > 0)
+            if np.any(m):
+                np.add.at(out, (rr[m], cc[m]), vals[m].astype(np.float64) * ww[m])
+                np.add.at(wts, (rr[m], cc[m]), ww[m])
+
+        _scatter(plan["r0"], plan["c0"], plan["w_ul"])
+        _scatter(plan["r0"], plan["c0"] + 1, plan["w_ur"])
+        _scatter(plan["r0"] + 1, plan["c0"], plan["w_ll"])
+        _scatter(plan["r0"] + 1, plan["c0"] + 1, plan["w_lr"])
+
+        result = np.full((plan["rows"], plan["cols"]), np.nan, dtype=np.float32)
+        nz = wts > 0
+        result[nz] = (out[nz] / wts[nz]).astype(np.float32)
+        return result
 
     temp_bands = {}
     created_names = []
@@ -451,8 +511,12 @@ def import_emit(
             return temp_bands[idx1]
         k = idx1 - 1
         ortho2d = _orthorectify_band(data[:, :, k], prod["glt_y"], prod["glt_x"])
+        if splat_plan is not None:
+            band = _splat_band(ortho2d)
+        else:
+            band = ortho2d
         name = _temp_name(f"{output_name}_b{idx1:03d}")
-        _write_float_raster(name, ortho2d)
+        _write_float_raster(name, band)
         temp_bands[idx1] = name
         created_names.append(name)
         return name
@@ -477,7 +541,10 @@ def import_emit(
             ortho2d = _orthorectify_band(
                 data[:, :, k], prod["glt_y"], prod["glt_x"]
             )
-            cube[k, :, :] = ortho2d
+            if splat_plan is not None:
+                cube[k, :, :] = _splat_band(ortho2d)
+            else:
+                cube[k, :, :] = ortho2d
 
         cube.write(mapname=f"{output_name}", null="nan", overwrite=True)
         gs.info(
