@@ -289,15 +289,18 @@ cop_dataspace:
 To register to Creodias, users should create an account
 <a href="https://portal.creodias.eu/register.php">here</a>, and
 then use their username and password in the eodag configuration file.
-Users will also need TOTP, a 6-digits temporary one time password,
-to be able to authenticate and download scenes (product search
-within creodias can be done without registering).
-This TOTP is only valid for very short time, i.e., 30 to 60 seconds, so it shall
-not be set through the eodag configuration file.
-When <em>i.eodag</em> attempts to download a scene from creodias,
-users will be prompted to input the TOTP. If they prefer to discard these
-scenes, they should enter <b>"-"</b> instead. Note that interactive
-prompt does not work in the graphical user interface.
+Users will also need TOTP, a 6-digit temporary one-time password, to
+be able to authenticate and download scenes (product search within
+creodias can be done without registering). If the TOTP secret key
+(seed) is specified in the eodag configuration file,
+<em>i.eodag</em> will automatically generate the required 6-digit
+code at runtime (this automated method requires the <b>pyotp</b>
+Python package). Otherwise, if the secret key is not provided in
+the configuration, users will be interactively prompted to input
+the TOTP code when the download starts. If they prefer to discard
+these scenes during the interactive prompt, they should enter
+<b>"-"</b> instead. Note that the interactive prompt does not
+work in the graphical user interface.
 
 <p>
 See <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html" target="_blank">Configure EODAG</a>
@@ -457,6 +460,8 @@ i.eodag -lp provider=usgs producttype=LANDSAT_C2L2 area_relation=IsWithin clouds
     installed, e.g. <code>pip install eodag[usgs]</code>, for more info see
     <a href="https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html">installation page</a>.
     To install all dependencies use <code>pip install eodag[all]</code></li>
+    <li><b>pyotp</b> Python package (optional; required only for automated Creodias Multi-Factor
+    Authentication via a secret key in the configuration file).</li>
 </ul>
 
 <h2>SEE ALSO</h2>

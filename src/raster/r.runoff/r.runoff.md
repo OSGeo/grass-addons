@@ -204,5 +204,5 @@ dataset zoomed in near the outlet*
 ## AUTHORS
 
 [Abdullah Azzam](mailto:mabdazzam@outlook.com)
-([CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
+([HydroCS](https://hydro.isnew.info/), Department of Civil and Environmental
 Engineering, New Mexico State University)

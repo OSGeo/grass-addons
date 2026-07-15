@@ -11,48 +11,62 @@ Modules in the <em>i.hyper</em> suite operate together to handle hyperspectral w
 They include tools for data import, spectral preprocessing, visualization, and export,
 fully integrated with the GRASS 3D raster environment.
 
+<p>
+  The <em>i.hyper</em> toolset requires GRASS 8.5 or newer.
+</p>
+
 <h2>POSSIBLE ROAD MAP</h2>
 
 <ul>
-  <li>
-    Importers for additional data
-    (OCI, HySIS, EMIT, DESIS, Hyperion)
-  </li>
-  <li>
-    Additional preprocessing modules
-    (e.g., wavelet transform)
-  </li>
-  <li>Smarter metadata handling</li>
-  <li>
-    Standardized export formats (Zarr, HDF5)
-    (metadata in headers or separate files)
-  </li>
-  <li>Aerial imagery module with multi-sensor harmonization</li>
+  <li>Integration of wavelength units into default 3D raster metadata</li>
   <li>Atmospheric correction from radiance to reflectance</li>
   <li>Integration of field spectrometry data</li>
   <li>Support for regression and classification tasks</li>
-  <li>Improved read and write performance
-      (including faster 3D garray access)</li>
-  <li>Refactoring Python components to native GRASS where possible</li>
+  <li>Improved read and write performance, including faster 3D <code>garray</code> access</li>
   <li>3D hyperspectral cube visualization</li>
+  <li>
+    Importers for additional data (OCI, HySIS, EMIT, DESIS, Hyperion)
+  </li>
+  <li>
+    Additional preprocessing modules (for example wavelet transform)
+  </li>
+  <li>Aerial imagery modules with multi-sensor harmonization</li>
+  <li>Refactoring Python components to native GRASS where possible</li>
+  <li>Tutorial and example workflows</li>
 </ul>
 
 <h2>DEPENDENCIES</h2>
 <p>
-<em>i.hyper.*</em> modules require the following Python libraries for full functionality:
+  Core Python dependency:
 </p>
 
 <ul>
   <li>NumPy</li>
-  <li>SciPy</li>
-  <li>scikit-learn</li>
-  <li>Matplotlib</li>
-  <li>h5py</li>
-  <li>rasterio</li>
-  <li>pyproj</li>
 </ul>
 
-The <em>i.hyper.explore</em> module requires the GRASS addon <em>r3.what*</em>
+<p>
+  Optional dependencies by module or format:
+</p>
+
+<ul>
+  <li>SciPy: preprocessing utilities</li>
+  <li>scikit-learn: dimensionality reduction in <code>i.hyper.preproc</code></li>
+  <li>Matplotlib: plotting in <code>i.hyper.explore</code></li>
+  <li>rasterio: EnMAP import</li>
+  <li>pyproj: PRISMA and Tanager georeferencing helpers</li>
+  <li>h5py: PRISMA and Tanager import, and HDF5 export</li>
+  <li>zarr: Zarr export</li>
+  <li>GDAL Python bindings (<code>osgeo.gdal</code>): GeoTIFF metadata writing in <code>i.hyper.export</code></li>
+  <li>GDAL command line tools (<code>gdalwarp</code>): EnMAP L1B import</li>
+</ul>
+
+<p>
+  Additional GRASS addon:
+</p>
+
+<ul>
+  <li><code>r3.what</code>: required by <code>i.hyper.explore</code></li>
+</ul>
 
 
 <p>
@@ -67,9 +81,10 @@ g.extension extension=i.hyper
 <em>
 <a href="i.hyper.import.html">i.hyper.import</a>,
 <a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
 <a href="i.hyper.explore.html">i.hyper.explore</a>,
 <a href="i.hyper.composite.html">i.hyper.composite</a>,
-<a href="i.hyper.export.html">i.hyper.export</a>
+<a href="i.hyper.export.html">i.hyper.export</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r3.what.html">r3.what</a>
 
 </em>

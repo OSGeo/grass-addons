@@ -194,7 +194,8 @@ of the HAS University of Applied Sciences.
 
 ## AUTHOR
 
-Paulo van Breugel  
-Applied Geo-information Sciences  
-[HAS green academy, University of Applied
-Sciences](https://www.has.nl/)
+[Paulo van Breugel](https://ecodiv.earth), [HAS green
+academy](https://has.nl), [Innovative Biomonitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
+[Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
