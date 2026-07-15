@@ -4,7 +4,7 @@
    yahoo
   </servername>
   <serverurl>
-   http://www.yahoo.com
+   https://www.yahoo.com
   </serverurl>
   <username>
    asdkjasdkjsad
@@ -18,7 +18,7 @@
    GISNetServer
   </servername>
   <serverurl>
-   http://www.gisnet.lv/cgi-bin/topo
+   https://www.gisnet.lv/cgi-bin/topo
   </serverurl>
   <username>
    unameq

@@ -4,7 +4,7 @@ All issues and imperfections of the code should be documented in this
 file.
 
 The goal is to declare the technical debt as described by
-[Easterbrook 2014](http://doi.org/10.1038/ngeo2283) or Wikipedia
+[Easterbrook 2014](https://doi.org/10.1038/ngeo2283) or Wikipedia
 contributors in
 [Technical debt](https://en.wikipedia.org/wiki/Technical_debt).
 

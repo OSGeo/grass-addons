@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import math
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
@@ -42,7 +42,7 @@ def compile_use_table(supply):
     Parameters
     ----------
     supply :
-        A nested Python dictionary that is compiled when runnning the
+        A nested Python dictionary that is compiled when running the
         compute_supply() function
 
     Returns
@@ -100,7 +100,7 @@ def compute_supply(
 
     base :
         Base land types map for final zonal statistics. Specifically to
-        ESTIMAP's recrceation mapping algorithm
+        ESTIMAP's recreation mapping algorithm
 
     base_reclassification_rules :
         Reclassification rules for the input base map
@@ -110,8 +110,6 @@ def compute_supply(
 
     reclassified_base_title :
         Title for the reclassified base map
-
-    ecosystem_types :
 
     flow :
         Map of visits, derived from the mobility function, depicting the
@@ -123,8 +121,6 @@ def compute_supply(
     ns_resolution :
 
     ew_resolution :
-
-    statistics_filename :
 
     supply_filename :
         Name for CSV output file of the supply table
@@ -152,7 +148,7 @@ def compute_supply(
 
     Examples
     --------
-    """
+    """  # noqa: DOC102
     # Inputs
     flow_in_base = flow + "_" + base
     base_scores = base + ".scores"
@@ -202,12 +198,11 @@ def compute_supply(
     r.colors(map=flow_in_base, color=MOBILITY_COLORS, quiet=True)
 
     # Parse aggregation raster categories and labels
-    categories = grass.parse_command("r.category", map=aggregation, delimiter="\t")
+    categories = gs.parse_command("r.category", map=aggregation, delimiter="\t")
 
     for category in categories:
-
         msg = "\n>>> Processing category '{c}' of aggregation map '{a}'"
-        grass.verbose(_(msg.format(c=category, a=aggregation)))
+        gs.verbose(_(msg).format(c=category, a=aggregation))
 
         # Intermediate names
 
@@ -235,8 +230,7 @@ def compute_supply(
         # Output names
 
         msg = "*** Processing aggregation raster category: {r}"
-        msg = msg.format(r=category)
-        grass.debug(_(msg))
+        gs.debug(_(msg).format(r=category))
         # g.message(_(msg))
 
         # First, set region to extent of the aggregation map
@@ -252,12 +246,11 @@ def compute_supply(
         )
 
         msg = "!!! Computational resolution matched to {raster}"
-        msg = msg.format(raster=aggregation)
-        grass.debug(_(msg))
+        gs.debug(_(msg).format(raster=aggregation))
 
         # Build MASK for current category & high quality recreation areas
         msg = " * Setting category '{c}' as a MASK"
-        grass.verbose(_(msg.format(c=category, a=aggregation)))
+        gs.verbose(_(msg).format(c=category, a=aggregation))
 
         masking = "if( {spectrum} == {highest_quality_category} && "
         masking += "{aggregation} == {category}, "
@@ -269,7 +262,7 @@ def compute_supply(
             category=category,
         )
         masking_equation = EQUATION.format(result="MASK", expression=masking)
-        grass.mapcalc(masking_equation, overwrite=True)
+        gs.mapcalc(masking_equation, overwrite=True)
 
         # zoom to MASK
         g.region(zoom="MASK", nsres=ns_resolution, ewres=ew_resolution, quiet=True)
@@ -284,8 +277,8 @@ def compute_supply(
             overwrite=True,
             quiet=True,
         )
-        cells_categories = grass.parse_command("r.category", map=cells, delimiter="\t")
-        grass.debug(_("*** Cells: {c}".format(c=cells_categories)))
+        cells_categories = gs.parse_command("r.category", map=cells, delimiter="\t")
+        gs.debug(_("*** Cells: {c}").format(c=cells_categories))
 
         # Build cell category and label rules for `r.category`
         cells_rules = "\n".join(
@@ -379,9 +372,7 @@ def compute_supply(
         )
 
         # Get weighted extents in a dictionary
-        weighted_extents = grass.parse_command(
-            "r.category", map=weighted, delimiter="\t"
-        )
+        weighted_extents = gs.parse_command("r.category", map=weighted, delimiter="\t")
 
         # Compute the sum of all weighted extents and add to dictionary
         category_sum = sum(
@@ -423,7 +414,7 @@ def compute_supply(
         r.category(map=fractions, rules="-", stdin=fraction_rules, separator=":")
 
         # Assert that sum of fractions is ~1
-        fraction_categories = grass.parse_command(
+        fraction_categories = gs.parse_command(
             "r.category", map=fractions, delimiter="\t"
         )
 
@@ -433,8 +424,8 @@ def compute_supply(
                 for x in fraction_categories.values()
             ]
         )
-        msg = "*** Fractions: {f}".format(f=fraction_categories)
-        grass.debug(_(msg))
+        msg = "*** Fractions: {f}"
+        gs.debug(_(msg).format(f=fraction_categories))
 
         # g.message(_("Sum: {:.17g}".format(fractions_sum)))
         assert abs(fractions_sum - 1) < 1.0e-6, "Sum of fractions is != 1"
@@ -458,13 +449,13 @@ def compute_supply(
         )
 
         # Parse flow categories and labels
-        flow_categories = grass.parse_command(
+        flow_categories = gs.parse_command(
             "r.category",
             map=flow_in_category,
             delimiter="\t",
             quiet=True,
         )
-        grass.debug(_("*** Flow: {c}".format(c=flow_categories)))
+        gs.debug(_("*** Flow: {c}").format(c=flow_categories))
 
         # Build flow category and label rules for `r.category`
         flow_rules = "\n".join(
@@ -508,8 +499,7 @@ def compute_supply(
         # )
 
         if print_only:
-
-            grass.verbose(" * Flow in category {c}:".format(c=category))
+            gs.verbose(" * Flow in category {c}:".format(c=category))
             r.stats(
                 input=(flow_in_category),
                 output="-",
@@ -519,7 +509,6 @@ def compute_supply(
             )
 
         if not print_only:
-
             if flow_column_name:
                 flow_column_prefix = flow_column_name + "_" + category
             else:
@@ -528,7 +517,6 @@ def compute_supply(
 
             # Produce vector map(s)
             if vector:
-
                 update_vector(
                     vector=vector,
                     raster=flow_in_category,
@@ -537,7 +525,7 @@ def compute_supply(
                 )
 
                 # update columns of an user-fed vector map
-                # from the columns of vectorised flow-in-category raster map
+                # from the columns of vectorized flow-in-category raster map
                 raster_to_vector(
                     raster_category_flow=flow_in_category,
                     vector_category_flow=flow_in_category,

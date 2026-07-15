@@ -467,10 +467,9 @@ class SentinelImporter(object):
             ):
                 gs.message(
                     _(
-                        "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
-                            map_name
-                        )
-                    )
+                        "option <output>: <{}> exists. "
+                        "To overwrite, use the --overwrite flag"
+                    ).format(map_name)
                 )
                 continue
 
@@ -678,10 +677,9 @@ class SentinelImporter(object):
                 ):
                     gs.fatal(
                         _(
-                            "option <output>: <{}> exists. To overwrite, use the --overwrite flag".format(
-                                map_name
-                            )
-                        )
+                            "option <output>: <{}> exists. "
+                            "To overwrite, use the --overwrite flag"
+                        ).format(map_name)
                     )
                     continue
 
@@ -813,7 +811,7 @@ class SentinelImporter(object):
         import numpy as np
 
         try:
-            from xml.etree import ElementTree
+            from xml.etree import ElementTree as ET
             from datetime import datetime
         except ImportError as e:
             gs.fatal(_("Unable to parse metadata file. {}").format(e))
@@ -821,7 +819,7 @@ class SentinelImporter(object):
         meta = {}
         meta["timestamp"] = None
         with io.open(mtd_file, encoding="utf-8") as fd:
-            root = ElementTree.fromstring(fd.read())
+            root = ET.fromstring(fd.read())
             nsPrefix = root.tag[: root.tag.index("}") + 1]
             nsDict = {"n1": nsPrefix[1:-1]}
             node = root.find("n1:General_Info", nsDict)
@@ -1038,7 +1036,7 @@ def main():
         if options["register_output"]:
             gs.warning(
                 _(
-                    "Register output file name is not created " "when -{} flag given"
+                    "Register output file name is not created when -{} flag given"
                 ).format("p")
             )
         importer.print_products()

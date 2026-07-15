@@ -1,0 +1,208 @@
+## DESCRIPTION
+
+The *r.maxent.predict* module is a front-end to the Maxent software,
+providing a convenient way to run the Maxent software, and create output
+layers in GRASS GIS.
+
+[![image-alt](r_maxent_predict_workflow.png)](r_maxent_predict_workflow.png)  
+*A workflow, from data preparation, training a model to model prediction
+using three GRASS GIS addons.*
+
+It is part of a set of three addons that can be used to prepare the
+input data for the Maxent model (*v.maxent.sdm*), to train a maxent
+presence only model (*r.maxent.train*), and to use the model to create
+prediction layers (this module). The *r.maxent.predict* modules uses the
+model (the *.lambdas* file) created with *r.maxent.train* (or the Maxent
+software directly) and applies this to a set of environmental raster
+layers. These should represent the same variables as used to create the
+model, but can represent a different area, of future conditions.
+
+The *r.maxent.train* creates a file
+*maxent\_explanatory\_variable\_names.csv*, which you can check for the
+names of the predictor variables. If these are different from the input
+raster layers, you can provide the variable names using the *variables*
+parameter. Alternatively, you can provide a CSV file with the names of
+the explanatory variables (first column) and the names of the
+corresponding raster layers (second column).
+
+Maxent includes the option of “clamping” projections. This constrains
+the values for environmental values in the projected range to the limit
+of that variable that is found in the training range. By default, Maxent
+applied clamping. You can disable this by setting the *-c* flag. You
+also have the option to reduce the prediction at each point in
+projections by the difference between clamped and non-clamped output at
+that point. Use the *-f* to enable this option.
+
+## NOTES
+
+This addon requires the Maxent software (version ≥ 3.4). You can
+download the software from the [Maxent
+website](https://biodiversityinformatics.amnh.org/open_source/maxent).
+The *r.maxent.setup* module provides an helper function to enable GRASS
+GIS to use the Maxent software.
+
+## EXAMPLE
+
+The examples below use a dataset that you can download [from
+here](https://ecodiv.earth/share/reader_SDM/grassmaxent_sampledata.zip).
+It includes a vector point layer with observation locations of the
+pale-throated sloth (*Bradypus tridactylus*) from
+[GBIF](https://doi.org/10.15468/dl.br8b4a), the [IUCN RedList range
+map](https://www.iucnredlist.org/species/3037/210442660) of the species,
+a boundary layer of the South American countries from
+[NaturalEarth](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/)
+and a number of bioclim raster layers from
+[WorldClim](https://www.worldclim.org/) version 2.1, representing the
+climate conditions representing the period 1970-2000 and the climate
+conditions predicted for 2061–2080 based on the GCM BCC-CSM2-MR and SSP
+585.
+
+The zip file contains a folder *sampledata*. This is a location with
+five subfolders *PERMANENT*, *sloth*, *current*, *future* and *model01*.
+Copy this Location to a GRASS Database (use an existing one or create
+one first). If you are not familiar with the concept of *Locations* and
+*Mapsets*, please first read the
+[explanation](https://grass.osgeo.org/grass83/manuals/grass_database.html)
+about the GRASS GIS database.
+
+Unzip the file, start up GRASS GIS, open the GRASS GIS database to which
+you copied the folder *sampledata*, switch to the Location *sampledata*
+and open the mapset *model01*. This mapset should have access to the
+other mapsets.
+
+### 1: Data preparation
+
+You can use the *v.maxent.swd* to create the required input layers. The
+code below creates the SWD file with the locations where the species has
+been recorded (**species\_output**) and a SWD file with randomly created
+background point locations (**bgr\_ouput**). The SWD files contain, for
+each location, the values of the raster layers selected with the
+**evp\_maps** parameter. With the parameter **export\_rasters** you tell
+the addon to export the raster layers as well.
+
+```sh
+v.maxent.swd -t \
+ species=Bradypus_tridactylus \
+ evp_maps=bio02,bio03,bio08,bio09,bio13,bio15,bio17 \
+ evp_cat=sa_eco_l2@current \
+ alias_cat=landuse \
+ nbgp=10000 \
+ bgr_output=bgrd_swd.csv \
+ species_output=spec_swd.csv \
+ export_rasters=envlayers
+```
+
+The output is a folder with the so-called SWD files with the XY
+coordinates for the species presence location (*spec\_swd.csv*) and the
+background locations (*bgrd\_swd.csv*. Both also include the values of
+the input raster layers for the given point locations. In addition,
+there is the subfolder *envlayers* with the environmental raster layers
+in *ascii* format.
+
+### 2: Train the model
+
+Use the output of *v.maxent.swd* as input for *r.maxent.train*. First
+create a subfolder *output\_model1*, so we can write the output to that
+folder.
+
+The **projectionlayers** parameter is optionally. If you set it, a
+raster prediction layer will be created that represent the potential
+suitability distribution under current conditions (the conditions used
+to train the model).
+
+With the **-y** and **-b** flags the point layers with the sample
+predictions and the predictions at the background point locations are
+created. Their values correspond to the values of the raster prediction
+layer.
+
+```sh
+r.maxent.train -y -b -g \
+  samplesfile=spec_swd.csv \
+  environmentallayersfile=bgrd_swd.csv \
+  togglelayertype=landuse \
+  projectionlayers=envlayers \
+  samplepredictions=model_1_samplepred \
+  backgroundpredictions=model_1_bgrdpred \
+  predictionlayer=model_1_suitability_current \
+  outputdirectory=output_model1
+```
+
+When *r.maxent.train* is finished, go to the output folder and open the
+*Bradypus\_tridactylus.html* file for an explanation of the different
+model outputs and model evaluation statistics. For a more detailed
+explanation, see the tutorial on the [Maxent
+website](https://biodiversityinformatics.amnh.org/open_source/maxent/).
+
+In your current mapset, you'll find the raster prediction layer, and the
+sample and background point layers with the predicted values.
+
+[![image-alt](r_maxent_predict_01.png)](r_maxent_predict_01.png)  
+*The example creates the prediction raster layer
+'model\_1\_suitability\_current', the sample point layer
+'model\_1\_samplepred' and the background point layer 'model\_bgrdpred'
+(for the latter, only part of the map is shown here).*
+
+### 3: Create a prediction layer
+
+The third step is to use the model created in the previous step to
+predict the species suitability distribution under future climates.
+Note, we are going to make the (unrealistic) assumption that the
+ecosystems do not change.
+
+```sh
+r.maxent.predict
+  lambda=output_model1/Bradypus_tridactylus.lambdas \
+  rasters=bio02_ssp585,bio03_ssp585,bio08_ssp585,bio09_ssp585,bio13_ssp585,bio15_ssp585,bio17_ssp585,sa_eco_l2 \
+  variables=bio02,bio03,bio08,bio09,bio13,bio15,bio17,landuse \
+  output=model_1_ssp585
+```
+
+The resulting layer is written to the current mapset as
+*model\_1\_ssp585* (right map in the figure below). The results suggest
+the area with suitable conditions will increase under future climates
+compared the that under the current conditions (left map in the figure
+below). This result is unexpected, and warrants further investigation.
+
+[![image-alt](r_maxent_predict_02.png)](r_maxent_predict_02.png)  
+*Predicted suitabilty for the period 2061-2080 based on the GCM
+BCC-CSM2-MR and SSP 585.*
+
+## REFERENCES
+
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
+    software for modeling species niches and distributions (Version
+    3.4.1). Available from url:
+    <https://biodiversityinformatics.amnh.org/open_source/maxent> and
+    <https://github.com/mrmaxent/Maxent>
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
+    maximum entropy approach to species distribution modeling. In
+    Proceedings of the Twenty-First International Conference on Machine
+    Learning, pages 655-662, 2004.
+- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
+    Maximum entropy modeling of species geographic distributions.
+    Ecological Modelling, 190:231-259, 2006.
+- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
+    En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt
+    for ecologists. Diversity and Distributions, 17:43-57, 2011.
+
+## SEE ALSO
+
+- [v.maxent.swd](v.maxent.swd.md), creating species and background swd
+    files and prediction rasters that can be used directly by the
+    *r.maxent.train* addon (or the Maxent software itself) to create
+    species distribution models.
+- [r.out.maxent\_swd](r.out.maxent_swd.md), creating species and
+    background swd files based on species distribution data in raster
+    format.
+- [r.maxent.train](r.maxent.train.md), creates a maxent model based on
+    presence point data a set of environmental predictor layers.
+- [r.maxent.setup](r.maxent.setup.md), helper function to allow
+    GRASS to use Maxent.
+
+## AUTHOR
+
+[Paulo van Breugel](https://ecodiv.earth), [HAS green
+academy](https://has.nl), [Innovative Biomonitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
+[Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)

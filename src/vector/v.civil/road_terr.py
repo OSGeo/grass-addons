@@ -66,14 +66,12 @@ class Talud(object):
         """Return"""
         for i in range(len(self.pks) - 1):
             if self.pks[i] <= r_pnt_d.npk < self.pks[i + 1]:
-
                 if r_pnt_d.z < r_pnt_d.terr:
                     slope = self.cut
                 else:
                     slope = self.fill
 
                 if slope[i] is not None or slope[i + 1] is not None:
-
                     return slope[i] + (
                         (r_pnt_d.npk - self.pks[i]) * (slope[i + 1] - slope[i])
                     ) / (self.pks[i + 1] - self.pks[i])
@@ -223,7 +221,6 @@ class Taludes(object):
     def _init_talud(self):
         """Return"""
         for dat in self.tabla:
-
             self.pks.append(dat["pk"])
             self.cut["left"].append(dat["cut_left"])
             self.cut["right"].append(dat["cut_right"])

@@ -155,9 +155,7 @@ def parse_tiles(tiles):
 def laplacian_matrix(w):
     s = """TITLE Laplacian filter
     MATRIX {w}
-    """.format(
-        w=w
-    )
+    """.format(w=w)
 
     x = np.zeros((w, w))
     x[:] = -1
@@ -315,7 +313,6 @@ def classification(level, slope, smean, texture, tmean, convexity, cmean, classi
 
 
 def main():
-
     elevation = options["elevation"]
     slope = options["slope"]
     flat_thres = float(options["flat_thres"])

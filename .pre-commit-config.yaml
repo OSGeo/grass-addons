@@ -1,16 +1,18 @@
 ---
+default_language_version:
+  node: lts
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude: |
           (?x)^(
+                .*\.md$|
                 .*\.ascii$|
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
       - id: end-of-file-fixer
@@ -20,29 +22,73 @@ repos:
                 .*\.ref$|
                 .*\.diff$|
                 .*\.rtf$|
-                .*\.kate-swp$|
                 .*\.svg$
           )
+      - id: check-case-conflict
+      # - id: check-executables-have-shebangs # Nice to have once fixes applied
+      - id: check-json
+      - id: check-merge-conflict
+      # - id: check-shebang-scripts-are-executable # Nice to have once fixes applied
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-xml
+        exclude: |
+          (?x)^(
+            src/gui/wxpython/wx.metadata/profiles/basicProfile.xml|
+            src/gui/wxpython/wx.metadata/profiles/inspireProfile.xml|
+            src/gui/wxpython/wx.metadata/profiles/temporalProfile.xml
+          )
+      - id: destroyed-symlinks
+      - id: detect-private-key
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.15.17
+    hooks:
+      # Run the linter.
+      - id: ruff-check
+        args: [--fix, --preview]
+      # Run the formatter.
+      - id: ruff-format
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.5.0"
+    hooks:
+      - id: biome-check
+      - id: biome-lint
+      - id: biome-format
+      - id: biome-ci
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.41.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint-fix
-  # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.8.0
-    hooks:
-      - id: black-jupyter
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+    rev: 7.3.0
     hooks:
       - id: flake8
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.8
+    rev: v20.1.0
     hooks:
       - id: clang-format
+        types_or: [c, c++, javascript, json, objective-c]
         exclude_types:
           - jupyter
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.23.1
+    hooks:
+      - id: zizmor
+        args:
+          - "--fix"
+          # https://github.com/zizmorcore/zizmor-pre-commit/blob/120fe9ac3c965ab7decf67e8b9ca24b274230eed/.pre-commit-hooks.yaml#L10
+          - "--no-progress"
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker
+    rev: v3.7.0
+    hooks:
+      - id: editorconfig-checker

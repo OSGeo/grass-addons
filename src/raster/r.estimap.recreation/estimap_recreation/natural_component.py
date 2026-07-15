@@ -41,15 +41,13 @@ def build_natural_component(
     natural_component = []
 
     if natural:
-
         natural_component = natural.split(",")
 
     natural_components = []
 
     if protected:
-
         msg = SCORING_PROTECTED_AREAS
-        grass.verbose(_(msg.format(protected=protected, rules=protected_scores)))
+        grass.verbose(_(msg).format(protected=protected, rules=protected_scores))
 
         recode_map(
             raster=protected,

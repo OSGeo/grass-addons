@@ -159,7 +159,6 @@ class JinjaTemplateParser:
         try:
             with open(self.template, "r") as f:
                 for line in f:
-
                     # if found start of comments
                     if str(line).find("{{") != -1:
                         obj = mdutil.findBetween(line, "{{", "}}")

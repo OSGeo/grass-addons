@@ -213,7 +213,6 @@ def tmpmask(raster, absolute_minimum):
 
 
 def main(options, flags):
-
     # Variables
     in_filename = options["input"]
     out_filename = options["output"]

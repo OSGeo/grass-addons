@@ -41,15 +41,15 @@
 
 import os
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import GrassHdfs
 
 
 def main():
     if options["hdfs"] == "@grass_data_hdfs":
-        LOCATION_NAME = grass.gisenv()["LOCATION_NAME"]
-        MAPSET = grass.gisenv()["MAPSET"]
+        LOCATION_NAME = gs.gisenv()["LOCATION_NAME"]
+        MAPSET = gs.gisenv()["MAPSET"]
         MAPSET_PATH = os.path.join("grass_data_hdfs", LOCATION_NAME, MAPSET, "external")
         options["hdfs"] = MAPSET_PATH
 
@@ -59,5 +59,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

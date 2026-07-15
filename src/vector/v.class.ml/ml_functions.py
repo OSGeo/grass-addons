@@ -4,6 +4,7 @@ Created on Wed Nov  6 15:08:38 2013
 
 @author: pietro
 """
+
 from __future__ import absolute_import, division, print_function
 import time
 import random as rnd
@@ -12,9 +13,9 @@ import sys
 import pickle as pk
 
 import numpy as np
-import matplotlib  # required by windows
+import matplotlib as mpl  # required by windows
 
-matplotlib.use("wxAGG")  # required by windows
+mpl.use("wxAGG")  # required by windows
 import matplotlib.pyplot as plt
 
 

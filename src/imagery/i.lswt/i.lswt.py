@@ -66,7 +66,7 @@
 # % description: Display split-window coefficients and exit
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 coeffs = {
     "NOAA07-AVHRR": {
@@ -289,7 +289,7 @@ coeffs = {
 
 
 def main():
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     bt1 = options["ainput"]
     bt2 = options["binput"]
     basename = options["basename"]
@@ -300,21 +300,21 @@ def main():
     c2 = coeffs.get(satellite).get("c2")[0]
     coeff = flags["i"]
     if coeff:
-        grass.message(
+        gs.message(
             "Split window coefficients for {satellite} are "
             "c0={c0};c1={c1};c2={c2}".format(satellite=satellite, c0=c0, c1=c1, c2=c2)
         )
         return
     elif (bool(bt1) == 0) or (bool(bt2) == 0) or (bool(basename) == 0):
         # logging.error('error: ', message)
-        grass.error("in1, in2 and basename are required for computing lswt")
+        gs.error("in1, in2 and basename are required for computing lswt")
     else:
-        grass.message(
+        gs.message(
             "Computing water surface temperature - Remember to set"
             " water mask: Output file is {basename}_lswt".format(basename=basename)
         )
         # Split window equation for water surface
-        grass.mapcalc(
+        gs.mapcalc(
             exp="{out} = {bt1} + {c1} * ({bt1} - {bt2}) + {c2} *"
             " ({bt1} - {bt2})^2 + {c0}".format(
                 out=output, bt1=bt1, bt2=bt2, c0=c0, c1=c1, c2=c2

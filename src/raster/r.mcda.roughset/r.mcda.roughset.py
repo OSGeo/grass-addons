@@ -71,7 +71,7 @@ import sys
 import copy
 import numpy as np
 from time import time, ctime
-import grass.script as grass
+import grass.script as gs
 import grass.script.array as garray
 from functools import reduce
 
@@ -84,7 +84,7 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
         outf.write("+ %s: (continuous)\n" % attributes[i])
     outf.write("+ %s: [" % decision)
     value = []
-    value = grass.read_command("r.describe", flags="1n", map=decision)
+    value = gs.read_command("r.describe", flags="1n", map=decision)
     v = value.split()
 
     for i in range(len(v) - 1):
@@ -102,23 +102,23 @@ def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
     if flags["n"]:
         for i in range(len(attributes)):
             print("%s - convert null to 0" % str(attributes[i]))
-            grass.run_command("r.null", map=attributes[i], null=0)
+            gs.run_command("r.null", map=attributes[i], null=0)
 
     outf.write("\n**EXAMPLES\n")
     examples = []
     MATRIX = []
 
     for i in range(len(attributes)):
-        grass.mapcalc(
+        gs.mapcalc(
             "rast=if(isnull(${decision})==0,${attribute},null())",
             rast="rast",
             decision=decision,
             attribute=attributes[i],
         )
-        tmp = grass.read_command("r.stats", flags="1n", nv="?", input="rast")
+        tmp = gs.read_command("r.stats", flags="1n", nv="?", input="rast")
         example = tmp.split()
         examples.append(example)
-    tmp = grass.read_command("r.stats", flags="1n", nv="?", input=decision)
+    tmp = gs.read_command("r.stats", flags="1n", nv="?", input=decision)
     example = tmp.split()
     examples.append(example)
 
@@ -632,7 +632,7 @@ def Parser_mapcalc(RULES, outputMap):
             {"id": i, "type": R[0]["type"], "class": R[0]["class"]}
         )  # extract category name
         maps.append(mappa)  # extract maps name
-        grass.mapcalc(mappa + "=" + formula)
+        gs.mapcalc(mappa + "=" + formula)
         i += 1
     mapstring = ",".join(maps)
 
@@ -646,30 +646,30 @@ def Parser_mapcalc(RULES, outputMap):
             if l == "_".join(m.split("_")[1:]):
                 map_synth.append(m)
         if len(map_synth) > 1:
-            grass.run_command(
+            gs.run_command(
                 "r.patch", overwrite="True", input=(",".join(map_synth)), output=l
             )
         else:
-            grass.run_command("g.copy", raster=(str(map_synth), l))
+            gs.run_command("g.copy", raster=(str(map_synth), l))
         print("__", str(map_synth), l)
-        grass.run_command(
+        gs.run_command(
             "r.to.vect", overwrite="True", flags="s", input=l, output=l, feature="area"
         )
-        grass.run_command("v.db.addcol", map=l, columns="rule varchar(25)")
-        grass.run_command("v.db.update", map=l, column="rule", value=l)
-        grass.run_command("v.db.update", map=l, column="label", value=l)
+        gs.run_command("v.db.addcol", map=l, columns="rule varchar(25)")
+        gs.run_command("v.db.update", map=l, column="rule", value=l)
+        gs.run_command("v.db.update", map=l, column="label", value=l)
     mapslabels = ",".join(labels)
 
     if len(maps) > 1:
-        grass.run_command(
+        gs.run_command(
             "v.patch", overwrite="True", flags="e", input=mapslabels, output=outputMap
         )
     else:
-        grass.run_command("g.copy", vector=(mapslabels, outputMap))
+        gs.run_command("g.copy", vector=(mapslabels, outputMap))
 
     if not flags["l"]:
-        grass.run_command("g.remove", flags="f", type="raster", name=mapstring)
-        grass.run_command("g.remove", flags="f", type="vector", name=mapstring)
+        gs.run_command("g.remove", flags="f", type="raster", name=mapstring)
+        gs.run_command("g.remove", flags="f", type="vector", name=mapstring)
 
     return 0
 
@@ -723,5 +723,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

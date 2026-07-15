@@ -17,7 +17,7 @@ from grass.script import mapcalc
 try:
     from scipy.sparse import csr_matrix
 except ImportError:
-    gcore.warning("You should install scipy to use this module: " "pip install scipy")
+    gcore.warning("You should install scipy to use this module: pip install scipy")
 
 
 def cleanup(raster=None, vector=None, pattern=None, debug=False):
@@ -187,7 +187,7 @@ def sel_columns(element, vector_column):
     Parameters
     ----------
 
-    elemet: element to be selected
+    element: element to be selected
     vector_column: prefix with namevector_column
 
     Returns

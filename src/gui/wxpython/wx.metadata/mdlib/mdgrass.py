@@ -42,7 +42,19 @@ class GrassMD:
 
     def __init__(self, map, type):
         try:
-            global CI_Date, CI_OnlineResource, CI_ResponsibleParty, DQ_DataQuality, Environment, etree, EX_Extent, EX_GeographicBoundingBox, FileSystemLoader, MD_Distribution, MD_ReferenceSystem, RunCommand
+            global \
+                CI_Date, \
+                CI_OnlineResource, \
+                CI_ResponsibleParty, \
+                DQ_DataQuality, \
+                Environment, \
+                etree, \
+                EX_Extent, \
+                EX_GeographicBoundingBox, \
+                FileSystemLoader, \
+                MD_Distribution, \
+                MD_ReferenceSystem, \
+                RunCommand
 
             from owslib.iso import (
                 CI_Date,
@@ -383,14 +395,14 @@ class GrassMD:
 
         # Conformity/Title
         self.md.dataquality.conformancetitle.append(
-            "GRASS GIS basic metadata profile based on ISO 19115, 19139"
+            "GRASS basic metadata profile based on ISO 19115, 19139"
         )
 
         epsg = self.getEPSG()
         if epsg is not None:
             self.md.referencesystem = MD_ReferenceSystem(None)
             self.md.referencesystem.code = (
-                "http://www.opengis.net/def/crs/EPSG/0/%s" % epsg
+                "https://www.opengis.net/def/crs/EPSG/0/%s" % epsg
             )
 
         # print self.md.referencesystem.code
@@ -439,7 +451,6 @@ class GrassMD:
             self.md.identification.contact.append(val)
 
         if self.type == "vector":
-
             # Identification/Resource Abstract
             # TODO not enough sources for create abstarce
             self.md.identification.abstract = mdutil.replaceXMLReservedChar(
@@ -580,7 +591,7 @@ class GrassMD:
                                                      %s"
                             % (str(path)),
                         )
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("ERROR: cannot write xml to file")
                 return path
@@ -595,7 +606,7 @@ class GrassMD:
                                                      %s"
                         % (str(path)),
                     )
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("ERROR: cannot write xml to file")
                     # sys.exit()
@@ -612,7 +623,7 @@ class GrassMD:
                             "g.message", message="Metadata file has been overwritten"
                         )
                         return path
-                    except IOError as e:
+                    except OSError as e:
                         print("I/O error({0}): {1}".format(e.errno, e.strerror))
                         grass.fatal("error: cannot write xml to file")
                 else:
@@ -626,7 +637,7 @@ class GrassMD:
                     Module("g.message", message="Metadata file has been exported")
                     return path
 
-                except IOError as e:
+                except OSError as e:
                     print("I/O error({0}): {1}".format(e.errno, e.strerror))
                     grass.fatal("error: cannot write xml to file")
 
@@ -641,7 +652,6 @@ class GrassMD:
         Update some parameters in r/v.support. This part need revision #TODO
         """
         if self.type == "vector":
-
             if len(md.contact) > 0:
                 _org = ""
                 for co in md.contact:
@@ -700,7 +710,6 @@ class GrassMD:
 
         # ------------------------------------------------------------------------ RASTER
         if self.type == "raster":
-
             if md.identification.title is not (None or ""):
                 _title = md.identification.title
                 Module("r.support", map=self.map, title=_title, overwrite=True)

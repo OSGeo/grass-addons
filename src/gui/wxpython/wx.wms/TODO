@@ -140,7 +140,7 @@ onClose should ask "There are unsaved changes. Save/SaveNew"
 More important:
 *[done] getCapabilities response should be validated. HTTP code 200 doesn't
 mean it's a valid response. I.e. create a server with url
-http://slashdot.org and it will threat it's responses as
+https://slashdot.org and it will threat it's responses as
 getCapabilities documents!
 *[done] server name might contain characters that are forbidden in XML. They
 should be encoded/escaped on save and decoded/unescaped on XML read.
@@ -178,9 +178,9 @@ key error reported
 ** URL already might contain some parameters. Here's an list of valid
 URLs. Your code should be ready to use all of them by removing or
 adding necessary URL parts:
-http://www.gisnet.lv/cgi-bin/topo
+https://www.gisnet.lv/cgi-bin/topo
 http://giz.zpr.gov.lv/glog/Glog/entry.php?class=Mapman.MapmanWms&mapProject=mapproject0&instance=&SERVICE=WMS&REQUEST=GetCapabilities
-http://kaart.maaamet.ee/wms/alus?
+https://kaart.maaamet.ee/wms/alus?
 http://deli.dnr.state.mn.us/cgi-bin/wms?map=/mapfiles/contour.map&
 
 * GetMap doesn't check request EPSG code in list of service provided

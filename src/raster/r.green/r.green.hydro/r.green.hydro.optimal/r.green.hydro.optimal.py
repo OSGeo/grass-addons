@@ -168,7 +168,7 @@ def main(options, flags):
 
     if c:
         msgr.message("\\Clean rivers\n")
-        TMPVECT = [("tmprgreen_%i_cleanb" % os.getpid())]
+        TMPVECT = ["tmprgreen_%i_cleanb" % os.getpid()]
         pid = os.getpid()
         dissolve_lines(river, "tmprgreen_%i_cleanb" % os.getpid())
         river = "tmprgreen_%i_cleanb" % pid

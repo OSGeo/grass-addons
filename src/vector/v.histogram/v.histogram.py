@@ -45,13 +45,13 @@
 
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 
 
 def main():
-    import matplotlib  # required by windows
+    import matplotlib as mpl  # required by windows
 
-    matplotlib.use("wxAGG")  # required by windows
+    mpl.use("wxAGG")  # required by windows
     import matplotlib.pyplot as plt
 
     vector = options["map"]
@@ -64,7 +64,7 @@ def main():
     if where:
         data = [
             float(x)
-            for x in gscript.read_command(
+            for x in gs.read_command(
                 "v.db.select",
                 map_=vector,
                 layer=layer,
@@ -76,7 +76,7 @@ def main():
     else:
         data = [
             float(x)
-            for x in gscript.read_command(
+            for x in gs.read_command(
                 "v.db.select", map_=vector, layer=layer, column=column, flags="c"
             ).splitlines()
         ]
@@ -89,5 +89,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

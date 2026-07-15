@@ -68,7 +68,7 @@ g.region -p raster=elevation
 r.watershed -sa elevation=elevation accumulation=flow_accum drainage=drain_directions
 
 # calculate flow accumulation using r.flowaccumulation
-r.flowaccumulation input=drain_directions output=flow_accum_new
+r.flowaccumulation direction=drain_directions output=flow_accum_new
 
 # copy color table
 r.colors map=flow_accum_new raster=flow_accum
@@ -98,6 +98,9 @@ properly accumulated from the headwater cells.
 
 <em>
 <a href="r.accumulate.html">r.accumulate</a>,
+<a href="r.hydrobasin.html">r.hydrobasin</a>,
+<a href="r.upflowlength.html">r.upflowlength</a>,
+<a href="r.lfp.html">r.lfp</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html">r.stream.extract</a>,
 <a href="r.stream.distance.html">r.stream.distance</a>
@@ -105,11 +108,12 @@ properly accumulated from the headwater cells.
 
 <h2>REFERENCES</h2>
 
-Huidae Cho, July 2023. <em>Memory-Efficient Flow Accumulation Using a
+Huidae Cho, September 2023. <em>Memory-Efficient Flow Accumulation Using a
 Look-Around Approach and Its OpenMP Parallelization.</em> Environmental
 Modelling &amp; Software 167, 105771.
 <a href="https://doi.org/10.1016/j.envsoft.2023.105771">doi:10.1016/j.envsoft.2023.105771</a>.
 
 <h2>AUTHOR</h2>
 
-<a href="mailto:grass4u@gmail com">Huidae Cho</a>, New Mexico State University
+<a href="mailto:grass4u@gmail com">Huidae Cho</a>
+(<a href="https://hydro.isnew.info/">HydroCS</a>, New Mexico State University)

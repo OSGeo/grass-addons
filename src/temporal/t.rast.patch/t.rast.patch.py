@@ -71,7 +71,7 @@
 # % excludes: -v,-s,-z
 # %end
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -97,7 +97,6 @@ def main():
     rows = sp.get_registered_maps("id", where, "start_time", None)
 
     if rows:
-
         ordered_rasts = []
         # newest images are first
         if sort == "desc":
@@ -117,18 +116,17 @@ def main():
             patch_flags += "s"
 
         try:
-            grass.run_command(
+            gs.run_command(
                 patch_module,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
                 input=(",").join(ordered_rasts),
                 output=output,
                 flags=patch_flags,
             )
         except CalledModuleError:
-            grass.fatal(_("%s failed. Check above error messages.") % "r.patch")
+            gs.fatal(_("%s failed. Check above error messages.") % "r.patch")
 
         if not add_time:
-
             # We need to set the temporal extent from the subset of selected maps
             maps = sp.get_registered_maps_as_objects(
                 where=where, order="start_time", dbif=None
@@ -154,7 +152,7 @@ def main():
             if output.find("@") >= 0:
                 id = output
             else:
-                mapset = grass.gisenv()["MAPSET"]
+                mapset = gs.gisenv()["MAPSET"]
                 id = output + "@" + mapset
 
             map = sp.get_new_map_instance(id)
@@ -170,5 +168,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

@@ -50,7 +50,7 @@
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -65,29 +65,29 @@ def execute(sql, msg=None, useSelect=True):
         return
 
     try:
-        grass.run_command("db.%s" % cmd, sql=sql, **pg_conn)
+        gs.run_command("db.%s" % cmd, sql=sql, **pg_conn)
     except CalledModuleError:
         if msg:
-            grass.fatal(msg)
+            gs.fatal(msg)
         else:
-            grass.fatal(_("Unable to build PostGIS topology"))
+            gs.fatal(_("Unable to build PostGIS topology"))
 
 
 def main():
     vmap = options["map"]
-    curr_mapset = grass.gisenv()["MAPSET"]
-    mapset = grass.find_file(name=vmap, element="vector")["mapset"]
+    curr_mapset = gs.gisenv()["MAPSET"]
+    mapset = gs.find_file(name=vmap, element="vector")["mapset"]
 
     # check if map exists in the current mapset
     if not mapset:
-        grass.fatal(_("Vector map <%s> not found") % vmap)
+        gs.fatal(_("Vector map <%s> not found") % vmap)
     if mapset != curr_mapset:
-        grass.fatal(_("Vector map <%s> not found in the current mapset") % vmap)
+        gs.fatal(_("Vector map <%s> not found in the current mapset") % vmap)
 
     # check for format
-    vInfo = grass.vector_info(vmap)
+    vInfo = gs.vector_info(vmap)
     if vInfo["format"] != "PostGIS,PostgreSQL":
-        grass.fatal(_("Vector map <%s> is not a PG-link") % vmap)
+        gs.fatal(_("Vector map <%s> is not a PG-link") % vmap)
 
     # default connection
     global pg_conn
@@ -99,7 +99,7 @@ def main():
 
     # check if topology schema already exists
     topo_found = False
-    ret = grass.db_select(
+    ret = gs.db_select(
         sql="SELECT COUNT(*) FROM topology.topology "
         "WHERE name = '%s'" % options["topo_schema"],
         **pg_conn,
@@ -111,12 +111,12 @@ def main():
     if topo_found:
         if int(os.getenv("GRASS_OVERWRITE", "0")) == 1:
             # -> overwrite
-            grass.warning(
+            gs.warning(
                 _("Topology schema <%s> already exists and will be overwritten")
                 % options["topo_schema"]
             )
         else:
-            grass.fatal(
+            gs.fatal(
                 _("option <%s>: <%s> exists.") % ("topo_schema", options["topo_schema"])
             )
 
@@ -128,7 +128,7 @@ def main():
 
     # create topo schema
     schema, table = vInfo["pg_table"].split(".")
-    grass.message(_("Creating new topology schema..."))
+    gs.message(_("Creating new topology schema..."))
     execute(
         "SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)"
         % (
@@ -141,7 +141,7 @@ def main():
     )
 
     # add topo column to the feature table
-    grass.message(_("Adding new topology column..."))
+    gs.message(_("Adding new topology column..."))
     execute(
         "SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')"
         % (
@@ -154,7 +154,7 @@ def main():
     )
 
     # build topology
-    grass.message(_("Building PostGIS topology..."))
+    gs.message(_("Building PostGIS topology..."))
     execute(
         "UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)"
         % (
@@ -175,5 +175,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

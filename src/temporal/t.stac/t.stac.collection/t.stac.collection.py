@@ -71,36 +71,43 @@
 # % description: Return basic information only
 # %end
 
+# %flag
+# % key: p
+# % description: Pretty print the JSON output
+# %end
+
 import sys
+import json
+from io import StringIO
 from pprint import pprint
+from contextlib import contextmanager
 import grass.script as gs
 from grass.pygrass.utils import get_lib_path
 
 
-from pystac_client import Client
-from pystac_client.exceptions import APIError
-from pystac_client.conformance import ConformanceClasses
-
-path = get_lib_path(modname="t.stac", libname="staclib")
-if path is None:
-    gs.fatal("Not able to find the stac library directory.")
-sys.path.append(path)
-
-
-def get_all_collections(client):
-    """Get a list of collections from STAC Client"""
+@contextmanager
+def add_sys_path(new_path):
+    """Add a path to sys.path and remove it when done"""
+    original_sys_path = sys.path[:]
+    sys.path.append(new_path)
     try:
-        collections = client.get_collections()
-        collection_list = list(collections)
-        return [i.to_dict() for i in collection_list]
-
-    except APIError as e:
-        gs.fatal(_("Error getting collections: {}".format(e)))
+        yield
+    finally:
+        sys.path = original_sys_path
 
 
 def main():
     """Main function"""
-    import staclib as libstac
+    # Import dependencies
+    path = get_lib_path(modname="t.stac", libname="staclib")
+    if path is None:
+        gs.fatal("Not able to find the stac library directory.")
+
+    with add_sys_path(path):
+        try:
+            import staclib as libstac
+        except ImportError as err:
+            gs.fatal(f"Unable to import staclib: {err}")
 
     # STAC Client options
     client_url = options["url"]  # required
@@ -112,41 +119,26 @@ def main():
 
     # Flag options
     basic_info = flags["b"]  # optional
+    pretty_print = flags["p"]  # optional
 
     # Set the request headers
     settings = options["settings"]
     req_headers = libstac.set_request_headers(settings)
 
-    try:
-        client = Client.open(client_url, headers=req_headers)
-    except APIError as e:
-        gs.fatal(_("APIError Error opening STAC API: {}".format(e)))
-
-    if libstac.conform_to_collections(client):
-        gs.verbose(_("Conforms to STAC Collections"))
+    # Connect to STAC API
+    stac_helper = libstac.STACHelper()
+    stac_helper.connect_to_stac(client_url, req_headers)
+    stac_helper.conforms_to_collections()
 
     if collection_id:
-        try:
-            collection = client.get_collection(collection_id)
-            collection_dict = collection.to_dict()
-            if format == "json":
-                gs.message(_(f"collection: {collection}"))
-                return collection_dict
-                # return pprint(collection.to_dict())
-            elif format == "plain":
-                if basic_info:
-                    return libstac.print_basic_collection_info(collection_dict)
-                return libstac.print_summary(collection_dict)
+        collection_dict = stac_helper.get_collection(collection_id)
 
-        except APIError as e:
-            gs.fatal(_("APIError Error getting collection: {}".format(e)))
-
-    # Create metadata vector
-    # if vector_metadata:
-    #     gs.message(_(f"Outputting metadata to {vector_metadata}"))
-    #     libstac.create_metadata_vector(vector_metadata, collection_list)
-    #     gs.message(_(f"Metadata written to {vector_metadata}"))
-    #     return vector_metadata
+        if format == "plain":
+            if basic_info:
+                return libstac.print_basic_collection_info(collection_dict)
+            return libstac.print_summary(collection_dict)
+        elif format == "json":
+            return libstac.print_json_to_stdout(collection_dict, pretty_print)
 
 
 if __name__ == "__main__":

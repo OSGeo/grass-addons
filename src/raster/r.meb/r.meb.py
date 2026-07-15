@@ -426,9 +426,9 @@ def main(options, flags):
             gs.run_command(
                 "r.support",
                 map=nmn,
-                title="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                title="Environmental similarity (ES) for {}".format(ipn[mm]),
                 units="0-100 (relative score",
-                description="Environmental similarity (ES) for " "{}".format(ipn[mm]),
+                description="Environmental similarity (ES) for {}".format(ipn[mm]),
                 loadhistory=tmphist,
             )
 

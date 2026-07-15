@@ -17,7 +17,7 @@ def replace_dummies(string, *args, **kwargs):
 
     out_ti = tmp_ti_mean  and  out_tj = tmp_ti_mean
 
-    (Idea sourced from: <http://stackoverflow.com/a/9479972/1172302>)
+    (Idea sourced from: <https://stackoverflow.com/a/9479972/1172302>)
     """
     inout = set(["instring", "outstring"])
     # if inout.issubset(set(kwargs)):  # alternative

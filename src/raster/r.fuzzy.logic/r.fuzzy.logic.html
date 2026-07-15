@@ -8,11 +8,11 @@ message and stops.
 <dt><b>ymap</b></dt>
 <dd>Name of input y membership operand. This map must be of type FCELL with
 range 0 :1 and may require null values. Otherwise program will print error
-message and stops. This map is optional bit is required for all operation except
-NOT
+message and stops. This map is required for all operations except
+<b>NOT</b>.
 </dd>
 <dt><b>operator</b></dt>
-<dd>A fuzzy set operators are generalization of crisp operators. There is more
+<dd>Fuzzy set operators are a generalization of crisp set operators. There is more
 than one possible generalization of every operator. There are three operations:
 fuzzy complements, fuzzy intersections, and fuzzy unions. Additional implication
 operator is also provided.
@@ -26,8 +26,8 @@ operator is also provided.
 <dt><b>family</b></dt>
 <dd>T-norms, T-conorms and residuals are a generalization of the two-valued
 logical conjunction,  disjunction and implication used by boolean logic, for
-fuzzy logics. Because there is more than one possible generalisation of logical
-operations, <em>r.fuzzy.logic</em> provides 6 most popular families for fuzzy operations:
+fuzzy logic. Because there is more than one possible generalisation of logical
+operations, <em>r.fuzzy.logic</em> provides 6 of the most popular families for fuzzy operations:
 <ul>
 <li><b>Zadeh</b> with minimum (Godel) t-norm and maximum T-conorm;
 <li><b>product</b> with product T-norm and probabilistic sum as T-conorm;
@@ -40,14 +40,14 @@ sum as T-conorm;
 </ul>
 There is no residuum for drastic and Hamacher families.
 For more details see <a href="http://www.jstatsoft.org/v31/i02">Meyer D, Hornik
-K (2009)</a>; <a href="http://en.wikipedia.org/wiki/T-norm">T-norms</a>;
+K (2009)</a>; <a href="https://en.wikipedia.org/wiki/T-norm">T-norms</a>;
 </dd>
 </dl>
 
 <h2>OUTPUTS</h2>
 <dl>
 <dt><b>output</b></dt>
-<dd>Map containing result of two-values operations.
+<dd>Map containing the result of two-values operations.
 Map is always of type FCELL and contains values
 from 0 (no membership) to 1 (full membership). Values between 0 and 1 indicate
 partial membership</dd>
@@ -56,11 +56,10 @@ partial membership</dd>
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.fuzzy.set.html">r.fuzzy.set</a> addon,
-<a href="r.fuzzy.system.html">r.fuzzy.system</a> addon,
+<a href="r.fuzzy.set.html">r.fuzzy.set</a>,
+<a href="r.fuzzy.system.html">r.fuzzy.system</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
 </em>
-
 
 <h2>REFERENCES</h2>
 
@@ -85,7 +84,7 @@ foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
 Statistical Software, 31(2), 1-27. DOI <a href="https://doi.org/10.18637/jss.v031.i02">https://doi.org/10.18637/jss.v031.i02</a>
 
 <li>Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL <a href="http://CRAN.R-project.org/package=sets">http://CRAN.R-project.org/package=sets</a>.
+R~package version~1.0, URL <a href="https://cran.r-project.org/package=sets">https://cran.r-project.org/package=sets</a>.
 </ul>
 
 <h2>AUTHOR</h2>

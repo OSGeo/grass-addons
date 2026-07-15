@@ -535,8 +535,7 @@ def main():
     if importances:
         if sklearn.__version__ < "0.22":
             gs.fatal(
-                "Feature importances calculation requires scikit-learn "
-                "version >= 0.22"
+                "Feature importances calculation requires scikit-learn version >= 0.22"
             )
 
     if fimp_file:
@@ -757,8 +756,7 @@ def main():
         ):
             gs.message(os.linesep)
             gs.fatal(
-                "Number of cv folds is greater than number of samples in "
-                "some classes "
+                "Number of cv folds is greater than number of samples in some classes "
             )
 
         gs.message(os.linesep)

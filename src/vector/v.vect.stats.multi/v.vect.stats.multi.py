@@ -100,7 +100,6 @@
 # % description: By default, generated as source column name underscore method name
 # %end
 
-
 import sys
 from itertools import product
 

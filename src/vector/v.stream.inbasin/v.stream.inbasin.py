@@ -99,7 +99,7 @@ from grass.pygrass.modules.shortcuts import raster as r
 from grass.pygrass.modules.shortcuts import vector as v
 from grass.pygrass import vector
 from grass.script import vector_db_select
-from grass import script as gscript
+from grass import script as gs
 from grass.pygrass.vector.geometry import Point
 
 ###############
@@ -121,7 +121,7 @@ def main():
     means that the river exits the map.
     """
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     streams = options["input_streams"]
     basins = options["input_basins"]
@@ -167,11 +167,11 @@ def main():
             tmp.build()
             tmp.close()
             # Now v.distance
-            gscript.run_command(
+            gs.run_command(
                 "v.distance", from_="tmp", to=streams, upload="cat", column="strcat"
             )
             # v.distance(_from_='tmp', to=streams, upload='cat', column='strcat')
-            downstream_cat = gscript.vector_db_select(map="tmp", columns="strcat")
+            downstream_cat = gs.vector_db_select(map="tmp", columns="strcat")
             downstream_cat = int(downstream_cat["values"][1][0])
 
         # Attributes of streams
@@ -207,7 +207,7 @@ def main():
                 input=basins,
                 output=output_basins,
                 where=SQL_LIST,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
         if len(streams) > 0:
@@ -215,7 +215,7 @@ def main():
                 input=streams,
                 output=output_streams,
                 cats=basincats_str,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
 
@@ -229,14 +229,14 @@ def main():
         )
         r.to_vect(input="tmp", output="tmp", type="area", overwrite=True)
         v.clip(input=basins, clip="tmp", output=output_basins, overwrite=True)
-        basincats = gscript.vector_db_select("basins_inbasin").values()[0].keys()
+        basincats = gs.vector_db_select("basins_inbasin").values()[0].keys()
         basincats_str = ",".join(map(str, basincats))
         if len(streams) > 0:
             v.extract(
                 input=streams,
                 output=output_streams,
                 cats=basincats_str,
-                overwrite=gscript.overwrite(),
+                overwrite=gs.overwrite(),
                 quiet=True,
             )
 
@@ -248,7 +248,7 @@ def main():
         except:
             pass
         if snapflag or (downstream_cat != ""):
-            _pp = gscript.vector_db_select(
+            _pp = gs.vector_db_select(
                 map=streams, columns="x2,y2", where="cat=" + str(downstream_cat)
             )
             _xy = np.squeeze(list(_pp["values"].values()))

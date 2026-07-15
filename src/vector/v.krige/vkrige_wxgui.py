@@ -28,7 +28,7 @@ import _thread
 # time-consuming. cfr. grass.parser.
 
 try:
-    import grass.script as grass
+    import grass.script as gs
 except ImportError:
     sys.exit(_("No GRASS-python library found."))
 
@@ -155,7 +155,7 @@ class KrigingPanel(wx.Panel):
             pos=(0, 0),
         )
         self.OutputMapName = gselect.Select(
-            parent=self, id=wx.ID_ANY, type="raster", mapsets=[grass.gisenv()["MAPSET"]]
+            parent=self, id=wx.ID_ANY, type="raster", mapsets=[gs.gisenv()["MAPSET"]]
         )
         OutputParameters.Add(self.OutputMapName, flag=wx.EXPAND | wx.ALL, pos=(0, 1))
         self.VarianceRasterCheckbox = wx.CheckBox(
@@ -166,7 +166,7 @@ class KrigingPanel(wx.Panel):
             self.VarianceRasterCheckbox, flag=wx.ALIGN_CENTER_VERTICAL, pos=(1, 0)
         )
         self.OutputVarianceMapName = gselect.Select(
-            parent=self, id=wx.ID_ANY, type="raster", mapsets=[grass.gisenv()["MAPSET"]]
+            parent=self, id=wx.ID_ANY, type="raster", mapsets=[gs.gisenv()["MAPSET"]]
         )
         self.VarianceRasterCheckbox.Bind(wx.EVT_CHECKBOX, self.OnVarianceCBChecked)
         OutputParameters.Add(
@@ -262,7 +262,7 @@ class KrigingPanel(wx.Panel):
         event.Skip()
 
     def OnHelpButton(self, event):
-        grass.run_command("g.manual", entry="v.krige")
+        gs.run_command("g.manual", entry="v.krige")
         event.Skip()
 
     def OnInputMapChanged(self, event):

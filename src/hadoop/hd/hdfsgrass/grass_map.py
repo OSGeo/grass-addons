@@ -1,5 +1,5 @@
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
@@ -28,7 +28,7 @@ class VectorDBInfo:
         nuldev = open(os.devnull, "w+")
         # if map is not defined (happens with vnet initialization) or it doesn't exist
         try:
-            self.layers = grass.vector_db(map=self.map, stderr=nuldev)
+            self.layers = gs.vector_db(map=self.map, stderr=nuldev)
         except CalledModuleError:
             return False
         finally:  # always close nuldev
@@ -43,7 +43,7 @@ class VectorDBInfo:
             table = self.layers[layer]["table"]
             columns = {}  # {name: {type, length, [values], [ids]}}
             i = 0
-            for item in grass.db_describe(
+            for item in gs.db_describe(
                 table=self.layers[layer]["table"],
                 driver=self.layers[layer]["driver"],
                 database=self.layers[layer]["database"],

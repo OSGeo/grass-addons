@@ -9,7 +9,7 @@
 #               of the raster values. If a zonal map is set, trendlines are
 #               drawn for each of the zones of the zonal layer.
 #
-# COPYRIGHT:    (c) 2024 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2024-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -210,6 +210,7 @@ import sys
 from datetime import datetime
 import grass.script as gs
 from grass.exceptions import CalledModuleError
+from grass.temporal.datetime_math import string_to_datetime
 from math import sqrt
 import matplotlib.dates as mdates
 from random import random
@@ -247,14 +248,14 @@ def cleanup():
 
 def lazy_import_py_modules():
     """Lazy import Py modules"""
-    global matplotlib
+    global mpl
     global plt
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -278,8 +279,8 @@ def get_valid_color(color):
     """
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -399,13 +400,13 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
@@ -413,9 +414,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                 e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in e_tmp
                 ]
@@ -432,9 +433,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                    ]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [
@@ -487,21 +486,15 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
     else:
         if temp_type == "absolute":
             if not bool(idx_end):
-                date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
-                    for x in univar[1:]
-                ]
+                date_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
             else:
-                s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
-                    for x in univar[1:]
-                ]
+                s_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
                 # Check if end slots have date or None
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in univar[1:]
                 ]
@@ -518,9 +511,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                    ]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
@@ -751,7 +742,11 @@ def main(options, flags):
         plt.savefig(output, bbox_inches="tight", dpi=dpi)
         plt.close()
         path_name = os.path.split(output)
-        gs.message(_(f"Done, you can find the file {path_name[1]} in {path_name[0]}"))
+        gs.message(
+            _("Done, you can find the file {name} in {path}").format(
+                name=path_name[0], path=path_name[1]
+            )
+        )
     else:
         plt.tight_layout()
         plt.show()

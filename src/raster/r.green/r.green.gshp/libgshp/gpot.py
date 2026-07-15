@@ -10,7 +10,7 @@ Alessandro Casasso, Rajandrea Sethi, 2016,
 "G.POT: A quantitative method for the assessment and mapping of the
 shallow geothermal potential"
 Energy 106, p 765 -- 773
-http://dx.doi.org/10.1016/j.energy.2016.03.091
+https://doi.org/10.1016/j.energy.2016.03.091
 
 
 Variables
@@ -40,6 +40,7 @@ simulation parameters:
       geo-exchange is evaluated.
 
 """
+
 from numpy import log, pi, sqrt
 
 from grass.script import raster as grast

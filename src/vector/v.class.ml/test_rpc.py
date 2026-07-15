@@ -4,6 +4,7 @@ Created on Sat Nov 23 01:47:42 2013
 
 @author: pietro
 """
+
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point
 from grass.pygrass.function import get_mapset_vector

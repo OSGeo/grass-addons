@@ -6,7 +6,6 @@ from grass.gunittest.main import test
 
 
 class TestPGACalib(TestCase):
-
     pga_params = dict(
         development_pressure="devpressure",
         predictors=["slope", "lakes_dist_km", "streets_dist_km"],

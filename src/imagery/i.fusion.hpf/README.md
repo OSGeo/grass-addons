@@ -91,7 +91,7 @@ After installation, from within a GRASS-GIS session, see help details via
 
 ## To Do
 
-- Go through <http://trac.osgeo.org/grass/wiki/Submitting/Python>
+- Go through <https://trac.osgeo.org/grass/wiki/Submitting/Python>
 - Access input raster by row I/O ?
 - Proper command history tracking. Not all "r" modules do it... ?
 - Add timestamps (r.timestamp)
@@ -125,8 +125,8 @@ After installation, from within a GRASS-GIS session, see help details via
 - Anonymous on coursera's discussion forums
 - Pietro Zambelli
 - StackExchange contributors
-  - <http://stackoverflow.com/a/1140966/1172302>
-  - <http://stackoverflow.com/a/275025/1172302>
+  - <https://stackoverflow.com/a/1140966/1172302>
+  - <https://stackoverflow.com/a/275025/1172302>
 - Yann Chemin
 - Aniruddha Ghosh
 - Παναγιώτης Μαυρογιώργος (<https://github.com/pmav99>)

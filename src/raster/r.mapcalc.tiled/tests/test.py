@@ -17,7 +17,7 @@
 
 import configparser
 import csv
-import grass.script as grass
+import grass.script as gs
 import os
 import sys
 import time
@@ -27,7 +27,7 @@ if len(sys.argv) == 1:
 else:
     configfile = sys.argv[1]
     if not os.path.isfile(configfile):
-        grass.fatal("%s is no file and cannot be used as config file" % configfile)
+        gs.fatal("%s is no file and cannot be used as config file" % configfile)
 
 # get config
 config = configparser.ConfigParser()
@@ -72,14 +72,14 @@ with open(conf["csvfile"], "w", newline="") as f:
     for res in conf["resolution"]:
         # set region (resolution)
         print("set resolution to %s" % (res))
-        grass.run_command("g.region", raster=conf["regionmap"], res=res)
-        cells = str(grass.region()["cells"])
+        gs.run_command("g.region", raster=conf["regionmap"], res=res)
+        cells = str(gs.region()["cells"])
         # compute r.mapcalc
         print("compute r.mapcalc for resolution: %s" % str(res))
         name = "test_%s_%s_rmapcalc" % (conf["expression"].split("=")[0].strip(), cells)
         expression = "%s = %s" % (name, "=".join(conf["expression"].split("=")[1:]))
         start = time.time()
-        grass.run_command("r.mapcalc", expression=conf["expression"], overwrite=True)
+        gs.run_command("r.mapcalc", expression=conf["expression"], overwrite=True)
         end = time.time()
         time_rmapcalc = str(end - start)
         print("r.mapcalc time %s" % str(time_rmapcalc))
@@ -89,7 +89,7 @@ with open(conf["csvfile"], "w", newline="") as f:
             print(
                 "Force of writing everything to disk to minimize caching affecting the benchmarks"
             )
-        grass.run_command("g.remove", flags="f", type="raster", name=name)
+        gs.run_command("g.remove", flags="f", type="raster", name=name)
         for wh in conf["wh"]:
             # compute r.mapcalc.tiled
             print(
@@ -103,7 +103,7 @@ with open(conf["csvfile"], "w", newline="") as f:
             )
             expression = "%s = %s" % (name, "=".join(conf["expression"].split("=")[1:]))
             start = time.time()
-            grass.run_command(
+            gs.run_command(
                 "r.mapcalc.tiled",
                 expression=expression,
                 width=wh,
@@ -120,7 +120,7 @@ with open(conf["csvfile"], "w", newline="") as f:
                 print(
                     "Force of writing everything to disk to minimize caching affecting the benchmarks"
                 )
-            grass.run_command("g.remove", flags="f", type="raster", name=name)
+            gs.run_command("g.remove", flags="f", type="raster", name=name)
             # write csv
             with open(conf["csvfile"], "a", newline="") as f:
                 writer.writerow(

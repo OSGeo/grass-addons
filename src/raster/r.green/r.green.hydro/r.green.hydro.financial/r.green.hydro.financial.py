@@ -515,7 +515,7 @@ try:
     import numexpr as ne
 except ImportError:
     ne = None
-    warning("You should install numexpr to use this module: " "pip install numexpr")
+    warning("You should install numexpr to use this module: pip install numexpr")
 
 try:
     # set python path to the shared r.green libraries
@@ -561,7 +561,7 @@ def check_raster_or_landuse(opts, params):
 
 def upper_value(upper, stu, lan, rot, age, irate, overwrite=False):
     """Compute the upper value of a land."""
-    expr = "{upper} = ({stu} + {lan}) / ((1 + {irate})^({rot} - {age}) )" " - {lan}"
+    expr = "{upper} = ({stu} + {lan}) / ((1 + {irate})^({rot} - {age}) ) - {lan}"
     r.mapcalc(
         expr.format(upper=upper, stu=stu, lan=lan, irate=irate, rot=rot, age=age),
         overwrite=overwrite,
@@ -1009,7 +1009,6 @@ def write2struct(elines, opts):
     with VectorTopo(
         pname, mapset=vmapset, layer=int(opts["struct_layer"]), mode="r"
     ) as vect:
-
         if "el_comp_exc" not in vect.table.columns:
             vect.table.columns.add("el_comp_exc", "double precision")
         ename, emapset = elines.split("@") if "@" in elines else (elines, "")

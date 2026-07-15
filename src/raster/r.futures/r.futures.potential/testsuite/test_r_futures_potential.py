@@ -6,7 +6,6 @@ from grass.gunittest.main import test
 
 
 class TestPotential(TestCase):
-
     output = "potential.csv"
     dredge_out = "dredge_out.csv"
 

@@ -1,14 +1,14 @@
-import grass.script as grass
+import grass.script as gs
 import os
 
 
 class Nnbathy:
     # base class
     def __init__(self, options):
-        self._tmpxyz = grass.tempfile()
-        self._xyzout = grass.tempfile()
-        self._tmp = grass.tempfile()
-        self._tmpcat = grass.tempfile()
+        self._tmpxyz = gs.tempfile()
+        self._xyzout = gs.tempfile()
+        self._tmp = gs.tempfile()
+        self._tmpcat = gs.tempfile()
         self.options = options
         self.region()
         pass
@@ -17,7 +17,7 @@ class Nnbathy:
         # set the computive region
         # reg = grass.read_command("g.region", flags='p')
         # kv = grass.parse_key_val(reg, sep=':')
-        kv = grass.region()
+        kv = gs.region()
         # reg_N = float(kv['north'])
         # reg_W = float(kv['west'])
         # reg_S = float(kv['south'])
@@ -47,18 +47,18 @@ class Nnbathy:
 
     def compute(self):
         # computing
-        grass.message(
+        gs.message(
             '"nnbathy" is performing the interpolation now. \
                       This may take some time...'
         )
-        grass.verbose(
+        gs.verbose(
             "Once it completes an 'All done.' \
                       message will be printed."
         )
 
         # nnbathy calling
         fsock = open(self._xyzout, "w")
-        grass.call(
+        gs.call(
             [
                 "nnbathy",
                 "-W",
@@ -102,7 +102,7 @@ class Nnbathy:
         header.close()
 
         # 2 do the conversion
-        grass.message("Converting nnbathy output to GRASS raster ...")
+        gs.message("Converting nnbathy output to GRASS raster ...")
         fin = open(self._xyzout, "r")
         fout = open(self._tmp, "a")
         cur_col = 1
@@ -118,10 +118,10 @@ class Nnbathy:
         fout.close()
 
         # 3 import to raster
-        grass.run_command(
+        gs.run_command(
             "r.in.ascii", input=self._tmp, output=self.options["output"], quiet=True
         )
-        grass.message("All done. Raster map <%s> created." % self.options["output"])
+        gs.message("All done. Raster map <%s> created." % self.options["output"])
 
     def __del__(self):
         # cleanup
@@ -143,7 +143,7 @@ class Nnbathy_raster(Nnbathy):
 
     def _load(self, options):
         # load input raster
-        grass.run_command(
+        gs.run_command(
             "r.stats",
             flags="1gn",
             input=options["input"],
@@ -169,9 +169,9 @@ class Nnbathy_vector(Nnbathy):
             if options["column"]:
                 _column = options["column"]
             else:
-                grass.message("Name of z column required for 2D vector maps.")
+                gs.message("Name of z column required for 2D vector maps.")
         # convert vector to ASCII
-        grass.run_command(
+        gs.run_command(
             "v.out.ascii",
             overwrite=1,
             input=options["input"].split("@")[0],
@@ -208,11 +208,11 @@ class Nnbathy_vector(Nnbathy):
                         fout.write("{} {} {}".format(parts[0], parts[1], parts[4]))
                     pnt.close()
             except (Exception, OSError) as e:
-                grass.fatal_error("Invalid input: %s" % e)
+                gs.fatal_error("Invalid input: %s" % e)
             fin.close()
             fout.close()
         else:
-            grass.message("Z coordinates are used.")
+            gs.message("Z coordinates are used.")
 
 
 class Nnbathy_file:

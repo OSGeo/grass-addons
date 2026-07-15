@@ -110,8 +110,9 @@ def move_extracted_files(extract_dir, target_dir, files):
 def extract_zip(name, directory, tmpdir):
     """Extract a ZIP file into a directory"""
     gs.debug(
-        "extract_zip(name={name}, directory={directory},"
-        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        "extract_zip(name={name}, directory={directory}, tmpdir={tmpdir})".format(
+            name=name, directory=directory, tmpdir=tmpdir
+        ),
         3,
     )
     try:
@@ -136,8 +137,9 @@ def extract_zip(name, directory, tmpdir):
 def extract_tar(name, directory, tmpdir):
     """Extract a TAR or a similar file into a directory"""
     gs.debug(
-        "extract_tar(name={name}, directory={directory},"
-        " tmpdir={tmpdir})".format(name=name, directory=directory, tmpdir=tmpdir),
+        "extract_tar(name={name}, directory={directory}, tmpdir={tmpdir})".format(
+            name=name, directory=directory, tmpdir=tmpdir
+        ),
         3,
     )
     try:
@@ -167,7 +169,7 @@ def download_end_extract(source):
         f, h = urlretrieve(source, archive_name)
         if h.get("content-type", "") != "application/zip":
             raise DownloadError(
-                _("Download of <%s> failed " "or file is not a ZIP file") % source
+                _("Download of <%s> failed or file is not a ZIP file") % source
             )
         extract_zip(name=archive_name, directory=directory, tmpdir=tmpdir)
     elif "." in source and (
@@ -257,7 +259,7 @@ def main(options, flags):
     destination = os.path.join(database, name)
 
     if os.path.exists(destination):
-        gs.fatal(_("Location named <%s> already exists," " download canceled") % name)
+        gs.fatal(_("Location named <%s> already exists, download canceled") % name)
         return
 
     gs.message(_("Downloading and extracting..."))

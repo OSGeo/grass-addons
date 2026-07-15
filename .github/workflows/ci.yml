@@ -22,7 +22,7 @@ permissions: {}
 jobs:
   build:
     name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # Test with relevant active branches or tags and supported Python
@@ -32,22 +32,36 @@ jobs:
         include:
           - grass-version: main
             python-version: "3.11"
-          - grass-version: releasebranch_8_4
-            python-version: "3.10"
+            os: ubuntu-24.04
+          - grass-version: releasebranch_8_5
+            python-version: "3.11"
+            os: ubuntu-24.04
       fail-fast: false
+    env:
+      # renovate: datasource=github-tags depName=r-hub/R
+      R_VERSION: "4.6.1"
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
           path: grass
+          persist-credentials: false
 
       - name: Checkout addons
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           path: grass-addons
+          persist-credentials: false
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
+        with:
+          create-symlink: true
+          verbose: 2
+          evict-old-files: 7d
+          key: ${{ github.job }}-${{ matrix.grass-version }}-${{ matrix.python-version }}
 
       - name: Get dependencies
         run: |
@@ -57,7 +71,7 @@ jobs:
               sudo apt-get install -y --no-install-recommends --no-install-suggests
 
       - name: Set up Python ${{ matrix.python-version }} as default Python
-        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -92,12 +106,6 @@ jobs:
           if [ ! -e "$HOME/install/bin/grass" ] ; then \
             ln -s "$HOME"/install/bin/grass* "$HOME"/install/bin/grass ; fi
 
-      - name: Build addons
-        run: |
-          cd grass-addons/src
-          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
-          make MODULE_TOPDIR="$GRASS_INSTALL"
-
       - name: Get extra Python dependencies
         run: |
           GDAL_VERSION="$(gdal-config --version)"
@@ -106,22 +114,36 @@ jobs:
           export UDUNITS2_XML_PATH
           pip install -r grass-addons/.github/workflows/extra_requirements.txt
 
-      - name: Set up R
-        uses: r-lib/actions/setup-r@e6be4b3706e0f39bc7a4cf4496a5f2c4cb840040 # v2.10.1
-        with:
-          r-version: 4.2.1
+      - name: Build addons
+        run: |
+          cd grass-addons/src
+          GRASS_INSTALL="$("$HOME/install/bin/grass" --config | sed -n '4{p;q}')"
+          make MODULE_TOPDIR="$GRASS_INSTALL"
 
+      - name: Set up R
+        uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6 # v2.12.1
+        with:
+          r-version: ${{ env.R_VERSION }}
+          Ncpus: 4
+      - name: Configure ccache for R package builds
+        run: |
+          # R package sources are extracted as newly created files
+          echo "CCACHE_SLOPPINESS=include_file_ctime" >> "${GITHUB_ENV}"
+          # R temp directory name differs
+          echo "CCACHE_NOHASHDIR=true" >> "${GITHUB_ENV}"
       - name: Get R dependencies
         run: |
           grass-addons/.github/workflows/install_r_packages.R
 
       - name: Run tests
+        timeout-minutes: 45
         run: |
           cd grass-addons/src
-          ../.github/workflows/test.sh
+          ../.github/workflows/test.sh --config ../.gunittest.cfg
 
       - name: Make HTML test report available
-        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

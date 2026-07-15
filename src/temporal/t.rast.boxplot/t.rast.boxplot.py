@@ -242,14 +242,14 @@ clean_maps = []
 
 def lazy_import_py_modules():
     """Lazy import Py modules"""
-    global matplotlib
+    global mpl
     global plt
 
     # lazy import matplotlib
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -354,8 +354,8 @@ def get_valid_color(color):
     """
     if ":" in color:
         color = [int(x) / 255 for x in color.split(":")]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
     return color
 
 
@@ -404,6 +404,8 @@ def get_bx_width(option_bxp_width, temp_type, strds):
         bxp_width = 0.7
     if temp_type == "relative":
         bxp_width = 0.7
+        temp_lngt = None
+        temp_unit = None
     else:
         strds_info = Module(
             "t.info", flags="g", input=strds, stdout_=PIPE
@@ -675,10 +677,8 @@ def main(options, flags):
     range_min_val = 0
     if whisker_range <= range_min_val:
         gs.fatal(
-            _(
-                "The range value need to be larger than {min_val}".format(
-                    min_val=range_min_val,
-                )
+            _("The range value need to be larger than {min_val}").format(
+                min_val=range_min_val
             )
         )
 
@@ -719,7 +719,6 @@ def main(options, flags):
     # Create the stats and define the boxes
     boxes = []
     for _, rastername in enumerate(rast_names):
-
         # Compute boxplot stats
         (
             min_value,
@@ -796,7 +795,7 @@ def main(options, flags):
         else:
             ax.yaxis.set_major_locator(locator)
             ax.yaxis.set_major_formatter(formatter)
-    else:
+    elif temp_unit is not None:
         ax = set_axis(
             ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
         )

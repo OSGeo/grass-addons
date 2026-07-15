@@ -4,7 +4,7 @@
  * AUTHOR(S):    Rashad Kanavath <rashadkm gmail>
  *               Markus Metz
  *               based on the C++ SLIC implementation from:
- *               http://ivrl.epfl.ch/research/superpixels
+ *               https://www.epfl.ch/labs/ivrl/research/slic-superpixels
  * PURPOSE:      Perform superpixel segmentation
  *
  * This code performs superpixel segmentation as explained in the paper:
@@ -12,7 +12,7 @@
  * Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Susstrunk.
  * EPFL Technical Report no. 149300, June 2010.
  * Below code is ported to GRASS GIS from original C++ SLIC implementation
- * available at:  http://ivrl.epfl.ch/research/superpixels
+ * available at:  https://www.epfl.ch/labs/ivrl/research/slic-superpixels
  *
  *****************************************************************************/
 

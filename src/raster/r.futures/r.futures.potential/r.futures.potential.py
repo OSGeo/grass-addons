@@ -100,7 +100,7 @@
 import sys
 import atexit
 import subprocess
-import grass.script as gscript
+import grass.script as gs
 import grass.script.utils as gutils
 
 
@@ -221,10 +221,10 @@ TMP_RSCRIPT = None
 
 
 def cleanup():
-    gscript.try_remove(TMP_CSV)
-    gscript.try_remove(TMP_POT)
-    gscript.try_remove(TMP_DREDGE)
-    gscript.try_remove(TMP_RSCRIPT)
+    gs.try_remove(TMP_CSV)
+    gs.try_remove(TMP_POT)
+    gs.try_remove(TMP_DREDGE)
+    gs.try_remove(TMP_RSCRIPT)
 
 
 def main():
@@ -243,7 +243,7 @@ def main():
 
     for each in fixed_columns:
         if each not in columns:
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Fixed predictor {} not among predictors specified in option 'columns'"
                 ).format(each)
@@ -253,12 +253,12 @@ def main():
     else:
         maxv = len(columns)
     if dredge and minim > maxv:
-        gscript.fatal(
+        gs.fatal(
             _("Minimum number of predictor variables is larger than maximum number")
         )
 
-    if not gscript.find_program("Rscript", "--version"):
-        gscript.fatal(
+    if not gs.find_program("Rscript", "--version"):
+        gs.fatal(
             _(
                 "Rscript required for running r.futures.potential, but not found. "
                 "Make sure you have R installed and added to the PATH."
@@ -266,10 +266,10 @@ def main():
         )
 
     global TMP_CSV, TMP_RSCRIPT, TMP_POT, TMP_DREDGE
-    TMP_CSV = gscript.tempfile(create=False) + ".csv"
-    TMP_RSCRIPT = gscript.tempfile()
+    TMP_CSV = gs.tempfile(create=False) + ".csv"
+    TMP_RSCRIPT = gs.tempfile()
     include_level = True
-    distinct = gscript.read_command(
+    distinct = gs.read_command(
         "v.db.select",
         flags="c",
         map=vinput,
@@ -280,8 +280,8 @@ def main():
         single_level = distinct.splitlines()[0]
     with open(TMP_RSCRIPT, "w") as f:
         f.write(rscript)
-    TMP_POT = gscript.tempfile(create=False) + "_potential.csv"
-    TMP_DREDGE = gscript.tempfile(create=False) + "_dredge.csv"
+    TMP_POT = gs.tempfile(create=False) + "_potential.csv"
+    TMP_DREDGE = gs.tempfile(create=False) + "_dredge.csv"
     columns += [binary]
     if include_level:
         columns += [level]
@@ -292,7 +292,7 @@ def main():
     where = "{c} IS NOT NULL".format(c=columns[0])
     for c in columns[1:]:
         where += " AND {c} IS NOT NULL".format(c=c)
-    gscript.run_command(
+    gs.run_command(
         "v.db.select",
         map=vinput,
         columns=columns,
@@ -302,9 +302,9 @@ def main():
     )
 
     if dredge:
-        gscript.info(_("Running automatic model selection ..."))
+        gs.info(_("Running automatic model selection ..."))
     else:
-        gscript.info(_("Computing model..."))
+        gs.info(_("Computing model..."))
 
     cmd = [
         "Rscript",
@@ -337,13 +337,13 @@ def main():
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     if stderr:
-        gscript.warning(gscript.decode(stderr))
+        gs.warning(gs.decode(stderr))
     if p.returncode != 0:
-        gscript.fatal(_("Running R script failed, check messages above"))
+        gs.fatal(_("Running R script failed, check messages above"))
 
-    gscript.info(_("Best model summary:"))
-    gscript.info("-------------------------")
-    gscript.message(gscript.decode(stdout))
+    gs.info(_("Best model summary:"))
+    gs.info("-------------------------")
+    gs.message(gs.decode(stdout))
 
     # note: this would be better with pandas, but adds dependency
     with open(TMP_POT, "r") as fin, open(options["output"], "w") as fout:
@@ -383,6 +383,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     sys.exit(main())

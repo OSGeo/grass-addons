@@ -17,19 +17,21 @@ concurrency:
 permissions: {}
 env:
   # renovate: datasource=python-version depName=python
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.14"
   # renovate: datasource=pypi depName=flake8
-  FLAKE8_VERSION: "7.1.1"
+  FLAKE8_VERSION: "7.3.0"
 
 jobs:
   flake8:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 

@@ -1,7 +1,7 @@
-import unittest2 as unittest
+import unittest
 
-# import unittest
 from math import sqrt
+
 from libagent import playground, error
 
 
@@ -109,9 +109,9 @@ class TestPlayground(unittest.TestCase):
         self.pg.setregion(3, 3)
         positions = []
         ps = positions[:]
-        self.assertItemsEqual(ps, self.pg.addneighbourposition(positions, [9, 9]))
+        self.assertCountEqual(ps, self.pg.addneighbourposition(positions, [9, 9]))
         ps.append([1, 1])
-        self.assertItemsEqual(ps, self.pg.addneighbourposition(positions, [1, 1]))
+        self.assertCountEqual(ps, self.pg.addneighbourposition(positions, [1, 1]))
 
     def test_getorderedneighbourpositions(self):
         self.pg.setregion(3, 3)

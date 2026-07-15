@@ -52,7 +52,6 @@ class Marks(object):
         list_pnts = []
         list_attrs = []
         for i, dats in enumerate(self.tabla):
-
             r_pnt = self.plant.get_roadpoint(dats["pk"])
 
             self.vert.set_elev(r_pnt)

@@ -26,7 +26,6 @@ COPYRIGHT:    (C) 2013-2015 by the GRASS Development Team
 # % required: yes
 # %end
 
-
 import sys
 import re
 import os

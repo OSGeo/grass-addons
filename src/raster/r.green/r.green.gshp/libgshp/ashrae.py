@@ -5,6 +5,7 @@ ASHREA methodology
 ------------------
 
 """
+
 from collections import namedtuple
 from os import getpid
 

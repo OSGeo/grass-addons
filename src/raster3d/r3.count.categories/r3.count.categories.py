@@ -109,10 +109,7 @@ def basename_in_use_message(basename, rasters):
     else:
         formatted = ", ".join(rasters)
     gs.fatal(
-        _(
-            "There are rasters with basename <%s> (%s), use"
-            " different name or overwrite"
-        )
+        _("There are rasters with basename <%s> (%s), use different name or overwrite")
         % (basename, formatted)
     )
 
@@ -143,7 +140,7 @@ def main():
         size = int(options["size"])
         if size % 2 == 0:
             gs.fatal(
-                _("Please provide an odd number for the moving" " window size, not %d")
+                _("Please provide an odd number for the moving window size, not %d")
                 % size
             )
 

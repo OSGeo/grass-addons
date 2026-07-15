@@ -5,6 +5,7 @@ Created on Thu Nov 19 10:42:17 2020
 
 @author: lucadelu
 """
+
 import os
 import argparse
 import glob
@@ -40,8 +41,9 @@ def main():
     output = os.path.join(args.dir, args.sitemap)
     if os.path.exists(output) and not args.overwrite:
         print(
-            "{} already exists. If you want overwrite please use '-o' "
-            "parameter".format(output)
+            "{} already exists. If you want overwrite please use '-o' parameter".format(
+                output
+            )
         )
         return False
     url = args.url.rstrip("/")

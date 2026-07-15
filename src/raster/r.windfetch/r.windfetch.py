@@ -87,6 +87,10 @@ for details.
 # % descriptions: csv;CSV (Comma Separated Values);json;JSON (JavaScript Object Notation);
 # % answer: csv
 # %end
+# %flag
+# % key: c
+# % description: Use compass directions (0 is North, clockwise) for input direction and output
+# %end
 # %rules
 # % exclusive: coordinates, points
 # %end
@@ -94,11 +98,11 @@ for details.
 # % required: coordinates, points
 # %end
 
-
 import sys
 import atexit
 import json
 import csv
+from math import gcd
 from io import StringIO
 
 import grass.script as gs
@@ -114,23 +118,47 @@ def clean(name):
     gs.run_command("g.remove", type="raster", name=name, flags="f", superquiet=True)
 
 
-def point_fetch(land, coordinates, direction, step, minor_directions, minor_step):
+def point_fetch(
+    land, coordinates, direction, step, minor_directions, minor_step, compass
+):
     gs.verbose(_("Computing distances..."))
-    data = gs.read_command(
-        "r.horizon",
-        elevation=land,
-        direction=0,
-        coordinates=coordinates,
-        step=1,
-        format="json",
-    )
+    if minor_directions > 1:
+        # horizon step is the greatest common divisor of step and minor_step
+        gcd_step = gcd(step, minor_step)
+    else:
+        gcd_step = step
+    if compass:
+        data = gs.read_command(
+            "r.horizon",
+            elevation=land,
+            direction=(90 - direction) % 360,
+            coordinates=coordinates,
+            step=gcd_step,
+            format="json",
+            flags="c",
+        )
+    else:
+        data = gs.read_command(
+            "r.horizon",
+            elevation=land,
+            direction=0,
+            coordinates=coordinates,
+            step=gcd_step,
+            format="json",
+        )
     gs.verbose(_("Computing wind fetch..."))
     offset = minor_step * (minor_directions - 1) / 2
     output = []
     for point in json.loads(data):
-        distances_dict = {
-            horizons["azimuth"]: horizons["distance"] for horizons in point["horizons"]
-        }
+        distances_dict = dict(
+            sorted(
+                (
+                    (horizons["azimuth"], horizons["distance"])
+                    for horizons in point["horizons"]
+                ),
+                key=lambda x: x[0],
+            )
+        )
         output.append({"x": point["x"], "y": point["y"], "directions": [], "fetch": []})
         i = 0
         while i < 360:
@@ -165,6 +193,7 @@ def main():
     minor_step = int(options["minor_step"])
     output_file = options["output_file"]
     output_format = options["format"]
+    compass = flags["c"]
 
     if minor_directions % 2 == 0:
         gs.fatal(_("Number of minor directions should be odd, not even."))
@@ -172,10 +201,12 @@ def main():
     atexit.register(clean, temporary_raster)
     info = gs.raster_info(input_raster)
     height = int((info["north"] - info["south"]) / 10) + 1
-    rules = f"1 = {height}\n* = 0"
-    gs.write_command(
-        "r.reclass", input=input_raster, output=temporary_raster, stdin=rules, rules="-"
+    # set border cells to zero to force computing horizons
+    condition = "row() == 1 || row() == nrows() || col() == 1 || col() == ncols()"
+    gs.mapcalc(
+        f"{temporary_raster} = if ({input_raster} == 1, {height}, if ({condition}, {height}, 0))"
     )
+
     if points_map:
         point_data = gs.read_command(
             "v.out.ascii",
@@ -195,6 +226,7 @@ def main():
         step=step,
         minor_directions=minor_directions,
         minor_step=minor_step,
+        compass=compass,
     )
     if output_format == "csv":
         text_output = []

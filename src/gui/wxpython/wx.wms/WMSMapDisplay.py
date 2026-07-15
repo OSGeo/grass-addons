@@ -39,7 +39,7 @@ class ImagePanel(wx.Panel):
                 (10 + png.GetWidth(), 5),
                 (png.GetWidth(), png.GetHeight()),
             )
-        except IOError:
+        except OSError:
             message = "Image file %s not found" % imageFile
             grass.warning(message)
             raise SystemExit

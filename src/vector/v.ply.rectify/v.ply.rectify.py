@@ -44,7 +44,6 @@ from grass.script import vector as gvector
 
 
 def main():
-
     export_shifted = flags["s"]
 
     currmapset = grass.gisenv()["MAPSET"]

@@ -75,7 +75,6 @@ class WebHDFSHook(BaseHook):
         return bool(c.status(hdfs_path, strict=False))
 
     def check_for_content(self, hdfs_path, recursive=False):
-
         c = self.get_conn()
         return c.list(hdfs_path, status=recursive)
 
@@ -114,7 +113,6 @@ class WebHDFSHook(BaseHook):
     def download_file(
         self, hdfs_path, local_path, overwrite=True, parallelism=1, **kwargs
     ):
-
         c = self.get_conn()
         out = c.download(
             hdfs_path=hdfs_path,

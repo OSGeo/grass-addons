@@ -6,7 +6,7 @@
 
 @brief GUI for r.stream.* modules
 
-See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
+See https://grasswiki.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - ImgFrame
@@ -20,7 +20,6 @@ This program is free software under the GNU General Public License
 @author Margherita Di Leo (GSoC student 2011)
 """
 
-
 import wx
 import glob
 import os
@@ -29,7 +28,7 @@ import sys
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
 
-import grass.script as grass
+import grass.script as gs
 import gselect
 import gcmd
 import dbm

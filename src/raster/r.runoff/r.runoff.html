@@ -1,0 +1,211 @@
+<h2>DESCRIPTION</h2>
+<p><em>r.runoff</em> computes event-based runoff using the SCS Curve Number (SCS-CN)
+method. For each raster cell, it calculates runoff depth (mm) and per-cell
+runoff volume (m³). With a flow-direction raster, it accumulates upstream
+contributing area to report total upstream runoff depth and volume. When
+storm duration and time of concentration are provided, it estimates time to
+peak (time of rise to the hydrograph peak) and peak discharge (m³/s), treating
+each cell as a local outlet. The SCS-CN method, developed by the USDA Soil
+Conservation Service (now NRCS), relates rainfall, soil hydrologic group, land
+cover, and antecedent wetness to storage to partition rainfall into initial
+abstraction (loss; represents interception, depression storage, and
+infiltration) and direct runoff.</p>
+
+<p>It provides high-level estimates of how rain is partitioned at the land
+surface. When it rains, some water infiltrates, some is intercepted or
+evaporates, and the remainder becomes runoff. The SCS-CN method uses a Curve
+Number (CN) to represent watershed conditions (soil hydrologic group, land
+cover, and antecedent runoff condition) and to predict direct runoff. This is
+useful for screening-level flood planning and watershed management.</p>
+
+<h3>Inputs</h3>
+
+<p><strong>rainfall:</strong> Raster of event-total rainfall depth (P) [mm]. Spatially varying
+precipitation (radar/satellite/gauge regridded). NULL cells imply no
+computation there (e.g., data gaps).</p>
+
+<p><strong>duration:</strong> Storm duration (D) [hours] (scalar). Needed to estimate
+time-to-peak and peak discharge. If omitted, timing-based outputs are
+skipped.</p>
+
+<p><strong>curve_number:</strong> Raster of Curve Number [dimensionless], <code>0 &le; CN &le; 100</code>.
+Encodes land cover, soil hydrologic group, and antecedent wetness.
+Higher CN equals lower storage, which equals more runoff. Out-of-range values
+should be sanitized or masked. See <code>r.curvenumber</code> for further information or
+generating CN rasters.</p>
+
+<p><strong>direction:</strong> Flow-direction raster (GRASS-coded; from <code>r.watershed</code> or
+<code>r.stream.extract</code>).
+Required for upstream area/volume/depth and peak discharge; defines the drainage
+network for accumulation.</p>
+
+<p><strong>lambda:</strong> Initial abstraction ratio (<code>&lambda;</code>) [dimensionless]
+(<code>0 &le; &lambda; &lt; 0.6</code>; default 0.2). Controls early losses representing the
+initial abstraction ratio, or how much rain is lost to initial soil wetting
+before runoff begins (<code>I_a = &lambda; S</code>). The default 0.2 is a standard
+assumption from SCS studies, but you can tweak it with local data (e.g., from
+soil surveys) to better match your area’s behavior. This initial loss is
+critical because it delays runoff until enough rain overcomes it. Some recent
+studies suggest 0.05.</p>
+
+<p><strong>time_concentration:</strong> Raster of time of concentration (<code>T_c</code>) [h].
+Time for runoff from the hydraulically most distant point to reach the pixel; often
+estimated (e.g., Kirpich). Required for time-to-peak and peak discharge; NULL where
+unknown.</p>
+
+<h3>Outputs</h3>
+
+<p><strong>runoff_depth:</strong> A raster map of event runoff depth per cell [mm],
+calculated by the SCS-CN method. The method balances rainfall (P) against
+soil storage and initial loss using the following equation for Runoff (Q):</p>
+
+<pre><code>$$
+Q \;=\;
+\begin{cases}
+  \dfrac{(P - I_a)^2}{P + I_a - S} &amp; P &gt; \lambda S \\[6pt]
+  0, &amp; \text{otherwise}
+\end{cases}
+$$
+</code></pre>
+
+<p>where Storage (S) is;</p>
+
+<pre><code>$$
+S \;=\; \frac{25400}{CN} - 254
+$$
+</code></pre>
+
+<p>and Initial abstraction (<code>I_a</code>):</p>
+
+<pre><code>$$
+I_a \;=\; \lambda S
+$$
+</code></pre>
+
+<p><strong>runoff_volume:</strong> A raster map of runoff volume per cell [m³].
+Converts depth to meters and multiplies by CRS-aware cell area:</p>
+
+<pre><code>$$
+V \;=\; \left(\frac{Q}{1000}\right)\,\text{area}_{\text{cell}}
+$$
+</code></pre>
+
+<p><strong>upstream_area:</strong> A raster map of total drainage area uphill of each cell,
+including the cell itself [km²]. This is accumulated using flow direction
+with
+<code>A_{\uparrow} = \sum_{\text{upstream}} \frac{\text{area}_{\text{cell}}}{10^6}</code>,
+showing the watershed size feeding into each point—key for understanding flood
+risk across a network of cells.</p>
+
+<p><strong>upstream_runoff_depth:</strong> A raster map of the area-weighted average runoff
+depth uphill [mm], calculated as <code>Q_{\uparrow} =
+\frac{V_{\uparrow}}{A_{\uparrow} \cdot 1000}</code>. It’s zero if no uphill area
+exists and NULL if data is missing.</p>
+
+<p><strong>upstream_runoff_volume:</strong> A raster map of total upstream event volume per
+cell [m³], summed from per-cell volumes using flow direction as
+<code>V_{\uparrow} \;=\; \sum_{\text{upstream}} V</code>. This gives a cumulative water total,
+critical for large-scale analysis of watershed runoff (e.g., estimating storage
+for a dam).</p>
+
+<p><strong>time_to_peak:</strong> A raster map of time to peak runoff per cell [h], computed
+as</p>
+
+<pre><code>$$
+t_p \;=\; 0.5\,D \;+\; 0.6\,T_c
+$$
+</code></pre>
+
+<p>where D is duration and <code>T_c</code> is time of concentration. This equation blends
+the storm’s length with how long water takes to flow, based on SCS guidelines.
+NULL where <code>T_c</code> is missing.</p>
+
+<p><strong>peak_discharge:</strong> A raster map of SCS Peak Discharge (<code>q_p</code>) estimated per
+cell (as if each cell was a watershed outlet) [m³/s], computed using the
+equation derived from the triangular approximation to the hydrograph and uses
+upstream area and upstream-average depth</p>
+
+<pre><code>$$
+q_p =
+\begin{cases}
+0.208\,\dfrac{A_{\uparrow}\,[{km}^2]\; Q_{\uparrow}\,[mm]}{t_p\,[h]}, &amp; t_p &gt; 0,\\[8pt]
+0, &amp; t_p \le 0 \ \text{or}\ t_p\ \text{is NULL}.
+\end{cases}
+$$
+</code></pre>
+
+<p>where <code>q_p</code> is peak discharge [m³/s], <code>A_{\uparrow}</code> is upstream
+(contributing) area [km²], <code>Q_{\uparrow}</code> is upstream-average
+(area-weighted) runoff depth [mm], <code>t_p</code> is time to peak [h], and 0.208
+is the SCS metric units factor.</p>
+
+<h2>Notes</h2>
+<ul>
+  <li>Metric units only. Inputs are mm and hours; outputs are mm, km², mm, m³, and m³/s.</li>
+  <li>Upstream prerequisites. Any <code>upstream_*</code> output requires <code>direction</code>. Timing outputs
+  require both <code>time_of_concentration</code> and <code>duration</code>.</li>
+</ul>
+
+<h2>EXAMPLE</h2>
+
+<p>These examples use the North Carolina sample dataset.</p>
+
+<pre><code class="language-sh">
+# set the region
+g.region -p raster=elevation
+
+# generate the curve number
+r.curvenumber landcover=lc_esa soil=hsg landcover_source=esa output=cn
+
+# or generate a random CN raster for the sake of this workflow
+r.mapcalc "cn = int(rand(30, 93))" seed=3093 --o
+
+# generate flow direction and stream network
+r.watershed elevation=elevation drainage=fdr stream=str threshold=10 --o
+
+# calculate time of concentration
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc length_min=100 --o
+
+# generate a random precipitation raster between 15 and 100 mm
+# (optional, if you do not have an actual rainfall raster)
+r.mapcalc "pcp = int(rand(15, 100))" seed=15100 --o
+
+# compute runoff depth and volume (simple SCS computation; does not require duration, tc or fdr)
+r.runoff rainfall=pcp duration=1 cn=cn lambda=0.2 runoff_depth=runoff_depth runoff_volume=runoff_volume --o
+
+# compute cell by cell and upstream contributing runoff depth, runoff volume, and peak discharge
+r.runoff rainfall=pcp duration=1 cn=cn direction=fdr lambda=0.2 tc=tc runoff_depth=runoff_depth ttp=ttp runoff_volume=runoff_volume upstream_area=upstream_area upstream_runoff_depth=upstream_runoff_depth upstream_runoff_volume=upstream_runoff_volume peak_discharge=peak_discharge --o
+</code></pre>
+
+<p>r.runoff also prints some important statistics including total
+runoff volume, maximum runoff depth, and peak discharge.
+For example, terminal output from the last command is;</p>
+<pre><code>Computing runoff depth [mm]
+Computing per-cell volume [m³]
+Total runoff volume: 2028504.82 m³
+Maximum runoff depth: 76.68 mm
+Computing upstream area [km²] and volume [m³]
+Computing upstream-average runoff depth [mm]
+Computing time to peak [hours]
+Computing peak discharge [m³/s]
+Peak discharge (max): 29.477 m³/s
+</code></pre>
+
+<p><img src="us_ro_vol.png" alt="r_runoff example"><br>
+Figure1: Output upstream runoff volume raster from <code>r.runoff</code> sample run on NC
+dataset zoomed in near the outlet</p>
+
+<h2>REFERENCES</h2>
+<ol>
+  <li>USDA Soil Conservation Service. 1986. <em>Urban Hydrology for Small Watersheds (TR-55)</em>, 2nd ed., Washington, DC.</li>
+  <li>Maidment, D. R. (Ed.). 1993. <em>Handbook of Hydrology</em>. New York: McGraw-Hill.</li>
+</ol>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html">r.curvenumber</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.timeofconcentration.html">r.timeofconcentration</a>
+</em>
+
+<h2>AUTHORS</h2>
+<p>Abdullah Azzam (<a href="https://hydro.isnew.info/">HydroCS</a>, Department of Civil and Environmental Engineering, New Mexico State University)</p>

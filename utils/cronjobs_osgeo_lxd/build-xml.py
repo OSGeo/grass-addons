@@ -44,7 +44,7 @@ class BuildXML:
                 continue  # skip blacklisted modules
             print(f"Parsing <{m}>...", end="")
             desc, keyw = self._get_module_metadata(m)
-            fd.write(f"{' ' * indent}<task name=\"{m}\">\n")
+            fd.write(f'{" " * indent}<task name="{m}">\n')
             indent += 4
             fd.write(f"{' ' * indent}<description>{desc}</description>\n")
             fd.write(f"{' ' * indent}<keywords>{','.join(keyw)}</keywords>\n")
@@ -111,8 +111,8 @@ class BuildXML:
         fd.write('<!DOCTYPE task SYSTEM "grass-addons.dtd">\n')  # TODO
         vInfo = grass.parse_command("g.version", flags="g")
         fd.write(
-            f"<addons version=\"{vInfo['version'].split('.')[0]}\""
-            f" revision=\"{vInfo['revision']}\""
+            f'<addons version="{vInfo["version"].split(".")[0]}"'
+            f' revision="{vInfo["revision"]}"'
             f' date="{datetime.now()}">\n'
         )
 

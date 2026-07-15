@@ -52,10 +52,9 @@ int read_points(char *in_point, SEGMENT *streams, SEGMENT *accum)
             Segment_get(accum, &absaccum, points[i].r, points[i].c);
             points[i].accum = fabs(absaccum);
         }
-        else {
+        else
             points[i].accum = 0;
-            points[i].status = 4; /* default status is 'correct' */
-        }
+        points[i].status = 4; /* default status is 'correct' */
         // dodać skip category
 
         i++;

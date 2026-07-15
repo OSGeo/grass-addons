@@ -69,7 +69,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ###############
 # MAIN MODULE #
@@ -87,7 +87,7 @@ def main():
     ##################
 
     # I/O
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # I/O
     HRUs = options["hru_input"]
@@ -114,7 +114,7 @@ def main():
         btype="area",
         operator="and",
         output=gravity_reservoirs,
-        overwrite=gscript.overwrite(),
+        overwrite=gs.overwrite(),
     )
     v.db_dropcolumn(map=gravity_reservoirs, columns="a_cat,a_label,b_cat", quiet=True)
     # Cell and HRU ID's

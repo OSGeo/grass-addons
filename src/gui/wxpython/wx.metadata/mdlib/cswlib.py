@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from subprocess import PIPE
 from threading import Thread
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.script import parse_key_val
 from grass.script.setup import set_gui_path
@@ -103,7 +103,20 @@ class CSWBrowserPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GUI, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
+            global \
+                BBox, \
+                CatalogueServiceWeb, \
+                Environment, \
+                ExceptionReport, \
+                FileSystemLoader, \
+                GError, \
+                GMessage, \
+                GUI, \
+                GWarning, \
+                HtmlFormatter, \
+                PropertyIsLike, \
+                XmlLexer, \
+                highlight
 
             from jinja2 import Environment, FileSystemLoader
 
@@ -354,7 +367,7 @@ class CSWBrowserPanel(wx.Panel):
     def OnShowReguest(self, evt):
         # request_html = encodeString(highlight_xml(self.context, self.catalog.request,False))
         path = os.path.join(tempfile.gettempdir(), "htmlRequest.xml")
-        request = grass.decode(self.catalog.request)
+        request = gs.decode(self.catalog.request)
         if os.path.exists(path):
             os.remove(path)
         f = open(path, "w")
@@ -368,7 +381,7 @@ class CSWBrowserPanel(wx.Panel):
     def OnShowResponse(self, evt):
         # response_html = encodeString(highlight_xml(self.context, self.catalog.response,False))
         path = os.path.join(tempfile.gettempdir(), "htmlResponse.xml")
-        response = grass.decode(self.catalog.response)
+        response = gs.decode(self.catalog.response)
         if os.path.exists(path):
             os.remove(path)
         f = open(path, "w")
@@ -478,7 +491,6 @@ class CSWBrowserPanel(wx.Panel):
         ]
         services = {}
         for link in links:
-
             if "scheme" in link:
                 link_type = link["scheme"]
             elif "protocol" in link:
@@ -543,7 +555,6 @@ class CSWBrowserPanel(wx.Panel):
             self.bttAddWcs.Enable()
 
     def OnNavigate(self, evt):
-
         name = evt.GetEventObject().GetLabel()
         if name == "<<":
             self.startfrom = 0
@@ -815,7 +826,7 @@ class CSWBrowserPanel(wx.Panel):
                 self.outpoutschema = "gmd"
                 if self.warns:
                     GWarning(
-                        "Endopoint of service is not setup properly. Server returns ISO metadata(http://www.isotc211.org/2005/gmd) instead of CSW records(http://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly."
+                        "Endopoint of service is not setup properly. Server returns ISO metadata(https://www.isotc211.org/2005/gmd) instead of CSW records(https://schemas.opengis.net/csw/2.0.2/record.xsd). CSW browser may work incorrectly."
                     )
                     self.warns = False
 
@@ -883,7 +894,6 @@ class CSWBrowserPanel(wx.Panel):
         self.findResNumLbl.SetLabel(msg)
         index = 0
         for rec in self.catalog.records:
-
             if self.catalog.records[rec].identification.identtype:
                 item = wx.ListItem()
                 self.resultList.InsertStringItem(
@@ -1062,7 +1072,19 @@ class CSWConnectionPanel(wx.Panel):
     def __init__(self, parent, main, cswBrowser=True):
         wx.Panel.__init__(self, parent)
         try:
-            global BBox, CatalogueServiceWeb, Environment, ExceptionReport, FileSystemLoader, GError, GMessage, GWarning, HtmlFormatter, PropertyIsLike, XmlLexer, highlight
+            global \
+                BBox, \
+                CatalogueServiceWeb, \
+                Environment, \
+                ExceptionReport, \
+                FileSystemLoader, \
+                GError, \
+                GMessage, \
+                GWarning, \
+                HtmlFormatter, \
+                PropertyIsLike, \
+                XmlLexer, \
+                highlight
 
             from jinja2 import Environment, FileSystemLoader
 

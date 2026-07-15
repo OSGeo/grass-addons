@@ -155,6 +155,13 @@ a pull request.
 Some contributors use GitHub CLI which allows them to create the pull request
 from command line in one step together with pushing the changes to GitHub.
 
+- Install/update pre-commit and identify to enable pre-commit checks when
+  issuing a pull request
+
+  ```bash
+  pip3 install -U pre-commit identify
+  ```
+
 ### After creating a pull request
 
 GRASS GIS maintainers or users will now review your pull request.
