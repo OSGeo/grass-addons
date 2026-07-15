@@ -3,8 +3,15 @@
  * \brief GRASS GIS module \c i.hyper.atcorr — 6SV2.1-based atmospheric correction.
  *
  * MODULE:      i.hyper.atcorr
- * AUTHOR:      i.hyper.smac project
+ * AUTHOR(S):   Yann Chemin, Tomaž Žagar
  * PURPOSE:     6SV2.1-based atmospheric correction for hyperspectral imagery.
+ *
+ * COPYRIGHT:   (C) 2024-2026 by Yann Chemin, Tomaž Žagar and the GRASS
+ *              Development Team
+ *
+ *              This program is free software under the GNU General Public
+ *              License (>=v2).  Read the file COPYING that comes with GRASS
+ *              for details.
  *
  * Two operational modes (at least one output must be requested):
  *

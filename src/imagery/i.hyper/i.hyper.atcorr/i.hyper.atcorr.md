@@ -1887,4 +1887,4 @@ grass --tmp-project XY --exec python3 testsuite/test_fortran_compat.py
 
 ## AUTHORS
 
-i.hyper.smac project.
+Yann Chemin, Tomaž Žagar
