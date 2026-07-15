@@ -9,29 +9,28 @@
 
 ## Architecture
 
-`i.hyper.atcorr` is a C GRASS addon following the established `i.pr/PRLIB`
-and `r.pi/r.pi.library` precedent — a bundled C library at the parent level
-with a `Module.make`-based tool linking against it:
+`i.hyper.atcorr` is a C GRASS addon that bundles `libsixsv` source
+(i.pr/r.pi-style) but compiles everything into a single executable for
+maximum portability — compatible with `g.extension` on any GRASS installation
+(binary or source) and with traditional `make` using a GRASS source tree:
 
 ```
 src/imagery/i.hyper/
-├── Makefile                  (explicit SUBDIRS, libsixsv first, sequential build)
+├── Makefile                  (sequential SUBDIRS build)
 ├── CMakeLists.txt
-├── libsixsv/                 bundled C library (Lib.make)
-│   ├── Makefile              LIB_NAME = grass_sixsv.$(GRASS_LIB_VERSION_NUMBER)
-│   ├── CMakeLists.txt
+├── libsixsv/                 bundled library source directory
 │   ├── include/              14 public headers
 │   └── src/                  ~40 .c files, a few internal .h files
-├── i.hyper.atcorr/           C addon module (Module.make)
+├── i.hyper.atcorr/           C addon module (single executable)
 │   ├── main.c                GRASS module entry point (~2700 lines)
-│   ├── Makefile              links -lgrass_sixsv, Module.make
-│   ├── CMakeLists.txt
+│   ├── Makefile              Module.make — compiles main.c + libsixsv/src/*.c
+│   ├── CMakeLists.txt        cmake build_addon — lists all libsixsv sources
 │   ├── i.hyper.atcorr.html   user manual
 │   ├── i.hyper.atcorr.md     markdown manual
 │   ├── README.md
 │   ├── INSTALL.md
 │   ├── LICENSE               Unlicense (public domain)
-│   ├── python/atcorr.py      ctypes bindings to libgrass_sixsv
+│   ├── python/atcorr.py      ctypes bindings
 │   ├── tests/                C and Python unit tests
 │   └── testsuite/            comprehensive test suite
 └── ... (existing addons unchanged)
