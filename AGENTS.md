@@ -13,7 +13,7 @@ commit message or pull request. See the GRASS core
 ## Relationship to GRASS core
 
 This repository holds **addons**: optional, community-maintained GRASS tools
-installed by users with `g.extension`. They depend on a GRASS installation
+installed by users with *g.extension*. They depend on a GRASS installation
 but are built and released separately from core. As far as AI-assisted coding
 is concerned, addons are held to the same quality standards as core tools
 (a tool may later graduate into the core repository).
@@ -39,9 +39,12 @@ Scaffold new addons with the
 [grass-addon-cookiecutter](https://github.com/OSGeo/grass-addon-cookiecutter)
 template rather than copying files by hand. It generates the standard layout
 (`<name>.py` script, `Makefile`, `<name>.md` with synced `<name>.html`, and a
-gunittest `testsuite/`) with the correct naming. New tests are preferably
-pytest in a `tests/` directory (see "Testing" below), although using
-the scaffolded `testsuite/` is acceptable when NC SPM sample dataset is used.
+gunittest `testsuite/`) with the correct naming. It does not generate a
+`CMakeLists.txt`; copy one from an existing addon, because *g.extension*
+reads the tool name from `project(<name>)` there when GRASS is built with
+CMake. New tests are preferably pytest in a `tests/` directory (see "Testing"
+below), although using the scaffolded `testsuite/` is acceptable when the NC
+SPM sample dataset is used.
 
 Tools live under `src/<category>/<tool>/`, where `<category>` is `raster`,
 `vector`, `imagery`, `temporal`, `raster3d`, `display`, `general`, `db`,
@@ -49,7 +52,8 @@ Tools live under `src/<category>/<tool>/`, where `<category>` is `raster`,
 category (`r.*`, `v.*`, `i.*`, `t.*`, `r3.*`, `d.*`, `g.*`, `db.*`, `m.*`).
 An addon directory has the same structure as a core tool (see the core
 `AGENTS.md` "Tool Structure" section): `<name>.py` or `main.c`, a `Makefile`,
-`<name>.md` (with synced `<name>.html`), and `testsuite/`.
+a `CMakeLists.txt`, `<name>.md` (with synced `<name>.html`), and tests in
+`tests/` or `testsuite/`.
 
 ## Building and installing a single addon
 
@@ -84,7 +88,7 @@ tests run a tool by name, so it must be on `PATH`.
 
 **pytest** (preferred for new tests, as in core) goes in a `tests/`
 directory next to the tool, named `<tool>_test.py` or `test_<tool>.py`. Use
-synthetic data and `grass.tools`. pytest configuration is in
+synthetic data and `grass.tools`. pytest configuration is in the top-level
 `pyproject.toml`. Run a tool's tests with:
 
 ```bash
@@ -93,20 +97,15 @@ export LD_LIBRARY_PATH="$(grass --config path)/lib:${LD_LIBRARY_PATH}"
 pytest src/raster/r.example/tests/
 ```
 
-If the addon bundles a Python package (installed under
-`$(grass --config path)/etc/<tool>/`), add that directory to `PYTHONPATH` too
-so tests can import it. Run one addon's tests at a time: each addon is a
-separate process in CI, since some suites replace entries in `sys.modules`
-that would otherwise leak across a shared pytest run.
+Non-standard Python dependencies go in a `requirements.txt` next to the tool.
 
 **gunittest** goes in a `testsuite/` directory and is the only option when
 the test needs the `nc_spm` sample dataset. CI runs the full gunittest suite
-against `nc_spm` (`.github/workflows/test.sh` →
+against `nc_spm` (`.github/workflows/test.sh`, which calls
 `python3 -m grass.gunittest.main ... --min-success`). To run one suite,
-install the addon (the `g.extension` command above), start a GRASS session,
-and run it; the mechanics, including installing `grass-dev`/`grass-devel`,
-are in
-[`doc/development/submitting/UNIT_TESTS.md`](doc/development/submitting/UNIT_TESTS.md).
+install the addon (the *g.extension* command above), start a GRASS session,
+and run it as described in the core `AGENTS.md`. This repository's
+[`UNIT_TESTS.md`](doc/development/submitting/UNIT_TESTS.md) is outdated.
 
 ## Linting, documentation, and commits
 
@@ -114,5 +113,7 @@ are in
 - Each addon needs `<name>.md` documentation with a synced `<name>.html`;
   follow the core documentation rules.
 - Commit messages start with the tool name: `r.example: Add slope option`.
+  Changes outside a single tool use the area as the prefix (e.g., `CI:`,
+  `doc:`, `tests:`). The rest of the core commit message rules apply.
   Submit a new tool together with its tests and documentation in one pull
   request.
