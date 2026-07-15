@@ -50,4 +50,8 @@ def test_centroid_matches_expected_coordinates(clump_setup):
         int(cat): (float(x), float(y))
         for x, y, cat in (line.split("|") for line in lines)
     }
-    assert points == pytest.approx(EXPECTED)
+    # pytest.approx doesn't recurse into dict values, so compare per key to
+    # keep the tolerance on each (x, y) tuple instead of an exact dict match.
+    assert points.keys() == EXPECTED.keys()
+    for cat, expected_point in EXPECTED.items():
+        assert points[cat] == pytest.approx(expected_point)
