@@ -404,7 +404,7 @@ per-pixel arrays used during the correction step.
 
 ## Architecture
 
-The RT physics are provided by **[libsixsv/](../libsixsv/)**, vendored via git
+The RT physics are provided by **[libsixsv/](libsixsv/)**, vendored via git
 subtree from [YannChemin/libsixsv](https://github.com/yannchemin/libsixsv).
 Everything compiles into a single executable for maximum portability:
 
@@ -412,38 +412,38 @@ Everything compiles into a single executable for maximum portability:
 src/imagery/i.hyper/
 ├── Makefile                  (sequential SUBDIRS build)
 ├── CMakeLists.txt
-├── libsixsv/                 vendored via git subtree (YannChemin/libsixsv)
-│   ├── include/              14 public headers
-│   │   ├── atcorr.h          Public API (LutConfig, LutArrays, all exports)
-│   │   ├── spatial.h         [#1]
-│   │   ├── adjacency.h       [#2]
-│   │   ├── surface_model.h   [#3,#5,#6]
-│   │   ├── uncertainty.h     [#4]
-│   │   ├── spectral_brdf.h   FlexBRDF (mcd43_disaggregate, spectral_smooth_tikhonov)
-│   │   └── retrieve.h        Retrieval API (H2O, AOD, O3, DASF)
-│   └── src/                  ~40 .c files
-│       ├── lut.c             OpenMP LUT computation (AOD outer loop)
-│       │                     + atcorr_lut_interp_pixel() trilinear interp
-│       ├── discom.c          6SV scattering at 20 reference wavelengths (SOS)
-│       ├── interp.c          Log-log wavelength interpolation
-│       ├── gas_abs.c         Curtis-Godson gas transmittance
-│       ├── aerosol.c         Aerosol mixture initialisation
-│       ├── atmosphere.c      Standard atmosphere models
-│       ├── srf_conv.c        SRF gas correction via libRadtran reptran fine
-│       ├── spatial.c         Separable Gaussian + box filters          [#1]
-│       ├── adjacency.c       Vermote 1997 adjacency correction         [#2]
-│       ├── surface_model.c   3-component surface prior + MAP           [#3,#5,#6]
-│       ├── uncertainty.c     Noise + AOD-perturbation uncertainty      [#4]
-│       ├── spectral_brdf.c   MCD43 disaggregation + Tikhonov smoother [FlexBRDF]
-│       ├── retrieve.c        Image-based retrieval (H2O/AOD/O3/DASF)
-│       └── rt.c / scatra.c / ... (6SV RT solver, ported from Fortran)
 └── i.hyper.atcorr/           C addon module (single executable)
     ├── main.c                GRASS module entry point (~2700 lines)
     ├── Makefile              Module.make — compiles main.c + libsixsv/src/*.c
     ├── CMakeLists.txt        cmake build_addon — lists all libsixsv sources
     ├── i.hyper.atcorr.html   user manual
     ├── i.hyper.atcorr.md     markdown manual
-    └── README.md
+    ├── README.md
+    └── libsixsv/             vendored via git subtree (YannChemin/libsixsv)
+        ├── include/          14 public headers
+        │   ├── atcorr.h      Public API (LutConfig, LutArrays, all exports)
+        │   ├── spatial.h     [#1]
+        │   ├── adjacency.h   [#2]
+        │   ├── surface_model.h [#3,#5,#6]
+        │   ├── uncertainty.h [#4]
+        │   ├── spectral_brdf.h FlexBRDF (mcd43_disaggregate, spectral_smooth_tikhonov)
+        │   └── retrieve.h    Retrieval API (H2O, AOD, O3, DASF)
+        └── src/              ~40 .c files
+            ├── lut.c         OpenMP LUT computation (AOD outer loop)
+            │                 + atcorr_lut_interp_pixel() trilinear interp
+            ├── discom.c      6SV scattering at 20 reference wavelengths (SOS)
+            ├── interp.c      Log-log wavelength interpolation
+            ├── gas_abs.c     Curtis-Godson gas transmittance
+            ├── aerosol.c     Aerosol mixture initialisation
+            ├── atmosphere.c  Standard atmosphere models
+            ├── srf_conv.c    SRF gas correction via libRadtran reptran fine
+            ├── spatial.c     Separable Gaussian + box filters          [#1]
+            ├── adjacency.c   Vermote 1997 adjacency correction         [#2]
+            ├── surface_model.c 3-component surface prior + MAP         [#3,#5,#6]
+            ├── uncertainty.c Noise + AOD-perturbation uncertainty      [#4]
+            ├── spectral_brdf.c MCD43 disaggregation + Tikhonov smoother [FlexBRDF]
+            ├── retrieve.c    Image-based retrieval (H2O/AOD/O3/DASF)
+            └── rt.c / scatra.c / ... (6SV RT solver, ported from Fortran)
 ```
 
 ---
@@ -509,11 +509,11 @@ Typical size: ~4 MB for 6 AOD × 5 H₂O × 211 wavelengths.
 
 ## Subtree dependency
 
-[libsixsv/](../libsixsv/) is vendored from
+[libsixsv/](libsixsv/) is vendored from
 https://github.com/YannChemin/libsixsv via **git subtree**.
 To pull upstream changes:
 
-    git subtree pull --prefix src/imagery/i.hyper/libsixsv \
+    git subtree pull --prefix src/imagery/i.hyper/i.hyper.atcorr/libsixsv \
         https://github.com/YannChemin/libsixsv.git main --squash
 
 ## Authors

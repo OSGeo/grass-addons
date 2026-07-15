@@ -18,18 +18,16 @@ maximum portability — compatible with `g.extension` on any GRASS installation
 src/imagery/i.hyper/
 ├── Makefile                  (sequential SUBDIRS build)
 ├── CMakeLists.txt
-├── libsixsv/                 vendored via git subtree (YannChemin/libsixsv)
-│   ├── include/              14 public headers
-│   └── src/                  ~40 .c files, a few internal .h files
-├── i.hyper.atcorr/           C addon module (single executable)
-│   ├── main.c                GRASS module entry point (~2700 lines)
-│   ├── Makefile              Module.make — compiles main.c + libsixsv/src/*.c
-│   ├── CMakeLists.txt        cmake build_addon — lists all libsixsv sources
-│   ├── i.hyper.atcorr.html   user manual
-│   ├── i.hyper.atcorr.md     markdown manual
-│   ├── README.md
-│   └── LICENSE               Unlicense (public domain)
-└── ... (existing addons unchanged)
+└── i.hyper.atcorr/           C addon module (single executable)
+    ├── main.c                GRASS module entry point (~2700 lines)
+    ├── Makefile              Module.make — compiles main.c + libsixsv/src/*.c
+    ├── CMakeLists.txt        cmake build_addon — lists all libsixsv sources
+    ├── i.hyper.atcorr.html   user manual
+    ├── i.hyper.atcorr.md     markdown manual
+    ├── README.md
+    └── libsixsv/             vendored via git subtree (YannChemin/libsixsv)
+        ├── include/          14 public headers
+        └── src/              ~40 .c files, a few internal .h files
 ```
 
 ## Development Setup
@@ -62,7 +60,7 @@ build, install, or clean them while working on the addon.
 
 ```sh
 git subtree pull \
-    --prefix src/imagery/i.hyper/libsixsv \
+    --prefix src/imagery/i.hyper/i.hyper.atcorr/libsixsv \
     https://github.com/YannChemin/libsixsv.git main \
     --squash
 ```
