@@ -1510,7 +1510,7 @@ Implementation:
 
 ## SEE ALSO
 
-*[i.hyper.smac](i.hyper.smac.md), [i.atcorr](i.atcorr.md)*
+*[i.hyper.smac](https://github.com/YannChemin/i.hyper.smac), [i.atcorr](https://github.com/YannChemin/i.atcorr2)*
 
 ## REFERENCES
 
