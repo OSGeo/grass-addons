@@ -18,7 +18,7 @@ maximum portability — compatible with `g.extension` on any GRASS installation
 src/imagery/i.hyper/
 ├── Makefile                  (sequential SUBDIRS build)
 ├── CMakeLists.txt
-├── libsixsv/                 bundled library source directory
+├── libsixsv/                 vendored via git subtree (YannChemin/libsixsv)
 │   ├── include/              14 public headers
 │   └── src/                  ~40 .c files, a few internal .h files
 ├── i.hyper.atcorr/           C addon module (single executable)
@@ -28,11 +28,7 @@ src/imagery/i.hyper/
 │   ├── i.hyper.atcorr.html   user manual
 │   ├── i.hyper.atcorr.md     markdown manual
 │   ├── README.md
-│   ├── INSTALL.md
-│   ├── LICENSE               Unlicense (public domain)
-│   ├── python/atcorr.py      ctypes bindings
-│   ├── tests/                C and Python unit tests
-│   └── testsuite/            comprehensive test suite
+│   └── LICENSE               Unlicense (public domain)
 └── ... (existing addons unchanged)
 ```
 
@@ -46,42 +42,53 @@ src/imagery/i.hyper/
   mapset `PERMANENT`.
 - Environment: GRASS GIS 8.5.0, CRS EPSG:3035 (ETRS89-extended / LAEA Europe).
 
-## Collaboration Model
+## Source Repositories
 
-- YannChemin is collaborator on `mazingaro/grass-addons`.
-- He pushes directly to the `i.hyper.atcorr` branch (no PR needed).
-- When features are ready, merge `i.hyper.atcorr` → `i.hyper` with `--no-ff`,
-  then PR from `mazingaro/grass-addons:i.hyper` → `OSGeo/grass-addons`.
-- He maintains both `libsixsv/` and `i.hyper.atcorr/`.
-- Source comparisons are pinned to:
-  - `YannChemin/libsixsv` revision `c75c1d82486b942ccddca8052f90bc1d276bbba4`
-    https://github.com/YannChemin/libsixsv/tree/c75c1d82486b942ccddca8052f90bc1d276bbba4
-  - `YannChemin/i.hyper.atcorr` revision `71404b415ac28c0a1e33a26e3591a23d9b906f64`
-    https://github.com/YannChemin/i.hyper.atcorr/tree/71404b415ac28c0a1e33a26e3591a23d9b906f64
+```
+https://github.com/YannChemin/libsixsv         (upstream)
+https://github.com/YannChemin/i.hyper.atcorr   (upstream — main.c origin)
+https://github.com/mazingaro/grass-addons      (our fork, i.hyper.atcorr branch)
+https://github.com/OSGeo/grass-addons          (upstream OSGeo)
+```
 
-## Atmospheric Correction Source Repositories
+Treat `/home/tomazz/work/atcorr/` as read-only reference trees; do not modify,
+build, install, or clean them while working on the addon.
 
-Treat these paths as read-only reference trees; do not modify, build, install,
-or clean them while working on the addon:
-  `/home/tomazz/work/atcorr/i.hyper.atcorr`
-  `/home/tomazz/work/atcorr/libsixsv`
-  `/home/tomazz/work/atcorr/i.atcorr2`
+## Subtree Dependencies
+
+`libsixsv/` is vendored via `git subtree` from `YannChemin/libsixsv`.
+
+### Sync libsixsv (when upstream changes)
+
+```sh
+git subtree pull \
+    --prefix src/imagery/i.hyper/libsixsv \
+    https://github.com/YannChemin/libsixsv.git main \
+    --squash
+```
+
+### Sync main.c (when YannChemin/i.hyper.atcorr changes)
+
+```sh
+git fetch https://github.com/YannChemin/i.hyper.atcorr.git main
+git checkout FETCH_HEAD -- src/imagery/i.hyper/i.hyper.atcorr/main.c
+git commit -m "i.hyper.atcorr: sync main.c from YannChemin"
+```
+
+### Publishing upstream
+
+Merge `i.hyper.atcorr` → `i.hyper` with `--no-ff`, then PR
+`mazingaro/grass-addons:i.hyper` → `OSGeo/grass-addons`.
 
 ## External Dependencies
 
 - **libRadtran 2.0.6** with REPTRAN 2024 data is required for Gaussian SRF
   correction. Not vendored — must be pre-installed.
 - **Fortran 6SV2.1** (`~/dev/6sV2.1/`) — optional, for cross-validation tests
-  only (`testsuite/test_fortran_compat.py`).
+  only (upstream testsuite).
 
 ## Validation
 
-- C compilation: run `make` in the addon directory
-- Python syntax: `python -m py_compile src/imagery/i.hyper/i.hyper.atcorr/python/atcorr.py`
-- Test suite: `python -m pytest src/imagery/i.hyper/i.hyper.atcorr/testsuite/ -v`
-- Fortran compatibility tests require `~/dev/6sV2.1/` objects (optional; skipped
-  when absent)
-- After source changes and before GRASS-dependent tests:
-  `/home/tomazz/work/link-i-hyper-dev.sh`
-  Confirm session: `g.gisenv && g.mapset -p && g.proj -g`
+- C compilation: `make MODULE_TOPDIR=/path/to/grass -C src/imagery/i.hyper`
+- `g.extension` test: `g.extension i.hyper.atcorr url=<our-fork> branch=i.hyper.atcorr`
 - Keep changes focused and avoid unrelated repository-wide cleanup.
