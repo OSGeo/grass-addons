@@ -112,7 +112,6 @@ TMP_FILE = None
 def cleanup():
     gs.verbose(_("Cleanup.."))
     tmp_base = "tmp_icw_" + str(os.getpid()) + "_"
-    # gs.run_command('g.list', type='raster', mapset='.', flags='p')
     result = gs.list_strings("raster", pattern=tmp_base + "*", mapset=".")
     if len(result) > 0:
         gs.run_command(
