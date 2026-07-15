@@ -1887,4 +1887,4 @@ grass --tmp-project XY --exec python3 testsuite/test_fortran_compat.py
 
 ## AUTHORS
 
-Yann Chemin, Tomaž Žagar
+Yann Chemin, Seilio Douar EI; Tomaž Žagar, Geodetic Institute of Slovenia
