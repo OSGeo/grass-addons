@@ -34,7 +34,7 @@ def clumps_session(tmp_path_factory):
 
 
 @pytest.fixture
-def centroids(clumps_session):
+def clump_setup(clumps_session):
     """Isolated per-test mapset + Tools handle over the module-scoped clumps raster."""
     with TemporaryMapsetSession(env=clumps_session.env) as session:
         with Tools(session=session) as tools:

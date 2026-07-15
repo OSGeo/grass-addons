@@ -2,22 +2,19 @@
 
 import pytest
 
-from grass.exceptions import CalledModuleError
+from grass.tools import ToolError
 
-# cat -> (x range, y range) of the source quadrant, for the loose
-# extent-containment check below.
-QUADRANTS = {
-    1: ((0, 3), (7, 10)),
-    2: ((7, 10), (7, 10)),
-    3: ((0, 3), (0, 3)),
-    4: ((7, 10), (0, 3)),
-}
+# Exact centroid per clump (region 10x10, res 1). These symmetric 3x3 blocks
+# make r.volume's distance-weighted centroid land on the clump's middle cell,
+# so exact coordinates are stable here; irregular or even-sized clumps can
+# hit r.volume's counting/adjusted fallback and shift the point.
+EXPECTED = {1: (1.5, 8.5), 2: (8.5, 8.5), 3: (1.5, 1.5), 4: (8.5, 1.5)}
 
 
-def test_output_has_one_point_per_clump_excluding_background(centroids):
+def test_output_has_one_point_per_clump_excluding_background(clump_setup):
     """One centroid is produced per non-zero clump value; 0 is background."""
-    tools = centroids.tools
-    tools.r_centroids(input=centroids.input, output="out_centroids")
+    tools = clump_setup.tools
+    tools.r_centroids(input=clump_setup.input, output="out_centroids")
 
     info = tools.v_info(map="out_centroids", flags="t", format="json")
     assert info["points"] == 4
@@ -26,32 +23,31 @@ def test_output_has_one_point_per_clump_excluding_background(centroids):
     assert {row["cat"] for row in records} == {1, 2, 3, 4}
 
 
-def test_volume_columns_are_dropped(centroids):
+def test_volume_columns_are_dropped(clump_setup):
     """r.volume's volume/sum/count/average columns are removed."""
-    tools = centroids.tools
-    tools.r_centroids(input=centroids.input, output="out_columns")
+    tools = clump_setup.tools
+    tools.r_centroids(input=clump_setup.input, output="out_columns")
 
     columns = tools.v_info(map="out_columns", flags="c", format="json")
     assert {col["name"] for col in columns} == {"cat"}
 
 
-def test_overwrite_protection(centroids):
+def test_overwrite_protection(clump_setup):
     """Reusing an output name without --overwrite fails."""
-    tools = centroids.tools
-    tools.r_centroids(input=centroids.input, output="out_overwrite")
-    with pytest.raises(CalledModuleError):
-        tools.r_centroids(input=centroids.input, output="out_overwrite")
+    tools = clump_setup.tools
+    tools.r_centroids(input=clump_setup.input, output="out_overwrite")
+    with pytest.raises(ToolError):
+        tools.r_centroids(input=clump_setup.input, output="out_overwrite")
 
 
-def test_centroid_lies_within_source_clump_extent(centroids):
-    """Each centroid falls inside the bounding box of the quadrant it came from."""
-    tools = centroids.tools
-    tools.r_centroids(input=centroids.input, output="out_extent")
+def test_centroid_matches_expected_coordinates(clump_setup):
+    """Each centroid lands on its source clump's exact expected point."""
+    tools = clump_setup.tools
+    tools.r_centroids(input=clump_setup.input, output="out_extent")
 
     lines = tools.v_out_ascii(input="out_extent", format="point").stdout.splitlines()
-    assert len(lines) == 4
-    for line in lines:
-        x, y, cat = line.split("|")
-        x_range, y_range = QUADRANTS[int(cat)]
-        assert x_range[0] <= float(x) <= x_range[1]
-        assert y_range[0] <= float(y) <= y_range[1]
+    points = {
+        int(cat): (float(x), float(y))
+        for x, y, cat in (line.split("|") for line in lines)
+    }
+    assert points == pytest.approx(EXPECTED)
