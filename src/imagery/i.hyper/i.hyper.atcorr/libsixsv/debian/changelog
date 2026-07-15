@@ -1,0 +1,5 @@
+libsixsv (1.0.0-1) unstable; urgency=medium
+
+  * Initial Debian packaging.
+
+ -- Yann Chemin <dr.yann.chemin@gmail.com>  Tue, 10 Mar 2026 00:00:00 +0000
