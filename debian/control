@@ -1,0 +1,35 @@
+Source: libsixsv
+Section: libs
+Priority: optional
+Maintainer: Yann Chemin <dr.yann.chemin@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               gcc,
+               libgomp1
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: libsixsv1
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: 6SV2.1 atmospheric correction library
+ A C11 port of the 6SV2.1 (Second Simulation of the Satellite Signal in
+ the Solar Spectrum) radiative transfer model for operational atmospheric
+ correction of multispectral and hyperspectral remote sensing imagery.
+ .
+ Features: DISCOM discrete-ordinate solver; 3-D [AOD × H₂O × λ] LUT;
+ per-pixel Lambertian and BRDF-coupled inversion; H₂O, AOD, O₃ and
+ surface-pressure retrievals; MAIAC AOD regularisation; Hapke, RPV and
+ Ross-Li BRDF models; NBAR, MCD43 disaggregation; adjacency, terrain
+ and uncertainty propagation; OpenMP parallelism.
+
+Package: libsixsv-dev
+Section: libdevel
+Architecture: any
+Depends: libsixsv1 (= ${binary:Version}), ${misc:Depends}
+Description: 6SV2.1 atmospheric correction library — development files
+ Development headers and linker stub for libsixsv.
+ .
+ Install this package to build C or C++ programs that call into lib6sv.
+ The public API is exposed through the headers in /usr/include/sixsv/:
+ atcorr.h, brdf.h, retrieve.h, spatial.h, terrain.h, adjacency.h,
+ uncertainty.h, spectral_brdf.h, oe_invert.h.
