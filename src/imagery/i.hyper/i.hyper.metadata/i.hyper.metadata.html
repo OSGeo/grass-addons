@@ -16,6 +16,8 @@ Supported operations:
   <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp (uses <code>input_datasets_metadata</code> snapshots when referenced inputs are unavailable in current LOCATION)</li>
   <li><code>validate</code>: metadata and lineage consistency checks</li>
   <li><code>copy</code>: initialize or replace metadata from another hyperspectral cube; with existing target metadata, <code>--overwrite</code> is required and this map's last local processing step is preserved; the copy action itself is added to history</li>
+  <li><code>merge-overrides</code>: apply top-level metadata overrides (e.g. <code>radiometric_quantity</code>) and deep-merge <code>extended_metadata</code> from the <code>overrides=</code> JSON into an existing map, saving in-place</li>
+  <li><code>add-history</code>: append a <code>processing_history</code> entry to an existing map; uses <code>source_map=</code> as input and <code>command=</code> as the command string</li>
 </ul>
 
 Output format (<code>format</code>) is global for all operations:
@@ -53,12 +55,14 @@ For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> r
 <p>Main options:</p>
 <ul>
   <li><code>map=</code>: input <code>raster_3d</code> map</li>
-  <li><code>operation=</code>: <code>summary|full|extended|bands|history|validate|copy</code></li>
-  <li><code>source_map=</code>: source <code>raster_3d</code> map for <code>operation=copy</code></li>
+  <li><code>operation=</code>: <code>summary|full|extended|bands|history|validate|copy|merge-overrides|add-history</code></li>
+  <li><code>source_map=</code>: source <code>raster_3d</code> map for <code>operation=copy</code> and <code>operation=add-history</code></li>
   <li><code>format=</code>: <code>json|text|csv</code></li>
   <li><code>resolve_names=</code>: <code>yes|no</code> (for <code>full</code> and <code>history</code>)</li>
   <li><code>wavelength_range=</code>: for <code>operation=bands</code> (example: <code>400-700</code>)</li>
   <li><code>extended_select=</code>: for <code>operation=extended</code> (all/branch/path/multiple)</li>
+  <li><code>overrides=</code>: JSON string of metadata overrides for <code>operation=merge-overrides</code>; may contain top-level keys like <code>radiometric_quantity</code> and an <code>extended_metadata</code> key whose value is merged into the derived dataset's extended metadata</li>
+  <li><code>command=</code>: command line string to store in processing history for <code>operation=add-history</code></li>
 </ul>
 
 <p>API examples:</p>
@@ -81,6 +85,14 @@ i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
 
 # Replace existing target metadata and preserve the target's last local step
 i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube --overwrite
+
+# Derive output metadata with overrides
+i.hyper.metadata map=my_output_cube operation=merge-overrides \
+  overrides='{"radiometric_quantity":"surface_reflectance","radiometric_units":"unitless","extended_metadata":{"processing":{"atcorr":{"geometry_used":{"sza":35.2,"vza":2.1}}}}}'
+
+# Append processing history entry
+i.hyper.metadata map=my_output_cube operation=add-history \
+  source_map=my_input_cube command="i.hyper.atcorr input=my_input_cube output=my_output_cube sza=35.2"
 </pre></div>
 
 <h3>JSON metadata structure</h3>

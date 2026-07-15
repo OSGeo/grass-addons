@@ -28,16 +28,32 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: summary,full,extended,bands,history,validate,copy
+# % options: summary,full,extended,bands,history,validate,copy,merge-overrides,add-history
 # % answer: summary
 # % description: Operation to perform
-# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step
+# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step;merge-overrides;Apply top-level metadata overrides and merge extended_metadata into an existing map;add-history;Append a processing history entry to an existing map
 # %end
 
 # %option G_OPT_R3_INPUT
 # % key: source_map
-# % description: Source 3D raster map to copy metadata from (required for operation=copy)
+# % description: Source 3D raster map (required for operation=copy and operation=add-history)
 # % required: no
+# %end
+
+# %option
+# % key: overrides
+# % type: string
+# % required: no
+# % multiple: no
+# % description: JSON string of metadata overrides for operation=merge-overrides
+# %end
+
+# %option
+# % key: command
+# % type: string
+# % required: no
+# % multiple: no
+# % description: Command line string to store in processing history (for operation=add-history)
 # %end
 
 # %option
@@ -521,6 +537,95 @@ def _copy_metadata_from_other_cube(
     )
 
 
+def _merge_overrides(
+    hyper_metadata_class,
+    target_map,
+    *,
+    overrides_json=None,
+):
+    """Apply top-level metadata overrides and merge extended_metadata.
+
+    Loads metadata from *target_map*, applies top-level keys
+    (e.g. ``radiometric_quantity``) and deep-merges ``extended_metadata``
+    from the ``overrides_json``, then saves the result in-place.
+    """
+    try:
+        metadata = hyper_metadata_class.load(target_map)
+    except Exception as error:
+        gs.fatal(f"Failed to load metadata for merge-overrides: {error}")
+
+    overrides = {}
+    if overrides_json:
+        try:
+            overrides = json.loads(overrides_json)
+        except json.JSONDecodeError as error:
+            gs.fatal(f"Invalid overrides JSON: {error}")
+    if not isinstance(overrides, dict):
+        overrides = {}
+
+    for key in (
+        "radiometric_quantity", "radiometric_units",
+        "data_type", "sensor", "wavelength_units",
+        "region", "bands",
+    ):
+        if key in overrides and overrides[key] is not None:
+            setattr(metadata, key, overrides[key])
+
+    if "extended_metadata" in overrides:
+        metadata.merge_extended_metadata(overrides["extended_metadata"])
+
+    try:
+        metadata.save(target_map, save_region=True)
+    except Exception as error:
+        gs.fatal(f"Failed to save merged metadata: {error}")
+
+    gs.message(f"Merged overrides into metadata for '{target_map}'")
+
+
+def _add_history_entry(
+    hyper_metadata_class,
+    target_map,
+    *,
+    source_map=None,
+    command=None,
+):
+    """Append a processing history entry to an existing map.
+
+    Loads metadata from *target_map*, adds an entry recording
+    *command* with *source_map* as input, and saves in-place.
+    """
+    try:
+        target_meta = hyper_metadata_class.load(target_map)
+    except Exception as error:
+        gs.fatal(f"Failed to load metadata for add-history: {error}")
+
+    source_id = None
+    if source_map:
+        try:
+            source_meta = hyper_metadata_class.load(source_map)
+            source_id = source_meta.dataset_id
+        except Exception:
+            source_id = None
+
+    inputs = []
+    if source_id and source_map:
+        inputs.append({"id": source_id, "map_name": source_map})
+
+    cmd = command or os.environ.get("CMDLINE") or "unknown"
+    target_meta.add_history_entry(
+        command=cmd,
+        inputs=inputs,
+        outputs=[{"id": target_meta.dataset_id, "map_name": target_map}],
+    )
+
+    try:
+        target_meta.save(target_map, save_region=True)
+    except Exception as error:
+        gs.fatal(f"Failed to save history entry: {error}")
+
+    gs.message(f"Added history entry to '{target_map}'")
+
+
 def main():
     options, _ = gs.parser()
 
@@ -531,6 +636,8 @@ def main():
     resolve_names = options.get("resolve_names", "no") == "yes"
     extended_select = options.get("extended_select")
     source_map = options.get("source_map")
+    overrides_json = options.get("overrides")
+    command = options.get("command")
 
     # Import metadata API
     hyper_meta = _import_hyper_meta()
@@ -555,6 +662,28 @@ def main():
             source_found["fullname"],
             full_map_name,
             overwrite=gs.overwrite(),
+        )
+        return 0
+
+    if operation == "merge-overrides":
+        _merge_overrides(
+            HyperMetadata,
+            full_map_name,
+            overrides_json=overrides_json,
+        )
+        return 0
+
+    if operation == "add-history":
+        if not source_map:
+            gs.fatal("Option <source_map> is required for operation=add-history")
+        source_found = gs.find_file(source_map, element="grid3")
+        if not source_found["fullname"]:
+            gs.fatal(f"Source 3D raster map '{source_map}' not found")
+        _add_history_entry(
+            HyperMetadata,
+            full_map_name,
+            source_map=source_found["fullname"],
+            command=command,
         )
         return 0
 
