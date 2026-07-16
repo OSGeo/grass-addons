@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/x86_64-linux-gnu
+includedir=${prefix}/include
+
+Name: libsixsv
+Description: 6SV2.1 atmospheric correction library
+Version: 1.0.0
+Cflags: -I${includedir}/sixsv
+Libs: -L${libdir} -lsixsv
+Libs.private: -lm -fopenmp
