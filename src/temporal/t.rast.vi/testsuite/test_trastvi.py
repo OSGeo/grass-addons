@@ -19,42 +19,60 @@ class TestClimatologies(TestCase):
         cls.use_temp_region()
         cls.runModule("g.region", s=0, n=80, w=0, e=120, b=0, t=50, res=10, res3=10)
 
-        cls.runModule("r.mapcalc", expression="a_1 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_2 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_3 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_4 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_5 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_6 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_7 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_8 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_9 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_10 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_11 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="a_12 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_1 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_2 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_3 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_4 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_5 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_6 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_7 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_8 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_9 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_10 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_11 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="b_12 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_1 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_2 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_3 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_4 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_5 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_6 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_7 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_8 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_9 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_10 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_11 = rand(1,256)", overwrite=True)
-        cls.runModule("r.mapcalc", expression="c_12 = rand(1,256)", overwrite=True)
+        cls.runModule(
+            "r.mapcalc", expression="a_1 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="a_2 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="a_3 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="a_4 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="a_5 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="a_6 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_1 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_2 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_3 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_4 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_5 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="b_6 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_1 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_2 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_3 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_4 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_5 = rand(1,256)", seed="123456", overwrite=True
+        )
+        cls.runModule(
+            "r.mapcalc", expression="c_6 = rand(1,256)", seed="123456", overwrite=True
+        )
 
         cls.runModule(
             "t.create",
@@ -88,7 +106,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="red_monthly",
-            maps="a_1,a_2,a_3,a_4,a_5,a_6,a_7,a_8,a_9,a_10,a_11,a_12",
+            maps="a_1,a_2,a_3,a_4,a_5,a_6",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
@@ -98,7 +116,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="nir_monthly",
-            maps="b_1,b_2,b_3,b_4,b_5,b_6,b_7,b_8,b_9,b_10,b_11,b_12",
+            maps="b_1,b_2,b_3,b_4,b_5,b_6",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
@@ -108,7 +126,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="blue_monthly",
-            maps="c_1,c_2,c_3,c_4,c_5,c_6,c_7,c_8,c_9,c_10,c_11,c_12",
+            maps="c_1,c_2,c_3,c_4,c_5,c_6",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
