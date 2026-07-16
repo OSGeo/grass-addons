@@ -101,10 +101,10 @@ cube in `(band,row,col)` order together with embedded metadata.
 
 ## SEE ALSO
 
-[i.hyper.import](i.hyper.import.html),
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.metadata](i.hyper.metadata.html),
-[i.hyper.explore](i.hyper.explore.html),
+[i.hyper.import](i.hyper.import.md),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.metadata](i.hyper.metadata.md),
+[i.hyper.explore](i.hyper.explore.md),
 [r.pack](https://grass.osgeo.org/grass-stable/manuals/r.pack.html)
 
 ## AUTHORS

@@ -6,9 +6,9 @@ for plate bending. This phenomenon is known as "flexural isostasy"
 and is relevant to glacier/ice-cap/ice-sheet loading, sedimentary
 basin filling, mountain belt growth, volcano emplacement, sea-level
 change, and other geologic processes. *r.flexure* and
-*[v.flexure](v.flexure.html)* are the GRASS GIS interfaces to the
+*[v.flexure](v.flexure.md)* are the GRASS GIS interfaces to the
 model [**gFlex**](https://gflex.readthedocs.io/). As both *r.flexure*
-and *[v.flexure](v.flexure.html)* are interfaces to gFlex, it must be
+and *[v.flexure](v.flexure.md)* are interfaces to gFlex, it must be
 downloaded and installed. *r.flexure* requires **gFlex ≥ 2.0.0**:
 
     pip install "gflex>=2.0.0"
@@ -188,7 +188,7 @@ set the relevant edge to **free**:
 
 ## SEE ALSO
 
-*[v.flexure](v.flexure.html)*
+*[v.flexure](v.flexure.md)*
 
 ## REFERENCES
 

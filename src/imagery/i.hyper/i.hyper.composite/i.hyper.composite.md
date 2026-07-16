@@ -3,8 +3,8 @@
 *i.hyper.composite* creates RGB, CIR, SWIR and custom false-color
 composites from a hyperspectral 3D raster map (`raster_3d`). The module
 reads per-band wavelength metadata from `hyper.json`
-(as written by [i.hyper.import](i.hyper.import.html) /
-[i.hyper.preproc](i.hyper.preproc.html)). It then selects the nearest
+(as written by [i.hyper.import](i.hyper.import.md) /
+[i.hyper.preproc](i.hyper.preproc.md)). It then selects the nearest
 available bands to requested wavelengths, enhances contrast, and composes
 a 2D color raster.
 
@@ -105,10 +105,10 @@ resample spectrally.
 
 ## SEE ALSO
 
-[i.hyper.import](i.hyper.import.html),
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.export](i.hyper.export.html),
+[i.hyper.import](i.hyper.import.md),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.export](i.hyper.export.md),
 [r3.to.rast](https://grass.osgeo.org/grass-stable/manuals/r3.to.rast.html),
 [r.composite](https://grass.osgeo.org/grass-stable/manuals/r.composite.html),
 [i.colors.enhance](https://grass.osgeo.org/grass-stable/manuals/i.colors.enhance.html),
