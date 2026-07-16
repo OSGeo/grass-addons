@@ -396,8 +396,6 @@ def import_emit(
                 wanted.append((name, vals))
             else:
                 gs.warning(f"Ignored unknown composite '{comp}'.")
-    else:
-        wanted.append(("rgb", COMPOSITES["rgb"]))
 
     if custom_wavelengths:
         if len(custom_wavelengths) != 3:

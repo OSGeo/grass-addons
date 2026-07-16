@@ -628,7 +628,7 @@ def import_prisma(
         rows_E, cols_N = first_band.shape
         _force_region_exact_for_transposed(prod.hco_geo, rows_E, cols_N)
 
-    # Build list of composites to make (default RGB)
+    # Build list of composites to make.
     wanted = []
     if composites:
         comp_lookup = {k.upper(): (k, v) for k, v in COMPOSITES.items()}
@@ -639,8 +639,6 @@ def import_prisma(
                 wanted.append((orig_name, vals))
             else:
                 gs.warning(f"Unknown composite '{comp}' ignored.")
-    else:
-        wanted.append(("rgb", COMPOSITES["rgb"]))
 
     if custom_wavelengths:
         if len(custom_wavelengths) != 3:

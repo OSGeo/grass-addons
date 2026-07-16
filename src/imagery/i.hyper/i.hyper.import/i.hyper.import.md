@@ -119,10 +119,9 @@ branches (`extended_metadata.enmap`, `prisma`, `tanager`). Unified and
 product-native keys may contain the same value when a unified key is
 derived directly from a source product key.
 
-Composite channels use the nearest retained wavelengths. EnMAP creates
-predefined composites only when *composites* is specified. PRISMA and Tanager
-create RGB by default when *composites* is omitted. *composites_custom* must
-contain exactly three wavelengths. Temporary rasters are removed after a
+Composite channels use the nearest retained wavelengths and are created only
+when *composites* or *composites_custom* is specified. *composites_custom*
+must contain exactly three wavelengths. Temporary rasters are removed after a
 successful import.
 
 During import, *i.hyper.import* temporarily adjusts the computational
