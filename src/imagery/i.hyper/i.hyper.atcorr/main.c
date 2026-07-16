@@ -3176,12 +3176,17 @@ int main(int argc, char *argv[])
             snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
             snprintf(srcarg, sizeof(srcarg), "source_map=%s", opt_input->answer);
 
+            char cmdarg[4096];
+            const char *cmdline = getenv("CMDLINE");
+            if (!cmdline) cmdline = "i.hyper.atcorr";
+            snprintf(cmdarg, sizeof(cmdarg), "command=%s", cmdline);
+
             const char *hargs[6];
             hargs[0] = "i.hyper.metadata";
             hargs[1] = maparg;
             hargs[2] = "operation=add-history";
             hargs[3] = srcarg;
-            hargs[4] = "command=i.hyper.atcorr";
+            hargs[4] = cmdarg;
             hargs[5] = NULL;
 
             if (G_vspawn_ex("i.hyper.metadata", hargs) != 0)
