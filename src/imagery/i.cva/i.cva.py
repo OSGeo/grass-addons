@@ -7,12 +7,9 @@
 #
 # PURPOSE:	    Performs Change Vector Analysis (CVA) in two dimensions
 #
-# COPYRIGHT:	(C) 2016 by Anna Zanchetta and the GRASS Development Team
-#
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
-#
+# SPDX-FileCopyrightText: 2016 Anna Zanchetta
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # References:
 # Malila W A, Lafayette W. Change Vector Analysis: An Approach for Detecting

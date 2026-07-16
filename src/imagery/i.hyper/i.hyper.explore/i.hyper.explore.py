@@ -4,7 +4,8 @@
 # MODULE:    i.hyper.explore
 # AUTHOR(S): Tomaz Zagar <tomaz.zagar@gis.si>
 # PURPOSE:   Visualize spectra from hyperspectral 3D raster maps.
-# COPYRIGHT: (C) 2025 by Tomaz Zagar and the GRASS Development Team
+# SPDX-FileCopyrightText: 2025 Tomaz Zagar
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 

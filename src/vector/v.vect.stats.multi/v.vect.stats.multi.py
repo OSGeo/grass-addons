@@ -5,12 +5,9 @@
 # MODULE:    v.vect.stats.multi
 # AUTHOR(S): Vaclav Petras
 # PURPOSE:   Compute statistics for multiple columns using v.vect.stats
-# COPYRIGHT: (C) 2020 by Vaclav Petras and the GRASS Development Team
-#
-#                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
-#                for details.
-#
+# SPDX-FileCopyrightText: 2020 Vaclav Petras
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 """Compute zonal statistics for each column."""

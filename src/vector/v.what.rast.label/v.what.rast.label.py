@@ -7,11 +7,9 @@
 # PURPOSE:      Upload raster values and labels at positions of vector points
 #               to the vector attribute table.
 #
-# COPYRIGHT: (C) 2016-2022 by Paulo van Breugel and the GRASS Development Team
-#
-#        This program is free software under the GNU General Public
-#        License (>=v2). Read the file COPYING that comes with GRASS
-#        for details.
+# SPDX-FileCopyrightText: 2016-2022 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module

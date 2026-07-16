@@ -6,7 +6,7 @@
 #            Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia
 #            Anna Petrasova, NCSU GeoForAll Lab
 # PURPOSE:   View and manage hyperspectral metadata for 3D raster maps.
-# COPYRIGHT: (C) 2025 by the authors
+# SPDX-FileCopyrightText: 2025 Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 

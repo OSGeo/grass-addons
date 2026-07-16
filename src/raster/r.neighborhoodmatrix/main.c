@@ -8,12 +8,8 @@
  * PURPOSE:      Calculates a neighborhood matrix for a raster map with regions
  *               (e.g. the output of r.clump or i.segment)
  *
- * COPYRIGHT:    (C) 2018 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
- *
+ * SPDX-FileCopyrightText: 2018 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  ***************************************************************************/
 
 #include <stdlib.h>

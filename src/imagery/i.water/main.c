@@ -6,12 +6,8 @@
  *                  two versions, 1) generic (albedo,ndvi)
  *                  2) Modis (surf_refl_7,ndvi)
  *
- * COPYRIGHT:    (C) 2008-2016 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with
- *               GRASS for details.
- *
+ * SPDX-FileCopyrightText: 2008-2016 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdio.h>

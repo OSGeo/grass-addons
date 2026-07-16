@@ -8,8 +8,8 @@
 # PURPOSE:   Import netCDF files that adhere to the CF-convention as a
 #            Space Time Raster Dataset (STRDS)
 #
-# COPYRIGHT: (C) 2021-2025 by Stefan Blumentrath and the GRASS Development Team
-#
+# SPDX-FileCopyrightText: 2021-2025 Stefan Blumentrath
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 

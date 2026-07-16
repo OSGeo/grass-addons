@@ -6,12 +6,8 @@
 # AUTHOR(S):        Markus Neteler, converted to Python by Glynn Clements
 # PURPOSE:        converts all old GRASS < V5.7 vector maps to current format
 #                in current mapset
-# COPYRIGHT:        (C) 2004, 2008 by the GRASS Development Team
-#
-#                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
-#                for details.
-#
+# SPDX-FileCopyrightText: 2004, 2008 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # %module

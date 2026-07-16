@@ -6,12 +6,9 @@
 # AUTHOR(S):   Veronica Andreo
 # PURPOSE:     Imports Landsat data downloaded from EarthExplorer using
 #              i.landsat.download.
-# COPYRIGHT:   (C) 2020-2021 by Veronica Andreo, and the GRASS development team
-#
-#              This program is free software under the GNU General Public
-#              License (>=v2). Read the file COPYING that comes with GRASS
-#              for details.
-#
+# SPDX-FileCopyrightText: 2020-2021 Veronica Andreo
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # %module

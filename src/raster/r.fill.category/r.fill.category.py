@@ -7,12 +7,9 @@
 # PURPOSE:   Replaces the values of pixels of a given category with values
 #            of the surrounding pixels
 #
-# COPYRIGHT: (C) 2019 by Stefano Gobbi and Paolo Zatelli
-#
-#   This program is free software under the GNU General Public
-#   License (>=v2). Read the file COPYING that comes with GRASS
-#   for details.
-#
+# SPDX-FileCopyrightText: 2019 Stefano Gobbi and Paolo Zatelli
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # %Module
 # % description: Replaces the values of pixels of a given category with values of the surrounding pixels.

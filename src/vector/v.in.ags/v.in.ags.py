@@ -10,8 +10,8 @@
 #            (which auto-pages and reprojects to the project CRS). An optional
 #            Esri Feature Buffer (PBF) fast path decodes features in-process.
 #
-# COPYRIGHT: (C) 2026 by Corey White and the GRASS Development Team
-#
+# SPDX-FileCopyrightText: 2026 Corey White
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 

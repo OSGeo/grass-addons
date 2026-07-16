@@ -5,12 +5,9 @@
  * PURPOSE:      Intended to define soil texture from sand and clay grid.
  *                 Require texture scheme supplied in scheme directory
  *
- * COPYRIGHT:    (C) 2008 by Gianluca MAssei and the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with
- *               GRASS for details.
- *
+ * SPDX-FileCopyrightText: 2008 Gianluca MAssei
+ * SPDX-FileCopyrightText: Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdio.h>

@@ -4,12 +4,8 @@
  * AUTHOR(S):    Original s.to.rast3: Jaro Hofierka, Geomodel s.r.o. (original
  *               contributor) 3/2015 Upgrade to GRASS GIS 7 by Noortheen Raja J
  * PURPOSE:      Converts vector points to 3D raster
- * COPYRIGHT:    (C) 1999-2015 by the GRASS Development Team
- *
- *               This program is free software under the GNU General
- *               Public License (>=v2). Read the file COPYING that
- *               comes with GRASS for details.
- *
+ * SPDX-FileCopyrightText: 1999-2015 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdlib.h>

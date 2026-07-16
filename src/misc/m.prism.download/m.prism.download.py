@@ -5,12 +5,9 @@
 # AUTHOR(S):    Huidae Cho <grass4u gmail.com>
 # PURPOSE:      Downloads data from the PRISM Climate Group.
 #
-# COPYRIGHT:    (C) 2023 by Huidae Cho and the GRASS Development Team
-#
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
-#
+# SPDX-FileCopyrightText: 2023 Huidae Cho
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # %module
 # % description: Downloads data from the PRISM Climate Group.

@@ -6,12 +6,9 @@
  * PURPOSE:      Finds the nearest stream pixel to a coordinate pair using
  *                                  an upstream accumulating area map.
  *
- * COPYRIGHT:    (C) 2013 by the University of North Carolina at Chapel Hill
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with
- *               GRASS for details.
- *
+ * SPDX-FileCopyrightText: 2013 the University of North Carolina at Chapel Hill
+ * SPDX-FileCopyrightText: Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdlib.h>

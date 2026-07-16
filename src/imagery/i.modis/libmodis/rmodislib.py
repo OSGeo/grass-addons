@@ -8,12 +8,9 @@
 # PURPOSE:	Here there are some important class to run i.modis modules
 #
 #
-# COPYRIGHT:	(C) 2011-2017 by Luca Delucchi
-#
-# 		This program is free software under the GNU General Public
-# 		License (>=v2). Read the file COPYING that comes with GRASS
-# 		for details.
-#
+# SPDX-FileCopyrightText: 2011-2017 Luca Delucchi
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 import grass.script as gs
 

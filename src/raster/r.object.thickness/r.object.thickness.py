@@ -7,12 +7,9 @@
 # PURPOSE:   Evaluates the maximum thickness of objects of a given category
 #            on a raster map
 #
-# COPYRIGHT: (C) 2019 Paolo Zatelli
-#
-#   This program is free software under the GNU General Public
-#   License (>=v2). Read the file COPYING that comes with GRASS
-#   for details.
-#
+# SPDX-FileCopyrightText: 2019 Paolo Zatelli
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # %Module
 # % description: Evaluates minimum, maximum and mean thickness of objects of a given category on a raster map.

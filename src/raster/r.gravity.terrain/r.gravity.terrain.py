@@ -7,11 +7,9 @@
 #
 # PURPOSE:   A GRASS tool to calculate gravity terrain corrections
 #
-# COPYRIGHT: (C) 2025 by David Farris and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-FileCopyrightText: 2025 David Farris
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 """A GRASS tool to calculate gravity terrain corrections"""
