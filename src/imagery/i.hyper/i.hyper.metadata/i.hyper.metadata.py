@@ -504,13 +504,16 @@ def _copy_metadata_from_other_cube(
     source_meta.dataset_id = str(
         target_raw.get("dataset_id") or hyper_metadata_class.new_dataset_id()
     )
-    source_meta.processing_history = source_history
-    if target_last_step:
-        source_meta.processing_history.append(target_last_step)
-    elif target_has_metadata:
-        gs.warning(
-            "The current map has no local processing history. Metadata was copied without appending a local last step."
-        )
+    if record_history:
+        source_meta.processing_history = source_history
+        if target_last_step:
+            source_meta.processing_history.append(target_last_step)
+        elif target_has_metadata:
+            gs.warning(
+                "The current map has no local processing history. Metadata was copied without appending a local last step."
+            )
+    else:
+        source_meta.processing_history = []
 
     if record_history:
         source_meta.add_history_entry(
