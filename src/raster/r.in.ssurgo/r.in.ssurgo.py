@@ -1288,6 +1288,9 @@ def _rasterize_and_style(
         # every feature imports as TEXT and v.to.rast rejects it, so recast
         # to double precision before rasterizing (no-op for numeric columns).
         _ensure_numeric_column(ssurgo_vector, col)
+        # v.to.rast replaces NULL attributes with 0, which would fake
+        # meaningful values (e.g. Ksat 0 mm/hr, sand 0 percent) for map units
+        # without data; filter them out so their cells stay NULL.
         gs.run_command(
             "v.to.rast",
             input=ssurgo_vector,
@@ -1296,6 +1299,7 @@ def _rasterize_and_style(
             attribute_column=col,
             output=map_name,
             label_column=label_column if label_column else "",
+            where=f"{col} IS NOT NULL",
         )
 
         if col == "mukey_int":
@@ -1391,6 +1395,8 @@ def _rasterize_3d(
             col = f"{base_field}{_slice_suffix(i)}"
             _ensure_numeric_column(ssurgo_vector, col)
             tmp = f"_tmp_{output}_s{i}"
+            # See _rasterize_and_style: keep NULL-attribute map units NULL
+            # instead of v.to.rast's 0 replacement.
             gs.run_command(
                 "v.to.rast",
                 input=ssurgo_vector,
@@ -1399,6 +1405,7 @@ def _rasterize_3d(
                 attribute_column=col,
                 output=tmp,
                 overwrite=True,
+                where=f"{col} IS NOT NULL",
             )
             temp_2d.append(tmp)
         gs.run_command(
