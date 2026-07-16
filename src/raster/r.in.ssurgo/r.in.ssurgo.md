@@ -45,6 +45,12 @@ permeability. The HGS raster (**hydgrp**) are used in rainfall excess models
 such as the SCS Curve Number method to estimate runoff from rainfall
 events (see *r.curvenumber*).
 
+The soil texture separates (**sand**, **silt**, **clay**, in percent) and the
+bulk density at 1/3 bar (**bulk_density**, g/cm3) can also be written as
+rasters, aggregated the same way as Ksat. These match the inputs of the ROSETTA
+pedotransfer model, so they can be passed directly to *r.soils.rosetta* to
+estimate van Genuchten soil hydraulic parameters.
+
 The **soils** output is a vector layer containing the source SSURGO Map Unit polygons
 and attribute data. This can be used for reference or to create custom rasters for
 Curve Number or other applications based on the SSURGO attributes.
@@ -99,8 +105,9 @@ master horizon.
 ### r3 (3D raster) output for depth profiles
 
 When `depths` is set (a comma-separated, strictly-increasing list of cm
-boundaries with at least 2 values), the depth-weighted Ksat outputs
-(**ksat_l**, **ksat_r**, **ksat_h**) are produced as **3D rasters** with
+boundaries with at least 2 values), the depth-weighted outputs
+(**ksat_l**, **ksat_r**, **ksat_h**, **sand**, **silt**, **clay**,
+**bulk_density**) are produced as **3D rasters** with
 one z-slice per depth bin instead of a single 2D average. The number of
 slices is `len(depths) - 1`. `hzdept_r` and `hzdepb_r` are ignored when
 `depths` is set; the aggregation runs once per slice.
@@ -226,6 +233,24 @@ tools.r_in_ssurgo(
 )
 ```
 
+Import soil texture and bulk density for the top 25.4 cm and estimate van
+Genuchten hydraulic parameters with *r.soils.rosetta* (see its manual for the
+full SSURGO-to-SIMWE workflow):
+
+```sh
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soils" \
+    sand="sand" \
+    silt="silt" \
+    clay="clay" \
+    bulk_density="bd" \
+    hzdept_r=0 \
+    hzdepb_r=25.4
+r.soils.rosetta sand="sand" silt="silt" clay="clay" bulk_density="bd" \
+    ksat="ksat_vg" version=3
+```
+
 Force the SQLite/OGR backend (skip DuckDB) for a local import:
 
 ```sh
@@ -319,7 +344,8 @@ Accessed [04/23/2025].
 
 [r.curvenumber](https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html),
 [r.runoff](https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html),
-[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/addons/r.sim.water.html)
+[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/addons/r.sim.water.html),
+[r.soils.rosetta](https://grass.osgeo.org/grass-stable/manuals/addons/r.soils.rosetta.html)
 
 ## AUTHORS
 
