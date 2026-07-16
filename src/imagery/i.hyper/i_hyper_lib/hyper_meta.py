@@ -462,7 +462,10 @@ class HyperMetadata:
             try:
                 dataset_index, _ = self.discover_dataset_index()
                 snapshots, missing_ids = self.collect_input_datasets_metadata(
-                    {"processing_history": self.processing_history},
+                    {
+                        "processing_history": self.processing_history,
+                        "dataset_id": self.dataset_id,
+                    },
                     dataset_index,
                 )
                 self.input_datasets_metadata = snapshots
@@ -1218,13 +1221,9 @@ class HyperMetadata:
         visited_dataset_ids: set[str] = set()
 
         root_produced_ids = set()
-        for step in root_data.get("processing_history", []) or []:
-            if not isinstance(step, dict):
-                continue
-            for out in cls._normalize_io_refs(step.get("outputs") or []):
-                out_id = out.get("id")
-                if out_id:
-                    root_produced_ids.add(out_id)
+        root_id = root_data.get("dataset_id")
+        if root_id:
+            root_produced_ids.add(root_id)
 
         def visit_dataset(dataset_id: str | None) -> None:
             if not dataset_id or dataset_id in visited_dataset_ids:
