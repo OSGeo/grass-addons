@@ -1865,19 +1865,19 @@ int main(int argc, char *argv[])
 
     struct Option *opt_vza = G_define_option();
     opt_vza->key = "vza"; opt_vza->type = TYPE_DOUBLE;
-    opt_vza->required = NO; opt_vza->answer = "0";
+    opt_vza->required = NO;
     opt_vza->label = _("View zenith angle (degrees, 0–60) (overrides metadata)");
     opt_vza->guisection = _("Geometry");
 
     struct Option *opt_raa = G_define_option();
     opt_raa->key = "raa"; opt_raa->type = TYPE_DOUBLE;
-    opt_raa->required = NO; opt_raa->answer = "0";
+    opt_raa->required = NO;
     opt_raa->label = _("Relative azimuth angle (degrees) (overrides metadata)");
     opt_raa->guisection = _("Geometry");
 
     struct Option *opt_altitude = G_define_option();
     opt_altitude->key = "altitude"; opt_altitude->type = TYPE_DOUBLE;
-    opt_altitude->required = NO; opt_altitude->answer = "1000";
+    opt_altitude->required = NO;
     opt_altitude->label = _("Sensor altitude (km; > 900 = satellite) (overrides metadata)");
     opt_altitude->guisection = _("Geometry");
 
@@ -1922,7 +1922,7 @@ int main(int argc, char *argv[])
 
     struct Option *opt_ozone = G_define_option();
     opt_ozone->key = "ozone"; opt_ozone->type = TYPE_DOUBLE;
-    opt_ozone->required = NO; opt_ozone->answer = "300";
+    opt_ozone->required = NO;
     opt_ozone->description = _("Total ozone column (Dobson units) (overrides metadata)");
     opt_ozone->guisection = _("Atmosphere");
 
@@ -1989,19 +1989,19 @@ int main(int argc, char *argv[])
     /* ── Correction parameters ── */
     struct Option *opt_doy = G_define_option();
     opt_doy->key = "doy"; opt_doy->type = TYPE_INTEGER;
-    opt_doy->required = NO; opt_doy->answer = "180";
+    opt_doy->required = NO;
     opt_doy->label = _("Day of year for Earth-Sun distance (1–365) (overrides metadata)");
     opt_doy->guisection = _("Correction");
 
     struct Option *opt_aod_val = G_define_option();
     opt_aod_val->key = "aod_val"; opt_aod_val->type = TYPE_DOUBLE;
-    opt_aod_val->required = NO; opt_aod_val->answer = "0.1";
+    opt_aod_val->required = NO;
     opt_aod_val->label = _("Scene AOD at 550 nm for correction (scalar fallback) (overrides metadata)");
     opt_aod_val->guisection = _("Correction");
 
     struct Option *opt_h2o_val = G_define_option();
     opt_h2o_val->key = "h2o_val"; opt_h2o_val->type = TYPE_DOUBLE;
-    opt_h2o_val->required = NO; opt_h2o_val->answer = "2.0";
+    opt_h2o_val->required = NO;
     opt_h2o_val->label = _("Scene column water vapour g/cm² (scalar fallback) (overrides metadata)");
     opt_h2o_val->guisection = _("Correction");
 
@@ -2227,7 +2227,7 @@ int main(int argc, char *argv[])
     opt_sun_az->key         = "sun_azimuth";
     opt_sun_az->type        = TYPE_DOUBLE;
     opt_sun_az->required    = NO;
-    opt_sun_az->answer      = "180";
+    opt_sun_az->answer      = NULL;
     opt_sun_az->label       = _("Solar azimuth angle [degrees, CW from North] (overrides metadata)");
     opt_sun_az->description =
         _("Used for terrain illumination (cos_incidence) and NBAR relative "
