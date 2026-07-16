@@ -91,6 +91,11 @@
 # % description: Selector for operation=extended: all, branch, or dot path (e.g., acquisition,geometry.sun_zenith_deg)
 # %end
 
+# %flag
+# % key: q
+# % description: Quiet mode for operation=copy — do not add a history entry for the copy operation
+# %end
+
 import copy
 import csv
 import json
@@ -444,6 +449,7 @@ def _copy_metadata_from_other_cube(
     target_map,
     *,
     overwrite=False,
+    record_history=True,
 ):
     try:
         source_meta = hyper_metadata_class.load(source_map)
@@ -506,21 +512,22 @@ def _copy_metadata_from_other_cube(
             "The current map has no local processing history. Metadata was copied without appending a local last step."
         )
 
-    source_meta.add_history_entry(
-        command=_get_copy_command(),
-        inputs=[
-            {
-                "id": source_raw.get("dataset_id"),
-                "map_name": source_map,
-            }
-        ],
-        outputs=[
-            {
-                "map_name": target_map,
-                **({"id": source_meta.dataset_id} if not target_last_step else {}),
-            }
-        ],
-    )
+    if record_history:
+        source_meta.add_history_entry(
+            command=_get_copy_command(),
+            inputs=[
+                {
+                    "id": source_raw.get("dataset_id"),
+                    "map_name": source_map,
+                }
+            ],
+            outputs=[
+                {
+                    "map_name": target_map,
+                    **({"id": source_meta.dataset_id} if not target_last_step else {}),
+                }
+            ],
+        )
 
     try:
         source_meta.save(target_map, save_region=True)
@@ -627,7 +634,7 @@ def _add_history_entry(
 
 
 def main():
-    options, _ = gs.parser()
+    options, flags = gs.parser()
 
     map_name = options["map"]
     operation = options["operation"]
@@ -662,6 +669,7 @@ def main():
             source_found["fullname"],
             full_map_name,
             overwrite=gs.overwrite(),
+            record_history=not flags.get("q", False),
         )
         return 0
 
