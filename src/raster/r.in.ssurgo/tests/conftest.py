@@ -33,47 +33,65 @@ _gs_stub.region.return_value = {
     "ewres": 30,
 }
 
-# Stub grass modules only when they haven't been imported already (i.e. we are
-# NOT running inside a real GRASS session).
-if "grass" not in sys.modules:
-    sys.modules["grass"] = MagicMock()
-    sys.modules["grass.script"] = _gs_stub
-    sys.modules["grass.exceptions"] = MagicMock()
-    sys.modules["grass.tools"] = MagicMock()
-    sys.modules["grass.script.setup"] = MagicMock()
-    sys.modules["requests"] = MagicMock()
+# The stubs below are installed in sys.modules only while the addon module is
+# imported (see the ssurgo_module fixture) and removed immediately after, so
+# they cannot leak into other addons' tests that share the same process (e.g. a
+# repo-wide pytest run).
 
 
 @pytest.fixture(scope="session")
 def ssurgo_module():
-    """Import and return the r.in.ssurgo module with GRASS stubs in place."""
-    # Re-wire the module-level objects that run at import time.
+    """Import and return the r.in.ssurgo module with GRASS stubs in place.
+
+    These are unit tests of the module's pure-Python helpers, so the import
+    always runs against stubs rather than a real GRASS session. The stubs are
+    present in sys.modules only for the duration of the import; the imported
+    module keeps its own references, so the originals are restored right after
+    to avoid leaking into other test suites that share the process.
+    """
     import importlib
 
-    # Patch module-level code that touches GRASS at import time.
+    # Configure the grass.script stub used during import.
     _gs_stub.message = MagicMock()
     _gs_stub.warning = MagicMock()
     _gs_stub.fatal = MagicMock(side_effect=SystemExit)
     _gs_stub.debug = MagicMock()
 
-    # Provide a fake Tools that returns a fake session string
+    # Provide a fake Tools that returns a fake session string.
     tools_mock = MagicMock()
     tools_mock.g_gisenv.return_value.text = "/tmp/grassdb/location/PERMANENT"
-    sys.modules["grass.tools"].Tools.return_value = tools_mock
 
-    # Now import (or reload) the module
-    if "r.in.ssurgo" in sys.modules:
-        mod = importlib.reload(sys.modules["r.in.ssurgo"])
-    else:
-        import importlib.util
+    stubs = {
+        "grass": MagicMock(),
+        "grass.script": _gs_stub,
+        "grass.exceptions": MagicMock(),
+        "grass.tools": MagicMock(),
+        "grass.script.setup": MagicMock(),
+        "requests": MagicMock(),
+    }
+    stubs["grass.tools"].Tools.return_value = tools_mock
 
-        spec = importlib.util.spec_from_file_location(
-            "r.in.ssurgo",
-            Path(__file__).resolve().parent.parent / "r.in.ssurgo.py",
-        )
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["r.in.ssurgo"] = mod
-        spec.loader.exec_module(mod)
+    saved = {name: sys.modules.get(name) for name in stubs}
+    sys.modules.update(stubs)
+    try:
+        if "r.in.ssurgo" in sys.modules:
+            mod = importlib.reload(sys.modules["r.in.ssurgo"])
+        else:
+            import importlib.util
+
+            spec = importlib.util.spec_from_file_location(
+                "r.in.ssurgo",
+                Path(__file__).resolve().parent.parent / "r.in.ssurgo.py",
+            )
+            mod = importlib.util.module_from_spec(spec)
+            sys.modules["r.in.ssurgo"] = mod
+            spec.loader.exec_module(mod)
+    finally:
+        for name, original in saved.items():
+            if original is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = original
     return mod
 
 
