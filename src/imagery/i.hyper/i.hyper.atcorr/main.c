@@ -3112,7 +3112,7 @@ int main(int argc, char *argv[])
         correct_raster3d(opt_input->answer, opt_output->answer,
                          &cfg, &lut, aod_val, h2o_val, doy, sza, &iso);
 
-        /* ── Derive output metadata (i.hyper.metadata operation=derive) ── */
+        /* ── Merge output metadata overrides ── */
         {
             char overrides[2048];
             snprintf(overrides, sizeof(overrides),
@@ -3154,22 +3154,38 @@ int main(int argc, char *argv[])
                      aod_val, h2o_val, ozone, doy,
                      atmo_str, aero_str);
 
-            char maparg[GPATH_MAX], srcarg[GPATH_MAX], ovrarg[4096];
+            char maparg[GPATH_MAX], ovrarg[4096];
             snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
-            snprintf(srcarg, sizeof(srcarg), "source_map=%s", opt_input->answer);
             snprintf(ovrarg, sizeof(ovrarg), "overrides=%s", overrides);
 
-            const char *dargs[7];
-            dargs[0] = "i.hyper.metadata";
-            dargs[1] = maparg;
-            dargs[2] = "operation=derive";
-            dargs[3] = srcarg;
-            dargs[4] = "command=i.hyper.atcorr";
-            dargs[5] = ovrarg;
-            dargs[6] = NULL;
+            const char *margs[5];
+            margs[0] = "i.hyper.metadata";
+            margs[1] = maparg;
+            margs[2] = "operation=merge-overrides";
+            margs[3] = ovrarg;
+            margs[4] = NULL;
 
-            if (G_vspawn_ex("i.hyper.metadata", dargs) != 0)
-                G_warning(_("Failed to derive output metadata for <%s>"),
+            if (G_vspawn_ex("i.hyper.metadata", margs) != 0)
+                G_warning(_("Failed to merge output metadata for <%s>"),
+                          opt_output->answer);
+        }
+
+        /* ── Add processing history entry ── */
+        {
+            char maparg[GPATH_MAX], srcarg[GPATH_MAX];
+            snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
+            snprintf(srcarg, sizeof(srcarg), "source_map=%s", opt_input->answer);
+
+            const char *hargs[6];
+            hargs[0] = "i.hyper.metadata";
+            hargs[1] = maparg;
+            hargs[2] = "operation=add-history";
+            hargs[3] = srcarg;
+            hargs[4] = "command=i.hyper.atcorr";
+            hargs[5] = NULL;
+
+            if (G_vspawn_ex("i.hyper.metadata", hargs) != 0)
+                G_warning(_("Failed to add history entry for <%s>"),
                           opt_output->answer);
         }
 
