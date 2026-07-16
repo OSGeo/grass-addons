@@ -89,6 +89,16 @@ r.soils.rosetta sand=sand silt=silt clay=clay bulk_density=bd \
 r.slope.aspect elevation=elevation dx=dx dy=dy
 ```
 
+![ROSETTA saturated hydraulic conductivity](r_soils_rosetta.png)  
+*Figure: ROSETTA-estimated saturated hydraulic conductivity (mm/hr) from
+SSURGO texture and bulk density over shaded relief (NC sample dataset, Lake
+Wheeler area). Low-conductivity alluvial soils trace the drainage network;
+gray areas are map units without soil data.*
+
+![ROSETTA saturated water content](r_soils_rosetta_theta_s.png)  
+*Figure: ROSETTA-estimated saturated water content theta_s (cm3/cm3) for the
+same area.*
+
 Ksat then enters *r.sim.water* in one of two ways. Both interpret Ksat as the
 steady-state infiltration rate; do not use both at once or infiltration is
 counted twice.
