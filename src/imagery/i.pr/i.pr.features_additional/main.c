@@ -7,13 +7,8 @@
  *
  * PURPOSE:    i.pr - Pattern Recognition
  *
- * COPYRIGHT:  (C) 2007 by the GRASS Development Team
- *
- *             This program is free software under the
- *             GNU General Public License (>=v2).
- *             Read the file COPYING that comes with GRASS
- *             for details.
- *
+ * SPDX-FileCopyrightText: 2007 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  ****************************************************************/
 
 #include <stdlib.h>
@@ -368,3 +363,4 @@ void generate_features(Features *features, Features *features_out)
     G_free(sd);
     G_free(compute_features);
 }
+

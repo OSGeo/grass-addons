@@ -4,12 +4,9 @@
 # MODULE:       r.to.vect.lines
 # AUTHOR(S):    Hamish Bowman, Dunedin, New Zealand
 # PURPOSE:      Extracts wiggle lines from raster data for use with e.g. NVIZ
-# COPYRIGHT:    (C) 2012 by Hamish Bowman, and the GRASS Development Team
-#
-#               This program is free software under the GNU General
-#               Public License (>=v2). Read the file COPYING that
-#               comes with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2012 Hamish Bowman
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 #
 # To make a wiggle line plot in NVIZ:
@@ -187,3 +184,4 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     main()
+

@@ -4,7 +4,8 @@
 # MODULE:    i.hyper.preproc
 # AUTHOR(S): Alen Mangafic and Tomaž Žagar, Geodetic Institute of Slovenia
 # PURPOSE:   Hyperspectral imagery preprocessing.
-# COPYRIGHT: (C) 2025 by Alen Mangafic and the GRASS Development Team
+# SPDX-FileCopyrightText: 2025 Alen Mangafic
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
@@ -633,3 +634,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

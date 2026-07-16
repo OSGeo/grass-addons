@@ -10,12 +10,9 @@
 # PURPOSE:   Wrapper for r.volume. Creates vector map of centroids from a
 #            raster of "clumps"; r.clumps creates "clumps" of data.
 #
-# COPYRIGHT: (C) 2021 by Caitlin Haedrich and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
-#
+# SPDX-FileCopyrightText: 2021 Caitlin Haedrich
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # %module
@@ -59,3 +56,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

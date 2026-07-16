@@ -7,12 +7,8 @@
  *                  calculate local downstream elevation change
  *                  and local downstream minimum and maximum curvature
 
- * COPYRIGHT:    (C) 2002, 2010-2014 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
- *
+ * SPDX-FileCopyrightText: 2002, 2010-2014 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdio.h>
@@ -419,3 +415,4 @@ DCELL calculate_min_curvature(int r, int c)
     return second_derivative /
            pow((1 + first_derivative * first_derivative), 1.5);
 }
+

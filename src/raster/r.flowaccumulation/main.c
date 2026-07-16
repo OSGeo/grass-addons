@@ -8,12 +8,9 @@
  *               using the Memory-Efficient Flow Accumulation (MEFA) parallel
  *               algorithm by Cho (2023).
  *
- * COPYRIGHT:    (C) 2023 by Huidae Cho and the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
- *
+ * SPDX-FileCopyrightText: 2023 Huidae Cho
+ * SPDX-FileCopyrightText: Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdlib.h>
@@ -404,3 +401,4 @@ int main(int argc, char *argv[])
 
     exit(EXIT_SUCCESS);
 }
+

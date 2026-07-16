@@ -6,11 +6,8 @@
 # AUTHOR(S):	Anika Bettge, mundialis
 #
 # PURPOSE:	    Run r.mapcalc vs r.mapcalc.tiled with different parameters
-# COPYRIGHT:	(C) 2020 by the GRASS Development Team
-#
-# 		This program is free software under the GNU General Public
-# 		License (>=v2). Read the file COPYING that comes with GRASS
-# 		for details.
+# SPDX-FileCopyrightText: 2020 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # python3 test.py config.ini
@@ -135,3 +132,4 @@ with open(conf["csvfile"], "w", newline="") as f:
                 )
 
 print("<%s> created" % conf["csvfile"])
+

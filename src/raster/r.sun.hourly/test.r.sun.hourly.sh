@@ -5,12 +5,8 @@
 # TEST:      test.r.sun.hourly
 # AUTHOR(S): Vaclav Petras, Anna Petrasova
 # PURPOSE:   This is test for r.sun.hourly module
-# COPYRIGHT: (C) 2013 by the GRASS Development Team
-#
-#                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
-#                for details.
-#
+# SPDX-FileCopyrightText: 2013 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # @preprocess step
@@ -122,3 +118,4 @@ g.remove -ef type=rast pattern=${decimal_map_basename}${map_number_separator}${m
 
 rm ${temporal_map_names_file} ${temporal_dataset_file} ${temporal_created_dataset_file} ${temporal_created_map_names_file}
 t.remove -rf inputs=${temporal_map_basename}
+

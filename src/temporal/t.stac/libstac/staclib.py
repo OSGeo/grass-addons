@@ -5,11 +5,9 @@
 # MODULE:       staclib
 # AUTHOR:       Corey T. White, OpenPlains Inc. & NCSU
 # PURPOSE:      Helper library to import STAC data in to GRASS.
-# COPYRIGHT:    (C) 2024 Corey White
-#               This program is free software under the GNU General
-#               Public License (>=v2). Read the file COPYING that
-#               comes with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2024 Corey White
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 from __future__ import annotations
 
@@ -923,3 +921,4 @@ def download_assets(
                     pbar.update(1)
         except Exception as e:
             gs.fatal(_("Error importing raster: {}").format(e))
+

@@ -12,12 +12,9 @@
  *               Interpolation method Ordinary kriging has been extended for
  *               3D points (v = f(x,y) -> v = f(x,y,z)).
  *
- * COPYRIGHT:  (C) 2012-2014 Eva Stopková and by the GRASS Development Team
- *
- *        This program is free software under the GNU General Public
- *        License (>=v2). Read the file COPYING that
- *        comes with GRASS for details.
- *
+ * SPDX-FileCopyrightText: 2012-2014 Eva Stopková
+ * SPDX-FileCopyrightText: Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  **************************************************************/
 
 #include "local_proto.h"
@@ -833,3 +830,4 @@ end:
     Vect_close(&map); // Close vector map
     exit(EXIT_SUCCESS);
 }
+

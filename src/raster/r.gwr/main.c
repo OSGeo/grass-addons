@@ -9,12 +9,8 @@
  *               y = b0 + b1*x1 + b2*x2 + ... +  bn*xn + e
  *               with localized b coefficients
  *
- * COPYRIGHT:    (C) 2011-2016 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
- *
+ * SPDX-FileCopyrightText: 2011-2016 Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *****************************************************************************/
 
 #include <stdio.h>
@@ -689,3 +685,4 @@ int main(int argc, char *argv[])
 
     exit(EXIT_SUCCESS);
 }
+

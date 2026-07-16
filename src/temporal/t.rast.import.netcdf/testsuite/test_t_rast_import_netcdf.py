@@ -7,8 +7,8 @@
 #
 # PURPOSE:   Test of t.rast.import.netcdf with chirps and seNorge data
 #
-# COPYRIGHT: (C) 2021-2025 by Stefan Blumentrath and the GRASS Development Team
-#
+# SPDX-FileCopyrightText: 2021-2025 Stefan Blumentrath
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
@@ -319,3 +319,4 @@ class TestNetCDFImport(TestCase):
 
 if __name__ == "__main__":
     test()
+

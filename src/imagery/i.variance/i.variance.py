@@ -6,12 +6,8 @@
 # AUTHOR(S):        Moritz Lennert
 #
 # PURPOSE:        Calculate variation of variance by variation of resolution
-# COPYRIGHT:        (C) 1997-2016 by the GRASS Development Team
-#
-#                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
-#                for details.
-#
+# SPDX-FileCopyrightText: 1997-2016 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # Curtis E. Woodcock, Alan H. Strahler, The factor of scale in remote sensing,
 # Remote Sensing of Environment, Volume 21, Issue 3, April 1987, Pages 311-332,
@@ -233,3 +229,4 @@ if __name__ == "__main__":
     options, flags = gs.parser()
     atexit.register(cleanup)
     main()
+

@@ -14,13 +14,9 @@
 #
 # PURPOSE:    Converts (rasterize) a TIN map into a raster map
 #
-# COPYRIGHT:  (C) 2011-2015 Antonio Alliegro, 2015 Alexander Muriy,
-#             and the GRASS Development Team
-#
-#             This program is free software under the GNU General
-#             Public License (>=v2). Read the file COPYING that
-#             comes with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2011-2015 Antonio Alliegro, 2015 Alexander Muriy
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ############################################################################
 
 # %module
@@ -189,3 +185,4 @@ if __name__ == "__main__":
     options, flags = gs.parser()
     atexit.register(cleanup)
     main()
+

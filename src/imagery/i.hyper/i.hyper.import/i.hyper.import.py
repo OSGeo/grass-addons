@@ -3,7 +3,8 @@
 # MODULE:    i.hyper.import
 # AUTHOR(S): Alen Mangafic and Tomaž Žagar, Geodetic Institute of Slovenia
 # PURPOSE:   Hyperspectral imagery import.
-# COPYRIGHT: (C) 2025 by Alen Mangafic and the GRASS Development Team
+# SPDX-FileCopyrightText: 2025 Alen Mangafic
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
@@ -309,3 +310,4 @@ def main(options, flags):
 if __name__ == "__main__":
     options, flags = gs.parser()
     sys.exit(main(options, flags))
+

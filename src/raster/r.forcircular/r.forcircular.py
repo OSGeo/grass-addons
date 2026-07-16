@@ -5,12 +5,8 @@
 # MODULE:      r.forcircular
 # AUTHOR(S):   Francesco Geri, Sandro Sacchelli
 # PURPOSE:     Evaluation of circular bioeconomy level of forest ecosystems
-# COPYRIGHT:   (C) 2022 by the GRASS Development Team
-#
-#              This program is free software under the GNU General Public
-#              License (>=v2). Read the file COPYING that comes with GRASS
-#              for details.
-#
+# SPDX-FileCopyrightText: 2022 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # %Module
 # % description: Evaluation of circular bioeconomy level of forest ecosystems
@@ -1972,3 +1968,4 @@ def main(opts, flgs):
 
 if __name__ == "__main__":
     main(*parser())
+

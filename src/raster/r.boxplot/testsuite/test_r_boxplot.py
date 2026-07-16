@@ -8,12 +8,9 @@
 #
 # PURPOSE:   Tests for r.boxplot
 #
-# COPYRIGHT: (C) 2025 by Rajveer Bishnoi and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
-#
+# SPDX-FileCopyrightText: 2025 Rajveer Bishnoi
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 import os
@@ -151,3 +148,4 @@ class TestRBoxplot(TestCase):
 
 if __name__ == "__main__":
     test()
+

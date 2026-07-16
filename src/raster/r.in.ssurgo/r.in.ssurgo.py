@@ -5,11 +5,9 @@
 # MODULE:       r.in.ssurgo
 # AUTHOR:       Corey T. White, GeoForAll Lab, NCSU
 # PURPOSE:      Download and import SSURGO data
-# COPYRIGHT:    (C) 2025-2026 Corey White and the GRASS Development Team
-#               This program is free software under the GNU General
-#               Public License (>=v2). Read the file COPYING that
-#               comes with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2025-2026 Corey White
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # %module
@@ -2006,3 +2004,4 @@ if __name__ == "__main__":
     SESSION = f"{gisenv['GISDBASE']}/{gisenv['LOCATION_NAME']}/{gisenv['MAPSET']}"
     gs.message(f"Active GRASS session: {SESSION}")
     main()
+

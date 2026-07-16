@@ -4,12 +4,8 @@
 # AUTHOR(S):   Giulia Garegnani
 # PURPOSE:     libraries for the financial module of biomassfor
 #              original module developed by Francesco Geri and Pietro Zambelli
-# COPYRIGHT:   (C) 2014 by the GRASS Development Team
-#
-#              This program is free software under the GNU General Public
-#              License (>=v2). Read the file COPYING that comes with GRASS
-#              for details.
-#
+# SPDX-FileCopyrightText: 2014 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 #
 import os
@@ -513,3 +509,4 @@ def net_revenues(
 
     econtot = "%s = %s + %s" % (econ_bioenergy, econ_bioenergyC, econ_bioenergyHF)
     run_command("r.mapcalc", overwrite=True, expression=econtot)
+

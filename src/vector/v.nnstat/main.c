@@ -10,12 +10,9 @@
  * PURPOSE:      Module indicates clusters, separations or random distribution
  *               of point set in 2D or 3D space.
  *
- * COPYRIGHT:    (C) 2013-2014 by Eva Stopková and the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
- *
+ * SPDX-FileCopyrightText: 2013-2014 Eva Stopková
+ * SPDX-FileCopyrightText: Other GRASS authors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  **************************************************************/
 
 #include "local_proto.h"
@@ -129,3 +126,4 @@ int main(int argc, char *argv[])
     Vect_close(&map);
     exit(EXIT_SUCCESS);
 }
+

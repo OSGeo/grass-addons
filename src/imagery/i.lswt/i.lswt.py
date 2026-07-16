@@ -6,12 +6,8 @@
 # AUTHOR(S):	Sajid Pareeth
 #
 # PURPOSE:	Compute Lake Surface Water Temperature (inland waters) from TOA Brightness Temperatures(BT)
-# COPYRIGHT:	(C) 1997-2014 by the GRASS Development Team
-#
-# 		This program is free software under the GNU General Public
-# 		License (>=v2). Read the file COPYING that comes with GRASS
-# 		for details.
-#
+# SPDX-FileCopyrightText: 1997-2014 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 # References:
 # The satellite specific split-window coefficients are taken from:
@@ -324,3 +320,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

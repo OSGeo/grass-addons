@@ -7,11 +7,9 @@
 # PURPOSE:              Creates a raster buffer of specified area around vector
 #                       points using cost distances. Module requires r.walk.
 # ACKNOWLEDGEMENTS:     National Science Foundation Grant #BCS0410269
-# COPYRIGHT:            (C) 2015 by Isaac Ullah, Arizona State University
-#                       This program is free software under the GNU General
-#                       Public License (>=v2). Read the file COPYING that comes
-#                       with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2015 Isaac Ullah, Arizona State University
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 
@@ -713,3 +711,4 @@ if __name__ == "__main__":
     options, flags = gs.parser()
     main()
     exit(0)
+

@@ -6,18 +6,9 @@
 # AUTHOR(S):    Pierre Roudier
 # PURPOSE:      Uploads values of multiple rasters at positions of vector
 #               points to the table.
-# COPYRIGHT:    (C) 2017 by Pierre Roudier, and the GRASS Development Team
-#
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
+# SPDX-FileCopyrightText: 2017 Pierre Roudier
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ############################################################################
 
 # %module
@@ -165,3 +156,4 @@ def main():
 if __name__ == "__main__":
     options, flags = gs.parser()
     sys.exit(main())
+

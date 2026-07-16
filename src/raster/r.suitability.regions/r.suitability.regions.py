@@ -4,12 +4,9 @@
 # MODULE:         Locate suitable regions
 # AUTHOR(S):      Paulo van Breugel
 # PURPOSE:        From suitability map to suitable regions
-# COPYRIGHT: (C) 2021-2024 by Paulo van Breugel and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
-#
+# SPDX-FileCopyrightText: 2021-2024 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
@@ -550,3 +547,4 @@ def main(options, flags):
 if __name__ == "__main__":
     atexit.register(cleanup)
     sys.exit(main(*gs.parser()))
+

@@ -5,12 +5,8 @@
 # TEST:      test.r.sun.daily
 # AUTHOR(S): Vaclav Petras, Anna Petrasova
 # PURPOSE:   This is test for r.sun.daily module
-# COPYRIGHT: (C) 2013 by the GRASS Development Team
-#
-#                This program is free software under the GNU General Public
-#                License (>=v2). Read the file COPYING that comes with GRASS
-#                for details.
-#
+# SPDX-FileCopyrightText: 2013 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # @preprocess step
@@ -75,3 +71,4 @@ echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 # clean
 rm ${map_names_file} ${created_map_names_file}
 g.remove -ef type=rast pattern=${map_basename}_[0-9]{3}
+

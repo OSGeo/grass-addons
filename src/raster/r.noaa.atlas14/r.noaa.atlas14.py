@@ -8,8 +8,8 @@
 # PURPOSE:   Import NOAA Atlas 14 precipitation-frequency data from PFDS point
 #            queries or official GIS-compatible grid downloads.
 #
-# COPYRIGHT: (C) 2026 by Corey T. White and the GRASS Development Team
-#
+# SPDX-FileCopyrightText: 2026 Corey T. White
+# SPDX-FileCopyrightText: Other GRASS authors
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
@@ -1304,3 +1304,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

@@ -9,18 +9,9 @@
 #
 # PURPOSE:      Queries vector map with overlaping "spaghetti" polygons (e.g. Landsat footprints) at given location
 #
-# COPYRIGHT:    (C) 2016 Alexander Muriy / GRASS Development Team
-#
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
+# SPDX-FileCopyrightText: 2016 Alexander Muriy /
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ############################################################################
 # %Module
 # %  description: Queries vector map with overlapping "spaghetti" polygons (e.g. Landsat footprints) at given location. Polygons must have not intersected boundaries.
@@ -186,3 +177,4 @@ if __name__ == "__main__":
     options, flags = gs.parser()
     atexit.register(cleanup)
     main()
+

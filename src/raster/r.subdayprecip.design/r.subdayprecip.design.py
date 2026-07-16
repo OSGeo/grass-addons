@@ -8,12 +8,9 @@
 #
 # PURPOSE:      Computes subday design precipitation totals.
 #
-# COPYRIGHT:    (C) 2015 Martin Landa and GRASS development team
-#
-#               This program is free software under the GNU General
-#               Public License (>=v2). Read the file COPYING that
-#               comes with GRASS for details.
-#
+# SPDX-FileCopyrightText: 2015 Martin Landa
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 # %module
@@ -278,3 +275,4 @@ def main():
 if __name__ == "__main__":
     opt, flg = gs.parser()
     sys.exit(main())
+

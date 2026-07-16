@@ -7,12 +7,8 @@
 #               by Martin Landa, Jachym Cepicky, Daniel Calvelo Aros and Moritz Lennert
 # PURPOSE:	    Displays thematic vector map with graduated colors
 #               or graduated points and line thickneses
-# COPYRIGHT:	(C) 2006-2014 by the GRASS Development Team
-#
-# 		This program is free software under the GNU General Public
-# 		License (>=v2). Read the file COPYING that comes with GRASS
-# 		for details.
-#
+# SPDX-FileCopyrightText: 2006-2014 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 
 
@@ -1416,3 +1412,4 @@ if __name__ == "__main__":
     options, flags = gs.parser()
     atexit.register(cleanup)
     main()
+

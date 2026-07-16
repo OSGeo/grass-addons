@@ -6,12 +6,8 @@
 # MODULE:      r.green.hydro.delplants
 # AUTHOR(S):   Pietro Zambelli & Giulia Garegnani
 # PURPOSE:     Delete segments where there is an existing plant
-# COPYRIGHT:   (C) 2014 by the GRASS Development Team
-#
-#              This program is free software under the GNU General Public
-#              License (>=v2). Read the file COPYING that comes with GRASS
-#              for details.
-#
+# SPDX-FileCopyrightText: 2014 Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #############################################################################
 #
 # %Module
@@ -199,3 +195,4 @@ def main(opts, flgs):
 
 if __name__ == "__main__":
     main(*parser())
+

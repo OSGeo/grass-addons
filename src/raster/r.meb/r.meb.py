@@ -18,12 +18,9 @@
 #               and median of MES values in B (MESb), divided by the median of
 #               the absolute deviations of MESb from the median of MESb (MAD)
 #
-# COPYRIGHT: (C) 2014-2023 by Paulo van Breugel and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
-#
+# SPDX-FileCopyrightText: 2014-2023 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ########################################################################
 #
 # %Module
@@ -490,3 +487,4 @@ def main(options, flags):
 if __name__ == "__main__":
     atexit.register(cleanup)
     sys.exit(main(*gs.parser()))
+

@@ -7,12 +7,9 @@
 # AUTHOR(S):    Luca Delucchi
 # PURPOSE:      Manages NULL-values of a given space time raster dataset.
 #
-# COPYRIGHT:    (C) 2018 by Luca Delucchi
-#
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
-#
+# SPDX-FileCopyrightText: 2018 Luca Delucchi
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 ################################################
 
 # %module
@@ -108,3 +105,4 @@ def main():
 if __name__ == "__main__":
     options, flags = gs.parser()
     sys.exit(main())
+
