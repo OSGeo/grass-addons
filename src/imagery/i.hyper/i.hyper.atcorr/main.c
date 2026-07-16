@@ -646,6 +646,55 @@ static int json_extract_array(const char *json, const char *key,
 }
 
 /**
+ * \brief Detect radiance unit scaling factor from the input map's hyper.json.
+ *
+ * Reads the \c radiometric_units field from the map's hyper.json sidecar
+ * and returns the factor to convert input radiance to W/m²/sr/µm.
+ *
+ * Sensors that store radiance per nanometer (e.g. EnMAP L1C:
+ * "W/m^2/sr/nm") need a ×1000 conversion because the ρ_toa formula and
+ * the Thuillier solar spectrum (sixs_E0) are in per-µm units.
+ *
+ * \param[in]  mapname  Name of the input Raster3D map.
+ * \return 1000.0f for per-nm units, 1.0f for per-µm or unknown.
+ */
+static float detect_radiance_um_factor(const char *mapname)
+{
+    char name[512], mapset[512];
+    const char *at = strchr(mapname, '@');
+    if (at) {
+        size_t nlen = (size_t)(at - mapname);
+        if (nlen >= sizeof(name)) return 1.0f;
+        memcpy(name, mapname, nlen); name[nlen] = '\0';
+        snprintf(mapset, sizeof(mapset), "%s", at + 1);
+    }
+    else {
+        snprintf(name, sizeof(name), "%s", mapname);
+        const char *found = G_find_raster3d(mapname, "");
+        snprintf(mapset, sizeof(mapset), "%s", found ? found : G_mapset());
+    }
+    char path[GPATH_MAX];
+    snprintf(path, sizeof(path), "%s/%s/%s/grid3/%s/hyper.json",
+             G_gisdbase(), G_location(), mapset, name);
+    FILE *f = fopen(path, "rb");
+    if (!f) return 1.0f;
+    char buf[4096];
+    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+    fclose(f);
+    buf[n] = '\0';
+    const char *units_key = strstr(buf, "\"radiometric_units\"");
+    if (!units_key) return 1.0f;
+    const char *val = strchr(units_key, ':');
+    if (!val) return 1.0f;
+    val++; while (*val && isspace((unsigned char)*val)) val++;
+    if (*val != '"') return 1.0f;
+    val++;
+    if (strstr(val, "/nm") || strstr(val, "nm⁻¹") || strstr(val, "nm-1"))
+        return 1000.0f;
+    return 1.0f;
+}
+
+/**
  * \brief Parse per-band centre wavelengths and FWHM from i.hyper.import's
  *        grid3/<map>/hyper.json sidecar (HyperMetadata JSON schema).
  *
@@ -1342,6 +1391,12 @@ static void correct_raster3d(const char *input_name, const char *output_name,
     double null_d;
     Rast_set_d_null_value(&null_d, 1);
 
+    /* ── Detect radiance unit conversion factor ── */
+    float radiance_um_factor = detect_radiance_um_factor(input_name);
+    if (radiance_um_factor != 1.0f)
+        G_message(_("Input radiance in per-nm units; converting to per-µm (×%.0f)"),
+                  radiance_um_factor);
+
     /* ── Allocate working buffers ── */
     /* Per-band buffers (reused each iteration) */
     float *rad_band  = G_malloc((size_t)npix * sizeof(float));
@@ -1430,7 +1485,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 #pragma omp parallel for schedule(static)
 #endif
             for (int i = 0; i < npix; i++) {
-                float L = rad_band[i];
+                float L = rad_band[i] * radiance_um_factor;
                 if (!isfinite(L) || E0 <= 0.0f) { refl_band[i] = NAN; continue; }
 
                 float R_a, T_d, T_u, s_a;
@@ -1521,7 +1576,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 #pragma omp parallel for schedule(static)
 #endif
             for (int i = 0; i < npix; i++) {
-                float L = rad_band[i];
+                float L = rad_band[i] * radiance_um_factor;
                 if (!isfinite(L) || E0 <= 0.0f) { refl_band[i] = NAN; continue; }
                 float rho_toa = (float)(M_PI * L * d2) / (E0 * cos_szaf);
                 refl_band[i]  = use_brdf
