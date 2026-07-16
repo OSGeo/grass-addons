@@ -58,6 +58,11 @@ as that may result in a massive number of outliers, slowing down the
 computations and rendering of the plot.
 
 <p>
+When the boxplots are drawn with notches (the <b>-n</b> flag), you can use
+the <b>nprocs</b> parameter to speed up the required computations by using
+more than one core.
+
+<p>
 The <em>t.rast.boxplot</em> module operates on the raster array defined by the
 current region settings, not the original extent and resolution of the
 input map. See <a

@@ -162,7 +162,9 @@ largest zone is always set to the user-defined maximum
 scaled relative to that.
 
 ```sh
-r.boxplot -c map=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2" 
+r.boxplot -c map=elevation zones=landclass96 \
+raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" \
+area_label="km2" 
 ```
 
 The code above also print the surface area of each zone above
@@ -170,7 +172,7 @@ the corresponding boxplot in square kilometers.
 
 ![image-alt](r_boxplot_06.png)
 
-## Acknowledgements
+## Acknowledgements 
 
 This work was carried in the framework of the [Save the tiger, save the
 grassland, save the water](https://savethetiger.nl/) project by the [Innovative

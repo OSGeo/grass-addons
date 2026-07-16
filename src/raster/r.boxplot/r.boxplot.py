@@ -7,7 +7,7 @@
 # PURPOSE:      Draws boxplot(s) of raster values of the input raster.
 #               Optionally, this can be done per category of a zonal map.
 #
-# COPYRIGHT:    (c) 2022 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2022-2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.

@@ -6,7 +6,7 @@
 # AUTHOR:       Paulo van Breugel
 # PURPOSE:      Draws boxplots of a series of input rasters.
 #
-# COPYRIGHT:    (c) 2022 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2022-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -128,6 +128,15 @@
 # % guisection: Plot format
 # %end
 
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
+# % guisection: Plot format
+# %end
+
 # %options G_OPT_CN
 # % key: box_color
 # % type: string
@@ -141,9 +150,8 @@
 # % key: box_linewidth
 # % type: double
 # % label: Boxplot line width
-# % description: Width of the boxplot border lines.
+# % description: Width of the boxplot border lines. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 1
 # % guisection: Boxplot format
 # %end
 
@@ -151,9 +159,8 @@
 # % key: median_linewidth
 # % type: double
 # % label: Median line width
-# % description: Width of the boxplot median line.
+# % description: Width of the boxplot median line. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 1.1
 # % guisection: Boxplot format
 # %end
 
@@ -162,6 +169,7 @@
 # % label: Median line color
 # % description: Color of the boxplot median line. If left empty, a contrasting color is chosen automatically based on the box color.
 # % required: no
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -169,9 +177,8 @@
 # % key: whisker_linewidth
 # % type: double
 # % label: Whisker line width
-# % description: Width of the whisker and cap lines.
+# % description: Width of the whisker and cap lines. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 1
 # % guisection: Boxplot format
 # %end
 
@@ -273,11 +280,10 @@ def strip_mapset(name):
     return name
 
 
-def main(options, flags):
-    """
-    Draws the boxplot of raster values. Optionally, this is done per category
-    of a zonal raster layer
-    """
+def lazy_import_py_modules():
+    """Lazy import Py modules"""
+    global mpl
+    global plt
 
     # lazy import matplotlib
     try:
@@ -286,7 +292,33 @@ def main(options, flags):
         mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
-        gs.fatal(_("matplotlib is not installed"))
+        gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
+
+
+def main(options, flags):
+    """
+    Draws the boxplot of raster values. Optionally, this is done per category
+    of a zonal raster layer
+    """
+
+    # lazy import matplotlib
+    lazy_import_py_modules()
+    apply_style(options["style"])
 
     # input options
     rasters = options["map"].split(",")
@@ -298,8 +330,6 @@ def main(options, flags):
     grid = flags["g"]
     if options["fontsize"]:
         plt.rcParams["font.size"] = int(options["fontsize"])
-    else:
-        plt.rcParams["font.size"] = 10
     if options["range"]:
         whisker_range = float(options["range"])
     else:
@@ -327,14 +357,17 @@ def main(options, flags):
         if bxp_width > 1 or bxp_width <= 0:
             gs.fatal(_("The boxplot width needs to in the interval (0,1]"))
     else:
-        bxp_width = 0.65
-    # Line widths for box border, median and whisker/cap lines.
-    box_linewidth = float(options["box_linewidth"]) if options["box_linewidth"] else 1
+        bxp_width = None
+    # Line widths for box border, median and whisker/cap lines. Unset means
+    # the Matplotlib/style default is used.
+    box_linewidth = (
+        float(options["box_linewidth"]) if options["box_linewidth"] else None
+    )
     median_linewidth = (
-        float(options["median_linewidth"]) if options["median_linewidth"] else 1.1
+        float(options["median_linewidth"]) if options["median_linewidth"] else None
     )
     whisker_linewidth = (
-        float(options["whisker_linewidth"]) if options["whisker_linewidth"] else 1
+        float(options["whisker_linewidth"]) if options["whisker_linewidth"] else None
     )
     # Optional explicit median color (overrides the automatic contrast color).
     if options["median_color"]:
@@ -381,21 +414,18 @@ def main(options, flags):
             mcolor = [1, 1, 1, 0.7]
         bxcolor = [bxcolor for _i in range(len(rasters))]
         mcolor = [mcolor for _i in range(len(rasters))]
-    if not options["flier_size"]:
-        flier_size = 2
-    else:
-        flier_size = int(options["flier_size"])
+    flier_size = int(options["flier_size"]) if options["flier_size"] else None
     if not options["flier_marker"]:
         flier_marker = "o"
     else:
         flier_marker = options["flier_marker"]
     if not options["flier_color"]:
-        flier_color = "black"
+        flier_color = None
     elif ":" in options["flier_color"]:
         flier_color = [int(_x) / 255 for _x in options["flier_color"].split(":")]
     else:
         flier_color = options["flier_color"]
-    if not mpl.colors.is_color_like(flier_color):
+    if flier_color is not None and not mpl.colors.is_color_like(flier_color):
         gs.fatal(_("{} is not a valid color").format(options["flier_color"]))
     if bool(options["text_labels"]):
         list_text_labels = options["text_labels"].split(",")
@@ -517,29 +547,40 @@ def main(options, flags):
         }
         boxes.append(dict_i)
 
-    # Plot the figure
+    # Plot the figure. Unset appearance options are omitted so the
+    # Matplotlib/style defaults apply.
     _, ax = plt.subplots(figsize=dimensions)
-    medianprops = {"linewidth": median_linewidth}
+    flierprops = {"marker": flier_marker}
+    if flier_size is not None:
+        flierprops["markersize"] = flier_size
+    if flier_color is not None:
+        flierprops["markerfacecolor"] = flier_color
+        flierprops["markeredgecolor"] = flier_color
+    boxprops = {}
+    if box_linewidth is not None:
+        boxprops["linewidth"] = box_linewidth
+    whiskerprops = {}
+    if whisker_linewidth is not None:
+        whiskerprops["linewidth"] = whisker_linewidth
+    medianprops = {}
+    if median_linewidth is not None:
+        medianprops["linewidth"] = median_linewidth
     if user_median_color is not None and not set_bxcolor:
         medianprops["color"] = user_median_color
-    bxplot = ax.bxp(
-        boxes,
-        showfliers=True,
-        widths=bxp_width,
-        vert=vertical,
-        shownotches=notch,
-        patch_artist=set_bxcolor,
-        boxprops={"linewidth": box_linewidth},
-        medianprops=medianprops,
-        whiskerprops={"linewidth": whisker_linewidth},
-        capprops={"linewidth": whisker_linewidth},
-        flierprops={
-            "marker": flier_marker,
-            "markersize": flier_size,
-            "markerfacecolor": flier_color,
-            "markeredgecolor": flier_color,
-        },
-    )
+    bxp_kwargs = {
+        "showfliers": True,
+        "vert": vertical,
+        "shownotches": notch,
+        "patch_artist": bool(set_bxcolor),
+        "boxprops": boxprops,
+        "medianprops": medianprops,
+        "whiskerprops": whiskerprops,
+        "capprops": whiskerprops,
+        "flierprops": flierprops,
+    }
+    if bxp_width is not None:
+        bxp_kwargs["widths"] = bxp_width
+    bxplot = ax.bxp(boxes, **bxp_kwargs)
     if set_bxcolor:
         for patch, color in zip(bxplot["boxes"], bxcolor):
             patch.set_facecolor(color)

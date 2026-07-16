@@ -1,16 +1,28 @@
 ## DESCRIPTION
 
 *v.histogram* draws a histogram of the values in a vector map attribute
-column. Users can use the **where** option to only select a subset of
-the attribute table and can determine the number of **bins** (bars) used
-for the histogram. The **plot\_output** parameter determines whether the
-result is displayed on screen (default) or exported to a graphics file.
+column. Use the **where** option to select a subset of the records and
+**bins** to set the number of bars.
 
-## NOTE
+The histogram can be drawn horizontally (**-h**), with grid lines
+(**-g**), rotated value-axis labels (**-r**), and a limited value axis
+(**axis_limits**). The bar **color**, **border_color**, border
+**line_width** and relative bar width (**rwidth**) can be set. A
+Matplotlib [style
+sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
+can be applied with the **style** option, e.g. *style=ggplot*. The
+**fontsize**, figure size (**plot_dimensions**, in inches) and resolution
+(**dpi**) can be set as well.
 
-This is a quick and dirty solution using basic matplotlib. In future,
-this should be integrated into the g.gui, possibly together with the
-raster histogram tool.
+The **plot\_output** parameter determines whether the result is displayed
+on screen (default, `-`) or exported to a graphics file, with the format
+taken from the file extension.
+
+Options to customize the appearance of the plot include, among others, rotating
+the plot and x-axis labels, setting font size, and defining the colors of
+various plot components. The **style** option applies a Matplotlib [style
+sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
+to the plot, e.g. *style=ggplot*.
 
 ## EXAMPLE
 
@@ -20,9 +32,23 @@ Show the histogram of median age values in the census block map:
 v.histogram map=censusblk_swwake column=MEDIAN_AGE where="TOTAL_POP>0"
 ```
 
-![image-alt](d_vect_colhist.png)  
+![image-alt](v_histogram_01.png)  
 Histogram of median age values in census blocks
+
+Show the same histogram, but apply the *ggplot* stylesheet, and plot the bars
+horizontally.
+
+```sh
+v.histogram map=censusblk_swwake column=MEDIAN_AGE where="TOTAL_POP>0" \
+style="ggplot" plot_dimensions="6,5" -h
+```
+
+![image-alt](v_histogram_02.png)  
+Histogram of median age values in census blocks
+
 
 ## AUTHOR
 
-Moritz Lennert
+Moritz Lennert (original code)
+
+Paulo van Breugel (added style sheet, plot and histogram format options)
