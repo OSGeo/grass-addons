@@ -20,19 +20,21 @@ Meteorological seasons are defined as:
 * *Autumn* 1 September - 30 November
 * *Winter* 1 December - 28/29 Februay (following year)
 
-Using the *output* option, the tool will create a single unified space time raster dataset
-with the name provided, otherwise it will create a space time raster
-dataset for each year in the input space time raster dataset.
+Using the *output* option, the tool will create a single unified space time
+raster dataset with the name provided, otherwise it will create a space time
+raster dataset for each year in the input space time raster dataset.
 
 ## EXAMPLES
 
-Aggregate the input space-time raster dataset into astronomical seasons and create a unified output space-time raster dataset
+Aggregate the input space-time raster dataset into astronomical seasons and
+create a unified output space-time raster dataset
 
 ```bash
 t.rast.aggregate.seasons input=mystrds basename=mystrds_seasons output=outstrds
 ```
 
-Aggregate the input space-time raster dataset into meteorological seasons and create an output space-time raster dataset for a selected year
+Aggregate the input space-time raster dataset into meteorological seasons and
+create an output space-time raster dataset for a selected year
 
 ```bash
 t.rast.aggregate.seasons -m input=mystrds basename=mystrds_seasons_meteo \
