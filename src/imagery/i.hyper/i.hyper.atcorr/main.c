@@ -1756,6 +1756,15 @@ static void correct_raster3d(const char *input_name, const char *output_name,
  */
 int main(int argc, char *argv[])
 {
+    /* Save full command line for processing history */
+    char full_cmdline[8192] = "";
+    {
+        int pos = 0;
+        for (int i = 0; i < argc && pos < (int)sizeof(full_cmdline) - 2; i++)
+            pos += snprintf(full_cmdline + pos, sizeof(full_cmdline) - pos,
+                            i == 0 ? "%s" : " %s", argv[i]);
+    }
+
     G_gisinit(argv[0]);
     Rast3d_init_defaults();
 
@@ -3120,12 +3129,13 @@ int main(int argc, char *argv[])
             snprintf(copy_dst, sizeof(copy_dst), "map=%s",
                      opt_output->answer);
 
-            const char *cargs[5];
+            const char *cargs[6];
             cargs[0] = "i.hyper.metadata";
-            cargs[1] = copy_dst;
-            cargs[2] = copy_src;
-            cargs[3] = "operation=copy";
-            cargs[4] = NULL;
+            cargs[1] = "-q";
+            cargs[2] = copy_dst;
+            cargs[3] = copy_src;
+            cargs[4] = "operation=copy";
+            cargs[5] = NULL;
 
             if (G_vspawn_ex("i.hyper.metadata", cargs) != 0)
                 G_warning(_("Failed to copy metadata from <%s> to <%s>"),
@@ -3197,9 +3207,7 @@ int main(int argc, char *argv[])
             snprintf(srcarg, sizeof(srcarg), "source_map=%s", opt_input->answer);
 
             char cmdarg[4096];
-            const char *cmdline = getenv("CMDLINE");
-            if (!cmdline) cmdline = "i.hyper.atcorr";
-            snprintf(cmdarg, sizeof(cmdarg), "command=%s", cmdline);
+            snprintf(cmdarg, sizeof(cmdarg), "command=%s", full_cmdline);
 
             const char *hargs[6];
             hargs[0] = "i.hyper.metadata";
