@@ -644,14 +644,25 @@ def import_emit(
             )
 
         Module("g.region", raster=maps[0], quiet=True)
-        Module(
-            "i.colors.enhance",
-            red=maps[0],
-            green=maps[1],
-            blue=maps[2],
-            strength=str(strength_val),
-            quiet=True,
-        )
+        if name.upper() == "RGB":
+            Module(
+                "i.colors.enhance",
+                red=maps[0],
+                green=maps[1],
+                blue=maps[2],
+                strength=str(strength_val),
+                flags="p",
+                quiet=True,
+            )
+        else:
+            Module(
+                "i.colors.enhance",
+                red=maps[0],
+                green=maps[1],
+                blue=maps[2],
+                strength=str(strength_val),
+                quiet=True,
+            )
 
         outname = f"{output_name}_{name.lower().replace('-', '_')}"
         Module(
