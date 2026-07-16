@@ -104,7 +104,7 @@ def cleanup():
             remod.inputs.inputs = map
             remod.inputs.type = typ
             remod.flags.f = True
-            remod.flags.d = True
+            remod.flags.d = typ == "stvdc"
             remod.flags.quiet = True
             remod.run()
 

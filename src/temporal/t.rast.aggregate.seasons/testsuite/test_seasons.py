@@ -9,6 +9,7 @@ for details.
 import grass.temporal as tgis
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
+import grass.script as gs
 
 
 class TestClimatologies(TestCase):
@@ -104,6 +105,8 @@ class TestClimatologies(TestCase):
         )
         out = tgis.open_old_stds("oneseason_2002", type="strds")
         self.assertEqual(out.metadata.get_number_of_maps(), 3)
+        out = gs.parse_command("t.rast.list", input="oneseason_2002", format="json")
+        self.assertEqual(len(out["data"]), 3)
 
     def test_error_missing_basename(self):
         """Test if basename is missing"""
@@ -124,6 +127,8 @@ class TestClimatologies(TestCase):
         )
         out = tgis.open_old_stds("meteo_seasons", type="strds")
         self.assertEqual(out.metadata.get_number_of_maps(), 8)
+        out = gs.parse_command("t.rast.list", input="meteo_seasons", format="json")
+        self.assertEqual(len(out["data"]), 8)
 
 
 if __name__ == "__main__":
