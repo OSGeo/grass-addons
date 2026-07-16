@@ -3112,6 +3112,26 @@ int main(int argc, char *argv[])
         correct_raster3d(opt_input->answer, opt_output->answer,
                          &cfg, &lut, aod_val, h2o_val, doy, sza, &iso);
 
+        /* ── Copy input metadata to output (creates hyper.json) ── */
+        {
+            char copy_src[GPATH_MAX], copy_dst[GPATH_MAX];
+            snprintf(copy_src, sizeof(copy_src), "source_map=%s",
+                     opt_input->answer);
+            snprintf(copy_dst, sizeof(copy_dst), "map=%s",
+                     opt_output->answer);
+
+            const char *cargs[5];
+            cargs[0] = "i.hyper.metadata";
+            cargs[1] = copy_dst;
+            cargs[2] = copy_src;
+            cargs[3] = "operation=copy";
+            cargs[4] = NULL;
+
+            if (G_vspawn_ex("i.hyper.metadata", cargs) != 0)
+                G_warning(_("Failed to copy metadata from <%s> to <%s>"),
+                          opt_input->answer, opt_output->answer);
+        }
+
         /* ── Merge output metadata overrides ── */
         {
             char overrides[2048];

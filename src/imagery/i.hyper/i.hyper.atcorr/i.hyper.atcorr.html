@@ -29,7 +29,7 @@ using the 6SV2.1 radiative transfer algorithm with ISOFIT-inspired improvements.
 [<b>input</b>=<em>name</em>]
 [<b>output</b>=<em>name</em>]
 [<b>lut</b>=<em>name</em>]
-<b>sza</b>=<em>float</em>
+[<b>sza</b>=<em>float</em>]
 [<b>vza</b>=<em>float</em>]
 [<b>raa</b>=<em>float</em>]
 [<b>altitude</b>=<em>float</em>]
@@ -81,8 +81,8 @@ using the 6SV2.1 radiative transfer algorithm with ISOFIT-inspired improvements.
 <dt><b>lut</b>=<em>name</em></dt>
 <dd>Binary LUT file: written when generating, read when correcting (or both)</dd>
 
-<dt><b>sza</b>=<em>float</em> <b>[required]</b></dt>
-<dd>Solar zenith angle in degrees (0 to &lt;90)</dd>
+<dt><b>sza</b>=<em>float</em> <b>[required if not in metadata]</b></dt>
+<dd>Solar zenith angle in degrees (0 to &lt;90). Falls back to input map's <tt>hyper.json</tt> metadata if not provided on the command line.</dd>
 
 <dt><b>vza</b>=<em>float</em></dt>
 <dd>Sensor view zenith angle in degrees (0&ndash;60); default: <tt>0</tt></dd>
