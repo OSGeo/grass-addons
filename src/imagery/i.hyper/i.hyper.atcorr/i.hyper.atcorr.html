@@ -82,19 +82,19 @@ using the 6SV2.1 radiative transfer algorithm with ISOFIT-inspired improvements.
 <dd>Binary LUT file: written when generating, read when correcting (or both)</dd>
 
 <dt><b>sza</b>=<em>float</em> <b>[required if not in metadata]</b></dt>
-<dd>Solar zenith angle in degrees (0 to &lt;90). Falls back to input map's <tt>hyper.json</tt> metadata if not provided on the command line.</dd>
+<dd>Solar zenith angle in degrees (0 to &lt;90; required if not in metadata). Falls back to input map's <tt>hyper.json</tt> metadata if not provided on the command line.</dd>
 
 <dt><b>vza</b>=<em>float</em></dt>
-<dd>Sensor view zenith angle in degrees (0&ndash;60); default: <tt>0</tt></dd>
+<dd>Sensor view zenith angle in degrees (0&ndash;60); default: <tt>0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line. Falls back to metadata if omitted.</dd>
 
 <dt><b>raa</b>=<em>float</em></dt>
-<dd>Relative azimuth angle between sun and sensor in degrees; default: <tt>0</tt></dd>
+<dd>Relative azimuth angle between sun and sensor in degrees; default: <tt>0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>altitude</b>=<em>float</em></dt>
-<dd>Sensor altitude in km; values &gt;900 treated as satellite; default: <tt>1000</tt></dd>
+<dd>Sensor altitude in km; values &gt;900 treated as satellite; default: <tt>1000</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>doy</b>=<em>integer</em></dt>
-<dd>Day of year for Earth-Sun distance correction (1&ndash;365); default: <tt>180</tt></dd>
+<dd>Day of year for Earth-Sun distance correction (1&ndash;365); default: <tt>180</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>atmosphere</b>=<em>string</em></dt>
 <dd>Standard atmosphere model; options: <tt>us62</tt>, <tt>midsum</tt>,
@@ -130,7 +130,7 @@ Only used when <tt>aerosol=custom</tt>.</dd>
 &lt;&nbsp;0.005. Only used when <tt>aerosol=custom</tt>.</dd>
 
 <dt><b>ozone</b>=<em>float</em></dt>
-<dd>Total ozone column in Dobson units; default: <tt>300</tt></dd>
+<dd>Total ozone column in Dobson units; default: <tt>300</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>aod</b>=<em>values</em></dt>
 <dd>Comma-separated AOD at 550&nbsp;nm values for the LUT grid;
@@ -150,10 +150,10 @@ default: <tt>0.5,1.0,2.0,3.5,5.0</tt></dd>
 <dd>Wavelength step in micrometres; default: <tt>0.01</tt></dd>
 
 <dt><b>aod_val</b>=<em>float</em></dt>
-<dd>Scene-average AOD at 550&nbsp;nm (scalar fallback when no aod_map); default: <tt>0.1</tt></dd>
+<dd>Scene-average AOD at 550&nbsp;nm (scalar fallback when no aod_map); default: <tt>0.1</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>h2o_val</b>=<em>float</em></dt>
-<dd>Scene-average column water vapour g/cm&sup2; (scalar fallback when no h2o_map); default: <tt>2.0</tt></dd>
+<dd>Scene-average column water vapour g/cm&sup2; (scalar fallback when no h2o_map); default: <tt>2.0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
 
 <dt><b>aod_map</b>=<em>name</em></dt>
 <dd>Per-pixel AOD raster map (2-D); overrides aod_val when provided (#1)</dd>
