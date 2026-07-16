@@ -310,6 +310,10 @@ i.hyper.atcorr -z -w -a \
 
 ## Options Reference
 
+Each option shown below resolves via the chain **CLI → input-map metadata → hardcoded default**.
+Options with `—` as the default (e.g. `sza=`) are required and must be provided either on the
+command line or via the input map's `hyper.json` metadata.
+
 ### I/O
 
 | Option | Type | Description |
