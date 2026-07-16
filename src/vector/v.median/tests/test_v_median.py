@@ -29,6 +29,11 @@ def test_stdout_output_prints_median(median):
     assert (x, y) == pytest.approx(ODD_EXPECTED, abs=1e-6)
 
 
+def test_stdout_output_creates_no_map(median):
+    median.tools.v_median(input="odd_points", output="-")
+    assert median.tools.g_list(type="vector", mapset=".", format="json").json == []
+
+
 def test_overwrite_protection(median):
     tools = median.tools
     tools.v_median(input="odd_points", output="median_overwrite")

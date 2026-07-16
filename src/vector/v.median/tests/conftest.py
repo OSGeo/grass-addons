@@ -15,7 +15,8 @@ ODD_POINTS = [(1, 10), (2, 20), (3, 30), (4, 40), (5, 50)]
 EVEN_POINTS = [(1, 10), (2, 20), (3, 30), (4, 40)]
 
 
-def base_session(tmp_path_factory):
+@pytest.fixture(scope="module")
+def module_session(tmp_path_factory):
     """Build a project with odd- and even-count point maps once per module."""
     project = tmp_path_factory.mktemp("v_median") / "project"
     gs.create_project(project, epsg="4326")
@@ -31,18 +32,9 @@ def base_session(tmp_path_factory):
         yield session
 
 
-@pytest.fixture(scope="module")
-def module_session(tmp_path_factory):
-    yield from base_session(tmp_path_factory)
-
-
-def median_fixture(module_session):
+@pytest.fixture
+def median(module_session):
     """Isolated per-test mapset + Tools handle over the module-scoped base session."""
     with TemporaryMapsetSession(env=module_session.env) as session:
         with Tools(session=session) as tools:
             yield SimpleNamespace(tools=tools, env=session.env)
-
-
-@pytest.fixture
-def median(module_session):
-    yield from median_fixture(module_session)
