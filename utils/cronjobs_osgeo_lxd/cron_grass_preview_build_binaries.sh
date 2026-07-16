@@ -35,7 +35,7 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
 GMINOR=6
-GPATCH="0dev"  # required by grass-addons-index.sh
+GPATCH="0dev"
 BRANCH=main
 DOTVERSION=$GMAJOR.$GMINOR
 VERSION=$GMAJOR$GMINOR
@@ -58,7 +58,7 @@ TARGETDIR=$TARGETMAIN/grass${VERSION}/binary/linux/snapshot
 TARGETHTMLDIR=$TARGETMAIN/grass${VERSION}/manuals/
 
 # progman compiled below (i.e., only for preview version)
-# progman not built for older dev versions or stable
+# progman not built for older dev versions or any stable
 TARGETPROGMAN=$TARGETMAIN/programming${GVERSION}
 
 MYBIN=$MAINDIR/binaries
@@ -79,8 +79,26 @@ halt_on_error()
 # function to configure for compilation
 configure_grass()
 {
-# be sure the targetdir exists
-mkdir -p $TARGETDIR
+# setup source code repo
+mkdir -p $SOURCE $TARGETDIR
+# fetch repo if needed
+cd "$SOURCE/"
+# Check if the repository is already cloned
+if [ -d "$BRANCH" ]; then
+  echo "The GRASS GIS repository <$BRANCH> has already been cloned. Continuing..."
+else
+  echo "Cloning the GRASS GIS repository <$BRANCH> first..."
+  git clone https://github.com/OSGeo/grass.git $BRANCH
+  if [ $? -eq 0 ]; then
+    echo "Repository successfully cloned."
+  else
+    echo "Error: Failed to clone the repository."
+    exit 1
+  fi
+fi
+
+cd $SOURCE/$BRANCH/
+date
 
 # be sure to be on the right branch
 cd $SOURCE/$BRANCH/
@@ -127,6 +145,8 @@ touch include/Make/Platform.make
 $MYMAKE distclean > /dev/null 2>&1
 
 # cleanup leftover garbage
+git status | grep '.rst' | xargs rm -f
+rm -rf lib/python/docs/_build/ lib/python/docs/_templates/layout.html
 rm -f config_${DOTVERSION}.git_log.txt ChangeLog
 
 # be sure to be on the right branch
@@ -185,7 +205,26 @@ chmod -R a+r,g+w $TARGETPROGMAN/*
 # bug in doxygen
 (cd $TARGETPROGMAN/ ; ln -s index.html main.html)
 
-############
+##### generate i18N stats for HTML page path:
+# note: the gettext POT files are managed in git and OSGeo Weblate
+## Structure:  grasslibs_ar.po 144 translated messages 326 fuzzy translations 463 untranslated messages.
+cd $GRASSBUILDDIR
+(cd locale/ ;
+touch po/*.po ;
+$MYMAKE mo > out.i18n 2>&1 ;
+# libs, mods, wx
+# hack:
+cat out.i18n | tr '\n' ' ' | sed -e 's+ msgfmt+\
+msgfmt+g' | tr -s ' ' ' ' | cut -d' ' -f5,6- | sed 's+\,++g' | sed 's+^po/++g' | grep -v 'done for' | sort > $TARGETDIR/i18n_stats.txt
+rm -f out.i18n
+)
+
+cd $TARGETDIR/
+cat i18n_stats.txt | grep mod  > i18n_stats_mods.txt
+cat i18n_stats.txt | grep lib  > i18n_stats_libs.txt
+cat i18n_stats.txt | grep wxpy > i18n_stats_wxpy.txt
+
+############################################
 # package the GRASS GIS package
 cd $GRASSBUILDDIR
 $MYMAKE bindist
@@ -196,7 +235,6 @@ fi
 # report system details:
 echo "System:
 $ARCH, compiled with:" > grass-$DOTVERSION\_$ARCH\_bin.txt
-## echo "Including precompiled $GDALVERSION library for r.in.gdal" >> grass-$DOTVERSION\_$ARCH\_bin.txt
 gcc -v 2>&1 | grep -v Reading >> grass-$DOTVERSION\_$ARCH\_bin.txt
 
 # clean old version from previous run
@@ -224,34 +262,13 @@ echo "Written to: $TARGETDIR"
 cd $GRASSBUILDDIR
 
 ############################################
-# compile addons
-
-# update addon repo
-(cd $SOURCE/grass$GMAJOR-addons/; git checkout grass$GMAJOR; git pull origin grass$GMAJOR)
-# compile addons
-cd $GRASSBUILDDIR
-sh $MAINDIR/cronjobs/compile_addons_git.sh $GMAJOR \
-   $GMINOR \
-   $SOURCE/grass$GMAJOR-addons/src/ \
-   $SOURCE/$BRANCH/dist.$ARCH/ \
-   $MAINDIR/.grass$GMAJOR/addons \
-   $SOURCE/$BRANCH/bin.$ARCH/grass \
-   1
-### fetch manual from GH actions
-# fetch artifacts for main (devel)
-bash $HOME/cronjobs/gh_cli_download_artifact.sh $BRANCH
-unzip -t /tmp/mkdocs-site_$BRANCH.zip && cd $TARGETHTMLDIR && rm -rf * && unzip -q /tmp/mkdocs-site_$BRANCH.zip && rm -f /tmp/mkdocs-site_$BRANCH.zip
-
-# copy over logs from $MAINDIR/.grass$GMAJOR/addons/logs/
-mkdir -p $TARGETMAIN/addons/grass$GMAJOR/logs/
-cp -p $MAINDIR/.grass$GMAJOR/addons/logs/* $TARGETMAIN/addons/grass$GMAJOR/logs/
-
+# TODO still NEEDED??
 # generate addons modules.xml file (required for g.extension module)
 $SOURCE/$BRANCH/bin.$ARCH/grass --tmp-project EPSG:4326 --exec $MAINDIR/cronjobs/build-xml.py --build $MAINDIR/.grass$GMAJOR/addons
 cp $MAINDIR/.grass$GMAJOR/addons/modules.xml $TARGETMAIN/addons/grass$GMAJOR/modules.xml
 
 ############################################
-# Cloning new manual pages into grass-devel/manuals/ (following the Python manual pages concept)
+# Cloning downloaded manual pages into grass-devel/manuals/ (following the Python manual pages concept)
 # - inject canonical URL therein to point to versioned manual page (avoiding "duplicate content" SEO punishment)
 #   see https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
 
@@ -293,14 +310,13 @@ process_files "$TARGETHTMLDIR/libpython" "libpython/"
 # cleanup
 cd $GRASSBUILDDIR
 $MYMAKE distclean  > /dev/null 2>&1 || (echo "$0: an error occurred in final distclean" ; exit 1)
-rm -rf lib/html/ lib/latex/ /tmp/addons
+rm -rf lib/html/ lib/latex/
 
 echo "Finished GRASS $VERSION $ARCH compilation."
 echo "Written to: $TARGETDIR"
 echo "Copied HTML ${GVERSION} manual to https://grass.osgeo.org/grass${VERSION}/manuals/ (with canonical in metadata)"
-echo "Copied pygrass progman ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/libpython/ (with canonical in metadata)"
-echo "Copied Addons ${GVERSION} to https://grass.osgeo.org/grass${VERSION}/manuals/addons/ (with canonical in metadata)"
+echo "Updated canonical metadata in manua pages"
 ## echo "Copied HTML ${GVERSION} progman to https://grass.osgeo.org/programming${GVERSION}"
-echo "Copied HTML devel manual to https://grass.osgeo.org/grass-devel/manuals/"
+echo "Copied HTML devel manual (with canonical in metadata) to https://grass.osgeo.org/grass-devel/manuals/"
 
 exit 0
