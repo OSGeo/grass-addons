@@ -1860,25 +1860,25 @@ int main(int argc, char *argv[])
     /* ── Geometry ── */
     struct Option *opt_sza = G_define_option();
     opt_sza->key = "sza"; opt_sza->type = TYPE_DOUBLE; opt_sza->required = NO;
-    opt_sza->label = _("Solar zenith angle (degrees, 0–89) (overrides metadata)");
+    opt_sza->label = _("Solar zenith angle (0–89°, required if no metadata, overrides metadata)");
     opt_sza->guisection = _("Geometry");
 
     struct Option *opt_vza = G_define_option();
     opt_vza->key = "vza"; opt_vza->type = TYPE_DOUBLE;
     opt_vza->required = NO;
-    opt_vza->label = _("View zenith angle (degrees, 0–60) (overrides metadata)");
+    opt_vza->label = _("View zenith angle (0–60°, default: 0, overrides metadata)");
     opt_vza->guisection = _("Geometry");
 
     struct Option *opt_raa = G_define_option();
     opt_raa->key = "raa"; opt_raa->type = TYPE_DOUBLE;
     opt_raa->required = NO;
-    opt_raa->label = _("Relative azimuth angle (degrees) (overrides metadata)");
+    opt_raa->label = _("Relative azimuth angle (default: 0°, overrides metadata)");
     opt_raa->guisection = _("Geometry");
 
     struct Option *opt_altitude = G_define_option();
     opt_altitude->key = "altitude"; opt_altitude->type = TYPE_DOUBLE;
     opt_altitude->required = NO;
-    opt_altitude->label = _("Sensor altitude (km; > 900 = satellite) (overrides metadata)");
+    opt_altitude->label = _("Sensor altitude (>900 = satellite, default: 1000 km, overrides metadata)");
     opt_altitude->guisection = _("Geometry");
 
     /* ── Atmosphere ── */
@@ -1886,14 +1886,14 @@ int main(int argc, char *argv[])
     opt_atmo->key = "atmosphere"; opt_atmo->type = TYPE_STRING;
     opt_atmo->required = NO; opt_atmo->answer = "us62";
     opt_atmo->options = "us62,midsum,midwin,tropical,subsum,subwin";
-    opt_atmo->description = _("Standard atmosphere model (overrides metadata)");
+    opt_atmo->description = _("Standard atmosphere model (default: us62)");
     opt_atmo->guisection = _("Atmosphere");
 
     struct Option *opt_aerosol = G_define_option();
     opt_aerosol->key = "aerosol"; opt_aerosol->type = TYPE_STRING;
     opt_aerosol->required = NO; opt_aerosol->answer = "continental";
     opt_aerosol->options = "none,continental,maritime,urban,desert,custom";
-    opt_aerosol->description = _("Aerosol model (use 'custom' with mie_r/mie_sigma/mie_mr/mie_mi) (overrides metadata)");
+    opt_aerosol->description = _("Aerosol model (default: continental; use 'custom' with mie_r/mie_sigma/mie_mr/mie_mi)");
     opt_aerosol->guisection = _("Atmosphere");
 
     struct Option *opt_mie_r = G_define_option();
@@ -1923,7 +1923,7 @@ int main(int argc, char *argv[])
     struct Option *opt_ozone = G_define_option();
     opt_ozone->key = "ozone"; opt_ozone->type = TYPE_DOUBLE;
     opt_ozone->required = NO;
-    opt_ozone->description = _("Total ozone column (Dobson units) (overrides metadata)");
+    opt_ozone->description = _("Total ozone column in DU (default: 300, overrides metadata)");
     opt_ozone->guisection = _("Atmosphere");
 
     /* ── Surface BRDF ── */
@@ -1934,7 +1934,7 @@ int main(int argc, char *argv[])
     opt_brdf->answer      = "lambertian";
     opt_brdf->options     = "lambertian,rahman,roujean,hapke,ocean,"
                             "walthall,minnaert,rosslimaignan";
-    opt_brdf->description = _("Surface BRDF model for non-Lambertian correction");
+    opt_brdf->description = _("Surface BRDF model (default: lambertian)");
     opt_brdf->guisection  = _("Surface");
 
     struct Option *opt_brdf_params = G_define_option();
@@ -1971,38 +1971,38 @@ int main(int argc, char *argv[])
     struct Option *opt_wl_min = G_define_option();
     opt_wl_min->key = "wl_min"; opt_wl_min->type = TYPE_DOUBLE;
     opt_wl_min->required = NO; opt_wl_min->answer = "0.40";
-    opt_wl_min->description = _("Minimum wavelength (µm)");
+    opt_wl_min->description = _("Minimum wavelength (µm, default: 0.40)");
     opt_wl_min->guisection = _("LUT");
 
     struct Option *opt_wl_max = G_define_option();
     opt_wl_max->key = "wl_max"; opt_wl_max->type = TYPE_DOUBLE;
     opt_wl_max->required = NO; opt_wl_max->answer = "2.50";
-    opt_wl_max->description = _("Maximum wavelength (µm)");
+    opt_wl_max->description = _("Maximum wavelength (µm, default: 2.50)");
     opt_wl_max->guisection = _("LUT");
 
     struct Option *opt_wl_step = G_define_option();
     opt_wl_step->key = "wl_step"; opt_wl_step->type = TYPE_DOUBLE;
     opt_wl_step->required = NO; opt_wl_step->answer = "0.01";
-    opt_wl_step->description = _("Wavelength step (µm)");
+    opt_wl_step->description = _("Wavelength step (µm, default: 0.01)");
     opt_wl_step->guisection = _("LUT");
 
     /* ── Correction parameters ── */
     struct Option *opt_doy = G_define_option();
     opt_doy->key = "doy"; opt_doy->type = TYPE_INTEGER;
     opt_doy->required = NO;
-    opt_doy->label = _("Day of year for Earth-Sun distance (1–365) (overrides metadata)");
+    opt_doy->label = _("Day of year (1–365, default: 180, overrides metadata)");
     opt_doy->guisection = _("Correction");
 
     struct Option *opt_aod_val = G_define_option();
     opt_aod_val->key = "aod_val"; opt_aod_val->type = TYPE_DOUBLE;
     opt_aod_val->required = NO;
-    opt_aod_val->label = _("Scene AOD at 550 nm for correction (scalar fallback) (overrides metadata)");
+    opt_aod_val->label = _("Scene AOD at 550 nm (default: 0.1, overrides metadata)");
     opt_aod_val->guisection = _("Correction");
 
     struct Option *opt_h2o_val = G_define_option();
     opt_h2o_val->key = "h2o_val"; opt_h2o_val->type = TYPE_DOUBLE;
     opt_h2o_val->required = NO;
-    opt_h2o_val->label = _("Scene column water vapour g/cm² (scalar fallback) (overrides metadata)");
+    opt_h2o_val->label = _("Column water vapour g/cm² (default: 2.0, overrides metadata)");
     opt_h2o_val->guisection = _("Correction");
 
     /* ── ISOFIT improvements ── */
@@ -2023,7 +2023,7 @@ int main(int argc, char *argv[])
     struct Option *opt_smooth = G_define_option();
     opt_smooth->key = "smooth"; opt_smooth->type = TYPE_DOUBLE;
     opt_smooth->required = NO; opt_smooth->answer = "0";
-    opt_smooth->label = _("Gaussian smoothing σ in pixels for AOD/H2O maps");
+    opt_smooth->label = _("Gaussian smoothing σ in pixels (default: 0 = disabled)");
     opt_smooth->description =
         _("Spatially smooths aod_map= and h2o_map= before correction. "
           "0 = disabled. Typical value: 2–5 pixels.");
@@ -2033,7 +2033,7 @@ int main(int argc, char *argv[])
     struct Option *opt_adj_psf = G_define_option();
     opt_adj_psf->key = "adj_psf"; opt_adj_psf->type = TYPE_DOUBLE;
     opt_adj_psf->required = NO; opt_adj_psf->answer = "0";
-    opt_adj_psf->label = _("Adjacency effect PSF radius (km; 0 = disabled)");
+    opt_adj_psf->label = _("Adjacency PSF radius in km (default: 0 = disabled)");
     opt_adj_psf->description =
         _("Environmental PSF radius for Vermote 1997 adjacency correction. "
           "Typical value: 0.5–2 km. 0 = disabled.");
@@ -2042,7 +2042,7 @@ int main(int argc, char *argv[])
     struct Option *opt_pixel_size = G_define_option();
     opt_pixel_size->key = "pixel_size"; opt_pixel_size->type = TYPE_DOUBLE;
     opt_pixel_size->required = NO; opt_pixel_size->answer = "0";
-    opt_pixel_size->label = _("Pixel size in metres (0 = auto-detect from region)");
+    opt_pixel_size->label = _("Pixel size in metres (default: 0 = auto-detect)");
     opt_pixel_size->guisection = _("ISOFIT");
 
     /* #4/#6 Uncertainty output */
@@ -2228,7 +2228,7 @@ int main(int argc, char *argv[])
     opt_sun_az->type        = TYPE_DOUBLE;
     opt_sun_az->required    = NO;
     opt_sun_az->answer      = NULL;
-    opt_sun_az->label       = _("Solar azimuth angle [degrees, CW from North] (overrides metadata)");
+    opt_sun_az->label       = _("Solar azimuth °CW from N (default: 180, overrides metadata)");
     opt_sun_az->description =
         _("Used for terrain illumination (cos_incidence) and NBAR relative "
           "azimuth computation. Typically from r.sunmask or scene metadata.");
