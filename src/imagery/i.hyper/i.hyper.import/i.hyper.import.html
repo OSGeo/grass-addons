@@ -131,6 +131,12 @@
 </p>
 
 <p>
+  The <code>-u</code> flag updates the computational region to match the
+  imported 3D raster after a successful import. Without <code>-u</code>, the
+  original region is restored after import.
+</p>
+
+<p>
   Imported datasets are written with metadata key <code>derived=false</code>.
   Datasets produced later by processing modules (for example
   <em>i.hyper.preproc</em>) are written as <code>derived=true</code>.
@@ -158,7 +164,8 @@
 <p>
   During import, <em>i.hyper.import</em> temporarily adjusts the computational
   region to match the input data, ensuring consistent alignment between imported
-  bands. On successful completion, the previous region is restored.
+  bands. On successful completion, the previous region is restored unless
+  <code>-u</code> is used.
 </p>
 
 <p>

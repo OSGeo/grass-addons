@@ -74,6 +74,12 @@
 # % guisection: Optional
 # %end
 
+# %flag
+# % key: u
+# % description: Update computational region to match the imported 3D raster
+# % guisection: Optional
+# %end
+
 import sys
 import os
 import importlib.util
@@ -274,6 +280,11 @@ def _safe_extract_ihyper(input_path, output_name):
     gs.message(
         f"Imported native hyperspectral archive {archive_path} as {archived_name}"
     )
+    return archived_name
+
+
+def _update_region_from_cube(map_name):
+    gs.run_command("g.region", raster_3d=map_name, quiet=True)
 
 
 def import_by_product(product, options, flags):
@@ -321,7 +332,9 @@ def main(options, flags):
         return
 
     if product == "ihyper":
-        _safe_extract_ihyper(options["input"], output)
+        imported_name = _safe_extract_ihyper(options["input"], output)
+        if flags.get("u"):
+            _update_region_from_cube(imported_name)
         return
 
     if not output:
@@ -335,6 +348,8 @@ def main(options, flags):
     gs.info(f"Importing product: {product}")
     import_hyper = import_by_product(product, options, flags)
     import_hyper.run_import(options, flags)
+    if flags.get("u"):
+        _update_region_from_cube(output)
 
 
 if __name__ == "__main__":

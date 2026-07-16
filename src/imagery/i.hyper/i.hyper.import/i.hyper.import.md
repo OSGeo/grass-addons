@@ -104,6 +104,10 @@ invalid or all-NULL slices to the cube. Consequently, `bands.count` can be
 greater than the output cube depth. Product bands discarded before metadata
 construction, such as PRISMA flag-zero wavelengths, are not represented.
 
+The `-u` flag updates the computational region to match the imported 3D
+raster after a successful import. Without `-u`, the original region is
+restored after import.
+
 Imported datasets are written with metadata key `derived=false`. Datasets
 produced later by processing modules (for example *i.hyper.preproc*) are
 written as `derived=true`.
@@ -123,7 +127,8 @@ successful import.
 
 During import, *i.hyper.import* temporarily adjusts the computational
 region to match the input data, ensuring consistent alignment between
-imported bands. On successful completion, the previous region is restored.
+imported bands. On successful completion, the previous region is restored
+unless `-u` is used.
 
 *i.hyper.import* can also restore hyperspectral data directly from a
 native GRASS archive with `product=ihyper`. The input must be a
