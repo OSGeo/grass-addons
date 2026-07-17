@@ -170,6 +170,7 @@ def main():
         desc += ", class probabilities"
     tools = Tools()
     tools.r_support(map=output, description=desc)
+    gs.raster_history(output, overwrite=True)
 
 
 if __name__ == "__main__":
