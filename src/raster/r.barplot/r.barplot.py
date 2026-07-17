@@ -8,10 +8,9 @@
 #               surface area or a summary of a value raster) computed for
 #               each category of a zonal raster layer.
 #
-# COPYRIGHT:    (c) 2026 Paulo van Breugel, and the GRASS Development Team
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
+# SPDX-FileCopyrightText: 2026 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 #############################################################################
 
