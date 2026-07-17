@@ -77,7 +77,6 @@ jobs:
               libintl
               make
               tar
-              tree
               zip
             pacboy: >-
               bzip2
