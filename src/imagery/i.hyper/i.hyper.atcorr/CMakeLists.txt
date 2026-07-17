@@ -6,8 +6,6 @@ include(build_addon)
 find_M()
 find_OpenMP()
 
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
 set(sixsv_src
   libsixsv/src/adjacency.c
   libsixsv/src/aeroprof.c
@@ -65,6 +63,8 @@ build_addon(
   DOCFILES
     ${PROJECT_NAME}.html
     ${PROJECT_NAME}.md)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/include>
