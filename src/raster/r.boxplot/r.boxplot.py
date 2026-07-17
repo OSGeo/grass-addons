@@ -179,7 +179,7 @@
 # %end
 
 # %option G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % label: Color of the boxplots
 # % description: Fill color of the boxplots. Unset leaves the boxes unfilled (Matplotlib default).
 # % required: no
@@ -204,7 +204,7 @@
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
 # % description: The width of the boxplots (0,1]).
@@ -214,7 +214,7 @@
 # %end
 
 # %option
-# % key: bx_width_variable
+# % key: box_width_variable
 # % type: string
 # % description: Set the width of the boxplots proportional to the area of the zones (linear) or the square root of the zones (sqrt).
 # % required: no
@@ -223,7 +223,7 @@
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
 # % label: boxplot linewidth
 # % description: The linewidth of the boxplots. Defaults to the Matplotlib default.
@@ -232,7 +232,7 @@
 # %end
 
 # %option
-# % key: median_lw
+# % key: median_linewidth
 # % type: double
 # % description: width of the boxplot median line. Defaults to the Matplotlib default.
 # % required: no
@@ -290,7 +290,7 @@
 # % requires: -s, zones
 # % requires: area_label, zones
 # % requires: raster_statistics, zones
-# % requires: bx_width_variable, zones
+# % requires: box_width_variable, zones
 # %end
 
 import atexit
@@ -1291,10 +1291,10 @@ def main(options, flags):
     )
 
     # boxplot parameters (unset appearance options -> None -> Matplotlib default)
-    bxp_width = float(options["bx_width"]) if options["bx_width"] else None
+    bxp_width = float(options["box_width"]) if options["box_width"] else None
     if bxp_width == 0:
         gs.fatal(_("The boxplot width needs to be larger than 0"))
-    bx_color = get_valid_color(options["bx_color"]) if options["bx_color"] else None
+    bx_color = get_valid_color(options["box_color"]) if options["box_color"] else None
     median_color = (
         get_valid_color(options["median_color"]) if options["median_color"] else None
     )
@@ -1359,7 +1359,9 @@ def main(options, flags):
         "dimensions": dimensions,
         "dpi": dpi,
         "vertical": vertical,
-        "bxp_linewidth": float(options["bx_lw"]) if options["bx_lw"] else None,
+        "bxp_linewidth": (
+            float(options["box_linewidth"]) if options["box_linewidth"] else None
+        ),
         "bxp_width": bxp_width,
         "bx_color": bx_color,
         "whisker_linewidth": (
@@ -1373,7 +1375,11 @@ def main(options, flags):
         "flier_color": (
             get_valid_color(options["flier_color"]) if options["flier_color"] else None
         ),
-        "median_lw": float(options["median_lw"]) if options["median_lw"] else None,
+        "median_lw": (
+            float(options["median_linewidth"])
+            if options["median_linewidth"]
+            else None
+        ),
         "median_color": median_color,
     }
     if bool(options["zones"]):
@@ -1388,7 +1394,7 @@ def main(options, flags):
                 "plot_rast_stats": options["raster_statistics"],
                 "raster_stat_color": raster_stat_color,
                 "raster_stat_alpha": float(options["raster_stat_alpha"]),
-                "variable_box_width": options["bx_width_variable"],
+                "variable_box_width": options["box_width_variable"],
                 "area_label": options["area_label"],
             },
         }

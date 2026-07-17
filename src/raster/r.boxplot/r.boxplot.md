@@ -16,7 +16,7 @@ changed to fit the extent of the zonal map with *g.region*.
 
 To visually account for differences in the total area covered by each zone, you
 can optionally scale the width of each boxplot proportionally to the area of
-its corresponding category using the **bx_width_variable** option. This can be
+its corresponding category using the **box_width_variable** option. This can be
 done linearly or using the square root of the area, depending on the selected
 mode (linear or sqrt). In addition, the user can opt to print the area of each
 zone above the boxplot.
@@ -88,7 +88,7 @@ g.region raster=elevation
 r.boxplot -h map=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 ```
 
-![image-alt](r_boxplot_01.png)  
+![image-alt](r_boxplot_01.png)
 
 ### Example 2
 
@@ -100,7 +100,7 @@ dataset](https://grass.osgeo.org/download/data/). Rotate the labels.
 r.boxplot  map=elevation zone=landclass96 rotate_labels=90 output="r_boxplot_02.png"
 ```
 
-![image-alt](r_boxplot_02.png)  
+![image-alt](r_boxplot_02.png)
 
 ### Example 3
 
@@ -115,13 +115,13 @@ as a point vector map.
 r.boxplot -o map=elevation zones=landclass96 order=ascending output="r_boxplot_03.png" map_outliers="outliers"
 ```
 
-![image-alt](r_boxplot_03.png)  
+![image-alt](r_boxplot_03.png)
 
 Below, part of the `landclass96` raster map is shown, with the vector
 point layer with location of outliers on top. Curiously, for some lakes,
 only part of the raster cells are outliers.
 
-![image-alt](r_boxplot_map_03.png)  
+![image-alt](r_boxplot_map_03.png)
 
 ### Example 4
 
@@ -163,8 +163,8 @@ scaled relative to that.
 
 ```sh
 r.boxplot -c map=elevation zones=landclass96 \
-raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" \
-area_label="km2" 
+raster_statistics=median,IQR box_width=1 box_width_variable="sqrt" \
+area_label="km2"
 ```
 
 The code above also print the surface area of each zone above
