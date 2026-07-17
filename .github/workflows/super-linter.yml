@@ -51,6 +51,7 @@ jobs:
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_CSS: false # Using Biome instead of Stylelint
           VALIDATE_CSS_PRETTIER: false # Using Biome instead of Prettier
+          VALIDATE_GITHUB_ACTIONS_ZIZMOR: false # Checked in pre-commit, and with a different version
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_GRAPHQL_PRETTIER: false # Using Biome instead of Prettier
           VALIDATE_HTML: false # Until configured, some valid findings
