@@ -7,6 +7,7 @@ for details.
 """
 
 import grass.temporal as tgis
+import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
@@ -19,60 +20,12 @@ class TestClimatologies(TestCase):
         cls.use_temp_region()
         cls.runModule("g.region", s=0, n=80, w=0, e=120, b=0, t=50, res=10, res3=10)
 
-        cls.runModule(
-            "r.mapcalc", expression="a_1 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="a_2 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="a_3 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="a_4 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="a_5 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="a_6 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_1 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_2 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_3 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_4 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_5 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="b_6 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_1 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_2 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_3 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_4 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_5 = rand(1,256)", seed="123456", overwrite=True
-        )
-        cls.runModule(
-            "r.mapcalc", expression="c_6 = rand(1,256)", seed="123456", overwrite=True
-        )
+        cls.runModule("r.mapcalc", expression="a_1 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="a_2 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="b_1 = 10", overwrite=True)
+        cls.runModule("r.mapcalc", expression="b_2 = 10", overwrite=True)
+        cls.runModule("r.mapcalc", expression="c_1 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="c_2 = 100", overwrite=True)
 
         cls.runModule(
             "t.create",
@@ -106,7 +59,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="red_monthly",
-            maps="a_1,a_2,a_3,a_4,a_5,a_6",
+            maps="a_1,a_2",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
@@ -116,7 +69,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="nir_monthly",
-            maps="b_1,b_2,b_3,b_4,b_5,b_6",
+            maps="b_1,b_2",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
@@ -126,7 +79,7 @@ class TestClimatologies(TestCase):
             flags="i",
             type="raster",
             input="blue_monthly",
-            maps="c_1,c_2,c_3,c_4,c_5,c_6",
+            maps="c_1,c_2",
             start="2001-01-01",
             increment="1 month",
             overwrite=True,
@@ -149,8 +102,8 @@ class TestClimatologies(TestCase):
             prefix="ndvimonthly",
             overwrite=True,
         )
-        print("Check if the output raster map exists")
         self.assertRasterExists("ndvimonthly_2001_01_01_00_00_ndvi")
+        self.assertRasterMinMax("ndvimonthly_2001_01_01_00_00_ndvi", -0.83, -0.80)
 
     def test_evi(self):
         self.runModule(
@@ -163,8 +116,9 @@ class TestClimatologies(TestCase):
             prefix="evimonthly",
             overwrite=True,
         )
-        print("Check if the output raster map exists")
         self.assertRasterExists("evimonthly_2001_01_01_00_00_evi")
+        out = gs.parse_command("t.rast.list", input="evi_monthly", format="json")
+        self.assertEqual(len(out["data"]), 2)
 
     def test_missing_output(self):
         self.assertModuleFail(
