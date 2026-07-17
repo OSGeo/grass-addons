@@ -15,7 +15,7 @@ Spectrum) radiative transfer algorithm with OpenMP parallelisation.
 | Mode | Trigger | Purpose |
 |------|---------|---------|
 | **LUT generation** | `lut=` | Compute a binary look-up table of atmospheric parameters over an [AOD × H₂O × wavelength] grid |
-| **Cube correction** | `input=` / `output=` | Apply the LUT to a Raster3D radiance cube, writing a surface (BOA) reflectance cube |
+| **Cube correction** | `input=` / `output=` | Apply the LUT to a 3D raster radiance cube, writing a surface (BOA) reflectance cube |
 
 Both modes can be combined in a single invocation; the LUT is computed once
 and used immediately for correction.
@@ -182,7 +182,7 @@ i.hyper.atcorr -w -a \
     mcd43_fvol="0.045,0.040,0.038,0.131,0.038,0.022,0.014" \
     mcd43_fgeo="0.017,0.014,0.012,0.052,0.016,0.009,0.006" \
     mcd43_alpha=0.10 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 Each of the three comma-separated 7-float strings gives MCD43A1 kernel
@@ -215,7 +215,7 @@ i.hyper.atcorr -z -w -a -D \
     sza=30 vza=4 raa=100 doy=200 \
     atmosphere=midsum aerosol=continental \
     aod=0.0,0.05,0.1,0.2,0.4,0.8 h2o=0.5,1.5,3.0,5.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005 \
+    wl_min=376 wl_max=2499 wl_step=5 \
     dasf=tanager_dasf
 ```
 
@@ -244,7 +244,7 @@ i.hyper.atcorr \
     atmosphere=midsum aerosol=continental ozone=310 \
     aod=0.0,0.05,0.1,0.2,0.4,0.8 \
     h2o=1.0,2.0,3.5,5.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 ### Correction with scalar atmospheric state
@@ -293,7 +293,7 @@ i.hyper.atcorr -z -w -a \
     dem=srtm_dem \
     aod=0.0,0.05,0.1,0.2,0.4,0.8 \
     h2o=0.5,1.5,3.0,5.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 - **`-z`** retrieves scene-mean O₃ (DU) from Chappuis absorption at 600 nm;
@@ -349,9 +349,9 @@ command line or via the input map's `hyper.json` metadata.
 |--------|---------|-------------|
 | `aod=` | 0.0,0.05,0.1,0.2,0.4,0.8 | AOD at 550 nm grid points |
 | `h2o=` | 0.5,1.0,2.0,3.5,5.0 | H₂O grid points (g/cm²) |
-| `wl_min=` | 0.40 | Minimum wavelength (µm) |
-| `wl_max=` | 2.50 | Maximum wavelength (µm) |
-| `wl_step=` | 0.01 | Wavelength step (µm) |
+| `wl_min=` | 400 | Minimum wavelength (nm) |
+| `wl_max=` | 2500 | Maximum wavelength (nm) |
+| `wl_step=` | 10 | Wavelength step (nm) |
 
 ### Correction
 
@@ -372,7 +372,7 @@ command line or via the input map's `hyper.json` metadata.
 | `pixel_size=` | 0 | Pixel size m (0=auto from region) (#2) |
 | `-r` | off | Surface prior MAP regularisation (#3/#5/#6) |
 | `-u` | off | Compute per-band uncertainty (#4) |
-| `uncertainty=` | — | Output uncertainty Raster3D (#4) |
+| `uncertainty=` | — | Output uncertainty 3D raster (#4) |
 
 ### Image-based Retrieval
 
