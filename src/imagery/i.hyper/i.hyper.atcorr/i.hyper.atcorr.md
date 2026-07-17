@@ -7,7 +7,7 @@ be combined in a single invocation:
 | Mode | Trigger | Purpose |
 |------|---------|---------|
 | **LUT generation** | `lut=` | Compute a binary look-up table of atmospheric parameters over an [AOD × H₂O × wavelength] grid |
-| **Cube correction** | `input=` / `output=` | Apply the LUT to a Raster3D radiance cube, writing a surface (BOA) reflectance cube |
+| **Cube correction** | `input=` / `output=` | Apply the LUT to a 3D raster radiance cube, writing a surface (BOA) reflectance cube |
 
 The LUT is computed using a C port of the 6SV2.1 (Second Simulation of
 a Satellite Signal in the Solar Spectrum, version 2.1) radiative
@@ -600,11 +600,11 @@ When `-r` is active, the full reflectance cube is held in memory for
 MAP regularisation. Memory usage is approximately
 `n_bands × n_pixels × 4` bytes. For a 426-band Tanager scene with a
 typical 640 × 480 tile this is about 400 MB. When `-r` is not set,
-bands are written to the output Raster3D immediately after inversion.
+bands are written to the output 3D raster immediately after inversion.
 
 ### Band wavelength metadata
 
-When correcting a Raster3D cube the module auto-reads band wavelengths
+When correcting a 3D raster cube the module auto-reads band wavelengths
 from `r3.info -h` metadata in the format `Band N: WL nm`. Make sure
 this metadata is present in the input cube.
 
@@ -613,7 +613,7 @@ this metadata is present in the input cube.
 ## EXAMPLES
 
 Each example below first generates a LUT and then applies it to correct
-a Raster3D radiance cube. Scene geometry, atmosphere, and aerosol type
+a 3D raster radiance cube. Scene geometry, atmosphere, and aerosol type
 are chosen to reflect realistic acquisition conditions for the land cover
 and climate zone described.
 
@@ -651,7 +651,7 @@ i.hyper.atcorr \
     atmosphere=tropical aerosol=desert ozone=280 \
     aod=0.05,0.2,0.5,1.0,2.0,3.0 \
     h2o=0.2,0.5,1.0,1.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Correction with scalar state from an external MODIS dust product
 i.hyper.atcorr \
@@ -671,7 +671,7 @@ i.hyper.atcorr -z \
     atmosphere=tropical aerosol=desert \
     dem=srtm_dem \
     aod=0.05,0.2,0.5,1.0,2.0,3.0 h2o=0.2,0.5,1.0,1.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why `atmosphere=tropical`**: The tropical profile has the highest
@@ -705,7 +705,7 @@ i.hyper.atcorr \
     atmosphere=tropical aerosol=continental ozone=260 \
     aod=0.03,0.08,0.15,0.30,0.50 \
     h2o=3.5,4.5,5.5,6.5,7.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Correction with scalar state (typical wet-season baseline)
 i.hyper.atcorr \
@@ -725,7 +725,7 @@ i.hyper.atcorr -z -w -a \
     sza=28 vza=0 raa=0 doy=270 \
     atmosphere=tropical aerosol=continental \
     aod=0.03,0.08,0.15,0.30,0.50 h2o=3.5,4.5,5.5,6.5,7.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why high H₂O grid**: Precipitable water in tropical Amazonia routinely
@@ -759,7 +759,7 @@ i.hyper.atcorr \
     atmosphere=midwin aerosol=urban ozone=330 \
     aod=0.05,0.15,0.30,0.60,1.00 \
     h2o=0.2,0.4,0.7,1.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Correction with scalar state + uncertainty output
 i.hyper.atcorr -u \
@@ -780,7 +780,7 @@ i.hyper.atcorr -z -a -u \
     atmosphere=midwin aerosol=urban \
     uncertainty=paris_refl_unc \
     aod=0.05,0.15,0.30,0.60,1.00 h2o=0.2,0.4,0.7,1.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why `atmosphere=midwin` + `aerosol=urban`**: Mid-latitude winter
@@ -818,7 +818,7 @@ i.hyper.atcorr \
     atmosphere=midsum aerosol=maritime ozone=315 \
     aod=0.02,0.06,0.12,0.20,0.30 \
     h2o=1.5,2.5,3.5,4.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Per-pixel atmospheric maps from external products + adjacency correction
 i.hyper.atcorr -u -r \
@@ -842,7 +842,7 @@ i.hyper.atcorr -w -a -u -r \
     smooth=2 adj_psf=0.5 \
     uncertainty=med_refl_unc \
     aod=0.02,0.06,0.12,0.20,0.30 h2o=1.5,2.5,3.5,4.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why adjacency correction matters here**: At a land-sea boundary the
@@ -879,7 +879,7 @@ i.hyper.atcorr \
     atmosphere=subwin aerosol=continental ozone=340 \
     aod=0.01,0.05,0.10,0.20 \
     h2o=0.1,0.3,0.5,0.8 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Full ISOFIT pipeline with external AOD/H₂O maps
 i.hyper.atcorr -u -r \
@@ -903,7 +903,7 @@ i.hyper.atcorr -z -u -r \
     smooth=3 adj_psf=1.0 \
     uncertainty=sweden_refl_unc \
     aod=0.01,0.05,0.10,0.20 h2o=0.1,0.3,0.5,0.8 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why `atmosphere=subwin`**: Sub-arctic winter profiles have the coldest
@@ -943,7 +943,7 @@ i.hyper.atcorr \
     atmosphere=subsum aerosol=continental ozone=320 \
     aod=0.02,0.07,0.15,0.30 \
     h2o=0.8,1.5,2.5,3.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # Correction with scalar state (scalar baseline)
 i.hyper.atcorr \
@@ -965,7 +965,7 @@ i.hyper.atcorr -z -w -a \
     atmosphere=subsum aerosol=continental \
     dem=dem_yukon \
     aod=0.02,0.07,0.15,0.30 h2o=0.8,1.5,2.5,3.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Why `atmosphere=subsum`**: Sub-arctic summer combines moderate surface
@@ -994,7 +994,7 @@ i.hyper.atcorr --verbose \
     lut=/tmp/test.lut \
     sza=30 vza=0 raa=0 \
     aod=0.0,0.2,0.4 h2o=2.0,4.0 \
-    wl_min=0.4 wl_max=2.5 wl_step=0.05
+    wl_min=400 wl_max=2500 wl_step=50
 ```
 
 ---
@@ -1021,7 +1021,7 @@ i.hyper.atcorr -z -w -a \
     dem=terrain_dem \
     aod=0.0,0.05,0.1,0.2,0.4,0.8 \
     h2o=0.5,1.5,3.0,5.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **What each flag retrieves**:
@@ -1089,7 +1089,7 @@ i.hyper.atcorr -z \
     slope=alps_slope aspect=alps_aspect \
     sun_azimuth=165 \
     view_zenith=alps_vza \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **Physics**: T_down is split into direct (T_down_dir) and diffuse
@@ -1159,7 +1159,7 @@ i.hyper.atcorr -w -a \
     sun_azimuth=128 \
     view_zenith=senegal_vza view_azimuth=senegal_vaa \
     brdf_fiso=mcd43_fiso brdf_fvol=mcd43_fvol brdf_fgeo=mcd43_fgeo \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 ```
 
 **MCD43 typical kernel weights by land cover** (Schaaf et al. 2002,
@@ -1210,7 +1210,7 @@ i.hyper.atcorr \
     atmosphere=us62 aerosol=continental \
     aod=0.02,0.05,0.1,0.2,0.4 \
     h2o=0.5,1.0,2.0,3.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005 \
+    wl_min=376 wl_max=2499 wl_step=5 \
     -p -m -w \
     quality=rockies_quality
 
@@ -1252,7 +1252,7 @@ i.hyper.atcorr \
     atmosphere=us62 aerosol=continental \
     aod=0.02,0.05,0.1,0.2,0.4 \
     h2o=0.5,1.0,2.0,3.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005 \
+    wl_min=376 wl_max=2499 wl_step=5 \
     -a -w \
     maiac_patch=32
 
@@ -1297,7 +1297,7 @@ i.hyper.atcorr \
     atmosphere=midsum aerosol=continental \
     aod=0.02,0.05,0.1,0.2,0.4 \
     h2o=0.5,1.0,2.0,3.5 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005 \
+    wl_min=376 wl_max=2499 wl_step=5 \
     aod_val=0.1 h2o_val=1.5 \
     -e \
     oe_sigma_aod=0.5 oe_sigma_h2o=1.0
@@ -1379,7 +1379,7 @@ i.hyper.atcorr -w -a \
     mcd43_fvol="$FVOL" \
     mcd43_fgeo="$FGEO" \
     mcd43_alpha=0.10 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005
+    wl_min=376 wl_max=2499 wl_step=5
 
 # With per-pixel spatial amplitude rasters (from Example 11 workflow):
 # brdf_fiso=mcd43_fiso_raster brdf_fvol=mcd43_fvol_raster brdf_fgeo=mcd43_fgeo_raster
@@ -1445,7 +1445,7 @@ i.hyper.atcorr -z -w -a -D \
     atmosphere=midsum aerosol=continental \
     aod=0.0,0.05,0.1,0.2,0.4,0.8 \
     h2o=0.5,1.5,3.0,5.0 \
-    wl_min=0.376 wl_max=2.499 wl_step=0.005 \
+    wl_min=376 wl_max=2499 wl_step=5 \
     dasf=tanager_dasf
 
 # DASF output: 2D FCELL raster (single band), co-registered with the

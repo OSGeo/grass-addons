@@ -1831,21 +1831,21 @@ int main(int argc, char *argv[])
     G_add_keyword(_("LUT"));
     G_add_keyword(_("hyperspectral"));
     module->description =
-        _("Atmospheric correction of hyperspectral Raster3D radiance imagery "
+        _("Atmospheric correction of hyperspectral 3D raster radiance imagery "
           "using the 6SV2.1 radiative transfer algorithm.");
 
     /* ── I/O ── */
     struct Option *opt_input = G_define_standard_option(G_OPT_R3_INPUT);
     opt_input->required    = NO;
-    opt_input->label       = _("Input radiance Raster3D map");
+    opt_input->label       = _("Input radiance 3D raster map");
     opt_input->description = _("TOA radiance in W/(m² sr µm); "
                                "band wavelengths read from r3.info metadata");
-    opt_input->guisection  = _("Correction");
+    opt_input->guisection  = _("Main");
 
     struct Option *opt_output = G_define_standard_option(G_OPT_R3_OUTPUT);
     opt_output->required    = NO;
-    opt_output->label       = _("Output surface reflectance Raster3D map");
-    opt_output->guisection  = _("Correction");
+    opt_output->label       = _("Output surface reflectance 3D raster map");
+    opt_output->guisection  = _("Main");
 
     struct Option *opt_lut = G_define_option();
     opt_lut->key         = "lut";
@@ -1887,14 +1887,14 @@ int main(int argc, char *argv[])
     opt_atmo->required = NO; opt_atmo->answer = "us62";
     opt_atmo->options = "us62,midsum,midwin,tropical,subsum,subwin";
     opt_atmo->description = _("Standard atmosphere model (default: us62)");
-    opt_atmo->guisection = _("Atmosphere");
+    opt_atmo->guisection = _("Main");
 
     struct Option *opt_aerosol = G_define_option();
     opt_aerosol->key = "aerosol"; opt_aerosol->type = TYPE_STRING;
     opt_aerosol->required = NO; opt_aerosol->answer = "continental";
     opt_aerosol->options = "none,continental,maritime,urban,desert,custom";
     opt_aerosol->description = _("Aerosol model (default: continental; use 'custom' with mie_r/mie_sigma/mie_mr/mie_mi)");
-    opt_aerosol->guisection = _("Atmosphere");
+    opt_aerosol->guisection = _("Main");
 
     struct Option *opt_mie_r = G_define_option();
     opt_mie_r->key = "mie_r"; opt_mie_r->type = TYPE_DOUBLE;
@@ -1970,20 +1970,20 @@ int main(int argc, char *argv[])
 
     struct Option *opt_wl_min = G_define_option();
     opt_wl_min->key = "wl_min"; opt_wl_min->type = TYPE_DOUBLE;
-    opt_wl_min->required = NO; opt_wl_min->answer = "0.40";
-    opt_wl_min->description = _("Minimum wavelength (µm, default: 0.40)");
+    opt_wl_min->required = NO; opt_wl_min->answer = "400";
+    opt_wl_min->description = _("Minimum wavelength (nm, default: 400)");
     opt_wl_min->guisection = _("LUT");
 
     struct Option *opt_wl_max = G_define_option();
     opt_wl_max->key = "wl_max"; opt_wl_max->type = TYPE_DOUBLE;
-    opt_wl_max->required = NO; opt_wl_max->answer = "2.50";
-    opt_wl_max->description = _("Maximum wavelength (µm, default: 2.50)");
+    opt_wl_max->required = NO; opt_wl_max->answer = "2500";
+    opt_wl_max->description = _("Maximum wavelength (nm, default: 2500)");
     opt_wl_max->guisection = _("LUT");
 
     struct Option *opt_wl_step = G_define_option();
     opt_wl_step->key = "wl_step"; opt_wl_step->type = TYPE_DOUBLE;
-    opt_wl_step->required = NO; opt_wl_step->answer = "0.01";
-    opt_wl_step->description = _("Wavelength step (µm, default: 0.01)");
+    opt_wl_step->required = NO; opt_wl_step->answer = "10";
+    opt_wl_step->description = _("Wavelength step (nm, default: 10)");
     opt_wl_step->guisection = _("LUT");
 
     /* ── Correction parameters ── */
@@ -1991,19 +1991,19 @@ int main(int argc, char *argv[])
     opt_doy->key = "doy"; opt_doy->type = TYPE_INTEGER;
     opt_doy->required = NO;
     opt_doy->label = _("Day of year (1–365, default: 180, overrides metadata)");
-    opt_doy->guisection = _("Correction");
+    opt_doy->guisection = _("Atmosphere");
 
     struct Option *opt_aod_val = G_define_option();
     opt_aod_val->key = "aod_val"; opt_aod_val->type = TYPE_DOUBLE;
     opt_aod_val->required = NO;
     opt_aod_val->label = _("Scene AOD at 550 nm (default: 0.1, overrides metadata)");
-    opt_aod_val->guisection = _("Correction");
+    opt_aod_val->guisection = _("Atmosphere");
 
     struct Option *opt_h2o_val = G_define_option();
     opt_h2o_val->key = "h2o_val"; opt_h2o_val->type = TYPE_DOUBLE;
     opt_h2o_val->required = NO;
     opt_h2o_val->label = _("Column water vapour g/cm² (default: 2.0, overrides metadata)");
-    opt_h2o_val->guisection = _("Correction");
+    opt_h2o_val->guisection = _("Atmosphere");
 
     /* ── ISOFIT improvements ── */
 
@@ -2049,7 +2049,7 @@ int main(int argc, char *argv[])
     struct Option *opt_uncertainty;
     opt_uncertainty = G_define_standard_option(G_OPT_R3_OUTPUT);
     opt_uncertainty->key = "uncertainty"; opt_uncertainty->required = NO;
-    opt_uncertainty->label = _("Output uncertainty Raster3D map (requires -u flag)");
+    opt_uncertainty->label = _("Output uncertainty 3D raster map (requires -u flag)");
     opt_uncertainty->guisection = _("ISOFIT");
 
     /* Flags */
@@ -2200,7 +2200,7 @@ int main(int argc, char *argv[])
         _("2-D elevation raster [m above sea level]. "
           "Scene-mean elevation → ISA pressure, overriding standard-atmosphere "
           "sea-level pressure in LUT computation.");
-    opt_dem->guisection = _("Retrieval");
+    opt_dem->guisection = _("Terrain");
 
     /* ── Terrain illumination correction ── */
     struct Option *opt_slope = G_define_standard_option(G_OPT_R_INPUT);
@@ -2422,16 +2422,16 @@ int main(int argc, char *argv[])
     int   doy      = (int)resolve_float_opt(opt_doy,
                         (float)meta.day_of_year, meta.has_doy,
                         180.0f, 0);
-    float wl_min   = (float)atof(opt_wl_min->answer);
-    float wl_max   = (float)atof(opt_wl_max->answer);
-    float wl_step  = (float)atof(opt_wl_step->answer);
+    float wl_min   = (float)atof(opt_wl_min->answer) / 1000.0f;
+    float wl_max   = (float)atof(opt_wl_max->answer) / 1000.0f;
+    float wl_step  = (float)atof(opt_wl_step->answer) / 1000.0f;
 
     if (sza < 0.0f || sza >= 90.0f)
         G_fatal_error(_("sza must be in [0, 90)"));
     if (vza < 0.0f || vza > 60.0f)
         G_fatal_error(_("vza must be in [0, 60]"));
     if (wl_step <= 0.0f || wl_min >= wl_max)
-        G_fatal_error(_("Invalid wavelength range or step"));
+        G_fatal_error(_("Invalid wavelength range or step (values in nm)"));
     if (doy < 1 || doy > 365)
         G_fatal_error(_("doy must be in [1, 365]"));
 
