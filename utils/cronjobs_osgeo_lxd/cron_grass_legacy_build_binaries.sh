@@ -17,10 +17,12 @@
 # - injects in versioned manual the "canonical" to point to "stable" manual (as seen in the Python manual pages)
 
 # Preparations, on server (neteler@grasslxd:$):
+# - git clone the correct GRASS source code version into $HOME/src/
 # - install dependencies:
 #     cd $HOME/src/releasebranch_7_8/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
 # - install further dependencies:
-#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc
+#     apt-get install texlive-latex-extra python3-sphinxcontrib.apidoc python3-sphinx-sitemap
+#     pip install sphinx-last-updated-by-git sphinx_material --break-system-packages # to avoid virtenv
 # - run this script
 # - one time only: cross-link code into web space on grasslxd server:
 #     cd /var/www/html/
@@ -161,7 +163,7 @@ echo "GRASS $VERSION compilation done"
 #sh utils/module_synopsis.sh
 
 #### generate developer stuff: pygrass docs + gunittest docs
-# generate pyGRASS sphinx manual (in docs/html/libpython/)
+# generate pyGRASS sphinx manual (in python/grass/docs/)
 # including source code
 $MYMAKE sphinxdoclib
 
