@@ -46,7 +46,6 @@ style="ggplot" plot_dimensions="6,5" -h
 ![image-alt](v_histogram_02.png)  
 Histogram of median age values in census blocks
 
-
 ## AUTHOR
 
 Moritz Lennert (original code)

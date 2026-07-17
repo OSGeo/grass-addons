@@ -591,7 +591,9 @@ def main():
         else None
     )
     bxcolor = get_valid_color(options["box_color"]) if options["box_color"] else None
-    box_linewidth = float(options["box_linewidth"]) if options["box_linewidth"] else None
+    box_linewidth = (
+        float(options["box_linewidth"]) if options["box_linewidth"] else None
+    )
     whisker_linewidth = (
         float(options["whisker_linewidth"]) if options["whisker_linewidth"] else None
     )

@@ -172,7 +172,7 @@ the corresponding boxplot in square kilometers.
 
 ![image-alt](r_boxplot_06.png)
 
-## Acknowledgements 
+## Acknowledgements
 
 This work was carried in the framework of the [Save the tiger, save the
 grassland, save the water](https://savethetiger.nl/) project by the [Innovative

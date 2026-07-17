@@ -34,7 +34,7 @@ very large, try to avoid setting the range value very low, as that may result in
 a massive number of outliers, slowing down the computations and rendering of the
 plot.
 
-## EXAMPLE 
+## EXAMPLE
 
 The examples use the North Carolina full dataset, which you can download from
 [https://grass.osgeo.org/download/data/#NorthCarolinaDataset](https://grass.osgeo.org/download/data/#NorthCarolinaDataset).
