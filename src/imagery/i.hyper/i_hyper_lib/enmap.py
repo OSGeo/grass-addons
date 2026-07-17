@@ -390,7 +390,7 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
                     }
                 )
 
-    band_entries.sort(key=lambda item: item["global_band"])
+    band_entries.sort(key=lambda item: band_data[item["global_band"]].get("wavelength") or 0)
     seen_global = set()
     for entry in band_entries:
         gid = entry["global_band"]
@@ -399,9 +399,10 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
         seen_global.add(gid)
 
     source_bands = sorted({entry["global_band"] for entry in band_entries})
+    valid_source_bands = [band for band in source_bands if band_data[band].get("valid", 0) == 1]
     invalid_gains = [
         band
-        for band in source_bands
+        for band in valid_source_bands
         if band_data[band]["gain"] is None
         or not math.isfinite(band_data[band]["gain"])
         or band_data[band]["gain"] <= 0
@@ -1317,7 +1318,6 @@ def import_enmap(
     composites=None,
     custom_wavelengths=None,
     strength_val=96,
-    import_null=False,
 ):
     meta_path = _find_required_file(folder, "METADATA.XML")
     spectral_sources = _enmap_spectral_sources(meta_path, folder)
@@ -1357,6 +1357,9 @@ def import_enmap(
 
     wavelengths = []
     band_names = []
+    validity_meta = [bool(band_meta[entry["global_band"]].get("valid", 0)) for entry in source_entries]
+    valid_band_numbers = [entry["global_band"] for entry in valid_entries]
+    valid_band_names = {}
     for entry in valid_entries:
         b = entry["global_band"]
         bname = f"{output}_b{b:03d}"
@@ -1370,39 +1373,58 @@ def import_enmap(
                 quiet=True,
                 overwrite=True,
             )
+        valid_band_names[b] = bname
+        Module("r.colors", map=bname, color="grey.eq", quiet=True)
+
+    if not valid_entries:
+        gs.fatal("No valid bands after XML-based selection.")
+
+    gs.use_temp_region()
+    Module("g.region", raster=valid_band_names[valid_entries[0]["global_band"]], quiet=True)
+
+    for entry in source_entries:
+        b = entry["global_band"]
+        bname = f"{output}_b{b:03d}"
         wavelengths.append(band_meta[b]["wavelength"])
+        if b in valid_band_names:
+            band_names.append(valid_band_names[b])
+            continue
+        Module(
+            "r.mapcalc",
+            expression=f"{bname} = null()",
+            quiet=True,
+            overwrite=True,
+        )
         band_names.append(bname)
         Module("r.colors", map=bname, color="grey.eq", quiet=True)
 
     # per-band metadata before any cleanup
-    for idx, entry in enumerate(valid_entries, 1):
+    for entry in source_entries:
         b = entry["global_band"]
         meta = band_meta[b]
         Module(
             "r.support",
-            map=band_names[idx - 1],
+            map=f"{output}_b{b:03d}",
             title=f"Band {b}",
             units="nm",
             source1=f"Wavelength: {meta['wavelength']} nm",
             source2=f"FWHM: {meta['fwhm']} nm",
-            description="Validated band",
+            description="Validated band" if band_meta[b].get("valid", 0) == 1 else "Invalid band (NULL slice)",
             quiet=True,
         )
 
     # composites
+    valid_wavelengths = [band_meta[b]["wavelength"] for b in valid_band_numbers]
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices = [find_nearest_band(wl, wavelengths) for wl in rgb_target]
-    rgb_enhanced = {i: band_names[i - 1] for i in rgb_indices}
-
-    gs.use_temp_region()
-    Module("g.region", raster=band_names[0], quiet=True)
+    rgb_indices = [find_nearest_band(wl, valid_wavelengths) for wl in rgb_target]
+    rgb_enhanced = {i: valid_band_names[valid_band_numbers[i - 1]] for i in rgb_indices}
 
     if composites:
         for comp in composites:
             if comp not in COMPOSITES:
                 continue
-            bands = [find_nearest_band(wl, wavelengths) for wl in COMPOSITES[comp]]
-            rgb_maps = [rgb_enhanced.get(b, band_names[b - 1]) for b in bands]
+            bands = [find_nearest_band(wl, valid_wavelengths) for wl in COMPOSITES[comp]]
+            rgb_maps = [rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]]) for b in bands]
             if comp.upper() == "RGB":
                 Module(
                     "i.colors.enhance",
@@ -1436,9 +1458,9 @@ def import_enmap(
 
     if custom_wavelengths:
         custom_indices = [
-            find_nearest_band(wl, wavelengths) for wl in custom_wavelengths
+            find_nearest_band(wl, valid_wavelengths) for wl in custom_wavelengths
         ]
-        custom_maps = [rgb_enhanced.get(b, band_names[b - 1]) for b in custom_indices]
+        custom_maps = [rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]]) for b in custom_indices]
         Module(
             "i.colors.enhance",
             red=custom_maps[0],
@@ -1469,51 +1491,35 @@ def import_enmap(
         quiet=True,
     )
 
-    # gain/offset + FCELL
-    gains = [band_meta[entry["global_band"]]["gain"] for entry in valid_entries]
-    offs = [band_meta[entry["global_band"]]["offset"] for entry in valid_entries]
-    same_gain = all(g == gains[0] for g in gains)
-    same_offset = all(o == offs[0] for o in offs)
-
     float_names = []
     try:
-        if same_gain and same_offset:
-            Module(
-                "r.to.rast3",
-                input=band_names,
-                output=output,
-                quiet=True,
-                overwrite=True,
-            )
-            Module("g.region", raster_3d=output, quiet=True)
-            g0, o0 = gains[0], offs[0]
-            Module(
-                "r3.mapcalc",
-                expression=f"{output}_scaled = float({output} * {g0} + {o0})",
-                quiet=True,
-                overwrite=True,
-            )
-            Module("g.remove", type="raster_3d", name=output, flags="f", quiet=True)
-            Module("g.rename", raster_3d=(f"{output}_scaled", output), quiet=True)
-        else:
-            for idx, bname in enumerate(band_names):
-                g = gains[idx]
-                o = offs[idx]
-                fout = f"{bname}_f"
+        for entry, bname in zip(source_entries, band_names):
+            b = entry["global_band"]
+            fout = f"{bname}_f"
+            if band_meta[b].get("valid", 0) == 1:
+                g = band_meta[b]["gain"]
+                o = band_meta[b]["offset"]
                 Module(
                     "r.mapcalc",
                     expression=f"{fout} = float({bname} * {g} + {o})",
                     quiet=True,
                     overwrite=True,
                 )
-                float_names.append(fout)
-            Module(
-                "r.to.rast3",
-                input=float_names,
-                output=output,
-                quiet=True,
-                overwrite=True,
-            )
+            else:
+                Module(
+                    "r.mapcalc",
+                    expression=f"{fout} = null()",
+                    quiet=True,
+                    overwrite=True,
+                )
+            float_names.append(fout)
+        Module(
+            "r.to.rast3",
+            input=float_names,
+            output=output,
+            quiet=True,
+            overwrite=True,
+        )
     finally:
         if float_names:
             Module("g.remove", type="raster", name=float_names, flags="f", quiet=True)
@@ -1521,18 +1527,9 @@ def import_enmap(
 
     # hyperspectral metadata (JSON)
     try:
-        if import_null:
-            source_bands = [entry["global_band"] for entry in source_entries]
-            wavelengths_meta = [band_meta[b]["wavelength"] for b in source_bands]
-            fwhm_meta = [band_meta[b]["fwhm"] for b in source_bands]
-            validity_meta = [bool(band_meta[b].get("valid", 0)) for b in source_bands]
-            selected_bands = source_bands
-        else:
-            valid_bands = [entry["global_band"] for entry in valid_entries]
-            wavelengths_meta = [band_meta[b]["wavelength"] for b in valid_bands]
-            fwhm_meta = [band_meta[b]["fwhm"] for b in valid_bands]
-            validity_meta = [True] * len(valid_bands)
-            selected_bands = valid_bands
+        selected_bands = [entry["global_band"] for entry in source_entries]
+        wavelengths_meta = [band_meta[b]["wavelength"] for b in selected_bands]
+        fwhm_meta = [band_meta[b]["fwhm"] for b in selected_bands]
 
         meta = HyperMetadata.for_spectral_data(
             wavelengths=wavelengths_meta,
@@ -1572,9 +1569,6 @@ def import_enmap(
             cmd.append(
                 "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
             )
-        if import_null:
-            cmd.append("-n")
-
         meta.add_history_entry(
             command=" ".join(cmd),
             inputs=[],
@@ -1630,5 +1624,4 @@ def run_import(options, flags):
         else None,
         custom_wavelengths=custom,
         strength_val=strength_val,
-        import_null=bool(flags.get("n")),
     )

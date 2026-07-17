@@ -6,7 +6,7 @@ PRISMA L2D importer:
 - Sets region to match the transposed (E, N) raster layout and writes NULLs outside the valid footprint.
 - Enhances colors via i.colors.enhance and assembles final composites with r.composite; temp bands are cleaned up.
 Entry points:
-  - import_prisma(input_path, output_name, composites=None, custom_wavelengths=None, strength_val=96, import_null=False)
+  - import_prisma(input_path, output_name, composites=None, custom_wavelengths=None, strength_val=96)
   - run_import(options, flags)  # wrapper for module CLI
 Requires: prisma_reader.{load_prisma_l2d, concatenate_hyperspectral}
 """
@@ -549,7 +549,6 @@ def import_prisma(
     composites=None,
     custom_wavelengths=None,
     strength_val=96,
-    import_null=False,
 ):
     """
     Writes composite rasters (only) following the EnMAP composite flow:
@@ -574,7 +573,7 @@ def import_prisma(
     _require(prod.vnir and prod.vnir.dn is not None, "VNIR cube missing.")
     _require(prod.swir and prod.swir.dn is not None, "SWIR cube missing.")
 
-    data_cube, wavelengths, fwhm = concatenate_hyperspectral(prod)
+    data_cube, wavelengths, fwhm, provider_validity = concatenate_hyperspectral(prod)
     _require(data_cube.ndim == 3, f"Unexpected data cube shape: {data_cube.shape}")
 
     # --- a mask where every band is zero
@@ -608,17 +607,19 @@ def import_prisma(
     source_wavelengths = np.asarray(wavelengths)
     source_fwhm = np.asarray(fwhm) if fwhm is not None else None
 
-    # Per-band validity after masking
     band_validity = [
-        bool(np.isfinite(data_cube[:, :, k]).any()) for k in range(data_cube.shape[2])
+        bool(provider_validity[k]) and bool(np.isfinite(data_cube[:, :, k]).any())
+        for k in range(data_cube.shape[2])
     ]
-    keep = [k for k, valid in enumerate(band_validity) if valid]
-    if not keep:
+    if not any(band_validity):
         gs.fatal("No non-NULL bands found.")
-    data_cube = data_cube[:, :, keep]
-    wavelengths = np.asarray(wavelengths)[keep]
+
+    invalid_idx = [k for k, valid in enumerate(band_validity) if not valid]
+    if invalid_idx:
+        data_cube[:, :, invalid_idx] = np.nan
+    wavelengths = np.asarray(wavelengths)
     if fwhm is not None:
-        fwhm = np.asarray(fwhm)[keep]
+        fwhm = np.asarray(fwhm)
 
     gs.use_temp_region()
     if grid is not None:
@@ -666,8 +667,10 @@ def import_prisma(
         return name
 
     # Prime the "rgb_enhanced" mapping:
+    valid_band_indices = [i + 1 for i, valid in enumerate(band_validity) if valid]
+    valid_wavelengths = np.asarray([wavelengths[i - 1] for i in valid_band_indices], dtype=float)
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices_1b = [_find_nearest_band_1based(w, wavelengths) for w in rgb_target]
+    rgb_indices_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in rgb_target]
     # Create these bands now and cache
     for idx1 in rgb_indices_1b:
         ensure_band_written(idx1)
@@ -726,14 +729,9 @@ def import_prisma(
 
         # -------- hyperspectral metadata (JSON) --------
         try:
-            if import_null:
-                wavelengths_meta = source_wavelengths.tolist()
-                fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
-                validity_meta = [bool(v) for v in band_validity]
-            else:
-                wavelengths_meta = wavelengths.tolist()
-                fwhm_meta = fwhm.tolist() if fwhm is not None else None
-                validity_meta = [True] * len(wavelengths_meta)
+            wavelengths_meta = source_wavelengths.tolist()
+            fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
+            validity_meta = [bool(v) for v in band_validity]
 
             _, acquisition_start_raw = _first_attr(
                 prod.attrs,
@@ -784,9 +782,6 @@ def import_prisma(
                 cmd.append(
                     "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
                 )
-            if import_null:
-                cmd.append("-n")
-
             meta.add_history_entry(
                 command=" ".join(cmd),
                 inputs=[],
@@ -802,7 +797,7 @@ def import_prisma(
 
     # For each requested composite, select bands and build r.composite
     for name, targets in wanted:
-        bands_1b = [_find_nearest_band_1based(w, wavelengths) for w in targets]
+        bands_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in targets]
         rgb_maps = []
         for idx1 in bands_1b:
             if idx1 in rgb_enhanced:
@@ -885,13 +880,10 @@ def run_import(options, flags):
         if options.get("composites")
         else None
     )
-    import_null = bool(flags.get("n"))
-
     import_prisma(
         input_path=options["input"],
         output_name=options["output"],
         composites=comps,
         custom_wavelengths=custom,
         strength_val=strength_val,
-        import_null=import_null,
     )

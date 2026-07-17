@@ -556,6 +556,13 @@ class HyperMetadata:
                     dataset_index=dataset_index,
                 )
                 if has_inherited and value == inherited_value:
+                    if key == "bands" and isinstance(value, dict):
+                        minimal = {}
+                        for k in ("count", "count_valid"):
+                            if k in value:
+                                minimal[k] = value[k]
+                        if minimal:
+                            data["bands"] = minimal
                     continue
                 data[key] = value
 
@@ -654,23 +661,31 @@ class HyperMetadata:
 
     # ---------- Query methods ----------
 
-    def get_wavelengths_array(self) -> np.ndarray | None:
+    def get_wavelengths_array(self, valid_only: bool = False) -> np.ndarray | None:
         """Return wavelengths as numpy array (None values become NaN)."""
         if self.wavelengths is None:
             return None
         values = list(self.wavelengths)
-        if self.validity is not None and len(self.validity) == len(values):
+        if (
+            valid_only
+            and self.validity is not None
+            and len(self.validity) == len(values)
+        ):
             values = [w for i, w in enumerate(values) if bool(self.validity[i])]
         return np.array(
             [w if w is not None else np.nan for w in values], dtype=np.float32
         )
 
-    def get_fwhm_array(self) -> np.ndarray | None:
+    def get_fwhm_array(self, valid_only: bool = False) -> np.ndarray | None:
         """Return FWHM as numpy array."""
         if self.fwhm is None:
             return None
         values = list(self.fwhm)
-        if self.validity is not None and len(self.validity) == len(values):
+        if (
+            valid_only
+            and self.validity is not None
+            and len(self.validity) == len(values)
+        ):
             values = [f for i, f in enumerate(values) if bool(self.validity[i])]
         return np.array(
             [f if f is not None else np.nan for f in values], dtype=np.float32
@@ -679,10 +694,68 @@ class HyperMetadata:
     def get_good_band_indices(self) -> np.ndarray:
         """Return indices (0-based) of good (non-flagged) bands."""
         if self.validity is not None:
-            return np.arange(self.n_bands or int(sum(bool(v) for v in self.validity)))
+            return np.flatnonzero(np.asarray(self.validity, dtype=bool))
         if self.bad_bands is None:
             return np.arange(self.n_bands or 0)
         return np.array([i for i, bad in enumerate(self.bad_bands) if not bad])
+
+    def resolve_band_axis(self, depth: int) -> dict[str, Any]:
+        """Resolve source-axis to raster-depth mapping for physical and compact cubes."""
+        if depth <= 0:
+            raise ValueError("Depth must be positive")
+
+        count = self.n_bands_source
+        if count is None and self.wavelengths is not None:
+            count = len(self.wavelengths)
+        elif count is None and self.validity is not None:
+            count = len(self.validity)
+        if count is None:
+            count = depth
+        count = int(count)
+
+        validity = None
+        if self.validity is not None:
+            validity = np.asarray(self.validity, dtype=bool)
+            if validity.size != count:
+                raise ValueError(
+                    f"Validity length ({validity.size}) does not match source band count ({count})"
+                )
+
+        if validity is None:
+            validity = np.ones(count, dtype=bool)
+
+        count_valid = int(self.n_bands_valid) if self.n_bands_valid is not None else int(validity.sum())
+
+        if depth == count:
+            layout = "physical"
+            depth_to_source = np.arange(depth, dtype=np.int64)
+        elif depth == count_valid:
+            layout = "compact"
+            depth_to_source = np.flatnonzero(validity).astype(np.int64)
+            if depth_to_source.size != depth:
+                raise ValueError(
+                    f"Compact cube depth ({depth}) does not match number of valid source bands ({depth_to_source.size})"
+                )
+        else:
+            raise ValueError(
+                f"Raster depth {depth} is incompatible with metadata bands.count={count} and bands.count_valid={count_valid}"
+            )
+
+        source_to_depth = np.full(count, -1, dtype=np.int64)
+        source_to_depth[depth_to_source] = np.arange(depth, dtype=np.int64)
+
+        wavelengths = self.get_wavelengths_array(valid_only=False)
+        fwhm = self.get_fwhm_array(valid_only=False)
+        return {
+            "layout": layout,
+            "count": count,
+            "count_valid": count_valid,
+            "validity": validity,
+            "depth_to_source": depth_to_source,
+            "source_to_depth": source_to_depth,
+            "wavelengths": wavelengths,
+            "fwhm": fwhm,
+        }
 
     def select_bands_by_wavelength(
         self, min_wl: float | None = None, max_wl: float | None = None
@@ -690,7 +763,7 @@ class HyperMetadata:
         """Return indices (0-based) of bands within wavelength range."""
         if self.wavelengths is None:
             raise ValueError("Wavelengths not set")
-        wl = self.get_wavelengths_array()
+        wl = self.get_wavelengths_array(valid_only=False)
         mask = np.ones(len(wl), dtype=bool)
         if min_wl is not None:
             mask &= wl >= min_wl
@@ -710,7 +783,12 @@ class HyperMetadata:
         """Find the band index (0-based) nearest to target wavelength."""
         if self.wavelengths is None:
             raise ValueError("Wavelengths not set")
-        wl = self.get_wavelengths_array()
+        wl = self.get_wavelengths_array(valid_only=False)
+        if self.validity is not None and len(self.validity) == len(wl):
+            valid_idx = np.flatnonzero(np.asarray(self.validity, dtype=bool))
+            if valid_idx.size == 0:
+                raise ValueError("No valid bands available")
+            return int(valid_idx[np.nanargmin(np.abs(wl[valid_idx] - target_wl))])
         return int(np.nanargmin(np.abs(wl - target_wl)))
 
     # ---------- Processing history ----------
@@ -1510,17 +1588,6 @@ class HyperMetadata:
         if "derived" in raw_data and not isinstance(raw_data.get("derived"), bool):
             issues.append("derived must be boolean")
 
-        bands = raw_data.get("bands") or {}
-        if (not isinstance(bands, dict) or not bands) and derived_flag:
-            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
-                raw_data,
-                "bands",
-                dataset_index=dataset_index,
-            )
-            if has_inherited_bands and isinstance(inherited_bands, dict):
-                bands = inherited_bands
-            else:
-                bands = {}
         data_type = raw_data.get("data_type")
         if data_type is None:
             inherited_data_type, has_inherited_data_type = cls.resolve_inherited_value(
@@ -1530,6 +1597,22 @@ class HyperMetadata:
             )
             if has_inherited_data_type:
                 data_type = inherited_data_type
+
+        bands = raw_data.get("bands") or {}
+        if derived_flag and data_type == "spectral":
+            full_bands, has_full = None, False
+            for input_id in cls._direct_input_dataset_ids(raw_data):
+                src = cls._resolve_dataset_data(
+                    input_id,
+                    raw_data.get("input_datasets_metadata", {}),
+                    dataset_index=dataset_index,
+                )
+                if isinstance(src, dict) and isinstance(src.get("bands"), dict):
+                    full_bands = src["bands"]
+                    has_full = True
+                    break
+            if has_full and isinstance(full_bands, dict):
+                bands = {**full_bands, **(bands if isinstance(bands, dict) else {})}
         count = bands.get("count")
         count_valid = bands.get("count_valid")
         wavelengths = bands.get("wavelength")
@@ -1571,10 +1654,18 @@ class HyperMetadata:
         try:
             info = gs.parse_command("r3.info", map=map_name, flags="g")
             depth = int(float(info.get("depths")))
-            expected_depth = count if isinstance(count, int) else None
-            if expected_depth is not None and depth != expected_depth:
+            if isinstance(count, int) and depth == count:
+                pass
+            elif isinstance(count_valid, int) and depth == count_valid:
+                pass
+            elif isinstance(count, int):
+                expected = (
+                    f"bands.count={count} or bands.count_valid={count_valid}"
+                    if isinstance(count_valid, int)
+                    else f"bands.count={count}"
+                )
                 issues.append(
-                    f"Raster depth mismatch: depths={depth}, expected={expected_depth}"
+                    f"Raster depth mismatch: depths={depth}, expected {expected}"
                 )
         except Exception as exc:
             issues.append(f"Could not validate raster depth with r3.info: {exc}")

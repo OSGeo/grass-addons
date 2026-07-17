@@ -125,10 +125,18 @@ def _to_full_map_name(mapname):
     return f"{mapname}@{mapset}" if mapset else mapname
 
 
-def _load_input_meta(mapname, hyper_meta_class, valid_only):
+def _get_raster_depth(mapname):
+    try:
+        info = gs.parse_command("r3.info", map=mapname, flags="g")
+        return int(float(info["depths"]))
+    except Exception as error:
+        gs.fatal(f"Failed to read 3D raster depth for '{mapname}': {error}")
+
+
+def _load_input_meta(mapname, hyper_meta_class, depth, valid_only):
     """Load input metadata, return (meta, wl, fwhm, band_indices).
 
-    *wl* and *fwhm* correspond to the bands that will actually be used.
+    *wl* and *fwhm* correspond to the raster depth axis after optional validity filtering.
     *band_indices* are the depth indices into the 3D raster (0-based).
     """
     try:
@@ -136,26 +144,26 @@ def _load_input_meta(mapname, hyper_meta_class, valid_only):
     except Exception as error:
         gs.fatal(f"Failed to read metadata for '{mapname}': {error}")
 
-    raw_wl = np.array(
-        [w if w is not None else np.nan for w in (meta.wavelengths or [])],
-        dtype=np.float64,
-    )
-    raw_fwhm = None
-    if meta.fwhm is not None:
-        raw_fwhm = np.array(
-            [f if f is not None else np.nan for f in meta.fwhm],
-            dtype=np.float64,
-        )
+    axis = meta.resolve_band_axis(depth)
+    source_wl = axis["wavelengths"]
+    source_fwhm = axis["fwhm"]
+    depth_to_source = axis["depth_to_source"]
+    depth_validity = np.asarray(axis["validity"], dtype=bool)[depth_to_source]
 
-    if valid_only and meta.validity is not None:
-        validity = np.array(meta.validity, dtype=bool)
-        idx = np.where(validity)[0]
+    raw_wl = source_wl[depth_to_source] if source_wl is not None else None
+    raw_fwhm = source_fwhm[depth_to_source] if source_fwhm is not None else None
+
+    if raw_wl is None:
+        gs.fatal(f"No wavelength metadata found for '{mapname}'.")
+
+    if valid_only:
+        idx = np.flatnonzero(depth_validity)
         wl = raw_wl[idx]
         fwhm = raw_fwhm[idx] if raw_fwhm is not None else None
     else:
+        idx = np.arange(depth)
         wl = raw_wl
         fwhm = raw_fwhm
-        idx = np.arange(len(raw_wl))
 
     if len(wl) == 0:
         gs.fatal(f"No valid bands found in metadata for '{mapname}'.")
@@ -218,8 +226,15 @@ def _clip_to_input_range(out_wl, out_fwhm, in_min, in_max):
     return out_wl_out, out_fwhm_out, n_clipped
 
 
-def _write_resampled_metadata(inmap, outmap, out_wl, out_fwhm, cmd_params,
-                              hyper_meta_class):
+def _write_resampled_metadata(
+    inmap,
+    outmap,
+    out_wl,
+    out_fwhm,
+    out_validity,
+    cmd_params,
+    hyper_meta_class,
+):
     """Write hyperspectral metadata for the resampled output."""
     try:
         src_meta = hyper_meta_class.load(inmap)
@@ -238,6 +253,7 @@ def _write_resampled_metadata(inmap, outmap, out_wl, out_fwhm, cmd_params,
     )
     meta.dataset_id = hyper_meta_class.new_dataset_id()
     meta.derived = True
+    meta.set_validity(out_validity)
 
     command = meta._command_from_module_params("i.hyper.specresamp", cmd_params)
     meta.add_history_entry(
@@ -266,8 +282,9 @@ def main():
     )
 
     # ── read input metadata ────────────────────────────────────────
+    depth = _get_raster_depth(inmap)
     in_meta, in_wl, in_fwhm, band_idx = _load_input_meta(
-        inmap, hyper_meta_class, valid_only
+        inmap, hyper_meta_class, depth, valid_only
     )
     n_in = len(band_idx)
     in_min, in_max = float(in_wl.min()), float(in_wl.max())
@@ -334,7 +351,7 @@ def main():
         arr_in = garray.array3d(mapname=inmap, null="nan", dtype=np.float32)
         depth, rows, cols = arr_in.shape
 
-        if valid_only and n_in < depth:
+        if n_in < depth:
             arr_in = arr_in[band_idx, :, :]
 
         exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
@@ -348,6 +365,7 @@ def main():
         n_out_actual = flat_out.shape[1]
         arr_out = flat_out.T.reshape(n_out_actual, rows, cols)
         arr_out[:, exterior_mask] = np.nan
+        out_validity = np.any(np.isfinite(arr_out), axis=(1, 2)).tolist()
 
         orig_region = gs.region()
         gs.run_command(
@@ -373,15 +391,22 @@ def main():
             "input": inmap,
             "output": outmap,
             "method": method,
-            "valid_only": valid_only,
         }
+        if valid_only:
+            cmd_params["valid_only"] = True
         if options.get("reference"):
             cmd_params["reference"] = options["reference"]
         if options.get("wavelengths"):
             cmd_params["wavelengths"] = options["wavelengths"]
             cmd_params["fwhm"] = options.get("fwhm") or ""
         _write_resampled_metadata(
-            inmap, outmap, out_wl, out_fwhm_used, cmd_params, hyper_meta_class
+            inmap,
+            outmap,
+            out_wl,
+            out_fwhm_used,
+            out_validity,
+            cmd_params,
+            hyper_meta_class,
         )
 
     finally:

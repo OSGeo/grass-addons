@@ -98,11 +98,10 @@ The `-p` flag prints dataset spatial reference information together with
 *i.hyper.import* behavior and GRASS project requirements, then exits
 without importing.
 
-The `-n` flag records validity for represented source bands in
-`bands.validity`, `bands.count`, and `bands.count_valid`; it does not add
-invalid or all-NULL slices to the cube. Consequently, `bands.count` can be
-greater than the output cube depth. Product bands discarded before metadata
-construction, such as PRISMA flag-zero wavelengths, are not represented.
+Imported cubes preserve the full physical spectral axis. Bands rejected by the
+provider or containing no usable data are written as all-NULL slices and marked
+as invalid in `bands.validity`. Consequently, `bands.count` always matches the
+output cube depth, while `bands.count_valid` records the number of usable bands.
 
 The `-u` flag updates the computational region to match the imported 3D
 raster after a successful import. Without `-u`, the original region is
