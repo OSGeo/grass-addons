@@ -62,7 +62,7 @@ border: 1px solid black;
 </head>
 <body>
 <h1>GRASS $GRASS_VERSION AddOns ($PLATFORM) / $uname (logs generated $date)</h1>
-<hr /> 
+<hr />
 <table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
 <th style=\"background-color: grey\">Status</th>
