@@ -49,7 +49,7 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: plot_output
+# % key: output
 # % label: Name for graphic output file for plot (extension decides format, - for screen)
 # % required: yes
 # % answer: -
@@ -143,7 +143,7 @@
 # %end
 
 # %option
-# % key: line_width
+# % key: border_width
 # % type: double
 # % label: Border line width
 # % description: Line width of the bar borders. Defaults to the Matplotlib default.
@@ -220,7 +220,7 @@ def main():
     layer = options["layer"]
     column = options["column"]
     bins = int(options["bins"])
-    plot_output = options["plot_output"]
+    plot_output = options["output"]
     where = options["where"] if options["where"] else None
 
     # Output options
@@ -238,7 +238,9 @@ def main():
     border_color = (
         get_valid_color(options["border_color"]) if options["border_color"] else None
     )
-    line_width = float(options["line_width"]) if options["line_width"] else None
+    border_width = (
+        float(options["border_width"]) if options["border_width"] else None
+    )
     rwidth = float(options["rwidth"]) if options["rwidth"] else None
     horizontal = flags["h"]
 
@@ -267,8 +269,8 @@ def main():
         hist_kwargs["color"] = fill_color
     if border_color is not None:
         hist_kwargs["edgecolor"] = border_color
-    if line_width is not None:
-        hist_kwargs["linewidth"] = line_width
+    if border_width is not None:
+        hist_kwargs["linewidth"] = border_width
     if rwidth is not None:
         hist_kwargs["rwidth"] = rwidth
     ax.hist(data, **hist_kwargs)

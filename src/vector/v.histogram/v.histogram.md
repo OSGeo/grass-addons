@@ -6,8 +6,8 @@ column. Use the **where** option to select a subset of the records and
 
 The histogram can be drawn horizontally (**-h**), with grid lines
 (**-g**), rotated value-axis labels (**-r**), and a limited value axis
-(**axis_limits**). The bar **color**, **border_color**, border
-**line_width** and relative bar width (**rwidth**) can be set. A
+(**axis_limits**). The bar **color**, **border_color**,
+**border_width** and relative bar width (**rwidth**) can be set. A
 Matplotlib [style
 sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
 can be applied with the **style** option, e.g. *style=ggplot*. The
@@ -45,6 +45,7 @@ style="ggplot" plot_dimensions="6,5" -h
 
 ![image-alt](v_histogram_02.png)  
 Histogram of median age values in census blocks
+
 
 ## AUTHOR
 
