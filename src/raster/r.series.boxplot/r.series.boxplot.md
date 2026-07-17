@@ -100,6 +100,6 @@ of the HAS University of Applied Sciences.
 
 ## AUTHOR
 
-Paulo van Breugel  
-Applied Geo-information Sciences  
+Paulo van Breugel
+Applied Geo-information Sciences
 [HAS University of Applied Sciences](https://www.hasuniversity.nl/)

@@ -112,7 +112,7 @@
 # %end
 
 # %option
-# % key: font_size
+# % key: fontsize
 # % type: integer
 # % label: Font size
 # % description: Font size of labels
@@ -146,7 +146,7 @@
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
 # % description: The width of the boxplots
@@ -155,7 +155,7 @@
 # %end
 
 # %options G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % type: string
 # % label: Boxplot color
 # % description: Fill color of the boxplots. Unset leaves the boxes unfilled (Matplotlib default). See manual page for color notation options.
@@ -165,7 +165,7 @@
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
 # % label: boxplot linewidth
 # % description: The linewidth of the boxplots. Defaults to the Matplotlib default.
@@ -174,7 +174,7 @@
 # %end
 
 # %option
-# % key: median_lw
+# % key: median_linewidth
 # % type: double
 # % description: width of the boxplot median line. Defaults to the Matplotlib default.
 # % required: no
@@ -696,8 +696,8 @@ def main(options, flags):
     nprocs = int(options["nprocs"])
 
     # Plot format options
-    if options["font_size"]:
-        plt.rcParams["font.size"] = int(options["font_size"])
+    if options["fontsize"]:
+        plt.rcParams["font.size"] = int(options["fontsize"])
     grid = flags["g"]
 
     # Get range (if defined)
@@ -711,7 +711,9 @@ def main(options, flags):
         )
 
     # Appearance options; unset ones stay None -> Matplotlib/style default
-    bxp_linewidth = float(options["bx_lw"]) if options["bx_lw"] else None
+    bxp_linewidth = (
+        float(options["box_linewidth"]) if options["box_linewidth"] else None
+    )
     whisker_linewidth = (
         float(options["whisker_linewidth"]) if options["whisker_linewidth"] else None
     )
@@ -724,7 +726,7 @@ def main(options, flags):
     )
 
     # Boxplot fill color
-    bxcolor = get_valid_color(options["bx_color"]) if options["bx_color"] else None
+    bxcolor = get_valid_color(options["box_color"]) if options["box_color"] else None
 
     # Output options
     output = options["output"]
@@ -743,7 +745,7 @@ def main(options, flags):
 
     # Determine boxplot width (based on date type and granuality)
     bxp_width, temp_lngt, temp_unit = get_bx_width(
-        options["bx_width"],
+        options["box_width"],
         temp_type,
         options["input"],
     )
@@ -803,8 +805,8 @@ def main(options, flags):
         get_valid_color(options["median_color"]) if options["median_color"] else None
     )
     medianprops = {}
-    if options["median_lw"]:
-        medianprops["linewidth"] = float(options["median_lw"])
+    if options["median_linewidth"]:
+        medianprops["linewidth"] = float(options["median_linewidth"])
     if median_color is not None:
         medianprops["color"] = median_color
     flierprops = {"marker": flier_marker}

@@ -109,8 +109,8 @@ labels are plotted horizontally (equal to **rotate\_labels=0**) by default.
 
 ```sh
 t.rast.boxplot -o -h -g  input=LST_Day_monthly@modis_lst \
-bx_color=green median_color=white median_lw=0.8 bx_lw=0.8 \
-flier_color=orange flier_size=1 flier_marker=s font_size=8
+box_color=green median_color=white median_linewidth=0.8 box_linewidth=0.8 \
+flier_color=orange flier_size=1 flier_marker=s fontsize=8
 ```
 
 See [https://matplotlib.org/stable/tutorials/colors/colors.html](https://matplotlib.org/stable/tutorials/colors/colors.html)
@@ -128,8 +128,8 @@ vertical plots is **rotate\_labels=45**).
 
 ```sh
 t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=90 \
-date_format="%B %Y" bx_color=white median_lw=2 median_color=red \
-font_size=9
+date_format="%B %Y" box_color=white median_linewidth=2 median_color=red \
+fontsize=9
 ```
 
 ![image-alt](t_rast_boxplot_03.png)
@@ -176,6 +176,8 @@ of the HAS University of Applied Sciences.
 
 ## AUTHOR
 
-Paulo van Breugel  
-Applied Geo-information Sciences  
-[HAS University of Applied Sciences](https://www.hasuniversity.nl/)
+[Paulo van Breugel](https://ecodiv.earth), [HAS green academy](https://has.nl),
+[Innovative Biomonitoring research
+group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
+[Climate-robust Landscapes research
+group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
