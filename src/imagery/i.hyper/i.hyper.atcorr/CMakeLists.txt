@@ -6,6 +6,8 @@ include(build_addon)
 find_M()
 find_OpenMP()
 
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
 set(sixsv_src
   libsixsv/src/adjacency.c
   libsixsv/src/aeroprof.c
