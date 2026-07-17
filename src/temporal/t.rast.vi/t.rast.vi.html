@@ -13,19 +13,15 @@ raster dataset.
 
 Calculate the NDVI for your Red and NIR STDRS bands
 
-```bash
-
-```
-
 <div class="code">
     <pre>
-t.rast.vi red=red_monthly nir=nir_monthly output=ndvi_monthly \
+t.rast.vi red=red_monthly nir=nir_monthly output=ndvi_monthly viname=ndvi \
     prefix=ndvimonthly
     </pre>
 </div>
 
-If you have to calculate different index that require more info as EVI or MSAVI you
-need to set the correct parameters.
+If you have to calculate different index that require more info, such as EVI
+or MSAVI, you need to set the correct parameters.
 
 <div class="code">
     <pre>
