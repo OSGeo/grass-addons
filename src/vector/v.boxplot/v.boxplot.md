@@ -65,7 +65,7 @@ exclude all records with no data. Use the **-o** flag to draw outliers.
 v.boxplot -n -o map=schools_wake column=CORECAPACI where="CORECAPACI >0"
 ```
 
-[![image-alt](v_boxplot_01.png)](v_boxplot_01.png)  
+[![image-alt](v_boxplot_01.png)](v_boxplot_01.png)
 *Figure 1: Boxplot of core capacity of schools in Wake County.*
 
 ### Example 2
@@ -80,7 +80,7 @@ to draw outliers.
 v.boxplot -h -o map=schools_wake column=CORECAPACI where="CORECAPACI >0" group_by=ADDRCITY order=ascending
 ```
 
-[![image-alt](v_boxplot_02.png)](v_boxplot_02.png)  
+[![image-alt](v_boxplot_02.png)](v_boxplot_02.png)
 *Figure 2: Boxplot of core capacity of schools in Wake County, grouped
 by city.*
 
