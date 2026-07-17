@@ -12,7 +12,7 @@
 
 #define IDIM 50
 #define MAXF 50
-int invert_matrix(double a[][MAXF], int order)
+void invert_matrix(double a[][MAXF], int order)
 {
     double ipvt[IDIM + 1];
 
@@ -40,7 +40,7 @@ int invert_matrix(double a[][MAXF], int order)
         for (j = 0; j < m; j++) {
             if (ipvt[j] != 1) {
                 for (k = 0; k < m; k++) {
-                    if (ipvt[k] == 0 && abs(amax) < abs(a[j][k])) {
+                    if (ipvt[k] == 0 && fabs(amax) < fabs(a[j][k])) {
                         irow = j;
                         icol = k;
                         amax = a[j][k];
@@ -120,5 +120,4 @@ int invert_matrix(double a[][MAXF], int order)
             break;
         }
     }
-    return 0;
 }
