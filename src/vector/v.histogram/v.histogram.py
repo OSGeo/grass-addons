@@ -238,9 +238,7 @@ def main():
     border_color = (
         get_valid_color(options["border_color"]) if options["border_color"] else None
     )
-    border_width = (
-        float(options["border_width"]) if options["border_width"] else None
-    )
+    border_width = float(options["border_width"]) if options["border_width"] else None
     rwidth = float(options["rwidth"]) if options["rwidth"] else None
     horizontal = flags["h"]
 
