@@ -1376,9 +1376,7 @@ def main(options, flags):
             get_valid_color(options["flier_color"]) if options["flier_color"] else None
         ),
         "median_lw": (
-            float(options["median_linewidth"])
-            if options["median_linewidth"]
-            else None
+            float(options["median_linewidth"]) if options["median_linewidth"] else None
         ),
         "median_color": median_color,
     }
