@@ -98,7 +98,7 @@ is served as grass.osgeo.org:
 
 ## Infrastructure
 
-The server is hosted as LXD container on `osgeo8-grass`, see:
+The server is hosted as LXD container on `osgeo10-grass`, see:
 <https://wiki.osgeo.org/wiki/SAC_Service_Status#grass>
 
 The container is only accessible via the related OSGeo ssh jumphost and
