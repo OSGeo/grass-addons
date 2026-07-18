@@ -27,6 +27,7 @@ def test_export_creates_valid_3mf_package(dem_session, tmp_path):
         zscale=2,
         base_height=2,
         overwrite=True,
+        env=dem_session.session.env,
     )
     assert output_path.exists()
 
@@ -56,8 +57,9 @@ def test_normalize_flag_changes_z_scale(dem_session, tmp_path):
         "base_height": 2,
         "overwrite": True,
     }
-    gs.run_command("r.out.3mf", output=str(plain_path), **common)
-    gs.run_command("r.out.3mf", output=str(norm_path), flags="n", **common)
+    env = dem_session.session.env
+    gs.run_command("r.out.3mf", output=str(plain_path), env=env, **common)
+    gs.run_command("r.out.3mf", output=str(norm_path), flags="n", env=env, **common)
 
     with zipfile.ZipFile(plain_path) as plain_zip:
         plain_xml = plain_zip.read("3D/3dmodel.model").decode("utf-8")
@@ -80,6 +82,7 @@ def test_full_raster_flag(dem_session, tmp_path):
         size=80,
         resolution=4,
         overwrite=True,
+        env=dem_session.session.env,
     )
     assert output_path.exists()
 
@@ -104,15 +107,16 @@ def test_overwrite_protection(dem_session, tmp_path):
         "size": 50,
         "resolution": 6,
     }
-    gs.run_command("r.out.3mf", overwrite=True, **common)
+    env = dem_session.session.env
+    gs.run_command("r.out.3mf", overwrite=True, env=env, **common)
     assert written.exists()
 
     # Second run without overwrite must fail rather than clobber the file.
     with pytest.raises(CalledModuleError):
-        gs.run_command("r.out.3mf", **common)
+        gs.run_command("r.out.3mf", env=env, **common)
 
     # With overwrite it should succeed again.
-    gs.run_command("r.out.3mf", overwrite=True, **common)
+    gs.run_command("r.out.3mf", overwrite=True, env=env, **common)
 
 
 def test_stl_output_is_binary_geometry(dem_session, tmp_path):
@@ -126,6 +130,7 @@ def test_stl_output_is_binary_geometry(dem_session, tmp_path):
         size=50,
         resolution=4,
         overwrite=True,
+        env=dem_session.session.env,
     )
     assert output_path.exists()
 

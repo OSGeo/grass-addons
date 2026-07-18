@@ -29,7 +29,7 @@
 
 # %option G_OPT_F_OUTPUT
 # % key: output
-# % description: Name of output 3MF file
+# % description: Name of output file (extension follows the format option)
 # % required: yes
 # % answer: output.3mf
 # %end
@@ -131,7 +131,7 @@ import numpy as np
 
 
 # Color palettes
-# Classic hypsometric tint — 7 elevation bands
+# Classic hypsometric tint: 7 elevation bands
 ELEVATION_COLORS = [
     "#1a6b1a",  # 0-14%   deep forest green
     "#52a447",  # 14-29%  mid green
@@ -370,7 +370,7 @@ def build_mesh(
     Returns
     -------
     vertices       : list of (x, y, z)
-    triangles      : list of (v1, v2, v3) — terrain triangles come first
+    triangles      : list of (v1, v2, v3), terrain triangles come first
     n_terrain_tris : count of terrain-surface triangles
     z_surf_min     : model-space Z at lowest terrain point
     z_surf_max     : model-space Z at highest terrain point
@@ -396,7 +396,7 @@ def build_mesh(
     # Geographic-true mode: base_scale (mm / map_unit) is the same factor used
     # for XY, so zscale=1.0 gives geographically true vertical scale.
     # Normalized mode: elev was rescaled to 0-1 in main(), so map units are
-    # gone — interpret zscale directly as mm of relief.
+    # gone, so zscale is interpreted directly as mm of relief.
     if normalized:
         terrain_height = zscale
     else:
@@ -427,7 +427,7 @@ def build_mesh(
     def top_idx(r, c):
         return r * cols + c
 
-    # Terrain surface — CCW from above (+Z outward normal)
+    # Terrain surface: CCW from above (+Z outward normal)
     triangles = []
     for r in range(rows - 1):
         for c in range(cols - 1):
@@ -479,11 +479,11 @@ def _add_solid(vertices, triangles, perim_top, n_perim, cx, cy, z_floor):
         b0 = bot_start + i
         b1 = bot_start + j
 
-        # Outer wall — outward normal (CCW from outside)
+        # Outer wall: outward normal (CCW from outside)
         triangles.append((t0, t1, b1))
         triangles.append((t0, b1, b0))
 
-    # Floor fan — downward normal (CCW from below)
+    # Floor fan: downward normal (CCW from below)
     for i in range(n_perim):
         j = (i + 1) % n_perim
         b0 = bot_start + i
@@ -497,11 +497,11 @@ def _add_hollow(
     """
     Hollow mold shell:
 
-      Outer walls  — terrain perimeter down to outer bottom rim.
-      Inner walls  — inner-top (wall_thickness inset) down to inner bottom.
-      Top rim      — strip closing the gap between terrain edge and inner-top.
-      Bottom rim   — flat ring closing the bottom of the shell.
-      Open bottom  — no floor polygon (the mold opening for kinetic sand).
+      Outer walls  : terrain perimeter down to outer bottom rim.
+      Inner walls  : inner-top (wall_thickness inset) down to inner bottom.
+      Top rim      : strip closing the gap between terrain edge and inner-top.
+      Bottom rim   : flat ring closing the bottom of the shell.
+      Open bottom  : no floor polygon (the mold opening for kinetic sand).
 
     All normals are outward. The open bottom produces n_perim boundary edges
     (manifold everywhere else).
@@ -538,20 +538,20 @@ def _add_hollow(
         ib0 = inner_bot_start + i
         ib1 = inner_bot_start + j
 
-        # Outer wall — outward normal: (t0, t1, ob1), (t0, ob1, ob0)
+        # Outer wall, outward normal: (t0, t1, ob1), (t0, ob1, ob0)
         # {t0,t1} edge is shared with the terrain surface: count = 2, manifold.
         triangles.append((t0, t1, ob1))
         triangles.append((t0, ob1, ob0))
 
-        # Inner wall — normal toward cavity: (it0, ib0, ib1), (it0, ib1, it1)
+        # Inner wall, normal toward cavity: (it0, ib0, ib1), (it0, ib1, it1)
         # {it0,it1} top edge has count = 1: the intentional open mold boundary.
-        # No top rim polygon here — adding one would put {t0,t1} on 3 triangles.
+        # No top rim polygon here: adding one would put {t0,t1} on 3 triangles.
         # When pressed face-down into kinetic sand the terrain surface goes in
         # first, so this inner-top gap faces into the sand and gets sealed by it.
         triangles.append((it0, ib0, ib1))
         triangles.append((it0, ib1, it1))
 
-        # Bottom rim — downward normal: (ob0, ob1, ib1), (ob0, ib1, ib0)
+        # Bottom rim, downward normal: (ob0, ob1, ib1), (ob0, ib1, ib0)
         # Seals the annulus at z_floor; the central hole is the mold opening.
         triangles.append((ob0, ob1, ib1))
         triangles.append((ob0, ib1, ib0))
@@ -681,7 +681,7 @@ def main():
             ).format(rows=rows, cols=cols)
         )
 
-    # Read resolution after read_raster — it may have changed the region if
+    # Read resolution after read_raster: it may have changed the region if
     # resolution > 1, and ewres/nsres drive the XY aspect ratio of the mesh.
     region = gs.region()
     ewres = region["ewres"]

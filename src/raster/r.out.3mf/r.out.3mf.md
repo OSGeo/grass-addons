@@ -83,9 +83,10 @@ r.out.3mf input=elevation output=terrain.stl format=stl size=120
 
 ## SEE ALSO
 
+*[r.fillnulls](https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html),
 [r.out.gdal](https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html),
 [r.out.vtk](https://grass.osgeo.org/grass-stable/manuals/r.out.vtk.html)*
 
 ## AUTHORS
 
-Corey T. White
+Corey T. White, Center for Geospatial Analytics, NC State University
