@@ -61,7 +61,9 @@ build_addon(
     ${PROJECT_NAME}.html
     ${PROJECT_NAME}.md)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH FALSE)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  BUILD_RPATH "$ENV{GISBASE}/lib;$ENV{GISBASE}/../../lib"
+  INSTALL_RPATH "$ENV{GISBASE}/lib;$ENV{GISBASE}/../../lib")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/include>
