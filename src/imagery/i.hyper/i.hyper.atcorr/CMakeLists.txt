@@ -68,4 +68,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/src>)
 
 target_compile_options(${PROJECT_NAME} PRIVATE -O3 -ffast-math -fopenmp)
-target_link_libraries(${PROJECT_NAME} PRIVATE -fopenmp)
+target_link_libraries(${PROJECT_NAME} -fopenmp)
