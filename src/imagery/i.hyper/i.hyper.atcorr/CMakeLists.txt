@@ -4,7 +4,6 @@ project(i.hyper.atcorr)
 
 include(build_addon)
 find_M()
-find_OpenMP()
 
 set(sixsv_src
   libsixsv/src/adjacency.c
@@ -58,14 +57,17 @@ build_addon(
     raster3d
   DEPENDS
     LIBM
-  OPTIONAL_DEPENDS
-    OpenMP::OpenMP_C
   DOCFILES
     ${PROJECT_NAME}.html
     ${PROJECT_NAME}.md)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  BUILD_RPATH "$ENV{GISBASE}/lib;$ENV{GISBASE}/../../lib"
+  INSTALL_RPATH "$ENV{GISBASE}/lib;$ENV{GISBASE}/../../lib")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/src>)
 
-target_compile_options(${PROJECT_NAME} PRIVATE -O3 -ffast-math)
+target_compile_options(${PROJECT_NAME} PRIVATE -O3 -ffast-math -fopenmp)
+target_link_libraries(${PROJECT_NAME} -fopenmp)

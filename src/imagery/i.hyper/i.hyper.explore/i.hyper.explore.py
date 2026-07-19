@@ -171,6 +171,18 @@ def _expand_values_with_validity(values, validity):
     return out
 
 
+def _align_values_to_source_axis(values, validity):
+    """Return values aligned to the metadata source axis."""
+    if not validity:
+        return list(values)
+    validity = [bool(v) for v in validity]
+    values = list(values)
+    if len(values) == len(validity):
+        return [v if validity[i] else None for i, v in enumerate(values)]
+    expanded = _expand_values_with_validity(values, validity)
+    return expanded if expanded is not None else values
+
+
 def _sample_all_bands_at_point(mapname, e, n, band_count, sep="|", null_marker="*"):
     """
     Calls r3.what once (2D coords) and returns list of band_count values (float or None).
@@ -328,16 +340,14 @@ def _plot_results_multi(
                     [np.nan if w is None else float(w) for w in ds["wavelength_nm"]],
                     dtype=float,
                 )
-                raw_vals = ds["points"][pi]["values"]
-                expanded_vals = _expand_values_with_validity(
-                    raw_vals, ds.get("validity")
+                vals_src = _align_values_to_source_axis(
+                    ds["points"][pi]["values"], ds.get("validity")
                 )
-                vals_src = expanded_vals if expanded_vals is not None else raw_vals
                 vals = np.asarray(
                     [np.nan if v is None else float(v) for v in vals_src], dtype=float
                 )
 
-                if expanded_vals is not None and len(vals) == len(wl):
+                if len(vals) == len(wl):
                     # Keep NaNs from invalid bands to force visible line breaks.
                     if np.any(np.isfinite(vals)):
                         ls = linestyles[mi % len(linestyles)]
@@ -504,7 +514,10 @@ def main(options, flags):
 
         points = []
         for e, n in coords_pairs:
-            values = _sample_all_bands_at_point(mapname, e, n, band_count)
+            values = _align_values_to_source_axis(
+                _sample_all_bands_at_point(mapname, e, n, band_count),
+                validity,
+            )
             points.append({"x": e, "y": n, "values": values})
 
         datasets.append(

@@ -65,7 +65,7 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
     int dim = 2 * mu + 1;
 
     /* Access macros — same layout as kernel.c */
-    #define RM(j)      rm_off[(j)+mu]
+    #define RM_OFF(j)  rm_off[(j)+mu]
     #define PSL(l,j)   psl[((l)+1)*dim + ((j)+mu)]
     #define RSL(l,j)   rsl[((l)+1)*dim + ((j)+mu)]
     #define TSL(l,j)   tsl[((l)+1)*dim + ((j)+mu)]
@@ -84,7 +84,7 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
          * Q-functions rsl: rsl[2,j] = 3(1−c²)/2/√6
          * U-functions tsl: tsl[2,j] = 0 for is=0 */
         for (int j = 0; j <= mu; j++) {
-            double c = (double)RM(j);
+            double c = (double)RM_OFF(j);
             PSL(0,  j) = 1.0;  PSL(0, -j) = 1.0;
             PSL(1,  j) = c;    PSL(1, -j) = -c;
             double xdb = (3.0*c*c - 1.0) * 0.5;
@@ -99,13 +99,13 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
             TSL(1,  j) = 0.0;  TSL(1, -j) = 0.0;
             TSL(2,  j) = 0.0;  TSL(2, -j) = 0.0;
         }
-        PSL(1, 0) = (double)RM(0);
+        PSL(1, 0) = (double)RM_OFF(0);
         RSL(1, 0) = 0.0;
 
     } else if (is == 1) {
         /* Starting values for is=1 */
         for (int j = 0; j <= mu; j++) {
-            double c = (double)RM(j);
+            double c = (double)RM_OFF(j);
             double x = 1.0 - c*c;
             PSL(0,  j) = 0.0;  PSL(0, -j) = 0.0;
             double sq = sqrt(x * 0.5);
@@ -139,7 +139,7 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
                      * sqrt(((double)is - 1.0) / ((double)is + 2.0));
 
         for (int j = 0; j <= mu; j++) {
-            double c  = (double)RM(j);
+            double c  = (double)RM_OFF(j);
             double xx = 1.0 - c*c;
 
             PSL(is-1, j) = 0.0;
@@ -184,7 +184,7 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
             double ff = 2.0 * (double)is / (lf * (lf + 1.0));
 
             for (int j = 0; j <= mu; j++) {
-                double c = (double)RM(j);
+                double c = (double)RM_OFF(j);
 
                 double xdb = aa * (c * PSL(l, j) - bb * PSL(lm, j));
                 if (fabs(xdb) < 1e-30) xdb = 0.0;
@@ -247,7 +247,7 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
         }
     }
 
-    #undef RM
+    #undef RM_OFF
     #undef PSL
     #undef RSL
     #undef TSL

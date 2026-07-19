@@ -122,12 +122,11 @@
 </p>
 
 <p>
-  The <code>-n</code> flag records validity for represented source bands in
-  <code>bands.validity</code>, <code>bands.count</code>, and
-  <code>bands.count_valid</code>; it does not add invalid or all-NULL slices to
-  the cube. Consequently, <code>bands.count</code> can be greater than the
-  output cube depth. Product bands discarded before metadata construction,
-  such as PRISMA flag-zero wavelengths, are not represented.
+  Imported cubes preserve the full physical spectral axis. Bands rejected by
+  the provider or containing no usable data are written as all-NULL slices and
+  marked invalid in <code>bands.validity</code>. Consequently,
+  <code>bands.count</code> always matches the output cube depth, while
+  <code>bands.count_valid</code> records the number of usable bands.
 </p>
 
 <p>

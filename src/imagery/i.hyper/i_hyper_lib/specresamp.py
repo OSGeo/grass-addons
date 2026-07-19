@@ -137,10 +137,13 @@ def resample_gaussian(
     -------
     ndarray, shape *(n_pixels, n_out)*
     """
-    row_sums = weight_matrix.sum(axis=1, keepdims=True)
-    row_sums = np.where(row_sums > 0, row_sums, 1.0)
-    w_norm = weight_matrix / row_sums
-    return spectra @ w_norm.T
+    finite = np.isfinite(spectra)
+    values = np.where(finite, spectra, 0.0)
+    numerator = values @ weight_matrix.T
+    denominator = finite.astype(np.float64) @ weight_matrix.T
+    out = np.full((spectra.shape[0], weight_matrix.shape[0]), np.nan, dtype=np.float64)
+    np.divide(numerator, denominator, out=out, where=denominator > 0)
+    return out.astype(spectra.dtype, copy=False)
 
 
 def resample_linear(
@@ -153,8 +156,20 @@ def resample_linear(
     result = np.empty((spectra.shape[0], len(out_wl)), dtype=spectra.dtype)
     for j, target in enumerate(out_wl):
         i = np.searchsorted(in_wl, target)
-        if i == 0 or i == len(in_wl):
-            result[:, j] = np.nan
+        if i == 0:
+            if np.isclose(target, in_wl[0]):
+                result[:, j] = spectra[:, 0]
+            else:
+                result[:, j] = np.nan
+        elif i == len(in_wl):
+            if np.isclose(target, in_wl[-1]):
+                result[:, j] = spectra[:, -1]
+            else:
+                result[:, j] = np.nan
+        elif np.isclose(target, in_wl[i]):
+            result[:, j] = spectra[:, i]
+        elif np.isclose(target, in_wl[i - 1]):
+            result[:, j] = spectra[:, i - 1]
         else:
             t = (target - in_wl[i - 1]) / (in_wl[i] - in_wl[i - 1])
             result[:, j] = (1.0 - t) * spectra[:, i - 1] + t * spectra[:, i]

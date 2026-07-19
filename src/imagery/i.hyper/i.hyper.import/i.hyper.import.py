@@ -63,12 +63,6 @@
 # %end
 
 # %flag
-# % key: n
-# % description: Record full source-band validity in bands.validity (do not add NULL bands to raster_3d)
-# % guisection: Optional
-# %end
-
-# %flag
 # % key: p
 # % description: Print dataset spatial reference, i.hyper.import behavior, and project requirements, then exit
 # % guisection: Optional

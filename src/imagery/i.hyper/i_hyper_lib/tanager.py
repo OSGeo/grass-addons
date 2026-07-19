@@ -469,7 +469,6 @@ def import_tanager(
     composites=None,
     custom_wavelengths=None,
     strength_val=96,
-    import_null=False,
     fill_8_neighbor=True,
 ):
     """
@@ -511,13 +510,14 @@ def import_tanager(
     band_validity = [
         bool(np.isfinite(data[:, :, k]).any()) for k in range(data.shape[2])
     ]
-    keep = [k for k, valid in enumerate(band_validity) if valid]
-    if not keep:
+    if not any(band_validity):
         gs.fatal("No non-NULL bands found.")
-    data = data[:, :, keep]
-    wl = np.asarray(wl)[keep]
-    if fwhm is not None:
-        fwhm = np.asarray(fwhm)[keep]
+    invalid_idx = [k for k, valid in enumerate(band_validity) if not valid]
+    if invalid_idx:
+        data[:, :, invalid_idx] = np.nan
+
+    valid_band_indices = [i + 1 for i, valid in enumerate(band_validity) if valid]
+    valid_wavelengths = np.asarray([wl[i - 1] for i in valid_band_indices], dtype=float)
 
     # composites list
     wanted = []
@@ -560,7 +560,8 @@ def import_tanager(
     plan = None
     if use_splat:
         # Use a band-independent nodata mask (after loader has applied nodata across all bands).
-        base_mask = np.isnan(data[..., 0])
+        first_valid_idx = valid_band_indices[0] - 1
+        base_mask = np.isnan(data[..., first_valid_idx])
         plan = build_splat_plan(prod.lon, prod.lat, grid, nodata_mask=base_mask)
     else:
         _require(
@@ -622,14 +623,9 @@ def import_tanager(
 
         # hyperspectral metadata (JSON)
         try:
-            if import_null:
-                wavelengths_meta = source_wavelengths.tolist()
-                fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
-                validity_meta = [bool(v) for v in band_validity]
-            else:
-                wavelengths_meta = wl.tolist()
-                fwhm_meta = fwhm.tolist() if fwhm is not None else None
-                validity_meta = [True] * len(wavelengths_meta)
+            wavelengths_meta = source_wavelengths.tolist()
+            fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
+            validity_meta = [bool(v) for v in band_validity]
 
             meta = HyperMetadata.for_spectral_data(
                 wavelengths=wavelengths_meta,
@@ -669,9 +665,6 @@ def import_tanager(
                 cmd.append(
                     "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
                 )
-            if import_null:
-                cmd.append("-n")
-
             meta.add_history_entry(
                 command=" ".join(cmd),
                 inputs=[],
@@ -685,14 +678,14 @@ def import_tanager(
 
     # -------------------------- composites --------------------------
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices_1b = [_find_nearest_band_1based(w, wl) for w in rgb_target]
+    rgb_indices_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in rgb_target]
     for idx1 in rgb_indices_1b:
         ensure_band_written(idx1)
     ref_map = next(iter({i: temp_bands[i] for i in rgb_indices_1b}.values()))
     Module("g.region", raster=ref_map, quiet=True)
 
     for name, targets in wanted:
-        bands_1b = [_find_nearest_band_1based(w, wl) for w in targets]
+        bands_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in targets]
         maps = []
         for idx1 in bands_1b:
             maps.append(
@@ -774,14 +767,11 @@ def run_import(options, flags):
         if options.get("composites")
         else None
     )
-    import_null = bool(flags.get("n"))
-
     import_tanager(
         input_path=options["input"],
         output_name=options["output"],
         composites=comps,
         custom_wavelengths=custom,
         strength_val=strength_val,
-        import_null=import_null,
         fill_8_neighbor=True,
     )

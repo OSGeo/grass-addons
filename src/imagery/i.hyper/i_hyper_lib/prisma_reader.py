@@ -179,11 +179,10 @@ ATTR_EPSG = "Epsg_Code"  # strict per spec
 # ---- Data containers ----
 @dataclass
 class BandInfo:
-    wavelengths_nm: np.ndarray  # (bands_kept,)
-    fwhm_nm: np.ndarray  # (bands_kept,)
-    present_flags: np.ndarray  # (bands_kept,) all ones after filtering
-    # Added: indices of kept bands in the original band axis (0-based)
-    kept_indices: np.ndarray  # (bands_kept,)
+    wavelengths_nm: np.ndarray  # (bands_full,)
+    fwhm_nm: np.ndarray  # (bands_full,)
+    present_flags: np.ndarray  # (bands_full,)
+    kept_indices: np.ndarray  # (bands_present,)
 
 
 @dataclass
@@ -309,11 +308,11 @@ def _load_bandinfo_from_attrs(attrs, cw_key, fwhm_key, flags_key):
     flags = _read_attr_as_array(attrs, flags_key)
     if cw is None or fwhm is None or flags is None:
         return None
-    cw_sel, fwhm_sel, kept_idx = _select_present_bands(cw, fwhm, flags)
+    kept_idx = np.where(flags.astype(int).ravel() == 1)[0]
     return BandInfo(
-        wavelengths_nm=cw_sel,
-        fwhm_nm=fwhm_sel,
-        present_flags=np.ones_like(cw_sel, dtype=np.uint8),
+        wavelengths_nm=np.asarray(cw, dtype=np.float32).ravel(),
+        fwhm_nm=np.asarray(fwhm, dtype=np.float32).ravel(),
+        present_flags=np.asarray(flags, dtype=np.uint8).ravel(),
         kept_indices=kept_idx.astype(np.int64),
     )
 
@@ -688,13 +687,12 @@ def get_prisma_proj_info(product_path):
 
 def concatenate_hyperspectral(product):
     """
-    Concatenate VNIR and SWIR reflectance along band axis (bands-last), **after filtering**
-    to only the bands marked present (flags==1). This keeps the reflectance cube and the
-    metadata arrays (wavelengths, FWHM) perfectly aligned.
+    Concatenate VNIR and SWIR reflectance/radiance along the full physical band axis.
     Returns:
-        refl (rows, cols, bands_total_filtered),
-        wavelengths_nm (bands_total_filtered,),
-        fwhm_nm (bands_total_filtered,)
+        refl (rows, cols, bands_total),
+        wavelengths_nm (bands_total,),
+        fwhm_nm (bands_total,),
+        validity_mask (bands_total,)
     """
     if product.vnir is None or product.swir is None:
         raise ValueError("Both VNIR and SWIR must be present to concatenate.")
@@ -717,30 +715,29 @@ def concatenate_hyperspectral(product):
             f"Spatial shapes differ after normalization: VNIR {vnir_ref.shape[:2]} vs SWIR {swir_ref.shape[:2]}"
         )
 
-    # ---- Filter by kept indices (flags==1) so band counts match metadata ----
     if product.vnir.bands is None or product.swir.bands is None:
         raise ValueError("Missing wavelength/FWHM metadata.")
-    v_idx = product.vnir.bands.kept_indices
-    s_idx = product.swir.bands.kept_indices
-    vnir_ref_f = vnir_ref[:, :, v_idx]
-    swir_ref_f = swir_ref[:, :, s_idx]
 
     v_wl = product.vnir.bands.wavelengths_nm
     s_wl = product.swir.bands.wavelengths_nm
     v_fwhm = product.vnir.bands.fwhm_nm
     s_fwhm = product.swir.bands.fwhm_nm
+    v_valid = product.vnir.bands.present_flags.astype(bool)
+    s_valid = product.swir.bands.present_flags.astype(bool)
 
-    refl = np.concatenate([vnir_ref_f, swir_ref_f], axis=2).astype(np.float32)
+    refl = np.concatenate([vnir_ref, swir_ref], axis=2).astype(np.float32)
     wavelengths = np.concatenate([v_wl, s_wl], axis=0)
     fwhm = np.concatenate([v_fwhm, s_fwhm], axis=0)
+    validity = np.concatenate([v_valid, s_valid], axis=0)
 
     # ---- ensure ascending wavelength order for both metadata and cube ----
     order = np.argsort(wavelengths.astype(np.float32))
     wavelengths = wavelengths[order]
     fwhm = fwhm[order]
+    validity = validity[order]
     refl = refl[:, :, order]
 
-    return refl, wavelengths, fwhm
+    return refl, wavelengths, fwhm, validity
 def _open_prisma_h5(product_path):
     try:
         return h5py.File(product_path, "r")
@@ -749,4 +746,3 @@ def _open_prisma_h5(product_path):
             "Input does not match product=prisma. "
             f"Expected a PRISMA HDF5 (.he5) product. {error}"
         )
-
