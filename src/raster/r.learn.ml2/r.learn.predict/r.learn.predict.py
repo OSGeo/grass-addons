@@ -118,7 +118,10 @@ def main():
 
     # reload fitted model and training data
     gs.message("Loading fitted model and training data ...")
-    estimator, y, class_labels = joblib.load(model_load)
+    try:
+        estimator, y, class_labels = joblib.load(model_load)
+    except FileNotFoundError:
+        gs.fatal("Model file <{model}> not found.".format(model=model_load))
 
     # define RasterStack
     stack = RasterStack(group=group)
