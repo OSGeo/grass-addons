@@ -668,9 +668,14 @@ def import_prisma(
 
     # Prime the "rgb_enhanced" mapping:
     valid_band_indices = [i + 1 for i, valid in enumerate(band_validity) if valid]
-    valid_wavelengths = np.asarray([wavelengths[i - 1] for i in valid_band_indices], dtype=float)
+    valid_wavelengths = np.asarray(
+        [wavelengths[i - 1] for i in valid_band_indices], dtype=float
+    )
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in rgb_target]
+    rgb_indices_1b = [
+        valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+        for w in rgb_target
+    ]
     # Create these bands now and cache
     for idx1 in rgb_indices_1b:
         ensure_band_written(idx1)
@@ -797,7 +802,10 @@ def import_prisma(
 
     # For each requested composite, select bands and build r.composite
     for name, targets in wanted:
-        bands_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in targets]
+        bands_1b = [
+            valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+            for w in targets
+        ]
         rgb_maps = []
         for idx1 in bands_1b:
             if idx1 in rgb_enhanced:

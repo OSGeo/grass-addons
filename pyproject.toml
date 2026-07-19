@@ -461,6 +461,7 @@ ignore = [
 "src/imagery/i.hyper/i_hyper_lib/hyper_meta.py" = ["PLW0717"]
 "src/imagery/i.hyper/i_hyper_lib/prisma.py" = ["PLW0717"]
 "src/imagery/i.hyper/i_hyper_lib/tanager.py" = ["PLW0717", "RUF069"]
+"src/imagery/i.hyper/i_hyper_lib/tanager_reader.py" = ["PLW0717"]
 "src/imagery/i.hyper/i.hyper.explore/i.hyper.explore.py" = ["RUF069"]
 "src/imagery/i.hyper/i.hyper.export/i.hyper.export.py" = ["PLW0717"]
 "src/imagery/i.hyper/i.hyper.preproc/i.hyper.preproc.py" = ["PLW0717"]

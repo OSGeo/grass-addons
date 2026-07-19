@@ -21,7 +21,7 @@
 #pragma once
 
 /** Maximum number of sensor bands supported by this implementation. */
-#define SM_MAX_BANDS 2048
+#define SM_MAX_BANDS    2048
 
 /** Number of surface prior components: vegetation (0), soil (1), water (2). */
 #define SM_N_COMPONENTS 3
@@ -65,8 +65,8 @@ SurfaceModelImpl *surface_model_alloc(const float *wl_um, int n_bands);
  * \param[in] n_bands Number of bands.
  * \return Component index: 0 (vegetation), 1 (soil), or 2 (water).
  */
-int surface_model_classify(const SurfaceModelImpl *mdl,
-                            const float *refl, int n_bands);
+int surface_model_classify(const SurfaceModelImpl *mdl, const float *refl,
+                           int n_bands);
 
 /**
  * \brief Diagonal MAP regularisation of the full reflectance cube in-place.
@@ -78,7 +78,8 @@ int surface_model_classify(const SurfaceModelImpl *mdl,
  *                  {1/\sigma_{obs}^2 + 1/\sigma_{prior}^2}
  * \f]
  *
- * Array layout: \c refl_cube[b * npix + p] = reflectance of pixel \c p at band \c b.
+ * Array layout: \c refl_cube[b * npix + p] = reflectance of pixel \c p at band
+ * \c b.
  *
  * When \p sigma2 is NULL, \p weight controls the blend:
  * \c weight=0.1 means 90 %% observation + 10 %% prior.
@@ -86,18 +87,17 @@ int surface_model_classify(const SurfaceModelImpl *mdl,
  * Row loops are OpenMP-parallelised over pixels.
  *
  * \param[in]     mdl       Initialised surface model.
- * \param[in,out] refl_cube Reflectance cube float[n_bands × npix], updated in place.
- * \param[in]     sigma2    Per-element observation variance float[n_bands × npix],
- *                          or NULL to use \p weight.
+ * \param[in,out] refl_cube Reflectance cube float[n_bands × npix], updated in
+ * place.
+ * \param[in]     sigma2    Per-element observation variance float[n_bands ×
+ * npix], or NULL to use \p weight.
  * \param[in]     n_bands   Number of spectral bands.
  * \param[in]     npix      Number of pixels.
  * \param[in]     weight    Prior weight ∈ (0, 1]; used when \p sigma2 is NULL.
  */
-void surface_model_regularize(const SurfaceModelImpl *mdl,
-                               float *refl_cube,
-                               const float *sigma2,
-                               int n_bands, int npix,
-                               float weight);
+void surface_model_regularize(const SurfaceModelImpl *mdl, float *refl_cube,
+                              const float *sigma2, int n_bands, int npix,
+                              float weight);
 
 /**
  * \brief Per-band RT model discrepancy (added in quadrature to σ).
@@ -110,7 +110,8 @@ void surface_model_regularize(const SurfaceModelImpl *mdl,
  *
  * \param[in]  wl_um     Band-centre wavelengths [µm], length \p n_wl.
  * \param[in]  n_wl      Number of bands.
- * \param[out] sigma_out Pre-allocated float[n_wl]; model discrepancy σ [reflectance].
+ * \param[out] sigma_out Pre-allocated float[n_wl]; model discrepancy σ
+ * [reflectance].
  */
 void surface_model_discrepancy(const float *wl_um, int n_wl, float *sigma_out);
 

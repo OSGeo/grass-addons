@@ -56,8 +56,8 @@ void spatial_gaussian_filter(float *data, int nrows, int ncols, float sigma);
  * \param[in]  ncols       Image width in pixels.
  * \param[in]  filter_half Half-width of the box filter in pixels.
  */
-void spatial_box_filter(const float *data, float *out,
-                        int nrows, int ncols, int filter_half);
+void spatial_box_filter(const float *data, float *out, int nrows, int ncols,
+                        int filter_half);
 
 #ifdef __cplusplus
 }

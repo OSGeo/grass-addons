@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # libsixsv — 6SV2.1 Atmospheric Correction Library
 
 > **GitHub**: <https://github.com/yannchemin/libsixsv>
@@ -90,9 +91,9 @@ To enable GPU offload, pass `OFFLOAD_FLAGS` at build time (see `INSTALL.md`).
 | `AEROSOL_DESERT`      | Desert dust                   |
 | `AEROSOL_CUSTOM`      | Custom Mie log-normal         |
 
-| Identifier       | Description              |
-|------------------|--------------------------|
-| `ATMO_US62`      | US Standard Atmosphere 1962 |
+| Identifier    | Description                 |
+|---------------|-----------------------------|
+| `ATMO_US62`   | US Standard Atmosphere 1962 |
 | `ATMO_MIDSUM`    | Mid-latitude summer      |
 | `ATMO_MIDWIN`    | Mid-latitude winter      |
 | `ATMO_TROPICAL`  | Tropical                 |
@@ -104,9 +105,9 @@ To enable GPU offload, pass `OFFLOAD_FLAGS` at build time (see `INSTALL.md`).
 The public headers are installed to `include/grass/` inside GRASS (or to a
 prefix of your choice in standalone mode):
 
-| Header            | Purpose                                      |
-|-------------------|----------------------------------------------|
-| `atcorr.h`        | LUT computation and per-pixel inversion       |
+| Header              | Purpose                                      |
+|---------------------|----------------------------------------------|
+| `atcorr.h`          | LUT computation and per-pixel inversion       |
 | `brdf.h`          | BRDF model evaluation and NBAR normalisation  |
 | `retrieve.h`      | Scene-based retrieval algorithms              |
 | `oe_invert.h`     | Joint AOD + H₂O optimal estimation           |
@@ -137,7 +138,7 @@ For the **Debian standalone build** of
 [libras3d-dev](https://github.com/yannchemin/libras3d) — the GRASS API
 replacement that routes cube I/O through libtiff/libgeotiff and libhdf5.
 
-**Compiling against the installed library**
+## Compiling against the installed library
 
 Place `-lsixsv -lm -fopenmp` **after** the source file on the command line
 (GCC resolves symbols left-to-right; putting libraries before the object
@@ -150,7 +151,7 @@ gcc -std=c11 -O2 -I/usr/include/sixsv \
     -o my_program
 ```
 
-**Python (ctypes)**
+## Python (ctypes)
 
 The examples in `examples/` load the library directly — no wrapper package
 needed:
@@ -165,9 +166,9 @@ lib = ctypes.CDLL(ctypes.util.find_library("sixsv") or "libsixsv.so.1")
 The `testsuite/` directory contains a self-contained test suite that validates
 numerical correctness, OpenMP parallelism, and GPU offload behaviour.
 
-| File | What it tests |
-|---|---|
-| `Makefile` | Builds `libsixsv.so` (standalone) and the Fortran driver; exposes `make test`, `make test-fortran`, `make test-openmp` |
+| File                         | What it tests |
+|------------------------------|---------------|
+| `Makefile`                   | Builds `libsixsv.so` (standalone) and the Fortran driver; exposes `make test`, `make test-fortran`, `make test-openmp` |
 | `_support.py` | ctypes bindings for all library functions and OpenMP runtime helpers (not a test file) |
 | `test_6sv_compat.f90` | Fortran driver that calls 6SV2.1 subroutines (CHAND, ODRAYL, VARSOL, SOLIRR, CSALBR, GAUSS) and prints `key=value` reference values |
 | `test_fortran_compat.py` | 35 tests comparing 6SV2.1 Fortran subroutines against the C port (rtol 1e-5 – 5e-3 depending on precision convention) |
@@ -189,13 +190,13 @@ LIB_SIXSV=./libsixsv.so python3 -m pytest -v
 
 ## Dependencies
 
-**Runtime**
+## Runtime
 
 - C standard library (`libm`)
 - OpenMP (parallelisation)
 - libRadtran `uvspec` binary — *optional*, required only for `atcorr_srf_compute()`
 
-**Build**
+## Build
 
 - C11-capable compiler (GCC ≥ 5 or Clang ≥ 6)
 - GRASS GIS development environment (GRASS build) **or** GNU Make + standard
@@ -203,9 +204,9 @@ LIB_SIXSV=./libsixsv.so python3 -m pytest -v
 
 ## Related repositories
 
-| Repository | Relationship | Description |
-|---|---|---|
-| [i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr) | **Downstream consumer** | GRASS GIS module that links libsixsv for 6SV2.1 atmospheric correction of hyperspectral cubes |
+| Repository                                                          | Relationship           | Description |
+|---------------------------------------------------------------------|------------------------|-------------|
+| [i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr)       | **Downstream consumer** | GRASS GIS module that links libsixsv for 6SV2.1 atmospheric correction of hyperspectral cubes |
 | [libras3d](https://github.com/yannchemin/libras3d) | **Peer — Debian standalone** | Drop-in GRASS raster3d API replacement; used alongside libsixsv when building i.hyper.atcorr without GRASS (`DEBIAN_BUILD=1`) |
 
 ## License

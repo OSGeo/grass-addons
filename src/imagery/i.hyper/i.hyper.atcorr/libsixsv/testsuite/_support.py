@@ -19,7 +19,7 @@ import sys
 
 import numpy as np
 
-_HERE   = os.path.dirname(os.path.abspath(__file__))
+_HERE = os.path.dirname(os.path.abspath(__file__))
 _PARENT = os.path.dirname(_HERE)
 
 # Ensure this directory is importable (for _support itself in sub-modules)
@@ -28,6 +28,7 @@ if _HERE not in sys.path:
 
 
 # ── Load the shared library ───────────────────────────────────────────────────
+
 
 def _find_lib():
     candidates = [
@@ -97,41 +98,42 @@ def omp_get_num_devices():
 
 # ── C struct mirrors (matching include/atcorr.h) ─────────────────────────────
 
+
 class _LutConfigC(ctypes.Structure):
     _fields_ = [
-        ("wl",               ctypes.POINTER(ctypes.c_float)),
-        ("n_wl",             ctypes.c_int),
-        ("aod",              ctypes.POINTER(ctypes.c_float)),
-        ("n_aod",            ctypes.c_int),
-        ("h2o",              ctypes.POINTER(ctypes.c_float)),
-        ("n_h2o",            ctypes.c_int),
-        ("sza",              ctypes.c_float),
-        ("vza",              ctypes.c_float),
-        ("raa",              ctypes.c_float),
-        ("altitude_km",      ctypes.c_float),
-        ("atmo_model",       ctypes.c_int),
-        ("aerosol_model",    ctypes.c_int),
+        ("wl", ctypes.POINTER(ctypes.c_float)),
+        ("n_wl", ctypes.c_int),
+        ("aod", ctypes.POINTER(ctypes.c_float)),
+        ("n_aod", ctypes.c_int),
+        ("h2o", ctypes.POINTER(ctypes.c_float)),
+        ("n_h2o", ctypes.c_int),
+        ("sza", ctypes.c_float),
+        ("vza", ctypes.c_float),
+        ("raa", ctypes.c_float),
+        ("altitude_km", ctypes.c_float),
+        ("atmo_model", ctypes.c_int),
+        ("aerosol_model", ctypes.c_int),
         ("surface_pressure", ctypes.c_float),
-        ("ozone_du",         ctypes.c_float),
-        ("mie_r_mode",       ctypes.c_float),
-        ("mie_sigma_g",      ctypes.c_float),
-        ("mie_m_real",       ctypes.c_float),
-        ("mie_m_imag",       ctypes.c_float),
-        ("brdf_type",        ctypes.c_int),
-        ("brdf_params",      ctypes.c_float * 5),
-        ("enable_polar",     ctypes.c_int),
+        ("ozone_du", ctypes.c_float),
+        ("mie_r_mode", ctypes.c_float),
+        ("mie_sigma_g", ctypes.c_float),
+        ("mie_m_real", ctypes.c_float),
+        ("mie_m_imag", ctypes.c_float),
+        ("brdf_type", ctypes.c_int),
+        ("brdf_params", ctypes.c_float * 5),
+        ("enable_polar", ctypes.c_int),
     ]
 
 
 class _LutArraysC(ctypes.Structure):
     _fields_ = [
-        ("R_atm",      ctypes.POINTER(ctypes.c_float)),
-        ("T_down",     ctypes.POINTER(ctypes.c_float)),
-        ("T_up",       ctypes.POINTER(ctypes.c_float)),
-        ("s_alb",      ctypes.POINTER(ctypes.c_float)),
+        ("R_atm", ctypes.POINTER(ctypes.c_float)),
+        ("T_down", ctypes.POINTER(ctypes.c_float)),
+        ("T_up", ctypes.POINTER(ctypes.c_float)),
+        ("s_alb", ctypes.POINTER(ctypes.c_float)),
         ("T_down_dir", ctypes.POINTER(ctypes.c_float)),
-        ("R_atmQ",     ctypes.POINTER(ctypes.c_float)),
-        ("R_atmU",     ctypes.POINTER(ctypes.c_float)),
+        ("R_atmQ", ctypes.POINTER(ctypes.c_float)),
+        ("R_atmU", ctypes.POINTER(ctypes.c_float)),
     ]
 
 
@@ -143,6 +145,7 @@ def _fptr(arr):
 
 
 # ── Python-level LutConfig / LutArrays wrappers ───────────────────────────────
+
 
 class LutConfig:
     """Python mirror of the C ``LutConfig`` struct.
@@ -167,29 +170,44 @@ class LutConfig:
         0 = scalar RT, 1 = vector Stokes(I,Q,U).
     """
 
-    def __init__(self, *, wl, aod, h2o,
-                 sza=30.0, vza=0.0, raa=0.0, altitude_km=1000.0,
-                 atmo_model=1, aerosol_model=1,
-                 surface_pressure=0.0, ozone_du=0.0,
-                 enable_polar=0, **_):
+    def __init__(
+        self,
+        *,
+        wl,
+        aod,
+        h2o,
+        sza=30.0,
+        vza=0.0,
+        raa=0.0,
+        altitude_km=1000.0,
+        atmo_model=1,
+        aerosol_model=1,
+        surface_pressure=0.0,
+        ozone_du=0.0,
+        enable_polar=0,
+        **_,
+    ):
         # Keep Python arrays alive for the duration of this object
-        self.wl  = np.asarray(wl,  dtype=np.float32)
+        self.wl = np.asarray(wl, dtype=np.float32)
         self.aod = np.asarray(aod, dtype=np.float32)
         self.h2o = np.asarray(h2o, dtype=np.float32)
 
         c = _LutConfigC()
-        c.wl    = _fptr(self.wl);  c.n_wl  = len(self.wl)
-        c.aod   = _fptr(self.aod); c.n_aod = len(self.aod)
-        c.h2o   = _fptr(self.h2o); c.n_h2o = len(self.h2o)
-        c.sza             = float(sza)
-        c.vza             = float(vza)
-        c.raa             = float(raa)
-        c.altitude_km     = float(altitude_km)
-        c.atmo_model      = int(atmo_model)
-        c.aerosol_model   = int(aerosol_model)
+        c.wl = _fptr(self.wl)
+        c.n_wl = len(self.wl)
+        c.aod = _fptr(self.aod)
+        c.n_aod = len(self.aod)
+        c.h2o = _fptr(self.h2o)
+        c.n_h2o = len(self.h2o)
+        c.sza = float(sza)
+        c.vza = float(vza)
+        c.raa = float(raa)
+        c.altitude_km = float(altitude_km)
+        c.atmo_model = int(atmo_model)
+        c.aerosol_model = int(aerosol_model)
         c.surface_pressure = float(surface_pressure)
-        c.ozone_du        = float(ozone_du)
-        c.enable_polar    = int(enable_polar)
+        c.ozone_du = float(ozone_du)
+        c.enable_polar = int(enable_polar)
         self._c = c
 
 
@@ -198,41 +216,44 @@ class LutArrays:
 
     def __init__(self, n_aod, n_h2o, n_wl, polar=False):
         shape = (n_aod, n_h2o, n_wl)
-        self.R_atm  = np.zeros(shape, dtype=np.float32)
-        self.T_down = np.ones(shape,  dtype=np.float32)
-        self.T_up   = np.ones(shape,  dtype=np.float32)
-        self.s_alb  = np.zeros(shape, dtype=np.float32)
+        self.R_atm = np.zeros(shape, dtype=np.float32)
+        self.T_down = np.ones(shape, dtype=np.float32)
+        self.T_up = np.ones(shape, dtype=np.float32)
+        self.s_alb = np.zeros(shape, dtype=np.float32)
         self.R_atmQ = np.zeros(shape, dtype=np.float32) if polar else None
         self.R_atmU = np.zeros(shape, dtype=np.float32) if polar else None
 
         c = _LutArraysC()
-        c.R_atm      = _fptr(self.R_atm)
-        c.T_down     = _fptr(self.T_down)
-        c.T_up       = _fptr(self.T_up)
-        c.s_alb      = _fptr(self.s_alb)
+        c.R_atm = _fptr(self.R_atm)
+        c.T_down = _fptr(self.T_down)
+        c.T_up = _fptr(self.T_up)
+        c.s_alb = _fptr(self.s_alb)
         c.T_down_dir = _NULL_FLOAT_PTR
-        c.R_atmQ     = _fptr(self.R_atmQ) if polar else _NULL_FLOAT_PTR
-        c.R_atmU     = _fptr(self.R_atmU) if polar else _NULL_FLOAT_PTR
+        c.R_atmQ = _fptr(self.R_atmQ) if polar else _NULL_FLOAT_PTR
+        c.R_atmU = _fptr(self.R_atmU) if polar else _NULL_FLOAT_PTR
         self._c = c
 
 
 class LutSlice:
     """Per-wavelength slice returned by :func:`lut_slice`."""
+
     __slots__ = ("R_atm", "T_down", "T_up", "s_alb")
 
 
 # ── atcorr_compute_lut ────────────────────────────────────────────────────────
 
-lib.atcorr_compute_lut.argtypes = [ctypes.POINTER(_LutConfigC),
-                                    ctypes.POINTER(_LutArraysC)]
-lib.atcorr_compute_lut.restype  = ctypes.c_int
+lib.atcorr_compute_lut.argtypes = [
+    ctypes.POINTER(_LutConfigC),
+    ctypes.POINTER(_LutArraysC),
+]
+lib.atcorr_compute_lut.restype = ctypes.c_int
 
 
 def compute_lut(cfg: LutConfig) -> LutArrays:
     """Build the 3-D [AOD × H₂O × λ] atmospheric correction LUT."""
     polar = bool(cfg._c.enable_polar)
-    lut   = LutArrays(cfg._c.n_aod, cfg._c.n_h2o, cfg._c.n_wl, polar=polar)
-    rc    = lib.atcorr_compute_lut(ctypes.byref(cfg._c), ctypes.byref(lut._c))
+    lut = LutArrays(cfg._c.n_aod, cfg._c.n_h2o, cfg._c.n_wl, polar=polar)
+    rc = lib.atcorr_compute_lut(ctypes.byref(cfg._c), ctypes.byref(lut._c))
     if rc != 0:
         raise RuntimeError(f"atcorr_compute_lut returned error code {rc}")
     return lut
@@ -243,7 +264,8 @@ def compute_lut(cfg: LutConfig) -> LutArrays:
 lib.atcorr_lut_slice.argtypes = [
     ctypes.POINTER(_LutConfigC),
     ctypes.POINTER(_LutArraysC),
-    ctypes.c_float, ctypes.c_float,
+    ctypes.c_float,
+    ctypes.c_float,
     ctypes.POINTER(ctypes.c_float),
     ctypes.POINTER(ctypes.c_float),
     ctypes.POINTER(ctypes.c_float),
@@ -253,29 +275,36 @@ lib.atcorr_lut_slice.argtypes = [
 lib.atcorr_lut_slice.restype = None
 
 
-def lut_slice(cfg: LutConfig, lut: LutArrays,
-              aod_val: float, h2o_val: float) -> LutSlice:
+def lut_slice(
+    cfg: LutConfig, lut: LutArrays, aod_val: float, h2o_val: float
+) -> LutSlice:
     """Bilinear interpolation of the LUT at a single (AOD, H₂O) point."""
-    nw  = cfg._c.n_wl
-    Rs  = np.empty(nw, dtype=np.float32)
+    nw = cfg._c.n_wl
+    Rs = np.empty(nw, dtype=np.float32)
     Tds = np.empty(nw, dtype=np.float32)
     Tus = np.empty(nw, dtype=np.float32)
-    ss  = np.empty(nw, dtype=np.float32)
+    ss = np.empty(nw, dtype=np.float32)
     lib.atcorr_lut_slice(
-        ctypes.byref(cfg._c), ctypes.byref(lut._c),
-        ctypes.c_float(aod_val), ctypes.c_float(h2o_val),
-        _fptr(Rs), _fptr(Tds), _fptr(Tus), _fptr(ss),
+        ctypes.byref(cfg._c),
+        ctypes.byref(lut._c),
+        ctypes.c_float(aod_val),
+        ctypes.c_float(h2o_val),
+        _fptr(Rs),
+        _fptr(Tds),
+        _fptr(Tus),
+        _fptr(ss),
         _NULL_FLOAT_PTR,
     )
-    sl        = LutSlice()
-    sl.R_atm  = Rs
+    sl = LutSlice()
+    sl.R_atm = Rs
     sl.T_down = Tds
-    sl.T_up   = Tus
-    sl.s_alb  = ss
+    sl.T_up = Tus
+    sl.s_alb = ss
     return sl
 
 
 # ── Lambertian inversion (static inline in atcorr.h — re-implemented here) ───
+
 
 def invert(rho_toa, R_atm, T_down, T_up, s_alb):
     """Lambertian BOA reflectance inversion: ρ_boa = y / (1 + s·y)."""
@@ -287,7 +316,7 @@ def invert(rho_toa, R_atm, T_down, T_up, s_alb):
 # ── sixs_E0 ───────────────────────────────────────────────────────────────────
 
 lib.sixs_E0.argtypes = [ctypes.c_float]
-lib.sixs_E0.restype  = ctypes.c_float
+lib.sixs_E0.restype = ctypes.c_float
 
 
 def solar_E0(wl):
@@ -295,14 +324,15 @@ def solar_E0(wl):
     if np.ndim(wl) == 0:
         return float(lib.sixs_E0(ctypes.c_float(float(wl))))
     wl = np.asarray(wl, dtype=np.float32)
-    return np.array([float(lib.sixs_E0(ctypes.c_float(w))) for w in wl],
-                    dtype=np.float32)
+    return np.array(
+        [float(lib.sixs_E0(ctypes.c_float(w))) for w in wl], dtype=np.float32
+    )
 
 
 # ── sixs_earth_sun_dist2 ──────────────────────────────────────────────────────
 
 lib.sixs_earth_sun_dist2.argtypes = [ctypes.c_int]
-lib.sixs_earth_sun_dist2.restype  = ctypes.c_double
+lib.sixs_earth_sun_dist2.restype = ctypes.c_double
 
 
 def earth_sun_dist2(doy):
@@ -313,25 +343,32 @@ def earth_sun_dist2(doy):
 # ── sixs_chand ────────────────────────────────────────────────────────────────
 
 lib.sixs_chand.argtypes = [ctypes.c_float] * 4
-lib.sixs_chand.restype  = ctypes.c_float
+lib.sixs_chand.restype = ctypes.c_float
 
 
 def chand(xphi, xmuv, xmus, xtau):
     """Chandrasekhar Rayleigh reflectance."""
-    return float(lib.sixs_chand(
-        ctypes.c_float(xphi), ctypes.c_float(xmuv),
-        ctypes.c_float(xmus), ctypes.c_float(xtau),
-    ))
+    return float(
+        lib.sixs_chand(
+            ctypes.c_float(xphi),
+            ctypes.c_float(xmuv),
+            ctypes.c_float(xmus),
+            ctypes.c_float(xtau),
+        )
+    )
 
 
 # ── sixs_odrayl ───────────────────────────────────────────────────────────────
 
 lib.sixs_init_atmosphere.argtypes = [ctypes.c_void_p, ctypes.c_int]
-lib.sixs_init_atmosphere.restype  = None
+lib.sixs_init_atmosphere.restype = None
 
-lib.sixs_odrayl.argtypes = [ctypes.c_void_p, ctypes.c_float,
-                              ctypes.POINTER(ctypes.c_float)]
-lib.sixs_odrayl.restype  = None
+lib.sixs_odrayl.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_float,
+    ctypes.POINTER(ctypes.c_float),
+]
+lib.sixs_odrayl.restype = None
 
 # Shared context for single-threaded helper calls (US62 standard atmosphere)
 _ctx = ctypes.create_string_buffer(8192)
@@ -348,7 +385,7 @@ def odrayl(wl):
 # ── sixs_csalbr ───────────────────────────────────────────────────────────────
 
 lib.sixs_csalbr.argtypes = [ctypes.c_float, ctypes.POINTER(ctypes.c_float)]
-lib.sixs_csalbr.restype  = None
+lib.sixs_csalbr.restype = None
 
 
 def csalbr(xtau):
@@ -360,19 +397,21 @@ def csalbr(xtau):
 
 # ── sixs_gauss ────────────────────────────────────────────────────────────────
 
-lib.sixs_gauss.argtypes = [ctypes.c_float, ctypes.c_float,
-                             ctypes.POINTER(ctypes.c_float),
-                             ctypes.POINTER(ctypes.c_float),
-                             ctypes.c_int]
-lib.sixs_gauss.restype  = None
+lib.sixs_gauss.argtypes = [
+    ctypes.c_float,
+    ctypes.c_float,
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.c_int,
+]
+lib.sixs_gauss.restype = None
 
 
 def gauss(x1, x2, n):
     """Gauss-Legendre quadrature nodes and weights on [x1, x2]."""
     xa = (ctypes.c_float * n)()
     wa = (ctypes.c_float * n)()
-    lib.sixs_gauss(ctypes.c_float(x1), ctypes.c_float(x2),
-                   xa, wa, ctypes.c_int(n))
+    lib.sixs_gauss(ctypes.c_float(x1), ctypes.c_float(x2), xa, wa, ctypes.c_int(n))
     return list(xa), list(wa)
 
 
@@ -381,7 +420,8 @@ def gauss(x1, x2, n):
 lib.spatial_box_filter.argtypes = [
     ctypes.POINTER(ctypes.c_float),
     ctypes.POINTER(ctypes.c_float),
-    ctypes.c_int, ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
     ctypes.c_int,
 ]
 lib.spatial_box_filter.restype = None
@@ -394,8 +434,11 @@ def spatial_box_filter(data: np.ndarray, filter_half: int) -> np.ndarray:
     nrows, ncols = data.shape
     out = np.empty_like(data)
     lib.spatial_box_filter(
-        _fptr(data), _fptr(out),
-        ctypes.c_int(nrows), ctypes.c_int(ncols), ctypes.c_int(filter_half),
+        _fptr(data),
+        _fptr(out),
+        ctypes.c_int(nrows),
+        ctypes.c_int(ncols),
+        ctypes.c_int(filter_half),
     )
     return out
 
@@ -404,7 +447,8 @@ def spatial_box_filter(data: np.ndarray, filter_half: int) -> np.ndarray:
 
 lib.spatial_gaussian_filter.argtypes = [
     ctypes.POINTER(ctypes.c_float),
-    ctypes.c_int, ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
     ctypes.c_float,
 ]
 lib.spatial_gaussian_filter.restype = None
@@ -417,6 +461,8 @@ def spatial_gaussian_filter(data: np.ndarray, sigma: float) -> np.ndarray:
     nrows, ncols = data.shape
     lib.spatial_gaussian_filter(
         _fptr(data),
-        ctypes.c_int(nrows), ctypes.c_int(ncols), ctypes.c_float(sigma),
+        ctypes.c_int(nrows),
+        ctypes.c_int(ncols),
+        ctypes.c_float(sigma),
     )
     return data

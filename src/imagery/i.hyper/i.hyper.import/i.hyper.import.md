@@ -74,6 +74,7 @@ values are imported without radiometric rescaling.
 | PRISMA L2D | Existing product grid is used directly | Project CRS must match the PRISMA product CRS |
 | Tanager BASIC | Per-pixel latitude/longitude is projected onto the `Planet_Ortho_Framing` grid using bilinear forward assignment | Project CRS must match the framing EPSG |
 | Tanager ORTHO | Existing product grid is used directly | Project CRS must match the product EPSG |
+
 Products in local/sensor geometry (EnMAP L1B) are supported only in an
 `XY` location (created with `grass -c XY`). Import into a map-projected
 location will fail with an error.

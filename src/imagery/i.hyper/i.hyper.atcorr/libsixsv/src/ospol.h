@@ -11,9 +11,8 @@
  * layout as xl: [(2mu+1)*np] row-major, with xl[0] = xl(-mu,1).
  *
  * xlq and xlu may be NULL if only the I component is needed. */
-void sixs_ospol(SixsCtx *ctx, int iaer_prof,
-                float tamoy, float trmoy, float pizmoy,
-                float tamoyp, float trmoyp, float palt,
+void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
+                float pizmoy, float tamoyp, float trmoyp, float palt,
                 float phirad, int nt, int mu, int np, int nfi,
                 const float *rm_off, const float *gb_off, const float *rp,
                 float *xl,      /* I component: [(2mu+1)*np] */

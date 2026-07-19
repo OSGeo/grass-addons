@@ -661,7 +661,7 @@ class HyperMetadata:
 
     # ---------- Query methods ----------
 
-    def get_wavelengths_array(self, valid_only: bool = False) -> np.ndarray | None:
+    def get_wavelengths_array(self, *, valid_only: bool = False) -> np.ndarray | None:
         """Return wavelengths as numpy array (None values become NaN)."""
         if self.wavelengths is None:
             return None
@@ -676,7 +676,7 @@ class HyperMetadata:
             [w if w is not None else np.nan for w in values], dtype=np.float32
         )
 
-    def get_fwhm_array(self, valid_only: bool = False) -> np.ndarray | None:
+    def get_fwhm_array(self, *, valid_only: bool = False) -> np.ndarray | None:
         """Return FWHM as numpy array."""
         if self.fwhm is None:
             return None
@@ -724,7 +724,11 @@ class HyperMetadata:
         if validity is None:
             validity = np.ones(count, dtype=bool)
 
-        count_valid = int(self.n_bands_valid) if self.n_bands_valid is not None else int(validity.sum())
+        count_valid = (
+            int(self.n_bands_valid)
+            if self.n_bands_valid is not None
+            else int(validity.sum())
+        )
 
         if depth == count:
             layout = "physical"

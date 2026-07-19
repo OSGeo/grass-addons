@@ -1,6 +1,7 @@
 /**
  * \file sixs_ctx.h
- * \brief Internal 6SV2.1 computation context — C replacement for Fortran COMMON blocks.
+ * \brief Internal 6SV2.1 computation context — C replacement for Fortran COMMON
+ * blocks.
  *
  * Each LUT computation thread owns one ::SixsCtx instance allocated on the
  * heap.  Separating per-thread context from global state enables OpenMP
@@ -30,13 +31,13 @@
 /** \defgroup sixs_dims 6SV array dimension constants
  *  Matching the corresponding \c paramdef.inc constants.
  *  @{ */
-#define MU_P      25    /*!< Streams per hemisphere */
-#define NT_P      30    /*!< Maximum atmospheric layers */
-#define NP_P      49    /*!< φ grid points */
-#define NQ_P      83    /*!< Default Gauss quadrature points */
-#define NQ_MAX    1001  /*!< Maximum quadrature points */
-#define NWL_DISC  20    /*!< Number of discrete reference wavelengths */
-#define NATM      34    /*!< Standard atmosphere layers (ODRAYL / ABSTRA) */
+#define MU_P     25   /*!< Streams per hemisphere */
+#define NT_P     30   /*!< Maximum atmospheric layers */
+#define NP_P     49   /*!< φ grid points */
+#define NQ_P     83   /*!< Default Gauss quadrature points */
+#define NQ_MAX   1001 /*!< Maximum quadrature points */
+#define NWL_DISC 20   /*!< Number of discrete reference wavelengths */
+#define NATM     34   /*!< Standard atmosphere layers (ODRAYL / ABSTRA) */
 /** @} */
 
 /**
@@ -46,29 +47,30 @@
  * used by the Rayleigh and gas-absorption subroutines.
  */
 typedef struct {
-    float z[NATM];   /*!< Layer altitude [km] */
-    float p[NATM];   /*!< Layer pressure [hPa] */
-    float t[NATM];   /*!< Layer temperature [K] */
-    float wh[NATM];  /*!< Water-vapour density [g/m³] */
-    float wo[NATM];  /*!< Ozone density [g/m³] */
+    float z[NATM];  /*!< Layer altitude [km] */
+    float p[NATM];  /*!< Layer pressure [hPa] */
+    float t[NATM];  /*!< Layer temperature [K] */
+    float wh[NATM]; /*!< Water-vapour density [g/m³] */
+    float wo[NATM]; /*!< Ozone density [g/m³] */
 } SixsAtm;
 
 /**
  * \brief Depolarization factors (\c /sixs_del/).
  */
 typedef struct {
-    float delta;   /*!< Depolarization factor (King factor) */
-    float sigma;   /*!< Unused in scalar mode */
+    float delta; /*!< Depolarization factor (King factor) */
+    float sigma; /*!< Unused in scalar mode */
 } SixsDel;
 
 /**
- * \brief Aerosol optical properties at NWL_DISC reference wavelengths (\c /sixs_aer/).
+ * \brief Aerosol optical properties at NWL_DISC reference wavelengths (\c
+ * /sixs_aer/).
  */
 typedef struct {
-    float ext[NWL_DISC];    /*!< Extinction coefficient (normalised) */
-    float ome[NWL_DISC];    /*!< Single-scattering albedo ω₀ */
-    float gasym[NWL_DISC];  /*!< Asymmetry parameter g */
-    float phase[NWL_DISC];  /*!< Phase function at the scattering angle */
+    float ext[NWL_DISC];   /*!< Extinction coefficient (normalised) */
+    float ome[NWL_DISC];   /*!< Single-scattering albedo ω₀ */
+    float gasym[NWL_DISC]; /*!< Asymmetry parameter g */
+    float phase[NWL_DISC]; /*!< Phase function at the scattering angle */
 } SixsAer;
 
 /**
@@ -77,11 +79,11 @@ typedef struct {
  * Used by the successive-orders (OS/OSPOL) radiative-transfer solver.
  */
 typedef struct {
-    float pha[NQ_P];          /*!< Phase function at Gauss quadrature points */
-    float alphal[NQ_P + 1];   /*!< Legendre coefficients for polarized RT */
-    float betal[NQ_P + 1];    /*!< Legendre coefficients for scalar RT */
-    float gammal[NQ_P + 1];   /*!< γ Legendre expansion */
-    float zetal[NQ_P + 1];    /*!< ζ Legendre expansion */
+    float pha[NQ_P];        /*!< Phase function at Gauss quadrature points */
+    float alphal[NQ_P + 1]; /*!< Legendre coefficients for polarized RT */
+    float betal[NQ_P + 1];  /*!< Legendre coefficients for scalar RT */
+    float gammal[NQ_P + 1]; /*!< γ Legendre expansion */
+    float zetal[NQ_P + 1];  /*!< ζ Legendre expansion */
 } SixsPolar;
 
 /**
@@ -93,17 +95,20 @@ typedef struct {
  * All arrays have dimension [3][NWL_DISC] for [Rayleigh, mixed, aerosol].
  */
 typedef struct {
-    float roatm[3][NWL_DISC];   /*!< Atmospheric reflectance — Stokes I component */
-    float roatmq[3][NWL_DISC];  /*!< Q Stokes component (filled only when ipol=1) */
-    float roatmu[3][NWL_DISC];  /*!< U Stokes component (filled only when ipol=1) */
-    float dtdir[3][NWL_DISC];   /*!< Downward direct transmittance */
-    float dtdif[3][NWL_DISC];   /*!< Downward diffuse transmittance */
-    float utdir[3][NWL_DISC];   /*!< Upward direct transmittance */
-    float utdif[3][NWL_DISC];   /*!< Upward diffuse transmittance */
-    float sphal[3][NWL_DISC];   /*!< Spherical albedo */
-    float wldis[NWL_DISC];      /*!< Reference wavelengths [µm] */
-    float trayl[NWL_DISC];      /*!< Rayleigh optical depth */
-    float traypl[NWL_DISC];     /*!< Rayleigh OD above the sensor level */
+    float roatm[3]
+               [NWL_DISC]; /*!< Atmospheric reflectance — Stokes I component */
+    float roatmq[3]
+                [NWL_DISC]; /*!< Q Stokes component (filled only when ipol=1) */
+    float roatmu[3]
+                [NWL_DISC]; /*!< U Stokes component (filled only when ipol=1) */
+    float dtdir[3][NWL_DISC]; /*!< Downward direct transmittance */
+    float dtdif[3][NWL_DISC]; /*!< Downward diffuse transmittance */
+    float utdir[3][NWL_DISC]; /*!< Upward direct transmittance */
+    float utdif[3][NWL_DISC]; /*!< Upward diffuse transmittance */
+    float sphal[3][NWL_DISC]; /*!< Spherical albedo */
+    float wldis[NWL_DISC];    /*!< Reference wavelengths [µm] */
+    float trayl[NWL_DISC];    /*!< Rayleigh optical depth */
+    float traypl[NWL_DISC];   /*!< Rayleigh OD above the sensor level */
 } SixsDisc;
 
 /**
@@ -124,8 +129,8 @@ typedef struct {
  * \brief Error / output state.
  */
 typedef struct {
-    int  iwr;  /*!< Output unit (unused in C port; always stdout) */
-    bool ier;  /*!< Error flag; set on fatal RT failure */
+    int iwr;  /*!< Output unit (unused in C port; always stdout) */
+    bool ier; /*!< Error flag; set on fatal RT failure */
 } SixsErr;
 
 /**
@@ -134,7 +139,7 @@ typedef struct {
 typedef struct {
     float ext_layer[NT_P]; /*!< Relative aerosol extinction per layer */
     float ome_layer[NT_P]; /*!< Single-scattering albedo per layer */
-    int   n_layers;        /*!< Number of filled layers (≤ NT_P) */
+    int n_layers;          /*!< Number of filled layers (≤ NT_P) */
 } SixsAerProf;
 
 /**
@@ -146,15 +151,15 @@ typedef struct {
  * Use the convenience macros RM() and GB() for indexed access.
  */
 typedef struct {
-    SixsAtm        atm;     /*!< Atmosphere profile */
-    SixsDel        del;     /*!< Depolarization */
-    SixsAer        aer;     /*!< Aerosol optical properties */
-    SixsAerProf    aerprof; /*!< Aerosol vertical profile */
-    SixsPolar      polar;   /*!< Legendre coefficients */
-    SixsDisc       disc;    /*!< DISCOM output */
-    SixsQuad       quad;    /*!< Quadrature order */
+    SixsAtm atm;            /*!< Atmosphere profile */
+    SixsDel del;            /*!< Depolarization */
+    SixsAer aer;            /*!< Aerosol optical properties */
+    SixsAerProf aerprof;    /*!< Aerosol vertical profile */
+    SixsPolar polar;        /*!< Legendre coefficients */
+    SixsDisc disc;          /*!< DISCOM output */
+    SixsQuad quad;          /*!< Quadrature order */
     SixsMultiOrder multi;   /*!< Max scattering order */
-    SixsErr        err;     /*!< Error state */
+    SixsErr err;            /*!< Error state */
     float rm[2 * MU_P + 1]; /*!< Gauss cosines (index offset by MU_P) */
     float gb[2 * MU_P + 1]; /*!< Gauss weights (index offset by MU_P) */
 } SixsCtx;
@@ -164,11 +169,11 @@ typedef struct {
  * \param ctx Pointer to a ::SixsCtx.
  * \param i   Original (possibly negative) Fortran index.
  */
-#define RM(ctx, i)  ((ctx)->rm[(i) + MU_P])
+#define RM(ctx, i) ((ctx)->rm[(i) + MU_P])
 
 /**
  * \brief Access \c gb[i] with the original Fortran index i ∈ [−MU_P, MU_P].
  * \param ctx Pointer to a ::SixsCtx.
  * \param i   Original (possibly negative) Fortran index.
  */
-#define GB(ctx, i)  ((ctx)->gb[(i) + MU_P])
+#define GB(ctx, i) ((ctx)->gb[(i) + MU_P])

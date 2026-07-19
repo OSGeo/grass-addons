@@ -43,8 +43,8 @@ from _support import (
 )
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-_HERE       = os.path.dirname(os.path.abspath(__file__))
-_SIXSV2     = os.path.join(os.path.expanduser("~"), "dev", "6sV2.1")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_SIXSV2 = os.path.join(os.path.expanduser("~"), "dev", "6sV2.1")
 _DRIVER_SRC = os.path.join(_HERE, "test_6sv_compat.f90")
 _DRIVER_BIN = os.path.join(_HERE, "test_6sv_compat")
 
@@ -56,6 +56,7 @@ _FORTRAN_OBJS = [
 
 # ── Fortran driver build/run helpers ──────────────────────────────────────────
 
+
 def _ensure_fortran_objects():
     """Build 6SV2.1 .o files via 'make sixs' if any are missing."""
     if all(os.path.exists(p) for p in _FORTRAN_OBJS):
@@ -64,9 +65,7 @@ def _ensure_fortran_objects():
         ["make", "sixs"], cwd=_SIXSV2, capture_output=True, text=True
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"'make sixs' in {_SIXSV2} failed:\n{result.stderr}"
-        )
+        raise RuntimeError(f"'make sixs' in {_SIXSV2} failed:\n{result.stderr}")
 
 
 def _compile_driver():
@@ -97,6 +96,7 @@ def _run_driver():
 
 # ── Test class ────────────────────────────────────────────────────────────────
 
+
 class TestFortranCompat(unittest.TestCase):
     """Numerical compatibility between 6SV2.1 Fortran subroutines and the C port."""
 
@@ -111,8 +111,9 @@ class TestFortranCompat(unittest.TestCase):
     def _assert_chand(self, tag, xphi, xmuv, xmus, xtau):
         f_val = self.f[f"chand_{tag}"]
         c_val = _c_chand(xphi, xmuv, xmus, xtau)
-        np.testing.assert_allclose(c_val, f_val, rtol=1e-5, atol=1e-9,
-                                   err_msg=f"CHAND case {tag}")
+        np.testing.assert_allclose(
+            c_val, f_val, rtol=1e-5, atol=1e-9, err_msg=f"CHAND case {tag}"
+        )
 
     def test_chand_1_backscatter(self):
         """CHAND: backscatter geometry (phi=0), tau=0.1."""
@@ -135,8 +136,9 @@ class TestFortranCompat(unittest.TestCase):
     def _assert_odrayl(self, tag, wl):
         f_val = self.f[f"odrayl_{tag}"]
         c_val = _c_odrayl(wl)
-        np.testing.assert_allclose(c_val, f_val, rtol=5e-3, atol=1e-6,
-                                   err_msg=f"ODRAYL wl={wl} µm")
+        np.testing.assert_allclose(
+            c_val, f_val, rtol=5e-3, atol=1e-6, err_msg=f"ODRAYL wl={wl} µm"
+        )
 
     def test_odrayl_045_blue(self):
         """ODRAYL: 0.45 µm (blue), strong Rayleigh scattering."""
@@ -158,11 +160,14 @@ class TestFortranCompat(unittest.TestCase):
     # Fortran VARSOL returns dsol = 1/d²; C returns d².  Product ≈ 1.
 
     def _assert_varsol_product(self, doy_str, doy):
-        dsol    = self.f[f"varsol_{doy_str}"]
-        d2      = earth_sun_dist2(doy)
+        dsol = self.f[f"varsol_{doy_str}"]
+        d2 = earth_sun_dist2(doy)
         product = dsol * d2
         np.testing.assert_allclose(
-            product, 1.0, rtol=5e-3, atol=1e-3,
+            product,
+            1.0,
+            rtol=5e-3,
+            atol=1e-3,
             err_msg=f"VARSOL×d2 ≈ 1 for DOY={doy}",
         )
         self.assertGreater(dsol, 0.96)
@@ -189,8 +194,9 @@ class TestFortranCompat(unittest.TestCase):
     def _assert_solirr(self, tag, wl, rtol):
         f_val = self.f[f"solirr_{tag}"]
         c_val = float(solar_E0(np.array([wl], dtype=np.float32))[0])
-        np.testing.assert_allclose(c_val, f_val, rtol=rtol, atol=0.5,
-                                   err_msg=f"SOLIRR/E0 wl={tag} µm")
+        np.testing.assert_allclose(
+            c_val, f_val, rtol=rtol, atol=0.5, err_msg=f"SOLIRR/E0 wl={tag} µm"
+        )
 
     def test_solirr_045_ongrid(self):
         """SOLIRR: 0.45 µm on-grid → C and Fortran table values match."""
@@ -217,8 +223,9 @@ class TestFortranCompat(unittest.TestCase):
     def _assert_csalbr(self, tag, xtau):
         f_val = self.f[f"csalbr_{tag}"]
         c_val = _c_csalbr(xtau)
-        np.testing.assert_allclose(c_val, f_val, rtol=1e-5, atol=1e-9,
-                                   err_msg=f"CSALBR xtau={xtau}")
+        np.testing.assert_allclose(
+            c_val, f_val, rtol=1e-5, atol=1e-9, err_msg=f"CSALBR xtau={xtau}"
+        )
 
     def test_csalbr_01(self):
         """CSALBR: thin Rayleigh layer τ=0.1."""
@@ -237,12 +244,14 @@ class TestFortranCompat(unittest.TestCase):
     def _assert_gauss(self, n):
         x_c, w_c = _c_gauss(-1.0, 1.0, n)
         for i in range(n):
-            f_x = self.f[f"gauss_x{n}_{i+1}"]
-            f_w = self.f[f"gauss_w{n}_{i+1}"]
-            np.testing.assert_allclose(x_c[i], f_x, rtol=1e-5, atol=1e-9,
-                                       err_msg=f"GAUSS n={n} x[{i+1}]")
-            np.testing.assert_allclose(w_c[i], f_w, rtol=1e-5, atol=1e-9,
-                                       err_msg=f"GAUSS n={n} w[{i+1}]")
+            f_x = self.f[f"gauss_x{n}_{i + 1}"]
+            f_w = self.f[f"gauss_w{n}_{i + 1}"]
+            np.testing.assert_allclose(
+                x_c[i], f_x, rtol=1e-5, atol=1e-9, err_msg=f"GAUSS n={n} x[{i + 1}]"
+            )
+            np.testing.assert_allclose(
+                w_c[i], f_w, rtol=1e-5, atol=1e-9, err_msg=f"GAUSS n={n} w[{i + 1}]"
+            )
 
     def test_gauss_n4_nodes(self):
         """GAUSS: 4-point Gauss-Legendre nodes and weights on [-1, 1]."""
@@ -267,8 +276,8 @@ class TestFortranCompat(unittest.TestCase):
         x, w = _c_gauss(-1.0, 1.0, 4)
         np.testing.assert_allclose(x[0], -x[3], rtol=1e-6)
         np.testing.assert_allclose(x[1], -x[2], rtol=1e-6)
-        np.testing.assert_allclose(w[0],  w[3],  rtol=1e-6)
-        np.testing.assert_allclose(w[1],  w[2],  rtol=1e-6)
+        np.testing.assert_allclose(w[0], w[3], rtol=1e-6)
+        np.testing.assert_allclose(w[1], w[2], rtol=1e-6)
 
 
 if __name__ == "__main__":

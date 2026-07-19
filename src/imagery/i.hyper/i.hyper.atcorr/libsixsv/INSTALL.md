@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # Installation
 
 ## 1. Installation inside GRASS GIS

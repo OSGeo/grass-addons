@@ -28,7 +28,8 @@
 #endif
 
 /**
- * \brief Compute the cosine of the local solar incidence angle on a tilted surface.
+ * \brief Compute the cosine of the local solar incidence angle on a tilted
+ * surface.
  *
  * Uses the Iqbal (1983) standard topographic illumination model:
  * \f[
@@ -43,17 +44,17 @@
  * \param[in] aspect_deg Terrain aspect (degrees, CW from North).
  * \return Cosine of the local incidence angle; negative values indicate shadow.
  */
-float cos_incidence(float sza_deg, float saa_deg,
-                    float slope_deg, float aspect_deg)
+float cos_incidence(float sza_deg, float saa_deg, float slope_deg,
+                    float aspect_deg)
 {
-    float sza    = sza_deg    * (float)(M_PI / 180.0);
-    float saa    = saa_deg    * (float)(M_PI / 180.0);
-    float slope  = slope_deg  * (float)(M_PI / 180.0);
+    float sza = sza_deg * (float)(M_PI / 180.0);
+    float saa = saa_deg * (float)(M_PI / 180.0);
+    float slope = slope_deg * (float)(M_PI / 180.0);
     float aspect = aspect_deg * (float)(M_PI / 180.0);
 
     /* Standard topographic illumination model (Iqbal 1983) */
-    return cosf(sza) * cosf(slope)
-         + sinf(sza) * sinf(slope) * cosf(saa - aspect);
+    return cosf(sza) * cosf(slope) +
+           sinf(sza) * sinf(slope) * cosf(saa - aspect);
 }
 
 /**
@@ -78,7 +79,8 @@ float skyview_factor(float slope_deg)
  * Replaces the flat-surface \c T_down with the topographically corrected
  * effective value:
  * \f[
- *   T^\text{eff}_\downarrow = T^\text{dir}_\downarrow \frac{\cos i}{\cos\theta_s}
+ *   T^\text{eff}_\downarrow = T^\text{dir}_\downarrow \frac{\cos
+ * i}{\cos\theta_s}
  *                             + (T_\downarrow - T^\text{dir}_\downarrow) V_d
  * \f]
  * On shadowed pixels (\f$\cos i \le 0\f$), only the diffuse term survives.
@@ -86,15 +88,17 @@ float skyview_factor(float slope_deg)
  * \param[in] T_down     Total downward transmittance from the flat-surface LUT.
  * \param[in] T_down_dir Direct (beam) component of the downward transmittance.
  * \param[in] cos_sza    Cosine of the solar zenith angle.
- * \param[in] cos_i      Cosine of the local incidence angle (from cos_incidence()).
+ * \param[in] cos_i      Cosine of the local incidence angle (from
+ * cos_incidence()).
  * \param[in] V_d        Skyview factor (from skyview_factor()).
  * \return Effective downward transmittance for the tilted pixel.
  */
-float atcorr_terrain_T_down(float T_down, float T_down_dir,
-                             float cos_sza, float cos_i, float V_d)
+float atcorr_terrain_T_down(float T_down, float T_down_dir, float cos_sza,
+                            float cos_i, float V_d)
 {
     float T_dif = T_down - T_down_dir;
-    if (T_dif < 0.0f) T_dif = 0.0f;
+    if (T_dif < 0.0f)
+        T_dif = 0.0f;
 
     if (cos_i <= 0.0f)
         /* Topographic shadow: only diffuse sky radiation reaches surface */
@@ -109,24 +113,29 @@ float atcorr_terrain_T_down(float T_down, float T_down_dir,
  * \brief Scale the upward transmittance for a per-pixel view zenith angle.
  *
  * The LUT stores \c T_up at the scene-mean VZA.  For pixels with a
- * different VZA (e.g. off-nadir pushbroom sensors, or after terrain correction),
- * Beer-Lambert path scaling gives:
+ * different VZA (e.g. off-nadir pushbroom sensors, or after terrain
+ * correction), Beer-Lambert path scaling gives:
  * \f[
- *   T_\uparrow(\text{px}) = T_\uparrow(\text{ref})^{\cos\theta^\text{ref}_v / \cos\theta^\text{px}_v}
+ *   T_\uparrow(\text{px}) = T_\uparrow(\text{ref})^{\cos\theta^\text{ref}_v /
+ * \cos\theta^\text{px}_v}
  * \f]
  *
  * \param[in] T_up           Upward transmittance at the reference VZA.
- * \param[in] cos_vza_ref    Cosine of the reference view zenith angle (scene mean).
+ * \param[in] cos_vza_ref    Cosine of the reference view zenith angle (scene
+ * mean).
  * \param[in] vza_pixel_deg  Per-pixel view zenith angle (degrees).
  * \return Scaled upward transmittance for the pixel VZA.
  */
 float atcorr_terrain_T_up(float T_up, float cos_vza_ref, float vza_pixel_deg)
 {
-    if (T_up <= 0.0f || T_up >= 1.0f) return T_up;
+    if (T_up <= 0.0f || T_up >= 1.0f)
+        return T_up;
 
     float cos_px = cosf(vza_pixel_deg * (float)(M_PI / 180.0));
-    if (cos_px < 1e-4f) cos_px = 1e-4f;
-    if (cos_vza_ref < 1e-4f) cos_vza_ref = 1e-4f;
+    if (cos_px < 1e-4f)
+        cos_px = 1e-4f;
+    if (cos_vza_ref < 1e-4f)
+        cos_vza_ref = 1e-4f;
 
     /* T_up ∝ exp(−τ / cos_vza)  →  T_up(px) = T_up(ref) ^ (cos_ref / cos_px) */
     return powf(T_up, cos_vza_ref / cos_px);

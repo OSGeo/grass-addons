@@ -126,7 +126,10 @@ def _band_wavelengths(mapname, expected, hyper_meta_class):
     if validity is not None and len(validity) == len(wl_arr):
         valid_sources = np.flatnonzero(validity)
         source_to_depth = axis.get("source_to_depth")
-        depth_indices = np.array([source_to_depth[i] for i in valid_sources if source_to_depth[i] >= 0], dtype=int)
+        depth_indices = np.array(
+            [source_to_depth[i] for i in valid_sources if source_to_depth[i] >= 0],
+            dtype=int,
+        )
         wl_arr = wl_arr[valid_sources]
 
     wavelengths = [None if (w is None or w != w) else float(w) for w in wl_arr.tolist()]

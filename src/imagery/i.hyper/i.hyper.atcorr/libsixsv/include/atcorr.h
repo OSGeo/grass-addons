@@ -29,28 +29,29 @@ extern "C" {
 /** \defgroup aerosol_models Aerosol model identifiers
  *  Matching 6SV \c iaer codes passed to ::LutConfig::aerosol_model.
  *  @{ */
-#define AEROSOL_NONE         0  /*!< No aerosol (Rayleigh only) */
-#define AEROSOL_CONTINENTAL  1  /*!< Continental aerosol mixture */
-#define AEROSOL_MARITIME     2  /*!< Maritime aerosol mixture */
-#define AEROSOL_URBAN        3  /*!< Urban aerosol mixture */
-#define AEROSOL_DESERT       5  /*!< Desert dust aerosol */
-#define AEROSOL_CUSTOM       9  /*!< Custom Mie log-normal (mie.c) */
+#define AEROSOL_NONE        0 /*!< No aerosol (Rayleigh only) */
+#define AEROSOL_CONTINENTAL 1 /*!< Continental aerosol mixture */
+#define AEROSOL_MARITIME    2 /*!< Maritime aerosol mixture */
+#define AEROSOL_URBAN       3 /*!< Urban aerosol mixture */
+#define AEROSOL_DESERT      5 /*!< Desert dust aerosol */
+#define AEROSOL_CUSTOM      9 /*!< Custom Mie log-normal (mie.c) */
 /** @} */
 
 /** \defgroup atmo_models Atmosphere model identifiers
  *  Passed to ::LutConfig::atmo_model.
  *  @{ */
-#define ATMO_US62            1  /*!< US Standard Atmosphere 1962 */
-#define ATMO_MIDSUM          2  /*!< Mid-latitude summer */
-#define ATMO_MIDWIN          3  /*!< Mid-latitude winter */
-#define ATMO_TROPICAL        4  /*!< Tropical */
-#define ATMO_SUBSUM          5  /*!< Sub-arctic summer */
-#define ATMO_SUBWIN          6  /*!< Sub-arctic winter */
+#define ATMO_US62           1 /*!< US Standard Atmosphere 1962 */
+#define ATMO_MIDSUM         2 /*!< Mid-latitude summer */
+#define ATMO_MIDWIN         3 /*!< Mid-latitude winter */
+#define ATMO_TROPICAL       4 /*!< Tropical */
+#define ATMO_SUBSUM         5 /*!< Sub-arctic summer */
+#define ATMO_SUBWIN         6 /*!< Sub-arctic winter */
 /** @} */
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * LUT API
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief 6SV LUT grid specification.
@@ -61,45 +62,49 @@ extern "C" {
  */
 typedef struct {
     /* ── Wavelength grid ─────────────────────────────────────────────────── */
-    const float *wl;        /*!< Band-centre wavelengths [µm], length \c n_wl */
-    int          n_wl;      /*!< Number of wavelength bands */
+    const float *wl; /*!< Band-centre wavelengths [µm], length \c n_wl */
+    int n_wl;        /*!< Number of wavelength bands */
 
     /* ── AOD grid ────────────────────────────────────────────────────────── */
-    const float *aod;       /*!< AOD at 550 nm, length \c n_aod (must be ≥ 0, sorted) */
-    int          n_aod;     /*!< Number of AOD grid points */
+    const float
+        *aod;  /*!< AOD at 550 nm, length \c n_aod (must be ≥ 0, sorted) */
+    int n_aod; /*!< Number of AOD grid points */
 
     /* ── Column water-vapour grid ────────────────────────────────────────── */
-    const float *h2o;       /*!< WVC [g/cm²], length \c n_h2o (sorted) */
-    int          n_h2o;     /*!< Number of H₂O grid points */
+    const float *h2o; /*!< WVC [g/cm²], length \c n_h2o (sorted) */
+    int n_h2o;        /*!< Number of H₂O grid points */
 
     /* ── Scene geometry ──────────────────────────────────────────────────── */
-    float sza;              /*!< Solar zenith angle [degrees] */
-    float vza;              /*!< View zenith angle [degrees] */
-    float raa;              /*!< Relative azimuth angle [degrees] */
+    float sza; /*!< Solar zenith angle [degrees] */
+    float vza; /*!< View zenith angle [degrees] */
+    float raa; /*!< Relative azimuth angle [degrees] */
 
-    float altitude_km;      /*!< Surface/sensor altitude [km] */
+    float altitude_km; /*!< Surface/sensor altitude [km] */
 
     /* ── Atmosphere / aerosol ────────────────────────────────────────────── */
-    int atmo_model;         /*!< \ref atmo_models constant (default: \c ATMO_US62) */
-    int aerosol_model;      /*!< \ref aerosol_models constant */
+    int atmo_model;    /*!< \ref atmo_models constant (default: \c ATMO_US62) */
+    int aerosol_model; /*!< \ref aerosol_models constant */
 
-    float surface_pressure; /*!< Surface pressure [hPa]; 0 = standard atmosphere */
-    float ozone_du;         /*!< Ozone column [Dobson units]; 0 = standard atmosphere */
+    float surface_pressure; /*!< Surface pressure [hPa]; 0 = standard atmosphere
+                             */
+    float ozone_du; /*!< Ozone column [Dobson units]; 0 = standard atmosphere */
 
     /* ── Custom Mie aerosol (aerosol_model == AEROSOL_CUSTOM) ───────────── */
-    float mie_r_mode;       /*!< Log-normal mode radius [µm], e.g. 0.12 */
-    float mie_sigma_g;      /*!< Geometric standard deviation, e.g. 1.8 */
-    float mie_m_real;       /*!< Real refractive index at 550 nm */
-    float mie_m_imag;       /*!< Imaginary refractive index at 550 nm */
+    float mie_r_mode;  /*!< Log-normal mode radius [µm], e.g. 0.12 */
+    float mie_sigma_g; /*!< Geometric standard deviation, e.g. 1.8 */
+    float mie_m_real;  /*!< Real refractive index at 550 nm */
+    float mie_m_imag;  /*!< Imaginary refractive index at 550 nm */
 
     /* ── BRDF surface model ──────────────────────────────────────────────── */
-    BrdfType   brdf_type;   /*!< Surface reflectance model (default: \c BRDF_LAMBERTIAN) */
+    BrdfType brdf_type;     /*!< Surface reflectance model (default: \c
+                               BRDF_LAMBERTIAN) */
     BrdfParams brdf_params; /*!< Per-model parameter union; see ::BrdfParams */
 
     /* ── Polarized RT ────────────────────────────────────────────────────── */
-    int enable_polar;       /*!< 0 = scalar RT (default); 1 = vector Stokes (I,Q,U)
-                             *   via sixs_ospol().  Improves R_atm by 1–5 %% in the
-                             *   blue (Rayleigh polarisation feedback).  ~3× slower. */
+    int enable_polar; /*!< 0 = scalar RT (default); 1 = vector Stokes (I,Q,U)
+                       *   via sixs_ospol().  Improves R_atm by 1–5 %% in the
+                       *   blue (Rayleigh polarisation feedback).  ~3× slower.
+                       */
 } LutConfig;
 
 /**
@@ -112,10 +117,11 @@ typedef struct {
  * populated only when non-NULL on input; pass NULL to skip.
  */
 typedef struct {
-    float *R_atm;      /*!< Atmospheric path reflectance — Stokes I [0, 1) */
-    float *T_down;     /*!< Total downward transmittance (direct + diffuse) [0, 1] */
-    float *T_up;       /*!< Total upward transmittance (direct + diffuse) [0, 1] */
-    float *s_alb;      /*!< Spherical albedo of the atmosphere [0, 1) */
+    float *R_atm; /*!< Atmospheric path reflectance — Stokes I [0, 1) */
+    float
+        *T_down;  /*!< Total downward transmittance (direct + diffuse) [0, 1] */
+    float *T_up;  /*!< Total upward transmittance (direct + diffuse) [0, 1] */
+    float *s_alb; /*!< Spherical albedo of the atmosphere [0, 1) */
     float *T_down_dir; /*!< Direct (beam-only) component of \c T_down.
                         *   NULL → not computed (saves RAM and time).
                         *   Required by atcorr_terrain_T_down(). */
@@ -142,7 +148,8 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Single-point atmospheric correction
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Lambertian BOA reflectance inversion.
@@ -160,8 +167,8 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out);
  * \param[in] s_alb   Spherical albedo (LUT value).
  * \return Surface BOA reflectance ρ_BOA.
  */
-static inline float atcorr_invert(float rho_toa, float R_atm,
-                                   float T_down, float T_up, float s_alb)
+static inline float atcorr_invert(float rho_toa, float R_atm, float T_down,
+                                  float T_up, float s_alb)
 {
     float y = (rho_toa - R_atm) / (T_down * T_up + 1e-10f);
     return y / (1.0f + s_alb * y + 1e-10f);
@@ -187,9 +194,8 @@ static inline float atcorr_invert(float rho_toa, float R_atm,
  *                     surface, from sixs_brdf_albe().
  * \return Bidirectional reflectance factor ρ_BRDF(θs, θv, φ).
  */
-static inline float atcorr_invert_brdf(float rho_toa, float R_atm,
-                                        float T_down,  float T_up,
-                                        float s_alb,   float rho_albe)
+static inline float atcorr_invert_brdf(float rho_toa, float R_atm, float T_down,
+                                       float T_up, float s_alb, float rho_albe)
 {
     float y = (rho_toa - R_atm) / (T_down * T_up + 1e-10f);
     return y * (1.0f - s_alb * rho_albe);
@@ -197,7 +203,8 @@ static inline float atcorr_invert_brdf(float rho_toa, float R_atm,
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Solar irradiance and Earth–Sun distance
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Thuillier solar irradiance spectrum.
@@ -225,7 +232,8 @@ double sixs_earth_sun_dist2(int doy);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * LUT spectral slice and per-pixel interpolation
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Bilinear LUT interpolation at a fixed (AOD, H₂O) point.
@@ -245,10 +253,9 @@ double sixs_earth_sun_dist2(int doy);
  * \param[out] Tdds     Direct downward transmittance [n_wl]; pass NULL to skip
  *                      (requires \c lut->T_down_dir to be non-NULL).
  */
-void atcorr_lut_slice(const LutConfig *cfg, const LutArrays *lut,
-                      float aod_val, float h2o_val,
-                      float *Rs, float *Tds, float *Tus, float *ss,
-                      float *Tdds);
+void atcorr_lut_slice(const LutConfig *cfg, const LutArrays *lut, float aod_val,
+                      float h2o_val, float *Rs, float *Tds, float *Tus,
+                      float *ss, float *Tdds);
 
 /**
  * \brief Trilinear LUT interpolation at a single (AOD, H₂O, λ) point.
@@ -271,13 +278,14 @@ void atcorr_lut_slice(const LutConfig *cfg, const LutArrays *lut,
  * \param[out] s_alb   Spherical albedo.
  */
 void atcorr_lut_interp_pixel(const LutConfig *cfg, const LutArrays *lut,
-                               float aod_val, float h2o_val, float wl_um,
-                               float *R_atm, float *T_down,
-                               float *T_up,  float *s_alb);
+                             float aod_val, float h2o_val, float wl_um,
+                             float *R_atm, float *T_down, float *T_up,
+                             float *s_alb);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * SRF gas-transmittance correction
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Configuration for Gaussian SRF gas-transmittance correction.
@@ -287,14 +295,15 @@ void atcorr_lut_interp_pixel(const LutConfig *cfg, const LutArrays *lut,
  * transmittance convolved with the sensor spectral response function.
  */
 typedef struct {
-    const float *fwhm_um;   /*!< Per-band FWHM [µm], length \c n_wl (aligned with
-                             *   ::LutConfig::wl).  NULL → correct all bands. */
-    float threshold_um;     /*!< Only correct bands with FWHM < threshold [µm].
-                             *   ≤ 0 → use default of 0.005 µm (5 nm). */
+    const float *fwhm_um; /*!< Per-band FWHM [µm], length \c n_wl (aligned with
+                           *   ::LutConfig::wl).  NULL → correct all bands. */
+    float threshold_um;   /*!< Only correct bands with FWHM < threshold [µm].
+                           *   ≤ 0 → use default of 0.005 µm (5 nm). */
 } SrfConfig;
 
 /**
- * \brief Opaque per-band SRF correction table.  Created by atcorr_srf_compute().
+ * \brief Opaque per-band SRF correction table.  Created by
+ * atcorr_srf_compute().
  */
 typedef struct SrfCorrection_ SrfCorrection;
 
@@ -311,7 +320,7 @@ typedef struct SrfCorrection_ SrfCorrection;
  *         or no bands fall below the FWHM threshold.
  */
 SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
-                                   const LutConfig *lut_cfg);
+                                  const LutConfig *lut_cfg);
 
 /**
  * \brief Apply SRF correction factors to a LUT in place.
@@ -324,9 +333,8 @@ SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
  * \param[in]     cfg  LUT grid specification.
  * \param[in,out] lut  LUT arrays (T_down and T_up modified in place).
  */
-void atcorr_srf_apply(const SrfCorrection *srf,
-                       const LutConfig     *cfg,
-                       LutArrays           *lut);
+void atcorr_srf_apply(const SrfCorrection *srf, const LutConfig *cfg,
+                      LutArrays *lut);
 
 /**
  * \brief Free memory allocated by atcorr_srf_compute().
@@ -337,7 +345,8 @@ void atcorr_srf_free(SrfCorrection *srf);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Solar position
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Compute solar zenith and azimuth angles.
@@ -358,7 +367,8 @@ void sixs_possol(int month, int jday, float tu, float xlon, float xlat,
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Rayleigh analytical reflectance
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Chandrasekhar analytical Rayleigh reflectance.
@@ -375,7 +385,8 @@ float sixs_chand(float xphi, float xmuv, float xmus, float xtau);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Environmental (adjacency) factors
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Compute adjacency-effect correction factors.
@@ -396,7 +407,8 @@ void sixs_enviro(float difr, float difa, float r, float palt, float xmuv,
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Version
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Library version string.

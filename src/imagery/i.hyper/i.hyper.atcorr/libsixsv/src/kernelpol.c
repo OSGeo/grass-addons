@@ -21,13 +21,15 @@
 #include <stdlib.h>
 
 /**
- * \brief Build the Müller-matrix RT kernel matrices for vector radiative transfer.
+ * \brief Build the Müller-matrix RT kernel matrices for vector radiative
+ * transfer.
  *
- * Constructs three generalised spherical function arrays (\c psl, \c rsl, \c tsl)
- * and four kernel matrices (\c bp, \c arr, \c art, \c att) at Fourier order \c is,
- * using the Legendre coefficients stored in \c ctx->polar.betal.
+ * Constructs three generalised spherical function arrays (\c psl, \c rsl, \c
+ * tsl) and four kernel matrices (\c bp, \c arr, \c art, \c att) at Fourier
+ * order \c is, using the Legendre coefficients stored in \c ctx->polar.betal.
  *
- * These arrays feed directly into the vector successive-orders solver sixs_ospol().
+ * These arrays feed directly into the vector successive-orders solver
+ * sixs_ospol().
  *
  * Ported from 6SV2.1 KERNELPOL.f.
  *
@@ -35,47 +37,43 @@
  * \param[in]  is       Fourier azimuth order index.
  * \param[in]  mu       Half the number of quadrature angles.
  * \param[in]  rm_off   Quadrature cosines, size 2mu+1 (offset by mu).
- * \param[out] xpl_off  Legendre values at quadrature nodes (offset, size 2mu+1).
+ * \param[out] xpl_off  Legendre values at quadrature nodes (offset, size
+ * 2mu+1).
  * \param[out] xrl_off  \f$r\f$-Legendre GSF values (offset, size 2mu+1).
  * \param[out] xtl_off  \f$t\f$-Legendre GSF values (offset, size 2mu+1).
  * \param[out] psl      \f$P\f$-kernel matrix [(NQ_P+2) × (2mu+1)].
  * \param[out] rsl      \f$R\f$-kernel matrix [(NQ_P+2) × (2mu+1)].
  * \param[out] tsl      \f$T\f$-kernel matrix [(NQ_P+2) × (2mu+1)].
  * \param[out] bp       Scalar scattering kernel [(mu+1) × (2mu+1)].
- * \param[out] arr      \f$Q\f$-component kernel \f$R\times R\f$ [(mu+1) × (2mu+1)].
- * \param[out] art      Cross-polarisation kernel \f$T\times R\f$ [(mu+1) × (2mu+1)].
- * \param[out] att      \f$U\f$-component kernel \f$T\times T\f$ [(mu+1) × (2mu+1)].
+ * \param[out] arr      \f$Q\f$-component kernel \f$R\times R\f$ [(mu+1) ×
+ * (2mu+1)].
+ * \param[out] art      Cross-polarisation kernel \f$T\times R\f$ [(mu+1) ×
+ * (2mu+1)].
+ * \param[out] att      \f$U\f$-component kernel \f$T\times T\f$ [(mu+1) ×
+ * (2mu+1)].
  */
-void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
-                    const float *rm_off,
-                    double *xpl_off,
-                    double *xrl_off,
-                    double *xtl_off,
-                    double *psl,
-                    double *rsl,
-                    double *tsl,
-                    double *bp,
-                    double *arr,
-                    double *art,
-                    double *att)
+void sixs_kernelpol(const SixsCtx *ctx, int is, int mu, const float *rm_off,
+                    double *xpl_off, double *xrl_off, double *xtl_off,
+                    double *psl, double *rsl, double *tsl, double *bp,
+                    double *arr, double *art, double *att)
 {
     int nquad = ctx->quad.nquad;
-    int ip1   = nquad - 3;
+    int ip1 = nquad - 3;
     double rac3 = sqrt(3.0);
     int dim = 2 * mu + 1;
 
-    /* Access macros — same layout as kernel.c */
-    #define RM_OFF(j)  rm_off[(j)+mu]
-    #define PSL(l,j)   psl[((l)+1)*dim + ((j)+mu)]
-    #define RSL(l,j)   rsl[((l)+1)*dim + ((j)+mu)]
-    #define TSL(l,j)   tsl[((l)+1)*dim + ((j)+mu)]
-    #define XPL(j)     xpl_off[(j)+mu]
-    #define XRL(j)     xrl_off[(j)+mu]
-    #define XTL(j)     xtl_off[(j)+mu]
-    #define BP(j,k)    bp [(j)*dim + ((k)+mu)]
-    #define ARR(j,k)   arr[(j)*dim + ((k)+mu)]
-    #define ART(j,k)   art[(j)*dim + ((k)+mu)]
-    #define ATT(j,k)   att[(j)*dim + ((k)+mu)]
+/* Access macros — same layout as kernel.c */
+#define RM_OFF(j) rm_off[(j) + mu]
+#define PSL(l, j) psl[((l) + 1) * dim + ((j) + mu)]
+#define RSL(l, j) rsl[((l) + 1) * dim + ((j) + mu)]
+#define TSL(l, j) tsl[((l) + 1) * dim + ((j) + mu)]
+#define XPL(j)    xpl_off[(j) + mu]
+#define XRL(j)    xrl_off[(j) + mu]
+#define XTL(j)    xtl_off[(j) + mu]
+#define BP(j, k)  bp[(j) * dim + ((k) + mu)]
+#define ARR(j, k) arr[(j) * dim + ((k) + mu)]
+#define ART(j, k) art[(j) * dim + ((k) + mu)]
+#define ATT(j, k) att[(j) * dim + ((k) + mu)]
 
     /* ── Initialise generalised spherical functions at order l = is ── */
 
@@ -85,121 +83,148 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
          * U-functions tsl: tsl[2,j] = 0 for is=0 */
         for (int j = 0; j <= mu; j++) {
             double c = (double)RM_OFF(j);
-            PSL(0,  j) = 1.0;  PSL(0, -j) = 1.0;
-            PSL(1,  j) = c;    PSL(1, -j) = -c;
-            double xdb = (3.0*c*c - 1.0) * 0.5;
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            PSL(2,  j) = xdb;  PSL(2, -j) = xdb;
+            PSL(0, j) = 1.0;
+            PSL(0, -j) = 1.0;
+            PSL(1, j) = c;
+            PSL(1, -j) = -c;
+            double xdb = (3.0 * c * c - 1.0) * 0.5;
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            PSL(2, j) = xdb;
+            PSL(2, -j) = xdb;
 
-            RSL(1,  j) = 0.0;  RSL(1, -j) = 0.0;
-            xdb = 3.0 * (1.0 - c*c) / (2.0 * sqrt(6.0));
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            RSL(2,  j) = xdb;  RSL(2, -j) = xdb;
+            RSL(1, j) = 0.0;
+            RSL(1, -j) = 0.0;
+            xdb = 3.0 * (1.0 - c * c) / (2.0 * sqrt(6.0));
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            RSL(2, j) = xdb;
+            RSL(2, -j) = xdb;
 
-            TSL(1,  j) = 0.0;  TSL(1, -j) = 0.0;
-            TSL(2,  j) = 0.0;  TSL(2, -j) = 0.0;
+            TSL(1, j) = 0.0;
+            TSL(1, -j) = 0.0;
+            TSL(2, j) = 0.0;
+            TSL(2, -j) = 0.0;
         }
         PSL(1, 0) = (double)RM_OFF(0);
         RSL(1, 0) = 0.0;
-
-    } else if (is == 1) {
+    }
+    else if (is == 1) {
         /* Starting values for is=1 */
         for (int j = 0; j <= mu; j++) {
             double c = (double)RM_OFF(j);
-            double x = 1.0 - c*c;
-            PSL(0,  j) = 0.0;  PSL(0, -j) = 0.0;
+            double x = 1.0 - c * c;
+            PSL(0, j) = 0.0;
+            PSL(0, -j) = 0.0;
             double sq = sqrt(x * 0.5);
-            PSL(1, -j) = sq;   PSL(1,  j) = sq;
-            PSL(2,  j) = c * PSL(1, j) * rac3;
+            PSL(1, -j) = sq;
+            PSL(1, j) = sq;
+            PSL(2, j) = c * PSL(1, j) * rac3;
             PSL(2, -j) = -PSL(2, j);
 
-            RSL(1,  j) = 0.0;  RSL(1, -j) = 0.0;
+            RSL(1, j) = 0.0;
+            RSL(1, -j) = 0.0;
             double xdb = -c * sqrt(x) * 0.5;
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            RSL(2, -j) = -xdb;  RSL(2,  j) = xdb;  /* odd in j for is=1 */
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            RSL(2, -j) = -xdb;
+            RSL(2, j) = xdb; /* odd in j for is=1 */
 
-            TSL(1,  j) = 0.0;   TSL(1, -j) = 0.0;
+            TSL(1, j) = 0.0;
+            TSL(1, -j) = 0.0;
             xdb = -sqrt(x) * 0.5;
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            TSL(2,  j) = xdb;   TSL(2, -j) = xdb;  /* even in j for is=1 */
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            TSL(2, j) = xdb;
+            TSL(2, -j) = xdb; /* even in j for is=1 */
         }
         PSL(2, 0) = -PSL(2, 0);
         RSL(2, 0) = -RSL(2, 0);
         RSL(1, 0) = 0.0;
         TSL(1, 0) = 0.0;
-
-    } else {
+    }
+    else {
         /* is >= 2: bootstrap from l = is−1 = 0, then l = is */
         double a = 1.0;
         for (int i = 1; i <= is; i++) {
             double xi = (double)i;
             a *= sqrt((xi + (double)is) / xi) * 0.5;
         }
-        double b = a * sqrt((double)is / ((double)is + 1.0))
-                     * sqrt(((double)is - 1.0) / ((double)is + 2.0));
+        double b = a * sqrt((double)is / ((double)is + 1.0)) *
+                   sqrt(((double)is - 1.0) / ((double)is + 2.0));
 
         for (int j = 0; j <= mu; j++) {
-            double c  = (double)RM_OFF(j);
-            double xx = 1.0 - c*c;
+            double c = (double)RM_OFF(j);
+            double xx = 1.0 - c * c;
 
-            PSL(is-1, j) = 0.0;
-            RSL(is-1, j) = 0.0;
-            TSL(is-1, j) = 0.0;
+            PSL(is - 1, j) = 0.0;
+            RSL(is - 1, j) = 0.0;
+            TSL(is - 1, j) = 0.0;
 
             double xdb = a * pow(xx, (double)is * 0.5);
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            PSL(is, -j) = xdb;  PSL(is, j) = xdb;
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            PSL(is, -j) = xdb;
+            PSL(is, j) = xdb;
 
-            xdb = b * (1.0 + c*c) * pow(xx, (double)is * 0.5 - 1.0);
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            RSL(is, -j) = xdb;  RSL(is,  j) = xdb;  /* even in j */
+            xdb = b * (1.0 + c * c) * pow(xx, (double)is * 0.5 - 1.0);
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            RSL(is, -j) = xdb;
+            RSL(is, j) = xdb; /* even in j */
 
             xdb = 2.0 * b * c * pow(xx, (double)is * 0.5 - 1.0);
-            if (fabs(xdb) < 1e-30) xdb = 0.0;
-            TSL(is, -j) = -xdb;  TSL(is, j) = xdb;  /* odd in j */
+            if (fabs(xdb) < 1e-30)
+                xdb = 0.0;
+            TSL(is, -j) = -xdb;
+            TSL(is, j) = xdb; /* odd in j */
         }
     }
 
     /* ── Recurrence for l > is ── */
     int k_start = (is > 2) ? is : 2;
     if (k_start < ip1) {
-        int ig = (is == 1) ? 1 : -1;   /* psl,rsl parity; tsl has -ig */
+        int ig = (is == 1) ? 1 : -1; /* psl,rsl parity; tsl has -ig */
         for (int l = k_start; l <= ip1 - 1; l++) {
             int lp = l + 1, lm = l - 1;
             double lf = (double)l;
             /* psl recurrence (identical to kernel.c) */
-            double aa = (2.0*lf + 1.0)
-                      / sqrt((lf + (double)is + 1.0) * (lf - (double)is + 1.0));
-            double bb = sqrt((lf + (double)is) * (lf - (double)is))
-                      / (2.0*lf + 1.0);
+            double aa = (2.0 * lf + 1.0) /
+                        sqrt((lf + (double)is + 1.0) * (lf - (double)is + 1.0));
+            double bb =
+                sqrt((lf + (double)is) * (lf - (double)is)) / (2.0 * lf + 1.0);
             /* rsl/tsl recurrence (KERNELPOL.f d, e, f) */
-            double dd = (lf + 1.0) * (2.0*lf + 1.0)
-                      / sqrt((lf + 3.0) * (lf - 1.0)
-                             * (lf + (double)is + 1.0)
-                             * (lf - (double)is + 1.0));
-            double ee = sqrt((lf + 2.0) * (lf - 2.0)
-                             * (lf + (double)is)
-                             * (lf - (double)is))
-                      / (lf * (2.0*lf + 1.0));
+            double dd = (lf + 1.0) * (2.0 * lf + 1.0) /
+                        sqrt((lf + 3.0) * (lf - 1.0) * (lf + (double)is + 1.0) *
+                             (lf - (double)is + 1.0));
+            double ee = sqrt((lf + 2.0) * (lf - 2.0) * (lf + (double)is) *
+                             (lf - (double)is)) /
+                        (lf * (2.0 * lf + 1.0));
             double ff = 2.0 * (double)is / (lf * (lf + 1.0));
 
             for (int j = 0; j <= mu; j++) {
                 double c = (double)RM_OFF(j);
 
                 double xdb = aa * (c * PSL(l, j) - bb * PSL(lm, j));
-                if (fabs(xdb) < 1e-30) xdb = 0.0;
+                if (fabs(xdb) < 1e-30)
+                    xdb = 0.0;
                 PSL(lp, j) = xdb;
-                if (j != 0) PSL(lp, -j) = (double)ig * xdb;
+                if (j != 0)
+                    PSL(lp, -j) = (double)ig * xdb;
 
                 xdb = dd * (c * RSL(l, j) - ff * TSL(l, j) - ee * RSL(lm, j));
-                if (fabs(xdb) < 1e-30) xdb = 0.0;
+                if (fabs(xdb) < 1e-30)
+                    xdb = 0.0;
                 RSL(lp, j) = xdb;
-                if (j != 0) RSL(lp, -j) = (double)ig * xdb;
+                if (j != 0)
+                    RSL(lp, -j) = (double)ig * xdb;
 
                 xdb = dd * (c * TSL(l, j) - ff * RSL(l, j) - ee * TSL(lm, j));
-                if (fabs(xdb) < 1e-30) xdb = 0.0;
+                if (fabs(xdb) < 1e-30)
+                    xdb = 0.0;
                 TSL(lp, j) = xdb;
-                if (j != 0) TSL(lp, -j) = -(double)ig * xdb;  /* tsl has opposite sign */
+                if (j != 0)
+                    TSL(lp, -j) = -(double)ig * xdb; /* tsl has opposite sign */
             }
             ig = -ig;
         }
@@ -226,36 +251,40 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu,
             double sbp = 0.0, sarr = 0.0, satt = 0.0, sart = 0.0;
             if (is <= ij) {
                 for (int l = is; l <= ij; l++) {
-                    double bl  = (double)ctx->polar.betal[l];
-                    double pjl = PSL(l, j),  pkl = PSL(l, kk);
-                    double rjl = RSL(l, j),  rkl = RSL(l, kk);
-                    double tjl = TSL(l, j),  tkl = TSL(l, kk);
-                    sbp  += pjl * pkl * bl;
+                    double bl = (double)ctx->polar.betal[l];
+                    double pjl = PSL(l, j), pkl = PSL(l, kk);
+                    double rjl = RSL(l, j), rkl = RSL(l, kk);
+                    double tjl = TSL(l, j), tkl = TSL(l, kk);
+                    sbp += pjl * pkl * bl;
                     sarr += rjl * rkl * bl;
                     satt += tjl * tkl * bl;
                     sart += tjl * rkl * bl;
                 }
             }
-            if (fabs(sbp)  < 1e-30) sbp  = 0.0;
-            if (fabs(sarr) < 1e-30) sarr = 0.0;
-            if (fabs(satt) < 1e-30) satt = 0.0;
-            if (fabs(sart) < 1e-30) sart = 0.0;
-            BP (j, kk) = sbp;
+            if (fabs(sbp) < 1e-30)
+                sbp = 0.0;
+            if (fabs(sarr) < 1e-30)
+                sarr = 0.0;
+            if (fabs(satt) < 1e-30)
+                satt = 0.0;
+            if (fabs(sart) < 1e-30)
+                sart = 0.0;
+            BP(j, kk) = sbp;
             ARR(j, kk) = sarr;
             ATT(j, kk) = satt;
             ART(j, kk) = sart;
         }
     }
 
-    #undef RM_OFF
-    #undef PSL
-    #undef RSL
-    #undef TSL
-    #undef XPL
-    #undef XRL
-    #undef XTL
-    #undef BP
-    #undef ARR
-    #undef ART
-    #undef ATT
+#undef RM_OFF
+#undef PSL
+#undef RSL
+#undef TSL
+#undef XPL
+#undef XRL
+#undef XTL
+#undef BP
+#undef ARR
+#undef ART
+#undef ATT
 }

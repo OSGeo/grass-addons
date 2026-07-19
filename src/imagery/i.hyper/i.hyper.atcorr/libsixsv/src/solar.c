@@ -19,11 +19,13 @@
 float sixs_E0(float wl_um)
 {
     float t = (wl_um - (float)SOLAR_TABLE_WL_START) / (float)SOLAR_TABLE_STEP;
-    int   i = (int)t;
+    int i = (int)t;
     float f = t - (float)i;
 
-    if (i < 0)                  return solar_si[0];
-    if (i >= SOLAR_TABLE_N - 1) return solar_si[SOLAR_TABLE_N - 1];
+    if (i < 0)
+        return solar_si[0];
+    if (i >= SOLAR_TABLE_N - 1)
+        return solar_si[SOLAR_TABLE_N - 1];
     return solar_si[i] * (1.0f - f) + solar_si[i + 1] * f;
 }
 
@@ -44,6 +46,6 @@ float sixs_E0(float wl_um)
 double sixs_earth_sun_dist2(int doy)
 {
     double beta = 2.0 * M_PI * (doy - 3) / 365.0;
-    double d    = 1.0 - 0.01670963 * cos(beta);
+    double d = 1.0 - 0.01670963 * cos(beta);
     return d * d;
 }

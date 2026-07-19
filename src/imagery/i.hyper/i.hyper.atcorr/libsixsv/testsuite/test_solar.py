@@ -22,7 +22,6 @@ from _support import earth_sun_dist2, solar_E0
 
 
 class TestSolarSpectrum(unittest.TestCase):
-
     def test_e0_visible_positive(self):
         """E0 must be positive at every 50 nm step across the VIS/NIR range."""
         wl = np.arange(0.40, 0.91, 0.05, dtype=np.float32)
@@ -42,7 +41,9 @@ class TestSolarSpectrum(unittest.TestCase):
         for wl_um, ref in references.items():
             E0 = solar_E0(float(wl_um))
             self.assertAlmostEqual(
-                E0, ref, delta=ref * 0.15,
+                E0,
+                ref,
+                delta=ref * 0.15,
                 msg=f"E0({wl_um} µm) = {E0:.1f}, expected ~{ref:.0f}",
             )
 
@@ -72,7 +73,6 @@ class TestSolarSpectrum(unittest.TestCase):
 
 
 class TestEarthSunDist(unittest.TestCase):
-
     def test_perihelion_less_than_one(self):
         """Near perihelion (DOY 3) Earth is closest: d² must be < 1."""
         d2 = earth_sun_dist2(3)
@@ -95,7 +95,9 @@ class TestEarthSunDist(unittest.TestCase):
         for doy in range(1, 366):
             d2 = earth_sun_dist2(doy)
             self.assertAlmostEqual(
-                d2, 1.0, delta=0.04,
+                d2,
+                1.0,
+                delta=0.04,
                 msg=f"d²(DOY={doy}) = {d2:.4f} outside ±4% of 1 AU²",
             )
 
@@ -108,11 +110,13 @@ class TestEarthSunDist(unittest.TestCase):
 
     def test_symmetry_perihelion_aphelion(self):
         """d²(perihelion) + d²(aphelion) ≈ 2 (symmetric about 1 AU²)."""
-        d2_all  = [earth_sun_dist2(d) for d in range(1, 366)]
-        d2_min  = min(d2_all)
-        d2_max  = max(d2_all)
+        d2_all = [earth_sun_dist2(d) for d in range(1, 366)]
+        d2_min = min(d2_all)
+        d2_max = max(d2_all)
         self.assertAlmostEqual(
-            d2_min + d2_max, 2.0, delta=0.01,
+            d2_min + d2_max,
+            2.0,
+            delta=0.01,
             msg=f"d²_min + d²_max = {d2_min + d2_max:.4f}, expected ≈ 2.0",
         )
 

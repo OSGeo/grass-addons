@@ -575,7 +575,9 @@ def preprocess_hyperspectral(
             arr_out[:, exterior_mask] = np.nan
         else:
             arr_out = np.full((depth, rows, cols), np.nan, dtype=np.float32)
-            arr_out[work_indices, :, :] = flat_filt.T.reshape(len(work_indices), rows, cols)
+            arr_out[work_indices, :, :] = flat_filt.T.reshape(
+                len(work_indices), rows, cols
+            )
             arr_out[:, exterior_mask] = np.nan
 
         if dr_method:

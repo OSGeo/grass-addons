@@ -559,9 +559,13 @@ def _merge_overrides(
         overrides = {}
 
     for key in (
-        "radiometric_quantity", "radiometric_units",
-        "data_type", "sensor", "wavelength_units",
-        "region", "bands",
+        "radiometric_quantity",
+        "radiometric_units",
+        "data_type",
+        "sensor",
+        "wavelength_units",
+        "region",
+        "bands",
     ):
         if key in overrides and overrides[key] is not None:
             setattr(metadata, key, overrides[key])

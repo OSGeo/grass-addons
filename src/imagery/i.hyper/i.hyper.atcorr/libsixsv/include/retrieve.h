@@ -37,7 +37,8 @@ extern "C" {
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * H₂O column from 940 nm band depth
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Per-pixel water-vapour column retrieval from 940 nm band depth.
@@ -50,7 +51,8 @@ extern "C" {
  * \f]
  * with m = 1/cos(SZA) + 1/cos(VZA), and K₉₄₀ scaled by sensor FWHM:
  * \f[
- *   K_{940}(\Delta\lambda) = 0.036 \left(\frac{50\,\mathrm{nm}}{\Delta\lambda}\right)^{0.90}
+ *   K_{940}(\Delta\lambda) = 0.036
+ * \left(\frac{50\,\mathrm{nm}}{\Delta\lambda}\right)^{0.90}
  * \f]
  * Calibrated against MODIS (50 nm, K=0.036) and Tanager (6.8 nm, K≈0.217;
  * empirical: D=0.718, WVC=1.54 g/cm², Kanpur 2025-03-21).  Exponent α=0.90
@@ -69,15 +71,14 @@ extern "C" {
  * \param[in]  vza_deg  View zenith angle [degrees].
  * \param[out] out_wvc  Pre-allocated float[npix]; WVC [g/cm²] per pixel.
  */
-void retrieve_h2o_940(const float *L_865,  const float *L_940,
-                       const float *L_1040, float fwhm_um,
-                       int npix,
-                       float sza_deg, float vza_deg,
-                       float *out_wvc);
+void retrieve_h2o_940(const float *L_865, const float *L_940,
+                      const float *L_1040, float fwhm_um, int npix,
+                      float sza_deg, float vza_deg, float *out_wvc);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * AOD from MODIS Dark Dense Vegetation (DDV)
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Scene-mean and per-pixel AOD from the MODIS dark-target DDV algorithm.
@@ -99,14 +100,14 @@ void retrieve_h2o_940(const float *L_865,  const float *L_940,
  * \param[out] out_aod Pre-allocated float[npix]; AOD at 550 nm per pixel.
  * \return Scene-mean AOD at 550 nm (0.15 fallback when no DDV pixels found).
  */
-float retrieve_aod_ddv(const float *L_470,  const float *L_660,
-                        const float *L_860,  const float *L_2130,
-                        int npix, int doy, float sza_deg,
-                        float *out_aod);
+float retrieve_aod_ddv(const float *L_470, const float *L_660,
+                       const float *L_860, const float *L_2130, int npix,
+                       int doy, float sza_deg, float *out_aod);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * O₃ column from Chappuis band depth
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Scene-mean ozone column from the Chappuis 600 nm band depth.
@@ -127,18 +128,20 @@ float retrieve_aod_ddv(const float *L_470,  const float *L_660,
  * \return Scene-mean O₃ column [Dobson units] ∈ [50, 800]; fallback 300 DU.
  */
 float retrieve_o3_chappuis(const float *L_540, const float *L_600,
-                            const float *L_680, int npix,
-                            float sza_deg, float vza_deg);
+                           const float *L_680, int npix, float sza_deg,
+                           float vza_deg);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Surface pressure from mean terrain elevation (ISA)
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Surface pressure from mean terrain elevation (ISA barometric formula).
  *
  * \f[
- *   P = 1013.25 \times (1 - 2.2558 \times 10^{-5}\, h)^{5.2559} \quad [\mathrm{hPa}]
+ *   P = 1013.25 \times (1 - 2.2558 \times 10^{-5}\, h)^{5.2559} \quad
+ * [\mathrm{hPa}]
  * \f]
  * Valid for h ∈ [0, 11 000] m; clamped at boundaries.
  *
@@ -149,7 +152,8 @@ float retrieve_pressure_isa(float elev_m);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Surface pressure from O₂-A band depth
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Per-pixel surface pressure from the O₂-A 760 nm absorption band.
@@ -171,24 +175,25 @@ float retrieve_pressure_isa(float elev_m);
  * \param[in]  npix          Number of pixels.
  * \param[in]  sza_deg       Solar zenith angle [degrees].
  * \param[in]  vza_deg       View zenith angle [degrees].
- * \param[out] out_pressure  Pre-allocated float[npix]; pressure [hPa] per pixel.
+ * \param[out] out_pressure  Pre-allocated float[npix]; pressure [hPa] per
+ * pixel.
  */
 void retrieve_pressure_o2a(const float *L_740, const float *L_760,
-                             const float *L_780, int npix,
-                             float sza_deg, float vza_deg,
-                             float *out_pressure);
+                           const float *L_780, int npix, float sza_deg,
+                           float vza_deg, float *out_pressure);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Quality bitmask constants and per-pixel classifier
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /** \defgroup quality_mask Quality bitmask bit definitions
  *  Bits set in the output of retrieve_quality_mask().
  *  @{ */
-#define RETRIEVE_MASK_CLOUD  0x01u  /*!< High blue TOA, or very bright NIR */
-#define RETRIEVE_MASK_SHADOW 0x02u  /*!< Uniformly dark in VIS + NIR */
-#define RETRIEVE_MASK_WATER  0x04u  /*!< Low NIR + negative NDVI */
-#define RETRIEVE_MASK_SNOW   0x08u  /*!< NDSI > 0.4 and NIR > 0.1 */
+#define RETRIEVE_MASK_CLOUD  0x01u /*!< High blue TOA, or very bright NIR */
+#define RETRIEVE_MASK_SHADOW 0x02u /*!< Uniformly dark in VIS + NIR */
+#define RETRIEVE_MASK_WATER  0x04u /*!< Low NIR + negative NDVI */
+#define RETRIEVE_MASK_SNOW   0x08u /*!< NDSI > 0.4 and NIR > 0.1 */
 /** @} */
 
 /**
@@ -204,35 +209,38 @@ void retrieve_pressure_o2a(const float *L_740, const float *L_760,
  * \param[in]  L_blue    Per-pixel TOA radiance near 470 nm [npix].
  * \param[in]  L_red     Per-pixel TOA radiance near 660 nm [npix].
  * \param[in]  L_nir     Per-pixel TOA radiance near 860 nm [npix].
- * \param[in]  L_swir    Per-pixel TOA radiance near 1600 nm [npix]; NULL → skip snow.
+ * \param[in]  L_swir    Per-pixel TOA radiance near 1600 nm [npix]; NULL → skip
+ * snow.
  * \param[in]  npix      Number of pixels.
  * \param[in]  doy       Day of year [1, 365] (for Earth–Sun distance).
  * \param[in]  sza_deg   Solar zenith angle [degrees].
  * \param[out] out_mask  Pre-allocated uint8_t[npix]; bitmask per pixel.
  *
- * \see RETRIEVE_MASK_CLOUD, RETRIEVE_MASK_SHADOW, RETRIEVE_MASK_WATER, RETRIEVE_MASK_SNOW
+ * \see RETRIEVE_MASK_CLOUD, RETRIEVE_MASK_SHADOW, RETRIEVE_MASK_WATER,
+ * RETRIEVE_MASK_SNOW
  */
 void retrieve_quality_mask(const float *L_blue, const float *L_red,
-                            const float *L_nir,  const float *L_swir,
-                            int npix, int doy, float sza_deg,
-                            uint8_t *out_mask);
+                           const float *L_nir, const float *L_swir, int npix,
+                           int doy, float sza_deg, uint8_t *out_mask);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MAIAC-inspired patch AOD spatial regularisation
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Patch-median AOD spatial regularisation (MAIAC-inspired).
  *
  * Divides the image into non-overlapping \p patch_sz × \p patch_sz blocks.
- * Each block's AOD is replaced by its per-block median (robust to DDV outliers).
- * Blocks with no valid AOD are filled by inverse-distance weighting from
- * neighbouring block centroids.
+ * Each block's AOD is replaced by its per-block median (robust to DDV
+ * outliers). Blocks with no valid AOD are filled by inverse-distance weighting
+ * from neighbouring block centroids.
  *
  * \param[in,out] aod_data  float[nrows × ncols], updated in place.
  * \param[in]     nrows     Image height in pixels.
  * \param[in]     ncols     Image width in pixels.
- * \param[in]     patch_sz  Block side in pixels (typical: 32 for 30 m, 16 for 5 m).
+ * \param[in]     patch_sz  Block side in pixels (typical: 32 for 30 m, 16 for 5
+ * m).
  *
  * \see Lyapustin, A. et al. (2011), MAIAC. JGR 116, D05203.
  */
@@ -240,10 +248,12 @@ void retrieve_aod_maiac(float *aod_data, int nrows, int ncols, int patch_sz);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * DASF retrieval — Directional Area Scattering Factor
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
- * \brief PROSPECT-D leaf single-scattering albedo (R+T) via linear interpolation.
+ * \brief PROSPECT-D leaf single-scattering albedo (R+T) via linear
+ * interpolation.
  *
  * Table covers 705–795 nm at 5 nm steps (Féret et al. 2017, Cab=40).
  *
@@ -253,16 +263,18 @@ void retrieve_aod_maiac(float *aod_data, int nrows, int ncols, int patch_sz);
 float leaf_albedo_nir(float wl_um);
 
 /**
- * \brief Per-pixel DASF retrieval from corrected BRF in the 710–790 nm NIR plateau.
+ * \brief Per-pixel DASF retrieval from corrected BRF in the 710–790 nm NIR
+ * plateau.
  *
  * Directional Area Scattering Factor (Knyazikhin et al. 2013 PNAS):
  * \f[
  *   \rho(\lambda) \approx \mathrm{DASF} \cdot \omega_L(\lambda)
  * \f]
- * Solved as linear least squares: \f$\mathrm{DASF} = \Sigma(\rho\,\omega_L) / \Sigma(\omega_L^2)\f$.
+ * Solved as linear least squares: \f$\mathrm{DASF} = \Sigma(\rho\,\omega_L) /
+ * \Sigma(\omega_L^2)\f$.
  *
- * Output is NaN for pixels with fewer than 3 valid bands or near-zero denominator.
- * Values are clipped to [0.01, 1.0].
+ * Output is NaN for pixels with fewer than 3 valid bands or near-zero
+ * denominator. Values are clipped to [0.01, 1.0].
  *
  * \param[in]  refl      Pre-corrected BRF, band-major order [n_dasf × npix].
  * \param[in]  wl_dasf   Wavelengths of the DASF bands [µm], length \p n_dasf.
@@ -277,7 +289,8 @@ void retrieve_dasf(const float *refl, const float *wl_dasf, int n_dasf,
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Generic H₂O triplet retrieval (any absorption feature)
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Per-pixel H₂O retrieval from any (lo, feat, hi) wavelength triplet.
@@ -297,7 +310,8 @@ void retrieve_dasf(const float *refl, const float *wl_dasf, int n_dasf,
  * Pixels with D ∉ [D_min, D_max] or non-positive radiance are marked invalid
  * and assigned WVC = 2.0 g/cm² (fallback).
  *
- * \param[in]  L_lo, L_feat, L_hi  Per-pixel TOA radiance at the triplet bands [npix].
+ * \param[in]  L_lo, L_feat, L_hi  Per-pixel TOA radiance at the triplet bands
+ * [npix].
  * \param[in]  wl_lo_um, wl_feat_um, wl_hi_um  Band centre wavelengths [µm].
  * \param[in]  K_ref       Broadband reference absorption coefficient [cm²/g].
  * \param[in]  fwhm_ref_um FWHM of the reference sensor [µm].
@@ -308,19 +322,20 @@ void retrieve_dasf(const float *refl, const float *wl_dasf, int n_dasf,
  * \param[in]  sza_deg     Solar zenith angle [degrees].
  * \param[in]  vza_deg     View zenith angle [degrees].
  * \param[out] out_wvc     Pre-allocated float[npix]; WVC [g/cm²] per pixel.
- * \param[out] out_valid   Pre-allocated uint8_t[npix]; 1=valid, 0=excluded (may be NULL).
+ * \param[out] out_valid   Pre-allocated uint8_t[npix]; 1=valid, 0=excluded (may
+ * be NULL).
  */
-void retrieve_h2o_triplet(const float *L_lo,   const float *L_feat,
-                           const float *L_hi,
-                           float wl_lo_um,  float wl_feat_um, float wl_hi_um,
-                           float K_ref, float fwhm_ref_um, float fwhm_um,
-                           float D_min, float D_max,
-                           int npix, float sza_deg, float vza_deg,
-                           float *out_wvc, uint8_t *out_valid);
+void retrieve_h2o_triplet(const float *L_lo, const float *L_feat,
+                          const float *L_hi, float wl_lo_um, float wl_feat_um,
+                          float wl_hi_um, float K_ref, float fwhm_ref_um,
+                          float fwhm_um, float D_min, float D_max, int npix,
+                          float sza_deg, float vza_deg, float *out_wvc,
+                          uint8_t *out_valid);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Multi-band H₂O consensus
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Per-pixel median consensus across multiple H₂O retrieval estimates.
@@ -329,18 +344,19 @@ void retrieve_h2o_triplet(const float *L_lo,   const float *L_feat,
  * computes the median (exact for 2–3 values), and writes it to out_wvc.
  * Falls back to WVC = 2.0 g/cm² where no estimate is valid.
  *
- * \param[in]  n_methods     Number of retrieval methods (max 3 used for median).
- * \param[in]  wvc_arrays    Array of n_methods pointers to float[npix] WVC arrays.
- * \param[in]  valid_arrays  Array of n_methods pointers to uint8_t[npix] validity flags.
+ * \param[in]  n_methods     Number of retrieval methods (max 3 used for
+ * median).
+ * \param[in]  wvc_arrays    Array of n_methods pointers to float[npix] WVC
+ * arrays.
+ * \param[in]  valid_arrays  Array of n_methods pointers to uint8_t[npix]
+ * validity flags.
  * \param[in]  npix          Number of pixels.
  * \param[out] out_wvc       Pre-allocated float[npix]; consensus WVC [g/cm²].
  * \return Number of pixels where at least 2 estimates agreed (n_valid ≥ 2).
  */
-int retrieve_h2o_consensus(int n_methods,
-                            float * const *wvc_arrays,
-                            uint8_t * const *valid_arrays,
-                            int npix,
-                            float *out_wvc);
+int retrieve_h2o_consensus(int n_methods, float *const *wvc_arrays,
+                           uint8_t *const *valid_arrays, int npix,
+                           float *out_wvc);
 
 #ifdef __cplusplus
 }

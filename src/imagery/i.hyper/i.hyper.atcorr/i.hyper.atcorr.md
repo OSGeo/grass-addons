@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD040 MD060 MD046 MD024 -->
+
 ## DESCRIPTION
 
 *i.hyper.atcorr* is a GRASS GIS add-on for atmospheric correction of
@@ -1095,9 +1097,9 @@ i.hyper.atcorr -z \
 **Physics**: T_down is split into direct (T_down_dir) and diffuse
 (T_down − T_down_dir) components from the 6SV DISCOM output.  Per pixel:
 
-- _Illuminated_ (cos_i > 0):
+- *Illuminated* (cos_i > 0):
   `T_down_eff = T_down_dir × (cos_i / cos_sza) + (T_down − T_down_dir) × V_d`
-- _Shadowed_ (cos_i ≤ 0):
+- *Shadowed* (cos_i ≤ 0):
   `T_down_eff = (T_down − T_down_dir) × V_d`  (diffuse skylight only)
 
 where `cos_i = cos(sza)cos(s) + sin(sza)sin(s)cos(saa − aspect)` and
@@ -1479,6 +1481,7 @@ DASF = Σ_λ [ρ(λ) × ω_L(λ)] / Σ_λ [ω_L(λ)²]
 ```
 
 Implementation:
+
 - Accumulates `sum_xy += ρ(λ) × ω_L(λ)` and `sum_yy += ω_L(λ)²` on the fly
   during the band loop (no extra band storage needed)
 - NDVI masking: red (~660 nm) and NIR (~870 nm) bands saved during correction;
@@ -1498,6 +1501,7 @@ Implementation:
 | < 0.50 | Very sparse or mixed pixel (treat with caution) |
 
 **Notes**:
+
 - DASF is only meaningful for pixels where NDVI ≥ 0.2 and the canopy is
   vegetation-dominated in the 710–790 nm window
 - Combine with FlexBRDF (Example 15) when both NBAR normalization and DASF

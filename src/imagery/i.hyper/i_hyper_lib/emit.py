@@ -164,9 +164,7 @@ def _read_emit_netcdf(path):
         raw[np.isclose(raw, float(raw_fill))] = np.nan
 
         wl = np.asarray(f["sensor_band_parameters/wavelengths"][()], dtype=np.float32)
-        fwhm = np.asarray(
-            f["sensor_band_parameters/fwhm"][()], dtype=np.float32
-        )
+        fwhm = np.asarray(f["sensor_band_parameters/fwhm"][()], dtype=np.float32)
         if "good_wavelengths" in f["sensor_band_parameters"]:
             good = np.asarray(
                 f["sensor_band_parameters/good_wavelengths"][()], dtype=np.uint8
@@ -278,9 +276,7 @@ def _populate_emit_extended_metadata(
         "processing.software_build_version",
         attrs.get("software_build_version"),
     )
-    meta.set_extended_value(
-        "processing.product_version", attrs.get("product_version")
-    )
+    meta.set_extended_value("processing.product_version", attrs.get("product_version"))
 
     meta.set_extended_value("emit.flight_line", attrs.get("flight_line"))
     meta.set_extended_value("emit.day_night_flag", attrs.get("day_night_flag"))
@@ -344,6 +340,93 @@ def get_emit_proj_info(path):
     }
 
 
+# --------------------------- 3-D cube + metadata helpers ---------------------------
+
+
+def _create_emit_3d_cube(data, prod, splat_plan, output_name, bands_total):
+    reg2d = gs.region()
+    nsres2d = float(reg2d["nsres"])
+    ewres2d = float(reg2d["ewres"])
+    Module(
+        "g.region",
+        nsres3=nsres2d,
+        ewres3=ewres2d,
+        b=0,
+        t=bands_total,
+        tbres=1,
+        quiet=True,
+    )
+
+    cube = garray.array3d(dtype=np.float32)
+    for k in range(bands_total):
+        ortho2d = _orthorectify_band(data[:, :, k], prod["glt_y"], prod["glt_x"])
+        if splat_plan is not None:
+            cube[k, :, :] = _splat_band(ortho2d)
+        else:
+            cube[k, :, :] = ortho2d
+
+    cube.write(mapname=f"{output_name}", null="nan", overwrite=True)
+    gs.info(f"Created 3D raster with all bands: {output_name} ({bands_total} slices).")
+
+
+def _build_emit_metadata(
+    source_wavelengths,
+    source_fwhm,
+    combined_validity,
+    prod,
+    output_name,
+    nc,
+    strength_val,
+    composites,
+    custom_wavelengths,
+):
+    wavelengths_meta = source_wavelengths.tolist()
+    fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
+    validity_meta = [bool(v) for v in combined_validity]
+
+    is_radiance = prod.get("data_key") == "radiance"
+    meta = HyperMetadata.for_spectral_data(
+        wavelengths=wavelengths_meta,
+        fwhm=fwhm_meta,
+        sensor="EMIT",
+        radiometric_quantity=(
+            "at-sensor_radiance" if is_radiance else "surface_reflectance"
+        ),
+        radiometric_units=("W/m^2/sr/nm" if is_radiance else "unitless (reflectance)"),
+    )
+    meta.set_validity(validity_meta)
+
+    _populate_emit_extended_metadata(
+        meta=meta,
+        prod=prod,
+        wavelengths_meta=wavelengths_meta,
+        fwhm_meta=fwhm_meta,
+        validity_meta=validity_meta,
+    )
+
+    mapset = gs.gisenv().get("MAPSET", "")
+    out_full = (
+        f"{output_name}@{mapset}" if mapset and "@" not in output_name else output_name
+    )
+    cmd = [
+        "i.hyper.import",
+        f"input={shlex.quote(nc)}",
+        "product=emit",
+        f"output={output_name}",
+        f"strength={strength_val}",
+    ]
+    if composites:
+        cmd.append(f"composites={','.join(composites)}")
+    if custom_wavelengths:
+        cmd.append("composites_custom=" + ",".join(str(v) for v in custom_wavelengths))
+    meta.add_history_entry(
+        command=" ".join(cmd),
+        inputs=[],
+        outputs=[{"id": meta.dataset_id, "map_name": out_full}],
+    )
+    meta.save(output_name, save_region=True)
+
+
 # -------------------------- core import --------------------------
 
 
@@ -372,7 +455,9 @@ def import_emit(
         bool(np.isfinite(data[:, :, k]).any()) for k in range(data.shape[2])
     ]
 
-    combined_validity = [bool(source_good[k]) and bool(band_validity[k]) for k in range(data.shape[2])]
+    combined_validity = [
+        bool(source_good[k]) and bool(band_validity[k]) for k in range(data.shape[2])
+    ]
     if not any(combined_validity):
         gs.fatal("No non-NULL bands found.")
 
@@ -451,10 +536,7 @@ def import_emit(
         r0 = np.floor(fy).astype(np.int64)
         dc = fx - c0
         dr = fy - r0
-        inb = (
-            (c0 >= 0) & (c0 + 1 < t_cols) & (r0 >= 0) & (r0 + 1 < t_rows)
-            & finite
-        )
+        inb = (c0 >= 0) & (c0 + 1 < t_cols) & (r0 >= 0) & (r0 + 1 < t_rows) & finite
         i_inb = np.where(inb)[0]
         splat_plan = {
             "rows": t_rows,
@@ -469,21 +551,26 @@ def import_emit(
             "w_ll": (dr * (1 - dc))[i_inb],
             "w_lr": (dr * dc)[i_inb],
         }
-        gs.info(
-            f"Built splat plan: {t_rows}x{t_cols} ({t_rows*t_cols} cells)"
-        )
+        gs.info(f"Built splat plan: {t_rows}x{t_cols} ({t_rows * t_cols} cells)")
         Module(
             "g.region",
-            w=t_west, e=t_east, s=t_south, n=t_north,
-            rows=t_rows, cols=t_cols,
+            w=t_west,
+            e=t_east,
+            s=t_south,
+            n=t_north,
+            rows=t_rows,
+            cols=t_cols,
             quiet=True,
         )
     else:
         Module(
             "g.region",
-            w=prod["west"], e=prod["east"],
-            s=prod["south"], n=prod["north"],
-            rows=prod["ortho_rows"], cols=prod["ortho_cols"],
+            w=prod["west"],
+            e=prod["east"],
+            s=prod["south"],
+            n=prod["north"],
+            rows=prod["ortho_rows"],
+            cols=prod["ortho_cols"],
             quiet=True,
         )
 
@@ -530,100 +617,39 @@ def import_emit(
 
     bands_total = int(data.shape[2])
     try:
-        reg2d = gs.region()
-        nsres2d = float(reg2d["nsres"])
-        ewres2d = float(reg2d["ewres"])
-        Module(
-            "g.region",
-            nsres3=nsres2d,
-            ewres3=ewres2d,
-            b=0,
-            t=bands_total,
-            tbres=1,
-            quiet=True,
-        )
-
-        cube = garray.array3d(dtype=np.float32)
-        for k in range(bands_total):
-            ortho2d = _orthorectify_band(
-                data[:, :, k], prod["glt_y"], prod["glt_x"]
-            )
-            if splat_plan is not None:
-                cube[k, :, :] = _splat_band(ortho2d)
-            else:
-                cube[k, :, :] = ortho2d
-
-        cube.write(mapname=f"{output_name}", null="nan", overwrite=True)
-        gs.info(
-            f"Created 3D raster with all bands: {output_name} ({bands_total} slices)."
-        )
-
+        _create_emit_3d_cube(data, prod, splat_plan, output_name, bands_total)
         try:
-            wavelengths_meta = source_wavelengths.tolist()
-            fwhm_meta = source_fwhm.tolist() if source_fwhm is not None else None
-            validity_meta = [bool(v) for v in combined_validity]
-
-            is_radiance = prod.get("data_key") == "radiance"
-            meta = HyperMetadata.for_spectral_data(
-                wavelengths=wavelengths_meta,
-                fwhm=fwhm_meta,
-                sensor="EMIT",
-                radiometric_quantity=(
-                    "at-sensor_radiance" if is_radiance else "surface_reflectance"
-                ),
-                radiometric_units=(
-                    "W/m^2/sr/nm" if is_radiance else "unitless (reflectance)"
-                ),
+            _build_emit_metadata(
+                source_wavelengths,
+                source_fwhm,
+                combined_validity,
+                prod,
+                output_name,
+                nc,
+                strength_val,
+                composites,
+                custom_wavelengths,
             )
-            meta.set_validity(validity_meta)
-
-            _populate_emit_extended_metadata(
-                meta=meta,
-                prod=prod,
-                wavelengths_meta=wavelengths_meta,
-                fwhm_meta=fwhm_meta,
-                validity_meta=validity_meta,
-            )
-
-            mapset = gs.gisenv().get("MAPSET", "")
-            out_full = (
-                f"{output_name}@{mapset}"
-                if mapset and "@" not in output_name
-                else output_name
-            )
-            cmd = [
-                "i.hyper.import",
-                f"input={shlex.quote(nc)}",
-                "product=emit",
-                f"output={output_name}",
-                f"strength={strength_val}",
-            ]
-            if composites:
-                cmd.append(f"composites={','.join(composites)}")
-            if custom_wavelengths:
-                cmd.append(
-                    "composites_custom=" + ",".join(str(v) for v in custom_wavelengths)
-                )
-            meta.add_history_entry(
-                command=" ".join(cmd),
-                inputs=[],
-                outputs=[{"id": meta.dataset_id, "map_name": out_full}],
-            )
-            meta.save(output_name, save_region=True)
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
     except Exception as e:
         gs.warning(f"3D cube creation failed: {e}")
 
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in rgb_target]
+    rgb_indices_1b = [
+        valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+        for w in rgb_target
+    ]
     for idx1 in rgb_indices_1b:
         ensure_band_written(idx1)
     ref_map = next(iter({i: temp_bands[i] for i in rgb_indices_1b}.values()))
     Module("g.region", raster=ref_map, quiet=True)
 
     for name, targets in wanted:
-        bands_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in targets]
+        bands_1b = [
+            valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+            for w in targets
+        ]
         maps = []
         for idx1 in bands_1b:
             maps.append(

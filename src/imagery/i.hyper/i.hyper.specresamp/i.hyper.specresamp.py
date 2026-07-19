@@ -320,12 +320,8 @@ def main():
 
     # ── info mode ──────────────────────────────────────────────────
     n_out = len(out_wl)
-    gs.message(
-        f"Input:  {inmap} ({n_in} bands, {in_min:.1f}–{in_max:.1f} nm)"
-    )
-    gs.message(
-        f"Output: {outmap} ({n_out} bands, {out_wl[0]:.1f}–{out_wl[-1]:.1f} nm)"
-    )
+    gs.message(f"Input:  {inmap} ({n_in} bands, {in_min:.1f}–{in_max:.1f} nm)")
+    gs.message(f"Output: {outmap} ({n_out} bands, {out_wl[0]:.1f}–{out_wl[-1]:.1f} nm)")
     gs.message(f"Method: {method}")
     if method == "gaussian" and fwhm_for_kernel is not None:
         if isinstance(fwhm_for_kernel, np.ndarray):
@@ -337,8 +333,7 @@ def main():
             gs.message(f"FWHM:   {fwhm_for_kernel:.2f} nm")
     if n_clipped > 0:
         gs.warning(
-            f"{n_clipped} output wavelength(s) outside input range "
-            f"and will be omitted."
+            f"{n_clipped} output wavelength(s) outside input range and will be omitted."
         )
     if info_only:
         return

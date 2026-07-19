@@ -81,14 +81,14 @@ spacing). These FWHM values are typical of the EnMAP sensor
 i.hyper.specresamp input=prisma reference=enmap -i -v
 ```
 
-### Linear interpolation
+### Example: Linear interpolation
 
 ```bash
 i.hyper.specresamp input=prisma reference=enmap \
     output=prisma_enmap_linear method=linear
 ```
 
-### Nearest neighbour
+### Example: Nearest neighbour
 
 ```bash
 i.hyper.specresamp input=prisma reference=enmap \

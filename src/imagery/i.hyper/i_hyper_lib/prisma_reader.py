@@ -587,7 +587,7 @@ def load_prisma_l2d(product_path, load_pan=False):
 
 def get_prisma_proj_info(product_path):
     """Return CRS/spatial info dict for a PRISMA product.
-    
+
     L2D → grid layout: SRID, west/south/east/north, rows/cols, ewres/nsres.
     L2C/L1 → swath layout: SRID=EPSG:4326, Center, optional Corners, rows/cols.
     """
@@ -627,8 +627,16 @@ def get_prisma_proj_info(product_path):
             else:
                 south = north = None
 
-            ewres = (east - west) / cols if (east is not None and west is not None and cols and cols > 0) else None
-            nsres = (north - south) / rows if (north is not None and south is not None and rows and rows > 0) else None
+            ewres = (
+                (east - west) / cols
+                if (east is not None and west is not None and cols and cols > 0)
+                else None
+            )
+            nsres = (
+                (north - south) / rows
+                if (north is not None and south is not None and rows and rows > 0)
+                else None
+            )
 
             return {
                 "product_type": product_type,
@@ -738,6 +746,8 @@ def concatenate_hyperspectral(product):
     refl = refl[:, :, order]
 
     return refl, wavelengths, fwhm, validity
+
+
 def _open_prisma_h5(product_path):
     try:
         return h5py.File(product_path, "r")

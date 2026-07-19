@@ -123,9 +123,7 @@ def gaussian_weight_matrix(
     return w
 
 
-def resample_gaussian(
-    spectra: np.ndarray, weight_matrix: np.ndarray
-) -> np.ndarray:
+def resample_gaussian(spectra: np.ndarray, weight_matrix: np.ndarray) -> np.ndarray:
     """Apply pre‑computed Gaussian weight matrix.
 
     Parameters
@@ -183,9 +181,7 @@ def resample_nearest(
 
     Each output band takes the value of the input band closest in wavelength.
     """
-    idx = np.argmin(
-        np.abs(in_wl[np.newaxis, :] - out_wl[:, np.newaxis]), axis=1
-    )
+    idx = np.argmin(np.abs(in_wl[np.newaxis, :] - out_wl[:, np.newaxis]), axis=1)
     return spectra[:, idx]
 
 

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD013 MD040 MD060 MD046 MD024 -->
+
 # i.hyper.atcorr
 
 > **GitHub**: <https://github.com/yannchemin/i.hyper.atcorr>
@@ -273,6 +275,7 @@ i.hyper.atcorr -u -r \
 ```
 
 Runs with:
+
 - Per-pixel AOD from MAIAC, H₂O from MOD05, Gaussian-smoothed at σ=3 px
 - Adjacency correction with 1 km PSF (auto pixel size from region)
 - Surface prior MAP regularisation
@@ -514,7 +517,7 @@ Typical size: ~4 MB for 6 AOD × 5 H₂O × 211 wavelengths.
 ## Subtree dependency
 
 [libsixsv/](libsixsv/) is vendored from
-https://github.com/YannChemin/libsixsv via **git subtree**.
+<https://github.com/YannChemin/libsixsv> via **git subtree**.
 To pull upstream changes:
 
     git subtree pull --prefix src/imagery/i.hyper/i.hyper.atcorr/libsixsv \

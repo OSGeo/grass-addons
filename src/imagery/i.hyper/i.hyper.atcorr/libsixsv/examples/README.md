@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # lib6sv — API Examples
 
 Side-by-side C and Python examples covering every major feature of lib6sv.
@@ -52,6 +53,7 @@ LIB_SIXSV=/path/to/libsixsv.so python3 01_basic_lut.py
 ```
 
 The search order for the library is:
+
 1. `$LIB_SIXSV` environment variable (if set and the file exists)
 2. `../testsuite/libsixsv.so` relative to the script location
 
@@ -873,6 +875,7 @@ DASF      ← Canopy structure from 710–790 nm NIR plateau
 ```
 
 Run:
+
 ```sh
 # C
 make 06_full_pipeline && ./06_full_pipeline

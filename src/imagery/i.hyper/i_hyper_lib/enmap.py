@@ -248,7 +248,9 @@ def _enmap_radiometry_from_metadata(root, level):
         "L2A": [".//product/image/merge/format"],
     }
     declared_formats = [root.findtext(path) for path in format_paths.get(level, [])]
-    formats = [text.strip().lower() for text in declared_formats if text and text.strip()]
+    formats = [
+        text.strip().lower() for text in declared_formats if text and text.strip()
+    ]
 
     quantities = []
     for text in formats:
@@ -258,13 +260,17 @@ def _enmap_radiometry_from_metadata(root, level):
             quantities.append(("surface_reflectance", "unitless"))
 
     if formats and len(formats) != len(declared_formats):
-        raise ValueError("EnMAP metadata has incomplete radiometric format declarations.")
+        raise ValueError(
+            "EnMAP metadata has incomplete radiometric format declarations."
+        )
     if formats and len(quantities) != len(formats):
         raise ValueError("EnMAP metadata has an unrecognized radiometric format.")
 
     if quantities:
         if any(quantity != quantities[0] for quantity in quantities[1:]):
-            raise ValueError("EnMAP metadata contains inconsistent radiometric formats.")
+            raise ValueError(
+                "EnMAP metadata contains inconsistent radiometric formats."
+            )
         quantity, units = quantities[0]
     else:
         # Older metadata may omit the product image format. Keep a safe,
@@ -390,7 +396,9 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
                     }
                 )
 
-    band_entries.sort(key=lambda item: band_data[item["global_band"]].get("wavelength") or 0)
+    band_entries.sort(
+        key=lambda item: band_data[item["global_band"]].get("wavelength") or 0
+    )
     seen_global = set()
     for entry in band_entries:
         gid = entry["global_band"]
@@ -399,7 +407,9 @@ def parse_band_metadata(meta_xml_path, spectral_sources):
         seen_global.add(gid)
 
     source_bands = sorted({entry["global_band"] for entry in band_entries})
-    valid_source_bands = [band for band in source_bands if band_data[band].get("valid", 0) == 1]
+    valid_source_bands = [
+        band for band in source_bands if band_data[band].get("valid", 0) == 1
+    ]
     invalid_gains = [
         band
         for band in valid_source_bands
@@ -1257,7 +1267,7 @@ def _warp_to_northup_tif(input_path, workdir):
 
 def get_enmap_proj_info(folder):
     """Return CRS/spatial info dict for an EnMAP product.
-    
+
     L1C/L2A → grid layout: SRID, bounds, rows/cols, ewres/nsres.
     L1B      → local sensor geometry: SRID not available, CRS XY, rows/cols.
     """
@@ -1282,8 +1292,12 @@ def get_enmap_proj_info(folder):
             "east": float(bounds.right),
             "south": float(bounds.bottom),
             "north": float(bounds.top),
-            "ewres": float((bounds.right - bounds.left) / shape[1]) if shape[1] > 0 else None,
-            "nsres": float((bounds.top - bounds.bottom) / shape[0]) if shape[0] > 0 else None,
+            "ewres": float((bounds.right - bounds.left) / shape[1])
+            if shape[1] > 0
+            else None,
+            "nsres": float((bounds.top - bounds.bottom) / shape[0])
+            if shape[0] > 0
+            else None,
             "import_behavior": "Imports the data in image geometry, reorients and resamples the VNIR and SWIR detector rasters to a common axis-aligned raster layout, maps the detector bands to the global EnMAP band order, and stacks them into a single cube. The data are not projected onto a map grid or orthorectified, and the product RPCs are not applied.",
             "project_requirements": "Use a GRASS project with a generic Cartesian coordinate system (XY).",
         }
@@ -1357,7 +1371,10 @@ def import_enmap(
 
     wavelengths = []
     band_names = []
-    validity_meta = [bool(band_meta[entry["global_band"]].get("valid", 0)) for entry in source_entries]
+    validity_meta = [
+        bool(band_meta[entry["global_band"]].get("valid", 0))
+        for entry in source_entries
+    ]
     valid_band_numbers = [entry["global_band"] for entry in valid_entries]
     valid_band_names = {}
     for entry in valid_entries:
@@ -1380,7 +1397,9 @@ def import_enmap(
         gs.fatal("No valid bands after XML-based selection.")
 
     gs.use_temp_region()
-    Module("g.region", raster=valid_band_names[valid_entries[0]["global_band"]], quiet=True)
+    Module(
+        "g.region", raster=valid_band_names[valid_entries[0]["global_band"]], quiet=True
+    )
 
     for entry in source_entries:
         b = entry["global_band"]
@@ -1409,7 +1428,9 @@ def import_enmap(
             units="nm",
             source1=f"Wavelength: {meta['wavelength']} nm",
             source2=f"FWHM: {meta['fwhm']} nm",
-            description="Validated band" if band_meta[b].get("valid", 0) == 1 else "Invalid band (NULL slice)",
+            description="Validated band"
+            if band_meta[b].get("valid", 0) == 1
+            else "Invalid band (NULL slice)",
             quiet=True,
         )
 
@@ -1423,8 +1444,13 @@ def import_enmap(
         for comp in composites:
             if comp not in COMPOSITES:
                 continue
-            bands = [find_nearest_band(wl, valid_wavelengths) for wl in COMPOSITES[comp]]
-            rgb_maps = [rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]]) for b in bands]
+            bands = [
+                find_nearest_band(wl, valid_wavelengths) for wl in COMPOSITES[comp]
+            ]
+            rgb_maps = [
+                rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]])
+                for b in bands
+            ]
             if comp.upper() == "RGB":
                 Module(
                     "i.colors.enhance",
@@ -1460,7 +1486,10 @@ def import_enmap(
         custom_indices = [
             find_nearest_band(wl, valid_wavelengths) for wl in custom_wavelengths
         ]
-        custom_maps = [rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]]) for b in custom_indices]
+        custom_maps = [
+            rgb_enhanced.get(b, valid_band_names[valid_band_numbers[b - 1]])
+            for b in custom_indices
+        ]
         Module(
             "i.colors.enhance",
             red=custom_maps[0],

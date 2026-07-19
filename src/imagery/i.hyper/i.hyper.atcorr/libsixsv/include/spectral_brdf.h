@@ -1,6 +1,7 @@
 /**
  * \file spectral_brdf.h
- * \brief Hyperspectral BRDF utilities: MCD43 disaggregation + Tikhonov smoothing.
+ * \brief Hyperspectral BRDF utilities: MCD43 disaggregation + Tikhonov
+ * smoothing.
  *
  * Provides tools to disaggregate coarse MODIS MCD43A1 kernel weights (7 bands)
  * to full hyperspectral wavelength grids (200+ bands) using piecewise-linear
@@ -8,7 +9,8 @@
  * smoothing.
  *
  * References:
- *   - Queally, N. et al. (2022) FlexBRDF, JGR Biogeosciences 127, e2021JG006545.
+ *   - Queally, N. et al. (2022) FlexBRDF, JGR Biogeosciences 127,
+ * e2021JG006545.
  *   - Garcia-Beltran et al. (2024) HABA, Remote Sens. 16, 1405.
  *   - Schaaf, C.B. et al. (2002) MCD43 BRDF/Albedo. RSE 83:135-148.
  *   - Tikhonov, A.N. & Arsenin, V.Y. (1977) Solutions of Ill-Posed Problems.
@@ -25,7 +27,8 @@ extern "C" {
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MODIS MCD43 reference wavelengths
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /** \brief MODIS MCD43 band centre wavelengths [µm], 7 bands.
  *
@@ -36,7 +39,8 @@ extern const float MODIS_WL_UM[7];
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * Tikhonov second-difference spectral smoother
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
  * \brief Tikhonov second-difference spectral smoother (in-place).
@@ -51,16 +55,19 @@ extern const float MODIS_WL_UM[7];
  *
  * \param[in,out] f     Float array of length \p n; overwritten with solution.
  * \param[in]     n     Number of spectral samples.
- * \param[in]     alpha Regularization strength (0.0 = no smoothing; ~0.1 typical).
+ * \param[in]     alpha Regularization strength (0.0 = no smoothing; ~0.1
+ * typical).
  */
 void spectral_smooth_tikhonov(float *f, int n, float alpha);
 
 /* ═══════════════════════════════════════════════════════════════════════════
  * MCD43 7-band → hyperspectral disaggregation
- * ═══════════════════════════════════════════════════════════════════════════ */
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 /**
- * \brief Disaggregate 7-band MCD43 kernel weights to \p n_wl target wavelengths.
+ * \brief Disaggregate 7-band MCD43 kernel weights to \p n_wl target
+ * wavelengths.
  *
  * Algorithm:
  *   1. Piecewise-linear interpolation between the 7 MCD43 anchor wavelengths
@@ -79,9 +86,10 @@ void spectral_smooth_tikhonov(float *f, int n, float alpha);
  * \param[out] fvol_wl Caller-allocated float[n_wl]; disaggregated f_vol.
  * \param[out] fgeo_wl Caller-allocated float[n_wl]; disaggregated f_geo.
  */
-void mcd43_disaggregate(const float *fiso_7, const float *fvol_7, const float *fgeo_7,
-                         const float *wl_target, int n_wl, float alpha,
-                         float *fiso_wl, float *fvol_wl, float *fgeo_wl);
+void mcd43_disaggregate(const float *fiso_7, const float *fvol_7,
+                        const float *fgeo_7, const float *wl_target, int n_wl,
+                        float alpha, float *fiso_wl, float *fvol_wl,
+                        float *fgeo_wl);
 
 #ifdef __cplusplus
 }

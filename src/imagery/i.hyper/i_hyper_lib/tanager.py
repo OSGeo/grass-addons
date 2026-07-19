@@ -678,14 +678,20 @@ def import_tanager(
 
     # -------------------------- composites --------------------------
     rgb_target = COMPOSITES["rgb"]
-    rgb_indices_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in rgb_target]
+    rgb_indices_1b = [
+        valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+        for w in rgb_target
+    ]
     for idx1 in rgb_indices_1b:
         ensure_band_written(idx1)
     ref_map = next(iter({i: temp_bands[i] for i in rgb_indices_1b}.values()))
     Module("g.region", raster=ref_map, quiet=True)
 
     for name, targets in wanted:
-        bands_1b = [valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)] for w in targets]
+        bands_1b = [
+            valid_band_indices[_find_nearest_band_1based(w, valid_wavelengths)]
+            for w in targets
+        ]
         maps = []
         for idx1 in bands_1b:
             maps.append(

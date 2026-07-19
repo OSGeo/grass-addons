@@ -89,7 +89,7 @@ PRODUCT_MODULE_MAP = {
     "enmap": "enmap",
     "prisma": "prisma",
     "tanager": "tanager",
-    "emit" : "emit"
+    "emit": "emit",
 }
 
 

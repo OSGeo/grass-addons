@@ -10,14 +10,15 @@
 
 /* Maximum intervals per band */
 #define GAS_MAX_INTERVALS 256
-#define GAS_NBANDS 6
+#define GAS_NBANDS        6
 
 /* Flat table per gas/band: gas_table_wava[band-1][interval][coef] */
-extern const float gas_acr_wava[6][256][8];  /* gas_id=1 */
-extern const float gas_acr_dica[6][256][8];  /* gas_id=2 */
-extern const float gas_acr_oxyg[6][256][8];  /* gas_id=3 */
-extern const float gas_acr_niox[6][256][8];  /* gas_id=5 */
-extern const float gas_acr_meth[6][256][8];  /* gas_id=6 */
-extern const float gas_acr_moca[6][256][8];  /* gas_id=7 */
-extern const float gas_co3_ozon[102];  /* ozone abs cross-section (13000-27500 cm-1) */
-extern const float gas_cch2o[15];  /* H2O continuum (2350-3000 cm-1) */
+extern const float gas_acr_wava[6][256][8]; /* gas_id=1 */
+extern const float gas_acr_dica[6][256][8]; /* gas_id=2 */
+extern const float gas_acr_oxyg[6][256][8]; /* gas_id=3 */
+extern const float gas_acr_niox[6][256][8]; /* gas_id=5 */
+extern const float gas_acr_meth[6][256][8]; /* gas_id=6 */
+extern const float gas_acr_moca[6][256][8]; /* gas_id=7 */
+extern const float
+    gas_co3_ozon[102]; /* ozone abs cross-section (13000-27500 cm-1) */
+extern const float gas_cch2o[15]; /* H2O continuum (2350-3000 cm-1) */

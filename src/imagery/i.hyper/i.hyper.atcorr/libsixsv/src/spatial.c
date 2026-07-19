@@ -32,29 +32,32 @@
  * running average; if all neighbours are NaN the input value is copied as-is.
  *
  * \param[in]  data         Input raster, row-major, size nrows × ncols.
- * \param[out] out          Output raster (same dimensions); must not alias \c data.
+ * \param[out] out          Output raster (same dimensions); must not alias \c
+ * data.
  * \param[in]  nrows        Number of rows.
  * \param[in]  ncols        Number of columns.
  * \param[in]  filter_half  Half-width of the box window in pixels.
  *                          If < 1, \c data is copied to \c out unchanged.
  */
-void spatial_box_filter(const float *data, float *out,
-                        int nrows, int ncols, int filter_half)
+void spatial_box_filter(const float *data, float *out, int nrows, int ncols,
+                        int filter_half)
 {
     if (filter_half < 1) {
         memcpy(out, data, (size_t)nrows * ncols * sizeof(float));
         return;
     }
 
-    size_t N   = (size_t)nrows * ncols;
+    size_t N = (size_t)nrows * ncols;
     float *tmp = malloc(N * sizeof(float));
-    if (!tmp) return;
+    if (!tmp)
+        return;
 
     /* Two-pass separable filter.
      * With OpenMP target: data and out are mapped once; tmp stays on the
      * device between the two passes (map(alloc:) — no host copy needed). */
 #ifdef _OPENMP
-#pragma omp target data map(to: data[0:N]) map(from: out[0:N]) map(alloc: tmp[0:N])
+#pragma omp target data map(to : data[0 : N]) map(from : out[0 : N]) \
+    map(alloc : tmp[0 : N])
 #endif
     {
         /* ── Horizontal pass: data → tmp ── */
@@ -64,17 +67,21 @@ void spatial_box_filter(const float *data, float *out,
         for (int r = 0; r < nrows; r++) {
             for (int c = 0; c < ncols; c++) {
                 double sum = 0.0;
-                int    n   = 0;
+                int n = 0;
                 for (int k = -filter_half; k <= filter_half; k++) {
                     int cc = c + k;
-                    if (cc < 0)      cc = 0;
-                    if (cc >= ncols) cc = ncols - 1;
+                    if (cc < 0)
+                        cc = 0;
+                    if (cc >= ncols)
+                        cc = ncols - 1;
                     float v = data[r * ncols + cc];
-                    if (!isnan(v)) { sum += v; n++; }
+                    if (!isnan(v)) {
+                        sum += v;
+                        n++;
+                    }
                 }
-                tmp[r * ncols + c] = (n > 0)
-                    ? (float)(sum / n)
-                    : data[r * ncols + c];
+                tmp[r * ncols + c] =
+                    (n > 0) ? (float)(sum / n) : data[r * ncols + c];
             }
         }
 
@@ -85,17 +92,21 @@ void spatial_box_filter(const float *data, float *out,
         for (int r = 0; r < nrows; r++) {
             for (int c = 0; c < ncols; c++) {
                 double sum = 0.0;
-                int    n   = 0;
+                int n = 0;
                 for (int k = -filter_half; k <= filter_half; k++) {
                     int rr = r + k;
-                    if (rr < 0)      rr = 0;
-                    if (rr >= nrows) rr = nrows - 1;
+                    if (rr < 0)
+                        rr = 0;
+                    if (rr >= nrows)
+                        rr = nrows - 1;
                     float v = tmp[rr * ncols + c];
-                    if (!isnan(v)) { sum += v; n++; }
+                    if (!isnan(v)) {
+                        sum += v;
+                        n++;
+                    }
                 }
-                out[r * ncols + c] = (n > 0)
-                    ? (float)(sum / n)
-                    : tmp[r * ncols + c];
+                out[r * ncols + c] =
+                    (n > 0) ? (float)(sum / n) : tmp[r * ncols + c];
             }
         }
     }
@@ -111,21 +122,25 @@ void spatial_box_filter(const float *data, float *out,
  * clamped at 3σ.  NaN pixels are excluded from each kernel evaluation; if
  * all contributing pixels are NaN the output is set to 0.
  *
- * \param[in,out] data    Raster to filter in-place, row-major, size nrows × ncols.
+ * \param[in,out] data    Raster to filter in-place, row-major, size nrows ×
+ * ncols.
  * \param[in]     nrows   Number of rows.
  * \param[in]     ncols   Number of columns.
  * \param[in]     sigma   Gaussian standard deviation in pixels.  No-op if ≤ 0.
  */
 void spatial_gaussian_filter(float *data, int nrows, int ncols, float sigma)
 {
-    if (sigma <= 0.0f) return;
+    if (sigma <= 0.0f)
+        return;
 
     int radius = (int)(3.0f * sigma + 0.5f);
-    if (radius < 1) radius = 1;
+    if (radius < 1)
+        radius = 1;
     int ksize = 2 * radius + 1;
 
     float *kernel = malloc(ksize * sizeof(float));
-    if (!kernel) return;
+    if (!kernel)
+        return;
 
     /* Build normalised Gaussian kernel */
     float ksum = 0.0f;
@@ -134,17 +149,22 @@ void spatial_gaussian_filter(float *data, int nrows, int ncols, float sigma)
         kernel[k + radius] = v;
         ksum += v;
     }
-    for (int k = 0; k < ksize; k++) kernel[k] /= ksum;
+    for (int k = 0; k < ksize; k++)
+        kernel[k] /= ksum;
 
-    size_t N   = (size_t)nrows * ncols;
+    size_t N = (size_t)nrows * ncols;
     float *tmp = malloc(N * sizeof(float));
-    if (!tmp) { free(kernel); return; }
+    if (!tmp) {
+        free(kernel);
+        return;
+    }
 
     /* Two-pass separable filter.
      * data is mapped tofrom (modified in-place); kernel is read-only (to);
      * tmp stays on the device between passes (alloc). */
 #ifdef _OPENMP
-#pragma omp target data map(tofrom: data[0:N]) map(to: kernel[0:ksize]) map(alloc: tmp[0:N])
+#pragma omp target data map(tofrom : data[0 : N]) map(to : kernel[0 : ksize]) \
+    map(alloc : tmp[0 : N])
 #endif
     {
         /* ── Horizontal pass: data → tmp ── */
@@ -156,16 +176,19 @@ void spatial_gaussian_filter(float *data, int nrows, int ncols, float sigma)
                 float val = 0.0f, w = 0.0f;
                 for (int k = -radius; k <= radius; k++) {
                     int cc = c + k;
-                    if (cc < 0)      cc = 0;
-                    if (cc >= ncols) cc = ncols - 1;
+                    if (cc < 0)
+                        cc = 0;
+                    if (cc >= ncols)
+                        cc = ncols - 1;
                     float v = data[r * ncols + cc];
                     if (!isnan(v)) {
                         float kw = kernel[k + radius];
                         val += kw * v;
-                        w   += kw;
+                        w += kw;
                     }
                 }
-                tmp[r * ncols + c] = (w > 1e-6f) ? val / w : data[r * ncols + c];
+                tmp[r * ncols + c] =
+                    (w > 1e-6f) ? val / w : data[r * ncols + c];
             }
         }
 
@@ -178,16 +201,19 @@ void spatial_gaussian_filter(float *data, int nrows, int ncols, float sigma)
                 float val = 0.0f, w = 0.0f;
                 for (int k = -radius; k <= radius; k++) {
                     int rr = r + k;
-                    if (rr < 0)      rr = 0;
-                    if (rr >= nrows) rr = nrows - 1;
+                    if (rr < 0)
+                        rr = 0;
+                    if (rr >= nrows)
+                        rr = nrows - 1;
                     float v = tmp[rr * ncols + c];
                     if (!isnan(v)) {
                         float kw = kernel[k + radius];
                         val += kw * v;
-                        w   += kw;
+                        w += kw;
                     }
                 }
-                data[r * ncols + c] = (w > 1e-6f) ? val / w : tmp[r * ncols + c];
+                data[r * ncols + c] =
+                    (w > 1e-6f) ? val / w : tmp[r * ncols + c];
             }
         }
     }
