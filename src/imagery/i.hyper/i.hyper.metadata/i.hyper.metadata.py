@@ -148,19 +148,6 @@ def _get_raster_depth(map_name):
         gs.fatal(f"Failed to read 3D raster depth for '{map_name}': {error}")
 
 
-def _get_metadata_band_count(meta, map_name):
-    """Return the total number of bands described by metadata."""
-    count = meta.n_bands_source
-    if count is None:
-        gs.fatal(
-            f"Metadata for '{map_name}' does not define bands.count and cannot be copied"
-        )
-    try:
-        return int(count)
-    except (TypeError, ValueError) as error:
-        gs.fatal(f"Invalid bands.count in metadata for '{map_name}': {error}")
-
-
 def _get_copy_command():
     """Return the executed command line for history recording."""
     return os.environ.get("CMDLINE") or " ".join(sys.argv)
@@ -470,12 +457,12 @@ def _copy_metadata_from_other_cube(
         except Exception as error:
             gs.fatal(f"Failed to load existing target metadata for copy: {error}")
 
-    source_band_count = _get_metadata_band_count(source_meta, source_map)
+    source_depth = _get_raster_depth(source_map)
     target_depth = _get_raster_depth(target_map)
-    if target_depth != source_band_count:
+    if target_depth != source_depth:
         gs.fatal(
             f"Cannot copy metadata from '{source_map}' to '{target_map}': "
-            f"target raster depth is {target_depth}, but source metadata bands.count is {source_band_count}"
+            f"target raster depth is {target_depth}, but source raster depth is {source_depth}"
         )
 
     source_history = hyper_metadata_class._normalize_history_entries(
@@ -501,9 +488,7 @@ def _copy_metadata_from_other_cube(
                 "Copied metadata will keep that last local step unchanged."
             )
 
-    source_meta.dataset_id = str(
-        target_raw.get("dataset_id") or hyper_metadata_class.new_dataset_id()
-    )
+    source_meta.dataset_id = hyper_metadata_class.new_dataset_id()
     if record_history:
         source_meta.processing_history = source_history
         if target_last_step:
@@ -527,7 +512,7 @@ def _copy_metadata_from_other_cube(
             outputs=[
                 {
                     "map_name": target_map,
-                    **({"id": source_meta.dataset_id} if not target_last_step else {}),
+                    "id": source_meta.dataset_id,
                 }
             ],
         )

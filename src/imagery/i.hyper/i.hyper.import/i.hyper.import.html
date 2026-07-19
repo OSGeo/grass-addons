@@ -122,12 +122,17 @@
 </p>
 
 <p>
-  The <code>-n</code> flag records validity for represented source bands in
-  <code>bands.validity</code>, <code>bands.count</code>, and
-  <code>bands.count_valid</code>; it does not add invalid or all-NULL slices to
-  the cube. Consequently, <code>bands.count</code> can be greater than the
-  output cube depth. Product bands discarded before metadata construction,
-  such as PRISMA flag-zero wavelengths, are not represented.
+  Imported cubes preserve the full physical spectral axis. Bands rejected by
+  the provider or containing no usable data are written as all-NULL slices and
+  marked invalid in <code>bands.validity</code>. Consequently,
+  <code>bands.count</code> always matches the output cube depth, while
+  <code>bands.count_valid</code> records the number of usable bands.
+</p>
+
+<p>
+  The <code>-u</code> flag updates the computational region to match the
+  imported 3D raster after a successful import. Without <code>-u</code>, the
+  original region is restored after import.
 </p>
 
 <p>
@@ -148,9 +153,8 @@
 </p>
 
 <p>
-  Composite channels use the nearest retained wavelengths. EnMAP creates
-  predefined composites only when <em>composites</em> is specified. PRISMA and
-  Tanager create RGB by default when <em>composites</em> is omitted.
+  Composite channels use the nearest retained wavelengths and are created only
+  when <em>composites</em> or <em>composites_custom</em> is specified.
   <em>composites_custom</em> must contain exactly three wavelengths. Temporary
   rasters are removed after a successful import.
 </p>
@@ -158,7 +162,8 @@
 <p>
   During import, <em>i.hyper.import</em> temporarily adjusts the computational
   region to match the input data, ensuring consistent alignment between imported
-  bands. On successful completion, the previous region is restored.
+  bands. On successful completion, the previous region is restored unless
+  <code>-u</code> is used.
 </p>
 
 <p>

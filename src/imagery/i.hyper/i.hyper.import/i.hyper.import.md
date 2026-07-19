@@ -98,11 +98,14 @@ The `-p` flag prints dataset spatial reference information together with
 *i.hyper.import* behavior and GRASS project requirements, then exits
 without importing.
 
-The `-n` flag records validity for represented source bands in
-`bands.validity`, `bands.count`, and `bands.count_valid`; it does not add
-invalid or all-NULL slices to the cube. Consequently, `bands.count` can be
-greater than the output cube depth. Product bands discarded before metadata
-construction, such as PRISMA flag-zero wavelengths, are not represented.
+Imported cubes preserve the full physical spectral axis. Bands rejected by the
+provider or containing no usable data are written as all-NULL slices and marked
+as invalid in `bands.validity`. Consequently, `bands.count` always matches the
+output cube depth, while `bands.count_valid` records the number of usable bands.
+
+The `-u` flag updates the computational region to match the imported 3D
+raster after a successful import. Without `-u`, the original region is
+restored after import.
 
 Imported datasets are written with metadata key `derived=false`. Datasets
 produced later by processing modules (for example *i.hyper.preproc*) are
@@ -115,15 +118,15 @@ branches (`extended_metadata.enmap`, `prisma`, `tanager`). Unified and
 product-native keys may contain the same value when a unified key is
 derived directly from a source product key.
 
-Composite channels use the nearest retained wavelengths. EnMAP creates
-predefined composites only when *composites* is specified. PRISMA and Tanager
-create RGB by default when *composites* is omitted. *composites_custom* must
-contain exactly three wavelengths. Temporary rasters are removed after a
+Composite channels use the nearest retained wavelengths and are created only
+when *composites* or *composites_custom* is specified. *composites_custom*
+must contain exactly three wavelengths. Temporary rasters are removed after a
 successful import.
 
 During import, *i.hyper.import* temporarily adjusts the computational
 region to match the input data, ensuring consistent alignment between
-imported bands. On successful completion, the previous region is restored.
+imported bands. On successful completion, the previous region is restored
+unless `-u` is used.
 
 *i.hyper.import* can also restore hyperspectral data directly from a
 native GRASS archive with `product=ihyper`. The input must be a

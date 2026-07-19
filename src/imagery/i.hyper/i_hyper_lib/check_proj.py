@@ -185,8 +185,7 @@ def check_import_allowed(product, path):
     if not product_srid or not current_srid or product_srid == current_srid:
         return
 
-    gs.fatal(
-        f"Product CRS '{product_srid}' does not match current GRASS project CRS '{current_srid}'.\n"
-        "Import into a different projected CRS is not supported for products that use an existing map grid.\n"
-        "Create or switch to a GRASS project with the matching CRS before import."
+    gs.warning(
+        f"Product CRS '{product_srid}' does not match current GRASS project CRS '{current_srid}'. "
+        "Proceeding with import despite CRS mismatch."
     )
