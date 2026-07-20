@@ -236,7 +236,20 @@ class HyperMetadata:
                 data, "bands"
             )
             if "bands" in data and isinstance(data.get("bands"), dict):
-                bands = data.get("bands", {})
+                bands = dict(data.get("bands", {}))
+                if bands.get("wavelength") is None:
+                    embedded = data.get("input_datasets_metadata")
+                    if isinstance(embedded, dict):
+                        for _iid in cls._direct_input_dataset_ids(data):
+                            _src = cls._resolve_dataset_data(_iid, embedded)
+                            if isinstance(_src, dict) and isinstance(
+                                _src.get("bands"), dict
+                            ):
+                                _src_bands = _src["bands"]
+                                _merged = dict(_src_bands)
+                                _merged.update(bands)
+                                bands = _merged
+                                break
             elif has_inherited_bands and isinstance(inherited_bands, dict):
                 bands = inherited_bands
             else:
