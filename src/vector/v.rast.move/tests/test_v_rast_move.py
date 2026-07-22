@@ -3,6 +3,7 @@
 import pytest
 
 import grass.script as gs
+from grass.exceptions import CalledModuleError
 
 
 def test_displacement_result(line_dataset):
@@ -61,7 +62,7 @@ def test_nulls_as_zeros(line_dataset):
 def test_nulls_fail(line_dataset):
     """Check that an error is generated for nulls"""
     result = "result_fails"
-    with pytest.raises(gs.CalledModuleError):
+    with pytest.raises(CalledModuleError):
         gs.run_command(
             "v.rast.move",
             input=line_dataset.name,
