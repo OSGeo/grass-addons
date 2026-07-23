@@ -126,8 +126,8 @@ int ram_process_streams(char **cat_list, CELL **streams, int number_of_streams,
             if (streams_cell > 0) {
                 if (outlets_num >= out_max) {
                     out_max *= 2;
-                    outlets = (OUTLET *)G_realloc(outlets,
-                                                  out_max * sizeof(OUTLET));
+                    outlets =
+                        (OUTLET *)G_realloc(outlets, out_max * sizeof(OUTLET));
                 }
 
                 dirs_cell = dirs[r][c];
@@ -215,8 +215,8 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
             if (streams_cell > 0) {
                 if (outlets_num >= out_max) {
                     out_max *= 2;
-                    outlets = (OUTLET *)G_realloc(outlets,
-                                                  out_max * sizeof(OUTLET));
+                    outlets =
+                        (OUTLET *)G_realloc(outlets, out_max * sizeof(OUTLET));
                 }
 
                 Segment_get(dirs, &dirs_cell, r, c);
