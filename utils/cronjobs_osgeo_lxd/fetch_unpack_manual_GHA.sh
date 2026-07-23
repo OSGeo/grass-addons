@@ -20,22 +20,65 @@
 GRASSSTABLE=85
 GRASSSDEVEL=86
 
-cd $HOME
+cd "$HOME" || exit 1
+
+# fetch the manual ZIP for one branch and unpack it into the given target
+# dirs; the existing manuals are only replaced once a complete, successful
+# extraction is available
+fetch_and_unpack () {
+  BRANCH=$1
+  shift
+  ZIP="/tmp/${BRANCH}.zip"
+
+  # fetch artifact; do not touch the existing manuals if the download failed
+  # (e.g. "gh: Artifact has expired (HTTP 410)")
+  if ! bash /home/neteler/cronjobs/gh_cli_download_artifact.sh "$BRANCH"; then
+    echo "ERROR: Artifact download for <$BRANCH> failed, keeping existing manuals."
+    return 1
+  fi
+
+  # verify the ZIP before deleting anything (guards against truncated
+  # downloads and error bodies saved as file content)
+  if [ ! -s "$ZIP" ] || ! unzip -tq "$ZIP" > /dev/null; then
+    echo "ERROR: <$ZIP> is missing or not a valid ZIP archive, keeping existing manuals."
+    return 1
+  fi
+
+  # unpack into a staging directory first
+  STAGING=$(mktemp -d "/tmp/${BRANCH}.XXXXXX")
+  if ! unzip -q "$ZIP" -d "$STAGING"; then
+    echo "ERROR: Failed to unpack <$ZIP>, keeping existing manuals."
+    rm -rf "$STAGING"
+    return 1
+  fi
+
+  for TARGET in "$@"; do
+    rm -rf "${TARGET:?}"/* && cp -a "$STAGING"/. "$TARGET"/
+  done
+
+  # cleanup staging directory and artifact file
+  rm -rf "$STAGING"
+  rm -f "$ZIP"
+  return 0
+}
+
+STATUS=0
+
 # fetch artifact stable
 echo "## Processing grass${GRASSSTABLE} / grass-stable manual pages..."
-bash /home/neteler/cronjobs/gh_cli_download_artifact.sh releasebranch_8_5
 # unpack stable-version: due to the needed SEO meta canonical injection we keep it "duplicated"
-cd /var/www/code_and_data/grass${GRASSSTABLE}/manuals/ && rm -rf * && unzip -q /tmp/releasebranch_8_5.zip
-cd /var/www/code_and_data/grass-stable/manuals/ && rm -rf * && unzip -q /tmp/releasebranch_8_5.zip
+fetch_and_unpack releasebranch_8_5 \
+  /var/www/code_and_data/grass${GRASSSTABLE}/manuals \
+  /var/www/code_and_data/grass-stable/manuals || STATUS=1
 
 ####
 
 # fetch artifact devel
 echo "## Processing grass${GRASSSDEVEL} / grass-devel manual pages..."
-bash /home/neteler/cronjobs/gh_cli_download_artifact.sh main
 # unpack devel-version: due to the needed SEO meta canonical injection we keep it "duplicated"
-cd /var/www/code_and_data/grass${GRASSSDEVEL}/manuals/ && rm -rf * && unzip -q /tmp/main.zip
-cd /var/www/code_and_data/grass-devel/manuals/ && rm -rf * && unzip -q /tmp/main.zip
+fetch_and_unpack main \
+  /var/www/code_and_data/grass${GRASSSDEVEL}/manuals \
+  /var/www/code_and_data/grass-devel/manuals || STATUS=1
 
 ####
 
@@ -45,5 +88,4 @@ chmod -R g+rw /var/www/code_and_data/grass${GRASSSTABLE}/manuals/* \
               /var/www/code_and_data/grass${GRASSSDEVEL}/manuals/* \
               /var/www/code_and_data/grass-devel/manuals/*
 
-# cleanup the artifact file
-rm -f /tmp/releasebranch_8_5.zip /tmp/main.zip
+exit $STATUS
