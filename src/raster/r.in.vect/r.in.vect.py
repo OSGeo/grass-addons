@@ -144,7 +144,6 @@ import atexit
 import os
 import sys
 import numpy as np
-from osgeo import ogr, gdal, osr
 import grass.script as gs
 
 clean_maps = []
@@ -330,6 +329,10 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat, wher
 
 def main(options, flags):
     global _temp_region_used
+    try:
+        from osgeo import ogr, gdal, osr  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("GDAL Python package is not installed."))
 
     ogr.UseExceptions()
 

@@ -57,8 +57,10 @@
 import sys
 import re
 import uuid
+import importlib.util
 import grass.script as gs
 from grass.pygrass.modules import Module
+from grass.script.utils import get_lib_path
 
 COMPOSITES = {
     "rgb": [660, 572, 478],
@@ -66,6 +68,28 @@ COMPOSITES = {
     "swir_agriculture": [848, 1653, 660],
     "swir_geology": [2200, 848, 572],
 }
+
+
+def _get_hyper_meta_class():
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        return None
+
+    if path not in sys.path:
+        sys.path.append(path)
+
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        return None
+    return module.HyperMetadata
 
 
 def _band_count(mapname):
@@ -76,50 +100,48 @@ def _band_count(mapname):
     return d
 
 
-def _band_wavelengths_from_comments(mapname, expected):
-    txt = gs.read_command("r3.info", map=mapname)
-    wavelengths = [None] * expected
-    num = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?"
-    pat = re.compile(
-        rf"Band\s+(\d+)\s*:\s*({num})\s*nm(?:,\s*FWHM:\s*({num})\s*nm)?", re.IGNORECASE
-    )
-    for line in txt.splitlines():
-        line = line.strip()
-        if line.startswith("|"):
-            line = line.strip("| ").rstrip("| ").strip()
-        m = pat.search(line)
-        if m:
-            idx = int(m.group(1))
-            if 1 <= idx <= expected:
-                wavelengths[idx - 1] = float(m.group(2))
+def _band_wavelengths(mapname, expected, hyper_meta_class):
+    if hyper_meta_class is None:
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
+
+    try:
+        meta = hyper_meta_class.load(mapname)
+    except Exception as error:
+        gs.fatal(f"Failed to read JSON metadata for {mapname}: {error}")
+
+    wl_arr = meta.get_wavelengths_array()
+    if wl_arr is None:
+        gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
+
+    wavelengths = [None if (w is None or w != w) else float(w) for w in wl_arr.tolist()]
+    if len(wavelengths) < expected:
+        gs.fatal(
+            f"Metadata wavelength count ({len(wavelengths)}) is lower than band count ({expected}) for {mapname}."
+        )
+
+    wavelengths = wavelengths[:expected]
     if any(w is None for w in wavelengths):
         missing = [i + 1 for i, w in enumerate(wavelengths) if w is None]
         gs.fatal(
-            f"Missing wavelengths in r3.info comments for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
+            f"Missing JSON wavelengths for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
         )
-    return wavelengths
+
+    return [float(w) for w in wavelengths]
 
 
 def _explode_cube(cube, tmpbase):
     """Explode cube into 2D rasters using a temporary 3D region."""
-    Module("g.region", save="__tmp_orig_region__", quiet=True)
-    try:
-        Module("g.region", raster_3d=cube, quiet=True)
-        Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
-        maps = (
-            gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*")
-            .strip()
-            .split()
-        )
-        if not maps:
-            gs.fatal("No 2D rasters were produced by r3.to.rast")
-        maps.sort(key=lambda m: int(re.search(r"(\d+)$", m).group(1)))
-        return maps
-    finally:
-        Module("g.region", region="__tmp_orig_region__", quiet=True)
-        Module(
-            "g.remove", type="region", name="__tmp_orig_region__", flags="f", quiet=True
-        )
+    Module("g.region", raster_3d=cube, quiet=True)
+    Module("r3.to.rast", input=cube, output=tmpbase, overwrite=True, quiet=True)
+    maps = (
+        gs.read_command("g.list", type="raster", pattern=f"{tmpbase}*").strip().split()
+    )
+    if not maps:
+        gs.fatal("No 2D rasters were produced by r3.to.rast")
+    maps.sort(key=lambda m: int(re.search(r"(\d+)$", m).group(1)))
+    return maps
 
 
 def _nearest_index(target_nm, wavelengths):
@@ -128,6 +150,7 @@ def _nearest_index(target_nm, wavelengths):
 
 
 def _enhance_and_composite(r, g, b, outname, strength, rgb_preserve):
+    Module("g.region", raster=r, quiet=True)
     if rgb_preserve:
         Module(
             "i.colors.enhance",
@@ -193,18 +216,19 @@ def main():
     band_count = _band_count(cube)
     if band_count < 3:
         gs.fatal(f"{cube} contains only {band_count} band(s). Cannot build composites.")
-    wavelengths = _band_wavelengths_from_comments(cube, band_count)
+    hyper_meta_class = _get_hyper_meta_class()
+    wavelengths = _band_wavelengths(cube, band_count, hyper_meta_class)
 
     tmpbase = f"_ihc_{uuid.uuid4().hex[:8]}_b_"
-    maps = _explode_cube(cube, tmpbase)
-
-    if len(maps) != band_count:
-        gs.warning(
-            f"Expected {band_count} bands, got {len(maps)}. Using available maps only."
-        )
-        maps = maps[: min(len(maps), band_count)]
-
+    gs.use_temp_region()
     try:
+        maps = _explode_cube(cube, tmpbase)
+
+        if len(maps) != band_count:
+            gs.warning(
+                f"Expected {band_count} bands, got {len(maps)}. Using available maps only."
+            )
+            maps = maps[: min(len(maps), band_count)]
 
         def map_for_nm(nm):
             idx = _nearest_index(nm, wavelengths)
@@ -215,7 +239,7 @@ def main():
             r, g, b = map_for_nm(wl[0]), map_for_nm(wl[1]), map_for_nm(wl[2])
             outname = f"{outpref}_{comp.lower().replace('-', '_')}"
             _enhance_and_composite(
-                r, g, b, outname, strength, rgb_preserve=(comp == "rgb")
+                r, g, b, outname, strength, rgb_preserve=(comp.upper() == "RGB")
             )
             gs.info(f"Generated composite raster: {outname}")
 
@@ -231,6 +255,7 @@ def main():
 
     finally:
         Module("g.remove", type="raster", pattern="_ihc*", flags="f", quiet=True)
+        gs.del_temp_region()
 
 
 if __name__ == "__main__":

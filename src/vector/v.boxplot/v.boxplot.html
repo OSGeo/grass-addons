@@ -2,21 +2,50 @@
 
 <p>
 The <em>v.boxplot</em> module draws a boxplot of the values in a vector
-<b>map</b> attribute <b>column</b>. Users can use the
-<b>where</b> option to select a subset of the attribute table. Values
-in the column can also be grouped according to the categories in
-another column (<b>group_by</b>), creating separate boxplots for each
-group.
+<b>map</b> attribute <b>column</b>. Users can use the <b>where</b> option to
+select a subset of the attribute table. Values in the column can also be grouped
+according to the categories in another column (<b>group_by</b>), creating
+separate boxplots for each group.
+
+<h3>appearance</h3>
 
 <p>
-Options to customize the appearance of the plot include rotating the
-plot and x-axis labels, adding notches, removing outliers, and defining
-the colors of various boxplot components. By default, the resulting
-plot is displayed on the screen. However, users can save the plot to a
-file by specifying the desired width, height, and resolution. The
-format of the saved file is determined by the provided file extension.
-For example, if <tt>plot_output = outputfile.png</tt>, the plot will be
-saved as a PNG file.
+Options to customize the appearance of the plot include rotating the plot and
+x-axis labels, adding notches, removing outliers, and defining the colors of
+various boxplot components. By default, the resulting plot is displayed on the
+screen. However, users can save the plot to a file by specifying the desired
+width, height, and resolution. The format of the saved file is determined by the
+provided file extension. For example, if <tt>plot_output = outputfile.png</tt>,
+the plot will be saved as a PNG file.
+
+<h3>Outlier map</h3>
+
+<p>
+Setting outliers_map creates a vector map with only features whose
+column value is a boxplot outlier. With group_by, outliers are computed
+separately per group. The output keeps the original attributes and adds:
+
+<p>
+<ul>
+<li>side: <tt>low</tt> or <tt>high</tt> outlier.</li>
+<li>iqr_dist: signed distance beyond the relevant fence, in IQR units.</li>
+<li>n_overlap: number of other groups whose value range contains the outlier.</li>
+<li>GRASSRGB: color string; high outliers are red, low outliers blue. More
+  exceptional values are darker and more saturated.</li>
+</ul>
+
+<p>
+The overlap_basis defines the comparison range. With whisker, outliers are
+compared with other groups non-outlier range, between fences. With box,
+they are only compared with other groups interquartile range, Q1-Q3.
+
+<h2>NOTE</h2>
+
+The outlier map is created in addition to the plot; both are derived from the
+same selection, so the exported outliers always match those shown in the figure.
+If the selection contains no outliers, the map is not created and a warning is
+issued.
+
 
 <h2>EXAMPLE</h2>
 

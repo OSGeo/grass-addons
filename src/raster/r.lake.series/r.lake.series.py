@@ -86,13 +86,7 @@
 # % answer: minutes
 # % guisection: Time
 # %end
-# %option
-# % key: nproc
-# % type: integer
-# % label: Number of processes to run in parallel (currently ignored)
-# % required: no
-# % answer: 1
-# % options: 1-
+# %option G_OPT_M_NPROCS
 # %end
 # %flag
 # % key: n
@@ -111,17 +105,18 @@ Created on Tue Oct 15 21:18:00 2013
 @author: Vaclav Petras <wenzeslaus gmail.com>
 """
 
-# TODO: support parallel
 # TODO: generate SQL valid map names (replace decimal dot by underscore)
 # TODO: use numbers instead of water levels flag
 # TODO: remove unused functions
 
 import sys
 import decimal
+import os
 
 from grass.script import core as gcore
 import grass.temporal as tgis
 from grass.exceptions import CalledModuleError
+from concurrent.futures import ThreadPoolExecutor
 
 
 def format_time(time):
@@ -158,6 +153,44 @@ def remove_raster_maps(maps, quiet=False):
         gcore.run_command("g.remove", flags="f", type="raster", name=map_, quiet=quiet)
 
 
+def run_lake_task(args):
+    elevation, output, water_level, kwargs, flags, overwrite = args
+
+    try:
+        gcore.run_command(
+            "r.lake",
+            flags=flags,
+            elevation=elevation,
+            lake=output,
+            water_level=water_level,
+            overwrite=overwrite,
+            **kwargs,
+        )
+
+    except CalledModuleError as e:
+        # Show the error message
+        gcore.error(f"r.lake failed for output <{output}>: {e}")
+        return None
+    return output
+
+
+def _resolve_nprocs(nprocs):
+    """Resolve G_OPT_M_NPROCS into a worker count for ThreadPoolExecutor.
+
+    Mirrors the semantics of G_set_omp_num_threads() in
+    lib/gis/omp_threads.c: 0 means use all available cores, a positive
+    number is used as-is, a negative number means cpu_count + nprocs
+    (clamped to at least 1). Belongs in a library helper eventually.
+    """
+    nprocs = int(nprocs)
+    if nprocs > 0:
+        return nprocs
+    available = os.cpu_count()
+    if nprocs == 0:
+        return available
+    return max(1, available + nprocs)
+
+
 def main():
     options, flags = gcore.parser()
 
@@ -187,6 +220,8 @@ def main():
             _("Time step must be greater than zero. Please specify number > 0.")
         )
 
+    nprocs = options["nprocs"]
+
     mapset = gcore.gisenv()["MAPSET"]
     title = _("r.lake series")
     desctiption = _("r.lake series")
@@ -206,33 +241,36 @@ def main():
     if seed_raster:
         kwargs["seed"] = seed_raster
     elif coordinates:
-        kwargs["coordinates"] = coordinates
+        # Convert coordinates to a tuple for the module
+        try:
+            east, north = coordinates.split(",")
+            kwargs["coordinates"] = (float(east), float(north))
+        except Exception:
+            gcore.fatal(_("Coordinates must be 'east,north'"))
 
     if flags["n"]:
         pass_flags = "n"
     else:
-        pass_flags = None
+        pass_flags = ""
 
-    for i, water_level in enumerate(water_levels):
-        try:
-            gcore.run_command(
-                "r.lake",
-                flags=pass_flags,
-                elevation=elevation,
-                lake=outputs[i],
-                water_level=water_level,
-                overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                **kwargs,
-            )
-        except CalledModuleError:
-            # remove maps created so far, try to remove also i-th map
-            remove_raster_maps(outputs[:i], quiet=True)
-            gcore.fatal(
-                _(
-                    "r.lake command failed. Check above error messages."
-                    " Try different water levels or seed points."
-                )
-            )
+    tasks = [
+        (
+            elevation,
+            outputs[i],
+            water_level,
+            kwargs,
+            pass_flags,
+            gcore.overwrite(),
+        )
+        for i, water_level in enumerate(water_levels)
+    ]
+
+    use_cores = _resolve_nprocs(nprocs)
+
+    # Run tasks
+    with ThreadPoolExecutor(max_workers=use_cores) as executor:
+        outputs = [out for out in executor.map(run_lake_task, tasks) if out is not None]
+
     gcore.info(_("Registering created maps into temporal dataset..."))
 
     # Make sure the temporal database exists

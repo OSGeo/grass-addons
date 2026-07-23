@@ -3,7 +3,7 @@
 # Download "mkdocs-site" from the "documentation.yml" workflow runs
 # Script to be run on grass.osgeo.org
 #
-# (c) 2025, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# (c) 2025-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -28,13 +28,19 @@
 # - GitHub CLI api: https://cli.github.com/manual/gh_api
 # - GitHub workflow runs: https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow
 
+# branch parameter: "main" or "releasebranch_8_5"
+
+MYBRANCH=$1
+[ -z "$MYBRANCH" ] && MYBRANCH="main"
+
 # === Configuration ===
 OWNER="OSGeo"
 REPO="grass"
-REPO_LOCAL="$HOME/src/main/"
+#
+REPO_LOCAL="$HOME/src/$MYBRANCH/"       # e.g., neteler@grasslxd:~/src/main/ or ~/src/releasebranch_8_5/
 WORKFLOW_NAME="documentation.yml"  # or the workflow filename/id
 ARTIFACT_NAME="mkdocs-site" # the name of the artifact
-ZIP_OUTPUT="$ARTIFACT_NAME.zip"
+ZIP_OUTPUT="${MYBRANCH}.zip"  # must match the path expected by fetch_unpack_manual_GHA.sh
 OUTPUT_DIR="/tmp"
 
 # === Script ===
@@ -57,7 +63,7 @@ cd "$REPO_LOCAL" || exit 1
 echo "Identifying last successful workflow run for '$WORKFLOW_NAME'..."
 
 RUN_ID=$(gh run list \
-  --branch main \
+  --branch "$MYBRANCH" \
   --repo "$OWNER/$REPO" \
   --workflow "$WORKFLOW_NAME" \
   --status success \

@@ -9,48 +9,83 @@
 # requires: jq, gh cli and login via gh auth login
 #
 ###################################################################
-#
 # How this script works:
 #
 # to be run on grass.osgeo.org, in "neteler" or "grassbot" userspace
 # - executes gh_cli_download_artifact.sh
 # - unpacks the Documentation artifact both in grass85 and grass-devel dirs on the server
+#
 #########
 
-ZIP=/tmp/mkdocs-site.zip
+GRASSSTABLE=85
+GRASSSDEVEL=86
 
 cd "$HOME" || exit 1
-# fetch artifact; do not touch the existing manuals if the download failed
-# (e.g. "gh: Artifact has expired (HTTP 410)")
-if ! bash /home/neteler/cronjobs/gh_cli_download_artifact.sh; then
-  echo "ERROR: Artifact download failed, keeping existing manuals."
-  exit 1
-fi
 
-# verify the ZIP before deleting anything (guards against truncated
-# downloads and error bodies saved as file content)
-if [ ! -s "$ZIP" ] || ! unzip -tq "$ZIP" > /dev/null; then
-  echo "ERROR: <$ZIP> is missing or not a valid ZIP archive, keeping existing manuals."
-  exit 1
-fi
+# fetch the manual ZIP for one branch and unpack it into the given target
+# dirs; the existing manuals are only replaced once a complete, successful
+# extraction is available
+fetch_and_unpack () {
+  BRANCH=$1
+  shift
+  ZIP="/tmp/${BRANCH}.zip"
 
-# unpack into a staging directory first, so the live manuals are only
-# replaced once a complete, successful extraction is available
-STAGING=$(mktemp -d /tmp/mkdocs-site.XXXXXX)
-if ! unzip -q "$ZIP" -d "$STAGING"; then
-  echo "ERROR: Failed to unpack <$ZIP>, keeping existing manuals."
+  # fetch artifact; do not touch the existing manuals if the download failed
+  # (e.g. "gh: Artifact has expired (HTTP 410)")
+  if ! bash /home/neteler/cronjobs/gh_cli_download_artifact.sh "$BRANCH"; then
+    echo "ERROR: Artifact download for <$BRANCH> failed, keeping existing manuals."
+    return 1
+  fi
+
+  # verify the ZIP before deleting anything (guards against truncated
+  # downloads and error bodies saved as file content)
+  if [ ! -s "$ZIP" ] || ! unzip -tq "$ZIP" > /dev/null; then
+    echo "ERROR: <$ZIP> is missing or not a valid ZIP archive, keeping existing manuals."
+    return 1
+  fi
+
+  # unpack into a staging directory first
+  STAGING=$(mktemp -d "/tmp/${BRANCH}.XXXXXX")
+  if ! unzip -q "$ZIP" -d "$STAGING"; then
+    echo "ERROR: Failed to unpack <$ZIP>, keeping existing manuals."
+    rm -rf "$STAGING"
+    return 1
+  fi
+
+  for TARGET in "$@"; do
+    rm -rf "${TARGET:?}"/* && cp -a "$STAGING"/. "$TARGET"/
+  done
+
+  # cleanup staging directory and artifact file
   rm -rf "$STAGING"
-  exit 1
-fi
+  rm -f "$ZIP"
+  return 0
+}
 
-# update twice: number-version and devel-version
-for TARGET in /var/www/code_and_data/grass85/manuals /var/www/code_and_data/grass-devel/manuals; do
-  rm -rf "${TARGET:?}"/* && cp -a "$STAGING"/. "$TARGET"/
-done
-rm -rf "$STAGING"
+STATUS=0
 
-# if run as "neteler", let the grassbot user also write therein
-chmod -R g+rw /var/www/code_and_data/grass85/manuals/* /var/www/code_and_data/grass-devel/manuals/*
+# fetch artifact stable
+echo "## Processing grass${GRASSSTABLE} / grass-stable manual pages..."
+# unpack stable-version: due to the needed SEO meta canonical injection we keep it "duplicated"
+fetch_and_unpack releasebranch_8_5 \
+  /var/www/code_and_data/grass${GRASSSTABLE}/manuals \
+  /var/www/code_and_data/grass-stable/manuals || STATUS=1
 
-# cleanup the artifact file
-rm -f "$ZIP"
+####
+
+# fetch artifact devel
+echo "## Processing grass${GRASSSDEVEL} / grass-devel manual pages..."
+# unpack devel-version: due to the needed SEO meta canonical injection we keep it "duplicated"
+fetch_and_unpack main \
+  /var/www/code_and_data/grass${GRASSSDEVEL}/manuals \
+  /var/www/code_and_data/grass-devel/manuals || STATUS=1
+
+####
+
+# if run as "neteler", grant write access also to "grassbot" user
+chmod -R g+rw /var/www/code_and_data/grass${GRASSSTABLE}/manuals/* \
+              /var/www/code_and_data/grass-stable/manuals/* \
+              /var/www/code_and_data/grass${GRASSSDEVEL}/manuals/* \
+              /var/www/code_and_data/grass-devel/manuals/*
+
+exit $STATUS

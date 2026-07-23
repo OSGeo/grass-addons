@@ -7,6 +7,7 @@
         "github>OSGeo/grass:renovate.json5",
         "customManagers:biomeVersions",
     ],
+    "baseBranchPatterns": [ "$default" ],
 
     "packageRules": [
         {
@@ -15,6 +16,12 @@
                 "biomejs/pre-commit",
                 "@biomejs/biome",
             ],
+        },
+        {
+            "matchPackageNames": [ "OSGeo/grass" ],
+            "matchUpdateTypes": [ "pinDigest" ],
+            "matchDatasources": [ "github-digest" ],
+            "enabled": false,
         },
     ],
 }
