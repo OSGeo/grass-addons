@@ -121,6 +121,9 @@ You can use your favourite tools to change source code or other files
 in the local copy of the code. When making such changes, please follow the
 general [GRASS GIS Programming Style Guide](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md).
 
+If you use an AI assistant or agent, see [`AGENTS.md`](AGENTS.md) for
+project-specific instructions and conventions.
+
 ### Committing
 
 - Add files to the commit (changed ones or new ones):

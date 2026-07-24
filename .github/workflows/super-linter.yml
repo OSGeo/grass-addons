@@ -26,14 +26,14 @@ jobs:
       # To report GitHub Actions status checks
       statuses: write
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           # super-linter needs the full git history to get the
           # list of files that changed across commits
           fetch-depth: 0
           persist-credentials: false
       - name: Lint code base
-        uses: super-linter/super-linter@2bdd90ed3262e023ac84bf8fe35dc480721fc1f2 # v8.2.1
+        uses: super-linter/super-linter@9e863354e3ff62e0727d37183162c4a88873df41 # v8.6.0
         env:
           ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,11 +44,14 @@ jobs:
           FILTER_REGEX_EXCLUDE: ".*/src/gui/wxpython/wx.metadata/profiles/.*.xml"
           IGNORE_GENERATED_FILES: true
           VALIDATE_BASH: false # Until issues are fixed, some valid warnings
+          VALIDATE_BIOME_FORMAT: false # Checked by biome in pre-commit, and with a different version
+          VALIDATE_BIOME_LINT: false # Checked by biome in pre-commit, and with a different version
           VALIDATE_CHECKOV: false # Until issues are fixed
           VALIDATE_CLANG_FORMAT: false # Until we continue to check it in another workflow
           VALIDATE_CPP: false # Until a configuration file is created to not contradict clang-format
           VALIDATE_CSS: false # Using Biome instead of Stylelint
           VALIDATE_CSS_PRETTIER: false # Using Biome instead of Prettier
+          VALIDATE_GITHUB_ACTIONS_ZIZMOR: false # Checked in pre-commit, and with a different version
           VALIDATE_GITLEAKS: false # Until configured to ignore g.parser key in main.c files
           VALIDATE_GRAPHQL_PRETTIER: false # Using Biome instead of Prettier
           VALIDATE_HTML: false # Until configured, some valid findings
@@ -81,6 +84,7 @@ jobs:
           VALIDATE_R: false
           VALIDATE_RENOVATE: false # Until configuration file is upgraded
           VALIDATE_SHELL_SHFMT: false # Until reformatting failing files
+          VALIDATE_SPELL_CODESPELL: false # Until typos are fixed or excluded
           VALIDATE_TSX: false # Using Biome instead of ESLint
           VALIDATE_TYPESCRIPT_ES: false # Using Biome instead of ESLint
           VALIDATE_TYPESCRIPT_PRETTIER: false # Using Biome instead of Prettier

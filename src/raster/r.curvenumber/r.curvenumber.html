@@ -20,6 +20,13 @@
   <li>11–14 – Dual groups: A/D, B/D, C/D, D/D (for drained/undrained soils)</li>
 </ul>
 <p>Curve Number increases from HSG A to D due to reduced infiltration associated with increasing clay content and compaction.</p>
+<p>Dual hydrologic soil groups (A/D, B/D, C/D) represent soils that behave
+differently depending on drainage. By default, the undrained (second) group
+is used (e.g., A/D &rarr; D). Use the <b>-d</b> flag to use the drained
+(first) group instead (e.g., A/D &rarr; A).</p>
+<p>When the soil raster contains null values but a valid landcover value exists,
+the module falls back to HSG D (the most conservative group with highest
+runoff potential).</p>
 <p>If you are using SSURGO soil data, Hydrologic Soil Group (HSG) values are typically provided directly. For other soil datasets that do not include HSG classifications, see Reference 1 (Chapter 7) for guidance on assigning HSGs based on soil texture, hydraulic conductivity, and water table depth. This information can be used to develop a custom HSG raster.</p>
 
 <h3>Hydrologic Condition (HC)</h3>
@@ -113,4 +120,4 @@ r.curvenumber \
 </em>
 
 <h2>AUTHORS</h2>
-<p>Abdullah Azzam (<a href="https://clawrim.isnew.info/">CLAWRIM</a>, Department of Civil and Environmental Engineering, New Mexico State University)</p>
+<p>Abdullah Azzam (<a href="https://hydro.isnew.info/">HydroCS</a>, Department of Civil and Environmental Engineering, New Mexico State University)</p>

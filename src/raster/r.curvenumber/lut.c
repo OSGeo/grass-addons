@@ -25,6 +25,10 @@ static const struct cn_record nlcd_records[] = {
     {22, 4, HC_POOR, 92},  {22, 1, HC_FAIR, 64},  {22, 2, HC_FAIR, 79},
     {22, 3, HC_FAIR, 86},  {22, 4, HC_FAIR, 89},  {22, 1, HC_GOOD, 55},
     {22, 2, HC_GOOD, 74},  {22, 3, HC_GOOD, 82},  {22, 4, HC_GOOD, 86},
+    {23, 1, HC_POOR, 88},  {23, 2, HC_POOR, 91},  {23, 3, HC_POOR, 94},
+    {23, 4, HC_POOR, 95},  {23, 1, HC_FAIR, 81},  {23, 2, HC_FAIR, 88},
+    {23, 3, HC_FAIR, 91},  {23, 4, HC_FAIR, 93},  {23, 1, HC_GOOD, 77},
+    {23, 2, HC_GOOD, 85},  {23, 3, HC_GOOD, 90},  {23, 4, HC_GOOD, 92},
     {24, 1, HC_POOR, 98},  {24, 2, HC_POOR, 98},  {24, 3, HC_POOR, 98},
     {24, 4, HC_POOR, 98},  {24, 1, HC_FAIR, 97},  {24, 2, HC_FAIR, 97},
     {24, 3, HC_FAIR, 97},  {24, 4, HC_FAIR, 97},  {24, 1, HC_GOOD, 95},
@@ -357,6 +361,28 @@ int load_builtin_arc(struct arc_table *tbl)
     }
 
     return 0;
+}
+
+/* resolve dual HSG codes to single codes */
+int resolve_dual_hsg(int hsg, int drained)
+{
+    switch (hsg) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        return hsg;
+    case 11: /* A/D */
+        return drained ? 1 : 4;
+    case 12: /* B/D */
+        return drained ? 2 : 4;
+    case 13: /* C/D */
+        return drained ? 3 : 4;
+    case 14: /* D/D */
+        return 4;
+    default:
+        return -1;
+    }
 }
 
 /* lookups */

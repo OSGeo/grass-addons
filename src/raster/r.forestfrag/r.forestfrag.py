@@ -67,6 +67,12 @@
 # % required: no
 # %end
 
+# %option G_OPT_MEMORYMB
+# %end
+
+# %option G_OPT_M_NPROCS
+# %end
+
 # %flag
 # % key: r
 # % description: Set computational region to input raster map
@@ -186,6 +192,8 @@ def main(options, flags):
     ipl = options["input"]
     raster_exists(ipl)
     opl = options["output"]
+    memory = int(options["memory"])
+    nprocs = int(options["nprocs"])
     # Size option backwards compatibility with window
     if not options["size"] and not options["window"]:
         gs.fatal(_("Required parameter <%s> not set") % "size")
@@ -258,6 +266,8 @@ def main(options, flags):
         output=[tmpA2, tmpC3],
         method=["sum", "count"],
         size=wz,
+        nprocs=nprocs,
+        memory=memory,
     )
 
     # Create pf map

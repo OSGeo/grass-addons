@@ -29,11 +29,12 @@ imply no computation there (e.g., data gaps).
 time-to-peak and peak discharge. If omitted, timing-based outputs are
 skipped.
 
-**curve_number:** Required raster of Curve Number [dimensionless], **$0 \leq CN \leq
-100$**. Encodes land cover, soil hydrologic group, and antecedent wetness.
-Higher CN equals lower storage, which equals more runoff. Out-of-range values
-should be sanitized or masked. See `r.curvenumber` for further information or
-generating CN rasters.
+**curve_number:** Required raster of Curve Number [dimensionless],
+**$0 \leq CN \leq 100$**.
+Encodes land cover, soil hydrologic group, and antecedent wetness.
+Higher CN equals lower storage, which equals more runoff.
+Out-of-range values should be sanitized or masked.
+See `r.curvenumber` for further information or generating CN rasters.
 
 **direction:** Flow-direction raster (GRASS-coded; from `r.watershed` or
 `r.stream.extract`).
@@ -203,5 +204,5 @@ dataset zoomed in near the outlet*
 ## AUTHORS
 
 [Abdullah Azzam](mailto:mabdazzam@outlook.com)
-([CLAWRIM](https://clawrim.isnew.info/), Department of Civil and Environmental
+([HydroCS](https://hydro.isnew.info/), Department of Civil and Environmental
 Engineering, New Mexico State University)

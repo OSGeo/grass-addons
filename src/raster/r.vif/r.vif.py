@@ -13,7 +13,7 @@
 #               VIF. This will be repeated till the VIF falls below the user
 #               defined VIF threshold value.
 #
-# COPYRIGHT: (C) 2015 - 2024 Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2015 - 2026 Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -253,9 +253,18 @@ def main(options, flags):
     retain_maps = options["retain"].split(",")
     if options["retain"]:
         check_layer(retain_maps)
+        input_map_bases = [m.split("@")[0] for m in input_maps]
         for retain_map in retain_maps:
-            if retain_map not in input_maps:
-                input_maps.extend([retain_map])
+            if retain_map.split("@")[0] not in input_map_bases:
+                gs.fatal(
+                    _(
+                        "Retained layer '{}' is not present in the maps list. "
+                        "All layers specified in 'retain' must also be listed "
+                        "in 'maps'. If the layer does exist in your maps list, "
+                        "check that the mapset name matches (e.g., 'layer@mapset' "
+                        "vs 'layer')."
+                    ).format(retain_map)
+                )
     input_map_names = [i.split("@")[0] for i in input_maps]
     retain_map_names = [i.split("@")[0] for i in retain_maps]
     max_vif = options["maxvif"]

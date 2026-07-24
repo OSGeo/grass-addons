@@ -26,6 +26,7 @@ from grass.exceptions import CalledModuleError
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Point, Centroid, Boundary
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 
 from grass.jupyter.reprojection_renderer import ReprojectionRenderer
 
@@ -870,6 +871,9 @@ def import_grass_raster(params):
         gs.fatal(_("Error importing raster: {}").format(e.stderr))
 
 
+MAX_CONCURRENT_DOWNLOADS = 8
+
+
 def download_assets(
     assets,
     resample_method,
@@ -881,43 +885,41 @@ def download_assets(
 ):
     """Downloads a list of images from the given URLs to the given filenames."""
     number_of_assets = len(assets)
-    resample_extent_list = [resample_extent] * number_of_assets
-    resolution_list = [resolution] * number_of_assets
-    resolution_value_list = [resolution_value] * number_of_assets
-    resample_method_list = [resample_method] * number_of_assets
-    memory_list = [memory] * number_of_assets
-    max_cpus = os.cpu_count() - 1
-    if nprocs > max_cpus:
+    if nprocs > MAX_CONCURRENT_DOWNLOADS:
         gs.warning(
             _(
-                "Number of processes {nprocs} is greater than the number of CPUs {max_cpus}."
-            )
+                "Capping concurrent downloads at {max} to avoid overwhelming the network "
+                "(requested {nprocs})."
+            ).format(max=MAX_CONCURRENT_DOWNLOADS, nprocs=nprocs)
         )
-        nprocs = max_cpus
+        nprocs = MAX_CONCURRENT_DOWNLOADS
+    nprocs = max(1, nprocs)
 
-    def execute_import_grass_raster(pbar=None):
-        with ThreadPoolExecutor(max_workers=nprocs) as executor:
-            try:
-                for _a in executor.map(
-                    import_grass_raster,
-                    zip(
-                        assets,
-                        resample_method_list,
-                        resample_extent_list,
-                        resolution_list,
-                        resolution_value_list,
-                        memory_list,
-                    ),
-                ):
-                    if pbar:
-                        pbar.update(1)
-            except Exception as e:
-                gs.fatal(_("Error importing raster: {}").format(str(e)))
+    # Retry transient HTTP failures instead of failing the import outright.
+    # The values are inherited by the r.import subprocesses; values already
+    # set by the user take precedence.
+    os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "3")
+    os.environ.setdefault("GDAL_HTTP_RETRY_DELAY", "2")
 
-    tqdm = _import_tqdm(False)
-    if tqdm is None:
+    params = [
+        (asset, resample_method, resample_extent, resolution, resolution_value, memory)
+        for asset in assets
+    ]
+
+    tqdm_cls = _import_tqdm(False)
+    if tqdm_cls is None:
         gs.warning(_("tqdm module not found. Progress bar will not be displayed."))
-        execute_import_grass_raster()
+        pbar_ctx = nullcontext()
     else:
-        with tqdm(total=number_of_assets, desc="Downloading assets") as pbar:
-            execute_import_grass_raster(pbar)
+        pbar_ctx = tqdm_cls(total=number_of_assets, desc="Downloading assets")
+
+    # Threads are sufficient here: each r.import runs as its own subprocess
+    # with its own environment, so the workers only wait on network-bound
+    # child processes.
+    with ThreadPoolExecutor(max_workers=nprocs) as executor, pbar_ctx as pbar:
+        try:
+            for _a in executor.map(import_grass_raster, params):
+                if pbar is not None:
+                    pbar.update(1)
+        except Exception as e:
+            gs.fatal(_("Error importing raster: {}").format(e))

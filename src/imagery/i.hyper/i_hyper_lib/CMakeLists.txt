@@ -1,0 +1,14 @@
+add_files_to_etc_dir(
+  i_hyper_lib
+  FILES
+    __init__.py
+    base_corr.py
+    continuum_rem.py
+    dim_red.py
+    enmap.py
+    hyper_meta.py
+    prisma_reader.py
+    prisma.py
+    sav_gol.py
+    tanager_reader.py
+    tanager.py)
