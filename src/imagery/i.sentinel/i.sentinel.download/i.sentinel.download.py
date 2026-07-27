@@ -252,9 +252,7 @@ def ensure_safe_suffix(output_directory):
         safe_product_path = f"{product_path}.SAFE"
 
         if os.path.exists(safe_product_path):
-            gs.warning(
-                _("Directory <{}> already exists").format(safe_product_path)
-            )
+            gs.warning(_("Directory <{}> already exists").format(safe_product_path))
             continue
 
         os.rename(product_path, safe_product_path)
