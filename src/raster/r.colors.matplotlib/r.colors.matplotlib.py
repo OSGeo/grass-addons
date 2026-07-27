@@ -168,7 +168,20 @@ def main(options, flags):
                     v=mpl.__version__, n=name
                 )
             )
-        cmap = cm.get_cmap(name, lut=n_colors)
+        if hasattr(cm, "get_cmap"):
+            cmap = cm.get_cmap(name, lut=n_colors)
+        else:
+            # matplotlib.cm.get_cmap was removed in Matplotlib 3.9
+            import matplotlib as mpl
+
+            try:
+                cmap = mpl.colormaps[name].resampled(n_colors)
+            except KeyError:
+                gs.fatal(
+                    _("Matplotlib {v} does not contain color table <{n}>").format(
+                        v=mpl.__version__, n=name
+                    )
+                )
 
     comments = []
     comments.append("Generated from Matplotlib color table <{}>".format(name))
