@@ -1,44 +1,64 @@
-# r.dem — GRASS Toolbox for Topographic Change Analysis
-
-## Tools
-
-| Addon | Description | Status |
-| --- | --- | --- |
-| `r.dem.coregister` | PGCP vertical bias correction + optional N&K/ICP | implemented |
-| `r.dem.nk` | Nuth & Kääb (2011) horizontal and vertical co-registration | implemented |
-| `r.dem.icp` | ICP point-to-plane point cloud co-registration | implemented |
-| `r.dem.bias` | Terrain-regression and forest-bump systematic bias removal | implemented |
-| `r.dem.stats` | Terrain surface metrics (slope, roughness, diversity, local sigma) | implemented |
-| `r.dem.errprop` | Uncertainty propagation, LoD, t/p significance, categorical classes | implemented |
-| `r.dem.lod` | Level of Detection with global and local uncertainty modes | implemented |
-| `r.dem.change` | DoD computation, LoD masking, volumetric summary | implemented |
-| `r.dem.screen` | 10 m screening with topo, spectral, and infra overlays | implemented |
-<!-- | `r.dem.floodrisk` | Flood-risk products from terrain change | planned |
-| `r.dem.report` | Automated field-printable PDF report generation | planned | -->
-
-DoD computation, cleanup, LoD masking, and volumetric summary all live in
-`r.dem.change` as a single pipeline; there is no separate `r.dem.dod` tool.
-
-The alignment tools (`r.dem.coregister`, `r.dem.nk`, `r.dem.icp`) remove rigid
-offset and rotation. `r.dem.bias` then removes terrain-correlated systematic
-bias that survives alignment. `r.dem.stats` supplies the terrain predictors that
-`r.dem.bias` and `r.dem.errprop` consume.
-
+---
+name: r.dem
+description: Toolset for DEM co-registration, differencing, and topographic change analysis
 ---
 
-## Installation
+# Toolset for DEM co-registration, differencing, and topographic change analysis
 
-```bash
-# From GRASS addon repository (once published):
-g.extension extension=r.dem
+## DESCRIPTION
 
-# Or install from local source:
-g.extension extension=r.dem url=/path/to/r.dem
-```
+The *r.dem* toolset supports topographic change analysis from pairs of
+digital elevation models (DEMs), such as a post-event photogrammetric
+(SfM) surface and a pre-event lidar reference. It covers co-registration,
+systematic bias removal, DEM-of-difference (DoD) computation, uncertainty
+propagation, and regional change screening. The toolset consists of nine
+tools:
 
-## Citation
+- [r.dem.coregister](r.dem.coregister.md)  
+    co-registers a DEM to a reference DEM using pseudo ground control
+    point (PGCP) vertical bias correction, optionally combined with
+    Nuth & Kääb or ICP alignment
+- [r.dem.nk](r.dem.nk.md)  
+    estimates and removes horizontal and vertical offsets between two
+    DEMs using the Nuth & Kääb (2011) aspect-correlation method
+- [r.dem.icp](r.dem.icp.md)  
+    aligns a DEM to a reference with robust multi-scale point-to-plane
+    iterative closest point (ICP)
+- [r.dem.bias](r.dem.bias.md)  
+    removes terrain-correlated systematic bias from a DoD by regression
+    on terrain predictors over stable areas
+- [r.dem.stats](r.dem.stats.md)  
+    computes terrain surface metrics (slope, roughness, geomorphon
+    diversity, local error sigma) used as DoD predictors
+- [r.dem.lod](r.dem.lod.md)  
+    computes the Level of Detection (LoD) for DEM difference maps with
+    global and local uncertainty modes
+- [r.dem.change](r.dem.change.md)  
+    computes the DoD with cleanup, LoD masking, and volumetric summary
+- [r.dem.errprop](r.dem.errprop.md)  
+    propagates DEM uncertainty into a DoD and derives significance
+    classes
+- [r.dem.screen](r.dem.screen.md)  
+    performs regional change screening by fusing topographic and
+    spectral change with optional infrastructure overlays
 
-White, C. et al. (in prep). Post-Hurricane Topographic Change Assessment Using
-Civil Air Patrol Aerial Imagery and Structure-from-Motion Photogrammetry.
-*Remote Sensing* (MDPI), Special Issue: Application of Digital Aerial
-Photogrammetry in Geomorphological Studies.
+## NOTES
+
+The alignment tools (*r.dem.coregister*, *r.dem.nk*, *r.dem.icp*) remove
+rigid offset and rotation. *r.dem.bias* then removes terrain-correlated
+systematic bias that survives alignment. *r.dem.stats* supplies the
+terrain predictors that *r.dem.bias* and *r.dem.errprop* consume.
+*r.dem.lod*, *r.dem.change*, and *r.dem.errprop* turn the aligned,
+debiased surfaces into significance-masked change and volume products.
+DoD computation, cleanup, LoD masking, and volumetric summary all live in
+*r.dem.change* as a single pipeline; there is no separate DoD tool.
+
+## REFERENCES
+
+White, C.T. et al. (in preparation). Post-Hurricane Topographic Change
+Assessment Using Civil Air Patrol Aerial Imagery and Structure-from-Motion
+Photogrammetry. *Remote Sensing* (MDPI).
+
+## AUTHORS
+
+Corey T. White, Center for Geospatial Analytics, NC State University

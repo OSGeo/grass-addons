@@ -1,0 +1,66 @@
+<!-- meta page name: r.dem -->
+<!-- meta page name description: Toolset for DEM co-registration, differencing, and topographic change analysis -->
+
+<h2>DESCRIPTION</h2>
+
+The <em>r.dem</em> toolset supports topographic change analysis from pairs
+of digital elevation models (DEMs), such as a post-event photogrammetric
+(SfM) surface and a pre-event lidar reference. It covers co-registration,
+systematic bias removal, DEM-of-difference (DoD) computation, uncertainty
+propagation, and regional change screening. The toolset consists of nine
+tools:
+
+<dl>
+  <dt><a href="r.dem.coregister.html">r.dem.coregister</a></dt>
+  <dd>co-registers a DEM to a reference DEM using pseudo ground control
+      point (PGCP) vertical bias correction, optionally combined with
+      Nuth &amp; K&auml;&auml;b or ICP alignment</dd>
+  <dt><a href="r.dem.nk.html">r.dem.nk</a></dt>
+  <dd>estimates and removes horizontal and vertical offsets between two
+      DEMs using the Nuth &amp; K&auml;&auml;b (2011) aspect-correlation
+      method</dd>
+  <dt><a href="r.dem.icp.html">r.dem.icp</a></dt>
+  <dd>aligns a DEM to a reference with robust multi-scale point-to-plane
+      iterative closest point (ICP)</dd>
+  <dt><a href="r.dem.bias.html">r.dem.bias</a></dt>
+  <dd>removes terrain-correlated systematic bias from a DoD by regression
+      on terrain predictors over stable areas</dd>
+  <dt><a href="r.dem.stats.html">r.dem.stats</a></dt>
+  <dd>computes terrain surface metrics (slope, roughness, geomorphon
+      diversity, local error sigma) used as DoD predictors</dd>
+  <dt><a href="r.dem.lod.html">r.dem.lod</a></dt>
+  <dd>computes the Level of Detection (LoD) for DEM difference maps with
+      global and local uncertainty modes</dd>
+  <dt><a href="r.dem.change.html">r.dem.change</a></dt>
+  <dd>computes the DoD with cleanup, LoD masking, and volumetric
+      summary</dd>
+  <dt><a href="r.dem.errprop.html">r.dem.errprop</a></dt>
+  <dd>propagates DEM uncertainty into a DoD and derives significance
+      classes</dd>
+  <dt><a href="r.dem.screen.html">r.dem.screen</a></dt>
+  <dd>performs regional change screening by fusing topographic and
+      spectral change with optional infrastructure overlays</dd>
+</dl>
+
+<h2>NOTES</h2>
+
+The alignment tools (<em>r.dem.coregister</em>, <em>r.dem.nk</em>,
+<em>r.dem.icp</em>) remove rigid offset and rotation.
+<em>r.dem.bias</em> then removes terrain-correlated systematic bias that
+survives alignment. <em>r.dem.stats</em> supplies the terrain predictors
+that <em>r.dem.bias</em> and <em>r.dem.errprop</em> consume.
+<em>r.dem.lod</em>, <em>r.dem.change</em>, and <em>r.dem.errprop</em>
+turn the aligned, debiased surfaces into significance-masked change and
+volume products. DoD computation, cleanup, LoD masking, and volumetric
+summary all live in <em>r.dem.change</em> as a single pipeline; there is
+no separate DoD tool.
+
+<h2>REFERENCES</h2>
+
+White, C.T. et al. (in preparation). Post-Hurricane Topographic Change
+Assessment Using Civil Air Patrol Aerial Imagery and Structure-from-Motion
+Photogrammetry. <em>Remote Sensing</em> (MDPI).
+
+<h2>AUTHORS</h2>
+
+Corey T. White, Center for Geospatial Analytics, NC State University
