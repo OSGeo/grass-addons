@@ -41,10 +41,13 @@ REPO_LOCAL="$HOME/src/$MYBRANCH/"       # e.g., neteler@grasslxd:~/src/main/ or 
 WORKFLOW_NAME="documentation.yml"  # or the workflow filename/id
 ARTIFACT_NAME="mkdocs-site" # the name of the artifact
 ZIP_OUTPUT="${MYBRANCH}.zip"  # must match the path expected by fetch_unpack_manual_GHA.sh
-OUTPUT_DIR="/tmp"
+# per-user directory: the job runs as different users (neteler, grassbot, ...)
+# and a shared /tmp path lets one user's leftover file block another user's run
+OUTPUT_DIR="${OUTPUT_DIR:-${TMPDIR:-/tmp}/grass_manuals_${USER}}"
 
 # === Script ===
 # cleanup from previous run
+mkdir -p "$OUTPUT_DIR" || exit 1
 cd "$OUTPUT_DIR" || exit 1
 rm -f "$ZIP_OUTPUT"
 
