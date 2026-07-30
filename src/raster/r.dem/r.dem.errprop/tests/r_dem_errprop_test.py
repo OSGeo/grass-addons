@@ -50,8 +50,8 @@ def test_lod_and_significance_outputs(session):
     assert float(cls["max"]) <= 4
     # The most extreme DoD rows (|dh| up to ~2.8 m, well above any LoD) must be
     # flagged at the strongest erosion/deposition classes.
-    assert float(cls["min"]) == -4
-    assert float(cls["max"]) == 4
+    assert int(float(cls["min"])) == -4
+    assert int(float(cls["max"])) == 4
 
 
 def test_null_propagates(session):

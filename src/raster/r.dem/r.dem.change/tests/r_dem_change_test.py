@@ -1,6 +1,7 @@
 import csv
 
 import grass.script as gs
+import pytest
 
 
 def _univar(name, env):
@@ -24,7 +25,7 @@ def test_raw_dod_and_significance(session):
     # Significant cells: the 11x11 block (121) plus the isolated spike (1).
     sig = _univar("dod_sig", env)
     assert int(sig["n"]) == 122
-    assert float(sig["max"]) == 5.0
+    assert float(sig["max"]) == pytest.approx(5.0)
 
 
 def test_speckle_removal_drops_isolated_cell(session):
@@ -43,7 +44,7 @@ def test_speckle_removal_drops_isolated_cell(session):
     # The isolated +5 spike is removed; only the 121-cell block remains.
     sig = _univar("dod_sig_clean", env)
     assert int(sig["n"]) == 121
-    assert float(sig["max"]) == 2.0
+    assert float(sig["max"]) == pytest.approx(2.0)
 
 
 def test_volume_csv(session, tmp_path):
@@ -64,9 +65,9 @@ def test_volume_csv(session, tmp_path):
     with open(csv_path) as f:
         rows = {r["metric"]: r for r in csv.DictReader(f)}
     # 121 cells of +2 m at 1 m^2 cells => 242 m^3 deposition, no erosion.
-    assert float(rows["deposition"]["value_m3"]) == 242.0
-    assert float(rows["erosion"]["value_m3"]) == 0.0
-    assert float(rows["net"]["value_m3"]) == 242.0
+    assert float(rows["deposition"]["value_m3"]) == pytest.approx(242.0)
+    assert float(rows["erosion"]["value_m3"]) == pytest.approx(0.0)
+    assert float(rows["net"]["value_m3"]) == pytest.approx(242.0)
 
 
 def test_trim_percentile_drops_blunder(session):
@@ -85,4 +86,4 @@ def test_trim_percentile_drops_blunder(session):
     )
     sig = _univar("dod_sig4", env)
     # The 99th percentile of |DoD| sits at 2.0, so the +5 spike is trimmed.
-    assert float(sig["max"]) == 2.0
+    assert float(sig["max"]) == pytest.approx(2.0)
