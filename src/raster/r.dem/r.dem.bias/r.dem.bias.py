@@ -11,13 +11,11 @@
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
-# % description: Remove terrain-correlated systematic bias from a DoD.
+# % description: Remove terrain-correlated systematic bias from a DoD
 # % keyword: raster
 # % keyword: DEM
 # % keyword: bias
@@ -94,6 +92,7 @@
 # %end
 
 import atexit
+import os
 import sys
 
 import grass.script as gs
@@ -138,7 +137,7 @@ def zscore(raster, output, log=False):
                 ).format(raster)
             )
         else:
-            tmp_log = f"tmp_rdembias_log_{output}"
+            tmp_log = f"tmp_rdembias_log_{output}_{os.getpid()}"
             TMP_RASTERS.append(tmp_log)
             gs.mapcalc(f"{tmp_log} = log({raster})", overwrite=True, quiet=True)
             src = tmp_log
@@ -166,7 +165,7 @@ def correct_regression(dod, output, predictors, stable_mask, bias_field):
         gs.fatal(_("Option stable_mask is required for method=regression"))
 
     # Dependent variable: DoD restricted to stable terrain.
-    stable_dod = "tmp_rdembias_stable_dod"
+    stable_dod = f"tmp_rdembias_stable_dod_{os.getpid()}"
     TMP_RASTERS.append(stable_dod)
     gs.mapcalc(
         f"{stable_dod} = if(!isnull({stable_mask}), {dod}, null())",
@@ -179,7 +178,7 @@ def correct_regression(dod, output, predictors, stable_mask, bias_field):
     for pred in predictors:
         skew = pearsons_coeff(pred)
         use_log = abs(skew) > 0.75
-        zname = f"tmp_rdembias_z_{pred.replace('@', '_')}"
+        zname = f"tmp_rdembias_z_{pred.replace('@', '_')}_{os.getpid()}"
         TMP_RASTERS.append(zname)
         zscore(pred, zname, log=use_log)
         zmaps.append(zname)
@@ -195,7 +194,7 @@ def correct_regression(dod, output, predictors, stable_mask, bias_field):
     by_name = {p["name"]: float(p["b"]) for p in coeff["predictors"]}
 
     terms = " + ".join(f"{by_name[z]} * {z}" for z in zmaps)
-    field = bias_field or "tmp_rdembias_fit"
+    field = bias_field or f"tmp_rdembias_fit_{os.getpid()}"
     if not bias_field:
         TMP_RASTERS.append(field)
     gs.mapcalc(f"{field} = {intercept} + {terms}", overwrite=gs.overwrite())
@@ -226,14 +225,14 @@ def correct_forest(dod, output, mask, window, trim_low, trim_high, bias_field):
         lo = next(q["value"] for q in quants if q["percentile"] == trim_low)
         hi = next(q["value"] for q in quants if q["percentile"] == trim_high)
 
-        core = "tmp_rdembias_core"
+        core = f"tmp_rdembias_core_{os.getpid()}"
         TMP_RASTERS.append(core)
         gs.mapcalc(
             f"{core} = if({dod} >= {lo} && {dod} <= {hi}, {dod}, null())",
             overwrite=True,
             quiet=True,
         )
-        local_med = "tmp_rdembias_local_med"
+        local_med = f"tmp_rdembias_local_med_{os.getpid()}"
         TMP_RASTERS.append(local_med)
         gs.run_command(
             "r.neighbors",
@@ -247,7 +246,7 @@ def correct_forest(dod, output, mask, window, trim_low, trim_high, bias_field):
 
     # Outside the mask the bias field is zero (no correction). Clamp explicitly
     # to the mask so the moving-window median cannot leak across the boundary.
-    field = bias_field or "tmp_rdembias_field"
+    field = bias_field or f"tmp_rdembias_field_{os.getpid()}"
     if not bias_field:
         TMP_RASTERS.append(field)
     gs.mapcalc(

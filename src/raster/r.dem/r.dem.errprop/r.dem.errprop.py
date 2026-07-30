@@ -11,13 +11,11 @@
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
-# % description: Propagate DEM uncertainty into a DoD and derive significance.
+# % description: Propagate DEM uncertainty into a DoD and derive significance
 # % keyword: raster
 # % keyword: DEM
 # % keyword: uncertainty
@@ -93,6 +91,7 @@
 # %end
 
 import atexit
+import os
 import sys
 
 import grass.script as gs
@@ -174,11 +173,12 @@ def calc_pvalue_normal(dod, sigma_dod, output):
         1.330274429,
     )
     pi = 3.141592653589793
-    x = "tmp_errprop_x"
-    phi = "tmp_errprop_phi"
-    tt = "tmp_errprop_tt"
-    poly = "tmp_errprop_poly"
-    cdf = "tmp_errprop_cdf"
+    pid = os.getpid()
+    x = f"tmp_errprop_x_{pid}"
+    phi = f"tmp_errprop_phi_{pid}"
+    tt = f"tmp_errprop_tt_{pid}"
+    poly = f"tmp_errprop_poly_{pid}"
+    cdf = f"tmp_errprop_cdf_{pid}"
     TMP_RASTERS.extend([x, phi, tt, poly, cdf])
 
     gs.mapcalc(
@@ -215,7 +215,7 @@ def calc_pvalue_student(dod, sigma_dod, output, df):
     from grass.script import array as garray
     from scipy.stats import t as student_t
 
-    t_map = "tmp_errprop_t_student"
+    t_map = f"tmp_errprop_t_student_{os.getpid()}"
     TMP_RASTERS.append(t_map)
     calc_tvalue(dod, sigma_dod, t_map)
     t_arr = garray.array(t_map)
@@ -237,7 +237,7 @@ def calc_categorical(dod, sigma_dod, output):
     which |DoD| exceeds the corresponding LoD, signed by the DoD direction.
     """
     levels = [(0.99, 4), (0.95, 3), (0.90, 2), (0.68, 1)]
-    z = {conf: z_from_confidence(conf) for conf, _ in levels}
+    z = {conf: z_from_confidence(conf) for conf, _code in levels}
 
     # Build nested if() from strongest to weakest level.
     expr = "0"

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyright: reportMissingImports=false
 
 ##############################################################################
 # MODULE:    r.dem.change
@@ -11,13 +10,11 @@
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
-# % description: DoD computation with cleanup, LoD masking, and volumetric summary.
+# % description: DoD computation with cleanup, LoD masking, and volumetric summary
 # % keyword: raster
 # % keyword: DEM
 # % keyword: change detection
@@ -111,7 +108,7 @@ def trim_blunders(dod, percentile, stable_mask, output):
     difference. The threshold is estimated over the stable mask when one is
     supplied, otherwise over the whole DoD.
     """
-    abs_dod = "tmp_rdchange_absdod"
+    abs_dod = f"tmp_rdchange_absdod_{os.getpid()}"
     TMP_RASTERS.append(abs_dod)
     gs.mapcalc(f"{abs_dod} = abs({dod})", overwrite=True, quiet=True)
 
@@ -164,7 +161,7 @@ def remove_speckle(sig, output):
     gs.mapcalc(
         f"{output} = if(isnull({sig}), null(), "
         f"if(({neighbor_sum}) > 0, {sig}, null()))",
-        overwrite=True,
+        overwrite=gs.overwrite(),
         quiet=True,
     )
     return output
@@ -212,24 +209,32 @@ def main():
     # The difference that feeds significance, optionally blunder-trimmed.
     work_dod = out_dod
     if trim_percentile:
-        work_dod = "tmp_rdchange_trimmed"
+        work_dod = f"tmp_rdchange_trimmed_{os.getpid()}"
         TMP_RASTERS.append(work_dod)
         trim_blunders(out_dod, float(trim_percentile), stable_mask, work_dod)
 
-    # Significant DoD: cells where |dh| exceeds the LoD.
-    gs.mapcalc(
-        f"{out_sig} = if(abs({work_dod}) > {lod}, {work_dod}, null())",
-        overwrite=gs.overwrite(),
-    )
-
+    # Significant DoD: cells where |dh| exceeds the LoD. With -n, write the
+    # raw significant cells to a temporary map and despeckle into the output.
+    sig_expr = f"if(abs({work_dod}) > {lod}, {work_dod}, null())"
     if denoise:
-        cleaned = "tmp_rdchange_cleaned"
-        TMP_RASTERS.append(cleaned)
-        remove_speckle(out_sig, cleaned)
-        gs.run_command("g.copy", raster=f"{cleaned},{out_sig}", overwrite=True)
+        raw_sig = f"tmp_rdchange_sig_{os.getpid()}"
+        TMP_RASTERS.append(raw_sig)
+        gs.mapcalc(f"{raw_sig} = {sig_expr}", overwrite=True, quiet=True)
+        remove_speckle(raw_sig, out_sig)
         gs.message(_("Removed isolated significant cells (speckle)"))
+    else:
+        gs.mapcalc(f"{out_sig} = {sig_expr}", overwrite=gs.overwrite())
 
     # Volumetric summary.
+    proj = gs.parse_command("g.proj", flags="g")
+    units = str(proj.get("units", "")).lower()
+    if proj.get("proj") in ("ll", "longlat") or "degree" in units:
+        gs.warning(
+            _(
+                "Current CRS uses geographic (degree) units; reported volumes "
+                "assume a projected CRS with metric units"
+            )
+        )
     reg = gs.region()
     cell_area = reg["ewres"] * reg["nsres"]
 
@@ -247,7 +252,8 @@ def main():
     n_tot = n_dep + n_ero
     vol_net = vol_dep - vol_ero
 
-    gs.message(_("\nVolumetric summary (significant cells only):"))
+    gs.message("")
+    gs.message(_("Volumetric summary (significant cells only):"))
     gs.message(_("  Deposition: {:>14,.1f} m3  ({:,} cells)").format(vol_dep, n_dep))
     gs.message(_("  Erosion:    {:>14,.1f} m3  ({:,} cells)").format(vol_ero, n_ero))
     gs.message(_("  Net:        {:>14,.1f} m3").format(vol_net))

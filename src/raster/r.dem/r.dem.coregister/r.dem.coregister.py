@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pyright: reportMissingImports=false
 
 ##############################################################################
 # MODULE:    r.dem.coregister
@@ -10,9 +9,7 @@
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
@@ -39,7 +36,7 @@
 
 # %option G_OPT_V_INPUT
 # % key: pgcp
-# % description: Pseudo ground control points (PGCPs) (e.g. roads, buildings, fire hydrants) vector for PGCP extraction
+# % label: Pseudo ground control points (PGCPs) (e.g. roads, buildings, fire hydrants) vector for PGCP extraction
 # % required: yes
 # %end
 
@@ -100,20 +97,39 @@
 
 # %flag
 # % key: v
-# % description: Verbose — write per-PGCP residuals to bias_output CSV
+# % description: Verbose: write per-PGCP residuals to bias_output CSV
 # %end
 
+import atexit
 import sys
 import os
 import csv
 import math
 import numpy as np
 
-import gettext
 import grass.script as gs
 
-# Set up translation function
-_ = gettext.gettext
+TMP_RASTERS = []
+TMP_VECTORS = []
+
+
+def cleanup():
+    if TMP_RASTERS:
+        gs.run_command(
+            "g.remove",
+            type="raster",
+            name=",".join(TMP_RASTERS),
+            flags="f",
+            quiet=True,
+        )
+    if TMP_VECTORS:
+        gs.run_command(
+            "g.remove",
+            type="vector",
+            name=",".join(TMP_VECTORS),
+            flags="f",
+            quiet=True,
+        )
 
 
 def read_keyval(path):
@@ -158,6 +174,8 @@ def pgcp_vertical_correction(
     buf_v = f"{tmp_prefix}_buf"
     buf_r = f"{tmp_prefix}_bufr"
     diff_r = f"{tmp_prefix}_diff"
+    TMP_VECTORS.append(buf_v)
+    TMP_RASTERS.extend([buf_r, diff_r])
 
     # Buffer the PGCP features
     gs.run_command(
@@ -212,7 +230,7 @@ def pgcp_vertical_correction(
     gs.message(f"  RMSE:        {rmse:.4f} m")
 
     # Apply correction
-    gs.mapcalc(f"{output} = {dem} - {median_bias}", overwrite=True)
+    gs.mapcalc(f"{output} = {dem} - {median_bias}", overwrite=gs.overwrite())
     gs.run_command(
         "r.support",
         map=output,
@@ -233,15 +251,6 @@ def pgcp_vertical_correction(
             writer.writerow(["x", "y", "residual_m"])
             writer.writerows(rows)
         gs.message(f"PGCP residuals written to: {bias_output}")
-
-    # Cleanup temp maps
-    gs.run_command(
-        "g.remove",
-        type="raster,vector",
-        name=f"{tmp_prefix}_buf,{tmp_prefix}_bufr,{tmp_prefix}_diff",
-        flags="f",
-        quiet=True,
-    )
 
     return {"n": n, "median_bias": median_bias, "nmad": nmad, "rmse": rmse}
 
@@ -276,6 +285,7 @@ def apply_saved_transform(
         nk_xform = gs.tempfile()
         # r.dem.nk requires a mask; in apply mode it only defines the residual
         # map, so a full-coverage mask is sufficient.
+        TMP_RASTERS.extend([full_mask, tmp_h, f"{tmp_h}_resid"])
         gs.mapcalc(
             f"{full_mask} = if(!isnull({dem}), 1, null())", overwrite=True, quiet=True
         )
@@ -296,6 +306,7 @@ def apply_saved_transform(
 
     # Apply the ICP horizontal + yaw (tz = 0); init_yaw is in degrees.
     if method in ("nk_icp", "icp"):
+        TMP_RASTERS.append(tmp_hi)
         gs.run_command(
             "r.dem.icp",
             reference=reference,
@@ -321,14 +332,6 @@ def apply_saved_transform(
         bias_output=bias_out,
         verbose=verbose,
     )
-
-    # The icp method never creates the N&K full_mask or tmp_h intermediates.
-    cleanup = [] if method == "icp" else [full_mask, tmp_h, f"{tmp_h}_resid"]
-    if method in ("nk_icp", "icp"):
-        cleanup.append(tmp_hi)
-    for tmp in cleanup:
-        if gs.find_file(tmp, element="raster")["name"]:
-            gs.run_command("g.remove", type="raster", name=tmp, flags="f", quiet=True)
 
 
 def main():
@@ -375,6 +378,8 @@ def main():
     pid = os.getpid()
     tmp_pgcp = f"tmp_rdemcoreg_pgcp_{pid}"
     tmp_nk = f"tmp_rdemcoreg_nk_{pid}"
+    if method != "pgcp_vertical":
+        TMP_RASTERS.append(tmp_pgcp)
 
     # Stage 1: PGCP vertical correction (always runs first).
     pgcp_stats = pgcp_vertical_correction(
@@ -419,16 +424,14 @@ def main():
             write_combined_transform(
                 xform_out, method, pgcp_stats["median_bias"], zero_nk, icp
             )
-        if gs.find_file(tmp_pgcp, element="raster")["name"]:
-            gs.run_command(
-                "g.remove", type="raster", name=tmp_pgcp, flags="f", quiet=True
-            )
         gs.message(_("Method: icp - done."))
         return
 
     # Stage 2: Nuth & Kaeaeb horizontal + vertical refinement on the
     # PGCP-corrected DSM, capturing the solved offsets.
     nk_out = output if method == "nk" else tmp_nk
+    if nk_out == tmp_nk:
+        TMP_RASTERS.extend([tmp_nk, f"{tmp_nk}_resid"])
     nk_xform = gs.tempfile()
     gs.run_command(
         "r.dem.nk",
@@ -459,12 +462,8 @@ def main():
     if xform_out:
         write_combined_transform(xform_out, method, pgcp_stats["median_bias"], nk, icp)
 
-    # Cleanup intermediates, including the N&K residual byproduct.
-    for tmp in [tmp_pgcp, tmp_nk, f"{tmp_nk}_resid"]:
-        if gs.find_file(tmp, element="raster")["name"]:
-            gs.run_command("g.remove", type="raster", name=tmp, flags="f", quiet=True)
-
 
 if __name__ == "__main__":
     options, flags = gs.parser()
+    atexit.register(cleanup)
     sys.exit(main())

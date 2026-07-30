@@ -10,13 +10,11 @@
 #
 # COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
 #
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
 
 # %module
-# % description: Compute terrain surface metrics used as DoD predictors.
+# % description: Compute terrain surface metrics used as DoD predictors
 # % keyword: raster
 # % keyword: DEM
 # % keyword: terrain
@@ -76,6 +74,7 @@
 # %end
 
 import atexit
+import os
 import sys
 
 import grass.script as gs
@@ -133,7 +132,7 @@ def metric_roughness_std(input_raster, output, window):
 
 
 def metric_diversity_geomorphon(input_raster, output, window):
-    landforms = f"tmp_rdemstats_forms_{output}"
+    landforms = f"tmp_rdemstats_forms_{os.getpid()}"
     TMP_RASTERS.append(landforms)
     gs.run_command(
         "r.geomorphon",
@@ -172,8 +171,8 @@ def metric_diversity_shannon(forms, output, window, log_base, evenness):
 
     p_maps = []
     for c in cats:
-        indicator = f"tmp_rdemstats_I_{c}"
-        proportion = f"tmp_rdemstats_p_{c}"
+        indicator = f"tmp_rdemstats_I_{c}_{os.getpid()}"
+        proportion = f"tmp_rdemstats_p_{c}_{os.getpid()}"
         TMP_RASTERS.extend([indicator, proportion])
         gs.mapcalc(
             f"{indicator} = if({forms} == {c}, 1, 0)",
@@ -195,7 +194,14 @@ def metric_diversity_shannon(forms, output, window, log_base, evenness):
     gs.mapcalc(f"{output} = " + " + ".join(terms), overwrite=gs.overwrite())
 
     if evenness:
-        rich = f"tmp_rdemstats_rich_{output}"
+        evenness_map = f"{output}_evenness"
+        if gs.find_file(evenness_map, element="raster")["name"] and not gs.overwrite():
+            gs.fatal(
+                _("Raster map <{}> already exists. Use --overwrite.").format(
+                    evenness_map
+                )
+            )
+        rich = f"tmp_rdemstats_rich_{os.getpid()}"
         TMP_RASTERS.append(rich)
         gs.run_command(
             "r.neighbors",
@@ -208,7 +214,7 @@ def metric_diversity_shannon(forms, output, window, log_base, evenness):
         )
         denom = log_expr(rich, log_base)
         gs.mapcalc(
-            f"{output}_evenness = if({rich} > 1, {output} / ({denom}), null())",
+            f"{evenness_map} = if({rich} > 1, {output} / ({denom}), null())",
             overwrite=gs.overwrite(),
         )
 
@@ -217,10 +223,11 @@ def metric_error_sigma_local(input_raster, output, window):
     """Robust local standard deviation via MAD:
     sigma ~= 1.4826 * median(|x - median(x)|) in a moving window.
     """
-    in_f = f"tmp_rdemstats_f_{output}"
-    median_r = f"tmp_rdemstats_med_{output}"
-    absdev_r = f"tmp_rdemstats_absdev_{output}"
-    mad_r = f"tmp_rdemstats_mad_{output}"
+    pid = os.getpid()
+    in_f = f"tmp_rdemstats_f_{pid}"
+    median_r = f"tmp_rdemstats_med_{pid}"
+    absdev_r = f"tmp_rdemstats_absdev_{pid}"
+    mad_r = f"tmp_rdemstats_mad_{pid}"
     TMP_RASTERS.extend([in_f, median_r, absdev_r, mad_r])
     wf = gaussian_weighting_factor(window)
 
