@@ -56,15 +56,13 @@
 # % key: spectral_threshold
 # % type: double
 # % answer: -0.15
-# % description: Spectral change threshold below which
-# % description: vegetation loss is flagged
+# % description: Spectral change threshold below which vegetation loss is flagged
 # % required: no
 # %end
 
 # %option G_OPT_V_INPUT
 # % key: infrastructure
-# % description: Infrastructure vector (roads, rail, utilities) for hazard
-# % overlay
+# % description: Infrastructure vector (roads, rail, utilities) for hazard overlay
 # % required: no
 # %end
 
@@ -78,8 +76,7 @@
 # % key: infra_buffer_m
 # % type: double
 # % answer: 30.0
-# % description: Buffer distance (m) around infrastructure for hazard
-# % intersection
+# % description: Buffer distance (m) around infrastructure for hazard intersection
 # % required: no
 # %end
 
