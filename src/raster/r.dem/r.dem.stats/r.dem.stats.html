@@ -9,18 +9,20 @@ to <em>r.dem.bias</em> or as an uncertainty source for
 <p>A single metric is selected per run through the <b>metric</b> option:</p>
 
 <ul>
-  <li><b>slope</b> &mdash; surface slope from <em>r.slope.aspect</em> (degrees
-  or radians).</li>
-  <li><b>roughness_std</b> &mdash; local roughness as the Gaussian-weighted
+  <li><b>slope</b>: surface slope from <em>r.slope.aspect</em>, in degrees
+  or radians as selected with <b>slope_format</b> (default degrees).</li>
+  <li><b>roughness_std</b>: local roughness as the Gaussian-weighted
   focal standard deviation of elevation (<em>r.neighbors</em>).</li>
-  <li><b>diversity_geomorphon</b> &mdash; landform category richness in a moving
+  <li><b>diversity_geomorphon</b>: landform category richness in a moving
   window, computed from <em>r.geomorphon</em> forms.</li>
-  <li><b>diversity_shannon</b> &mdash; local Shannon diversity
+  <li><b>diversity_shannon</b>: local Shannon diversity
   <code>H' = -sum(p * log(p))</code> over category proportions in a window,
-  computed from a categorical input such as a geomorphon forms map. With the
+  computed from a categorical input such as a geomorphon forms map. The
+  logarithm base is selected with <b>log_base</b> (<code>e</code>,
+  <code>2</code>, or <code>10</code>; default <code>e</code>). With the
   <b>-e</b> flag the matching Shannon evenness <code>J = H' / log(S)</code> is
   also written as <code>&lt;output&gt;_evenness</code>.</li>
-  <li><b>error_sigma_local</b> &mdash; a robust local standard deviation via the
+  <li><b>error_sigma_local</b>: a robust local standard deviation via the
   median absolute deviation,
   <code>sigma = 1.4826 * median(|x - median(x)|)</code> in a moving window. Use
   a DoD raster as <b>input</b> to obtain a spatially varying DoD uncertainty
@@ -65,13 +67,12 @@ r.dem.stats input=dem_forms output=dem_shannon \
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.dem.bias.html">r.dem.bias</a>,
-<a href="r.dem.errprop.html">r.dem.errprop</a>,
-<a href="r.geomorphon.html">r.geomorphon</a>,
-<a href="r.neighbors.html">r.neighbors</a>,
-<a href="r.slope.aspect.html">r.slope.aspect</a>
-</em>
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.bias.html">r.dem.bias</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.geomorphon.html">r.geomorphon</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="r.slope.aspect.html">r.slope.aspect</a></em>
 
 <h2>AUTHORS</h2>
 

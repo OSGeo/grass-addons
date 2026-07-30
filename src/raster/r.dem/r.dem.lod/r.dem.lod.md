@@ -44,6 +44,8 @@ input for significance thresholding. For full per-source uncertainty
 propagation (combining several error rasters in quadrature) use
 *r.dem.errprop*.
 
+The tool requires the Python *scipy* package.
+
 ## EXAMPLES
 
 Global LoD at 95% confidence over a stable mask:
@@ -67,6 +69,7 @@ r.dem.lod dem=dem_post reference=dem_pre output=lod_local \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
 *[r.dem.change](r.dem.change.md)*,
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[r.dem.stats](r.dem.stats.md)*,

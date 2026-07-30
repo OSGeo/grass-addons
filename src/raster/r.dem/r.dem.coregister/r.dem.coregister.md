@@ -1,4 +1,4 @@
-## Description
+## DESCRIPTION
 
 *r.dem.coregister* co-registers a post-event DSM to a reference DEM using
 pseudo ground control points (PGCPs) sampled from stable features, terrain
@@ -53,14 +53,14 @@ onto the DSM so both share the same horizontal alignment. On replay the
 and DTM vertical offsets differ. Replay therefore still needs **pgcp** but not
 a **stable_mask**.
 
-## Notes
+## NOTES
 
 The PGCP approach assumes the supplied features are stable reference surfaces.
 When using roads, choose **buffer** to stay within the paved surface and avoid
 curbs, vegetation, and vehicles. The computational region should match the input
 DEM resolution.
 
-## Examples
+## EXAMPLES
 
 Vertical co-registration from road PGCPs, writing residuals to CSV:
 
@@ -95,14 +95,15 @@ r.dem.coregister dem=sfm_dsm reference=lidar_dsm pgcp=road_centerlines \
     output=sfm_dsm_coreg apply_transform=align.txt
 ```
 
-## See also
+## SEE ALSO
 
-*[r.dem.nk](r.dem.nk.md)*,
-*[r.dem.icp](r.dem.icp.md)*,
+*[r.dem](r.dem.md)*,
 *[r.dem.change](r.dem.change.md)*,
+*[r.dem.icp](r.dem.icp.md)*,
+*[r.dem.nk](r.dem.nk.md)*,
 *[v.buffer](v.buffer.md)*,
 *[v.to.rast](v.to.rast.md)*
 
-## Authors
+## AUTHORS
 
 Corey T. White, Center for Geospatial Analytics, NC State University

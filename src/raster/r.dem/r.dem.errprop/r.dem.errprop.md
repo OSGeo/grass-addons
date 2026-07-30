@@ -19,14 +19,14 @@ land-cover class), plus optional co-registration or interpolation error terms.
 
 From the propagated **output_sigma** the tool can additionally produce:
 
-- **output_lod** &mdash; a Level of Detection raster, `LoD = z(confidence) *
+- **output_lod**: a Level of Detection raster, `LoD = z(confidence) *
   sigma_DoD`, where `z` is the two-tailed normal critical value. Cells of the
   DoD whose magnitude exceeds the LoD are considered significant change.
-- **output_tvalue** &mdash; the standardized change magnitude `|DoD| / sigma_DoD`.
-- **output_pvalue** &mdash; a two-tailed p-value raster, using either a normal
+- **output_tvalue**: the standardized change magnitude `|DoD| / sigma_DoD`.
+- **output_pvalue**: a two-tailed p-value raster, using either a normal
   approximation (Abramowitz and Stegun 26.2.17, evaluated in *r.mapcalc*) or a
   Student-t distribution with **df** degrees of freedom.
-- **output_class** &mdash; a categorical erosion/deposition significance map.
+- **output_class**: a categorical erosion/deposition significance map.
   Each cell is labelled by the highest confidence level (68/90/95/99%) at which
   the change exceeds the corresponding LoD, signed by the direction of change.
 
@@ -47,6 +47,8 @@ Category labels and a diverging color table are written automatically.
 The propagated uncertainty raster pairs naturally with *r.dem.change*, which
 applies an LoD threshold and reports volumetric change. The **output_sigma**
 raster can be supplied to *r.dem.lod* as a precomputed uncertainty surface.
+
+The tool requires the Python *scipy* package.
 
 ## EXAMPLES
 
@@ -69,6 +71,7 @@ r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
 *[r.dem.change](r.dem.change.md)*,
 *[r.dem.lod](r.dem.lod.md)*,
 *[r.dem.stats](r.dem.stats.md)*,

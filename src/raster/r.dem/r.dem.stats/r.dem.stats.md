@@ -7,17 +7,19 @@ to *r.dem.bias* or as an uncertainty source for *r.dem.errprop*.
 
 A single metric is selected per run through the **metric** option:
 
-- **slope** &mdash; surface slope from *r.slope.aspect* (degrees or radians).
-- **roughness_std** &mdash; local roughness as the Gaussian-weighted focal
+- **slope**: surface slope from *r.slope.aspect*, in degrees or radians as
+  selected with **slope_format** (default degrees).
+- **roughness_std**: local roughness as the Gaussian-weighted focal
   standard deviation of elevation (*r.neighbors*).
-- **diversity_geomorphon** &mdash; landform category richness in a moving
+- **diversity_geomorphon**: landform category richness in a moving
   window, computed from *r.geomorphon* forms.
-- **diversity_shannon** &mdash; local Shannon diversity
+- **diversity_shannon**: local Shannon diversity
   `H' = -sum(p * log(p))` over category proportions in a window, computed from
-  a categorical input such as a geomorphon forms map. With the **-e** flag the
-  matching Shannon evenness `J = H' / log(S)` is also written as
-  `<output>_evenness`.
-- **error_sigma_local** &mdash; a robust local standard deviation via the median
+  a categorical input such as a geomorphon forms map. The logarithm base is
+  selected with **log_base** (`e`, `2`, or `10`; default `e`). With the
+  **-e** flag the matching Shannon evenness `J = H' / log(S)` is also written
+  as `<output>_evenness`.
+- **error_sigma_local**: a robust local standard deviation via the median
   absolute deviation, `sigma = 1.4826 * median(|x - median(x)|)` in a moving
   window. Use a DoD raster as **input** to obtain a spatially varying DoD
   uncertainty surface.
@@ -59,6 +61,7 @@ r.dem.stats input=dem_forms output=dem_shannon \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
 *[r.dem.bias](r.dem.bias.md)*,
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[r.geomorphon](r.geomorphon.md)*,

@@ -9,9 +9,15 @@ the highest-priority areas.</p>
 <h3>Triage</h3>
 
 <p>The <b>output</b> raster classifies each cell into a priority class. With a
-<b>spectral_change</b> raster supplied: 0 = no significant change, 1 = spectral
-change only (vegetation damage), 2 = topographic change only (geomorphic),
-3 = topographic and spectral change (highest priority).</p>
+<b>spectral_change</b> raster supplied:</p>
+
+<table>
+  <tr><th>Class</th><th>Meaning</th></tr>
+  <tr><td>0</td><td>No significant change</td></tr>
+  <tr><td>1</td><td>Spectral change only (vegetation damage)</td></tr>
+  <tr><td>2</td><td>Topographic change only (geomorphic)</td></tr>
+  <tr><td>3</td><td>Topographic and spectral change (highest priority)</td></tr>
+</table>
 
 <p>A cell is flagged for topographic change when
 <code>|dod| &gt;= topo_threshold</code>, and for spectral change when
@@ -23,9 +29,15 @@ vegetation loss). Without a spectral input only topographic change is classified
 
 <p>When both an <b>infrastructure</b> vector and a <b>hazard_output</b> name are
 given, the infrastructure is buffered by <b>infra_buffer_m</b> and intersected
-with the triage result: 0 = no change and no infrastructure, 1 = infrastructure
-with no change detected, 2 = change detected with no infrastructure,
-3 = CRITICAL, change intersects infrastructure.</p>
+with the triage result:</p>
+
+<table>
+  <tr><th>Class</th><th>Meaning</th></tr>
+  <tr><td>0</td><td>No change and no infrastructure</td></tr>
+  <tr><td>1</td><td>Infrastructure, no change detected</td></tr>
+  <tr><td>2</td><td>Change detected, no infrastructure</td></tr>
+  <tr><td>3</td><td>CRITICAL: change intersects infrastructure</td></tr>
+</table>
 
 <h2>NOTES</h2>
 
@@ -53,12 +65,11 @@ r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.dem.change.html">r.dem.change</a>,
-<a href="r.dem.errprop.html">r.dem.errprop</a>,
-<a href="v.buffer.html">v.buffer</a>,
-<a href="v.to.rast.html">v.to.rast</a>
-</em>
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="v.buffer.html">v.buffer</a></em>,
+<em><a href="v.to.rast.html">v.to.rast</a></em>
 
 <h2>AUTHORS</h2>
 

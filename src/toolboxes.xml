@@ -19,7 +19,7 @@
     <task name="r.mcda.input" />
     <task name="r.mcda.output" />
   </toolbox>
-  <toolbox name="DEM" code="RA">
+  <toolbox name="DEM" code="DM">
     <correlate code="RA" />
     <task name="r.dem.bias" />
     <task name="r.dem.change" />

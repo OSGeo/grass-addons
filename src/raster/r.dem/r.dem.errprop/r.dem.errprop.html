@@ -22,17 +22,17 @@ terms.</p>
 <p>From the propagated <b>output_sigma</b> the tool can additionally produce:</p>
 
 <ul>
-  <li><b>output_lod</b> &mdash; a Level of Detection raster,
+  <li><b>output_lod</b>: a Level of Detection raster,
   <code>LoD = z(confidence) * sigma_DoD</code>, where <code>z</code> is the
   two-tailed normal critical value. Cells of the DoD whose magnitude exceeds the
   LoD are considered significant change.</li>
-  <li><b>output_tvalue</b> &mdash; the standardized change magnitude
+  <li><b>output_tvalue</b>: the standardized change magnitude
   <code>|DoD| / sigma_DoD</code>.</li>
-  <li><b>output_pvalue</b> &mdash; a two-tailed p-value raster, using either a
+  <li><b>output_pvalue</b>: a two-tailed p-value raster, using either a
   normal approximation (Abramowitz and Stegun 26.2.17, evaluated in
   <em>r.mapcalc</em>) or a Student-t distribution with <b>df</b> degrees of
   freedom.</li>
-  <li><b>output_class</b> &mdash; a categorical erosion/deposition significance
+  <li><b>output_class</b>: a categorical erosion/deposition significance
   map. Each cell is labelled by the highest confidence level (68/90/95/99%) at
   which the change exceeds the corresponding LoD, signed by the direction of
   change.</li>
@@ -40,16 +40,25 @@ terms.</p>
 
 <h2>NOTES</h2>
 
-<p>The categorical output uses signed integer classes: -4 Erosion &ge;99%,
--3 Erosion &ge;95%, -2 Erosion &ge;90%, -1 Erosion &ge;68%, 0 Not significant,
-1 Deposition &ge;68%, 2 Deposition &ge;90%, 3 Deposition &ge;95%,
-4 Deposition &ge;99%. Category labels and a diverging color table are written
-automatically.</p>
+<p>The categorical output uses signed integer classes:</p>
+
+<table>
+  <tr><th>Class</th><th>Meaning</th><th>Class</th><th>Meaning</th></tr>
+  <tr><td>-4</td><td>Erosion &ge;99%</td><td>1</td><td>Deposition &ge;68%</td></tr>
+  <tr><td>-3</td><td>Erosion &ge;95%</td><td>2</td><td>Deposition &ge;90%</td></tr>
+  <tr><td>-2</td><td>Erosion &ge;90%</td><td>3</td><td>Deposition &ge;95%</td></tr>
+  <tr><td>-1</td><td>Erosion &ge;68%</td><td>4</td><td>Deposition &ge;99%</td></tr>
+  <tr><td>0</td><td>Not significant</td><td></td><td></td></tr>
+</table>
+
+<p>Category labels and a diverging color table are written automatically.</p>
 
 <p>The propagated uncertainty raster pairs naturally with <em>r.dem.change</em>,
 which applies an LoD threshold and reports volumetric change. The
 <b>output_sigma</b> raster can be supplied to <em>r.dem.lod</em> as a
 precomputed uncertainty surface.</p>
+
+<p>The tool requires the Python <em>scipy</em> package.</p>
 
 <h2>EXAMPLES</h2>
 
@@ -72,13 +81,12 @@ r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.dem.change.html">r.dem.change</a>,
-<a href="r.dem.lod.html">r.dem.lod</a>,
-<a href="r.dem.stats.html">r.dem.stats</a>,
-<a href="r.mapcalc.html">r.mapcalc</a>,
-<a href="r.univar.html">r.univar</a>
-</em>
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.lod.html">r.dem.lod</a></em>,
+<em><a href="r.dem.stats.html">r.dem.stats</a></em>,
+<em><a href="r.mapcalc.html">r.mapcalc</a></em>,
+<em><a href="r.univar.html">r.univar</a></em>
 
 <h2>AUTHORS</h2>
 

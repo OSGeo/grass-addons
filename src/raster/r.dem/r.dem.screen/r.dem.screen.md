@@ -62,6 +62,7 @@ r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
 *[r.dem.change](r.dem.change.md)*,
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[v.buffer](v.buffer.md)*,

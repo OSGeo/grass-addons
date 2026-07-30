@@ -47,6 +47,8 @@ terrain assumed unchanged (roads, parking lots, bare ground).</p>
 propagation (combining several error rasters in quadrature) use
 <em>r.dem.errprop</em>.</p>
 
+<p>The tool requires the Python <em>scipy</em> package.</p>
+
 <h2>EXAMPLES</h2>
 
 <p>Global LoD at 95% confidence over a stable mask:</p>
@@ -74,13 +76,12 @@ r.dem.lod dem=dem_post reference=dem_pre output=lod_local \
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.dem.change.html">r.dem.change</a>,
-<a href="r.dem.errprop.html">r.dem.errprop</a>,
-<a href="r.dem.stats.html">r.dem.stats</a>,
-<a href="r.neighbors.html">r.neighbors</a>,
-<a href="r.univar.html">r.univar</a>
-</em>
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.dem.stats.html">r.dem.stats</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="r.univar.html">r.univar</a></em>
 
 <h2>AUTHORS</h2>
 

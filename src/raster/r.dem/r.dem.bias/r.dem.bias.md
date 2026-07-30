@@ -68,11 +68,12 @@ r.dem.bias method=forest dod=dod_1m mask=forest \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
 *[r.dem.coregister](r.dem.coregister.md)*,
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[r.dem.stats](r.dem.stats.md)*,
-*[r.regression.multi](r.regression.multi.md)*,
-*[r.neighbors](r.neighbors.md)*
+*[r.neighbors](r.neighbors.md)*,
+*[r.regression.multi](r.regression.multi.md)*
 
 ## AUTHORS
 

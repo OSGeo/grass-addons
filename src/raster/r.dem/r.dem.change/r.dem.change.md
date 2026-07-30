@@ -8,16 +8,16 @@ isolated significant cells.
 
 The pipeline is:
 
-1. **Raw DoD** &mdash; `output_dod = dem - reference`, the unmodified difference.
-2. **Blunder trimming** (optional, **trim_percentile**) &mdash; cells whose
+1. **Raw DoD**: `output_dod = dem - reference`, the unmodified difference.
+2. **Blunder trimming** (optional, **trim_percentile**): cells whose
    absolute difference exceeds a percentile of `|DoD|` are dropped before
    thresholding. The threshold is estimated over **stable_mask** when supplied,
    otherwise over the whole DoD.
-3. **LoD thresholding** &mdash; `output_sig` keeps cells where `|DoD|` exceeds
+3. **LoD thresholding**: `output_sig` keeps cells where `|DoD|` exceeds
    the per-cell **lod** value (from *r.dem.lod* or *r.dem.errprop*).
-4. **Speckle removal** (optional, **-n**) &mdash; isolated significant cells
+4. **Speckle removal** (optional, **-n**): isolated significant cells
    (no significant neighbour among the eight surrounding cells) are removed.
-5. **Volumetric summary** &mdash; erosion, deposition, and net volume in cubic
+5. **Volumetric summary**: erosion, deposition, and net volume in cubic
    metres (and cubic yards), optionally written to **volume_csv**.
 
 With the **-k** flag the Fisher and Pearson kurtosis of the raw DoD distribution
@@ -35,6 +35,8 @@ difference remains available for inspection.
 
 Volumes are computed from significant cells only, using the current region cell
 size. Ensure the computational region matches the input DEM resolution.
+
+The kurtosis diagnostic (**-k**) requires the Python *scipy* package.
 
 ## EXAMPLES
 
@@ -56,9 +58,10 @@ r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
 
 ## SEE ALSO
 
+*[r.dem](r.dem.md)*,
+*[r.dem.coregister](r.dem.coregister.md)*,
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[r.dem.lod](r.dem.lod.md)*,
-*[r.dem.coregister](r.dem.coregister.md)*,
 *[r.neighbors](r.neighbors.md)*,
 *[r.univar](r.univar.md)*
 
