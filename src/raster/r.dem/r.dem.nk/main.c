@@ -2,17 +2,15 @@
  *
  * MODULE:       r.dem.nk
  *
- * AUTHOR(S):    Corey T. White
+ * AUTHOR(S):    Corey T. White <smortopahri gmail.com>
  *
- * PURPOSE:       Co-register an SfM DSM to a LiDAR DSM using a Nuth
- *                & Kääb–style model.
+ * PURPOSE:      Co-register an SfM DSM to a LiDAR DSM using a Nuth &
+ *               Kaab-style model.
  *
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
  *
- * COPYRIGHT:    (C) 2025-2026 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
+ *               SPDX-License-Identifier: GPL-2.0-or-later
  *
  *****************************************************************************/
 
@@ -363,6 +361,19 @@ static void write_history(const char *name)
     Rast_write_history(name, &hist);
 }
 
+/* Derived output rasters (<output>_resid, -k intermediates) are not parser
+ * options, so enforce the overwrite check the parser would have done. */
+static void check_derived_output(const char *out_name, const char *suffix)
+{
+    char name[GNAME_MAX];
+
+    snprintf(name, sizeof(name), "%s%s", out_name, suffix);
+    if (G_find_raster2(name, G_mapset()) && !G_get_overwrite())
+        G_fatal_error(_("Raster map <%s> already exists. To overwrite, use "
+                        "the --overwrite flag"),
+                      name);
+}
+
 static void write_nk_transform(const char *path, double dz, double dx,
                                double dy)
 {
@@ -412,13 +423,13 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    G_add_keyword("raster");
-    G_add_keyword("coregistration");
-    G_add_keyword("DEM");
-    G_add_keyword("SfM");
-    G_add_keyword("LiDAR");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("coregistration"));
+    G_add_keyword(_("DEM"));
+    G_add_keyword(_("SfM"));
+    G_add_keyword(_("LiDAR"));
     module->label = _("Co-register an SfM DSM to a LiDAR DSM using a Nuth & "
-                      "Kääb-style model.");
+                      "Kaab-style model.");
     module->description =
         _("Estimates horizontal (dx, dy) and vertical (dz) offsets on stable "
           "terrain and applies a sub-cell translation.");
@@ -533,6 +544,13 @@ int main(int argc, char *argv[])
     const bool keep = keep_flag->answer ? true : false;
     const char *xform_out = xfout_opt->answer;
     const char *xform_in = xfin_opt->answer;
+
+    check_derived_output(out_name, "_resid");
+    if (keep) {
+        check_derived_output(out_name, "_slope");
+        check_derived_output(out_name, "_aspect");
+        check_derived_output(out_name, "_mask");
+    }
 
     /* Set local processing region to LiDAR grid without changing user's region
      */

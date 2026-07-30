@@ -1,85 +1,99 @@
 <h2>DESCRIPTION</h2>
 
-<em><b>r.dem.nk</b></em> - Implements the Nuth and Kääb (2011) algorithm for co-registering
-two Digital Elevation Models (DEMs). The algorithm estimates and corrects for
-vertical and horizontal offsets between the DEMs by minimizing elevation.
-
+<p><em>r.dem.nk</em> implements the Nuth and K&auml;&auml;b (2011) algorithm
+for co-registering two Digital Elevation Models (DEMs). The algorithm estimates
+and corrects for vertical and horizontal offsets between the DEMs by minimizing
+elevation differences on stable terrain.</p>
 
 <h3>Model</h3>
 
-For stable terrain pixels:
-dh = SfM - LiDAR ≈ Δx *tan(slope)* cos(aspect)
-+ Δy *tan(slope)* sin(aspect)
-+ Δz
-Where Δx (east), Δy (north), Δz (vertical) are solved by
-ordinary least squares using raster-wide sums computed internally.
+<p>For stable terrain pixels:</p>
 
-<h3>ITERATIVE SOLVE</h3>
+<pre>
+dh = SfM - LiDAR
+   approx. delta_x * tan(slope) * cos(aspect)
+         + delta_y * tan(slope) * sin(aspect)
+         + delta_z
+</pre>
 
-The linear model above is only first order, so a single pass under-estimates
-shifts larger than one cell. The module solves the increment on a working
-surface, accumulates it into the running transform, re-warps the working
-surface from the original SfM by the accumulated transform, and repeats until
-the increment falls below <b>tol</b> (in map units) or <b>max_iter</b> outer
-passes are reached. If the passes do not converge, a warning is issued and the
-last estimate is used.
+<p>Where <code>delta_x</code> (east), <code>delta_y</code> (north),
+<code>delta_z</code> (vertical) are solved by ordinary least squares using
+raster-wide sums computed internally. Only stable-terrain cells whose slope
+lies between <b>slope_min</b> and <b>slope_max</b> (degrees; defaults 2 and 85)
+enter the regression, excluding near-flat and near-vertical cells.</p>
 
-<h3>HORIZONTAL APPLICATION (native)</h3>
+<h3>Iterative solve</h3>
 
-The solved offsets are applied as a single inverse warp: each output cell at
-map coordinate (x, y) samples the original SfM at (x + Δx, y + Δy) (using
-<b>interp</b>) and subtracts Δz. No region shifting or external resampling tool
-is involved.
+<p>The linear model above is only first order, so a single pass under-estimates
+shifts larger than one cell. The module therefore solves the increment on a
+working surface, accumulates it into the running transform, re-warps the
+working surface from the original SfM by the accumulated transform, and repeats
+until the increment falls below <b>tol</b> (in map units) or <b>max_iter</b>
+outer passes are reached. If the passes do not converge, a warning is issued
+and the last estimate is used.</p>
 
-<h3>ROBUSTNESS</h3>
+<h3>Horizontal application (native)</h3>
 
-Optional iterative sigma-clipping on residuals (<b>iters</b> per outer pass)
-reduces outlier influence during each solve.
+<p>The solved offsets are applied as a single inverse warp: each output cell at
+map coordinate <code>(x, y)</code> samples the original SfM at
+<code>(x + delta_x, y + delta_y)</code> (using <b>interp</b>) and subtracts
+<code>delta_z</code>. No region shifting or external resampling tool is
+involved.</p>
 
-<h3>SAVING AND REUSING A TRANSFORM</h3>
+<h3>Robustness</h3>
 
-<b>transform_output</b> writes the solved offsets (Δz, Δx, Δy) to a small text
-file. <b>apply_transform</b> reads such a file and applies it directly, skipping
-the regression. This lets a transform solved on one surface (for example a clean
+<p>Optional iterative sigma-clipping on residuals (<b>iters</b> per outer pass)
+reduces outlier influence during each solve.</p>
+
+<p>The module always writes a residual raster named <code>output_resid</code>
+which contains <code>output - lidar</code> on the stable-terrain mask used for
+regression. When <b>-k</b> is provided, additional intermediate rasters are
+written: <code>output_slope</code>, <code>output_aspect</code>, and
+<code>output_mask</code>.</p>
+
+<h3>Saving and reusing a transform</h3>
+
+<p><b>transform_output</b> writes the solved offsets (<code>dz</code>,
+<code>dx</code>, <code>dy</code>) to a small text file.
+<b>apply_transform</b> reads such a file and applies it directly, skipping the
+regression. This lets a transform solved on one surface (for example a clean
 bare-earth DTM) be replayed onto another surface from the same acquisition (for
 example its DSM) so both share the same horizontal alignment. In apply mode the
 <b>stable_mask</b> is used only to define the reported residual raster, so a
-near-flat mask no longer triggers the "not enough valid pixels" error.
+near-flat mask no longer triggers the "not enough valid pixels" error.</p>
 
 <h2>EXAMPLES</h2>
 
-Solve and save the transform:
+<p>Solve and save the transform:</p>
 
-<div class="code">
-    <pre>
+<div class="code"><pre>
 r.dem.nk sfm=sfm_dsm lidar=lidar_dsm stable_mask=stable \
     output=sfm_coreg interp=bilinear iters=2 sigma=2.5 \
     transform_output=nk_transform.txt
-</pre>
-</div>
+</pre></div>
 
-Replay the saved transform onto another surface:
+<p>Replay the saved transform onto another surface:</p>
 
-<div class="code">
-    <pre>
+<div class="code"><pre>
 r.dem.nk sfm=sfm_dtm lidar=lidar_dtm stable_mask=stable \
     output=sfm_dtm_coreg apply_transform=nk_transform.txt
-</pre>
-</div>
+</pre></div>
 
 <h2>REFERENCES</h2>
 
 <ul>
-    <li>
-    Nuth, C., and A. Kääb. 2011. “Co-Registration and Bias Corrections of
-    Satellite Elevation Data Sets for Quantifying Glacier Thickness Change.
-    ”The Cryosphere 5 (1): 271–90. <a herf="https://doi.org/10.5194/tc-5-271-2011" target="_blank"><https://doi.org/10.5194/tc-5-271-2011></a>.
-    </li>
+  <li>Nuth, C., and A. K&auml;&auml;b. 2011. "Co-Registration and Bias
+  Corrections of Satellite Elevation Data Sets for Quantifying Glacier
+  Thickness Change." <em>The Cryosphere</em> 5 (1): 271-90.
+  <a href="https://doi.org/10.5194/tc-5-271-2011">https://doi.org/10.5194/tc-5-271-2011</a></li>
 </ul>
 
-<h2>AUTHORS</h2>
-Corey White, <a
-    href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>
-
 <h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
 <em><a href="r.dem.icp.html">r.dem.icp</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
