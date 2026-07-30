@@ -1,8 +1,24 @@
-#include "rdemicp.h"
-#include <math.h>
-#include <omp.h>
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Apply final transform and resample source DEM onto the
+ *               reference grid
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
 
-/* Bilinear sample from raster in world coords (x,y) → z; returns NAN if
+#include <math.h>
+
+#include <grass/gis.h>
+#include <grass/raster.h>
+
+#include "rdemicp.h"
+
+/* Bilinear sample from raster in world coords (x,y) to z; returns NAN if
  * outside/NaN */
 static inline double bilinear_sample_xy(const RasterD *ras, const Grid *g,
                                         double x, double y)
@@ -28,14 +44,14 @@ static inline double bilinear_sample_xy(const RasterD *ras, const Grid *g,
     return (1.0 - v) * z0 + v * z1;
 }
 
-/* Inverse‑warp: for each target cell center, map back to source, sample, write
+/* Inverse-warp: for each target cell center, map back to source, sample, write
  */
 void apply_transform_and_resample(const RasterD *src, const Grid *g,
                                   const Transform *T, int dof,
                                   const char *out_name)
 {
     int rows = g->rows, cols = g->cols;
-    // FCELL *row = Rast_allocate_f_buf();
+    struct History hist;
     int outfd = Rast_open_new(out_name, FCELL_TYPE);
 
     /* rotate about region center to reduce numeric error */
@@ -64,7 +80,7 @@ void apply_transform_and_resample(const RasterD *src, const Grid *g,
             yi -= cy;
 
             if (dof == 6) {
-                /* full inverse rotation R^{-1} ≈ R^T of yaw(z), roll(x),
+                /* full inverse rotation R^{-1} approx. R^T of yaw(z), roll(x),
                  * pitch(y) in Z*X*Y order */
                 /* compose forward R = Rz(yaw) * Rx(roll) * Ry(pitch), so
                  * inverse is Ry(-pitch)*Rx(-roll)*Rz(-yaw) */
@@ -120,7 +136,6 @@ void apply_transform_and_resample(const RasterD *src, const Grid *g,
                 rowp[c] = (FCELL)outz;
             }
         }
-        // Rast_put_row(outfd, row, FCELL_TYPE);
     }
     /* Write rows in order (serial) */
     for (int r = 0; r < rows; r++) {
@@ -128,4 +143,8 @@ void apply_transform_and_resample(const RasterD *src, const Grid *g,
     }
     Rast_close(outfd);
     G_free(row);
+
+    Rast_short_history(out_name, "raster", &hist);
+    Rast_command_history(&hist);
+    Rast_write_history(out_name, &hist);
 }

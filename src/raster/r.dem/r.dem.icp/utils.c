@@ -1,8 +1,25 @@
-#include "rdemicp.h"
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Grid setup, raster I/O, and transform helpers
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include <grass/raster.h>
+
+#include "rdemicp.h"
 
 void grid_init(Grid *g)
 {
@@ -44,7 +61,7 @@ void write_transform(const char *path, const Transform *T, int dof)
         return;
     FILE *f = fopen(path, "w");
     if (!f) {
-        G_warning("Unable to write transform file %s", path);
+        G_warning(_("Unable to write transform file %s"), path);
         return;
     }
     fprintf(f, "# r.dem.icp transform (dof=%d)\n", dof);
@@ -63,11 +80,9 @@ static double read_cell(DCELL v, int isnull)
         return (double)v;
 }
 
-int read_fcell_as_double(const char *name, RasterD *out, int *is_float)
+void read_fcell_as_double(const char *name, RasterD *out)
 {
     int fd = Rast_open_old(name, "");
-    if (fd < 0)
-        G_fatal_error("Cannot open raster %s", name);
     int rows = Rast_window_rows();
     int cols = Rast_window_cols();
 
@@ -89,16 +104,11 @@ int read_fcell_as_double(const char *name, RasterD *out, int *is_float)
     out->rows = rows;
     out->cols = cols;
     out->mask = NULL;
-    if (is_float)
-        *is_float = 1;
-    return 0;
 }
 
-int read_mask_as_bitmap(const char *name, RasterD *out)
+void read_mask_as_bitmap(const char *name, RasterD *out)
 {
     int fd = Rast_open_old(name, "");
-    if (fd < 0)
-        return -1;
     int rows = Rast_window_rows();
     int cols = Rast_window_cols();
 
@@ -120,7 +130,6 @@ int read_mask_as_bitmap(const char *name, RasterD *out)
     out->rows = rows;
     out->cols = cols;
     out->mask = mask;
-    return 0;
 }
 
 void free_rasterd(RasterD *r)

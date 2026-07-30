@@ -1,8 +1,26 @@
-#include "rdemicp.h"
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Robust multi-scale point-to-plane ICP solver
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <omp.h>
+
+#include <grass/gis.h>
+#include <grass/glocale.h>
+
+#include "rdemicp.h"
+
+/* thread-local residual buffer size */
+#define RES_CHUNK 8192
 
 /* Bilinear sample helpers (for target z and normals) */
 static inline int bilinear_sample_xy_all(const RasterD *ras, const Normals *N,
@@ -62,7 +80,7 @@ static inline void rot_apply_xy(const Transform *T, int dof, double cx,
                                 double *xo, double *yo, double *zo)
 {
     /* rotate about (cx,cy), then translate; include roll/pitch only in 6DoF */
-    double xr = x - cx, yr = y - cy, zr = 0.0;
+    double xr = x - cx, yr = y - cy;
     double sy = sin(T->yaw), cyaw = cos(T->yaw);
 
     if (dof == 6) {
@@ -101,7 +119,7 @@ static int cmp_double(const void *a, const void *b)
     return (da > db) - (da < db);
 }
 
-/* Two‑pass ICP iteration: pass 1 gather residuals, choose trim threshold; pass
+/* Two-pass ICP iteration: pass 1 gather residuals, choose trim threshold; pass
  * 2 build normal eq. */
 int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
               const RasterD *mask, const Grid *g, const Params *P, Transform *T,
@@ -127,9 +145,8 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
 
 #pragma omp parallel
             {
-                /* thread‑local buffer to avoid atomics */
-                const int chunk = 8192;
-                double local_abs[chunk];
+                /* thread-local buffer to avoid atomics */
+                double local_abs[RES_CHUNK];
                 int lc = 0;
 
 #pragma omp for schedule(static)
@@ -156,16 +173,16 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
                                 continue;
                             if (P->slope_max < 90.0 && slope > P->slope_max)
                                 continue;
-                            /* point‑to‑plane residual */
+                            /* point-to-plane residual */
                             double rx = 0.0;
-                            double ry = 0.0; /* xt−xt == 0, yt−yt == 0 */
+                            double ry = 0.0; /* xt-xt == 0, yt-yt == 0 */
                             double rz = zt - zr;
                             double res = nx * rx + ny * ry + nz * rz;
                             if (P->distance_max > 0.0 &&
                                 fabs(res) > P->distance_max)
                                 continue;
 
-                            if (lc < chunk) {
+                            if (lc < RES_CHUNK) {
                                 local_abs[lc++] = fabs(res);
                             }
                             else {
@@ -190,8 +207,8 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
             }
 
             if (count < 32) {
-                G_warning("Too few correspondences at level %d, iter %d", level,
-                          iter);
+                G_warning(_("Too few correspondences at level %d, iter %d"),
+                          level, iter);
                 G_free(absres);
                 break;
             }
@@ -201,7 +218,7 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
             if (keep < 16)
                 keep = (count < 16) ? count : 16;
 
-            /* nth‑element via qsort (OK for moderate sizes) */
+            /* nth-element via qsort (OK for moderate sizes) */
             qsort(absres, (size_t)count, sizeof(double), cmp_double);
             double trim_thr = absres[keep - 1];
             G_free(absres);
@@ -218,9 +235,9 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
 #pragma omp parallel
             {
                 double *AtA_local =
-                    (double *)calloc((size_t)Npar * Npar, sizeof(double));
+                    (double *)G_calloc((size_t)Npar * Npar, sizeof(double));
                 double *Atb_local =
-                    (double *)calloc((size_t)Npar, sizeof(double));
+                    (double *)G_calloc((size_t)Npar, sizeof(double));
                 double rmse_local = 0.0;
                 long n_local = 0;
 
@@ -276,8 +293,8 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
                                     nx; /* uses p' about pivot (approx) */
                             J[3] = yaw_term;
                             if (P->dof == 6) {
-                                /* small‑angle approx terms for roll (x) and
-                                 * pitch (y): n^T (R (dtheta × p')) ~ (p' × n) •
+                                /* small-angle approx terms for roll (x) and
+                                 * pitch (y): n^T (R (dtheta x p')) ~ (p' x n) .
                                  * dtheta */
                                 double px = xt - T->tx - cx;
                                 double py = yt - T->ty - cy;
@@ -313,8 +330,8 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
                     rmse_sum += rmse_local;
                     rmse_n += n_local;
                 }
-                free(AtA_local);
-                free(Atb_local);
+                G_free(AtA_local);
+                G_free(Atb_local);
             }
 
             double rmse = (rmse_n > 0) ? sqrt(rmse_sum / (double)rmse_n) : NAN;
@@ -322,7 +339,7 @@ int icp_solve(const RasterD *ref, const Normals *Nref, const RasterD *src,
             /* Solve */
             double dT[6] = {0};
             if (solve_linear_system(Npar, AtA, Atb, dT) != 0) {
-                G_warning("Singular normal equations at level %d iter %d",
+                G_warning(_("Singular normal equations at level %d iter %d"),
                           level, iter);
                 G_free(AtA);
                 G_free(Atb);

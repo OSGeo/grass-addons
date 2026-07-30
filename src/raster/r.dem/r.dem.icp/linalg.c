@@ -1,15 +1,24 @@
-#include "rdemicp.h"
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Small dense linear system solver
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
+
 #include <math.h>
 #include <string.h>
+
+#include "rdemicp.h"
 
 /* Solve A x = b for small dense systems (n<=6) using Gaussian elimination
 with partial pivoting. A is overwritten. */
 int solve_linear_system(int n, double *A, double *b, double *x)
 {
-    int ipiv[n];
-    for (int i = 0; i < n; i++)
-        ipiv[i] = i;
-
     /* Forward elimination */
     for (int k = 0; k < n; k++) {
         /* pivot */

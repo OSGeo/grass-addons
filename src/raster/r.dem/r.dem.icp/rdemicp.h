@@ -1,11 +1,25 @@
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Shared types and declarations for r.dem.icp
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
+
 #ifndef RDEMICP_H
 #define RDEMICP_H
 
+#include <stdbool.h>
+#include <stdio.h>
+
 #include <grass/gis.h>
 #include <grass/raster.h>
-#include <stdbool.h>
 
-/* ===== Region / grid mapping ===== */
+/* Region / grid mapping */
 typedef struct {
     struct Cell_head win; /* current region */
     int rows, cols;
@@ -13,7 +27,7 @@ typedef struct {
     double nsres, ewres;
 } Grid;
 
-/* ===== Parameters ===== */
+/* Parameters */
 typedef struct {
     const char *ref_name;
     const char *src_name;
@@ -38,13 +52,13 @@ typedef struct {
     double yaw, roll, pitch; /* radians */
 } Params;
 
-/* ===== Transform (4‑ or 6‑DoF) ===== */
+/* Transform (4- or 6-DoF) */
 typedef struct {
     double tx, ty, tz;       /* translation */
     double yaw, roll, pitch; /* rotations around z,x,y respectively */
 } Transform;
 
-/* ===== Data containers ===== */
+/* Data containers */
 typedef struct {
     double *z;           /* size rows*cols; NaN for NULL */
     unsigned char *mask; /* 0/1 per cell (optional) */
@@ -52,7 +66,7 @@ typedef struct {
 } RasterD;
 
 typedef struct {
-    /* per‑cell unit normals (nx,ny,nz) and slope (deg) */
+    /* per-cell unit normals (nx,ny,nz) and slope (deg) */
     float *nx;
     float *ny;
     float *nz;
@@ -60,14 +74,12 @@ typedef struct {
     int rows, cols;
 } Normals;
 
-/* ===== API ===== */
-
 /* grid */
 void grid_init(Grid *g);
 
 /* raster I/O */
-int read_fcell_as_double(const char *name, RasterD *out, int *is_float);
-int read_mask_as_bitmap(const char *name, RasterD *out);
+void read_fcell_as_double(const char *name, RasterD *out);
+void read_mask_as_bitmap(const char *name, RasterD *out);
 void free_rasterd(RasterD *r);
 
 /* normals */

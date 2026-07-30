@@ -19,6 +19,8 @@ of the implementation:
   yaw (for example from metadata or phase correlation), pass it via the
   **init_dx**, **init_dy**, **init_dz**, and **init_yaw** options. A good
   **init_dz** is often the median of `source - reference` over stable terrain.
+  In the experimental 6-DoF mode, **init_roll** and **init_pitch** (degrees)
+  additionally seed the roll and pitch angles; they are ignored with `dof=4`.
 * **Speed knobs:** Increase **stride** and reduce **levels** for quick tests,
   and relax **max_iterations**.
 * **Robustness:** Use a conservative **trim** (`0.6`-`0.9`). Where there is a
@@ -95,8 +97,10 @@ Generalized-ICP, *Robotics: Science and Systems*.
 
 ## SEE ALSO
 
-*[r.dem](r.dem.md), [r.dem.coregister](r.dem.coregister.md), [r.dem.nk](r.dem.nk.md)*
+*[r.dem](r.dem.md)*,
+*[r.dem.coregister](r.dem.coregister.md)*,
+*[r.dem.nk](r.dem.nk.md)*
 
 ## AUTHORS
 
-Corey T. White, [NCSU GeoForAll Lab](https://geospatial.ncsu.edu/geoforall/)
+Corey T. White, Center for Geospatial Analytics, NC State University

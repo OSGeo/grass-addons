@@ -24,7 +24,9 @@ properties of the implementation:</p>
   or yaw (for example from metadata or phase correlation), pass it via the
   <b>init_dx</b>, <b>init_dy</b>, <b>init_dz</b>, and <b>init_yaw</b> options. A
   good <b>init_dz</b> is often the median of <code>source - reference</code> over
-  stable terrain.</li>
+  stable terrain. In the experimental 6-DoF mode, <b>init_roll</b> and
+  <b>init_pitch</b> (degrees) additionally seed the roll and pitch angles; they
+  are ignored with <code>dof=4</code>.</li>
   <li><b>Speed knobs:</b> Increase <b>stride</b> and reduce <b>levels</b> for
   quick tests, and relax <b>max_iterations</b>.</li>
   <li><b>Robustness:</b> Use a conservative <b>trim</b>
@@ -115,13 +117,10 @@ and Thrun, S. (2009), Generalized-ICP, <em>Robotics: Science and Systems</em>.</
 
 <h2>SEE ALSO</h2>
 
-<em>
-<a href="r.dem.html">r.dem</a>,
-<a href="r.dem.coregister.html">r.dem.coregister</a>,
-<a href="r.dem.nk.html">r.dem.nk</a>
-</em>
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
+<em><a href="r.dem.nk.html">r.dem.nk</a></em>
 
 <h2>AUTHORS</h2>
 
-<p>Corey T. White,
-<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a></p>
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

@@ -1,24 +1,24 @@
 /****************************************************************************
  *
  * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Co-register two DEM surfaces using ICP (point-to-plane)
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
  *
- * AUTHOR(S):    Corey T. White
- *
- * PURPOSE:      Co‑register two DEM surfaces using ICP (point‑to‑plane)
- *
- *
- * COPYRIGHT:    (C) 2025-2026 by the GRASS Development Team
- *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
+ * SPDX-License-Identifier: GPL-2.0-or-later
  *
  *****************************************************************************/
 
-#include "rdemicp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include <grass/raster.h>
+
+#include "rdemicp.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,125 +27,128 @@ int main(int argc, char *argv[])
     struct Option *dof_opt, *levels_opt, *stride_opt, *iter_opt;
     struct Option *trim_opt, *huber_opt, *tol_opt, *dist_opt, *slope_opt;
     struct Option *dx_opt, *dy_opt, *dz_opt, *yaw_opt, *roll_opt, *pitch_opt;
-    struct Option *xf_out_opt, *stats_opt;
+    struct Option *xf_out_opt, *stats_opt, *nprocs_opt;
 
     G_gisinit(argv[0]);
     module = G_define_module();
-    G_add_keyword("raster");
-    G_add_keyword("registration");
-    G_add_keyword("ICP");
-    module->label = "Co-register DEM surfaces using Iterative Closest Point "
-                    "(point-to-plane).";
-    module->description =
-        "Aligns a source DEM to a reference DEM with robust, multi-scale ICP.";
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("registration"));
+    G_add_keyword(_("ICP"));
+    G_add_keyword(_("parallel"));
+    module->label = _("Co-register DEM surfaces using Iterative Closest Point "
+                      "(point-to-plane).");
+    module->description = _(
+        "Aligns a source DEM to a reference DEM with robust, multi-scale ICP.");
 
     ref_opt = G_define_standard_option(G_OPT_R_INPUT);
     ref_opt->key = "reference";
-    ref_opt->description = "Reference DEM raster";
+    ref_opt->description = _("Reference DEM raster");
     src_opt = G_define_standard_option(G_OPT_R_INPUT);
     src_opt->key = "source";
-    src_opt->description = "Source DEM raster to align";
+    src_opt->description = _("Source DEM raster to align");
     out_opt = G_define_standard_option(G_OPT_R_OUTPUT);
     out_opt->key = "output";
-    out_opt->description = "Output aligned DEM raster";
+    out_opt->description = _("Output aligned DEM raster");
     mask_opt = G_define_standard_option(G_OPT_R_INPUT);
     mask_opt->key = "mask";
     mask_opt->required = NO;
-    mask_opt->description = "Optional stable-terrain mask (non-zero=use)";
+    mask_opt->description = _("Optional stable-terrain mask (non-zero=use)");
 
     dof_opt = G_define_option();
     dof_opt->key = "dof";
     dof_opt->type = TYPE_INTEGER;
     dof_opt->answer = "4";
     dof_opt->options = "4,6";
-    dof_opt->description = "Degrees of freedom (4: dx,dy,dz,yaw; 6: add "
-                           "roll,pitch - experimental)";
+    dof_opt->description = _("Degrees of freedom (4: dx,dy,dz,yaw; 6: add "
+                             "roll,pitch - experimental)");
     levels_opt = G_define_option();
     levels_opt->key = "levels";
     levels_opt->type = TYPE_INTEGER;
     levels_opt->answer = "3";
-    levels_opt->description = "ICP pyramid levels (coarse→fine)";
+    levels_opt->description = _("ICP pyramid levels (coarse to fine)");
     stride_opt = G_define_option();
     stride_opt->key = "stride";
     stride_opt->type = TYPE_INTEGER;
     stride_opt->answer = "2";
-    stride_opt->description = "Base sampling stride (cells) at finest level";
+    stride_opt->description = _("Base sampling stride (cells) at finest level");
     iter_opt = G_define_option();
     iter_opt->key = "max_iterations";
     iter_opt->type = TYPE_INTEGER;
     iter_opt->answer = "30";
-    iter_opt->description = "Max iterations per level";
+    iter_opt->description = _("Max iterations per level");
 
     trim_opt = G_define_option();
     trim_opt->key = "trim";
     trim_opt->type = TYPE_DOUBLE;
     trim_opt->answer = "0.80";
-    trim_opt->description = "Trimmed ICP keep fraction [0-1]";
+    trim_opt->description = _("Trimmed ICP keep fraction [0-1]");
     huber_opt = G_define_option();
     huber_opt->key = "huber";
     huber_opt->type = TYPE_DOUBLE;
     huber_opt->answer = "1.0";
-    huber_opt->description = "Huber delta (m); 0 disables";
+    huber_opt->description = _("Huber delta (m); 0 disables");
     tol_opt = G_define_option();
     tol_opt->key = "tolerance";
     tol_opt->type = TYPE_DOUBLE;
     tol_opt->answer = "1e-5";
-    tol_opt->description = "Convergence threshold on parameter update norm";
+    tol_opt->description = _("Convergence threshold on parameter update norm");
     dist_opt = G_define_option();
     dist_opt->key = "distance_max";
     dist_opt->type = TYPE_DOUBLE;
     dist_opt->answer = "10";
-    dist_opt->description = "Max point-to-plane distance (m); 0 disables";
+    dist_opt->description = _("Max point-to-plane distance (m); 0 disables");
     slope_opt = G_define_option();
     slope_opt->key = "slope_max";
     slope_opt->type = TYPE_DOUBLE;
     slope_opt->answer = "90";
-    slope_opt->description = "Reject target cells with slope > (deg)";
+    slope_opt->description = _("Reject target cells with slope > (deg)");
 
     dx_opt = G_define_option();
     dx_opt->key = "init_dx";
     dx_opt->type = TYPE_DOUBLE;
     dx_opt->answer = "0";
-    dx_opt->description = "Initial dx (m)";
+    dx_opt->description = _("Initial dx (m)");
     dy_opt = G_define_option();
     dy_opt->key = "init_dy";
     dy_opt->type = TYPE_DOUBLE;
     dy_opt->answer = "0";
-    dy_opt->description = "Initial dy (m)";
+    dy_opt->description = _("Initial dy (m)");
     dz_opt = G_define_option();
     dz_opt->key = "init_dz";
     dz_opt->type = TYPE_DOUBLE;
     dz_opt->answer = "0";
-    dz_opt->description = "Initial dz (m)";
+    dz_opt->description = _("Initial dz (m)");
     yaw_opt = G_define_option();
     yaw_opt->key = "init_yaw";
     yaw_opt->type = TYPE_DOUBLE;
     yaw_opt->answer = "0";
-    yaw_opt->description = "Initial yaw (deg)";
+    yaw_opt->description = _("Initial yaw (deg)");
     roll_opt = G_define_option();
     roll_opt->key = "init_roll";
     roll_opt->type = TYPE_DOUBLE;
     roll_opt->answer = "0";
-    roll_opt->description = "Initial roll (deg) (6-DoF only)";
+    roll_opt->description = _("Initial roll (deg) (6-DoF only)");
     pitch_opt = G_define_option();
     pitch_opt->key = "init_pitch";
     pitch_opt->type = TYPE_DOUBLE;
     pitch_opt->answer = "0";
-    pitch_opt->description = "Initial pitch (deg) (6-DoF only)";
+    pitch_opt->description = _("Initial pitch (deg) (6-DoF only)");
 
-    xf_out_opt = G_define_option();
+    xf_out_opt = G_define_standard_option(G_OPT_F_OUTPUT);
     xf_out_opt->key = "transform_out";
-    xf_out_opt->type = TYPE_STRING;
     xf_out_opt->required = NO;
-    xf_out_opt->description = "Write final transform to file";
-    stats_opt = G_define_option();
+    xf_out_opt->description = _("Write final transform to file");
+    stats_opt = G_define_standard_option(G_OPT_F_OUTPUT);
     stats_opt->key = "stats_out";
-    stats_opt->type = TYPE_STRING;
     stats_opt->required = NO;
-    stats_opt->description = "Write per-iteration stats to file";
+    stats_opt->description = _("Write per-iteration stats to file");
+
+    nprocs_opt = G_define_standard_option(G_OPT_M_NPROCS);
 
     if (G_parser(argc, argv))
         return EXIT_FAILURE;
+
+    G_set_omp_num_threads(nprocs_opt);
 
     Params P = {0};
     P.ref_name = ref_opt->answer;
@@ -171,29 +174,27 @@ int main(int argc, char *argv[])
     P.pitch = deg2rad(atof(pitch_opt->answer));
 
     if (P.dof != 4 && P.dof != 6)
-        G_fatal_error("dof must be 4 or 6");
+        G_fatal_error(_("dof must be 4 or 6"));
     if (P.dof == 6)
-        G_warning("dof=6 (roll/pitch) is experimental: the rigid rotation is "
-                  "ill-conditioned for height-field DEMs and the 6-DoF "
-                  "resample is approximate. Use dof=4 and remove any residual "
-                  "horizontal shift and vertical offset with r.dem.nk.");
+        G_warning(
+            _("dof=6 (roll/pitch) is experimental: the rigid rotation is "
+              "ill-conditioned for height-field DEMs and the 6-DoF "
+              "resample is approximate. Use dof=4 and remove any residual "
+              "horizontal shift and vertical offset with r.dem.nk."));
     if (P.trim <= 0.0 || P.trim > 1.0)
-        G_fatal_error("trim must be (0,1]");
+        G_fatal_error(_("trim must be (0,1]"));
 
     Grid grid;
     grid_init(&grid);
 
     RasterD ref = {0}, src = {0}, mask = {0};
-    int dummy;
-    if (read_fcell_as_double(P.ref_name, &ref, &dummy) != 0)
-        G_fatal_error("Failed to read reference raster");
-    if (read_fcell_as_double(P.src_name, &src, &dummy) != 0)
-        G_fatal_error("Failed to read source raster");
-    if (P.mask_name && read_mask_as_bitmap(P.mask_name, &mask) != 0)
-        G_warning("Could not read mask raster; continuing without mask");
+    read_fcell_as_double(P.ref_name, &ref);
+    read_fcell_as_double(P.src_name, &src);
+    if (P.mask_name)
+        read_mask_as_bitmap(P.mask_name, &mask);
 
     Normals Nref = {0};
-    G_message("Computing target normals...");
+    G_message(_("Computing target normals..."));
     compute_normals_from_dem(&ref, &grid, &Nref);
 
     Transform T = {.tx = P.tx,
@@ -207,10 +208,10 @@ int main(int argc, char *argv[])
     if (P.stats_out) {
         statsf = fopen(P.stats_out, "w");
         if (!statsf)
-            G_warning("Cannot write %s", P.stats_out);
+            G_warning(_("Cannot write %s"), P.stats_out);
     }
 
-    G_message("Running ICP...");
+    G_message(_("Running ICP..."));
     icp_solve(&ref, &Nref, &src, (P.mask_name ? &mask : NULL), &grid, &P, &T,
               statsf);
     if (statsf)
@@ -219,7 +220,8 @@ int main(int argc, char *argv[])
     if (P.transform_out)
         write_transform(P.transform_out, &T, P.dof);
 
-    G_message("Resampling source onto reference grid with final transform...");
+    G_message(
+        _("Resampling source onto reference grid with final transform..."));
     apply_transform_and_resample(&src, &grid, &T, P.dof, P.out_name);
 
     free_normals(&Nref);

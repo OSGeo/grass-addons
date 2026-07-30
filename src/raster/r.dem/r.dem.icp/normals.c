@@ -1,6 +1,19 @@
-#include "rdemicp.h"
+/****************************************************************************
+ *
+ * MODULE:       r.dem.icp
+ * AUTHOR(S):    Corey T. White <smortopahri@gmail.com>
+ * PURPOSE:      Compute per-cell surface normals and slope from a DEM
+ * COPYRIGHT:    (C) 2025-2026 by Corey T. White and the GRASS Development
+ *               Team
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ *****************************************************************************/
+
 #include <math.h>
 #include <stdlib.h>
+
+#include "rdemicp.h"
 
 static inline void norm3(float *x, float *y, float *z)
 {
