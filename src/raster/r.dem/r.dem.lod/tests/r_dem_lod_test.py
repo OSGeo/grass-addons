@@ -27,6 +27,29 @@ def test_global_lod_uniform_and_positive(session):
     assert abs(float(stats["max"]) - float(stats["min"])) < 1e-9
 
 
+def test_global_lod_tracks_injected_noise(session):
+    """Estimated NMAD must follow the injected sigma=0.2 noise.
+
+    Guards against the median silently missing from r.univar output, which
+    made the estimate a data-independent constant (NMAD = 1.4826).
+    """
+    env = session.env
+    gs.run_command(
+        "r.dem.lod",
+        dem="dem_post",
+        reference="dem_pre",
+        output="lod_est",
+        method="global",
+        confidence=0.95,
+        stable_mask="stable",
+        overwrite=True,
+        env=env,
+    )
+    lod = float(_univar("lod_est", env)["min"])
+    # LoD = 1.95996 * sqrt(2) * sigma with sigma ~= NMAD ~= 0.2 => ~0.554 m.
+    assert 0.35 < lod < 0.75
+
+
 def test_global_lod_with_precomputed_nmad(session):
     env = session.env
     gs.run_command(
