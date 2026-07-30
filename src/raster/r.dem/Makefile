@@ -10,7 +10,7 @@ SUBDIRS = r.dem.nk \
         r.dem.change \
         r.dem.lod \
         r.dem.coregister \
-        r.dem.screen \
+        r.dem.screen
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

@@ -13,7 +13,7 @@ SOURCES = \
 	normals.c \
 	resample.c \
 	linalg.c \
-	util.c
+	utils.c
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 

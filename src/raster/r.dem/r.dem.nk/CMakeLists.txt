@@ -4,7 +4,6 @@ project(r.dem.nk)
 
 include(build_addon)
 
-# find_OpenMP()
 find_M()
 
 set(sources
