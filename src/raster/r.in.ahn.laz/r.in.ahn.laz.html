@@ -1,0 +1,309 @@
+<h2>DESCRIPTION</h2>
+
+_r.in.ahn.laz_: Downloads 1 x 1 km LAZ tiles from the AHN (Actueel Hoogtebestand
+Nederland (AHN), versions 2–6) overlapping with the computational region.
+Optionally runs a user-provided Python script for each downloaded tile, and
+patches the resulting raster layers.
+
+<h3>Modes of operation</h3>
+
+_r.in.ahn.laz_ has two modes of operation, selected by whether the
+<b>script=</b> option is given. If the <b>script=</b> parameter is not provided,
+the module just downloads every LAZ tile that intersects the current region and
+either prints their full paths to standard output or, if <b>laz_files=</b> is
+given, writes them to that file. No raster output is produced.
+
+<p>
+If <b>script=</b>, a user Python script, is given, the module download the
+tile(s), and runs for each tile the script. After all tiles are processed, the
+per-tile outputs are patched into one or more final maps whose names are built
+from <b>output=</b> and the suffixes declared by the script (see _User script
+interface_ below). In this mode, <b>output=</b> is required.
+
+<h3>User script interface</h3>
+
+A user script is a plain Python file that should have the following structure:
+
+<p>
+I. The <b>first non-comment, non-blank line</b> must be a <tt>SUFFIXES</tt>
+declaration. This is a list of strings, one per output map the script produces.
+For example ,if the script creates a dtm and dsm, the line could be:
+<tt>SUFFIXES = ["_dtm", "_dsm"]</tt>. For a single-output script, use
+<tt>SUFFIXES = [""]</tt>.
+
+<p>
+II. The rest of the file is Python code you want to be executed. When the script
+runs, the following names are pre-injected into its global namespace.
+
+<ul>
+  <li><tt>LAZ</tt>: Full path to the LAZ tile file that was just
+  downloaded.</li>
+  <li><tt>OUTPUT</tt>: Unique per-tile name prefix. Every map the script creates
+  whose name starts with <tt>OUTPUT + suffix</tt> (where suffix is one of the
+  strings in <tt>SUFFIXES</tt>) is collected for patching.</li>
+  <li><tt>THREADS</tt>: Per-tile thread budget. Scripts that run internally
+  parallel work, for example, a threaded PDAL reader, should size it with
+  <tt>THREADS</tt> so that workers x per-tile-threads does not oversubscribe the
+  CPU when <b>nprocs</b> &gt; 1. With <b>nprocs=1</b> it equals all cores.
+  Scripts that ignore <tt>THREADS</tt> are unaffected.</li>
+</ul>
+
+<p>
+In addition, <tt>os</tt> and <tt>gs</tt> are both pre-imported for convenience,
+so there is no need to import them in the script.
+
+<p>
+The script must produce one raster or vector map per declared suffix, named
+exactly <tt>OUTPUT + suffix</tt>. Maps whose names match <tt>OUTPUT*</tt> but
+whose suffix is not in <tt>SUFFIXES</tt> are treated as intermediate and removed
+automatically after the tile completes (the module warns once, on the first
+tile, when this happens). Maps that do not start with <tt>OUTPUT</tt> are left
+alone. The user script is responsible for cleaning those up itself.
+
+<p>
+After all tiles are processed, each declared suffix produces one patched map
+named <b>output + suffix</b>. For a single-output script with <tt>SUFFIXES =
+[""]</tt>, the final map is simply <b>output</b>.
+
+<h2>NOTE</h2>
+
+<h3>Projection and extent</h3>
+
+The current project must use EPSG:28992 (Amersfoort / RD New). The module aborts
+otherwise. This is the native AHN CRS; reprojecting LAZ data on the fly is out
+of scope.
+
+<p>
+Note that if the computational region extends outside the AHN extent, a warning
+is emitted and only the overlap is imported. If the region lies entirely
+outside, the module aborts.
+
+<h3>Parallel processing and masks</h3>
+
+When a raster mask is active in the mapset, parallel processing is not
+supported. If <b>nprocs=</b> is set to more than 1 and a mask is active, the
+module warns and falls back to <b>nprocs=1</b> for the entire run. Disable the
+mask if parallel processing is needed.
+
+<h3>Disk usage</h3>
+
+Each LAZ tile is downloaded to <b>directory=</b> (or the current working
+directory if not set). By default, each tile is deleted after the user script
+has processed it. Use <b>-k</b> to keep the LAZ files on disk.
+
+<h3>Batching of patch operations</h3>
+
+When many tiles are requested, _r.in.ahn.laz_ patches raster outputs in batches
+of at most <b>max_inputs=</b> inputs (default 50), recursing until a single
+mosaic remains. This avoids hitting the OS command-line length limit and the
+"too many open files" limit. If you do hit the latter, lower <b>max_inputs=</b>,
+lower <b>nprocs=</b>, or raise your OS file-descriptor limit (<tt>ulimit
+-n</tt>).
+
+<p>
+<b>max_inputs=</b> is not implemented for the patching of vetor outputs.
+Therefore, vector outputs are patched in a single _v.patch_ call, and
+<b>max_inputs=</b> has no effect on them. If the number of per-tile vectors is
+large enough to exceed an OS limit, _r.in.ahn.laz_ aborts with a clear fatal
+message naming the limit.
+
+<h3>Requirements</h3>
+
+<ul>
+  <li>GRASS GIS ≥ 8.5 (uses <tt>gs.RegionManager</tt>, which was introduced in
+  version 8.5).</li>
+  <li>Network access to the AHN LAZ object storage bucket.</li>
+  <li>Whatever the user script itself needs. For instance, _r.in.pdal_ must be
+  installed if the script uses it.</li>
+</ul>
+
+<h3>KNOWN ISSUES</h3>
+
+A single failed tile download is reported as a warning and the tile is skipped;
+the module continues with the remaining tiles. If _all_ downloads fail, the
+module aborts.
+
+<h2>EXAMPLES</h2>
+
+All examples assume the current project is in EPSG:28992 and the computational
+region has been set to an area of interest inside the Netherlands.
+
+<h3>Example 1</h3>
+
+Download every AHN4 LAZ tile that intersects the current region into
+<tt>/tmp/laz</tt>, and save the list of file paths to <tt>ahn_files.txt</tt>:
+
+<div class="code">
+  <pre>
+g.region n=436948 s=430912 w=90450 e=98479 res=0.5
+r.in.ahn.laz version=4 directory=/tmp/laz laz_files=ahn_files.txt
+</pre>
+</div>
+
+<p>
+No GRASS raster is produced; the downloaded files remain on disk.
+
+<h3>Example 2</h3>
+
+Create a DTM mosaic with the user script <tt>make_dtm.py</tt>:
+
+<div class="code">
+  <pre>
+SUFFIXES = [""]
+
+gs.run_command(
+    "r.in.pdal",
+    input=LAZ,
+    output=OUTPUT,
+    method="mean",
+    resolution=0.5,
+    class_filter="2", 
+    flags="o",
+)
+</pre>
+</div>
+
+<p>
+Run it:
+
+<div class="code">
+  <pre>
+g.region n=436948 s=430912 w=90450 e=98479 res=0.5
+r.in.ahn.laz \
+    version=4 \
+    script=make_dtm.py \
+    output=ahn4_dtm \
+    nprocs=4 \
+    memory=8000
+</pre>
+</div>
+
+<p>
+Result: a single raster <b>ahn4_dtm</b> covering the region, patched from
+per-tile rasters. The LAZ files are deleted as they are processed. Note,
+normally one would want to import the AHN DTM directly using the
+<tt>r.in.ahn</tt> module.
+
+<h3>Example 3</h3>
+
+DTM + DSM in one pass with user script <tt>dtm_dsm.py</tt>:
+
+<div class="code">
+  <pre>
+SUFFIXES = ["_dtm", "_dsm"]
+
+# DTM from ground points
+gs.run_command(
+    "r.in.pdal",
+    input=LAZ,
+    output=OUTPUT + "_dtm",
+    method="mean",
+    resolution=0.5,
+    class_filter="2",
+    flags="o",
+)
+
+# DSM from first returns
+gs.run_command(
+    "r.in.pdal",
+    input=LAZ,
+    output=OUTPUT + "_dsm",
+    method="max",
+    resolution=0.5,
+    return_filter="first",
+    flags="o",
+)
+</pre>
+</div>
+
+<p>
+Run it:
+
+<div class="code">
+  <pre>
+r.in.ahn.laz \
+    version=5 \
+    script=dtm_dsm.py \
+    output=zuiderpark \
+    nprocs=8 memory=20000 max_inputs=25
+</pre>
+</div>
+
+<p>
+Result: two rasters, <b>zuiderpark\_dtm</b> and <b>zuiderpark\_dsm</b>. The
+suffixes declared in <tt>SUFFIXES</tt> are appended to <b>output=</b> to form
+the final map names. Note, normally one would want to import the AHN DTM and DSM
+directly using the <tt>r.in.ahn</tt> module.
+
+<h3>Example 4</h3>
+
+If the user script produces extra maps whose suffix is not in <tt>SUFFIXES</tt>,
+those are cleaned up automatically. This lets a script use intermediate maps
+without polluting the mapset: user script <tt>chm.py</tt>:
+
+<div class="code">
+  <pre>
+SUFFIXES = ["_chm"]
+
+# Intermediate DTM (ground points, class 2). 
+# These are not in SUFFIXES, so they will beremoved
+# after this tile.
+gs.run_command(
+    "r.in.pdal",
+    input=LAZ, output=OUTPUT + "_dtm",
+    method="mean", resolution=0.5,
+    class_filter="2",
+    flags="o",
+)
+
+# Intermediate DSM (first returns, highest surface). Also not in SUFFIXES.
+gs.run_command(
+    "r.in.pdal",
+    input=LAZ, output=OUTPUT + "_dsm",
+    method="max", resolution=0.5,
+    return_filter="first",
+    flags="o",
+)
+
+# Final output is the Canopy Height Model = DSM - DTM. 
+gs.mapcalc(
+    f"{OUTPUT}_chm = max(0.0, {OUTPUT}_dsm - {OUTPUT}_dtm)",
+)
+</pre>
+</div>
+
+<p>
+The <tt>_dtm</tt> and <tt>_dsm</tt> per-tile rasters are intermediates and get
+cleaned up after each tile; only <tt>_chm</tt> is kept and patched into the
+final mosaic <tt>output_chm</tt>.
+
+<div class="code">
+  <pre>
+r.in.ahn.laz \
+    version=5 \
+    script=chm.py \
+    output=zuiderpark \
+    nprocs=8 memory=20000 max_inputs=25
+</pre>
+</div>
+
+<p>
+Result: a raster <b>zuiderpark\_chm</b>. Note, in most cases it will be faster
+to use the <tt>r.in.ahn</tt> module to obtain the CHM. Use the example above if
+you want the CHM at an higher resultion.
+
+<h2>SEE ALSO</h2>
+
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html">_r.in.pdal_</a>_,_
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/r.in.ahn.html">_r.in.ahn_</a>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>
