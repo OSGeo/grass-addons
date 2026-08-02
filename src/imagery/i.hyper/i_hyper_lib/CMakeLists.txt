@@ -6,6 +6,7 @@ add_files_to_etc_dir(
     continuum_rem.py
     dim_red.py
     enmap.py
+    hyper_meta.py
     prisma_reader.py
     prisma.py
     sav_gol.py

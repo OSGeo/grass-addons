@@ -103,7 +103,7 @@ r.reclass input=LC81980182015183LGN00_BQA \
 ## SEE ALSO
 
 *[r.reclass](https://grass.osgeo.org/grass-stable/manuals/r.reclass.html),
-[i.modis.qc](i.modis.qc.md), [r.bitpattern](r.bitpattern.md),
+[i.modis.qc](https://grass.osgeo.org/grass-stable/manuals/i.modis.qc.html), [r.bitpattern](r.bitpattern.md),
 [i.landsat](i.landsat.md) [i.landsat8.swlst](i.landsat8.swlst.md)*
 
 ## REFERENCES

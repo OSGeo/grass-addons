@@ -7,7 +7,7 @@
 # PURPOSE:      Draws boxplot(s) of raster values of the input raster.
 #               Optionally, this can be done per category of a zonal map.
 #
-# COPYRIGHT:    (c) 2022 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2022-2026 Paulo van Breugel and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -55,7 +55,6 @@
 # % key: fontsize
 # % type: integer
 # % label: Font size
-# % answer: 10
 # % description: Default font size
 # % guisection: Output
 # % required: no
@@ -128,6 +127,15 @@
 # % guisection: Plot format
 # %end
 
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
+# % guisection: Plot format
+# %end
+
 # %flag
 # % key: h
 # % label: Horizontal boxplot(s)
@@ -154,9 +162,9 @@
 # %option G_OPT_C
 # % key: raster_stat_color
 # % label: Color of the raster IQR and median
-# % description: Color of raster IQR and median
+# % description: Color of raster IQR and median.
 # % required: no
-# % answer: grey
+# % answer:
 # % guisection: Plot format
 # %end
 
@@ -171,11 +179,11 @@
 # %end
 
 # %option G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % label: Color of the boxplots
-# % description: Color of boxplots
+# % description: Fill color of the boxplots. Unset leaves the boxes unfilled (Matplotlib default).
 # % required: no
-# % answer: white
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -196,18 +204,17 @@
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
-# % description: The width of the boxplots (0,1])
+# % description: The width of the boxplots (0,1]).
 # % required: no
 # % guisection: Boxplot format
-# % answer: 0.75
 # % options: 0-1
 # %end
 
 # %option
-# % key: bx_width_variable
+# % key: box_width_variable
 # % type: string
 # % description: Set the width of the boxplots proportional to the area of the zones (linear) or the square root of the zones (sqrt).
 # % required: no
@@ -216,30 +223,28 @@
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
 # % label: boxplot linewidth
-# % description: The linewidth of the boxplots
+# % description: The linewidth of the boxplots. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1
 # %end
 
 # %option
-# % key: median_lw
+# % key: median_linewidth
 # % type: double
-# % description: width of the boxplot median line
+# % description: width of the boxplot median line. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1.1
 # %end
 
 # %option G_OPT_C
 # % key: median_color
 # % label: Color of the boxlot median line
-# % description: Color of median
+# % description: Color of median. Defaults to the Matplotlib default.
 # % required: no
-# % answer: orange
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -247,10 +252,9 @@
 # % key: whisker_linewidth
 # % type: double
 # % label: Whisker and cap linewidth
-# % description: The linewidth of the whiskers and caps
+# % description: The linewidth of the whiskers and caps. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1
 # %end
 
 # %option
@@ -267,18 +271,17 @@
 # % key: flier_size
 # % type: string
 # % label: Flier size
-# % description: Set the flier size
+# % description: Set the flier size. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 2
 # % guisection: Boxplot format
 # %end
 
 # %option G_OPT_C
 # % key: flier_color
 # % label: Flier color
-# % description: Set the flier color
+# % description: Set the flier color. Defaults to the Matplotlib default.
 # % required: no
-# % answer: black
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -287,7 +290,7 @@
 # % requires: -s, zones
 # % requires: area_label, zones
 # % requires: raster_statistics, zones
-# % requires: bx_width_variable, zones
+# % requires: box_width_variable, zones
 # %end
 
 import atexit
@@ -299,6 +302,7 @@ import grass.script as gs
 from grass.pygrass.modules import Module
 
 clean_maps = []
+mask_backup_name = None
 
 
 def lazy_import_py_modules(backend):
@@ -315,6 +319,21 @@ def lazy_import_py_modules(backend):
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
 
 
 def create_unique_name(name):
@@ -341,10 +360,43 @@ def create_temporary_name(prefix):
     return tmpf
 
 
-def cleanup():
-    """Remove temporary maps specified in the global list"""
-    maps = reversed(clean_maps)
+def restore_mask_backup():
+    """Best-effort restore of MASK from the tracked backup.
+
+    On success, clears mask_backup_name. On failure, leaves it set and emits a
+    warning with the backup name so the user can restore manually. Never raises.
+    """
+    global mask_backup_name
+    if mask_backup_name is None:
+        return
     mapset = gs.gisenv()["MAPSET"]
+    found = gs.find_file(name=mask_backup_name, element="raster", mapset=mapset)
+    if not found["file"]:
+        mask_backup_name = None
+        return
+    try:
+        # A MASK present here was created by r.boxplot itself (for example a
+        # temporary zonal mask left behind by a failure), so remove it first
+        # so the original can be renamed back from the backup.
+        leftover = gs.find_file(name="MASK", element="cell", mapset=mapset)
+        if leftover["file"]:
+            Module("g.remove", flags="f", type="raster", name="MASK", quiet=True)
+        Module("g.rename", raster=[mask_backup_name, "MASK"], quiet=True)
+        mask_backup_name = None
+    except Exception as exc:
+        gs.warning(
+            _(
+                "Failed to restore MASK from backup <{name}>: {err}. "
+                "Restore manually with: g.rename raster={name},MASK"
+            ).format(name=mask_backup_name, err=exc)
+        )
+
+
+def cleanup():
+    """Restore the original MASK if needed, then remove temporary maps"""
+    restore_mask_backup()
+    mapset = gs.gisenv()["MAPSET"]
+    maps = reversed(clean_maps)
     for map_name in maps:
         for element in ("raster", "vector"):
             found = gs.find_file(
@@ -689,29 +741,34 @@ def compute_outliers(
 
     # Extract outliers values of ith zone
     if bool(outliers) and bool(recode_rules):
-        if bool(zones):
-            Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
-        tmpname = create_temporary_name("tmp02")
-        tmpvect = create_temporary_name("tmpvec02")
-        Module(
-            "r.recode",
-            input=rastername,
-            output=tmpname,
-            rules="-",
-            stdin_=recode_rules,
-            quiet=True,
-        )
-        vectornames.append(tmpvect)
-        Module(
-            "r.to.vect",
-            input=tmpname,
-            output=tmpvect,
-            type="point",
-            quiet=True,
-        )
-        Module("g.remove", type="raster", name=tmpname, flags="f")
-        if zones:
-            Module("r.mask", flags="r")
+        try:
+            if bool(zones):
+                Module("r.mask", raster=zones, maskcats=int(quantstats_i[0]))
+            tmpname = create_temporary_name("tmp02")
+            tmpvect = create_temporary_name("tmpvec02")
+            Module(
+                "r.recode",
+                input=rastername,
+                output=tmpname,
+                rules="-",
+                stdin_=recode_rules,
+                quiet=True,
+            )
+            vectornames.append(tmpvect)
+            Module(
+                "r.to.vect",
+                input=tmpname,
+                output=tmpvect,
+                type="point",
+                quiet=True,
+            )
+            Module("g.remove", type="raster", name=tmpname, flags="f")
+        finally:
+            # Always remove the temporary zonal mask, even if the steps above
+            # raise, so it is not left behind for cleanup() to trip over when
+            # it tries to restore the original MASK from the backup.
+            if zones:
+                Module("r.mask", flags="r")
 
         # Get values input raster and write to outlier points
         colname = strip_mapset(rastername)
@@ -779,6 +836,54 @@ def bxp_nozones_stats(rastername, whisker_range):
     ]
 
 
+def build_bxp_kwargs(opt, widths=None, patch_artist=None):
+    """Build the ax.bxp keyword arguments, omitting appearance options that
+    were left unset so they fall back to the Matplotlib/style defaults.
+
+    :param dict opt: dictionary with the input variables/objects
+    :param widths: boxplot width(s), omitted when None
+    :param bool patch_artist: force patch_artist; defaults to True only when a
+                              fill color is set
+
+    :return dict: keyword arguments for ax.bxp
+    """
+    boxprops = {}
+    if opt["bxp_linewidth"] is not None:
+        boxprops["linewidth"] = opt["bxp_linewidth"]
+    if opt["bx_color"] is not None:
+        boxprops["facecolor"] = opt["bx_color"]
+    whiskerprops = {}
+    if opt["whisker_linewidth"] is not None:
+        whiskerprops["linewidth"] = opt["whisker_linewidth"]
+    medianprops = {}
+    if opt["median_lw"] is not None:
+        medianprops["linewidth"] = opt["median_lw"]
+    if opt["median_color"] is not None:
+        medianprops["color"] = opt["median_color"]
+    flierprops = {"marker": opt["flier_marker"]}
+    if opt["flier_size"] is not None:
+        flierprops["markersize"] = opt["flier_size"]
+    if opt["flier_color"] is not None:
+        flierprops["markerfacecolor"] = opt["flier_color"]
+        flierprops["markeredgecolor"] = opt["flier_color"]
+    if patch_artist is None:
+        patch_artist = opt["bx_color"] is not None
+    kwargs = {
+        "showfliers": True,
+        "vert": bool(opt["vertical"]),
+        "shownotches": bool(opt["notch"]),
+        "patch_artist": patch_artist,
+        "boxprops": boxprops,
+        "medianprops": medianprops,
+        "whiskerprops": whiskerprops,
+        "capprops": whiskerprops,
+        "flierprops": flierprops,
+    }
+    if widths is not None:
+        kwargs["widths"] = widths
+    return kwargs
+
+
 def bxp_nozones(opt):
     """Compute the statistics used to create the boxplot,
     and create the boxplot. This function is used in case
@@ -822,7 +927,6 @@ def bxp_nozones(opt):
         fliers = []
 
     if opt["name_outliers_map"] and bool(fliers):
-        print(vect_name)
         Module("v.db.dropcolumn", map=vect_name[0], columns=["value", "label"])
         Module("g.rename", vector=[vect_name[0], opt["name_outliers_map"]])
         gs.message("Point vector map '{}' created".format(opt["name_outliers_map"]))
@@ -842,27 +946,7 @@ def bxp_nozones(opt):
             "cihi": upper_notch,
         }
     ]
-    boxprops = dict(linewidth=opt["bxp_linewidth"], facecolor=opt["bx_color"])
-    whiskerprops = dict(linewidth=opt["whisker_linewidth"])
-    medianprops = dict(linewidth=opt["median_lw"], color=opt["median_color"])
-    ax.bxp(
-        boxes,
-        showfliers=True,
-        widths=opt["bxp_width"],
-        vert=opt["vertical"],
-        shownotches=bool(opt["notch"]),
-        boxprops=boxprops,
-        whiskerprops=whiskerprops,
-        medianprops=medianprops,
-        patch_artist=True,
-        capprops=whiskerprops,
-        flierprops={
-            "marker": opt["flier_marker"],
-            "markersize": opt["flier_size"],
-            "markerfacecolor": opt["flier_color"],
-            "markeredgecolor": opt["flier_color"],
-        },
-    )
+    ax.bxp(boxes, **build_bxp_kwargs(opt, widths=opt["bxp_width"]))
 
     # Labels
     if bool(opt["vertical"]):
@@ -1025,54 +1109,24 @@ def bxp_zones(opt):
 
     # Draw raster statistics
     rast_median_alpha = min(1, opt["raster_stat_alpha"] + 0.1)
-    if bool(opt["plot_rast_stats"]) and bool(opt["vertical"]):
+    if bool(opt["plot_rast_stats"]):
         _, quant1_r, quant2_r, quant3_r, _ = raster_stats(name=opt["value_raster"])
         plot_rast_stats_l = opt["plot_rast_stats"].split(",")
+        span_fn = ax.axhspan if opt["vertical"] else ax.axvspan
+        line_fn = ax.axhline if opt["vertical"] else ax.axvline
+        span_kwargs = {"alpha": opt["raster_stat_alpha"], "linewidth": 0.5}
+        line_kwargs = {"linestyle": "-", "alpha": rast_median_alpha}
+        if opt["raster_stat_color"] is not None:
+            span_kwargs["color"] = opt["raster_stat_color"]
+            line_kwargs["color"] = opt["raster_stat_color"]
+        if opt["median_lw"] is not None:
+            line_kwargs["linewidth"] = opt["median_lw"]
         if "IQR" in plot_rast_stats_l:
-            ax.axhspan(
-                quant1_r,
-                quant3_r,
-                0,
-                1,
-                alpha=opt["raster_stat_alpha"],
-                color=opt["raster_stat_color"],
-                linewidth=0.5,
-            )
+            span_fn(quant1_r, quant3_r, 0, 1, **span_kwargs)
         if "median" in plot_rast_stats_l:
-            ax.axhline(
-                quant2_r,
-                color=opt["raster_stat_color"],
-                linestyle="-",
-                alpha=rast_median_alpha,
-                linewidth=opt["median_lw"],
-            )
-    elif bool(opt["plot_rast_stats"]):
-        _, quant1_r, quant2_r, quant3_r, _ = raster_stats(name=opt["value_raster"])
-        plot_rast_stats_l = opt["plot_rast_stats"].split(",")
-        if "IQR" in plot_rast_stats_l:
-            ax.axvspan(
-                quant1_r,
-                quant3_r,
-                0,
-                1,
-                alpha=opt["raster_stat_alpha"],
-                color=opt["raster_stat_color"],
-                linewidth=0.5,
-            )
-        if "median" in plot_rast_stats_l:
-            ax.axvline(
-                quant2_r,
-                color=opt["raster_stat_color"],
-                linestyle="-",
-                alpha=rast_median_alpha,
-                linewidth=opt["median_lw"],
-            )
+            line_fn(quant2_r, **line_kwargs)
 
     # Draw boxplots
-    boxprops = dict(linewidth=opt["bxp_linewidth"], facecolor=opt["bx_color"])
-    whiskerprops = dict(linewidth=opt["whisker_linewidth"])
-    medianprops = dict(linewidth=opt["median_lw"], color=opt["median_color"])
-
     if opt.get("variable_box_width") or opt.get("area_label"):
         # Compute area (number of cells) per zone for width scaling
         areas_cats = Module(
@@ -1097,8 +1151,9 @@ def bxp_zones(opt):
         total_area = sum(zone_areas)
         raw_widths = [(a / total_area) for a in zone_areas]
 
-        # Scale to max width = opt["bxp_width"] and ensure final width <= 1.0
-        scale_factor = opt["bxp_width"] / max(raw_widths) if raw_widths else 1.0
+        # Scale to max width = bxp_width (default 0.75 when unset)
+        target_width = opt["bxp_width"] if opt["bxp_width"] else 0.75
+        scale_factor = target_width / max(raw_widths) if raw_widths else 1.0
         widths = [w * scale_factor for w in raw_widths]
     else:
         widths = opt["bxp_width"]
@@ -1144,27 +1199,15 @@ def bxp_zones(opt):
         else:
             area_labels = ["{:.0f} m²".format(a) for a in areas_for_labels]
 
+    # Zonal colors need patch artists to receive their facecolor
+    patch_artist = opt["bx_color"] is not None or bool(opt["bx_zonalcolors"])
     bxplot = ax.bxp(
-        boxes,
-        showfliers=True,
-        widths=widths,
-        vert=bool(opt["vertical"]),
-        shownotches=bool(opt["notch"]),
-        patch_artist=True,
-        boxprops=boxprops,
-        medianprops=medianprops,
-        whiskerprops=whiskerprops,
-        capprops=whiskerprops,
-        flierprops={
-            "marker": opt["flier_marker"],
-            "markersize": opt["flier_size"],
-            "markerfacecolor": opt["flier_color"],
-            "markeredgecolor": opt["flier_color"],
-        },
+        boxes, **build_bxp_kwargs(opt, widths=widths, patch_artist=patch_artist)
     )
 
     # Add area labels above each boxplot
     if opt.get("area_label"):
+        label_fontsize = (opt["fontsize"] or plt.rcParams["font.size"]) * 0.85
         for i, label in enumerate(area_labels):
             if opt["vertical"]:
                 ax.text(
@@ -1173,7 +1216,7 @@ def bxp_zones(opt):
                     label,
                     ha="center",
                     va="bottom",
-                    fontsize=opt["fontsize"] * 0.85,
+                    fontsize=label_fontsize,
                 )
             else:
                 ax.text(
@@ -1182,7 +1225,7 @@ def bxp_zones(opt):
                     label,
                     va="center",
                     ha="left",
-                    fontsize=opt["fontsize"] * 0.85,
+                    fontsize=label_fontsize,
                 )
 
     # Boxplots get colors matching category colors zonal map
@@ -1231,10 +1274,12 @@ def main(options, flags):
     Draws the boxplot of raster values. Optionally, this is done per category
     of a zonal raster layer
     """
+    global mask_backup_name
 
     # lazy import matplotlib
     output = options["output"] if options["output"] else None
     lazy_import_py_modules(output)
+    apply_style(options["style"])
 
     # Check if zonal map is an integer map
     if options["zones"]:
@@ -1245,12 +1290,14 @@ def main(options, flags):
         options["dpi"], options["plot_dimensions"], flags["h"]
     )
 
-    # boxplot parameters
-    bxp_width = float(options["bx_width"])
+    # boxplot parameters (unset appearance options -> None -> Matplotlib default)
+    bxp_width = float(options["box_width"]) if options["box_width"] else None
     if bxp_width == 0:
         gs.fatal(_("The boxplot width needs to be larger than 0"))
-    bx_color = get_valid_color(options["bx_color"])
-    median_color = get_valid_color(options["median_color"])
+    bx_color = get_valid_color(options["box_color"]) if options["box_color"] else None
+    median_color = (
+        get_valid_color(options["median_color"]) if options["median_color"] else None
+    )
 
     # Whisker parameters
     whisker_range = float(options["range"])
@@ -1258,7 +1305,11 @@ def main(options, flags):
         gs.fatal(_("The range value need to be larger than 0"))
 
     # raster stats
-    raster_stat_color = get_valid_color(options["raster_stat_color"])
+    raster_stat_color = (
+        get_valid_color(options["raster_stat_color"])
+        if options["raster_stat_color"]
+        else None
+    )
 
     # Create new value rasters if there is a mask or the value raster
     # extent and resolution do not match that of the current region
@@ -1287,10 +1338,13 @@ def main(options, flags):
         else:
             zonal_raster = options["zones"]
 
-        # Remove mask (save temp backup)
+        # Temporarily disable the active mask by renaming the MASK raster.
+        # mask_backup_name is set only after a successful rename so that
+        # cleanup() does nothing if the rename itself failed (MASK still intact).
         if mask_present:
-            backup_mask = create_temporary_name("maskbackup")
-            Module("g.rename", raster=["MASK", backup_mask])
+            backup_name = create_unique_name("maskbackup")
+            Module("g.rename", raster=["MASK", backup_name])
+            mask_backup_name = backup_name
 
     # Collect options
     base_options = {
@@ -1300,20 +1354,30 @@ def main(options, flags):
         "outliers": flags["o"],
         "notch": flags["n"],
         "name_outliers_map": options["map_outliers"],
-        "fontsize": float(options["fontsize"]),
+        "fontsize": float(options["fontsize"]) if options["fontsize"] else None,
         "rotate_labels": options["rotate_labels"],
         "dimensions": dimensions,
         "dpi": dpi,
         "vertical": vertical,
-        "bxp_linewidth": float(options["bx_lw"]),
+        "bxp_linewidth": (
+            float(options["box_linewidth"]) if options["box_linewidth"] else None
+        ),
         "bxp_width": bxp_width,
         "bx_color": bx_color,
-        "whisker_linewidth": float(options["whisker_linewidth"]),
+        "whisker_linewidth": (
+            float(options["whisker_linewidth"])
+            if options["whisker_linewidth"]
+            else None
+        ),
         "whisker_range": whisker_range,
-        "flier_size": int(options["flier_size"]),
+        "flier_size": float(options["flier_size"]) if options["flier_size"] else None,
         "flier_marker": options["flier_marker"],
-        "flier_color": get_valid_color(color=options["flier_color"]),
-        "median_lw": float(options["median_lw"]),
+        "flier_color": (
+            get_valid_color(options["flier_color"]) if options["flier_color"] else None
+        ),
+        "median_lw": (
+            float(options["median_linewidth"]) if options["median_linewidth"] else None
+        ),
         "median_color": median_color,
     }
     if bool(options["zones"]):
@@ -1328,7 +1392,7 @@ def main(options, flags):
                 "plot_rast_stats": options["raster_statistics"],
                 "raster_stat_color": raster_stat_color,
                 "raster_stat_alpha": float(options["raster_stat_alpha"]),
-                "variable_box_width": options["bx_width_variable"],
+                "variable_box_width": options["box_width_variable"],
                 "area_label": options["area_label"],
             },
         }
@@ -1345,9 +1409,10 @@ def main(options, flags):
     else:
         bxp_nozones(base_options)
 
-    # Restore original mask
+    # Restore the original mask after a successful run.
+    # cleanup() handles restoration if the script exits with an error.
     if mask_present and bool(options["zones"]):
-        Module("g.rename", raster=[backup_mask, "MASK"])
+        restore_mask_backup()
 
 
 if __name__ == "__main__":

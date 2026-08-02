@@ -1,7 +1,7 @@
 ## DESCRIPTION
 
 *t.stac.item* is a tool for exploring and importing SpatioTemporal Asset
-Catalog item metadata and assets into GRASS GIS. The tool is based on
+Catalog item metadata and assets into GRASS. The tool is based on
 the [PySTAC\_Client
 (0.8)](https://pystac-client.readthedocs.io/en/stable/) library and
 allows you to search items in a STAC Catalog. The search can be done by
@@ -17,6 +17,12 @@ The *t.stac.item* tool is part of the
 temporal data processing framework. The tool requries that the data
 provider has implement the STAC API and conforms to *Item Search*
 specification.
+
+To avoid overwhelming STAC providers, the number of concurrent
+downloads requested with **nprocs** is capped at 8. Transient HTTP
+failures during download are retried up to 3 times with a 2 second
+delay using GDAL's `GDAL_HTTP_MAX_RETRY` and `GDAL_HTTP_RETRY_DELAY`
+options; values already set in the environment take precedence.
 
 ## REQUIREMENTS
 
