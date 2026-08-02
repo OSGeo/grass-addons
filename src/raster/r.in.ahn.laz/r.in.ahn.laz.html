@@ -157,7 +157,7 @@ gs.run_command(
     output=OUTPUT,
     method="mean",
     resolution=0.5,
-    class_filter="2", 
+    class_filter="2",
     flags="o",
 )
 </pre>
@@ -245,7 +245,7 @@ without polluting the mapset: user script <tt>chm.py</tt>:
   <pre>
 SUFFIXES = ["_chm"]
 
-# Intermediate DTM (ground points, class 2). 
+# Intermediate DTM (ground points, class 2).
 # These are not in SUFFIXES, so they will beremoved
 # after this tile.
 gs.run_command(
@@ -265,7 +265,7 @@ gs.run_command(
     flags="o",
 )
 
-# Final output is the Canopy Height Model = DSM - DTM. 
+# Final output is the Canopy Height Model = DSM - DTM.
 gs.mapcalc(
     f"{OUTPUT}_chm = max(0.0, {OUTPUT}_dsm - {OUTPUT}_dtm)",
 )

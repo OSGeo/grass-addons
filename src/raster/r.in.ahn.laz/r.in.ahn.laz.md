@@ -19,7 +19,6 @@ outputs are patched into one or more final maps whose names are built from
 **output=** and the suffixes declared by the script (see _User script interface_
 below). In this mode, **output=** is required.
 
-
 ### User script interface
 
 A user script is a plain Python file that should have the following structure:
@@ -69,7 +68,6 @@ Note that if the computational region extends outside the AHN extent, a warning
 is emitted and only the overlap is imported. If the region lies entirely
 outside, the module aborts.
 
-
 ### Parallel processing and masks
 
 When a raster mask is active in the mapset, parallel processing is not
@@ -98,10 +96,10 @@ an OS limit, _r.in.ahn.laz_ aborts with a clear fatal message naming the limit.
 
 ### Requirements
 
-*   GRASS GIS ≥ 8.5 (uses `gs.RegionManager`, which was introduced in version
+* GRASS GIS ≥ 8.5 (uses `gs.RegionManager`, which was introduced in version
     8.5).
-*   Network access to the AHN LAZ object storage bucket.
-*   Whatever the user script itself needs. For instance, _r.in.pdal_ must be
+* Network access to the AHN LAZ object storage bucket.
+* Whatever the user script itself needs. For instance, _r.in.pdal_ must be
     installed if the script uses it.
 
 ### KNOWN ISSUES
