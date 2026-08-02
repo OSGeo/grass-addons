@@ -569,8 +569,8 @@ def main(options, flags):
 
     if options["suitability_threshold"] == "":
         gs.message(_("\n---------------------------------------------------\n"))
-        gs.message(_("Suitability threshold = {}".format(suitability_threshold)))
-        gs.message(_("Minimum area = {} hectares".format(minimum_size)))
+        gs.message(_("Suitability threshold = {}").format(suitability_threshold))
+        gs.message(_("Minimum area = {} hectares").format(minimum_size))
         gs.message(_("\n\n"))
 
 
