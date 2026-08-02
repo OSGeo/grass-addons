@@ -1,52 +1,160 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>i.hyper.export</em> exports a hyperspectral 3D raster map (<code>raster_3d</code>) from GRASS to an external file.
-At present, the module supports export to a <b>compressed multi-band GeoTIFF</b> only.</p>
+<p>
+  <em>i.hyper.export</em>
+  exports a hyperspectral 3D raster map (<code>raster_3d</code>) from GRASS to
+  an external file. By default, the module writes a native
+  <code>.ihyper</code> gzip archive. It also supports export to
+  <b>compressed multi-band GeoTIFF</b>, <b>HDF5</b>, or <b>Zarr</b>.
+</p>
 
-<p>The export process converts the 3D raster map into 2D raster slices using <code>r3.to.rast</code>,
-creates a temporary imagery group, and writes all bands into a single multi-band GeoTIFF file with <code>r.out.gdal</code>.
-All temporary rasters and groups are automatically removed after export.</p>
+<p>
+  The export process converts the 3D raster map into 2D raster slices using
+  <code>r3.to.rast</code>, creates a temporary imagery group, and writes all
+  bands into a single multi-band GeoTIFF file with <code>r.out.gdal</code>. All
+  temporary rasters and groups are automatically removed after export.
+</p>
+
+<p>
+  <em>i.hyper.export</em>
+  can also write a native <code>.ihyper</code> gzip archive for exact transfer
+  of a hyperspectral <code>raster_3d</code> (inspired by <code>r.pack</code>).
+  This stores the full map in native GRASS form together with
+  <code>hyper.json</code>; related composites can be included optionally, but
+  are not exported by default. HDF5 and Zarr exports write the cube in
+  <code>(band,row,col)</code> order, where the first axis is the spectral axis.
+</p>
 
 <h2>FUNCTIONALITY</h2>
 
 <ul>
-  <li>Exports the complete hyperspectral 3D raster map as a single multi-band GeoTIFF.</li>
-  <li>Preserves the spectral band order and spatial alignment of the input map.</li>
-  <li>Uses <b>DEFLATE</b> compression with <b>PREDICTOR=3</b> for efficient floating-point storage.</li>
+  <li>
+    Exports the complete hyperspectral 3D raster map as a single multi-band
+    GeoTIFF, HDF5 cube, Zarr cube, or native <code>.ihyper</code> archive.
+  </li>
+  <li>
+    Preserves the spectral band order and spatial alignment of the input map.
+  </li>
+  <li>
+    Uses <b>DEFLATE</b> compression with <b>PREDICTOR=3</b> for efficient
+    floating-point storage.
+  </li>
   <li>Handles null values as <code>-9999</code>.</li>
-  <li>Automatically sets the computational region to match the input 3D raster map.</li>
+  <li>
+    Automatically sets the computational region to match the input 3D raster
+    map.
+  </li>
 </ul>
 
 <h2>NOTES</h2>
 
 <ul>
-  <li>Currently, only multi-band GeoTIFF export is supported.</li>
-  <li>All intermediate rasters and imagery groups are temporary and removed automatically after export.</li>
-  <li>The exported GeoTIFF contains spectral data only; wavelength and other metadata remain inside GRASS.</li>
-  <li>The output file can be opened in software such as QGIS, ENVI, or Python libraries (<code>rasterio</code>, <code>gdal</code>).</li>
+  <li>
+    Native <code>.ihyper</code> export stores the complete
+    <code>grid3</code> map directory together with <code>hyper.json</code>.
+  </li>
+  <li>
+    All intermediate rasters and imagery groups are temporary and removed
+    automatically after export.
+  </li>
+  <li>
+    The exported GeoTIFF keeps spatial georeferencing and embeds hyperspectral
+    dataset metadata together with per-band wavelength, FWHM, and validity
+    metadata from <code>hyper.json</code>.
+  </li>
+  <li>
+    HDF5 and Zarr exports store the full hyperspectral cube in
+    <code>(band,row,col)</code> order and include both the full
+    <code>hyper.json</code> metadata payload and spatial metadata needed to
+    interpret the cube.
+  </li>
+  <li>
+    The output file can be opened in software such as QGIS, ENVI, or Python
+    libraries (<code>rasterio</code>, <code>gdal</code>, <code>h5py</code>,
+    <code>zarr</code>).
+  </li>
+  <li>
+    Existing related composites can be included in <code>.ihyper</code> export
+    optionally with the <code>-c</code> flag.
+  </li>
 </ul>
 
 <h2>OPTIONS</h2>
 
 <ul>
   <li><code>input</code> – Input 3D raster map (required).</li>
-  <li><code>output</code> – Output file name (required). Example: <code>output=prisma_3d.tif</code>.</li>
+  <li>
+    <code>output</code>
+    – Output file name (required). Example: <code>output=prisma_3d.ihyper</code>.
+  </li>
+  <li>
+    <code>format</code>
+    – Export format: <code>ihyper</code> (default), <code>gtiff</code>, <code>h5</code>,
+    or <code>zarr</code>.
+  </li>
+  <li>
+    <code>chunks</code>
+    – Chunk sizes in <code>band,row,col</code> order. The first value is the
+    spectral axis. This option is shown for all formats but used only for
+    <code>h5</code> and <code>zarr</code>. Use <code>0,0,0</code> for automatic
+    chunk sizes.
+  </li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
-<div class="code"><pre>
-# Example 1: Export PRISMA 3D raster map to compressed GeoTIFF
+<div class="code">
+  <pre>
+# Example 1: Export PRISMA 3D raster map to native .ihyper archive (default)
 i.hyper.export input=prisma@PERMANENT \
-               output=/data/prisma_3d.tif
-</pre></div>
+               output=/data/prisma_3d.ihyper
+</pre>
+</div>
+
+<div class="code">
+  <pre>
+# Export native hyperspectral archive
+i.hyper.export input=p2ld \
+               output=/data/hyperspectral_data.ihyper \
+               format=ihyper
+
+# Export native hyperspectral archive and include existing composites
+i.hyper.export input=p2ld \
+               output=/data/hyperspectral_data.ihyper \
+               format=ihyper -c
+
+# Export as HDF5 cube with explicit chunk sizes in band,row,col order
+i.hyper.export input=p2ld \
+               output=/data/hyperspectral_data.h5 \
+               format=h5 \
+               chunks=8,256,256
+
+# Export as Zarr cube with automatic chunk sizes
+i.hyper.export input=p2ld \
+               output=/data/hyperspectral_data.zarr \
+               format=zarr \
+               chunks=0,0,0
+</pre>
+</div>
 
 <h2>OUTPUT</h2>
 
-<p>The output is a <b>multi-band GeoTIFF</b> file containing one band per spectral layer of the 3D raster map.
-Compression (<b>DEFLATE</b> + <b>PREDICTOR=3</b>) ensures compact and precise floating-point storage.
-Large files are automatically written as BigTIFF when necessary.</p>
+<p>
+  The output is a native <code>.ihyper</code> archive by default, or a
+  <b>multi-band GeoTIFF</b>, <b>HDF5</b>, or <b>Zarr</b> dataset when
+  <code>format=</code> is set explicitly. GeoTIFF uses compression (<b>DEFLATE</b>
+  + <b>PREDICTOR=3</b>) and stores per-band hyperspectral metadata. HDF5 and
+  Zarr store the full cube in <code>(band,row,col)</code> order together with
+  embedded metadata.
+</p>
+
+<h2>SEE ALSO</h2>
+
+<a href="i.hyper.import.html">i.hyper.import</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.pack.html">r.pack</a>
 
 <h2>AUTHORS</h2>
-
 Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia

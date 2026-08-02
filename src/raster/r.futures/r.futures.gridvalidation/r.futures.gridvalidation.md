@@ -3,7 +3,7 @@
 Tool *r.futures.gridvalidation* allows to
 validate land change simulation results spatially.
 It is a wrapper around
-[r.futures.validation](r.futures.validation.html)
+[r.futures.validation](r.futures.validation.md)
 that computes validation metrics for each cell of a grid
 or for each polygon of a vector layer.
 It computes:
@@ -18,7 +18,7 @@ It computes:
 When **original** is provided and the input rasters contain
 only binary categories (0 for undeveloped and 1 for developed),
 the tool additionally computes change detection metrics
-(see [r.futures.validation](r.futures.validation.html)
+(see [r.futures.validation](r.futures.validation.md)
 for details).
 When more than two categories are present,
 these metrics are skipped.
