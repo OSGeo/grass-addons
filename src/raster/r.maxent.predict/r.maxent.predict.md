@@ -40,7 +40,6 @@ includes a tutorial explaining most of these options. For a step-by-step guide
 to the modelling workflow using the *r.maxent.** add-ons, see
 [Species Distribution Modelling Using Maxent in GRASS](https://ecodiv.earth/TutorialsNotes/sdmingrassgis/).
 
-
 ## NOTES
 
 This addon requires the Maxent software (version ≥ 3.4). You can
