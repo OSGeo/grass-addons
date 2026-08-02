@@ -262,6 +262,8 @@ def main(options, flags):
             output=tmp00,
             method=focal_statistic,
             size=size,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp02 = create_temporary_name("tmp02")
         gs.run_command(
@@ -287,10 +289,17 @@ def main(options, flags):
             output=tmp01,
             method=focal_statistic,
             size=size,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp00 = create_temporary_name("tmp00")
         gs.run_command(
-            "r.series", input=[in_filename, tmp01], method="maximum", output=tmp00
+            "r.series",
+            input=[in_filename, tmp01],
+            method="maximum",
+            output=tmp00,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp02 = create_temporary_name("tmp02")
         gs.run_command(
@@ -358,7 +367,7 @@ def main(options, flags):
         gs.message(_("==================================================\n"))
         tmp05 = create_temporary_name("tmp05")
         expr = "{} = if(isnull({}),1,null())".format(tmp05, tmp04)
-        gs.run_command("r.mapcalc", expression=expr)
+        gs.run_command("r.mapcalc", expression=expr, nprocs=nprocs)
         gs.message(_("Removing small gaps of non-suitable areas - step 2"))
         gs.message(_("==================================================\n"))
         tmp06 = create_temporary_name("tmp06")
@@ -457,6 +466,7 @@ def main(options, flags):
         gs.run_command(
             "r.mapcalc",
             expression=("{} = {} * area()/10000".format(areastat, tmp10)),
+            nprocs=nprocs,
         )
 
     # Zonal statistics
@@ -471,8 +481,8 @@ def main(options, flags):
             method="average",
             output=zonstat,
         )
-        gs.run_command("r.colors", map=zonstat, color="bgyr"))
-    gs.message(_("Done")
+        gs.run_command("r.colors", map=zonstat, color="bgyr")
+    gs.message(_("Done"))
 
     # Vector as output
     if flags["v"]:
@@ -498,7 +508,11 @@ def main(options, flags):
             column_prefix="AA",
             method="average",
         )
-        gs.run_command("v.db.renamecolumn", map=out_filename, column="{},{}".format("AA_average", "mean_suitability")))
+        gs.run_command(
+            "v.db.renamecolumn",
+            map=out_filename,
+            column="{},{}".format("AA_average", "mean_suitability"),
+        )
 
     # Compactness
     if flags["m"]:
@@ -557,7 +571,7 @@ def main(options, flags):
         gs.message(_("\n---------------------------------------------------\n"))
         gs.message(_("Suitability threshold = {}".format(suitability_threshold)))
         gs.message(_("Minimum area = {} hectares".format(minimum_size)))
-        gs.message(_("\n\n")
+        gs.message(_("\n\n"))
 
 
 if __name__ == "__main__":
