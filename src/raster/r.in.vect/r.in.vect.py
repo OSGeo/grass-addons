@@ -143,7 +143,6 @@
 import atexit
 import os
 import sys
-import numpy as np
 import grass.script as gs
 
 clean_maps = []
@@ -329,10 +328,20 @@ def raster_labels(vector_file, layer_name, raster, column_name, column_rat, wher
 
 def main(options, flags):
     global _temp_region_used
+
+    # Import external dependencies after the parser, so the module can be
+    # built and queried (e.g. --help) without the GDAL/NumPy bindings.
     try:
-        from osgeo import ogr, gdal, osr  # noqa: E402
-    except ModuleNotFoundError:
-        gs.fatal(_("GDAL Python package is not installed."))
+        global np, ogr, gdal, osr
+        import numpy as np
+        from osgeo import ogr, gdal, osr
+    except ModuleNotFoundError as e:
+        gs.fatal(
+            _(
+                "Missing required Python dependency: {}.\n"
+                "This tool requires the GDAL Python bindings (osgeo) and NumPy."
+            ).format(e.name)
+        )
 
     ogr.UseExceptions()
 
