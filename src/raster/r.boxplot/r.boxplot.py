@@ -322,10 +322,7 @@ def lazy_import_py_modules(backend):
     try:
         import matplotlib as mpl
 
-        if backend is None:
-            mpl.use("WXAgg")
-        else:
-            mpl.use("Agg")
+        mpl.use("WXAgg" if backend is None else "Agg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
