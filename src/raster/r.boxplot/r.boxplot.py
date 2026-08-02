@@ -7,10 +7,9 @@
 # PURPOSE:      Draws boxplot(s) of raster values of the input raster.
 #               Optionally, this can be done per category of a zonal map.
 #
-# COPYRIGHT:    (c) 2022-2026 Paulo van Breugel and the GRASS Development Team
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
+# SPDX-FileCopyrightText: 2022-2026 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 #############################################################################
 
@@ -285,6 +284,15 @@
 # % guisection: Boxplot format
 # %end
 
+# %option
+# % key: nprocs
+# % type: integer
+# % label: Number of threads for parallel computing
+# % description: Number of threads used by r.univar when computing notch statistics (requires -n).
+# % required: no
+# % answer: 1
+# %end
+
 # %rules
 # % requires: -c, zones
 # % requires: -s, zones
@@ -314,8 +322,7 @@ def lazy_import_py_modules(backend):
     try:
         import matplotlib as mpl
 
-        if backend is None:
-            mpl.use("WXAgg")
+        mpl.use("WXAgg" if backend is None else "Agg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -618,13 +625,14 @@ def bx_zonal_stats(zones, name, order):
         base=zones,
         cover=name,
         percentiles=[0, 25, 50, 75, 100],
+        separator="pipe",
         stdout_=PIPE,
     ).outputs.stdout
     quantstats_str = quantstats_str.replace("\r", "").split("\n")
     quantstats_str = [_f for _f in quantstats_str if _f]
 
     # Ordering boxplots
-    quantstats = [list(map(float, _x.split(":"))) for _x in quantstats_str[1:]]
+    quantstats = [list(map(float, _x.split("|"))) for _x in quantstats_str[1:]]
     ids = []
     medians = []
     for zone_id, value in enumerate(quantstats):
@@ -680,22 +688,106 @@ def get_bx_stats(quantstats_i, whisker_range):
     ]
 
 
-def compute_notch(rastername, quant2, iqr):
-    """Compute notches of boxplots
+def notch_limits(quant2, iqr, n_values):
+    """Compute the lower and upper notch limits from a cell count.
+
+    The notch is the 95% confidence interval of the median, approximated as
+    median +/- 1.57 * IQR / sqrt(n), where n is the number of (non-null) cells
+    the boxplot is based on.
+
+    :param float quant2: 2nd quantile (median)
+    :param float iqr: interquartile range
+    :param int n_values: number of non-null cells
+
+    :return list: list with lower and upper notch value
+    """
+    half_width = 1.57 * (iqr / n_values**0.5)
+    return [quant2 - half_width, quant2 + half_width]
+
+
+def raster_ncells(rastername, nprocs=1):
+    """Return the number of non-null cells of a raster via r.univar.
+
+    Used for the no-zones notch. Uses r.univar shell output (key=value) and
+    reads the 'n' key, which is robust to field-order and separator changes
+    and avoids combining the -g and -t flags (rejected by GRASS 8.5). Honors
+    nprocs where r.univar supports it; note that r.univar disables
+    parallelization when a MASK is active, so on the no-zones path (where a
+    user MASK may be in place) nprocs may have no effect.
+
+    :param str rastername: name of input raster
+    :param int nprocs: number of threads for r.univar
+
+    :return int: number of non-null cells
+    """
+    kwargs = {}
+    if nprocs and nprocs > 1:
+        kwargs["nprocs"] = nprocs
+    # flags="g" (shell style) yields key=value lines parsed into a dict; "n"
+    # is the non-null cell count.
+    stats = gs.parse_command("r.univar", flags="g", map=rastername, **kwargs)
+    return int(stats["n"])
+
+
+def compute_notch(rastername, quant2, iqr, nprocs=1):
+    """Compute notches of a boxplot for the whole input raster.
+
+    Used on the no-zones path. The cell count is obtained from r.univar over
+    the (possibly masked) input raster.
 
     :param str rastername: name of input raster
     :param float quant2: 2nd quantile
     :param float iqr: interquartile range
+    :param int nprocs: number of threads for r.univar
 
     :return list: list with lower and upper notch value of input raster
     """
-    univar = Module(
-        "r.univar", flags=["g", "t"], map=rastername, stdout_=PIPE
+    n_values = raster_ncells(rastername, nprocs=nprocs)
+    return notch_limits(quant2, iqr, n_values)
+
+
+def zonal_ncells(zones, name, nprocs=1):
+    """Return the non-null cell count per zone as a {category: n} dict.
+
+    Computed in a single r.univar -t pass over the value raster with the
+    zonal raster as zones, so the count is correct *per zone*.
+
+    :param str zones: name of the zonal (base) raster
+    :param str name: name of the value (cover) raster
+    :param int nprocs: number of threads for r.univar
+
+    :return dict: mapping of zone category (int) to non-null cell count (int)
+    """
+    kwargs = {}
+    if nprocs and nprocs > 1:
+        kwargs["nprocs"] = nprocs
+    raw = Module(
+        "r.univar",
+        flags="t",
+        map=name,
+        zones=zones,
+        separator="pipe",
+        stdout_=PIPE,
+        **kwargs,
     ).outputs.stdout
-    n_values = int(univar.replace("\r", "").split("\n")[1].split("|")[0])
-    lower_notch = quant2 - 1.57 * (iqr / n_values**0.5)
-    upper_notch = quant2 + 1.57 * (iqr / n_values**0.5)
-    return [lower_notch, upper_notch]
+    lines = [ln for ln in raw.replace("\r", "").split("\n") if ln]
+    counts = {}
+    if not lines:
+        return counts
+    # First line is the header. Resolve column indices by name, falling back
+    # to the documented positions (zone=0, non_null_cells=2) if the header is
+    # not as expected.
+    header = lines[0].split("|")
+    try:
+        zone_idx = header.index("zone")
+        n_idx = header.index("non_null_cells")
+    except ValueError:
+        zone_idx, n_idx = 0, 2
+    for ln in lines[1:]:
+        fields = ln.split("|")
+        zone_cat = int(fields[zone_idx])
+        counts[zone_cat] = int(fields[n_idx])
+    return counts
 
 
 def compute_outliers(
@@ -766,9 +858,12 @@ def compute_outliers(
         finally:
             # Always remove the temporary zonal mask, even if the steps above
             # raise, so it is not left behind for cleanup() to trip over when
-            # it tries to restore the original MASK from the backup.
+            # it tries to restore the original MASK from the backup. Guard with
+            # a presence check.
             if zones:
-                Module("r.mask", flags="r")
+                mapset = gs.gisenv()["MAPSET"]
+                if gs.find_file(name="MASK", element="cell", mapset=mapset)["file"]:
+                    Module("r.mask", flags="r")
 
         # Get values input raster and write to outlier points
         colname = strip_mapset(rastername)
@@ -906,7 +1001,9 @@ def bxp_nozones(opt):
 
     # Compute notch limits
     if bool(opt["notch"]):
-        lower_notch, upper_notch = compute_notch(opt["value_raster"], quant2, iqr)
+        lower_notch, upper_notch = compute_notch(
+            opt["value_raster"], quant2, iqr, nprocs=opt.get("nprocs", 1)
+        )
     else:
         lower_notch = upper_notch = ""
 
@@ -1003,6 +1100,13 @@ def bxp_zones(opt):
         opt["zones_raster"], opt["value_raster"], opt["order"]
     )
 
+    if opt["notch"]:
+        zone_counts = zonal_ncells(
+            opt["zones_raster"], opt["value_raster"], nprocs=opt.get("nprocs", 1)
+        )
+    else:
+        zone_counts = {}
+
     # Change the order of the colors of the boxplots and median to match the
     # order in which the boxplots will be plottted
     if opt["bx_zonalcolors"]:
@@ -1029,7 +1133,14 @@ def bxp_zones(opt):
 
         # Compute notch limits
         if opt["notch"]:
-            lower_notch, upper_notch = compute_notch(opt["value_raster"], quant2, iqr)
+            zone_cat = int(quantstats[i][0])
+            n_zone = zone_counts.get(zone_cat)
+            if n_zone and n_zone > 0:
+                lower_notch, upper_notch = notch_limits(quant2, iqr, n_zone)
+            else:
+                # Fallback: no count for this zone (should not normally happen);
+                # skip the notch rather than emit a wrong or div-by-zero value.
+                lower_notch = upper_notch = ""
         else:
             lower_notch = upper_notch = ""
 
@@ -1379,6 +1490,7 @@ def main(options, flags):
             float(options["median_linewidth"]) if options["median_linewidth"] else None
         ),
         "median_color": median_color,
+        "nprocs": int(options["nprocs"]),
     }
     if bool(options["zones"]):
         zone_options = {
