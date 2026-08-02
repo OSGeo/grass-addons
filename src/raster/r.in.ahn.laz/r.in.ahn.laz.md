@@ -257,8 +257,11 @@ the CHM at an higher resultion.
 
 ## SEE ALSO
 
-[_r.in.pdal_](https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html)_,_ [_r.in.ahn_](https://grass.osgeo.org/grass-stable/manuals/addons/r.in.ahn.html)
+[_r.in.pdal_](https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html)_,_
+[_r.in.ahn_](https://grass.osgeo.org/grass-stable/manuals/addons/r.in.ahn.html)
 
 ## AUTHOR
 
-[Paulo van Breugel](https://ecodiv.earth), [HAS green academy](https://has.nl), [Innovative Biomonitoring research group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/), [Climate-robust Landscapes research group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
+[Paulo van Breugel](https://ecodiv.earth), [HAS green academy](https://has.nl),
+[Innovative Biomonitoring research group](https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/),
+[Climate-robust Landscapes research group](https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/)
