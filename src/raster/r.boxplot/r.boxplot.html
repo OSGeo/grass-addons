@@ -20,7 +20,7 @@ fit the extent of the zonal map with <em>g.region</em>.
 <p>
 To visually account for differences in the total area covered by each
 zone, you can optionally scale the width of each boxplot proportionally
-to the area of its corresponding category using the <b>bx_width_variable
+to the area of its corresponding category using the <b>box_width_variable
 </b> parameter. This can be done linearly or using the square root of
 the area, depending on the selected mode (linear or sqrt). In addition,
 the user can opt to print the area of each zone above the boxplot.
@@ -98,7 +98,7 @@ Set the plot dimensions to 7 inch wide, 1 inch high.
 
 <div class="code"><pre>
 g.region raster=elevation
-r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
+r.boxplot -h map=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 </pre>
 </div><br>
 
@@ -111,7 +111,7 @@ layer from the same <a href="https://grass.osgeo.org/download/data/">NC
 sample dataset</a>. Use the <b>-r</b> flag to rotate the x-asis labels.
 
 <div class="code"><pre>
-r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
+r.boxplot  map=elevation zone=landclass96 rotate_labels=90 output="r_boxplot_02.png"
 </pre>
 </div><br>
 
@@ -129,7 +129,7 @@ Provide a name for the outlier map to save the outlier locations as a
 point vector map.
 
 <div class="code"><pre>
-r.boxplot -o bx_sort=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
+r.boxplot -o map=elevation zones=landclass96 order=ascending output="r_boxplot_03.png" map_outliers="outliers"
 </pre>
 </div><br>
 
@@ -154,7 +154,7 @@ Set the <b>-c</b> flag to color the boxplots, use
 and set the font size to 11.
 
 <div class="code"><pre>
-r.boxplot -c bx_sort=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
+r.boxplot -c map=elevation zones=landclass96 order=ascending fontsize=11 output="r_boxplot_04.png"
 </pre>
 </div><br>
 
@@ -165,7 +165,7 @@ land classes, you can plot a line and band representing the median and
 interquartile range of the whole raster layer.
 
 <div class="code"><pre>
-r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR
+r.boxplot -c map=elevation zones=landclass96 raster_statistics=median,IQR
 </pre>
 </div><br>
 
@@ -188,7 +188,9 @@ largest zone is always set to the user-defined maximum
 scaled relative to that.
 
 <div class="code"><pre>
-r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2"
+r.boxplot -c map=elevation zones=landclass96 \
+raster_statistics=median,IQR box_width=1 box_width_variable="sqrt" \
+area_label="km2"
 </pre>
 </div><br>
 

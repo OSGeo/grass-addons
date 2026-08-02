@@ -16,7 +16,7 @@ changed to fit the extent of the zonal map with *g.region*.
 
 To visually account for differences in the total area covered by each zone, you
 can optionally scale the width of each boxplot proportionally to the area of
-its corresponding category using the **bx_width_variable** option. This can be
+its corresponding category using the **box_width_variable** option. This can be
 done linearly or using the square root of the area, depending on the selected
 mode (linear or sqrt). In addition, the user can opt to print the area of each
 zone above the boxplot.
@@ -25,6 +25,10 @@ By default, the resulting plot is displayed on screen. However, the user can
 also save the plot to file using the **output** option. The format is
 determined by the extension given by the user. So, if output = outputfile.png,
 the plot will be saved as a PNG file.
+
+The **style** option applies a Matplotlib [style
+sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
+to the plot, e.g. *style=ggplot*.
 
 The whiskers extend to the most extreme data point, which is no more than
 **range** ✕ the IQR from the box. By default, a **range** of `1.5` is used, but
@@ -81,23 +85,22 @@ the boxplot horizontally. Set the plot dimensions to 7 inch wide, 1 inch high.
 
 ```sh
 g.region raster=elevation
-r.boxplot -h input=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
+r.boxplot -h map=elevation plot_dimensions="7,1" output="r_boxplot_01.png"
 ```
 
-![image-alt](r_boxplot_01.png)  
+![image-alt](r_boxplot_01.png)
 
 ### Example 2
 
 Draw boxplots of the values of the `elevation` layer per category from
 the `landclass96` layer from the same [NC sample
-dataset](https://grass.osgeo.org/download/data/). Use the **-r** flag to
-rotate the x-asis labels.
+dataset](https://grass.osgeo.org/download/data/). Rotate the labels.
 
 ```sh
-r.boxplot -r input=elevation zone=landclass96 output="r_boxplot_02.png"
+r.boxplot  map=elevation zone=landclass96 rotate_labels=90 output="r_boxplot_02.png"
 ```
 
-![image-alt](r_boxplot_02.png)  
+![image-alt](r_boxplot_02.png)
 
 ### Example 3
 
@@ -109,16 +112,16 @@ high median. Provide a name for the outlier map to save the outlier locations
 as a point vector map.
 
 ```sh
-r.boxplot -o bx_sort=ascending input=elevation zones=landclass96 output="r_boxplot_03.png" map_outliers="outliers"
+r.boxplot -o map=elevation zones=landclass96 order=ascending output="r_boxplot_03.png" map_outliers="outliers"
 ```
 
-![image-alt](r_boxplot_03.png)  
+![image-alt](r_boxplot_03.png)
 
 Below, part of the `landclass96` raster map is shown, with the vector
 point layer with location of outliers on top. Curiously, for some lakes,
 only part of the raster cells are outliers.
 
-![image-alt](r_boxplot_map_03.png)  
+![image-alt](r_boxplot_map_03.png)
 
 ### Example 4
 
@@ -129,7 +132,7 @@ the boxplots, use **bx\_sort=ascending** to order the boxplots from low to high
 median, and set the font size to 11.
 
 ```sh
-r.boxplot -c bx_sort=ascending fontsize=11 input=elevation zones=landclass96 output="r_boxplot_04.png"
+r.boxplot -c map=elevation zones=landclass96 order=ascending fontsize=11 output="r_boxplot_04.png"
 ```
 
 ### Example 5
@@ -139,7 +142,7 @@ different land classes, you can plot a line and band representing the
 median and interquartile range of the whole raster layer.
 
 ```sh
-r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR
+r.boxplot -c map=elevation zones=landclass96 raster_statistics=median,IQR
 ```
 
 Note, if the zones of your zonal map do not cover the entire area, you
@@ -159,7 +162,9 @@ largest zone is always set to the user-defined maximum
 scaled relative to that.
 
 ```sh
-r.boxplot -c input=elevation zones=landclass96 raster_statistics=median,IQR bx_width=1 bx_width_variable="sqrt" area_label="km2" 
+r.boxplot -c map=elevation zones=landclass96 \
+raster_statistics=median,IQR box_width=1 box_width_variable="sqrt" \
+area_label="km2"
 ```
 
 The code above also print the surface area of each zone above

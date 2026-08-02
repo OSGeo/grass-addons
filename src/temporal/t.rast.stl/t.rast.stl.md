@@ -267,7 +267,10 @@ By default the multi-panel plot is shown in an interactive window. If **output**
 is given, the plot is instead saved to that file and the image format is taken
 from the file extension (`.png`, `.pdf`, `.svg`, ...). Plot appearance is
 controlled by **dpi** (resolution, default 300) and **plot_dimensions**
-(width,height in inches, default 8,8).
+(width,height in inches, default 8,8). The **style** option applies a
+Matplotlib [style
+sheet](https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html)
+to the plot, e.g. *style=ggplot*.
 
 The **backend** option selects the matplotlib rendering backend. You rarely need
 it: `Agg` is chosen automatically when writing to a file, and `WXAgg` (an
@@ -340,8 +343,8 @@ series. First step is to create empty datasets of type strds (space-time raster
 dataset). Note, that we use absolute time.
 
 ```sh
-t.create output=tempmean type=strds temporaltype=absolute title="Average
-temperature" description="Monthly temperature average in NC [deg C]"
+t.create output=tempmean type=strds temporaltype=absolute \
+title="Average temperature" description="Monthly temperature average in NC [deg C]"
 ```
 
 Now we register raster maps into the space-time raster datasets we just created.
@@ -391,7 +394,7 @@ The previous result suggests a steady increase in temperatures between 2000 and
 with **-o** and **-s**, and the **-t** flag shows their statistics in the legend.
 
 ```sh
-t.rast.stl -ost strds=tempmean coordinates=636000,221000
+t.rast.stl -ost strds=tempmean coordinates=636000,221000 \
 output=t_rast_stl_03.png
 ```
 
@@ -407,7 +410,7 @@ series, per year). Use **slope_unit** to force a specific unit, for example to
 report the warming rate per year explicitly, or per month to match the sampling:
 
 ```sh
-t.rast.stl -ost strds=tempmean coordinates=636000,221000 slope_unit=month
+t.rast.stl -ost strds=tempmean coordinates=636000,221000 slope_unit=month \
 output=t_rast_stl_04.png
 ```
 
@@ -428,7 +431,7 @@ unless **gam_direction** is set. Drop the outer values before fitting the trend
 lines seting `trend_trim=0.25`.
 
 ```sh
-t.rast.stl -sgb strds=tempmean coordinates=636000,221000 trend_trim=0.25
+t.rast.stl -sgb strds=tempmean coordinates=636000,221000 trend_trim=0.25 \
 output=t_rast_stl_05.png
 ```
 
@@ -449,7 +452,7 @@ first. Both are drawn on the same panels, the second on its own (right) y-axis
 **color**/**color2** (for example comparing minimum and maximum temperature):
 
 ```sh
-t.rast.stl -s strds=tempmean strds2=precip_sum coordinates=636000,221000
+t.rast.stl -s strds=tempmean strds2=precip_sum coordinates=636000,221000 \
 color=127:191:123 color2=#af8dc3 output=t_rast_stl_06.svg
 ```
 
