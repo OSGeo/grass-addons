@@ -47,26 +47,21 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix);
 int main(int argc, char *argv[])
 {
     struct Cell_head cellhd; /*region+header info */
-    char *mapset;            /*mapset name */
     int nrows, ncols;
     int row, col;
     struct GModule *module;
     struct Option *input, *ndate, *output;
-    struct History history; /*metadata */
     char *name;             /*input raster name */
     char *result[MAXFILES]; /*output raster name */
     /*File Descriptors */
     int nfiles;
     int infd[MAXFILES];
     int outfd[MAXFILES];
-    char **names;
     char **ptr;
     int ok;
-    int i = 0, j = 0;
+    int i = 0;
     void *inrast[MAXFILES];
     DCELL *outrast[MAXFILES];
-    int data_format; /* 0=double  1=float  2=32bit signed int  5=8bit unsigned
-                        int (ie text) */
     RASTER_MAP_TYPE in_data_type[MAXFILES]; /* 0=numbers  1=text */
     RASTER_MAP_TYPE out_data_type = DCELL_TYPE;
     int ndates;
@@ -107,7 +102,6 @@ int main(int argc, char *argv[])
         exit(-1);
 
     ok = 1;
-    names = input->answers;
     ptr = input->answers;
 
     ndates = atoi(ndate->answer);
@@ -150,9 +144,6 @@ int main(int argc, char *argv[])
     /*******************/
     /* Process pixels */
     for (row = 0; row < nrows; row++) {
-        DCELL de;
-        DCELL d[MAXFILES];
-
         G_percent(row, nrows, 2);
         /* read input map */
         for (i = 1; i <= nfiles; i++) {
