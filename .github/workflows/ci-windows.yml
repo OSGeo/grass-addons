@@ -175,22 +175,22 @@ jobs:
           grass-addons/.github/workflows/windows_addons_compile.sh $SRC_ADDONS $SRC_GRASS $DST_DIR 1
           cd $DST_DIR
           for d in `ls -d */`; do
-             mod=${d%%/}
-             if [ $mod == "logs" ] ; then
-               continue
-             fi
-             cd $mod
-             echo $mod
-             for f in `ls bin/*.bat 2> /dev/null` ; do
-               echo $f
-               sed "s/GISBASE/GRASS_ADDON_BASE/" $f > tmp
-               mv tmp $f
-             done
-             rm -rf grass-addons
-             zip -r ../$mod.zip *
-             cd ..
-             rm -rf $mod
-             md5sum $mod.zip > ${mod}.md5sum
+            mod=${d%%/}
+            if [ $mod == "logs" ] ; then
+              continue
+            fi
+            cd $mod
+            echo $mod
+            for f in `ls bin/*.bat 2> /dev/null` ; do
+              echo $f
+              sed "s/GISBASE/GRASS_ADDON_BASE/" $f > tmp
+              mv tmp $f
+            done
+            rm -rf grass-addons
+            zip -r ../$mod.zip *
+            cd ..
+            rm -rf $mod
+            md5sum $mod.zip > ${mod}.md5sum
           done
 
       - name: Make GRASS Addons available
