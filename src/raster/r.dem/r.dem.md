@@ -53,6 +53,27 @@ debiased surfaces into significance-masked change and volume products.
 DoD computation, cleanup, LoD masking, and volumetric summary all live in
 *r.dem.change* as a single pipeline; there is no separate DoD tool.
 
+The following chart shows how the tools work together:
+
+```mermaid
+flowchart TD
+    S["source DEM + reference DEM"] --> Q1{"Co-registered?"}
+    Q1 -- "no" --> CR["r.dem.coregister<br/>PGCP bias + Nuth &amp; Kääb / ICP"]
+    Q1 -- "manual control" --> NK["r.dem.nk"]
+    Q1 -- "manual control" --> ICP["r.dem.icp"]
+    Q1 -- "yes" --> Q2
+    CR --> Q2{"Terrain-correlated<br/>bias in DoD?"}
+    NK --> Q2
+    ICP --> Q2
+    Q2 -- "yes" --> ST["r.dem.stats<br/>terrain predictors"] --> B["r.dem.bias"]
+    Q2 -- "no" --> Q3
+    B --> Q3{"Uncertainty product?"}
+    Q3 -- "LoD threshold" --> LOD["r.dem.lod"] --> CH["r.dem.change<br/>DoD + cleanup + volumes"]
+    Q3 -- "significance classes" --> ST2["r.dem.stats"] --> EP["r.dem.errprop"]
+    CH --> SC["r.dem.screen<br/>regional screening"]
+    EP --> SC
+```
+
 ## REFERENCES
 
 White, C.T. et al. (in preparation). Post-Hurricane Topographic Change
