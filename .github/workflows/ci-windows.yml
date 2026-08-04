@@ -37,8 +37,6 @@ jobs:
             python-version: "3.11"
             os: windows-2022
       fail-fast: false
-
-
     steps:
       - name: Set git to use LF
         run: |
