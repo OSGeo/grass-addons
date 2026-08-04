@@ -82,7 +82,7 @@ default *ggplot* appearance.
 r.barplot -h zones=landclass96 map=elevation statistic=mean order=descending style=ggplot output=r_barplot_03.png
 ```
 
-![Mean elevation per land use category, sorted in descending order.](r_barplot_02.png)
+![Mean elevation per land use category, sorted in descending order.](r_barplot_03.png)
 
 ## SEE ALSO
 
