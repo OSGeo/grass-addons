@@ -38,13 +38,6 @@ def main(argv):
         base_no_ext, _ = os.path.splitext(base)
         outfile = base_no_ext + ".psv"
 
-    if os.path.exists(outfile):
-        sys.stderr.write(
-            'ERROR: "{}" already exists.\n'
-            "       Will not overwrite; aborting.\n".format(outfile)
-        )
-        return 1
-
     try:
         fin = open(infile, newline="")
     except OSError as exc:
@@ -52,7 +45,16 @@ def main(argv):
         return 1
 
     try:
-        fout = open(outfile, "w", newline="")
+        # "x" creates the file atomically and fails if it already exists,
+        # so we never overwrite an existing file (no check-then-open race).
+        fout = open(outfile, "x", newline="")
+    except FileExistsError:
+        fin.close()
+        sys.stderr.write(
+            'ERROR: "{}" already exists.\n'
+            "       Will not overwrite; aborting.\n".format(outfile)
+        )
+        return 1
     except OSError as exc:
         fin.close()
         sys.stderr.write("{}: {}\n".format(outfile, exc.strerror))
