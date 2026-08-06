@@ -1,3 +1,5 @@
+import pytest
+
 import grass.script as gs
 
 
@@ -98,12 +100,6 @@ def test_global_paths_identical(session):
     import subprocess
 
     env = session.env
-    gs.run_command(
-        "r.mapcalc",
-        expression="dod_pre = dem_post - dem_pre",
-        overwrite=True,
-        env=env,
-    )
     vals = {}
     for tag, kwargs in (
         ("legacy", dict(dem="dem_post", reference="dem_pre")),
@@ -136,12 +132,6 @@ def test_coverage_restricted_to_observed(session):
     env = session.env
     gs.run_command(
         "r.mapcalc",
-        expression="dod_pre = dem_post - dem_pre",
-        overwrite=True,
-        env=env,
-    )
-    gs.run_command(
-        "r.mapcalc",
         expression="dod_holey = if(col() > 80, null(), dod_pre)",
         overwrite=True,
         env=env,
@@ -164,27 +154,26 @@ def test_coverage_restricted_to_observed(session):
     )
     assert n_lod <= n_obs
     # A probe inside the hole must be NULL despite window dilation.
-    out = gs.read_command(
-        "r.what", map="lod_holey", coordinates="85.5,50.5", env=env
-    )
+    out = gs.read_command("r.what", map="lod_holey", coordinates="85.5,50.5", env=env)
     assert "*" in out
 
 
 def test_higher_confidence_raises_lod(session):
     env = session.env
-    gs.run_command(
-        "r.dem.lod",
-        dem="dem_post",
-        reference="dem_pre",
-        output="lod_68",
-        method="global",
-        confidence=0.68,
-        nmad=0.2,
-        overwrite=True,
-        env=env,
-    )
+    for name, conf in (("lod_68", 0.68), ("lod_95", 0.95)):
+        gs.run_command(
+            "r.dem.lod",
+            dem="dem_post",
+            reference="dem_pre",
+            output=name,
+            method="global",
+            confidence=conf,
+            nmad=0.2,
+            overwrite=True,
+            env=env,
+        )
     lod68 = float(_univar("lod_68", env)["min"])
-    lod95 = float(_univar("lod_nmad", env)["min"])
+    lod95 = float(_univar("lod_95", env)["min"])
     assert lod95 > lod68
 
 
@@ -192,19 +181,20 @@ def test_input_paths_identical(session):
     """LoD from dod= equals the dem+reference LoD exactly: both paths
     difference the surfaces before windowing, so no epoch factor differs."""
     env = session.env
-    gs.run_command(
-        "r.mapcalc",
-        expression="dod_pre = dem_post - dem_pre",
+    common = dict(
+        method="local",
+        window=11,
+        confidence=0.95,
+        stable_mask="stable",
         overwrite=True,
         env=env,
     )
-    common = dict(
-        method="local", window=11, confidence=0.95,
-        stable_mask="stable", overwrite=True, env=env,
-    )
     gs.run_command(
-        "r.dem.lod", dem="dem_post", reference="dem_pre",
-        output="lod_legacy", **common,
+        "r.dem.lod",
+        dem="dem_post",
+        reference="dem_pre",
+        output="lod_legacy",
+        **common,
     )
     gs.run_command("r.dem.lod", dod="dod_pre", output="lod_dod", **common)
     gs.run_command(
@@ -223,12 +213,6 @@ def test_floor_sigma_output_and_z_relation(session):
     from scipy.stats import norm
 
     env = session.env
-    gs.run_command(
-        "r.mapcalc",
-        expression="dod_pre = dem_post - dem_pre",
-        overwrite=True,
-        env=env,
-    )
     floor = 5.0  # far above the 0.2 m noise: s_long ~= floor
     gs.run_command(
         "r.dem.lod",
@@ -288,11 +272,10 @@ def test_domain_not_extended(session):
     # Defined region is a dilation of the mask, far smaller than the region.
     assert 0 < int(lod["n"]) < 10000
     assert int(dom["n"]) == int(lod["n"])
-    assert float(dom["min"]) == 1.0 and float(dom["max"]) == 1.0
+    assert float(dom["min"]) == pytest.approx(1.0)
+    assert float(dom["max"]) == pytest.approx(1.0)
     # A probe far east of the mask must be NULL.
-    out = gs.read_command(
-        "r.what", map="lod_west", coordinates="90.5,50.5", env=env
-    )
+    out = gs.read_command("r.what", map="lod_west", coordinates="90.5,50.5", env=env)
     assert "*" in out
 
 
@@ -317,3 +300,27 @@ def test_parser_rules_dod_exclusive(session):
         )
         _, err = proc.communicate()
         assert proc.returncode != 0
+
+
+def test_window_below_three_rejected(session):
+    """window=1 zeroes the Gaussian weighting factor, which r.neighbors would
+    divide by; it must be rejected instead."""
+    import subprocess
+
+    env = session.env
+    proc = gs.start_command(
+        "r.dem.lod",
+        dod="dod_pre",
+        output="lod_win1",
+        method="local",
+        window=1,
+        stable_mask="stable",
+        overwrite=True,
+        env=env,
+        stderr=subprocess.PIPE,
+    )
+    _, err = proc.communicate()
+    if isinstance(err, bytes):
+        err = err.decode()
+    assert proc.returncode != 0
+    assert "window" in err

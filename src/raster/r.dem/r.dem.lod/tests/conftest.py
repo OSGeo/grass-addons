@@ -38,4 +38,7 @@ def session(tmp_path_factory):
             ),
             env=env,
         )
+        # Precomputed difference for the dod= input path, built here so no
+        # test depends on a map left behind by another test.
+        gs.run_command("r.mapcalc", expression="dod_pre = dem_post - dem_pre", env=env)
         yield session

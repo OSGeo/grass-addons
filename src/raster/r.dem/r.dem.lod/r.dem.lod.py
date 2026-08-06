@@ -93,7 +93,7 @@
 # % key: floor
 # % type: double
 # % answer: 0.0
-# % description: Flight-wide stable-residual NMAD (meters, 1 sigma); its long-wavelength excess over the windowed dispersion is added once (two-scale decomposition)
+# % description: Vertical uncertainty floor (meters, 1 sigma); method=global adds it in quadrature with the NMAD, method=local treats it as the flight-wide stable-residual NMAD and adds only its long-wavelength excess over the windowed dispersion, once (two-scale decomposition)
 # % required: no
 # %end
 
@@ -288,6 +288,10 @@ def local_lod(
     if win % 2 == 0:
         win += 1
         gs.warning(_("Window must be odd, adjusted to {}").format(win))
+    # A 1-cell window gives a zero Gaussian weighting factor, which r.neighbors
+    # divides by.
+    if win < 3:
+        gs.fatal(_("Option window must be at least 3 cells"))
     wf = gaussian_weighting_factor(win)
 
     diff_map = f"{TMP_PREFIX}_diff_full"
@@ -379,15 +383,12 @@ def local_lod(
         sq = f"{TMP_PREFIX}_sigwin_sq"
         if stable_mask:
             gs.mapcalc(
-                f"{sq} = if(!isnull({stable_mask}), pow({sigma_win}, 2), "
-                f"null())",
+                f"{sq} = if(!isnull({stable_mask}), pow({sigma_win}, 2), null())",
                 overwrite=True,
                 quiet=True,
             )
         else:
-            gs.mapcalc(
-                f"{sq} = pow({sigma_win}, 2)", overwrite=True, quiet=True
-            )
+            gs.mapcalc(f"{sq} = pow({sigma_win}, 2)", overwrite=True, quiet=True)
         med_sq = raster_median(sq)
         s_long2 = max(0.0, floor**2 - med_sq)
         gs.message(
@@ -397,7 +398,8 @@ def local_lod(
                 "component s_long={:.4f} m (added once)"
             ).format(floor, math.sqrt(med_sq), math.sqrt(s_long2))
         )
-        if s_long2 == 0.0:
+        # s_long2 is max(0.0, ...), so <= 0.0 is the clamped case.
+        if s_long2 <= 0.0:
             gs.warning(
                 _(
                     "The windowed dispersion already exceeds the floor "
@@ -433,10 +435,7 @@ def local_lod(
 
     # Restrict the LoD to the observation footprint: the r.neighbors
     # dilation must not define a detection limit over unobserved cells.
-    obs_cond = (
-        f"!isnull({dod})" if dod
-        else f"(!isnull({dem}) && !isnull({reference}))"
-    )
+    obs_cond = f"!isnull({dod})" if dod else f"(!isnull({dem}) && !isnull({reference}))"
     gs.mapcalc(
         f"{output} = if({obs_cond}, {z} * {sigma_comb}, null())",
         overwrite=gs.overwrite(),
@@ -470,9 +469,7 @@ def local_lod(
 
     if floor <= 0.0:
         sw_min = float(
-            gs.parse_command("r.univar", map=sigma_win, flags="g").get(
-                "min", 0.0
-            )
+            gs.parse_command("r.univar", map=sigma_win, flags="g").get("min", 0.0)
         )
         if sw_min <= 0.0:
             gs.warning(
@@ -484,16 +481,16 @@ def local_lod(
 
     # Coverage report (always): tested share of observed cells.
     obs_map = f"{TMP_PREFIX}_obs"
-    gs.mapcalc(
-        f"{obs_map} = if({obs_cond}, 1, null())", overwrite=True, quiet=True
-    )
+    gs.mapcalc(f"{obs_map} = if({obs_cond}, 1, null())", overwrite=True, quiet=True)
     n_obs = int(gs.parse_command("r.univar", map=obs_map, flags="g").get("n", 0))
     stats = gs.parse_command("r.univar", map=output, flags="ge")
     n_lod = int(stats.get("n", 0))
     pct = 100.0 * n_lod / n_obs if n_obs else 0.0
-    gs.message(_("Significance domain: {} of {} observed cells ({:.1f}%)").format(
-        n_lod, n_obs, pct
-    ))
+    gs.message(
+        _("Significance domain: {} of {} observed cells ({:.1f}%)").format(
+            n_lod, n_obs, pct
+        )
+    )
     gs.message(_("Local LoD stats:"))
     gs.message(_("  Min:  {:.4f} m").format(float(stats.get("min", 0))))
     gs.message(_("  Mean: {:.4f} m").format(float(stats.get("mean", 0))))
@@ -518,9 +515,7 @@ def main():
         gs.fatal(_("Option floor must be non-negative"))
     if not 0.0 < confidence < 1.0:
         gs.fatal(_("Option confidence must be strictly between 0 and 1"))
-    sigma_extra = (
-        options["sigma_extra"].split(",") if options["sigma_extra"] else []
-    )
+    sigma_extra = options["sigma_extra"].split(",") if options["sigma_extra"] else []
     output_sigma = options["output_sigma"]
     output_domain = options["output_domain"]
 
