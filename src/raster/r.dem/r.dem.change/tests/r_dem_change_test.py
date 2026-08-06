@@ -116,12 +116,14 @@ def test_stable_mask_requires_trim_percentile(session):
     assert "trim_percentile" in err
 
 
-def test_dod_input_path_equivalent(session):
+def test_dod_input_path_equivalent(session, tmp_path):
     """dod= yields identical significance and volumes to dem+reference on
     the same difference, and the volume CSV carries the input name."""
     import csv as csvmod
 
     env = session.env
+    csv_a = str(tmp_path / "vol_a.csv")
+    csv_b = str(tmp_path / "vol_b.csv")
     gs.run_command(
         "r.mapcalc",
         expression="dod_pre2 = dem_post - dem_pre",
@@ -135,7 +137,7 @@ def test_dod_input_path_equivalent(session):
         lod="lod",
         output_dod="dod_ref",
         output_sig="sig_ref",
-        volume_csv="vol_a.csv",
+        volume_csv=csv_a,
         overwrite=True,
         env=env,
     )
@@ -144,7 +146,7 @@ def test_dod_input_path_equivalent(session):
         dod="dod_pre2",
         lod="lod",
         output_sig="sig_dod",
-        volume_csv="vol_b.csv",
+        volume_csv=csv_b,
         overwrite=True,
         env=env,
     )
@@ -157,7 +159,7 @@ def test_dod_input_path_equivalent(session):
     stats = gs.parse_command("r.univar", map="sig_diff", format="json", env=env)
     assert float(stats.get("max") or 0.0) < 1e-9
 
-    with open("vol_a.csv") as fa, open("vol_b.csv") as fb:
+    with open(csv_a) as fa, open(csv_b) as fb:
         rows_a = list(csvmod.DictReader(fa))
         rows_b = list(csvmod.DictReader(fb))
     for ra, rb in zip(rows_a, rows_b, strict=True):
