@@ -8,7 +8,7 @@ with terrain (for example a positive canopy bump in forest, or error that scales
 with slope, roughness, or point density). This tool models that residual and
 subtracts it.</p>
 
-<p>Two methods are provided through the <b>method</b> option.</p>
+<p>Three methods are provided through the <b>method</b> option.</p>
 
 <h3>method=regression</h3>
 
@@ -19,12 +19,28 @@ over stable terrain, then subtracts the fitted surface from the full DoD.</p>
   <li>The dependent variable is the DoD restricted to the <b>stable_mask</b>
   region.</li>
   <li>Each <b>predictors</b> raster is standardized to zero mean and unit
-  variance. Strongly skewed predictors (Pearson second skewness coefficient
-  <code>|3 * (mean - median) / stddev| &gt; 0.75</code>) are log-transformed
-  before standardization (positive values only).</li>
-  <li><em>r.regression.multi</em> estimates the intercept and per-predictor
-  coefficients, and the fitted bias field <code>b0 + sum(b_i * z_i)</code> is
-  subtracted from the DoD.</li>
+  variance, on a log scale for the predictors named in <b>log_predictors</b>
+  (positive values only; a predictor carrying non-positive values falls back
+  to the linear scale with a warning). Log transforms are explicit, never
+  data-triggered.</li>
+  <li>An ordinary-least-squares fit (numpy, on sampled stable cells; above 2
+  million cells a deterministic subsample is drawn) estimates the intercept,
+  per-predictor coefficients, and the coefficient covariance, and the fitted
+  bias field <code>b0 + sum(b_i * z_i)</code> is subtracted from the DoD.</li>
+  <li>The optional <b>output_se</b> raster is the 1-sigma coefficient
+  uncertainty of the bias model, <code>sqrt(x' Cov x)</code> on the
+  transformed predictors. It deliberately excludes the residual variance
+  <code>s2</code> so downstream quadratures (<em>r.dem.lod</em>
+  <b>sigma_extra</b>, <em>r.dem.errprop</em> <b>sigma</b>) do not double
+  count. The covariance is iid OLS and understates coefficient uncertainty
+  under spatially correlated residuals.</li>
+  <li>The optional <b>output_leverage</b> raster is the extrapolation distance
+  <code>d = sqrt(n*h - 1)</code> in fit-sd units, the distance-from-control
+  map: coefficient uncertainty cannot express model-form error under
+  extrapolation.</li>
+  <li>The optional <b>fit_json</b> file persists the whole fit (n, residual
+  variance, intercept, coefficients, covariance matrix, applied transforms)
+  so a reported correction can be reproduced without refitting.</li>
 </ul>
 
 <p>Predictor rasters are typically produced by <em>r.dem.stats</em> (slope,
@@ -33,10 +49,12 @@ uncertainty surface.</p>
 
 <h3>method=spline</h3>
 
-<p>Interpolates the stable-cell residuals into a smooth spatial bias
-field with <em>v.surf.rst</em> (sampled stable cells, coarse-resolution
-fit, bilinear resample) and subtracts it; no terrain predictors, no
-collinearity pathologies. Most trustworthy near stable cells; validate
+<p>Interpolates the stable-cell residuals into a smooth spatial bias field
+with <em>v.surf.rst</em> and subtracts it; no terrain predictors, no
+collinearity pathologies. The field is fit from <b>spline_npoints</b> randomly
+sampled stable cells (deterministic seed) at the coarse <b>spline_res</b>
+resolution with <b>spline_tension</b> and <b>spline_smooth</b>, then resampled
+bilinearly to the analysis grid. Most trustworthy near stable cells; validate
 with a holdout before trusting extrapolation.</p>
 
 <h3>method=forest</h3>
@@ -57,6 +75,11 @@ with a holdout before trusting extrapolation.</p>
 
 <p>The optional <b>bias_field</b> output stores the estimated correction surface
 that was subtracted, which is useful for inspection and reporting.</p>
+
+<p>For <code>method=regression</code> the corrected DoD is NULL wherever any
+predictor is NULL (the fitted surface is undefined there); <b>output_se</b>
+follows the same predictor-driven NULL pattern, and is defined even where the
+input DoD is NULL.</p>
 
 <p>The mask used by <code>method=forest</code> is applied through a temporary
 mask context and is removed automatically; the user's existing mask and
@@ -90,7 +113,7 @@ r.dem.bias method=forest dod=dod_1m mask=forest \
 <em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
 <em><a href="r.dem.stats.html">r.dem.stats</a></em>,
 <em><a href="r.neighbors.html">r.neighbors</a></em>,
-<em><a href="r.regression.multi.html">r.regression.multi</a></em>
+<em><a href="v.surf.rst.html">v.surf.rst</a></em>
 
 <h2>AUTHORS</h2>
 

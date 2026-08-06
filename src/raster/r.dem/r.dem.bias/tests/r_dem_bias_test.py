@@ -35,6 +35,16 @@ def test_forest_bump_removed(session):
 
 def test_forest_leaves_unmasked_cells_unchanged(session):
     env = session.env
+    gs.run_command(
+        "r.dem.bias",
+        method="forest",
+        dod="dod_forest",
+        mask="forest",
+        window=21,
+        output="dod_forest_corr",
+        overwrite=True,
+        env=env,
+    )
     # Outside the forest mask the bias field is zero, so the DoD is untouched.
     gs.run_command(
         "r.mapcalc",
@@ -75,7 +85,6 @@ def test_regression_output_se(session):
     env = session.env
     # Synthetic: linear trend in row plus seeded noise; stable = rows 1-25,
     # so rows 26-50 extrapolate beyond the fitted predictor range.
-    gs.run_command("r.mapcalc", expression="rowpred = row()", env=env)
     gs.run_command(
         "r.mapcalc",
         expression="dod_se = 1.0 + 0.1 * row() + rand(-0.3, 0.3)",
@@ -137,7 +146,6 @@ def test_regression_se_pointwise(session):
     from grass.script import array as garray
 
     env = session.env
-    gs.run_command("r.mapcalc", expression="colpred = col()", env=env)
     gs.run_command(
         "r.mapcalc",
         expression="dod_pw = 0.8 + 0.05 * row() - 0.02 * col() + rand(-0.2, 0.2)",
@@ -179,6 +187,38 @@ def test_regression_se_pointwise(session):
         x = np.array([1.0, z1[r, c], z2[r, c]])
         se_ref = np.sqrt(max(0.0, x @ cov @ x))
         assert abs(se_tool[r, c] - se_ref) < 1e-6, (r, c, se_tool[r, c], se_ref)
+
+
+def test_log_fallback_recorded_as_linear(session, tmp_path):
+    """A predictor with non-positive values falls back to the linear scale;
+    the persisted fit must say log=False, not the requested log=True."""
+    import json
+
+    env = session.env
+    gs.run_command("r.mapcalc", expression="signedpred = row() - 25.0", env=env)
+    gs.run_command(
+        "r.mapcalc",
+        expression="dod_log = 0.5 + 0.01 * col()",
+        overwrite=True,
+        env=env,
+    )
+    fit_json = str(tmp_path / "fit.json")
+    gs.run_command(
+        "r.dem.bias",
+        method="regression",
+        dod="dod_log",
+        predictors="signedpred,colpred",
+        log_predictors="signedpred",
+        stable_mask="stable",
+        output="dod_log_corr",
+        fit_json=fit_json,
+        overwrite=True,
+        env=env,
+    )
+    with open(fit_json) as f:
+        transforms = json.load(f)["transforms"]
+    signed = next(t for t in transforms if t.startswith("signedpred:"))
+    assert "log=False" in signed, signed
 
 
 def test_spline_removes_smooth_bump(session):

@@ -156,6 +156,7 @@ import sys
 import grass.script as gs
 
 TMP_RASTERS = []
+TMP_VECTORS = []
 
 
 def cleanup():
@@ -167,13 +168,27 @@ def cleanup():
             flags="f",
             quiet=True,
         )
+    if TMP_VECTORS:
+        gs.run_command(
+            "g.remove",
+            type="vector",
+            name=",".join(TMP_VECTORS),
+            flags="f",
+            quiet=True,
+        )
 
 
 def zscore(raster, output, log=False):
     """Standardize a raster to zero mean and unit variance, optionally on a
     log scale for strongly skewed positive predictors.
+
+    Returns the applied log flag, which differs from the requested one when
+    the raster carries non-positive values and the transform falls back to
+    the linear scale; the caller records what was applied, not what was
+    asked for.
     """
     src = raster
+    applied_log = log
     if log:
         stats = gs.parse_command("r.univar", map=raster, format="json")
         if float(stats["min"]) <= 0:
@@ -183,6 +198,7 @@ def zscore(raster, output, log=False):
                     "using linear scale"
                 ).format(raster)
             )
+            applied_log = False
         else:
             tmp_log = f"tmp_rdembias_log_{output}_{os.getpid()}"
             TMP_RASTERS.append(tmp_log)
@@ -199,7 +215,7 @@ def zscore(raster, output, log=False):
         overwrite=True,
         quiet=True,
     )
-    return output, mean, stddev
+    return output, mean, stddev, applied_log
 
 
 MAX_FIT_CELLS = 2_000_000
@@ -208,9 +224,9 @@ MAX_FIT_CELLS = 2_000_000
 def sample_stable_cells(stable_dod, zmaps):
     """Stream (dod, z1..zk) rows over stable cells into a numpy array.
 
-    Uses r.stats -1n, skipping any row that still carries a NULL marker,
-    so the fit sees only cells where the DoD and every predictor are
-    defined.
+    Uses r.stats -1n, whose -n flag already drops every row in which any map
+    is NULL, so the fit sees only cells where the DoD and every predictor
+    are defined.
     """
     try:
         import numpy as np
@@ -225,14 +241,8 @@ def sample_stable_cells(stable_dod, zmaps):
         quiet=True,
     )
 
-    def valid_lines():
-        # grass.script Popen pipes are text-mode (text=True).
-        for line in proc.stdout:
-            if "*" in line:
-                continue
-            yield line
-
-    data = np.loadtxt(valid_lines(), delimiter=",", ndmin=2)
+    # grass.script Popen pipes are text-mode (text=True).
+    data = np.loadtxt(proc.stdout, delimiter=",", ndmin=2)
     if proc.wait() != 0:
         gs.fatal(_("r.stats failed while sampling stable cells"))
     if data.size == 0:
@@ -352,10 +362,12 @@ def correct_regression(
         use_log = pred in log_predictors
         zname = f"tmp_rdembias_z_{pred.replace('@', '_')}_{os.getpid()}"
         TMP_RASTERS.append(zname)
-        _zmap, zmean, zsd = zscore(pred, zname, log=use_log)
+        _zmap, zmean, zsd, applied_log = zscore(pred, zname, log=use_log)
         zmaps.append(zname)
-        transform_meta.append(f"{pred}: mean={zmean:.6g} sd={zsd:.6g} log={use_log}")
-        gs.message(_("Predictor <{}>: log={}").format(pred, use_log))
+        transform_meta.append(
+            f"{pred}: mean={zmean:.6g} sd={zsd:.6g} log={applied_log}"
+        )
+        gs.message(_("Predictor <{}>: log={}").format(pred, applied_log))
 
     data = sample_stable_cells(stable_dod, zmaps)
     beta, s2, cov, n_fit = fit_ols(data)
@@ -516,6 +528,7 @@ def correct_spline(dod, output, stable_mask, bias_field, tension, smooth, npoint
     pts = f"tmp_rdembias_sp_pts_{pid}"
     field_coarse = f"tmp_rdembias_sp_field_{pid}"
     TMP_RASTERS.extend([stable_dod, field_coarse])
+    TMP_VECTORS.append(pts)
 
     gs.mapcalc(
         f"{stable_dod} = if(!isnull({stable_mask}), {dod}, null())",
@@ -540,8 +553,9 @@ def correct_spline(dod, output, stable_mask, bias_field, tension, smooth, npoint
         quiet=True,
     )
 
-    region = gs.region()
-    try:
+    # A temporary region (WIND_OVERRIDE) rather than an edit of the mapset
+    # region, so a crash cannot leave the user's region resampled.
+    with gs.RegionManager():
         gs.run_command("g.region", res=res, flags="a")
         gs.run_command(
             "v.surf.rst",
@@ -552,16 +566,6 @@ def correct_spline(dod, output, stable_mask, bias_field, tension, smooth, npoint
             smooth=smooth,
             overwrite=True,
             quiet=True,
-        )
-    finally:
-        gs.run_command(
-            "g.region",
-            n=region["n"],
-            s=region["s"],
-            e=region["e"],
-            w=region["w"],
-            nsres=region["nsres"],
-            ewres=region["ewres"],
         )
 
     field = bias_field or f"tmp_rdembias_sp_field1_{pid}"
@@ -576,6 +580,7 @@ def correct_spline(dod, output, stable_mask, bias_field, tension, smooth, npoint
     )
     gs.mapcalc(f"{output} = {dod} - {field}", overwrite=gs.overwrite())
     gs.run_command("g.remove", type="vector", name=pts, flags="f", quiet=True)
+    TMP_VECTORS.remove(pts)
     gs.message(
         _(
             "Spline bias field: {} points, tension={}, smooth={}, "

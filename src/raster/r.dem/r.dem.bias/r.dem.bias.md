@@ -7,7 +7,7 @@ but a residual elevation difference often still varies with terrain (for
 example a positive canopy bump in forest, or error that scales with slope,
 roughness, or point density). This tool models that residual and subtracts it.
 
-Two methods are provided through the **method** option.
+Three methods are provided through the **method** option.
 
 ### method=regression
 
@@ -15,10 +15,10 @@ Fits a multivariable linear model of the DoD on z-scored terrain predictors
 over stable terrain, then subtracts the fitted surface from the full DoD.
 
 - The dependent variable is the DoD restricted to the **stable_mask** region.
-- Each **predictors** raster is standardized to zero mean and unit variance.
-  Strongly skewed predictors (Pearson second skewness coefficient
-  `|3 * (mean - median) / stddev| > 0.75`) are log-transformed before
-  standardization (positive values only).
+- Each **predictors** raster is standardized to zero mean and unit variance,
+  on a log scale for the predictors named in **log_predictors** (positive
+  values only; a predictor with non-positive values falls back to the linear
+  scale with a warning).
 - An ordinary-least-squares fit (numpy, on sampled stable cells; above 2
   million cells a deterministic subsample is drawn) estimates the intercept,
   per-predictor coefficients, and the coefficient covariance, and the fitted
@@ -38,6 +38,10 @@ over stable terrain, then subtracts the fitted surface from the full DoD.
   covariance assumptions, and is the honest "distance from control" map:
   coefficient uncertainty cannot express model-form error under
   extrapolation, which must be checked out-of-sample.
+- The optional **fit_json** file persists the whole fit (`n_fit`, residual
+  variance `s2_m2`, intercept, per-predictor coefficients, the coefficient
+  covariance matrix, the applied transforms, and `max_fit_cells`) so a
+  reported correction can be reproduced or re-applied without refitting.
 - Log transforms are explicit via **log_predictors**; the earlier
   data-triggered skew rule was removed because a region-scoped statistic
   crossing a threshold must not silently change the model form (and a log
@@ -113,7 +117,7 @@ r.dem.bias method=forest dod=dod_1m mask=forest \
 *[r.dem.errprop](r.dem.errprop.md)*,
 *[r.dem.stats](r.dem.stats.md)*,
 *[r.neighbors](r.neighbors.md)*,
-*[r.regression.multi](r.regression.multi.md)*
+*[v.surf.rst](v.surf.rst.md)*
 
 ## AUTHORS
 

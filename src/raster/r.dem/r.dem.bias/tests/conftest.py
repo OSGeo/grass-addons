@@ -43,4 +43,9 @@ def session(tmp_path_factory):
             expression="dod_reg = 0.2 * slope",
             env=env,
         )
+
+        # Synthetic monotone predictors, built here so no test depends on a
+        # map left behind by another test.
+        gs.run_command("r.mapcalc", expression="rowpred = row()", env=env)
+        gs.run_command("r.mapcalc", expression="colpred = col()", env=env)
         yield session
