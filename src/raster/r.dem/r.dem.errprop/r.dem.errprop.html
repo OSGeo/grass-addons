@@ -26,7 +26,13 @@ terms.</p>
   <code>LoD = z(confidence) * sigma_DoD</code>, where <code>z</code> is the
   two-tailed normal critical value. Cells of the DoD whose magnitude exceeds the
   LoD are considered significant change.</li>
-  <li><b>output_tvalue</b>: the standardized change magnitude
+  <li><b>sigma_const</b>: constant 1-sigma terms (meters) in the same
+  quadrature as the <b>sigma</b> rasters; all sigma sources must be
+  independent of the DoD being tested (see the manual note on
+  circularity).</li>
+  <li><b>output_zscore</b>: the absolute z-score <code>|DoD| / sigma_DoD</code>
+  (sigma is treated as known, so the statistic is z-based rather than
+  Student-t; the magnitude discards the sign of change). The standardized change magnitude
   <code>|DoD| / sigma_DoD</code>.</li>
   <li><b>output_pvalue</b>: a two-tailed p-value raster, using either a
   normal approximation (Abramowitz and Stegun 26.2.17, evaluated in

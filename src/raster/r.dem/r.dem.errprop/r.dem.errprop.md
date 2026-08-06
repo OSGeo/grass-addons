@@ -22,7 +22,16 @@ From the propagated **output_sigma** the tool can additionally produce:
 - **output_lod**: a Level of Detection raster, `LoD = z(confidence) *
   sigma_DoD`, where `z` is the two-tailed normal critical value. Cells of the
   DoD whose magnitude exceeds the LoD are considered significant change.
-- **output_tvalue**: the standardized change magnitude `|DoD| / sigma_DoD`.
+- **sigma_const**: constant 1-sigma terms (meters) entering the same
+  quadrature as the **sigma** rasters. All sigma sources must be
+  independent of the DoD being tested: deriving the uncertainty from the
+  DoD itself (for example a windowed dispersion of the same map) inflates
+  sigma exactly where change is real and suppresses its significance. Use
+  the combined sigma from *r.dem.lod* (**output_sigma**) or independent
+  error budgets.
+- **output_zscore**: the absolute z-score `|DoD| / sigma_DoD` (sigma is
+  treated as known, so the statistic is z-based rather than Student-t; the
+  magnitude discards the sign of change).
 - **output_pvalue**: a two-tailed p-value raster, using either a normal
   approximation (Abramowitz and Stegun 26.2.17, evaluated in *r.mapcalc*) or a
   Student-t distribution with **df** degrees of freedom.
