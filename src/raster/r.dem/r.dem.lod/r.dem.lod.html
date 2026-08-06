@@ -10,12 +10,14 @@ Absolute Deviation (NMAD) of the elevation residuals on stable terrain:</p>
 
 <pre>
 NMAD = 1.4826 * median(|dh - median(dh)|)
-LoD  = t * sqrt(2) * sigma
 </pre>
 
-<p>where <code>sigma = NMAD / 1.4826</code>, <code>dh = dem - reference</code>,
-and <code>t</code> is the two-tailed normal critical value for the requested
-<b>confidence</b> level.</p>
+<p>The residual <code>dh</code> comes either from <b>dem</b> minus
+<b>reference</b>, or from a precomputed (typically bias-corrected)
+difference supplied via <b>dod</b>. Both paths difference the surfaces
+before estimation, so the NMAD estimates the difference dispersion directly
+and no sqrt(2) epoch factor applies on either path.</p>
+
 
 <h3>method=global</h3>
 
@@ -25,13 +27,32 @@ everywhere.</p>
 
 <h3>method=local</h3>
 
-<p>A spatially variable LoD is computed in a moving window of size
-<b>window</b>:</p>
+<p>A spatially variable LoD is computed in a Gaussian-weighted moving
+window of size <b>window</b> (matching <em>r.dem.stats</em>):</p>
 
 <pre>
-sigma_local(x,y) = 1.4826 * median(|dh - median(dh)|)  in window W
-LoD(x,y)         = t * sqrt(2) * sigma_local(x,y)
+sigma_win(x,y) = 1.4826 * median_W(|dh - median_W(dh)|)
+s_long^2       = max(0, floor^2 - median_stable(sigma_win^2))
+LoD(x,y)       = z * sqrt(sigma_win^2 + s_long^2 + sum(sigma_extra_i^2))
 </pre>
+
+<p>Global formula: <code>LoD = z * sqrt(NMAD^2 + floor^2)</code>, one
+convention on both input paths (a non-zero floor must be an independent
+registration budget). Locally, <b>floor</b> is the flight-wide stable NMAD
+and only its long-wavelength excess s_long is added, once; the dispersion
+is defined only where at least <b>min_stable</b> stable cells fall in the
+window. NULL in any <b>sigma_extra</b> or
+<b>point_density</b> raster propagates to the LoD (unknown uncertainty means
+untestable).</p>
+
+<p><b>floor</b> is a registration-uncertainty term (1 sigma) that no local
+window can fall below; <b>sigma_extra</b> accepts additional 1-sigma rasters
+(for example the bias-model coefficient SE from <em>r.dem.bias</em>).
+<b>output_sigma</b> stores the combined 1-sigma surface and
+<b>output_domain</b> marks cells where the LoD is defined. With a
+<b>stable_mask</b> the LoD exists only within the window's reach of stable
+cells and is deliberately not extended beyond it; the tested share of
+observed cells is always reported.</p>
 
 <p>When a <b>point_density</b> raster is supplied, the local uncertainty is
 penalised in sparsely sampled areas before the LoD is computed.</p>
@@ -58,11 +79,13 @@ r.dem.lod dem=dem_post reference=dem_pre output=lod_global \
     method=global confidence=0.95 stable_mask=stable
 </pre></div>
 
-<p>Local LoD in a 21-cell window with a point-density penalty:</p>
+<p>Local LoD on a bias-corrected DoD, with a registration floor, the
+bias-model SE in quadrature, and the domain raster:</p>
 
 <div class="code"><pre>
-r.dem.lod dem=dem_post reference=dem_pre output=lod_local \
-    method=local window=21 point_density=pts_per_m2 confidence=0.95
+r.dem.lod dod=dod_debiased output=lod_local method=local window=21 \
+    stable_mask=stable floor=0.44 sigma_extra=bias_se \
+    output_sigma=sigma_comb output_domain=lod_domain confidence=0.95
 </pre></div>
 
 <h2>REFERENCES</h2>
