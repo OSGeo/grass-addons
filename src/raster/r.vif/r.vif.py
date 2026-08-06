@@ -408,6 +408,11 @@ def main(options, flags):
 
         while max_vif < rvifmx:
             m += 1
+            # all_vif holds the VIF of every variable and is used to decide
+            # when to stop (all VIFs, including those of retained variables,
+            # must drop below maxvif). rvif is a copy in which retained
+            # variables are set to -9999 so they are never chosen for removal.
+            all_vif = np.zeros(len(input_maps))
             rvif = np.zeros(len(input_maps))
 
             # print the header of the output table to the console
@@ -455,17 +460,33 @@ def main(options, flags):
                         )
                     )
 
-                # If variable is set to be retained by the user, the VIF
-                # is set to -9999 to ensure it will not have highest VIF
+                # Record the VIF of every variable for the stop criterion. If
+                # the variable is set to be retained by the user, its entry in
+                # rvif is set to -9999 to ensure it is never selected for
+                # removal (but it still counts towards the stop criterion).
+                all_vif[k] = vifstat[0]
                 if input_map_names[k] in retain_map_names:
                     rvif[k] = -9999
                 else:
                     rvif[k] = vifstat[0]
 
-            # Compute the maximum vif across the variables for this round and
-            # remove the variable with the highest VIF
-            rvifmx = max(rvif)
+            # Stop when the maximum VIF across all variables (including
+            # retained ones) drops below maxvif.
+            rvifmx = max(all_vif)
             if rvifmx >= max_vif:
+                # Only non-retained variables may be removed. If every variable
+                # still above the threshold is retained, no removal can lower
+                # the VIF further, so stop and warn the user.
+                if max(rvif) == -9999:
+                    gs.warning(
+                        _(
+                            "The maximum VIF ({vif:.2f}) still exceeds the "
+                            "threshold ({thr}), but all remaining variables at "
+                            "or above the threshold are retained. Stopping the "
+                            "selection procedure."
+                        ).format(vif=rvifmx, thr=max_vif)
+                    )
+                    break
                 rvifindex = np.argmax(rvif, axis=None)
                 remove_variable = input_map_names[rvifindex]
                 del input_maps[rvifindex]
