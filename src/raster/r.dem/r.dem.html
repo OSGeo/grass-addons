@@ -23,8 +23,9 @@ tools:
   <dd>aligns a DEM to a reference with robust multi-scale point-to-plane
       iterative closest point (ICP)</dd>
   <dt><a href="r.dem.bias.html">r.dem.bias</a></dt>
-  <dd>removes terrain-correlated systematic bias from a DoD by regression
-      on terrain predictors over stable areas</dd>
+  <dd>removes systematic bias from a DoD by regression on terrain
+      predictors, by spline interpolation of the stable-cell residuals, or
+      by a local trimmed median under a canopy mask</dd>
   <dt><a href="r.dem.stats.html">r.dem.stats</a></dt>
   <dd>computes terrain surface metrics (slope, roughness, geomorphon
       diversity, local error sigma) used as DoD predictors</dd>
@@ -45,18 +46,46 @@ tools:
 <h2>NOTES</h2>
 
 The alignment tools (<em>r.dem.coregister</em>, <em>r.dem.nk</em>,
-<em>r.dem.icp</em>) remove rigid offset and rotation.
-<em>r.dem.bias</em> then removes terrain-correlated systematic bias that
-survives alignment. <em>r.dem.stats</em> supplies the terrain predictors
-that <em>r.dem.bias</em> and <em>r.dem.errprop</em> consume.
-<em>r.dem.lod</em>, <em>r.dem.change</em>, and <em>r.dem.errprop</em>
-turn the aligned, debiased surfaces into significance-masked change and
-volume products. DoD computation, cleanup, LoD masking, and volumetric
-summary all live in <em>r.dem.change</em> as a single pipeline; there is
-no separate DoD tool.
+<em>r.dem.icp</em>) remove rigid offset and rotation. Everything
+downstream of them operates on the DEM of difference rather than on the
+DEM pair: <em>r.dem.bias</em> takes a DoD through <b>dod</b> and returns a
+corrected one, so bias removal sits between differencing and change
+detection. <em>r.dem.stats</em> supplies the terrain predictors for
+<em>r.dem.bias</em> <b>method=regression</b> only; <b>method=spline</b>
+and <b>method=forest</b> need no predictors. <em>r.dem.lod</em> and
+<em>r.dem.change</em> also accept <b>dem</b> and <b>reference</b>
+directly, which skips the explicit DoD when no bias correction is wanted.
 
 <p>
-The following chart shows how the tools work together:
+<em>r.dem.lod</em> and <em>r.dem.errprop</em> compose rather than compete.
+<em>r.dem.lod</em> builds the combined 1-sigma surface from the windowed
+dispersion, the long-wavelength excess over <b>floor</b>, and any
+<b>sigma_extra</b> rasters (the bias-model coefficient SE from
+<em>r.dem.bias</em> <b>output_se</b> is the usual one), and writes it to
+<b>output_sigma</b>. That raster is the intended <b>sigma</b> input to
+<em>r.dem.errprop</em>, which converts it into z-scores, p-values, and
+significance classes. Either tool's LoD raster drives the <b>lod</b> input
+of <em>r.dem.change</em>.
+
+<p>
+Every sigma entering <em>r.dem.errprop</em> must be independent of the DoD
+being tested. A windowed dispersion of the same map inflates sigma exactly
+where change is real and suppresses its own significance, so
+<em>r.dem.stats</em> <b>metric=error_sigma_local</b> applied to the DoD
+under test is not a valid uncertainty source for it. Note also that
+<em>r.dem.lod</em> <b>output_sigma</b> merges a per-cell random component
+with a spatially correlated one, so it must not be aggregated to volume
+uncertainty by sqrt(N) averaging over the volumes <em>r.dem.change</em>
+reports.
+
+<p>
+DoD cleanup, LoD masking, and volumetric summary all live in
+<em>r.dem.change</em> as a single pipeline; there is no separate DoD tool.
+
+<p>
+The following chart shows how the tools work together. Rectangles are
+tools, rounded nodes are rasters, and edge labels are the option keys that
+carry each raster:
 
 <div align="center" style="margin: 10px">
 <a href="r_dem_workflow.png">
