@@ -24,14 +24,20 @@
 
 # %option G_OPT_R_INPUT
 # % key: dem
-# % description: Post-event DEM (co-registered)
-# % required: yes
+# % description: Post-event DEM (co-registered); requires reference
+# % required: no
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: reference
-# % description: Reference DEM
-# % required: yes
+# % description: Reference DEM; requires dem
+# % required: no
+# %end
+
+# %option G_OPT_R_INPUT
+# % key: dod
+# % description: Precomputed (e.g. debiased) DEM of Difference; alternative to dem+reference
+# % required: no
 # %end
 
 # %option G_OPT_R_INPUT
@@ -42,8 +48,8 @@
 
 # %option G_OPT_R_OUTPUT
 # % key: output_dod
-# % description: Raw DoD (dem - reference, no LoD masking)
-# % required: yes
+# % description: Raw DoD (dem - reference, no LoD masking); dem+reference path only
+# % required: no
 # %end
 
 # %option G_OPT_R_OUTPUT
@@ -68,7 +74,7 @@
 
 # %option G_OPT_R_INPUT
 # % key: stable_mask
-# % description: Stable-terrain mask used to estimate the trim_percentile threshold
+# % description: Stable-terrain mask used to estimate the trim_percentile threshold (only used with trim_percentile)
 # % required: no
 # %end
 
@@ -80,6 +86,15 @@
 # %flag
 # % key: k
 # % description: Report DoD distribution kurtosis (Fisher and Pearson)
+# %end
+
+# %rules
+# % required: dod, dem
+# % exclusive: dod, dem
+# % exclusive: dod, output_dod
+# % requires_all: dem, reference, output_dod
+# % requires: reference, dem
+# % requires: stable_mask, trim_percentile
 # %end
 
 import atexit
@@ -187,6 +202,7 @@ def report_kurtosis(dod):
 def main():
     dem = options["dem"]
     reference = options["reference"]
+    dod = options["dod"]
     lod = options["lod"]
     out_dod = options["output_dod"]
     out_sig = options["output_sig"]
@@ -196,12 +212,17 @@ def main():
     denoise = flags["n"]
     want_kurtosis = flags["k"]
 
-    for name in [dem, reference, lod]:
+    inputs = [dod, lod] if dod else [dem, reference, lod]
+    for name in inputs:
         if not gs.find_file(name, element="raster")["name"]:
             gs.fatal(_("Raster map <{}> not found").format(name))
 
-    # Raw DoD (always the unmodified difference).
-    gs.mapcalc(f"{out_dod} = {dem} - {reference}", overwrite=gs.overwrite())
+    if dod:
+        # Precomputed (typically bias-corrected) difference: analyze as-is.
+        out_dod = dod
+    else:
+        # Raw DoD (always the unmodified difference).
+        gs.mapcalc(f"{out_dod} = {dem} - {reference}", overwrite=gs.overwrite())
 
     if want_kurtosis:
         report_kurtosis(out_dod)
@@ -262,10 +283,10 @@ def main():
     if vol_csv:
         with open(vol_csv, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["metric", "value_m3", "value_yd3", "n_cells"])
-            writer.writerow(["deposition", vol_dep, vol_dep * 1.308, n_dep])
-            writer.writerow(["erosion", vol_ero, vol_ero * 1.308, n_ero])
-            writer.writerow(["net", vol_net, vol_net * 1.308, n_tot])
+            writer.writerow(["metric", "value_m3", "value_yd3", "n_cells", "input"])
+            writer.writerow(["deposition", vol_dep, vol_dep * 1.308, n_dep, out_dod])
+            writer.writerow(["erosion", vol_ero, vol_ero * 1.308, n_ero, out_dod])
+            writer.writerow(["net", vol_net, vol_net * 1.308, n_tot, out_dod])
         gs.message(_("Volume stats: {}").format(vol_csv))
 
     gs.run_command(

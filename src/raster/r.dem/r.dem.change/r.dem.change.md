@@ -12,6 +12,8 @@ The pipeline is:
 2. **Blunder trimming** (optional, **trim_percentile**): cells whose
    absolute difference exceeds a percentile of `|DoD|` are dropped before
    thresholding. The threshold is estimated over **stable_mask** when supplied,
+   and **stable_mask** requires **trim_percentile** (without it the mask has no
+   effect and the parser rejects the combination),
    otherwise over the whole DoD.
 3. **LoD thresholding**: `output_sig` keeps cells where `|DoD|` exceeds
    the per-cell **lod** value (from *r.dem.lod* or *r.dem.errprop*).
@@ -22,6 +24,11 @@ The pipeline is:
 
 With the **-k** flag the Fisher and Pearson kurtosis of the raw DoD distribution
 are reported as a diagnostic of noise and tail behaviour.
+
+A precomputed difference (typically the bias-corrected DoD from
+*r.dem.bias*) can be supplied via **dod** instead of **dem** and
+**reference**; volumes are then integrated over the corrected surface, and
+the `input` column of **volume_csv** records which raster was analyzed.
 
 ## NOTES
 

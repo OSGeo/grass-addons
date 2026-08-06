@@ -87,3 +87,79 @@ def test_trim_percentile_drops_blunder(session):
     sig = _univar("dod_sig4", env)
     # The 99th percentile of |DoD| sits at 2.0, so the +5 spike is trimmed.
     assert float(sig["max"]) == pytest.approx(2.0)
+
+
+def test_stable_mask_requires_trim_percentile(session):
+    """stable_mask without trim_percentile is rejected by the parser."""
+    import subprocess
+
+    env = session.env
+    # The mask raster exists, so the parser rule is the only failure cause.
+    gs.run_command("r.mapcalc", expression="stable = 1", overwrite=True, env=env)
+    proc = gs.start_command(
+        "r.dem.change",
+        dem="dem_post",
+        reference="dem_pre",
+        lod="lod",
+        output_dod="dod5",
+        output_sig="dod_sig5",
+        stable_mask="stable",
+        overwrite=True,
+        env=env,
+        stderr=subprocess.PIPE,
+    )
+    _, err = proc.communicate()
+    if isinstance(err, bytes):
+        err = err.decode()
+    assert proc.returncode != 0
+    assert "requires" in err
+    assert "trim_percentile" in err
+
+
+def test_dod_input_path_equivalent(session):
+    """dod= yields identical significance and volumes to dem+reference on
+    the same difference, and the volume CSV carries the input name."""
+    import csv as csvmod
+
+    env = session.env
+    gs.run_command(
+        "r.mapcalc",
+        expression="dod_pre2 = dem_post - dem_pre",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.dem.change",
+        dem="dem_post",
+        reference="dem_pre",
+        lod="lod",
+        output_dod="dod_ref",
+        output_sig="sig_ref",
+        volume_csv="vol_a.csv",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.dem.change",
+        dod="dod_pre2",
+        lod="lod",
+        output_sig="sig_dod",
+        volume_csv="vol_b.csv",
+        overwrite=True,
+        env=env,
+    )
+    gs.run_command(
+        "r.mapcalc",
+        expression="sig_diff = abs(sig_ref - sig_dod)",
+        overwrite=True,
+        env=env,
+    )
+    stats = gs.parse_command("r.univar", map="sig_diff", format="json", env=env)
+    assert float(stats.get("max") or 0.0) < 1e-9
+
+    with open("vol_a.csv") as fa, open("vol_b.csv") as fb:
+        rows_a = list(csvmod.DictReader(fa))
+        rows_b = list(csvmod.DictReader(fb))
+    for ra, rb in zip(rows_a, rows_b, strict=True):
+        assert abs(float(ra["value_m3"]) - float(rb["value_m3"])) < 1e-6
+    assert rows_b[0]["input"] == "dod_pre2"

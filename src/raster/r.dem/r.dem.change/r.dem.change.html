@@ -14,7 +14,10 @@ isolated significant cells.</p>
   <li><b>Blunder trimming</b> (optional, <b>trim_percentile</b>): cells
   whose absolute difference exceeds a percentile of <code>|DoD|</code> are
   dropped before thresholding. The threshold is estimated over
-  <b>stable_mask</b> when supplied, otherwise over the whole DoD.</li>
+  <b>stable_mask</b> when supplied,
+  and <b>stable_mask</b> requires <b>trim_percentile</b> (without it the mask
+  has no effect and the parser rejects the combination),
+  otherwise over the whole DoD.</li>
   <li><b>LoD thresholding</b>: <code>output_sig</code> keeps cells where
   <code>|DoD|</code> exceeds the per-cell <b>lod</b> value (from
   <em>r.dem.lod</em> or <em>r.dem.errprop</em>).</li>
@@ -27,6 +30,11 @@ isolated significant cells.</p>
 
 <p>With the <b>-k</b> flag the Fisher and Pearson kurtosis of the raw DoD
 distribution are reported as a diagnostic of noise and tail behaviour.</p>
+
+<p>A precomputed difference (typically the bias-corrected DoD from
+<em>r.dem.bias</em>) can be supplied via <b>dod</b> instead of <b>dem</b>
+and <b>reference</b>; the <code>input</code> column of <b>volume_csv</b>
+records which raster was analyzed.</p>
 
 <h2>NOTES</h2>
 
