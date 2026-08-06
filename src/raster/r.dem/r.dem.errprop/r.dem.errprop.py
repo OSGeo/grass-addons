@@ -317,6 +317,12 @@ def main():
     pmethod = options["pmethod"]
     df = options["df"]
 
+    # The parser range admits the endpoints, but norm.ppf is infinite at 1
+    # and zero at 0.5, so the open interval is enforced here (matching
+    # r.dem.lod).
+    if not 0.0 < confidence < 1.0:
+        gs.fatal(_("Option confidence must be strictly between 0 and 1"))
+
     for name in [dod] + sigma_maps:
         if not gs.find_file(name, element="raster")["name"]:
             gs.fatal(_("Raster map <{}> not found").format(name))

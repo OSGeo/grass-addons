@@ -112,3 +112,27 @@ def test_sigma_const_quadrature(session):
     stats = _univar("sigma_const_out", session.env)
     assert math.isclose(float(stats["min"]), 0.5, abs_tol=1e-6)
     assert math.isclose(float(stats["max"]), 0.5, abs_tol=1e-6)
+
+
+def test_confidence_endpoints_rejected(session):
+    """confidence=1 makes the normal critical value infinite, so the open
+    interval must be enforced rather than written into the LoD."""
+    import subprocess
+
+    for conf in (0.0, 1.0):
+        proc = gs.start_command(
+            "r.dem.errprop",
+            dod="dod",
+            sigma="sigma_a",
+            output_sigma="sigma_bad",
+            output_lod="lod_bad",
+            confidence=conf,
+            overwrite=True,
+            env=session.env,
+            stderr=subprocess.PIPE,
+        )
+        _, err = proc.communicate()
+        if isinstance(err, bytes):
+            err = err.decode()
+        assert proc.returncode != 0, err
+        assert "confidence" in err

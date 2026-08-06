@@ -19,6 +19,14 @@ a vertical-accuracy raster for each input DEM (for example derived from
 land-cover class), plus optional co-registration or interpolation error
 terms.</p>
 
+<p>The <b>sigma_const</b> option adds constant 1-sigma terms (meters) to the
+same quadrature as the <b>sigma</b> rasters. All sigma sources must be
+independent of the DoD being tested: deriving the uncertainty from the DoD
+itself (for example a windowed dispersion of the same map) inflates sigma
+exactly where change is real and suppresses its significance. Use the combined
+sigma from <em>r.dem.lod</em> (<b>output_sigma</b>) or independent error
+budgets.</p>
+
 <p>From the propagated <b>output_sigma</b> the tool can additionally produce:</p>
 
 <ul>
@@ -26,14 +34,9 @@ terms.</p>
   <code>LoD = z(confidence) * sigma_DoD</code>, where <code>z</code> is the
   two-tailed normal critical value. Cells of the DoD whose magnitude exceeds the
   LoD are considered significant change.</li>
-  <li><b>sigma_const</b>: constant 1-sigma terms (meters) in the same
-  quadrature as the <b>sigma</b> rasters; all sigma sources must be
-  independent of the DoD being tested (see the manual note on
-  circularity).</li>
   <li><b>output_zscore</b>: the absolute z-score <code>|DoD| / sigma_DoD</code>
   (sigma is treated as known, so the statistic is z-based rather than
-  Student-t; the magnitude discards the sign of change). The standardized change magnitude
-  <code>|DoD| / sigma_DoD</code>.</li>
+  Student-t; the magnitude discards the sign of change).</li>
   <li><b>output_pvalue</b>: a two-tailed p-value raster, using either a
   normal approximation (Abramowitz and Stegun 26.2.17, evaluated in
   <em>r.mapcalc</em>) or a Student-t distribution with <b>df</b> degrees of
@@ -63,6 +66,9 @@ terms.</p>
 which applies an LoD threshold and reports volumetric change. The
 <b>output_sigma</b> raster can be supplied to <em>r.dem.lod</em> as a
 precomputed uncertainty surface.</p>
+
+<p><b>confidence</b> must be strictly between 0 and 1; the normal critical
+value is infinite at 1 and zero at 0.5.</p>
 
 <p>The tool requires the Python <em>scipy</em> package.</p>
 
