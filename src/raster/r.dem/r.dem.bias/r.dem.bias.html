@@ -31,6 +31,14 @@ over stable terrain, then subtracts the fitted surface from the full DoD.</p>
 roughness, landform diversity, local sigma) together with a reference-DEM
 uncertainty surface.</p>
 
+<h3>method=spline</h3>
+
+<p>Interpolates the stable-cell residuals into a smooth spatial bias
+field with <em>v.surf.rst</em> (sampled stable cells, coarse-resolution
+fit, bilinear resample) and subtracts it; no terrain predictors, no
+collinearity pathologies. Most trustworthy near stable cells; validate
+with a holdout before trusting extrapolation.</p>
+
 <h3>method=forest</h3>
 
 <p>Estimates a local trimmed-median bias field over a masked subset of cells

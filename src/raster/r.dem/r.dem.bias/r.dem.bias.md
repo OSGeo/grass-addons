@@ -19,12 +19,47 @@ over stable terrain, then subtracts the fitted surface from the full DoD.
   Strongly skewed predictors (Pearson second skewness coefficient
   `|3 * (mean - median) / stddev| > 0.75`) are log-transformed before
   standardization (positive values only).
-- *r.regression.multi* estimates the intercept and per-predictor coefficients,
-  and the fitted bias field `b0 + sum(b_i * z_i)` is subtracted from the DoD.
+- An ordinary-least-squares fit (numpy, on sampled stable cells; above 2
+  million cells a deterministic subsample is drawn) estimates the intercept,
+  per-predictor coefficients, and the coefficient covariance, and the fitted
+  bias field `b0 + sum(b_i * z_i)` is subtracted from the DoD.
+- The optional **output_se** raster is the 1-sigma coefficient-uncertainty
+  term of the bias model, `sqrt(x' Cov x)` evaluated on the transformed
+  predictors. It deliberately excludes the residual variance `s2` (reported
+  in the raster metadata and the message stream) so that downstream
+  quadratures (*r.dem.lod* **sigma_extra**, *r.dem.errprop* **sigma**) can
+  combine it with local dispersion and registration terms without double
+  counting. The covariance is iid OLS: under spatially
+  correlated residuals it understates coefficient uncertainty, so treat the
+  magnitude as a lower bound pending an autocorrelation-aware covariance.
+- The optional **output_leverage** raster is the extrapolation distance
+  `d = sqrt(n*h - 1)` in fit-sd units (Mahalanobis distance of each cell
+  from the fit-cell predictor mean). It is independent of `n` and of the
+  covariance assumptions, and is the honest "distance from control" map:
+  coefficient uncertainty cannot express model-form error under
+  extrapolation, which must be checked out-of-sample.
+- Log transforms are explicit via **log_predictors**; the earlier
+  data-triggered skew rule was removed because a region-scoped statistic
+  crossing a threshold must not silently change the model form (and a log
+  of datum-referenced elevation would make the model datum-dependent).
 
 Predictor rasters are typically produced by *r.dem.stats* (slope, roughness,
 landform diversity, local sigma) together with a reference-DEM uncertainty
 surface.
+
+### method=spline
+
+Interpolates the stable-cell residuals into a smooth spatial bias field with
+*v.surf.rst* and subtracts it. This models the systematic error as what it
+physically is, a smooth surface over the map (photogrammetric doming),
+rather than a function of terrain predictors, and therefore has no
+collinearity pathologies. The field is fit from **spline_npoints** randomly
+sampled stable cells (deterministic seed) at the coarse **spline_res**
+resolution (the error is long-wavelength) with **spline_tension** and
+**spline_smooth**, then resampled bilinearly to the analysis grid.
+Splines interpolate well and extrapolate poorly, so the correction is most
+trustworthy near the stable cells; validate against independent data
+(holdout) before trusting it far from control.
 
 ### method=forest
 
@@ -41,6 +76,11 @@ Estimates a local trimmed-median bias field over a masked subset of cells
 
 The optional **bias_field** output stores the estimated correction surface that
 was subtracted, which is useful for inspection and reporting.
+
+For \`method=regression\` the corrected DoD is NULL wherever any predictor is
+NULL (the fitted surface is undefined there); **output_se** follows the same
+predictor-driven NULL pattern, and is defined even where the input DoD is
+NULL.
 
 The mask used by `method=forest` is applied through a temporary mask context and
 is removed automatically; the user's existing mask and computational region are
