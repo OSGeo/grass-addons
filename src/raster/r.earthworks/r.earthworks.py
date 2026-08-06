@@ -199,7 +199,7 @@
 
 # %option
 # % key: threshold
-# % type: double
+# % type: integer
 # % description: Threshold per quadrant
 # % label: Threshold per quadrant
 # % answer: 500
@@ -402,7 +402,7 @@ def prune(threshold, regions, cloud):
         count = np.size(xyz, axis=0)
 
         # Save regions
-        if count > 0 and count < threshold:
+        if count > 0 and count <= threshold:
             quadrants.append(region)
             coordinates.append(xyz)
 
@@ -1199,6 +1199,12 @@ def main():
     Model earthworks
     """
 
+    # Create empty lists
+    cuts = []
+    fills = []
+    regions = []
+    cloud = []
+
     # Get input options
     options, flags = gs.parser()
     elevation = options["elevation"]
@@ -1220,7 +1226,7 @@ def main():
     lorentz = abs(float(options["lorentz"]))
     quadratic = abs(float(options["quadratic"]))
     cubic = abs(float(options["cubic"]))
-    threshold = float(options["threshold"])
+    threshold = abs(int(options["threshold"]))
     border = float(options["border"])
     threads = int(options["nprocs"])
     print_volume = flags["p"]
@@ -1239,7 +1245,7 @@ def main():
     for term in terms:
         # Check validity
         if function == term and eval(function) <= 0:
-            gs.error(
+            gs.fatal(
                 f"{function.capitalize()} slope parameter must be greater than zero."
             )
 
@@ -1247,128 +1253,127 @@ def main():
         elif function == term and eval(function) > 0:
             rate = eval(function)
 
-    # Run processes
-    try:
-        # Convert inputs
-        if raster:
-            coordinates = convert_raster(raster)
-        elif coordinates:
-            coordinates = convert_coordinates(coordinates, z)
-        elif points:
-            coordinates = convert_points(points, mode, z)
-        elif lines:
-            raster = convert_lines(lines, z)
-            coordinates = convert_raster(raster)
-        else:
-            gs.error(_("A raster, vector, or set of coordinates is required!"))
+    # Convert inputs
+    if raster:
+        coordinates = convert_raster(raster)
+    elif coordinates:
+        coordinates = convert_coordinates(coordinates, z)
+    elif points:
+        coordinates = convert_points(points, mode, z)
+    elif lines:
+        raster = convert_lines(lines, z)
+        coordinates = convert_raster(raster)
+    else:
+        gs.fatal(_("A raster, vector, or set of coordinates is required!"))
 
-        # Create empty lists
-        cuts = []
-        fills = []
-        regions = []
-        cloud = []
+    # Check inputs
+    if not coordinates:
+        gs.fatal(_("No coordinates found in computational region!"))
 
-        # Save source region
-        gs.run_command("g.region", save=source, overwrite=True)
-        temporary.append(source)
+    # Use temporary region
+    gs.use_temp_region()
 
-        # Check segmentation
-        if not disable:
-            # Check cells
-            gregion = gs.region()
-            cells = gregion["cells"]
-            if cells <= 100000:
-                # Disable segmentation
-                disable = True
-                regions.append(source)
-                cloud.append(coordinates)
-                gs.info("Not enough cells for quadtree segmentation.")
+    # Save source region
+    gs.run_command("g.region", save=source, overwrite=True)
+    temporary.append(source)
 
-            # Check threshold
-            elif len(coordinates) <= threshold:
-                # Disable segmentation
-                disable = True
-                regions.append(source)
-                cloud.append(coordinates)
-                gs.info(
-                    "Not enough coordinates for quadtree segmentation. "
-                    "To enable segmentation, try increasing the threshold."
-                )
-            else:
-                # Construct quadtree
-                regions, cloud = quadtree(coordinates, threshold, regions, cloud)
-                gs.info(
-                    "Using quadtree segmentation for faster computation. "
-                    "If artifacts occur, increase the size of the border."
-                )
+    # Check segmentation
+    if not disable:
+        # Check cells
+        gregion = gs.region()
+        cells = gregion["cells"]
+        if cells <= 100000:
+            # Disable segmentation
+            disable = True
+            regions.append(source)
+            cloud.append(coordinates)
+            gs.info("Not enough cells for quadtree segmentation.")
 
-        # Skip segmentation
-        else:
+        # Check threshold
+        elif len(coordinates) <= threshold:
+            # Disable segmentation
+            disable = True
             regions.append(source)
             cloud.append(coordinates)
             gs.info(
-                "Not using quadtree segmentation. "
-                "If processing takes too long, try enabling segmentation."
+                "Not enough coordinates for quadtree segmentation. "
+                "To enable segmentation, try increasing the threshold."
+            )
+        else:
+            # Construct quadtree
+            regions, cloud = quadtree(coordinates, threshold, regions, cloud)
+            gs.info(
+                "Using quadtree segmentation for faster computation. "
+                f"Computational region divided into {len(regions)} quadrants. "
+                "If artifacts occur, increase the size of the border."
             )
 
-        # Iterate through quadtree
-        for region, coordinates in zip(regions, cloud):
-            # Create temporary rasters
-            if operation == "cut":
-                cut = gs.append_uuid("cut")
-                fill = None
-                cuts.append(cut)
-                temporary.append(cut)
-            elif operation == "fill":
-                cut = None
-                fill = gs.append_uuid("fill")
-                fills.append(fill)
-                temporary.append(fill)
-            elif operation == "cutfill":
-                cut = gs.append_uuid("cut")
-                fill = gs.append_uuid("fill")
-                cuts.append(cut)
-                fills.append(fill)
-                temporary.append(cut)
-                temporary.append(fill)
+    # Skip segmentation
+    else:
+        regions.append(source)
+        cloud.append(coordinates)
+        gs.info(
+            "Not using quadtree segmentation. "
+            "If processing takes too long, try enabling segmentation."
+        )
 
-            # Model earthworks
-            earthworking(
-                region,
-                coordinates,
-                elevation,
-                flat,
-                border,
-                mode,
-                function,
-                rate,
-                operation,
-                earthworks,
-                cut,
-                fill,
-                disable,
-                threads,
-            )
+    # Register quadrants
+    temporary.extend(regions)
 
-        # Model composite earthworks
-        series(operation, function, cuts, fills, elevation, earthworks, threads)
+    # Iterate through quadtree
+    for region, coordinates in zip(regions, cloud):
+        # Create temporary rasters
+        if operation == "cut":
+            cut = gs.append_uuid("cut")
+            fill = None
+            cuts.append(cut)
+            temporary.append(cut)
+        elif operation == "fill":
+            cut = None
+            fill = gs.append_uuid("fill")
+            fills.append(fill)
+            temporary.append(fill)
+        elif operation == "cutfill":
+            cut = gs.append_uuid("cut")
+            fill = gs.append_uuid("fill")
+            cuts.append(cut)
+            fills.append(fill)
+            temporary.append(cut)
+            temporary.append(fill)
 
-        # Calculate volume
-        if volume or print_volume:
-            volume = difference(elevation, earthworks, volume, threads)
+        # Model earthworks
+        earthworking(
+            region,
+            coordinates,
+            elevation,
+            flat,
+            border,
+            mode,
+            function,
+            rate,
+            operation,
+            earthworks,
+            cut,
+            fill,
+            disable,
+            threads,
+        )
 
-        # Print volume
-        if print_volume:
-            print_difference(operation, volume, threads)
+    # Model composite earthworks
+    series(operation, function, cuts, fills, elevation, earthworks, threads)
 
-        # Postprocessing
-        postprocess(earthworks)
+    # Calculate volume
+    if volume or print_volume:
+        volume = difference(elevation, earthworks, volume, threads)
 
-    # Clean up
-    finally:
-        temporary.extend(regions)
-        atexit.register(clean, temporary)
+    # Print volume
+    if print_volume:
+        print_difference(operation, volume, threads)
+
+    # Postprocessing
+    postprocess(earthworks)
 
 
 if __name__ == "__main__":
+    atexit.register(clean, temporary)
     sys.exit(main())
