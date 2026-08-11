@@ -64,7 +64,45 @@
 
 import grass.script as gs
 import json
-import re
+import sys
+import importlib.util
+from grass.script.utils import get_lib_path
+
+_HYPER_META_CLASS = None
+
+
+def _get_hyper_meta_class():
+    global _HYPER_META_CLASS
+    if _HYPER_META_CLASS is not None:
+        return _HYPER_META_CLASS
+
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        return None
+
+    if path not in sys.path:
+        sys.path.append(path)
+
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        return None
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        return None
+    _HYPER_META_CLASS = module.HyperMetadata
+    return _HYPER_META_CLASS
+
+
+def _pad_or_trim(values, expected):
+    values = list(values or [])
+    if len(values) >= expected:
+        return values[:expected]
+    return values + [None] * (expected - len(values))
 
 
 def _band_count(mapname):
@@ -75,82 +113,62 @@ def _band_count(mapname):
     return d
 
 
-def _band_wavelengths(mapname, expected):
-    """
-    Parse wavelengths and FWHM from r3.info description/comments.
-    Returns two lists (len == expected):
-      - wavelengths[i] -> float or None
-      - fwhm[i]        -> float or None
-    """
-    txt = gs.read_command("r3.info", map=mapname)
-    wavelengths = [None] * expected
-    fwhm = [None] * expected
+def _dataset_metadata(mapname, band_count, hyper_meta_class):
+    """Return wavelengths, validity, measurement, units and component count."""
+    if hyper_meta_class is None:
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
 
-    # number pattern handles ints, floats, scientific notation
-    num = r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?"
-    # e.g.: "Band 157: 2369.21 nm, FWHM: 7.47001 nm"
-    pat = re.compile(
-        rf"Band\s+(\d+)\s*:\s*({num})\s*nm(?:,\s*FWHM:\s*({num})\s*nm)?", re.IGNORECASE
+    try:
+        meta = hyper_meta_class.load(mapname)
+    except Exception as error:
+        gs.fatal(f"Failed to read JSON metadata for {mapname}: {error}")
+
+    measurement = meta.radiometric_quantity
+    units = meta.radiometric_units
+    has_components = int(
+        meta.n_components
+        or (len(meta.explained_variance_ratio) if meta.explained_variance_ratio else 0)
+        or (len(meta.component_labels) if meta.component_labels else 0)
     )
 
-    for line in txt.splitlines():
-        line = line.strip()
-        if line.startswith("|"):
-            line = line.strip("| ").rstrip("| ").strip()
-        m = pat.search(line)
-        if m:
-            idx = int(m.group(1))  # 1-based
-            if 1 <= idx <= expected:
-                wavelengths[idx - 1] = float(m.group(2))
-                if m.group(3) is not None:
-                    fwhm[idx - 1] = float(m.group(3))
+    if has_components > 0:
+        wavelengths = [None] * band_count
+        validity = None
+    else:
+        if meta.wavelengths is None:
+            gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
+        wavelengths_raw = list(meta.wavelengths or [])
+        validity_raw = list(getattr(meta, "validity", []) or [])
+        has_full_validity = len(validity_raw) == len(wavelengths_raw) and any(
+            not bool(v) for v in validity_raw
+        )
 
-    return wavelengths, fwhm
+        if has_full_validity:
+            # Keep full source axis to allow visual gaps at invalid bands.
+            wavelengths = wavelengths_raw
+            validity = [bool(v) for v in validity_raw]
+        else:
+            # Backward-compatible behavior for old metadata.
+            wavelengths = _pad_or_trim(wavelengths_raw, band_count)
+            validity = None
 
-
-def _band_measurement(mapname):
-    """
-    Return the measurement string (e.g., 'toa_radiance') from r3.info comments.
-    If not found, return None.
-    """
-    txt = gs.read_command("r3.info", map=mapname)
-    for raw in txt.splitlines():
-        line = raw.strip().strip("| ").rstrip("| ").strip()
-        if line.lstrip().lower().startswith("measurement:"):
-            val = line.split(":", 1)[1].strip()
-            return val if val else None
-    return None
+    return wavelengths, validity, measurement, units, has_components
 
 
-def _band_units(mapname):
-    """
-    Return the 'Measurement Units' string from the r3.info description/comments.
-    If not found or 'unitless/none', return None.
-    """
-    txt = gs.read_command("r3.info", map=mapname)
-    for raw in txt.splitlines():
-        line = raw.strip().strip("| ").rstrip("| ").strip()
-        if line.lstrip().lower().startswith("measurement units:"):
-            val = line.split(":", 1)[1].strip()
-            if val and val.lower() not in ("unitless", "none", "units", "1"):
-                return val
-            return None
-    return None
-
-
-def _has_components(mapname):
-    """
-    Detect whether the 3D raster contains PCA components (affects axis labeling).
-    Looks for 'Component N:' lines in r3.info comments.
-    Returns the number of components found, or 0 if none.
-    """
-    txt = gs.read_command("r3.info", map=mapname)
-    components_count = 0
-    for raw in txt.splitlines():
-        line = raw.strip().strip("| ").rstrip("| ").strip()
-        if re.search(r"^Component\s+\d+\s*:", line):
-            components_count += 1
-    return components_count  # Returns the number of components found
+def _expand_values_with_validity(values, validity):
+    """Expand sampled valid-band values to full source-band length using validity flags."""
+    if not validity:
+        return None
+    n_valid = sum(1 for v in validity if bool(v))
+    if n_valid != len(values):
+        return None
+    out = []
+    it = iter(values)
+    for v in validity:
+        out.append(next(it) if bool(v) else None)
+    return out
 
 
 def _sample_all_bands_at_point(mapname, e, n, band_count, sep="|", null_marker="*"):
@@ -310,13 +328,25 @@ def _plot_results_multi(
                     [np.nan if w is None else float(w) for w in ds["wavelength_nm"]],
                     dtype=float,
                 )
-                vals = np.asarray(
-                    [
-                        np.nan if v is None else float(v)
-                        for v in ds["points"][pi]["values"]
-                    ],
-                    dtype=float,
+                raw_vals = ds["points"][pi]["values"]
+                expanded_vals = _expand_values_with_validity(
+                    raw_vals, ds.get("validity")
                 )
+                vals_src = expanded_vals if expanded_vals is not None else raw_vals
+                vals = np.asarray(
+                    [np.nan if v is None else float(v) for v in vals_src], dtype=float
+                )
+
+                if expanded_vals is not None and len(vals) == len(wl):
+                    # Keep NaNs from invalid bands to force visible line breaks.
+                    if np.any(np.isfinite(vals)):
+                        ls = linestyles[mi % len(linestyles)]
+                        lw = 1.6 * (
+                            float(style_scale) if (output and style_scale) else 1.0
+                        )
+                        ax.plot(wl, vals, linestyle=ls, linewidth=lw, color=color)
+                    continue
+
                 mask = np.isfinite(wl) & np.isfinite(vals)
 
             if not np.any(mask):
@@ -460,26 +490,28 @@ def main(options, flags):
     gs.use_temp_region()
 
     datasets = []
+    HyperMetadata = _get_hyper_meta_class()
+    if HyperMetadata is None:
+        gs.fatal(
+            "Failed to load hyper_meta library. JSON metadata support is required."
+        )
     for mapname in maps:
         gs.run_command("g.region", raster_3d=mapname)
         band_count = _band_count(mapname)
-        wavelengths, fwhm = _band_wavelengths(mapname, band_count)
+        wavelengths, validity, measurement, units, has_comp = _dataset_metadata(
+            mapname, band_count, HyperMetadata
+        )
 
         points = []
         for e, n in coords_pairs:
             values = _sample_all_bands_at_point(mapname, e, n, band_count)
             points.append({"x": e, "y": n, "values": values})
 
-        measurement = _band_measurement(mapname)
-        units = _band_units(
-            mapname
-        )  # may be None → assumed reflectance later (if not components)
-        has_comp = _has_components(mapname)  # PCA → axis switch
-
         datasets.append(
             {
                 "map": mapname,
                 "wavelength_nm": wavelengths,
+                "validity": validity,
                 "points": points,
                 "measurement": measurement,
                 "units": units,

@@ -21,9 +21,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/raster.h>
+#include <grass/segment.h>
+
 #include "local_proto.h"
 
 int main(int argc, char *argv[])

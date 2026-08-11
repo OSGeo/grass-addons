@@ -2,11 +2,11 @@
 
 *i.hyper.composite* creates RGB, CIR, SWIR and custom false-color
 composites from a hyperspectral 3D raster map (`raster_3d`). The module
-reads per-band wavelength metadata from the 3D raster (as written by
-[i.hyper.import](i.hyper.import.html) /
-[i.hyper.preproc](i.hyper.preproc.html)), selects the nearest available
-bands to requested wavelengths, enhances contrast, and composes a 2D
-color raster.
+reads per-band wavelength metadata from `hyper.json`
+(as written by [i.hyper.import](i.hyper.import.md) /
+[i.hyper.preproc](i.hyper.preproc.md)). It then selects the nearest
+available bands to requested wavelengths, enhances contrast, and composes
+a 2D color raster.
 
 Internally, the cube is temporarily exploded into 2D rasters (one per
 band) using `r3.to.rast`. For each composite, the nearest bands to
@@ -35,9 +35,8 @@ resample spectrally.
 
 ## NOTES
 
-- The input 3D raster must contain per-band wavelength comments in
-  `r3.info` (e.g., lines like `Band 17: 848 nm`); otherwise the module
-  aborts with a clear error.
+- The input 3D raster must contain per-band wavelength metadata in
+  `hyper.json`.
 - Nearest-band selection is used (no spectral resampling). If your
   cube's wavelengths differ from the requested targets, the closest
   bands are chosen.
@@ -106,10 +105,10 @@ resample spectrally.
 
 ## SEE ALSO
 
-[i.hyper.import](i.hyper.import.html),
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.export](i.hyper.export.html),
+[i.hyper.import](i.hyper.import.md),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.export](i.hyper.export.md),
 [r3.to.rast](https://grass.osgeo.org/grass-stable/manuals/r3.to.rast.html),
 [r.composite](https://grass.osgeo.org/grass-stable/manuals/r.composite.html),
 [i.colors.enhance](https://grass.osgeo.org/grass-stable/manuals/i.colors.enhance.html),

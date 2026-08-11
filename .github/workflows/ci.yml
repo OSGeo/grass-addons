@@ -36,17 +36,14 @@ jobs:
           - grass-version: releasebranch_8_5
             python-version: "3.11"
             os: ubuntu-24.04
-          - grass-version: releasebranch_8_4
-            python-version: "3.10"
-            os: ubuntu-22.04
       fail-fast: false
     env:
       # renovate: datasource=github-tags depName=r-hub/R
-      R_VERSION: "4.5.2"
+      R_VERSION: "4.6.1"
 
     steps:
       - name: Checkout core
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: OSGeo/grass
           ref: ${{ matrix.grass-version }}
@@ -54,12 +51,12 @@ jobs:
           persist-credentials: false
 
       - name: Checkout addons
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: grass-addons
           persist-credentials: false
       - name: ccache
-        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+        uses: hendrikmuhs/ccache-action@d62db5f07c26379fc4b4e0916f098a92573c3b03 # v1.2.23
         with:
           create-symlink: true
           verbose: 2
@@ -124,7 +121,7 @@ jobs:
           make MODULE_TOPDIR="$GRASS_INSTALL"
 
       - name: Set up R
-        uses: r-lib/actions/setup-r@6f6e5bc62fba3a704f74e7ad7ef7676c5c6a2590 # v2.11.4
+        uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6 # v2.12.1
         with:
           r-version: ${{ env.R_VERSION }}
           Ncpus: 4
@@ -144,9 +141,39 @@ jobs:
           cd grass-addons/src
           ../.github/workflows/test.sh --config ../.gunittest.cfg
 
+      - name: Run pytest tests
+        timeout-minutes: 20
+        run: |
+          cd grass-addons/src
+          GISBASE="$(grass --config path)"
+          # Addons that bundle a Python package install it under etc/<tool>/;
+          # add those dirs so their tests can import the package.
+          etc_paths="$(find "$GISBASE/etc" -maxdepth 1 -type d -name '*.*' | paste -sd: -)"
+          PYTHONPATH="$(grass --config python_path):${etc_paths}:${PYTHONPATH}"
+          export PYTHONPATH
+          export LD_LIBRARY_PATH="${GISBASE}/lib:${LD_LIBRARY_PATH}"
+          status=0
+          while IFS= read -r tests_dir; do
+            addon="$(dirname "$tests_dir")"
+            # r.estimap.recreation uses downloads data
+            # over the network, so we skip it for CI.
+            if [ "$addon" = "./raster/r.estimap.recreation" ]; then continue; fi
+            if [ -f "$addon/requirements.txt" ]; then
+              pip install -r "$addon/requirements.txt"
+            fi
+            echo "::group::pytest $addon"
+            # For increased isolation, run each addon in its own process.
+            rc=0
+            pytest --verbose --color=yes -ra "$tests_dir" || rc=$?
+            echo "::endgroup::"
+            # rc 5 means no tests were collected; only other codes are failures.
+            if [ "$rc" -ne 0 ] && [ "$rc" -ne 5 ]; then status=1; fi
+          done < <(find . -type d -name tests | sort)
+          exit "$status"
+
       - name: Make HTML test report available
         if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: testreport-grass-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
           path: grass-addons/src/testreport

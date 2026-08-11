@@ -196,16 +196,12 @@
 # %end
 
 import sys
-import os
-import tempfile
-import contextlib
 import numpy as np
-from scipy.interpolate import interp1d
+
 import grass.script as gs
 import grass.script.array as garray
 from grass.script.utils import get_lib_path
 import importlib.util
-import re
 
 
 def _import_from_i_hyper_lib(module_name):
@@ -215,10 +211,15 @@ def _import_from_i_hyper_lib(module_name):
     if path not in sys.path:
         sys.path.append(path)
     spec = importlib.util.find_spec(module_name)
-    if not spec:
+    if not spec or not spec.loader:
         gs.fatal(f"Module {module_name} not found at {path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
     return module
 
 
@@ -235,6 +236,25 @@ def _load_processing_libs():
     )
 
 
+def _load_hyper_meta_class():
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        gs.fatal("Library path for hyper_meta not found.")
+    if path not in sys.path:
+        sys.path.append(path)
+    spec = importlib.util.find_spec("hyper_meta")
+    if not spec or not spec.loader:
+        gs.fatal(f"Module hyper_meta not found at {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
+    return module.HyperMetadata
+
+
 def _fill_nans_1d(x):
     v = np.asarray(x, dtype=np.float32)
     m = np.isfinite(v)
@@ -247,47 +267,58 @@ def _fill_nans_1d(x):
     return f(xi).astype(np.float32)
 
 
-def _get_wavelengths_from_r3info(mapname):
+def _get_wavelengths(mapname, hyper_meta_class):
     try:
-        meta = gs.read_command("r3.info", map=mapname)
+        meta = hyper_meta_class.load(mapname)
     except Exception:
         return None
-    wl = []
-    for line in meta.splitlines():
-        if "wavelength" in line.lower():
-            vals = re.findall(r"[\d.]+", line)
-            if vals:
-                wl = [float(v) for v in vals]
-                break
-    return wl if wl else None
+    arr = meta.get_wavelengths_array()
+    if arr is not None:
+        return arr
+    return None
 
 
-def _copy_r3_metadata(src, dst):
-    fd, tmp = tempfile.mkstemp(prefix="r3hist_", suffix=".txt")
-    os.close(fd)
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(tmp)
+def _to_full_map_name(mapname):
+    if "@" in mapname:
+        return mapname
+    mapset = gs.gisenv().get("MAPSET", "")
+    return f"{mapname}@{mapset}" if mapset else mapname
+
+
+def _copy_and_update_hyper_metadata(src, dst, cmd_params, hyper_meta_class):
     try:
-        gs.run_command(
-            "r3.support", map=src, savehistory=tmp, overwrite=True, quiet=True
+        meta = hyper_meta_class.load(src)
+        src_dataset_id = meta.dataset_id
+
+        # Derived dataset gets a new stable identity and its own local history entry.
+        meta.dataset_id = hyper_meta_class.new_dataset_id()
+        meta.derived = True
+        meta.processing_history = []
+        meta.dimensionality_reduction = None
+
+        command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
+        meta.add_history_entry(
+            command=command,
+            inputs=[
+                {
+                    "id": src_dataset_id,
+                    "map_name": _to_full_map_name(src),
+                }
+            ],
+            outputs=[
+                {
+                    "id": meta.dataset_id,
+                    "map_name": _to_full_map_name(dst),
+                }
+            ],
         )
-        gs.run_command(
-            "r3.support", map=dst, loadhistory=tmp, overwrite=True, quiet=True
-        )
-        gi = gs.parse_command("r3.info", flags="g", map=src)
-        title = gi.get("title")
-        vunit = gi.get("vertical_unit")
-        if title:
-            gs.run_command("r3.support", map=dst, title=title, quiet=True)
-        if vunit:
-            gs.run_command("r3.support", map=dst, vunit=vunit, quiet=True)
-    finally:
-        with contextlib.suppress(Exception):
-            os.remove(tmp)
+        meta.save(dst)
+    except Exception as error:
+        gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
-def _set_dr_metadata(outmap, method, info):
-    lines = []
+def _set_dr_metadata_payload(meta, method, info, n_components):
+    dr_meta = {}
     name_map = {
         "pca": "PCA",
         "kpca": "Kernel PCA",
@@ -297,21 +328,69 @@ def _set_dr_metadata(outmap, method, info):
         "nmf": "NMF",
         "sparsepca": "SparsePCA",
     }
-    mdisp = name_map.get(method, method.upper())
-    if method == "pca" and "explained_variance_ratio" in info:
-        var = info["explained_variance_ratio"]
-        lines.append(f"Principal Component Analysis ({mdisp})")
-        for i, v in enumerate(var, 1):
-            lines.append(f"Component {i}: {v * 100:.2f}% variance explained")
-    elif method in ["kpca", "nystroem"]:
-        lines.append(
-            f"{mdisp} (kernel={info.get('kernel')}, gamma={info.get('gamma')}, degree={info.get('degree')})"
+
+    dr_meta["method"] = method
+    dr_meta["method_display"] = name_map.get(method, method.upper())
+    dr_meta["n_components"] = int(n_components or 0)
+
+    kernel = info.get("kernel")
+    if kernel is not None:
+        dr_meta["kernel"] = str(kernel)
+    gamma = info.get("gamma")
+    if gamma is not None:
+        dr_meta["gamma"] = float(gamma)
+    degree = info.get("degree")
+    if degree is not None:
+        dr_meta["degree"] = int(degree)
+
+    explained = info.get("explained_variance_ratio")
+    if explained is not None:
+        if hasattr(explained, "tolist"):
+            explained = explained.tolist()
+        explained = [float(v) for v in explained]
+        dr_meta["explained_variance_ratio"] = explained
+        dr_meta["explained_variance_percent"] = [float(v * 100.0) for v in explained]
+    meta.dimensionality_reduction = dr_meta
+
+
+def _set_dr_metadata(inmap, outmap, method, info, cmd_params, hyper_meta_class=None):
+    try:
+        src_meta = hyper_meta_class.load(inmap)
+        explained = info.get("explained_variance_ratio")
+        if explained is not None and hasattr(explained, "tolist"):
+            explained = explained.tolist()
+
+        n_components = info.get("n_components")
+        if n_components is None:
+            n_components = len(explained or [])
+        if n_components is None:
+            n_components = cmd_params.get("dr_components", 0)
+
+        meta = hyper_meta_class.for_components(
+            n_components=int(n_components or 0),
+            explained_variance_ratio=explained,
         )
-        lines.append(f"Components: {info.get('n_components')}")
-    if lines:
-        gs.run_command(
-            "r3.support", map=outmap, description="\n".join(lines), quiet=True
+        _set_dr_metadata_payload(meta, method, info, n_components)
+
+        command = meta._command_from_module_params("i.hyper.preproc", cmd_params)
+        meta.add_history_entry(
+            command=command,
+            inputs=[
+                {
+                    "id": src_meta.dataset_id,
+                    "map_name": _to_full_map_name(inmap),
+                }
+            ],
+            outputs=[
+                {
+                    "id": meta.dataset_id,
+                    "map_name": _to_full_map_name(outmap),
+                }
+            ],
         )
+        meta.save(outmap)
+    except Exception as error:
+        gs.warning(f"Failed to write JSON hyperspectral metadata: {error}")
 
 
 def preprocess_hyperspectral(
@@ -344,6 +423,7 @@ def preprocess_hyperspectral(
         _continuum_removal,
         _apply_dimensionality_reduction,
     ) = _load_processing_libs()
+    hyper_meta_class = _load_hyper_meta_class()
 
     if dr_method:
         dr_method = dr_method.lower()
@@ -374,76 +454,110 @@ def preprocess_hyperspectral(
         steps.append(dr_method.upper())
     gs.message(" → ".join(steps) if steps else "No operations selected")
 
-    arr_in = garray.array3d(mapname=inp, null="nan", dtype=np.float32)
-    depth, rows, cols = arr_in.shape
-    exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
-    flat = arr_in.reshape(depth, -1).T
-
-    flat_filt = flat
-    if polyorder > 0:
-        flat_filt = np.apply_along_axis(
-            _savgol_preserve_nan,
-            1,
-            flat,
-            window_length,
-            polyorder,
-            derivative_order,
-            interpolate_nodata,
-        ).astype(np.float32)
-
-    if baseline:
-        flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(
-            np.float32
-        )
-
-    if continuum:
-        flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
-            np.float32
-        )
-
-    if interpolate_nodata:
-        gs.message("Interpolating missing values across spectral bands...")
-        for i in range(flat_filt.shape[0]):
-            row = flat_filt[i, :]
-            if np.isnan(row).any():
-                flat_filt[i, :] = _fill_nans_1d(row)
-
-    if clamp_negative:
-        flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
-
-    wavelengths = _get_wavelengths_from_r3info(inp)
-    if dr_bands and wavelengths is None:
-        gs.message("No wavelength metadata found; ignoring dr_bands filter.")
-
-    dr_info = None
+    metadata_cmd_params = {
+        "input": inp,
+        "output": out,
+        "polyorder": int(polyorder),
+        "derivative_order": int(derivative_order),
+        "window_length": int(window_length),
+        "baseline": bool(baseline),
+        "continuum": bool(continuum),
+        "interpolate_nodata": bool(interpolate_nodata),
+        "clamp_negative": bool(clamp_negative),
+    }
     if dr_method:
-        flat_filt, dr_info = _apply_dimensionality_reduction(
-            flat_filt,
-            method=dr_method,
-            n_components=dr_components,
-            kernel=dr_kernel,
-            gamma=dr_gamma,
-            degree=dr_degree,
-            bands=dr_bands,
-            wavelengths=wavelengths,
-            export_path=dr_export,
-            chunk_size=dr_chunk_size if dr_chunk_size > 0 else None,
-            memory_limit_gb=8,
-            max_iter=dr_max_iter,
-            tol=dr_tol,
-            alpha=dr_alpha,
-            l1_ratio=dr_l1_ratio,
-            random_state=dr_random_state,
+        metadata_cmd_params.update(
+            {
+                "dr_method": dr_method,
+                "dr_components": int(dr_components),
+                "dr_kernel": dr_kernel,
+                "dr_gamma": float(dr_gamma),
+                "dr_degree": int(dr_degree),
+                "dr_bands": dr_bands,
+                "dr_export": dr_export,
+                "dr_chunk_size": int(dr_chunk_size),
+                "dr_max_iter": int(dr_max_iter),
+                "dr_tol": float(dr_tol),
+                "dr_alpha": float(dr_alpha),
+                "dr_l1_ratio": float(dr_l1_ratio),
+                "dr_random_state": int(dr_random_state),
+            }
         )
 
-    n_bands = flat_filt.shape[1]
-    arr_out = flat_filt.T.reshape(n_bands, rows, cols)
-    arr_out[:, exterior_mask] = np.nan
+    gs.use_temp_region()
+    try:
+        # Always operate in input cube region (XY and Z) to avoid region-driven
+        # shape mismatches and all-NULL outputs.
+        gs.run_command("g.region", raster_3d=inp, quiet=True)
 
-    if dr_method:
-        orig_region = gs.region()
-        gs.use_temp_region()
-        try:
+        arr_in = garray.array3d(mapname=inp, null="nan", dtype=np.float32)
+        depth, rows, cols = arr_in.shape
+        exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
+        flat = arr_in.reshape(depth, -1).T
+
+        flat_filt = flat
+        if polyorder > 0:
+            flat_filt = np.apply_along_axis(
+                _savgol_preserve_nan,
+                1,
+                flat,
+                window_length,
+                polyorder,
+                derivative_order,
+                interpolate_nodata,
+            ).astype(np.float32)
+
+        if baseline:
+            flat_filt = np.apply_along_axis(_baseline_correction, 1, flat_filt).astype(
+                np.float32
+            )
+
+        if continuum:
+            flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
+                np.float32
+            )
+
+        if interpolate_nodata:
+            gs.message("Interpolating missing values across spectral bands...")
+            for i in range(flat_filt.shape[0]):
+                row = flat_filt[i, :]
+                if np.isnan(row).any():
+                    flat_filt[i, :] = _fill_nans_1d(row)
+
+        if clamp_negative:
+            flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
+
+        wavelengths = _get_wavelengths(inp, hyper_meta_class)
+        if dr_bands and wavelengths is None:
+            gs.message("No wavelength metadata found; ignoring dr_bands filter.")
+
+        dr_info = None
+        if dr_method:
+            flat_filt, dr_info = _apply_dimensionality_reduction(
+                flat_filt,
+                method=dr_method,
+                n_components=dr_components,
+                kernel=dr_kernel,
+                gamma=dr_gamma,
+                degree=dr_degree,
+                bands=dr_bands,
+                wavelengths=wavelengths,
+                export_path=dr_export,
+                chunk_size=dr_chunk_size if dr_chunk_size > 0 else None,
+                memory_limit_gb=8,
+                max_iter=dr_max_iter,
+                tol=dr_tol,
+                alpha=dr_alpha,
+                l1_ratio=dr_l1_ratio,
+                random_state=dr_random_state,
+            )
+
+        n_bands = flat_filt.shape[1]
+        arr_out = flat_filt.T.reshape(n_bands, rows, cols)
+        arr_out[:, exterior_mask] = np.nan
+
+        if dr_method:
+            orig_region = gs.region()
             gs.run_command(
                 "g.region",
                 n=orig_region["n"],
@@ -457,26 +571,39 @@ def preprocess_hyperspectral(
                 tbres=1,
                 quiet=True,
             )
-            out_arr = garray.array3d(dtype=np.float32)
-            out_arr[...] = arr_out
-            out_arr.write(mapname=out, null="nan", overwrite=True)
-        finally:
-            gs.del_temp_region()
-    else:
+
         out_arr = garray.array3d(dtype=np.float32)
         out_arr[...] = arr_out
         out_arr.write(mapname=out, null="nan", overwrite=True)
 
-    _copy_r3_metadata(inp, out)
-    if dr_method:
-        _set_dr_metadata(out, dr_method, dr_info or {})
-
-    cmd_line = "i.hyper.preproc " + " ".join(sys.argv[1:])
-    gs.run_command("r3.support", map=out, history=cmd_line, quiet=True)
+        if dr_method:
+            dr_meta_info = dict(dr_info or {})
+            dr_meta_info.setdefault("n_components", n_bands)
+            _set_dr_metadata(
+                inp,
+                out,
+                dr_method,
+                dr_meta_info,
+                metadata_cmd_params,
+                hyper_meta_class=hyper_meta_class,
+            )
+        else:
+            _copy_and_update_hyper_metadata(
+                inp,
+                out,
+                metadata_cmd_params,
+                hyper_meta_class,
+            )
+    finally:
+        gs.del_temp_region()
 
 
 def main():
     options, flags = gs.parser()
+    try:
+        from scipy.interpolate import interp1d  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("SciPy library not installed"))
 
     preprocess_hyperspectral(
         inp=options["input"],

@@ -25,16 +25,18 @@ results which allows further processing. However, it must be noted that by apply
 subsequent filters, thresholding and edge thinning one can get similar results also
 from other edge detectors.
 The implementation used for <em>i.edge</em> module is based on code from [Gibara2010].
-
+</p>
 
 <p>
 Canny edge detector is considered as optimal edge detector according to
 these three criteria [Sonka1999]:
+</p>
+
 <ol>
 <li>important edges cannot be omitted and only actual edges can be detected as
-edges (no false positives);
-<li>difference in position of the real edge and the detected edge is minimal;
-<li>there is only one detected edge for an edge in original image.
+edges (no false positives);</li>
+<li>difference in position of the real edge and the detected edge is minimal;</li>
+<li>there is only one detected edge for an edge in original image.</li>
 </ol>
 
 <p>
@@ -51,7 +53,7 @@ Pixels with the magnitude under the lower threshold (<em>lT</em>) are removed.
 Pixels with magnitude values between these two constants
 are kept only when the pixels has some neighbor pixels with magnitude higher than
 the high threshold [Sonka1999].
-
+</p>
 
 <h3>Inputs and parameters</h3>
 
@@ -125,14 +127,12 @@ Sensing 33.B3/2; PART 3 (2000), pp. 1063–1070.</li>
 
 </ul>
 
-
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/i.zc.html">i.zc</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html">r.mapcalc</a>
 </em>
-
 
 <h2>AUTHORS</h2>
 

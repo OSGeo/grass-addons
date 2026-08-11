@@ -125,7 +125,8 @@ r.lfp dir=nc_drain format=custom encoding=8,7,6,5,4,3,2,1 outlets=nc_dcells lfp=
 
 ## SEE ALSO
 
-*[r.hydrobasin](r.hydrobasin.md),
+*[r.upflowlength](r.upflowlength.md),
+[r.hydrobasin](r.hydrobasin.md),
 [r.flowaccumulation](r.flowaccumulation.md),
 [r.accumulate](r.accumulate.md),
 [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html)*
@@ -140,4 +141,5 @@ Modelling & Software 193, 106630.
 
 ## AUTHOR
 
-[Huidae Cho](mailto:grass4u@gmail-com), New Mexico State University
+[Huidae Cho](mailto:grass4u@gmail-com)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)

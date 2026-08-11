@@ -156,19 +156,22 @@ def main(options, flags):
         # color map object is defined with
         n_colors = cmap.N
     else:
-        # Not sure if datad is part of the API but it is in one example
-        # datad might be potentially better way of getting the table
-        # it contains the raw data, but on the other hand it might not be
-        # clear if you can interpolate linearly in between (but likely yes)
-        if hasattr(cm, "datad") and name not in cm.datad.keys():
+        # matplotlib.cm.get_cmap was removed in Matplotlib 3.9
+        try:
             import matplotlib as mpl
 
+            if hasattr(mpl, "colormaps"):
+                # Modern Matplotlib (>= 3.7/3.9) -> raises KeyError if missing
+                cmap = mpl.colormaps[name].resampled(n_colors)
+            else:
+                # Legacy Matplotlib (< 3.9) -> raises ValueError if missing
+                cmap = cm.get_cmap(name, lut=n_colors)
+        except (KeyError, ValueError):
             gs.fatal(
                 _("Matplotlib {v} does not contain color table <{n}>").format(
                     v=mpl.__version__, n=name
                 )
             )
-        cmap = cm.get_cmap(name, lut=n_colors)
 
     comments = []
     comments.append("Generated from Matplotlib color table <{}>".format(name))
