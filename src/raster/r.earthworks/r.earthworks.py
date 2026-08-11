@@ -244,15 +244,19 @@
 
 # Import libraries
 import grass.script as gs
+from grass.tools import Tools
 import numpy as np
 import sys
 import atexit
 import math
+import csv
+
+# Instantiate tools
+tools = Tools()
 
 # Set global variables
 temporary = []
-id = gs.append_uuid("source")
-source = id
+source = gs.append_uuid("source")
 
 
 def quadtree(coordinates, threshold, regions, cloud):
@@ -296,9 +300,7 @@ def subdivision(coordinates, threshold, regions, cloud):
 
     # Discard empty quadrant
     else:
-        gs.run_command(
-            "g.remove", type="region", name=region, flags="f", superquiet=True
-        )
+        tools.g_remove(type="region", name=region, flags="f", superquiet=True)
 
     # Check point count against threshold
     if count > threshold:
@@ -313,36 +315,28 @@ def quadrant_nw(region, n, s, e, w, x, y):
     """Set north west quadrant"""
 
     # Set region to north west quadrant
-    gs.run_command(
-        "g.region", n=n, s=n - y / 2, e=w + x / 2, w=w, save=region, overwrite=True
-    )
+    tools.g_region(n=n, s=n - y / 2, e=w + x / 2, w=w, save=region, overwrite=True)
 
 
 def quadrant_ne(region, n, s, e, w, x, y):
     """Set north east quadrant"""
 
     # Set region to north east quadrant
-    gs.run_command(
-        "g.region", n=n, s=n - y / 2, e=e, w=e - x / 2, save=region, overwrite=True
-    )
+    tools.g_region(n=n, s=n - y / 2, e=e, w=e - x / 2, save=region, overwrite=True)
 
 
 def quadrant_sw(region, n, s, e, w, x, y):
     """Set south west quadrant"""
 
     # Set region to south west quadrant
-    gs.run_command(
-        "g.region", n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True
-    )
+    tools.g_region(n=s + y / 2, s=s, e=w + x / 2, w=w, save=region, overwrite=True)
 
 
 def quadrant_se(region, n, s, e, w, x, y):
     """Set south east quadrant"""
 
     # Set region to south east quadrant
-    gs.run_command(
-        "g.region", n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True
-    )
+    tools.g_region(n=s + y / 2, s=s, e=e, w=e - x / 2, save=region, overwrite=True)
 
 
 def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
@@ -361,7 +355,7 @@ def quadrant(quad, regions, cloud, n, s, e, w, x, y, coordinates, threshold):
         quadrant_sw(region, n, s, e, w, x, y)
     if quad == "se":
         quadrant_se(region, n, s, e, w, x, y)
-    gs.run_command("g.region", region=region)
+    tools.g_region(region=region)
 
     # Subdivide quadrant
     subdivision(coordinates, threshold, regions, cloud)
@@ -408,9 +402,7 @@ def prune(threshold, regions, cloud):
 
         # Discard regions
         else:
-            gs.run_command(
-                "g.remove", type="region", name=region, flags="f", superquiet=True
-            )
+            tools.g_remove(type="region", name=region, flags="f", superquiet=True)
 
     return quadrants, coordinates
 
@@ -422,8 +414,7 @@ def clean(temporary):
 
     # Remove temporary maps
     try:
-        gs.run_command(
-            "g.remove",
+        tools.g_remove(
             type=["raster", "region"],
             name=[temporary],
             flags="f",
@@ -438,18 +429,9 @@ def convert_raster(raster):
     Convert raster to coordinates
     """
 
-    # Parse raster
-    data = gs.parse_command("r.stats", input=raster, flags=["gn"])
-
-    # Find coordinates
-    coordinates = []
-    for datum in data.keys():
-        xyz = datum.split(" ")
-        x = float(xyz[0])
-        y = float(xyz[1])
-        z = float(xyz[2])
-        coordinate = [x, y, z]
-        coordinates.append(coordinate)
+    data = tools.r_out_xyz(input=raster, separator="comma")
+    data = csv.reader(data.text.splitlines())
+    coordinates = np.array(list(data), dtype=float)
 
     return coordinates
 
@@ -465,15 +447,15 @@ def convert_coordinates(coordinates, z):
     cy = coordinates[1::2]
     cz = z.split(",")
     if len(cz) > 1 and len(cz) != len(cx):
-        gs.warning(_("Number of z-values does not match xy-coordinates!"))
+        gs.fatal(_("Number of z-values does not match xy-coordinates!"))
 
     # Convert coordinates with constant z value
     if len(cz) == 1:
-        coordinates = [[float(x), float(y), float(z)] for x, y in zip(cx, cy)]
+        coordinates = np.column_stack((cx, cy, np.full(len(cx), z))).astype(float)
 
     # Convert coordinates with list of z values
     elif len(cz) > 1:
-        coordinates = [[float(x), float(y), float(z)] for x, y, z in zip(cx, cy, cz)]
+        coordinates = np.column_stack((cx, cy, cz)).astype(float)
 
     return coordinates
 
@@ -487,53 +469,31 @@ def convert_points(points, mode, z):
     coordinates = []
 
     # Get info
-    info = gs.parse_command("v.info", map=points, flags="t")
+    boolean = tools.v_info(map=points, format="json", flags="t")["map3d"]
 
     # Convert 2D points
-    if info["map3d"] == "0":
+    if boolean == False:
         # Parse points
-        data = gs.parse_command(
-            "v.to.db",
-            map=points,
-            option="coor",
-            separator="comma",
-            flags="p",
-            overwrite=True,
-            superquiet=True,
+        data = tools.v_out_ascii(
+            input=points, type="point", separator="comma", format="point"
         )
+        data = csv.reader(data.text.splitlines())
 
-        # Find coordinates
-        coordinates = []
-        for datum in data.keys():
-            xyz = datum.split(",")
-            x = float(xyz[1])
-            y = float(xyz[2])
-            z = float(z)
-            coordinate = [x, y, z]
-            coordinates.append(coordinate)
+        # Set coordinates
+        coordinates = np.array(list(data), dtype=float)
+        coordinates[:, 2] = z
 
     # Convert 3D points
-    elif info["map3d"] == "1":
+    if boolean == True:
         # Parse points
-        data = gs.parse_command(
-            "v.to.db",
-            map=points,
-            option="coor",
-            separator="comma",
-            flags="p",
-            overwrite=True,
-            superquiet=True,
+        data = tools.v_out_ascii(
+            input=points, type="point", separator="comma", format="point"
         )
+        data = csv.reader(data.text.splitlines())
 
-        # Find coordinates
-        coordinates = []
-        for datum in data.keys():
-            xyz = datum.split(",")
-            x = float(xyz[1])
-            y = float(xyz[2])
-            z = float(xyz[3])
-            coordinate = [x, y, z]
-            coordinates.append(coordinate)
+        # Set coordinates
+        coordinates = np.array(list(data), dtype=float)
+        coordinates = coordinates[:, :3]
 
     return coordinates
 
@@ -544,14 +504,13 @@ def convert_lines(lines, z):
     """
 
     # Get info
-    info = gs.parse_command("v.info", map=lines, flags="t")
+    boolean = tools.v_info(map=lines, format="json", flags="t")["map3d"]
 
     # Convert 2D lines
-    if info["map3d"] == "0":
+    if boolean == False:
         raster = gs.append_uuid("raster")
         temporary.append(raster)
-        gs.run_command(
-            "v.to.rast",
+        tools.v_to_rast(
             input=lines,
             output=raster,
             use="value",
@@ -561,24 +520,22 @@ def convert_lines(lines, z):
         )
 
     # Convert 3D lines
-    elif info["map3d"] == "1":
+    elif boolean == True:
         points = gs.append_uuid("points")
         raster = gs.append_uuid("raster")
         temporary.extend([points, raster])
-        region = gs.parse_command("g.region", flags=["g"])
-        nsres = float(region["nsres"])
-        ewres = float(region["ewres"])
+        region = tools.g_region(flags="p", format="json")
+        nsres = region["nsres"]
+        ewres = region["ewres"]
         res = math.sqrt(nsres * ewres)
-        gs.run_command(
-            "v.to.points",
+        tools.v_to_points(
             input=lines,
             output=points,
             dmax=res,
             overwrite=True,
             superquiet=True,
         )
-        gs.run_command(
-            "v.to.rast",
+        tools.v_to_rast(
             input=points,
             output=raster,
             use="z",
@@ -593,11 +550,11 @@ def grow_region(border, region, elevation):
     """Expand region extent"""
 
     # Find current extent
-    data = gs.parse_command("g.region", region=region, flags="g")
-    n = float(data["n"])
-    s = float(data["s"])
-    e = float(data["e"])
-    w = float(data["w"])
+    data = tools.g_region(region=region, format="json", flags="p")
+    n = data["north"]
+    s = data["south"]
+    e = data["east"]
+    w = data["west"]
 
     # Calculate expanded extent
     n = n + border
@@ -606,11 +563,11 @@ def grow_region(border, region, elevation):
     w = w - border
 
     # Find source region extent
-    data = gs.parse_command("g.region", region=source, flags="g")
-    north = float(data["n"])
-    south = float(data["s"])
-    east = float(data["e"])
-    west = float(data["w"])
+    data = tools.g_region(region=source, format="json", flags="p")
+    north = data["north"]
+    south = data["south"]
+    east = data["east"]
+    west = data["west"]
 
     # Limit to source region extent
     if n > north:
@@ -623,10 +580,8 @@ def grow_region(border, region, elevation):
         w = west
 
     # Set expanded region
-    gs.run_command(
-        "g.region", n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True
-    )
-    gs.run_command("g.region", region=region)
+    tools.g_region(n=n, s=s, e=e, w=w, align=elevation, save=region, overwrite=True)
+    tools.g_region(region=region)
 
 
 def linear(rate, i, growth, decay):
@@ -782,7 +737,7 @@ def earthworking(
 
     if not disable:
         # Set temporary region
-        gs.run_command("g.region", region=region)
+        tools.g_region(region=region)
 
         # Grow temporary region
         grow_region(border, region, elevation)
@@ -975,21 +930,13 @@ def series(operation, function, cuts, fills, elevation, earthworks, threads):
     Model cumulative earthworks
     """
 
-    # Set region
-    gs.run_command("g.region", region=source)
-
     # Model net cut
     if operation == "cut":
         # Calculate minimum cut
         cut = gs.append_uuid("cut")
         temporary.append(cut)
-        gs.run_command(
-            "r.series",
-            input=cuts,
-            output=cut,
-            method="minimum",
-            flags="z",
-            overwrite=True,
+        tools.r_series(
+            input=cuts, output=cut, method="minimum", flags="z", overwrite=True
         )
         # Calculate net cut
         gs.mapcalc(
@@ -1003,13 +950,8 @@ def series(operation, function, cuts, fills, elevation, earthworks, threads):
         # Calculate maximum fill
         fill = gs.append_uuid("fill")
         temporary.append(fill)
-        gs.run_command(
-            "r.series",
-            input=fills,
-            output=fill,
-            method="maximum",
-            flags="z",
-            overwrite=True,
+        tools.r_series(
+            input=fills, output=fill, method="maximum", flags="z", overwrite=True
         )
         # Calculate net fill
         gs.mapcalc(
@@ -1023,33 +965,22 @@ def series(operation, function, cuts, fills, elevation, earthworks, threads):
         # Calculate minimum cut
         cut = gs.append_uuid("cut")
         temporary.append(cut)
-        gs.run_command(
-            "r.series",
-            input=cuts,
-            output=cut,
-            method="minimum",
-            flags="z",
-            overwrite=True,
+        tools.r_series(
+            input=cuts, output=cut, method="minimum", flags="z", overwrite=True
         )
 
         # Calculate maximum fill
         fill = gs.append_uuid("fill")
         temporary.append(fill)
-        gs.run_command(
-            "r.series",
-            input=fills,
-            output=fill,
-            method="maximum",
-            flags="z",
-            overwrite=True,
+        tools.r_series(
+            input=fills, output=fill, method="maximum", flags="z", overwrite=True
         )
 
         if function in ("linear", "lorentz"):
             # Calculate sum of cut and fill
             cutfill = gs.append_uuid("cutfill")
             temporary.append(cutfill)
-            gs.run_command(
-                "r.series",
+            tools.r_series(
                 input=[cut, fill],
                 output=cutfill,
                 method="sum",
@@ -1064,19 +995,23 @@ def series(operation, function, cuts, fills, elevation, earthworks, threads):
                 overwrite=True,
             )
 
-        if function in ("exponential", "logistic", "gaussian", "quadratic", "cubic"):
+        if function in ("cubic", "exponential", "gaussian", "logistic", "quadratic"):
             # Calculate net change in cut
             delta_cut = gs.append_uuid("delta_cut")
             temporary.append(delta_cut)
             gs.mapcalc(
-                f"{delta_cut} = {elevation} - {cut}", nprocs=threads, overwrite=True
+                f"{delta_cut}= {elevation}- if(isnull({cut}), {elevation}, {cut})",
+                nprocs=threads,
+                overwrite=True,
             )
 
             # Calculate net change in fill
             delta_fill = gs.append_uuid("delta_fill")
             temporary.append(delta_fill)
             gs.mapcalc(
-                f"{delta_fill} = {fill} - {elevation}", nprocs=threads, overwrite=True
+                f"{delta_fill}= if(isnull({fill}), {elevation}, {fill})- {elevation}",
+                nprocs=threads,
+                overwrite=True,
             )
 
             # Calculate net change in cut and fill
@@ -1119,7 +1054,7 @@ def difference(elevation, earthworks, volume, threads):
     gs.mapcalc(f"{volume} = {earthworks} - {elevation}", nprocs=threads, overwrite=True)
 
     # Set color gradient
-    gs.run_command("r.colors", map=volume, color="viridis", superquiet=True)
+    tools.r_colors(map=volume, color="viridis", superquiet=True)
 
     # Save history
     gs.raster_history(volume, overwrite=True)
@@ -1133,20 +1068,18 @@ def print_difference(operation, volume, threads):
     """
 
     # Find resolution
-    region = gs.parse_command("g.region", flags=["g"])
+    region = tools.g_region(format="json", flags="p")
     nsres = float(region["nsres"])
     ewres = float(region["ewres"])
 
     # Find units
-    projection = gs.parse_command("g.proj", flags=["g"])
-    units = projection.get("units", "units")
+    projection = tools.g_proj(format="shell", flags="p").keyval
+    units = projection.get("units")
 
     # Print net change
     if operation == "cutfill":
-        univar = gs.parse_command(
-            "r.univar", map=volume, separator="newline", flags="g"
-        )
-        net = nsres * ewres * float(univar["sum"])
+        univar = tools.r_univar(map=volume, format="json")
+        net = nsres * ewres * univar["sum"]
         if math.isnan(net):
             net = 0
         gs.info(f"Net change: {net} cubic {units.lower()}")
@@ -1156,12 +1089,12 @@ def print_difference(operation, volume, threads):
         fill = gs.append_uuid("fill")
         temporary.append(fill)
         gs.mapcalc(
-            f"{fill} = if({volume} > 0, {volume}, null())",
+            f"{fill} = if({volume} > 0, {volume}, 0)",
             nprocs=threads,
             overwrite=True,
         )
-        univar = gs.parse_command("r.univar", map=fill, separator="newline", flags="g")
-        net = nsres * ewres * float(univar["sum"])
+        univar = tools.r_univar(map=fill, format="json")
+        net = nsres * ewres * univar["sum"]
         if math.isnan(net):
             net = 0.0
         gs.info(f"Net fill: {net} cubic {units.lower()}")
@@ -1171,12 +1104,12 @@ def print_difference(operation, volume, threads):
         cut = gs.append_uuid("cut")
         temporary.append(cut)
         gs.mapcalc(
-            f"{cut} = if({volume} < 0, {volume}, null())",
+            f"{cut} = if({volume} < 0, {volume}, 0)",
             nprocs=threads,
             overwrite=True,
         )
-        univar = gs.parse_command("r.univar", map=cut, separator="newline", flags="g")
-        net = nsres * ewres * float(univar["sum"])
+        univar = tools.r_univar(map=cut, format="json")
+        net = nsres * ewres * univar["sum"]
         if math.isnan(net):
             net = 0.0
         gs.info(f"Net cut: {net} cubic {units.lower()}")
@@ -1188,7 +1121,7 @@ def postprocess(earthworks):
     """
 
     # Set colors
-    gs.run_command("r.colors", map=earthworks, color="viridis", superquiet=True)
+    tools.r_colors(map=earthworks, color="viridis", superquiet=True)
 
     # Save history
     gs.raster_history(earthworks, overwrite=True)
@@ -1267,97 +1200,97 @@ def main():
         gs.fatal(_("A raster, vector, or set of coordinates is required!"))
 
     # Check inputs
-    if not coordinates:
+    if not coordinates.any():
         gs.fatal(_("No coordinates found in computational region!"))
 
-    # Use temporary region
-    gs.use_temp_region()
-
     # Save source region
-    gs.run_command("g.region", save=source, overwrite=True)
+    tools.g_region(save=source, overwrite=True)
     temporary.append(source)
 
-    # Check segmentation
-    if not disable:
-        # Check cells
-        gregion = gs.region()
-        cells = gregion["cells"]
-        if cells <= 100000:
-            # Disable segmentation
-            disable = True
-            regions.append(source)
-            cloud.append(coordinates)
-            gs.info("Not enough cells for quadtree segmentation.")
+    # Initialize region manager
+    with gs.RegionManager() as manager:
+        # Check segmentation
+        if not disable:
+            # Check cells
+            gregion = gs.region()
+            cells = gregion["cells"]
+            if cells <= 100000:
+                # Disable segmentation
+                disable = True
+                regions.append(source)
+                cloud.append(coordinates)
+                gs.info("Not enough cells for quadtree segmentation.")
 
-        # Check threshold
-        elif len(coordinates) <= threshold:
-            # Disable segmentation
-            disable = True
-            regions.append(source)
-            cloud.append(coordinates)
-            gs.info(
-                "Not enough coordinates for quadtree segmentation. "
-                "To enable segmentation, try increasing the threshold."
-            )
-        else:
+            # Check threshold
+            elif len(coordinates) <= threshold:
+                # Disable segmentation
+                disable = True
+                regions.append(source)
+                cloud.append(coordinates)
+                gs.info(
+                    "Not enough coordinates for quadtree segmentation. "
+                    "To enable segmentation, try increasing the threshold."
+                )
+
             # Construct quadtree
-            regions, cloud = quadtree(coordinates, threshold, regions, cloud)
+            else:
+                regions, cloud = quadtree(coordinates, threshold, regions, cloud)
+                gs.info(
+                    "Using quadtree segmentation for faster computation. "
+                    f"Computational region divided into {len(regions)} quadrants. "
+                    "If artifacts occur, increase the size of the border."
+                )
+
+        # Skip segmentation
+        else:
+            regions.append(source)
+            cloud.append(coordinates)
             gs.info(
-                "Using quadtree segmentation for faster computation. "
-                f"Computational region divided into {len(regions)} quadrants. "
-                "If artifacts occur, increase the size of the border."
+                "Not using quadtree segmentation. "
+                "If processing takes too long, try enabling segmentation."
             )
 
-    # Skip segmentation
-    else:
-        regions.append(source)
-        cloud.append(coordinates)
-        gs.info(
-            "Not using quadtree segmentation. "
-            "If processing takes too long, try enabling segmentation."
-        )
+        # Register quadrants
+        temporary.extend(regions)
 
-    # Register quadrants
-    temporary.extend(regions)
+        # Iterate through quadtree
+        for region, coordinates in zip(regions, cloud):
+            # Create temporary rasters
+            if operation == "cut":
+                cut = gs.append_uuid("cut")
+                fill = None
+                cuts.append(cut)
+                temporary.append(cut)
+            elif operation == "fill":
+                cut = None
+                fill = gs.append_uuid("fill")
+                fills.append(fill)
+                temporary.append(fill)
+            elif operation == "cutfill":
+                cut = gs.append_uuid("cut")
+                fill = gs.append_uuid("fill")
+                cuts.append(cut)
+                fills.append(fill)
+                temporary.append(cut)
+                temporary.append(fill)
 
-    # Iterate through quadtree
-    for region, coordinates in zip(regions, cloud):
-        # Create temporary rasters
-        if operation == "cut":
-            cut = gs.append_uuid("cut")
-            fill = None
-            cuts.append(cut)
-            temporary.append(cut)
-        elif operation == "fill":
-            cut = None
-            fill = gs.append_uuid("fill")
-            fills.append(fill)
-            temporary.append(fill)
-        elif operation == "cutfill":
-            cut = gs.append_uuid("cut")
-            fill = gs.append_uuid("fill")
-            cuts.append(cut)
-            fills.append(fill)
-            temporary.append(cut)
-            temporary.append(fill)
-
-        # Model earthworks
-        earthworking(
-            region,
-            coordinates,
-            elevation,
-            flat,
-            border,
-            mode,
-            function,
-            rate,
-            operation,
-            earthworks,
-            cut,
-            fill,
-            disable,
-            threads,
-        )
+            # Model earthworks
+            earthworking(
+                region,
+                coordinates,
+                elevation,
+                flat,
+                border,
+                mode,
+                function,
+                rate,
+                operation,
+                earthworks,
+                cut,
+                fill,
+                disable,
+                threads,
+            )
 
     # Model composite earthworks
     series(operation, function, cuts, fills, elevation, earthworks, threads)
