@@ -1,8 +1,3 @@
----
-name: r.dem
-description: Toolset for DEM co-registration, differencing, and topographic change analysis
----
-
 # Toolset for DEM co-registration, differencing, and topographic change analysis
 
 ## DESCRIPTION
