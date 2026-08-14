@@ -51,21 +51,48 @@ The kurtosis diagnostic (**-k**) requires the Python *scipy* package.
 
 ## EXAMPLES
 
-Basic DoD with a spatially varying LoD and a volume report:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Threshold the debiased difference against the detection limit and report
+volumes:
 
 ```sh
-r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
-    output_dod=dod output_sig=dod_sig volume_csv=volumes.csv
+g.region raster=elev_lid792_1m
+
+r.dem.change -n dod=dod_debiased lod=lod_filled \
+    output_sig=dod_significant volume_csv=volumes.csv
 ```
 
-Trim blunders above the 99th percentile estimated on stable terrain, then
-remove speckle and report kurtosis:
+The volumes can be checked against the volumes *r.earthworks* moved when
+the scene was built; they land within a few percent.
+
+The **-n** flag matters here. Without it, noise that clears the detection
+limit by chance is counted as change, and on this scene that inflates both
+volumes by roughly ten percent. Speckle removal drops isolated cells, which
+real erosion and deposition are not.
+
+Trim blunders on stable ground first, remove isolated significant cells,
+and report the distribution kurtosis as a noise diagnostic:
 
 ```sh
-r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
-    output_dod=dod output_sig=dod_sig \
-    trim_percentile=99 stable_mask=stable -n -k
+r.dem.change dod=dod_debiased lod=lod_local \
+    output_sig=dod_significant_clean \
+    trim_percentile=99 stable_mask=stable_terrain -n -k
 ```
+
+On the **dem** plus **reference** path the raw difference has to be written,
+so **output_dod** is required:
+
+```sh
+r.dem.change dem=dsm_post reference=elev_lid792_1m lod=lod_global \
+    output_dod=dod_uncorrected output_sig=dod_significant_raw
+```
+
+![r.dem.change example](r_dem_change_volumes.png)  
+*Figure: The known change added with r.earthworks, and the significant DoD
+recovered above the Level of Detection.*
 
 ## SEE ALSO
 

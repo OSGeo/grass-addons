@@ -11,7 +11,8 @@ set(sources
 
 set(doc_files
     r.dem.nk.html
-    r.dem.nk.md)
+    r.dem.nk.md
+    r_dem_nk_convergence.png)
 
 build_addon(
   ${PROJECT_NAME}

@@ -89,21 +89,64 @@ The tool requires the Python *scipy* package.
 
 ## EXAMPLES
 
-Global LoD at 95% confidence over a stable mask:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+A single detection limit for the whole map, estimated from the stable
+residuals:
 
 ```sh
-r.dem.lod dem=dem_post reference=dem_pre output=lod_global \
-    method=global confidence=0.95 stable_mask=stable
+g.region raster=elev_lid792_1m
+
+r.dem.lod dod=dod_debiased output=lod_global method=global \
+    stable_mask=stable_lod confidence=0.95
 ```
 
-Local LoD on a bias-corrected DoD, with a registration floor, the
-bias-model SE in quadrature, and the domain raster:
+The debiased residual on the stable cells is the injected noise, so the
+result is `z(0.95)` times its NMAD:
+
+```text
+NMAD: 0.0890 m
+LoD: 0.1743 m (uniform)
+```
+
+A spatially variable limit, keeping the combined 1-sigma surface for
+*r.dem.errprop* and the domain raster that marks where the limit is
+defined:
 
 ```sh
 r.dem.lod dod=dod_debiased output=lod_local method=local window=21 \
-    stable_mask=stable floor=0.44 sigma_extra=bias_se \
-    output_sigma=sigma_comb output_domain=lod_domain confidence=0.95
+    stable_mask=stable_lod output_sigma=sigma_combined \
+    output_domain=lod_domain confidence=0.95
 ```
+
+Because the survey noise varies across this scene, so does the limit: it
+runs from roughly 0.12 m on the smooth fields to over 0.30 m under canopy,
+against a single uniform value of 0.175 m. That is the case for
+**method=local**, and the reason the mask must include forest.
+
+The limit is undefined wherever no stable cell falls inside the window,
+which on this scene means the interior of the change features. Fall back to
+the uniform limit there before thresholding:
+
+```sh
+r.mapcalc "lod_filled = if(isnull(lod_local), lod_global, lod_local)"
+```
+
+Add the bias-model coefficient SE from *r.dem.bias* to the quadrature when
+the regression path was used:
+
+```sh
+r.dem.lod dod=dod_regression output=lod_with_se method=local \
+    stable_mask=stable_terrain sigma_extra=bias_se \
+    output_sigma=sigma_with_se
+```
+
+![r.dem.lod example](r_dem_lod_local.png)  
+*Figure: The spatially variable Level of Detection against the uniform one, on
+a shared scale. White marks cells with no stable cell inside the window, where
+the local limit is undefined.*
 
 ## REFERENCES
 

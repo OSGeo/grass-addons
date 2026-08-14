@@ -8,7 +8,7 @@
 # PURPOSE:   Compute terrain surface metrics from a DEM (or DoD) for use as
 #            predictors in DoD uncertainty and bias modelling.
 #
-# COPYRIGHT: (C) 2025 by Corey T. White and the GRASS Development Team
+# COPYRIGHT: (C) 2026 by Corey T. White and the GRASS Development Team
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
@@ -160,6 +160,15 @@ def metric_diversity_shannon(forms, output, window, log_base, evenness):
     """Local Shannon diversity H' = -sum(p * log(p)) over category proportions
     in a moving window, computed from a categorical input (e.g. geomorphons).
     """
+    if gs.raster_info(forms)["datatype"] != "CELL":
+        gs.fatal(
+            _(
+                "Raster map <{}> is not categorical. Option metric="
+                "diversity_shannon needs an integer class map, such as the"
+                " forms output of r.geomorphon, not an elevation surface."
+            ).format(forms)
+        )
+
     cats_txt = gs.read_command("r.stats", flags="nc", input=forms)
     cats = [
         int(float(line.split()[0]))

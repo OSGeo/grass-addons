@@ -60,22 +60,63 @@ In apply mode the **stable_mask** is used only to define the reported residual
 raster, so a near-flat mask no longer triggers the "not enough valid pixels"
 error.
 
+## NOTES
+
+The model is first order in the elevation difference, so a smooth
+long-wavelength vertical bias, such as photogrammetric doming, is partly
+degenerate with a horizontal shift: over sloped terrain a gentle tilt and a
+translation produce a similar `dh` pattern. When both are present the solve
+splits the signal between them and the reported **dx** and **dy** absorb
+part of the doming.
+
+Estimate the alignment on a surface where the long-wavelength component is
+small, or remove it first, and treat the horizontal offsets with suspicion
+when the residual after co-registration still shows a broad, smoothly
+varying pattern. *r.dem.bias* **method=spline** is the tool for the
+long-wavelength part, and it operates on the difference rather than on the
+DEM pair, so it runs after this step.
+
+The **stable_mask** must cover broad, sloped, unchanged terrain. Flat
+features such as roads and parking lots are filtered out by **slope_min**
+and carry no aspect information, so a mask built from them alone leaves the
+horizontal offsets poorly constrained. Those features belong in the PGCP
+vertical step of *r.dem.coregister* instead.
+
 ## EXAMPLES
 
-Solve and save the transform:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Solve the offset of the misregistered surface against the lidar reference.
+The stable mask must be broad, sloped terrain, not the flat roads used for
+the PGCP step:
 
 ```sh
-r.dem.nk sfm=sfm_dsm lidar=lidar_dsm stable_mask=stable \
-    output=sfm_coreg interp=bilinear iters=2 sigma=2.5 \
+g.region raster=elev_lid792_1m
+
+r.dem.nk sfm=dsm_offset lidar=elev_lid792_1m \
+    stable_mask=stable_terrain output=dsm_nk \
     transform_output=nk_transform.txt
 ```
 
-Replay the saved transform onto another surface:
+The applied offset was 0.4596 m east, 0.4596 m north, and 1.32 m up, and
+the solve returns it:
+
+```text
+Converged transform: dz=1.320551 dx=0.449873 dy=0.457072
+```
+
+Replay the saved transform onto another surface from the same acquisition,
+so a DSM and a DTM end up sharing one horizontal alignment:
 
 ```sh
-r.dem.nk sfm=sfm_dtm lidar=lidar_dtm stable_mask=stable \
-    output=sfm_dtm_coreg apply_transform=nk_transform.txt
+r.dem.nk sfm=dsm_offset lidar=elev_lid792_1m stable_mask=stable_terrain \
+    output=dsm_nk_replay apply_transform=nk_transform.txt
 ```
+
+![r.dem.nk example](r_dem_nk_convergence.png)  
+*Figure: Stable-terrain residual before and after r.dem.nk.*
 
 ## REFERENCES
 

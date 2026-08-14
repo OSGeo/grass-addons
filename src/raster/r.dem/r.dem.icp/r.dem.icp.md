@@ -41,16 +41,34 @@ of the implementation:
 
 ## EXAMPLES
 
-Align a source DEM to a reference DEM over stable terrain:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Align the misregistered surface with four degrees of freedom, which solves
+three translations and yaw:
 
 ```sh
-g.region raster=reference_dem
-r.dem.icp reference=reference_dem source=source_dem output=aligned_dem \
-  mask=stable_mask dof=4 levels=3 stride=2 max_iterations=30 trim=0.8 \
-  huber=1.0 tolerance=1e-5 distance_max=10 slope_max=90 \
-  init_dx=0 init_dy=0 init_dz=0 init_yaw=0 \
-  transform_out=transform.txt stats_out=stats.txt
+g.region raster=elev_lid792_1m
+
+r.dem.icp source=dsm_offset reference=elev_lid792_1m \
+    mask=stable_terrain output=dsm_icp dof=4 \
+    transform_out=icp_transform.txt stats_out=icp_stats.csv
 ```
+
+The reported transform is the one that maps the source onto the reference,
+so its signs are opposite to those of *r.dem.nk*. Against an applied offset
+of 0.4596 m east, 0.4596 m north, and 1.32 m up it returns:
+
+```text
+tx=-0.4590844708
+ty=-0.4608043693
+tz=-1.3201388046
+yaw=0.0000935114
+```
+
+![r.dem.icp example](r_dem_icp_alignment.png)  
+*Figure: Stable-terrain residual before and after r.dem.icp at dof=4.*
 
 ## REFERENCES
 

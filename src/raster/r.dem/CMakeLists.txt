@@ -19,4 +19,5 @@ build_addon(
   DOCFILES
     r.dem.html
     r.dem.md
-    r_dem_workflow.png)
+    r_dem_workflow.png
+    r_dem_scene.png)

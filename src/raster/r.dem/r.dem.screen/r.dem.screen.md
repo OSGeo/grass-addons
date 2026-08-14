@@ -45,20 +45,73 @@ significant DoD from *r.dem.change*.
 
 ## EXAMPLES
 
-Topographic and spectral triage:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Screening runs on a coarser grid than the change analysis: the point is to
+find where to look, not to measure what happened. At 10 m this tile is only
+70 by 75 cells, which is why the triage map looks blocky next to the 1 m
+products. In practice the screening pass covers a whole flight corridor,
+where that cell size is far below map scale.
 
 ```sh
-r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
-    output=triage_10m topo_threshold=1.0 spectral_threshold=-0.15
+g.region raster=elev_lid792_1m res=10 -a
+r.resamp.stats input=dod_significant output=dod_10m_masked method=average
+
+# Blocks holding no significant cell come back NULL, which for screening
+# means no change rather than no data.
+r.mapcalc "dod_10m = if(isnull(dod_10m_masked), 0, dod_10m_masked)"
+
+r.dem.screen dod=dod_10m output=triage topo_threshold=1.0
 ```
 
-Add an infrastructure hazard overlay:
+Add the road network to flag change that reaches infrastructure:
 
 ```sh
-r.dem.screen dod=dod_sig_10m spectral_change=ndvi_change \
-    output=triage_10m infrastructure=roads \
-    hazard_output=hazard_10m infra_buffer_m=30
+r.dem.screen dod=dod_10m output=triage \
+    infrastructure=pgcp_roads hazard_output=hazard \
+    infra_buffer_m=30 topo_threshold=1.0
 ```
+
+### Adding spectral change
+
+**spectral_change** fuses vegetation loss with the topographic signal, so
+that scour under stripped canopy ranks above either signal alone. It expects
+a bitemporal difference, typically NDVI or VARI, negative where vegetation
+was lost.
+
+The North Carolina sample dataset carries only one date of imagery, so a
+real bitemporal difference cannot be built from it. The raster below is a
+stand-in: a genuine pre-event NDVI from the Landsat bands, reduced along the
+flood corridor and perturbed with noise. It illustrates the option, it does
+not demonstrate that the fusion works, because the vegetation loss is
+imposed rather than observed. With real imagery, difference the two dates
+instead.
+
+```sh
+r.mapcalc "ndvi_pre = float(lsat7_2002_40 - lsat7_2002_30) \
+    / float(lsat7_2002_40 + lsat7_2002_30)"
+
+r.surf.gauss output=ndvi_noise mean=0 sigma=0.05 seed=7
+r.mapcalc "ndvi_post = ndvi_pre \
+    - if(abs(change_truth) > 0.3, 0.30, 0) + ndvi_noise"
+r.mapcalc "ndvi_change = ndvi_post - ndvi_pre"
+
+r.dem.screen dod=dod_10m spectral_change=ndvi_change \
+    output=triage_fused topo_threshold=1.0 spectral_threshold=-0.15
+```
+
+Reset the region afterwards, since the screening step coarsened it:
+
+```sh
+g.region raster=elev_lid792_1m
+```
+
+![r.dem.screen example](r_dem_screen_triage.png)  
+*Figure: Topographic triage and the infrastructure hazard overlay, from the
+topographic signal alone. The screening grid is deliberately coarse: 10 m
+cells, so only 70 by 75 of them cover this tile.*
 
 ## SEE ALSO
 

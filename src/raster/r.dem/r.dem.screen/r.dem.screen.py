@@ -141,7 +141,6 @@ def compute_triage(dod, spectral_change, output, topo_thresh, spec_thresh):
 
     # Report
     raw = gs.read_command("r.stats", input=output, flags="cn", separator=",").strip()
-    gs.message("")
     gs.message(_("Triage summary:"))
     reg = gs.region()
     cell_area = reg["ewres"] * reg["nsres"]

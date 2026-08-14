@@ -74,22 +74,52 @@ value is infinite at 1 and zero at 0.5.</p>
 
 <h2>EXAMPLES</h2>
 
-<p>Propagate two land-cover-based uncertainty rasters into a DoD and produce a
-95% Level of Detection plus the categorical significance map:</p>
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Turn the combined 1-sigma surface from <em>r.dem.lod</em> into significance
+products:</p>
 
 <div class="code"><pre>
-r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
+g.region raster=elev_lid792_1m
+
+r.dem.errprop dod=dod_debiased sigma=sigma_combined \
     output_sigma=sigma_dod output_lod=lod_95 \
-    output_class=dod_significance confidence=0.95
+    output_zscore=zscore output_class=significance confidence=0.95
 </pre></div>
 
-<p>Add a two-tailed p-value raster using a Student-t distribution:</p>
+<p>The z-score raster is exactly <code>|DoD| / sigma</code>, and the class raster spans
+-4 to 4 across the four confidence levels in both directions.</p>
+
+<p>The local sigma from <em>r.dem.lod</em> is undefined wherever no stable cell falls
+inside the window, and on this scene that includes the interior of the
+change features. Those cells stay NULL through the propagation, which is
+deliberate: a cell whose uncertainty is unknown is untestable. Where the
+whole map has to be classified, fall back to the flight-wide sigma:</p>
 
 <div class="code"><pre>
-r.dem.errprop dod=dod_1m sigma=sigma_sfm,sigma_lidar \
-    output_sigma=sigma_dod output_pvalue=dod_p \
-    pmethod=student df=120
+r.mapcalc "sigma_filled = if(isnull(sigma_combined), 0.0890, sigma_combined)"
+
+r.dem.errprop dod=dod_debiased sigma=sigma_filled \
+    output_sigma=sigma_dod output_class=significance
 </pre></div>
+
+<p>Combine several independent uncertainty sources, including constant terms,
+and use a Student-t distribution for the p-value:</p>
+
+<div class="code"><pre>
+r.dem.errprop dod=dod_debiased sigma=sigma_combined,bias_se \
+    sigma_const=0.05 output_sigma=sigma_total \
+    output_pvalue=pvalue pmethod=student df=120
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_errprop_classes.png">
+<img src="r_dem_errprop_classes.png" width="600" alt="r.dem.errprop example" border="0">
+</a><br>
+<i>Figure: z-score and the categorical significance classes at the 68, 90, 95, and 99 percent levels.</i>
+</div>
 
 <h2>SEE ALSO</h2>
 

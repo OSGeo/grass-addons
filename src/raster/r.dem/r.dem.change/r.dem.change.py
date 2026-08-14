@@ -273,7 +273,6 @@ def main():
     n_tot = n_dep + n_ero
     vol_net = vol_dep - vol_ero
 
-    gs.message("")
     gs.message(_("Volumetric summary (significant cells only):"))
     gs.message(_("  Deposition: {:>14,.1f} m3  ({:,} cells)").format(vol_dep, n_dep))
     gs.message(_("  Erosion:    {:>14,.1f} m3  ({:,} cells)").format(vol_ero, n_ero))

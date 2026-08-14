@@ -62,38 +62,43 @@ DEM resolution.
 
 ## EXAMPLES
 
-Vertical co-registration from road PGCPs, writing residuals to CSV:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Remove the vertical bias from road PGCPs alone, writing the per-PGCP
+residuals to CSV:
 
 ```sh
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
-    output=sfm_dsm_coreg method=pgcp_vertical buffer=2.0 \
-    bias_output=pgcp_residuals.csv -v
+g.region raster=elev_lid792_1m
+
+r.dem.coregister dem=dsm_offset reference=elev_lid792_1m \
+    pgcp=pgcp_roads output=dsm_pgcp method=pgcp_vertical \
+    buffer=2.0 bias_output=pgcp_residuals.csv -v
 ```
 
-Full PGCP + Nuth & Kaab + ICP chain with a stable-terrain mask:
+Roads are flat, so the horizontal shift contributes almost nothing to the
+elevation residual there and the median bias recovers the applied 1.32 m:
+
+```text
+N samples: 9725
+Median bias: 1.3150 m
+NMAD: 0.1014 m
+```
+
+Chain the Nuth and Kääb step to remove the horizontal offset as well. This
+needs a **stable_mask** of broad sloped terrain, separate from the flat
+PGCP features:
 
 ```sh
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
-    stable_mask=stable_terrain output=sfm_dsm_coreg method=nk_icp
+r.dem.coregister dem=dsm_offset reference=elev_lid792_1m \
+    pgcp=pgcp_roads stable_mask=stable_terrain \
+    output=dsm_coreg method=nk
 ```
 
-PGCP vertical plus ICP, skipping the Nuth and Kaab step:
-
-```sh
-r.dem.coregister dem=sfm_dsm reference=lidar_dtm pgcp=road_centerlines \
-    stable_mask=stable_terrain output=sfm_dsm_coreg method=icp
-```
-
-Solve on the bare-earth DTM, then replay the alignment onto the DSM:
-
-```sh
-r.dem.coregister dem=sfm_dtm reference=lidar_dtm pgcp=road_centerlines \
-    stable_mask=stable_terrain output=sfm_dtm_coreg method=nk_icp \
-    transform_output=align.txt
-
-r.dem.coregister dem=sfm_dsm reference=lidar_dsm pgcp=road_centerlines \
-    output=sfm_dsm_coreg apply_transform=align.txt
-```
+![r.dem.coregister example](r_dem_coregister_residuals.png)  
+*Figure: Stable-terrain residual before co-registration, after r.dem.nk, and
+after r.dem.icp.*
 
 ## SEE ALSO
 

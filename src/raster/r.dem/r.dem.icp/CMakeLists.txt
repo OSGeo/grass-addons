@@ -17,7 +17,8 @@ set(sources
 
 set(doc_files
     r.dem.icp.html
-    r.dem.icp.md)
+    r.dem.icp.md
+    r_dem_icp_alignment.png)
 
 build_addon(
   ${PROJECT_NAME}

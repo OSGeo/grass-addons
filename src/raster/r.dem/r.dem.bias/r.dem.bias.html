@@ -68,8 +68,13 @@ with a holdout before trusting extrapolation.</p>
   <li>A moving-window median of that core over a <b>window</b>-cell window gives
   the local bias field.</li>
   <li>Outside the mask the bias field is zero, so unmasked cells are
-  unchanged.</li>
+      unchanged.</li>
 </ul>
+
+<p>A local trimmed median cannot separate a canopy bump from real elevation
+change, so any deposition or scour inside <b>mask</b> is removed along with
+the bias. Keep known and suspected change areas out of the mask, using the
+footprint from a coarse <em>r.dem.screen</em> pass where one is available.</p>
 
 <h2>NOTES</h2>
 
@@ -88,23 +93,50 @@ exit.</p>
 
 <h2>EXAMPLES</h2>
 
-<p>Regression correction using terrain predictors over stable ground:</p>
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>The scene carries three bias components, and each method removes a
+different one. Chain them: no single method removes all three.</p>
+
+<p>Start with the long-wavelength dome, fitted from the stable cells and
+interpolated across the map:</p>
 
 <div class="code"><pre>
-r.dem.stats input=dem output=roughness metric=roughness_std window=13
-r.dem.stats input=dem output=slope metric=slope
+g.region raster=elev_lid792_1m
 
-r.dem.bias method=regression dod=dod_1m \
-    predictors=roughness,slope,sigma_lidar \
-    stable_mask=stable output=dod_corrected bias_field=dod_bias
+r.dem.bias dod=dod_raw output=dod_spline method=spline \
+    stable_mask=stable_terrain bias_field=bias_spline
 </pre></div>
 
-<p>Forest canopy bump removal:</p>
+<p>Then the canopy bump, estimated as a local trimmed median under the forest
+mask:</p>
 
 <div class="code"><pre>
-r.dem.bias method=forest dod=dod_1m mask=forest \
-    window=21 trim_low=2.5 trim_high=97.5 output=dod_corrected
+r.dem.bias dod=dod_spline output=dod_debiased method=forest \
+    mask=forest window=21
 </pre></div>
+
+<p>The residual on stable terrain falls from 0.17 m to under 0.01 m, and the
+residual over forest falls from 1.68 m to under 0.01 m.</p>
+
+<p>The regression path models the bias against terrain predictors instead,
+keeping the coefficient uncertainty for the uncertainty budget downstream:</p>
+
+<div class="code"><pre>
+r.dem.bias dod=dod_raw output=dod_regression method=regression \
+    predictors=roughness stable_mask=stable_terrain \
+    output_se=bias_se output_leverage=bias_leverage \
+    fit_json=bias_fit.json
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_bias_methods.png">
+<img src="r_dem_bias_methods.png" width="600" alt="r.dem.bias example" border="0">
+</a><br>
+<i>Figure: Raw DoD carrying the survey bias, the fitted spline bias field, and the difference after the spline and forest stages.</i>
+</div>
 
 <h2>SEE ALSO</h2>
 

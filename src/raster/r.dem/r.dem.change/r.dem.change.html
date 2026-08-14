@@ -60,21 +60,51 @@ package.</p>
 
 <h2>EXAMPLES</h2>
 
-<p>Basic DoD with a spatially varying LoD and a volume report:</p>
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Threshold the debiased difference against the detection limit and report
+volumes:</p>
 
 <div class="code"><pre>
-r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
-    output_dod=dod output_sig=dod_sig volume_csv=volumes.csv
+g.region raster=elev_lid792_1m
+
+r.dem.change -n dod=dod_debiased lod=lod_filled \
+    output_sig=dod_significant volume_csv=volumes.csv
 </pre></div>
 
-<p>Trim blunders above the 99th percentile estimated on stable terrain, then
-remove speckle and report kurtosis:</p>
+<p>The volumes can be checked against the volumes <em>r.earthworks</em> moved when
+the scene was built; they land within a few percent.</p>
+
+<p>The <b>-n</b> flag matters here. Without it, noise that clears the detection
+limit by chance is counted as change, and on this scene that inflates both
+volumes by roughly ten percent. Speckle removal drops isolated cells, which
+real erosion and deposition are not.</p>
+
+<p>Trim blunders on stable ground first, remove isolated significant cells,
+and report the distribution kurtosis as a noise diagnostic:</p>
 
 <div class="code"><pre>
-r.dem.change dem=dem_post reference=dem_pre lod=lod_local \
-    output_dod=dod output_sig=dod_sig \
-    trim_percentile=99 stable_mask=stable -n -k
+r.dem.change dod=dod_debiased lod=lod_local \
+    output_sig=dod_significant_clean \
+    trim_percentile=99 stable_mask=stable_terrain -n -k
 </pre></div>
+
+<p>On the <b>dem</b> plus <b>reference</b> path the raw difference has to be written,
+so <b>output_dod</b> is required:</p>
+
+<div class="code"><pre>
+r.dem.change dem=dsm_post reference=elev_lid792_1m lod=lod_global \
+    output_dod=dod_uncorrected output_sig=dod_significant_raw
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_change_volumes.png">
+<img src="r_dem_change_volumes.png" width="600" alt="r.dem.change example" border="0">
+</a><br>
+<i>Figure: The known change added with r.earthworks, and the significant DoD recovered above the Level of Detection.</i>
+</div>
 
 <h2>SEE ALSO</h2>
 

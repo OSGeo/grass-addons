@@ -9,4 +9,5 @@ build_addon(
   SOURCES ${PROJECT_NAME}.py
   DOCFILES
     ${PROJECT_NAME}.html
-    ${PROJECT_NAME}.md)
+    ${PROJECT_NAME}.md
+    r_dem_errprop_classes.png)

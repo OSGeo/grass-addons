@@ -39,25 +39,40 @@ computational region and the `--overwrite` flag.
 
 ## EXAMPLES
 
-Local roughness over a 13-cell window:
+The commands below use the example scene built in the
+*[r.dem](r.dem.md)* toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.
+
+Derive the terrain predictors used by *r.dem.bias* **method=regression** and
+as diagnostic surfaces:
 
 ```sh
-r.dem.stats input=dem output=dem_roughness metric=roughness_std window=13
+g.region raster=elev_lid792_1m
+
+r.dem.stats input=elev_lid792_1m output=slope metric=slope
+r.dem.stats input=elev_lid792_1m output=roughness \
+    metric=roughness_std window=13
+r.dem.stats input=elev_lid792_1m output=landforms \
+    metric=diversity_geomorphon window=13
 ```
 
-Spatially varying DoD uncertainty from a difference raster:
+The **slope** metric is *r.slope.aspect* under the tool's own naming, so the
+two agree cell for cell.
+
+**metric=diversity_shannon** needs a categorical map rather than an
+elevation surface, so derive the geomorphon forms first and run the metric
+on those. The **-e** flag adds the matching evenness raster:
 
 ```sh
-r.dem.stats input=dod output=sigma_local metric=error_sigma_local window=21
+r.geomorphon elevation=elev_lid792_1m forms=landform_classes \
+    search=7 flat=4
+
+r.dem.stats -e input=landform_classes output=landform_diversity \
+    metric=diversity_shannon window=13
 ```
 
-Shannon diversity with evenness from a geomorphon forms map:
-
-```sh
-r.geomorphon elevation=dem forms=dem_forms search=7 flat=4
-r.dem.stats input=dem_forms output=dem_shannon \
-    metric=diversity_shannon window=15 -e
-```
+![r.dem.stats example](r_dem_stats_metrics.png)  
+*Figure: Slope, roughness, and geomorphon diversity on the lidar reference.*
 
 ## SEE ALSO
 
