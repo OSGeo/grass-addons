@@ -126,7 +126,7 @@ typedef struct {
     uint8_t *quality_data; /* uint8_t[nrows*ncols] or NULL */
 
     /* FlexBRDF: spectrally disaggregated MCD43 kernel weights [n_wl] */
-    float *flex_fiso_wl; /* float[n_wl] or NULL (= scalar NBAR) */
+    float *flex_fiso_wl; /* float[cfg->n_wl] or NULL (= scalar NBAR) */
     float *flex_fvol_wl; /* float[n_wl] or NULL */
     float *flex_fgeo_wl; /* float[n_wl] or NULL */
     float flex_fiso_ref; /* f_iso at NIR reference (858 nm) */
@@ -151,6 +151,9 @@ typedef struct {
 typedef struct {
     /* Band info (wavelengths/FWHM are handled separately by parse_band_wl) */
     char dataset_id[64];
+    char wavelength_units[16];
+    char radiometric_quantity[64];
+    char radiometric_units[64];
 
     /* Extended-metadata fields (from extended_metadata key). */
     /* Geometry */
@@ -223,6 +226,86 @@ static int json_extract_string(const char *json, const char *key, char *out,
         out[i++] = *p++;
     out[i] = '\0';
     return (i > 0) ? 1 : 0;
+}
+
+/** Extract the last JSON string value for a key.
+ *
+ * Current-dataset fields follow inherited metadata snapshots in hyper.json,
+ * so the last occurrence is the applicable value for unit fields.
+ */
+static int json_extract_last_string(const char *json, const char *key,
+                                    char *out, size_t n)
+{
+    char pattern[64];
+    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+    const char *p = json, *last = NULL;
+    while ((p = strstr(p, pattern)) != NULL) {
+        last = p;
+        p += strlen(pattern);
+    }
+    if (!last)
+        return 0;
+    p = strchr(last + strlen(pattern), ':');
+    if (!p)
+        return 0;
+    p++;
+    while (*p && isspace((unsigned char)*p))
+        p++;
+    if (*p != '"')
+        return 0;
+    p++;
+    size_t i = 0;
+    while (*p && *p != '"' && i + 1 < n)
+        out[i++] = *p++;
+    out[i] = '\0';
+    return i > 0;
+}
+
+typedef enum {
+    WL_UNIT_NM,
+    WL_UNIT_UM,
+    WL_UNIT_CM1,
+    WL_UNIT_UNKNOWN
+} WavelengthUnit;
+
+static WavelengthUnit wavelength_unit(const char *json, char *name,
+                                      size_t name_size)
+{
+    snprintf(name, name_size, "nm");
+    (void)json_extract_last_string(json, "wavelength_units", name, name_size);
+    if (strcmp(name, "nm") == 0)
+        return WL_UNIT_NM;
+    if (strcmp(name, "um") == 0)
+        return WL_UNIT_UM;
+    if (strcmp(name, "cm-1") == 0)
+        return WL_UNIT_CM1;
+    return WL_UNIT_UNKNOWN;
+}
+
+static float wavelength_to_um(double value, WavelengthUnit unit)
+{
+    if (!isfinite(value) || value <= 0.0)
+        return -1.0f;
+    if (unit == WL_UNIT_NM)
+        return (float)(value * 1e-3);
+    if (unit == WL_UNIT_UM)
+        return (float)value;
+    if (unit == WL_UNIT_CM1)
+        return (float)(10000.0 / value);
+    return -1.0f;
+}
+
+static float fwhm_to_um(double centre, double width, WavelengthUnit unit)
+{
+    if (!isfinite(centre) || !isfinite(width) || centre <= 0.0 || width <= 0.0)
+        return 0.0f;
+    if (unit == WL_UNIT_NM)
+        return (float)(width * 1e-3);
+    if (unit == WL_UNIT_UM)
+        return (float)width;
+    if (unit == WL_UNIT_CM1)
+        return (float)(10000.0 * width / (centre * centre));
+    return 0.0f;
 }
 
 /**
@@ -401,28 +484,39 @@ static int parse_hyperjson_buffer(const char *json, float *wl, float *fwhm,
         return 0;
 
     /* Band wavelengths / FWHM */
-    double *wl_nm = G_malloc(sizeof(double) * (size_t)max_n);
-    int n = json_extract_array(json, "wavelength", wl_nm, max_n);
-    if (n == 0) {
-        G_free(wl_nm);
-        return 0;
-    }
+    double *wl_values = G_malloc(sizeof(double) * (size_t)max_n);
+    int n = json_extract_array(json, "wavelength", wl_values, max_n);
+    double *fwhm_values =
+        fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
+    int n_fwhm =
+        fwhm ? json_extract_array(json, "fwhm", fwhm_values, max_n) : 0;
 
-    double *fwhm_nm = fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
-    int n_fwhm = fwhm ? json_extract_array(json, "fwhm", fwhm_nm, max_n) : 0;
+    WavelengthUnit wl_unit = wavelength_unit(json, meta->wavelength_units,
+                                             sizeof(meta->wavelength_units));
+    if (wl_unit == WL_UNIT_UNKNOWN)
+        G_fatal_error(_("Unsupported wavelength unit <%s>"),
+                      meta->wavelength_units);
 
     for (int i = 0; i < max_n; i++) {
-        wl[i] = (i < n) ? (float)(wl_nm[i] * 1e-3) : -1.0f;
+        wl[i] = (i < n) ? wavelength_to_um(wl_values[i], wl_unit) : -1.0f;
         if (fwhm)
-            fwhm[i] = (i < n_fwhm) ? (float)(fwhm_nm[i] * 1e-3) : 0.0f;
+            fwhm[i] = (i < n_fwhm && i < n)
+                          ? fwhm_to_um(wl_values[i], fwhm_values[i], wl_unit)
+                          : 0.0f;
     }
-    G_free(wl_nm);
-    if (fwhm_nm)
-        G_free(fwhm_nm);
+    G_free(wl_values);
+    if (fwhm_values)
+        G_free(fwhm_values);
 
     /* Dataset ID */
     json_extract_string(json, "dataset_id", meta->dataset_id,
                         sizeof(meta->dataset_id));
+    (void)json_extract_last_string(json, "radiometric_quantity",
+                                   meta->radiometric_quantity,
+                                   sizeof(meta->radiometric_quantity));
+    (void)json_extract_last_string(json, "radiometric_units",
+                                   meta->radiometric_units,
+                                   sizeof(meta->radiometric_units));
 
     /* Extended metadata */
     double dv;
@@ -669,7 +763,7 @@ static void write_f32a(FILE *fp, const float *v, size_t n)
  * buffer.
  *
  * Minimal, schema-specific scanner (not a general JSON parser): finds the
- * first occurrence of the given key and reads the bracketed comma-separated
+ * last occurrence of the given key and reads the bracketed comma-separated
  * array of numbers or true/false tokens that follows its ':'. Sufficient for
  * i.hyper.import's flat hyper.json band-metadata layout; not a substitute
  * for a real JSON library on arbitrary input.
@@ -685,10 +779,14 @@ static int json_extract_array(const char *json, const char *key, double *out,
 {
     char pattern[64];
     snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-    const char *p = strstr(json, pattern);
-    if (!p)
+    const char *p = json, *last = NULL;
+    while ((p = strstr(p, pattern)) != NULL) {
+        last = p;
+        p += strlen(pattern);
+    }
+    if (!last)
         return 0;
-    p = strchr(p + strlen(pattern), ':');
+    p = strchr(last + strlen(pattern), ':');
     if (!p)
         return 0;
     p = strchr(p, '[');
@@ -710,6 +808,10 @@ static int json_extract_array(const char *json, const char *key, double *out,
             out[n++] = 0.0;
             p += 5;
         }
+        else if (strncmp(p, "null", 4) == 0) {
+            out[n++] = NAN;
+            p += 4;
+        }
         else {
             char *endp;
             double v = strtod(p, &endp);
@@ -727,60 +829,35 @@ static int json_extract_array(const char *json, const char *key, double *out,
 }
 
 /**
- * \brief Detect radiance unit scaling factor from the input map's hyper.json.
+ * \brief Resolve the factor which converts input radiance to per-micrometre.
  *
- * Reads the \c radiometric_units field from the map's hyper.json sidecar
- * and returns the factor to convert input radiance to W/m²/sr/µm.
- *
- * Sensors that store radiance per nanometer (e.g. EnMAP L1C:
- * "W/m^2/sr/nm") need a ×1000 conversion because the ρ_toa formula and
- * the Thuillier solar spectrum (sixs_E0) are in per-µm units.
- *
- * \param[in]  mapname  Name of the input Raster3D map.
- * \return 1000.0f for per-nm units, 1.0f for per-µm or unknown.
+ * \return 1000 for per-nanometre units and 1 for per-micrometre units.
  */
-static float detect_radiance_um_factor(const char *mapname)
+static float radiance_um_factor(const HyperMeta *meta)
 {
-    char name[512], mapset[512];
-    const char *at = strchr(mapname, '@');
-    if (at) {
-        size_t nlen = (size_t)(at - mapname);
-        if (nlen >= sizeof(name))
-            return 1.0f;
-        memcpy(name, mapname, nlen);
-        name[nlen] = '\0';
-        snprintf(mapset, sizeof(mapset), "%s", at + 1);
+    char quantity[64], units[64];
+    for (size_t i = 0; i < sizeof(quantity); i++)
+        quantity[i] =
+            (char)tolower((unsigned char)meta->radiometric_quantity[i]);
+    for (size_t i = 0; i < sizeof(units); i++)
+        units[i] = (char)tolower((unsigned char)meta->radiometric_units[i]);
+
+    if (strstr(quantity, "reflectance") || strstr(units, "unitless"))
+        G_fatal_error(_("Input must contain radiance, not reflectance"));
+
+    if (!units[0]) {
+        G_warning(_("Radiometric units are missing; assuming "
+                    "W m-2 sr-1 micrometre-1"));
+        return 1.0f;
     }
-    else {
-        snprintf(name, sizeof(name), "%s", mapname);
-        const char *found = G_find_raster3d(mapname, "");
-        snprintf(mapset, sizeof(mapset), "%s", found ? found : G_mapset());
-    }
-    char path[GPATH_MAX];
-    snprintf(path, sizeof(path), "%s/%s/%s/grid3/%s/hyper.json", G_gisdbase(),
-             G_location(), mapset, name);
-    FILE *f = fopen(path, "rb");
-    if (!f)
-        return 1.0f;
-    char buf[4096];
-    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
-    fclose(f);
-    buf[n] = '\0';
-    const char *units_key = strstr(buf, "\"radiometric_units\"");
-    if (!units_key)
-        return 1.0f;
-    const char *val = strchr(units_key, ':');
-    if (!val)
-        return 1.0f;
-    val++;
-    while (*val && isspace((unsigned char)*val))
-        val++;
-    if (*val != '"')
-        return 1.0f;
-    val++;
-    if (strstr(val, "/nm") || strstr(val, "nm⁻¹") || strstr(val, "nm-1"))
+    if (strstr(units, "nm") || strstr(units, "nanomet"))
         return 1000.0f;
-    return 1.0f;
+    if (strstr(units, "um") || strstr(units, "µm") || strstr(units, "μm") ||
+        strstr(units, "micromet"))
+        return 1.0f;
+    G_fatal_error(_("Unsupported radiometric units <%s>"),
+                  meta->radiometric_units);
+    return 1.0f; /* unreachable */
 }
 
 /**
@@ -840,26 +917,33 @@ static int parse_band_wl_hyperjson(const char *mapname, float *wl, float *fwhm,
     fclose(f);
     buf[nread] = '\0';
 
-    double *wl_nm = G_malloc(sizeof(double) * (size_t)max_n);
-    int n = json_extract_array(buf, "wavelength", wl_nm, max_n);
+    double *wl_values = G_malloc(sizeof(double) * (size_t)max_n);
+    int n = json_extract_array(buf, "wavelength", wl_values, max_n);
     if (n == 0) {
-        G_free(wl_nm);
+        G_free(wl_values);
         G_free(buf);
         return 0;
     }
 
-    double *fwhm_nm = fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
-    int n_fwhm = fwhm ? json_extract_array(buf, "fwhm", fwhm_nm, max_n) : 0;
+    double *fwhm_values =
+        fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
+    int n_fwhm = fwhm ? json_extract_array(buf, "fwhm", fwhm_values, max_n) : 0;
+    char units[16];
+    WavelengthUnit wl_unit = wavelength_unit(buf, units, sizeof(units));
+    if (wl_unit == WL_UNIT_UNKNOWN)
+        G_fatal_error(_("Unsupported wavelength unit <%s>"), units);
 
     for (int i = 0; i < max_n; i++) {
-        wl[i] = (i < n) ? (float)(wl_nm[i] * 1e-3) : -1.0f;
+        wl[i] = (i < n) ? wavelength_to_um(wl_values[i], wl_unit) : -1.0f;
         if (fwhm)
-            fwhm[i] = (i < n_fwhm) ? (float)(fwhm_nm[i] * 1e-3) : 0.0f;
+            fwhm[i] = (i < n_fwhm && i < n)
+                          ? fwhm_to_um(wl_values[i], fwhm_values[i], wl_unit)
+                          : 0.0f;
     }
 
-    G_free(wl_nm);
-    if (fwhm_nm)
-        G_free(fwhm_nm);
+    G_free(wl_values);
+    if (fwhm_values)
+        G_free(fwhm_values);
     G_free(buf);
     return n;
 }
@@ -1176,10 +1260,12 @@ static void extract_z_slice(RASTER3D_Map *map, int z, int nrows, int ncols,
  * \param[in]  nb      Number of bands to load.
  * \param[in]  nrows   Number of rows per slice.
  * \param[in]  ncols   Number of columns per slice.
+ * \param[in]  scale   Multiplicative radiance unit conversion factor.
  * \param[out] bufs    Array of \c nb pre-allocated float[nrows×ncols] buffers.
  */
 static void load_bands_from_cube(RASTER3D_Map *map, const int *depths, int nb,
-                                 int nrows, int ncols, float **bufs)
+                                 int nrows, int ncols, float scale,
+                                 float **bufs)
 {
     int npix = nrows * ncols;
     for (int b = 0; b < nb; b++)
@@ -1189,8 +1275,12 @@ static void load_bands_from_cube(RASTER3D_Map *map, const int *depths, int nb,
         return;
 
     DCELL *dcell_tmp = G_malloc((size_t)npix * sizeof(DCELL));
-    for (int b = 0; b < nb; b++)
+    for (int b = 0; b < nb; b++) {
         extract_z_slice(map, depths[b], nrows, ncols, dcell_tmp, bufs[b]);
+        if (scale != 1.0f)
+            for (int i = 0; i < npix; i++)
+                bufs[b][i] *= scale;
+    }
     G_free(dcell_tmp);
 }
 
@@ -1241,7 +1331,8 @@ static void load_bands_from_cube(RASTER3D_Map *map, const int *depths, int nb,
 static void correct_raster3d(const char *input_name, const char *output_name,
                              const LutConfig *cfg, LutArrays *lut,
                              float aod_val, float h2o_val, int doy,
-                             float sza_deg, const IsoFitParams *iso)
+                             float sza_deg, float radiance_factor,
+                             const IsoFitParams *iso)
 {
     /* ── Open input map ── */
     const char *in_mapset = G_find_raster3d(input_name, "");
@@ -1304,8 +1395,14 @@ static void correct_raster3d(const char *input_name, const char *output_name,
             G_message(_("Sensor FWHM=%.2f nm: "
                         "applying reptran fine SRF gas correction..."),
                       min_fwhm_nm);
-            SrfConfig srf_cfg = {.fwhm_um = band_fwhm, .threshold_um = 0.025f};
+            float *lut_fwhm = G_malloc(cfg->n_wl * sizeof(float));
+            for (int iw = 0; iw < cfg->n_wl; iw++) {
+                int b = find_closest_band(band_wl, ndepths, cfg->wl[iw]);
+                lut_fwhm[iw] = band_fwhm[b];
+            }
+            SrfConfig srf_cfg = {.fwhm_um = lut_fwhm, .threshold_um = 0.025f};
             SrfCorrection *srf = atcorr_srf_compute(&srf_cfg, cfg);
+            G_free(lut_fwhm);
             if (srf) {
                 atcorr_srf_apply(srf, cfg, lut);
                 atcorr_srf_free(srf);
@@ -1412,12 +1509,11 @@ static void correct_raster3d(const char *input_name, const char *output_name,
         G_message(_("Loading terrain rasters for illumination correction..."));
         slope_data = load_raster2d(iso->slope_map, nrows, ncols, 0.0f);
         aspect_data = load_raster2d(iso->aspect_map, nrows, ncols, 0.0f);
-        if (iso->vza_map && iso->vza_map[0])
-            vza_data = load_raster2d(iso->vza_map, nrows, ncols, cfg->vza);
-        if (iso->vaa_map && iso->vaa_map[0])
-            vaa_data =
-                load_raster2d(iso->vaa_map, nrows, ncols, iso->sun_azimuth);
     }
+    if (iso && iso->vza_map && iso->vza_map[0])
+        vza_data = load_raster2d(iso->vza_map, nrows, ncols, cfg->vza);
+    if (iso && iso->vaa_map && iso->vaa_map[0])
+        vaa_data = load_raster2d(iso->vaa_map, nrows, ncols, iso->sun_azimuth);
 
     /* ── Load NBAR kernel-weight rasters ── */
     float *fiso_data = NULL;
@@ -1517,13 +1613,6 @@ static void correct_raster3d(const char *input_name, const char *output_name,
     double null_d;
     Rast_set_d_null_value(&null_d, 1);
 
-    /* ── Detect radiance unit conversion factor ── */
-    float radiance_um_factor = detect_radiance_um_factor(input_name);
-    if (radiance_um_factor != 1.0f)
-        G_message(
-            _("Input radiance in per-nm units; converting to per-µm (×%.0f)"),
-            radiance_um_factor);
-
     /* ── Allocate working buffers ── */
     /* Per-band buffers (reused each iteration) */
     float *rad_band = G_malloc((size_t)npix * sizeof(float));
@@ -1564,10 +1653,9 @@ static void correct_raster3d(const char *input_name, const char *output_name,
     }
 
     /* ── BRDF white-sky albedo for the s_alb coupling ── */
-    /* Computed once per scene: BrdfParams are spectrally uniform scalars. */
-    float rho_albe_brdf = 0.0f;
-    if (cfg->brdf_type != BRDF_LAMBERTIAN)
-        rho_albe_brdf =
+    float rho_albe_scene = 0.0f;
+    if (cfg->brdf_type != BRDF_LAMBERTIAN && cfg->brdf_type != BRDF_OCEAN)
+        rho_albe_scene =
             sixs_brdf_albe(cfg->brdf_type, &cfg->brdf_params, cos_szaf, 48, 24);
     const int use_brdf = (cfg->brdf_type != BRDF_LAMBERTIAN);
 
@@ -1580,6 +1668,13 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 
         float wl = band_wl[z];
         float E0 = sixs_E0(wl);
+        float rho_albe_brdf = rho_albe_scene;
+        if (cfg->brdf_type == BRDF_OCEAN) {
+            BrdfParams ocean_params = cfg->brdf_params;
+            ocean_params.ocean.wl = wl;
+            rho_albe_brdf =
+                sixs_brdf_albe(BRDF_OCEAN, &ocean_params, cos_szaf, 48, 24);
+        }
 
         /* Scalar LUT values for this wavelength (fallback / adjacency) */
         float R_a_s = interp_wl(Rs, cfg->wl, n_wl, wl);
@@ -1591,21 +1686,27 @@ static void correct_raster3d(const char *input_name, const char *output_name,
         extract_z_slice(inmap, z, nrows, ncols, dcell_slice, rad_band);
 
         /* ── FlexBRDF: spectral scale factors at this wavelength ── *
-         * wl_scale_* = f_iso/vol/geo at band z relative to the NIR (858 nm)
+         * wl_scale_* = interpolated f_iso/vol/geo relative to the NIR (858 nm)
          * reference. When have_flex=0: all scales=1 → identical to non-FlexBRDF
-         * path. When have_flex=1 but have_nbar=0: fiso_wl[z] applied directly
-         * as scene mean. */
+         * path. When have_flex=1 but have_nbar=0, the spectral values are
+         * applied directly as scene means. */
         float wl_scale_iso = 1.0f, wl_scale_vol = 1.0f, wl_scale_geo = 1.0f;
         if (have_flex) {
-            wl_scale_iso = (iso->flex_fiso_ref > 1e-6f)
-                               ? iso->flex_fiso_wl[z] / iso->flex_fiso_ref
-                               : 1.0f;
-            wl_scale_vol = (fabsf(iso->flex_fvol_ref) > 1e-6f)
-                               ? iso->flex_fvol_wl[z] / iso->flex_fvol_ref
-                               : 1.0f;
-            wl_scale_geo = (fabsf(iso->flex_fgeo_ref) > 1e-6f)
-                               ? iso->flex_fgeo_wl[z] / iso->flex_fgeo_ref
-                               : 1.0f;
+            wl_scale_iso =
+                (iso->flex_fiso_ref > 1e-6f)
+                    ? interp_wl(iso->flex_fiso_wl, cfg->wl, n_wl, wl) /
+                          iso->flex_fiso_ref
+                    : 1.0f;
+            wl_scale_vol =
+                (fabsf(iso->flex_fvol_ref) > 1e-6f)
+                    ? interp_wl(iso->flex_fvol_wl, cfg->wl, n_wl, wl) /
+                          iso->flex_fvol_ref
+                    : 1.0f;
+            wl_scale_geo =
+                (fabsf(iso->flex_fgeo_ref) > 1e-6f)
+                    ? interp_wl(iso->flex_fgeo_wl, cfg->wl, n_wl, wl) /
+                          iso->flex_fgeo_ref
+                    : 1.0f;
         }
 
         /* ── Per-pixel inversion ── */
@@ -1621,7 +1722,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 #pragma omp parallel for schedule(static)
 #endif
             for (int i = 0; i < npix; i++) {
-                float L = rad_band[i] * radiance_um_factor;
+                float L = rad_band[i] * radiance_factor;
                 if (!isfinite(L) || E0 <= 0.0f) {
                     refl_band[i] = NAN;
                     continue;
@@ -1736,7 +1837,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 #pragma omp parallel for schedule(static)
 #endif
             for (int i = 0; i < npix; i++) {
-                float L = rad_band[i] * radiance_um_factor;
+                float L = rad_band[i] * radiance_factor;
                 if (!isfinite(L) || E0 <= 0.0f) {
                     refl_band[i] = NAN;
                     continue;
@@ -2083,7 +2184,7 @@ int main(int argc, char *argv[])
     opt_atmo->key = "atmosphere";
     opt_atmo->type = TYPE_STRING;
     opt_atmo->required = NO;
-    opt_atmo->answer = "us62";
+    opt_atmo->answer = NULL;
     opt_atmo->options = "us62,midsum,midwin,tropical,subsum,subwin";
     opt_atmo->description = _("Standard atmosphere model (default: us62)");
     opt_atmo->guisection = _("Main");
@@ -2092,7 +2193,7 @@ int main(int argc, char *argv[])
     opt_aerosol->key = "aerosol";
     opt_aerosol->type = TYPE_STRING;
     opt_aerosol->required = NO;
-    opt_aerosol->answer = "continental";
+    opt_aerosol->answer = NULL;
     opt_aerosol->options = "none,continental,maritime,urban,desert,custom";
     opt_aerosol->description =
         _("Aerosol model (default: continental; use 'custom' with "
@@ -2167,7 +2268,7 @@ int main(int argc, char *argv[])
           "  rahman:     rho0, af, k\n"
           "  roujean:    k0, k1, k2\n"
           "  hapke:      om, af, s0, h\n"
-          "  ocean:      wspd_ms, azw_deg, sal_ppt, pcl_mgl, wl_um\n"
+          "  ocean:      wspd_ms, azw_deg, sal_ppt, pcl_mgl\n"
           "  walthall:   a, ap, b, c\n"
           "  minnaert:   k, b\n"
           "  rosslimaignan: f_iso, f_vol, f_geo");
@@ -2656,9 +2757,17 @@ int main(int argc, char *argv[])
         const int meta_nmax = 2048;
         meta_wl = G_malloc(meta_nmax * sizeof(float));
         meta_fwhm = G_malloc(meta_nmax * sizeof(float));
-        (void)read_hyperjson_meta(opt_input->answer, meta_wl, meta_fwhm,
-                                  meta_nmax, &meta);
+        memset(&meta, 0, sizeof(meta));
+        if (opt_input->answer)
+            (void)read_hyperjson_meta(opt_input->answer, meta_wl, meta_fwhm,
+                                      meta_nmax, &meta);
     }
+
+    float input_radiance_factor =
+        opt_input->answer ? radiance_um_factor(&meta) : 1.0f;
+    if (input_radiance_factor != 1.0f)
+        G_message(_("Converting input radiance from per-nanometre to "
+                    "per-micrometre units"));
 
     /* ── Parse scalar parameters (CLI → metadata → hardcoded default) ── */
     float sza = resolve_float_opt(opt_sza, meta.sun_zenith_deg,
@@ -2951,7 +3060,7 @@ int main(int argc, char *argv[])
             int depths_o3[3] = {b540, b600, b680};
             float *ptrs_o3[3] = {L_540, L_600, L_680};
             load_bands_from_cube(ret_map, depths_o3, 3, ret_nrows, ret_ncols,
-                                 ptrs_o3);
+                                 input_radiance_factor, ptrs_o3);
 
             float o3_du =
                 retrieve_o3_chappuis(L_540, L_600, L_680, ret_npix, sza, vza);
@@ -2999,7 +3108,7 @@ int main(int argc, char *argv[])
             float *ptrs9[9] = {L_700,  L_720,  L_740,  L_865, L_940,
                                L_1040, L_1100, L_1135, L_1175};
             load_bands_from_cube(ret_map, depths9, 9, ret_nrows, ret_ncols,
-                                 ptrs9);
+                                 input_radiance_factor, ptrs9);
 
             /* Sensor FWHM at each feature band */
             float fwhm720 = (n_wl_parsed > 0 && cube_fwhm[b720] > 0.0f)
@@ -3116,7 +3225,7 @@ int main(int argc, char *argv[])
             int depths_aod[4] = {b470, b660, b860, b2130};
             float *ptrs_aod[4] = {L_470, L_660, L_860, L_2130};
             load_bands_from_cube(ret_map, depths_aod, 4, ret_nrows, ret_ncols,
-                                 ptrs_aod);
+                                 input_radiance_factor, ptrs_aod);
 
             retrieved_aod = G_malloc(ret_npix * sizeof(float));
             float aod_mean = retrieve_aod_ddv(
@@ -3169,7 +3278,7 @@ int main(int argc, char *argv[])
             int depths_p[3] = {b740, b760, b780};
             float *ptrs_p[3] = {L_740, L_760, L_780};
             load_bands_from_cube(ret_map, depths_p, 3, ret_nrows, ret_ncols,
-                                 ptrs_p);
+                                 input_radiance_factor, ptrs_p);
 
             retrieved_pressure = G_malloc(ret_npix * sizeof(float));
             retrieve_pressure_o2a(L_740, L_760, L_780, ret_npix, sza, vza,
@@ -3217,7 +3326,7 @@ int main(int argc, char *argv[])
                                 L_swir ? L_swir : L_nir}; /* fallback */
             int n_m = L_swir ? 4 : 3;
             load_bands_from_cube(ret_map, depths_m, n_m, ret_nrows, ret_ncols,
-                                 ptrs_m);
+                                 input_radiance_factor, ptrs_m);
 
             retrieved_quality = G_malloc(ret_npix * sizeof(uint8_t));
             retrieve_quality_mask(L_blue, L_red, L_nir, L_swir, ret_npix, doy,
@@ -3256,7 +3365,7 @@ int main(int argc, char *argv[])
         G_get_window(&win2d);
         int dem_nrows = win2d.rows, dem_ncols = win2d.cols;
         float *dem_data =
-            load_raster2d(opt_dem->answer, dem_nrows, dem_ncols, 0.0f);
+            load_raster2d(opt_dem->answer, dem_nrows, dem_ncols, NAN);
         double sum_elev = 0.0;
         int n_elev = 0;
         for (int i = 0; i < dem_nrows * dem_ncols; i++)
@@ -3385,7 +3494,7 @@ int main(int argc, char *argv[])
         for (int b = 0; b < N_VIS; b++)
             oe_vis_buf[b] = G_malloc(oe_npix * sizeof(float));
         load_bands_from_cube(oe_map, vis_bands, N_VIS, oe_nrows, oe_ncols,
-                             oe_vis_buf);
+                             input_radiance_factor, oe_vis_buf);
 
         float *rho_toa_vis = G_malloc((size_t)oe_npix * N_VIS * sizeof(float));
         double d2_oe = sixs_earth_sun_dist2(doy);
@@ -3411,7 +3520,7 @@ int main(int argc, char *argv[])
         int depths_oe_h2o[3] = {b865, b940, b1040};
         float *ptrs_oe_h2o[3] = {L_865, L_940, L_1040};
         load_bands_from_cube(oe_map, depths_oe_h2o, 3, oe_nrows, oe_ncols,
-                             ptrs_oe_h2o);
+                             input_radiance_factor, ptrs_oe_h2o);
 
         /* Allocate OE output (override any previous DDV/940nm retrievals) */
         G_free(retrieved_aod);
@@ -3552,7 +3661,8 @@ int main(int argc, char *argv[])
             G_message(_("Pre-correction quality bitmask: ENABLED"));
 
         correct_raster3d(opt_input->answer, opt_output->answer, &cfg, &lut,
-                         aod_val, h2o_val, doy, sza, &iso);
+                         aod_val, h2o_val, doy, sza, input_radiance_factor,
+                         &iso);
 
         /* ── Copy input metadata to output (creates hyper.json) ── */
         {
@@ -3591,7 +3701,7 @@ int main(int argc, char *argv[])
                      "\"source_radiance_map\":\"%s\","
                      "\"output_type\":\"boa_surface_reflectance\","
                      "\"output_units\":\"unitless\","
-                     "\"output_valid_range\":\"unclipped\","
+                     "\"output_valid_range\":[-0.01,1.5],"
                      "\"geometry_used\":{"
                      "\"sza\":%.2f,\"vza\":%.2f,"
                      "\"raa\":%.2f,\"sun_azimuth\":%.2f,"

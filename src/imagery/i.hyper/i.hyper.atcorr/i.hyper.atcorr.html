@@ -1,1560 +1,222 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: i.hyper.atcorr</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-<div id="container">
-
-<a href="index.html"><img src="grass_logo.png" alt="GRASS logo"></a>
-<hr class="header">
-
-<h2>NAME</h2>
-<em><b>i.hyper.atcorr</b></em> - Atmospheric correction of hyperspectral imagery
-using the 6SV2.1 radiative transfer algorithm with ISOFIT-inspired improvements.
-
-<h2>KEYWORDS</h2>
-<a href="imagery.html">imagery</a>,
-<a href="topic_atmospheric_correction.html">atmospheric correction</a>,
-<a href="topic_radiative_transfer.html">radiative transfer</a>,
-6SV, hyperspectral, LUT, ISOFIT, uncertainty
-
-<h2>SYNOPSIS</h2>
-<div id="name"><b>i.hyper.atcorr</b><br></div>
-<b>i.hyper.atcorr --help</b><br>
-<div id="synopsis"><b>i.hyper.atcorr</b>
-[<b>-ur</b>]
-[<b>input</b>=<em>name</em>]
-[<b>output</b>=<em>name</em>]
-[<b>lut</b>=<em>name</em>]
-[<b>sza</b>=<em>float</em>]
-[<b>vza</b>=<em>float</em>]
-[<b>raa</b>=<em>float</em>]
-[<b>altitude</b>=<em>float</em>]
-[<b>doy</b>=<em>integer</em>]
-[<b>atmosphere</b>=<em>string</em>]
-[<b>aerosol</b>=<em>string</em>]
-[<b>ozone</b>=<em>float</em>]
-[<b>aod</b>=<em>values</em>]
-[<b>h2o</b>=<em>values</em>]
-[<b>wl_min</b>=<em>float</em>]
-[<b>wl_max</b>=<em>float</em>]
-[<b>wl_step</b>=<em>float</em>]
-[<b>aod_val</b>=<em>float</em>]
-[<b>h2o_val</b>=<em>float</em>]
-[<b>aod_map</b>=<em>name</em>]
-[<b>h2o_map</b>=<em>name</em>]
-[<b>smooth</b>=<em>float</em>]
-[<b>adj_psf</b>=<em>float</em>]
-[<b>pixel_size</b>=<em>float</em>]
-[<b>uncertainty</b>=<em>name</em>]
-[<b>brdf</b>=<em>string</em>]
-[<b>brdf_params</b>=<em>values</em>]
-[<b>-awz</b>]
-[<b>dem</b>=<em>name</em>]
-[--<b>verbose</b>]
-[--<b>help</b>]
-</div>
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-u</b></dt>
-<dd>Compute per-band, per-pixel reflectance uncertainty (#4)</dd>
-<dt><b>-r</b></dt>
-<dd>Apply surface prior MAP regularisation after all bands are inverted (#3/#5/#6)</dd>
-<dt><b>--verbose</b></dt>
-<dd>Print summary statistics after LUT computation</dd>
-<dt><b>--help</b></dt>
-<dd>Print usage summary</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>input</b>=<em>name</em></dt>
-<dd>Input TOA radiance 3D raster cube in W/(m&sup2; sr &micro;m)</dd>
-
-<dt><b>output</b>=<em>name</em></dt>
-<dd>Output BOA surface reflectance 3D raster cube</dd>
-
-<dt><b>lut</b>=<em>name</em></dt>
-<dd>Binary LUT file: written when generating, read when correcting (or both)</dd>
-
-<dt><b>sza</b>=<em>float</em> <b>[required if not in metadata]</b></dt>
-<dd>Solar zenith angle in degrees (0 to &lt;90; required if not in metadata). Falls back to input map's <tt>hyper.json</tt> metadata if not provided on the command line.</dd>
-
-<dt><b>vza</b>=<em>float</em></dt>
-<dd>Sensor view zenith angle in degrees (0&ndash;60); default: <tt>0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line. Falls back to metadata if omitted.</dd>
-
-<dt><b>raa</b>=<em>float</em></dt>
-<dd>Relative azimuth angle between sun and sensor in degrees; default: <tt>0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>altitude</b>=<em>float</em></dt>
-<dd>Sensor altitude in km; values &gt;900 treated as satellite; default: <tt>1000</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>doy</b>=<em>integer</em></dt>
-<dd>Day of year for Earth-Sun distance correction (1&ndash;365); default: <tt>180</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>atmosphere</b>=<em>string</em></dt>
-<dd>Standard atmosphere model; options: <tt>us62</tt>, <tt>midsum</tt>,
-<tt>midwin</tt>, <tt>tropical</tt>, <tt>subsum</tt>, <tt>subwin</tt>;
-default: <tt>us62</tt></dd>
-
-<dt><b>aerosol</b>=<em>string</em></dt>
-<dd>Aerosol type; options: <tt>none</tt>, <tt>continental</tt>,
-<tt>maritime</tt>, <tt>urban</tt>, <tt>desert</tt>, <tt>custom</tt>;
-default: <tt>continental</tt>.
-Use <tt>custom</tt> with <tt>mie_r</tt>, <tt>mie_sigma</tt>,
-<tt>mie_mr</tt>, <tt>mie_mi</tt> for a user-specified log-normal
-size distribution (Bohren&ndash;Huffman Mie scattering).</dd>
-
-<dt><b>mie_r</b>=<em>float</em></dt>
-<dd>Custom Mie: log-normal mode radius [&micro;m]; default: <tt>0.10</tt>.
-AERONET fine-mode typically 0.08&ndash;0.15&nbsp;&micro;m. Only used when
-<tt>aerosol=custom</tt>.</dd>
-
-<dt><b>mie_sigma</b>=<em>float</em></dt>
-<dd>Custom Mie: geometric standard deviation &sigma;<sub>g</sub>; default:
-<tt>1.50</tt>. Must be &gt;&nbsp;1.0. Typical range: 1.4&ndash;1.8.
-Only used when <tt>aerosol=custom</tt>.</dd>
-
-<dt><b>mie_mr</b>=<em>float</em></dt>
-<dd>Custom Mie: real refractive index at 550&nbsp;nm; default: <tt>1.45</tt>.
-Reference values: dust&asymp;1.55, carbonaceous&asymp;1.75, marine&asymp;1.38.
-Only used when <tt>aerosol=custom</tt>.</dd>
-
-<dt><b>mie_mi</b>=<em>float</em></dt>
-<dd>Custom Mie: imaginary refractive index at 550&nbsp;nm; default:
-<tt>0.005</tt>. Absorbing aerosol: 0.01&ndash;0.05; nearly non-absorbing:
-&lt;&nbsp;0.005. Only used when <tt>aerosol=custom</tt>.</dd>
-
-<dt><b>ozone</b>=<em>float</em></dt>
-<dd>Total ozone column in Dobson units; default: <tt>300</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>aod</b>=<em>values</em></dt>
-<dd>Comma-separated AOD at 550&nbsp;nm values for the LUT grid;
-default: <tt>0.0,0.05,0.1,0.2,0.4,0.8</tt></dd>
-
-<dt><b>h2o</b>=<em>values</em></dt>
-<dd>Comma-separated column water vapour values (g/cm&sup2;) for the LUT grid;
-default: <tt>0.5,1.0,2.0,3.5,5.0</tt></dd>
-
-<dt><b>wl_min</b>=<em>float</em></dt>
-<dd>Minimum wavelength in nanometres; default: <tt>400</tt></dd>
-
-<dt><b>wl_max</b>=<em>float</em></dt>
-<dd>Maximum wavelength in nanometres; default: <tt>2500</tt></dd>
-
-<dt><b>wl_step</b>=<em>float</em></dt>
-<dd>Wavelength step in nanometres; default: <tt>10</tt></dd>
-
-<dt><b>aod_val</b>=<em>float</em></dt>
-<dd>Scene-average AOD at 550&nbsp;nm (scalar fallback when no aod_map); default: <tt>0.1</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>h2o_val</b>=<em>float</em></dt>
-<dd>Scene-average column water vapour g/cm&sup2; (scalar fallback when no h2o_map); default: <tt>2.0</tt>. Overrides <tt>hyper.json</tt> metadata if provided on the command line.</dd>
-
-<dt><b>aod_map</b>=<em>name</em></dt>
-<dd>Per-pixel AOD raster map (2-D); overrides aod_val when provided (#1)</dd>
-
-<dt><b>h2o_map</b>=<em>name</em></dt>
-<dd>Per-pixel column water vapour raster map g/cm&sup2; (2-D); overrides h2o_val when provided (#1)</dd>
-
-<dt><b>smooth</b>=<em>float</em></dt>
-<dd>Gaussian smoothing &sigma; in pixels applied to aod_map/h2o_map before correction; 0 = off (#1)</dd>
-
-<dt><b>adj_psf</b>=<em>float</em></dt>
-<dd>Adjacency effect PSF radius in km (Vermote 1997); 0 = off (#2); default: <tt>0</tt></dd>
-
-<dt><b>pixel_size</b>=<em>float</em></dt>
-<dd>Pixel size in metres for adjacency correction; 0 = auto-detect from GRASS region (#2)</dd>
-
-<dt><b>uncertainty</b>=<em>name</em></dt>
-<dd>Output per-pixel reflectance uncertainty 3D raster; requires -u flag (#4)</dd>
-
-<dt><b>brdf</b>=<em>string</em></dt>
-<dd>Surface BRDF model; options: <tt>lambertian</tt>, <tt>rahman</tt>,
-<tt>roujean</tt>, <tt>hapke</tt>, <tt>ocean</tt>, <tt>walthall</tt>,
-<tt>minnaert</tt>, <tt>rosslimaignan</tt>; default: <tt>lambertian</tt></dd>
-
-<dt><b>brdf_params</b>=<em>values</em></dt>
-<dd>Comma-separated BRDF model parameters (see C Library API section for
-per-model parameter order); default: <tt>1.0</tt> (Lambertian reflectance)</dd>
-
-<dt><b>-a</b></dt>
-<dd>Retrieve per-pixel AOD at 550&nbsp;nm from Dark Dense Vegetation (DDV) pixels
-using the MODIS dark-target algorithm (470/660/860/2130&nbsp;nm bands).
-Updates <tt>aod_val=</tt> with the scene mean. Requires <tt>input=</tt> with wavelength metadata.</dd>
-
-<dt><b>-w</b></dt>
-<dd>Retrieve per-pixel column water vapour [g/cm&sup2;] from three H<sub>2</sub>O
-absorption features (720, 940, and 1135&nbsp;nm) using continuum interpolation
-and a per-pixel median consensus. FWHM scaling (K&nbsp;&prop;&nbsp;FWHM<sup>&minus;0.78</sup>)
-is applied automatically from cube metadata.
-Updates <tt>h2o_val=</tt> with the scene mean. Requires <tt>input=</tt> with wavelength metadata.</dd>
-
-<dt><b>-z</b></dt>
-<dd>Retrieve scene-mean O<sub>3</sub> column [DU] from the Chappuis absorption feature
-(continuum: 540/600/680&nbsp;nm). Updates <tt>ozone=</tt> for LUT computation.
-Requires <tt>input=</tt> with wavelength metadata.</dd>
-
-<dt><b>dem</b>=<em>name</em></dt>
-<dd>2-D elevation raster [m above sea level]. Scene-mean elevation is converted
-to ISA surface pressure and used in LUT computation, overriding the
-standard-atmosphere sea-level default.</dd>
-</dl>
-
 <h2>DESCRIPTION</h2>
 
-<em>i.hyper.atcorr</em> is a GRASS GIS add-on for atmospheric correction of
-hyperspectral imagery. It operates in two complementary modes that can be
-combined in a single invocation:
-
-<ul>
-  <li><b>LUT generation</b> (<tt>lut=</tt>): compute a binary look-up table of
-      atmospheric parameters over an [AOD &times; H<sub>2</sub>O &times; wavelength] grid.</li>
-  <li><b>Cube correction</b> (<tt>input=</tt> / <tt>output=</tt>): apply the LUT
-      to a 3D raster radiance cube, writing a surface (BOA) reflectance cube.</li>
-</ul>
-
 <p>
-The LUT is computed using a C port of the 6SV2.1 (Second Simulation of
-a Satellite Signal in the Solar Spectrum, version 2.1) radiative transfer code
-with OpenMP parallelisation over the AOD dimension.
+<em>i.hyper.atcorr</em> performs atmospheric correction of a hyperspectral 3D
+raster map. The input is calibrated top of atmosphere radiance. Radiance per
+nanometre or per micrometre is converted internally to W m-2 sr-1 um-1. The
+output is unitless bottom of atmosphere surface reflectance.
 </p>
 
 <p>
-For each (AOD, H<sub>2</sub>O, &lambda;) grid point the module stores four
-atmospheric parameters:
-</p>
-<ul>
-  <li><b>R_atm</b> &mdash; atmospheric path reflectance</li>
-  <li><b>T_down</b> &mdash; total downward transmittance (direct + diffuse)</li>
-  <li><b>T_up</b> &mdash; total upward transmittance (direct + diffuse)</li>
-  <li><b>s_alb</b> &mdash; spherical albedo of the atmosphere</li>
-</ul>
-
-<p>
-Inversion from TOA radiance <em>L</em> to BOA reflectance uses the standard
-6SV formula:
-</p>
-<pre>
-  &rho;_toa = (&pi; &times; L &times; d&sup2;) / (E&sub0; &times; cos &theta;_s)
-  &rho;_boa = (&rho;_toa &minus; R_atm) / (T_down &times; T_up &times; (1 + s_alb &times; &rho;_boa))
-</pre>
-<p>
-where <em>E&sub0;</em> is the Thuillier solar irradiance (from 6SV2.1 tables) and
-<em>d&sup2;</em> is the squared Earth-Sun distance for the acquisition day-of-year.
+The module uses the 6SV2.1 radiative transfer model to compute a lookup
+table for aerosol optical depth (AOD) at 550 nm, column water vapour, and
+wavelength. Radiance values are converted to top of atmosphere reflectance
+using the acquisition day, solar zenith angle, and the solar irradiance
+spectrum. Surface reflectance is then obtained by interpolation in the
+lookup table.
 </p>
 
-<h2>ISOFIT-INSPIRED IMPROVEMENTS</h2>
-
 <p>
-Six improvements inspired by the
-<a href="https://github.com/isofit/isofit">ISOFIT</a> framework are available
-as optional flags and parameters. They can be combined freely; each defaults
-to disabled for full backward compatibility.
+The lookup table can be written to a file with <em>lut</em>. If <em>input</em>
+and <em>output</em> are given, the table is also applied to the input 3D raster
+map. At least one of <em>lut</em> or <em>output</em> must be specified.
 </p>
 
-<h3>#1 &mdash; Per-pixel atmospheric maps + spatial smoothing</h3>
-
 <p>
-Supply 2-D raster maps of AOD (at 550&nbsp;nm) and/or column water vapour
-(g/cm&sup2;) derived from Dark Target, MAIAC, or any retrieval product.
-Per-pixel values replace the scalar <tt>aod_val=</tt> / <tt>h2o_val=</tt>
-fallbacks; each pixel is corrected using trilinear LUT interpolation at its
-own (aod, h2o, &lambda;) point.
-</p>
-<p>
-<tt>smooth=</tt> applies a <b>separable Gaussian filter</b> (&sigma; in pixels)
-to the maps before correction, suppressing retrieval noise while preserving
-large-scale spatial gradients. Boundary pixels use edge-replication padding;
-NaN/null pixels are excluded from the neighbourhood average.
+Atmospheric conditions can be supplied as scene values with <em>aod_val</em>
+and <em>h2o_val</em>, or as raster maps with <em>aod_map</em> and
+<em>h2o_map</em>. Raster map values take precedence over scene values where
+they are not null. The atmospheric maps can be smoothed before correction.
 </p>
 
-<h3>#2 &mdash; In-loop adjacency effect correction</h3>
-
 <p>
-Applies the <b>Vermote et al. (1997) adjacency correction</b> per band
-immediately after algebraic inversion, before spectral regularisation.
-The diffuse transmittance fraction carries signal from a spatially-averaged
-environmental neighbourhood reflectance:
-</p>
-<pre>
-  T_diff = clip(T_scat &minus; T_dir, 0, T_scat)
-  r_env  = box_filter(r_boa, radius = adj_psf / pixel_size)
-  r_boa += T_diff &times; s_alb &times; (r_boa &minus; r_env) / (1 &minus; s_alb &times; r_env)
-</pre>
-<p>
-<tt>T_dir</tt> is the Beer-Lambert two-way direct transmittance from Rayleigh
-+ aerosol optical depths. <tt>pixel_size=</tt> is auto-detected from the GRASS
-computational region if not given.
+The module can estimate selected atmospheric quantities from bands in the
+input map. It can also apply adjacency, terrain illumination, and surface
+anisotropy corrections. Optional outputs include reflectance uncertainty,
+a quality mask, and the directional area scattering factor (DASF).
 </p>
 
-<h3>#3 &amp; #5 &mdash; Surface prior MAP regularisation (<tt>-r</tt> flag)</h3>
+<h2>OPTIONS</h2>
 
 <p>
-After all bands have been inverted, blends each pixel's retrieved spectrum
-with a <b>3-component Gaussian mixture surface prior</b> (vegetation, soil,
-water) using diagonal-covariance MAP estimation:
-</p>
-<pre>
-  r_map[b] = (r_obs[b] / &sigma;_obs&sup2;[b]  +  r_prior[b] / &sigma;_prior&sup2;[b])
-             / (1/&sigma;_obs&sup2;[b]  +  1/&sigma;_prior&sup2;[b])
-</pre>
-<p>
-Each pixel is classified to the nearest component using VNIR bands
-(0.40&ndash;1.00&nbsp;&micro;m). Prior means are hardcoded reference spectra interpolated
-to the sensor wavelengths; prior variances scale as <tt>(scale &times; mean)&sup2;</tt>
-(vegetation 15&nbsp;%, soil 20&nbsp;%, water 3&nbsp;%). The <tt>-r</tt> flag requires loading
-the full reflectance cube into memory (~400&nbsp;MB for a 426-band Tanager scene).
+The module has two operating forms. With <em>lut</em> only, it computes and
+writes the lookup table. With <em>input</em> and <em>output</em>, it computes
+surface reflectance. Both forms can be used in one invocation.
 </p>
 
-<h3>#4 &mdash; Per-band reflectance uncertainty (<tt>-u</tt> flag)</h3>
-
 <p>
-Computes per-pixel reflectance uncertainty (&sigma;_rfl) for each band from
-two propagated sources:
-</p>
-<ol>
-  <li><b>Instrument noise</b>: NEDL estimated from the standard deviation of
-      the darkest 5&nbsp;% of radiance pixels &rarr; propagated as
-      <tt>&sigma;_noise = &pi; &times; NEDL &times; d&sup2; / (E&sub0; &times; cos &theta;_s &times; T_total)</tt></li>
-  <li><b>AOD uncertainty</b>: LUT evaluated at <tt>aod &plusmn; 0.04</tt>; half the
-      reflectance difference gives &sigma;_aod per pixel.</li>
-</ol>
-<p>Total: <tt>&sigma;_rfl = &radic;(&sigma;_noise&sup2; + &sigma;_aod&sup2;)</tt></p>
-<p>
-When <tt>-r</tt> is also enabled, the uncertainty cube feeds the MAP
-regularisation as &sigma;_obs&sup2;.
+The <em>aod</em> and <em>h2o</em> options define the lookup table axes. The
+wavelength axis is defined by <em>wl_min</em>, <em>wl_max</em>, and
+<em>wl_step</em>. These options use nanometres. The axes should cover the
+atmospheric values and wavelengths in the input map.
 </p>
 
-<h3>#6 &mdash; Model discrepancy noise floor</h3>
-
 <p>
-When both <tt>-u</tt> and <tt>-r</tt> are active, a <b>per-band model discrepancy</b>
-term is added in quadrature to &sigma;_rfl before MAP regularisation.
-It reflects systematic RT model errors:
-</p>
-<ul>
-  <li>Baseline: 0.5&nbsp;% (all bands)</li>
-  <li>Gas absorption band edges (720, 760, 940, 1135, 1380, 1850&nbsp;nm):
-      +2&nbsp;% Gaussian bump (&sigma;&nbsp;=&nbsp;30&nbsp;nm)</li>
-  <li>SWIR &gt;1500&nbsp;nm: +1&nbsp;% (aerosol model uncertainty)</li>
-</ul>
-<p>
-This prevents over-regularisation in bands where the 6SV gas
-parameterisation is least accurate.
+The atmosphere can be represented by one of the standard profiles selected
+with <em>atmosphere</em>. The aerosol model is selected with <em>aerosol</em>.
+When <tt>aerosol=custom</tt> is used, <em>mie_r</em>, <em>mie_sigma</em>,
+<em>mie_mr</em>, and <em>mie_mi</em> define the particle size distribution and
+refractive index.
 </p>
 
-<h2>C LIBRARY API (libgrass_sixsv.so)</h2>
-
 <p>
-<tt>libgrass_sixsv.so</tt> exposes the full 6SV2.1 radiative transfer engine as
-a C library. The following functions were added in the Phase&nbsp;1&ndash;5
-port from the original Fortran code and are available to any caller that
-links against the library.
+Flags <em>-a</em>, <em>-w</em>, and <em>-z</em> estimate AOD, water vapour, and
+ozone from the input map. Flag <em>-p</em> estimates surface pressure from the
+oxygen A band. Flag <em>-e</em> performs a joint AOD and water vapour
+retrieval. These operations require wavelength metadata for the input bands.
+The <em>dem</em> option instead uses mean terrain elevation to set surface
+pressure for lookup table computation.
 </p>
 
-<h3>Atmosphere profiles</h3>
-
 <p>
-Six standard atmosphere models are now fully implemented: US Standard 1962
-(<tt>us62</tt>), Mid-latitude Summer (<tt>midsum</tt>), Mid-latitude Winter
-(<tt>midwin</tt>), Tropical (<tt>tropical</tt>), Sub-arctic Summer
-(<tt>subsum</tt>), and Sub-arctic Winter (<tt>subwin</tt>).
-Select via the <tt>atmosphere=</tt> parameter.
+The <em>slope</em> and <em>aspect</em> raster maps enable terrain illumination
+correction. They must be supplied together. The <em>sun_azimuth</em> option or
+corresponding scene metadata supplies the solar azimuth. Per pixel view
+geometry can be given with <em>view_zenith</em> for terrain path-length
+correction and with <em>view_zenith</em> and <em>view_azimuth</em> for BRDF
+normalization.
 </p>
 
-<h3>Utility functions (Phase 2)</h3>
-
-<pre>
-/* Solar zenith and azimuth from date / location / time */
-void sixs_possol(int month, int jday, float tu,
-                 float xlon, float xlat,
-                 float *asol, float *phi0, int ia);
-
-/* Chandrasekhar analytical Rayleigh reflectance */
-float sixs_chand(float xphi, float xmuv, float xmus, float xtau);
-
-/* Vermote environmental adjacency weighting factors */
-void sixs_enviro(float difr, float difa, float r, float palt,
-                 float xmuv,
-                 float *fra, float *fae, float *fr);
-</pre>
-
-<h3>Aerosol vertical profile and surface pressure (Phase 3)</h3>
-
-<pre>
-/* Fill ctx-&gt;aerprof with an exponential aerosol layer profile */
-void sixs_aeroprof(SixsCtx *ctx, float aod550, float ome,
-                   float haa, float alt);
-
-/* Trim the atmosphere profile to a surface pressure (hPa &gt; 0)
-   or altitude (km, passed as negative value) */
-void sixs_pressure(SixsCtx *ctx, float sp);
-
-/* As above but also returns the trimmed H2O and O3 columns */
-void sixs_pressure_columns(SixsCtx *ctx, float sp,
-                            float *uw, float *uo3);
-</pre>
-
-<h3>Custom Mie aerosol (Phase 4)</h3>
-
-<pre>
-/* Compute aerosol single-scattering properties for a log-normal
-   size distribution via Bohren&ndash;Huffman Mie scattering.
-   Fills ctx-&gt;aer (ext/sca/phase at 20 reference wavelengths). */
-void sixs_mie_init(SixsCtx *ctx,
-                   double r_mode,   /* mode radius &micro;m         */
-                   double sigma_g,  /* geometric std dev       */
-                   double m_r_550,  /* real refractive index   */
-                   double m_i_550); /* imaginary ref. index    */
-</pre>
-
 <p>
-Set <tt>LutConfig.aerosol_type = AEROSOL_CUSTOM</tt> (value 9) and call
-<tt>sixs_mie_init()</tt> on the per-thread context before computing the LUT
-to use a custom particle size distribution.
-</p>
-<p>
-<b>From the GRASS module</b>, use <tt>aerosol=custom</tt> with the four companion
-options instead of coding against the C&nbsp;API:
-</p>
-<pre>
-  aerosol=custom  mie_r=0.10  mie_sigma=1.50  mie_mr=1.50  mie_mi=0.015
-</pre>
-<table>
-<tr><th>Type</th><th>r_mode (&micro;m)</th><th>&sigma;<sub>g</sub></th>
-    <th>n<sub>r</sub></th><th>n<sub>i</sub></th>
-    <th>&Aring;ngstr&ouml;m &alpha;</th><th>SSA</th></tr>
-<tr><td>Kanpur urban/pollution (AERONET fine)</td>
-    <td>0.10</td><td>1.50</td><td>1.50</td><td>0.015</td><td>~1.8</td><td>~0.91</td></tr>
-<tr><td>Biomass burning</td>
-    <td>0.12</td><td>1.60</td><td>1.54</td><td>0.025</td><td>~1.6</td><td>~0.87</td></tr>
-<tr><td>Continental mineral dust</td>
-    <td>0.07</td><td>2.00</td><td>1.53</td><td>0.008</td><td>~0.3</td><td>~0.97</td></tr>
-<tr><td>Clean marine</td>
-    <td>0.10</td><td>1.45</td><td>1.38</td><td>0.001</td><td>~1.0</td><td>~0.99</td></tr>
-</table>
-<p>
-Fine-mode aerosol (small r<sub>mode</sub>) gives a high &Aring;ngstr&ouml;m
-exponent &alpha; and thus substantially more path radiance in the blue bands
-compared with the default continental model (&alpha;&asymp;0.5 from 70&nbsp;% coarse dust).
+The <em>brdf_fiso</em>, <em>brdf_fvol</em>, and <em>brdf_fgeo</em> raster maps
+enable nadir BRDF adjusted reflectance normalization. All three maps are
+required. The <em>mcd43_fiso</em>, <em>mcd43_fvol</em>, and
+<em>mcd43_fgeo</em> options provide spectral MCD43 kernel weights. These three
+options must also be supplied together.
 </p>
 
-<h3>BRDF surface models (Phase 5) and BRDF-RT coupling</h3>
-
-<pre>
-#include "brdf.h"
-
-/* Evaluate BRDF at a single (SZA, VZA, RAA) point */
-float sixs_brdf_eval(BrdfType type, const BrdfParams *params,
-                     float cos_sza, float cos_vza, float raa_deg);
-
-/* Bihemispherical (white-sky) albedo by midpoint quadrature.
- * n_phi=48, n_theta=24 gives &lt; 0.1 % error. */
-float sixs_brdf_albe(BrdfType type, const BrdfParams *params,
-                     float cos_sza, int n_phi, int n_theta);
-</pre>
-
-<p>Available <tt>BrdfType</tt> models:</p>
-<table>
-<tr><th>Value</th><th>Name</th><th>Description</th></tr>
-<tr><td>0</td><td>BRDF_LAMBERTIAN</td><td>Isotropic Lambertian (single &rho;₀ parameter)</td></tr>
-<tr><td>1</td><td>BRDF_RAHMAN</td><td>Rahman&ndash;Pinty&ndash;Verstraete (RPV) &mdash; &rho;₀, k, &Theta;</td></tr>
-<tr><td>2</td><td>BRDF_ROUJEAN</td><td>Roujean volumetric kernel &mdash; k0, k1, k2</td></tr>
-<tr><td>3</td><td>BRDF_HAPKE</td><td>Hapke canopy model &mdash; &omega;, b, c, h</td></tr>
-<tr><td>4</td><td>BRDF_OCEAN</td><td>Cox&ndash;Munk glint + whitecaps + water body</td></tr>
-<tr><td>5</td><td>BRDF_WALTHALL</td><td>Walthall polynomial &mdash; a0, a1, a2, a3</td></tr>
-<tr><td>6</td><td>BRDF_MINNAERT</td><td>Minnaert limb-darkening &mdash; exponent k</td></tr>
-<tr><td>7</td><td>BRDF_VERSFELD</td><td>Versfeld (stub &mdash; returns 0)</td></tr>
-<tr><td>8</td><td>BRDF_IAPI</td><td>IAPI canopy (stub &mdash; returns 0)</td></tr>
-<tr><td>9</td><td>BRDF_ROSSLIMAIGNAN</td><td>Ross&ndash;Li + Maignan hot-spot &mdash; fiso, fvol, fgeo, h_ratio</td></tr>
-</table>
-
 <p>
-<b>BRDF&ndash;RT coupling</b> is enabled via the <tt>brdf=</tt> and
-<tt>brdf_params=</tt> options.  DISCOM always runs with a black lower
-boundary; the BRDF model is applied only in the inversion formula.
-For Lambertian surfaces (default) the standard <tt>atcorr_invert()</tt>
-path is unchanged.  For non-Lambertian surfaces
-<tt>atcorr_invert_brdf()</tt> substitutes the bihemispherical (white-sky)
-albedo &rho;&macr; in the atmospheric coupling denominator:
-</p>
-<pre>
-  y       = (&rho;_toa &minus; R_atm) / (T_down &times; T_up)
-  &rho;_brdf = y &times; (1 &minus; s_alb &times; &rho;&macr;)
-</pre>
-<p>
-&rho;&macr; is computed once per scene via 48&nbsp;&times;&nbsp;24 midpoint
-hemisphere quadrature.  The output is the bidirectional reflectance factor
-(BRF) at the acquisition geometry.
-</p>
-
-<h2>POLARIZATION OPTIONS</h2>
-<dl>
-<dt><b>-P</b></dt>
-<dd>Enable <b>vector (Stokes I, Q, U) radiative transfer</b> via
-<tt>sixs_ospol()</tt> instead of the scalar <tt>sixs_os()</tt>.
-When active, the atmospheric path reflectance R_atm is computed including
-Rayleigh polarisation feedback, improving accuracy by 1&ndash;5&nbsp;% in
-the blue/UV bands.
-</dd>
-</dl>
-
-<h3>Physics</h3>
-<p>
-Rayleigh scattering is inherently polarised: photons scattered at 90&deg; can
-be up to 100&nbsp;% linearly polarised.  The coupling between Q/U Stokes
-components and intensity <em>I</em> raises the apparent path reflectance R_atm
-by roughly 4&ndash;5&nbsp;% at 400&nbsp;nm, decreasing to &lt;&nbsp;0.5&nbsp;%
-beyond 860&nbsp;nm.  Aerosol scattering (assumed spherical) contributes a
-smaller correction because the phase-matrix off-diagonal terms are near zero.
-</p>
-
-<h3>Additional LUT outputs</h3>
-<p>
-When <tt>-P</tt> is set, <tt>LutArrays</tt> carries two extra arrays with the
-same <tt>[n_aod &times; n_h2o &times; n_wl]</tt> layout as <tt>R_atm</tt>:
-</p>
-<table>
-<tr><th>Field</th><th>Description</th></tr>
-<tr><td><tt>R_atmQ</tt></td><td>Q Stokes component of path reflectance</td></tr>
-<tr><td><tt>R_atmU</tt></td><td>U Stokes component of path reflectance</td></tr>
-</table>
-
-<h3>Example correction magnitudes (SZA 30&deg;, VZA 5&deg;, RAA 90&deg;)</h3>
-<table>
-<tr><th>Band</th><th>R_atm scalar</th><th>R_atm vector</th><th>R_atmQ</th><th>R_atmU</th></tr>
-<tr><td>400&nbsp;nm</td><td>0.140</td><td>0.147 (+4.6&nbsp;%)</td><td>+0.016</td><td>&minus;0.005</td></tr>
-<tr><td>450&nbsp;nm</td><td>0.093</td><td>0.097 (+3.8&nbsp;%)</td><td>+0.011</td><td>&minus;0.003</td></tr>
-<tr><td>550&nbsp;nm</td><td>0.043</td><td>0.044 (+2.3&nbsp;%)</td><td>+0.005</td><td>&minus;0.002</td></tr>
-<tr><td>660&nbsp;nm</td><td>0.020</td><td>0.020 (+1.3&nbsp;%)</td><td>+0.002</td><td>&minus;0.001</td></tr>
-<tr><td>860&nbsp;nm</td><td>0.006</td><td>0.006 (+0.4&nbsp;%)</td><td>+0.001</td><td>0.000</td></tr>
-</table>
-
-<h3>Surface polarisation models</h3>
-<p>
-Two surface polarisation forward models are included (available via
-<tt>libgrass_sixsv.so</tt>):
-</p>
-<ul>
-<li><b>POLGLIT</b> (<tt>libsixsv/src/polglit.c</tt>) &mdash; Cox&ndash;Munk ocean glint
-    polarisation; anisotropic Gaussian wave-facet distribution with Fresnel
-    reflection (m&nbsp;=&nbsp;1.33); wind-direction-dependent.</li>
-<li><b>POLNAD</b> (<tt>libsixsv/src/polglit.c</tt>) &mdash; Nadal&ndash;Br&eacute;on
-    vegetation/soil model; Fresnel polarisation (N&nbsp;=&nbsp;1.5); linear
-    mix of vegetation and soil contributions.</li>
-</ul>
-
-<h3>C API</h3>
-<pre>
-  cfg.enable_polar = 1;
-
-  size_t lut_sz = n_aod * n_h2o * n_wl;
-  float *R_atmQ = calloc(lut_sz, sizeof(float));
-  float *R_atmU = calloc(lut_sz, sizeof(float));
-
-  LutArrays lut = { R_atm, T_down, T_up, s_alb, NULL,
-                    R_atmQ, R_atmU };
-  atcorr_compute_lut(&amp;cfg, &amp;lut);
-</pre>
-
-<h3>Performance note</h3>
-<p>
-<tt>sixs_ospol()</tt> propagates a 3&times;3 M&uuml;ller matrix at each
-quadrature point: vector RT is approximately <b>3&times; slower</b> than
-scalar RT.  The flag is most useful for blue/UV validation or high-accuracy
-research applications.
-</p>
-
-<h3>Implementation notes</h3>
-<ul>
-<li><tt>libsixsv/src/ospol.c</tt> &mdash; port of 6SV2.1 <tt>OSPOL.f</tt></li>
-<li><tt>libsixsv/src/kernelpol.c</tt> &mdash; port of 6SV2.1 <tt>KERNELPOL.f</tt></li>
-<li><tt>libsixsv/src/polglit.c</tt> &mdash; port of <tt>POLGLIT.f</tt> + <tt>POLNAD.f</tt></li>
-<li><tt>libsixsv/src/interp.c:sixs_interp_polar()</tt> &mdash; linear interpolation
-    for Q/U (not log&ndash;log, because Q/U can be negative)</li>
-<li>After modifying <tt>libsixsv/include/sixs_ctx.h</tt> always run
-    <tt>make clean &amp;&amp; make</tt> in <tt>~/dev/libsixsv/</tt> &mdash;
-    the Makefile has no automatic header-dependency tracking; a stale
-    <tt>SixsDisc</tt> layout causes a segfault in <tt>sixs_gauss</tt></li>
-</ul>
-
-<h2>IMAGE-BASED RETRIEVAL OPTIONS</h2>
-<p>
-<em>i.hyper.atcorr</em> can estimate the atmospheric state parameters directly from
-the input hyperspectral cube using the flags <tt>-a</tt>, <tt>-w</tt>, <tt>-z</tt>
-and the <tt>dem=</tt> option, making the module fully standalone.  Retrievals
-run before LUT computation so that retrieved O<sub>3</sub> and surface pressure
-update the LUT; retrieved AOD and H<sub>2</sub>O are used as per-pixel maps.
-</p>
-
-<h3>O<sub>3</sub> from Chappuis band depth (<tt>-z</tt>)</h3>
-<p>
-Scene-mean ozone column is estimated from the Chappuis absorption feature at
-~600&nbsp;nm by continuum interpolation between 540 and 680&nbsp;nm:
-</p>
-<pre>
-  L_cont = linear_interp(L_540, L_680) at 600 nm
-  D      = max(0, 1 &minus; L_600 / L_cont)
-  O3     = D / (&sigma;&sub6;&sub0;&sub0; &times; m)    &sigma;&sub6;&sub0;&sub0; &asymp; 1.0&times;10&sup;&minus;&sup4; DU&sup;&minus;&sup1;
-</pre>
-
-<h3>Column water vapour &mdash; multi-band consensus (<tt>-w</tt>)</h3>
-<p>
-Per-pixel WVC is estimated from three H<sub>2</sub>O absorption features
-using the Kaufman &amp; Gao (1992) continuum interpolation,
-with FWHM power-law scaling (K&nbsp;&prop;&nbsp;FWHM<sup>&minus;0.78</sup>):
-</p>
-<table>
-<tr><th>Feature</th><th>Triplet (lo / feat / hi)</th>
-    <th>K<sub>ref</sub> (cm&sup2;/g)</th><th>fwhm<sub>ref</sub></th>
-    <th>K at 5&nbsp;nm FWHM</th><th>Valid D range</th></tr>
-<tr><td>720&nbsp;nm</td><td>700 / 720 / 740&nbsp;nm</td>
-    <td>0.0077</td><td>60&nbsp;nm</td><td>0.054</td><td>0.02&ndash;0.60</td></tr>
-<tr><td>940&nbsp;nm</td><td>865 / 941 / 1042&nbsp;nm</td>
-    <td>0.036</td><td>50&nbsp;nm</td><td>0.217</td><td>0.05&ndash;0.90</td></tr>
-<tr><td>1135&nbsp;nm</td><td>1100 / 1135 / 1175&nbsp;nm</td>
-    <td>0.0376</td><td>45&nbsp;nm</td><td>0.209</td><td>0.05&ndash;0.85</td></tr>
-</table>
-<pre>
-  L_cont = L_lo*(1-FRAC) + L_hi*FRAC    FRAC = (wl_feat-wl_lo)/(wl_hi-wl_lo)
-  D      = max(0, 1 - L_feat/L_cont)
-  K      = K_ref * (fwhm_ref/fwhm)^0.78    (FWHM power-law scaling, alpha=0.78)
-  WVC    = D / (K * m)                      m = 1/cos(sza) + 1/cos(vza)
-</pre>
-<p>
-The per-pixel consensus is the median of valid feature estimates
-(D within the stated range). Pixels where no feature is valid receive
-the scene-mean fallback (2.0&nbsp;g/cm&sup2;).
-</p>
-
-<h3>AOD from Dark Dense Vegetation (<tt>-a</tt>)</h3>
-<p>
-Per-pixel AOD is estimated from DDV pixels (Kaufman et al. 1997).
-DDV selection: 0.01 &lt; &rho;_toa(2130) &lt; 0.25 and NDVI(860,660) &gt; 0.1.
-Surface prediction: &rho;_surf_470 = 0.25&times;&rho;_2130, &rho;_surf_660 = 0.50&times;&rho;_2130.
-Single-scattering inversion using Henyey-Greenstein phase function (g=0.65, &omega;&sub0;=0.89),
-scaled to 550&nbsp;nm via the &Aring;ngstr&ouml;m exponent from the 470/660&nbsp;nm pair.
-Non-DDV pixels receive the scene-mean AOD.
-</p>
-
-<h3>Surface pressure from DEM (<tt>dem=</tt>)</h3>
-<p>
-The scene-mean terrain elevation from a 2-D raster is converted to surface
-pressure using the ISA barometric formula:
-<tt>P = 1013.25 &times; (1 &minus; 2.2558&times;10<sup>&minus;5</sup> &times; h)<sup>5.2559</sup></tt>&nbsp;hPa.
+Flag <em>-u</em> computes reflectance uncertainty. The result is written when
+<em>uncertainty</em> is specified. Flag <em>-m</em> computes the quality mask
+written with <em>quality</em>. Flag <em>-D</em> computes DASF and writes it with
+<em>dasf</em>. Flag <em>-r</em> applies surface prior regularisation and
+requires the complete reflectance cube to be held in memory.
 </p>
 
 <h2>NOTES</h2>
 
-<h3>libRadtran — runtime-optional dependency</h3>
-
 <p>
-<tt>grass_sixsv</tt> has <b>no compile-time dependency on libRadtran</b>.
-The library builds and links without it installed.
-</p>
-<p>
-At runtime, <tt>grass_sixsv</tt> can optionally call the <b>uvspec</b>
-binary from <a href="http://www.libradtran.org">libRadtran</a> (via a
-<tt>popen()</tt> subprocess) inside <tt>atcorr_srf_compute()</tt> to
-apply a spectral-response-function (SRF) gas-transmittance correction.
-This path is relevant only for hyperspectral sensors with narrow bands
-(FWHM&nbsp;&le;&nbsp;5&nbsp;nm, e.g. DESIS, PRISMA, EMIT).
-</p>
-<p>
-If <tt>uvspec</tt> is not found on <tt>$PATH</tt>,
-<tt>atcorr_srf_compute()</tt> returns <tt>NULL</tt> gracefully and logs a
-warning to <tt>stderr</tt>.  Atmospheric correction continues without SRF
-convolution.  No crash or fatal error occurs.
-</p>
-<p>
-To enable SRF correction, install libRadtran and ensure the <tt>uvspec</tt>
-binary is on <tt>$PATH</tt> (or set <tt>LIBRADTRAN_BIN</tt> to its
-directory).
+The input must contain calibrated spectral radiance. Per-nanometre and
+per-micrometre radiance units in the hyperspectral metadata are supported.
+Reflectance input is not supported. Output reflectance is limited
+to the interval from -0.01 to 1.5. If radiometric units are absent, the module
+warns and assumes radiance per micrometre.
 </p>
 
-<h3>LUT file format</h3>
 <p>
-The binary file is host-endian (little-endian on x86) and has the
-following layout:
-</p>
-<pre>
-  magic     uint32   0x4C555400 ("LUT\0")
-  version   uint32   1
-  n_aod     int32
-  n_h2o     int32
-  n_wl      int32
-  aod[n_aod]          float32
-  h2o[n_h2o]          float32
-  wl [n_wl]           float32   (micrometres)
-  R_atm [n_aod*n_h2o*n_wl]   float32
-  T_down[n_aod*n_h2o*n_wl]   float32
-  T_up  [n_aod*n_h2o*n_wl]   float32
-  s_alb [n_aod*n_h2o*n_wl]   float32
-</pre>
-<p>
-Array indexing is C order: the wavelength index varies fastest.
-Typical size: ~4&nbsp;MB for 6&nbsp;AOD &times; 5&nbsp;H<sub>2</sub>O &times; 211&nbsp;wavelengths.
+Band centre wavelengths are read from hyperspectral metadata managed by
+<em><a href="i.hyper.metadata.html">i.hyper.metadata</a></em>. The module can
+also read band entries in 3D raster history in the form
+<tt>Band N: WL nm</tt>. Band width metadata is used by operations which
+account for the spectral response. Metadata wavelengths may use nm, um, or
+cm-1 and are converted internally to micrometres. Image based retrievals
+require suitable bands within the spectral range of the input.
 </p>
 
-<h3>Radiative transfer</h3>
 <p>
-The RT solver is a direct C port of the 6SV2.1 Fortran code (Vermote
-et&nbsp;al. 1997). Scattering is computed via the Successive Orders of
-Scattering (SOS) method with Gauss&ndash;Legendre quadrature (25 points
-per hemisphere, 30 atmospheric layers). Gas absorption (H<sub>2</sub>O,
-O<sub>3</sub>, CO<sub>2</sub>, O<sub>2</sub>, N<sub>2</sub>O, CH<sub>4</sub>)
-is computed separately and folded into T_down and T_up so that the
-scattering LUT only needs to be computed once per AOD value.
+Scene geometry and atmospheric values are resolved in the following order:
+command line option, input map metadata, and module default. Solar zenith is
+required when it is not present in the metadata. Command line values override
+metadata values.
 </p>
 
-<h3>OpenMP parallelism</h3>
 <p>
-Each AOD grid point is independent and is computed in a separate OpenMP
-thread. On a 4-core machine a 6&nbsp;AOD&nbsp;&times;&nbsp;5&nbsp;H<sub>2</sub>O&nbsp;&times;&nbsp;211&nbsp;band
-LUT takes approximately one second. The Gaussian spatial filter, adjacency
-correction, uncertainty computation, and MAP regularisation all use
-additional OpenMP parallel regions.
+The day of year must be between 1 and 365. It is used for the Earth to Sun
+distance correction. The solar and view angles must describe the acquisition
+geometry of the input map.
 </p>
 
-<h3>Cube correction memory</h3>
 <p>
-When <tt>-r</tt> is active, the full reflectance cube is held in memory for
-MAP regularisation. Memory usage is approximately
-<tt>n_bands &times; n_pixels &times; 4</tt>&nbsp;bytes. For a 426-band Tanager scene
-with a typical 640&nbsp;&times;&nbsp;480 tile this is about 400&nbsp;MB.
-When <tt>-r</tt> is not set, bands are written to the output 3D raster
-immediately after inversion.
+The lookup table axes should include the expected AOD and water vapour
+values. Values outside an axis are limited to the nearest table boundary.
+A finer table increases computation and memory use.
 </p>
 
-<h3>Band wavelength metadata</h3>
 <p>
-When correcting a 3D raster cube the module auto-reads band wavelengths
-from <tt>r3.info -h</tt> metadata in the format <tt>Band N: WL nm</tt>.
-Make sure this metadata is present in the input cube.
+The 2D ancillary raster maps are read in the current computational region.
+Set the region to the horizontal extent and resolution of the input 3D raster
+map before running the module. Null radiance cells remain null in the output.
+Non-positive radiance cells and bands with round-trip transmittance below 0.10
+are also written as null.
+</p>
+
+<p>
+The <em>lut</em> file records the table computed by the current invocation. It
+is an output file and is not read by this module. Information about the file
+format, the radiative transfer implementation, and library interfaces is
+available from the reference implementation listed below.
+</p>
+
+<p>
+Surface prior regularisation, uncertainty calculation, DASF retrieval, and
+some image based retrievals need additional arrays for the complete scene.
+Memory use therefore increases with the number of cells and bands.
 </p>
 
 <h2>EXAMPLES</h2>
 
 <p>
-Each example first generates a LUT and then applies it to correct a
-3D raster radiance cube. Scene geometry, atmosphere, and aerosol type are
-chosen to reflect realistic acquisition conditions for the land cover and
-climate zone described.
+The following command computes a lookup table without correcting a 3D raster
+map:
 </p>
 
-<p><b>Image-based retrieval quick reference</b> &mdash; which flags / options to activate per scene:</p>
-<table border="1" cellpadding="4" cellspacing="0">
-<tr><th>Example</th><th>Flags / options</th><th>Rationale</th></tr>
-<tr><td>1. Saharan dust</td><td><tt>-z dem=</tt></td><td>No DDV (barren desert); dry uniform H<sub>2</sub>O; O<sub>3</sub> and elevation matter</td></tr>
-<tr><td>2. Amazon</td><td><tt>-z -w -a</tt></td><td>Dense forest = ideal DDV; ~4 g/cm&sup2; WVC gradient; low tropical O<sub>3</sub></td></tr>
-<tr><td>3. Paris winter</td><td><tt>-z -a</tt></td><td>Variable O<sub>3</sub> (polar vortex); farmland DDV; dry winter air</td></tr>
-<tr><td>4. Mediterranean</td><td><tt>-w -a</tt></td><td>Land&ndash;sea H<sub>2</sub>O gradient; coastal DDV; stable O<sub>3</sub></td></tr>
-<tr><td>5. Sweden winter</td><td><tt>-z</tt></td><td>Polar O<sub>3</sub> enhancement at SZA=78&deg;; snow = no DDV; very dry</td></tr>
-<tr><td>6. Yukon summer</td><td><tt>-z -w -a dem=</tt></td><td>All four: boreal DDV + tundra WVC gradient + variable O<sub>3</sub> + elevation</td></tr>
-<tr><td>10. Alps terrain</td><td><tt>slope= aspect= sun_azimuth=</tt></td><td>N/S slopes differ 10&times; in direct irradiance; T<sub>down</sub> split into direct/diffuse</td></tr>
-<tr><td>11. Sahel NBAR</td><td><tt>brdf_fiso= brdf_fvol= brdf_fgeo=</tt> + <tt>view_zenith= view_azimuth=</tt></td><td>Wide-swath off-nadir sensor; NBAR removes cross-track BRF view-angle variation</td></tr>
-<tr><td>12. O<sub>2</sub>-A pressure</td><td><tt>-p quality=</tt></td><td>Mountainous scene; per-pixel pressure and pre-correction masking</td></tr>
-<tr><td>13. MAIAC patch AOD</td><td><tt>-a maiac_patch=</tt></td><td>Dense vegetation; spatial patch regularization of DDV outliers</td></tr>
-<tr><td>14. Joint OE</td><td><tt>-e -w oe_sigma_aod=</tt></td><td>Most accurate simultaneous AOD+H<sub>2</sub>O inversion; supersedes -a and -w</td></tr>
-<tr><td>15. FlexBRDF NBAR</td><td><tt>mcd43_fiso= mcd43_fvol= mcd43_fgeo= mcd43_alpha=</tt></td><td>Spectrally-varying NBAR across 400&ndash;2500&nbsp;nm from MCD43 disaggregation + Tikhonov smoothing</td></tr>
-<tr><td>16. DASF retrieval</td><td><tt>-D dasf=</tt></td><td>Canopy structure factor from 710&ndash;790&nbsp;nm NIR plateau regression; NDVI-masked to vegetation</td></tr>
-<tr><td>17. C API</td><td><tt>mcd43_disaggregate()</tt> / <tt>retrieve_dasf()</tt></td><td>FlexBRDF + DASF from C via <tt>#include "libsixsv/include/spectral_brdf.h"</tt></td></tr>
-</table>
-
-<h3>1. Saharan dust storm (desert, tropical atmosphere)</h3>
-
-<p>
-<b>Scene</b>: Algeria, March (DOY 90). High-sun geometry, extremely dry air,
-heavy mineral dust load (AOD can exceed 2 during events).
-</p>
-<pre>
-# LUT: wide AOD range to cover moderate and heavy dust episodes
-i.hyper.atcorr \
-    lut=sahara_dust.lut \
-    sza=40 vza=5 raa=150 \
-    atmosphere=tropical aerosol=desert ozone=280 \
-    aod=0.05,0.2,0.5,1.0,2.0,3.0 \
-    h2o=0.2,0.5,1.0,1.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Correction with scalar state from an external MODIS dust product
-i.hyper.atcorr \
-    input=algeria_radiance output=algeria_refl \
-    lut=sahara_dust.lut \
-    sza=40 vza=5 raa=150 doy=90 \
-    aod_val=0.85 h2o_val=0.4 \
-    atmosphere=tropical aerosol=desert
-
-# Image-based O3 retrieval (-z) + ISA pressure from DEM.
-# -a omitted: barren desert has no DDV-eligible vegetation pixels.
-# -w omitted: Saharan H2O &lt; 1.5 g/cm2 is spatially uniform; scalar sufficient.
-i.hyper.atcorr -z \
-    input=algeria_radiance output=algeria_refl \
-    lut=sahara_dust_auto.lut \
-    sza=40 vza=5 raa=150 doy=90 \
-    atmosphere=tropical aerosol=desert \
-    dem=srtm_dem \
-    aod=0.05,0.2,0.5,1.0,2.0,3.0 h2o=0.2,0.5,1.0,1.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why <tt>atmosphere=tropical</tt></b>: The tropical profile has the highest
-near-surface temperature and pressure, better matching hot Saharan conditions
-than the US62 standard. Desert aerosol uses the Shettle/Fenn mineral dust
-optical model (strongly wavelength-dependent: high AOD in blue, flatter in
-NIR). The narrow H<sub>2</sub>O grid (0.2&ndash;1.5 g/cm&sup2;) reflects
-the extremely low precipitable water of the Sahara.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-z</tt> retrieves scene-mean O<sub>3</sub> from
-the Chappuis absorption band centred at 600 nm. Tropical stratospheric
-O<sub>3</sub> deviates &plusmn;30&ndash;50 DU from the 280 DU prior,
-introducing a systematic tilt in the 540&ndash;700 nm reflectance if
-uncorrected. <tt>dem=</tt> replaces the default 1013.25 hPa with the ISA
-formula at the mean terrain elevation; elevated desert plateaux
-(e.g. Hoggar massif, ~2&thinsp;000 m, P &asymp; 795 hPa) have ~20&nbsp;%
-lower Rayleigh optical depth than sea level. <tt>-a</tt> and <tt>-w</tt>
-are omitted: barren desert has no DDV vegetation, and Saharan WVC is
-spatially uniform enough for the scalar prior.
-</p>
-
-<h3>2. Tropical rainforest (Amazon, high humidity)</h3>
-
-<p>
-<b>Scene</b>: Par&aacute; state, Brazil, September (DOY 270). Near-overhead
-sun, very high water vapour, background biogenic aerosol.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=amazon.lut \
-    sza=28 vza=0 raa=0 \
-    atmosphere=tropical aerosol=continental ozone=260 \
-    aod=0.03,0.08,0.15,0.30,0.50 \
-    h2o=3.5,4.5,5.5,6.5,7.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Correction with scalar state (typical wet-season baseline)
-i.hyper.atcorr \
-    input=amazon_radiance output=amazon_refl \
-    lut=amazon.lut \
-    sza=28 vza=0 raa=0 doy=270 \
-    aod_val=0.10 h2o_val=5.5 \
-    atmosphere=tropical aerosol=continental
-
-# Image-based retrieval: per-pixel H2O (-w) + per-pixel AOD (-a) + O3 (-z).
-# Dense tropical forest is an ideal DDV target (NDVI &gt; 0.8, rho_2130 ~0.05-0.12).
-i.hyper.atcorr -z -w -a \
-    input=amazon_radiance output=amazon_refl \
-    lut=amazon_auto.lut \
-    sza=28 vza=0 raa=0 doy=270 \
-    atmosphere=tropical aerosol=continental \
-    aod=0.03,0.08,0.15,0.30,0.50 h2o=3.5,4.5,5.5,6.5,7.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why high H<sub>2</sub>O grid</b>: Precipitable water in tropical Amazonia
-routinely exceeds 5 g/cm&sup2;. Extending the H<sub>2</sub>O LUT axis above
-the default 5 g/cm&sup2; prevents extrapolation error in the 940 nm and
-1135 nm water vapour bands, where transmittance is highly nonlinear.
-Continental aerosol represents the Aitken-mode biogenic VOC particles typical
-of the clean wet season.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-w</tt> retrieves per-pixel WVC from the
-940 nm band depth; the continental Amazon spans a ~4 g/cm&sup2; WVC gradient
-at any given overpass, causing a 5&ndash;12&nbsp;% NIR reflectance error if a
-single scalar is used. <tt>-a</tt> exploits dense forest as a DDV target
-(&rho;<sub>2130</sub> &asymp; 0.05&ndash;0.12, NDVI &gt; 0.8); per-pixel AOD
-from the 470/660 nm pair captures smoke plumes from fire fronts at the forest
-edge. <tt>-z</tt> retrieves the tropical O<sub>3</sub> column, which is
-~10&ndash;15 DU lower than the mid-latitude standard, preventing a systematic
-blue/green reflectance bias.
-</p>
-
-<h3>3. Urban temperate mid-winter (continental pollution)</h3>
-
-<p>
-<b>Scene</b>: Paris region, France, January (DOY 15). Low sun, cold and dry
-air, traffic and heating fuel combustion aerosol, possible anticyclone
-pollution build-up.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=paris_winter.lut \
-    sza=72 vza=5 raa=120 \
-    atmosphere=midwin aerosol=urban ozone=330 \
-    aod=0.05,0.15,0.30,0.60,1.00 \
-    h2o=0.2,0.4,0.7,1.0 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Correction with scalar state + uncertainty output
-i.hyper.atcorr -u \
-    input=paris_radiance output=paris_refl \
-    lut=paris_winter.lut \
-    sza=72 vza=5 raa=120 doy=15 \
-    aod_val=0.35 h2o_val=0.5 \
-    atmosphere=midwin aerosol=urban \
-    uncertainty=paris_refl_unc
-
-# Image-based O3 retrieval (-z) + DDV AOD from suburban farmland (-a).
-# -w omitted: Paris in January has H2O ~0.2-0.7 g/cm2; scalar is adequate.
-i.hyper.atcorr -z -a -u \
-    input=paris_radiance output=paris_refl \
-    lut=paris_winter_auto.lut \
-    sza=72 vza=5 raa=120 doy=15 \
-    atmosphere=midwin aerosol=urban \
-    uncertainty=paris_refl_unc \
-    aod=0.05,0.15,0.30,0.60,1.00 h2o=0.2,0.4,0.7,1.0 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why <tt>atmosphere=midwin</tt> + <tt>aerosol=urban</tt></b>: Mid-latitude
-winter profiles have lower water vapour scale heights and a strong temperature
-inversion that traps pollution. Urban aerosol contains soot and sulfate
-(higher single-scattering absorption, lower SSA than continental), making the
-path radiance correction in the visible bands significantly larger than for
-clean rural air. The <tt>-u</tt> flag propagates AOD uncertainty (&plusmn;0.04)
-into the reflectance product, important here because high SZA inflates the
-atmospheric path radiance sensitivity.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-z</tt> retrieves scene-mean O<sub>3</sub> from
-the Chappuis band; winter mid-latitude O<sub>3</sub> over France ranges
-300&ndash;380 DU depending on quasi-biennial oscillation phase and polar
-vortex proximity &mdash; a &plusmn;40 DU offset biases 540&ndash;700 nm
-reflectance by ~0.5&nbsp;% at SZA=72&deg;. <tt>-a</tt> retrieves per-pixel
-AOD using DDV pixels in the agricultural Beauce plain south of Paris (winter
-wheat fields, NDVI ~0.3&ndash;0.5); the urban AOD gradient from city centre to
-rural fringe spans 0.1&ndash;0.5, so per-pixel retrieval significantly improves
-the correction over suburban areas. <tt>-w</tt> is omitted: mid-winter WVC
-over northern France is low (0.2&ndash;0.7 g/cm&sup2;) and spatially uniform.
-</p>
-
-<h3>4. Coastal temperate mid-summer (maritime aerosol, adjacency correction)</h3>
-
-<p>
-<b>Scene</b>: Gulf of Lion, Mediterranean, July (DOY 200). Clean marine air;
-land-sea boundary requires adjacency correction.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=mediterranean.lut \
-    sza=22 vza=0 raa=0 \
-    atmosphere=midsum aerosol=maritime ozone=315 \
-    aod=0.02,0.06,0.12,0.20,0.30 \
-    h2o=1.5,2.5,3.5,4.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Per-pixel atmospheric maps from external products + adjacency correction
-i.hyper.atcorr -u -r \
-    input=med_radiance output=med_refl \
-    lut=mediterranean.lut \
-    sza=22 vza=0 raa=0 doy=200 \
-    atmosphere=midsum aerosol=maritime \
-    aod_map=maiac_aod h2o_map=mod05_wvc \
-    smooth=2 \
-    adj_psf=0.5 \
-    uncertainty=med_refl_unc
-
-# Image-based alternative: per-pixel H2O (-w) + DDV AOD (-a) from coastal
-# vegetation replace the external MAIAC and MOD05 maps.
-# -z omitted: Mediterranean O3 (310-320 DU) is stable; scalar reliable.
-i.hyper.atcorr -w -a -u -r \
-    input=med_radiance output=med_refl \
-    lut=med_auto.lut \
-    sza=22 vza=0 raa=0 doy=200 \
-    atmosphere=midsum aerosol=maritime \
-    smooth=2 adj_psf=0.5 \
-    uncertainty=med_refl_unc \
-    aod=0.02,0.06,0.12,0.20,0.30 h2o=1.5,2.5,3.5,4.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why adjacency correction matters here</b>: At a land-sea boundary the
-bright land signal bleeds into adjacent water pixels through atmospheric
-forward scattering; the diffuse transmittance fraction (~10&ndash;20&nbsp;%
-for maritime aerosol at 550 nm) carries the environmental mean reflectance.
-<tt>adj_psf=0.5 km</tt> accounts for the typical 500 m scattering radius for
-clean marine conditions. Maritime aerosol has low absorption (SSA &asymp; 0.98)
-and coarse sea-salt particles that produce strong forward scattering &mdash; the
-adjacency radius is larger than for fine-mode aerosol at equivalent AOD.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-w</tt> retrieves per-pixel WVC from 940 nm;
-the Mediterranean in July has a strong land&ndash;sea H<sub>2</sub>O gradient
-(1.5&ndash;4.0 g/cm&sup2;), which satellite products resolve at only
-5&ndash;10 km &mdash; worse than Tanager&rsquo;s sub-km pixels.
-<tt>-a</tt> exploits coastal garrigue and irrigated farmland as DDV targets;
-the marine AOD horizontal gradient (0.05&ndash;0.20 from open sea to haze
-near the Rh&ocirc;ne delta) is well captured by per-pixel retrieval.
-<tt>-z</tt> is omitted: western Mediterranean mid-summer O<sub>3</sub>
-(~315 DU) varies by &lt; 10 DU between years, within the noise of the
-Chappuis retrieval at moderate SZA.
-</p>
-
-<h3>5. Sub-arctic mid-winter with full ISOFIT pipeline</h3>
-
-<p>
-<b>Scene</b>: Boreal forest, Northern Sweden, January (DOY 15). Very low sun,
-snow-covered ground, clean sub-arctic air.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=sweden_winter.lut \
-    sza=78 vza=8 raa=45 \
-    atmosphere=subwin aerosol=continental ozone=340 \
-    aod=0.01,0.05,0.10,0.20 \
-    h2o=0.1,0.3,0.5,0.8 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Full ISOFIT pipeline with external AOD/H2O maps
-i.hyper.atcorr -u -r \
-    input=sweden_radiance output=sweden_refl \
-    lut=sweden_winter.lut \
-    sza=78 vza=8 raa=45 doy=15 \
-    atmosphere=subwin aerosol=continental \
-    aod_map=maiac_aod h2o_map=mod05_wvc \
-    smooth=3 adj_psf=1.0 \
-    uncertainty=sweden_refl_unc
-
-# Add image-based O3 retrieval (-z): sub-arctic winter O3 varies with polar
-# vortex proximity.  -a and -w not used (snow = no DDV; H2O is well-known).
-i.hyper.atcorr -z -u -r \
-    input=sweden_radiance output=sweden_refl \
-    lut=sweden_winter_auto.lut \
-    sza=78 vza=8 raa=45 doy=15 \
-    atmosphere=subwin aerosol=continental \
-    aod_map=maiac_aod h2o_map=mod05_wvc \
-    smooth=3 adj_psf=1.0 \
-    uncertainty=sweden_refl_unc \
-    aod=0.01,0.05,0.10,0.20 h2o=0.1,0.3,0.5,0.8 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why <tt>atmosphere=subwin</tt></b>: Sub-arctic winter profiles have the
-coldest temperature structure and the lowest H<sub>2</sub>O scale height of
-the six models, with significant ozone column enhancement. At SZA=78&deg; the
-path length is ~5&times; that at nadir, so precise atmosphere profile
-selection matters more than at low sun angles. The <tt>-r</tt> MAP
-regularisation is especially useful here: bright snow reflectance is nearly
-spectrally flat (prior: soil component), which constrains physically
-implausible spectral spikes caused by residual gas-correction errors at very
-long atmospheric path lengths.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-z</tt> is particularly valuable at high latitudes
-in winter: the polar vortex can push stratospheric O<sub>3</sub> columns to
-350&ndash;400 DU (vs the 340 DU prior), and the long path length at SZA=78&deg;
-amplifies O<sub>3</sub> absorption by ~&times;5 relative to nadir &mdash; a
-40 DU offset causes a ~1&nbsp;% error in the green&ndash;red bands. Retrieving
-O<sub>3</sub> from the Chappuis band eliminates this latitude-dependent offset
-without requiring a real-time O<sub>3</sub> product. <tt>-a</tt> is omitted:
-snow in January has &rho;<sub>2130</sub> &gt; 0.25, excluding virtually all
-land pixels from the DDV mask. <tt>-w</tt> is omitted: sub-arctic winter WVC
-(&lt; 0.5 g/cm&sup2;) is well-captured by the narrow H<sub>2</sub>O LUT
-grid; the external MOD05 map is preferred over the noisier 940 nm retrieval in
-very cold, dry conditions.
-</p>
-
-<h3>6. Sub-arctic mid-summer &mdash; boreal forest</h3>
-
-<p>
-<b>Scene</b>: Yukon Territory, Canada, July (DOY 190). Moderate sun, moderate
-water vapour from thawed tundra, clean background aerosol.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=yukon_summer.lut \
-    sza=45 vza=2 raa=60 \
-    atmosphere=subsum aerosol=continental ozone=320 \
-    aod=0.02,0.07,0.15,0.30 \
-    h2o=0.8,1.5,2.5,3.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-
-# Correction with scalar state (scalar baseline)
-i.hyper.atcorr \
-    input=yukon_radiance output=yukon_refl \
-    lut=yukon_summer.lut \
-    sza=45 vza=2 raa=60 doy=190 \
-    aod_val=0.08 h2o_val=2.0 \
-    atmosphere=subsum aerosol=continental
-
-# Fully standalone: all four atmospheric state variables from the image.
-# -z: O3 varies 300-340 DU with planetary wave activity.
-# -w: tundra WVC spans 1-3.5 g/cm2; per-pixel retrieval captures the gradient.
-# -a: dense boreal spruce forest is an ideal DDV target (NDVI ~0.6-0.8).
-# dem=: Yukon terrain spans 500-2000+ m; ISA pressure correction is significant.
-i.hyper.atcorr -z -w -a \
-    input=yukon_radiance output=yukon_refl \
-    lut=yukon_summer_auto.lut \
-    sza=45 vza=2 raa=60 doy=190 \
-    atmosphere=subsum aerosol=continental \
-    dem=dem_yukon \
-    aod=0.02,0.07,0.15,0.30 h2o=0.8,1.5,2.5,3.5 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p>
-<b>Why <tt>atmosphere=subsum</tt></b>: Sub-arctic summer combines moderate
-surface temperatures with relatively dry air (H<sub>2</sub>O &lt; 3.5 g/cm&sup2;),
-a profile distinct from both the tropical and mid-latitude summer models.
-The boreal growing season produces biogenic terpene aerosol well captured by
-the continental aerosol model.
-</p>
-<p>
-<b>Retrieval flags</b>: <tt>-z</tt> retrieves scene-mean O<sub>3</sub>;
-sub-arctic summer O<sub>3</sub> varies 300&ndash;340 DU with planetary wave
-activity. <tt>-w</tt> retrieves per-pixel WVC from the 940 nm band; boreal&ndash;
-tundra landscapes have WVC gradients of 1&ndash;2 g/cm&sup2; over 10&ndash;20 km
-(wet valley bogs vs dry ridgelines). <tt>-a</tt> uses dense spruce forest as
-a DDV target (&rho;<sub>2130</sub> &asymp; 0.05&ndash;0.12, NDVI ~0.6&ndash;0.8);
-wildfire smoke episodically raises AOD from background ~0.05 to &gt; 0.5.
-<tt>dem=</tt> applies the ISA barometric formula to the mean terrain elevation;
-a 1&thinsp;000 m elevation change reduces surface pressure by ~11&nbsp;%,
-which if uncorrected biases Rayleigh scattering by ~3&nbsp;% in the blue bands.
-</p>
-
-<h3>7. Quick test at coarse spectral resolution</h3>
-<pre>
-i.hyper.atcorr --verbose \
-    lut=/tmp/test.lut \
-    sza=30 vza=0 raa=0 \
-    aod=0.0,0.2,0.4 h2o=2.0,4.0 \
-    wl_min=400 wl_max=2500 wl_step=50
-</pre>
-
-<h3>9. Fully standalone &mdash; all atmospheric state from the image</h3>
-
-<p>
-This example demonstrates the autonomous mode where all four atmospheric state
-variables are retrieved from the hyperspectral image itself, eliminating the
-need for external ancillary products (MODIS O<sub>3</sub>, MOD05 WVC, MAIAC
-AOD, or a DEM pressure lookup). A single command generates the LUT and applies
-the correction.
-</p>
-<pre>
-# All four image-based retrievals in one pass:
-#   -z  -&gt; scene-mean O3 from Chappuis band (540/600/680 nm)
-#   -w  -&gt; per-pixel WVC from 940 nm band depth (865/940/1040 nm)
-#   -a  -&gt; per-pixel AOD from MODIS DDV algorithm (470/660/860/2130 nm)
-#   dem= -&gt; ISA surface pressure from mean DEM elevation
-i.hyper.atcorr -z -w -a \
-    input=scene_radiance output=scene_refl \
-    lut=scene_auto.lut \
-    sza=40 vza=3 raa=120 doy=180 \
+<div class="code"><pre>
+i.hyper.atcorr lut=scene.lut \
+    sza=35 vza=4 raa=95 \
     atmosphere=midsum aerosol=continental \
-    dem=terrain_dem \
-    aod=0.0,0.05,0.1,0.2,0.4,0.8 \
-    h2o=0.5,1.5,3.0,5.0 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<p><b>What each flag retrieves</b>:</p>
-<dl>
-<dt><tt>-z</tt></dt>
-<dd>Scene-mean O<sub>3</sub> (Dobson units) from the Chappuis absorption band
-centred at 600 nm. Continuum: linear interpolation of L<sub>540</sub> and
-L<sub>680</sub>; band depth D = 1 &minus; L<sub>600</sub>/L<sub>cont</sub>;
-O<sub>3</sub> = D / (&sigma;<sub>600</sub> &times; m) where
-&sigma;<sub>600</sub> &asymp; 10<sup>&minus;4</sup> DU<sup>&minus;1</sup> and
-m = 1/cos(SZA) + 1/cos(VZA). Replaces <tt>ozone=</tt> before the LUT is
-computed; falls back to 300 DU if no valid pixels are found.</dd>
-
-<dt><tt>-w</tt></dt>
-<dd>Per-pixel column water vapour (g/cm&sup2;) from the 940 nm band depth.
-Continuum: linear interpolation of L<sub>865</sub> and L<sub>1040</sub>;
-D = 1 &minus; L<sub>940</sub>/L<sub>cont</sub>;
-WVC = D / (K<sub>940</sub> &times; m) where K<sub>940</sub> = 0.036 cm&sup2;/g.
-The per-pixel array replaces the scalar <tt>h2o_val=</tt> during correction;
-pixels without valid 940 nm signal fall back to 2 g/cm&sup2;.</dd>
-
-<dt><tt>-a</tt></dt>
-<dd>Per-pixel AOD at 550 nm from the MODIS DDV algorithm. DDV mask:
-0.01 &lt; &rho;<sub>2130</sub> &lt; 0.25 AND NDVI(860/660) &gt; 0.1.
-Surface reflectance predicted as &rho;<sub>surf,470</sub> = 0.25 &rho;<sub>2130</sub>
-and &rho;<sub>surf,660</sub> = 0.50 &rho;<sub>2130</sub>. &Aring;ngstr&ouml;m
-exponent from the 470/660 nm pair scales &tau; to 550 nm. Non-DDV pixels
-receive the scene-mean AOD. Requires bands near 470, 660, 860, and 2130 nm.</dd>
-
-<dt><tt>dem=</tt></dt>
-<dd>Mean terrain elevation &rarr; ISA surface pressure
-P = 1013.25 &times; (1 &minus; 2.2558 &times; 10<sup>&minus;5</sup> &times; h)<sup>5.2559</sup> hPa.
-Updates <tt>surface_pressure</tt> before LUT computation. Eliminates the
-systematic Rayleigh scattering bias at elevations above ~500 m.</dd>
-</dl>
-<p>
-<b>Prerequisites</b>: the image must span at least 376&ndash;2499 nm with
-adequate SNR at 540/600/680 nm (O<sub>3</sub>), 865/940/1040 nm (H<sub>2</sub>O),
-and 470/660/860/2130 nm (AOD). Tanager, DESIS, HySpex, PRISMA, and EnMAP all
-satisfy these requirements.
-</p>
-
-<h3>10. Alpine terrain illumination correction (Swiss Alps)</h3>
+    aod=0.0,0.1,0.2,0.5 h2o=0.5,1.5,3.0,5.0 \
+    wl_min=400 wl_max=2500 wl_step=10
+</pre></div>
 
 <p>
-<b>Scene</b>: Engadin valley, Switzerland, October (DOY 285). SZA = 55&deg;,
-solar azimuth &asymp; 165&deg; (SSE). Mixed conifer forest and alpine meadow
-with slopes up to 40&deg;. A south-facing 30&deg; slope receives
-cos(25&deg;)/cos(55&deg;) &asymp; 1.58&times; the reference irradiance while
-a north-facing 30&deg; slope at cos(85&deg;)/cos(55&deg;) &asymp; 0.15&times;
-is effectively in diffuse-only illumination &mdash; a 10&times; contrast that
-creates severe reflectance artefacts if uncorrected.
-</p>
-<pre>
-# Prepare slope and aspect from a DEM
-r.slope.aspect elevation=srtm_30m slope=alps_slope aspect=alps_aspect
-# aspect= is clockwise from North as output by r.slope.aspect -c
-
-# Single command: generate LUT + apply terrain illumination correction.
-# slope= and aspect= trigger T_down_dir (direct-beam transmittance) computation
-# inside atcorr_compute_lut; T_down_dir is not written to the .lut file
-# (i.hyper.smac does not need it) but is used in-memory for the correction.
-# -z retrieves scene O3 from 600 nm Chappuis depth.
-i.hyper.atcorr -z \
-    input=alps_radiance output=alps_refl \
-    lut=alps_terrain.lut \
-    sza=55 vza=8 raa=90 doy=285 \
-    atmosphere=midwin aerosol=continental \
-    aod=0.0,0.05,0.1,0.2,0.4 \
-    h2o=0.5,1.0,2.0,3.5 \
-    aod_val=0.08 h2o_val=1.5 \
-    slope=alps_slope aspect=alps_aspect \
-    sun_azimuth=165 \
-    view_zenith=alps_vza \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-
-<p><b>Physics</b>: T<sub>down</sub> is split into direct (T<sub>down,dir</sub>) and
-diffuse (T<sub>down</sub> &minus; T<sub>down,dir</sub>) components from the 6SV
-DISCOM output. Per pixel:</p>
-<ul>
-<li><b>Illuminated</b> (cos&thinsp;i &gt; 0):
-  T<sub>down,eff</sub> = T<sub>down,dir</sub> &times; (cos&thinsp;i / cos&thinsp;SZA)
-  + (T<sub>down</sub> &minus; T<sub>down,dir</sub>) &times; V<sub>d</sub></li>
-<li><b>Shadowed</b> (cos&thinsp;i &le; 0):
-  T<sub>down,eff</sub> = (T<sub>down</sub> &minus; T<sub>down,dir</sub>) &times; V<sub>d</sub>
-  &nbsp;(diffuse skylight only)</li>
-</ul>
-<p>
-where cos&thinsp;i = cos(SZA)cos(s) + sin(SZA)sin(s)cos(SAA &minus; aspect) and
-V<sub>d</sub> = (1 + cos(slope))/2 is the terrain skyview factor.
-<tt>view_zenith=</tt> supplies per-pixel VZA from the pushbroom geometry model;
-when provided, T<sub>up</sub> is rescaled by
-T<sub>up</sub><sup>cos(VZA<sub>ref</sub>)/cos(VZA<sub>pixel</sub>)</sup>.
-</p>
-<p><b>Notes</b>:</p>
-<ul>
-<li><tt>slope=</tt> and <tt>aspect=</tt> must always be provided together.</li>
-<li>The <tt>.lut</tt> output does not store T<sub>down,dir</sub>; combining
-<tt>lut=</tt> with <tt>input=/output=/slope=/aspect=</tt> in one command is
-the recommended workflow.</li>
-<li>For accurate <tt>sun_azimuth=</tt>, use <tt>r.sunmask</tt>, the scene
-metadata (ENVI HDR <tt>sun azimuth</tt> field), or <tt>sixs_possol()</tt>
-from the C library API.</li>
-</ul>
-
-<h3>11. NBAR normalization from MCD43 kernel weights (West African savanna)</h3>
-
-<p>
-<b>Scene</b>: Senegal/Mali Sahel, April (DOY 100). SZA = 35&deg;, wide-swath
-pushbroom sensor (DESIS: &plusmn;12&deg;, PRISMA: &plusmn;12.7&deg;,
-EMIT: &plusmn;39&deg;, Tanager-1: &plusmn;7&deg;) with per-pixel VZA 0&ndash;25&deg;
-across the swath. At VZA = 20&deg; the forward-scatter bowl effect can suppress NIR
-reflectance by 5&ndash;15% relative to nadir view on bright soil. NBAR normalization
-removes the cross-track gradient for time-series compositing and mixed-scene analysis.
-</p>
-<pre>
-# Step 1: Download and resample MCD43A1 kernel weights.
-# Product: MCD43A1 Collection 6.1 (500 m, 8-day / daily from LP DAAC).
-# Scale factor 0.001 (int16 -&gt; float32).  Here for tile h17v07, DOY 100.
-r.import input=MCD43A1.A2024100.h17v07.061.Band1_f_iso.tif \
-    output=mcd43_fiso resolution=value resolution_value=30 resample=bilinear
-r.import input=MCD43A1.A2024100.h17v07.061.Band1_f_vol.tif \
-    output=mcd43_fvol resolution=value resolution_value=30 resample=bilinear
-r.import input=MCD43A1.A2024100.h17v07.061.Band1_f_geo.tif \
-    output=mcd43_fgeo resolution=value resolution_value=30 resample=bilinear
-
-# Step 2: Atmospheric correction + NBAR normalization.
-# view_zenith= and view_azimuth= come from the sensor L1 geometry model.
-# sun_azimuth= is a scalar from scene metadata (degrees CW from North).
-# -w -a retrieve per-pixel WVC and AOD from the image.
-i.hyper.atcorr -w -a \
-    input=senegal_radiance output=senegal_nbar \
-    lut=senegal.lut \
-    sza=35 doy=100 \
-    atmosphere=tropical aerosol=continental \
-    aod=0.0,0.05,0.1,0.2,0.5 \
-    h2o=1.0,2.0,3.5,5.0 \
-    aod_val=0.12 h2o_val=2.5 \
-    sun_azimuth=128 \
-    view_zenith=senegal_vza view_azimuth=senegal_vaa \
-    brdf_fiso=mcd43_fiso brdf_fvol=mcd43_fvol brdf_fgeo=mcd43_fgeo \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-
-<p><b>MCD43 typical kernel weights by land cover</b>
-(Schaaf et al. 2002, <em>Remote Sensing of Environment</em> 83, 135&ndash;148):</p>
-<table border="1" cellpadding="4" cellspacing="0">
-<tr>
-  <th>Land cover</th><th>Band (&micro;m)</th>
-  <th>f<sub>iso</sub></th><th>f<sub>vol</sub></th><th>f<sub>geo</sub></th>
-  <th>&rho;<sub>NBAR</sub> / &rho;<sub>obs</sub> at VZA=20&deg;, RAA=90&deg;</th>
-</tr>
-<tr><td>Savanna / grassland</td><td>Red 0.66</td><td>0.119</td><td>0.067</td><td>0.026</td><td>0.95&ndash;1.08</td></tr>
-<tr><td>Savanna / grassland</td><td>NIR 0.86</td><td>0.220</td><td>0.116</td><td>0.033</td><td>0.93&ndash;1.06</td></tr>
-<tr><td>Deciduous broadleaf</td><td>Red 0.66</td><td>0.093</td><td>0.080</td><td>0.019</td><td>0.97&ndash;1.10</td></tr>
-<tr><td>Deciduous broadleaf</td><td>NIR 0.86</td><td>0.354</td><td>0.193</td><td>0.069</td><td>0.92&ndash;1.09</td></tr>
-<tr><td>Cropland</td><td>Red 0.66</td><td>0.154</td><td>0.074</td><td>0.031</td><td>0.96&ndash;1.07</td></tr>
-<tr><td>Cropland</td><td>NIR 0.86</td><td>0.265</td><td>0.119</td><td>0.054</td><td>0.94&ndash;1.06</td></tr>
-<tr><td>Bare soil / desert</td><td>Red 0.66</td><td>0.200</td><td>0.020</td><td>0.052</td><td>0.91&ndash;1.12</td></tr>
-<tr><td>Bare soil / desert</td><td>NIR 0.86</td><td>0.252</td><td>0.020</td><td>0.056</td><td>0.90&ndash;1.14</td></tr>
-</table>
-
-<p>
-<b>NBAR formula</b>: &rho;<sub>NBAR</sub> = &rho;<sub>boa</sub> &times; f<sub>nbar</sub> / f<sub>obs</sub>
-where f = f<sub>iso</sub> + f<sub>vol</sub> &times; K<sub>RT</sub> + f<sub>geo</sub> &times; K<sub>LS</sub>.
-Standard MODIS Ross-Thick (K<sub>RT</sub>) and Li-Sparse (K<sub>LS</sub>) kernels
-(b/r = 1, h/b = 2; no Maignan hot-spot). K<sub>LS</sub> = 0 at nadir, so
-f<sub>nbar</sub> = f<sub>iso</sub> + f<sub>vol</sub> &times; K<sub>RT</sub>(SZA, 0, 0).
-Bypassed when f<sub>obs</sub> &lt; 10<sup>&minus;6</sup> or f<sub>vol</sub> = f<sub>geo</sub> = 0.
-</p>
-<p>
-<b>MCD43A1 source</b>: LP DAAC / LAADS DAAC.
-Scale factor 0.001 for all kernel-weight bands.
-Available globally every 8 days (Collection 6.1 provides daily composites).
-Use the tile covering the scene; resample 500&nbsp;m product to sensor pixel size
-with bilinear interpolation before importing into GRASS.
+The next command computes the lookup table and corrects a radiance cube using
+scene values for AOD and water vapour:
 </p>
 
-<h3>12. O₂-A per-pixel surface pressure + pre-correction quality mask</h3>
-<p>
-<b>Scene</b>: Rocky Mountains hyperspectral, Colorado USA (DOY&nbsp;200, SZA=30°).
-Elevation 1500–4400&nbsp;m (pressure 700–860&nbsp;hPa), glaciers and alpine lakes.
-</p>
-<pre>
-i.hyper.atcorr \
-    lut=rockies.lut \
-    input=rockies_radiance output=rockies_refl \
-    sza=30 vza=4 raa=120 doy=200 \
-    atmosphere=us62 aerosol=continental \
-    aod=0.02,0.05,0.1,0.2,0.4 h2o=0.5,1.0,2.0,3.5 \
-    wl_min=376 wl_max=2499 wl_step=5 \
-    -p -m -w \
-    quality=rockies_quality
-</pre>
-<ul>
-<li><tt>-p</tt>: retrieves per-pixel surface pressure from the O₂-A band at 760 nm
-  (continuum interpolation 740/760/780 nm; K_O2=0.25 for ~10 nm FWHM).
-  Applies per-pixel Rayleigh scaling:
-  τ_R(λ,P)=0.00877×λ^(−4.05)×P/P₀ (Hansen &amp; Travis 1974);
-  R_atm, T_down, T_up corrected individually per pixel.
-  Scene-mean pressure fed to LUT if no DEM is provided.</li>
-<li><tt>-m</tt>: writes quality bitmask to <tt>quality=</tt> raster
-  (bit 0=cloud, bit 1=shadow, bit 2=water, bit 3=snow/ice).</li>
-<li>K_O2 tuning: PRISMA/5 nm ≈ 0.40; AVIRIS-NG/4 nm ≈ 0.45; DESIS/2.5 nm ≈ 0.55.</li>
-</ul>
-
-<h3>13. MAIAC patch AOD spatial regularization (dense vegetation)</h3>
-<p>
-<b>Scene</b>: Tanager over mixed agricultural/forest in Central Europe
-(DOY&nbsp;160, SZA=35°).  Heterogeneous DDV produces single-pixel AOD outliers.
-</p>
-<pre>
-i.hyper.atcorr \
-    input=central_europe_radiance output=central_europe_refl \
-    sza=35 vza=3 raa=100 doy=160 \
-    atmosphere=us62 aerosol=continental \
-    aod=0.02,0.05,0.1,0.2,0.4 h2o=0.5,1.0,2.0,3.5 \
-    wl_min=376 wl_max=2499 wl_step=5 \
-    -a -w \
-    maiac_patch=32
-</pre>
-<ul>
-<li><tt>maiac_patch=32</tt>: after DDV retrieval (<tt>-a</tt>), divides image into
-  non-overlapping 32×32 pixel patches, replaces each patch AOD with the patch
-  median, and fills non-DDV patches by inverse-distance weighting from valid
-  patch centroids.  Provides spatially coherent AOD comparable to MAIAC 1 km.</li>
-<li>Recommended patch sizes: 30 m sensor → 32 px; 5 m → 16 px; 1 m → 8 px.</li>
-</ul>
-
-<h3>14. Joint optimal-estimation AOD + H₂O retrieval (-e)</h3>
-<p>
-<b>Scene</b>: PRISMA over semi-arid shrubland, southern Spain (DOY&nbsp;120, SZA=25°).
-Mixed bare soil + sparse vegetation — DDV assumption invalid for most pixels.
-</p>
-<pre>
-i.hyper.atcorr \
-    input=spain_radiance output=spain_refl \
-    sza=25 vza=2 raa=80 doy=120 \
+<div class="code"><pre>
+i.hyper.atcorr input=scene_radiance output=scene_reflectance \
+    lut=scene.lut sza=35 vza=4 raa=95 doy=180 \
     atmosphere=midsum aerosol=continental \
-    aod=0.02,0.05,0.1,0.2,0.4 h2o=0.5,1.0,2.0,3.5 \
-    wl_min=376 wl_max=2499 wl_step=5 \
-    aod_val=0.1 h2o_val=1.5 \
-    -e \
-    oe_sigma_aod=0.5 oe_sigma_h2o=1.0
-</pre>
-<ul>
-<li><tt>-e</tt>: joint MAP grid-search inversion per pixel over the LUT (AOD_i,H₂O_j)
-  grid using: <b>J_spec</b> (VIS spectral smoothness at 470/550/660/870 nm, linear fit
-  residuals), <b>J_h2o</b> (940 nm band-depth consistency), and
-  <b>J_prior</b> (log-normal AOD + Gaussian H₂O).  Sub-grid parabolic refinement
-  in AOD and H₂O dimensions.</li>
-<li><tt>-e</tt> supersedes <tt>-a</tt> and <tt>-w</tt> when all are active.
-  Runs after <tt>atcorr_compute_lut</tt> (requires LUT in memory).</li>
-<li><tt>oe_sigma_aod=0.5</tt>: broad log-AOD prior (±50%);
-  <tt>oe_sigma_h2o=1.0</tt>: ±1 g/cm².</li>
-<li>References: Rodgers (2000), Thompson et al. (2019) ISOFIT, Guanter et al. (2009).</li>
-</ul>
+    aod_val=0.15 h2o_val=2.0
+</pre></div>
 
-<h3>15. FlexBRDF &mdash; spectrally-varying NBAR from MCD43 disaggregation</h3>
 <p>
-<b>Scene</b>: EnMAP over mixed temperate landscape, Central Europe
-(DOY&nbsp;160, SZA=35°).  Standard scalar NBAR applies one f_iso/f_vol/f_geo
-per band.  FlexBRDF disaggregates 7-band MCD43A1 kernel weights to the full
-400&ndash;2500&nbsp;nm range via piecewise-linear interpolation + Tikhonov
-second-difference smoothing.
+Atmospheric raster maps can be used instead of scene values:
 </p>
-<pre>
-# 7 MODIS band kernel weights (scale factor 0.001 applied; bands B3,B4,B1,B2,B5,B6,B7)
-FISO="0.112,0.117,0.095,0.243,0.155,0.118,0.085"
-FVOL="0.045,0.040,0.038,0.131,0.038,0.022,0.014"
-FGEO="0.017,0.014,0.012,0.052,0.016,0.009,0.006"
 
-i.hyper.atcorr -w -a \
-    input=enmap_radiance output=enmap_nbar \
-    lut=enmap.lut \
-    sza=35 vza=4 raa=110 doy=160 \
-    atmosphere=us62 aerosol=continental \
-    aod=0.0,0.05,0.1,0.2,0.5 h2o=0.5,1.0,2.0,3.5 \
-    aod_val=0.12 h2o_val=1.8 \
-    sun_azimuth=155 view_zenith=enmap_vza view_azimuth=enmap_vaa \
-    mcd43_fiso="$FISO" mcd43_fvol="$FVOL" mcd43_fgeo="$FGEO" \
-    mcd43_alpha=0.10 \
-    wl_min=376 wl_max=2499 wl_step=5
-</pre>
-<ul>
-<li><tt>mcd43_fiso/fvol/fgeo=</tt>: 7 comma-separated kernel weights at MODIS
-  band centres {0.469, 0.555, 0.645, 0.858, 1.240, 1.640, 2.130}&nbsp;&micro;m.
-  Piecewise-linear interpolation fills the sensor wavelength grid;
-  clamp-extrapolation outside the MODIS range.</li>
-<li><tt>mcd43_alpha=0.10</tt>: Tikhonov regularization strength.  Solves
-  <b>(I + &alpha;&sup2;&thinsp;D<sub>2</sub><sup>T</sup>D<sub>2</sub>)x = f</b>
-  in O(5n) via Cholesky band factorization, removing interpolation kinks
-  at the 7 anchor wavelengths.  Typical range: 0.05&ndash;0.20; 0 = off.</li>
-<li>Can be combined with per-pixel spatial amplitude rasters:
-  <tt>brdf_fiso=</tt> / <tt>brdf_fvol=</tt> / <tt>brdf_fgeo=</tt>.
-  The spectral shape comes from the 7-band scalars; the spatial amplitude
-  from the 2-D rasters.  Normalisation reference: NIR at 858&nbsp;nm.</li>
-</ul>
-<p>References: Queally et&nbsp;al. (2022) FlexBRDF, JGR Biogeosciences;
-Garcia-Beltran et&nbsp;al. (2024) HABA, Remote Sensing.</p>
-
-<h3>16. DASF &mdash; Directional Area Scattering Factor (canopy structure)</h3>
-<p>
-<b>Scene</b>: Tanager over temperate broadleaf forest (DOY&nbsp;200, SZA=30°).
-The DASF exploits the 710&ndash;790&nbsp;nm NIR spectral invariance plateau where
-canopy BRF is linearly proportional to leaf single-scattering albedo
-&omega;<sub>L</sub>(&lambda;) &mdash; the structural scattering factor is decoupled
-from biochemistry.
-</p>
-<pre>
-i.hyper.atcorr -z -w -a -D \
-    input=tanager_radiance output=tanager_refl \
-    lut=tanager_dasf.lut \
-    sza=30 vza=4 raa=100 doy=200 \
+<div class="code"><pre>
+i.hyper.atcorr input=scene_radiance output=scene_reflectance \
+    sza=35 vza=4 raa=95 doy=180 \
     atmosphere=midsum aerosol=continental \
-    aod=0.0,0.05,0.1,0.2,0.4,0.8 h2o=0.5,1.5,3.0,5.0 \
-    wl_min=376 wl_max=2499 wl_step=5 \
-    dasf=tanager_dasf
-</pre>
-<ul>
-<li><tt>-D</tt>: activates inline DASF retrieval.  After each band is corrected,
-  accumulates &Sigma;[&rho;(&lambda;)&sdot;&omega;<sub>L</sub>(&lambda;)] and
-  &Sigma;[&omega;<sub>L</sub>(&lambda;)&sup2;] per pixel over the 710&ndash;790&nbsp;nm range.
-  After all bands: DASF = &Sigma;<sub>xy</sub> / &Sigma;<sub>yy</sub> per pixel.</li>
-<li><tt>dasf=tanager_dasf</tt>: output 2-D FCELL raster.  Values &isin; [0.01, 1.0];
-  NaN for NDVI &lt; 0.2 (non-vegetation) and for pixels with &lt; 3 valid
-  accumulation bands.</li>
-<li>Leaf albedo &omega;<sub>L</sub>(&lambda;) from built-in PROSPECT-D table
-  (F&eacute;ret et&nbsp;al. 2017, Cab=40&nbsp;&micro;g/cm&sup2;, 5&nbsp;nm steps,
-  705&ndash;795&nbsp;nm).  Bands outside the table silently skipped.</li>
-<li>DASF &asymp; 0.9: dense closed forest; 0.7&ndash;0.9: open forest / tall shrubland;
-  0.5&ndash;0.7: sparse vegetation / grassland; &lt; 0.5: very sparse / mixed pixel.</li>
-<li>Combine with FlexBRDF (Example 15) in one command by adding
-  <tt>mcd43_fiso= mcd43_fvol= mcd43_fgeo=</tt> alongside <tt>-D dasf=</tt>.</li>
-</ul>
-<p>References: Knyazikhin et&nbsp;al. (2013) PNAS; F&eacute;ret et&nbsp;al. (2017)
-PROSPECT-D, RSE.</p>
+    aod_map=aod_550 h2o_map=water_vapour smooth=2
+</pre></div>
 
 <h2>SEE ALSO</h2>
+
 <em>
-<a href="https://github.com/YannChemin/i.hyper.smac">i.hyper.smac</a>,
-<a href="https://github.com/YannChemin/i.atcorr2">i.atcorr</a>
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a>,
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
+<a href="https://github.com/YannChemin/i.atcorr2">i.atcorr2</a>,
+<a href="https://github.com/YannChemin/i.hyper.atcorr">i.hyper.atcorr reference implementation</a>
 </em>
 
 <h2>REFERENCES</h2>
+
 <ul>
-<li>Vermote, E.F., Tanr&eacute;, D., Deuz&eacute;, J.L., Herman, M. and Morcrette,
-J.J. (1997): Second simulation of the satellite signal in the solar spectrum,
-6S: An overview. <em>IEEE Transactions on Geoscience and Remote Sensing</em>,
-35(3), 675&ndash;686.</li>
-<li>Kotchenova, S.Y., Vermote, E.F., Matarrese, R. and Klemm, F.J. (2006):
-Validation of a vector version of the 6S radiative transfer code for
-atmospheric correction of satellite data. <em>Applied Optics</em>,
-45(26), 6762&ndash;6778.</li>
-<li>Thompson, D.R. et al. (2018): Optimal estimation for imaging
-spectrometer atmospheric correction. <em>Remote Sensing of Environment</em>,
-216, 355&ndash;373. (ISOFIT)</li>
-<li>Vermote, E.F., El Saleous, N., Justice, C.O., Kaufman, Y.J.,
-Privette, J.L., Remer, L., Roger, J.C. and Tanr&eacute;, D. (1997):
-Atmospheric correction of visible to middle-infrared EOS-MODIS data over
-land surfaces: Background, operational algorithm and validation.
-<em>Journal of Geophysical Research: Atmospheres</em>, 102(D14),
-17131&ndash;17141. (adjacency correction)</li>
-<li>Schaaf, C.B. et al. (2002): First operational BRDF, albedo nadir
-reflectance products from MODIS. <em>Remote Sensing of Environment</em>,
-83(1&ndash;2), 135&ndash;148. (MCD43 kernel weights)</li>
-<li>Roujean, J.L., Leroy, M. and Deschamps, P.Y. (1992): A bidirectional
-reflectance model of the Earth&rsquo;s surface for the correction of remote
-sensing data. <em>Journal of Geophysical Research: Atmospheres</em>,
-97(D18), 20455&ndash;20468. (Ross-Thick + Li-Sparse kernels)</li>
-<li>Teillet, P.M., Guindon, B. and Goodenough, D.G. (1982): On the
-slope-aspect correction of multispectral scanner data.
-<em>Canadian Journal of Remote Sensing</em>, 8(2), 84&ndash;106.
-(terrain illumination cosine correction)</li>
-<li>Queally, N. et&nbsp;al. (2022): FlexBRDF: A flexible BRDF correction for
-grouped processing of airborne imaging spectroscopy flightlines.
-<em>Journal of Geophysical Research: Biogeosciences</em>, 127,
-e2021JG006545. (FlexBRDF spectral NBAR disaggregation)</li>
-<li>Garcia-Beltran, A. et&nbsp;al. (2024): HABA: A new hyperspectral
-albedo-based algorithm for estimating plant area index.
-<em>Remote Sensing</em>, 16, 1405. (FlexBRDF application)</li>
-<li>Knyazikhin, Y. et&nbsp;al. (2013): Hyperspectral remote sensing of foliar
-nitrogen content. <em>Proceedings of the National Academy of Sciences</em>,
-110(3), E185&ndash;E192. (DASF spectral invariance, canopy structure)</li>
-<li>F&eacute;ret, J.B. et&nbsp;al. (2017): PROSPECT-D: Towards modeling leaf
-optical properties through a complete lifecycle.
-<em>Remote Sensing of Environment</em>, 193, 204&ndash;215.
-(PROSPECT-D leaf albedo table for DASF)</li>
+<li>Vermote, E.F., Tanre, D., Deuze, J.L., Herman, M. and Morcrette, J.J.
+    (1997). Second simulation of the satellite signal in the solar spectrum,
+    6S: An overview. <em>IEEE Transactions on Geoscience and Remote
+    Sensing</em>, 35(3), 675-686.</li>
+<li>Kotchenova, S.Y., Vermote, E.F., Matarrese, R. and Klemm, F.J. (2006).
+    Validation of a vector version of the 6S radiative transfer code for
+    atmospheric correction of satellite data. <em>Applied Optics</em>, 45(26),
+    6762-6774.</li>
+<li>Thompson, D.R. et al. (2018). Optimal estimation for imaging spectrometer
+    atmospheric correction. <em>Remote Sensing of Environment</em>, 216,
+    355-373.</li>
 </ul>
 
 <h2>AUTHORS</h2>
-Yann Chemin, Seilio Douar EI; Tomaž Žagar, Geodetic Institute of Slovenia
 
-<hr class="footer">
-<p>
-<a href="index.html">Main index</a> |
-<a href="imagery.html">Imagery index</a> |
-<a href="topics.html">Topics index</a> |
-<a href="keywords.html">Keywords index</a> |
-<a href="graphical_index.html">Graphical index</a> |
-<a href="full_index.html">Full index</a>
-</p>
-<p>&copy; 2003-2025 <a href="http://grass.osgeo.org">GRASS Development Team</a>,
-GRASS GIS 8.5.0dev Reference Manual</p>
-</div>
-</body>
-</html>
+Yann Chemin, Seilio Douar EI<br>
+Tomaz Zagar, Geodetic Institute of Slovenia
