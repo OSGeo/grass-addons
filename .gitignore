@@ -149,7 +149,3 @@ CMakeUserPresets.json
 *-prefix/
 
 # End of https://www.toptal.com/developers/gitignore/api/cmake
-
-# CLAUDE code and related files
-CLAUDE.local.md
-.remember/
