@@ -40,6 +40,10 @@ A uniform LoD is simply a constant raster.
 speckle removal affect only `output_sig` and the reported volumes, so the raw
 difference remains available for inspection.
 
+On the **dem** plus **reference** path the difference has to be written
+somewhere, so **output_dod** is required there. It is rejected on the **dod**
+path, where the difference already exists and is analyzed as supplied.
+
 Volumes are computed from significant cells only, using the current region cell
 size. Ensure the computational region matches the input DEM resolution.
 

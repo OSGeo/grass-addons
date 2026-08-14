@@ -75,41 +75,64 @@ The following chart shows how the tools work together. Rectangles are
 tools, rounded nodes are rasters, and edge labels are the option keys that
 carry each raster:
 
-```mermaid
-flowchart TD
-    SRC["post-event DEM + reference DEM"]
-    SRC --> CR["r.dem.coregister<br/>PGCP + Nuth &amp; Kääb / ICP"]
-    SRC --> NK["r.dem.nk<br/>Nuth &amp; Kääb only"]
-    SRC --> ICP["r.dem.icp<br/>ICP only"]
+![r.dem tool decision chart](r_dem_workflow.png)  
+*Figure: Decision chart for selecting r.dem tools.*
 
-    CR --> DOD["DoD<br/>r.mapcalc"]
-    NK --> DOD
-    ICP --> DOD
+The chart is generated from `r_dem_workflow.mmd`.
 
-    STATS["r.dem.stats<br/>slope, roughness,<br/>landform diversity"]
-    DOD -->|dod| BIAS["r.dem.bias<br/>regression / spline / forest"]
-    STATS -->|"predictors<br/>method=regression"| BIAS
+## EXAMPLES
 
-    BIAS -->|output| CDOD(["DoD under test"])
-    BIAS -->|output_se| SE(["bias-model<br/>coefficient SE"])
-    DOD -.->|bias correction optional| CDOD
+A full post-event workflow, from a co-registered DEM pair to masked
+volumes. Co-register the post-event DEM to the reference using
+pseudo ground control points on stable terrain:
 
-    CDOD -->|dod| LOD["r.dem.lod<br/>global / local"]
-    SE -->|sigma_extra| LOD
-    LOD -->|output| LODR(["LoD raster"])
-    LOD -->|output_sigma| SIGMA(["combined 1-sigma"])
+```sh
+r.dem.coregister dem=dsm_post reference=dsm_pre pgcp=roads \
+    output=dsm_post_coreg method=pgcp_vertical stable_mask=stable
+```
 
-    CDOD -->|dod| EP["r.dem.errprop"]
-    SIGMA -->|sigma| EP
-    EP -->|output_lod| LODR
-    EP --> CLASS(["z-score, p-value,<br/>significance classes"])
+Difference the aligned surfaces, then remove the residual
+terrain-correlated bias with a spline fit to the stable-cell residuals:
 
-    CDOD -->|dod| CH["r.dem.change<br/>trim, LoD mask,<br/>speckle, volumes"]
-    LODR -->|lod| CH
-    CH --> SC["r.dem.screen<br/>regional triage"]
+```sh
+r.mapcalc "dod_raw = dsm_post_coreg - dsm_pre"
 
-    classDef data fill:#f4f4f4,stroke:#999,color:#333
-    class CDOD,SE,LODR,SIGMA,CLASS data
+r.dem.bias dod=dod_raw output=dod method=spline \
+    stable_mask=stable bias_field=bias_spline
+```
+
+Compute a spatially variable Level of Detection on the debiased
+difference, keeping the combined 1-sigma surface for propagation:
+
+```sh
+r.dem.lod dod=dod output=lod method=local window=21 \
+    stable_mask=stable floor=0.44 \
+    output_sigma=sigma_comb output_domain=lod_domain
+```
+
+Threshold the difference and report volumes, then convert the same
+sigma surface into significance classes:
+
+```sh
+r.dem.change dod=dod lod=lod output_sig=dod_sig \
+    volume_csv=volumes.csv -n
+
+r.dem.errprop dod=dod sigma=sigma_comb \
+    output_sigma=sigma_dod output_class=dod_significance
+```
+
+For the regression bias path, derive the predictors with *r.dem.stats*
+first and pass the coefficient SE into the LoD quadrature:
+
+```sh
+r.dem.stats input=dsm_pre output=slope metric=slope
+r.dem.stats input=dsm_pre output=roughness metric=roughness_std window=13
+
+r.dem.bias dod=dod_raw output=dod method=regression \
+    predictors=slope,roughness stable_mask=stable output_se=bias_se
+
+r.dem.lod dod=dod output=lod method=local stable_mask=stable \
+    sigma_extra=bias_se
 ```
 
 ## REFERENCES
@@ -122,9 +145,9 @@ Photogrammetry. *Remote Sensing* (MDPI).
 
 *[r.mapcalc](r.mapcalc.md)*,
 *[r.neighbors](r.neighbors.md)*,
-*[r.regression.multi](r.regression.multi.md)*,
 *[r.slope.aspect](r.slope.aspect.md)*,
-*[r.univar](r.univar.md)*
+*[r.univar](r.univar.md)*,
+*[v.surf.rst](v.surf.rst.md)*
 
 ## AUTHORS
 

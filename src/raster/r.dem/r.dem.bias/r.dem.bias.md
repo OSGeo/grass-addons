@@ -81,7 +81,7 @@ Estimates a local trimmed-median bias field over a masked subset of cells
 The optional **bias_field** output stores the estimated correction surface that
 was subtracted, which is useful for inspection and reporting.
 
-For \`method=regression\` the corrected DoD is NULL wherever any predictor is
+For `method=regression` the corrected DoD is NULL wherever any predictor is
 NULL (the fitted surface is undefined there); **output_se** follows the same
 predictor-driven NULL pattern, and is defined even where the input DoD is
 NULL.

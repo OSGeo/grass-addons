@@ -94,6 +94,69 @@ carry each raster:
 <i>Figure: Decision chart for selecting r.dem tools</i>
 </div>
 
+<p>
+The chart is generated from <tt>r_dem_workflow.mmd</tt>.
+
+<h2>EXAMPLES</h2>
+
+A full post-event workflow, from a co-registered DEM pair to masked
+volumes. Co-register the post-event DEM to the reference using pseudo
+ground control points on stable terrain:
+
+<div class="code"><pre>
+r.dem.coregister dem=dsm_post reference=dsm_pre pgcp=roads \
+    output=dsm_post_coreg method=pgcp_vertical stable_mask=stable
+</pre></div>
+
+<p>
+Difference the aligned surfaces, then remove the residual
+terrain-correlated bias with a spline fit to the stable-cell residuals:
+
+<div class="code"><pre>
+r.mapcalc "dod_raw = dsm_post_coreg - dsm_pre"
+
+r.dem.bias dod=dod_raw output=dod method=spline \
+    stable_mask=stable bias_field=bias_spline
+</pre></div>
+
+<p>
+Compute a spatially variable Level of Detection on the debiased
+difference, keeping the combined 1-sigma surface for propagation:
+
+<div class="code"><pre>
+r.dem.lod dod=dod output=lod method=local window=21 \
+    stable_mask=stable floor=0.44 \
+    output_sigma=sigma_comb output_domain=lod_domain
+</pre></div>
+
+<p>
+Threshold the difference and report volumes, then convert the same sigma
+surface into significance classes:
+
+<div class="code"><pre>
+r.dem.change dod=dod lod=lod output_sig=dod_sig \
+    volume_csv=volumes.csv -n
+
+r.dem.errprop dod=dod sigma=sigma_comb \
+    output_sigma=sigma_dod output_class=dod_significance
+</pre></div>
+
+<p>
+For the regression bias path, derive the predictors with
+<em>r.dem.stats</em> first and pass the coefficient SE into the LoD
+quadrature:
+
+<div class="code"><pre>
+r.dem.stats input=dsm_pre output=slope metric=slope
+r.dem.stats input=dsm_pre output=roughness metric=roughness_std window=13
+
+r.dem.bias dod=dod_raw output=dod method=regression \
+    predictors=slope,roughness stable_mask=stable output_se=bias_se
+
+r.dem.lod dod=dod output=lod method=local stable_mask=stable \
+    sigma_extra=bias_se
+</pre></div>
+
 <h2>REFERENCES</h2>
 
 White, C.T. et al. (in preparation). Post-Hurricane Topographic Change
@@ -104,9 +167,9 @@ Photogrammetry. <em>Remote Sensing</em> (MDPI).
 
 <em><a href="r.mapcalc.html">r.mapcalc</a></em>,
 <em><a href="r.neighbors.html">r.neighbors</a></em>,
-<em><a href="r.regression.multi.html">r.regression.multi</a></em>,
 <em><a href="r.slope.aspect.html">r.slope.aspect</a></em>,
-<em><a href="r.univar.html">r.univar</a></em>
+<em><a href="r.univar.html">r.univar</a></em>,
+<em><a href="v.surf.rst.html">v.surf.rst</a></em>
 
 <h2>AUTHORS</h2>
 
