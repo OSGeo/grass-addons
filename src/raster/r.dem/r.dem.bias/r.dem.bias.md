@@ -76,7 +76,7 @@ Estimates a local trimmed-median bias field over a masked subset of cells
   local bias field.
 - Outside the mask the bias field is zero, so unmasked cells are unchanged.
 
-A local trimmed median cannot separate a canopy bump from real elevation
+However, a local trimmed median cannot separate a canopy bump from real elevation
 change, so any deposition or scour inside **mask** is removed along with the
 bias. Keep known and suspected change areas out of the mask, using the
 footprint from a coarse *r.dem.screen* pass where one is available.

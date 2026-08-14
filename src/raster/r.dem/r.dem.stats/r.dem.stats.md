@@ -28,7 +28,7 @@ A single metric is selected per run through the **metric** option:
 
 The **window** must be an odd integer of at least 3 cells. Focal metrics use a
 Gaussian weighting whose falloff is derived from the window radius, matching the
-focal behaviour used throughout the DoD workflow.
+focal behavior used throughout the DoD workflow.
 
 For **diversity_shannon** the input is expected to be categorical (integer
 classes). A natural pairing is to first compute a geomorphon forms map and then

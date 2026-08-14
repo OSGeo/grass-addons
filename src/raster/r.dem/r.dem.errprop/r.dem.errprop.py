@@ -253,7 +253,7 @@ def calc_pvalue_student(dod, sigma_dod, output, df):
 def calc_categorical(dod, sigma_dod, output):
     """Nine-class erosion/deposition significance map.
 
-    Each cell is labelled by the highest confidence level (68/90/95/99%) at
+    Each cell is labeled by the highest confidence level (68/90/95/99%) at
     which |DoD| exceeds the corresponding LoD, signed by the DoD direction.
     """
     levels = [(0.99, 4), (0.95, 3), (0.90, 2), (0.68, 1)]

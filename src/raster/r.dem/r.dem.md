@@ -71,9 +71,9 @@ volumes *r.dem.change* reports.
 DoD cleanup, LoD masking, and volumetric summary all live in
 *r.dem.change* as a single pipeline; there is no separate DoD tool.
 
-The figures in these manuals colour elevation differences with erosion in
+The figures in these manuals color elevation differences with erosion in
 red and deposition in blue, following the convention used for GRASS erosion
-modelling and matching the categorical output of *r.dem.errprop*. Erosion
+modeling and matching the categorical output of *r.dem.errprop*. Erosion
 runs yellow to orange to red to magenta as it deepens, deposition runs cyan
 to teal to blue, and near-zero differences are pale green. To apply it to a
 DoD, scale the breaks to the range of the map:
@@ -107,13 +107,12 @@ The chart is generated from `r_dem_workflow.mmd`.
 The examples in this manual and in the individual tool manuals share one
 scene, built from the North Carolina sample dataset so that every command
 can be run as written. A known change surface is added with
-*[r.earthworks](https://grass.osgeo.org/grass-stable/manuals/addons/r.earthworks.html)*,
+*[r.earthworks](https://grass.osgeo.org/grass-devel/manuals/addons/r.earthworks.html)*,
 a known rigid offset is applied, and known systematic bias fields are added,
 so each tool's output can be compared with the answer.
 
-<!-- TODO point to tutorial -->
-<!-- The notebook `r_dem_examples.ipynb`, next to this manual page, runs the whole
-walkthrough and regenerates every figure in these manuals. -->
+The notebook `r_dem_examples.ipynb`, next to this manual page, runs the whole
+walkthrough and regenerates every figure in these manuals.
 
 ### Building the scene
 

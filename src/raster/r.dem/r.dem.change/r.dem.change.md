@@ -23,7 +23,7 @@ The pipeline is:
    metres (and cubic yards), optionally written to **volume_csv**.
 
 With the **-k** flag the Fisher and Pearson kurtosis of the raw DoD distribution
-are reported as a diagnostic of noise and tail behaviour.
+are reported as a diagnostic of noise and tail behavior.
 
 A precomputed difference (typically the bias-corrected DoD from
 *r.dem.bias*) can be supplied via **dod** instead of **dem** and

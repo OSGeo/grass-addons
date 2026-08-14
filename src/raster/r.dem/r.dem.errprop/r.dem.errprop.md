@@ -36,7 +36,7 @@ From the propagated **output_sigma** the tool can additionally produce:
   approximation (Abramowitz and Stegun 26.2.17, evaluated in *r.mapcalc*) or a
   Student-t distribution with **df** degrees of freedom.
 - **output_class**: a categorical erosion/deposition significance map.
-  Each cell is labelled by the highest confidence level (68/90/95/99%) at which
+  Each cell is labeled by the highest confidence level (68/90/95/99%) at which
   the change exceeds the corresponding LoD, signed by the direction of change.
 
 ## NOTES

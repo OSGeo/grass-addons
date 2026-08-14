@@ -63,7 +63,7 @@ error.
 ## NOTES
 
 The model is first order in the elevation difference, so a smooth
-long-wavelength vertical bias, such as photogrammetric doming, is partly
+long-wavelength vertical bias (e.g., photogrammetric doming) is partly
 degenerate with a horizontal shift: over sloped terrain a gentle tilt and a
 translation produce a similar `dh` pattern. When both are present the solve
 splits the signal between them and the reported **dx** and **dy** absorb
@@ -77,7 +77,7 @@ long-wavelength part, and it operates on the difference rather than on the
 DEM pair, so it runs after this step.
 
 The **stable_mask** must cover broad, sloped, unchanged terrain. Flat
-features such as roads and parking lots are filtered out by **slope_min**
+features (e.g., roads and parking lots) are filtered out by **slope_min**
 and carry no aspect information, so a mask built from them alone leaves the
 horizontal offsets poorly constrained. Those features belong in the PGCP
 vertical step of *r.dem.coregister* instead.

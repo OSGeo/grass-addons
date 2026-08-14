@@ -108,7 +108,8 @@ runs from roughly 0.12 m on the smooth fields to over 0.30 m under canopy,
 against a single uniform value of 0.175 m. That is the case for
 <b>method=local</b>, and the reason the mask must include forest.</p>
 
-<p>The limit is undefined wherever no stable cell falls inside the window,
+<p>However, the limit is undefined wherever no stable cell falls inside the
+window,
 which on this scene means the interior of the change features. Fall back to
 the uniform limit there before thresholding:</p>
 

@@ -78,16 +78,16 @@ r.dem.screen dod=dod_10m output=triage \
 
 **spectral_change** fuses vegetation loss with the topographic signal, so
 that scour under stripped canopy ranks above either signal alone. It expects
-a bitemporal difference, typically NDVI or VARI, negative where vegetation
+a bitemporal difference (e.g., NDVI or VARI), negative where vegetation
 was lost.
 
-The North Carolina sample dataset carries only one date of imagery, so a
-real bitemporal difference cannot be built from it. The raster below is a
-stand-in: a genuine pre-event NDVI from the Landsat bands, reduced along the
-flood corridor and perturbed with noise. It illustrates the option, it does
-not demonstrate that the fusion works, because the vegetation loss is
-imposed rather than observed. With real imagery, difference the two dates
-instead.
+However, the North Carolina sample dataset carries only one date of
+imagery, so a real bitemporal difference cannot be built from it. The
+raster below is a stand-in: a genuine pre-event NDVI from the Landsat
+bands, reduced along the flood corridor and perturbed with noise. It
+illustrates the option, it does not demonstrate that the fusion works,
+because the vegetation loss is imposed rather than observed. With real
+imagery, difference the two dates instead.
 
 ```sh
 r.mapcalc "ndvi_pre = float(lsat7_2002_40 - lsat7_2002_30) \

@@ -6,7 +6,7 @@
 # AUTHOR(S): Corey T. White <smortopahri@gmail.com>
 #
 # PURPOSE:   Compute terrain surface metrics from a DEM (or DoD) for use as
-#            predictors in DoD uncertainty and bias modelling.
+#            predictors in DoD uncertainty and bias modeling.
 #
 # COPYRIGHT: (C) 2026 by Corey T. White and the GRASS Development Team
 #
