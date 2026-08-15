@@ -107,7 +107,7 @@ The chart is generated from `r_dem_workflow.mmd`.
 The examples in this manual and in the individual tool manuals share one
 scene, built from the North Carolina sample dataset so that every command
 can be run as written. A known change surface is added with
-*[r.earthworks](https://grass.osgeo.org/grass-devel/manuals/addons/r.earthworks.html)*,
+*[r.earthworks](https://grass.osgeo.org/grass-stable/manuals/addons/r.earthworks.html)*,
 a known rigid offset is applied, and known systematic bias fields are added,
 so each tool's output can be compared with the answer.
 
