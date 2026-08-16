@@ -113,6 +113,17 @@ class TestLutPhysicalBounds(unittest.TestCase):
             )
 
 
+class TestSensorPath(unittest.TestCase):
+    def test_ground_sensor_has_no_upward_atmospheric_path(self):
+        _, lut = _make_lut(
+            wl=[0.55, 0.65, 0.85],
+            aod=[0.2],
+            h2o=[2.0],
+            altitude_km=0.0,
+        )
+        np.testing.assert_allclose(lut.T_up, 1.0, rtol=0.0, atol=1e-7)
+
+
 class TestLutMonotonicity(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

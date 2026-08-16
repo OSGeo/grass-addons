@@ -32,9 +32,9 @@ static void compute_iso(SixsCtx *ctx, float taer, float tray, float pizmoy,
  * \param[in,out] ctx      6SV context with initialised atmosphere, aerosol and
  * quadrature.
  * \param[in]     taer     Total aerosol OD above target.
- * \param[in]     taerp    Aerosol OD above sensor plane.
+ * \param[in]     taerp    Aerosol OD between target and sensor.
  * \param[in]     tray     Total Rayleigh OD above target.
- * \param[in]     trayp    Rayleigh OD above sensor plane.
+ * \param[in]     trayp    Rayleigh OD between target and sensor.
  * \param[in]     piza     Single-scattering albedo of the aerosol.
  * \param[in]     palt     Sensor altitude in km (> 900 = satellite).
  * \param[in]     nt       Number of atmospheric integration levels.
@@ -67,6 +67,22 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
                  float *sphalbr, float *ddirta, float *ddifta, float *udirta,
                  float *udifta, float *sphalba)
 {
+    float rm_work[2 * MU_P + 1];
+    memcpy(rm_work, rm, (size_t)(2 * mu + 1) * sizeof(float));
+#define RM_LOCAL(i) rm_work[(i) + mu]
+#define SET_UPWARD_DIRECTION() \
+    do {                       \
+        RM_LOCAL(-mu) = -xmuv; \
+        RM_LOCAL(mu) = xmuv;   \
+        RM_LOCAL(0) = xmus;    \
+    } while (0)
+#define SET_DOWNWARD_DIRECTION() \
+    do {                         \
+        RM_LOCAL(-mu) = -xmus;   \
+        RM_LOCAL(mu) = xmus;     \
+        RM_LOCAL(0) = xmus;      \
+    } while (0)
+
     /* Initialize */
     *ddirtt = 1.f;
     *ddiftt = 0.f;
@@ -105,8 +121,9 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
                 float xt_m1, xt_0, xt_1;
                 /* Upward: view direction */
                 float tamol = 0.0f, tamolp = 0.0f;
+                SET_UPWARD_DIRECTION();
                 compute_iso(ctx, tamol, tray, piza, tamolp, trayp, palt, nt, mu,
-                            rm, gb, &xt_m1, &xt_0, &xt_1);
+                            rm_work, gb, &xt_m1, &xt_0, &xt_1);
                 *udiftt = xt_m1 - expf(-trayp / xmuv);
                 *udirtt = expf(-trayp / xmuv);
                 /* Downward: simple formula */
@@ -127,13 +144,15 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
             float xt_m1, xt_0, xt_1;
             float tamol = 0.0f, tamolp = 0.0f;
             /* Upward */
-            compute_iso(ctx, taer, tamol, piza, taerp, tamolp, palt, nt, mu, rm,
-                        gb, &xt_m1, &xt_0, &xt_1);
+            SET_UPWARD_DIRECTION();
+            compute_iso(ctx, taer, tamol, piza, taerp, tamolp, palt, nt, mu,
+                        rm_work, gb, &xt_m1, &xt_0, &xt_1);
             *udiftt = xt_m1 - expf(-taerp / xmuv);
             *udirtt = expf(-taerp / xmuv);
             /* Downward + spherical albedo */
+            SET_DOWNWARD_DIRECTION();
             compute_iso(ctx, taer, tamol, piza, taerp, tamolp, 999.0f, nt, mu,
-                        rm, gb, &xt_m1, &xt_0, &xt_1);
+                        rm_work, gb, &xt_m1, &xt_0, &xt_1);
             *ddirtt = expf(-taer / xmus);
             *ddiftt = xt_1 - expf(-taer / xmus);
             *sphalbt = xt_0 * 2.0f;
@@ -146,13 +165,15 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
         if (it == 3) {
             float xt_m1, xt_0, xt_1;
             /* Upward */
-            compute_iso(ctx, taer, tray, piza, taerp, trayp, palt, nt, mu, rm,
-                        gb, &xt_m1, &xt_0, &xt_1);
+            SET_UPWARD_DIRECTION();
+            compute_iso(ctx, taer, tray, piza, taerp, trayp, palt, nt, mu,
+                        rm_work, gb, &xt_m1, &xt_0, &xt_1);
             *udirtt = expf(-(taerp + trayp) / xmuv);
             *udiftt = xt_m1 - expf(-(taerp + trayp) / xmuv);
             /* Downward + spherical albedo */
-            compute_iso(ctx, taer, tray, piza, taerp, trayp, 999.0f, nt, mu, rm,
-                        gb, &xt_m1, &xt_0, &xt_1);
+            SET_DOWNWARD_DIRECTION();
+            compute_iso(ctx, taer, tray, piza, taerp, trayp, 999.0f, nt, mu,
+                        rm_work, gb, &xt_m1, &xt_0, &xt_1);
             *ddiftt = xt_1 - expf(-(taer + tray) / xmus);
             *ddirtt = expf(-(taer + tray) / xmus);
             *sphalbt = xt_0 * 2.0f;
@@ -178,6 +199,10 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
             *sphalba = *sphalbt;
         }
     }
+
+#undef SET_DOWNWARD_DIRECTION
+#undef SET_UPWARD_DIRECTION
+#undef RM_LOCAL
 }
 
 /**
@@ -195,8 +220,8 @@ void sixs_scatra(SixsCtx *ctx, float taer, float taerp, float tray, float trayp,
  * \param[in]     tamoy     Aerosol OD above target.
  * \param[in]     trmoy     Rayleigh OD above target.
  * \param[in]     pizmoy    Single-scattering albedo.
- * \param[in]     tamoyp    Aerosol OD above sensor plane.
- * \param[in]     trmoyp    Rayleigh OD above sensor plane.
+ * \param[in]     tamoyp    Aerosol OD between target and sensor.
+ * \param[in]     trmoyp    Rayleigh OD between target and sensor.
  * \param[in]     palt      Sensor altitude in km.
  * \param[in]     nt        Number of atmospheric levels.
  * \param[in]     mu        Number of quadrature angles per hemisphere.

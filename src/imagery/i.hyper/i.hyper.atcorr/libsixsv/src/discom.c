@@ -26,13 +26,6 @@ static const float *const comp_sca_d[4] = {aerosol_dust_sca, aerosol_wate_sca,
                                            aerosol_ocea_sca, aerosol_soot_sca};
 static const float (*const comp_pha_d[4])[83] = {
     aerosol_dust_pha, aerosol_wate_pha, aerosol_ocea_pha, aerosol_soot_pha};
-static const float std_mix_d[3][4] = {
-    {0.70f, 0.29f, 0.00f, 0.01f},
-    {0.05f, 0.95f, 0.00f, 0.00f},
-    {0.21f, 0.30f, 0.00f, 0.49f},
-};
-static const float vi_d[4] = {0.09f, 0.25f, 1.00f, 0.01f};
-
 /**
  * \brief Fill the phase function with the scattering-weighted aerosol mixture.
  *
@@ -53,12 +46,12 @@ static void set_mixed_pha(SixsCtx *ctx, int iaer, int wl_idx)
         return;
 
     int mix_idx = (iaer == 2) ? 1 : (iaer == 3 ? 2 : 0);
-    const float *ci = std_mix_d[mix_idx];
+    const float *ci = aerosol_std_mix[mix_idx];
 
     float sigm = 0.0f;
     for (int j = 0; j < 4; j++)
         if (ci[j] > 0.0f)
-            sigm += ci[j] / vi_d[j];
+            sigm += ci[j] / aerosol_component_vi[j];
     if (sigm < 1e-10f)
         return;
 
@@ -67,7 +60,7 @@ static void set_mixed_pha(SixsCtx *ctx, int iaer, int wl_idx)
     for (int j = 0; j < 4; j++) {
         if (ci[j] <= 0.0f)
             continue;
-        float cij = ci[j] / vi_d[j] / sigm;
+        float cij = ci[j] / aerosol_component_vi[j] / sigm;
         sca_mix += cij * comp_sca_d[j][wl_idx];
     }
     if (sca_mix < 1e-10f)
@@ -76,7 +69,7 @@ static void set_mixed_pha(SixsCtx *ctx, int iaer, int wl_idx)
     for (int j = 0; j < 4; j++) {
         if (ci[j] <= 0.0f)
             continue;
-        float cij = ci[j] / vi_d[j] / sigm;
+        float cij = ci[j] / aerosol_component_vi[j] / sigm;
         float weight = cij * comp_sca_d[j][wl_idx] / sca_mix;
         const float (*pha_j)[83] = comp_pha_d[j];
         for (int k = 0; k < nquad; k++)
@@ -149,22 +142,22 @@ static void setup_rm_gb(float xmus, float xmuv, int mu, float *rm_off,
  *
  * \param[in,out] ctx     6SV context; must have atm, aer, del, quad, multi
  * initialised. Writes \c ctx->disc on return.
- * \param[in]     idatmp  Sensor type: 0=ground, 4=aircraft at \c palt km,
- * else=satellite.
+ * \param[in]     idatmp  Sensor type: 0=ground, 4=satellite, otherwise an
+ * aircraft at \c palt km.
  * \param[in]     iaer    Aerosol model (0=none, 1=continental, 2=maritime,
  * 3=urban).
  * \param[in]     xmus    Cosine of solar zenith angle.
  * \param[in]     xmuv    Cosine of view zenith angle.
  * \param[in]     phi     Relative azimuth angle (degrees).
  * \param[in]     taer55  Total aerosol OD at 550 nm.
- * \param[in]     taer55p Aerosol OD at 550 nm above sensor plane.
+ * \param[in]     taer55p Aerosol OD at 550 nm between target and sensor.
  * \param[in]     palt    Sensor altitude in km (> 900 = satellite).
  * \param[in]     phirad  Relative azimuth angle in radians.
  * \param[in]     nt      Number of atmospheric integration levels.
  * \param[in]     mu      Gauss quadrature points per hemisphere (= MU_P = 25).
  * \param[in]     np      Number of azimuth planes in the xl arrays.
- * \param[in]     ftray   Fraction of Rayleigh OD above sensor (used for idatmp
- * 1–3).
+ * \param[in]     ftray   Fraction of Rayleigh OD between target and sensor
+ * (used for aircraft sensor modes).
  * \param[in]     ipol    0 = scalar RT; non-zero = vector RT (Stokes I/Q/U).
  */
 void sixs_discom(SixsCtx *ctx, int idatmp, int iaer, float xmus, float xmuv,
@@ -208,7 +201,7 @@ void sixs_discom(SixsCtx *ctx, int idatmp, int iaer, float xmus, float xmuv,
         float tray, trayp;
         sixs_odrayl(ctx, wl, &tray);
 
-        /* Rayleigh OD above sensor */
+        /* Rayleigh OD between target and sensor */
         if (idatmp == 4)
             trayp = tray;
         else if (idatmp == 0)

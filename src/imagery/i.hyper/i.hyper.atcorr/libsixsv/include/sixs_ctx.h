@@ -108,7 +108,7 @@ typedef struct {
     float sphal[3][NWL_DISC]; /*!< Spherical albedo */
     float wldis[NWL_DISC];    /*!< Reference wavelengths [µm] */
     float trayl[NWL_DISC];    /*!< Rayleigh optical depth */
-    float traypl[NWL_DISC];   /*!< Rayleigh OD above the sensor level */
+    float traypl[NWL_DISC];   /*!< Rayleigh OD between target and sensor */
 } SixsDisc;
 
 /**

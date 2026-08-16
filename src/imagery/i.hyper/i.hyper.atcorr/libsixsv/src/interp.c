@@ -53,7 +53,7 @@ static float log_interp(float y_inf, float y_sup, float wl_inf, float coef,
  * \param[in]  iaer         Aerosol model index (0 = no aerosol).
  * \param[in]  wl           Target wavelength (µm).
  * \param[in]  taer55       Total aerosol optical depth at 550 nm.
- * \param[in]  taer55p      AOD above sensor altitude (reserved, currently
+ * \param[in]  taer55p      AOD between target and sensor (reserved, currently
  * unused).
  * \param[out] roatm        Atmospheric path reflectance (Rayleigh + aerosol).
  * \param[out] T_down       Total downward transmittance (direct + diffuse).

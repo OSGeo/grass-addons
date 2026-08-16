@@ -1765,6 +1765,9 @@ const float aerosol_soot_pha[20][83] = {
 /* Models: 0=continental, 1=maritime, 2=urban */
 const float aerosol_std_mix[3][4] = {
     {0.70f, 0.29f, 0.00f, 0.01f}, /* continental */
-    {0.05f, 0.95f, 0.00f, 0.00f}, /* maritime */
-    {0.21f, 0.30f, 0.00f, 0.49f}, /* urban */
+    {0.00f, 0.05f, 0.95f, 0.00f}, /* maritime */
+    {0.17f, 0.61f, 0.00f, 0.22f}, /* urban */
 };
+
+const float aerosol_component_vi[4] = {18.2859898f, 0.00182737305f, 4.99809027f,
+                                       6.05630412e-05f};

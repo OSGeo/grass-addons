@@ -35,6 +35,9 @@ static void get_gas_coef(int gas_id, int band, int inu, float a[8])
     case 3:
         tbl = gas_acr_oxyg;
         break;
+    case 4:
+        tbl = gas_acr_ozon;
+        break;
     case 5:
         tbl = gas_acr_niox;
         break;
@@ -115,7 +118,6 @@ static float compute_gas_trans(const SixsCtx *ctx, const float a[8], double ud,
 static void compute_column(const SixsCtx *ctx, int gas_id, const float a[8],
                            float xmus, double *u_out, double *up_out)
 {
-    const float *z = ctx->atm.z;
     const float *p = ctx->atm.p;
     const float *t = ctx->atm.t;
     const float *wh = ctx->atm.wh;
@@ -132,48 +134,51 @@ static void compute_column(const SixsCtx *ctx, int gas_id, const float a[8],
     const float rmch4 = 0.016f / 0.0224f;
     const float rmco = 0.028f / 0.0224f;
 
-    double uu = 0.0, u = 0.0, up = 0.0;
-    for (int k = 1; k < NATM - 1; k++) {
+    float rm[NATM - 1], r2[NATM - 1], r3[NATM - 1];
+    for (int k = 0; k < NATM - 1; k++) {
         float tp = (t[k] + t[k + 1]) / 2.0f;
         float roair = air * 273.16f * p[k] / (1013.25f * t[k]);
         float te = tp - t0;
         float te2 = te * te;
         float phi = expf((float)(a[2]) * te + (float)(a[3]) * te2);
         float psi = expf((float)(a[4]) * te + (float)(a[5]) * te2);
-        float rm_k;
         switch (gas_id) {
         case 1:
-            rm_k = wh[k] / (roair * 1000.0f);
+            rm[k] = wh[k] / (roair * 1000.0f);
             break;
         case 2:
-            rm_k = 3.3e-4f * roco2 / air;
+            rm[k] = 3.3e-4f * roco2 / air;
             break;
         case 3:
-            rm_k = 0.20947f * rmo2 / air;
+            rm[k] = 0.20947f * rmo2 / air;
             break;
         case 4:
-            rm_k = wo[k] / (roair * 1000.0f);
+            rm[k] = wo[k] / (roair * 1000.0f);
             break;
         case 5:
-            rm_k = 310.0e-9f * rmn2o / air;
+            rm[k] = 310.0e-9f * rmn2o / air;
             break;
         case 6:
-            rm_k = 1.72e-6f * rmch4 / air;
+            rm[k] = 1.72e-6f * rmch4 / air;
             break;
         case 7:
-            rm_k = 1.00e-9f * rmco / air;
+            rm[k] = 1.00e-9f * rmco / air;
             break;
         default:
-            rm_k = 0.0f;
+            rm[k] = 0.0f;
             break;
         }
-        float r2 = rm_k * phi;
-        float r3 = rm_k * psi;
-        float ds = (p[k] - p[k + 1]) / p[0];
-        float ds2 = (p[k] * p[k] - p[k + 1] * p[k + 1]) / (2.0f * p[0] * p0);
-        uu += rm_k * ds;
-        u += r2 * ds;
-        up += r3 * ds2;
+        r2[k] = rm[k] * phi;
+        r3[k] = rm[k] * psi;
+    }
+
+    double uu = 0.0, u = 0.0, up = 0.0;
+    for (int k = 1; k < NATM - 1; k++) {
+        float ds = (p[k - 1] - p[k]) / p[0];
+        float ds2 = (p[k - 1] * p[k - 1] - p[k] * p[k]) / (2.0f * p[0] * p0);
+        uu += 0.5 * (rm[k] + rm[k - 1]) * ds;
+        u += 0.5 * (r2[k] + r2[k - 1]) * ds;
+        up += 0.5 * (r3[k] + r3[k - 1]) * ds2;
     }
     uu *= (double)p[0] * 100.0 / g;
     u *= (double)p[0] * 100.0 / g;
@@ -221,29 +226,29 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
         return 1.0f;
     float v = 1.0e4f / wl;
     int iv = (int)(v / 5.0f) * 5;
-    /* Band index */
+    /* The six k-distribution bands do not cover the whole solar spectrum;
+     * ozone continuum absorption is evaluated independently below. */
     int id = ((iv - 2500) / 10) / 256 + 1;
-    if (id < 1 || id > 6)
-        return 1.0f;
-    int inu = (iv - ivli[id - 1]) / 10 + 1;
-    if (inu < 1 || inu > 256)
-        return 1.0f;
-
     float tgas_down = 1.0f;
+    int inu = 0;
+    int have_k_band = id >= 1 && id <= 6;
+    if (have_k_band) {
+        inu = (iv - ivli[id - 1]) / 10 + 1;
+        have_k_band = inu >= 1 && inu <= 256;
+    }
 
-    /* Loop over gas species (ABSTRA loops idgaz=1..7) */
-    for (int gas_id = 1; gas_id <= 7; gas_id++) {
+    /* Loop over gas species covered by the ABSTRA k-distribution tables. */
+    for (int gas_id = 1; have_k_band && gas_id <= 7; gas_id++) {
         /* Check if this gas/band combination exists */
         int has_data = 0;
         if (gas_id == 1)
             has_data = 1; /* H2O: all bands */
-        if (gas_id == 2 && id <= 3)
+        if (gas_id == 2 && id <= 3 && iv <= 9620)
             has_data = 1; /* CO2: bands 1-3 */
-        if (gas_id == 3 && id >= 3)
-            has_data = 1;  /* O2:  bands 3-6 */
-        if (gas_id == 4) { /* O3: special treatment below */
-            continue;
-        }
+        if (gas_id == 3 && id >= 3 && iv <= 15920)
+            has_data = 1; /* O2:  bands 3-6 */
+        if (gas_id == 4 && id == 1 && iv <= 3020)
+            has_data = 1; /* O3: 3.3-4.0 um k-distribution */
         if (gas_id >= 5)
             has_data = 1; /* N2O/CH4/CO: all bands */
         if (!has_data)
@@ -258,6 +263,8 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
         float scale = 1.0f;
         if (gas_id == 1 && uw > 0.0f)
             scale = uw / 1.424f;
+        if (gas_id == 4 && uo3 > 0.0f)
+            scale = uo3 / 344.0f;
 
         double ud, upd;
         compute_column(ctx, gas_id, a, xmus, &ud, &upd);
@@ -268,8 +275,23 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
         tgas_down *= t_d;
     }
 
+    /* H2O continuum absorption from CCH2O in ABSTRA.f. */
+    if (iv >= 2350 && iv <= 3000) {
+        float xi = (v - 2350.0f) / 50.0f + 1.0f;
+        int n = (int)(xi + 1.001f);
+        float xd = xi - (float)n;
+        if (n >= 2 && n <= 15) {
+            float ah2o =
+                gas_cch2o[n - 1] + xd * (gas_cch2o[n - 1] - gas_cch2o[n - 2]);
+            /* Match the 0.1 column conversion produced by ABSTRA's pressure
+             * integration before applying CCH2O. */
+            float uud = (uw > 0.0f ? uw : 1.424f) / (10.0f * xmus);
+            tgas_down *= expf(-ah2o * uud);
+        }
+    }
+
     /* Ozone absorption (separate table: co3[102]) */
-    if (iv >= 13000 && iv <= 27400) {
+    if ((iv >= 13000 && iv <= 23400) || iv >= 27500) {
         extern const float gas_co3_ozon[102];
         float xi;
         if (iv <= 23400)

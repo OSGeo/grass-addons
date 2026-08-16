@@ -1,0 +1,90 @@
+{
+    "source": "https://github.com/NakamuraTakashi/6SV2.1",
+    "commit": "7deb2289cfe23c9b1d1b48d7647f76604ef75fa4",
+    "configuration": {
+        "sza": 30.0,
+        "vza": 0.0,
+        "raa": 0.0,
+        "atmosphere": "US62",
+        "aerosol": "continental",
+        "aod_550": 0.2,
+        "h2o_g_cm2": 2.0,
+        "ozone_du": 300.0,
+        "sensor_altitude_km": 1000.0,
+        "surface_reflectance": 0.2
+    },
+    "rows": [
+        {
+            "wavelength_nm": 450,
+            "radiance_um": 135.216,
+            "apparent_reflectance": 0.2464415,
+            "fortran": {
+                "R_atm": 0.09972,
+                "T_down": 0.829246824,
+                "T_up": 0.852081216,
+                "s_alb": 0.19094
+            },
+            "before": {
+                "R_atm": 0.086072892,
+                "T_down": 0.804746032,
+                "T_up": 0.804745972,
+                "s_alb": 0.137759835,
+                "recovered_reflectance": 0.239458382
+            }
+        },
+        {
+            "wavelength_nm": 550,
+            "radiance_um": 102.758,
+            "apparent_reflectance": 0.205931,
+            "fortran": {
+                "R_atm": 0.0495,
+                "T_down": 0.8716327704,
+                "T_up": 0.8903459808,
+                "s_alb": 0.12028
+            },
+            "before": {
+                "R_atm": 0.041286718,
+                "T_down": 0.86495924,
+                "T_up": 0.864959419,
+                "s_alb": 0.08097019,
+                "recovered_reflectance": 0.216213956
+            }
+        },
+        {
+            "wavelength_nm": 650,
+            "radiance_um": 82.767,
+            "apparent_reflectance": 0.1952699,
+            "fortran": {
+                "R_atm": 0.02877,
+                "T_down": 0.9001060607,
+                "T_up": 0.9152779548,
+                "s_alb": 0.08463
+            },
+            "before": {
+                "R_atm": 0.024138672,
+                "T_down": 0.860397577,
+                "T_up": 0.864701569,
+                "s_alb": 0.05725599,
+                "recovered_reflectance": 0.227028787
+            }
+        },
+        {
+            "wavelength_nm": 850,
+            "radiance_um": 52.109,
+            "apparent_reflectance": 0.1971835,
+            "fortran": {
+                "R_atm": 0.01318,
+                "T_down": 0.9501226881,
+                "T_up": 0.9585896012,
+                "s_alb": 0.0503
+            },
+            "before": {
+                "R_atm": 0.013522147,
+                "T_down": 0.913028359,
+                "T_up": 0.91388005,
+                "s_alb": 0.042856574,
+                "recovered_reflectance": 0.218052611
+            }
+        }
+    ]
+}

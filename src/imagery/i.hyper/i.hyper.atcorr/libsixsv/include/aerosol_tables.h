@@ -34,3 +34,6 @@ extern const float aerosol_soot_pha[20][83];
 /* Standard aerosol model mixing ratios [dust, wate, ocea, soot] */
 /* Models: 0=continental, 1=maritime, 2=urban */
 extern const float aerosol_std_mix[3][4];
+
+/* Component volume integrals (vi) from DUST/WATE/OCEA/SOOT.f. */
+extern const float aerosol_component_vi[4];

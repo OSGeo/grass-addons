@@ -102,11 +102,11 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
     int mu = MU_P;                        /* 25 Gauss points per hemisphere */
     int np = 1;                           /* one azimuth plane */
     int ipol = cfg->enable_polar ? 1 : 0; /* 0=scalar, 1=Stokes(I,Q,U) */
-    int idatmp = (cfg->altitude_km > 900.0f) ? 99 : /* satellite */
-                     (cfg->altitude_km > 0.0f) ? 4
+    int idatmp = (cfg->altitude_km > 900.0f) ? 4 : /* satellite */
+                     (cfg->altitude_km > 0.0f) ? 2
                                                : 0; /* plane or ground */
     float palt = (cfg->altitude_km > 900.0f) ? 1000.0f : cfg->altitude_km;
-    float ftray = 0.0f; /* fraction above plane (0 = ground sensor) */
+    float ftray = (cfg->altitude_km > 900.0f) ? 1.0f : 0.0f;
 
     /* ===== Outer loop: AOD ===== */
 #ifdef _OPENMP
@@ -140,7 +140,9 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
 
         /* Call DISCOM once per AOD: fills ctx->disc at 20 reference wavelengths
          */
-        float taer55p = aod; /* satellite: no aerosol above */
+        /* Optical depth between target and sensor: the full column for a
+         * satellite and zero for the current ground/aircraft approximation. */
+        float taer55p = aod;
         if (cfg->altitude_km <= 900.0f)
             taer55p = 0.0f;
         sixs_discom(ctx, idatmp, cfg->aerosol_model, xmus, xmuv, phi, aod,
@@ -171,8 +173,11 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
                  */
                 float T_gas_down = sixs_gas_transmittance(ctx, wl, xmus, xmuv,
                                                           h2o, cfg->ozone_du);
-                float T_gas_up = sixs_gas_transmittance(ctx, wl, xmuv, xmuv,
-                                                        h2o, cfg->ozone_du);
+                float T_gas_up =
+                    cfg->altitude_km <= 0.0f
+                        ? 1.0f
+                        : sixs_gas_transmittance(ctx, wl, xmuv, xmuv, h2o,
+                                                 cfg->ozone_du);
 
                 /* Combined transmittances */
                 out->R_atm[idx] = roatm;

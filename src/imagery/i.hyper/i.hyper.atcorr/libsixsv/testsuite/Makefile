@@ -14,7 +14,7 @@
 #   SIXSV2        — path to 6SV2.1 Fortran sources (default: ~/dev/6sV2.1)
 
 SIXSV_DIR = ..
-SIXSV2    = $(HOME)/dev/6sV2.1
+SIXSV2   ?= $(HOME)/dev/6sV2.1
 
 CC  ?= gcc
 FC  ?= gfortran
@@ -55,19 +55,18 @@ $(SIXSV2)/%.o: $(SIXSV2)/%.f
 	$(FC) -O -c $< -o $@
 
 # ── Run tests ─────────────────────────────────────────────────────────────────
-PYTEST_CMD = LIB_SIXSV=$(CURDIR)/$(LIB_SO) python3 -m pytest -v --tb=short
-UNITTEST_CMD = LIB_SIXSV=$(CURDIR)/$(LIB_SO) python3 -m unittest
+PYTEST_CMD = SIXSV2=$(SIXSV2) LIB_SIXSV=$(CURDIR)/$(LIB_SO) python3 -m pytest -v --tb=short
 
 test: lib fortran
-	$(PYTEST_CMD) . || $(UNITTEST_CMD) discover -v
+	$(PYTEST_CMD) .
 
 test-fortran: lib fortran
 	$(PYTEST_CMD) test_fortran_compat.py test_lut.py test_solar.py \
-	  || $(UNITTEST_CMD) test_fortran_compat test_lut test_solar
+	  test_6sv21_pipeline_parity.py
 
 test-openmp: lib
-	$(PYTEST_CMD) test_openmp.py || $(UNITTEST_CMD) test_openmp
+	$(PYTEST_CMD) test_openmp.py
 
 clean:
-	rm -f $(LIB_SO) $(FORTRAN_DRIVER) __pycache__ *.pyc
+	rm -f $(LIB_SO) $(FORTRAN_DRIVER) *.pyc
 	rm -rf __pycache__ .pytest_cache

@@ -22,7 +22,8 @@ Run with::
 
     make test-fortran
     # or directly:
-    LIB_SIXSV=./libsixsv.so python3 -m pytest test_fortran_compat.py -v
+    SIXSV2=/path/to/6SV2.1/src LIB_SIXSV=./libsixsv.so \
+        python3 -m pytest test_fortran_compat.py -v
 """
 
 import os
@@ -44,7 +45,9 @@ from _support import (
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_SIXSV2 = os.path.join(os.path.expanduser("~"), "dev", "6sV2.1")
+_SIXSV2 = os.environ.get(
+    "SIXSV2", os.path.join(os.path.expanduser("~"), "dev", "6sV2.1")
+)
 _DRIVER_SRC = os.path.join(_HERE, "test_6sv_compat.f90")
 _DRIVER_BIN = os.path.join(_HERE, "test_6sv_compat")
 
