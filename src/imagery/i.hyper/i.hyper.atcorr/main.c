@@ -1417,8 +1417,10 @@ static void correct_raster3d(const char *input_name, const char *output_name,
     /* Warn on bands outside LUT range */
     {
         int n_out = 0;
+        const float wl_eps = 1e-6f;
         for (int b = 0; b < ndepths; b++)
-            if (band_wl[b] < cfg->wl[0] || band_wl[b] > cfg->wl[cfg->n_wl - 1])
+            if (band_wl[b] < cfg->wl[0] - wl_eps ||
+                band_wl[b] > cfg->wl[cfg->n_wl - 1] + wl_eps)
                 n_out++;
         if (n_out > 0)
             G_warning(_("%d bands outside LUT range [%.4f, %.4f] µm"), n_out,
