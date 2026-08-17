@@ -122,6 +122,29 @@ def test_headings_dual_camera_rig(tool):
         assert img["yaw"] == pytest.approx(0.0, abs=0.5)
 
 
+def test_headings_split_at_time_gap(tool):
+    """A long pause splits the track; headings must not bridge the break."""
+    images = []
+    # Segment 1: northward at seconds 0-2
+    for i in range(3):
+        images.append(_track_image("A", i * 20.0, i * 0.0002, i))
+    # Segment 2: eastward starting 100 s later from a distant start
+    for i in range(3):
+        img = _track_image("A", 0.0, 0.0, 40 + i)
+        img["timestamp"] = datetime(2024, 10, 3, 18, 34, i)
+        img["easting"] = 5000.0 + i * 20.0
+        img["northing"] = 5000.0
+        img["lon"] = 0.05 + i * 0.0002
+        img["lat"] = 0.045
+        images.append(img)
+    result = tool.compute_headings_from_gps(images, time_gap=30.0)
+    assert [img["segment"] for img in result] == [0, 0, 0, 1, 1, 1]
+    # Last image of segment 1 keeps the northward heading
+    assert result[2]["yaw"] == pytest.approx(0.0, abs=0.5)
+    # First image of segment 2 is eastward, not a blend across the gap
+    assert result[3]["yaw"] == pytest.approx(90.0, abs=0.5)
+
+
 def test_headings_keep_recorded_yaw(tool):
     images = [_track_image("A", i * 20.0, i * 0.0002, i) for i in range(3)]
     images[1]["yaw"] = 123.0

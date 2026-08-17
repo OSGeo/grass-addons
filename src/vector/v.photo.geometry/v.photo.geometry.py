@@ -42,6 +42,15 @@
 # % description: Overrides the sensor size estimated from image metadata
 # %end
 #
+# %option
+# % key: time_gap
+# % type: double
+# % required: no
+# % answer: 30.0
+# % label: Time gap in seconds that splits a flight into separate segments
+# % description: Images separated by more than this gap do not inform each other's estimated heading
+# %end
+#
 # %option G_OPT_R_OUTPUT
 # % key: overlap_raster
 # % type: string
@@ -203,6 +212,24 @@ def group_by_camera(images):
     return groups
 
 
+def split_on_time_gaps(images, gap_threshold=30.0):
+    """Split a chronologically sorted image list at large time gaps.
+
+    A gap larger than gap_threshold seconds between consecutive exposures
+    is treated as a break between flight segments (turnaround, repositioning,
+    or a separate sortie), so track analysis does not connect across it.
+    """
+    if not images:
+        return []
+    segments = [[images[0]]]
+    for img in images[1:]:
+        previous = segments[-1][-1]
+        if (img["timestamp"] - previous["timestamp"]).total_seconds() > gap_threshold:
+            segments.append([])
+        segments[-1].append(img)
+    return segments
+
+
 # Neighbors closer than this (meters) give no usable heading baseline
 MIN_HEADING_BASELINE = 0.05
 
@@ -245,48 +272,53 @@ def circular_mean(angles):
     return (math.degrees(math.atan2(sin_sum, cos_sum)) + 360) % 360
 
 
-def compute_headings_from_gps(images):
+def compute_headings_from_gps(images, time_gap=30.0):
     """Estimate yaw from the GPS track where the metadata has none.
 
-    Images are grouped per camera body and walked chronologically. Yaw for
-    interior images is the circular mean of the headings from the previous
-    and to the next position with a usable baseline.
+    Images are grouped per camera body, split into flight segments at time
+    gaps, and walked chronologically. Yaw for interior images is the circular
+    mean of the headings from the previous and to the next position with a
+    usable baseline. Each image is tagged with its segment index.
     """
     for group in group_by_camera(images).values():
         group.sort(key=lambda img: img["timestamp"])
-        n = len(group)
-        for i, img in enumerate(group):
-            if img.get("yaw") is not None:
-                continue  # keep yaw recorded by the camera
-
-            prev_img = next(
-                (
-                    group[j]
-                    for j in range(i - 1, -1, -1)
-                    if planar_distance(group[j], img) > MIN_HEADING_BASELINE
-                ),
-                None,
-            )
-            next_img = next(
-                (
-                    group[j]
-                    for j in range(i + 1, n)
-                    if planar_distance(img, group[j]) > MIN_HEADING_BASELINE
-                ),
-                None,
-            )
-
-            if prev_img and next_img:
-                img["yaw"] = circular_mean(
-                    [heading(prev_img, img), heading(img, next_img)]
-                )
-            elif prev_img:
-                img["yaw"] = heading(prev_img, img)
-            elif next_img:
-                img["yaw"] = heading(img, next_img)
-            else:
-                img["yaw"] = 0.0  # single stationary camera, no track
+        for seg_index, segment in enumerate(split_on_time_gaps(group, time_gap)):
+            _estimate_segment_headings(segment, seg_index)
     return images
+
+
+def _estimate_segment_headings(segment, seg_index):
+    n = len(segment)
+    for i, img in enumerate(segment):
+        img["segment"] = seg_index
+        if img.get("yaw") is not None:
+            continue  # keep yaw recorded by the camera
+
+        prev_img = next(
+            (
+                segment[j]
+                for j in range(i - 1, -1, -1)
+                if planar_distance(segment[j], img) > MIN_HEADING_BASELINE
+            ),
+            None,
+        )
+        next_img = next(
+            (
+                segment[j]
+                for j in range(i + 1, n)
+                if planar_distance(img, segment[j]) > MIN_HEADING_BASELINE
+            ),
+            None,
+        )
+
+        if prev_img and next_img:
+            img["yaw"] = circular_mean([heading(prev_img, img), heading(img, next_img)])
+        elif prev_img:
+            img["yaw"] = heading(prev_img, img)
+        elif next_img:
+            img["yaw"] = heading(img, next_img)
+        else:
+            img["yaw"] = 0.0  # single stationary camera, no track
 
 
 def get_focal_length(exif):
@@ -983,7 +1015,9 @@ def main():
 
     gs.verbose(_("Metadata collected for all photos"))
 
-    photos_by_line_heading = compute_headings_from_gps(metadata)
+    photos_by_line_heading = compute_headings_from_gps(
+        metadata, time_gap=float(options["time_gap"])
+    )
     for img in photos_by_line_heading:
         footprint = make_footprint_basic(
             img["easting"],
