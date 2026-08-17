@@ -3778,7 +3778,8 @@ int main(int argc, char *argv[])
                 flag_u->answer ? "true" : "false",
                 flag_D->answer ? "true" : "false");
 
-            char maparg[GPATH_MAX], ovrarg[4096];
+            char maparg[GPATH_MAX],
+                ovrarg[sizeof(overrides) + sizeof("overrides=")];
             snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
             snprintf(ovrarg, sizeof(ovrarg), "overrides=%s", overrides);
 
