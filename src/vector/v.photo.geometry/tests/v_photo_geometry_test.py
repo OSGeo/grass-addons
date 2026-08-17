@@ -88,6 +88,47 @@ def test_sensor_size_unavailable(tool):
     assert tool.compute_sensor_size({"ExifImageWidth": 6000}) is None
 
 
+def test_camera_serial(tool, cap_records):
+    serials = {tool.get_camera_serial(r) for r in cap_records}
+    assert serials == {"384055000191", "384055000156"}
+
+
+def test_camera_serial_model_fallback(tool):
+    assert tool.get_camera_serial({"Model": "TestCam"}) == "TestCam"
+
+
+def _track_image(serial, northing, lat, second):
+    return {
+        "camera_serial": serial,
+        "easting": 0.0,
+        "northing": northing,
+        "lon": 0.0,
+        "lat": lat,
+        "timestamp": datetime(2024, 10, 3, 18, 32, second),
+        "yaw": None,
+    }
+
+
+def test_headings_dual_camera_rig(tool):
+    """Two bodies firing together at identical positions must not corrupt
+    each other's heading estimates."""
+    images = []
+    for serial in ("A", "B"):
+        for i in range(3):
+            # Northward track: identical GPS positions for both bodies
+            images.append(_track_image(serial, i * 20.0, i * 0.0002, i))
+    result = tool.compute_headings_from_gps(images)
+    for img in result:
+        assert img["yaw"] == pytest.approx(0.0, abs=0.5)
+
+
+def test_headings_keep_recorded_yaw(tool):
+    images = [_track_image("A", i * 20.0, i * 0.0002, i) for i in range(3)]
+    images[1]["yaw"] = 123.0
+    result = tool.compute_headings_from_gps(images)
+    assert result[1]["yaw"] == pytest.approx(123.0)
+
+
 def test_find_exiftool_missing(tool, raise_on_error, monkeypatch):
     monkeypatch.setattr(tool.shutil, "which", lambda name: None)
     with pytest.raises(ScriptError, match="ExifTool"):

@@ -184,23 +184,34 @@ def parse_exif_datetime(exif):
     return None
 
 
-def haversine(lon1, lat1, lon2, lat2):
-    R = 6371000  # Earth radius in m
-    dlon, dlat = math.radians(lon2 - lon1), math.radians(lat2 - lat1)
-    a = (
-        math.sin(dlat / 2) ** 2
-        + math.cos(math.radians(lat1))
-        * math.cos(math.radians(lat2))
-        * math.sin(dlon / 2) ** 2
+def get_camera_serial(exif):
+    """Return an identifier for the camera body.
+
+    Multi-camera rigs (e.g. paired obliques) fire simultaneously against a
+    single GPS record, so images must be grouped per body before track
+    analysis. Falls back to the camera model when no serial is recorded.
+    """
+    serial = exif.get("SerialNumber") or exif.get("BodySerialNumber")
+    return str(serial) if serial else exif.get("Model", "unknown")
+
+
+def group_by_camera(images):
+    """Group images by camera body identifier."""
+    groups = {}
+    for img in images:
+        groups.setdefault(img["camera_serial"], []).append(img)
+    return groups
+
+
+# Neighbors closer than this (meters) give no usable heading baseline
+MIN_HEADING_BASELINE = 0.05
+
+
+def planar_distance(img1, img2):
+    """Distance between two camera positions in the projected CRS (m)."""
+    return math.hypot(
+        img2["easting"] - img1["easting"], img2["northing"] - img1["northing"]
     )
-    return 2 * R * math.asin(math.sqrt(a))
-
-
-def is_duplicate(img1, img2, dist_thresh=0.2, time_thresh=0.5):
-    """Return True if two images are near-duplicates in space & time."""
-    d = haversine(img1["lon"], img1["lat"], img2["lon"], img2["lat"])
-    dt = abs((img2["timestamp"] - img1["timestamp"]).total_seconds())
-    return d < dist_thresh and dt < time_thresh
 
 
 def bearing(lon1, lat1, lon2, lat2):
@@ -234,78 +245,47 @@ def circular_mean(angles):
     return (math.degrees(math.atan2(sin_sum, cos_sum)) + 360) % 360
 
 
-def compute_headings_from_gps(images, dist_thresh=0.2, time_thresh=0.5):
+def compute_headings_from_gps(images):
+    """Estimate yaw from the GPS track where the metadata has none.
+
+    Images are grouped per camera body and walked chronologically. Yaw for
+    interior images is the circular mean of the headings from the previous
+    and to the next position with a usable baseline.
     """
-    Compute yaw for each image if EXIF yaw is missing.
-    Uses GPS positions and timestamps to estimate heading, skipping near-duplicates.
+    for group in group_by_camera(images).values():
+        group.sort(key=lambda img: img["timestamp"])
+        n = len(group)
+        for i, img in enumerate(group):
+            if img.get("yaw") is not None:
+                continue  # keep yaw recorded by the camera
 
-    Args:
-        images: list of dicts with keys:
-            lon, lat, timestamp (datetime), yaw (optional EXIF)
-        dist_thresh: minimum distance (meters) to consider images distinct
-        time_thresh: minimum time difference (seconds) to consider images distinct
+            prev_img = next(
+                (
+                    group[j]
+                    for j in range(i - 1, -1, -1)
+                    if planar_distance(group[j], img) > MIN_HEADING_BASELINE
+                ),
+                None,
+            )
+            next_img = next(
+                (
+                    group[j]
+                    for j in range(i + 1, n)
+                    if planar_distance(img, group[j]) > MIN_HEADING_BASELINE
+                ),
+                None,
+            )
 
-    Returns:
-        images: list with "yaw" field populated where missing
-    """
-    images = sorted(images, key=lambda x: x["timestamp"])
-
-    n = len(images)
-    for i, img in enumerate(images):
-        if img.get("yaw") is not None:
-            continue  # keep EXIF yaw
-
-        # Find previous non-duplicate image
-        prev_img = None
-        for j in range(i - 1, -1, -1):
-            if not is_duplicate(images[j], img, dist_thresh, time_thresh):
-                prev_img = images[j]
-                break
-
-        # Find next non-duplicate image
-        next_img = None
-        for j in range(i + 1, n):
-            if not is_duplicate(img, images[j], dist_thresh, time_thresh):
-                next_img = images[j]
-                break
-
-        # If previous image is duplicate
-        prev_img_is_dup = (
-            images[i - 1]
-            if i > 0 and is_duplicate(images[i - 1], img, dist_thresh, time_thresh)
-            else None
-        )
-
-        # If next image is duplicate
-        next_img_is_dup = (
-            images[i + 1]
-            if i + 1 < n and is_duplicate(images[i + 1], img, dist_thresh, time_thresh)
-            else None
-        )
-
-        if prev_img and next_img:
-            # Average heading from previous and next
-            h1 = heading(prev_img, img)
-            h2 = heading(img, next_img)
-            # Ensure the average is in the direction of h1
-            avg_yaw = circular_mean([h1, h2])
-            img["yaw"] = avg_yaw
-        elif prev_img:
-            img["yaw"] = heading(prev_img, img)
-        elif next_img:
-            img["yaw"] = heading(img, next_img)
-        else:
-            img["yaw"] = 0.0  # fallback if no neighbors
-
-        # If plane is taking two photos in a row with adjusting roll to achieve NADIR camera orientation
-        if prev_img_is_dup:
-            img["roll"] = -45.0
-
-        if next_img_is_dup:
-            img["roll"] = 45.0
-        # Rotate frame 90, so 0 is North
-        # img["yaw"] = (img["yaw"] + 90) % 360
-
+            if prev_img and next_img:
+                img["yaw"] = circular_mean(
+                    [heading(prev_img, img), heading(img, next_img)]
+                )
+            elif prev_img:
+                img["yaw"] = heading(prev_img, img)
+            elif next_img:
+                img["yaw"] = heading(img, next_img)
+            else:
+                img["yaw"] = 0.0  # single stationary camera, no track
     return images
 
 
@@ -694,6 +674,7 @@ def create_vector_feature(image_metadata):
     camera_make = image_metadata["camera_make"]
     camera_model = image_metadata["camera_model"]
     camera_lens = image_metadata["camera_lens"]
+    camera_serial = image_metadata["camera_serial"]
     filename = image_metadata["filename"]
     iso = image_metadata["iso"]
     shutter_speed = image_metadata["shutter_speed"]
@@ -728,6 +709,7 @@ def create_vector_feature(image_metadata):
         camera_make,
         camera_model,
         camera_lens,
+        camera_serial,
     )
 
     cat = image_metadata["category"]  # category ID
@@ -791,6 +773,7 @@ def write_vector(metadata, outmap):
         ("camera_make", "TEXT"),
         ("camera_model", "TEXT"),
         ("lens_model", "TEXT"),
+        ("camera_serial", "TEXT"),
     ]
     gs.verbose(
         _("Writing {} features to vector map <{}>...").format(len(metadata), outmap)
@@ -916,6 +899,7 @@ def main():
             original_datetime,
         ) = get_photo_specs(exif)
         camera_make, camera_model, camera_lens = get_camera_details(exif)
+        camera_serial = get_camera_serial(exif)
 
         gps = get_coords(exif)
         if not gps:
@@ -970,6 +954,7 @@ def main():
             "camera_make": camera_make,
             "camera_model": camera_model,
             "camera_lens": camera_lens,
+            "camera_serial": camera_serial,
             "width": footprint_w,
             "height": footprint_h,
             "focal_length": focal_length_mm,
