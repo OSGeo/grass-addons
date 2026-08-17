@@ -32,6 +32,16 @@
 # % required: no
 # %end
 #
+# %option
+# % key: sensor
+# % type: double
+# % required: no
+# % multiple: yes
+# % key_desc: width,height
+# % label: Camera sensor dimensions in mm (width,height)
+# % description: Overrides the sensor size estimated from image metadata
+# %end
+#
 # %option G_OPT_R_OUTPUT
 # % key: overlap_raster
 # % type: string
@@ -308,47 +318,50 @@ def get_focal_length(exif):
     return focal_mm
 
 
-def compute_sensor_size(exif):
-    """Estimate sensor size from EXIF data.
+# Diagonal of a full-frame 36 x 24 mm sensor, the 35 mm equivalence reference
+FULL_FRAME_DIAGONAL_MM = 43.26661
 
-    The sensor width (mm) is calculated as:
-        sensor_width_mm = (image_width_px / focal_plane_x_resolution) * conversion_factor
+# FocalPlaneResolutionUnit codes to mm per unit (EXIF 2.32, table 6)
+RESOLUTION_UNIT_TO_MM = {2: 25.4, 3: 10.0, 4: 1.0, 5: 0.001}
 
-    where:
-        image_width_px: EXIFImageWidth (pixels)
-        focal_plane_x_resolution: FocalPlaneXResolution (pixels per unit)
-        conversion_factor: 25.4 if ResolutionUnit is inches (2), otherwise 1.0
 
-    The same formula applies for sensor height.
+def compute_sensor_size(exif, override=None):
+    """Estimate the physical sensor size in mm.
+
+    Resolution order: user override, focal plane resolution tags, sensor
+    diagonal implied by the 35 mm equivalence scale factor. Returns
+    (width_mm, height_mm, source), or None when nothing is available.
+    Estimates inherit the precision of the source tags; FocalPlane tags
+    are commonly a few percent off the true sensor dimensions.
     """
-    # image dimensions
-    img_w = exif.get("ExifImageWidth")  # px
-    img_h = exif.get("ExifImageHeight")  # px
-    # 0.252 x 0.189 is the sensor size of the 1/2" CMOS sensor on the DJI Mavric Air 2 in inches
-    # or 6.4mm x 4.8mm
-    fp_x = exif.get("FocalPlaneXResolution", 0.252)  # pixels per unit (DPI)
-    fp_y = exif.get("FocalPlaneYResolution", 0.189)  # pixels per unit (DPI)
+    if override:
+        return override[0], override[1], "user"
+
+    img_w = exif.get("ExifImageWidth") or exif.get("ImageWidth")
+    img_h = exif.get("ExifImageHeight") or exif.get("ImageHeight")
     if not img_w or not img_h:
-        gs.warning(_("Image dimensions not found in EXIF data"))
-        return 0.1
+        return None
 
-    # resolution units: 2=inches, 3=cm, else assume inches
-    unit = exif.get("FocalPlaneResolutionUnit", 2)
+    fp_x = as_float(exif.get("FocalPlaneXResolution"))
+    fp_y = as_float(exif.get("FocalPlaneYResolution"))
+    if fp_x and fp_y:
+        unit = exif.get("FocalPlaneResolutionUnit", 2)
+        conv = RESOLUTION_UNIT_TO_MM.get(unit, 25.4)
+        return (img_w / fp_x) * conv, (img_h / fp_y) * conv, "focal plane resolution"
 
-    if unit == 2:
-        conv = 25.4  # mm/inch
-    elif unit == 3:
-        conv = 10.0  # mm/cm
-    else:
-        conv = 25.4
+    # ExifTool derives the scale factor from its camera database when the
+    # focal plane tags are absent, which is the common case for drones.
+    scale = as_float(exif.get("ScaleFactor35efl"))
+    if scale:
+        diagonal = FULL_FRAME_DIAGONAL_MM / scale
+        pixel_diagonal = math.hypot(img_w, img_h)
+        return (
+            diagonal * img_w / pixel_diagonal,
+            diagonal * img_h / pixel_diagonal,
+            "35 mm scale factor",
+        )
 
-    gs.debug(_("Resolution unit conversion factor: %s") % conv)
-
-    sensor_w_mm = 6.4  # (img_w / fp_x) * conv
-    sensor_h_mm = 4.8  # (img_h / fp_y) * conv
-
-    gs.debug(_("Sensor size: %smm x %smm") % (sensor_w_mm, sensor_h_mm))
-    return (sensor_w_mm, sensor_h_mm)
+    return None
 
 
 def compute_gsd(exif, alt, focal_mm, sensor_size):
@@ -874,6 +887,14 @@ def main():
     photos = [record["SourceFile"] for record in records]
     gs.message(_("Found {} photos in '{}'").format(len(photos), indir))
 
+    sensor_override = None
+    if options["sensor"]:
+        values = [float(value) for value in options["sensor"].split(",")]
+        if len(values) != 2 or values[0] <= 0 or values[1] <= 0:
+            gs.fatal(_("sensor= requires two positive values: width,height"))
+        sensor_override = (values[0], values[1])
+    reported_sensors = set()
+
     coords = []
     metadata = []
 
@@ -908,7 +929,22 @@ def main():
 
         focal_length_mm = get_focal_length(exif)
 
-        sensor_size = compute_sensor_size(exif)
+        sensor = compute_sensor_size(exif, sensor_override)
+        if sensor is None:
+            gs.fatal(
+                _(
+                    "Cannot determine sensor size for <{}>; "
+                    "provide it with sensor=width,height"
+                ).format(os.path.basename(img))
+            )
+        sensor_size = sensor[:2]
+        if camera_model not in reported_sensors:
+            reported_sensors.add(camera_model)
+            gs.message(
+                _("Sensor size for {}: {:.2f} x {:.2f} mm ({})").format(
+                    camera_model, sensor_size[0], sensor_size[1], sensor[2]
+                )
+            )
 
         agl = get_above_ground_level_alt(e, n, alt, elevation)
         gsd_w, gsd_h, gsd_avg = compute_gsd(exif, agl, focal_length_mm, sensor_size)

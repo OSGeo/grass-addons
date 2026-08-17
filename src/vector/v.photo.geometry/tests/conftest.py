@@ -71,6 +71,10 @@ def photo_dir(tmp_path_factory):
                 "-FocalLength=50",
                 "-ExifImageWidth=8000",
                 "-ExifImageHeight=6000",
+                # 36 x 24 mm sensor via focal plane tags in mm (unit 4)
+                "-FocalPlaneXResolution=222.2222222",
+                "-FocalPlaneYResolution=250",
+                "-FocalPlaneResolutionUnit=4",
                 "-ISO=100",
                 "-FNumber=5.6",
                 "-ExposureTime=0.001",

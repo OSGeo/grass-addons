@@ -59,6 +59,35 @@ def test_orientation_absent_defaults(tool, cap_records):
     assert roll == pytest.approx(0.0)
 
 
+def test_sensor_size_focal_plane(tool, cap_records):
+    width, height, source = tool.compute_sensor_size(cap_records[0])
+    # Canon 5DS R: FocalPlane tags imply 36.8 x 24.5 mm (true size 36 x 24)
+    assert width == pytest.approx(36.83, abs=0.01)
+    assert height == pytest.approx(24.51, abs=0.01)
+    assert source == "focal plane resolution"
+
+
+def test_sensor_size_override(tool, cap_records):
+    width, height, source = tool.compute_sensor_size(
+        cap_records[0], override=(36.0, 24.0)
+    )
+    assert (width, height) == (36.0, 24.0)
+    assert source == "user"
+
+
+def test_sensor_size_scale_factor(tool):
+    # Full-frame equivalence: scale 1.0 must give a 43.27 mm diagonal
+    exif = {"ExifImageWidth": 6000, "ExifImageHeight": 4000, "ScaleFactor35efl": 1.0}
+    width, height, source = tool.compute_sensor_size(exif)
+    assert (width**2 + height**2) ** 0.5 == pytest.approx(43.26661)
+    assert width / height == pytest.approx(1.5)
+    assert source == "35 mm scale factor"
+
+
+def test_sensor_size_unavailable(tool):
+    assert tool.compute_sensor_size({"ExifImageWidth": 6000}) is None
+
+
 def test_find_exiftool_missing(tool, raise_on_error, monkeypatch):
     monkeypatch.setattr(tool.shutil, "which", lambda name: None)
     with pytest.raises(ScriptError, match="ExifTool"):
