@@ -12,6 +12,20 @@ from pathlib import Path
 
 NUMBER = re.compile(r"[-+]?\d*\.\d+(?:[Ee][-+]?\d+)?|[-+]?\d+(?:[Ee][-+]?\d+)")
 REFERENCE_COMMIT = "7deb2289cfe23c9b1d1b48d7647f76604ef75fa4"
+
+
+def snap_to_sixs_grid(wl: float) -> float:
+    """Snap a monochromatic wavelength to 6SV's 0.0025-µm evaluation grid.
+
+    main.f indexes the s(1501) filter-function array as
+    ``iinf=(wlinf-.25)/0.0025+1.5`` then evaluates scattering at
+    ``wl=.25+(i-1)*0.0025``.  The C port is continuous, so parity tests must
+    evaluate both sides at the same grid node the reference actually used.
+    """
+    iinf = int((wl - 0.25) / 0.0025 + 1.5)
+    return 0.25 + (iinf - 1) * 0.0025
+
+
 PRECISION_PATCH = (
     Path(__file__).resolve().parent / "patches" / "6sv21-print-precision.patch"
 )
@@ -98,6 +112,35 @@ def aircraft_input(height: float, wavelength: float, h2o: float = 1.424) -> str:
 0.20
 -1
 0
+"""
+
+
+def enmap_rgb_input(
+    wavelength: float, aod: float = 0.07, h2o: float = 0.921, ozone_atm_cm: float = 0.3
+) -> str:
+    """Satellite deck for the EnMAP Tyrol scene (2022-06-12, DOY 163).
+
+    Geometry from tyrol_austria_L1C/hyper.json: asol=24.23299,
+    phi0=169.297249, avis=10.269471, phiv=14.339058, month=6, day=12.
+    Atmospheric state: AOD_550=0.07, H2O=0.921 g/cm2, ozone=300 DU (0.3
+    atm-cm).  Continental aerosol (model 1), US62 atmosphere (idatm=8).
+    """
+    return f"""0
+{24.23299} {169.297249} {10.269471} {14.339058} 6 12
+8
+{h2o} {ozone_atm_cm}
+1
+0
+{aod}
+0
+-1000
+-1
+{wavelength:.6f}
+0
+0
+0
+0.20
+-1
 """
 
 
@@ -214,6 +257,39 @@ def main() -> None:
             "fortran": reference,
         }
     )
+    for wl_band, name in (
+        (0.477565, "enmap_rgb_478"),
+        (0.571548, "enmap_rgb_572"),
+        (0.65996, "enmap_rgb_660"),
+    ):
+        wl = snap_to_sixs_grid(wl_band)
+        reference = run(args.executable, enmap_rgb_input(wl))
+        no_h2o = run(
+            args.executable,
+            enmap_rgb_input(wl, h2o=1e-6),
+        )
+        half_h2o = run(
+            args.executable,
+            enmap_rgb_input(wl, h2o=0.5 * 0.921),
+        )
+        for component in ("Q", "U"):
+            mixed = reference[f"R_atm{component}"]
+            rayleigh = reference[f"R_rayleigh{component}"]
+            reference[f"R_atm{component}_effective"] = (mixed - rayleigh) * half_h2o[
+                "gas_total"
+            ] + rayleigh * no_h2o["gas_total"]
+        cases.append(
+            {
+                "name": name,
+                "kind": "satellite_polar",
+                "model": 1,
+                "wavelength_um": wl,
+                "h2o_g_cm2": 0.921,
+                "ozone_du": 300.0,
+                "aod": 0.07,
+                "fortran": reference,
+            }
+        )
     cases.append(
         {
             "name": "satellite_continuum_3750",

@@ -22,13 +22,14 @@ def compute_case(case):
         altitude = case["height_km"]
     elif case["kind"] == "ground":
         altitude = 0.0
+    is_enmap = case["kind"] == "satellite_polar" and "enmap" in case.get("name", "")
     cfg = LutConfig(
         wl=[case["wavelength_um"]],
-        aod=[0.0 if model == 0 else 0.2],
+        aod=[case.get("aod", 0.0 if model == 0 else 0.2)],
         h2o=[case.get("h2o_g_cm2", 1e-6 if satellite else 1.424)],
-        sza=30.0,
-        vza=40.0 if satellite else 10.0,
-        raa=300.0,
+        sza=case.get("sza", 24.23299 if is_enmap else 30.0),
+        vza=case.get("vza", 10.269471 if is_enmap else (40.0 if satellite else 10.0)),
+        raa=case.get("raa", 154.958 if is_enmap else 300.0),
         altitude_km=altitude,
         atmo_model=1,
         aerosol_model=model,
