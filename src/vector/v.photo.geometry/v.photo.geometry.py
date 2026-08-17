@@ -64,53 +64,16 @@ import glob
 import math
 import csv
 from datetime import datetime, timedelta
-from gettext import gettext as _
-import numpy as np
-from collections import defaultdict
-from PIL import Image
-from PIL.ExifTags import TAGS, GPSTAGS, IFD
-from PIL.TiffImagePlugin import IFDRational
 
+import numpy as np
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
 from pyproj import CRS, Transformer
-from sklearn.cluster import KMeans
+
 import grass.script as gs
 from grass.pygrass.vector import VectorTopo
-from grass.pygrass.vector.geometry import Area, Boundary, Centroid, Point, Line
+from grass.pygrass.vector.geometry import Boundary, Centroid, Point, Line
 from grass.pygrass.modules import Module
-from grass.pygrass.utils import coor2pixel
-import grass.script.array as garray
-
-try:
-    from pyproj import Geod
-
-    geod = Geod(ellps="WGS84")
-    USE_GEOD = True
-except ImportError:
-    USE_GEOD = False
-
-import time
-import functools
-
-try:
-    import exifread
-except ImportError:
-    gs.fatal(
-        _(
-            "Python module 'exifread' is required. Please install it. with pip install exifread"
-        )
-    )
-
-
-def timing(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        result = func(*args, **kwargs)
-        end = time.time()
-        print(f"[TIMER] {func.__name__} took {end - start:.4f} seconds")
-        return result
-
-    return wrapper
 
 
 def to_float_if_possible(val):
@@ -119,90 +82,6 @@ def to_float_if_possible(val):
         return float(val)
     except (TypeError, ValueError):
         return val
-
-
-def decode_exif_bytes(value):
-    if not isinstance(value, (bytes, bytearray)):
-        return value
-    try:
-        return value.decode("ascii").strip("\x00")
-    except UnicodeDecodeError:
-        return list(value)
-
-
-def decode_value(val):
-    if isinstance(val, (bytes, bytearray)):
-        try:
-            return val.decode("ascii").strip("\x00")
-        except UnicodeDecodeError:
-            return list(val)
-    # if isinstance(val, IFDRational):
-    #     return float(val)
-    return val
-
-
-def parse_exif(img):
-    exif = img.getexif()
-    data = {}
-
-    # Main tags
-    for tag_id, val in exif.items():
-        tag = TAGS.get(tag_id, tag_id)
-        data[tag] = decode_value(val)
-
-    # GPS sub-IFD
-    gps_ifd = exif.get_ifd(IFD.GPSInfo)
-    gps_data = {}
-    for tag_id, val in gps_ifd.items():
-        tag = GPSTAGS.get(tag_id, tag_id)
-        gps_data[tag] = decode_value(val)
-    if gps_data:
-        data["GPSInfo"] = gps_data
-
-    return data
-
-
-# def get_exif(image_path):
-#     """Extract relevant EXIF data efficiently with Pillow."""
-#     img = Image.open(image_path)
-#     exif_data = parse_exif(img)
-# IFD_CODE_LOOKUP = {i.value: i.name for i in IFD}
-
-# exif = img.getexif()
-# if not exif:
-#     return {}
-# exif_data = {}
-# for tag, val in exif.items():
-#     decoded = TAGS.get(tag, tag)
-#     # if decoded == "GPSInfo":
-#     #     gps_data = {GPSTAGS.get(t, t): v for t, v in val.items()}
-#     #     exif_data["GPSInfo"] = gps_data
-#     if tag in IFD_CODE_LOOKUP:
-#         # decoded = IFD_CODE_LOOKUP[tag]
-#         ifd_data = exif.get_ifd(tag).items()
-#         # print(f"EXIF IFD: {decoded}: {ifd_data}")
-
-#         if decoded == "GPSInfo":
-#             # Decode GPSInfo tags
-#             ifd_data = {
-#                 GPSTAGS.get(ifd_tag, ifd_tag): to_float_if_possible(ifd_val)
-#                 for ifd_tag, ifd_val in ifd_data
-#             }
-#             exif_data.setdefault(decoded, ifd_data)
-#         else:
-#             for ifd_tag, ifd_val in ifd_data:
-#                 ifd_decoded = TAGS.get(ifd_tag, ifd_tag)
-#                 ifd_val = to_float_if_possible(ifd_val)
-#                 ifd_val = decode_exif_bytes(ifd_val)
-#                 exif_data.setdefault(decoded, {})[ifd_decoded] = ifd_val
-
-#     else:
-#         exif_data[decoded] = val
-#     # if isinstance(exif_data[decoded], (bytes, bytearray)):
-#     #     exif_data[decoded] = decode_exif_bytes(exif_data[decoded])
-# # print(f"EXIF data: {exif_data}")
-# gs.debug(_("EXIF Data %s") % exif_data)
-# return exif_data
 
 
 def get_exif(image_path):
@@ -227,17 +106,6 @@ def get_exif(image_path):
     return exif_data
 
 
-def get_exif_data(image_path):
-    """Extract relevant EXIF data from an image file."""
-    try:
-        with open(image_path, "rb") as image_file:
-            tags = exifread.process_file(image_file, extract_thumbnail=False)
-            return tags
-    except Exception as e:
-        gs.warning(f"Failed to read EXIF data from {image_path}: {e}")
-        return {}
-
-
 def dms_to_dd(dms, ref):
     d, m, s = dms
     gs.debug(_("GPS data found in %s %s %s with ref %s") % (d, m, s, ref))
@@ -255,7 +123,7 @@ def get_coords(exif):
     lat = dms_to_dd(gps["GPSLatitude"], gps["GPSLatitudeRef"])
     lon = dms_to_dd(gps["GPSLongitude"], gps["GPSLongitudeRef"])
     alt = gps.get("GPSAltitude")
-    print(f"GPS Altitude Ref: {gps.get('GPSAltitudeRef', 'N/A')}")
+    gs.debug(f"GPS altitude ref: {gps.get('GPSAltitudeRef', 'N/A')}")
     if not alt:
         return None
     return lon, lat, alt
@@ -307,47 +175,11 @@ def haversine(lon1, lat1, lon2, lat2):
     return 2 * R * math.asin(math.sqrt(a))
 
 
-def filter_duplicates(images, dist_thresh=0.2, time_thresh=0.5):
-    filtered = []
-    last = None
-    for img in sorted(images, key=lambda i: i["timestamp"]):
-        if last:
-            d = haversine(last["lon"], last["lat"], img["lon"], img["lat"])
-            dt = (img["timestamp"] - last["timestamp"]).total_seconds()
-            if d < dist_thresh and dt < time_thresh:
-                continue  # skip near-duplicate
-        filtered.append(img)
-        last = img
-    return filtered
-
-
 def is_duplicate(img1, img2, dist_thresh=0.2, time_thresh=0.5):
     """Return True if two images are near-duplicates in space & time."""
     d = haversine(img1["lon"], img1["lat"], img2["lon"], img2["lat"])
     dt = abs((img2["timestamp"] - img1["timestamp"]).total_seconds())
     return d < dist_thresh and dt < time_thresh
-
-
-def estimate_body_pitch(prev, curr):
-    dx = curr["lon"] - prev["lon"]
-    dy = curr["lat"] - prev["lat"]
-    # convert to meters if projected CRS
-    horiz = math.sqrt(dx**2 + dy**2)
-    dz = float(curr["alt"]) - float(prev["alt"])
-    return math.degrees(math.atan2(dz, horiz))
-
-
-def detect_oblique(images, threshold=15):
-    """
-    Check if mission is oblique (pitch significantly different from -90).
-    Returns True if most images deviate by >threshold degrees.
-    """
-    oblique_count = 0
-    for img in images:
-        pitch = img.get("pitch", -90.0)
-        if abs(abs(pitch) - 90.0) > threshold:
-            oblique_count += 1
-    return oblique_count > len(images) / 2
 
 
 def bearing(lon1, lat1, lon2, lat2):
@@ -381,149 +213,6 @@ def circular_mean(angles):
     return (math.degrees(math.atan2(sin_sum, cos_sum)) + 360) % 360
 
 
-def cluster_flight_lines_old(images, threshold=50.0):
-    """
-    Cluster images into flight lines by latitude/northing proximity.
-    threshold: max distance in meters between centroids to be same line.
-    """
-    # Assumes images already projected to GRASS CRS (meters)
-    lines = defaultdict(list)
-    line_id = 0
-
-    xs = np.array([img["easting"] for img in images])
-    ys = np.array([img["northing"] for img in images])
-
-    # Decide clustering axis
-    span_x = xs.max() - xs.min()
-    span_y = ys.max() - ys.min()
-    if span_y > span_x:
-        axis = "northing"  # lines are east-west, cluster by northing
-    else:
-        axis = "easting"  # lines are north-south, cluster by easting
-
-    for img in sorted(images, key=lambda x: x[axis]):  # sort axis
-        assigned = False
-        for lid, pts in lines.items():
-            if abs(img["northing"] - np.mean([p[axis] for p in pts])) < threshold:
-                lines[lid].append(img)  # noqa: PLR1733
-                assigned = True
-                break
-        if not assigned:
-            lines[line_id].append(img)
-            line_id += 1
-    print(f"Clustered into {len(lines)} flight lines")
-    return lines
-
-
-def cluster_flight_lines(images, n_lines=None):
-    """
-    Auto-detect flight orientation and cluster into flight lines with K-means.
-
-    images: list of dicts with {"x": easting, "y": northing, "timestamp": datetime}
-    n_lines: optional, number of lines; if None, estimated
-
-    Returns: images with "line_id"
-    """
-
-    xs = np.array([img["easting"] for img in images])
-    ys = np.array([img["northing"] for img in images])
-
-    # Decide clustering axis
-    span_x = xs.max() - xs.min()
-    span_y = ys.max() - ys.min()
-    if span_y > span_x:
-        axis = "x"  # lines are east-west, cluster by northing
-        coords = ys.reshape(-1, 1)
-    else:
-        axis = "y"  # lines are north-south, cluster by easting
-        coords = xs.reshape(-1, 1)
-
-    # Estimate number of lines if not given
-    if n_lines is None:
-        diffs = np.diff(np.sort(coords[:, 0]))
-        spacing = np.median(diffs[diffs > 0]) if np.any(diffs > 0) else 1.0
-        n_lines = max(2, int((coords.max() - coords.min()) / spacing))
-
-    kmeans = KMeans(n_clusters=n_lines, random_state=0, n_init=10).fit(coords)
-    labels = kmeans.labels_
-
-    for img, label in zip(images, labels):
-        img["line_id"] = int(label)
-
-    return images, axis
-
-
-def assign_line_headings(images, threshold=50.0):
-    """
-    Assign yaw/heading to each image, grouped by flight lines.
-    """
-    # Cluster into flight lines
-    # TODO: Make this K-Means-like clustering based on y
-    lines = {}
-    clustered, axis = cluster_flight_lines(images, threshold)
-
-    if axis == "y":  # clustered by northing, so sort by easting
-        for img in sorted(clustered, key=lambda i: (i["line_id"], i["x"])):
-            lines.setdefault(img["line_id"], []).append(img)
-    else:  # clustered by easting, so sort by northing
-        for img in sorted(clustered, key=lambda i: (i["line_id"], i["y"])):
-            lines.setdefault(img["line_id"], []).append(img)
-
-    # Process each line independently
-    for lid, pts in lines.items():
-        pts.sort(key=lambda x: x["timestamp"])
-        for i, img in enumerate(pts):
-            if "yaw" in img and img["yaw"] is not None:
-                continue  # keep EXIF yaw
-            if i == 0:
-                img["yaw"] = bearing(
-                    pts[i]["lon"], pts[i]["lat"], pts[i + 1]["lon"], pts[i + 1]["lat"]
-                )
-            elif i == len(pts) - 1:
-                img["yaw"] = bearing(
-                    pts[i - 1]["lon"], pts[i - 1]["lat"], pts[i]["lon"], pts[i]["lat"]
-                )
-            else:
-                h1 = bearing(
-                    pts[i - 1]["lon"], pts[i - 1]["lat"], pts[i]["lon"], pts[i]["lat"]
-                )
-                h2 = bearing(
-                    pts[i]["lon"], pts[i]["lat"], pts[i + 1]["lon"], pts[i + 1]["lat"]
-                )
-                img["yaw"] = (h1 + h2) / 2.0
-    return images
-
-
-def detect_camera_orientation(exif):
-    """
-    Decide if the camera footprint is 'long-forward' or 'short-forward'
-    based on EXIF width/height and orientation.
-    """
-    w = exif.get("ExifImageWidth")
-    h = exif.get("ExifImageHeight")
-    orientation = exif.get("Orientation", 1)
-    print(f"Orientation: {orientation}")
-    # Default assumption
-    orient = "short-forward"
-
-    if w and h:
-        if w > h:
-            # Image stored landscape
-            if orientation in (1, 3):  # normal or upside-down
-                orient = "long-forward"
-            elif orientation in (6, 8):  # rotated
-                orient = "short-forward"
-        elif h > w:
-            # Image stored portrait
-            if orientation in (1, 3):
-                orient = "short-forward"
-            elif orientation in (6, 8):
-                orient = "long-forward"
-
-    return orient
-
-
-# @timing
 def compute_headings_from_gps(images, dist_thresh=0.2, time_thresh=0.5):
     """
     Compute yaw for each image if EXIF yaw is missing.
@@ -608,21 +297,6 @@ def get_focal_length(exif):
     return focal_mm
 
 
-def get_resolution_unit_constant(exif):
-    """
-    Return conversion factor for focal plane resolution unit.
-    # resolution units: 2=inches, 3=cm, else assume inches
-    """
-    unit = exif.get("FocalPlaneResolutionUnit", 2)
-    if unit == 2:
-        conv = 25.4  # mm per inch
-    elif unit == 3:
-        conv = 10.0  # mm per cm
-    else:
-        conv = 25.4
-    return conv
-
-
 def compute_sensor_size(exif):
     """Estimate sensor size from EXIF data.
 
@@ -685,50 +359,6 @@ def compute_gsd(exif, alt, focal_mm, sensor_size):
     return (gsd_w, gsd_h, gsd_avg)
 
 
-def calc_angular_fov(focal_mm: float, sensor_w_mm: float, sensor_h_mm: float) -> tuple:
-    """
-    Return angular field of view (aFOV) aHFOV, aVFOV in degrees.
-    """
-    hfov = 2 * math.degrees(math.atan(sensor_w_mm / (2 * focal_mm)))
-    vfov = 2 * math.degrees(math.atan(sensor_h_mm / (2 * focal_mm)))
-    gs.debug(_("Angular FOV: HFOV=%s, VFOV=%s") % (hfov, vfov))
-    return hfov, vfov
-
-
-def calc_footprint_from_fov(alt: float, hfov: float, vfov: float) -> tuple:
-    """Return ground footprint (gound field of view) width, height in meters (nadir, flat ground)."""
-    width = 2 * alt * math.tan(math.radians(hfov / 2))
-    height = 2 * alt * math.tan(math.radians(vfov / 2))
-    gs.debug(_("Footprint dimensions (GFOV): width=%s, height=%s") % (width, height))
-    return width, height
-
-
-@timing
-def calculate_overlaps_raster(footprints_map, output_prefix):
-    """
-    Calculate overlaps between consecutive footprints.
-    """
-    tmp_footprints = []
-    tmp_footprint_prfix = f"{output_prefix}_footprints"
-    with VectorTopo(footprints_map) as vect:
-        n = len(vect)
-
-        for i in range(1, n + 1):
-            output = f"{tmp_footprint_prfix}_{i}"
-            gs.run_command(
-                "v.to.rast",
-                input=footprints_map,
-                output=output,
-                type="area",
-                use="value",
-                value=1,
-                cat=i,
-                overwrite=True,
-            )
-            tmp_footprints.append(output)
-
-
-@timing
 def calculate_overlaps(footprints_map, output_prefix):
     """
     Calculate overlaps between consecutive footprints using GRASS v.overlay.
@@ -808,46 +438,6 @@ def get_orientation(exif):
     return yaw, pitch, roll
 
 
-@timing
-def intersect_ray_dem(x0, y0, z0, dir_vec, dem, step=5.0, max_dist=2000.0):
-    """
-    Trace a ray from camera through DEM until it hits ground.
-
-    Args:
-        x0, y0, z0 : camera position (in GRASS CRS)
-        dir_vec    : ray direction vector (3D)
-        dem        : DEM raster name
-        step       : step size in meters along ray
-        max_dist   : max distance to trace (m)
-
-    Returns:
-        (x, y) intersection coords in GRASS CRS, or None if no hit
-    """
-    # normalize direction
-    dir_vec = dir_vec / np.linalg.norm(dir_vec)
-
-    dist = 0.0
-    while dist < max_dist:
-        # advance along ray
-        gx = x0 + dir_vec[0] * dist
-        gy = y0 + dir_vec[1] * dist
-        gz = z0 + dir_vec[2] * dist
-
-        # sample DEM at this point
-        gs.debug(_("Checking DEM at (%s, %s)") % (gx, gy))
-        result = gs.raster_what(dem, coord=[[gx, gy]])
-        val = result[0][dem]["value"]
-        if val not in (None, "null", "No data"):
-            ground_z = float(val)
-            if gz <= ground_z:
-                return gx, gy  # intersection point on ground
-
-        dist += step
-
-    gs.warning(f"No DEM intersection found for ray at ({x0},{y0})")
-    return None
-
-
 def get_footprint_dimensions(gsd_x, gsd_y, exif):
     """Calculate footprint dimensions based on EXIF data."""
     img_w = exif.get("ExifImageWidth")
@@ -864,7 +454,6 @@ def get_footprint_dimensions(gsd_x, gsd_y, exif):
     return footprint_w, footprint_h
 
 
-# @timing
 def intersect_ray_dem_fast(
     x0, y0, z0, dir_vec, dem_arr, region, step=None, max_dist=2000.0
 ):
@@ -915,15 +504,6 @@ def rotation_matrix_aircraft(yaw_deg, pitch_deg, roll_deg):
     return Rz @ Ry @ Rx  # aircraft convention
 
 
-def ypr_to_opk(yaw, pitch, roll):
-    """Convert yaw/pitch/roll to omega, phi, kappa (degrees)."""
-    R = rotation_matrix_aircraft(yaw, pitch, roll)
-    phi = math.asin(-R[2, 0])
-    omega = math.atan2(R[2, 1], R[2, 2])
-    kappa = math.atan2(R[1, 0], R[0, 0])
-    return map(math.degrees, (omega, phi, kappa))
-
-
 def make_footprint(image_metadata, dem_arr, region):
     """Return rectangle footprint coords around image center."""
     # footprint size in meters
@@ -948,16 +528,8 @@ def make_footprint(image_metadata, dem_arr, region):
         (-sensor_w / 2, sensor_h / 2),
     ]
 
-    print(f"Corners before rotation: {corners}")
-
-    # rotation
-    print(f"Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}")
+    gs.debug(f"Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}")
     R = rotation_matrix_aircraft(yaw, pitch, roll)
-    print(f"Rotation matrix: {R}")
-
-    # test_R = ypr_to_opk(0, -90, 0)
-    # test_dir_vec = test_R @ np.array([0, 0, 1])  # forward ray
-    # print(f"Test Expected [0,0,-1], got {test_dir_vec}")
     footprint = []
     for cx, cy in corners:
         # direction vector, Ray in camera coords (normalized by f)
@@ -970,12 +542,11 @@ def make_footprint(image_metadata, dem_arr, region):
             footprint.append(hit)
 
     if not footprint:
-        print("No DEM intersections found, footprint empty")
-        gs.warning("No DEM intersections found, footprint empty")
+        gs.warning(_("No DEM intersections found, footprint empty"))
         return []
 
     footprint.append(footprint[0])  # close polygon
-    print(f"Footprint corners after DEM intersection: {footprint}")
+    gs.debug(f"Footprint corners after DEM intersection: {footprint}")
     return footprint
 
 
@@ -1193,7 +764,9 @@ def write_vector(metadata, outmap):
         ("camera_model", "TEXT"),
         ("lens_model", "TEXT"),
     ]
-    print(f"Writing {len(metadata)} features to vector map {outmap}...")
+    gs.verbose(
+        _("Writing {} features to vector map <{}>...").format(len(metadata), outmap)
+    )
     with VectorTopo(
         outmap, mode="w", with_z=False, tab_cols=COLS_TYPES, layer=1, overwrite=True
     ) as vect:
@@ -1201,7 +774,7 @@ def write_vector(metadata, outmap):
             feature = img["feature"]
             # Add area
             point, line, boundary, centroid, cat, attrs = feature
-            gs.warning(f"Writing feature {attrs}")
+            gs.debug(f"Writing feature {attrs}")
             validate_vector_metadata(attrs, COLS_TYPES)
             vect.write(centroid)
             vect.write(geo_obj=point, cat=cat, attrs=attrs)
@@ -1250,7 +823,6 @@ def get_above_ground_level_alt(e, n, alt, elevation) -> float:
     return agl
 
 
-@timing
 def report_overlap_stats(overlaps, photos, output_file):
     """Write overlap statistics to a CSV file."""
     headers = ["photo1", "photo2", "overlap"]
@@ -1262,9 +834,9 @@ def report_overlap_stats(overlaps, photos, output_file):
                 writer.writerow([photos[i], photos[i + 1], f"{ov:.2f}"])
 
     else:
-        print(",".join(headers) + "\n")
+        print(",".join(headers))
         for i, ov in enumerate(overlaps):
-            print(f"{photos[i]},{photos[i + 1]},{ov:.2f}\n")
+            print(f"{photos[i]},{photos[i + 1]},{ov:.2f}")
 
 
 def main():
@@ -1277,23 +849,18 @@ def main():
     overlap = flags["c"]
 
     photos = sorted(glob.glob(os.path.join(indir, "*.[jJ][pP][gG]")))
-    gs.debug(_("Found %d photos in %s") % (len(photos), indir))
-    print(f"Found {len(photos)} photos in {indir}")
+    gs.message(_("Found {} photos in '{}'").format(len(photos), indir))
 
-    coords, footprints, rows = [], [], []
+    coords = []
     metadata = []
 
     gs.verbose(_("Creating transformer for reprojection..."))
     transformer = create_transformer()
 
-    region = gs.region()
-    dem_arr = garray.array(elevation)
-
     gs.verbose(_("Gathering photo metadata and calculating GSD..."))
     for i, img in enumerate(photos):
         exif = get_exif(img)
-        print(exif)
-        print(f"Processing {img}...")
+        gs.verbose(_("Processing '{}'...").format(img))
 
         (
             iso,
@@ -1310,47 +877,28 @@ def main():
         if not gps:
             continue
         lon, lat, alt = gps
-        print(f"Lat: {lon}, Lon: {lat}, Alt (ASL): {alt} m")
 
         ts = parse_exif_datetime(exif)
-        # print(f"Timestamp: {ts}")
 
         e, n = transformer.transform(lon, lat)  # reproject lon/lat
         coords.append((e, n))
-        # print(f"Reprojected to GRASS CRS: easting: {e}, northing: {n}")
 
         focal_length_mm = get_focal_length(exif)
-        # print(f"Focal length: {focal_length_mm} mm")
 
         sensor_size = compute_sensor_size(exif)
-        print(f"Sensor size: {sensor_size[0]}mm x {sensor_size[1]}mm")
 
         agl = get_above_ground_level_alt(e, n, alt, elevation)
         gsd_w, gsd_h, gsd_avg = compute_gsd(exif, agl, focal_length_mm, sensor_size)
-        print(
-            f"GSD (width): {gsd_w:.2f} m/px, GSD (height): {gsd_h:.2f} m/px, GSD (average): {gsd_avg:.2f} m/px"
+        gs.debug(
+            f"GSD: width={gsd_w:.2f} m/px, height={gsd_h:.2f} m/px, "
+            f"average={gsd_avg:.2f} m/px"
         )
         ground_elev = alt - agl  # ground elevation in meters
-        print(f"Altitude: {alt} m")
-        print(f"Above Ground Level Altitude: {agl} m")
-        print(f"Ground Elevation: {ground_elev} m")
-
-        camera_orientation = detect_camera_orientation(exif)
-        print(f"Camera orientation: {camera_orientation}")
+        gs.debug(f"Altitude: {alt} m, AGL: {agl} m, ground elevation: {ground_elev} m")
 
         yaw, pitch, roll = get_orientation(exif)
-        print(f"Orientation: yaw={yaw}, pitch={pitch}, roll={roll}")
-
-        ahfov, avfov = calc_angular_fov(focal_length_mm, sensor_size[0], sensor_size[1])
-        print(f"Angular FOV: HFOV={ahfov:.2f}°, VFOV={avfov:.2f}°")
-
-        fov_footprint_w, fov_footprint_h = calc_footprint_from_fov(agl, ahfov, avfov)
-        print(
-            f"FOV footprint dimensions: width={fov_footprint_w:.2f} m, height={fov_footprint_h:.2f} m"
-        )
 
         footprint_w, footprint_h = get_footprint_dimensions(gsd_w, gsd_h, exif)
-        print(f"GSD footprint dimensions: {footprint_w:.2f}m x {footprint_h:.2f}m")
 
         image_metadata = {
             "iso": iso,
@@ -1389,13 +937,10 @@ def main():
 
         metadata.append(image_metadata)
 
-    print("Metadata collected for all photos:")
+    gs.verbose(_("Metadata collected for all photos"))
 
-    # photos_by_line_heading = assign_line_headings(metadata, threshold=50.0)
-    # filtered_images = filter_duplicates(metadata, dist_thresh=0.2, time_thresh=0.5)
     photos_by_line_heading = compute_headings_from_gps(metadata)
-    for i, img in enumerate(photos_by_line_heading):
-        # footprint = make_footprint(img, dem_arr, region)
+    for img in photos_by_line_heading:
         footprint = make_footprint_basic(
             img["easting"],
             img["northing"],
@@ -1410,24 +955,25 @@ def main():
         )
         img["footprint"] = footprint
         if not footprint:
-            gs.warning(f"No footprint created for {img}, skipping...")
+            gs.warning(
+                _("No footprint created for <{}>, skipping...").format(img["filename"])
+            )
 
         feature = create_vector_feature(img)
         img["feature"] = feature
 
     if not coords:
-        gs.fatal("No GPS data found")
+        gs.fatal(_("No GPS data found"))
 
     if footprint_vector:
-        gs.message(_("Writing vector overlaps..."))
-        print("Writing vector overlaps...")
+        gs.message(_("Writing footprint vector map <{}>...").format(footprint_vector))
         write_vector(photos_by_line_heading, footprint_vector)
 
     if overlap:
         gs.message(_("Calculating overlaps..."))
         overlaps = calculate_overlaps(coords, "tmp_overlaps")
         avg_overlap = sum(overlaps) / len(overlaps)
-        gs.message(f"Average overlap: {avg_overlap:.2f}")
+        gs.message(_("Average overlap: {:.2f}").format(avg_overlap))
         report_overlap_stats(overlaps, photos, outcsv)
 
     return 0
