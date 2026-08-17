@@ -29,16 +29,22 @@
 /* Forward declarations for functions implemented elsewhere */
 void sixs_init_atmosphere(SixsCtx *ctx, int atmo_model);
 void sixs_pressure(SixsCtx *ctx, float sp);
+int sixs_presplane(SixsCtx *ctx, float height_km);
 void sixs_aerosol_init(SixsCtx *ctx, int iaer, float taer55, float xmud);
 void sixs_mie_init(SixsCtx *ctx, double r_mode, double sigma_g, double m_r_550,
                    double m_i_550);
 void sixs_discom(SixsCtx *ctx, int idatmp, int iaer, float xmus, float xmuv,
                  float phi, float taer55, float taer55p, float palt,
                  float phirad, int nt, int mu, int np, float ftray, int ipol);
-void sixs_interp_polar(const SixsCtx *ctx, float wl, float *roatmq_out,
-                       float *roatmu_out);
-float sixs_gas_transmittance(SixsCtx *ctx, float wl, float xmus, float xmuv,
-                             float uw, float uo3);
+void sixs_interp_polar_components(const SixsCtx *ctx, float wl,
+                                  float *roatmq_out, float *roatmu_out,
+                                  float *roraylq_out, float *roraylu_out);
+float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
+                             float xmuv, float uw, float uo3);
+void sixs_gas_profile_columns(const SixsCtx *ctx, float *h2o, float *ozone_du);
+float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
+                                   float wl, float xmus, float xmuv, float uw,
+                                   float uo3);
 
 /**
  * \brief Compute the 3-D atmospheric correction LUT.
@@ -65,6 +71,16 @@ float sixs_gas_transmittance(SixsCtx *ctx, float wl, float xmus, float xmuv,
  */
 int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
 {
+    if (!cfg || !out || !cfg->wl || !cfg->aod || !cfg->h2o || cfg->n_wl <= 0 ||
+        cfg->n_aod <= 0 || cfg->n_h2o <= 0)
+        return -1;
+    if (cfg->aerosol_model == AEROSOL_CUSTOM) {
+        if (cfg->enable_polar)
+            return -4;
+        if (cfg->mie_r_mode <= 0.0f || cfg->mie_sigma_g <= 1.0f)
+            return -3;
+    }
+
     int n_wl = cfg->n_wl;
     int n_aod = cfg->n_aod;
     int n_h2o = cfg->n_h2o;
@@ -102,11 +118,11 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
     int mu = MU_P;                        /* 25 Gauss points per hemisphere */
     int np = 1;                           /* one azimuth plane */
     int ipol = cfg->enable_polar ? 1 : 0; /* 0=scalar, 1=Stokes(I,Q,U) */
-    int idatmp = (cfg->altitude_km > 900.0f) ? 4 : /* satellite */
+    int idatmp = (cfg->altitude_km >= 100.0f) ? 4 : /* satellite */
                      (cfg->altitude_km > 0.0f) ? 2
                                                : 0; /* plane or ground */
-    float palt = (cfg->altitude_km > 900.0f) ? 1000.0f : cfg->altitude_km;
-    float ftray = (cfg->altitude_km > 900.0f) ? 1.0f : 0.0f;
+    float palt = (cfg->altitude_km >= 100.0f) ? 1000.0f : cfg->altitude_km;
+    int failed = 0;
 
     /* ===== Outer loop: AOD ===== */
 #ifdef _OPENMP
@@ -115,8 +131,13 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
     for (int ia = 0; ia < n_aod; ia++) {
         /* Each thread needs its own context for thread safety */
         SixsCtx *ctx = (SixsCtx *)calloc(1, sizeof(SixsCtx));
-        if (!ctx)
+        if (!ctx) {
+#ifdef _OPENMP
+#pragma omp atomic write
+#endif
+            failed = 1;
             continue;
+        }
 
         float aod = cfg->aod[ia];
 
@@ -127,6 +148,16 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
         sixs_init_atmosphere(ctx, cfg->atmo_model);
         if (cfg->surface_pressure > 0.0f)
             sixs_pressure(ctx, cfg->surface_pressure);
+        if (idatmp == 2 && sixs_presplane(ctx, palt) != 0) {
+#ifdef _OPENMP
+#pragma omp atomic write
+#endif
+            failed = 1;
+            free(ctx);
+            continue;
+        }
+        float default_h2o, default_ozone;
+        sixs_gas_profile_columns(ctx, &default_h2o, &default_ozone);
 
         /* Custom Mie: populate ctx->aer before aerosol_init */
         if (cfg->aerosol_model == AEROSOL_CUSTOM && cfg->mie_r_mode > 0.0f &&
@@ -142,13 +173,20 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
          */
         /* Optical depth between target and sensor: the full column for a
          * satellite and zero for the current ground/aircraft approximation. */
-        float taer55p = aod;
-        if (cfg->altitude_km <= 900.0f)
-            taer55p = 0.0f;
+        float ftray =
+            idatmp == 4 ? 1.0f : (idatmp == 2 ? ctx->plane_ftray : 0.0f);
+        float taer55p =
+            idatmp == 4
+                ? aod
+                : (idatmp == 2 ? aod * (1.0f - expf(-palt / 2.0f)) : 0.0f);
         sixs_discom(ctx, idatmp, cfg->aerosol_model, xmus, xmuv, phi, aod,
                     taer55p, palt, phirad, nt, mu, np, ftray, ipol);
 
         if (ctx->err.ier) {
+#ifdef _OPENMP
+#pragma omp atomic write
+#endif
+            failed = 1;
             free(ctx);
             continue;
         }
@@ -156,6 +194,9 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
         /* ===== Inner loop: H2O ===== */
         for (int ih = 0; ih < n_h2o; ih++) {
             float h2o = cfg->h2o[ih];
+            float h2o_column = h2o > 0.0f ? h2o : default_h2o;
+            float ozone_column =
+                cfg->ozone_du > 0.0f ? cfg->ozone_du : default_ozone;
 
             /* ===== Innermost loop: wavelength ===== */
             for (int iw = 0; iw < n_wl; iw++) {
@@ -164,37 +205,47 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
 
                 /* Scattering quantities (no H2O dependence) via interpolation
                  */
-                float roatm, T_down_sca, T_up_sca, s_alb, T_down_dir_sca = 1.0f;
-                sixs_interp(ctx, cfg->aerosol_model, wl, aod, taer55p, &roatm,
-                            &T_down_sca, &T_up_sca, &s_alb, NULL, NULL,
-                            out->T_down_dir ? &T_down_dir_sca : NULL);
+                float roatm, rorayl, T_down_sca, T_up_sca, s_alb;
+                float T_down_dir_sca = 1.0f;
+                sixs_interp_components(
+                    ctx, cfg->aerosol_model, wl, aod, taer55p, &roatm, &rorayl,
+                    &T_down_sca, &T_up_sca, &s_alb, NULL, NULL,
+                    out->T_down_dir ? &T_down_dir_sca : NULL);
 
                 /* Gas transmittance (H2O-dependent): separate solar/view paths
                  */
-                float T_gas_down = sixs_gas_transmittance(ctx, wl, xmus, xmuv,
-                                                          h2o, cfg->ozone_du);
-                float T_gas_up =
-                    cfg->altitude_km <= 0.0f
-                        ? 1.0f
-                        : sixs_gas_transmittance(ctx, wl, xmuv, xmuv, h2o,
-                                                 cfg->ozone_du);
+                float T_gas_down = sixs_gas_transmittance(
+                    ctx, wl, xmus, xmuv, h2o_column, ozone_column);
+                float T_gas_total = sixs_gas_transmittance_total(
+                    ctx, idatmp, wl, xmus, xmuv, h2o_column, ozone_column);
+                float tgp1 = sixs_gas_transmittance_total(
+                    ctx, idatmp, wl, xmus, xmuv, 0.0f, ozone_column);
+                float tgp2 = sixs_gas_transmittance_total(
+                    ctx, idatmp, wl, xmus, xmuv, 0.5f * h2o_column,
+                    ozone_column);
 
                 /* Combined transmittances */
-                out->R_atm[idx] = roatm;
+                out->R_atm[idx] = (roatm - rorayl) * tgp2 + rorayl * tgp1;
                 out->T_down[idx] = T_down_sca * T_gas_down;
-                out->T_up[idx] = T_up_sca * T_gas_up;
+                out->T_up[idx] =
+                    T_up_sca * T_gas_total / fmaxf(T_gas_down, 1e-20f);
                 out->s_alb[idx] = s_alb;
                 if (out->T_down_dir)
                     out->T_down_dir[idx] = T_down_dir_sca * T_gas_down;
 
-                /* Polarization Q/U (H2O-independent; only when enable_polar) */
+                /* Polarized atmospheric path, with the same gas weighting as I.
+                 */
                 if (cfg->enable_polar) {
                     float roatmq = 0.0f, roatmu = 0.0f;
-                    sixs_interp_polar(ctx, wl, &roatmq, &roatmu);
+                    float roraylq = 0.0f, roraylu = 0.0f;
+                    sixs_interp_polar_components(ctx, wl, &roatmq, &roatmu,
+                                                 &roraylq, &roraylu);
                     if (out->R_atmQ)
-                        out->R_atmQ[idx] = roatmq;
+                        out->R_atmQ[idx] =
+                            (roatmq - roraylq) * tgp2 + roraylq * tgp1;
                     if (out->R_atmU)
-                        out->R_atmU[idx] = roatmu;
+                        out->R_atmU[idx] =
+                            (roatmu - roraylu) * tgp2 + roraylu * tgp1;
                 }
             }
         }
@@ -202,7 +253,7 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
         free(ctx);
     }
 
-    return 0;
+    return failed ? -2 : 0;
 }
 
 /* ── Per-pixel trilinear LUT interpolation ───────────────────────────────────

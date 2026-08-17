@@ -252,7 +252,7 @@ _lib.adjacency_correct_band(
     ctypes.c_int(ncols),
     ctypes.c_float(1.0),  # psf_radius_km
     ctypes.c_float(30.0),  # pixel_size_m (Landsat 30 m)
-    ctypes.c_float(1.0 - T_down_dir),  # T_scat
+    ctypes.c_float(T_down * T_up),  # T_scat (two-way total)
     ctypes.c_float(0.10),  # s_alb
     ctypes.c_float(0.65),  # wl_um
     ctypes.c_float(0.15),  # aod550

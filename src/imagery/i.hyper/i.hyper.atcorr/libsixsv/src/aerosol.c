@@ -36,8 +36,7 @@ void sixs_mie_init(SixsCtx *ctx, double r_mode, double sigma_g, double m_r_550,
  *
  * \param[in,out] ctx    6SV context; writes \c ctx->aer and \c ctx->polar.
  * \param[in]     iaer   Aerosol model: 0=none, 1=continental, 2=maritime,
- *                       3=urban, 5=desert (treated as continental), 9=custom
- * Mie.
+ *                       3=urban, 5=background desert, 9=custom Mie.
  * \param[in]     taer55 Total aerosol OD at 550 nm.
  * \param[in]     xmud   Cosine of the scattering angle (for phase-function
  * evaluation).
@@ -104,6 +103,24 @@ void sixs_aerosol_init(SixsCtx *ctx, int iaer, float taer55, float xmud)
     }
     int j2 = j1 + 1;
     float coef = -(xmud - cgaus_S[j1]) / (cgaus_S[j2] - cgaus_S[j1]);
+
+    if (iaer == 5) {
+        float norm = aerosol_bdm_ext[7];
+        for (int l = 0; l < NWL_DISC; l++) {
+            ctx->aer.ext[l] = aerosol_bdm_ext[l] / norm;
+            ctx->aer.ome[l] = aerosol_bdm_ext[l] > 0.0f
+                                  ? aerosol_bdm_sca[l] / aerosol_bdm_ext[l]
+                                  : 0.0f;
+            ctx->aer.gasym[l] = aerosol_bdm_asy[l];
+            ctx->aer.phase[l] =
+                aerosol_bdm_pha[l][j1] +
+                coef * (aerosol_bdm_pha[l][j1] - aerosol_bdm_pha[l][j2]);
+        }
+        memcpy(ctx->polar.pha, aerosol_bdm_pha[7], nquad * sizeof(float));
+        memcpy(ctx->polar.qha, aerosol_bdm_qha[7], nquad * sizeof(float));
+        memcpy(ctx->polar.uha, aerosol_bdm_uha[7], nquad * sizeof(float));
+        return;
+    }
 
     /* Mix optical properties at each reference wavelength */
     float ext[NWL_DISC] = {0}, sca[NWL_DISC] = {0}, gasym[NWL_DISC] = {0};

@@ -2,13 +2,12 @@ Source: libsixsv
 Section: libs
 Priority: optional
 Maintainer: Yann Chemin <dr.yann.chemin@gmail.com>
-Build-Depends: debhelper-compat (= 13),
-               gcc,
-               libgomp1
+Build-Depends: debhelper-compat (= 13)
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
+Homepage: https://github.com/yannchemin/libsixsv
 
-Package: libsixsv1
+Package: libsixsv2
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: 6SV2.1 atmospheric correction library
@@ -16,20 +15,20 @@ Description: 6SV2.1 atmospheric correction library
  the Solar Spectrum) radiative transfer model for operational atmospheric
  correction of multispectral and hyperspectral remote sensing imagery.
  .
- Features: DISCOM discrete-ordinate solver; 3-D [AOD × H₂O × λ] LUT;
- per-pixel Lambertian and BRDF-coupled inversion; H₂O, AOD, O₃ and
- surface-pressure retrievals; MAIAC AOD regularisation; Hapke, RPV and
- Ross-Li BRDF models; NBAR, MCD43 disaggregation; adjacency, terrain
- and uncertainty propagation; OpenMP parallelism.
+ It provides scalar and polarized DISCOM radiative transfer, satellite and
+ aircraft paths, standard and BDM aerosol models, and an AOD by water-vapour by
+ wavelength LUT. Operational C extensions include Lambertian and BRDF-coupled
+ inversion, retrieval, terrain, adjacency, uncertainty and spatial routines.
+ Selected LUT and image loops use OpenMP.
 
 Package: libsixsv-dev
 Section: libdevel
 Architecture: any
-Depends: libsixsv1 (= ${binary:Version}), ${misc:Depends}
-Description: 6SV2.1 atmospheric correction library — development files
- Development headers and linker stub for libsixsv.
+Depends: libsixsv2 (= ${binary:Version}), ${misc:Depends}
+Description: 6SV2.1 atmospheric correction library - development files
+ Development headers, pkg-config metadata and linker symlink for the libsixsv
+ SONAME 2 C ABI.
  .
- Install this package to build C or C++ programs that call into lib6sv.
- The public API is exposed through the headers in /usr/include/sixsv/:
- atcorr.h, brdf.h, retrieve.h, spatial.h, terrain.h, adjacency.h,
- uncertainty.h, spectral_brdf.h, oe_invert.h.
+ Install this package to build C or C++ programs that call libsixsv. The package
+ installs all headers under /usr/include/sixsv/; there is no Python wrapper
+ package, although the C ABI can be loaded directly with ctypes.

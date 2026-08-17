@@ -41,7 +41,7 @@ static int day_number(int jday, int month, int ia)
  * declination (accurate to ~0.1°) to compute the solar zenith angle and
  * solar azimuth for a given day, UTC time, and geographic location.
  *
- * \param[in]  j     Day of year (1–365).
+ * \param[in]  j     Day of year (1–366).
  * \param[in]  tu    UTC time in decimal hours.
  * \param[in]  xlon  Longitude in degrees (east positive).
  * \param[in]  xlat  Latitude in degrees (north positive).

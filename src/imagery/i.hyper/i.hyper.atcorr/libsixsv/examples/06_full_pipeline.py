@@ -377,7 +377,7 @@ _lib.adjacency_correct_band.restype = None
 
 for b in range(n_bands):
     band_2d = np.ascontiguousarray(rho_boa[b].reshape(nrows, ncols))
-    T_scat = float(1.0 - 0.7 * sl["T_down"][b])
+    T_scat = float(1.0 - 0.3 * sl["T_down"][b])  # approx, mirrors C example
     _lib.adjacency_correct_band(
         band_2d.ctypes.data_as(_FP),
         ctypes.c_int(nrows),

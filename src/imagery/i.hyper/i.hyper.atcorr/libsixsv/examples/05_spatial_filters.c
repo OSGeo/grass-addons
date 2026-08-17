@@ -103,10 +103,9 @@ int main(void)
 
     /* Apply Vermote 1997 in-place (computes r_env and T_dir internally) */
     adjacency_correct_band(r_boa, nrows, ncols,
-                           /*psf_radius_km=*/1.0f, /* adjacency PSF radius */
-                           /*pixel_size_m=*/30.0f, /* Landsat 30 m pixels */
-                           /*T_scat=*/1.0f -
-                               T_down_dir, /* scattering transmittance */
+                           /*psf_radius_km=*/1.0f,   /* adjacency PSF radius */
+                           /*pixel_size_m=*/30.0f,   /* Landsat 30 m pixels */
+                           /*T_scat=*/T_down * T_up, /* two-way total */
                            /*s_alb=*/0.10f,
                            /*wl_um=*/0.65f,
                            /*aod550=*/0.15f,

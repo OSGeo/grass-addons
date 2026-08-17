@@ -8,10 +8,10 @@
  *   - atcorr_lut_slice()    — bilinear interpolation at a fixed (AOD, H₂O)
  *   - atcorr_lut_interp_pixel() — trilinear point lookup for per-pixel paths
  *   - atcorr_invert()       — Lambertian BOA reflectance inversion
- *   - atcorr_invert_brdf()  — BRDF-coupled inversion (white-sky albedo term)
+ *   - atcorr_invert_brdf()  — BRDF-coupled inversion
  *   - sixs_E0()             — Thuillier solar irradiance spectrum
  *   - sixs_earth_sun_dist2()— seasonal Earth–Sun distance
- *   - SRF gas-transmittance correction (::SrfConfig, atcorr_srf_compute(), …)
+ *   - guarded SRF API (disabled until joint path-gas convolution is available)
  *
  * (C) 2025-2026 Yann. GNU GPL ≥ 2.
  *
@@ -34,7 +34,7 @@ extern "C" {
 #define AEROSOL_MARITIME    2 /*!< Maritime aerosol mixture */
 #define AEROSOL_URBAN       3 /*!< Urban aerosol mixture */
 #define AEROSOL_DESERT      5 /*!< Desert dust aerosol */
-#define AEROSOL_CUSTOM      9 /*!< Custom Mie log-normal (mie.c) */
+#define AEROSOL_CUSTOM      9 /*!< Custom scalar Mie log-normal (mie.c) */
 /** @} */
 
 /** \defgroup atmo_models Atmosphere model identifiers
@@ -79,7 +79,8 @@ typedef struct {
     float vza; /*!< View zenith angle [degrees] */
     float raa; /*!< Relative azimuth angle [degrees] */
 
-    float altitude_km; /*!< Surface/sensor altitude [km] */
+    float altitude_km; /*!< Observer altitude [km]: <=0 ground, (0,100)
+                        * aircraft, >=100 satellite */
 
     /* ── Atmosphere / aerosol ────────────────────────────────────────────── */
     int atmo_model;    /*!< \ref atmo_models constant (default: \c ATMO_US62) */
@@ -93,7 +94,8 @@ typedef struct {
     float mie_r_mode;  /*!< Log-normal mode radius [µm], e.g. 0.12 */
     float mie_sigma_g; /*!< Geometric standard deviation, e.g. 1.8 */
     float mie_m_real;  /*!< Real refractive index at 550 nm */
-    float mie_m_imag;  /*!< Imaginary refractive index at 550 nm */
+    float mie_m_imag;  /*!< Imaginary refractive index at 550 nm.
+                        * Custom Mie is scalar-only; enable_polar must be 0. */
 
     /* ── BRDF surface model ──────────────────────────────────────────────── */
     BrdfType brdf_type;     /*!< Surface reflectance model (default: \c
@@ -117,17 +119,19 @@ typedef struct {
  * populated only when non-NULL on input; pass NULL to skip.
  */
 typedef struct {
-    float *R_atm; /*!< Atmospheric path reflectance — Stokes I [0, 1) */
+    float *R_atm; /*!< Gas-weighted effective Stokes-I path coefficient */
     float
         *T_down;  /*!< Total downward transmittance (direct + diffuse) [0, 1] */
-    float *T_up;  /*!< Total upward transmittance (direct + diffuse) [0, 1] */
+    float *T_up;  /*!< Effective upward coefficient using nonlinear total-path
+                   * gas transmission [0, 1] */
     float *s_alb; /*!< Spherical albedo of the atmosphere [0, 1) */
     float *T_down_dir; /*!< Direct (beam-only) component of \c T_down.
                         *   NULL → not computed (saves RAM and time).
                         *   Required by atcorr_terrain_T_down(). */
-    float *R_atmQ;     /*!< Q Stokes component of path reflectance.
+    float *R_atmQ;     /*!< Gas-weighted effective Q path coefficient.
                         *   NULL unless \c enable_polar=1 in ::LutConfig.
-                        *   Linearly interpolated from 20 reference wavelengths. */
+                        *   Uses signed power-law interpolation with linear
+                        *   fallback at sign changes or near zero. */
     float *R_atmU;     /*!< U Stokes component; same layout as \c R_atmQ. */
 } LutArrays;
 
@@ -135,14 +139,16 @@ typedef struct {
  * \brief Compute a full 3-D atmospheric correction LUT.
  *
  * Runs DISCOM once per AOD grid point (OpenMP-parallel over AOD dimension).
- * Gas transmittance is applied at each (H₂O, λ) combination via the reptran
- * parameterisation inside the AOD loop.
+ * ABSTRA-derived directional and nonlinear total-path gas transmission is
+ * applied at each (H₂O, λ) combination inside the AOD loop.
  *
  * \param[in]  cfg  LUT grid specification and scene geometry.
  * \param[out] out  Pre-allocated output arrays (R_atm … s_alb must be
  *                  \c n_aod×n_h2o×n_wl floats each; optional pointers
  *                  T_down_dir, R_atmQ, R_atmU populated when non-NULL).
- * \return 0 on success; negative error code on failure.
+ * \return 0 on success; -1 for invalid pointers/grid, -2 for an RT/profile
+ * failure, -3 for invalid custom-Mie parameters, or -4 when polarized custom
+ * Mie is requested.
  */
 int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out);
 
@@ -178,7 +184,8 @@ static inline float atcorr_invert(float rho_toa, float R_atm, float T_down,
  * \brief BRDF-coupled BOA reflectance inversion (6SV idirec=1 equivalent).
  *
  * When the surface is non-Lambertian, the multiple-scattering feedback
- * (spherical-albedo denominator) uses the bihemispherical (white-sky) albedo
+ * (spherical-albedo denominator) uses directional-hemispherical (black-sky)
+ * albedo
  * ρ̄ of the BRDF model rather than the directional ρ_BOA:
  * \f[
  *   \rho_{BRDF} = y \cdot (1 - s \cdot \bar{\rho}), \quad
@@ -190,8 +197,8 @@ static inline float atcorr_invert(float rho_toa, float R_atm, float T_down,
  * \param[in] T_down   Downward transmittance (LUT value).
  * \param[in] T_up     Upward transmittance (LUT value).
  * \param[in] s_alb    Spherical albedo (LUT value).
- * \param[in] rho_albe Bihemispherical (white-sky) albedo ρ̄ of the BRDF
- *                     surface, from sixs_brdf_albe().
+ * \param[in] rho_albe Directional-hemispherical (black-sky) albedo ρ̄ of the
+ * BRDF surface, from sixs_brdf_albe().
  * \return Bidirectional reflectance factor ρ_BRDF(θs, θv, φ).
  */
 static inline float atcorr_invert_brdf(float rho_toa, float R_atm, float T_down,
@@ -210,8 +217,8 @@ static inline float atcorr_invert_brdf(float rho_toa, float R_atm, float T_down,
  * \brief Thuillier solar irradiance spectrum.
  *
  * Returns E₀ in W/(m² µm) at wavelength \p wl_um, linearly interpolated
- * from the 6SV2.1 Thuillier (2003) reference spectrum.  Clamped to zero
- * outside [0.25, 4.0] µm.
+ * from the 6SV2.1 Thuillier (2003) reference spectrum. Values outside
+ * [0.25, 4.0] µm use the nearest table boundary.
  *
  * \param[in] wl_um Wavelength [µm].
  * \return E₀ [W m⁻² µm⁻¹] ≥ 0.
@@ -225,7 +232,7 @@ float sixs_E0(float wl_um);
  * (Liou 2002), so perihelion (DOY≈3) gives d²<1 and aphelion (DOY≈185)
  * gives d²>1.
  *
- * \param[in] doy Day of year [1, 365].
+ * \param[in] doy Day of year [1, 366].
  * \return d² [AU²].
  */
 double sixs_earth_sun_dist2(int doy);
@@ -283,16 +290,15 @@ void atcorr_lut_interp_pixel(const LutConfig *cfg, const LutArrays *lut,
                              float *s_alb);
 
 /* ═══════════════════════════════════════════════════════════════════════════
- * SRF gas-transmittance correction
+ * SRF gas-transmittance correction guard
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 /**
- * \brief Configuration for Gaussian SRF gas-transmittance correction.
+ * \brief Reserved configuration for future joint SRF/path-gas convolution.
  *
- * Drives atcorr_srf_compute() to replace the coarse 6SV Curtis-Godson gas
- * parameterisation with libRadtran reptran fine-resolution (~0.05 nm) gas
- * transmittance convolved with the sensor spectral response function.
+ * Direction-only SRF factors are incompatible with the effective LUT
+ * coefficients, so correction is currently disabled.
  */
 typedef struct {
     const float *fwhm_um; /*!< Per-band FWHM [µm], length \c n_wl (aligned with
@@ -308,26 +314,18 @@ typedef struct {
 typedef struct SrfCorrection_ SrfCorrection;
 
 /**
- * \brief Compute per-band, per-H₂O SRF gas-transmittance correction factors.
- *
- * Runs 4 × n_h2o \c uvspec subprocesses (fine/coarse × down/up × each H₂O)
- * parallelised with OpenMP.  The \c uvspec binary is located via PATH,
- * \c $LIBRADTRAN_DIR/bin, or \c $GISBASE/bin.
+ * \brief Report that SRF correction is currently unsupported.
  *
  * \param[in] srf_cfg SRF configuration (FWHM array and threshold).
  * \param[in] lut_cfg LUT grid specification (wavelengths, H₂O grid, geometry).
- * \return Pointer to correction table, or NULL if \c uvspec is not found
- *         or no bands fall below the FWHM threshold.
+ * \return Always NULL until mathematically consistent joint convolution of
+ * effective R_atm, Q/U, and total-path gas transmission is implemented.
  */
 SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
                                   const LutConfig *lut_cfg);
 
 /**
- * \brief Apply SRF correction factors to a LUT in place.
- *
- * Must be called after atcorr_compute_lut() and before pixel inversion.
- * Multiplies \c T_down and \c T_up by the H₂O-matched correction factor
- * for each wavelength band.
+ * \brief Guarded no-op retained for API compatibility.
  *
  * \param[in]     srf  Correction table from atcorr_srf_compute().
  * \param[in]     cfg  LUT grid specification.
@@ -412,7 +410,7 @@ void sixs_enviro(float difr, float difa, float r, float palt, float xmuv,
 
 /**
  * \brief Library version string.
- * \return Pointer to a static null-terminated string, e.g. \c "1.0.0".
+ * \return Pointer to a static null-terminated version string.
  */
 const char *atcorr_version(void);
 

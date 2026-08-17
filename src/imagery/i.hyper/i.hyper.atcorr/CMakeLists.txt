@@ -9,6 +9,7 @@ set(sixsv_src
   libsixsv/src/adjacency.c
   libsixsv/src/aeroprof.c
   libsixsv/src/aerosol.c
+  libsixsv/src/aerosol_polar_tables.c
   libsixsv/src/aerosol_tables.c
   libsixsv/src/atcorr.c
   libsixsv/src/atmosphere.c
@@ -69,5 +70,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libsixsv/src>)
 
-target_compile_options(${PROJECT_NAME} PRIVATE -O3 -ffast-math -fopenmp)
+target_compile_options(${PROJECT_NAME} PRIVATE -O3 -fopenmp)
 target_link_libraries(${PROJECT_NAME} -fopenmp)

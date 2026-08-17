@@ -40,7 +40,11 @@ def test_satellite_continental_coefficients_match_6sv21():
         ("s_alb", 0.012),
     ):
         actual = getattr(lut, name)[0, 0]
-        expected = np.array([row["fortran"][name] for row in ROWS])
+        expected_name = {
+            "R_atm": "R_atm_effective",
+            "T_up": "T_up_effective",
+        }.get(name, name)
+        expected = np.array([row["fortran"][expected_name] for row in ROWS])
         np.testing.assert_allclose(actual, expected, rtol=rtol, atol=2e-5, err_msg=name)
 
 

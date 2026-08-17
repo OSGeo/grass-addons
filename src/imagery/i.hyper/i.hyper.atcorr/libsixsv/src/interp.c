@@ -33,6 +33,18 @@ static float log_interp(float y_inf, float y_sup, float wl_inf, float coef,
     return beta * powf(wl, alpha);
 }
 
+static float signed_interp(float y_inf, float y_sup, float wl_inf, float wl_sup,
+                           float wl)
+{
+    if (fabsf(y_inf) < 0.001f || fabsf(y_sup) < 0.001f ||
+        y_inf * y_sup < 0.0f) {
+        float t = (wl - wl_inf) / (wl_sup - wl_inf);
+        return y_inf + t * (y_sup - y_inf);
+    }
+    float alpha = logf(y_sup / y_inf) / logf(wl_sup / wl_inf);
+    return y_inf * powf(wl / wl_inf, alpha);
+}
+
 /**
  * \brief Interpolate 6SV discrete-wavelength RT outputs to any wavelength.
  *
@@ -64,10 +76,11 @@ static float log_interp(float y_inf, float y_sup, float wl_inf, float coef,
  * \param[out] T_down_dir_out  Direct (beam-only) downward transmittance (may be
  * NULL).
  */
-void sixs_interp(const SixsCtx *ctx, int iaer, float wl, float taer55,
-                 float taer55p, float *roatm, float *T_down, float *T_up,
-                 float *s_alb, float *tray_out, float *taer_out,
-                 float *T_down_dir_out)
+static void interp_components(const SixsCtx *ctx, int iaer, float wl,
+                              float taer55, float taer55p, float *roatm,
+                              float *rorayl_out, float *T_down, float *T_up,
+                              float *s_alb, float *tray_out, float *taer_out,
+                              float *T_down_dir_out)
 {
     const SixsDisc *d = &ctx->disc;
 
@@ -101,6 +114,9 @@ void sixs_interp(const SixsCtx *ctx, int iaer, float wl, float taer55,
     float roatm_inf = d->roatm[1][linf];
     float roatm_sup = d->roatm[1][lsup];
     *roatm = log_interp(roatm_inf, roatm_sup, wl_inf, coef, wl);
+    if (rorayl_out)
+        *rorayl_out =
+            log_interp(d->roatm[0][linf], d->roatm[0][lsup], wl_inf, coef, wl);
 
     /* ---- Rayleigh optical depth ---- */
     float tray = log_interp(d->trayl[linf], d->trayl[lsup], wl_inf, coef, wl);
@@ -174,22 +190,40 @@ void sixs_interp(const SixsCtx *ctx, int iaer, float wl, float taer55,
     (void)taer55p; /* used by 6SV for taerp; not needed for our inversion */
 }
 
+void sixs_interp(const SixsCtx *ctx, int iaer, float wl, float taer55,
+                 float taer55p, float *roatm, float *T_down, float *T_up,
+                 float *s_alb, float *tray_out, float *taer_out,
+                 float *T_down_dir_out)
+{
+    interp_components(ctx, iaer, wl, taer55, taer55p, roatm, NULL, T_down, T_up,
+                      s_alb, tray_out, taer_out, T_down_dir_out);
+}
+
+void sixs_interp_components(const SixsCtx *ctx, int iaer, float wl,
+                            float taer55, float taer55p, float *roatm,
+                            float *rorayl_out, float *T_down, float *T_up,
+                            float *s_alb, float *tray_out, float *taer_out,
+                            float *T_down_dir_out)
+{
+    interp_components(ctx, iaer, wl, taer55, taer55p, roatm, rorayl_out, T_down,
+                      T_up, s_alb, tray_out, taer_out, T_down_dir_out);
+}
+
 /**
  * \brief Interpolate Stokes Q and U path reflectance components to any
  * wavelength.
  *
- * Linearly interpolates (in log-wavelength space) the Q and U Stokes components
- * of the atmospheric path reflectance from the 20 reference wavelengths
- * precomputed by sixs_discom().  Linear rather than log-log interpolation is
- * used because Q and U can be negative.
+ * Uses the signed power-law interpolation and wavelength-linear fallback from
+ * 6SV2.1 INTERP.f.
  *
  * \param[in]  ctx          6SV context with \c disc populated by sixs_discom().
  * \param[in]  wl           Target wavelength (µm).
  * \param[out] roatmq_out   Stokes Q path reflectance at \c wl (may be NULL).
  * \param[out] roatmu_out   Stokes U path reflectance at \c wl (may be NULL).
  */
-void sixs_interp_polar(const SixsCtx *ctx, float wl, float *roatmq_out,
-                       float *roatmu_out)
+void sixs_interp_polar_components(const SixsCtx *ctx, float wl,
+                                  float *roatmq_out, float *roatmu_out,
+                                  float *roraylq_out, float *roraylu_out)
 {
     const SixsDisc *d = &ctx->disc;
 
@@ -207,17 +241,22 @@ void sixs_interp_polar(const SixsCtx *ctx, float wl, float *roatmq_out,
 
     float wl_inf = d->wldis[linf];
     float wl_sup = d->wldis[lsup];
-    float dw = wl_sup - wl_inf;
-
-    /* Linear fraction (log-space for consistency with the wavelength axis) */
-    float t = (dw > 1e-10f) ? logf(wl / wl_inf) / logf(wl_sup / wl_inf) : 0.0f;
-
-    /* Linear interpolation (Q/U can be negative, so log-log is not applicable)
-     */
     if (roatmq_out)
-        *roatmq_out =
-            d->roatmq[1][linf] + t * (d->roatmq[1][lsup] - d->roatmq[1][linf]);
+        *roatmq_out = signed_interp(d->roatmq[1][linf], d->roatmq[1][lsup],
+                                    wl_inf, wl_sup, wl);
     if (roatmu_out)
-        *roatmu_out =
-            d->roatmu[1][linf] + t * (d->roatmu[1][lsup] - d->roatmu[1][linf]);
+        *roatmu_out = signed_interp(d->roatmu[1][linf], d->roatmu[1][lsup],
+                                    wl_inf, wl_sup, wl);
+    if (roraylq_out)
+        *roraylq_out = signed_interp(d->roatmq[0][linf], d->roatmq[0][lsup],
+                                     wl_inf, wl_sup, wl);
+    if (roraylu_out)
+        *roraylu_out = signed_interp(d->roatmu[0][linf], d->roatmu[0][lsup],
+                                     wl_inf, wl_sup, wl);
+}
+
+void sixs_interp_polar(const SixsCtx *ctx, float wl, float *roatmq_out,
+                       float *roatmu_out)
+{
+    sixs_interp_polar_components(ctx, wl, roatmq_out, roatmu_out, NULL, NULL);
 }

@@ -3,7 +3,7 @@
 
 Demonstrates:
   - BRDF evaluation via ctypes (RPV, Ross-Li, Hapke)
-  - Hemispherical (white-sky) albedo integration
+  - Directional-hemispherical (black-sky) albedo integration
   - NBAR normalisation from acquisition to nadir geometry
   - MCD43 7-band → hyperspectral kernel weight disaggregation
   - Tikhonov spectral smoothing
@@ -79,7 +79,7 @@ albe_rpv = _lib.sixs_brdf_albe(
     ctypes.c_int(48),
     ctypes.c_int(24),
 )
-print(f"RPV:       rho = {rho_rpv:.4f}   white-sky albedo = {albe_rpv:.4f}")
+print(f"RPV:       rho = {rho_rpv:.4f}   black-sky albedo = {albe_rpv:.4f}")
 
 # ── 2. Ross-Thick + Li-Sparse (Ross-Li / MCD43-equivalent) ───────────────────
 # brdf_type=9 (BRDF_ROSSLIMAIGNAN); params = (f_iso, f_vol, f_geo, 0, 0)
@@ -99,7 +99,7 @@ albe_rl = _lib.sixs_brdf_albe(
     ctypes.c_int(48),
     ctypes.c_int(24),
 )
-print(f"Ross-Li:   rho = {rho_rl:.4f}   white-sky albedo = {albe_rl:.4f}")
+print(f"Ross-Li:   rho = {rho_rl:.4f}   black-sky albedo = {albe_rl:.4f}")
 
 # ── 3. Hapke model ────────────────────────────────────────────────────────────
 # brdf_type=3 (BRDF_HAPKE); union hapke: (om, af, s0, h, pad)

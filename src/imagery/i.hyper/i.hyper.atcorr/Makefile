@@ -6,7 +6,7 @@ PGM = i.hyper.atcorr
 L6S_SRCS := $(sort $(wildcard libsixsv/src/*.c))
 
 EXTRA_INC     = -Ilibsixsv/include -Ilibsixsv/src
-EXTRA_CFLAGS  = -O3 -ffast-math $(OPENMP_CFLAGS) -std=c11 \
+EXTRA_CFLAGS  = -O3 $(OPENMP_CFLAGS) -std=c11 \
                 -Wall -Wextra -Wno-unused-parameter
 EXTRA_LDFLAGS = $(OPENMP_LIBPATH) $(OPENMP_LIB) -lgomp
 LIBES         = $(RASTER3DLIB) $(RASTERLIB) $(GISLIB) $(MATHLIB)

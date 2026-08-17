@@ -5,29 +5,22 @@ Source: https://github.com/yannchemin/libsixsv
 
 Files: *
 Copyright: 2025-2026 Yann Chemin <dr.yann.chemin@gmail.com>
-License: Unlicense
+License: GPL-2+
+Comment: This C port retains provenance from the 6SV2.1 reference source at
+ https://github.com/NakamuraTakashi/6SV2.1, pinned for validation at commit
+ 7deb2289cfe23c9b1d1b48d7647f76604ef75fa4. 6SV was developed by Eric F.
+ Vermote and collaborators; see the source and project documentation for
+ routine-level attribution.
 
-License: Unlicense
- This is free and unencumbered software released into the public domain.
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation; either version 2 of the License, or (at your option)
+ any later version.
  .
- Anyone is free to copy, modify, publish, use, compile, sell, or
- distribute this software, either in source code form or as a compiled
- binary, for any purpose, commercial or non-commercial, and by any means.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  .
- In jurisdictions that recognize copyright laws, the author or authors
- of this software dedicate any and all copyright interest in the software
- to the public domain. We make this dedication for the benefit of the
- public at large and to the detriment of our heirs and successors. We
- intend this dedication to be an overt act of relinquishment in
- perpetuity of all present and future rights to this software under
- copyright law.
- .
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- OTHER DEALINGS IN THE SOFTWARE.
- .
- For more information, please refer to <https://unlicense.org>
+ On Debian systems, the complete text of version 2 of the GNU General Public
+ License can be found in /usr/share/common-licenses/GPL-2.

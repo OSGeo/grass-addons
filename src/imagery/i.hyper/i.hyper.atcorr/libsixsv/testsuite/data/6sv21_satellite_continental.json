@@ -20,8 +20,10 @@
             "apparent_reflectance": 0.2464415,
             "fortran": {
                 "R_atm": 0.09972,
+                "R_atm_effective": 0.09951364,
                 "T_down": 0.829246824,
                 "T_up": 0.852081216,
+                "T_up_effective": 0.8520803143,
                 "s_alb": 0.19094
             },
             "before": {
@@ -38,8 +40,10 @@
             "apparent_reflectance": 0.205931,
             "fortran": {
                 "R_atm": 0.0495,
+                "R_atm_effective": 0.0468937512,
                 "T_down": 0.8716327704,
                 "T_up": 0.8903459808,
+                "T_up_effective": 0.8903488605,
                 "s_alb": 0.12028
             },
             "before": {
@@ -56,8 +60,10 @@
             "apparent_reflectance": 0.1952699,
             "fortran": {
                 "R_atm": 0.02877,
+                "R_atm_effective": 0.0275148592,
                 "T_down": 0.9001060607,
                 "T_up": 0.9152779548,
+                "T_up_effective": 0.9160899262,
                 "s_alb": 0.08463
             },
             "before": {
@@ -74,8 +80,10 @@
             "apparent_reflectance": 0.1971835,
             "fortran": {
                 "R_atm": 0.01318,
+                "R_atm_effective": 0.013152909,
                 "T_down": 0.9501226881,
                 "T_up": 0.9585896012,
+                "T_up_effective": 0.9587143089,
                 "s_alb": 0.0503
             },
             "before": {

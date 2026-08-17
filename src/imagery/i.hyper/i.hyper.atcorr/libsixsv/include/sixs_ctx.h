@@ -1,7 +1,6 @@
 /**
  * \file sixs_ctx.h
- * \brief Internal 6SV2.1 computation context — C replacement for Fortran COMMON
- * blocks.
+ * \brief Low-level 6SV2.1 context API replacing Fortran COMMON blocks.
  *
  * Each LUT computation thread owns one ::SixsCtx instance allocated on the
  * heap.  Separating per-thread context from global state enables OpenMP
@@ -71,6 +70,7 @@ typedef struct {
     float ome[NWL_DISC];   /*!< Single-scattering albedo ω₀ */
     float gasym[NWL_DISC]; /*!< Asymmetry parameter g */
     float phase[NWL_DISC]; /*!< Phase function at the scattering angle */
+    float custom_pha[NWL_DISC][NQ_P]; /*!< Custom Mie scalar phase matrix */
 } SixsAer;
 
 /**
@@ -80,6 +80,8 @@ typedef struct {
  */
 typedef struct {
     float pha[NQ_P];        /*!< Phase function at Gauss quadrature points */
+    float qha[NQ_P];        /*!< Aerosol phase-matrix Q element */
+    float uha[NQ_P];        /*!< Aerosol phase-matrix U element */
     float alphal[NQ_P + 1]; /*!< Legendre coefficients for polarized RT */
     float betal[NQ_P + 1];  /*!< Legendre coefficients for scalar RT */
     float gammal[NQ_P + 1]; /*!< γ Legendre expansion */
@@ -152,6 +154,11 @@ typedef struct {
  */
 typedef struct {
     SixsAtm atm;            /*!< Atmosphere profile */
+    SixsAtm plane_atm;      /*!< Target-to-aircraft atmosphere profile */
+    float plane_ftray;      /*!< Target-to-aircraft Rayleigh fraction */
+    float plane_h2o;        /*!< Reference partial H2O column [g/cm2] */
+    float plane_ozone_du;   /*!< Reference partial ozone column [DU] */
+    bool has_plane_atm;     /*!< Plane profile has been initialized */
     SixsDel del;            /*!< Depolarization */
     SixsAer aer;            /*!< Aerosol optical properties */
     SixsAerProf aerprof;    /*!< Aerosol vertical profile */
@@ -177,3 +184,47 @@ typedef struct {
  * \param i   Original (possibly negative) Fortran index.
  */
 #define GB(ctx, i) ((ctx)->gb[(i) + MU_P])
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void sixs_init_atmosphere(SixsCtx *ctx, int atmo_model);
+void sixs_pressure(SixsCtx *ctx, float surface_pressure_hpa);
+void sixs_pressure_columns(SixsCtx *ctx, float surface_pressure_hpa, float *h2o,
+                           float *ozone_du);
+int sixs_presplane(SixsCtx *ctx, float height_km);
+void sixs_gas_profile_columns(const SixsCtx *ctx, float *h2o, float *ozone_du);
+float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
+                             float xmuv, float h2o, float ozone_du);
+float sixs_gas_transmittance_plane(const SixsCtx *ctx, float wl, float xmuv,
+                                   float h2o, float ozone_du);
+float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
+                                   float wl, float xmus, float xmuv, float h2o,
+                                   float ozone_du);
+void sixs_aerosol_init(SixsCtx *ctx, int aerosol_model, float aod_550,
+                       float scattering_cosine);
+void sixs_mie_init(SixsCtx *ctx, double r_mode, double sigma_g,
+                   double refractive_real, double refractive_imag);
+void sixs_discom(SixsCtx *ctx, int observer_mode, int aerosol_model, float xmus,
+                 float xmuv, float phi, float aod_550, float partial_aod_550,
+                 float observer_altitude, float relative_azimuth_rad, int nt,
+                 int mu, int np, float rayleigh_fraction, int polarized);
+void sixs_interp(const SixsCtx *ctx, int aerosol_model, float wl, float aod_550,
+                 float partial_aod_550, float *R_atm, float *T_down,
+                 float *T_up, float *s_alb, float *rayleigh_od,
+                 float *aerosol_od, float *T_down_direct);
+void sixs_interp_components(const SixsCtx *ctx, int aerosol_model, float wl,
+                            float aod_550, float partial_aod_550, float *R_atm,
+                            float *R_rayleigh, float *T_down, float *T_up,
+                            float *s_alb, float *rayleigh_od, float *aerosol_od,
+                            float *T_down_direct);
+void sixs_interp_polar(const SixsCtx *ctx, float wl, float *R_atmQ,
+                       float *R_atmU);
+void sixs_interp_polar_components(const SixsCtx *ctx, float wl, float *R_atmQ,
+                                  float *R_atmU, float *R_rayleighQ,
+                                  float *R_rayleighU);
+
+#ifdef __cplusplus
+}
+#endif

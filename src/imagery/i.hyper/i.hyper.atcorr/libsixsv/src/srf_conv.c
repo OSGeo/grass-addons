@@ -7,7 +7,12 @@
  * parameterisation introduces errors in gas absorption bands (H₂O at
  * 720/820/940/1380 nm, O₂-A at 760 nm, CO₂ at 1600/2000 nm) of 20–80%.
  *
- * Correction pipeline:
+ * The historical direction-only correction pipeline is retained below for
+ * future redesign, but public entry points are guarded off. Multiplying its
+ * factors into T_down/T_up would leave gas-weighted R_atm and nonlinear total
+ * gas transmission inconsistent.
+ *
+ * Historical pipeline:
  *   1. Call libRadtran `uvspec` with \c mol_abs_param \c reptran \c fine
  *      (~0.05 nm) for solar and viewing paths.
  *   2. Convolve T_gas_fine with the sensor Gaussian SRF per band.
@@ -30,7 +35,9 @@
  * Errors reach 20–40% transmittance at 1 nm FWHM, and up to 80% at the O₂-A
  * band for sensors narrower than 0.5 nm.
  *
- * Correction method:
+ * This implementation is currently disabled at its public entry point because
+ * effective LUT coefficients require joint path-gas convolution. Historical
+ * method retained for reference:
  *   1. Call libRadtran uvspec with mol_abs_param reptran fine (~0.05 nm)
  *      for solar and viewing paths.  T_eff(λ) = edir_surface / edir_toa.
  *      (Rayleigh scattering is present but cancels in the fine/coarse ratio
@@ -466,6 +473,13 @@ static GasSpectrum *run_uvspec_gas(float sza_deg, float h2o_gcm2, float o3_du,
 SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
                                   const LutConfig *lut_cfg)
 {
+    (void)srf_cfg;
+    (void)lut_cfg;
+    fprintf(stderr,
+            "[srf_conv] disabled: directional SRF factors are incompatible "
+            "with gas-weighted effective LUT coefficients\n");
+    return NULL;
+
     char uvspec_path[PATH_MAX], data_path[PATH_MAX];
 
     if (find_uvspec(uvspec_path, sizeof(uvspec_path)) != 0) {
@@ -651,28 +665,12 @@ SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
 void atcorr_srf_apply(const SrfCorrection *srf, const LutConfig *cfg,
                       LutArrays *lut)
 {
-    if (!srf || !cfg || !lut)
-        return;
-
-    int n_aod = cfg->n_aod;
-    int n_h2o = cfg->n_h2o;
-    int n_wl = cfg->n_wl;
-
-    for (int ia = 0; ia < n_aod; ia++) {
-        for (int ih = 0; ih < n_h2o; ih++) {
-            for (int iw = 0; iw < n_wl; iw++) {
-                size_t lut_idx =
-                    (size_t)ia * n_h2o * n_wl + (size_t)ih * n_wl + (size_t)iw;
-                int srf_idx = iw * n_h2o + ih;
-
-                float td = lut->T_down[lut_idx] * srf->corr_down[srf_idx];
-                float tu = lut->T_up[lut_idx] * srf->corr_up[srf_idx];
-
-                lut->T_down[lut_idx] = fmaxf(0.0f, fminf(1.0f, td));
-                lut->T_up[lut_idx] = fmaxf(0.0f, fminf(1.0f, tu));
-            }
-        }
-    }
+    (void)srf;
+    (void)cfg;
+    (void)lut;
+    fprintf(stderr,
+            "[srf_conv] correction not applied: effective LUT coefficients "
+            "require joint path-gas convolution\n");
 }
 
 /**

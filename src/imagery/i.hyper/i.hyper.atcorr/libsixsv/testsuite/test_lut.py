@@ -17,7 +17,14 @@ import unittest
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _support import LutConfig, compute_lut, invert, lut_slice
+from _support import (
+    LutConfig,
+    compute_lut,
+    gas_transmittance,
+    invert,
+    lut_slice,
+    srf_compute_is_disabled,
+)
 
 # ── Shared small LUT grid used by most tests ──────────────────────────────────
 _WL = np.array([0.45, 0.55, 0.65, 0.87], dtype=np.float32)
@@ -314,6 +321,76 @@ class TestPolarization(unittest.TestCase):
         diff_blue = float(self.lut_p.R_atm[0, 0, 0] - self.lut_s.R_atm[0, 0, 0])
         diff_nir = float(self.lut_p.R_atm[0, 0, -1] - self.lut_s.R_atm[0, 0, -1])
         self.assertGreaterEqual(diff_blue, diff_nir)
+
+
+class TestGasProfileNormalization(unittest.TestCase):
+    def test_absolute_water_column_is_normalized_for_each_profile(self):
+        transmissions = [
+            gas_transmittance(model, 0.94, np.cos(np.deg2rad(30.0)), 1.424, 344.0)
+            for model in range(1, 7)
+        ]
+        self.assertLess(max(transmissions) - min(transmissions), 0.02)
+
+    def test_zero_columns_use_profile_defaults_consistently(self):
+        common = dict(
+            wl=[0.94],
+            aod=[0.2],
+            sza=30.0,
+            vza=10.0,
+            raa=300.0,
+            altitude_km=1000.0,
+            atmo_model=1,
+            aerosol_model=1,
+            enable_polar=1,
+        )
+        defaults = compute_lut(LutConfig(h2o=[0.0], ozone_du=0.0, **common))
+        explicit = compute_lut(LutConfig(h2o=[1.424], ozone_du=344.0, **common))
+        for name in ("R_atm", "R_atmQ", "R_atmU", "T_down", "T_up"):
+            np.testing.assert_allclose(
+                getattr(defaults, name),
+                getattr(explicit, name),
+                rtol=1e-3,
+                atol=1e-7,
+            )
+
+
+class TestCustomMie(unittest.TestCase):
+    def _config(self, radius, polar=0):
+        return LutConfig(
+            wl=[0.45, 0.55, 0.865],
+            aod=[0.2],
+            h2o=[1.424],
+            sza=30.0,
+            vza=20.0,
+            raa=300.0,
+            altitude_km=1000.0,
+            atmo_model=1,
+            aerosol_model=9,
+            ozone_du=344.0,
+            mie_r_mode=radius,
+            mie_sigma_g=1.6,
+            mie_m_real=1.45,
+            mie_m_imag=0.005,
+            enable_polar=polar,
+        )
+
+    def test_scalar_custom_phase_depends_on_particle_size(self):
+        fine = compute_lut(self._config(0.08))
+        coarse = compute_lut(self._config(0.8))
+        self.assertFalse(np.allclose(fine.R_atm, coarse.R_atm, rtol=0.01))
+
+    def test_custom_polarization_is_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "error code -4"):
+            compute_lut(self._config(0.08, polar=1))
+
+    def test_invalid_custom_parameters_are_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "error code -3"):
+            compute_lut(self._config(0.0))
+
+
+class TestSrfGuard(unittest.TestCase):
+    def test_direction_only_srf_correction_is_disabled(self):
+        self.assertTrue(srf_compute_is_disabled())
 
 
 if __name__ == "__main__":

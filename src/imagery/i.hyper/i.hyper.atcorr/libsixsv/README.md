@@ -21,25 +21,24 @@ exist in that program are identified as C extensions rather than 6SV2.1 ports.
 |---|---|---|
 | US62 and standard atmosphere profiles | `atmosphere.c`, `pressure.c` | Direct data/routine port; basic subroutines tested against Fortran |
 | Rayleigh optical depth, Chandrasekhar reflectance, spherical albedo | `rayleigh.c`, `chand.c`, `csalbr.c` | Direct ports; tested against Fortran |
-| Solar irradiance and Earth-Sun distance | `solar.c`, `solar_table.c` | Table port with C interpolation; tested against Fortran |
+| Solar irradiance and Earth-Sun distance | `solar.c`, `solar_table.c` | `SOLIRR.f` table port with C interpolation; on-grid samples tested against Fortran |
 | Standard continental, maritime, and urban aerosol components | `aerosol_tables.c`, `aerosol.c` | Direct component-table and mixture port; corrected and pipeline-tested against Fortran |
-| Scalar scattering solver | `discom.c`, `rt.c`, `scatra.c`, `kernel.c`, `interp.c` | Directly derived from Fortran; satellite continental pipeline tested within 0.85% per coefficient |
+| Scalar scattering solver | `discom.c`, `rt.c`, `scatra.c`, `kernel.c`, `interp.c` | Directly derived from Fortran; pipeline-tested against the pinned executable |
 | Gas absorption | `gas_abs.c`, `gas_tables.c` | Direct ABSTRA-derived calculation with separate C path API; tables regenerated from all 256 Fortran intervals and tested in the pipeline |
-| Stokes-I vector result | `ospol.c`, `kernelpol.c` | Rewritten vector solver; satellite Stokes-I pipeline tested within 0.85% |
-| Aerosol Stokes Q/U | `trunca.c`, `kernelpol.c` | **Known gap:** aerosol Q/U phase matrices and full polarized TRUNCA coefficients are not yet ported; Q/U output is Rayleigh-dominated and is not 6SV2.1-compatible |
+| Stokes I/Q/U vector result | `trunca.c`, `ospol.c`, `kernelpol.c`, `interp.c` | Full polarized TRUNCA coefficients and aerosol I/Q/U coupling ported; tested for Rayleigh, continental, maritime, and BDM cases |
 | Satellite sensor path | `lut.c`, `discom.c` | Corrected to the Fortran `idatmp=4`, full target-to-sensor aerosol/Rayleigh column convention |
-| Aircraft sensor path | `lut.c` | **Known gap:** partial atmospheric and aerosol columns are approximated; `PRESPLANE` semantics are not fully ported |
-| `AEROSOL_DESERT` | public API and `aerosol.c` | **Known gap:** currently falls through to the continental mixture; BDM tables are not ported |
-| Custom Mie aerosol | `mie.c` | C extension, not equivalent to a complete original 6SV user-defined aerosol workflow |
+| Aircraft sensor path | `pressure.c`, `gas_abs.c`, `scatra.c`, `lut.c` | `PRESPLANE` pressure/gas columns and target-to-aircraft Rayleigh/aerosol paths ported and pipeline-tested at 3 and 10 km |
+| `AEROSOL_DESERT` | `aerosol.c`, `aerosol_polar_tables.c` | BDM extinction, scattering, asymmetry, and I/Q/U phase tables ported and pipeline-tested |
+| Custom Mie aerosol | `mie.c` | Scalar-only C extension; not equivalent to the complete original 6SV user-defined aerosol workflow |
 | AOD x H2O x wavelength LUT | `lut.c`, `correct.c` | C extension built from the ported coefficients |
 | Lambertian inversion | `atcorr.c`, `correct.c` | C implementation of the 6SV coefficient equation |
 | BRDF, terrain, adjacency, retrieval, OE, uncertainty, spatial filtering | corresponding C modules | Operational C extensions; not direct Fortran 6SV2.1 ports |
+| Fine-resolution SRF gas correction | `srf_conv.c` | Guarded off: direction-only factors are incompatible with effective path-gas coefficients |
 | OpenMP and GPU directives | LUT and image-level modules | C extension |
 
-Do not interpret a passing scalar or Stokes-I pipeline test as validation of aerosol
-Stokes Q/U, aircraft paths, the desert model, every atmosphere/aerosol combination, or
-the operational retrieval extensions. Each of those requires its own pinned reference
-matrix.
+The pinned matrix covers representative satellite, aircraft, Rayleigh, continental,
+maritime, and BDM cases. It does not exhaustively validate every geometry, profile,
+wavelength, custom aerosol, or operational retrieval extension.
 
 ## Numerical workflows
 
@@ -78,21 +77,41 @@ LutConfig
        -> OS or OSPOL atmospheric path reflectance
        -> SCATRA direct/diffuse transmission and spherical albedo
   -> sixs_interp() at every LUT wavelength
-  -> sixs_gas_transmittance() for every H2O/wavelength node
+   -> directional and total-path ABSTRA gas transmission for every H2O/wavelength node
   -> combine scattering and gas transmission
   -> LutArrays: R_atm, T_down, T_up, s_alb
 ```
 
-The original program computes gas and scattering in one driver. The C LUT deliberately
-computes them separately and combines them as:
+The original program computes gas and scattering in one driver. The C LUT computes them
+separately while preserving the original nonlinear total-path gas term:
 
 ```text
 T_down = T_down_scattering * T_down_gas
-T_up   = T_up_scattering   * T_up_gas
+T_up   = T_up_scattering * T_total_gas / T_down_gas
+R_atm  = (R_atm_scattering - R_rayleigh) * T_half_H2O
+         + R_rayleigh * T_no_H2O
 ```
+
+Consequently, the public LUT fields are correction coefficients, not four
+independent optical measurements. `R_atm` is the gas-weighted effective path
+reflectance. `T_down` contains the solar-path scattering and gas term, while
+`T_up` is the effective factor which makes `T_down * T_up` reproduce the
+nonlinear total-path gas term in the 6SV surface-coupling equation. `s_alb` is
+the scattering spherical albedo.
 
 For a satellite, `taer55p`, `trayp`, and the gas column represent the full column
 between the target and sensor, matching the original `idatmp=4` convention.
+
+For an aircraft, the port follows `PRESPLANE.f`: it interpolates the sensor pressure,
+integrates the target-to-aircraft gas profile, derives the partial Rayleigh column, and
+uses the original exponential default for the partial aerosol optical depth.
+
+`LutConfig.altitude_km` selects the observer mode: values at least 100 km use
+the satellite/full-column convention, values above 0 and below 100 km use the
+aircraft partial-column convention, and non-positive values use a ground
+observer with no target-to-sensor path. Surface elevation is not encoded by
+this selector; set `surface_pressure` when the target pressure differs from the
+selected standard atmosphere.
 
 ### Standard aerosol workflow
 
@@ -111,6 +130,11 @@ The exact original mixtures are continental `(0.70, 0.29, 0.00, 0.01)`, maritime
 `(0.00, 0.05, 0.95, 0.00)`, and urban `(0.17, 0.61, 0.00, 0.22)` in
 `(dust, water-soluble, oceanic, soot)` order.
 
+The BDM desert model uses its independent extinction, scattering, asymmetry, PHA, QHA,
+and UHA tables from `BDM.f`; it is not synthesized from the standard component mixture.
+The polarized path also retains signed Q/U interpolation and the complete `TRUNCA.f`
+`alpha`, `beta`, `gamma`, and `zeta` expansions.
+
 ### Gas workflow
 
 The gas path follows the relevant `ABSTRA.f` operations:
@@ -121,7 +145,7 @@ wavelength -> wavenumber and one of six 256-interval tables
   -> trapezoidal pressure/profile column integration
   -> H2O/CO2/O2/N2O/CH4/CO transmittance
   -> independent visible ozone continuum transmittance
-  -> product of gas-species transmittances for each direction
+  -> gas-species transmittances for solar, view, and nonlinear total paths
 ```
 
 The ACR tables are generated by `tools/extract_gas_tables.py`. Regeneration is part of
@@ -158,53 +182,70 @@ The pinned pipeline comparison identified and corrected these defects:
 7. Regenerated all gas ACR arrays without dropping the first eight intervals.
 8. Restored the ABSTRA CO2/O2 spectral cutoffs, 3.3-4.0 um ozone table, and H2O
    continuum path.
+9. Ported the BDM desert optical and polarized phase tables instead of substituting the
+   continental mixture.
+10. Restored aerosol Stokes Q/U phase matrices, polarized TRUNCA coefficients, and
+    I/Q/U multiple-scattering coupling.
+11. Ported `PRESPLANE` and target-to-aircraft gas, Rayleigh, and aerosol columns.
+12. Restored ABSTRA total-path gas transmission in the effective Lambertian LUT
+    coefficients, including strong water-vapor absorption bands.
 
 ## Pipeline parity results
 
-The following values come from the committed fixture and were independently regenerated
-with the pinned Fortran executable. "Before" is the library state before the corrections
-above; "after" is the corrected vector/Stokes-I LUT path.
+The satellite fixture uses SZA 30 degrees, nadir view, continental aerosol, AOD 0.2,
+H2O 2.0 g/cm2, ozone 300 DU, and a Lambertian reflectance of 0.20. `R_atm` and `T_up`
+below are the effective coefficients that reproduce the original 6SV surface-coupling
+equation.
 
-| nm | Coefficient | Fortran | Before | After | Before error | After error |
-|---:|---|---:|---:|---:|---:|---:|
-| 450 | R_atm | 0.099720 | 0.086073 | 0.098950 | -13.685% | -0.772% |
-| 450 | T_down | 0.829247 | 0.804746 | 0.828223 | -2.955% | -0.123% |
-| 450 | T_up | 0.852081 | 0.804746 | 0.847418 | -5.555% | -0.547% |
-| 450 | s_alb | 0.190940 | 0.137760 | 0.189396 | -27.852% | -0.809% |
-| 550 | R_atm | 0.049500 | 0.041287 | 0.049102 | -16.592% | -0.804% |
-| 550 | T_down | 0.871633 | 0.864959 | 0.871116 | -0.766% | -0.059% |
-| 550 | T_up | 0.890346 | 0.864959 | 0.886229 | -2.851% | -0.462% |
-| 550 | s_alb | 0.120280 | 0.080970 | 0.119327 | -32.682% | -0.793% |
-| 650 | R_atm | 0.028770 | 0.024139 | 0.028528 | -16.098% | -0.842% |
-| 650 | T_down | 0.900106 | 0.860398 | 0.899881 | -4.412% | -0.025% |
-| 650 | T_up | 0.915278 | 0.864702 | 0.911738 | -5.526% | -0.387% |
-| 650 | s_alb | 0.084630 | 0.057256 | 0.083957 | -32.346% | -0.795% |
-| 850 | R_atm | 0.013180 | 0.013522 | 0.013075 | +2.596% | -0.799% |
-| 850 | T_down | 0.950123 | 0.913028 | 0.950173 | -3.904% | +0.005% |
-| 850 | T_up | 0.958590 | 0.913880 | 0.955968 | -4.664% | -0.274% |
-| 850 | s_alb | 0.050300 | 0.042857 | 0.049883 | -14.798% | -0.829% |
+| nm | Coefficient | Fortran | C | Relative error |
+|---:|---|---:|---:|---:|
+| 450 | R_atm | 0.099514 | 0.099491 | -0.023% |
+| 450 | T_down | 0.829247 | 0.829959 | +0.086% |
+| 450 | T_up | 0.852080 | 0.848949 | -0.368% |
+| 450 | s_alb | 0.190940 | 0.190817 | -0.064% |
+| 550 | R_atm | 0.046894 | 0.046896 | +0.005% |
+| 550 | T_down | 0.871633 | 0.872271 | +0.073% |
+| 550 | T_up | 0.890349 | 0.887237 | -0.349% |
+| 550 | s_alb | 0.120280 | 0.120112 | -0.140% |
+| 650 | R_atm | 0.027515 | 0.027523 | +0.031% |
+| 650 | T_down | 0.900106 | 0.900678 | +0.064% |
+| 650 | T_up | 0.916090 | 0.913232 | -0.312% |
+| 650 | s_alb | 0.084630 | 0.084439 | -0.226% |
+| 850 | R_atm | 0.013153 | 0.013158 | +0.037% |
+| 850 | T_down | 0.950123 | 0.950580 | +0.048% |
+| 850 | T_up | 0.958714 | 0.956443 | -0.237% |
+| 850 | s_alb | 0.050300 | 0.050094 | -0.410% |
 
-The end-to-end test passes the original Fortran radiance through `i.hyper.atcorr`; the
-known input surface reflectance is 0.20:
+Passing the original Fortran apparent reflectances through the C coefficients recovers
+`0.200579`, `0.200545`, `0.200488`, and `0.200378` at 450, 550, 650, and 850 nm.
 
-| Wavelength | Before | After | Before error | After error |
-|---:|---:|---:|---:|---:|
-| 450 nm | 0.239458382 | 0.202101156 | +19.729% | +1.051% |
-| 550 nm | 0.216213956 | 0.198335990 | +8.107% | -0.832% |
-| 650 nm | 0.227028787 | 0.199821517 | +13.514% | -0.089% |
-| 850 nm | 0.218052611 | 0.200656921 | +9.026% | +0.328% |
+At 550 nm with SZA 30 degrees, VZA 40 degrees, and relative azimuth 300 degrees, the
+polarized path gives:
 
-The per-nanometre and per-micrometre GRASS inputs agree within `1.5e-8` after correction.
-The remaining sub-percent coefficient residuals are retained and tested; they are not
-removed with empirical calibration factors.
+| Model | Fortran I/Q/U | C I/Q/U |
+|---|---|---|
+| Rayleigh | 0.04722 / 0.00163 / 0.00855 | 0.047318 / 0.001639 / 0.008566 |
+| Continental | 0.06235 / 0.00135 / 0.00718 | 0.062421 / 0.001357 / 0.007191 |
+| Maritime | 0.06424 / 0.00190 / 0.01035 | 0.064354 / 0.001908 / 0.010369 |
+| BDM desert | 0.06394 / 0.00112 / 0.00587 | 0.063996 / 0.001119 / 0.005882 |
+
+Aircraft cases at 3 and 10 km are tested at 550 and 940 nm. Their atmospheric path,
+Q/U, downward and effective upward transmission, and spherical albedo agree within the
+fixture tolerances, including the 940 nm water-vapor absorption band. No empirical
+calibration factors are applied.
+
+Additional fixtures verify zero I/Q/U path coefficients for a ground observer, a
+gas-weighted polarized satellite case at 940 nm, and the 3.75 µm H2O continuum. At
+3.75 µm the C directional coefficients remain within 4% of the pinned executable; the
+effective path coefficient differs by about `1.0e-4` in absolute reflectance.
 
 ## Features
 
 - **Radiative transfer solver**: DISCOM discrete-ordinate method (up to 20 scattering
-  orders), with validated scalar and vector Stokes-I output; aerosol Stokes Q/U remains
-  a documented compatibility gap
+  orders), with validated scalar and vector Stokes I/Q/U output
 - **3-D look-up table** computation over [AOD × H₂O × wavelength]
-- **Per-pixel atmospheric correction** — Lambertian and BRDF-coupled inversion
+- **Atmospheric correction primitives**: scalar Lambertian inversion and an
+  explicit BRDF/albedo-coupled inversion helper
 - **Scene-based automatic retrievals**
   - Water vapour (H₂O) from 940 nm band depth or triplet
   - Aerosol optical depth (AOD) via MODIS dark-dense-vegetation (DDV) and spatial
@@ -212,63 +253,56 @@ removed with empirical calibration factors.
   - Ozone from Chappuis 600 nm band
   - Surface pressure from O₂-A 760 nm or ISA elevation
 - **Joint AOD + H₂O optimal estimation** (MAP grid-search + refinement)
-- **BRDF surface models**: Lambertian, Rahman, Roujean, Hapke, ocean, and five
-  Ross-Li variants; NBAR normalisation; MCD43 BRDF disaggregation
+- **BRDF surface models**: Lambertian, Rahman (RPV), Roujean, Hapke, ocean,
+  Walthall, Minnaert and one Ross-Li-Maignan implementation; NBAR
+  normalisation and MCD43 disaggregation (`BRDF_VERSFELD` and `BRDF_IAPI` are
+  reserved stubs)
 - **Topographic correction** — illumination angle and transmittance
-- **Adjacency effect correction** (Vermote 1997)
+- **Adjacency approximation**: box-filtered environmental reflectance with a
+  Beer-Lambert direct-path estimate following the 6S/Vermote formulation
 - **Uncertainty propagation** — instrument noise and AOD perturbation
-- **SRF convolution** for fine-resolution gas transmittance (requires libRadtran)
-- **OpenMP parallelisation** — see below
+- **SRF guard** prevents direction-only gas factors from corrupting effective
+  path-gas coefficients
+- **OpenMP parallelisation** in selected bulk operations
+
+`AEROSOL_CUSTOM` computes a scalar log-normal Mie aerosol. It has no supported
+custom polarized phase matrix. The guarded API rejects custom Mie together with
+`enable_polar=1` rather than returning unsupported Q/U values. Likewise,
+`atcorr_srf_compute()` currently always returns `NULL`, and
+`atcorr_srf_apply()` is a guarded no-op. Joint convolution must update effective
+I/Q/U path terms and nonlinear total gas transmission together before this API
+can be enabled safely.
 
 ## Parallelism with OpenMP
 
-Atmospheric correction of hyperspectral scenes is compute-intensive: a single
-LUT spans hundreds of radiative-transfer calls across an [AOD × H₂O × wavelength]
-grid, and per-pixel inversion and retrieval must then run over millions of pixels.
-libsixsv uses **OpenMP** throughout to exploit all available CPU cores with no
-changes required in the calling code.
-
-Parallelised workloads:
+OpenMP is used by specific bulk routines; it is not a blanket property of every
+public call. In particular, `atcorr_invert()` and `atcorr_invert_brdf()` are
+single-value inline functions, so callers own any enclosing pixel loop.
 
 | Workload | Parallelisation strategy |
 |---|---|
-| LUT grid computation (`atcorr_compute_lut`) | Each AOD node runs in a separate thread; the 6SV context (`sixs_ctx`) is per-thread to avoid data races |
-| Per-pixel correction (`atcorr_invert`, `atcorr_invert_brdf`) | Pixel loop distributed across threads |
-| Joint AOD + H₂O retrieval (`oe_invert_aod_h2o`) | Grid-search over candidate (AOD, H₂O) pairs parallelised |
-| Spatial filtering (`spatial.h`) | Collapsed 2-D pixel loop over both passes |
-| Uncertainty propagation (`uncertainty_compute_band`) | Per-pixel loop distributed across threads |
+| `atcorr_compute_lut()` | AOD nodes; each worker owns a `SixsCtx` |
+| Joint AOD/H₂O and selected retrieval/surface routines | Pixel loops |
+| Adjacency correction | Final pixel correction loop; neighbourhood filtering is handled separately |
+| Spatial box/Gaussian filters | OpenMP target teams over the two passes |
+| Uncertainty propagation | OpenMP target teams over pixels |
 
-The thread count is controlled at runtime via the standard OpenMP environment
-variable — no recompilation needed:
+The CPU thread count can be controlled with the standard OpenMP environment
+variable:
 
 ```sh
 export OMP_NUM_THREADS=16   # use 16 cores
 ```
 
-On a modern multi-core workstation, LUT construction and full-scene correction
-scale near-linearly with core count.
-
 ### GPU offload via OpenMP target
 
-The pixel-level workloads — uncertainty propagation and spatial filtering
-(Gaussian and box) — are annotated with **OpenMP target** directives
-(`target teams distribute parallel for`) and offload transparently to a GPU
-when one is available.  The radiative-transfer solver itself remains on the CPU
-(its successive-orders loop is inherently sequential).
-
-GPU offload behaviour by workload:
-
-| Workload | Directive | Notes |
-|---|---|---|
-| Uncertainty propagation | `target teams distribute parallel for` | `refl_band` mapped `to:`, `sigma_out` mapped `from:` |
-| Spatial box filter | `target data` + two `target teams distribute parallel for collapse(2)` | Intermediate buffer `tmp` kept on device between passes (`map(alloc:)`) |
-| Spatial Gaussian filter | Same as box filter | Kernel array mapped `to:`; `data` mapped `tofrom:` (in-place) |
-
-When no GPU device is present, or when compiled without offload support, all
-directives fall back silently to host execution — no code changes or
-recompilation are needed to switch between CPU and GPU paths.
-
-To enable GPU offload, pass `OFFLOAD_FLAGS` at build time (see `INSTALL.md`).
+Only spatial filtering and uncertainty contain OpenMP target regions. The
+radiative-transfer solver remains on the CPU. GPU execution additionally needs
+a compiler target backend, matching OpenMP offload runtime and device libraries;
+accepting an offload flag does not prove that a device was used. Standard
+OpenMP host fallback may apply when no device is selected, but runtime settings
+such as mandatory offload can make absence of a device an error. See
+`INSTALL.md` and validate the deployment toolchain explicitly.
 
 ## Aerosol and atmosphere models
 
@@ -279,7 +313,7 @@ To enable GPU offload, pass `OFFLOAD_FLAGS` at build time (see `INSTALL.md`).
 | `AEROSOL_MARITIME`    | Maritime mixture              |
 | `AEROSOL_URBAN`       | Urban mixture                 |
 | `AEROSOL_DESERT`      | Desert dust                   |
-| `AEROSOL_CUSTOM`      | Custom Mie log-normal         |
+| `AEROSOL_CUSTOM`      | Custom Mie log-normal (scalar only) |
 
 | Identifier    | Description                 |
 |---------------|-----------------------------|
@@ -292,36 +326,50 @@ To enable GPU offload, pass `OFFLOAD_FLAGS` at build time (see `INSTALL.md`).
 
 ## Public API
 
-The public headers are installed to `include/grass/` inside GRASS (or to a
-prefix of your choice in standalone mode):
+The Debian development package installs fourteen headers to
+`/usr/include/sixsv/`. The GRASS install is narrower: it exposes only the
+module-facing `atcorr.h` and `brdf.h` under `include/grass/`.
 
 | Header              | Purpose                                      |
 |---------------------|----------------------------------------------|
 | `atcorr.h`          | LUT computation and per-pixel inversion       |
-| `brdf.h`          | BRDF model evaluation and NBAR normalisation  |
-| `retrieve.h`      | Scene-based retrieval algorithms              |
-| `oe_invert.h`     | Joint AOD + H₂O optimal estimation           |
-| `adjacency.h`     | Adjacency effect correction                  |
-| `terrain.h`       | Topographic corrections                      |
-| `uncertainty.h`   | Noise and AOD uncertainty propagation        |
-| `spatial.h`       | Gaussian and box filtering (NaN-safe)        |
-| `surface_model.h` | 3-component surface prior (VEG/SOIL/WATER)   |
-| `spectral_brdf.h` | MCD43 BRDF disaggregation + Tikhonov smoothing |
+| `brdf.h`            | BRDF model evaluation and NBAR normalisation  |
+| `retrieve.h`        | Scene-based retrieval algorithms              |
+| `oe_invert.h`       | Joint AOD + H₂O optimal estimation            |
+| `adjacency.h`       | Environmental-reflectance adjacency helper    |
+| `terrain.h`         | Topographic corrections                       |
+| `uncertainty.h`     | Noise and AOD uncertainty propagation         |
+| `spatial.h`         | Gaussian and box filtering (NaN-safe)         |
+| `surface_model.h`   | 3-component surface prior (VEG/SOIL/WATER)    |
+| `spectral_brdf.h`   | MCD43 disaggregation and spectral smoothing   |
+| `sixs_ctx.h`        | Low-level 6SV computation context              |
+| `aerosol_tables.h`  | Generated aerosol table declarations          |
+| `gas_tables.h`      | Generated gas table declarations              |
+| `solar_table.h`     | Generated `SOLIRR.f` table declaration         |
+
+The Debian runtime package is `libsixsv2`, reflecting the `libsixsv.so.2` C
+ABI. `LutConfig`, `LutArrays`, `BrdfParams` and `SixsCtx` layouts are ABI data;
+direct `ctypes` users must mirror the installed SONAME 2 headers exactly. The
+project does not install or version a Python wrapper API.
 
 ## Installing the Debian package
 
 Build and install the packages with:
 
 ```sh
-make deb                          # runs dpkg-buildpackage -us -uc -b
-sudo dpkg -i ../libsixsv1_*.deb ../libsixsv-dev_*.deb
+dpkg-buildpackage -us -uc -b
+sudo dpkg -i ../libsixsv2_*.deb ../libsixsv-dev_*.deb
 ```
 
 After installation:
 
 - Headers: `/usr/include/sixsv/` (`atcorr.h`, `brdf.h`, `retrieve.h`, …)
-- Library: `/usr/lib/x86_64-linux-gnu/libsixsv.so.1` (registered with ldconfig)
-- Development symlink: `/usr/lib/x86_64-linux-gnu/libsixsv.so`
+- Library: `/usr/lib/<multiarch-triplet>/libsixsv.so.2`
+- Development symlink: `/usr/lib/<multiarch-triplet>/libsixsv.so`
+- pkg-config: `/usr/lib/<multiarch-triplet>/pkgconfig/libsixsv.pc`
+
+`<multiarch-triplet>` is generated from `DEB_HOST_MULTIARCH`, not hardcoded to
+one architecture.
 
 For the **Debian standalone build** of
 [i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr), also install
@@ -330,159 +378,73 @@ replacement that routes cube I/O through libtiff/libgeotiff and libhdf5.
 
 ## Compiling against the installed library
 
-Place `-lsixsv -lm -fopenmp` **after** the source file on the command line
-(GCC resolves symbols left-to-right; putting libraries before the object
-file causes undefined-reference errors):
+Use pkg-config and place its linker flags after the source file:
 
 ```sh
-gcc -std=c11 -O2 -I/usr/include/sixsv \
-    my_program.c \
-    -lsixsv -lm -fopenmp \
-    -o my_program
+cc -std=c11 -O2 $(pkg-config --cflags libsixsv) my_program.c \
+   $(pkg-config --libs libsixsv) -o my_program
 ```
+
+The shared library records its OpenMP runtime dependency. A caller needs its
+own OpenMP compiler flag only if the caller source contains OpenMP constructs.
 
 ## Python (ctypes)
 
-The examples in `examples/` load the library directly — no wrapper package
-needed:
+The examples load the C ABI directly; no `atcorr.py` wrapper is installed:
 
 ```python
 import ctypes, ctypes.util
-lib = ctypes.CDLL(ctypes.util.find_library("sixsv") or "libsixsv.so.1")
+path = ctypes.util.find_library("sixsv")
+if path is None:
+    raise RuntimeError("libsixsv is not installed in the loader search path")
+lib = ctypes.CDLL(path)
 ```
 
-## Testsuite
+See `examples/README.md` for the source-tree `LIB_SIXSV` override and ABI
+layout caveats.
 
-The `testsuite/` directory contains a self-contained test suite that validates
-numerical correctness, OpenMP parallelism, and GPU offload behaviour.
+## Validation
 
-| File                         | What it tests |
-|------------------------------|---------------|
-| `Makefile`                   | Builds `libsixsv.so` (standalone) and the Fortran driver; exposes `make test`, `make test-fortran`, `make test-openmp` |
-| `_support.py` | ctypes bindings for all library functions and OpenMP runtime helpers (not a test file) |
-| `test_6sv_compat.f90` | Fortran driver that calls 6SV2.1 subroutines (CHAND, ODRAYL, VARSOL, SOLIRR, CSALBR, GAUSS) and prints `key=value` reference values |
-| `test_fortran_compat.py` | 25 tests comparing 6SV2.1 Fortran subroutines against the C port (rtol 1e-5 to 5e-3 depending on precision convention) |
-| `test_6sv21_pipeline_parity.py` | Pinned satellite/continental coefficient and Fortran-to-C inversion parity at 450, 550, 650, and 850 nm |
-| `data/6sv21_satellite_continental.json` | Pinned Fortran coefficients, radiances, and pre-correction results |
-| `generate_6sv21_reference.py` | Runs the original `sixsV2.1` executable and checks that it regenerates the committed fixture |
-| `test_lut.py` | 30+ tests: LUT shape, physical bounds, monotonicity with AOD, aerosol model differences, bilinear interpolation, per-pixel inversion, polarization (Q/U) |
-| `test_solar.py` | 12 tests: solar irradiance spectrum (E0 vs Thuillier reference ±15 %) and Earth–Sun distance (perihelion, aphelion, eccentricity) |
-| `test_openmp.py` | 25+ tests: OpenMP runtime availability, LUT serial-vs-parallel consistency (rtol 1e-5), spatial filter correctness and NaN handling, GPU-path reproducibility on 512 × 512 arrays |
+The portable/public validation path uses the committed fixtures and does not
+require a private checkout of 6SV2.1:
 
 ```sh
-cd testsuite
-
-make lib              # build libsixsv.so
-make test             # build the Fortran driver and run all tests
-make test-fortran     # Fortran compat + LUT + solar only
-make test-openmp      # OpenMP / GPU tests only
-
-# or run pytest directly after building:
-LIB_SIXSV=./libsixsv.so python3 -m pytest -v
+make -C testsuite lib
+LIB_SIXSV="$PWD/testsuite/libsixsv.so" python3 -m pytest -v \
+    testsuite/test_lut.py testsuite/test_solar.py \
+    testsuite/test_openmp.py \
+    testsuite/test_6sv21_pipeline_parity.py \
+    testsuite/test_6sv21_extended_parity.py
 ```
 
-## Manual compatibility test procedure
+This path needs Python 3, NumPy and pytest in addition to the C/OpenMP build
+dependencies. The OpenMP tests check serial/parallel consistency and host
+results for target-annotated routines; they do not prove that a physical GPU
+executed the target regions.
 
-### 1. Build the pinned original Fortran executable
-
-```sh
-git clone https://github.com/NakamuraTakashi/6SV2.1.git /tmp/6SV2.1
-git -C /tmp/6SV2.1 checkout 7deb2289cfe23c9b1d1b48d7647f76604ef75fa4
-make -C /tmp/6SV2.1/src clean
-make -C /tmp/6SV2.1/src sixs \
-    EXTRA="-O -ffixed-line-length-132 -fallow-argument-mismatch -std=legacy"
-export SIXSV2=/tmp/6SV2.1/src
-```
-
-The executable is `$SIXSV2/sixsV2.1`. Keep this source tree and executable if repeated
-Fortran comparisons are required.
-
-### 2. Regenerate and verify the gas tables
-
-```sh
-cd src/imagery/i.hyper/i.hyper.atcorr/libsixsv
-python3 tools/extract_gas_tables.py "$SIXSV2"
-clang-format -i src/gas_tables.c
-git diff --exit-code -- src/gas_tables.c
-```
-
-No diff means the committed C arrays exactly reflect the pinned Fortran ACR tables.
-
-### 3. Build and run all library tests
-
-```sh
-cd testsuite
-make clean
-make lib
-make fortran SIXSV2="$SIXSV2"
-SIXSV2="$SIXSV2" LIB_SIXSV="$PWD/libsixsv.so" \
-    python3 -m pytest -v
-```
-
-The complete suite currently contains 103 tests: 25 direct Fortran-subroutine tests,
-two full pipeline parity tests, and 76 LUT, inversion, solar, OpenMP, filtering, and
-extension tests.
-
-### 4. Rerun the original executable pipeline cases
-
-```sh
-./generate_6sv21_reference.py "$SIXSV2/sixsV2.1" --check
-```
-
-This runs all four original Fortran simulations, prints the coefficient table, and
-fails if it differs from `data/6sv21_satellite_continental.json`.
-
-### 5. Rerun the persistent GRASS end-to-end test
-
-The validation maps are in project `ihajper`, mapset `PERMANENT`, under GIS database
-`/media/tomazz/Data1/grass-data`. They intentionally remain available:
-
-```text
-atcorr_validation_radiance_um
-atcorr_validation_radiance_nm
-atcorr_validation_reflectance_um                 # before correction
-atcorr_validation_reflectance_corrected_um       # after correction
-atcorr_validation_reflectance_corrected_nm
-atcorr_validation_corrected_error
-atcorr_validation_corrected_unit_delta
-```
-
-Inside that GRASS session, run:
-
-```sh
-g.region raster_3d=atcorr_validation_radiance_um
-
-i.hyper.atcorr -P --overwrite \
-    input=atcorr_validation_radiance_um \
-    output=atcorr_validation_reflectance_corrected_um \
-    lut=/tmp/atcorr_validation_corrected_um.lut \
-    sza=30 vza=0 raa=0 altitude=1000 \
-    atmosphere=us62 aerosol=continental ozone=300 \
-    aod=0.2,0.3 aod_val=0.2 h2o=2.0,3.0 h2o_val=2.0 \
-    wl_min=450 wl_max=850 wl_step=100 doy=183
-
-r3.out.ascii -h input=atcorr_validation_reflectance_corrected_um precision=12
-r3.out.ascii -h input=atcorr_validation_corrected_unit_delta precision=12
-g.region region=atcorr_validation_original_region
-```
-
-Expected corrected reflectances are `0.202101156`, `0.198335990`, `0.199821517`,
-and `0.200656921`. Always restore `atcorr_validation_original_region`; do not remove
-the validation maps.
+Local reference regeneration and direct Fortran subroutine comparison are a
+separate maintainer workflow. They require gfortran and the pinned 6SV2.1 source
+at commit `7deb2289cfe23c9b1d1b48d7647f76604ef75fa4`, supplied through `SIXSV2`.
+`make -C testsuite test` belongs to that local workflow because its Fortran
+driver target consumes objects from the reference tree. Debian package builds
+deliberately skip both paths; pytest, NumPy and the pinned Fortran tree are not
+package Build-Depends.
 
 ## Dependencies
 
 ## Runtime
 
 - C standard library (`libm`)
-- OpenMP (parallelisation)
-- libRadtran `uvspec` binary — *optional*, required only for `atcorr_srf_compute()`
+- OpenMP runtime selected by the compiler
+- libRadtran is not currently used because SRF correction is guarded off
 
 ## Build
 
-- C11-capable compiler (GCC ≥ 5 or Clang ≥ 6)
-- GRASS GIS development environment (GRASS build) **or** GNU Make + standard
-  POSIX tools (standalone build)
+- C11-capable compiler with OpenMP support
+- GRASS GIS development environment for the GRASS build; standard POSIX tools
+  for the plain standalone build
+- Python 3, NumPy and pytest for the public test path; gfortran and the pinned
+  6SV2.1 source only for local reference validation
 
 ## Related repositories
 
@@ -493,5 +455,6 @@ the validation maps.
 
 ## License
 
-This is free and unencumbered software released into the public domain.  
-See <https://unlicense.org> for the full text.
+libsixsv is licensed under the GNU General Public License, version 2 or later
+(`GPL-2.0-or-later`). See `LICENSE`. The pinned 6SV2.1 provenance and routine
+attribution are retained independently of the project license declaration.

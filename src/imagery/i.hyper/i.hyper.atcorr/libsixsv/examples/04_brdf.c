@@ -3,7 +3,7 @@
  *
  * Demonstrates:
  *  - BRDF evaluation (RPV, Ross-Li, Hapke)
- *  - Hemispherical (white-sky) albedo integration
+ *  - Directional-hemispherical (black-sky) albedo integration
  *  - NBAR normalisation from acquisition to nadir geometry
  *  - MCD43 7-band → hyperspectral kernel weight disaggregation
  *  - Tikhonov spectral smoothing
@@ -38,7 +38,7 @@ int main(void)
     float rho_rpv =
         sixs_brdf_eval(BRDF_RAHMAN, &rpv, cos_sza, cos_vza, raa_deg);
     float albe_rpv = sixs_brdf_albe(BRDF_RAHMAN, &rpv, cos_sza, 48, 24);
-    printf("RPV:       rho = %.4f   white-sky albedo = %.4f\n", rho_rpv,
+    printf("RPV:       rho = %.4f   black-sky albedo = %.4f\n", rho_rpv,
            albe_rpv);
 
     /* ── 2. Ross-Thick + Li-Sparse (Ross-Li / MCD43-equivalent) ─────────── */
@@ -50,7 +50,7 @@ int main(void)
     float rho_rl =
         sixs_brdf_eval(BRDF_ROSSLIMAIGNAN, &rl, cos_sza, cos_vza, raa_deg);
     float albe_rl = sixs_brdf_albe(BRDF_ROSSLIMAIGNAN, &rl, cos_sza, 48, 24);
-    printf("Ross-Li:   rho = %.4f   white-sky albedo = %.4f\n", rho_rl,
+    printf("Ross-Li:   rho = %.4f   black-sky albedo = %.4f\n", rho_rl,
            albe_rl);
 
     /* ── 3. Hapke canopy model ───────────────────────────────────────────── */

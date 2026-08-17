@@ -142,6 +142,8 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
     double *rsl = (double *)calloc((size_t)psl_rows * dim, sizeof(double));
     double *tsl = (double *)calloc((size_t)psl_rows * dim, sizeof(double));
     double *bp = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
+    double *gr = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
+    double *gt = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
     double *arr = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
     double *art = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
     double *att = (double *)calloc((size_t)(mu + 1) * dim, sizeof(double));
@@ -149,7 +151,8 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
     if (!h || !ch || !xdel || !ydel || !altc || !i1 || !i2 || !i3 || !i4 ||
         !in_ || !inm1 || !inm2 || !q1 || !q2 || !q3 || !q4 || !qn || !qnm1 ||
         !qnm2 || !u1 || !u2 || !u3 || !u4 || !un || !unm1 || !unm2 || !xpl ||
-        !xrl || !xtl || !psl || !rsl || !tsl || !bp || !arr || !art || !att)
+        !xrl || !xtl || !psl || !rsl || !tsl || !bp || !gr || !gt || !arr ||
+        !art || !att)
         goto cleanup;
 
 /* Array accessors (negative-indexed via offset) */
@@ -178,6 +181,8 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
 #define XRL(j)    xrl[(j) + mu]
 #define XTL(j)    xtl[(j) + mu]
 #define BP(j, k)  bp[(j) * dim + (k) + mu]
+#define GR(j, k)  gr[(j) * dim + (k) + mu]
+#define GT(j, k)  gt[(j) * dim + (k) + mu]
 #define ARR(j, k) arr[(j) * dim + (k) + mu]
 #define ART(j, k) art[(j) * dim + (k) + mu]
 #define ATT(j, k) att[(j) * dim + (k) + mu]
@@ -219,7 +224,7 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
             if (ctx->err.ier)
                 goto cleanup;
             double xxx = -zx / ha;
-            double ca = (xxx < -18.0) ? 0.0 : ta * exp(xxx);
+            double ca = (xxx <= -20.0) ? 0.0 : ta * exp(xxx);
             double cr = tr * exp(-zx / hr);
             h[it] = ca + cr;
             altc[it] = zx;
@@ -331,7 +336,7 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
 
         /* Polarised kernel for this Fourier order */
         sixs_kernelpol(ctx, is, mu, rm_off, xpl, xrl, xtl, psl, rsl, tsl, bp,
-                       arr, art, att);
+                       gr, gt, arr, art, att);
 
         /* ── Primary scattering source functions ── */
         double spl = XPL(0); /* xpl[0] = psl[2][0] */
@@ -346,17 +351,17 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                 sa1 = beta0_is + beta2 * XPL(j) * spl; /* Rayleigh I from I */
                 sa2 = BP(0, j);                        /* aerosol I from I */
                 sb1 = gamma2 * XRL(j) * spl;           /* Rayleigh Q from I */
-                sb2 = 0.0;                             /* gr(0,j) = 0 */
+                sb2 = GR(0, j);                        /* aerosol Q from I */
                 sc1 = gamma2 * XTL(j) * spl;           /* Rayleigh U from I */
-                sc2 = 0.0;                             /* gt(0,j) = 0 */
+                sc2 = GT(0, j);                        /* aerosol U from I */
             }
             else {
                 sa1 = 0.0;
                 sa2 = BP(0, j);
                 sb1 = 0.0;
-                sb2 = 0.0;
+                sb2 = GR(0, j);
                 sc1 = 0.0;
-                sc2 = 0.0;
+                sc2 = GT(0, j);
             }
             for (int k = 0; k <= nt; k++) {
                 double c = ch[k];
@@ -458,18 +463,18 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                                           y * (beta0_is + beta2 * xpj * xpk);
                             double bpjmk = BP(j, -k) * x +
                                            y * (beta0_is + beta2 * xpj * ypk);
-                            /* I→Q and Q→I Rayleigh coupling (gr=0 for aerosol)
-                             */
-                            double grjk = y * gamma2 * xpj * xrk;
-                            double grjmk = y * gamma2 * xpj * yrk;
-                            double grkj = y * gamma2 * xpk * xrj;
-                            double grkmj = y * gamma2 * xpk * yrj;
-                            /* I→U and U→I Rayleigh coupling (gt=0 for aerosol)
-                             */
-                            double gtjk = y * gamma2 * xpj * xtk;
-                            double gtjmk = y * gamma2 * xpj * ytk;
-                            double gtkj = y * gamma2 * xpk * xtj;
-                            double gtkmj = y * gamma2 * xpk * ytj;
+                            double grjk = GR(j, k) * x + y * gamma2 * xpj * xrk;
+                            double grjmk =
+                                GR(j, -k) * x + y * gamma2 * xpj * yrk;
+                            double grkj = GR(k, j) * x + y * gamma2 * xpk * xrj;
+                            double grkmj =
+                                GR(k, -j) * x + y * gamma2 * xpk * yrj;
+                            double gtjk = GT(j, k) * x + y * gamma2 * xpj * xtk;
+                            double gtjmk =
+                                GT(j, -k) * x + y * gamma2 * xpj * ytk;
+                            double gtkj = GT(k, j) * x + y * gamma2 * xpk * xtj;
+                            double gtkmj =
+                                GT(k, -j) * x + y * gamma2 * xpk * ytj;
                             /* Q↔Q and U↔U (aerosol arr/att + Rayleigh alpha2)
                              */
                             double arrjk =
@@ -550,6 +555,14 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                             double xu1 = U1(i, j), xu2 = U1(i, -j);
                             double bpjk = BP(j, k) * x;
                             double bpjmk = BP(j, -k) * x;
+                            double grjk = GR(j, k) * x;
+                            double grjmk = GR(j, -k) * x;
+                            double grkj = GR(k, j) * x;
+                            double grkmj = GR(k, -j) * x;
+                            double gtjk = GT(j, k) * x;
+                            double gtjmk = GT(j, -k) * x;
+                            double gtkj = GT(k, j) * x;
+                            double gtkmj = GT(k, -j) * x;
                             double arrjk = ARR(j, k) * x;
                             double arrjmk = ARR(j, -k) * x;
                             double artjk = ART(j, k) * x;
@@ -560,21 +573,23 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                             double attjmk = ATT(j, -k) * x;
 
                             double xdb;
-                            xdb = xi1 * bpjk + xi2 * bpjmk;
+                            xdb = xi1 * bpjk + xi2 * bpjmk + xq1 * grkj +
+                                  xq2 * grkmj - xu1 * gtkj - xu2 * gtkmj;
                             ii2 += xdb * z;
-                            xdb = xi1 * bpjmk + xi2 * bpjk;
+                            xdb = xi1 * bpjmk + xi2 * bpjk + xq1 * grkmj +
+                                  xq2 * grkj + xu1 * gtkmj + xu2 * gtkj;
                             ii1 += xdb * z;
-                            xdb = xq1 * arrjk + xq2 * arrjmk - xu1 * artjk +
-                                  xu2 * artjmk;
+                            xdb = xi1 * grjk + xi2 * grjmk + xq1 * arrjk +
+                                  xq2 * arrjmk - xu1 * artjk + xu2 * artjmk;
                             qq2 += xdb * z;
-                            xdb = xq1 * arrjmk + xq2 * arrjk - xu1 * artjmk +
-                                  xu2 * artjk;
+                            xdb = xi1 * grjmk + xi2 * grjk + xq1 * arrjmk +
+                                  xq2 * arrjk - xu1 * artjmk + xu2 * artjk;
                             qq1 += xdb * z;
-                            xdb = xq1 * artkj + xq2 * artkmj - xu1 * attjk -
-                                  xu2 * attjmk;
+                            xdb = xi1 * gtjk - xi2 * gtjmk + xq1 * artkj +
+                                  xq2 * artkmj - xu1 * attjk - xu2 * attjmk;
                             uu2 -= xdb * z;
-                            xdb = -xq1 * artkmj - xq2 * artkj - xu1 * attjmk -
-                                  xu2 * attjk;
+                            xdb = xi1 * gtjmk - xi2 * gtjk - xq1 * artkmj -
+                                  xq2 * artkj - xu1 * attjmk - xu2 * attjk;
                             uu1 -= xdb * z;
                         }
                         if (fabs(ii2) < 1e-30)
@@ -759,7 +774,7 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
             roQ += roQ0;
             roU += roU0;
 
-            /* Relative convergence: stop if last order < 1e-5 of sum */
+            /* Pinned OSPOL uses a stricter order threshold than scalar OS. */
             {
                 double z = 0.0;
                 for (int l = -mu; l <= mu; l++) {
@@ -772,10 +787,10 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                     if (fabs(U3(l)) >= accu)
                         z = fmax(z, fabs(UN(l) / U3(l)));
                 }
-                if (z < 1e-5)
+                if (z < 1e-8)
                     goto done_sos;
             }
-            if (ig >= ctx->multi.igmax)
+            if (ig > ctx->multi.igmax)
                 goto done_sos;
         } /* end SOS loop */
     done_sos:;
@@ -783,9 +798,9 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
         /* ── Accumulate Fourier component ── */
         double delta0s = (is == 0) ? 1.0 : 2.0;
         for (int l = -mu; l <= mu; l++) {
-            I4(l) += delta0s * I3(l);
-            Q4(l) += delta0s * Q3(l);
-            U4(l) += delta0s * U3(l);
+            I4(l) += fabs(delta0s * I3(l));
+            Q4(l) += fabs(Q3(l));
+            U4(l) += fabs(U3(l));
         }
 
         /* xl: radiance field at each azimuth plane */
@@ -830,7 +845,8 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
 
         /* xlphim: path reflectance vs azimuth */
         for (int ifi = 0; ifi < nfi; ifi++) {
-            double phimul = (double)ifi * pi / (double)(nfi - 1);
+            double phimul =
+                nfi > 1 ? (double)ifi * pi / (double)(nfi - 1) : 0.0;
             xlphim[ifi] += (float)(delta0s * roI * cos(is * (phimul + pi)));
         }
 
@@ -839,7 +855,7 @@ void sixs_ospol(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
             double z = 0.0;
             for (int l = -mu; l <= mu; l++) {
                 if (fabs(I4(l)) >= accu)
-                    z = fmax(z, fabs(I3(l) / I4(l)));
+                    z = fmax(z, fabs(delta0s * I3(l) / I4(l)));
                 if (fabs(Q4(l)) >= accu)
                     z = fmax(z, fabs(Q3(l) / Q4(l)));
                 if (fabs(U4(l)) >= accu)
@@ -880,6 +896,8 @@ cleanup:
 #undef XRL
 #undef XTL
 #undef BP
+#undef GR
+#undef GT
 #undef ARR
 #undef ART
 #undef ATT
@@ -918,6 +936,8 @@ cleanup:
     free(rsl);
     free(tsl);
     free(bp);
+    free(gr);
+    free(gt);
     free(arr);
     free(art);
     free(att);

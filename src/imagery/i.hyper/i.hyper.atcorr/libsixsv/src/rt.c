@@ -511,7 +511,7 @@ void sixs_os(SixsCtx *ctx, int iaer_prof, float tamoy, float trmoy,
                 if (z < 1e-5)
                     goto done_sos;
             }
-            if (ig >= ctx->multi.igmax)
+            if (ig > ctx->multi.igmax)
                 goto done_sos;
         } /* end SOS loop */
     done_sos:;

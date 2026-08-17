@@ -157,7 +157,7 @@ class LutConfig:
     sza, vza, raa : float
         Solar zenith, view zenith, relative azimuth [degrees].
     altitude_km : float
-        Sensor altitude in km (>900 = satellite).
+        Observer altitude in km (<=0 ground, 0–100 aircraft, >=100 satellite).
     atmo_model : int
         Atmosphere model (1 = US62, 2 = MIDSUM, …).
     aerosol_model : int
@@ -184,6 +184,10 @@ class LutConfig:
         aerosol_model=1,
         surface_pressure=0.0,
         ozone_du=0.0,
+        mie_r_mode=0.0,
+        mie_sigma_g=0.0,
+        mie_m_real=1.45,
+        mie_m_imag=0.0,
         enable_polar=0,
         **_,
     ):
@@ -207,6 +211,10 @@ class LutConfig:
         c.aerosol_model = int(aerosol_model)
         c.surface_pressure = float(surface_pressure)
         c.ozone_du = float(ozone_du)
+        c.mie_r_mode = float(mie_r_mode)
+        c.mie_sigma_g = float(mie_sigma_g)
+        c.mie_m_real = float(mie_m_real)
+        c.mie_m_imag = float(mie_m_imag)
         c.enable_polar = int(enable_polar)
         self._c = c
 
@@ -257,6 +265,15 @@ def compute_lut(cfg: LutConfig) -> LutArrays:
     if rc != 0:
         raise RuntimeError(f"atcorr_compute_lut returned error code {rc}")
     return lut
+
+
+lib.atcorr_srf_compute.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+lib.atcorr_srf_compute.restype = ctypes.c_void_p
+
+
+def srf_compute_is_disabled():
+    """Return True while inconsistent direction-only SRF correction is guarded."""
+    return not bool(lib.atcorr_srf_compute(None, None))
 
 
 # ── atcorr_lut_slice ──────────────────────────────────────────────────────────
@@ -363,6 +380,26 @@ def chand(xphi, xmuv, xmus, xtau):
 lib.sixs_init_atmosphere.argtypes = [ctypes.c_void_p, ctypes.c_int]
 lib.sixs_init_atmosphere.restype = None
 
+lib.sixs_gas_transmittance.argtypes = [ctypes.c_void_p] + [ctypes.c_float] * 5
+lib.sixs_gas_transmittance.restype = ctypes.c_float
+
+
+def gas_transmittance(atmo_model, wl, xmus, h2o, ozone_du):
+    """Downward gas transmission for an absolute H2O/O3 column."""
+    ctx = ctypes.create_string_buffer(32768)
+    lib.sixs_init_atmosphere(ctx, ctypes.c_int(atmo_model))
+    return float(
+        lib.sixs_gas_transmittance(
+            ctx,
+            ctypes.c_float(wl),
+            ctypes.c_float(xmus),
+            ctypes.c_float(1.0),
+            ctypes.c_float(h2o),
+            ctypes.c_float(ozone_du),
+        )
+    )
+
+
 lib.sixs_odrayl.argtypes = [
     ctypes.c_void_p,
     ctypes.c_float,
@@ -371,7 +408,7 @@ lib.sixs_odrayl.argtypes = [
 lib.sixs_odrayl.restype = None
 
 # Shared context for single-threaded helper calls (US62 standard atmosphere)
-_ctx = ctypes.create_string_buffer(8192)
+_ctx = ctypes.create_string_buffer(32768)
 lib.sixs_init_atmosphere(_ctx, ctypes.c_int(1))
 
 

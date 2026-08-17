@@ -17,16 +17,18 @@
  *
  * Two operational modes (at least one output must be requested):
  *
- *   lut=   — write a binary LUT file [R_atm, T_down, T_up, s_alb] on an
- *             [AOD × H2O × wavelength] grid for use by i.hyper.smac.
+ *   lut=   — write the binary LUT computed by this invocation
+ *             [R_atm, T_down, T_up, s_alb] on an
+ *             [AOD × H2O × wavelength] grid.
  *
  *   input= / output= — correct a Raster3D radiance cube to surface (BOA)
- *             reflectance using the computed LUT.  Band centre wavelengths are
- *             read from the map's r3.info metadata; fallback to the LUT grid.
+ *             reflectance using the computed LUT. Band wavelengths and units
+ *             are read from hyperspectral metadata; fallback to the LUT grid.
  *
  * Physics (6SV standard):
  *   ρ_toa = (π × L × d²) / (E₀ × cos θs)
- *   ρ_boa = (ρ_toa − R_atm) / (T_down × T_up × (1 + s_alb × ρ_boa))
+ *   y = (ρ_toa − R_atm) / (T_down × T_up)
+ *   ρ_boa = y / (1 + s_alb × y)
  *
  * ISOFIT-inspired improvements (all optional):
  *   #1 Per-pixel AOD/H2O raster maps + Gaussian spatial smoothing
@@ -552,11 +554,19 @@ static int parse_hyperjson_buffer(const char *json, float *wl, float *fwhm,
         meta->day_of_year = (int)dv;
         meta->has_doy = 1;
     }
-    if (json_extract_nested_float(json, "sensor.sensor_altitude_km", &dv)) {
+    if (json_extract_nested_float(json, "geometry.sensor_altitude_m", &dv)) {
+        meta->altitude_km = (float)(dv / 1000.0);
+        meta->has_altitude = 1;
+    }
+    else if (json_extract_nested_float(json, "sensor.sensor_altitude_km",
+                                       &dv)) {
         meta->altitude_km = (float)dv;
         meta->has_altitude = 1;
     }
-    if (json_extract_nested_string(json, "atmosphere.model",
+    if (json_extract_nested_string(json, "atmosphere.atmosphere_model",
+                                   meta->atmosphere_model,
+                                   sizeof(meta->atmosphere_model)) ||
+        json_extract_nested_string(json, "atmosphere.model",
                                    meta->atmosphere_model,
                                    sizeof(meta->atmosphere_model))) {
         meta->has_atmo_model = 1;
@@ -1301,24 +1311,23 @@ static void load_bands_from_cube(RASTER3D_Map *map, const int *depths, int nb,
  * - **#3/#5** Surface prior MAP regularisation via surface_model_regularize().
  * - **#4/#6** Per-band NEdL-based reflectance uncertainty output.
  *
- * Band centre wavelengths are read from the map's \c r3.info metadata; if
- * absent the LUT wavelength grid is used as fallback.  Sub-25 nm FWHM sensors
- * trigger an automatic reptran fine SRF gas-absorption correction.
+ * Band centre wavelengths are read from hyperspectral metadata; if absent the
+ * LUT wavelength grid is used as fallback. Automatic SRF correction is guarded
+ * because effective coefficients require joint path-gas convolution.
  *
  * Physics applied per pixel per band:
  * \f[
  *   \rho_\text{toa} = \frac{\pi L d^2}{E_0 \cos\theta_s}
  * \f]
  * \f[
- *   \rho_\text{boa} = \frac{\rho_\text{toa} - R_\text{atm}}{T_\downarrow
- * T_\uparrow (1 + s \rho_\text{boa})}
+ *   y = \frac{\rho_\text{toa} - R_\text{atm}}{T_\downarrow T_\uparrow},
+ *   \qquad \rho_\text{boa} = \frac{y}{1 + s y}
  * \f]
  *
  * \param[in]  input_name   Name of the input GRASS Raster3D radiance map.
  * \param[in]  output_name  Name of the output GRASS Raster3D reflectance map.
  * \param[in]  cfg          LUT configuration (grid axes and dimensions).
- * \param[in]  lut          Precomputed LUT arrays (may be modified in place by
- *                          SRF correction).
+ * \param[in]  lut          Precomputed effective LUT arrays.
  * \param[in]  aod_val      Scene-average AOD at 550 nm (used when no per-pixel
  *                          AOD map is provided).
  * \param[in]  h2o_val      Scene-average column water vapour (g cm⁻²).
@@ -1379,7 +1388,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
                           band_wl[ndepths - 1]);
     }
 
-    /* ── SRF correction for sub-nm sensors ── */
+    /* Effective 6SV coefficients require joint path-gas SRF convolution. */
     {
         float min_fwhm_nm = 1e9f;
         int n_fwhm = 0;
@@ -1392,25 +1401,10 @@ static void correct_raster3d(const char *input_name, const char *output_name,
             }
         }
         if (n_fwhm > 0 && min_fwhm_nm < 25.0f) {
-            G_message(_("Sensor FWHM=%.2f nm: "
-                        "applying reptran fine SRF gas correction..."),
+            G_warning(_("Sensor FWHM reaches %.2f nm; automatic SRF gas "
+                        "correction is disabled because effective 6SV "
+                        "coefficients require joint path-gas convolution"),
                       min_fwhm_nm);
-            float *lut_fwhm = G_malloc(cfg->n_wl * sizeof(float));
-            for (int iw = 0; iw < cfg->n_wl; iw++) {
-                int b = find_closest_band(band_wl, ndepths, cfg->wl[iw]);
-                lut_fwhm[iw] = band_fwhm[b];
-            }
-            SrfConfig srf_cfg = {.fwhm_um = lut_fwhm, .threshold_um = 0.025f};
-            SrfCorrection *srf = atcorr_srf_compute(&srf_cfg, cfg);
-            G_free(lut_fwhm);
-            if (srf) {
-                atcorr_srf_apply(srf, cfg, lut);
-                atcorr_srf_free(srf);
-                G_verbose_message(_("SRF gas correction applied."));
-            }
-            else {
-                G_warning(_("SRF correction failed; proceeding without it"));
-            }
         }
     }
 
@@ -1654,7 +1648,7 @@ static void correct_raster3d(const char *input_name, const char *output_name,
         G_free(wl_bands);
     }
 
-    /* ── BRDF white-sky albedo for the s_alb coupling ── */
+    /* ── BRDF directional-hemispherical albedo for s_alb coupling ── */
     float rho_albe_scene = 0.0f;
     if (cfg->brdf_type != BRDF_LAMBERTIAN && cfg->brdf_type != BRDF_OCEAN)
         rho_albe_scene =
@@ -1918,6 +1912,17 @@ static void correct_raster3d(const char *input_name, const char *output_name,
                 sza_deg, cfg->vza);
         }
 
+        /* Optional post-processing must preserve the documented output range.
+         */
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+        for (int i = 0; i < npix; i++) {
+            float r = refl_band[i];
+            if (isfinite(r))
+                refl_band[i] = (r < -0.01f) ? -0.01f : (r > 1.5f) ? 1.5f : r;
+        }
+
         /* ── #4: Per-band uncertainty ── */
         if (iso && iso->do_uncertainty && sigma_band) {
             uncertainty_compute_band(
@@ -2013,6 +2018,15 @@ static void correct_raster3d(const char *input_name, const char *output_name,
 
         surface_model_regularize(surf_mdl, refl_cube, sigma2_full, ndepths,
                                  npix, 0.1f);
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+        for (size_t i = 0; i < (size_t)ndepths * npix; i++) {
+            float r = refl_cube[i];
+            if (isfinite(r))
+                refl_cube[i] = (r < -0.01f) ? -0.01f : (r > 1.5f) ? 1.5f : r;
+        }
 
         G_free(sigma2_full);
         G_message(_("  MAP regularisation complete."));
@@ -2128,8 +2142,9 @@ int main(int argc, char *argv[])
     struct Option *opt_input = G_define_standard_option(G_OPT_R3_INPUT);
     opt_input->required = NO;
     opt_input->label = _("Input radiance 3D raster map");
-    opt_input->description = _("TOA radiance in W/(m² sr µm); "
-                               "band wavelengths read from r3.info metadata");
+    opt_input->description =
+        _("TOA radiance per µm or per nm; wavelengths and units are read from "
+          "hyperspectral metadata (nm, µm, or cm-1)");
     opt_input->guisection = _("Main");
 
     struct Option *opt_output = G_define_standard_option(G_OPT_R3_OUTPUT);
@@ -2177,8 +2192,9 @@ int main(int argc, char *argv[])
     opt_altitude->key = "altitude";
     opt_altitude->type = TYPE_DOUBLE;
     opt_altitude->required = NO;
-    opt_altitude->label = _("Sensor altitude (>900 = satellite, default: 1000 "
-                            "km, overrides metadata)");
+    opt_altitude->label =
+        _("Observer altitude in km (<=0 ground, 0–100 aircraft, >=100 "
+          "satellite; default: 1000; overrides metadata)");
     opt_altitude->guisection = _("Geometry");
 
     /* ── Atmosphere ── */
@@ -2322,7 +2338,7 @@ int main(int argc, char *argv[])
     opt_doy->key = "doy";
     opt_doy->type = TYPE_INTEGER;
     opt_doy->required = NO;
-    opt_doy->label = _("Day of year (1–365, default: 180, overrides metadata)");
+    opt_doy->label = _("Day of year (1–366, default: 180, overrides metadata)");
     opt_doy->guisection = _("Atmosphere");
 
     struct Option *opt_aod_val = G_define_option();
@@ -2475,9 +2491,9 @@ int main(int argc, char *argv[])
           "(cloud: blue>0.25 AND NDVI<0.2; shadow: VIS+NIR<0.04; water: "
           "NIR<0.05; "
           "snow: NDSI>0.4). "
-          "Output written to quality= map. "
-          "DDV and H₂O retrievals automatically exclude flagged pixels. "
-          "Requires input= with wavelength metadata.");
+          "Output written to quality= map; the mask is diagnostic and is not "
+          "used to filter atmospheric retrievals. Requires input= with "
+          "wavelength metadata.");
     flag_m->guisection = _("Retrieval");
 
     struct Flag *flag_P = G_define_flag();
@@ -2488,8 +2504,9 @@ int main(int argc, char *argv[])
           "Propagates all three Stokes components simultaneously, improving "
           "the atmospheric path reflectance R_atm by 1–5% in blue bands "
           "(Rayleigh polarisation feedback). "
-          "Approximately 3× slower than scalar RT. "
-          "Aerosol is treated as spherical (simplified Müller matrix).");
+          "Approximately 3× slower than scalar RT. Built-in aerosol models "
+          "use their full 6SV I/Q/U phase matrices; aerosol=custom is scalar "
+          "only.");
     flag_P->guisection = _("LUT");
 
     struct Flag *flag_e = G_define_flag();
@@ -2721,6 +2738,8 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Specify at least one output: lut= or output="));
     if (opt_output->answer && !opt_input->answer)
         G_fatal_error(_("output= requires input="));
+    if (opt_input->answer && !opt_output->answer)
+        G_fatal_error(_("input= requires output="));
     if (opt_uncertainty->answer && !flag_u->answer)
         G_warning(_("uncertainty= output ignored without -u flag"));
     if (flag_u->answer && !opt_output->answer)
@@ -2798,8 +2817,8 @@ int main(int argc, char *argv[])
         G_fatal_error(_("vza must be in [0, 60]"));
     if (wl_step <= 0.0f || wl_min >= wl_max)
         G_fatal_error(_("Invalid wavelength range or step (values in nm)"));
-    if (doy < 1 || doy > 365)
-        G_fatal_error(_("doy must be in [1, 365]"));
+    if (doy < 1 || doy > 366)
+        G_fatal_error(_("doy must be in [1, 366]"));
 
     float sun_azimuth = resolve_float_opt(opt_sun_az, meta.sun_azimuth_deg,
                                           meta.has_sun_azimuth, 180.0f, 0);
@@ -2866,6 +2885,10 @@ int main(int argc, char *argv[])
         if (mie_r <= 0.0 || mie_sigma <= 1.0)
             G_fatal_error(
                 _("aerosol=custom requires mie_r > 0 and mie_sigma > 1.0"));
+        if (flag_P->answer)
+            G_fatal_error(
+                _("aerosol=custom does not provide polarized Q/U phase "
+                  "matrices; remove -P or use a built-in aerosol model"));
     }
 
     /* BRDF type */
@@ -3688,43 +3711,72 @@ int main(int argc, char *argv[])
 
         /* ── Merge output metadata overrides ── */
         {
-            char overrides[2048];
-            snprintf(overrides, sizeof(overrides),
-                     "{"
-                     "\"radiometric_quantity\":\"surface_reflectance\","
-                     "\"radiometric_units\":\"unitless\","
-                     "\"extended_metadata\":{"
-                     "\"radiometry\":{"
-                     "\"quantity\":\"surface_reflectance\","
-                     "\"units\":\"unitless\""
-                     "},"
-                     "\"processing\":{"
-                     "\"atcorr\":{"
-                     "\"source_radiance_map\":\"%s\","
-                     "\"output_type\":\"boa_surface_reflectance\","
-                     "\"output_units\":\"unitless\","
-                     "\"output_valid_range\":[-0.01,1.5],"
-                     "\"geometry_used\":{"
-                     "\"sza\":%.2f,\"vza\":%.2f,"
-                     "\"raa\":%.2f,\"sun_azimuth\":%.2f,"
-                     "\"altitude_km\":%.1f"
-                     "},"
-                     "\"atmosphere_used\":{"
-                     "\"aod_550\":%.4f,\"h2o_g_cm2\":%.2f,"
-                     "\"ozone_du\":%.1f,\"doy\":%d,"
-                     "\"atmosphere_model\":\"%s\","
-                     "\"aerosol_model\":\"%s\""
-                     "},"
-                     "\"spectral_response\":{"
-                     "\"type\":\"gaussian\","
-                     "\"source\":\"band_center_and_fwhm\""
-                     "}"
-                     "}"
-                     "}"
-                     "}"
-                     "}",
-                     opt_input->answer, sza, vza, raa, sun_azimuth, altitude,
-                     aod_val, h2o_val, ozone, doy, atmo_str, aero_str);
+            char overrides[4096];
+            snprintf(
+                overrides, sizeof(overrides),
+                "{"
+                "\"radiometric_quantity\":\"surface_reflectance\","
+                "\"radiometric_units\":\"unitless\","
+                "\"extended_metadata\":{"
+                "\"radiometry\":{"
+                "\"quantity\":\"surface_reflectance\","
+                "\"units\":\"unitless\""
+                "},"
+                "\"processing\":{"
+                "\"atcorr\":{"
+                "\"source_radiance_map\":\"%s\","
+                "\"output_type\":\"%s\","
+                "\"output_units\":\"unitless\","
+                "\"output_valid_range\":[-0.01,1.5],"
+                "\"lut_output_file\":\"%s\","
+                "\"coefficient_semantics\":"
+                "\"gas_weighted_effective_6sv\","
+                "\"brdf_mode\":\"%s\","
+                "\"surface_pressure_hpa\":%.2f,"
+                "\"geometry_used\":{"
+                "\"sza\":%.2f,\"vza\":%.2f,"
+                "\"raa\":%.2f,\"sun_azimuth\":%.2f,"
+                "\"altitude_km\":%.1f"
+                "},"
+                "\"atmosphere_used\":{"
+                "\"aod_550\":%.4f,\"h2o_g_cm2\":%.2f,"
+                "\"ozone_du\":%.1f,\"doy\":%d,"
+                "\"atmosphere_model\":\"%s\","
+                "\"aerosol_model\":\"%s\""
+                "},"
+                "\"state_sources\":{"
+                "\"aod\":\"%s\",\"h2o\":\"%s\""
+                "},"
+                "\"runtime_flags\":{"
+                "\"polarized_rt\":%s,\"nbar\":%s,"
+                "\"adjacency\":%s,\"surface_prior\":%s,"
+                "\"uncertainty\":%s,\"dasf\":%s"
+                "},"
+                "\"spectral_response\":{"
+                "\"correction\":\"disabled\","
+                "\"reason\":\"effective_coefficients_require_joint_path_gas_"
+                "convolution\""
+                "}"
+                "}"
+                "}"
+                "}"
+                "}",
+                opt_input->answer,
+                do_nbar ? "nbar_surface_reflectance"
+                        : "boa_surface_reflectance",
+                opt_lut->answer ? opt_lut->answer : "", opt_brdf->answer,
+                cfg.surface_pressure > 0.0f ? cfg.surface_pressure : 1013.25f,
+                sza, vza, raa, sun_azimuth, altitude, aod_val, h2o_val,
+                cfg.ozone_du, doy, atmo_str, aero_str,
+                retrieved_aod ? "retrieved"
+                              : (opt_aod_map->answer ? "map" : "scene"),
+                retrieved_h2o ? "retrieved"
+                              : (opt_h2o_map->answer ? "map" : "scene"),
+                flag_P->answer ? "true" : "false", do_nbar ? "true" : "false",
+                atof(opt_adj_psf->answer) > 0.0 ? "true" : "false",
+                flag_r->answer ? "true" : "false",
+                flag_u->answer ? "true" : "false",
+                flag_D->answer ? "true" : "false");
 
             char maparg[GPATH_MAX], ovrarg[4096];
             snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
@@ -3763,6 +3815,38 @@ int main(int argc, char *argv[])
             if (G_vspawn_ex("i.hyper.metadata", hargs) != 0)
                 G_warning(_("Failed to add history entry for <%s>"),
                           opt_output->answer);
+        }
+
+        if (flag_u->answer && opt_uncertainty->answer) {
+            char srcarg[GPATH_MAX], dstarg[GPATH_MAX];
+            snprintf(srcarg, sizeof(srcarg), "source_map=%s",
+                     opt_output->answer);
+            snprintf(dstarg, sizeof(dstarg), "map=%s", opt_uncertainty->answer);
+            const char *copy_args[] = {"i.hyper.metadata", "-q", dstarg, srcarg,
+                                       "operation=copy",   NULL};
+            if (G_vspawn_ex("i.hyper.metadata", copy_args) != 0) {
+                G_warning(_("Failed to copy metadata to uncertainty map <%s>"),
+                          opt_uncertainty->answer);
+            }
+            else {
+                char override_arg[1024];
+                snprintf(
+                    override_arg, sizeof(override_arg),
+                    "overrides={\"radiometric_quantity\":\"reflectance_"
+                    "uncertainty\","
+                    "\"radiometric_units\":\"unitless\",\"extended_metadata\":{"
+                    "\"radiometry\":{\"quantity\":\"reflectance_uncertainty\","
+                    "\"units\":\"unitless\"},\"processing\":{\"atcorr\":{"
+                    "\"output_type\":\"boa_reflectance_standard_uncertainty\"}}"
+                    "}}}");
+                const char *merge_args[] = {"i.hyper.metadata", dstarg,
+                                            "operation=merge-overrides",
+                                            override_arg, NULL};
+                if (G_vspawn_ex("i.hyper.metadata", merge_args) != 0)
+                    G_warning(
+                        _("Failed to merge uncertainty metadata for <%s>"),
+                        opt_uncertainty->answer);
+            }
         }
 
         /* ── Write quality bitmask as 2-D GRASS raster ── */

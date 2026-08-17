@@ -8,7 +8,7 @@
 CC      ?= gcc
 CFLAGS   = -std=c11 -O2 -I../include -Wall -Wno-unused-result
 LIB_DIR  = ../testsuite
-LDFLAGS  = -L$(LIB_DIR) -lsixsv -lm -Wl,-rpath,$(abspath $(LIB_DIR))
+LDFLAGS  = -L$(LIB_DIR) -lsixsv -lm -fopenmp -Wl,-rpath,$(abspath $(LIB_DIR))
 
 EXAMPLES = 01_basic_lut \
            02_scene_correction \

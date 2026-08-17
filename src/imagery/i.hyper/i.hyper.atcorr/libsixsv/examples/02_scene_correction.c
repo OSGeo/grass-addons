@@ -112,7 +112,7 @@ int main(void)
     float rho_brdf =
         atcorr_invert_brdf(0.18f, Rs[1], Tds[1], Tus[1], ss[1], rho_albe);
     printf(
-        "\nRPV BRDF correction: rho_BRDF = %.4f  (white-sky albedo = %.4f)\n",
+        "\nRPV BRDF correction: rho_BRDF = %.4f  (black-sky albedo = %.4f)\n",
         rho_brdf, rho_albe);
 
     free(R_atm);

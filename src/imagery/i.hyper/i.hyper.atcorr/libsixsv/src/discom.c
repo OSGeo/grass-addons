@@ -26,6 +26,10 @@ static const float *const comp_sca_d[4] = {aerosol_dust_sca, aerosol_wate_sca,
                                            aerosol_ocea_sca, aerosol_soot_sca};
 static const float (*const comp_pha_d[4])[83] = {
     aerosol_dust_pha, aerosol_wate_pha, aerosol_ocea_pha, aerosol_soot_pha};
+static const float (*const comp_qha_d[4])[83] = {
+    aerosol_dust_qha, aerosol_wate_qha, aerosol_ocea_qha, aerosol_soot_qha};
+static const float (*const comp_uha_d[4])[83] = {
+    aerosol_dust_uha, aerosol_wate_uha, aerosol_ocea_uha, aerosol_soot_uha};
 /**
  * \brief Fill the phase function with the scattering-weighted aerosol mixture.
  *
@@ -38,12 +42,27 @@ static const float (*const comp_pha_d[4])[83] = {
  * 2=maritime, 3=urban).
  * \param[in]     wl_idx  Index into the 20-band reference wavelength table.
  */
-static void set_mixed_pha(SixsCtx *ctx, int iaer, int wl_idx)
+static void set_aerosol_phase_matrix(SixsCtx *ctx, int iaer, int wl_idx)
 {
     int nquad = ctx->quad.nquad;
     memset(ctx->polar.pha, 0, nquad * sizeof(float));
+    memset(ctx->polar.qha, 0, nquad * sizeof(float));
+    memset(ctx->polar.uha, 0, nquad * sizeof(float));
     if (iaer == 0)
         return;
+
+    if (iaer == 5) {
+        memcpy(ctx->polar.pha, aerosol_bdm_pha[wl_idx], nquad * sizeof(float));
+        memcpy(ctx->polar.qha, aerosol_bdm_qha[wl_idx], nquad * sizeof(float));
+        memcpy(ctx->polar.uha, aerosol_bdm_uha[wl_idx], nquad * sizeof(float));
+        return;
+    }
+
+    if (iaer == 9) {
+        memcpy(ctx->polar.pha, ctx->aer.custom_pha[wl_idx],
+               nquad * sizeof(float));
+        return;
+    }
 
     int mix_idx = (iaer == 2) ? 1 : (iaer == 3 ? 2 : 0);
     const float *ci = aerosol_std_mix[mix_idx];
@@ -71,9 +90,11 @@ static void set_mixed_pha(SixsCtx *ctx, int iaer, int wl_idx)
             continue;
         float cij = ci[j] / aerosol_component_vi[j] / sigm;
         float weight = cij * comp_sca_d[j][wl_idx] / sca_mix;
-        const float (*pha_j)[83] = comp_pha_d[j];
-        for (int k = 0; k < nquad; k++)
-            ctx->polar.pha[k] += weight * pha_j[wl_idx][k];
+        for (int k = 0; k < nquad; k++) {
+            ctx->polar.pha[k] += weight * comp_pha_d[j][wl_idx][k];
+            ctx->polar.qha[k] += weight * comp_qha_d[j][wl_idx][k];
+            ctx->polar.uha[k] += weight * comp_uha_d[j][wl_idx][k];
+        }
     }
 }
 
@@ -223,9 +244,9 @@ void sixs_discom(SixsCtx *ctx, int idatmp, int iaer, float xmus, float xmuv,
 
         if (iaer != 0) {
             /* Load mixed phase function for this wavelength → polar.pha[] */
-            set_mixed_pha(ctx, iaer, l);
+            set_aerosol_phase_matrix(ctx, iaer, l);
             /* Decompose into Legendre betal[] */
-            sixs_trunca(ctx, 0, &coeff);
+            sixs_trunca(ctx, ipol, &coeff);
             /* coeff = 0 always, so tamoy/tamoyp/pizmoy unchanged */
             tamoy = taer * (1.0f - piza * coeff);
             tamoyp = taerp * (1.0f - piza * coeff);
@@ -265,32 +286,32 @@ void sixs_discom(SixsCtx *ctx, int idatmp, int iaer, float xmus, float xmuv,
         }                                                                      \
     } while (0)
 
-        /* Rayleigh-only reflectance: tamoy=0, trmoy=tray */
-        RT_CALL(0.0f, tray, 0.0f, trayp);
-        rorayl = xl[0] / xmus;
-        rorayl_q = xlq ? xlq[0] / xmus : 0.0f;
-        rorayl_u = xlu ? xlu[0] / xmus : 0.0f;
+        /* A ground observer has no atmosphere between target and sensor. */
+        if (idatmp != 0) {
+            /* Rayleigh-only reflectance: tamoy=0, trmoy=tray */
+            RT_CALL(0.0f, tray, 0.0f, trayp);
+            rorayl = xl[0] / xmus;
+            rorayl_q = xlq ? xlq[0] / xmus : 0.0f;
+            rorayl_u = xlu ? xlu[0] / xmus : 0.0f;
 
-        if (iaer != 0 && taer > 1e-6f) {
-            /* Aerosol-only reflectance: tamoy=taer, trmoy=0 */
-            RT_CALL(tamoy, 0.0f, tamoyp, 0.0f);
-            roaero = xl[0] / xmus;
-            roaero_q = xlq ? xlq[0] / xmus : 0.0f;
-            roaero_u = xlu ? xlu[0] / xmus : 0.0f;
+            if (iaer != 0 && taer > 1e-6f) {
+                /* Aerosol-only reflectance: tamoy=taer, trmoy=0 */
+                RT_CALL(tamoy, 0.0f, tamoyp, 0.0f);
+                roaero = xl[0] / xmus;
+                roaero_q = xlq ? xlq[0] / xmus : 0.0f;
+                roaero_u = xlu ? xlu[0] / xmus : 0.0f;
 
-            /* Combined (Rayleigh + aerosol) reflectance */
-            RT_CALL(tamoy, tray, tamoyp, trayp);
-            romix = xl[0] / xmus;
-            romix_q = xlq ? xlq[0] / xmus : 0.0f;
-            romix_u = xlu ? xlu[0] / xmus : 0.0f;
-        }
-        else {
-            roaero = 0.0f;
-            roaero_q = 0.0f;
-            roaero_u = 0.0f;
-            romix = rorayl;
-            romix_q = rorayl_q;
-            romix_u = rorayl_u;
+                /* Combined (Rayleigh + aerosol) reflectance */
+                RT_CALL(tamoy, tray, tamoyp, trayp);
+                romix = xl[0] / xmus;
+                romix_q = xlq ? xlq[0] / xmus : 0.0f;
+                romix_u = xlu ? xlu[0] / xmus : 0.0f;
+            }
+            else {
+                romix = rorayl;
+                romix_q = rorayl_q;
+                romix_u = rorayl_u;
+            }
         }
 
 #undef RT_CALL

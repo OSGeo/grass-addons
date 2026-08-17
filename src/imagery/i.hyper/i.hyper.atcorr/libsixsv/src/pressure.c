@@ -188,3 +188,81 @@ void sixs_pressure_columns(SixsCtx *ctx, float sp, float *uw, float *uo3)
     sixs_pressure(ctx, sp);
     compute_columns(ctx, uw, uo3);
 }
+
+/** Port of PRESPLANE.f for an observer height above the target. */
+int sixs_presplane(SixsCtx *ctx, float height_km)
+{
+    if (!ctx || height_km <= 0.0f)
+        return -1;
+
+    const SixsAtm *atm = &ctx->atm;
+    SixsAtm *plane = &ctx->plane_atm;
+    float plane_z = atm->z[0] + height_km;
+    int isup = 1;
+    while (isup < NATM && atm->z[isup] <= plane_z)
+        isup++;
+    if (isup >= NATM)
+        return -2;
+    int iinf = isup - 1;
+
+    float xa =
+        (atm->z[isup] - atm->z[iinf]) / logf(atm->p[isup] / atm->p[iinf]);
+    float xb = atm->z[isup] - xa * logf(atm->p[isup]);
+    float plane_p = expf((plane_z - xb) / xa);
+    float fraction = (plane_z - atm->z[iinf]) / (atm->z[isup] - atm->z[iinf]);
+
+    for (int i = 0; i <= iinf; i++) {
+        plane->z[i] = atm->z[i];
+        plane->p[i] = atm->p[i];
+        plane->t[i] = atm->t[i];
+        plane->wh[i] = atm->wh[i];
+        plane->wo[i] = atm->wo[i];
+    }
+
+    int endpoint = iinf + 1;
+    plane->z[endpoint] = plane_z;
+    plane->p[endpoint] = plane_p;
+    plane->t[endpoint] =
+        atm->t[iinf] + fraction * (atm->t[isup] - atm->t[iinf]);
+    plane->wh[endpoint] =
+        atm->wh[iinf] + fraction * (atm->wh[isup] - atm->wh[iinf]);
+    plane->wo[endpoint] =
+        atm->wo[iinf] + fraction * (atm->wo[isup] - atm->wo[iinf]);
+    for (int i = endpoint + 1; i < NATM; i++) {
+        plane->z[i] = plane->z[endpoint];
+        plane->p[i] = plane->p[endpoint];
+        plane->t[i] = plane->t[endpoint];
+        plane->wh[i] = plane->wh[endpoint];
+        plane->wo[i] = plane->wo[endpoint];
+    }
+
+    const float g = 98.1f;
+    const float air = 0.028964f / 0.0224f;
+    const float rmo3 = 0.048f / 0.0224f;
+    float rmwh[NATM - 1], rmo[NATM - 1];
+    double rt = 0.0, rp = 0.0;
+    for (int k = 0; k < NATM - 1; k++) {
+        float roair = air * 273.16f * plane->p[k] / (1013.25f * plane->t[k]);
+        /* Preserve the original PRESPLANE indexing of wh/wo. */
+        rmwh[k] = atm->wh[k] / (roair * 1000.0f);
+        rmo[k] = atm->wo[k] / (roair * 1000.0f);
+        rt += (atm->p[k + 1] / atm->t[k + 1] + atm->p[k] / atm->t[k]) *
+              (atm->z[k + 1] - atm->z[k]);
+        rp += (plane->p[k + 1] / plane->t[k + 1] + plane->p[k] / plane->t[k]) *
+              (plane->z[k + 1] - plane->z[k]);
+    }
+    ctx->plane_ftray = rt != 0.0 ? (float)(rp / rt) : 0.0f;
+
+    double uw = 0.0, uo3 = 0.0;
+    for (int k = 1; k < NATM - 1; k++) {
+        float ds = (plane->p[k - 1] - plane->p[k]) / plane->p[0];
+        uw += 0.5 * (rmwh[k] + rmwh[k - 1]) * ds;
+        uo3 += 0.5 * (rmo[k] + rmo[k - 1]) * ds;
+    }
+    uw *= plane->p[0] * 100.0 / g;
+    uo3 *= plane->p[0] * 100.0 / g;
+    ctx->plane_h2o = (float)uw;
+    ctx->plane_ozone_du = (float)(1000.0 * uo3 / rmo3 * 1000.0);
+    ctx->has_plane_atm = true;
+    return 0;
+}

@@ -93,8 +93,8 @@ extern "C" {
  * \brief Evaluate BRDF at a single geometry point.
  *
  * Returns the bidirectional reflectance factor ρ_s (dimensionless) for the
- * specified model and geometry.  Returns 0.0 for \c BRDF_LAMBERTIAN (the
- * Lambertian coupling is handled analytically by atcorr_invert()).
+ * specified model and geometry. For \c BRDF_LAMBERTIAN it returns
+ * \c params->lambertian.rho0.
  *
  * \param[in] type    BRDF model selector (::BrdfType).
  * \param[in] params  Model-specific parameters (use the matching union member).
@@ -107,7 +107,7 @@ float sixs_brdf_eval(BrdfType type, const BrdfParams *params, float cos_sza,
                      float cos_vza, float raa_deg);
 
 /**
- * \brief Bihemispherical (white-sky) albedo by numerical integration.
+ * \brief Directional-hemispherical (black-sky) albedo by integration.
  *
  * Integrates sixs_brdf_eval() over the outgoing hemisphere using a
  * midpoint quadrature grid of size \p n_phi × \p n_theta.
@@ -119,7 +119,7 @@ float sixs_brdf_eval(BrdfType type, const BrdfParams *params, float cos_sza,
  * \param[in] cos_sza cos(solar zenith angle).
  * \param[in] n_phi   Azimuth quadrature points (suggested: 48).
  * \param[in] n_theta Zenith quadrature points (suggested: 24).
- * \return White-sky albedo ρ̄ ∈ [0, 1].
+ * \return Black-sky albedo ρ̄ ∈ [0, 1].
  */
 float sixs_brdf_albe(BrdfType type, const BrdfParams *params, float cos_sza,
                      int n_phi, int n_theta);

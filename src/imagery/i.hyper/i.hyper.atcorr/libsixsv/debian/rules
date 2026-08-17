@@ -8,9 +8,9 @@ include /usr/share/dpkg/architecture.mk
 include /usr/share/dpkg/buildflags.mk
 
 # Upstream ABI / version fields
-SONAME_MAJOR  = 1
+SONAME_MAJOR  = 2
 SONAME        = libsixsv.so.$(SONAME_MAJOR)
-SOFILE        = libsixsv.so.1.0.0
+SOFILE        = libsixsv.so.2.0.0
 
 # Source layout
 SRC_DIR  = src
@@ -18,11 +18,12 @@ INC_DIR  = include
 LIB_SRCS = $(wildcard $(SRC_DIR)/*.c)
 
 # Compiler flags: merge upstream hardening + Debian hardening
-OUR_CFLAGS  = -std=c11 -O3 -ffast-math -fPIC \
+OUR_CFLAGS  = -std=c11 -O3 -fPIC \
               -I$(INC_DIR) -I$(SRC_DIR)   \
               -Wall -Wextra -Wno-unused-parameter \
               -fopenmp
-OUR_LDFLAGS = -shared -Wl,-soname,$(SONAME) -Wl,--as-needed -lm -fopenmp
+OUR_LDFLAGS = -shared -Wl,-soname,$(SONAME) -Wl,--as-needed
+OUR_LIBS    = -lm -fopenmp
 
 %:
 	dh $@
@@ -33,8 +34,8 @@ override_dh_auto_configure:
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 override_dh_auto_build:
-	$(CC) $(OUR_CFLAGS) $(CFLAGS) $(OUR_LDFLAGS) $(LDFLAGS) \
-	    $(LIB_SRCS) -o $(SOFILE)
+	$(CC) $(OUR_CFLAGS) $(CFLAGS) $(OUR_LDFLAGS) $(LDFLAGS) -fno-lto \
+	    $(LIB_SRCS) -o $(SOFILE) $(OUR_LIBS)
 	ln -sf $(SOFILE)  libsixsv.so.$(SONAME_MAJOR)
 	ln -sf $(SOFILE)  libsixsv.so
 
@@ -72,7 +73,8 @@ override_dh_auto_install:
 	install -m 644 $(INC_DIR)/uncertainty.h    debian/tmp/usr/include/sixsv/
 	# pkg-config file
 	install -d debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
-	install -m 644 debian/libsixsv.pc \
+	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
+	    debian/libsixsv.pc.in > \
 	    debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/libsixsv.pc
 
 # ── Shared-library dependencies ───────────────────────────────────────────────

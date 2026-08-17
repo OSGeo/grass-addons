@@ -1,25 +1,40 @@
-libsixsv.so.1 libsixsv1 #MINVER#
+libsixsv.so.2 libsixsv2 #MINVER#
  MODIS_WL_UM@Base 1.0.0
  adjacency_T_dir@Base 1.0.0
  adjacency_correct_band@Base 1.0.0
  adjacency_r_env@Base 1.0.0
  aerosol_dust_asy@Base 1.0.0
+ aerosol_bdm_asy@Base 2.0.0
+ aerosol_bdm_ext@Base 2.0.0
+ aerosol_bdm_pha@Base 2.0.0
+ aerosol_bdm_qha@Base 2.0.0
+ aerosol_bdm_sca@Base 2.0.0
+ aerosol_bdm_uha@Base 2.0.0
+ aerosol_component_vi@Base 2.0.0
  aerosol_dust_ext@Base 1.0.0
  aerosol_dust_pha@Base 1.0.0
+ aerosol_dust_qha@Base 2.0.0
  aerosol_dust_sca@Base 1.0.0
+ aerosol_dust_uha@Base 2.0.0
  aerosol_ocea_asy@Base 1.0.0
  aerosol_ocea_ext@Base 1.0.0
  aerosol_ocea_pha@Base 1.0.0
+ aerosol_ocea_qha@Base 2.0.0
  aerosol_ocea_sca@Base 1.0.0
+ aerosol_ocea_uha@Base 2.0.0
  aerosol_soot_asy@Base 1.0.0
  aerosol_soot_ext@Base 1.0.0
  aerosol_soot_pha@Base 1.0.0
+ aerosol_soot_qha@Base 2.0.0
  aerosol_soot_sca@Base 1.0.0
+ aerosol_soot_uha@Base 2.0.0
  aerosol_std_mix@Base 1.0.0
  aerosol_wate_asy@Base 1.0.0
  aerosol_wate_ext@Base 1.0.0
  aerosol_wate_pha@Base 1.0.0
+ aerosol_wate_qha@Base 2.0.0
  aerosol_wate_sca@Base 1.0.0
+ aerosol_wate_uha@Base 2.0.0
  atcorr_brdf_normalize@Base 1.0.0
  atcorr_compute_lut@Base 1.0.0
  atcorr_lut_interp_pixel@Base 1.0.0
@@ -36,6 +51,7 @@ libsixsv.so.1 libsixsv1 #MINVER#
  gas_acr_moca@Base 1.0.0
  gas_acr_niox@Base 1.0.0
  gas_acr_oxyg@Base 1.0.0
+ gas_acr_ozon@Base 2.0.0
  gas_acr_wava@Base 1.0.0
  gas_cch2o@Base 1.0.0
  gas_co3_ozon@Base 1.0.0
@@ -64,12 +80,17 @@ libsixsv.so.1 libsixsv1 #MINVER#
  sixs_earth_sun_dist2@Base 1.0.0
  sixs_enviro@Base 1.0.0
  sixs_gas_transmittance@Base 1.0.0
+ sixs_gas_profile_columns@Base 2.0.0
+ sixs_gas_transmittance_plane@Base 2.0.0
+ sixs_gas_transmittance_total@Base 2.0.0
  sixs_gas_transmittances@Base 1.0.0
  sixs_gauss@Base 1.0.0
  sixs_gauss_setup@Base 1.0.0
  sixs_init_atmosphere@Base 1.0.0
  sixs_interp@Base 1.0.0
+ sixs_interp_components@Base 2.0.0
  sixs_interp_polar@Base 1.0.0
+ sixs_interp_polar_components@Base 2.0.0
  sixs_kernel@Base 1.0.0
  sixs_kernelpol@Base 1.0.0
  sixs_mie_init@Base 1.0.0
@@ -79,6 +100,7 @@ libsixsv.so.1 libsixsv1 #MINVER#
  sixs_polglit@Base 1.0.0
  sixs_polnad@Base 1.0.0
  sixs_possol@Base 1.0.0
+ sixs_presplane@Base 2.0.0
  sixs_pressure@Base 1.0.0
  sixs_pressure_columns@Base 1.0.0
  sixs_scatra@Base 1.0.0

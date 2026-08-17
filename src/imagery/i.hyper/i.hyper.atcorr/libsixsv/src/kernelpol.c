@@ -3,14 +3,7 @@
  * \brief Polarized scattering kernel matrices for vector RT.
  *
  * Computes the generalised spherical function arrays \c psl, \c rsl, \c tsl
- * and the three Müller-matrix scattering kernels \c bp, \c arr, \c att,
- * \c art used by sixs_ospol().
- *
- * \par Aerosol simplification:
- * Aerosol is treated as spherical particles (\f$\gamma_l = \zeta_l = 0\f$,
- * \f$\alpha_l = \beta_l\f$), so the off-diagonal blocks vanish:
- * \f$g_r = g_t = 0\f$ (no aerosol I↔Q/U coupling).  The Rayleigh
- * I↔Q/U coupling (\f$\gamma^2\f$ terms) is injected in-line by sixs_ospol().
+ * and the six Müller-matrix scattering kernels used by sixs_ospol().
  *
  * Ported from 6SV2.1 KERNELPOL.f.
  */
@@ -25,8 +18,8 @@
  * transfer.
  *
  * Constructs three generalised spherical function arrays (\c psl, \c rsl, \c
- * tsl) and four kernel matrices (\c bp, \c arr, \c art, \c att) at Fourier
- * order \c is, using the Legendre coefficients stored in \c ctx->polar.betal.
+ * tsl) and six kernel matrices at Fourier order \c is, using the polarized
+ * Legendre coefficients stored in \c ctx->polar.
  *
  * These arrays feed directly into the vector successive-orders solver
  * sixs_ospol().
@@ -55,7 +48,8 @@
 void sixs_kernelpol(const SixsCtx *ctx, int is, int mu, const float *rm_off,
                     double *xpl_off, double *xrl_off, double *xtl_off,
                     double *psl, double *rsl, double *tsl, double *bp,
-                    double *arr, double *art, double *att)
+                    double *gr, double *gt, double *arr, double *art,
+                    double *att)
 {
     int nquad = ctx->quad.nquad;
     int ip1 = nquad - 3;
@@ -71,6 +65,8 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu, const float *rm_off,
 #define XRL(j)    xrl_off[(j) + mu]
 #define XTL(j)    xtl_off[(j) + mu]
 #define BP(j, k)  bp[(j) * dim + ((k) + mu)]
+#define GR(j, k)  gr[(j) * dim + ((k) + mu)]
+#define GT(j, k)  gt[(j) * dim + ((k) + mu)]
 #define ARR(j, k) arr[(j) * dim + ((k) + mu)]
 #define ART(j, k) art[(j) * dim + ((k) + mu)]
 #define ATT(j, k) att[(j) * dim + ((k) + mu)]
@@ -238,38 +234,43 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu, const float *rm_off,
     }
 
     /* ── Compute kernel matrices ─────────────────────────────────────── */
-    /* Simplified aerosol model: gammal = zetal = 0, alphal = betal.
-     * Therefore:
-     *   bp[j][k]  = Σ_l psl[l,j]·psl[l,k]·betal[l]   (same as scalar kernel)
-     *   arr[j][k] = Σ_l rsl[l,j]·rsl[l,k]·betal[l]
-     *   att[j][k] = Σ_l tsl[l,j]·tsl[l,k]·betal[l]
-     *   art[j][k] = Σ_l tsl[l,j]·rsl[l,k]·betal[l]
-     *   gr = gt = 0 (not stored; handled by caller via gamma2) */
     int ij = ip1;
     for (int j = 0; j <= mu; j++) {
         for (int kk = -mu; kk <= mu; kk++) {
-            double sbp = 0.0, sarr = 0.0, satt = 0.0, sart = 0.0;
+            double sbp = 0.0, sgr = 0.0, sgt = 0.0;
+            double sarr = 0.0, satt = 0.0, sart = 0.0;
             if (is <= ij) {
                 for (int l = is; l <= ij; l++) {
                     double bl = (double)ctx->polar.betal[l];
+                    double al = (double)ctx->polar.alphal[l];
+                    double gl = (double)ctx->polar.gammal[l];
+                    double zl = (double)ctx->polar.zetal[l];
                     double pjl = PSL(l, j), pkl = PSL(l, kk);
                     double rjl = RSL(l, j), rkl = RSL(l, kk);
                     double tjl = TSL(l, j), tkl = TSL(l, kk);
                     sbp += pjl * pkl * bl;
-                    sarr += rjl * rkl * bl;
-                    satt += tjl * tkl * bl;
-                    sart += tjl * rkl * bl;
+                    sgr += pjl * rkl * gl;
+                    sgt += pjl * tkl * gl;
+                    satt += tjl * tkl * al + rjl * rkl * zl;
+                    sarr += tjl * tkl * zl + rjl * rkl * al;
+                    sart += tjl * rkl * al + rjl * tkl * zl;
                 }
             }
             if (fabs(sbp) < 1e-30)
                 sbp = 0.0;
             if (fabs(sarr) < 1e-30)
                 sarr = 0.0;
+            if (fabs(sgr) < 1e-30)
+                sgr = 0.0;
+            if (fabs(sgt) < 1e-30)
+                sgt = 0.0;
             if (fabs(satt) < 1e-30)
                 satt = 0.0;
             if (fabs(sart) < 1e-30)
                 sart = 0.0;
             BP(j, kk) = sbp;
+            GR(j, kk) = sgr;
+            GT(j, kk) = sgt;
             ARR(j, kk) = sarr;
             ATT(j, kk) = satt;
             ART(j, kk) = sart;
@@ -284,6 +285,8 @@ void sixs_kernelpol(const SixsCtx *ctx, int is, int mu, const float *rm_off,
 #undef XRL
 #undef XTL
 #undef BP
+#undef GR
+#undef GT
 #undef ARR
 #undef ART
 #undef ATT

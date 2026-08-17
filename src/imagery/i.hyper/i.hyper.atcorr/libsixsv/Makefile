@@ -83,7 +83,7 @@ ifeq ($(origin OFFLOAD_FLAGS), undefined)
 
 endif  # origin OFFLOAD_FLAGS
 
-EXTRA_CFLAGS = -O3 -ffast-math -fopenmp $(OFFLOAD_FLAGS) -std=c11 -fPIC \
+EXTRA_CFLAGS = -O3 -fopenmp $(OFFLOAD_FLAGS) -std=c11 -fPIC \
                -Wall -Wextra -Wno-unused-parameter
 
 # Runtime dependencies: OpenMP + libm only (no GRASS libraries)
@@ -100,9 +100,8 @@ $(OBJDIR)/%.o: src/%.c | $(OBJDIR)
 	$(call compiler_c)
 
 # ── Install ────────────────────────────────────────────────────────────────────
-# Public headers installed to $(INST_DIR)/include/grass/ so that dependent
-# modules can use the standard -I$(GISBASE)/include include path.
-# The Python bindings go to $(INST_DIR)/scripts/ alongside other Python helpers.
+# The module-facing public headers are installed to $(INST_DIR)/include/grass/
+# so dependent GRASS modules can use the standard -I$(GISBASE)/include path.
 
 GRASS_INC_INST = $(INST_DIR)/include/grass
 
@@ -113,12 +112,11 @@ install: lib
 	$(MKDIR) $(GRASS_INC_INST)
 	$(INSTALL_DATA) include/atcorr.h  $(GRASS_INC_INST)/
 	$(INSTALL_DATA) include/brdf.h    $(GRASS_INC_INST)/
-	$(INSTALL_DATA) python/atcorr.py  $(INST_DIR)/scripts/
 
 .PHONY: install
 
 # ── Debian package ─────────────────────────────────────────────────────────────
-# Produces libsixsv1_<ver>_<arch>.deb  and  libsixsv-dev_<ver>_<arch>.deb
+# Produces libsixsv2_<ver>_<arch>.deb  and  libsixsv-dev_<ver>_<arch>.deb
 # in the parent directory (standard dpkg-buildpackage output location).
 #
 # Usage:
@@ -141,6 +139,6 @@ deb-src:
 deb-clean:
 	dh_clean
 	rm -f ../libsixsv*.deb ../libsixsv*.changes ../libsixsv*.buildinfo
-	rm -f libsixsv.so libsixsv.so.1 libsixsv.so.1.0.0
+	rm -f libsixsv.so libsixsv.so.2 libsixsv.so.2.0.0
 
 .PHONY: deb deb-src deb-clean

@@ -352,6 +352,7 @@ static void compute_iso(SixsCtx *ctx, float tamoy, float trmoy, float pizmoy,
             if (xt2 < xt1)
                 iplane++;
         }
+        h[iplane] = taup;
         if (tr > acu2 && ta > acu2) {
             double ca = ta * exp(-palt / ha), cr = tr * exp(-palt / hr);
             cr /= hr;
@@ -524,7 +525,7 @@ static void compute_iso(SixsCtx *ctx, float tamoy, float trmoy, float pizmoy,
         }
         if (z < 0.00001)
             break;
-        if (ig >= igmax)
+        if (ig > igmax)
             break;
     }
 

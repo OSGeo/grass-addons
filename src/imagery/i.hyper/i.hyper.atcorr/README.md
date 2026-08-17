@@ -16,11 +16,15 @@ Spectrum) radiative transfer algorithm with OpenMP parallelisation.
 
 | Mode | Trigger | Purpose |
 |------|---------|---------|
-| **LUT generation** | `lut=` | Compute a binary look-up table of atmospheric parameters over an [AOD × H₂O × wavelength] grid |
-| **Cube correction** | `input=` / `output=` | Apply the LUT to a 3D raster radiance cube, writing a surface (BOA) reflectance cube |
+| **LUT generation** | `lut=` | Compute and write a binary look-up table of atmospheric parameters over an [AOD × H₂O × wavelength] grid |
+| **Cube correction** | `input=` and `output=` | Compute a LUT in memory and apply it to a 3D raster radiance cube, writing a surface (BOA) reflectance cube |
 
 Both modes can be combined in a single invocation; the LUT is computed once
 and used immediately for correction.
+
+`lut=` is output-only: the module does not read an existing LUT. An `input=`
+correction therefore requires `output=`; specifying `lut=` as well only saves
+the LUT computed by that invocation.
 
 ---
 
@@ -33,21 +37,81 @@ parameters:
 
 | Symbol | Name |
 |--------|------|
-| **R_atm** | Atmospheric path reflectance |
+| **R_atm** | Gas-weighted effective atmospheric path reflectance |
 | **T_down** | Total downward transmittance (direct + diffuse) |
-| **T_up** | Total upward transmittance (direct + diffuse) |
+| **T_up** | Gas-weighted effective total upward transmittance (direct + diffuse) |
 | **s_alb** | Spherical albedo of the atmosphere |
+
+The stored coefficients are arranged so that their product represents the
+combined scattering and gas terms used by the inversion. In particular,
+`R_atm` weights the aerosol/multiple-scattering and Rayleigh path components
+by their applicable gas transmittances. The stored upward coefficient is
+`T_up_sca × T_gas,total / T_gas,down`, while `T_down` contains
+`T_down_sca × T_gas,down`; consequently `T_down × T_up` contains total gas
+absorption over the complete Sun-surface-sensor path. These are effective
+inversion coefficients, not gas-free scattering quantities.
 
 ### Inversion (BOA reflectance)
 
 ```
 ρ_toa = (π × L × d²) / (E₀ × cos θₛ)
-ρ_boa = (ρ_toa − R_atm) / (T_down × T_up × (1 + s_alb × ρ_boa))
+y     = (ρ_toa − R_atm) / (T_down × T_up)
+ρ_boa = y / (1 + s_alb × y)
 ```
 
 where *L* is TOA radiance in W/(m² sr µm), *E₀* is the Thuillier solar
 irradiance (from 6SV2.1 tables), and *d²* is the squared Earth-Sun distance
 for the acquisition day-of-year.
+
+### Sensor altitude
+
+`altitude=` is the sensor altitude in kilometres and selects three modes:
+
+- `altitude <= 0`: ground sensor; no target-to-sensor atmospheric column
+- `0 < altitude < 100`: aircraft sensor; uses partial Rayleigh, aerosol, and
+  gas columns between the target and aircraft
+- `altitude >= 100`: satellite sensor; uses the full atmospheric column
+
+The default is 1000 km.
+
+### Aerosols and vector radiative transfer
+
+`aerosol=desert` uses the complete background desert model (BDM) optical and
+phase-matrix tables rather than a continental proxy. With `-P`, the built-in
+models (`none`, `continental`, `maritime`, `urban`, and `desert`) use their
+full aerosol polarization data in the vector Stokes calculation. Combining
+`-P` with `aerosol=custom` is rejected because the custom Mie model does not
+provide a mathematically compatible polarized phase matrix.
+
+Vector transfer propagates Stokes I, Q, and U internally so polarization can
+feed back into Stokes I. The module consumes only the resulting Stokes-I
+`R_atm`; neither corrected Q/U products nor Q/U arrays in the binary LUT are
+written.
+
+Automatic libRadtran/reptran SRF correction is disabled and unsupported. Its
+gas parameterization is incompatible with direct multiplication into the
+current 6SV effective coefficients. It must not be enabled until SRF effects
+can be integrated consistently into `R_atm`, `T_down`, and `T_up`.
+
+### Input units and metadata
+
+Input must be calibrated spectral radiance. Metadata units per nanometre are
+multiplied by 1000 to obtain W m⁻² sr⁻¹ µm⁻¹; per-micrometre units are used
+unchanged. Missing radiometric units produce a warning and are assumed to be
+per micrometre. Reflectance metadata is rejected, as is any radiometric unit
+string not recognized as per-nanometre or per-micrometre radiance.
+
+Band centres and FWHM may be declared in `nm`, `um`, or `cm-1`. Nanometres are
+divided by 1000, micrometres are unchanged, and wavenumber centres are
+converted with `λ[µm] = 10000 / ν[cm⁻¹]`. Wavenumber FWHM is converted with
+`Δλ[µm] = 10000 Δν / ν²`. If wavelength units are absent they default to nm;
+other unit strings are rejected. The history fallback accepts entries of the
+form `Band N: WL nm` (with optional FWHM in nm).
+
+Final output reflectance is clipped to [-0.01, 1.5] after optional processing,
+retaining the module's established range. A
+`quality=` mask is output-only and does not mask or null the corrected
+reflectance cube.
 
 ---
 
@@ -188,8 +252,10 @@ i.hyper.atcorr -w -a \
 ```
 
 Each of the three comma-separated 7-float strings gives MCD43A1 kernel
-weights (scale factor 0.001 already applied) at the MODIS band centres in
-order B3, B4, B1, B2, B5, B6, B7.  Per-pixel spatial amplitude rasters
+weights at the MODIS band centres in order B3, B4, B1, B2, B5, B6, B7.
+Inputs must already be physically scaled; apply the MCD43 product scale
+factor before passing either these values or the `brdf_f*` rasters. The
+module does not apply a 0.001 scale factor. Per-pixel spatial amplitude rasters
 (`brdf_fiso=`, `brdf_fvol=`, `brdf_fgeo=`) can be combined: the effective
 weight at band z and pixel i is `f_iso_px(i) × fiso_wl(z) / fiso_wl(858 nm)`.
 When only scene-mean scalar kernels are given, the per-pixel factor is 1.
@@ -230,7 +296,7 @@ forest; ~ 0.5–0.7 for open shrubland; NaN for bare soil, water, urban.
 
 | Scene | Flags | Rationale |
 |-------|-------|-----------|
-| Saharan dust | `-z dem=` | No DDV (barren desert); dry uniform H₂O; O₃ and elevation matter |
+| Saharan dust | `aerosol=desert -z dem=` | Use the BDM desert aerosol; no DDV over barren desert; O₃ and elevation matter |
 | Amazon / tropical | `-z -w -a` | Dense forest = ideal DDV; ~4 g/cm² WVC gradient; low tropical O₃ |
 | Urban temperate winter | `-z -a` | Variable O₃ (polar vortex); farmland DDV; dry winter air |
 | Mediterranean coastal | `-w -a` | Land–sea H₂O gradient; coastal DDV; stable O₃ |
@@ -254,7 +320,7 @@ i.hyper.atcorr \
 ```sh
 i.hyper.atcorr \
     input=tanager_radiance output=tanager_refl \
-    lut=kanpur.lut \
+    lut=tanager_correction.lut \
     sza=35.2 vza=4.1 raa=97 doy=45 \
     aod_val=0.18 h2o_val=3.5 \
     atmosphere=midsum aerosol=continental
@@ -281,11 +347,12 @@ Runs with:
 - Surface prior MAP regularisation
 - Uncertainty output in `tanager_refl_unc`
 
-### Fully standalone — all atmospheric state from the image
+### Image-based retrieval example
 
-No external ancillary products required.  A single command retrieves O₃,
-per-pixel H₂O, per-pixel AOD, and surface pressure from the image, then
-generates the LUT and applies the correction.
+This example derives selected atmospheric values from available image bands
+and uses a DEM for surface pressure. It is not a standalone retrieval claim:
+the result depends on suitable wavelength metadata, scene content, the DEM,
+the selected atmospheric and aerosol models, and the configured LUT ranges.
 
 ```sh
 i.hyper.atcorr -z -w -a \
@@ -313,17 +380,20 @@ i.hyper.atcorr -z -w -a \
 
 ## Options Reference
 
-Each option shown below resolves via the chain **CLI → input-map metadata → hardcoded default**.
-Options with `—` as the default (e.g. `sza=`) are required and must be provided either on the
-command line or via the input map's `hyper.json` metadata.
+Metadata precedence is not a general rule for every option. For supported
+scene scalar fields only, precedence is **CLI → input-map metadata → module
+default**: `sza`, `vza`, `raa`, `sun_azimuth`, `altitude`, `ozone`, `aod_val`,
+`h2o_val`, and `doy`. `sza` has no usable default and must come from the CLI or
+metadata. Atmosphere and aerosol model names also have explicit metadata
+fallbacks; LUT axes, files, flags, and ancillary raster options do not.
 
 ### I/O
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `input=` | R3 raster | TOA radiance W/(m² sr µm) |
+| `input=` | R3 raster | TOA spectral radiance; metadata may declare per-nm or per-µm units |
 | `output=` | R3 raster | BOA surface reflectance |
-| `lut=` | file | Binary LUT output file |
+| `lut=` | file | Binary LUT output file; never read as correction input |
 
 ### Geometry
 
@@ -332,7 +402,7 @@ command line or via the input map's `hyper.json` metadata.
 | `sza=` | — | Solar zenith angle (°) |
 | `vza=` | 0 | View zenith angle (°) |
 | `raa=` | 0 | Relative azimuth angle (°) |
-| `altitude=` | 1000 | Sensor altitude in km (>900 = satellite) |
+| `altitude=` | 1000 | Sensor altitude in km: <=0 ground, >0 and <100 aircraft, >=100 satellite |
 
 ### Atmosphere
 
@@ -351,7 +421,7 @@ command line or via the input map's `hyper.json` metadata.
 | Option | Default | Description |
 |--------|---------|-------------|
 | `aod=` | 0.0,0.05,0.1,0.2,0.4,0.8 | AOD at 550 nm grid points |
-| `h2o=` | 0.5,1.0,2.0,3.5,5.0 | H₂O grid points (g/cm²) |
+| `h2o=` | 0.5,1.0,1.5,2.0,3.5,5.0 | H₂O grid points (g/cm²) |
 | `wl_min=` | 400 | Minimum wavelength (nm) |
 | `wl_max=` | 2500 | Maximum wavelength (nm) |
 | `wl_step=` | 10 | Wavelength step (nm) |
@@ -360,7 +430,7 @@ command line or via the input map's `hyper.json` metadata.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `doy=` | 180 | Day of year (Earth-Sun distance) |
+| `doy=` | 180 | Day of year (Earth-Sun distance), range 1–366 |
 | `aod_val=` | 0.1 | Scene-average AOD (scalar fallback) |
 | `h2o_val=` | 2.0 | Scene-average H₂O g/cm² (scalar fallback) |
 
@@ -380,25 +450,36 @@ command line or via the input map's `hyper.json` metadata.
 ### Image-based Retrieval
 
 These flags retrieve atmospheric state directly from the input radiance cube,
-eliminating the need for co-located ancillary products.  `-z` and `dem=`
-update the LUT configuration before it is computed; `-w` and `-a` provide
-per-pixel arrays used during the correction step.
+when the required bands and wavelength metadata are available. `-z` and
+`dem=` update the LUT configuration before it is computed; `-w` and `-a`
+provide per-pixel arrays used during the correction step. They do not make
+every scene independent of ancillary data or atmospheric assumptions.
 
 | Option / Flag | Description |
 |---------------|-------------|
 | `-z` | Retrieve scene-mean O₃ (DU) from Chappuis band depth at 600 nm; requires bands near 540, 600, 680 nm |
 | `-w` | Retrieve per-pixel WVC (g/cm²) from three H₂O features (720/940/1135 nm) with per-pixel median consensus; FWHM scaling applied automatically |
 | `-a` | Retrieve per-pixel AOD at 550 nm from MODIS DDV algorithm; requires bands near 470, 660, 860, 2130 nm |
+| `-m quality=` | Write a 2-D cloud/shadow/water/snow bitmask; output-only and not applied to the corrected reflectance cube |
 | `dem=` | ISA surface pressure from mean elevation of a DEM raster; replaces default 1013.25 hPa |
+
+### Polarization
+
+| Option / Flag | Default | Description |
+|---------------|---------|-------------|
+| `-P` | off | Vector Stokes-I feedback using full polarization tables for built-in aerosols; no Q/U output; incompatible with `aerosol=custom` |
 
 ### FlexBRDF — spectrally-varying NBAR
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `mcd43_fiso=` | — | 7 comma-separated f_iso kernel weights at MODIS band centres (B3,B4,B1,B2,B5,B6,B7); scale factor 0.001 applied |
+| `mcd43_fiso=` | — | 7 comma-separated, already-scaled f_iso kernel weights at MODIS band centres (B3,B4,B1,B2,B5,B6,B7) |
 | `mcd43_fvol=` | — | 7 comma-separated f_vol kernel weights (must accompany `mcd43_fiso=` and `mcd43_fgeo=`) |
 | `mcd43_fgeo=` | — | 7 comma-separated f_geo kernel weights |
 | `mcd43_alpha=` | 0.10 | Tikhonov second-difference regularization strength (0 = off; 0.05–0.20 typical) |
+
+The module does not apply the MCD43 0.001 product scale factor. Values passed
+through all `mcd43_f*` and `brdf_f*` inputs must already be scaled.
 
 ### DASF retrieval
 
@@ -411,47 +492,14 @@ per-pixel arrays used during the correction step.
 
 ## Architecture
 
-The RT physics are provided by **[libsixsv/](libsixsv/)**, vendored via git
-subtree from [YannChemin/libsixsv](https://github.com/yannchemin/libsixsv).
-Everything compiles into a single executable for maximum portability:
-
-```
-src/imagery/i.hyper/
-├── Makefile                  (sequential SUBDIRS build)
-├── CMakeLists.txt
-└── i.hyper.atcorr/           C addon module (single executable)
-    ├── main.c                GRASS module entry point (~2700 lines)
-    ├── Makefile              Module.make — compiles main.c + libsixsv/src/*.c
-    ├── CMakeLists.txt        cmake build_addon — lists all libsixsv sources
-    ├── i.hyper.atcorr.html   user manual
-    ├── i.hyper.atcorr.md     markdown manual
-    ├── README.md
-    └── libsixsv/             vendored via git subtree (YannChemin/libsixsv)
-        ├── include/          14 public headers
-        │   ├── atcorr.h      Public API (LutConfig, LutArrays, all exports)
-        │   ├── spatial.h     [#1]
-        │   ├── adjacency.h   [#2]
-        │   ├── surface_model.h [#3,#5,#6]
-        │   ├── uncertainty.h [#4]
-        │   ├── spectral_brdf.h FlexBRDF (mcd43_disaggregate, spectral_smooth_tikhonov)
-        │   └── retrieve.h    Retrieval API (H2O, AOD, O3, DASF)
-        └── src/              ~40 .c files
-            ├── lut.c         OpenMP LUT computation (AOD outer loop)
-            │                 + atcorr_lut_interp_pixel() trilinear interp
-            ├── discom.c      6SV scattering at 20 reference wavelengths (SOS)
-            ├── interp.c      Log-log wavelength interpolation
-            ├── gas_abs.c     Curtis-Godson gas transmittance
-            ├── aerosol.c     Aerosol mixture initialisation
-            ├── atmosphere.c  Standard atmosphere models
-            ├── srf_conv.c    SRF gas correction via libRadtran reptran fine
-            ├── spatial.c     Separable Gaussian + box filters          [#1]
-            ├── adjacency.c   Vermote 1997 adjacency correction         [#2]
-            ├── surface_model.c 3-component surface prior + MAP         [#3,#5,#6]
-            ├── uncertainty.c Noise + AOD-perturbation uncertainty      [#4]
-            ├── spectral_brdf.c MCD43 disaggregation + Tikhonov smoother [FlexBRDF]
-            ├── retrieve.c    Image-based retrieval (H2O/AOD/O3/DASF)
-            └── rt.c / scatra.c / ... (6SV RT solver, ported from Fortran)
-```
+The 6SV implementation is a source-vendored copy of
+**[libsixsv/](libsixsv/)**, imported from
+[YannChemin/libsixsv](https://github.com/yannchemin/libsixsv) with git subtree.
+The module Makefile and CMake target compile those C sources directly into the
+GRASS module; a separately installed `libsixsv` shared library is not a build
+or runtime dependency. The build requires GRASS development libraries, a C11
+compiler, the math library, and OpenMP support. libRadtran is not a supported
+module dependency because automatic SRF correction is disabled.
 
 ---
 
@@ -475,7 +523,9 @@ s_alb [n_aod × n_h2o × n_wl]  float32
 ```
 
 C order: wavelength index varies fastest.
-Typical size: ~4 MB for 6 AOD × 5 H₂O × 211 wavelengths.
+The file size is `20 + 4(n_aod + n_h2o + n_wl) +
+16(n_aod n_h2o n_wl)` bytes. The default 6 AOD × 6 H₂O × 211 wavelength grid
+is 122,448 bytes (about 120 KiB), not multiple megabytes.
 
 ---
 
@@ -512,7 +562,7 @@ Typical size: ~4 MB for 6 AOD × 5 H₂O × 211 wavelengths.
 
 | Repository | Relationship | Description |
 |---|---|---|
-| [libsixsv](https://github.com/yannchemin/libsixsv) | **Upstream dependency** | 6SV2.1 RT physics library; provides LUT computation, per-pixel inversion, BRDF models, retrievals |
+| [libsixsv](https://github.com/yannchemin/libsixsv) | **Upstream source** | Source-vendored 6SV2.1 implementation; no separately installed library is required by this module |
 
 ## Subtree dependency
 
@@ -525,4 +575,4 @@ To pull upstream changes:
 
 ## Authors
 
-i.hyper.smac project / Yann Chemin.
+Yann Chemin, Seilio Douar EI; Tomaz Zagar, Geodetic Institute of Slovenia.

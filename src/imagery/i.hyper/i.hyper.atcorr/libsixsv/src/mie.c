@@ -393,6 +393,10 @@ void sixs_mie_init(SixsCtx *ctx, double r_mode, double sigma_g, double m_r_550,
         ctx->aer.phase[l] = (sca_acc[l] > 0.0 && nbmu > 0)
                                 ? (float)(ph_wl[l * nbmu + 0] / sca_acc[l])
                                 : 0.0f;
+        for (int k = 0; k < nbmu; k++)
+            ctx->aer.custom_pha[l][k] =
+                sca_acc[l] > 0.0 ? (float)(ph_wl[l * nbmu + k] / sca_acc[l])
+                                 : 0.0f;
     }
 
     /* Build phase function in ctx->polar (Legendre expansion at 550 nm) */

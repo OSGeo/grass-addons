@@ -40,7 +40,7 @@ float sixs_E0(float wl_um)
  * top-of-atmosphere irradiance is divided relative to the mean Earth-Sun
  * distance (i.e. \f$E = E_0 / d^2\f$).
  *
- * \param[in]  doy  Day of year (1–365).
+ * \param[in]  doy  Day of year (1–366).
  * \return \f$d^2\f$ in AU² (~0.967 in January, ~1.034 in July).
  */
 double sixs_earth_sun_dist2(int doy)

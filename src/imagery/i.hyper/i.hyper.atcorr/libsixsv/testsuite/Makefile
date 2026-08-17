@@ -62,7 +62,7 @@ test: lib fortran
 
 test-fortran: lib fortran
 	$(PYTEST_CMD) test_fortran_compat.py test_lut.py test_solar.py \
-	  test_6sv21_pipeline_parity.py
+	  test_6sv21_pipeline_parity.py test_6sv21_extended_parity.py
 
 test-openmp: lib
 	$(PYTEST_CMD) test_openmp.py

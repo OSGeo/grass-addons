@@ -217,7 +217,7 @@ for b, name in enumerate(band_names):
     print(f"Band {b} {name} ({wl[b]:.2f} µm): mean BOA = {rho_boa.mean():.4f}")
 
 # ── BRDF-coupled inversion (RPV model, green band) ────────────────────────────
-# sixs_brdf_albe() returns the white-sky (hemispherical) albedo for an RPV surface.
+# sixs_brdf_albe() returns the black-sky (directional-hemispherical) albedo for an RPV surface.
 # atcorr_invert_brdf is a static inline in atcorr.h:
 #   y = (rho_toa - R_atm) / (T_down * T_up + 1e-10)
 #   rho_brdf = y * (1 - s_alb * rho_albe)
@@ -254,5 +254,5 @@ y = (rho_toa_val - Ra) / (Td * Tu + 1e-10)
 rho_brdf = y * (1.0 - sa * rho_albe)
 print(
     f"\nRPV BRDF correction: rho_BRDF = {rho_brdf:.4f}  "
-    f"(white-sky albedo = {rho_albe:.4f})"
+    f"(black-sky albedo = {rho_albe:.4f})"
 )

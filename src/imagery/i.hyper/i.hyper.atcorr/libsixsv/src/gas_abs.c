@@ -115,13 +115,13 @@ static float compute_gas_trans(const SixsCtx *ctx, const float a[8], double ud,
  * \param[out] u_out   Temperature-corrected slant column amount.
  * \param[out] up_out  Pressure-weighted slant column amount.
  */
-static void compute_column(const SixsCtx *ctx, int gas_id, const float a[8],
+static void compute_column(const SixsAtm *atm, int gas_id, const float a[8],
                            float xmus, double *u_out, double *up_out)
 {
-    const float *p = ctx->atm.p;
-    const float *t = ctx->atm.t;
-    const float *wh = ctx->atm.wh;
-    const float *wo = ctx->atm.wo;
+    const float *p = atm->p;
+    const float *t = atm->t;
+    const float *wh = atm->wh;
+    const float *wo = atm->wo;
 
     const float t0 = 250.0f;
     const float p0 = 1013.25f;
@@ -219,8 +219,11 @@ static void compute_column(const SixsCtx *ctx, int gas_id, const float a[8],
  * \param[in]  uo3    Ozone column (Dobson units); ≤0 uses profile default.
  * \return Combined downward gas transmittance in [0, 1].
  */
-float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
-                             float xmuv, float uw, float uo3)
+static float gas_transmittance_profile(const SixsCtx *ctx,
+                                       const SixsAtm *profile, float wl,
+                                       float xmus, float h2o_scale,
+                                       float ozone_scale, float h2o_column,
+                                       float ozone_column_du)
 {
     if (wl <= 0.0f)
         return 1.0f;
@@ -261,13 +264,13 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
 
         /* H2O: scale by uw/uwus (uwus=1.424 g/cm²) */
         float scale = 1.0f;
-        if (gas_id == 1 && uw > 0.0f)
-            scale = uw / 1.424f;
-        if (gas_id == 4 && uo3 > 0.0f)
-            scale = uo3 / 344.0f;
+        if (gas_id == 1)
+            scale = h2o_scale;
+        if (gas_id == 4)
+            scale = ozone_scale;
 
         double ud, upd;
-        compute_column(ctx, gas_id, a, xmus, &ud, &upd);
+        compute_column(profile, gas_id, a, xmus, &ud, &upd);
         ud *= scale;
         upd *= scale;
 
@@ -283,9 +286,8 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
         if (n >= 2 && n <= 15) {
             float ah2o =
                 gas_cch2o[n - 1] + xd * (gas_cch2o[n - 1] - gas_cch2o[n - 2]);
-            /* Match the 0.1 column conversion produced by ABSTRA's pressure
-             * integration before applying CCH2O. */
-            float uud = (uw > 0.0f ? uw : 1.424f) / (10.0f * xmus);
+            /* ABSTRA's continuum uu uses one tenth of the API g/cm2 column. */
+            float uud = h2o_column / (10.0f * xmus);
             tgas_down *= expf(-ah2o * uud);
         }
     }
@@ -305,7 +307,7 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
                          xd * (gas_co3_ozon[n - 1] -
                                (n > 1 ? gas_co3_ozon[n - 2] : gas_co3_ozon[0]));
             /* Ozone column: uo3 in Dobson units / 1000 = atm-cm */
-            float uud = (uo3 > 0.0f ? uo3 / 1000.0f : 0.344f) / xmus;
+            float uud = (ozone_column_du / 1000.0f) / xmus;
             float test = ako3 * uud;
             if (test > 86.0f)
                 test = 86.0f;
@@ -314,6 +316,161 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
     }
 
     return tgas_down;
+}
+
+static void profile_columns(const SixsAtm *atm, float *h2o, float *ozone_du)
+{
+    const float g = 98.1f;
+    const float air = 0.028964f / 0.0224f;
+    const float ro3 = 0.048f / 0.0224f;
+    float rmwh[NATM - 1], rmo3[NATM - 1];
+
+    for (int k = 0; k < NATM - 1; k++) {
+        float roair = air * 273.16f * atm->p[k] / (1013.25f * atm->t[k]);
+        rmwh[k] = atm->wh[k] / (roair * 1000.0f);
+        rmo3[k] = atm->wo[k] / (roair * 1000.0f);
+    }
+
+    double uw = 0.0, uo3 = 0.0;
+    for (int k = 1; k < NATM - 1; k++) {
+        float ds = (atm->p[k - 1] - atm->p[k]) / atm->p[0];
+        uw += 0.5 * (rmwh[k] + rmwh[k - 1]) * ds;
+        uo3 += 0.5 * (rmo3[k] + rmo3[k - 1]) * ds;
+    }
+    uw *= atm->p[0] * 100.0 / g;
+    uo3 *= atm->p[0] * 100.0 / g;
+    *h2o = (float)uw;
+    *ozone_du = (float)(1.0e6 * uo3 / ro3);
+}
+
+void sixs_gas_profile_columns(const SixsCtx *ctx, float *h2o, float *ozone_du)
+{
+    profile_columns(&ctx->atm, h2o, ozone_du);
+}
+
+static float column_scale(float requested, float reference)
+{
+    return reference > 1e-12f ? requested / reference : 0.0f;
+}
+
+float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
+                             float xmuv, float uw, float uo3)
+{
+    (void)xmuv;
+    float reference_h2o, reference_ozone;
+    profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
+    float h2o_column =
+        reference_h2o > 1e-12f ? (uw > 0.0f ? uw : reference_h2o) : 0.0f;
+    float ozone_column =
+        reference_ozone > 1e-12f ? (uo3 > 0.0f ? uo3 : reference_ozone) : 0.0f;
+    return gas_transmittance_profile(
+        ctx, &ctx->atm, wl, xmus, column_scale(h2o_column, reference_h2o),
+        column_scale(ozone_column, reference_ozone), h2o_column, ozone_column);
+}
+
+float sixs_gas_transmittance_plane(const SixsCtx *ctx, float wl, float xmuv,
+                                   float uw, float uo3)
+{
+    if (!ctx->has_plane_atm)
+        return 1.0f;
+    float reference_h2o, reference_ozone;
+    profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
+    float h2o_scale =
+        column_scale(uw > 0.0f ? uw : reference_h2o, reference_h2o);
+    float ozone_scale =
+        column_scale(uo3 > 0.0f ? uo3 : reference_ozone, reference_ozone);
+    return gas_transmittance_profile(ctx, &ctx->plane_atm, wl, xmuv, h2o_scale,
+                                     ozone_scale, ctx->plane_h2o * h2o_scale,
+                                     ctx->plane_ozone_du * ozone_scale);
+}
+
+float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
+                                   float wl, float xmus, float xmuv, float uw,
+                                   float uo3)
+{
+    if (wl <= 0.0f)
+        return 1.0f;
+    float v = 1.0e4f / wl;
+    int iv = (int)(v / 5.0f) * 5;
+    int id = ((iv - 2500) / 10) / 256 + 1;
+    int inu = 0;
+    int have_k_band = id >= 1 && id <= 6;
+    if (have_k_band) {
+        inu = (iv - ivli[id - 1]) / 10 + 1;
+        have_k_band = inu >= 1 && inu <= 256;
+    }
+
+    float reference_h2o, reference_ozone;
+    profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
+    float h2o_column =
+        reference_h2o > 1e-12f ? (uw >= 0.0f ? uw : reference_h2o) : 0.0f;
+    float ozone_column =
+        reference_ozone > 1e-12f ? (uo3 >= 0.0f ? uo3 : reference_ozone) : 0.0f;
+    float h2o_scale = column_scale(h2o_column, reference_h2o);
+    float ozone_scale = column_scale(ozone_column, reference_ozone);
+    const SixsAtm *up_profile =
+        observer_mode == 2 ? &ctx->plane_atm : &ctx->atm;
+    float up_h2o =
+        observer_mode == 0
+            ? 0.0f
+            : (observer_mode == 2 ? ctx->plane_h2o * h2o_scale : h2o_column);
+    float up_ozone =
+        observer_mode == 0
+            ? 0.0f
+            : (observer_mode == 2 ? ctx->plane_ozone_du * ozone_scale
+                                  : ozone_column);
+
+    float total = 1.0f;
+    for (int gas_id = 1; have_k_band && gas_id <= 7; gas_id++) {
+        int has_data = gas_id == 1 || gas_id >= 5;
+        if (gas_id == 2)
+            has_data = id <= 3 && iv <= 9620;
+        if (gas_id == 3)
+            has_data = id >= 3 && iv <= 15920;
+        if (gas_id == 4)
+            has_data = id == 1 && iv <= 3020;
+        if (!has_data)
+            continue;
+
+        float a[8];
+        get_gas_coef(gas_id, id, inu, a);
+        if (a[0] == 0.0f)
+            continue;
+        double u_down, up_down, u_up = 0.0, up_up = 0.0;
+        compute_column(&ctx->atm, gas_id, a, xmus, &u_down, &up_down);
+        if (observer_mode != 0)
+            compute_column(up_profile, gas_id, a, xmuv, &u_up, &up_up);
+        float scale =
+            gas_id == 1 ? h2o_scale : (gas_id == 4 ? ozone_scale : 1.0f);
+        total *= compute_gas_trans(ctx, a, (u_down + u_up) * scale,
+                                   (up_down + up_up) * scale, gas_id);
+    }
+
+    if (iv >= 2350 && iv <= 3000) {
+        float xi = (v - 2350.0f) / 50.0f + 1.0f;
+        int n = (int)(xi + 1.001f);
+        float xd = xi - (float)n;
+        if (n >= 2 && n <= 15) {
+            float ah2o =
+                gas_cch2o[n - 1] + xd * (gas_cch2o[n - 1] - gas_cch2o[n - 2]);
+            total *= expf(-ah2o * (h2o_column / xmus + up_h2o / xmuv) / 10.0f);
+        }
+    }
+    if ((iv >= 13000 && iv <= 23400) || iv >= 27500) {
+        float xi = iv <= 23400 ? (v - 13000.0f) / 200.0f + 1.0f
+                               : (v - 27500.0f) / 500.0f + 57.0f;
+        int n = (int)(xi + 1.001f);
+        float xd = xi - (float)n;
+        if (n >= 1 && n <= 102) {
+            float ako3 = gas_co3_ozon[n - 1] +
+                         xd * (gas_co3_ozon[n - 1] -
+                               (n > 1 ? gas_co3_ozon[n - 2] : gas_co3_ozon[0]));
+            float slant =
+                ozone_column / 1000.0f / xmus + up_ozone / 1000.0f / xmuv;
+            total *= expf(-fminf(86.0f, ako3 * slant));
+        }
+    }
+    return total;
 }
 
 /**
