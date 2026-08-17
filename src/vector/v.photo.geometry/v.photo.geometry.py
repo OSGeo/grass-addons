@@ -60,107 +60,118 @@
 
 import sys
 import os
-import glob
 import math
 import csv
-from datetime import datetime, timedelta
+import json
+import shutil
+import subprocess
+from datetime import datetime
 
 import numpy as np
-from PIL import Image
-from PIL.ExifTags import TAGS, GPSTAGS
-from pyproj import CRS, Transformer
 
 import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Boundary, Centroid, Point, Line
 from grass.pygrass.modules import Module
 
+EXIFTOOL_MIN_VERSION = 12.0
+IMAGE_EXTENSIONS = ("jpg", "jpeg", "tif", "tiff", "dng")
 
-def to_float_if_possible(val):
-    # Try to convert to float, otherwise return original
+
+def find_exiftool():
+    """Return the ExifTool executable path, aborting if unusable."""
+    exe = shutil.which("exiftool")
+    if not exe:
+        gs.fatal(
+            _(
+                "ExifTool is required but was not found on PATH. "
+                "Install it from https://exiftool.org/ "
+                "(Debian/Ubuntu: apt install libimage-exiftool-perl, "
+                "Fedora: dnf install perl-Image-ExifTool, "
+                "macOS: brew install exiftool)."
+            )
+        )
+    version = subprocess.run(
+        [exe, "-ver"], capture_output=True, text=True, check=True
+    ).stdout.strip()
+    if float(version) < EXIFTOOL_MIN_VERSION:
+        gs.fatal(
+            _("ExifTool >= {} is required, found version {}").format(
+                EXIFTOOL_MIN_VERSION, version
+            )
+        )
+    gs.debug(f"Using ExifTool {version} at {exe}")
+    return exe
+
+
+def read_metadata(exiftool, directory):
+    """Read metadata for all images under a directory with one ExifTool call.
+
+    Returns a list of tag dictionaries sorted by source path. Numeric tags
+    are returned unformatted (-n): GPS as signed decimal degrees, rationals
+    as floats.
+    """
+    cmd = [exiftool, "-json", "-n", "-q", "-fast2", "-r"]
+    for ext in IMAGE_EXTENSIONS:
+        cmd += ["-ext", ext]
+    cmd.append(directory)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    # Exit code 1 means some files could not be read; usable output remains.
+    if result.returncode not in (0, 1):
+        gs.fatal(
+            _("ExifTool failed reading '{}': {}").format(
+                directory, result.stderr.strip()
+            )
+        )
+    if not result.stdout.strip():
+        return []
+    records = json.loads(result.stdout)
+    records.sort(key=lambda r: r["SourceFile"])
+    return records
+
+
+def as_float(value, default=None):
+    """Coerce an ExifTool value to float; some tags arrive as strings."""
     try:
-        return float(val)
+        return float(value)
     except (TypeError, ValueError):
-        return val
-
-
-def get_exif(image_path):
-    """Return EXIF data as dict."""
-
-    # TODO: Use exiftools (https://exiftool.org/TagNames/EXIF.html)
-    img = Image.open(image_path)
-    exif_data = {}
-    info = img._getexif()
-    if not info:
-        return exif_data
-    for tag, value in info.items():
-        decoded = TAGS.get(tag, tag)
-        if decoded == "GPSInfo":
-            gps_data = {}
-            for t in value:
-                sub_decoded = GPSTAGS.get(t, t)
-                gps_data[sub_decoded] = value[t]
-            exif_data["GPSInfo"] = gps_data
-        else:
-            exif_data[decoded] = value
-    return exif_data
-
-
-def dms_to_dd(dms, ref):
-    d, m, s = dms
-    gs.debug(_("GPS data found in %s %s %s with ref %s") % (d, m, s, ref))
-    dd = d + (m / 60.0 + (s / 3600.0))
-    if ref in ["S", "W"]:
-        dd = -dd
-    return dd
+        return default
 
 
 def get_coords(exif):
     """Return lon, lat, alt if available."""
-    gps = exif.get("GPSInfo")
-    if not gps:
-        return None
-    lat = dms_to_dd(gps["GPSLatitude"], gps["GPSLatitudeRef"])
-    lon = dms_to_dd(gps["GPSLongitude"], gps["GPSLongitudeRef"])
-    alt = gps.get("GPSAltitude")
-    gs.debug(f"GPS altitude ref: {gps.get('GPSAltitudeRef', 'N/A')}")
-    if not alt:
+    lat = exif.get("GPSLatitude")
+    lon = exif.get("GPSLongitude")
+    alt = exif.get("GPSAltitude")
+    gs.debug(f"GPS altitude ref: {exif.get('GPSAltitudeRef', 'N/A')}")
+    if lat is None or lon is None or not alt:
         return None
     return lon, lat, alt
 
 
 def parse_exif_datetime(exif):
-    """
-    Parse DateTimeOriginal + SubSecTimeOriginal + OffsetTimeOriginal
-    into a precise datetime object.
-    """
-    dt_str = exif.get("DateTimeOriginal")  # "YYYY:MM:DD HH:MM:SS"
-    subsec_str = exif.get("SubsecTimeOriginal") or exif.get("SubSecTime") or "0"
-    offset_str = exif.get("OffsetTimeOriginal")  # e.g. "-05:00"
-
-    if not dt_str:
+    """Return the exposure time as a datetime, preferring subsecond
+    precision and timezone offset when present."""
+    value = None
+    for key in ("SubSecDateTimeOriginal", "DateTimeOriginal", "CreateDate"):
+        value = exif.get(key)
+        if value:
+            break
+    if not value:
         return None
-
-    # Convert main datetime
-    dt = datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S")
-
-    # Add subseconds
-    try:
-        subsec = int(subsec_str)
-        # normalize length: "1"→100 ms, "254"→254 ms
-        factor = 10 ** len(subsec_str)
-        dt += timedelta(seconds=subsec / factor)
-    except Exception:
-        pass
-
-    # Apply timezone offset if present
-    if offset_str:
-        sign = 1 if offset_str[0] == "+" else -1
-        hours, mins = map(int, offset_str[1:].split(":"))
-        offset = timedelta(hours=sign * hours, minutes=sign * mins)
-        dt -= offset  # convert to UTC
-
-    return dt
+    value = str(value)
+    for fmt in (
+        "%Y:%m:%d %H:%M:%S.%f%z",
+        "%Y:%m:%d %H:%M:%S%z",
+        "%Y:%m:%d %H:%M:%S.%f",
+        "%Y:%m:%d %H:%M:%S",
+    ):
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    gs.warning(_("Could not parse timestamp '{}'").format(value))
+    return None
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -430,7 +441,11 @@ def get_orientation(exif):
     # if Yaw is not found it is calculated later
     # from GPS data.
     # Some cameras use MakerNotes instead of EXIF
-    yaw = exif.get("FlightYawDegree")
+    yaw = (
+        exif.get("FlightYawDegree")
+        or exif.get("GimbalYawDegree")
+        or exif.get("GPSImgDirection")
+    )
     pitch = exif.get("GimbalPitchDegree", -90.0)  # Default: nadir
     roll = exif.get("GimbalRollDegree", 0.0)
     gs.debug(_("Orientation: yaw=%s, pitch=%s, roll=%s") % (yaw, pitch, roll))
@@ -602,19 +617,19 @@ def get_camera_details(exif):
     """Extract camera details from EXIF data."""
     make = exif.get("Make", "Unknown")
     model = exif.get("Model", "Unknown")
-    lens = exif.get("LensModel", "Unknown")
+    lens = exif.get("LensModel") or str(exif.get("LensID", "Unknown"))
     gs.debug(_("Camera: %s %s, Lens: %s") % (make, model, lens))
     return make, model, lens
 
 
 def get_photo_specs(exif):
     """Extract photo specifications from EXIF data."""
-    iso = exif.get("ISOSpeedRatings")  # Default ISO
-    shutter_speed = to_float_if_possible(exif.get("ShutterSpeedValue", 0.0))
-    aperture = to_float_if_possible(exif.get("FNumber"))
-    image_width = exif.get("ExifImageWidth")
-    image_height = exif.get("ExifImageHeight")
-    exposureTime = to_float_if_possible(exif.get("ExposureTime"))
+    iso = exif.get("ISO")
+    shutter_speed = as_float(exif.get("ShutterSpeedValue"), 0.0)
+    aperture = as_float(exif.get("FNumber"))
+    image_width = exif.get("ExifImageWidth") or exif.get("ImageWidth")
+    image_height = exif.get("ExifImageHeight") or exif.get("ImageHeight")
+    exposureTime = as_float(exif.get("ExposureTime"))
     date_time = exif.get("DateTimeOriginal", "Unknown")
     gs.debug(
         _(
@@ -649,7 +664,7 @@ def create_vector_feature(image_metadata):
     n = image_metadata["northing"]
     lon = image_metadata["lon"]
     lat = image_metadata["lat"]
-    alt = to_float_if_possible(image_metadata["alt"])
+    alt = image_metadata["alt"]
     agl_alt = image_metadata["agl"]
     yaw = image_metadata["yaw"]
     pitch = image_metadata["pitch"]
@@ -784,7 +799,11 @@ def write_vector(metadata, outmap):
 
 def create_transformer():
     """Reproject list of (lon,lat) coords from WGS84 to GRASS CRS."""
-    grass_proj = gs.read_command("g.proj", flags="jf")  # PROJ JSON string
+    try:
+        from pyproj import CRS, Transformer
+    except ImportError:
+        gs.fatal(_("pyproj is required, install it with: pip install pyproj"))
+    grass_proj = gs.read_command("g.proj", flags="jf")  # PROJ string
     grass_crs = CRS.from_string(grass_proj.strip())
     wgs84 = CRS.from_epsg(4326)
 
@@ -804,8 +823,7 @@ def get_above_ground_level_alt(e, n, alt, elevation) -> float:
     """
     result = gs.raster_what(elevation, coord=[[e, n]])
     ground_elev = None
-    alt = to_float_if_possible(alt)  # EXIF altitude
-    alt = alt if alt is not None else 0.0
+    alt = float(alt) if alt is not None else 0.0
     if elevation in result[0]:
         val = result[0][elevation]["value"]
         if val not in (None, "null", "No data"):
@@ -848,7 +866,12 @@ def main():
     footprint_vector = options["footprint_vector"]
     overlap = flags["c"]
 
-    photos = sorted(glob.glob(os.path.join(indir, "*.[jJ][pP][gG]")))
+    exiftool = find_exiftool()
+    gs.verbose(_("Reading image metadata with ExifTool..."))
+    records = read_metadata(exiftool, indir)
+    if not records:
+        gs.fatal(_("No images found in '{}'").format(indir))
+    photos = [record["SourceFile"] for record in records]
     gs.message(_("Found {} photos in '{}'").format(len(photos), indir))
 
     coords = []
@@ -858,8 +881,8 @@ def main():
     transformer = create_transformer()
 
     gs.verbose(_("Gathering photo metadata and calculating GSD..."))
-    for i, img in enumerate(photos):
-        exif = get_exif(img)
+    for i, exif in enumerate(records):
+        img = exif["SourceFile"]
         gs.verbose(_("Processing '{}'...").format(img))
 
         (
