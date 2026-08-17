@@ -16,15 +16,15 @@
     "rows": [
         {
             "wavelength_nm": 450,
-            "radiance_um": 135.216,
-            "apparent_reflectance": 0.2464415,
+            "radiance_um": 135.2159,
+            "apparent_reflectance": 0.246441454,
             "fortran": {
-                "R_atm": 0.09972,
-                "R_atm_effective": 0.09951364,
-                "T_down": 0.829246824,
-                "T_up": 0.852081216,
-                "T_up_effective": 0.8520803143,
-                "s_alb": 0.19094
+                "R_atm": 0.09971906,
+                "R_atm_effective": 0.09951388534772676,
+                "T_down": 0.8292422923953388,
+                "T_up": 0.8520828239997776,
+                "T_up_effective": 0.8520827867256476,
+                "s_alb": 0.19094279
             },
             "before": {
                 "R_atm": 0.086072892,
@@ -36,15 +36,15 @@
         },
         {
             "wavelength_nm": 550,
-            "radiance_um": 102.758,
-            "apparent_reflectance": 0.205931,
+            "radiance_um": 102.7575,
+            "apparent_reflectance": 0.205931008,
             "fortran": {
-                "R_atm": 0.0495,
-                "R_atm_effective": 0.0468937512,
-                "T_down": 0.8716327704,
-                "T_up": 0.8903459808,
-                "T_up_effective": 0.8903488605,
-                "s_alb": 0.12028
+                "R_atm": 0.04949888,
+                "R_atm_effective": 0.04689514143689397,
+                "T_down": 0.8716283482664088,
+                "T_up": 0.8903454266918562,
+                "T_up_effective": 0.8903453982439543,
+                "s_alb": 0.12028132
             },
             "before": {
                 "R_atm": 0.041286718,
@@ -56,15 +56,15 @@
         },
         {
             "wavelength_nm": 650,
-            "radiance_um": 82.767,
-            "apparent_reflectance": 0.1952699,
+            "radiance_um": 82.7665,
+            "apparent_reflectance": 0.195269853,
             "fortran": {
-                "R_atm": 0.02877,
-                "R_atm_effective": 0.0275148592,
-                "T_down": 0.9001060607,
-                "T_up": 0.9152779548,
-                "T_up_effective": 0.9160899262,
-                "s_alb": 0.08463
+                "R_atm": 0.02876862,
+                "R_atm_effective": 0.027515501353740812,
+                "T_down": 0.9001070618826705,
+                "T_up": 0.9152818704536777,
+                "T_up_effective": 0.916085766537949,
+                "s_alb": 0.08462666
             },
             "before": {
                 "R_atm": 0.024138672,
@@ -76,15 +76,15 @@
         },
         {
             "wavelength_nm": 850,
-            "radiance_um": 52.109,
-            "apparent_reflectance": 0.1971835,
+            "radiance_um": 52.1093,
+            "apparent_reflectance": 0.19718346,
             "fortran": {
-                "R_atm": 0.01318,
-                "R_atm_effective": 0.013152909,
-                "T_down": 0.9501226881,
-                "T_up": 0.9585896012,
-                "T_up_effective": 0.9587143089,
-                "s_alb": 0.0503
+                "R_atm": 0.01318164,
+                "R_atm_effective": 0.013150180994550176,
+                "T_down": 0.950128916263725,
+                "T_up": 0.958596471397482,
+                "T_up_effective": 0.9587214988303593,
+                "s_alb": 0.05030273
             },
             "before": {
                 "R_atm": 0.013522147,

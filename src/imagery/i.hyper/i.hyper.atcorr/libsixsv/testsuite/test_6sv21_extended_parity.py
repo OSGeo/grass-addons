@@ -50,17 +50,23 @@ def compute_case(case):
 def test_polarized_aerosol_and_bdm_parity(case):
     lut = compute_case(case)
     expected = case["fortran"]
+    gas = case.get("kind") == "satellite_polar_gas"
     for name in ("R_atm", "R_atmQ", "R_atmU"):
         expected_name = "R_atm_effective" if name == "R_atm" else name
         if name in ("R_atmQ", "R_atmU"):
             expected_name += "_effective"
+        # Gas-absorption cases (940 nm) keep the loose tolerance for R/T; the
+        # scattering-only cases are accurate to a few parts in 1e-6. s_alb is a
+        # pure scattering quantity, so it is tight in all cases.
+        rtol = 0.01 if gas else 2e-5
         np.testing.assert_allclose(
-            getattr(lut, name).item(), expected[expected_name], rtol=0.01, atol=2e-5
+            getattr(lut, name).item(), expected[expected_name], rtol=rtol, atol=2e-5
         )
     for name in ("T_down", "T_up", "s_alb"):
         expected_name = "T_up_effective" if name == "T_up" else name
+        rtol = 0.003 if (gas and name != "s_alb") else 2e-5
         np.testing.assert_allclose(
-            getattr(lut, name).item(), expected[expected_name], rtol=0.003, atol=3e-4
+            getattr(lut, name).item(), expected[expected_name], rtol=rtol, atol=3e-4
         )
 
 
@@ -72,17 +78,20 @@ def test_polarized_aerosol_and_bdm_parity(case):
 def test_aircraft_partial_column_parity(case):
     lut = compute_case(case)
     expected = case["fortran"]
+    gas = case["wavelength_um"] > 0.6
     for name in ("R_atm", "R_atmQ", "R_atmU"):
         expected_name = "R_atm_effective" if name == "R_atm" else name
         if name in ("R_atmQ", "R_atmU"):
             expected_name += "_effective"
+        rtol = 0.01 if gas else 1e-4
         np.testing.assert_allclose(
-            getattr(lut, name).item(), expected[expected_name], rtol=0.03, atol=3e-6
+            getattr(lut, name).item(), expected[expected_name], rtol=rtol, atol=3e-6
         )
     for name in ("T_down", "T_up", "s_alb"):
         expected_name = "T_up_effective" if name == "T_up" else name
+        rtol = 0.002 if gas else 2e-5
         np.testing.assert_allclose(
-            getattr(lut, name).item(), expected[expected_name], rtol=0.002, atol=7e-4
+            getattr(lut, name).item(), expected[expected_name], rtol=rtol, atol=7e-4
         )
 
 
@@ -116,5 +125,5 @@ def test_ground_observer_parity(case):
     np.testing.assert_allclose(lut.R_atm.item(), expected["R_atm"], atol=1e-7)
     np.testing.assert_allclose(lut.R_atmQ.item(), expected["R_atmQ"], atol=1e-7)
     np.testing.assert_allclose(lut.R_atmU.item(), expected["R_atmU"], atol=1e-7)
-    np.testing.assert_allclose(lut.T_down.item(), expected["T_down"], rtol=0.003)
+    np.testing.assert_allclose(lut.T_down.item(), expected["T_down"], rtol=1e-4)
     np.testing.assert_allclose(lut.T_up.item(), 1.0, atol=1e-7)

@@ -12,6 +12,9 @@ from pathlib import Path
 
 NUMBER = re.compile(r"[-+]?\d*\.\d+(?:[Ee][-+]?\d+)?|[-+]?\d+(?:[Ee][-+]?\d+)")
 REFERENCE_COMMIT = "7deb2289cfe23c9b1d1b48d7647f76604ef75fa4"
+PRECISION_PATCH = (
+    Path(__file__).resolve().parent / "patches" / "6sv21-print-precision.patch"
+)
 
 
 def values(line: str) -> list[float]:
@@ -30,20 +33,21 @@ def verify_checkout(executable: Path) -> None:
             f"reference executable must come from commit {REFERENCE_COMMIT}"
         )
     source_diff = subprocess.run(
-        [
-            "git",
-            "-C",
-            executable.parent,
-            "diff",
-            "--quiet",
-            "HEAD",
-            "--",
-            ":(glob)**/*.f",
-        ],
+        ["git", "-C", executable.parent, "diff", "HEAD", "--", ":(glob)**/*.f"],
+        capture_output=True,
+        text=True,
         check=False,
     )
-    if source_diff.returncode != 0:
-        raise SystemExit("reference Fortran sources have uncommitted changes")
+    expected = (
+        PRECISION_PATCH.read_text(encoding="ascii").rstrip()
+        if PRECISION_PATCH.exists()
+        else ""
+    )
+    if source_diff.stdout.rstrip() not in ("", expected):
+        raise SystemExit(
+            "reference Fortran sources have uncommitted changes "
+            "(only the committed 6sv21-print-precision.patch is allowed)"
+        )
     newest_source = max(path.stat().st_mtime for path in executable.parent.glob("*.f"))
     if not executable.exists() or executable.stat().st_mtime < newest_source:
         raise SystemExit("reference executable is older than its Fortran sources")

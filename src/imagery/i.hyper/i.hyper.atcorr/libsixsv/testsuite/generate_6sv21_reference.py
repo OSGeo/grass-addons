@@ -16,6 +16,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURE = HERE / "data" / "6sv21_satellite_continental.json"
 NUMBER = re.compile(r"[-+]?\d*\.\d+(?:[Ee][-+]?\d+)?|[-+]?\d+(?:[Ee][-+]?\d+)")
 REFERENCE_COMMIT = "7deb2289cfe23c9b1d1b48d7647f76604ef75fa4"
+PRECISION_PATCH = HERE / "patches" / "6sv21-print-precision.patch"
 
 
 def verify_checkout(executable: Path) -> None:
@@ -30,20 +31,21 @@ def verify_checkout(executable: Path) -> None:
             f"reference executable must come from commit {REFERENCE_COMMIT}"
         )
     source_diff = subprocess.run(
-        [
-            "git",
-            "-C",
-            executable.parent,
-            "diff",
-            "--quiet",
-            "HEAD",
-            "--",
-            ":(glob)**/*.f",
-        ],
+        ["git", "-C", executable.parent, "diff", "HEAD", "--", ":(glob)**/*.f"],
+        capture_output=True,
+        text=True,
         check=False,
     )
-    if source_diff.returncode != 0:
-        raise SystemExit("reference Fortran sources have uncommitted changes")
+    expected = (
+        PRECISION_PATCH.read_text(encoding="ascii").rstrip()
+        if PRECISION_PATCH.exists()
+        else ""
+    )
+    if source_diff.stdout.rstrip() not in ("", expected):
+        raise SystemExit(
+            "reference Fortran sources have uncommitted changes "
+            "(only the committed 6sv21-print-precision.patch is allowed)"
+        )
     newest_source = max(path.stat().st_mtime for path in executable.parent.glob("*.f"))
     if not executable.exists() or executable.stat().st_mtime < newest_source:
         raise SystemExit("reference executable is older than its Fortran sources")
@@ -117,6 +119,11 @@ def main() -> None:
     parser.add_argument(
         "--check", action="store_true", help="compare with committed fixture"
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="write the regenerated fixture (with --check: update in place)",
+    )
     args = parser.parse_args()
     verify_checkout(args.executable)
 
@@ -129,6 +136,46 @@ def main() -> None:
             f"{row['R_atm']:.5f} {row['T_down']:.5f} "
             f"{row['T_up']:.5f} {row['s_alb']:.5f}"
         )
+
+    document = {
+        "source": "https://github.com/NakamuraTakashi/6SV2.1",
+        "commit": "7deb2289cfe23c9b1d1b48d7647f76604ef75fa4",
+        "configuration": expected.get(
+            "configuration",
+            {
+                "sza": 30.0,
+                "vza": 0.0,
+                "raa": 0.0,
+                "atmosphere": "US62",
+                "aerosol": "continental",
+                "aod_550": 0.2,
+                "h2o_g_cm2": 2.0,
+                "ozone_du": 300.0,
+                "sensor_altitude_km": 1000.0,
+                "surface_reflectance": 0.2,
+            },
+        ),
+        "rows": [
+            {
+                "wavelength_nm": row["wavelength_nm"],
+                "radiance_um": row["radiance_um"],
+                "apparent_reflectance": row["apparent_reflectance"],
+                "fortran": {
+                    "R_atm": row["R_atm"],
+                    "R_atm_effective": row["R_atm_effective"],
+                    "T_down": row["T_down"],
+                    "T_up": row["T_up"],
+                    "T_up_effective": row["T_up_effective"],
+                    "s_alb": row["s_alb"],
+                },
+                "before": fixture_row.get("before"),
+            }
+            for row, fixture_row in zip(rows, expected["rows"], strict=True)
+        ],
+    }
+    if args.output:
+        text = json.dumps(document, indent=1) + "\n"
+        args.output.write_text(text, encoding="ascii")
 
     if args.check:
         for actual, fixture_row in zip(rows, expected["rows"], strict=True):

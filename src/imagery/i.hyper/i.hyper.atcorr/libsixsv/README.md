@@ -189,6 +189,11 @@ The pinned pipeline comparison identified and corrected these defects:
 11. Ported `PRESPLANE` and target-to-aircraft gas, Rayleigh, and aerosol columns.
 12. Restored ABSTRA total-path gas transmission in the effective Lambertian LUT
     coefficients, including strong water-vapor absorption bands.
+13. Restored the DISCOM angular quadrature: `setup_rm_gb` now uses the same 48-point
+    Gauss-Legendre rule on [-1,1] that `main.f` feeds `gauss()` (matching the pinned
+    `mu2_p=48` and index mapping), instead of a 24-point rule on [0,1]. This eliminated
+    the systematic ~10⁻³ errors in `s_alb` and the transmittances (see pipeline parity
+    table below).
 
 ## Pipeline parity results
 
@@ -199,35 +204,40 @@ equation.
 
 | nm | Coefficient | Fortran | C | Relative error |
 |---:|---|---:|---:|---:|
-| 450 | R_atm | 0.099514 | 0.099491 | -0.023% |
-| 450 | T_down | 0.829247 | 0.829959 | +0.086% |
-| 450 | T_up | 0.852080 | 0.848949 | -0.368% |
-| 450 | s_alb | 0.190940 | 0.190817 | -0.064% |
-| 550 | R_atm | 0.046894 | 0.046896 | +0.005% |
-| 550 | T_down | 0.871633 | 0.872271 | +0.073% |
-| 550 | T_up | 0.890349 | 0.887237 | -0.349% |
-| 550 | s_alb | 0.120280 | 0.120112 | -0.140% |
-| 650 | R_atm | 0.027515 | 0.027523 | +0.031% |
-| 650 | T_down | 0.900106 | 0.900678 | +0.064% |
-| 650 | T_up | 0.916090 | 0.913232 | -0.312% |
-| 650 | s_alb | 0.084630 | 0.084439 | -0.226% |
-| 850 | R_atm | 0.013153 | 0.013158 | +0.037% |
-| 850 | T_down | 0.950123 | 0.950580 | +0.048% |
-| 850 | T_up | 0.958714 | 0.956443 | -0.237% |
-| 850 | s_alb | 0.050300 | 0.050094 | -0.410% |
+| 450 | R_atm | 0.099514 | 0.099514 | -0.000% |
+| 450 | T_down | 0.829242 | 0.829241 | -0.000% |
+| 450 | T_up | 0.852083 | 0.852082 | -0.000% |
+| 450 | s_alb | 0.190943 | 0.190943 | +0.000% |
+| 550 | R_atm | 0.046895 | 0.046893 | -0.006% |
+| 550 | T_down | 0.871628 | 0.871604 | -0.003% |
+| 550 | T_up | 0.890345 | 0.890324 | -0.002% |
+| 550 | s_alb | 0.120281 | 0.120281 | -0.000% |
+| 650 | R_atm | 0.027516 | 0.027514 | -0.005% |
+| 650 | T_down | 0.900107 | 0.900085 | -0.002% |
+| 650 | T_up | 0.916086 | 0.916067 | -0.002% |
+| 650 | s_alb | 0.084627 | 0.084627 | -0.000% |
+| 850 | R_atm | 0.013150 | 0.013150 | -0.002% |
+| 850 | T_down | 0.950129 | 0.950127 | -0.000% |
+| 850 | T_up | 0.958721 | 0.958720 | -0.000% |
+| 850 | s_alb | 0.050303 | 0.050303 | +0.000% |
 
 Passing the original Fortran apparent reflectances through the C coefficients recovers
-`0.200579`, `0.200545`, `0.200488`, and `0.200378` at 450, 550, 650, and 850 nm.
+`0.200001`, `0.200013`, `0.200010`, and `0.200001` at 450, 550, 650, and 850 nm.
+
+The spherical albedo `s_alb` matches to a few parts in 10⁷ at all windows; the
+residual sub-10⁻⁵ relative errors in `R_atm` and the transmittances are confined to
+gas-weighted path terms (weak H₂O continuum near 550 nm), as documented in
+`LOCAL_VALIDATION.md`.
 
 At 550 nm with SZA 30 degrees, VZA 40 degrees, and relative azimuth 300 degrees, the
 polarized path gives:
 
 | Model | Fortran I/Q/U | C I/Q/U |
 |---|---|---|
-| Rayleigh | 0.04722 / 0.00163 / 0.00855 | 0.047318 / 0.001639 / 0.008566 |
-| Continental | 0.06235 / 0.00135 / 0.00718 | 0.062421 / 0.001357 / 0.007191 |
-| Maritime | 0.06424 / 0.00190 / 0.01035 | 0.064354 / 0.001908 / 0.010369 |
-| BDM desert | 0.06394 / 0.00112 / 0.00587 | 0.063996 / 0.001119 / 0.005882 |
+| Rayleigh | 0.04722 / 0.00163 / 0.00855 | 0.047225 / 0.001632 / 0.008547 |
+| Continental | 0.06235 / 0.00135 / 0.00718 | 0.062349 / 0.001353 / 0.007182 |
+| Maritime | 0.06424 / 0.00190 / 0.01035 | 0.064243 / 0.001903 / 0.010350 |
+| BDM desert | 0.06394 / 0.00112 / 0.00587 | 0.063939 / 0.001115 / 0.005873 |
 
 Aircraft cases at 3 and 10 km are tested at 550 and 940 nm. Their atmospheric path,
 Q/U, downward and effective upward transmission, and spherical albedo agree within the

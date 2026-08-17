@@ -119,20 +119,24 @@ static void set_aerosol_phase_matrix(SixsCtx *ctx, int iaer, int wl_idx)
 static void setup_rm_gb(float xmus, float xmuv, int mu, float *rm_off,
                         float *gb_off)
 {
-    int nbmu = mu - 1; /* interior Gauss points per hemisphere */
-    float cgaus[MU_P], wgaus[MU_P];
-    sixs_gauss(0.0f, 1.0f, cgaus, wgaus, nbmu);
+    int mum1 = mu - 1;  /* interior Gauss points per hemisphere */
+    int mu2 = 2 * mum1; /* total interior Gauss points on [-1,1] (=48) */
+    float anglem[NQ_MAX], weightm[NQ_MAX];
+    sixs_gauss(-1.0f, 1.0f, anglem, weightm, mu2);
 
     /* Zero entire array */
     memset(rm_off, 0, (2 * mu + 1) * sizeof(float));
     memset(gb_off, 0, (2 * mu + 1) * sizeof(float));
 
-    /* Interior positive Gauss points: rm(1..mu-1), gb(1..mu-1) */
-    for (int k = 1; k <= nbmu; k++) {
-        rm_off[k + mu] = cgaus[k - 1];   /* rm(k) */
-        rm_off[-k + mu] = -cgaus[k - 1]; /* rm(-k) */
-        gb_off[k + mu] = wgaus[k - 1];   /* gb(k) */
-        gb_off[-k + mu] = wgaus[k - 1];  /* gb(-k) */
+    /* Interior points, mirroring main.f (gauss(-1,1,anglem,weightm,mu2)):
+     *   rm(1..mum1) = anglem(mu2..mum1+1)   (positive, descending)
+     *   rm(-1..-mum1) = anglem(1..mum1)     (negative, ascending)
+     * with the Fortran offset convention rm_off[k+mu] = rm(k). */
+    for (int k = 1; k <= mum1; k++) {
+        rm_off[k + mu] = anglem[mu2 - k];  /* rm(k)  = anglem(mu2+1-k) */
+        rm_off[-k + mu] = anglem[k - 1];   /* rm(-k) = anglem(k) */
+        gb_off[k + mu] = weightm[mu2 - k]; /* gb(k)  = weightm(mu2+1-k) */
+        gb_off[-k + mu] = weightm[k - 1];  /* gb(-k) = weightm(k) */
     }
     /* Special: solar (0) and view (±mu) directions */
     rm_off[0 + mu] = -xmus;   /* rm(0)  = -xmus */
