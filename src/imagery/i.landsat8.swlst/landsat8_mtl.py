@@ -118,7 +118,7 @@ class Landsat8_MTL:
             field_values.append(field_value)
 
         # named tuple
-        named_tuple = namedtuple(name_for_tuple, field_names)
+        named_tuple = namedtuple(name_for_tuple, field_names, rename=True)
 
         # return named tuple
         return named_tuple(*field_values)
