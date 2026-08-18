@@ -1,38 +1,121 @@
 ## DESCRIPTION
 
-The purpose of  *v.photo.geometry* is to compute ...
-Parameter **input** is a ...
+*v.photo.geometry* recovers acquisition geometry from a directory of
+aerial photos whose flight metadata is incomplete. From the image
+metadata and an elevation model it derives the camera positions and
+orientations, above-ground altitude, ground sample distance (GSD), and
+image footprints, and writes them as vector maps:
 
-## Requirements
+- **footprints**: one 3D area per image, ray-traced onto the elevation
+  model (or projected onto flat ground with **-f**), with the full set
+  of per-image attributes.
+- **stations**: 3D points at the camera positions with the same
+  attributes (yaw, pitch, roll, altitude, AGL, GSD, sensor size,
+  camera make, model, lens, and body serial number).
+- **path**: one 3D line per camera body and flight segment,
+  reconstructing the flown track. Curved tracks (typical for manned
+  sorties) are smoothed with a Catmull-Rom spline; grid patterns
+  (typical for UAS mapping missions) are kept as straight legs.
+- **overlap**: a per-image forward and side overlap report written as
+  plain text, CSV, or JSON (**format**), to a file or to standard
+  output (`overlap=-`).
 
-- This module requires the `PIL` (Pillow) library for image processing.
-- It also requires the `pyproj` library for geospatial calculations.
+At least one of these outputs is required.
+
+The tool was written for imagery that arrives without flight logs,
+such as post-disaster reconnaissance photos, where flight planning
+parameters have to be reconstructed from the images themselves.
 
 ## NOTES
 
-This is a recommended section to explain the algorithm and parameter
-behavior in a greater detail.
+### ExifTool requirement
 
-## EXAMPLE
+Image metadata is read with [ExifTool](https://exiftool.org/)
+(version 12.0 or newer), which must be installed separately;
+*g.extension* cannot install it. On Debian/Ubuntu install
+`libimage-exiftool-perl`, on Fedora `perl-Image-ExifTool`, on macOS
+`brew install exiftool`. JPEG, TIFF, and DNG images are read,
+recursively below the **input** directory.
+
+### Sensor size
+
+The physical sensor size drives the GSD and footprint scale. It is
+resolved in this order:
+
+1. the **sensor** option (width,height in mm), when given;
+2. the EXIF focal plane resolution tags;
+3. the 35 mm equivalence scale factor, which ExifTool derives from its
+   internal camera database when the focal plane tags are absent (the
+   common case for drones).
+
+The source used is reported per camera model. Estimated values inherit
+the precision of the source tags and are commonly a few percent larger
+than the true sensor dimensions, which propagates linearly into GSD
+and footprint size. When the sensor dimensions are known, pass them
+with **sensor** for exact results.
+
+### Orientation and heading
+
+Yaw, pitch, and roll are taken from the maker orientation tags
+(for example DJI `FlightYawDegree`, `GimbalPitchDegree`,
+`GimbalRollDegree`, or `GPSImgDirection`) when present. Without them
+the camera is assumed nadir and the heading of each image is estimated
+from the GPS track: images are grouped per camera body (serial
+number), split into flight segments wherever consecutive exposures are
+more than **time_gap** seconds apart, and the heading is interpolated
+along each segment. Multi-camera rigs that fire simultaneously against
+a single GPS record are handled by this per-body grouping.
+
+### Footprints and the computational region
+
+Footprint corners are ray-traced from the camera through the sensor
+corners onto the **elevation** raster, read once at the current
+computational region resolution. The region must cover the photo
+block. The GPS altitude and the elevation model must share a vertical
+datum; a datum offset shifts the AGL and scales every footprint.
+With **-f** the terrain is ignored and each footprint is a flat
+rectangle at the ground elevation below the camera, which is faster
+but degrades with relief and off-nadir angles.
+
+### Overlap statistics
+
+Forward overlap is the fraction of an image footprint covered by the
+next image of the same camera within the same flight segment. Side
+overlap is the maximum overlap with any non-consecutive image of the
+same camera, which captures adjacent flight lines without
+reconstructing the line layout. Images without a footprint report
+empty values.
+
+## EXAMPLES
+
+Recover the full geometry of a photo block:
 
 ```sh
-v.photo.geometry input=input_map output=output_map
+g.region raster=dtm -p
+v.photo.geometry input=/data/mission01 elevation=dtm \
+    footprints=m01_footprints stations=m01_stations \
+    path=m01_path overlap=m01_overlap.csv
 ```
 
-![v_photo_geometry example](v_photo_geometry.png)  
-*Figure: Output from example*
+Known camera, flat terrain, overlap only, printed to the terminal:
 
-## REFERENCES
-
-This section is optional. List related publications here.
+```sh
+v.photo.geometry -f input=/data/mission01 elevation=dtm \
+    sensor=36.0,24.0 overlap=- format=plain
+```
 
 ## SEE ALSO
 
-List related GRASS tools here.
+*[g.region](g.region.md),
+[i.ortho.photo](i.ortho.photo.md),
+[v.info](v.info.md)*
 
-*[https://grass.osgeo.org/grass-stable/manuals/g.region.html](g.region.html),
-*[https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html](r.mapcalc.html)*
+## REFERENCES
+
+- [ExifTool](https://exiftool.org/), Phil Harvey
+- [ExifTool EXIF tag names](https://exiftool.org/TagNames/EXIF.html)
 
 ## AUTHORS
 
-Corey T. White
+Corey T. White, [NCSU GeoForAll
+Lab](https://geospatial.ncsu.edu/geoforall/)
