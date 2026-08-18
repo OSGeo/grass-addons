@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 import pytest
 
 import grass.script as gs
-from grass.exceptions import ScriptError
+from grass.exceptions import CalledModuleError, ScriptError
 
 requires_exiftool = pytest.mark.skipif(
     shutil.which("exiftool") is None, reason="exiftool not on PATH"
@@ -181,11 +181,15 @@ def test_tool_end_to_end(session, photo_dir):
         "v.photo.geometry",
         input=str(photo_dir),
         elevation="dtm",
-        footprint_vector="footprints",
+        footprints="footprints",
+        stations="stations",
         env=session.env,
     )
     info = gs.vector_info_topo("footprints", env=session.env)
-    assert info["points"] == 3
+    assert info["areas"] == 3
+    assert info["centroids"] == 3
+    assert gs.vector_info_topo("stations", env=session.env)["points"] == 3
+    assert gs.vector_info("stations", env=session.env)["map3d"] == 1
     records = gs.parse_command(
         "v.db.select", map="footprints", format="json", env=session.env
     )["records"]
@@ -195,3 +199,38 @@ def test_tool_end_to_end(session, photo_dir):
         assert record["yaw"] == pytest.approx(90.0, abs=2.0)
         # AGL from constant 700 m ground under 1000 m flight altitude
         assert record["agl_alt"] == pytest.approx(300.0, abs=1.0)
+        assert record["camera_serial"] == "TestCam"
+    # 36 x 24 mm sensor, 300 m AGL, 50 mm lens: 216 x 144 m footprint
+    areas = gs.parse_command(
+        "v.to.db",
+        map="footprints",
+        option="area",
+        flags="pc",
+        format="json",
+        env=session.env,
+    )["records"]
+    for area in areas:
+        assert area["area"] == pytest.approx(216.0 * 144.0, rel=0.01)
+
+
+@requires_exiftool
+def test_tool_refuses_overwrite(session, photo_dir):
+    with pytest.raises(CalledModuleError):
+        gs.run_command(
+            "v.photo.geometry",
+            input=str(photo_dir),
+            elevation="dtm",
+            footprints="footprints",
+            env=session.env,
+        )
+
+
+@requires_exiftool
+def test_tool_requires_an_output(session, photo_dir):
+    with pytest.raises(CalledModuleError):
+        gs.run_command(
+            "v.photo.geometry",
+            input=str(photo_dir),
+            elevation="dtm",
+            env=session.env,
+        )

@@ -66,10 +66,19 @@
 # %end
 #
 # %option G_OPT_V_OUTPUT
-# % key: footprint_vector
-# % type: string
+# % key: footprints
 # % required: no
-# % description: Output vector map of image footprints
+# % description: Output vector map of image footprint areas
+# %end
+#
+# %option G_OPT_V_OUTPUT
+# % key: stations
+# % required: no
+# % description: Output 3D vector map of camera station points
+# %end
+#
+# %rules
+# % required: footprints,stations
 # %end
 #
 # %flag
@@ -90,7 +99,7 @@ import numpy as np
 
 import grass.script as gs
 from grass.pygrass.vector import VectorTopo
-from grass.pygrass.vector.geometry import Boundary, Centroid, Point, Line
+from grass.pygrass.vector.geometry import Boundary, Centroid, Point
 from grass.pygrass.modules import Module
 
 EXIFTOOL_MIN_VERSION = 12.0
@@ -681,148 +690,154 @@ def get_photo_specs(exif):
     )
 
 
-def create_vector_feature(image_metadata):
-    """Create a vector feature from footprint points."""
+ATTR_COLUMNS = [
+    ("cat", "INTEGER PRIMARY KEY"),
+    ("filename", "TEXT"),
+    ("focal_length", "DOUBLE"),
+    ("sensor_size_w", "DOUBLE"),
+    ("sensor_size_h", "DOUBLE"),
+    ("gsd_w", "DOUBLE"),
+    ("gsd_h", "DOUBLE"),
+    ("gsd_avg", "DOUBLE"),
+    ("yaw", "DOUBLE"),
+    ("pitch", "DOUBLE"),
+    ("roll", "DOUBLE"),
+    ("lon", "DOUBLE"),
+    ("lat", "DOUBLE"),
+    ("alt", "DOUBLE"),
+    ("agl_alt", "DOUBLE"),
+    ("iso", "INTEGER"),
+    ("shutter_speed", "DOUBLE"),
+    ("aperture", "DOUBLE"),
+    ("image_width", "INTEGER"),
+    ("image_height", "INTEGER"),
+    ("exposure_time", "DOUBLE"),
+    ("date_time", "TEXT"),
+    ("camera_make", "TEXT"),
+    ("camera_model", "TEXT"),
+    ("lens_model", "TEXT"),
+    ("camera_serial", "TEXT"),
+]
 
-    # Extract Attributes from image metadata
-    e = image_metadata["easting"]
-    n = image_metadata["northing"]
-    lon = image_metadata["lon"]
-    lat = image_metadata["lat"]
-    alt = image_metadata["alt"]
-    agl_alt = image_metadata["agl"]
-    yaw = image_metadata["yaw"]
-    pitch = image_metadata["pitch"]
-    roll = image_metadata["roll"]
-
-    sensor_w = image_metadata["sensor_size_w"]
-    sensor_h = image_metadata["sensor_size_h"]
-    focal_length = image_metadata["focal_length"]
-
-    gsd_w = image_metadata["gsd_w"]
-    gsd_h = image_metadata["gsd_h"]
-    gsd_avg = image_metadata["gsd_avg"]
-
-    camera_make = image_metadata["camera_make"]
-    camera_model = image_metadata["camera_model"]
-    camera_lens = image_metadata["camera_lens"]
-    camera_serial = image_metadata["camera_serial"]
-    filename = image_metadata["filename"]
-    iso = image_metadata["iso"]
-    shutter_speed = image_metadata["shutter_speed"]
-    aperture = image_metadata["aperture"]
-    image_width = image_metadata["iamge_width"]
-    image_height = image_metadata["image_height"]
-    exposure_time = image_metadata["exposure_time"]
-    date_time = image_metadata["original_datetime"]
-
-    attrs = (
-        filename,
-        focal_length,
-        sensor_w,
-        sensor_h,
-        gsd_w,
-        gsd_h,
-        gsd_avg,
-        yaw,
-        pitch,
-        roll,
-        lon,
-        lat,
-        alt,
-        agl_alt,
-        iso,
-        shutter_speed,
-        aperture,
-        image_width,
-        image_height,
-        exposure_time,
-        date_time,
-        camera_make,
-        camera_model,
-        camera_lens,
-        camera_serial,
-    )
-
-    cat = image_metadata["category"]  # category ID
-    # Generate boundary and centroid
-    point = Point(x=e, y=n, z=alt)  # camera position
-    footprint = image_metadata["footprint"]
-    line = Line(points=[Point(x, y, z) for x, y, z in footprint])
-    boundary = Boundary(points=[Point(x, y, z) for x, y, z in footprint])
-    centroid = Centroid(x=e, y=n, z=alt)  # centroid at camera position
-
-    return point, line, boundary, centroid, cat, attrs
+# Metadata keys in ATTR_COLUMNS order (after cat)
+ATTR_KEYS = [
+    "filename",
+    "focal_length",
+    "sensor_size_w",
+    "sensor_size_h",
+    "gsd_w",
+    "gsd_h",
+    "gsd_avg",
+    "yaw",
+    "pitch",
+    "roll",
+    "lon",
+    "lat",
+    "alt",
+    "agl",
+    "iso",
+    "shutter_speed",
+    "aperture",
+    "iamge_width",
+    "image_height",
+    "exposure_time",
+    "original_datetime",
+    "camera_make",
+    "camera_model",
+    "camera_lens",
+    "camera_serial",
+]
 
 
-def validate_vector_metadata(attrs, COLS_TYPES):
-    if len(attrs) != len(COLS_TYPES) - 1:  # -1 for cat
+def build_attrs(image_metadata):
+    """Return the attribute tuple for one image in column order."""
+    return tuple(image_metadata[key] for key in ATTR_KEYS)
+
+
+def validate_attrs(attrs):
+    """Check attribute count and types against ATTR_COLUMNS; None is a NULL."""
+    expected = len(ATTR_COLUMNS) - 1  # cat is assigned by the writer
+    if len(attrs) != expected:
         gs.fatal(
-            ("Attribute count mismatch: expected %d, got %d")
-            % (len(COLS_TYPES), len(attrs))
+            _("Attribute count mismatch: expected {}, got {}").format(
+                expected, len(attrs)
+            )
         )
-    type_check = list(zip(attrs, [t[1] for t in COLS_TYPES[1:]]))
-    for val, col_type in type_check:
-        if col_type == "INTEGER" and not isinstance(val, int):
+    for value, (name, col_type) in zip(attrs, ATTR_COLUMNS[1:]):
+        if value is None:
+            continue
+        if col_type == "INTEGER" and not isinstance(value, int):
             gs.fatal(
-                _("Attribute %s should be INTEGER, got %s") % (val, type(val).__name__)
+                _("Attribute {} should be INTEGER, got {}").format(
+                    name, type(value).__name__
+                )
             )
-        elif col_type == "DOUBLE" and not isinstance(val, (float, int)):
+        elif col_type == "DOUBLE" and not isinstance(value, (float, int)):
             gs.fatal(
-                _("Attribute %s should be DOUBLE, got %s") % (val, type(val).__name__)
+                _("Attribute {} should be DOUBLE, got {}").format(
+                    name, type(value).__name__
+                )
             )
-        elif col_type == "TEXT" and not isinstance(val, str):
+        elif col_type == "TEXT" and not isinstance(value, str):
             gs.fatal(
-                _("Attribute %s should be TEXT, got %s") % (val, type(val).__name__)
+                _("Attribute {} should be TEXT, got {}").format(
+                    name, type(value).__name__
+                )
             )
 
 
-def write_vector(metadata, outmap):
-    """Export footprint polygons to a GRASS vector map with pygrass."""
-    COLS_TYPES = [
-        ("cat", "INTEGER PRIMARY KEY"),
-        ("filename", "TEXT"),
-        ("focal_length", "DOUBLE"),
-        ("sensor_size_w", "DOUBLE"),
-        ("sensor_size_h", "DOUBLE"),
-        ("gsd_w", "DOUBLE"),
-        ("gsd_h", "DOUBLE"),
-        ("gsd_avg", "DOUBLE"),
-        ("yaw", "DOUBLE"),
-        ("pitch", "DOUBLE"),
-        ("roll", "DOUBLE"),
-        ("lon", "DOUBLE"),
-        ("lat", "DOUBLE"),
-        ("alt", "DOUBLE"),
-        ("agl_alt", "DOUBLE"),
-        ("iso", "INTEGER"),
-        ("shutter_speed", "DOUBLE"),
-        ("aperture", "DOUBLE"),
-        ("image_width", "INTEGER"),
-        ("image_height", "INTEGER"),
-        ("exposure_time", "DOUBLE"),
-        ("date_time", "TEXT"),
-        ("camera_make", "TEXT"),
-        ("camera_model", "TEXT"),
-        ("lens_model", "TEXT"),
-        ("camera_serial", "TEXT"),
-    ]
+def write_footprints(metadata, outmap):
+    """Write image footprints as 3D areas with per-image attributes."""
     gs.verbose(
-        _("Writing {} features to vector map <{}>...").format(len(metadata), outmap)
+        _("Writing {} footprints to vector map <{}>...").format(len(metadata), outmap)
     )
     with VectorTopo(
-        outmap, mode="w", with_z=False, tab_cols=COLS_TYPES, layer=1, overwrite=True
+        outmap,
+        mode="w",
+        with_z=True,
+        tab_cols=ATTR_COLUMNS,
+        layer=1,
+        overwrite=True,  # output existence is enforced by the parser
     ) as vect:
-        for i, img in enumerate(metadata):
-            feature = img["feature"]
-            # Add area
-            point, line, boundary, centroid, cat, attrs = feature
-            gs.debug(f"Writing feature {attrs}")
-            validate_vector_metadata(attrs, COLS_TYPES)
-            vect.write(centroid)
-            vect.write(geo_obj=point, cat=cat, attrs=attrs)
+        for img in metadata:
+            if not img["footprint"]:
+                continue
+            attrs = build_attrs(img)
+            validate_attrs(attrs)
+            boundary = Boundary(points=[Point(x, y, z) for x, y, z in img["footprint"]])
+            vect.write(boundary)
+            centroid = Centroid(
+                x=img["easting"], y=img["northing"], z=img["ground_elev"]
+            )
+            vect.write(centroid, cat=img["category"], attrs=attrs)
         vect.table.conn.commit()
         vect.build()
+    gs.vector_history(outmap)
+
+
+def write_stations(metadata, outmap):
+    """Write camera positions as 3D points with per-image attributes."""
+    gs.verbose(
+        _("Writing {} camera stations to vector map <{}>...").format(
+            len(metadata), outmap
+        )
+    )
+    with VectorTopo(
+        outmap,
+        mode="w",
+        with_z=True,
+        tab_cols=ATTR_COLUMNS,
+        layer=1,
+        overwrite=True,  # output existence is enforced by the parser
+    ) as vect:
+        for img in metadata:
+            attrs = build_attrs(img)
+            validate_attrs(attrs)
+            point = Point(x=img["easting"], y=img["northing"], z=img["alt"])
+            vect.write(point, cat=img["category"], attrs=attrs)
+        vect.table.conn.commit()
+        vect.build()
+    gs.vector_history(outmap)
 
 
 def create_transformer():
@@ -891,7 +906,8 @@ def main():
     elevation = options["elevation"]
     overlap_raster = options["overlap_raster"]
     outcsv = options["overlap_stats"]
-    footprint_vector = options["footprint_vector"]
+    footprints = options["footprints"]
+    stations = options["stations"]
     overlap = flags["c"]
 
     exiftool = find_exiftool()
@@ -1037,15 +1053,16 @@ def main():
                 _("No footprint created for <{}>, skipping...").format(img["filename"])
             )
 
-        feature = create_vector_feature(img)
-        img["feature"] = feature
-
     if not coords:
         gs.fatal(_("No GPS data found"))
 
-    if footprint_vector:
-        gs.message(_("Writing footprint vector map <{}>...").format(footprint_vector))
-        write_vector(photos_by_line_heading, footprint_vector)
+    if footprints:
+        gs.message(_("Writing footprint vector map <{}>...").format(footprints))
+        write_footprints(photos_by_line_heading, footprints)
+
+    if stations:
+        gs.message(_("Writing camera station map <{}>...").format(stations))
+        write_stations(photos_by_line_heading, stations)
 
     if overlap:
         gs.message(_("Calculating overlaps..."))
