@@ -29,7 +29,7 @@
 #
 # %option G_OPT_R_ELEV
 # % key: elevation
-# % required: no
+# % required: yes
 # %end
 #
 # %option
@@ -85,6 +85,11 @@
 # % key: c
 # % description: Calculate overlaps between consecutive footprints
 # %end
+#
+# %flag
+# % key: f
+# % description: Flat-ground footprints that ignore terrain relief (faster)
+# %end
 
 import sys
 import os
@@ -101,6 +106,7 @@ import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Boundary, Centroid, Point
 from grass.pygrass.modules import Module
+import grass.script.array as garray
 
 EXIFTOOL_MIN_VERSION = 12.0
 IMAGE_EXTENSIONS = ("jpg", "jpeg", "tif", "tiff", "dng")
@@ -506,11 +512,19 @@ def get_footprint_dimensions(gsd_x, gsd_y, exif):
 def intersect_ray_dem_fast(
     x0, y0, z0, dir_vec, dem_arr, region, step=None, max_dist=2000.0
 ):
+    """Walk a ray from the camera until it passes below the DEM surface.
+
+    The crossing is refined by linear interpolation between the last two
+    samples, so the hit accuracy is not limited to the step size. Returns
+    (x, y, z) of the ground intersection or None (ray leaves the region or
+    never descends to the surface within max_dist).
+    """
     dir_vec = dir_vec / np.linalg.norm(dir_vec)
     if step is None:
         step = min(region["ewres"], region["nsres"])  # step at DEM resolution
 
     dist = 0.0
+    previous = None  # (x, y, height above ground) at the last sample
     while dist < max_dist:
         gx = x0 + dir_vec[0] * dist
         gy = y0 + dir_vec[1] * dist
@@ -520,18 +534,31 @@ def intersect_ray_dem_fast(
         col = int((gx - region["w"]) / region["ewres"])
         row = int((region["n"] - gy) / region["nsres"])
 
-        if 0 <= row < dem_arr.shape[0] and 0 <= col < dem_arr.shape[1]:
-            ground_z = dem_arr[row, col]
-            if gz <= ground_z:
-                return gx, gy, ground_z
-        else:
+        if not (0 <= row < dem_arr.shape[0] and 0 <= col < dem_arr.shape[1]):
             break  # Out of bounds
-
+        ground_z = dem_arr[row, col]
+        clearance = gz - ground_z
+        if clearance <= 0:
+            if previous is not None and previous[2] > 0:
+                # Refine the crossing between the last two samples
+                fraction = previous[2] / (previous[2] - clearance)
+                gx = previous[0] + (gx - previous[0]) * fraction
+                gy = previous[1] + (gy - previous[1]) * fraction
+                # At the crossing the ray height equals the ground height
+                ground_z = z0 + dir_vec[2] * (dist - step + step * fraction)
+            return gx, gy, float(ground_z)
+        previous = (gx, gy, clearance)
         dist += step
     return None
 
 
 def rotation_matrix_aircraft(yaw_deg, pitch_deg, roll_deg):
+    """Rotation matrix from the camera pod frame to NED.
+
+    Pod frame: x forward (boresight), y right, z down. Aerospace angles:
+    yaw clockwise from north, pitch positive nose-up (so -90 is nadir),
+    roll about the forward axis.
+    """
     yaw, pitch, roll = np.radians([yaw_deg, pitch_deg, roll_deg])
 
     Rz = np.array(
@@ -554,21 +581,23 @@ def rotation_matrix_aircraft(yaw_deg, pitch_deg, roll_deg):
 
 
 def make_footprint(image_metadata, dem_arr, region):
-    """Return rectangle footprint coords around image center."""
-    # footprint size in meters
-    e = image_metadata["easting"]
-    n = image_metadata["northing"]
-    alt = image_metadata["alt"]
-    agl = image_metadata["agl"]
+    """Ray-trace the four sensor corners onto the DEM.
+
+    Corner rays start along the pod forward axis (the boresight), with the
+    image plane offsets divided by the focal length, are rotated by
+    yaw/pitch/roll into NED and converted to ENU for the DEM walk. Returns
+    a closed list of (x, y, z) ground coordinates, or [] when any corner
+    misses the DEM.
+    """
+    x0 = image_metadata["easting"]
+    y0 = image_metadata["northing"]
+    z0 = image_metadata["alt"]
     focal_length = image_metadata["focal_length"]
     yaw = image_metadata["yaw"]
     pitch = image_metadata["pitch"]
     roll = image_metadata["roll"]
     sensor_w = image_metadata["sensor_size_w"]
     sensor_h = image_metadata["sensor_size_h"]
-
-    x0, y0 = e, n
-    z0 = alt  # camera height above reference plane
 
     corners = [
         (-sensor_w / 2, -sensor_h / 2),
@@ -577,21 +606,37 @@ def make_footprint(image_metadata, dem_arr, region):
         (-sensor_w / 2, sensor_h / 2),
     ]
 
-    gs.debug(f"Yaw: {yaw}, Pitch: {pitch}, Roll: {roll}")
+    dem_min = float(np.nanmin(dem_arr))
     R = rotation_matrix_aircraft(yaw, pitch, roll)
     footprint = []
     for cx, cy in corners:
-        # direction vector, Ray in camera coords (normalized by f)
-        dir_vec = np.array([cx / focal_length, cy / focal_length, 1.0])
-        dir_vec = R @ dir_vec
+        # Boresight along pod x; image x maps to pod y, image y to pod z
+        ray_pod = np.array([1.0, cx / focal_length, cy / focal_length])
+        ned = R @ ray_pod
+        enu = np.array([ned[1], ned[0], -ned[2]])
+        enu = enu / np.linalg.norm(enu)
+        if enu[2] >= -1e-6:
+            gs.warning(
+                _(
+                    "Corner ray of <{}> points at or above the horizon, "
+                    "footprint skipped"
+                ).format(image_metadata["filename"])
+            )
+            return []
+        # Far enough to reach the lowest DEM cell, with headroom for slopes
+        max_dist = max(1.5 * (z0 - dem_min) / -enu[2], 100.0)
         hit = intersect_ray_dem_fast(
-            x0, y0, z0, dir_vec, dem_arr, region, step=1.0, max_dist=2000.0
+            x0, y0, z0, enu, dem_arr, region, max_dist=max_dist
         )
         if hit:
             footprint.append(hit)
 
-    if not footprint:
-        gs.warning(_("No DEM intersections found, footprint empty"))
+    if len(footprint) < 4:
+        gs.warning(
+            _("No DEM intersection for all corners of <{}>").format(
+                image_metadata["filename"]
+            )
+        )
         return []
 
     footprint.append(footprint[0])  # close polygon
@@ -600,7 +645,7 @@ def make_footprint(image_metadata, dem_arr, region):
 
 
 def make_footprint_basic(
-    e, n, agl, ground_elev, focal_length, sensor_w, sensor_h, img_w, img_h, yaw_deg
+    e, n, agl, ground_elev, focal_length, sensor_w, sensor_h, yaw_deg
 ):
     """
     Compute flat-ground footprint polygon (no DEM correction).
@@ -609,7 +654,6 @@ def make_footprint_basic(
     agl          : altitude above ground (m)
     focal_length : focal length (mm)
     sensor_w,h   : sensor size (mm)
-    img_w,h      : image size (pixels)
     yaw_deg      : heading (degrees, 0=N, clockwise)
     """
 
@@ -909,6 +953,7 @@ def main():
     footprints = options["footprints"]
     stations = options["stations"]
     overlap = flags["c"]
+    flat = flags["f"]
 
     exiftool = find_exiftool()
     gs.verbose(_("Reading image metadata with ExifTool..."))
@@ -1034,19 +1079,28 @@ def main():
     photos_by_line_heading = compute_headings_from_gps(
         metadata, time_gap=float(options["time_gap"])
     )
+
+    dem_arr = None
+    region = None
+    if not flat:
+        # The DEM is read once at the current region resolution
+        region = gs.region()
+        dem_arr = garray.array(elevation)
+
     for img in photos_by_line_heading:
-        footprint = make_footprint_basic(
-            img["easting"],
-            img["northing"],
-            img["agl"],
-            img["ground_elev"],
-            img["focal_length"],
-            img["sensor_size_w"],
-            img["sensor_size_h"],
-            img["iamge_width"],
-            img["image_height"],
-            img["yaw"],
-        )
+        if flat:
+            footprint = make_footprint_basic(
+                img["easting"],
+                img["northing"],
+                img["agl"],
+                img["ground_elev"],
+                img["focal_length"],
+                img["sensor_size_w"],
+                img["sensor_size_h"],
+                img["yaw"],
+            )
+        else:
+            footprint = make_footprint(img, dem_arr, region)
         img["footprint"] = footprint
         if not footprint:
             gs.warning(

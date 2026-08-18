@@ -152,6 +152,81 @@ def test_headings_keep_recorded_yaw(tool):
     assert result[1]["yaw"] == pytest.approx(123.0)
 
 
+def _footprint_image(**overrides):
+    img = {
+        "filename": "test.jpg",
+        "easting": 2000.0,
+        "northing": 2000.0,
+        "alt": 1000.0,
+        "focal_length": 50.0,
+        "yaw": 0.0,
+        "pitch": -90.0,
+        "roll": 0.0,
+        "sensor_size_w": 36.0,
+        "sensor_size_h": 24.0,
+    }
+    img.update(overrides)
+    return img
+
+
+def _flat_region():
+    return {"n": 4000.0, "s": 0.0, "w": 0.0, "e": 4000.0, "nsres": 10.0, "ewres": 10.0}
+
+
+def test_footprint_nadir_flat_dem(tool):
+    """Nadir over flat ground: ray-traced corners match the analytic extent."""
+    import numpy as np
+
+    dem = np.full((400, 400), 700.0)
+    footprint = tool.make_footprint(_footprint_image(), dem, _flat_region())
+    assert len(footprint) == 5  # closed ring
+    xs = [p[0] for p in footprint[:4]]
+    ys = [p[1] for p in footprint[:4]]
+    zs = [p[2] for p in footprint[:4]]
+    # 300 m AGL, 50 mm lens: half extents 108 m (E) and 72 m (N)
+    assert max(xs) == pytest.approx(2108.0, abs=1.0)
+    assert min(xs) == pytest.approx(1892.0, abs=1.0)
+    assert max(ys) == pytest.approx(2072.0, abs=1.0)
+    assert min(ys) == pytest.approx(1928.0, abs=1.0)
+    for z in zs:
+        assert z == pytest.approx(700.0, abs=0.5)
+
+
+def test_footprint_yaw_rotates(tool):
+    import numpy as np
+
+    dem = np.full((400, 400), 700.0)
+    footprint = tool.make_footprint(_footprint_image(yaw=90.0), dem, _flat_region())
+    xs = [p[0] for p in footprint[:4]]
+    ys = [p[1] for p in footprint[:4]]
+    # Long sensor axis now spans north-south
+    assert max(ys) - min(ys) == pytest.approx(216.0, abs=2.0)
+    assert max(xs) - min(xs) == pytest.approx(144.0, abs=2.0)
+
+
+def test_footprint_slope_asymmetry(tool):
+    """On ground rising north, the uphill footprint edge pulls in and the
+    downhill edge extends."""
+    import numpy as np
+
+    # 500 m at the south edge rising to 900 m at the north edge
+    rows = np.linspace(900.0, 500.0, 400)  # row 0 is north
+    dem = np.repeat(rows[:, None], 400, axis=1)
+    footprint = tool.make_footprint(_footprint_image(), dem, _flat_region())
+    ys = sorted(p[1] for p in footprint[:4])
+    north_offset = max(ys) - 2000.0
+    south_offset = 2000.0 - min(ys)
+    assert north_offset < 72.0 < south_offset
+
+
+def test_footprint_horizon_ray_rejected(tool):
+    import numpy as np
+
+    dem = np.full((400, 400), 700.0)
+    footprint = tool.make_footprint(_footprint_image(pitch=0.0), dem, _flat_region())
+    assert footprint == []
+
+
 def test_find_exiftool_missing(tool, raise_on_error, monkeypatch):
     monkeypatch.setattr(tool.shutil, "which", lambda name: None)
     with pytest.raises(ScriptError, match="ExifTool"):
