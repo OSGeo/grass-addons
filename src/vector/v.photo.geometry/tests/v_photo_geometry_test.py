@@ -227,6 +227,23 @@ def test_footprint_horizon_ray_rejected(tool):
     assert footprint == []
 
 
+def test_catmull_rom_endpoints_and_density(tool):
+    points = [(0.0, 0.0, 100.0), (100.0, 50.0, 110.0), (200.0, 0.0, 100.0)]
+    smooth = tool.catmull_rom_spline(points)
+    assert len(smooth) > len(points)
+    assert smooth[0] == pytest.approx(points[0])
+    assert smooth[-1] == pytest.approx(points[-1])
+
+
+def test_is_grid_flight(tool):
+    # Boustrophedon grid: two 180-degree turns
+    grid = [(0, 0, 0), (100, 0, 0), (100, 20, 0), (0, 20, 0), (0, 40, 0)]
+    assert tool.is_grid_flight(grid)
+    # Gentle arc: no sharp turns
+    arc = [(0, 0, 0), (100, 10, 0), (200, 30, 0), (300, 60, 0)]
+    assert not tool.is_grid_flight(arc)
+
+
 def test_find_exiftool_missing(tool, raise_on_error, monkeypatch):
     monkeypatch.setattr(tool.shutil, "which", lambda name: None)
     with pytest.raises(ScriptError, match="ExifTool"):
@@ -258,6 +275,7 @@ def test_tool_end_to_end(session, photo_dir):
         elevation="dtm",
         footprints="footprints",
         stations="stations",
+        path="path",
         env=session.env,
     )
     info = gs.vector_info_topo("footprints", env=session.env)
@@ -265,6 +283,14 @@ def test_tool_end_to_end(session, photo_dir):
     assert info["centroids"] == 3
     assert gs.vector_info_topo("stations", env=session.env)["points"] == 3
     assert gs.vector_info("stations", env=session.env)["map3d"] == 1
+    # One camera, one segment: a single smoothed 3D line
+    assert gs.vector_info_topo("path", env=session.env)["lines"] == 1
+    assert gs.vector_info("path", env=session.env)["map3d"] == 1
+    path_records = gs.parse_command(
+        "v.db.select", map="path", format="json", env=session.env
+    )["records"]
+    assert path_records[0]["camera_serial"] == "TestCam"
+    assert path_records[0]["n_images"] == 3
     records = gs.parse_command(
         "v.db.select", map="footprints", format="json", env=session.env
     )["records"]

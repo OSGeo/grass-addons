@@ -77,8 +77,14 @@
 # % description: Output 3D vector map of camera station points
 # %end
 #
+# %option G_OPT_V_OUTPUT
+# % key: path
+# % required: no
+# % description: Output 3D vector map of the estimated flight path
+# %end
+#
 # %rules
-# % required: footprints,stations
+# % required: footprints,stations,path
 # %end
 #
 # %flag
@@ -104,7 +110,7 @@ import numpy as np
 
 import grass.script as gs
 from grass.pygrass.vector import VectorTopo
-from grass.pygrass.vector.geometry import Boundary, Centroid, Point
+from grass.pygrass.vector.geometry import Boundary, Centroid, Line, Point
 from grass.pygrass.modules import Module
 import grass.script.array as garray
 
@@ -884,6 +890,134 @@ def write_stations(metadata, outmap):
     gs.vector_history(outmap)
 
 
+def catmull_rom_spline(points, num_samples=10):
+    """Interpolate a smooth curve through 3D points with Catmull-Rom splines.
+
+    Phantom endpoints are reflections of the second and second-to-last
+    points, so the curve enters and exits with a natural tangent.
+
+    Args:
+        points: Ordered list of (x, y, z) tuples.
+        num_samples: Interpolated vertices per segment.
+    """
+    if len(points) < 2:
+        return list(points)
+
+    phantom_start = tuple(2 * points[0][k] - points[1][k] for k in range(3))
+    phantom_end = tuple(2 * points[-1][k] - points[-2][k] for k in range(3))
+    extended = [phantom_start] + list(points) + [phantom_end]
+
+    result = []
+    for i in range(1, len(extended) - 2):
+        p0, p1, p2, p3 = (
+            extended[i - 1],
+            extended[i],
+            extended[i + 1],
+            extended[i + 2],
+        )
+        for j in range(num_samples):
+            t = j / num_samples
+            t2, t3 = t * t, t * t * t
+            coords = tuple(
+                0.5
+                * (
+                    2 * p1[k]
+                    + (-p0[k] + p2[k]) * t
+                    + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2
+                    + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3
+                )
+                for k in range(3)
+            )
+            result.append(coords)
+
+    result.append(points[-1])
+    return result
+
+
+def is_grid_flight(coords, angle_threshold_deg=60.0):
+    """Detect grid-pattern flights by counting sharp heading changes.
+
+    Spline smoothing is inappropriate for grid missions: the legs are
+    straight and the turns are intentional hard corners. Two or more
+    heading changes above the threshold count as a grid pattern.
+    """
+    if len(coords) < 3:
+        return False
+
+    sharp_turns = 0
+    for i in range(1, len(coords) - 1):
+        dx1 = coords[i][0] - coords[i - 1][0]
+        dy1 = coords[i][1] - coords[i - 1][1]
+        dx2 = coords[i + 1][0] - coords[i][0]
+        dy2 = coords[i + 1][1] - coords[i][1]
+        mag1 = math.hypot(dx1, dy1)
+        mag2 = math.hypot(dx2, dy2)
+        if mag1 < 1e-6 or mag2 < 1e-6:
+            continue
+        cos_angle = max(-1.0, min(1.0, (dx1 * dx2 + dy1 * dy2) / (mag1 * mag2)))
+        if math.degrees(math.acos(cos_angle)) > angle_threshold_deg:
+            sharp_turns += 1
+
+    return sharp_turns >= 2
+
+
+PATH_COLUMNS = [
+    ("cat", "INTEGER PRIMARY KEY"),
+    ("camera_serial", "TEXT"),
+    ("segment", "INTEGER"),
+    ("n_images", "INTEGER"),
+    ("start_time", "TEXT"),
+    ("end_time", "TEXT"),
+]
+
+
+def write_flight_path(metadata, outmap):
+    """Write one 3D line per camera body and flight segment.
+
+    Grid flights keep their raw polyline; other tracks are smoothed with a
+    Catmull-Rom spline, appropriate for the curved paths of manned sorties.
+    """
+    gs.verbose(_("Writing flight path to vector map <{}>...").format(outmap))
+    with VectorTopo(
+        outmap,
+        mode="w",
+        with_z=True,
+        tab_cols=PATH_COLUMNS,
+        layer=1,
+        overwrite=True,  # output existence is enforced by the parser
+    ) as vect:
+        cat = 1
+        for serial, group in sorted(group_by_camera(metadata).items()):
+            segments = {}
+            for img in group:
+                segments.setdefault(img["segment"], []).append(img)
+            for seg_index, seg in sorted(segments.items()):
+                seg.sort(key=lambda img: img["timestamp"])
+                coords = [(img["easting"], img["northing"], img["alt"]) for img in seg]
+                if len(coords) < 2:
+                    continue
+                if is_grid_flight(coords):
+                    vertices = coords
+                else:
+                    vertices = catmull_rom_spline(coords)
+                line = Line([Point(x, y, z) for x, y, z in vertices])
+                vect.write(
+                    line,
+                    cat=cat,
+                    attrs=(
+                        serial,
+                        seg_index,
+                        len(seg),
+                        str(seg[0]["timestamp"]),
+                        str(seg[-1]["timestamp"]),
+                    ),
+                )
+                cat += 1
+        vect.table.conn.commit()
+        vect.build()
+    gs.vector_history(outmap)
+
+
 def create_transformer():
     """Reproject list of (lon,lat) coords from WGS84 to GRASS CRS."""
     try:
@@ -952,6 +1086,7 @@ def main():
     outcsv = options["overlap_stats"]
     footprints = options["footprints"]
     stations = options["stations"]
+    path = options["path"]
     overlap = flags["c"]
     flat = flags["f"]
 
@@ -1117,6 +1252,10 @@ def main():
     if stations:
         gs.message(_("Writing camera station map <{}>...").format(stations))
         write_stations(photos_by_line_heading, stations)
+
+    if path:
+        gs.message(_("Writing flight path map <{}>...").format(path))
+        write_flight_path(photos_by_line_heading, path)
 
     if overlap:
         gs.message(_("Calculating overlaps..."))
