@@ -244,6 +244,32 @@ def test_is_grid_flight(tool):
     assert not tool.is_grid_flight(arc)
 
 
+def _square(x0, y0, size=10.0):
+    return [
+        (x0, y0, 0.0),
+        (x0 + size, y0, 0.0),
+        (x0 + size, y0 + size, 0.0),
+        (x0, y0 + size, 0.0),
+        (x0, y0, 0.0),
+    ]
+
+
+def test_footprint_overlap_half(tool):
+    assert tool.footprint_overlap(_square(0, 0), _square(5, 0)) == pytest.approx(0.5)
+
+
+def test_footprint_overlap_disjoint(tool):
+    assert tool.footprint_overlap(_square(0, 0), _square(20, 20)) == pytest.approx(0.0)
+
+
+def test_footprint_overlap_identical(tool):
+    assert tool.footprint_overlap(_square(0, 0), _square(0, 0)) == pytest.approx(1.0)
+
+
+def test_footprint_overlap_quarter(tool):
+    assert tool.footprint_overlap(_square(0, 0), _square(5, 5)) == pytest.approx(0.25)
+
+
 def test_find_exiftool_missing(tool, raise_on_error, monkeypatch):
     monkeypatch.setattr(tool.shutil, "which", lambda name: None)
     with pytest.raises(ScriptError, match="ExifTool"):
@@ -312,6 +338,29 @@ def test_tool_end_to_end(session, photo_dir):
     )["records"]
     for area in areas:
         assert area["area"] == pytest.approx(216.0 * 144.0, rel=0.01)
+
+
+@requires_exiftool
+def test_tool_overlap_csv(session, photo_dir, tmp_path):
+    overlap_file = tmp_path / "overlap.csv"
+    gs.run_command(
+        "v.photo.geometry",
+        input=str(photo_dir),
+        elevation="dtm",
+        overlap=str(overlap_file),
+        format="csv",
+        env=session.env,
+    )
+    import csv as csv_module
+
+    rows = list(csv_module.DictReader(overlap_file.open()))
+    assert len(rows) == 3
+    # Along-track footprint side is the short one (144 m: image top
+    # faces the flight direction); ~90.5 m photo spacing eastward
+    expected = (144.0 - 90.5) / 144.0
+    for row in rows[:-1]:  # the last image has no next photo
+        assert float(row["forward"]) == pytest.approx(expected, abs=0.02)
+    assert rows[-1]["forward"] == ""
 
 
 @requires_exiftool

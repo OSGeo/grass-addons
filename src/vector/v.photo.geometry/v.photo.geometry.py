@@ -51,18 +51,20 @@
 # % description: Images separated by more than this gap do not inform each other's estimated heading
 # %end
 #
-# %option G_OPT_R_OUTPUT
-# % key: overlap_raster
-# % type: string
+# %option G_OPT_F_OUTPUT
+# % key: overlap
 # % required: no
-# % description: Output raster map showing percent overlap
+# % label: Output file for per-image overlap statistics
+# % description: Use "-" to write to standard output
 # %end
 #
 # %option
-# % key: overlap_stats
+# % key: format
 # % type: string
 # % required: no
-# % description: Output CSV file with overlap statistics
+# % options: plain,csv,json
+# % answer: csv
+# % description: Format of the overlap statistics output
 # %end
 #
 # %option G_OPT_V_OUTPUT
@@ -84,12 +86,7 @@
 # %end
 #
 # %rules
-# % required: footprints,stations,path
-# %end
-#
-# %flag
-# % key: c
-# % description: Calculate overlaps between consecutive footprints
+# % required: footprints,stations,path,overlap
 # %end
 #
 # %flag
@@ -111,7 +108,6 @@ import numpy as np
 import grass.script as gs
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector.geometry import Boundary, Centroid, Line, Point
-from grass.pygrass.modules import Module
 import grass.script.array as garray
 
 EXIFTOOL_MIN_VERSION = 12.0
@@ -416,69 +412,169 @@ def compute_gsd(exif, alt, focal_mm, sensor_size):
     return (gsd_w, gsd_h, gsd_avg)
 
 
-def calculate_overlaps(footprints_map, output_prefix):
+def _open_ccw(footprint):
+    """Footprint ring as an open, counter-clockwise 2D vertex list."""
+    points = [(p[0], p[1]) for p in footprint]
+    if points[0] == points[-1]:
+        points = points[:-1]
+    area = 0.0
+    for i, (x1, y1) in enumerate(points):
+        x2, y2 = points[(i + 1) % len(points)]
+        area += x1 * y2 - x2 * y1
+    return points if area > 0 else points[::-1]
+
+
+def polygon_area(points):
+    """Shoelace area of an open 2D vertex list."""
+    area = 0.0
+    for i, (x1, y1) in enumerate(points):
+        x2, y2 = points[(i + 1) % len(points)]
+        area += x1 * y2 - x2 * y1
+    return abs(area) / 2.0
+
+
+def _clip_polygon(subject, clip):
+    """Sutherland-Hodgman clipping of subject by a convex CCW polygon."""
+
+    def is_inside(point, a, b):
+        return (b[0] - a[0]) * (point[1] - a[1]) >= (b[1] - a[1]) * (point[0] - a[0])
+
+    def line_intersection(a, b, p, q):
+        a1 = b[1] - a[1]
+        b1 = a[0] - b[0]
+        c1 = a1 * a[0] + b1 * a[1]
+        a2 = q[1] - p[1]
+        b2 = p[0] - q[0]
+        c2 = a2 * p[0] + b2 * p[1]
+        det = a1 * b2 - a2 * b1
+        if abs(det) < 1e-12:
+            return p
+        return ((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det)
+
+    output = list(subject)
+    for i in range(len(clip)):
+        if not output:
+            break
+        a, b = clip[i], clip[(i + 1) % len(clip)]
+        vertices, output = output, []
+        s = vertices[-1]
+        for e in vertices:
+            if is_inside(e, a, b):
+                if not is_inside(s, a, b):
+                    output.append(line_intersection(a, b, s, e))
+                output.append(e)
+            elif is_inside(s, a, b):
+                output.append(line_intersection(a, b, s, e))
+            s = e
+    return output
+
+
+def footprint_overlap(fp1, fp2):
+    """Fraction of fp1's area covered by fp2 (in 2D)."""
+    subject = _open_ccw(fp1)
+    clip = _open_ccw(fp2)
+    intersection = _clip_polygon(subject, clip)
+    if len(intersection) < 3:
+        return 0.0
+    area = polygon_area(subject)
+    if area <= 0:
+        return 0.0
+    return polygon_area(intersection) / area
+
+
+def _bbox(footprint):
+    xs = [p[0] for p in footprint]
+    ys = [p[1] for p in footprint]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _bboxes_intersect(box1, box2):
+    return not (
+        box1[2] < box2[0] or box2[2] < box1[0] or box1[3] < box2[1] or box2[3] < box1[1]
+    )
+
+
+def compute_overlaps(metadata):
+    """Per-image forward and side overlap fractions.
+
+    Forward overlap is measured against the next image of the same camera
+    within the same flight segment. Side overlap is the maximum overlap with
+    any non-consecutive image of the same camera, which captures adjacent
+    flight lines without needing to reconstruct the line layout.
     """
-    Calculate overlaps between consecutive footprints using GRASS v.overlay.
+    rows = []
+    for serial, group in sorted(group_by_camera(metadata).items()):
+        ordered = sorted(group, key=lambda img: (img["segment"], img["timestamp"]))
+        boxes = [
+            _bbox(img["footprint"]) if img["footprint"] else None for img in ordered
+        ]
+        for i, img in enumerate(ordered):
+            row = {
+                "filename": img["filename"],
+                "camera_serial": serial,
+                "segment": img["segment"],
+                "forward": None,
+                "side": None,
+            }
+            if img["footprint"]:
+                nxt = ordered[i + 1] if i + 1 < len(ordered) else None
+                if nxt and nxt["footprint"] and nxt["segment"] == img["segment"]:
+                    row["forward"] = footprint_overlap(
+                        img["footprint"], nxt["footprint"]
+                    )
+                side = 0.0
+                for j, other in enumerate(ordered):
+                    if abs(i - j) < 2 or not other["footprint"]:
+                        continue
+                    if not _bboxes_intersect(boxes[i], boxes[j]):
+                        continue
+                    side = max(
+                        side, footprint_overlap(img["footprint"], other["footprint"])
+                    )
+                row["side"] = side
+            rows.append(row)
+    return rows
 
-    Args:
-        footprints_map : name of vector map with all footprints
-        output_prefix  : prefix for intermediate intersection maps
 
-    Returns:
-        list of overlap ratios
-    """
-    overlaps = []
+def write_overlap(rows, destination, output_format):
+    """Write overlap rows as plain text, CSV, or JSON."""
 
-    with VectorTopo(footprints_map) as vect:
-        n = len(vect)
+    def fmt(value):
+        return "" if value is None else f"{value:.3f}"
 
-    # Loop over consecutive footprints
-    for i in range(1, n + 1):
-        # Select two consecutive areas by category
-        sel1 = f"{footprints_map}_f1"
-        sel2 = f"{footprints_map}_f2"
+    if output_format == "json":
+        text = json.dumps({"images": rows}, indent=2) + "\n"
+    elif output_format == "csv":
+        import io
 
-        gs.run_command(
-            "v.extract",
-            input=footprints_map,
-            where=f"cat={i - 1}",
-            output=sel1,
-            overwrite=True,
-        )
-        gs.run_command(
-            "v.extract",
-            input=footprints_map,
-            where=f"cat={i}",
-            output=sel2,
-            overwrite=True,
-        )
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(["filename", "camera_serial", "segment", "forward", "side"])
+        for row in rows:
+            writer.writerow(
+                [
+                    row["filename"],
+                    row["camera_serial"],
+                    row["segment"],
+                    fmt(row["forward"]),
+                    fmt(row["side"]),
+                ]
+            )
+        text = buffer.getvalue()
+    else:
+        lines = [
+            f"{row['filename']} camera={row['camera_serial']} "
+            f"segment={row['segment']} forward={fmt(row['forward'])} "
+            f"side={fmt(row['side'])}"
+            for row in rows
+        ]
+        text = "\n".join(lines) + "\n"
 
-        # Intersection
-        inter = f"{output_prefix}_inter_{i}"
-        gs.run_command(
-            "v.overlay",
-            ainput=sel1,
-            binput=sel2,
-            operator="and",
-            output=inter,
-            overwrite=True,
-        )
-
-        # Get areas
-        a1 = float(
-            Module("v.to.db", map=sel1, option="area", flags="p").outputs.stdout.strip()
-        )
-        inter_area = float(
-            Module(
-                "v.to.db", map=inter, option="area", flags="p"
-            ).outputs.stdout.strip()
-            or 0
-        )
-
-        overlap = inter_area / a1 if a1 > 0 else 0
-        overlaps.append(overlap)
-
-    return overlaps
+    if destination == "-":
+        sys.stdout.write(text)
+    else:
+        with open(destination, "w") as stream:
+            stream.write(text)
 
 
 def get_orientation(exif):
@@ -1062,32 +1158,15 @@ def get_above_ground_level_alt(e, n, alt, elevation) -> float:
     return agl
 
 
-def report_overlap_stats(overlaps, photos, output_file):
-    """Write overlap statistics to a CSV file."""
-    headers = ["photo1", "photo2", "overlap"]
-    if output_file:
-        with open(output_file, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(headers)
-            for i, ov in enumerate(overlaps):
-                writer.writerow([photos[i], photos[i + 1], f"{ov:.2f}"])
-
-    else:
-        print(",".join(headers))
-        for i, ov in enumerate(overlaps):
-            print(f"{photos[i]},{photos[i + 1]},{ov:.2f}")
-
-
 def main():
     options, flags = gs.parser()
     indir = options["input"]
     elevation = options["elevation"]
-    overlap_raster = options["overlap_raster"]
-    outcsv = options["overlap_stats"]
+    overlap = options["overlap"]
+    overlap_format = options["format"]
     footprints = options["footprints"]
     stations = options["stations"]
     path = options["path"]
-    overlap = flags["c"]
     flat = flags["f"]
 
     exiftool = find_exiftool()
@@ -1259,10 +1338,13 @@ def main():
 
     if overlap:
         gs.message(_("Calculating overlaps..."))
-        overlaps = calculate_overlaps(coords, "tmp_overlaps")
-        avg_overlap = sum(overlaps) / len(overlaps)
-        gs.message(_("Average overlap: {:.2f}").format(avg_overlap))
-        report_overlap_stats(overlaps, photos, outcsv)
+        rows = compute_overlaps(photos_by_line_heading)
+        write_overlap(rows, overlap, overlap_format)
+        forward = [r["forward"] for r in rows if r["forward"] is not None]
+        if forward:
+            gs.message(
+                _("Mean forward overlap: {:.0%}").format(sum(forward) / len(forward))
+            )
 
     return 0
 
