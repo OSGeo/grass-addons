@@ -8,7 +8,7 @@
 # PURPOSE:   Recovers acquisition geometry from aerial photos with incomplete
 #            flight metadata.
 #
-# COPYRIGHT: (C) 2025-2026 by Corey T. White and the GRASS Development Team
+# COPYRIGHT: (C) 2024-2026 by Corey T. White and the GRASS Development Team
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 ##############################################################################
@@ -17,12 +17,15 @@
 # % label: Recovers acquisition geometry from aerial photos.
 # % description: Derives camera pose, ground sample distance, image footprints, flight path, and overlap from a directory of aerial photos and an elevation model.
 # % keyword: vector
+# % keyword: imagery
 # % keyword: photogrammetry
 # % keyword: UAV
 # % keyword: footprint
+# % keyword: metadata
+# % keyword: EXIF
 # %end
 #
-# %option G_OPT_F_INPUT
+# %option G_OPT_M_DIR
 # % description: Directory of aerial photos
 # % required: yes
 # %end
@@ -64,7 +67,8 @@
 # % required: no
 # % options: plain,csv,json
 # % answer: csv
-# % description: Format of the overlap statistics output
+# % label: Format of the overlap statistics output (with overlap=)
+# % descriptions: plain;Human readable text;csv;CSV table;json;JSON object
 # %end
 #
 # %option G_OPT_V_OUTPUT
@@ -104,6 +108,7 @@ import sys
 import os
 import math
 import csv
+import io
 import json
 import shutil
 import subprocess
@@ -550,8 +555,6 @@ def write_overlap(rows, destination, output_format):
     if output_format == "json":
         text = json.dumps({"images": rows}, indent=2) + "\n"
     elif output_format == "csv":
-        import io
-
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(["filename", "camera_serial", "segment", "forward", "side"])
@@ -578,7 +581,7 @@ def write_overlap(rows, destination, output_format):
     if destination == "-":
         sys.stdout.write(text)
     else:
-        with open(destination, "w") as stream:
+        with open(destination, "w", newline="") as stream:
             stream.write(text)
 
 
@@ -601,9 +604,7 @@ def get_orientation(exif):
     return yaw, pitch, roll
 
 
-def intersect_ray_dem_fast(
-    x0, y0, z0, dir_vec, dem_arr, region, step=None, max_dist=2000.0
-):
+def intersect_ray_dem(x0, y0, z0, dir_vec, dem_arr, region, step=None, max_dist=2000.0):
     """Walk a ray from the camera until it passes below the DEM surface.
 
     The crossing is refined by linear interpolation between the last two
@@ -717,9 +718,7 @@ def make_footprint(image_metadata, dem_arr, region):
             return []
         # Far enough to reach the lowest DEM cell, with headroom for slopes
         max_dist = max(1.5 * (z0 - dem_min) / -enu[2], 100.0)
-        hit = intersect_ray_dem_fast(
-            x0, y0, z0, enu, dem_arr, region, max_dist=max_dist
-        )
+        hit = intersect_ray_dem(x0, y0, z0, enu, dem_arr, region, max_dist=max_dist)
         if hit:
             footprint.append(hit)
 
@@ -788,7 +787,7 @@ def get_camera_details(exif):
     make = exif.get("Make", "Unknown")
     model = exif.get("Model", "Unknown")
     lens = exif.get("LensModel") or str(exif.get("LensID", "Unknown"))
-    gs.debug(_("Camera: %s %s, Lens: %s") % (make, model, lens))
+    gs.debug(f"Camera: {make} {model}, Lens: {lens}")
     return make, model, lens
 
 
@@ -802,18 +801,9 @@ def get_photo_specs(exif):
     exposureTime = as_float(exif.get("ExposureTime"))
     date_time = exif.get("DateTimeOriginal", "Unknown")
     gs.debug(
-        _(
-            "ISO: %s, Shutter Speed: %s, Aperture: %s, Image Size: %sx%s, Exposer Time: %s, Datetime: %s"
-        )
-        % (
-            iso,
-            shutter_speed,
-            aperture,
-            image_width,
-            image_height,
-            exposureTime,
-            date_time,
-        )
+        f"ISO: {iso}, Shutter Speed: {shutter_speed}, Aperture: {aperture}, "
+        f"Image Size: {image_width}x{image_height}, "
+        f"Exposure Time: {exposureTime}, Datetime: {date_time}"
     )
     return (
         iso,
