@@ -27,8 +27,8 @@ def test_get_coords_missing_gps(tool):
 def test_parse_datetime_subsecond(tool, cap_records):
     ts = tool.parse_exif_datetime(cap_records[0])
     assert ts.microsecond == 191000
-    assert ts.utcoffset() is not None
-    assert ts.astimezone(timezone.utc).hour == 23  # 18:32 at -05:00
+    assert ts.tzinfo is None  # normalized to naive UTC
+    assert ts.hour == 23  # 18:32 at -05:00
 
 
 def test_parse_datetime_plain(tool):
@@ -38,6 +38,42 @@ def test_parse_datetime_plain(tool):
 
 def test_parse_datetime_missing(tool):
     assert tool.parse_exif_datetime({}) is None
+
+
+def test_get_coords_sea_level_altitude(tool):
+    exif = {"GPSLatitude": 35.0, "GPSLongitude": -78.0, "GPSAltitude": 0.0}
+    assert tool.get_coords(exif) == (-78.0, 35.0, 0.0)
+
+
+def test_parse_datetime_mixed_offsets_sortable(tool):
+    """Aware timestamps normalize to naive UTC so datasets that mix
+    cameras with and without offsets still sort."""
+    aware = tool.parse_exif_datetime({"DateTimeOriginal": "2024:10:03 18:32:11-05:00"})
+    naive = tool.parse_exif_datetime({"DateTimeOriginal": "2024:10:03 23:32:10"})
+    assert aware.tzinfo is None
+    assert sorted([aware, naive]) == [naive, aware]
+
+
+def test_compute_gsd_image_width_fallback(tool):
+    exif = {"ImageWidth": 4000, "ImageHeight": 3000}
+    gsd = tool.compute_gsd(exif, 300.0, 50.0, (36.0, 24.0))
+    assert gsd is not None
+    assert gsd[0] == pytest.approx(300.0 * 36.0 / (50.0 * 4000))
+
+
+def test_compute_gsd_missing_inputs(tool):
+    assert tool.compute_gsd({}, 300.0, 50.0, (36.0, 24.0)) is None
+    assert tool.compute_gsd({"ExifImageWidth": 100}, None, 50.0, (36, 24)) is None
+    assert (
+        tool.compute_gsd(
+            {"ExifImageWidth": 100, "ExifImageHeight": 80}, 300.0, None, (36, 24)
+        )
+        is None
+    )
+
+
+def test_focal_length_missing(tool):
+    assert tool.get_focal_length({}) is None
 
 
 def test_camera_details(tool, cap_records):
@@ -407,6 +443,35 @@ def test_tool_overlap_density(session, photo_dir):
     # Magma color table was applied (pale yellow top end)
     colors = gs.read_command("r.colors.out", map="density", env=session.env)
     assert "252:253:191" in colors
+
+
+@requires_exiftool
+def test_tool_skips_photo_without_timestamp(session, photo_dir, tmp_path):
+    """An image with no parseable timestamp is skipped, not a crash."""
+    import subprocess
+
+    broken_dir = tmp_path / "photos"
+    shutil.copytree(photo_dir, broken_dir)
+    subprocess.run(
+        [
+            shutil.which("exiftool"),
+            "-overwrite_original",
+            "-q",
+            "-DateTimeOriginal=",
+            "-CreateDate=",
+            "-SubSecDateTimeOriginal=",
+            str(broken_dir / "img_001.jpg"),
+        ],
+        check=True,
+    )
+    gs.run_command(
+        "v.photo.geometry",
+        input=str(broken_dir),
+        elevation="dtm",
+        stations="stations_skip",
+        env=session.env,
+    )
+    assert gs.vector_info_topo("stations_skip", env=session.env)["points"] == 2
 
 
 @requires_exiftool

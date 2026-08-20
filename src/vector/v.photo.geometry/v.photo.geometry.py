@@ -107,7 +107,7 @@ import csv
 import json
 import shutil
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -186,9 +186,9 @@ def get_coords(exif):
     lon = exif.get("GPSLongitude")
     alt = exif.get("GPSAltitude")
     gs.debug(f"GPS altitude ref: {exif.get('GPSAltitudeRef', 'N/A')}")
-    if lat is None or lon is None or not alt:
+    if lat is None or lon is None or alt is None:
         return None
-    return lon, lat, alt
+    return lon, lat, as_float(alt)
 
 
 def parse_exif_datetime(exif):
@@ -209,9 +209,13 @@ def parse_exif_datetime(exif):
         "%Y:%m:%d %H:%M:%S",
     ):
         try:
-            return datetime.strptime(value, fmt)
+            parsed = datetime.strptime(value, fmt)
         except ValueError:
             continue
+        if parsed.tzinfo is not None:
+            # Naive UTC keeps mixed datasets sortable
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        return parsed
     gs.warning(_("Could not parse timestamp '{}'").format(value))
     return None
 
@@ -345,12 +349,8 @@ def _estimate_segment_headings(segment, seg_index):
 
 
 def get_focal_length(exif):
-    """Return focal length in mm from EXIF data."""
-    focal = exif.get("FocalLength")
-    if not focal:
-        return 0.1
-    focal_mm = float(focal)
-    return focal_mm
+    """Return focal length in mm, or None when not recorded."""
+    return as_float(exif.get("FocalLength"))
 
 
 # Diagonal of a full-frame 36 x 24 mm sensor, the 35 mm equivalence reference
@@ -399,21 +399,20 @@ def compute_sensor_size(exif, override=None):
     return None
 
 
-def compute_gsd(exif, alt, focal_mm, sensor_size):
-    """Estimate GSD (m/pixel) from EXIF and altitude."""
-    # altitude in meters (if AGL, not AMSL!)
-    if not alt:
-        return 0.1  # fallback: 10 cm/px
+def compute_gsd(exif, agl, focal_mm, sensor_size):
+    """Return (gsd_w, gsd_h, gsd_avg) in m/pixel, or None.
 
-    # image dimensions
-    img_w = exif.get("ExifImageWidth")  # px
-    img_h = exif.get("ExifImageHeight")  # px
-    if not img_w or not img_h:
-        return 0.1
+    Needs the above-ground altitude, the focal length, and the image
+    dimensions; any of them missing means the GSD is undefined.
+    """
+    img_w = exif.get("ExifImageWidth") or exif.get("ImageWidth")
+    img_h = exif.get("ExifImageHeight") or exif.get("ImageHeight")
+    if agl is None or not focal_mm or not img_w or not img_h:
+        return None
 
     sensor_w, sensor_h = sensor_size
-    gsd_w = float(alt * sensor_w) / float(focal_mm * img_w)
-    gsd_h = float(alt * sensor_h) / float(focal_mm * img_h)
+    gsd_w = float(agl * sensor_w) / float(focal_mm * img_w)
+    gsd_h = float(agl * sensor_h) / float(focal_mm * img_h)
     gsd_avg = float(gsd_w + gsd_h) / 2.0  # average
     return (gsd_w, gsd_h, gsd_avg)
 
@@ -600,22 +599,6 @@ def get_orientation(exif):
     gs.debug(f"Orientation: yaw={yaw}, pitch={pitch}, roll={roll}")
 
     return yaw, pitch, roll
-
-
-def get_footprint_dimensions(gsd_x, gsd_y, exif):
-    """Calculate footprint dimensions based on EXIF data."""
-    img_w = exif.get("ExifImageWidth")
-    img_h = exif.get("ExifImageHeight")
-    if not img_w or not img_h:
-        gs.warning(_("Image dimensions not found in EXIF data"))
-        return 0.1, 0.1
-    footprint_w = gsd_x * img_w
-    footprint_h = gsd_y * img_h
-    gs.debug(
-        _("Footprint dimensions from GSD: width=%s m, height=%s m")
-        % (footprint_w, footprint_h)
-    )
-    return footprint_w, footprint_h
 
 
 def intersect_ray_dem_fast(
@@ -891,7 +874,7 @@ ATTR_KEYS = [
     "iso",
     "shutter_speed",
     "aperture",
-    "iamge_width",
+    "image_width",
     "image_height",
     "exposure_time",
     "original_datetime",
@@ -1182,22 +1165,15 @@ def get_above_ground_level_alt(e, n, alt, elevation) -> float:
     """
     result = gs.raster_what(elevation, coord=[[e, n]])
     ground_elev = None
-    alt = float(alt) if alt is not None else 0.0
     if elevation in result[0]:
         val = result[0][elevation]["value"]
         if val not in (None, "null", "No data"):
             ground_elev = float(val)
 
     if ground_elev is None:
-        gs.warning(
-            _("Elevation raster %s not found at coordinates (%s, %s)")
-            % (elevation, e, n)
-        )
-        return alt
+        return None
 
-    agl = float(alt - ground_elev)
-
-    return agl
+    return float(alt - ground_elev)
 
 
 def main():
@@ -1217,8 +1193,7 @@ def main():
     records = read_metadata(exiftool, indir)
     if not records:
         gs.fatal(_("No images found in '{}'").format(indir))
-    photos = [record["SourceFile"] for record in records]
-    gs.message(_("Found {} photos in '{}'").format(len(photos), indir))
+    gs.message(_("Found {} photos in '{}'").format(len(records), indir))
 
     sensor_override = None
     if options["sensor"]:
@@ -1228,8 +1203,8 @@ def main():
         sensor_override = (values[0], values[1])
     reported_sensors = set()
 
-    coords = []
     metadata = []
+    skipped = []
 
     gs.verbose(_("Creating transformer for reprojection..."))
     transformer = create_transformer()
@@ -1251,17 +1226,28 @@ def main():
         camera_make, camera_model, camera_lens = get_camera_details(exif)
         camera_serial = get_camera_serial(exif)
 
+        filename = os.path.basename(img)
+
         gps = get_coords(exif)
         if not gps:
+            gs.warning(_("<{}>: no GPS position, skipping").format(filename))
+            skipped.append(filename)
             continue
         lon, lat, alt = gps
 
         ts = parse_exif_datetime(exif)
+        if ts is None:
+            gs.warning(_("<{}>: no usable timestamp, skipping").format(filename))
+            skipped.append(filename)
+            continue
 
         e, n = transformer.transform(lon, lat)  # reproject lon/lat
-        coords.append((e, n))
 
         focal_length_mm = get_focal_length(exif)
+        if not focal_length_mm:
+            gs.warning(_("<{}>: no focal length, skipping").format(filename))
+            skipped.append(filename)
+            continue
 
         sensor = compute_sensor_size(exif, sensor_override)
         if sensor is None:
@@ -1281,7 +1267,22 @@ def main():
             )
 
         agl = get_above_ground_level_alt(e, n, alt, elevation)
-        gsd_w, gsd_h, gsd_avg = compute_gsd(exif, agl, focal_length_mm, sensor_size)
+        if agl is None:
+            gs.warning(
+                _(
+                    "<{}>: elevation raster <{}> has no value at the camera "
+                    "position ({:.1f}, {:.1f}), skipping"
+                ).format(filename, elevation, e, n)
+            )
+            skipped.append(filename)
+            continue
+
+        gsd = compute_gsd(exif, agl, focal_length_mm, sensor_size)
+        if gsd is None:
+            gs.warning(_("<{}>: image dimensions missing, skipping").format(filename))
+            skipped.append(filename)
+            continue
+        gsd_w, gsd_h, gsd_avg = gsd
         gs.debug(
             f"GSD: width={gsd_w:.2f} m/px, height={gsd_h:.2f} m/px, "
             f"average={gsd_avg:.2f} m/px"
@@ -1291,13 +1292,11 @@ def main():
 
         yaw, pitch, roll = get_orientation(exif)
 
-        footprint_w, footprint_h = get_footprint_dimensions(gsd_w, gsd_h, exif)
-
         image_metadata = {
             "iso": iso,
             "shutter_speed": shutter_speed,
             "aperture": aperture,
-            "iamge_width": image_width,
+            "image_width": image_width,
             "image_height": image_height,
             "exposure_time": exposure_time,
             "original_datetime": original_datetime,
@@ -1305,8 +1304,6 @@ def main():
             "camera_model": camera_model,
             "camera_lens": camera_lens,
             "camera_serial": camera_serial,
-            "width": footprint_w,
-            "height": footprint_h,
             "focal_length": focal_length_mm,
             "sensor_size_w": sensor_size[0],
             "sensor_size_h": sensor_size[1],
@@ -1324,13 +1321,21 @@ def main():
             "agl": agl,
             "ground_elev": ground_elev,
             "exif": exif,
-            "filename": os.path.basename(img),
+            "filename": filename,
             "timestamp": ts,
             "category": i + 1,  # category ID for vector feature
         }
 
         metadata.append(image_metadata)
 
+    if skipped:
+        gs.warning(
+            _("Skipped {} of {} images with unusable metadata").format(
+                len(skipped), len(records)
+            )
+        )
+    if not metadata:
+        gs.fatal(_("No usable images found in '{}'").format(indir))
     gs.verbose(_("Metadata collected for all photos"))
 
     photos_by_line_heading = compute_headings_from_gps(
@@ -1364,9 +1369,6 @@ def main():
             gs.warning(
                 _("No footprint created for <{}>, skipping...").format(img["filename"])
             )
-
-    if not coords:
-        gs.fatal(_("No GPS data found"))
 
     if footprints:
         gs.message(_("Writing footprint vector map <{}>...").format(footprints))
