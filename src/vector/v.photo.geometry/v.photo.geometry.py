@@ -578,19 +578,20 @@ def write_overlap(rows, destination, output_format):
 
 
 def get_orientation(exif):
-    """Extract yaw, pitch, roll; return defaults if not found."""
-    # Do not set a Yaw default here, use EXIF value
-    # if Yaw is not found it is calculated later
-    # from GPS data.
-    # Some cameras use MakerNotes instead of EXIF
-    yaw = (
-        exif.get("FlightYawDegree")
-        or exif.get("GimbalYawDegree")
-        or exif.get("GPSImgDirection")
-    )
-    pitch = exif.get("GimbalPitchDegree", -90.0)  # Default: nadir
-    roll = exif.get("GimbalRollDegree", 0.0)
-    gs.debug(_("Orientation: yaw=%s, pitch=%s, roll=%s") % (yaw, pitch, roll))
+    """Extract yaw, pitch, roll; return defaults if not found.
+
+    DJI XMP tags carry signed strings like "+90.50", so every value is
+    coerced to float. Yaw stays None when absent or unparseable; it is
+    estimated from the GPS track later.
+    """
+    yaw = None
+    for key in ("FlightYawDegree", "GimbalYawDegree", "GPSImgDirection"):
+        yaw = as_float(exif.get(key))
+        if yaw is not None:
+            break
+    pitch = as_float(exif.get("GimbalPitchDegree"), -90.0)  # Default: nadir
+    roll = as_float(exif.get("GimbalRollDegree"), 0.0)
+    gs.debug(f"Orientation: yaw={yaw}, pitch={pitch}, roll={roll}")
 
     return yaw, pitch, roll
 

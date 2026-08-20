@@ -52,6 +52,25 @@ def test_camera_details_lens_id_fallback(tool):
     assert lens == "198"  # LensID when LensModel is absent
 
 
+def test_orientation_dji_string_tags(tool):
+    """DJI XMP writes signed strings; values must come back as floats."""
+    exif = {
+        "FlightYawDegree": "+90.50",
+        "GimbalPitchDegree": "-89.90",
+        "GimbalRollDegree": "+0.00",
+    }
+    yaw, pitch, roll = tool.get_orientation(exif)
+    assert yaw == pytest.approx(90.5)
+    assert pitch == pytest.approx(-89.9)
+    assert roll == pytest.approx(0.0)
+
+
+def test_orientation_unparseable_yaw_stays_missing(tool):
+    yaw, pitch, roll = tool.get_orientation({"FlightYawDegree": "n/a"})
+    assert yaw is None
+    assert pitch == pytest.approx(-90.0)
+
+
 def test_orientation_absent_defaults(tool, cap_records):
     yaw, pitch, roll = tool.get_orientation(cap_records[0])
     assert yaw is None  # estimated from the GPS track later
