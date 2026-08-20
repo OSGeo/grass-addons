@@ -19,12 +19,20 @@ image footprints, and writes them as vector maps:
 - **overlap**: a per-image forward and side overlap report written as
   plain text, CSV, or JSON (**format**), to a file or to standard
   output (`overlap=-`).
+- **overlap_density**: a raster counting the number of images that
+  cover each cell, colored with the magma color table.
 
 At least one of these outputs is required.
 
 The tool was written for imagery that arrives without flight logs,
 such as post-disaster reconnaissance photos, where flight planning
 parameters have to be reconstructed from the images themselves.
+
+![Footprints, stations, and flight path](v_photo_geometry.png)  
+*Figure: Recovered image footprints (yellow), camera stations (dots),
+and flight path (red) of a 215-image DJI Phantom 4 Pro mission over
+the Lake Wheeler field laboratory, NCSU, on the same-day
+orthomosaic.*
 
 ## NOTES
 
@@ -86,6 +94,19 @@ same camera, which captures adjacent flight lines without
 reconstructing the line layout. Images without a footprint report
 empty values.
 
+The **overlap_density** raster counts the images covering each cell of
+the current computational region, computed from the footprint polygons
+in memory. Cells covered by no image are NULL. The magma color table
+is applied to the output.
+
+![Overlap density](v_photo_geometry_density.png)  
+*Figure: Overlap density of the same mission; the double-grid
+crosshatch peaks at 12 images per cell.*
+
+Footprints of adjacent images overlap by design, so the **footprints**
+map contains overlapping areas; GRASS reports duplicate centroids when
+building its topology, which is expected here.
+
 ## EXAMPLES
 
 Recover the full geometry of a photo block:
@@ -94,7 +115,8 @@ Recover the full geometry of a photo block:
 g.region raster=dtm -p
 v.photo.geometry input=/data/mission01 elevation=dtm \
     footprints=m01_footprints stations=m01_stations \
-    path=m01_path overlap=m01_overlap.csv
+    path=m01_path overlap=m01_overlap.csv \
+    overlap_density=m01_density
 ```
 
 Known camera, flat terrain, overlap only, printed to the terminal:
