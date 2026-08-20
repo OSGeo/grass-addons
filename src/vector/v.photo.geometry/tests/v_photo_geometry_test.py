@@ -383,6 +383,33 @@ def test_tool_overlap_csv(session, photo_dir, tmp_path):
 
 
 @requires_exiftool
+def test_tool_overlap_density(session, photo_dir):
+    gs.run_command(
+        "v.photo.geometry",
+        input=str(photo_dir),
+        elevation="dtm",
+        overlap_density="density",
+        env=session.env,
+    )
+    stats = gs.parse_command("r.univar", map="density", format="json", env=session.env)
+    if isinstance(stats, list):
+        stats = stats[0]
+    # 144 m along-track footprints at ~90.5 m spacing: two-image overlap
+    # zones between neighbors, never three
+    assert stats["max"] == 2
+    assert stats["min"] == 1
+    # Uncovered cells are NULL, so far fewer cells than the region
+    region = gs.region(env=session.env)
+    assert stats["n"] < region["cells"]
+    # Union area: 216 m across track, 144 + 2 * 90.5 m along track
+    expected_cells = 216.0 * (144.0 + 2 * 90.5) / (10.0 * 10.0)
+    assert stats["n"] == pytest.approx(expected_cells, rel=0.05)
+    # Magma color table was applied (pale yellow top end)
+    colors = gs.read_command("r.colors.out", map="density", env=session.env)
+    assert "252:253:191" in colors
+
+
+@requires_exiftool
 def test_tool_refuses_overwrite(session, photo_dir):
     with pytest.raises(CalledModuleError):
         gs.run_command(

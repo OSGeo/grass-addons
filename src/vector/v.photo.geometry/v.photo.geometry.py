@@ -85,8 +85,14 @@
 # % description: Output 3D vector map of the estimated flight path
 # %end
 #
+# %option G_OPT_R_OUTPUT
+# % key: overlap_density
+# % required: no
+# % description: Output raster map of the number of overlapping images per cell
+# %end
+#
 # %rules
-# % required: footprints,stations,path,overlap
+# % required: footprints,stations,path,overlap,overlap_density
 # %end
 #
 # %flag
@@ -1115,6 +1121,41 @@ def write_flight_path(metadata, outmap):
     gs.vector_history(outmap)
 
 
+def write_overlap_density(metadata, outmap, region):
+    """Write a raster counting the images that cover each cell.
+
+    Each footprint is a convex quadrilateral; its bounding-box window of
+    cell centers is tested with vectorized half-plane checks and
+    accumulated in memory, so no temporary maps are created. Cells not
+    covered by any image are NULL. The magma color table is applied.
+    """
+    density = garray.array(dtype=np.int32)
+    rows, cols = density.shape
+    for img in metadata:
+        if not img["footprint"]:
+            continue
+        polygon = _open_ccw(img["footprint"])
+        xs = [p[0] for p in polygon]
+        ys = [p[1] for p in polygon]
+        col0 = max(int((min(xs) - region["w"]) / region["ewres"]), 0)
+        col1 = min(int((max(xs) - region["w"]) / region["ewres"]) + 1, cols)
+        row0 = max(int((region["n"] - max(ys)) / region["nsres"]), 0)
+        row1 = min(int((region["n"] - min(ys)) / region["nsres"]) + 1, rows)
+        if col0 >= col1 or row0 >= row1:
+            continue
+        x = region["w"] + (np.arange(col0, col1) + 0.5) * region["ewres"]
+        y = region["n"] - (np.arange(row0, row1) + 0.5) * region["nsres"]
+        grid_x, grid_y = np.meshgrid(x, y)
+        inside = np.ones(grid_x.shape, dtype=bool)
+        for i, (ax, ay) in enumerate(polygon):
+            bx, by = polygon[(i + 1) % len(polygon)]
+            inside &= (bx - ax) * (grid_y - ay) >= (by - ay) * (grid_x - ax)
+        density[row0:row1, col0:col1] += inside
+    density.write(outmap, null=0, overwrite=True)
+    gs.run_command("r.colors", map=outmap, color="magma", quiet=True)
+    gs.raster_history(outmap)
+
+
 def create_transformer():
     """Reproject list of (lon,lat) coords from WGS84 to GRASS CRS."""
     try:
@@ -1165,6 +1206,7 @@ def main():
     elevation = options["elevation"]
     overlap = options["overlap"]
     overlap_format = options["format"]
+    overlap_density = options["overlap_density"]
     footprints = options["footprints"]
     stations = options["stations"]
     path = options["path"]
@@ -1297,9 +1339,10 @@ def main():
 
     dem_arr = None
     region = None
+    if not flat or overlap_density:
+        region = gs.region()
     if not flat:
         # The DEM is read once at the current region resolution
-        region = gs.region()
         dem_arr = garray.array(elevation)
 
     for img in photos_by_line_heading:
@@ -1336,6 +1379,10 @@ def main():
     if path:
         gs.message(_("Writing flight path map <{}>...").format(path))
         write_flight_path(photos_by_line_heading, path)
+
+    if overlap_density:
+        gs.message(_("Writing overlap density raster <{}>...").format(overlap_density))
+        write_overlap_density(photos_by_line_heading, overlap_density, region)
 
     if overlap:
         gs.message(_("Calculating overlaps..."))
