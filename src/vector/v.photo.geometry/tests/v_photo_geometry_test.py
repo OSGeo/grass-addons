@@ -475,6 +475,26 @@ def test_tool_skips_photo_without_timestamp(session, photo_dir, tmp_path):
 
 
 @requires_exiftool
+def test_tool_rejects_latlong_project(photo_dir, tmp_path):
+    """All geometry math assumes projected meters; lat/lon must fail."""
+    import os
+
+    project = tmp_path / "wgs84"
+    gs.create_project(project, epsg="4326")
+    with gs.setup.init(project, env=os.environ.copy()) as latlong:
+        gs.run_command("g.region", n=36, s=35, w=-79, e=-78, res=0.01, env=latlong.env)
+        gs.run_command("r.mapcalc", expression="dtm = 700", env=latlong.env)
+        with pytest.raises(CalledModuleError):
+            gs.run_command(
+                "v.photo.geometry",
+                input=str(photo_dir),
+                elevation="dtm",
+                stations="stations",
+                env=latlong.env,
+            )
+
+
+@requires_exiftool
 def test_tool_refuses_overwrite(session, photo_dir):
     with pytest.raises(CalledModuleError):
         gs.run_command(

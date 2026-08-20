@@ -1145,8 +1145,9 @@ def create_transformer():
         from pyproj import CRS, Transformer
     except ImportError:
         gs.fatal(_("pyproj is required, install it with: pip install pyproj"))
-    grass_proj = gs.read_command("g.proj", flags="jf")  # PROJ string
-    grass_crs = CRS.from_string(grass_proj.strip())
+    # WKT preserves the datum; PROJ.4 output is deprecated and lossy
+    grass_wkt = gs.read_command("g.proj", flags="wf")
+    grass_crs = CRS.from_wkt(grass_wkt.strip())
     wgs84 = CRS.from_epsg(4326)
 
     # Build transformer (lon/lat WGS84 → GRASS CRS)
@@ -1187,6 +1188,22 @@ def main():
     stations = options["stations"]
     path = options["path"]
     flat = flags["f"]
+
+    if gs.locn_is_latlong():
+        gs.fatal(
+            _(
+                "The current project uses a latitude-longitude CRS; "
+                "v.photo.geometry requires a projected CRS in meters"
+            )
+        )
+    unit = gs.parse_command("g.proj", flags="g").get("unit", "")
+    if unit.lower() not in ("meter", "metre", "meters", "metres"):
+        gs.fatal(
+            _(
+                "The current project CRS uses unit '{}'; a projected CRS "
+                "in meters is required"
+            ).format(unit)
+        )
 
     exiftool = find_exiftool()
     gs.verbose(_("Reading image metadata with ExifTool..."))
