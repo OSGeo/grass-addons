@@ -1,0 +1,144 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.nk</em> implements the Nuth and K&auml;&auml;b (2011) algorithm
+for co-registering two Digital Elevation Models (DEMs). The algorithm estimates
+and corrects for vertical and horizontal offsets between the DEMs by minimizing
+elevation differences on stable terrain.</p>
+
+<h3>Model</h3>
+
+<p>For stable terrain pixels:</p>
+
+<pre>
+dh = SfM - LiDAR
+   approx. delta_x * tan(slope) * cos(aspect)
+         + delta_y * tan(slope) * sin(aspect)
+         + delta_z
+</pre>
+
+<p>Where <code>delta_x</code> (east), <code>delta_y</code> (north),
+<code>delta_z</code> (vertical) are solved by ordinary least squares using
+raster-wide sums computed internally. Only stable-terrain cells whose slope
+lies between <b>slope_min</b> and <b>slope_max</b> (degrees; defaults 2 and 85)
+enter the regression, excluding near-flat and near-vertical cells.</p>
+
+<h3>Iterative solve</h3>
+
+<p>The linear model above is only first order, so a single pass under-estimates
+shifts larger than one cell. The module therefore solves the increment on a
+working surface, accumulates it into the running transform, re-warps the
+working surface from the original SfM by the accumulated transform, and repeats
+until the increment falls below <b>tol</b> (in map units) or <b>max_iter</b>
+outer passes are reached. If the passes do not converge, a warning is issued
+and the last estimate is used.</p>
+
+<h3>Horizontal application (native)</h3>
+
+<p>The solved offsets are applied as a single inverse warp: each output cell at
+map coordinate <code>(x, y)</code> samples the original SfM at
+<code>(x + delta_x, y + delta_y)</code> (using <b>interp</b>) and subtracts
+<code>delta_z</code>. No region shifting or external resampling tool is
+involved.</p>
+
+<h3>Robustness</h3>
+
+<p>Optional iterative sigma-clipping on residuals (<b>iters</b> per outer pass)
+reduces outlier influence during each solve.</p>
+
+<p>The module always writes a residual raster named <code>output_resid</code>
+which contains <code>output - lidar</code> on the stable-terrain mask used for
+regression. When <b>-k</b> is provided, additional intermediate rasters are
+written: <code>output_slope</code>, <code>output_aspect</code>, and
+<code>output_mask</code>.</p>
+
+<h3>Saving and reusing a transform</h3>
+
+<p><b>transform_output</b> writes the solved offsets (<code>dz</code>,
+<code>dx</code>, <code>dy</code>) to a small text file.
+<b>apply_transform</b> reads such a file and applies it directly, skipping the
+regression. This lets a transform solved on one surface (for example a clean
+bare-earth DTM) be replayed onto another surface from the same acquisition (for
+example its DSM) so both share the same horizontal alignment. In apply mode the
+<b>stable_mask</b> is used only to define the reported residual raster, so a
+near-flat mask no longer triggers the "not enough valid pixels" error.</p>
+
+<h2>NOTES</h2>
+
+<p>The model is first order in the elevation difference, so a smooth
+long-wavelength vertical bias (e.g., photogrammetric doming) is partly
+degenerate with a horizontal shift: over sloped terrain a gentle tilt and a
+translation produce a similar <code>dh</code> pattern. When both are present
+the solve splits the signal between them and the reported <b>dx</b> and
+<b>dy</b> absorb part of the doming.</p>
+
+<p>Estimate the alignment on a surface where the long-wavelength component is
+small, or remove it first, and treat the horizontal offsets with suspicion
+when the residual after co-registration still shows a broad, smoothly varying
+pattern. <em>r.dem.bias</em> <b>method=spline</b> is the tool for the
+long-wavelength part, and it operates on the difference rather than on the
+DEM pair, so it runs after this step.</p>
+
+<p>The <b>stable_mask</b> must cover broad, sloped, unchanged terrain. Flat
+features (e.g., roads and parking lots) are filtered out by <b>slope_min</b>
+and carry no aspect information, so a mask built from them alone leaves the
+horizontal offsets poorly constrained. Those features belong in the PGCP
+vertical step of <em>r.dem.coregister</em> instead.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Solve the offset of the misregistered surface against the lidar reference.
+The stable mask must be broad, sloped terrain, not the flat roads used for
+the PGCP step:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.nk sfm=dsm_offset lidar=elev_lid792_1m \
+    stable_mask=stable_terrain output=dsm_nk \
+    transform_output=nk_transform.txt
+</pre></div>
+
+<p>The applied offset was 0.4596 m east, 0.4596 m north, and 1.32 m up, and
+the solve returns it:</p>
+
+<div class="code"><pre>
+Converged transform: dz=1.320551 dx=0.449873 dy=0.457072
+</pre></div>
+
+<p>Replay the saved transform onto another surface from the same acquisition,
+so a DSM and a DTM end up sharing one horizontal alignment:</p>
+
+<div class="code"><pre>
+r.dem.nk sfm=dsm_offset lidar=elev_lid792_1m stable_mask=stable_terrain \
+    output=dsm_nk_replay apply_transform=nk_transform.txt
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_nk_convergence.png">
+<img src="r_dem_nk_convergence.png" width="600" alt="r.dem.nk example" border="0">
+</a><br>
+<i>Figure: Stable-terrain residual before and after r.dem.nk.</i>
+</div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>Nuth, C., and A. K&auml;&auml;b. 2011. "Co-Registration and Bias
+  Corrections of Satellite Elevation Data Sets for Quantifying Glacier
+  Thickness Change." <em>The Cryosphere</em> 5 (1): 271-90.
+  <a href="https://doi.org/10.5194/tc-5-271-2011">https://doi.org/10.5194/tc-5-271-2011</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
+<em><a href="r.dem.icp.html">r.dem.icp</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>
