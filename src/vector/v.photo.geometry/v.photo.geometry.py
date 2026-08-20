@@ -673,7 +673,7 @@ def rotation_matrix_aircraft(yaw_deg, pitch_deg, roll_deg):
     return Rz @ Ry @ Rx  # aircraft convention
 
 
-def make_footprint(image_metadata, dem_arr, region):
+def make_footprint(image_metadata, dem_arr, region, dem_min=None):
     """Ray-trace the four sensor corners onto the DEM.
 
     Corner rays start along the pod forward axis (the boresight), with the
@@ -699,7 +699,8 @@ def make_footprint(image_metadata, dem_arr, region):
         (-sensor_w / 2, sensor_h / 2),
     ]
 
-    dem_min = float(np.nanmin(dem_arr))
+    if dem_min is None:
+        dem_min = float(np.nanmin(dem_arr))
     R = rotation_matrix_aircraft(yaw, pitch, roll)
     footprint = []
     for cx, cy in corners:
@@ -1145,26 +1146,21 @@ def create_transformer():
     return transformer
 
 
-def get_above_ground_level_alt(e, n, alt, elevation) -> float:
-    """
-    Calculate Above Ground Level (AGL) altitude.
-
-    e        : easting coordinate in GRASS CRS
-    n        : northing coordinate in GRASS CRS
-    alt      : EXIF altitude (ellipsoid or AMSL)
-    elevation: DEM raster in GRASS
-    """
-    result = gs.raster_what(elevation, coord=[[e, n]])
-    ground_elev = None
-    if elevation in result[0]:
-        val = result[0][elevation]["value"]
-        if val not in (None, "null", "No data"):
-            ground_elev = float(val)
-
-    if ground_elev is None:
-        return None
-
-    return float(alt - ground_elev)
+def sample_ground_elevations(coords, elevation):
+    """Ground elevation at each (easting, northing), None where the
+    raster has no value. One r.what call for the whole photo block."""
+    if not coords:
+        return []
+    results = gs.raster_what(elevation, coord=coords)
+    elevations = []
+    for result in results:
+        value = None
+        if elevation in result:
+            raw = result[elevation]["value"]
+            if raw not in (None, "null", "No data"):
+                value = float(raw)
+        elevations.append(value)
+    return elevations
 
 
 def main():
@@ -1211,6 +1207,7 @@ def main():
     reported_sensors = set()
 
     metadata = []
+    candidates = []
     skipped = []
 
     gs.verbose(_("Creating transformer for reprojection..."))
@@ -1273,67 +1270,70 @@ def main():
                 )
             )
 
-        agl = get_above_ground_level_alt(e, n, alt, elevation)
-        if agl is None:
+        yaw, pitch, roll = get_orientation(exif)
+
+        candidates.append(
+            {
+                "iso": iso,
+                "shutter_speed": shutter_speed,
+                "aperture": aperture,
+                "image_width": image_width,
+                "image_height": image_height,
+                "exposure_time": exposure_time,
+                "original_datetime": original_datetime,
+                "camera_make": camera_make,
+                "camera_model": camera_model,
+                "camera_lens": camera_lens,
+                "camera_serial": camera_serial,
+                "focal_length": focal_length_mm,
+                "sensor_size_w": sensor_size[0],
+                "sensor_size_h": sensor_size[1],
+                "yaw": yaw,
+                "pitch": pitch,
+                "roll": roll,
+                "easting": e,
+                "northing": n,
+                "lon": lon,
+                "lat": lat,
+                "alt": alt,
+                "exif": exif,
+                "filename": filename,
+                "timestamp": ts,
+                "category": i + 1,  # category ID for vector feature
+            }
+        )
+
+    # One r.what call for the whole block instead of one per photo
+    ground_elevations = sample_ground_elevations(
+        [(img["easting"], img["northing"]) for img in candidates], elevation
+    )
+    for img, ground_elev in zip(candidates, ground_elevations):
+        if ground_elev is None:
             gs.warning(
                 _(
                     "<{}>: elevation raster <{}> has no value at the camera "
                     "position ({:.1f}, {:.1f}), skipping"
-                ).format(filename, elevation, e, n)
+                ).format(img["filename"], elevation, img["easting"], img["northing"])
             )
-            skipped.append(filename)
+            skipped.append(img["filename"])
             continue
-
-        gsd = compute_gsd(exif, agl, focal_length_mm, sensor_size)
-        if gsd is None:
-            gs.warning(_("<{}>: image dimensions missing, skipping").format(filename))
-            skipped.append(filename)
-            continue
-        gsd_w, gsd_h, gsd_avg = gsd
-        gs.debug(
-            f"GSD: width={gsd_w:.2f} m/px, height={gsd_h:.2f} m/px, "
-            f"average={gsd_avg:.2f} m/px"
+        agl = float(img["alt"] - ground_elev)
+        gsd = compute_gsd(
+            img["exif"],
+            agl,
+            img["focal_length"],
+            (img["sensor_size_w"], img["sensor_size_h"]),
         )
-        ground_elev = alt - agl  # ground elevation in meters
-        gs.debug(f"Altitude: {alt} m, AGL: {agl} m, ground elevation: {ground_elev} m")
-
-        yaw, pitch, roll = get_orientation(exif)
-
-        image_metadata = {
-            "iso": iso,
-            "shutter_speed": shutter_speed,
-            "aperture": aperture,
-            "image_width": image_width,
-            "image_height": image_height,
-            "exposure_time": exposure_time,
-            "original_datetime": original_datetime,
-            "camera_make": camera_make,
-            "camera_model": camera_model,
-            "camera_lens": camera_lens,
-            "camera_serial": camera_serial,
-            "focal_length": focal_length_mm,
-            "sensor_size_w": sensor_size[0],
-            "sensor_size_h": sensor_size[1],
-            "gsd_w": gsd_w,
-            "gsd_h": gsd_h,
-            "gsd_avg": gsd_avg,
-            "yaw": yaw,
-            "pitch": pitch,
-            "roll": roll,
-            "easting": e,
-            "northing": n,
-            "lon": lon,
-            "lat": lat,
-            "alt": alt,
-            "agl": agl,
-            "ground_elev": ground_elev,
-            "exif": exif,
-            "filename": filename,
-            "timestamp": ts,
-            "category": i + 1,  # category ID for vector feature
-        }
-
-        metadata.append(image_metadata)
+        if gsd is None:
+            gs.warning(
+                _("<{}>: image dimensions missing, skipping").format(img["filename"])
+            )
+            skipped.append(img["filename"])
+            continue
+        img["agl"] = agl
+        img["ground_elev"] = ground_elev
+        img["gsd_w"], img["gsd_h"], img["gsd_avg"] = gsd
+        metadata.append(img)
 
     if skipped:
         gs.warning(
@@ -1353,9 +1353,11 @@ def main():
     region = None
     if not flat or overlap_density:
         region = gs.region()
+    dem_min = None
     if not flat:
         # The DEM is read once at the current region resolution
         dem_arr = garray.array(elevation)
+        dem_min = float(np.nanmin(dem_arr))
 
     for img in photos_by_line_heading:
         if flat:
@@ -1370,7 +1372,7 @@ def main():
                 img["yaw"],
             )
         else:
-            footprint = make_footprint(img, dem_arr, region)
+            footprint = make_footprint(img, dem_arr, region, dem_min)
         img["footprint"] = footprint
         if not footprint:
             gs.warning(
