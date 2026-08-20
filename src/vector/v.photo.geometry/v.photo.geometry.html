@@ -52,6 +52,10 @@ Fedora <code>perl-Image-ExifTool</code>, on macOS
 <code>brew install exiftool</code>. JPEG, TIFF, and DNG images are
 read, recursively below the <b>input</b> directory.
 
+<p>
+The Python package <code>pyproj</code> is also required and is not
+installed by <em>g.extension</em>: <code>pip install pyproj</code>.
+
 <h3>Sensor size</h3>
 
 The physical sensor size drives the GSD and footprint scale. It is
@@ -93,7 +97,10 @@ block. The GPS altitude and the elevation model must share a vertical
 datum; a datum offset shifts the AGL and scales every footprint. With
 <b>-f</b> the terrain is ignored and each footprint is a flat rectangle
 at the ground elevation below the camera, which is faster but degrades
-with relief and off-nadir angles.
+with relief and off-nadir angles. Overlap statistics and the density
+raster treat each footprint as a convex quadrilateral; on very steep
+relief the terrain-draped corners can violate that assumption
+slightly.
 
 <h3>Overlap statistics</h3>
 

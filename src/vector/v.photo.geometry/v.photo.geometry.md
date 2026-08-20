@@ -45,6 +45,9 @@ Image metadata is read with [ExifTool](https://exiftool.org/)
 `brew install exiftool`. JPEG, TIFF, and DNG images are read,
 recursively below the **input** directory.
 
+The Python package `pyproj` is also required and is not installed by
+*g.extension*: `pip install pyproj`.
+
 ### Sensor size
 
 The physical sensor size drives the GSD and footprint scale. It is
@@ -83,7 +86,10 @@ block. The GPS altitude and the elevation model must share a vertical
 datum; a datum offset shifts the AGL and scales every footprint.
 With **-f** the terrain is ignored and each footprint is a flat
 rectangle at the ground elevation below the camera, which is faster
-but degrades with relief and off-nadir angles.
+but degrades with relief and off-nadir angles. Overlap statistics and
+the density raster treat each footprint as a convex quadrilateral;
+on very steep relief the terrain-draped corners can violate that
+assumption slightly.
 
 ### Overlap statistics
 

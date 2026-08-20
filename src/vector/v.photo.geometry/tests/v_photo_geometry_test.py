@@ -496,12 +496,14 @@ def test_tool_rejects_latlong_project(photo_dir, tmp_path):
 
 @requires_exiftool
 def test_tool_refuses_overwrite(session, photo_dir):
+    # Self-contained: create the conflicting map here, not in another test
+    gs.run_command("v.edit", map="fp_existing", tool="create", env=session.env)
     with pytest.raises(CalledModuleError):
         gs.run_command(
             "v.photo.geometry",
             input=str(photo_dir),
             elevation="dtm",
-            footprints="footprints",
+            footprints="fp_existing",
             env=session.env,
         )
 

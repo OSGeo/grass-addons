@@ -915,9 +915,14 @@ def validate_attrs(attrs):
 
 def write_footprints(metadata, outmap):
     """Write image footprints as 3D areas with per-image attributes."""
+    rows = [(img, build_attrs(img)) for img in metadata if img["footprint"]]
+    for _img, attrs in rows:
+        validate_attrs(attrs)
     gs.verbose(
-        _("Writing {} footprints to vector map <{}>...").format(len(metadata), outmap)
+        _("Writing {} footprints to vector map <{}>...").format(len(rows), outmap)
     )
+    if not rows:
+        gs.warning(_("No footprints to write; <{}> will be empty").format(outmap))
     with VectorTopo(
         outmap,
         mode="w",
@@ -926,11 +931,7 @@ def write_footprints(metadata, outmap):
         layer=1,
         overwrite=True,  # output existence is enforced by the parser
     ) as vect:
-        for img in metadata:
-            if not img["footprint"]:
-                continue
-            attrs = build_attrs(img)
-            validate_attrs(attrs)
+        for img, attrs in rows:
             boundary = Boundary(points=[Point(x, y, z) for x, y, z in img["footprint"]])
             vect.write(boundary)
             centroid = Centroid(
@@ -944,10 +945,11 @@ def write_footprints(metadata, outmap):
 
 def write_stations(metadata, outmap):
     """Write camera positions as 3D points with per-image attributes."""
+    rows = [(img, build_attrs(img)) for img in metadata]
+    for _img, attrs in rows:
+        validate_attrs(attrs)
     gs.verbose(
-        _("Writing {} camera stations to vector map <{}>...").format(
-            len(metadata), outmap
-        )
+        _("Writing {} camera stations to vector map <{}>...").format(len(rows), outmap)
     )
     with VectorTopo(
         outmap,
@@ -957,9 +959,7 @@ def write_stations(metadata, outmap):
         layer=1,
         overwrite=True,  # output existence is enforced by the parser
     ) as vect:
-        for img in metadata:
-            attrs = build_attrs(img)
-            validate_attrs(attrs)
+        for img, attrs in rows:
             point = Point(x=img["easting"], y=img["northing"], z=img["alt"])
             vect.write(point, cat=img["category"], attrs=attrs)
         vect.table.conn.commit()
@@ -1092,6 +1092,12 @@ def write_flight_path(metadata, outmap):
                 cat += 1
         vect.table.conn.commit()
         vect.build()
+    if cat == 1:
+        gs.warning(
+            _("No flight segment has two or more positions; <{}> is empty").format(
+                outmap
+            )
+        )
     gs.vector_history(outmap)
 
 
