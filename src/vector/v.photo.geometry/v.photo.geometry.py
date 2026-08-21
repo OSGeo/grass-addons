@@ -767,13 +767,14 @@ def make_footprint_basic(
         ]
     )
 
-    # Rotate by yaw (around origin)
+    # Rotate by yaw (around origin). Yaw is a compass heading, clockwise
+    # from north, so apply the transpose of the CCW math rotation.
     theta = math.radians(yaw_deg)
     R = np.array(
         [[math.cos(theta), -math.sin(theta)], [math.sin(theta), math.cos(theta)]]
     )
 
-    rotated = corners @ R.T
+    rotated = corners @ R
 
     # Translate to camera center
     footprint = [
@@ -1361,8 +1362,10 @@ def main():
         region = gs.region()
     dem_min = None
     if not flat:
-        # The DEM is read once at the current region resolution
-        dem_arr = garray.array(elevation)
+        # The DEM is read once at the current region resolution.
+        # NULL cells must become NaN; the default read gives them 0.0,
+        # a phantom sea-level surface for the ray tracer.
+        dem_arr = garray.array(elevation, dtype=np.float64, null=np.nan)
         dem_min = float(np.nanmin(dem_arr))
 
     for img in photos_by_line_heading:

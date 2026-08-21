@@ -274,6 +274,29 @@ def test_footprint_slope_asymmetry(tool):
     assert north_offset < 72.0 < south_offset
 
 
+def test_flat_footprint_matches_raytrace_at_oblique_yaw(tool):
+    """Flat-ground and ray-traced footprints must agree over a flat DEM
+    at a heading where clockwise and counterclockwise rotations differ."""
+    import numpy as np
+
+    dem = np.full((400, 400), 700.0)
+    img = _footprint_image(yaw=30.0)
+    traced = tool.make_footprint(img, dem, _flat_region())
+    flat = tool.make_footprint_basic(
+        img["easting"],
+        img["northing"],
+        300.0,  # AGL over the constant 700 m ground
+        700.0,
+        img["focal_length"],
+        img["sensor_size_w"],
+        img["sensor_size_h"],
+        img["yaw"],
+    )
+    traced_set = sorted((round(p[0]), round(p[1])) for p in traced[:4])
+    flat_set = sorted((round(p[0]), round(p[1])) for p in flat[:4])
+    assert traced_set == flat_set
+
+
 def test_footprint_horizon_ray_rejected(tool):
     import numpy as np
 
@@ -443,6 +466,46 @@ def test_tool_overlap_density(session, photo_dir):
     # Magma color table was applied (pale yellow top end)
     colors = gs.read_command("r.colors.out", map="density", env=session.env)
     assert "252:253:191" in colors
+
+
+@requires_exiftool
+def test_tool_dem_nulls_are_not_sea_level(session, photo_dir):
+    """NULL DEM cells must read as NaN, not as a phantom 0 m surface.
+
+    Everything east of the third photo's western corners is NULL, so its
+    corner rays descend over the hole. Through a phantom 0 m surface they
+    would travel 1000 m instead of 300 m and inflate the footprint; over
+    NaN the rays never reach ground and the footprint is skipped.
+    """
+    from pyproj import Transformer
+
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:6346", always_xy=True)
+    east0, _north0 = transformer.transform(-82.435, 35.590)
+    boundary = east0 + 211.0  # between photo 1's and photo 2's east corners
+    gs.run_command(
+        "r.mapcalc",
+        expression=f"dtm_holes = if(x() > {boundary}, null(), 700)",
+        env=session.env,
+    )
+    gs.run_command(
+        "v.photo.geometry",
+        input=str(photo_dir),
+        elevation="dtm_holes",
+        footprints="fp_holes",
+        env=session.env,
+    )
+    areas = gs.parse_command(
+        "v.to.db",
+        map="fp_holes",
+        option="area",
+        flags="pc",
+        format="json",
+        env=session.env,
+    )["records"]
+    # The photo over the hole is skipped; the others stay nominal size
+    assert len(areas) == 2
+    for area in areas:
+        assert area["area"] < 1.5 * 216.0 * 144.0
 
 
 @requires_exiftool
