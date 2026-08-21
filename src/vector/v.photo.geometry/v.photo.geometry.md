@@ -63,7 +63,8 @@ The source used is reported per camera model. Estimated values inherit
 the precision of the source tags and are commonly a few percent larger
 than the true sensor dimensions, which propagates linearly into GSD
 and footprint size. When the sensor dimensions are known, pass them
-with **sensor** for exact results.
+with **sensor** for exact results. The reported GSD assumes a nadir
+view; oblique imagery has a varying scale across the frame.
 
 ### Orientation and heading
 
@@ -84,9 +85,14 @@ corners onto the **elevation** raster, read once at the current
 computational region resolution. The region must cover the photo
 block. The GPS altitude and the elevation model must share a vertical
 datum; a datum offset shifts the AGL and scales every footprint.
+There is no offset option, so adjust the elevation model or the image
+altitudes beforehand when the datums differ. DEM cells that are NULL
+are treated as holes: corner rays pass through them and footprints
+whose corners cannot reach ground are skipped with a warning.
 With **-f** the terrain is ignored and each footprint is a flat
-rectangle at the ground elevation below the camera, which is faster
-but degrades with relief and off-nadir angles. Overlap statistics and
+rectangle at the ground elevation below the camera, rotated by yaw
+only; pitch and roll are not applied. This is faster but degrades
+with relief and off-nadir angles. Overlap statistics and
 the density raster treat each footprint as a convex quadrilateral;
 on very steep relief the terrain-draped corners can violate that
 assumption slightly.
@@ -142,6 +148,12 @@ v.photo.geometry -f input=/data/mission01 elevation=dtm \
 
 - [ExifTool](https://exiftool.org/), Phil Harvey
 - [ExifTool EXIF tag names](https://exiftool.org/TagNames/EXIF.html)
+
+- White, C.T., Regmi, P., Reckling, W., Mitasova, H. (2026).
+  Volumetric Change Detection with SfM Photogrammetry from
+  Rapid-Response Aerial Imagery after Hurricane Helene.
+  *Remote Sensing* (in review). The tool's camera-geometry recovery
+  was developed for the flight diagnostics in this study.
 
 ## AUTHORS
 

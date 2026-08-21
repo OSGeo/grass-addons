@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ##############################################################################
 # MODULE:    v.photo.geometry
@@ -31,7 +31,6 @@
 # %end
 #
 # %option G_OPT_R_ELEV
-# % key: elevation
 # % required: yes
 # %end
 #
@@ -39,7 +38,6 @@
 # % key: sensor
 # % type: double
 # % required: no
-# % multiple: yes
 # % key_desc: width,height
 # % label: Camera sensor dimensions in mm (width,height)
 # % description: Overrides the sensor size estimated from image metadata
@@ -61,9 +59,7 @@
 # % description: Use "-" to write to standard output
 # %end
 #
-# %option
-# % key: format
-# % type: string
+# %option G_OPT_F_FORMAT
 # % required: no
 # % options: plain,csv,json
 # % answer: csv
@@ -138,10 +134,13 @@ def find_exiftool():
                 "macOS: brew install exiftool)."
             )
         )
-    version = subprocess.run(
-        [exe, "-ver"], capture_output=True, text=True, check=True
-    ).stdout.strip()
-    if float(version) < EXIFTOOL_MIN_VERSION:
+    try:
+        version = subprocess.run(
+            [exe, "-ver"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as error:
+        gs.fatal(_("ExifTool at '{}' is not runnable: {}").format(exe, error))
+    if (as_float(version) or 0.0) < EXIFTOOL_MIN_VERSION:
         gs.fatal(
             _("ExifTool >= {} is required, found version {}").format(
                 EXIFTOOL_MIN_VERSION, version
@@ -189,6 +188,9 @@ def get_coords(exif):
     """Return lon, lat, alt if available."""
     lat = exif.get("GPSLatitude")
     lon = exif.get("GPSLongitude")
+    # In flat JSON output the Composite:GPSAltitude wins, which already
+    # applies GPSAltitudeRef, so the value is signed; the ref is only
+    # reported for debugging.
     alt = exif.get("GPSAltitude")
     gs.debug(f"GPS altitude ref: {exif.get('GPSAltitudeRef', 'N/A')}")
     if lat is None or lon is None or alt is None:
@@ -1163,9 +1165,8 @@ def sample_ground_elevations(coords, elevation):
     for result in results:
         value = None
         if elevation in result:
-            raw = result[elevation]["value"]
-            if raw not in (None, "null", "No data"):
-                value = float(raw)
+            # Numeric or None; avoids comparing localized null sentinels
+            value = as_float(result[elevation]["value"])
         elevations.append(value)
     return elevations
 
