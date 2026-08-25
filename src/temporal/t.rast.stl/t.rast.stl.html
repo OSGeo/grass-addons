@@ -433,10 +433,12 @@ t.rast.stl strds=tempmean coordinates=636000,221000 output=t_rast_stl_02.png
 </div>
 
 <p>
-Resulting image:
+Resulting image of Decomposed monthly temperature series for location 636000,221000:
 
 <p>
-<a href="t_rast_stl_01.png">Decomposed monthly temperature series for location 636000,221000</a>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_01.png">
+</div>
 
 <h3>Fine tune</h3>
 
@@ -449,10 +451,12 @@ t.rast.stl strds=tempmean coordinates=636000,221000 trend=85 output=t_rast_stl_0
 </div>
 
 <p>
-Resulting image:
+Resulting image, decomposed monthly temperature series for location 636000,221000, with trend set at 85:
 
 <p>
-<a href="t_rast_stl_02.png">Decomposed monthly temperature series for location 636000,221000, with trend set at 85.</a>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_02.png">
+</div>
 
 <h3>Add linear trend lines</h3>
 
@@ -466,10 +470,12 @@ output=t_rast_stl_03.png
 </div>
 
 <p>
-Resulting image:
+Resulting image, decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines:
 
 <p>
-<a href="t_rast_stl_03.png">Decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines.</a>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_03.png">
+</div>
 
 <h3>Choose the slope reporting unit</h3>
 
@@ -483,15 +489,19 @@ output=t_rast_stl_04.png
 </div>
 
 <p>
-Resulting image:
-
-<p>
-<a href="t_rast_stl_04.png">Decomposed monthly temperature series for location
+Resulting image, decomposed monthly temperature series for location
 636000,221000, with OLS and Theil-Sen trend lines. Slopes are expressed as
-change per month.</a>
+change per month:
 
 <p>
-Note, the fitted lines on the plot are identical regardless of <b>slope_unit</b>; only the slope numbers in the legend (shown with <b>-t</b>) and the terminal report change.
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_04.png">
+</div>
+
+<p>
+Note, the fitted lines on the plot are identical regardless of
+<b>slope_unit</b>; only the slope numbers in the legend (shown with <b>-t</b>)
+and the terminal report change.
 
 <h3>Add a monotone GAM trend curve</h3>
 
@@ -509,11 +519,14 @@ output=t_rast_stl_05.png
 </div>
 
 <p>
-Resulting image:
+Resulting image, decomposed monthly temperature series for location
+636000,221000, with Theil-Sen and GAM trend line:
+
 
 <p>
-<a href="t_rast_stl_05.png">Decomposed monthly temperature series for location
-636000,221000, with Theil-Sen and GAM trend line.</a>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_05.png">
+</div>
 
 <p>
 The trend regressions, including the GAM, are fitted on the deseasonalized
@@ -537,14 +550,13 @@ color=127:191:123 color2=#af8dc3 output=t_rast_stl_06.svg
 </div>
 
 <p>
-Resulting image:
+Resulting image, decomposed monthly temperature and rainfall series for location
+636000,221000, with Theil-Sen trend line:
 
-<p>
-<a href="t_rast_stl_06.png">Decomposed monthly temperature and rainfall series
-for location 636000,221000, with Theil-Sen trend line.</a>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_06.png">
+</div>
 
-<p>
-And reported (excerpt) on the console:
 
 <div class="code">
   <pre>

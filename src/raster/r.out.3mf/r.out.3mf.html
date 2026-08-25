@@ -1,0 +1,97 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.out.3mf</em> exports an input raster DEM to <b>3MF</b> or <b>STL</b>
+format for 3D printing. By default the module creates a watertight solid
+composed of a terrain top surface, a flat base, and side walls between the top
+and base.</p>
+
+<p>The model extent in XY is scaled so the longest axis matches <b>size</b> (in
+mm), preserving the geographic aspect ratio of the input region. The terrain is
+lifted so it starts at <b>base_height</b> mm above the base.</p>
+
+<p>By default, Z differences from the input raster are preserved and scaled by
+<b>zscale</b>. With the <b>-n</b> flag, Z values are normalized to the 0 to 1
+range before <b>zscale</b> is applied, in which case <b>zscale</b> is
+interpreted directly as the millimeters of relief. This is useful for
+non-metric or unitless DEMs.</p>
+
+<p>By default the current computational region (extent and resolution) is
+respected, so the export covers exactly the area set with <em>g.region</em>.
+Use the <b>-r</b> flag to export the full extent of the input raster instead.
+Any region change, including the <b>resolution</b> coarsening, is made within a
+temporary region, so the user's region is restored when the tool finishes.</p>
+
+<h2>NOTES</h2>
+
+<p>Null cells are filled with <em>r.fillnulls</em> spline interpolation into a
+temporary raster (removed on exit) before meshing, so the resulting mesh is
+watertight.</p>
+
+<p>The <b>resolution</b> parameter coarsens the computational region resolution
+for export. A value of <tt>1</tt> uses the native resolution; larger values
+reduce the triangle count and output file size.</p>
+
+<p>With <b>format=stl</b> the output is a binary STL, which is geometry-only and
+universally supported by slicers but carries no color. With <b>format=3mf</b>
+the output is a 3MF package that can embed per-triangle color when <b>colors</b>
+is set to <tt>elevation</tt>; rendering those colors requires a multi-material
+slicer. When <b>colors=elevation</b> is combined with <b>format=stl</b>, the
+color request is ignored and a warning is issued.</p>
+
+<p>The <b>-m</b> flag produces a hollow mold: an open-bottom shell with outer
+walls, inner walls offset inward by <b>wall_thickness</b>, and a sealed bottom
+rim. This is intended for kinetic-sand impressions or casting molds rather than
+a solid display model.</p>
+
+<p>The output file extension is forced to match <b>format</b> regardless of the
+name supplied in <b>output</b>.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Export a DEM as a solid 3MF model at native resolution:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=terrain.3mf size=100
+</pre></div>
+
+<p>Export with reduced resolution for faster slicing:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=terrain_lowres.3mf resolution=4 size=150
+</pre></div>
+
+<p>Export the full input raster extent regardless of the current region:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=terrain.3mf -r size=120
+</pre></div>
+
+<p>Normalize Z and set 10 mm of relief:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=terrain_norm.3mf -n zscale=10
+</pre></div>
+
+<p>Export a hollow mold for kinetic sand:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=mold.3mf -m wall_thickness=4 base_height=5
+</pre></div>
+
+<p>Export a geometry-only STL:</p>
+
+<div class="code"><pre>
+r.out.3mf input=elevation output=terrain.stl format=stl size=120
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fillnulls.html">r.fillnulls</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.out.gdal.html">r.out.gdal</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.out.vtk.html">r.out.vtk</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White, Center for Geospatial Analytics, NC State University

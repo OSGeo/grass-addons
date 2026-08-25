@@ -1,0 +1,200 @@
+---
+name: Build and test on Windows
+
+on:
+  push:
+    branches:
+      - grass[0-9]+
+  pull_request:
+  schedule:
+    # 01:00 Pacific Time (in UTC), every day (late night PT)
+    - cron: 0 8 * * *
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
+
+jobs:
+  build:
+    name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Test with relevant active branches or tags and supported Python
+        # versions, but also limit the number of jobs by, e.g., testing only
+        # every second version or testing older GRASS versions with older Python
+        # only.
+        include:
+          - grass-version: main
+            python-version: "3.11"
+            os: windows-2022
+          - grass-version: releasebranch_8_5
+            python-version: "3.11"
+            os: windows-2022
+      fail-fast: false
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout core
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: OSGeo/grass
+          ref: ${{ matrix.grass-version }}
+          path: grass
+          persist-credentials: false
+
+      - name: Checkout addons
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: grass-addons
+          persist-credentials: false
+
+      - name: MSYS2 setup
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        id: msys2
+        with:
+          path-type: inherit
+          location: D:\
+          update: true
+          msystem: MINGW64
+          install: >-
+            bison
+            diffutils
+            dos2unix
+            flex
+            git
+            libintl
+            make
+            tar
+            zip
+          pacboy: >-
+            bzip2
+            ccache
+            fftw
+            gcc
+            gettext
+            libiconv
+            libsystre
+            libtre
+            libwinpthread-git
+            openblas
+            pcre
+            pkgconf
+            toolchain
+            zlib
+
+      - name: Setup OSGeo4W environment
+        uses: echoix/setup-OSGeo4W@1e711832882e03603e9013181a87885b10af8a98 # v0.3.0
+        id: osgeo4w
+        with:
+          package-dir: "D:/OSGeo4W_pkg"
+          packages: |
+            cairo-devel
+            freetype-devel
+            gdal-devel
+            geos-devel
+            libjpeg-turbo-devel
+            liblas-devel
+            libpng-devel
+            libpq-devel
+            libtiff-devel
+            netcdf-devel
+            proj-devel
+            python3-core
+            python3-jupyter
+            python3-matplotlib
+            python3-numpy
+            python3-pip
+            python3-pywin32
+            python3-wxpython
+            sqlite3-devel
+            zstd-devel
+      - name: Set number of cores for compilation
+        run: |
+          echo "MAKEFLAGS=-j$(nproc)" >> "${GITHUB_ENV}"
+        shell: msys2 {0}
+
+      - name: Compile GRASS
+        working-directory: grass
+        shell: msys2 {0}
+        # The OSGeo4W build script is called directly (not through
+        # .github/workflows/build_osgeo4w.sh) to avoid the UNITTEST additions
+        # which would end up in the package.
+        run: |
+          export OSGEO4W_ROOT_MSYS=/c/OSGeo4W
+          export SRC=$(pwd)
+          mswindows/osgeo4w/build_osgeo4w.sh
+
+      - name: Install GRASS into the OSGeo4W tree
+        working-directory: grass
+        shell: msys2 {0}
+        # Mirrors the install and packaging preparation steps of
+        # mswindows/osgeo4w/package.sh used by the wingrass-maintenance-scripts
+        # builds (except for the MSVC .lib files which need Visual Studio and
+        # are not part of the standalone installer).
+        run: |
+          export PATH=/c/OSGeo4W/bin:/usr/bin:/mingw64/bin
+          export PYTHONHOME=/c/OSGeo4W/apps/Python312
+          # Recreate etc/fontcap in the dist tree; build_osgeo4w.sh removes it
+          # but make install requires it and cannot rebuild it itself.
+          make -C general/g.mkfontcap
+          make install
+          ver=$(sed -n '/^INST_DIR[ \t]*=/{s/^.*grass//; p}' include/Make/Platform.make)
+          echo "GRASS_VER=${ver}" >> "${GITHUB_ENV}"
+          prefix=/c/OSGeo4W/apps/grass/grass${ver}
+          mv ${prefix}/include/grass/config.h ${prefix}/include/grass/config.h.mingw
+          cp mswindows/osgeo4w/config.h.switch ${prefix}/include/grass/config.h
+          cp mswindows/osgeo4w/config.h.vc ${prefix}/include/grass
+          mv ${prefix}/etc/grass.py ${prefix}/etc/grass${ver}.py
+          cp -uv $(find ${prefix} -iname "*.dll" -o -iname "*.exe" \
+              | PATH=${prefix}/lib:/c/OSGeo4W/bin:/mingw64/bin:/usr/bin xargs ldd \
+              | sed -ne 's#^.* => \(/mingw64/bin/.*\) (.*)$#\1#p' \
+              | sort -u) ${prefix}/bin
+          cp scripts/windows_launch.bat ${prefix}/scripts/
+
+      - name: Compile GRASS Addons
+        shell: msys2 {0}
+        run: |
+          SRC_ADDONS="$(cygpath -u $GITHUB_WORKSPACE)/grass-addons/src"
+          SRC_GRASS=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
+          DST_DIR="$(cygpath -u $GITHUB_WORKSPACE)/addons"
+
+          export PATH=/c/OSGeo4W/bin:/usr/bin:/mingw64/bin
+          export PYTHONHOME=/c/OSGeo4W/apps/Python312
+
+          grass-addons/.github/workflows/windows_addons_compile.sh $SRC_ADDONS $SRC_GRASS $DST_DIR 1
+          cd $DST_DIR
+          for d in `ls -d */`; do
+            mod=${d%%/}
+            if [ $mod == "logs" ] ; then
+              continue
+            fi
+            cd $mod
+            echo $mod
+            for f in `ls bin/*.bat 2> /dev/null` ; do
+              echo $f
+              sed "s/GISBASE/GRASS_ADDON_BASE/" $f > tmp
+              mv tmp $f
+            done
+            rm -rf grass-addons
+            zip -r ../$mod.zip *
+            cd ..
+            rm -rf $mod
+            md5sum $mod.zip > ${mod}.md5sum
+          done
+
+      - name: Make GRASS Addons available
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: grass-addons-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
+          path: addons
+          retention-days: 3
