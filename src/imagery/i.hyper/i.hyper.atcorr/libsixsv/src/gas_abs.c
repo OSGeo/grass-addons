@@ -142,31 +142,38 @@ static void compute_column(const SixsAtm *atm, int gas_id, const float a[8],
         float te2 = te * te;
         float phi = expf((float)(a[2]) * te + (float)(a[3]) * te2);
         float psi = expf((float)(a[4]) * te + (float)(a[5]) * te2);
-        switch (gas_id) {
-        case 1:
-            rm[k] = wh[k] / (roair * 1000.0f);
-            break;
-        case 2:
-            rm[k] = 3.3e-4f * roco2 / air;
-            break;
-        case 3:
-            rm[k] = 0.20947f * rmo2 / air;
-            break;
-        case 4:
-            rm[k] = wo[k] / (roair * 1000.0f);
-            break;
-        case 5:
-            rm[k] = 310.0e-9f * rmn2o / air;
-            break;
-        case 6:
-            rm[k] = 1.72e-6f * rmch4 / air;
-            break;
-        case 7:
-            rm[k] = 1.00e-9f * rmco / air;
-            break;
-        default:
+        /* Guard against zero/negative pressure or temperature causing
+         * div-by-zero */
+        if (p[k] <= 0.0f || t[k] <= 0.0f || roair <= 0.0f) {
             rm[k] = 0.0f;
-            break;
+        }
+        else {
+            switch (gas_id) {
+            case 1:
+                rm[k] = wh[k] / (roair * 1000.0f);
+                break;
+            case 2:
+                rm[k] = 3.3e-4f * roco2 / air;
+                break;
+            case 3:
+                rm[k] = 0.20947f * rmo2 / air;
+                break;
+            case 4:
+                rm[k] = wo[k] / (roair * 1000.0f);
+                break;
+            case 5:
+                rm[k] = 310.0e-9f * rmn2o / air;
+                break;
+            case 6:
+                rm[k] = 1.72e-6f * rmch4 / air;
+                break;
+            case 7:
+                rm[k] = 1.00e-9f * rmco / air;
+                break;
+            default:
+                rm[k] = 0.0f;
+                break;
+            }
         }
         r2[k] = rm[k] * phi;
         r3[k] = rm[k] * psi;
@@ -330,8 +337,14 @@ static void profile_columns(const SixsAtm *atm, float *h2o, float *ozone_du)
 
     for (int k = 0; k < NATM - 1; k++) {
         float roair = air * 273.16f * atm->p[k] / (1013.25f * atm->t[k]);
-        rmwh[k] = atm->wh[k] / (roair * 1000.0f);
-        rmo3[k] = atm->wo[k] / (roair * 1000.0f);
+        if (atm->p[k] <= 0.0f || atm->t[k] <= 0.0f || roair <= 0.0f) {
+            rmwh[k] = 0.0f;
+            rmo3[k] = 0.0f;
+        }
+        else {
+            rmwh[k] = atm->wh[k] / (roair * 1000.0f);
+            rmo3[k] = atm->wo[k] / (roair * 1000.0f);
+        }
     }
 
     double uw = 0.0, uo3 = 0.0;
