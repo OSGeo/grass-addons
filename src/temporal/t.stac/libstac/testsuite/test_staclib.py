@@ -7,7 +7,7 @@ import json
 import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
-from grass.pygrass.utils import get_lib_path
+from grass.script.utils import get_lib_path
 from grass.pygrass.vector.geometry import Point
 from grass.exceptions import CalledModuleError
 from unittest.mock import patch, MagicMock
