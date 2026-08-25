@@ -28,10 +28,10 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: summary,full,extended,bands,history,validate,copy,merge-overrides,add-history
+# % options: summary,full,resolved,extended,bands,history,validate,copy,merge-overrides,add-history
 # % answer: summary
 # % description: Operation to perform
-# % descriptions: summary;Print concise metadata summary;full;Print full metadata for current map;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step;merge-overrides;Apply top-level metadata overrides and merge extended_metadata into an existing map;add-history;Append a processing history entry to an existing map
+# % descriptions: summary;Print concise metadata summary;full;Print raw metadata for current map;resolved;Print metadata with inherited values materialized and form-value fields unwrapped;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step;merge-overrides;Apply top-level metadata overrides and merge extended_metadata into an existing map;add-history;Append a processing history entry to an existing map
 # %end
 
 # %option G_OPT_R3_INPUT
@@ -60,7 +60,7 @@
 # % key: format
 # % type: string
 # % required: no
-# % options: json,text,csv
+# % options: json,text,csv,kv
 # % answer: json
 # % description: Output format
 # %end
@@ -203,6 +203,89 @@ def _print_full(data, output_format):
         return
     rows = [(key, _to_csv_value(value)) for key, value in data.items()]
     _write_csv(["key", "value"], rows)
+
+
+def _kv_escape(value):
+    """Escape scalar strings for the line-oriented key/value format."""
+    return (
+        str(value)
+        .replace("\\", "\\\\")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("=", "\\=")
+    )
+
+
+def _print_key_value(data):
+    """Print nested metadata as dotted paths for machine consumers."""
+
+    def emit(path, value):
+        if isinstance(value, dict):
+            for key, item in value.items():
+                emit(f"{path}.{key}" if path else key, item)
+            return
+        if isinstance(value, list):
+            if all(
+                isinstance(item, (int, float)) and not isinstance(item, bool)
+                for item in value
+            ):
+                print(f"{path}=" + ",".join(str(item) for item in value))
+            else:
+                print(f"{path}={_kv_escape(json.dumps(value, separators=(',', ':')))}")
+            return
+        if value is None:
+            print(f"{path}=")
+            return
+        if isinstance(value, bool):
+            print(f"{path}={'true' if value else 'false'}")
+            return
+        print(f"{path}={_kv_escape(value)}")
+
+    emit("", data)
+
+
+def _unwrap_form_values(value):
+    """Materialize schema form-value dictionaries for metadata consumers."""
+    if isinstance(value, list):
+        return [_unwrap_form_values(item) for item in value]
+    if not isinstance(value, dict):
+        return copy.deepcopy(value)
+    if "value" in value and "form" in value:
+        return _unwrap_form_values(value["value"])
+    return {key: _unwrap_form_values(item) for key, item in value.items()}
+
+
+def _resolved_metadata_view(meta):
+    """Return a fully materialized, read-only view of HyperMetadata."""
+    bands = {}
+    if meta.n_bands_source is not None:
+        bands["count"] = int(meta.n_bands_source)
+    if meta.n_bands_valid is not None:
+        bands["count_valid"] = int(meta.n_bands_valid)
+    if meta.wavelengths is not None:
+        bands["wavelength"] = copy.deepcopy(meta.wavelengths)
+    if meta.fwhm is not None:
+        bands["fwhm"] = copy.deepcopy(meta.fwhm)
+    if meta.validity is not None:
+        bands["validity"] = [bool(item) for item in meta.validity]
+    if meta.component_labels is not None:
+        bands["labels"] = copy.deepcopy(meta.component_labels)
+
+    return {
+        "schema_version": meta.schema_version,
+        "dataset_id": meta.dataset_id,
+        "derived": bool(meta.derived),
+        "data_type": meta.data_type,
+        "sensor": meta.sensor,
+        "wavelength_units": meta.wavelength_units,
+        "radiometric_quantity": meta.radiometric_quantity,
+        "radiometric_units": meta.radiometric_units,
+        "acquisition_datetime": meta.acquisition_datetime,
+        "region": copy.deepcopy(meta.region),
+        "bands": bands,
+        "extended_metadata": _unwrap_form_values(meta.extended_metadata),
+        "dimensionality_reduction": copy.deepcopy(meta.dimensionality_reduction),
+    }
 
 
 def _parse_extended_selectors(selector_text):
@@ -720,6 +803,14 @@ def main():
                 full_data.get("processing_history", []), dataset_index, HyperMetadata
             )
         _print_full(full_data, output_format)
+        return 0
+
+    if operation == "resolved":
+        resolved = _resolved_metadata_view(meta)
+        if output_format == "kv":
+            _print_key_value(resolved)
+        else:
+            _print_full(resolved, output_format)
         return 0
 
     if operation == "extended":

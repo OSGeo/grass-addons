@@ -15,7 +15,10 @@ Metadata is loaded from `hyper.json`.
 Supported operations:
 
 - `summary`: concise metadata summary for current dataset
-- `full`: full metadata object for current dataset
+- `full`: raw metadata object for current dataset
+- `resolved`: fully materialized metadata object; inherited values are applied
+  and schema form-value fields (`value`/`form`/`source`) are replaced by their
+  values for programmatic consumers
 - `extended`: selected `extended_metadata` only
   (all, branch, key path, or multiple selectors; resolved through lineage
   inheritance for derived datasets)
@@ -34,11 +37,15 @@ Supported operations:
 - `add-history`: append a `processing_history` entry to an existing map;
   uses `source_map=` as input and `command=` as the command string
 
-Output format (`format`) is global for all operations:
+Output format (`format`) is global for all operations except `kv`, which is
+available only with `operation=resolved`:
 
 - `json` (default)
 - `text`
 - `csv`
+- `kv`: line-oriented dotted key/value paths for `operation=resolved`; scalar
+  strings escape backslashes, newlines, carriage returns, and equals signs,
+  while numeric arrays are comma-separated
 
 For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs`
 map names from current maps by `dataset_id` (display only; stored command
@@ -67,10 +74,10 @@ Dataset provenance is stored in top-level key `derived`:
 Main options:
 
 - `map=`: input `raster_3d` map
-- `operation=`: `summary|full|extended|bands|history|validate|copy|merge-overrides|add-history`
+- `operation=`: `summary|full|resolved|extended|bands|history|validate|copy|merge-overrides|add-history`
 - `source_map=`: source `raster_3d` map for `operation=copy` and
   `operation=add-history`
-- `format=`: `json|text|csv`
+- `format=`: `json|text|csv|kv`
 - `resolve_names=`: `yes|no` (for `full` and `history`)
 - `wavelength_range=`: for `operation=bands` (example: `400-700`)
 - `extended_select=`: for `operation=extended` (all/branch/path/multiple)
@@ -87,6 +94,12 @@ API examples:
 
     # Full metadata as JSON
     i.hyper.metadata map=my_cube operation=full format=json
+
+    # Resolved metadata for downstream modules
+    i.hyper.metadata map=my_cube operation=resolved format=json
+
+    # Resolved metadata for command-line consumers
+    i.hyper.metadata map=my_cube operation=resolved format=kv
 
     # Bands as CSV in 700-900 nm
     i.hyper.metadata map=my_cube operation=bands wavelength_range=700-900 format=csv

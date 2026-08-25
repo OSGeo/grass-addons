@@ -127,8 +127,8 @@ divided by 1000 and micrometres are unchanged. Wavenumber centres are
 converted as `wavelength_um = 10000 / wavenumber_cm-1`; wavenumber FWHM is
 converted as `fwhm_um = 10000 * fwhm_cm-1 / wavenumber_cm-1^2`. Missing
 wavelength units default to nm. Unsupported unit strings are rejected. The
-3D raster history fallback accepts entries in the form `Band N: WL nm`, with
-optional FWHM in nm.
+module reads resolved metadata exclusively through `i.hyper.metadata`; input
+maps must provide valid hyperspectral metadata.
 
 For supported scalar scene fields, values are resolved in this order:
 command line option, input map metadata, module default. These fields are

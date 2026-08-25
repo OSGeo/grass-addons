@@ -144,10 +144,9 @@ typedef struct {
 /* ── Metadata handling (i.hyper.metadata schema) ─────────────────────────── */
 
 /**
- * \brief Hyperspectral metadata fields read from the input map's hyper.json
- *        sidecar (i.hyper.metadata schema).
+ * \brief Hyperspectral metadata fields read through i.hyper.metadata.
  *
- * Populated by read_hyperjson_meta(); used to apply metadata fallback for
+ * Populated by read_hyper_metadata(); used to apply metadata fallback for
  * the overridable CLI options.
  */
 typedef struct {
@@ -187,81 +186,7 @@ typedef struct {
     int day_of_year;
 } HyperMeta;
 
-/* ── Internal JSON scanner helpers ───────────────────────────────────────── */
-
-/** \cond INTERNAL — forward declarations from existing JSON scanner */
-static int json_extract_array(const char *json, const char *key, double *out,
-                              int max_n);
-/** \endcond */
-
-/**
- * \brief Extract a JSON string value by key from a JSON text buffer.
- *
- * Finds the first occurrence of ``"key": "value"`` and copies the
- * unquoted value into \c out.
- *
- * \param[in]  json  NUL-terminated JSON text.
- * \param[in]  key   Key name (without quotes).
- * \param[out] out   Destination buffer.
- * \param[in]  n     Size of \c out.
- * \return 1 on success, 0 if key not found.
- */
-static int json_extract_string(const char *json, const char *key, char *out,
-                               size_t n)
-{
-    char pattern[64];
-    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-    const char *p = strstr(json, pattern);
-    if (!p)
-        return 0;
-    p = strchr(p + strlen(pattern), ':');
-    if (!p)
-        return 0;
-    p++;
-    while (*p && isspace((unsigned char)*p))
-        p++;
-    if (*p != '"')
-        return 0;
-    p++;
-    size_t i = 0;
-    while (*p && *p != '"' && i + 1 < n)
-        out[i++] = *p++;
-    out[i] = '\0';
-    return (i > 0) ? 1 : 0;
-}
-
-/** Extract the last JSON string value for a key.
- *
- * Current-dataset fields follow inherited metadata snapshots in hyper.json,
- * so the last occurrence is the applicable value for unit fields.
- */
-static int json_extract_last_string(const char *json, const char *key,
-                                    char *out, size_t n)
-{
-    char pattern[64];
-    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-    const char *p = json, *last = NULL;
-    while ((p = strstr(p, pattern)) != NULL) {
-        last = p;
-        p += strlen(pattern);
-    }
-    if (!last)
-        return 0;
-    p = strchr(last + strlen(pattern), ':');
-    if (!p)
-        return 0;
-    p++;
-    while (*p && isspace((unsigned char)*p))
-        p++;
-    if (*p != '"')
-        return 0;
-    p++;
-    size_t i = 0;
-    while (*p && *p != '"' && i + 1 < n)
-        out[i++] = *p++;
-    out[i] = '\0';
-    return i > 0;
-}
+static int parse_csv_floats(const char *str, float *out, int max_n);
 
 typedef enum {
     WL_UNIT_NM,
@@ -270,11 +195,8 @@ typedef enum {
     WL_UNIT_UNKNOWN
 } WavelengthUnit;
 
-static WavelengthUnit wavelength_unit(const char *json, char *name,
-                                      size_t name_size)
+static WavelengthUnit wavelength_unit_name(const char *name)
 {
-    snprintf(name, name_size, "nm");
-    (void)json_extract_last_string(json, "wavelength_units", name, name_size);
     if (strcmp(name, "nm") == 0)
         return WL_UNIT_NM;
     if (strcmp(name, "um") == 0)
@@ -310,373 +232,136 @@ static float fwhm_to_um(double centre, double width, WavelengthUnit unit)
     return 0.0f;
 }
 
-/**
- * \brief Extract a nested JSON float by dotted path.
- *
- * Finds ``"parent": { ... "key": <number> ... }`` in the JSON text.
- * Path is a single dot-separated name like \c "geometry.sun_zenith_deg".
- * Only two-level nesting is supported.
- *
- * \param[in]  json  NUL-terminated JSON text.
- * \param[in]  path  Dotted path, e.g. \c "geometry.sun_zenith_deg".
- * \param[out] out   Parsed double value.
- * \return 1 on success, 0 if path not found.
- */
-static int json_extract_nested_float(const char *json, const char *path,
-                                     double *out)
+static void kv_unescape(char *value)
 {
-    /* Split path into parent and key */
-    const char *dot = strchr(path, '.');
-    if (!dot)
-        return 0;
-    size_t plen = (size_t)(dot - path);
-    char parent[64], key[64];
-    if (plen >= sizeof(parent))
-        return 0;
-    memcpy(parent, path, plen);
-    parent[plen] = '\0';
-    snprintf(key, sizeof(key), "%s", dot + 1);
-
-    /* Find parent object */
-    char pbuf[80];
-    snprintf(pbuf, sizeof(pbuf), "\"%s\"", parent);
-    const char *p = strstr(json, pbuf);
-    if (!p)
-        return 0;
-    p = strchr(p + strlen(pbuf), ':');
-    if (!p)
-        return 0;
-    p = strchr(p, '{');
-    if (!p)
-        return 0;
-    p++;
-
-    /* Within the parent object, scan for the key */
-    size_t klen = strlen(key);
-    while (*p && *p != '}') {
-        while (*p && isspace((unsigned char)*p))
-            p++;
-        if (*p == '}')
-            break;
-        if (*p == '"') {
-            const char *kp = p + 1;
-            const char *ke = strchr(kp, '"');
-            if (ke && (size_t)(ke - kp) == klen &&
-                strncmp(kp, key, klen) == 0) {
-                p = ke + 1;
-                while (*p && isspace((unsigned char)*p))
-                    p++;
-                if (*p == ':') {
-                    p++;
-                    while (*p && isspace((unsigned char)*p))
-                        p++;
-                    char *endp;
-                    *out = strtod(p, &endp);
-                    if (endp > p)
-                        return 1;
-                    break;
-                }
-            }
-            else if (ke) {
-                p = ke + 1;
-            }
+    char *src = value, *dst = value;
+    while (*src) {
+        if (*src == '\\' && src[1]) {
+            src++;
+            if (*src == 'n')
+                *dst++ = '\n';
+            else if (*src == 'r')
+                *dst++ = '\r';
+            else
+                *dst++ = *src;
+            src++;
         }
-        while (*p && *p != ',' && *p != '}')
-            p++;
-        if (*p == ',')
-            p++;
-    }
-    return 0;
-}
-
-/**
- * \brief Extract a nested JSON string by dotted path.
- *
- * Like json_extract_nested_float() but for string values.
- *
- * \param[in]  json  NUL-terminated JSON text.
- * \param[in]  path  Dotted path, e.g. \c "atmosphere.model".
- * \param[out] out   Destination buffer.
- * \param[in]  n     Size of \c out.
- * \return 1 on success, 0 if path not found.
- */
-static int json_extract_nested_string(const char *json, const char *path,
-                                      char *out, size_t n)
-{
-    const char *dot = strchr(path, '.');
-    if (!dot)
-        return 0;
-    size_t plen = (size_t)(dot - path);
-    char parent[64], key[64];
-    if (plen >= sizeof(parent))
-        return 0;
-    memcpy(parent, path, plen);
-    parent[plen] = '\0';
-    snprintf(key, sizeof(key), "%s", dot + 1);
-
-    char pbuf[80];
-    snprintf(pbuf, sizeof(pbuf), "\"%s\"", parent);
-    const char *p = strstr(json, pbuf);
-    if (!p)
-        return 0;
-    p = strchr(p + strlen(pbuf), ':');
-    if (!p)
-        return 0;
-    p = strchr(p, '{');
-    if (!p)
-        return 0;
-    p++;
-
-    size_t klen = strlen(key);
-    while (*p && *p != '}') {
-        while (*p && isspace((unsigned char)*p))
-            p++;
-        if (*p == '}')
-            break;
-        if (*p == '"') {
-            const char *kp = p + 1;
-            const char *ke = strchr(kp, '"');
-            if (ke && (size_t)(ke - kp) == klen &&
-                strncmp(kp, key, klen) == 0) {
-                p = ke + 1;
-                while (*p && isspace((unsigned char)*p))
-                    p++;
-                if (*p == ':') {
-                    p++;
-                    while (*p && isspace((unsigned char)*p))
-                        p++;
-                    if (*p == '"') {
-                        p++;
-                        size_t i = 0;
-                        while (*p && *p != '"' && i + 1 < n)
-                            out[i++] = *p++;
-                        out[i] = '\0';
-                        return (i > 0) ? 1 : 0;
-                    }
-                }
-            }
-            else if (ke)
-                p = ke + 1;
+        else {
+            *dst++ = *src++;
         }
-        while (*p && *p != ',' && *p != '}')
-            p++;
-        if (*p == ',')
-            p++;
     }
-    return 0;
+    *dst = '\0';
 }
 
-/**
- * \brief Read hyperspectral metadata from a JSON string buffer.
- *
- * Extracts band wavelengths, FWHM (calling json_extract_array), as well as
- * the nested extended_metadata fields used for CLI-override resolution.
- *
- * \param[in]  json  NUL-terminated JSON text.
- * \param[out] wl    Band centre wavelengths (µm), length \c max_n.
- * \param[out] fwhm  Band FWHM values (µm), may be NULL.
- * \param[in]  max_n Maximum number of bands.
- * \param[out] meta  Populated HyperMeta struct.
- * \return Number of bands parsed (0 = not found / parse error).
- */
-static int parse_hyperjson_buffer(const char *json, float *wl, float *fwhm,
-                                  int max_n, HyperMeta *meta)
-{
-    if (!json || !json[0])
-        return 0;
-
-    /* Band wavelengths / FWHM */
-    double *wl_values = G_malloc(sizeof(double) * (size_t)max_n);
-    int n = json_extract_array(json, "wavelength", wl_values, max_n);
-    double *fwhm_values =
-        fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
-    int n_fwhm =
-        fwhm ? json_extract_array(json, "fwhm", fwhm_values, max_n) : 0;
-
-    WavelengthUnit wl_unit = wavelength_unit(json, meta->wavelength_units,
-                                             sizeof(meta->wavelength_units));
-    if (wl_unit == WL_UNIT_UNKNOWN)
-        G_fatal_error(_("Unsupported wavelength unit <%s>"),
-                      meta->wavelength_units);
-
-    for (int i = 0; i < max_n; i++) {
-        wl[i] = (i < n) ? wavelength_to_um(wl_values[i], wl_unit) : -1.0f;
-        if (fwhm)
-            fwhm[i] = (i < n_fwhm && i < n)
-                          ? fwhm_to_um(wl_values[i], fwhm_values[i], wl_unit)
-                          : 0.0f;
-    }
-    G_free(wl_values);
-    if (fwhm_values)
-        G_free(fwhm_values);
-
-    /* Dataset ID */
-    json_extract_string(json, "dataset_id", meta->dataset_id,
-                        sizeof(meta->dataset_id));
-    (void)json_extract_last_string(json, "radiometric_quantity",
-                                   meta->radiometric_quantity,
-                                   sizeof(meta->radiometric_quantity));
-    (void)json_extract_last_string(json, "radiometric_units",
-                                   meta->radiometric_units,
-                                   sizeof(meta->radiometric_units));
-
-    /* Extended metadata */
-    double dv;
-    if (json_extract_nested_float(json, "geometry.sun_zenith_deg", &dv)) {
-        meta->sun_zenith_deg = (float)dv;
-        meta->has_sun_zenith = 1;
-    }
-    if (json_extract_nested_float(json, "geometry.view_zenith_deg", &dv)) {
-        meta->view_zenith_deg = (float)dv;
-        meta->has_view_zenith = 1;
-    }
-    if (json_extract_nested_float(json, "geometry.relative_azimuth_deg", &dv)) {
-        meta->relative_azimuth_deg = (float)dv;
-        meta->has_relative_azimuth = 1;
-    }
-    if (json_extract_nested_float(json, "geometry.sun_azimuth_deg", &dv)) {
-        meta->sun_azimuth_deg = (float)dv;
-        meta->has_sun_azimuth = 1;
-    }
-    if (json_extract_nested_float(json, "atmosphere.aod_550", &dv)) {
-        meta->aod_550 = (float)dv;
-        meta->has_aod = 1;
-    }
-    if (json_extract_nested_float(json, "atmosphere.h2o_g_cm2", &dv)) {
-        meta->h2o_g_cm2 = (float)dv;
-        meta->has_h2o = 1;
-    }
-    if (json_extract_nested_float(json, "atmosphere.ozone_du", &dv)) {
-        meta->ozone_du = (float)dv;
-        meta->has_ozone = 1;
-    }
-    if (json_extract_nested_float(json, "acquisition.day_of_year", &dv)) {
-        meta->day_of_year = (int)dv;
-        meta->has_doy = 1;
-    }
-    if (json_extract_nested_float(json, "geometry.sensor_altitude_m", &dv)) {
-        meta->altitude_km = (float)(dv / 1000.0);
-        meta->has_altitude = 1;
-    }
-    else if (json_extract_nested_float(json, "sensor.sensor_altitude_km",
-                                       &dv)) {
-        meta->altitude_km = (float)dv;
-        meta->has_altitude = 1;
-    }
-    if (json_extract_nested_string(json, "atmosphere.atmosphere_model",
-                                   meta->atmosphere_model,
-                                   sizeof(meta->atmosphere_model)) ||
-        json_extract_nested_string(json, "atmosphere.model",
-                                   meta->atmosphere_model,
-                                   sizeof(meta->atmosphere_model))) {
-        meta->has_atmo_model = 1;
-    }
-    if (json_extract_nested_string(json, "atmosphere.aerosol_model",
-                                   meta->aerosol_model,
-                                   sizeof(meta->aerosol_model))) {
-        meta->has_aerosol_model = 1;
-    }
-
-    return n;
-}
-
-/**
- * \brief Read hyperspectral metadata from the input map.
- *
- * Tries \c i.hyper.metadata via \c G_popen_read() first (provides schema
- * normalisation), then falls back to reading \c hyper.json directly from
- * the filesystem (existing \c parse_band_wl_hyperjson() path).
- *
- * \param[in]  mapname  Name of the input Raster3D map.
- * \param[out] wl       Band centre wavelengths (µm), length \c max_n.
- * \param[out] fwhm     Band FWHM (µm), may be NULL.
- * \param[in]  max_n    Maximum number of bands.
- * \param[out] meta     Populated HyperMeta struct.
- * \return Number of bands parsed (0 on failure).
- */
-static int read_hyperjson_meta(const char *mapname, float *wl, float *fwhm,
+static int read_hyper_metadata(const char *mapname, float *wl, float *fwhm,
                                int max_n, HyperMeta *meta)
 {
     memset(meta, 0, sizeof(*meta));
 
-    /* Try i.hyper.metadata via G_popen_read */
     char maparg[GPATH_MAX];
     snprintf(maparg, sizeof(maparg), "map=%s", mapname);
-
-    const char *args[5];
-    args[0] = "i.hyper.metadata";
-    args[1] = maparg;
-    args[2] = "operation=full";
-    args[3] = "format=json";
-    args[4] = NULL;
-
+    const char *args[] = {"i.hyper.metadata", maparg, "operation=resolved",
+                          "format=kv", NULL};
     struct Popen child;
     FILE *fp = G_popen_read(&child, "i.hyper.metadata", args);
-    if (fp) {
-        /* Read entire JSON output into a buffer */
-        size_t cap = 65536, len = 0;
-        char *buf = G_malloc(cap);
-        size_t nrd;
-        while ((nrd = fread(buf + len, 1, cap - len - 1, fp)) > 0) {
-            len += nrd;
-            if (len + 1 >= cap) {
-                cap *= 2;
-                buf = G_realloc(buf, cap);
-            }
-        }
-        buf[len] = '\0';
+    if (!fp)
+        return 0;
 
-        int n = parse_hyperjson_buffer(buf, wl, fwhm, max_n, meta);
-        G_free(buf);
-        G_popen_close(&child);
-        if (n > 0)
-            return n;
-    }
-    else {
-        /* G_popen_read failed; try direct file access */
-        char nbuf[512], mset[512];
-        const char *at = strchr(mapname, '@');
-        if (at) {
-            size_t nlen = (size_t)(at - mapname);
-            if (nlen >= sizeof(nbuf))
-                return 0;
-            memcpy(nbuf, mapname, nlen);
-            nbuf[nlen] = '\0';
-            snprintf(mset, sizeof(mset), "%s", at + 1);
-        }
+    int n_wl = 0, n_fwhm = 0;
+    char line[65536];
+    while (fgets(line, sizeof(line), fp)) {
+        char *value = strchr(line, '=');
+        if (!value)
+            continue;
+        *value++ = '\0';
+        value[strcspn(value, "\r\n")] = '\0';
+        kv_unescape(value);
+
+        if (strcmp(line, "bands.wavelength") == 0)
+            n_wl = parse_csv_floats(value, wl, max_n);
+        else if (strcmp(line, "bands.fwhm") == 0)
+            n_fwhm = fwhm ? parse_csv_floats(value, fwhm, max_n) : 0;
+        else if (strcmp(line, "dataset_id") == 0)
+            snprintf(meta->dataset_id, sizeof(meta->dataset_id), "%s", value);
+        else if (strcmp(line, "wavelength_units") == 0)
+            snprintf(meta->wavelength_units, sizeof(meta->wavelength_units),
+                     "%s", value);
+        else if (strcmp(line, "radiometric_quantity") == 0)
+            snprintf(meta->radiometric_quantity,
+                     sizeof(meta->radiometric_quantity), "%s", value);
+        else if (strcmp(line, "radiometric_units") == 0)
+            snprintf(meta->radiometric_units, sizeof(meta->radiometric_units),
+                     "%s", value);
+        else if (strcmp(line,
+                        "extended_metadata.atmosphere.atmosphere_model") == 0 ||
+                 (strcmp(line, "extended_metadata.atmosphere.model") == 0 &&
+                  !meta->has_atmo_model))
+            snprintf(meta->atmosphere_model, sizeof(meta->atmosphere_model),
+                     "%s", value),
+                meta->has_atmo_model = 1;
+        else if (strcmp(line, "extended_metadata.atmosphere.aerosol_model") ==
+                 0)
+            snprintf(meta->aerosol_model, sizeof(meta->aerosol_model), "%s",
+                     value),
+                meta->has_aerosol_model = 1;
         else {
-            snprintf(nbuf, sizeof(nbuf), "%s", mapname);
-            const char *found = G_find_raster3d(mapname, "");
-            if (!found)
-                return 0;
-            snprintf(mset, sizeof(mset), "%s", found);
+            char *end;
+            double number = strtod(value, &end);
+            if (end == value || *end)
+                continue;
+            if (strcmp(line, "extended_metadata.geometry.sun_zenith_deg") == 0)
+                meta->sun_zenith_deg = (float)number, meta->has_sun_zenith = 1;
+            else if (strcmp(line,
+                            "extended_metadata.geometry.view_zenith_deg") == 0)
+                meta->view_zenith_deg = (float)number,
+                meta->has_view_zenith = 1;
+            else if (strcmp(
+                         line,
+                         "extended_metadata.geometry.relative_azimuth_deg") ==
+                     0)
+                meta->relative_azimuth_deg = (float)number,
+                meta->has_relative_azimuth = 1;
+            else if (strcmp(line,
+                            "extended_metadata.geometry.sun_azimuth_deg") == 0)
+                meta->sun_azimuth_deg = (float)number,
+                meta->has_sun_azimuth = 1;
+            else if (strcmp(line, "extended_metadata.atmosphere.aod_550") == 0)
+                meta->aod_550 = (float)number, meta->has_aod = 1;
+            else if (strcmp(line, "extended_metadata.atmosphere.h2o_g_cm2") ==
+                     0)
+                meta->h2o_g_cm2 = (float)number, meta->has_h2o = 1;
+            else if (strcmp(line, "extended_metadata.atmosphere.ozone_du") == 0)
+                meta->ozone_du = (float)number, meta->has_ozone = 1;
+            else if (strcmp(line,
+                            "extended_metadata.acquisition.day_of_year") == 0)
+                meta->day_of_year = (int)number, meta->has_doy = 1;
+            else if (strcmp(line,
+                            "extended_metadata.geometry.sensor_altitude_m") ==
+                     0)
+                meta->altitude_km = (float)(number / 1000.0),
+                meta->has_altitude = 1;
+            else if (strcmp(line,
+                            "extended_metadata.sensor.sensor_altitude_km") ==
+                         0 &&
+                     !meta->has_altitude)
+                meta->altitude_km = (float)number, meta->has_altitude = 1;
         }
-
-        char path[GPATH_MAX];
-        snprintf(path, sizeof(path), "%s/%s/%s/grid3/%s/hyper.json",
-                 G_gisdbase(), G_location(), mset, nbuf);
-
-        FILE *ff = fopen(path, "rb");
-        if (!ff)
-            return 0;
-        fseek(ff, 0, SEEK_END);
-        long fsz = ftell(ff);
-        fseek(ff, 0, SEEK_SET);
-        if (fsz <= 0) {
-            fclose(ff);
-            return 0;
-        }
-        char *fbuf = G_malloc((size_t)fsz + 1);
-        size_t nrd = fread(fbuf, 1, (size_t)fsz, ff);
-        fclose(ff);
-        fbuf[nrd] = '\0';
-
-        int n = parse_hyperjson_buffer(fbuf, wl, fwhm, max_n, meta);
-        G_free(fbuf);
-        return n;
     }
+    G_popen_close(&child);
 
-    return 0;
+    WavelengthUnit wl_unit = wavelength_unit_name(meta->wavelength_units);
+    if (wl_unit == WL_UNIT_UNKNOWN)
+        G_fatal_error(_("Unsupported wavelength unit <%s>"),
+                      meta->wavelength_units);
+    for (int i = 0; i < max_n; i++) {
+        double centre = i < n_wl ? wl[i] : NAN;
+        wl[i] = wavelength_to_um(centre, wl_unit);
+        if (fwhm)
+            fwhm[i] = i < n_fwhm && i < n_wl
+                          ? fwhm_to_um(centre, fwhm[i], wl_unit)
+                          : 0.0f;
+    }
+    return n_wl;
 }
 
 /** \brief Resolve a double option: CLI → metadata → hardcoded default.
@@ -769,76 +454,6 @@ static void write_f32a(FILE *fp, const float *v, size_t n)
 }
 
 /**
- * \brief Extract a numeric or boolean JSON array by key from a JSON text
- * buffer.
- *
- * Minimal, schema-specific scanner (not a general JSON parser): finds the
- * last occurrence of the given key and reads the bracketed comma-separated
- * array of numbers or true/false tokens that follows its ':'. Sufficient for
- * i.hyper.import's flat hyper.json band-metadata layout; not a substitute
- * for a real JSON library on arbitrary input.
- *
- * \param[in]  json  Full JSON text (NUL-terminated).
- * \param[in]  key   Key name to search for (without quotes).
- * \param[out] out   Destination array of doubles (1.0/0.0 for booleans).
- * \param[in]  max_n Capacity of \c out.
- * \return Number of elements parsed (0 if key not found or array empty).
- */
-static int json_extract_array(const char *json, const char *key, double *out,
-                              int max_n)
-{
-    char pattern[64];
-    snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-    const char *p = json, *last = NULL;
-    while ((p = strstr(p, pattern)) != NULL) {
-        last = p;
-        p += strlen(pattern);
-    }
-    if (!last)
-        return 0;
-    p = strchr(last + strlen(pattern), ':');
-    if (!p)
-        return 0;
-    p = strchr(p, '[');
-    if (!p)
-        return 0;
-    p++;
-
-    int n = 0;
-    while (*p && *p != ']' && n < max_n) {
-        while (*p && isspace((unsigned char)*p))
-            p++;
-        if (*p == ']')
-            break;
-        if (strncmp(p, "true", 4) == 0) {
-            out[n++] = 1.0;
-            p += 4;
-        }
-        else if (strncmp(p, "false", 5) == 0) {
-            out[n++] = 0.0;
-            p += 5;
-        }
-        else if (strncmp(p, "null", 4) == 0) {
-            out[n++] = NAN;
-            p += 4;
-        }
-        else {
-            char *endp;
-            double v = strtod(p, &endp);
-            if (endp == p)
-                break; /* malformed entry */
-            out[n++] = v;
-            p = endp;
-        }
-        while (*p && isspace((unsigned char)*p))
-            p++;
-        if (*p == ',')
-            p++;
-    }
-    return n;
-}
-
-/**
  * \brief Resolve the factor which converts input radiance to per-micrometre.
  *
  * \return 1000 for per-nanometre units and 1 for per-micrometre units.
@@ -871,12 +486,8 @@ static float radiance_um_factor(const HyperMeta *meta)
 }
 
 /**
- * \brief Parse per-band centre wavelengths and FWHM from i.hyper.import's
- *        grid3/<map>/hyper.json sidecar (HyperMetadata JSON schema).
- *
- * i.hyper.import stores band-level wavelength/FWHM/validity metadata in this
- * JSON sidecar rather than in Raster3D history text, so it must be tried
- * before falling back to parse_band_wl()'s r3.info -h parsing.
+ * \brief Parse per-band centre wavelengths and FWHM through
+ *        i.hyper.metadata.
  *
  * \param[in]  mapname  Name of the GRASS Raster3D map (``name`` or
  *                      ``name@mapset``).
@@ -884,179 +495,13 @@ static float radiance_um_factor(const HyperMeta *meta)
  *                      Entries for unparsed bands are set to -1.
  * \param[out] fwhm     Array of band FWHM values (µm); may be NULL to skip.
  * \param[in]  max_n    Maximum number of bands to parse.
- * \return Number of bands successfully parsed (0 if sidecar not found or
- *         has no wavelength array).
- */
-static int parse_band_wl_hyperjson(const char *mapname, float *wl, float *fwhm,
-                                   int max_n)
-{
-    char name[512], mapset[512];
-    const char *at = strchr(mapname, '@');
-    if (at) {
-        size_t nlen = (size_t)(at - mapname);
-        if (nlen >= sizeof(name))
-            return 0;
-        memcpy(name, mapname, nlen);
-        name[nlen] = '\0';
-        snprintf(mapset, sizeof(mapset), "%s", at + 1);
-    }
-    else {
-        snprintf(name, sizeof(name), "%s", mapname);
-        const char *found = G_find_raster3d(mapname, "");
-        snprintf(mapset, sizeof(mapset), "%s", found ? found : G_mapset());
-    }
-
-    char path[GPATH_MAX];
-    snprintf(path, sizeof(path), "%s/%s/%s/grid3/%s/hyper.json", G_gisdbase(),
-             G_location(), mapset, name);
-
-    FILE *f = fopen(path, "rb");
-    if (!f)
-        return 0;
-
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    if (fsize <= 0) {
-        fclose(f);
-        return 0;
-    }
-
-    char *buf = G_malloc((size_t)fsize + 1);
-    size_t nread = fread(buf, 1, (size_t)fsize, f);
-    fclose(f);
-    buf[nread] = '\0';
-
-    double *wl_values = G_malloc(sizeof(double) * (size_t)max_n);
-    int n = json_extract_array(buf, "wavelength", wl_values, max_n);
-    if (n == 0) {
-        G_free(wl_values);
-        G_free(buf);
-        return 0;
-    }
-
-    double *fwhm_values =
-        fwhm ? G_malloc(sizeof(double) * (size_t)max_n) : NULL;
-    int n_fwhm = fwhm ? json_extract_array(buf, "fwhm", fwhm_values, max_n) : 0;
-    char units[16];
-    WavelengthUnit wl_unit = wavelength_unit(buf, units, sizeof(units));
-    if (wl_unit == WL_UNIT_UNKNOWN)
-        G_fatal_error(_("Unsupported wavelength unit <%s>"), units);
-
-    for (int i = 0; i < max_n; i++) {
-        wl[i] = (i < n) ? wavelength_to_um(wl_values[i], wl_unit) : -1.0f;
-        if (fwhm)
-            fwhm[i] = (i < n_fwhm && i < n)
-                          ? fwhm_to_um(wl_values[i], fwhm_values[i], wl_unit)
-                          : 0.0f;
-    }
-
-    G_free(wl_values);
-    if (fwhm_values)
-        G_free(fwhm_values);
-    G_free(buf);
-    return n;
-}
-
-/**
- * \brief Parse per-band centre wavelengths and FWHM from a Raster3D map's
- * metadata.
- *
- * Invokes \c r3.info \c -h to obtain the hyperspectral band metadata written
- * by write_band_wl_hist() or compatible tools.  Wavelengths are stored in µm.
- *
- * \param[in]  mapname  Name of the GRASS Raster3D map.
- * \param[out] wl       Array of band centre wavelengths (µm); length \c max_n.
- *                      Entries for unparsed bands are set to -1.
- * \param[out] fwhm     Array of band FWHM values (µm); may be NULL to skip.
- * \param[in]  max_n    Maximum number of bands to parse.
- * \return Number of bands successfully parsed (0 if no metadata found).
+ * \return Number of bands successfully parsed (0 if metadata is unavailable
+ *         or has no wavelength array).
  */
 static int parse_band_wl(const char *mapname, float *wl, float *fwhm, int max_n)
 {
-    int n_json = parse_band_wl_hyperjson(mapname, wl, fwhm, max_n);
-    if (n_json > 0)
-        return n_json;
-
-    const char *gisbase = getenv("GISBASE");
-    char cmd[1024];
-    snprintf(cmd, sizeof(cmd), "%s/bin/r3.info -h map=%s 2>/dev/null",
-             gisbase ? gisbase : "", mapname);
-
-    FILE *fp = popen(cmd, "r");
-    if (!fp)
-        return 0;
-
-    for (int i = 0; i < max_n; i++) {
-        wl[i] = -1.0f;
-        if (fwhm)
-            fwhm[i] = 0.0f;
-    }
-
-    char line[512];
-    int n = 0;
-    while (fgets(line, sizeof(line), fp)) {
-        int bnum;
-        double wl_nm;
-        if (sscanf(line, " Band %d: %lf nm", &bnum, &wl_nm) == 2) {
-            if (bnum >= 1 && bnum <= max_n) {
-                wl[bnum - 1] = (float)(wl_nm * 1e-3);
-                if (fwhm) {
-                    const char *fp_str = strstr(line, "FWHM:");
-                    if (fp_str) {
-                        double fwhm_nm;
-                        if (sscanf(fp_str, "FWHM: %lf nm", &fwhm_nm) == 1)
-                            fwhm[bnum - 1] = (float)(fwhm_nm * 1e-3);
-                    }
-                }
-                n++;
-            }
-        }
-    }
-    pclose(fp);
-    return n;
-}
-
-/**
- * \brief Append per-band wavelength metadata to a Raster3D history file.
- *
- * Writes band centre wavelengths and optional FWHM values (in nm) to the
- * \c hist file of the given Raster3D map so that parse_band_wl() can read
- * them back in subsequent sessions.
- *
- * \param[in]  mapname  Name of the output Raster3D map.
- * \param[in]  wl       Band centre wavelengths (µm), length \c n.
- * \param[in]  fwhm     Band FWHM values (µm), length \c n; may be NULL.
- * \param[in]  n        Number of bands.
- */
-static void write_band_wl_hist(const char *mapname, const float *wl,
-                               const float *fwhm, int n)
-{
-    const char *gisdbase = G_gisdbase();
-    const char *location = G_location();
-    const char *mapset = G_mapset();
-    char histpath[GPATH_MAX];
-    snprintf(histpath, sizeof(histpath), "%s/%s/%s/grid3/%s/hist", gisdbase,
-             location, mapset, mapname);
-    FILE *f = fopen(histpath, "a");
-    if (!f) {
-        G_warning(_("Cannot append wavelength metadata to history of <%s>"),
-                  mapname);
-        return;
-    }
-    fprintf(f, "\nHyperspectral Metadata:\n");
-    fprintf(f, "Valid Bands: %d\n", n);
-    for (int i = 0; i < n; i++) {
-        if (wl[i] > 0.0f) {
-            float wl_nm = wl[i] * 1000.0f;
-            if (fwhm && fwhm[i] > 0.0f)
-                fprintf(f, "Band %d: %g nm, FWHM: %g nm\n", i + 1, wl_nm,
-                        fwhm[i] * 1000.0f);
-            else
-                fprintf(f, "Band %d: %g nm\n", i + 1, wl_nm);
-        }
-    }
-    fclose(f);
+    HyperMeta meta;
+    return read_hyper_metadata(mapname, wl, fwhm, max_n, &meta);
 }
 
 /**
@@ -2056,10 +1501,6 @@ static void correct_raster3d(const char *input_name, const char *output_name,
         G_fatal_error(_("Cannot close uncertainty map <%s>"), iso->unc_output);
 
     /* ── Propagate band wavelength metadata to output hist ── */
-    write_band_wl_hist(output_name, band_wl, band_fwhm, ndepths);
-    if (iso->unc_output)
-        write_band_wl_hist(iso->unc_output, band_wl, band_fwhm, ndepths);
-
     /* ── Cleanup ── */
     G_free(band_wl);
     G_free(band_fwhm);
@@ -2768,7 +2209,7 @@ int main(int argc, char *argv[])
                   "provided for FlexBRDF spectral disaggregation"));
     }
 
-    /* ── Read metadata (i.hyper.metadata / hyper.json) ── */
+    /* ── Read metadata through i.hyper.metadata ── */
     HyperMeta meta;
     float *meta_wl = NULL;
     float *meta_fwhm = NULL;
@@ -2780,7 +2221,7 @@ int main(int argc, char *argv[])
         meta_fwhm = G_malloc(meta_nmax * sizeof(float));
         memset(&meta, 0, sizeof(meta));
         if (opt_input->answer)
-            (void)read_hyperjson_meta(opt_input->answer, meta_wl, meta_fwhm,
+            (void)read_hyper_metadata(opt_input->answer, meta_wl, meta_fwhm,
                                       meta_nmax, &meta);
     }
 
