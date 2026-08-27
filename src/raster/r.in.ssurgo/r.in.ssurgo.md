@@ -342,9 +342,9 @@ Accessed [04/23/2025].
 
 ## SEE ALSO
 
-[r.curvenumber](https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html),
+[r.curvenumber](r.curvenumber.md),
 [r.runoff](https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html),
-[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/addons/r.sim.water.html),
+[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html),
 [r.soils.rosetta](https://grass.osgeo.org/grass-stable/manuals/addons/r.soils.rosetta.html)
 
 ## AUTHORS
