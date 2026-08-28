@@ -469,6 +469,11 @@ class HyperMetadata:
         )
 
         self.set_extended_value("acquisition.start_time_utc", self.acquisition_datetime)
+        embedded_snapshots = (
+            copy.deepcopy(self.input_datasets_metadata)
+            if isinstance(self.input_datasets_metadata, dict)
+            else {}
+        )
         self.input_datasets_metadata = {}
         dataset_index: dict[str, dict[str, Any]] = {}
         if self._is_derived_from_history(self.processing_history):
@@ -478,6 +483,7 @@ class HyperMetadata:
                     {
                         "processing_history": self.processing_history,
                         "dataset_id": self.dataset_id,
+                        "input_datasets_metadata": embedded_snapshots,
                     },
                     dataset_index,
                 )
@@ -488,6 +494,7 @@ class HyperMetadata:
                         f"Input dataset metadata snapshots not found for dataset_id(s): {joined}"
                     )
             except Exception as error:
+                self.input_datasets_metadata = embedded_snapshots
                 gs.warning(
                     f"Failed to collect input dataset metadata snapshots: {error}"
                 )
@@ -597,9 +604,18 @@ class HyperMetadata:
                 if diff_ext:
                     data["extended_metadata"] = diff_ext
 
-        # Write JSON
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
+        # Replace only the completed JSON document, never a partially written file.
+        existing_mode = path.stat().st_mode & 0o7777 if path.exists() else None
+        temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            with open(temporary_path, "x") as f:
+                json.dump(data, f, indent=2)
+            if existing_mode is not None:
+                temporary_path.chmod(existing_mode)
+            temporary_path.replace(path)
+        except Exception:
+            temporary_path.unlink(missing_ok=True)
+            raise
 
     @classmethod
     def _get_region_json(
@@ -1078,14 +1094,14 @@ class HyperMetadata:
         dataset_index: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any] | None:
         """Resolve one dataset JSON record from index or embedded snapshots."""
+        snapshot = embedded_snapshots.get(dataset_id)
+        if isinstance(snapshot, dict):
+            return snapshot
         if dataset_index and dataset_id in dataset_index:
             record = dataset_index.get(dataset_id) or {}
             data = record.get("data")
             if isinstance(data, dict):
                 return data
-        snapshot = embedded_snapshots.get(dataset_id)
-        if isinstance(snapshot, dict):
-            return snapshot
         return None
 
     @classmethod
@@ -1314,13 +1330,19 @@ class HyperMetadata:
         snapshots: dict[str, dict[str, Any]] = {}
         missing_ids: set[str] = set()
         visited_dataset_ids: set[str] = set()
+        embedded_snapshots = root_data.get("input_datasets_metadata")
+        if not isinstance(embedded_snapshots, dict):
+            embedded_snapshots = {}
 
         root_produced_ids = set()
         root_id = root_data.get("dataset_id")
         if root_id:
             root_produced_ids.add(root_id)
 
-        def visit_dataset(dataset_id: str | None) -> None:
+        def visit_dataset(
+            dataset_id: str | None,
+            available_snapshots: dict[str, dict[str, Any]],
+        ) -> None:
             if not dataset_id or dataset_id in visited_dataset_ids:
                 return
             if dataset_id in root_produced_ids:
@@ -1328,11 +1350,9 @@ class HyperMetadata:
             visited_dataset_ids.add(dataset_id)
 
             record = dataset_index.get(dataset_id)
-            if not record:
-                missing_ids.add(dataset_id)
-                return
-
-            data = record.get("data")
+            data = available_snapshots.get(dataset_id)
+            if not isinstance(data, dict) and record:
+                data = record.get("data")
             if not isinstance(data, dict):
                 missing_ids.add(dataset_id)
                 return
@@ -1341,17 +1361,22 @@ class HyperMetadata:
             snapshot.pop("input_datasets_metadata", None)
             snapshots[dataset_id] = snapshot
 
+            child_snapshots = dict(available_snapshots)
+            nested_snapshots = data.get("input_datasets_metadata")
+            if isinstance(nested_snapshots, dict):
+                child_snapshots.update(nested_snapshots)
+
             for step in snapshot.get("processing_history", []) or []:
                 if not isinstance(step, dict):
                     continue
                 for inp in cls._normalize_io_refs(step.get("inputs") or []):
-                    visit_dataset(inp.get("id"))
+                    visit_dataset(inp.get("id"), child_snapshots)
 
         for step in root_data.get("processing_history", []) or []:
             if not isinstance(step, dict):
                 continue
             for inp in cls._normalize_io_refs(step.get("inputs") or []):
-                visit_dataset(inp.get("id"))
+                visit_dataset(inp.get("id"), embedded_snapshots)
 
         ordered = {
             dataset_id: snapshots[dataset_id] for dataset_id in sorted(snapshots)
@@ -1392,8 +1417,11 @@ class HyperMetadata:
                 return
             visited_dataset_ids.add(dataset_id)
 
+            snapshot = embedded_snapshots.get(dataset_id)
             record = dataset_index.get(dataset_id)
-            if record:
+            if isinstance(snapshot, dict):
+                data = snapshot
+            elif record:
                 data = record["data"]
             elif dataset_id == root_id:
                 data = root_data

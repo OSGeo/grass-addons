@@ -31,6 +31,10 @@ Supported operations:
   with existing target metadata, `--overwrite` is required and this map's last
   local processing step is preserved; the copy action itself is added to
   history
+- `derive`: create metadata for an output map from `source_map`; assigns a new
+  dataset ID, marks the output derived, stores one local source-to-output
+  history entry from `command=`, applies generic overrides, and saves once;
+  replacing existing target metadata requires `--overwrite`
 - `merge-overrides`: apply top-level metadata overrides
   (e.g. `radiometric_quantity`) and deep-merge `extended_metadata` from the
   `overrides=` JSON into an existing map, saving in-place
@@ -74,19 +78,21 @@ Dataset provenance is stored in top-level key `derived`:
 Main options:
 
 - `map=`: input `raster_3d` map
-- `operation=`: `summary|full|resolved|extended|bands|history|validate|copy|merge-overrides|add-history`
-- `source_map=`: source `raster_3d` map for `operation=copy` and
-  `operation=add-history`
+- `operation=`: `summary|full|resolved|extended|bands|history|validate|copy|derive|merge-overrides|add-history`
+- `source_map=`: source `raster_3d` map for `operation=copy`,
+  `operation=derive`, and `operation=add-history`
 - `format=`: `json|text|csv|kv`
 - `resolve_names=`: `yes|no` (for `full` and `history`)
 - `wavelength_range=`: for `operation=bands` (example: `400-700`)
 - `extended_select=`: for `operation=extended` (all/branch/path/multiple)
-- `overrides=`: JSON string of metadata overrides for
+- `overrides=`: JSON string of metadata overrides for `operation=derive` or
   `operation=merge-overrides`; may contain top-level keys like
   `radiometric_quantity` and an `extended_metadata` key whose value is
   merged into the derived dataset's extended metadata
+- `overrides_file=`: JSON overrides file for `operation=derive`; use `-` to
+  read JSON from standard input; mutually exclusive with `overrides=`
 - `command=`: command line string to store in processing history for
-  `operation=add-history`
+  `operation=derive` or `operation=add-history`
 
 API examples:
 
@@ -117,9 +123,10 @@ API examples:
     # Replace existing target metadata and preserve the target's last local step
     i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube --overwrite
 
-    # Derive output metadata with overrides
-    i.hyper.metadata map=my_output_cube operation=merge-overrides \
-      overrides='{"radiometric_quantity":"surface_reflectance","radiometric_units":"unitless","extended_metadata":{"processing":{"atcorr":{"geometry_used":{"sza":35.2,"vza":2.1}}}}}'
+    # Derive output metadata with generic overrides
+    i.hyper.metadata map=my_output_cube operation=derive \
+      source_map=my_input_cube command="my.module input=my_input_cube output=my_output_cube" \
+      overrides_file=metadata-overrides.json
 
     # Append processing history entry
     i.hyper.metadata map=my_output_cube operation=add-history \

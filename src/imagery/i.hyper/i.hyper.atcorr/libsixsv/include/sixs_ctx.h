@@ -153,20 +153,21 @@ typedef struct {
  * Use the convenience macros RM() and GB() for indexed access.
  */
 typedef struct {
-    SixsAtm atm;            /*!< Atmosphere profile */
-    SixsAtm plane_atm;      /*!< Target-to-aircraft atmosphere profile */
-    float plane_ftray;      /*!< Target-to-aircraft Rayleigh fraction */
-    float plane_h2o;        /*!< Reference partial H2O column [g/cm2] */
-    float plane_ozone_du;   /*!< Reference partial ozone column [DU] */
-    bool has_plane_atm;     /*!< Plane profile has been initialized */
-    SixsDel del;            /*!< Depolarization */
-    SixsAer aer;            /*!< Aerosol optical properties */
-    SixsAerProf aerprof;    /*!< Aerosol vertical profile */
-    SixsPolar polar;        /*!< Legendre coefficients */
-    SixsDisc disc;          /*!< DISCOM output */
-    SixsQuad quad;          /*!< Quadrature order */
-    SixsMultiOrder multi;   /*!< Max scattering order */
-    SixsErr err;            /*!< Error state */
+    SixsAtm atm;          /*!< Atmosphere profile */
+    SixsAtm plane_atm;    /*!< Target-to-aircraft atmosphere profile */
+    float plane_ftray;    /*!< Target-to-aircraft Rayleigh fraction */
+    float plane_h2o;      /*!< Reference partial H2O column [g/cm2] */
+    float plane_ozone_du; /*!< Reference partial ozone column [DU] */
+    bool has_plane_atm;   /*!< Plane profile has been initialized */
+    bool fixed_us62_column_reference; /*!< ABSTRA idatm=8 column convention */
+    SixsDel del;                      /*!< Depolarization */
+    SixsAer aer;                      /*!< Aerosol optical properties */
+    SixsAerProf aerprof;              /*!< Aerosol vertical profile */
+    SixsPolar polar;                  /*!< Legendre coefficients */
+    SixsDisc disc;                    /*!< DISCOM output */
+    SixsQuad quad;                    /*!< Quadrature order */
+    SixsMultiOrder multi;             /*!< Max scattering order */
+    SixsErr err;                      /*!< Error state */
     float rm[2 * MU_P + 1]; /*!< Gauss cosines (index offset by MU_P) */
     float gb[2 * MU_P + 1]; /*!< Gauss weights (index offset by MU_P) */
 } SixsCtx;
@@ -191,6 +192,7 @@ extern "C" {
 
 void sixs_init_atmosphere(SixsCtx *ctx, int atmo_model);
 void sixs_pressure(SixsCtx *ctx, float surface_pressure_hpa);
+int sixs_pressure_checked(SixsCtx *ctx, float surface_pressure_hpa);
 void sixs_pressure_columns(SixsCtx *ctx, float surface_pressure_hpa, float *h2o,
                            float *ozone_du);
 int sixs_presplane(SixsCtx *ctx, float height_km);

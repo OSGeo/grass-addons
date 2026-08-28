@@ -28,15 +28,15 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % options: summary,full,resolved,extended,bands,history,validate,copy,merge-overrides,add-history
+# % options: summary,full,resolved,extended,bands,history,validate,copy,derive,merge-overrides,add-history
 # % answer: summary
 # % description: Operation to perform
-# % descriptions: summary;Print concise metadata summary;full;Print raw metadata for current map;resolved;Print metadata with inherited values materialized and form-value fields unwrapped;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step;merge-overrides;Apply top-level metadata overrides and merge extended_metadata into an existing map;add-history;Append a processing history entry to an existing map
+# % descriptions: summary;Print concise metadata summary;full;Print raw metadata for current map;resolved;Print metadata with inherited values materialized and form-value fields unwrapped;extended;Print selected parts of extended_metadata;bands;List source bands;history;Show full recursive ordered history;validate;Check metadata and lineage consistency;copy;Copy metadata from another hyperspectral cube and preserve this map's last local processing step;derive;Create derived metadata from one source map with a new dataset ID and one local history entry;merge-overrides;Apply top-level metadata overrides and merge extended_metadata into an existing map;add-history;Append a processing history entry to an existing map
 # %end
 
 # %option G_OPT_R3_INPUT
 # % key: source_map
-# % description: Source 3D raster map (required for operation=copy and operation=add-history)
+# % description: Source 3D raster map (required for operation=copy, operation=derive, and operation=add-history)
 # % required: no
 # %end
 
@@ -45,7 +45,14 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % description: JSON string of metadata overrides for operation=merge-overrides
+# % description: JSON string of metadata overrides for operation=derive or operation=merge-overrides
+# %end
+
+# %option
+# % key: overrides_file
+# % type: string
+# % required: no
+# % description: JSON metadata overrides file for operation=derive, or - to read standard input
 # %end
 
 # %option
@@ -53,7 +60,7 @@
 # % type: string
 # % required: no
 # % multiple: no
-# % description: Command line string to store in processing history (for operation=add-history)
+# % description: Command line string to store in processing history (for operation=derive or operation=add-history)
 # %end
 
 # %option
@@ -94,6 +101,10 @@
 # %flag
 # % key: q
 # % description: Quiet mode for operation=copy — do not add a history entry for the copy operation
+# %end
+
+# %rules
+# % exclusive: overrides,overrides_file
 # %end
 
 import copy
@@ -664,6 +675,183 @@ def _merge_overrides(
     gs.message(f"Merged overrides into metadata for '{target_map}'")
 
 
+def _load_overrides(overrides_json=None, overrides_file=None):
+    """Load an optional metadata override object from text, a file, or stdin."""
+    if overrides_file:
+        try:
+            if overrides_file == "-":
+                overrides_json = sys.stdin.read()
+            else:
+                with open(overrides_file, "r") as stream:
+                    overrides_json = stream.read()
+        except OSError as error:
+            gs.fatal(f"Failed to read overrides file '{overrides_file}': {error}")
+
+    if not overrides_json:
+        return {}
+    try:
+        overrides = json.loads(overrides_json)
+    except json.JSONDecodeError as error:
+        gs.fatal(f"Invalid overrides JSON: {error}")
+    if not isinstance(overrides, dict):
+        gs.fatal("Metadata overrides must be a JSON object")
+    return overrides
+
+
+def _apply_derive_overrides(metadata, overrides):
+    """Apply the generic metadata keys accepted by merge-overrides."""
+    for key in (
+        "radiometric_quantity",
+        "radiometric_units",
+        "data_type",
+        "sensor",
+        "wavelength_units",
+        "region",
+    ):
+        if key in overrides and overrides[key] is not None:
+            setattr(metadata, key, overrides[key])
+
+    bands = overrides.get("bands")
+    if isinstance(bands, dict):
+        band_fields = {
+            "count": "n_bands_source",
+            "count_valid": "n_bands_valid",
+            "wavelength": "wavelengths",
+            "fwhm": "fwhm",
+            "validity": "validity",
+            "labels": "component_labels",
+        }
+        for key, attribute in band_fields.items():
+            if key in bands and bands[key] is not None:
+                setattr(metadata, attribute, copy.deepcopy(bands[key]))
+        if "validity" in bands and "count_valid" not in bands:
+            metadata.n_bands_valid = sum(bool(value) for value in metadata.validity)
+
+    if getattr(metadata, "data_type", None) == "component":
+        metadata.wavelengths = None
+        metadata.fwhm = None
+        metadata.n_components = metadata.n_bands_source
+        if not isinstance(bands, dict) or "validity" not in bands:
+            metadata.validity = [True] * int(metadata.n_bands_source or 0)
+            metadata.n_bands_valid = metadata.n_bands_source
+
+    if "extended_metadata" in overrides:
+        metadata.merge_extended_metadata(overrides["extended_metadata"])
+    if "dimensionality_reduction" in overrides:
+        metadata.dimensionality_reduction = copy.deepcopy(
+            overrides["dimensionality_reduction"]
+        )
+
+
+def _validate_derive_bands(metadata, target_map, target_depth):
+    """Require all emitted band metadata to match the target cube depth."""
+    count = metadata.n_bands_source
+    if isinstance(count, bool) or not isinstance(count, int) or count != target_depth:
+        gs.fatal(
+            f"Cannot derive metadata for '{target_map}': bands.count must equal "
+            f"target raster depth {target_depth}, got {count!r}"
+        )
+
+    for name, values in (
+        ("wavelength", metadata.wavelengths),
+        ("fwhm", metadata.fwhm),
+        ("validity", metadata.validity),
+        ("labels", metadata.component_labels),
+    ):
+        if values is not None and (
+            not isinstance(values, list) or len(values) != target_depth
+        ):
+            length = len(values) if isinstance(values, list) else "non-list"
+            gs.fatal(
+                f"Cannot derive metadata for '{target_map}': bands.{name} "
+                f"length must equal target raster depth {target_depth}, got {length}"
+            )
+
+    count_valid = metadata.n_bands_valid
+    if count_valid is not None:
+        if (
+            isinstance(count_valid, bool)
+            or not isinstance(count_valid, int)
+            or count_valid < 0
+            or count_valid > target_depth
+        ):
+            gs.fatal(
+                f"Cannot derive metadata for '{target_map}': bands.count_valid "
+                f"must be an integer from 0 to {target_depth}"
+            )
+        if metadata.validity is not None and count_valid != sum(
+            bool(value) for value in metadata.validity
+        ):
+            gs.fatal(
+                f"Cannot derive metadata for '{target_map}': bands.count_valid "
+                "does not match bands.validity"
+            )
+
+
+def _derive_metadata(
+    hyper_metadata_class,
+    source_map,
+    target_map,
+    *,
+    command,
+    overwrite=False,
+    overrides=None,
+):
+    """Create one derived metadata record from a source dataset."""
+    if hyper_metadata_class.exists(target_map) and not overwrite:
+        gs.fatal(
+            f"Metadata already exists for target map '{target_map}'. Use --overwrite to replace it"
+        )
+
+    try:
+        source_raw = hyper_metadata_class.load_raw(source_map)
+        metadata = hyper_metadata_class.load(source_map)
+    except Exception as error:
+        gs.fatal(f"Failed to load metadata for derive: {error}")
+
+    source_dataset_id = source_raw.get("dataset_id")
+    if not isinstance(source_dataset_id, str) or not source_dataset_id:
+        gs.fatal(
+            f"Cannot derive metadata from '{source_map}': source metadata has no "
+            "persisted dataset_id"
+        )
+    source_snapshots = copy.deepcopy(
+        getattr(metadata, "input_datasets_metadata", {}) or {}
+    )
+    source_snapshots[source_dataset_id] = copy.deepcopy(source_raw)
+    metadata.input_datasets_metadata = source_snapshots
+    source_depth = _get_raster_depth(source_map)
+    target_depth = _get_raster_depth(target_map)
+    bands = (overrides or {}).get("bands", {})
+    expected_depth = (
+        bands.get("count", source_depth) if isinstance(bands, dict) else source_depth
+    )
+    if target_depth != expected_depth:
+        gs.fatal(
+            f"Cannot derive metadata for '{target_map}': target raster depth is "
+            f"{target_depth}, expected {expected_depth}"
+        )
+
+    metadata.dataset_id = hyper_metadata_class.new_dataset_id()
+    metadata.derived = True
+    metadata.processing_history = []
+    metadata.dimensionality_reduction = None
+    _apply_derive_overrides(metadata, overrides or {})
+    _validate_derive_bands(metadata, target_map, target_depth)
+    metadata.add_history_entry(
+        command=command,
+        inputs=[{"id": source_dataset_id, "map_name": source_map}],
+        outputs=[{"id": metadata.dataset_id, "map_name": target_map}],
+    )
+
+    try:
+        metadata.save(target_map, save_region="region" not in (overrides or {}))
+    except Exception as error:
+        gs.fatal(f"Failed to save derived metadata: {error}")
+
+    gs.message(f"Derived metadata for '{target_map}' from '{source_map}'")
+
+
 def _add_history_entry(
     hyper_metadata_class,
     target_map,
@@ -719,7 +907,11 @@ def main():
     extended_select = options.get("extended_select")
     source_map = options.get("source_map")
     overrides_json = options.get("overrides")
+    overrides_file = options.get("overrides_file")
     command = options.get("command")
+
+    if output_format == "kv" and operation != "resolved":
+        gs.fatal("format=kv is supported only for operation=resolved")
 
     # Import metadata API
     hyper_meta = _import_hyper_meta()
@@ -745,6 +937,26 @@ def main():
             full_map_name,
             overwrite=gs.overwrite(),
             record_history=not flags.get("q", False),
+        )
+        return 0
+
+    if operation == "derive":
+        if not source_map:
+            gs.fatal("Option <source_map> is required for operation=derive")
+        if not command:
+            gs.fatal("Option <command> is required for operation=derive")
+        source_found = gs.find_file(source_map, element="grid3")
+        if not source_found["fullname"]:
+            gs.fatal(f"Source 3D raster map '{source_map}' not found")
+        if source_found["fullname"] == full_map_name:
+            gs.fatal("source_map must be different from map")
+        _derive_metadata(
+            HyperMetadata,
+            source_found["fullname"],
+            full_map_name,
+            command=command,
+            overwrite=gs.overwrite(),
+            overrides=_load_overrides(overrides_json, overrides_file),
         )
         return 0
 

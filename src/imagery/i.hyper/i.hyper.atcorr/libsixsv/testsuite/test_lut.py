@@ -20,9 +20,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _support import (
     LutConfig,
     compute_lut,
+    fixed_us62_reference_after_init,
     gas_transmittance,
     invert,
     lut_slice,
+    pressure_profile,
     srf_compute_is_disabled,
 )
 
@@ -333,7 +335,7 @@ class TestGasProfileNormalization(unittest.TestCase):
 
     def test_zero_columns_use_profile_defaults_consistently(self):
         common = dict(
-            wl=[0.94],
+            wl=[0.60, 0.94, 3.75],
             aod=[0.2],
             sza=30.0,
             vza=10.0,
@@ -352,6 +354,97 @@ class TestGasProfileNormalization(unittest.TestCase):
                 rtol=1e-3,
                 atol=1e-7,
             )
+
+    def test_pressure_adjusted_us62_default_is_not_scaled_twice(self):
+        common = dict(
+            wl=[0.60, 0.94, 3.75],
+            aod=[0.2],
+            sza=30.0,
+            vza=10.0,
+            raa=300.0,
+            altitude_km=1000.0,
+            atmo_model=1,
+            aerosol_model=1,
+            surface_pressure=800.0,
+        )
+        defaults = compute_lut(LutConfig(h2o=[0.0], ozone_du=0.0, **common))
+        explicit = compute_lut(LutConfig(h2o=[1.424], ozone_du=344.0, **common))
+        for name in ("R_atm", "T_down", "T_up"):
+            np.testing.assert_allclose(
+                getattr(defaults, name),
+                getattr(explicit, name),
+                rtol=2e-6,
+                atol=1e-7,
+            )
+
+    def test_non_us62_default_uses_its_own_profile_columns(self):
+        profile, h2o, ozone_du, status = pressure_profile(0.0, atmo_model=4)
+        self.assertEqual(status, 0)
+        del profile
+        default = gas_transmittance(4, 0.94, np.cos(np.deg2rad(30.0)), 0.0, 0.0)
+        explicit = gas_transmittance(4, 0.94, np.cos(np.deg2rad(30.0)), h2o, ozone_du)
+        np.testing.assert_allclose(default, explicit, rtol=2e-6)
+
+    def test_us62_reference_flag_is_model_specific_and_reset(self):
+        self.assertTrue(fixed_us62_reference_after_init(1))
+        self.assertFalse(fixed_us62_reference_after_init(2))
+        self.assertFalse(fixed_us62_reference_after_init(1, 2))
+
+
+class TestPressure(unittest.TestCase):
+    def test_pressure_boundary_branches(self):
+        standard, _, _, _ = pressure_profile(0.0)
+        low_value = np.nextafter(np.float32(1013.0), np.float32(0.0))
+        low, _, _, low_status = pressure_profile(low_value)
+        boundary, _, _, boundary_status = pressure_profile(1013.0)
+        high, _, _, high_status = pressure_profile(
+            np.nextafter(np.float32(1013.0), np.float32(np.inf))
+        )
+        self.assertEqual((low_status, boundary_status, high_status), (0, 0, 0))
+        self.assertEqual(low.p[0], low_value)
+        np.testing.assert_array_equal(boundary.p, standard.p)
+        self.assertEqual(
+            high.p[0], np.nextafter(np.float32(1013.0), np.float32(np.inf))
+        )
+
+    def test_pressure_adjustment_supports_standard_models(self):
+        for model in range(1, 7):
+            profile, h2o, ozone_du, status = pressure_profile(800.0, model)
+            self.assertEqual(status, 0, msg=f"atmosphere model {model}")
+            self.assertEqual(profile.p[0], 800.0)
+            self.assertTrue(np.all(np.isfinite(profile.p)))
+            self.assertTrue(np.isfinite(h2o))
+            self.assertTrue(np.isfinite(ozone_du))
+
+    def test_pressure_branch_uses_active_profile_surface(self):
+        midwin, _, _, midwin_status = pressure_profile(1014.0, atmo_model=3)
+        self.assertEqual(midwin_status, 0)
+        self.assertEqual(midwin.p[0], 1014.0)
+        self.assertGreater(midwin.z[0], 0.0)
+
+        subsum, _, _, subsum_status = pressure_profile(1012.0, atmo_model=5)
+        self.assertEqual(subsum_status, 0)
+        self.assertEqual(subsum.p[0], 1012.0)
+        self.assertEqual(subsum.z[0], 0.0)
+
+    def test_invalid_pressure_is_rejected_without_profile_mutation(self):
+        standard, _, _, _ = pressure_profile(0.0)
+        for pressure in (np.nan, np.inf, -np.inf, 1e-5, 3000.0):
+            profile, _, _, status = pressure_profile(pressure)
+            self.assertNotEqual(status, 0)
+            np.testing.assert_array_equal(profile.p, standard.p)
+
+    def test_lut_propagates_invalid_pressure_status(self):
+        common = dict(wl=[0.55], aod=[0.1], h2o=[1.0])
+        for pressure in (np.nan, np.inf, -1.0, 1e-5, 3000.0):
+            with self.assertRaises(RuntimeError):
+                compute_lut(LutConfig(surface_pressure=pressure, **common))
+
+    def test_lut_rejects_invalid_atmosphere_model(self):
+        common = dict(wl=[0.55], aod=[0.1], h2o=[1.0])
+        for model in (0, 7):
+            with self.assertRaises(RuntimeError):
+                compute_lut(LutConfig(atmo_model=model, **common))
 
 
 class TestCustomMie(unittest.TestCase):

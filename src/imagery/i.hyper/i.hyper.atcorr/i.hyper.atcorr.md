@@ -130,6 +130,11 @@ wavelength units default to nm. Unsupported unit strings are rejected. The
 module reads resolved metadata exclusively through `i.hyper.metadata`; input
 maps must provide valid hyperspectral metadata.
 
+Output and uncertainty metadata are derived from the input in one atomic
+`i.hyper.metadata` operation. Each output receives a new dataset identifier,
+one source-to-output history entry, and its local radiometry and atmospheric
+correction settings. Failure to create valid output metadata aborts the module.
+
 For supported scalar scene fields, values are resolved in this order:
 command line option, input map metadata, module default. These fields are
 *sza*, *vza*, *raa*, *sun_azimuth*, *altitude*, *ozone*, *aod_val*,

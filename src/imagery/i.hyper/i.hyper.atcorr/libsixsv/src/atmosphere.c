@@ -1,5 +1,6 @@
 /* Standard atmosphere profiles — ported from 6SV2.1 US62.f, MIDSUM.f etc. */
 #include "../include/sixs_ctx.h"
+#include "../include/atcorr.h"
 #include <string.h>
 
 /* ─── US Standard 1962 ──────────────────────────────────────────────────────
@@ -211,6 +212,7 @@ static const float woms[NATM] = {
 void sixs_init_atmosphere(SixsCtx *ctx, int atmo_model)
 {
     const float *z, *p, *t, *wh, *wo;
+    ctx->fixed_us62_column_reference = atmo_model == ATMO_US62;
     switch (atmo_model) {
     case 2:
         z = zms;

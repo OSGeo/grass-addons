@@ -23,9 +23,11 @@ program test_6sv_compat
 
   ! Working variables
   real    :: xphi, xmuv, xmus, xtau, xrray
-  real    :: wl, tray, swl, xalb, dsol
+  real    :: wl, tray, swl, xalb, dsol, uw, uo3
   real    :: x(48), w(48)
+  real    :: z(34), p(34), t(34), wh(34), wo(34)
   integer :: n, jday, month, i
+  common /sixs_atm/ z, p, t, wh, wo
 
   ! Initialise COMMON blocks
   delta = 0.0279
@@ -116,5 +118,31 @@ program test_6sv_compat
     write(*,'(A,I1,A,F22.15)') 'gauss_w8_', i, '=', w(i)
   end do
 
+  ! ── PRESSURE ─────────────────────────────────────────────────────────────────
+  call output_pressure('801', 801.29)
+  call output_pressure('850', 850.0)
+  call output_pressure('500', 500.0)
+  call output_pressure('1013', 1013.25)
+
   stop
+
+contains
+
+  subroutine output_pressure(tag, xps)
+    character(len=*), intent(in) :: tag
+    real, intent(in) :: xps
+    integer :: k
+
+    call us62
+    call pressure(uw, uo3, xps)
+    do k = 1, 34
+      write(*,'(A,A,A,I2.2,A,F20.12)') 'pressure_', tag, '_z_', k, '=', z(k)
+      write(*,'(A,A,A,I2.2,A,F20.12)') 'pressure_', tag, '_p_', k, '=', p(k)
+      write(*,'(A,A,A,I2.2,A,F20.12)') 'pressure_', tag, '_t_', k, '=', t(k)
+      write(*,'(A,A,A,I2.2,A,F20.12)') 'pressure_', tag, '_wh_', k, '=', wh(k)
+      write(*,'(A,A,A,I2.2,A,F20.12)') 'pressure_', tag, '_wo_', k, '=', wo(k)
+    end do
+    write(*,'(A,A,A,F20.12)') 'pressure_', tag, '_h2o=', uw
+    write(*,'(A,A,A,F20.12)') 'pressure_', tag, '_ozone_atmcm=', uo3
+  end subroutine output_pressure
 end program test_6sv_compat

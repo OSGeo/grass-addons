@@ -47,7 +47,7 @@ static void compute_columns(const SixsCtx *ctx, float *uw, float *uo3)
     }
     uw_ = uw_ * ctx->atm.p[0] * 100.0f / g;
     uo3_ = uo3_ * ctx->atm.p[0] * 100.0f / g;
-    uo3_ = 1000.0f * uo3_ / ro3;
+    uo3_ = 1.0e6f * uo3_ / ro3;
 
     *uw = uw_;
     *uo3 = uo3_;
@@ -69,14 +69,25 @@ static void compute_columns(const SixsCtx *ctx, float *uw, float *uo3)
  *                     - \c sp > 0: surface pressure in hPa;
  *                     - \c sp < 0: surface altitude in km (negated);
  *                     - \c sp == 0: no-op (standard atmosphere unchanged).
+ * \return 0 on success, or a negative status if the request cannot be safely
+ * applied to the current profile.
  */
-void sixs_pressure(SixsCtx *ctx, float sp)
+int sixs_pressure_checked(SixsCtx *ctx, float sp)
 {
+    if (!ctx || !isfinite(sp))
+        return -1;
     if (sp == 0.0f)
-        return;
+        return 0;
+    /* Standard profiles do not all start at the US62 pressure of 1013 hPa. */
+    float profile_surface_pressure = ctx->atm.p[0];
+    if (!isfinite(profile_surface_pressure) || profile_surface_pressure <= 0.0f)
+        return -2;
+    if (sp >= profile_surface_pressure &&
+        sp - profile_surface_pressure >= profile_surface_pressure)
+        return -2;
 
-    int isup, iinf;
-    float ps, xalt;
+    int isup = 0, iinf = 0;
+    float ps = 0.0f, xalt = 0.0f;
 
     if (sp < 0.0f) {
         /* ── Altitude mode: sp = -altitude_km ──────────────────────────── */
@@ -90,6 +101,9 @@ void sixs_pressure(SixsCtx *ctx, float sp)
             i++;
         isup = i;
         iinf = i - 1;
+        if (iinf < 0 || isup >= NATM - 1 || ctx->atm.p[iinf] <= 0.0f ||
+            ctx->atm.p[isup] <= 0.0f)
+            return -2;
 
         /* Log-linear pressure interpolation */
         float xa = (ctx->atm.z[isup] - ctx->atm.z[iinf]) /
@@ -100,73 +114,86 @@ void sixs_pressure(SixsCtx *ctx, float sp)
     }
     else {
         /* ── Pressure mode: sp = surface_pressure_hPa ────────────────── */
-        if (sp >= 1013.0f) {
-            /* Surface pressure higher than standard — shift bottom layers */
-            float dps = sp - ctx->atm.p[0];
-            for (int i = 0; i < 9 && ctx->atm.p[i] > dps; i++)
-                ctx->atm.p[i] += dps;
-            return;
+        if (sp <= profile_surface_pressure) {
+            ps = sp;
+
+            /* Find first level where p < ps (pressure decreases upward) */
+            int i = 0;
+            while (i < NATM - 1 && ctx->atm.p[i] >= ps)
+                i++;
+            isup = i;
+            iinf = i - 1;
+            if (iinf < 0 || isup >= NATM - 1 || ctx->atm.p[iinf] <= 0.0f ||
+                ctx->atm.p[isup] <= 0.0f)
+                return -2;
+
+            /* Log-linear altitude interpolation */
+            float xa = (ctx->atm.z[isup] - ctx->atm.z[iinf]) /
+                       logf(ctx->atm.p[isup] / ctx->atm.p[iinf]);
+            float xb = ctx->atm.z[isup] - xa * logf(ctx->atm.p[isup]);
+            xalt = logf(ps) * xa + xb;
         }
-        ps = sp;
-
-        /* Find first level where p < ps (pressure decreases upward) */
-        int i = 0;
-        while (i < NATM - 1 && ctx->atm.p[i] >= ps)
-            i++;
-        isup = i;
-        iinf = i - 1;
-
-        /* Log-linear altitude interpolation */
-        float xa = (ctx->atm.z[isup] - ctx->atm.z[iinf]) /
-                   logf(ctx->atm.p[isup] / ctx->atm.p[iinf]);
-        float xb = ctx->atm.z[isup] - xa * logf(ctx->atm.p[isup]);
-        xalt = logf(ps) * xa + xb;
     }
 
-    /* Linearly interpolate T, wh, wo at xalt between iinf and isup */
-    float dz = ctx->atm.z[isup] - ctx->atm.z[iinf];
-    float t_frac = (dz > 0.0f) ? (xalt - ctx->atm.z[iinf]) / dz : 0.0f;
+    if (sp <= profile_surface_pressure) {
+        /* Linearly interpolate T, wh, wo at xalt between iinf and isup */
+        float dz = ctx->atm.z[isup] - ctx->atm.z[iinf];
+        float t_frac = (dz > 0.0f) ? (xalt - ctx->atm.z[iinf]) / dz : 0.0f;
 
-    float xtemp =
-        ctx->atm.t[iinf] + t_frac * (ctx->atm.t[isup] - ctx->atm.t[iinf]);
-    float xwh =
-        ctx->atm.wh[iinf] + t_frac * (ctx->atm.wh[isup] - ctx->atm.wh[iinf]);
-    float xwo =
-        ctx->atm.wo[iinf] + t_frac * (ctx->atm.wo[isup] - ctx->atm.wo[iinf]);
+        float xtemp =
+            ctx->atm.t[iinf] + t_frac * (ctx->atm.t[isup] - ctx->atm.t[iinf]);
+        float xwh = ctx->atm.wh[iinf] +
+                    t_frac * (ctx->atm.wh[isup] - ctx->atm.wh[iinf]);
+        float xwo = ctx->atm.wo[iinf] +
+                    t_frac * (ctx->atm.wo[isup] - ctx->atm.wo[iinf]);
 
-    /* Rebuild profile: new bottom = (xalt, ps, xtemp, xwh, xwo)
-     * then copy layers from iinf onward into positions 1, 2, ...
-     * Fortran: do i=2, 33-iinf+1  → 0-based: i=1 to 32-iinf */
-    ctx->atm.z[0] = xalt;
-    ctx->atm.p[0] = ps;
-    ctx->atm.t[0] = xtemp;
-    ctx->atm.wh[0] = xwh;
-    ctx->atm.wo[0] = xwo;
+        /* Rebuild profile: new bottom = (xalt, ps, xtemp, xwh, xwo)
+         * then copy layers from iinf onward into positions 1, 2, ...
+         * Fortran: do i=2, 33-iinf+1  → 0-based: i=1 to 32-iinf */
+        ctx->atm.z[0] = xalt;
+        ctx->atm.p[0] = ps;
+        ctx->atm.t[0] = xtemp;
+        ctx->atm.wh[0] = xwh;
+        ctx->atm.wo[0] = xwo;
 
-    int n_copy = 33 - iinf; /* number of levels to copy */
-    for (int i = 1; i <= n_copy; i++) {
-        ctx->atm.z[i] = ctx->atm.z[i + iinf];
-        ctx->atm.p[i] = ctx->atm.p[i + iinf];
-        ctx->atm.t[i] = ctx->atm.t[i + iinf];
-        ctx->atm.wh[i] = ctx->atm.wh[i + iinf];
-        ctx->atm.wo[i] = ctx->atm.wo[i + iinf];
+        int n_copy = (NATM - 2) - iinf; /* last copied index */
+        for (int i = 1; i <= n_copy; i++) {
+            ctx->atm.z[i] = ctx->atm.z[i + iinf];
+            ctx->atm.p[i] = ctx->atm.p[i + iinf];
+            ctx->atm.t[i] = ctx->atm.t[i + iinf];
+            ctx->atm.wh[i] = ctx->atm.wh[i + iinf];
+            ctx->atm.wo[i] = ctx->atm.wo[i + iinf];
+        }
+
+        /* Fill remaining levels with linear extrapolation to TOA */
+        int l = n_copy; /* last filled index (0-based) */
+        for (int i = l + 1; i < NATM; i++) {
+            float frac = (float)(i - l) / (float)(NATM - 1 - l);
+            ctx->atm.z[i] =
+                ctx->atm.z[l] + (ctx->atm.z[NATM - 1] - ctx->atm.z[l]) * frac;
+            ctx->atm.p[i] =
+                ctx->atm.p[l] + (ctx->atm.p[NATM - 1] - ctx->atm.p[l]) * frac;
+            ctx->atm.t[i] =
+                ctx->atm.t[l] + (ctx->atm.t[NATM - 1] - ctx->atm.t[l]) * frac;
+            ctx->atm.wh[i] = ctx->atm.wh[l] +
+                             (ctx->atm.wh[NATM - 1] - ctx->atm.wh[l]) * frac;
+            ctx->atm.wo[i] = ctx->atm.wo[l] +
+                             (ctx->atm.wo[NATM - 1] - ctx->atm.wo[l]) * frac;
+        }
     }
 
-    /* Fill remaining levels with linear extrapolation to TOA */
-    int l = n_copy; /* last filled index (0-based) */
-    for (int i = l + 1; i < NATM; i++) {
-        float frac = (float)(i - l) / (float)(NATM - 1 - l);
-        ctx->atm.z[i] =
-            ctx->atm.z[l] + (ctx->atm.z[NATM - 1] - ctx->atm.z[l]) * frac;
-        ctx->atm.p[i] =
-            ctx->atm.p[l] + (ctx->atm.p[NATM - 1] - ctx->atm.p[l]) * frac;
-        ctx->atm.t[i] =
-            ctx->atm.t[l] + (ctx->atm.t[NATM - 1] - ctx->atm.t[l]) * frac;
-        ctx->atm.wh[i] =
-            ctx->atm.wh[l] + (ctx->atm.wh[NATM - 1] - ctx->atm.wh[l]) * frac;
-        ctx->atm.wo[i] =
-            ctx->atm.wo[l] + (ctx->atm.wo[NATM - 1] - ctx->atm.wo[l]) * frac;
+    if (sp >= profile_surface_pressure) {
+        /* Surface pressure higher than the profile — shift bottom layers */
+        float dps = sp - ctx->atm.p[0];
+        for (int i = 0; i < 9 && ctx->atm.p[i] > dps; i++)
+            ctx->atm.p[i] += dps;
     }
+    return 0;
+}
+
+void sixs_pressure(SixsCtx *ctx, float sp)
+{
+    (void)sixs_pressure_checked(ctx, sp);
 }
 
 /**

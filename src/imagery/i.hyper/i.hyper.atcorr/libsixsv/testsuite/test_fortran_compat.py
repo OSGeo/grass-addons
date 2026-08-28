@@ -40,6 +40,7 @@ from _support import (
     earth_sun_dist2,
     gauss as _c_gauss,
     odrayl as _c_odrayl,
+    pressure_profile,
     solar_E0,
 )
 
@@ -53,7 +54,16 @@ _DRIVER_BIN = os.path.join(_HERE, "test_6sv_compat")
 
 _FORTRAN_OBJS = [
     os.path.join(_SIXSV2, name + ".o")
-    for name in ("CHAND", "ODRAYL", "VARSOL", "SOLIRR", "CSALBR", "GAUSS", "US62")
+    for name in (
+        "CHAND",
+        "ODRAYL",
+        "VARSOL",
+        "SOLIRR",
+        "CSALBR",
+        "GAUSS",
+        "US62",
+        "PRESSURE",
+    )
 ]
 
 
@@ -281,6 +291,47 @@ class TestFortranCompat(unittest.TestCase):
         np.testing.assert_allclose(x[1], -x[2], rtol=1e-6)
         np.testing.assert_allclose(w[0], w[3], rtol=1e-6)
         np.testing.assert_allclose(w[1], w[2], rtol=1e-6)
+
+    # ── PRESSURE — target surface pressure profile ─────────────────────────
+
+    def test_pressure_profiles_match_6sv21(self):
+        """PRESSURE: adjusted US62 profiles and integrated columns match 6SV."""
+        for tag, pressure in (
+            ("801", 801.29),
+            ("850", 850.0),
+            ("500", 500.0),
+            ("1013", 1013.25),
+        ):
+            actual, h2o, ozone_du, status = pressure_profile(pressure)
+            self.assertEqual(status, 0)
+            for field in ("z", "p", "t", "wh", "wo"):
+                expected = np.array(
+                    [self.f[f"pressure_{tag}_{field}_{i:02d}"] for i in range(1, 35)]
+                )
+                np.testing.assert_allclose(
+                    getattr(actual, field),
+                    expected,
+                    rtol=2e-6,
+                    atol=2e-8,
+                    err_msg=f"PRESSURE {pressure:g} hPa {field}",
+                )
+            np.testing.assert_allclose(
+                h2o,
+                self.f[f"pressure_{tag}_h2o"],
+                rtol=2e-6,
+                atol=2e-8,
+                err_msg=f"PRESSURE {pressure:g} hPa H2O column",
+            )
+            np.testing.assert_allclose(
+                ozone_du,
+                1000.0 * self.f[f"pressure_{tag}_ozone_atmcm"],
+                rtol=2e-6,
+                atol=2e-5,
+                err_msg=f"PRESSURE {pressure:g} hPa ozone column",
+            )
+            self.assertTrue(np.all(np.isfinite(actual.p)))
+            self.assertTrue(np.all(actual.p[:-1] > 0.0))
+            self.assertEqual(actual.p[-1], 0.0)
 
 
 if __name__ == "__main__":

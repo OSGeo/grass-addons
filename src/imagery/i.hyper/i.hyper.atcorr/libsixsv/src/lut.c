@@ -28,7 +28,7 @@
 
 /* Forward declarations for functions implemented elsewhere */
 void sixs_init_atmosphere(SixsCtx *ctx, int atmo_model);
-void sixs_pressure(SixsCtx *ctx, float sp);
+int sixs_pressure_checked(SixsCtx *ctx, float sp);
 int sixs_presplane(SixsCtx *ctx, float height_km);
 void sixs_aerosol_init(SixsCtx *ctx, int iaer, float taer55, float xmud);
 void sixs_mie_init(SixsCtx *ctx, double r_mode, double sigma_g, double m_r_550,
@@ -67,13 +67,18 @@ float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
  * \param[in]  cfg  LUT configuration (geometry, atmosphere, aerosol, grid
  * dimensions).
  * \param[out] out  LUT arrays; allocates all sub-arrays internally.
- * \return  0 on success, -1 on allocation failure.
+ * \return  0 on success, a negative status on invalid input or computation
+ * failure.
  */
 int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
 {
     if (!cfg || !out || !cfg->wl || !cfg->aod || !cfg->h2o || cfg->n_wl <= 0 ||
         cfg->n_aod <= 0 || cfg->n_h2o <= 0)
         return -1;
+    if (cfg->atmo_model < ATMO_US62 || cfg->atmo_model > ATMO_SUBWIN)
+        return -5;
+    if (!isfinite(cfg->surface_pressure) || cfg->surface_pressure < 0.0f)
+        return -5;
     if (cfg->aerosol_model == AEROSOL_CUSTOM) {
         if (cfg->enable_polar)
             return -4;
@@ -146,8 +151,15 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
         ctx->multi.igmax = 20;
         ctx->err.ier = false;
         sixs_init_atmosphere(ctx, cfg->atmo_model);
-        if (cfg->surface_pressure > 0.0f)
-            sixs_pressure(ctx, cfg->surface_pressure);
+        if (cfg->surface_pressure > 0.0f &&
+            sixs_pressure_checked(ctx, cfg->surface_pressure) != 0) {
+#ifdef _OPENMP
+#pragma omp atomic write
+#endif
+            failed = 1;
+            free(ctx);
+            continue;
+        }
         if (idatmp == 2 && sixs_presplane(ctx, palt) != 0) {
 #ifdef _OPENMP
 #pragma omp atomic write
@@ -158,6 +170,10 @@ int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out)
         }
         float default_h2o, default_ozone;
         sixs_gas_profile_columns(ctx, &default_h2o, &default_ozone);
+        if (ctx->fixed_us62_column_reference) {
+            default_h2o = 1.424f;
+            default_ozone = 344.0f;
+        }
 
         /* Custom Mie: populate ctx->aer before aerosol_init */
         if (cfg->aerosol_model == AEROSOL_CUSTOM && cfg->mie_r_mode > 0.0f &&

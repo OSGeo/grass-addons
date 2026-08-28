@@ -6,6 +6,10 @@
 
 /* Band boundaries in cm^-1 (ivli in ABSTRA.f) */
 static const int ivli[6] = {2500, 5060, 7620, 10180, 12740, 15300};
+/* ABSTRA.f fixes these idatm=8 reference columns even when PRESSURE.f has
+ * adjusted the underlying US62 profile. */
+static const float us62_h2o_column = 1.424f;
+static const float us62_ozone_du = 344.0f;
 
 /**
  * \brief Fetch Curtis-Godson absorption coefficients from the gas look-up
@@ -269,7 +273,7 @@ static float gas_transmittance_profile(const SixsCtx *ctx,
         if (a[0] == 0.0f)
             continue;
 
-        /* H2O: scale by uw/uwus (uwus=1.424 g/cm²) */
+        /* H2O/O3 user columns use ABSTRA.f's fixed US62 references. */
         float scale = 1.0f;
         if (gas_id == 1)
             scale = h2o_scale;
@@ -293,7 +297,8 @@ static float gas_transmittance_profile(const SixsCtx *ctx,
         if (n >= 2 && n <= 15) {
             float ah2o =
                 gas_cch2o[n - 1] + xd * (gas_cch2o[n - 1] - gas_cch2o[n - 2]);
-            /* ABSTRA's continuum uu uses one tenth of the API g/cm2 column. */
+            /* ABSTRA's internal water column is one tenth of the API g/cm2
+             * column returned by PRESSURE.f. */
             float uud = h2o_column / (10.0f * xmus);
             tgas_down *= expf(-ah2o * uud);
         }
@@ -364,6 +369,15 @@ void sixs_gas_profile_columns(const SixsCtx *ctx, float *h2o, float *ozone_du)
     profile_columns(&ctx->atm, h2o, ozone_du);
 }
 
+static void default_columns(const SixsCtx *ctx, float *h2o, float *ozone_du)
+{
+    profile_columns(&ctx->atm, h2o, ozone_du);
+    if (ctx->fixed_us62_column_reference) {
+        *h2o = us62_h2o_column;
+        *ozone_du = us62_ozone_du;
+    }
+}
+
 static float column_scale(float requested, float reference)
 {
     return reference > 1e-12f ? requested / reference : 0.0f;
@@ -375,21 +389,28 @@ float sixs_gas_transmittance(const SixsCtx *ctx, float wl, float xmus,
     (void)xmuv;
     float reference_h2o, reference_ozone;
     profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
+    float default_h2o, default_ozone;
+    default_columns(ctx, &default_h2o, &default_ozone);
     float h2o_column =
-        reference_h2o > 1e-12f ? (uw > 0.0f ? uw : reference_h2o) : 0.0f;
+        reference_h2o > 1e-12f ? (uw > 0.0f ? uw : default_h2o) : 0.0f;
     float ozone_column =
-        reference_ozone > 1e-12f ? (uo3 > 0.0f ? uo3 : reference_ozone) : 0.0f;
-    /* The API contract is an absolute column: normalise the profile so the
-     * integrated column equals the requested value. */
-    float h2o_scale = column_scale(h2o_column, reference_h2o);
-    float ozone_scale = column_scale(ozone_column, reference_ozone);
+        reference_ozone > 1e-12f ? (uo3 > 0.0f ? uo3 : default_ozone) : 0.0f;
+    float h2o_reference =
+        ctx->fixed_us62_column_reference ? us62_h2o_column : reference_h2o;
+    float ozone_reference =
+        ctx->fixed_us62_column_reference ? us62_ozone_du : reference_ozone;
+    /* Non-US62 extensions normalise to the active profile. For US62, retain
+     * ABSTRA.f idatm=8's fixed canonical references after PRESSURE.f. */
+    float h2o_scale = column_scale(h2o_column, h2o_reference);
+    float ozone_scale = column_scale(ozone_column, ozone_reference);
     /* Ozone continuum (ABSTRA.f uud=uu/xmus): uu is the profile ozone in
      * atm-cm scaled by rat(4)=uo3/uo3us (uo3us=0.344).  Reproduce the
      * profile-integrated scaling, not the flat user column. */
     float ozone_cont_atmcm =
-        (reference_ozone / 1000.0f) * (ozone_column / 344.0f);
+        (reference_ozone / 1000.0f) * (ozone_column / ozone_reference);
     return gas_transmittance_profile(ctx, &ctx->atm, wl, xmus, h2o_scale,
-                                     ozone_scale, h2o_column, ozone_cont_atmcm);
+                                     ozone_scale, reference_h2o * h2o_scale,
+                                     ozone_cont_atmcm);
 }
 
 float sixs_gas_transmittance_plane(const SixsCtx *ctx, float wl, float xmuv,
@@ -399,14 +420,19 @@ float sixs_gas_transmittance_plane(const SixsCtx *ctx, float wl, float xmuv,
         return 1.0f;
     float reference_h2o, reference_ozone;
     profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
-    float h2o_scale =
-        column_scale(uw > 0.0f ? uw : reference_h2o, reference_h2o);
+    float default_h2o, default_ozone;
+    default_columns(ctx, &default_h2o, &default_ozone);
+    float h2o_reference =
+        ctx->fixed_us62_column_reference ? us62_h2o_column : reference_h2o;
+    float ozone_reference =
+        ctx->fixed_us62_column_reference ? us62_ozone_du : reference_ozone;
+    float h2o_scale = column_scale(uw > 0.0f ? uw : default_h2o, h2o_reference);
     float ozone_scale =
-        column_scale(uo3 > 0.0f ? uo3 : reference_ozone, reference_ozone);
+        column_scale(uo3 > 0.0f ? uo3 : default_ozone, ozone_reference);
     /* Plane path: reference is the plane's own integrated column. */
-    float ozone_column = uo3 > 0.0f ? uo3 : reference_ozone;
+    float ozone_column = uo3 > 0.0f ? uo3 : default_ozone;
     float plane_ozone_cont =
-        (ctx->plane_ozone_du / 1000.0f) * (ozone_column / 344.0f);
+        (ctx->plane_ozone_du / 1000.0f) * (ozone_column / ozone_reference);
     return gas_transmittance_profile(ctx, &ctx->plane_atm, wl, xmuv, h2o_scale,
                                      ozone_scale, ctx->plane_h2o * h2o_scale,
                                      plane_ozone_cont);
@@ -430,18 +456,25 @@ float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
 
     float reference_h2o, reference_ozone;
     profile_columns(&ctx->atm, &reference_h2o, &reference_ozone);
+    float default_h2o, default_ozone;
+    default_columns(ctx, &default_h2o, &default_ozone);
     float h2o_column =
-        reference_h2o > 1e-12f ? (uw >= 0.0f ? uw : reference_h2o) : 0.0f;
+        reference_h2o > 1e-12f ? (uw >= 0.0f ? uw : default_h2o) : 0.0f;
     float ozone_column =
-        reference_ozone > 1e-12f ? (uo3 >= 0.0f ? uo3 : reference_ozone) : 0.0f;
-    float h2o_scale = column_scale(h2o_column, reference_h2o);
-    float ozone_scale = column_scale(ozone_column, reference_ozone);
+        reference_ozone > 1e-12f ? (uo3 >= 0.0f ? uo3 : default_ozone) : 0.0f;
+    float h2o_reference =
+        ctx->fixed_us62_column_reference ? us62_h2o_column : reference_h2o;
+    float ozone_reference =
+        ctx->fixed_us62_column_reference ? us62_ozone_du : reference_ozone;
+    float h2o_scale = column_scale(h2o_column, h2o_reference);
+    float ozone_scale = column_scale(ozone_column, ozone_reference);
+    float scaled_h2o = reference_h2o * h2o_scale;
     const SixsAtm *up_profile =
         observer_mode == 2 ? &ctx->plane_atm : &ctx->atm;
     float up_h2o =
         observer_mode == 0
             ? 0.0f
-            : (observer_mode == 2 ? ctx->plane_h2o * h2o_scale : h2o_column);
+            : (observer_mode == 2 ? ctx->plane_h2o * h2o_scale : scaled_h2o);
 
     float total = 1.0f;
     for (int gas_id = 1; have_k_band && gas_id <= 7; gas_id++) {
@@ -476,7 +509,7 @@ float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
         if (n >= 2 && n <= 15) {
             float ah2o =
                 gas_cch2o[n - 1] + xd * (gas_cch2o[n - 1] - gas_cch2o[n - 2]);
-            total *= expf(-ah2o * (h2o_column / xmus + up_h2o / xmuv) / 10.0f);
+            total *= expf(-ah2o * (scaled_h2o / xmus + up_h2o / xmuv) / 10.0f);
         }
     }
     if ((iv >= 13000 && iv <= 23400) || iv >= 27500) {
@@ -489,12 +522,12 @@ float sixs_gas_transmittance_total(const SixsCtx *ctx, int observer_mode,
                          xd * (gas_co3_ozon[n - 1] -
                                (n > 1 ? gas_co3_ozon[n - 2] : gas_co3_ozon[0]));
             float down_cont =
-                (reference_ozone / 1000.0f) * (ozone_column / 344.0f);
+                (reference_ozone / 1000.0f) * (ozone_column / ozone_reference);
             float up_cont =
                 observer_mode == 0
                     ? 0.0f
                     : (observer_mode == 2 ? (ctx->plane_ozone_du / 1000.0f) *
-                                                (ozone_column / 344.0f)
+                                                (ozone_column / ozone_reference)
                                           : down_cont);
             float slant = down_cont / xmus + up_cont / xmuv;
             total *= expf(-fminf(86.0f, ako3 * slant));

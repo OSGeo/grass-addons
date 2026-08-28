@@ -32,7 +32,8 @@ LIB_SRCS = $(sort $(wildcard $(SIXSV_DIR)/src/*.c))
 
 FORTRAN_DRIVER = test_6sv_compat
 FORTRAN_OBJS   = $(addprefix $(SIXSV2)/, \
-                   CHAND.o ODRAYL.o VARSOL.o SOLIRR.o CSALBR.o GAUSS.o US62.o)
+                    CHAND.o ODRAYL.o VARSOL.o SOLIRR.o CSALBR.o GAUSS.o US62.o \
+                    PRESSURE.o)
 
 .PHONY: all lib fortran test test-fortran test-openmp clean
 

@@ -20,8 +20,8 @@
  *   4. Correction = T_gas_fine_SRF / T_gas_coarse_at_band_centre.
  *   5. Apply multiplicatively to all T_down and T_up in the LUT.
  *
- * The 4 × n_h2o uvspec calls are parallelised over OpenMP threads.
- * libRadtran is a runtime-only dependency (subprocess via popen).
+ * The historical implementation is unreachable from the public API and is
+ * retained only as reference for a future joint path-gas redesign.
  *
  * \see atcorr_srf_compute(), atcorr_srf_apply(), atcorr_srf_free()
  */
@@ -452,23 +452,13 @@ static GasSpectrum *run_uvspec_gas(float sza_deg, float h2o_gcm2, float o3_du,
 /**
  * \brief Compute the SRF gas transmittance correction table.
  *
- * For each H₂O grid point in \c lut_cfg->h2o[], runs 4 libRadtran \c uvspec
- * calls:
- * - reptran fine × solar zenith → T_gas_down_fine(λ)
- * - reptran fine × view zenith  → T_gas_up_fine(λ)
- * - reptran coarse × solar zenith → T_gas_down_coarse(λ)
- * - reptran coarse × view zenith  → T_gas_up_coarse(λ)
- *
- * The per-band correction factor is:
- * \f[\text{corr}(\lambda, h_2o) = \frac{\text{Gaussian
- * SRF}\{T^\text{fine}\}(\lambda)} {T^\text{coarse}(\lambda)}\f]
- *
- * All 4 × n_h2o uvspec calls are distributed over OpenMP threads.
+ * Direction-only correction factors are incompatible with the gas-weighted
+ * effective coefficients used by the public LUT API, so this entry point is
+ * deliberately disabled.
  *
  * \param[in] srf_cfg  SRF configuration (sensor FWHM per band, threshold).
  * \param[in] lut_cfg  LUT configuration (geometry, H₂O grid, O₃, wavelengths).
- * \return Heap-allocated SrfCorrection table; NULL if uvspec/data not found
- *         or all runs failed.  Caller must free with atcorr_srf_free().
+ * \return Always NULL while SRF correction is unsupported.
  */
 SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
                                   const LutConfig *lut_cfg)

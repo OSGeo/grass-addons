@@ -186,7 +186,206 @@ typedef struct {
     int day_of_year;
 } HyperMeta;
 
+typedef struct {
+    const char *radiometric_quantity;
+    const char *output_type;
+    const char *source_radiance_map;
+    const char *lut_output_file;
+    const char *brdf_mode;
+    const char *atmosphere_model;
+    const char *aerosol_model;
+    const char *aod_source;
+    const char *h2o_source;
+    float surface_pressure_hpa;
+    float sza;
+    float vza;
+    float raa;
+    float sun_azimuth;
+    float altitude_km;
+    float aod_550;
+    float h2o_g_cm2;
+    float ozone_du;
+    int doy;
+    int polarized_rt;
+    int nbar;
+    int adjacency;
+    int surface_prior;
+    int uncertainty;
+    int dasf;
+} AtcorrMetadata;
+
 static int parse_csv_floats(const char *str, float *out, int max_n);
+
+static int json_write_string(FILE *stream, const char *value)
+{
+    if (fputc('"', stream) == EOF)
+        return -1;
+    for (const unsigned char *p = (const unsigned char *)(value ? value : "");
+         *p; p++) {
+        switch (*p) {
+        case '"':
+            if (fputs("\\\"", stream) == EOF)
+                return -1;
+            break;
+        case '\\':
+            if (fputs("\\\\", stream) == EOF)
+                return -1;
+            break;
+        case '\b':
+            if (fputs("\\b", stream) == EOF)
+                return -1;
+            break;
+        case '\f':
+            if (fputs("\\f", stream) == EOF)
+                return -1;
+            break;
+        case '\n':
+            if (fputs("\\n", stream) == EOF)
+                return -1;
+            break;
+        case '\r':
+            if (fputs("\\r", stream) == EOF)
+                return -1;
+            break;
+        case '\t':
+            if (fputs("\\t", stream) == EOF)
+                return -1;
+            break;
+        default:
+            if (*p < 0x20) {
+                if (fprintf(stream, "\\u%04x", *p) < 0)
+                    return -1;
+            }
+            else if (fputc(*p, stream) == EOF)
+                return -1;
+        }
+    }
+    return fputc('"', stream) == EOF ? -1 : 0;
+}
+
+static int write_json_member(FILE *stream, const char *key, const char *value)
+{
+    return fputc('"', stream) == EOF || fputs(key, stream) == EOF ||
+                   fputs("\":", stream) == EOF ||
+                   json_write_string(stream, value) != 0
+               ? -1
+               : 0;
+}
+
+static int write_atcorr_metadata(FILE *stream, const AtcorrMetadata *metadata)
+{
+    if (fputs("{\"radiometric_quantity\":", stream) == EOF ||
+        json_write_string(stream, metadata->radiometric_quantity) != 0 ||
+        fputs(",\"radiometric_units\":\"unitless\","
+              "\"extended_metadata\":{\"radiometry\":{\"quantity\":",
+              stream) == EOF ||
+        json_write_string(stream, metadata->radiometric_quantity) != 0 ||
+        fputs(",\"units\":\"unitless\"},\"processing\":{\"atcorr\":{",
+              stream) == EOF ||
+        write_json_member(stream, "source_radiance_map",
+                          metadata->source_radiance_map) != 0 ||
+        fputc(',', stream) == EOF ||
+        write_json_member(stream, "output_type", metadata->output_type) != 0 ||
+        fputs(",\"output_units\":\"unitless\","
+              "\"output_valid_range\":[-0.01,1.5],",
+              stream) == EOF ||
+        write_json_member(stream, "lut_output_file",
+                          metadata->lut_output_file) != 0 ||
+        fputs(",\"coefficient_semantics\":"
+              "\"gas_weighted_effective_6sv\",",
+              stream) == EOF ||
+        write_json_member(stream, "brdf_mode", metadata->brdf_mode) != 0)
+        return -1;
+
+    if (fprintf(stream,
+                ",\"surface_pressure_hpa\":%.9g,"
+                "\"geometry_used\":{\"sza\":%.9g,\"vza\":%.9g,"
+                "\"raa\":%.9g,\"sun_azimuth\":%.9g,"
+                "\"altitude_km\":%.9g},\"atmosphere_used\":{"
+                "\"aod_550\":%.9g,\"h2o_g_cm2\":%.9g,"
+                "\"ozone_du\":%.9g,\"doy\":%d,",
+                metadata->surface_pressure_hpa, metadata->sza, metadata->vza,
+                metadata->raa, metadata->sun_azimuth, metadata->altitude_km,
+                metadata->aod_550, metadata->h2o_g_cm2, metadata->ozone_du,
+                metadata->doy) < 0 ||
+        write_json_member(stream, "atmosphere_model",
+                          metadata->atmosphere_model) != 0 ||
+        fputc(',', stream) == EOF ||
+        write_json_member(stream, "aerosol_model", metadata->aerosol_model) !=
+            0 ||
+        fputs("},\"state_sources\":{", stream) == EOF ||
+        write_json_member(stream, "aod", metadata->aod_source) != 0 ||
+        fputc(',', stream) == EOF ||
+        write_json_member(stream, "h2o", metadata->h2o_source) != 0)
+        return -1;
+
+    return fprintf(stream,
+                   "},\"runtime_flags\":{\"polarized_rt\":%s,\"nbar\":%s,"
+                   "\"adjacency\":%s,\"surface_prior\":%s,"
+                   "\"uncertainty\":%s,\"dasf\":%s},"
+                   "\"spectral_response\":{\"correction\":\"disabled\","
+                   "\"reason\":"
+                   "\"effective_coefficients_require_joint_path_gas_"
+                   "convolution\"}}}}}",
+                   metadata->polarized_rt ? "true" : "false",
+                   metadata->nbar ? "true" : "false",
+                   metadata->adjacency ? "true" : "false",
+                   metadata->surface_prior ? "true" : "false",
+                   metadata->uncertainty ? "true" : "false",
+                   metadata->dasf ? "true" : "false") < 0 ||
+                   ferror(stream)
+               ? -1
+               : 0;
+}
+
+static int derive_hyper_metadata(const char *target, const char *source,
+                                 const char *command,
+                                 const AtcorrMetadata *metadata)
+{
+    const char *temporary = G_tempfile();
+    FILE *stream = fopen(temporary, "w");
+    if (!stream)
+        return -1;
+    int write_failed = write_atcorr_metadata(stream, metadata) != 0;
+    if (fclose(stream) != 0)
+        write_failed = 1;
+    if (write_failed) {
+        remove(temporary);
+        return -1;
+    }
+
+    char *maparg, *sourcearg, *commandarg, *overridesarg;
+    G_asprintf(&maparg, "map=%s", target);
+    G_asprintf(&sourcearg, "source_map=%s", source);
+    G_asprintf(&commandarg, "command=%s", command);
+    G_asprintf(&overridesarg, "overrides_file=%s", temporary);
+
+    const char *args[9];
+    int nargs = 0;
+    args[nargs++] = "i.hyper.metadata";
+    if (G_get_overwrite())
+        args[nargs++] = "--overwrite";
+    args[nargs++] = maparg;
+    args[nargs++] = sourcearg;
+    args[nargs++] = "operation=derive";
+    args[nargs++] = commandarg;
+    args[nargs++] = overridesarg;
+    args[nargs] = NULL;
+
+    int status = G_vspawn_ex("i.hyper.metadata", args);
+    remove(temporary);
+    G_free(maparg);
+    G_free(sourcearg);
+    G_free(commandarg);
+    G_free(overridesarg);
+    return status;
+}
+
+static void remove_raster3d_output(const char *name)
+{
+    if (name && G_remove("grid3", name) < 0)
+        G_warning(_("Unable to remove incomplete Raster3D output <%s>"), name);
+}
 
 typedef enum {
     WL_UNIT_NM,
@@ -1556,15 +1755,6 @@ static void correct_raster3d(const char *input_name, const char *output_name,
  */
 int main(int argc, char *argv[])
 {
-    /* Save full command line for processing history */
-    char full_cmdline[8192] = "";
-    {
-        int pos = 0;
-        for (int i = 0; i < argc && pos < (int)sizeof(full_cmdline) - 2; i++)
-            pos += snprintf(full_cmdline + pos, sizeof(full_cmdline) - pos,
-                            i == 0 ? "%s" : " %s", argv[i]);
-    }
-
     G_gisinit(argv[0]);
     Rast3d_init_defaults();
 
@@ -2173,6 +2363,8 @@ int main(int argc, char *argv[])
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
+
+    char *full_cmdline = G_recreate_command();
 
     /* ── Validate mode ── */
     if (!opt_lut->answer && !opt_output->answer)
@@ -3130,164 +3322,62 @@ int main(int argc, char *argv[])
                          aod_val, h2o_val, doy, sza, input_radiance_factor,
                          &iso);
 
-        /* ── Copy input metadata to output (creates hyper.json) ── */
-        {
-            char copy_src[GPATH_MAX], copy_dst[GPATH_MAX];
-            snprintf(copy_src, sizeof(copy_src), "source_map=%s",
-                     opt_input->answer);
-            snprintf(copy_dst, sizeof(copy_dst), "map=%s", opt_output->answer);
-
-            const char *cargs[6];
-            cargs[0] = "i.hyper.metadata";
-            cargs[1] = "-q";
-            cargs[2] = copy_dst;
-            cargs[3] = copy_src;
-            cargs[4] = "operation=copy";
-            cargs[5] = NULL;
-
-            if (G_vspawn_ex("i.hyper.metadata", cargs) != 0)
-                G_warning(_("Failed to copy metadata from <%s> to <%s>"),
-                          opt_input->answer, opt_output->answer);
-        }
-
-        /* ── Merge output metadata overrides ── */
-        {
-            char overrides[4096];
-            snprintf(
-                overrides, sizeof(overrides),
-                "{"
-                "\"radiometric_quantity\":\"surface_reflectance\","
-                "\"radiometric_units\":\"unitless\","
-                "\"extended_metadata\":{"
-                "\"radiometry\":{"
-                "\"quantity\":\"surface_reflectance\","
-                "\"units\":\"unitless\""
-                "},"
-                "\"processing\":{"
-                "\"atcorr\":{"
-                "\"source_radiance_map\":\"%s\","
-                "\"output_type\":\"%s\","
-                "\"output_units\":\"unitless\","
-                "\"output_valid_range\":[-0.01,1.5],"
-                "\"lut_output_file\":\"%s\","
-                "\"coefficient_semantics\":"
-                "\"gas_weighted_effective_6sv\","
-                "\"brdf_mode\":\"%s\","
-                "\"surface_pressure_hpa\":%.2f,"
-                "\"geometry_used\":{"
-                "\"sza\":%.2f,\"vza\":%.2f,"
-                "\"raa\":%.2f,\"sun_azimuth\":%.2f,"
-                "\"altitude_km\":%.1f"
-                "},"
-                "\"atmosphere_used\":{"
-                "\"aod_550\":%.4f,\"h2o_g_cm2\":%.2f,"
-                "\"ozone_du\":%.1f,\"doy\":%d,"
-                "\"atmosphere_model\":\"%s\","
-                "\"aerosol_model\":\"%s\""
-                "},"
-                "\"state_sources\":{"
-                "\"aod\":\"%s\",\"h2o\":\"%s\""
-                "},"
-                "\"runtime_flags\":{"
-                "\"polarized_rt\":%s,\"nbar\":%s,"
-                "\"adjacency\":%s,\"surface_prior\":%s,"
-                "\"uncertainty\":%s,\"dasf\":%s"
-                "},"
-                "\"spectral_response\":{"
-                "\"correction\":\"disabled\","
-                "\"reason\":\"effective_coefficients_require_joint_path_gas_"
-                "convolution\""
-                "}"
-                "}"
-                "}"
-                "}"
-                "}",
-                opt_input->answer,
-                do_nbar ? "nbar_surface_reflectance"
-                        : "boa_surface_reflectance",
-                opt_lut->answer ? opt_lut->answer : "", opt_brdf->answer,
-                cfg.surface_pressure > 0.0f ? cfg.surface_pressure : 1013.25f,
-                sza, vza, raa, sun_azimuth, altitude, aod_val, h2o_val,
-                cfg.ozone_du, doy, atmo_str, aero_str,
-                retrieved_aod ? "retrieved"
+        AtcorrMetadata output_metadata = {
+            .radiometric_quantity = "surface_reflectance",
+            .output_type = do_nbar ? "nbar_surface_reflectance"
+                                   : "boa_surface_reflectance",
+            .source_radiance_map = opt_input->answer,
+            .lut_output_file = opt_lut->answer ? opt_lut->answer : "",
+            .brdf_mode = opt_brdf->answer,
+            .atmosphere_model = atmo_str,
+            .aerosol_model = aero_str,
+            .aod_source = retrieved_aod
+                              ? "retrieved"
                               : (opt_aod_map->answer ? "map" : "scene"),
-                retrieved_h2o ? "retrieved"
+            .h2o_source = retrieved_h2o
+                              ? "retrieved"
                               : (opt_h2o_map->answer ? "map" : "scene"),
-                flag_P->answer ? "true" : "false", do_nbar ? "true" : "false",
-                atof(opt_adj_psf->answer) > 0.0 ? "true" : "false",
-                flag_r->answer ? "true" : "false",
-                flag_u->answer ? "true" : "false",
-                flag_D->answer ? "true" : "false");
-
-            char maparg[GPATH_MAX],
-                ovrarg[sizeof(overrides) + sizeof("overrides=")];
-            snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
-            snprintf(ovrarg, sizeof(ovrarg), "overrides=%s", overrides);
-
-            const char *margs[5];
-            margs[0] = "i.hyper.metadata";
-            margs[1] = maparg;
-            margs[2] = "operation=merge-overrides";
-            margs[3] = ovrarg;
-            margs[4] = NULL;
-
-            if (G_vspawn_ex("i.hyper.metadata", margs) != 0)
-                G_warning(_("Failed to merge output metadata for <%s>"),
-                          opt_output->answer);
-        }
-
-        /* ── Add processing history entry ── */
-        {
-            char maparg[GPATH_MAX], srcarg[GPATH_MAX];
-            snprintf(maparg, sizeof(maparg), "map=%s", opt_output->answer);
-            snprintf(srcarg, sizeof(srcarg), "source_map=%s",
-                     opt_input->answer);
-
-            char cmdarg[4096];
-            snprintf(cmdarg, sizeof(cmdarg), "command=%s", full_cmdline);
-
-            const char *hargs[6];
-            hargs[0] = "i.hyper.metadata";
-            hargs[1] = maparg;
-            hargs[2] = "operation=add-history";
-            hargs[3] = srcarg;
-            hargs[4] = cmdarg;
-            hargs[5] = NULL;
-
-            if (G_vspawn_ex("i.hyper.metadata", hargs) != 0)
-                G_warning(_("Failed to add history entry for <%s>"),
+            .surface_pressure_hpa =
+                cfg.surface_pressure > 0.0f ? cfg.surface_pressure : 1013.25f,
+            .sza = sza,
+            .vza = vza,
+            .raa = raa,
+            .sun_azimuth = sun_azimuth,
+            .altitude_km = altitude,
+            .aod_550 = aod_val,
+            .h2o_g_cm2 = h2o_val,
+            .ozone_du = cfg.ozone_du,
+            .doy = doy,
+            .polarized_rt = flag_P->answer,
+            .nbar = do_nbar,
+            .adjacency = atof(opt_adj_psf->answer) > 0.0,
+            .surface_prior = flag_r->answer,
+            .uncertainty = flag_u->answer,
+            .dasf = flag_D->answer,
+        };
+        if (derive_hyper_metadata(opt_output->answer, opt_input->answer,
+                                  full_cmdline, &output_metadata) != 0) {
+            remove_raster3d_output(opt_output->answer);
+            if (flag_u->answer && opt_uncertainty->answer)
+                remove_raster3d_output(opt_uncertainty->answer);
+            G_fatal_error(_("Failed to derive metadata for <%s>"),
                           opt_output->answer);
         }
 
         if (flag_u->answer && opt_uncertainty->answer) {
-            char srcarg[GPATH_MAX], dstarg[GPATH_MAX];
-            snprintf(srcarg, sizeof(srcarg), "source_map=%s",
-                     opt_output->answer);
-            snprintf(dstarg, sizeof(dstarg), "map=%s", opt_uncertainty->answer);
-            const char *copy_args[] = {"i.hyper.metadata", "-q", dstarg, srcarg,
-                                       "operation=copy",   NULL};
-            if (G_vspawn_ex("i.hyper.metadata", copy_args) != 0) {
-                G_warning(_("Failed to copy metadata to uncertainty map <%s>"),
-                          opt_uncertainty->answer);
-            }
-            else {
-                char override_arg[1024];
-                snprintf(
-                    override_arg, sizeof(override_arg),
-                    "overrides={\"radiometric_quantity\":\"reflectance_"
-                    "uncertainty\","
-                    "\"radiometric_units\":\"unitless\",\"extended_metadata\":{"
-                    "\"radiometry\":{\"quantity\":\"reflectance_uncertainty\","
-                    "\"units\":\"unitless\"},\"processing\":{\"atcorr\":{"
-                    "\"output_type\":\"boa_reflectance_standard_uncertainty\"}}"
-                    "}}}");
-                const char *merge_args[] = {"i.hyper.metadata", dstarg,
-                                            "operation=merge-overrides",
-                                            override_arg, NULL};
-                if (G_vspawn_ex("i.hyper.metadata", merge_args) != 0)
-                    G_warning(
-                        _("Failed to merge uncertainty metadata for <%s>"),
-                        opt_uncertainty->answer);
+            AtcorrMetadata uncertainty_metadata = output_metadata;
+            uncertainty_metadata.radiometric_quantity =
+                "reflectance_uncertainty";
+            uncertainty_metadata.output_type =
+                "boa_reflectance_standard_uncertainty";
+            if (derive_hyper_metadata(opt_uncertainty->answer,
+                                      opt_input->answer, full_cmdline,
+                                      &uncertainty_metadata) != 0) {
+                remove_raster3d_output(opt_output->answer);
+                remove_raster3d_output(opt_uncertainty->answer);
+                G_fatal_error(_("Failed to derive metadata for uncertainty "
+                                "map <%s>"),
+                              opt_uncertainty->answer);
             }
         }
 
@@ -3333,6 +3423,7 @@ int main(int argc, char *argv[])
     G_free(T_up);
     G_free(s_alb);
     G_free(T_down_dir);
+    G_free(full_cmdline);
 
     exit(EXIT_SUCCESS);
 }

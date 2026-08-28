@@ -380,8 +380,70 @@ def chand(xphi, xmuv, xmus, xtau):
 lib.sixs_init_atmosphere.argtypes = [ctypes.c_void_p, ctypes.c_int]
 lib.sixs_init_atmosphere.restype = None
 
+
+class SixsAtm(ctypes.Structure):
+    """Python view of the leading /sixs_atm/ member of SixsCtx."""
+
+    _fields_ = [(field, ctypes.c_float * 34) for field in ("z", "p", "t", "wh", "wo")]
+
+
+class SixsCtxPrefix(ctypes.Structure):
+    """Python view through the atmosphere-reference flags in SixsCtx."""
+
+    _fields_ = [
+        ("atm", SixsAtm),
+        ("plane_atm", SixsAtm),
+        ("plane_ftray", ctypes.c_float),
+        ("plane_h2o", ctypes.c_float),
+        ("plane_ozone_du", ctypes.c_float),
+        ("has_plane_atm", ctypes.c_bool),
+        ("fixed_us62_column_reference", ctypes.c_bool),
+    ]
+
+
+lib.sixs_pressure.argtypes = [ctypes.c_void_p, ctypes.c_float]
+lib.sixs_pressure.restype = None
+lib.sixs_pressure_checked.argtypes = [ctypes.c_void_p, ctypes.c_float]
+lib.sixs_pressure_checked.restype = ctypes.c_int
+lib.sixs_gas_profile_columns.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(ctypes.c_float),
+]
+lib.sixs_gas_profile_columns.restype = None
+
+
+def pressure_profile(surface_pressure, atmo_model=1):
+    """Return an adjusted atmosphere profile, columns, and pressure status."""
+    ctx = ctypes.create_string_buffer(32768)
+    lib.sixs_init_atmosphere(ctx, ctypes.c_int(atmo_model))
+    status = lib.sixs_pressure_checked(ctx, ctypes.c_float(surface_pressure))
+    h2o = ctypes.c_float()
+    ozone_du = ctypes.c_float()
+    lib.sixs_gas_profile_columns(ctx, ctypes.byref(h2o), ctypes.byref(ozone_du))
+    raw = ctypes.cast(ctx, ctypes.POINTER(SixsAtm)).contents
+    profile = type("PressureProfile", (), {})()
+    for field, _ in SixsAtm._fields_:
+        setattr(profile, field, np.array(getattr(raw, field), dtype=np.float32))
+    return profile, float(h2o.value), float(ozone_du.value), int(status)
+
+
+def fixed_us62_reference_after_init(*atmo_models):
+    """Return the reference flag after sequential atmosphere initialization."""
+    ctx = ctypes.create_string_buffer(32768)
+    for model in atmo_models:
+        lib.sixs_init_atmosphere(ctx, ctypes.c_int(model))
+    raw = ctypes.cast(ctx, ctypes.POINTER(SixsCtxPrefix)).contents
+    return bool(raw.fixed_us62_column_reference)
+
+
 lib.sixs_gas_transmittance.argtypes = [ctypes.c_void_p] + [ctypes.c_float] * 5
 lib.sixs_gas_transmittance.restype = ctypes.c_float
+lib.sixs_gas_transmittance_total.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+] + [ctypes.c_float] * 5
+lib.sixs_gas_transmittance_total.restype = ctypes.c_float
 
 
 def gas_transmittance(atmo_model, wl, xmus, h2o, ozone_du):
@@ -398,6 +460,42 @@ def gas_transmittance(atmo_model, wl, xmus, h2o, ozone_du):
             ctypes.c_float(ozone_du),
         )
     )
+
+
+def gas_quantities(atmo_model, pressure, wl, xmus, xmuv, h2o, ozone_du):
+    """Return direct downward/upward/total gas quantities for a profile."""
+    ctx = ctypes.create_string_buffer(32768)
+    lib.sixs_init_atmosphere(ctx, ctypes.c_int(atmo_model))
+    status = lib.sixs_pressure_checked(ctx, ctypes.c_float(pressure))
+    if status != 0:
+        raise RuntimeError(f"sixs_pressure_checked returned error code {status}")
+    args = (
+        ctx,
+        ctypes.c_float(wl),
+        ctypes.c_float(xmus),
+        ctypes.c_float(xmuv),
+        ctypes.c_float(h2o),
+        ctypes.c_float(ozone_du),
+    )
+    down = float(lib.sixs_gas_transmittance(*args))
+    up = float(
+        lib.sixs_gas_transmittance(
+            ctx,
+            ctypes.c_float(wl),
+            ctypes.c_float(xmuv),
+            ctypes.c_float(xmus),
+            ctypes.c_float(h2o),
+            ctypes.c_float(ozone_du),
+        )
+    )
+    total = float(
+        lib.sixs_gas_transmittance_total(
+            ctx,
+            ctypes.c_int(4),
+            *args[1:],
+        )
+    )
+    return down, up, total
 
 
 lib.sixs_odrayl.argtypes = [

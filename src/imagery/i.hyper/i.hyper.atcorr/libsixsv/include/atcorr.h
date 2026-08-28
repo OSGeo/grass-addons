@@ -147,8 +147,9 @@ typedef struct {
  *                  \c n_aod×n_h2o×n_wl floats each; optional pointers
  *                  T_down_dir, R_atmQ, R_atmU populated when non-NULL).
  * \return 0 on success; -1 for invalid pointers/grid, -2 for an RT/profile
- * failure, -3 for invalid custom-Mie parameters, or -4 when polarized custom
- * Mie is requested.
+ * failure, -3 for invalid custom-Mie parameters, -4 when polarized custom Mie
+ * is requested, or -5 for an invalid atmosphere model or a non-finite/negative
+ * surface pressure.
  */
 int atcorr_compute_lut(const LutConfig *cfg, LutArrays *out);
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from _support import LutConfig, compute_lut
+from _support import LutConfig, compute_lut, gas_quantities
 
 
 CASES = json.loads(
@@ -15,14 +15,20 @@ CASES = json.loads(
 
 
 def compute_case(case):
-    satellite = case["kind"] in ("satellite_polar", "satellite_polar_gas")
+    satellite = case["kind"] in (
+        "satellite_polar",
+        "satellite_polar_gas",
+        "satellite_pressure",
+    )
     model = case.get("model", 1)
     altitude = 1000.0
     if case["kind"] == "aircraft":
         altitude = case["height_km"]
     elif case["kind"] == "ground":
         altitude = 0.0
-    is_enmap = case["kind"] == "satellite_polar" and "enmap" in case.get("name", "")
+    is_enmap = case["kind"] in ("satellite_polar", "satellite_pressure") and (
+        "enmap" in case.get("name", "") or "tyrol" in case.get("name", "")
+    )
     cfg = LutConfig(
         wl=[case["wavelength_um"]],
         aod=[case.get("aod", 0.0 if model == 0 else 0.2)],
@@ -34,6 +40,7 @@ def compute_case(case):
         atmo_model=1,
         aerosol_model=model,
         ozone_du=case.get("ozone_du", 1e-6 if satellite else 344.0),
+        surface_pressure=case.get("surface_pressure_hpa", 0.0),
         enable_polar=case["kind"] != "satellite_continuum",
     )
     return compute_lut(cfg)
@@ -93,6 +100,56 @@ def test_aircraft_partial_column_parity(case):
         rtol = 0.002 if gas else 2e-5
         np.testing.assert_allclose(
             getattr(lut, name).item(), expected[expected_name], rtol=rtol, atol=7e-4
+        )
+
+
+@pytest.mark.parametrize(
+    "case",
+    [case for case in CASES if case["kind"] == "satellite_pressure"],
+    ids=lambda case: case["name"],
+)
+def test_positive_surface_pressure_parity(case):
+    """Tyrol DEM pressure exercises the translated PRESSURE.f profile path."""
+    lut = compute_case(case)
+    expected = case["fortran"]
+    xmus = np.cos(np.deg2rad(24.23299))
+    xmuv = np.cos(np.deg2rad(10.269471))
+    gas_down, gas_up, gas_total = gas_quantities(
+        case["model"],
+        case["surface_pressure_hpa"],
+        case["wavelength_um"],
+        xmus,
+        xmuv,
+        case["h2o_g_cm2"],
+        case["ozone_du"],
+    )
+    for name, actual in (
+        ("gas_down", gas_down),
+        ("gas_up", gas_up),
+        ("gas_total", gas_total),
+    ):
+        np.testing.assert_allclose(actual, expected[name], rtol=0.003, atol=3e-5)
+    gas = case["wavelength_um"] in (0.76, 0.94, 2.10)
+    for name in ("R_atm", "R_atmQ", "R_atmU"):
+        expected_name = "R_atm_effective" if name == "R_atm" else name
+        if name in ("R_atmQ", "R_atmU"):
+            expected_name += "_effective"
+        np.testing.assert_allclose(
+            getattr(lut, name).item(),
+            expected[expected_name],
+            rtol=0.01 if gas else 2e-5,
+            # The 2.1-µm path term is only about 6e-4. Its existing
+            # scattering-interpolation residual is 1.8e-4 absolute, while
+            # the pressure-dependent gas coefficients remain exact.
+            atol=2e-4 if case["name"] == "pressure_tyrol_2100" else 2e-5,
+        )
+    for name in ("T_down", "T_up", "s_alb"):
+        expected_name = "T_up_effective" if name == "T_up" else name
+        np.testing.assert_allclose(
+            getattr(lut, name).item(),
+            expected[expected_name],
+            rtol=0.003 if (gas and name != "s_alb") else 2e-5,
+            atol=3e-4,
         )
 
 

@@ -102,6 +102,7 @@ libsixsv.so.2 libsixsv2 #MINVER#
  sixs_possol@Base 1.0.0
  sixs_presplane@Base 2.0.0
  sixs_pressure@Base 1.0.0
+ sixs_pressure_checked@Base 2.0.0
  sixs_pressure_columns@Base 1.0.0
  sixs_scatra@Base 1.0.0
  sixs_trunca@Base 1.0.0

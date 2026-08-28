@@ -116,7 +116,11 @@ def aircraft_input(height: float, wavelength: float, h2o: float = 1.424) -> str:
 
 
 def enmap_rgb_input(
-    wavelength: float, aod: float = 0.07, h2o: float = 0.921, ozone_atm_cm: float = 0.3
+    wavelength: float,
+    aod: float = 0.07,
+    h2o: float = 0.921,
+    ozone_atm_cm: float = 0.3,
+    surface_pressure: float = 0.0,
 ) -> str:
     """Satellite deck for the EnMAP Tyrol scene (2022-06-12, DOY 163).
 
@@ -132,7 +136,7 @@ def enmap_rgb_input(
 1
 0
 {aod}
-0
+{surface_pressure:g}
 -1000
 -1
 {wavelength:.6f}
@@ -287,6 +291,43 @@ def main() -> None:
                 "h2o_g_cm2": 0.921,
                 "ozone_du": 300.0,
                 "aod": 0.07,
+                "fortran": reference,
+            }
+        )
+    for wavelength, name in (
+        (0.55, "pressure_tyrol_550"),
+        (0.76, "pressure_tyrol_760"),
+        (0.94, "pressure_tyrol_940"),
+        (2.10, "pressure_tyrol_2100"),
+    ):
+        reference = run(
+            args.executable,
+            enmap_rgb_input(wavelength, surface_pressure=801.29),
+        )
+        no_h2o = run(
+            args.executable,
+            enmap_rgb_input(wavelength, h2o=1e-6, surface_pressure=801.29),
+        )
+        half_h2o = run(
+            args.executable,
+            enmap_rgb_input(wavelength, h2o=0.5 * 0.921, surface_pressure=801.29),
+        )
+        for component in ("Q", "U"):
+            mixed = reference[f"R_atm{component}"]
+            rayleigh = reference[f"R_rayleigh{component}"]
+            reference[f"R_atm{component}_effective"] = (mixed - rayleigh) * half_h2o[
+                "gas_total"
+            ] + rayleigh * no_h2o["gas_total"]
+        cases.append(
+            {
+                "name": name,
+                "kind": "satellite_pressure",
+                "model": 1,
+                "wavelength_um": wavelength,
+                "h2o_g_cm2": 0.921,
+                "ozone_du": 300.0,
+                "aod": 0.07,
+                "surface_pressure_hpa": 801.29,
                 "fortran": reference,
             }
         )

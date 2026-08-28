@@ -134,14 +134,13 @@ cc -std=c11 $(pkg-config --cflags libsixsv) myprogram.c \
 The runtime dependency on the OpenMP implementation is generated from the
 built shared library. `libgomp1` is therefore not a source Build-Depends entry.
 
-## Optional libRadtran SRF Path
+## Spectral Response Correction
 
-`atcorr_srf_compute()` invokes libRadtran's `uvspec` at runtime; libRadtran is
-not linked into libsixsv. Both `uvspec` and its data directory must be available.
-The SRF correction is for the full-column satellite mode. In the anticipated
-guarded API, unsupported observer modes return `NULL` rather than applying a
-full-column correction to ground or aircraft coefficients. Callers must treat a
-`NULL` result as "no SRF correction".
+Automatic libRadtran/reptran correction is currently unsupported.
+`atcorr_srf_compute()` reports that state and returns `NULL`, while
+`atcorr_srf_apply()` leaves the LUT unchanged. Direction-only correction factors
+cannot be applied consistently to the gas-weighted effective coefficients used
+by the public LUT API. libRadtran is therefore not a runtime dependency.
 
 ## Optional OpenMP Target Offload
 

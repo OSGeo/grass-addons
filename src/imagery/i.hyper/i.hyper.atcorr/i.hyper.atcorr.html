@@ -170,9 +170,17 @@ Band centre and FWHM metadata may use <tt>nm</tt>, <tt>um</tt>, or
 Wavenumber centres are converted as
 <tt>wavelength_um = 10000 / wavenumber_cm-1</tt>; wavenumber FWHM is converted
 as <tt>fwhm_um = 10000 * fwhm_cm-1 / wavenumber_cm-1^2</tt>. Missing wavelength
-units default to nm. Unsupported unit strings are rejected. The 3D raster
-history fallback accepts entries in the form <tt>Band N: WL nm</tt>, with
-optional FWHM in nm.
+units default to nm. Unsupported unit strings are rejected. The module reads
+resolved metadata exclusively through <em>i.hyper.metadata</em>; input maps must
+provide valid hyperspectral metadata.
+</p>
+
+<p>
+Output and uncertainty metadata are derived from the input in one atomic
+<em>i.hyper.metadata</em> operation. Each output receives a new dataset
+identifier, one source-to-output history entry, and its local radiometry and
+atmospheric correction settings. Failure to create valid output metadata
+aborts the module.
 </p>
 
 <p>
