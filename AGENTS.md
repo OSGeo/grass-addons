@@ -105,8 +105,8 @@ the test needs the `nc_spm` sample dataset. CI runs the full gunittest suite
 against `nc_spm` (`.github/workflows/test.sh`, which calls
 `python3 -m grass.gunittest.main ... --min-success`). To run one suite,
 install the addon (the *g.extension* command above), start a GRASS session,
-and run it as described in the core `AGENTS.md`. This repository's
-[`UNIT_TESTS.md`](doc/development/submitting/UNIT_TESTS.md) is outdated.
+and run it as described in the core `AGENTS.md`. See also this repository's
+[`UNIT_TESTS.md`](doc/development/submitting/UNIT_TESTS.md).
 
 ## Linting, documentation, and commits
 
