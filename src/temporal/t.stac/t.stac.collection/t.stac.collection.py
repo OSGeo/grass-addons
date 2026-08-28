@@ -82,7 +82,7 @@ from io import StringIO
 from pprint import pprint
 from contextlib import contextmanager
 import grass.script as gs
-from grass.pygrass.utils import get_lib_path
+from grass.script.utils import get_lib_path
 
 
 @contextmanager

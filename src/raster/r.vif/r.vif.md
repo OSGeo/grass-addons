@@ -73,13 +73,13 @@ g.region n=226000 s=168500 w=229500 e=298500
 
 ### Example 1
 
-Run VIF, setting the maximum VIF at 10. The function will print the VIF
+Run VIF, setting the maximum VIF at 5. The function will print the VIF
 computed at each step to the console. The same will also be written to a
 text file.
 
 ```sh
 MAPS=`g.list type=raster pattern=*2011*precip sep=,`
-r.vif maps=$MAPS file=results1.csv maxvif=10
+r.vif maps=$MAPS file=results1.csv maxvif=5
 ```
 
 Below the results are shown (here only the first and last part of the
@@ -89,28 +89,41 @@ output is shown to save space):
 VIF round 1
 --------------------------------------
 variable            vif  sqrtvif
-2011_01_precip    65.03     8.06
-2011_02_precip    29.10     5.39
-2011_03_precip    40.20     6.34
-2011_04_precip    13.12     3.62
-2011_05_precip     6.81     2.61
+2011_01_precip     6.86     2.62
+2011_02_precip     2.77     1.66
+2011_03_precip    33.17     5.76
+2011_04_precip    10.81     3.29
+2011_05_precip     4.82     2.20
+2011_06_precip     2.72     1.65
+2011_07_precip     1.44     1.20
+2011_08_precip    10.04     3.17
+2011_09_precip     3.16     1.78
+2011_10_precip     2.50     1.58
+2011_11_precip    16.71     4.09
+2011_12_precip    50.81     7.13
 
 ...
 ...
 
-VIF round 7
+VIF round 4
 --------------------------------------
 variable            vif  sqrtvif
-2011_01_precip     4.25     2.06
-2011_04_precip     5.22     2.29
-2011_05_precip     4.86     2.20
-2011_06_precip     7.13     2.67
-2011_07_precip     7.58     2.75
-2011_08_precip     3.32     1.82
+2011_01_precip     5.53     2.35
+2011_02_precip     2.13     1.46
+2011_04_precip     3.09     1.76
+2011_05_precip     4.10     2.03
+2011_06_precip     2.52     1.59
+2011_07_precip     1.24     1.11
+2011_08_precip     4.26     2.06
+2011_09_precip     3.01     1.74
+2011_10_precip     2.14     1.46
+
 
 selected variables are:
 --------------------------------------
-2011_01_precip, 2011_04_precip, 2011_05_precip, 2011_06_precip, 2011_07_precip, 2011_08_precip
+2011_01_precip, 2011_02_precip, 2011_04_precip,
+2011_05_precip, 2011_06_precip, 2011_07_precip,
+2011_08_precip, 2011_09_precip, 2011_10_precip
 
 Statistics are written to results.csv
 ```
@@ -120,18 +133,16 @@ The same results are (optionally) written to a comma delimited file
 each round in the stepwise variable selection. The column 'removed'
 gives the variable that was removed in the previous round.
 
-![image-alt](r_vif_example1.png)
-
 ### Example 2
 
 Run the same VIF analysis as above, but this time tell the function to
-retain the variable 2011\_02\_precip. Only the last few lines of the
+retain the variable 2011_03_precip. Only the last few lines of the
 results are shown below. As you can see, a different set of variables is
-selected, which includes the variable '2011\_02\_precip'.
+selected, which includes the variable '2011_03_precip'.
 
 ```sh
 MAPS=`g.list type=raster pattern=*2011*precip sep=,`
-r.vif maps=$MAPS maxvif=10 retain=2011_02_precip file=results2.csv
+r.vif maps=$MAPS maxvif=10 retain=2011_03_precip file=results2.csv
 ```
 
 The output is:
@@ -139,21 +150,24 @@ The output is:
 ```text
 ...
 ...
-VIF round 6
+VIF round 4
 --------------------------------------
 variable            vif  sqrtvif
-2011_02_precip     9.29     3.05
-2011_03_precip     9.02     3.00
-2011_04_precip     6.30     2.51
-2011_05_precip     4.99     2.23
-2011_06_precip     9.72     3.12
-2011_07_precip     8.36     2.89
-2011_08_precip     3.30     1.82
+2011_01_precip     6.42     2.53
+2011_02_precip     2.15     1.47
+2011_03_precip     4.06     2.01
+2011_05_precip     4.00     2.00
+2011_06_precip     2.09     1.44
+2011_07_precip     1.28     1.13
+2011_08_precip     5.86     2.42
+2011_09_precip     3.04     1.74
+2011_10_precip     2.29     1.51
 
 selected variables are:
 --------------------------------------
-2011_02_precip, 2011_03_precip, 2011_04_precip, 2011_05_precip, 2011_06_precip,
-2011_07_precip, 2011_08_precip
+2011_01_precip, 2011_02_precip, 2011_03_precip,
+2011_05_precip, 2011_06_precip, 2011_07_precip,
+2011_08_precip, 2011_09_precip, 2011_10_precip
 
 Statistics are written to results2.csv
 
@@ -162,20 +176,22 @@ Statistics are written to results2.csv
 ### Example 3
 
 Like example 1, but without writing the results to file, and with the
-'s' flag set, which means only the list with finally selected variables
+'v' flag set, which means only the list with finally selected variables
 are printed to screen. This output can be directl parsed in a script.
 
 ```sh
 MAPS=`g.list type=raster pattern=*2011*precip sep=,`
-r.vif -s maps=$MAPS maxvif=10
+r.vif -v maps=$MAPS maxvif=10
 
 ```
 
 The output is:
 
 ```text
-2011_01_precip,2011_04_precip,2011_05_precip,2011_06_precip,2011_07_precip,
-2011_08_precip
+2011_01_precip,2011_02_precip,2011_04_precip,
+2011_05_precip,2011_06_precip,2011_07_precip,
+2011_08_precip,2011_09_precip,2011_10_precip
+
 ```
 
 This output can be captured in a variable 'SELECTION', which is used as
@@ -183,7 +199,7 @@ input in *i.group* to create a group.
 
 ```sh
 MAPS=`g.list type=raster pattern=*2011*precip sep=,`
-SELECTION=`r.vif -s maps=$MAPS maxvif=10`
+SELECTION=`r.vif -v maps=$MAPS maxvif=10`
 i.group group=group_example input=$SELECTION
 
 ```
@@ -193,12 +209,14 @@ raster layers to the group 'group\_example':
 
 ```text
 Adding raster map <2011_01_precip@climate_1970_2012> to group
+Adding raster map <2011_02_precip@climate_1970_2012> to group
 Adding raster map <2011_04_precip@climate_1970_2012> to group
 Adding raster map <2011_05_precip@climate_1970_2012> to group
 Adding raster map <2011_06_precip@climate_1970_2012> to group
 Adding raster map <2011_07_precip@climate_1970_2012> to group
 Adding raster map <2011_08_precip@climate_1970_2012> to group
-
+Adding raster map <2011_09_precip@climate_1970_2012> to group
+Adding raster map <2011_10_precip@climate_1970_2012> to group
 ```
 
 ## Citation
