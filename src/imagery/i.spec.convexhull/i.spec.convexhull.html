@@ -1,0 +1,76 @@
+<!-- i.spec.convexhull.html: GRASS GIS manual page -->
+
+<html>
+<head>
+  <title>i.spec.convexhull - GRASS GIS manual</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body>
+
+<h1>NAME</h1>
+<p><b>i.spec.convexhull</b> &ndash; Applies continuum removal to each band in an imagery group using convex hull analysis and outputs a new imagery group.</p>
+
+<h1>KEYWORDS</h1>
+<p>imagery, spectral analysis, continuum removal, convex hull</p>
+
+<h1>SYNOPSIS</h1>
+<pre>
+i.spec.convexhull
+   input_group=<i>name</i>
+   output_group=<i>name</i>
+   outputbasename=<i>name</i>
+   [--overwrite] [--help]
+</pre>
+
+<h1>DESCRIPTION</h1>
+<p>
+<b>i.spec.convexhull</b> processes all raster bands in a GRASS imagery group, performing continuum removal via convex hull analysis on the spectral profile of each pixel. The result is a new group of raster maps, each corresponding to an input band, with the continuum-removed spectra.
+</p>
+<p>
+This module is useful for spectral preprocessing in remote sensing, particularly for mineral mapping, vegetation analysis, and other applications where normalization of spectral features is required.
+</p>
+
+<h1>OPTIONS</h1>
+<dl>
+  <dt><b>input_group</b>=<i>name</i></dt>
+  <dd>Name of input imagery group containing raster bands to process.</dd>
+
+  <dt><b>output_group</b>=<i>name</i></dt>
+  <dd>Name for the output imagery group to be created.</dd>
+
+  <dt><b>outputbasename</b>=<i>name</i></dt>
+  <dd>Base name for output raster maps. Each output will be named as &lt;outputbasename&gt;_&lt;bandname&gt;.</dd>
+</dl>
+
+<h1>EXAMPLES</h1>
+<pre>
+i.spec.convexhull input_group=090727_Steinbeissen_rad_geo_atm output_group=convexhull outputbasename=convexhull
+</pre>
+
+<h2>Original signature from the 090727_Steinbeissen_rad_geo_atm imagery (EnMap Cal/Val)</h2>
+
+<img src="Figure_original.png" width="1000" height="600" alt="Original signatures" longdesc="Original signature from the 090727_Steinbeissen_rad_geo_atm imagery (EnMap Cal/Val)">
+
+<h2>Processed signature with convexhul from the 090727_Steinbeissen_rad_geo_atm imagery (EnMap Cal/Val)</h2>
+
+<img src="Figure_convexhull.png" width="1000" height="600" alt="Processed signatures with Convexhull" longdesc="Processed signature with convexhul from the 090727_Steinbeissen_rad_geo_atm imagery (EnMap Cal/Val)">
+
+<h1>SEE ALSO</h1>
+<ul>
+  <li><a href="i.group.html">i.group</a></li>
+  <li><a href="i.spectral.html">i.spectral</a></li>
+</ul>
+
+<h1>AUTHOR</h1>
+<p>
+Yann Chemin <br>
+</p>
+
+<hr>
+<address>
+GRASS GIS Manual Page<br>
+&copy; 2003-2025 GRASS Development Team
+</address>
+</body>
+</html>
+
