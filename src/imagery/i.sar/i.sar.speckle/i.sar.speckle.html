@@ -1,0 +1,36 @@
+<h2>DESCRIPTION</h2>
+
+<p>A simple procedure to reduce speckle noise in SAR images.
+
+<p>So far, the implemented algorithms are Lee filter, mean and gaussian. The
+<i>method</i> parameter is set to <i>lee</i> by default.
+
+<p>The <i>size</i> parameter is the one used in
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a> and is used to calculate local
+mean and local square mean for the Lee filter. It must be odd. 
+The same parameter is used for the other two methods, and in case the gaussian one is selected, a standard deviation
+value must also be specified.
+
+<h2>EXAMPLES</h2>
+
+Apply a speckle filter using the gaussian method with a 7x7 window and a standard deviation = 1:
+
+<div class="code"><pre>
+i.sar.speckle input=SAO1B_20211222_hh_amp output=SAO1B_20211222_hh_amp_gauss7x7 method=gauss size=7 std=1
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+Lee, J. S. (1986). Speckle suppression and analysis for synthetic aperture
+radar images. Optical engineering, 25(5), 255636.
+
+<h2>SEE ALSO</h2>
+
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html">r.neighbors</a>,
+<a href="i.sar.amplitude.html">i.sar.amplitude</a>,
+<a href="i.sar.pauliRGB.html">i.sar.pauliRGB</a>
+
+<h2>AUTHOR</h2>
+
+Margherita Di Leo <br>
+Santiago Seppi, CONAE, Argentina
