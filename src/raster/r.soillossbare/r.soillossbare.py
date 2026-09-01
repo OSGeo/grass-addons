@@ -518,6 +518,9 @@ def main():
     if gs.verbosity() > 2:
         quiet = False
 
+    # Use a temporary region so the user's computational region is restored
+    # on exit instead of being left at the module's working resolution
+    gs.use_temp_region()
     gs.run_command("g.region", flags="a", res=resolution)
 
     if flowacc:
