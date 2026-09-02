@@ -42,7 +42,7 @@ since both modules identify direction in a different manner. Converting
 the drainage map to the "agnps" format to be used as input to r.traveltime
 (direction) could help to overcome this limitation:
 
-```
+```sh
 r.mapcalc "drain_agnps2 = if(drainage == 1, 2, \
                           if(drainage == 2, 1, \
                           if(drainage == 3, 8, \
