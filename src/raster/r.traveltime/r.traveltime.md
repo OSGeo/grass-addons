@@ -33,8 +33,8 @@ defined as double (float expected). To define a simple uniform roughness
 distribution try: r.mapcalc 'roughness = 0.1f'
 Some users reported void spaces in results, which might be caused by
 problem areas identified by r.fill.dir. The solution is explained in
-the r.fill.dir documentation: "In some cases it may be necessary to 
-run r.fill.dir repeatedly (using output from one run as input to the 
+the r.fill.dir documentation: "In some cases it may be necessary to
+run r.fill.dir repeatedly (using output from one run as input to the
 next run) before all of problem areas are filled."
 If catchment boundaries are located in flat areas, the flow direction
 from r.fill.dir might differ from drainage directions from r.watershed,
