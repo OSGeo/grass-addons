@@ -31,6 +31,27 @@ definitions are in accordance to the r.fill.dir program using the
 The program does not work correctly if Manning's roughness grid is
 defined as double (float expected). To define a simple uniform roughness
 distribution try: r.mapcalc 'roughness = 0.1f'
+Some users reported void spaces in results, which might be caused by
+problem areas identified by r.fill.dir. The solution is explained in
+the r.fill.dir documentation: "In some cases it may be necessary to 
+run r.fill.dir repeatedly (using output from one run as input to the 
+next run) before all of problem areas are filled."
+If catchment boundaries are located in flat areas, the flow direction
+from r.fill.dir might differ from drainage directions from r.watershed,
+since both modules identify direction in a different manner. Converting
+the drainage map to the "agnps" format to be used as input to r.traveltime
+(direction) could help to overcome this limitation:
+
+```
+r.mapcalc "drain_agnps2 = if(drainage == 1, 2, \
+                          if(drainage == 2, 1, \
+                          if(drainage == 3, 8, \
+                          if(drainage == 4, 7, \
+                          if(drainage == 5, 6, \
+                          if(drainage == 6, 5, \
+                          if(drainage == 7, 4, \
+                          if(drainage == 8, 3, null()))))))))"
+```
 
 ## EXAMPLE
 
@@ -54,10 +75,11 @@ r.colors ttime colors=blues
 
 *[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
 [r.fill.dir](https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html)*  
-<https://jesbergwetter.twoday.net/stories/4845555/>
 
 ## REFERENCES
-
+- Förster, K., (2026): *r.traveltime – historical technical description.*
+    Software documentation. Zenodo.
+    [https://doi.org/10.5281/ZENODO.22226846](https://doi.org/10.5281/ZENODO.22226846)
 - Kilgore, J. L. (1997): *Development and evaluation of a GIS-based
     spatially distributed unit hydrograph model*, master thesis,
     Virginia Polytechnic Institute and State University.
