@@ -77,6 +77,7 @@ r.colors ttime colors=blues
 [r.fill.dir](https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html)*  
 
 ## REFERENCES
+
 - Förster, K., (2026): *r.traveltime – historical technical description.*
     Software documentation. Zenodo.
     [https://doi.org/10.5281/ZENODO.22226846](https://doi.org/10.5281/ZENODO.22226846)
