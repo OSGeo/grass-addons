@@ -168,7 +168,12 @@ def _load_backend(version):
         return _make_api_backend(version), "api"
 
     def predict(samples):
-        mean, stdev, codes = rosetta_predict(version, SoilData.from_array(samples))
+        # estimate_type="log" averages the bootstrap ensemble in log10 space,
+        # which is how ROSETTA's alpha, n and Ksat are distributed. It is not
+        # the package default, so request it explicitly.
+        mean, stdev, codes = rosetta_predict(
+            version, SoilData.from_iter(samples), estimate_type="log"
+        )
         mean = np.asarray(mean, dtype=np.float64).copy()
         stdev = np.asarray(stdev, dtype=np.float64)
         # The package returns log10(alpha), log10(n), log10(Ksat); the residual

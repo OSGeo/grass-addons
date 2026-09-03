@@ -934,6 +934,10 @@ class TestForceSqliteFlag:
         "ksat_r": "",
         "ksat_l": "",
         "mukey": "",
+        "sand": "",
+        "silt": "",
+        "clay": "",
+        "bulk_density": "",
         "desgnmaster": "A",
         "hzdept_r": "0",
         "hzdepb_r": "25",
@@ -1137,3 +1141,145 @@ class TestHorizonSliceColumns:
         # All types are inherited from the field definitions
         for _name, sql_type in cols:
             assert sql_type in ("REAL", "INTEGER", "TEXT")
+
+
+class TestRasterizeAndStyle:
+    """Tests for _rasterize_and_style.
+
+    The helpers it calls all need a GRASS session, so they are patched out and
+    the assertions are made against the resulting v.to.rast / _rasterize_3d
+    calls.
+    """
+
+    def _patch(self, ssurgo_module):
+        return patch.multiple(
+            ssurgo_module,
+            gs=MagicMock(),
+            update_hydrologic_group=MagicMock(),
+            _ensure_numeric_column=MagicMock(),
+            hydrologic_soil_group_categories=MagicMock(),
+            hydrologic_soil_group_color_scheme=MagicMock(),
+            ksat_color_scheme=MagicMock(),
+            _rasterize_3d=MagicMock(),
+        )
+
+    @staticmethod
+    def _rasterized(ssurgo_module):
+        """Map attribute_column -> kwargs for every v.to.rast call made."""
+        return {
+            call.kwargs["attribute_column"]: call.kwargs
+            for call in ssurgo_module.gs.run_command.call_args_list
+            if call.args and call.args[0] == "v.to.rast"
+        }
+
+    def test_outputs_map_to_their_source_columns(self, ssurgo_module):
+        """Every requested output rasterizes from its own attribute column."""
+        with self._patch(ssurgo_module):
+            ssurgo_module._rasterize_and_style(
+                "soils",
+                hydgrp="hsg_out",
+                ksat_h="",
+                ksat_r="ksat_out",
+                ksat_l="",
+                mukey="mukey_out",
+                sand="sand_out",
+                silt="silt_out",
+                clay="clay_out",
+                bulk_density="bd_out",
+            )
+            rasterized = self._rasterized(ssurgo_module)
+
+        assert rasterized["sandtotal_r"]["output"] == "sand_out"
+        assert rasterized["silttotal_r"]["output"] == "silt_out"
+        assert rasterized["claytotal_r"]["output"] == "clay_out"
+        assert rasterized["dbthirdbar_r"]["output"] == "bd_out"
+        # The outputs that predate the texture options are still produced.
+        assert rasterized["hsg"]["output"] == "hsg_out"
+        assert rasterized["mukey_int"]["output"] == "mukey_out"
+        assert rasterized["ksat_r"]["output"] == "ksat_out"
+
+    def test_null_attributes_are_excluded(self, ssurgo_module):
+        """v.to.rast turns NULL attributes into 0, so they are filtered out."""
+        with self._patch(ssurgo_module):
+            ssurgo_module._rasterize_and_style(
+                "soils",
+                hydgrp="hsg_out",
+                ksat_h="",
+                ksat_r="",
+                ksat_l="",
+                mukey="mukey_out",
+                sand="sand_out",
+                bulk_density="bd_out",
+            )
+            rasterized = self._rasterized(ssurgo_module)
+
+        assert rasterized
+        for col, kwargs in rasterized.items():
+            assert kwargs["where"] == f"{col} IS NOT NULL"
+
+    def test_columns_recast_before_rasterizing(self, ssurgo_module):
+        """All-NULL SDA columns import as TEXT, so each one is recast first."""
+        with self._patch(ssurgo_module):
+            ssurgo_module._rasterize_and_style(
+                "soils",
+                hydgrp="",
+                ksat_h="",
+                ksat_r="",
+                ksat_l="",
+                mukey="",
+                sand="sand_out",
+                clay="clay_out",
+            )
+            recast = [
+                call.args[1]
+                for call in ssurgo_module._ensure_numeric_column.call_args_list
+            ]
+
+        assert recast == ["sandtotal_r", "claytotal_r"]
+
+    def test_unrequested_outputs_are_skipped(self, ssurgo_module):
+        """Only the outputs the user named are produced."""
+        with self._patch(ssurgo_module):
+            ssurgo_module._rasterize_and_style(
+                "soils",
+                hydgrp="",
+                ksat_h="",
+                ksat_r="",
+                ksat_l="",
+                mukey="",
+                sand="sand_out",
+            )
+            rasterized = self._rasterized(ssurgo_module)
+
+        assert set(rasterized) == {"sandtotal_r"}
+
+    def test_slices_build_3d_rasters_instead(self, ssurgo_module):
+        """With depth slices the depth-weighted outputs go through the 3D path."""
+        slices = [(0.0, 15.0), (15.0, 30.0)]
+        with self._patch(ssurgo_module):
+            ssurgo_module._rasterize_and_style(
+                "soils",
+                hydgrp="",
+                ksat_h="",
+                ksat_r="ksat_out",
+                ksat_l="",
+                mukey="mukey_out",
+                sand="sand_out",
+                bulk_density="bd_out",
+                slices=slices,
+            )
+            rasterized = self._rasterized(ssurgo_module)
+            calls_3d = {
+                call.kwargs["base_field"]: call.kwargs
+                for call in ssurgo_module._rasterize_3d.call_args_list
+            }
+
+        # mukey is an identity value, so it stays 2D; the rest become 3D.
+        assert set(rasterized) == {"mukey_int"}
+        assert set(calls_3d) == {"ksat_r", "sandtotal_r", "dbthirdbar_r"}
+        assert calls_3d["sandtotal_r"]["output"] == "sand_out"
+        assert calls_3d["sandtotal_r"]["slices"] == slices
+        # Ksat keeps its dedicated ramp; texture and bulk density use the default.
+        assert calls_3d["ksat_r"]["color_func"] is ssurgo_module.ksat_color_scheme_3d
+        assert calls_3d["sandtotal_r"]["color_func"] is None
+        assert calls_3d["dbthirdbar_r"]["color_func"] is None

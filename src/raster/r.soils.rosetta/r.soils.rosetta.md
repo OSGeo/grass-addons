@@ -134,8 +134,10 @@ r.sim.water elevation=elevation dx=dx dy=dy \
 ## SEE ALSO
 
 *[r.in.ssurgo](r.in.ssurgo.md)* for importing SSURGO texture and Ksat,
-*[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html)* for overland flow simulation,
-*[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)* for surface derivatives
+*[r.sim.water](https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html)*
+for overland flow simulation,
+*[r.slope.aspect](https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html)*
+for surface derivatives
 
 ## AUTHORS
 
