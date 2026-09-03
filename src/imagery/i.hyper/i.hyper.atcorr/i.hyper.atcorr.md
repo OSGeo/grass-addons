@@ -135,13 +135,32 @@ Output and uncertainty metadata are derived from the input in one atomic
 one source-to-output history entry, and its local radiometry and atmospheric
 correction settings. Failure to create valid output metadata aborts the module.
 
-For supported scalar scene fields, values are resolved in this order:
-command line option, input map metadata, module default. These fields are
-*sza*, *vza*, *raa*, *sun_azimuth*, *altitude*, *ozone*, *aod_val*,
-*h2o_val*, and *doy*. Solar zenith is required when absent from metadata.
-Atmosphere and aerosol names have explicit metadata fallbacks as well. This
-precedence does not apply to arbitrary options, flags, files, lookup table
-axes, or ancillary raster maps.
+The module reads the following resolved input metadata. Product availability
+refers to metadata written by *i.hyper.import*; "when present" means that the
+field is conditional in the source product.
+
+| Use or option | Resolved metadata key | Units or values | EnMAP | PRISMA | Tanager | Module fallback |
+| --- | --- | --- | --- | --- | --- | --- |
+| Band centres | `bands.wavelength` | `nm`, `um` (µm), or `cm-1` | Yes | Yes | Yes | LUT wavelength grid, with warning |
+| Band FWHM | `bands.fwhm` | Same unit as band centres | Yes | Yes | Yes | 0 (unavailable) |
+| Wavelength units | `wavelength_units` | `nm`, `um`, or `cm-1` | Yes | Yes | Yes | `nm` |
+| Radiometric quantity | `radiometric_quantity` | Radiance or reflectance | Yes | Yes | Yes | Unset |
+| Radiometric units | `radiometric_units` | W m-2 sr-1 nm-1 or W m-2 sr-1 µm-1 | Yes | Yes | Yes | W m-2 sr-1 µm-1, with warning |
+| *sza* | `extended_metadata.geometry.sun_zenith_deg` | Degrees | Yes | Yes | Yes | Required |
+| *vza* | `extended_metadata.geometry.view_zenith_deg` | Degrees | Yes | Yes | Yes | 0 |
+| *raa* | `extended_metadata.geometry.relative_azimuth_deg` | Degrees | Yes | Yes | Yes | 0 |
+| *sun_azimuth* | `extended_metadata.geometry.sun_azimuth_deg` | Degrees clockwise from north | Yes | Yes | Yes | 180 |
+| *altitude* | `extended_metadata.geometry.sensor_altitude_m` | Metadata in m; option in km | When present | No | No | 1000 km |
+| *doy* | `extended_metadata.acquisition.day_of_year` | Day index, 1-366 | Yes | Yes | Yes | 180 |
+| *aod_val* | `extended_metadata.atmosphere.aod_550` | Unitless, at 550 nm | When present | No | Map mean when present | 0.1 |
+| *h2o_val* | `extended_metadata.atmosphere.h2o_g_cm2` | g/cm2 | When present | No | Map mean when present | 2.0 g/cm2 |
+| *ozone* | `extended_metadata.atmosphere.ozone_du` | Dobson units (DU) | When present | No | No | 300 DU |
+| *atmosphere* | `extended_metadata.atmosphere.atmosphere_model` | `us62`, `midsum`, `midwin`, `tropical`, `subsum`, or `subwin` | No | When present | No | `us62` |
+| *aerosol* | `extended_metadata.atmosphere.aerosol_model` | `none`, `continental`, `maritime`, `urban`, `desert`, or `custom` | No | No | No | `continental` |
+
+For metadata-backed options, values are resolved in this order: command line
+option, input map metadata, module fallback. Lookup table axes, flags, files,
+and ancillary raster maps are not read from metadata.
 
 The day-of-year range is 1 through 366, with a default of 180.
 It is used for Earth-Sun distance. The solar and view angles must describe the

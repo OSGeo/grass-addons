@@ -184,14 +184,35 @@ aborts the module.
 </p>
 
 <p>
-For supported scalar scene fields, values are resolved in this order: command
-line option, input map metadata, module default. These fields are
-<em>sza</em>, <em>vza</em>, <em>raa</em>, <em>sun_azimuth</em>,
-<em>altitude</em>, <em>ozone</em>, <em>aod_val</em>, <em>h2o_val</em>, and
-<em>doy</em>. Solar zenith is required when absent from metadata. Atmosphere
-and aerosol names have explicit metadata fallbacks as well. This precedence
-does not apply to arbitrary options, flags, files, lookup table axes, or
-ancillary raster maps.
+The module reads the following resolved input metadata. Product availability
+refers to metadata written by <em>i.hyper.import</em>; "when present" means that
+the field is conditional in the source product.
+</p>
+
+<table>
+  <tr><th>Use or option</th><th>Resolved metadata key</th><th>Units or values</th><th>EnMAP</th><th>PRISMA</th><th>Tanager</th><th>Module fallback</th></tr>
+  <tr><td>Band centres</td><td><tt>bands.wavelength</tt></td><td><tt>nm</tt>, <tt>um</tt> (&micro;m), or <tt>cm-1</tt></td><td>Yes</td><td>Yes</td><td>Yes</td><td>LUT wavelength grid, with warning</td></tr>
+  <tr><td>Band FWHM</td><td><tt>bands.fwhm</tt></td><td>Same unit as band centres</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0 (unavailable)</td></tr>
+  <tr><td>Wavelength units</td><td><tt>wavelength_units</tt></td><td><tt>nm</tt>, <tt>um</tt>, or <tt>cm-1</tt></td><td>Yes</td><td>Yes</td><td>Yes</td><td><tt>nm</tt></td></tr>
+  <tr><td>Radiometric quantity</td><td><tt>radiometric_quantity</tt></td><td>Radiance or reflectance</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Unset</td></tr>
+  <tr><td>Radiometric units</td><td><tt>radiometric_units</tt></td><td>W m-2 sr-1 nm-1 or W m-2 sr-1 &micro;m-1</td><td>Yes</td><td>Yes</td><td>Yes</td><td>W m-2 sr-1 &micro;m-1, with warning</td></tr>
+  <tr><td><em>sza</em></td><td><tt>extended_metadata.geometry.sun_zenith_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Required</td></tr>
+  <tr><td><em>vza</em></td><td><tt>extended_metadata.geometry.view_zenith_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0</td></tr>
+  <tr><td><em>raa</em></td><td><tt>extended_metadata.geometry.relative_azimuth_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0</td></tr>
+  <tr><td><em>sun_azimuth</em></td><td><tt>extended_metadata.geometry.sun_azimuth_deg</tt></td><td>Degrees clockwise from north</td><td>Yes</td><td>Yes</td><td>Yes</td><td>180</td></tr>
+  <tr><td><em>altitude</em></td><td><tt>extended_metadata.geometry.sensor_altitude_m</tt></td><td>Metadata in m; option in km</td><td>When present</td><td>No</td><td>No</td><td>1000 km</td></tr>
+  <tr><td><em>doy</em></td><td><tt>extended_metadata.acquisition.day_of_year</tt></td><td>Day index, 1-366</td><td>Yes</td><td>Yes</td><td>Yes</td><td>180</td></tr>
+  <tr><td><em>aod_val</em></td><td><tt>extended_metadata.atmosphere.aod_550</tt></td><td>Unitless, at 550 nm</td><td>When present</td><td>No</td><td>Map mean when present</td><td>0.1</td></tr>
+  <tr><td><em>h2o_val</em></td><td><tt>extended_metadata.atmosphere.h2o_g_cm2</tt></td><td>g/cm2</td><td>When present</td><td>No</td><td>Map mean when present</td><td>2.0 g/cm2</td></tr>
+  <tr><td><em>ozone</em></td><td><tt>extended_metadata.atmosphere.ozone_du</tt></td><td>Dobson units (DU)</td><td>When present</td><td>No</td><td>No</td><td>300 DU</td></tr>
+  <tr><td><em>atmosphere</em></td><td><tt>extended_metadata.atmosphere.atmosphere_model</tt></td><td><tt>us62</tt>, <tt>midsum</tt>, <tt>midwin</tt>, <tt>tropical</tt>, <tt>subsum</tt>, or <tt>subwin</tt></td><td>No</td><td>When present</td><td>No</td><td><tt>us62</tt></td></tr>
+  <tr><td><em>aerosol</em></td><td><tt>extended_metadata.atmosphere.aerosol_model</tt></td><td><tt>none</tt>, <tt>continental</tt>, <tt>maritime</tt>, <tt>urban</tt>, <tt>desert</tt>, or <tt>custom</tt></td><td>No</td><td>No</td><td>No</td><td><tt>continental</tt></td></tr>
+</table>
+
+<p>
+For metadata-backed options, values are resolved in this order: command line
+option, input map metadata, module fallback. Lookup table axes, flags, files,
+and ancillary raster maps are not read from metadata.
 </p>
 
 <p>
