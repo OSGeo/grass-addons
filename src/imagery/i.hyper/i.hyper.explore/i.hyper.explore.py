@@ -35,6 +35,12 @@
 # % required: no
 # %end
 
+# %option G_OPT_R3_INPUT
+# % key: uncertainty
+# % description: Optional standard uncertainty 3D raster map for a single input map
+# % required: no
+# %end
+
 # %flag
 # % key: p
 # % description: Print JSON to stdout instead of plotting
@@ -64,6 +70,8 @@
 
 import grass.script as gs
 import json
+import os
+import shlex
 import sys
 import importlib.util
 from grass.script.utils import get_lib_path
@@ -155,6 +163,99 @@ def _dataset_metadata(mapname, band_count, hyper_meta_class):
             validity = None
 
     return wavelengths, validity, measurement, units, has_components
+
+
+def _full_map_name(mapname):
+    if "@" in mapname:
+        return mapname
+    mapset = gs.gisenv().get("MAPSET", "")
+    return f"{mapname}@{mapset}" if mapset else mapname
+
+
+def _command_options(command):
+    """Return command options from a stored GRASS command line."""
+    try:
+        tokens = shlex.split(command)
+    except ValueError:
+        return {}
+    if not tokens or os.path.basename(tokens[0]) != "i.hyper.atcorr":
+        return {}
+    return {
+        key: value
+        for token in tokens[1:]
+        if "=" in token
+        for key, value in [token.split("=", 1)]
+    }
+
+
+def _candidate_uncertainty_maps(mapname, hyper_meta_class):
+    """Return likely uncertainty maps, preferring the recorded atcorr output."""
+    candidates = []
+    try:
+        metadata = hyper_meta_class.load(mapname)
+    except Exception:
+        metadata = None
+
+    if metadata is not None:
+        for step in reversed(metadata.processing_history or []):
+            options = _command_options(step.get("command", ""))
+            if not options:
+                continue
+            output = options.get("output")
+            if output and _full_map_name(output) != _full_map_name(mapname):
+                continue
+            uncertainty = options.get("uncertainty")
+            if uncertainty:
+                candidates.append(uncertainty)
+                break
+
+    base = mapname.split("@", 1)[0]
+    candidates.extend(
+        [f"{base}_uncertainty", f"{base}_unc", base.replace("_l2a", "_uncertainty")]
+    )
+    return list(dict.fromkeys(candidates))
+
+
+def _is_compatible_uncertainty(mapname, uncertainty, hyper_meta_class):
+    """Check that an uncertainty 3D raster map matches mapname and type."""
+    found = gs.find_file(uncertainty, element="grid3")
+    if not found.get("fullname"):
+        return None
+    uncertainty = found["fullname"]
+    try:
+        metadata = hyper_meta_class.load(uncertainty)
+    except Exception:
+        return None
+    if metadata.radiometric_quantity != "reflectance_uncertainty":
+        return None
+
+    try:
+        source_info = gs.parse_command("r3.info", map=mapname, flags="g")
+        uncertainty_info = gs.parse_command("r3.info", map=uncertainty, flags="g")
+    except Exception:
+        return None
+    for key in ("rows", "cols", "depths", "north", "south", "east", "west"):
+        if source_info.get(key) != uncertainty_info.get(key):
+            return None
+    return uncertainty
+
+
+def _find_uncertainty_map(mapname, hyper_meta_class, explicit=None):
+    """Return a compatible uncertainty 3D raster map, or None if none matches."""
+    candidates = (
+        [explicit]
+        if explicit
+        else _candidate_uncertainty_maps(mapname, hyper_meta_class)
+    )
+    for candidate in candidates:
+        uncertainty = _is_compatible_uncertainty(mapname, candidate, hyper_meta_class)
+        if uncertainty:
+            return uncertainty
+    if explicit:
+        gs.fatal(
+            f"Uncertainty 3D raster map '{explicit}' is missing, incompatible, or is not a reflectance uncertainty 3D raster map"
+        )
+    return None
 
 
 def _expand_values_with_validity(values, validity):
@@ -257,6 +358,7 @@ def _plot_results_multi(
         mpl.use("Agg")
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
     # scale fonts & default line width only when exporting
     if output and style_scale and float(style_scale) != 1.0:
@@ -271,6 +373,38 @@ def _plot_results_multi(
 
     linestyles = ["-", "--", "-.", ":", (0, (5, 1)), (0, (3, 1, 1, 1)), (0, (1, 1))]
     fig, ax = plt.subplots()
+
+    def plot_uncertainty(wavelengths, values, uncertainty, color):
+        if uncertainty is None:
+            return False
+        sigma = np.asarray(
+            [np.nan if value is None else float(value) for value in uncertainty],
+            dtype=float,
+        )
+        if len(sigma) != len(wavelengths) or len(values) != len(wavelengths):
+            return False
+        valid = np.isfinite(wavelengths) & np.isfinite(values) & np.isfinite(sigma)
+        if not np.any(valid):
+            return False
+        lower = values - sigma
+        upper = values + sigma
+        ax.fill_between(
+            wavelengths,
+            lower,
+            upper,
+            where=valid,
+            color=color,
+            alpha=0.22,
+            linewidth=0,
+        )
+        # Thin boundaries keep small intervals visible without hiding the spectrum.
+        ax.plot(
+            wavelengths, lower, color=color, alpha=0.8, linewidth=0.8, linestyle=":"
+        )
+        ax.plot(
+            wavelengths, upper, color=color, alpha=0.8, linewidth=0.8, linestyle=":"
+        )
+        return True
 
     # If any dataset indicates components, X label is "Components" and Y label must be plain "Value"
     components_mode = any(ds.get("components", 0) > 0 for ds in datasets)
@@ -316,6 +450,7 @@ def _plot_results_multi(
         colors = ["C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"]
 
     # Plot: loop by point index to keep color consistent across maps
+    has_uncertainty_buffer = False
     for pi in range(num_points):
         color = colors[pi % len(colors)]
         for mi, ds in enumerate(datasets):
@@ -345,6 +480,20 @@ def _plot_results_multi(
                 )
                 vals = np.asarray(
                     [np.nan if v is None else float(v) for v in vals_src], dtype=float
+                )
+                has_uncertainty_buffer = (
+                    plot_uncertainty(
+                        wl,
+                        vals,
+                        _align_values_to_source_axis(
+                            ds["points"][pi].get("uncertainty_values", []),
+                            ds.get("validity"),
+                        )
+                        if "uncertainty_values" in ds["points"][pi]
+                        else None,
+                        color,
+                    )
+                    or has_uncertainty_buffer
                 )
 
                 if len(vals) == len(wl):
@@ -387,6 +536,15 @@ def _plot_results_multi(
         )
         for mi, ds in enumerate(datasets)
     ]
+    if has_uncertainty_buffer:
+        map_handles.append(
+            Patch(
+                facecolor="gray",
+                edgecolor="gray",
+                alpha=0.22,
+                label="Reflectance +/- 1 sigma uncertainty",
+            )
+        )
 
     point_handles = []
     first_points = datasets[0]["points"] if datasets and datasets[0]["points"] else []
@@ -403,7 +561,7 @@ def _plot_results_multi(
     if map_handles:
         legend_maps = ax.legend(
             handles=map_handles,
-            title="Map (linestyle)",
+            title="Map (linestyle) and uncertainty",
             loc="upper left",
             fontsize="small",
             framealpha=0.9,
@@ -474,6 +632,9 @@ def _read_points_from_vector(vmap):
 
 def main(options, flags):
     maps = _parse_maps(options["map"])
+    explicit_uncertainty = options.get("uncertainty")
+    if explicit_uncertainty and len(maps) != 1:
+        gs.fatal("uncertainty= can be used only with a single map=")
 
     # Collect query locations from coordinates= and/or points= (vector)
     coords_pairs = []
@@ -511,6 +672,13 @@ def main(options, flags):
         wavelengths, validity, measurement, units, has_comp = _dataset_metadata(
             mapname, band_count, HyperMetadata
         )
+        uncertainty_map = None
+        if has_comp and explicit_uncertainty:
+            gs.fatal("uncertainty= is not supported for component datasets")
+        if not has_comp:
+            uncertainty_map = _find_uncertainty_map(
+                mapname, HyperMetadata, explicit=explicit_uncertainty
+            )
 
         points = []
         for e, n in coords_pairs:
@@ -518,7 +686,13 @@ def main(options, flags):
                 _sample_all_bands_at_point(mapname, e, n, band_count),
                 validity,
             )
-            points.append({"x": e, "y": n, "values": values})
+            point = {"x": e, "y": n, "values": values}
+            if uncertainty_map:
+                point["uncertainty_values"] = _align_values_to_source_axis(
+                    _sample_all_bands_at_point(uncertainty_map, e, n, band_count),
+                    validity,
+                )
+            points.append(point)
 
         datasets.append(
             {
@@ -530,6 +704,7 @@ def main(options, flags):
                 "units": units,
                 "components": has_comp,
                 "band_count": band_count,
+                "uncertainty_map": uncertainty_map,
             }
         )
 
