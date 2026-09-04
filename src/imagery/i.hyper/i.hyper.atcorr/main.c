@@ -2664,6 +2664,7 @@ int main(int argc, char *argv[])
     float *retrieved_h2o = NULL;
     float *retrieved_pressure = NULL;
     uint8_t *retrieved_quality = NULL;
+    uint8_t *retrieved_quality_null = NULL;
 
     if (opt_input->answer &&
         (flag_a->answer || flag_w->answer || flag_z->answer || flag_p->answer ||
@@ -2993,6 +2994,24 @@ int main(int argc, char *argv[])
             G_free(L_red);
             G_free(L_nir);
             G_free(L_swir);
+
+            /* Pixels where every band of the input cube is null are outside
+             * the acquisition (square raster, non-rectangular footprint).
+             * Flag them as exterior so the quality mask reports NULL there
+             * (same logic as i.hyper.preproc). */
+            retrieved_quality_null = G_malloc(ret_npix * sizeof(uint8_t));
+            memset(retrieved_quality_null, 1, ret_npix * sizeof(uint8_t));
+            DCELL *dcell_null = G_malloc((size_t)ret_npix * sizeof(DCELL));
+            for (int b = 0; b < ret_nbands; b++) {
+                Rast3d_get_block(ret_map, 0, 0, b, ret_ncols, ret_nrows, 1,
+                                 dcell_null, DCELL_TYPE);
+                for (int i = 0; i < ret_npix; i++) {
+                    DCELL v = dcell_null[i];
+                    if (!Rast_is_d_null_value(&v))
+                        retrieved_quality_null[i] = 0;
+                }
+            }
+            G_free(dcell_null);
 
             /* Report fractions */
             int nc = 0, ns = 0, nw = 0, nsn = 0;
@@ -3395,7 +3414,10 @@ int main(int argc, char *argv[])
             for (int r = 0; r < q_nrows; r++) {
                 for (int c = 0; c < q_ncols; c++) {
                     int idx = r * q_ncols + c;
-                    if (idx < q_nrows * q_ncols)
+                    if (idx < q_nrows * q_ncols && retrieved_quality_null &&
+                        retrieved_quality_null[idx])
+                        Rast_set_c_null_value(&q_row[c], 1);
+                    else if (idx < q_nrows * q_ncols)
                         q_row[c] = (CELL)retrieved_quality[idx];
                     else
                         Rast_set_c_null_value(&q_row[c], 1);
@@ -3404,6 +3426,35 @@ int main(int argc, char *argv[])
             }
             G_free(q_row);
             Rast_close(fd_q);
+
+            /* Write category labels for the bitmask values (0-15). */
+            struct Categories cats;
+            Rast_init_cats(
+                (const char *)"Quality bitmask: cloud/shadow/water/snow",
+                &cats);
+            static const char *quality_labels[16] = {
+                "No class detected (clear)",
+                "Cloud",
+                "Shadow",
+                "Cloud + Shadow",
+                "Water",
+                "Cloud + Water",
+                "Shadow + Water",
+                "Cloud + Shadow + Water",
+                "Snow / ice",
+                "Cloud + Snow / ice",
+                "Shadow + Snow / ice",
+                "Cloud + Shadow + Snow / ice",
+                "Water + Snow / ice",
+                "Cloud + Water + Snow / ice",
+                "Shadow + Water + Snow / ice",
+                "All classes"};
+            for (int v = 0; v <= 15; v++) {
+                CELL cat = (CELL)v;
+                Rast_set_c_cat(&cat, &cat, quality_labels[v], &cats);
+            }
+            Rast_write_cats(opt_quality->answer, &cats);
+            Rast_free_cats(&cats);
             G_message(_("Quality bitmask written to <%s> "
                         "(bit 0=cloud, 1=shadow, 2=water, 3=snow)"),
                       opt_quality->answer);
@@ -3414,6 +3465,7 @@ int main(int argc, char *argv[])
     G_free(retrieved_h2o);
     G_free(retrieved_pressure);
     G_free(retrieved_quality);
+    G_free(retrieved_quality_null);
     G_free(flex_fiso_wl);
     G_free(flex_fvol_wl);
     G_free(flex_fgeo_wl);
