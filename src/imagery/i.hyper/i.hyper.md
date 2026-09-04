@@ -21,13 +21,11 @@ The *i.hyper* toolset requires GRASS 8.5 or newer.
 
 ## POSSIBLE ROAD MAP
 
-- Integration of wavelength units into default 3D raster metadata
-- Atmospheric correction from radiance to reflectance
 - Integration of field spectrometry data
 - Support for regression and classification tasks
 - Improved read and write performance, including faster 3D `garray` access
-- 3D hyperspectral cube visualization
-- Importers for additional data (OCI, HySIS, EMIT, DESIS, Hyperion)
+- Hyperspectral 3D raster map visualization
+- Importers for additional data (OCI, HySIS, DESIS, Hyperion)
 - Additional preprocessing modules (for example wavelet transform)
 - Aerial imagery modules with multi-sensor harmonization
 - Refactoring Python components to native GRASS where possible
