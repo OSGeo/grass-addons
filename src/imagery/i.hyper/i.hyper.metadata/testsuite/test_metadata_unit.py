@@ -375,6 +375,138 @@ class DeriveMetadataTest(unittest.TestCase):
         self.assertEqual(metadata.validity, [True, True])
         self.assertEqual(metadata.n_bands_valid, 2)
 
+    def test_merge_overrides_updates_band_fields(self):
+        class FakeMetadata:
+            n_bands_source = 2
+            n_bands_valid = 2
+            wavelengths = [450.0, 550.0]
+            fwhm = [10.0, 10.0]
+            validity = [True, True]
+            component_labels = None
+
+            def merge_extended_metadata(self, _payload):
+                pass
+
+            def save(self, map_name, *, save_region=False):
+                self.save_call = (map_name, save_region)
+
+        metadata = FakeMetadata()
+
+        class FakeHyperMetadata:
+            @staticmethod
+            def load(_map_name):
+                return metadata
+
+        metadata_module._merge_overrides(
+            FakeHyperMetadata,
+            "output@mapset",
+            overrides_json=json.dumps(
+                {
+                    "bands": {
+                        "wavelength": [460.0, 560.0],
+                        "fwhm": [11.0, 12.0],
+                        "validity": [True, False],
+                    }
+                }
+            ),
+        )
+
+        self.assertEqual(metadata.wavelengths, [460.0, 560.0])
+        self.assertEqual(metadata.fwhm, [11.0, 12.0])
+        self.assertEqual(metadata.validity, [True, False])
+        self.assertEqual(metadata.n_bands_valid, 1)
+        self.assertEqual(metadata.save_call, ("output@mapset", True))
+
+
+class ResolvedPresentationTest(unittest.TestCase):
+    def _metadata(self):
+        return types.SimpleNamespace(
+            schema_version="1.0",
+            dataset_id="derived-id",
+            derived=True,
+            data_type="spectral",
+            sensor="sensor",
+            wavelength_units="nm",
+            radiometric_quantity="surface_reflectance",
+            radiometric_units="1",
+            acquisition_datetime=None,
+            region=None,
+            n_bands_source=2,
+            n_bands_valid=2,
+            wavelengths=[450.0, 550.0],
+            fwhm=[10.0, 11.0],
+            validity=[True, True],
+            component_labels=None,
+            extended_metadata={},
+            dimensionality_reduction=None,
+        )
+
+    def test_bands_operation_uses_resolved_metadata(self):
+        meta = self._metadata()
+
+        class FakeHyperMetadata:
+            @staticmethod
+            def load(_map_name):
+                return meta
+
+            @staticmethod
+            def load_raw(_map_name):
+                return {
+                    "derived": True,
+                    "processing_history": [],
+                    "bands": {"count": 2, "count_valid": 2},
+                }
+
+            @staticmethod
+            def build_band_rows(data, wavelength_range=None):
+                return hyper_meta.HyperMetadata.build_band_rows(data, wavelength_range)
+
+        options = {
+            "map": "derived",
+            "operation": "bands",
+            "format": "json",
+            "wavelength_range": None,
+            "resolve_names": "no",
+            "extended_select": None,
+            "source_map": None,
+            "overrides": None,
+            "overrides_file": None,
+            "command": None,
+        }
+        found = {"fullname": "derived@PERMANENT"}
+
+        with patch.object(
+            metadata_module.gs, "parser", return_value=(options, {}), create=True
+        ):
+            with patch.object(
+                metadata_module.gs, "find_file", return_value=found, create=True
+            ):
+                with patch.object(
+                    metadata_module,
+                    "_import_hyper_meta",
+                    return_value=types.SimpleNamespace(HyperMetadata=FakeHyperMetadata),
+                ):
+                    with patch.object(metadata_module, "_print_bands") as print_bands:
+                        self.assertEqual(metadata_module.main(), 0)
+
+        rows = print_bands.call_args.args[0]
+        self.assertEqual(
+            rows,
+            [
+                {"index": 1, "wavelength": 450.0, "fwhm": 10.0, "validity": True},
+                {"index": 2, "wavelength": 550.0, "fwhm": 11.0, "validity": True},
+            ],
+        )
+
+    def test_summary_uses_resolved_band_metadata(self):
+        summary = metadata_module._summary_from_data(
+            metadata_module._resolved_metadata_view(self._metadata()),
+            hyper_meta.HyperMetadata,
+        )
+
+        self.assertEqual(summary["wavelength_min"], 450.0)
+        self.assertEqual(summary["wavelength_max"], 550.0)
+
     def test_overrides_file_stdin_accepts_escaped_and_long_values(self):
         value = 'a="b"\\c\n' + "q" * 10000
         stream = io.StringIO(json.dumps({"extended_metadata": {"text": value}}))

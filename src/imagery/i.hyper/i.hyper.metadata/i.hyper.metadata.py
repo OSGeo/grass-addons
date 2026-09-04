@@ -659,10 +659,25 @@ def _merge_overrides(
         "sensor",
         "wavelength_units",
         "region",
-        "bands",
     ):
         if key in overrides and overrides[key] is not None:
             setattr(metadata, key, overrides[key])
+
+    bands = overrides.get("bands")
+    if isinstance(bands, dict):
+        band_fields = {
+            "count": "n_bands_source",
+            "count_valid": "n_bands_valid",
+            "wavelength": "wavelengths",
+            "fwhm": "fwhm",
+            "validity": "validity",
+            "labels": "component_labels",
+        }
+        for key, attribute in band_fields.items():
+            if key in bands and bands[key] is not None:
+                setattr(metadata, attribute, copy.deepcopy(bands[key]))
+        if "validity" in bands and "count_valid" not in bands:
+            metadata.n_bands_valid = sum(bool(value) for value in metadata.validity)
 
     if "extended_metadata" in overrides:
         metadata.merge_extended_metadata(overrides["extended_metadata"])
@@ -1004,7 +1019,8 @@ def main():
         }
 
     if operation == "summary":
-        summary = _summary_from_data(raw, HyperMetadata)
+        summary = _summary_from_data(_resolved_metadata_view(meta), HyperMetadata)
+        summary["processing_steps_local"] = len(raw.get("processing_history", []) or [])
         _print_summary(summary, output_format)
         return 0
 
@@ -1036,7 +1052,9 @@ def main():
         return 0
 
     if operation == "bands":
-        rows = _build_band_rows(raw, wavelength_range, HyperMetadata)
+        rows = _build_band_rows(
+            _resolved_metadata_view(meta), wavelength_range, HyperMetadata
+        )
         _print_bands(rows, output_format)
         return 0
 

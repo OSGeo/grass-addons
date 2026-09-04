@@ -55,6 +55,7 @@
 # % guisection: Output
 # %end
 
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -194,6 +195,40 @@ def _load_hyper_metadata(input_3d):
         return json.load(file_obj)
 
 
+def _load_resolved_bands(input_3d):
+    """Load effective band metadata, including inherited source fields."""
+    from grass.script.utils import get_lib_path
+
+    path = get_lib_path(modname="i_hyper_lib", libname="hyper_meta")
+    if not path:
+        gs.fatal("Library path for hyper_meta not found.")
+    module_file = os.path.join(path, "hyper_meta.py")
+    spec = importlib.util.spec_from_file_location("hyper_meta", module_file)
+    if not spec or not spec.loader:
+        gs.fatal(f"Failed to load metadata library from {module_file}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+        meta = module.HyperMetadata.load(input_3d)
+    except Exception as error:
+        sys.modules.pop(spec.name, None)
+        gs.fatal(f"Failed to load metadata for '{input_3d}': {error}")
+
+    bands = {}
+    if meta.n_bands_source is not None:
+        bands["count"] = int(meta.n_bands_source)
+    if meta.n_bands_valid is not None:
+        bands["count_valid"] = int(meta.n_bands_valid)
+    if meta.wavelengths is not None:
+        bands["wavelength"] = meta.wavelengths
+    if meta.fwhm is not None:
+        bands["fwhm"] = meta.fwhm
+    if meta.validity is not None:
+        bands["validity"] = [bool(value) for value in meta.validity]
+    return bands
+
+
 def _get_projection_wkt():
     try:
         return gs.read_command("g.proj", flags="wf", quiet=True).strip()
@@ -241,7 +276,7 @@ def _build_export_metadata(input_3d):
         "bounds": bounds,
         "resolution": resolution,
         "transform": transform,
-        "bands": hyper.get("bands", {}),
+        "bands": _load_resolved_bands(input_3d),
     }
 
 
