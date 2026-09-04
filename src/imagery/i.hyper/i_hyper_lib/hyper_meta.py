@@ -236,7 +236,20 @@ class HyperMetadata:
                 data, "bands"
             )
             if "bands" in data and isinstance(data.get("bands"), dict):
-                bands = data.get("bands", {})
+                bands = dict(data.get("bands", {}))
+                if bands.get("wavelength") is None:
+                    embedded = data.get("input_datasets_metadata")
+                    if isinstance(embedded, dict):
+                        for _iid in cls._direct_input_dataset_ids(data):
+                            _src = cls._resolve_dataset_data(_iid, embedded)
+                            if isinstance(_src, dict) and isinstance(
+                                _src.get("bands"), dict
+                            ):
+                                _src_bands = _src["bands"]
+                                _merged = dict(_src_bands)
+                                _merged.update(bands)
+                                bands = _merged
+                                break
             elif has_inherited_bands and isinstance(inherited_bands, dict):
                 bands = inherited_bands
             else:
@@ -456,13 +469,22 @@ class HyperMetadata:
         )
 
         self.set_extended_value("acquisition.start_time_utc", self.acquisition_datetime)
+        embedded_snapshots = (
+            copy.deepcopy(self.input_datasets_metadata)
+            if isinstance(self.input_datasets_metadata, dict)
+            else {}
+        )
         self.input_datasets_metadata = {}
         dataset_index: dict[str, dict[str, Any]] = {}
         if self._is_derived_from_history(self.processing_history):
             try:
                 dataset_index, _ = self.discover_dataset_index()
                 snapshots, missing_ids = self.collect_input_datasets_metadata(
-                    {"processing_history": self.processing_history},
+                    {
+                        "processing_history": self.processing_history,
+                        "dataset_id": self.dataset_id,
+                        "input_datasets_metadata": embedded_snapshots,
+                    },
                     dataset_index,
                 )
                 self.input_datasets_metadata = snapshots
@@ -472,6 +494,7 @@ class HyperMetadata:
                         f"Input dataset metadata snapshots not found for dataset_id(s): {joined}"
                     )
             except Exception as error:
+                self.input_datasets_metadata = embedded_snapshots
                 gs.warning(
                     f"Failed to collect input dataset metadata snapshots: {error}"
                 )
@@ -553,6 +576,13 @@ class HyperMetadata:
                     dataset_index=dataset_index,
                 )
                 if has_inherited and value == inherited_value:
+                    if key == "bands" and isinstance(value, dict):
+                        minimal = {}
+                        for k in ("count", "count_valid"):
+                            if k in value:
+                                minimal[k] = value[k]
+                        if minimal:
+                            data["bands"] = minimal
                     continue
                 data[key] = value
 
@@ -574,9 +604,18 @@ class HyperMetadata:
                 if diff_ext:
                     data["extended_metadata"] = diff_ext
 
-        # Write JSON
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
+        # Replace only the completed JSON document, never a partially written file.
+        existing_mode = path.stat().st_mode & 0o7777 if path.exists() else None
+        temporary_path = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            with open(temporary_path, "x") as f:
+                json.dump(data, f, indent=2)
+            if existing_mode is not None:
+                temporary_path.chmod(existing_mode)
+            temporary_path.replace(path)
+        except Exception:
+            temporary_path.unlink(missing_ok=True)
+            raise
 
     @classmethod
     def _get_region_json(
@@ -651,23 +690,31 @@ class HyperMetadata:
 
     # ---------- Query methods ----------
 
-    def get_wavelengths_array(self) -> np.ndarray | None:
+    def get_wavelengths_array(self, *, valid_only: bool = False) -> np.ndarray | None:
         """Return wavelengths as numpy array (None values become NaN)."""
         if self.wavelengths is None:
             return None
         values = list(self.wavelengths)
-        if self.validity is not None and len(self.validity) == len(values):
+        if (
+            valid_only
+            and self.validity is not None
+            and len(self.validity) == len(values)
+        ):
             values = [w for i, w in enumerate(values) if bool(self.validity[i])]
         return np.array(
             [w if w is not None else np.nan for w in values], dtype=np.float32
         )
 
-    def get_fwhm_array(self) -> np.ndarray | None:
+    def get_fwhm_array(self, *, valid_only: bool = False) -> np.ndarray | None:
         """Return FWHM as numpy array."""
         if self.fwhm is None:
             return None
         values = list(self.fwhm)
-        if self.validity is not None and len(self.validity) == len(values):
+        if (
+            valid_only
+            and self.validity is not None
+            and len(self.validity) == len(values)
+        ):
             values = [f for i, f in enumerate(values) if bool(self.validity[i])]
         return np.array(
             [f if f is not None else np.nan for f in values], dtype=np.float32
@@ -676,10 +723,72 @@ class HyperMetadata:
     def get_good_band_indices(self) -> np.ndarray:
         """Return indices (0-based) of good (non-flagged) bands."""
         if self.validity is not None:
-            return np.arange(self.n_bands or int(sum(bool(v) for v in self.validity)))
+            return np.flatnonzero(np.asarray(self.validity, dtype=bool))
         if self.bad_bands is None:
             return np.arange(self.n_bands or 0)
         return np.array([i for i, bad in enumerate(self.bad_bands) if not bad])
+
+    def resolve_band_axis(self, depth: int) -> dict[str, Any]:
+        """Resolve source-axis to raster-depth mapping for physical and compact cubes."""
+        if depth <= 0:
+            raise ValueError("Depth must be positive")
+
+        count = self.n_bands_source
+        if count is None and self.wavelengths is not None:
+            count = len(self.wavelengths)
+        elif count is None and self.validity is not None:
+            count = len(self.validity)
+        if count is None:
+            count = depth
+        count = int(count)
+
+        validity = None
+        if self.validity is not None:
+            validity = np.asarray(self.validity, dtype=bool)
+            if validity.size != count:
+                raise ValueError(
+                    f"Validity length ({validity.size}) does not match source band count ({count})"
+                )
+
+        if validity is None:
+            validity = np.ones(count, dtype=bool)
+
+        count_valid = (
+            int(self.n_bands_valid)
+            if self.n_bands_valid is not None
+            else int(validity.sum())
+        )
+
+        if depth == count:
+            layout = "physical"
+            depth_to_source = np.arange(depth, dtype=np.int64)
+        elif depth == count_valid:
+            layout = "compact"
+            depth_to_source = np.flatnonzero(validity).astype(np.int64)
+            if depth_to_source.size != depth:
+                raise ValueError(
+                    f"Compact cube depth ({depth}) does not match number of valid source bands ({depth_to_source.size})"
+                )
+        else:
+            raise ValueError(
+                f"Raster depth {depth} is incompatible with metadata bands.count={count} and bands.count_valid={count_valid}"
+            )
+
+        source_to_depth = np.full(count, -1, dtype=np.int64)
+        source_to_depth[depth_to_source] = np.arange(depth, dtype=np.int64)
+
+        wavelengths = self.get_wavelengths_array(valid_only=False)
+        fwhm = self.get_fwhm_array(valid_only=False)
+        return {
+            "layout": layout,
+            "count": count,
+            "count_valid": count_valid,
+            "validity": validity,
+            "depth_to_source": depth_to_source,
+            "source_to_depth": source_to_depth,
+            "wavelengths": wavelengths,
+            "fwhm": fwhm,
+        }
 
     def select_bands_by_wavelength(
         self, min_wl: float | None = None, max_wl: float | None = None
@@ -687,7 +796,7 @@ class HyperMetadata:
         """Return indices (0-based) of bands within wavelength range."""
         if self.wavelengths is None:
             raise ValueError("Wavelengths not set")
-        wl = self.get_wavelengths_array()
+        wl = self.get_wavelengths_array(valid_only=False)
         mask = np.ones(len(wl), dtype=bool)
         if min_wl is not None:
             mask &= wl >= min_wl
@@ -707,7 +816,12 @@ class HyperMetadata:
         """Find the band index (0-based) nearest to target wavelength."""
         if self.wavelengths is None:
             raise ValueError("Wavelengths not set")
-        wl = self.get_wavelengths_array()
+        wl = self.get_wavelengths_array(valid_only=False)
+        if self.validity is not None and len(self.validity) == len(wl):
+            valid_idx = np.flatnonzero(np.asarray(self.validity, dtype=bool))
+            if valid_idx.size == 0:
+                raise ValueError("No valid bands available")
+            return int(valid_idx[np.nanargmin(np.abs(wl[valid_idx] - target_wl))])
         return int(np.nanargmin(np.abs(wl - target_wl)))
 
     # ---------- Processing history ----------
@@ -980,14 +1094,14 @@ class HyperMetadata:
         dataset_index: dict[str, dict[str, Any]] | None = None,
     ) -> dict[str, Any] | None:
         """Resolve one dataset JSON record from index or embedded snapshots."""
+        snapshot = embedded_snapshots.get(dataset_id)
+        if isinstance(snapshot, dict):
+            return snapshot
         if dataset_index and dataset_id in dataset_index:
             record = dataset_index.get(dataset_id) or {}
             data = record.get("data")
             if isinstance(data, dict):
                 return data
-        snapshot = embedded_snapshots.get(dataset_id)
-        if isinstance(snapshot, dict):
-            return snapshot
         return None
 
     @classmethod
@@ -1216,18 +1330,29 @@ class HyperMetadata:
         snapshots: dict[str, dict[str, Any]] = {}
         missing_ids: set[str] = set()
         visited_dataset_ids: set[str] = set()
+        embedded_snapshots = root_data.get("input_datasets_metadata")
+        if not isinstance(embedded_snapshots, dict):
+            embedded_snapshots = {}
 
-        def visit_dataset(dataset_id: str | None) -> None:
+        root_produced_ids = set()
+        root_id = root_data.get("dataset_id")
+        if root_id:
+            root_produced_ids.add(root_id)
+
+        def visit_dataset(
+            dataset_id: str | None,
+            available_snapshots: dict[str, dict[str, Any]],
+        ) -> None:
             if not dataset_id or dataset_id in visited_dataset_ids:
+                return
+            if dataset_id in root_produced_ids:
                 return
             visited_dataset_ids.add(dataset_id)
 
             record = dataset_index.get(dataset_id)
-            if not record:
-                missing_ids.add(dataset_id)
-                return
-
-            data = record.get("data")
+            data = available_snapshots.get(dataset_id)
+            if not isinstance(data, dict) and record:
+                data = record.get("data")
             if not isinstance(data, dict):
                 missing_ids.add(dataset_id)
                 return
@@ -1236,17 +1361,22 @@ class HyperMetadata:
             snapshot.pop("input_datasets_metadata", None)
             snapshots[dataset_id] = snapshot
 
+            child_snapshots = dict(available_snapshots)
+            nested_snapshots = data.get("input_datasets_metadata")
+            if isinstance(nested_snapshots, dict):
+                child_snapshots.update(nested_snapshots)
+
             for step in snapshot.get("processing_history", []) or []:
                 if not isinstance(step, dict):
                     continue
                 for inp in cls._normalize_io_refs(step.get("inputs") or []):
-                    visit_dataset(inp.get("id"))
+                    visit_dataset(inp.get("id"), child_snapshots)
 
         for step in root_data.get("processing_history", []) or []:
             if not isinstance(step, dict):
                 continue
             for inp in cls._normalize_io_refs(step.get("inputs") or []):
-                visit_dataset(inp.get("id"))
+                visit_dataset(inp.get("id"), embedded_snapshots)
 
         ordered = {
             dataset_id: snapshots[dataset_id] for dataset_id in sorted(snapshots)
@@ -1267,6 +1397,14 @@ class HyperMetadata:
         embedded_snapshots = root_data.get("input_datasets_metadata")
         if not isinstance(embedded_snapshots, dict):
             embedded_snapshots = {}
+        root_produced_ids = set()
+        for step in root_data.get("processing_history", []) or []:
+            if not isinstance(step, dict):
+                continue
+            for out in cls._normalize_io_refs(step.get("outputs") or []):
+                out_id = out.get("id")
+                if out_id:
+                    root_produced_ids.add(out_id)
         visited_dataset_ids = set()
         collected = []
         order = 0
@@ -1275,10 +1413,15 @@ class HyperMetadata:
             nonlocal order
             if not dataset_id or dataset_id in visited_dataset_ids:
                 return
+            if dataset_id != root_id and dataset_id in root_produced_ids:
+                return
             visited_dataset_ids.add(dataset_id)
 
+            snapshot = embedded_snapshots.get(dataset_id)
             record = dataset_index.get(dataset_id)
-            if record:
+            if isinstance(snapshot, dict):
+                data = snapshot
+            elif record:
                 data = record["data"]
             elif dataset_id == root_id:
                 data = root_data
@@ -1475,7 +1618,7 @@ class HyperMetadata:
     ) -> list[str]:
         """Validate strict schema + lineage consistency."""
         issues = []
-        issues.extend(meta.validate())
+        issues.extend(meta.validate(require_wavelengths=False))
 
         derived_flag = bool(raw_data.get("derived"))
 
@@ -1490,17 +1633,31 @@ class HyperMetadata:
         if "derived" in raw_data and not isinstance(raw_data.get("derived"), bool):
             issues.append("derived must be boolean")
 
-        bands = raw_data.get("bands") or {}
-        if (not isinstance(bands, dict) or not bands) and derived_flag:
-            inherited_bands, has_inherited_bands = cls.resolve_inherited_value(
+        data_type = raw_data.get("data_type")
+        if data_type is None:
+            inherited_data_type, has_inherited_data_type = cls.resolve_inherited_value(
                 raw_data,
-                "bands",
+                "data_type",
                 dataset_index=dataset_index,
             )
-            if has_inherited_bands and isinstance(inherited_bands, dict):
-                bands = inherited_bands
-            else:
-                bands = {}
+            if has_inherited_data_type:
+                data_type = inherited_data_type
+
+        bands = raw_data.get("bands") or {}
+        if derived_flag and data_type == "spectral":
+            full_bands, has_full = None, False
+            for input_id in cls._direct_input_dataset_ids(raw_data):
+                src = cls._resolve_dataset_data(
+                    input_id,
+                    raw_data.get("input_datasets_metadata", {}),
+                    dataset_index=dataset_index,
+                )
+                if isinstance(src, dict) and isinstance(src.get("bands"), dict):
+                    full_bands = src["bands"]
+                    has_full = True
+                    break
+            if has_full and isinstance(full_bands, dict):
+                bands = {**full_bands, **(bands if isinstance(bands, dict) else {})}
         count = bands.get("count")
         count_valid = bands.get("count_valid")
         wavelengths = bands.get("wavelength")
@@ -1511,6 +1668,8 @@ class HyperMetadata:
             issues.append("bands.count is missing")
         if count_valid is None:
             issues.append("bands.count_valid is missing")
+        if data_type == "spectral" and wavelengths is None:
+            issues.append("Missing wavelengths")
         if wavelengths is not None and not isinstance(wavelengths, list):
             issues.append("bands.wavelength must be an array")
         if fwhm is not None and not isinstance(fwhm, list):
@@ -1540,16 +1699,18 @@ class HyperMetadata:
         try:
             info = gs.parse_command("r3.info", map=map_name, flags="g")
             depth = int(float(info.get("depths")))
-            expected_depth = (
-                count_valid
-                if isinstance(count_valid, int)
-                else count
-                if isinstance(count, int)
-                else None
-            )
-            if expected_depth is not None and depth != expected_depth:
+            if isinstance(count, int) and depth == count:
+                pass
+            elif isinstance(count_valid, int) and depth == count_valid:
+                pass
+            elif isinstance(count, int):
+                expected = (
+                    f"bands.count={count} or bands.count_valid={count_valid}"
+                    if isinstance(count_valid, int)
+                    else f"bands.count={count}"
+                )
                 issues.append(
-                    f"Raster depth mismatch: depths={depth}, expected={expected_depth}"
+                    f"Raster depth mismatch: depths={depth}, expected {expected}"
                 )
         except Exception as exc:
             issues.append(f"Could not validate raster depth with r3.info: {exc}")

@@ -9,8 +9,8 @@
   The module reads supported hyperspectral products and converts their spectral
   bands into a single 3D raster map. The vertical (<em>z</em>) dimension of the
   3D raster represents the spectral dimension, where each cell (<em>voxel</em>)
-  contains the reflectance value for a specific spatial position (<em>x, y</em>)
-  and spectral band index.
+  contains a radiance or reflectance value for a specific spatial position
+  (<em>x, y</em>) and spectral band index.
 </p>
 
 <p>
@@ -44,9 +44,9 @@
   radiometric metadata (<b>radiometric_quantity</b>, <b>radiometric_units</b>).
 </p>
 <p>
-  The metadata are used by other <em>i.hyper.*</em> modules, so data imported
-  with <em>i.hyper.import</em> or created with the same metadata structure are
-  fully compatible across the toolset.
+  The metadata are used by other <em>i.hyper.*</em> modules. If metadata writing
+  fails, the raster import reports a warning because downstream
+  <em>i.hyper</em> modules require <code>hyper.json</code>.
 </p>
 
 <p>
@@ -58,17 +58,81 @@
 
 <h2>NOTES</h2>
 
+<h3>Supported products and values</h3>
+
+<table>
+  <tr><th>Product</th><th>Input layout</th><th>Output values</th></tr>
+  <tr><td>EnMAP L1B</td><td>Separate VNIR and SWIR <code>.TIF</code> or <code>.BSQ</code> images</td><td>At-sensor radiance in <code>W/m^2/sr/nm</code></td></tr>
+  <tr><td>EnMAP L1C</td><td>Merged <code>.TIF</code> or <code>.BSQ</code> image</td><td>At-sensor radiance in <code>W/m^2/sr/nm</code></td></tr>
+  <tr><td>EnMAP L2A</td><td>Merged <code>.TIF</code> or <code>.BSQ</code> image</td><td>Surface reflectance, unitless</td></tr>
+  <tr><td>PRISMA L1</td><td>HDF-EOS5 VNIR and SWIR cubes</td><td>TOA radiance in <code>W/(m^2 sr um)</code></td></tr>
+  <tr><td>PRISMA L2C/L2D</td><td>HDF-EOS5 VNIR and SWIR cubes</td><td>Surface reflectance, unitless</td></tr>
+  <tr><td>Tanager BASIC/ORTHO</td><td>HDF5 SWATHS or GRIDS product</td><td>Surface reflectance when available, otherwise TOA radiance</td></tr>
+  <tr><td>Native <code>ihyper</code></td><td>Gzip-compressed native archive</td><td>Archived 3D raster and metadata unchanged</td></tr>
+</table>
+
 <p>
-  Imported 3D raster maps store hyperspectral reflectance or radiance values
-  (depending on the product). Bands containing only NULL values are not added to
-  the output <code>raster_3d</code>.
+  PAN data are not imported from PRISMA products. Tanager bands are sorted by
+  wavelength. EnMAP and PRISMA require calibration metadata; import stops
+  instead of assigning physical units to uncalibrated values when required
+  calibration is missing or invalid.
 </p>
 
 <p>
-  With the <code>-n</code> flag, source-band validity is recorded directly in
-  <code>bands.validity</code>
-  (with <code>bands.count</code> and <code>bands.count_valid</code>) without
-  adding all-NULL bands to the output cube.
+  EnMAP applies <code>value = DN * GainOfBand + OffsetOfBand</code>. PRISMA L1
+  applies <code>radiance = DN / scale_factor</code>. PRISMA L2C/L2D applies
+  <code>reflectance = minimum + DN * (maximum - minimum) / 65535</code>.
+  Tanager float values are imported without radiometric rescaling.
+</p>
+
+<h3>Spatial handling</h3>
+
+<table>
+  <tr><th>Product</th><th>Spatial handling</th><th>GRASS project requirement</th></tr>
+  <tr><td>EnMAP L1B</td><td>Separate detectors are converted to north-up images and combined in native sensor geometry; the result is not map-projected or orthorectified</td><td>Only XY location (sensor geometry cannot be imported into a map-projected location)</td></tr>
+  <tr><td>EnMAP L1C/L2A</td><td>Existing product map grid is used directly</td><td>Project CRS must match the EnMAP image CRS</td></tr>
+  <tr><td>PRISMA L1/L2C</td><td>Per-pixel latitude/longitude is transformed to the current project CRS and assigned to an importer-derived grid using nearest-cell assignment</td><td>Current project CRS is the target CRS</td></tr>
+  <tr><td>PRISMA L2D</td><td>Existing product grid is used directly</td><td>Project CRS must match the PRISMA product CRS</td></tr>
+  <tr><td>Tanager BASIC</td><td>Per-pixel latitude/longitude is projected onto the <code>Planet_Ortho_Framing</code> grid using bilinear forward assignment</td><td>Project CRS must match the framing EPSG</td></tr>
+  <tr><td>Tanager ORTHO</td><td>Existing product grid is used directly</td><td>Project CRS must match the product EPSG</td></tr>
+</table>
+
+<p>
+  Products in local/sensor geometry (EnMAP L1B) are supported only in an
+  <code>XY</code> location (created with <code>grass -c XY</code>). Import
+  into a map-projected location will fail with an error.
+
+  The importer does not generally reproject already gridded products into a
+  different GRASS project CRS. Use the <code>-p</code> flag to check the
+  product CRS, <em>i.hyper.import</em> behavior, and project requirements before import and create or select a matching GRASS project.
+  CRS compatibility is not checked for all direct-grid imports, so a mismatch
+  may produce an incorrectly located map.
+  PRISMA nearest-cell assignment can leave unassigned cells as NULL. Tanager
+  BASIC uses a limited local gap fill when SciPy is available; remaining
+  unvisited or nodata cells stay NULL.
+</p>
+
+<h3>Band validity</h3>
+
+<p>
+  Only bands retained by product-specific filtering are added to the output
+  cube. EnMAP uses wavelength metadata, expected channel lists, and available
+  valid-pixel statistics. PRISMA applies its wavelength flags before import.
+  Tanager removes bands without any finite pixels after nodata masking.
+</p>
+
+<p>
+  Imported cubes preserve the full physical spectral axis. Bands rejected by
+  the provider or containing no usable data are written as all-NULL slices and
+  marked invalid in <code>bands.validity</code>. Consequently,
+  <code>bands.count</code> always matches the output cube depth, while
+  <code>bands.count_valid</code> records the number of usable bands.
+</p>
+
+<p>
+  The <code>-u</code> flag updates the computational region to match the
+  imported 3D raster after a successful import. Without <code>-u</code>, the
+  original region is restored after import.
 </p>
 
 <p>
@@ -89,77 +153,40 @@
 </p>
 
 <p>
-  When the <em>composites</em> option is used, predefined or custom band
-  combinations are exported as 2D raster composites (e.g., RGB, CIR, SWIR). All
-  temporary rasters are automatically removed after import.
+  Composite channels use the nearest retained wavelengths and are created only
+  when <em>composites</em> or <em>composites_custom</em> is specified.
+  <em>composites_custom</em> must contain exactly three wavelengths. Temporary
+  rasters are removed after a successful import.
 </p>
 
 <p>
   During import, <em>i.hyper.import</em> temporarily adjusts the computational
   region to match the input data, ensuring consistent alignment between imported
-  bands. This region setting is temporary and restored at the end of processing.
+  bands. On successful completion, the previous region is restored unless
+  <code>-u</code> is used.
 </p>
 
 <p>
   <em>i.hyper.import</em>
   can also restore hyperspectral data directly from a native archive with
-  <code>product=ihyper</code>. The archive structure is validated from its
-  contents rather than the filename suffix, so any input filename is accepted as
-  long as it contains a valid native archive. Such archives are unpacked into
-  the current mapset and restore the native <code>raster_3d</code> together with
-  its metadata.
+  <code>product=ihyper</code>. The input must be a gzip-compressed tar archive
+  containing a valid <code>manifest.json</code>; its filename suffix is not
+  significant. Native archives restore the <code>raster_3d</code>,
+  <code>hyper.json</code>, and manifest-listed composite support files. The
+  archived map name is restored as-is, <code>output</code> and other processing
+  options are ignored, and restore fails if that 3D map already exists in the
+  current mapset.
 </p>
-
-<p>Product notes:</p>
-<ul>
-  <li>
-    <b>EnMAP L2</b>
-    products are imported from the native single spectral image.
-  </li>
-  <li>
-    <b>EnMAP L1B</b>
-    products use two detector images (VNIR, SWIR). The importer first creates
-    temporary north-up GeoTIFF files with <code>gdalwarp</code>, then runs the
-    same band selection, composite, and <code>r.to.rast3</code> steps as for L2.
-  </li>
-  <li>
-    Because of the north-up preprocessing step, EnMAP L1B import usually takes
-    substantially longer than EnMAP L2 import.
-  </li>
-  <li>
-    Product levels that are not orthorectified are imported using product
-    geolocation and nearest-neighbor assignment onto the current GRASS grid.
-    This preserves original values, but may leave small holes or irregular
-    borders where no source pixel maps to an output cell, which can be
-    interpolated or otherwise handled later with existing GRASS tools.
-  </li>
-  <li>
-    <b>Tanager BASIC</b>
-    products (<code>/HDFEOS/SWATHS/HYP/...</code>) use per-pixel geolocation and
-    <code>Planet_Ortho_Framing</code> for projection and gridding.
-  </li>
-  <li>
-    <b>Tanager ortho</b>
-    products (<code>/HDFEOS/GRIDS/HYP/...</code>) are imported directly in
-    native map grid geometry (no geolocation reprojection).
-  </li>
-  <li>
-    For Tanager ortho products, map grid parameters are read from
-    <code>/HDFEOS INFORMATION/StructMetadata.0</code> (UL/LR corners),
-    <code>/HDFEOS/GRIDS/HYP</code> attribute <code>epsg_code</code>, and
-    spectral dataset shape (rows/cols).
-  </li>
-</ul>
 <h2>EXAMPLES</h2>
 
 <div class="code">
   <pre>
-# EnMAP example
-# Create a new GRASS project with EPSG:32633 (UTM Zone 33N)
-grass -c EPSG:32633 -e ~/grassdata/hyper_33N
+# EnMAP example for a product in UTM Zone 32N. Use the CRS reported
+# for your own product when creating the GRASS project.
+grass -c EPSG:32632 -e ~/grassdata/hyper_32N
 
 # Initialize and enter the new project (PERMANENT Mapset)
-grass ~/grassdata/hyper_33N/PERMANENT
+grass ~/grassdata/hyper_32N/PERMANENT
 </pre>
 </div>
 
@@ -306,10 +333,15 @@ i.hyper.import input=/data/hyperspectral_data.ihyper \
     <b>pyproj</b>
     – Coordinate reference system and geospatial transformation library.
   </li>
+  <li><b>Rasterio</b> – EnMAP raster and band metadata access.</li>
   <li>
     <b>GDAL command line tools</b>
     – <code>gdalwarp</code> is used for EnMAP L1B detector-image north-up
     preprocessing.
+  </li>
+  <li>
+    <b>SciPy</b> – Optional local geometric-gap filling for Tanager BASIC
+    products.
   </li>
 </ul>
 

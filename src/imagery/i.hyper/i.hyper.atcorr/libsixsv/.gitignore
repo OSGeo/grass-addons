@@ -1,0 +1,33 @@
+# Compiled objects and libraries
+*.o
+*.a
+*.so
+*.so.*
+
+# Debian build artefacts
+debian/.debhelper/
+debian/tmp/
+debian/files
+debian/*.debhelper.log
+debian/*.substvars
+debian/debhelper-build-stamp
+debian/libsixsv2/
+debian/libsixsv-dev/
+debian/libsixsv2-dbgsym/
+
+# Test build artefacts
+testsuite/test_6sv_compat
+testsuite/libsixsv.so
+
+# Example binaries
+examples/01_basic_lut
+examples/02_scene_correction
+examples/03_retrievals
+examples/04_brdf
+examples/05_spatial_filters
+examples/06_full_pipeline
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/

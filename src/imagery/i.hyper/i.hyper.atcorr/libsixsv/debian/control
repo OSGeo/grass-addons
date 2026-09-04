@@ -1,0 +1,34 @@
+Source: libsixsv
+Section: libs
+Priority: optional
+Maintainer: Yann Chemin <dr.yann.chemin@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/yannchemin/libsixsv
+
+Package: libsixsv2
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: 6SV2.1 atmospheric correction library
+ A C11 port of the 6SV2.1 (Second Simulation of the Satellite Signal in
+ the Solar Spectrum) radiative transfer model for operational atmospheric
+ correction of multispectral and hyperspectral remote sensing imagery.
+ .
+ It provides scalar and polarized DISCOM radiative transfer, satellite and
+ aircraft paths, standard and BDM aerosol models, and an AOD by water-vapour by
+ wavelength LUT. Operational C extensions include Lambertian and BRDF-coupled
+ inversion, retrieval, terrain, adjacency, uncertainty and spatial routines.
+ Selected LUT and image loops use OpenMP.
+
+Package: libsixsv-dev
+Section: libdevel
+Architecture: any
+Depends: libsixsv2 (= ${binary:Version}), ${misc:Depends}
+Description: 6SV2.1 atmospheric correction library - development files
+ Development headers, pkg-config metadata and linker symlink for the libsixsv
+ SONAME 2 C ABI.
+ .
+ Install this package to build C or C++ programs that call libsixsv. The package
+ installs all headers under /usr/include/sixsv/; there is no Python wrapper
+ package, although the C ABI can be loaded directly with ctypes.

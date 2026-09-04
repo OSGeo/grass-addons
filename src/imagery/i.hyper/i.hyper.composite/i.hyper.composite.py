@@ -58,6 +58,7 @@ import sys
 import re
 import uuid
 import importlib.util
+import numpy as np
 import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.script.utils import get_lib_path
@@ -111,24 +112,34 @@ def _band_wavelengths(mapname, expected, hyper_meta_class):
     except Exception as error:
         gs.fatal(f"Failed to read JSON metadata for {mapname}: {error}")
 
-    wl_arr = meta.get_wavelengths_array()
+    try:
+        axis = meta.resolve_band_axis(expected)
+    except Exception as error:
+        gs.fatal(f"Failed to resolve band axis for {mapname}: {error}")
+
+    wl_arr = axis.get("wavelengths")
     if wl_arr is None:
         gs.fatal(f"Missing 'bands.wavelength' in JSON metadata for {mapname}.")
 
-    wavelengths = [None if (w is None or w != w) else float(w) for w in wl_arr.tolist()]
-    if len(wavelengths) < expected:
-        gs.fatal(
-            f"Metadata wavelength count ({len(wavelengths)}) is lower than band count ({expected}) for {mapname}."
+    validity = axis.get("validity")
+    depth_indices = np.arange(expected, dtype=int)
+    if validity is not None and len(validity) == len(wl_arr):
+        valid_sources = np.flatnonzero(validity)
+        source_to_depth = axis.get("source_to_depth")
+        depth_indices = np.array(
+            [source_to_depth[i] for i in valid_sources if source_to_depth[i] >= 0],
+            dtype=int,
         )
+        wl_arr = wl_arr[valid_sources]
 
-    wavelengths = wavelengths[:expected]
+    wavelengths = [None if (w is None or w != w) else float(w) for w in wl_arr.tolist()]
     if any(w is None for w in wavelengths):
         missing = [i + 1 for i, w in enumerate(wavelengths) if w is None]
         gs.fatal(
-            f"Missing JSON wavelengths for bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
+            f"Missing JSON wavelengths for valid bands: {missing[:10]}{'...' if len(missing) > 10 else ''}"
         )
 
-    return [float(w) for w in wavelengths]
+    return [float(w) for w in wavelengths], depth_indices.tolist()
 
 
 def _explode_cube(cube, tmpbase):
@@ -217,7 +228,7 @@ def main():
     if band_count < 3:
         gs.fatal(f"{cube} contains only {band_count} band(s). Cannot build composites.")
     hyper_meta_class = _get_hyper_meta_class()
-    wavelengths = _band_wavelengths(cube, band_count, hyper_meta_class)
+    wavelengths, depth_indices = _band_wavelengths(cube, band_count, hyper_meta_class)
 
     tmpbase = f"_ihc_{uuid.uuid4().hex[:8]}_b_"
     gs.use_temp_region()
@@ -232,7 +243,7 @@ def main():
 
         def map_for_nm(nm):
             idx = _nearest_index(nm, wavelengths)
-            return maps[idx]
+            return maps[depth_indices[idx]]
 
         for comp in requested:
             wl = COMPOSITES[comp]

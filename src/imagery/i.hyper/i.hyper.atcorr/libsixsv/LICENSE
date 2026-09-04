@@ -1,0 +1,33 @@
+libsixsv
+Copyright (C) 2025-2026 Yann Chemin
+
+SPDX-License-Identifier: GPL-2.0-or-later
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
+
+6SV2.1 provenance
+------------------
+
+This C port is derived from and numerically validated against the 6SV2.1
+reference source published at:
+
+    https://github.com/NakamuraTakashi/6SV2.1
+
+The validation reference is pinned at commit:
+
+    7deb2289cfe23c9b1d1b48d7647f76604ef75fa4
+
+6SV was developed by Eric F. Vermote and collaborators. Routine-level source
+comments and the project documentation retain attribution to the corresponding
+6SV2.1 Fortran routines. This provenance statement does not replace the
+GPL-2.0-or-later terms governing libsixsv.

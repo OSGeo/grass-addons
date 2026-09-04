@@ -1,0 +1,365 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>i.hyper.atcorr</em> performs atmospheric correction of a hyperspectral 3D
+raster map. The input is calibrated top of atmosphere spectral radiance. The
+output is unitless bottom of atmosphere surface reflectance.
+</p>
+
+<p>
+The module uses the 6SV2.1 radiative transfer model to compute a lookup table
+over aerosol optical depth (AOD) at 550 nm, column water vapour, and
+wavelength. It converts radiance to top of atmosphere reflectance using the
+acquisition day, solar zenith angle, and solar irradiance spectrum, then
+interpolates the lookup table to invert surface reflectance.
+</p>
+
+<p>
+The <em>lut</em> option writes the table computed by the current invocation. It
+is output-only and is never read as correction input. A lookup table can be
+written without correcting a raster. Correction requires both <em>input</em>
+and <em>output</em>; <em>lut</em> may additionally save the table used by that
+correction.
+</p>
+
+<p>
+Atmospheric conditions can be supplied as scene values with <em>aod_val</em>
+and <em>h2o_val</em>, or as raster maps with <em>aod_map</em> and
+<em>h2o_map</em>. Raster map values take precedence over scene values where
+they are not null. The atmospheric maps can be smoothed before correction.
+</p>
+
+<p>
+The module can estimate selected atmospheric quantities from suitable input
+bands. It can also apply adjacency, terrain illumination, and surface
+anisotropy corrections. Optional outputs include reflectance uncertainty, a
+quality mask, and the directional area scattering factor (DASF).
+</p>
+
+<h2>OPTIONS</h2>
+
+<p>
+The <em>aod</em> and <em>h2o</em> options define the lookup table axes. The
+default H2O grid is <tt>0.5,1.0,1.5,2.0,3.5,5.0</tt> g/cm2. The scene fallback
+<em>h2o_val</em> defaults to 2.0 g/cm2. The wavelength axis is defined by
+<em>wl_min</em>, <em>wl_max</em>, and <em>wl_step</em> in nanometres. The axes
+should cover input wavelengths and expected atmospheric values.
+</p>
+
+<p>
+The atmosphere can be represented by a standard profile selected with
+<em>atmosphere</em>. The aerosol model is selected with <em>aerosol</em>.
+<tt>aerosol=desert</tt> selects the complete background desert model (BDM),
+including its optical properties and phase matrices. When
+<tt>aerosol=custom</tt> is used, <em>mie_r</em>, <em>mie_sigma</em>,
+<em>mie_mr</em>, and <em>mie_mi</em> define a log-normal spherical Mie aerosol.
+</p>
+
+<p>
+The <em>altitude</em> option is sensor altitude in kilometres. Values less than
+or equal to zero select ground mode. Values greater than zero and less than
+100 select aircraft mode and use partial Rayleigh, aerosol, and gas columns
+between target and sensor. Values greater than or equal to 100 select
+satellite mode and use the full atmospheric column. The default is 1000 km.
+</p>
+
+<p>
+Flag <em>-P</em> enables vector radiative transfer. The built-in aerosol
+choices <tt>none</tt>, <tt>continental</tt>, <tt>maritime</tt>, <tt>urban</tt>,
+and <tt>desert</tt> use the complete available polarization phase-matrix data.
+Combining <em>-P</em> with <tt>aerosol=custom</tt> is rejected because custom Mie
+polarization is unsupported. The vector solver propagates Stokes I, Q, and U
+internally so polarization feeds back into Stokes I. The module uses the
+resulting Stokes-I path reflectance but does not output Q or U.
+</p>
+
+<p>
+Flags <em>-a</em>, <em>-w</em>, and <em>-z</em> estimate AOD, water vapour, and
+ozone from the input map. Flag <em>-p</em> estimates surface pressure from the
+oxygen A band. Flag <em>-e</em> performs a joint AOD and water vapour retrieval.
+These operations require wavelength metadata and suitable input bands. The
+<em>dem</em> option instead uses mean terrain elevation to set surface pressure
+for lookup table computation. Image-based retrievals remain dependent on scene
+content, metadata, model choices, and configured lookup table ranges; they are
+not a general standalone replacement for ancillary atmospheric information.
+</p>
+
+<p>
+The <em>slope</em> and <em>aspect</em> raster maps enable terrain illumination
+correction and must be supplied together. The <em>sun_azimuth</em> option or
+supported scene metadata supplies solar azimuth. Per-pixel view geometry can
+be given with <em>view_zenith</em> for terrain path-length correction and with
+<em>view_zenith</em> and <em>view_azimuth</em> for BRDF normalization.
+</p>
+
+<p>
+The <em>brdf_fiso</em>, <em>brdf_fvol</em>, and <em>brdf_fgeo</em> raster maps
+enable nadir BRDF adjusted reflectance normalization and must all be supplied.
+The <em>mcd43_fiso</em>, <em>mcd43_fvol</em>, and <em>mcd43_fgeo</em> options
+provide spectral MCD43 kernel weights and must also be supplied together. All
+MCD43 raster and comma-separated inputs must already have the product scale
+factor applied. The module does not apply a 0.001 scale factor.
+</p>
+
+<p>
+Flag <em>-u</em> computes reflectance uncertainty, written when
+<em>uncertainty</em> is specified. Flag <em>-m</em> computes the bitmask written
+with <em>quality</em>. The quality mask is an output product only and is not
+applied to mask or null the corrected reflectance cube. Flag <em>-D</em>
+computes DASF and writes it with <em>dasf</em>. Flag <em>-r</em> applies surface
+prior regularisation and requires the complete reflectance cube to be held in
+memory.
+</p>
+
+<p>
+The <tt>quality</tt> output is a 2-D integer raster whose <b>category values</b>
+describe the pre-correction scene classes. Each pixel's value may combine
+several classes (1 = cloud, 2 = shadow, 4 = water, 8 = snow/ice, summed). The
+mask is diagnostic only and is not applied to null or clip the reflectance
+cube. The module currently writes the map without a category table; assign
+labels with <tt>r.category</tt> if desired.
+</p>
+
+<table>
+  <tr><th>Category</th><th>Meaning</th></tr>
+  <tr><td>0</td><td>No class detected (clear)</td></tr>
+  <tr><td>1</td><td>Cloud</td></tr>
+  <tr><td>2</td><td>Shadow</td></tr>
+  <tr><td>3</td><td>Cloud + Shadow</td></tr>
+  <tr><td>4</td><td>Water</td></tr>
+  <tr><td>5</td><td>Cloud + Water</td></tr>
+  <tr><td>6</td><td>Shadow + Water</td></tr>
+  <tr><td>7</td><td>Cloud + Shadow + Water</td></tr>
+  <tr><td>8</td><td>Snow / ice</td></tr>
+  <tr><td>9</td><td>Cloud + Snow / ice</td></tr>
+  <tr><td>10</td><td>Shadow + Snow / ice</td></tr>
+  <tr><td>11</td><td>Cloud + Shadow + Snow / ice</td></tr>
+  <tr><td>12</td><td>Water + Snow / ice</td></tr>
+  <tr><td>13</td><td>Cloud + Water + Snow / ice</td></tr>
+  <tr><td>14</td><td>Shadow + Water + Snow / ice</td></tr>
+  <tr><td>15</td><td>All classes</td></tr>
+</table>
+
+<h2>RADIATIVE TRANSFER</h2>
+
+<p>
+The lookup table stores four effective inversion coefficients at every grid
+point: gas-weighted atmospheric path reflectance <tt>R_atm</tt>, total downward
+transmittance <tt>T_down</tt>, gas-weighted total upward transmittance
+<tt>T_up</tt>, and atmospheric spherical albedo <tt>s_alb</tt>.
+</p>
+
+<p>
+<tt>R_atm</tt> is not gas-free path reflectance. Its aerosol and
+multiple-scattering part and its Rayleigh part are weighted by their applicable
+gas transmittances. Similarly, the stored upward coefficient is
+<tt>T_up_sca * T_gas,total / T_gas,down</tt>, while the stored downward
+coefficient is <tt>T_down_sca * T_gas,down</tt>. Their product therefore
+includes total gas absorption over the complete Sun-surface-sensor path.
+</p>
+
+<p>
+For a Lambertian surface, the inversion is
+</p>
+
+<div class="code"><pre>
+rho_toa = pi * L * d2 / (E0 * cos(sza))
+y = (rho_toa - R_atm) / (T_down * T_up)
+rho_boa = y / (1 + s_alb * y)
+</pre></div>
+
+<p>
+where <tt>L</tt> is radiance per micrometre, <tt>d2</tt> is squared Earth-Sun
+distance, and <tt>E0</tt> is solar spectral irradiance. The spherical-albedo
+denominator uses <tt>y</tt>, not the unknown <tt>rho_boa</tt> on its right-hand
+side.
+</p>
+
+<p>
+Automatic libRadtran/reptran spectral response function correction is disabled
+and unsupported. Its gas parameterization cannot be multiplied into the
+current 6SV effective coefficients consistently. Support remains pending a
+mathematically consistent integration into <tt>R_atm</tt>, <tt>T_down</tt>, and
+<tt>T_up</tt>.
+</p>
+
+<h2>NOTES</h2>
+
+<p>
+Radiometric metadata may declare spectral radiance per nanometre or per
+micrometre. Per-nanometre values are multiplied by 1000; per-micrometre values
+are unchanged, giving internal W m-2 sr-1 um-1. Missing radiometric units
+produce a warning and are assumed to be per micrometre. Reflectance input and
+other unsupported radiometric units are rejected.
+</p>
+
+<p>
+Band centre and FWHM metadata may use <tt>nm</tt>, <tt>um</tt>, or
+<tt>cm-1</tt>. Nanometres are divided by 1000 and micrometres are unchanged.
+Wavenumber centres are converted as
+<tt>wavelength_um = 10000 / wavenumber_cm-1</tt>; wavenumber FWHM is converted
+as <tt>fwhm_um = 10000 * fwhm_cm-1 / wavenumber_cm-1^2</tt>. Missing wavelength
+units default to nm. Unsupported unit strings are rejected. The module reads
+resolved metadata exclusively through <em>i.hyper.metadata</em>; input maps must
+provide valid hyperspectral metadata.
+</p>
+
+<p>
+Output and uncertainty metadata are derived from the input in one atomic
+<em>i.hyper.metadata</em> operation. Each output receives a new dataset
+identifier, one source-to-output history entry, and its local radiometry and
+atmospheric correction settings. Failure to create valid output metadata
+aborts the module.
+</p>
+
+<p>
+The module reads the following resolved input metadata. Product availability
+refers to metadata written by <em>i.hyper.import</em>; "when present" means that
+the field is conditional in the source product.
+</p>
+
+<table>
+  <tr><th>Use or option</th><th>Resolved metadata key</th><th>Units or values</th><th>EnMAP</th><th>PRISMA</th><th>Tanager</th><th>Module fallback</th></tr>
+  <tr><td>Band centres</td><td><tt>bands.wavelength</tt></td><td><tt>nm</tt>, <tt>um</tt> (&micro;m), or <tt>cm-1</tt></td><td>Yes</td><td>Yes</td><td>Yes</td><td>LUT wavelength grid, with warning</td></tr>
+  <tr><td>Band FWHM</td><td><tt>bands.fwhm</tt></td><td>Same unit as band centres</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0 (unavailable)</td></tr>
+  <tr><td>Wavelength units</td><td><tt>wavelength_units</tt></td><td><tt>nm</tt>, <tt>um</tt>, or <tt>cm-1</tt></td><td>Yes</td><td>Yes</td><td>Yes</td><td><tt>nm</tt></td></tr>
+  <tr><td>Radiometric quantity</td><td><tt>radiometric_quantity</tt></td><td>Radiance or reflectance</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Unset</td></tr>
+  <tr><td>Radiometric units</td><td><tt>radiometric_units</tt></td><td>W m-2 sr-1 nm-1 or W m-2 sr-1 &micro;m-1</td><td>Yes</td><td>Yes</td><td>Yes</td><td>W m-2 sr-1 &micro;m-1, with warning</td></tr>
+  <tr><td><em>sza</em></td><td><tt>extended_metadata.geometry.sun_zenith_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Required</td></tr>
+  <tr><td><em>vza</em></td><td><tt>extended_metadata.geometry.view_zenith_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0</td></tr>
+  <tr><td><em>raa</em></td><td><tt>extended_metadata.geometry.relative_azimuth_deg</tt></td><td>Degrees</td><td>Yes</td><td>Yes</td><td>Yes</td><td>0</td></tr>
+  <tr><td><em>sun_azimuth</em></td><td><tt>extended_metadata.geometry.sun_azimuth_deg</tt></td><td>Degrees clockwise from north</td><td>Yes</td><td>Yes</td><td>Yes</td><td>180</td></tr>
+  <tr><td><em>altitude</em></td><td><tt>extended_metadata.geometry.sensor_altitude_m</tt></td><td>Metadata in m; option in km</td><td>When present</td><td>No</td><td>No</td><td>1000 km</td></tr>
+  <tr><td><em>doy</em></td><td><tt>extended_metadata.acquisition.day_of_year</tt></td><td>Day index, 1-366</td><td>Yes</td><td>Yes</td><td>Yes</td><td>180</td></tr>
+  <tr><td><em>aod_val</em></td><td><tt>extended_metadata.atmosphere.aod_550</tt></td><td>Unitless, at 550 nm</td><td>When present</td><td>No</td><td>Map mean when present</td><td>0.1</td></tr>
+  <tr><td><em>h2o_val</em></td><td><tt>extended_metadata.atmosphere.h2o_g_cm2</tt></td><td>g/cm2</td><td>When present</td><td>No</td><td>Map mean when present</td><td>2.0 g/cm2</td></tr>
+  <tr><td><em>ozone</em></td><td><tt>extended_metadata.atmosphere.ozone_du</tt></td><td>Dobson units (DU)</td><td>When present</td><td>No</td><td>No</td><td>300 DU</td></tr>
+  <tr><td><em>atmosphere</em></td><td><tt>extended_metadata.atmosphere.atmosphere_model</tt></td><td><tt>us62</tt>, <tt>midsum</tt>, <tt>midwin</tt>, <tt>tropical</tt>, <tt>subsum</tt>, or <tt>subwin</tt></td><td>No</td><td>When present</td><td>No</td><td><tt>us62</tt></td></tr>
+  <tr><td><em>aerosol</em></td><td><tt>extended_metadata.atmosphere.aerosol_model</tt></td><td><tt>none</tt>, <tt>continental</tt>, <tt>maritime</tt>, <tt>urban</tt>, <tt>desert</tt>, or <tt>custom</tt></td><td>No</td><td>No</td><td>No</td><td><tt>continental</tt></td></tr>
+</table>
+
+<p>
+For metadata-backed options, values are resolved in this order: command line
+option, input map metadata, module fallback. Lookup table axes, flags, files,
+and ancillary raster maps are not read from metadata.
+</p>
+
+<p>
+The day-of-year range is 1 through 366, with a default of 180. It
+is used for Earth-Sun distance. The solar and view angles must describe the
+input acquisition geometry.
+</p>
+
+<p>
+Values outside an AOD or water vapour lookup table axis are limited to its
+nearest boundary. A finer table increases computation and memory use. The
+default binary table, with 6 AOD points, 6 H2O points, and 211 wavelengths, is
+122448 bytes (about 120 KiB). The format size is
+<tt>20 + 4*(n_aod+n_h2o+n_wl) + 16*n_aod*n_h2o*n_wl</tt> bytes.
+</p>
+
+<p>
+The 2D ancillary raster maps are read in the current computational region. Set
+the region to the horizontal extent and resolution of the input 3D raster
+before running the module. Null radiance cells remain null. Bands with
+round-trip transmittance below 0.10 are also written as null.
+</p>
+
+<p>
+Final output reflectance is clipped to the interval from
+-0.01 to 1.5, retaining the module's established range after all optional
+processing.
+</p>
+
+<p>
+The source-vendored <em>libsixsv</em> tree is compiled directly into the GRASS
+module by both supported build descriptions. A separately installed
+<em>libsixsv</em> shared library is not required. Building requires GRASS
+development libraries, a C11 compiler, the math library, and OpenMP support.
+libRadtran is not a supported module dependency while automatic SRF correction
+is disabled.
+</p>
+
+<p>
+Surface prior regularisation, uncertainty calculation, DASF retrieval, and
+some image-based retrievals need arrays for the complete scene. Memory use
+therefore increases with the number of cells and bands.
+</p>
+
+<h2>EXAMPLES</h2>
+
+<p>
+Compute and write a lookup table without correcting a 3D raster:
+</p>
+
+<div class="code"><pre>
+i.hyper.atcorr lut=scene.lut \
+    sza=35 vza=4 raa=95 \
+    atmosphere=midsum aerosol=continental \
+    aod=0.0,0.1,0.2,0.5 h2o=0.5,1.0,1.5,2.0,3.5,5.0 \
+    wl_min=400 wl_max=2500 wl_step=10
+</pre></div>
+
+<p>
+Compute a table in memory, optionally save it, and correct a radiance cube
+using scene AOD and water vapour:
+</p>
+
+<div class="code"><pre>
+i.hyper.atcorr input=scene_radiance output=scene_reflectance \
+    lut=scene_correction.lut sza=35 vza=4 raa=95 doy=180 \
+    atmosphere=midsum aerosol=continental \
+    aod_val=0.15 h2o_val=2.0
+</pre></div>
+
+<p>
+Use the BDM desert aerosol for a Saharan scene:
+</p>
+
+<div class="code"><pre>
+i.hyper.atcorr input=sahara_radiance output=sahara_reflectance \
+    sza=28 vza=3 raa=110 doy=120 \
+    atmosphere=tropical aerosol=desert \
+    aod_val=0.35 h2o_val=1.0
+</pre></div>
+
+<p>
+Use atmospheric raster maps instead of scene values:
+</p>
+
+<div class="code"><pre>
+i.hyper.atcorr input=scene_radiance output=scene_reflectance \
+    sza=35 vza=4 raa=95 doy=180 \
+    atmosphere=midsum aerosol=continental \
+    aod_map=aod_550 h2o_map=water_vapour smooth=2
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.atcorr.html">i.atcorr</a>,
+<a href="i.hyper.metadata.html">i.hyper.metadata</a>,
+<a href="https://github.com/YannChemin/i.atcorr2">i.atcorr2</a>,
+<a href="https://github.com/YannChemin/i.hyper.atcorr">i.hyper.atcorr reference implementation</a>
+</em>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Vermote, E.F., Tanre, D., Deuze, J.L., Herman, M. and Morcrette, J.J.
+    (1997). Second simulation of the satellite signal in the solar spectrum,
+    6S: An overview. <em>IEEE Transactions on Geoscience and Remote
+    Sensing</em>, 35(3), 675-686.</li>
+<li>Kotchenova, S.Y., Vermote, E.F., Matarrese, R. and Klemm, F.J. (2006).
+    Validation of a vector version of the 6S radiative transfer code for
+    atmospheric correction of satellite data. <em>Applied Optics</em>, 45(26),
+    6762-6774.</li>
+<li>Thompson, D.R. et al. (2018). Optimal estimation for imaging spectrometer
+    atmospheric correction. <em>Remote Sensing of Environment</em>, 216,
+    355-373.</li>
+</ul>
+
+<h2>AUTHORS</h2>
+
+Yann Chemin, Seilio Douar EI<br>
+Tomaz Zagar and Alen Mangafic, Geodetic Institute of Slovenia

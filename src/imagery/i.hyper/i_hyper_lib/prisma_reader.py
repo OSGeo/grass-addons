@@ -5,6 +5,7 @@ PRISMA importer
 - Reads VNIR/SWIR/PAN cubes + error matrices from PRISMA L2D, L2C, and L1 HDF-EOS5.
 - Converts DN->reflectance on demand using product's L2 scale attributes:
     refl = Min + (DN * (Max - Min)) / 65535
+- Converts L1 DN->radiance using the required detector scale factor.
 - Extracts wavelengths/FWHM from global attributes and filters by *_Flags==1.
 - Normalizes VNIR/SWIR arrays to (rows, cols, bands) with bands-last.
 - Exposes per-pixel lat/lon grids and scalar corner easting/northing attributes in meters.
@@ -21,6 +22,7 @@ from typing import Any
 import numpy as np
 import h5py
 from pyproj import Transformer
+import grass.script as gs
 
 # ---- HDF5 paths (from PRISMA spec for all product types) ----
 # L2D paths (original)
@@ -177,11 +179,10 @@ ATTR_EPSG = "Epsg_Code"  # strict per spec
 # ---- Data containers ----
 @dataclass
 class BandInfo:
-    wavelengths_nm: np.ndarray  # (bands_kept,)
-    fwhm_nm: np.ndarray  # (bands_kept,)
-    present_flags: np.ndarray  # (bands_kept,) all ones after filtering
-    # Added: indices of kept bands in the original band axis (0-based)
-    kept_indices: np.ndarray  # (bands_kept,)
+    wavelengths_nm: np.ndarray  # (bands_full,)
+    fwhm_nm: np.ndarray  # (bands_full,)
+    present_flags: np.ndarray  # (bands_full,)
+    kept_indices: np.ndarray  # (bands_present,)
 
 
 @dataclass
@@ -204,9 +205,15 @@ class PrismaCube:
     def to_radiance(self):
         if self.dn is None:
             return None
-        if self.scale_factor in (None, 0):
-            return self.dn.astype(np.float32)
-        return self.dn.astype(np.float32) / float(self.scale_factor)
+        try:
+            scale_factor = float(self.scale_factor)
+        except (TypeError, ValueError):
+            scale_factor = None
+        if scale_factor is None or not np.isfinite(scale_factor) or scale_factor <= 0:
+            raise ValueError(
+                f"Missing or invalid PRISMA L1 {self.name} radiance scale factor."
+            )
+        return self.dn.astype(np.float32) / scale_factor
 
     def valid_mask(self):
         return (self.err == 0) if self.err is not None else None
@@ -301,11 +308,11 @@ def _load_bandinfo_from_attrs(attrs, cw_key, fwhm_key, flags_key):
     flags = _read_attr_as_array(attrs, flags_key)
     if cw is None or fwhm is None or flags is None:
         return None
-    cw_sel, fwhm_sel, kept_idx = _select_present_bands(cw, fwhm, flags)
+    kept_idx = np.where(flags.astype(int).ravel() == 1)[0]
     return BandInfo(
-        wavelengths_nm=cw_sel,
-        fwhm_nm=fwhm_sel,
-        present_flags=np.ones_like(cw_sel, dtype=np.uint8),
+        wavelengths_nm=np.asarray(cw, dtype=np.float32).ravel(),
+        fwhm_nm=np.asarray(fwhm, dtype=np.float32).ravel(),
+        present_flags=np.asarray(flags, dtype=np.uint8).ravel(),
         kept_indices=kept_idx.astype(np.int64),
     )
 
@@ -412,10 +419,13 @@ def _l2d_bil_to_rows_cols_bands(arr):
 
 # ---- Public API ----
 def load_prisma_l2d(product_path, load_pan=False):
-    with h5py.File(product_path, "r") as f:
+    with _open_prisma_h5(product_path) as f:
         # Detect product type
-        product_type = _detect_prisma_product_type(f)
-        paths = _get_prisma_paths(product_type)
+        try:
+            product_type = _detect_prisma_product_type(f)
+            paths = _get_prisma_paths(product_type)
+        except ValueError as error:
+            gs.fatal(f"Input does not match product=prisma. {error}")
 
         # Global attrs (kept for reference)
         attrs = {}
@@ -572,15 +582,125 @@ def load_prisma_l2d(product_path, load_pan=False):
     )
 
 
+# ---- Projection info query (for -p flag) ----
+
+
+def get_prisma_proj_info(product_path):
+    """Return CRS/spatial info dict for a PRISMA product.
+
+    L2D → grid layout: SRID, west/south/east/north, rows/cols, ewres/nsres.
+    L2C/L1 → swath layout: SRID=EPSG:4326, Center, optional Corners, rows/cols.
+    """
+    with _open_prisma_h5(product_path) as f:
+        try:
+            product_type = _detect_prisma_product_type(f)
+            paths = _get_prisma_paths(product_type)
+        except ValueError as error:
+            gs.fatal(f"Input does not match product=prisma. {error}")
+
+        if product_type == "L2D":
+            epsg = _read_attr_scalar(f.attrs, ATTR_EPSG)
+            ul_e = _read_attr_scalar(f.attrs, ATTR_UL_E)
+            ul_n = _read_attr_scalar(f.attrs, ATTR_UL_N)
+            ur_e = _read_attr_scalar(f.attrs, ATTR_UR_E)
+            ur_n = _read_attr_scalar(f.attrs, ATTR_UR_N)
+            ll_e = _read_attr_scalar(f.attrs, ATTR_LL_E)
+            ll_n = _read_attr_scalar(f.attrs, ATTR_LL_N)
+            lr_e = _read_attr_scalar(f.attrs, ATTR_LR_E)
+            lr_n = _read_attr_scalar(f.attrs, ATTR_LR_N)
+
+            vnir_raw = _maybe_read(f, paths["vnir_data"])
+            if vnir_raw is not None and vnir_raw.ndim == 3:
+                rows = int(vnir_raw.shape[2])
+                cols = int(vnir_raw.shape[0])
+            else:
+                rows = cols = None
+
+            if all(v is not None for v in (ul_e, ur_e, ll_e, lr_e)):
+                west = float(min(ul_e, ll_e))
+                east = float(max(ur_e, lr_e))
+            else:
+                west = east = None
+            if all(v is not None for v in (ul_n, ur_n, ll_n, lr_n)):
+                south = float(min(ll_n, lr_n))
+                north = float(max(ul_n, ur_n))
+            else:
+                south = north = None
+
+            ewres = (
+                (east - west) / cols
+                if (east is not None and west is not None and cols and cols > 0)
+                else None
+            )
+            nsres = (
+                (north - south) / rows
+                if (north is not None and south is not None and rows and rows > 0)
+                else None
+            )
+
+            return {
+                "product_type": product_type,
+                "layout": "grid",
+                "srid": f"EPSG:{int(epsg)}" if epsg is not None else "not available",
+                "west": west,
+                "east": east,
+                "south": south,
+                "north": north,
+                "rows": rows,
+                "cols": cols,
+                "ewres": ewres,
+                "nsres": nsres,
+                "import_behavior": "Imports the data directly on the existing product grid. No additional geocoding or reprojection is performed.",
+                "project_requirements": "Use a GRASS project whose CRS matches the product CRS.",
+            }
+
+        elif product_type in ("L2C", "L1"):
+            center_lat = _read_attr_scalar(f.attrs, ATTR_CENTER_LAT)
+            center_lon = _read_attr_scalar(f.attrs, ATTR_CENTER_LON)
+
+            corners = {}
+            for key, lat_attr, lon_attr in [
+                ("ul", ATTR_UL_LAT, ATTR_UL_LON),
+                ("ur", ATTR_UR_LAT, ATTR_UR_LON),
+                ("ll", ATTR_LL_LAT, ATTR_LL_LON),
+                ("lr", ATTR_LR_LAT, ATTR_LR_LON),
+            ]:
+                lat = _read_attr_scalar(f.attrs, lat_attr)
+                lon = _read_attr_scalar(f.attrs, lon_attr)
+                if lat is not None and lon is not None:
+                    corners[key] = (float(lat), float(lon))
+
+            vnir_raw = _maybe_read(f, paths["vnir_data"])
+            if vnir_raw is not None and vnir_raw.ndim == 3:
+                rows = int(vnir_raw.shape[2])
+                cols = int(vnir_raw.shape[0])
+            else:
+                rows = cols = None
+
+            return {
+                "product_type": product_type,
+                "layout": "swath",
+                "srid": "EPSG:4326",
+                "center_lat": float(center_lat) if center_lat is not None else None,
+                "center_lon": float(center_lon) if center_lon is not None else None,
+                "corners": corners if corners else None,
+                "rows": rows,
+                "cols": cols,
+                "import_behavior": "Uses the per-pixel longitude and latitude arrays to geocode the image data onto an output grid generated by the importer in the current GRASS project CRS. Source pixels are assigned to the nearest output cells.",
+                "project_requirements": "The current GRASS project CRS defines the output CRS.",
+            }
+
+        return {"layout": "unknown"}
+
+
 def concatenate_hyperspectral(product):
     """
-    Concatenate VNIR and SWIR reflectance along band axis (bands-last), **after filtering**
-    to only the bands marked present (flags==1). This keeps the reflectance cube and the
-    metadata arrays (wavelengths, FWHM) perfectly aligned.
+    Concatenate VNIR and SWIR reflectance/radiance along the full physical band axis.
     Returns:
-        refl (rows, cols, bands_total_filtered),
-        wavelengths_nm (bands_total_filtered,),
-        fwhm_nm (bands_total_filtered,)
+        refl (rows, cols, bands_total),
+        wavelengths_nm (bands_total,),
+        fwhm_nm (bands_total,),
+        validity_mask (bands_total,)
     """
     if product.vnir is None or product.swir is None:
         raise ValueError("Both VNIR and SWIR must be present to concatenate.")
@@ -603,27 +723,36 @@ def concatenate_hyperspectral(product):
             f"Spatial shapes differ after normalization: VNIR {vnir_ref.shape[:2]} vs SWIR {swir_ref.shape[:2]}"
         )
 
-    # ---- Filter by kept indices (flags==1) so band counts match metadata ----
     if product.vnir.bands is None or product.swir.bands is None:
         raise ValueError("Missing wavelength/FWHM metadata.")
-    v_idx = product.vnir.bands.kept_indices
-    s_idx = product.swir.bands.kept_indices
-    vnir_ref_f = vnir_ref[:, :, v_idx]
-    swir_ref_f = swir_ref[:, :, s_idx]
 
     v_wl = product.vnir.bands.wavelengths_nm
     s_wl = product.swir.bands.wavelengths_nm
     v_fwhm = product.vnir.bands.fwhm_nm
     s_fwhm = product.swir.bands.fwhm_nm
+    v_valid = product.vnir.bands.present_flags.astype(bool)
+    s_valid = product.swir.bands.present_flags.astype(bool)
 
-    refl = np.concatenate([vnir_ref_f, swir_ref_f], axis=2).astype(np.float32)
+    refl = np.concatenate([vnir_ref, swir_ref], axis=2).astype(np.float32)
     wavelengths = np.concatenate([v_wl, s_wl], axis=0)
     fwhm = np.concatenate([v_fwhm, s_fwhm], axis=0)
+    validity = np.concatenate([v_valid, s_valid], axis=0)
 
     # ---- ensure ascending wavelength order for both metadata and cube ----
     order = np.argsort(wavelengths.astype(np.float32))
     wavelengths = wavelengths[order]
     fwhm = fwhm[order]
+    validity = validity[order]
     refl = refl[:, :, order]
 
-    return refl, wavelengths, fwhm
+    return refl, wavelengths, fwhm, validity
+
+
+def _open_prisma_h5(product_path):
+    try:
+        return h5py.File(product_path, "r")
+    except OSError as error:
+        gs.fatal(
+            "Input does not match product=prisma. "
+            f"Expected a PRISMA HDF5 (.he5) product. {error}"
+        )
