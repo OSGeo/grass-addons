@@ -111,6 +111,35 @@ prior regularisation and requires the complete reflectance cube to be held in
 memory.
 </p>
 
+<p>
+The <tt>quality</tt> output is a 2-D integer raster whose <b>category values</b>
+describe the pre-correction scene classes. Each pixel's value may combine
+several classes (1 = cloud, 2 = shadow, 4 = water, 8 = snow/ice, summed). The
+mask is diagnostic only and is not applied to null or clip the reflectance
+cube. The module currently writes the map without a category table; assign
+labels with <tt>r.category</tt> if desired.
+</p>
+
+<table>
+  <tr><th>Category</th><th>Meaning</th></tr>
+  <tr><td>0</td><td>No class detected (clear)</td></tr>
+  <tr><td>1</td><td>Cloud</td></tr>
+  <tr><td>2</td><td>Shadow</td></tr>
+  <tr><td>3</td><td>Cloud + Shadow</td></tr>
+  <tr><td>4</td><td>Water</td></tr>
+  <tr><td>5</td><td>Cloud + Water</td></tr>
+  <tr><td>6</td><td>Shadow + Water</td></tr>
+  <tr><td>7</td><td>Cloud + Shadow + Water</td></tr>
+  <tr><td>8</td><td>Snow / ice</td></tr>
+  <tr><td>9</td><td>Cloud + Snow / ice</td></tr>
+  <tr><td>10</td><td>Shadow + Snow / ice</td></tr>
+  <tr><td>11</td><td>Cloud + Shadow + Snow / ice</td></tr>
+  <tr><td>12</td><td>Water + Snow / ice</td></tr>
+  <tr><td>13</td><td>Cloud + Water + Snow / ice</td></tr>
+  <tr><td>14</td><td>Shadow + Water + Snow / ice</td></tr>
+  <tr><td>15</td><td>All classes</td></tr>
+</table>
+
 <h2>RADIATIVE TRANSFER</h2>
 
 <p>

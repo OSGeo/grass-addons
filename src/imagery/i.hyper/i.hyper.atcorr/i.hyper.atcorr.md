@@ -83,6 +83,32 @@ corrected reflectance cube. Flag *-D* computes DASF and writes it with *dasf*.
 Flag *-r* applies surface prior regularisation and requires the complete
 reflectance cube to be held in memory.
 
+The `quality` output is a 2-D integer raster whose **category values** describe
+the pre-correction scene classes. Each pixel's value may combine several
+classes (1 = cloud, 2 = shadow, 4 = water, 8 = snow/ice, summed). The mask is
+diagnostic only and is not applied to null or clip the reflectance cube. The
+module currently writes the map without a category table; assign labels with
+`r.category` if desired.
+
+| Category | Meaning |
+| --- | --- |
+| 0 | No class detected (clear) |
+| 1 | Cloud |
+| 2 | Shadow |
+| 3 | Cloud + Shadow |
+| 4 | Water |
+| 5 | Cloud + Water |
+| 6 | Shadow + Water |
+| 7 | Cloud + Shadow + Water |
+| 8 | Snow / ice |
+| 9 | Cloud + Snow / ice |
+| 10 | Shadow + Snow / ice |
+| 11 | Cloud + Shadow + Snow / ice |
+| 12 | Water + Snow / ice |
+| 13 | Cloud + Water + Snow / ice |
+| 14 | Shadow + Water + Snow / ice |
+| 15 | All classes |
+
 ## RADIATIVE TRANSFER
 
 The lookup table stores four effective inversion coefficients at every grid
