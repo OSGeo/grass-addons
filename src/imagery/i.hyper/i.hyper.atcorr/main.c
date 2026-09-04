@@ -4,7 +4,7 @@
  *correction.
  *
  * MODULE:      i.hyper.atcorr
- * AUTHOR(S):   Yann Chemin, Seilio Douar EI; Tomaž Žagar,
+ * AUTHOR(S):   Yann Chemin, Seilio Douar EI; Tomaž Žagar and Alen Mangafić,
  *              Geodetic Institute of Slovenia
  * PURPOSE:     6SV2.1-based atmospheric correction for hyperspectral imagery.
  *

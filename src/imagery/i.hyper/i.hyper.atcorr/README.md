@@ -575,4 +575,5 @@ To pull upstream changes:
 
 ## Authors
 
-Yann Chemin, Seilio Douar EI; Tomaz Zagar, Geodetic Institute of Slovenia.
+Yann Chemin, Seilio Douar EI; Tomaž Žagar and Alen Mangafić, Geodetic Institute
+of Slovenia.
