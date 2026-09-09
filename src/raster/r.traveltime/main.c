@@ -611,10 +611,10 @@ int main(int argc, char *argv[])
     /* output */
     for (row = 0; row < nrows; row++) {
         for (col = 0; col < ncols; col++) {
-            ((FCELL *)outrast)[col] = array_out[row][col];
+            ((CELL *)outrast)[col] = array_out[row][col];
         }
         /* write raster row to output raster file */
-        Rast_put_row(outfd, outrast, FCELL_TYPE);
+        Rast_put_row(outfd, outrast, CELL_TYPE);
     }
     if(calc_up){
         for (row = 0; row < nrows; row++) {
