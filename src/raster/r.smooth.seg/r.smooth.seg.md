@@ -132,9 +132,9 @@ r.smooth.seg in_g=ortho_2001_t792_1m out_u=u4_OF out_z=z4_OF lambda=1 alpha=200 
     2012.  
     DOI: 10.1016/j.isprsjprs.2012.02.005
 - **\[4\]** A. Vitti. *Free discontinuity problems in image and signal
-    segmentatiion*.  
+    segmentation*.
     Ph.D. Thesis - University of Trento (Italy), 2008.  
-    <https://www.ing.unitn.it/~vittia/misc/vitti_phd.pdf>
+    <https://documentation.ensg.eu/index.php?lvl=author_see&id=24344>
 
 ## SEE ALSO
 

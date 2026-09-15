@@ -76,10 +76,18 @@
 # % key: fontsize
 # % type: integer
 # % label: Font size
-# % answer: 10
 # % description: Default font size
 # % guisection: Output
 # % required: no
+# %end
+
+# %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
 # %end
 
 # %option
@@ -89,6 +97,15 @@
 # % description: Sort boxplots based on their median values
 # % required: no
 # % options: descending,ascending
+# % guisection: Plot format
+# %end
+
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
 # % guisection: Plot format
 # %end
 
@@ -130,59 +147,66 @@
 # %end
 
 # %option G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % label: Color of the boxplots
-# % description: Color of boxplots
+# % description: Fill color of the boxplots. Unset leaves the boxes unfilled (Matplotlib default).
 # % required: no
-# % answer: white
+# % answer:
 # % guisection: Boxplot format
 # %end
 
 # %option G_OPT_CN
-# % key: bx_blcolor
+# % key: box_bordercolor
 # % label: Color of the borders of the boxplots
-# % description: Color of the borderlines of the boxplots
+# % description: Color of the borderlines of the boxplots. Defaults to the Matplotlib default.
 # % required: no
-# % answer: black
+# % answer:
 # % guisection: Boxplot format
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
-# % description: The width of the boxplots (0,1])
+# % description: The width of the boxplots (0,1]). Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 0.75
 # % options: 0.1-1
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
-# % label: boxplot linewidth
-# % description: The boxplots border, whisker and cap line width
+# % label: Boxplot line width
+# % description: Width of the boxplot border lines. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1
 # %end
 
 # %option
-# % key: median_lw
+# % key: whisker_linewidth
 # % type: double
-# % description: width of the boxplot median line
+# % label: Whisker line width
+# % description: Width of the whisker and cap lines. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1.1
+# %end
+
+# %option
+# % key: median_linewidth
+# % type: double
+# % label: Median line width
+# % description: width of the boxplot median line. Defaults to the Matplotlib default.
+# % required: no
+# % guisection: Boxplot format
 # %end
 
 # %option G_OPT_C
 # % key: median_color
 # % label: Color of the boxplot median line
-# % description: Color of median
+# % description: Color of median. Defaults to the Matplotlib default.
 # % required: no
-# % answer: orange
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -200,18 +224,17 @@
 # % key: flier_size
 # % type: double
 # % label: Flier size
-# % description: Set the flier size
+# % description: Set the flier size. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 2
 # % guisection: Boxplot format
 # %end
 
 # %option G_OPT_C
 # % key: flier_color
 # % label: Flier color
-# % description: Set the flier color
+# % description: Set the flier color. Defaults to the Matplotlib default.
 # % required: no
-# % answer: black
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -261,6 +284,21 @@ def lazy_import_py_modules(backend):
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
 
 
 def get_valid_color(color):
@@ -530,6 +568,7 @@ def main():
     # lazy import matplotlib
     output = options["output"] if options["output"] else None
     lazy_import_py_modules(output)
+    apply_style(options["style"])
 
     # input
     vector = options["map"]
@@ -544,35 +583,57 @@ def main():
             dimensions = [6, 4]
         else:
             dimensions = [4, 6]
-    blcolor = get_valid_color(options["bx_blcolor"])
-    bxcolor = get_valid_color(options["bx_color"])
-    boxprops = {
-        "color": blcolor,
-        "facecolor": bxcolor,
-        "linewidth": float(options["bx_lw"]),
-    }
-    median_color = get_valid_color(options["median_color"])
-    medianprops = {
-        "color": median_color,
-        "linewidth": float(options["median_lw"]),
-    }
-    whiskerprops = {
-        "linewidth": float(options["bx_lw"]),
-        "color": blcolor,
-    }
-    capprops = {
-        "linewidth": float(options["bx_lw"]),
-        "color": blcolor,
-    }
-    flier_color = get_valid_color(options["flier_color"])
-    flierprops = {
-        "marker": options["flier_marker"],
-        "markersize": float(options["flier_size"]),
-        "markerfacecolor": flier_color,
-        "markeredgecolor": flier_color,
-        "markeredgewidth": float(options["bx_lw"]),
-    }
-    bxp_width = float(options["bx_width"])
+    # Appearance options; unset ones are omitted so Matplotlib/style defaults
+    # apply. Without a fill color the boxes are drawn unfilled (patch_artist off).
+    blcolor = (
+        get_valid_color(options["box_bordercolor"])
+        if options["box_bordercolor"]
+        else None
+    )
+    bxcolor = get_valid_color(options["box_color"]) if options["box_color"] else None
+    box_linewidth = (
+        float(options["box_linewidth"]) if options["box_linewidth"] else None
+    )
+    whisker_linewidth = (
+        float(options["whisker_linewidth"]) if options["whisker_linewidth"] else None
+    )
+    boxprops = {}
+    if blcolor is not None:
+        boxprops["color"] = blcolor
+    if bxcolor is not None:
+        boxprops["facecolor"] = bxcolor
+    if box_linewidth is not None:
+        boxprops["linewidth"] = box_linewidth
+    median_color = (
+        get_valid_color(options["median_color"]) if options["median_color"] else None
+    )
+    medianprops = {}
+    if median_color is not None:
+        medianprops["color"] = median_color
+    if options["median_linewidth"]:
+        medianprops["linewidth"] = float(options["median_linewidth"])
+    lineprops = {}
+    if whisker_linewidth is not None:
+        lineprops["linewidth"] = whisker_linewidth
+    if blcolor is not None:
+        lineprops["color"] = blcolor
+    whiskerprops = dict(lineprops)
+    capprops = dict(lineprops)
+    flier_color = (
+        get_valid_color(options["flier_color"]) if options["flier_color"] else None
+    )
+    flierprops = {"marker": options["flier_marker"]}
+    if options["flier_size"]:
+        flierprops["markersize"] = float(options["flier_size"])
+    if flier_color is not None:
+        flierprops["markerfacecolor"] = flier_color
+        flierprops["markeredgecolor"] = flier_color
+    if box_linewidth is not None:
+        flierprops["markeredgewidth"] = box_linewidth
+    patch_artist = bxcolor is not None
+    width_kwargs = (
+        {"widths": float(options["box_width"])} if options["box_width"] else {}
+    )
     group_by = options["group_by"] if options["group_by"] else None
     map_outliers = options["map_outliers"] if options["map_outliers"] else None
     overlap_basis = options["overlap_basis"] if options["overlap_basis"] else "whisker"
@@ -647,8 +708,8 @@ def main():
             whiskerprops=whiskerprops,
             capprops=capprops,
             flierprops=flierprops,
-            patch_artist=True,
-            widths=bxp_width,
+            patch_artist=patch_artist,
+            **width_kwargs,
         )
     else:
         data = [as_float(row[column], column) for row in records]
@@ -663,13 +724,18 @@ def main():
             whiskerprops=whiskerprops,
             capprops=capprops,
             flierprops=flierprops,
-            patch_artist=True,
-            widths=bxp_width,
+            patch_artist=patch_artist,
+            **width_kwargs,
         )
 
     # Rotate the labels on the categorical (group) axis
     if flag_r:
         ax.tick_params(axis="y" if horizontal else "x", labelrotation=90)
+
+    # Plot title (empty means no title)
+    if options["title"]:
+        ax.set_title(options["title"])
+
     plt.tight_layout()
 
     # Set limits value axis (the value axis is x when horizontal, else y)

@@ -232,10 +232,10 @@ Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
 
 ## SEE ALSO
 
-*[i.hyper](i.hyper.html),
-[i.hyper.import](i.hyper.import.html),
-[i.hyper.preproc](i.hyper.preproc.html),
-[i.hyper.explore](i.hyper.explore.html)*
+*[i.hyper](i.hyper.md),
+[i.hyper.import](i.hyper.import.md),
+[i.hyper.preproc](i.hyper.preproc.md),
+[i.hyper.explore](i.hyper.explore.md)*
 
 ## AUTHORS
 

@@ -1,0 +1,34 @@
+flowchart TD
+    SRC["post-event DEM + reference DEM"]
+    SRC --> CR["r.dem.coregister<br/>PGCP + Nuth &amp; Kääb / ICP"]
+    SRC --> NK["r.dem.nk<br/>Nuth &amp; Kääb only"]
+    SRC --> ICP["r.dem.icp<br/>ICP only"]
+
+    CR --> DOD["DoD<br/>r.mapcalc"]
+    NK --> DOD
+    ICP --> DOD
+
+    STATS["r.dem.stats<br/>slope, roughness,<br/>landform diversity"]
+    DOD -->|dod| BIAS["r.dem.bias<br/>regression / spline / forest"]
+    STATS -->|"predictors<br/>method=regression"| BIAS
+
+    BIAS -->|output| CDOD(["DoD under test"])
+    BIAS -->|output_se| SE(["bias-model<br/>coefficient SE"])
+    DOD -.->|bias correction optional| CDOD
+
+    CDOD -->|dod| LOD["r.dem.lod<br/>global / local"]
+    SE -->|sigma_extra| LOD
+    LOD -->|output| LODR(["LoD raster"])
+    LOD -->|output_sigma| SIGMA(["combined 1-sigma"])
+
+    CDOD -->|dod| EP["r.dem.errprop"]
+    SIGMA -->|sigma| EP
+    EP -->|output_lod| LODR
+    EP --> CLASS(["z-score, p-value,<br/>significance classes"])
+
+    CDOD -->|dod| CH["r.dem.change<br/>trim, LoD mask,<br/>speckle, volumes"]
+    LODR -->|lod| CH
+    CH --> SC["r.dem.screen<br/>regional triage"]
+
+    classDef data fill:#f4f4f4,stroke:#999,color:#333
+    class CDOD,SE,LODR,SIGMA,CLASS data

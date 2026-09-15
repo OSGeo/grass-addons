@@ -1,27 +1,283 @@
-<h2>Description</h2>
+<h2>DESCRIPTION</h2>
 
-<strong>v.surf.rst.cv</strong> - Cross-validation of regularized spline with tension (RST)
-surface model.
+<em>v.surf.rst.cv</em> finds well performing parameters for the
+regularized spline with tension (RST) interpolation implemented in
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>
+by running its leave-one-out cross-validation procedure over combinations
+of parameter values. For every combination, each input point is withheld
+in turn, the surface is approximated from the remaining points, and the
+predictive error (predicted minus observed value) is recorded. The tool
+summarizes the errors of every combination, reports the best one, and
+optionally saves the cross-validation error maps. The <b>mask</b>,
+<b>zcolumn</b>, <b>where</b>, <b>zscale</b>, and <b>layer</b> options are
+passed through unchanged to every v.surf.rst run.
 
-Predictive error of surface approximation for given parameters are
-computed and a cross-validation procedure is then performed using the
-data given in the vector map input. The estimated predictive errors are
-stored in the optionally saved vector point map cvdev.
+<p>
+The <b>tension</b> and <b>smooth</b> options accept lists of values and
+form the core search space. The remaining RST parameters (<b>npmin</b>,
+<b>segmax</b>, <b>dmin</b>, <b>dmax</b>, <b>theta</b>, <b>scalex</b>)
+also accept lists and are swept as an outer loop: every combination of
+their values is combined with the full tension and smoothing search. See
+the NOTES for why these parameters need more care when interpreting
+results.
 
-For larger data sets, CV should be applied to a representative subset of the
-data. The cross-validation procedure works well only for well-sampled phenomena
-and when minimizing the predictive error is the goal. The parameters found by
-minimizing the predictive (CV) error may not not be the best for for poorly
-sampled phenomena (result could be strongly smoothed with lost details and
-fluctuations) or when significant noise is present that needs to be smoothed out.
+<p>
+Two search methods are available:
+
+<ul>
+<li><b>method=grid</b> (default) evaluates the full Cartesian product of
+the tension and smoothing lists.</li>
+<li><b>method=refine</b> first evaluates the tension x smoothing grid and
+then recursively refines the search around the best combination:
+geometric midpoints between the best cell and its neighbors are
+evaluated, up to <b>levels</b> times or until the error differences
+within the refinement window become negligible. Use it to locate a finer
+optimum without enumerating a dense grid. When the best combination lies
+on the border of the searched range, a warning recommends widening the
+range.</li>
+</ul>
+
+<p>
+Parameter combinations are cross-validated in parallel; <b>nprocs</b>
+controls the number of concurrent runs (each v.surf.rst process runs
+single threaded). A failing combination is reported as a row with an
+error instead of stopping the search.
+
+<h3>Error metrics</h3>
+
+For each combination the tool reports the number of cross-validated
+points (<em>n</em>), mean error (<em>me</em>, a measure of bias), mean
+absolute error (<em>mae</em>), root mean square error (<em>rmse</em>),
+median error, normalized median absolute deviation (<em>nmad</em>), the
+68.3rd and 95th percentiles of the absolute error (<em>p68</em>,
+<em>p95</em>), the extreme errors, and the normalization factor
+(<em>dnorm</em>, see below). The best combination is selected by RMSE.
+The best combinations under MAE and NMAD are also reported; when the
+metrics disagree, the tool warns, because the selection is then driven by
+a small number of large errors and the residual distribution should be
+inspected before accepting the result.
+
+<p>
+The reported cross-validation error of the winning combination is an
+optimistic estimate of the accuracy of the final surface, because it was
+selected as the minimum over many candidates. Use an independent set of
+withheld points to estimate the accuracy of the resulting surface.
+
+<h3>Tension, dnorm, and the -t flag</h3>
+
+v.surf.rst internally normalizes coordinates by a factor
+
+<div class="code"><pre>
+dnorm = sqrt(area * npmin / n)
+</pre></div>
+
+where <em>area</em> is the bounding box of the points and <em>n</em>
+their count. The effective range of the spline is therefore proportional
+to <em>dnorm/tension</em>: the same tension value acts differently for
+different point counts, extents, and <b>npmin</b> settings. Consequences:
+
+<ul>
+<li>A tension optimized for one data set does not transfer to another
+data set, or even to a subsample of the same data set, unless the
+<b>-t</b> flag (scale dependent tension) is used. With <b>-t</b>, tension
+is rescaled by <em>dnorm/1000</em> and acts on the real coordinates.</li>
+<li>Sweeping <b>npmin</b> together with tension without <b>-t</b>
+compares different effective tensions across rows; the tool warns in this
+case.</li>
+</ul>
+
+<p>
+The computed <em>dnorm</em> is reported for every combination, and with
+<b>-t</b> the rescaled tension is reported as <em>tension_rescaled</em>.
+The reported <em>dnorm</em> is derived from the bounding box of the input
+points and is approximate when the computational region clips part of the
+input.
+
+<h3>Cross-validation on large data sets</h3>
+
+Leave-one-out cross-validation is reasonable for up to several thousand
+points. For larger data sets, set <b>npoints</b> to cross-validate on a
+spatially stratified random subsample: one point is drawn per cell of a
+coarse grid sized to yield approximately <b>npoints</b> points, which
+preserves the spatial coverage of clustered point clouds better than
+simple random sampling. Use <b>seed</b> for a reproducible selection.
+Combine subsampling with the <b>-t</b> flag, otherwise the optimal
+tension found on the subsample does not apply at full point density (the
+tool warns about this).
+
+<h3>Saved cross-validation maps</h3>
+
+When <b>cv_prefix</b> is set, the cross-validation error vector map of
+every combination is kept as <code>&lt;cv_prefix&gt;_&lt;index&gt;</code>
+(the <em>cvdev</em> column of the report gives the map name for each
+row), the errors are interpolated into a raster map of the same name, and
+a diverging color scheme centered on the median error is applied to both.
+The error value is stored in the <code>flt1</code> attribute column as
+predicted minus observed.
+
+<h2>NOTES</h2>
+
+Parameters swept in the outer loop change more than the model fit:
+
+<ul>
+<li><b>dmin</b> removes nearly coincident points before interpolation and
+<b>dmax</b> inserts additional points along lines. Both change which
+points receive a cross-validation error, so error metrics of rows with
+different <b>dmin</b> or <b>dmax</b> values are computed over different
+point sets and are not directly comparable; compare the <em>n</em> column
+and interpret those rows with care (the tool warns when <em>n</em>
+differs).</li>
+<li><b>npmin</b> and <b>segmax</b> control segmentation. For data sets
+larger than <em>2 x npmin</em> points, v.surf.rst requires <em>npmin &gt;
+segmax</em>. To skip segmentation entirely for smaller data sets, set
+<em>segmax = 2 x npmin</em>.</li>
+<li><b>theta</b> and <b>scalex</b> (anisotropy) are supported, but the
+current v.surf.rst evaluates cross-validation errors without applying the
+anisotropy transformation used in the interpolation, so cross-validation
+results with anisotropy are unreliable until this is fixed in GRASS; the
+tool warns when they are used.</li>
+</ul>
+
+<p>
+The cross-validation procedure works well only for well-sampled phenomena
+and when minimizing the predictive error is the goal. The parameters
+found by minimizing the predictive error may not be the best for poorly
+sampled phenomena (the result could be strongly smoothed with lost
+details and fluctuations) or when significant noise is present that needs
+to be smoothed out.
+
+<p>
+The computational region affects the result: points outside the region
+receive no cross-validation error and the default <b>dmin</b> is derived
+from the region resolution. Compare runs only within the same region.
+
+<p>
+Results are always printed to standard output; <b>output_file</b> writes
+the same content to a file in addition. With <b>nprocs</b> greater than
+one, the tool runs each combination in a temporary mapset named
+<code>tmp_cv_*</code> inside the current project to avoid database
+contention; these mapsets are removed when the tool ends, but may remain
+after a hard interruption and can then be removed manually.
+
+<p>
+Possible future extensions include k-fold cross-validation (which would
+also make <b>dmin</b>/<b>dmax</b> rows comparable), buffered
+leave-one-out for data with near-duplicate points, and spatially blocked
+cross-validation for gap-filling applications.
 
 <h2>EXAMPLES</h2>
 
-<div class="code">
-    <pre>
-        v.surf.rst.cv point_cloud=lidar
-    </pre>
-</div>
+<h3>Basic grid search</h3>
+
+<div class="code"><pre>
+g.region raster=elevation res=30 n=220790 s=218390 w=632680 e=635910 -a
+r.random input=elevation npoints=500 seed=0 vector=points -z
+v.surf.rst.cv point_cloud=points tension=10,100 smooth=0.5,5.0 \
+    segmax=600 nprocs=4 format=json output_file=test_cv.json
+</pre></div>
+
+The JSON output contains one entry per combination and the best
+combinations per metric:
+
+<div class="code"><pre>
+{
+    "input": "points",
+    "method": "grid",
+    "scale_dependent_tension": false,
+    "subsample": null,
+    "region": {...},
+    "warnings": [],
+    "results": [
+        {
+            "tension": 100.0,
+            "smooth": 0.5,
+            "segmax": 600,
+            "cvdev": null,
+            "n": 500,
+            "me": 0.005205,
+            "mae": 2.006109,
+            "rmse": 2.715355,
+            "median": -0.224484,
+            "nmad": 2.269,
+            "p68": 2.305549,
+            "p95": 5.610012,
+            "min": -9.519708,
+            "max": 9.506766,
+            "error": null,
+            "dnorm": 2149.976744
+        },
+        ...
+    ],
+    "best": {"rmse": {...}, "mae": {...}, "nmad": {...}}
+}
+</pre></div>
+
+A report of the best parameter combination is printed to stderr:
+
+<div class="code"><pre>
+Best parameter combination (by RMSE)
+--------------------------------------------------
+Tension: 100
+Smoothing: 0.5
+segmax: 600
+RMSE: 2.71536
+MAE: 2.00611
+NMAD: 2.269
+--------------------------------------------------
+</pre></div>
+
+<h3>Refined search</h3>
+
+Instead of a dense grid, refine around the best coarse cell:
+
+<div class="code"><pre>
+v.surf.rst.cv point_cloud=points tension=10,40,160 smooth=0.01,0.1,1.0 \
+    segmax=600 method=refine levels=3 nprocs=4
+</pre></div>
+
+<h3>Sweeping structural parameters</h3>
+
+Evaluate the effect of segmentation settings on the optimum, using scale
+dependent tension so tension values stay comparable across npmin:
+
+<div class="code"><pre>
+v.surf.rst.cv -t point_cloud=points tension=10,40,160 smooth=0.01,0.1,1.0 \
+    npmin=150,300 segmax=120 nprocs=4
+</pre></div>
+
+<h3>Large data sets</h3>
+
+Cross-validate on a spatially stratified subsample of 2000 points:
+
+<div class="code"><pre>
+v.surf.rst.cv -t point_cloud=lidar_points npoints=2000 seed=42 nprocs=8
+</pre></div>
+
+<h3>Saving the error maps</h3>
+
+When <b>cv_prefix</b> is set, the error point maps are kept and
+interpolated into deviation surfaces:
+
+<div class="code"><pre>
+v.surf.rst.cv point_cloud=points tension=10,100 smooth=0.5,5.0 \
+    segmax=600 cv_prefix=cvdev nprocs=4
+</pre></div>
+
+<img src="v_surf_rst_cv_100_05.png" alt="cvdev surface tension 100 smooth 0.5">
+<br>
+<em>Tension: 100 Smooth: 0.5</em>
+<br>
+<img src="v_surf_rst_cv_100_50.png" alt="cvdev surface tension 100 smooth 5">
+<br>
+<em>Tension: 100 Smooth: 5</em>
+<br>
+<img src="v_surf_rst_cv_10_05.png" alt="cvdev surface tension 10 smooth 0.5">
+<br>
+<em>Tension: 10 Smooth: 0.5</em>
+<br>
+<img src="v_surf_rst_cv_10_50.png" alt="cvdev surface tension 10 smooth 5">
+<br>
+<em>Tension: 10 Smooth: 5</em>
 
 <h2>REFERENCES</h2>
 
@@ -39,7 +295,14 @@ fluctuations) or when significant noise is present that needs to be smoothed out
 </ul>
 
 <h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.resamp.rst.html">r.resamp.rst</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.vol.rst.html">v.vol.rst</a>
+</em>
 
 <h2>AUTHORS</h2>
 

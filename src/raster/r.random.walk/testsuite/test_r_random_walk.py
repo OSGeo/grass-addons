@@ -120,6 +120,26 @@ class TestRandomWalk(TestCase):
             flags="st",
         )
 
+    def test_random_walk_nprocs_zero(self):
+        """Test that nprocs=0 resolves to all cores instead of failing"""
+        self.assertModule(
+            "r.random.walk",
+            output=self.random_walk,
+            steps=1000,
+            seed=0,
+            nprocs=0,
+        )
+
+    def test_random_walk_nprocs_negative(self):
+        """Test that a negative nprocs resolves to cpu_count + nprocs"""
+        self.assertModule(
+            "r.random.walk",
+            output=self.random_walk,
+            steps=1000,
+            seed=0,
+            nprocs=-1,
+        )
+
     def test_take_step_dir_4(self):
         """
         Tests 4 directional step

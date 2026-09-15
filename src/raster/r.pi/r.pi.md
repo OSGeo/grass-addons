@@ -156,8 +156,7 @@ the module and might also be influenced by the resolution.
 [r.pi.searchtime.pr](r.pi.searchtime.pr.md),
 [r.pi.searchtime.mw](r.pi.searchtime.mw.md)*
 
-*[r.le](r.le.md),
-[r.li](https://grass.osgeo.org/grass-stable/manuals/r.li.html)*
+*[r.li](https://grass.osgeo.org/grass-stable/manuals/r.li.html)*
 
 ## REFERENCE
 

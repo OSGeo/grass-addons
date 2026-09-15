@@ -355,8 +355,6 @@ def run_parallel(
     tmp_rasters, processes, directions, boundary, steps, avoid, path_sampling, memory
 ):
     gs.message(_("Smoothed Walk"))
-    max_cpus = os.cpu_count() - 1
-    gs.message(_("Max CPUs: {0}, Used CPUs: {1}").format(max_cpus, processes))
     start_pos = False
     if path_sampling:
         start_pos = starting_position(boundary[0], boundary[1])
@@ -412,7 +410,17 @@ def main():
     gs.message(_("Region with {0} rows and {1} columns").format(rows, cols))
     boundary = [rows, cols]
     path_sampling = flags["t"]
+
     processes = int(options["nprocs"])
+    if hasattr(gs, "resolve_nprocs"):  # added in GRASS 8.6
+        processes = gs.resolve_nprocs(processes)
+    elif processes <= 0:
+        # 0 means all cores, negative means cpu_count + nprocs
+        cpus = os.cpu_count() or 1
+        processes = max(1, cpus + processes) if processes < 0 else cpus
+
+    gs.verbose(_("Using {0} parallel processes").format(processes))
+
     smooth = int(options["nwalkers"])
     _tmp_rasters = [f"{PREFIX}{i}" for i in range(0, smooth)]
     TMP_RASTERS.append(_tmp_rasters)

@@ -49,7 +49,7 @@ then the **hoz\_inclination** map will record either the inclination
 (*r.viewshed* default), simply '1' meaning that the cell was visible
 (*r.viewshed* **-b** flag), or the elevation difference between the
 viewpoint and horizon cell (*r.viewshed* **-e** flag). If the input
-viewshed map was computed with the older*[r.los](r.los.md)* then the
+viewshed map was computed with the older *r.los* then the
 **hoz\_inclination** map will record the inclination at which the
 horizon cells appear from the viewpoint. Note that in all cases the
 horizon depicted on this map may include cells that occur at the maximum
@@ -141,7 +141,8 @@ non-integer).
 
 ## SEE ALSO
 
-*[r.bearing.distance](r.bearing.distance.md)*, *[r.los](r.los.md)*,
+*[r.bearing.distance](r.bearing.distance.md)*,
+*r.los*,
 *[r.viewshed](https://grass.osgeo.org/grass-stable/manuals/r.viewshed.html)*.
 
 ## AUTHOR

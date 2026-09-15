@@ -85,7 +85,7 @@ internal parameters of the model*
 [i.evapo.mh](https://grass.osgeo.org/grass-stable/manuals/i.evapo.mh.html)  
 [i.evapo.senay](i.evapo.senay.md)  
 [i.eb.netrad](https://grass.osgeo.org/grass-stable/manuals/i.eb.netrad.html)  
-[i.eb.soilheatflux](i.eb.soilheatflux.md)  
+[i.eb.soilheatflux](https://grass.osgeo.org/grass-stable/manuals/i.eb.soilheatflux.html)  
 *
 
 ## REFERENCES

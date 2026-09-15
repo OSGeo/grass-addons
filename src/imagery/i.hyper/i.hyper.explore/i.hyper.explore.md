@@ -15,8 +15,8 @@ interactively.
 
 *i.hyper.explore* automatically reads wavelength metadata, measurement
 type (e.g., *reflectance*, *radiance*), and units from `hyper.json`
-produced by [i.hyper.import](i.hyper.import.html) or
-[i.hyper.preproc](i.hyper.preproc.html). If the map contains principal
+produced by [i.hyper.import](i.hyper.import.md) or
+[i.hyper.preproc](i.hyper.preproc.md). If the map contains principal
 components or other dimensionally reduced features, the module detects
 this and adjusts the X-axis to component indices.
 

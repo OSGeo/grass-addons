@@ -7,7 +7,7 @@
 # PURPOSE:      Draws the boxplot of the rasters of a space-time
 #               raster dataset.
 #
-# COPYRIGHT:    (c) 2022 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2022-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -103,12 +103,20 @@
 # %end
 
 # %option
-# % key: font_size
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
+# % guisection: Plot format
+# %end
+
+# %option
+# % key: fontsize
 # % type: integer
 # % label: Font size
 # % description: Font size of labels
 # % guisection: Plot format
-# % answer: 10
 # % required: no
 # %end
 
@@ -138,7 +146,7 @@
 # %end
 
 # %option
-# % key: bx_width
+# % key: box_width
 # % type: double
 # % label: Boxplot width
 # % description: The width of the boxplots
@@ -147,40 +155,38 @@
 # %end
 
 # %options G_OPT_CN
-# % key: bx_color
+# % key: box_color
 # % type: string
 # % label: Boxplot color
-# % description: Color of the boxplots. See manual page for color notation options.
+# % description: Fill color of the boxplots. Unset leaves the boxes unfilled (Matplotlib default). See manual page for color notation options.
 # % required: no
-# % answer: white
+# % answer:
 # % guisection: Boxplot format
 # %end
 
 # %option
-# % key: bx_lw
+# % key: box_linewidth
 # % type: double
 # % label: boxplot linewidth
-# % description: The linewidth of the boxplots
+# % description: The linewidth of the boxplots. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1
 # %end
 
 # %option
-# % key: median_lw
+# % key: median_linewidth
 # % type: double
-# % description: width of the boxplot median line
+# % description: width of the boxplot median line. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1.1
 # %end
 
 # %option G_OPT_C
 # % key: median_color
 # % label: Color of the boxlot median line
-# % description: Color of median
+# % description: Color of median. Defaults to the Matplotlib default.
 # % required: no
-# % answer: orange
+# % answer:
 # % guisection: Boxplot format
 # %end
 
@@ -188,10 +194,9 @@
 # % key: whisker_linewidth
 # % type: double
 # % label: Whisker and cap linewidth
-# % description: The linewidth of the whiskers and caps
+# % description: The linewidth of the whiskers and caps. Defaults to the Matplotlib default.
 # % required: no
 # % guisection: Boxplot format
-# % answer: 1
 # %end
 
 # %option
@@ -208,19 +213,21 @@
 # % key: flier_size
 # % type: string
 # % label: Flier size
-# % description: Set the flier size
+# % description: Set the flier size. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 2
 # % guisection: Boxplot format
 # %end
 
 # %option G_OPT_C
 # % key: flier_color
 # % label: Flier color
-# % description: Set the flier color
+# % description: Set the flier color. Defaults to the Matplotlib default.
 # % required: no
-# % answer: black
+# % answer:
 # % guisection: Boxplot format
+# %end
+
+# %option G_OPT_M_NPROCS
 # %end
 
 
@@ -253,6 +260,21 @@ def lazy_import_py_modules():
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
 
 
 def create_unique_name(name):
@@ -485,17 +507,18 @@ def bxp_stats(rastername, whisker_range):
     ]
 
 
-def compute_notch(rastername, quant2, iqr):
+def compute_notch(rastername, quant2, iqr, nprocs):
     """Compute notches of boxplots
 
     :param str rastername: name of input raster
     :param float quant2: 2nd quantile
     :param float iqr: interquartile range
+    :param int nprocs: number of threads for r.univar
 
     :return list: list with lower and upper notch value of input raster
     """
     univar = Module(
-        "r.univar", flags=["g", "t"], map=rastername, stdout_=PIPE
+        "r.univar", flags=["g", "t"], map=rastername, nprocs=nprocs, stdout_=PIPE
     ).outputs.stdout
     n_values = int(univar.replace("\r", "").split("\n")[1].split("|")[0])
     lower_notch = quant2 - 1.57 * (iqr / n_values**0.5)
@@ -667,9 +690,14 @@ def main(options, flags):
 
     # lazy import matplotlib
     lazy_import_py_modules()
+    apply_style(options["style"])
+
+    # Number of threads for r.univar (used to compute the notches)
+    nprocs = int(options["nprocs"])
 
     # Plot format options
-    plt.rcParams["font.size"] = int(options["font_size"])
+    if options["fontsize"]:
+        plt.rcParams["font.size"] = int(options["fontsize"])
     grid = flags["g"]
 
     # Get range (if defined)
@@ -682,17 +710,23 @@ def main(options, flags):
             )
         )
 
-    # Line width boxplot and whiskers
-    bxp_linewidth = float(options["bx_lw"])
-    whisker_linewidth = float(options["whisker_linewidth"])
+    # Appearance options; unset ones stay None -> Matplotlib/style default
+    bxp_linewidth = (
+        float(options["box_linewidth"]) if options["box_linewidth"] else None
+    )
+    whisker_linewidth = (
+        float(options["whisker_linewidth"]) if options["whisker_linewidth"] else None
+    )
 
     # Get flier size, marker and color
-    flier_size = int(options["flier_size"])
+    flier_size = float(options["flier_size"]) if options["flier_size"] else None
     flier_marker = options["flier_marker"]
-    flier_color = get_valid_color(color=options["flier_color"])
+    flier_color = (
+        get_valid_color(options["flier_color"]) if options["flier_color"] else None
+    )
 
     # Boxplot fill color
-    bxcolor = get_valid_color(options["bx_color"])
+    bxcolor = get_valid_color(options["box_color"]) if options["box_color"] else None
 
     # Output options
     output = options["output"]
@@ -711,7 +745,7 @@ def main(options, flags):
 
     # Determine boxplot width (based on date type and granuality)
     bxp_width, temp_lngt, temp_unit = get_bx_width(
-        options["bx_width"],
+        options["box_width"],
         temp_type,
         options["input"],
     )
@@ -733,7 +767,7 @@ def main(options, flags):
 
         # Compute notch limits
         if flags["n"]:
-            lower_notch, upper_notch = compute_notch(rastername, quant2, iqr)
+            lower_notch, upper_notch = compute_notch(rastername, quant2, iqr, nprocs)
         else:
             lower_notch = upper_notch = ""
 
@@ -758,13 +792,29 @@ def main(options, flags):
         }
         boxes.append(dict_i)
 
-    # Plot the figure
+    # Plot the figure. Only appearance options that were set are passed on, so
+    # unset ones fall back to the Matplotlib/style defaults.
     _, ax = plt.subplots(figsize=dimensions)
-    boxprops = dict(linewidth=bxp_linewidth)
-    whiskerprops = dict(linewidth=whisker_linewidth)
-    capprops = dict(linewidth=whisker_linewidth)
-    median_color = get_valid_color(options["median_color"])
-    medianprops = dict(linewidth=float(options["median_lw"]), color=median_color)
+    boxprops = {}
+    if bxp_linewidth is not None:
+        boxprops["linewidth"] = bxp_linewidth
+    whiskerprops = {}
+    if whisker_linewidth is not None:
+        whiskerprops["linewidth"] = whisker_linewidth
+    median_color = (
+        get_valid_color(options["median_color"]) if options["median_color"] else None
+    )
+    medianprops = {}
+    if options["median_linewidth"]:
+        medianprops["linewidth"] = float(options["median_linewidth"])
+    if median_color is not None:
+        medianprops["color"] = median_color
+    flierprops = {"marker": flier_marker}
+    if flier_size is not None:
+        flierprops["markersize"] = flier_size
+    if flier_color is not None:
+        flierprops["markerfacecolor"] = flier_color
+        flierprops["markeredgecolor"] = flier_color
     bxplot = ax.bxp(
         boxes,
         positions=tic_positions,
@@ -774,15 +824,10 @@ def main(options, flags):
         boxprops=boxprops,
         whiskerprops=whiskerprops,
         medianprops=medianprops,
-        capprops=capprops,
+        capprops=whiskerprops,
         shownotches=bool(flags["n"]),
-        patch_artist=True,
-        flierprops={
-            "marker": flier_marker,
-            "markersize": flier_size,
-            "markerfacecolor": flier_color,
-            "markeredgecolor": flier_color,
-        },
+        patch_artist=bxcolor is not None,
+        flierprops=flierprops,
     )
 
     # Set granuality and format of date on x (or y) axis
@@ -800,10 +845,10 @@ def main(options, flags):
             ax, options["date_format"], temp_unit, vertical, rast_dates, temp_lngt
         )
 
-    # Set color boxplots
-    bxcolor = [bxcolor for _i in range(len(rast_names))]
-    for patch, color in zip(bxplot["boxes"], bxcolor):
-        patch.set_facecolor(color)
+    # Set color boxplots (only when a fill color was given)
+    if bxcolor is not None:
+        for patch in bxplot["boxes"]:
+            patch.set_facecolor(bxcolor)
 
     # Label orientation
     if bool(options["rotate_labels"]) and vertical:

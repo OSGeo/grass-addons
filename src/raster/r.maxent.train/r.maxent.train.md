@@ -17,8 +17,8 @@ input, the addon requires two comma-separated files, one with the
 species locations and another of background points locations. Both need
 to include columns with the X, Y and sample values of the environmental
 variables that you want to use as predictor variables. You can use the
-[r.out.maxent\_swd](r.out.maxent_swd.html) or
-[v.maxent.swd](v.maxent.swd.html) addons to create these files. For more
+[r.out.maxent\_swd](r.out.maxent_swd.md) or
+[v.maxent.swd](v.maxent.swd.md) addons to create these files. For more
 details about the structure of these files, see the [Maxent
 website](https://biodiversityinformatics.amnh.org/open_source/maxent/).
 
@@ -35,10 +35,12 @@ system as your current mapset. An easy way to ensure this is by using
 the *v.maxent\_swd* from the same mapset to create those input
 environmental layers for Maxent. See the workflow in the Examples.
 
-The addon provides access to nearly all parameters available in the
-Maxent software. On the above-mentioned website, you can find a tutorial
-that explains most of these options. For the other options, see the
-Maxent help file.
+The add-on provides access to nearly all parameters available in the Maxent
+software. The
+[Maxent website](https://biodiversityinformatics.amnh.org/open_source/maxent/)
+includes a tutorial explaining most of these options. For a step-by-step guide
+to the modelling workflow using the *r.maxent.** add-ons, see
+[Species Distribution Modelling Using Maxent in GRASS](https://ecodiv.earth/TutorialsNotes/sdmingrassgis/).
 
 ## NOTES
 
@@ -209,14 +211,16 @@ BCC-CSM2-MR and SSP 585.*
     files and prediction rasters that can be used directly by the
     *r.maxent.train* addon (or the Maxent software itself) to create
     species distribution models.
-- [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
+- [r.out.maxent\_swd](r.out.maxent_swd.md), creating species and
     background swd files based on species distribution data in raster
     format.
 - [r.maxent.predict](r.maxent.predict.md), creating a suitability
     layer based on a set of environmental layers and a Maxent model,
     e.g., created using the r.maxent.train addon.
-- [r.maxent.setup](r.maxent.setup.html), helper function to allow
+- [r.maxent.setup](r.maxent.setup.md), helper function to allow
     GRASS to use Maxent.
+- Tutorial "Species distribution modeling Using Maxent in GRASS. URL:
+  [https://ecodiv.earth/TutorialsNotes/sdmingrassgis/](https://ecodiv.earth/TutorialsNotes/sdmingrassgis/)
 
 ## AUTHOR
 

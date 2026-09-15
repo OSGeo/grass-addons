@@ -1,0 +1,147 @@
+"""Tests for t.rast.vi
+(C) 2026 by the GRASS Development Team
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
+@author Luca Delucchi
+"""
+
+import grass.temporal as tgis
+import grass.script as gs
+from grass.gunittest.case import TestCase
+from grass.gunittest.main import test
+
+
+class TestClimatologies(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        """Initiate the temporal GIS and set the region"""
+        tgis.init(raise_fatal_error=True)
+        cls.use_temp_region()
+        cls.runModule("g.region", s=0, n=80, w=0, e=120, b=0, t=50, res=10, res3=10)
+
+        cls.runModule("r.mapcalc", expression="a_1 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="a_2 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="b_1 = 10", overwrite=True)
+        cls.runModule("r.mapcalc", expression="b_2 = 10", overwrite=True)
+        cls.runModule("r.mapcalc", expression="c_1 = 100", overwrite=True)
+        cls.runModule("r.mapcalc", expression="c_2 = 100", overwrite=True)
+
+        cls.runModule(
+            "t.create",
+            type="strds",
+            temporaltype="absolute",
+            output="red_monthly",
+            title="Monthly test RED data",
+            description="Monthly test RED data",
+            overwrite=True,
+        )
+        cls.runModule(
+            "t.create",
+            type="strds",
+            temporaltype="absolute",
+            output="nir_monthly",
+            title="Monthly test NIR data",
+            description="Monthly test NIR data",
+            overwrite=True,
+        )
+        cls.runModule(
+            "t.create",
+            type="strds",
+            temporaltype="absolute",
+            output="blue_monthly",
+            title="Monthly test BLUE data",
+            description="Monthly test BLUE data",
+            overwrite=True,
+        )
+        cls.runModule(
+            "t.register",
+            flags="i",
+            type="raster",
+            input="red_monthly",
+            maps="a_1,a_2",
+            start="2001-01-01",
+            increment="1 month",
+            overwrite=True,
+        )
+        cls.runModule(
+            "t.register",
+            flags="i",
+            type="raster",
+            input="nir_monthly",
+            maps="b_1,b_2",
+            start="2001-01-01",
+            increment="1 month",
+            overwrite=True,
+        )
+        cls.runModule(
+            "t.register",
+            flags="i",
+            type="raster",
+            input="blue_monthly",
+            maps="c_1,c_2",
+            start="2001-01-01",
+            increment="1 month",
+            overwrite=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        """Remove the time series"""
+        cls.runModule(
+            "t.remove", flags="rf", type="strds", inputs="red_monthly,nir_monthly"
+        )
+
+    def test_ndvi(self):
+        self.runModule(
+            "t.rast.vi",
+            red="red_monthly",
+            nir="nir_monthly",
+            output="ndvi_monthly",
+            viname="ndvi",
+            prefix="ndvimonthly",
+            overwrite=True,
+        )
+        self.assertRasterExists("ndvimonthly_2001_01_01_00_00_ndvi")
+        self.assertRasterMinMax("ndvimonthly_2001_01_01_00_00_ndvi", -0.83, -0.80)
+
+    def test_evi(self):
+        self.runModule(
+            "t.rast.vi",
+            red="red_monthly",
+            nir="nir_monthly",
+            blue="blue_monthly",
+            output="evi_monthly",
+            viname="evi",
+            prefix="evimonthly",
+            overwrite=True,
+        )
+        self.assertRasterExists("evimonthly_2001_01_01_00_00_evi")
+        out = gs.parse_command("t.rast.list", input="evi_monthly", format="json")
+        self.assertEqual(len(out["data"]), 2)
+
+    def test_missing_output(self):
+        self.assertModuleFail(
+            "t.rast.vi",
+            red="red_monthly",
+            nir="nir_monthly",
+            viname="ndvi",
+            prefix="ndvimonthly",
+            overwrite=True,
+        )
+
+    def test_missing_band(self):
+        self.assertModuleFail(
+            "t.rast.vi",
+            red="red_monthly",
+            nir="nir_monthly",
+            blue="blue_monthly",
+            output="gari_monthly",
+            viname="gari",
+            prefix="garimonthly",
+            overwrite=True,
+        )
+
+
+if __name__ == "__main__":
+    test()

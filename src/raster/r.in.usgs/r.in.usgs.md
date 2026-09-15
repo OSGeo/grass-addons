@@ -19,7 +19,13 @@ API.
 
 NED data are available at resolutions of 1 arc-second (about 30 meters),
 1/3 arc-second (about 10 meters), and in limited areas at 1/9 arc-second
-(about 3 meters).
+(about 3 meters). USGS periodically re-collects and re-publishes NED tiles.
+Use **ned\_release** to choose between the *current* (most recent) tiles
+(default), the *historical* (superseded) tiles, or *all* of them. This
+applies only to the 1 arc-second and 1/3 arc-second datasets; the
+1/9 arc-second dataset is not split this way, so all of its tiles are
+always used. When multiple tiles overlap, use the **i** flag to list them
+first and **title\_filter** to select a specific one.
 
 NAIP is available at 1 m resolution.
 

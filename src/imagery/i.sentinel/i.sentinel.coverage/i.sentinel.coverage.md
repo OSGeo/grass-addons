@@ -72,8 +72,8 @@ t.sentinel.import settings=credentials.txt s2names=s2names.txt nprocs=4 \
 ## SEE ALSO
 
 *[i.sentinel.download](i.sentinel.download.md),
-[v.dissolve](v.dissolve.md), [v.overlay](v.overlay.md),
-[v.to.db](v.to.db.md)*
+[v.dissolve](https://grass.osgeo.org/grass-stable/manuals/v.dissolve.html), [v.overlay](https://grass.osgeo.org/grass-stable/manuals/v.overlay.html),
+[v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html)*
 
 ## AUTHOR
 

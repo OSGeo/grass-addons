@@ -128,7 +128,7 @@ only required when the interactive mode of i.pr.training is used.
 
 ## SEE ALSO
 
-*[i.pr\_features](i.pr_features.md)*  
+*[i.pr\_features](i.pr.features.md)*
 
 ## AUTHORS
 

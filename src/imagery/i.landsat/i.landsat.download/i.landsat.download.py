@@ -156,7 +156,6 @@
 import os
 import json
 import sys
-import yaml
 from datetime import datetime, timezone, timedelta, date
 import grass.script as gs
 from grass.exceptions import CalledModuleError
@@ -479,6 +478,7 @@ if __name__ == "__main__":
         import eodag
         from eodag import EODataAccessGateway
         from eodag.utils.exceptions import AuthenticationError
+        import yaml
 
         gs.find_program("i.eodag", "--help")
     except ImportError:

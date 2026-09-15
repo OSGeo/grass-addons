@@ -274,6 +274,9 @@ def main(options, flags):
     if regioninfo["nsres"] != regioninfo["ewres"]:
         if flags["e"]:
             new_resolution = min(float(regioninfo["nsres"]), float(regioninfo["ewres"]))
+            # Adjust the resolution on a temporary region so the user's
+            # computational region is restored automatically on exit.
+            gs.use_temp_region()
             gs.run_command("g.region", flags="a", res=new_resolution)
             gs.message(
                 "The ns and ew resolution of the current computational region are"

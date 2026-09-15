@@ -18,7 +18,7 @@ related to z0m by a factor 7. If you happen to have a vegetation height
 
 ## SEE ALSO
 
-*[i.eb.h0](i.eb.h0.md), [i.eb.h\_SEBAL95](i.eb.h_SEBAL95.md),
+*[i.eb.h0](i.eb.h0.md), [i.eb.h\_SEBAL95](i.eb.hsebal95.md),
 [i.eb.h\_iter](i.eb.h_iter.md), [i.eb.z0m](i.eb.z0m.md)*
 
 ## AUTHOR

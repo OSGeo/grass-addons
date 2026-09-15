@@ -62,7 +62,8 @@ influencing site suitability for the next step. PGA is implemented in
 We need to collect the following data:
 
 *Study extent and resolution*  
-Specified with *[g.region](g.region.md)* command.
+Specified with *[g.region](https://grass.osgeo.org/grass-stable/manuals/g.region.html)*
+command.
 
 *Subregions*  
 FUTURES is designed to capture variation across specified subregions

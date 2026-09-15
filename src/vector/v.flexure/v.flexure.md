@@ -6,7 +6,7 @@ equations for plate bending. This phenomenon is known as "flexural
 isostasy" and is relevant to glacier/ice-cap/ice-sheet loading,
 sedimentary basin filling, mountain belt growth, volcano emplacement,
 sea-level change, and other geologic processes. *v.flexure* and
-*[r.flexure](r.flexure.html)* are the GRASS GIS interfaces to the
+*[r.flexure](r.flexure.md)* are the GRASS GIS interfaces to the
 model [**gFlex**](https://gflex.readthedocs.io/). *v.flexure* requires
 **gFlex ≥ 2.0.0**:
 
@@ -29,7 +29,7 @@ stress into the values stored in the attribute column specified by
 
 **te**, written in standard notation as T<sub>e</sub>, is the
 lithospheric elastic thickness (scalar only for *v.flexure*; use
-*[r.flexure](r.flexure.html)* for spatially variable T<sub>e</sub>).
+*[r.flexure](r.flexure.md)* for spatially variable T<sub>e</sub>).
 
 **output** is a raster map of deflections at the spacing and extent of
 the current GRASS computational region. Be sure to use
@@ -89,7 +89,7 @@ independent; their deflections add linearly everywhere.
 
 ## SEE ALSO
 
-*[r.flexure](r.flexure.html)*,
+*[r.flexure](r.flexure.md)*,
 *[v.surf.bspline](https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html)*
 
 ## REFERENCES

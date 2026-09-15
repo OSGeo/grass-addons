@@ -32,13 +32,13 @@
 # import system libraries
 from __future__ import print_function
 
-import imp
 import os
 import platform
 import shutil
 import subprocess
 import sys
 import time
+import importlib.util
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from os.path import join
@@ -460,13 +460,9 @@ def win_install(libs):
 def fix_missing_libraries(install=False):
     """Check if the external libraries used by r.green are
     available in the current path."""
-    to_be_installed = []
-    for lib in CHECK_LIBRARIES:
-        try:
-            imp.find_module(lib)
-            print(lib, "available in the sys path")
-        except ImportError:
-            to_be_installed.append(lib)
+    to_be_installed = [
+        lib for lib in CHECK_LIBRARIES if importlib.util.find_spec(lib) is None
+    ]
 
     if to_be_installed:
         print("the following libraries are missing:")

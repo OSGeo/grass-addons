@@ -1,9 +1,7 @@
 # crontab entries
 # see: https://github.com/OSGeo/grass-addons/tree/grass8/utils/cronjobs_osgeo_lxd/
 
-# IMPORTANT: only a single crontab file may exist. Hence both the GRASS GIS 7 + 8 addons are generated here.
-
-# add GRASS GIS build jobs here and then run on `grasslxd`server:
+# add GRASS jobs here and then run on `grasslxd`server:
 # crontab $HOME/cronjobs/cron_job_list_grass && crontab -l
 
 #MAILTO=neteler@osgeo.org
@@ -17,14 +15,20 @@
 # |  |  |  |  |
 # *  *  *  *  *  command to be executed
 
-## check every 15 min, fetch from GitHub and build with hugo (target dir: /var/www/html/)
-#*/15 * * * * nice bash /home/neteler/cronjobs/hugo_clean_and_update_job.sh
+#################################################################
+## Note: - hugo based web pages and manual pages are separate jobs!
+##       - both are build in the GitHub CI, downloaded on grass.osgeo.org and unpacked (see below)
+#################################################################
 
-# run at 00:30:00 and 12:30:00 each day: fetches code from GitHub and builds it with hugo (target dir: /var/www/html/)
-30 */12 * * * nice bash /home/neteler/cronjobs/hugo_clean_and_update_job.sh
-# run at 00:40:00 and 12:40:00 each day:
-40 */12 * * * nice bash /home/neteler/cronjobs/fetch_unpack_manual_GHA.sh > /home/neteler/fetch_unpack_manual_GHA.log  2>&1
+### HUGO website (https://crontab.guru/#0_*/6_*_*_*)
+# run every 6 hs at xx:00, each day: fetches website page package from GitHub and unpacks it (target dir: /var/www/html/)
+0 */6 * * * nice bash /home/neteler/cronjobs/hugo_clean_and_update_job.sh
 
+### MANUAL pages
+# run every 6 hs at xx:00, each day:
+30 */6 * * * nice bash /home/neteler/cronjobs/fetch_unpack_manual_GHA.sh > /home/neteler/fetch_unpack_manual_GHA.log  2>&1
+
+### SOURCE CODE snapshot packages
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 # legacy
 20 02 * * 6 nice bash /home/neteler/cronjobs/cron_grass_legacy_src_snapshot.sh
@@ -36,6 +40,7 @@
 50 02 * * 6 nice bash /home/neteler/cronjobs/cron_grass_preview_src_snapshot.sh
 
 
+### BINARY snapshot packages
 # daily Linux binary snapshots, also creates main manuals, addon manuals, and prog-manual (target dir: /var/www/code_and_data/)
 # legacy
 00 05 * * * nice bash /home/neteler/cronjobs/cron_grass_legacy_build_binaries.sh      > /var/www/code_and_data/grass78/binary/linux/snapshot/build.log.txt 2>&1
@@ -47,5 +52,5 @@
 45 06 * * * nice bash /home/neteler/cronjobs/cron_grass_preview_build_binaries.sh     > /var/www/code_and_data/grass86/binary/linux/snapshot/build.log.txt 2>&1
 
 
-# generate osgeo_mailman_stats/ + email
+### generate osgeo_mailman_stats/ + email
 # ...note: runs as a root cronjob on osgeo6 machine (lists.osgeo.org server)

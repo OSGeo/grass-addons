@@ -86,7 +86,9 @@ hydrologically relevant new terrain model. Journal of Hydrology 404, 13–29. <h
 
 ## SEE ALSO
 
-*[r.watershed](r.watershed.md), [r.lake](r.lake.md), [r.lake.series](addons/r.lake.series.md)*
+*[r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
+[r.lake](https://grass.osgeo.org/grass-stable/manuals/r.lake.html),
+[r.lake.series](r.lake.series.md)*
 
 ## AUTHORS
 

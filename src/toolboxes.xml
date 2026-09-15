@@ -19,4 +19,16 @@
     <task name="r.mcda.input" />
     <task name="r.mcda.output" />
   </toolbox>
+  <toolbox name="DEM" code="DM">
+    <correlate code="RA" />
+    <task name="r.dem.bias" />
+    <task name="r.dem.change" />
+    <task name="r.dem.coregister" />
+    <task name="r.dem.errprop" />
+    <task name="r.dem.icp" />
+    <task name="r.dem.lod" />
+    <task name="r.dem.nk" />
+    <task name="r.dem.screen" />
+    <task name="r.dem.stats" />
+  </toolbox>
 </addons>
