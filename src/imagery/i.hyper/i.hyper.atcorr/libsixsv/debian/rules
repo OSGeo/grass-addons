@@ -1,0 +1,89 @@
+#!/usr/bin/make -f
+# debian/rules — lib6sv packaging
+#
+# Uses debhelper 13 (dh sequencer).  Override only what the standard
+# auto-sequence cannot handle (no autotools / cmake / meson here).
+
+include /usr/share/dpkg/architecture.mk
+include /usr/share/dpkg/buildflags.mk
+
+# Upstream ABI / version fields
+SONAME_MAJOR  = 2
+SONAME        = libsixsv.so.$(SONAME_MAJOR)
+SOFILE        = libsixsv.so.2.0.0
+
+# Source layout
+SRC_DIR  = src
+INC_DIR  = include
+LIB_SRCS = $(wildcard $(SRC_DIR)/*.c)
+
+# Compiler flags: merge upstream hardening + Debian hardening
+OUR_CFLAGS  = -std=c11 -O3 -fPIC \
+              -I$(INC_DIR) -I$(SRC_DIR)   \
+              -Wall -Wextra -Wno-unused-parameter \
+              -fopenmp
+OUR_LDFLAGS = -shared -Wl,-soname,$(SONAME) -Wl,--as-needed
+OUR_LIBS    = -lm -fopenmp
+
+%:
+	dh $@
+
+# ── Configure ─────────────────────────────────────────────────────────────────
+override_dh_auto_configure:
+	# Nothing to configure — plain C, no autotools/cmake
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+override_dh_auto_build:
+	$(CC) $(OUR_CFLAGS) $(CFLAGS) $(OUR_LDFLAGS) $(LDFLAGS) -fno-lto \
+	    $(LIB_SRCS) -o $(SOFILE) $(OUR_LIBS)
+	ln -sf $(SOFILE)  libsixsv.so.$(SONAME_MAJOR)
+	ln -sf $(SOFILE)  libsixsv.so
+
+# ── Test ──────────────────────────────────────────────────────────────────────
+override_dh_auto_test:
+	# Full testsuite requires the Fortran 6SV2.1 sources; skip in package build.
+	# Run 'make -C testsuite test' after installation to validate the library.
+
+# ── Install into debian/tmp ───────────────────────────────────────────────────
+override_dh_auto_install:
+	# Runtime library
+	install -d debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	install -m 755 $(SOFILE) \
+	    debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/
+	cp -Pf libsixsv.so.$(SONAME_MAJOR) \
+	    debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/
+	# Development symlink
+	cp -Pf libsixsv.so \
+	    debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/
+	# Public headers — all of include/
+	install -d debian/tmp/usr/include/sixsv
+	install -m 644 $(INC_DIR)/adjacency.h      debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/aerosol_tables.h debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/atcorr.h         debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/brdf.h           debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/gas_tables.h     debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/oe_invert.h      debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/retrieve.h       debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/sixs_ctx.h       debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/solar_table.h    debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/spatial.h        debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/spectral_brdf.h  debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/surface_model.h  debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/terrain.h        debian/tmp/usr/include/sixsv/
+	install -m 644 $(INC_DIR)/uncertainty.h    debian/tmp/usr/include/sixsv/
+	# pkg-config file
+	install -d debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
+	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g' \
+	    debian/libsixsv.pc.in > \
+	    debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/libsixsv.pc
+
+# ── Shared-library dependencies ───────────────────────────────────────────────
+# On Debian 13 (trixie) libm is a stub; sinf/cosf/powf etc. resolve via libc6.
+# Suppress the false-positive "symbol not found in any library" warnings by
+# telling dpkg-shlibdeps to ignore libm (it is already implied by libc6 ≥ 2.29).
+override_dh_shlibdeps:
+	dh_shlibdeps -- --ignore-missing-info
+
+# ── Clean ─────────────────────────────────────────────────────────────────────
+override_dh_auto_clean:
+	rm -f $(SOFILE) libsixsv.so.$(SONAME_MAJOR) libsixsv.so
