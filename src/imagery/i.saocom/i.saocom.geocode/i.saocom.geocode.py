@@ -168,7 +168,7 @@ def export_to_location(outdir, location, input_map, int_map, env):
     # Run gdalWarp. This is made to avoid ERROR: Input map is rotated - cannot import
     output_warp = f"gdalwarp_{int_map}"
     os.system(
-        f"gdalwarp {os.path.join(outdir,int_map)} {os.path.join(outdir,output_warp)}"
+        f"gdalwarp {os.path.join(outdir, int_map)} {os.path.join(outdir, output_warp)}"
     )
 
     gs.warning(_("Switching location"))
@@ -213,9 +213,7 @@ def main():
     if not input_map and data:
         # Import real and imaginary bands to a temporary location and geocode them to external file
         gs.message(_("Running i.saocom.import"))
-        gs.create_location(
-            env["GISDBASE"], f"{basename}_XY_tempLocation", overwrite=1
-        )
+        gs.create_location(env["GISDBASE"], f"{basename}_XY_tempLocation", overwrite=1)
         gs.run_command(
             "g.mapset", mapset="PERMANENT", location=f"{basename}_XY_tempLocation"
         )
@@ -228,9 +226,7 @@ def main():
             basename=basename,
         )
         # Get the list of maps to be geocoded
-        map_list = gs.list_grouped(type="raster", pattern=f"{basename}*")[
-            "PERMANENT"
-        ]
+        map_list = gs.list_grouped(type="raster", pattern=f"{basename}*")["PERMANENT"]
         for m in map_list:
             gs.run_command("g.region", raster=m)
             geocode_file(
@@ -255,9 +251,7 @@ def main():
                 "g.mapset", mapset="PERMANENT", location=f"{basename}_XY_tempLocation"
             )
         # Go back to original location
-        gs.run_command(
-            "g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"]
-        )
+        gs.run_command("g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"])
         shutil.rmtree(os.path.join(env["GISDBASE"], f"{basename}_XY_tempLocation"))
 
     if input_map and not data:
@@ -284,9 +278,7 @@ def main():
         # Remove intermediate files
         os.remove(os.path.join(outdir, f"{input_map}.tif"))
         # Go back to original location
-        gs.run_command(
-            "g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"]
-        )
+        gs.run_command("g.mapset", mapset=env["MAPSET"], location=env["LOCATION_NAME"])
 
 
 if __name__ == "__main__":

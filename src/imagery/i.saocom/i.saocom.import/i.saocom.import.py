@@ -92,7 +92,6 @@ def apply_multilook(dataset, azLooks, rgLooks):
     multilook y los metadatos actualizados
     """
 
-
     array = dataset["array"].copy()
     metadata = dataset["metadata"].copy()
 
@@ -232,9 +231,7 @@ def main():
             df["col"] /= int(multilook[2])
 
         # ~ print('Saving real and imaginary bands to intermediate GeoTiff outputs')
-        gs.message(
-            _("Saving real and imaginary bands to intermediate GeoTiff outputs")
-        )
+        gs.message(_("Saving real and imaginary bands to intermediate GeoTiff outputs"))
         save_bands(bands, basename)
 
         # ~ print('Reading real and imaginary bands into gs.GIS, and cleaning intermediate files')
@@ -247,10 +244,10 @@ def main():
             input_r = f"{basename}_{band}_real.tif"
             input_i = f"{basename}_{band}_imag.tif"
             gs.run_command(
-                "r.import", input=input_r, output=input_r.split(".tif")[0]
+                "r.import", input=input_r, output=input_r.split(".tif", maxsplit=1)[0]
             )
             gs.run_command(
-                "r.import", input=input_i, output=input_i.split(".tif")[0]
+                "r.import", input=input_i, output=input_i.split(".tif", maxsplit=1)[0]
             )
             os.remove(input_r)
             os.remove(input_i)
