@@ -69,6 +69,8 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
               double u2m);
 double psi_h(double t0_dem, double h, double U_0, double roh_air);
 
+double psi_m(double t0_dem, double h, double ustar, double roh_air, double hu);
+
 double rah1(double psih, double u_star);
 
 /* Final outputs */
