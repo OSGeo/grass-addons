@@ -235,6 +235,34 @@ def parse_scene_size(scene_size):
     return f"{size_TB} TB"
 
 
+def ensure_safe_suffix(output_directory):
+    """Add the .SAFE suffix to extracted Sentinel-2 product directories."""
+    for product_name in os.listdir(output_directory):
+        product_path = os.path.join(output_directory, product_name)
+
+        if not os.path.isdir(product_path):
+            continue
+
+        if product_name.endswith(".SAFE"):
+            continue
+
+        if not product_name.startswith(("S2A_", "S2B_", "S2C_")):
+            continue
+
+        safe_product_path = f"{product_path}.SAFE"
+
+        if os.path.exists(safe_product_path):
+            gs.warning(_("Directory <{}> already exists").format(safe_product_path))
+            continue
+
+        os.rename(product_path, safe_product_path)
+        gs.verbose(
+            _("Renamed extracted product to <{}>").format(
+                os.path.basename(safe_product_path)
+            )
+        )
+
+
 PRODUCTTYPE_MAP = {
     "S2MSI1C": "S2_MSI_L1C",
     "S2MSI2A": "S2_MSI_L2A",
@@ -520,6 +548,7 @@ def main():
             timeout=int(options["sleep"]) * int(options["retry"]),
             quiet=True,
         )
+        ensure_safe_suffix(outdir)
     return 0
 
 
