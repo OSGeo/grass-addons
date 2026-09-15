@@ -579,6 +579,7 @@ class TestVFlexureInputErrors(TestCase):
     """Input-validation errors raised inside main() — gFlex must be importable."""
 
     loads = "test_vflex_ierr_loads"
+    empty_loads = "test_vflex_ierr_empty"
 
     @classmethod
     def setUpClass(cls):
@@ -605,11 +606,15 @@ class TestVFlexureInputErrors(TestCase):
             value="1e15",
             where="cat=1",
         )
+        cls.runModule("v.edit", map=cls.empty_loads, tool="create")
 
     @classmethod
     def tearDownClass(cls):
         cls.del_temp_region()
         cls.runModule("g.remove", flags="f", type="vector", name=cls.loads, quiet=True)
+        cls.runModule(
+            "g.remove", flags="f", type="vector", name=cls.empty_loads, quiet=True
+        )
 
     def test_missing_column(self):
         """Module exits with error when the named column is absent from the input map."""
@@ -617,6 +622,17 @@ class TestVFlexureInputErrors(TestCase):
             "v.flexure",
             input=self.loads,
             column="nonexistent",
+            te="10000",
+            te_units="m",
+            output="dummy_out",
+        )
+
+    def test_empty_input(self):
+        """Module exits with error when the input vector map contains no points."""
+        self.assertModuleFail(
+            "v.flexure",
+            input=self.empty_loads,
+            column="q",
             te="10000",
             te_units="m",
             output="dummy_out",
