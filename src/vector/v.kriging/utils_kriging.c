@@ -21,7 +21,7 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
             }
             gamma++;
         } // end j
-    }     // end i
+    } // end i
 
     // # of columns of design matrix A
     nc = var_par->function == 5 ? 3 : 1;
@@ -59,7 +59,7 @@ void LMS_variogram(struct parameters *var_par, struct write *report)
                 } // end switch variogram fuction
                 G_matrix_set_element(gR, nr, 0, *gamma);
                 nr++; // length of vector of valid elements (not null)
-            }         // end test if !isnan(*gamma)
+            } // end test if !isnan(*gamma)
             h++;
             gamma++;
         } // end j
@@ -137,8 +137,8 @@ double bivar_sill(int direction, mat_struct *gamma)
         if (!isnan(gamma_i)) {    // gamma is real:
             sum_gamma += gamma_i; // sum all real elements of the matrix
             n_gamma++;            // count them
-        }                         // end if
-    }                             // end for
+        } // end if
+    } // end for
 
     sill = sum_gamma / n_gamma;
 
@@ -325,7 +325,7 @@ void cell_centre(unsigned int col, unsigned int row, unsigned int dep,
                 xD->aniso_ratio * (reg->bot + (dep + 0.5) * reg->bt_res); // z0
             break;
         } // end switch
-    }     // end if
+    } // end if
 
     else { // 2D interpolation
         r0[2] = 0.;
@@ -350,7 +350,7 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
     dr = (double *)G_malloc(3 * sizeof(double));
     GM = G_matrix_init(n1, n1, n1); // G[n1][n1] matrix
 
-    doublereal *md, *mu, *ml, *dbu, *dbl, *m1r, *m1c;
+    double *md, *mu, *ml, *dbu, *dbl, *m1r, *m1c;
 
     dbu = &GM->vals[0];      // upper matrix elements
     dbl = &GM->vals[0];      // lower matrix elements
@@ -384,12 +384,11 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
                     G_fatal_error(_("Theoretical variogram is NAN..."));
                 }
 
-                *mu = *ml =
-                    (doublereal)theor_var; // set the value to the matrix
-                mu += n1;                  // go to next element in the U row
-                ml++;                      // go to next element in the L col
+                *mu = *ml = (double)theor_var; // set the value to the matrix
+                mu += n1; // go to next element in the U row
+                ml++;     // go to next element in the L col
             } // end non-diagonal elements condition
-        }     // end j loop
+        } // end j loop
 
         // go to the diagonal element in the next row
         dbu++;     // U
@@ -402,8 +401,8 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
             *m1r = *m1c = 1.0; // ... shall be 1
             m1r += n1;         // go to next col in last row
             m1c++;             // go to next row in last col
-        }                      // end "last 1" condition
-    }                          // end i loop
+        } // end "last 1" condition
+    } // end i loop
 
     free(dr);
 
@@ -419,7 +418,7 @@ mat_struct *submatrix(struct ilist *index, mat_struct *GM_all,
     mat_struct *GM = GM_all; // whole G matrix
 
     int i, j, N1 = GM->rows, n1 = n + 1, *dinR, *dini, *dinj;
-    doublereal *dbo, *dbx, *dbu, *dbl, *md, *mu, *ml, *m1r, *m1c;
+    double *dbo, *dbx, *dbu, *dbl, *md, *mu, *ml, *m1r, *m1c;
 
     mat_struct *sub; // new submatrix
 
@@ -520,7 +519,7 @@ mat_struct *set_up_g0(struct int_par *xD, struct points *pnts,
     dr = (double *)G_malloc(3 * sizeof(double)); // Coordinate differences
     g0 = G_matrix_init(n1, 1, n1);
 
-    doublereal *g = g0->vals;
+    double *g = g0->vals;
 
     for (i = 0; i < n; i++) { // count of input points
         // Coord diffs (input points and cell/voxel center)
@@ -576,7 +575,7 @@ double result(struct points *pnts, struct ilist *index, mat_struct *w0)
 
     int i;
     mat_struct *ins, *w, *rslt_OK;
-    doublereal *vt, *wo, *wt;
+    double *vt, *wo, *wt;
 
     ins = G_matrix_init(n, 1, n); // matrix of selected vals
     w = G_matrix_init(1, n, 1);   // matrix of selected weights
@@ -608,7 +607,7 @@ double result(struct points *pnts, struct ilist *index, mat_struct *w0)
         vt++; // element of value matrix
         wo++; // weight of the value
         wt++; // element of weight matrix
-    }         // end i for loop
+    } // end i for loop
 
     rslt_OK = G_matrix_product(w, ins); // interpolated value
 
@@ -713,7 +712,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
             correct_indices(direction, list, r, pnts, var_par);
 
             GM_sub = submatrix(list, GM,
-                               &xD->report);   // create submatrix using indices
+                               xD->report);    // create submatrix using indices
             GM_Inv = G_matrix_inverse(GM_sub); // inverse matrix
             G_matrix_free(GM_sub);
 
@@ -784,7 +783,7 @@ void crossvalidation(struct int_par *xD, struct points *pnts,
         av_cell++;
 
         G_free_ilist(list); // free list memory
-    }                       // end i for loop
+    } // end i for loop
 
     fclose(fp);
     G_message(_("Cross validation results have been written into <%s>"),
@@ -834,8 +833,8 @@ int compare_NN(struct ilist *list, struct ilist *list_new, int modified)
 {
     // local variables
     int n = list->n_values, n_new = list_new->n_values;
-    double *list_value = list->value;
-    double *list_new_value = list_new->value;
+    int *list_value = list->value;
+    int *list_new_value = list_new->value;
 
     int i, next = 0; // the samples are different
 
@@ -859,7 +858,7 @@ void make_subsamples(struct int_par *xD, struct ilist *list, double *r0,
     // Local variables
     int i3 = xD->i3;
     double *vals = pnts->invals;
-    struct write *report = &xD->report;
+    struct write *report = xD->report;
 
     int direction;
     mat_struct *GM_sub;

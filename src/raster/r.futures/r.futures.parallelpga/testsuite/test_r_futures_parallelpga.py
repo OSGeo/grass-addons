@@ -5,7 +5,6 @@ from grass.gunittest.main import test
 
 
 class TestParallelPGA(TestCase):
-
     output = "pga_output"
     actual_output = output + "_run1"
     result = "result"

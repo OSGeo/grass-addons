@@ -385,7 +385,7 @@ void main_loop(void)
             // int chunk_size = (int)nwalk/(4 * omp_get_thread_num());
 
 #pragma omp parallel firstprivate(l, lw, k, decr, d1, hhc, velx, vely, eff, \
-                                  gaux, gauy) // nwalka
+                                      gaux, gauy) // nwalka
             {
                 int steps =
                     (int)((((double)nwalk) / ((double)omp_get_num_threads())) +
@@ -507,7 +507,7 @@ void main_loop(void)
                                 }
 
                             } /* else */
-                        }     /*DEFined area */
+                        } /*DEFined area */
                         else {
                             w[lw][2] = 1e-10; /* eliminate walker if it is out
                                                  of area */

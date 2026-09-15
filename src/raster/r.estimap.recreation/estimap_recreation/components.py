@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import raster as r
 from .grassy_utilities import smooth_map
 
@@ -34,8 +34,7 @@ def append_map_to_component(raster, component_name, component_list):
     """
     component_list.append(raster)
     msg = "Map {name} included in the '{component}' component"
-    msg = msg.format(name=raster, component=component_name)
-    grass.verbose(_(msg))
+    gs.verbose(_(msg).format(name=raster, component=component_name))
 
 
 def smooth_component(component, method, size):
@@ -47,8 +46,7 @@ def smooth_component(component, method, size):
     size:
     """
     try:
-        msg = "Smoothing component '{c}'"
-        grass.verbose(_(msg.format(c=component)))
+        gs.verbose(_("Smoothing component '{c}'").format(c=component))
         if len(component) > 1:
             for item in component:
                 smooth_map(item, method=method, size=size)
@@ -56,7 +54,7 @@ def smooth_component(component, method, size):
             smooth_map(component[0], method=method, size=size)
 
     except IndexError:
-        grass.verbose(_("Index Error"))  # FIXME: some useful message... ?
+        gs.verbose(_("Index Error"))  # FIXME: some useful message... ?
 
 
 def classify_recreation_component(component, rules, output_name):

@@ -1,0 +1,120 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.change</em> computes a DEM of Difference (DoD) between a
+co-registered post-event DEM and a reference DEM, applies a Level of Detection
+(LoD) threshold to isolate significant change, and reports volumetric erosion,
+deposition, and net change. Optional cleanup stages remove gross blunders and
+isolated significant cells.</p>
+
+<p>The pipeline is:</p>
+
+<ol>
+  <li><b>Raw DoD</b>: <code>output_dod = dem - reference</code>, the
+  unmodified difference.</li>
+  <li><b>Blunder trimming</b> (optional, <b>trim_percentile</b>): cells
+  whose absolute difference exceeds a percentile of <code>|DoD|</code> are
+  dropped before thresholding. The threshold is estimated over
+  <b>stable_mask</b> when supplied,
+  and <b>stable_mask</b> requires <b>trim_percentile</b> (without it the mask
+  has no effect and the parser rejects the combination),
+  otherwise over the whole DoD.</li>
+  <li><b>LoD thresholding</b>: <code>output_sig</code> keeps cells where
+  <code>|DoD|</code> exceeds the per-cell <b>lod</b> value (from
+  <em>r.dem.lod</em> or <em>r.dem.errprop</em>).</li>
+  <li><b>Speckle removal</b> (optional, <b>-n</b>): isolated significant
+  cells (no significant neighbour among the eight surrounding cells) are
+  removed.</li>
+  <li><b>Volumetric summary</b>: erosion, deposition, and net volume in
+  cubic metres (and cubic yards), optionally written to <b>volume_csv</b>.</li>
+</ol>
+
+<p>With the <b>-k</b> flag the Fisher and Pearson kurtosis of the raw DoD
+distribution are reported as a diagnostic of noise and tail behavior.</p>
+
+<p>A precomputed difference (typically the bias-corrected DoD from
+<em>r.dem.bias</em>) can be supplied via <b>dod</b> instead of <b>dem</b>
+and <b>reference</b>; the <code>input</code> column of <b>volume_csv</b>
+records which raster was analyzed.</p>
+
+<h2>NOTES</h2>
+
+<p>The <b>lod</b> input is a per-cell raster, so a spatially varying Level of
+Detection from <em>r.dem.lod</em> (local mode) or <em>r.dem.errprop</em> can be
+used directly. A uniform LoD is simply a constant raster.</p>
+
+<p><code>output_dod</code> always holds the raw, unmodified difference. Blunder
+trimming and speckle removal affect only <code>output_sig</code> and the
+reported volumes, so the raw difference remains available for inspection.</p>
+
+<p>On the <b>dem</b> plus <b>reference</b> path the difference has to be
+written somewhere, so <b>output_dod</b> is required there. It is rejected on
+the <b>dod</b> path, where the difference already exists and is analyzed as
+supplied.</p>
+
+<p>Volumes are computed from significant cells only, using the current region
+cell size. Ensure the computational region matches the input DEM
+resolution.</p>
+
+<p>The kurtosis diagnostic (<b>-k</b>) requires the Python <em>scipy</em>
+package.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Threshold the debiased difference against the detection limit and report
+volumes:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.change -n dod=dod_debiased lod=lod_filled \
+    output_sig=dod_significant volume_csv=volumes.csv
+</pre></div>
+
+<p>The volumes can be checked against the volumes <em>r.earthworks</em> moved when
+the scene was built; they land within a few percent.</p>
+
+<p>The <b>-n</b> flag matters here. Without it, noise that clears the detection
+limit by chance is counted as change, and on this scene that inflates both
+volumes by roughly ten percent. Speckle removal drops isolated cells, which
+real erosion and deposition are not.</p>
+
+<p>Trim blunders on stable ground first, remove isolated significant cells,
+and report the distribution kurtosis as a noise diagnostic:</p>
+
+<div class="code"><pre>
+r.dem.change dod=dod_debiased lod=lod_local \
+    output_sig=dod_significant_clean \
+    trim_percentile=99 stable_mask=stable_terrain -n -k
+</pre></div>
+
+<p>On the <b>dem</b> plus <b>reference</b> path the raw difference has to be written,
+so <b>output_dod</b> is required:</p>
+
+<div class="code"><pre>
+r.dem.change dem=dsm_post reference=elev_lid792_1m lod=lod_global \
+    output_dod=dod_uncorrected output_sig=dod_significant_raw
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_change_volumes.png">
+<img src="r_dem_change_volumes.png" width="600" alt="r.dem.change example" border="0">
+</a><br>
+<i>Figure: The known change added with r.earthworks, and the significant DoD recovered above the Level of Detection.</i>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.dem.lod.html">r.dem.lod</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="r.univar.html">r.univar</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

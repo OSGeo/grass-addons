@@ -224,10 +224,10 @@ double lag_size(int i3, int direction, struct points *pnts,
                         add_ident++;
                     }
                     break;
-                }         // end switch: test direction
+                } // end switch: test direction
                 j_vals++; // index of the next NN
-            }             // end j for loop
-        }                 // end if: n_vals > 0
+            } // end j for loop
+        } // end if: n_vals > 0
 
         else {
             report_error(report);
@@ -628,13 +628,13 @@ void plot_experimental_variogram(struct int_par *xD, struct parameters *var_par)
                         gamma++;
                     }
                 } // end columns settings
-            }     // end j
+            } // end j
             fprintf(gp, "\n");
             if (i != 0) { // vert must not increase in the 1st loop
                 vert++;
             }
         } // end i
-    }     // end 3D
+    } // end 3D
 
     /* 2D experimental variogram */
     else {
@@ -870,8 +870,8 @@ void plot_var(struct int_par *xD, int bivar, struct parameters *var_pars)
                         }
                         h++;
                     } // end else: fill the other columns
-                }     // end fill the other rows
-            }         // end j
+                } // end fill the other rows
+            } // end j
             if (i != 0 && j != 0) {
                 vert++;
             }

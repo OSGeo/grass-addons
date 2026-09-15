@@ -8,7 +8,7 @@
 # DESCRIPTION:  Export the legend of a raster as image, which can be used
 #               in e.g., the map composer in QGIS.
 #
-# COPYRIGHT: (C) 2014-2017 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2014-2024 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -179,41 +179,42 @@
 import os
 import sys
 import math
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules import Module
 from grass.script.utils import parse_key_val
-import imp
+import importlib.util
 
-try:
-    imp.find_module("PIL")
+spec = importlib.util.find_spec("PIL")
+if spec is not None:
     found = True
     from PIL import Image
-except ImportError:
+else:
     found = False
 
 
 # main function
 def main():
-
     # parameters - file name and extension
     outputfile = options["file"]
     ext = outputfile.split(".")
     if len(ext) == 1:
-        grass.fatal("Please provide the file extension of the output file")
+        gs.fatal("Please provide the file extension of the output file")
     filetype = options["filetype"]
     if filetype == "cairo":
         allowed = (".png", ".bmp", "ppm", "pdf", "ps", "svg")
         if not outputfile.lower().endswith(allowed):
-            grass.fatal("Unknown display driver <{}>".format(ext[1]))
+            gs.fatal("Unknown display driver <{}>".format(ext[1]))
     if filetype == "ps" and not ext[1] == "ps":
-        grass.fatal(
-            "The file type <{}> does not match the file extension <"
-            "{}>".format(filetype, ext[1])
+        gs.fatal(
+            "The file type <{}> does not match the file extension <{}>".format(
+                filetype, ext[1]
+            )
         )
     if filetype == "png" and not ext[1] == "png":
-        grass.fatal(
-            "The file type <{}> does not match the file extension <"
-            "{}>".format(filetype, ext[1])
+        gs.fatal(
+            "The file type <{}> does not match the file extension <{}>".format(
+                filetype, ext[1]
+            )
         )
 
     # parameters - image settings
@@ -261,7 +262,7 @@ def main():
         bw = float(width)
         bh = float(height)
     else:
-        grass.error("Unit must be inch, cm, mm or px")
+        gs.error("Unit must be inch, cm, mm or px")
 
     # Add size of legend to w or h, if flag_d is set
     # Add size of tics
@@ -284,7 +285,7 @@ def main():
 
     # Determine space at left and right (or top and bottom)
     # based on fontsize (fz) and number of digits
-    maprange = grass.raster_info(inmap)
+    maprange = gs.raster_info(inmap)
     maxval = round(maprange["max"], digits)
     minval = round(maprange["min"], digits)
     if maxval < 1:
@@ -374,10 +375,10 @@ def main():
         im.save(outputfile, dpi=(resol, resol))
 
     # Provide informatie about image on standard output
-    grass.message("----------------------------\n")
-    grass.message("File saved as {}".format(outputfile))
-    grass.message("The image dimensions are:\n")
-    grass.message("{} px wide and {} px heigh\n".format(str(int(iw)), str(int(ih))))
+    gs.message("----------------------------\n")
+    gs.message("File saved as {}".format(outputfile))
+    gs.message("The image dimensions are:\n")
+    gs.message("{} px wide and {} px heigh\n".format(str(int(iw)), str(int(ih))))
     if unit == "inch":
         wr = round(iw / resol, 3)
         hr = round(ih / resol, 3)
@@ -390,11 +391,11 @@ def main():
     else:
         wr = "same"
     if wr != "same":
-        grass.message("at a resolution of {} ppi this is:".format(str(resol)))
-        grass.message("{0} {2} x {1} {2}\n".format(str(wr), str(hr), unit))
-    grass.message("----------------------------\n")
+        gs.message("at a resolution of {} ppi this is:".format(str(resol)))
+        gs.message("{0} {2} x {1} {2}\n".format(str(wr), str(hr), unit))
+    gs.message("----------------------------\n")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

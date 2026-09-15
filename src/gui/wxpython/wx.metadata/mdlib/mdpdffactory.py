@@ -193,7 +193,7 @@ class PdfCreator(object):
 
     def createPDF(self, save=True):
         self.story = self._parseMDOWS()
-        self.doc = Pdf("Metadata file", "GRASS GIS")
+        self.doc = Pdf("Metadata file", "GRASS")
 
         self.doc.set_theme(self.my_theme)
 
@@ -336,7 +336,7 @@ class PdfCreator(object):
         )
 
         text = self.doc.render()
-        # http://www.reportlab.com/docs/reportlab-userguide.pdf
+        # https://www.reportlab.com/docs/reportlab-userguide.pdf
         if save and self.pdf_file is not None:
             path = self.savePDF(text)
             return path

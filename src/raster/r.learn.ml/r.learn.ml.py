@@ -958,7 +958,6 @@ def predict(
 
     # writing of predicted results for probabilities
     if predict_type == "prob":
-
         # use class labels if supplied
         # else output predictions as 0,1,2...n
         if class_labels is None:
@@ -1412,7 +1411,6 @@ def cross_val_scores(
 
     fold = 0
     for train_indices, test_indices in zip(trains, tests):
-
         # create training and test folds
         X_test, y_test = X[test_indices], y[test_indices]
 
@@ -1735,7 +1733,6 @@ def main():
     # -------------------------------------------------------------------------
 
     if model_load == "":
-
         # Sample training data and group id
         if load_training != "":
             X, y, group_id, sample_coords = load_training_data(load_training)
@@ -1927,7 +1924,6 @@ def main():
 
         # check if dict contains and keys - perform GridSearchCV
         if any(param_grid) is True:
-
             # if Pipeline then change param_grid keys to named_step
             if isinstance(clf, Pipeline):
                 for key in param_grid.keys():

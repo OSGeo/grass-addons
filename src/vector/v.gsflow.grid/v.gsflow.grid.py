@@ -94,7 +94,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 from grass.pygrass.vector.geometry import Point
 
 ###############
@@ -108,7 +108,7 @@ def main():
     GSFLOW.
     """
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     basin = options["basin"]
     pp = options["pour_point"]
     raster_input = options["raster_input"]
@@ -130,16 +130,16 @@ def main():
     # Fatal if bc_cell set but mask and grid are false
     if bc_cell != "":
         if (mask == "") or (pp == ""):
-            gscript.fatal("Mask and pour point must be set to define b.c. cell")
+            gs.fatal("Mask and pour point must be set to define b.c. cell")
 
     # Create grid -- overlaps DEM, three cells of padding
     g.region(raster=raster_input, ewres=dx, nsres=dy)
-    gscript.use_temp_region()
-    reg = gscript.region()
+    gs.use_temp_region()
+    reg = gs.region()
     reg_grid_edges_sn = np.linspace(reg["s"], reg["n"], reg["rows"])
     reg_grid_edges_we = np.linspace(reg["w"], reg["e"], reg["cols"])
     g.region(vector=basin, ewres=dx, nsres=dy)
-    regnew = gscript.region()
+    regnew = gs.region()
     # Use a grid ratio -- don't match exactly the desired MODFLOW resolution
     grid_ratio_ns = np.round(regnew["nsres"] / reg["nsres"])
     grid_ratio_ew = np.round(regnew["ewres"] / reg["ewres"])
@@ -173,12 +173,12 @@ def main():
         ewres=str(grid_ratio_ew * reg["ewres"]),
     )
     # And then make the grid
-    v.mkgrid(map=grid, overwrite=gscript.overwrite())
+    v.mkgrid(map=grid, overwrite=gs.overwrite())
 
     # Cell numbers (row, column, continuous ID)
     v.db_addcolumn(map=grid, columns="id int", quiet=True)
-    colNames = np.array(gscript.vector_db_select(grid, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(grid, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(grid, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(grid, layer=1)["values"].values())
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     rows = colValues[:, colNames == "row"].astype(int).squeeze()
     cols = colValues[:, colNames == "col"].astype(int).squeeze()
@@ -217,7 +217,7 @@ def main():
             output=mask,
             use="val",
             value=1,
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
             quiet=True,
         )
         # Coarse resolution region:
@@ -288,7 +288,7 @@ def main():
             output=bc_cell,
             type="point",
             column="z",
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
             quiet=True,
         )
         v.db_addcolumn(
@@ -315,14 +315,12 @@ def main():
         # v.distance(from_=bc_cell, to=pp, upload='dist', column='dist_to_pp')
 
         # Find out if this is diagonal: finite difference works only N-S, W-E
-        colNames = np.array(gscript.vector_db_select(pp, layer=1)["columns"])
-        colValues = np.array(gscript.vector_db_select(pp, layer=1)["values"].values())
+        colNames = np.array(gs.vector_db_select(pp, layer=1)["columns"])
+        colValues = np.array(gs.vector_db_select(pp, layer=1)["values"].values())
         pp_row = colValues[:, colNames == "row"].astype(int).squeeze()
         pp_col = colValues[:, colNames == "col"].astype(int).squeeze()
-        colNames = np.array(gscript.vector_db_select(bc_cell, layer=1)["columns"])
-        colValues = np.array(
-            gscript.vector_db_select(bc_cell, layer=1)["values"].values()
-        )
+        colNames = np.array(gs.vector_db_select(bc_cell, layer=1)["columns"])
+        colValues = np.array(gs.vector_db_select(bc_cell, layer=1)["values"].values())
         bc_row = colValues[:, colNames == "row"].astype(int).squeeze()
         bc_col = colValues[:, colNames == "col"].astype(int).squeeze()
         # Also get x and y while we are at it: may be needed later
@@ -341,14 +339,14 @@ def main():
                         _col1, _row1 = str(bc_col[i]), str(pp_row[i])
                         _col2, _row2 = str(pp_col[i]), str(bc_row[i])
                         # Check if either of these is covered by the basin mask
-                        _ismask_1 = gscript.vector_db_select(
+                        _ismask_1 = gs.vector_db_select(
                             grid,
                             layer=1,
                             where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                             columns="basinmask",
                         )
                         _ismask_1 = int(_ismask_1["values"].values()[0][0])
-                        _ismask_2 = gscript.vector_db_select(
+                        _ismask_2 = gs.vector_db_select(
                             grid,
                             layer=1,
                             where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
@@ -362,7 +360,7 @@ def main():
                         """
                         # If both covered by mask, error
                         if _ismask_1 and _ismask_2:
-                            gscript.fatal(
+                            gs.fatal(
                                 "All possible b.c. cells covered by basin mask.\n\
                                          Contact the developer: awickert (at) umn(.)edu"
                             )
@@ -372,14 +370,14 @@ def main():
             _col1, _row1 = str(bc_col), str(pp_row)
             _col2, _row2 = str(pp_col), str(bc_row)
             # Check if either of these is covered by the basin mask
-            _ismask_1 = gscript.vector_db_select(
+            _ismask_1 = gs.vector_db_select(
                 grid,
                 layer=1,
                 where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                 columns="basinmask",
             )
             _ismask_1 = int(_ismask_1["values"].values()[0][0])
-            _ismask_2 = gscript.vector_db_select(
+            _ismask_2 = gs.vector_db_select(
                 grid,
                 layer=1,
                 where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
@@ -388,7 +386,7 @@ def main():
             _ismask_2 = int(_ismask_2["values"].values()[0][0])
             # If both covered by mask, error
             if _ismask_1 and _ismask_2:
-                gscript.fatal(
+                gs.fatal(
                     "All possible b.c. cells covered by basin mask.\n\
                              Contact the developer: awickert (at) umn(.)edu"
                 )

@@ -61,8 +61,8 @@ typedef struct {
 #define PI (4 * atan(1))
 #endif
 
-#define DEG2RAD(d) ((d)*PI / 180)
-#define RAD2DEG(r) ((r)*180 / PI)
+#define DEG2RAD(d) ((d) * PI / 180)
+#define RAD2DEG(r) ((r) * 180 / PI)
 
 GLOBAL int nextr[9];
 GLOBAL int nextc[9];

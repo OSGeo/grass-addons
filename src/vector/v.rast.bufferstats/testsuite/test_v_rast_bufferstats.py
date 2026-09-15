@@ -12,7 +12,7 @@ Licence:    This program is free software under the GNU General Public
 
 import os
 
-import grass.script as gscript
+import grass.script as gs
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 from grass.gunittest.gmodules import SimpleModule
@@ -32,7 +32,7 @@ class TestBufferstats(TestCase):
     inrast_no_label = "basin_50K"
     inrast_cont_1 = "elevation"
     inrast_cont_2 = "aspect"
-    output = gscript.tempfile(create=False)
+    output = gs.tempfile(create=False)
     # Output references
     points_cont = """cat|raster_map|buffer|statistic|value
 9|elev|30|sum|3922.98136901855

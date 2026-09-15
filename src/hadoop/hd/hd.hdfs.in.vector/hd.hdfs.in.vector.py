@@ -47,7 +47,7 @@
 # %end
 
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import JSONBuilder, GrassHdfs
 
@@ -57,7 +57,7 @@ def main():
     if options["hdfs"] == "@grass_data_hdfs":
         options["hdfs"] = transf.get_path_grass_dataset()
 
-    grass.message(options["hdfs"])
+    gs.message(options["hdfs"])
     grass_map = {
         "map": options["map"],
         "layer": options["layer"],
@@ -67,11 +67,11 @@ def main():
     json = JSONBuilder(grass_map)
     json = json.get_JSON()
 
-    grass.message("upload %s" % json)
+    gs.message("upload %s" % json)
 
     transf.upload(json, options["hdfs"])
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

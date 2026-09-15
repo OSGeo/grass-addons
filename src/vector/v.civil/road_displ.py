@@ -75,7 +75,6 @@ class Parallel(Base.RoadObj, object):
         )
 
     def __repr__(self):
-
         return (
             "Parallel("
             + str(self.pk1)
@@ -222,7 +221,6 @@ class DisplLine(Aligns, object):
 
         pnts = []
         for i in range(len(line) - 1):
-
             straight = Base.Straight(line[i], line[i + 1])
             pnts.append(straight.parallel(dist, self._intbool()))
 
@@ -247,7 +245,6 @@ class DisplLine(Aligns, object):
 
         tabla = []
         for dat in tabla_plant_iter:
-
             cat, pk, radio, ain, aout, sobre, superelev, dc, lr = dat
 
             if radio == 0:
@@ -391,7 +388,6 @@ class DisplLine(Aligns, object):
         """Return"""
         d_alings = []
         for i in range(len(self.dist) - 1):
-
             if self.dist[i] == 0 or self.dist[i + 1] == 0:
                 self.list_lim.append(self.pks[i])
                 self.elev_lim.append(self.elev[i])
@@ -453,7 +449,6 @@ class DisplLine(Aligns, object):
     def _find_superelev(self, r_pnt, elev, dist_displ):
         """Return"""
         for line in self.plant.superelev_lim:
-
             if line == []:
                 continue
 
@@ -489,9 +484,7 @@ class DisplLine(Aligns, object):
         z_2 = elev
 
         if (self.left and radio > 0) or (not self.left and radio < 0):
-
             for i in range(len(pks_1) - 1):
-
                 if pks_1[i] < r_pnt.npk < pks_1[i + 1]:
                     pkini, pkfin = pks_1[i], pks_1[i + 1]
                     z_1 = pend_11[i]
@@ -499,9 +492,7 @@ class DisplLine(Aligns, object):
                     break
 
         elif (not self.left and radio > 0) or (self.left and radio < 0):
-
             for i in range(0, len(pks_1) - 1, 1):
-
                 if pks_1[i] < r_pnt.npk < pks_1[i + 1]:
                     pkini, pkfin = pks_1[i], pks_1[i + 1]
                     z_1 = pend_22[i]
@@ -540,7 +531,6 @@ class DisplLine(Aligns, object):
                 cuv_lim = r_pnt.npk < self.list_lim[i + 1]
 
             if self.list_lim[i] <= r_pnt.npk and cuv_lim:
-
                 if self.list_aligns[i] is not None:
                     r_pnt_d = self.list_aligns[i].find_cutoff(r_pnt)
 
@@ -629,7 +619,6 @@ class Displaced(object):
         type_right = []
 
         for i, dat in enumerate(self.tabla_iter):
-
             self.pks.append(dat["pk"])
             if ";" in dat["sec_left"]:
                 d_left.append(dat["sec_left"].split(";"))
@@ -711,7 +700,6 @@ class Displaced(object):
         list_attrs = []
         list_lines = []
         for i, displ in enumerate(self.displines):
-
             objs, values = displ.roadline.get_line_attrs(1)
             list_lines.extend(objs)
             list_attrs.extend(values)
@@ -741,7 +729,6 @@ class Displaced(object):
         list_lines = []
         list_attrs = []
         for j, opt in enumerate(opts):
-
             lines = self[int(opt[0]) - 1].roadline.get_area(
                 self[int(opt[1]) - 1].roadline
             )

@@ -1,0 +1,11 @@
+add_files_to_etc_dir(
+  "r.agent/libagent"
+  FILES
+    __init__.py
+    agent.py
+    ant.py
+    anthill.py
+    error.py
+    grassland.py
+    playground.py
+    world.py)

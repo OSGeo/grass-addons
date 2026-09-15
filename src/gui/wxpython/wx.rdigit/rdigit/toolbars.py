@@ -13,6 +13,7 @@ This program is free software under the GNU General Public License
 
 @author Mohammed Rashad <rashadkm gmail.com>
 """
+
 import wx
 from grass.script import core as grass
 from gui_core.toolbars import BaseToolbar, BaseIcons
@@ -475,7 +476,7 @@ class RDigitToolbar(BaseToolbar):
 
             dlg = wx.MessageDialog(
                 parent=self.parent,
-                message=_("Do you want to save changes " "in raster map <%s>?")
+                message=_("Do you want to save changes in raster map <%s>?")
                 % self.mapLayer,
                 caption=_("Save changes?"),
                 style=wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION,

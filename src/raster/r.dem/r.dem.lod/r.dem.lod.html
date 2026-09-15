@@ -1,0 +1,156 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.lod</em> computes a Level of Detection (LoD) raster for DEM
+differencing, the elevation-change magnitude below which a measured difference
+cannot be distinguished from noise. It supports a <b>global</b> (spatially
+uniform) and a <b>local</b> (spatially variable) mode.</p>
+
+<p>The uncertainty of the difference is estimated from the Normalized Median
+Absolute Deviation (NMAD) of the elevation residuals on stable terrain:</p>
+
+<pre>
+NMAD = 1.4826 * median(|dh - median(dh)|)
+</pre>
+
+<p>The residual <code>dh</code> comes either from <b>dem</b> minus
+<b>reference</b>, or from a precomputed (typically bias-corrected)
+difference supplied via <b>dod</b>. Both paths difference the surfaces
+before estimation, so the NMAD estimates the difference dispersion directly
+and no sqrt(2) epoch factor applies on either path.</p>
+
+
+<h3>method=global</h3>
+
+<p>A single NMAD is estimated over the whole study area (or the
+<b>stable_mask</b> region when supplied), producing a uniform LoD value applied
+everywhere.</p>
+
+<h3>method=local</h3>
+
+<p>A spatially variable LoD is computed in a Gaussian-weighted moving
+window of size <b>window</b> (matching <em>r.dem.stats</em>):</p>
+
+<pre>
+sigma_win(x,y) = 1.4826 * median_W(|dh - median_W(dh)|)
+s_long^2       = max(0, floor^2 - median_stable(sigma_win^2))
+LoD(x,y)       = z * sqrt(sigma_win^2 + s_long^2 + sum(sigma_extra_i^2))
+</pre>
+
+<p>Global formula: <code>LoD = z * sqrt(NMAD^2 + floor^2)</code>, one
+convention on both input paths (a non-zero floor must be an independent
+registration budget). Locally, <b>floor</b> is the flight-wide stable NMAD
+and only its long-wavelength excess s_long is added, once; the dispersion
+is defined only where at least <b>min_stable</b> stable cells fall in the
+window. NULL in any <b>sigma_extra</b> or
+<b>point_density</b> raster propagates to the LoD (unknown uncertainty means
+untestable).</p>
+
+<p><b>sigma_extra</b> accepts additional 1-sigma rasters
+(for example the bias-model coefficient SE from <em>r.dem.bias</em>).
+<b>output_sigma</b> stores the combined 1-sigma surface and
+<b>output_domain</b> marks cells where the LoD is defined. With a
+<b>stable_mask</b> the LoD exists only within the window's reach of stable
+cells and is deliberately not extended beyond it; the tested share of
+observed cells is always reported.</p>
+
+<p>When a <b>point_density</b> raster is supplied, the local uncertainty is
+penalised in sparsely sampled areas before the LoD is computed.</p>
+
+<h2>NOTES</h2>
+
+<p>A precomputed <b>nmad</b> value can be supplied to skip the stable-pixel
+estimation, and a <b>stable_mask</b> restricts the residual statistics to
+terrain assumed unchanged (roads, parking lots, bare ground).</p>
+
+<p>The output LoD raster can be passed directly to <em>r.dem.change</em> as the
+<b>lod</b> input for significance thresholding. For full per-source uncertainty
+propagation (combining several error rasters in quadrature) use
+<em>r.dem.errprop</em>.</p>
+
+<p>The tool requires the Python <em>scipy</em> package.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>A single detection limit for the whole map, estimated from the stable
+residuals:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.lod dod=dod_debiased output=lod_global method=global \
+    stable_mask=stable_lod confidence=0.95
+</pre></div>
+
+<p>The debiased residual on the stable cells is the injected noise, so the
+result is <code>z(0.95)</code> times its NMAD:</p>
+
+<div class="code"><pre>
+NMAD: 0.0890 m
+LoD: 0.1743 m (uniform)
+</pre></div>
+
+<p>A spatially variable limit, keeping the combined 1-sigma surface for
+<em>r.dem.errprop</em> and the domain raster that marks where the limit is
+defined:</p>
+
+<div class="code"><pre>
+r.dem.lod dod=dod_debiased output=lod_local method=local window=21 \
+    stable_mask=stable_lod output_sigma=sigma_combined \
+    output_domain=lod_domain confidence=0.95
+</pre></div>
+
+<p>Because the survey noise varies across this scene, so does the limit: it
+runs from roughly 0.12 m on the smooth fields to over 0.30 m under canopy,
+against a single uniform value of 0.175 m. That is the case for
+<b>method=local</b>, and the reason the mask must include forest.</p>
+
+<p>However, the limit is undefined wherever no stable cell falls inside the
+window,
+which on this scene means the interior of the change features. Fall back to
+the uniform limit there before thresholding:</p>
+
+<div class="code"><pre>
+r.mapcalc "lod_filled = if(isnull(lod_local), lod_global, lod_local)"
+</pre></div>
+
+<p>Add the bias-model coefficient SE from <em>r.dem.bias</em> to the quadrature when
+the regression path was used:</p>
+
+<div class="code"><pre>
+r.dem.lod dod=dod_regression output=lod_with_se method=local \
+    stable_mask=stable_terrain sigma_extra=bias_se \
+    output_sigma=sigma_with_se
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_lod_local.png">
+<img src="r_dem_lod_local.png" width="600" alt="r.dem.lod example" border="0">
+</a><br>
+<i>Figure: The spatially variable Level of Detection against the uniform one, on a shared scale. White marks cells with no stable cell inside the window, where the local limit is undefined.</i>
+</div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>Wheaton et al. (2010), <em>Earth Surface Processes and Landforms</em>
+  35:136-156.</li>
+  <li>Hoehle and Hoehle (2009), <em>ISPRS J. Photogramm. Remote Sens.</em>
+  64:398-406.</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.dem.stats.html">r.dem.stats</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="r.univar.html">r.univar</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

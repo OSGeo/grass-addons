@@ -2,19 +2,21 @@
 
 ## Description
 
-*r.estimap.recreation*
+_r.estimap.recreation_
 is an implementation of the ESTIMAP recreation algorithm to support mapping
 and modelling of ecosystem services (Zulian, 2014).
 
 ## Examples
 
 For the sake of demonstrating the usage of the module, we use the following
-"component" maps to derive a recreation *potential* map:
+"component" maps to derive a recreation _potential_ map:
 
-* `input_area_of_interest`
-* `input_land_suitability`
-* `input_water_resources`
-* `input_protected_areas`
+- `input_area_of_interest`
+- `input_land_suitability`
+- `input_water_resources`
+- `input_protected_areas`
+
+<!-- markdownlint-disable no-inline-html -->
 
 <img alt="Area of interest" src="images/r_estimap_recreation_area_of_interest.png"
     width="190" />
@@ -24,6 +26,8 @@ For the sake of demonstrating the usage of the module, we use the following
     width="190" />
 <img alt="Protected areas"  src="images/r_estimap_recreation_protected_areas.png"
     width="190" />
+
+<!-- markdownlint-enable no-inline-html -->
 
 The maps shown above are available to download, among other sample maps, at:
 <https://gitlab.com/natcapes/r.estimap.recreation.data>.
@@ -61,12 +65,12 @@ cells:      6231077
 The first four input options of the module, are designed to receive pre-processed
 input maps that classify as either `land`, `natural`, `water`, and
 `infrastructure` resources that add to the recreational value of the area.
-*Pro-processing* means here to derive a map that scores the given resources,
+_Pro-processing_ means here to derive a map that scores the given resources,
 in the context of recreation and the ESTIMAP algorithm.
 
 #### Potential
 
-To produce a recreation *potential* map, the simplest command requires the user
+To produce a recreation _potential_ map, the simplest command requires the user
 to define the input map option `land` and name the output map via the option
 `potential`. Using a pre-processed map that depicts the suitability of different
 land types to support for recreation (here the map named `land_suitability`),
@@ -135,7 +139,7 @@ map](images/r_estimap_recreation_potential_3.png)
 
 While the `land` option accepts only one map as an input, both the `water`
 and the `natural` options accept multiple maps as inputs. For example, we
-add a second map named `input_bathing_water_quality` to the *water* component
+add a second map named `input_bathing_water_quality` to the _water_ component
 and modify the output map name to `output_potential_4`:
 
 ```bash
@@ -168,10 +172,10 @@ of values due to the different set of input maps.
 
 :exclamation:
 All of the above examples base upon pre-processed maps that score the access to
-and quality of land, water and natural resources. For using *raw*, unprocessed
+and quality of land, water and natural resources. For using _raw_, unprocessed
 maps, read section **Using unprocessed maps**.
 
-We can remove all of the *potential* maps via
+We can remove all of the _potential_ maps via
 
 ```bash
 g.remove raster pattern=output_potential* -f
@@ -199,12 +203,14 @@ r.estimap.recreation  \
 ```
 
 or, the same command in a copy-paste friendly way for systems that won't
-understand the special  `\` character:
+understand the special `\` character:
 
 <!-- markdownlint-disable line-length -->
+
 ```bash
 r.estimap.recreation  land=input_land_suitability  water=input_water_resources,input_bathing_water_quality  natural=input_protected_areas  infrastructure=input_distance_to_infrastructure  spectrum=output_spectrum
 ```
+
 <!-- markdownlint-enable line-length -->
 
 ![Example of a recreation spectrum output map while using a MASK, a land
@@ -214,7 +220,7 @@ map](images/r_estimap_recreation_spectrum.png)
 Missing to define an `infrastructure` map, while asking for the `spectrum`
 output, the command will abort and inform about.
 
-The image of the *spectrum* map was produced via the following native
+The image of the _spectrum_ map was produced via the following native
 GRASS GIS commands
 
 ```bash
@@ -246,9 +252,11 @@ r.estimap.recreation --o \
 or, the same command in a copy-paste friendly way:
 
 <!-- markdownlint-disable line-length -->
+
 ```bash
 r.estimap.recreation  --o mask=input_area_of_interest  land=input_land_suitability  water=input_water_resources,input_bathing_water_quality  natural=input_protected_areas  infrastructure=input_distance_to_infrastructure  opportunity=output_opportunity  spectrum=output_spectrum
 ```
+
 <!-- markdownlint-enable line-length -->
 
 We also add the `--o` overwrite flag, because existing `output_spectrum` map
@@ -258,7 +266,7 @@ will cause the module to abort.
 suitability map, a water resources map and a natural resources
 map](images/r_estimap_recreation_opportunity.png)
 
-The image of the *opportunity* map was produced via the following native
+The image of the _opportunity_ map was produced via the following native
 GRASS GIS commands
 
 ```bash
@@ -319,7 +327,7 @@ infrastructure, population and base](images/r_estimap_recreation_demand.png)
 #### Unmet Demand
 
 In the following example, we add `unmet` output map option. In this case of
-the *unmet* distribution map too, by design the module requires the user
+the _unmet_ distribution map too, by design the module requires the user
 to define the `demand` output map option.
 
 ```bash
@@ -339,18 +347,18 @@ r.estimap.recreation --o \
 for land suitability, water resources, natural resources,
 infrastructure, population and base](images/r_estimap_recreation_unmet_demand.png)
 
-It is left as an exercise to the user to create screenshots of the *met*, the
-*unmet* demand distribution and the *flow* output maps. For example, is may be
+It is left as an exercise to the user to create screenshots of the _met_, the
+_unmet_ demand distribution and the _flow_ output maps. For example, is may be
 similar to the command examples that demonstrate the use of the commands
-`d.rast`, `d.legend` and `d.text`, that draw the *potential*, the *spectrum*
-and the *opportunity* maps.
+`d.rast`, `d.legend` and `d.text`, that draw the _potential_, the _spectrum_
+and the _opportunity_ maps.
 
 #### Flow
 
-The *flow* bases upon the same function used to quantify the attractiveness
-of locations for their recreational value. It includes an extra *score* term.
+The _flow_ bases upon the same function used to quantify the attractiveness
+of locations for their recreational value. It includes an extra _score_ term.
 
-The computation involves a *distance* map, reclassified in 5 categories as
+The computation involves a _distance_ map, reclassified in 5 categories as
 shown in the following table. For each distance category, a unique pair of
 coefficient values is assigned to the basic equation.
 
@@ -445,7 +453,7 @@ returns
 
 #### Supply and Use
 
-The module outputs by request the *supply* and *use* tables in form of CSV files.
+The module outputs by request the _supply_ and _use_ tables in form of CSV files.
 Here is how:
 
 ```bash
@@ -593,7 +601,7 @@ maybe this will be useful.
 
 #### Vector map
 
-A vector input map with the role of the *base* map, can be used too.
+A vector input map with the role of the _base_ map, can be used too.
 
 ![Example of a vector map showing local administrative units](images/r_estimap_recreation_input_vector_local_administrative_units.png)
 
@@ -615,9 +623,9 @@ r.estimap.recreation --o -r \
 
 This command will also:
 
-* export results of the mobility function in the files `output_supply.csv`
+- export results of the mobility function in the files `output_supply.csv`
   and `output_use.csv`
-* add the following columns in the attribute table linked to the
+- add the following columns in the attribute table linked to the
   `input_vector_local_administrative_units` vector map:
 
   ```text
@@ -641,7 +649,7 @@ For example, the
 v.db.select input_vector_local_administrative_units \
     columns=lau2_no_name,spectrum_sum,demand_sum,unmet_sum,flow_sum \
     where="flow_sum IS NOT NULL" | head
- ```
+```
 
 following the analysis, returns
 
@@ -679,50 +687,50 @@ short integer numbers to print as labels inside the units (in the vector map).
 The module offers a pre-processing functionality for all of the following
 input components:
 
-* landuse
-* suitability\_scores
+- landuse
+- suitability_scores
 
 <!-- -->
 
-* landcover
-* land\_classes
+- landcover
+- land_classes
 
 <!-- -->
 
-* lakes
-* lakes\_coefficients
-* default is set to: euclidean,1,30,0.008,1
+- lakes
+- lakes_coefficients
+- default is set to: euclidean,1,30,0.008,1
 
 <!-- -->
 
-* coastline
-* coastline\_coefficients
-* default is set to: euclidean,1,30,0.008,1
-* coast\_geomorphology
+- coastline
+- coastline_coefficients
+- default is set to: euclidean,1,30,0.008,1
+- coast_geomorphology
 
 <!-- -->
 
-* bathing\_water
-* bathing\_coefficients
-* default is set to: euclidean,1,5,0.01101
+- bathing_water
+- bathing_coefficients
+- default is set to: euclidean,1,5,0.01101
 
 <!-- -->
 
-* protected
-* protected\_scores
-* 11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
+- protected
+- protected_scores
+- 11:11:0,12:12:0.6,2:2:0.8,3:3:0.6,4:4:0.6,5:5:1,6:6:0.8,7:7:0,8:8:0,9:9:0
 
 <!-- -->
 
-* anthropic
-* anthropic\_distances
-* 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+- anthropic
+- anthropic_distances
+- 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 <!-- -->
 
-* roads
-* roads\_distances
-* 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
+- roads
+- roads_distances
+- 0:500:1,500.000001:1000:2,1000.000001:5000:3,5000.000001:10000:4,10000.00001:\*:5
 
 A first look on how this works, is to experiment with the `landuse` and
 `suitability_scores` input options.
@@ -784,12 +792,14 @@ on a fragment from the CORINE land data base](images/r_estimap_recreation_potent
 The same can be achieved with a long one-line string too:
 
 <!-- markdownlint-disable line-length -->
+
 ```bash
 r.estimap.recreation \
     landuse=input_corine_land_cover_2006 \
     suitability_scores="1:1:0:0,2:2:0.1:0.1,3:9:0:0,10:10:1:1,11:11:0.1:0.1,12:13:0.3:0.3,14:14:0.4:0.4,15:17:0.5:0.5,18:18:0.6:0.6,19:20:0.3:0.3,21:22:0.6:0.6,23:23:1:1,24:24:0.8:0.8,25:25:1:1,26:29:0.8:0.8,30:30:1:1,31:31:0.8:0.8,32:32:0.7:0.7,33:33:0:0,34:34:0.8:0.8,35:35:1:1,36:36:0.8:0.8,37:37:1:1,38:38:0.8:0.8,39:39:1:1,40:42:1:1,43:43:0.8:0.8,44:44:1:1,45:45:0.3:0.3" \
     potential=potential_1
 ```
+
 <!-- markdownlint-enable line-length -->
 
 In fact, this very scoring scheme, for CORINE land data sets, is integrated in
@@ -807,8 +817,8 @@ This is so because CORINE is a standard choice among existing land data bases
 that cover european territories. In case of a user requirement to provide an
 alternative scoring scheme, all what is required is either of
 
-* provide a new "rules" file with the desired set of scoring rules
-* provide a string to the `suitability_scores` option
+- provide a new "rules" file with the desired set of scoring rules
+- provide a string to the `suitability_scores` option
 
 ## Author
 

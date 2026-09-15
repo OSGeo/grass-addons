@@ -8,10 +8,10 @@
 #               Converted to Python by Glynn Clements
 #
 # PURPOSE:      Import GEOnet Names Server (GNS) country files into a GRASS vector map
-#               http://earth-info.nga.mil/gns/html/
+#               https://web.archive.org/web/20220625184957/https://geonames.nga.mil/gns/html/
 #                -> Download Names Files for Countries and Territories (FTP)
 #
-#               Column names: http://earth-info.nga.mil/gns/html/help.htm
+#               Column names: https://web.archive.org/web/20120702091908/http://earth-info.nga.mil/gns/html/help.htm
 #
 # COPYRIGHT:    (c) 2005 GRASS Development Team
 #

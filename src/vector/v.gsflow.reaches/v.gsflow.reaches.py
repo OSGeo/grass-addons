@@ -181,7 +181,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ###############
 # MAIN MODULE #
@@ -198,7 +198,7 @@ def main():
     # OPTION PARSING #
     ##################
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     segments = options["segment_input"]
     grid = options["grid_input"]
     reaches = options["output"]
@@ -218,7 +218,7 @@ def main():
     EPS = options["eps"]
     UHC = options["uhc"]
     # Build reach maps by overlaying segments on grid
-    if len(gscript.find_file(segments, element="vector")["name"]) > 0:
+    if len(gs.find_file(segments, element="vector")["name"]) > 0:
         v.extract(
             input=segments,
             output="GSFLOW_TEMP__",
@@ -232,12 +232,12 @@ def main():
             binput=grid,
             output=reaches,
             operator="and",
-            overwrite=gscript.overwrite(),
+            overwrite=gs.overwrite(),
             quiet=True,
         )
         g.remove(type="vector", name="GSFLOW_TEMP__", quiet=True, flags="f")
     else:
-        gscript.fatal('No vector file "' + segments + '" found.')
+        gs.fatal('No vector file "' + segments + '" found.')
 
     # Start editing database table
     reachesTopo = VectorTopo(reaches)
@@ -291,8 +291,8 @@ def main():
 
     # Update some columns that can be done now
     reachesTopo.open("rw")
-    colNames = np.array(gscript.vector_db_select(reaches, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(reaches, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(reaches, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(reaches, layer=1)["values"].values())
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     nseg = np.arange(1, len(cats) + 1)
     nseg_cats = []
@@ -330,16 +330,16 @@ def main():
 
     # First, get the starting coordinates of each stream segment
     # and a set of river ID's (ordered from 1...N)
-    colNames = np.array(gscript.vector_db_select(segments, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(segments, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(segments, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(segments, layer=1)["values"].values())
     number_of_segments = colValues.shape[0]
     segment_x1s = colValues[:, colNames == "x1"].astype(float).squeeze()
     segment_y1s = colValues[:, colNames == "y1"].astype(float).squeeze()
     segment_ids = colValues[:, colNames == "id"].astype(float).squeeze()
 
     # Then move back to the reaches map to produce the ordering
-    colNames = np.array(gscript.vector_db_select(reaches, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(reaches, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(reaches, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(reaches, layer=1)["values"].values())
     reach_cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     reach_x1s = colValues[:, colNames == "xr1"].astype(float).squeeze()
     reach_y1s = colValues[:, colNames == "yr1"].astype(float).squeeze()
@@ -374,7 +374,7 @@ def main():
                 reach_y_end = float(reach_y2s[reach_cats == _cat])
                 reach_order_cats.append(_cat)
         _message = str(len(reach_order_cats)) + " " + str(len(reach_cats[rsel]))
-        gscript.message(_message)
+        gs.message(_message)
 
         # Reach order to database table
         reach_number__reach_order_cats = []
@@ -399,7 +399,7 @@ def main():
     # Compute slope and starting elevations from the elevations at the start and
     # end of the reaches and the length of each reach]
 
-    gscript.message("Obtaining elevation values from raster: may take time.")
+    gs.message("Obtaining elevation values from raster: may take time.")
     v.db_addcolumn(map=reaches, columns="zr1 double precision, zr2 double precision")
     zr1 = []
     zr2 = []
@@ -408,7 +408,7 @@ def main():
         _y = reach_y1s[i]
         # print _x, _y
         _z = float(
-            gscript.parse_command(
+            gs.parse_command(
                 "r.what", map=elevation, coordinates=str(_x) + "," + str(_y)
             )
             .keys()[0]
@@ -418,7 +418,7 @@ def main():
         _x = reach_x2s[i]
         _y = reach_y2s[i]
         _z = float(
-            gscript.parse_command(
+            gs.parse_command(
                 "r.what", map=elevation, coordinates=str(_x) + "," + str(_y)
             )
             .keys()[0]

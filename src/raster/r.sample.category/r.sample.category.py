@@ -69,7 +69,7 @@
 import os
 import atexit
 
-import grass.script as gscript
+import grass.script as gs
 
 
 TMP = []
@@ -77,7 +77,7 @@ TMP = []
 
 def cleanup():
     if TMP:
-        gscript.run_command(
+        gs.run_command(
             "g.remove", flags="f", type=["raster", "vector"], name=TMP, quiet=True
         )
 
@@ -104,7 +104,7 @@ def strip_mapset(name):
 
 
 def main():
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     input_raster = options["input"]
     points = options["output"]
@@ -127,7 +127,7 @@ def main():
     TMP.append(points_nocats)
 
     # input must be CELL
-    rdescribe = gscript.read_command(
+    rdescribe = gs.read_command(
         "r.stats", flags="lnc", input=input_raster, separator="pipe"
     )
     catlab = rdescribe.splitlines()
@@ -138,7 +138,7 @@ def main():
         npoints = npoints * len(categories)
     else:
         if len(categories) != len(npoints):
-            gscript.fatal(
+            gs.fatal(
                 _(
                     "Number of categories in raster does not match the number of provided sampling points numbers."
                 )
@@ -155,20 +155,20 @@ def main():
         nrc = int(pixlab[str(cat)])
         if nrc < npoints[i]:
             if flag_s:
-                gscript.info(
+                gs.info(
                     _("Not enough points in category {cat}. Skipping").format(
                         cat=categories[i]
                     )
                 )
                 continue
-            gscript.warning(
+            gs.warning(
                 _(
                     "Number of raster cells in category {cat} < {np}. Sampling {n} points"
                 ).format(cat=categories[i], np=npoints[i], n=nrc)
             )
             npoints[i] = nrc
 
-        gscript.info(
+        gs.info(
             _("Selecting {n} sampling locations at category {cat}...").format(
                 n=npoints[i], cat=cat
             )
@@ -176,7 +176,7 @@ def main():
 
         # Create reclass map with only pixels of current category
         rc_rule = "{0} = {0}\n* = NULL".format(cat)
-        gscript.write_command(
+        gs.write_command(
             "r.reclass",
             input=input_raster,
             output=temp_name,
@@ -193,7 +193,7 @@ def main():
         vector = temp_name + str(cat)
         vectors.append(vector)
         if seed is None:
-            gscript.run_command(
+            gs.run_command(
                 "r.random",
                 input=temp_name,
                 npoints=npoints[i],
@@ -202,7 +202,7 @@ def main():
                 quiet=True,
             )
         else:
-            gscript.run_command(
+            gs.run_command(
                 "r.random",
                 input=temp_name,
                 npoints=npoints[i],
@@ -212,9 +212,9 @@ def main():
             )
         TMP.append(vector)
 
-    gscript.run_command("v.patch", input=vectors, output=points, quiet=True)
+    gs.run_command("v.patch", input=vectors, output=points, quiet=True)
     # remove and add gain cats so that they are unique
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input=points,
         option="del",
@@ -223,7 +223,7 @@ def main():
         quiet=True,
     )
     # overwrite to reuse the map
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input=points_nocats,
         option="add",
@@ -239,18 +239,16 @@ def main():
     for raster in sampled_rasters:
         column = escape_sql_column(strip_mapset(raster).lower())
         column_names.append(column)
-        datatype = gscript.parse_command("r.info", flags="g", map=raster)["datatype"]
+        datatype = gs.parse_command("r.info", flags="g", map=raster)["datatype"]
         if datatype == "CELL":
             datatype = "integer"
         else:
             datatype = "double precision"
         columns.append("{column} {datatype}".format(column=column, datatype=datatype))
-    gscript.run_command(
-        "v.db.addtable", map=points, columns=",".join(columns), quiet=True
-    )
+    gs.run_command("v.db.addtable", map=points, columns=",".join(columns), quiet=True)
     for raster, column in zip(sampled_rasters, column_names):
-        gscript.info(_("Sampling raster map %s...") % raster)
-        gscript.run_command(
+        gs.info(_("Sampling raster map %s...") % raster)
+        gs.run_command(
             "v.what.rast",
             map=points,
             type="point",
@@ -261,9 +259,9 @@ def main():
 
     # Add category labels
     if not list(set(catlab.values()))[0] and len(set(catlab.values())) == 1:
-        gscript.verbose(_("There are no category labels in the raster to add"))
+        gs.verbose(_("There are no category labels in the raster to add"))
     else:
-        gscript.run_command("v.db.addcolumn", map=points, columns="label varchar(250)")
+        gs.run_command("v.db.addcolumn", map=points, columns="label varchar(250)")
         table_name = escape_sql_column(strip_mapset(points).lower())
         for i in categories:
             sqlstat = (
@@ -276,9 +274,9 @@ def main():
                 + " == "
                 + str(i)
             )
-            gscript.run_command("db.execute", sql=sqlstat)
+            gs.run_command("db.execute", sql=sqlstat)
 
-    gscript.vector_history(points, replace=True)
+    gs.vector_history(points, replace=True)
 
 
 if __name__ == "__main__":

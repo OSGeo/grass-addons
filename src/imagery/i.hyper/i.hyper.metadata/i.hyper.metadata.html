@@ -1,0 +1,199 @@
+<h2>DESCRIPTION</h2>
+
+<em>i.hyper.metadata</em> reads and manages metadata for hyperspectral 3D raster maps
+created by the <em>i.hyper</em> toolchain.
+
+Metadata is loaded from <code>hyper.json</code>.
+
+<h2>NOTES</h2>
+
+Supported operations:
+<ul>
+  <li><code>summary</code>: concise metadata summary for current dataset</li>
+  <li><code>full</code>: full metadata object for current dataset</li>
+  <li><code>extended</code>: selected <code>extended_metadata</code> only (all, branch, key path, or multiple selectors; resolved through lineage inheritance for derived datasets)</li>
+  <li><code>bands</code>: list source bands (optionally filtered by wavelength range)</li>
+  <li><code>history</code>: recursive aggregated lineage history, ordered by timestamp (uses <code>input_datasets_metadata</code> snapshots when referenced inputs are unavailable in current LOCATION)</li>
+  <li><code>validate</code>: metadata and lineage consistency checks</li>
+</ul>
+
+Output format (<code>format</code>) is global for all operations:
+<ul>
+  <li><code>json</code> (default)</li>
+  <li><code>text</code></li>
+  <li><code>csv</code></li>
+</ul>
+
+For <code>full</code> and <code>history</code>, <code>resolve_names=yes</code> resolves
+<code>inputs/outputs</code> map names from current maps by <code>dataset_id</code>
+(display only; stored command is unchanged).
+
+<p>For <code>operation=extended</code>, option <code>extended_select=</code> supports:</p>
+<ul>
+  <li><code>all</code> (default): full <code>extended_metadata</code></li>
+  <li>one branch (e.g., <code>acquisition</code>)</li>
+  <li>one key path (e.g., <code>geometry.sun_zenith_deg</code>)</li>
+  <li>multiple selectors at once (comma-separated), e.g.
+    <code>acquisition,geometry.sun_zenith_deg,processing</code></li>
+  <li>selectors with <code>extended_metadata.</code> prefix are also accepted
+    (for example, <code>extended_metadata.geometry.sun_zenith_deg</code>)</li>
+</ul>
+
+<p>Selectors are evaluated on resolved <code>extended_metadata</code> (current dataset overrides plus inherited values from lineage).</p>
+
+<p>Dataset provenance is stored in top-level key <code>derived</code>:</p>
+<ul>
+  <li><code>derived=false</code>: original imported dataset</li>
+  <li><code>derived=true</code>: any dataset created from other dataset(s)</li>
+</ul>
+
+<h3>API (CLI)</h3>
+
+<p>Main options:</p>
+<ul>
+  <li><code>map=</code>: input <code>raster_3d</code> map</li>
+  <li><code>operation=</code>: <code>summary|full|extended|bands|history|validate</code></li>
+  <li><code>format=</code>: <code>json|text|csv</code></li>
+  <li><code>resolve_names=</code>: <code>yes|no</code> (for <code>full</code> and <code>history</code>)</li>
+  <li><code>wavelength_range=</code>: for <code>operation=bands</code> (example: <code>400-700</code>)</li>
+  <li><code>extended_select=</code>: for <code>operation=extended</code> (all/branch/path/multiple)</li>
+</ul>
+
+<p>API examples:</p>
+<div class="code"><pre>
+# Full metadata as JSON
+i.hyper.metadata map=my_cube operation=full format=json
+
+# Bands as CSV in 700-900 nm
+i.hyper.metadata map=my_cube operation=bands wavelength_range=700-900 format=csv
+
+# One extended branch
+i.hyper.metadata map=my_cube operation=extended extended_select=geometry
+
+# Multiple extended selectors
+i.hyper.metadata map=my_cube operation=extended \
+  extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
+</pre></div>
+
+<h3>JSON metadata structure</h3>
+
+<p>Imported datasets store full dataset description at top level.
+Derived datasets store mandatory provenance keys and only local overrides.</p>
+
+<div class="code"><pre>
+{
+  "schema_version": "1.0",
+  "dataset_id": "5bc6cb5c55b44993afeb78f2da5c8ccf",
+  "derived": true,
+  "processing_history": [
+    {
+      "command": "i.hyper.preproc input=enmap output=enmap_sg steps=sav_gol window_length=7 polyorder=3",
+      "timestamp": "2026-03-25T12:41:05.281173",
+      "inputs": [{"id": "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d", "map_name": "enmap@PERMANENT"}],
+      "outputs": [{"id": "5bc6cb5c55b44993afeb78f2da5c8ccf", "map_name": "enmap_sg@PERMANENT"}]
+    }
+  ],
+  "input_datasets_metadata": {
+    "7da4f3e02b8f4ef2bc2a06fb0fe4bb8d": { "...": "full parent metadata snapshot" }
+  }
+}
+</pre></div>
+
+<p>Derived dataset required top-level keys:</p>
+<ul>
+  <li><code>schema_version</code></li>
+  <li><code>dataset_id</code></li>
+  <li><code>derived</code></li>
+  <li><code>processing_history</code></li>
+</ul>
+
+<p>Optional local override keys in derived datasets:</p>
+<ul>
+  <li><code>data_type</code></li>
+  <li><code>sensor</code></li>
+  <li><code>wavelength_units</code></li>
+  <li><code>radiometric_quantity</code></li>
+  <li><code>radiometric_units</code></li>
+  <li><code>region</code></li>
+  <li><code>bands</code></li>
+  <li><code>extended_metadata</code></li>
+  <li><code>dimensionality_reduction</code> (written only for outputs where dimensionality reduction is applied)</li>
+</ul>
+
+<p>Inheritance rule:</p>
+<ul>
+  <li>if an optional key is missing in a derived dataset, value is inherited through lineage</li>
+  <li>for multiple direct inputs, value is inherited only when all direct inputs resolve to the same value</li>
+  <li><code>dimensionality_reduction</code> is not inherited; it is present only when DR is applied for the current output dataset</li>
+</ul>
+
+<h3>Extended Metadata Branches</h3>
+
+<ul>
+  <li>Common unified branches:
+    <code>acquisition</code>, <code>geometry</code>, <code>radiometry</code>,
+    <code>atmosphere</code>, <code>quality</code>, <code>processing</code>, <code>uncertainty</code></li>
+  <li>Product-specific branches:
+    <code>enmap</code>, <code>prisma</code>, <code>tanager</code></li>
+  <li>Dimensionality reduction metadata is stored in top-level <code>dimensionality_reduction</code>, not in <code>extended_metadata.processing</code>.</li>
+  <li>For derived datasets, top-level <code>input_datasets_metadata</code> stores full metadata snapshots for all input datasets recursively to origin, keyed by <code>dataset_id</code>. Embedded snapshots exclude nested <code>input_datasets_metadata</code>. <code>operation=history</code> uses these snapshots when referenced input metadata are unavailable in the current LOCATION.</li>
+  <li>Unified branches store cross-product keys. Product-specific branches store source product keys used to derive unified values (provenance). The same value may appear in both locations by design.</li>
+  <li>Only unified geometry keys under <code>extended_metadata.geometry</code> are used.</li>
+</ul>
+<p>For key mapping and provenance rules, see
+<code>extended_metadata_unification.md</code>.</p>
+
+<h2>EXAMPLES</h2>
+
+View metadata summary:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=summary format=text
+</pre></div>
+
+Show bands in visible range:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=bands wavelength_range=400-700
+</pre></div>
+
+Show full recursive history with current map names:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=history resolve_names=yes
+</pre></div>
+
+Show all extended metadata:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended extended_select=all
+</pre></div>
+
+Show one specific extended metadata key:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended \
+  extended_select=geometry.sun_zenith_deg
+</pre></div>
+
+Show selected branches and key paths at the same time:
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended \
+  extended_select=acquisition,geometry.sun_zenith_deg,processing
+</pre></div>
+
+Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
+<div class="code"><pre>
+i.hyper.metadata map=my_hyper_cube operation=extended \
+  extended_select=acquisition.start_time_utc,acquisition.day_of_year,geometry.sun_zenith_deg,geometry.sun_azimuth_deg,geometry.view_zenith_deg,geometry.view_azimuth_deg,geometry.relative_azimuth_deg,atmosphere.aod_550,atmosphere.h2o_g_cm2,atmosphere.ozone_du \
+  format=json
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.hyper.html">i.hyper</a>,
+<a href="i.hyper.import.html">i.hyper.import</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia<br>
+Anna Petrášová, NCSU GeoForAll Lab

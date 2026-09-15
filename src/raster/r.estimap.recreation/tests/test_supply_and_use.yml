@@ -1,5 +1,4 @@
 ---
-
 - mapset: supply_and_use
   flags: []
   inputs:

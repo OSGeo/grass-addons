@@ -109,17 +109,17 @@ import os
 import csv
 import operator
 import atexit
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
     if temporary_vect:
-        if gscript.find_file(temporary_vect, element="vector")["name"]:
-            gscript.run_command(
+        if gs.find_file(temporary_vect, element="vector")["name"]:
+            gs.run_command(
                 "g.remove", flags="f", type_="vector", name=temporary_vect, quiet=True
             )
-        if gscript.db_table_exist(temporary_vect):
-            gscript.run_command(
+        if gs.db_table_exist(temporary_vect):
+            gs.run_command(
                 "db.execute", sql="DROP TABLE %s" % temporary_vect, quiet=True
             )
 
@@ -141,7 +141,7 @@ def main():
     zone_map = options["zone_map"]
 
     csvfile = options["csvfile"] if options["csvfile"] else []
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     prefix = options["prefix"] if options["prefix"] else []
     classes_list = options["classes_list"].split(",") if options["classes_list"] else []
     vectormap = options["vectormap"] if options["vectormap"] else []
@@ -152,17 +152,14 @@ def main():
         "c"
     ]:  # Check only if flag activated - Can be bottleneck in case of very large raster.
         # Check if input layer is CELL
-        if gscript.parse_command("r.info", flags="g", map=raster)["datatype"] != "CELL":
-            gscript.fatal(
+        if gs.parse_command("r.info", flags="g", map=raster)["datatype"] != "CELL":
+            gs.fatal(
                 _(
                     "The type of the input map 'raster' is not CELL. Please use raster with integer values"
                 )
             )
-        if (
-            gscript.parse_command("r.info", flags="g", map=zone_map)["datatype"]
-            != "CELL"
-        ):
-            gscript.fatal(
+        if gs.parse_command("r.info", flags="g", map=zone_map)["datatype"] != "CELL":
+            gs.fatal(
                 _(
                     "The type of the input map 'zone_map' is not CELL. Please use raster with integer values"
                 )
@@ -170,20 +167,20 @@ def main():
 
     # Check if 'decimals' is + and with credible value
     if decimals <= 0:
-        gscript.fatal(_("The number of decimals should be positive"))
+        gs.fatal(_("The number of decimals should be positive"))
     if decimals > 100:
-        gscript.fatal(_("The number of decimals should not be more than 100"))
+        gs.fatal(_("The number of decimals should not be more than 100"))
 
     # Adjust region to input map is flag active
     if flags["r"]:
-        gscript.use_temp_region()
-        gscript.run_command("g.region", raster=zone_map)
+        gs.use_temp_region()
+        gs.run_command("g.region", raster=zone_map)
 
     # R.STATS
-    tmpfile = gscript.tempfile()
+    tmpfile = gs.tempfile()
     try:
         if flags["n"]:
-            gscript.run_command(
+            gs.run_command(
                 "r.stats",
                 overwrite=True,
                 flags="c",
@@ -192,7 +189,7 @@ def main():
                 separator=separator,
             )  # Consider null values in R.STATS
         else:
-            gscript.run_command(
+            gs.run_command(
                 "r.stats",
                 overwrite=True,
                 flags="cn",
@@ -200,9 +197,9 @@ def main():
                 output=tmpfile,
                 separator=separator,
             )  # Do not consider null values in R.STATS
-        gscript.message(_("r.stats command finished..."))
+        gs.message(_("r.stats command finished..."))
     except:
-        gscript.fatal(_("The execution of r.stats failed"))
+        gs.fatal(_("The execution of r.stats failed"))
 
     # COMPUTE STATISTICS
     # Open csv file and create a csv reader
@@ -282,7 +279,7 @@ def main():
             class_list.append("NULL")
         else:
             class_list = sorted([int(k) for k in class_dict.keys()])
-    gscript.verbose(_("Statistics computed..."))
+    gs.verbose(_("Statistics computed..."))
     # Set 'totals_dict' to None to try RAM release
     totals_dict = None
     # OUTPUT CONTENT
@@ -317,9 +314,9 @@ def main():
             writer.writerow(header)
             writer.writerows(value_dict.values())
     if vectormap:
-        gscript.message(_("Creating output vector map..."))
+        gs.message(_("Creating output vector map..."))
         temporary_vect = "rzonalclasses_tmp_vect_%d" % os.getpid()
-        gscript.run_command(
+        gs.run_command(
             "r.to.vect",
             input_=zone_map,
             output=temporary_vect,
@@ -328,14 +325,14 @@ def main():
             overwrite=True,
             quiet=True,
         )
-        insert_sql = gscript.tempfile()
+        insert_sql = gs.tempfile()
         with open(insert_sql, "w", newline="") as fsql:
             fsql.write("BEGIN TRANSACTION;\n")
-            if gscript.db_table_exist(temporary_vect):
-                if gscript.overwrite():
+            if gs.db_table_exist(temporary_vect):
+                if gs.overwrite():
                     fsql.write("DROP TABLE %s;" % temporary_vect)
                 else:
-                    gscript.fatal(
+                    gs.fatal(
                         _("Table %s already exists. Use --o to overwrite")
                         % temporary_vect
                     )
@@ -362,16 +359,16 @@ def main():
                 )
                 fsql.write(insert_statement)
             fsql.write("END TRANSACTION;")
-        gscript.run_command("db.execute", input=insert_sql, quiet=True)
-        gscript.run_command(
+        gs.run_command("db.execute", input=insert_sql, quiet=True)
+        gs.run_command(
             "v.db.connect", map_=temporary_vect, table=temporary_vect, quiet=True
         )
-        gscript.run_command(
+        gs.run_command(
             "g.copy", vector="%s,%s" % (temporary_vect, vectormap), quiet=True
         )
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

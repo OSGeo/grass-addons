@@ -47,7 +47,7 @@
 # %end
 
 import sys
-import grass.script as grass
+import grass.script as gs
 import numpy as np
 import warnings
 
@@ -74,7 +74,7 @@ def calculateMap(criteria, weight, outputMap):
     for i in range(len(criteria) - 1):
         formula += "%s*%s + " % (criteria[i], weight[i])
     formula += "%s*%s " % (criteria[len(criteria) - 1], weight[len(criteria) - 1])
-    grass.mapcalc(outputMap + "=" + formula)
+    gs.mapcalc(outputMap + "=" + formula)
     return 0
 
 
@@ -112,7 +112,7 @@ def main():
     criteria = options["criteria"].split(",")
     pairwise = options["pairwise"]
     outputMap = options["output"]
-    gregion = grass.region()
+    gregion = gs.region()
     nrows = gregion["rows"]
     ncols = gregion["cols"]
     ewres = int(gregion["ewres"])
@@ -124,5 +124,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

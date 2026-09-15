@@ -13,7 +13,7 @@ def check_required_columns(vname, layer, reqcols, pname):
         columns = vect.table.columns
     for col in reqcols:
         if col not in columns:
-            msg = "Parameter: %s require the following columns: %r," " %s is missing"
+            msg = "Parameter: %s require the following columns: %r, %s is missing"
             raise ParameterError(msg % (pname, reqcols, col))
     return vect
 

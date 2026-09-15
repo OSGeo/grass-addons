@@ -317,7 +317,6 @@ def main():
     for x_sum_raster, y_sum_raster, z_sum_raster, size in zip(
         x_sum_list, y_sum_list, z_sum_list, neighborhood_size
     ):
-
         if len(neighborhood_size) > 1:
             vrm_name = "_".join([output, str(size)])
         else:

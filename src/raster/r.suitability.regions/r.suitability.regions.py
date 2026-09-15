@@ -4,7 +4,7 @@
 # MODULE:         Locate suitable regions
 # AUTHOR(S):      Paulo van Breugel
 # PURPOSE:        From suitability map to suitable regions
-# COPYRIGHT: (C) 2021 by Paulo van Breugel and the GRASS Development Team
+# COPYRIGHT: (C) 2021-2024 by Paulo van Breugel and the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -43,16 +43,24 @@
 
 # %option
 # % key: percentile_threshold
-# % label: Percentile threshold
-# % description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions.
+# % label: Percentile threshold (deprecated)
+# % description: Percentile above which suitability scores are included in the search for suitable regions. For example, using a 0.95 percentile means that the raster cells with the 5% highest suitability scores are are used as input in the delineation of contiguous suitable regions (deprecated, use percentage instead).
 # % type: string
 # % key_desc: percentile
+# %end
+
+# %option
+# % key: percentage
+# % label: Percentage to select
+# % description: The percentage of raster cells with the highest suitability scores that are to be used as input in the delineation of contiguous suitable regions.
+# % type: string
+# % key_desc: percentage
 # % guisection: Input
 # %end
 
 # %rules
-# % required: suitability_threshold,percentile_threshold
-# % exclusive: suitability_threshold,percentile_threshold
+# % required: suitability_threshold,percentage,percentile_threshold
+# % exclusive: suitability_threshold,percentage,percentile_threshold
 # %end
 
 # %option
@@ -145,7 +153,7 @@
 # %flag
 # % key: f
 # % label: Suitable areas (focal statistics)
-# % description: Map showing all raster cells with an aggregated suitability score based on a user-defined neighhborhood size that is equal or above a user-defined threshold.
+# % description: Map showing all raster cells with an aggregated suitability score based on a user-defined neighhborhood size that is equal or above a user-defined minimum_suitability threshold.
 # % guisection: Optional
 # %end
 
@@ -161,6 +169,12 @@
 # % description: Compactness
 # % description: Compute compactness of selected suitable regions.
 # % guisection: Optional
+# %end
+
+# %option G_OPT_M_NPROCS
+# %end
+
+# %option G_OPT_MEMORYMB
 # %end
 
 import sys
@@ -205,12 +219,13 @@ def tmpmask(raster, absolute_minimum):
 
 
 def main(options, flags):
-
     # Variables
     in_filename = options["input"]
     out_filename = options["output"]
     suitability_threshold = options["suitability_threshold"]
     percentile_threshold = options["percentile_threshold"]
+    if options["percentage"]:
+        percentile_threshold = 100 - float(options["percentage"])
     minimum_suitability = options["minimum_suitability"]
     minimum_size = float(options["minimum_size"])
     size = int(options["size"])
@@ -218,6 +233,8 @@ def main(options, flags):
         gs.fatal("size should be an odd positive number")
     focal_statistic = options["focal_statistic"]
     maximum_gap = float(options["maximum_gap"])
+    memory = options["memory"]
+    nprocs = options["nprocs"]
 
     # Flags
     if flags["c"]:
@@ -235,8 +252,8 @@ def main(options, flags):
 
     # Compute neighborhood statistic
     if size > 1 and len(minimum_suitability) == 0:
-        gs.message("Computing neighborhood statistic")
-        gs.message("================================\n")
+        gs.message(_("Computing neighborhood statistic"))
+        gs.message(_("================================\n"))
         tmp00 = create_temporary_name("tmp00")
         gs.run_command(
             "r.neighbors",
@@ -245,14 +262,21 @@ def main(options, flags):
             output=tmp00,
             method=focal_statistic,
             size=size,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp02 = create_temporary_name("tmp02")
         gs.run_command(
-            "r.series", input=[in_filename, tmp00], method="maximum", output=tmp02
+            "r.series",
+            input=[in_filename, tmp00],
+            method="maximum",
+            output=tmp02,
+            nprocs=nprocs,
+            memory=memory,
         )
     elif size > 1:
-        gs.message("Computing neighborhood statistic")
-        gs.message("================================\n")
+        gs.message(_("Computing neighborhood statistic"))
+        gs.message(_("================================\n"))
         try:
             float(minimum_suitability)
         except TypeError:
@@ -265,10 +289,17 @@ def main(options, flags):
             output=tmp01,
             method=focal_statistic,
             size=size,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp00 = create_temporary_name("tmp00")
         gs.run_command(
-            "r.series", input=[in_filename, tmp01], method="maximum", output=tmp00
+            "r.series",
+            input=[in_filename, tmp01],
+            method="maximum",
+            output=tmp00,
+            nprocs=nprocs,
+            memory=memory,
         )
         tmp02 = create_temporary_name("tmp02")
         gs.run_command(
@@ -278,14 +309,15 @@ def main(options, flags):
                     tmp02, in_filename, minimum_suitability, tmp00
                 )
             ),
+            nprocs=nprocs,
         )
     else:
         tmp02 = create_temporary_name("tmp02")
         gs.run_command("g.copy", raster=[in_filename, tmp02], quiet=True)
 
     # Convert suitability to boolean: suitable (1) or not (nodata)
-    gs.message("Creating boolean map suitable/none-suitable")
-    gs.message("===========================================\n")
+    gs.message(_("Creating boolean map suitable/none-suitable"))
+    gs.message(_("===========================================\n"))
 
     if suitability_threshold == "":
         qrule = (
@@ -308,12 +340,13 @@ def main(options, flags):
         expression=(
             "{} = if({} >= {},1,null())".format(tmp03, tmp02, suitability_threshold)
         ),
+        nprocs=nprocs,
     )
 
     # Clump contiguous cells (adjacent celss with same value) and
     # remove clumps that are below user provided size
-    gs.message("Clumping continuous cells and removing small fragments")
-    gs.message("======================================================\n")
+    gs.message(_("Clumping continuous cells and removing small fragments"))
+    gs.message(_("======================================================\n"))
     tmp04 = create_temporary_name("tmp04")
     gs.run_command(
         "r.reclass.area",
@@ -330,13 +363,13 @@ def main(options, flags):
     # 1/nodata is reversed. The last step (clump) is to assign unique values
     # to the clumps, which makes it easier to filter and analyse results
     if maximum_gap > 0:
-        gs.message("Removing small gaps of non-suitable areas - step 1")
-        gs.message("==================================================\n")
+        gs.message(_("Removing small gaps of non-suitable areas - step 1"))
+        gs.message(_("==================================================\n"))
         tmp05 = create_temporary_name("tmp05")
         expr = "{} = if(isnull({}),1,null())".format(tmp05, tmp04)
-        gs.run_command("r.mapcalc", expression=expr)
-        gs.message("Removing small gaps of non-suitable areas - step 2")
-        gs.message("==================================================\n")
+        gs.run_command("r.mapcalc", expression=expr, nprocs=nprocs)
+        gs.message(_("Removing small gaps of non-suitable areas - step 2"))
+        gs.message(_("==================================================\n"))
         tmp06 = create_temporary_name("tmp06")
         gs.run_command(
             "r.reclass.area",
@@ -346,11 +379,11 @@ def main(options, flags):
             mode="greater",
             method="reclass",
         )
-        gs.message("Removing small gaps of non-suitable areas - step 3")
-        gs.message("==================================================\n")
+        gs.message(_("Removing small gaps of non-suitable areas - step 3"))
+        gs.message(_("==================================================\n"))
         tmp08 = create_temporary_name("tmp08")
         expr3 = "{} = int(if(isnull({}),1,null()))".format(tmp08, tmp06)
-        gs.run_command("r.mapcalc", expression=expr3)
+        gs.run_command("r.mapcalc", expression=expr3, nprocs=nprocs)
         tmp09 = create_temporary_name("tmp09")
         if len(minimum_suitability) > 0:
             bumask = tmpmask(raster=in_filename, absolute_minimum=minimum_suitability)
@@ -359,19 +392,22 @@ def main(options, flags):
                 expression=(
                     "{} = if(isnull({}), {}, null())".format(tmp09, bumask, tmp08)
                 ),
+                nprocs=nprocs,
             )
         else:
             gs.run_command("g.rename", raster=[tmp08, tmp09], quiet=True)
 
         # Create map with category clump-suitable, clump-unsuitable
-        gs.message("Create map with category clump-suitable, clump-unsuitable")
-        gs.message("=======================================================\n")
+        gs.message(_("Create map with category clump-suitable, clump-unsuitable"))
+        gs.message(_("=======================================================\n"))
         filledgaps = "{}_filledgaps".format(out_filename)
         gs.run_command(
             "r.series",
             output=filledgaps,
             input=[tmp04, tmp09],
             method="sum",
+            nprocs=nprocs,
+            memory=memory,
         )
         RECLASS_FILLEDGAPS = """
         1:filled gaps\n2:suitable areas
@@ -385,8 +421,8 @@ def main(options, flags):
         )
 
         # Assign unique ids to clumps
-        gs.message("Assigning unique id's to clumps")
-        gs.message("==============================\n")
+        gs.message(_("Assigning unique id's to clumps"))
+        gs.message(_("==============================\n"))
         gs.run_command("r.clump", flags=clump_flag, input=tmp09, output=out_filename)
         gs.run_command(
             "r.support",
@@ -407,8 +443,8 @@ def main(options, flags):
 
     else:
         # Assign unique ids to clumps
-        gs.message("Assigning unique id's to clumps")
-        gs.message("================================\n")
+        gs.message(_("Assigning unique id's to clumps"))
+        gs.message(_("================================\n"))
         gs.run_command("r.clump", flags=clump_flag, input=tmp04, output=out_filename)
     gs.run_command(
         "r.support",
@@ -422,20 +458,21 @@ def main(options, flags):
     )
     # Keep map with all suitable areas
     if clump_areas_flag:
-        gs.message("Compute area per clump")
-        gs.message("====================\n")
+        gs.message(_("Compute area per clump"))
+        gs.message(_("====================\n"))
         areastat = "{}_clumpsize".format(out_filename)
         tmp10 = create_temporary_name("tmp10")
         gs.run_command("r.area", input=out_filename, output=tmp10)
         gs.run_command(
             "r.mapcalc",
             expression=("{} = {} * area()/10000".format(areastat, tmp10)),
+            nprocs=nprocs,
         )
 
     # Zonal statistics
     if region_suitability_flag:
-        gs.message("Compute average suitability per clump")
-        gs.message("=====================================\n")
+        gs.message(_("Compute average suitability per clump"))
+        gs.message(_("=====================================\n"))
         zonstat = "{}_averagesuitability".format(out_filename)
         gs.run_command(
             "r.stats.zonal",
@@ -445,12 +482,12 @@ def main(options, flags):
             output=zonstat,
         )
         gs.run_command("r.colors", map=zonstat, color="bgyr")
-    gs.message("Done")
+    gs.message(_("Done"))
 
     # Vector as output
     if flags["v"]:
-        gs.message("Compute vector with statistis")
-        gs.message("===========================\n")
+        gs.message(_("Compute vector with statistis"))
+        gs.message(_("===========================\n"))
         zonstat = "{}_averagesuitability".format(out_filename)
         gs.run_command(
             "r.to.vect",
@@ -479,8 +516,8 @@ def main(options, flags):
 
     # Compactness
     if flags["m"]:
-        gs.message("compactness, fractal dimension and average suitability")
-        gs.message("====================================================\n")
+        gs.message(_("compactness, fractal dimension and average suitability"))
+        gs.message(_("====================================================\n"))
         compactness = "{}_compactness".format(out_filename)
         if flags["v"]:
             gs.run_command(
@@ -531,10 +568,10 @@ def main(options, flags):
         gs.run_command("r.colors", map=rname2, raster=in_filename)
 
     if options["suitability_threshold"] == "":
-        gs.message("\n---------------------------------------------------\n")
-        gs.message("Suitability threshold = {}".format(suitability_threshold))
-        gs.message("Minimum area = {} hectares".format(minimum_size))
-        gs.message("\n\n")
+        gs.message(_("\n---------------------------------------------------\n"))
+        gs.message(_("Suitability threshold = {}").format(suitability_threshold))
+        gs.message(_("Minimum area = {} hectares").format(minimum_size))
+        gs.message(_("\n\n"))
 
 
 if __name__ == "__main__":

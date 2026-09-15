@@ -104,9 +104,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
-        description="Check modules without " " examples or screenshots",
+        description="Check modules without examples or screenshots",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="Run into docs/html"
         " folder to get modules without examples:"

@@ -13,9 +13,8 @@ class pgwrapper:
         msg = e.msg
         gs.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     def __init__(self, dbname, host="", user="", passwd="", port=""):

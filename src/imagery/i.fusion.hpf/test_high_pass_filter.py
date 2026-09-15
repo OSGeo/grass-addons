@@ -2,7 +2,7 @@
 
 # author: Panagiotis Mavrogiorgos
 
-""" Test High Pass Filtering functions.  """
+"""Test High Pass Filtering functions."""
 
 from __future__ import division
 from __future__ import print_function

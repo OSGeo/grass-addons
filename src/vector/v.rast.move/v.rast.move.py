@@ -19,9 +19,10 @@
 # %module
 # % description: Move vertices by distance specified in a raster
 # % keyword: vector
-# % keyword:
-# % keyword:
-# % keyword:
+# % keyword: transformation
+# % keyword: geometry
+# % keyword: raster
+# % keyword: lines
 # %end
 # %option G_OPT_V_INPUT
 # %end

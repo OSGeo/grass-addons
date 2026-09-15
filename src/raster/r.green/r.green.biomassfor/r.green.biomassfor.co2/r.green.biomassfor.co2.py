@@ -255,7 +255,7 @@ import pdb
 
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parser, read_command, run_command
@@ -264,7 +264,6 @@ ow = overwrite()
 
 
 def yield_pix_process(opts, flgs, yield_, yield_surface):
-
     YPIX = ""
 
     expr_surf = "analysis_surface=" + opts["energy_map"] + ">0"
@@ -286,7 +285,6 @@ def yield_pix_process(opts, flgs, yield_, yield_surface):
 
 
 def avoided_CO2_emission(opts, flgs):
-
     forest = opts["forest"]
     boundaries = opts["boundaries"]
     yield_ = opts["forest_column_yield"]
@@ -875,7 +873,6 @@ def avoided_CO2_emission(opts, flgs):
 
 
 def main(opts, flgs):
-
     avoided_CO2_emission(opts, flgs)
 
 

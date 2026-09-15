@@ -14,7 +14,7 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
 
-import grass.script as gscript
+import grass.script as gs
 
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
@@ -41,7 +41,7 @@ class TestThreddsCrawling(TestCase):
 
     def tearDown(self):
         """Remove the output created from the module"""
-        gscript.utils.try_remove(self.output)
+        gs.utils.try_remove(self.output)
 
     def test_output_created(self):
         """Check that the output is created"""

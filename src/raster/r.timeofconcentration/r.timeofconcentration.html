@@ -1,0 +1,110 @@
+<h2>DESCRIPTION</h2>
+<p><em>r.timeofconcentration</em> generates a raster map of time of
+concentration (Tc) [h] for each cell, using the Kirpich equation based on the
+longest upstream flow-path length and path-average slope. This method, rooted
+in hydrologic practice, estimates how long it takes water to travel from the
+farthest point in a watershed to a given cell, aiding in runoff and flood
+analysis. The tool leverages elevation and flow direction data, optionally
+deriving streams if not provided, and supports diagnostic outputs like flow
+length and slope. All measurements use metric units ([m], [h]).</p>
+<p>It simplifies water travel time estimation for high-level watershed planning:
+water flows downhill along paths defined by terrain, and Tc reflects the
+slowest route’s duration, influenced by distance and slope steepness. This is
+key for understanding how quickly runoff reaches streams or outlets.</p>
+
+<h3>Inputs</h3>
+<p><strong>elevation:</strong> Raster of elevation [m]. Required input to derive terrain
+slopes and flow paths.</p>
+<p><strong>direction:</strong> Flow-direction raster (GRASS-coded; from <code>r.watershed</code> or
+<code>r.stream.extract</code>). Required to trace upstream flow paths; defines the
+drainage network for accumulation.</p>
+<p><strong>streams:</strong> Stream raster and must be consistent with <code>direction</code> (i.e.,
+produced from the same run of <code>r.watershed</code> or from <code>r.stream.extract</code> on the
+same DEM).</p>
+<p><strong>outlets:</strong> Optional raster of outlet points; Tc is computed only at these
+cells (NULL elsewhere), respecting the current mask/region.</p>
+<p><strong>slope_min:</strong> Minimum path-average slope [unitless] (<code>10^{-4}</code> default).
+Prevents division by zero on flat areas by setting a floor value.</p>
+<p><strong>length_min:</strong> Minimum upstream flow-path length [m] (10 default). Ensures
+Tc is reported only where flow paths are significant.</p>
+<p><strong>vertical_units:</strong> optional parameter that defines the vertical units of the
+elevation raster. It accepts three values: <code>meters</code>, <code>feet</code>, or <code>factor</code>, and
+defaults to <code>meters</code>. When <code>vertical_units=meters</code>, no conversion is applied.
+When <code>vertical_units=feet</code>, elevation drops are multiplied by <code>1/3.28084</code> to
+convert them to meters. When <code>vertical_units=factor</code>, the module multiplies
+elevation drops by the user-supplied factor.</p>
+<p><strong>factor:</strong> Required only when <code>vertical_units=factor</code>. It must convert the
+user’s vertical unit to meters (<code>factor × &lt;your vertical unit&gt; = meters</code>), and
+the user is responsible for providing the correct factor.</p>
+
+<h3>Outputs</h3>
+<p><strong>output:</strong> A raster map of time of concentration per cell [h], computed using
+the Kirpich equation:</p>
+<pre><code>$$
+T_c \;=\; \frac{K \cdot L^a \cdot S_{\text{avg}}^b}{60}
+$$
+</code></pre>
+<p>where <code>L</code> is upstream flow-path length [m], <code>S_{\text{avg}}</code> is path-average
+slope [unitless], <code>K = 0.01947</code>, <code>a = 0.77</code>, <code>b = -0.385</code> are Kirpich
+constants, and the result is converted from minutes to hours by dividing by 60.
+Tc is NULL if <code>L &lt; length_min</code> or outlets are undefined.</p>
+<p><strong>length:</strong> Optional output raster of longest upstream flow-path length per
+cell [m], derived from <code>r.stream.distance</code>.</p>
+<p><strong>drop:</strong> Optional output raster of flow-path elevation drop per cell [m]
+(&ge; 0), computed as the maximum elevation difference.</p>
+<p><strong>sbar:</strong> Optional raster of path-average slope per cell [unitless], calculated
+as <code>S_{\text{avg}} = \max(\frac{\Delta z}{L}, \text{slope}_\text{min})</code>,
+where <code>\Delta z</code> is the drop and <code>L</code> is the length.</p>
+
+<h2>Notes</h2>
+<ul>
+  <li>CRS-aware distance <code>r.stream.distance</code> returns lengths in meters,
+    even if the CRS is geographic or projected (meters or feet).</li>
+  <li>Static Tc Tc is a steady-state estimate; no temporal
+    routing or storage is modeled.</li>
+</ul>
+
+<h2>EXAMPLE</h2>
+<p>These examples use the North Carolina sample dataset.</p>
+<p>Calculate time of concentration using <code>r.watershed</code> and <code>r.timeofconcentration</code>:</p>
+<pre><code class="language-sh"># set the region
+g.region -p raster=elevation
+
+# calculate positive flow accumulation and drainage directions using r.watershed
+r.watershed -sa elevation=elevation drainage=fdr stream=str threshold=10
+
+# compute the time of concentration
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc
+
+# use length_min parameter for coarser tc on important streams only
+r.timeofconcentration elevation=elevation direction=fdr streams=str tc=tc_nc_250 length_min=250
+
+# if the vertical units of the DEM are in feet
+r.timeofconcentration elevation=elevation vunits=feet dir=fdr str=str tc=tc
+
+# if the vertical units of the DEM are in units other than meters or feet (e.g., cm)
+r.timeofconcentration elevation=elevation vunits=factor factor=0.01 dir=fdr str=str tc=tc
+</code></pre>
+<p><img src="tc_nc.png" alt="r_timeofconcentration example"><br>
+Figure: Output from <code>r.timeofconcentration</code> with length_min=250 on NC dataset zoomed near the
+watershed outlet</p>
+
+<h2>REFERENCES</h2>
+<ol>
+  <li>Kirpich, Z. P. (1940). Time of concentration of small agricultural
+     watersheds. <em>Civil Eng.</em>, 10(6), 362.</li>
+  <li>United States Department of Agriculture, Natural Resources Conservation
+     Service. (2008). <em>National Engineering Handbook</em>, Part 630 Hydrology: Chapter
+     15 – Time of Concentration (210-VI-NEH)</li>
+</ol>
+
+<h2>SEE ALSO</h2>
+<em>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.stream.distance.html">r.stream.distance</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html">r.curvenumber</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html">r.runoff</a>
+</em>
+
+<h2>AUTHORS</h2>
+<p>Abdullah Azzam (<a href="https://hydro.isnew.info/">HydroCS</a>, Department of Civil and Environmental Engineering, New Mexico State University)</p>

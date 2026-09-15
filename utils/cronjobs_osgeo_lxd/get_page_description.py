@@ -45,7 +45,7 @@ def remove_unwanted_tags(text):
     Links to details are not ideal for index page. Links to the same page
     (the ones with #) would be even broken.
 
-    >>> remove_unwanted_tags('uses <a href="http://example.com">Famous</a> lib')  # doctest: +NORMALIZE_WHITESPACE
+    >>> remove_unwanted_tags('uses <a href="https://example.com">Famous</a> lib')  # doctest: +NORMALIZE_WHITESPACE
     'uses Famous lib'
 
     However we save some links:

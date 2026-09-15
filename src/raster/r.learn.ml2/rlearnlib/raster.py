@@ -4,6 +4,7 @@ import os
 from subprocess import PIPE
 
 import grass.script as gs
+from grass.exceptions import CalledModuleError
 import numpy as np
 from grass.pygrass.gis.region import Region
 from grass.pygrass.modules.shortcuts import general as g
@@ -77,21 +78,17 @@ class RasterStack(StatisticsMixin):
             gs.fatal('arguments "rasters" and "group" are mutually exclusive')
 
         if group:
-            groups_in_mapset = (
-                g.list(type="group", stdout_=PIPE)
-                .outputs.stdout.strip()
-                .split(os.linesep)
-            )
-            groups_in_mapset = [i.split("@")[0] for i in groups_in_mapset]
-            group = group.split("@")[0]
-
-            if group not in groups_in_mapset:
-                gs.fatal("Imagery group {group} does not exist".format(group=group))
-            else:
+            try:
                 map_list = im.group(
                     group=group, flags=["l", "g"], quiet=True, stdout_=PIPE
                 )
-                rasters = map_list.outputs.stdout.strip().split(os.linesep)
+            except CalledModuleError:
+                gs.fatal(
+                    "Imagery group <{group}> not found. Make sure it exists.".format(
+                        group=group
+                    )
+                )
+            rasters = map_list.outputs.stdout.strip().split(os.linesep)
 
         self.layers = rasters  # call property
 
@@ -204,11 +201,8 @@ class RasterStack(StatisticsMixin):
 
         # add rasters and metadata to stack
         for name, mapset in zip(raster_names, mapset_names):
-
             with RasterRow(name=name, mapset=mapset) as src:
-
                 if src.exist() is True:
-
                     # get mapname and mapset
                     ras_name = src.name
                     fullname = src.fullname()
@@ -340,8 +334,6 @@ class RasterStack(StatisticsMixin):
     def read(self, row=None, rows=None):
         """Read data from RasterStack as a masked 3D numpy array
 
-        Notes
-        -----
         Read an entire RasterStack into a numpy array
 
         If the row parameter is used then a single row is read into a 3d numpy
@@ -605,7 +597,6 @@ class RasterStack(StatisticsMixin):
             )
         else:
             if height is not None:
-
                 with RasterRow(
                     output, mode="w", mtype=mtype, overwrite=overwrite
                 ) as dst:
@@ -895,7 +886,6 @@ class RasterStack(StatisticsMixin):
 
         # open grass vector
         with VectorTopo(name=vname, mapset=mapset, mode="r") as points:
-
             # retrieve key column
             key_col = points.table.key
 
@@ -971,7 +961,7 @@ class RasterStack(StatisticsMixin):
         # remove samples containing NaNs
         if na_rm is True:
             gs.message(
-                "Removing samples with NaN values in the raster " "feature variables..."
+                "Removing samples with NaN values in the raster feature variables..."
             )
             df = df.dropna()
 

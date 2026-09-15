@@ -25,7 +25,6 @@ def silent_remove(filename):
 
 class Test(unittest.TestCase):
     def test_linear_scale(self):
-
         X = np.random.randint(0, 100, (10, 5))
         # print(X)
         X = al.linear_scale(X)

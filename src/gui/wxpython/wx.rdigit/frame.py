@@ -27,7 +27,7 @@ if __name__ == "__main__":
 import wx
 
 from ctypes import *
-import grass.script as grass
+import grass.script as gs
 from core import globalvar
 from core.gcmd import GError, GMessage
 from mapdisp import statusbar as sb
@@ -209,7 +209,6 @@ class RDigitMapFrame(SingleMapFrame):
         self._addPaneToolbar(name="digitMap")
 
     def _addPaneToolbar(self, name):
-
         self.toolbars[name] = RDigitMapManagerToolbar(self, self.mapManager)
         self._mgr.AddPane(
             self.toolbars[name],
@@ -224,7 +223,6 @@ class RDigitMapFrame(SingleMapFrame):
         )
 
     def _addPaneMapWindow(self):
-
         self._mgr.AddPane(
             self.MapWindow,
             wx.aui.AuiPaneInfo()

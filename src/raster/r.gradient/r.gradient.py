@@ -51,7 +51,7 @@
 
 # import library
 import sys
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.raster.buffer import Buffer
 
@@ -104,14 +104,14 @@ def createRast(name, matrix, inverse=False):
 def checkPercentile(per, di):
     """Check if percentile option is set with the oblique directions"""
     if not per and di in ["NW-SE", "NE-SW", "SW-NE", "SE-NW"]:
-        grass.fatal(
+        gs.fatal(
             "Percentile option has to be set with {dire} direction".format(dire=di)
         )
 
 
 def main():
     """Main function"""
-    regiondict = grass.region()
+    regiondict = gs.region()
 
     output = options["output"]
     values = options["range"].split(",")
@@ -124,7 +124,7 @@ def main():
     # And now we can calculate the graded rasters
     # for gradient of rows
     if direction == "N-S":
-        grass.mapcalc(
+        gs.mapcalc(
             "$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
             "($OldMax - $OldMin)) + $NewMin",
             newmap=output,
@@ -135,7 +135,7 @@ def main():
             overwrite=True,
         )
     elif direction == "S-N":
-        grass.mapcalc(
+        gs.mapcalc(
             "$newmap = (((row() - $OldMin) * ($NewMax - $NewMin)) / "
             "($OldMax - $OldMin)) + $NewMin",
             newmap=output,
@@ -146,7 +146,7 @@ def main():
             overwrite=True,
         )
     elif direction == "W-E":
-        grass.mapcalc(
+        gs.mapcalc(
             "$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
             "($OldMax - $OldMin)) + $NewMin",
             newmap=output,
@@ -157,7 +157,7 @@ def main():
             overwrite=True,
         )
     elif direction == "E-W":
-        grass.mapcalc(
+        gs.mapcalc(
             "$newmap = (((col() - $OldMin) * ($NewMax - $NewMin)) / "
             "($OldMax - $OldMin)) + $NewMin",
             newmap=output,
@@ -176,5 +176,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

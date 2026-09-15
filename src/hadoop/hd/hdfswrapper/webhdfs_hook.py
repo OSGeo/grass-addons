@@ -75,7 +75,6 @@ class WebHDFSHook(BaseHook):
         return bool(c.status(hdfs_path, strict=False))
 
     def check_for_content(self, hdfs_path, recursive=False):
-
         c = self.get_conn()
         return c.list(hdfs_path, status=recursive)
 
@@ -84,7 +83,7 @@ class WebHDFSHook(BaseHook):
         print("progress: chunk_size %s" % b)
 
     def upload_file(self, source, destination, overwrite=True, parallelism=1, **kwargs):
-        """
+        r"""
         Uploads a file to HDFS
         :param source: Local path to file or folder. If a folder, all the files
           inside of it will be uploaded (note that this implies that folders empty
@@ -114,7 +113,6 @@ class WebHDFSHook(BaseHook):
     def download_file(
         self, hdfs_path, local_path, overwrite=True, parallelism=1, **kwargs
     ):
-
         c = self.get_conn()
         out = c.download(
             hdfs_path=hdfs_path,

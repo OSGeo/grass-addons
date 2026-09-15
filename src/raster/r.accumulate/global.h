@@ -34,7 +34,7 @@ struct raster_map {
         CELL **c;
         FCELL **f;
         DCELL **d;
-    } map;
+    } cells;
 };
 
 struct point_list {

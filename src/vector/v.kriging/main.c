@@ -383,9 +383,9 @@ int main(int argc, char *argv[])
 
     // Open report file if desired
     if (xD.phase == 0) {
-        if (opt.report->answer) {
-            report->name = opt.report->answer;
+        report->name = opt.report->answer;
 
+        if (report->name) {
             // initial phase: check if the file exists
             if (access(report->name, F_OK) != -1) {
                 G_fatal_error(
@@ -504,8 +504,9 @@ int main(int argc, char *argv[])
      *-------------------
      * 3D interpolation + 3D points = 3D GIS
      * 3D interpolation + 2D points = 2,5D -> 3D GIS (needs attribute column
-     *with z and 3D region) 2D interpolation + 3D points = 3D -> 2,5D GIS 2D
-     *interpolation + 2D points = 2,5D GIS */
+     *                                                with z and 3D region)
+     * 2D interpolation + 3D points = 3D -> 2,5D GIS
+     * 2D interpolation + 2D points = 2,5D GIS */
 
     // 3D interpolation
     if (xD.i3 == TRUE) {             // 3D interpolation:
@@ -769,7 +770,7 @@ int main(int argc, char *argv[])
                         _("Not necessary to set up vertical components "
                           "properties. Anisotropic variogram will be used..."));
                 } // end if vert settings available
-            }     // end if 3D
+            } // end if 3D
 
             // missing function
             if (!opt.function_var_final->answer) {
@@ -806,8 +807,8 @@ int main(int argc, char *argv[])
                 if (opt.sill_final->answer) {
                     var_pars.fin.sill = atof(opt.sill_final->answer);
                 } // end if sill has been changed by the user
-            }     // end nonlinear and not parabolic variogram
-        }         // end if univariate variogram (2D or 3D)
+            } // end nonlinear and not parabolic variogram
+        } // end if univariate variogram (2D or 3D)
 
         out.name = opt.output->answer; // Output layer name
 

@@ -61,7 +61,7 @@
 
 import sys
 import string
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
@@ -85,24 +85,24 @@ def main():
         driver = None
 
     if driver == "dbf":
-        grass.fatal(_("JOIN is not supported for tables stored in DBF format"))
+        gs.fatal(_("JOIN is not supported for tables stored in DBF format"))
 
     # describe input table
-    all_cols_tt = grass.db_describe(table, driver=driver, database=database)["cols"]
+    all_cols_tt = gs.db_describe(table, driver=driver, database=database)["cols"]
     if not all_cols_tt:
-        grass.fatal(_("Unable to describe table <%s>") % table)
+        gs.fatal(_("Unable to describe table <%s>") % table)
     found = False
 
     # check if column is in input table
     if column not in [col[0] for col in all_cols_tt]:
-        grass.fatal(_("Column <%s> not found in table <%s>") % (column, table))
+        gs.fatal(_("Column <%s> not found in table <%s>") % (column, table))
 
     # describe other table
-    all_cols_ot = grass.db_describe(otable, driver=driver, database=database)["cols"]
+    all_cols_ot = gs.db_describe(otable, driver=driver, database=database)["cols"]
 
     # check if ocolumn is in other table
     if ocolumn not in [ocol[0] for ocol in all_cols_ot]:
-        grass.fatal(_("Column <%s> not found in table <%s>") % (ocolumn, otable))
+        gs.fatal(_("Column <%s> not found in table <%s>") % (ocolumn, otable))
 
     # determine columns subset from other table
     if not scolumns:
@@ -119,7 +119,7 @@ def main():
                     cols_to_add.append(col_ot)
                     break
             if not found:
-                grass.warning(_("Column <%s> not found in table <%s>") % (scol, otable))
+                gs.warning(_("Column <%s> not found in table <%s>") % (scol, otable))
 
     select = "SELECT $colname FROM $otable WHERE $otable.$ocolumn=$table.$column"
     template = string.Template("UPDATE $table SET $colname=(%s);" % select)
@@ -149,30 +149,30 @@ def main():
 
         # add only the new column to the table
         if colname not in all_cols_tt:
-            p = grass.feed_command(
+            p = gs.feed_command(
                 "db.execute", input="-", database=database, driver=driver
             )
             p.stdin.write("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
-            grass.debug("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
+            gs.debug("ALTER TABLE %s ADD COLUMN %s" % (table, colspec))
             p.stdin.close()
             if p.wait() != 0:
-                grass.fatal(_("Unable to add column <%s>.") % colname)
+                gs.fatal(_("Unable to add column <%s>.") % colname)
 
         stmt = template.substitute(
             table=table, column=column, otable=otable, ocolumn=ocolumn, colname=colname
         )
-        grass.debug(stmt, 1)
-        grass.verbose(_("Updating column <%s> of table <%s>...") % (colname, table))
+        gs.debug(stmt, 1)
+        gs.verbose(_("Updating column <%s> of table <%s>...") % (colname, table))
         try:
-            grass.write_command(
+            gs.write_command(
                 "db.execute", stdin=stmt, input="-", database=database, driver=driver
             )
         except CalledModuleError:
-            grass.fatal(_("Error filling column <%s>") % colname)
+            gs.fatal(_("Error filling column <%s>") % colname)
 
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

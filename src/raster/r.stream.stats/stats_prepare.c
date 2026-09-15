@@ -241,9 +241,9 @@ int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation)
                     done = 1;
                     break;
                 } /* end if */
-            }     /* end for i */
-        }         /* end while */
-    }             /* end for s */
+            } /* end for i */
+        } /* end while */
+    } /* end for s */
 
     return 0;
 }
@@ -327,9 +327,9 @@ int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation)
                     done = 1;
                     break;
                 } /* end if */
-            }     /* end for i */
-        }         /* end while */
-    }             /* end for s */
+            } /* end for i */
+        } /* end while */
+    } /* end for s */
 
     return 0;
 }

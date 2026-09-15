@@ -1,0 +1,160 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.richdem.breachdepressions</b></em> removes topographic depressions from a digital
+elevation model (DEM) by carving a channel from each pit cell to the nearest
+drainage outlet, following the complete-breaching mode of the priority-flood
+algorithm of Lindsay (2016) as implemented in RichDEM by Richard Barnes.
+Unlike depression filling, which raises interior cells to the pour-point
+elevation, breaching lowers the cells along the breach channel, leaving the
+surrounding terrain unmodified.
+
+<h3>Algorithm</h3>
+
+The algorithm proceeds in three phases:
+
+<ol>
+  <li><b>Initialization.</b> Each pit cell is <em>shallowed</em>: its elevation
+      is raised to just below that of its lowest neighbor. This removes
+      isolated single-cell pits cheaply and reduces the depth and length of
+      breach channels required for larger depressions, thereby limiting the
+      algorithm's impact on the DEM.</li>
+
+  <li><b>Priority-flood traversal.</b> DEM edge cells are inserted into a
+      min-heap priority queue. The priority of each cell combines its elevation
+      and insertion order, which correctly handles flat areas without a
+      separate preprocessing step. Cells are removed from the queue in
+      priority order; their unvisited neighbors are added, and a back-link is
+      recorded for each newly encountered cell. When a pit cell is dequeued,
+      the back-link chain is traced downslope to find the path to the nearest
+      cell that is lower or on the DEM edge. Elevations along that path are
+      lowered to form a monotonically descending breach channel.</li>
+
+  <li><b>Output.</b> In complete-breaching mode all depressions are resolved
+      by breaching. (Lindsay (2016) also describes selective and
+      constrained hybrid modes that fall back to filling for depressions
+      whose breach channel would exceed specified depth or length thresholds;
+      those modes are not exposed by this module.)</li>
+</ol>
+
+Complete-breaching processes DEMs in approximately 87% of the time required
+by an equivalent depression-filling algorithm (Lindsay, 2016).
+
+<h3>When to breach versus fill</h3>
+
+Breaching is preferred for high-relief landscapes dominated by fluvial
+processes, where most depressions are artifacts (erroneous damming along
+convergent topography from grid resolution or InSAR noise). It reinforces
+natural drainage pathways and modifies fewer cells than filling.
+
+<p>
+Filling is preferable for:
+<ul>
+  <li>Very deep real depressions — lakes, wetlands, sinkholes, open-pit
+      mines — where a breach channel would be unrealistically long and
+      deeply incised.</li>
+  <li>Landscapes where the modelling goal is topographic depression mapping
+      rather than surface flow routing.</li>
+</ul>
+
+<p>
+For landscapes that genuinely contain both artifact and real depressions,
+consider the Fill–Spill–Merge workflow
+(<em><a href="r.richdem.dephier.html">r.richdem.dephier</a></em> +
+<em><a href="r.richdem.fsm.html">r.richdem.fsm</a></em>), which retains real
+depressions and routes water through them explicitly.
+
+<h3>Flow topology</h3>
+
+<ul>
+  <li><b>D8</b> (default) — breach channels connect cells through any of the
+      8 neighbors (including diagonals).</li>
+  <li><b>D4</b> — breach channels connect cells through the 4 cardinal
+      neighbors only, producing orthogonal channel paths.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+The priority metric used during traversal combines cell elevation and
+insertion order using fixed-precision concatenation. This ensures correct
+handling of flat areas — no separate flat-resolution step is needed after
+breaching, unlike after
+<em><a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a></em> (without the
+<b>-e</b> flag). If flat areas do persist, apply
+<em><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></em>
+before computing flow directions or accumulation.
+
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
+<h2>EXAMPLES</h2>
+
+Breach depressions using D8 topology:
+<div class="code"><pre>
+r.richdem.breachdepressions input=dem output=dem_breached
+</pre></div>
+
+Breach using D4 topology (cardinal neighbors only):
+<div class="code"><pre>
+r.richdem.breachdepressions input=dem output=dem_breached_d4 topology=D4
+</pre></div>
+
+Compare filling versus breaching on the same DEM:
+<div class="code"><pre>
+r.richdem.filldepressions input=dem output=dem_filled
+r.richdem.breachdepressions input=dem output=dem_breached
+r.mapcalc "diff = dem_filled - dem_breached"
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Lindsay, J.B. (2016).
+Efficient hybrid breaching-filling sink removal methods for flow path
+enforcement in digital elevation models.
+<em>Hydrological Processes</em> Vol 30(6), pp 846–857.
+DOI: <a href="https://doi.org/10.1002/hyp.10648">10.1002/hyp.10648</a>
+</li>
+<li>Barnes, R. (2016). RichDEM: Terrain Analysis Software.
+URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/richdem</a>
+</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.richdem.filldepressions.html">r.richdem.filldepressions</a>,
+<a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
+<a href="r.richdem.dephier.html">r.richdem.dephier</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html">r.fill.dir</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+John B. Lindsay (algorithm, Lindsay 2016);
+Richard Barnes (RichDEM implementation)
+
+<p>
+GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6</p>

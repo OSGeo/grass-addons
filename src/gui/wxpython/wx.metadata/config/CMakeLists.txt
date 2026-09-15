@@ -1,0 +1,17 @@
+add_files_to_etc_dir(
+  wx.metadata/config
+  FILES
+    API-cases.ods
+    connections_resources.xml
+    connections_resources.xsd
+    default-sample.cfg
+    init_md.txt
+    keywordConcepts.xml
+    keywordGroups.xml
+    keywordThemes.xml
+    logo_variant_bg.png
+    record_metadata_dc.html
+    record_metadata_gmd.html
+    service_metadata.html
+    xml_highlight.html
+    xml_render.html)

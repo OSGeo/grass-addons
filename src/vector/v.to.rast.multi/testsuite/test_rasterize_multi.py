@@ -26,7 +26,6 @@ class TestVToRastMulti(TestCase):
         cls.del_temp_region()
 
     def test_manual_example(self):
-
         manual_example_run = SimpleModule(
             "v.to.rast.multi",
             verbose=True,

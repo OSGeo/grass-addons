@@ -42,6 +42,8 @@ ignore =
     F811,
     # undefined name '_'
     F821,
+    # global unused (TODO: Solve and remove exclusion)
+    F824,
     # local variable 'center' is assigned to but never used
     F841,
 

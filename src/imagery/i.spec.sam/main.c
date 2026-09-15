@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 
 /* cols loop, work pixelwise for all bands */
 #pragma omp parallel for default(shared) private(col, b, band, signature, \
-                                                 Avector, spectangle)
+                                                     Avector, spectangle)
         for (col = 0; col < ncols; col++) {
             /* get pixel values of each band and store in b vector: */
             /* b is a spectral signature extracted for a given pixel */
