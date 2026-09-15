@@ -15,11 +15,11 @@ double sensi_h(int iteration, double tempk_water, double tempk_desert,
                double t0_dem_desert, double u2m, double dem_desert)
 {
     /* Arrays Declarations */
-    double dtair[ITER_MAX], roh_air[ITER_MAX], rah[ITER_MAX];
+    double dtair[ITER_MAX + 1], roh_air[ITER_MAX + 1], rah[ITER_MAX + 1];
 
-    double h[ITER_MAX];
+    double h[ITER_MAX + 1];
 
-    double ustar[ITER_MAX], zom[ITER_MAX];
+    double ustar[ITER_MAX + 1], zom[ITER_MAX + 1];
 
     /* Declarations */
     int i, j, ic, debug = 0;
