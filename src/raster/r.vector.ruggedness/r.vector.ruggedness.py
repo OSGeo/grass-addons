@@ -182,7 +182,7 @@ def main():
     # determine nprocs
     if nprocs < 0:
         n_cores = mp.cpu_count()
-        nprocs = n_cores - (nprocs + 1)
+        nprocs = n_cores + nprocs + 1
 
     # temporary raster map names for slope, aspect, x, y, z components
     if slope == "":
