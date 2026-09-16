@@ -16,8 +16,8 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 06_full_pipeline.c \
- *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
- * 06_full_pipeline
+ *       -L../developer_tests -lsixsv -lm -fopenmp \
+ *       -Wl,-rpath,../developer_tests -o 06_full_pipeline
  */
 
 #include <stdio.h>

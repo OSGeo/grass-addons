@@ -9,8 +9,8 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 05_spatial_filters.c \
- *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
- * 05_spatial_filters
+ *       -L../developer_tests -lsixsv -lm -fopenmp \
+ *       -Wl,-rpath,../developer_tests -o 05_spatial_filters
  */
 
 #include <stdio.h>

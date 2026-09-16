@@ -12,8 +12,8 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 03_retrievals.c \
- *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
- * 03_retrievals
+ *       -L../developer_tests -lsixsv -lm -fopenmp \
+ *       -Wl,-rpath,../developer_tests -o 03_retrievals
  */
 
 #include <stdio.h>

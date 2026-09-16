@@ -9,8 +9,8 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 02_scene_correction.c \
- *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
- * 02_scene_correction
+ *       -L../developer_tests -lsixsv -lm -fopenmp \
+ *       -Wl,-rpath,../developer_tests -o 02_scene_correction
  */
 
 #include <stdio.h>
