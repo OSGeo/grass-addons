@@ -15,8 +15,13 @@ from __future__ import (
 )
 
 import os
+import sys
 
 from numpy.testing import assert_almost_equal
+
+# gpot.py lives in the parent (libgshp) directory, which is not on sys.path
+# when this test is run as a standalone script from the testsuite directory.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 import gpot as gpot
 from grass.gunittest.case import TestCase
@@ -130,7 +135,9 @@ class TestGPot(TestCase):
 class TestRasterGPot(TestCase):
     precision = 1e-7
     base = "gpottest_"
-    dirpath = os.path.join("testsuite", "data")
+    # gunittest copies testsuite/data/ to the test's own working directory
+    # as data/, so the path is relative to that, not to testsuite/.
+    dirpath = "data"
 
     # define names
     grnd_conductivity = base + "ground_conductivity"
