@@ -74,19 +74,14 @@
 # % guisection: Optional
 # %end
 
-# %option
-# % key: nprocs
-# % type: integer
-# % label: The maximum number of cores to use for multiprocessing
-# % description: The maximum number of cores to use for multiprocessing. -1 uses all cores, -2 uses n_cores-1 etc.
-# % answer: -1
+# %option G_OPT_M_NPROCS
 # % guisection: Optional
 # %end
 
 import atexit
 import copy
 import math
-import multiprocessing as mp
+import os
 import random
 import string
 import numpy as np
@@ -180,9 +175,12 @@ def main():
         gs.fatal("Neighborhood sizes have to be > 1")
 
     # determine nprocs
-    if nprocs < 0:
-        n_cores = mp.cpu_count()
-        nprocs = n_cores + nprocs + 1
+    if hasattr(gs, "resolve_nprocs"):  # added in GRASS 8.6
+        nprocs = gs.resolve_nprocs(nprocs)
+    elif nprocs <= 0:
+        # 0 means all cores, negative means cpu_count + nprocs
+        cpus = os.cpu_count() or 1
+        nprocs = max(1, cpus + nprocs) if nprocs < 0 else cpus
 
     # temporary raster map names for slope, aspect, x, y, z components
     if slope == "":
