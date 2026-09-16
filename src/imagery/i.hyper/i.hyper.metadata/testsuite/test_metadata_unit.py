@@ -27,7 +27,7 @@ def _install_grass_stub():
         script = types.ModuleType("grass.script")
         script.message = lambda *args, **kwargs: None
         script.warning = lambda *args, **kwargs: None
-        script.fatal = lambda message: (_ for _ in ()).throw(RuntimeError(message))
+        script.fatal = lambda message: sys.exit(1)
         grass.script = script
         sys.modules.setdefault("grass", grass)
         sys.modules.setdefault("grass.script", script)
@@ -208,13 +208,14 @@ class DeriveMetadataTest(unittest.TestCase):
             def exists(_map_name):
                 return True
 
-        with self.assertRaisesRegex(RuntimeError, "--overwrite"):
+        with self.assertRaises(SystemExit) as context:
             metadata_module._derive_metadata(
                 FakeHyperMetadata,
                 "source@mapset",
                 "output@mapset",
                 command="generic.module",
             )
+        self.assertEqual(context.exception.code, 1)
 
     def test_derive_creates_new_id_and_one_local_lineage_entry(self):
         class FakeMetadata:
@@ -306,13 +307,14 @@ class DeriveMetadataTest(unittest.TestCase):
             def load(_map_name):
                 return object()
 
-        with self.assertRaisesRegex(RuntimeError, "persisted dataset_id"):
+        with self.assertRaises(SystemExit) as context:
             metadata_module._derive_metadata(
                 FakeHyperMetadata,
                 "source@mapset",
                 "output@mapset",
                 command="generic.module",
             )
+        self.assertEqual(context.exception.code, 1)
 
     def test_derive_rejects_band_array_length_mismatch(self):
         class FakeMetadata:
@@ -345,7 +347,7 @@ class DeriveMetadataTest(unittest.TestCase):
                 return "derived-id"
 
         with patch.object(metadata_module, "_get_raster_depth", return_value=2):
-            with self.assertRaisesRegex(RuntimeError, "bands.fwhm length"):
+            with self.assertRaises(SystemExit) as context:
                 metadata_module._derive_metadata(
                     FakeHyperMetadata,
                     "source@mapset",
@@ -353,6 +355,7 @@ class DeriveMetadataTest(unittest.TestCase):
                     command="generic.module",
                     overrides={"bands": {"fwhm": [10.0]}},
                 )
+        self.assertEqual(context.exception.code, 1)
 
     def test_component_derive_clears_inherited_spectral_axes(self):
         metadata = types.SimpleNamespace(
