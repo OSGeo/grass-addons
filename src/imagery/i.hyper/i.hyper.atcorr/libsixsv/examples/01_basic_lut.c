@@ -3,7 +3,7 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 01_basic_lut.c \
- *       -L../testsuite -lsixsv -lm -fopenmp -Wl,-rpath,../testsuite -o
+ *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
  * 01_basic_lut Run:
  *   ./01_basic_lut
  */

@@ -9,7 +9,7 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 02_scene_correction.c \
- *       -L../testsuite -lsixsv -lm -fopenmp -Wl,-rpath,../testsuite -o
+ *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o
  * 02_scene_correction
  */
 

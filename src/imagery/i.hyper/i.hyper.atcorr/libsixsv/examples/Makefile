@@ -1,4 +1,4 @@
-# Compile all C examples against the standalone libsixsv.so built in ../testsuite/
+# Compile all C examples against the standalone libsixsv.so built in ../developer_tests/
 #
 #   make                 — build all examples
 #   make 01_basic_lut    — build a single example
@@ -7,7 +7,7 @@
 
 CC      ?= gcc
 CFLAGS   = -std=c11 -O2 -I../include -Wall -Wno-unused-result
-LIB_DIR  = ../testsuite
+LIB_DIR  = ../developer_tests
 LDFLAGS  = -L$(LIB_DIR) -lsixsv -lm -fopenmp -Wl,-rpath,$(abspath $(LIB_DIR))
 
 EXAMPLES = 01_basic_lut \

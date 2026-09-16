@@ -41,8 +41,8 @@ override_dh_auto_build:
 
 # ── Test ──────────────────────────────────────────────────────────────────────
 override_dh_auto_test:
-	# Full testsuite requires the Fortran 6SV2.1 sources; skip in package build.
-	# Run 'make -C testsuite test' after installation to validate the library.
+	# Full developer tests require the Fortran 6SV2.1 sources; skip in package build.
+	# Run 'make -C developer_tests test' after installation to validate the library.
 
 # ── Install into debian/tmp ───────────────────────────────────────────────────
 override_dh_auto_install:

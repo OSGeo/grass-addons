@@ -1,5 +1,5 @@
 ! test_6sv_compat.f90 — calls 6SV2.1 subroutines with known inputs and
-! prints key=value pairs consumed by testsuite/test_fortran_compat.py.
+! prints key=value pairs consumed by developer_tests/test_fortran_compat.py.
 !
 ! Compile (linking 6SV2.1 .o objects built with 'make sixs' in ~/dev/6sV2.1/):
 !   gfortran -O test_6sv_compat.f90 \

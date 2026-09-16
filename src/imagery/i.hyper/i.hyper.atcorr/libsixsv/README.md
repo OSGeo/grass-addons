@@ -419,12 +419,12 @@ The portable/public validation path uses the committed fixtures and does not
 require a private checkout of 6SV2.1:
 
 ```sh
-make -C testsuite lib
-LIB_SIXSV="$PWD/testsuite/libsixsv.so" python3 -m pytest -v \
-    testsuite/test_lut.py testsuite/test_solar.py \
-    testsuite/test_openmp.py \
-    testsuite/test_6sv21_pipeline_parity.py \
-    testsuite/test_6sv21_extended_parity.py
+make -C developer_tests lib
+LIB_SIXSV="$PWD/developer_tests/libsixsv.so" python3 -m pytest -v \
+    developer_tests/test_lut.py developer_tests/test_solar.py \
+    developer_tests/test_openmp.py \
+    developer_tests/test_6sv21_pipeline_parity.py \
+    developer_tests/test_6sv21_extended_parity.py
 ```
 
 This path needs Python 3, NumPy and pytest in addition to the C/OpenMP build
@@ -435,7 +435,7 @@ executed the target regions.
 Local reference regeneration and direct Fortran subroutine comparison are a
 separate maintainer workflow. They require gfortran and the pinned 6SV2.1 source
 at commit `7deb2289cfe23c9b1d1b48d7647f76604ef75fa4`, supplied through `SIXSV2`.
-`make -C testsuite test` belongs to that local workflow because its Fortran
+`make -C developer_tests test` belongs to that local workflow because its Fortran
 driver target consumes objects from the reference tree. Debian package builds
 deliberately skip both paths; pytest, NumPy and the pinned Fortran tree are not
 package Build-Depends.

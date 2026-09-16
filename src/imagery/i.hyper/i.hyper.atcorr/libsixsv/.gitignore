@@ -16,8 +16,8 @@ debian/libsixsv-dev/
 debian/libsixsv2-dbgsym/
 
 # Test build artefacts
-testsuite/test_6sv_compat
-testsuite/libsixsv.so
+developer_tests/test_6sv_compat
+developer_tests/libsixsv.so
 
 # Example binaries
 examples/01_basic_lut

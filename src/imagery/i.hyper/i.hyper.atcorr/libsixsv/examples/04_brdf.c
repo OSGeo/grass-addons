@@ -10,7 +10,7 @@
  *
  * Compile:
  *   gcc -std=c11 -O2 -fopenmp -I../include 04_brdf.c \
- *       -L../testsuite -lsixsv -lm -fopenmp -Wl,-rpath,../testsuite -o 04_brdf
+ *       -L../developer_tests -lsixsv -lm -fopenmp -Wl,-rpath,../developer_tests -o 04_brdf
  */
 
 #include <stdio.h>

@@ -26,14 +26,14 @@ an example completes.
 Build the development library first, then compile the examples:
 
 ```sh
-make -C testsuite lib
+make -C developer_tests lib
 make -C examples
 make -C examples run
 ```
 
 The example Makefile keeps the source/object before `-lsixsv`, which is required
 for correct linker resolution. It embeds a development rpath to
-`testsuite/libsixsv.so`; installed applications should use pkg-config or their
+`developer_tests/libsixsv.so`; installed applications should use pkg-config or their
 normal build system instead.
 
 ## Run Python Examples
@@ -41,14 +41,14 @@ normal build system instead.
 Requirements are Python 3 and NumPy. Build the test library and run a script:
 
 ```sh
-make -C testsuite lib
+make -C developer_tests lib
 python3 examples/01_basic_lut.py
 ```
 
 Each script searches, in order:
 
 1. The file named by `LIB_SIXSV`, when set.
-2. `testsuite/libsixsv.so` relative to the source tree.
+2. `developer_tests/libsixsv.so` relative to the source tree.
 
 For example:
 
@@ -92,5 +92,5 @@ integrating the ABI into a Python application.
 The programs print diagnostics for their synthetic inputs. No fixed expected
 output is documented here because coefficient changes, compiler precision and
 OpenMP reduction order can alter printed values without changing the API
-demonstration. Numerical acceptance criteria belong in `testsuite/`, including
+demonstration. Numerical acceptance criteria belong in `developer_tests/`, including
 the committed pinned-reference fixtures, rather than in example transcripts.

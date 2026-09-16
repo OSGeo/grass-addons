@@ -1,4 +1,4 @@
-# lib6sv testsuite — builds a standalone shared library and runs all tests.
+# lib6sv developer tests — builds a standalone shared library and runs all tests.
 #
 # Targets:
 #   make          — build libsixsv.so and the Fortran compatibility driver

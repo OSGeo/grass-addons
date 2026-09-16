@@ -20,13 +20,13 @@ import numpy as np
 _here = os.path.dirname(os.path.abspath(__file__))
 for _p in [
     os.environ.get("LIB_SIXSV", ""),
-    os.path.join(_here, "..", "testsuite", "libsixsv.so"),
+    os.path.join(_here, "..", "developer_tests", "libsixsv.so"),
 ]:
     if _p and os.path.exists(_p):
         _lib = ctypes.CDLL(_p)
         break
 else:
-    raise ImportError("libsixsv.so not found — run 'make' in testsuite/ first.")
+    raise ImportError("libsixsv.so not found — run 'make' in developer_tests/ first.")
 
 _FP = ctypes.POINTER(ctypes.c_float)
 

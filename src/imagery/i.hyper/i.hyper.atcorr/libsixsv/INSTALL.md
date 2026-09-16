@@ -63,13 +63,13 @@ paths, configure the loader or use an appropriate runtime search path.
 
 ### Standalone Test Library
 
-The testsuite Makefile provides another development-only build:
+The developer_tests Makefile provides another development-only build:
 
 ```sh
-make -C testsuite lib
+make -C developer_tests lib
 ```
 
-It writes `testsuite/libsixsv.so`. It is not an install target and does not
+It writes `developer_tests/libsixsv.so`. It is not an install target and does not
 produce the versioned Debian ABI files.
 
 ## GRASS GIS Build

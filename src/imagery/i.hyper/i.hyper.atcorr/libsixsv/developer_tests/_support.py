@@ -1,11 +1,11 @@
-"""Shared test infrastructure for the lib6sv standalone testsuite.
+"""Shared test infrastructure for the lib6sv standalone developer tests.
 
 Loads ``libsixsv.so`` (built by ``make lib`` in this directory) and exposes
 ctypes wrappers for every function needed by the test suite.  The library is
 located by searching, in order:
 
 1. ``LIB_SIXSV`` environment variable (set automatically by ``make test``).
-2. ``./libsixsv.so`` in the testsuite directory.
+2. ``./libsixsv.so`` in the developer_tests directory.
 3. ``../OBJ.*/libgrass_sixsv.so`` — GRASS build tree (sibling OBJ directory).
 
 Also provides helpers for the OpenMP runtime (``omp_get_max_threads``, etc.)
@@ -44,7 +44,7 @@ def _find_lib():
         if p and os.path.exists(p):
             return p
     raise ImportError(
-        "libsixsv.so not found. Run `make lib` in testsuite/ first.\n"
+        "libsixsv.so not found. Run `make lib` in developer_tests/ first.\n"
         f"Searched: {[p for p in candidates if p]}"
     )
 
