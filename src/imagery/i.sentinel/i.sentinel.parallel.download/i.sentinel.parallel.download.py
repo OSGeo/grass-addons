@@ -236,9 +236,9 @@ def main():
             _(
                 "Using {} parallel processes but only {} CPUs available."
                 "Setting nprocs to {}"
-            ).format(nprocs, mp.cpu_count(), mp.cpu_count() - 1)
+            ).format(nprocs, mp.cpu_count(), mp.cpu_count())
         )
-        nprocs = mp.cpu_count() - 1
+        nprocs = mp.cpu_count()
 
     # sentinelsat allows only three parallel downloads
     elif nprocs > 2 and options["datasource"] == "ESA_COAH":
