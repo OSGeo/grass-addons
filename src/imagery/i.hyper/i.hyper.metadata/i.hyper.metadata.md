@@ -15,7 +15,10 @@ Metadata is loaded from `hyper.json`.
 Supported operations:
 
 - `summary`: concise metadata summary for current dataset
-- `full`: full metadata object for current dataset
+- `full`: raw metadata object for current dataset
+- `resolved`: fully materialized metadata object; inherited values are applied
+  and schema form-value fields (`value`/`form`/`source`) are replaced by their
+  values for programmatic consumers
 - `extended`: selected `extended_metadata` only
   (all, branch, key path, or multiple selectors; resolved through lineage
   inheritance for derived datasets)
@@ -24,12 +27,29 @@ Supported operations:
   (uses `input_datasets_metadata` snapshots when referenced inputs are
   unavailable in current LOCATION)
 - `validate`: metadata and lineage consistency checks
+- `copy`: initialize or replace metadata from another hyperspectral cube;
+  with existing target metadata, `--overwrite` is required and this map's last
+  local processing step is preserved; the copy action itself is added to
+  history
+- `derive`: create metadata for an output map from `source_map`; assigns a new
+  dataset ID, marks the output derived, stores one local source-to-output
+  history entry from `command=`, applies generic overrides, and saves once;
+  replacing existing target metadata requires `--overwrite`
+- `merge-overrides`: apply top-level metadata overrides
+  (e.g. `radiometric_quantity`) and deep-merge `extended_metadata` from the
+  `overrides=` JSON into an existing map, saving in-place
+- `add-history`: append a `processing_history` entry to an existing map;
+  uses `source_map=` as input and `command=` as the command string
 
-Output format (`format`) is global for all operations:
+Output format (`format`) is global for all operations except `kv`, which is
+available only with `operation=resolved`:
 
 - `json` (default)
 - `text`
 - `csv`
+- `kv`: line-oriented dotted key/value paths for `operation=resolved`; scalar
+  strings escape backslashes, newlines, carriage returns, and equals signs,
+  while numeric arrays are comma-separated
 
 For `full` and `history`, `resolve_names=yes` resolves `inputs/outputs`
 map names from current maps by `dataset_id` (display only; stored command
@@ -58,11 +78,21 @@ Dataset provenance is stored in top-level key `derived`:
 Main options:
 
 - `map=`: input `raster_3d` map
-- `operation=`: `summary|full|extended|bands|history|validate`
-- `format=`: `json|text|csv`
+- `operation=`: `summary|full|resolved|extended|bands|history|validate|copy|derive|merge-overrides|add-history`
+- `source_map=`: source `raster_3d` map for `operation=copy`,
+  `operation=derive`, and `operation=add-history`
+- `format=`: `json|text|csv|kv`
 - `resolve_names=`: `yes|no` (for `full` and `history`)
 - `wavelength_range=`: for `operation=bands` (example: `400-700`)
 - `extended_select=`: for `operation=extended` (all/branch/path/multiple)
+- `overrides=`: JSON string of metadata overrides for `operation=derive` or
+  `operation=merge-overrides`; may contain top-level keys like
+  `radiometric_quantity` and an `extended_metadata` key whose value is
+  merged into the derived dataset's extended metadata
+- `overrides_file=`: JSON overrides file for `operation=derive`; use `-` to
+  read JSON from standard input; mutually exclusive with `overrides=`
+- `command=`: command line string to store in processing history for
+  `operation=derive` or `operation=add-history`
 
 API examples:
 
@@ -70,6 +100,12 @@ API examples:
 
     # Full metadata as JSON
     i.hyper.metadata map=my_cube operation=full format=json
+
+    # Resolved metadata for downstream modules
+    i.hyper.metadata map=my_cube operation=resolved format=json
+
+    # Resolved metadata for command-line consumers
+    i.hyper.metadata map=my_cube operation=resolved format=kv
 
     # Bands as CSV in 700-900 nm
     i.hyper.metadata map=my_cube operation=bands wavelength_range=700-900 format=csv
@@ -80,6 +116,21 @@ API examples:
     # Multiple extended selectors
     i.hyper.metadata map=my_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,atmosphere.aod_550
+
+    # Initialize metadata on a target cube from another hypercube
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
+
+    # Replace existing target metadata and preserve the target's last local step
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube --overwrite
+
+    # Derive output metadata with generic overrides
+    i.hyper.metadata map=my_output_cube operation=derive \
+      source_map=my_input_cube command="my.module input=my_input_cube output=my_output_cube" \
+      overrides_file=metadata-overrides.json
+
+    # Append processing history entry
+    i.hyper.metadata map=my_output_cube operation=add-history \
+      source_map=my_input_cube command="i.hyper.atcorr input=my_input_cube output=my_output_cube sza=35.2"
 :::
 
 ### JSON metadata structure
@@ -219,6 +270,14 @@ Show selected branches and key paths at the same time:
 
     i.hyper.metadata map=my_hyper_cube operation=extended \
       extended_select=acquisition,geometry.sun_zenith_deg,processing
+:::
+
+Copy metadata from another hypercube while preserving the current cube's last
+local processing step:
+
+::: code
+
+    i.hyper.metadata map=my_output_cube operation=copy source_map=my_source_cube
 :::
 
 Show ATCORR-ready metadata subset (geometry + atmosphere + timing):
