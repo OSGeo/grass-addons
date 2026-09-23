@@ -74,6 +74,12 @@
 # % guisection: Optional
 # %end
 
+# %flag
+# % key: r
+# % description: Limit import to the current region (product=emit only)
+# % guisection: Optional
+# %end
+
 import sys
 import os
 import importlib.util
@@ -309,6 +315,8 @@ def import_by_product(product, options, flags):
 def main(options, flags):
     product = options["product"]
     output = options.get("output")
+    if flags.get("r") and product != "emit":
+        gs.fatal("The -r flag is only supported for product=emit.")
 
     path = get_lib_path(modname="i_hyper_lib", libname="check_proj")
     if path and path not in sys.path:
