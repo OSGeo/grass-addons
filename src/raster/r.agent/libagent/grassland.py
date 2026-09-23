@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2015 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import grass.script as grass
+import grass.script as gs
 from grass.script import array as garray
 
 from libagent import error, playground
@@ -31,7 +31,7 @@ class Grassland(playground.Playground):
         """Create a Playground with all the relevant info by GRASS"""
         self.layers = dict()
         self.grassmapnames = dict()
-        self.region = grass.region()
+        self.region = gs.region()
         if self.region["ewres"] != self.region["nsres"]:
             raise error.DataError(Grassland.ME, "Only square raster cells make sense.")
 
@@ -46,7 +46,7 @@ class Grassland(playground.Playground):
         @param boolean optional, whether to overwrite values if key exists
         """
         # fill the new grass array with the contents from the map (must exist)
-        if grassmapname in grass.list_strings("rast"):
+        if grassmapname in gs.list_strings("rast"):
             layer = garray.array(grassmapname)
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
@@ -90,7 +90,7 @@ class Grassland(playground.Playground):
             else:
                 raise error.DataError(Grassland.ME, "Grass Map name is empty.")
         if layername in self.layers:
-            if grassmapname in grass.list_strings("rast"):
+            if grassmapname in gs.list_strings("rast"):
                 if force:
                     force = "force"
                 else:
@@ -109,8 +109,8 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         vectors = []
-        if grassmapname in grass.list_strings("vect"):
-            layer = grass.vector_db_select(grassmapname)["values"]
+        if grassmapname in gs.list_strings("vect"):
+            layer = gs.vector_db_select(grassmapname)["values"]
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
             for v in layer.values():
@@ -139,5 +139,5 @@ class Grassland(playground.Playground):
             # TODO find out why 'filename' is lost - numpy vs. garray..
         # TODO think about moving 'minimum' to a predifined matrix in anthill
         if minimum > 0:
-            mask = garray.numpy.ones_like(self.layers[layername]) - 1 + minimum
-            self.layers[layername] = garray.numpy.maximum(self.layers[layername], mask)
+            mask = garray.np.ones_like(self.layers[layername]) - 1 + minimum
+            self.layers[layername] = garray.np.maximum(self.layers[layername], mask)

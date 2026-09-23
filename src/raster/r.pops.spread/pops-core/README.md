@@ -7,7 +7,7 @@ PoPS Core is the core C++ library for the PoPS Model.
 PoPS (Pest or Pathogen Spread) is a stochastic spread model of pests
 and pathogens in forest and agricultural landscapes.
 It is used for various pest, pathogens, and hosts.
-It was originally developed for *Phytophthora ramorum* and the original
+It was originally developed for _Phytophthora ramorum_ and the original
 version of the model was written in R, later with Rcpp,
 and was based on Meentemeyer (2011) paper.
 
@@ -20,37 +20,37 @@ required version.
 
 If you use this software or code, please cite the following papers:
 
-* Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
+- Ross K. Meentemeyer, Nik J. Cunniffe, Alex R. Cook, Joao A. N. Filipe,
   Richard D. Hunter, David M. Rizzo, and Christopher A. Gilligan, 2011.
   Epidemiological modeling of invasion in heterogeneous landscapes:
   spread of sudden oak death in California (1990–2030).
-  *Ecosphere* 2:art17.
+  _Ecosphere_ 2:art17.
   [DOI: 10.1890/ES10-00192.1](https://doi.org/10.1890/ES10-00192.1)
 
-* Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
+- Tonini, Francesco, Douglas Shoemaker, Anna Petrasova, Brendan Harmon,
   Vaclav Petras, Richard C. Cobb, Helena Mitasova,
   and Ross K. Meentemeyer, 2017.
   Tangible geospatial modeling for collaborative solutions
   to invasive species management.
-  *Environmental Modelling & Software* 92: 176-188.
+  _Environmental Modelling & Software_ 92: 176-188.
   [DOI: 10.1016/j.envsoft.2017.02.020](https://doi.org/10.1016/j.envsoft.2017.02.020)
 
 In case you are using the automatic management feature in rpops or the
 steering version of r.pops.spread (from the branch steering), please
 cite also:
 
-* Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H. and
+- Petrasova, A., Gaydos, D.A., Petras, V., Jones, C.M., Mitasova, H. and
   Meentemeyer, R.K., 2020.
   Geospatial simulation steering for adaptive management.
-  *Environmental Modelling & Software* 133: 104801.
+  _Environmental Modelling & Software_ 133: 104801.
   [DOI: 10.1016/j.envsoft.2020.104801](https://doi.org/10.1016/j.envsoft.2020.104801)
 
 In addition to citing the above paper, we also encourage you to
 reference, link, and/or acknowledge specific version of the software
 you are using for example:
 
-* *We have used rpops R package version 1.0.0 from
-  <https://github.com/ncsu-landscape-dynamics/rpops>*.
+- _We have used rpops R package version 1.0.0 from
+  <https://github.com/ncsu-landscape-dynamics/rpops>_.
 
 ## Contributing
 
@@ -153,8 +153,8 @@ The PoPS Core library can be used directly in a C++ program or through other
 programs. It is used in R package called rpops and a GRASS GIS module
 called r.pops.spread.
 
-* <https://github.com/ncsu-landscape-dynamics/r.pops.spread>
-* <https://github.com/ncsu-landscape-dynamics/rpops>
+- <https://github.com/ncsu-landscape-dynamics/r.pops.spread>
+- <https://github.com/ncsu-landscape-dynamics/rpops>
 
 ## Integrating the library into your own project
 
@@ -251,7 +251,7 @@ Note that not all tests are not fully automatic, so in couple cases
 this only testing if the code is running and not crashing
 (you will need to examine the source code to see the details).
 
-Additionally, create documentation using the following (*Doxygen* required):
+Additionally, create documentation using the following (_Doxygen_ required):
 
 ```bash
 cmake --build build --target docs
@@ -285,20 +285,20 @@ target_link_libraries(your_target PRIVATE pops-core)
 
 ### Authors
 
-*(alphabetical order)*:
+_(alphabetical order)_:
 
-* Chris Jones
-* Margaret Lawrimore
-* Vaclav Petras
-* Anna Petrasova
+- Chris Jones
+- Margaret Lawrimore
+- Vaclav Petras
+- Anna Petrasova
 
 ### Previous contributors
 
-*(alphabetical order)*:
+_(alphabetical order)_:
 
-* Zexi Chen
-* Devon Gaydos
-* Francesco Tonini
+- Zexi Chen
+- Devon Gaydos
+- Francesco Tonini
 
 See Git commit history, GitHub insights, or CHANGELOG.md file (if present)
 for details about contributions.

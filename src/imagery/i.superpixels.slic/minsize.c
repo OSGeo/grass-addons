@@ -176,7 +176,7 @@ static int update_cid(struct cache *k_seg, int row, int col, int old_id,
                 rclist_add(&rilist, rown, coln);
             }
 
-        } while (n--);                     /* end do loop - next neighbor */
+        } while (n--); /* end do loop - next neighbor */
     } while (rclist_drop(&rilist, &next)); /* while there are cells to check */
 
     rclist_destroy(&rilist);
@@ -281,7 +281,7 @@ static int find_best_neighbour(DCELL **clumpbsum, int nbands, int *clumpsize,
                     }
                 }
             }
-        } while (n--);                     /* end do loop - next neighbor */
+        } while (n--); /* end do loop - next neighbor */
     } while (rclist_drop(&rilist, &next)); /* while there are cells to check */
 
     rclist_destroy(&rilist);

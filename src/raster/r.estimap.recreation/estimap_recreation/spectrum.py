@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -68,7 +68,7 @@ def recreation_spectrum_expression(potential, opportunity):
 
     msg = "*** Recreation Spectrum expression: \n"
     msg += expression
-    grass.debug(msg)
+    gs.debug(msg)
 
     return expression
 
@@ -104,8 +104,8 @@ def compute_recreation_spectrum(potential, opportunity, spectrum):
     msg = "\n"
     msg += ">>> Recreation Spectrum equation: \n"
     msg += spectrum_equation
-    grass.verbose(msg)
+    gs.verbose(msg)
 
-    grass.mapcalc(spectrum_equation, overwrite=True)
+    gs.mapcalc(spectrum_equation, overwrite=True)
 
     return spectrum

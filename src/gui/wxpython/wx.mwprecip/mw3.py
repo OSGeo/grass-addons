@@ -15,7 +15,7 @@ from subprocess import PIPE
 from pgwrapper import pgwrapper as pg
 from core.gcmd import RunCommand
 from grass.pygrass.modules import Module
-import grass.script as grass
+import grass.script as gs
 from mw_util import *
 
 timeMes = MeasureTime()
@@ -29,11 +29,10 @@ class PointInterpolation:
         psycopg2 = importlib.import_module("psycopg2")
     except ModuleNotFoundError as e:
         msg = e.msg
-        grass.fatal(
+        gs.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     def __init__(self, database, step, methodDist=False):
@@ -283,7 +282,7 @@ class VectorLoader:
         f = open(tmpFile, "w+")
         f.write(asciiStr)
         f.close()
-        grass.run_command(
+        gs.run_command(
             "v.in.ascii",
             input=tmpFile,
             format="standard",
@@ -317,8 +316,8 @@ class RainGauge:
                 self.lat = float(f.next())
                 self.lon = float(f.next())
             f.close()
-        except IOError as e:
-            grass.error("I/O error({}): {}".format(e.errno, e))
+        except OSError as e:
+            gs.error("I/O error({}): {}".format(e.errno, e))
 
         gaugeTMPfile = "gauge_tmp"
         removeLines(
@@ -336,16 +335,16 @@ class RainGauge:
                     stri = str(self.gaugeid) + "," + line
                     tmp.append(stri)
                 f.close()
-        except IOError as e:
-            grass.error("I/O error({0}): {1}".format(errno, strerror))
+        except OSError as e:
+            gs.error("I/O error({0}): {1}".format(errno, strerror))
 
         # write list of string to database
         try:
             with open(os.path.join(self.schemaPath, gaugeTMPfile), "w+") as io:
                 io.writelines(tmp)
                 io.close()
-        except IOError as e:
-            grass.error("I/O error({0}): {1}".format(errno, strerror))
+        except OSError as e:
+            gs.error("I/O error({0}): {1}".format(errno, strerror))
 
         if not isTableExist(self.db.connection, self.schema, self.db.rgaugeTableName):
             # #create table for raingauge stations
@@ -652,8 +651,8 @@ class TimeWindows:
             io2 = open(os.path.join(self.path, TMPname), "w+")
             io2.writelines(nameList)
             io2.close()
-        except IOError as e:
-            grass.warning(
+        except OSError as e:
+            gs.warning(
                 "Cannot write temporal registration file  %s"
                 % os.path.join(self.path, TMPname)
             )
@@ -664,7 +663,7 @@ class TimeWindows:
         if self.status.get("msg") == "Done":
             self.status["msg"] = ""
         self.status["msg"] += msg + "\n"
-        grass.warning(msg)
+        gs.warning(msg)
 
 
 class Computor:
@@ -672,11 +671,10 @@ class Computor:
         np = importlib.import_module("numpy")
     except ModuleNotFoundError as e:
         msg = e.msg
-        grass.fatal(
+        gs.fatal(
             _(
-                "Unable to load python <{0}> lib (requires lib "
-                "<{0}> being installed).".format(msg.split("'")[-2])
-            )
+                "Unable to load python <{0}> lib (requires lib <{0}> being installed)."
+            ).format(msg.split("'")[-2])
         )
 
     def __init__(self, baseline, timeWin, database, exportData):
@@ -786,7 +784,6 @@ class Computor:
             # print baseline.statFce
             ######## AVG #########
             if baseline.statFce == "avg":
-
                 if baseline.type == "noDryWin":
                     if baseline.statFce == "avg":
                         sql = (
@@ -800,9 +797,9 @@ class Computor:
                     try:
                         # print baseline.pathToFile
                         f = open(baseline.pathToFile, "r")
-                    except IOError as e:
+                    except OSError as e:
                         # print baseline.pathToFile
-                        grass.warning(
+                        gs.warning(
                             "Path to file with dry-window definiton not exist; %s"
                             % baseline.pathTofile
                         )
@@ -818,7 +815,7 @@ class Computor:
                                 return False
                             # validate input data
                             if not isTimeValid(fromt) or not isTimeValid(tot):
-                                grass.warning(
+                                gs.warning(
                                     "Input data are not valid. Parameter 'baselitime'"
                                 )
                                 return False
@@ -836,7 +833,7 @@ class Computor:
                             time = line.split("\n")[0]
                             # validate input data
                             if not isTimeValid(time):
-                                grass.warning(
+                                gs.warning(
                                     "Input data are not valid. Parameter 'baselitime'"
                                 )
                                 return False
@@ -912,10 +909,8 @@ class Computor:
                     try:
                         # print baseline.pathToFile
                         f = open(baseline.pathToFile, "r")
-                    except IOError as e:
-                        grass.warning(
-                            "Path to file with dry-window definiton not exist"
-                        )
+                    except OSError as e:
+                        gs.warning("Path to file with dry-window definiton not exist")
                         return False
                     for line in f:
                         st += line.replace("\n", "")
@@ -929,7 +924,7 @@ class Computor:
                                 return False
                             # validate input data
                             if not isTimeValid(fromt) or not isTimeValid(tot):
-                                grass.warning(
+                                gs.warning(
                                     "Input data are not valid. Parameter 'baselitime'"
                                 )
                                 return False
@@ -944,7 +939,7 @@ class Computor:
                         else:  # get baseline one moment
                             time = line.split("\n")[0]
                             if not isTimeValid(time):
-                                grass.warning(
+                                gs.warning(
                                     "Input data are not valid. Parameter 'baselitime'"
                                 )
                                 return False
@@ -994,8 +989,8 @@ class Computor:
                     )
                     io1.close()
                     os.remove(os.path.join(database.pathworkSchemaDir, table_tmp))
-                except IOError as e:
-                    grass.warning("Cannot open <%s> file" % table_tmp)
+                except OSError as e:
+                    gs.warning("Cannot open <%s> file" % table_tmp)
                     return False
 
                 recname = database.schema + "." + table_tmp
@@ -1115,9 +1110,9 @@ class Computor:
             self.status["msg"] = ""
         self.status["msg"] += msg + "\n"
         if not err:
-            grass.warning(msg)
+            gs.warning(msg)
         else:
-            grass.fatal(msg)
+            gs.fatal(msg)
 
     def computePrecip(self, getData=False, dataOnly=False):
         def checkValidity(freq, polarization):
@@ -1413,7 +1408,7 @@ class GrassLayerMgr:
 
             timeMes.timeMsg("Creating RGB column in database-done")
         except Exception as e:
-            grass.warning("v.color error < %s>" % e)
+            gs.warning("v.color error < %s>" % e)
 
     def getNumLayer(self, map):
         numLay = Module(
@@ -1450,10 +1445,10 @@ class GrassLayerMgr:
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), "r")
         except:
-            grass.warning("Cannot connect tables(time-windows)  to vector layer")
+            gs.warning("Cannot connect tables(time-windows)  to vector layer")
             return None
 
-        if grass.find_file(self.database.linkVecMapName, element="vector")["fullname"]:
+        if gs.find_file(self.database.linkVecMapName, element="vector")["fullname"]:
             self.unlinkLayer(self.database.linkVecMapName)
         layerNum = 0
         layStr = ""
@@ -1477,7 +1472,7 @@ class GrassLayerMgr:
         try:
             f = open(os.path.join(self.database.pathworkSchemaDir, "l_timewindow"), "r")
         except:
-            grass.warning("Cannot connect tables(time-windows)  to vector layer")
+            gs.warning("Cannot connect tables(time-windows)  to vector layer")
         layerNum = 0
         for win in f.read().splitlines():
             layerNum += 1
@@ -1504,17 +1499,11 @@ class GrassTemporalMgr:
         self.timeWinConf = timeWinConf
         self.datasetName = database.schema
         self.datasetTitle = "MW time dataset"
-        self.datasetTdescription = (
-            " IDtype=%s,"
-            "sumStep=%s,"
-            "startTime=%s,"
-            "endTime='%s"
-            % (
-                timeWinConf.typeID,
-                timeWinConf.sumStep,
-                timeWinConf.startTime,
-                timeWinConf.endTime,
-            )
+        self.datasetTdescription = " IDtype=%s,sumStep=%s,startTime=%s,endTime='%s" % (
+            timeWinConf.typeID,
+            timeWinConf.sumStep,
+            timeWinConf.startTime,
+            timeWinConf.endTime,
         )
         self.createTimedataset()
         self.registerMaps()
@@ -1550,7 +1539,7 @@ class GrassTemporalMgr:
 
     def registerMaps(self):
         timeMes.timeMsg("Registring maps to temporal database")
-        gisenv_grass = grass.gisenv()
+        gisenv_grass = gs.gisenv()
         timeOfLay = self.timeWinConf.timestamp_min
         regTMP = ""
         regFilePath = os.path.join(self.database.pathworkSchemaDir, "temporal_reg_file")
@@ -1646,7 +1635,7 @@ class Database:
         return time
 
     def grassTemporalConnection(self, db="postgres"):
-        grass.run_command("t.connect", flags="d")
+        gs.run_command("t.connect", flags="d")
 
         """
         if db == 'postgres':
@@ -1674,7 +1663,7 @@ class Database:
         self.dbConnStr = self.dbName
 
         if self.user and not self.password:
-            grass.run_command(
+            gs.run_command(
                 "db.login",
                 driver="pg",
                 database=self.dbName,
@@ -1685,7 +1674,7 @@ class Database:
 
         elif self.user and self.password:
             if self.port and self.host:
-                grass.run_command(
+                gs.run_command(
                     "db.login",
                     driver="pg",
                     database=self.dbName,
@@ -1696,7 +1685,7 @@ class Database:
                     overwrite=True,
                 )
             elif self.host:
-                grass.run_command(
+                gs.run_command(
                     "db.login",
                     driver="pg",
                     database=self.dbName,
@@ -1706,7 +1695,7 @@ class Database:
                     overwrite=True,
                 )
             else:
-                grass.run_command(
+                gs.run_command(
                     "db.login",
                     driver="pg",
                     database=self.dbName,
@@ -1715,7 +1704,7 @@ class Database:
                     overwrite=True,
                 )
         else:
-            grass.run_command(
+            gs.run_command(
                 "db.login",
                 driver="pg",
                 database=self.dbName,
@@ -1725,12 +1714,12 @@ class Database:
             )
 
         if (
-            grass.run_command(
+            gs.run_command(
                 "db.connect", driver="pg", database=self.dbName, overwrite=True
             )
             != 0
         ):
-            grass.warning("Unable to connect to the database by grass driver.")
+            gs.warning("Unable to connect to the database by grass driver.")
 
     def pyConnection(self):
         try:
@@ -1746,9 +1735,7 @@ class Database:
             self.connection = pg(**conninfo)
 
         except self.psycopg2.OperationalError as e:
-            grass.warning(
-                "Unable to connect to the database <%s>. %s" % (self.dbName, e)
-            )
+            gs.warning("Unable to connect to the database <%s>. %s" % (self.dbName, e))
 
     def firstPreparation(self):
         if not isAttributExist(self.connection, "public", "link", "lenght"):
@@ -1790,11 +1777,13 @@ class Database:
             self.connection.executeSql(sql, False, True)
 
             logger.info("Computing column lenght")
-            sql = "UPDATE link SET lenght = get_earth_distance1(n1.long,n1.lat,n2.long,n2.lat) \
+            sql = (
+                "UPDATE link SET lenght = get_earth_distance1(n1.long,n1.lat,n2.long,n2.lat) \
                     FROM node AS n1 JOIN \
                     link AS l ON n1.nodeid = fromnodeid \
                     JOIN node AS n2 ON n2.nodeid = tonodeid \
                     WHERE link.linkid = l.linkid; "
+            )
             self.connection.executeSql(sql, False, True)
 
             # logger.info("Add column precip")

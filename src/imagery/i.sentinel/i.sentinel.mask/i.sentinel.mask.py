@@ -199,7 +199,7 @@ import math
 import json
 import sys
 
-import xml.etree.ElementTree as et
+import xml.etree.ElementTree as ET
 
 from pathlib import Path
 
@@ -243,7 +243,7 @@ def get_sun_position(module_options, bands):
             )
         )
         try:
-            xml_tree = et.parse(module_options["mtd_file"])
+            xml_tree = ET.parse(module_options["mtd_file"])
             root = xml_tree.getroot()
             zenith_azimuth = []
             for elem in root[1]:

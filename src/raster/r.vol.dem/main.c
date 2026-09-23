@@ -110,7 +110,7 @@
 #include <time.h>
 
 #include <grass/gis.h>
-#include <grass/raster3d.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 
 #include "chull.h"

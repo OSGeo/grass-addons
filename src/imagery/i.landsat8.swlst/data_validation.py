@@ -29,8 +29,7 @@ def check_cwv(cwv):
     """
     if cwv < 0.0 - 0.5 or cwv > 6.3 + 0.5:
         raise ValueError(
-            "The column water vapor estimation is out of the "
-            "expected range [0.0, 6.3]"
+            "The column water vapor estimation is out of the expected range [0.0, 6.3]"
         )
     else:
         return True

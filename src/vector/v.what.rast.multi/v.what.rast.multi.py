@@ -84,7 +84,7 @@
 # % key: columns
 # % type: string
 # % required: no
-# % multiple: no
+# % multiple: yes
 # % key_desc: name
 # % description: Names of attribute columns to be updated with the query result
 # % gisprompt: old,dbcolumn,dbcolumn
@@ -108,11 +108,11 @@
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.modules.shortcuts import vector as v
 
 if "GISBASE" not in os.environ:
-    grass.message("You must be in GRASS GIS to run this program.")
+    gs.message("You must be in GRASS GIS to run this program.")
     sys.exit(1)
 
 
@@ -133,7 +133,7 @@ def main():
     # If length(columns) != length(rasters), throw error
     if columns != [""]:
         if len(columns) != len(rasters):
-            grass.fatal(
+            gs.fatal(
                 _("The number of rasters and the number of column names do not match")
             )
 
@@ -149,11 +149,10 @@ def main():
         r = rasters[i]
         if columns != [""]:
             c = columns[i]
+        elif flags["m"]:
+            c = r.replace("@", "_")
         else:
-            if flags["m"]:
-                c = r.replace("@", "_")
-            else:
-                c = strip_mapset(r)
+            c = strip_mapset(r)
 
         # Sample using v.what.rast
         v.what_rast(
@@ -164,5 +163,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

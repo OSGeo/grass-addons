@@ -4,7 +4,7 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-#define GET_PARENT(c) ((((GW_LARGE_INT)(c)-2) >> 2) + 1)
+#define GET_PARENT(c) ((((GW_LARGE_INT)(c) - 2) >> 2) + 1)
 #define GET_CHILD(p)  (((GW_LARGE_INT)(p) << 2) - 2)
 
 #define HEAP_CMP(a, b)     \

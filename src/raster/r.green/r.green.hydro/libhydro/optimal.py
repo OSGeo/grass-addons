@@ -4,6 +4,7 @@ Created on Mon Jan 12 14:29:46 2015
 
 @author: ggaregnani
 """
+
 # import system libraries
 from __future__ import print_function
 
@@ -34,7 +35,7 @@ try:
     from scipy import interpolate
     from scipy.optimize import fsolve
 except ImportError:
-    gcore.warning("You should install scipy to use this module: " "pip install scipy")
+    gcore.warning("You should install scipy to use this module: pip install scipy")
 
 
 set_path("r.green", "libhydro", "..")
@@ -207,7 +208,6 @@ def build_array(line, raster_q, raster_dtm):
 
 
 def find_optimal(args, range_plant, ranges):
-
     eps = 0.5  # for the grid
     rranges = ((ranges[0], ranges[1] - range_plant[1] - eps), range_plant)
     x_min = optimize.brute(f, rranges, args=args, finish=None)
@@ -538,7 +538,6 @@ def write_points(plants, output, efficiency, min_power):
 
 
 def conv_segpoints(seg, output):
-
     segments, mset = seg.split("@") if "@" in seg else (seg, "")
     # convert the map with segments in a map with intakes and restitution
     new_vec = VectorTopo(output)

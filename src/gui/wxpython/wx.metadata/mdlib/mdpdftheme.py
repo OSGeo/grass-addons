@@ -23,7 +23,15 @@ class MySheet:
 
     def __init__(self):
         try:
-            global ParagraphStyle, TA_CENTER, _baseFontName, _baseFontNameB, _baseFontNameBI, _baseFontNameI, colors, inch
+            global \
+                ParagraphStyle, \
+                TA_CENTER, \
+                _baseFontName, \
+                _baseFontNameB, \
+                _baseFontNameBI, \
+                _baseFontNameI, \
+                colors, \
+                inch
 
             from reportlab.lib.styles import (
                 ParagraphStyle,
@@ -351,7 +359,14 @@ class Pdf(object):
 
     def __init__(self, title, author):
         try:
-            global Image, KeepTogether, LongTable, Paragraph, SimpleDocTemplate, Spacer, Table
+            global \
+                Image, \
+                KeepTogether, \
+                LongTable, \
+                Paragraph, \
+                SimpleDocTemplate, \
+                Spacer, \
+                Table
 
             from reportlab.platypus.doctemplate import SimpleDocTemplate
             from reportlab.platypus.flowables import Image

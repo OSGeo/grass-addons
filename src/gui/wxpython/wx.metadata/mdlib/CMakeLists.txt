@@ -1,0 +1,14 @@
+add_files_to_etc_dir(
+  wx.metadata/mdlib
+  FILES
+    __init__.py
+    cswlib.py
+    cswutil.py
+    dependency.py
+    globalvar.py
+    mdeditorfactory.py
+    mdgrass.py
+    mdjinjaparser.py
+    mdpdffactory.py
+    mdpdftheme.py
+    mdutil.py)

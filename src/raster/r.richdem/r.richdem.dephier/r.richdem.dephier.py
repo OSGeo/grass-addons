@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+# %module
+# % description: Compute the depression hierarchy of a DEM using RichDEM
+# % keyword: raster
+# % keyword: vector
+# % keyword: hydrology
+# % keyword: depression hierarchy
+# % keyword: flow direction
+# %end
+# %option G_OPT_R_INPUT
+# % key: input
+# % description: Input elevation raster
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output_labels
+# % required: no
+# % description: Output depression labels raster (leaf depression index per cell)
+# %end
+# %option G_OPT_R_OUTPUT
+# % key: output_flowdirs
+# % required: no
+# % description: Output flow directions raster
+# %end
+# %option G_OPT_V_OUTPUT
+# % key: output_hierarchy
+# % required: no
+# % label: Output depression hierarchy vector map
+# %end
+# %rules
+# % required: output_labels, output_flowdirs, output_hierarchy
+# %end
+
+import sys
+import grass.script as gs
+
+
+def main():
+    options, flags = gs.parser()
+
+    from grass.script.utils import get_lib_path
+
+    path = get_lib_path(modname="r.richdem", libname="librichdem")
+    if path is None:
+        gs.fatal("librichdem not found. Is r.richdem fully installed?")
+    sys.path.insert(0, path)
+    from librichdem.raster import rdarray_from_grass, rdarray_to_grass
+    from librichdem.vector import depressions_to_grass
+
+    import richdem as rd
+
+    dem = rdarray_from_grass(options["input"])
+    labels = rd.get_new_depression_hierarchy_labels(
+        dem.shape, geotransform=dem.geotransform
+    )
+    deps, flowdirs = rd.get_depression_hierarchy(dem, labels)
+
+    if options["output_labels"]:
+        rdarray_to_grass(labels, options["output_labels"], overwrite=gs.overwrite())
+    if options["output_flowdirs"]:
+        rdarray_to_grass(flowdirs, options["output_flowdirs"], overwrite=gs.overwrite())
+    if options["output_hierarchy"]:
+        depressions_to_grass(
+            deps,
+            labels,
+            flowdirs,
+            options["output_hierarchy"],
+            overwrite=gs.overwrite(),
+        )
+
+
+if __name__ == "__main__":
+    sys.exit(main())

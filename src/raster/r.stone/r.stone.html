@@ -1,0 +1,332 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+The module r.stone is a GRASS implementation of the model STONE [1] for
+three-dimensional modeling of rockfall trajectories. A rockfall is a point-like
+block, by assumption, and the model simulates its trajectory as a sequence of
+falling, bouncing and rolling steps. The trajectory follows a digital elevation
+model, it starts from a user-defined source point(s) with a non-null initial
+velocity and stops downhill when all of its kinetic energy is loss (i.e., when
+it reaches a minimum velocity) by bouncing and/or rolling on the ground.
+The Coefficients of normal and tangential restitution describe the amount
+of kinetic energy lost in each bounce, and a friction coefficient describes
+the kinetic energy loss during rolling. The r.stone implementation of STONE
+requires a minimal set of input raster maps in addition to the DTM, including
+a map of sources, and three maps of numerical coefficients. The output is a
+raster map with values corresponding to the number of trajectories crossing
+each grid cell after a full simulation.
+</p>
+
+<p>
+Input DTM is a square fixed spaced DTM, used as a triangular regular network
+built on the fly at run-time. Rockfall trajectories are evaluated using
+parametric second-order equations after a roto-transformation of the coordinate
+system to the run-time triangle. The calculation of each trajectory includes
+the random selection of an initial direction angle, and of cell-by-cell values
+of restitution and friction coefficients extracted from Gaussian distributions
+centered on the values specified in the corresponding input raster and limited
+by +/- 10% from the central value. By virtue of the random selection of initial
+angle and parameters, and of the possibility of simulating many trajectories
+from each source cell, the output assumes a probabilistic meaning.
+</p>
+
+<h2>SEE ALSO</h2>
+
+<p>
+<a href="https://grass.osgeo.org/grass85/manuals/addons/r.rock.stability.html">
+r.rock.stability
+</a>
+</p>
+
+<h2>EXAMPLE</h2>
+<p>The input parameters of r.stone listed below are all mandatory. Generating a
+map of source locations requires either knowledge of the area, gained through
+field campaigns or aerial photos, or a sound statistical method. A simplistic
+method to estimate the location of sources is to consider locations on steep
+terrain as possible rockfall sources, for example:</p>
+
+<pre><code>bash
+g.region rast=dem
+r.slope.aspect –e elevation=dem slope=slope
+r.mapcalc “sources = if(slope&gt;50,10,null())”
+</code></pre>
+
+<p>to simulate 10 trajectories originating from each cell with slope larger
+  than 50 degrees.</p>
+
+<p>Raster maps of friction and restitution coefficients can be generated based
+on geo-lithological knowledge of the area. Assuming a geological map, in
+polygonal vector format, with classes similar to the table below, we generate
+the input raster maps as follows:</p>
+
+<pre><code>bash
+v.db.addcolumn map=geology columns='friction real, nrest integer, vrest integer'
+db.execute sql=”update geology set friction=0.65 where class_id=1”
+db.execute sql=”update geology set friction=0.80 where class_id=2”
+...
+v.to.rast input=geology use=attr attribute_column=friction output=friction
+</code></pre>
+
+<p>And similar operations for nrest and vrest, for all classes present in the
+  geology map. The actual model run is as follows:</p>
+
+<pre><code>bash
+r.stone dem=dem sources=sources_raster nrest=nrest_raster
+        trest=trest_raster friction=friction_raster stop_vel=1
+        counter=out_counter_raster
+</code></pre>
+
+
+<p>Where:</p>
+
+<ul>
+  <li><strong>dem</strong> is the input digital elevation model.</li>
+  <li>
+    <strong>sources</strong> is the input sources raster.
+    <ul>
+      <li>
+        Defines the start and stop points of the rockfalls trajectories.
+        Positive integer values indicate source areas, while a value of -1
+        indicates areas where rocks must stop, such as for example a lake.
+        Values larger than 1
+        trigger the simulation of a corresponding number of randomized
+        trajectories,
+        from the same starting point. Null cells have no effect.
+      </li>
+    </ul>
+  </li>
+  <li>
+    <strong>nrest</strong> is the normal restitution raster map.
+    <ul>
+      <li>
+        Contains values of normal (vertical) restitution coefficient, useful at
+        impact points. Accepted values are from 0 (total energy dumping) to 100
+        (elastic restitution). Values are expressed in integer percentage.
+      </li>
+    </ul>
+  </li>
+  <li>
+    <strong>trest</strong> is the tangential restitution raster map.
+    <ul>
+      <li>
+        Contains values of tangential (horizontal) restitution coefficient,
+        used
+        at impact points. Accepted values are from 0 (total energy dumping)
+        to 100
+        (elastic restitution). Values are expressed in integer percentage.
+      </li>
+    </ul>
+  </li>
+  <li>
+    <strong>friction</strong> is the Friction raster map.
+    <ul>
+      <li>
+        Contains values of the rolling friction angle (tan(beta)).
+        <ul>
+          <li>Example Frictions:</li>
+          <li>For alluvial deposits, where the friction is high: beta = 40.4,
+            tan(beta) = 0.85</li>
+          <li>For bedrock, where the friction is low: beta = 16.7,
+            tan(beta) = 0.30</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <strong>stop_vel</strong> is the parameter used to define the
+    minimum velocity for a rock to
+    be considered in motion. A velocity lower than
+    the one specified here causes
+    the boulder to stop.
+  </li>
+  <li>
+    <strong>counter</strong> is the output raster of the
+    number of stones that passed through
+    a cell.
+  </li>
+</ul>
+
+<p>
+The following table, extracted from [1], gives example values of restitution
+and friction coefficients corresponding to 19
+lithological classes used in Italy.
+</p>
+
+<table>
+    <thead>
+      <tr>
+        <th>Lithological class</th>
+        <th>Friction</th>
+        <th>Normal restitution</th>
+        <th>Tangential restitution</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Anthropic deposits</td>
+        <td>0.65</td>
+        <td>35</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Alluvial, lacustrine, marine, eluvial and colluvial deposits</td>
+        <td>0.80</td>
+        <td>15</td>
+        <td>40</td>
+      </tr>
+      <tr>
+        <td>Coastal deposits, not related to fluvial processes</td>
+        <td>0.65</td>
+        <td>35</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Landslides</td>
+        <td>0.65</td>
+        <td>35</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Glacial deposits</td>
+        <td>0.65</td>
+        <td>35</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Loosely packed clastic deposits</td>
+        <td>0.35</td>
+        <td>45</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Consolidated clastic deposits</td>
+        <td>0.40</td>
+        <td>55</td>
+        <td>65</td>
+      </tr>
+      <tr>
+        <td>Marl</td>
+        <td>0.40</td>
+        <td>55</td>
+        <td>65</td>
+      </tr>
+      <tr>
+        <td>Carbonates-siliciclastic and marl sequence</td>
+        <td>0.35</td>
+        <td>60</td>
+        <td>70</td>
+      </tr>
+      <tr>
+        <td>Chaotic rocks, mélange</td>
+        <td>0.35</td>
+        <td>45</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Flysch</td>
+        <td>0.40</td>
+        <td>55</td>
+        <td>65</td>
+      </tr>
+      <tr>
+        <td>Carbonate Rocks</td>
+        <td>0.30</td>
+        <td>65</td>
+        <td>75</td>
+      </tr>
+      <tr>
+        <td>Evaporites</td>
+        <td>0.35</td>
+        <td>45</td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>Pyroclastic rocks and ignimbrites</td>
+        <td>0.40</td>
+        <td>55</td>
+        <td>65</td>
+      </tr>
+      <tr>
+        <td>Lava and basalts</td>
+        <td>0.30</td>
+        <td>65</td>
+        <td>75</td>
+      </tr>
+      <tr>
+        <td>Intrusive igneous rocks</td>
+        <td>0.30</td>
+        <td>65</td>
+        <td>75</td>
+      </tr>
+      <tr>
+        <td>Schists</td>
+        <td>0.35</td>
+        <td>60</td>
+        <td>70</td>
+      </tr>
+      <tr>
+        <td>Non–schists</td>
+        <td>0.30</td>
+        <td>65</td>
+        <td>75</td>
+      </tr>
+      <tr>
+        <td>Lakes, glaciers</td>
+        <td>0.95</td>
+        <td>10</td>
+        <td>10</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+<h3>Sample output</h3>
+
+<p>
+The following figures show the output of the r.stone module, initialized with
+an individual source point.
+</p>
+
+<p>
+A sample portion of a 10m x 10m resolution DEM, with one grid cell (red square)
+acting as a rockfall source point, with raster value 100: the effect on the
+model r.stone is to simulate 100 trajectories starting from that cell.
+</p>
+
+<img src="dem_source.png" width="600" alt="r.stone output">
+
+<p>
+Sample output of r.stone, depicting the counter raster map; the values of the
+raster output correspond to the total number of simulated trajectories going
+through that cell.
+</p>
+
+<img src="counters.png" width="600" alt="r.stone output">
+
+<h2>REFERENCES</h2>
+
+<p>
+[1] The algorithm is based on the work of Fausto Guzzetti, Giovanni Crosta,
+Riccardo Detti, Federico Agliardi (2002): STONE: a computer program for
+the three-dimensional simulation of rock-falls. Computers & Geosciences,
+28(9), 1079-1093. <a href="https://doi.org/10.1016/S0098-3004(02)00025-0">
+    https://doi.org/10.1016/S0098-3004(02)00025-0</a>
+</p>
+<p>
+[2] Example coefficients for r.stone are in: M. Alvioli et al. (2021):
+Rockfall susceptibility and network-ranked susceptibility along the Italian
+railway. Engineering Geology, 293, 106301.
+<a href="https://doi.org/10.1016/j.enggeo.2021.106301">
+    https://doi.org/10.1016/j.enggeo.2021.106301</a>
+</p>
+
+<h2>AUTHORS</h2>
+
+<p>
+Fausto Guzzetti and Massimiliano Alvioli
+</p>
+
+<p>
+Translation from the original code and adaptation to GRASS GIS
+by Andrea Antonello
+</p>

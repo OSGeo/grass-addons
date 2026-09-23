@@ -73,7 +73,6 @@ def export_to_ascii(dictionary, filename, separator):
 
     # don't overwrite!
     if not os.path.exists(filename):
-
         # structure informative message
         msg = "> Exporting python dictionary as is..."
         print(msg)

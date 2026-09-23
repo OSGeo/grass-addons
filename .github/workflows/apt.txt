@@ -1,6 +1,7 @@
 bison
 build-essential
 flex
+imagemagick
 libbz2-dev
 libcairo-dev
 libfftw3-dev
@@ -8,12 +9,16 @@ libgdal-dev
 libgl1-mesa-dev
 libglu1-mesa-dev
 libnetcdf-dev
-libopenblas-dev
+liblapacke-dev
 libpng-dev
 libproj-dev
 libreadline-dev
+libudunits2-dev
+libudunits2-data
 libzstd-dev
-pdal
+proj-bin
 sqlite3
 subversion
+udunits-bin
+wxpython-tools
 zlib1g-dev

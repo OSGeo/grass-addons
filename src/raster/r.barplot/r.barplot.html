@@ -1,0 +1,124 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.barplot</em> draws a barplot or piechart summarizing a <b>zones</b> raster.
+For each category of the zonal map it computes a <b>statistic</b> and plots one
+bar or pie wedge per category.
+
+<p>
+The statistic can be the <b>count</b> of cells, the surface <b>area</b>, or a
+percentage (see the <b>unit</b> option). If a value raster is given with the
+<b>map</b> option, the statistic can instead be the <b>sum</b>, <b>mean</b>,
+<b>minimum</b> or <b>maximum</b> of the value raster per zone. For <b>count</b>,
+the cells counted are the non-null cells of the value raster within each zone;
+without a value raster, all cells of the zone are counted.
+
+<p>
+The <b>unit</b> option applies to <i>statistic=count</i> and sets the reporting
+unit: cell count (<i>cells</i>), <i>percent</i> of the total, or surface area in
+<i>m2</i>, <i>ha</i> or <i>km2</i>. Areas are derived from the current region
+resolution.
+
+<p>
+Set <b>plot_type=pie</b> to draw a piechart instead of a barplot. A piechart
+requires non-negative values and is most meaningful for additive statistics
+(count, area, sum).
+
+<p>
+By default the bars and wedges are colored with the active Matplotlib style
+palette. Set a single <b>color</b> to override this, or use the <b>-c</b> flag
+to color them with the category colors of the zonal map. Border <b>color</b> and
+<b>width</b> can be set separately.
+
+<p>
+Layout options include sorting the bars/wedges (<b>order</b>), drawing the
+barplot horizontally (<b>-h</b>), adding grid lines (<b>-g</b>), rotating the
+category labels (<b>rotate_labels</b>), and printing the values on the bars or
+wedges (<b>-n</b>). A <b>title</b>, base <b>fontsize</b>, <b>font</b> family and
+labels for the value axis (<b>y_label</b>) and category axis (<b>x_label</b>)
+can be set as well. Axis labels do not apply to a piechart.
+
+<p>
+The plot can be styled with a Matplotlib <a
+href="https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html">style
+sheet</a> through the <b>style</b> option, e.g. <i>style=ggplot</i>.
+
+<p>
+By default the plot is shown on screen. If <b>output</b> is given, the plot is
+written to that file, with the format determined by the file extension (e.g.
+<i>output=plot.png</i>). The size (<b>plot_dimensions</b>, in inches) and
+resolution (<b>dpi</b>) of the image can be set.
+
+<h2>NOTE</h2>
+
+The statistics are computed over the current computational region and respect an
+active raster mask. Set the region to the zonal map before running the module if
+needed.
+
+<h2>EXAMPLE</h2>
+
+The examples use the North Carolina sample dataset.
+
+<h3>Example 1</h3>
+
+Barplot of the area (in hectares) of each land use category.
+
+<div class="code">
+  <pre>
+g.region raster=landclass96
+r.barplot zones=landclass96 statistic=count unit=ha output=r_barplot_01.png rotate_labels=45
+</pre>
+</div>
+
+<p>
+<img src="r_barplot_01.png"><br>
+
+<h3>Example 2</h3>
+
+Piechart of the number of cells per land use category, using the colors of the zonal map.
+
+<div class="code">
+  <pre>
+r.barplot -c zones=landclass96 statistic=count plot_type=pie output=r_barplot_02.png
+</pre>
+</div>
+
+<p>
+<img src="r_barplot_02.png"><br>
+
+<h3>Example 3</h3>
+
+Horizontal barplot of the mean elevation per land use category, sorted in
+descending order. The <b>style</b> option is used to style the plot to resemble
+the default <i>ggplot</i> appearance.
+
+<div class="code">
+  <pre>
+r.barplot -h zones=landclass96 map=elevation statistic=mean order=descending style=ggplot output=r_barplot_03.png
+</pre>
+</div>
+
+<p>
+<img src="r_barplot_03.png"><br>
+
+<h2>SEE ALSO</h2>
+
+<i><a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot</a>,
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/v.boxplot.html">v.boxplot</a>,<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/v.scatterplot.html">v.scatterplot</a>,<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/v.histogram.html">v.histogram</a>,
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/addons/r.series.boxplot.html">r.series.boxplot</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
+<a
+href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">r.univar</a></i>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>

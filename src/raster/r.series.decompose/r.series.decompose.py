@@ -79,7 +79,7 @@ if "GISBASE" not in os.environ:
     sys.stderr.write("You must be in GRASS GIS to run this program.\n")
     sys.exit(1)
 
-import grass.script as grass
+import grass.script as gs
 
 
 def get_time(N, t, deg=True):
@@ -117,8 +117,8 @@ def _generate_time(N, prefix):
     for i in range(N):
         output = prefix + _time_to_name(i)
         t = get_time(N, i, deg=True)
-        grass.mapcalc(
-            "${out} = ${t}", out=output, t=t, quiet=True, overwrite=grass.overwrite()
+        gs.mapcalc(
+            "${out} = ${t}", out=output, t=t, quiet=True, overwrite=gs.overwrite()
         )
         names[i] = output
 
@@ -141,23 +141,23 @@ def _generate_harmonics(time_names, freq, prefix):
         t = get_time(len(time_names), i)
         for f in freq:
             sin_output = prefix + "sin" + _time_to_name(i) + _freq_to_name(f)
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = sin(${f} * ${t})",
                 out=sin_output,
                 t=t,
                 f=f,
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
             )
 
             cos_output = prefix + "cos" + _time_to_name(i) + _freq_to_name(f)
-            grass.mapcalc(
+            gs.mapcalc(
                 "${out} = cos(${f} * ${t})",
                 out=cos_output,
                 t=t,
                 f=f,
                 quiet=True,
-                overwrite=grass.overwrite(),
+                overwrite=gs.overwrite(),
             )
             harm[f] = dict(sin=sin_output, cos=cos_output)
 
@@ -168,7 +168,7 @@ def _generate_harmonics(time_names, freq, prefix):
 
 def _generate_const(prefix):
     output = prefix + "const"
-    grass.mapcalc("${out} = 1.0", out=output, quiet=True, overwrite=grass.overwrite())
+    gs.mapcalc("${out} = 1.0", out=output, quiet=True, overwrite=gs.overwrite())
     return output
 
 
@@ -205,11 +205,11 @@ def _generate_sample_descr(fileobj, freq, xnames, const_name, time_names, harm_n
 
 
 def regression(settings_name, coef_prefix):
-    grass.run_command(
+    gs.run_command(
         "r.mregression.series",
         samples=settings_name,
         result_prefix=coef_prefix,
-        overwrite=grass.overwrite(),
+        overwrite=gs.overwrite(),
     )
 
 
@@ -226,7 +226,7 @@ def inverse_transform(settings_name, coef_prefix, result_prefix="res."):
             sums.append("%s*%s" % (data_names[i], row[i + 1]))
         s += " + ".join(sums)
 
-        grass.mapcalc(s, overwrite=grass.overwrite(), quite=True)
+        gs.mapcalc(s, overwrite=gs.overwrite(), quite=True)
 
 
 def main(options, flags):
@@ -241,7 +241,7 @@ def main(options, flags):
 
     N = len(xnames)
     if len(freq) >= (N - 1) / 2:
-        grass.error("Count of used harmonics is to large. Reduce the paramether.")
+        gs.error("Count of used harmonics is to large. Reduce the paramether.")
         sys.exit(1)
 
     const_name, time_names, harm_names = generate_vars(N, freq, timevar_pref)
@@ -256,5 +256,5 @@ def main(options, flags):
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main(options, flags)

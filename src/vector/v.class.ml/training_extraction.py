@@ -5,8 +5,9 @@ Created on Sat Nov  2 13:30:33 2013
 @author: pietro
 
 """
+
 from __future__ import absolute_import, division, print_function, unicode_literals
-from gettext import lgettext as _
+import gettext
 import numpy as np
 
 from grass.script.core import overwrite
@@ -16,6 +17,7 @@ from grass.pygrass.vector.geometry import Line, Area, intersects
 from grass.pygrass.vector.basic import Bbox, BoxList
 from grass.pygrass.messages import get_msgr
 
+_ = gettext.gettext
 
 COLS = [
     ("cat", "INTEGER PRIMARY KEY"),

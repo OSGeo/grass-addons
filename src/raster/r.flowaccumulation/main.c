@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     char *desc;
     char *dir_name, *format, *weight_name, *accum_name, *type;
 #ifdef _OPENMP
-    int nprocs;
+    int num_threads;
 #endif
     int check_overflow, use_less_memory, use_zero, null_weight;
     int dir_fd, accum_fd;
@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
           "Cho (2023).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
+    opt.dir->key = "direction";
     opt.dir->description = _("Name of input direction raster map");
 
     opt.format = G_define_option();
@@ -146,18 +147,24 @@ int main(int argc, char *argv[])
     type = opt.type->answer;
 
 #ifdef _OPENMP
-    nprocs = atoi(opt.nprocs->answer);
-    if (nprocs < 1)
-        G_fatal_error(_("<%s> must be >= 1"), opt.nprocs->key);
-
-    omp_set_num_threads(nprocs);
-#pragma omp parallel
-#pragma omp single
-    nprocs = omp_get_num_threads();
-    G_message(n_("Using %d thread for serial computation",
-                 "Using %d threads for parallel computation", nprocs),
-              nprocs);
+#if GRASS_VERSION_MAJOR >= 8 && GRASS_VERSION_MINOR >= 5
+    num_threads = G_set_omp_num_threads(opt.nprocs);
+#else
+    if ((num_threads = atoi(opt.nprocs->answer)) == 0)
+        num_threads = omp_get_max_threads();
+    else {
+        if (num_threads < 1) {
+            num_threads += omp_get_num_procs();
+            num_threads = num_threads < 1 ? 1 : num_threads;
+        }
+        omp_set_num_threads(num_threads);
+    }
 #endif
+    if (num_threads > 1)
+        G_message(_("Parallel computing using %d threads..."), num_threads);
+    else
+#endif
+        G_message(_("Serial computing..."));
 
     check_overflow = flag.check_overflow->answer;
     use_less_memory = flag.use_less_memory->answer;

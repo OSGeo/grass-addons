@@ -39,11 +39,11 @@ def calibrate_digital_number(dn, c0, c1, c2):
     polynomial model
     """
     if not isinstance(dn, int):
-        raise ValueError("The provided Digital Number value is NOT an " "integer!")
+        raise ValueError("The provided Digital Number value is NOT an integer!")
 
     if 0 > dn or dn > 63:
         raise ValueError(
-            "The provided Digital Number value is out of the " "expected range [0, 63]"
+            "The provided Digital Number value is out of the expected range [0, 63]"
         )
 
     return c0 + (c1 * dn) + (c2 * (dn**2))

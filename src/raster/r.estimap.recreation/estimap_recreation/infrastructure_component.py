@@ -24,7 +24,6 @@ def build_infrastructure_component(
     """Artificial surfaces (including Roads)"""
 
     if artificial and roads:
-
         msg = "*** Roads distance categories: {c}"
         msg = msg.format(c=roads_distance_categories)
         grass.debug(_(msg))

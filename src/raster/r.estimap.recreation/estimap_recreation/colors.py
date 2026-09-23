@@ -10,7 +10,7 @@ MOBILITY_COLORS = "wave"
 LANDCOVER_FRACTIONS_COLOR = "wave"
 
 SCORE_COLORS = """
-# http://colorbrewer2.org/?type=diverging&scheme=RdYlGn&n=11
+# https://colorbrewer2.org/?type=diverging&scheme=RdYlGn&n=11
 0.0% 165:0:38
 10.0% 215:48:39
 20.0% 244:109:67

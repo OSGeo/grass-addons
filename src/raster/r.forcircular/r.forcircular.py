@@ -475,7 +475,6 @@ def indicator2(opts, flgs):
 
 
 def indicator4(opts, flgs):
-
     run_command(
         "r.mapcalc",
         overwrite=1,
@@ -513,7 +512,6 @@ def indicator4(opts, flgs):
 
 
 def indicator5(opts, flgs):
-
     run_command(
         "r.mapcalc",
         overwrite=1,
@@ -585,7 +583,6 @@ def indicator5(opts, flgs):
 
 
 def main(opts, flgs):
-
     c_hf_slope = {
         "cable crane - high power": 1,
         "cable crane - medium/low power": 0.7,

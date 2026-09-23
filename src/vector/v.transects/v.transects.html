@@ -38,12 +38,23 @@ Input vector lines that are shorter than <b>transect_spacing</b> are ignored.
 <b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted
 to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate system).
 <p>
-<em><b>v.transects</b></em> may fail for a network of lines in Windows.
+  <em><b>v.transects</b></em> may fail for a network of lines in Windows.
+</p>
+
+<p>The categories of the input lines are stored in layer 2 of the output. To upload them
+  to the transects table, use v.to.db like this:
+  <br>
+  <div class=code><pre>
+v.transects input=lines output=transects transect_spacing=100
+v.db.addtable transects columns="line_cat"
+v.db.addtable transects layer=2
+v.to.db transects query_layer=2 query_column=cat option=query column=line_cat
+  </pre></div>
 
 <h2>EXAMPLES</h2>
 
 In these examples, the
-<a href="http://fatra.cnr.ncsu.edu/geospatial-modeling-course/data/NagsHead_series.zip">Nags Head (19MB)</a>
+<a href="https://web.archive.org/web/20240225135759/https://fatra.cnr.ncsu.edu/geospatial-modeling-course/data/NagsHead_series.zip">Nags Head (19MB)</a>
 mapset is used to generate a shoreline and shore-perpendicular geometries. To use the mapset, unpack it into the
 <a href="https://grass.osgeo.org/sampledata/north_carolina/nc_basic_spm_grass7.zip">nc_spm_08_grass7 (50MB)</a>
 location.
@@ -51,8 +62,8 @@ location.
 
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
-<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)
-<br>
+<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)<br></p>
+
 <div class=code><pre>
 g.region raster=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
@@ -101,7 +112,7 @@ v.db.select NH_2008_areas
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.segment.html">v.segment</a><br>
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.generalize.html">v.generalize</a>
 <br>
-<a href="https://web.archive.org/web/20141122050416/http://www4.ncsu.edu/~ejhardi2/vTransect.html">v.transects tutorial</a>
+<a href="https://web.archive.org/web/20170904061203/https://www4.ncsu.edu/~ejhardi2/vTransect.html">v.transects tutorial</a>
 
 
 <h2>AUTHORS</h2>

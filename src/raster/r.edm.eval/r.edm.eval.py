@@ -19,7 +19,7 @@
 #               cover type Y.
 #
 # COPYRIGHT: (C) 2014-2023 Paulo van Breugel
-#            http://ecodiv.earth
+#            https://ecodiv.earth
 #
 #            This program is free software under the GNU General Public
 #            License (>=v2). Read the file COPYING that comes with GRASS
@@ -160,7 +160,6 @@ import numpy as np
 from subprocess import PIPE
 import grass.script as gs
 from grass.pygrass.modules import Module
-import pandas as pd
 import random
 
 clean_layers = []
@@ -175,12 +174,12 @@ def cleanup():
 
 def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
-    global matplotlib
+    global mpl
     global plt
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
@@ -366,7 +365,7 @@ def random_color():
     :return list with rgb elements
     """
     hex_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-    return matplotlib.colors.hex2color(hex_color)
+    return mpl.colors.hex2color(hex_color)
 
 
 def get_valid_color(color):
@@ -380,9 +379,9 @@ def get_valid_color(color):
         color = [int(x) for x in color.split(":")]
         if max(color) > 1:
             color[:] = [x / 255 for x in color]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
-    color = matplotlib.colors.to_rgba(color)
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
+    color = mpl.colors.to_rgba(color)
     return color
 
 
@@ -490,25 +489,21 @@ def main(options, flags):
             n_bins=int(options["n_bins"]) + 1,
             background=flags["b"],
         )
-        gs.message(_("\n--- performance {} ---".format(modelled.split("@")[0])))
-        gs.message(_("AUC = {}".format(round(dfw_stats["auc"], 4))))
-        gs.message(_("maximum TSS =  {}".format(round(dfw_stats["tss_max"], 4))))
-        gs.message(_("maximum kappa =  {}".format(round(dfw_stats["kappa_max"], 4))))
+        gs.message(_("\n--- performance {} ---").format(modelled.split("@")[0]))
+        gs.message(_("AUC = {}").format(round(dfw_stats["auc"], 4)))
+        gs.message(_("maximum TSS =  {}").format(round(dfw_stats["tss_max"], 4)))
+        gs.message(_("maximum kappa =  {}").format(round(dfw_stats["kappa_max"], 4)))
         gs.message(
-            _("treshold maximum TSS = {}".format(round(dfw_stats["tss_threshold"], 4)))
+            _("treshold maximum TSS = {}").format(round(dfw_stats["tss_threshold"], 4))
         )
         gs.message(
-            _(
-                "treshold maximum kappa = {}".format(
-                    round(dfw_stats["kappa_threshold"], 4)
-                )
+            _("treshold maximum kappa = {}").format(
+                round(dfw_stats["kappa_threshold"], 4)
             )
         )
         gs.message(
-            _(
-                "treshold minimum distance to (0,1) = {}".format(
-                    round(dfw_stats["min_dist_threshold"], 4)
-                )
+            _("treshold minimum distance to (0,1) = {}").format(
+                round(dfw_stats["min_dist_threshold"], 4)
             )
         )
         dfw2.append(dfw1)

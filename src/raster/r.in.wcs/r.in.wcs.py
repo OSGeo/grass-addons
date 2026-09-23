@@ -8,7 +8,7 @@ AUTHOR(S):  Martin Zbinden <martin.zbinden@immerda.ch>, inspired by
             Luca Delucchi <lucadeluge gmail com>
 
 PURPOSE:    Downloads and imports data from WCS server (only version 1.0.0).
-            According to http://grasswiki.osgeo.org/wiki/WCS
+            According to https://grasswiki.osgeo.org/wiki/WCS
 
 VERSION:        0.1
 
@@ -109,7 +109,7 @@ import os
 import sys
 import base64
 import subprocess
-import grass.script as grass
+import grass.script as gs
 
 try:
     from urllib2 import urlopen, HTTPError, Request
@@ -130,7 +130,7 @@ class WCSBase:
         try:
             import lxml.etree as etree
         except ImportError:
-            grass.fatal("lxml Python library was not found. Please install it.")
+            gs.fatal("lxml Python library was not found. Please install it.")
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
         self.params = {}
@@ -138,16 +138,15 @@ class WCSBase:
         self.etree = etree
 
     def __del__(self):
-
         # tries to remove temporary files, all files should be
         # removed before, implemented just in case of unexpected
         # stop of module
         for temp_file in self.temp_files_to_cleanup:
-            grass.try_remove(temp_file)
+            gs.try_remove(temp_file)
 
     def _debug(self, fun, msg):
         """Print debug messages"""
-        grass.debug("%s.%s: %s" % (self.__class__.__name__, fun, msg))
+        gs.debug("%s.%s: %s" % (self.__class__.__name__, fun, msg))
 
     def _initializeParameters(self, options, flags):
         """
@@ -162,10 +161,10 @@ class WCSBase:
 
         if not self.params["output"]:
             self.params["output"] = self.params["coverage"]
-            if not grass.overwrite():
-                result = grass.find_file(name=self.params["output"], element="cell")
+            if not gs.overwrite():
+                result = gs.find_file(name=self.params["output"], element="cell")
                 if result["file"]:
-                    grass.fatal(
+                    gs.fatal(
                         "Raster map <%s> does already exist. Choose other "
                         "output name or toggle flag --o." % self.params["output"]
                     )
@@ -177,11 +176,9 @@ class WCSBase:
         if (self.params["password"] and self.params["username"] == "") or (
             self.params["password"] == "" and self.params["username"]
         ):
-            grass.fatal(
-                _(
-                    "Please insert both %s and %s parameters or none of them."
-                    % ("password", "username")
-                )
+            gs.fatal(
+                _("Please insert both %s and %s parameters or none of them.")
+                % ("password", "username")
             )
 
         # configure region extent (specified name or current region)
@@ -203,20 +200,18 @@ class WCSBase:
             if len(reg_spl) > 1:
                 reg_mapset = reg_spl[1]
 
-            if not grass.find_file(
-                name=reg_spl[0], element="windows", mapset=reg_mapset
-            )["name"]:
-                grass.fatal(_("Region <%s> not found") % opt_region)
+            if not gs.find_file(name=reg_spl[0], element="windows", mapset=reg_mapset)[
+                "name"
+            ]:
+                gs.fatal(_("Region <%s> not found") % opt_region)
 
         if opt_region:
-            s = grass.read_command(
-                "g.region", quiet=True, flags="ug", region=opt_region
-            )
-            region_params = grass.parse_key_val(s, val_type=float)
-            grass.verbose("Using region parameters for region %s" % opt_region)
+            s = gs.read_command("g.region", quiet=True, flags="ug", region=opt_region)
+            region_params = gs.parse_key_val(s, val_type=float)
+            gs.verbose("Using region parameters for region %s" % opt_region)
         else:
-            region_params = grass.region()
-            grass.verbose("Using current grass region")
+            region_params = gs.region()
+            gs.verbose("Using current grass region")
 
         self._debug("_getRegionParameters", "finished")
         return region_params
@@ -231,7 +226,7 @@ class WCSBase:
         boundingbox = list()
         for f in boundingboxvars:
             boundingbox.append(self.params["region"][f])
-        grass.verbose(
+        gs.verbose(
             "Boundingbox coordinates:\n %s  \n [West, South, Eest, North]" % boundingbox
         )
         self._debug("_computeBbox", "finished")
@@ -248,7 +243,7 @@ class WCSBase:
         p = self._download()
 
         if p != 0:
-            grass.fatal("Download or import of WCS data failed.")
+            gs.fatal("Download or import of WCS data failed.")
 
         return self.params["output"]
 
@@ -270,15 +265,15 @@ class WCSBase:
         if options["urlparams"]:
             cap_url += "&" + options["urlparams"]
 
-        grass.message("Fetching capabilities file\n%s" % cap_url)
+        gs.message("Fetching capabilities file\n%s" % cap_url)
 
         try:
             cap = self._fetchDataFromServer(
                 cap_url, options["username"], options["password"]
             )
-        except (IOError, HTTPException) as e:
+        except (OSError, HTTPException) as e:
             if isinstance(e, HTTPError) and e.code == 401:
-                grass.fatal(
+                gs.fatal(
                     _("Authorization failed to <%s> when fetching capabilities")
                     % options["url"]
                 )
@@ -291,7 +286,7 @@ class WCSBase:
                 if hasattr(e, "reason"):
                     msg += _("\nReason: ") + str(e.reason)
 
-                grass.fatal(msg)
+                gs.fatal(msg)
         self._debug("_fetchCapabilities", "finished")
         return cap
 
@@ -308,7 +303,7 @@ class WCSBase:
         try:
             return urlopen(request)
         except ValueError as error:
-            grass.fatal("%s" % error)
+            gs.fatal("%s" % error)
 
         self._debug("_fetchDataFromServer", "finished")
 
@@ -329,10 +324,10 @@ class WCSBase:
                 pass
             cov_offering.append(text)
         if cov_offering:
-            grass.message("Available layers:")
-            grass.message("\n".join(cov_offering))
+            gs.message("Available layers:")
+            gs.message("\n".join(cov_offering))
         else:
-            grass.message("No layers available")
+            gs.message("No layers available")
         self._debug("GetCapabilities", "finished")
 
     def _tempfile(self):
@@ -342,9 +337,9 @@ class WCSBase:
         @return string path to temp_file
         """
         self._debug("_tempfile", "started")
-        temp_file = grass.tempfile()
+        temp_file = gs.tempfile()
         if temp_file is None:
-            grass.fatal(_("Unable to create temporary files"))
+            gs.fatal(_("Unable to create temporary files"))
 
         # list of created tempfiles for destructor
         self.temp_files_to_cleanup.append(temp_file)
@@ -391,7 +386,7 @@ class WCSGdalDrv(WCSBase):
         xml_file = self._tempfile()
 
         etree_gdal_wcs = self.etree.ElementTree(gdal_wcs)
-        grass.debug(etree_gdal_wcs)
+        gs.debug(etree_gdal_wcs)
         self.etree.ElementTree(gdal_wcs).write(xml_file)
 
         self._debug("_createXML", "finished -> %s" % xml_file)
@@ -413,22 +408,22 @@ class WCSGdalDrv(WCSBase):
         command += [vrt_file, self.xml_file]
         command = [str(i) for i in command]
 
-        grass.verbose(" ".join(command))
+        gs.verbose(" ".join(command))
         process = subprocess.Popen(
             command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
         self.out, self.err = process.communicate()
-        self.out, self.err = grass.decode(self.out), grass.decode(self.err)
-        grass.verbose(self.out)
+        self.out, self.err = gs.decode(self.out), gs.decode(self.err)
+        gs.verbose(self.out)
 
         if self.err:
-            grass.verbose(self.err + "\n")
+            gs.verbose(self.err + "\n")
             if "does not exist" in self.err:
-                grass.warning(
+                gs.warning(
                     'Coverage "%s" cannot be opened / does not exist.'
                     % self.params["coverage"]
                 )
-            grass.fatal(
+            gs.fatal(
                 "Generation of VRT-File failed (gdalbuildvrt ERROR). Set verbose-flag for details."
             )
 
@@ -445,37 +440,37 @@ class WCSGdalDrv(WCSBase):
         self.xml_file = self._createXML()
         self.vrt_file = self._createVRT()
 
-        grass.message("Starting module r.in.gdal ...")
+        gs.message("Starting module r.in.gdal ...")
 
         env = os.environ.copy()
         env["GRASS_MESSAGE_FORMAT"] = "gui"
 
         if self.params["rimport"]:
-            p = grass.start_command(
+            p = gs.start_command(
                 "r.import",
                 input=self.vrt_file,
                 output=self.params["output"],
-                stdout=grass.PIPE,
-                stderr=grass.PIPE,
+                stdout=gs.PIPE,
+                stderr=gs.PIPE,
                 env=env,
             )
         elif self.params["location"] == "":
-            p = grass.start_command(
+            p = gs.start_command(
                 "r.in.gdal",
                 input=self.vrt_file,
                 output=self.params["output"],
-                stdout=grass.PIPE,
-                stderr=grass.PIPE,
+                stdout=gs.PIPE,
+                stderr=gs.PIPE,
                 env=env,
             )
         else:
-            p = grass.start_command(
+            p = gs.start_command(
                 "r.in.gdal",
                 input=self.vrt_file,
                 output=self.params["output"],
                 location=self.params["location"],
-                stdout=grass.PIPE,
-                stderr=grass.PIPE,
+                stdout=gs.PIPE,
+                stderr=gs.PIPE,
                 env=env,
             )
 
@@ -484,21 +479,21 @@ class WCSGdalDrv(WCSBase):
             linepercent = line.replace(b"GRASS_INFO_PERCENT:", b"").strip()
             if linepercent.isdigit():
                 # print linepercent
-                grass.percent(int(linepercent), 100, 1)
+                gs.percent(int(linepercent), 100, 1)
 
-        grass.percent(100, 100, 5)
+        gs.percent(100, 100, 5)
 
         ret = p.wait()
         if ret != 0:
-            grass.fatal("r.in.gdal for %s failed." % self.vrt_file)
+            gs.fatal("r.in.gdal for %s failed." % self.vrt_file)
         else:
-            grass.message(
+            gs.message(
                 "r.in.gdal was successful for new raster map %s "
                 % self.params["output"]
             )
 
-        grass.try_remove(self.vrt_file)
-        grass.try_remove(self.xml_file)
+        gs.try_remove(self.vrt_file)
+        gs.try_remove(self.xml_file)
         self._debug("_download", "finished")
 
         return ret
@@ -512,17 +507,17 @@ def main():
         "1.0.0"  # right now only supported version, therefore not in GUI
     )
 
-    grass.debug("Using GDAL WCS driver")
+    gs.debug("Using GDAL WCS driver")
     wcs = WCSGdalDrv()  # only supported driver
 
     if flag_c:
         wcs.getCapabilities(options, flags)
 
     else:
-        grass.message("Importing raster map into GRASS...")
+        gs.message("Importing raster map into GRASS...")
         fetched_map = wcs.getMap(options, flags)
         if not fetched_map:
-            grass.warning(
+            gs.warning(
                 _("Nothing imported.\n Data not has been downloaded from wcs server.")
             )
             return 1
@@ -531,5 +526,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

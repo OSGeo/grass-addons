@@ -770,7 +770,7 @@ int main(int argc, char *argv[])
                         _("Not necessary to set up vertical components "
                           "properties. Anisotropic variogram will be used..."));
                 } // end if vert settings available
-            }     // end if 3D
+            } // end if 3D
 
             // missing function
             if (!opt.function_var_final->answer) {
@@ -807,8 +807,8 @@ int main(int argc, char *argv[])
                 if (opt.sill_final->answer) {
                     var_pars.fin.sill = atof(opt.sill_final->answer);
                 } // end if sill has been changed by the user
-            }     // end nonlinear and not parabolic variogram
-        }         // end if univariate variogram (2D or 3D)
+            } // end nonlinear and not parabolic variogram
+        } // end if univariate variogram (2D or 3D)
 
         out.name = opt.output->answer; // Output layer name
 

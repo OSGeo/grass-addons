@@ -24,7 +24,7 @@ double g_lambda(double lambda);
 /* Eotvos Correction*/
 double delta_g_eotvos(double alpha, double lambda, double v);
 /* Free air Correction*/
-double free_air(h);
+double free_air(double h);
 /* Bouguer Correction*/
 double delta_g_bouguer(double rho, double h);
 /* bouguer anomaly */

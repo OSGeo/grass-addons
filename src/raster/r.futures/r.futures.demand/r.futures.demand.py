@@ -72,6 +72,26 @@
 # % description: Output CSV file with demand (times as rows, regions as columns)
 # % guisection: Output
 # %end
+# %option G_OPT_F_OUTPUT
+# % key: population_demand
+# % required: no
+# % description: Output CSV file with projected population demand (times as rows, regions as columns)
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: observed_development
+# % required: no
+# % label: Output CSV file with observed development (times as rows, regions as columns)
+# % description: Useful for further processing and debugging
+# % guisection: Output
+# %end
+# %option G_OPT_F_OUTPUT
+# % key: resulting_curves
+# % required: no
+# % label: Output CSV file with coefficients of fitted curves
+# % description: Useful for further processing and debugging
+# % guisection: Output
+# %end
 # %option G_OPT_F_SEP
 # % label: Separator used in CSV files
 # % guisection: Optional
@@ -103,10 +123,39 @@ def magnitude(x):
     return int(math.log10(x))
 
 
+def export_observed_development(table_developed, header, observed_times, out_file, sep):
+    with open(out_file, "w") as f:
+        new_header = [header[0]]
+        new_header += [sub for sub in header[1:] if sub in table_developed.keys()]
+        f.write(sep.join(new_header))
+        f.write("\n")
+        i = 0
+        for time in observed_times:
+            f.write(str(int(time)))
+            f.write(sep)
+            for sub in new_header[1:]:  # to keep order of subregions
+                f.write(str(int(table_developed[sub][i])))
+                if sub != new_header[-1]:
+                    f.write(sep)
+            f.write("\n")
+            i += 1
+
+
+def export_debug(debug, out_file, sep):
+    header = ["subregion", "method", "coef", "rmse"]
+    with open(out_file, "w") as f:
+        f.write(sep.join(header))
+        f.write("\n")
+        for record in debug:
+            f.write(sep.join(record))
+            f.write("\n")
+
+
 def main():
     developments = options["development"].split(",")
     observed_popul_file = options["observed_population"]
     projected_popul_file = options["projected_population"]
+    observed_development = options["observed_development"]
     sep = gutils.separator(options["separator"])
     subregions = options["subregions"]
     methods = options["method"].split(",")
@@ -163,7 +212,7 @@ def main():
     for i in range(len(observed_times)):
         gcore.percent(i, len(observed_times), 1)
         data = gcore.read_command(
-            "r.univar", flags="gt", zones=subregions, map=developments[i]
+            "r.univar", flags="t", zones=subregions, map=developments[i]
         )
         for line in data.splitlines():
             stats = line.split("|")
@@ -176,6 +225,14 @@ def main():
             table_developed[subregionId].append(developed_cells)
         gcore.percent(1, 1, 1)
     subregionIds = sorted(list(subregionIds))
+    if observed_development:
+        export_observed_development(
+            table_developed,
+            observed_popul.dtype.names,
+            observed_times,
+            observed_development,
+            sep,
+        )
     # linear interpolation between population points
     population_for_simulated_times = {}
     for subregionId in table_developed.keys():
@@ -184,13 +241,16 @@ def main():
             xp=np.append(observed_times, projected_times),
             fp=np.append(observed_popul[subregionId], projected_popul[subregionId]),
         )
+
     # regression
     demand = {}
+    population_demand = {}
+    debug = []
     i = 0
     if plot:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("Agg")
+        mpl.use("Agg")
         import matplotlib.pyplot as plt
 
         n_plots = int(np.ceil(np.sqrt(len(subregionIds))))
@@ -239,10 +299,8 @@ def main():
                     except (FloatingPointError, RuntimeError):
                         gcore.warning(
                             _(
-                                "Method '{m}' cannot converge for subregion {reg}".format(
-                                    m=method, reg=subregionId
-                                )
-                            )
+                                "Method '{m}' cannot converge for subregion {reg}"
+                            ).format(m=method, reg=subregionId)
                         )
                         rmse[method] = sys.maxsize  # so that other method is selected
                         coeff[method] = (np.nan, np.nan, np.nan)
@@ -262,7 +320,7 @@ def main():
                             globals()[method](x, *popt) * magn
                             - table_developed[subregionId]
                         )
-                        coeff[method] = popt
+                        coeff[method] = [each * magn for each in popt]
                         if len(reg_pop) > 3:
                             rmse[method] = np.sqrt((np.sum(r * r) / (len(reg_pop) - 3)))
                         else:
@@ -337,10 +395,8 @@ def main():
             gcore.warning(
                 _(
                     "Subregion {sub} has negative numbers"
-                    " of newly developed cells, changing to zero".format(
-                        sub=subregionId
-                    )
-                )
+                    " of newly developed cells, changing to zero"
+                ).format(sub=subregionId)
             )
             demand[subregionId][demand[subregionId] < 0] = 0
         if coeff[method][0] < 0 or np.isnan(coeff[method][0]):
@@ -356,12 +412,22 @@ def main():
             gcore.warning(
                 _(
                     "For subregion {sub} population and development are inversely proportional,"
-                    " demand will be interpolated based on prior change in development only.".format(
-                        sub=subregionId
-                    )
-                )
+                    " demand will be interpolated based on prior change in development only."
+                ).format(sub=subregionId)
             )
-
+        # write population demand
+        population_demand[subregionId] = np.diff(
+            population_for_simulated_times[subregionId]
+        )
+        # write debug info
+        debug.append(
+            [
+                str(subregionId),
+                method,
+                ";".join([str(c) for c in coeff[method]]),
+                str(rmse[method]),
+            ]
+        )
         # draw
         if plot:
             ax = fig.add_subplot(n_plots, n_plots, i)
@@ -429,13 +495,33 @@ def main():
         for time in simulation_times[1:]:
             f.write(str(int(time)))
             f.write(sep)
-            # put 0 where there are more counties but are not in region
             for sub in header[1:]:  # to keep order of subregions
                 f.write(str(int(demand[sub][i])))
                 if sub != header[-1]:
                     f.write(sep)
             f.write("\n")
             i += 1
+
+    # write demand
+    if options["population_demand"]:
+        with open(options["population_demand"], "w") as f:
+            header = observed_popul.dtype.names  # the order is kept here
+            header = [header[0]] + [sub for sub in header[1:] if sub in subregionIds]
+            f.write(sep.join(header))
+            f.write("\n")
+            i = 0
+            for time in simulation_times[1:]:
+                f.write(str(int(time)))
+                f.write(sep)
+                for sub in header[1:]:  # to keep order of subregions
+                    f.write(str(int(population_demand[sub][i])))
+                    if sub != header[-1]:
+                        f.write(sep)
+                f.write("\n")
+                i += 1
+
+    if options["resulting_curves"]:
+        export_debug(debug, options["resulting_curves"], sep)
 
 
 if __name__ == "__main__":

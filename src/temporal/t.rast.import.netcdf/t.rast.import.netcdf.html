@@ -15,9 +15,17 @@ The module works for both local and remote data (e.g. on a Thredds Server). Data
 can be imported via <em>r.in.gdal</em> or linked with <em>r.external</em>.
 
 <p>
-<em>t.rast.import.netcdf</em> can use GDALs Virtual Raster format (VRT) if data's
+<em>t.rast.import.netcdf</em> uses GDALs Virtual Raster format (VRT) if data's
 Coordinate Reference system differs from the one of the current location where they
 are supposed to be imported.
+
+<p>
+Reprojection on import is done using GDAL warp if necessary. In that case,
+users should be aware of the extent and resolution of the data to import
+and the current computational region. Import is limited to and aligned with
+the current computational region, if the <b>r-flag</b> is set. Otherwise,
+extent and resolution in the target CRS is guessed by GDAL. Import of global
+data to coordinate systems that do not support that extent will thus fail.
 
 <p>
 Starting with GRASS GIS version 8.0, different variables or subdatasets in a
@@ -43,7 +51,7 @@ is currently not supported on MS Windows.
 GDAL versions prior to 3.4.1 do not support reading NetCDF files directly
 via HTTP protocol on newer Linux kernels either. Please make sure to have
 at least GDAL version 3.4.1 on recent Linux systems. See posts on the
-<a href=https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg37419.html>GDAL-dev mailing list</a>.
+<a href="https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg37419.html">GDAL-dev mailing list</a>.
 for reference.
 
 <h2>REQUIREMENTS</h2>

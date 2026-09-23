@@ -16,7 +16,7 @@ import os
 import tempfile
 import time
 
-import grass.script as grass
+import grass.script as gs
 
 from grass.pygrass.utils import set_path
 
@@ -1304,9 +1304,9 @@ class MyApp(wx.App):
 
 
 def main():
-    grass.set_raise_on_error(False)
+    gs.set_raise_on_error(False)
 
-    options, flags = grass.parser()
+    options, flags = gs.parser()
 
     app = MyApp(0)  # Create an instance of the application class
     app.MainLoop()  # Tell it to start processing events

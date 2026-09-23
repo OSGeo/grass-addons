@@ -765,7 +765,7 @@ int main(int argc, char *argv[])
                     }
                 }
             } /* row */
-        }     /* col */
+        } /* col */
 
         G_debug(1, "\nTIMESTEP %i", t);
         G_debug(1, "Volume increment = %f", Vol_in);
@@ -999,7 +999,7 @@ int main(int argc, char *argv[])
                             }
                         }
                     } /*chiusura FOR cols */
-                }     /*chiusura FOR rows */
+                } /*chiusura FOR rows */
 
                 G_debug(2, "CFL_max=%f", CFL_max);
 
@@ -1045,7 +1045,7 @@ int main(int argc, char *argv[])
                                 m_Hloop_dt[row][col] = 0.0;
 
                         } /*chiusura FOR col */
-                    }     /*chiusura FOR row */
+                    } /*chiusura FOR row */
 
                     for (row = 1; row < nrows - 1; row++) {
                         for (col = 1; col < ncols - 1; col++) {
@@ -1062,7 +1062,7 @@ int main(int argc, char *argv[])
                                         (m_slope[row][col]) * ca);
 
                         } /*chiusura FOR col */
-                    }     /*chiusura FOR row */
+                    } /*chiusura FOR row */
 
                     /* m.b.e */
                     G_debug(2, "Calculating mass balance error");
@@ -1254,7 +1254,7 @@ int main(int argc, char *argv[])
                 }
 
             } /*chiusura IF exit */
-        }     /*chiusura WHILE */
+        } /*chiusura WHILE */
 
         t++;
     } /* chiusura WHILE STOP_count */

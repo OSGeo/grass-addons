@@ -10,7 +10,7 @@ The project uses WMS service to fetch images of the maps. The Get Feature servic
 
 Libraries to be installed
 
-1.  BeautifulSoup 3.2 , an XML, HTML Parser ( http://www.crummy.com/software/BeautifulSoup/ )
+1.  BeautifulSoup 3.2 , an XML, HTML Parser ( https://www.crummy.com/software/BeautifulSoup/ )
 
 
 How to run the add-on
@@ -18,8 +18,8 @@ How to run the add-on
 1) Create a directory wms in as grass_trunk/gui/wxpython/gui_modules/wms. Place all the files in the grass-addons/src/gui/wxpython/wx.wms directory in the created wms directory.
 2) Place the config file and ServersList.xml file in grass_trunk
 3) Patch wxgui.py and toolbars.py with command "cd path/to/sourceroot && cat core.diff | patch -p0"
-4) Patch GRASS GIS core gui/wxpython/Makefile with command "cd path/to/sourceroot && cat Makefile.diff | patch -p0"
-5) Place __init__.py file in the GRASS GIS core gui/wxpython/gui_modules/wms .
+4) Patch GRASS core gui/wxpython/Makefile with command "cd path/to/sourceroot && cat Makefile.diff | patch -p0"
+5) Place __init__.py file in the GRASS core gui/wxpython/gui_modules/wms .
 6) make the source code
 7) Now run it, when launched, a new button shall appear in Main GUI window beside 'Start New Map Display'
 8) Click on it, and a new wms window shall be launched.

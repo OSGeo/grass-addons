@@ -420,7 +420,7 @@ def main(opts, flgs):
     # FIXME: yiel surface can be computed by the code, plan surface or real?
     # FIXME: this map can be create here
     yield_pix = "tmprgreen_%i_yield_pix" % pid
-    expr = "{pix} = {yield_}/{yield_surface}*" "((ewres()*nsres())/10000)"
+    expr = "{pix} = {yield_}/{yield_surface}*((ewres()*nsres())/10000)"
     r.mapcalc(
         expr.format(
             pix=yield_pix,

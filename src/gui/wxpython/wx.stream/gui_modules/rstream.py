@@ -6,7 +6,7 @@
 
 @brief GUI for r.stream.* modules
 
-See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
+See https://grasswiki.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - RStreamFrame
@@ -31,7 +31,7 @@ import wx.lib.flatnotebook as FN
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
 
-import grass.script as grass
+import grass.script as gs
 import gselect
 import gcmd
 import dbm
@@ -50,7 +50,6 @@ from rstream_panelOne import *
 
 class TabPanel(wx.Panel):
     def __init__(self, parent):
-
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -72,7 +71,7 @@ class RStreamFrame(wx.Frame):
         parent,
         id=wx.ID_ANY,
         style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
-        title=_("GRASS GIS Hydrological Modelling Utility"),
+        title=_("GRASS Hydrological Modelling Utility"),
         **kwargs,
     ):
         """!Main window of r.stream's GUI

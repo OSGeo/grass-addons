@@ -1520,7 +1520,7 @@ void joules2(struct SunGeometryConstDay *sunGeom,
                 ss = 0; /* we've got the sunset */
             }
         } /* end of while */
-    }     /* all-day radiation */
+    } /* all-day radiation */
 }
 
 /*////////////////////////////////////////////////////////////////////// */
@@ -2143,7 +2143,7 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
                     }
 
                 } /* undefs */
-                  // shadowoffset += arrayNumInt;
+                // shadowoffset += arrayNumInt;
             }
         }
         arrayOffset++;

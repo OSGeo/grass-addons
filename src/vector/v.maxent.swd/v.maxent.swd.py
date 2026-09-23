@@ -26,7 +26,7 @@
 #               define aliases for the names of the species distribution layer
 #
 # COPYRIGHT:   (C) 2015-2024 Paulo van Breugel and the GRASS Development Team
-#              http://ecodiv.earth
+#              https://ecodiv.earth
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
@@ -259,20 +259,6 @@ def cleanup():
                 )
 
 
-def CreateFileName(outputfile):
-    """Create temporary file name"""
-    flname = outputfile
-    k = 0
-    while os.path.isfile(flname):
-        k = k + 1
-        fn = flname.split(".")
-        if len(fn) == 1:
-            flname = fn[0] + "_" + str(k)
-        else:
-            flname = fn[0] + "_" + str(k) + "." + fn[1]
-    return flname
-
-
 def thin_points(layer, newname):
     """
     Thin point layer, reducing to density to maximum one per raster layer
@@ -288,6 +274,9 @@ def main(options, flags):
     if regioninfo["nsres"] != regioninfo["ewres"]:
         if flags["e"]:
             new_resolution = min(float(regioninfo["nsres"]), float(regioninfo["ewres"]))
+            # Adjust the resolution on a temporary region so the user's
+            # computational region is restored automatically on exit.
+            gs.use_temp_region()
             gs.run_command("g.region", flags="a", res=new_resolution)
             gs.message(
                 "The ns and ew resolution of the current computational region are"
@@ -310,11 +299,16 @@ def main(options, flags):
     bgrout = options["bgr_output"]
     bkgr_file_extension = pathlib.Path(bgrout).suffix
     if os.path.isfile(bgrout):
-        bgrout2 = CreateFileName(bgrout)
+        os.remove(bgrout)
         gs.message(
-            _("The file {} already exist. Using {} instead".format(bgrout, bgrout2))
+            _("The file {} already exists and will be overwritten").format(bgrout)
         )
-        bgrout = bgrout2
+    specout = options["species_output"]
+    if os.path.isfile(specout):
+        os.remove(specout)
+        gs.message(
+            _("The file {} already exists and will be overwritten").format(specout)
+        )
     bgpn = options["nbgp"]
     nodata = options["nodata"]
     flag_h = flags["h"]
@@ -519,7 +513,6 @@ def main(options, flags):
                         " \nof provided species names. No SWD file with presences created"
                     )
                 )
-        specout = options["species_output"]
         spec_file_extension = pathlib.Path(specout).suffix
 
         # Write for each species a temp swd file

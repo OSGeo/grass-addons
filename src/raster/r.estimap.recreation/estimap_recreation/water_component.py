@@ -43,14 +43,12 @@ def build_water_component(
     water_components = []
 
     if water:
-
         water_component = water.split(",")
         msg = WATER_COMPONENT_INCLUDES.format(component=water_component)
         grass.debug(_(msg))
         # grass.verbose(_(msg))
 
     if lakes:
-
         if lakes_coefficients:
             metric, constant, kappa, alpha, score = get_coefficients(lakes_coefficients)
 
@@ -71,7 +69,6 @@ def build_water_component(
         )
 
     if coastline:
-
         coast_proximity = compute_attractiveness(
             raster=coastline,
             metric=EUCLIDEAN,
@@ -88,9 +85,7 @@ def build_water_component(
         )
 
     if coast_geomorphology:
-
         try:
-
             if not coastline:
                 grass.fatal(_(FATAL_MESSAGE_MISSING_COASTLINE))
 
@@ -111,7 +106,6 @@ def build_water_component(
         )
 
     if bathing_water:
-
         if bathing_water_coefficients:
             metric, constant, kappa, alpha = get_coefficients(
                 bathing_water_coefficients

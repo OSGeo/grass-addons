@@ -525,14 +525,9 @@ Created on Wed Jul 23 18:37:36 2014
 import os
 import sys
 
-# sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.road'))
-import grass.script as grass
-from grass.pygrass.utils import get_lib_path
+import grass.script as gs
 
-path = get_lib_path(modname="v.civil")
-if path is None:
-    grass.fatal("Not able to find the civil library directory.")
-sys.path.append(path)
+gs.set_path("v.civil")
 
 import road_road as Road
 import road_crosstools as Tools2
@@ -586,7 +581,6 @@ def main():
     if flags["e"]:
         # Insert new point
         if "row" in add:
-
             road.plant_generate()
 
             if "," in options["pklist"]:
@@ -704,13 +698,12 @@ def main():
 
     if options["backup"]:
         road.rtab.create_backup(options["backup"])
-        grass.message("backup created")
+        gs.message("backup created")
         sys.exit(0)
 
     ##################### Run ###################
 
     if flags["r"]:
-
         if flags["t"]:
             road.plant_generate(True, float(options["camber"]))
             road.rtab.update_tables()
@@ -728,7 +721,6 @@ def main():
         road.displ_generate()
 
         if options["dem"]:
-
             road.terr_generate(options["dem"])
 
             road.taludes_generate()
@@ -774,57 +766,56 @@ def main():
 
         #
         if "plan" in plan_opt:
-            grass.message("writing plan")
+            gs.message("writing plan")
             road.plant_write()
 
         if "displ" in plan_opt:
-            grass.message("writing displ")
+            gs.message("writing displ")
             road.displ_write()
 
         if "marks" in plan_opt:
-            grass.message("writing marks")
+            gs.message("writing marks")
             road.marks_write()
 
         if "pks" in plan_opt:
-            grass.message("writing pks")
+            gs.message("writing pks")
             road.trans_write_pks(startend, pkopt)
 
         #
         if "vert" in vert_opt:
-            grass.message("writing elev")
+            gs.message("writing elev")
             road.elev_write()
 
         #
         if "trans" in trans_opt:
-            grass.message("writing trans")
+            gs.message("writing trans")
             road.trans_write()
 
         if options["dem"]:
-
             road.terr.set_pnts_terr(road.plant.roadline)
 
             road.taludes.set_roadlines(road.plant.roadline, road.displ)
 
             #
             if "profile" in vert_opt:
-                grass.message("writing profile")
+                gs.message("writing profile")
                 road.long_profile_write()
 
             if "profiles" in trans_opt:
-                grass.message("writing profiles")
+                gs.message("writing profiles")
                 road.trans_profiles_write()
 
             #
             if "slopes" in terr_opt:
-                grass.message("writing slopes")
+                gs.message("writing slopes")
                 road.taludes_write()
 
             if "sareas" in terr_opt:
-                grass.message("writing slopes_areas")
+                gs.message("writing slopes_areas")
                 road.taludes_areas_write()
 
             if "topo" in terr_opt:
-                grass.message(
+                gs.message(
                     "writing pnts, breakliness and hull for \
                                triangulation"
                 )
@@ -843,7 +834,7 @@ def main():
             road.marks_write(tab_subname_m)
 
         if options["areaopt"]:
-            grass.message("writing displ_areas")
+            gs.message("writing displ_areas")
             road.displ_areas_write(options["areaopt"], tab_subname_d)
 
     sys.exit(0)
@@ -856,5 +847,5 @@ if __name__ == "__main__":
         doctest.testmod()
 
     else:
-        options, flags = grass.parser()
+        options, flags = gs.parser()
         main()

@@ -94,7 +94,7 @@
 
 import sys
 import re
-import grass.script as grass
+import grass.script as gs
 
 
 def message(msg="", end=None):
@@ -105,7 +105,7 @@ def main():
     try:
         import projpicker as ppik
     except ImportError:
-        grass.fatal(_("ProjPicker not installed. Use 'pip install projpicker'"))
+        gs.fatal(_("ProjPicker not installed. Use 'pip install projpicker'"))
 
     coords = options["coordinates"]
     operator = options["operator"]
@@ -115,7 +115,7 @@ def main():
     fmt = options["format"]
     separator = options["separator"]
     bbox_map = options["bbox_map"]
-    overwrite = grass.overwrite()
+    overwrite = gs.overwrite()
 
     latlon = flags["l"]
     print_geoms = flags["p"]
@@ -129,8 +129,8 @@ def main():
     else:
         start_gui = None
 
-    if bbox_map and grass.parse_command("g.proj", flags="g")["unit"] != "degree":
-        grass.fatal(_("Cannot create vector in degree in a non-degree mapset"))
+    if bbox_map and gs.parse_command("g.proj", flags="g")["unit"] != "degree":
+        gs.fatal(_("Cannot create vector in degree in a non-degree mapset"))
 
     # ppik.start() appends input file contents to geometries from arguments,
     # but it can be confusing and is not supported in this module
@@ -150,7 +150,7 @@ def main():
         elif fmt == "srid":
             separator = "\n"
     else:
-        separator = grass.utils.separator(separator)
+        separator = gs.utils.separator(separator)
 
     bbox = ppik.start(
         geoms=geoms,
@@ -165,7 +165,7 @@ def main():
     )
 
     if bbox_map:
-        p = grass.feed_command(
+        p = gs.feed_command(
             "v.in.ascii",
             input="-",
             output=bbox_map,
@@ -198,15 +198,15 @@ def main():
         p.wait()
 
         if p.returncode != 0:
-            grass.fatal(_("Error creating output vector map %s") % bbox_map)
+            gs.fatal(_("Error creating output vector map %s") % bbox_map)
 
-        grass.run_command("v.db.addtable", map=bbox_map, columns="srid text, name text")
+        gs.run_command("v.db.addtable", map=bbox_map, columns="srid text, name text")
         for i in range(0, nbbox):
             message("\b" * 80 + _("Populating table...") + f" {i + 1}/{nbbox}", "")
             b = bbox[i]
             srid = f"{b.crs_auth_name}:{b.crs_code}"
             cat = i + 1
-            grass.run_command(
+            gs.run_command(
                 "db.execute",
                 sql=(
                     f"UPDATE {bbox_map} "
@@ -219,5 +219,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

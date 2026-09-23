@@ -37,21 +37,21 @@
 import sys
 import os
 import atexit
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 
 def cleanup():
     if rastertmp1:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="raster", name=rastertmp1, quiet=True
         )
     if rastertmp2:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="raster", name=rastertmp2, quiet=True
         )
     if rastertmp3:
-        grass.run_command(
+        gs.run_command(
             "g.remove", flags="f", type="raster", name=rastertmp3, quiet=True
         )
 
@@ -63,9 +63,9 @@ def main():
     rastertmp3 = False
 
     #### setup temporary files
-    tmp = grass.tempfile()
+    tmp = gs.tempfile()
     # we need a random name
-    tmpname = grass.basename(tmp)
+    tmpname = gs.basename(tmp)
 
     vector = options["vector"]
     layer = options["layer"]
@@ -74,42 +74,40 @@ def main():
     output = options["output"]
 
     # vector exists?
-    result = grass.find_file(vector, element="vector")
+    result = gs.find_file(vector, element="vector")
     if len(result["name"]) == 0:
-        grass.fatal(_("Input vector <%s> not found") % vector)
+        gs.fatal(_("Input vector <%s> not found") % vector)
 
     # raster exists?
-    result = grass.find_file(weight, element="cell")
+    result = gs.find_file(weight, element="cell")
     if len(result["name"]) == 0:
-        grass.fatal(_("Input weight raster <%s> not found") % weight)
+        gs.fatal(_("Input weight raster <%s> not found") % weight)
 
     # column exists ?
-    if column not in grass.vector_columns(vector, layer).keys():
-        grass.fatal(
-            _("Column does not exist for vector <%s>, layer %s") % (vector, layer)
-        )
+    if column not in gs.vector_columns(vector, layer).keys():
+        gs.fatal(_("Column does not exist for vector <%s>, layer %s") % (vector, layer))
 
     # is column numeric?
-    coltype = grass.vector_columns(vector, layer)[column]["type"]
+    coltype = gs.vector_columns(vector, layer)[column]["type"]
 
     if coltype not in ("INTEGER", "DOUBLE PRECISION"):
-        grass.fatal(_("Column must be numeric"))
+        gs.fatal(_("Column must be numeric"))
 
     # rasterize with cats (will be base layer)
     # strip off mapset for tmp output
     vector_basename = vector.split("@")[0]
     rastertmp1 = "%s_%s_1" % (vector_basename, tmpname)
     try:
-        grass.run_command(
+        gs.run_command(
             "v.to.rast", input=vector, output=rastertmp1, use="cat", quiet=True
         )
     except CalledModuleError:
-        grass.fatal(_("An error occurred while converting vector to raster"))
+        gs.fatal(_("An error occurred while converting vector to raster"))
 
     # rasterize with column
     rastertmp2 = "%s_%s_2" % (vector_basename, tmpname)
     try:
-        grass.run_command(
+        gs.run_command(
             "v.to.rast",
             input=vector,
             output=rastertmp2,
@@ -119,12 +117,12 @@ def main():
             quiet=True,
         )
     except CalledModuleError:
-        grass.fatal(_("An error occurred while converting vector to raster"))
+        gs.fatal(_("An error occurred while converting vector to raster"))
 
     # zonal statistics
     rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)
     try:
-        grass.run_command(
+        gs.run_command(
             "r.stats.zonal",
             base=rastertmp1,
             cover=weight,
@@ -133,12 +131,12 @@ def main():
             quiet=True,
         )
     except CalledModuleError:
-        grass.fatal(_("An error occurred while calculating zonal statistics"))
+        gs.fatal(_("An error occurred while calculating zonal statistics"))
 
     # weighted interpolation
     exp = "$output = if($sumweight == 0, if(isnull($area_val), null(), 0), double($area_val) * $weight / $sumweight)"
 
-    grass.mapcalc(
+    gs.mapcalc(
         exp, output=output, sumweight=rastertmp3, area_val=rastertmp2, weight=weight
     )
 
@@ -146,6 +144,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()
