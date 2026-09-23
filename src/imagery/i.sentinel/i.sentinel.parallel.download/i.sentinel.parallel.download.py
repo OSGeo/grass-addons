@@ -76,14 +76,7 @@
 # % guisection: Filter
 # %end
 
-# %option
-# % key: nprocs
-# % type: integer
-# % required: no
-# % multiple: no
-# % label: Number of parallel processes
-# % description: Number of used CPUs
-# % answer: 1
+# %option G_OPT_M_NPROCS
 # %end
 
 # %option
@@ -125,7 +118,6 @@
 
 import sys
 import os
-import multiprocessing as mp
 import grass.script as gs
 from grass.pygrass.modules import Module, ParallelModuleQueue
 from datetime import datetime, timedelta
@@ -180,6 +172,12 @@ def main():
     scene_names = options["scene_name"].split(",")
     output = options["output"]
     nprocs = int(options["nprocs"])
+    if hasattr(gs, "resolve_nprocs"):  # added in GRASS 8.6
+        nprocs = gs.resolve_nprocs(nprocs)
+    elif nprocs <= 0:
+        # 0 means all cores, negative means cpu_count + nprocs
+        cpus = os.cpu_count() or 1
+        nprocs = max(1, cpus + nprocs) if nprocs < 0 else cpus
     clouds = int(options["clouds"])
     producttype = options["producttype"]
     start = options["start"]
@@ -230,18 +228,8 @@ def main():
         )
     )
 
-    # test nprocs Settings
-    if nprocs > mp.cpu_count():
-        gs.warning(
-            _(
-                "Using {} parallel processes but only {} CPUs available."
-                "Setting nprocs to {}"
-            ).format(nprocs, mp.cpu_count(), mp.cpu_count() - 1)
-        )
-        nprocs = mp.cpu_count() - 1
-
     # sentinelsat allows only three parallel downloads
-    elif nprocs > 2 and options["datasource"] == "ESA_COAH":
+    if nprocs > 2 and options["datasource"] == "ESA_COAH":
         gs.message(
             _(
                 "Maximum number of parallel processes for Downloading"

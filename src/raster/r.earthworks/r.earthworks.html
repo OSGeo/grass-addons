@@ -130,7 +130,7 @@ g.region n=500 s=0 e=500 w=0 res=1
 r.mapcalc expression="elevation = 0"
 </pre></div>
 
-<b>Fill Operation</b>
+<h4>Fill Operation</h4>
 Model a peak from a set of x- and y-coordinates with <em>r.earthworks</em>.
 Use the z parameter to set a z-coordinate for the top of the peak.
 Optionally use the flat parameter to create a plateau
@@ -140,35 +140,27 @@ r.earthworks elevation=elevation earthworks=peak operation=fill coordinates=250,
 </pre></div>
 <div align="center" style="margin: 10px">
     <a href="r_earthworks_01.png">
-    <img src="r_earthworks_01.png" width="250" height="250"
+    <img src="r_earthworks_01.png" width="600" height="150"
          alt="Fill operation" border="0">
-    </a>
-    <a href="r_earthworks_02.png">
-    <img src="r_earthworks_02.png" width="250" height="125"
-         alt="3D fill operation" border="0">
     </a><br>
     <i>Figure: Fill operation</i>
 </div>
 
-<b>Cut Operation</b>
-Model a pit from a set of x- and y-coordinates with *r.earthworks*.
+<h4>Cut Operation</h4>
+Model a pit from a set of x- and y-coordinates with <em>r.earthworks</em>.
 Set a z-coordinate for the bottom of the pit.
 <div class="code"><pre>
 r.earthworks elevation=elevation earthworks=pit operation=cut coordinates=250,250 z=-50 function=linear linear=0.5 flat=50
 </pre></div>
 <div align="center" style="margin: 10px">
-    <a href="r_earthworks_03.png">
-    <img src="r_earthworks_03.png" width="250" height="250"
+    <a href="r_earthworks_02.png">
+    <img src="r_earthworks_02.png" width="600" height="150"
          alt="Cut operation" border="0">
-    </a>
-    <a href="r_earthworks_04.png">
-    <img src="r_earthworks_04.png" width="250" height="125"
-         alt="3D cut operation" border="0">
     </a><br>
     <i>Figure: Cut operation</i>
 </div>
 
-<b>Cut &amp; Fill Operation</b>
+<h4>Cut &amp; Fill Operation</h4>
 Model a pit and a peak from two sets of x- and y-coordinates
 with <em>r.earthworks</em>.
 Set a z-coordinate for the bottom of the pit
@@ -177,15 +169,50 @@ and another z-coordinate for the top of the peak.
 r.earthworks elevation=elevation earthworks=peak_and_pit operation=cutfill coordinates=180,180,320,320 z=-50,50 function=linear linear=0.5 flat=50
 </pre></div>
 <div align="center" style="margin: 10px">
-    <a href="r_earthworks_05.png">
-    <img src="r_earthworks_05.png" width="250" height="250"
+    <a href="r_earthworks_03.png">
+    <img src="r_earthworks_03.png" width="600" height="150"
          alt="Cut-fill operation" border="0">
-    </a>
-    <a href="r_earthworks_06.png">
-    <img src="r_earthworks_06.png" width="250" height="125"
-         alt="3D cut-fill operation" border="0">
     </a><br>
-    <i>Figure: Cut &amp; fill operation</i>
+    <i>Figure: Cut-fill operation</i>
+</div>
+
+<h4>Random Earthworks</h4>
+
+Model a set of random peaks by generating a random surface,
+sampling random points, and then filling on those points.
+First generate a random surface with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.random.html">r.surf.random</a></em>.
+Set a seed for reproducible results or set flag `s` for a random seed.
+Then randomly sample 50 cells from the random surface
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.random.html">r.random</a></em>.
+Use a fill operation to model random peaks with <em>r.earthworks</em>.
+Set the input raster to the random cells.
+
+<div class="code"><pre>
+r.surf.random out=surface min=0 max=25 seed=2
+r.random input=surface npoints=50 raster=random seed=7
+r.earthworks elevation=elevation earthworks=earthworks operation=fill raster=random function=linear linear=0.25 flat=25
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_04.png">
+    <img src="r_earthworks_04.png" width="600" height="150"
+         alt="Random earthworks" border="0">
+    </a><br>
+    <i>Figure: Random earthworks</i>
+</div>
+
+Compute contours with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.contour.html">r.contour</a></em>.
+
+<div class="code"><pre>
+r.contour input=earthworks output=contours step=2
+</pre></div>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_05.png">
+    <img src="r_earthworks_05.png" width="600" height="150"
+         alt="Contours" border="0">
+    </a><br>
+    <i>Figure: Contours</i>
 </div>
 
 <h3>Road Grading</h3>
@@ -208,24 +235,32 @@ This will grade an embankment through the valley
 with a 50 meter wide roadway
 at a constant elevation of 95 meters
 with side slopes of 25 percent.
-Optionally, compute contours with
-<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.contour.html">r.contour</a></em>.
 
 <div class="code"><pre>
 g.region n=217700 s=216200 w=639200 e=640700 res=10
-r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 function=linear linear=0.25 operation=fill flat=25 -p
+r.earthworks elevation=elevation earthworks=earthworks volume=volume lines=roadsmajor z=95 function=linear linear=0.25 operation=fill flat=25 -p
 r.contour input=earthworks output=contours step=2
 </pre></div>
 <div align="center" style="margin: 10px">
-    <a href="r_earthworks_07.png">
-    <img src="r_earthworks_07.png" width="250" height="250"
-         alt="Elevation" border="0">
-    </a>
-    <a href="r_earthworks_08.png">
-    <img src="r_earthworks_08.png" width="250" height="250"
-         alt="Earthworks" border="0">
+    <a href="r_earthworks_06.png">
+    <img src="r_earthworks_06.png" width="600" height="150"
+         alt="Existing topography" border="0">
     </a><br>
-    <i>Figure: Elevation and earthworks</i>
+    <i>Figure: Existing topography</i>
+</div><br><br>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_07.png">
+    <img src="r_earthworks_07.png" width="600" height="150"
+         alt="Roadway earthworks" border="0">
+    </a><br>
+    <i>Figure: Roadway earthworks</i>
+</div><br><br>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_08.png">
+    <img src="r_earthworks_08.png" width="600" height="150"
+         alt="Volumetric change" border="0">
+    </a><br>
+    <i>Figure: Volumetric change</i>
 </div>
 
 <h3>Dam Breach Modeling</h3>
@@ -243,17 +278,35 @@ r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=63
 </pre></div>
 <div align="center" style="margin: 10px">
     <a href="r_earthworks_09.png">
-    <img src="r_earthworks_09.png" width="250" height="250"
+    <img src="r_earthworks_09.png" width="600" height="150"
          alt="Dam" border="0">
-    </a>
-    <a href="r_earthworks_10.png">
-    <img src="r_earthworks_10.png" width="250" height="250"
-         alt="Dam Breach" border="0">
     </a><br>
-    <i>Figure: Elevation and earthworks</i>
+    <i>Figure: Dam</i>
+</div><br><br>
+<div align="center" style="margin: 10px">
+    <a href="r_earthworks_10.png">
+    <img src="r_earthworks_10.png" width="600" height="150"
+         alt="Dam breach" border="0">
+    </a><br>
+    <i>Figure: Dam breach</i>
 </div>
 
 <h2>NOTES</h2>
+
+<h3>VERSIONS</h3>
+
+This version of r.earthworks is compatible with GRASS 8.5 and above.
+For older versions of GRASS, install
+<a href="https://doi.org/10.5281/zenodo.21865092">r.earthworks-3.1.0</a>.
+Download and unarchive this version from Zenodo.
+Then install with g.extension using the full file path to the extracted directory as the url.
+
+<div class="code"><pre>
+curl -L "https://zenodo.org/records/21865092/files/baharmon/r.earthworks-3.1.0.zip?download=1" -O && unzip r.earthworks-3.1.0.zip
+g.extension extension=r.earthworks operation=add url=baharmon-r.earthworks-284245b
+</pre></div>
+
+<h3>ISSUES</h3>
 In GRASS 8.5 and above,
 map algebra uses parallel computing
 for faster raster calculations.
@@ -267,12 +320,6 @@ This issue can be addressed
 by enabling quadtree segmentation,
 setting fewer threads for parallel computing,
 or raising the open file limit.
-If this error occurs, try setting
-smaller <code>threshold</code> and <code>border</code> parameters
-for quadtree segmentation.
-Alternatively, try setting
-the number of threads for parallel computing
-with the <code>nprocs</code> parameter.
 Use the shell command <code>ulimit</code>
 to temporarily raise the open file limit:
 
@@ -284,14 +331,13 @@ ulimit -S -n 32768
 
 <ul>
 <li>
-Harmon, B., Petrasova, A., & Petras, V., (2026).
+Harmon, B., Petrasova, A., and Petras, V. (2026).
 r.earthworks: a GRASS tool for terrain modeling.
 Journal of Open Source Software, 11(118), 9270,
-<a href="https://doi.org/10.21105/joss.09270">https://doi.org/10.21105/joss.09270</a>.
+<a href="https://doi.org/10.21105/joss.09270">https://doi.org/10.21105/joss.09270</a>
 </li>
 <li>
-Harmon, B., Petrasova, A., & Petras, V. (2026).
-r.earthworks: a GRASS tool for terrain modeling (3.0.0). Zenodo.
+Harmon, B. (2026). r.earthworks (Version 4.0.0) [Computer software].
 <a href="https://doi.org/10.5281/zenodo.15507391">https://doi.org/10.5281/zenodo.15507391</a>
 </li>
 </ul>

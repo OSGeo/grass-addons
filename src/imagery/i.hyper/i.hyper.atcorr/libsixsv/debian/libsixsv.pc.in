@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/@DEB_HOST_MULTIARCH@
+includedir=${prefix}/include
+
+Name: libsixsv
+Description: 6SV2.1 atmospheric correction library
+Version: 2.0.0
+Cflags: -I${includedir}/sixsv
+Libs: -L${libdir} -lsixsv
+Libs.private: -lm

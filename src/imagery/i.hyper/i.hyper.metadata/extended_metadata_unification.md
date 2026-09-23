@@ -31,31 +31,32 @@ Reference basis:
 
 ## A. i.hyper.atcorr Unified Keys
 
-| Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` (alias: `Acquisition_Start_Time`) | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | ISO-8601 UTC |
-| `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | valid max of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | all products | supplementary |
-| `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean lat map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
-| `acquisition.center_longitude_deg` | center point longitude | `Product_center_long` | mean lon map (SWATHS) or derived from map grid + EPSG (GRIDS) | all products | decimal degrees |
-| `acquisition.day_of_year` | derived | derived | derived | all products | integer 1..366 |
-| `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` (aliases: `illuminationZenithAngle/center`, `sunZenithAngle/center`) | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | all products | core |
-| `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` (aliases: `illuminationAzimuthAngle/center`) | `Sun_azimuth_angle` | map mean `sun_azimuth` | all products | core |
-| `geometry.view_zenith_deg` | `viewingZenithAngle/center` if available, otherwise derived from off-nadir angles | map mean `.../Observing_Angle` | map mean `sensor_zenith` | all products | core |
-| `geometry.view_azimuth_deg` | `viewingAzimuthAngle/center` if available, otherwise `sceneAzimuthAngle/center` | nullable/derived | map mean `sensor_azimuth` | all products | supplementary |
-| `geometry.relative_azimuth_deg` | derived from SAA/VAA | map mean `.../Rel_Azimuth_Angle` | derived from SAA/VAA | all products | supplementary |
-| `geometry.sensor_altitude_m` | `base/altitudeCoverage` (interpretation-dependent) | not found | not found | single product | nullable where unavailable |
-| `radiometry.quantity` | L2A reflectance | L2D reflectance | TOA radiance or SR | all products | core |
-| `radiometry.units` | derived (dimensionless for SR) | derived (dimensionless for SR) | dataset `Unit` | all products | core |
-| `radiometry.scale` | `GainOfBand` | `L2Scale*`-derived | none in float products | two products | supplementary |
-| `radiometry.offset` | `OffsetOfBand` | `L2Scale*Min` | none in float products | two products | supplementary |
-| `radiometry.wavelengths_nm` | `wavelengthCenterOfBand` | `List_Cw_*` | dataset attr `wavelengths` | all products | core for spectral processing |
-| `radiometry.fwhm_nm` | `FWHMOfBand` | `List_Fwhm_*` | dataset attr `fwhm` | all products | recommended |
-| `atmosphere.aod_550` | `sceneAOT/1000` (when present) | not found in L2D | `aerosol_optical_depth` map | two products | map/scalar value (form tag mandatory) |
-| `atmosphere.h2o_g_cm2` | `sceneWV/1000` (when present) | not found in L2D | `column_water_vapour` map | two products | map/scalar value (form tag mandatory) |
-| `atmosphere.ozone_du` | `processing/ozoneValue` | not found | not found | single product | keep nullable |
-| `atmosphere.surface_pressure_hpa` | not found | not found | not found | not available in current products | schema-reserved key |
-| `atmosphere.atmosphere_model` | not found | `Atmo_profile_info` | not found | single product | keep nullable |
-| `atmosphere.aerosol_model` | not found | not found | not found | not available in current products | schema-reserved key |
+| Unified key | EnMAP | PRISMA | Tanager | EMIT | Product availability | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `acquisition.start_time_utc` | `specific/datatakeStart` | `Product_StartTime` (alias: `Acquisition_Start_Time`) | valid min of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | `time_coverage_start` | all products | ISO-8601 UTC |
+| `acquisition.end_time_utc` | `base/temporalCoverage/stopTime` | `Product_StopTime` | valid max of `GRIDS/Data Fields/time` or `SWATHS/Geolocation Fields/Time` | `time_coverage_end` | all products | supplementary |
+| `acquisition.center_latitude_deg` | center point latitude | `Product_center_lat` | mean lat map (SWATHS) or derived from map grid + EPSG (GRIDS) | mean of `location/lat` | all products | decimal degrees |
+| `acquisition.center_longitude_deg` | center point longitude | `Product_center_long` | mean lon map (SWATHS) or derived from map grid + EPSG (GRIDS) | mean of `location/lon` | all products | decimal degrees |
+| `acquisition.day_of_year` | derived | derived | derived | derived from start_time | all products | integer 1..366 |
+| `geometry.sun_zenith_deg` | `90 - sunElevationAngle/center` (aliases: `illuminationZenithAngle/center`, `sunZenithAngle/center`) | `Sun_zenith_angle` or map mean | map mean `sun_zenith` | `solar_zenith` | all products | core |
+| `geometry.sun_azimuth_deg` | `sunAzimuthAngle/center` (aliases: `illuminationAzimuthAngle/center`) | `Sun_azimuth_angle` | map mean `sun_azimuth` | `solar_azimuth` | all products | core |
+| `geometry.view_zenith_deg` | `satelliteZenithAngle`, `viewZenithAngle`, `offNadirAngle`, or derived from across/along off-nadir angles | map mean `.../Observing_Angle` | map mean `sensor_zenith` | `sensor_zenith` | all products | core |
+| `geometry.view_azimuth_deg` | `sceneAzimuthAngle`, `satelliteAzimuthAngle`, or `viewAzimuthAngle` | nullable/derived | map mean `sensor_azimuth` | `sensor_azimuth` | all products | supplementary |
+| `geometry.relative_azimuth_deg` | derived from SAA/VAA | map mean `.../Rel_Azimuth_Angle` | derived from SAA/VAA | derived from SAA/VAA | all products | supplementary |
+| `geometry.sensor_altitude_m` | `base/altitudeCoverage` (interpretation-dependent) | not found | not found | not found | single product | nullable where unavailable |
+| `radiometry.quantity` | L1B/L1C TOA radiance; L2A surface reflectance | L1 TOA radiance; L2C/L2D surface reflectance | TOA radiance or surface reflectance | `surface_reflectance` (L2A) / `at-sensor_radiance` (L1B) | all products | core |
+| `radiometry.units` | format/level-derived radiance units or unitless reflectance | level-derived radiance units or unitless reflectance | dataset `Unit` | `unitless (reflectance)` / `W/m^2/sr/nm` | all products | core |
+| `radiometry.scale` | `GainOfBand` | L2 reflectance scale derived from `L2Scale*` | none in float products | none (float product) | two products | source conversion provenance |
+| `radiometry.offset` | `OffsetOfBand` | L2 reflectance minimum from `L2Scale*Min` | none in float products | none (float product) | two products | source conversion provenance |
+| `radiometry.scale_factor` | not used | L1 `ScaleFactor_Vnir`/`ScaleFactor_Swir` | not used | not used | PRISMA L1 | required DN-to-radiance divisor |
+| `radiometry.wavelengths_nm` | `wavelengthCenterOfBand` | `List_Cw_*` | dataset attr `wavelengths` | `sensor_band_parameters/wavelengths` | all products | core for spectral processing |
+| `radiometry.fwhm_nm` | `FWHMOfBand` | `List_Fwhm_*` | dataset attr `fwhm` | `sensor_band_parameters/fwhm` | all products | recommended |
+| `atmosphere.aod_550` | `sceneAOT/1000` (when present) | not found in L2D | `aerosol_optical_depth` map | not found | two products | map/scalar value (form tag mandatory) |
+| `atmosphere.h2o_g_cm2` | `sceneWV/1000` (when present) | not found in L2D | `column_water_vapour` map | not found | two products | map/scalar value (form tag mandatory) |
+| `atmosphere.ozone_du` | `processing/ozoneValue` | not found | not found | not found | single product | keep nullable |
+| `atmosphere.surface_pressure_hpa` | not found | not found | not found | not found | not available in current products | schema-reserved key |
+| `atmosphere.atmosphere_model` | not found | `Atmo_profile_info` | not found | not found | single product | keep nullable |
+| `atmosphere.aerosol_model` | not found | not found | not found | not found | not available in current products | schema-reserved key |
 
 Scalar extraction rule for EnMAP angular fields:
 
@@ -67,24 +68,24 @@ Scalar extraction rule for EnMAP angular fields:
 
 ## B. Additional Unified Keys Present In >=2 Products
 
-| Unified key | EnMAP | PRISMA | Tanager | Product availability | Notes |
-| --- | --- | --- | --- | --- | --- |
-| `quality.cloudy_pixels_percent` | `qualityFlag/cloudCover` | `Cloudy_pixels_percentage` | not found | two products | unified cloud fraction metric |
-| `quality.quality_atmosphere_flag` | `qualityFlag/qualityAtmosphere` | `L2d_Quality_flags` | not found | two products | semantics differ by product |
-| `radiometry.valid_band_mask` | `expectedChannelsList` + `missingChannelsList` | `List_Cw_Vnir_Flags` + `List_Cw_Swir_Flags` | `good_wavelengths` (SR) or derived validity (basic radiance) | all products | per-band validity vector |
-| `radiometry.valid_band_count` | derived from valid mask | derived from valid mask | derived from valid mask | all products | integer count of valid bands |
-| `processing.processor_version` | `archivedVersion` | `Processor_Version` (or `L1_Processor_Version`) | not found | two products | processing provenance |
-| `quality.coverage_percent.cloud` | `cloudCover` | `Cloudy_pixels_percentage` | derived from cloud mask if needed | all products | percent of scene |
-| `quality.coverage_percent.cirrus` | `cirrusCover` | not found | derived from cirrus mask if needed | two products | percent of scene |
-| `quality.coverage_percent.haze` | `hazeCover` | not found | not found | single product | percent of scene |
-| `quality.coverage_percent.snow` | `snowCover` | not found | not found | single product | percent of scene |
-| `quality.coverage_percent.water` | `waterCover` | not found | not found | single product | percent of scene |
-| `quality.coverage_percent.cloud_shadow` | `cloudShadow` | not found | not found | single product | percent of scene |
-| `quality.coverage_percent.noncloud_shadow` | `noncloudShadow` | not found | not found | single product | percent of scene |
-| `quality.coverage_percent.sunglint` | `sceneSunglint` | not found | not found | single product | percent of scene |
-| `quality.mask_layers` | quality quicklook/mask layers | product-dependent | `beta_cloud_mask`, `beta_cirrus_mask`, `nodata_pixels` | two products | map names/presence metadata |
-| `uncertainty.reflectance_uncertainty_present` | not found | `*_PIXEL_L2_ERR_MATRIX` datasets | `surface_reflectance_uncertainty` | two products | boolean capability flag |
-| `processing.processing_datetime_utc` | `specific/processingDateTime` | `Processing_Time` | `created_at` | all products | provenance |
+| Unified key | EnMAP | PRISMA | Tanager | EMIT | Product availability | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `quality.cloudy_pixels_percent` | `qualityFlag/cloudCover` | `Cloudy_pixels_percentage` | not found | not found | two products | unified cloud fraction metric |
+| `quality.quality_atmosphere_flag` | `qualityFlag/qualityAtmosphere` | `L2d_Quality_flags` | not found | not found | two products | semantics differ by product |
+| `radiometry.valid_band_mask` | expected channel lists plus available valid-pixel statistics | validity after PRISMA wavelength-flag filtering and NULL checks | derived from finite data after nodata masking | derived from `good_wavelengths` + finite-data check | all products | per represented band |
+| `radiometry.valid_band_count` | derived from valid mask | derived from valid mask | derived from valid mask | derived from valid mask | all products | integer count of valid bands |
+| `processing.processor_version` | `archivedVersion` | `Processor_Version` (or `L1_Processor_Version`) | not found | not found | two products | processing provenance |
+| `quality.coverage_percent.cloud` | `cloudCover` | `Cloudy_pixels_percentage` | derived from cloud mask if needed | not found | all products | percent of scene |
+| `quality.coverage_percent.cirrus` | `cirrusCover` | not found | derived from cirrus mask if needed | not found | two products | percent of scene |
+| `quality.coverage_percent.haze` | `hazeCover` | not found | not found | not found | single product | percent of scene |
+| `quality.coverage_percent.snow` | `snowCover` | not found | not found | not found | single product | percent of scene |
+| `quality.coverage_percent.water` | `waterCover` | not found | not found | not found | single product | percent of scene |
+| `quality.coverage_percent.cloud_shadow` | `cloudShadow` | not found | not found | not found | single product | percent of scene |
+| `quality.coverage_percent.noncloud_shadow` | `noncloudShadow` | not found | not found | not found | single product | percent of scene |
+| `quality.coverage_percent.sunglint` | `sceneSunglint` | not found | not found | not found | single product | percent of scene |
+| `quality.mask_layers` | quicklook-presence flag when declared | product-dependent | `beta_cloud_mask`, `beta_cirrus_mask`, `nodata_pixels` | not found | two products | presence metadata; layers are not necessarily imported |
+| `uncertainty.reflectance_uncertainty_present` | not found | `*_PIXEL_L2_ERR_MATRIX` datasets | `surface_reflectance_uncertainty` | not found | two products | boolean capability flag |
+| `processing.processing_datetime_utc` | `specific/processingDateTime` | `Processing_Time` | `created_at` | `date_created` | all products | provenance |
 
 ## C. Product-Specific Keys Kept For Provenance
 
@@ -112,6 +113,14 @@ full engineering trees.
 - `Product_StartTime`, `Product_StopTime`
 - `Product_center_lat`, `Product_center_long`
 - `Cloudy_pixels_percentage`, `L2d_Quality_flags`
+
+### `extended_metadata.emit`
+
+- `flight_line` (global attr `flight_line`)
+- `day_night_flag` (global attr `day_night_flag`)
+- `geotransform` (global attr `geotransform`)
+- `spatial_resolution_deg` (derived from geotransform ewres)
+- `quality.coverage_percent.ortho_grid` (derived from GLT valid-pixel count)
 
 ### `extended_metadata.tanager`
 
@@ -165,14 +174,15 @@ This section defines unified keys for atmospheric-correction metadata.
 | Relative azimuth | `geometry.relative_azimuth_deg` | all products (derived or map) | PRISMA `Rel_Azimuth_Angle` map or derived |
 | Sensor altitude | `geometry.sensor_altitude_m` | single product | EnMAP `base/altitudeCoverage` (interpretation-dependent) |
 | Sensor-to-ground path length | `geometry.sensor_to_ground_path_length_m` | single product | Tanager `sensor_to_ground_path_length` map mean |
-| Radiance units | `radiometry.units` | single product explicit | explicit in Tanager `Unit`; reflectance products are unitless |
-| Radiance scale | `radiometry.scale` | two products | EnMAP `GainOfBand`, PRISMA `L2Scale*` |
-| Radiance offset | `radiometry.offset` | two products | EnMAP `OffsetOfBand`, PRISMA `L2Scale*Min` |
+| Radiometric units | `radiometry.units` | all products | EnMAP/PRISMA quantity-derived units, Tanager dataset `Unit`; reflectance products are unitless |
+| Source conversion scale | `radiometry.scale` | EnMAP and PRISMA L2 | EnMAP `GainOfBand`, PRISMA reflectance scale derived from `L2Scale*` |
+| Source conversion offset | `radiometry.offset` | EnMAP and PRISMA L2 | EnMAP `OffsetOfBand`, PRISMA `L2Scale*Min` |
+| L1 radiance scale factor | `radiometry.scale_factor` | PRISMA L1 | `ScaleFactor_Vnir`, `ScaleFactor_Swir` |
 | AOD | `atmosphere.aod_550` | two products | EnMAP `sceneAOT/1000`, Tanager `aerosol_optical_depth` map |
 | Column H2O | `atmosphere.h2o_g_cm2` | two products | EnMAP `sceneWV/1000`, Tanager `column_water_vapour` map |
-| Valid band mask/count | `radiometry.valid_band_mask`, `radiometry.valid_band_count` | all products | EnMAP expected/missing channels, PRISMA `List_Cw_*_Flags`, Tanager `good_wavelengths` |
+| Valid band mask/count | `radiometry.valid_band_mask`, `radiometry.valid_band_count` | all products | product-specific validity after provider filtering and nodata checks |
 | Coverage percentages | `quality.coverage_percent.*` | product-dependent | EnMAP quality coverage metrics, PRISMA cloud %, Tanager mask-derived |
-| Mask layers present | `quality.mask_layers` | two products | EnMAP quality mask layers, Tanager mask datasets |
+| Mask layers present | `quality.mask_layers` | two products | EnMAP quicklook presence, Tanager mask datasets |
 | Ozone | `atmosphere.ozone_du` | single product | EnMAP `processing/ozoneValue` |
 | Atmosphere model | `atmosphere.atmosphere_model` | single product | PRISMA `Atmo_profile_info` |
 | RTM engine | `processing.rtm_engine` | single product | PRISMA `Atmo_RTM_info` |
@@ -186,8 +196,8 @@ This section defines unified keys for atmospheric-correction metadata.
 
 ### F2. Keys Defined for i.hyper.atcorr Output Metadata
 
-These keys are written by `i.hyper.atcorr` to record correction
-configuration, runtime flags, and produced outputs.
+These keys are defined for `i.hyper.atcorr` to record correction configuration,
+runtime flags, and produced outputs.
 
 | Concept | Recommended unified key |
 | --- | --- |

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ##############################################################################
 # MODULE:    i.hyper.import
 # AUTHOR(S): Alen Mangafic and Tomaž Žagar, Geodetic Institute of Slovenia
@@ -24,14 +24,14 @@
 # % type: string
 # % required: yes
 # % multiple: no
-# % options: prisma, enmap, tanager, ihyper
+# % options: prisma, enmap, tanager, emit, ihyper
 # % answer: prisma
 # % description: Define the hyperspectral product you want to import (lowercase).
 # % guisection: Input
 # %end
 
 # %option G_OPT_R3_OUTPUT
-# % required: yes
+# % required: no
 # % description: Set the name of the output hyperspectral 3D raster map.
 # % guisection: Input
 # %end
@@ -63,8 +63,14 @@
 # %end
 
 # %flag
-# % key: n
-# % description: Record full source-band validity in bands.validity (do not add NULL bands to raster_3d)
+# % key: p
+# % description: Print dataset spatial reference, i.hyper.import behavior, and project requirements, then exit
+# % guisection: Optional
+# %end
+
+# %flag
+# % key: u
+# % description: Update computational region to match the imported 3D raster
 # % guisection: Optional
 # %end
 
@@ -83,6 +89,7 @@ PRODUCT_MODULE_MAP = {
     "enmap": "enmap",
     "prisma": "prisma",
     "tanager": "tanager",
+    "emit": "emit",
 }
 
 
@@ -267,6 +274,11 @@ def _safe_extract_ihyper(input_path, output_name):
     gs.message(
         f"Imported native hyperspectral archive {archive_path} as {archived_name}"
     )
+    return archived_name
+
+
+def _update_region_from_cube(map_name):
+    gs.run_command("g.region", raster_3d=map_name, quiet=True)
 
 
 def import_by_product(product, options, flags):
@@ -296,14 +308,42 @@ def import_by_product(product, options, flags):
 
 def main(options, flags):
     product = options["product"]
+    output = options.get("output")
+
+    path = get_lib_path(modname="i_hyper_lib", libname="check_proj")
+    if path and path not in sys.path:
+        sys.path.append(path)
+    import check_proj
+
+    if product == "enmap":
+        import_hyper = import_by_product(product, options, flags)
+        options["input"] = import_hyper._resolve_enmap_dir(options["input"])
+
+    if flags.get("p"):
+        if product == "ihyper":
+            gs.fatal("The -p flag is not supported for product=ihyper.")
+        check_proj.print_proj_info(product, options["input"])
+        return
 
     if product == "ihyper":
-        _safe_extract_ihyper(options["input"], options.get("output"))
+        imported_name = _safe_extract_ihyper(options["input"], output)
+        if flags.get("u"):
+            _update_region_from_cube(imported_name)
         return
+
+    if not output:
+        gs.fatal(
+            "Parameter <output> is required. "
+            "Set the name of the output hyperspectral 3D raster map."
+        )
+
+    check_proj.check_import_allowed(product, options["input"])
 
     gs.info(f"Importing product: {product}")
     import_hyper = import_by_product(product, options, flags)
     import_hyper.run_import(options, flags)
+    if flags.get("u"):
+        _update_region_from_cube(output)
 
 
 if __name__ == "__main__":
