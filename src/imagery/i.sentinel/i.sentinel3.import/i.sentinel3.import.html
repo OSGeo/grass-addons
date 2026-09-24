@@ -1,0 +1,152 @@
+<h2>DESCRIPTION</h2>
+
+The <em>i.sentinel3.import</em> module allows importing
+<a href="https://sentinels.copernicus.eu/web/sentinel/missions/sentinel-3">
+Copernicus Sentinel-3 products</a>.
+
+<p>
+The <em>Sentinel-3</em> products types are provided in different formats. Not all of
+them are currently directly supported by GDAL. Some, like the e.g. the SLSTR products
+consist of several netCDF4 files, where geometry and image information are stored in
+different files. Therefore, a GRASS GIS specific import routine has been implemented
+for those formats. This routine imports the data pixel-wise after transforming them
+from WGS84 into the projection of the current LOCATION. <em>r.in.xyz</em> is then
+used to read the coordinates into a GRASS GIS raster map. Thus, the <em>the user has
+to set the computational region extent, to import the data of interest</em>. The resolution
+is set from the resolution of the inut bands and pixels are alined to that resolution.
+<p>
+Currently, only import of the following <b>product_types</b> is implemented:
+<ul>
+    <!-- <li>S3OL1ERF: OL_1_ERF__ products from Sentinel-3 OLCI</li> -->
+    <li>S3SL1RBT: SL_1_RBT__ products from Sentinel-3 SLSTR</li>
+    <li>S3SL2LST: SL_2_LST__ products from Sentinel-3 SLSTR</li>
+</ul>
+
+
+<p>
+All Sentinel-3 scene files provided in the <b>input</b> option are mosaiced
+into one resulting granule with one map for each imported band. The <b>input</b>
+option accepts either one or many path(s) to Sentinel-3 archives (.zip) separated
+by comma or a text-file with one Sentinel-3 file per row. The module is designed
+to produce temporally non-overlaping mosaics along the tracks of the satellite.
+Input should therefore not mix data from different tracks, sensing periods,
+or missions (Sentine-3A / Sentinel-3B). The module gives a warning if data from
+different tracks is used as input.
+
+<p>
+Users can provide a custom <b>basename</b>, to which band names are appended.
+Otherwise, the basename is constructed from the input scenes following the
+Sentinel-3 file naming convention. Here, tile id is stripped from the resulting
+basename and start of sensing time is set to start of sensing time of the first
+input scene and end of sensing time is set to the end of the last input scene.
+
+<p>
+Anxillary data and quality flag data can be imported as well using the
+<b>anxillary_bands</b> and <b>flag_bands</b> option. Here, the user has to specify
+the product specific band names or <em>all</em> to imort all available artificial
+bands of the given kind.
+
+<p>
+For each imported band both scene and band specific metadata are written into the map history
+(<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.support.html">r.support</a></em>).
+In addition, the scene name is stored as <em>source1</em> and the imported or linked file name as
+<em>source2</em>. Also, sensing time is written into the timestamp of the
+map. After import, the metadata can be retrieved with <em>r.info -e</em>
+as shown below.
+
+<p>
+<em>i.sentinel3.import</em> imports the selected bands with the resolution and extent of the current
+region (except for the solar bands), unless the <em>n-flag</em> is used to import bands with their
+native resolution (usually 500m or 1000m).
+    
+<h2>NOTES</h2>
+
+<em>i.sentinel3.import</em> does ONLY support projected coordinate systems and assumes map units to
+be meter.
+
+<p>
+By means of the <b>register_file</b> option <em>i.sentinel3.import</em> allows
+creating a file which can be used to register imported imagery data
+into a space-time raster dateset (STRDS) with
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a></em>.
+See example below.
+
+<p>
+<h3>Metadata storage</h3>
+
+By using the <b>-j</b> flag the band metadata are additionally stored
+in JSON format (in the current mapset under <tt>cell_misc</tt>).
+
+
+<h2>EXAMPLES</h2>
+
+<!-- <h3>List Sentinel bands</h3>
+
+At first, print the list of raster files to be imported with <b>-p</b> flag. For
+each file also product content is printed:
+
+<div class="code"><pre>
+i.sentinel3.import -p input=./data/ nprocs=4 modified_before="2021-09-09" \
+product=LST basename=S3_LST
+
+...
+</pre></div>
+-->
+
+<h3>Import Sentinel-3 data</h3>
+Import all Sentinel-3B RBT data of a given start date and track found in <i>data</i> directory, store metadata
+as JSON files within the GRASS GIS database directory, keep pixel values during interpolation (no smoothing),
+import bands at native resolution and rescale radiance bands to reflectance:
+<div class="code"><pre>
+i.sentinel3.import -k -n -r -j input="$(find data/ -iname "S3B*RBT*____20240129*_089_094_*.zip" | tr '\n' ',' | sed 's/,$/\n/')" \
+    product_type=S3SL1RBT register_output=data/reg.txt nprocs=8 --v --o
+
+# register imported data into existing STRDS
+t.register input=Sentinel_3 file=data/reg.txt
+</pre></div>
+
+
+<h3>Register imported Sentinel-3 data into STRDS</h3>
+
+<div class="code"><pre>
+i.sentinel3.import -k -n -c -j  input="$(find data/ -iname "S3B*LST*____20240129*_089_094_*.zip" | tr '\n' ',' | sed 's/,$/\n/')" \
+product_type=S3SL2LST register_output=data/reg.txt nprocs=8 --v --o
+
+# register imported data into existing STRDS
+t.register input=Sentinel_3_LST file=data/reg.txt
+</pre></div>
+
+A register file typically contains the following columns: imported raster map
+name, start and end timestamp as well as semantic label, all separated by <tt>|</tt>, see the examples below:
+
+<div class="code"><pre>
+S3_imp_surface_temperature_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_surface_temperature
+S3_imp_surface_temperature_standard_error_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_surface_temperature_standard_error
+S3_imp_confidence_20210907T205026|2021-09-07T20:50:26.285902+00:00|2021-09-07T20:53:25.977846+00:00|S3_confidence
+</pre></div>
+
+<h2>REQUIREMENTS</h2>
+The following Python libraries are required
+<ul>
+<li>GDAL (install through system software management)</li>
+<li>numpy</li>
+<li>netcdf4</li>
+<li>cf-units (for unit conversion)</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="i.sentinel.html">Overview of i.sentinel toolset</a>
+</em>
+<p>
+<em>
+<a href="i.sentinel.download.html">i.sentinel.download</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html">r.in.xyz</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.stats.html">r.fill.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">t.register</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Stefan Blumentrath, Norway
