@@ -15,6 +15,19 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.
 
+Fork provenance
+---------------
+
+libsixsv was initiated by Yann Chemin at:
+
+    https://github.com/YannChemin/libsixsv
+
+This tree is a diverged fork, imported into grass-addons via subtree merge
+0b47dbbc2 from upstream commit c75c1d8 and developed since for use with the
+GRASS i.hyper.atcorr module (SONAME 2 ABI, GRASS-direct-compile integration,
+6SV2.1 parity suite). The original author's copyright above is retained for
+the upstream portions.
+
 6SV2.1 provenance
 ------------------
 

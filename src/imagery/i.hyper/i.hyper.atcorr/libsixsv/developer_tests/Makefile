@@ -10,7 +10,7 @@
 # Variables (override on the command line as needed):
 #   CC            — C compiler            (default: gcc)
 #   FC            — Fortran compiler      (default: gfortran)
-#   OFFLOAD_FLAGS — OpenMP target-offload flags copied from the parent Makefile
+#   OFFLOAD_FLAGS — optional OpenMP target-offload flags (manual override)
 #   SIXSV2        — path to 6SV2.1 Fortran sources (default: ~/dev/6sV2.1)
 
 SIXSV_DIR = ..
@@ -19,7 +19,7 @@ SIXSV2   ?= $(HOME)/dev/6sV2.1
 CC  ?= gcc
 FC  ?= gfortran
 
-# Inherit offload flags from the parent build if not set independently
+# Optional OpenMP target-offload flags (manual override; empty means CPU-only)
 OFFLOAD_FLAGS ?=
 
 CFLAGS  = -std=c11 -O2 -fPIC -fopenmp $(OFFLOAD_FLAGS) \
