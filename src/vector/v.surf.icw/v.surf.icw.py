@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 #
 # MODULE:       v.surf.icw
-#                version $Id$
 #
 # AUTHOR:       M. Hamish Bowman, Dunedin, New Zealand
 #                Originally written aboard the NZ DoC ship M/V Renown,
@@ -13,7 +12,7 @@
 # PURPOSE:      Like IDW interpolation, but distance is cost to get to any
 #                other site.
 #
-# COPYRIGHT:    (c) 2003-2014 Hamish Bowman
+# COPYRIGHT:    (c) 2003-2024 Hamish Bowman
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -44,25 +43,14 @@
 # % keyword: interpolation
 # % keyword: ICW
 # %End
-# %option
-# % key: input
-# % type: string
-# % gisprompt: old,vector,vector
-# % description: Name of existing vector points map containing seed data
-# % required : yes
+# %option G_OPT_V_INPUT
+# % label: Name of existing vector points map containing seed data
 # %end
-# %option
-# % key: column
-# % type: string
+# %option G_OPT_DB_COLUMN
 # % description: Column name in points map that contains data values
 # % required : yes
 # %end
-# %option
-# % key: output
-# % type: string
-# % gisprompt: new,cell,raster
-# % description: Name for output raster map
-# % required : yes
+# %option G_OPT_R_OUTPUT
 # %end
 # %option
 # % key: cost_map
@@ -79,19 +67,11 @@
 # % options: 1-6
 # % required : no
 # %end
-# %option
-# % key: layer
+# %option G_OPT_V_FIELD
 # % type: integer
-# % answer: 1
-# % description: Layer number of data in points map
-# % required: no
+# % label: Layer number of data in points map
 # %end
-# %option
-# % key: where
-# % type: string
-# % label: WHERE conditions of SQL query statement without 'where' keyword
-# % description: Example: income < 1000 and inhab >= 10000
-# % required : no
+# %option G_OPT_DB_WHERE
 # %end
 
 ##%option
@@ -112,11 +92,7 @@
 # % key: r
 # % description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 # %end
-# %option
-# % key: workers
-# % type: integer
-# % options: 1-256
-# % answer: 1
+# %option G_OPT_M_NPROCS
 # % description: Number of parallel processes to launch
 # %end
 
@@ -129,16 +105,20 @@ import atexit
 import grass.script as gs
 from grass.exceptions import CalledModuleError
 
+if not callable(globals().get("_")):
+    from gettext import gettext as _
+
 TMP_FILE = None
 
 
 def cleanup():
     gs.verbose(_("Cleanup.."))
     tmp_base = "tmp_icw_" + str(os.getpid()) + "_"
-    gs.run_command(
-        "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
-    )
-    gs.try_remove(TMP_FILE)
+    result = gs.list_strings("raster", pattern=tmp_base + "*", mapset=".")
+    if len(result) > 0:
+        gs.run_command(
+            "g.remove", flags="f", type="raster", pattern=tmp_base + "*", quiet=True
+        )
 
 
 def main():
@@ -150,7 +130,7 @@ def main():
     friction = float(options["friction"])
     layer = options["layer"]
     where = options["where"]
-    workers = int(options["workers"])
+    workers = int(options["nprocs"])
 
     if workers == 1 and "WORKERS" in os.environ:
         workers = int(os.environ["WORKERS"])
@@ -266,20 +246,21 @@ def main():
         northing = position[1]
         cat = int(position[-1])
 
+        # FIXME: layer=layer probably needed here
         # retrieve data value from vector's attribute table:
         data_value = gs.vector_db_select(pts_input, columns=column)["values"][cat][0]
 
         if not data_value:
-            gs.message(
+            gs.verbose(
                 _("Site %d of %d,  e=%.4f  n=%.4f  cat=%d  data=?")
                 % (num, n, float(easting), float(northing), cat)
             )
-            gs.message(_(" -- Skipping, no data here."))
+            gs.verbose(_(" -- Skipping, no data here."))
             del points_list[num - 1]
             n -= 1
             continue
         else:
-            gs.message(
+            gs.verbose(
                 _("Site %d of %d,  e=%.4f  n=%.4f  cat=%d  data=%.8g")
                 % (num, n, float(easting), float(northing), cat, float(data_value))
             )
@@ -295,7 +276,7 @@ def main():
             .split("|")[-1]
         )
         if rast_val == "*":
-            gs.message(_(" -- Skipping, point lays outside of cost_map."))
+            gs.verbose(_(" -- Skipping, point lays outside of cost_map."))
             del points_list[num - 1]
             n -= 1
             continue
@@ -326,6 +307,7 @@ def main():
         if proc[i].wait() != 0:
             gs.fatal(_("Problem running %s") % "r.cost")
 
+    gs.verbose("\n")
     gs.message(_("Removing anomalies at site positions ..."))
 
     proc = {}
@@ -344,7 +326,7 @@ def main():
         )
         # stall to wait for the nth worker to complete,
         if (i + 1) % workers == 0:
-            # print 'stalling ...'
+            # print('stalling ...')
             proc[i].wait()
 
     # make sure everyone is finished
@@ -392,7 +374,7 @@ def main():
         )
         # stall to wait for the nth worker to complete,
         if (i + 1) % workers == 0:
-            # print 'stalling ...'
+            # print('stalling ...')
             proc[i].wait()
 
         # r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
@@ -410,12 +392,10 @@ def main():
         pattern=tmp_base + "cost_site.*",
         quiet=True,
     )
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
     #### Step 3) find sum(cost^2)
-    gs.verbose("")
-    gs.verbose(_("Finding sum of squares ..."))
+    gs.verbose("\n" + _("Finding sum of squares ..."))
 
     # todo: test if MASK exists already, fatal exit if it does?
     if post_mask:
@@ -424,16 +404,11 @@ def main():
 
     gs.message(_("Summation of cost weights ..."))
 
-    input_maps = tmp_base + "1by_cost_site_sq.%05d" % 1
-
-    global TMP_FILE
     TMP_FILE = gs.tempfile()
     with open(TMP_FILE, "w") as maplist:
-        for i in range(2, n + 1):
+        for i in range(1, n + 1):
             mapname = "%s1by_cost_site_sq.%05d" % (tmp_base, i)
             maplist.write(mapname + "\n")
-
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     sum_of_1by_cost_sqs = tmp_base + "sum_of_1by_cost_sqs"
     try:
@@ -443,13 +418,15 @@ def main():
     except CalledModuleError:
         gs.fatal(_("Problem running %s") % "r.series")
 
+    gs.try_remove(TMP_FILE)
+
     if post_mask:
         gs.message(_("Removing post_mask <%s>"), post_mask)
         gs.run_command("g.remove", flags="f", name="MASK", quiet=True)
 
     #######################################################
     #### Step 4) ( 1/di^2 / sum(1/d^2) ) *  ai
-    gs.verbose("")
+    gs.verbose("\n")
     gs.message(_("Creating partial weights ..."))
 
     proc = {}
@@ -458,17 +435,18 @@ def main():
         easting = position[0]
         northing = position[1]
         cat = int(position[-1])
+        # FIXME: layer=layer probably needed here
         data_value = gs.vector_db_select(pts_input, columns=column)["values"][cat][0]
         data_value = float(data_value)
 
         # failsafe: at this point the data values should all be valid
         if not data_value:
-            gs.message(_("Site %d of %d,  cat = %d, data value = ?") % (num, n, cat))
-            gs.message(_(" -- Skipping, no data here. [Probably programmer error]"))
+            gs.verbose(_("Site %d of %d,  cat = %d, data value = ?") % (num, n, cat))
+            gs.verbose(_(" -- Skipping, no data here. [Probably programmer error]"))
             n -= 1
             continue
         else:
-            gs.message(
+            gs.verbose(
                 _("Site %d of %d,  cat = %d, data value = %.8g")
                 % (num, n, cat, data_value)
             )
@@ -484,7 +462,7 @@ def main():
             .split("|")[-1]
         )
         if rast_val == "*":
-            gs.message(
+            gs.verbose(
                 _(
                     " -- Skipping, point lays outside of cost_map. [Probably programmer error]"
                 )
@@ -511,9 +489,6 @@ def main():
         if num % workers == 0:
             proc[num - 1].wait()
 
-        # free up disk space ASAP
-        # grass.run_command('g.remove', flags = 'f', type = 'raster', name = one_by_cost_site_sq, quiet = True)
-
         num += 1
         if num > n:
             break
@@ -530,26 +505,32 @@ def main():
         pattern=tmp_base + "1by_cost_site_sq.*",
         quiet=True,
     )
-    # grass.run_command('g.list', type = 'raster', mapset = '.')
 
     #######################################################
-    gs.message("")
+    gs.verbose("\n")
     gs.message(_("Calculating final values ..."))
 
-    input_maps = tmp_base + "partial.%05d" % 1
-    for i in range(2, n + 1):
-        input_maps += ",%spartial.%05d" % (tmp_base, i)
+    TMP_FILE = gs.tempfile()
+    with open(TMP_FILE, "w") as maplist:
+        for i in range(1, n + 1):
+            mapname = "%spartial.%05d" % (tmp_base, i)
+            maplist.write(mapname + "\n")
 
     try:
-        gs.run_command("r.series", method="sum", input=input_maps, output=output)
+        gs.run_command("r.series", method="sum", file=TMP_FILE, output=output)
     except CalledModuleError:
         gs.fatal(_("Problem running %s") % "r.series")
+
+    gs.try_remove(TMP_FILE)
 
     # TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
 
     gs.run_command("r.colors", map=output, color="bcyr", quiet=True)
     gs.run_command(
-        "r.support", map=output, history="", title="Inverse cost-weighted interpolation"
+        "r.support",
+        map=output,
+        history=" ",
+        title="Inverse cost-weighted interpolation",
     )
     gs.run_command("r.support", map=output, history="v.surf.icw interpolation:")
     gs.run_command(
@@ -557,6 +538,7 @@ def main():
         map=output,
         history="  input map=" + pts_input + "   attribute column=" + column,
     )
+    # FIXME: if layer !=1 then (layer="$layer") probably needed here
     gs.run_command(
         "r.support",
         map=output,
