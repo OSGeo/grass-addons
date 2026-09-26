@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(r.regression.series)
+project(r.resamp.tps)
 
 include(build_addon)
 
