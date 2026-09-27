@@ -1,0 +1,12 @@
+libsixsv (2.0.0-1) unstable; urgency=medium
+
+  * Complete the polarized, BDM desert, and aircraft-path 6SV2.1 ports.
+  * Transition to SONAME 2 for the expanded public computation context.
+
+ -- Yann Chemin <dr.yann.chemin@gmail.com>  Sun, 16 Aug 2026 00:00:00 +0000
+
+libsixsv (1.0.0-1) unstable; urgency=medium
+
+  * Initial Debian packaging.
+
+ -- Yann Chemin <dr.yann.chemin@gmail.com>  Tue, 10 Mar 2026 00:00:00 +0000

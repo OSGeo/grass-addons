@@ -1,0 +1,26 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libsixsv
+Upstream-Contact: Yann Chemin <dr.yann.chemin@gmail.com>
+Source: https://github.com/yannchemin/libsixsv
+
+Files: *
+Copyright: 2025-2026 Yann Chemin <dr.yann.chemin@gmail.com>
+License: GPL-2+
+Comment: This C port retains provenance from the 6SV2.1 reference source at
+ https://github.com/NakamuraTakashi/6SV2.1, pinned for validation at commit
+ 7deb2289cfe23c9b1d1b48d7647f76604ef75fa4. 6SV was developed by Eric F.
+ Vermote and collaborators; see the source and project documentation for
+ routine-level attribution.
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the Free
+ Software Foundation; either version 2 of the License, or (at your option)
+ any later version.
+ .
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ .
+ On Debian systems, the complete text of version 2 of the GNU General Public
+ License can be found in /usr/share/common-licenses/GPL-2.

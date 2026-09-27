@@ -103,9 +103,11 @@ Non-standard Python dependencies go in a `requirements.txt` next to the tool.
 **gunittest** goes in a `testsuite/` directory and is the only option when
 the test needs the `nc_spm` sample dataset. CI runs the full gunittest suite
 against `nc_spm` (`.github/workflows/test.sh`, which calls
-`python3 -m grass.gunittest.main ... --min-success`). To run one suite,
-install the addon (the *g.extension* command above), start a GRASS session,
-and run it as described in the core `AGENTS.md`. See also this repository's
+`python3 -m grass.gunittest.main`) and requires all tests to pass; mark a
+known-failing test `@unittest.expectedFailure` instead of leaving it
+failing. To run one suite, install the addon (the *g.extension* command
+above), start a GRASS session, and run it as described in the core
+`AGENTS.md`. See also this repository's
 [`UNIT_TESTS.md`](doc/development/submitting/UNIT_TESTS.md).
 
 ## Linting, documentation, and commits

@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
 
     number_of_segs = (int)(number_of_segs / seg_size);
 
-    number_of_segs_total =
-        (nrows / SROWS + nrows % SROWS) * (ncols / SCOLS + ncols % SCOLS);
+    number_of_segs_total = (nrows / SROWS + (nrows % SROWS ? 1 : 0)) *
+                           (ncols / SCOLS + (ncols % SCOLS ? 1 : 0));
 
     if (!segmentation) {
         /* force use of the segment version

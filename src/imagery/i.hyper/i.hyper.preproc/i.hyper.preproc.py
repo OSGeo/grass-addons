@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ##############################################################################
 # MODULE:    i.hyper.preproc
@@ -185,7 +185,7 @@
 
 # %flag
 # % key: q
-# % description: Interpolate missing values in valid bands
+# % description: Interpolate missing values in valid bands: linear interpolation with extrapolation at spectral edges
 # % guisection: Additional corrections
 # %end
 
@@ -202,6 +202,11 @@ import grass.script as gs
 import grass.script.array as garray
 from grass.script.utils import get_lib_path
 import importlib.util
+
+try:
+    from scipy.interpolate import interp1d
+except ModuleNotFoundError:
+    interp1d = None
 
 
 def _import_from_i_hyper_lib(module_name):
@@ -272,7 +277,7 @@ def _get_wavelengths(mapname, hyper_meta_class):
         meta = hyper_meta_class.load(mapname)
     except Exception:
         return None
-    arr = meta.get_wavelengths_array()
+    arr = meta.get_wavelengths_array(valid_only=True)
     if arr is not None:
         return arr
     return None
@@ -450,6 +455,8 @@ def preprocess_hyperspectral(
         steps.append("Baseline correction")
     if continuum:
         steps.append("Continuum removal")
+    if interpolate_nodata:
+        steps.append("Interpolation")
     if dr_method:
         steps.append(dr_method.upper())
     gs.message(" → ".join(steps) if steps else "No operations selected")
@@ -492,8 +499,25 @@ def preprocess_hyperspectral(
 
         arr_in = garray.array3d(mapname=inp, null="nan", dtype=np.float32)
         depth, rows, cols = arr_in.shape
-        exterior_mask = ~np.any(np.isfinite(arr_in), axis=0)
-        flat = arr_in.reshape(depth, -1).T
+        meta_in = hyper_meta_class.load(inp)
+        axis = meta_in.resolve_band_axis(depth)
+        if axis["layout"] == "physical":
+            work_indices = np.flatnonzero(axis["validity"])
+        else:
+            work_indices = np.arange(depth, dtype=int)
+        if work_indices.size == 0:
+            gs.fatal("No valid bands available for preprocessing.")
+
+        exterior_mask = ~np.any(np.isfinite(arr_in[work_indices, :, :]), axis=0)
+        flat_full = arr_in.reshape(depth, -1).T
+        flat = flat_full[:, work_indices]
+
+        if interpolate_nodata:
+            gs.message("Interpolating missing values across spectral bands...")
+            for i in range(flat.shape[0]):
+                row = flat[i, :]
+                if np.isnan(row).any():
+                    flat[i, :] = _fill_nans_1d(row)
 
         flat_filt = flat
         if polyorder > 0:
@@ -516,13 +540,6 @@ def preprocess_hyperspectral(
             flat_filt = np.apply_along_axis(_continuum_removal, 1, flat_filt).astype(
                 np.float32
             )
-
-        if interpolate_nodata:
-            gs.message("Interpolating missing values across spectral bands...")
-            for i in range(flat_filt.shape[0]):
-                row = flat_filt[i, :]
-                if np.isnan(row).any():
-                    flat_filt[i, :] = _fill_nans_1d(row)
 
         if clamp_negative:
             flat_filt = np.where(flat_filt < 0, 0, flat_filt).astype(np.float32)
@@ -553,8 +570,15 @@ def preprocess_hyperspectral(
             )
 
         n_bands = flat_filt.shape[1]
-        arr_out = flat_filt.T.reshape(n_bands, rows, cols)
-        arr_out[:, exterior_mask] = np.nan
+        if dr_method:
+            arr_out = flat_filt.T.reshape(n_bands, rows, cols)
+            arr_out[:, exterior_mask] = np.nan
+        else:
+            arr_out = np.full((depth, rows, cols), np.nan, dtype=np.float32)
+            arr_out[work_indices, :, :] = flat_filt.T.reshape(
+                len(work_indices), rows, cols
+            )
+            arr_out[:, exterior_mask] = np.nan
 
         if dr_method:
             orig_region = gs.region()
@@ -600,9 +624,7 @@ def preprocess_hyperspectral(
 
 def main():
     options, flags = gs.parser()
-    try:
-        from scipy.interpolate import interp1d  # noqa: E402
-    except ModuleNotFoundError:
+    if interp1d is None:
         gs.fatal(_("SciPy library not installed"))
 
     preprocess_hyperspectral(

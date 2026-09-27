@@ -35,6 +35,9 @@ this and adjusts the X-axis to component indices.
     number of components.
 - Supports coordinate pairs (`coordinates=`) and vector point maps
     (`points=`).
+- Automatically displays a translucent `+/- 1 sigma` envelope when a matching
+    atmospheric-correction uncertainty 3D raster map is available. Use
+    `uncertainty=` to select the 3D raster map explicitly for a single input map.
 
 ## NOTES
 
