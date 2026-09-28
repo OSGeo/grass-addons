@@ -41,10 +41,13 @@ def _resolve_nc(path_like):
             names = sorted(os.listdir(path_like))
         except Exception as e:
             gs.fatal(f"Cannot read folder '{path_like}': {e}")
-        for n in names:
-            if n.lower().endswith(".nc"):
-                return os.path.join(path_like, n)
-        gs.fatal("No .nc file found in the provided folder.")
+        ncs = [n for n in names if n.lower().endswith(".nc")]
+        if not ncs:
+            gs.fatal("No .nc file found in the provided folder.")
+        # An L1B granule holds a radiance (RAD) and an observation geometry
+        # (OBS) file, and OBS sorts first, so prefer the data files.
+        data = [n for n in ncs if "_RFL_" in n or "_RAD_" in n]
+        return os.path.join(path_like, (data or ncs)[0])
     return path_like
 
 
@@ -136,11 +139,54 @@ def _to_int(value):
         return None
 
 
+def _radiometric_units(prod):
+    """Return the radiometric units of an EMIT product.
+
+    L1B radiance is delivered in uW/cm^2/sr/nm (0.01 W/m^2/sr/nm), so the
+    units are taken from the file's own attribute rather than assumed.
+    """
+    if prod.get("data_key") != "radiance":
+        return "unitless (reflectance)"
+    return prod.get("units") or "uW/cm^2/sr/nm"
+
+
 # -------------------------- EMIT NetCDF reader (inline) --------------------------
 
 
-def _read_emit_netcdf(path):
+def _crop_window(west, north, ewres, nsres, rows, cols, crop_ll):
+    """Return the (r0, r1, c0, c1) window of the orthorectified grid covered
+    by crop_ll = (west, south, east, north) in degrees."""
+    cw, cs, ce, cn = crop_ll
+    c0 = max(0, int(np.floor((cw - west) / ewres)))
+    c1 = min(cols, int(np.ceil((ce - west) / ewres)))
+    r0 = max(0, int(np.floor((north - cn) / nsres)))
+    r1 = min(rows, int(np.ceil((north - cs) / nsres)))
+    if c1 <= c0 or r1 <= r0:
+        gs.fatal("The current region does not overlap the EMIT scene.")
+    return r0, r1, c0, c1
+
+
+def _read_emit_netcdf(path, crop_ll=None):
+    """Read an EMIT L2A reflectance or L1B radiance NetCDF file.
+
+    With crop_ll = (west, south, east, north) in degrees, the orthorectified
+    grid is cropped to that box and only the swath window referenced by the
+    cropped GLT is read. A full L1B radiance swath is about 3 GB and its
+    orthorectified grid several times larger, so this is what makes the
+    import of a small area fit in memory.
+    """
     with h5py.File(path, "r") as f:
+        if "reflectance" in f:
+            data_key = "reflectance"
+        elif "radiance" in f:
+            data_key = "radiance"
+        else:
+            gs.fatal(
+                f"<{path}> is neither an EMIT L2A reflectance nor an L1B "
+                "radiance file (e.g. an OBS, MASK or uncertainty companion "
+                f"file). Variables found: {', '.join(f.keys())}"
+            )
+
         glt_x = np.asarray(f["location/glt_x"][()], dtype=np.int32)
         glt_y = np.asarray(f["location/glt_y"][()], dtype=np.int32)
 
@@ -151,12 +197,34 @@ def _read_emit_netcdf(path):
         ewres = float(gt[1])
         north = float(gt[3])
         nsres = abs(float(gt[5]))
+
+        if crop_ll is not None:
+            r0, r1, c0, c1 = _crop_window(
+                west, north, ewres, nsres, ortho_rows, ortho_cols, crop_ll
+            )
+            glt_x = glt_x[r0:r1, c0:c1]
+            glt_y = glt_y[r0:r1, c0:c1]
+            ortho_rows, ortho_cols = r1 - r0, c1 - c0
+            west += c0 * ewres
+            north -= r0 * nsres
+
         east = west + ortho_cols * ewres
         south = north - ortho_rows * nsres
 
-        data_key = "reflectance" if "reflectance" in f else "radiance"
-        raw = np.asarray(f[data_key][()], dtype=np.float32)
+        # Swath window referenced by the (possibly cropped) GLT; GLT indices
+        # are 1-based with 0 as fill, so shift only the valid ones.
+        valid = (glt_y > 0) & (glt_x > 0)
+        _require(
+            np.any(valid), "The EMIT scene has no valid pixels in the requested area."
+        )
+        y0, y1 = int(glt_y[valid].min()) - 1, int(glt_y[valid].max())
+        x0, x1 = int(glt_x[valid].min()) - 1, int(glt_x[valid].max())
+        glt_y = np.where(valid, glt_y - y0, 0).astype(np.int32)
+        glt_x = np.where(valid, glt_x - x0, 0).astype(np.int32)
+
+        raw = np.asarray(f[data_key][y0:y1, x0:x1, :], dtype=np.float32)
         _require(raw.ndim == 3, f"{data_key} is not 3D")
+        units = _decode_text(f[data_key].attrs.get("units"))
 
         raw_fill = f[data_key].attrs.get("_FillValue", -9999.0)
         if isinstance(raw_fill, np.ndarray):
@@ -172,14 +240,17 @@ def _read_emit_netcdf(path):
         else:
             good = np.ones(wl.shape, dtype=np.uint8)
 
-        order = np.argsort(wl)
-        wl = wl[order]
-        fwhm = fwhm[order]
-        good = good[order]
-        raw = raw[:, :, order]
+        # EMIT bands are delivered in ascending order; reordering copies the
+        # whole cube, so only do it when needed.
+        if np.any(np.diff(wl) < 0):
+            order = np.argsort(wl)
+            wl = wl[order]
+            fwhm = fwhm[order]
+            good = good[order]
+            raw = raw[:, :, order]
 
-        lat_ds = f["location/lat"][()] if "location/lat" in f else None
-        lon_ds = f["location/lon"][()] if "location/lon" in f else None
+        lat_ds = f["location/lat"][y0:y1, x0:x1] if "location/lat" in f else None
+        lon_ds = f["location/lon"][y0:y1, x0:x1] if "location/lon" in f else None
         lat = np.asarray(lat_ds, dtype=np.float64) if lat_ds is not None else None
         lon = np.asarray(lon_ds, dtype=np.float64) if lon_ds is not None else None
         attrs = {}
@@ -195,6 +266,7 @@ def _read_emit_netcdf(path):
         "fwhm": fwhm,
         "good_wavelengths": good,
         "data_key": data_key,
+        "units": units,
         "glt_x": glt_x,
         "glt_y": glt_y,
         "ortho_rows": ortho_rows,
@@ -261,10 +333,7 @@ def _populate_emit_extended_metadata(
         "radiometry.quantity",
         "at-sensor_radiance" if is_radiance else "surface_reflectance",
     )
-    meta.set_extended_value(
-        "radiometry.units",
-        "W/m^2/sr/nm" if is_radiance else "unitless (reflectance)",
-    )
+    meta.set_extended_value("radiometry.units", _radiometric_units(prod))
     meta.set_extended_value("radiometry.wavelengths_nm", wavelengths_meta)
     meta.set_extended_value("radiometry.fwhm_nm", fwhm_meta)
     mask = [1 if bool(v) else 0 for v in validity_meta]
@@ -343,7 +412,9 @@ def get_emit_proj_info(path):
 # --------------------------- 3-D cube + metadata helpers ---------------------------
 
 
-def _create_emit_3d_cube(data, prod, splat_plan, output_name, bands_total):
+def _create_emit_3d_cube(data, prod, splat_band, output_name, bands_total):
+    """Write the orthorectified cube; splat_band reprojects one band to a
+    non-EPSG:4326 project, or is None when no reprojection is needed."""
     reg2d = gs.region()
     nsres2d = float(reg2d["nsres"])
     ewres2d = float(reg2d["ewres"])
@@ -360,8 +431,8 @@ def _create_emit_3d_cube(data, prod, splat_plan, output_name, bands_total):
     cube = garray.array3d(dtype=np.float32)
     for k in range(bands_total):
         ortho2d = _orthorectify_band(data[:, :, k], prod["glt_y"], prod["glt_x"])
-        if splat_plan is not None:
-            cube[k, :, :] = _splat_band(ortho2d)
+        if splat_band is not None:
+            cube[k, :, :] = splat_band(ortho2d)
         else:
             cube[k, :, :] = ortho2d
 
@@ -392,7 +463,7 @@ def _build_emit_metadata(
         radiometric_quantity=(
             "at-sensor_radiance" if is_radiance else "surface_reflectance"
         ),
-        radiometric_units=("W/m^2/sr/nm" if is_radiance else "unitless (reflectance)"),
+        radiometric_units=_radiometric_units(prod),
     )
     meta.set_validity(validity_meta)
 
@@ -436,9 +507,10 @@ def import_emit(
     composites=None,
     custom_wavelengths=None,
     strength_val=96,
+    crop_ll=None,
 ):
     nc = _resolve_nc(input_path)
-    prod = _read_emit_netcdf(nc)
+    prod = _read_emit_netcdf(nc, crop_ll=crop_ll)
 
     data = prod["data"]
     wl = prod["wavelengths"]
@@ -617,7 +689,13 @@ def import_emit(
 
     bands_total = int(data.shape[2])
     try:
-        _create_emit_3d_cube(data, prod, splat_plan, output_name, bands_total)
+        _create_emit_3d_cube(
+            data,
+            prod,
+            _splat_band if splat_plan is not None else None,
+            output_name,
+            bands_total,
+        )
         try:
             _build_emit_metadata(
                 source_wavelengths,
@@ -633,7 +711,9 @@ def import_emit(
         except Exception as e_meta:
             gs.warning(f"Failed to write r3 metadata: {e_meta}")
     except Exception as e:
-        gs.warning(f"3D cube creation failed: {e}")
+        # The cube is the product of this import: without it the composites
+        # alone would let the module exit successfully having imported nothing.
+        gs.fatal(f"3D cube creation failed: {e}")
 
     rgb_target = COMPOSITES["rgb"]
     rgb_indices_1b = [
@@ -730,10 +810,16 @@ def run_import(options, flags):
         if options.get("composites")
         else None
     )
+    crop_ll = None
+    if flags.get("r"):
+        # g.region -b reports the region in WGS84 whatever the project CRS.
+        region = gs.parse_command("g.region", flags="b", format="shell")
+        crop_ll = tuple(float(region[k]) for k in ("ll_w", "ll_s", "ll_e", "ll_n"))
     import_emit(
         input_path=options["input"],
         output_name=options["output"],
         composites=comps,
         custom_wavelengths=custom,
         strength_val=strength_val,
+        crop_ll=crop_ll,
     )
