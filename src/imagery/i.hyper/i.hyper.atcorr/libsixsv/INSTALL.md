@@ -10,7 +10,7 @@ installation step for GRASS use.
 - A C11 compiler and standard POSIX build tools
 - An OpenMP implementation
 - `libm`
-- A configured GRASS GIS source/build tree for the module build, or a running
+- A configured GRASS source/build tree for the module build, or a running
   GRASS session for installation with `g.extension`
 
 GCC normally supplies OpenMP through libgomp. Clang commonly requires its

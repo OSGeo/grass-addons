@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Hyperspectral metadata management for GRASS GIS i.hyper tools.
+Hyperspectral metadata management for GRASS i.hyper tools.
 
 Stores metadata in JSON format at: $MAPSET/grid3/<mapname>/hyper.json
 
