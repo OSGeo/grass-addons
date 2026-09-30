@@ -410,17 +410,10 @@ is local-only; the committed-fixture path above is the portable one.
 
 ## Build
 
-- C11-capable compiler with OpenMP support
+- C11-capable compiler (OpenMP support optional; enables parallel execution)
 - GRASS development environment for the module build
 - Python 3, NumPy and pytest for the public test path; gfortran and the pinned
   6SV2.1 source only for local reference validation
-
-## Related repositories
-
-| Repository                                                          | Relationship           | Description |
-|---------------------------------------------------------------------|------------------------|-------------|
-| [i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr)       | **Downstream consumer** | GRASS module that links libsixsv for 6SV2.1 atmospheric correction of hyperspectral cubes |
-| [libras3d](https://github.com/yannchemin/libras3d) | **Peer** | Drop-in GRASS raster3d API replacement for builds without GRASS |
 
 ## License
 

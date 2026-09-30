@@ -8,7 +8,8 @@ installation step for GRASS use.
 ## Requirements
 
 - A C11 compiler and standard POSIX build tools
-- An OpenMP implementation
+- An OpenMP implementation (optional; without it the module builds a serial
+  CPU-only variant)
 - `libm`
 - A configured GRASS source/build tree for the module build, or a running
   GRASS session for installation with `g.extension`
