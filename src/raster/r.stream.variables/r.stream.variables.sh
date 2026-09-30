@@ -171,7 +171,7 @@ g.gisenv set="LOCATION_NAME=$LOCATION_NAME"
 g.gisenv set="GISDBASE=$GISDBASE"
 
 # delete intermediate files
-rm -fr  $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}*
+rm -fr  "$GISDBASE/$LOCATION_NAME"/sub_${GIS_OPT_AREA}ID[0-9]*
 find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.txt' -delete
 find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.tif' -delete
 rm -fr  $GIS_OPT_FOLDER/blockfile/stat_*.txt
@@ -194,7 +194,8 @@ echo ""
 
 export GISRC_def=$GISRC
 
-rm -fr   $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}*
+# remove only the temporary mapsets this module creates (sub_<area>ID<n>)
+rm -fr   "$GISDBASE/$LOCATION_NAME"/sub_${GIS_OPT_AREA}ID[0-9]*
 
 echo Using  $( ls $GIS_OPT_FOLDER/blockfile/blockfile* | wc -l ) blocks in  $GIS_OPT_FOLDER/blockfile/
 
