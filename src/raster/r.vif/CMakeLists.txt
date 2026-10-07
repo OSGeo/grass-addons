@@ -8,6 +8,5 @@ build_addon(
   ${PROJECT_NAME}
   SOURCES ${PROJECT_NAME}.py
   DOCFILES
-    r_vif_example1.png
     ${PROJECT_NAME}.html
     ${PROJECT_NAME}.md)
