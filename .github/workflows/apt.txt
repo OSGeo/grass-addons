@@ -1,6 +1,7 @@
 bison
 build-essential
 flex
+imagemagick
 libbz2-dev
 libcairo-dev
 libfftw3-dev

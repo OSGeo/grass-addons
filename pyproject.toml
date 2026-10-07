@@ -22,6 +22,7 @@ markers = [
     "needs_solo_run: marks tests that must be run without any other tests running in parallel",
 ]
 timeout = 300
+xfail_strict = true
 
 [tool.black]
 extend-exclude = '''
