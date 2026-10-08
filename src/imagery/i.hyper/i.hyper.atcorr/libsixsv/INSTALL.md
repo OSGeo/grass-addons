@@ -54,6 +54,19 @@ It writes `developer_tests/libsixsv.so`, used solely by the parity tests
 (see "Validation" in `README.md`). It is not installed and it is not linked
 by the GRASS module.
 
+To check the non-OpenMP configuration, build the separate serial library:
+
+```sh
+make -C developer_tests lib-serial
+make -C developer_tests test-serial
+```
+
+This writes `developer_tests/libsixsv_serial.so` without OpenMP or offload flags.
+The serial build treats unguarded pragmas and undeclared function calls as
+errors. Like `make test`, `make test-serial` requires the Fortran reference
+sources for the compatibility driver. OpenMP-only comparisons are skipped for
+the serial library; the numerical and spatial-filter tests still run.
+
 ## Spectral Response Correction
 
 Automatic libRadtran/reptran correction is currently unsupported.
