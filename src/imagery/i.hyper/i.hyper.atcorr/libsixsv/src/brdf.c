@@ -401,7 +401,6 @@ static float brdf_lisparse_std(float sza_deg, float vza_deg, float raa_deg)
     float tantv = (ctv > 1e-6f) ? stv_v / ctv : stv_v / 1e-6f;
 
     float D2 = tants * tants + tantv * tantv - 2.0f * tants * tantv * cfi;
-    float D = sqrtf(clampf(D2, 0.0f, 1e10f));
 
     float sec_s = (cts > 1e-6f) ? 1.0f / cts : 1.0f / 1e-6f;
     float sec_v = (ctv > 1e-6f) ? 1.0f / ctv : 1.0f / 1e-6f;

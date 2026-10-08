@@ -5,12 +5,14 @@
 #   make test     — run all Python tests via pytest (falls back to unittest)
 #   make test-fortran — run only the Fortran-compatibility subset
 #   make test-openmp  — run only the OpenMP / GPU tests
+#   make test-serial  — run all tests against a separate non-OpenMP library
 #   make clean    — remove built artefacts
 #
 # Variables (override on the command line as needed):
 #   CC            — C compiler            (default: gcc)
 #   FC            — Fortran compiler      (default: gfortran)
-#   OFFLOAD_FLAGS — OpenMP target-offload flags copied from the parent Makefile
+#   OFFLOAD_FLAGS — optional OpenMP target-offload flags (manual override)
+#   OPENMP_FLAGS  — OpenMP compiler and linker flags (default: -fopenmp)
 #   SIXSV2        — path to 6SV2.1 Fortran sources (default: ~/dev/6sV2.1)
 
 SIXSV_DIR = ..
@@ -19,31 +21,39 @@ SIXSV2   ?= $(HOME)/dev/6sV2.1
 CC  ?= gcc
 FC  ?= gfortran
 
-# Inherit offload flags from the parent build if not set independently
+# Optional OpenMP target-offload flags (manual override; empty means CPU-only)
 OFFLOAD_FLAGS ?=
+OPENMP_FLAGS ?= -fopenmp
 
-CFLAGS  = -std=c11 -O2 -fPIC -fopenmp $(OFFLOAD_FLAGS) \
+CFLAGS  = -std=c11 -O2 -fPIC \
           -I$(SIXSV_DIR)/include -I$(SIXSV_DIR)/src \
           -Wall -Wno-unused-parameter
-LDFLAGS = -shared -lm -fopenmp $(OFFLOAD_FLAGS)
+LDFLAGS = -shared -lm
 
 LIB_SO   = libsixsv.so
+SERIAL_LIB_SO = libsixsv_serial.so
 LIB_SRCS = $(sort $(wildcard $(SIXSV_DIR)/src/*.c))
+LIB_HEADERS = $(wildcard $(SIXSV_DIR)/include/*.h $(SIXSV_DIR)/src/*.h)
 
 FORTRAN_DRIVER = test_6sv_compat
 FORTRAN_OBJS   = $(addprefix $(SIXSV2)/, \
                     CHAND.o ODRAYL.o VARSOL.o SOLIRR.o CSALBR.o GAUSS.o US62.o \
                     PRESSURE.o)
 
-.PHONY: all lib fortran test test-fortran test-openmp clean
+.PHONY: all lib lib-serial fortran test test-fortran test-openmp test-serial clean
 
 all: lib fortran
 
 # ── Standalone shared library ─────────────────────────────────────────────────
 lib: $(LIB_SO)
 
-$(LIB_SO): $(LIB_SRCS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+$(LIB_SO): $(LIB_SRCS) $(LIB_HEADERS) Makefile
+	$(CC) $(CFLAGS) $(OPENMP_FLAGS) $(OFFLOAD_FLAGS) $(LIB_SRCS) -o $@ $(LDFLAGS) $(OPENMP_FLAGS) $(OFFLOAD_FLAGS)
+
+lib-serial: $(SERIAL_LIB_SO)
+
+$(SERIAL_LIB_SO): $(LIB_SRCS) $(LIB_HEADERS) Makefile
+	$(CC) $(CFLAGS) -Werror=unknown-pragmas -Werror=implicit-function-declaration $(LIB_SRCS) -o $@ $(LDFLAGS)
 
 # ── Fortran compatibility driver ──────────────────────────────────────────────
 fortran: $(FORTRAN_DRIVER)
@@ -68,6 +78,9 @@ test-fortran: lib fortran
 test-openmp: lib
 	$(PYTEST_CMD) test_openmp.py
 
+test-serial: lib-serial fortran
+	SIXSV2=$(SIXSV2) LIB_SIXSV=$(CURDIR)/$(SERIAL_LIB_SO) LIB_SIXSV_OPENMP=0 python3 -m pytest -v --tb=short .
+
 clean:
-	rm -f $(LIB_SO) $(FORTRAN_DRIVER) *.pyc
+	rm -f $(LIB_SO) $(SERIAL_LIB_SO) $(FORTRAN_DRIVER) *.pyc
 	rm -rf __pycache__ .pytest_cache
