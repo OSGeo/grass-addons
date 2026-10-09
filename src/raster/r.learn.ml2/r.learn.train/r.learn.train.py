@@ -771,15 +771,27 @@ def main():
 
         from sklearn.model_selection import cross_val_predict
 
-        preds = cross_val_predict(
-            estimator=estimator,
-            X=X,
-            y=y,
-            groups=group_id,
-            cv=outer,
-            n_jobs=n_jobs,
-            fit_params=fit_params,
-        )
+        cv_kwargs = {
+            "estimator": estimator,
+            "X": X,
+            "y": y,
+            "groups": group_id,
+            "cv": outer,
+            "n_jobs": n_jobs,
+        }
+
+        # scikit-learn 1.6 removed the long-deprecated "fit_params" argument of
+        # cross_val_predict in favour of "params". Only forward fit parameters
+        # when there are any (here at most a "sample_weight" entry when the -b
+        # flag is set), so the common empty case avoids metadata routing on
+        # newer versions and does not depend on either argument name.
+        if fit_params:
+            sklearn_ge_16 = tuple(
+                int(x) for x in re.findall(r"\d+", sklearn.__version__)[:2]
+            ) >= (1, 6)
+            cv_kwargs["params" if sklearn_ge_16 else "fit_params"] = fit_params
+
+        preds = cross_val_predict(**cv_kwargs)
 
         test_idx = [test for train, test in outer.split(X, y)]
         n_fold = np.zeros((0,))
