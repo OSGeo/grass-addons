@@ -1,0 +1,106 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.learn.report</em> assembles a readable report from the outputs of
+<em>r.learn.train</em> and <em>r.learn.assembly</em>. It takes a fitted model
+and the optional cross-validation, feature-importance and hyperparameter CSV
+files that those tools can write, and produces a single document with short
+explanations, summary tables and figures.</p>
+
+<p>The report is written as Markdown. Figures are saved as PNG files in a
+directory next to the report, named after it (for <tt>report.md</tt> the
+directory is <tt>report_plots</tt>), and referenced from the document with
+relative paths, so the report and its figure directory should be kept
+together.</p>
+
+<p>Every input is optional; the report contains a section for each input that
+is supplied, so the same tool serves a quick model summary and a full
+report:</p>
+
+<ul>
+	<li><b>load_model</b> adds a <em>Model</em> section describing the
+		estimator, its predictors, and, for an ensemble from
+		<em>r.learn.assembly</em>, the base models with their voting weights or
+		the learned stacking coefficients.</li>
+	<li><b>preds_file</b> (cross-validation predictions) adds a
+		<em>Cross-validation performance</em> section with per-fold score
+		summaries and a confusion matrix (classification) or a
+		predicted-versus-observed plot (regression).</li>
+	<li><b>classif_file</b> adds a <em>Per-class performance</em> table.</li>
+	<li><b>fimp_file</b> adds a <em>Variable contributions</em> section with a
+		permutation feature-importance table and bar chart.</li>
+	<li><b>param_file</b> adds a <em>Hyperparameter search</em> section with the
+		best combination and the ranked grid-search results.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The figures require <em>matplotlib</em> (see <tt>requirements.txt</tt>). If
+<em>matplotlib</em> is missing, the report is still written with its tables but
+without figures.</p>
+
+<p>Feature names for the <em>Variable contributions</em> section come from the
+<b>fimp_file</b>, as the saved model does not retain them.</p>
+
+<p>The problem type (classification or regression) is taken from the model when
+<b>load_model</b> is given. Otherwise it is guessed from the predictions, which
+is unreliable: a regression with few distinct integer responses can look like a
+classification, and a classification with many classes like a regression. When
+no model is supplied, set the <b>mode</b> option explicitly to avoid the wrong
+metrics and figure being produced.</p>
+
+<p>The permutation feature importances written by <em>r.learn.train</em> and
+<em>r.learn.assembly</em> are computed on the training data, not on an
+independent validation set, so they describe how the fitted model uses each
+predictor rather than how it generalizes. The performance drop is measured with
+the model's tuning metric (Matthews correlation coefficient for classification,
+R-squared for regression).</p>
+
+<p>A full description of the training workflow (all model parameters,
+preprocessing settings, sample counts, random seed, class balancing,
+scikit-learn version) cannot be reconstructed from the inputs alone; only what
+the fitted model and CSV files record is included.</p>
+
+<p>A ROC curve is not produced: it needs the per-fold predicted probabilities,
+which the training tools do not currently save.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Train a model and build a report from its outputs:</p>
+
+<div class="code"><pre>
+# train, writing the cross-validation and importance outputs
+r.learn.train group=predictors training_points=training_pts field=class \
+    model_name=RandomForestClassifier save_model=model.gz cv=5 \
+    preds_file=preds.csv classif_file=classif.csv -f fimp_file=fimp.csv
+
+# assemble the report
+r.learn.report load_model=model.gz preds_file=preds.csv \
+    classif_file=classif.csv fimp_file=fimp.csv output=report.md
+</pre></div>
+
+<p>Report an ensemble model with a custom title:</p>
+
+<div class="code"><pre>
+r.learn.report load_model=ensemble.gz preds_file=preds.csv \
+    classif_file=classif.csv output=report.md \
+    title="Land cover ensemble"
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<a href="r.learn.assembly.html">r.learn.assembly</a>,
+<a href="r.learn.ml2.html">r.learn.ml2</a> (overview),
+<a href="r.learn.predict.html">r.learn.predict</a>,
+<a href="r.learn.train.html">r.learn.train</a>
+
+<h2>AUTHORS</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>
+
+<p>
+Built on the <i>r.learn.ml2</i> toolset by Steven Pawley.
