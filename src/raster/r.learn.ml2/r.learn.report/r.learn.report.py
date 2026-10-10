@@ -26,7 +26,7 @@
 # % keyword: report
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: load_model
 # % label: Fitted model file
 # % description: Model saved by r.learn.train or r.learn.assembly
@@ -34,7 +34,7 @@
 # % guisection: Inputs
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: classif_file
 # % label: Classification report csv
 # % description: Per-class metrics csv written by r.learn.train or r.learn.assembly
@@ -42,7 +42,7 @@
 # % guisection: Inputs
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: preds_file
 # % label: Cross-validation predictions csv
 # % description: Cross-validation predictions csv written by r.learn.train or r.learn.assembly
@@ -50,7 +50,7 @@
 # % guisection: Inputs
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: fimp_file
 # % label: Feature importances csv
 # % description: Permutation feature importances csv written by r.learn.train
@@ -58,7 +58,7 @@
 # % guisection: Inputs
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: param_file
 # % label: Hyperparameter search csv
 # % description: Hyperparameter tuning results csv written by r.learn.train
@@ -66,10 +66,11 @@
 # % guisection: Inputs
 # %end
 
-# %option G_OPT_F_OUTPUT
+# %option G_OPT_F_BIN_OUTPUT
 # % key: output
 # % label: Output report file
 # % description: Path to write the Markdown report
+# % guisection: Output
 # % required: yes
 # %end
 
@@ -274,7 +275,27 @@ def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
     )
     lines.append("")
     lines.append(md_table(table, index_label="metric"))
-
+    lines.append("")
+    if mode == "classification":
+        lines.append(
+            "The confusion matrix below summarises the cross-validation "
+            "predictions. Each row is an observed (true) class and each "
+            "column a predicted class. So counts on the diagonal are "
+            "correct predictions and off-diagonal cells show which classes "
+            "are confused with which. A strong diagonal indicates good "
+            "agreement. Clusters off the diagonal point to systematic "
+            "confusion between specific classes."
+        )
+    else:
+        lines.append(
+            "The plot below compares predicted values against observed "
+            "values from the cross-validation. Each point is a sample, "
+            "and the dashed line marks perfect prediction (predicted = observed)."
+            " Points close to that line are accurate; systematic departure from "
+            "it indicates bias (consistent over- or under-prediction), while "
+            "vertical scatter around it reflects the size of the prediction error."
+        )
+    lines.append("")
     if make_plots:
         figure = _cv_figure(preds, mode, plots_dir)
         if figure is not None:
@@ -318,7 +339,8 @@ def _cv_figure(preds, mode, plots_dir):
             name = "predicted_vs_observed.png"
 
         fig.tight_layout()
-        fig.savefig(os.path.join(plots_dir, name), dpi=120)
+        plt.figure(figsize=(3, 3))
+        fig.savefig(os.path.join(plots_dir, name), dpi=100)
         plt.close(fig)
         return name
     except Exception as e:
