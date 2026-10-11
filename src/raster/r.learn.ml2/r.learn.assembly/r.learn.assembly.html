@@ -226,7 +226,7 @@ sample data set location.
 
 <p>
 First, we are going to generate some training pixels from an older (1996) land
-cover classification. 
+cover classification.
 
 <div class="code">
   <pre>
@@ -244,7 +244,7 @@ ensembly method.
   <pre>
 # 1. write a template for the chosen base models
 r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
-    write_config=ensemble.json 
+    write_config=ensemble.json
 
 # 2. (edit ensemble.json), then train with 5-fold outer cross-validation
 r.learn.assembly config=ensemble.json group=lsat7_2000 \

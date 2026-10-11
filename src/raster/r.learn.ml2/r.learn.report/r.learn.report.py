@@ -662,18 +662,15 @@ def response_curves(
         )
         return "\n".join(lines)
 
+    centered_intro = (
+        "The centered curves below start each sample at zero at the left of the "
+        "predictor's range, so the spread shows how differently the predictor "
+        "affects individual samples, that is, its interaction with the other "
+        "predictors."
+    )
     variants = [("Normal", False, None)]
     if show_centered:
-        variants.append(
-            (
-                "Centered",
-                True,
-                "The centered curves below start each sample at zero at the left "
-                "of the predictor's range, so the spread shows how differently "
-                "the predictor affects individual samples, that is, its "
-                "interaction with the other predictors.",
-            )
-        )
+        variants.append(("Centered", True, centered_intro))
 
     # When both variants are shown they get a group heading (### Normal / ###
     # Centered) and the per-class figures drop a level to ####; with a single
