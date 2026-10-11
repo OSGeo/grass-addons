@@ -1,97 +1,115 @@
 <h2>DESCRIPTION</h2>
 
-<p><em>r.learn.report</em> assembles a readable report from the outputs of
-<em>r.learn.train</em> and <em>r.learn.assembly</em>. It takes a fitted model
-and the optional cross-validation, feature-importance and hyperparameter CSV
-files that those tools can write, and produces a single document with short
-explanations, summary tables and figures.</p>
+<i>r.learn.report</i> creates a report using the outputs of <i>r.learn.train</i>
+and <i>r.learn.assembly</i>. It takes a fitted model and the optional
+cross-validation, feature-importance and hyperparameter CSV files that those
+tools can write, and produces a document with short explanations, summary tables
+and figures.
 
-<p>The report is written as Markdown. Figures are saved as PNG files in a
-directory next to the report, named after it (for <tt>report.md</tt> the
-directory is <tt>report_plots</tt>), and referenced from the document with
-relative paths, so the report and its figure directory should be kept
-together.</p>
+<p>
+The report is written as Markdown. Figures are saved as PNG files in a directory
+next to the report, named after it (for <tt>report.md</tt> the directory is
+<tt>report_plots</tt>), and referenced from the document with relative paths, so
+the report and its figure directory should be kept together.
 
-<p>Every input is optional; the report contains a section for each input that
-is supplied, so the same tool serves a quick model summary and a full
-report:</p>
+<p>
+Every input is optional; the report contains a section for each input that is
+supplied, so the same tool serves a quick model summary and a full report:
 
 <ul>
-	<li><b>load_model</b> adds a <em>Model</em> section describing the
-		estimator, its predictors, and, for an ensemble from
-		<em>r.learn.assembly</em>, the base models with their voting weights or
-		the learned stacking coefficients.</li>
-	<li><b>preds_file</b> (cross-validation predictions) adds a
-		<em>Cross-validation performance</em> section with per-fold score
-		summaries and a confusion matrix (classification) or a
-		predicted-versus-observed plot (regression).</li>
-	<li><b>classif_file</b> adds a <em>Per-class performance</em> table.</li>
-	<li><b>fimp_file</b> adds a <em>Variable contributions</em> section with a
-		permutation feature-importance table and bar chart.</li>
-	<li><b>param_file</b> adds a <em>Hyperparameter search</em> section with the
-		best combination and the ranked grid-search results.</li>
+  <li><b>load_model</b> adds a <i>Model</i> section describing the estimator,
+  its predictors, and, for an ensemble from <i>r.learn.assembly</i>, the base
+  models with their voting weights or the learned stacking coefficients.</li>
+  <li><b>preds_file</b> (cross-validation predictions) adds a
+  <i>Cross-validation performance</i> section with per-fold score summaries and
+  a confusion matrix (classification) or a predicted-versus-observed plot
+  (regression).</li>
+  <li><b>classif_file</b> adds a <i>Per-class performance</i> table.</li>
+  <li><b>fimp_file</b> adds a <i>Variable contributions</i> section with a
+  permutation feature-importance table and bar chart.</li>
+  <li><b>param_file</b> adds a <i>Hyperparameter search</i> section with the
+  best combination and the ranked grid-search results (not available for
+  r.learn.assembly).</li>
+  <li><b>training_file</b> adds a <i>Response curves</i> section with a
+  partial-dependence panel per predictor, showing how the prediction changes as
+  that predictor is varied. This also needs <b>load_model</b>.</li>
 </ul>
 
 <h2>NOTES</h2>
 
-<p>The figures require <em>matplotlib</em> (see <tt>requirements.txt</tt>). If
-<em>matplotlib</em> is missing, the report is still written with its tables but
-without figures.</p>
+The figures require <i>matplotlib</i> (see <tt>requirements.txt</tt>). If
+<i>matplotlib</i> is missing, the report is still written with its tables but
+without figures.
 
-<p>Feature names for the <em>Variable contributions</em> section come from the
-<b>fimp_file</b>, as the saved model does not retain them.</p>
+<p>
+Feature names for the <i>Variable contributions</i> section come from the
+<b>fimp_file</b>, as the saved model does not retain them.
 
-<p>The problem type (classification or regression) is taken from the model when
-<b>load_model</b> is given. Otherwise it is guessed from the predictions, which
-is unreliable: a regression with few distinct integer responses can look like a
-classification, and a classification with many classes like a regression. When
-no model is supplied, set the <b>mode</b> option explicitly to avoid the wrong
-metrics and figure being produced.</p>
+<p>
+The type of model (classification or regression) is taken from the model when
+<b>load_model</b> is given. When no model is supplied, it is guessed from the
+predictions. As this is unreliable, it is better to set the <b>mode</b> option
+explicitly.
 
-<p>The permutation feature importances written by <em>r.learn.train</em> and
-<em>r.learn.assembly</em> are computed on the training data, not on an
-independent validation set, so they describe how the fitted model uses each
-predictor rather than how it generalizes. The performance drop is measured with
-the model's tuning metric (Matthews correlation coefficient for classification,
-R-squared for regression).</p>
+<p>
+The permutation feature importances written by <i>r.learn.train</i> and
+<i>r.learn.assembly</i> are computed on the training data, not on an independent
+validation set, so they describe how the fitted model uses each predictor rather
+than how it generalizes. The performance drop is measured with the model's
+tuning metric (Matthews correlation coefficient for classification, R-squared
+for regression).
 
-<p>A full description of the training workflow (all model parameters,
-preprocessing settings, sample counts, random seed, class balancing,
-scikit-learn version) cannot be reconstructed from the inputs alone; only what
-the fitted model and CSV files record is included.</p>
-
-<p>A ROC curve is not produced: it needs the per-fold predicted probabilities,
-which the training tools do not currently save.</p>
+<p>
+The <i>Response curves</i> section draws partial-dependence curves. For each
+predictor, it uses the predicted outcome as that predictor is varied across its
+range (5th to 95th percentile) while the other predictors are marginalized over
+the training data. By default, each panel also shows the individual conditional
+expectation (ICE) curves of the samples. If you only want the average curves,
+set <b>curves</b> to <tt>pdp</tt>. The section needs both the fitted model
+(<b>load_model</b>) and the extracted training data saved with the
+<tt>save_training</tt> option of <i>r.learn.train</i> or <i>r.learn.assembly</i>
+(<b>training_file</b>). A classification model produces one figure per class.
+Note that where predictors are strongly correlated, parts of a curve can reach
+into predictor combinations that do not occur in the data. So interpret those
+regions with care. Curves cannot be drawn for an estimator that provides no
+class probabilities, such as a hard-voting ensemble.
 
 <h2>EXAMPLES</h2>
 
-<p>Train a model and build a report from its outputs:</p>
+Train a model and build a report from its outputs:
 
-<div class="code"><pre>
-# train, writing the cross-validation and importance outputs
+<div class="code">
+  <pre>
+# train, writing the cross-validation, importance and training-data outputs
 r.learn.train group=predictors training_points=training_pts field=class \
     model_name=RandomForestClassifier save_model=model.gz cv=5 \
-    preds_file=preds.csv classif_file=classif.csv -f fimp_file=fimp.csv
+    preds_file=preds.csv classif_file=classif.csv -f fimp_file=fimp.csv \
+    save_training=training.csv
 
-# assemble the report
+# assemble the report, including response curves from the training data
 r.learn.report load_model=model.gz preds_file=preds.csv \
-    classif_file=classif.csv fimp_file=fimp.csv output=report.md
-</pre></div>
+    classif_file=classif.csv fimp_file=fimp.csv training_file=training.csv \
+    output=report.md
+</pre>
+</div>
 
-<p>Report an ensemble model with a custom title:</p>
+<p>
+Report an ensemble model with a custom title:
 
-<div class="code"><pre>
+<div class="code">
+  <pre>
 r.learn.report load_model=ensemble.gz preds_file=preds.csv \
     classif_file=classif.csv output=report.md \
     title="Land cover ensemble"
-</pre></div>
+</pre>
+</div>
 
 <h2>SEE ALSO</h2>
 
-<a href="r.learn.assembly.html">r.learn.assembly</a>,
-<a href="r.learn.ml2.html">r.learn.ml2</a> (overview),
-<a href="r.learn.predict.html">r.learn.predict</a>,
-<a href="r.learn.train.html">r.learn.train</a>
+<i><a href="r.learn.assembly.md">r.learn.assembly</a></i>, <i><a
+href="r.learn.ml2.md">r.learn.ml2</a></i>, <i><a
+href="r.learn.predict.md">r.learn.predict</a></i>, <i><a
+href="r.learn.train.md">r.learn.train</a></i>
 
 <h2>AUTHORS</h2>
 

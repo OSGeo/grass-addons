@@ -84,7 +84,7 @@
 # % guisection: Template
 # %end
 
-# %option G_OPT_F_INPUT
+# %option G_OPT_F_BIN_INPUT
 # % key: config
 # % label: Ensemble configuration file
 # % description: JSON file describing the base models, their parameters and (for voting) their weights

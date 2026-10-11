@@ -66,6 +66,14 @@
 # % guisection: Inputs
 # %end
 
+# %option G_OPT_F_BIN_INPUT
+# % key: training_file
+# % label: Training data csv
+# % description: Extracted training data csv written with the save_training option of r.learn.train or r.learn.assembly; needed, together with load_model, for the response curves
+# % required: no
+# % guisection: Inputs
+# %end
+
 # %option G_OPT_F_BIN_OUTPUT
 # % key: output
 # % label: Output report file
@@ -93,10 +101,22 @@
 # % required: no
 # %end
 
+# %option
+# % key: curves
+# % type: string
+# % label: Response-curve content
+# % description: Partial-dependence response curves with individual conditional expectation (ICE) lines (pdp_ice) or the averaged curves only (pdp)
+# % answer: pdp_ice
+# % options: pdp_ice,pdp
+# % required: no
+# % guisection: Output
+# %end
+
 # %rules
 # % required: load_model,classif_file,preds_file,fimp_file,param_file
 # %end
 
+import math
 import os
 from datetime import datetime
 
@@ -317,35 +337,41 @@ def _cv_figure(preds, mode, plots_dir):
     """Create and save the cross-validation diagnostic figure, returning its
     file name (or None on failure)."""
     import matplotlib.pyplot as plt
-    from sklearn.metrics import ConfusionMatrixDisplay, PredictionErrorDisplay
 
     try:
-        if mode == "classification":
-            fig, ax = plt.subplots(figsize=(5, 5))
-            ConfusionMatrixDisplay.from_predictions(
-                preds["y_true"], preds["y_pred"], ax=ax, colorbar=False
-            )
-            ax.set_title("Cross-validation confusion matrix")
-            name = "confusion_matrix.png"
-        else:
-            fig, ax = plt.subplots(figsize=(5, 5))
-            PredictionErrorDisplay.from_predictions(
-                preds["y_true"],
-                preds["y_pred"],
-                kind="actual_vs_predicted",
-                ax=ax,
-            )
-            ax.set_title("Cross-validation predicted vs observed")
-            name = "predicted_vs_observed.png"
-
-        fig.tight_layout()
-        plt.figure(figsize=(3, 3))
+        fig, name = _build_cv_figure(preds, mode)
         fig.savefig(os.path.join(plots_dir, name), dpi=100)
         plt.close(fig)
         return name
     except Exception as e:
         gs.warning(_("Could not create cross-validation figure: {}").format(e))
         return None
+
+
+def _build_cv_figure(preds, mode):
+    """Build the cross-validation diagnostic figure, returning it together with
+    the file name to save it under."""
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import ConfusionMatrixDisplay, PredictionErrorDisplay
+
+    fig, ax = plt.subplots(figsize=(3, 3))
+    if mode == "classification":
+        ConfusionMatrixDisplay.from_predictions(
+            preds["y_true"], preds["y_pred"], ax=ax, colorbar=False
+        )
+        ax.set_title("Cross-validation confusion matrix")
+        name = "confusion_matrix.png"
+    else:
+        PredictionErrorDisplay.from_predictions(
+            preds["y_true"],
+            preds["y_pred"],
+            kind="actual_vs_predicted",
+            ax=ax,
+        )
+        ax.set_title("Cross-validation predicted vs observed")
+        name = "predicted_vs_observed.png"
+    fig.tight_layout()
+    return fig, name
 
 
 def classification_table(classif_file):
@@ -421,20 +447,193 @@ def _importance_figure(fimp, plots_dir):
     import matplotlib.pyplot as plt
 
     try:
-        ordered = fimp.sort_values("importance")
-        fig, ax = plt.subplots(figsize=(6, max(2, 0.4 * len(ordered) + 1)))
-        xerr = ordered["std"] if "std" in ordered.columns else None
-        ax.barh(ordered["feature"], ordered["importance"], xerr=xerr)
-        ax.set_xlabel("importance")
-        ax.set_title("Permutation feature importance")
-        fig.tight_layout()
-        name = "feature_importance.png"
+        fig, name = _build_importance_figure(fimp)
         fig.savefig(os.path.join(plots_dir, name), dpi=120)
         plt.close(fig)
         return name
     except Exception as e:
         gs.warning(_("Could not create feature-importance figure: {}").format(e))
         return None
+
+
+def _build_importance_figure(fimp):
+    """Build the feature-importance bar chart, returning it together with the
+    file name to save it under."""
+    import matplotlib.pyplot as plt
+
+    ordered = fimp.sort_values("importance")
+    fig, ax = plt.subplots(figsize=(6, max(2, 0.4 * len(ordered) + 1)))
+    xerr = ordered["std"] if "std" in ordered.columns else None
+    ax.barh(ordered["feature"], ordered["importance"], xerr=xerr)
+    ax.set_xlabel("importance")
+    ax.set_title("Permutation feature importance")
+    fig.tight_layout()
+    return fig, "feature_importance.png"
+
+
+def _feature_order(feature_names, fimp_file):
+    """Return predictor column indices ordered most-important first.
+
+    Ordering uses the feature-importance file when it is available and falls
+    back to the order the predictors appear in the training data otherwise.
+    """
+    default = list(range(len(feature_names)))
+    if not fimp_file:
+        return default
+
+    import pandas as pd
+
+    try:
+        fimp = pd.read_csv(fimp_file)
+        ranked = list(fimp.sort_values("importance", ascending=False)["feature"])
+    except Exception:
+        return default
+
+    index_of = {name: i for i, name in enumerate(feature_names)}
+    order = [index_of[name] for name in ranked if name in index_of]
+    order += [i for i in default if i not in order]
+    return order
+
+
+def response_curves(
+    training_file, model_file, fimp_file, plots_dir, plots_rel, make_plots, kind
+):
+    """Return a Markdown section with partial-dependence response curves.
+
+    One panel per predictor shows how the predicted outcome changes as that
+    predictor is varied across its range, with the other predictors
+    marginalized over the training data. A multiclass model produces one
+    figure per class.
+    """
+    import joblib
+    import pandas as pd
+
+    data = pd.read_csv(training_file)
+    # save_training_data (rlearnlib.utils) writes the predictor columns first,
+    # followed by these bookkeeping columns.
+    meta_cols = ["response", "cat", "class_labels", "groups"]
+    feature_cols = [c for c in data.columns if c not in meta_cols]
+    if not feature_cols:
+        gs.warning(
+            _("No predictor columns found in {}; skipping response curves.").format(
+                training_file
+            )
+        )
+        return None
+    predictors = data[feature_cols].to_numpy()
+    # Strip any @mapset qualifier so the labels match the importance table.
+    feature_names = [c.split("@")[0] for c in feature_cols]
+
+    loaded = joblib.load(model_file)
+    estimator = loaded[0] if isinstance(loaded, tuple) else loaded
+    class_labels = loaded[2] if isinstance(loaded, tuple) and len(loaded) > 2 else None
+
+    lines = ["## Response curves", ""]
+    lines.append(
+        "Partial-dependence curves show how the predicted outcome changes as "
+        "one predictor is varied across its range (5th to 95th percentile), "
+        "while the other predictors are marginalized over the training data. "
+        "They summarize the direction and shape of each predictor's effect. "
+        "For a classification model the vertical axis is the predicted "
+        "probability of the class; for a regression model it is the predicted "
+        "value."
+    )
+    lines.append("")
+    lines.append(
+        "The curves are evaluated on the saved training data. Where predictors "
+        "are strongly correlated, parts of a curve can reach into predictor "
+        "combinations that do not occur in the data, so read those regions with "
+        "care."
+    )
+    if kind == "both":
+        lines.append("")
+        lines.append(
+            "The faint lines are individual conditional expectation (ICE) "
+            "curves, one per sample; the bold line is their average, the "
+            "partial-dependence curve. A wide spread between the ICE lines "
+            "indicates that the predictor's effect depends on the values of the "
+            "other predictors (an interaction)."
+        )
+
+    if not make_plots:
+        return "\n".join(lines)
+
+    order = _feature_order(feature_names, fimp_file)
+    # Multiclass models need a target class per plot; regression and binary
+    # classification do not (the positive class is used for the latter).
+    classes = list(getattr(estimator, "classes_", []))
+    targets = classes if len(classes) > 2 else [None]
+
+    produced = False
+    for target in targets:
+        figure = _response_figure(
+            estimator, predictors, order, feature_names, kind, target, plots_dir
+        )
+        if figure is None:
+            continue
+        produced = True
+        if target is None:
+            caption = "Partial-dependence response curves."
+        else:
+            label = class_labels.get(target, target) if class_labels else target
+            caption = "Partial-dependence response curves for class {}.".format(label)
+        lines.append("")
+        lines.append("![{}]({})".format(caption, plots_rel + "/" + figure))
+        lines.append("")
+        lines.append("*{}*".format(caption))
+
+    if not produced:
+        lines.append("")
+        lines.append(
+            "Response curves could not be produced for this model. Partial "
+            "dependence needs class probabilities, which some estimators (such "
+            "as a hard-voting ensemble) do not provide."
+        )
+
+    return "\n".join(lines)
+
+
+def _response_figure(estimator, X, features, feature_names, kind, target, plots_dir):
+    """Create and save one partial-dependence figure, returning its file name
+    (or None on failure)."""
+    import matplotlib.pyplot as plt
+
+    try:
+        fig, name = _build_response_figure(
+            estimator, X, features, feature_names, kind, target
+        )
+        fig.savefig(os.path.join(plots_dir, name), dpi=110)
+        plt.close(fig)
+        return name
+    except Exception as e:
+        gs.warning(_("Could not create response-curve figure: {}").format(e))
+        return None
+
+
+def _build_response_figure(estimator, X, features, feature_names, kind, target):
+    """Build a partial-dependence figure (one panel per predictor), returning
+    it together with the file name to save it under."""
+    from sklearn.inspection import PartialDependenceDisplay
+
+    n_cols = min(3, len(features))
+    n_rows = math.ceil(len(features) / n_cols)
+    display = PartialDependenceDisplay.from_estimator(
+        estimator,
+        X,
+        features,
+        feature_names=feature_names,
+        target=target,
+        kind=kind,
+        n_cols=n_cols,
+    )
+    display.figure_.set_size_inches(n_cols * 3.0, n_rows * 2.8)
+    display.figure_.tight_layout()
+    name = (
+        "response_curves.png"
+        if target is None
+        else f"response_curves_class_{target}.png"
+    )
+    return display.figure_, name
 
 
 def hyperparameter_search(param_file):
@@ -479,9 +678,11 @@ def main():
     preds_file = options["preds_file"]
     fimp_file = options["fimp_file"]
     param_file = options["param_file"]
+    training_file = options["training_file"]
     output = options["output"]
     title = options["title"]
     mode_option = options["mode"]
+    curves = options["curves"]
 
     for path, key in (
         (load_model, "load_model"),
@@ -489,6 +690,7 @@ def main():
         (preds_file, "preds_file"),
         (fimp_file, "fimp_file"),
         (param_file, "param_file"),
+        (training_file, "training_file"),
     ):
         if path and not os.path.exists(path):
             gs.fatal(_("Input file for {} does not exist: {}").format(key, path))
@@ -556,6 +758,28 @@ def main():
         sections.append(
             feature_importances(fimp_file, plots_dir, plots_rel, make_plots)
         )
+
+    if training_file:
+        if not load_model:
+            gs.warning(
+                _(
+                    "training_file was given without load_model; response curves "
+                    "need the fitted model and are skipped."
+                )
+            )
+        else:
+            kind = "both" if curves == "pdp_ice" else "average"
+            section = response_curves(
+                training_file,
+                load_model,
+                fimp_file,
+                plots_dir,
+                plots_rel,
+                make_plots,
+                kind,
+            )
+            if section is not None:
+                sections.append(section)
 
     if param_file:
         section = hyperparameter_search(param_file)
