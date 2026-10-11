@@ -105,10 +105,25 @@
 # % key: curves
 # % type: string
 # % label: Response-curve content
-# % description: Partial-dependence response curves with individual conditional expectation (ICE) lines (pdp_ice) or the averaged curves only (pdp)
-# % answer: pdp_ice
-# % options: pdp_ice,pdp
+# % description: Median with 25-75 and 10-90 percentile bands (band), individual conditional expectation (ICE) curves (pdp_ice), or the mean curve only (pdp)
+# % answer: band
+# % options: band,pdp_ice,pdp
 # % required: no
+# % guisection: Output
+# %end
+
+# %option G_OPT_M_NPROCS
+# % key: nprocs
+# % label: Number of processor threads to use
+# % description: Number of cores used to compute the response curves, -2 is n_cores-1
+# % answer: -2
+# % guisection: Output
+# %end
+
+# %flag
+# % key: c
+# % label: Also add centered response curves
+# % description: Add a second set of centered curves (each shifted to start at zero) alongside the normal ones, so the spread shows how differently the predictor affects individual samples, that is, interaction (band and pdp_ice only)
 # % guisection: Output
 # %end
 
@@ -123,6 +138,13 @@ from datetime import datetime
 import grass.script as gs
 
 gs.utils.set_path(modulename="r.learn.ml2", dirname="rlearnlib", path="..")
+
+# Partial-dependence is computed by the "brute" method for ensembles, whose cost
+# scales with the number of training rows; a random subsample keeps it fast
+# while giving essentially the same curves. The grid resolution is the number of
+# points each predictor is evaluated at.
+PDP_MAX_SAMPLES = 500
+PDP_GRID_RESOLUTION = 50
 
 
 def md_table(frame, index_label=""):
@@ -281,7 +303,10 @@ def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
     scoring, _search_scorer = scoring_metrics(mode)
 
     rows = {}
-    grouped = preds.groupby("fold")
+    # select the score columns so the "fold" grouping column is not passed to
+    # the scoring function (avoids a pandas FutureWarning without changing the
+    # result)
+    grouped = preds.groupby("fold")[["y_true", "y_pred"]]
     for name, func in scoring.items():
         per_fold = grouped.apply(lambda x: func(x["y_true"], x["y_pred"]))
         rows[name] = {"mean": per_fold.mean(), "std": per_fold.std()}
@@ -496,7 +521,15 @@ def _feature_order(feature_names, fimp_file):
 
 
 def response_curves(
-    training_file, model_file, fimp_file, plots_dir, plots_rel, make_plots, kind
+    training_file,
+    model_file,
+    fimp_file,
+    plots_dir,
+    plots_rel,
+    make_plots,
+    curves,
+    centered,
+    nprocs,
 ):
     """Return a Markdown section with partial-dependence response curves.
 
@@ -506,6 +539,7 @@ def response_curves(
     figure per class.
     """
     import joblib
+    import numpy as np
     import pandas as pd
 
     data = pd.read_csv(training_file)
@@ -521,6 +555,15 @@ def response_curves(
         )
         return None
     predictors = data[feature_cols].to_numpy()
+    # Partial dependence re-evaluates the model over every row, so cap the data
+    # at a random subsample to keep it fast (the curves are essentially the
+    # same). A fixed seed keeps the subsample reproducible.
+    n_samples = predictors.shape[0]
+    subsampled = n_samples > PDP_MAX_SAMPLES
+    if subsampled:
+        rng = np.random.default_rng(1)
+        keep = rng.choice(n_samples, size=PDP_MAX_SAMPLES, replace=False)
+        predictors = predictors[keep]
     # Strip any @mapset qualifier so the labels match the importance table.
     feature_names = [c.split("@")[0] for c in feature_cols]
 
@@ -533,107 +576,240 @@ def response_curves(
         "Partial-dependence curves show how the predicted outcome changes as "
         "one predictor is varied across its range (5th to 95th percentile), "
         "while the other predictors are marginalized over the training data. "
-        "They summarize the direction and shape of each predictor's effect. "
         "For a classification model the vertical axis is the predicted "
         "probability of the class; for a regression model it is the predicted "
         "value."
     )
     lines.append("")
-    lines.append(
-        "The curves are evaluated on the saved training data. Where predictors "
-        "are strongly correlated, parts of a curve can reach into predictor "
-        "combinations that do not occur in the data, so read those regions with "
-        "care."
-    )
-    if kind == "both":
-        lines.append("")
+    if curves == "pdp":
+        lines.append("The line is the mean response (the partial-dependence curve).")
+    elif curves == "band":
+        lines.append(
+            "The solid line is the median response across samples and the dashed "
+            "line their mean; a gap between them points to a skewed or "
+            "outlier-influenced spread. The shaded areas are the 25-75% and "
+            "10-90% ranges of the per-sample responses."
+        )
+    else:  # pdp_ice
         lines.append(
             "The faint lines are individual conditional expectation (ICE) "
-            "curves, one per sample; the bold line is their average, the "
-            "partial-dependence curve. A wide spread between the ICE lines "
-            "indicates that the predictor's effect depends on the values of the "
-            "other predictors (an interaction)."
+            "curves, one per sample; the solid line is their median and the "
+            "dashed line their mean."
         )
+
+    # centering adds a second set of curves (the interaction view) alongside the
+    # normal ones, so both can be compared; it only applies where there is a
+    # spread to center.
+    show_centered = centered and curves in ("band", "pdp_ice")
+    if centered and curves == "pdp":
+        gs.warning(_("The -c flag has no effect with curves=pdp and is ignored."))
+
+    if curves in ("band", "pdp_ice"):
+        lines.append("")
+        spread = (
+            "A wide spread means the predicted outcome varies a lot across "
+            "samples at a given predictor value, which reflects the influence of "
+            "the other predictors. This is not in itself an interaction: even "
+            "purely additive effects produce vertically shifted curves."
+        )
+        if not show_centered:
+            spread += (
+                " To read interaction, rerun with the -c flag, which adds "
+                "centered curves where the spread shows how differently the "
+                "predictor acts on individual samples."
+            )
+        lines.append(spread)
+
+    lines.append("")
+    data_note = "The curves are evaluated on the saved training data"
+    if subsampled:
+        data_note += " (a random subsample of {} of the {} rows)".format(
+            PDP_MAX_SAMPLES, n_samples
+        )
+    lines.append(
+        data_note + ". Where predictors are strongly correlated, parts of a "
+        "curve can reach into predictor combinations that do not occur in the "
+        "data, so read those regions with care."
+    )
 
     if not make_plots:
         return "\n".join(lines)
 
     order = _feature_order(feature_names, fimp_file)
-    # Multiclass models need a target class per plot; regression and binary
-    # classification do not (the positive class is used for the latter).
+    # Multiclass models produce one figure per class; binary and regression
+    # models have a single output. The output axis of the partial-dependence
+    # result is ordered like estimator.classes_.
     classes = list(getattr(estimator, "classes_", []))
-    targets = classes if len(classes) > 2 else [None]
+    is_classification = len(classes) > 0
+    if len(classes) > 2:
+        targets = [(c, i) for i, c in enumerate(classes)]
+    else:
+        targets = [(None, 0)]
 
-    produced = False
-    for target in targets:
-        figure = _response_figure(
-            estimator, predictors, order, feature_names, kind, target, plots_dir
-        )
-        if figure is None:
-            continue
-        produced = True
-        if target is None:
-            caption = "Partial-dependence response curves."
-        else:
-            label = class_labels.get(target, target) if class_labels else target
-            caption = "Partial-dependence response curves for class {}.".format(label)
-        lines.append("")
-        lines.append("![{}]({})".format(caption, plots_rel + "/" + figure))
-        lines.append("")
-        lines.append("*{}*".format(caption))
-
-    if not produced:
+    # Partial dependence is computed once for all predictors (one call returns
+    # every class output) and reused for each class and for the normal and
+    # centered figures.
+    kind = "average" if curves == "pdp" else "both"
+    try:
+        results = _compute_pd(estimator, predictors, order, kind, nprocs)
+    except Exception as e:
+        gs.warning(_("Could not compute response curves: {}").format(e))
         lines.append("")
         lines.append(
             "Response curves could not be produced for this model. Partial "
             "dependence needs class probabilities, which some estimators (such "
             "as a hard-voting ensemble) do not provide."
         )
+        return "\n".join(lines)
+
+    variants = [("Normal", False, None)]
+    if show_centered:
+        variants.append(
+            (
+                "Centered",
+                True,
+                "The centered curves below start each sample at zero at the left "
+                "of the predictor's range, so the spread shows how differently "
+                "the predictor affects individual samples, that is, its "
+                "interaction with the other predictors.",
+            )
+        )
+
+    # When both variants are shown they get a group heading (### Normal / ###
+    # Centered) and the per-class figures drop a level to ####; with a single
+    # variant the per-class figures stay at ###.
+    grouped = len(variants) > 1
+    class_level = "####" if grouped else "###"
+
+    for group_name, is_centered, intro in variants:
+        if grouped:
+            lines.append("")
+            lines.append("### {} response curves".format(group_name))
+        if intro:
+            lines.append("")
+            lines.append(intro)
+        for target, target_idx in targets:
+            name = _render_response_figure(
+                results,
+                order,
+                feature_names,
+                curves,
+                is_centered,
+                target,
+                target_idx,
+                is_classification,
+                plots_dir,
+            )
+            prefix = (
+                "Centered response curves"
+                if is_centered
+                else "Partial-dependence response curves"
+            )
+            if target is None:
+                caption = prefix + "."
+            else:
+                # fall back to the raw class value when there is no label
+                label = class_labels.get(target, target) if class_labels else target
+                caption = "{} for class {}.".format(prefix, label)
+                lines.append("")
+                lines.append("{} Class {}".format(class_level, label))
+            lines.append("")
+            lines.append("![{}]({})".format(caption, plots_rel + "/" + name))
+            lines.append("")
+            lines.append("*{}*".format(caption))
 
     return "\n".join(lines)
 
 
-def _response_figure(estimator, X, features, feature_names, kind, target, plots_dir):
-    """Create and save one partial-dependence figure, returning its file name
-    (or None on failure)."""
-    import matplotlib.pyplot as plt
+def _compute_pd(estimator, X, features, kind, n_jobs):
+    """Compute partial dependence once per predictor (one call returns every
+    class output), parallelized across predictors since the low-level function
+    is not parallel on its own. Raises if the estimator cannot be evaluated
+    (e.g. a hard-voting ensemble with no probabilities)."""
+    from joblib import Parallel, delayed
+    from sklearn.inspection import partial_dependence
 
-    try:
-        fig, name = _build_response_figure(
-            estimator, X, features, feature_names, kind, target
+    return Parallel(n_jobs=n_jobs)(
+        delayed(partial_dependence)(
+            estimator, X, features=[f], kind=kind, grid_resolution=PDP_GRID_RESOLUTION
         )
-        fig.savefig(os.path.join(plots_dir, name), dpi=110)
-        plt.close(fig)
-        return name
-    except Exception as e:
-        gs.warning(_("Could not create response-curve figure: {}").format(e))
-        return None
+        for f in features
+    )
 
 
-def _build_response_figure(estimator, X, features, feature_names, kind, target):
-    """Build a partial-dependence figure (one panel per predictor), returning
-    it together with the file name to save it under."""
-    from sklearn.inspection import PartialDependenceDisplay
+def _render_response_figure(
+    results,
+    features,
+    feature_names,
+    curves,
+    centered,
+    target,
+    target_idx,
+    is_classification,
+    plots_dir,
+):
+    """Render and save one response-curve figure (one panel per predictor) from
+    precomputed partial-dependence results, returning its file name. Each panel
+    shows the mean curve (pdp), the ICE curves plus median and mean (pdp_ice),
+    or the median with 25-75 and 10-90 percentile bands and the mean (band).
+    When *centered*, each curve is shifted to start at zero."""
+    import matplotlib.pyplot as plt
+    import numpy as np
 
     n_cols = min(3, len(features))
     n_rows = math.ceil(len(features) / n_cols)
-    display = PartialDependenceDisplay.from_estimator(
-        estimator,
-        X,
-        features,
-        feature_names=feature_names,
-        target=target,
-        kind=kind,
-        n_cols=n_cols,
+    fig, axes = plt.subplots(
+        n_rows, n_cols, figsize=(n_cols * 3.0, n_rows * 2.8), squeeze=False
     )
-    display.figure_.set_size_inches(n_cols * 3.0, n_rows * 2.8)
-    display.figure_.tight_layout()
-    name = (
-        "response_curves.png"
-        if target is None
-        else f"response_curves_class_{target}.png"
-    )
-    return display.figure_, name
+    flat = axes.ravel()
+
+    for panel, (f, res) in enumerate(zip(features, results)):
+        ax = flat[panel]
+        grid = np.asarray(res["grid_values"][0])
+        avg = np.asarray(res["average"])[target_idx]
+        if centered:
+            avg = avg - avg[0]
+
+        if curves == "pdp":
+            ax.plot(grid, avg, color="C0", lw=2.0, label="mean")
+        else:
+            # per-sample ICE values for the target output
+            ind = np.asarray(res["individual"])[target_idx]
+            if centered:
+                ind = ind - ind[:, [0]]
+            median = np.median(ind, axis=0)
+            mean = ind.mean(axis=0)
+
+            if curves == "pdp_ice":
+                ax.plot(grid, ind.T, color="0.6", lw=0.3, alpha=0.3)
+            else:  # band
+                p10, p90 = np.percentile(ind, [10, 90], axis=0)
+                p25, p75 = np.percentile(ind, [25, 75], axis=0)
+                ax.fill_between(grid, p10, p90, color="C0", alpha=0.15, label="10-90%")
+                ax.fill_between(grid, p25, p75, color="C0", alpha=0.30, label="25-75%")
+
+            ax.plot(grid, median, color="C0", lw=2.0, label="median")
+            ax.plot(grid, mean, color="C3", lw=1.3, ls="--", label="mean")
+
+        ax.set_xlabel(feature_names[f])
+        if panel % n_cols == 0:
+            base = "predicted probability" if is_classification else "predicted value"
+            ax.set_ylabel(("change in " if centered else "") + base)
+
+    for extra in range(len(features), len(flat)):
+        flat[extra].set_visible(False)
+
+    handles, labels = flat[0].get_legend_handles_labels()
+    if handles:
+        flat[0].legend(handles, labels, fontsize="small", framealpha=0.6)
+
+    fig.tight_layout()
+    suffix = "_centered" if centered else ""
+    cls = "" if target is None else "_class_{}".format(target)
+    name = "response_curves{}{}.png".format(suffix, cls)
+    fig.savefig(os.path.join(plots_dir, name), dpi=110)
+    plt.close(fig)
+    return name
 
 
 def hyperparameter_search(param_file):
@@ -683,6 +859,8 @@ def main():
     title = options["title"]
     mode_option = options["mode"]
     curves = options["curves"]
+    nprocs = int(options["nprocs"])
+    centered = flags["c"]
 
     for path, key in (
         (load_model, "load_model"),
@@ -731,6 +909,7 @@ def main():
     mode = None if mode_option == "auto" else mode_option
 
     if load_model:
+        gs.message(_("Reading model ..."))
         detected, section = model_overview(load_model)
         sections.append(section)
         if mode is None:
@@ -747,14 +926,17 @@ def main():
         mode = "classification"
 
     if preds_file:
+        gs.message(_("Summarizing cross-validation performance ..."))
         sections.append(
             cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots)
         )
 
     if classif_file:
+        gs.message(_("Adding classification report ..."))
         sections.append(classification_table(classif_file))
 
     if fimp_file:
+        gs.message(_("Adding feature importances ..."))
         sections.append(
             feature_importances(fimp_file, plots_dir, plots_rel, make_plots)
         )
@@ -768,7 +950,12 @@ def main():
                 )
             )
         else:
-            kind = "both" if curves == "pdp_ice" else "average"
+            gs.message(
+                _(
+                    "Computing response curves (this can be slow for large "
+                    "ensembles) ..."
+                )
+            )
             section = response_curves(
                 training_file,
                 load_model,
@@ -776,12 +963,15 @@ def main():
                 plots_dir,
                 plots_rel,
                 make_plots,
-                kind,
+                curves,
+                centered,
+                nprocs,
             )
             if section is not None:
                 sections.append(section)
 
     if param_file:
+        gs.message(_("Summarizing hyperparameter search ..."))
         section = hyperparameter_search(param_file)
         if section is not None:
             sections.append(section)

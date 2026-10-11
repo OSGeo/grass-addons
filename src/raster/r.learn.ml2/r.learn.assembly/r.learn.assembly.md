@@ -5,7 +5,8 @@ scikit-learn package into a single ensemble model and trains it on the predictor
 rasters of an imagery group, using labelled pixels or training points as the
 response. It is a companion to *r.learn.train*, which trains one estimator at a
 time. The fitted ensemble model can be used in *r.learn.predict* like a model
-from *r.learn.train*.
+from *r.learn.train*. For more information about the models and their
+hyper-parameters, see the manual page of *[r.learn.train](r.learn.train.md)*.
 
 Two ensemble strategies are supported through the **ensemble_type** option:
 
@@ -22,9 +23,8 @@ Two ensemble strategies are supported through the **ensemble_type** option:
   [Stacked generalization](https://scikit-learn.org/stable/modules/ensemble.html#stacking).
   The meta-model coefficients reported after training are the fitted
   coefficients of the meta-learner, not normalized per-model weights: a base
-  model can contribute several inputs (one per class in multiclass problems)
-  and the coefficients can be negative, so they are not directly comparable to
-  the fixed voting weights.
+  model can contribute several inputs and the coefficients can be negative, so
+  they are not directly comparable to the fixed voting weights.
 
 Both strategies work for classification and for regression, as long as every
 base model in the configuration is of the same kind (all classifiers or all
@@ -35,19 +35,28 @@ predictions (predict_proba), ideally with well-calibrated probabilities.
 
 The base models and their parameters are supplied in a JSON configuration file,
 while the shared settings (ensemble type, weighting, cross-validation,
-preprocessing) are module options. A typical run therefore has two steps.
+preprocessing) are module options. A typical run therefore has two steps. 
 
-1. **Write a configuration template.** Select the base models with the
-   **models** option and a path with **write_config**. The module writes a
-   JSON file with one entry per model, each listing the estimator's parameters
-   filled with their scikit-learn default values, and exits:
+1. **Write a configuration template.** The module writes a JSON file, filled
+   with each estimator's scikit-learn default values, and exits. It holds two
+   kinds of entry, kept separate:
+
+   - The **base models**, selected with the **models** option: one entry per
+     model. Note that it is also possible to select the same algorithm (e.g.,
+     Random Forest) more than once, using different parameter settings;
+   - The stacking **meta-model**, a single `final_estimator` entry selected with
+     the **final_estimator** option. It is written only for a stacking template
+     (the default **ensemble_type**) and defaults to LogisticRegression for
+     classification and RidgeCV for regression.
+
+   Give the output path with **write_config**:
 
    ```sh
    r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
        write_config=ensemble.json
    ```
 
-2. **Edit and run.** Adjust the parameters and (for voting) the weights in
+2. **Edit and run**, adjust the parameters and (for voting) the weights in
    `ensemble.json`, then pass it back with the **config** option together with
    the training data and the shared settings:
 
@@ -57,12 +66,19 @@ preprocessing) are module options. A typical run therefore has two steps.
        cv=5 inner_cv=5 save_model=ensemble.gz
    ```
 
+The configuration file (see below) is what drives the ensemble and gives it its
+flexibility. A benefit of the two-step approach is that the template already
+lists each estimator’s parameters, so you do not have to remember or look up
+which ones belong to the selected model.
+
 ### Configuration file format
 
 The configuration is a JSON object with one entry per base model. Each key is
 a free label used to identify the model in the ensemble and in the report;
 each value gives the estimator name, an optional voting **weight**, and the
-estimator parameters. For example:
+estimator parameters. The reserved key **final_estimator** describes the
+stacking meta-model rather than a base model: it takes an `estimator` and its
+`params` (no `weight`). For example:
 
 ```json
 {
@@ -71,15 +87,26 @@ estimator parameters. For example:
   "svc": {"estimator": "SVC", "weight": 1.0,
           "params": {"C": 10.0, "kernel": "rbf"}},
   "knn": {"estimator": "KNeighborsClassifier", "weight": 1.0,
-          "params": {"n_neighbors": 7}}
+          "params": {"n_neighbors": 7}},
+  "final_estimator": {"estimator": "LogisticRegression",
+          "params": {"C": 0.1, "max_iter": 500}}
 }
 ```
 
-Parameters that are not listed keep the estimator's default; parameters not
-valid for an estimator are ignored with a warning. The `weight` field is used
-only for voting ensembles and ignored for stacking. The seed (**random_state**)
-and the number of cores (**n_jobs**) are taken from the module options and
-should not be set in the file.
+Parameters that are not listed keep the estimator's default, while parameters
+that are not valid for an estimator are ignored with a warning. The `weight`
+field is used only for voting ensembles and ignored for stacking. The
+**final_estimator** entry is used only for stacking and ignored for voting; when
+it is absent, the meta-model falls back to the **final_estimator** module
+option. 
+
+The meta-model must be of the same kind (classifier or regressor) as the base
+models. The available meta-models are LogisticRegression, LogisticRegressionCV
+and RandomForestClassifier for classification, and RidgeCV, LinearRegression and
+RandomForestRegressor for regression. Note that RidgeCV and LogisticRegressionCV
+tune their own regularization internally. The seed (**random_state**) and the
+number of cores (**nprocs**) are taken from the module options and should not be
+set in the file.
 
 ### Cross-validation
 
@@ -105,18 +132,40 @@ trained on out-of-fold predictions that may share spatial groups across folds.
 
 ## NOTES
 
-Base-model hyperparameters are taken as given from the configuration file. There
-is no option to tune them using gridsearch. To choose good values, tune each
-candidate model on its own with *r.learn.train*, which performs a grid search
-when a hyperparameter is given a comma-separated list of values, and reports the
-best combination. The recommended workflow is:
+Base-model hyperparameters are taken from the configuration file. There is
+currently no option to tune them using grid search. For further tuning, one can
+use a similar approach as used by stacking libraries such as *SuperLearner* and
+*stacks*. Supply different models (estimators), including the same estimator
+repeated with different fixed hyperparameters, and let the ensemble combine
+them. For stacking, the meta-model learns how much to rely on each member, while
+for voting, the weights do. This avoids the optimistic bias that arises when
+base models are tuned on the same samples later used to fit and evaluate the
+ensemble.
 
-1. tune each candidate with *r.learn.train*, e.g.
-   `r.learn.train ... model_name=RandomForestClassifier n_estimators=100,300,500 max_depth=5,10,20 param_file=rf.csv`,
-   and note the reported best parameters;
-2. write a template with `r.learn.assembly models=... write_config=ensemble.json`;
-3. transcribe the tuned values into `ensemble.json`;
-4. train the ensemble with `r.learn.assembly config=ensemble.json ...`.
+The configuration makes this easy: the same estimator can appear several times
+under different keys, each independently editable. On the command line, list it
+more than once in the **models** option, and the template writes a separate entry
+for each, suffixing repeats to keep the keys unique (for example
+`GradientBoostingClassifier` and `GradientBoostingClassifier_2`). In the GUI an
+estimator can be selected only once, so add further copies by duplicating its
+entry in the JSON under a new key. Either way, a library of varied
+configurations lives in a single file:
+
+```sh
+r.learn.assembly \
+    models=GradientBoostingClassifier,GradientBoostingClassifier,RandomForestClassifier \
+    write_config=ensemble.json
+```
+
+For tuning the meta-model itself, select one of the self-tuning options, RidgeCV
+(the regression default) and LogisticRegressionCV. They select their own
+regularization strength internally by cross-validation. Their candidate grid and
+number of folds are set through the `final_estimator` params, for example `Cs`
+and `cv` for LogisticRegressionCV, or `alphas` for RidgeCV. To explore how a
+single estimator behaves on its own, *r.learn.train* can still be used, but
+selecting its hyperparameters on the full dataset and then reusing those samples
+in the ensemble biases the reported performance, so a fixed library is preferred
+here.
 
 *r.learn.predict* can output class probabilities, which requires the model to
 provide `predict_proba`. Hard voting does not, so use soft voting or stacking
@@ -139,31 +188,59 @@ the model uses each predictor rather than how it generalizes.
 
 ## EXAMPLES
 
-Train a stacking classifier from three base models and apply it to the
-imagery group:
+We are using the same example as in *[r.learn.train](r.learn.train.md)*, using
+the GRASS GIS sample North Carolina data set as a basis to perform a landsat
+classification. We are going to classify a Landsat 7 scene from 2000, using
+training information from an older (1996) land cover dataset.
+
+Note that this example must be run in the "landsat" mapset of the North Carolina
+sample data set location.
+
+First, we are going to generate some training pixels from an older (1996) land
+cover classification. 
+
+```sh
+g.region raster=landclass96 -p
+r.random -s input=landclass96 npoints=5000 raster=training_pixels
+```
+Then we can use these training points to perform a classification on the more
+recently obtained landsat 7 image. By default, this will use the stacking
+ensembly method.
 
 ```sh
 # 1. write a template for the chosen base models
 r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
-    write_config=ensemble.json
+    write_config=ensemble.json 
 
 # 2. (edit ensemble.json), then train with 5-fold outer cross-validation
-r.learn.assembly config=ensemble.json group=predictors \
-    training_points=training_pts field=class ensemble_type=stacking \
+r.learn.assembly config=ensemble.json group=lsat7_2000 \
+    training_map=training_pixels ensemble_type=stacking \
     cv=5 inner_cv=5 classif_file=report.csv save_model=ensemble.gz
 
 # 3. apply the fitted ensemble to the rasters
-r.learn.predict group=predictors load_model=ensemble.gz output=classification
+r.learn.predict group=lsat7_2000 load_model=ensemble.gz output=classification
+r.colors map=classification raster=landclass96
 ```
 
-Train a weighted voting regressor, standardizing the predictors first (the
-**voting** option applies to classification only and is ignored for
-regression, where the predictions are averaged):
+The original map (left) and the prediction map (right) are shown below:
+
+![Original map and prediction map.](r_learn_assembly.png)
+
+The same configuration can be reused for a voting ensemble; only the options
+change. The base models and their weights in `ensemble.json` are shared, and the
+`final_estimator` entry is ignored for voting. Here we reuse it for soft voting,
+standardizing the predictors first with the **-s** flag (edit the `weight`
+fields in `ensemble.json` to give some models more say in the vote):
 
 ```sh
-r.learn.assembly config=ensemble_reg.json group=predictors \
-    training_points=training_pts field=measurement ensemble_type=voting \
-    cv=5 save_model=ensemble_reg.gz -s
+# reuse ensemble.json, now as a soft-voting ensemble
+r.learn.assembly config=ensemble.json group=lsat7_2000 \
+    training_map=training_pixels ensemble_type=voting voting=soft \
+    cv=5 save_model=ensemble_voting.gz -s
+
+r.learn.predict group=lsat7_2000 load_model=ensemble_voting.gz \
+    output=classification_voting
+r.colors map=classification_voting raster=landclass96
 ```
 
 ## REFERENCES
