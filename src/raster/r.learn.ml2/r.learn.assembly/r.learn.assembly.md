@@ -35,7 +35,7 @@ predictions (predict_proba), ideally with well-calibrated probabilities.
 
 The base models and their parameters are supplied in a JSON configuration file,
 while the shared settings (ensemble type, weighting, cross-validation,
-preprocessing) are module options. A typical run therefore has two steps. 
+preprocessing) are module options. A typical run therefore has two steps.
 
 1. **Write a configuration template.** The module writes a JSON file, filled
    with each estimator's scikit-learn default values, and exits. It holds two
@@ -98,7 +98,7 @@ that are not valid for an estimator are ignored with a warning. The `weight`
 field is used only for voting ensembles and ignored for stacking. The
 **final_estimator** entry is used only for stacking and ignored for voting; when
 it is absent, the meta-model falls back to the **final_estimator** module
-option. 
+option.
 
 The meta-model must be of the same kind (classifier or regressor) as the base
 models. The available meta-models are LogisticRegression, LogisticRegressionCV
@@ -197,12 +197,13 @@ Note that this example must be run in the "landsat" mapset of the North Carolina
 sample data set location.
 
 First, we are going to generate some training pixels from an older (1996) land
-cover classification. 
+cover classification.
 
 ```sh
 g.region raster=landclass96 -p
 r.random -s input=landclass96 npoints=5000 raster=training_pixels
 ```
+
 Then we can use these training points to perform a classification on the more
 recently obtained landsat 7 image. By default, this will use the stacking
 ensembly method.

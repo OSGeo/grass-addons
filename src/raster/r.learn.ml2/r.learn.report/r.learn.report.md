@@ -125,7 +125,7 @@ categories 1 (developed) and 5 (forest) are quite a few times mixed up.
 
 The permutation feature importance is based on the drop in model performance
 when each predictor in turn is randomly shuffled. Larger values indicate
-predictors the model relies on more. 
+predictors the model relies on more.
 
 ![Partial-dependence response curves for class developed.](r_learn_report_03.png)
 
@@ -141,7 +141,6 @@ The centered curves below start each sample at zero at the left of the
 predictor's range, so the spread shows how differently the predictor affects
 individual samples, with larger spread indicating more interaction with the
 other predictors.
-
 
 ## SEE ALSO
 
