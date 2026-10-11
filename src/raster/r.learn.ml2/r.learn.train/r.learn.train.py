@@ -445,7 +445,13 @@ def main():
     try:
         import sklearn
 
-        if sklearn.__version__ < "1.2.2":
+        # Compare numerically rather than lexicographically: a string compare
+        # mishandles multi-digit components (e.g. "1.10" < "1.2" is True).
+        if tuple(int(x) for x in re.findall(r"\d+", sklearn.__version__)[:3]) < (
+            1,
+            2,
+            2,
+        ):
             gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     except ImportError:
@@ -533,7 +539,7 @@ def main():
 
     # feature importance file selected but no cross-validation scheme used
     if importances:
-        if sklearn.__version__ < "0.22":
+        if tuple(int(x) for x in re.findall(r"\d+", sklearn.__version__)[:2]) < (0, 22):
             gs.fatal(
                 "Feature importances calculation requires scikit-learn version >= 0.22"
             )
