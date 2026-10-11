@@ -5,7 +5,7 @@ scikit-learn package into a single ensemble model and trains it on the predictor
 rasters of an imagery group, using labelled pixels or training points as the
 response. It is a companion to *r.learn.train*, which trains one estimator at a
 time. The fitted ensemble model can be used in *r.learn.predict* like a model
-from *r.learn.train*. 
+from *r.learn.train*.
 
 Two ensemble strategies are supported through the **ensemble_type** option:
 
@@ -179,7 +179,6 @@ Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos,
 A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, É. (2011).
 Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research,
 12(Oct), 2825–2830.
-
 
 ## SEE ALSO
 
