@@ -112,6 +112,15 @@
 # % guisection: Output
 # %end
 
+# %option
+# % key: color_by
+# % type: string
+# % label: Color ICE curves by a predictor
+# % description: Name of a predictor whose value colors each ICE curve, to reveal how it changes the response (curves=pdp_ice only)
+# % required: no
+# % guisection: Output
+# %end
+
 # %option G_OPT_M_NPROCS
 # % key: nprocs
 # % label: Number of processor threads to use
@@ -520,6 +529,25 @@ def _feature_order(feature_names, fimp_file):
     return order
 
 
+def _categorical_columns(estimator):
+    """Return the set of predictor column indices that were one-hot encoded at
+    training, recovered from the saved preprocessing pipeline. Empty when the
+    model has no such preprocessing, i.e. nothing was declared categorical (via
+    the category_maps option of r.learn.train / r.learn.assembly). A predictor
+    that is categorical but was not declared there is encoded nowhere, so the
+    model treats it as continuous; it is reported the same way, as the model is
+    what is being described."""
+    pre = getattr(estimator, "named_steps", {}).get("preprocessing", None)
+    transformers = getattr(pre, "transformers_", None) or getattr(
+        pre, "transformers", None
+    )
+    cols = set()
+    for name, _trans, columns in transformers or []:
+        if name == "onehot":
+            cols.update(int(c) for c in columns)
+    return cols
+
+
 def response_curves(
     training_file,
     model_file,
@@ -529,6 +557,7 @@ def response_curves(
     make_plots,
     curves,
     centered,
+    color_by,
     nprocs,
 ):
     """Return a Markdown section with partial-dependence response curves.
@@ -567,9 +596,32 @@ def response_curves(
     # Strip any @mapset qualifier so the labels match the importance table.
     feature_names = [c.split("@")[0] for c in feature_cols]
 
+    # Optional coloring of the ICE curves by a predictor's value (Molnar). The
+    # colors come from the same subsampled rows as the curves, so they line up.
+    color_vals = None
+    color_name = None
+    if color_by:
+        if curves != "pdp_ice":
+            gs.warning(
+                _("color_by only applies to curves=pdp_ice and is ignored.")
+            )
+        elif color_by not in feature_names:
+            gs.fatal(
+                _(
+                    "color_by predictor '{}' is not one of the predictors: {}"
+                ).format(color_by, ", ".join(feature_names))
+            )
+        else:
+            color_name = color_by
+            color_vals = predictors[:, feature_names.index(color_by)]
+
     loaded = joblib.load(model_file)
     estimator = loaded[0] if isinstance(loaded, tuple) else loaded
     class_labels = loaded[2] if isinstance(loaded, tuple) and len(loaded) > 2 else None
+
+    # Predictors one-hot encoded at training are categorical; their panels are
+    # drawn as a bar per category rather than an interpolated line.
+    categorical_cols = _categorical_columns(estimator)
 
     lines = ["## Response curves", ""]
     lines.append(
@@ -596,6 +648,14 @@ def response_curves(
             "curves, one per sample; the solid line is their median and the "
             "dashed line their mean."
         )
+        if color_name:
+            lines.append("")
+            lines.append(
+                "Each ICE curve is colored by the value of {0}. Where curves of a "
+                "similar color group together and separate from the rest, {0} "
+                "changes how this predictor acts on the outcome, which points to "
+                "an interaction between the two.".format(color_name)
+            )
 
     # centering adds a second set of curves (the interaction view) alongside the
     # normal ones, so both can be compared; it only applies where there is a
@@ -619,6 +679,16 @@ def response_curves(
                 "predictor acts on individual samples."
             )
         lines.append(spread)
+
+    if categorical_cols:
+        cat_names = ", ".join(feature_names[i] for i in sorted(categorical_cols))
+        lines.append("")
+        lines.append(
+            "Predictors that were one-hot encoded at training ({}) are "
+            "categorical: their panels show a bar per category (the mean, or the "
+            "median with a 25-75% error bar) instead of a line, and are not "
+            "centered.".format(cat_names)
+        )
 
     lines.append("")
     data_note = "The curves are evaluated on the saved training data"
@@ -651,7 +721,9 @@ def response_curves(
     # centered figures.
     kind = "average" if curves == "pdp" else "both"
     try:
-        results = _compute_pd(estimator, predictors, order, kind, nprocs)
+        results = _compute_pd(
+            estimator, predictors, order, kind, nprocs, categorical_cols
+        )
     except Exception as e:
         gs.warning(_("Could not compute response curves: {}").format(e))
         lines.append("")
@@ -696,6 +768,9 @@ def response_curves(
                 target_idx,
                 is_classification,
                 plots_dir,
+                color_vals,
+                color_name,
+                categorical_cols,
             )
             prefix = (
                 "Centered response curves"
@@ -718,17 +793,29 @@ def response_curves(
     return "\n".join(lines)
 
 
-def _compute_pd(estimator, X, features, kind, n_jobs):
+def _compute_pd(estimator, X, features, kind, n_jobs, categorical):
     """Compute partial dependence once per predictor (one call returns every
     class output), parallelized across predictors since the low-level function
-    is not parallel on its own. Raises if the estimator cannot be evaluated
-    (e.g. a hard-voting ensemble with no probabilities)."""
+    is not parallel on its own. Categorical columns (one-hot encoded at
+    training) are gridded on their actual category values, which requires the
+    brute method. Raises if the estimator cannot be evaluated (e.g. a hard-voting
+    ensemble with no probabilities)."""
     from joblib import Parallel, delayed
     from sklearn.inspection import partial_dependence
 
+    def extra(f):
+        if f in categorical:
+            return {"categorical_features": [f], "method": "brute"}
+        return {}
+
     return Parallel(n_jobs=n_jobs)(
         delayed(partial_dependence)(
-            estimator, X, features=[f], kind=kind, grid_resolution=PDP_GRID_RESOLUTION
+            estimator,
+            X,
+            features=[f],
+            kind=kind,
+            grid_resolution=PDP_GRID_RESOLUTION,
+            **extra(f),
         )
         for f in features
     )
@@ -744,19 +831,38 @@ def _render_response_figure(
     target_idx,
     is_classification,
     plots_dir,
+    color_vals=None,
+    color_name=None,
+    categorical_cols=None,
 ):
     """Render and save one response-curve figure (one panel per predictor) from
     precomputed partial-dependence results, returning its file name. Each panel
     shows the mean curve (pdp), the ICE curves plus median and mean (pdp_ice),
     or the median with 25-75 and 10-90 percentile bands and the mean (band).
-    When *centered*, each curve is shifted to start at zero."""
+    When *centered*, each curve is shifted to start at zero. When *color_vals*
+    is given (pdp_ice only), each ICE curve is colored by that value. Columns in
+    *categorical_cols* are drawn as a bar per category rather than a line."""
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.cm import ScalarMappable
+    from matplotlib.colors import Normalize
+
+    categorical_cols = categorical_cols or set()
+    use_color = curves == "pdp_ice" and color_vals is not None
+    if use_color:
+        norm = Normalize(vmin=float(np.min(color_vals)), vmax=float(np.max(color_vals)))
+        cmap = plt.get_cmap("viridis")
 
     n_cols = min(3, len(features))
     n_rows = math.ceil(len(features) / n_cols)
+    # Let matplotlib reserve room for the shared colorbar when one is drawn;
+    # otherwise fall back to tight_layout below.
     fig, axes = plt.subplots(
-        n_rows, n_cols, figsize=(n_cols * 3.0, n_rows * 2.8), squeeze=False
+        n_rows,
+        n_cols,
+        figsize=(n_cols * 3.0, n_rows * 2.8),
+        squeeze=False,
+        constrained_layout=use_color,
     )
     flat = axes.ravel()
 
@@ -764,10 +870,40 @@ def _render_response_figure(
         ax = flat[panel]
         grid = np.asarray(res["grid_values"][0])
         avg = np.asarray(res["average"])[target_idx]
-        if centered:
-            avg = avg - avg[0]
+        is_cat = f in categorical_cols
 
-        if curves == "pdp":
+        if is_cat:
+            # one-hot encoded categorical: a bar per category. There is no
+            # natural ordering to center on, so these panels stay uncentered.
+            x = np.arange(len(grid))
+            if curves == "pdp":
+                ax.bar(x, avg, color="C0", alpha=0.85, label="mean")
+            else:
+                ind = np.asarray(res["individual"])[target_idx]
+                median = np.median(ind, axis=0)
+                mean = ind.mean(axis=0)
+                p25, p75 = np.percentile(ind, [25, 75], axis=0)
+                ax.bar(
+                    x,
+                    median,
+                    color="C0",
+                    alpha=0.85,
+                    yerr=np.vstack([median - p25, p75 - median]),
+                    capsize=3,
+                    ecolor="0.4",
+                    label="median (25-75%)",
+                )
+                ax.plot(x, mean, color="C3", ls="none", marker="D", ms=4, label="mean")
+            ax.set_xticks(x)
+            many = len(grid) > 12
+            ax.set_xticklabels(
+                ["{:g}".format(c) for c in grid],
+                rotation=90 if many else 0,
+                fontsize="x-small" if many else "small",
+            )
+        elif curves == "pdp":
+            if centered:
+                avg = avg - avg[0]
             ax.plot(grid, avg, color="C0", lw=2.0, label="mean")
         else:
             # per-sample ICE values for the target output
@@ -778,7 +914,17 @@ def _render_response_figure(
             mean = ind.mean(axis=0)
 
             if curves == "pdp_ice":
-                ax.plot(grid, ind.T, color="0.6", lw=0.3, alpha=0.3)
+                if use_color:
+                    for i in range(ind.shape[0]):
+                        ax.plot(
+                            grid,
+                            ind[i],
+                            color=cmap(norm(color_vals[i])),
+                            lw=0.4,
+                            alpha=0.5,
+                        )
+                else:
+                    ax.plot(grid, ind.T, color="0.6", lw=0.3, alpha=0.3)
             else:  # band
                 p10, p90 = np.percentile(ind, [10, 90], axis=0)
                 p25, p75 = np.percentile(ind, [25, 75], axis=0)
@@ -789,8 +935,11 @@ def _render_response_figure(
             ax.plot(grid, mean, color="C3", lw=1.3, ls="--", label="mean")
 
         ax.set_xlabel(feature_names[f])
-        if panel % n_cols == 0:
-            base = "predicted probability" if is_classification else "predicted value"
+        base = "predicted probability" if is_classification else "predicted value"
+        if is_cat and centered:
+            # categorical bars are absolute even inside a centered figure
+            ax.set_ylabel(base)
+        elif panel % n_cols == 0:
             ax.set_ylabel(("change in " if centered else "") + base)
 
     for extra in range(len(features), len(flat)):
@@ -800,7 +949,12 @@ def _render_response_figure(
     if handles:
         flat[0].legend(handles, labels, fontsize="small", framealpha=0.6)
 
-    fig.tight_layout()
+    if use_color:
+        sm = ScalarMappable(norm=norm, cmap=cmap)
+        sm.set_array([])
+        fig.colorbar(sm, ax=flat.tolist(), label=color_name)
+    else:
+        fig.tight_layout()
     suffix = "_centered" if centered else ""
     cls = "" if target is None else "_class_{}".format(target)
     name = "response_curves{}{}.png".format(suffix, cls)
@@ -856,6 +1010,7 @@ def main():
     title = options["title"]
     mode_option = options["mode"]
     curves = options["curves"]
+    color_by = options["color_by"]
     nprocs = int(options["nprocs"])
     centered = flags["c"]
 
@@ -962,6 +1117,7 @@ def main():
                 make_plots,
                 curves,
                 centered,
+                color_by,
                 nprocs,
             )
             if section is not None:
