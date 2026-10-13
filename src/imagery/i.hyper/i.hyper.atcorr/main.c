@@ -1,6 +1,6 @@
 /**
  * \file main.c
- * \brief GRASS GIS module \c i.hyper.atcorr — 6SV2.1-based atmospheric
+ * \brief GRASS module \c i.hyper.atcorr — 6SV2.1-based atmospheric
  *correction.
  *
  * MODULE:      i.hyper.atcorr
@@ -50,7 +50,7 @@
 
 #define _POSIX_C_SOURCE 200112L
 
-/* Use standalone ras3d library when available (outside GRASS GIS).
+/* Use standalone ras3d library when available (outside GRASS).
  * ras3d.h provides drop-in replacements for all four GRASS headers below. */
 #if defined(HAVE_RAS3D) && !defined(GRASS_VERSION_MAJOR)
 #include <ras3d/ras3d.h>

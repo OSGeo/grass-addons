@@ -68,7 +68,9 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <limits.h>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 /* ─── Constants ─────────────────────────────────────────────────────────────
  */
@@ -548,7 +550,9 @@ SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
         return NULL;
     }
 
+#ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
+#endif
     for (int run = 0; run < total_runs; run++) {
         int i_res = run / (2 * n_h2o);
         int i_dir = (run % (2 * n_h2o)) / n_h2o;
@@ -558,7 +562,11 @@ SrfCorrection *atcorr_srf_compute(const SrfConfig *srf_cfg,
         float sza_r = (i_dir == 0) ? sza : vza;
         float h2o_v = lut_cfg->h2o[ih];
 
+#ifdef _OPENMP
         int tid = omp_get_thread_num();
+#else
+        int tid = 0;
+#endif
 
         spectra[run] = run_uvspec_gas(sza_r, h2o_v, o3_du, wl_min_nm, wl_max_nm,
                                       res, uvspec_path, data_path, tid);

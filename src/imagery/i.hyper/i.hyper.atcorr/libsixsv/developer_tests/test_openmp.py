@@ -75,10 +75,13 @@ class TestOpenMPRuntime(unittest.TestCase):
     def test_omp_runtime_loaded(self):
         """omp_get_max_threads() must return a value (None means runtime missing)."""
         n = omp_get_max_threads()
+        if os.environ.get("LIB_SIXSV_OPENMP") == "0":
+            self.assertIsNone(n, msg="Serial library exposes an OpenMP runtime")
+            return
         self.assertIsNotNone(
             n,
-            msg="Could not load OpenMP runtime (libgomp / libomp). "
-            "Install the OpenMP runtime library and rebuild.",
+            msg="The loaded library has no OpenMP runtime. "
+            "Build with OpenMP, or use make test-serial for a serial build.",
         )
 
     def test_max_threads_positive(self):
@@ -114,6 +117,8 @@ class TestLutParallelConsistency(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         max_t = omp_get_max_threads()
+        if max_t is None:
+            raise unittest.SkipTest("Library was built without OpenMP")
 
         # Serial reference
         omp_set_num_threads(1)
