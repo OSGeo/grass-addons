@@ -9,11 +9,10 @@ located by searching, in order:
 3. ``../OBJ.*/libgrass_sixsv.so`` — GRASS build tree (sibling OBJ directory).
 
 Also provides helpers for the OpenMP runtime (``omp_get_max_threads``, etc.)
-by loading ``libgomp`` / ``libomp`` via ``ctypes.util.find_library``.
+through the loaded library's dependencies, if it was built with OpenMP.
 """
 
 import ctypes
-import ctypes.util
 import os
 import sys
 
@@ -53,17 +52,14 @@ lib = ctypes.CDLL(_find_lib())
 
 
 # ── OpenMP runtime helpers ────────────────────────────────────────────────────
-# Try both GCC (libgomp) and Clang (libomp / libiomp5).
-
-_omp = None
-for _omp_name in ("gomp", "omp", "iomp5"):
-    _omp_path = ctypes.util.find_library(_omp_name)
-    if _omp_path:
-        try:
-            _omp = ctypes.CDLL(_omp_path)
-            break
-        except OSError:
-            pass
+# Resolve symbols from this library's dependency tree rather than loading an
+# unrelated installed runtime, which would not control its worker threads.
+try:
+    lib.omp_get_max_threads
+except AttributeError:
+    _omp = None
+else:
+    _omp = lib
 
 
 def omp_get_max_threads():

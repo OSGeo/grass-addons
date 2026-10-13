@@ -1,13 +1,15 @@
 <!-- markdownlint-disable -->
 # libsixsv — 6SV2.1 Atmospheric Correction Library
 
-> **GitHub**: <https://github.com/yannchemin/libsixsv>
+> **Origin**: initiated by Yann Chemin at <https://github.com/yannchemin/libsixsv>.
+> This tree is a diverged fork maintained alongside the GRASS `i.hyper.atcorr`
+> module (see `LICENSE` for fork provenance and copyright).
 
 A C11 port of the **6SV2.1** (Second Simulation of the Satellite Signal in the Solar
 Spectrum) radiative transfer model, designed for operational atmospheric correction of
-hyperspectral remote sensing imagery.  The library backs the
-[i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr) GRASS GIS module but
-can also be used as a standalone shared library.
+hyperspectral remote sensing imagery. The sources are vendored within this
+`i.hyper.atcorr` GRASS addon and compiled directly into its executable. No
+separate `libsixsv` library is built, installed, or linked.
 
 ## Port scope and reference
 
@@ -336,9 +338,8 @@ such as mandatory offload can make absence of a device an error. See
 
 ## Public API
 
-The Debian development package installs fourteen headers to
-`/usr/include/sixsv/`. The GRASS install is narrower: it exposes only the
-module-facing `atcorr.h` and `brdf.h` under `include/grass/`.
+The fourteen public headers live in `include/` and are consumed directly by the
+GRASS module build; there is no installed-header step.
 
 | Header              | Purpose                                      |
 |---------------------|----------------------------------------------|
@@ -357,61 +358,21 @@ module-facing `atcorr.h` and `brdf.h` under `include/grass/`.
 | `gas_tables.h`      | Generated gas table declarations              |
 | `solar_table.h`     | Generated `SOLIRR.f` table declaration         |
 
-The Debian runtime package is `libsixsv2`, reflecting the `libsixsv.so.2` C
-ABI. `LutConfig`, `LutArrays`, `BrdfParams` and `SixsCtx` layouts are ABI data;
-direct `ctypes` users must mirror the installed SONAME 2 headers exactly. The
-project does not install or version a Python wrapper API.
-
-## Installing the Debian package
-
-Build and install the packages with:
-
-```sh
-dpkg-buildpackage -us -uc -b
-sudo dpkg -i ../libsixsv2_*.deb ../libsixsv-dev_*.deb
-```
-
-After installation:
-
-- Headers: `/usr/include/sixsv/` (`atcorr.h`, `brdf.h`, `retrieve.h`, …)
-- Library: `/usr/lib/<multiarch-triplet>/libsixsv.so.2`
-- Development symlink: `/usr/lib/<multiarch-triplet>/libsixsv.so`
-- pkg-config: `/usr/lib/<multiarch-triplet>/pkgconfig/libsixsv.pc`
-
-`<multiarch-triplet>` is generated from `DEB_HOST_MULTIARCH`, not hardcoded to
-one architecture.
-
-For the **Debian standalone build** of
-[i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr), also install
-[libras3d-dev](https://github.com/yannchemin/libras3d) — the GRASS API
-replacement that routes cube I/O through libtiff/libgeotiff and libhdf5.
-
-## Compiling against the installed library
-
-Use pkg-config and place its linker flags after the source file:
-
-```sh
-cc -std=c11 -O2 $(pkg-config --cflags libsixsv) my_program.c \
-   $(pkg-config --libs libsixsv) -o my_program
-```
-
-The shared library records its OpenMP runtime dependency. A caller needs its
-own OpenMP compiler flag only if the caller source contains OpenMP constructs.
+`LutConfig`, `LutArrays`, `BrdfParams` and `SixsCtx` layouts are ABI data;
+direct `ctypes` users (the `developer_tests/` suite) must mirror the headers in
+`include/` exactly. The project does not install or version a Python wrapper API.
 
 ## Python (ctypes)
 
-The examples load the C ABI directly; no `atcorr.py` wrapper is installed:
+The `developer_tests/` suite loads the validation test library directly via
+the `LIB_SIXSV` path override; no `atcorr.py` wrapper is installed:
 
 ```python
-import ctypes, ctypes.util
-path = ctypes.util.find_library("sixsv")
-if path is None:
-    raise RuntimeError("libsixsv is not installed in the loader search path")
-lib = ctypes.CDLL(path)
+import ctypes, os
+lib = ctypes.CDLL(os.environ["LIB_SIXSV"])
 ```
 
-See `examples/README.md` for the source-tree `LIB_SIXSV` override and ABI
-layout caveats.
+See `developer_tests/_support.py` for the loader setup and ABI layout caveats.
 
 ## Validation
 
@@ -436,9 +397,8 @@ Local reference regeneration and direct Fortran subroutine comparison are a
 separate maintainer workflow. They require gfortran and the pinned 6SV2.1 source
 at commit `7deb2289cfe23c9b1d1b48d7647f76604ef75fa4`, supplied through `SIXSV2`.
 `make -C developer_tests test` belongs to that local workflow because its Fortran
-driver target consumes objects from the reference tree. Debian package builds
-deliberately skip both paths; pytest, NumPy and the pinned Fortran tree are not
-package Build-Depends.
+driver target consumes objects from the reference tree. That full-Fortran path
+is local-only; the committed-fixture path above is the portable one.
 
 ## Dependencies
 
@@ -450,18 +410,10 @@ package Build-Depends.
 
 ## Build
 
-- C11-capable compiler with OpenMP support
-- GRASS GIS development environment for the GRASS build; standard POSIX tools
-  for the plain standalone build
+- C11-capable compiler (OpenMP support optional; enables parallel execution)
+- GRASS development environment for the module build
 - Python 3, NumPy and pytest for the public test path; gfortran and the pinned
   6SV2.1 source only for local reference validation
-
-## Related repositories
-
-| Repository                                                          | Relationship           | Description |
-|---------------------------------------------------------------------|------------------------|-------------|
-| [i.hyper.atcorr](https://github.com/yannchemin/i.hyper.atcorr)       | **Downstream consumer** | GRASS GIS module that links libsixsv for 6SV2.1 atmospheric correction of hyperspectral cubes |
-| [libras3d](https://github.com/yannchemin/libras3d) | **Peer — Debian standalone** | Drop-in GRASS raster3d API replacement; used alongside libsixsv when building i.hyper.atcorr without GRASS (`DEBIAN_BUILD=1`) |
 
 ## License
 
