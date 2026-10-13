@@ -4,7 +4,7 @@
 
 > **GitHub**: <https://github.com/yannchemin/i.hyper.atcorr>
 
-GRASS GIS add-on for atmospheric correction of hyperspectral imagery using a
+GRASS add-on for atmospheric correction of hyperspectral imagery using a
 C port of the 6SV2.1 (Second Simulation of a Satellite Signal in the Solar
 Spectrum) radiative transfer algorithm with OpenMP parallelisation.
 
