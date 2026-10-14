@@ -1,4 +1,4 @@
-/* main.c for r.traveltime, December 2007, updated September 2014
+/* main.c for r.traveltime, December 2007, updated September 2014, 2026
  *
  * ############################################################################
  * #
@@ -40,13 +40,14 @@ extern DCELL f_d(DCELL);
 
 double res_x, res_y;
 void *inrast_accu, *inrast_dtm, *inrast_n, *inrast_dir; /* input buffer */
-unsigned char *outrast;                                 /* output buffer */
-int in_accu, in_dir, in_n, in_dtm, outfd;               /* file descriptor */
+unsigned char *outrast, *outrast_up;                    /* output buffer */
+int in_accu, in_dir, in_n, in_dtm, outfd, outfd_up;     /* file descriptor */
 RASTER_MAP_TYPE data_type_accu, data_type_dtm, data_type_n,
     data_type_dir; /* type of the map (CELL/DCELL/...) */
-double **array_out;
+double **array_out, **array_out_upstream;
 int ac_thres;
 double nc, b, dis, slope_min;
+bool calc_up, maxupstream;
 
 /*
  * the function inflow checks if an adjacent cell discharges into the active
@@ -110,11 +111,52 @@ int inflow(int loc_x, int loc_y, int vec_x, int vec_y)
 }
 
 /*
+ * upstreamlength is a recursive function starting at the outlet moving up to the
+ * watershed boundary calling the inflow and traveltime functions
+ */
+
+double uplength(int x, int y, int dx, int dy)
+{
+    double minupstream_length, minupstream_length_init;
+    if(maxupstream){
+        minupstream_length = minupstream_length_init = 0.;
+    }else{
+        minupstream_length = minupstream_length_init = DBL_MAX;
+    }
+    int i,j,dir;
+
+    for (i = -1; i < 2; i++) {
+        for (j = -1; j < 2; j++) {
+            if (inflow(x + i, y + j, i, j) > 0) {
+                double l_local = sqrt(pow(i * res_x, 2.0) + pow(j * res_y, 2.0));
+                double l_up = l_local + uplength(x + i, y + j, i, j);
+                if(maxupstream){
+                    if(l_up > minupstream_length)
+                        minupstream_length = l_up;
+                }else{
+                    if(l_up < minupstream_length)
+                        minupstream_length = l_up;
+                }
+                
+
+            }
+        }
+    }
+    if(minupstream_length == minupstream_length_init){
+        // ridge is reached, use only half of the lenght near ridge
+        minupstream_length = 0.5 * sqrt(pow(dx * res_x, 2.0) + pow(dy * res_y, 2.0));
+
+    }
+    array_out_upstream[y][x] = minupstream_length;
+    return minupstream_length;
+}
+
+/*
  * traveltime calculates travel times from one cell to another (time of
  * concentration)
  */
 
-double traveltime(double length, double slope, double manning, double drainage)
+double traveltime(double length, double uplength, double slope, double manning, double drainage)
 {
     // double slope_min = 0.001;
     double t;
@@ -135,8 +177,18 @@ double traveltime(double length, double slope, double manning, double drainage)
          * please note: this formula expects effective rain / surface runoff
          * input in m/s
          */
-        t = pow(length, 0.6) * pow(manning, 0.6) / pow(dis, 0.4) /
+        if(uplength > 0){
+            // this apporach considers upstream length according to
+            // Jennifer Leigh Kilgore (1997)
+            double v =pow(dis*uplength, 0.4) * pow(slope, 0.3) / pow(manning, 0.6);
+            t = length / v;
+        }else{
+            // this is the Melesse and Graham (2004) approach
+            // considerng each cell individually in terms of length
+            // for each hillslope cell (standard in r.traveltime)
+            t = pow(length, 0.6) * pow(manning, 0.6) / pow(dis, 0.4) /
             pow(slope, 0.3); // surface runoff
+        }
     }
     else {
         // channel runoff
@@ -159,10 +211,11 @@ int ttime(double ftime, int x, int y, int dx, int dy)
     int i, j, v, accu, dir;
     double z1, z2;
     double manningsn;
+    double L_up = 0.;
 
     // get flow direction
-    Rast_get_row(in_dir, inrast_dir, y, data_type_dir);
-    dir = ((CELL *)inrast_dir)[x];
+    // Rast_get_row(in_dir, inrast_dir, y, data_type_dir);
+    // dir = ((CELL *)inrast_dir)[x];
 
     // get flow accumulation
     Rast_get_row(in_accu, inrast_accu, y, data_type_accu);
@@ -220,6 +273,10 @@ int ttime(double ftime, int x, int y, int dx, int dy)
         z1 = (double)((FCELL *)inrast_dtm)[x - dx];
         break;
     }
+    
+    // if upstream length is considered, get cell value from preprocessing
+    if(calc_up)
+        L_up = array_out_upstream[y][x];
 
     for (i = -1; i < 2; i++) {
         for (j = -1; j < 2; j++) {
@@ -227,7 +284,7 @@ int ttime(double ftime, int x, int y, int dx, int dy)
                 L = sqrt(pow(i * res_x, 2.0) + pow(j * res_y, 2.0));
                 J = 1.0 * (z2 - z1) / L;
                 // time from here to outlet
-                thist = ftime + traveltime(L, J, manningsn, accu);
+                thist = ftime + traveltime(L, L_up, J, manningsn, accu);
                 array_out[y + j][x + i] = thist;
                 int r = ttime(thist, x + i, y + j, i, j);
 
@@ -256,6 +313,7 @@ int main(int argc, char *argv[])
     char *map_dtm;  /* input terrain model */
     char *map_dir;  /* input flow direction map */
     char *result;   /* output travel time map */
+    char *result_up;/* output upstream length map */
     char *mapset;   /* mapset name */
     double outx, outy;
     int nrows, ncols;
@@ -271,9 +329,10 @@ int main(int argc, char *argv[])
     /* options */
     struct Option *input_dir, *input_accu, *input_dtm, *input_n, *output,
         *input_outlet_x, *input_outlet_y, *input_thres, *input_nc, *input_b,
-        *input_dis, *input_slmin;
+        *input_dis, *input_slmin, *output_upstream;
 
     struct Flag *flag1; /* flags */
+    struct Flag *flag2;
 
     /* initialize GIS environment */
     G_gisinit(
@@ -359,12 +418,21 @@ int main(int argc, char *argv[])
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->key = "out";
     output->description = "Output travel time map [seconds]";
+    
+    output_upstream = G_define_standard_option(G_OPT_R_OUTPUT);
+    output_upstream->key = "out_upstream";
+    output_upstream->description = "Output upstream length [m] (optional)";
+    output_upstream->required = NO;
 
     /* Define the different flags */
     flag1 = G_define_flag();
     flag1->key = 'q';
     flag1->description = _("Quiet");
 
+    flag2 = G_define_flag();
+    flag2->key = 'm';
+    flag2->description = _("Max. flow length");
+    
     /* options and flags pareser */
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -381,6 +449,7 @@ int main(int argc, char *argv[])
     sscanf(input_nc->answer, "%lf", &nc);
     sscanf(input_dis->answer, "%lf", &discharge);
     result = output->answer;
+    result_up = output_upstream->answer;
 
     // options
     if (input_slmin->answer == NULL)
@@ -389,6 +458,7 @@ int main(int argc, char *argv[])
         sscanf(input_slmin->answer, "%lf", &slope_min);
 
     verbose = (!flag1->answer);
+    maxupstream = flag2->answer;
 
     dis = discharge * 1.0E-9; // l/s/km^2 => m/s
 
@@ -445,6 +515,33 @@ int main(int argc, char *argv[])
             array_out[i][j] = DBL_MAX;
         }
     }
+    
+    // check if upstream length output is needed
+    if (output_upstream->answer != NULL){
+        outrast_up = Rast_allocate_buf(FCELL_TYPE);
+        outfd_up = Rast_open_new(result_up, FCELL_TYPE);
+        calc_up = true;
+    }else{
+        calc_up = false;
+    }
+    // still provide data array and initialite it with zeros
+    array_out_upstream = (double **)malloc(nrows * sizeof(double *));
+    if ((NULL == array_out_upstream))
+        G_fatal_error("Out of memory ... !");
+
+    for (i = 0; i < nrows; i++) {
+        array_out_upstream[i] = (double *)malloc(ncols * sizeof(double));
+        if ((NULL == array_out_upstream[i]))
+            G_fatal_error("Out of memory ... !");
+    }
+
+    for (i = 0; i < nrows; i++) {
+        for (j = 0; j < ncols; j++) {
+            array_out_upstream[i][j] = 0.;
+        }
+    }
+
+    
 
     /*
      * terrain analysis begins here ...
@@ -458,8 +555,6 @@ int main(int argc, char *argv[])
     cy = G_scan_northing(*input_outlet_y->answers, &outy, G_projection());
 
     if (!cx) {
-        array_out[y][x] = 0.0;
-
         fprintf(stderr, "Illegal east coordinate <%s>\n",
                 *input_outlet_y->answer);
         G_usage();
@@ -495,7 +590,18 @@ int main(int argc, char *argv[])
 
     x = cx;
     y = cy;
-
+    
+    // calc upstream length (optional)
+    if(calc_up){
+        double pathlength = uplength(x, y, 0, 0);
+        if(verbose){
+            printf("Flow path = %.1f with ", pathlength);
+            if(maxupstream)
+                printf("Maximum length\n");
+            else
+                printf("Minimum length\n");
+        }
+    }
     /*
      * first call of traveltime function
      */
@@ -510,7 +616,15 @@ int main(int argc, char *argv[])
         /* write raster row to output raster file */
         Rast_put_row(outfd, outrast, CELL_TYPE);
     }
-
+    if(calc_up){
+        for (row = 0; row < nrows; row++) {
+            for (col = 0; col < ncols; col++) {
+                ((FCELL *)outrast_up)[col] = array_out_upstream[row][col];
+            }
+            /* write raster row to output raster file */
+            Rast_put_row(outfd_up, outrast_up, FCELL_TYPE);
+        }
+    }
     /* closing raster files */
     //    Rast_close(inrast_accu);
     //    Rast_close(inrast_dir);
@@ -522,6 +636,8 @@ int main(int argc, char *argv[])
     Rast_close(in_n);
     Rast_close(in_dtm);
     Rast_close(outfd);
-
+    if(calc_up)
+        Rast_close(outfd_up);
+    
     return 0;
 }
