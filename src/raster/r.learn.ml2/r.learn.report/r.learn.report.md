@@ -71,7 +71,7 @@ Predictors that were declared categorical at training (the `category_maps`
 option of *r.learn.train* or *r.learn.assembly*, which one-hot encodes them) are
 drawn as a bar per category rather than a line. Each bar is the mean response
 (`pdp`) or the median with a 25-75% error bar and a mean marker (`band`,
-`pdp_ice`); these panels are not centered by the **-c** flag. 
+`pdp_ice`); these panels are not centered by the **-c** flag.
 
 ## NOTES
 
@@ -97,7 +97,7 @@ The module needs both the fitted model (**load_model**) and the extracted
 training data saved with the `save_training` option of *r.learn.train* or
 *r.learn.assembly* (**training_file**). To keep it fast, the curves are computed
 on a random subsample of the training rows and across **nprocs** cores. A
-classification model produces one figure per class. 
+classification model produces one figure per class.
 
 Note that where predictors are strongly correlated, parts of a curve can reach
 into predictor combinations that do not occur in the data, so interpret those
@@ -166,17 +166,16 @@ other predictors.
 ## References
 
 Molnar, C. (2025). Interpretable Machine Learning (Third Edition).
-https://leanpub.com/interpretable-machine-learning
+<https://leanpub.com/interpretable-machine-learning>
 
 Goldstein, A., Kapelner, A., Bleich, J., & Pitkin, E. (2015). Peeking Inside the
 Black Box: Visualizing Statistical Learning With Plots of Individual Conditional
 Expectation. Journal of Computational and Graphical Statistics, 24(1), 44–65.
-https://doi.org/10.1080/10618600.2014.907095
+<https://doi.org/10.1080/10618600.2014.907095>
 
 Hastie, T., Tibshirani, R., & Friedman, J. H. (2009). The Elements of
 Statistical Learning: Data Mining, Inference, and Prediction. Springer.
-https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf
-
+<https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf>
 
 ## SEE ALSO
 
