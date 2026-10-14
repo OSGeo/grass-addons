@@ -602,14 +602,12 @@ def response_curves(
     color_name = None
     if color_by:
         if curves != "pdp_ice":
-            gs.warning(
-                _("color_by only applies to curves=pdp_ice and is ignored.")
-            )
+            gs.warning(_("color_by only applies to curves=pdp_ice and is ignored."))
         elif color_by not in feature_names:
             gs.fatal(
-                _(
-                    "color_by predictor '{}' is not one of the predictors: {}"
-                ).format(color_by, ", ".join(feature_names))
+                _("color_by predictor '{}' is not one of the predictors: {}").format(
+                    color_by, ", ".join(feature_names)
+                )
             )
         else:
             color_name = color_by
