@@ -94,7 +94,11 @@ def lee_filter(img, size, img_out):
     gs.message(_("Cleaning up intermediate files..."))
     try:
         gs.run_command(
-            "g.remove", flags="f", quiet=False, type="raster", pattern="tmp*"
+            "g.remove",
+            flags="f",
+            quiet=False,
+            type="raster",
+            name=[img_mean, img_sqr, img_sqr_mean, img_variance, img_weights],
         )
     except:
         """ """
