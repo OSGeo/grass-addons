@@ -6,7 +6,7 @@
 # PURPOSE:       Supervised classification and regression of GRASS rasters
 #                using the python scikit-learn package
 #
-# COPYRIGHT: (c) 2017-2020 Steven Pawley, and the GRASS Development Team
+# COPYRIGHT: (c) 2017-2026 Steven Pawley, and the GRASS Development Team
 #                This program is free software under the GNU General Public
 #                for details.
 #
@@ -750,14 +750,13 @@ def main():
         from sklearn.metrics import classification_report
         from sklearn import metrics
 
-        if (
-            mode == "classification"
-            and cv > np.histogram(y, bins=np.unique(y))[0].min()
-        ):
-            gs.message(os.linesep)
-            gs.fatal(
-                "Number of cv folds is greater than number of samples in some classes "
-            )
+        if mode == "classification":
+            class_counts = np.unique(y, return_counts=True)[1]
+            if cv > class_counts.min():
+                gs.message(os.linesep)
+                gs.fatal(
+                    "Number of cv folds is greater than number of samples in some classes "
+                )
 
         gs.message(os.linesep)
         gs.message("Cross validation global performance measures......:")
@@ -793,11 +792,13 @@ def main():
 
         preds = cross_val_predict(**cv_kwargs)
 
-        test_idx = [test for train, test in outer.split(X, y)]
-        n_fold = np.zeros((0,))
-
-        for fold in range(outer.get_n_splits()):
-            n_fold = np.hstack((n_fold, np.repeat(fold, test_idx[fold].shape[0])))
+        # cross_val_predict returns predictions in the original sample order,
+        # so each sample's fold id must be written at its own position rather
+        # than concatenated in fold order (the test indices are not contiguous
+        # for stratified or grouped splits).
+        n_fold = np.empty(len(y), dtype=int)
+        for fold, (_train, test) in enumerate(outer.split(X, y, group_id)):
+            n_fold[test] = fold
 
         preds = {"y_pred": preds, "y_true": y, "cat": cat, "fold": n_fold}
 

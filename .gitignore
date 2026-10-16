@@ -86,3 +86,5 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 *-prefix/
+/src/raster/r.learn.ml2/testsuite
+/src/raster/r.learn.ml2/r.learn.report/tests
