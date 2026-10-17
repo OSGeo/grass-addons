@@ -13,8 +13,8 @@ report and its figure directory should be kept together.
 ### Input and output
 
 Every input is optional; the report contains a section for each input that is
-supplied, so the module can be used to create a quick model summary and a more
-full report:
+supplied, so the module can be used to create a quick model summary and a fuller
+report:
 
 - **load_model** adds a *Model* section describing the estimator, its
   predictors, and, for an ensemble from *r.learn.assembly*, the base models
@@ -26,8 +26,7 @@ full report:
 - **fimp_file** adds a *Variable contributions* section with a permutation
   feature-importance table and bar chart.
 - **param_file** adds a *Hyperparameter search* section with the best
-  combination and the ranked grid-search results (not available for
-  r.learn.assembly).
+  combination and the ranked grid-search results.
 - **training_file** adds a *Response curves* section with a partial-dependence
   panel per predictor, showing how the prediction changes as that predictor is
   varied. This also needs **load_model**.
@@ -78,6 +77,11 @@ drawn as a bar per category rather than a line. Each bar is the mean response
 The figures require *matplotlib* (see `requirements.txt`). If *matplotlib* is
 missing, the report is still written with its tables but without figures.
 
+The size and resolution of the figures can be set with **plot_scale** and
+**dpi**. **plot_scale** multiplies the physical size of every figure (1.0 is
+the default) while the figure text stays at body-text size. **dpi** sets the
+resolution, useful when the report needs to be printed.
+
 Feature names for the *Variable contributions* section come from the
 **fimp_file**, as the saved model does not retain them.
 
@@ -114,15 +118,15 @@ g.region raster=landclass96 -p
 r.random -s input=landclass96 npoints=5000 raster=training_pixels
 
 # write a template for the chosen base models
-r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
+r.learn.assembly models=RandomForestClassifier,SVC,HistGradientBoostingClassifier \
     write_config=ensemble.json
 
 # (edit ensemble.json), then train with 5-fold outer cross-validation
-r.learn.assembly -f config=ensemble.json group=lsat7_2000 \
+r.learn.assembly -fb config=ensemble.json group=lsat7_2000 \
     training_map=training_pixels ensemble_type=stacking \
-    cv=5 inner_cv=5 classif_file=classif.csv \
+    cv=4 inner_cv=4 classif_file=classif.csv \
     preds_file=preds.csv fimp_file=fimp.csv save_training=training.csv \
-    nprocs=4 save_model=ensemble.gz --overwrite
+    nprocs=8 save_model=ensemble.gz
 ```
 
 Now, we can create the assembly report, including response curves from the
@@ -148,7 +152,7 @@ The permutation feature importance is based on the drop in model performance
 when each predictor in turn is randomly shuffled. Larger values indicate
 predictors the model relies on more.
 
-![Partial-dependence response curves for class developed.](r_learn_report_03.png)
+![Partial-dependence response curves for the class agriculture.](r_learn_report_03.png)
 
 Partial-dependence curves show how the predicted outcome changes as one
 predictor is varied across its range (5th to 95th percentile), while the other
@@ -156,7 +160,7 @@ predictors are marginalized over the training data. For a classification model
 the vertical axis is the predicted probability of the class; for a regression
 model it is the predicted value.
 
-![Centered response curves for class developed.](r_learn_report_04.png)
+![Centered response curves for the class agriculture.](r_learn_report_04.png)
 
 The centered curves below start each sample at zero at the left of the
 predictor's range, so the spread shows how differently the predictor affects

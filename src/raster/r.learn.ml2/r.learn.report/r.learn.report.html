@@ -15,8 +15,8 @@ the report and its figure directory should be kept together.
 <h3>Input and output</h3>
 
 Every input is optional; the report contains a section for each input that is
-supplied, so the module can be used to create a quick model summary and a more
-full report:
+supplied, so the module can be used to create a quick model summary and a fuller
+report:
 
 <ul>
   <li><b>load_model</b> adds a <i>Model</i> section describing the estimator,
@@ -30,8 +30,7 @@ full report:
   <li><b>fimp_file</b> adds a <i>Variable contributions</i> section with a
   permutation feature-importance table and bar chart.</li>
   <li><b>param_file</b> adds a <i>Hyperparameter search</i> section with the
-  best combination and the ranked grid-search results (not available for
-  r.learn.assembly).</li>
+  best combination and the ranked grid-search results.</li>
   <li><b>training_file</b> adds a <i>Response curves</i> section with a
   partial-dependence panel per predictor, showing how the prediction changes as
   that predictor is varied. This also needs <b>load_model</b>.</li>
@@ -95,6 +94,12 @@ The figures require <i>matplotlib</i> (see <tt>requirements.txt</tt>). If
 without figures.
 
 <p>
+The size and resolution of the figures can be set with <b>plot_scale</b> and
+<b>dpi</b>. <b>plot_scale</b> multiplies the physical size of every figure (1.0
+is the default) while the figure text stays at body-text size. <b>dpi</b> sets
+the resolution, useful when the report needs to be printed.
+
+<p>
 Feature names for the <i>Variable contributions</i> section come from the
 <b>fimp_file</b>, as the saved model does not retain them.
 
@@ -155,10 +160,10 @@ training data
 
 <div class="code">
   <pre>
-# assemble the report, including response curves from training data
+# assemble the report, including response curves from the training data
 r.learn.report -c load_model=ensemble.gz preds_file=preds.csv \
-    classif_file=classif.csv fimp_file=fimp.csv \
-    training_file=training.csv output=report.md --overwrite
+    classif_file=classif.csv fimp_file=fimp.csv training_file=training.csv \
+    output=report.md --overwrite
 </pre>
 </div>
 
@@ -166,16 +171,14 @@ r.learn.report -c load_model=ensemble.gz preds_file=preds.csv \
 Some figures from the report:
 
 <p>
-<img src="r_learn_report_01.png" alt="Confusion matrix of the cross-validation
-predictions.">
+<img src="r_learn_report_01.png" alt="Confusion matrix of the cross-validation predictions.">
 
 <p>
-Results show that even though the overall accuracy is reasonable, especially the
-categories 1 (developed) and 5 (forest) are quite a few times mixed up.
+Results show that the model performs poorly, with only a few categories that the
+model can separate well.
 
 <p>
-<img src="r_learn_report_02.png" alt="Permutation feature importance (mean +/-
-standard deviation).">
+<img src="r_learn_report_02.png" alt="Permutation feature importance (mean +/- standard deviation).">
 
 <p>
 The permutation feature importance is based on the drop in model performance
@@ -184,7 +187,7 @@ predictors the model relies on more.
 
 <p>
 <img src="r_learn_report_03.png" alt="Partial-dependence response curves for
-class developed.">
+class agriculture.">
 
 <p>
 Partial-dependence curves show how the predicted outcome changes as one
@@ -195,7 +198,7 @@ model it is the predicted value.
 
 <p>
 <img src="r_learn_report_04.png" alt="Centered response curves for class
-developed.">
+agriculture.">
 
 <p>
 The centered curves below start each sample at zero at the left of the
@@ -206,18 +209,18 @@ other predictors.
 <h2>References</h2>
 
 Molnar, C. (2025). Interpretable Machine Learning (Third Edition).
-https://leanpub.com/interpretable-machine-learning
+&lt;https://leanpub.com/interpretable-machine-learning&gt;
 
 <p>
 Goldstein, A., Kapelner, A., Bleich, J., &amp; Pitkin, E. (2015). Peeking Inside
 the Black Box: Visualizing Statistical Learning With Plots of Individual
 Conditional Expectation. Journal of Computational and Graphical Statistics,
-24(1), 44–65. https://doi.org/10.1080/10618600.2014.907095
+24(1), 44-65. &lt;https://doi.org/10.1080/10618600.2014.907095&gt;
 
 <p>
 Hastie, T., Tibshirani, R., &amp; Friedman, J. H. (2009). The Elements of
 Statistical Learning: Data Mining, Inference, and Prediction. Springer.
-https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf
+&lt;https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf&gt;
 
 <h2>SEE ALSO</h2>
 

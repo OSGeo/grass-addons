@@ -69,7 +69,7 @@
 # %option G_OPT_F_BIN_INPUT
 # % key: training_file
 # % label: Training data csv
-# % description: Extracted training data csv written with the save_training option of r.learn.train or r.learn.assembly; needed, together with load_model, for the response curves
+# % description: Extracted training data csv written with the save_training option of r.learn.train or r.learn.assembly. Needed, together with load_model, for the response curves
 # % required: no
 # % guisection: Inputs
 # %end
@@ -129,10 +129,30 @@
 # % guisection: Output
 # %end
 
+# %option
+# % key: plot_scale
+# % type: double
+# % label: Figure size multiplier
+# % description: Scales the physical size of every figure (1.0 is the default size). Increase for larger figures, for example when printing; the figure text stays at body-text size. Combine with a higher dpi for print resolution
+# % answer: 1.0
+# % required: no
+# % guisection: Output
+# %end
+
+# %option
+# % key: dpi
+# % type: integer
+# % label: Figure resolution (dots per inch)
+# % description: Resolution of the saved figures. Higher values give sharper figures at the same physical size, so setting only dpi keeps the print size unchanged (for example 300 for printing)
+# % answer: 100
+# % required: no
+# % guisection: Output
+# %end
+
 # %flag
 # % key: c
 # % label: Also add centered response curves
-# % description: Add a second set of centered curves (each shifted to start at zero) alongside the normal ones, so the spread shows how differently the predictor affects individual samples, that is, interaction (band and pdp_ice only)
+# % description: Add a second set of centered curves (each shifted to start at zero) alongside the normal ones. Used to show how differently the predictor affects individual samples (interaction). For band and pdp_ice only
 # % guisection: Output
 # %end
 
@@ -154,6 +174,19 @@ gs.utils.set_path(modulename="r.learn.ml2", dirname="rlearnlib", path="..")
 # points each predictor is evaluated at.
 PDP_MAX_SAMPLES = 500
 PDP_GRID_RESOLUTION = 50
+
+# Figure colors, given as hex so they can be changed in one place. ACCENT_COLOR
+# is the primary/high-value color: the dark end of the confusion-matrix gradient
+# (white -> ACCENT_COLOR), the feature-importance bars, and the main line and
+# bands of the response curves. MEAN_COLOR is the contrasting color for the mean
+# overlay drawn on the response curves.
+ACCENT_COLOR = "#1b7837"
+MEAN_COLOR = "#d62728"
+
+# Figure font size in points. Points are a physical unit, so a fixed value keeps
+# the figure text at roughly body-text size when the report is printed,
+# regardless of the figure size multiplier (plot_scale) or the dpi.
+FONT_PT = 9
 
 
 def md_table(frame, index_label=""):
@@ -179,12 +212,48 @@ def md_table(frame, index_label=""):
     return "\n".join(lines)
 
 
+def table_caption(text):
+    """Render an italic caption line for a table (shown directly below it)."""
+    return "*{}*".format(text)
+
+
+def info_callout(*paragraphs):
+    """Wrap one or more explanatory paragraphs in a GitHub-style note alert.
+
+    This renders as a highlighted info box on GitHub and other viewers that
+    support alert syntax, and degrades to a plain blockquote elsewhere.
+    """
+    out = ["> [!NOTE]"]
+    for i, paragraph in enumerate(paragraphs):
+        if i:
+            out.append(">")
+        out.append("> " + paragraph)
+    return "\n".join(out)
+
+
 def unwrap_estimator(estimator):
-    """Return the final estimator, unwrapping a preprocessing Pipeline."""
+    """Return the final estimator, unwrapping a hyperparameter search wrapper
+    (GridSearchCV/RandomizedSearchCV) and/or a preprocessing Pipeline."""
+    # A fitted grid/random search keeps the refit model in best_estimator_.
+    best = getattr(estimator, "best_estimator_", None)
+    if best is not None:
+        estimator = best
+    # A preprocessing Pipeline keeps the model under the "estimator" step.
     steps = getattr(estimator, "named_steps", None)
     if steps is not None and "estimator" in steps:
         return steps["estimator"]
     return estimator
+
+
+def _join_types(names):
+    """Format class names as a human-readable list: '`A`', '`A` and `B`', or
+    '`A`, `B` and `C`'."""
+    quoted = ["`{}`".format(name) for name in names]
+    if len(quoted) <= 1:
+        return "".join(quoted)
+    if len(quoted) == 2:
+        return "{} and {}".format(*quoted)
+    return "{} and {}".format(", ".join(quoted[:-1]), quoted[-1])
 
 
 def model_overview(model_file):
@@ -203,19 +272,44 @@ def model_overview(model_file):
     inner = unwrap_estimator(estimator)
     mode = "classification" if is_classifier(inner) else "regression"
 
+    # Look through a search-CV wrapper (e.g. GridSearchCV) to the refit model
+    # to detect a preprocessing Pipeline, and find the ensemble base models.
+    searched = getattr(estimator, "best_estimator_", estimator)
+    pipe_steps = getattr(searched, "named_steps", None)
+    has_preprocessing = pipe_steps is not None and "estimator" in pipe_steps
+    base_estimators = getattr(inner, "estimators", None)
+
     lines = ["## Model", ""]
-    lines.append(
-        "This report describes a {} model of type `{}`.".format(
-            mode, type(inner).__name__
+    lines.append("")
+    if base_estimators is not None:
+        ensemble_cls = type(inner).__name__
+        kind = "stacking" if "Stacking" in ensemble_cls else "voting"
+        member_types = []
+        for _name, est in base_estimators:
+            if est == "drop":
+                continue
+            est_type = type(unwrap_estimator(est)).__name__
+            if est_type not in member_types:
+                member_types.append(est_type)
+        lines.append(
+            "This report describes a {} ensemble {} model (`{}`) combining "
+            "models of type {}.".format(
+                kind, mode, ensemble_cls, _join_types(member_types)
+            )
         )
-    )
+    else:
+        lines.append(
+            "This report describes a {} model of type `{}`.".format(
+                mode, type(inner).__name__
+            )
+        )
 
     n_features = getattr(estimator, "n_features_in_", None)
     if n_features is not None:
         lines.append("")
         lines.append("Number of predictor features: {}.".format(n_features))
 
-    if estimator is not inner:
+    if has_preprocessing:
         lines.append("")
         lines.append(
             "Predictors are preprocessed before fitting (e.g. standardization "
@@ -223,7 +317,6 @@ def model_overview(model_file):
         )
 
     # ensemble members, if any
-    base_estimators = getattr(inner, "estimators", None)
     if base_estimators is not None:
         import pandas as pd
 
@@ -241,6 +334,13 @@ def model_overview(model_file):
         )
         lines.append("")
         lines.append(md_table(table, index_label="model"))
+        lines.append("")
+        lines.append(
+            table_caption(
+                "Base models combined by the ensemble"
+                + (", with their voting weights." if weights is not None else ".")
+            )
+        )
 
         final = getattr(inner, "final_estimator_", None)
         if final is not None:
@@ -293,7 +393,7 @@ def infer_mode_from_preds(preds):
     return "regression"
 
 
-def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
+def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots, scale, dpi):
     """Return a Markdown section with global cross-validation scores and a
     diagnostic figure."""
     import pandas as pd
@@ -323,16 +423,61 @@ def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
 
     lines = ["## Cross-validation performance", ""]
     lines.append(
-        "Scores are computed per cross-validation fold and summarized as the "
-        "mean and standard deviation across folds. They estimate how the model "
-        "performs on data not used for training."
+        "The table below shows the cross-validation scores. Scores are computed "
+        "per cross-validation fold and summarized as the mean and standard "
+        "deviation across folds. They estimate how the model performs on data "
+        "not used for training."
     )
     lines.append("")
+    lines.append(
+        table_caption(
+            "Cross-validation scores: mean and standard deviation of each metric "
+            "across folds."
+        )
+    )
     lines.append(md_table(table, index_label="metric"))
+    lines.append("")
+    lines.append("The statistics in the table are:")
+    lines.append("")
+    lines.append(
+        "- **accuracy**: Fraction of all samples predicted correctly "
+        "(correct ÷ total). Range 0-1. Rough guide: >0.9 strong, ~0.7-0.9 "
+        "reasonable, but especially with imbalanced classes, compare against "
+        "the next one."
+    )
+    lines.append("")
+    lines.append(
+        "- **balanced_accuracy**: Average of the per-class recall "
+        "(how much of each true class is recovered), which corrects for "
+        "class imbalance so small classes count as much as large ones. "
+        "Range 0-1; chance ≈ 1/k (0.5 for two classes, 0.25 for four). Good "
+        "is close to 1; near 1/k means no better than guessing. Useful to "
+        "compare against plain accuracy: a big gap signals the model leans "
+        " on the majority class."
+    )
+    lines.append("")
+    lines.append(
+        "- **matthews_correlation_coefficient (MCC)**: Correlation between "
+        "predicted and true labels using the whole confusion matrix; robust "
+        "to imbalance and works for multiclass. Range -1 to +1: +1 perfect, "
+        "0 = no better than random, -1 = systematically wrong. Rough guide: "
+        ">0.5 strong, 0.3-0.5 moderate, ~0 uninformative. Often considered "
+        "the better single summary for imbalanced problems. Closely related "
+        "to kappa, but MCC is more robust to imbalanced data."
+    )
+    lines.append("")
+    lines.append(
+        "- **kappa (Cohen's kappa)**: Agreement between predictions and truth "
+        "after subtracting the agreement expected by chance. Range usually "
+        "0-1 (can go negative). Common Landis-Koch bands: 0.2-0.4 fair, "
+        "0.4-0.6 moderate, 0.6-0.8 substantial, 0.8-1.0 almost perfect. It's "
+        "the traditional accuracy measure in remote-sensing land-cover work."
+        " Closely related to MCC, same for balanced classes."
+    )
     lines.append("")
     if mode == "classification":
         lines.append(
-            "The confusion matrix below summarises the cross-validation "
+            "The **confusion matrix** below summarises the cross-validation "
             "predictions. Each row is an observed (true) class and each "
             "column a predicted class. So counts on the diagonal are "
             "correct predictions and off-diagonal cells show which classes "
@@ -351,10 +496,12 @@ def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
         )
     lines.append("")
     if make_plots:
-        figure = _cv_figure(preds, mode, plots_dir)
+        figure = _cv_figure(preds, mode, plots_dir, scale, dpi)
         if figure is not None:
             caption = (
-                "Confusion matrix of the cross-validation predictions."
+                "Confusion matrix of the cross-validation predictions. The matrix "
+                "shows the raw count and the row-normalized percentage. The "
+                "diagonal is the per-class recall."
                 if mode == "classification"
                 else "Predicted versus observed values of the cross-validation "
                 "predictions."
@@ -367,14 +514,14 @@ def cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots):
     return "\n".join(lines)
 
 
-def _cv_figure(preds, mode, plots_dir):
+def _cv_figure(preds, mode, plots_dir, scale, dpi):
     """Create and save the cross-validation diagnostic figure, returning its
     file name (or None on failure)."""
     import matplotlib.pyplot as plt
 
     try:
-        fig, name = _build_cv_figure(preds, mode)
-        fig.savefig(os.path.join(plots_dir, name), dpi=100)
+        fig, name = _build_cv_figure(preds, mode, scale)
+        fig.savefig(os.path.join(plots_dir, name), dpi=dpi)
         plt.close(fig)
         return name
     except Exception as e:
@@ -382,18 +529,44 @@ def _cv_figure(preds, mode, plots_dir):
         return None
 
 
-def _build_cv_figure(preds, mode):
+def _confusion_cmap():
+    """White-to-accent colormap for the confusion matrix.
+
+    Built lazily so the module still imports when matplotlib is missing.
+    """
+    from matplotlib.colors import LinearSegmentedColormap
+
+    return LinearSegmentedColormap.from_list("cm_accent", ["#ffffff", ACCENT_COLOR])
+
+
+def _build_cv_figure(preds, mode, scale):
     """Build the cross-validation diagnostic figure, returning it together with
     the file name to save it under."""
     import matplotlib.pyplot as plt
-    from sklearn.metrics import ConfusionMatrixDisplay, PredictionErrorDisplay
+    from sklearn.metrics import (
+        ConfusionMatrixDisplay,
+        PredictionErrorDisplay,
+        confusion_matrix,
+    )
 
-    fig, ax = plt.subplots(figsize=(3, 3))
+    fig, ax = plt.subplots(figsize=(3.5 * scale, 3.5 * scale))
     if mode == "classification":
-        ConfusionMatrixDisplay.from_predictions(
-            preds["y_true"], preds["y_pred"], ax=ax, colorbar=False
+        labels = sorted(set(preds["y_true"]).union(preds["y_pred"]))
+        counts = confusion_matrix(preds["y_true"], preds["y_pred"], labels=labels)
+        # Row-normalize so every true class is on the same 0-1 scale (the
+        # diagonal is the per-class recall); this keeps errors in small classes
+        # visible regardless of class size. Cells still show the raw count and
+        # the row percentage.
+        proportions = confusion_matrix(
+            preds["y_true"], preds["y_pred"], labels=labels, normalize="true"
         )
-        ax.set_title("Cross-validation confusion matrix")
+        disp = ConfusionMatrixDisplay(proportions, display_labels=labels)
+        disp.plot(cmap=_confusion_cmap(), colorbar=False, ax=ax, values_format=".2f")
+        for i in range(len(labels)):
+            for j in range(len(labels)):
+                disp.text_[i, j].set_text(
+                    "{}\n{:.0%}".format(counts[i, j], proportions[i, j])
+                )
         name = "confusion_matrix.png"
     else:
         PredictionErrorDisplay.from_predictions(
@@ -402,7 +575,6 @@ def _build_cv_figure(preds, mode):
             kind="actual_vs_predicted",
             ax=ax,
         )
-        ax.set_title("Cross-validation predicted vs observed")
         name = "predicted_vs_observed.png"
     fig.tight_layout()
     return fig, name
@@ -412,16 +584,9 @@ def classification_table(classif_file):
     """Return a Markdown section with the per-class metrics table."""
     import pandas as pd
 
-    report = pd.read_csv(classif_file, index_col=0)
     lines = ["## Per-class performance", ""]
-    lines.append(
-        "Precision, recall and F1-score for each class, from the "
-        "cross-validation predictions. Support is the number of samples of "
-        "each class (a sum of sample weights if class balancing was used "
-        "during training)."
-    )
-    lines.append("")
 
+    report = pd.read_csv(classif_file, index_col=0)
     # classification_report stores overall accuracy as a single scalar, which
     # pandas broadcast across every metric row when the report was written.
     # Show it on its own rather than as a misleading per-class column.
@@ -429,15 +594,77 @@ def classification_table(classif_file):
     if "accuracy" in report.columns:
         accuracy = report["accuracy"].iloc[0]
         report = report.drop(columns="accuracy")
-
-    lines.append(md_table(report, index_label="metric"))
     if accuracy is not None:
         lines.append("")
-        lines.append("Overall accuracy: {:.3g}.".format(accuracy))
+        lines.append(
+            "The overall performance of the model, expressed "
+            "as the **overall accuracy**, is {:.3g}.".format(accuracy)
+        )
+    lines.append(
+        "The table below gives the precision, recall and F1-score "
+        "for each class, derived from the cross-validation "
+        "predictions."
+    )
+    lines.append("")
+    lines.append(
+        table_caption(
+            "Per-class precision, recall, F1-score and support from the "
+            "cross-validation predictions. All range 0-1, where 1 is "
+            "perfect. Good is context-dependent, but a rough guide is "
+            " >0.9 strong, ~0.7-0.9 reasonable. The column 'macro avg' "
+            " gives the unweighted mean across classes. So every class "
+            "counts equally. This is sensitive for weak minority classes. "
+            "The column 'weighted avg' gives averages weighted by the "
+            "number of samples per class and is therefore dominated by "
+            "the large classes. The difference between the two is itself "
+            "informative under imbalance."
+        )
+    )
+    lines.append("")
+    lines.append(md_table(report, index_label="metric"))
+    lines.append("")
+    lines.append("The statistics in the table are:")
+    lines.append("")
+    lines.append(
+        "- **Precision**: Of the samples that are *predicted* to be a "
+        "certain class, the fraction that truly is that class (TP / (TP + "
+        " FP). Answers 'when the 'model says this class, how often is it "
+        "right?' High precision = few false positives. The score is highly "
+        "influenced by the class's prevalence, so judge it against how "
+        "common the class is."
+    )
+    lines.append("")
+    lines.append(
+        "- **Recall** (sensitivity): The fraction of the samples that are "
+        "rightfully classified as a class (TP / (TP + FN). Answers 'how "
+        "much of this class did the model catch?' High recall = few "
+        "misses (false negatives). This is the per-class value that "
+        "**balanced_accuracy** averages."
+    )
+    lines.append("")
+    lines.append(
+        "- **F1-score**: The harmonic mean of precision and recall: "
+        " 2·P·R / (P + R). A single balanced summary per class. Scores "
+        "high when *both* precision and recall are high. Good when you "
+        "want one number per class and care about both error types."
+    )
+    lines.append("")
+    lines.append(
+        "- **Support** is the number of samples of each class, or a "
+        "sum of sample weights if class balancing was used during "
+        "training)."
+    )
+    lines.append("")
+    lines.append(
+        "There is usually a trade-off between precision and recall "
+        "Tightening predictions raises precision but lowers recall, "
+        "and vice versa; F1 captures the balance between them."
+    )
+    lines.append("")
     return "\n".join(lines)
 
 
-def feature_importances(fimp_file, plots_dir, plots_rel, make_plots):
+def feature_importances(fimp_file, plots_dir, plots_rel, make_plots, scale, dpi):
     """Return a Markdown section with the feature-importance table and chart."""
     import pandas as pd
 
@@ -452,6 +679,15 @@ def feature_importances(fimp_file, plots_dir, plots_rel, make_plots):
         "predictors are correlated."
     )
     lines.append("")
+    lines.append(md_table(fimp.set_index("feature"), index_label="feature"))
+    lines.append("")
+    lines.append(
+        table_caption(
+            "Permutation feature importance of each predictor (mean and standard "
+            "deviation)."
+        )
+    )
+    lines.append("")
     lines.append(
         "In *r.learn.train* and *r.learn.assembly* these importances are "
         "computed on the training data, not on an independent validation set, "
@@ -461,12 +697,10 @@ def feature_importances(fimp_file, plots_dir, plots_rel, make_plots):
         "correlation coefficient for classification, R-squared for regression)."
     )
     lines.append("")
-    lines.append(md_table(fimp.set_index("feature"), index_label="feature"))
-
     if make_plots:
-        figure = _importance_figure(fimp, plots_dir)
+        figure = _importance_figure(fimp, plots_dir, scale, dpi)
         if figure is not None:
-            caption = "Permutation feature importance (mean +/- standard deviation)."
+            caption = "Permutation feature importance (mean +/- standard deviation), shown as barplot."
             lines.append("")
             lines.append("![{}]({})".format(caption, plots_rel + "/" + figure))
             lines.append("")
@@ -475,14 +709,14 @@ def feature_importances(fimp_file, plots_dir, plots_rel, make_plots):
     return "\n".join(lines)
 
 
-def _importance_figure(fimp, plots_dir):
+def _importance_figure(fimp, plots_dir, scale, dpi):
     """Create and save the feature-importance bar chart, returning its file
     name (or None on failure)."""
     import matplotlib.pyplot as plt
 
     try:
-        fig, name = _build_importance_figure(fimp)
-        fig.savefig(os.path.join(plots_dir, name), dpi=120)
+        fig, name = _build_importance_figure(fimp, scale)
+        fig.savefig(os.path.join(plots_dir, name), dpi=dpi)
         plt.close(fig)
         return name
     except Exception as e:
@@ -490,17 +724,20 @@ def _importance_figure(fimp, plots_dir):
         return None
 
 
-def _build_importance_figure(fimp):
+def _build_importance_figure(fimp, scale):
     """Build the feature-importance bar chart, returning it together with the
     file name to save it under."""
     import matplotlib.pyplot as plt
 
     ordered = fimp.sort_values("importance")
-    fig, ax = plt.subplots(figsize=(6, max(2, 0.4 * len(ordered) + 1)))
+    # Compact base size (scaled by plot_scale); the font is fixed globally so the
+    # labels read at body-text size rather than towering over the surrounding
+    # text.
+    height = max(1.3, 0.3 * len(ordered) + 0.7)
+    fig, ax = plt.subplots(figsize=(3.6 * scale, height * scale))
     xerr = ordered["std"] if "std" in ordered.columns else None
-    ax.barh(ordered["feature"], ordered["importance"], xerr=xerr)
+    ax.barh(ordered["feature"], ordered["importance"], xerr=xerr, color=ACCENT_COLOR)
     ax.set_xlabel("importance")
-    ax.set_title("Permutation feature importance")
     fig.tight_layout()
     return fig, "feature_importance.png"
 
@@ -559,6 +796,8 @@ def response_curves(
     centered,
     color_by,
     nprocs,
+    scale,
+    dpi,
 ):
     """Return a Markdown section with partial-dependence response curves.
 
@@ -636,7 +875,7 @@ def response_curves(
     elif curves == "band":
         lines.append(
             "The solid line is the median response across samples and the dashed "
-            "line their mean; a gap between them points to a skewed or "
+            "line their mean. A gap between them points to a skewed or "
             "outlier-influenced spread. The shaded areas are the 25-75% and "
             "10-90% ranges of the per-sample responses."
         )
@@ -769,6 +1008,8 @@ def response_curves(
                 color_vals,
                 color_name,
                 categorical_cols,
+                scale,
+                dpi,
             )
             prefix = (
                 "Centered response curves"
@@ -832,6 +1073,8 @@ def _render_response_figure(
     color_vals=None,
     color_name=None,
     categorical_cols=None,
+    scale=1.0,
+    dpi=100,
 ):
     """Render and save one response-curve figure (one panel per predictor) from
     precomputed partial-dependence results, returning its file name. Each panel
@@ -858,7 +1101,7 @@ def _render_response_figure(
     fig, axes = plt.subplots(
         n_rows,
         n_cols,
-        figsize=(n_cols * 3.0, n_rows * 2.8),
+        figsize=(n_cols * 3.0 * scale, n_rows * 2.8 * scale),
         squeeze=False,
         constrained_layout=use_color,
     )
@@ -875,7 +1118,7 @@ def _render_response_figure(
             # natural ordering to center on, so these panels stay uncentered.
             x = np.arange(len(grid))
             if curves == "pdp":
-                ax.bar(x, avg, color="C0", alpha=0.85, label="mean")
+                ax.bar(x, avg, color=ACCENT_COLOR, alpha=0.85, label="mean")
             else:
                 ind = np.asarray(res["individual"])[target_idx]
                 median = np.median(ind, axis=0)
@@ -884,14 +1127,16 @@ def _render_response_figure(
                 ax.bar(
                     x,
                     median,
-                    color="C0",
+                    color=ACCENT_COLOR,
                     alpha=0.85,
                     yerr=np.vstack([median - p25, p75 - median]),
                     capsize=3,
                     ecolor="0.4",
                     label="median (25-75%)",
                 )
-                ax.plot(x, mean, color="C3", ls="none", marker="D", ms=4, label="mean")
+                ax.plot(
+                    x, mean, color=MEAN_COLOR, ls="none", marker="D", ms=4, label="mean"
+                )
             ax.set_xticks(x)
             many = len(grid) > 12
             ax.set_xticklabels(
@@ -902,7 +1147,7 @@ def _render_response_figure(
         elif curves == "pdp":
             if centered:
                 avg = avg - avg[0]
-            ax.plot(grid, avg, color="C0", lw=2.0, label="mean")
+            ax.plot(grid, avg, color=ACCENT_COLOR, lw=2.0, label="mean")
         else:
             # per-sample ICE values for the target output
             ind = np.asarray(res["individual"])[target_idx]
@@ -926,11 +1171,15 @@ def _render_response_figure(
             else:  # band
                 p10, p90 = np.percentile(ind, [10, 90], axis=0)
                 p25, p75 = np.percentile(ind, [25, 75], axis=0)
-                ax.fill_between(grid, p10, p90, color="C0", alpha=0.15, label="10-90%")
-                ax.fill_between(grid, p25, p75, color="C0", alpha=0.30, label="25-75%")
+                ax.fill_between(
+                    grid, p10, p90, color=ACCENT_COLOR, alpha=0.15, label="10-90%"
+                )
+                ax.fill_between(
+                    grid, p25, p75, color=ACCENT_COLOR, alpha=0.30, label="25-75%"
+                )
 
-            ax.plot(grid, median, color="C0", lw=2.0, label="median")
-            ax.plot(grid, mean, color="C3", lw=1.3, ls="--", label="mean")
+            ax.plot(grid, median, color=ACCENT_COLOR, lw=2.0, label="median")
+            ax.plot(grid, mean, color=MEAN_COLOR, lw=1.3, ls="--", label="mean")
 
         ax.set_xlabel(feature_names[f])
         base = "predicted probability" if is_classification else "predicted value"
@@ -956,7 +1205,7 @@ def _render_response_figure(
     suffix = "_centered" if centered else ""
     cls = "" if target is None else "_class_{}".format(target)
     name = "response_curves{}{}.png".format(suffix, cls)
-    fig.savefig(os.path.join(plots_dir, name), dpi=110)
+    fig.savefig(os.path.join(plots_dir, name), dpi=dpi)
     plt.close(fig)
     return name
 
@@ -976,9 +1225,9 @@ def hyperparameter_search(param_file):
 
     lines = ["## Hyperparameter search", ""]
     lines.append(
-        "Mean cross-validated score for each evaluated hyperparameter "
-        "combination, best first. These are the results of the grid search "
-        "performed during training. The best combination is the one with the "
+        "With the hyperparameter grid search, the mean cross-validated score "
+        "is computed and shown for each evaluated hyperparameter "
+        "combination. The best combination is the one with the "
         "highest `mean_test_score` (the tuning metric is Matthews correlation "
         "coefficient for classification and R-squared for regression; higher "
         "is better for both)."
@@ -993,6 +1242,13 @@ def hyperparameter_search(param_file):
         lines.append("")
     ranked = table.head(10).reset_index(drop=True)
     ranked.index = ranked.index + 1
+    lines.append(
+        table_caption(
+            "Mean cross-validated score for each hyperparameter combination, "
+            "best first."
+        )
+    )
+    lines.append("")
     lines.append(md_table(ranked, index_label="rank"))
     return "\n".join(lines)
 
@@ -1010,7 +1266,14 @@ def main():
     curves = options["curves"]
     color_by = options["color_by"]
     nprocs = int(options["nprocs"])
+    plot_scale = float(options["plot_scale"])
+    dpi = int(options["dpi"])
     centered = flags["c"]
+
+    if plot_scale <= 0:
+        gs.fatal(_("plot_scale must be greater than 0"))
+    if dpi <= 0:
+        gs.fatal(_("dpi must be greater than 0"))
 
     for path, key in (
         (load_model, "load_model"),
@@ -1035,6 +1298,18 @@ def main():
         import matplotlib as mpl
 
         mpl.use("Agg")
+        # Set the figure font once for all figures. A fixed point size keeps the
+        # text at roughly body-text size whatever the figure scale or dpi.
+        mpl.rcParams.update(
+            {
+                "font.size": FONT_PT,
+                "axes.titlesize": FONT_PT,
+                "axes.labelsize": FONT_PT,
+                "xtick.labelsize": FONT_PT,
+                "ytick.labelsize": FONT_PT,
+                "legend.fontsize": FONT_PT,
+            }
+        )
         make_plots = True
     except ImportError:
         gs.warning(
@@ -1078,7 +1353,9 @@ def main():
     if preds_file:
         gs.message(_("Summarizing cross-validation performance ..."))
         sections.append(
-            cv_performance(preds_file, mode, plots_dir, plots_rel, make_plots)
+            cv_performance(
+                preds_file, mode, plots_dir, plots_rel, make_plots, plot_scale, dpi
+            )
         )
 
     if classif_file:
@@ -1088,7 +1365,9 @@ def main():
     if fimp_file:
         gs.message(_("Adding feature importances ..."))
         sections.append(
-            feature_importances(fimp_file, plots_dir, plots_rel, make_plots)
+            feature_importances(
+                fimp_file, plots_dir, plots_rel, make_plots, plot_scale, dpi
+            )
         )
 
     if training_file:
@@ -1117,6 +1396,8 @@ def main():
                 centered,
                 color_by,
                 nprocs,
+                plot_scale,
+                dpi,
             )
             if section is not None:
                 sections.append(section)
