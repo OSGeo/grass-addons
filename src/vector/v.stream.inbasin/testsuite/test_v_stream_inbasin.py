@@ -154,7 +154,6 @@ class ExactCoordinatesVStreamInbasin(TestCase):
 
     streams = "exact_streams"
     draindir = "exact_draindir"
-    basins_rast = "exact_basins_rast"
     basins_vect = "exact_basins_vect"
     output_basin = "exact_output_basin"
     output_streams = "exact_output_streams"
@@ -170,17 +169,14 @@ class ExactCoordinatesVStreamInbasin(TestCase):
         cls.runModule(
             "r.watershed",
             elevation="elevation@PERMANENT",
-            threshold=10000,
             drainage=cls.draindir,
-            basin=cls.basins_rast,
-            flags="s",
             quiet=True,
         )
         cls.runModule(
-            "r.to.vect",
-            input=cls.basins_rast,
+            "v.buffer",
+            input=cls.streams,
             output=cls.basins_vect,
-            type="area",
+            distance=50,
             quiet=True,
         )
         cls.runModule(
@@ -211,7 +207,7 @@ class ExactCoordinatesVStreamInbasin(TestCase):
         cls.runModule(
             "g.remove",
             type="raster",
-            name=[cls.draindir, cls.basins_rast],
+            name=[cls.draindir],
             flags="f",
         )
         cls.del_temp_region()
@@ -237,6 +233,32 @@ class ExactCoordinatesVStreamInbasin(TestCase):
         self.assertEqual(len(records), 1)
         self.assertAlmostEqual(records[0]["x"], self.coordinates[0], places=1)
         self.assertAlmostEqual(records[0]["y"], self.coordinates[1], places=1)
+
+    def test_without_input_basins(self):
+        """Check running exact coordinates without input_basins"""
+        basin_out = "exact_no_subbasins_basin"
+        streams_out = "exact_no_subbasins_streams"
+        self.assertModule(
+            "v.stream.inbasin",
+            input_streams=self.streams,
+            draindir=self.draindir,
+            coordinates=self.coordinates,
+            output_basin=basin_out,
+            output_streams=streams_out,
+        )
+        self.assertVectorExists(basin_out)
+        self.assertVectorExists(streams_out)
+        basin_info = gs.vector_info(basin_out)
+        streams_info = gs.vector_info(streams_out)
+        self.assertGreater(basin_info["areas"], 0)
+        self.assertGreater(streams_info["lines"], 0)
+        gs.run_command(
+            "g.remove",
+            type="vector",
+            name=[basin_out, streams_out],
+            flags="f",
+            quiet=True,
+        )
 
 
 if __name__ == "__main__":
