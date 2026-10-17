@@ -92,10 +92,11 @@ def main():
     # Get map metadata
     mapinfo = gs.parse_command("r.info", flags="e", map=map)
 
-    if mapinfo["title"]:
-        name = "{}: {}".format(mapinfo["map"], mapinfo["title"])
+    title = mapinfo.get("title")
+    if title:
+        name = "{}: {}".format(map, title)
     else:
-        name = mapinfo["map"]
+        name = map
 
     # Get color rules
     color_rules = gs.read_command("r.colors.out", map=map).split("\n")
@@ -105,9 +106,11 @@ def main():
 
     # Check if map has categories if type is CELL
     if maptype == "CELL":
-        gs.verbose("Reading category lables, may take a while...")
+        gs.verbose("Reading category labels, may take a while...")
         categories = gs.parse_command("r.category", map=map, separator="=")
-        if list(set(categories.values()))[0] or len(list(set(categories.values()))) > 1:
+        if categories and (
+            any(categories.values()) or len(set(categories.values())) > 1
+        ):
             use_categories = True
         else:
             use_categories = False
