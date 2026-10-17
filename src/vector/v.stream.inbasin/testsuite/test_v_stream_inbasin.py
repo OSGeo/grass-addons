@@ -179,6 +179,7 @@ class ExactCoordinatesVStreamInbasin(TestCase):
             distance=50,
             quiet=True,
         )
+        cls.runModule("v.db.addtable", map=cls.basins_vect, quiet=True)
         cls.runModule(
             "v.stream.inbasin",
             input_streams=cls.streams,

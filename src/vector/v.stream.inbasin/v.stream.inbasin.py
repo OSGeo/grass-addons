@@ -231,21 +231,33 @@ def main():
         basin_layer = output_basins if output_basins else "tmp_clipped_basin"
         if len(basins) > 0:
             v.clip(input=basins, clip="tmp", output=basin_layer, overwrite=True)
-            basin_data = gs.vector_db_select(basin_layer)
-            basincats = (
-                list(basin_data["values"].keys())
-                if basin_data and "values" in basin_data
-                else []
-            )
-            basincats_str = ",".join(map(str, basincats))
-            if len(streams) > 0 and len(output_streams) > 0 and len(basincats_str) > 0:
-                v.extract(
-                    input=streams,
-                    output=output_streams,
-                    cats=basincats_str,
-                    overwrite=gs.overwrite(),
-                    quiet=True,
+            try:
+                basin_data = gs.vector_db_select(basin_layer)
+                basincats = (
+                    list(basin_data["values"].keys())
+                    if basin_data and "values" in basin_data
+                    else []
                 )
+            except Exception:
+                basincats = []
+            basincats_str = ",".join(map(str, basincats))
+            if len(streams) > 0 and len(output_streams) > 0:
+                if basincats_str:
+                    v.extract(
+                        input=streams,
+                        output=output_streams,
+                        cats=basincats_str,
+                        overwrite=gs.overwrite(),
+                        quiet=True,
+                    )
+                else:
+                    v.clip(
+                        input=streams,
+                        clip="tmp",
+                        output=output_streams,
+                        overwrite=gs.overwrite(),
+                        quiet=True,
+                    )
             if not output_basins:
                 gs.run_command(
                     "g.remove", flags="f", type="vector", name=basin_layer, quiet=True
