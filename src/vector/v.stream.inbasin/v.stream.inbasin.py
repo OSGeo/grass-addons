@@ -242,6 +242,7 @@ def main():
                 basincats = []
             basincats_str = ",".join(map(str, basincats))
             if len(streams) > 0 and len(output_streams) > 0:
+                extracted = False
                 if basincats_str:
                     v.extract(
                         input=streams,
@@ -250,17 +251,14 @@ def main():
                         overwrite=gs.overwrite(),
                         quiet=True,
                     )
-                stream_info = (
-                    gs.vector_info(output_streams)
-                    if gs.find_file(output_streams, element="vector")["name"]
-                    else None
-                )
-                if not stream_info or stream_info["lines"] == 0:
+                    extracted = True
+                if not extracted or gs.vector_info_topo(output_streams)["lines"] == 0:
+                    # Overwrite the empty map created by v.extract above
                     v.clip(
                         input=streams,
                         clip="tmp",
                         output=output_streams,
-                        overwrite=gs.overwrite(),
+                        overwrite=gs.overwrite() or extracted,
                         quiet=True,
                     )
             if not output_basins:
