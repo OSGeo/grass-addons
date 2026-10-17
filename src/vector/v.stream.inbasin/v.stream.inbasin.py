@@ -250,7 +250,12 @@ def main():
                         overwrite=gs.overwrite(),
                         quiet=True,
                     )
-                else:
+                stream_info = (
+                    gs.vector_info(output_streams)
+                    if gs.find_file(output_streams, element="vector")["name"]
+                    else None
+                )
+                if not stream_info or stream_info["lines"] == 0:
                     v.clip(
                         input=streams,
                         clip="tmp",
