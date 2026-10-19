@@ -9,7 +9,9 @@ add_subdirectory(rlearnlib)
 build_addon(
   ${PROJECT_NAME}
   ADDONS
+    r.learn.assembly
     r.learn.predict
+    r.learn.report
     r.learn.train
   DOCFILES
     lsat7_2000_b742.png
