@@ -445,7 +445,13 @@ def main():
     try:
         import sklearn
 
-        if sklearn.__version__ < "1.2.2":
+        # Compare numerically rather than lexicographically: a string compare
+        # mishandles multi-digit components (e.g. "1.10" < "1.2" is True).
+        if tuple(int(x) for x in re.findall(r"\d+", sklearn.__version__)[:3]) < (
+            1,
+            2,
+            2,
+        ):
             gs.fatal("Package python3-scikit-learn 1.2.2 or newer is not installed")
 
     except ImportError:
@@ -533,7 +539,7 @@ def main():
 
     # feature importance file selected but no cross-validation scheme used
     if importances:
-        if sklearn.__version__ < "0.22":
+        if tuple(int(x) for x in re.findall(r"\d+", sklearn.__version__)[:2]) < (0, 22):
             gs.fatal(
                 "Feature importances calculation requires scikit-learn version >= 0.22"
             )
@@ -750,12 +756,18 @@ def main():
         from sklearn.metrics import classification_report
         from sklearn import metrics
 
-        if mode == "classification":
+        if mode == "classification" and group_id is None:
+            # StratifiedKFold (used when there are no group ids) needs at least
+            # cv samples in every class. GroupKFold instead needs cv distinct
+            # groups, so this per-class check does not apply to the grouped case.
             class_counts = np.unique(y, return_counts=True)[1]
             if cv > class_counts.min():
                 gs.message(os.linesep)
                 gs.fatal(
-                    "Number of cv folds is greater than number of samples in some classes "
+                    "Number of cv folds ({}) is greater than the number of "
+                    "samples in the smallest class ({}).".format(
+                        cv, int(class_counts.min())
+                    )
                 )
 
         gs.message(os.linesep)
@@ -770,12 +782,18 @@ def main():
 
         from sklearn.model_selection import cross_val_predict
 
+        # Materialise the outer splits once so the fold labels below come from
+        # exactly the partitioning cross_val_predict uses, rather than a second
+        # outer.split() call that only matches while the splitter is
+        # deterministic. Passing an explicit split list also means "groups" is
+        # no longer consumed by cross_val_predict (it is already applied here).
+        cv_splits = list(outer.split(X, y, group_id))
+
         cv_kwargs = {
             "estimator": estimator,
             "X": X,
             "y": y,
-            "groups": group_id,
-            "cv": outer,
+            "cv": cv_splits,
             "n_jobs": n_jobs,
         }
 
@@ -793,11 +811,11 @@ def main():
         preds = cross_val_predict(**cv_kwargs)
 
         # cross_val_predict returns predictions in the original sample order,
-        # so each sample's fold id must be written at its own position rather
-        # than concatenated in fold order (the test indices are not contiguous
-        # for stratified or grouped splits).
-        n_fold = np.empty(len(y), dtype=int)
-        for fold, (_train, test) in enumerate(outer.split(X, y, group_id)):
+        # so each sample's fold id is written at its own position rather than
+        # concatenated in fold order (the test indices are not contiguous for
+        # stratified or grouped splits). -1 marks any sample no fold covers.
+        n_fold = np.full(len(y), -1, dtype=int)
+        for fold, (_train, test) in enumerate(cv_splits):
             n_fold[test] = fold
 
         preds = {"y_pred": preds, "y_true": y, "cat": cat, "fold": n_fold}
