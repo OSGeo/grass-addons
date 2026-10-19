@@ -22,9 +22,9 @@ size (minimum area for fragments) are subsequently removed. See
 [r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html)
 for more details.
 
-![image-alt](r_suitability_regions_01.png)*
-Figure 1: identifying regions of contiguous raster cells with a
-suitability score of 0.7 or more.*
+![image-alt](r_suitability_regions_01.png)  
+*Figure 1: identifying regions of contiguous raster cells with a suitability
+score of 0.7 or more.*
 
 You would use this to find suitable areas for a species that cannot or is not
 likely to venture into areas where conditions are not optimal.
@@ -64,9 +64,9 @@ briefly stay in non-suitable habitat, e.g., to cross it on their way to more
 suitable habitat. As the example below shows, it results in larger regions than
 in the previous option.
 
-![image-alt](r_suitability_regions_02.png)* Figure 2: Like figure 1, but based
-on the median suitability scores of the neighboring cells within a radius of 300
-meter (3x3 moving window).*
+![image-alt](r_suitability_regions_02.png)  
+*Figure 2: Like figure 1, but based on the median suitability scores of the
+neighboring cells within a radius of 300 meter (3x3 moving window).*
 
 ### Option 3 - barriers
 
@@ -83,10 +83,10 @@ than one large (meta-)population. It can even result in a net loss of habitat if
 one or more of the fragments are too small to maintain a population (the user
 can set a minimum area size to account for this).
 
-![image-alt](r_suitability_regions_03.png)* Figure 3: Like figure 2, but
-considering raster cells with suitability 0 (mostly roads) as absolute barriers.
-Diagonally connected raster cells are not considered to form a contiguous
-region.*
+![image-alt](r_suitability_regions_03.png)  
+*Figure 3: Like figure 2, but considering raster cells with suitability 0
+(mostly roads) as absolute barriers. Diagonally connected raster cells are not
+considered to form a contiguous region.*
 
 Note that for line elements like roads, results may differ if the option to
 'include the diagonal neighbors when defining clumps' (flag d) is selected. For
@@ -94,9 +94,9 @@ example, in figure 4, diagonally connected cells are considered as neighbors. As
 a consequence, the suitable areas on both sides of the road are considered to be
 part of the same region. I.e., the road does not act as a barrier here.
 
-![image-alt](r_suitability_regions_04.png)* Figure 4: Like figure 3, but this
-time, diagonally connected raster cells are considered to form a contiguous
-region.*
+![image-alt](r_suitability_regions_04.png)  
+*Figure 4: Like figure 3, but this time, diagonally connected raster cells are
+considered to form a contiguous region.*
 
 ### Option 4 - compact areas
 
@@ -116,10 +116,11 @@ This option can be used to end up with more compact areas. This may be
 desirable for visualization purposes, or it may in fact be acceptable to
 include such areas in the final selection of a region.
 
-![image-alt](r_suitability_regions_05.png)* Figure 5: Like figure 3 (left), but
-here gaps (areas within a suitable region) of 500 hectares or less were included
-in the final selection (middle). The right map shows the suitable areas within
-the selected regions (green) and the filled gaps (yellow).*
+![image-alt](r_suitability_regions_05.png)  
+*Figure 5: Like figure 3 (left), but here gaps (areas within a suitable region)
+of 500 hectares or less were included in the final selection (middle). The right
+map shows the suitable areas within the selected regions (green) and the filled
+gaps (yellow).*
 
 Selecting this option will generate a second map which shows the 'filled
 patches'. This makes it easier to e.g., inspect the feasibility or desirability
@@ -127,8 +128,8 @@ of including these areas in a protected area.
 
 ### Compactness of the regions
 
-To compare the compactness of the resulting regions, the compactness of
-an area is calculated using the formula below (see also
+To compare the compactness of the resulting regions, the compactness of an area
+is calculated using the formula below (see also
 [v.to.db](https://grass.osgeo.org/grass-stable/manuals/v.to.db.html).
 
 ```text
@@ -175,8 +176,8 @@ projected layers because the assumption is that all cells have the same size.
 ## Examples
 
 See [this
-tutorial](https://ecodiv.earth/TutorialsNotes/SuitabilityRegions/index.html)
-for examples.
+tutorial](https://ecodiv.earth/TutorialsNotes/SuitabilityRegions/index.html) for
+examples.
 
 ## See also
 
