@@ -28,6 +28,10 @@
 # % guisection: Input
 # %end
 
+# %option G_OPT_V_FIELD
+# % guisection: Input
+# %end
+
 # %option G_OPT_DB_COLUMN
 # % key: x
 # % label: Name of x column
@@ -668,6 +672,7 @@ def main(options, flags):
         "v.db.select",
         map=options["map"],
         columns=columns,
+        layer=options["layer"],
         where=sql_stat,
     ).splitlines()
     X_name, Y_name = df[0].split("|")[0:2]
