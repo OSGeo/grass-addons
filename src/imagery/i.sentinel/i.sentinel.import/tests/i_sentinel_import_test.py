@@ -9,7 +9,9 @@ from grass.tools import Tools
 
 def test_print_after_link_keeps_linked_files(sentinel):
     """Printing the files to import keeps the files of linked maps."""
-    pytest.importorskip("osgeo")
+    pytest.importorskip(
+        "osgeo", reason="-p needs the GDAL Python bindings to print the EPSG code"
+    )
     tools = Tools(env=sentinel.env)
     tools.i_sentinel_import(input=sentinel.data, flags="l")
     assert sentinel.safe.is_dir()

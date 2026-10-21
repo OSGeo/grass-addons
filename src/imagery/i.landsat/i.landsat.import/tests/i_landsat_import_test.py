@@ -12,7 +12,9 @@ def tif_names(directory):
 
 def test_print_flag_keeps_files(landsat):
     """Printing the files to import does not remove them."""
-    pytest.importorskip("osgeo")
+    pytest.importorskip(
+        "osgeo", reason="-p needs the GDAL Python bindings to print the EPSG code"
+    )
     before = tif_names(landsat.loose)
     tools = Tools(env=landsat.env)
     tools.i_landsat_import(input=landsat.loose, flags="p")
