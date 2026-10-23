@@ -151,6 +151,8 @@ def _untar(inputdir, untardir):
     else:
         filter_f = "*"
 
+    existing_tifs = set(glob.glob(os.path.join(untardir, "*.TIF")))
+
     # find .tar archives (new archiving standard for Landsat as of 2023) and
     # .tar.gz (downloads of older date)
     scenes_to_untar = glob.glob(os.path.join(inputdir, f"{filter_f}.tar"))
@@ -178,7 +180,7 @@ def _untar(inputdir, untardir):
             safe_extract(tar, untardir)
 
     untared_tifs = glob.glob(os.path.join(untardir, "*.TIF"))
-    return untared_tifs
+    return untared_tifs, [f for f in untared_tifs if f not in existing_tifs]
 
 
 def _check_projection(filename):
@@ -304,7 +306,7 @@ def main():
     inputdir = options["input"]
     untardir = options["unzip_dir"]
 
-    files = _untar(inputdir, untardir)
+    files, extracted_tifs = _untar(inputdir, untardir)
 
     if options["pattern"]:
         filter_p = r".*{}.*.TIF$".format(options["pattern"])
@@ -360,9 +362,10 @@ def main():
     if options["register_output"]:
         write_register_file(files_to_import, options["register_output"])
 
-    # remove all tif files after import
-    for f in files:
-        os.remove(f)
+    # remove extracted tif files after import, they are required when linking
+    if not flags["l"]:
+        for f in extracted_tifs:
+            os.remove(f)
 
 
 if __name__ == "__main__":
