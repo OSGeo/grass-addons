@@ -200,8 +200,6 @@ def main():
         imported = create_tmp_map_name("imported")
         TMP.append(imported)
         if gs.find_program("v.in.pdal", "--help"):
-            # v.in.pdal has no vector mask, so limit the import to the
-            # bounding box of the profile area and clip with v.select below.
             info = gs.vector_info(profile_area)
             gs.run_command(
                 "v.in.pdal",
