@@ -64,7 +64,6 @@ def profile(module_session):
         with Tools(session=session) as tools:
             yield SimpleNamespace(
                 tools=tools,
-                env=session.env,
                 coordinates=(*LINE_START, *LINE_END),
                 line_length=LINE_LENGTH,
             )

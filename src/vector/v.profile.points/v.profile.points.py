@@ -51,7 +51,6 @@
 # % key: file_input
 # % required: no
 # % label: LAS (or LAZ) file with a point cloud
-# % description: File to be imported using v.in.pdal
 # % guisection: Points
 # %end
 # %option G_OPT_V_OUTPUT
@@ -209,12 +208,13 @@ def main():
                 quiet=quiet,
                 errors="exit",
             )
+            input_points = imported
         elif gs.find_program("v.in.lidar", "--help"):
             gs.warning(_("v.in.pdal not found, using v.in.lidar"))
             gs.run_command(
                 "v.in.lidar",
                 input=input_file,
-                output=imported,
+                output=profile_points,
                 mask=profile_area,
                 quiet=quiet,
                 errors="exit",
@@ -223,17 +223,17 @@ def main():
             gs.fatal(
                 _("Neither v.in.pdal nor v.in.lidar is available to import LAS files")
             )
-        input_points = imported
 
-    gs.message(_("Selecting..."))
-    gs.run_command(
-        "v.select",
-        ainput=input_points,
-        binput=profile_area,
-        output=profile_points,
-        flags="c",
-        quiet=quiet,
-    )
+    if input_points:
+        gs.message(_("Selecting..."))
+        gs.run_command(
+            "v.select",
+            ainput=input_points,
+            binput=profile_area,
+            output=profile_points,
+            flags="c",
+            quiet=quiet,
+        )
 
     gs.message(_("Rotating..."))
     gs.run_command(
