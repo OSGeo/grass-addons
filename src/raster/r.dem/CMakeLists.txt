@@ -10,6 +10,7 @@ build_addon(
     r.dem.bias
     r.dem.change
     r.dem.coregister
+    r.dem.dod
     r.dem.errprop
     r.dem.icp
     r.dem.lod
