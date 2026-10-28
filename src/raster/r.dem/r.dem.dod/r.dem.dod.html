@@ -10,11 +10,11 @@ raising (deposition). The output is the DoD that <em>r.dem.bias</em>,
 <p>Inputs that are not aligned with the computational region, either because
 their resolution differs or because their cell edges are offset from the
 region grid, are resampled onto the region with <em>r.resamp.interp</em>
-before differencing. The <b>interp</b> option selects <code>nearest</code>,
-<code>bilinear</code> (default), or <code>bicubic</code> interpolation, the
-same choices <em>r.dem.nk</em> offers. A warning reports the resolution and
-origin offset of every resampled input. Inputs already on the region grid,
-such as the output of <em>r.dem.nk</em>, are differenced directly.</p>
+before differencing. The <b>interp</b> option selects
+<code>bilinear</code> (default) or <code>bicubic</code> interpolation. A
+warning reports the resolution and origin offset of every resampled input.
+Inputs already on the region grid, such as the output of <em>r.dem.nk</em>,
+are differenced directly.</p>
 
 <p>The output carries the r.dem DoD color palette: erosion runs yellow to
 orange to red to magenta as it deepens, near-zero differences are pale green,
@@ -36,12 +36,12 @@ be registered in a space-time raster dataset with <em>t.register</em>.</p>
 that are null in either input are null in the output.</p>
 
 <p>When an input is finer than the computational region, interpolation samples
-it without aggregating the cells in between. Aggregate it first with
-<em>r.resamp.stats</em> <code>method=average</code> if that matters for the
-analysis.</p>
+it without aggregating the cells in between. Aggregate it first with a
+method like <em>r.resamp.stats</em> <code>method=average</code> if that
+matters for the analysis.</p>
 
-<p>Pass the same <b>range</b> to every DoD that will be compared, for example
-before and after co-registration, so the maps share one color scale.</p>
+<p>To compare multiple DoDs, for example before and after co-registration,
+pass the same <b>range</b> so the maps share one color scale.</p>
 
 <h2>EXAMPLES</h2>
 

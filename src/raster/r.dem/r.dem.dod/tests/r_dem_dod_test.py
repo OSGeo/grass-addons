@@ -40,16 +40,20 @@ def test_misaligned_input_is_resampled_with_warning(tools):
 
 
 def test_interp_option_reaches_resampling(tools):
-    tools.r_dem_dod(
-        dem="dem_shift",
-        reference="dem_pre",
-        output="dod_nearest",
-        interp="nearest",
-        overwrite=True,
-    )
-    # Nearest neighbor keeps the half-cell shift, so the plane does not cancel.
-    stats = tools.r_univar(map="dod_nearest", format="json")
-    assert max(abs(stats["min"]), abs(stats["max"])) > 0.01
+    # On a curved surface bilinear interpolation leaves an error that bicubic
+    # interpolation does not, so the two choices give different DoDs.
+    for method in ("bilinear", "bicubic"):
+        tools.r_dem_dod(
+            dem="curve_shift",
+            reference="curve_pre",
+            output=f"dod_curve_{method}",
+            interp=method,
+            overwrite=True,
+        )
+    bilinear = tools.r_univar(map="dod_curve_bilinear", format="json")
+    bicubic = tools.r_univar(map="dod_curve_bicubic", format="json")
+    assert bilinear["mean"] > 1e-3
+    assert abs(bicubic["mean"]) < bilinear["mean"]
 
 
 def test_finer_input_warns(tools):

@@ -6,6 +6,7 @@ import grass.script as gs
 from grass.tools import Tools
 
 PLANE = "100.0 + 0.2 * x() + 0.1 * y()"
+CURVE = "100.0 + 0.01 * (x() - 20) ^ 2 + 0.01 * (y() - 20) ^ 2"
 
 
 @pytest.fixture(scope="module")
@@ -30,8 +31,10 @@ def session(tmp_path_factory):
         )
         # The same plane on a grid offset by half a cell east and a quarter
         # cell north, then on a grid twice as fine.
+        tools.r_mapcalc(expression=f"curve_pre = {CURVE}")
         tools.g_region(n=40.25, s=0.25, e=40.5, w=0.5, res=1)
         tools.r_mapcalc(expression=f"dem_shift = {PLANE}")
+        tools.r_mapcalc(expression=f"curve_shift = {CURVE}")
         tools.g_region(n=40, s=0, e=40, w=0, res=0.5)
         tools.r_mapcalc(expression=f"dem_fine = {PLANE}")
         tools.g_region(n=40, s=0, e=40, w=0, res=1)

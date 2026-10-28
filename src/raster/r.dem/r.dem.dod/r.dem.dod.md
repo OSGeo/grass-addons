@@ -9,11 +9,10 @@ the DoD that *r.dem.bias*, *r.dem.lod*, *r.dem.change*, *r.dem.errprop*, and
 Inputs that are not aligned with the computational region, either because
 their resolution differs or because their cell edges are offset from the
 region grid, are resampled onto the region with *r.resamp.interp* before
-differencing. The **interp** option selects `nearest`, `bilinear` (default),
-or `bicubic` interpolation, the same choices *r.dem.nk* offers. A warning
-reports the resolution and origin offset of every resampled input. Inputs
-already on the region grid, such as the output of *r.dem.nk*, are differenced
-directly.
+differencing. The **interp** option selects `bilinear` (default) or
+`bicubic` interpolation. A warning reports the resolution and origin offset
+of every resampled input. Inputs already on the region grid, such as the
+output of *r.dem.nk*, are differenced directly.
 
 The output carries the r.dem DoD color palette: erosion runs yellow to orange
 to red to magenta as it deepens, near-zero differences are pale green, and
@@ -34,11 +33,11 @@ Differencing respects the computational region and the raster mask. Cells
 that are null in either input are null in the output.
 
 When an input is finer than the computational region, interpolation samples
-it without aggregating the cells in between. Aggregate it first with
-*r.resamp.stats* `method=average` if that matters for the analysis.
+it without aggregating the cells in between. Aggregate it first with a method
+like *r.resamp.stats* `method=average` if that matters for the analysis.
 
-Pass the same **range** to every DoD that will be compared, for example
-before and after co-registration, so the maps share one color scale.
+To compare multiple DoDs, for example before and after co-registration,
+pass the same **range** so the maps share one color scale.
 
 ## EXAMPLES
 

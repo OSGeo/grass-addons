@@ -15,7 +15,7 @@
 ##############################################################################
 
 # %module
-# % description: Computes a DEM of Difference (dem - reference) with grid alignment, palette, and metadata
+# % description: Computes a DEM of Difference (DoD)
 # % keyword: raster
 # % keyword: DEM
 # % keyword: change detection
@@ -25,23 +25,23 @@
 
 # %option G_OPT_R_INPUT
 # % key: dem
-# % description: Later DEM (minuend)
+# % description: Later DEM
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: reference
-# % description: Earlier reference DEM (subtrahend)
+# % description: Earlier reference DEM
 # %end
 
 # %option G_OPT_R_OUTPUT
-# % description: DEM of Difference (dem - reference); negative values are lowering
+# % description: DEM of Difference
 # %end
 
 # %option
 # % key: interp
 # % type: string
 # % required: no
-# % options: nearest,bilinear,bicubic
+# % options: bilinear,bicubic
 # % answer: bilinear
 # % description: Interpolation for inputs not aligned with the computational region
 # %end
