@@ -138,10 +138,12 @@ int NewPlane(runtimeParams *stoneRunTimeParams, globalParams *stoneGlobalParams,
              P3d *cp, MathContext *ctx);
 long Pivot(globalParams *gParams, double X, double Y);
 void RoundP3d(P3d *p);
-void Filter();
-void MarkVelo();
-void MarkPath();
-void MarkQuota();
+void Filter(runtimeParams *rtParams, typeParams *tParams);
+void MarkVelo(runtimeParams *rtParams, typeParams *tParams,
+              globalParams *gParams);
+void MarkPath(runtimeParams *rtParams, globalParams *gParams);
+void MarkQuota(runtimeParams *rtParams, typeParams *tParams,
+               globalParams *gParams);
 void WritePath(runtimeParams *rtParams, typeParams *tParams,
                globalParams *gParams);
 void PivToXY(long piv, double *X, double *Y);
@@ -162,6 +164,6 @@ void WriteP3dToLog(const char *label, P3d *p);
 void TrackPoints(typeParams *stoneRunParams, globalParams *stoneGlobalParams,
                  runtimeParams *stoneRuntimeParams, UniSave *uniData,
                  MathContext *ctx);
-void TrackNoPoints();
+void TrackNoPoints(void);
 
 #endif

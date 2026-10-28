@@ -29,7 +29,7 @@ typedef struct {
     int pstack;
 } MathContext;
 
-MathContext *init_mmath_system();
+MathContext *init_mmath_system(void);
 void mzero(Mat a);
 void mident(Mat a);
 void minit(MathContext *ctx);
