@@ -25,6 +25,24 @@ def test_aligned_inputs_difference_exactly(tools):
     assert "not aligned" not in result.stderr
 
 
+def test_offset_below_tolerance_is_not_resampled(tools):
+    # 5 micrometers is floating point noise at 1 m resolution.
+    result = tools.r_dem_dod(
+        dem="dem_5um", reference="dem_pre", output="dod_5um", overwrite=True
+    )
+    assert "not aligned" not in result.stderr
+    stats = tools.r_univar(map="dod_5um", format="json")
+    assert stats["n"] == 1600
+
+
+def test_offset_above_tolerance_is_resampled(tools):
+    # 1 mm is a tenth of a percent of a cell, above the tolerance.
+    result = tools.r_dem_dod(
+        dem="dem_1mm", reference="dem_pre", output="dod_1mm", overwrite=True
+    )
+    assert "not aligned" in result.stderr
+
+
 def test_misaligned_input_is_resampled_with_warning(tools):
     result = tools.r_dem_dod(
         dem="dem_shift", reference="dem_pre", output="dod_shift", overwrite=True

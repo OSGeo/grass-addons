@@ -29,12 +29,17 @@ def session(tmp_path_factory):
                 " 2.0, 0.0)"
             )
         )
-        # The same plane on a grid offset by half a cell east and a quarter
-        # cell north, then on a grid twice as fine.
         tools.r_mapcalc(expression=f"curve_pre = {CURVE}")
+        # The same surfaces on a grid offset by half a cell east and a quarter
+        # cell north, the plane offset 5 micrometers and 1 mm east (below and
+        # above the grid match tolerance), then on a grid twice as fine.
         tools.g_region(n=40.25, s=0.25, e=40.5, w=0.5, res=1)
         tools.r_mapcalc(expression=f"dem_shift = {PLANE}")
         tools.r_mapcalc(expression=f"curve_shift = {CURVE}")
+        tools.g_region(n=40, s=0, e=40.000005, w=0.000005, res=1)
+        tools.r_mapcalc(expression=f"dem_5um = {PLANE}")
+        tools.g_region(n=40, s=0, e=40.001, w=0.001, res=1)
+        tools.r_mapcalc(expression=f"dem_1mm = {PLANE}")
         tools.g_region(n=40, s=0, e=40, w=0, res=0.5)
         tools.r_mapcalc(expression=f"dem_fine = {PLANE}")
         tools.g_region(n=40, s=0, e=40, w=0, res=1)

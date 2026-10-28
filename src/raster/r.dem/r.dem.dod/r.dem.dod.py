@@ -64,6 +64,10 @@ from grass.tools import Tools
 
 TMP_RASTERS = []
 
+# Fraction of a cell below which differences in resolution or grid origin are
+# treated as floating point noise rather than misalignment (0.1 mm at 1 m).
+GRID_MATCH_TOLERANCE = 1e-4
+
 # The r.dem manual DoD palette as fractions of the saturation value: erosion
 # runs yellow to red to magenta, near zero is pale green, deposition runs cyan
 # to blue to navy.
@@ -107,18 +111,22 @@ def align_input(tools, name, region, interp, tag):
     """Return a raster name on the region grid, resampling when needed."""
     info = gs.raster_info(name)
     ewres, nsres = region["ewres"], region["nsres"]
-    tol = 1e-6
     dx = grid_offset(info["west"], region["w"], ewres)
     dy = grid_offset(info["north"], region["n"], nsres)
     same_res = (
-        abs(info["ewres"] - ewres) <= tol * ewres
-        and abs(info["nsres"] - nsres) <= tol * nsres
+        abs(info["ewres"] - ewres) <= GRID_MATCH_TOLERANCE * ewres
+        and abs(info["nsres"] - nsres) <= GRID_MATCH_TOLERANCE * nsres
     )
-    on_grid = abs(dx) <= tol * ewres and abs(dy) <= tol * nsres
+    on_grid = (
+        abs(dx) <= GRID_MATCH_TOLERANCE * ewres
+        and abs(dy) <= GRID_MATCH_TOLERANCE * nsres
+    )
     if same_res and on_grid:
         return name
 
-    if info["ewres"] < ewres * (1 - tol) or info["nsres"] < nsres * (1 - tol):
+    min_ewres = ewres * (1 - GRID_MATCH_TOLERANCE)
+    min_nsres = nsres * (1 - GRID_MATCH_TOLERANCE)
+    if info["ewres"] < min_ewres or info["nsres"] < min_nsres:
         gs.warning(
             _(
                 "Raster map <{}> is finer than the computational region. "
