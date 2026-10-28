@@ -271,16 +271,24 @@ def main():
         )
 
         # Get mean distance between points to optimize spline interpolation
-        mean_dist = gs.parse_command(
+        mean_dist_output = gs.read_command(
             "v.surf.bspline",
             flags="e",
-            _input=contour_points,
-            raster_output=purged_elevation,
+            input=contour_points,
             layer="2",
             column="along",
             method=fill_method,
         )
-        spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
+        spline_step = None
+        for line in mean_dist_output.splitlines():
+            if ":" in line and "distance" in line.lower():
+                try:
+                    spline_step = round(float(line.split(":")[-1].strip())) * 2
+                    break
+                except ValueError:
+                    pass
+        if not spline_step or spline_step <= 0:
+            spline_step = 10
 
         gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
@@ -289,11 +297,13 @@ def main():
         )
         gs.run_command(
             "v.surf.bspline",
-            _input=contour_points,
+            input=contour_points,
             raster_output=purged_elevation,
             layer="2",
             column="along",
             method=fill_method,
+            ew_step=spline_step,
+            ns_step=spline_step,
             overwrite=gcore.overwrite(),
         )
     else:
@@ -363,7 +373,7 @@ def main():
 
     if shaded_local_relief_output:
         if not user_color_table:
-            color_table = "difference"
+            color_table = "differences"
         gs.run_command(
             "r.colors",
             flags=rcolors_flags,
