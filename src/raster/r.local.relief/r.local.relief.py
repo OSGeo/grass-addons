@@ -89,6 +89,7 @@
 
 import os
 import atexit
+import subprocess
 
 import grass.script as gs
 import grass.script.core as gcore
@@ -270,17 +271,25 @@ def main():
             column="along",
         )
 
-        # Get mean distance between points to optimize spline interpolation
-        mean_dist_output = gs.read_command(
+        # Get mean distance between points to optimize spline interpolation.
+        # v.surf.bspline -e requires raster_output even in estimation mode.
+        # Its informational output goes to stderr (G_message), so we capture
+        # both stdout and stderr to reliably parse the distance value.
+        proc = gs.start_command(
             "v.surf.bspline",
             flags="e",
             input=contour_points,
+            raster_output=purged_elevation,
             layer="2",
             column="along",
             method=fill_method,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
+        out, err = proc.communicate()
+        combined_output = (out or b"").decode() + (err or b"").decode()
         spline_step = None
-        for line in mean_dist_output.splitlines():
+        for line in combined_output.splitlines():
             if ":" in line and "distance" in line.lower():
                 try:
                     spline_step = round(float(line.split(":")[-1].strip())) * 2
