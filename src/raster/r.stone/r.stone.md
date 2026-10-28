@@ -105,9 +105,9 @@ and friction coefficients corresponding to 19 lithological classes used in
 Italy.
 
 | Lithological class | Friction | Normal restitution | Tangential restitution |
-|--------------------|----------|--------------------|------------------------|
+| ------------------ | -------- | ------------------ | ---------------------- |
 | Anthropic deposits | 0.65 | 35 | 55 |
-| Alluvial, lacustrine, marine, eluvial and colluvial deposits |0.80|15|40|
+| Alluvial, lacustrine, marine, eluvial and colluvial deposits | 0.80 | 15 | 40 |
 | Coastal deposits, not related to fluvial processes | 0.65 | 35 | 55 |
 | Landslides | 0.65 | 35 | 55 |
 | Glacial deposits | 0.65 | 35 | 55 |

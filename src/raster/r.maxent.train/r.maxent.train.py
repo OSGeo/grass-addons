@@ -445,6 +445,7 @@ import subprocess
 import sys
 import uuid
 import grass.script as gs
+from pathlib import Path
 
 
 CLEAN_LAY = []
@@ -584,7 +585,7 @@ def main(options, flags):
     elif java_functional("java"):
         path_to_java = "java"
     else:
-        gs.warning(
+        gs.fatal(
             _(
                 "Java cannot be found. Please ensure Java is installed "
                 "and/or properly configured to be accessible from GRASS. \n"
@@ -616,6 +617,12 @@ def main(options, flags):
     # ------------------------------------------------------------------
     envir_layers = os.path.normpath(options["environmentallayersfile"])
     sample_layers = os.path.normpath(options["samplesfile"])
+    if not os.path.isfile(envir_layers):
+        gs.fatal(
+            _("The environmental layers file does not exist:\n {}").format(envir_layers)
+        )
+    if not os.path.isfile(sample_layers):
+        gs.fatal(_("The samples file does not exist:\n {}").format(sample_layers))
     with open(envir_layers) as f:
         header_environ = f.readline().strip("\n").split(",")
     with open(sample_layers) as f:
@@ -627,6 +634,12 @@ def main(options, flags):
         gs.fatal(_(msg).format(envp, samp))
     if bool(options["projectionlayers"]):
         projection_layers = os.path.normpath(options["projectionlayers"])
+        if not os.path.isdir(projection_layers):
+            gs.fatal(
+                _("The projection layers directory does not exist:\n {}").format(
+                    projection_layers
+                )
+            )
         envir_files = os.listdir(projection_layers)
         envir_names = [asc for asc in envir_files if asc.endswith(".asc")]
         envir_names = [n.replace(".asc", "") for n in envir_names]
@@ -636,6 +649,21 @@ def main(options, flags):
 
     # Input parameters - building command line string
     # ------------------------------------------------------------------
+    # Check output directory
+    output_directory = os.path.normpath(options["outputdirectory"])
+    if not os.path.isdir(output_directory):
+        gs.fatal(
+            _("The output directory does not exist:\n {}").format(output_directory)
+        )
+
+    # Check test samples file if provided
+    if options["testsamplesfile"]:
+        test_samples = os.path.normpath(options["testsamplesfile"])
+        if not os.path.isfile(test_samples):
+            gs.fatal(
+                _("The test samples file does not exist:\n {}").format(test_samples)
+            )
+
     # names options
     maxent_command = [
         path_to_java,
@@ -698,11 +726,6 @@ def main(options, flags):
         "x": "addallsamplestobackground=true",
     }
     maxent_command += [val for key, val in bool_flags.items() if flags.get(key)]
-    bool_flags = {
-        "v": "visible=false",
-        "m": "autorun=true",
-    }
-    maxent_command += [val for key, val in bool_flags.items() if not flags.get(key)]
 
     # Building the command line string - conditional on multiple input value
     if bool(flags["v"]):
@@ -767,6 +790,13 @@ def main(options, flags):
         gs.info(_("Basic stats about the model are printed below:\n"))
 
     statistics_file = os.path.join(options["outputdirectory"], "maxentResults.csv")
+    if not os.path.isfile(statistics_file):
+        gs.fatal(
+            _(
+                "The Maxent results file was not created:\n {}\n"
+                "Check the Maxent output above for errors."
+            ).format(statistics_file)
+        )
     with open(statistics_file, "r") as file:
         stats = csv.reader(file)
         variables = []
@@ -801,7 +831,7 @@ def main(options, flags):
     # -----------------------------------------------------------------
     # Get list with all files in the output folder
     # -----------------------------------------------------------------
-    all_files = all_files = os.listdir(options["outputdirectory"])
+    all_files = os.listdir(options["outputdirectory"])
     # Create list of addons. Is later used to check if v.db.pyupdate is installed
     outputs = gs.read_command("g.extension", flags="a", quiet=function_verbosity)
     plugins_installed = [addon.strip() for addon in outputs.splitlines()]
@@ -1047,7 +1077,6 @@ def main(options, flags):
                     "These might be output files from earlier models? Please make sure\n"
                     "there is only one backgroundPrediction file and run the model again."
                 )
-            prediction_bgrlay = [create_temporary_name("x")]
             if bool(bkgrpoints):
                 prediction_bgrlay = f"{bkgrpoints}{options['suffix']}"
             else:
@@ -1247,13 +1276,22 @@ def main(options, flags):
         gs.info(_("-----------------------\n"))
         gs.info(_("Importing the raster projection layers"))
 
-        predlays = options["predictionlayer"]
-        asciilayers = [asc for asc in all_files if asc.endswith(".asc")]
-        grasslayers = [gr.replace(".asc", f"{options['suffix']}") for gr in asciilayers]
-        pattern = re.compile(r"_([^_]+\.asc)$")
-        result = re.sub(pattern, "", asciilayers[0])
-        if bool(predlays):
-            grasslayers = [x.replace(result, predlays) for x in grasslayers]
+        asciilayers = [a for a in all_files if a.endswith(".asc")]
+        predictionraster = options["predictionlayer"]
+
+        grasslayers = []
+        for asc in asciilayers:
+            full_stem = Path(asc).stem
+            is_clamping = full_stem.endswith("_clamping")
+            clamping_tag = "_clamping" if is_clamping else ""
+
+            if predictionraster:
+                outname = f"{predictionraster}{clamping_tag}{options['suffix']}"
+            else:
+                outname = f"{full_stem}{options['suffix']}"
+
+            grasslayers.append(outname)
+
         for idx, asci in enumerate(asciilayers):
             gs.info(_("Importing layer {0} of {1}").format(idx + 1, len(grasslayers)))
             asciifile = os.path.join(options["outputdirectory"], asci)

@@ -174,9 +174,7 @@ def main():
 
     to_crs = get_current_crs()
     # We assign xy as result, so we need to keep the en ordering.
-    transformer = Transformer.from_crs(
-        options["crs"], to_crs, always_xy=True, skip_equivalent=True
-    )
+    transformer = Transformer.from_crs(options["crs"], to_crs, always_xy=True)
 
     input_filename = options["input"]
     output_map = options["output"]

@@ -81,7 +81,7 @@ current directory.
 *[r.neighbors](https://grass.osgeo.org/grass-stable/manuals/r.neighbors.html),
 [r.reclass.area](https://grass.osgeo.org/grass-stable/manuals/r.reclass.area.html),
 [r.out.mpeg](https://grass.osgeo.org/grass-stable/manuals/r.out.mpeg.html),
-[r.fill.gaps](r.fill.gaps.md)*
+[r.fill.stats](https://grass.osgeo.org/grass-stable/manuals/r.fill.stats.html)*
 
 ## AUTHORS
 

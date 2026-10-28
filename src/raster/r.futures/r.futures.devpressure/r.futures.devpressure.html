@@ -54,33 +54,89 @@ is general enough to be used for different applications where distance pressure
 r.futures.devpressure input=developed output=pressure gamma=1.5 size=10 method=gravity
 </pre></div>
 
-<h2>SEE ALSO</h2>
-
-<a href="r.futures.html">FUTURES</a>,
-<em><a href="r.futures.pga.html">r.futures.pga</a></em>,
-<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
-<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
-<em><a href="r.sample.category.html">r.sample.category</a></em>
 
 <h2>REFERENCES</h2>
 <ul>
 <li>
     Meentemeyer, R. K., Tang, W., Dorning, M. A., Vogler, J. B., Cunniffe, N. J., &amp; Shoemaker, D. A. (2013).
-    <a href="https://doi.org/10.1080/00045608.2012.707591">FUTURES: Multilevel Simulations of Emerging
-    Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</a>.
+    <em>FUTURES: Multilevel Simulations of Emerging Urban-Rural Landscape Structure Using a Stochastic Patch-Growing Algorithm</em>.
     Annals of the Association of American Geographers, 103(4), 785-807.
-    DOI: 10.1080/00045608.2012.707591
-<li>Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
-   <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">Simulating urbanization scenarios reveals
-    tradeoffs between conservation planning strategies</a>.
+    DOI: <a href="https://doi.org/10.1080/00045608.2012.707591">10.1080/00045608.2012.707591</a>
+</li>
+<li>
+    Dorning, M. A., Koch, J., Shoemaker, D. A., &amp; Meentemeyer, R. K. (2015).
+    <em>Simulating urbanization scenarios reveals tradeoffs between conservation planning strategies</em>.
     Landscape and Urban Planning, 136, 28-39.
-    DOI: 10.1016/j.landurbplan.2014.11.011</li>
-<li>Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H.,  &amp; Meentemeyer, R. K. (2016).
-   <a href="https://isprs-archives.copernicus.org/articles/XLI-B7/953/2016/isprs-archives-XLI-B7-953-2016.pdf">Open Source Approach to Urban Growth Simulation</a>.
-   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
-   DOI: 10.5194/isprsarchives-XLI-B7-953-2016</li>
+    DOI: <a href="https://doi.org/10.1016/j.landurbplan.2014.11.011">10.1016/j.landurbplan.2014.11.011</a>
+</li>
+<li>
+    Petrasova, A., Petras, V., Van Berkel, D., Harmon, B. A., Mitasova, H., &amp; Meentemeyer, R. K. (2016).
+    <em>Open Source Approach to Urban Growth Simulation</em>.
+    Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci., XLI-B7, 953-959.
+    DOI: <a href="https://doi.org/10.5194/isprsarchives-XLI-B7-953-2016">10.5194/isprsarchives-XLI-B7-953-2016</a>
+</li>
+<li>
+    Sanchez, G.M., A. Petrasova, A., M.M. Skrip, E.L. Collins, M.A. Lawrimore,
+    J.B. Vogler, A. Terando, J. Vukomanovic, H. Mitasova, and R.K. Meentemeyer (2023).
+    <em>Spatially interactive modeling of land change identifies location-specific adaptations most likely to lower future flood risk</em>.
+    Sci Rep 13, 18869.
+    DOI: <a href="https://doi.org/10.1038/s41598-023-46195-9">10.1038/s41598-023-46195-9</a>
+</li>
 </ul>
 
-<h2>AUTHOR</h2>
 
-Anna Petrasova, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+<h2>SEE ALSO</h2>
+
+<a href="r.futures.html">FUTURES</a>,
+<em><a href="r.futures.simulation.html">r.futures.simulation</a></em>,
+<em><a href="r.futures.parallelpga.html">r.futures.parallelpga</a></em>,
+<em><a href="r.futures.potential.html">r.futures.potential</a></em>,
+<em><a href="r.futures.potsurface.html">r.futures.potsurface</a></em>,
+<em><a href="r.futures.demand.html">r.futures.demand</a></em>,
+<em><a href="r.futures.calib.html">r.futures.calib</a></em>,
+<em><a href="r.futures.gridvalidation.html">r.futures.gridvalidation</a></em>,
+<em><a href="r.futures.validation.html">r.futures.validation</a></em>,
+<em><a href="r.sample.category.html">r.sample.category</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>
+<em>Corresponding author:</em><br>
+Anna Petrasova, akratoc ncsu edu,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Original standalone version:</em><br>
+Ross K. Meentemeyer,<br>
+Wenwu Tang,<br>
+Monica A. Dorning,<br>
+John B. Vogler,<br>
+Nik J. Cunniffe,<br>
+Douglas A. Shoemaker<br>
+(Department of Geography and Earth Sciences, UNC Charlotte)<br>
+Jennifer A. Koch
+(<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>)
+
+<p>
+<em>Port to GRASS and GRASS-specific additions:</em><br>
+Vaclav Petras,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Development pressure, demand, calibration, validation, preprocessing tools and maintenance:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>
+
+<p>
+<em>Climate forcing submodel:</em><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a><br>
+Georgina Sanchez,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a>
+
+<p>
+<em>Zoning:</em><br>
+Margaret Lawrimore,
+<a href="https://geospatial.ncsu.edu/">Center for Geospatial Analytics, NCSU</a><br>
+Anna Petrasova,
+<a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll</a>

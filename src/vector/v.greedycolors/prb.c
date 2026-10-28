@@ -1078,7 +1078,7 @@ void(prb_assert_insert)(struct prb_table *table, void *item)
 
 /* Asserts that |prb_delete()| really removes |item| from |table|,
    and returns the removed item. */
-void *(prb_assert_delete)(struct prb_table *table, void *item)
+void *(prb_assert_delete)(struct prb_table * table, void *item)
 {
     void *p = prb_delete(table, item);
 

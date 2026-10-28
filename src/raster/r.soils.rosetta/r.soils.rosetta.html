@@ -1,0 +1,168 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.soils.rosetta</em> estimates Mualem-van Genuchten soil hydraulic
+parameters from soil texture using the ROSETTA pedotransfer model (Schaap et
+al. 2001; Zhang and Schaap 2017). It is a raster transform: given per-cell soil
+texture maps it predicts, for each cell, the residual water content
+(<b>theta_r</b>), saturated water content (<b>theta_s</b>), the van Genuchten
+<b>alpha</b> and <b>n</b> shape parameters, and the saturated hydraulic
+conductivity (<b>ksat</b>).
+
+<p>
+The required inputs are the USDA soil texture separates <b>sand</b>,
+<b>silt</b>, and <b>clay</b>, each as a percentage (0-100). Prediction accuracy
+increases as optional inputs are added, in this fixed order:
+<b>bulk_density</b> (g/cm3), <b>water_content_33</b> (volumetric water content
+at 33 kPa, cm3/cm3), and <b>water_content_1500</b> (volumetric water content at
+1500 kPa, cm3/cm3). The set of supplied inputs selects the ROSETTA model
+automatically:
+
+<table border="1">
+<tr><th>Model</th><th>Inputs</th></tr>
+<tr><td>2</td><td>sand, silt, clay</td></tr>
+<tr><td>3</td><td>+ bulk_density</td></tr>
+<tr><td>4</td><td>+ water_content_33</td></tr>
+<tr><td>5</td><td>+ water_content_1500</td></tr>
+</table>
+
+<p>
+Only the outputs you name are computed. The <b>ksat</b> map is written in mm/hr
+by default (<b>ksat_units=mm_per_hour</b>) so it can be used directly by
+hydrologic tools such as <em>r.sim.water</em>; set
+<b>ksat_units=cm_per_day</b> for ROSETTA's native units.
+
+<h2>NOTES</h2>
+
+The tool uses the offline
+<a href="https://pypi.org/project/rosetta-soil/">rosetta-soil</a> Python package
+(<tt>pip install rosetta-soil</tt>). When the package is not installed it falls
+back to the <a href="https://www.handbook60.org/rosetta">handbook60.org</a>
+ROSETTA web API, which requires network access; the offline package is
+recommended for reproducible runs. The uncertainty maps produced by the
+<b>-u</b> flag are only available with the offline package.
+
+<p>
+ROSETTA reports <b>alpha</b>, <b>n</b>, and <b>ksat</b> as base-10 logarithms
+and <b>ksat</b> in cm/day; the tool back-transforms these to linear units and
+converts <b>ksat</b> to the requested units. The <b>-u</b> standard-deviation
+maps for <b>alpha</b>, <b>n</b>, and <b>ksat</b> remain in log10 space (the
+standard deviation of the log10 parameter), while <b>theta_r</b> and
+<b>theta_s</b> uncertainties are linear.
+
+<p>
+A cell is predicted only where every supplied input map has data; cells that are
+NULL in any input are NULL in all outputs. Because ROSETTA output depends only
+on the input tuple, the tool predicts each unique combination once, which makes
+it efficient on categorical inputs such as SSURGO map units.
+
+<p>
+ROSETTA is nonlinear, so applying it to depth-aggregated texture is not the same
+as aggregating hydraulic parameters computed per horizon. When driving the model
+from SSURGO map-unit texture (as in the workflow below), the texture has already
+been depth-weighted to a single value per map unit; interpret the result
+accordingly.
+
+<p>
+The tool respects the current computational region and mask and writes outputs
+to the current mapset.
+
+<h2>EXAMPLES</h2>
+
+<h3>Estimate hydraulic parameters from texture maps</h3>
+
+<div class="code"><pre>
+g.region raster=sand -p
+r.soils.rosetta sand=sand silt=silt clay=clay bulk_density=bd \
+  theta_s=theta_s alpha=alpha n=n ksat=ksat version=3
+</pre></div>
+
+<h3>Complete workflow: SSURGO to SIMWE</h3>
+
+Import SSURGO with <em>r.in.ssurgo</em>, which writes depth-weighted texture and
+bulk-density rasters, estimate Ksat with <em>r.soils.rosetta</em>, then run
+overland flow with <em>r.sim.water</em>.
+
+<div class="code"><pre>
+g.region raster=elevation -p
+
+# Import SSURGO texture and bulk density for the top 25.4 cm.
+r.in.ssurgo ssurgo_path=wss_SSA.zip soils=soils \
+  sand=sand silt=silt clay=clay bulk_density=bd \
+  hzdept_r=0 hzdepb_r=25.4
+
+# Predict saturated hydraulic conductivity (mm/hr).
+r.soils.rosetta sand=sand silt=silt clay=clay bulk_density=bd \
+  ksat=ksat_vg version=3 ksat_units=mm_per_hour
+
+# Partial derivatives of the surface for the flow solver.
+r.slope.aspect elevation=elevation dx=dx dy=dy
+</pre></div>
+
+<div align="center" style="margin: 10px">
+    <a href="r_soils_rosetta.png">
+    <img src="r_soils_rosetta.png" width="600" height="450"
+         alt="ROSETTA saturated hydraulic conductivity" border="0">
+    </a><br>
+    <i>Figure: ROSETTA-estimated saturated hydraulic conductivity (mm/hr) from
+    SSURGO texture and bulk density over shaded relief (NC sample dataset,
+    Lake Wheeler area). Low-conductivity alluvial soils trace the drainage
+    network; gray areas are map units without soil data.</i>
+</div>
+
+<div align="center" style="margin: 10px">
+    <a href="r_soils_rosetta_theta_s.png">
+    <img src="r_soils_rosetta_theta_s.png" width="600" height="450"
+         alt="ROSETTA saturated water content" border="0">
+    </a><br>
+    <i>Figure: ROSETTA-estimated saturated water content theta_s (cm3/cm3)
+    for the same area.</i>
+</div>
+
+Ksat then enters <em>r.sim.water</em> in one of two ways. Both interpret Ksat as
+the steady-state infiltration rate; do not use both at once or infiltration is
+counted twice.
+
+<p>
+Variant 1: supply Ksat as the infiltration loss on flowing water
+(<b>infil</b>):
+
+<div class="code"><pre>
+r.sim.water elevation=elevation dx=dx dy=dy \
+  rain_value=50 infil=ksat_vg man_value=0.1 \
+  depth=depth discharge=discharge -t
+</pre></div>
+
+Variant 2: fold Ksat into the rainfall excess (<b>rain</b>) and leave
+<b>infil</b> off. Rainfall excess is rainfall intensity minus infiltration, in
+mm/hr:
+
+<div class="code"><pre>
+r.mapcalc "rain_excess = max(0.0, 50.0 - ksat_vg)"
+r.sim.water elevation=elevation dx=dx dy=dy \
+  rain=rain_excess man_value=0.1 \
+  depth=depth discharge=discharge -t
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Schaap, M.G., Leij, F.J., and van Genuchten, M.T. (2001). ROSETTA: a
+computer program for estimating soil hydraulic parameters with hierarchical
+pedotransfer functions. <em>Journal of Hydrology</em> 251(3-4): 163-176.</li>
+<li>Zhang, Y. and Schaap, M.G. (2017). Weighted recalibration of the Rosetta
+pedotransfer model with improved estimates of hydraulic parameter distributions
+and summary statistics (Rosetta3). <em>Journal of Hydrology</em> 547:
+39-53.</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.in.ssurgo.html">r.in.ssurgo</a> for importing SSURGO texture and Ksat,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a> for overland flow simulation,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.slope.aspect.html">r.slope.aspect</a> for surface derivatives
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White, Center for Geospatial Analytics, NC State University

@@ -22,11 +22,17 @@
 #include <math.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 #include <grass/gis.h>
 #include <grass/dbmi.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
+
+#if defined UNUSED
+#undef UNUSED
+#endif
 #include <dwg.h>
+
 #include "global.h"
 
 int cat;

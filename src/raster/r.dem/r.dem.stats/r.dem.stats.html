@@ -1,0 +1,98 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.stats</em> computes terrain surface metrics from a DEM (or a DEM of
+Difference). The outputs are the predictor rasters used to model
+terrain-correlated DoD uncertainty and systematic bias, for example as inputs
+to <em>r.dem.bias</em> or as an uncertainty source for
+<em>r.dem.errprop</em>.</p>
+
+<p>A single metric is selected per run through the <b>metric</b> option:</p>
+
+<ul>
+  <li><b>slope</b>: surface slope from <em>r.slope.aspect</em>, in degrees
+  or radians as selected with <b>slope_format</b> (default degrees).</li>
+  <li><b>roughness_std</b>: local roughness as the Gaussian-weighted
+  focal standard deviation of elevation (<em>r.neighbors</em>).</li>
+  <li><b>diversity_geomorphon</b>: landform category richness in a moving
+  window, computed from <em>r.geomorphon</em> forms.</li>
+  <li><b>diversity_shannon</b>: local Shannon diversity
+  <code>H' = -sum(p * log(p))</code> over category proportions in a window,
+  computed from a categorical input such as a geomorphon forms map. The
+  logarithm base is selected with <b>log_base</b> (<code>e</code>,
+  <code>2</code>, or <code>10</code>; default <code>e</code>). With the
+  <b>-e</b> flag the matching Shannon evenness <code>J = H' / log(S)</code> is
+  also written as <code>&lt;output&gt;_evenness</code>.</li>
+  <li><b>error_sigma_local</b>: a robust local standard deviation via the
+  median absolute deviation,
+  <code>sigma = 1.4826 * median(|x - median(x)|)</code> in a moving window. Use
+  a DoD raster as <b>input</b> to obtain a spatially varying DoD uncertainty
+  surface.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The <b>window</b> must be an odd integer of at least 3 cells. Focal metrics
+use a Gaussian weighting whose falloff is derived from the window radius,
+matching the focal behavior used throughout the DoD workflow.</p>
+
+<p>For <b>diversity_shannon</b> the input is expected to be categorical (integer
+classes). A natural pairing is to first compute a geomorphon forms map and then
+run <em>r.dem.stats</em> with <code>metric=diversity_shannon</code> on that
+map.</p>
+
+<p>Intermediate rasters are removed on exit. The tool honours the current
+computational region and the <code>--overwrite</code> flag.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Derive the terrain predictors used by <em>r.dem.bias</em> <b>method=regression</b> and
+as diagnostic surfaces:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.stats input=elev_lid792_1m output=slope metric=slope
+r.dem.stats input=elev_lid792_1m output=roughness \
+    metric=roughness_std window=13
+r.dem.stats input=elev_lid792_1m output=landforms \
+    metric=diversity_geomorphon window=13
+</pre></div>
+
+<p>The <b>slope</b> metric is <em>r.slope.aspect</em> under the tool's own naming, so the
+two agree cell for cell.</p>
+
+<p><b>metric=diversity_shannon</b> needs a categorical map rather than an
+elevation surface, so derive the geomorphon forms first and run the metric
+on those. The <b>-e</b> flag adds the matching evenness raster:</p>
+
+<div class="code"><pre>
+r.geomorphon elevation=elev_lid792_1m forms=landform_classes \
+    search=7 flat=4
+
+r.dem.stats -e input=landform_classes output=landform_diversity \
+    metric=diversity_shannon window=13
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_stats_metrics.png">
+<img src="r_dem_stats_metrics.png" width="600" alt="r.dem.stats example" border="0">
+</a><br>
+<i>Figure: Slope, roughness, and geomorphon diversity on the lidar reference.</i>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.bias.html">r.dem.bias</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.geomorphon.html">r.geomorphon</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="r.slope.aspect.html">r.slope.aspect</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

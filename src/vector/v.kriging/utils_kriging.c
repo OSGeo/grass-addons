@@ -350,7 +350,7 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
     dr = (double *)G_malloc(3 * sizeof(double));
     GM = G_matrix_init(n1, n1, n1); // G[n1][n1] matrix
 
-    doublereal *md, *mu, *ml, *dbu, *dbl, *m1r, *m1c;
+    double *md, *mu, *ml, *dbu, *dbl, *m1r, *m1c;
 
     dbu = &GM->vals[0];      // upper matrix elements
     dbl = &GM->vals[0];      // lower matrix elements
@@ -384,10 +384,9 @@ void set_up_G(struct points *pnts, struct parameters *var_par,
                     G_fatal_error(_("Theoretical variogram is NAN..."));
                 }
 
-                *mu = *ml =
-                    (doublereal)theor_var; // set the value to the matrix
-                mu += n1;                  // go to next element in the U row
-                ml++;                      // go to next element in the L col
+                *mu = *ml = (double)theor_var; // set the value to the matrix
+                mu += n1; // go to next element in the U row
+                ml++;     // go to next element in the L col
             } // end non-diagonal elements condition
         } // end j loop
 
@@ -419,7 +418,7 @@ mat_struct *submatrix(struct ilist *index, mat_struct *GM_all,
     mat_struct *GM = GM_all; // whole G matrix
 
     int i, j, N1 = GM->rows, n1 = n + 1, *dinR, *dini, *dinj;
-    doublereal *dbo, *dbx, *dbu, *dbl, *md, *mu, *ml, *m1r, *m1c;
+    double *dbo, *dbx, *dbu, *dbl, *md, *mu, *ml, *m1r, *m1c;
 
     mat_struct *sub; // new submatrix
 
@@ -520,7 +519,7 @@ mat_struct *set_up_g0(struct int_par *xD, struct points *pnts,
     dr = (double *)G_malloc(3 * sizeof(double)); // Coordinate differences
     g0 = G_matrix_init(n1, 1, n1);
 
-    doublereal *g = g0->vals;
+    double *g = g0->vals;
 
     for (i = 0; i < n; i++) { // count of input points
         // Coord diffs (input points and cell/voxel center)
@@ -576,7 +575,7 @@ double result(struct points *pnts, struct ilist *index, mat_struct *w0)
 
     int i;
     mat_struct *ins, *w, *rslt_OK;
-    doublereal *vt, *wo, *wt;
+    double *vt, *wo, *wt;
 
     ins = G_matrix_init(n, 1, n); // matrix of selected vals
     w = G_matrix_init(1, n, 1);   // matrix of selected weights

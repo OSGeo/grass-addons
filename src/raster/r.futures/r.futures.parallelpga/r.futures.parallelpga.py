@@ -3,7 +3,7 @@
 #
 # MODULE:       r.futures.parallelpga
 # AUTHOR(S):    Anna Petrasova
-# PURPOSE:      Run r.futures.pga in parallel
+# PURPOSE:      Run r.futures.simulation in parallel
 # COPYRIGHT:    (C) 2016 by Anna Petrasova, and the GRASS Development Team
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 ############################################################################
 
 # %module
-# % label: Simulates landuse change using FUTURES (r.futures.pga) on multiple CPUs in parallel.
+# % label: Simulates landuse change using FUTURES (r.futures.simulation) on multiple CPUs in parallel.
 # % description: Module uses Patch-Growing Algorithm (PGA) to simulate urban-rural landscape structure development.
 # % keyword: raster
 # % keyword: patch growing
@@ -30,7 +30,7 @@
 # %flag
 # % key: d
 # % label: Runs each subregion separately
-# % description: r.futures.pga runs for each subregion and after all subregions are completed, the results are patched together
+# % description: r.futures.simulation runs for each subregion and after all subregions are completed, the results are patched together
 # % guisection: Parallel
 # %end
 # %option
@@ -99,6 +99,17 @@
 # % multiple: no
 # % key_desc: basename
 # % label: Basename for raster maps of development generated after each step
+# % description: Name for output basename raster map(s)
+# % gisprompt: new,cell,raster
+# % guisection: Output
+# %end
+# %option
+# % key: output_density
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: basename
+# % label: Basename for raster maps of density generated after each step
 # % description: Name for output basename raster map(s)
 # % gisprompt: new,cell,raster
 # % guisection: Output
@@ -188,6 +199,16 @@
 # % guisection: Demand
 # %end
 # %option
+# % key: population_demand
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: CSV file with population size to accommodate
+# % gisprompt: old,file,file
+# % guisection: Demand
+# %end
+# %option
 # % key: discount_factor
 # % type: double
 # % required: yes
@@ -242,6 +263,46 @@
 # % guisection: PGA
 # %end
 # %option
+# % key: density
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Raster map of population density
+# % gisprompt: old,cell,raster
+# % guisection: Density
+# %end
+# %option
+# % key: density_capacity
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Raster map of maximum capacity
+# % gisprompt: old,cell,raster
+# % guisection: Density
+# %end
+# %option
+# % key: redevpot_params
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % label: CSV file with redevelopment potential parameters for each region
+# % description: Each line should contain region ID followed by parameters (intercepts, development pressure, other predictors).
+# % gisprompt: old,file,file
+# % guisection: Density
+# %end
+# %option
+# % key: redevelopment_lag
+# % type: integer
+# % required: no
+# % multiple: no
+# % options: 1-
+# % description: Number of steps before redevelopment can happen again in a cell developed during simulation
+# % guisection: Density
+# %end
+# %option
 # % key: incentive_power
 # % type: double
 # % required: no
@@ -260,6 +321,128 @@
 # % guisection: Scenarios
 # %end
 # %option
+# % key: redistribution_matrix
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Matrix containing probabilities of moving from one subregion to another
+# % gisprompt: old,file,file
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: redistribution_output
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Base name for output file containing matrix of pixels moved from one subregion to another
+# % gisprompt: new,file,file
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: hand
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Height Above Nearest Drainage raster
+# % gisprompt: old,cell,raster
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: hand_percentile
+# % type: integer
+# % required: no
+# % multiple: no
+# % options: 0-100
+# % description: Percentile of HAND values within inundated area for depth estimation
+# % answer: 90
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: flood_maps_file
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: CSV file with (step, return period, map of depth) or (step, map of return period)
+# % gisprompt: old,file,file
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: flood_logfile
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: CSV file with (step, HUC ID, flood probability)
+# % gisprompt: new,file,file
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: huc
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Raster of HUCs
+# % gisprompt: old,cell,raster
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: adaptive_capacity
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Adaptive capacity raster
+# % gisprompt: old,cell,raster
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: adaptation
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % label: Raster map of current adaptations for specific flood return periods (e.g. 5, 20)
+# % description: Name of input raster map
+# % gisprompt: old,cell,raster
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: output_adaptation
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: basename
+# % label: Basename for raster maps of adaptation generated after each step
+# % description: Name for output basename raster map(s)
+# % gisprompt: new,cell,raster
+# % guisection: Output
+# %end
+# %option
+# % key: depth_damage_functions
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: CSV file with depth-damage function
+# % gisprompt: old,file,file
+# % guisection: Climate scenarios
+# %end
+# %option
+# % key: ddf_subregions
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: name
+# % description: Subregions raster for depth-damage functions
+# % gisprompt: old,cell,raster
+# % guisection: Climate scenarios
+# %end
+# %option
 # % key: random_seed
 # % type: integer
 # % required: no
@@ -273,7 +456,7 @@
 # % type: double
 # % required: no
 # % multiple: no
-# % description: Memory for single run in GB
+# % description: Memory in GB
 # %end
 
 
@@ -307,10 +490,10 @@ def futures_process(params):
             )
             env = os.environ.copy()
             env["GRASS_REGION"] = gs.region_env(raster=PREFIX + cat, zoom=PREFIX + cat)
-            gs.run_command("r.futures.pga", env=env, **options)
+            gs.run_command("r.futures.simulation", env=env, **options)
         else:
             gs.message(_("Running simulation {s}/{r}").format(s=seed, r=repeat))
-            gs.run_command("r.futures.pga", **options)
+            gs.run_command("r.futures.simulation", **options)
     except (KeyboardInterrupt, CalledModuleError):
         return
 
@@ -395,6 +578,13 @@ def main():
             op["random_seed"] = i + 1
             if "output_series" in op:
                 op["output_series"] += "_run" + str(i + 1)
+            if "redistribution_output" in op:
+                op["redistribution_output"] += "_run" + str(i + 1)
+            if "output_adaptation" in op:
+                op["output_adaptation"] += "_run" + str(i + 1)
+            if "flood_logfile" in op:
+                path, ext = os.path.splitext(op["flood_logfile"])
+                op["flood_logfile"] = path + "_run" + str(i + 1) + ext
             op["output"] += "_run" + str(i + 1)
             options_list.append((repeat, i + 1, None, op))
 

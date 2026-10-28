@@ -44,8 +44,8 @@ This program is free software under the GNU General Public License
 
 # %flag
 # % key: o
-# % label: Override projection check (use current location's projection)
-# % description: Assume that the dataset has the same projection as the current location
+# % label: Override projection check (use current project's projection)
+# % description: Assume that the dataset has the same projection as the current project; without this flag the data are reprojected to the current project's CRS
 # %end
 
 # %flag
@@ -64,11 +64,15 @@ from grass.exceptions import CalledModuleError
 class OsmImporter:
     def __init__(self):
         self.tmp_vects = []
+        self.tmp_files = []
         self.tmp_opid = str(os.getpid())
 
     def cleanup(self):
         for tmp in self.tmp_vects:
             gs.run_command("g.remove", flags="f", type="vector", name=tmp, quiet=True)
+        for tmp in self.tmp_files:
+            if os.path.exists(tmp):
+                os.remove(tmp)
 
     def _getTmpName(self, name):
         return name + "_" + self.tmp_opid
@@ -82,6 +86,56 @@ class OsmImporter:
 
     def getTmp(self, name):
         return self._getTmpName(name)
+
+    def _layerIsPolygon(self, input_, table):
+        """Return True if the OGR layer holds (multi)polygons."""
+        from osgeo import ogr
+
+        ogr.UseExceptions()
+        try:
+            ds = ogr.Open(input_)
+            layer = ds.GetLayerByName(table)
+        except RuntimeError as e:
+            gs.fatal(_("Unable to open <{}>: {}").format(input_, e))
+        if layer is None:
+            gs.fatal(
+                _("Layer <{}> not found in <{}> (list layers with -l)").format(
+                    table, input_
+                )
+            )
+        geom_type = ogr.GT_Flatten(layer.GetGeomType())
+        return geom_type in (ogr.wkbPolygon, ogr.wkbMultiPolygon)
+
+    def _projectWkt(self):
+        """Return the CRS of the current project as WKT."""
+        try:
+            return gs.read_command("g.proj", flags="p", format="wkt")
+        except CalledModuleError:
+            # GRASS versions without the format option.
+            return gs.read_command("g.proj", flags="wf")
+
+    def _reproject(self, input_, table, where):
+        """Extract the layer (with the attribute filter) into a temporary
+        GeoPackage in the current project's CRS; return its path."""
+        from osgeo import gdal
+
+        gdal.UseExceptions()
+        gpkg = gs.tempfile(create=False) + ".gpkg"
+        self.tmp_files.append(gpkg)
+        try:
+            gdal.VectorTranslate(
+                gpkg,
+                input_,
+                format="GPKG",
+                layers=[table],
+                layerName=table,
+                where=where or None,
+                dstSRS=self._projectWkt(),
+                reproject=True,
+            )
+        except RuntimeError as e:
+            gs.fatal(_("Reprojection of layer <{}> failed: {}").format(table, e))
+        return gpkg
 
     def main(self, options, flags):
         # just get the layer names
@@ -99,24 +153,53 @@ class OsmImporter:
             if not options["output"]:
                 gs.fatal(_("Required parameter <%s> not set") % "output")
 
+        # https://gdal.org/drivers/vector/osm.html
+        os.environ["OGR_INTERLEAVED_READING"] = "YES"
+
+        # Keep only the feature types matching the layer geometry: v.in.ogr
+        # would otherwise turn polygon rings into lines, or linestrings into
+        # boundaries.
+        types = options["type"].split(",")
+        is_polygon = self._layerIsPolygon(options["input"], options["table"])
+        wanted = ("boundary", "centroid") if is_polygon else ("point", "line")
+        types = [t for t in types if t in wanted]
+        if not types:
+            gs.fatal(
+                _("Layer <{}> contains {}: <type> must include {}").format(
+                    options["table"],
+                    _("polygons") if is_polygon else _("points or lines"),
+                    " and/or ".join(wanted),
+                )
+            )
+
+        source, where = options["input"], options["where"]
+        if not flags["o"]:
+            gs.message(
+                _("Reprojecting <{}> to the current project...").format(
+                    options["table"]
+                )
+            )
+            source = self._reproject(options["input"], options["table"], where)
+            where = ""
+
         # process
         try:
-            # https://gdal.org/drivers/vector/osm.html
-            os.environ["OGR_INTERLEAVED_READING"] = "YES"
-
             gs.debug("Step 1/3: v.in.ogr...", 2)
             gs.run_command(
                 "v.in.ogr",
                 quiet=True,
-                input=options["input"],
-                output=self.getNewTmp("ogr"),
+                input=source,
+                output=options["output"] if is_polygon else self.getNewTmp("ogr"),
                 layer=options["table"],
-                where=options["where"],
-                type=options["type"],
+                where=where,
+                type=",".join(types),
                 flags="o" if flags["o"] else None,
             )
         except CalledModuleError:
             gs.fatal(_("%s failed") % "v.in.ogr")
+
+        if is_polygon:
+            return
 
         try:
             gs.debug("Step 2/3: v.split...", 2)

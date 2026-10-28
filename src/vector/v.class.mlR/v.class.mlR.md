@@ -15,7 +15,8 @@ classified.
 The user can provide input either as vector maps (*segments\_map* and
 *training\_map*, or as csv files (*segments\_file* and *training file*,
 or a combination of both. Csv files have to be formatted in line with
-the default output of [v.db.select](v.db.select.md), i.e. with a header.
+the default output of [v.db.select](https://grass.osgeo.org/grass-stable/manuals/v.db.select.html),
+i.e. with a header.
 The field separator can be set with the *separator* parameter. Output
 can consist of either additional columns in the vector input map of
 features, a text file (*classification\_results*) or reclassed raster

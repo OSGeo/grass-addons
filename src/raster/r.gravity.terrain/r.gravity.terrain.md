@@ -25,10 +25,12 @@ crustal gravity due to spatial variations in elevation. In mountainous regions,
 this can be larger than the geological signature the gravity measurements are used
 to interpret.
 
-This GRASS tool uses the Nowell (1999) formula 7 (after Blais and Ferland, 1984 Eq
-4) to calculate terrain corrections for each DEM point with respect to each gravity
-measurement location. The tool must be used in a projected coordinate system as the
-calculations depend on Cartesian geometry.
+This GRASS tool uses the Nowell (1999) formula 7
+(after Blais and Ferland, 1984 Eq 4)
+to calculate terrain corrections for each DEM point with respect to each gravity
+measurement location.
+The tool must be used in a projected coordinate system
+as the calculations depend on Cartesian geometry.
 
 ### Formula used in terrain correction
 

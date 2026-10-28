@@ -33,6 +33,13 @@ also have the option to reduce the prediction at each point in
 projections by the difference between clamped and non-clamped output at
 that point. Use the *-f* to enable this option.
 
+The add-on provides access to nearly all parameters available in the Maxent
+software. The
+[Maxent website](https://biodiversityinformatics.amnh.org/open_source/maxent/)
+includes a tutorial explaining most of these options. For a step-by-step guide
+to the modelling workflow using the *r.maxent.** add-ons, see
+[Species Distribution Modelling Using Maxent in GRASS](https://ecodiv.earth/TutorialsNotes/sdmingrassgis/).
+
 ## NOTES
 
 This addon requires the Maxent software (version ≥ 3.4). You can
@@ -169,21 +176,22 @@ BCC-CSM2-MR and SSP 585.*
 
 ## REFERENCES
 
-- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent
-    software for modeling species niches and distributions (Version
-    3.4.1). Available from url:
-    <https://biodiversityinformatics.amnh.org/open_source/maxent> and
-    <https://github.com/mrmaxent/Maxent>
-- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A
-    maximum entropy approach to species distribution modeling. In
-    Proceedings of the Twenty-First International Conference on Machine
-    Learning, pages 655-662, 2004.
-- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006:
-    Maximum entropy modeling of species geographic distributions.
-    Ecological Modelling, 190:231-259, 2006.
-- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung
-    En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt
-    for ecologists. Diversity and Distributions, 17:43-57, 2011.
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2020: Maxent software
+  for modeling species niches and distributions (Version 3.4.1). Available from
+  url: <https://biodiversityinformatics.amnh.org/open_source/maxent> and
+  <https://github.com/mrmaxent/Maxent>
+- Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A maximum
+  entropy approach to species distribution modeling. In Proceedings of the
+  Twenty-First International Conference on Machine Learning, pages 655-662,
+  2004.
+- Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum
+  entropy modeling of species geographic distributions. Ecological Modelling,
+  190:231-259, 2006.
+- Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung En Chee,
+  Colin J. Yates. 2011: A statistical explanation of MaxEnt for ecologists.
+  Diversity and Distributions, 17:43-57, 2011.
+- Tutorial "Species distribution modeling Using Maxent in GRASS. URL:
+  [https://ecodiv.earth/TutorialsNotes/sdmingrassgis/](https://ecodiv.earth/TutorialsNotes/sdmingrassgis/)
 
 ## SEE ALSO
 
@@ -191,12 +199,12 @@ BCC-CSM2-MR and SSP 585.*
     files and prediction rasters that can be used directly by the
     *r.maxent.train* addon (or the Maxent software itself) to create
     species distribution models.
-- [r.out.maxent\_swd](r.out.maxent_swd.html), creating species and
+- [r.out.maxent\_swd](r.out.maxent_swd.md), creating species and
     background swd files based on species distribution data in raster
     format.
 - [r.maxent.train](r.maxent.train.md), creates a maxent model based on
     presence point data a set of environmental predictor layers.
-- [r.maxent.setup](r.maxent.setup.html), helper function to allow
+- [r.maxent.setup](r.maxent.setup.md), helper function to allow
     GRASS to use Maxent.
 
 ## AUTHOR

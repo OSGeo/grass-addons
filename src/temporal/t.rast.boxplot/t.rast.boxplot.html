@@ -58,6 +58,11 @@ as that may result in a massive number of outliers, slowing down the
 computations and rendering of the plot.
 
 <p>
+When the boxplots are drawn with notches (the <b>-n</b> flag), you can use
+the <b>nprocs</b> parameter to speed up the required computations by using
+more than one core.
+
+<p>
 The <em>t.rast.boxplot</em> module operates on the raster array defined by the
 current region settings, not the original extent and resolution of the
 input map. See <a
@@ -65,14 +70,14 @@ href="https://grass.osgeo.org/grass-stable/manuals/r.univar.html">g.region</a>
 to understand the impact of the region settings on the calculations.
 
 <p>
-You can change the width of the boxplot using the <b>bx_width</b>
+You can change the width of the boxplot using the <b>box_width</b>
 parameter. The default value is 0.75, which means that the boxplot is
 0.75 the maximum width between two consecutive periods. Importantly,
 the function uses the time stamp unit (see
 <a href="https://grass.osgeo.org/grass-stable/manuals/t.register.html">
 t.register</a>) to determine the maximum width. This means that if
 the time stamp unit is in days, but the raster layers represent e.g.,
-10-day periods, you need to multiply the <b>bx_width</b> value you would
+10-day periods, you need to multiply the <b>box_width</b> value you would
 normally use by 10 to get the same relative width. See
 <a href="https://ecodiv.earth/post/drawing-boxplots-of-raster-values/">
 this post</a> for an example.
@@ -110,7 +115,7 @@ plot_dimensions=12,8 dpi=200
 
 We use the same example as above, but this time, we change the color of
 the boxplots and median lines to respectively green
-(<b>bx_color=green</b>) and white (<b>median_color=white</b>), use the
+(<b>box_color=green</b>) and white (<b>median_color=white</b>), use the
 default plot dimensions, set the font size to 8, and include the
 outliers (<b>o</b> flag). Note that by plotting the outliers will
 increase the time required to create the plot considerably.
@@ -125,8 +130,8 @@ to <b>rotate_labels=0</b>) by default.
 <p>
 <div class="code"><pre>
 t.rast.boxplot -o -h -g  input=LST_Day_monthly@modis_lst \
-bx_color=green median_color=white median_lw=0.8 bx_lw=0.8 \
-flier_color=orange flier_size=1 flier_marker=s font_size=8
+box_color=green median_color=white median_linewidth=0.8 box_linewidth=0.8 \
+flier_color=orange flier_size=1 flier_marker=s fontsize=8
 </pre></div>
 
 <p>
@@ -151,8 +156,8 @@ are rotated 90&#8451; (the default for vertical plots is
 <p>
 <div class="code"><pre>
 t.rast.boxplot input=LST_Day_monthly@modis_lst rotate_labels=90 \
-date_format="%B %Y" bx_color=white median_lw=2 median_color=red \
-font_size=9
+date_format="%B %Y" box_color=white median_linewidth=2 median_color=red \
+fontsize=9
 </pre></div>
 
 <p>
@@ -213,6 +218,9 @@ University of Applied Sciences.
 
 <h2>AUTHOR</h2>
 
-Paulo van Breugel<br> Applied Geo-information Sciences<br> <a
-href="https://www.hasuniversity.nl/">HAS University of Applied
-Sciences</a><br>
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://has.nl">HAS green academy</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a>

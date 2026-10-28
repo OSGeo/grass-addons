@@ -9,7 +9,7 @@
 #               of the raster values. If a zonal map is set, trendlines are
 #               drawn for each of the zones of the zonal layer.
 #
-# COPYRIGHT:    (c) 2024 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2024-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -118,6 +118,24 @@
 # % guisection: Plot format
 # %end
 
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
+# % guisection: Plot format
+# %end
+
+# %option
+# % key: title
+# % type: string
+# % label: Plot title
+# % description: The title of the plot. If left empty, no title is drawn.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
 # %flag
 # % key: l
 # % label: Legend
@@ -135,7 +153,6 @@
 # % label: Font size
 # % description: Font size of labels.
 # % guisection: Plot format
-# % answer: 10
 # % required: no
 # %end
 
@@ -171,9 +188,8 @@
 # % key: line_width
 # % type: double
 # % label: Line width
-# % description: The width of the line(s).
+# % description: The width of the line(s). Defaults to the Matplotlib default.
 # % required: no
-# % answer: 1
 # % guisection: Plot format
 # %end
 
@@ -181,9 +197,9 @@
 # % key: line_color
 # % type: string
 # % label: Line color
-# % description: Color of the line. See manual page for color notation options. Cannot be used together with the zonal raster.
+# % description: Color of the line. Defaults to the Matplotlib default. See manual page for color notation options. Cannot be used together with the zonal raster.
 # % required: no
-# % answer: blue
+# % answer:
 # % guisection: Plot format
 # %end
 
@@ -210,6 +226,7 @@ import sys
 from datetime import datetime
 import grass.script as gs
 from grass.exceptions import CalledModuleError
+from grass.temporal.datetime_math import string_to_datetime
 from math import sqrt
 import matplotlib.dates as mdates
 from random import random
@@ -258,6 +275,21 @@ def lazy_import_py_modules():
         from matplotlib import pyplot as plt
     except ModuleNotFoundError:
         gs.fatal(_("Matplotlib is not installed. Please, install it."))
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
 
 
 def checkmask():
@@ -399,13 +431,13 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
         if temp_type == "absolute":
             if not bool(idx_end):
                 date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
             else:
                 s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                    string_to_datetime(x[idx_start])
                     for x in univar[1:]
                     if int(x[idx_zone]) == zone_ids[0]
                 ]
@@ -413,9 +445,9 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                 e_tmp = [x for x in univar[1:] if int(x[idx_zone]) == zone_ids[0]]
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in e_tmp
                 ]
@@ -432,9 +464,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                    ]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [
@@ -487,21 +517,15 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
     else:
         if temp_type == "absolute":
             if not bool(idx_end):
-                date_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
-                    for x in univar[1:]
-                ]
+                date_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
             else:
-                s_points = [
-                    datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
-                    for x in univar[1:]
-                ]
+                s_points = [string_to_datetime(x[idx_start]) for x in univar[1:]]
                 # Check if end slots have date or None
                 e_points = [
                     (
-                        datetime.strptime(x[idx_end], "%Y-%m-%d %H:%M:%S")
+                        string_to_datetime(x[idx_end])
                         if x[idx_end] != "None"
-                        else datetime.strptime(x[idx_start], "%Y-%m-%d %H:%M:%S")
+                        else string_to_datetime(x[idx_start])
                     )
                     for x in univar[1:]
                 ]
@@ -518,9 +542,7 @@ def line_stats(strds, coverlayer, error, n, threads, temp_type, where, x_value):
                         )
                         for s, e in zip(date_start, date_end)
                     ]
-                    date_points = [
-                        datetime.strptime(dp, "%Y-%m-%d %H:%M:%S") for dp in date_points
-                    ]
+                    date_points = [string_to_datetime(dp) for dp in date_points]
         else:
             if not bool(idx_end):
                 date_points = [int(x[idx_start]) for x in univar[1:]]
@@ -589,6 +611,7 @@ def main(options, flags):
 
     # lazy import matplotlib
     lazy_import_py_modules()
+    apply_style(options["style"])
 
     if options["zones"]:
         ffile = gs.find_file(options["zones"], element="cell")
@@ -647,7 +670,9 @@ def main(options, flags):
         )
         line_colors = get_raster_colors(zonal_layer, zone_ids)
     else:
-        line_colors = get_valid_color(options["line_color"])
+        line_colors = (
+            get_valid_color(options["line_color"]) if options["line_color"] else None
+        )
         cats_ids = ""
 
     # Output settings
@@ -657,11 +682,13 @@ def main(options, flags):
     else:
         dpi = 300
 
-    # Plot format settings
-    plt.rcParams["font.size"] = int(options["fontsize"])
+    # Plot format settings. Unset appearance options are omitted so the
+    # Matplotlib/style defaults apply.
+    if options["fontsize"]:
+        plt.rcParams["font.size"] = int(options["fontsize"])
     grid = flags["g"]
-    if bool(options["line_width"]):
-        line_width = float(options["line_width"])
+    line_width = float(options["line_width"]) if options["line_width"] else None
+    lw_kwargs = {"linewidth": line_width} if line_width is not None else {}
     if options["plot_dimensions"]:
         dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     else:
@@ -686,10 +713,10 @@ def main(options, flags):
                 y_mean[i],
                 label=cats_names[i],
                 color=line_colors[i],
-                linewidth=line_width,
+                **lw_kwargs,
             )
     else:
-        ax.plot(x, y_mean[0], color=line_colors, linewidth=line_width)
+        ax.plot(x, y_mean[0], color=line_colors, **lw_kwargs)
         if options["error"]:
             ax.fill_between(
                 x, y_ll[0], y_ul[0], color=line_colors, alpha=float(options["alpha"])
@@ -700,6 +727,10 @@ def main(options, flags):
         plt.ylabel(options["y_label"])
     else:
         plt.ylabel(t_info["name"])
+
+    # Set plot title (empty means no title)
+    if options["title"]:
+        plt.title(options["title"])
 
     # Set x-axis label if relative strds
     if temp_type == "relative":
@@ -740,7 +771,10 @@ def main(options, flags):
 
     # Set grid (optional)
     if bool(grid):
-        ax.xaxis.grid(linewidth=line_width / 2, alpha=0.5)
+        grid_lw = (
+            line_width if line_width is not None else plt.rcParams["lines.linewidth"]
+        )
+        ax.xaxis.grid(linewidth=grid_lw / 2, alpha=0.5)
 
     # Add legend
     if flags["l"] and options["zones"]:

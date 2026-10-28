@@ -1,40 +1,63 @@
 ## DESCRIPTION
 
-*r.in.ahn* imports the Actueel Hoogtebestand Nederland
-([AHN](https://www.ahn.nl), version 4) for the current region. The AHN
-is a digital elevation model (DEM) of the Netherlands with a resolution
-of of 0.5 meter.
+*r.in.ahn* imports elevation data from the Actueel Hoogtebestand Nederland (AHN).
+AHN is the national digital elevation model of the Netherlands and provides
+both a digital terrain model (DTM) and a digital surface model (DSM) at
+resolutions of 0.5 m and 5 m. The dataset is available in multiple versions
+(AHN2 through AHN6), each corresponding to a different acquisition period and
+processing specification. An overview of these versions is provided on the
+[AHN](https://www.ahn.nl) website.
 
-There are two different layers available: the digital terrain model
-(DTM) and a digital surface model (DSM). The user needs to select which
-to download. The selected product will be downloaded for the computation
-region. However, note that the region will adjusted to ensure that the
-imported raster layer neatly aligns with and has the same resolution
-(0.5 meter) as the original AHN data. The resulting will always have the
-same or a larger extent than the original computation region. If you
-want to store the current computational region, make sure to first save
-it using *g.region*.
+The user specifies the AHN version, the product (*dtm*, *dsm*, *chm*), and the
+desired resolution. When chm is selected, the module first downloads and
+imports both the DTM and DSM and then computes the canopy height model (CHM) as
+the difference between DSM and DTM. In this case, all three layers are retained
+and written to the mapset using the user-defined output name with the suffixes
+*_dtm*, *_dsm*, and *_chm*.
 
-The AHN can also be downloaded in map sheets (tiles) of 6.5 by 5
-kilometer. To download the area covered by one or more of these tiles,
-the user can set the **-t** flag. This wil to download the area for the
-tiles that overlap with the current computational region.
+The module determines which 1 × 1 km tiles intersect the current computational
+region, downloads the required tiles, imports them into the GRASS mapset and
+combines them in one layer. During this process, the computational region is
+(temporarily) adjusted so that the imported raster aligns with the native AHN
+grid and uses the selected resolution. The resulting raster always covers the
+original region (or the portion overlapping the AHN extent). When the **-g** flag
+is used, the original computational region is restored after the import is
+completed.
 
 ## NOTE
 
-This location only works in a location with the project 'RD New'
-(EPSG:28992). Attempts to run it in a location with another CRS will
-result in an error message.
+This module can only be used in a location based on the Amersfoort / RD New
+coordinate reference system (EPSG:28992). Running it in a location with a
+different CRS will result in an error.
 
-The region will be adjusted to ensure that the imported raster layer
-neatly aligns with and has the same resolution (0.5 meter) as the
-original AHN data. The user can set the **-g** flag to return the region
-to the original computation region after the data is imported.
+The computational region is modified during import to ensure that the resulting
+raster aligns with the AHN grid and matches the chosen resolution (0.5 m or 5
+m). If the **-g** flag is provided, the region is reset to its original extent
+after the import.
 
-The addon uses the *r.in.wcs* addon in the background, so the user will
-first need to install this addon.
+All AHN versions are provided as 1 × 1 km tiles. Earlier datasets (AHN2–AHN5),
+originally published as larger map sheets (5 × 6.25 km), have been reprocessed
+as 1 × 1 km tiles following the AHN6 specification. In the 0.5 m DTM, cell
+values represent an unweighted average of ground-level points; in the 0.5 m
+DSM, cell values represent the highest point. The earlier versions retain the
+original differences related to high-voltage structures: AHN4 DSM excludes
+high-voltage power lines but includes pylons, while AHN2 and AHN3 DSM include
+both lines and pylons. See the documentation on the [AHN
+dataroom](https://www.ahn.nl/dataroom)
 
-## EXAMPLE
+The module downloads tiles directly from the AHN object-storage service. The
+earlier WCS-based download method and the option to retrieve complete map
+sheets are no longer supported.
+
+If a MASK is present, it is preserved, although, consistent with GRASS
+behavior, it does not alter the imported DTM or DSM. However, when computing
+the CHM, the MASK is applied to the DSM–DTM calculation, and the resulting CHM
+will contain NULL values outside the MASKed area.
+
+Versions 5 and 6 do not cover the whole of the Netherlands yet. Check the
+[AHN website](https://www.ahn.nl/) for information about which parts are covered.
+
+## EXAMPLES
 
 ### Example 1
 
@@ -46,60 +69,51 @@ Dieze* flows into the *Maas* river.
 g.region n=416562 s=415957 w=145900 e=147003 res=0.5
 
 # Download the DSM
-r.in.ahn product=dsm output=dsm_crevecoeur
+r.in.ahn product=dtm output=dtm_crevecoeur resolution=0.5 version=4
 ```
 
-[![image-alt](r_in_ahn_01.png)](r_in_ahn_01.png)  
-*Figure: DSM map of Fort Crèvecoeur*
+![image-alt](r.in.ahn example)](r_in_ahn_01.png)
+*Figure: DTM map of Fort Crèvecoeur*
 
 ### Example 2
 
-Import the DTM for the tile that overlaps with the current region. Do
-this by setting the **-t flag**.
+Import the DSM version 5 with a resolution of 5 meter. Set the **-g** flag to
+keep the current computation region after importing the requested data. Note,
+the imported data will still have the resolution of, and will be aligned to,
+the original AHN data.
 
 ```sh
-# Set the region for Fort Crèvecoeur
-g.region n=416562 s=415957 w=145900 e=147003 res=0.5
-
 # Download the DSM
-r.in.ahn -t product=dsm output=dsm_crevecoeur2
+r.in.ahn -g product=dsm output=dsm_crevecoeur resolution=5 version=5
 ```
 
-The result will be a raster layer *dsm\_crevecoeur2* and a vector layer
-*dsm\_crevecoeur2\_tiles*
-
-[![image-alt](r_in_ahn_02.png)](r_in_ahn_02.png)  
-*Figure: DSM map of Fort Crèvecoeur. Left shows the extent (red outline)
-after running example 2. The extent equals the extent of the area (tile)
-for which the data was downloaded. Right shows the extent (red outline)
-after running example 3. In this case, the extent is the same as before
-running the example because the **-g** flag was set.*
+[![image-alt](r.in.ahn example)](r_in_ahn_02.png)
+*Figure: DSM map of Fort Crèvecoeur*
 
 ### Example 3
 
-Set the **-t** flag to import the DTM for the tile that overlaps with
-the current region. Set the **-g** flag to keep the current computation
-region after importing the requested data. Note, the imported data will
-still have the resolution of, and will be aligned to, the original AHN
-data.
+Import the CHM based on version 4 of DTM and DSM with a resolution of 0.5 meter.
 
 ```sh
-# Set the region for Fort Crèvecoeur
-g.region n=416562 s=415957 w=145900 e=147003 res=0.5
-
-# Download the DSM
-r.in.ahn -t -g product=dsm output=dsm_crevecoeur3
+r.in.ahn product=chm output=chm_crevecoeur resolution=0.5 version=4
 ```
 
-The result will be a raster layer *dsm\_crevecoeur3* and a vector layer
-*dsm\_crevecoeur3\_tiles*
+[![image-alt](r.in.ahn example)](r_in_ahn_03.png)
+*Figure: CHM map of Fort Crèvecoeur*
 
 ## REFERENCES
 
-See the [AHN](https://ahn.nl) webpage for more information about the AHN
+See the [AHN](https://www.ahn.nl) webpage for more information about the AHN
 data (in Dutch).
 
-## AUTHORS
+## SEE ALSO
+
+*[r.in.srtm](https://grass.osgeo.org/grass-stable/manuals/r.in.srtm.html),
+[r.in.nasadem](https://grass.osgeo.org/grass-stable/manuals/r.in.nasadem.html),
+[r.in.pdal](https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html),
+[v.in.pdal](https://grass.osgeo.org/grass-stable/manuals/v.in.pdal.html)*
+
+## AUTHOR
 
 Paulo van Breugel | [HAS green academy](https://has.nl), University of
 Applied Sciences | [Climate-robust Landscapes research

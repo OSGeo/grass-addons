@@ -1,4 +1,4 @@
-﻿/*
+/*
  * r.univar
  *
  *  Calculates univariate statistics from the non-null cells of a GRASS raster

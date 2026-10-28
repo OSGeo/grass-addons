@@ -1,0 +1,152 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.bias</em> removes terrain-correlated systematic bias that remains
+in a DEM of Difference (DoD) after rigid co-registration. Alignment tools such
+as <em>r.dem.coregister</em>, <em>r.dem.nk</em>, and <em>r.dem.icp</em> remove
+translation and rotation, but a residual elevation difference often still varies
+with terrain (for example a positive canopy bump in forest, or error that scales
+with slope, roughness, or point density). This tool models that residual and
+subtracts it.</p>
+
+<p>Three methods are provided through the <b>method</b> option.</p>
+
+<h3>method=regression</h3>
+
+<p>Fits a multivariable linear model of the DoD on z-scored terrain predictors
+over stable terrain, then subtracts the fitted surface from the full DoD.</p>
+
+<ul>
+  <li>The dependent variable is the DoD restricted to the <b>stable_mask</b>
+  region.</li>
+  <li>Each <b>predictors</b> raster is standardized to zero mean and unit
+  variance, on a log scale for the predictors named in <b>log_predictors</b>
+  (positive values only; a predictor carrying non-positive values falls back
+  to the linear scale with a warning). Log transforms are explicit, never
+  data-triggered.</li>
+  <li>An ordinary-least-squares fit (numpy, on sampled stable cells; above 2
+  million cells a deterministic subsample is drawn) estimates the intercept,
+  per-predictor coefficients, and the coefficient covariance, and the fitted
+  bias field <code>b0 + sum(b_i * z_i)</code> is subtracted from the DoD.</li>
+  <li>The optional <b>output_se</b> raster is the 1-sigma coefficient
+  uncertainty of the bias model, <code>sqrt(x' Cov x)</code> on the
+  transformed predictors. It deliberately excludes the residual variance
+  <code>s2</code> so downstream quadratures (<em>r.dem.lod</em>
+  <b>sigma_extra</b>, <em>r.dem.errprop</em> <b>sigma</b>) do not double
+  count. The covariance is iid OLS and understates coefficient uncertainty
+  under spatially correlated residuals.</li>
+  <li>The optional <b>output_leverage</b> raster is the extrapolation distance
+  <code>d = sqrt(n*h - 1)</code> in fit-sd units, the distance-from-control
+  map: coefficient uncertainty cannot express model-form error under
+  extrapolation.</li>
+  <li>The optional <b>fit_json</b> file persists the whole fit (n, residual
+  variance, intercept, coefficients, covariance matrix, applied transforms)
+  so a reported correction can be reproduced without refitting.</li>
+</ul>
+
+<p>Predictor rasters are typically produced by <em>r.dem.stats</em> (slope,
+roughness, landform diversity, local sigma) together with a reference-DEM
+uncertainty surface.</p>
+
+<h3>method=spline</h3>
+
+<p>Interpolates the stable-cell residuals into a smooth spatial bias field
+with <em>v.surf.rst</em> and subtracts it; no terrain predictors, no
+collinearity pathologies. The field is fit from <b>spline_npoints</b> randomly
+sampled stable cells (deterministic seed) at the coarse <b>spline_res</b>
+resolution with <b>spline_tension</b> and <b>spline_smooth</b>, then resampled
+bilinearly to the analysis grid. Most trustworthy near stable cells; validate
+with a holdout before trusting extrapolation.</p>
+
+<h3>method=forest</h3>
+
+<p>Estimates a local trimmed-median bias field over a masked subset of cells
+(classically a forest canopy bump) and subtracts it.</p>
+
+<ul>
+  <li>Within the <b>mask</b> region the DoD is trimmed to its
+  [<b>trim_low</b>, <b>trim_high</b>] percentile core to exclude outliers.</li>
+  <li>A moving-window median of that core over a <b>window</b>-cell window gives
+  the local bias field.</li>
+  <li>Outside the mask the bias field is zero, so unmasked cells are
+      unchanged.</li>
+</ul>
+
+<p>However, a local trimmed median cannot separate a canopy bump from real elevation
+change, so any deposition or scour inside <b>mask</b> is removed along with
+the bias. Keep known and suspected change areas out of the mask, using the
+footprint from a coarse <em>r.dem.screen</em> pass where one is available.</p>
+
+<h2>NOTES</h2>
+
+<p>The optional <b>bias_field</b> output stores the estimated correction surface
+that was subtracted, which is useful for inspection and reporting.</p>
+
+<p>For <code>method=regression</code> the corrected DoD is NULL wherever any
+predictor is NULL (the fitted surface is undefined there); <b>output_se</b>
+follows the same predictor-driven NULL pattern, and is defined even where the
+input DoD is NULL.</p>
+
+<p>The mask used by <code>method=forest</code> is applied through a temporary
+mask context and is removed automatically; the user's existing mask and
+computational region are left untouched. Intermediate rasters are removed on
+exit.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>The scene carries three bias components, and each method removes a
+different one. Chain them: no single method removes all three.</p>
+
+<p>Start with the long-wavelength dome, fitted from the stable cells and
+interpolated across the map:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.bias dod=dod_raw output=dod_spline method=spline \
+    stable_mask=stable_terrain bias_field=bias_spline
+</pre></div>
+
+<p>Then the canopy bump, estimated as a local trimmed median under the forest
+mask:</p>
+
+<div class="code"><pre>
+r.dem.bias dod=dod_spline output=dod_debiased method=forest \
+    mask=forest window=21
+</pre></div>
+
+<p>The residual on stable terrain falls from 0.17 m to under 0.01 m, and the
+residual over forest falls from 1.68 m to under 0.01 m.</p>
+
+<p>The regression path models the bias against terrain predictors instead,
+keeping the coefficient uncertainty for the uncertainty budget downstream:</p>
+
+<div class="code"><pre>
+r.dem.bias dod=dod_raw output=dod_regression method=regression \
+    predictors=roughness stable_mask=stable_terrain \
+    output_se=bias_se output_leverage=bias_leverage \
+    fit_json=bias_fit.json
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_bias_methods.png">
+<img src="r_dem_bias_methods.png" width="600" alt="r.dem.bias example" border="0">
+</a><br>
+<i>Figure: Raw DoD carrying the survey bias, the fitted spline bias field, and the difference after the spline and forest stages.</i>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
+<em><a href="r.dem.errprop.html">r.dem.errprop</a></em>,
+<em><a href="r.dem.stats.html">r.dem.stats</a></em>,
+<em><a href="r.neighbors.html">r.neighbors</a></em>,
+<em><a href="v.surf.rst.html">v.surf.rst</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

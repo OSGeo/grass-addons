@@ -7,7 +7,7 @@ representations better suited for scientific analysis and machine
 learning workflows.
 
 The module operates directly on hyperspectral cubes imported with
-[i.hyper.import](i.hyper.import.html) or other compatible 3D raster
+[i.hyper.import](i.hyper.import.md) or other compatible 3D raster
 datasets. All transformations are performed along the spectral (*z*)
 dimension for each spatial position (*x, y*).
 
@@ -52,12 +52,6 @@ The following preprocessing methods are supported:
 - **Sparse Principal Component Analysis (sparsepca)** -- PCA variant
   enforcing sparsity on component loadings for interpretability.
 
-Multiple steps can be combined in one command by listing them in
-`steps=` (comma-separated). For example,
-`steps='sav_gol,baseline,cont_rem,kpca'` will execute all four in
-sequence. Intermediate rasters are handled internally and automatically
-cleaned up.
-
 All dimensionality reduction methods are implemented using the
 [scikit-learn](https://scikit-learn.org/stable/api/sklearn.decomposition.html)
 library. For detailed algorithmic descriptions and parameter
@@ -71,6 +65,9 @@ Operations are reported in the console as a sequential pipeline.
 
 When using PCA, KPCA, FastICA, NMF, or SparsePCA, the number of output
 components can be controlled using the `dr_components` parameter.
+
+When dimensionality reduction is applied, output `hyper.json` stores DR
+parameters in top-level key `dimensionality_reduction`.
 
 **Chunked dimensionality reduction:**\
 Large hyperspectral datasets can be processed in smaller portions using
@@ -118,7 +115,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=enmap
 
     # Performs PCA
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     i.hyper.preproc input=enmap output=enmap_pca \
                     dr_method=pca dr_components=10 -q
 
@@ -136,7 +133,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=tanager
 
     # Savitzky–Golay derivative + baseline correction + continuum removal + Nystroem
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     # Processes the hyperspectral 3D map in chunks and exports the fitted Nystroem model
     i.hyper.preproc input=tanager output=tanager_ml \
                     polyorder=3 derivative_order=1 window_length=9 \
@@ -170,10 +167,11 @@ or exported with *i.hyper.export* for further analysis.
 
 ## SEE ALSO
 
-[i.hyper.explore](i.hyper.explore.html),
-[i.hyper.composite](i.hyper.composite.html),
-[i.hyper.export](i.hyper.export.html),
-[i.hyper.import](i.hyper.import.html),
+[i.hyper.metadata](i.hyper.metadata.md),
+[i.hyper.explore](i.hyper.explore.md),
+[i.hyper.composite](i.hyper.composite.md),
+[i.hyper.export](i.hyper.export.md),
+[i.hyper.import](i.hyper.import.md),
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.stats.html)
 [r3.stats](https://grass.osgeo.org/grass-stable/manuals/r3.univar.html)
 

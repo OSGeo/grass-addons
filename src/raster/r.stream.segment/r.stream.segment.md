@@ -23,7 +23,8 @@ partitioning of streams into near-straight-line segments is required.
     produced by the same module. Stream background shall have NULL value
     or zero value. Background values of NULL are by default produced by
     *r.watershed* and *r.stream.extract*. If not 0 or NULL use
-    *[r.mapcalc](r.mapcalc.html)* to set background values to null.
+    *[r.mapcalc](https://grass.osgeo.org/grass-stable/manuals/r.mapcalc.html)*
+    to set background values to null.
 - **direction**  
     Flow direction: name of input direction map produced by
     *r.watershed* or *r.stream.extract*. If r.stream.extract output map

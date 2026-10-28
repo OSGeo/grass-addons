@@ -3,7 +3,7 @@
 The tool derives single elevation value for water bodies based on lidar
 data. These values are used for hydro-flattening a digital elevation
 model. The **input** raster is expected to represent ground surface
-created by binning lidar data (e.g., using *[r.in.pdal](r.in.pdal.md)*)
+created by binning lidar data (e.g., using *[r.in.pdal](https://grass.osgeo.org/grass-stable/manuals/r.in.pdal.html)*)
 with averaged ground elevation. Small gaps in the input are expected.
 Large gaps are interpreted as water bodies. The minimum size of a water
 body can be set with **min\_size** option in map units.

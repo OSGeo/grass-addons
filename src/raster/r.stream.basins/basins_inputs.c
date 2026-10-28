@@ -108,9 +108,9 @@ int ram_process_streams(char **cat_list, CELL **streams, int number_of_streams,
 
         for (i = 0; cat_list[i] != NULL; ++i) {
             cat = atoi(cat_list[i]);
-            if (cat < 1 || cat > number_of_streams)
-                G_fatal_error(_("Stream categories must be > 0 and < maximum "
-                                "stream category"));
+            if (cat < 1 || cat >= number_of_streams)
+                G_fatal_error(_("Stream category must be between 1 and %d"),
+                              number_of_streams - 1);
             categories[cat] = cat;
         }
     }
@@ -201,9 +201,9 @@ int seg_process_streams(char **cat_list, SEGMENT *streams,
 
         for (i = 0; cat_list[i] != NULL; ++i) {
             cat = atoi(cat_list[i]);
-            if (cat < 1 || cat > number_of_streams)
-                G_fatal_error(_("Stream categories must be > 0 and < maximum "
-                                "stream category"));
+            if (cat < 1 || cat >= number_of_streams)
+                G_fatal_error(_("Stream category must be between 1 and %d"),
+                              number_of_streams - 1);
             categories[cat] = cat;
         }
     }

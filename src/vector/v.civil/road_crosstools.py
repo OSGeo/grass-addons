@@ -152,9 +152,7 @@ class Intersections(object):
     def _get_dif(self, d_1, d_2, radio):
         """Return"""
         if d_1 > d_2:
-            dtmp = d_1
-            d_1 = d_2
-            d_2 = dtmp
+            d_1, d_2 = d_2, d_1
             dif = round(d_2 - d_1, 6)
         else:
             dif = 0

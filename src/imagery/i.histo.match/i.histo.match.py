@@ -7,7 +7,7 @@ AUTHOR(S):  Stefan Blumentrath (Norway) parallel / Numpy re-implementation
             Luca Delucchi, Fondazione E. Mach (Italy)
             original PERL code was developed by:
             Laura Zampa (2004) student of Dipartimento di Informatica e
-            Telecomunicazioni, Facoltà di Ingegneria,
+            Telecomunicazioni, Facolta' di Ingegneria,
             University of Trento  and ITC-irst, Trento (Italy)
 
 PURPOSE:    Calculate histogram matching of several images

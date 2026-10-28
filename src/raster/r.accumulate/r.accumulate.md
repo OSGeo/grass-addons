@@ -299,6 +299,9 @@ r.to.vect input=subwatersheds type=area output=subwatersheds
 ## SEE ALSO
 
 *[r.flowaccumulation](r.flowaccumulation.md),
+[r.hydrobasin](r.hydrobasin.md),
+[r.upflowlength](r.upflowlength.md),
+[r.lfp](r.lfp.md),
 [r.watershed](https://grass.osgeo.org/grass-stable/manuals/r.watershed.html),
 [r.stream.extract](https://grass.osgeo.org/grass-stable/manuals/r.stream.extract.html),
 [r.stream.distance](r.stream.distance.md)*  
@@ -317,3 +320,4 @@ Modelling & Software 131, 104774.
 ## AUTHOR
 
 [Huidae Cho](mailto:grass4u@gmail-com)
+([HydroCS](https://hydro.isnew.info/), New Mexico State University)

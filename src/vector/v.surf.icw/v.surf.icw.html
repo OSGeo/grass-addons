@@ -8,11 +8,13 @@ Input data points do not need to have direct line of sight to each other.
 This is interpolation "as the fish swims", not "as the crow flies", and can
 see around headlands or across land-bridges without polluting over barriers
 which the natural value (or flightless bird) can not cross.
+</p>
+
 <p>
 It was initially written to interpolate water chemistry in two parallel
 arms of a fjord, but may just as well be used for population abundance
 constrained by topography, or in studies of archeologic technology transfer.
-
+</p>
 
 <h2>NOTES</h2>
 
@@ -25,15 +27,20 @@ expensive for a stone tool technology to cross waterways.
 Since generating cost maps can take a long time, it is recommended to keep
 the raster region relatively small and limit the number of starting points
 to less than 500.
+</p>
 <p>
 Higher values of <b>friction</b> will help limit unconstrained boundary
 effects at the edges of your coverage, but will incur more of a stepped
 transition between sites.
+</p>
+
 <p>
 The <b>post_mask</b>, if given, is applied after the interpolation is
 complete. A common use for that might be to only present data within
 a certain distance (thus confidence) of an actual sampling station.
 In that case the <em>r.cost</em> module can be used to create the mask.
+</p>
+
 <p>
 This module writes lots of temporary files and so can be rather disk I/O
 intensive. If you are running it many times in a big loop you may want to
@@ -49,13 +56,15 @@ long before that timeout is reached.
    https://web.archive.org/web/20160518040713/https://www.westnet.com/~gsmith/content/linux-pdflush.htm
    https://tldp.org/LDP/sag/html/buffer-cache.html
  -->
+</p>
+
 <p>
 By default the module will run serially. To run in parallel set the
 <b>workers</b> parameter to the desired value (typically the number
 of cores in your CPU). Alternatively, if the <tt>WORKERS</tt> environment
 variable is set, the number of concurrent processes will be set at
 that number of jobs.
-
+</p>
 
 <h2>EXAMPLE</h2>
 
@@ -122,14 +131,13 @@ Arch&auml;ologischer Anzeiger 2010/1, pp.239-261
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>.
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>.
-<a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>.
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>.
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw.html">r.surf.idw</a>,
-<a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw2.html">r.surf.idw2</a>
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.idw.html">v.surf.idw</a>.
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.rst.html">v.surf.rst</a>.
+  <a href="https://grass.osgeo.org/grass-stable/manuals/v.surf.bspline.html">v.surf.bspline</a>.
+  <a href="https://grass.osgeo.org/grass-stable/manuals/r.cost.html">r.cost</a>.
+  <a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw.html">r.surf.idw</a>,
+  <a href="https://grass.osgeo.org/grass-stable/manuals/r.surf.idw2.html">r.surf.idw2</a>
 </em>
-
 
 <h2>AUTHOR</h2>
 

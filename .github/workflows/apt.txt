@@ -1,6 +1,7 @@
 bison
 build-essential
 flex
+imagemagick
 libbz2-dev
 libcairo-dev
 libfftw3-dev
@@ -16,7 +17,6 @@ libudunits2-dev
 libudunits2-data
 libzstd-dev
 proj-bin
-pdal
 sqlite3
 subversion
 udunits-bin

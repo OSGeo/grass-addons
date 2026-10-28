@@ -1469,3 +1469,28 @@ class AutoWidthListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
     def __init__(self, parent):
         wx.ListCtrl.__init__(self, parent, -1, style=wx.LC_REPORT | wx.BORDER_SUNKEN)
         ListCtrlAutoWidthMixin.__init__(self)
+
+
+class CswBrowserMainDialog(wx.Frame):
+    """Window of the g.gui.cswbrowser tool"""
+
+    def __init__(self, giface=None):
+        wx.Frame.__init__(self, None, title="Metadata browser", size=(1024, 760))
+
+        self.mainNotebook = wx.Notebook(self, wx.ID_ANY)
+        self.config = wx.Config("g.gui.cswbrowser")
+
+        self.BrowserPanel = CSWBrowserPanel(self.mainNotebook, self, giface)
+        self.connectionPanel = CSWConnectionPanel(self.mainNotebook, self)
+        self.mainNotebook.AddPage(self.BrowserPanel, text="Find")
+        self.mainNotebook.AddPage(self.connectionPanel, text="Configure")
+        self._layout()
+
+    def _layout(self):
+        self.mainsizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainsizer.Add(
+            self.mainNotebook,
+            1,
+            wx.EXPAND,
+        )
+        self.SetSizer(self.mainsizer)

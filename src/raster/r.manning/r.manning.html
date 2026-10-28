@@ -1,0 +1,215 @@
+<h2>DESCRIPTION</h2>
+
+<p>
+<em>r.manning</em> converts a land cover raster to a Manning's roughness
+coefficient raster for use in hydraulic and hydrological modeling.
+</p>
+
+<p>
+Manning's roughness coefficient (Manning's n) quantifies the resistance
+to flow over a surface and is a key parameter in hydraulic simulations
+such as flood modeling, overland flow, and channel flow calculations.
+</p>
+
+<p>
+The <b>input</b> parameter specifies the land cover raster map. The tool
+supports two standard land cover classification systems specified by
+<b>landcover</b>: NLCD (National Land Cover Database) used in the United States,
+and ESA WorldCover used globally.
+</p>
+
+<p>
+Manning's coefficients for ESA WorldCover are based on values
+used by <a href="https://github.com/mabdazzam/mannings_roughness_generator">
+QGIS Manning's Roughness Generator plugin by Azzam</a>.
+For NLCD, the <b>source</b> parameter selects the source of Manning's n coefficients:
+</p>
+
+<ul>
+  <li><b>kalyanapu</b>: Values from Kalyanapu et al. (2009), suitable for
+      shallow overland flow modeling (flow depths in mm to cm range).
+      Available for NLCD only. This is the default for NLCD.</li>
+  <li><b>hecras</b>: Values from the HEC-RAS 2D User's Manual, suitable for
+      deep flow and floodplain modeling (flow depths &gt; 0.3 m). Available for NLCD.</li>
+</ul>
+
+<p>
+The <b>method</b> parameter controls which roughness estimate to use:
+</p>
+
+<ul>
+  <li><b>low</b>: Lower bound estimate (minimal surface resistance)</li>
+  <li><b>medium</b>: Typical conditions (default)</li>
+  <li><b>high</b>: Upper bound estimate (maximum surface resistance)</li>
+  <li><b>random</b>: Uniform random value between low and high bounds</li>
+</ul>
+
+<p>
+For custom land cover classifications, use <b>landcover=custom</b> with
+a <b>rules</b> file in CSV format.
+</p>
+
+<h2>NOTES</h2>
+
+<h3>Source of values</h3>
+
+<p>
+Kalyanapu et al. (2009) does not include ranges for Manning's n values.
+These were estimated using 0.75/1.33 multipliers on the original single
+values to reflect ranges from Chow (1959).
+These multipliers were also used to estimate default values from ranges
+in the HEC-RAS 2D User's Manual.
+</p>
+
+<p>
+Kalyanapu et al. (2009) does not include NLCD value for cultivated crops,
+this tool uses conventional tillage from McCuen (2005).
+</p>
+
+<h3>Custom rules file</h3>
+
+<p>
+For custom land cover classifications, provide a CSV file with the
+<b>rules</b> parameter. Two formats are supported:
+</p>
+
+<p>Single value (used for all methods):</p>
+
+<div class="code"><pre>
+# code,n
+1,0.035
+2,0.120
+3,0.050
+</pre></div>
+
+<p>Three values (low, medium, high):</p>
+
+<div class="code"><pre>
+# code,n_low,n_medium,n_high
+1,0.025,0.035,0.045
+2,0.080,0.120,0.160
+3,0.040,0.050,0.060
+</pre></div>
+
+<p>
+Lines starting with <code>#</code> are treated as comments.
+</p>
+
+<h3>Uncertainty Analysis</h3>
+
+<p>
+Manning's n values are inherently uncertain due to spatial and temporal
+variability in vegetation density, surface conditions, and flow characteristics.
+The <b>method=random</b> option generates spatially uniform random values
+between low and high bounds for each land cover class, which can be used
+for Monte Carlo uncertainty analysis.
+</p>
+
+<h2>EXAMPLES</h2>
+
+<h3>Basic usage with NLCD land cover</h3>
+
+<p>
+Import NLCD into North Carolina sample dataset and
+convert it to Manning's n using Kalyanapu values for
+shallow overland flow:
+</p>
+
+<div class="code"><pre>
+r.manning input=nlcd_landcover output=mannings_n \
+          landcover=nlcd source=kalyanapu
+</pre></div>
+
+<div align="center" style="margin: 10px">
+    <a href="r_manning.png">
+    <img src="r_manning.png" width="600" alt="Map of Manning's n values" border="0">
+    </a><br>
+    <i>
+      Figure: Manning's n values for 2024 NLCD using Kalyanapu et al.
+    </i>
+</div>
+
+<h3>Deep flow modeling</h3>
+
+<p>Use HEC-RAS values for flood modeling:</p>
+
+<div class="code"><pre>
+r.manning input=nlcd_landcover output=mannings_n \
+          landcover=nlcd source=hecras
+</pre></div>
+
+<h3>ESA WorldCover for global applications</h3>
+
+<div class="code"><pre>
+r.manning input=worldcover output=mannings_n \
+          landcover=worldcover
+</pre></div>
+
+<h3>Conservative high roughness estimate</h3>
+
+<div class="code"><pre>
+r.manning input=nlcd_landcover output=mannings_n \
+          landcover=nlcd source=kalyanapu method=high
+</pre></div>
+
+<h3>Stochastic Manning's n values</h3>
+
+<p>Generate random Manning's n values for stochastic simulation:</p>
+
+<div class="code"><pre>
+from grass.tools import Tools
+
+tools = Tools()
+
+for i in range(100):
+    tools.r_manning(
+        input="nlcd_landcover",
+        output=f"mannings_n_{i}",
+        landcover="nlcd",
+        source="kalyanapu",
+        method="random",
+        seed=i,
+    )
+</pre></div>
+
+<h3>Integration with r.sim.water</h3>
+
+<p>Use the output with GRASS hydrological simulation:</p>
+
+<div class="code"><pre>
+r.manning input=nlcd_landcover output=mannings_n \
+          landcover=nlcd source=kalyanapu
+
+r.sim.water elevation=dem dx=dx dy=dy \
+            man=mannings_n depth=water_depth
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>HEC-RAS 2D User's Manual, Version 6.6. U.S. Army Corps of Engineers,
+      Hydrologic Engineering Center.
+      <a href="https://www.hec.usace.army.mil/software/hec-ras/documentation.aspx">https://www.hec.usace.army.mil/software/hec-ras/documentation.aspx</a></li>
+  <li>Kalyanapu, A. J., Burian, S. J., and McPherson, T. N. (2009). Effect of
+      land use-based surface roughness on hydrologic model output. <i>Journal
+      of Spatial Hydrology</i>, 9(2), 51-71.
+      <a href="https://scholarsarchive.byu.edu/josh/vol9/iss2/2/">https://scholarsarchive.byu.edu/josh/vol9/iss2/2/</a></li>
+  <li>McCuen, R. H. (2005). <i>Hydrologic Analysis and Design</i> (3rd ed.).
+      Pearson Prentice Hall.</li>
+  <li>Chow, V. T. (1959). <i>Open-Channel Hydraulics</i>. McGraw-Hill.</li>
+  <li>Azzam, A. QGIS Manning's Roughness Generator plugin.
+      <a href="https://github.com/mabdazzam/mannings_roughness_generator">https://github.com/mabdazzam/mannings_roughness_generator</a></li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<p>
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a></em>,
+<em><a href="https://grass.osgeo.org/grass-stable/manuals/r.recode.html">r.recode</a></em>
+</p>
+
+<h2>AUTHORS</h2>
+
+<p>
+Anna Petrasova, NCSU Center for Geospatial Analytics
+</p>

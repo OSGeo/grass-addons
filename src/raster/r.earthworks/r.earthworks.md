@@ -128,7 +128,8 @@ tutorial collection.
 Perform basic cut and fill operations
 to model peaks and pits from x- and y-coordinates.
 
-**Setup**
+#### Setup
+
 Set the computational region
 with [*g.region*](https://grass.osgeo.org/grass-stable/manuals/g.region.html)
 and then use map algebra to generate a flat terrain
@@ -139,7 +140,8 @@ g.region n=500 s=0 e=500 w=0 res=1
 r.mapcalc expression="elevation = 0"
 ```
 
-**Fill Operation**
+#### Fill Operation
+
 Model a peak from a set of x- and y-coordinates with *r.earthworks*.
 Use the z parameter to set a z-coordinate for the top of the peak.
 Optionally use the flat parameter to create a plateau
@@ -149,11 +151,11 @@ at the top of the peak.
 r.earthworks elevation=elevation earthworks=peak operation=fill coordinates=250,250 z=50 function=linear linear=0.5 flat=50
 ```
 
-| Fill | Fill 3D|
-| ---- | ------ |
-| ![Fill operation](r_earthworks_01.png) | ![3D fill operation](r_earthworks_02.png) |
+![Fill operation](r_earthworks_01.png)  
+*Figure: Fill operation*
 
-**Cut Operation**
+#### Cut Operation
+
 Model a pit from a set of x- and y-coordinates with *r.earthworks*.
 Set a z-coordinate for the bottom of the pit.
 
@@ -161,11 +163,11 @@ Set a z-coordinate for the bottom of the pit.
 r.earthworks elevation=elevation earthworks=pit operation=cut coordinates=250,250 z=-50 function=linear linear=0.5 flat=50
 ```
 
-| Cut | Cut 3D|
-| ---- | ---- |
-| ![Cut operation](r_earthworks_03.png) | ![3D cut operation](r_earthworks_04.png) |
+![Cut operation](r_earthworks_02.png)  
+*Figure: Cut operation*
 
-**Cut & Fill Operation**
+#### Cut & Fill Operation
+
 Model a pit and a peak from two sets of x- and y-coordinates
 with *r.earthworks*.
 Set a z-coordinate for the bottom of the pit
@@ -175,9 +177,40 @@ and another z-coordinate for the top of the peak.
 r.earthworks elevation=elevation earthworks=peak_and_pit operation=cutfill coordinates=180,180,320,320 z=-50,50 function=linear linear=0.5 flat=50
 ```
 
-| Cut & Fill | Cut & Fill 3D|
-| ---------- | ------------ |
-| ![Cut-fill operation](r_earthworks_05.png) | ![3D cut-fill operation](r_earthworks_06.png) |
+![Cut-fill operation](r_earthworks_03.png)  
+*Figure: Cut-fill operation*
+
+#### Random Earthworks
+
+Model a set of random peaks by generating a random surface,
+sampling random points, and then filling on those points.
+First generate a random surface with
+[*r.surf.random*](https://grass.osgeo.org/grass-stable/manuals/r.surf.random.html).
+Set a seed for reproducible results or set flag `s` for a random seed.
+Then randomly sample 50 cells from the random surface
+[*r.random*](https://grass.osgeo.org/grass-stable/manuals/r.random.html).
+Use a fill operation to model random peaks with
+[*r.earthworks*](https://grass.osgeo.org/grass-stable/manuals/addons/r.earthworks.html).
+Set the input raster to the random cells.
+
+```sh
+r.surf.random out=surface min=0 max=25 seed=2
+r.random input=surface npoints=50 raster=random seed=7
+r.earthworks elevation=elevation earthworks=earthworks operation=fill raster=random function=linear linear=0.25 flat=25
+```
+
+![Random earthworks](r_earthworks_04.png)  
+*Figure: Random earthworks*
+
+Compute contours with
+[*r.contour*](https://grass.osgeo.org/grass-stable/manuals/r.contour.html).
+
+```sh
+r.contour input=earthworks output=contours step=2
+```
+
+![Contours](r_earthworks_05.png)  
+*Figure: Contours*
 
 ### Road Grading
 
@@ -195,24 +228,25 @@ operation set to `fill`,
 function set to `linear`,
 linear set to `0.25`,
 and flat set to `25`.
+Use flag `-p` to print the volume of fill.
 This will grade an embankment through the valley
 with a 50 meter wide roadway
 at a constant elevation of 95 meters
 with side slopes of 25 percent.
-Optionally, compute contours with
-[*r.contour*](https://grass.osgeo.org/grass-stable/manuals/r.contour.html).
 
 ```sh
 g.region n=217700 s=216200 w=639200 e=640700 res=10
-r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor z=95 function=linear linear=0.25 operation=fill flat=25
-r.contour input=earthworks output=contours step=2
+r.earthworks elevation=elevation earthworks=earthworks lines=roadsmajor volume=volume z=95 function=linear linear=0.25 operation=fill flat=25 -p
 ```
 
-| Elevation | Earthworks |
-| --------- | ---------- |
-| ![Elevation](r_earthworks_07.png) | ![Earthworks](r_earthworks_08.png) |
+![Existing topography](r_earthworks_06.png)  
+*Figure: Existing topography*
 
-<!-- Print volume of fill -->
+![Roadway earthworks](r_earthworks_07.png)  
+*Figure: Roadway earthworks*
+
+![Volumetric change](r_earthworks_08.png)  
+*Figure: Volumetric change*
 
 When working with a large elevation raster,
 set the region to your area of interest
@@ -237,7 +271,7 @@ Model a flood due to a dam breach.
 Use *r.earthworks* to breach the dam
 and then use
 [*r.lake*](https://grass.osgeo.org/grass-stable/manuals/r.lake.html)
-to model the maximum possible extent and depth of flooding.
+to model flood risk.
 
 ```sh
 g.region n=223740 s=222740 w=634450 e=635450 res=10
@@ -246,20 +280,45 @@ r.earthworks elevation=elevation operation=cut coordinates=635235.4648198467,223
 r.lake --overwrite elevation=earthworks water_level=104 lake=lake coordinates=635150.7489931877,223203.9595016748
 ```
 
-| Dam | Dam Breach |
-| --------- | ---------- |
-| ![Dam](r_earthworks_09.png) | ![Dam Breach](r_earthworks_10.png) |
+![Dam](r_earthworks_09.png)  
+*Figure: Dam*
+
+![Dam Breach](r_earthworks_10.png)  
+*Figure: Dam breach*
 
 ## NOTES
 
-The current implementation of parallelization in r.mapcalc
-in the development version of GRASS
+### VERSIONS
+
+This version of r.earthworks is compatible with GRASS 8.5 and above.
+For older versions of GRASS, install [r.earthworks-3.1.0](https://doi.org/10.5281/zenodo.21865092).
+Download and unarchive this version from Zenodo.
+Then install with
+[*r.g.extension*](https://grass.osgeo.org/grass-stable/manuals/g.extension.html)
+using the full file path to the extracted directory as the url.
+
+```bash
+curl -L "https://zenodo.org/records/21865092/files/baharmon/r.earthworks-3.1.0.zip?download=1" -O && unzip r.earthworks-3.1.0.zip
+g.extension extension=r.earthworks operation=add url=baharmon-r.earthworks-284245b
+```
+
+### ISSUES
+
+In GRASS 8.5 and above,
+map algebra uses parallel computing
+for faster raster calculations.
+The current implementation
+of parallelization in r.mapcalc
 can open too many files
-causing r.earthworks to fail
+causing *r.earthworks* to fail
 for runs with multiple input coordinates
 depending on the open file limit of the user's system.
 This issue can be addressed
-by temporarily raising the open file limit:
+by enabling quadtree segmentation,
+setting fewer threads for parallel computing,
+or raising the open file limit.
+Use the shell command `ulimit`
+to temporarily raise the open file limit:
 
 ```bash
 ulimit -S -n 32768
@@ -267,7 +326,12 @@ ulimit -S -n 32768
 
 ## REFERENCES
 
-Harmon, B. (2025). r.earthworks (Version 2.0.0) \[Computer software\]. <https://doi.org/10.5281/zenodo.15507392>
+* Harmon, B., Petrasova, A., and Petras, V., (2026).
+    r.earthworks: a GRASS tool for terrain modeling.
+    Journal of Open Source Software, 11(118), 9270,
+    <https://doi.org/10.21105/joss.09270>
+* Harmon, B. (2026). r.earthworks (Version 4.0.0) \[Computer software\].
+    <https://doi.org/10.5281/zenodo.15507391>
 
 ## AUTHORS
 

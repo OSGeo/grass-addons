@@ -103,6 +103,17 @@
 # % required: no
 # % description: Name of input raster map containing latitudes [decimal degrees]
 # %end
+# %option G_OPT_R_BASENAME_INPUT
+# % key: horizon_basename
+# % required: no
+# % description: The horizon information input map basename
+# %end
+# %option
+# % key: horizon_step
+# % type: double
+# % required: no
+# % description: Angle step size for multidirectional horizon [degrees]
+# %end
 # %option G_OPT_R_INPUT
 # % key: long
 # % required: no
@@ -227,6 +238,13 @@
 # % description: If not specified, r.sun default will be used.
 # %end
 # %option
+# % key: npartitions
+# % type: integer
+# % description: Read the input files in this number of chunks
+# % answer: 1
+# % required: no
+# %end
+# %option
 # % key: nprocs
 # % type: integer
 # % description: Number of r.sun processes to run in parallel
@@ -253,6 +271,12 @@
 # %flag
 # % key: m
 # % description: Use the low-memory version of the program
+# %end
+# %rules
+# % requires_all: -m,horizon_basename,horizon_step
+# %end
+# %rules
+# % requires_all: npartitions,horizon_basename,horizon_step
 # %end
 
 import os
@@ -314,6 +338,9 @@ def run_r_sun(
     time_step,
     distance_step,
     solar_constant,
+    horizon_basename,
+    horizon_step,
+    npartitions,
     flags,
 ):
     params = {}
@@ -351,6 +378,12 @@ def run_r_sun(
         params.update({"distance_step": distance_step})
     if solar_constant is not None:
         params.update({"solar_constant": solar_constant})
+    if horizon_basename is not None:
+        params.update({"horizon_basename": horizon_basename})
+    if horizon_step is not None:
+        params.update({"horizon_step": horizon_step})
+    if npartitions is not None:
+        params.update({"npartitions": npartitions})
 
     gs.run_command(
         "r.sun",
@@ -537,6 +570,13 @@ def main():
     coeff_dh_strds = options["coeff_dh_strds"]
     lat = options["lat"]
     long_ = options["long"]
+    horizon_basename = options["horizon_basename"]
+    if options["horizon_step"]:
+        horizon_step = float(options["horizon_step"])
+        if horizon_step.is_integer():
+            horizon_step = int(horizon_step)
+    else:
+        horizon_step = None
 
     beam_rad_basename = beam_rad_basename_user = options["beam_rad_basename"]
     diff_rad_basename = diff_rad_basename_user = options["diff_rad_basename"]
@@ -589,7 +629,10 @@ def main():
         rsun_flags += "m"
     if flags["p"]:
         rsun_flags += "p"
-
+    if options["npartitions"]:
+        partitions = int(options["npartitions"])
+    else:
+        partitions = 1
     # check: start < end
     if start_time > end_time:
         gs.fatal(_("Start time is after end time."))
@@ -736,6 +779,9 @@ def main():
                     None if mode1 else time_step,
                     distance_step,
                     solar_constant,
+                    horizon_basename,
+                    horizon_step,
+                    partitions,
                     rsun_flags,
                 ),
             )

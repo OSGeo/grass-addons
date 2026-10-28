@@ -64,7 +64,7 @@ Other mandatory data:
 
 - vector tracks file
 - vector boundaries file
-- raster digital elevetion model file
+- raster digital elevation model file
 
 Optional data:
 
@@ -88,11 +88,11 @@ weighted according to on-line questionnaire proposed to decision makers
 operating in the forest-based sector. The list of indicators used is the
 following:  
   
-| 4R      | INDICATORS                                                                 | DEFINITION                                                                 |
-|---------|---------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| Reduce  | i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass; i2 - CO2 emissions per unit of wood product | Improving of the process efficiency reducing the utilization of natural resources |
-| Reuse   | i5 - Ratio between the potential economic value of the wood assortment and the real value earned | Valorisation of the valuable wood high quality assortments |
-| Recover | i6 - Percentage of wood waste for bioenergy production; i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes | Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products |
+| 4R      | INDICATORS                                                                                                                              | DEFINITION                                                                                              |
+|---------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| Reduce  | i1 - Ratio (on annual basis) between annual value and annual mean volume of harvested mass; i2 - CO2 emissions per unit of wood product | Improving of the process efficiency reducing the utilization of natural resources                       |
+| Reuse   | i5 - Ratio between the potential economic value of the wood assortment and the real value earned                                        | Valorisation of the valuable wood high quality assortments                                              |
+| Recover | i6 - Percentage of wood waste for bioenergy production; i7 - Amount of CO2 emissions saved per unit of energy produced by wood wastes   | Energy recovery from wood waste products; Emissions saved from energy recovery from wood waste products |
 
 The quantification of circular bioeconomy indicators is developed in the
 framework of provisioning forest ecosystem services. For this reason,
@@ -100,17 +100,17 @@ the indicators and results of SMCA process are computed on forest
 surface with financial efficiency of production process or, in other
 terms, the area where a positive stumpage value can be reached. The
 calculation of stumpage value is carried out following the approach of
-another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.html).
+another GRASS GIS add-on: [r.green.biomassfor](r.green.biomassfor.md).
 
 The model in *r.forcircular* starts with importation of geodata and
-conversion of vector intp raster. Then, through a multistep approach,
+conversion of vector into raster. Then, through a multistep approach,
 the technical and the economic availability of biomass (both traditional
 wood assortments and woodchips for bioenergy production) are quantified.
 Technical availability depicts forest surface where the extraction of
-wood material is possible. The approach combines type of mechanisation,
+wood material is possible. The approach combines type of mechanization,
 limits for slope, distance from roads and roughness.  
 In forest area where extraction is possible, the stumpage value is
-quantified as a combination of differenct factors such as hourly unitary
+quantified as a combination of different factors such as hourly unitary
 cost of each production process, worker costs, hourly productivity and
 administrative costs.  
 The user can setthe upper and - if needed - lower limits for slope and
@@ -183,7 +183,7 @@ r.forcircular forest=parcel boundaries=study_Area dtm=dem tracks=forest_tracks \
 ```
 
 The output maps are: technical\_surface (forest surface where
-exploitation is technically possibile), economic\_surface (forest
+exploitation is technically possible), economic\_surface (forest
 surface where the exploitation is economically advantageous), emission
 (CO<sub>2</sub> produced by the exploitation), annual\_avoided\_emission
 (emissions avoided compared to the use of fossil fuels), revenues (map

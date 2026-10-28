@@ -59,7 +59,7 @@ First, we are going to generate some training pixels from an older
 
 ```sh
 g.region raster=landclass96 -p
-r.random input=landclass96 npoints=1000 raster=training_pixels
+r.random -s input=landclass96 npoints=1000 raster=training_pixels
 ```
 
 Then we can use these training pixels to perform a classification on the

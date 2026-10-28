@@ -3,7 +3,7 @@
 # Download "mkdocs-site" from the "documentation.yml" workflow runs
 # Script to be run on grass.osgeo.org
 #
-# (c) 2025, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# (c) 2025-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -28,22 +28,32 @@
 # - GitHub CLI api: https://cli.github.com/manual/gh_api
 # - GitHub workflow runs: https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow
 
+# branch parameter: "main" or "releasebranch_8_5"
+
+MYBRANCH=$1
+[ -z "$MYBRANCH" ] && MYBRANCH="main"
+
 # === Configuration ===
 OWNER="OSGeo"
 REPO="grass"
-REPO_LOCAL="$HOME/src/main/"
+#
+REPO_LOCAL="$HOME/src/$MYBRANCH/"       # e.g., neteler@grasslxd:~/src/main/ or ~/src/releasebranch_8_5/
 WORKFLOW_NAME="documentation.yml"  # or the workflow filename/id
 ARTIFACT_NAME="mkdocs-site" # the name of the artifact
-ZIP_OUTPUT="$ARTIFACT_NAME.zip"
-OUTPUT_DIR="/tmp"
+ZIP_OUTPUT="${MYBRANCH}.zip"  # must match the path expected by fetch_unpack_manual_GHA.sh
+# per-user directory: the job runs as different users (neteler, grassbot, ...)
+# and a shared /tmp path lets one user's leftover file block another user's run
+OUTPUT_DIR="${OUTPUT_DIR:-${TMPDIR:-/tmp}/grass_manuals_${USER}}"
 
 # === Script ===
 # cleanup from previous run
-cd $OUTPUT_DIR && rm -f $ZIP_OUTPUT
+mkdir -p "$OUTPUT_DIR" || exit 1
+cd "$OUTPUT_DIR" || exit 1
+rm -f "$ZIP_OUTPUT"
 
 # this script must be run within the `grass` GH repo
 echo "Changing into <$REPO_LOCAL>..."
-cd $REPO_LOCAL
+cd "$REPO_LOCAL" || exit 1
 
 # use GitHub read-only TOKEN
 # cd src/main/
@@ -56,7 +66,7 @@ cd $REPO_LOCAL
 echo "Identifying last successful workflow run for '$WORKFLOW_NAME'..."
 
 RUN_ID=$(gh run list \
-  --branch main \
+  --branch "$MYBRANCH" \
   --repo "$OWNER/$REPO" \
   --workflow "$WORKFLOW_NAME" \
   --status success \
@@ -86,10 +96,22 @@ echo "Found artifact ID: $ARTIFACT_ID"
 
 echo "Downloading the artifact as ZIP (takes a moment)..."
 
-gh api \
+if ! gh api \
   -H "Accept: application/vnd.github+json" \
   -H "Accept: application/zip" \
   "/repos/$OWNER/$REPO/actions/artifacts/$ARTIFACT_ID/zip" \
-  > "$OUTPUT_DIR/$ZIP_OUTPUT"
+  > "$OUTPUT_DIR/$ZIP_OUTPUT"; then
+  echo "ERROR: Failed to download artifact $ARTIFACT_ID (it may have expired)."
+  rm -f "$OUTPUT_DIR/$ZIP_OUTPUT"
+  exit 1
+fi
+
+# verify that the downloaded file is a valid ZIP (catches truncated
+# downloads and API error bodies saved as file content)
+if ! unzip -tq "$OUTPUT_DIR/$ZIP_OUTPUT" > /dev/null; then
+  echo "ERROR: Downloaded file <$OUTPUT_DIR/$ZIP_OUTPUT> is not a valid ZIP archive."
+  rm -f "$OUTPUT_DIR/$ZIP_OUTPUT"
+  exit 1
+fi
 
 echo "Artifact saved as: $OUTPUT_DIR/$ZIP_OUTPUT"

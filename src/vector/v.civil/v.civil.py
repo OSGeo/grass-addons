@@ -525,14 +525,9 @@ Created on Wed Jul 23 18:37:36 2014
 import os
 import sys
 
-# sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'v.road'))
 import grass.script as gs
-from grass.pygrass.utils import get_lib_path
 
-path = get_lib_path(modname="v.civil")
-if path is None:
-    gs.fatal("Not able to find the civil library directory.")
-sys.path.append(path)
+gs.set_path("v.civil")
 
 import road_road as Road
 import road_crosstools as Tools2

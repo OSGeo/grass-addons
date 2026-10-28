@@ -253,15 +253,17 @@ cop_dataspace:
 
 To register to Creodias, users should
 [create an account](https://portal.creodias.eu/register.php), and then use their
-username and password in the eodag configuration file. Users will also
-need TOTP, a 6-digits temporary one time password, to be able to
-authenticate and download scenes (product search within creodias can be
-done without registering). This TOTP is only valid for very short time,
-i.e., 30 to 60 seconds, so it shall not be set through the eodag
-configuration file. When *i.eodag* attempts to download a scene from
-creodias, users will be prompted to input the TOTP. If they prefer to
-discard these scenes, they should enter **"-"** instead. Note that
-interactive prompt does not work in the graphical user interface.
+username and password in the eodag configuration file.
+Users will also need TOTP, a 6-digit temporary one-time password, to be able
+to authenticate and download scenes (product search within creodias can be done
+without registering). If the TOTP secret key (seed) is specified in the eodag
+configuration file, `i.eodag` will automatically generate the required 6-digit
+code at runtime (this automated method requires the **pyotp** Python package).
+Otherwise, if the secret key is not provided in the configuration, users will
+be interactively prompted to input the TOTP code when the download starts. If
+they prefer to discard these scenes during the interactive prompt, they should
+enter "-" instead. Note that the interactive prompt does not work in the
+graphical user interface.
 
 See [Configure
 EODAG](https://eodag.readthedocs.io/en/stable/getting_started_guide/configure.html)
@@ -431,6 +433,8 @@ i.eodag -lp provider=usgs producttype=LANDSAT_C2L2 area_relation=IsWithin clouds
     eodag[usgs]`, for more info see [installation
     page](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html).
     To install all dependencies use `pip install eodag[all]`
+- **pyotp** Python package (optional; required only for automated Creodias
+Multi-Factor Authentication via a secret key in the configuration file).
 
 ## SEE ALSO
 

@@ -56,7 +56,7 @@ import sys
 
 import csv
 import numpy as np
-from numpy.linalg.linalg import LinAlgError
+from numpy.linalg import LinAlgError
 
 # statsmodels lazy imported at the end of the file
 

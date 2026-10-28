@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
           "Cho (2023).");
 
     opt.dir = G_define_standard_option(G_OPT_R_INPUT);
+    opt.dir->key = "direction";
     opt.dir->description = _("Name of input direction raster map");
 
     opt.format = G_define_option();

@@ -1,0 +1,24 @@
+diff --git a/src/main.f b/src/main.f
+index 7292891..059193e 100644
+--- a/src/main.f
++++ b/src/main.f
+@@ -3998,8 +3998,8 @@ c pressure at ground level (174) and altitude (175)
+      s       1h*,24x,27h integrated values of  :   ,t79,1h*,/,
+      s       1h*,24x,27h --------------------      ,t79,1h*,/,
+      s       1h*,t79,1h*,/,
+-     s       1h*,6x,22h apparent reflectance ,f10.7,1x,
+-     s                 26h appar. rad.(w/m2/sr/mic) ,f8.3,1x,t79,1h*,/,
++     s       1h*,6x,22h apparent reflectance ,f14.9,1x,
++     s                 26h appar. rad.(w/m2/sr/mic) ,f8.4,1x,t79,1h*,/,
+      s       1h*,18x,30h total gaseous transmittance  ,f5.3,
+      s  t79,1h*,/,1h*,t79,1h*,/,79(1h*))
+   500 format(1h*,6x,40h water reflectance components:           ,
+@@ -4050,7 +4050,7 @@ c pressure at ground level (174) and altitude (175)
+      s       1h*,t79,1h*,/,
+      s       1h*,t30,10h downward ,t45,10h  upward  ,
+      s            t60,10h   total  ,t79,1h*)
+-  931 format(1h*,6x,a20,t32,f8.5,t47,f8.5,t62,f8.5,t79,1h*)
++  931 format(1h*,6x,a20,t32,f14.8,t47,f14.8,t62,f14.8,t79,1h*)
+   932 format(1h*,6x,a20,t32,f8.2,t47,f8.2,t62,f8.2,t79,1h*)
+   939 format(1h*,t79,1h*,/,1h*,
+      s             t30,10h rayleigh ,t45,10h aerosols ,

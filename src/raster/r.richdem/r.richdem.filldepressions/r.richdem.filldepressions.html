@@ -1,0 +1,115 @@
+<h2>DESCRIPTION</h2>
+
+<em><b>r.richdem.filldepressions</b></em> fills all topographic depressions (pits, sinks)
+in a digital elevation model (DEM) so that every cell drains to the map
+boundary. Depression filling is a common pre-processing step before computing
+flow directions or flow accumulation.
+
+<p>
+Depressions are raised to the elevation of their lowest outlet (the pour
+point), producing a hydrologically conditioned DEM in which no interior
+drainage exists. The algorithm is based on the Priority-Flood approach of
+Barnes et al. (2014), which runs in optimal O(N log N) time.
+
+<p>
+When the <b>-e</b> flag is set, an epsilon (ε) gradient is imposed on the
+filled flat areas. This ensures that a unique steepest-descent flow
+direction exists for every cell, including those within large flat regions
+created by the fill. Without this flag, filled areas may contain cells with
+no unique downhill neighbor.
+
+<p>
+Two flow topologies are supported:
+<ul>
+  <li><b>D8</b> (default) — each cell drains to one of its 8 neighbors.</li>
+  <li><b>D4</b> — each cell drains to one of its 4 cardinal neighbors only.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+Depression filling removes all interior basins by raising their elevations.
+This is appropriate when depressions are considered artifacts (e.g., errors
+in lidar or SRTM data). When depressions represent real landscape features
+(lakes, prairie potholes, endorheic basins), consider using
+<em><a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a></em> or the
+<em><a href="r.richdem.dephier.html">r.richdem.dephier</a></em> /
+<em><a href="r.richdem.fsm.html">r.richdem.fsm</a></em> workflow instead.
+
+<p>
+After filling, flat regions may be created where the fill raised cells
+to the same elevation as the pour point. Use the <b>-e</b> flag or
+<em><a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a></em>
+to impose drainage gradients on such areas.
+
+
+<h2>REQUIREMENTS</h2>
+
+<p>
+This module requires the
+<a href="https://github.com/r-barnes/richdem">RichDEM</a> Python package,
+which is not a standard GRASS GIS dependency and must be installed separately:
+</p>
+<div class="code"><pre>
+pip install richdem
+</pre></div>
+<p>
+If <code>pip install richdem</code> fails (the package requires a C++ compiler),
+build from source:
+</p>
+<div class="code"><pre>
+git clone https://github.com/r-barnes/richdem.git
+cd richdem/wrappers/pyrichdem
+pip install -e .
+</pre></div>
+<p>
+Ensure that RichDEM is installed into the same Python environment used by GRASS GIS.
+</p>
+
+<h2>EXAMPLES</h2>
+
+Fill depressions using D8 topology:
+<div class="code"><pre>
+r.richdem.filldepressions input=dem output=dem_filled
+</pre></div>
+
+Fill depressions and impose an epsilon gradient on flat areas:
+<div class="code"><pre>
+r.richdem.filldepressions -e input=dem output=dem_filled_eps
+</pre></div>
+
+Fill using D4 topology:
+<div class="code"><pre>
+r.richdem.filldepressions input=dem output=dem_filled_d4 topology=D4
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+<li>Barnes, R., Lehman, C., Mulla, D. (2014).
+Priority-flood: An optimal depression-filling and watershed-labeling
+algorithm for digital elevation models.
+<em>Computers &amp; Geosciences</em> Vol 62, pp 117–127.
+DOI: <a href="https://doi.org/10.1016/j.cageo.2013.04.024">10.1016/j.cageo.2013.04.024</a>
+</li>
+<li>Barnes, R. (2016). RichDEM: Terrain Analysis Software.
+URL: <a href="http://github.com/r-barnes/richdem">http://github.com/r-barnes/richdem</a>
+</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.richdem.breachdepressions.html">r.richdem.breachdepressions</a>,
+<a href="r.richdem.resolveflats.html">r.richdem.resolveflats</a>,
+<a href="r.richdem.flowaccumulation.html">r.richdem.flowaccumulation</a>,
+<a href="r.richdem.dephier.html">r.richdem.dephier</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html">r.fill.dir</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.watershed.html">r.watershed</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Richard Barnes (RichDEM library)
+
+<p>
+GRASS GIS bindings: Andrew D. Wickert, with assistance from Claude Sonnet 4.6</p>

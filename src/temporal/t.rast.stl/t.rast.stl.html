@@ -1,0 +1,622 @@
+<h2>DESCRIPTION</h2>
+
+<i>t.rast.stl</i> extracts the time series of a single user-selected point from
+a space-time raster dataset (strds), runs an <b>STL decomposition</b>
+(Seasonal-Trend decomposition using LOESS) on it, and produces a multi-panel
+plot of the observed series together with its <i>trend</i>, <i>seasonal</i> and
+<i>residual</i> (remainder) components. Optionally, one or more trend
+regressions are fitted to the deseasonalized series and drawn on the trend
+panel: an ordinary least-squares (OLS) line, a robust Theil-Sen line, and/or a
+shape-constrained (monotone) Generalized Additive Model (GAM) curve.
+
+<p>
+
+The module is a standalone tool that works on any strds, with either absolute
+(calendar-dated) or relative (integer-stepped) time. Internally it uses <i><a
+href="t.rast.what.md">t.rast.what</a></i> to sample the pixel value at every
+registered timestep, regularizes the resulting irregular series onto an evenly
+spaced time axis (a hard requirement of STL), and then runs <a
+href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>.
+
+<h3>About STL</h3>
+
+Environmental time series derived from remote sensing, like a vegetation index,
+land surface temperature, snow cover, or soil moisture, are normally composed
+of:
+
+<ul>
+  <li>a repeating <b>seasonal</b> pattern, e.g. vegetation greening up every
+  spring and senescing every autumn;</li>
+  <li>a slower <b>trend</b>, e.g. a multi-year changes such as recovery after a
+  disturbance, or climate change;</li>
+  <li>short-term <b>residual</b> variation that is left over once season and
+  trend are removed. This can be noise from weather, sensor noise, residual
+  cloud contamination, or one-off events such as a fire or a flood.</li>
+</ul>
+
+<p>
+STL is a procedure that separates these three temporal patterns. It models the
+observed value at each date as
+
+<div class="code">
+  <pre>
+observed = trend + seasonal + residual
+</pre>
+</div>
+
+<p>
+It estimates the trend and seasonal patterns by repeatedly fitting <b>LOESS</b>
+(LOcally Estimated Scatterplot Smoothing) curves. These are flexible local
+regressions that follow the data without assuming a fixed global functional
+shape. STL is robust, handles long seasonal cycles, and (in its robust variant)
+can down-weight outliers such as undetected clouds.
+
+<p>
+Once decomposed, each component answers a different question. The
+<b>seasonal</b> panel shows the typical within-year cycle; the <b>trend</b>
+panel shows where the system is heading once seasonality is removed and the
+<b>residual</b> panel highlights dates that depart from the expected
+season-plus-trend behaviour. These include normal day-to-day variation, but
+could also be used to flag anomalies.
+
+<p>
+The module can be run with default settings to explore patterns. The minimum
+input is the strds and point coordinates. If the maps in the strds are not
+regularly spaced, you will need to provide the required frequency as well. For
+more information about this parameter and other fine-tune options, see the next
+section.
+
+<h3>Point selection</h3>
+
+The point is given with <b>coordinates=east,north</b> in the coordinate system
+of the current GRASS project. When the module dialog is launched from within the
+GRASS GUI, the coordinates field can also be filled by clicking a location in
+the map display (when launched from the terminal, clicking a location will not
+work).
+
+<p>
+The module samples the value at the point in the <i>current computational
+region</i>'s resolution. Set the region with <i><a
+href="g.region.md">g.region</a></i> before running if needed. The point must
+fall inside the current region.
+
+<h3>Comparing two datasets</h3>
+
+A second space-time raster dataset can be supplied with <b>strds2</b>. When
+given, the full analysis (regularization, STL decomposition and trend
+regression) is run on both datasets and the two are drawn together on the same
+four panels (Observed, Trend, Seasonal, Residual). By default the first dataset
+is plotted against the left y-axis and the second against its own twin right
+y-axis on each panel, so two quantities with very different units or ranges (for
+example temperature and precipitation) can be compared on a shared time axis.
+The two series are distinguished by colour, with the y-axis tick numbers
+coloured to match and a single legend in the Observed panel naming each dataset.
+
+<p>
+The trend regression lines requested with <b>-o</b>, <b>-s</b> and <b>-g</b> are
+drawn on the Trend panel for both datasets. Each dataset's regression lines use
+a colour family matching its series, while the line style identifies the
+regression type (OLS dashed, Theil-Sen dash-dot, GAM dotted). The <b>-t</b> flag
+adds the slope/R²/<i>p</i> statistics to it. The full statistics for each
+dataset are always printed to the terminal regardless.
+
+<p>
+When the two datasets are in comparable units, the <b>-y</b> flag forces them
+onto a single common y-axis range per panel (instead of separate left/right
+axes), so their magnitudes can be read directly against one another. This flag
+has no effect unless <b>strds2</b> is given.
+
+<p>
+The series line colours can be set with <b>color</b> (for <b>strds</b>) and
+<b>color2</b> (for <b>strds2</b>). Each accepts a standard GRASS colour name
+(such as <tt>blue</tt> or <tt>aqua</tt>), an <tt>R:G:B</tt> triplet with each
+component in 0-255 (such as <tt>0:0:255</tt>), hex code (<tt>#1f77b4</tt>) or a
+<tt>tab:</tt> name. The trend regression lines for a dataset are drawn in a
+darker family derived from its series colour. In the single-dataset case
+<b>color</b> sets the series colour while the OLS/Theil-Sen/GAM lines keep their
+default (red/green/purple).
+
+<p>
+Both datasets must share the same temporal type (both absolute or both
+relative). The second series is extracted at the same point and regularized with
+the same <b>frequency</b>/<b>step</b> and <b>interpolation</b> settings as the
+first.
+
+<h3>Absolute vs. relative time</h3>
+
+The tool handles both temporal types of strds. For <b>absolute-time</b> datasets
+the x-axis of the plot is labelled with dates. For <b>relative-time</b> datasets
+the x-axis is labelled "Time step".
+
+<h3>Regularization</h3>
+
+STL requires an evenly spaced, gap-free series. The series is therefore
+resampled onto a regular axis and any gaps are then filled in. Three options
+control this:
+
+<p>
+<b>frequency</b> sets the spacing of the regular axis for absolute-time
+datasets. It is a <a
+href="https://pandas.pydata.org/docs/user_guide/timeseries.html#time-span-representation">pandas
+offset alias</a>. Common choices are <tt>D</tt> (daily), <tt>W</tt> (weekly),
+<tt>MS</tt> (month start), or e.g., <tt>16D</tt> for a 16-day composite series.
+For absolute-time datasets that are already regularly spaced, <b>frequency</b>
+may be omitted and the spacing is inferred. For irregular data you should set it
+explicitly to fit the desired / intended spacing.
+
+<p>
+<b>step</b> sets the spacing for relative-time datasets, as an integer in the
+dataset's own time unit (<b>frequency</b> is ignored for relative-time
+datasets). If <b>step</b> is omitted, the dataset granularity reported by
+<tt>t.info</tt> is used, and the extent of the regular axis is taken from the
+data. Observations that do not fall on a grid node are snapped to the nearest
+node (with a warning), and two observations landing on the same node are
+averaged.
+
+<p>
+<b>interpolation</b> chooses how gaps left after resampling are filled. The
+default is a <tt>linear</tt> interpolation. If gaps are uneven, you might want
+to use the <tt>time</tt> option, which takes into account the actual time
+distance between observations. For the other options, <tt>nearest</tt>,
+<tt>pchip</tt>, <tt>akima</tt>, <tt>cubic</tt>, <tt>quadratic</tt>,
+<tt>spline</tt> and <tt>polynomial</tt>, see the manual page of the Pandas <a
+href="https://pandas.pydata.org/docs/reference/api/pandas.Series.interpolate.html">Series.interpolate</a>
+function, which this module uses for the gap filling.
+
+<p>
+You will normally want to make sure the <b>frequency</b> (or <b>step</b>)
+matches the real sampling of your data. If these are not matching, your data
+will be resampled. For example, setting data that is actually 16-day composites
+to <tt>D</tt> (daily) will create many interpolated points and smoothen the data
+series.
+
+<h3>Decomposition (STL)</h3>
+
+The decomposition wraps <tt>statsmodels.tsa.seasonal.STL</tt>. Its most
+important parameter is <b>period</b>, which is tied to the regularized frequency
+(or, for relative-time data, the step / granularity). It is the number of
+observations in one full seasonal cycle. For example 12 for monthly data, 23 for
+a 16-day composite series (≈ 365 / 16), or 365 for daily data with an annual
+cycle. If <b>period</b> is not given it is estimated from the resampled
+frequency (or, for relative-time data, the dataset granularity). Set it
+explicitly whenever you are unsure the inference will be right, or when your
+cycle is not annual.
+
+<p>
+The remaining STL options fine-tune the LOESS smoothers. For users familiar with
+<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/stl.html">R's
+stl()</a> function, many of these parameters are similar or identical, although
+the defaults may differ.
+
+<p>
+<b>seasonal</b>: length of the seasonal smoother (odd integer ≥ 7). Smaller
+values let the seasonal shape change quickly from cycle to cycle; larger values
+force a more stable, near-constant season. The equivalent parameter in R's stl()
+function is <tt>s.window</tt>.
+
+<p>
+<b>trend</b>: length of the trend smoother (odd integer). Larger values give a
+smoother, stiffer trend that ignores short wiggles; smaller values let the trend
+bend more. If left empty, statsmodels derives a default from the period and
+seasonal window. The equivalent parameter in R's stl() function is
+<tt>t.window</tt>.
+
+<p>
+<b>low_pass</b>: length of the low-pass smoother (odd integer ≥ 3). This is an
+internal step separating season from trend; the default (the smallest odd number
+larger than <b>period</b>) is almost always fine. The equivalent parameter in
+R's stl() function is <tt>l.window</tt>.
+
+<p>
+<b>seasonal_degree</b>, <b>trend_degree</b>, <b>low_pass_degree</b>: the degree
+of the local polynomial each LOESS uses (0 = locally constant, 1 = locally
+linear). statsmodels defaults to 1. R's <tt>stl()</tt> also uses 1 for the trend
+(<tt>t.degree</tt>) and low-pass (<tt>l.degree</tt>) smoothers, but 0 for the
+seasonal smoother (<tt>s.degree</tt>).
+
+<p>
+<b>seasonal_jump</b>, <b>trend_jump</b>, <b>low_pass_jump</b>: control the
+trade-off between speed and accuracy. The LOESS is evaluated every jump
+observations and interpolated in between; 1 (the default) evaluates at every
+point and is the most exact.
+
+<p>
+<b>-r</b> (robust flag): turns on robust fitting, which iteratively down-weights
+outliers. This is worth enabling when residual cloud or sensor spikes are
+distorting the fit.
+
+<h3>Trend lines</h3>
+
+Beyond the visual decomposition, the tool quantifies the long-term change by
+fitting regressions to the <b>deseasonalized observed</b> series and drawing
+them on the trend panel. The deseasonalized series is <tt>trend + residual</tt>
+(equivalently <tt>observed - seasonal</tt>)
+
+<p>
+Three fits are available. The first is an ordinary least-squares (OLS) line,
+reported with its <b>slope</b> and <b>R²</b>. The second is a robust Theil-Sen
+line (SciPy's <a
+href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">theilslopes</a>),
+reported with its slope and a monotonic-trend <i>p</i>-value from Kendall's
+rank-correlation test (SciPy's <a
+href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">kendalltau</a>).
+Note that this differs from a full Mann-Kendall test, which applies tie and
+variance corrections. The reported <i>p</i>-values may therefore differ slightly
+when the data contain ties.
+
+<p>
+Which line(s) appear on the trend panel is controlled by flags: <b>-o</b> draws
+the OLS line, <b>-s</b> draws the Theil-Sen line, and <b>-g</b> draws a monotone
+GAM curve (see below). Note that the Theil-Sen slope with the non-parametric
+Kendall test is more resistant to outliers and does not assume normal residuals.
+
+<p>
+The <b>-t</b> flag adds the trend-line statistics (slope, R², Mann-Kendall
+<i>p</i>-value, and GAM net change) to the legend. The statistics are always
+printed to the terminal regardless of this flag.
+
+<p>
+The third fit, enabled with <b>-g</b>, is a shape-constrained (monotone)
+<b>Generalized Additive Model</b> fitted with <a
+href="https://pygam.readthedocs.io/">pyGAM</a>. It is a smooth, flexible curve,
+but constrained to never reverse direction. The <b>gam_direction</b> option sets
+the constraint direction: <tt>increasing</tt>, <tt>decreasing</tt>, or
+<tt>auto</tt> (the default, which picks the direction from the sign of the
+Theil-Sen slope). The GAM is summarised by its <b>net change</b> (fitted value
+at the last point minus the first, over the fitted span) and the <b>explained
+deviance</b>. The <b>-b</b> flag additionally shades the GAM's 95% confidence
+band.
+
+<p>
+The slopes (OLS, Theil-Sen) and the GAM net change are expressed per observation
+of the regularized series, i.e., per step of the chosen <b>frequency</b>
+(absolute series) or <b>step</b> (relative series). For a daily (D) series this
+is per day; for a 16-day composite (16D) it is per 16-day step, for a monthly
+(MS) series per month, and so on.
+
+<p>
+<b>A note on significance.</b> The reported <i>p</i>-values (both the OLS slope
+test and the Kendall test behind Theil-Sen) assume independent residuals.
+Deseasonalized environmental series are almost always serially autocorrelated,
+which inflates significance (<i>p</i>-values come out too small). The values
+here therefore do <b>not</b> account for serial autocorrelation; for formal
+inference, consider a trend-free pre-whitening of the series, or a variance
+correction such as the Hamed–Rao modification of the Mann-Kendall test, before
+drawing conclusions about significance.
+
+<p>
+The STL trend LOESS has to <b>extrapolate</b> at both ends of the series
+because, near the boundaries, it can only use data from one side. The
+corresponding ends of the deseasonalized series are therefore the least reliable
+and can disproportionately influence the fitted regressions. The
+<b>trend_trim</b> option reduces this edge effect by dropping a portion of each
+end before fitting. The same trim is applied to all three fits (OLS, Theil-Sen
+and GAM) so they describe the same span. The trimming amount is specified as a
+fraction of the effective trend window:
+
+<ul>
+  <li><tt>none</tt> (default) uses the whole series;</li>
+  <li><tt>0.1</tt> / <tt>0.25</tt> remove only the outermost, most biased
+  points;</li>
+  <li><tt>0.5</tt> removes the entire theoretically-extrapolated zone (about
+  half the trend window at each end);</li>
+  <li><tt>1</tt> is the most conservative.</li>
+</ul>
+
+<p>
+If you see a fitted line or curve being pulled by an upswing or downswing right
+at the edge of the plot, increasing <b>trend_trim</b> is the appropriate fix.
+
+<h3>Output</h3>
+
+By default the multi-panel plot is shown in an interactive window. If
+<b>output</b> is given, the plot is instead saved to that file and the image
+format is taken from the file extension (<tt>.png</tt>, <tt>.pdf</tt>,
+<tt>.svg</tt>, ...). Plot appearance is controlled by <b>dpi</b> (resolution,
+default 300) and <b>plot_dimensions</b> (width,height in inches, default 8,8).
+
+<p>
+The <b>backend</b> option selects the matplotlib rendering backend. You rarely
+need it: <tt>Agg</tt> is chosen automatically when writing to a file, and
+<tt>WXAgg</tt> (an interactive window) when no output file is given. Override it
+only if your system needs a different interactive backend (e.g. <tt>TkAgg</tt>,
+<tt>Qt5Agg</tt>).
+
+<p>
+The <b>csv</b> option additionally writes the observed, trend, seasonal and
+residual components per date, so they can be replotted or analysed in your
+software tool of choice.
+
+<p>
+The <b>vector</b> option creates a point vector layer at the selected location,
+carrying the trend regression results (OLS slope, R², <i>p</i>-value, Theil-Sen
+slope, Mann-Kendall tau and <i>p</i>-value) as attributes. When a monotone GAM
+was fitted (<b>-g</b>), its net change and explained deviance are stored as
+well.
+
+<h3>Subsetting and performance</h3>
+
+The <b>where</b> option accepts a temporal WHERE clause (as used by other
+<tt>t.*</tt> modules) to restrict the analysis to a subset of timestamps, for
+example a particular range of years.
+
+<p>
+The <b>nprocs</b> option sets the number of parallel processes used during
+sampling by <i><a href="t.rast.what.md">t.rast.what</a></i>, potentially making
+the module substantially faster to run.
+
+<h2>NOTES</h2>
+
+This addon requires the Python packages <i>numpy</i>, <i>pandas</i>,
+<i>scipy</i>, <i>matplotlib</i> and <i>statsmodels</i>. They are all
+pip-installable, e.g.
+
+<div class="code">
+  <pre>
+pip install numpy pandas scipy matplotlib statsmodels
+</pre>
+</div>
+
+<p>
+If a dependency is missing the module exits with a message indicating which
+package to install. Exception is <i>pygam</i>, which is an optional dependency
+(<tt>pip install pygam</tt>). It is imported only when <b>-g</b> is used, so the
+rest of the module works without it.
+
+<p>
+Computation depend on the following libraries:
+
+<ul>
+  <li><b>pandas</b> builds the time-indexed series, resamples it onto the
+  regular axis (<tt>Series.resample</tt>) and fills gaps
+  (<tt>Series.interpolate</tt>).</li>
+  <li><b>statsmodels</b> performs the STL decomposition (<a
+  href="https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.STL.html">statsmodels.tsa.seasonal.STL</a>),
+  splitting the series into trend, seasonal and residual components.</li>
+  <li><b>scipy</b> fits the trend regressions: the OLS line (<a
+  href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.linregress.html">scipy.stats.linregress</a>),
+  the robust Theil-Sen line (<a
+  href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.theilslopes.html">scipy.stats.theilslopes</a>),
+  and the monotonic-trend <i>p</i>-value from Kendall's rank correlation (<a
+  href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kendalltau.html">scipy.stats.kendalltau</a>).</li>
+  <li><b>pygam</b> fits the optional shape-constrained (monotone) GAM curve (<a
+  href="https://pygam.readthedocs.io/en/latest/reference/_autosummary/pygam.pygam.LinearGAM.html">LinearGAM</a>).</li>
+  <li><b>numpy</b> provides the array operations underlying the above, and
+  <b>matplotlib</b> renders the multi-panel plot.</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+The examples use the North Carolina mapset with climatic data time series
+(nc_climate_spm_2000_2012), which you can download from the <a
+href="https://grass.osgeo.org/download/data/">GRASS sample data</a> page.
+
+<h3>Data preparation</h3>
+
+The following is borrowed from the <a
+href="https://ncsu-geoforall-lab.github.io/grass-temporal-workshop/">NSCU-Geoforall</a>
+tutorial. We create temporal datasets which serve as containers for the time
+series. First step is to create empty datasets of type strds (space-time raster
+dataset). Note, that we use absolute time.
+
+<div class="code">
+  <pre>
+t.create output=tempmean type=strds temporaltype=absolute title="Average
+temperature" description="Monthly temperature average in NC [deg C]"
+</pre>
+</div>
+
+<p>
+Now we register raster maps into the space-time raster datasets we just created.
+We use <tt>g.list</tt> to list separately temperature and precipitation maps.
+Note that <tt>g.list</tt> lists maps alphabetically which in this case orders
+the maps chronologically which is what we need. Using backticks to pass the maps
+directly to t.register
+
+<div class="code">
+  <pre>
+t.register -i input=tempmean type=raster start=2000-01-01 increment="1 months"
+maps=`g.list type=raster pattern="*tempmean" separator=comma --quiet`
+</pre>
+</div>
+
+<h3>Decompose monthly temperature series</h3>
+
+Decompose the monthly temperature series at a point and save the outcome as PNG:
+
+<div class="code">
+  <pre>
+g.region raster=2000_01_tempmean -p
+
+t.rast.stl strds=tempmean coordinates=636000,221000 output=t_rast_stl_02.png
+</pre>
+</div>
+
+<p>
+Resulting image of Decomposed monthly temperature series for location 636000,221000:
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_01.png">
+</div>
+
+<h3>Fine tune</h3>
+
+The trend line shows inter-annual variation, with the years 2002, 2007 and 2012 being warmer than the surrounding years. To emphasize the longer term trend rather than the inter-annual swings, set trend= to something larger. For example, set the trend to 85.
+
+<div class="code">
+  <pre>
+t.rast.stl strds=tempmean coordinates=636000,221000 trend=85 output=t_rast_stl_02.png
+</pre>
+</div>
+
+<p>
+Resulting image, decomposed monthly temperature series for location 636000,221000, with trend set at 85:
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_02.png">
+</div>
+
+<h3>Add linear trend lines</h3>
+
+The previous result suggests a steady increase in temperatures between 2000 and 2012. To further explore this, the OLS and Theil-Sen trend lines can be added with <b>-o</b> and <b>-s</b>, and the <b>-t</b> flag shows their statistics in the legend.
+
+<div class="code">
+  <pre>
+t.rast.stl -ost strds=tempmean coordinates=636000,221000
+output=t_rast_stl_03.png
+</pre>
+</div>
+
+<p>
+Resulting image, decomposed monthly temperature series for location 636000,221000, with OLS and Theil-Sen trend lines:
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_03.png">
+</div>
+
+<h3>Choose the slope reporting unit</h3>
+
+By default the reported OLS and Theil-Sen slopes are expressed per a calendar unit chosen automatically from the series span (here, with a multi-year monthly series, per year). Use <b>slope_unit</b> to force a specific unit, for example to report the warming rate per year explicitly, or per month to match the sampling:
+
+<div class="code">
+  <pre>
+t.rast.stl -ost strds=tempmean coordinates=636000,221000 slope_unit=month
+output=t_rast_stl_04.png
+</pre>
+</div>
+
+<p>
+Resulting image, decomposed monthly temperature series for location
+636000,221000, with OLS and Theil-Sen trend lines. Slopes are expressed as
+change per month:
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_04.png">
+</div>
+
+<p>
+Note, the fitted lines on the plot are identical regardless of
+<b>slope_unit</b>; only the slope numbers in the legend (shown with <b>-t</b>)
+and the terminal report change.
+
+<h3>Add a monotone GAM trend curve</h3>
+
+Where a one-directional change is expected, a shape-constrained GAM curve can
+summarise the trajectory. The <b>-g</b> flag adds it (with <b>-b</b> to shade
+its 95% confidence band); the direction is chosen automatically from the
+Theil-Sen slope unless <b>gam_direction</b> is set. Drop the outer values before
+fitting the trend lines seting <tt>trend_trim=0.25</tt>.
+
+<div class="code">
+  <pre>
+t.rast.stl -sgb strds=tempmean coordinates=636000,221000 trend_trim=0.25
+output=t_rast_stl_05.png
+</pre>
+</div>
+
+<p>
+Resulting image, decomposed monthly temperature series for location
+636000,221000, with Theil-Sen and GAM trend line:
+
+
+<p>
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_05.png">
+</div>
+
+<p>
+The trend regressions, including the GAM, are fitted on the deseasonalized
+series (<tt>trend + residual</tt>), so the confidence band reflects the genuine
+short-term scatter. Keep in mind that the reported <i>p</i>-values do not
+account for serial autocorrelation (see the trend regression section above).
+
+<h3>Compare two datasets</h3>
+
+Supply a second strds with <b>strds2</b> to decompose and analyze it alongside
+the first. Both are drawn on the same panels, the second on its own (right)
+y-axis (here temperature against precipitation). Set the line colours with
+<b>color</b>/<b>color2</b> (for example comparing minimum and maximum
+temperature):
+
+<div class="code">
+  <pre>
+t.rast.stl -s strds=tempmean strds2=precip_sum coordinates=636000,221000
+color=127:191:123 color2=#af8dc3 output=t_rast_stl_06.svg
+</pre>
+</div>
+
+<p>
+Resulting image, decomposed monthly temperature and rainfall series for location
+636000,221000, with Theil-Sen trend line:
+
+<div align="center" style="margin: 10px">
+<img src="t_rast_stl_06.png">
+</div>
+
+
+<div class="code">
+  <pre>
+[tempmean] Trend (Theil-Sen / Mann-Kendall): slope=0.07793 /year, tau=0.156,
+p=0.00389
+
+[precip_sum] Trend (Theil-Sen / Mann-Kendall): slope=-0.07590 /year,
+tau=-0.006, p=0.917
+</pre>
+</div>
+
+<p>
+The trend lines are drawn for both datasets; their slopes and statistics are
+printed to the terminal (prefixed with each dataset's name). Tip: write as svg
+file to make it easier to improve the plot, like placing legends, etc. manually
+in e.g., Inkscape.
+
+<p>
+When the two datasets are in comparable units, add <b>-y</b> to put them on one
+shared y-axis.
+
+<h2>SEE ALSO</h2>
+
+<i><a href="t.rast.line.md">t.rast.line</a>, <a
+href="t.rast.what.md">t.rast.what</a>,<a
+href="t.rast.univar.md">t.rast.univar</a></i>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li>Cleveland, R. B., Cleveland, W. S., McRae, J. E., &amp; Terpenning, I.
+  (1990). STL: a seasonal-trend decomposition procedure based on loess.
+  <i>Journal of Official Statistics</i>, 6, 3–73: <a
+  href="https://www.math.unm.edu/~lil/Stat581/STL.pdf">STL paper (PDF)</a>.</li>
+  <li>Dasari, N. (2025a). Time Series Forecasting Made Simple (Part 1):
+  Decomposition and Baseline Models. <i>Towards Data Science</i> <a
+  href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-1-decomposition-baseline-models">Part
+  I article</a>.</li>
+  <li>Dasari, N. (2025b). Time Series Forecasting Made Simple (Part 2):
+  Customizing Baseline Models. <i>Towards Data Science</i> <a
+  href="https://towardsdatascience.com/time-series-forecasting-made-simple-part-2-customizing-baseline-models/">Part
+  II article</a>.</li>
+  <li>Local regression. (2026). In <i>Wikipedia</i> <a
+  href="https://en.wikipedia.org/wiki/Local_regression">Wikipedia local
+  regression article</a>.</li>
+  <li>statsmodels. (2025). <i>Statsmodels</i> (Version 0.14.6) [Python] <a
+  href="https://github.com/statsmodels/statsmodels/">statsmodels
+  repository</a>.</li>
+  <li>Servén, D., &amp; Brummitt, C. (2018). pyGAM: Generalized Additive Models
+  in Python. <i>Zenodo</i>. <a href="https://pygam.readthedocs.io/">pyGAM
+  documentation</a>.</li>
+  <li>Hamed, K. H., &amp; Rao, A. R. (1998). A modified Mann-Kendall trend test
+  for autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.</li>
+</ul>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>, <a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring</a> and <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes</a> research groups at the <a href="https://has.nl">HAS green
+academy</a>

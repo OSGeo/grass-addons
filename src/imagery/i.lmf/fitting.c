@@ -7,10 +7,10 @@
 
 #define NMAX 200
 #define MAXF 50
-int invert_matrix(double a[][MAXF], int order);
+void invert_matrix(double a[][MAXF], int order);
 
-int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
-            double *c, double *vfit)
+void fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
+             double *c, double *vfit)
 {
     int i, j, k, k1, k2, nn;
 
@@ -82,5 +82,4 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
         }
         vfit[i] = sum;
     }
-    return;
 }

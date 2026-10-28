@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# script to build GRASS GIS old current sources package from the `release_branch_8_3` branch
-# (c) 2002-2024, GPL 2+ Markus Neteler <neteler@osgeo.org>
+# script to build GRASS GIS old current source package from the `release_branch_8_4` branch
+# (c) 2002-2026, GPL 2+ Markus Neteler <neteler@osgeo.org>
 #
 # GRASS GIS github, https://github.com/OSGeo/grass
 #
@@ -12,7 +12,7 @@
 #
 # To be executed on server (neteler@grasslxd:$)
 # - install dependencies:
-#   cd $HOME/src/release_branch_8_3/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
+#   cd $HOME/src/release_branch_8_4/ && git pull && sudo apt install $(cat .github/workflows/apt.txt)
 # - run this script
 #
 ###################################################################
@@ -23,7 +23,7 @@ PATH=$MAINDIR/bin:/bin:/usr/bin:/usr/local/bin
 
 # https://github.com/OSGeo/grass/tags
 GMAJOR=8
-GMINOR=3
+GMINOR=4
 BRANCH=releasebranch_${GMAJOR}_${GMINOR}
 GVERSION=$GMAJOR.$GMINOR.git
 DOTVERSION=$GMAJOR.$GMINOR

@@ -237,27 +237,29 @@ int stream_add_table(int number_of_streams)
 
     switch (max_trib) {
     case 2:
-        tab_prev_streams = "prev_str01 integer, prev_str02 integer";
+        tab_prev_streams = ", prev_str01 integer, prev_str02 integer";
         break;
     case 3:
         tab_prev_streams =
-            "prev_str01 integer, prev_str02 integer, prev_str03 integer";
+            ", prev_str01 integer, prev_str02 integer, prev_str03 integer";
         break;
     case 4:
-        tab_prev_streams = "prev_str01 integer, prev_str02 integer, prev_str03 "
-                           "integer, prev_str04 integer";
+        tab_prev_streams =
+            ", prev_str01 integer, prev_str02 integer, prev_str03 "
+            "integer, prev_str04 integer";
         break;
     case 5:
-        tab_prev_streams = "prev_str01 integer, prev_str02 integer, prev_str03 "
-                           "integer, prev_str04 integer, prev_str05 integer";
+        tab_prev_streams =
+            ", prev_str01 integer, prev_str02 integer, prev_str03 "
+            "integer, prev_str04 integer, prev_str05 integer";
         break;
     default:
-        G_fatal_error(_("Error with number of tributuaries"));
+        tab_prev_streams = "";
         break;
     }
 
     sprintf(buf,
-            "create table %s (%s, %s, %s, %s, %s,"
+            "create table %s (%s, %s, %s%s, %s,"
             "%s, %s, %s, %s, %s,"
             "%s, %s, %s, %s, %s,"
             "%s, %s, %s)",
@@ -316,22 +318,22 @@ int stream_add_table(int number_of_streams)
 
         switch (max_trib) {
         case 2:
-            sprintf(ins_prev_streams, "%d, %d", SA[i].trib[0], SA[i].trib[1]);
+            sprintf(ins_prev_streams, ", %d, %d", SA[i].trib[0], SA[i].trib[1]);
             break;
         case 3:
-            sprintf(ins_prev_streams, "%d ,%d, %d", SA[i].trib[0],
+            sprintf(ins_prev_streams, ", %d ,%d, %d", SA[i].trib[0],
                     SA[i].trib[1], SA[i].trib[2]);
             break;
         case 4:
-            sprintf(ins_prev_streams, "%d, %d, %d, %d", SA[i].trib[0],
+            sprintf(ins_prev_streams, ", %d, %d, %d, %d", SA[i].trib[0],
                     SA[i].trib[1], SA[i].trib[2], SA[i].trib[3]);
             break;
         case 5:
-            sprintf(ins_prev_streams, "%d, %d, %d, %d, %d", SA[i].trib[0],
+            sprintf(ins_prev_streams, ", %d, %d, %d, %d, %d", SA[i].trib[0],
                     SA[i].trib[1], SA[i].trib[2], SA[i].trib[3], SA[i].trib[4]);
             break;
         default:
-            G_fatal_error(_("Error with number of tributuaries"));
+            ins_prev_streams[0] = '\0';
             break;
         }
 
@@ -340,7 +342,7 @@ int stream_add_table(int number_of_streams)
                 all_orders[4][i]);
 
         sprintf(buf,
-                "insert into %s values( %d, %d, %d, %s, %s, "
+                "insert into %s values( %d, %d, %d%s, %s, "
                 "%d, %d, %f, %f, %f, "
                 "%f, %f, %f, %f, %f, "
                 "%f, %f, %f)",

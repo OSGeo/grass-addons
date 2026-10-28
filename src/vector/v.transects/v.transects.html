@@ -38,7 +38,8 @@ Input vector lines that are shorter than <b>transect_spacing</b> are ignored.
 <b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted
 to be in horizontal map units (e.g., degrees in the LatLong/WGS84 coordinate system).
 <p>
-<em><b>v.transects</b></em> may fail for a network of lines in Windows.
+  <em><b>v.transects</b></em> may fail for a network of lines in Windows.
+</p>
 
 <p>The categories of the input lines are stored in layer 2 of the output. To upload them
   to the transects table, use v.to.db like this:
@@ -61,8 +62,8 @@ location.
 
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
-<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)
-<br>
+<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)<br></p>
+
 <div class=code><pre>
 g.region raster=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100

@@ -127,7 +127,6 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
             C=p["C"],
             solver="liblinear",
             random_state=random_state,
-            multi_class="auto",
             n_jobs=1,
             fit_intercept=True,
         ),
@@ -385,7 +384,7 @@ def save_training_data(file, X, y, cat, class_labels=None, groups=None, names=No
         groups[:] = np.nan
 
     if class_labels:
-        labels_arr = np.asarray([class_labels[yi] for yi in y]).astype(np.object)
+        labels_arr = np.asarray([class_labels[yi] for yi in y]).astype(object)
     else:
         labels_arr = np.empty((y.shape[0]))
         labels_arr[:] = np.nan

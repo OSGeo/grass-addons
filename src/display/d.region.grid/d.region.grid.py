@@ -2,9 +2,9 @@
 
 ############################################################################
 #
-# MODULE:        d.shade
+# MODULE:        d.region.grid
 # AUTHOR(S):     Vaclav Petras <wenzeslaus gmail com>
-# PURPOSE:
+# PURPOSE:       Plot a grid defined by the computational region
 # COPYRIGHT:     (C) 2021 by Vaclav Petras and the GRASS Development Team
 #
 #                This program is free software under the GNU General Public
@@ -14,12 +14,11 @@
 #############################################################################
 
 # %module
-# % description: Drapes a color raster over an shaded relief or aspect map.
+# % description: Plots a grid defined by the computational region or by a raster map.
 # % keyword: display
-# % keyword: elevation
-# % keyword: relief
-# % keyword: hillshade
-# % keyword: visualization
+# % keyword: grid
+# % keyword: region
+# % keyword: raster
 # %end
 # %option G_OPT_M_REGION
 # % required: no

@@ -18,6 +18,10 @@ indent_size = 2
 [*.{xml,config}]
 indent_size = 2
 
+# TODO: Remove section when editorconfig-checker fixed the detection of encoding
+[src/gui/wxpython/wx.metadata/profiles/*.xml]
+charset =
+
 # Scripts
 [{*.sh,mswindows/osgeo4w/*config}]
 end_of_line = unset

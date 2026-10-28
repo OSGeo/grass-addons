@@ -16,9 +16,10 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include <grass/datetime.h>
 #include <grass/gis.h>
-#include <grass/raster.h>
 #include <grass/glocale.h>
+#include <grass/raster.h>
 #include <grass/segment.h>
 
 #include "output.h"

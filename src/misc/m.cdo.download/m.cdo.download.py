@@ -150,7 +150,6 @@
 
 import sys
 import os
-import requests
 import json
 import grass.script as gs
 from grass.script.utils import separator
@@ -306,6 +305,11 @@ def print_table(outf, records, fields, fs, exclude_colnames):
 
 
 def main():
+    try:
+        import requests  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("requests library not installed."))
+
     global tokens
 
     if tokens_env_name not in os.environ or not os.environ[tokens_env_name]:

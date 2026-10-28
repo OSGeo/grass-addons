@@ -71,7 +71,7 @@ v.db.update map=my_boundary_county column=GRASSRGB value="255:255:153" where="gr
 
 ## SEE ALSO
 
-*[v.colors](v.colors.md), [v.category](v.category.md)*
+*[v.colors](https://grass.osgeo.org/grass-stable/manuals/v.colors.html), [v.category](https://grass.osgeo.org/grass-stable/manuals/v.category.html)*
 
 ## AUTHOR
 
