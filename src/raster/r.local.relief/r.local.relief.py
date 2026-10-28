@@ -287,7 +287,15 @@ def main():
             stderr=subprocess.PIPE,
         )
         out, err = proc.communicate()
-        combined_output = (out or b"").decode() + (err or b"").decode()
+        # gs.start_command may return str or bytes depending on GRASS version;
+        # handle both to avoid AttributeError when .decode() is called on str.
+        out_text = (
+            out.decode(errors="replace") if isinstance(out, bytes) else (out or "")
+        )
+        err_text = (
+            err.decode(errors="replace") if isinstance(err, bytes) else (err or "")
+        )
+        combined_output = out_text + err_text
         spline_step = None
         for line in combined_output.splitlines():
             if ":" in line and "distance" in line.lower():
