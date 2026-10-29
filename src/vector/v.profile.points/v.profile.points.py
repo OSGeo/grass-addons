@@ -51,7 +51,6 @@
 # % key: file_input
 # % required: no
 # % label: LAS (or LAZ) file with a point cloud
-# % description: File to be imported using v.in.lidar
 # % guisection: Points
 # %end
 # %option G_OPT_V_OUTPUT
@@ -63,7 +62,7 @@
 # % type: double
 # % required: no
 # % label: Width of profile in map units
-# % description: Default with is 5% of the profile length
+# % description: Default width is 5% of the profile length
 # % guisection: Line
 # %end
 # %flag
@@ -114,7 +113,6 @@ def main():
     input_file = options["file_input"]
     output = options["output"]
     width = options["width"]
-    lidar_flags = ""
     quiet = True
     profile_area_output = None
     profile_points_output = None
@@ -177,7 +175,7 @@ def main():
         text = gs.read_command(
             "v.to.db",
             map=input_line,
-            option="azimuth",
+            option="length",
             flags="p",
             separator="pipe",
             quiet=quiet,
@@ -197,18 +195,37 @@ def main():
 
     # TODO: also limit by region
     if input_file:
-        gs.message("Importing...")
-        gs.run_command(
-            "v.in.lidar",
-            input=input_file,
-            output=profile_points,
-            flags=lidar_flags,
-            mask=profile_area,
-            quiet=quiet,
-            errors="exit",
-        )
-    else:
-        gs.message("Selecting...")
+        gs.message(_("Importing..."))
+        imported = create_tmp_map_name("imported")
+        TMP.append(imported)
+        if gs.find_program("v.in.pdal", "--help"):
+            info = gs.vector_info(profile_area)
+            gs.run_command(
+                "v.in.pdal",
+                input=input_file,
+                output=imported,
+                spatial=(info["west"], info["south"], info["east"], info["north"]),
+                quiet=quiet,
+                errors="exit",
+            )
+            input_points = imported
+        elif gs.find_program("v.in.lidar", "--help"):
+            gs.warning(_("v.in.pdal not found, using v.in.lidar"))
+            gs.run_command(
+                "v.in.lidar",
+                input=input_file,
+                output=profile_points,
+                mask=profile_area,
+                quiet=quiet,
+                errors="exit",
+            )
+        else:
+            gs.fatal(
+                _("Neither v.in.pdal nor v.in.lidar is available to import LAS files")
+            )
+
+    if input_points:
+        gs.message(_("Selecting..."))
         gs.run_command(
             "v.select",
             ainput=input_points,
@@ -218,7 +235,7 @@ def main():
             quiet=quiet,
         )
 
-    gs.message("Rotating...")
+    gs.message(_("Rotating..."))
     gs.run_command(
         "v.transform",
         flags="ya" + extra_transform_flags,
