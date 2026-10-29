@@ -89,7 +89,6 @@
 
 import os
 import atexit
-import subprocess
 
 import grass.script as gs
 import grass.script.core as gcore
@@ -271,40 +270,25 @@ def main():
             column="along",
         )
 
-        # Get mean distance between points to optimize spline interpolation.
-        # v.surf.bspline -e requires raster_output even in estimation mode.
-        # Its informational output goes to stderr (G_message), so we capture
-        # both stdout and stderr to reliably parse the distance value.
-        proc = gs.start_command(
-            "v.surf.bspline",
-            flags="e",
-            input=contour_points,
-            raster_output=purged_elevation,
-            layer="2",
-            column="along",
-            method=fill_method,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        out, err = proc.communicate()
-        # gs.start_command may return str or bytes depending on GRASS version;
-        # handle both to avoid AttributeError when .decode() is called on str.
-        out_text = (
-            out.decode(errors="replace") if isinstance(out, bytes) else (out or "")
-        )
-        err_text = (
-            err.decode(errors="replace") if isinstance(err, bytes) else (err or "")
-        )
-        combined_output = out_text + err_text
-        spline_step = None
-        for line in combined_output.splitlines():
-            if ":" in line and "distance" in line.lower():
-                try:
-                    spline_step = round(float(line.split(":")[-1].strip())) * 2
-                    break
-                except ValueError:
-                    pass
-        if not spline_step or spline_step <= 0:
+        # Estimate optimal spline step using the same formula as v.surf.bspline -e:
+        # mean_dist = sqrt(region_area / n_points), spline_step = 2 * mean_dist.
+        # Using v.info -t (machine-readable key=value) and gs.region() avoids
+        # parsing G_message output which may be translated.
+        try:
+            region = gs.region()
+            vinfo = gs.parse_command("v.info", map=contour_points, flags="t")
+        except Exception:
+            region = None
+            vinfo = {}
+        if region:
+            n_points = int(vinfo.get("points", 0))
+            area = (region["e"] - region["w"]) * (region["n"] - region["s"])
+            if n_points > 0 and area > 0:
+                mean_dist = (area / n_points) ** 0.5
+                spline_step = max(round(mean_dist) * 2, 1)
+            else:
+                spline_step = 10
+        else:
             spline_step = 10
 
         gs.info(
