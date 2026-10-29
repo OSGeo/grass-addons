@@ -1163,6 +1163,9 @@ def main():
         removing them ***"
         gs.fatal(message)
 
+    # Register the cleanup of temporary layers after the verification above
+    atexit.register(cleanup)
+
     # Verify if there is a MASK. In such a case, a copy of the MASK layer is
     # saved to replace it at the end of the process
     find_MASK = gs.find_file("MASK", element="cell")
@@ -1536,5 +1539,4 @@ def main():
 
 if __name__ == "__main__":
     options, flags = parser()
-    atexit.register(cleanup)
     sys.exit(main())
