@@ -270,17 +270,26 @@ def main():
             column="along",
         )
 
-        # Get mean distance between points to optimize spline interpolation
-        mean_dist = gs.parse_command(
-            "v.surf.bspline",
-            flags="e",
-            _input=contour_points,
-            raster_output=purged_elevation,
-            layer="2",
-            column="along",
-            method=fill_method,
-        )
-        spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
+        # Estimate optimal spline step using the same formula as v.surf.bspline -e:
+        # mean_dist = sqrt(region_area / n_points), spline_step = 2 * mean_dist.
+        # Using v.info -t (machine-readable key=value) and gs.region() avoids
+        # parsing G_message output which may be translated.
+        try:
+            region = gs.region()
+            vinfo = gs.parse_command("v.info", map=contour_points, flags="t")
+        except Exception:
+            region = None
+            vinfo = {}
+        if region:
+            n_points = int(vinfo.get("points", 0))
+            area = (region["e"] - region["w"]) * (region["n"] - region["s"])
+            if n_points > 0 and area > 0:
+                mean_dist = (area / n_points) ** 0.5
+                spline_step = max(round(mean_dist) * 2, 1)
+            else:
+                spline_step = 10
+        else:
+            spline_step = 10
 
         gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
@@ -289,11 +298,13 @@ def main():
         )
         gs.run_command(
             "v.surf.bspline",
-            _input=contour_points,
+            input=contour_points,
             raster_output=purged_elevation,
             layer="2",
             column="along",
             method=fill_method,
+            ew_step=spline_step,
+            ns_step=spline_step,
             overwrite=gcore.overwrite(),
         )
     else:
@@ -363,7 +374,7 @@ def main():
 
     if shaded_local_relief_output:
         if not user_color_table:
-            color_table = "difference"
+            color_table = "differences"
         gs.run_command(
             "r.colors",
             flags=rcolors_flags,
