@@ -1,0 +1,242 @@
+<h2>DESCRIPTION</h2>
+
+<i>r.learn.report</i> creates a report using the outputs of <i>r.learn.train</i>
+and <i>r.learn.assembly</i>. It takes a fitted model and the optional
+cross-validation, feature-importance and hyperparameter CSV files that those
+tools can write, and produces a document with short explanations, summary tables
+and figures.
+
+<p>
+The report is written as Markdown. Figures are saved as PNG files in a directory
+next to the report, named after it (for <tt>report.md</tt> the directory is
+<tt>report_plots</tt>), and referenced from the document with relative paths, so
+the report and its figure directory should be kept together.
+
+<h3>Input and output</h3>
+
+Every input is optional; the report contains a section for each input that is
+supplied, so the module can be used to create a quick model summary and a more
+full report:
+
+<ul>
+  <li><b>load_model</b> adds a <i>Model</i> section describing the estimator,
+  its predictors, and, for an ensemble from <i>r.learn.assembly</i>, the base
+  models with their voting weights or the learned stacking coefficients.</li>
+  <li><b>preds_file</b> (cross-validation predictions) adds a
+  <i>Cross-validation performance</i> section with per-fold score summaries and
+  a confusion matrix (classification) or a predicted-versus-observed plot
+  (regression).</li>
+  <li><b>classif_file</b> adds a <i>Per-class performance</i> table.</li>
+  <li><b>fimp_file</b> adds a <i>Variable contributions</i> section with a
+  permutation feature-importance table and bar chart.</li>
+  <li><b>param_file</b> adds a <i>Hyperparameter search</i> section with the
+  best combination and the ranked grid-search results (not available for
+  r.learn.assembly).</li>
+  <li><b>training_file</b> adds a <i>Response curves</i> section with a
+  partial-dependence panel per predictor, showing how the prediction changes as
+  that predictor is varied. This also needs <b>load_model</b>.</li>
+</ul>
+
+<h3>Response curves</h3>
+
+The <i>Response curves</i> section draws partial-dependence curves. For each
+predictor, it uses the predicted outcome as that predictor is varied across its
+range (rather than the full range, the 5th to 95th percentile range is used)
+while the other predictors are marginalized over the training data. The
+<b>curves</b> option sets what each panel shows:
+
+<ul>
+  <li><tt>band</tt> (default) draws the median response across samples, the
+  25-75% and 10-90% percentile bands of the per-sample responses, and the mean
+  as a dashed line. The median and the bands are robust to a few extreme curves,
+  so this is usually the clearest summary; a gap between the mean and median
+  points to a skewed or outlier-influenced spread.</li>
+  <li><tt>pdp_ice</tt> draws the individual conditional expectation (ICE) curves
+  (one per sample) with their median and mean.</li>
+  <li><tt>pdp</tt> draws only the mean curve (the classic partial-dependence
+  curve).</li>
+</ul>
+
+<p>
+With <tt>curves=pdp_ice</tt>, the <b>color_by</b> option colors each ICE curve
+by the value of another predictor. Where curves of a similar color group
+together and separate from the rest, that predictor changes how the curve's
+predictor acts on the outcome, which points to an interaction between the two.
+Based on Molnar's <i>Interpretable Machine Learning</i>. Note that groups are
+easier to spot in combination with the <b>-c</b> flag.
+
+<p>
+For the <tt>band</tt> and <tt>pdp_ice</tt> modes, a wide spread means the
+outcome varies a lot across samples at a given predictor value, which reflects
+the influence of the <i>other</i> predictors. It does not necessarily reflect
+interaction.
+
+<p>
+The <b>-c</b> flag adds a set of centered curves (each shifted to start at zero)
+next to the normal ones. These curves emphasize the divergence of individual
+curves from the mean, thus showing how differently the predictor acts on
+individual samples and how heterogeneous relationships are between predictors.
+For more background, see the Skikit-learn manual page <a
+href="https://scikit-learn.org/stable/modules/partial_dependence.html">Partial
+Dependence and Individual Conditional Expectation plots</a>.
+
+<p>
+Predictors that were declared categorical at training (the
+<tt>category_maps</tt> option of <i>r.learn.train</i> or
+<i>r.learn.assembly</i>, which one-hot encodes them) are drawn as a bar per
+category rather than a line. Each bar is the mean response (<tt>pdp</tt>) or the
+median with a 25-75% error bar and a mean marker (<tt>band</tt>,
+<tt>pdp_ice</tt>); these panels are not centered by the <b>-c</b> flag.
+
+<h2>NOTES</h2>
+
+The figures require <i>matplotlib</i> (see <tt>requirements.txt</tt>). If
+<i>matplotlib</i> is missing, the report is still written with its tables but
+without figures.
+
+<p>
+Feature names for the <i>Variable contributions</i> section come from the
+<b>fimp_file</b>, as the saved model does not retain them.
+
+<p>
+The type of model (classification or regression) is taken from the model when
+<b>load_model</b> is given. When no model is provided by the user, it is guessed
+from the predictions. As this is unreliable, it is better to set the <b>mode</b>
+option explicitly.
+
+<p>
+The permutation feature importances written by <i>r.learn.train</i> and
+<i>r.learn.assembly</i> are computed on the training data, not on an independent
+validation set, so they describe how the fitted model uses each predictor rather
+than how it generalizes. The performance drop is measured with the model's
+tuning metric (Matthews correlation coefficient for classification, R-squared
+for regression).
+
+<p>
+The module needs both the fitted model (<b>load_model</b>) and the extracted
+training data saved with the <tt>save_training</tt> option of
+<i>r.learn.train</i> or <i>r.learn.assembly</i> (<b>training_file</b>). To keep
+it fast, the curves are computed on a random subsample of the training rows and
+across <b>nprocs</b> cores. A classification model produces one figure per
+class.
+
+<p>
+Note that where predictors are strongly correlated, parts of a curve can reach
+into predictor combinations that do not occur in the data, so interpret those
+regions with care. Curves cannot be drawn for an estimator that provides no
+class probabilities, such as a hard-voting ensemble.
+
+<h2>EXAMPLES</h2>
+
+Train a model and build a report from its outputs:
+
+<div class="code">
+  <pre>
+# Set region and create random points
+g.region raster=landclass96 -p
+r.random -s input=landclass96 npoints=5000 raster=training_pixels
+
+# write a template for the chosen base models
+r.learn.assembly models=RandomForestClassifier,SVC,KNeighborsClassifier \
+    write_config=ensemble.json
+
+# (edit ensemble.json), then train with 5-fold outer cross-validation
+r.learn.assembly -f config=ensemble.json group=lsat7_2000 \
+    training_map=training_pixels ensemble_type=stacking \
+    cv=5 inner_cv=5 classif_file=classif.csv \
+    preds_file=preds.csv fimp_file=fimp.csv save_training=training.csv \
+    nprocs=4 save_model=ensemble.gz --overwrite
+</pre>
+</div>
+
+<p>
+Now, we can create the assembly report, including response curves from the
+training data
+
+<div class="code">
+  <pre>
+# assemble the report, including response curves from training data
+r.learn.report -c load_model=ensemble.gz preds_file=preds.csv \
+    classif_file=classif.csv fimp_file=fimp.csv \
+    training_file=training.csv output=report.md --overwrite
+</pre>
+</div>
+
+<p>
+Some figures from the report:
+
+<p>
+<img src="r_learn_report_01.png" alt="Confusion matrix of the cross-validation
+predictions.">
+
+<p>
+Results show that even though the overall accuracy is reasonable, especially the
+categories 1 (developed) and 5 (forest) are quite a few times mixed up.
+
+<p>
+<img src="r_learn_report_02.png" alt="Permutation feature importance (mean +/-
+standard deviation).">
+
+<p>
+The permutation feature importance is based on the drop in model performance
+when each predictor in turn is randomly shuffled. Larger values indicate
+predictors the model relies on more.
+
+<p>
+<img src="r_learn_report_03.png" alt="Partial-dependence response curves for
+class developed.">
+
+<p>
+Partial-dependence curves show how the predicted outcome changes as one
+predictor is varied across its range (5th to 95th percentile), while the other
+predictors are marginalized over the training data. For a classification model
+the vertical axis is the predicted probability of the class; for a regression
+model it is the predicted value.
+
+<p>
+<img src="r_learn_report_04.png" alt="Centered response curves for class
+developed.">
+
+<p>
+The centered curves below start each sample at zero at the left of the
+predictor's range, so the spread shows how differently the predictor affects
+individual samples, with larger spread indicating more interaction with the
+other predictors.
+
+<h2>References</h2>
+
+Molnar, C. (2025). Interpretable Machine Learning (Third Edition).
+https://leanpub.com/interpretable-machine-learning
+
+<p>
+Goldstein, A., Kapelner, A., Bleich, J., &amp; Pitkin, E. (2015). Peeking Inside
+the Black Box: Visualizing Statistical Learning With Plots of Individual
+Conditional Expectation. Journal of Computational and Graphical Statistics,
+24(1), 44–65. https://doi.org/10.1080/10618600.2014.907095
+
+<p>
+Hastie, T., Tibshirani, R., &amp; Friedman, J. H. (2009). The Elements of
+Statistical Learning: Data Mining, Inference, and Prediction. Springer.
+https://www.sas.upenn.edu/~fdiebold/NoHesitations/BookAdvanced.pdf
+
+<h2>SEE ALSO</h2>
+
+<i><a href="r.learn.assembly.md">r.learn.assembly</a></i>, <i><a
+href="r.learn.ml2.md">r.learn.ml2</a></i>, <i><a
+href="r.learn.predict.md">r.learn.predict</a></i>, <i><a
+href="r.learn.train.md">r.learn.train</a></i>
+
+<h2>AUTHORS</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>
+
+<p>
+<a
+href="https://www.has.nl/en/research/professorships/innovative-bio-monitoring-professorship/">Innovative
+Biomonitoring research group</a>, <a
+href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust
+Landscapes research group</a> of the <a href="https://has.nl">HAS green
+academy</a>,
+
+<p>
+Built on the <i>r.learn.ml2</i> toolset by Steven Pawley.
