@@ -69,8 +69,8 @@ class TestRLocalRelief(TestCase):
         )
         self.assertRasterExists(self.output_default)
         info = gs.raster_info(self.output_default)
-        self.assertGreater(info["cells"], 0)
-        self.assertLess(info["min"], info["max"])
+        self.assertGreater(int(info["cells"]), 0)
+        self.assertLess(float(info["min"]), float(info["max"]))
 
     def test_bspline_mode(self):
         """Test r.local.relief with bspline interpolation (-v flag)"""
@@ -84,8 +84,8 @@ class TestRLocalRelief(TestCase):
         )
         self.assertRasterExists(self.output_bspline)
         info = gs.raster_info(self.output_bspline)
-        self.assertGreater(info["cells"], 0)
-        self.assertLess(info["min"], info["max"])
+        self.assertGreater(int(info["cells"]), 0)
+        self.assertLess(float(info["min"]), float(info["max"]))
 
     def test_shaded_output(self):
         """Test r.local.relief with shaded output and default color table"""
@@ -100,7 +100,7 @@ class TestRLocalRelief(TestCase):
         self.assertRasterExists(self.output_shaded)
         self.assertRasterExists(self.shaded_relief)
         info = gs.raster_info(self.shaded_relief)
-        self.assertGreater(info["cells"], 0)
+        self.assertGreater(int(info["cells"]), 0)
 
 
 if __name__ == "__main__":
