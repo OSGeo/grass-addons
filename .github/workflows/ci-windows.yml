@@ -21,21 +21,17 @@ permissions: {}
 
 jobs:
   build:
-    name: ${{ matrix.grass-version }} (Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
+    name: Build for GRASS ${{ matrix.grass-ref }}
+    runs-on: windows-2022
     strategy:
+      # Build against the GRASS versions users get from OSGeo4W: the tag of
+      # the released version for the grass package and main for the nightly
+      # grass-dev package. GRASS is compiled here with the same toolchain
+      # and OSGeo4W libraries as those packages.
       matrix:
-        # Test with relevant active branches or tags and supported Python
-        # versions, but also limit the number of jobs by, e.g., testing only
-        # every second version or testing older GRASS versions with older Python
-        # only.
-        include:
-          - grass-version: main
-            python-version: "3.11"
-            os: windows-2022
-          - grass-version: releasebranch_8_5
-            python-version: "3.11"
-            os: windows-2022
+        grass-ref:
+          - "8.5.0"
+          - main
       fail-fast: false
     steps:
       - name: Set git to use LF
@@ -47,7 +43,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: OSGeo/grass
-          ref: ${{ matrix.grass-version }}
+          ref: ${{ matrix.grass-ref }}
           path: grass
           persist-credentials: false
 
@@ -150,6 +146,12 @@ jobs:
           ver=$(sed -n '/^INST_DIR[ \t]*=/{s/^.*grass//; p}' include/Make/Platform.make)
           echo "GRASS_VER=${ver}" >> "${GITHUB_ENV}"
           prefix=/c/OSGeo4W/apps/grass/grass${ver}
+          # The full version string (e.g. 8.5.0 or 8.6.0dev) is the one
+          # g.version reports and g.extension uses to locate the addons, so a
+          # download location named after it cannot drift from what
+          # g.extension expects.
+          echo "GRASS_VERSION=$(cut -d ' ' -f 1 ${prefix}/etc/VERSIONNUMBER)" >> "${GITHUB_ENV}"
+          echo "GRASS_COMMIT=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
           mv ${prefix}/include/grass/config.h ${prefix}/include/grass/config.h.mingw
           cp mswindows/osgeo4w/config.h.switch ${prefix}/include/grass/config.h
           cp mswindows/osgeo4w/config.h.vc ${prefix}/include/grass
@@ -162,6 +164,8 @@ jobs:
 
       - name: Compile GRASS Addons
         shell: msys2 {0}
+        env:
+          GRASS_REF: ${{ matrix.grass-ref }}
         run: |
           SRC_ADDONS="$(cygpath -u $GITHUB_WORKSPACE)/grass-addons/src"
           SRC_GRASS=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
@@ -190,11 +194,21 @@ jobs:
             rm -rf $mod
             md5sum $mod.zip > ${mod}.md5sum
           done
+          # Keep the per-addon build logs as one archive next to the addons.
+          zip -r logs.zip logs
+          rm -rf logs
+          {
+            echo "grass_version=${GRASS_VERSION}"
+            echo "grass_ref=${GRASS_REF}"
+            echo "grass_commit=${GRASS_COMMIT}"
+            echo "addons_commit=${GITHUB_SHA}"
+            echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > build-info.txt
 
       - name: Make GRASS Addons available
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: grass-addons-${{ matrix.grass-version }}-python-${{ matrix.python-version }}
+          name: grass-addons-windows-${{ matrix.grass-ref }}
           path: addons
           retention-days: 3
