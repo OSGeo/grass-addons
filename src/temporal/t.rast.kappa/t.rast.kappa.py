@@ -80,28 +80,25 @@ from grass.pygrass.raster import RasterRow
 from grass.pygrass.gis.region import Region
 from grass.script.utils import separator
 
-try:
-    from collections import OrderedDict
-except:
-    from types import DictType as OrderedDic
+from collections import OrderedDict
 import numpy as np
 
 
 def _load_skll():
     try:
-        from sklearn.metrics import cohen_kappa_score
+        from sklearn.metrics import cohen_kappa_score  # noqa: F401
 
         return False
     except ImportError:
-        gs.warning(_(""))
+        gs.warning(_("scikit-learn is not installed, falling back to r.kappa"))
         return True
 
 
 def _split_maps(maps, splitting):
     from datetime import datetime
 
-    before = OrderedDic()
-    after = OrderedDic()
+    before = OrderedDict()
+    after = OrderedDict()
     split = None
     if splitting.count("T") == 0:
         try:
@@ -139,20 +136,16 @@ def _kappa_pixel(maps1, maps2, out, method, over):
 
     rasterout = RasterRow(out, overwrite=over)
     rasterout.open("w", "DCELL")
-    array1 = maps1.values()[0]
+    array1 = next(iter(maps1.values()))
     for row in range(len(array1)):
         newrow = Buffer((len(array1[row]),), mtype="DCELL")
         for col in range(len(array1[row])):
-            vals1 = np.ndarray(len(maps1.values()))
-            vals2 = np.ndarray(len(maps2.values()))
-            x = 0
-            for value in maps1.values():
+            vals1 = np.empty(len(maps1))
+            vals2 = np.empty(len(maps2))
+            for x, value in enumerate(maps1.values()):
                 vals1[x] = value[row][col]
-                x += 1
-            x = 0
-            for value in maps2.values():
+            for x, value in enumerate(maps2.values()):
                 vals2[x] = value[row][col]
-                x += 1
             if sklearn.__version__ >= "0.18":
                 outval = sklearn.metrics.cohen_kappa_score(vals1, vals2, weights=method)
             else:
@@ -270,7 +263,7 @@ def main():
                     fi.write("{}".format(_kappa_grass(map1, map2)))
                     if out_name != "-":
                         fi.close()
-    if not rkappa:
+    if not rkappa and out_name != "-":
         fi.close()
 
     gs.message(_("All data have analyzed"))
