@@ -125,6 +125,12 @@ jobs:
         # .github/workflows/build_osgeo4w.sh) to avoid the UNITTEST additions
         # which would end up in the package.
         run: |
+          # The 8.5.0 tag predates the move of the cairo headers to
+          # include/cairo in OSGeo4W (fixed on main in OSGeo/grass#7507).
+          # Apply the same one-line change as the OSGeo4W grass package
+          # recipe does; it is a no-op on newer sources.
+          sed -i 's#\(--with-cairo-includes=${OSGEO4W_ROOT_MSYS}/include\) #\1/cairo #' \
+              mswindows/osgeo4w/build_osgeo4w.sh
           export OSGEO4W_ROOT_MSYS=/c/OSGeo4W
           export SRC=$(pwd)
           mswindows/osgeo4w/build_osgeo4w.sh
