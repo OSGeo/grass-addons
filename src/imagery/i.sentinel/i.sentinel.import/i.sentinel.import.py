@@ -251,7 +251,9 @@ class SentinelImporter(object):
                 with ZipFile(filepath) as fd:
                     fd.extractall(path=self.unzip_dir)
 
-                self._dir_list.append(os.path.join(self.unzip_dir, safe))
+                # do not remove directories which were unzipped before
+                if safe not in unziped_files:
+                    self._dir_list.append(os.path.join(self.unzip_dir, safe))
 
     def _filter(self, filter_p, force_unzip=False):
         # unzip archives before filtering
