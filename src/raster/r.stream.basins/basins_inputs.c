@@ -79,7 +79,11 @@ int process_vector(char *in_point)
         if (!Vect_point_in_box(sites->x[0], sites->y[0], sites->z[0], &box))
             continue;
 
-        Vect_cat_get(cats, 1, &cat);
+        if (!Vect_cat_get(cats, 1, &cat))
+            G_fatal_error(_("Point without category in layer 1 found in "
+                            "input outlets map <%s>. Every point must have "
+                            "its own unique category"),
+                          in_point);
 
         outlets[i].r = (int)Rast_northing_to_row(sites->y[0], &window);
         outlets[i].c = (int)Rast_easting_to_col(sites->x[0], &window);
