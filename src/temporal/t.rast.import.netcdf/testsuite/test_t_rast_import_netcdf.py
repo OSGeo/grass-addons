@@ -30,7 +30,7 @@ class TestNetCDFImport(TestCase):
     # STRDS to be used as output for climate data test
     output_climate = "se_norge"
     # NetCDF URL (CF-1.6) without subdataset and without defined CRS (=CRS84)
-    input_chirps = "https://data.chc.ucsb.edu/products/CHIRPS-2.0/global_daily/netcdf/p05/chirps-v2.0.2011.days_p05.nc"
+    input_chirps = "https://data.chc.ucsb.edu/products/CHIRPS/v2.0/global_daily/netcdf/p05/chirps-v2.0.2011.days_p05.nc"
     output_chirps = "chirps_2011"
 
     @classmethod

@@ -22,7 +22,7 @@ static Mat pop(MathContext *ctx);
 /*
         Function definitions
 */
-MathContext *init_mmath_system()
+MathContext *init_mmath_system(void)
 {
     MathContext *ctx = malloc(sizeof(MathContext));
     ctx->pstack = -1;

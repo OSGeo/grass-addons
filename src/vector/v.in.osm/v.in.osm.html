@@ -2,6 +2,30 @@
 
 <em>v.in.osm</em> imports OpenStreetMap data.
 
+<p>
+The feature types follow the geometry of the selected <b>table</b> (OGR
+layer): polygon layers (e.g. <code>multipolygons</code> of an OSM/PBF file or
+<code>planet_osm_polygon</code> of an osm2pgsql database) are imported as areas
+(boundaries and centroids, with their attributes), point and line layers as
+points and lines. Types given in <b>type</b> that do not match the layer
+geometry are ignored.
+
+<p>
+By default the selected features (after the <b>where</b> filter) are
+reprojected to the coordinate reference system of the current project. With
+the <b>-o</b> flag the data are imported without reprojection, assuming they
+are already in the project's CRS.
+
+<h2>NOTES</h2>
+
+Line layers are split at every vertex and rebuilt into polylines
+(<em>v.split</em>, <em>v.build.polylines</em>); polygon layers are imported
+directly with <em>v.in.ogr</em> so that multipolygon rings form areas.
+
+<p>
+Reprojection is done with GDAL (a temporary GeoPackage in the project CRS)
+before the import.
+
 <h2>EXAMPLES</h2>
 
 Import from PostgreSQL DB:
@@ -19,15 +43,28 @@ v.in.osm input=saarland-latest.osm.pbf table=lines type=point,line output=roads 
          where="highway is not null"
 </pre></div>
 
+<p>
+Import OSM buildings and land use as areas into a projected project:
+
+<div class="code"><pre>
+v.in.osm input=saarland-latest.osm.pbf table=multipolygons output=buildings \
+         where="building IS NOT NULL"
+v.in.osm input=saarland-latest.osm.pbf table=multipolygons output=landuse \
+         where="landuse IS NOT NULL OR \"natural\" IS NOT NULL"
+</pre></div>
+
 <h2>REQUIREMENTS</h2>
-PostgreSQL, PostGIS, <a href="https://wiki.openstreetmap.org/wiki/Osm2pgsql">osm2pgsql</a>
+GDAL Python bindings (OSM driver). For database input: PostgreSQL, PostGIS,
+<a href="https://wiki.openstreetmap.org/wiki/Osm2pgsql">osm2pgsql</a>
 
 <h2>SEE ALSO</h2>
 
 <em>
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.build.polylines.html">v.build.polylines</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/v.import.html">v.import</a>,
 <a href="https://grass.osgeo.org/grass-stable/manuals/v.in.ogr.html">v.in.ogr</a>
 </em>
 
-<h2>AUTHOR</h2>
+<h2>AUTHORS</h2>
 
 Stepan Turek

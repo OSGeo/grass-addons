@@ -52,12 +52,6 @@ The following preprocessing methods are supported:
 - **Sparse Principal Component Analysis (sparsepca)** -- PCA variant
   enforcing sparsity on component loadings for interpretability.
 
-Multiple steps can be combined in one command by listing them in
-`steps=` (comma-separated). For example,
-`steps='sav_gol,baseline,cont_rem,kpca'` will execute all four in
-sequence. Intermediate rasters are handled internally and automatically
-cleaned up.
-
 All dimensionality reduction methods are implemented using the
 [scikit-learn](https://scikit-learn.org/stable/api/sklearn.decomposition.html)
 library. For detailed algorithmic descriptions and parameter
@@ -121,7 +115,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=enmap
 
     # Performs PCA
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     i.hyper.preproc input=enmap output=enmap_pca \
                     dr_method=pca dr_components=10 -q
 
@@ -139,7 +133,7 @@ or exported with *i.hyper.export* for further analysis.
     g.region raster_3d=tanager
 
     # Savitzky–Golay derivative + baseline correction + continuum removal + Nystroem
-    # Interpolaties missing values in valid bands
+    # Interpolates missing values in valid bands (linear with extrapolation)
     # Processes the hyperspectral 3D map in chunks and exports the fitted Nystroem model
     i.hyper.preproc input=tanager output=tanager_ml \
                     polyorder=3 derivative_order=1 window_length=9 \

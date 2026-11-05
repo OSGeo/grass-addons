@@ -44,6 +44,13 @@ rainfall-excess models such as the SCS Curve Number method (see
 <em>r.curvenumber</em>).
 
 <p>
+The soil texture separates (<b>sand</b>, <b>silt</b>, <b>clay</b>, in percent)
+and the bulk density at 1/3 bar (<b>bulk_density</b>, g/cm3) can also be
+written as rasters, aggregated the same way as Ksat. These match the inputs of
+the ROSETTA pedotransfer model, so they can be passed directly to
+<em>r.soils.rosetta</em> to estimate van Genuchten soil hydraulic parameters.
+
+<p>
 The <b>soils</b> output is the source SSURGO Map Unit polygon vector with all
 aggregated attributes attached. Use it for reference or to derive custom
 rasters from the SSURGO attribute set with
@@ -94,8 +101,9 @@ within each map unit). A weighted-component method is planned.
 <h3>r3 (3D raster) output for depth profiles</h3>
 
 When <b>depths</b> is set (a comma-separated, strictly-increasing list of
-cm boundaries with at least 2 values), the depth-weighted Ksat outputs
-(<b>ksat_l</b>, <b>ksat_r</b>, <b>ksat_h</b>) are produced as <b>3D
+cm boundaries with at least 2 values), the depth-weighted outputs
+(<b>ksat_l</b>, <b>ksat_r</b>, <b>ksat_h</b>, <b>sand</b>, <b>silt</b>,
+<b>clay</b>, <b>bulk_density</b>) are produced as <b>3D
 rasters</b> with one z-slice per depth bin instead of a single 2D
 average. The number of slices is <code>len(depths) - 1</code>.
 <b>hzdept_r</b> and <b>hzdepb_r</b> are ignored when <b>depths</b> is
@@ -197,6 +205,26 @@ tools.r_in_ssurgo(
 )
 </pre></div>
 
+<h3>Import texture and estimate hydraulic parameters</h3>
+
+Import soil texture and bulk density for the top 25.4 cm and estimate van
+Genuchten hydraulic parameters with <em>r.soils.rosetta</em> (see its manual
+for the full SSURGO-to-SIMWE workflow):
+
+<div class="code"><pre>
+r.in.ssurgo \
+    ssurgo_path="gSSURGO_NC.zip" \
+    soils="soils" \
+    sand="sand" \
+    silt="silt" \
+    clay="clay" \
+    bulk_density="bd" \
+    hzdept_r=0 \
+    hzdepb_r=25.4
+r.soils.rosetta sand="sand" silt="silt" clay="clay" bulk_density="bd" \
+    ksat="ksat_vg" version=3
+</pre></div>
+
 <h3>Force the SQLite/OGR backend (skip DuckDB)</h3>
 
 <div class="code"><pre>
@@ -254,7 +282,8 @@ r.in.ssurgo \
 <em>
     <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.curvenumber.html">r.curvenumber</a>,
     <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.runoff.html">r.runoff</a>,
-    <a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>
+    <a href="https://grass.osgeo.org/grass-stable/manuals/r.sim.water.html">r.sim.water</a>,
+    <a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.soils.rosetta.html">r.soils.rosetta</a>
 </em>
 
 <h2>AUTHORS</h2>

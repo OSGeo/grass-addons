@@ -156,7 +156,7 @@ def set_path_to_java(java, overwrite):
             file.write(java)
         msg = "Text file created:\n{}\nwith path to java executable:\n{}"
         gs.info(_(msg).format(txt_java_path, java))
-    elif not os.path.isfile(java_txt_copy):
+    elif not java_txt_copy:
         with open(txt_java_path, "w") as file:
             file.write(java)
         msg = "Text file created:\n{}\nwith path to java executable:\n{}"

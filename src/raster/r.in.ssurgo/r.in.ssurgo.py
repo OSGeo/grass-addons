@@ -70,6 +70,34 @@
 # % required: no
 # %end
 
+# %option G_OPT_R_OUTPUT
+# % key: sand
+# % description: Sand content raster map [percent]
+# % guisection: Outputs
+# % required: no
+# %end
+
+# %option G_OPT_R_OUTPUT
+# % key: silt
+# % description: Silt content raster map [percent]
+# % guisection: Outputs
+# % required: no
+# %end
+
+# %option G_OPT_R_OUTPUT
+# % key: clay
+# % description: Clay content raster map [percent]
+# % guisection: Outputs
+# % required: no
+# %end
+
+# %option G_OPT_R_OUTPUT
+# % key: bulk_density
+# % description: Bulk density (one-third bar) raster map [g/cm3]
+# % guisection: Outputs
+# % required: no
+# %end
+
 # %option
 # % key: desgnmaster
 # % type: string
@@ -1201,7 +1229,17 @@ def local_ssurgo_sqlite_query(
 
 
 def _rasterize_and_style(
-    ssurgo_vector, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=None
+    ssurgo_vector,
+    hydgrp,
+    ksat_h,
+    ksat_r,
+    ksat_l,
+    mukey,
+    sand="",
+    silt="",
+    clay="",
+    bulk_density="",
+    slices=None,
 ):
     """Convert imported SSURGO vector attributes to raster maps and apply color schemes.
 
@@ -1211,8 +1249,13 @@ def _rasterize_and_style(
     :param str ksat_r: Output name for Ksat regular raster (or empty to skip).
     :param str ksat_l: Output name for Ksat low raster (or empty to skip).
     :param str mukey: Output name for map unit key raster (or empty to skip).
-    :param slices: Optional list of ``(top, bottom)`` cm slices. When set,
-        ``ksat_l/r/h`` are produced as r3 (3D) rasters with one slice per
+    :param str sand: Output name for sand percent raster (or empty to skip).
+    :param str silt: Output name for silt percent raster (or empty to skip).
+    :param str clay: Output name for clay percent raster (or empty to skip).
+    :param str bulk_density: Output name for bulk density raster (or empty to skip).
+    :param slices: Optional list of ``(top, bottom)`` cm slices. When set, the
+        depth-weighted rasters (``ksat_l/r/h``, ``sand``, ``silt``, ``clay``,
+        ``bulk_density``) are produced as r3 (3D) rasters with one slice per
         depth bin; ``hydgrp`` and ``mukey`` are still produced as 2D rasters
         because they're profile-level / identity values.
     """
@@ -1223,19 +1266,31 @@ def _rasterize_and_style(
         ("hsg", hydgrp, "hydgrp"),
         ("mukey_int", mukey, None),
     ]
+    # Depth-weighted attributes are 2D in the single-interval (non-sliced) path
+    # and 3D when depth slices are requested. Each entry maps a chorizon column
+    # to its requested output name.
+    depth_weighted = [
+        ("ksat_h", ksat_h),
+        ("ksat_r", ksat_r),
+        ("ksat_l", ksat_l),
+        ("sandtotal_r", sand),
+        ("silttotal_r", silt),
+        ("claytotal_r", clay),
+        ("dbthirdbar_r", bulk_density),
+    ]
     if not slices:
-        # No slicing — depth-weighted Ksat rasters are 2D too (legacy path).
-        _2d_maps.extend(
-            [
-                ("ksat_h", ksat_h, None),
-                ("ksat_r", ksat_r, None),
-                ("ksat_l", ksat_l, None),
-            ]
-        )
+        _2d_maps.extend((col, name, None) for col, name in depth_weighted)
 
     for col, map_name, label_column in _2d_maps:
         if not map_name:
             continue
+        # SDA results arrive as schemaless GeoJSON: a column that is NULL for
+        # every feature imports as TEXT and v.to.rast rejects it, so recast
+        # to double precision before rasterizing (no-op for numeric columns).
+        _ensure_numeric_column(ssurgo_vector, col)
+        # v.to.rast replaces NULL attributes with 0, which would fake
+        # meaningful values (e.g. Ksat 0 mm/hr, sand 0 percent) for map units
+        # without data; filter them out so their cells stay NULL.
         gs.run_command(
             "v.to.rast",
             input=ssurgo_vector,
@@ -1244,6 +1299,7 @@ def _rasterize_and_style(
             attribute_column=col,
             output=map_name,
             label_column=label_column if label_column else "",
+            where=f"{col} IS NOT NULL",
         )
 
         if col == "mukey_int":
@@ -1253,10 +1309,19 @@ def _rasterize_and_style(
             hydrologic_soil_group_color_scheme(map_name)
 
     if slices:
-        for base, name in (("ksat_l", ksat_l), ("ksat_r", ksat_r), ("ksat_h", ksat_h)):
+        for base, name in depth_weighted:
             if not name:
                 continue
-            _rasterize_3d(ssurgo_vector, base_field=base, output=name, slices=slices)
+            # Ksat gets its dedicated 3D color ramp; texture and bulk density
+            # keep the default ramp.
+            color_func = ksat_color_scheme_3d if base.startswith("ksat_") else None
+            _rasterize_3d(
+                ssurgo_vector,
+                base_field=base,
+                output=name,
+                slices=slices,
+                color_func=color_func,
+            )
 
     else:
         ksat_map_names = [name for name in (ksat_l, ksat_r, ksat_h) if name]
@@ -1293,13 +1358,23 @@ def _ensure_numeric_column(vector_map, col):
     gs.run_command("v.db.renamecolumn", map=vector_map, column=f"{tmp_col},{col}")
 
 
-def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
+def _rasterize_3d(
+    ssurgo_vector,
+    *,
+    base_field: str,
+    output: str,
+    slices,
+    color_func=ksat_color_scheme_3d,
+):
     """Build a 3D raster ``output`` from per-slice attribute columns.
 
     For each slice ``i`` in ``slices``, rasterizes
     ``<ssurgo_vector>.<base_field>__sN`` to a temporary 2D raster, then stacks
     all of them into a 3D raster with ``r.to.rast3``. The 3D region is set to
     ``b=0 t=max_depth`` so the z-axis represents depth from the surface.
+
+    ``color_func`` is applied to the resulting 3D raster (defaults to the Ksat
+    ramp); pass ``None`` to leave the default color table.
 
     Temporary 2D rasters are deleted on completion.
     """
@@ -1320,6 +1395,8 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
             col = f"{base_field}{_slice_suffix(i)}"
             _ensure_numeric_column(ssurgo_vector, col)
             tmp = f"_tmp_{output}_s{i}"
+            # See _rasterize_and_style: keep NULL-attribute map units NULL
+            # instead of v.to.rast's 0 replacement.
             gs.run_command(
                 "v.to.rast",
                 input=ssurgo_vector,
@@ -1328,6 +1405,7 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
                 attribute_column=col,
                 output=tmp,
                 overwrite=True,
+                where=f"{col} IS NOT NULL",
             )
             temp_2d.append(tmp)
         gs.run_command(
@@ -1336,7 +1414,8 @@ def _rasterize_3d(ssurgo_vector, *, base_field: str, output: str, slices):
             output=output,
             overwrite=True,
         )
-        ksat_color_scheme_3d(output)
+        if color_func:
+            color_func(output)
     finally:
         if temp_2d:
             gs.run_command(
@@ -1878,6 +1957,10 @@ def main():
     ksat_r = options["ksat_r"]
     ksat_l = options["ksat_l"]
     mukey = options["mukey"]
+    sand = options["sand"]
+    silt = options["silt"]
+    clay = options["clay"]
+    bulk_density = options["bulk_density"]
 
     # Vector outputs
     ssurgo_vector = options["soils"]
@@ -1995,7 +2078,17 @@ def main():
 
     if ssurgo_vector:
         _rasterize_and_style(
-            ssurgo_vector, hydgrp, ksat_h, ksat_r, ksat_l, mukey, slices=slices
+            ssurgo_vector,
+            hydgrp,
+            ksat_h,
+            ksat_r,
+            ksat_l,
+            mukey,
+            sand=sand,
+            silt=silt,
+            clay=clay,
+            bulk_density=bulk_density,
+            slices=slices,
         )
 
 

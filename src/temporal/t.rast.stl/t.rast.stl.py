@@ -1895,6 +1895,7 @@ def validate_options(options, flags, temporal_type):
       * the *_jump options are positive integers
       * spline / polynomial interpolation requires 'order'
       * a relative-time 'step' override is a positive integer
+      * an absolute-time 'frequency' is a valid pandas offset alias
 
     Data-dependent checks (period vs. length, gaps after interpolation, etc.)
     are intentionally left to run later, once the series is available.
@@ -1926,6 +1927,24 @@ def validate_options(options, flags, temporal_type):
     if temporal_type == "relative" and options["step"]:
         if int(options["step"]) <= 0:
             gs.fatal(_("The 'step' option must be a positive integer."))
+
+    # Absolute-time 'frequency', when given, must be a pandas offset alias
+    # (a unit, optionally with a multiplier), e.g. 'D', 'W', 'MS', '16D',
+    # '5YS'. A bare number has no unit and pandas rejects it with an opaque
+    # message. The below will catch it and give a clear message instead.
+    if temporal_type == "absolute" and options["frequency"]:
+        try:
+            pd.tseries.frequencies.to_offset(options["frequency"])
+        except (ValueError, TypeError):
+            gs.fatal(
+                _(
+                    "The 'frequency' value '{v}' is not a valid pandas offset "
+                    "alias. It needs a time unit, optionally with a leading "
+                    "multiplier, e.g. 'D' (day), 'W' (week), 'MS' (month "
+                    "start), '16D' (16 days), 'YS' or '5YS' (year start). A "
+                    "bare number is not accepted."
+                ).format(v=options["frequency"])
+            )
 
     # Line colours, when given, must be valid GRASS colour specs that map to a
     # colour matplotlib understands (a named colour or an R:G:B[:A] triplet).

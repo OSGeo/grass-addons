@@ -171,10 +171,10 @@ g.gisenv set="LOCATION_NAME=$LOCATION_NAME"
 g.gisenv set="GISDBASE=$GISDBASE"
 
 # delete intermediate files
-rm -fr  $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}*
-find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.txt' -delete
-find    $GIS_OPT_FOLDER/ -maxdepth 1 -name  '*.tif' -delete
-rm -fr  $GIS_OPT_FOLDER/blockfile/stat_*.txt
+rm -fr  "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID"[0-9]*
+find    "${GIS_OPT_FOLDER}/" -maxdepth 1 -name  '*.txt' -delete
+find    "${GIS_OPT_FOLDER}/" -maxdepth 1 -name  '*.tif' -delete
+rm -fr  "${GIS_OPT_FOLDER}/blockfile/"stat_*.txt
 
 exit 1
 }
@@ -194,7 +194,8 @@ echo ""
 
 export GISRC_def=$GISRC
 
-rm -fr   $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}*
+# remove only the temporary mapsets this module creates (sub_<area>ID<n>)
+rm -fr   "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID"[0-9]*
 
 echo Using  $( ls $GIS_OPT_FOLDER/blockfile/blockfile* | wc -l ) blocks in  $GIS_OPT_FOLDER/blockfile/
 
@@ -238,7 +239,7 @@ export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
-rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock
+rm -f    "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID${ID}/.gislock"
 
 export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
@@ -259,12 +260,12 @@ echo $ID"|"$( r.univar -t --q  map=sub_$GIS_OPT_VARIABLE  |  awk  \'{ if (NR==2 
 FULL=$(awk -F "|"  \'{if (NF==13) {print 1 } else {print 0} }\'   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt)
 
 if [ $FULL -eq 0 ] ; then
-rm   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt
+rm   "${DIRNAME}/stat_${GIS_OPT_VARIABLE}_ID${ID}.txt"
 else
-rm -f $DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif
+rm -f "${DIRNAME}/sub_${GIS_OPT_AREA}ID${ID}.tif"
 fi
 
-rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r "${HOME}/.grass8/rc${ID}"    "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID${ID}"
 
 ' _
 
@@ -306,7 +307,7 @@ export GISRC=$HOME/.grass8/rc$ID
 
 g.mapset  -c   mapset=sub_${GIS_OPT_AREA}ID$ID   location=$LOCATION_NAME  dbase=$GISDBASE   --quiet
 
-rm -f    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID/.gislock
+rm -f    "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID${ID}/.gislock"
 
 export GISBASE=$( grep  gisbase   $(which grass) | awk \'{ if(NR==2) { gsub ("\\"","" ) ; print $3 }  }\' )
 export PATH=$PATH:$GISBASE/bin:$GISBASE/scripts
@@ -318,7 +319,7 @@ export MANPATH=$MANPATH:$GISBASE/man
 # echo  Load $DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif
 
 r.in.gdal input=$DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif       output=sub_${GIS_OPT_AREA}ID${ID}   --q
-rm -f $DIRNAME/sub_${GIS_OPT_AREA}ID${ID}.tif
+rm -f "${DIRNAME}/sub_${GIS_OPT_AREA}ID${ID}.tif"
 
 g.region   rast=sub_${GIS_OPT_AREA}ID${ID}@sub_${GIS_OPT_AREA}ID${ID}  zoom=sub_${GIS_OPT_AREA}ID${ID}@sub_${GIS_OPT_AREA}ID${ID} --q
 r.mapcalc "sub_$GIS_OPT_VARIABLE = if ( sub_${GIS_OPT_AREA}ID${ID} == 1 , $GIS_OPT_VARIABLE@PERMANENT  , null())"    --o --q
@@ -327,9 +328,9 @@ echo $ID"|"$( r.univar -t --q  map=sub_$GIS_OPT_VARIABLE  |  awk  \'{ if (NR==2 
 
 FULL=$(awk -F "|"  \'{if (NF==13) {print 1 } else {print 0} }\'   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt)
 
-if [ $FULL -eq 0 ] ; then rm   $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID$ID.txt ; fi
+if [ $FULL -eq 0 ] ; then rm   "${DIRNAME}/stat_${GIS_OPT_VARIABLE}_ID${ID}.txt" ; fi
 
-rm -r $HOME/.grass8/rc$ID    $GISDBASE/$LOCATION_NAME/sub_${GIS_OPT_AREA}ID$ID
+rm -r "${HOME}/.grass8/rc${ID}"    "${GISDBASE}/${LOCATION_NAME}/sub_${GIS_OPT_AREA}ID${ID}"
 
 fi
 
@@ -341,7 +342,7 @@ fi
 
 
 cat $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID*.txt >  $DIRNAME/stat_${GIS_OPT_VARIABLE}.txt
-rm -f  $DIRNAME/stat_${GIS_OPT_VARIABLE}_ID*.txt
+rm -f  "${DIRNAME}/stat_${GIS_OPT_VARIABLE}_ID"*.txt
 
 done
 
@@ -349,7 +350,7 @@ echo "Aggregating the final table to reclassify the raster ID"
 
 echo "ID|non_null_cells|null_cells|min|max|range|mean|mean_of_abs|stddev|variance|coeff_var|sum|sum_abs" >  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
 cat  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/stat_${GIS_OPT_VARIABLE}.txt  >>  $GIS_OPT_FOLDER/blockfile/stat_${GIS_OPT_VARIABLE}.txt
-rm -f  $GIS_OPT_FOLDER/*digit4/*digit3/*digit2/*digit1/stat_${GIS_OPT_VARIABLE}.txt
+rm -f  "${GIS_OPT_FOLDER}"/*digit4/*digit3/*digit2/*digit1/"stat_${GIS_OPT_VARIABLE}.txt"
 
 echo Reclass the grid_id for the following output  ${GIS_OPT_OUTPUT//","/" "}
 

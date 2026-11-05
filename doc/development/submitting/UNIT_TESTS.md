@@ -25,14 +25,22 @@ sudo dnf install grass-devel
 
 If you have not done so yet, it is also helpful to install pre-commit. Follow
 [the
-instructions](https://github.com/OSGeo/grass/blob/main/doc/development/submitting/submitting.md#use-pre-commit)
+instructions](https://github.com/OSGeo/grass/blob/main/doc/development/style_guide.md#using-pre-commit)
 in the main GRASS repository.
 
 ## Create a unit test
 
-Unit tests must be stored in a subfolder named `testsuite` inside the add-on
-folder. For example, if you contributed a raster module named `r.mymodule` you
-would run:
+There are two testing frameworks. Tests written with _pytest_, which is
+preferred for new tests, are stored in a subfolder named `tests` inside the
+add-on folder. Tests written with the older _grass.gunittest_ framework, which
+is needed when the test uses the North Carolina sample dataset, are stored in a
+subfolder named `testsuite`. The rest of this page describes
+_grass.gunittest_; for _pytest_, see the
+[testing documentation](https://github.com/OSGeo/grass/blob/main/doc/development/testing.md)
+in the main GRASS repository, which applies to add-ons as well.
+
+For example, if you contributed a raster module named `r.mymodule` you would
+run:
 
 ```bash
 cd src/raster/r.mymodule
@@ -82,7 +90,7 @@ python testsuite/test_mymodule.py
 ## Submit a unit test
 
 The [general contribution
-guidelines](https://github.com/OSGeo/grass-addons/blob/master/CONTRIBUTING.md#changing-code-and-documentation)
+guidelines](https://github.com/OSGeo/grass-addons/blob/grass8/CONTRIBUTING.md#changing-code-and-documentation)
 apply to unit tests. In case you are submitting a new add-on, the unit tests
 should feature in the pull request with the module itself. Otherwise submit the
 unit tests in a dedicated pull request to facilitate the work of the reviewers.
