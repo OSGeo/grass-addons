@@ -1466,12 +1466,18 @@ def skip_existing(output: Path | str, search_result: SearchResult) -> SearchResu
                 Path(scene_file).stat().st_ctime,
                 tz=timezone.utc,
             ).strftime("%Y-%m-%dT%H:%M:%S")
-            ingestion_time = scene.properties.get(
-                "modificationDate",
-                scene.properties.get(
-                    "publicationDate",
-                    scene.properties.get("creationDate"),
+            ingestion_time = next(
+                (
+                    value
+                    for key in ("modificationDate", "publicationDate", "creationDate")
+                    if (
+                        value := get_product_property(
+                            scene, VER["queryable_map"].get(key, key)
+                        )
+                    )
+                    is not None
                 ),
+                None,
             )
             if not ingestion_time or normalize_time(ingestion_time) > normalize_time(
                 creation_time,
