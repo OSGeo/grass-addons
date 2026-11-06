@@ -333,21 +333,22 @@ corresponds to <code>platform</code> (EODAG 4).</li>
 After downloading, <em>i.eodag</em> checks the size of each ZIP file against the size
 announced by the provider (if known) and that the archive can be opened.
 Together, these detect truncated downloads, which EODAG does not detect itself.
-The <b>c</b> flag additionally verifies the CRC of all archive members, which
-is slow for large files. Corrupt archives and EODAG's download record are removed. The <b>retries</b> option
-sets how often scenes that are corrupt or that EODAG did not deliver are downloaded
-again. The module exits with an error if such scenes remain.
-Extracted scenes are not checked.
+The <b>c</b> flag additionally verifies the readability of all archive members,
+which is slow for large files. Downloaded but corrupt archives and EODAG's
+download record are removed. The <b>retries</b> option sets how often scenes that
+are corrupt or that EODAG did not deliver are attempted to download again.
+The module exits with an error if such scenes remain. Extracted scenes are
+not checked.
 
 <p>
 EODAG does not download scenes again if it finds data of them in the output
-directory. <em>i.eodag</em> therefore skips selected scenes of which data exists
-and prints a warning. This behavior is deprecated: in a future release,
-<em>i.eodag</em> will exit with an error before downloading in this case. Use
-the <b>s</b> flag to skip scenes that are already downloaded and intact, and the
+directory. <em>i.eodag</em> therefore skips selected scenes of which data exists and
+prints a warning. This behavior is deprecated: in a future release, <em>i.eodag</em>
+will exit with an error before downloading in this case. Use the <b>s</b> flag to
+skip downloading scenes that are already downloaded and intact. Use the
 <b>overwrite</b> flag to replace existing data and the download record (the
-extracted scene only if EODAG is configured to extract). Together, only
-missing, outdated and corrupt scenes are downloaded.
+extracted scene only if EODAG is configured to extract). With both <b>s</b> and
+<b>overwrite</b> flag, only missing, outdated and corrupt scenes are downloaded.
 
 <h3>EODAG configuration</h3>
 
