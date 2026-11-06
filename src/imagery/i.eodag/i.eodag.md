@@ -168,6 +168,19 @@ provider=cop_dataspace producttype=S2_MSI_L2A \
 query="cloudCover=30;gt, cloudCover=60;lt, orbitDirection=DESCENDING"
 ```
 
+Modification time and other datetime values
+
+Values in ISO 8601 format (e.g. `2026-10-15`, `2026-10-15 00:14:12`,
+`2026-10-15T00:14:12Z`) are compared as datetimes, if possible, where values
+without time zone are interpreted as UTC. If the property of a product is not
+a date, it is compared as a string.
+
+```sh
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="modificationDate=2022-05-15 00:14:12;ge, modificationDate=2022-05-20;le"
+```
+
 Null Values
 
 In some cases, products might have **Null** as the value of some
@@ -206,6 +219,85 @@ query="orbitDirection=DESCENDING|Null"
 
 NOTE: These queryables are only for reference, and they might not always
 be avaiable for all providers/products.
+
+#### Differences between EODAG 3 and EODAG 4
+
+EODAG 4 renamed most product properties (now STAC names) and changed the
+format of some values. The table lists, for each EODAG 3 queryable, the name in
+EODAG 4 and **what changed from EODAG 3 to EODAG 4**.
+
+- If you use the **EODAG 3 names** in the **query** option, *i.eodag*
+    translates them for EODAG 4 and converts the values back to their EODAG 3
+    format. The same query then works with both versions without changes.
+- If you use the **native EODAG 4 names** (e.g. `updated`, `grid:code`), you have
+    to write the values as EODAG 4 provides them, as described in the last column.
+    Such queries do not work with EODAG 3.
+
+The properties printed with the **j** flag are always those of the EODAG version
+in use. Use them to find the name and value format to use for the version you
+have installed.
+
+| EODAG 3 queryable | EODAG 4 property | What changed from EODAG 3 to EODAG 4 |
+| --- | --- | --- |
+| modificationDate | updated | Renamed. |
+| publicationDate | published | Renamed. |
+| beginningDateTime, startTimeFromAscendingNode | start_datetime | Renamed. Do not use `cop_dataspace:startTimeFromAscendingNode` in EODAG 4: for Sentinel-1 it is a number and not a time. |
+| endingDateTime, completionTimeFromAscendingNode | end_datetime | Renamed. |
+| tileIdentifier | grid:code | Renamed. Value got the prefix `MGRS-`: `32VNM` in EODAG 3 is `MGRS-32VNM` in EODAG 4. |
+| orbitNumber | sat:absolute_orbit | Renamed. |
+| relativeOrbitNumber | sat:relative_orbit | Renamed. |
+| orbitDirection | sat:orbit_state | Renamed. |
+| cloudCover | eo:cloud_cover | Renamed. |
+| sensorMode | instrumentMode, sar:instrument_mode, s2:datatake_type | Renamed, and the name depends on the product (Sentinel-1: `sar:instrument_mode`, Sentinel-2: `s2:datatake_type`) and on the provider (`instrumentMode`). With the EODAG 3 name, the first property that exists is used. |
+| polarizationChannels | sar:polarizations | Renamed. Value changed from a string to a list: `VV+VH` in EODAG 3 is `['VV', 'VH']` in EODAG 4. With the EODAG 3 name, the list is joined with `+`, so keep using `VV+VH`. |
+| platformSerialIdentifier | platform | Renamed (e.g. `S2B`). The EODAG 3 queryable `platform` is not the same, see below. |
+| processingLevel | processing:level | Renamed. |
+| processorVersion | processing:version | Renamed. Value got leading zeros: `5.13` in EODAG 3 is `05.13` in EODAG 4 (`4.03` is `004.03`). With the EODAG 3 name, the leading zeros are removed. |
+| storageStatus | order:status | Renamed. Values changed: `ONLINE` is `succeeded`, `STAGING` is `ordered`, `OFFLINE` is `orderable`. With the EODAG 3 name, the values are converted to the EODAG 3 values. |
+| instrument | instruments | Renamed. Value changed from a string to a list: `MSI` in EODAG 3 is `['MSI']` in EODAG 4. With the EODAG 3 name, the list is joined with `,`. |
+| timeliness | product:timeliness | Renamed. |
+| quicklook, thumbnail, downloadLink | eodag:quicklook, eodag:thumbnail, eodag:download_link | Renamed. |
+| datatakeID, instrumentConfigurationID, sliceNumber, totalSlices | s1:datatake_id, s1:instrument_configuration_ID, s1:slice_number, s1:total_slices | Renamed (Sentinel-1). |
+| datastripId, granuleIdentifier, productGroupId | s2:datastrip_id, s2:tile_id, s2:datatake_id | Renamed (Sentinel-2). |
+| cycleNumber, productClass, productComposition, segmentStartTime, sliceProductFlag, sourceProduct, sourceProductOriginDate | the same name with the prefix `cop_dataspace:` | Renamed: properties specific to a provider got the provider name as prefix. Only available for provider *cop_dataspace*. |
+
+Changes from EODAG 3 to EODAG 4 that are **not** translated, because the
+properties are not equivalent. Adjust your queries accordingly:
+
+- **productType** is translated to the EODAG 4 `collection` (e.g.
+    `S2_MSI_L1C`), whereas EODAG 3 holds the product type of the provider
+    (e.g. `S2MSI1C`). Use `product:type` to query the latter with EODAG 4.
+- **platform** is the constellation in EODAG 3 (e.g. `SENTINEL-2`) but the
+    satellite in EODAG 4 (e.g. `S2B`). The EODAG 4 equivalent of the EODAG 3
+    **platform** is `constellation`, while **platformSerialIdentifier**
+    (EODAG 3) corresponds to `platform` (EODAG 4).
+- Properties like **keywords**, **license**, **origin**, **abstract**,
+    **missionStartDate**, **sensorType**, **modifiedAfter**,
+    **modifiedBefore**, **publishedAfter** and **publishedBefore** have no
+    equivalent in EODAG 4.
+- The options **start**, **end**, **clouds** and **producttype** (e.g.
+    `S2_MSI_L1C`) are the same with both versions.
+
+### Download verification
+
+After downloading, *i.eodag* checks the size of each ZIP file against the size
+announced by the provider (if known) and that the archive can be opened.
+Together, these detect truncated downloads, which EODAG does not detect itself.
+The **c** flag additionally verifies the readability of all archive members,
+which is slow for large files. Downloaded but corrupt archives and EODAG's
+download record are removed. The **retries** option sets how often scenes that
+are corrupt or that EODAG did not deliver are attempted to download again.
+The module exits with an error if such scenes remain. Extracted scenes are
+not checked.
+
+EODAG does not download scenes again if it finds data of them in the output
+directory. *i.eodag* therefore skips selected scenes of which data exists and
+prints a warning. This behavior is deprecated: in a future release, *i.eodag*
+will exit with an error before downloading in this case. Use the **s** flag to
+skip downloading scenes that are already downloaded and intact. Use the
+**overwrite** flag to replace existing data and the download record (the
+extracted scene only if EODAG is configured to extract). With both **s** and
+**overwrite** flag, only missing, outdated and corrupt scenes are downloaded.
 
 ### EODAG configuration
 

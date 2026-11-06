@@ -9,7 +9,7 @@
 #
 # PURPOSE:     Downloads imagery scenes e.g. Landsat, Sentinel, and MODIS
 #              using EODAG API.
-# COPYRIGHT:   (C) 2024-2025 by Hamed Elgizery, and the GRASS development team
+# COPYRIGHT:   (C) 2024-2026 by Hamed Elgizery, and the GRASS development team
 #
 #              This program is free software under the GNU General Public
 #              License (>=v2). Read the file COPYING that comes with GRASS
@@ -52,6 +52,12 @@
 # % key: s
 # % description: Skip scenes that have already been downloaded
 # % guisection: Filter
+# %end
+
+# %flag
+# % key: c
+# % description: Check all data of downloaded ZIP files through reading (slow for large downloads)
+# % guisection: Download
 # %end
 
 # %flag
@@ -246,6 +252,15 @@
 # % guisection: Config
 # %end
 
+# %option
+# % key: retries
+# % type: integer
+# % description: Number of times to download scenes again that are corrupt after downloading
+# % answer: 0
+# % options: 0-5
+# % guisection: Config
+# %end
+
 # %rules
 # % exclusive: file, id
 # % exclusive: -l, -j
@@ -263,14 +278,20 @@ import json
 import operator as op_stdlib
 import os
 import re
+import shutil
 import sys
+import tempfile
 import typing
+import urllib.parse
 import urllib.request
+import zipfile
+import zlib
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from hashlib import md5
 from pathlib import Path
 from subprocess import PIPE
+from typing import TYPE_CHECKING, Any
 
 import grass.script as gs
 from grass.pygrass.modules import Module
@@ -285,12 +306,18 @@ try:
     import yaml
     from eodag.utils.exceptions import AuthenticationError
 
-    EODAG_VERSION = int(eodag.__version__.split(".")[0])
+    EODAG_VERSION: int | None = int(eodag.__version__.split(".")[0])
 except ImportError:
     EODAG_VERSION = None
 
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping
 
-def _parse_queryable_v4(info):
+    from eodag.api.product import EOProduct
+    from eodag.api.search_result import SearchResult
+
+
+def _parse_queryable_v4(info: Any) -> dict[str, Any]:
     """Parses EODAG v4 Parameter objects."""
     q_dict = {
         "required": getattr(info, "required", False),
@@ -304,7 +331,7 @@ def _parse_queryable_v4(info):
     return q_dict
 
 
-def _parse_queryable_v3(info):
+def _parse_queryable_v3(info: Any) -> dict[str, Any] | None:
     """Parses EODAG v3 TypeHint objects."""
     if not hasattr(info, "__metadata__") or not hasattr(info, "__args__"):
         return None
@@ -332,7 +359,7 @@ def _parse_queryable_v3(info):
 # --- EODAG Version Compatibility Mapping ---
 # This dictionary centralizes all version-specific differences between v3 and v4.
 # It allows the rest of the code to remain "version-agnostic".
-EODAG_MAP = {
+EODAG_MAP: dict[int, dict[str, Any]] = {
     3: {
         "version": 3,
         "product_type_attr": "product_type",
@@ -346,7 +373,7 @@ EODAG_MAP = {
         },
         "get_providers": lambda dag, ptype: dag.available_providers(ptype),
         "getattr": lambda prod, key, m_key: prod.properties.get(
-            m_key[0] if isinstance(m_key, tuple) else m_key
+            m_key[0] if isinstance(m_key, tuple) else m_key,
         ),
         "prop_map": {
             "id": "id",
@@ -359,6 +386,7 @@ EODAG_MAP = {
             "geometry": "geometry",
         },
         "queryable_map": {},
+        "value_map": {},
         "format_providers": lambda p: p,
         "parse_queryable": _parse_queryable_v3,
     },
@@ -398,9 +426,67 @@ EODAG_MAP = {
         },
         "queryable_map": {
             "relativeOrbitNumber": "sat:relative_orbit",
-            "sensorMode": "instrumentMode",
+            # Properties of providers differ, the first one present is used
+            "sensorMode": ("instrumentMode", "sar:instrument_mode", "s2:datatake_type"),
             "cloudCover": "eo:cloud_cover",
             "productType": "collection",
+            "modificationDate": "updated",
+            "publicationDate": "published",
+            "tileIdentifier": "grid:code",
+            "orbitNumber": "sat:absolute_orbit",
+            "orbitDirection": "sat:orbit_state",
+            "platformSerialIdentifier": "platform",
+            "processingLevel": "processing:level",
+            "polarizationChannels": "sar:polarizations",
+            "timeliness": "product:timeliness",
+            "beginningDateTime": "start_datetime",
+            "startTimeFromAscendingNode": "start_datetime",
+            "endingDateTime": "end_datetime",
+            "completionTimeFromAscendingNode": "end_datetime",
+            "processorVersion": "processing:version",
+            "storageStatus": "order:status",
+            "instrument": "instruments",
+            "quicklook": "eodag:quicklook",
+            "thumbnail": "eodag:thumbnail",
+            "downloadLink": "eodag:download_link",
+            # Sentinel-1
+            "datatakeID": "s1:datatake_id",
+            "instrumentConfigurationID": "s1:instrument_configuration_ID",
+            "sliceNumber": "s1:slice_number",
+            "totalSlices": "s1:total_slices",
+            # Sentinel-2
+            "datastripId": "s2:datastrip_id",
+            "granuleIdentifier": "s2:tile_id",
+            "productGroupId": "s2:datatake_id",
+            # Provider specific properties of cop_dataspace
+            "cycleNumber": "cop_dataspace:cycleNumber",
+            "productClass": "cop_dataspace:productClass",
+            "productComposition": "cop_dataspace:productComposition",
+            "segmentStartTime": "cop_dataspace:segmentStartTime",
+            "sliceProductFlag": "cop_dataspace:sliceProductFlag",
+            "sourceProduct": "cop_dataspace:sourceProduct",
+            "sourceProductOriginDate": "cop_dataspace:sourceProductOriginDate",
+        },
+        # Only used for queryables given by their EODAG 3 name (the keys below).
+        # The EODAG 4 property is converted to the EODAG 3 value format before
+        # comparing, so queries written for EODAG 3 (e.g. tileIdentifier=32VNM)
+        # work unchanged. Queryables given by their EODAG 4 name are not converted.
+        "value_map": {
+            "tileIdentifier": lambda tile: re.sub(r"^MGRS-", "", str(tile)),
+            "polarizationChannels": lambda pol: (
+                "+".join(pol) if isinstance(pol, (list, tuple)) else pol
+            ),
+            "instrument": lambda instruments: (
+                ",".join(instruments)
+                if isinstance(instruments, (list, tuple))
+                else instruments
+            ),
+            "processorVersion": lambda version: re.sub(r"^0+(?=\d)", "", str(version)),
+            "storageStatus": lambda status: {
+                "succeeded": "ONLINE",
+                "ordered": "STAGING",
+                "orderable": "OFFLINE",
+            }.get(status, status),
         },
         "format_providers": lambda p: list(p),
         "parse_queryable": _parse_queryable_v4,
@@ -408,30 +494,33 @@ EODAG_MAP = {
 }
 
 # Select the appropriate mapping based on detected version (defaults to v3)
-VER = EODAG_MAP.get(EODAG_VERSION, EODAG_MAP[3])
+VER: dict[str, Any] = EODAG_MAP.get(EODAG_VERSION, EODAG_MAP[3])
 
 # --- Compatibility Helpers ---
 
 
-def get_eodag_providers(dag):
+def get_eodag_providers(dag: EODataAccessGateway) -> Any:
     """Retrieve the providers configuration based on version mapping."""
     return getattr(dag, VER["providers_attr"])
 
 
-def get_eodag_collections(dag, provider=None):
+def get_eodag_collections(dag: EODataAccessGateway, provider: str | None = None) -> Any:
     """List available collections/product types using the mapped method name."""
     method_name = VER["methods"]["list_collections"]
     method = getattr(dag, method_name)
     return method(provider=provider)
 
 
-def get_available_providers(dag, product_type=None):
+def get_available_providers(
+    dag: EODataAccessGateway,
+    product_type: str | None = None,
+) -> Any:
     """Get list of providers using the mapped fetcher logic."""
     fetcher = VER["get_providers"]
     return fetcher(dag, product_type)
 
 
-def get_product_property(product, key):
+def get_product_property(product: EOProduct, key: str) -> Any:
     """Retrieve product property using version-specific mapping logic."""
     mapped_key = VER["prop_map"].get(key, key)
     return VER["getattr"](product, key, mapped_key)
@@ -561,7 +650,11 @@ def get_aoi(vector: str | None = None) -> str:
     return geom
 
 
-def search_by_ids(ids_set: set, module_options: dict, eodag_api=None):
+def search_by_ids(
+    ids_set: set[str],
+    module_options: dict[str, str],
+    eodag_api: EODataAccessGateway | None = None,
+) -> SearchResult:
     """Search for products based on their ids.
 
     :param ids_set: Set of unique products' ids.
@@ -605,7 +698,7 @@ def search_by_ids(ids_set: set, module_options: dict, eodag_api=None):
     return SearchResult(search_result)
 
 
-def setup_environment_variables(env: dict, **kwargs) -> None:
+def setup_environment_variables(env: MutableMapping[str, str], **kwargs: str) -> None:
     """Set the eodag environment variables based on the provided options/flags.
 
     :param env: Environment variables dictionary to be updated.
@@ -623,6 +716,29 @@ def setup_environment_variables(env: dict, **kwargs) -> None:
         env["EODAG_CFG_FILE"] = config
 
 
+def parse_datetime(value: str | datetime) -> datetime:
+    """Parse an ISO date or datetime (with 'T' or space) into an aware UTC datetime.
+
+    Values without time zone information are assumed to be UTC.
+
+    :param value: Date or datetime in ISO format
+    :type value: str | datetime
+
+    :return: Timezone-aware datetime in UTC
+    :rtype: datetime
+
+    :raises ValueError: If value is not in ISO format
+    :raises TypeError: If value is neither a string nor a datetime
+    """
+    if not isinstance(value, datetime):
+        if not isinstance(value, str):
+            raise TypeError(f"Cannot parse {type(value).__name__} as datetime")
+        value = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def normalize_time(datetime_str: str) -> str:
     """Unify the different ISO formats into 'YYYY-MM-DDTHH:MM:SS'.
 
@@ -632,16 +748,10 @@ def normalize_time(datetime_str: str) -> str:
     :return: Datetime converted to 'YYYY-MM-DDTHH:MM:SS'
     :rtype: str
     """
-    # Remove microseconds
-    if datetime_str.find("Z") != -1:
-        datetime_str = datetime_str[: datetime_str.find("Z")]
-    normalized_datetime = datetime.fromisoformat(datetime_str)
-    if normalized_datetime.tzinfo is None:
-        return normalized_datetime.strftime("%Y-%m-%dT%H:%M:%S")
-    return normalized_datetime.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    return parse_datetime(datetime_str).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def list_products(products) -> None:
+def list_products(products: SearchResult) -> None:
     """List products on the Standard Output stream (shell).
 
     :param products: EO poducts to be listed
@@ -674,7 +784,7 @@ def list_products(products) -> None:
                 # Special formatting for datetime
                 try:
                     product_attribute_value = normalize_time(
-                        str(product_attribute_value)
+                        str(product_attribute_value),
                     )
                 except (ValueError, TypeError):
                     # Invalid ISO Format
@@ -684,7 +794,7 @@ def list_products(products) -> None:
                         ),
                     )
                     product_attribute_value = str(
-                        get_product_property(product, actual_key) or "time_NA"
+                        get_product_property(product, actual_key) or "time_NA",
                     )
             if i != 0:
                 product_line += " "
@@ -692,7 +802,7 @@ def list_products(products) -> None:
         print(product_line)
 
 
-def list_products_json(products) -> None:
+def list_products_json(products: SearchResult) -> None:
     """List products on the Standard Output stream (shell) in JSON format.
 
     :param products: EO poducts to be listed
@@ -704,7 +814,9 @@ def list_products_json(products) -> None:
         print(json.dumps(products.as_geojson_object(), indent=4))
 
 
-def remove_duplicates(search_result):
+def remove_duplicates(
+    search_result: SearchResult,
+) -> SearchResult:
     """Remove duplicated products, in case a provider returns a product multiple times."""
     filtered_result = []
     is_added = set()
@@ -715,8 +827,8 @@ def remove_duplicates(search_result):
         filtered_result.append(product)
     gs.verbose(
         _("Filtered out {} duplicate products.").format(
-            len(search_result) - len(filtered_result)
-        )
+            len(search_result) - len(filtered_result),
+        ),
     )
     return SearchResult(filtered_result)
 
@@ -749,8 +861,9 @@ def dates_to_iso_format() -> None:
         # Standard GRASS error message
         gs.error(
             _("End Date <{}> can not come before start Date <{}>").format(
-                end_date, start_date
-            )
+                end_date,
+                start_date,
+            ),
         )
         # Force non-zero exit code for the test suite
         sys.exit(1)
@@ -759,7 +872,7 @@ def dates_to_iso_format() -> None:
     options["end"] = end_date
 
 
-def parse_query(query: str | None = None):
+def parse_query(query: str | None = None) -> list[tuple[str, Any]]:
     """Parse query string.
 
     :param query: WKT String with the geometry to filter with respect to
@@ -839,7 +952,12 @@ def parse_query(query: str | None = None):
     return query_list
 
 
-def filter_result(search_result, geometry=None, queryables=None, **kwargs):
+def filter_result(
+    search_result: SearchResult,
+    geometry: str | None = None,
+    queryables: list[tuple[str, Any]] | None = None,
+    **kwargs: str,
+) -> SearchResult:
     """Filter results to comply with options/flags.
 
     :param search_result: Search Result to filter
@@ -898,7 +1016,8 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
 
     if cloud_cover:
         search_result = search_result.filter_property(
-            operator="le", **{VER["cloud_cover_key"]: int(cloud_cover)}
+            operator="le",
+            **{VER["cloud_cover_key"]: int(cloud_cover)},
         )
 
     queryable_map = VER["queryable_map"]
@@ -924,19 +1043,35 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                 continue
 
             v4_queryable = queryable_map.get(queryable, queryable)
+            convert_value = VER["value_map"].get(queryable, lambda value: value)
             tmp_search_result_list = []
             for value, operator_str in values:
                 if operator_str not in op_map:
-                    gs.warning(
-                        _(
-                            "Invalid operator <{0}> for queryable <{1}>\n"
-                            "Operator <{2}> will be used instead",
-                        ).format(operator_str, queryable, default_operator),
-                    )
+                    if operator_str is None:
+                        gs.verbose(
+                            _(
+                                "No operator given for queryable <{0}> with value <{1}>. "
+                                "Operator <{2}> will be used.",
+                            ).format(queryable, value, default_operator),
+                        )
+                    else:
+                        gs.warning(
+                            _(
+                                "Invalid operator <{0}> for queryable <{1}>\n"
+                                "Operator <{2}> will be used instead",
+                            ).format(operator_str, queryable, default_operator),
+                        )
                     operator_str = default_operator
 
                 op_func = op_map[operator_str]
                 filtered_data = []
+
+                # ISO dates and datetimes are compared as datetimes
+                try:
+                    value_datetime = parse_datetime(value)
+                except (ValueError, TypeError):
+                    value_datetime = None
+                warned = False
 
                 for product in search_result:
                     prop_val = get_product_property(product, v4_queryable)
@@ -945,17 +1080,30 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
                         if value is None and op_func(None, None):
                             filtered_data.append(product)
                         continue
-
+                    prop_val = convert_value(prop_val)
+                    compare_value = value
                     try:
-                        if isinstance(value, (int, float)):
+                        if value_datetime is not None:
+                            prop_val = parse_datetime(prop_val)
+                            compare_value = value_datetime
+                        elif isinstance(value, (int, float)):
                             prop_val = type(value)(prop_val)
                         elif isinstance(value, str):
                             prop_val = str(prop_val)
                     except (ValueError, TypeError):
-                        pass
-
+                        # Not a date: compare as strings
+                        if value_datetime is not None:
+                            if operator_str not in {"eq", "ne"} and not warned:
+                                gs.warning(
+                                    _(
+                                        "Property <{0}> of some products is not a date. "
+                                        "It is compared as string with <{1}> using operator <{2}>.",
+                                    ).format(queryable, value, operator_str),
+                                )
+                                warned = True
+                            prop_val = str(prop_val)
                     try:
-                        if op_func(prop_val, value):
+                        if op_func(prop_val, compare_value):
                             filtered_data.append(product)
                     except TypeError:
                         pass
@@ -983,7 +1131,9 @@ def filter_result(search_result, geometry=None, queryables=None, **kwargs):
     return search_result
 
 
-def sort_result(search_result):
+def sort_result(
+    search_result: SearchResult,
+) -> SearchResult:
     """Sorts search results according to options['sort'] and options['order']."""
     sort_key_map = {
         "ingestiondate": VER["datetime_key"],
@@ -998,7 +1148,7 @@ def sort_result(search_result):
         if sort_key_map.get(key)
     ]
 
-    def safe_sort_key(product, sort_key):
+    def safe_sort_key(product: EOProduct, sort_key: str) -> Any:
         val = get_product_property(product, sort_key)
         if val is None:
             return ""
@@ -1021,30 +1171,287 @@ def sort_result(search_result):
     return search_result
 
 
-def skip_existing(output, search_result):
+def get_download_record(output_dir: Path | str, scene: EOProduct) -> Path:
+    """Get the path of the record file eodag writes after a completed download.
+
+    :param output_dir: Directory into which the scene was downloaded.
+    :param scene: EO product.
+
+    :return: Path of the record file (it may not exist)
+    :rtype: pathlib.Path
+    """
+    product_type = getattr(scene, VER["product_type_attr"])
+    product_id = get_product_property(scene, "id")
+    return (
+        Path(output_dir)
+        / ".downloaded"
+        / md5(f"{product_type}-{product_id}".encode()).hexdigest()
+    )
+
+
+def get_scene_zip(path: Path | str) -> Path | None:
+    """Get the ZIP archive of a downloaded scene.
+
+    The path is either the ZIP file itself, or a directory (eodag moves archives
+    it considers invalid into a directory named after the scene) containing exactly
+    one ZIP file. Anything else, e.g. an extracted scene, has no ZIP archive.
+
+    :param path: Path to the downloaded scene
+    :type path: pathlib.Path | str
+
+    :return: Path of the ZIP file or None
+    :rtype: pathlib.Path | None
+    """
+    path = Path(path)
+    if path.is_file():
+        return path if path.suffix.lower() == ".zip" else None
+    if path.is_dir():
+        zip_files = [
+            item
+            for item in path.iterdir()
+            if item.is_file() and item.suffix.lower() == ".zip"
+        ]
+        return zip_files[0] if len(zip_files) == 1 else None
+    return None
+
+
+def check_zip_integrity(
+    zip_file: Path,
+    *,
+    expected_size: int | None = None,
+    full: bool = False,
+) -> str | None:
+    """Check the ZIP archive of a downloaded scene.
+
+    :param zip_file: Path to the ZIP file
+    :param expected_size: Size in bytes the archive is expected to have, if known
+    :param full: If True, read and CRC-check all archive members. If False, only
+                 the archive's central directory is read, which is fast but
+                 still detects truncated archives.
+
+    :return: Description of the problem or None if the archive is intact
+    :rtype: str | None
+    """
+    actual_size = zip_file.stat().st_size
+    if expected_size is not None and actual_size != expected_size:
+        return f"size is {actual_size} bytes, expected {expected_size}"
+    try:
+        with zipfile.ZipFile(zip_file) as archive:
+            if full:
+                bad_member = archive.testzip()
+                if bad_member:
+                    return f"CRC error in '{bad_member}'"
+    except (zipfile.BadZipFile, zlib.error, EOFError, OSError) as e:
+        return str(e)
+    return None
+
+
+def remove_corrupt_download(scene_path: Path, zip_file: Path, record: Path) -> None:
+    """Remove a corrupt ZIP archive and the download record so the scene is fetched again.
+
+    Without removing the record, eodag considers the scene as downloaded and
+    never downloads it again.
+
+    :param scene_path: Path to the downloaded scene
+    :type scene_path: pathlib.Path
+    :param zip_file: ZIP file as returned by :func:`get_scene_zip`
+    :type zip_file: pathlib.Path
+    :param record: Download record file of the scene
+    :type record: pathlib.Path
+    """
+    zip_file.unlink(missing_ok=True)
+    scene_path = Path(scene_path)
+    # eodag moves archives it considers invalid into a directory
+    if scene_path.is_dir() and not any(scene_path.iterdir()):
+        scene_path.rmdir()
+    record.unlink(missing_ok=True)
+
+
+def get_expected_size(scene: EOProduct) -> int | None:
+    """Get the size in bytes announced by the provider when the scene was downloaded.
+
+    :return: Size or None if unknown or not comparable with the file on disk
+    :rtype: int | None
+    """
+    size = getattr(scene, "size", None)
+    headers = getattr(scene, "headers", None) or {}
+    # With a content encoding, the announced size is that of the compressed stream
+    if not size or headers.get("Content-Encoding", "identity") != "identity":
+        return None
+    return int(size)
+
+
+def location_to_path(product: EOProduct) -> Path:
+    """Get the local path of a downloaded product from its location URI."""
+    return Path(
+        urllib.request.url2pathname(urllib.parse.urlparse(product.location).path),
+    )
+
+
+def get_download_dir(scene: EOProduct, output: Path | str | None) -> Path:
+    """Get the directory eodag downloads the scene into.
+
+    :param scene: EO product.
+    :param output: Value of the output option, which has priority if set.
+
+    :return: Download directory
+    :rtype: pathlib.Path
+    """
+    if output:
+        return Path(output)
+    config = getattr(getattr(scene, "downloader", None), "config", None)
+    return Path(getattr(config, "output_dir", None) or tempfile.gettempdir())
+
+
+def find_existing_download(scene: EOProduct, output: Path | str | None) -> list[Path]:
+    """Find archive or extracted data of an earlier download of the scene.
+
+    :param scene: EO product.
+    :param output: Value of the output option.
+
+    :return: Existing paths
+    :rtype: list[pathlib.Path]
+    """
+    download_dir = get_download_dir(scene, output)
+    paths = (
+        download_dir / f"{scene.properties['title']}{suffix}"
+        for suffix in ("", ".zip", ".ZIP")
+    )
+    return [path for path in paths if path.exists()]
+
+
+def remove_existing_download(scene: EOProduct, output: Path | str | None) -> None:
+    """Remove an earlier download of the scene and its download record.
+
+    eodag does not download scenes again if it finds a record and data of them.
+    The extracted scene is only removed if eodag is configured to extract.
+
+    :param scene: EO product.
+    :param output: Value of the output option.
+    """
+    get_download_record(get_download_dir(scene, output), scene).unlink(missing_ok=True)
+    config = getattr(getattr(scene, "downloader", None), "config", None)
+    extract = getattr(config, "extract", True)
+    for path in find_existing_download(scene, output):
+        gs.verbose(_("Removing existing <{}>").format(path))
+        if path.is_file():
+            path.unlink()
+        elif extract:
+            shutil.rmtree(path)
+        elif zip_file := get_scene_zip(path):
+            # eodag moves archives it considers invalid into a directory
+            zip_file.unlink()
+            if not any(path.iterdir()):
+                path.rmdir()
+        else:
+            gs.warning(
+                _("Not removing <{}>, as EODAG is not configured to extract.").format(
+                    path,
+                ),
+            )
+
+
+def verify_download(
+    dag: EODataAccessGateway,
+    scenes: SearchResult,
+    download_config: dict[str, Any],
+    retries: int = 0,
+    *,
+    full_check: bool = False,
+) -> None:
+    """Download scenes and verify that the downloaded ZIP files are not corrupt.
+
+    Scenes that eodag did not deliver and scenes with corrupt downloads, which
+    are removed, are downloaded again up to `retries` times, while the other
+    scenes are not downloaded again.
+
+    :param dag: EODAG gateway
+    :param scenes: EO products to download
+    :param download_config: Keyword arguments for download_all of the gateway
+    :param retries: Number of times failed and corrupt scenes are downloaded again
+    :param full_check: Read and check all data of the ZIP files
+    """
+    pending = scenes
+    for attempt in range(retries + 1):
+        if attempt:
+            gs.warning(
+                _("Retrying to download {} scene(s) ({}/{}).").format(
+                    len(pending),
+                    attempt,
+                    retries,
+                ),
+            )
+        downloaded = []
+        dag.download_all(
+            pending,
+            downloaded_callback=downloaded.append,
+            **download_config,
+        )
+
+        # eodag logs failed downloads but does not raise
+        downloaded_ids = {id(scene) for scene in downloaded}
+        failed = [scene for scene in pending if id(scene) not in downloaded_ids]
+        for scene in failed:
+            gs.warning(
+                _("Download of scene {} failed.").format(scene.properties["title"]),
+            )
+
+        gs.verbose(_("Verifying downloaded scenes..."))
+        corrupt_scenes = []
+        for scene in downloaded:
+            scene_path = location_to_path(scene)
+            zip_file = get_scene_zip(scene_path)
+            if not zip_file:
+                continue
+            problem = check_zip_integrity(
+                zip_file,
+                full=full_check,
+                expected_size=get_expected_size(scene),
+            )
+            if not problem:
+                continue
+            gs.warning(
+                _("Downloaded file <{}> is corrupt: {}").format(zip_file, problem),
+            )
+            remove_corrupt_download(
+                scene_path,
+                zip_file,
+                get_download_record(scene_path.parent, scene),
+            )
+            corrupt_scenes.append(scene)
+        pending = type(scenes)(failed + corrupt_scenes)
+        if not pending:
+            return
+
+    gs.fatal(
+        _("{} scene(s) could not be downloaded completely: {}").format(
+            len(pending),
+            ", ".join(scene.properties["title"] for scene in pending),
+        ),
+    )
+
+
+def skip_existing(output: Path | str, search_result: SearchResult) -> SearchResult:
     """Remove products that are already downloaded and saved in 'output' directory.
 
     :param output: Output directory whose files will be compared with the scenes.
-    :type output: class'eodag.api.search_result.SearchResult'
+    :type output: class'pathlib.Path' | class'str'
 
-    :param search_results: EO products to be checked for existence in 'output' directory.
+    :param search_result: EO products to be checked for existence in 'output' directory.
     :type search_result: class'eodag.api.search_result.SearchResult'
 
     :return: Sorted EO products
     :rtype: class:'eodag.api.search_result.SearchResult'
     """
-    suffixes = {"", ".zip", ".ZIP"}
-
     # Check for previously downloaded scenes
     output = Path(output)
 
     # Check if directory doesn't exist or if it is empty
-
-    if not output.exists() or next(os.scandir(output), None) is None:
+    if not output.exists() or next(output.iterdir(), None) is None:
         gs.verbose(_("Directory '{}' is empty, no scenes to skip").format(output))
         return search_result
     downloaded_dir = output / ".downloaded"
-    if not downloaded_dir.exists() or next(os.scandir(downloaded_dir), None) is None:
+    if not downloaded_dir.exists() or next(downloaded_dir.iterdir(), None) is None:
         gs.verbose(
             _("The `.download` directory in '{}' is empty, no scenes to skip").format(
                 output,
@@ -1052,60 +1459,55 @@ def skip_existing(output, search_result):
         )
         return search_result
 
-    for scene in search_result:
-        for suffix in suffixes:
-            scene_file = output / (scene.properties["title"] + suffix)
-            if scene_file.exists():
-                creation_time = datetime.fromtimestamp(
-                    os.path.getctime(scene_file), tz=timezone.utc
-                ).strftime("%Y-%m-%dT%H:%M:%S")
-                ingestion_time = scene.properties.get(
-                    "modificationDate",
-                    scene.properties.get(
-                        "publicationDate",
-                        scene.properties.get("creationDate"),
+    # Check scenes
+    for scene in list(search_result):
+        for scene_file in find_existing_download(scene, output):
+            creation_time = datetime.fromtimestamp(
+                Path(scene_file).stat().st_ctime,
+                tz=timezone.utc,
+            ).strftime("%Y-%m-%dT%H:%M:%S")
+            ingestion_time = scene.properties.get(
+                "modificationDate",
+                scene.properties.get(
+                    "publicationDate",
+                    scene.properties.get("creationDate"),
+                ),
+            )
+            if not ingestion_time or normalize_time(ingestion_time) > normalize_time(
+                creation_time,
+            ):
+                continue
+            # Queue for download if no record exists or ZIP is corrupt
+            if not get_download_record(output, scene).exists():
+                continue
+            zip_file = get_scene_zip(scene_file)
+            if zip_file and check_zip_integrity(zip_file):
+                gs.warning(
+                    _("Scene {} is corrupt and not skipped.").format(
+                        scene.properties["title"],
                     ),
                 )
-                if ingestion_time and normalize_time(ingestion_time) <= normalize_time(
-                    creation_time,
-                ):
-                    # This is to check that the file was completely downloaded
-                    # without interruptions.
-                    # The reason this works:
-                    # When eodag completely download a scene, it saves a file
-                    # with the scene's remote location
-                    # in `.download`. The name of that file is the MD5 hash of
-                    # the scenes remote location
-                    # so here we are checking for the existance of that file.
-                    product_type_for_hash = getattr(scene, VER["product_type_attr"])
-                    product_id_for_hash = get_product_property(scene, "id")
-
-                    hashed_file = (
-                        downloaded_dir
-                        / md5(
-                            (
-                                product_type_for_hash + "-" + product_id_for_hash
-                            ).encode(),
-                        ).hexdigest()
-                    )
-                    if not hashed_file.exists():
-                        continue
-                    gs.message(
-                        _("Skipping scene: {} which is already downloaded.").format(
-                            scene.properties["title"],
-                        ),
-                    )
-                    search_result.remove(scene)
-                    break
+                continue
+            gs.message(
+                _("Skipping scene: {} which is already downloaded.").format(
+                    scene.properties["title"],
+                ),
+            )
+            search_result.remove(scene)
+            break
     return search_result
 
 
-def save_footprints(search_result, map_name, eodag_api) -> None:
+def save_footprints(
+    search_result: SearchResult,
+    map_name: str,
+    eodag_api: EODataAccessGateway,
+) -> None:
     """Save product-footprints as a vector map in the current mapset.
 
     Reprojection is done on the fly.
 
-    :param search_results: EO products whose footprints are to be saved.
+    :param search_result: EO products whose footprints are to be saved.
     :type search_result: class'eodag.api.search_result.SearchResult'
 
     :param map_name: Footprint name to be used.
@@ -1128,7 +1530,11 @@ def save_footprints(search_result, map_name, eodag_api) -> None:
     )
 
 
-def save_search_result(search_result, file_name, eodag_api) -> None:
+def save_search_result(
+    search_result: SearchResult,
+    file_name: str,
+    eodag_api: EODataAccessGateway,
+) -> None:
     """Save search results to file.
 
     The search result is saved using EODAG serialize method,
@@ -1154,7 +1560,7 @@ def save_search_result(search_result, file_name, eodag_api) -> None:
     eodag_api.serialize(search_result, filename=file_name)
 
 
-def print_eodag_configuration(eodag_api, **kwargs) -> None:
+def print_eodag_configuration(eodag_api: EODataAccessGateway, **kwargs: str) -> None:
     """Print EODAG currently recognized configurations in JSON format.
 
     :param provider: Print the configuration for only the given provider.
@@ -1165,11 +1571,11 @@ def print_eodag_configuration(eodag_api, **kwargs) -> None:
     # Use the wrapper to get the correct providers source (v3 vs v4)
     providers_source = get_eodag_providers(eodag_api)
 
-    def to_dict(obj):
+    def to_dict(obj: Any) -> Any:
         """Recursive helper to convert EODAG objects to serializable dicts."""
         if isinstance(obj, dict):
             return {k: to_dict(v) for k, v in obj.items()}
-        elif hasattr(obj, "__dict__"):
+        if hasattr(obj, "__dict__"):
             # This handles PluginConfig and other EODAG internal objects
             ret_dict = {}
             for key, val in vars(obj).items():
@@ -1177,7 +1583,7 @@ def print_eodag_configuration(eodag_api, **kwargs) -> None:
                 if not key.startswith("_"):
                     ret_dict[key] = to_dict(val)
             return ret_dict
-        elif isinstance(obj, (list, tuple)):
+        if isinstance(obj, (list, tuple)):
             return [to_dict(item) for item in obj]
         return obj
 
@@ -1193,7 +1599,7 @@ def print_eodag_configuration(eodag_api, **kwargs) -> None:
         print(json.dumps(to_dict(providers_source), indent=4))
 
 
-def print_eodag_providers(eodag_api, **kwargs) -> None:
+def print_eodag_providers(eodag_api: EODataAccessGateway, **kwargs: str) -> None:
     """Print providers available in JSON format."""
     product_type = kwargs["producttype"]
     if product_type:
@@ -1208,7 +1614,7 @@ def print_eodag_providers(eodag_api, **kwargs) -> None:
     print(json.dumps({"providers": providers}, indent=4))
 
 
-def print_eodag_products(eodag_api, **kwargs) -> None:
+def print_eodag_products(eodag_api: EODataAccessGateway, **kwargs: str) -> None:
     """Print products available in JSON format."""
     provider = kwargs.get("provider")
     product_type = kwargs.get("producttype")
@@ -1237,7 +1643,7 @@ def print_eodag_products(eodag_api, **kwargs) -> None:
     print(json.dumps({"products": products_to_print}, indent=4))
 
 
-def print_eodag_queryables(eodag_api, **kwargs) -> None:
+def print_eodag_queryables(eodag_api: EODataAccessGateway, **kwargs: str) -> None:
     """Print queryables info for given provider and/or product type in JSON format.
 
     The function extracts metadata (type, default value, and requirement)
@@ -1277,9 +1683,13 @@ def print_eodag_queryables(eodag_api, **kwargs) -> None:
     print(json.dumps(queryables_dict, indent=4))
 
 
-def print_query(geometry, queryables, **kwargs) -> None:
+def print_query(
+    geometry: str,
+    queryables: list[tuple[str, Any]],
+    **kwargs: str,
+) -> None:
     """Print the query parameters that will be used to search for products."""
-    query_dict = {
+    query_dict: dict[str, Any] = {
         "flags": "".join([f for f in flags if flags[f] and f != "p"]),
         "AOI": geometry,
         "provider": kwargs.get("provider") or "ANY",
@@ -1302,7 +1712,7 @@ def print_query(geometry, queryables, **kwargs) -> None:
     print(json.dumps(query_dict, indent=4))
 
 
-def get_time_offset():
+def get_time_offset() -> timedelta:
     """Returns timedelta offset between server and local time. 0 if unreachable."""
     try:
         response = urllib.request.urlopen("https://creodias.eu", timeout=3)
@@ -1318,12 +1728,12 @@ def get_time_offset():
     return timedelta(0)
 
 
-def get_creodias_totp_secret(dag):
+def get_creodias_totp_secret(dag: EODataAccessGateway) -> str | None:
     """Read TOTP seed from EODAG yaml config file."""
     try:
         cfg_file = Path(Path(dag.conf_dir) / "eodag.yml")
         if cfg_file.exists():
-            with open(cfg_file) as f:
+            with Path(cfg_file).open() as f:
                 cfg = yaml.safe_load(f)
             return (
                 cfg.get("creodias", {})
@@ -1367,7 +1777,7 @@ def main() -> None:
         # Only validate if EODAG returned any collections (handles cases without API keys)
         if available_types and options["producttype"] not in available_types:
             gs.fatal(
-                _("Product type <{}> not available.").format(options["producttype"])
+                _("Product type <{}> not available.").format(options["producttype"]),
             )
         elif not available_types:
             gs.warning(_("No collections found. Skipping product type validation."))
@@ -1420,7 +1830,7 @@ def main() -> None:
     elif id_file and id_file.suffix.lower() == ".geojson":
         # Restore search results from GeoJSON
         gs.verbose(
-            _("Reading stored search result from file <{}>").format(options["file"])
+            _("Reading stored search result from file <{}>").format(options["file"]),
         )
         try:
             search_result = dag.deserialize_and_register(options["file"])
@@ -1437,7 +1847,7 @@ def main() -> None:
             search_result = search_by_ids(ids, options, eodag_api=dag)
         except (OSError, UnicodeDecodeError):
             gs.fatal(
-                _("Unable to read product IDs from file <{}>.").format(options["file"])
+                _("Unable to read product IDs from file <{}>.").format(options["file"]),
             )
 
     elif id_file:
@@ -1512,12 +1922,12 @@ def main() -> None:
                         gs.warning(
                             _(
                                 "Local clock is {}s behind the Creodias server. "
-                                "Authentication may fail. Please synchronize your system clock."
-                            ).format(round(offset.total_seconds(), 2))
+                                "Authentication may fail. Please synchronize your system clock.",
+                            ).format(round(offset.total_seconds(), 2)),
                         )
                     adjusted_time = datetime.now() + offset
                     creodias_otp = pyotp.TOTP(totp_secret.replace(" ", "")).at(
-                        adjusted_time
+                        adjusted_time,
                     )
 
                 if not creodias_otp:
@@ -1530,24 +1940,23 @@ def main() -> None:
 
                 if creodias_otp == "-":
                     search_result = SearchResult(
-                        [s for s in search_result if s.provider != "creodias"]
+                        [s for s in search_result if s.provider != "creodias"],
                     )
-                else:
-                    if totp_secret or creodias_otp:
-                        dag.update_providers_config(
-                            yaml_conf=f"""
+                elif totp_secret or creodias_otp:
+                    dag.update_providers_config(
+                        yaml_conf=f"""
 creodias:
     auth:
         credentials:
             totp: "{creodias_otp}"
-"""
-                        )
-                    else:
-                        gs.warning(
-                            _(
-                                "Creodias configuration not found, skipping OTP assignment."
-                            )
-                        )
+""",
+                    )
+                else:
+                    gs.warning(
+                        _(
+                            "Creodias configuration not found, skipping OTP assignment.",
+                        ),
+                    )
 
             if not search_result:
                 gs.message(_("Nothing to download.\nExiting..."))
@@ -1561,7 +1970,49 @@ creodias:
             if options["output"]:
                 custom_config["output_dir"] = options["output"]
 
-            dag.download_all(search_result, **custom_config)
+            # Handle existing data
+            existing = [
+                (scene, paths)
+                for scene in search_result
+                if (paths := find_existing_download(scene, options["output"]))
+            ]
+            if existing and gs.overwrite():
+                for scene, _paths in existing:
+                    remove_existing_download(scene, options["output"])
+            elif existing:
+                titles = []
+                for scene, paths in existing:
+                    title = scene.properties["title"]
+                    for path in paths:
+                        zip_file = get_scene_zip(path)
+                        if zip_file and check_zip_integrity(zip_file):
+                            title += " (corrupt)"
+                            break
+                    titles.append(title)
+                gs.warning(
+                    _(
+                        "{} scene(s) already exist in the download directory and "
+                        "are skipped: {}. This behavior is deprecated. In a future "
+                        "release, i.eodag will exit with an error in this case. "
+                        "Use the -s flag to skip scenes, the --overwrite flag to "
+                        "replace them, or both to replace corrupt or outdated scenes.",
+                    ).format(len(existing), ", ".join(titles)),
+                )
+                skipped = {id(scene) for scene, _paths in existing}
+                search_result = SearchResult(
+                    [scene for scene in search_result if id(scene) not in skipped],
+                )
+                if not search_result:
+                    gs.message(_("Nothing to download.\nExiting..."))
+                    return
+
+            verify_download(
+                dag,
+                search_result,
+                custom_config,
+                retries=int(options["retries"]),
+                full_check=flags["c"],
+            )
 
         except AuthenticationError as e:
             if (
@@ -1572,8 +2023,8 @@ creodias:
                 gs.fatal(
                     _(
                         "Authentication failed due to clock skew ({}s behind server). "
-                        "Please synchronize your system clock."
-                    ).format(round(offset.total_seconds(), 2))
+                        "Please synchronize your system clock.",
+                    ).format(round(offset.total_seconds(), 2)),
                 )
             gs.fatal(_("Authentication failed: {}").format(e))
         except MisconfiguredError as e:

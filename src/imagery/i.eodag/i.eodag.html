@@ -197,6 +197,21 @@ query="cloudCover=30;gt, cloudCover=60;lt, orbitDirection=DESCENDING"
 </pre></div>
 
 <p>
+Date and datetime values
+<p>
+Values in ISO 8601 format (e.g. <code>2026-10-15</code>,
+<code>2026-10-15 00:14:12</code>, <code>2026-10-15T00:14:12Z</code>) are
+compared as datetimes, so the notation (with or without <b>T</b> or time zone)
+does not matter. Values without time zone are interpreted as UTC. If the
+property of a product is not a date, it is compared as a string. A warning is
+printed if an operator other than <b>eq</b> or <b>ne</b> is used in that case.
+<div class="code"><pre>
+i.eodag -l start=2022-05-01 end=2022-06-01 \
+provider=cop_dataspace producttype=S2_MSI_L2A \
+query="modificationDate=2022-05-15 00:14:12;ge, modificationDate=2022-05-20;le"
+</pre></div>
+
+<p>
 Null Values
 <p>
 In some cases, products might have <b>Null</b> as the value of some properties
@@ -238,6 +253,101 @@ query="orbitDirection=DESCENDING|Null"
 NOTE: These queryables are only for reference, and they might not always
 be avaiable for all providers/products.
 
+<h4>Differences between EODAG 3 and EODAG 4</h4>
+<p>
+EODAG 4 renamed most product properties (now STAC names) and changed the format
+of some values. The table lists, for each EODAG 3 queryable, the name in
+EODAG 4 and <b>what changed from EODAG 3 to EODAG 4</b>.
+<ul>
+<li>If you use the <b>EODAG 3 names</b> in the <b>query</b> option,
+<em>i.eodag</em> translates them for EODAG 4 and converts the values back to
+their EODAG 3 format. The same query then works with both versions without
+changes.</li>
+<li>If you use the <b>native EODAG 4 names</b> (e.g. <code>updated</code>,
+<code>grid:code</code>), you have to write the values as EODAG 4 provides them,
+as described in the last column. Such queries do not work with EODAG 3.</li>
+</ul>
+<p>
+The properties printed with the <b>j</b> flag are always those of the EODAG
+version in use. Use them to find the name and value format to use for the
+version you have installed.
+
+<table border="1">
+<thead>
+<tr>
+<th>EODAG 3 queryable</th>
+<th>EODAG 4 property</th>
+<th>What changed from EODAG 3 to EODAG 4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>modificationDate</td><td>updated</td><td>Renamed.</td></tr>
+<tr><td>publicationDate</td><td>published</td><td>Renamed.</td></tr>
+<tr><td>beginningDateTime, startTimeFromAscendingNode</td><td>start_datetime</td><td>Renamed. Do not use <code>cop_dataspace:startTimeFromAscendingNode</code> in EODAG 4: for Sentinel-1 it is a number and not a time.</td></tr>
+<tr><td>endingDateTime, completionTimeFromAscendingNode</td><td>end_datetime</td><td>Renamed.</td></tr>
+<tr><td>tileIdentifier</td><td>grid:code</td><td>Renamed. Value got the prefix <code>MGRS-</code>: <code>32VNM</code> in EODAG 3 is <code>MGRS-32VNM</code> in EODAG 4.</td></tr>
+<tr><td>orbitNumber</td><td>sat:absolute_orbit</td><td>Renamed.</td></tr>
+<tr><td>relativeOrbitNumber</td><td>sat:relative_orbit</td><td>Renamed.</td></tr>
+<tr><td>orbitDirection</td><td>sat:orbit_state</td><td>Renamed.</td></tr>
+<tr><td>cloudCover</td><td>eo:cloud_cover</td><td>Renamed.</td></tr>
+<tr><td>sensorMode</td><td>instrumentMode, sar:instrument_mode, s2:datatake_type</td><td>Renamed, and the name depends on the product (Sentinel-1: <code>sar:instrument_mode</code>, Sentinel-2: <code>s2:datatake_type</code>) and on the provider (<code>instrumentMode</code>). With the EODAG 3 name, the first property that exists is used.</td></tr>
+<tr><td>polarizationChannels</td><td>sar:polarizations</td><td>Renamed. Value changed from a string to a list: <code>VV+VH</code> in EODAG 3 is <code>['VV', 'VH']</code> in EODAG 4. With the EODAG 3 name, the list is joined with <code>+</code>, so keep using <code>VV+VH</code>.</td></tr>
+<tr><td>platformSerialIdentifier</td><td>platform</td><td>Renamed (e.g. <code>S2B</code>). The EODAG 3 queryable <code>platform</code> is not the same, see below.</td></tr>
+<tr><td>processingLevel</td><td>processing:level</td><td>Renamed.</td></tr>
+<tr><td>processorVersion</td><td>processing:version</td><td>Renamed. Value got leading zeros: <code>5.13</code> in EODAG 3 is <code>05.13</code> in EODAG 4 (<code>4.03</code> is <code>004.03</code>). With the EODAG 3 name, the leading zeros are removed.</td></tr>
+<tr><td>storageStatus</td><td>order:status</td><td>Renamed. Values changed: <code>ONLINE</code> is <code>succeeded</code>, <code>STAGING</code> is <code>ordered</code>, <code>OFFLINE</code> is <code>orderable</code>. With the EODAG 3 name, the values are converted to the EODAG 3 values.</td></tr>
+<tr><td>instrument</td><td>instruments</td><td>Renamed. Value changed from a string to a list: <code>MSI</code> in EODAG 3 is <code>['MSI']</code> in EODAG 4. With the EODAG 3 name, the list is joined with <code>,</code>.</td></tr>
+<tr><td>timeliness</td><td>product:timeliness</td><td>Renamed.</td></tr>
+<tr><td>quicklook, thumbnail, downloadLink</td><td>eodag:quicklook, eodag:thumbnail, eodag:download_link</td><td>Renamed.</td></tr>
+<tr><td>datatakeID, instrumentConfigurationID, sliceNumber, totalSlices</td><td>s1:datatake_id, s1:instrument_configuration_ID, s1:slice_number, s1:total_slices</td><td>Renamed (Sentinel-1).</td></tr>
+<tr><td>datastripId, granuleIdentifier, productGroupId</td><td>s2:datastrip_id, s2:tile_id, s2:datatake_id</td><td>Renamed (Sentinel-2).</td></tr>
+<tr><td>cycleNumber, productClass, productComposition, segmentStartTime, sliceProductFlag, sourceProduct, sourceProductOriginDate</td><td>the same name with the prefix <code>cop_dataspace:</code></td><td>Renamed: properties specific to a provider got the provider name as prefix. Only available for provider <em>cop_dataspace</em>.</td></tr>
+</tbody>
+</table>
+
+<p>
+Changes from EODAG 3 to EODAG 4 that are <b>not</b> translated, because the
+properties are not equivalent. Adjust your queries accordingly:
+<ul>
+<li><b>productType</b> is translated to the EODAG 4 <code>collection</code>
+(e.g. <code>S2_MSI_L1C</code>), whereas EODAG 3 holds the product type of the
+provider (e.g. <code>S2MSI1C</code>). Use <code>product:type</code> to query the
+latter with EODAG 4.</li>
+<li><b>platform</b> is the constellation in EODAG 3 (e.g.
+<code>SENTINEL-2</code>) but the satellite in EODAG 4 (e.g. <code>S2B</code>).
+The EODAG 4 equivalent of the EODAG 3 <b>platform</b> is
+<code>constellation</code>, while <b>platformSerialIdentifier</b> (EODAG 3)
+corresponds to <code>platform</code> (EODAG 4).</li>
+<li>Properties like <b>keywords</b>, <b>license</b>, <b>origin</b>,
+<b>abstract</b>, <b>missionStartDate</b>, <b>sensorType</b>,
+<b>modifiedAfter</b>, <b>modifiedBefore</b>, <b>publishedAfter</b> and
+<b>publishedBefore</b> have no equivalent in EODAG 4.</li>
+<li>The options <b>start</b>, <b>end</b>, <b>clouds</b> and <b>producttype</b>
+(e.g. <code>S2_MSI_L1C</code>) are the same with both versions.</li>
+</ul>
+
+
+<h3>Download verification</h3>
+
+<p>
+After downloading, <em>i.eodag</em> checks the size of each ZIP file against the size
+announced by the provider (if known) and that the archive can be opened.
+Together, these detect truncated downloads, which EODAG does not detect itself.
+The <b>c</b> flag additionally verifies the CRC of all archive members, which
+is slow for large files. Corrupt archives and EODAG's download record are removed. The <b>retries</b> option
+sets how often scenes that are corrupt or that EODAG did not deliver are downloaded
+again. The module exits with an error if such scenes remain.
+Extracted scenes are not checked.
+
+<p>
+EODAG does not download scenes again if it finds data of them in the output
+directory. <em>i.eodag</em> therefore skips selected scenes of which data exists
+and prints a warning. This behavior is deprecated: in a future release,
+<em>i.eodag</em> will exit with an error before downloading in this case. Use
+the <b>s</b> flag to skip scenes that are already downloaded and intact, and the
+<b>overwrite</b> flag to replace existing data and the download record (the
+extracted scene only if EODAG is configured to extract). Together, only
+missing, outdated and corrupt scenes are downloaded.
 
 <h3>EODAG configuration</h3>
 
