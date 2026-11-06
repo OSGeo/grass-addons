@@ -135,6 +135,26 @@ def test_skip_existing_checks_every_scene(eodag_module, tmp_path):
     assert result == [scenes[2]]
 
 
+def test_skip_existing_uses_eodag4_property_names(eodag_module, tmp_path, monkeypatch):
+    monkeypatch.setattr(eodag_module, "VER", eodag_module.EODAG_MAP[4])
+    with zipfile.ZipFile(tmp_path / "scene_a.zip", "w") as archive:
+        archive.writestr("a.txt", "A")
+    # EODAG 4 calls modificationDate "updated"
+    scene = SimpleNamespace(
+        collection="S2_MSI_L2A",
+        properties={
+            "id": "scene_a",
+            "title": "scene_a",
+            "updated": "2000-01-01T00:00:00Z",
+        },
+    )
+    record = eodag_module.get_download_record(tmp_path, scene)
+    record.parent.mkdir(exist_ok=True)
+    record.write_text("url")
+
+    assert eodag_module.skip_existing(tmp_path, [scene]) == []
+
+
 def make_scene(name, extract=True):
     return SimpleNamespace(
         product_type="S2_MSI_L2A",
