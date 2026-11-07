@@ -63,7 +63,7 @@ r.histogram map=elevation plot_dimensions=5,4 \
   dpi=100 output=r_histogram_01.png
 ```
 
-![](r_histogram_01.png)
+![Histogram of elevation values](r_histogram_01.png)
 
 To change the appearance of the plot, you can tweak individual elements, but
 also apply a
@@ -76,7 +76,7 @@ r.histogram map=elevation plot_dimensions=5,4 \
   output=r_histogram_02.png
 ```
 
-![](r_histogram_02.png)
+![Histogram of elevation values as percentages, using the ggplot style](r_histogram_02.png)
 
 For a bit more colorfull result, we can draw the histogram with each bar colored
 based on the corresponding `elevation` raster color table. And we can express
@@ -88,8 +88,7 @@ r.histogram -c map=elevation plot_dimensions=5,4 \
   output=r_histogram_03.png
 ```
 
-![](r_histogram_03.png)
-
+![Histogram of elevation values with bars colored by the elevation color table](r_histogram_03.png)
 
 And one last example, let's draw a horizontal histogram with a grid, a reduced
 relative bar width, and a dark background:
@@ -101,7 +100,7 @@ r.histogram -hg map=elevation plot_dimensions=5,4 \
   output=r_histogram_04.png
 ```
 
-![](r_histogram_04.png)
+![Horizontal histogram of elevation values with a grid and dark background](r_histogram_04.png)
 
 ## SEE ALSO
 

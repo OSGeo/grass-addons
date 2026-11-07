@@ -278,21 +278,15 @@ def get_valid_color(color):
 
 
 def check_region_raster_match(raster):
-    """Return whether the current region matches the raster grid."""
-    region = gs.region()
-    raster_region = gs.parse_command("r.info", flags="g", map=raster)
-    return all(
-        [
-            region["rows"] == int(raster_region["rows"]),
-            region["cols"] == int(raster_region["cols"]),
-            region["nsres"] == float(raster_region["nsres"]),
-            region["ewres"] == float(raster_region["ewres"]),
-            region["s"] == float(raster_region["south"]),
-            region["n"] == float(raster_region["north"]),
-            region["e"] == float(raster_region["east"]),
-            region["w"] == float(raster_region["west"]),
-        ]
-    )
+    """Return whether the current region matches the raster's native grid.
+
+    Both sides are queried through g.region (the current region, and the
+    region g.region would set for this raster) and compared.
+    """
+    keys = ["n", "s", "e", "w", "nsres", "ewres", "rows", "cols"]
+    current = gs.parse_command("g.region", flags="up", format="shell")
+    native = gs.parse_command("g.region", flags="up", format="shell", raster=raster)
+    return all(current[key] == native[key] for key in keys)
 
 
 def mask_is_active():
