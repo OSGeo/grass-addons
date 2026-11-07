@@ -8,6 +8,27 @@ and other utilities for loading/saving training data."""
 import numpy as np
 from grass.pygrass.utils import get_mapset_raster
 
+# Estimator names that perform classification; everything else in the
+# catalogue is a regressor. Shared by predefined_estimators() and
+# estimator_family() so the split is defined in one place.
+CLASSIFICATION_ESTIMATORS = frozenset(
+    {
+        "LogisticRegression",
+        "SGDClassifier",
+        "MLPClassifier",
+        "DecisionTreeClassifier",
+        "RandomForestClassifier",
+        "ExtraTreesClassifier",
+        "GradientBoostingClassifier",
+        "HistGradientBoostingClassifier",
+        "GaussianNB",
+        "LinearDiscriminantAnalysis",
+        "QuadraticDiscriminantAnalysis",
+        "SVC",
+        "KNeighborsClassifier",
+    }
+)
+
 
 def get_fullname(name):
     """
@@ -94,11 +115,6 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
         Flag to indicate whether classifier performs classification or
         regression.
     """
-    try:
-        from sklearn.experimental import enable_hist_gradient_boosting
-    except ImportError:
-        pass
-
     from sklearn.linear_model import (
         LogisticRegression,
         LinearRegression,
@@ -116,6 +132,10 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
         ExtraTreesRegressor,
     )
     from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+    from sklearn.ensemble import (
+        HistGradientBoostingClassifier,
+        HistGradientBoostingRegressor,
+    )
     from sklearn.svm import SVC, SVR
     from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
     from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -207,22 +227,18 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
             max_features=p["max_features"],
             random_state=random_state,
         ),
-        "HistGradientBoostingClassifier": GradientBoostingClassifier(
+        "HistGradientBoostingClassifier": HistGradientBoostingClassifier(
             learning_rate=p["learning_rate"],
-            n_estimators=p["n_estimators"],
+            max_iter=p["n_estimators"],
             max_depth=p["max_depth"],
             min_samples_leaf=p["min_samples_leaf"],
-            subsample=p["subsample"],
-            max_features=p["max_features"],
             random_state=random_state,
         ),
-        "HistGradientBoostingRegressor": GradientBoostingRegressor(
+        "HistGradientBoostingRegressor": HistGradientBoostingRegressor(
             learning_rate=p["learning_rate"],
-            n_estimators=p["n_estimators"],
+            max_iter=p["n_estimators"],
             max_depth=p["max_depth"],
             min_samples_leaf=p["min_samples_leaf"],
-            subsample=p["subsample"],
-            max_features=p["max_features"],
             random_state=random_state,
         ),
         "MLPClassifier": MLPClassifier(
@@ -250,26 +266,92 @@ def predefined_estimators(estimator, random_state, n_jobs, p):
     model = estimators[estimator]
 
     # classification or regression
-    if (
-        estimator == "LogisticRegression"
-        or estimator == "SGDClassifier"
-        or estimator == "MLPClassifier"
-        or estimator == "DecisionTreeClassifier"
-        or estimator == "RandomForestClassifier"
-        or estimator == "ExtraTreesClassifier"
-        or estimator == "GradientBoostingClassifier"
-        or estimator == "HistGradientBoostingClassifier"
-        or estimator == "GaussianNB"
-        or estimator == "LinearDiscriminantAnalysis"
-        or estimator == "QuadraticDiscriminantAnalysis"
-        or estimator == "SVC"
-        or estimator == "KNeighborsClassifier"
-    ):
-        mode = "classification"
-    else:
-        mode = "regression"
+    mode = estimator_family(estimator)
 
     return (model, mode)
+
+
+def estimator_classes():
+    """
+    Return a mapping of supported estimator names to their (uninstantiated)
+    scikit-learn classes.
+
+    Used to build default estimator instances, e.g. to read their parameters
+    with get_params() when writing an ensemble configuration template.
+
+    Returns
+    -------
+    dict
+        Estimator name (str) to scikit-learn estimator class.
+    """
+    from sklearn.linear_model import (
+        LogisticRegression,
+        LinearRegression,
+        SGDRegressor,
+        SGDClassifier,
+    )
+    from sklearn.discriminant_analysis import (
+        LinearDiscriminantAnalysis,
+        QuadraticDiscriminantAnalysis,
+    )
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import (
+        RandomForestClassifier,
+        RandomForestRegressor,
+        ExtraTreesClassifier,
+        ExtraTreesRegressor,
+        GradientBoostingClassifier,
+        GradientBoostingRegressor,
+        HistGradientBoostingClassifier,
+        HistGradientBoostingRegressor,
+    )
+    from sklearn.svm import SVC, SVR
+    from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+    from sklearn.neural_network import MLPClassifier, MLPRegressor
+
+    return {
+        "LogisticRegression": LogisticRegression,
+        "LinearRegression": LinearRegression,
+        "SGDClassifier": SGDClassifier,
+        "SGDRegressor": SGDRegressor,
+        "LinearDiscriminantAnalysis": LinearDiscriminantAnalysis,
+        "QuadraticDiscriminantAnalysis": QuadraticDiscriminantAnalysis,
+        "KNeighborsClassifier": KNeighborsClassifier,
+        "KNeighborsRegressor": KNeighborsRegressor,
+        "GaussianNB": GaussianNB,
+        "DecisionTreeClassifier": DecisionTreeClassifier,
+        "DecisionTreeRegressor": DecisionTreeRegressor,
+        "RandomForestClassifier": RandomForestClassifier,
+        "RandomForestRegressor": RandomForestRegressor,
+        "ExtraTreesClassifier": ExtraTreesClassifier,
+        "ExtraTreesRegressor": ExtraTreesRegressor,
+        "GradientBoostingClassifier": GradientBoostingClassifier,
+        "GradientBoostingRegressor": GradientBoostingRegressor,
+        "HistGradientBoostingClassifier": HistGradientBoostingClassifier,
+        "HistGradientBoostingRegressor": HistGradientBoostingRegressor,
+        "SVC": SVC,
+        "SVR": SVR,
+        "MLPClassifier": MLPClassifier,
+        "MLPRegressor": MLPRegressor,
+    }
+
+
+def estimator_family(name):
+    """
+    Return whether an estimator performs classification or regression.
+
+    Parameters
+    ----------
+    name : str
+        Name of a scikit-learn estimator from the supported catalogue.
+
+    Returns
+    -------
+    str
+        'classification' or 'regression'.
+    """
+    return "classification" if name in CLASSIFICATION_ESTIMATORS else "regression"
 
 
 def check_class_weights():

@@ -5,6 +5,8 @@ PGM = r.learn.ml2
 SUBDIRS = rlearnlib \
 	  r.learn.train \
 	  r.learn.predict \
+	  r.learn.assembly \
+	  r.learn.report \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
