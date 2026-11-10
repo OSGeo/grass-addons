@@ -239,13 +239,13 @@ void read_points(struct Map_info *map, struct reg_par *reg,
                     }
                     else {             // 2D layer with z-column:
                         *rz = *z_attr; // set up x coordinate
-                    }                  // end else (2,5D layer)
+                    } // end else (2,5D layer)
 
                     insert_rectangle(3, sid,
                                      point); // R-tree node 3D (just 3D kriging)
                     insert_rectangle(1, sid,
                                      point); // R-tree node 1D (just 3D kriging)
-                }                            // end if rb, rt
+                } // end if rb, rt
 
                 else { // point is out of region:
                     goto out_of_region;

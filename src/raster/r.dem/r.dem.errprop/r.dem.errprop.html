@@ -1,0 +1,135 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.errprop</em> propagates per-source vertical uncertainty into a DEM
+of Difference (DoD) and derives change-significance products from the combined
+uncertainty. It is the analytical core of a DoD workflow: it answers <em>how
+much of the measured elevation change is real</em> rather than measurement
+noise.</p>
+
+<p>Given a DoD raster and one or more uncertainty (1 sigma) rasters, the tool
+combines the uncertainty sources in quadrature:</p>
+
+<pre>
+sigma_DoD = sqrt(sigma_1^2 + sigma_2^2 + ... + sigma_n^2)
+</pre>
+
+<p>Cells where any source is NULL are left NULL, so the propagated uncertainty
+is only defined where every contributing source is defined. Typical sources are
+a vertical-accuracy raster for each input DEM (for example derived from
+land-cover class), plus optional co-registration or interpolation error
+terms.</p>
+
+<p>The <b>sigma_const</b> option adds constant 1-sigma terms (meters) to the
+same quadrature as the <b>sigma</b> rasters. All sigma sources must be
+independent of the DoD being tested: deriving the uncertainty from the DoD
+itself (for example a windowed dispersion of the same map) inflates sigma
+exactly where change is real and suppresses its significance. Use the combined
+sigma from <em>r.dem.lod</em> (<b>output_sigma</b>) or independent error
+budgets.</p>
+
+<p>From the propagated <b>output_sigma</b> the tool can additionally produce:</p>
+
+<ul>
+  <li><b>output_lod</b>: a Level of Detection raster,
+  <code>LoD = z(confidence) * sigma_DoD</code>, where <code>z</code> is the
+  two-tailed normal critical value. Cells of the DoD whose magnitude exceeds the
+  LoD are considered significant change.</li>
+  <li><b>output_zscore</b>: the absolute z-score <code>|DoD| / sigma_DoD</code>
+  (sigma is treated as known, so the statistic is z-based rather than
+  Student-t; the magnitude discards the sign of change).</li>
+  <li><b>output_pvalue</b>: a two-tailed p-value raster, using either a
+  normal approximation (Abramowitz and Stegun 26.2.17, evaluated in
+  <em>r.mapcalc</em>) or a Student-t distribution with <b>df</b> degrees of
+  freedom.</li>
+  <li><b>output_class</b>: a categorical erosion/deposition significance
+  map. Each cell is labeled by the highest confidence level (68/90/95/99%) at
+  which the change exceeds the corresponding LoD, signed by the direction of
+  change.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<p>The categorical output uses signed integer classes:</p>
+
+<table>
+  <tr><th>Class</th><th>Meaning</th><th>Class</th><th>Meaning</th></tr>
+  <tr><td>-4</td><td>Erosion &ge;99%</td><td>1</td><td>Deposition &ge;68%</td></tr>
+  <tr><td>-3</td><td>Erosion &ge;95%</td><td>2</td><td>Deposition &ge;90%</td></tr>
+  <tr><td>-2</td><td>Erosion &ge;90%</td><td>3</td><td>Deposition &ge;95%</td></tr>
+  <tr><td>-1</td><td>Erosion &ge;68%</td><td>4</td><td>Deposition &ge;99%</td></tr>
+  <tr><td>0</td><td>Not significant</td><td></td><td></td></tr>
+</table>
+
+<p>Category labels and a diverging color table are written automatically.</p>
+
+<p>The propagated uncertainty raster pairs naturally with <em>r.dem.change</em>,
+which applies an LoD threshold and reports volumetric change. The
+<b>output_sigma</b> raster can be supplied to <em>r.dem.lod</em> as a
+precomputed uncertainty surface.</p>
+
+<p><b>confidence</b> must be strictly between 0 and 1; the normal critical
+value is infinite at 1 and zero at 0.5.</p>
+
+<p>The tool requires the Python <em>scipy</em> package.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Turn the combined 1-sigma surface from <em>r.dem.lod</em> into significance
+products:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.errprop dod=dod_debiased sigma=sigma_combined \
+    output_sigma=sigma_dod output_lod=lod_95 \
+    output_zscore=zscore output_class=significance confidence=0.95
+</pre></div>
+
+<p>The z-score raster is exactly <code>|DoD| / sigma</code>, and the class raster spans
+-4 to 4 across the four confidence levels in both directions.</p>
+
+<p>The local sigma from <em>r.dem.lod</em> is undefined wherever no stable cell falls
+inside the window, and on this scene that includes the interior of the
+change features. Those cells stay NULL through the propagation, which is
+deliberate: a cell whose uncertainty is unknown is untestable. Where the
+whole map has to be classified, fall back to the flight-wide sigma:</p>
+
+<div class="code"><pre>
+r.mapcalc "sigma_filled = if(isnull(sigma_combined), 0.0890, sigma_combined)"
+
+r.dem.errprop dod=dod_debiased sigma=sigma_filled \
+    output_sigma=sigma_dod output_class=significance
+</pre></div>
+
+<p>Combine several independent uncertainty sources, including constant terms,
+and use a Student-t distribution for the p-value:</p>
+
+<div class="code"><pre>
+r.dem.errprop dod=dod_debiased sigma=sigma_combined,bias_se \
+    sigma_const=0.05 output_sigma=sigma_total \
+    output_pvalue=pvalue pmethod=student df=120
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_errprop_classes.png">
+<img src="r_dem_errprop_classes.png" width="600" alt="r.dem.errprop example" border="0">
+</a><br>
+<i>Figure: z-score and the categorical significance classes at the 68, 90, 95, and 99 percent levels.</i>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.lod.html">r.dem.lod</a></em>,
+<em><a href="r.dem.stats.html">r.dem.stats</a></em>,
+<em><a href="r.mapcalc.html">r.mapcalc</a></em>,
+<em><a href="r.univar.html">r.univar</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

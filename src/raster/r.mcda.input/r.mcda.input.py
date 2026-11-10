@@ -49,7 +49,7 @@
 
 
 import sys
-import grass.script as grass
+import grass.script as gs
 import pdb
 import string
 
@@ -128,33 +128,33 @@ def patch_georules(maps, outputMap):
             if l == "_".join(m.split("_")[1:]):
                 map_synth.append(m)
         if len(map_synth) > 1:
-            grass.run_command(
+            gs.run_command(
                 "r.patch", overwrite="True", input=(",".join(map_synth)), output=l
             )
         else:
-            grass.run_command("g.copy", raster=(str(map_synth), l))
+            gs.run_command("g.copy", raster=(str(map_synth), l))
 
-        grass.run_command(
+        gs.run_command(
             "r.to.vect", overwrite="True", flags="s", input=l, output=l, feature="area"
         )
-        grass.run_command("v.db.addcol", map=l, columns="rule varchar(25)")
-        grass.run_command("v.db.update", map=l, column="rule", value=l)
-        grass.run_command("v.db.update", map=l, column="label", value=l)
+        gs.run_command("v.db.addcol", map=l, columns="rule varchar(25)")
+        gs.run_command("v.db.update", map=l, column="rule", value=l)
+        gs.run_command("v.db.update", map=l, column="label", value=l)
     mapstring = ",".join(labels)
 
     if len(maps) > 1:
-        grass.run_command(
+        gs.run_command(
             "v.patch", overwrite="True", flags="e", input=mapstring, output=outputMap
         )
     else:
-        grass.run_command("g.copy", vector=(mapstring, outputMap))
+        gs.run_command("g.copy", vector=(mapstring, outputMap))
 
 
 def main():
     input_rules = options["input"]
     outputMap = options["output"]
 
-    gregion = grass.region()
+    gregion = gs.region()
     nrows = gregion["rows"]
     ncols = gregion["cols"]
     ewres = int(gregion["ewres"])
@@ -170,7 +170,7 @@ def main():
     for i in range(len(rules)):
         mappa = "r" + rules[i]["id_rule"] + "_" + rules[i]["class"]
         formula = parser_mapcalc(rules, i)
-        grass.mapcalc(mappa + "=" + formula)
+        gs.mapcalc(mappa + "=" + formula)
         maps.append(mappa)
 
     maplist = ",".join(maps)
@@ -178,17 +178,13 @@ def main():
     patch_georules(maps, outputMap)
 
     if not flags["l"]:
-        grass.run_command(
-            "g.remove", flags="f", quiet=True, type="raster", name=maplist
-        )
-        grass.run_command(
-            "g.remove", flags="f", quiet=True, type="vector", name=maplist
-        )
+        gs.run_command("g.remove", flags="f", quiet=True, type="raster", name=maplist)
+        gs.run_command("g.remove", flags="f", quiet=True, type="vector", name=maplist)
 
     input_rules.close()
     return 0
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

@@ -1,5 +1,5 @@
 INFRASTRUCTURE_NOT_REQUIRED = (
-    "Infrastructure is not required " "to derive the 'potential' recreation map."
+    "Infrastructure is not required to derive the 'potential' recreation map."
 )
 COMPUTING_INTERMEDIATE_POTENTIAL_MAP = "\n>>> Computing intermediate potential map"
 COMPUTING_INTERMEDIATE_OPPORTUNITY_MAP = (

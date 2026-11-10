@@ -22,7 +22,6 @@ from . import globalvar
 
 
 class MdDescription:
-
     """Object which is initialzed by jinja template in '{# #}'"""
 
     def __init__(
@@ -120,7 +119,6 @@ class MdDescription:
 
 
 class JinjaTemplateParser:
-
     """Parser of OWSLib tag and init. values of jinjainfo::MdDescription from jinja template."""
 
     def __init__(self, template):
@@ -161,7 +159,6 @@ class JinjaTemplateParser:
         try:
             with open(self.template, "r") as f:
                 for line in f:
-
                     # if found start of comments
                     if str(line).find("{{") != -1:
                         obj = mdutil.findBetween(line, "{{", "}}")

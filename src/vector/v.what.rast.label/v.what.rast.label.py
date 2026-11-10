@@ -97,7 +97,6 @@ def cleanup():
 
 
 def main(options, flags):
-
     # Variables
     raster_cat = options["raster"]
     raster_cat = raster_cat.split(",")
@@ -174,7 +173,6 @@ def main(options, flags):
     # Join table of original layer (and drop label columns)
 
     if flags["o"]:
-
         cols = Module("db.columns", table=tmp_layer, stdout_=PIPE).outputs.stdout.split(
             "\n"
         )

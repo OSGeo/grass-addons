@@ -52,19 +52,17 @@
 
 
 import sys
-import grass.script as gscript
+import grass.script as gs
 from time import time
 
 
 def standardizedNormalizedMatrix(attributes, weights):  # step1 and step2
     criteria = []
     for criterion, weight in zip(attributes, weights):
-        gscript.mapcalc(
-            "critPow=pow(${criterion},2)", criterion=criterion, overwrite="True"
-        )
-        stats = gscript.parse_command("r.univar", map="critPow", flags="g")
+        gs.mapcalc("critPow=pow(${criterion},2)", criterion=criterion, overwrite="True")
+        stats = gs.parse_command("r.univar", map="critPow", flags="g")
         nameMap = "_%s" % criterion
-        gscript.mapcalc(
+        gs.mapcalc(
             "${nameMap}=(${criterion}/sqrt(${sum}))*${weight}",
             nameMap=nameMap,
             criterion=criterion,
@@ -79,7 +77,7 @@ def standardizedNormalizedMatrix(attributes, weights):  # step1 and step2
 def idealPoints(criteria, preference):  # step3
     idelaPointsList = []
     for c, p in zip(criteria, preference):
-        stats = gscript.parse_command("r.univar", map=c, flags="g")
+        stats = gs.parse_command("r.univar", map=c, flags="g")
         if p == "gain":
             ip = float(stats["max"])
         elif p == "cost":
@@ -94,7 +92,7 @@ def idealPoints(criteria, preference):  # step3
 def worstPoints(criteria, preference):
     worstPointsList = []
     for c, p in zip(criteria, preference):
-        stats = gscript.parse_command("r.univar", map=c, flags="g")
+        stats = gs.parse_command("r.univar", map=c, flags="g")
         if p == "gain":
             wp = float(stats["min"])
         elif p == "cost":
@@ -111,7 +109,7 @@ def idealPointDistance(idelaPointsList, criteria):  # step4a
     i = 0
     for c, ip in zip(criteria, idelaPointsList):
         mapname = "tmap_%s" % i
-        gscript.mapcalc(
+        gs.mapcalc(
             "${mapname}=pow((${c}-${ip}),2)",
             mapname=mapname,
             c=c,
@@ -121,8 +119,8 @@ def idealPointDistance(idelaPointsList, criteria):  # step4a
         distance.append(mapname)
         i = i + 1
     mapalgebra2 = "IdealPointDistance=sqrt(%s)" % ("+".join(distance))
-    gscript.mapcalc(mapalgebra2, overwrite="True")
-    gscript.run_command("g.remove", flags="f", type="raster", name=",".join(distance))
+    gs.mapcalc(mapalgebra2, overwrite="True")
+    gs.run_command("g.remove", flags="f", type="raster", name=",".join(distance))
     return 0
 
 
@@ -131,7 +129,7 @@ def worstPointDistance(worstPointsList, criteria):  # step4b
     i = 0
     for c, wp in zip(criteria, worstPointsList):
         mapname = "tmap_%s" % i
-        gscript.mapcalc(
+        gs.mapcalc(
             "${mapname}=pow((${c}-${wp}),2)",
             mapname=mapname,
             c=c,
@@ -141,12 +139,12 @@ def worstPointDistance(worstPointsList, criteria):  # step4b
         distance.append(mapname)
         i = i + 1
     mapalgebra2 = "WorstPointDistance=sqrt(%s)" % ("+".join(distance))
-    gscript.mapcalc(mapalgebra2, overwrite="True")
-    gscript.run_command("g.remove", flags="f", type="raster", name=",".join(distance))
+    gs.mapcalc(mapalgebra2, overwrite="True")
+    gs.run_command("g.remove", flags="f", type="raster", name=",".join(distance))
 
 
 def relativeCloseness(topsismap):  # step5
-    gscript.mapcalc(
+    gs.mapcalc(
         "${topsismap}=WorstPointDistance/(WorstPointDistance+IdealPointDistance)",
         topsismap=topsismap,
         overwrite="True",
@@ -169,8 +167,8 @@ def main():
     idealPointDistance(idelaPointsList, criteria)
     worstPointDistance(worstPointsList, criteria)
     relativeCloseness(topsismap)
-    gscript.run_command("g.remove", flags="f", type="raster", name=",".join(criteria))
-    gscript.run_command(
+    gs.run_command("g.remove", flags="f", type="raster", name=",".join(criteria))
+    gs.run_command(
         "g.remove",
         flags="f",
         type="raster",
@@ -181,5 +179,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

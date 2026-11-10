@@ -17,7 +17,7 @@
 ##############################################################################
 
 # %module
-# % description: Module for calibrating patch characteristics used as input to r.futures.pga
+# % description: Module for calibrating patch characteristics used as input to r.futures.simulation
 # % keyword: raster
 # % keyword: patch
 # %end
@@ -301,7 +301,7 @@ except ImportError:
         """Add a random part to of a specified length to a name (string)
         >>> append_random("tmp", 8)
         >>> append_random("tmp", total_length=16)
-        ..note::
+        .. note::
             This function is copied from grass79.
         """
         if suffix_length and total_length:
@@ -347,7 +347,7 @@ def check_addon_installed(addon, fatal=True):
         call = gcore.fatal if fatal else gcore.warning
         call(
             _(
-                "Addon {a} is not installed." " Please install it using g.extension."
+                "Addon {a} is not installed. Please install it using g.extension."
             ).format(a=addon)
         )
 
@@ -395,13 +395,13 @@ def run_one_combination(
         gcore.message(
             _(
                 "Running calibration combination {comb_count}/{comb_all}"
-                " of simulation attempt {i}/{repeat} with random seed {s}...".format(
-                    comb_count=comb_count,
-                    comb_all=comb_all,
-                    i=i + 1,
-                    repeat=repeat,
-                    s=f_seed,
-                )
+                " of simulation attempt {i}/{repeat} with random seed {s}..."
+            ).format(
+                comb_count=comb_count,
+                comb_all=comb_all,
+                i=i + 1,
+                repeat=repeat,
+                s=f_seed,
             )
         )
         try:
@@ -418,7 +418,9 @@ def run_one_combination(
         except CalledModuleError as e:
             queue.put(None)
             cleanup(tmp=TMP_PROCESS)
-            gcore.error(_("Running r.futures.pga failed. Details: {e}").format(e=e))
+            gcore.error(
+                _("Running r.futures.simulation failed. Details: {e}").format(e=e)
+            )
             return
         new_development(simulation_dev_end, simulation_dev_diff)
 
@@ -490,11 +492,12 @@ def run_simulation(
         "num_steps",
         "incentive_power",
         "subregions_potential",
+        "memory",
     ):
         if fut_options[not_required]:
             parameters.update({not_required: fut_options[not_required]})
 
-    gcore.run_command("r.futures.pga", overwrite=True, **parameters)
+    gcore.run_command("r.futures.simulation", overwrite=True, **parameters)
 
 
 def diff_development(development_start, development_end, subregions, development_diff):

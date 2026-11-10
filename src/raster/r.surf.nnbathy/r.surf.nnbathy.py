@@ -58,7 +58,7 @@
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 
 
 def main():
@@ -68,13 +68,13 @@ def main():
     try:
         from nnbathy import Nnbathy_raster
     except ImportError:
-        grass.fatal(
+        gs.fatal(
             "r.surf.nnbathy requires 'v.surf.nnbathy'. "
             "Please install this module by running:\ng.extension v.surf.nnbathy"
         )
 
-    if not grass.find_file(options["input"], element="cell")["fullname"]:
-        grass.fatal("Raster map <%s> not found" % options["input"])
+    if not gs.find_file(options["input"], element="cell")["fullname"]:
+        gs.fatal("Raster map <%s> not found" % options["input"])
 
     obj = Nnbathy_raster(options)
     obj.compute()
@@ -82,5 +82,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

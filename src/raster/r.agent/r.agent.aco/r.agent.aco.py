@@ -323,7 +323,6 @@ def letantsdance(rounds, outrounds):
 
 
 def main():
-
     try:
         setmaps(
             options["sitesmap"],

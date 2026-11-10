@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
     /* NDVI Max */
     for (row = 0; row < nrows; row++) {
         G_percent(row, nrows, 2);
-        Rast_get_d_row(infd_ndvi, inrast_ndvi, row);
+        Rast_get_row(infd_ndvi, inrast_ndvi, row, data_type_ndvi);
         for (col = 0; col < ncols; col++) {
             switch (data_type_ndvi) {
             case CELL_TYPE:
@@ -501,7 +501,7 @@ int main(int argc, char *argv[])
             Rast_get_row(infd_dem, inrast_dem, row, data_type_dem);
             Rast_get_row(infd_Rn, inrast_Rn, row, data_type_Rn);
             Rast_get_row(infd_g0, inrast_g0, row, data_type_g0);
-            Rast_get_d_row(infd_ndvi, inrast_ndvi, row);
+            Rast_get_row(infd_ndvi, inrast_ndvi, row, data_type_ndvi);
             /*process the data */
             for (col = 0; col < ncols; col++) {
                 switch (data_type_albedo) {

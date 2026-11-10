@@ -2,12 +2,13 @@
 
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
+import grass.script as gs
 
 
 class TestPGA(TestCase):
-
     output = "pga_output"
     result = "result"
+    potential_test = "data/potential_test.csv"
 
     @classmethod
     def setUpClass(cls):
@@ -67,6 +68,7 @@ class TestPGA(TestCase):
             ],
         )
         cls.del_temp_region()
+        gs.try_remove(cls.potential_test)
 
     def tearDown(self):
         self.runModule("g.remove", flags="f", type="raster", name=self.output)
@@ -84,6 +86,44 @@ class TestPGA(TestCase):
             predictors=["slope", "lakes_dist_km", "streets_dist_km"],
             n_dev_neighbourhood=15,
             devpot_params="data/potential.csv",
+            random_seed=1,
+            num_neighbors=4,
+            seed_search="random",
+            development_pressure_approach="gravity",
+            gamma=1.5,
+            scaling_factor=1,
+            subregions="zipcodes",
+            demand="data/demand.csv",
+            output=self.output,
+        )
+        self.assertRastersNoDifference(
+            actual=self.output, reference=self.result, precision=1e-6
+        )
+
+    def test_pga_run_potential_header(self):
+        """Test potential header with (un)qualified names"""
+        mapset = gs.gisenv()["MAPSET"]
+        with open("data/potential.csv", "r") as inp, open(
+            self.potential_test, "w"
+        ) as out:
+            for line in inp:
+                if line.startswith("ID"):
+                    out.write(
+                        f"ID,Intercept,devpressure,slope@{mapset},lakes_dist_km@{mapset},streets_dist_km\n"
+                    )
+                else:
+                    out.write(line)
+        self.assertModule(
+            "r.futures.pga",
+            developed="urban_2002",
+            development_pressure="devpressure",
+            compactness_mean=0.4,
+            compactness_range=0.05,
+            discount_factor=0.1,
+            patch_sizes="data/patches.txt",
+            predictors=[f"lakes_dist_km@{mapset}", "streets_dist_km", "slope"],
+            n_dev_neighbourhood=15,
+            devpot_params=self.potential_test,
             random_seed=1,
             num_neighbors=4,
             seed_search="random",

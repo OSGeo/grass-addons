@@ -79,7 +79,7 @@ double vpdeficit(double rh, double tday)
 
 double rhumidity(double sh, double tday, double patm)
 {
-    /*http://en.wikipedia.org/wiki/Humidity#Specific_humidity
+    /* https://en.wikipedia.org/wiki/Humidity#Specific_humidity
     Output  [0.0-1.0]*/
     e_sat = esat(tday);
     /*printf("e_sat\t=%f\t[Pa]\n",e_sat);*/

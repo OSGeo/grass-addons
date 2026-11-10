@@ -45,14 +45,12 @@
 import sys
 import os
 import atexit
-import grass.script as gscript
+import grass.script as gs
 from grass.script.utils import separator
 
 
 def cleanup():
-    gscript.run_command(
-        "g.remove", flags="f", type="vector", pat=tempmapname, quiet=True
-    )
+    gs.run_command("g.remove", flags="f", type="vector", pat=tempmapname, quiet=True)
 
 
 def main():
@@ -68,7 +66,7 @@ def main():
     # TODO: automatically determine the first available layer in file
     blayer = player + 1
 
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input=input,
         output=tempmapname,
@@ -78,7 +76,7 @@ def main():
         quiet=True,
         overwrite=True,
     )
-    vtodb_results = gscript.read_command(
+    vtodb_results = gs.read_command(
         "v.to.db",
         flags="p",
         map=tempmapname,
@@ -116,7 +114,7 @@ def main():
             # again and again to get the id
             if currentcat != pair[0]:
                 currentcat = pair[0]
-                fromid = gscript.read_command(
+                fromid = gs.read_command(
                     "v.db.select",
                     map=input,
                     column=idcolumn,
@@ -125,7 +123,7 @@ def main():
                     flags="c",
                     quiet=True,
                 ).rstrip()
-            toid = gscript.read_command(
+            toid = gs.read_command(
                 "v.db.select",
                 map=input,
                 column=idcolumn,
@@ -150,6 +148,6 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

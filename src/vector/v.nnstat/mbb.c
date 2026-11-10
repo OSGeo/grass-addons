@@ -310,7 +310,7 @@ bool AddOne(tVertex p)
     tFace f;
     tEdge e, temp;
     long int vol;
-    bool vis = FALSE;
+    bool vis = false;
 
     /* Mark faces visible from p. */
     f = faces;
@@ -319,7 +319,7 @@ bool AddOne(tVertex p)
 
         if (vol < 0) {
             f->visible = VISIBLE;
-            vis = TRUE;
+            vis = true;
         }
         f = f->next;
     } while (f != faces);
@@ -327,7 +327,7 @@ bool AddOne(tVertex p)
     /* If no faces are visible from p, then p is inside the hull. */
     if (!vis) {
         p->onhull = !ONHULL;
-        return FALSE;
+        return false;
     }
 
     /* Mark edges in interior of visible region for deletion.
@@ -343,7 +343,7 @@ bool AddOne(tVertex p)
             e->newface = MakeConeFace(e, p);
         e = temp;
     } while (e != edges);
-    return TRUE;
+    return true;
 }
 
 /*---------------------------------------------------------------------

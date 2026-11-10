@@ -1,17 +1,18 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.info.iso</em> creates metadata of vector maps according
-to <a href="http://www.iso.org/iso/catalogue_detail.htm?csnumber=26020">ISO
+to <a href="https://www.iso.org/standard/26020.html">ISO
     19115</a>.
 
 <p>
-    The module also allows conversion of metadata from native GRASS GIS format
+    The module also allows conversion of metadata from native GRASS format
     to ISO-based format.
+</p>
 
 <h2>NOTES</h2>
 
 For dependencies and installation instructions see
-<a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+<a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
 
 <h3>Naming of metadata files and storage</h3>
 
@@ -26,6 +27,7 @@ maps <em>vector</em>. File ends with <em>.xml</em> extension.
 <p>
     For example default metadata file name for raster map
     &quot;basins&quot; is <em>vector_basins.xml</em>.
+</p>
 
 <h3>Metadata profile</h3>
 
@@ -40,7 +42,6 @@ string <tt>'$NULL'</tt>. This rule applies to both profiles.
 
 
 <h2>EXAMPLES</h2>
-
 Export metadata using <i>basic</i> profile (default):
 
 <div class="code"><pre>
@@ -65,12 +66,13 @@ v.info.iso map=basins profile=inspire
 </em>
 
 <p>
-    See also related <a href="http://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+    See also related <a href="https://grasswiki.osgeo.org/wiki/ISO/INSPIRE_Metadata_Support">wiki page</a>.
+</p>
 
 
 <h2>AUTHORS</h2>
 
-Matej Krejci, <a href="http://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
+Matej Krejci, <a href="https://geo.fsv.cvut.cz/gwiki/osgeorel">OSGeoREL</a>
 at the Czech Technical University in Prague, developed
-during <a href="http://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
+during <a href="https://trac.osgeo.org/grass/wiki/GSoC/2014/MetadataForGRASS">Google
     Summer of Code 2014</a> (mentors: Margherita Di Leo, Martin Landa)

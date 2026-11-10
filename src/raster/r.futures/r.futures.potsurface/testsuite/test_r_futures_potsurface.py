@@ -5,7 +5,6 @@ from grass.gunittest.main import test
 
 
 class TestPotential(TestCase):
-
     output = "suitability"
     result = "result"
 

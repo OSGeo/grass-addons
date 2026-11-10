@@ -110,7 +110,7 @@ COPYRIGHT: (C) 2014 by the GRASS Development Team
 
 import sys
 import os
-import grass.script as grass
+import grass.script as gs
 import math
 from numpy import array
 from numpy import zeros
@@ -146,7 +146,7 @@ def main():
     d_day = options["day"]
     d_year = options["year"]
     saved_region = prefix + "_region_ori"
-    current_region = grass.region()
+    current_region = gs.region()
     X = float(regext)
     N = current_region["n"]
     S = current_region["s"]
@@ -158,71 +158,71 @@ def main():
     global tmp
 
     ## check if r.sun.hourly addon is installed
-    if not grass.find_program("r.sun.hourly", "--help"):
-        grass.fatal(
+    if not gs.find_program("r.sun.hourly", "--help"):
+        gs.fatal(
             _("The 'r.sun.hourly' addon was not found, install it first:")
             + "\n"
             + "g.extension r.sun.hourly"
         )
 
     # Region settings
-    grass.message("Current region will be saved and extended.")
-    grass.message("----")
+    gs.message("Current region will be saved and extended.")
+    gs.message("----")
 
     # Print and save current region
-    grass.message("Current region:")
-    grass.message("n, s, e, w")
-    grass.message([current_region[key] for key in "nsew"])
-    grass.run_command("g.region", save=saved_region, overwrite=True)
-    grass.message("Current region saved.")
-    grass.message("----")
+    gs.message("Current region:")
+    gs.message("n, s, e, w")
+    gs.message([current_region[key] for key in "nsew"])
+    gs.run_command("g.region", save=saved_region, overwrite=True)
+    gs.message("Current region saved.")
+    gs.message("----")
 
     # does vector map exist in CURRENT mapset?
-    mapset = grass.gisenv()["MAPSET"]
-    exists = bool(grass.find_file(v_habitat, element="vector", mapset=mapset)["file"])
+    mapset = gs.gisenv()["MAPSET"]
+    exists = bool(gs.find_file(v_habitat, element="vector", mapset=mapset)["file"])
     if not exists:
-        grass.fatal(_("Vector map <%s> not found in current mapset") % v_habitat)
+        gs.fatal(_("Vector map <%s> not found in current mapset") % v_habitat)
 
     # Align region to elevation raster and habitat vector
-    grass.message("Align region to elevation raster and habitat vector ...")
-    grass.run_command(
+    gs.message("Align region to elevation raster and habitat vector ...")
+    gs.run_command(
         "g.region", flags="a", rast=r_elevation, vect=v_habitat, align=r_elevation
     )
-    grass.message("Alignment done.")
+    gs.message("Alignment done.")
 
-    aligned_region = grass.region()
+    aligned_region = gs.region()
     Naligned = aligned_region["n"]
     Saligned = aligned_region["s"]
     Ealigned = aligned_region["e"]
     Waligned = aligned_region["w"]
 
-    grass.message("Aligned region:")
-    grass.message("n, s, e, w")
-    grass.message([aligned_region[key] for key in "nsew"])
-    grass.message("----")
+    gs.message("Aligned region:")
+    gs.message("n, s, e, w")
+    gs.message([aligned_region[key] for key in "nsew"])
+    gs.message("----")
 
     # Extend region
-    grass.message("Extend region by")
-    grass.message(regext)
-    grass.message("in all directions")
+    gs.message("Extend region by")
+    gs.message(regext)
+    gs.message("in all directions")
 
-    grass.run_command(
+    gs.run_command(
         "g.region", n=Naligned + X, s=Saligned - X, e=Ealigned + X, w=Waligned - X
     )
-    grass.message("Region extension done.")
+    gs.message("Region extension done.")
 
-    extended_region = grass.region()
+    extended_region = gs.region()
 
-    grass.message("Extended region:")
-    grass.message("n, s, e, w")
-    grass.message([extended_region[key] for key in "nsew"])
-    grass.message("----")
+    gs.message("Extended region:")
+    gs.message("n, s, e, w")
+    gs.message([extended_region[key] for key in "nsew"])
+    gs.message("----")
 
     # Watershed calculation: accumulation, drainage direction, topographic index
-    grass.message(
+    gs.message(
         "Calculation of accumulation, drainage direction, topographic index by r.watershed ..."
     )
-    grass.run_command(
+    gs.run_command(
         "r.watershed",
         elevation=r_elevation,
         accumulation=r_accumulation,
@@ -232,35 +232,31 @@ def main():
         flags="am",
         overwrite=True,
     )
-    grass.message("Calculation of accumulation, drainage direction, topographic done.")
-    grass.message("----")
+    gs.message("Calculation of accumulation, drainage direction, topographic done.")
+    gs.message("----")
 
     # Calculation of slope and aspect maps
-    grass.message("Calculation of slope and aspect by r.slope.aspect ...")
-    grass.run_command(
+    gs.message("Calculation of slope and aspect by r.slope.aspect ...")
+    gs.run_command(
         "r.slope.aspect",
         elevation=r_elevation,
         slope=r_slope,
         aspect=r_aspect,
         overwrite=True,
     )
-    grass.message("Calculation of slope and aspect done.")
-    grass.message("----")
+    gs.message("Calculation of slope and aspect done.")
+    gs.message("----")
 
     # Calculate pixel area by nsres x ewres
-    grass.message("Pixel area:")
-    grass.message(PixelArea)
-    grass.message("----")
+    gs.message("Pixel area:")
+    gs.message(PixelArea)
+    gs.message("----")
 
     # Calculate habitat area and populate it to the attribute table
-    grass.message(
-        "Calculate habitat's areas and populate it to the attribute table ..."
-    )
-    grass.run_command(
-        "v.db.addcolumn", map=v_habitat, layer=1, columns="habarea double"
-    )
+    gs.message("Calculate habitat's areas and populate it to the attribute table ...")
+    gs.run_command("v.db.addcolumn", map=v_habitat, layer=1, columns="habarea double")
 
-    grass.run_command(
+    gs.run_command(
         "v.to.db",
         map=v_habitat,
         option="area",
@@ -269,12 +265,12 @@ def main():
         overwrite=True,
     )
 
-    grass.message("Calculate habitat's areas done.")
-    grass.message("----")
+    gs.message("Calculate habitat's areas done.")
+    gs.message("----")
 
     # Show habitat areas smaller than Pixel Area
-    grass.message("Habitat areas smaller than pixel area.")
-    grass.run_command(
+    gs.message("Habitat areas smaller than pixel area.")
+    gs.run_command(
         "v.db.select",
         map=v_habitat,
         format="vertical",
@@ -285,7 +281,7 @@ def main():
 
     smallareacsv = os.path.join(directory, f_habitat_small_areas)
 
-    grass.run_command(
+    gs.run_command(
         "v.db.select",
         map=v_habitat,
         format="vertical",
@@ -295,19 +291,19 @@ def main():
         where="habarea < %s" % (PixelArea),
     )
 
-    grass.message("A list of habitat areas smaller than pixel area can be found in: ")
-    grass.message(smallareacsv)
-    grass.message("----")
+    gs.message("A list of habitat areas smaller than pixel area can be found in: ")
+    gs.message(smallareacsv)
+    gs.message("----")
 
     # Mark habitats smaller than pixel area in attribute table
-    grass.message("Mark habitats smaller than pixel area in attribute table ...")
-    grass.run_command(
+    gs.message("Mark habitats smaller than pixel area in attribute table ...")
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_smallarea varchar(1)" % prefix,
     )
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -315,14 +311,14 @@ def main():
         value="*",
         where="habarea < %s" % (PixelArea),
     )
-    grass.message("See column")
-    grass.message("%s_smallarea" % prefix)
-    grass.message("marked by *.")
-    grass.message("----")
+    gs.message("See column")
+    gs.message("%s_smallarea" % prefix)
+    gs.message("marked by *.")
+    gs.message("----")
 
     # Upload DEM zonal statistics to the attribute table
-    grass.message("Upload DEM zonal statistics to the attribute table ...")
-    grass.run_command(
+    gs.message("Upload DEM zonal statistics to the attribute table ...")
+    gs.run_command(
         "v.rast.stats",
         map=v_habitat,
         flags="c",
@@ -331,12 +327,12 @@ def main():
         column_prefix=prefix + "_dem",
         method="minimum,maximum,range,average,median",
     )
-    grass.message("Upload DEM zonal statistics done.")
-    grass.message("----")
+    gs.message("Upload DEM zonal statistics done.")
+    gs.message("----")
 
     # Upload slope zonal statistics to the attribute table
-    grass.message("Upload slope zonal statistics to the attribute table ...")
-    grass.run_command(
+    gs.message("Upload slope zonal statistics to the attribute table ...")
+    gs.run_command(
         "v.rast.stats",
         map=v_habitat,
         flags="c",
@@ -345,12 +341,12 @@ def main():
         column_prefix=prefix + "_slope",
         method="minimum,maximum,range,average,median",
     )
-    grass.message("Upload slope zonal statistics done.")
-    grass.message("----")
+    gs.message("Upload slope zonal statistics done.")
+    gs.message("----")
 
     # Upload slope zonal statistics to the attribute table
-    grass.message("Upload aspect zonal statistics to the attribute table ...")
-    grass.run_command(
+    gs.message("Upload aspect zonal statistics to the attribute table ...")
+    gs.run_command(
         "v.rast.stats",
         map=v_habitat,
         flags="c",
@@ -359,24 +355,24 @@ def main():
         column_prefix=prefix + "_aspect",
         method="minimum,maximum,range,average,median",
     )
-    grass.message("Upload aspect zonal statistics done.")
-    grass.message("----")
+    gs.message("Upload aspect zonal statistics done.")
+    gs.message("----")
 
     # Do some simple checks	regarding aspect range
-    grass.message(
+    gs.message(
         "Do some simple checks regarding aspect range and populate it to the attribute table..."
     )
-    grass.message("aspect range 100-200 *")
-    grass.message("aspect range 201-300 **")
-    grass.message("aspect range >= 300 ***")
-    grass.run_command(
+    gs.message("aspect range 100-200 *")
+    gs.message("aspect range 201-300 **")
+    gs.message("aspect range >= 300 ***")
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s varchar(3)" % (prefix + "_check_aspect_range"),
     )
 
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='*' WHERE %s < 200 AND %s >= 100"
         % (
@@ -386,7 +382,7 @@ def main():
             prefix + "_aspect_range",
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='**' WHERE %s < 300 AND %s >= 200"
         % (
@@ -396,30 +392,30 @@ def main():
             prefix + "_aspect_range",
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='***' WHERE %s >= 300"
         % (v_habitat, prefix + "_check_aspect_range", prefix + "_aspect_range"),
     )
 
-    grass.message("Simple checks regarding aspect range done.")
-    grass.message("----")
+    gs.message("Simple checks regarding aspect range done.")
+    gs.message("----")
 
     # Do some simple checks	regarding aspect and and slope
-    grass.message(
+    gs.message(
         "Do some simple checks regarding aspect range and slope median and populate it to the attribute table..."
     )
-    grass.message("aspect range 100-200 and median slope < 5 *")
-    grass.message("aspect range 201-300 and median slope < 5 **")
-    grass.message("aspect range >= 300 and median slope < 5 ***")
-    grass.run_command(
+    gs.message("aspect range 100-200 and median slope < 5 *")
+    gs.message("aspect range 201-300 and median slope < 5 **")
+    gs.message("aspect range >= 300 and median slope < 5 ***")
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s varchar(3)" % (prefix + "_check_aspect_slope"),
     )
 
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='*' WHERE (%s < 200 AND %s >= 100) AND %s < 5"
         % (
@@ -430,7 +426,7 @@ def main():
             prefix + "_slope_median",
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='**' WHERE (%s < 300 AND %s >= 200) AND %s < 5"
         % (
@@ -441,7 +437,7 @@ def main():
             prefix + "_slope_median",
         ),
     )
-    grass.run_command(
+    gs.run_command(
         "db.execute",
         sql="UPDATE %s SET %s ='***' WHERE %s >= 300 AND %s < 5"
         % (
@@ -452,12 +448,12 @@ def main():
         ),
     )
 
-    grass.message("Simple checks regarding aspect range and median slope done.")
-    grass.message("----")
+    gs.message("Simple checks regarding aspect range and median slope done.")
+    gs.message("----")
 
     # Do some simple checks	regarding aspect and and slope
-    grass.message("Convert habitat vector to raster ...")
-    grass.run_command(
+    gs.message("Convert habitat vector to raster ...")
+    gs.run_command(
         "v.to.rast",
         input=v_habitat,
         layer=1,
@@ -466,12 +462,12 @@ def main():
         attrcolumn=v_column,
         output=r_habitat,
     )
-    grass.message("Conversion done.")
-    grass.message("----")
+    gs.message("Conversion done.")
+    gs.message("----")
 
     # Calculate the most common geomorphons
-    grass.message("Calculate the most common geomorphons ...")
-    grass.run_command(
+    gs.message("Calculate the most common geomorphons ...")
+    gs.run_command(
         "r.geomorphon",
         elevation=r_elevation,
         skip=0,
@@ -480,35 +476,33 @@ def main():
         dist=0,
         forms=r_geomorphon,
     )
-    grass.message("Geomorphon calculations done.")
-    grass.message("----")
+    gs.message("Geomorphon calculations done.")
+    gs.message("----")
 
     # Mutual occurrence (coincidence) of categories of habitats and geomorphons
-    grass.message("Calculate mutual occurrences of habitats and geomorphons ...")
-    grass.message("1 - flat")
-    grass.message("2 - summit")
-    grass.message("3 - ridge")
-    grass.message("4 - shoulder")
-    grass.message("5 - spur")
-    grass.message("6 - slope")
-    grass.message("7 - hollow")
-    grass.message("8 - footslope")
-    grass.message("9 - valley")
-    grass.message("10 - depression")
-    grass.message(" ")
-    grass.message("Mutual occurrence in percent of the row")
-    grass.run_command(
-        "r.coin", first=r_habitat, second=r_geomorphon, flags="w", units="y"
-    )
-    grass.message("Calculations of mutual occurrences done.")
-    grass.message("----")
+    gs.message("Calculate mutual occurrences of habitats and geomorphons ...")
+    gs.message("1 - flat")
+    gs.message("2 - summit")
+    gs.message("3 - ridge")
+    gs.message("4 - shoulder")
+    gs.message("5 - spur")
+    gs.message("6 - slope")
+    gs.message("7 - hollow")
+    gs.message("8 - footslope")
+    gs.message("9 - valley")
+    gs.message("10 - depression")
+    gs.message(" ")
+    gs.message("Mutual occurrence in percent of the row")
+    gs.run_command("r.coin", first=r_habitat, second=r_geomorphon, flags="w", units="y")
+    gs.message("Calculations of mutual occurrences done.")
+    gs.message("----")
 
     # Join geomorphons to habitat attribute table
-    grass.message("Join geomorphon information to habitat attribute table ....")
+    gs.message("Join geomorphon information to habitat attribute table ....")
 
     habgeocsv = os.path.join(directory, f_habitat_geomorphons)
 
-    grass.run_command(
+    gs.run_command(
         "r.stats",
         input=[r_habitat, r_geomorphon],
         flags="aln",
@@ -516,19 +510,19 @@ def main():
         output=habgeocsv,
     )
 
-    grass.run_command("db.in.ogr", input=habgeocsv, output=t_habitat_geomorphons)
+    gs.run_command("db.in.ogr", input=habgeocsv, output=t_habitat_geomorphons)
 
-    grass.run_command(
+    gs.run_command(
         "db.dropcolumn", table=t_habitat_geomorphons, column="field_2", flags="f"
     )
 
-    grass.run_command(
+    gs.run_command(
         "db.dropcolumn", table=t_habitat_geomorphons, column="field_3", flags="f"
     )
 
     habgeocsv_pivot = os.path.join(directory, f_habitat_geomorphons_pivot)
 
-    grass.run_command(
+    gs.run_command(
         "db.select",
         separator=";",
         output=habgeocsv_pivot,
@@ -536,86 +530,86 @@ def main():
         % t_habitat_geomorphons,
     )
 
-    grass.run_command(
+    gs.run_command(
         "db.in.ogr", input=habgeocsv_pivot, output=t_habitat_geomorphons_pivot
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.join",
         map=v_habitat,
         column=v_column,
         other_table=t_habitat_geomorphons_pivot,
         other_column="field_1",
     )
-    grass.message("Geomorphon information joint to habitat attribute table.")
-    grass.message("...")
-    grass.message("Calculating percent geomorphon of habitat area ...")
+    gs.message("Geomorphon information joint to habitat attribute table.")
+    gs.message("...")
+    gs.message("Calculating percent geomorphon of habitat area ...")
     # add column for percent geomorphon
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_flat double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_summit double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_ridge double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_shoulder double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_spur double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_slope double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_hollow double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_footslope double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
         columns="%s_perc_valley double precision" % prefix,
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.addcolumn",
         map=v_habitat,
         layer=1,
@@ -624,7 +618,7 @@ def main():
 
     # calculate percent geomorphon
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -632,7 +626,7 @@ def main():
         query_column="cast(flat AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -640,7 +634,7 @@ def main():
         query_column="cast(summit AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -648,7 +642,7 @@ def main():
         query_column="cast(ridge AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -656,7 +650,7 @@ def main():
         query_column="cast(shoulder AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -664,7 +658,7 @@ def main():
         query_column="cast(spur AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -672,7 +666,7 @@ def main():
         query_column="cast(slope AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -680,7 +674,7 @@ def main():
         query_column="cast(hollow AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -688,7 +682,7 @@ def main():
         query_column="cast(footslope AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -696,7 +690,7 @@ def main():
         query_column="cast(valley AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.run_command(
+    gs.run_command(
         "v.db.update",
         map=v_habitat,
         layer=1,
@@ -704,25 +698,25 @@ def main():
         query_column="cast(depression AS real) / cast( SubTotal AS real) * 100.0",
     )
 
-    grass.message(" ")
-    grass.message("Calculating of percent geomorphon of habitat area done.")
-    grass.message("----")
+    gs.message(" ")
+    gs.message("Calculating of percent geomorphon of habitat area done.")
+    gs.message("----")
 
     # Give information where output files are
-    grass.message("Geomorphon information:")
-    grass.message(habgeocsv)
-    grass.message("Geomorphon information in pivot format:")
-    grass.message(habgeocsv_pivot)
-    grass.message("----")
+    gs.message("Geomorphon information:")
+    gs.message(habgeocsv)
+    gs.message("Geomorphon information in pivot format:")
+    gs.message(habgeocsv_pivot)
+    gs.message("----")
 
     # Calculate LS factor see Neteler & Mitasova 2008. Open Source GIS - A GRASS GIS Approach
-    grass.message("Calculate LS factor ...")
-    grass.run_command(
+    gs.message("Calculate LS factor ...")
+    gs.run_command(
         "r.flow", elevation=r_elevation, aspect=r_aspect, flowaccumulation=r_flow_accum
     )
 
-    grass.message("...")
-    grass.mapcalc(
+    gs.message("...")
+    gs.mapcalc(
         "$outmap = 1.4 * exp($flowacc * $resolution / 22.1, 0.4) * exp(sin($slope) / 0.09, 1.2)",
         outmap=r_LS,
         flowacc=r_flow_accum,
@@ -741,16 +735,16 @@ def main():
         writer.writerow(["50 magenta"])
         writer.writerow(["100 violet"])
 
-    grass.run_command("r.colors", map=r_LS, rules=ls_color_rules_out)
+    gs.run_command("r.colors", map=r_LS, rules=ls_color_rules_out)
 
-    grass.message("Calculation LS factor done.")
-    grass.message("----")
+    gs.message("Calculation LS factor done.")
+    gs.message("----")
 
     # Run r.sun.hourly in binary mode for light/shadow
-    grass.message(
+    gs.message(
         "Run r.sun.hourly in binary mode for light/shadow for a certain day in the year ..."
     )
-    grass.run_command(
+    gs.run_command(
         "r.sun.hourly",
         elevation=r_elevation,
         flags="tb",
@@ -763,40 +757,40 @@ def main():
         beam_rad_basename=r_beam_rad,
     )
 
-    grass.message("----")
-    grass.message("Light/shadow conditions calculated for year")
-    grass.message(d_year)
-    grass.message("and day")
-    grass.message(d_day)
-    grass.message("from")
-    grass.message(d_start_time)
-    grass.message("to")
-    grass.message(d_end_time)
-    grass.message("done.")
-    grass.message("----")
-    grass.run_command("t.info", flags="h", input=r_beam_rad)
-    grass.message("----")
+    gs.message("----")
+    gs.message("Light/shadow conditions calculated for year")
+    gs.message(d_year)
+    gs.message("and day")
+    gs.message(d_day)
+    gs.message("from")
+    gs.message(d_start_time)
+    gs.message("to")
+    gs.message(d_end_time)
+    gs.message("done.")
+    gs.message("----")
+    gs.run_command("t.info", flags="h", input=r_beam_rad)
+    gs.message("----")
 
     # Set region to original
-    grass.message("Restore original region settings:")
-    grass.run_command("g.region", flags="p", region=saved_region)
-    grass.message("----")
+    gs.message("Restore original region settings:")
+    gs.run_command("g.region", flags="p", region=saved_region)
+    gs.message("----")
 
     # clean up some temporay files and maps
-    grass.message("Some clean up ...")
-    grass.run_command("g.remove", flags="f", type="region", name=saved_region)
-    grass.run_command("g.remove", flags="f", type="raster", name=r_flow_accum)
-    grass.run_command("g.remove", flags="f", type="raster", name=r_habitat)
-    grass.run_command("db.droptable", flags="f", table=t_habitat_geomorphons)
-    grass.run_command("db.droptable", flags="f", table=t_habitat_geomorphons_pivot)
-    grass.run_command("db.dropcolumn", flags="f", table=v_habitat, column="field_1")
-    grass.message("Clean up done.")
-    grass.message("----")
+    gs.message("Some clean up ...")
+    gs.run_command("g.remove", flags="f", type="region", name=saved_region)
+    gs.run_command("g.remove", flags="f", type="raster", name=r_flow_accum)
+    gs.run_command("g.remove", flags="f", type="raster", name=r_habitat)
+    gs.run_command("db.droptable", flags="f", table=t_habitat_geomorphons)
+    gs.run_command("db.droptable", flags="f", table=t_habitat_geomorphons_pivot)
+    gs.run_command("db.dropcolumn", flags="f", table=v_habitat, column="field_1")
+    gs.message("Clean up done.")
+    gs.message("----")
 
     # v.habitat.dem done!
-    grass.message("v.habitat.dem done!")
+    gs.message("v.habitat.dem done!")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

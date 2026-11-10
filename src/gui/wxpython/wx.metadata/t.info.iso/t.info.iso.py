@@ -35,11 +35,11 @@ This program is free software under the GNU General Public License
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 import grass.temporal as tgis
 from grass.script import parser
 
-grass.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
+gs.utils.set_path(modulename="wx.metadata", dirname="mdlib", path="..")
 
 
 def main():
@@ -63,12 +63,12 @@ def main():
     if name.find("@") >= 0:
         id_ = name
     else:
-        id_ = "{}@{}".format(name, grass.gisenv()["MAPSET"])
+        id_ = "{}@{}".format(name, gs.gisenv()["MAPSET"])
 
     dataset = tgis.dataset_factory(type_, id_)
 
     if not dataset.is_in_db(dbif):
-        grass.fatal(
+        gs.fatal(
             _("Dataset <%s> not found in temporal database") % (id_),
         )
 

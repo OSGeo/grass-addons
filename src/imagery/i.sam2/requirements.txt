@@ -1,0 +1,4 @@
+Pillow>=10.2.0
+numpy>=1.26.1
+torch>=2.5.1
+segment-geospatial>=0.12.3

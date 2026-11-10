@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include <grass/vector.h>
@@ -35,8 +36,8 @@ struct points {
 };
 
 struct nna_par {
-    int i3;     // TRUE = 3D NNA, FALSE = 2D NNA (user sets by flag)
-    char v3;    // TRUE = 3D layer, FALSE = 2D layer (according to Vect_is_3d())
+    int i3;     // true = 3D NNA, false = 2D NNA (user sets by flag)
+    char v3;    // true = 3D layer, false = 2D layer (according to Vect_is_3d())
     char *zcol; // not NULL if 3D NNA using 2D layer is required
 };
 

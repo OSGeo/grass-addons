@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     module->description = _("Performs mass-preserving area interpolation.");
 
     in_opt = G_define_standard_option(G_OPT_V_INPUT);
-    in_opt->label = _("Name of input vector point map");
+    in_opt->label = _("Name of input vector area map");
 
     w_opt = G_define_standard_option(G_OPT_R_INPUT);
     w_opt->label = _("Name of optional weighing raster map");

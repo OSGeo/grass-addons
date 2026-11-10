@@ -1,0 +1,78 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.dod</em> computes a DEM of Difference (DoD),
+<code>output = dem - reference</code>, on the current computational region.
+Negative values are surface lowering (erosion) and positive values are surface
+raising (deposition). The output is the DoD that <em>r.dem.bias</em>,
+<em>r.dem.lod</em>, <em>r.dem.change</em>, <em>r.dem.errprop</em>, and
+<em>r.dem.screen</em> take through their <b>dod</b> option.</p>
+
+<p>Inputs that are not aligned with the computational region, either because
+their resolution differs or because their cell edges are offset from the
+region grid, are resampled onto the region with <em>r.resamp.interp</em>
+before differencing. The <b>interp</b> option selects
+<code>bilinear</code> (default) or <code>bicubic</code> interpolation. A
+warning reports the resolution and origin offset of every resampled input.
+Inputs already on the region grid, such as the output of <em>r.dem.nk</em>,
+are differenced directly.</p>
+
+<p>The output carries the r.dem DoD color palette: erosion runs yellow to
+orange to red to magenta as it deepens, near-zero differences are pale green,
+and deposition runs cyan to teal to blue to navy. The palette breaks sit at
+0.1, 0.3, 0.6, and 1.0 times a saturation value R on either side of zero.
+<b>range</b> sets R. Without it, R is the 98th percentile of
+<code>|DoD|</code> rounded up to one significant digit. Differences beyond R
+keep the end colors.</p>
+
+<p>The output metadata records the command, both source maps, the
+interpolation method, and R. Units are copied from <b>dem</b>. When both
+inputs have timestamps, the output receives the interval from the start of the
+<b>reference</b> timestamp to the end of the <b>dem</b> timestamp, so it can
+be registered in a space-time raster dataset with <em>t.register</em>.</p>
+
+<h2>NOTES</h2>
+
+<p>Differencing respects the computational region and the raster mask. Cells
+that are null in either input are null in the output.</p>
+
+<p>When an input is finer than the computational region, interpolation samples
+it without aggregating the cells in between. Aggregate it first with a
+method like <em>r.resamp.stats</em> <code>method=average</code> if that
+matters for the analysis.</p>
+
+<p>To compare multiple DoDs, for example before and after co-registration,
+pass the same <b>range</b> so the maps share one color scale.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>Difference a co-registered post-event DEM against the reference lidar
+DEM:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+r.dem.dod dem=dsm_post_nk reference=elev_lid792_1m output=dod
+</pre></div>
+
+<p>Two DoDs on a shared color scale, before and after co-registration:</p>
+
+<div class="code"><pre>
+r.dem.dod dem=dsm_post reference=elev_lid792_1m output=dod_raw range=1
+r.dem.dod dem=dsm_post_nk reference=elev_lid792_1m output=dod_nk range=1
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.dem.html">r.dem</a>,
+<a href="r.dem.bias.html">r.dem.bias</a>,
+<a href="r.dem.change.html">r.dem.change</a>,
+<a href="r.dem.lod.html">r.dem.lod</a>,
+<a href="r.dem.nk.html">r.dem.nk</a>,
+<a href="r.resamp.interp.html">r.resamp.interp</a>,
+<a href="r.resamp.stats.html">r.resamp.stats</a>,
+<a href="t.register.html">t.register</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Corey T. White, Center for Geospatial Analytics, NC State University

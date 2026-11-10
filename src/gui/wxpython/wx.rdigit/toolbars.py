@@ -23,7 +23,7 @@ from gui_core.toolbars import BaseToolbar, BaseIcons
 from icons.icon import MetaIcon
 from iclass.dialogs import IClassMapDialog as MDialog
 
-import grass.script as grass
+import grass.script as gs
 
 rdigitIcons = {
     "delCmd": MetaIcon(img="layer-remove", label=_("Delete selected map layer")),
@@ -99,7 +99,7 @@ class RDigitMapManagerToolbar(BaseToolbar):
     def OnAddRast(self, event):
         dlg = MDialog(self, title=_("Add raster map"), element="raster")
         if dlg.ShowModal() == wx.ID_OK:
-            raster = grass.find_file(name=dlg.GetMap(), element="cell")
+            raster = gs.find_file(name=dlg.GetMap(), element="cell")
             if raster["fullname"]:
                 self.mapManager.AddLayer(name=raster["fullname"])
 

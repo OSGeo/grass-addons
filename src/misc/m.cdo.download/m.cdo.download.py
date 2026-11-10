@@ -150,9 +150,8 @@
 
 import sys
 import os
-import requests
 import json
-import grass.script as grass
+import grass.script as gs
 from grass.script.utils import separator
 
 
@@ -198,14 +197,14 @@ def fetch_once(endpoint, offset, limit):
         break
 
     if response is None:
-        grass.fatal(_("Failed to fetch data"))
+        gs.fatal(_("Failed to fetch data"))
 
     return response
 
 
 def fetch_many(endpoint, offset, limit):
     lim = min(limit, max_limit)
-    grass.message(_("Fetching %d-%d...") % (offset, offset + lim - 1))
+    gs.message(_("Fetching %d-%d...") % (offset, offset + lim - 1))
     response = fetch_once(endpoint, offset, lim)
 
     records = response["results"] if "results" in response else [response]
@@ -218,9 +217,7 @@ def fetch_many(endpoint, offset, limit):
 
         while offset <= count and offset <= limit:
             lim = min(limit, max_limit)
-            grass.message(
-                _("Fetching %d-%d of %d...") % (offset, offset + lim - 1, count)
-            )
+            gs.message(_("Fetching %d-%d of %d...") % (offset, offset + lim - 1, count))
             response = fetch_once(endpoint, offset, lim)
 
             if "results" not in response:
@@ -237,7 +234,7 @@ def fetch_many(endpoint, offset, limit):
 def fetch_all(endpoint, offset=1):
     limit = max_limit
 
-    grass.message(_("Fetching %d-%d...") % (offset, limit))
+    gs.message(_("Fetching %d-%d...") % (offset, limit))
     response = fetch_once(endpoint, offset, limit)
 
     records = response["results"] if "results" in response else [response]
@@ -248,7 +245,7 @@ def fetch_all(endpoint, offset=1):
         offset += limit
 
         while offset <= count:
-            grass.message(
+            gs.message(
                 _("Fetching %d-%d of %d...") % (offset, offset + limit - 1, count)
             )
             response = fetch_once(endpoint, offset, limit)
@@ -308,10 +305,15 @@ def print_table(outf, records, fields, fs, exclude_colnames):
 
 
 def main():
+    try:
+        import requests  # noqa: E402
+    except ModuleNotFoundError:
+        gs.fatal(_("requests library not installed."))
+
     global tokens
 
     if tokens_env_name not in os.environ or not os.environ[tokens_env_name]:
-        grass.fatal(
+        gs.fatal(
             _(
                 "Please define an environment variable %s with CDO API tokens separated by a comma"
             )
@@ -350,21 +352,21 @@ def main():
         "locations",
         "stations",
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<datacategoryid> supported only for fetching datacategories, datatypes, locations, or stations"
             )
         )
 
     if datatypeid and fetch not in ("datasets", "datatypes", "stations", "data"):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<datatypeid> supported only for fetching datasets, datatypes, stations, or data"
             )
         )
 
     if locationcategoryid and fetch not in ("locationcategories", "locations"):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<locationcategoryid> supported only for fetching locationcategories or locations"
             )
@@ -378,7 +380,7 @@ def main():
         "stations",
         "data",
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<locationid> supported only for fetching datasets, datacategories, datatypes, locations, stations, or data"
             )
@@ -391,7 +393,7 @@ def main():
         "stations",
         "data",
     ):
-        grass.fatal(
+        gs.fatal(
             _(
                 "<stationid> supported only for fetching datasets, datacategories, datatypes, stations, or data"
             )
@@ -401,25 +403,23 @@ def main():
         if fetch == "stations":
             extent = extent.split(",")
             if len(extent) != 4:
-                grass.fatal(
-                    _("<extent> must have lower-left and upper-right coordinates")
-                )
+                gs.fatal(_("<extent> must have lower-left and upper-right coordinates"))
         else:
-            grass.fatal(_("<extent> supported only for fetching stations"))
+            gs.fatal(_("<extent> supported only for fetching stations"))
 
     if fetch == "data" and (not datasetid or not startdate or not enddate):
-        grass.fatal(
+        gs.fatal(
             _("<fetch=data> requires all of <datasetid>, <startdate>, and <enddate>")
         )
 
     if limit < 0:
-        grass.fatal(_("<limit> must be >= 0"))
+        gs.fatal(_("<limit> must be >= 0"))
 
     if offset <= 0:
-        grass.fatal(_("<offset> must be >= 1"))
+        gs.fatal(_("<offset> must be >= 1"))
 
     if indent < -1:
-        grass.fatal(_("<indent> must be >= -1"))
+        gs.fatal(_("<indent> must be >= -1"))
 
     endpoint = fetch
     if fetch.endswith("ies"):
@@ -478,5 +478,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     sys.exit(main())

@@ -3,9 +3,9 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-import matplotlib  # required by windows
+import matplotlib as mpl  # required by windows
 
-matplotlib.use("wxAGG")  # required by windows
+mpl.use("wxAGG")  # required by windows
 import matplotlib.pyplot as plt
 
 from sklearn.ensemble import ExtraTreesClassifier

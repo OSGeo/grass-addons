@@ -171,7 +171,6 @@ def mahal(v, m, VI):
 
 
 def main(options, flags):
-
     gisbase = os.getenv("GISBASE")
     if not gisbase:
         gs.fatal(_("$GISBASE not defined"))
@@ -203,10 +202,7 @@ def main(options, flags):
             gs.fatal(_("the region {} does not exist").format(region))
     if not pro and not checkmask() and not region:
         gs.fatal(
-            _(
-                "You need to provide projected layers, a region, or "
-                "a mask has to be set"
-            )
+            _("You need to provide projected layers, a region, or a mask has to be set")
         )
     if pro and len(REF) != len(PRO):
         gs.fatal(
@@ -262,7 +258,7 @@ def main(options, flags):
             map=mahalref,
             title="Mahalanobis distance map",
             units="unitless",
-            description="Mahalanobis distance map in reference " "domain",
+            description="Mahalanobis distance map in reference domain",
             loadhistory=tmphist,
         )
     del mahal_ref
@@ -416,7 +412,7 @@ def main(options, flags):
     # Compute MIC maps
     if flag_p:
         mic12 = "{}_MICNT1and2".format(out)
-        expr = "$mic12 = if($tmplay < 0, $tmpla1, " "if($tmpla2>1, $tmpla3, -1))"
+        expr = "$mic12 = if($tmplay < 0, $tmpla1, if($tmpla2>1, $tmpla3, -1))"
         gs.mapcalc(
             expr,
             tmplay=tmplay,
@@ -444,7 +440,7 @@ def main(options, flags):
             map=mic12,
             units="unitless",
             title="Most influential covariate",
-            description="Most influential covariate (MIC) for NT1" "and NT2",
+            description="Most influential covariate (MIC) for NT1and NT2",
             loadhistory=tmphist,
         )
 

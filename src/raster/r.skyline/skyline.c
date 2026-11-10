@@ -85,9 +85,9 @@ double compute_skyline_index(int row, int col, double inclination,
         opposite_azimuth = centre_azimuth - 180;
 
 #ifdef DEBUG
-        /* fprintf(stderr, "\nrow %d, col %d, this azimuth %.3lf, opposite
-         * azimuth %.3lf", */
-        /*   row, col, centre_azimuth, opposite_azimuth); */
+    /* fprintf(stderr, "\nrow %d, col %d, this azimuth %.3lf, opposite
+     * azimuth %.3lf", */
+    /*   row, col, centre_azimuth, opposite_azimuth); */
 #endif
 
     /* Find the inclination of the horizon cell opposite this cell.
@@ -224,9 +224,9 @@ double compute_skyline_index_simple(int row, int col, double inclination,
         opposite_azimuth = centre_azimuth - 180;
 
 #ifdef DEBUG
-        /* fprintf(stderr, "\nrow %d, col %d, this azimuth %.3lf, opposite
-         * azimuth %.3lf", */
-        /*   row, col, centre_azimuth, opposite_azimuth); */
+    /* fprintf(stderr, "\nrow %d, col %d, this azimuth %.3lf, opposite
+     * azimuth %.3lf", */
+    /*   row, col, centre_azimuth, opposite_azimuth); */
 #endif
 
     /* Find the inclination of the horizon cell opposite this cell.

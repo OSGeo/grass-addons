@@ -218,7 +218,6 @@ class Vert(object):
         dat_2 = []
         leng_tot = 0
         for i, dat_3 in enumerate(self.tabla_iter):
-
             if i == 1:
                 end_pnt = self.plant.get_roadpoint(dat_2["pk"])
                 end_pnt.z = dat_2["elev"]
@@ -256,7 +255,6 @@ class Vert(object):
             dat_2 = dat_3
 
             if i == len(self.tabla_iter) - 1:
-
                 straight = VStraight(end_pnt, pnt_2)
                 self.aligns.append(straight)
                 leng_tot += straight.length()

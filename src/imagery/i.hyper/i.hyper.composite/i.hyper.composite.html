@@ -1,0 +1,98 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>i.hyper.composite</em> creates RGB, CIR, SWIR and custom false-color composites from a hyperspectral 3D raster map (<code>raster_3d</code>).
+The module reads per-band wavelength metadata from <code>hyper.json</code> (as written by <a href="i.hyper.import.html">i.hyper.import</a> / <a href="i.hyper.preproc.html">i.hyper.preproc</a>). It then selects the nearest available bands to requested wavelengths, enhances contrast, and composes a 2D color raster.</p>
+
+<p>Internally, the cube is temporarily exploded into 2D rasters (one per band) using <code>r3.to.rast</code>. For each composite, the nearest bands to target wavelengths are chosen, optional color enhancement is applied with <code>i.colors.enhance</code>, and the final composite is produced with <code>r.composite</code>. Temporary rasters and the temporary region are automatically cleaned up.</p>
+
+<p>Predefined composites are provided for common use-cases; custom triplets (R,G,B in nm) are supported for sensor-agnostic workflows.</p>
+
+<h2>FUNCTIONALITY</h2>
+
+<p>Built-in composites (target wavelengths in nm):</p>
+<ul>
+  <li><b>rgb</b> — [660, 572, 478] (true color)</li>
+  <li><b>cir</b> — [848, 660, 572] (color-infrared)</li>
+  <li><b>swir_agriculture</b> — [848, 1653, 660] (vegetation/wetness contrast)</li>
+  <li><b>swir_geology</b> — [2200, 848, 572] (mineral/rock contrast)</li>
+</ul>
+
+<p><b>Custom composite:</b> specify <code>composites_custom=R,G,B</code> (wavelengths in nm), e.g. <code>2200,848,572</code> or <code>560,860,1640</code>. The module selects the nearest available band to each requested wavelength; it does not resample spectrally.</p>
+
+<h2>NOTES</h2>
+
+<ul>
+  <li>The input 3D raster must contain per-band wavelength metadata in <code>hyper.json</code>.</li>
+  <li>Nearest-band selection is used (no spectral resampling). If your cube’s wavelengths differ from the requested targets, the closest bands are chosen.</li>
+  <li><code>i.colors.enhance</code> is run with the provided <code>strength</code> (0–100). For the <b>rgb</b> composite, the <code>-p</code> flag is used to preserve natural RGB balance; other composites run without <code>-p</code>.</li>
+  <li>A temporary 3D region is set to the cube; the original region is restored. Temporary 2D rasters are removed on exit.</li>
+  <li>Requires at least 3 bands in the input cube.</li>
+</ul>
+
+<h2>OPTIONS</h2>
+
+<ul>
+  <li><code>map</code> — input hyperspectral 3D raster map (required).</li>
+  <li><code>output</code> — output name prefix for generated composites (required).</li>
+  <li><code>composites=rgb,cir,swir_agriculture,swir_geology</code> — list of presets to create (optional, multiple allowed).</li>
+  <li><code>composites_custom=R,G,B</code> — custom wavelengths in nm, e.g. <code>2200,848,572</code> (optional).</li>
+  <li><code>strength</code> — enhancement strength for <code>i.colors.enhance</code> (0–100, default: 96).</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+<div class="code"><pre>
+# Set the region
+g.region raster_3d=prisma
+
+# Example 1: True color (RGB) and CIR from PRISMA
+i.hyper.composite map=prisma output=prisma \
+                  composites=rgb,cir
+
+# Console output:
+Generated composite raster: prisma_rgb
+Generated composite raster: prisma_cir
+</pre></div>
+
+<div class="code"><pre>
+# Example 2: SWIR geology composite from EnMAP
+
+# Set the region
+g.region raster_3d=enmap
+
+i.hyper.composite map=enmap output=enmap \
+                  composites=swir_geology strength=90
+
+# Console output:
+Generated composite raster: enmap_swir_geology
+</pre></div>
+
+<div class="code"><pre>
+# Example 3: Custom Snow/Ice composite (Green–NIR–SWIR)
+
+# Set the region
+g.region raster_3d=tanager
+
+# Uses nearest bands to 560, 860, and 1640 nm
+i.hyper.composite map=tanager output=snowice \
+                  composites_custom=560,860,1640 strength=92
+
+# Console output:
+Generated composite raster: snowice_custom
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<a href="i.hyper.import.html">i.hyper.import</a>,
+<a href="i.hyper.preproc.html">i.hyper.preproc</a>,
+<a href="i.hyper.explore.html">i.hyper.explore</a>,
+<a href="i.hyper.export.html">i.hyper.export</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.to.rast.html">r3.to.rast</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.composite.html">r.composite</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/i.colors.enhance.html">i.colors.enhance</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/g.region.html">g.region</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r3.info.html">r3.info</a>
+
+<h2>AUTHORS</h2>
+
+Alen Mangafić and Tomaž Žagar, Geodetic Institute of Slovenia

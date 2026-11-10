@@ -35,7 +35,6 @@ class TestLandsatQA(TestCase):
         os.remove("Water_Mask_rules.txt")
 
     def test_cloud_mask(self):
-
         cloud_mask = SimpleModule(
             "i.landsat.qa",
             cloud_confidence=["Medium", "High"],
@@ -46,7 +45,6 @@ class TestLandsatQA(TestCase):
         self.assertModule(cloud_mask)
 
     def test_water_mask(self):
-
         water_mask = SimpleModule(
             "i.landsat.qa",
             water="Yes",

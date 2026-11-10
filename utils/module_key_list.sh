@@ -117,7 +117,7 @@ exit 0
 
 #########################################################################
 ### howto get this to work ????
-# see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=506788
+# see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=506788
 
 BASE="modules/task"
 FIELDS="

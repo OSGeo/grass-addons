@@ -74,14 +74,14 @@ class StatisticsMixin(object):
         return regr
 
     def multiple_regression(
-        self, xs, y, estimates=None, residuals=None, overwrite=False
+        self, xs: str, y: str, estimates=None, residuals=None, overwrite=False
     ):
         """
         Simple wrapper around the GRASS GIS module r.regression.multi
 
         Parameters
         ----------
-        x : str
+        xs : str
             Name of GRASS GIS raster map to use as the x-variable. Has to be
             within the RasterStack object.
 
@@ -93,7 +93,7 @@ class StatisticsMixin(object):
             estimate.
 
         residuals : str (opt)
-            Optionally specify a name to create a raste rmap of the residuals.
+            Optionally specify a name to create a raster map of the residuals.
 
         overwrite : bool (default is False)
             Overwrite existing GRASS GIS rasters for estimates and residuals.

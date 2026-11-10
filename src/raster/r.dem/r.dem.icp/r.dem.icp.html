@@ -1,0 +1,148 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.icp</em> performs constrained-rigid (4-DoF) co-registration of two
+DEM rasters, with an experimental full 6-DoF mode, aligning a <b>source</b> DEM
+to a <b>reference</b> DEM with an Iterative Closest Point (ICP) solver. Key
+properties of the implementation:</p>
+
+<ul>
+  <li>Point-to-plane ICP with projective correspondences (the target DEM is
+  sampled at the transformed (x, y) location).</li>
+  <li>Multiscale, coarse-to-fine alignment via an adjustable sampling
+  <b>stride</b>.</li>
+  <li>Trimmed ICP (keep the best residual fraction) with Huber robust
+  weighting.</li>
+  <li>OpenMP parallelization of the main loops.</li>
+  <li>DEM-specific handling: surface normals from DEM gradients, an optional
+  slope limit, and an optional stable-terrain <b>mask</b>.</li>
+</ul>
+
+<h2>NOTES</h2>
+
+<ul>
+  <li><b>Initialization:</b> If you already know an approximate horizontal shift
+  or yaw (for example from metadata or phase correlation), pass it via the
+  <b>init_dx</b>, <b>init_dy</b>, <b>init_dz</b>, and <b>init_yaw</b> options. A
+  good <b>init_dz</b> is often the median of <code>source - reference</code> over
+  stable terrain. In the experimental 6-DoF mode, <b>init_roll</b> and
+  <b>init_pitch</b> (degrees) additionally seed the roll and pitch angles; they
+  are ignored with <code>dof=4</code>.</li>
+  <li><b>Speed knobs:</b> Increase <b>stride</b> and reduce <b>levels</b> for
+  quick tests, and relax <b>max_iterations</b>.</li>
+  <li><b>Robustness:</b> Use a conservative <b>trim</b>
+  (<code>0.6</code>-<code>0.9</code>). Where there is a lot of real change
+  (landslides, forest canopy), lower <b>trim</b> and/or <b>huber</b>.</li>
+  <li><b>Constraints:</b> 4-DoF (<code>dof=4</code>) is the supported mode and
+  usually suffices (e.g., airborne photogrammetry vs LiDAR). The four solved
+  parameters are the three translations plus yaw (planimetric rotation about the
+  vertical axis), which absorbs residual georeferencing rotation; roll and pitch
+  are deliberately excluded. <b>6-DoF (<code>dof=6</code>) is experimental:</b>
+  rigid roll/pitch rotation is ill-conditioned for height-field DEMs and its
+  resample is approximate, so leave it off unless you specifically need to model
+  tilt. The residual that typically remains after 4-DoF is a sub-pixel
+  horizontal shift and vertical offset; remove it by running
+  <em><a href="r.dem.nk.html">r.dem.nk</a></em> (Nuth &amp; Kaeaeb) after
+  ICP.</li>
+  <li><b>Validation:</b> After alignment, inspect the residual DoD and the stats
+  file; residual bias should be near zero on stable terrain.</li>
+</ul>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Align the misregistered surface with four degrees of freedom, which solves
+three translations and yaw:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.icp source=dsm_offset reference=elev_lid792_1m \
+    mask=stable_terrain output=dsm_icp dof=4 \
+    transform_out=icp_transform.txt stats_out=icp_stats.csv
+</pre></div>
+
+<p>The reported transform is the one that maps the source onto the reference,
+so its signs are opposite to those of <em>r.dem.nk</em>. Against an applied offset
+of 0.4596 m east, 0.4596 m north, and 1.32 m up it returns:</p>
+
+<div class="code"><pre>
+tx=-0.4590844708
+ty=-0.4608043693
+tz=-1.3201388046
+yaw=0.0000935114
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_icp_alignment.png">
+<img src="r_dem_icp_alignment.png" width="600" alt="r.dem.icp example" border="0">
+</a><br>
+<i>Figure: Stable-terrain residual before and after r.dem.icp at dof=4.</i>
+</div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li><b>ICP framework (point-to-point origin).</b> Besl, P.J. and McKay, N.D.
+    (1992). A method for registration of 3-D shapes. <em>IEEE Transactions on
+      Pattern Analysis and Machine Intelligence</em>, 14(2), 239-256.
+    <a href="https://doi.org/10.1109/34.121791">doi:10.1109/34.121791</a>
+  </li>
+  <li><b>Point-to-plane error metric (minimized here).</b> Chen, Y. and Medioni,
+    G. (1992). Object modelling by registration of multiple range images. <em>Image
+      and Vision Computing</em>, 10(3), 145-155.
+    <a href="https://doi.org/10.1016/0262-8856%2892%2990066-C">doi:10.1016/0262-8856(92)90066-C</a>
+  </li>
+  <li><b>Projective correspondences (target sampled at the transformed x, y).</b>
+    Blais, G. and Levine, M.D. (1995). Registering multiview range data to create 3D
+    computer objects. <em>IEEE Transactions on Pattern Analysis and Machine
+      Intelligence</em>, 17(8), 820-824.
+    <a href="https://doi.org/10.1109/34.400574">doi:10.1109/34.400574</a>
+  </li>
+  <li><b>Efficient ICP variants (sampling, rejection, coarse-to-fine).</b>
+    Rusinkiewicz, S. and Levoy, M. (2001). Efficient variants of the ICP algorithm.
+    <em>Proceedings Third International Conference on 3-D Digital Imaging and
+      Modeling (3DIM)</em>, 145-152.
+    <a href="https://doi.org/10.1109/IM.2001.924423">doi:10.1109/IM.2001.924423</a>
+  </li>
+  <li><b>Linearized least-squares point-to-plane solve.</b> Low, K.-L. (2004).
+    Linear least-squares optimization for point-to-plane ICP surface registration.
+    Technical Report TR04-004, Department of Computer Science, University of North
+    Carolina at Chapel Hill.
+    <a href="https://www.cs.unc.edu/techreports/04-004.pdf">PDF</a>
+  </li>
+  <li><b>Trimmed ICP (robust to partial overlap and change).</b> Chetverikov, D.,
+    Stepanov, D. and Krsek, P. (2005). Robust Euclidean alignment of 3D point sets:
+    the trimmed iterative closest point algorithm. <em>Image and Vision
+      Computing</em>, 23(3), 299-309.
+    <a href="https://doi.org/10.1016/j.imavis.2004.05.007">doi:10.1016/j.imavis.2004.05.007</a>
+  </li>
+  <li><b>Robust M-estimator weighting.</b> Huber, P.J. (1964). Robust estimation
+    of a location parameter. <em>The Annals of Mathematical Statistics</em>, 35(1),
+    73-101.
+    <a href="https://doi.org/10.1214/aoms/1177703732">doi:10.1214/aoms/1177703732</a>
+  </li>
+  <li><b>Convergence analysis of point-to-plane registration.</b> Pottmann, H.,
+    Huang, Q.-X., Yang, Y.-L. and Hu, S.-M. (2006). Geometry and convergence
+    analysis of algorithms for registration of 3D shapes. <em>International Journal
+      of Computer Vision</em>, 67(3), 277-296.
+    <a href="https://doi.org/10.1007/s11263-006-5167-2">doi:10.1007/s11263-006-5167-2</a>
+  </li>
+</ul>
+
+<p>Related methods not implemented here: Nuth, C. and Kaeaeb, A. (2011),
+<em>The Cryosphere</em> 5:271-290 (aspect/slope vertical-bias coregistration,
+provided as <em><a href="r.dem.nk.html">r.dem.nk</a></em>); Segal, A., Haehnel, D.
+and Thrun, S. (2009), Generalized-ICP, <em>Robotics: Science and Systems</em>.</p>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.coregister.html">r.dem.coregister</a></em>,
+<em><a href="r.dem.nk.html">r.dem.nk</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

@@ -11,11 +11,9 @@
 #               categories values, whereby the category labels and colors are
 #               retained.
 #
-# COPYRIGHT: (C) 2015-2022 Paulo van Breugel and the GRASS Development Team
-#
-#            This program is free software under the GNU General Public
-#            License (>=v2). Read the file COPYING that comes with GRASS
-#            for details.
+# SPDX-FileCopyrightText: 2015-2026 Paulo van Breugel
+# SPDX-FileCopyrightText: Other GRASS authors
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 ########################################################################
 #
@@ -77,14 +75,13 @@
 # import libraries
 import os
 import sys
-import re
+import csv
 from subprocess import PIPE
 from grass.pygrass.modules import Module
 import grass.script as gs
 
 
 def main(options, flags):
-
     # Check if running in GRASS
     gisbase = os.getenv("GISBASE")
     if not gisbase:
@@ -118,14 +115,29 @@ def main(options, flags):
     raster_id_list = list(map(int, raster_id))
 
     # Get full color table
-    raster_color = gs.read_command("r.colors.out", map=input_raster).split("\n")
-    raster_color = [x for x in raster_color if "nv" not in x and "default" not in x]
-    raster_color = [_f for _f in raster_color if _f]
-    raster_color_cat = [z.split(" ")[0] for z in raster_color]
-    idx = [i for i, item in enumerate(raster_color_cat) if not re.search("\.", item)]
-    raster_color_cat = [raster_color_cat[i] for i in idx]
-    raster_color = [raster_color[i] for i in idx]
-    raster_color_cat = list(map(int, raster_color_cat))
+    raster_color_full = gs.read_command("r.colors.out", map=input_raster).split("\n")
+    raster_color_full = [
+        x for x in raster_color_full if "nv" not in x and "default" not in x
+    ]
+    raster_color_full = [_f for _f in raster_color_full if _f]
+
+    # Split the color table into (a) the integer-category entries used for
+    # matching map categories to colors, and (b) the non-integer entries
+    # (e.g. '-inf', 'inf', percentages) that r.colors.out may emit. The
+    # non-integer entries are kept separately so they can still be written
+    # to the CSV export, but are not used for category matching.
+    raster_color = []
+    raster_color_cat = []
+    raster_color_extra = []  # non-integer bound/percent entries
+    for row in raster_color_full:
+        token = row.split(" ")[0]
+        try:
+            cat_int = int(token)
+        except ValueError:
+            raster_color_extra.append(row)
+            continue
+        raster_color.append(row)
+        raster_color_cat.append(cat_int)
 
     # Set strings / list to be used in loop
     color_rules = ""
@@ -160,6 +172,11 @@ def main(options, flags):
                     category_string, raster_id_new[j], raster_lab[j]
                 )
                 cv_string.append(add_color)
+            else:
+                gs.warning(
+                    _("No color rule for category %s. Using white.") % raster_id[j]
+                )
+                cv_string.append("255:255:255")
 
         color_rules = "{}nv 255:255:255\ndefault 255:255:255\n".format(color_rules)
         Module(
@@ -215,47 +232,82 @@ def main(options, flags):
                     color_rules + str(raster_id_list[j]) + " " + add_color + "\n"
                 )
                 cv_string.append(add_color)
+            else:
+                gs.warning(
+                    _("No color rule found for category %s. Defaulting to white.")
+                    % raster_id_list[j]
+                )
+                cv_string.append("255:255:255")
+
         color_rules = "{}nv 255:255:255\ndefault 255:255:255\n".format(color_rules)
         Module("r.colors", map=output_raster, rules="-", stdin_=color_rules, quiet=True)
 
     # If attribute table (csv format) should be written
     if len(output_csv) > 0:
+        # Prepare rows for the CSV writer
+        csv_rows = []
         if flag_recode:
-            raster_cat1 = [
-                w.replace("|", ",'")
-                for w in [_f for _f in category_string.split("\n") if _f]
-            ]
+            # Re-parse the category_string which uses '|'
+            lines = [_f for _f in category_string.split("\n") if _f]
+            for i, line in enumerate(lines):
+                parts = line.split("|")
+                color = cv_string[i] if i < len(cv_string) else "N/A"
+                csv_rows.append([parts[0], parts[1], color])
         else:
-            raster_cat1 = [w.replace("\t", ",'") for w in raster_cats]
-        raster_cat1 = ["{}'".format(w) for w in raster_cat1]
-        raster_cat1.insert(0, "CATEGORY,CATEGORY LABEL")
-        cv_string1 = list(cv_string)
-        cv_string1.insert(0, "RGB")
-        with open(output_csv, "w") as text_file:
-            for k in range(len(raster_cat1)):
-                text_file.write("{},{}\n".format(raster_cat1[k], cv_string1[k]))
+            # Parse the standard raster_cats which uses '\t'
+            for i, line in enumerate(raster_cats):
+                parts = line.split("\t")
+                color = cv_string[i] if i < len(cv_string) else "N/A"
+                # Handle cases where label might be missing
+                label = parts[1] if len(parts) > 1 else ""
+                csv_rows.append([parts[0], label, color])
+
+        # Include non-integer color-table entries (e.g. '-inf', 'inf') that
+        # were set aside earlier. They have no category label in r.category
+        # output, so the label column is left empty.
+        for row in raster_color_extra:
+            parts = row.split(" ", 1)
+            cat_token = parts[0]
+            color = parts[1] if len(parts) > 1 else ""
+            csv_rows.append([cat_token, "", color])
+
+        with open(output_csv, "w", newline="") as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+            # Write Header
+            writer.writerow(["CATEGORY", "CATEGORY LABEL", "RGB"])
+            # Write Data
+            writer.writerows(csv_rows)
 
     # If QGIS Color Map text files should be written
     if len(output_colorfile) > 0:
+        if raster_color_extra:
+            gs.warning(
+                _(
+                    "Color table contains non-integer bounds (%s); "
+                    "these are omitted from the QGIS color map because "
+                    "INTERPOLATION:EXACT requires integer category values."
+                )
+                % ", ".join(r.split(" ")[0] for r in raster_color_extra)
+            )
         rgb_string = [w.replace(":", ",") for w in cv_string]
         if flag_recode:
-            raster_cats = [_f for _f in category_string.split("\n") if _f]
+            raster_cats_qgis = [_f for _f in category_string.split("\n") if _f]
         else:
-            raster_cats = [w.replace("\t", "|") for w in raster_cats]
+            raster_cats_qgis = [w.replace("\t", "|") for w in raster_cats]
+
         with open(output_colorfile, "w") as text_file:
             text_file.write("# QGIS color map for {}\n".format(output_raster))
             text_file.write("INTERPOLATION:EXACT\n")
-            for k in range(len(raster_cats)):
-                raster_cats2 = raster_cats[k].split("|")
-                if raster_cats2[1]:
+            for k in range(len(raster_cats_qgis)):
+                raster_cats2 = raster_cats_qgis[k].split("|")
+                label = (
+                    raster_cats2[1]
+                    if (len(raster_cats2) > 1 and raster_cats2[1])
+                    else "-"
+                )
+                if k < len(rgb_string):
                     text_file.write(
-                        "{},{},255,{}\n".format(
-                            raster_cats2[0], rgb_string[k], raster_cats2[1]
-                        )
-                    )
-                else:
-                    text_file.write(
-                        "{},{},255,{}\n".format(raster_cats2[0], rgb_string[k], "-")
+                        "{},{},255,{}\n".format(raster_cats2[0], rgb_string[k], label)
                     )
 
 

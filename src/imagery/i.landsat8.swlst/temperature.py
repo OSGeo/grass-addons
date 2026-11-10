@@ -11,7 +11,7 @@ from constants import DUMMY_MAPCALC_STRING_CWV
 from constants import DUMMY_MAPCALC_STRING_T10
 from constants import DUMMY_MAPCALC_STRING_T11
 from constants import EQUATION
-import grass.script as grass
+import grass.script as gs
 from helpers import run
 
 
@@ -89,6 +89,13 @@ def estimate_lst(
     Produce a Land Surface Temperature map based on a mapcalc expression
     returned from a SplitWindowLST object.
 
+    Inputs are:
+
+    - brightness temperature maps t10, t11
+    - column water vapor map
+    - a temporary filename
+    - a valid mapcalc expression
+
     Parameters
     ----------
     outname
@@ -114,13 +121,6 @@ def estimate_lst(
     celsius
 
     quiet
-
-    Inputs are:
-
-    - brightness temperature maps t10, t11
-    - column water vapor map
-    - a temporary filename
-    - a valid mapcalc expression
     """
     msg = "\n|i Estimating land surface temperature "
     g.message(msg)
@@ -168,7 +168,7 @@ def estimate_lst(
         result=outname,
         expression=split_window_expression,
     )
-    grass.mapcalc(
+    gs.mapcalc(
         split_window_equation,
         overwrite=True,
     )

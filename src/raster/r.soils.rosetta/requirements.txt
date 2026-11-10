@@ -1,0 +1,4 @@
+# Optional at runtime: without it the tool falls back to the handbook60.org
+# ROSETTA web API. Required for the offline path and for its tests.
+# 0.3 renamed SoilData.from_array to from_iter and added estimate_type.
+rosetta-soil>=0.3

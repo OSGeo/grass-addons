@@ -1,0 +1,14 @@
+# Compiled objects and libraries
+*.o
+*.a
+*.so
+*.so.*
+
+# Test build artefacts
+developer_tests/test_6sv_compat
+developer_tests/libsixsv.so
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/

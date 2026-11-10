@@ -262,7 +262,7 @@ def get_orcid(text):
     Any whitespace is stripped from the text.
 
     >>> # URL style
-    >>> print(get_orcid("http://orcid.org/0000-0000-0000-0000")[0])
+    >>> print(get_orcid("https://orcid.org/0000-0000-0000-0000")[0])
     0000-0000-0000-0000
     >>> # ISBN style
     >>> print(get_orcid("ORCID 0000-0000-0000-0000")[0])
@@ -386,9 +386,9 @@ def get_code_urls_from_documentation(text):
     Returns a tuple with URL of the source code and URL of history of
     the source code.
 
-    >>> text = '<h2>SOURCE CODE</h2><a href="http://osgeo.org/r.spread">r.spread source code</a> (<a href="http://osgeo.org/log/r.spread">history</a>)'
+    >>> text = '<h2>SOURCE CODE</h2><a href="https://github.com/OSGeo/grass/tree/main/raster/r.spread">r.spread source code</a> (<a href="https://github.com/OSGeo/grass/commits/main/raster/r.spread">history</a>)'
     >>> get_code_urls_from_documentation(text)
-    ('http://osgeo.org/r.spread', 'http://osgeo.org/log/r.spread')
+    ('https://github.com/OSGeo/grass/tree/main/raster/r.spread', 'https://github.com/OSGeo/grass/commits/main/raster/r.spread')
     """
     capture = r'<h2>SOURCE CODE</h2>.*<a href="(.+)">[^<]*source code</a>\s+\(<a href="(.+)">history</a>\)'
     match = re.search(capture, text, re.MULTILINE | re.DOTALL | re.IGNORECASE)
@@ -430,7 +430,6 @@ except ImportError:
 
 
 def print_using_citeproc(csl_json, keys, style):
-
     from citeproc import CitationStylesStyle, CitationStylesBibliography
     from citeproc import Citation, CitationItem
     from citeproc import formatter
@@ -539,7 +538,7 @@ def author_name_to_cff(text):
         else:
             raise NotImplementedError("Not sure how to split <{}>".format(text))
     else:
-        raise RuntimeError(_("Cannot split name <{}> correctly".format(text)))
+        raise RuntimeError(_("Cannot split name <{}> correctly").format(text))
     return {"given": given, "particle": particle, "family": family, "suffix": suffix}
 
 
@@ -592,7 +591,7 @@ def print_cff(citation, output):
     print("version:", citation["grass-version"], file=output)
     # CFF 1.0.3 does not say expplicitely except for Date (so not any
     # string), so assuming YAML timestamp
-    # (http://yaml.org/type/timestamp.html)
+    # (https://yaml.org/type/timestamp.html)
     # now we have only the year, so using Jan 1
     print("date-released:", citation["grass-build-date"], file=output)
     # license string according to https://spdx.org/licenses/
@@ -693,7 +692,7 @@ def print_bibtex(citation, output):
         sep="",
         file=output,
     )
-    print("  year = {", citation["year"], "}", sep="", file=output)
+    print("  year = {", citation["year"], "},", sep="", file=output)
     print(
         "  note = {Accessed: ",
         citation["access"],
@@ -778,8 +777,9 @@ def print_chicago_footnote(citation, output):
             authors_text += ", and "
     title = "GRASSS GIS module {}".format(citation["module"])
     print(
-        "{authors_text}, {title} ({grass-version}), computer software"
-        " ({year}).".format(authors_text=authors_text, title=title, **citation),
+        "{authors_text}, {title} ({grass-version}), computer software ({year}).".format(
+            authors_text=authors_text, title=title, **citation
+        ),
         file=output,
     )
 
@@ -845,7 +845,7 @@ def print_citation(citation, format, output):
     try:
         function = _FORMAT_FUNCTION[format]
     except KeyError:
-        raise RuntimeError(_("Unsupported format or style: %s" % format))
+        raise RuntimeError(_("Unsupported format or style: %s") % format)
     function(citation, output)
 
 
@@ -862,7 +862,7 @@ def grass_cff_reference(grass_version, scope=None):
     citation["type"] = "software"
     # the team as an entity
     citation["authors"] = [
-        {"name": "The GRASS Development Team", "website": "http://grass.osgeo.org/"}
+        {"name": "The GRASS Development Team", "website": "https://grass.osgeo.org/"}
     ]
     citation["title"] = "GRASS GIS {version}".format(**grass_version)
     citation["version"] = grass_version["version"]
@@ -937,7 +937,7 @@ def main(options, flags):
     if output_format == "citeproc":
         if not options["style"]:
             gs.fatal(
-                _("Option format=citeproc requires also" " the option style to be set")
+                _("Option format=citeproc requires also the option style to be set")
             )
     vertical_separator = options["vertical_separator"]
     output = options["output"]
@@ -948,20 +948,16 @@ def main(options, flags):
             gs.fatal(
                 _(
                     "No such file or directory '{output_file}'."
-                    " Please choose correct output file path.".format(
-                        output_file=output,
-                    )
-                )
+                    " Please choose correct output file path."
+                ).format(output_file=output)
             )
         except PermissionError:
             gs.fatal(
                 _(
                     "Permission denied '{output_file}'."
                     " Please change the permission of the output file"
-                    " to allow writing.".format(
-                        output_file=output,
-                    )
-                )
+                    " to allow writing."
+                ).format(output_file=output)
             )
     else:
         output = sys.stdout
@@ -975,7 +971,7 @@ def main(options, flags):
                 print(vertical_separator, file=output)
             print_citation(citation, output_format, output)
         except RuntimeError as error:
-            message = _("Module {name}: {error}".format(**locals()))
+            message = _("Module {name}: {error}").format(**locals())
             if flags["s"]:
                 gs.warning(message)
                 error_count += 1
@@ -1002,7 +998,7 @@ def main(options, flags):
 #  organization = {Open Source Geospatial Foundation},
 #  address = {USA},
 #  year = {YEAR},
-#  url = {http://grass.osgeo.org},
+#  url = {https://grass.osgeo.org},
 # }
 
 

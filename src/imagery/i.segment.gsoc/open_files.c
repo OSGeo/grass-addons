@@ -60,7 +60,7 @@ int open_files(struct files *files, struct functions *functions)
     flag_clear_all(files->seeds_flag);
 
     /* references for segmentation library: i.cost r.watershed/seg and
-     * http://grass.osgeo.org/programming7/segmentlib.html */
+     * https://grass.osgeo.org/programming7/segmentlib.html */
 
     /* ****** open the input rasters ******* */
 

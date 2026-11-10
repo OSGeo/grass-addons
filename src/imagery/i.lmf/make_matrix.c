@@ -8,18 +8,17 @@
 #define MAXF 50
 
 #define PI   3.1415926535897932385
-int make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF])
+void make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF])
 {
     int nn;
 
-    double eps, vn, angle, theta;
+    double vn, angle, theta;
 
     int i, j, j1, j2;
 
     double di, dk;
 
     nn = 2 * nfunc + 2;
-    eps = 1.0;
 
     /*Set Constants */
     vn = (double)npoint;
@@ -46,5 +45,4 @@ int make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF])
         f[i][0] = 1.0;
         f[i][1] = 1.0E-1 * (double)(i + 1);
     }
-    return;
 }

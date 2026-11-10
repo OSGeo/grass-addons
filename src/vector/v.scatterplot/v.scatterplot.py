@@ -7,7 +7,7 @@
 # PURPOSE:      Plots the values of two columns in the attribute table
 #               of an input vector layer in a scatterplot.
 #
-# COPYRIGHT:    (c) 2023 Paulo van Breugel, and the GRASS Development Team
+# COPYRIGHT:    (c) 2023-2026 Paulo van Breugel, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -16,17 +16,19 @@
 
 # %module
 # % description: Plots the values of two columns in the attribute table of an input vector layer in a scatterplot.
-# % keyword: display
 # % keyword: vector
 # % keyword: plot
 # % keyword: scatterplot
 # %end
 
 # %option G_OPT_V_MAP
-# % key: map
 # % label: Input map
 # % description: input vector layer
 # % required: yes
+# % guisection: Input
+# %end
+
+# %option G_OPT_V_FIELD
 # % guisection: Input
 # %end
 
@@ -58,7 +60,6 @@
 # %end
 
 # %option G_OPT_F_OUTPUT
-# % key: file_name
 # % label: Name of the output file (extension decides format)
 # % description: Name of the output file. The format is determined by the file extension.
 # % required: no
@@ -98,10 +99,36 @@
 # % key: fontsize
 # % type: double
 # % label: Font size
-# % answer: 10
-# % description: The basis font size (default = 10)
+# % description: The basis font size. Defaults to the Matplotlib/style default.
 # % guisection: Aesthetics
 # % required: no
+# %end
+
+# %option
+# % key: style
+# % type: string
+# % label: Matplotlib style
+# % description: Matplotlib style sheet, see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
+# % key: x_label
+# % type: string
+# % label: x-axis label
+# % description: Label for the x-axis. If left empty, the name of the x column is used.
+# % required: no
+# % guisection: Aesthetics
+# %end
+
+# %option
+# % key: y_label
+# % type: string
+# % label: y-axis label
+# % description: Label for the y-axis. If left empty, the name of the y column is used.
+# % required: no
+# % guisection: Aesthetics
 # %end
 
 # %option
@@ -127,8 +154,9 @@
 # % key: color
 # % type: string
 # % label: Dot color
-# % description: Color of dots
+# % description: Color of dots. Defaults to the Matplotlib/style default.
 # % required: no
+# % answer:
 # % guisection: Aesthetics
 # %end
 
@@ -196,9 +224,9 @@
 # % key: line_color
 # % type: string
 # % label: Color trendline
-# % description: Color of the trendline
+# % description: Color of the trendline. Defaults to the Matplotlib/style default.
 # % required: no
-# % answer: darkgrey
+# % answer:
 # % guisection: Trendline
 # %end
 
@@ -216,9 +244,8 @@
 # % key: line_width
 # % type: double
 # % label: trendline width
-# % description: Line width of the trendline
+# % description: Line width of the trendline. Defaults to the Matplotlib default.
 # % required: no
-# % answer: 2
 # % guisection: Trendline
 # %end
 
@@ -229,10 +256,10 @@
 # % end
 
 # %option
-# % key: n_sd
+# % key: n
 # % type: string
 # % label: standard deviations
-# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations (n_sd).
+# % description: Draw the covariance confidence ellipse(s) with radius of n standard deviations.
 # % answer: 2
 # % guisection: Ellipse
 # %end
@@ -282,7 +309,7 @@
 # % key: groups
 # % type: string
 # % label: Column grouping the features in categories
-# % description: Colum with categories. If selected, a separate ellipse will be drawn for each group/category
+# % description: Column with categories. If selected, a separate ellipse will be drawn for each group/category
 # % guisection: Ellipse
 # %end
 
@@ -306,6 +333,35 @@
 # % guisection: Ellipse
 # %end
 
+# %option
+# % key: quadrants
+# % type: string
+# % label: quadrants
+# % description: Print the mean or median on x and y-axis
+# % required: no
+# % options: mean,median
+# % guisection: Quadrants
+# %end
+
+# %option G_OPT_C
+# % key: quandrant_linecolor
+# % type: string
+# % label: Line color
+# % description: Color of the lines making up the quadrants. Defaults to the Matplotlib default.
+# % required: no
+# % answer:
+# % guisection: Quadrants
+# %end
+
+# %option
+# % key: quandrant_linewidth
+# % type: double
+# % label: quandrant line width
+# % description: Line width of the lines dividing the points in four quadrants. Defaults to the Matplotlib default.
+# % required: no
+# % guisection: Quadrants
+# %end
+
 # %rules
 # % requires: groups_rgb,groups
 # %end
@@ -314,8 +370,20 @@
 # % requires: ellipse_legend,groups
 # %end
 
+# %flag
+# % key: g
+# % label: Add grid lines
+# % description: Add grid lines
+# % guisection: Aesthetics
+# %end
+
+# %rules
+# % excludes: quadrants,-g
+# %end
+
+
 # %option
-# % key: xlim
+# % key: x_axis_limits
 # % type: string
 # % label: X axis range (min,max)
 # % description: Set the X axis range to be displayed
@@ -323,7 +391,7 @@
 # %end
 
 # %option
-# % key: ylim
+# % key: y_axis_limits
 # % type: string
 # % label: Y axis range (min,max)
 # % description: Set the Y axis range to be displayed
@@ -343,19 +411,36 @@ import random
 
 def lazy_import_matplotlib():
     """Lazy import matplotlib modules"""
-    global matplotlib
+    global mpl
     global plt
     global cm
     global Normalize
     try:
-        import matplotlib
+        import matplotlib as mpl
 
-        matplotlib.use("WXAgg")
+        mpl.use("WXAgg")
         from matplotlib import pyplot as plt
         from matplotlib import cm
         from matplotlib.colors import Normalize
     except ModuleNotFoundError:
-        gs.fatal(_("Matplotlib is not installed. Please, install it."))
+        gs.fatal(
+            _("Matplotlib (python-matplotlib) is not installed. Please, install it.")
+        )
+
+
+def apply_style(style):
+    """Apply a Matplotlib style sheet, validating the name.
+
+    :param str style: name of a Matplotlib style sheet
+    """
+    if style:
+        if style not in plt.style.available:
+            gs.fatal(
+                _("Unknown style '{}'. Available styles: {}").format(
+                    style, ", ".join(plt.style.available)
+                )
+            )
+        plt.style.use(style)
 
 
 def get_valid_color(color):
@@ -369,9 +454,9 @@ def get_valid_color(color):
         color = [int(x) for x in color.split(":")]
         if max(color) > 1:
             color[:] = [x / 255 for x in color]
-    if not matplotlib.colors.is_color_like(color):
-        gs.fatal(_("{} is not a valid color.".format(color)))
-    color = matplotlib.colors.to_rgba(color)
+    if not mpl.colors.is_color_like(color):
+        gs.fatal(_("{} is not a valid color.").format(color))
+    color = mpl.colors.to_rgba(color)
     return color
 
 
@@ -477,7 +562,7 @@ def density_scatter(
     idx = z.argsort()
     x, y, z = np.array(X)[idx], np.array(Y)[idx], z[idx]
 
-    cmap = matplotlib.cm.get_cmap(density_colormap)
+    cmap = mpl.colormaps[density_colormap]
     if reverse_colors:
         cmap = cmap.reversed()
     if s:
@@ -492,7 +577,7 @@ def density_scatter(
     # Create a ScalarMappable for the colorbar
     # Set an empty array to allow the ScalarMappable to be used for the legend
     norm = Normalize(vmin=np.min(z), vmax=np.max(z))
-    sm = matplotlib.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
 
     # Add colorbar to the right of the plo
@@ -501,14 +586,14 @@ def density_scatter(
     return ax, fig
 
 
-def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
+def confidence_ellipse(x, y, ax, n, facecolor="none", **kwargs):
     """
     Create a plot of the covariance confidence ellipse of *x* and *y*.
 
     :param array x: input data x-axis.
     :param array y: input data y-axis.
     :param matplotlib.axes.Axes ax: The axes object to draw the ellipse into.
-    :param float n_sd: The number of standard deviations to determine the ellipse's radiuses.
+    :param float n: The number of standard deviations to determine the ellipse's radiuses.
 
     :return matplotlib.patches.Ellipse
     """
@@ -518,7 +603,7 @@ def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
     # two-dimensional dataset.
     ell_radius_x = np.sqrt(1 + pearson)
     ell_radius_y = np.sqrt(1 - pearson)
-    ellipse = matplotlib.patches.Ellipse(
+    ellipse = mpl.patches.Ellipse(
         (0, 0),
         width=ell_radius_x * 2,
         height=ell_radius_y * 2,
@@ -529,15 +614,15 @@ def confidence_ellipse(x, y, ax, n_sd, facecolor="none", **kwargs):
     # Calculating the standard deviation of x from
     # the squareroot of the variance and multiplying
     # with the given number of standard deviations.
-    scale_x = np.sqrt(cov[0, 0]) * n_sd
+    scale_x = np.sqrt(cov[0, 0]) * n
     mean_x = np.mean(x)
 
     # calculating the standard deviation of y ...
-    scale_y = np.sqrt(cov[1, 1]) * n_sd
+    scale_y = np.sqrt(cov[1, 1]) * n
     mean_y = np.mean(y)
 
     transf = (
-        matplotlib.transforms.Affine2D()
+        mpl.transforms.Affine2D()
         .rotate_deg(45)
         .scale(scale_x, scale_y)
         .translate(mean_x, mean_y)
@@ -554,7 +639,7 @@ def random_color():
     :return list with rgb elements
     """
     hex_color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-    return matplotlib.colors.hex2color(hex_color)
+    return mpl.colors.hex2color(hex_color)
 
 
 def main(options, flags):
@@ -565,6 +650,7 @@ def main(options, flags):
 
     # lazy import modules
     lazy_import_matplotlib()
+    apply_style(options["style"])
     if options["type"] == "density":
         has_scipy = lazy_import_scipy()
         if has_scipy == "noscipy":
@@ -586,9 +672,15 @@ def main(options, flags):
         "v.db.select",
         map=options["map"],
         columns=columns,
+        layer=options["layer"],
         where=sql_stat,
     ).splitlines()
     X_name, Y_name = df[0].split("|")[0:2]
+    # Optional axis-label overrides; fall back to the column names.
+    if options["x_label"]:
+        X_name = options["x_label"]
+    if options["y_label"]:
+        Y_name = options["y_label"]
     X = [float(i.split("|")[0]) for i in df[1:]]
     Y = [float(j.split("|")[1]) for j in df[1:]]
     n = 2
@@ -601,20 +693,26 @@ def main(options, flags):
     if options["groups_rgb"]:
         groups_rgb = [get_valid_color(j.split("|")[n]) for j in df[1:]]
 
-    # Plot parameters & aesthetics
+    # Plot parameters & aesthetics. Unset appearance options fall back to the
+    # Matplotlib/style defaults.
     plot_dimensions = [float(x) for x in options["plot_dimensions"].split(",")]
     plot_title = options["title"]
-    file_name = options["file_name"]
+    file_name = options["output"]
     bins = [int(x) for x in options["bins"].split(",")]
+    fontsize = (
+        float(options["fontsize"]) if options["fontsize"] else plt.rcParams["font.size"]
+    )
     if options["rgbcolumn"]:
         dot_color = rgbcolumn
     elif options["color"]:
         dot_color = get_valid_color(options["color"])
     else:
-        dot_color = get_valid_color("blue")
-    line_color = get_valid_color(options["line_color"])
+        dot_color = None
+    line_color = (
+        get_valid_color(options["line_color"]) if options["line_color"] else None
+    )
     line_style = options["line_style"]
-    line_width = options["line_width"]
+    line_width = float(options["line_width"]) if options["line_width"] else None
     dot_marker = options["marker"]
     if options["s"]:
         s = float(options["s"])
@@ -633,7 +731,7 @@ def main(options, flags):
             marker=dot_marker,
             s=s,
             dimensions=plot_dimensions,
-            fontsize=float(options["fontsize"]),
+            fontsize=fontsize,
         )
 
     # Plot density plot
@@ -648,11 +746,34 @@ def main(options, flags):
             marker=dot_marker,
             s=s,
             dimensions=plot_dimensions,
-            fontsize=float(options["fontsize"]),
+            fontsize=fontsize,
             density_colormap=options["density_colormap"],
             reverse_colors=flags["r"],
         )
 
+    # Quadrants
+    if options["quadrants"]:
+        if options["quadrants"] == "mean":
+            X_div = np.mean(X)
+            Y_div = np.mean(Y)
+        else:
+            X_div = np.median(X)
+            Y_div = np.median(Y)
+        quadrant_kwargs = {"zorder": 0}
+        if options["quandrant_linecolor"]:
+            quadrant_kwargs["color"] = get_valid_color(options["quandrant_linecolor"])
+        if options["quandrant_linewidth"]:
+            quadrant_kwargs["linewidth"] = float(options["quandrant_linewidth"])
+        ax.axhline(y=Y_div, **quadrant_kwargs)
+        ax.axvline(x=X_div, **quadrant_kwargs)
+
+    # Set grid (optional)
+    if flags["g"]:
+        ax.set_axisbelow(True)
+        ax.xaxis.grid(linewidth=0.5, alpha=0.5)
+        ax.yaxis.grid(linewidth=0.5, alpha=0.5)
+
+    # Trendline
     if options["trendline"] == "linear":
         degree = 1
         if int(options["degree"]) != "1":
@@ -695,13 +816,12 @@ def main(options, flags):
 
         # Plot trend line
         xx, yy = trend_model.linspace()
-        ax.plot(
-            xx,
-            yy,
-            color=line_color,
-            linestyle=line_style,
-            linewidth=line_width,
-        )
+        trend_kwargs = {"linestyle": line_style}
+        if line_color is not None:
+            trend_kwargs["color"] = line_color
+        if line_width is not None:
+            trend_kwargs["linewidth"] = line_width
+        ax.plot(xx, yy, **trend_kwargs)
 
     # Plot confidence ellipse based on all data
     if flags["e"]:
@@ -715,7 +835,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor="white",
                 linewidth=edge_width * 1.5,
                 linestyle=edge_style,
@@ -725,7 +845,7 @@ def main(options, flags):
                 X,
                 Y,
                 ax,
-                n_sd=float(options["n_sd"]),
+                n=float(options["n"]),
                 edgecolor=edge_color,
                 linewidth=edge_width,
                 linestyle=edge_style,
@@ -751,7 +871,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor="white",
                     linewidth=edge_width * 1.8,
                     linestyle="-",
@@ -761,7 +881,7 @@ def main(options, flags):
                     sub_x,
                     sub_y,
                     ax,
-                    n_sd=float(options["n_sd"]),
+                    n=float(options["n"]),
                     edgecolor=edge_color,
                     linewidth=edge_width,
                     linestyle=edge_style,
@@ -769,13 +889,13 @@ def main(options, flags):
                     label=group_name,
                 )
             if options["ellipse_legend"]:
-                fontsize = float(options["fontsize"]) * 0.9
-                plt.legend(fontsize=fontsize)
-    if options["xlim"]:
-        xlim = [float(i) for i in options["xlim"].split(",")]
+                plt.legend(fontsize=fontsize * 0.9)
+
+    if options["x_axis_limits"]:
+        xlim = [float(i) for i in options["x_axis_limits"].split(",")]
         ax.set_xlim(xlim)
-    if options["ylim"]:
-        ylim = [float(i) for i in options["ylim"].split(",")]
+    if options["y_axis_limits"]:
+        ylim = [float(i) for i in options["y_axis_limits"].split(",")]
         ax.set_ylim(ylim)
 
     if bool(file_name):

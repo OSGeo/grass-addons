@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
         }
         else {
             ret = db_CatValArray_get_value_double(&cvarr, cat, &w);
-        }                     /*ret will be 0 if completed successfully*/
+        } /*ret will be 0 if completed successfully*/
         newpoint(w, z, x, y); /*adding the each point to the points array*/
     }
     Vect_close(&InMap);
@@ -280,8 +280,8 @@ int main(int argc, char *argv[])
                 cnt++;
                 Rast3d_put_float(map3d, col, row, lev, value);
             } /*cols*/
-        }     /*rows*/
-    }         /*levels*/
+        } /*rows*/
+    } /*levels*/
     G_free(data);
 
     if (!Rast3d_close(map3d))

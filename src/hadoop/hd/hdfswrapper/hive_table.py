@@ -28,7 +28,6 @@ class HiveBaseTable(object):
         location=None,
         tbl_properties=None,
     ):
-
         self.db_name = db_name
         self.name = name
         self.temporary = temporary
@@ -75,7 +74,6 @@ class HiveBaseTable(object):
             self.hql += " %s" % self.name
 
     def _col(self):
-
         self.hql += " (%s)" % self.col
 
     def _partitioned(self):
@@ -137,7 +135,6 @@ class HiveJsonTable(HiveBaseTable):
         outputformat=None,
         tbl_properties=None,
     ):
-
         super(HiveJsonTable, self).__init__(
             name=name,
             col=col,
@@ -198,7 +195,6 @@ class HiveCsvTable(HiveBaseTable):
         delimeter=",",
         tbl_properties=None,
     ):
-
         super(HiveCsvTable, self).__init__(
             name=name,
             col=col,
@@ -233,7 +229,7 @@ class HiveCsvTable(HiveBaseTable):
     def _row_format(self):
         if not self.row_format:
             self.hql += (
-                " ROW FORMAT DELIMITED FIELDS TERMINATED" " BY '%s'" % self.delimeter
+                " ROW FORMAT DELIMITED FIELDS TERMINATED BY '%s'" % self.delimeter
             )
         else:
             self.hql += " ROW FORMAT %s" % self.row_format
@@ -283,7 +279,6 @@ class HiveSpatial(object):
         return out
 
     def find_table_location(self, table):
-
         out = self.describe_table(table)
         # print out
         if out:
@@ -342,7 +337,6 @@ class HiveSpatial(object):
         hql = ""
         for jar in jar_list:
             if jar:
-
                 if not path:
                     hql += "ADD JAR /usr/local/spatial/jar/%s " % jar
                 else:
@@ -364,7 +358,6 @@ class HiveSpatial(object):
         overwrite=None,
         partitioned=None,
     ):
-
         tbl = HiveJsonTable(
             name=table,
             col=field,

@@ -18,7 +18,7 @@ setup(
     author="Nikos Alexandris",
     author_email="nik@nikosalexandris.net",
     # list of valid classifiers
-    # https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    # https://pypi.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         "Development Status :: 3 - Beta",
         "Programming Language :: Python :: 2",

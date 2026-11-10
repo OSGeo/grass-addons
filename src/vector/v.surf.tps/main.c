@@ -18,9 +18,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+#include <grass/dbmi.h>
 #include <grass/raster.h>
 #include <grass/vector.h>
 #include <grass/glocale.h>
+
 #include "tps.h"
 
 static int cmp_pnts(const void *a, const void *b)

@@ -26,7 +26,6 @@ class TestPyGBIFImport(TestCase):
         cls.del_temp_region()
 
     def test_poa_taxon_match(self):
-
         v_in_pygbif_match = SimpleModule(
             "v.in.pygbif", taxa="Poa", output="gbif_poa1", flags="g", verbose=True
         )
@@ -36,7 +35,6 @@ class TestPyGBIFImport(TestCase):
         self.assertTrue(stdout_match.startswith("match=Poa"))
 
     def test_poa_taxon_count(self):
-
         v_in_pygbif_count = SimpleModule(
             "v.in.pygbif", taxa="Poa", output="gbif_poa2", flags="o", verbose=True
         )
@@ -46,7 +44,6 @@ class TestPyGBIFImport(TestCase):
         self.assertTrue(int(stdout_count.split(" ")[1]) >= 250)
 
     def test_poa_map(self):
-
         v_in_pygbif_map = SimpleModule(
             "v.in.pygbif", taxa="Poa", output="gbif_poa3", verbose=True
         )

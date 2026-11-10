@@ -180,7 +180,7 @@
 # % key: bh_resistence
 # % type: double
 # % key_desc: double
-# % description: Borehole thermal resistence [m K W-1]
+# % description: Borehole thermal resistance [m K W-1]
 # % required: no
 # % answer: nan
 # % guisection: Borehole

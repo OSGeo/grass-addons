@@ -7,14 +7,14 @@ import logging
 import os
 import sys
 
-import grass.script as grass
+import grass.script as gs
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 BASE_LOG_URL = "log"
-GISDBASE = grass.gisenv()["GISDBASE"]
-LOCATION_NAME = grass.gisenv()["LOCATION_NAME"]
-MAPSET = grass.gisenv()["MAPSET"]
+GISDBASE = gs.gisenv()["GISDBASE"]
+LOCATION_NAME = gs.gisenv()["LOCATION_NAME"]
+MAPSET = gs.gisenv()["MAPSET"]
 MAPSET_PATH = os.path.join(GISDBASE, LOCATION_NAME, MAPSET)
 
 SQL_ALCHEMY_CONN = "sqlite:////%s" % os.path.join(MAPSET_PATH, "sqlite", "sqlite.db")

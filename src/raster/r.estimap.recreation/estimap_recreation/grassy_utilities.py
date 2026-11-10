@@ -9,7 +9,7 @@ from __future__ import print_function
 import atexit
 import os
 
-import grass.script as grass
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 from grass.pygrass.modules.shortcuts import general as g
 from grass.pygrass.modules.shortcuts import raster as r
@@ -25,12 +25,12 @@ from .constants import (
 
 def run(cmd, **kwargs):
     """Pass required arguments to grass commands (?)"""
-    grass.run_command(cmd, quiet=True, **kwargs)
+    gs.run_command(cmd, quiet=True, **kwargs)
 
 
 def remove_map(map_name):
     """Remove the provided map"""
-    grass.verbose("Removing %s" % map_name)
+    gs.verbose("Removing %s" % map_name)
     g.remove(
         flags="fb",
         type=("raster", "vector"),
@@ -42,14 +42,14 @@ def remove_map(map_name):
 def remove_map_at_exit(map_name):
     """Remove the provided map when the program exits"""
     msg = "*** Add '{map}' to list of maps to remove when program exits"
-    grass.debug(_(msg.format(map=map_name)))
+    gs.debug(_(msg).format(map=map_name))
     atexit.register(lambda: remove_map(map_name))
 
 
 def remove_files_at_exit(filename):
     """Remove the specified file when the program exits"""
     msg = "*** Add '{file}' to list of files to remove when program exits"
-    grass.debug(_(msg.format(file=filename)))
+    gs.debug(_(msg).format(file=filename))
     atexit.register(lambda: os.unlink(filename))
 
 
@@ -72,8 +72,8 @@ def temporary_filename(filename=None):
     >>> temporary_filename(potential)
     tmp.SomeTemporaryString.potential
     """
-    temporary_absolute_filename = grass.tempfile()
-    temporary_filename = "tmp." + grass.basename(temporary_absolute_filename)
+    temporary_absolute_filename = gs.tempfile()
+    temporary_filename = "tmp." + gs.basename(temporary_absolute_filename)
     if filename:
         temporary_filename = temporary_filename + "." + str(filename)
     return temporary_filename
@@ -94,7 +94,7 @@ def remove_temporary_maps(save_temporary_maps=False):
     else:
         msg = "I will not remove temporary maps in order to support your debugging!"
         msg += "Take care to remove them, i.e. via `g.remove raster pattern=tmp.*`"
-        grass.warning(_(msg))
+        gs.warning(_(msg))
 
 
 def string_to_file(string, filename=None):
@@ -106,7 +106,7 @@ def string_to_file(string, filename=None):
     string :
         A string where commas will be replaced by a newline
 
-    name :
+    filename :
         A string for temporary_filename() to create a temporary file name 'filename'
 
     Returns
@@ -121,8 +121,7 @@ def string_to_file(string, filename=None):
     string = string.split(",")
     string = "\n".join(string)
     # string = string.splitlines()
-    msg = "String split in lines: {s}".format(s=string)
-    grass.debug(_(msg))
+    gs.debug(_("String split in lines: {s}").format(s=string))
 
     # # Use a file-like object instead?
     # import tempfile
@@ -137,7 +136,7 @@ def string_to_file(string, filename=None):
     # for line in ascii_file:
     #     grass.debug(_(line.rstrip()))
 
-    except IOError as error:
+    except OSError as error:
         print("IOError :", error)
         return
 
@@ -168,15 +167,16 @@ def get_univariate_statistics(raster):
     -------
     ...
     """
-    univariate = grass.parse_command("r.univar", flags="g", map=raster)
+    univariate = gs.parse_command("r.univar", flags="g", map=raster)
     minimum = univariate["min"]
     mean = round(float(univariate["mean"]), 3)
     maximum = univariate["max"]
     variance = round(float(univariate["variance"]), 3)
-    msg = " * Univariate statistics for '{raster}'".format(raster=raster)
+    msg = " * Univariate statistics for '{raster}'"
     msg += "\n  min {mn} | mean {avg} | max {mx} | variance {v}"
-    msg = msg.format(mn=minimum, avg=mean, mx=maximum, v=variance)
-    grass.verbose(_(msg))
+    gs.verbose(
+        _(msg).format(raster=raster, mn=minimum, avg=mean, mx=maximum, v=variance)
+    )
     return univariate
 
 
@@ -207,19 +207,16 @@ def recode_map(raster, rules, colors, output):
     --------
     ...
     """
-    msg = "*** Setting NULL cells in {name} map to 0"
-    msg = msg.format(name=raster)
-    grass.debug(_(msg))
+    gs.debug(_("*** Setting NULL cells in {name} map to 0").format(name=raster))
 
     # ------------------------------------------
     r.null(map=raster, null=0)  # Set NULLs to 0
     msg = "*** To Do: confirm if setting the '{raster}' map's NULL cells to 0 is right"
-    msg = msg.format(raster=raster)
-    grass.debug(_(msg))
+    gs.debug(_(msg).format(raster=raster))
     # Is this right?
     # ------------------------------------------
 
-    grass.verbose(_("* Scoring map {name}:".format(name=raster)))
+    gs.verbose(_("* Scoring map {name}:").format(name=raster))
     r.recode(input=raster, rules=rules, output=output)
     r.colors(map=output, rules="-", stdin=SCORE_COLORS, quiet=True)
 
@@ -299,7 +296,7 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
 
     Parameters
     ----------
-    raster :
+    input_name :
         Input raster map name
 
     title :
@@ -323,16 +320,14 @@ def export_map(input_name, title, categories, colors, output_name, timestamp):
     --------
     ..
     """
-    finding = grass.find_file(name=input_name, element="cell")
+    finding = gs.find_file(name=input_name, element="cell")
     if not finding["file"]:
-        grass.fatal(
+        gs.fatal(
             "Raster map {name} not found".format(name=input_name)
         )  # Maybe use 'finding'?
 
     # inform
-    msg = "* Outputting '{raster}' map\n"
-    msg = msg.format(raster=output_name)
-    grass.verbose(_(msg))
+    gs.verbose(_("* Outputting '{raster}' map\n").format(raster=output_name))
 
     # get categories and labels
     temporary_raster_categories_map = temporary_filename("categories_of_" + input_name)
@@ -404,7 +399,7 @@ def get_raster_statistics(map_one, map_two, separator, flags):
                 u'48.94%']}}
     """
 
-    statistics = grass.read_command(
+    statistics = gs.read_command(
         "r.stats",
         input=(map_one, map_two),
         output="-",
@@ -448,8 +443,7 @@ def smooth_map(raster, method, size):
     --------
     """
     # Build MASK for current category & high quality recreation areas
-    msg = "Smoothing map '{m}'"
-    grass.verbose(_(msg.format(m=raster)))
+    gs.verbose(_("Smoothing map '{m}'").format(m=raster))
     r.neighbors(
         input=raster,
         output=raster,
@@ -496,7 +490,7 @@ def update_vector(vector, raster, methods, column_prefix):
         column_prefix=column_prefix,
         overwrite=True,
     )
-    grass.verbose(_("* Updating vector map '{v}'".format(v=vector)))
+    gs.verbose(_("* Updating vector map '{v}'").format(v=vector))
 
 
 def raster_to_vector(
@@ -524,13 +518,11 @@ def raster_to_vector(
     ..
     """
     msg = " * Vectorising raster map '{r}'"
-    grass.verbose(
-        _(
-            msg.format(
-                c=category,
-                r=raster_category_flow,
-                v=vector_category_flow,
-            )
+    gs.verbose(
+        _(msg).format(
+            c=category,
+            r=raster_category_flow,
+            v=vector_category_flow,
         )
     )
     r.to_vect(
@@ -541,7 +533,7 @@ def raster_to_vector(
     )
 
     msg = " * Updating the attribute table"
-    grass.verbose(_(msg))
+    gs.verbose(_(msg))
 
     # Value is the ecosystem type
     v.db_renamecolumn(

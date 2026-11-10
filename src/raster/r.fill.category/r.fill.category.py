@@ -75,7 +75,7 @@ import sys
 import os
 import atexit
 
-import grass.script as gscript
+import grass.script as gs
 from grass.exceptions import CalledModuleError
 
 # i18N
@@ -85,7 +85,7 @@ gettext.install("grassmods", os.path.join(os.getenv("GISBASE"), "locale"))
 
 
 def main():
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     keep = flags["k"]
     input = options["input"]
@@ -98,7 +98,7 @@ def main():
     quality = int(options["quality"])
 
     overwrite_flag = ""
-    if gscript.overwrite():
+    if gs.overwrite():
         overwrite_flag = "t"
 
     # keep intermediate maps
@@ -112,8 +112,8 @@ def main():
         keepintmaps = True
 
     # check if input file exists
-    if not gscript.find_file(input)["file"]:
-        gscript.fatal(_("Raster map <%s> not found") % input)
+    if not gs.find_file(input)["file"]:
+        gs.fatal(_("Raster map <%s> not found") % input)
 
     # strip mapset name
     in_name_strip = options["input"].split("@")
@@ -126,8 +126,8 @@ def main():
     # maps to bootstrap the loop
     # create a map containing only the category to replace and NULL
     categorymap = "{}".format(in_name) + "_bin_" + "{}".format(tmp)
-    gscript.verbose(_("Category map: <%s>") % categorymap)
-    gscript.run_command(
+    gs.verbose(_("Category map: <%s>") % categorymap)
+    gs.run_command(
         "r.mapcalc",
         expression="{outmap}=if({inmap}=={cat}, 1, null())".format(
             outmap=categorymap, inmap=input, cat=category
@@ -138,16 +138,16 @@ def main():
     # create a copy of the input map to be used as a selection map in r.neighbors,
     # it will be replaced by the map with category replacement in the loop
     stepmap_old = "{}".format(in_name) + "_step_000"
-    gscript.run_command(
+    gs.run_command(
         "g.copy",
         raster="{inmap},{outmap}".format(inmap=input, outmap=stepmap_old),
         quiet=True,
         overwrite="t",
     )
 
-    gscript.verbose(_("Category to remove: %d") % category)
-    gscript.verbose(_("Maxiter: %d") % maxiter)
-    gscript.verbose(_("Quality for animation: %d") % quality)
+    gs.verbose(_("Category to remove: %d") % category)
+    gs.verbose(_("Maxiter: %d") % maxiter)
+    gs.verbose(_("Quality for animation: %d") % quality)
 
     pixel_num = 1
     iteration = 1
@@ -158,10 +158,10 @@ def main():
         stepmap = "{}".format(in_name)
         stepmap += "_step_"
         stepmap += "{:03d}".format(iteration)
-        gscript.verbose(_("Step map: <%s>") % stepmap)
+        gs.verbose(_("Step map: <%s>") % stepmap)
 
         # substitute pixels of the category to remove with the mode of the surrounding pixels
-        gscript.run_command(
+        gs.run_command(
             "r.neighbors",
             input=stepmap_old,
             selection=categorymap,
@@ -174,7 +174,7 @@ def main():
 
         # remove intermediate map unless the k flag is set
         if keepintmaps is False:
-            gscript.run_command(
+            gs.run_command(
                 "g.remove", type="raster", name=stepmap_old, flags="f", quiet=True
             )
 
@@ -182,7 +182,7 @@ def main():
         stepmap_old = stepmap
 
         # create the new map containing only the category to replace and NULL
-        gscript.run_command(
+        gs.run_command(
             "r.mapcalc",
             expression="{outmap}=if({inmap}=={cat},1,null())".format(
                 outmap=categorymap, inmap=stepmap, cat=category
@@ -192,7 +192,7 @@ def main():
         )
 
         # evaluate the number of the remaining pixels of the category to relace
-        pixel_stat = gscript.parse_command(
+        pixel_stat = gs.parse_command(
             "r.stats",
             input="{inmap}".format(inmap=stepmap),
             flags="c",
@@ -206,9 +206,7 @@ def main():
             pixel_num = 0
             # print(e.message)
 
-        gscript.verbose(
-            _("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num)
-        )
+        gs.verbose(_("Iteration: %d  Remaining pixels: %d") % (iteration, pixel_num))
 
         iteration = iteration + 1
 
@@ -217,7 +215,7 @@ def main():
 
     # if the loop ended before reaching pixel_num=0
     if pixel_num > 0:
-        gscript.warning(
+        gs.warning(
             _(
                 "the process stopped after %d iterations with %d pixels of category %d left"
             )
@@ -225,7 +223,7 @@ def main():
         )
 
     # copy the output of the last iteration to the output map
-    gscript.run_command(
+    gs.run_command(
         "g.copy",
         raster="{inmap},{outmap}".format(inmap=stepmap, outmap=out_name),
         overwrite="{}".format(overwrite_flag),
@@ -234,18 +232,16 @@ def main():
 
     # remove the last intermediate map unless the k flag is set
     if keepintmaps is False:
-        gscript.run_command(
+        gs.run_command(
             "g.remove", type="raster", name=stepmap_old, flags="f", quiet=True
         )
 
-    gscript.run_command(
-        "g.remove", type="raster", name=categorymap, flags="f", quiet=True
-    )
+    gs.run_command("g.remove", type="raster", name=categorymap, flags="f", quiet=True)
 
     # optionally create an mpeg animation of the replacement sequence
     if animationfile:
-        gscript.message(_("Generating mpeg file %s...") % animationfile)
-        gscript.run_command(
+        gs.message(_("Generating mpeg file %s...") % animationfile)
+        gs.run_command(
             "r.out.mpeg",
             view1="{}_step_[0-9][0-9][0-9]".format(in_name),
             output="{}".format(animationfile),
@@ -256,7 +252,7 @@ def main():
     # remove intermediate maps if they have been kept for generating the animation
     # but the 'k' flag is not set
     if animationfile and not flags["k"]:
-        gscript.message(
+        gs.message(
             _("Removing intermediate files after generating %s...") % animationfile
         )
         newiter = 0
@@ -264,14 +260,14 @@ def main():
             stepmap = "{}".format(in_name)
             stepmap += "_step_"
             stepmap += "{:03d}".format(newiter)
-            gscript.verbose(_("Removing step map: <%s>") % stepmap)
-            gscript.run_command(
+            gs.verbose(_("Removing step map: <%s>") % stepmap)
+            gs.run_command(
                 "g.remove", type="raster", name=stepmap, flags="f", quiet=True
             )
             newiter = newiter + 1
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     # atexit.register(cleanup)
     main()

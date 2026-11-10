@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  Calculates univariate statistics from the non-null cells
  *
  *   Copyright (C) 2004-2010 by the GRASS Development Team

@@ -924,7 +924,7 @@ int main(int argc, char *argv[])
                                  (b[col] + (c[col] - (d[col] - a[col])));
                     }
                 } /*for temp */
-            }     /*col end */
+            } /*col end */
             r[ncols] = I[ncols];
             /*MPI_Send(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD); */
             MPI_Send(r, ncols + 1, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);

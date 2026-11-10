@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="v.in.osm test">
+  <node id="1" lat="48.0550" lon="1.3700" version="1"/>
+  <node id="2" lat="48.0550" lon="1.3710" version="1"/>
+  <node id="3" lat="48.0560" lon="1.3710" version="1"/>
+  <node id="4" lat="48.0560" lon="1.3700" version="1"/>
+  <node id="5" lat="48.0540" lon="1.3690" version="1"/>
+  <node id="6" lat="48.0570" lon="1.3720" version="1"/>
+  <way id="10" version="1">
+    <nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><nd ref="1"/>
+    <tag k="building" v="hangar"/>
+  </way>
+  <way id="11" version="1">
+    <nd ref="5"/><nd ref="6"/>
+    <tag k="highway" v="service"/>
+  </way>
+</osm>

@@ -167,17 +167,17 @@
 
 import os
 import atexit
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.modules.grid.grid import GridModule
 from grass.pygrass.vector import VectorTopo
 from grass.pygrass.vector import geometry as geom
 
 
 def cleanup():
-    gscript.message(_("Erasing temporary files..."))
+    gs.message(_("Erasing temporary files..."))
     for temp_map, maptype in temp_maps:
-        if gscript.find_file(temp_map, element=maptype)["name"]:
-            gscript.run_command(
+        if gs.find_file(temp_map, element=maptype)["name"]:
+            gs.run_command(
                 "g.remove", flags="f", type=maptype, name=temp_map, quiet=True
             )
 
@@ -208,7 +208,7 @@ def main():
 
     if options["tile_width"]:
         tiled = True
-        gscript.message(_("Using tiles processing for edge detection"))
+        gs.message(_("Using tiles processing for edge detection"))
         width = int(options["tile_width"])
         height = int(options["tile_height"])
         overlap = int(options["overlap"])
@@ -223,7 +223,7 @@ def main():
     if existing_cutlines:
         existingcutlinesmap = "temp_icutlines_existingcutlinesmap_%i" % os.getpid()
         if len(existing_cutlines) > 1:
-            gscript.run_command(
+            gs.run_command(
                 "v.patch",
                 input_=existing_cutlines,
                 output=existingcutlinesmap,
@@ -232,7 +232,7 @@ def main():
             )
             existing_cutlines = existingcutlinesmap
 
-        gscript.run_command(
+        gs.run_command(
             "v.to.rast",
             input_=existing_cutlines,
             output=existingcutlinesmap,
@@ -247,7 +247,7 @@ def main():
     temp_edge_map = "temp_icutlines_edgemap_%d" % os.getpid()
     temp_maps.append([temp_edge_map, r])
 
-    gscript.message(
+    gs.message(
         _("Creating edge map using <%s> edgedetection algorithm")
         % edge_detection_algorithm
     )
@@ -272,14 +272,14 @@ def main():
             )
             grd.run()
         else:
-            gscript.run_command("i.zc", **kwargs)
+            gs.run_command("i.zc", **kwargs)
 
     elif edge_detection_algorithm == "canny":
-        if not gscript.find_program("i.edge", "--help"):
+        if not gs.find_program("i.edge", "--help"):
             message = _("You need to install the addon i.edge to use ")
             message += _("the Canny edge detector.\n")
             message += _(" You can install the addon with 'g.extension i.edge'")
-            gscript.fatal(message)
+            gs.fatal(message)
 
         kwargs = {
             "input": inputraster,
@@ -303,15 +303,13 @@ def main():
             )
             grd.run()
         else:
-            gscript.run_command("i.edge", flags="n", **kwargs)
+            gs.run_command("i.edge", flags="n", **kwargs)
 
     else:
-        gscript.fatal(
-            "Only zero-crossing and Canny available as edge detection algorithms."
-        )
+        gs.fatal("Only zero-crossing and Canny available as edge detection algorithms.")
 
-    region = gscript.region()
-    gscript.message(_("Finding cutlines in both directions"))
+    region = gs.region()
+    gs.message(_("Finding cutlines in both directions"))
 
     nsrange = float(region.n - region.s - region.nsres)
     ewrange = float(region.e - region.w - region.ewres)
@@ -351,7 +349,7 @@ def main():
     new.close()
     del os.environ["GRASS_VERBOSE"]
 
-    gscript.run_command(
+    gs.run_command(
         "v.to.rast",
         input_=hlanemap,
         output=hlanemap,
@@ -391,7 +389,7 @@ def main():
         mapcalc_expression += "%i, " % no_edge_friction
         mapcalc_expression += "1), "
         mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction)
-    gscript.run_command(
+    gs.run_command(
         "r.mapcalc", expression=mapcalc_expression, quiet=True, overwrite=True
     )
 
@@ -428,7 +426,7 @@ def main():
     new.close()
     del os.environ["GRASS_VERBOSE"]
 
-    gscript.run_command(
+    gs.run_command(
         "v.to.rast",
         input_=vlanemap,
         output=vlanemap,
@@ -458,7 +456,7 @@ def main():
         mapcalc_expression += "%i, " % no_edge_friction
         mapcalc_expression += "1), "
         mapcalc_expression += "%i)" % (lane_border_multiplier * no_edge_friction)
-    gscript.run_command(
+    gs.run_command(
         "r.mapcalc", expression=mapcalc_expression, quiet=True, overwrite=True
     )
 
@@ -469,7 +467,7 @@ def main():
 
     if processes > 1:
         pmemory = memory / 2.0
-        rcv = gscript.start_command(
+        rcv = gs.start_command(
             "r.cost",
             input_=vbasemap,
             startcoordinates=vstartpoints,
@@ -481,7 +479,7 @@ def main():
             overwrite=True,
         )
 
-        rch = gscript.start_command(
+        rch = gs.start_command(
             "r.cost",
             input_=hbasemap,
             startcoordinates=hstartpoints,
@@ -496,7 +494,7 @@ def main():
         rch.wait()
 
     else:
-        gscript.run_command(
+        gs.run_command(
             "r.cost",
             input_=vbasemap,
             startcoordinates=vstartpoints,
@@ -508,7 +506,7 @@ def main():
             overwrite=True,
         )
 
-        gscript.run_command(
+        gs.run_command(
             "r.cost",
             input_=hbasemap,
             startcoordinates=hstartpoints,
@@ -526,7 +524,7 @@ def main():
     temp_maps.append([vlines, r])
 
     if processes > 1:
-        rdh = gscript.start_command(
+        rdh = gs.start_command(
             "r.drain",
             input_=hcumcost,
             direction=hdir,
@@ -537,7 +535,7 @@ def main():
             overwrite=True,
         )
 
-        rdv = gscript.start_command(
+        rdv = gs.start_command(
             "r.drain",
             input_=vcumcost,
             direction=vdir,
@@ -552,7 +550,7 @@ def main():
         rdv.wait()
 
     else:
-        gscript.run_command(
+        gs.run_command(
             "r.drain",
             input_=hcumcost,
             direction=hdir,
@@ -563,7 +561,7 @@ def main():
             overwrite=True,
         )
 
-        gscript.run_command(
+        gs.run_command(
             "r.drain",
             input_=vcumcost,
             direction=vdir,
@@ -577,7 +575,7 @@ def main():
     # Combine horizonal and vertical lines
     temp_raster_tile_borders = "temp_icutlines_raster_tile_borders_%i" % os.getpid()
     temp_maps.append([temp_raster_tile_borders, r])
-    gscript.run_command(
+    gs.run_command(
         "r.patch",
         input_=[hlines, vlines],
         output=temp_raster_tile_borders,
@@ -585,27 +583,27 @@ def main():
         overwrite=True,
     )
 
-    gscript.message(_("Creating vector polygons"))
+    gs.message(_("Creating vector polygons"))
 
     # Create vector polygons
 
     # First we need to shrink the region a bit to make sure that all vector
     # points / lines fall within the raster
-    gscript.use_temp_region()
-    gscript.run_command(
+    gs.use_temp_region()
+    gs.run_command(
         "g.region", s=region.s + region.nsres, e=region.e - region.ewres, quiet=True
     )
 
     region_map = "temp_icutlines_region_map_%i" % os.getpid()
     temp_maps.append([region_map, v])
     temp_maps.append([region_map, r])
-    gscript.run_command(
+    gs.run_command(
         "v.in.region", output=region_map, type_="line", quiet=True, overwrite=True
     )
 
-    gscript.del_temp_region()
+    gs.del_temp_region()
 
-    gscript.run_command(
+    gs.run_command(
         "v.to.rast",
         input_=region_map,
         output=region_map,
@@ -617,7 +615,7 @@ def main():
 
     temp_raster_polygons = "temp_icutlines_raster_polygons_%i" % os.getpid()
     temp_maps.append([temp_raster_polygons, r])
-    gscript.run_command(
+    gs.run_command(
         "r.patch",
         input_=[temp_raster_tile_borders, region_map],
         output=temp_raster_polygons,
@@ -627,7 +625,7 @@ def main():
 
     temp_raster_polygons_thin = "temp_icutlines_raster_polygons_thin_%i" % os.getpid()
     temp_maps.append([temp_raster_polygons_thin, r])
-    gscript.run_command(
+    gs.run_command(
         "r.thin",
         input_=temp_raster_polygons,
         output=temp_raster_polygons_thin,
@@ -646,7 +644,7 @@ def main():
     temp_vector_polygons4 = "temp_icutlines_vector_polygons4_%i" % os.getpid()
     temp_maps.append([temp_vector_polygons4, v])
 
-    gscript.run_command(
+    gs.run_command(
         "r.to.vect",
         input_=temp_raster_polygons_thin,
         output=temp_vector_polygons1,
@@ -657,7 +655,7 @@ def main():
     )
 
     # Erase all category values from the lines
-    gscript.run_command(
+    gs.run_command(
         "v.category",
         input_=temp_vector_polygons1,
         op="del",
@@ -668,7 +666,7 @@ def main():
     )
 
     # Transform lines to boundaries
-    gscript.run_command(
+    gs.run_command(
         "v.type",
         input_=temp_vector_polygons2,
         from_type="line",
@@ -679,7 +677,7 @@ def main():
     )
 
     # Add centroids
-    gscript.run_command(
+    gs.run_command(
         "v.centroids",
         input_=temp_vector_polygons3,
         output=temp_vector_polygons4,
@@ -689,7 +687,7 @@ def main():
 
     # If a threshold is given erase polygons that are too small
     if min_tile_size:
-        gscript.run_command(
+        gs.run_command(
             "v.clean",
             input_=temp_vector_polygons4,
             tool=["rmdangle", "rmarea"],
@@ -699,14 +697,14 @@ def main():
             overwrite=True,
         )
     else:
-        gscript.run_command(
+        gs.run_command(
             "g.copy", vect=[temp_vector_polygons4, tiles], quiet=True, overwrite=True
         )
 
-    gscript.vector_history(tiles)
+    gs.vector_history(tiles)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

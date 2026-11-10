@@ -129,7 +129,6 @@ from grass.exceptions import CalledModuleError
 
 
 def _untar(inputdir, untardir):
-
     if not os.path.exists(inputdir):
         gs.fatal(_("Directory <{}> does not exist").format(inputdir))
     if not os.path.isdir(inputdir):
@@ -161,7 +160,6 @@ def _untar(inputdir, untardir):
         with tarfile.open(name=scene, mode="r") as tar:
 
             def is_within_directory(directory, target):
-
                 abs_directory = os.path.abspath(directory)
                 abs_target = os.path.abspath(target)
 
@@ -303,7 +301,6 @@ def print_products(filenames):
 
 
 def main():
-
     inputdir = options["input"]
     untardir = options["unzip_dir"]
 

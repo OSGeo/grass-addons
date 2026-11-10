@@ -113,7 +113,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ###############
 # MAIN MODULE #
@@ -130,7 +130,7 @@ def main():
     # OPTION PARSING #
     ##################
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # Parsing
     if options["attrtype"] == "int":
@@ -147,7 +147,7 @@ def main():
     ########################################
 
     if options["vector_area"] is not "":
-        gscript.use_temp_region()
+        gs.use_temp_region()
         g.region(vector=options["map"], res=options["dxy"])
         v.to_rast(
             input=options["vector_area"],
@@ -158,13 +158,13 @@ def main():
             overwrite=True,
         )
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
         if attrtype is "double precision":
             try:
-                gscript.message("Checking for existing column to overwrite")
+                gs.message("Checking for existing column to overwrite")
                 v.db_dropcolumn(map=options["map"], columns="tmp_average", quiet=True)
             except:
                 pass
@@ -192,7 +192,7 @@ def main():
                 )
             except:
                 pass
-            gscript.run_command(
+            gs.run_command(
                 "v.distance",
                 from_=options["map"],
                 to=options["vector_area"],
@@ -203,7 +203,7 @@ def main():
             )
     elif options["vector_points"] is not "":
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
             v.db_addcolumn(
                 map=options["map"],
@@ -212,7 +212,7 @@ def main():
             )
         except:
             pass
-        gscript.run_command(
+        gs.run_command(
             "v.distance",
             from_=options["map"],
             to=options["vector_points"],
@@ -224,7 +224,7 @@ def main():
 
     elif options["raster"] is not "":
         try:
-            gscript.message("Checking for existing column to overwrite")
+            gs.message("Checking for existing column to overwrite")
             v.db_dropcolumn(map=options["map"], columns=options["column"], quiet=True)
         except:
             pass
@@ -240,7 +240,7 @@ def main():
             map=options["map"], column=["tmp_average", options["column"]], quiet=True
         )
 
-    gscript.message("Done.")
+    gs.message("Done.")
 
 
 if __name__ == "__main__":

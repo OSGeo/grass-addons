@@ -391,7 +391,7 @@
 # %end
 
 
-from grass.script.core import run_command, parser
+from grass.script.core import run_command, parser, use_temp_region
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.modules import Module
 from grass.pygrass.modules.shortcuts import raster as r
@@ -475,7 +475,6 @@ def indicator2(opts, flgs):
 
 
 def indicator4(opts, flgs):
-
     run_command(
         "r.mapcalc",
         overwrite=1,
@@ -513,7 +512,6 @@ def indicator4(opts, flgs):
 
 
 def indicator5(opts, flgs):
-
     run_command(
         "r.mapcalc",
         overwrite=1,
@@ -585,7 +583,6 @@ def indicator5(opts, flgs):
 
 
 def main(opts, flgs):
-
     c_hf_slope = {
         "cable crane - high power": 1,
         "cable crane - medium/low power": 0.7,
@@ -601,14 +598,14 @@ def main(opts, flgs):
     c_hf_noslope = {
         "forwarder": 1,
         "skidder": 0.8,
-        "tractor": 0.65
+        "tractor": 0.65,
         # ,"other": 0.5
     }
 
     c_c_noslope = {
         "forwarder": 1.2,
         "skidder": 1,
-        "tractor": 0.85
+        "tractor": 0.85,
         # ,"other": 0.7
     }
 
@@ -630,6 +627,7 @@ def main(opts, flgs):
     if resolution == "":
         resolution = 10
 
+    use_temp_region()
     run_command("g.region", vect=boundaries, res=resolution)
 
     run_command(

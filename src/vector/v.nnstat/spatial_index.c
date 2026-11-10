@@ -5,10 +5,10 @@ struct RTree *create_spatial_index(struct nna_par *xD)
     struct RTree *R_tree;    // spatial index
     struct RTree_Rect *rect; // rectangle
 
-    if (xD->i3 == TRUE) {                   // 3D NNA:
+    if (xD->i3 == true) {                   // 3D NNA:
         R_tree = RTreeCreateTree(-1, 0, 3); // create 3D spatial index
     }
-    if (xD->i3 == FALSE) {                  // 2D NNA:
+    if (xD->i3 == false) {                  // 2D NNA:
         R_tree = RTreeCreateTree(-1, 0, 2); // create 3D spatial index
     }
 
@@ -24,12 +24,12 @@ void insert_rectangle(int i3, int i, struct points *pnts)
     r = &pnts->r[3 * i];
     rect = RTreeAllocRect(pnts->R_tree); // allocate the rectangle
 
-    if (i3 == TRUE) { // 3D NNA:
+    if (i3 == true) { // 3D NNA:
         RTreeSetRect3D(rect, pnts->R_tree, *r, *r, *(r + 1), *(r + 1), *(r + 2),
                        *(r + 2)); // set 3D coordinates
     }
 
-    if (i3 == FALSE) { // 2D NNA:
+    if (i3 == false) { // 2D NNA:
         RTreeSetRect2D(rect, pnts->R_tree, *r, *r, *(r + 1),
                        *(r + 1)); // set 2D coordinates
     }
@@ -57,14 +57,14 @@ struct ilist *spatial_search(int i3, int i, struct points *pnts,
     list = G_new_ilist();            // create new list
     search = RTreeAllocRect(R_tree); // allocate new rectangle
 
-    if (i3 == TRUE) { // 3D NNA:
+    if (i3 == true) { // 3D NNA:
         RTreeSetRect3D(search, R_tree, *r - max_dist, *r + max_dist,
                        *(r + 1) - max_dist, *(r + 1) + max_dist,
                        *(r + 2) - max_dist,
                        *(r + 2) + max_dist); // set up searching rectangle
     }
 
-    if (i3 == FALSE) { // 2D NNA
+    if (i3 == false) { // 2D NNA
         RTreeSetRect2D(search, R_tree, *r - max_dist, *r + max_dist,
                        *(r + 1) - max_dist,
                        *(r + 1) + max_dist); // set up searching rectangle
@@ -128,13 +128,13 @@ double sum_NN(int i3, int i, struct ilist *list, struct points *pnts)
         dx = *r0 - *r;
         dy = *(r0 + 1) - *(r + 1);
 
-        if (i3 == TRUE) {              // 3D NNA:
+        if (i3 == true) {              // 3D NNA:
             dz = *(r0 + 2) - *(r + 2); // compute also 3rd difference
         }
 
         *d = dx * dx + dy * dy; // squared distance
 
-        if (i3 == TRUE) {  // 3D NNA:
+        if (i3 == true) {  // 3D NNA:
             *d += dz * dz; // use also the difference in z
         }
 

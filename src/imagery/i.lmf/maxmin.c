@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define NMAX 200
-int maxmin(int n, int nwin, double *dat)
+void maxmin(int n, int nwin, double *dat)
 {
     int i, j, jf, jr;
 
@@ -46,5 +46,4 @@ int maxmin(int n, int nwin, double *dat)
             dat[i] = 0.0;
         }
     }
-    return;
 }

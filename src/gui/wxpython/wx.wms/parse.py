@@ -191,21 +191,19 @@ def test(xml, LayerTree, layerTreeRoot):
     f.close()
     f = open("/home/sudeep/in3.xml", "r")
     xml1 = f.read()
-    """
-	#xml1=xml
-	#xml='<root> '+xml1+' </root>'
-	a=xml1.find('<WMT_MS_Capabilities')
-	print 'a1='+str(a)
-	if(a==-1):
-		print 'a2='+str(a)
-		a=xml1.find('<wmt_ms_capabilities')
-	if(a==-1):
-		print 'a3='+str(a)
-		print 'serious mix up'
-		return
-	print 'a4='+str(a)
-	#print xml1[a:]
-	"""
+    # #xml1=xml
+    # #xml='<root> '+xml1+' </root>'
+    # a=xml1.find('<WMT_MS_Capabilities')
+    # print 'a1='+str(a)
+    # if(a==-1):
+    #     print 'a2='+str(a)
+    #     a=xml1.find('<wmt_ms_capabilities')
+    # if(a==-1):
+    #     print 'a3='+str(a)
+    #     print 'serious mix up'
+    #     return
+    # print 'a4='+str(a)
+    # #print xml1[a:]
     dom = parseString(xml1)
     root = dom.firstChild
     lData = {}
@@ -216,7 +214,6 @@ def test(xml, LayerTree, layerTreeRoot):
 
 
 def dfs(root, LayerTree, ltr):
-
     if not hasattr(root, "contents"):
         print(root.string)
         return

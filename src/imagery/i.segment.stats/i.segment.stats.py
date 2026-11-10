@@ -107,18 +107,17 @@ from math import sqrt
 from functools import partial
 from multiprocessing import Pool
 from itertools import groupby
-import grass.script as gscript
+import grass.script as gs
 
 
 def cleanup():
-
     if temporary_vect:
-        if gscript.find_file(temporary_vect, element="vector")["name"]:
-            gscript.run_command(
+        if gs.find_file(temporary_vect, element="vector")["name"]:
+            gs.run_command(
                 "g.remove", flags="f", type_="vector", name=temporary_vect, quiet=True
             )
-        if gscript.db_table_exist(temporary_vect):
-            gscript.run_command(
+        if gs.db_table_exist(temporary_vect):
+            gs.run_command(
                 "db.execute", sql="DROP TABLE %s" % temporary_vect, quiet=True
             )
 
@@ -155,11 +154,10 @@ def finalize(existingAggregate):
 
 
 def worker(segment_map, stat_temp_file, raster):
-
     rastername = raster.split("@")[0]
     rastername = rastername.replace(".", "_")
     temp_file = stat_temp_file + "." + rastername
-    gscript.run_command(
+    gs.run_command(
         "r.univar",
         map_=raster,
         zones=segment_map,
@@ -171,7 +169,6 @@ def worker(segment_map, stat_temp_file, raster):
 
 
 def main():
-
     global insert_sql
     insert_sql = None
     global temporary_vect
@@ -191,18 +188,18 @@ def main():
     )
     neighborhood = True if flags["n"] else False
     if neighborhood:
-        if not gscript.find_program("r.neighborhoodmatrix", "--help"):
-            message = _("You need to install the addon r.neighborhoodmatrix to be able")
-            message += _(" to calculate area measures.\n")
-            message += _(
-                " You can install the addon with 'g.extension r.neighborhoodmatrix'"
+        if not gs.find_program("r.neighborhoodmatrix", "--help"):
+            message = (
+                "You need to install the addon r.neighborhoodmatrix to be able "
+                "to calculate area measures.\n"
+                "You can install the addon with 'g.extension r.neighborhoodmatrix'"
             )
-            gscript.fatal(message)
+            gs.fatal(_(message))
 
     raster_statistics = (
         options["raster_statistics"].split(",") if options["raster_statistics"] else []
     )
-    separator = gscript.separator(options["separator"])
+    separator = gs.separator(options["separator"])
     processes = int(options["processes"])
 
     output_header = ["cat"]
@@ -241,15 +238,15 @@ def main():
     }
 
     if flags["r"]:
-        gscript.use_temp_region()
-        gscript.run_command("g.region", raster=segment_map)
+        gs.use_temp_region()
+        gs.run_command("g.region", raster=segment_map)
 
-    stats_temp_file = gscript.tempfile()
+    stats_temp_file = gs.tempfile()
     if area_measures:
-        gscript.message(_("Calculating geometry statistics..."))
+        gs.message(_("Calculating geometry statistics..."))
         output_header += area_measures
         stat_indices = [geometry_stat_dict[x] for x in area_measures]
-        gscript.run_command(
+        gs.run_command(
             "r.object.geometry",
             input_=segment_map,
             output=stats_temp_file,
@@ -268,55 +265,51 @@ def main():
 
     if rasters:
         if not flags["c"]:
-            gscript.message(_("Checking usability of raster maps..."))
+            gs.message(_("Checking usability of raster maps..."))
             rasters_to_remove = []
             for raster in rasters:
                 null_values_found = False
-                if not gscript.find_file(raster, element="cell")["name"]:
-                    gscript.message(_("Cannot find raster '%s'" % raster))
-                    gscript.message(_("Removing this raster from list."))
+                if not gs.find_file(raster, element="cell")["name"]:
+                    gs.message(_("Cannot find raster '%s'") % raster)
+                    gs.message(_("Removing this raster from list."))
                     rasters_to_remove.append(raster)
                     continue
-                current_mapset = gscript.gisenv()["MAPSET"]
-                if gscript.find_file("MASK", element="cell", mapset=current_mapset)[
-                    "name"
-                ]:
-
-                    null_test = gscript.read_command(
+                current_mapset = gs.gisenv()["MAPSET"]
+                if gs.find_file("MASK", element="cell", mapset=current_mapset)["name"]:
+                    null_test = gs.read_command(
                         "r.stats", flags="N", input_=["MASK", raster], quiet=True
                     ).splitlines()
                     if "1 *" in null_test:
                         null_values_found = True
 
                 else:
-                    raster_info = gscript.parse_command(
+                    raster_info = gs.parse_command(
                         "r.univar", flags="g", map_=raster, quiet=True
                     )
                     if len(raster_info) == 0 or int(raster_info["null_cells"]) > 0:
                         null_values_found = True
 
                 if null_values_found:
-                    message = "Raster <%s> contains null values.\n" % raster
-                    message += "This can lead to errors in the calculations.\n"
-                    message += "Check region settings and raster extent.\n"
-                    message += "Possibly fill null values of raster.\n"
-                    message += "Removing this raster from list."
-                    gscript.warning(message)
+                    message = """Raster <%s> contains null values.
+This can lead to errors in the calculations.
+Check region settings and raster extent.
+Possibly fill null values of raster.
+Removing this raster from list."
+"""
+                    gs.warning(message % raster)
                     rasters_to_remove.append(raster)
 
             for raster in rasters_to_remove:
                 rasters.remove(raster)
 
         if len(rasters) > 0:
-            gscript.message(_("Calculating statistics for the following raster maps:"))
-            gscript.message(",".join(rasters))
+            gs.message(_("Calculating statistics for the following raster maps:"))
+            gs.message(",".join(rasters))
             if len(rasters) < processes:
                 processes = len(rasters)
-                gscript.message(
-                    _(
-                        "Only one process per raster. Reduced number of processes to %i."
-                        % processes
-                    )
+                gs.message(
+                    _("Only one process per raster. Reduced number of processes to %i.")
+                    % processes
                 )
 
             stat_indices = [raster_stat_dict[x] for x in raster_statistics]
@@ -344,8 +337,7 @@ def main():
 
     # Calculating neighborhood statistics if requested
     if neighborhood:
-
-        gscript.message(_("Calculating neighborhood statistics..."))
+        gs.message(_("Calculating neighborhood statistics..."))
 
         # Add neighbordhood statistics to headers
         original_nb_values = len(output_header) - 1
@@ -360,7 +352,7 @@ def main():
         nbr_matrix = sorted(
             [
                 x.split("|")
-                for x in gscript.read_command(
+                for x in gs.read_command(
                     "r.neighborhoodmatrix", input_=segment_map, flags="d", quiet=True
                 ).splitlines()
             ]
@@ -389,10 +381,12 @@ def main():
                     newvalues.append("0")
                 output_dict[key] = output_dict[key] + newvalues
 
-    message = _("Some values could not be calculated for the objects below. ")
-    message += _("These objects are thus not included in the results. ")
-    message += _("HINT: Check some of the raster maps for null values ")
-    message += _("and possibly fill these values with r.fillnulls.")
+    message = _(
+        "Some values could not be calculated for the objects below. "
+        "These objects are thus not included in the results. "
+        "HINT: Check some of the raster maps for null values "
+        "and possibly fill these values with r.fillnulls."
+    )
     error_objects = []
 
     if csvfile:
@@ -406,9 +400,9 @@ def main():
         f.close()
 
     if vectormap:
-        gscript.message(_("Creating output vector map..."))
+        gs.message(_("Creating output vector map..."))
         temporary_vect = "segmstat_tmp_vect_%d" % os.getpid()
-        gscript.run_command(
+        gs.run_command(
             "r.to.vect",
             input_=segment_map,
             output=temporary_vect,
@@ -418,15 +412,15 @@ def main():
             quiet=True,
         )
 
-        insert_sql = gscript.tempfile()
+        insert_sql = gs.tempfile()
         fsql = open(insert_sql, "w")
         fsql.write("BEGIN TRANSACTION;\n")
-        if gscript.db_table_exist(temporary_vect):
-            if gscript.overwrite():
+        if gs.db_table_exist(temporary_vect):
+            if gs.overwrite():
                 fsql.write("DROP TABLE %s;" % temporary_vect)
             else:
-                gscript.fatal(
-                    _("Table %s already exists. Use --o to overwrite" % temporary_vect)
+                gs.fatal(
+                    _("Table %s already exists. Use --o to overwrite") % temporary_vect
                 )
         create_statement = (
             "CREATE TABLE " + temporary_vect + " (cat int PRIMARY KEY);\n"
@@ -455,23 +449,23 @@ def main():
         fsql.write("END TRANSACTION;")
         fsql.close()
 
-        gscript.run_command("db.execute", input=insert_sql, quiet=True)
-        gscript.run_command(
+        gs.run_command("db.execute", input=insert_sql, quiet=True)
+        gs.run_command(
             "v.db.connect", map_=temporary_vect, table=temporary_vect, quiet=True
         )
-        gscript.run_command(
+        gs.run_command(
             "g.copy", vector="%s,%s" % (temporary_vect, vectormap), quiet=True
         )
 
     if error_objects:
         object_string = ", ".join(error_objects[:100])
-        message += _(
-            "\n\nObjects with errors (only first 100 are shown):\n%s" % object_string
+        message += (
+            _("\n\nObjects with errors (only first 100 are shown):\n%s") % object_string
         )
-        gscript.message(message)
+        gs.message(message)
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     atexit.register(cleanup)
     main()

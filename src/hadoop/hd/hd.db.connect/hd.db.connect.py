@@ -116,7 +116,7 @@
 # % guisection: manager
 # %end
 
-import grass.script as grass
+import grass.script as gs
 
 from hdfsgrass.hdfs_grass_lib import ConnectionManager
 
@@ -170,9 +170,9 @@ def main():
         if not options["driver"] and options["conn_id"]:
             conn.set_active_connection(options["driver"], options["conn_id"])
         else:
-            grass.fatal("ERROR parameter < driver > and 'conn_id' must be set")
+            gs.fatal("ERROR parameter < driver > and 'conn_id' must be set")
 
 
 if __name__ == "__main__":
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     main()

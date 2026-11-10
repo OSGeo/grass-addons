@@ -586,7 +586,7 @@ int ga_rem_dupl_tours(struct tsp_tour *tour, int ntours)
 }
 
 /* recombination similar to
- * http://www.gcd.org/sengoku/docs/arob98.pdf
+ * https://www.gcd.org/sengoku/docs/arob98.pdf
  * here: not the longest (most nodes) subtour, but the shortest (costs) total
  * tour */
 int ga_subtour(struct tsp_tour *tour, int p1, int p2, int c, int next_i,
@@ -884,7 +884,7 @@ int ga_subtour(struct tsp_tour *tour, int p1, int p2, int c, int next_i,
 }
 
 /* Greedy Crossover as in java-tsp
- * http://http://code.google.com/p/java-traveling-salesman/
+ * https://code.google.com/p/java-traveling-salesman/
  * children are too expensive */
 int ga_recombine2(struct tsp_tour *tour, int p1, int p2, int c)
 {

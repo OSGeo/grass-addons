@@ -144,9 +144,7 @@ def yield_pix_process(
     #    exprmap = ("{frict_surf_extr} = {pix_cross} + if(yield_pix1<=0, 99999)"
     #               "+ if({morphometric_features}==6, 99999)")
 
-    exprmap = (
-        "{frict_surf_extr} = {pix_cross}" "+ if({morphometric_features}==6, 99999)"
-    )
+    exprmap = "{frict_surf_extr} = {pix_cross}+ if({morphometric_features}==6, 99999)"
     if rivers:
         run_command(
             "v.to.rast",
@@ -294,7 +292,7 @@ def yield_pix_process(
         overwrite=True,
     )
     tech_bioC = "tmprgreen_%i_tech_bioenergyC" % pid
-    ecc = "{tech_bioC} = {technical_surface}*{m2}*{yield_pix}" "*{ton_tops_cop}"
+    ecc = "{tech_bioC} = {technical_surface}*{m2}*{yield_pix}*{ton_tops_cop}"
     r.mapcalc(
         ecc.format(
             tech_bioC=tech_bioC,

@@ -379,7 +379,7 @@ import pdb
 
 import numpy as np
 
-import grass.script as grass
+import grass.script as gs
 from grass.pygrass.messages import get_msgr
 from grass.pygrass.raster import RasterRow
 from grass.script.core import overwrite, parser, read_command, run_command
@@ -388,7 +388,6 @@ ow = overwrite()
 
 
 def remove_map(opts, flgs):
-
     run_command("g.remove", type="raster", flags="f", name="tot_roads")
     run_command("g.remove", type="raster", flags="f", name="tot_roads_neg")
     run_command("g.remove", type="raster", flags="f", name="frict_surf_tr1")
@@ -439,7 +438,6 @@ def remove_map(opts, flgs):
 
 
 def yield_pix_process(opts, flgs, yield_, yield_surface):
-
     # YPIX = 'yield_pix = yield_pix1*%d + yield_pix2*%d'
     YPIX = ""
 
@@ -475,7 +473,6 @@ def yield_pix_process(opts, flgs, yield_, yield_surface):
 
 
 def fertility_maintenance(opts, flgs):
-
     energy_tops_hf = float(opts["energy_tops_hf"])
     energy_cormometric_vol_hf = float(opts["energy_cormometric_vol_hf"])
     management = opts["management"]
@@ -524,8 +521,8 @@ def fertility_maintenance(opts, flgs):
     )
 
     listmapsite = ""
-    map_site_prod_bioenergyT = grass.find_file("site_prod_bioenergyT", element="cell")
-    map_site_prod_bioenergyFF = grass.find_file("site_prod_bioenergyFF", element="cell")
+    map_site_prod_bioenergyT = gs.find_file("site_prod_bioenergyT", element="cell")
+    map_site_prod_bioenergyFF = gs.find_file("site_prod_bioenergyFF", element="cell")
 
     if map_site_prod_bioenergyT["fullname"] != "":
         listmapsite += map_site_prod_bioenergyT["fullname"]
@@ -543,7 +540,6 @@ def fertility_maintenance(opts, flgs):
 
 
 def soil_water_protection(opts, flgs):
-
     energy_tops_hf = float(opts["energy_tops_hf"])
     energy_cormometric_vol_hf = float(opts["energy_cormometric_vol_hf"])
 
@@ -643,7 +639,7 @@ def soil_water_protection(opts, flgs):
     list_sw_prot = []
     for i in range(1, 4):
         file_sw = "S_W_prot_bioenergy%s" % i
-        map_sw = grass.find_file(file_sw, element="cell")
+        map_sw = gs.find_file(file_sw, element="cell")
         if map_sw["fullname"] != "":
             list_sw_prot.append(map_sw["fullname"])
     string_sw_prot = string.join(list_sw_prot, ",")
@@ -734,7 +730,7 @@ def soil_water_protection(opts, flgs):
     list_sw_prot = []
     for i in range(5, 8):
         file_sw = "S_W_prot_bioenergy%s" % i
-        map_sw = grass.find_file(file_sw, element="cell")
+        map_sw = gs.find_file(file_sw, element="cell")
         if map_sw["fullname"] != "":
             list_sw_prot.append(map_sw["fullname"])
     string_sw_prot = string.join(list_sw_prot, ",")
@@ -772,7 +768,6 @@ def sustainable_bioenergy(opts, flgs):
 
 
 def avoided_CO2_emission(opts, flgs):
-
     forest = opts["forest"]
     boundaries = opts["boundaries"]
     yield_ = opts["forest_column_yield"]
@@ -1397,7 +1392,6 @@ def recreational_improvement(opts, flgs):
 
 
 def tev(opts, flgs):
-
     TEV = opts["tev"]
     field_tev = opts["field_tev"]
     expl = opts["expl"]
@@ -1480,7 +1474,6 @@ def tev(opts, flgs):
 
 
 def main(opts, flgs):
-
     # if(opts['output_fert_map'])!="":
     #     fertility_maintenance(opts, flgs)
 

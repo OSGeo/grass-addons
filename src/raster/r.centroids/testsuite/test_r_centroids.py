@@ -20,6 +20,7 @@
 from grass.gunittest.case import TestCase
 from grass.gunittest.main import test
 
+
 # Tests
 class TestCentroids(TestCase):
     # Setup variables to be used for outputs

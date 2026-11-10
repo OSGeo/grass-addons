@@ -280,7 +280,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 # from pygrass.messages import Messenger
 import sys
@@ -301,7 +301,7 @@ def main():
     # OPTION PARSING #
     ##################
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
 
     # I/O
     streams = options["input"]
@@ -331,7 +331,7 @@ def main():
         if CDPTH and FDPTH and AWDTH and BWDTH:
             pass
         else:
-            gscript.fatal(
+            gs.fatal(
                 "Missing CDPTH, FDPTH, AWDTH, and/or BWDTH. \
                          These are required when ICALC = 3."
             )
@@ -379,14 +379,14 @@ def main():
     # IF MAP EXISTS ALREADY?
 
     # Create a map to work with
-    g.copy(vector=(streams, segments), overwrite=gscript.overwrite())
+    g.copy(vector=(streams, segments), overwrite=gs.overwrite())
     # and add its columns
     v.db_addcolumn(map=segments, columns=segment_columns)
 
     # Produce the data table entries
     ##################################
-    colNames = np.array(gscript.vector_db_select(segments, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(segments, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(segments, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(segments, layer=1)["values"].values())
     number_of_segments = colValues.shape[0]
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
 
@@ -413,17 +413,17 @@ def main():
     segmentsTopo.table.conn.commit()
     segmentsTopo.close()
     if ICALC == 0:
-        gscript.message("")
-        gscript.message("ICALC=0 (constant) not supported")
-        gscript.message("Continuing nonetheless.")
-        gscript.message("")
+        gs.message("")
+        gs.message("ICALC=0 (constant) not supported")
+        gs.message("Continuing nonetheless.")
+        gs.message("")
     if ICALC == 1:
         if options["width_points"] is not "":
             # Can add machinery here for separate upstream and downstream widths
             # But really should not vary all that much
             # v.to_db(map=segments, option='start', columns='xr1,yr1')
             # v.to_db(map=segments, option='end', columns='xr2,yr2')
-            gscript.run_command(
+            gs.run_command(
                 "v.distance",
                 from_=segments,
                 to=options["width_points"],
@@ -442,12 +442,12 @@ def main():
             segmentsTopo.close()
     if ICALC == 2:
         # REMOVE THIS MESSAGE ONCE THIS IS INCLUDED IN INPUT-FILE BUILDER
-        gscript.message("")
-        gscript.message("ICALC=2 (8-point channel + floodplain) not supported")
-        gscript.message("Continuing nonetheless.")
-        gscript.message("")
+        gs.message("")
+        gs.message("ICALC=2 (8-point channel + floodplain) not supported")
+        gs.message("Continuing nonetheless.")
+        gs.message("")
         if options["fp_width_pts"] is not "":
-            gscript.run_command(
+            gs.run_command(
                 "v.distance",
                 from_=segments,
                 to=options["fp_width_pts"],
@@ -479,11 +479,11 @@ def main():
         segmentsTopo.close()
 
     # values that are 0
-    gscript.message("")
-    gscript.message("NOTICE: not currently used:")
-    gscript.message("IUPSEG, FLOW, RUNOFF, ETSW, and PPTSW.")
-    gscript.message("All set to 0.")
-    gscript.message("")
+    gs.message("")
+    gs.message("NOTICE: not currently used:")
+    gs.message("IUPSEG, FLOW, RUNOFF, ETSW, and PPTSW.")
+    gs.message("All set to 0.")
+    gs.message("")
 
     segmentsTopo = VectorTopo(segments)
     segmentsTopo.open("rw")
@@ -499,9 +499,7 @@ def main():
     # Roughness
     # ICALC=1,2: Manning (in channel)
     if (options["roughch_raster"] is not "") and (options["roughch_points"] is not ""):
-        gscript.fatal(
-            "Choose either a raster or vector or a value as Manning's n input."
-        )
+        gs.fatal("Choose either a raster or vector or a value as Manning's n input.")
     if options["roughch_raster"] is not "":
         ROUGHCH = options["roughch_raster"]
         v.rast_stats(
@@ -518,7 +516,7 @@ def main():
         v.db_dropcolumn(map=segments, columns="tmp_average", quiet=True)
     elif options["roughch_points"] is not "":
         ROUGHCH = options["roughch_points"]
-        gscript.run_command(
+        gs.run_command(
             "v.distance",
             from_=segments,
             to=ROUGHCH,
@@ -537,9 +535,7 @@ def main():
 
     # ICALC=2: Manning (overbank)
     if (options["roughbk_raster"] is not "") and (options["roughbk_points"] is not ""):
-        gscript.fatal(
-            "Choose either a raster or vector or a value as Manning's n input."
-        )
+        gs.fatal("Choose either a raster or vector or a value as Manning's n input.")
     if options["roughbk_raster"] is not "":
         ROUGHBK = options["roughbk_raster"]
         v.rast_stats(
@@ -552,7 +548,7 @@ def main():
         v.db_renamecolumn(map=segments, column="tmp_average,ROUGHBK", quiet=True)
     elif options["roughbk_points"] is not "":
         ROUGHBK = options["roughbk_points"]
-        gscript.run_command(
+        gs.run_command(
             "v.distance",
             from_=segments,
             to=ROUGHBK,

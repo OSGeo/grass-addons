@@ -16,89 +16,58 @@
 #
 #############################################################################
 #
+# SPDX-FileCopyrightText: 2017 Andrew Wickert
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # %module
-# % description: Calculate cell sizes within the computational region
+# % description: Calculates the area of each raster cell for the computational region
 # % keyword: raster
-# % keyword: statistics
+# % keyword: geometry
 # %end
 
 # %option G_OPT_R_OUTPUT
 # %  key: output
-# %  type: string
-# %  description: Output grid of cell sizes
+# %  label: Output raster of cell areas
+# %  description: Name of output raster map containing cell areas
 # %  required: yes
 # %end
 
 # %option
 # %  key: units
 # %  type: string
-# %  description: Units for output areas
-# %  options: m2, km2
+# %  label: Output units
+# %  description: Units for output cell areas
+# %  options: m2, km2, ha, acres, mi2
+# %  descriptions: m2;Square meters;km2;Square kilometers;ha;Hectares;acres;Acres;mi2;Square miles
 # %  required: yes
 # %end
 
-##################
-# IMPORT MODULES #
-##################
+import grass.script as gs
 
-# PYTHON
-import os
-import glob
-import numpy as np
 
-# GRASS
-import grass.script as grass
-from grass.script import array as garray
-from grass.pygrass.vector import VectorTopo
+# Conversion factors from m² — values match GRASS G_meters_to_units_factor_sq()
+_M2_TO_UNIT = {
+    "m2": 1.0,
+    "km2": 1.0e-6,
+    "ha": 1.0e-4,
+    "acres": 1.0 / 4046.8564224,
+    "mi2": 1.0 / 2589988.110336,
+}
 
 
 def main():
-    """
-    Compute cell areas
-    """
-
-    projinfo = grass.parse_command("g.proj", flags="g")
-
-    options, flags = grass.parser()
+    options, flags = gs.parser()
     output = options["output"]
     units = options["units"]
 
-    # First check if output exists
-    if len(grass.parse_command("g.list", type="rast", pattern=options["output"])):
-        if not grass.overwrite():
-            grass.fatal(
-                "Raster map '"
-                + options["output"]
-                + "' already exists. Use '--o' to overwrite."
-            )
+    projinfo = gs.parse_command("g.proj", flags="g")
 
-    projunits = str(projinfo["units"])  # Unicode to str
-    # Then compute
-    if (projunits == "meters") or (projunits == "Meters"):
-        if units == "m2":
-            grass.mapcalc(output + " = nsres() * ewres()")
-        elif units == "km2":
-            grass.mapcalc(output + " = nsres() * ewres() / 10.^6")
-    elif (projunits == "degrees") or (projunits == "Degrees"):
-        if units == "m2":
-            grass.mapcalc(
-                output
-                + " = ( 111195. * nsres() ) * \
-                          ( ewres() * "
-                + str(np.pi / 180.0)
-                + " * 6371000. * cos(y()) )"
-            )
-        elif units == "km2":
-            grass.mapcalc(
-                output
-                + " = ( 111.195 * nsres() ) * \
-                          ( ewres() * "
-                + str(np.pi / 180.0)
-                + " * 6371. * cos(y()) )"
-            )
-    else:
-        print("Units: ", projunits, " not currently supported")
+    if not str(projinfo.get("units", "")):
+        gs.fatal(_("Projection units are unknown; XY locations are not supported"))
+
+    factor = _M2_TO_UNIT[units]
+    gs.warning(_("r.cell.area is deprecated; use r.mapcalc area() instead"))
+    gs.mapcalc(f"{output} = area() * {factor}")
 
 
 if __name__ == "__main__":

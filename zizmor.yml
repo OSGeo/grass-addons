@@ -1,0 +1,6 @@
+---
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        OSGeo/grass/.github/actions/create-upload-suggestions: any

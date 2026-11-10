@@ -14,7 +14,7 @@ from math import sqrt
 
 from libagent import error
 
-import numpy
+import numpy as np
 
 
 class Playground(object):
@@ -126,7 +126,7 @@ class Playground(object):
         """
         r = self.region["rows"]
         c = self.region["cols"]
-        layer = numpy.zeros(r * c).reshape((r, c))
+        layer = np.zeros(r * c).reshape((r, c))
 
         if filename:
             # TODO import from file

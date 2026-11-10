@@ -16,9 +16,9 @@ DEPENDENCIES = $(GPROJDEP) $(VECTORDEP) $(GISDEP)
 EXTRA_INC = $(VECT_INC) $(PROJINC)
 EXTRA_CFLAGS = $(VECT_CFLAGS) -frounding-math
 ifeq ($(detected_OS),FreeBSD)
-EXTRA_LDFLAGS = -lCGAL -lgmp -lcxxrt -lstdc++
+EXTRA_LDFLAGS = -lgmp -lcxxrt -lstdc++
 else
-EXTRA_LDFLAGS = -lCGAL -lgmp -lstdc++
+EXTRA_LDFLAGS = -lgmp -lstdc++
 endif
 
 LINK = $(CXX)

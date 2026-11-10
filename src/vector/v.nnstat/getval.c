@@ -83,7 +83,7 @@ void read_points(struct Map_info *map, int field, struct nna_par *xD,
 
     /* Get 3rd coordinate of 2D points from attribute column -> 3D interpolation
      */
-    if (xD->v3 == FALSE &&
+    if (xD->v3 == false &&
         zcol != NULL) { // 2D input layer with z attribute column:
         xD->zcol = (char *)G_malloc(strlen(zcol) * sizeof(char));
         strcpy(xD->zcol, zcol);
@@ -96,7 +96,7 @@ void read_points(struct Map_info *map, int field, struct nna_par *xD,
 
     nskipped = ctrl = pass = 0;
 
-    while (TRUE) {
+    while (true) {
         type = Vect_read_next_line(map, Points, NULL);
         if (type == -1) {
             G_fatal_error(_("Unable to read vector map"));
@@ -115,7 +115,7 @@ void read_points(struct Map_info *map, int field, struct nna_par *xD,
 
         // 3D points or 2D points without attribute column -> 2D interpolation
         if (xD->zcol == NULL) { // z attribute column not available:
-            if (xD->v3 == TRUE && xD->i3 == FALSE) { // 2D NNA:
+            if (xD->v3 == true && xD->i3 == false) { // 2D NNA:
                 *rz = 0.;
             }
             else { // 3D NNA:
@@ -164,7 +164,7 @@ void read_points(struct Map_info *map, int field, struct nna_par *xD,
     double dy = pnts->r_max[1] - pnts->r_min[1];
     double dz = pnts->r_max[2] - pnts->r_min[2];
 
-    pnts->max_dist = xD->i3 == TRUE ? sqrt(dx * dx + dy * dy + dz * dz)
+    pnts->max_dist = xD->i3 == true ? sqrt(dx * dx + dy * dy + dz * dz)
                                     : sqrt(dx * dx + dy * dy);
 
     G_message(_("Input coordinates have been read..."));

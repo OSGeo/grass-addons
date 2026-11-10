@@ -32,13 +32,13 @@
 # import system libraries
 from __future__ import print_function
 
-import imp
 import os
 import platform
 import shutil
 import subprocess
 import sys
 import time
+import importlib.util
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from os.path import join
@@ -74,7 +74,7 @@ CHECK_RGREENLIB = [
     ("libhydro", os.path.join("..", "r.green.hydro")),
 ]
 
-UAGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) " "Gecko/20100101 Firefox/44.0"
+UAGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:44.0) Gecko/20100101 Firefox/44.0"
 
 PATHSYSXML = []
 PATHLOCXML = []
@@ -158,9 +158,7 @@ XMLENERGYTOOLBOX = """<?xml version="1.0" encoding="UTF-8"?>
     </items>
   </toolbox>
 </toolboxes>
-""".format(
-    XMLMAINMENU=XMLMAINMENU
-)
+""".format(XMLMAINMENU=XMLMAINMENU)
 
 
 def value_not_none(method):
@@ -332,7 +330,7 @@ def get_url(
 ):
     """Return the complete url to download the wheel file for windows"""
 
-    urlwin = "http://www.lfd.uci.edu/~gohlke/pythonlibs/"
+    urlwin = "https://www.lfd.uci.edu/~gohlke/pythonlibs/"
 
     def match():
         """Match platform with available wheel files on the web page"""
@@ -462,13 +460,9 @@ def win_install(libs):
 def fix_missing_libraries(install=False):
     """Check if the external libraries used by r.green are
     available in the current path."""
-    to_be_installed = []
-    for lib in CHECK_LIBRARIES:
-        try:
-            imp.find_module(lib)
-            print(lib, "available in the sys path")
-        except ImportError:
-            to_be_installed.append(lib)
+    to_be_installed = [
+        lib for lib in CHECK_LIBRARIES if importlib.util.find_spec(lib) is None
+    ]
 
     if to_be_installed:
         print("the following libraries are missing:")

@@ -29,6 +29,7 @@
 #define DIR_UNKNOWN 0
 #define DIR_DEG     1
 #define DIR_DEG45   2
+#define DIR_POW2    3
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +42,7 @@ int main(int argc, char *argv[])
         struct Option *input_subaccum;
         struct Option *accum;
         struct Option *subaccum;
+        struct Option *accum_type;
         struct Option *subwshed;
         struct Option *stream;
         struct Option *thresh;
@@ -61,8 +63,8 @@ int main(int argc, char *argv[])
     } flag;
     char *desc;
     char *dir_name, *weight_name, *input_accum_name, *input_subaccum_name,
-        *accum_name, *subaccum_name, *subwshed_name, *stream_name, *outlet_name,
-        *lfp_name;
+        *accum_name, *subaccum_name, *accum_type, *subwshed_name, *stream_name,
+        *outlet_name, *lfp_name;
     int dir_fd;
     unsigned char dir_format;
     double thresh;
@@ -140,6 +142,13 @@ int main(int argc, char *argv[])
     opt.subaccum->type = TYPE_STRING;
     opt.subaccum->description =
         _("Name for output weighted flow subaccumulation map");
+
+    opt.accum_type = G_define_standard_option(G_OPT_R_TYPE);
+    opt.accum_type->key = "accumulation_type";
+    opt.accum_type->required = NO;
+    opt.accum_type->answer = "CELL";
+    opt.accum_type->description =
+        _("Type of accumulation raster map to be created");
 
     opt.subwshed = G_define_standard_option(G_OPT_R_OUTPUT);
     opt.subwshed->key = "subwatershed";
@@ -285,6 +294,7 @@ int main(int argc, char *argv[])
     input_subaccum_name = opt.input_subaccum->answer;
     accum_name = opt.accum->answer;
     subaccum_name = opt.subaccum->answer;
+    accum_type = opt.accum_type->answer;
     subwshed_name = opt.subwshed->answer;
     stream_name = opt.stream->answer;
     outlet_name = opt.outlet->answer;
@@ -313,25 +323,34 @@ int main(int argc, char *argv[])
         G_fatal_error(_("Unable to read range file"));
     Rast_get_range_min_max(&dir_range, &dir_min, &dir_max);
     if (dir_max <= 0)
-        G_fatal_error(_("Invalid directions map <%s>"), dir_name);
+        G_fatal_error(_("Invalid direction map <%s>"), dir_name);
 
     dir_format = DIR_UNKNOWN;
     if (strcmp(opt.format->answer, "degree") == 0) {
         if (dir_max > 360)
-            G_fatal_error(_("Directional degrees can not be > 360"));
+            G_fatal_error(_("Directional degrees cannot be > 360"));
         dir_format = DIR_DEG;
     }
     else if (strcmp(opt.format->answer, "45degree") == 0) {
         if (dir_max > 8)
-            G_fatal_error(
-                _("Directional degrees divided by 45 can not be > 8"));
+            G_fatal_error(_("Directional degrees divided by 45 cannot be > 8"));
         dir_format = DIR_DEG45;
+    }
+    else if (strcmp(opt.format->answer, "power2") == 0) {
+        if (dir_max > 128)
+            G_fatal_error(_("Powers of 2 cannot be > 128"));
+        dir_format = DIR_POW2;
     }
     else if (strcmp(opt.format->answer, "auto") == 0) {
         if (dir_max <= 8) {
             dir_format = DIR_DEG45;
             G_important_message(_("Input direction format assumed to be "
                                   "degrees CCW from East divided by 45"));
+        }
+        else if (dir_max <= 128) {
+            dir_format = DIR_POW2;
+            G_important_message(_("Input direction format assumed to be "
+                                  "powers of 2 CW from East"));
         }
         else if (dir_max <= 360) {
             dir_format = DIR_DEG;
@@ -344,7 +363,7 @@ int main(int argc, char *argv[])
                 dir_name);
     }
     if (dir_format == DIR_UNKNOWN)
-        G_fatal_error(_("Invalid directions format '%s'"), opt.format->answer);
+        G_fatal_error(_("Invalid direction format '%s'"), opt.format->answer);
     /* end of r.path */
 
     /* read outlet coordinates and IDs */
@@ -468,19 +487,28 @@ int main(int argc, char *argv[])
         G_percent(row, nrows, 1);
         dir_buf.c[row] = Rast_allocate_c_buf();
         Rast_get_c_row(dir_fd, dir_buf.c[row], row);
-        if (dir_format == DIR_DEG) {
+        switch (dir_format) {
+        case DIR_DEG:
             for (col = 0; col < ncols; col++) {
                 CELL dir = abs(dir_buf.c[row][col] / 45.0);
 
                 dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
             }
-        }
-        else {
+            break;
+        case DIR_DEG45:
             for (col = 0; col < ncols; col++) {
                 CELL dir = abs(dir_buf.c[row][col]);
 
                 dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
             }
+            break;
+        default:
+            for (col = 0; col < ncols; col++) {
+                CELL dir = abs(8 - log2(dir_buf.c[row][col]));
+
+                dir_buf.c[row][col] = dir >= NE && dir <= E ? dir : 0;
+            }
+            break;
         }
     }
     G_percent(1, 1, 1);
@@ -540,6 +568,25 @@ int main(int argc, char *argv[])
         /* accumulate flows if input accumulation is not given */
         else {
             char **done = (char **)G_malloc(nrows * sizeof(char *));
+
+            /* only for output accumulation */
+            if (strcmp(accum_type, "CELL") == 0) {
+                if (accum_buf.type != CELL_TYPE)
+                    G_warning(_("Accumulation type promoted to %s"),
+                              accum_buf.type == FCELL_TYPE ? "FCELL" : "DCELL");
+            }
+            else if (strcmp(accum_type, "FCELL") == 0) {
+                if (accum_buf.type != FCELL_TYPE) {
+                    if (weight_buf.type == DCELL_TYPE)
+                        G_warning(_("Accumulation type promoted to %s"),
+                                  accum_buf.type == FCELL_TYPE ? "FCELL"
+                                                               : "DCELL");
+                    else
+                        accum_buf.type = FCELL_TYPE;
+                }
+            }
+            else if (accum_buf.type != DCELL_TYPE)
+                accum_buf.type = DCELL_TYPE;
 
             G_message(_("Allocating buffers..."));
             for (row = 0; row < nrows; row++) {

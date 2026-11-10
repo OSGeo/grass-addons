@@ -78,7 +78,7 @@ from grass.script import vector_db_select
 from grass.pygrass.vector import Vector, VectorTopo
 from grass.pygrass.raster import RasterRow
 from grass.pygrass import utils
-from grass import script as gscript
+from grass import script as gs
 
 ###############
 # MAIN MODULE #
@@ -100,7 +100,7 @@ def main():
     resolution = 500
     """
 
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     dem = options["dem"]
     grid = options["grid"]
     streams = options["streams"]
@@ -109,15 +109,15 @@ def main():
     DEM_MODFLOW = options["dem_modflow"]
 
     # Get number of rows and columns
-    colNames = np.array(gscript.vector_db_select(grid, layer=1)["columns"])
-    colValues = np.array(gscript.vector_db_select(grid, layer=1)["values"].values())
+    colNames = np.array(gs.vector_db_select(grid, layer=1)["columns"])
+    colValues = np.array(gs.vector_db_select(grid, layer=1)["values"].values())
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     rows = colValues[:, colNames == "row"].astype(int).squeeze()
     cols = colValues[:, colNames == "col"].astype(int).squeeze()
     nRows = np.max(rows)
     nCols = np.max(cols)
 
-    gscript.use_temp_region()
+    gs.use_temp_region()
 
     # Set the region to capture only the channel
     g.region(raster=dem)
@@ -127,7 +127,7 @@ def main():
         use="val",
         value=1.0,
         type="line",
-        overwrite=gscript.overwrite(),
+        overwrite=gs.overwrite(),
         quiet=True,
     )
     r.mapcalc("tmp" + " = " + streams_MODFLOW + " * " + dem, overwrite=True)
@@ -137,14 +137,14 @@ def main():
         input=streams_MODFLOW,
         output=streams_MODFLOW,
         method="average",
-        overwrite=gscript.overwrite(),
+        overwrite=gs.overwrite(),
         quiet=True,
     )
     r.resamp_stats(
         input=dem,
         output=DEM_MODFLOW,
         method="average",
-        overwrite=gscript.overwrite(),
+        overwrite=gs.overwrite(),
         quiet=True,
     )
     r.patch(

@@ -149,7 +149,7 @@ def importGeom(vname, typ, c, owrite, z, cat=None):
             quiet=True,
         )
     except CalledModuleError:
-        grass.fatal(_("Error importing %s" % vname))
+        grass.fatal(_("Error importing %s") % vname)
     return points
 
 
@@ -377,7 +377,7 @@ def main():
                     quiet=True,
                 )
             except CalledModuleError:
-                grass.fatal(_("Error importing %s" % tracksname))
+                grass.fatal(_("Error importing %s") % tracksname)
             # create table for line
             sql = "CREATE TABLE %s (cat int, startts text, " % tracksname
             sql += "endts text, text text, color text, width int)"

@@ -90,24 +90,24 @@ public:
      * @param[in,out] total_populations All host and non-host individuals in the
      * area
      * @param[out] dispersers Dispersing individuals (used internally)
-     * @param exposed[in,out] Exposed hosts (if SEI model is active)
-     * @param mortality_tracker[in,out] Mortality tracker used to generate
+     * @param[in,out] exposed Exposed hosts (if SEI model is active)
+     * @param[in,out] mortality_tracker Mortality tracker used to generate
      * *died*
-     * @param died[out] Infected hosts which died this step based on the
+     * @param[out] died Infected hosts which died this step based on the
      * mortality schedule
-     * @param temperatures[in] Vector of temperatures used to evaluate lethal
+     * @param[in] temperatures Vector of temperatures used to evaluate lethal
      * temperature
-     * @param weather_coefficient[in] Weather coefficient (for the current step)
-     * @param treatments[in,out] Treatments to be applied (also tracks use of
+     * @param[in] weather_coefficient Weather coefficient (for the current step)
+     * @param[in,out] treatments Treatments to be applied (also tracks use of
      * treatments)
-     * @param resistant[in,out] Resistant hosts (host temporarily removed from
+     * @param[in,out] resistant Resistant hosts (host temporarily removed from
      * susceptable hosts)
-     * @param outside_dispersers[in,out] Dispersers escaping the rasters (adds
+     * @param[in,out] outside_dispersers Dispersers escaping the rasters (adds
      * to the vector)
-     * @param spread_rate[in,out] Spread rate tracker
-     * @param quarantine[in,out] Quarantine escape tracker
-     * @param quarantine_areas[in] Quarantine areas
-     * @param movements[in] Table of host movements
+     * @param[in,out] spread_rate Spread rate tracker
+     * @param[in,out] quarantine Quarantine escape tracker
+     * @param[in] quarantine_areas Quarantine areas
+     * @param[in] movements Table of host movements
      *
      * @note The parameters roughly correspond to Simulation::disperse()
      * and Simulation::disperse_and_infect() functions, so these can be used

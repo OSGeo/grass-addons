@@ -1,0 +1,220 @@
+---
+name: Build and test on Windows
+
+on:
+  push:
+    branches:
+      - grass[0-9]+
+  pull_request:
+  schedule:
+    # 01:00 Pacific Time (in UTC), every day (late night PT)
+    - cron: 0 8 * * *
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress:
+    # Do not cancel on protected branches, like grass8
+    ${{ github.ref_protected != true }}
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build for GRASS ${{ matrix.grass-ref }}
+    runs-on: windows-2022
+    strategy:
+      # Build against the GRASS versions users get from OSGeo4W: the tag of
+      # the released version for the grass package and main for the nightly
+      # grass-dev package. GRASS is compiled here with the same toolchain
+      # and OSGeo4W libraries as those packages.
+      matrix:
+        grass-ref:
+          - "8.5.0"
+          - main
+      fail-fast: false
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout core
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: OSGeo/grass
+          ref: ${{ matrix.grass-ref }}
+          path: grass
+          persist-credentials: false
+
+      - name: Checkout addons
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: grass-addons
+          persist-credentials: false
+
+      - name: MSYS2 setup
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
+        id: msys2
+        with:
+          path-type: inherit
+          location: D:\
+          update: true
+          msystem: MINGW64
+          install: >-
+            bison
+            diffutils
+            dos2unix
+            flex
+            git
+            libintl
+            make
+            tar
+            zip
+          pacboy: >-
+            bzip2
+            ccache
+            fftw
+            gcc
+            gettext
+            libiconv
+            libsystre
+            libtre
+            libwinpthread-git
+            openblas
+            pcre
+            pkgconf
+            toolchain
+            zlib
+
+      - name: Setup OSGeo4W environment
+        uses: echoix/setup-OSGeo4W@1e711832882e03603e9013181a87885b10af8a98 # v0.3.0
+        id: osgeo4w
+        with:
+          package-dir: "D:/OSGeo4W_pkg"
+          packages: |
+            cairo-devel
+            freetype-devel
+            gdal-devel
+            geos-devel
+            libjpeg-turbo-devel
+            liblas-devel
+            libpng-devel
+            libpq-devel
+            libtiff-devel
+            netcdf-devel
+            proj-devel
+            python3-core
+            python3-jupyter
+            python3-matplotlib
+            python3-numpy
+            python3-pip
+            python3-pywin32
+            python3-wxpython
+            sqlite3-devel
+            zstd-devel
+      - name: Set number of cores for compilation
+        run: |
+          echo "MAKEFLAGS=-j$(nproc)" >> "${GITHUB_ENV}"
+        shell: msys2 {0}
+
+      - name: Compile GRASS
+        working-directory: grass
+        shell: msys2 {0}
+        # The OSGeo4W build script is called directly (not through
+        # .github/workflows/build_osgeo4w.sh) to avoid the UNITTEST additions
+        # which would end up in the package.
+        run: |
+          # The 8.5.0 tag predates the move of the cairo headers to
+          # include/cairo in OSGeo4W (fixed on main in OSGeo/grass#7507).
+          # Apply the same one-line change as the OSGeo4W grass package
+          # recipe does; it is a no-op on newer sources.
+          sed -i 's#\(--with-cairo-includes=${OSGEO4W_ROOT_MSYS}/include\) #\1/cairo #' \
+              mswindows/osgeo4w/build_osgeo4w.sh
+          export OSGEO4W_ROOT_MSYS=/c/OSGeo4W
+          export SRC=$(pwd)
+          mswindows/osgeo4w/build_osgeo4w.sh
+
+      - name: Install GRASS into the OSGeo4W tree
+        working-directory: grass
+        shell: msys2 {0}
+        # Mirrors the install and packaging preparation steps of
+        # mswindows/osgeo4w/package.sh used by the wingrass-maintenance-scripts
+        # builds (except for the MSVC .lib files which need Visual Studio and
+        # are not part of the standalone installer).
+        run: |
+          export PATH=/c/OSGeo4W/bin:/usr/bin:/mingw64/bin
+          export PYTHONHOME=/c/OSGeo4W/apps/Python312
+          # Recreate etc/fontcap in the dist tree; build_osgeo4w.sh removes it
+          # but make install requires it and cannot rebuild it itself.
+          make -C general/g.mkfontcap
+          make install
+          ver=$(sed -n '/^INST_DIR[ \t]*=/{s/^.*grass//; p}' include/Make/Platform.make)
+          echo "GRASS_VER=${ver}" >> "${GITHUB_ENV}"
+          prefix=/c/OSGeo4W/apps/grass/grass${ver}
+          # The full version string (e.g. 8.5.0 or 8.6.0dev) is the one
+          # g.version reports and g.extension uses to locate the addons, so a
+          # download location named after it cannot drift from what
+          # g.extension expects.
+          echo "GRASS_VERSION=$(cut -d ' ' -f 1 ${prefix}/etc/VERSIONNUMBER)" >> "${GITHUB_ENV}"
+          echo "GRASS_COMMIT=$(git rev-parse HEAD)" >> "${GITHUB_ENV}"
+          mv ${prefix}/include/grass/config.h ${prefix}/include/grass/config.h.mingw
+          cp mswindows/osgeo4w/config.h.switch ${prefix}/include/grass/config.h
+          cp mswindows/osgeo4w/config.h.vc ${prefix}/include/grass
+          mv ${prefix}/etc/grass.py ${prefix}/etc/grass${ver}.py
+          cp -uv $(find ${prefix} -iname "*.dll" -o -iname "*.exe" \
+              | PATH=${prefix}/lib:/c/OSGeo4W/bin:/mingw64/bin:/usr/bin xargs ldd \
+              | sed -ne 's#^.* => \(/mingw64/bin/.*\) (.*)$#\1#p' \
+              | sort -u) ${prefix}/bin
+          cp scripts/windows_launch.bat ${prefix}/scripts/
+
+      - name: Compile GRASS Addons
+        shell: msys2 {0}
+        env:
+          GRASS_REF: ${{ matrix.grass-ref }}
+        run: |
+          SRC_ADDONS="$(cygpath -u $GITHUB_WORKSPACE)/grass-addons/src"
+          SRC_GRASS=/c/OSGeo4W/apps/grass/grass${GRASS_VER}
+          DST_DIR="$(cygpath -u $GITHUB_WORKSPACE)/addons"
+
+          export PATH=/c/OSGeo4W/bin:/usr/bin:/mingw64/bin
+          export PYTHONHOME=/c/OSGeo4W/apps/Python312
+
+          grass-addons/.github/workflows/windows_addons_compile.sh $SRC_ADDONS $SRC_GRASS $DST_DIR 1
+          cd $DST_DIR
+          for d in `ls -d */`; do
+            mod=${d%%/}
+            if [ $mod == "logs" ] ; then
+              continue
+            fi
+            cd $mod
+            echo $mod
+            for f in `ls bin/*.bat 2> /dev/null` ; do
+              echo $f
+              sed "s/GISBASE/GRASS_ADDON_BASE/" $f > tmp
+              mv tmp $f
+            done
+            rm -rf grass-addons
+            zip -r ../$mod.zip *
+            cd ..
+            rm -rf $mod
+            md5sum $mod.zip > ${mod}.md5sum
+          done
+          # Keep the per-addon build logs as one archive next to the addons.
+          zip -r logs.zip logs
+          rm -rf logs
+          {
+            echo "grass_version=${GRASS_VERSION}"
+            echo "grass_ref=${GRASS_REF}"
+            echo "grass_commit=${GRASS_COMMIT}"
+            echo "addons_commit=${GITHUB_SHA}"
+            echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > build-info.txt
+
+      - name: Make GRASS Addons available
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: grass-addons-windows-${{ matrix.grass-ref }}
+          path: addons
+          retention-days: 3

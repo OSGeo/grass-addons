@@ -1,0 +1,120 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.dem.coregister</em> co-registers a post-event DSM to a reference DEM
+using pseudo ground control points (PGCPs) sampled from stable features, terrain
+assumed unchanged between surveys. Roads are the typical source, but any stable
+feature works: buildings, parking lots, or fire hydrants. It removes a robust
+vertical bias and can optionally chain horizontal (Nuth and Kaab) and ICP
+refinement.</p>
+
+<h3>method=pgcp_vertical (default)</h3>
+
+<p>The <b>pgcp</b> vector is buffered by <b>buffer</b> metres and rasterized,
+the elevation residual <code>dem - reference</code> is sampled within that PGCP
+mask, and a robust median vertical bias is estimated. The bias is removed with
+<code>output = dem - median_bias</code>. Robust statistics (median bias, NMAD,
+RMSE) are reported, and with the <b>-v</b> flag per-PGCP residuals are written to
+<b>bias_output</b> as CSV.</p>
+
+<p>If fewer than <b>min_points</b> PGCP samples are found the tool warns and
+proceeds.</p>
+
+<h3>method=nk and method=nk_icp</h3>
+
+<p>These chain additional alignment after the PGCP vertical step, operating on
+the PGCP-corrected DSM: <code>nk</code> adds a horizontal and vertical Nuth and
+Kaab correction (<em>r.dem.nk</em>), and <code>nk_icp</code> further adds a
+point-to-plane ICP refinement (<em>r.dem.icp</em>). The full chain is PGCP
+vertical, then N&amp;K, then ICP.</p>
+
+<p>Both methods require a <b>stable_mask</b> raster (1=stable). The Nuth and Kaab
+method regresses the elevation difference against slope and aspect, so the mask
+must cover <b>broad, sloped, unchanged terrain</b>. The flat PGCP features
+used for the PGCP step are unsuitable here (they are filtered out by the N&amp;K
+slope limits), so a separate stable mask must be supplied. The same mask is
+passed to <em>r.dem.icp</em> to restrict ICP to stable terrain.</p>
+
+<h3>method=icp</h3>
+
+<p>This chains a point-to-plane ICP refinement (<em>r.dem.icp</em>) directly onto
+the PGCP-corrected DSM, skipping the Nuth and Kaab step. The chain is PGCP
+vertical, then ICP. Unlike <code>nk</code> and <code>nk_icp</code>,
+<b>stable_mask</b> is <b>optional</b> for this method: when supplied it is passed
+to <em>r.dem.icp</em> to restrict the alignment to unchanged terrain (recommended
+in change-detection contexts); when omitted, ICP aligns over all valid
+terrain.</p>
+
+<h3>Solving once and replaying onto another surface</h3>
+
+<p><b>transform_output</b> writes the composed PGCP, N&amp;K, and ICP transform
+to a file. <b>apply_transform</b> replays a saved transform onto another DEM,
+skipping the solve. This is intended for surfaces from the same acquisition (for
+example a DSM and a DTM): solve the alignment on the cleaner bare-earth DTM, then
+replay it onto the DSM so both share the same horizontal alignment. On replay the
+<b>horizontal</b> components (N&amp;K dx, dy and ICP dx, dy, yaw) are shared,
+while the <b>vertical</b> bias is re-estimated per surface with the PGCP step,
+since the DSM and DTM vertical offsets differ. Replay therefore still needs
+<b>pgcp</b> but not a <b>stable_mask</b>.</p>
+
+<h2>NOTES</h2>
+
+<p>The PGCP approach assumes the supplied features are stable reference surfaces.
+When using roads, choose <b>buffer</b> to stay within the paved surface and avoid
+curbs, vegetation, and vehicles. The computational region should match the input
+DEM resolution.</p>
+
+<h2>EXAMPLES</h2>
+
+<p>The commands below use the example scene built in the
+<em><a href="r.dem.html">r.dem</a></em> toolset manual, which is derived from the North
+Carolina sample dataset. Build it there first.</p>
+
+<p>Remove the vertical bias from road PGCPs alone, writing the per-PGCP
+residuals to CSV:</p>
+
+<div class="code"><pre>
+g.region raster=elev_lid792_1m
+
+r.dem.coregister dem=dsm_offset reference=elev_lid792_1m \
+    pgcp=pgcp_roads output=dsm_pgcp method=pgcp_vertical \
+    buffer=2.0 bias_output=pgcp_residuals.csv -v
+</pre></div>
+
+<p>Roads are flat, so the horizontal shift contributes almost nothing to the
+elevation residual there and the median bias recovers the applied 1.32 m:</p>
+
+<div class="code"><pre>
+N samples: 9725
+Median bias: 1.3150 m
+NMAD: 0.1014 m
+</pre></div>
+
+<p>Chain the Nuth and Kääb step to remove the horizontal offset as well. This
+needs a <b>stable_mask</b> of broad sloped terrain, separate from the flat
+PGCP features:</p>
+
+<div class="code"><pre>
+r.dem.coregister dem=dsm_offset reference=elev_lid792_1m \
+    pgcp=pgcp_roads stable_mask=stable_terrain \
+    output=dsm_coreg method=nk
+</pre></div>
+
+<div align="center" style="margin: 10px">
+<a href="r_dem_coregister_residuals.png">
+<img src="r_dem_coregister_residuals.png" width="600" alt="r.dem.coregister example" border="0">
+</a><br>
+<i>Figure: Stable-terrain residual before co-registration, after r.dem.nk, and after r.dem.icp.</i>
+</div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="r.dem.html">r.dem</a></em>,
+<em><a href="r.dem.change.html">r.dem.change</a></em>,
+<em><a href="r.dem.icp.html">r.dem.icp</a></em>,
+<em><a href="r.dem.nk.html">r.dem.nk</a></em>,
+<em><a href="v.buffer.html">v.buffer</a></em>,
+<em><a href="v.to.rast.html">v.to.rast</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>Corey T. White, Center for Geospatial Analytics, NC State University</p>

@@ -20,25 +20,21 @@
 #define FALSE 0
 
 #define PI    3.1415926535897932385
-int make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF]);
+void make_matrix(int n, int npoint, int nfunc, int *numk, double f[][MAXF]);
 
-int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
-            double *c, double *vfit);
-int minmax(int n, int nwin, double *dat);
+void fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF],
+             double *c, double *vfit);
+void minmax(int n, int nwin, double *dat);
 
-int maxmin(int n, int nwin, double *dat);
+void maxmin(int n, int nwin, double *dat);
 
 int lmf(int nbands, int npoint, double *inpix, double *outpix)
 {
-    int i, j, k, idk, norder, nfunc;
+    int i, j, k, nfunc;
 
-    int nwin, mmsw, nds, isum;
+    int nwin, mmsw, nds;
 
-    int fitsw, fitmd;
-
-    double tcld, thh, thl;
-
-    double vaic, delta;
+    int fitmd;
 
     int idx1[NMAX];
 
@@ -49,12 +45,8 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix)
 
     double vfit[NMAX];
 
-    double ipoint[MAXB];
-
     /*for iteration */
-    double dat0[NMAX], c0[MAXF];
-
-    double dat1[NMAX];
+    double dat0[NMAX];
 
     /*for Matrix Inversion */
     int numk[MAXF] = {1, 2, 3, 4, 6, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -75,52 +67,19 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix)
     /*nds=npoint; */
     nds = 2 * nfunc + 2;
 
-    /*LMF Process */
-    /*Checking Pixel Value */
-    fitsw = 1;
-
     /*fitting method */
-    tcld = 0.15;
     fitmd = 2;
-
-    /*FITMD0---- */
-    if (fitmd == 0) {
-        thh = tcld * 2.0;
-        thl = -tcld;
-    }
-
-    /*FITMD1---- */
-    if (fitmd == 1) {
-        thh = tcld;
-        thl = -tcld * 2.0;
-    }
-
-    /*FITMD2---- */
-    if (fitmd == 2) {
-        thh = tcld;
-        thl = -tcld;
-    }
 
     /*initialize arrays */
     for (k = 0; k < nbands; k++) {
         dat0[k] = 0.0;
         outpix[k] = 0.0;
-        ipoint[k] = 1;
         idx1[k] = TRUE;
     }
     for (k = 0; k < nds; k++) {
         c[k] = 0.0;
     }
     for (k = 0; k < nbands; k++) {
-        if (inpix[k] > 0.375) {
-            ipoint[k] = 0;
-        }
-        if (k >= 2) {
-            idk = (inpix[k] - inpix[k - 1]);
-            if (idk > 0.125) {
-                ipoint[k] = 0;
-            }
-        }
         dat0[k] = inpix[k];
         dat[k] = dat0[k];
     }
@@ -138,5 +97,5 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix)
     for (k = 0; k < nbands; k++) {
         outpix[k] = vfit[k];
     }
-    return;
+    return 0;
 }

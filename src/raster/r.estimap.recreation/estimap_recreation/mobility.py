@@ -6,7 +6,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-import grass.script as grass
+import grass.script as gs
 from .distance import build_distance_function
 
 
@@ -116,31 +116,31 @@ def mobility_function(
         # Maybe it can, though, after successfully testing its
         # integration to build_distance_function().
 
-        grass.debug(_("For distance '{d}':".format(d=distance)))
-        grass.debug(_(expressions[distance_category]))
+        gs.debug(_("For distance '{d}':").format(d=distance))
+        gs.debug(_(expressions[distance_category]))
 
-    msg = "Expressions per distance category: {e}".format(e=expressions)
-    grass.debug(_(msg))
+    msg = "Expressions per distance category: {e}"
+    gs.debug(_(msg).format(e=expressions))
 
     # build expressions -- explicit: use the'score' kwarg!
     expression = (
         "eval( mobility_0 = {expression_0},"
-        " \ \n mobility_1 = {expression_1},"
-        " \ \n mobility_2 = {expression_2},"
-        " \ \n mobility_3 = {expression_3},"
-        " \ \n distance_0 = {distance} == {distance_category_0},"
-        " \ \n distance_1 = {distance} == {distance_category_1},"
-        " \ \n distance_2 = {distance} == {distance_category_2},"
-        " \ \n distance_3 = {distance} == {distance_category_3},"
-        " \ \n if( distance_0, mobility_0,"
-        " \ \n if( distance_1, mobility_1,"
-        " \ \n if( distance_2, mobility_2,"
-        " \ \n if( distance_3, mobility_3,"
-        " \ \n null() )))))"
+        " \\ \n mobility_1 = {expression_1},"
+        " \\ \n mobility_2 = {expression_2},"
+        " \\ \n mobility_3 = {expression_3},"
+        " \\ \n distance_0 = {distance} == {distance_category_0},"
+        " \\ \n distance_1 = {distance} == {distance_category_1},"
+        " \\ \n distance_2 = {distance} == {distance_category_2},"
+        " \\ \n distance_3 = {distance} == {distance_category_3},"
+        " \\ \n if( distance_0, mobility_0,"
+        " \\ \n if( distance_1, mobility_1,"
+        " \\ \n if( distance_2, mobility_2,"
+        " \\ \n if( distance_3, mobility_3,"
+        " \\ \n null() )))))"
     )
     if not real_numbers:
         expression = "round(" + expression + ")"
-    grass.debug(_("Mapcalc expression: {e}".format(e=expression)))
+    gs.debug(_("Mapcalc expression: {e}").format(e=expression))
 
     # replace keywords appropriately
     # 'distance' is a map
@@ -159,7 +159,7 @@ def mobility_function(
     )
     # FIXME Make the above more elegant?
 
-    msg = "Big expression (after formatting): {e}".format(e=expression)
-    grass.debug(_(msg))
+    msg = "Big expression (after formatting): {e}"
+    gs.debug(_(msg).format(e=expression))
 
     return mobility_expression

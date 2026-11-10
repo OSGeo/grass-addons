@@ -26,7 +26,7 @@
 #define SQRT2   1.414214
 #define NR(x)   r + nextr[(x)]
 #define NC(x)   c + nextc[(x)]
-#define DIAG(x) (((x) + 4) > 8 ? ((x)-4) : ((x) + 4))
+#define DIAG(x) (((x) + 4) > 8 ? ((x) - 4) : ((x) + 4))
 #define NOT_IN_REGION(x)                                               \
     (r + nextr[(x)] < 0 || r + nextr[(x)] > 2 || c + nextc[(x)] < 0 || \
      c + nextc[(x)] > (ncols - 1))

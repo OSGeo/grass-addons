@@ -10,7 +10,7 @@
 #include "seg.h"
 #include "flag.h"
 
-#define INDEX(r, c) ((GW_LARGE_INT)(r)*ncols + (c))
+#define INDEX(r, c) ((GW_LARGE_INT)(r) * ncols + (c))
 #define MAXDEPTH    1000 /* maximum supported tree depth of stream network */
 
 struct ddir {

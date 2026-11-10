@@ -90,7 +90,7 @@
 # %end
 
 import atexit
-import grass.script as g
+import grass.script as gs
 from grass.pygrass.raster import RasterRow
 import subprocess
 import os
@@ -99,7 +99,7 @@ crctd_lst = []
 
 
 def main():
-    options, flags = g.parser()
+    options, flags = gs.parser()
     Blue = options["blue_band"]
     Green = options["green_band"]
     Red = options["red_band"]
@@ -117,8 +117,8 @@ def main():
     bisquare = flags["b"]
     fixed_GWR = flags["f"]
 
-    res = g.parse_command("g.region", raster=Green, flags="g")
-    g.run_command(
+    res = gs.parse_command("g.region", raster=Green, flags="g")
+    gs.run_command(
         "v.to.rast",
         input=Calibration_points,
         type="point",
@@ -127,9 +127,11 @@ def main():
         output="tmp_Calibration_points",
     )
     # hull generation from calibration depth points
-    g.run_command("v.hull", input=Calibration_points, output="tmp_hull", overwrite=True)
+    gs.run_command(
+        "v.hull", input=Calibration_points, output="tmp_hull", overwrite=True
+    )
     # buffer the hull to ceate a region for including all calibration points
-    g.run_command(
+    gs.run_command(
         "v.buffer",
         input="tmp_hull",
         output="tmp_buffer",
@@ -137,36 +139,36 @@ def main():
         overwrite=True,
     )
     if tide_height:
-        cal = g.parse_command("r.univar", map="tmp_Calibration_points", flags="g")
+        cal = gs.parse_command("r.univar", map="tmp_Calibration_points", flags="g")
         if float(cal["min"]) >= 0:
             t = float(tide_height)
-            g.mapcalc(
+            gs.mapcalc(
                 exp="{d}=({d}+float({t}))".format(d="tmp_Calibration_points", t=t),
                 overwrite=True,
             )
         if float(cal["min"]) < 0:
             t = float(tide_height) * -1
-            g.mapcalc(
+            gs.mapcalc(
                 exp="{d}=({d}+float({t}))".format(d="tmp_Calibration_points", t=t),
                 overwrite=True,
             )
-    g.mapcalc(
+    gs.mapcalc(
         exp="{tmp_ratio}=({Green}/{SWIR})".format(
             tmp_ratio="tmp_ratio", Green=Green, SWIR=SWIR
         )
     )
-    g.mapcalc(
+    gs.mapcalc(
         exp="{tmp_NDVI}=float({NIR}-{Red})/float({NIR}+{Red})".format(
             tmp_NDVI="tmp_NDVI", NIR=NIR, Red=Red
         )
     )
-    g.mapcalc(
+    gs.mapcalc(
         exp="{tmp_water}=if({tmp_ratio} < 1, null(), if({tmp_NDVI} <"
         "0, {tmp_ratio}, null()))".format(
             tmp_NDVI="tmp_NDVI", tmp_water="tmp_water", tmp_ratio="tmp_ratio"
         )
     )
-    g.run_command("r.mask", raster="tmp_water", overwrite=True)
+    gs.run_command("r.mask", raster="tmp_water", overwrite=True)
     li = [
         Green,
         Additional_band1,
@@ -181,36 +183,35 @@ def main():
         tmp_ = RasterRow(str(i))
         if tmp_.exist() is False:
             continue
-        g.message("Ditermining minimum value for %s" % i)
-        g.run_command("g.region", vector=Calibration_points)
+        gs.message("Ditermining minimum value for %s" % i)
+        gs.run_command("g.region", vector=Calibration_points)
         # To ignore zero values
-        g.mapcalc(
+        gs.mapcalc(
             exp="{tmp_b}=if({x}>1, {x},null())".format(tmp_b="tmp_b", x=str(i)),
             overwrite=True,
         )
-        tmp_AOI = g.parse_command("r.univar", map="tmp_b", flags="g")
+        tmp_AOI = gs.parse_command("r.univar", map="tmp_b", flags="g")
         tmp_AOI_min = float(tmp_AOI["min"])
-        g.run_command("g.region", raster=Green)
+        gs.run_command("g.region", raster=Green)
         try:
-            g.mapcalc(
-                exp="{tmp_deep}=if({tmp_band}<{band_min}, {tmp_band},"
-                "null())".format(
+            gs.mapcalc(
+                exp="{tmp_deep}=if({tmp_band}<{band_min}, {tmp_band},null())".format(
                     tmp_deep="tmp_deep", band_min=tmp_AOI_min, tmp_band=str(i)
                 ),
                 overwrite=True,
             )
-            g.run_command("r.mask", raster="tmp_deep", overwrite=True)
-            tmp_coe = g.parse_command(
+            gs.run_command("r.mask", raster="tmp_deep", overwrite=True)
+            tmp_coe = gs.parse_command(
                 "r.regression.line", mapx=SWIR, mapy=str(i), flags="g"
             )
-            g.message("Deep water ditermination for %s" % i)
+            gs.message("Deep water ditermination for %s" % i)
             if Area_of_interest:
-                g.run_command("r.mask", vector=Area_of_interest, overwrite=True)
-                g.run_command("g.region", vector=Area_of_interest)
+                gs.run_command("r.mask", vector=Area_of_interest, overwrite=True)
+                gs.run_command("g.region", vector=Area_of_interest)
             else:
-                g.run_command("r.mask", vector="tmp_buffer", overwrite=True)
-                g.run_command("g.region", vector=Calibration_points)
-            g.mapcalc(
+                gs.run_command("r.mask", vector="tmp_buffer", overwrite=True)
+                gs.run_command("g.region", vector=Calibration_points)
+            gs.mapcalc(
                 exp="{tmp_crct}=log({tmp_band}-{a}-{b}*{SWIR})".format(
                     tmp_crct="tmp_crct" + str(j),
                     tmp_band=str(i),
@@ -220,21 +221,21 @@ def main():
                 ),
                 overwrite=True,
             )
-            g.run_command("r.mask", raster="tmp_water", overwrite=True)
-            g.mapcalc(
+            gs.run_command("r.mask", raster="tmp_water", overwrite=True)
+            gs.mapcalc(
                 "{tmp_crctd} = ({tmp_crct} * 1)".format(
                     tmp_crct="tmp_crct" + str(j), tmp_crctd="tmp_crctd" + str(j)
                 )
             )
         except:
-            g.message("Cannot find deep water pixels")
+            gs.message("Cannot find deep water pixels")
             if Area_of_interest:
-                g.run_command("r.mask", vector=Area_of_interest, overwrite=True)
-                g.run_command("g.region", vector=Area_of_interest)
+                gs.run_command("r.mask", vector=Area_of_interest, overwrite=True)
+                gs.run_command("g.region", vector=Area_of_interest)
             else:
-                g.run_command("r.mask", vector="tmp_buffer", overwrite=True)
-                g.run_command("g.region", vector=Calibration_points)
-            g.mapcalc(
+                gs.run_command("r.mask", vector="tmp_buffer", overwrite=True)
+                gs.run_command("g.region", vector=Calibration_points)
+            gs.mapcalc(
                 exp="{tmp_crct}=log({tmp_band}-{a}-{b}*{SWIR})".format(
                     tmp_crct="tmp_crct" + str(j),
                     tmp_band=str(i),
@@ -244,27 +245,27 @@ def main():
                 ),
                 overwrite=True,
             )
-            g.run_command("r.mask", raster="tmp_water", overwrite=True)
-            g.mapcalc(
+            gs.run_command("r.mask", raster="tmp_water", overwrite=True)
+            gs.mapcalc(
                 "{tmp_crctd} = ({tmp_crct} * 1)".format(
                     tmp_crct="tmp_crct" + str(j), tmp_crctd="tmp_crctd" + str(j)
                 )
             )
         crctd_lst.append("tmp_crctd" + str(j))
     if fixed_GWR:
-        if not g.find_program("r.gwr", "--help"):
-            g.run_command("g.extension", extension="r.gwr")
+        if not gs.find_program("r.gwr", "--help"):
+            gs.run_command("g.extension", extension="r.gwr")
         if bisquare:
-            g.message("Calculating optimal bandwidth using bisqare kernel...")
-            bw = g.parse_command(
+            gs.message("Calculating optimal bandwidth using bisqare kernel...")
+            bw = gs.parse_command(
                 "r.gwr",
                 mapx=crctd_lst,
                 mapy="tmp_Calibration_points",
                 kernel="bisquare",
                 flags="ge",
             )
-            g.message("Running Fixed-GWR using bisqare kernel...")
-            g.run_command(
+            gs.message("Running Fixed-GWR using bisqare kernel...")
+            gs.run_command(
                 "r.gwr",
                 mapx=crctd_lst,
                 mapy="tmp_Calibration_points",
@@ -273,12 +274,12 @@ def main():
                 bandwidth=int(bw["estimate"]),
             )
         else:
-            g.message("Calculating optimal bandwidth using gaussian kernel...")
-            bw = g.parse_command(
+            gs.message("Calculating optimal bandwidth using gaussian kernel...")
+            bw = gs.parse_command(
                 "r.gwr", mapx=crctd_lst, mapy="tmp_Calibration_points", flags="ge"
             )
-            g.message("Running Fixed-GWR using gaussian kernel...")
-            g.run_command(
+            gs.message("Running Fixed-GWR using gaussian kernel...")
+            gs.run_command(
                 "r.gwr",
                 mapx=crctd_lst,
                 mapy="tmp_Calibration_points",
@@ -290,7 +291,7 @@ def main():
         global predict
         try:
             # For GWmodel in R
-            r = g.tempfile()
+            r = gs.tempfile()
             r_file = open(r, "w")
             libs = ["GWmodel", "data.table", "rgrass7", "rgdal", "raster"]
             for i in libs:
@@ -300,7 +301,7 @@ def main():
                 install += "dir.create(Sys.getenv('R_LIBS_USER'), recursive=TRUE)\n"
                 install += ".libPaths(Sys.getenv('R_LIBS_USER'))}\n"
                 install += (
-                    'install.packages("%s", repos="http://cran.us.r-'
+                    'install.packages("%s", repos="https://cran.us.r-'
                     'project.org")}\n' % i
                 )
                 r_file.write(install)
@@ -327,11 +328,13 @@ def main():
                 pred_file += "pred=merge(pred, frame_pred%s)\n" % j
                 r_file.write(pred_file)
                 # For reference_file repeat with MASK
-                g.run_command("r.mask", raster="tmp_Calibration_points", overwrite=True)
+                gs.run_command(
+                    "r.mask", raster="tmp_Calibration_points", overwrite=True
+                )
                 r_file.write('grass_file=readRAST("%s")\n' % "tmp_Calibration_points")
                 r_file.write("raster_file = raster(grass_file)\n")
                 frame_file = (
-                    "calib = as.data.frame(raster_file,na.rm = TRUE ," "xy = TRUE)\n"
+                    "calib = as.data.frame(raster_file,na.rm = TRUE ,xy = TRUE)\n"
                 )
                 r_file.write(frame_file)
             for i in li:
@@ -347,15 +350,15 @@ def main():
                 )
                 ref_file = "calib = merge(calib, frame_ref%s)\n" % j
                 r_file.write(ref_file)
-            g.run_command("g.remove", type="raster", pattern="MASK", flags="f")
+            gs.run_command("g.remove", type="raster", pattern="MASK", flags="f")
             ref_file = "Rapid_ref.sdf=SpatialPointsDataFrame(calib[,1:2],calib)\n"
-            ref_file += "Rapid_pred.sdf=SpatialPointsDataFrame(pred[,1:2]," "pred)\n"
+            ref_file += "Rapid_pred.sdf=SpatialPointsDataFrame(pred[,1:2],pred)\n"
             ref_file += (
-                "DM_Rapid_ref.sdf=gw.dist(dp.locat=coordinates" "(Rapid_ref.sdf))\n"
+                "DM_Rapid_ref.sdf=gw.dist(dp.locat=coordinates(Rapid_ref.sdf))\n"
             )
             r_file.write(ref_file)
             l = []
-            predict = g.read_command("g.tempfile", pid=os.getpid()).strip() + ".txt"
+            predict = gs.read_command("g.tempfile", pid=os.getpid()).strip() + ".txt"
             # Join the corrected bands in to a string
             le = len(crctd_lst)
             for i in crctd_lst:
@@ -363,8 +366,7 @@ def main():
                 k = "+".join(l)
             if bisquare:
                 ref_flag = (
-                    "cat('\nCalculating optimal bandwidth using "
-                    "bisquare kernel..\n')\n"
+                    "cat('\nCalculating optimal bandwidth using bisquare kernel..\n')\n"
                 )
                 ref_flag += (
                     "BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,"
@@ -388,8 +390,7 @@ def main():
                 r_file.write(ref_flag)
             if not bisquare:
                 ref_fla = (
-                    "cat('\nCalculating optimal bandwidth using "
-                    "gaussian kernel..\n')\n"
+                    "cat('\nCalculating optimal bandwidth using gaussian kernel..\n')\n"
                 )
                 ref_fla += (
                     "BW_Rapid_ref.sdf=bw.gwr(tmp_Calibration_points~%s,"
@@ -413,11 +414,11 @@ def main():
                 r_file.write(ref_fla)
             ref_fil = "Sp_frame = as.data.frame(GWR_Rapid_pred.sdf$SDF)\n"
             r_file.write(ref_fil)
-            export = 'write.table(Sp_frame, quote=FALSE, sep=",",' '"%s")\n' % predict
+            export = 'write.table(Sp_frame, quote=FALSE, sep=",","%s")\n' % predict
             r_file.write(export)
             r_file.close()
             subprocess.check_call(["Rscript", r], shell=False)
-            g.run_command(
+            gs.run_command(
                 "r.in.xyz",
                 input=predict,
                 output="tmp_bathymetry",
@@ -429,19 +430,19 @@ def main():
                 overwrite=True,
             )
         except subprocess.CalledProcessError:
-            g.message("Integer outflow... ")
-            if not g.find_program("r.gwr", "--help"):
-                g.run_command("g.extension", extension="r.gwr")
+            gs.message("Integer outflow... ")
+            if not gs.find_program("r.gwr", "--help"):
+                gs.run_command("g.extension", extension="r.gwr")
             if bisquare:
-                g.message("Running Fixed-GWR using bisqare kernel...")
-                bw = g.parse_command(
+                gs.message("Running Fixed-GWR using bisqare kernel...")
+                bw = gs.parse_command(
                     "r.gwr",
                     mapx=crctd_lst,
                     mapy="tmp_Calibration_points",
                     kernel="bisquare",
                     flags="ge",
                 )
-                g.run_command(
+                gs.run_command(
                     "r.gwr",
                     mapx=crctd_lst,
                     mapy="tmp_Calibration_points",
@@ -450,19 +451,19 @@ def main():
                     bandwidth=int(bw["estimate"]),
                 )
             else:
-                g.message("Running Fixed-GWR using gaussian kernel...")
-                bw = g.parse_command(
+                gs.message("Running Fixed-GWR using gaussian kernel...")
+                bw = gs.parse_command(
                     "r.gwr", mapx=crctd_lst, mapy="tmp_Calibration_points", flags="ge"
                 )
-                g.run_command(
+                gs.run_command(
                     "r.gwr",
                     mapx=crctd_lst,
                     mapy="tmp_Calibration_points",
                     estimates="tmp_bathymetry",
                     bandwidth=int(bw["estimate"]),
                 )
-    tmp_rslt_ext = g.parse_command("r.univar", map="tmp_Calibration_points", flags="g")
-    g.mapcalc(
+    tmp_rslt_ext = gs.parse_command("r.univar", map="tmp_Calibration_points", flags="g")
+    gs.mapcalc(
         exp="{bathymetry}=if({tmp_SDB}>{max_}, null(),"
         "if({tmp_SDB}<{min_}, null(), {tmp_SDB}))".format(
             tmp_SDB="tmp_bathymetry",
@@ -474,11 +475,11 @@ def main():
 
 
 def cleanup():
-    g.run_command("g.remove", type="raster", name="MASK", flags="f")
-    g.run_command("g.remove", type="all", pattern="*tmp*", flags="f")
+    gs.run_command("g.remove", type="raster", name="MASK", flags="f")
+    gs.run_command("g.remove", type="all", pattern="*tmp*", flags="f")
     try:
-        g.try_remove(predict)
-        g.try_remove(r)
+        gs.try_remove(predict)
+        gs.try_remove(r)
     except:
         pass
 

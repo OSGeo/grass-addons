@@ -88,7 +88,7 @@
 
 
 import math
-import grass.script as gscript
+import grass.script as gs
 from grass.pygrass.modules.grid.grid import *
 
 
@@ -134,7 +134,6 @@ class MyGridModule(GridModule):
 
 
 def main():
-
     inputraster = options["input"]
     outputprefix = options["output"]
     windowsize = int(options["size"])
@@ -172,5 +171,5 @@ def main():
 
 
 if __name__ == "__main__":
-    options, flags = gscript.parser()
+    options, flags = gs.parser()
     main()

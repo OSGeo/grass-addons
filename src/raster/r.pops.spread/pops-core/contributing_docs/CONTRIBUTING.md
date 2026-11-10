@@ -21,10 +21,10 @@ example reproducible: required packages, data, code.
 1. Spend a little bit of time ensuring that your **code** is easy for others to
    read:
 
-    * make sure you've used spaces and your variable names are concise, but
-      informative
-    * use comments to indicate where your problem lies
-    * do your best to remove everything that is not related to the problem.
+   - make sure you've used spaces and your variable names are concise, but
+     informative
+   - use comments to indicate where your problem lies
+   - do your best to remove everything that is not related to the problem.
      The shorter your code is, the easier it is to understand.
 
 ## Pull
@@ -41,14 +41,14 @@ To contribute a change to PoPS Core or rPoPS, follow these steps:
 Each of these steps are described in more detail below. This might feel
 overwhelming the first time you get set up, but it gets easier with practice.
 
-* [ ] Motivate the change in one paragraph, and include it in NEWS.
+- [ ] Motivate the change in one paragraph, and include it in NEWS.
       In parentheses, reference your github user name and this issue:
       `(@ChrisJones687, #1234)`
-* [ ] Check pull request only includes relevant changes.
-* [ ] Use the [PoPS Core style guide](contributing_docs/STYLE_GUIDE.md).
-* [ ] Update documentation to reflect your changes
-* [ ] Add test (if a new feature or a bug fix that needs a new test)
-* [ ] Add minimal example if new function in R.
+- [ ] Check pull request only includes relevant changes.
+- [ ] Use the [PoPS Core style guide](contributing_docs/STYLE_GUIDE.md).
+- [ ] Update documentation to reflect your changes
+- [ ] Add test (if a new feature or a bug fix that needs a new test)
+- [ ] Add minimal example if new function in R.
 
 Pull requests will be evaluated against a seven-point checklist:
 

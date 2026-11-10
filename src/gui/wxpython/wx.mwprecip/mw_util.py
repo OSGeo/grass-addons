@@ -11,7 +11,6 @@ import wx.lib.filebrowsebutton as filebrowse
 import codecs
 from core.gcmd import GMessage, GError
 from grass.script import core as grass
-import grass.script as grass
 
 import time
 from datetime import datetime
@@ -336,7 +335,7 @@ class TextInput(wx.Panel):
         try:
             self.directInp.SetValue(str)
             return 1
-        except IOError as e:
+        except OSError as e:
             print("I/O error({}): {}".format(e.errno, e.strerror))
             return -1
         except ValueError:
@@ -437,7 +436,6 @@ def getFilesInFoldr(fpath, full=False):
             if full:
                 tmp.append(os.path.join(fpath, path))
             else:
-
                 tmp.append(path)
 
     return tmp
@@ -546,7 +544,7 @@ def readDict(fn):
                 dict_rap[key] = eval(val)
         f.close()
         return dict_rap
-    except IOError as e:
+    except OSError as e:
         print("I/O error({}): {}".format(e.errno, e.strerror))
 
 

@@ -105,7 +105,6 @@ COPYRIGHT: (C) 2018 by the GRASS Development Team
 # % description: Use square moving window instead of circular moving window
 # %end
 
-
 import atexit
 import math
 import os
@@ -202,7 +201,7 @@ def focal_expr(radius, window_square=False):
     """
     offsets = []
 
-    # generate a list of spatial neighbourhood offsets for the chosen radius
+    # generate a list of spatial neighborhood offsets for the chosen radius
     # ignoring the centre cell
     if window_square:
         for i in range(-radius, radius + 1):
@@ -227,12 +226,10 @@ def focal_expr(radius, window_square=False):
 
 
 def elevation_percentile(input, radius=3, window_square=False):
-    """Calculates the percentile whichj is the ratio of the number of points of
+    """Calculates the percentile which is the ratio of the number of points of
     lower elevation to the total number of points in the surrounding region
     Args
     ----
-    L : int
-        Processing step (level)
     input : str
         GRASS raster map (elevation) to perform calculation on
     radius : int
@@ -528,6 +525,14 @@ def refine(input, region, method="bilinear"):
 
 
 def step_message(L, xres, yres, ncells, t_slope):
+    """
+    Logs a message for a specific step
+
+    Args
+    ----
+    L : int
+        Processing step (level)
+    """
     gs.message(
         "step {L}, ew_res {ewres}, ns_res {nsres}, remaining cells {ncells}, threshold slope {t}".format(
             L=L + 1,

@@ -27,7 +27,7 @@ void nn_average_distance_real(struct nna_par *xD, struct points *pnts,
 void density(struct points *pnts, struct nna_par *xD, const char *Acol,
              struct nearest *nna)
 {
-    if (xD->i3 == TRUE) { // 3D NNA: Minimum Enclosing Block
+    if (xD->i3 == true) { // 3D NNA: Minimum Enclosing Block
         nna->A = Acol != NULL
                      ? atof(Acol)
                      : MBB(pnts); // set volume specified by user or MBB volume
@@ -36,7 +36,7 @@ void density(struct points *pnts, struct nna_par *xD, const char *Acol,
         }
     }
 
-    if (xD->i3 == FALSE) { // 2D NNA: Minimum Enclosing Rectangle
+    if (xD->i3 == false) { // 2D NNA: Minimum Enclosing Rectangle
         nna->A = Acol != NULL
                      ? atof(Acol)
                      : MBR(pnts); // set area specified by user or MBR area
@@ -52,11 +52,11 @@ void density(struct points *pnts, struct nna_par *xD, const char *Acol,
 
 void nn_average_distance_expected(struct nna_par *xD, struct nearest *nna)
 {
-    if (xD->i3 == TRUE) { // 3D NNA:
+    if (xD->i3 == true) { // 3D NNA:
         nna->rE =
             0.55396 / pow(nna->rho, 1. / 3.); // according to Chandrasekhar
     }
-    if (xD->i3 == FALSE) {              // 2D NNA:
+    if (xD->i3 == false) {              // 2D NNA:
         nna->rE = 0.5 / sqrt(nna->rho); // according to Clark & Evans
     }
 }
@@ -78,7 +78,7 @@ void nn_results(struct points *pnts, struct nna_par *xD, struct nearest *nna)
                   xD->i3);
     }
     G_message(_("Number of points .......... %d"), pnts->n);
-    if (xD->i3 == TRUE) {
+    if (xD->i3 == true) {
         G_message(_("Volume .................... %f [units^3]"), nna->A);
     }
     else {
@@ -135,7 +135,7 @@ void nn_statistics(struct points *pnts, struct nna_par *xD, struct nearest *nna)
 {
     double disp_rE, var_rE, sig_rE;
 
-    if (xD->i3 == TRUE) { // 3D NNA:
+    if (xD->i3 == true) { // 3D NNA:
         disp_rE = 0.347407742479038 /
                   pow(nna->rho,
                       2. / 3.); // standard deviation of average distance
@@ -147,7 +147,7 @@ void nn_statistics(struct points *pnts, struct nna_par *xD, struct nearest *nna)
                                     // NN in randomly distributed set of points;
                                     // derived in (Stopkova, 2013)
     }
-    if (xD->i3 == FALSE) { // 2D NNA:
+    if (xD->i3 == false) { // 2D NNA:
         disp_rE =
             1. / (nna->rho *
                   PI); // standard deviation of average distance between the NN
