@@ -89,6 +89,7 @@
 
 import os
 import atexit
+import math
 
 import grass.script as gs
 import grass.script.core as gcore
@@ -270,26 +271,13 @@ def main():
             column="along",
         )
 
-        # Estimate optimal spline step using the same formula as v.surf.bspline -e:
-        # mean_dist = sqrt(region_area / n_points), spline_step = 2 * mean_dist.
-        # Using v.info -t (machine-readable key=value) and gs.region() avoids
-        # parsing G_message output which may be translated.
-        try:
-            region = gs.region()
-            vinfo = gs.parse_command("v.info", map=contour_points, flags="t")
-        except Exception:
-            region = None
-            vinfo = {}
-        if region:
-            n_points = int(vinfo.get("points", 0))
-            area = (region["e"] - region["w"]) * (region["n"] - region["s"])
-            if n_points > 0 and area > 0:
-                mean_dist = (area / n_points) ** 0.5
-                spline_step = max(round(mean_dist) * 2, 1)
-            else:
-                spline_step = 10
-        else:
-            spline_step = 10
+        # Spline step is twice the mean distance between points, estimated
+        # as in v.surf.bspline -e (whose output is a translatable message)
+        info = gs.vector_info(contour_points)
+        if not info["points"]:
+            gs.fatal(_("No points found on the zero contours"))
+        area = (info["east"] - info["west"]) * (info["north"] - info["south"])
+        spline_step = round(math.sqrt(area / info["points"])) * 2
 
         gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
