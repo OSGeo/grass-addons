@@ -427,7 +427,7 @@ def main():
                     id=options["id"],
                     output=outdir,
                     provider=eodag_provider,
-                    producttype=options["producttype"],
+                    producttype=eodag_producttype,
                     footprints=options["footprints"],
                 )
             )
