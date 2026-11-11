@@ -38,7 +38,7 @@ EODAG_TEST_MAP = {
         "product_type_key": "productType",
         "cloud_cover_key": "cloudCover",
         "relative_orbit_key": "relativeOrbitNumber",
-        "sensor_mode_key": "sensorMode",
+        "sensor_mode_keys": ("sensorMode",),
         "s2_l2a_type": "S2MSI2A",
         "s2_l1c_type": "S2MSI1C",
     },
@@ -46,12 +46,25 @@ EODAG_TEST_MAP = {
         "product_type_key": "collection",
         "cloud_cover_key": "eo:cloud_cover",
         "relative_orbit_key": "sat:relative_orbit",
-        "sensor_mode_key": "instrumentMode",
+        # Provider properties differ, the first one present is used (as in i.eodag)
+        "sensor_mode_keys": (
+            "instrumentMode",
+            "sar:instrument_mode",
+            "s2:datatake_type",
+        ),
         "s2_l2a_type": "S2_MSI_L2A",
         "s2_l1c_type": "S2_MSI_L1C",
     },
 }
 VER = EODAG_TEST_MAP.get(EODAG_VERSION, EODAG_TEST_MAP[3])
+
+
+def get_sensor_mode(props):
+    """Get the sensor mode from the first of the candidate properties present."""
+    return next(
+        (props[key] for key in VER["sensor_mode_keys"] if props.get(key) is not None),
+        None,
+    )
 
 
 class TestEodag(TestCase):
@@ -245,7 +258,7 @@ class TestEodag(TestCase):
             # Use the correct STAC property names for v4
             self.assertTrue(scene["properties"]["title"].startswith("S2B"))
             self.assertEqual(props.get(VER["relative_orbit_key"]), 97)
-            self.assertEqual(props.get(VER["sensor_mode_key"]), "INS-NOBS")
+            self.assertEqual(get_sensor_mode(props), "INS-NOBS")
 
     def test_query_multiple_value(self):
         """Testing querying with multiple values covering both the AND and OR relations."""
@@ -278,7 +291,7 @@ class TestEodag(TestCase):
             self.assertTrue(scene["properties"]["title"].startswith("S2B"))
             cloud_cover = props.get(VER["cloud_cover_key"])
             orbit_number = props.get(VER["relative_orbit_key"])
-            sensor_mode = props.get(VER["sensor_mode_key"])
+            sensor_mode = get_sensor_mode(props)
 
             # Assertions remain the same, but values are retrieved correctly
             self.assertTrue(30 <= cloud_cover <= 70)
