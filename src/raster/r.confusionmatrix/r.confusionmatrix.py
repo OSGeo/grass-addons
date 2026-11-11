@@ -159,8 +159,9 @@ def set_reference(descriptionflag=None):
         reference = options["raster_reference"]
         refname = reference
     elif options["vector_reference"] and options["column"]:
-        savedregion = gs.tempname(12)
-        gs.run_command("g.region", save=savedregion)
+        # The reference is rasterized in the region of the classification, so
+        # use a temporary region, which is restored also when a module fails.
+        gs.use_temp_region()
         gs.run_command("g.region", raster=options["classification"])
         reference = gs.tempname(12)
         kwargs = {
@@ -173,12 +174,7 @@ def set_reference(descriptionflag=None):
             kwargs["label_column"] = options["label_column"]
         gs.run_command("v.to.rast", quiet=True, **kwargs)
         refname = options["vector_reference"] + " with column " + options["column"]
-        # reset region
-        gs.run_command("g.region", region=savedregion, quiet=True)
-        # remove region
-        gs.run_command(
-            "g.remove", flags="f", type="region", name=savedregion, quiet=True
-        )
+        gs.del_temp_region()
     else:
         if not descriptionflag:
             gs.fatal(
