@@ -277,7 +277,10 @@ def main():
         if not info["points"]:
             gs.fatal(_("No points found on the zero contours"))
         area = (info["east"] - info["west"]) * (info["north"] - info["south"])
-        spline_step = round(math.sqrt(area / info["points"])) * 2
+        if area <= 0:
+            region = gs.region()
+            area = (region["e"] - region["w"]) * (region["n"] - region["s"])
+        spline_step = math.sqrt(area / info["points"]) * 2
 
         gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
