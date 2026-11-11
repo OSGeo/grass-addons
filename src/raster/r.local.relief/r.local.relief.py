@@ -89,6 +89,7 @@
 
 import os
 import atexit
+import math
 
 import grass.script as gs
 import grass.script.core as gcore
@@ -270,17 +271,16 @@ def main():
             column="along",
         )
 
-        # Get mean distance between points to optimize spline interpolation
-        mean_dist = gs.parse_command(
-            "v.surf.bspline",
-            flags="e",
-            _input=contour_points,
-            raster_output=purged_elevation,
-            layer="2",
-            column="along",
-            method=fill_method,
-        )
-        spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
+        # Spline step is twice the mean distance between points, estimated
+        # as in v.surf.bspline -e (whose output is a translatable message)
+        info = gs.vector_info(contour_points)
+        if not info["points"]:
+            gs.fatal(_("No points found on the zero contours"))
+        area = (info["east"] - info["west"]) * (info["north"] - info["south"])
+        if area <= 0:
+            region = gs.region()
+            area = (region["e"] - region["w"]) * (region["n"] - region["s"])
+        spline_step = math.sqrt(area / info["points"]) * 2
 
         gs.info(
             _("Interpolating purged surface using a spline step value of {s}").format(
@@ -289,11 +289,13 @@ def main():
         )
         gs.run_command(
             "v.surf.bspline",
-            _input=contour_points,
+            input=contour_points,
             raster_output=purged_elevation,
             layer="2",
             column="along",
             method=fill_method,
+            ew_step=spline_step,
+            ns_step=spline_step,
             overwrite=gcore.overwrite(),
         )
     else:
@@ -363,7 +365,7 @@ def main():
 
     if shaded_local_relief_output:
         if not user_color_table:
-            color_table = "difference"
+            color_table = "differences"
         gs.run_command(
             "r.colors",
             flags=rcolors_flags,
