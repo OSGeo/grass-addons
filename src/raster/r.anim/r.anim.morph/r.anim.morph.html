@@ -1,0 +1,142 @@
+<!-- meta page name: r.anim.morph -->
+<!-- meta page name description: Morphs a before raster into an after raster as a spatially aware sequence of animation frames -->
+
+<h2>DESCRIPTION</h2>
+<p><em>r.anim.morph</em> morphs a <em>before</em> raster into an <em>after</em> raster by writing a numbered sequence of raster frames. Instead of fading every cell at the same time, each cell follows its own schedule given by an <strong>animation plan</strong> (Lobo, Appert and Pietriga 2019): a start-time raster S and an end-time raster E in normalized time, where 0 is the first frame and 1 is the last. A frame at time t shows the before value where t is below S, the after value where t is above E, and a linear blend in between. Ordering the cells in space is what makes a lake look like it is shrinking rather than fading.</p>
+<p>Both inputs are given as one raster, or as one raster per band in the same order (for example red, green, and blue). Frames are named <code>&lt;output&gt;_001</code>, <code>&lt;output&gt;_002</code>, and so on, with the number of digits matching <strong>frames</strong>. With several bands the names become <code>&lt;output&gt;_b1_001</code>, <code>&lt;output&gt;_b2_001</code>, and so on.</p>
+<h3>Regions, windows, and blend duration</h3>
+<p>Cells are split into a region of interest (ROI) given by <strong>mask_before</strong> and <strong>mask_after</strong> (cells greater than zero) and the background outside it. Cells of the ROI transition between <strong>roi_start</strong> and <strong>roi_end</strong>; background cells transition between <strong>bg_start</strong> and <strong>bg_end</strong>. Setting <code>roi_end=0.7 bg_start=0.7</code> stages the animation so the background changes only after the ROI has finished.</p>
+<p>Inside the ROI a primitive orders the cells from first to last. Each cell blends over <strong>blend_duration</strong>, so a cell that starts at S ends at S + blend_duration, capped at 1. A blend duration of 0 swaps the cell in a single frame. The blend duration must fit inside the ROI window.</p>
+<h3>Primitives</h3>
+<table>
+<thead>
+<tr>
+<th>Primitive</th>
+<th>Order inside the ROI</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>blend</td>
+<td>every cell transitions over the ROI window</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>appearance</td>
+<td>from the edge of the shape inward</td>
+<td>mask_after</td>
+</tr>
+<tr>
+<td>disappearance</td>
+<td>from the edge of the shape inward</td>
+<td>mask_before</td>
+</tr>
+<tr>
+<td>contraction</td>
+<td>cells leaving the shape, far from the new contour first</td>
+<td>mask_before, optional mask_after</td>
+</tr>
+<tr>
+<td>expansion</td>
+<td>cells entering the shape, close to the old contour first</td>
+<td>mask_after, optional mask_before</td>
+</tr>
+<tr>
+<td>deformation</td>
+<td>contraction and expansion together</td>
+<td>mask_before, mask_after</td>
+</tr>
+<tr>
+<td>radial</td>
+<td>outward from <strong>coordinates</strong> (default: region center)</td>
+<td>optional mask</td>
+</tr>
+<tr>
+<td>directional</td>
+<td>sweep in the compass <strong>direction</strong></td>
+<td>optional mask</td>
+</tr>
+<tr>
+<td>dem</td>
+<td>high elevation first (low first with <strong>-i</strong>)</td>
+<td>dem, optional mask</td>
+</tr>
+<tr>
+<td>plan</td>
+<td>start and end times read from rasters</td>
+<td>plan_start, plan_end</td>
+</tr>
+</tbody>
+</table>
+<p>For contraction, expansion, and deformation, cells that belong to both masks transition uniformly over the ROI window while the cells that leave or enter the shape are ordered by their distance to the other contour. Contraction without <strong>mask_after</strong> shrinks the shape to nothing, and expansion without <strong>mask_before</strong> grows it from nothing. Distances are computed with <em>r.grow.distance</em> in map units. Radial, directional, and dem normalize their ordering over the ROI, so the farthest, last, or lowest cell of the ROI finishes exactly at <strong>roi_end</strong>; the <strong>-i</strong> flag reverses their order.</p>
+<p>The <strong>plan</strong> primitive reads S and E from <strong>plan_start</strong> and <strong>plan_end</strong>, for example rasters saved earlier with <strong>output_plan</strong> or plans built with <em>r.mapcalc</em>. Values are clamped to the range 0 to 1.</p>
+<h3>Stages</h3>
+<p>A JSON file given with <strong>stages</strong> describes a list of stages that are combined into a single plan by taking, for each cell, the earliest start and the latest end. Each stage is an object whose keys are the tool options (<code>primitive</code>, <code>mask_before</code>, <code>mask_after</code>, <code>dem</code>, <code>direction</code>, <code>coordinates</code> as a two-element list, <code>plan_start</code>, <code>plan_end</code>, <code>roi_start</code>, <code>roi_end</code>, <code>bg_start</code>, <code>bg_end</code>, <code>blend_duration</code>, and <code>invert</code>); missing keys fall back to the command line.</p>
+<div class="code"><pre>[
+  {
+    &quot;primitive&quot;: &quot;contraction&quot;,
+    &quot;mask_before&quot;: &quot;lake_before&quot;,
+    &quot;mask_after&quot;: &quot;lake_after&quot;,
+    &quot;roi_start&quot;: 0.0,
+    &quot;roi_end&quot;: 0.6,
+    &quot;bg_start&quot;: 0.6,
+    &quot;bg_end&quot;: 0.6,
+    &quot;blend_duration&quot;: 0.2
+  },
+  {
+    &quot;primitive&quot;: &quot;blend&quot;,
+    &quot;roi_start&quot;: 0.6,
+    &quot;roi_end&quot;: 1.0
+  }
+]
+</pre></div>
+<h3>Flags</h3>
+<p>The <strong>-c</strong> flag rescales each before band to the mean and standard deviation of its after band before rendering, which reduces the brightness jump between scenes acquired under different conditions. The <strong>-p</strong> flag computes and reports the plan without writing frames; together with <strong>output_plan</strong> it saves the plan for inspection or reuse.</p>
+<h2>NOTES</h2>
+<p>All computations use the current computational region and resolution; input rasters are resampled to it. Frames are written by a single <em>r.mapcalc</em> call per band, so memory use does not depend on the raster size and <strong>nprocs</strong> speeds up rendering.</p>
+<p>Null cells of the before and after rasters stay null in every frame. Null cells of a mask count as background. Null cells of the dem transition last. Rasters given as masks are compared with zero, so any raster can serve as a mask.</p>
+<p>Every frame receives the color table of its after raster so the animation does not flicker. Frames can be played with <em>g.gui.animation</em> or exported with <em>r.out.png</em> and turned into a video with an external tool. Frames of a multi-band animation can be combined with <em>r.composite</em> or displayed with <em>d.rgb</em>.</p>
+<p>With several bands, the number of output rasters is <strong>frames</strong> times the number of bands. Existing frames are only replaced with <strong>--overwrite</strong>.</p>
+<h2>EXAMPLES</h2>
+<p>All examples use the North Carolina sample dataset. A full walkthrough on real imagery, from a <em>t.stac</em> import of Sentinel-2 scenes to an MP4 of a receding reservoir, is in the tutorial <a href="https://learning.openplains.com/content/blog/animating_water_level_change_with_r_anim_morph.html">Animating the Falls Lake drawdown with r.anim.morph</a>.</p>
+<h3>Fade between two Landsat scenes</h3>
+<p>The 1987 scene is stored in the <em>landsat</em> mapset of the sample dataset.</p>
+<div class="code"><pre>g.region raster=lsat7_2002_30 -p
+r.anim.morph before=lsat5_1987_30@landsat,lsat5_1987_20@landsat,lsat5_1987_10@landsat \
+    after=lsat7_2002_30,lsat7_2002_20,lsat7_2002_10 \
+    output=landsat frames=24 -c
+r.composite red=landsat_b1_12 green=landsat_b2_12 blue=landsat_b3_12 \
+    output=landsat_12
+</pre></div>
+<h3>Shrinking lake</h3>
+<p>Two thresholds of the elevation model stand in for water extents before and after a drawdown. The area between them drains from the far shore toward the new shoreline, then the background fades.</p>
+<div class="code"><pre>g.region raster=elevation -p
+r.mapcalc &quot;lake_before = if(elevation &lt; 100, 1, 0)&quot;
+r.mapcalc &quot;lake_after = if(elevation &lt; 95, 1, 0)&quot;
+r.anim.morph before=lake_before after=lake_after output=lake \
+    primitive=contraction mask_before=lake_before mask_after=lake_after \
+    roi_end=0.85 bg_start=0.85 blend_duration=0.2 frames=48 \
+    output_plan=lake_plan
+g.gui.animation raster=$(g.list type=raster pattern=&quot;lake_[0-9]*&quot; separator=comma)
+</pre></div>
+<h3>Snow line moving downhill</h3>
+<p>The after raster is a constant white surface that borrows the grey color table of the shaded relief, so the frames inherit a full grey ramp.</p>
+<div class="code"><pre>g.region raster=elevation -p
+r.mapcalc &quot;snow = 255&quot;
+r.colors map=snow raster=elevation_shade
+r.anim.morph before=elevation_shade after=snow output=snowline \
+    primitive=dem dem=elevation blend_duration=0.1 frames=30
+</pre></div>
+<h3>Reuse a saved plan</h3>
+<p>Inspect and edit the plan from the shrinking lake example, then render it again with the plan primitive.</p>
+<div class="code"><pre>r.mapcalc &quot;lake_plan_S2 = lake_plan_S * 0.5&quot;
+r.anim.morph before=lake_before after=lake_after output=lake2 \
+    primitive=plan plan_start=lake_plan_S2 plan_end=lake_plan_E frames=48
+</pre></div>
+<h2>REFERENCES</h2>
+<p>Lobo, M.-J., Appert, C., and Pietriga, E. (2019). Animation plans for before-and-after satellite images. IEEE Transactions on Visualization and Computer Graphics, 25(2), 1347-1360. <a href="https://doi.org/10.1109/TVCG.2018.2796557">doi:10.1109/TVCG.2018.2796557</a></p>
+<h2>SEE ALSO</h2>
+<p><em><a href="g.gui.animation.html">g.gui.animation</a>, <a href="r.anim.html">r.anim</a>, <a href="r.blend.html">r.blend</a>, <a href="r.composite.html">r.composite</a>, <a href="r.grow.distance.html">r.grow.distance</a>, <a href="r.series.interp.html">r.series.interp</a></em></p>
+<h2>AUTHORS</h2>
+<p>Corey T. White, <a href="https://openplains.com/">OpenPlains Inc.</a></p>
