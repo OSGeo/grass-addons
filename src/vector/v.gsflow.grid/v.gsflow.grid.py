@@ -102,6 +102,16 @@ from grass.pygrass.vector.geometry import Point
 ###############
 
 
+def _bc_attrs(table, row, col, x, y):
+    """Attribute values for a b.c. cell in the column order of the table
+
+    The key column (cat) is left out. Columns made by r.to.vect (z, label, ...)
+    differ between GRASS versions and are set to None.
+    """
+    values = {"row": row, "col": col, "x": x, "y": y}
+    return tuple(values.get(name) for name in table.columns.names() if name != "cat")
+
+
 def main():
     """
     Builds a grid for the MODFLOW component of the USGS hydrologic model,
@@ -420,7 +430,7 @@ def main():
                     bcvect.write(
                         point0,
                         cat=_cat_i,
-                        attrs=(None, _row1, _col1, _x, _y),
+                        attrs=_bc_attrs(bcvect.table, _row1, _col1, _x, _y),
                     )
                     bcvect.table.conn.commit()
                     _cat_i += 1
@@ -432,7 +442,7 @@ def main():
                     bcvect.write(
                         point0,
                         cat=_cat_i,
-                        attrs=(None, _row2, _col2, _x, _y),
+                        attrs=_bc_attrs(bcvect.table, _row2, _col2, _x, _y),
                     )
                     bcvect.table.conn.commit()
                 # Build database table and vector geometry
