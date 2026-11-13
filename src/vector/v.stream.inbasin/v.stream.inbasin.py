@@ -202,7 +202,7 @@ def main():
         # SQL_OR = 'rnum = ' + ' OR rnum = '.join(map(str, basincats))
         # SQL_OR = 'cat = ' + ' OR cat = '.join(map(str, basincats))
         SQL_LIST = "cat IN (" + ", ".join(map(str, basincats)) + ")"
-        if len(basins) > 0:
+        if len(basins) > 0 and len(output_basins) > 0:
             v.extract(
                 input=basins,
                 output=output_basins,
@@ -210,7 +210,7 @@ def main():
                 overwrite=gs.overwrite(),
                 quiet=True,
             )
-        if len(streams) > 0:
+        if len(streams) > 0 and len(output_streams) > 0:
             v.extract(
                 input=streams,
                 output=output_streams,
@@ -228,17 +228,59 @@ def main():
             overwrite=True,
         )
         r.to_vect(input="tmp", output="tmp", type="area", overwrite=True)
-        v.clip(input=basins, clip="tmp", output=output_basins, overwrite=True)
-        basincats = gs.vector_db_select("basins_inbasin").values()[0].keys()
-        basincats_str = ",".join(map(str, basincats))
-        if len(streams) > 0:
-            v.extract(
-                input=streams,
-                output=output_streams,
-                cats=basincats_str,
-                overwrite=gs.overwrite(),
-                quiet=True,
-            )
+        basin_layer = output_basins if output_basins else "tmp_clipped_basin"
+        if len(basins) > 0:
+            v.clip(input=basins, clip="tmp", output=basin_layer, overwrite=True)
+            try:
+                basin_data = gs.vector_db_select(basin_layer)
+                basincats = (
+                    list(basin_data["values"].keys())
+                    if basin_data and "values" in basin_data
+                    else []
+                )
+            except Exception:
+                basincats = []
+            basincats_str = ",".join(map(str, basincats))
+            if len(streams) > 0 and len(output_streams) > 0:
+                extracted = False
+                if basincats_str:
+                    v.extract(
+                        input=streams,
+                        output=output_streams,
+                        cats=basincats_str,
+                        overwrite=gs.overwrite(),
+                        quiet=True,
+                    )
+                    extracted = True
+                if not extracted or gs.vector_info_topo(output_streams)["lines"] == 0:
+                    # Overwrite the empty map created by v.extract above
+                    v.clip(
+                        input=streams,
+                        clip="tmp",
+                        output=output_streams,
+                        overwrite=gs.overwrite() or extracted,
+                        quiet=True,
+                    )
+            if not output_basins:
+                gs.run_command(
+                    "g.remove", flags="f", type="vector", name=basin_layer, quiet=True
+                )
+        else:
+            if len(output_basins) > 0:
+                gs.run_command(
+                    "g.copy",
+                    vector=("tmp", output_basins),
+                    overwrite=gs.overwrite(),
+                    quiet=True,
+                )
+            if len(streams) > 0 and len(output_streams) > 0:
+                v.clip(
+                    input=streams,
+                    clip="tmp",
+                    output=output_streams,
+                    overwrite=gs.overwrite(),
+                    quiet=True,
+                )
 
     # If we want to output the pour point location
     if len(output_pour_point) > 0:

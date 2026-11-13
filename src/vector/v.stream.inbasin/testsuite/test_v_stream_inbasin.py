@@ -149,5 +149,118 @@ class FunctionalityVStreamNetwork(TestCase):
         self.assertAlmostEqual(records[0]["y"], 223266.931, places=3)
 
 
+class ExactCoordinatesVStreamInbasin(TestCase):
+    """Test case for v.stream.inbasin using exact coordinates (without -s flag)"""
+
+    streams = "exact_streams"
+    draindir = "exact_draindir"
+    basins_vect = "exact_basins_vect"
+    output_basin = "exact_output_basin"
+    output_streams = "exact_output_streams"
+    output_pour_point = "exact_output_pour_point"
+    coordinates = (639258, 223267)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.use_temp_region()
+        cls.runModule("g.region", vector="streams@PERMANENT", res=10)
+        cls.runModule("g.copy", vector=("streams@PERMANENT", cls.streams))
+        cls.runModule("v.stream.network", map=cls.streams)
+        cls.runModule(
+            "r.watershed",
+            elevation="elevation@PERMANENT",
+            drainage=cls.draindir,
+            quiet=True,
+        )
+        cls.runModule(
+            "v.buffer",
+            input=cls.streams,
+            output=cls.basins_vect,
+            distance=50,
+            quiet=True,
+        )
+        cls.runModule("v.db.addtable", map=cls.basins_vect, quiet=True)
+        cls.runModule(
+            "v.stream.inbasin",
+            input_streams=cls.streams,
+            input_basins=cls.basins_vect,
+            draindir=cls.draindir,
+            coordinates=cls.coordinates,
+            output_basin=cls.output_basin,
+            output_streams=cls.output_streams,
+            output_pour_point=cls.output_pour_point,
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.runModule(
+            "g.remove",
+            type="vector",
+            name=[
+                cls.streams,
+                cls.basins_vect,
+                cls.output_basin,
+                cls.output_streams,
+                cls.output_pour_point,
+            ],
+            flags="f",
+        )
+        cls.runModule(
+            "g.remove",
+            type="raster",
+            name=[cls.draindir],
+            flags="f",
+        )
+        cls.del_temp_region()
+
+    def test_output_basin_exists(self):
+        """Check that output basin was created and has areas"""
+        self.assertVectorExists(self.output_basin)
+        info = gs.vector_info(self.output_basin)
+        self.assertGreater(info["areas"], 0)
+
+    def test_output_streams_exists(self):
+        """Check that output streams vector exists and has lines"""
+        self.assertVectorExists(self.output_streams)
+        info = gs.vector_info(self.output_streams)
+        self.assertGreater(info["lines"], 0)
+
+    def test_exact_pour_point(self):
+        """Check that pour point coordinates match the exact input coordinates"""
+        self.assertVectorExists(self.output_pour_point)
+        records = json.loads(
+            gs.read_command("v.db.select", map=self.output_pour_point, format="json")
+        )["records"]
+        self.assertEqual(len(records), 1)
+        self.assertAlmostEqual(records[0]["x"], self.coordinates[0], places=1)
+        self.assertAlmostEqual(records[0]["y"], self.coordinates[1], places=1)
+
+    def test_without_input_basins(self):
+        """Check running exact coordinates without input_basins"""
+        basin_out = "exact_no_subbasins_basin"
+        streams_out = "exact_no_subbasins_streams"
+        self.assertModule(
+            "v.stream.inbasin",
+            input_streams=self.streams,
+            draindir=self.draindir,
+            coordinates=self.coordinates,
+            output_basin=basin_out,
+            output_streams=streams_out,
+        )
+        self.assertVectorExists(basin_out)
+        self.assertVectorExists(streams_out)
+        basin_info = gs.vector_info(basin_out)
+        streams_info = gs.vector_info(streams_out)
+        self.assertGreater(basin_info["areas"], 0)
+        self.assertGreater(streams_info["lines"], 0)
+        gs.run_command(
+            "g.remove",
+            type="vector",
+            name=[basin_out, streams_out],
+            flags="f",
+            quiet=True,
+        )
+
+
 if __name__ == "__main__":
     test()
