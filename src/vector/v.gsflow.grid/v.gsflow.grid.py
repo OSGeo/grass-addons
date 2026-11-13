@@ -198,7 +198,14 @@ def main():
 
     # Cell area
     v.db_addcolumn(map=grid, columns="area_m2 double precision", quiet=True)
-    v.to_db(map=grid, option="area", units="meters", columns="area_m2", quiet=True)
+    v.to_db(
+        map=grid,
+        option="area",
+        units="meters",
+        columns="area_m2",
+        overwrite=True,
+        quiet=True,
+    )
 
     # Basin mask
     if len(mask) > 0:
@@ -308,7 +315,7 @@ def main():
         v.what_vect(
             map=bc_cell, query_map=grid, column="col", query_column="col", quiet=True
         )
-        v.to_db(map=bc_cell, option="coor", columns=("x,y"))
+        v.to_db(map=bc_cell, option="coor", columns=("x,y"), overwrite=True)
 
         # Of the candidates, the pour point is the closest one
         # v.db_addcolumn(map=bc_cell, columns=('dist_to_pp double precision'), quiet=True)
