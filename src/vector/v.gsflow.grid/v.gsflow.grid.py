@@ -178,7 +178,7 @@ def main():
     # Cell numbers (row, column, continuous ID)
     v.db_addcolumn(map=grid, columns="id int", quiet=True)
     colNames = np.array(gs.vector_db_select(grid, layer=1)["columns"])
-    colValues = np.array(gs.vector_db_select(grid, layer=1)["values"].values())
+    colValues = np.array(list(gs.vector_db_select(grid, layer=1)["values"].values()))
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     rows = colValues[:, colNames == "row"].astype(int).squeeze()
     cols = colValues[:, colNames == "col"].astype(int).squeeze()
@@ -316,11 +316,13 @@ def main():
 
         # Find out if this is diagonal: finite difference works only N-S, W-E
         colNames = np.array(gs.vector_db_select(pp, layer=1)["columns"])
-        colValues = np.array(gs.vector_db_select(pp, layer=1)["values"].values())
+        colValues = np.array(list(gs.vector_db_select(pp, layer=1)["values"].values()))
         pp_row = colValues[:, colNames == "row"].astype(int).squeeze()
         pp_col = colValues[:, colNames == "col"].astype(int).squeeze()
         colNames = np.array(gs.vector_db_select(bc_cell, layer=1)["columns"])
-        colValues = np.array(gs.vector_db_select(bc_cell, layer=1)["values"].values())
+        colValues = np.array(
+            list(gs.vector_db_select(bc_cell, layer=1)["values"].values())
+        )
         bc_row = colValues[:, colNames == "row"].astype(int).squeeze()
         bc_col = colValues[:, colNames == "col"].astype(int).squeeze()
         # Also get x and y while we are at it: may be needed later
@@ -345,14 +347,14 @@ def main():
                             where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                             columns="basinmask",
                         )
-                        _ismask_1 = int(_ismask_1["values"].values()[0][0])
+                        _ismask_1 = int(list(_ismask_1["values"].values())[0][0])
                         _ismask_2 = gs.vector_db_select(
                             grid,
                             layer=1,
                             where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
                             columns="basinmask",
                         )
-                        _ismask_2 = int(_ismask_2["values"].values()[0][0])
+                        _ismask_2 = int(list(_ismask_2["values"].values())[0][0])
                         # check if either of these is the other point
                         """
                         NOT DOING THIS YET -- HAVEN'T THOUGHT THROUGH IF
@@ -376,14 +378,14 @@ def main():
                 where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                 columns="basinmask",
             )
-            _ismask_1 = int(_ismask_1["values"].values()[0][0])
+            _ismask_1 = int(list(_ismask_1["values"].values())[0][0])
             _ismask_2 = gs.vector_db_select(
                 grid,
                 layer=1,
                 where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
                 columns="basinmask",
             )
-            _ismask_2 = int(_ismask_2["values"].values()[0][0])
+            _ismask_2 = int(list(_ismask_2["values"].values())[0][0])
             # If both covered by mask, error
             if _ismask_1 and _ismask_2:
                 gs.fatal(
