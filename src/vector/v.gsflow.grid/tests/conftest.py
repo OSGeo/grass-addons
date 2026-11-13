@@ -50,4 +50,6 @@ def grid_tools(module_session, tmp_path):
             pour_point_file = tmp_path / "pour_point.txt"
             pour_point_file.write_text("155|105\n")
             tools.v_in_ascii(input=str(pour_point_file), output="pp", separator="pipe")
+            # The tool adds columns to the pour point, so it needs a table
+            tools.v_db_addtable(map="pp")
             yield tools
