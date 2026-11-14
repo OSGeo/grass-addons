@@ -259,7 +259,21 @@ def main():
                     if error.response is not None
                     else None
                 )
-                wait = float(retry_after) if retry_after else 2**attempt
+                wait = 2**attempt
+                if retry_after:
+                    try:
+                        wait = int(retry_after)
+                    except ValueError:
+                        from email.utils import parsedate_to_datetime
+
+                        try:
+                            wait = (
+                                parsedate_to_datetime(retry_after).timestamp()
+                                - time.time()
+                            )
+                        except (ValueError, TypeError, OverflowError, OSError):
+                            pass
+                wait = max(0, wait)
                 gs.warning(
                     "GBIF request failed with HTTP {0}, retrying in {1:.0f}s...".format(
                         status, wait
