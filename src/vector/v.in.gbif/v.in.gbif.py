@@ -87,7 +87,7 @@ def process_csv(gbifraw, new_gbif_csv, encoding="utf-8"):
             gbifraw, "r", newline="", encoding=input_encoding, errors=error_mode
         ) as csvinfile:
             # GBIF's Darwin Core Archive text files are not quoted; special
-            # characters are backslash-escaped instead. 
+            # characters are backslash-escaped instead.
             gbifreader = csv.reader(csvinfile, delimiter="\t", quoting=csv.QUOTE_NONE)
             with open(new_gbif_csv, "w", newline="", encoding="utf-8") as csvoutfile:
                 gbifwriter = csv.writer(
