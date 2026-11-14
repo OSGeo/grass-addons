@@ -93,8 +93,32 @@ def process_csv(gbifraw, new_gbif_csv, encoding="utf-8"):
                 gbifwriter = csv.writer(
                     csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL
                 )
+                header = next(gbifreader)
+                gbifwriter.writerow(header)
+                ncols = len(header)
+                dropped = 0
                 for row in gbifreader:
+                    # A row with the wrong number of fields means a raw,
+                    # unescaped newline or tab sits inside one of its
+                    # values, splitting or merging records. Removing
+                    # that row with warning
+                    if len(row) != ncols:
+                        gs.warning(
+                            _(
+                                "Dropping malformed record at line {}: "
+                                "expected {} columns, found {}. Likely an "
+                                "unescaped newline or tab in a field."
+                            ).format(gbifreader.line_num, ncols, len(row))
+                        )
+                        dropped += 1
+                        continue
                     gbifwriter.writerow(row)
+                if dropped:
+                    gs.warning(
+                        _("Dropped {} malformed record(s) while importing GBIF data.").format(
+                            dropped
+                        )
+                    )
         gs.message(
             _("File processed successfully using encoding: {}").format(input_encoding)
         )
