@@ -115,9 +115,9 @@ def process_csv(gbifraw, new_gbif_csv, encoding="utf-8"):
                     gbifwriter.writerow(row)
                 if dropped:
                     gs.warning(
-                        _("Dropped {} malformed record(s) while importing GBIF data.").format(
-                            dropped
-                        )
+                        _(
+                            "Dropped {} malformed record(s) while importing GBIF data."
+                        ).format(dropped)
                     )
         gs.message(
             _("File processed successfully using encoding: {}").format(input_encoding)
