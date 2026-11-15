@@ -156,12 +156,13 @@ def main():
     Vect_close(map_info)
 
     # cut output raster to TIN vertical range
-    vtop = gs.read_command("v.info", flags="g", map=input).rsplit()[4].split("=")[1]
-    vbottom = gs.read_command("v.info", flags="g", map=input).rsplit()[5].split("=")[1]
+    vinfo = gs.parse_command("v.info", flags="g", map=input)
+    vtop = float(vinfo["top"])
+    vbottom = float(vinfo["bottom"])
 
     tmp = "v_tin_to_rast_%d" % os.getpid()
     gs.mapcalc(
-        "$tmp = if($vbottom < $output && $output < $vtop, $output, null())",
+        "$tmp = if($vbottom <= $output && $output <= $vtop, $output, null())",
         tmp=tmp,
         output=output,
         vbottom=vbottom,
@@ -170,7 +171,13 @@ def main():
         stderr=nuldev,
     )
 
-    gs.parse_command("g.rename", rast=(tmp, output), quiet=True, stderr=nuldev)
+    gs.run_command(
+        "g.rename",
+        rast=(tmp, output),
+        overwrite=True,
+        quiet=True,
+        stderr=nuldev,
+    )
 
     # write cmd history:
     gs.run_command(
