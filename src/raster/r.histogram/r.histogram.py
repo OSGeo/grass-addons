@@ -87,7 +87,6 @@
 # % label: Matplotlib style
 # % description: Name of a built-in Matplotlib style (see https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html), or the path to a custom .mplstyle file (see https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style).
 # % required: no
-# % options: Solarize_Light2,_classic_test_patch, _mpl-gallery, _mpl-gallery-nogrid, bmh,classic, dark_background, fast, fivethirtyeight, ggplot, grayscale,petroff10, seaborn-v0_8, seaborn-v0_8-bright,seaborn-v0_8-colorblind, seaborn-v0_8-dark,seaborn-v0_8-dark-palette, seaborn-v0_8-darkgrid, seaborn-v0_8-deep,seaborn-v0_8-muted, seaborn-v0_8-notebook, seaborn-v0_8-paper,seaborn-v0_8-pastel, seaborn-v0_8-poster, seaborn-v0_8-talk,seaborn-v0_8-ticks, seaborn-v0_8-white, seaborn-v0_8-whitegrid,tableau-colorblind10
 # % guisection: Plot format
 # %end
 
@@ -290,9 +289,12 @@ def check_region_raster_match(raster):
 
 
 def mask_is_active():
-    """Return whether a raster MASK is active in the current mapset."""
+    """Return whether the effective raster mask is present."""
     mapset = gs.gisenv()["MAPSET"]
-    return bool(gs.find_file(name="MASK", element="cell", mapset=mapset)["file"])
+    name = os.environ.get("GRASS_MASK") or "MASK"
+    if "@" in name:
+        name, mapset = name.rsplit("@", 1)
+    return bool(gs.find_file(name=name, element="cell", mapset=mapset)["file"])
 
 
 def prepare_histogram_raster(raster):
@@ -313,7 +315,7 @@ def prepare_histogram_raster(raster):
     if not needs_copy:
         return raster
     temporary = create_temporary_raster("r_histogram")
-    gs.mapcalc(f"{temporary} = double({raster})", quiet=True)
+    gs.mapcalc(f'{temporary} = double("{raster}")', quiet=True)
     return temporary
 
 
