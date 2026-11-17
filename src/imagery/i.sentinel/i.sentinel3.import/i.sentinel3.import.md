@@ -13,8 +13,8 @@ WGS84 into the projection of the current project.
 *[r.in.xyz](https://grass.osgeo.org/grass-stable/manuals/r.in.xyz.html)*
 is then used to read the values into a raster map. Thus, *the user has
 to set the computational region extent to import the data of interest*.
-The resolution is set from the resolution of the input bands and pixels
-are aligned to the pixel grid of the current region.
+The resolution is set from the resolution of the input bands and cells
+are aligned to the cells of the current region.
 
 Currently, only import of the following **product\_type**s is
 implemented:
@@ -29,8 +29,10 @@ Sentinel-3 archives (.zip) separated by comma or a text file with one
 Sentinel-3 archive per row. The module is designed to produce temporally
 non-overlapping mosaics along the tracks of the satellite. Input should
 therefore not mix data from different tracks, sensing periods, or
-missions (Sentinel-3A / Sentinel-3B). The module gives a warning if data
-from different tracks is used as input.
+missions (Sentinel-3A / Sentinel-3B). Scenes from different relative
+orbits cannot be merged and result in an error. The module gives a
+warning if scenes differ in other track properties (e.g. cycle or
+mission).
 
 Users can provide a custom **basename**, to which band names are
 appended. Otherwise, the basename is constructed from the input scenes
@@ -40,10 +42,28 @@ to the start of sensing time of the first input scene and the end of
 sensing time is set to the end of the last input scene.
 
 Ancillary data and quality flag data can be imported as well using the
-**anxillary\_bands** and **flag\_bands** options. Here, the user has to
+**ancillary\_bands** and **flag\_bands** options. Here, the user has to
 specify the product specific band names or *all* to import all
-available bands of the given kind. Quality flags are imported as
-categorical maps with the flag meanings as category labels.
+available bands of the given product type and processing baseline. Quality
+flags are imported as categorical maps with the flag meanings as category
+labels. The same applies to categorical ancillary bands like *biome*, whose
+class codes differ between processing baselines. The *elevation* of the
+pixels from the geolocation of the product (available for both product types)
+can be imported with the **-e** flag.
+
+The available bands depend on the processing baseline of a product. For
+example, baseline 005 provides *counter\_water* instead of
+*probability\_cloud\_dual*, *probability\_cloud\_single* and (RBT only)
+*bayes*, and adds the *LST\_uncertainty\_\** components as LST ancillary
+bands. In baseline 003, the RBT band F1 is provided on the 1 km grid
+(*F1\_BT\_in* instead of *F1\_BT\_fn*). Bands that are not available in
+a product are skipped, with a warning if the band was requested by name
+and only reported in verbose mode if it was requested with *all*. The
+**-p** flag lists the bands that may be available. Scenes that provide
+different bands (e.g. because of different processing baselines) cannot
+be merged and result in an error. The module has been tested with
+processing baselines 003, 004 and 005 and gives a warning for other (or
+undetectable) baselines.
 
 For each imported band both scene and band specific metadata are written
 into the map history
@@ -70,7 +90,11 @@ for product type S3SL1RBT.
 
 With the **-c** flag, the land surface temperature (*LST*) is imported
 in degree celsius instead of kelvin. The *LST\_uncertainty* is a
-temperature difference and is always imported in kelvin.
+temperature difference, which has the same values in kelvin and degree
+celsius, so only its unit is set accordingly.
+
+By default the nadir view is processed. With the **-o** flag the oblique
+view is processed instead (only available for product type S3SL1RBT).
 
 ## NOTES
 
@@ -82,6 +106,13 @@ creating a file which can be used to register imported imagery data into
 a space-time raster dataset (STRDS) with
 *[t.register](https://grass.osgeo.org/grass-stable/manuals/t.register.html)*.
 See examples below.
+
+### Print maps to be imported
+
+With the **-p** flag the names of the maps that would be imported are
+printed and the module exits without importing anything. This can be
+used to check the result of a given combination of options, before
+importing large amounts of data.
 
 ### Metadata storage
 
@@ -134,7 +165,6 @@ The following Python libraries are required:
 - GDAL (install through system software management)
 - numpy
 - netcdf4
-- python-dateutil
 - cf-units (for unit conversion)
 
 ## SEE ALSO
