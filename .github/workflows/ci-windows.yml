@@ -166,7 +166,13 @@ jobs:
               | PATH=${prefix}/lib:/c/OSGeo4W/bin:/mingw64/bin:/usr/bin xargs ldd \
               | sed -ne 's#^.* => \(/mingw64/bin/.*\) (.*)$#\1#p' \
               | sort -u) ${prefix}/bin
-          cp scripts/windows_launch.bat ${prefix}/scripts/
+          cp scripts/windows_launch.bat scripts/windows_sh_launch.bat ${prefix}/scripts/
+          # Linking an executable needs the manifest templates and the icon
+          # from the source tree (see include/Make/Compile.make), which
+          # make install does not copy. Without them no C addon is built.
+          mkdir -p ${prefix}/mswindows
+          cp mswindows/generic.manifest mswindows/generic.manifest.rc.in \
+              mswindows/grass.ico ${prefix}/mswindows/
 
       - name: Compile GRASS Addons
         shell: msys2 {0}
