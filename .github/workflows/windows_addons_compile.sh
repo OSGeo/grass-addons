@@ -109,6 +109,11 @@ for c in "db" "display" "general" "gui/wxpython" "imagery" "misc" "raster" "rast
 	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/logs/${INDEX_FILE}.log"
 	    echo " FAILED"
 	    echo "<td style=\"background-color: red\">FAILED</td>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
+	    # A failed addon is not packaged, so that g.extension fails to
+	    # download it instead of installing an addon without its tools.
+	    if [ $SEP -eq 1 ] ; then
+		rm -rf "$path"
+	    fi
 	fi
 	echo "<td><a href=\"$m.log\">log</a></td></tr>" >> "$ADDON_PATH/logs/${INDEX_FILE}.html"
 	cd ..

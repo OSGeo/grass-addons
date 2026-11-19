@@ -12,7 +12,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # The event is part of the group, so that a push cannot cancel a pending
+  # nightly or manually started build, which are the ones publishing addons.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress:
     # Do not cancel on protected branches, like grass8
     ${{ github.ref_protected != true }}
@@ -218,3 +220,118 @@ jobs:
           name: grass-addons-windows-${{ matrix.grass-ref }}
           path: addons
           retention-days: 3
+
+  publish:
+    name: Publish pre-release
+    # The addons are published as one ZIP file per GRASS version on a
+    # pre-release created for each nightly build. A cronjob on
+    # grass.osgeo.org downloads the newest ZIP files and unpacks them to
+    # where g.extension on Windows looks for them, so no token is needed on
+    # the server.
+    #
+    # Only the nightly and the manually started builds of the default branch
+    # of the main repository publish, never pushes, pull requests or forks.
+    # The job runs also when one of the builds failed, so that the addons for
+    # the other GRASS version are still published.
+    if: >-
+      ${{ !cancelled() &&
+      (github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch') &&
+      github.repository == 'OSGeo/grass-addons' &&
+      github.ref == 'refs/heads/grass8' }}
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download the addons built for each GRASS version
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: grass-addons-windows-*
+          path: artifacts
+
+      - name: Bundle the addons by GRASS version
+        id: bundle
+        run: |
+          shopt -s nullglob
+          bundles="${PWD}/bundles"
+          mkdir "${bundles}"
+          for dir in artifacts/*/; do
+            # build-info.txt is written at the very end of a build, so an
+            # artifact without it comes from a build which failed.
+            version=""
+            if [[ -f "${dir}build-info.txt" ]]; then
+              version="$(sed -n 's/^grass_version=//p' "${dir}build-info.txt")"
+            fi
+            if [[ -z "${version}" ]]; then
+              echo "::warning::Not publishing the incomplete build in ${dir}"
+              continue
+            fi
+            # The addons are already compressed, so they are only stored.
+            # The name says what the file is when it is downloaded by hand
+            # and carries the distribution the addons are compiled for, so
+            # that bundles for other, incompatible builds of the same GRASS
+            # version can be added later.
+            bundle="grass-${version}-addons-windows-osgeo4w.zip"
+            (cd "${dir}" && zip -q -r -0 "${bundles}/${bundle}" .)
+            (cd "${bundles}" && sha256sum "${bundle}" > "${bundle}.sha256")
+          done
+          files=("${bundles}"/*.zip)
+          echo "count=${#files[@]}" >> "${GITHUB_OUTPUT}"
+
+      # The tag is unique for each build. The server takes the newest
+      # pre-release with this tag prefix which contains the ZIP file for
+      # the given GRASS version.
+      - name: Create the pre-release
+        if: ${{ steps.bundle.outputs.count != '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          timestamp="$(date -u +'%Y%m%d-%H%M%S')"
+          tag="windows-addons-${timestamp}-${short_sha}"
+          {
+            echo "Automated build of GRASS addons for Windows from ${short_sha}."
+            echo "Each ZIP file contains all addons compiled for one GRASS"
+            echo "version. To install addons, use g.extension in GRASS."
+            for bundle in bundles/*.zip; do
+              echo
+              echo "$(basename "${bundle}"):"
+              echo
+              echo '```text'
+              unzip -p "${bundle}" build-info.txt
+              echo '```'
+            done
+          } > release-notes.md
+          gh release create "${tag}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${GITHUB_SHA}" \
+            --title "Windows addons ${timestamp:0:4}-${timestamp:4:2}-${timestamp:6:2} (${short_sha})" \
+            --notes-file release-notes.md \
+            --prerelease \
+            bundles/*
+
+      # Keep the newest $KEEP builds and delete the rest together with their
+      # tags. Only the pre-releases created by this job are considered.
+      - name: Prune old pre-releases
+        if: ${{ steps.bundle.outputs.count != '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEEP: "10"
+        run: |
+          mapfile -t stale < <(
+            gh release list --repo "${GITHUB_REPOSITORY}" --limit 500 \
+              --json tagName,publishedAt,isPrerelease \
+            | jq -r --argjson keep "${KEEP}" '
+                [.[] | select(.isPrerelease
+                              and (.tagName | startswith("windows-addons-")))]
+                | sort_by(.publishedAt) | reverse | .[$keep:]
+                | .[] | .tagName'
+          )
+          for tag in "${stale[@]}"; do
+            echo "Pruning old pre-release ${tag}"
+            gh release delete "${tag}" --repo "${GITHUB_REPOSITORY}" --cleanup-tag --yes
+          done
