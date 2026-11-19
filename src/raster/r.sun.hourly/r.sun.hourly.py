@@ -392,7 +392,7 @@ def run_r_sun(
         slope=slope,
         day=day,
         time=time,
-        nprocs=1,  # This tool runs r.sun processes in parallel.
+        nprocs=1,
         overwrite=core.overwrite(),
         quiet=True,
         **params,
