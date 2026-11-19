@@ -14,6 +14,7 @@
 
 
 import os
+import unittest
 from pathlib import Path
 
 import grass.script as gs
@@ -41,8 +42,8 @@ class TestNetCDFImport(TestCase):
         These are things needed by all test function but not modified by
         any of them.
         """
-        # The CHIRPS data host rate-limits bursts of requests and GDAL does
-        # not retry on HTTP 429 by default. The import opens the remote file
+        # Data hosts may rate-limit bursts of requests and GDAL does not
+        # retry on HTTP 429 by default. The import opens the remote file
         # with several range requests and runs r.external in parallel, so let
         # GDAL back off and retry instead of failing the test.
         os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "5")
@@ -273,6 +274,10 @@ class TestNetCDFImport(TestCase):
             msg="The output parameter should be required",
         )
 
+    @unittest.skip(
+        "The CHIRPS data host rate-limits (HTTP 429) and now rejects (HTTP 403) "
+        "requests from GitHub Actions runners, see OSGeo/grass-addons#1914"
+    )
     def test_no_crs_no_subdataset(self) -> None:
         """Check that the chirps dataset (no CRS, no subdataset) imports."""
         self.assertModule(
