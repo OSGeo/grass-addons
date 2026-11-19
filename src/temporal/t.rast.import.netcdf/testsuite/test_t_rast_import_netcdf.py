@@ -13,6 +13,7 @@
 ##############################################################################
 
 
+import os
 from pathlib import Path
 
 import grass.script as gs
@@ -40,6 +41,13 @@ class TestNetCDFImport(TestCase):
         These are things needed by all test function but not modified by
         any of them.
         """
+        # The CHIRPS data host rate-limits bursts of requests and GDAL does
+        # not retry on HTTP 429 by default. The import opens the remote file
+        # with several range requests and runs r.external in parallel, so let
+        # GDAL back off and retry instead of failing the test.
+        os.environ.setdefault("GDAL_HTTP_MAX_RETRY", "5")
+        os.environ.setdefault("GDAL_HTTP_RETRY_DELAY", "2")
+
         # Save current region to temporary file
         gs.use_temp_region()
         gs.run_command("g.region", raster="elevation", res="250", flags="a")
