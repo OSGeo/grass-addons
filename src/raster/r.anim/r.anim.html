@@ -1,0 +1,65 @@
+<!-- meta page name: r.anim -->
+<!-- meta page name description: Toolset for spatially-aware animated transitions between rasters -->
+
+<h2>DESCRIPTION</h2>
+
+<p>
+The <em>r.anim</em> toolset generates smooth, spatially-aware animated transitions between
+raster maps. <em>In-betweening</em> is the process of generating the
+intermediate frames that carry one image into another. Each tool in the toolset turns a small
+number of input rasters into a numbered sequence of output frames that can be played back with
+<em><a href="g.gui.animation.html">g.gui.animation</a></em> or exported to an animated GIF or
+video with external tools such as <code>ffmpeg</code> or ImageMagick.
+
+<p>
+Unlike a uniform cross-dissolve, the toolset lets different pixels transition at different times,
+so the motion in the animation reflects <em>where</em> and <em>how</em> the change happens rather
+than simply fading the whole scene at once.
+
+<h2>MODULES</h2>
+
+<p>
+<em><a href="r.anim.morph.html">r.anim.morph</a></em> morphs a <em>before</em> raster into an
+<em>after</em> raster using the Baia animation-plan framework
+(<a href="https://doi.org/10.1109/TVCG.2018.2796557">Lobo, Appert and Pietriga 2019</a>), with
+primitives for contraction, expansion, deformation, appearance, disappearance, directional,
+radial, and elevation-ordered transitions. The tutorial
+<a href="https://learning.openplains.com/content/blog/animating_water_level_change_with_r_anim_morph.html">Animating the Falls Lake drawdown with r.anim.morph</a> walks through a complete
+example on Sentinel-2 imagery.
+
+<p>
+The following members are planned:
+
+<ul>
+  <li><em>(WIP)</em> <em>r.anim.flow</em> - optical-flow (warp-based) morphing between two rasters.</li>
+  <li><em>(WIP)</em> <em>r.anim.series</em> - interpolation of a space-time raster dataset (STRDS)
+      into video-rate frames.</li>
+</ul>
+
+<h2>INSTALLATION</h2>
+
+<p>
+The toolset can be installed using the <em>g.extension</em> tool:
+
+<div class="code"><pre>
+g.extension extension=r.anim
+</pre></div>
+
+<p>
+A single member can be installed on its own, for example:
+
+<div class="code"><pre>
+g.extension extension=r.anim.morph
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<p>
+<em><a href="g.gui.animation.html">g.gui.animation</a>,
+<a href="r.series.interp.html">r.series.interp</a>,
+<a href="r.anim.morph.html">r.anim.morph</a></em>
+
+<h2>AUTHORS</h2>
+
+<p>
+Corey T. White, <a href="https://openplains.com/">OpenPlains Inc.</a>
