@@ -64,7 +64,7 @@ double mVPD(double vpd, double vpdclose, double vpdopen)
         return ((vpdclose - vpd) / (vpdclose - vpdopen));
 }
 
-double esat(tday)
+double esat(double tday)
 {
     /*From FAO56, output is in [Pa]*/
     return (1000 * 0.6108 * exp(17.27 * tday / (tday + 237.3)));

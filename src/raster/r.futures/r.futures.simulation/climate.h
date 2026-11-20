@@ -28,7 +28,7 @@ struct ACDamageRelation {
 
 struct HAND_bbox_values {
     float *array;
-    uint size;
+    unsigned int size;
 };
 
 float get_max_HAND(struct Segments *segments, const struct BBox *bbox,
