@@ -13,6 +13,7 @@ build_addon(
     i.sentinel.mask
     i.sentinel.parallel.download
     i.sentinel.preproc
+    i.sentinel3.import
   DOCFILES
     i.sentinel.html
     i.sentinel.md)
