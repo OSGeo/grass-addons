@@ -240,7 +240,7 @@ jobs:
       github.repository == 'OSGeo/grass-addons' &&
       github.ref == 'refs/heads/grass8' }}
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: write
     defaults:
