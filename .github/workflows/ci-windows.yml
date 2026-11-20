@@ -222,27 +222,29 @@ jobs:
           retention-days: 3
 
   publish:
-    name: Publish pre-release
+    name: Bundle addons and publish pre-release
     # The addons are published as one ZIP file per GRASS version on a
     # pre-release created for each nightly build. A cronjob on
     # grass.osgeo.org downloads the newest ZIP files and unpacks them to
     # where g.extension on Windows looks for them, so no token is needed on
     # the server.
     #
-    # Only the nightly and the manually started builds of the default branch
-    # of the main repository publish, never pushes, pull requests or forks.
     # The job runs also when one of the builds failed, so that the addons for
     # the other GRASS version are still published.
-    if: >-
-      ${{ !cancelled() &&
-      (github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch') &&
-      github.repository == 'OSGeo/grass-addons' &&
-      github.ref == 'refs/heads/grass8' }}
+    if: ${{ !cancelled() }}
     needs: build
     runs-on: ubuntu-slim
     permissions:
       contents: write
+    env:
+      # Only the nightly and the manually started builds of the default branch
+      # of the main repository publish, never pushes, pull requests or forks.
+      # In those, the job only checks that the addons can be bundled.
+      PUBLISH: >-
+        ${{ (github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch') &&
+        github.repository == 'OSGeo/grass-addons' &&
+        github.ref == 'refs/heads/grass8' }}
     defaults:
       run:
         shell: bash
@@ -267,7 +269,7 @@ jobs:
               version="$(sed -n 's/^grass_version=//p' "${dir}build-info.txt")"
             fi
             if [[ -z "${version}" ]]; then
-              echo "::warning::Not publishing the incomplete build in ${dir}"
+              echo "::warning::Skipping the incomplete build in ${dir}"
               continue
             fi
             # The addons are already compressed, so they are only stored.
@@ -286,7 +288,7 @@ jobs:
       # pre-release with this tag prefix which contains the ZIP file for
       # the given GRASS version.
       - name: Create the pre-release
-        if: ${{ steps.bundle.outputs.count != '0' }}
+        if: ${{ env.PUBLISH == 'true' && steps.bundle.outputs.count != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -317,7 +319,7 @@ jobs:
       # Keep the newest $KEEP builds and delete the rest together with their
       # tags. Only the pre-releases created by this job are considered.
       - name: Prune old pre-releases
-        if: ${{ steps.bundle.outputs.count != '0' }}
+        if: ${{ env.PUBLISH == 'true' && steps.bundle.outputs.count != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
           KEEP: "10"
