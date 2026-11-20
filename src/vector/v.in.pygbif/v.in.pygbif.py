@@ -181,6 +181,7 @@ import sys
 
 # import os
 import math
+import time
 import grass.script as gs
 from grass.pygrass.vector import Vector
 from grass.pygrass.vector import VectorTopo
@@ -231,6 +232,54 @@ def main():
                 " (use PYTHONPATH variable)."
             )
         )
+
+    def gbif_occurrence_search(max_retries=5, **kwargs):
+        """Call occurrences.search(), retrying on GBIF's transient errors
+        (HTTP 429 and 5xx) with exponential backoff, honoring the
+        Retry-After header when GBIF provides one.
+
+        taxonKey here is always a numeric GBIF Backbone key (matched via
+        name_backbone's checklistKey=None), so checklistKey=None is passed
+        explicitly too, to avoid pygbif's DeprecationWarning for an
+        auto-detected, implicit GBIF Backbone fallback.
+        """
+        from requests.exceptions import HTTPError
+
+        for attempt in range(max_retries + 1):
+            try:
+                return occurrences.search(checklistKey=None, **kwargs)
+            except HTTPError as error:
+                status = (
+                    error.response.status_code if error.response is not None else None
+                )
+                if status not in (429, 500, 502, 503, 504) or attempt == max_retries:
+                    raise
+                retry_after = (
+                    error.response.headers.get("Retry-After")
+                    if error.response is not None
+                    else None
+                )
+                wait = 2**attempt
+                if retry_after:
+                    try:
+                        wait = int(retry_after)
+                    except ValueError:
+                        from email.utils import parsedate_to_datetime
+
+                        try:
+                            wait = (
+                                parsedate_to_datetime(retry_after).timestamp()
+                                - time.time()
+                            )
+                        except (ValueError, TypeError, OverflowError, OSError):
+                            pass
+                wait = max(0, wait)
+                gs.warning(
+                    "GBIF request failed with HTTP {0}, retrying in {1:.0f}s...".format(
+                        status, wait
+                    )
+                )
+                time.sleep(wait)
 
     # Parse input options
     output = options["output"]
@@ -440,20 +489,24 @@ def main():
             parse(date_from)
         except:
             gs.fatal("Invalid invalid start date provided")
-
-        if date_from and not date_to:
-            eventDate = "{}".format(date_from)
     # Check if date to is compatible (ISO compliant)
     if date_to:
         try:
             parse(date_to)
         except:
             gs.fatal("Invalid invalid end date provided")
+    # GBIF's eventDate takes a single value as an exact match, not a lower
+    # bound, so an open end of the range needs an explicit "*".
+    if date_from and date_to:
         # Check if date to is after date_from
         if parse(date_from) < parse(date_to):
             eventDate = "{},{}".format(date_from, date_to)
         else:
             gs.fatal("Invalid date range: End date has to be after start date!")
+    elif date_from:
+        eventDate = "{},*".format(date_from)
+    elif date_to:
+        eventDate = "*,{}".format(date_to)
     # Set filter on basisOfRecord if requested by user
     if basisofrecord == "ALL":
         basisOfRecord = None
@@ -573,56 +626,80 @@ def main():
             key = int(s)
         except:
             try:
+                # checklistKey=None matches against the legacy GBIF Backbone
+                # taxonomy, whose numeric usage keys are what occurrences.search()
+                # below expects as taxonKey (the default, COL Extended Release,
+                # uses alphanumeric keys from a different checklist).
                 species_match = species.name_backbone(
-                    s, rank=rank, strict=False, verbose=True
+                    s, taxonRank=rank, strict=False, verbose=True, checklistKey=None
                 )
-                key = species_match["usageKey"]
             except:
                 gs.error("Data request for taxon {} failed. Are you online?".format(s))
                 continue
+            # GBIF omits "usage" (the best-guess match) when there are
+            # multiple equal matches and no single taxon can be picked;
+            # only diagnostics.alternatives is available in that case.
+            # usage.key comes back as a string; occurrences.search() needs
+            # taxonKey as an int and silently returns 0 results otherwise.
+            key = (
+                int(species_match["usage"]["key"]) if "usage" in species_match else None
+            )
 
         # Return matching taxon and alternatives and exit
         if print_species:
             print("Matching taxon for {} is:".format(s))
-            print(
-                "{} {}".format(species_match["scientificName"], species_match["status"])
-            )
-            if "alternatives" in list(species_match.keys()):
+            if "usage" in species_match:
+                print(
+                    "{} {}".format(
+                        species_match["usage"]["name"], species_match["usage"]["status"]
+                    )
+                )
+            else:
+                print("No single match (multiple equal matches)")
+            if "alternatives" in species_match["diagnostics"]:
                 print("Alternative matches might be: {}".format(s))
-                for m in species_match["alternatives"]:
-                    print("{} {}".format(m["scientificName"], m["status"]))
+                for m in species_match["diagnostics"]["alternatives"]:
+                    print("{} {}".format(m["usage"]["name"], m["usage"]["status"]))
             else:
                 print("No alternatives found for the given taxon")
             continue
         if print_species_shell:
-            print("match={}".format(species_match["scientificName"]))
-            if "alternatives" in list(species_match.keys()):
+            if "usage" in species_match:
+                print("match={}".format(species_match["usage"]["name"]))
+            if "alternatives" in species_match["diagnostics"]:
                 alternatives = []
-                for m in species_match["alternatives"]:
-                    alternatives.append(m["scientificName"])
+                for m in species_match["diagnostics"]["alternatives"]:
+                    alternatives.append(m["usage"]["name"])
                 print("alternatives={}".format(",".join(alternatives)))
             continue
         if print_species_table:
-            if "alternatives" in list(species_match.keys()):
-                if len(species_match["alternatives"]) == 0:
-                    print(
-                        "{0}|{1}|{2}|".format(s, key, species_match["scientificName"])
-                    )
+            name = species_match["usage"]["name"] if "usage" in species_match else ""
+            if "alternatives" in species_match["diagnostics"]:
+                if len(species_match["diagnostics"]["alternatives"]) == 0:
+                    print("{0}|{1}|{2}|".format(s, key, name))
                 else:
                     alternatives = []
-                    for m in species_match["alternatives"]:
-                        alternatives.append(m["scientificName"])
+                    for m in species_match["diagnostics"]["alternatives"]:
+                        alternatives.append(m["usage"]["name"])
                     print(
                         "{0}|{1}|{2}|{3}".format(
                             s,
                             key,
-                            species_match["scientificName"],
+                            name,
                             ",".join(alternatives),
                         )
                     )
             continue
+
+        # No single taxon to search occurrences for (multiple equal matches)
+        if key is None:
+            gs.error(
+                "No single match for taxon {0}: multiple equal matches in "
+                "the GBIF Backbone taxonomy. Use -p to list alternatives.".format(s)
+            )
+            continue
         try:
-            returns_n = occurrences.search(
+            returns_n = gbif_occurrence_search(
                 taxonKey=key,
                 hasGeospatialIssue=hasGeospatialIssue,
                 hasCoordinate=hasCoordinate,
@@ -677,20 +754,28 @@ def main():
             if offset + chunk_size >= 200000:
                 chunk_size = 200000 - offset
             # Get the returns for the next chunk
-            returns = occurrences.search(
-                taxonKey=key,
-                hasGeospatialIssue=hasGeospatialIssue,
-                hasCoordinate=hasCoordinate,
-                institutionCode=institutionCode,
-                basisOfRecord=basisOfRecord,
-                recordedBy=recordedby,
-                eventDate=eventDate,
-                continent=continent,
-                country=country,
-                geometry=pol,
-                limit=chunk_size,
-                offset=offset,
-            )
+            try:
+                returns = gbif_occurrence_search(
+                    taxonKey=key,
+                    hasGeospatialIssue=hasGeospatialIssue,
+                    hasCoordinate=hasCoordinate,
+                    institutionCode=institutionCode,
+                    basisOfRecord=basisOfRecord,
+                    recordedBy=recordedby,
+                    eventDate=eventDate,
+                    continent=continent,
+                    country=country,
+                    geometry=pol,
+                    limit=chunk_size,
+                    offset=offset,
+                )
+            except Exception:
+                gs.warning(
+                    "Download for taxon {0} stopped after repeated GBIF "
+                    "errors; only {1} of {2} occurrences were "
+                    "imported.".format(s, offset, returns_n)
+                )
+                break
 
             # Write the returned data to map and attribute table
             for res in returns["results"]:
