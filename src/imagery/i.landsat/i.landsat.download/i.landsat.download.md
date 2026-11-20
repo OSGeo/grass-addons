@@ -150,6 +150,10 @@ i.landsat.download datasource=planetary_computer \
 - [EODAG
     library](https://eodag.readthedocs.io/en/stable/getting_started_guide/install.html)
     (install with `pip install eodag`)
+- [PyYAML](https://pypi.org/project/PyYAML/)
+    (install with `pip install pyyaml`)
+- [i.eodag](i.eodag.md) addon
+    (install with `g.extension i.eodag`)
 
 ## SEE ALSO
 

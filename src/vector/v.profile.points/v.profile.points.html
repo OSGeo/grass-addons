@@ -1,7 +1,10 @@
 <h2>DESCRIPTION</h2>
 
 <em>v.profile.points</em> creates profile (transect) from vector point
-map or a lidar point cloud stored in a LAS file.
+map or a lidar point cloud stored in a LAS file. A LAS (or LAZ) file is
+imported with <em>v.in.pdal</em> limited to the bounding box of the profile
+area and then clipped to the profile area. When <em>v.in.pdal</em> is not
+available, <em>v.in.lidar</em> is used instead.
 
 <div align="center" style="margin: 10px">
 <img src="v_profile_points.png" alt="r.profile.points sample output">
@@ -47,10 +50,19 @@ to avoid unnecessary overhead.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-v.profile.points input_file=.../points.las output=points_profile width=5 \
-    coord=2090904,731231,2091435,731252
+v.profile.points file_input=.../points.las output=points_profile width=5 \
+    coordinates=2090904,731231,2091435,731252
 </pre></div>
 
-<h2>AUTHOR</h2>
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.in.lidar.html">v.in.lidar</a>,
+<a href="v.in.pdal.html">v.in.pdal</a>,
+<a href="v.select.html">v.select</a>,
+<a href="v.transform.html">v.transform</a>
+</em>
+
+<h2>AUTHORS</h2>
 
 Vaclav Petras, <a href="https://geospatial.ncsu.edu/geoforall/">NCSU GeoForAll Lab</a>

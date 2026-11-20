@@ -7,7 +7,7 @@ The <em>r.dem</em> toolset supports topographic change analysis from pairs
 of digital elevation models (DEMs), such as a post-event photogrammetric
 (SfM) surface and a pre-event lidar reference. It covers co-registration,
 systematic bias removal, DEM-of-difference (DoD) computation, uncertainty
-propagation, and regional change screening. The toolset consists of nine
+propagation, and regional change screening. The toolset consists of ten
 tools:
 
 <dl>
@@ -22,6 +22,10 @@ tools:
   <dt><a href="r.dem.icp.html">r.dem.icp</a></dt>
   <dd>aligns a DEM to a reference with robust multi-scale point-to-plane
       iterative closest point (ICP)</dd>
+  <dt><a href="r.dem.dod.html">r.dem.dod</a></dt>
+  <dd>computes the DoD on the computational region, resampling
+      misaligned inputs, with the r.dem color palette and source
+      metadata</dd>
   <dt><a href="r.dem.bias.html">r.dem.bias</a></dt>
   <dd>removes systematic bias from a DoD by regression on terrain
       predictors, by spline interpolation of the stable-cell residuals, or
@@ -33,8 +37,8 @@ tools:
   <dd>computes the Level of Detection (LoD) for DEM difference maps with
       global and local uncertainty modes</dd>
   <dt><a href="r.dem.change.html">r.dem.change</a></dt>
-  <dd>computes the DoD with cleanup, LoD masking, and volumetric
-      summary</dd>
+  <dd>applies cleanup, LoD masking, and volumetric summary to a
+      DoD</dd>
   <dt><a href="r.dem.errprop.html">r.dem.errprop</a></dt>
   <dd>propagates DEM uncertainty into a DoD and derives significance
       classes</dd>
@@ -46,9 +50,9 @@ tools:
 <h2>NOTES</h2>
 
 The alignment tools (<em>r.dem.coregister</em>, <em>r.dem.nk</em>,
-<em>r.dem.icp</em>) remove rigid offset and rotation. Everything
-downstream of them operates on the DEM of difference rather than on the
-DEM pair: <em>r.dem.bias</em> takes a DoD through <b>dod</b> and returns a
+<em>r.dem.icp</em>) remove rigid offset and rotation.
+<em>r.dem.dod</em> then computes the DEM of difference, and everything
+downstream operates on the DoD rather than on the DEM pair: <em>r.dem.bias</em> takes a DoD through <b>dod</b> and returns a
 corrected one, so bias removal sits between differencing and change
 detection. <em>r.dem.stats</em> supplies the terrain predictors for
 <em>r.dem.bias</em> <b>method=regression</b> only; <b>method=spline</b>
@@ -79,15 +83,17 @@ uncertainty by sqrt(N) averaging over the volumes <em>r.dem.change</em>
 reports.
 
 <p>
-DoD cleanup, LoD masking, and volumetric summary all live in
-<em>r.dem.change</em> as a single pipeline; there is no separate DoD tool.
+<em>r.dem.dod</em> computes the DoD. DoD cleanup, LoD masking, and
+volumetric summary live in <em>r.dem.change</em>.
 
 <p>The figures in these manuals color elevation differences with erosion in
 red and deposition in blue, following the convention used for GRASS erosion
 modeling and matching the categorical output of <em>r.dem.errprop</em>.
 Erosion runs yellow to orange to red to magenta as it deepens, deposition
-runs cyan to teal to blue, and near-zero differences are pale green. To
-apply it to a DoD, scale the breaks to the range of the map:</p>
+runs cyan to teal to blue, and near-zero differences are pale green.
+<em>r.dem.dod</em> writes this palette to its output, scaled by
+<b>range</b>. To apply it to another DoD, such as the output of
+<em>r.dem.bias</em>, scale the breaks to the range of the map:</p>
 
 <div class="code"><pre>
 r.colors map=dod_debiased rules=- &lt;&lt; EOF
@@ -189,7 +195,7 @@ r.mapcalc "sigma_survey = 0.05 + 0.20 * roughness \
 r.mapcalc "noise = noise_unit * sigma_survey"
 
 r.mapcalc "dsm_post = dsm_event + bias_truth + noise"
-r.mapcalc "dod_raw = dsm_post - elev_lid792_1m"
+r.dem.dod dem=dsm_post reference=elev_lid792_1m output=dod_raw
 </pre></div>
 
 <p>The noise is deliberately not uniform: it grows with surface roughness and

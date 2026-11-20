@@ -61,17 +61,15 @@ import grass.script as gs
 import csv
 
 
-def process_csv(
-    gbifraw, new_gbif_csv, primary_encoding=None, fallback_encoding="utf-8"
-):
+def process_csv(gbifraw, new_gbif_csv, encoding="utf-8"):
     """
-    Process a CSV file using a primary encoding and fallback to another if the first fails.
-    Substitutes problematic characters during the second fallback.
+    Process a CSV file, substituting problematic characters if the file
+    turns out not to be valid in the given encoding.
+    assumes encoding is always UTF-8, as per the documentation.
 
     :param gbifraw: Path to the input CSV file.
     :param new_gbif_csv: Path to the output CSV file.
-    :param primary_encoding: Primary encoding to try first. If None, uses system default.
-    :param fallback_encoding: Fallback encoding to use if the primary fails.
+    :param encoding: Encoding of the input file.
     """
 
     def process_file(input_encoding, handle_errors=False):
@@ -86,40 +84,61 @@ def process_csv(
             )
         )
         with open(
-            gbifraw, "r", encoding=input_encoding, errors=error_mode
+            gbifraw, "r", newline="", encoding=input_encoding, errors=error_mode
         ) as csvinfile:
-            gbifreader = csv.reader(csvinfile, delimiter="\t")
+            # GBIF's Darwin Core Archive text files are not quoted; special
+            # characters are backslash-escaped instead.
+            gbifreader = csv.reader(csvinfile, delimiter="\t", quoting=csv.QUOTE_NONE)
             with open(new_gbif_csv, "w", newline="", encoding="utf-8") as csvoutfile:
                 gbifwriter = csv.writer(
                     csvoutfile, quotechar='"', quoting=csv.QUOTE_ALL
                 )
+                header = next(gbifreader)
+                gbifwriter.writerow(header)
+                ncols = len(header)
+                dropped = 0
                 for row in gbifreader:
+                    # A row with the wrong number of fields means a raw,
+                    # unescaped newline or tab sits inside one of its
+                    # values, splitting or merging records. Removing
+                    # that row with warning
+                    if len(row) != ncols:
+                        gs.warning(
+                            _(
+                                "Dropping malformed record at line {}: "
+                                "expected {} columns, found {}. Likely an "
+                                "unescaped newline or tab in a field."
+                            ).format(gbifreader.line_num, ncols, len(row))
+                        )
+                        dropped += 1
+                        continue
                     gbifwriter.writerow(row)
+                if dropped:
+                    gs.warning(
+                        _(
+                            "Dropped {} malformed record(s) while importing GBIF data."
+                        ).format(dropped)
+                    )
         gs.message(
             _("File processed successfully using encoding: {}").format(input_encoding)
         )
 
     try:
-        process_file(primary_encoding)
+        process_file(encoding)
     except UnicodeDecodeError as e:
         gs.warning(
-            _("Warming: Unable to decode the file with system default encoding.")
+            _("Warning: File is not valid {} (GBIF exports always should be).").format(
+                encoding
+            )
         )
         gs.warning(_("Details: {}").format(e))
-        gs.warning(_("Falling back to encoding: {}").format(fallback_encoding))
+        gs.warning(_("Retrying with invalid characters replaced."))
 
         try:
-            process_file(fallback_encoding, handle_errors=True)
-        except UnicodeDecodeError as e:
-            gs.warning(
-                _(
-                    "Error: Unable to decode the file even with fallback encoding {}"
-                ).format(fallback_encoding)
-            )
-            gs.fatal(_("Details: {}").format(e))
+            process_file(encoding, handle_errors=True)
         except Exception as e:
             gs.fatal(
-                _("An unexpected error occurred during fallback processing: {}").format(
+                _("An unexpected error occurred while replacing characters: {}").format(
                     e
                 )
             )
@@ -155,7 +174,7 @@ def main():
     new_gbif_csv = os.path.join(gbiftempdir, gbifcsv)
 
     # quote raw data
-    process_csv(gbifraw, new_gbif_csv, primary_encoding=None, fallback_encoding="utf-8")
+    process_csv(gbifraw, new_gbif_csv)
 
     # write vrt
     gs.message("writing vrt ...")

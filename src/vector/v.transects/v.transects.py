@@ -110,11 +110,16 @@ def loadVector(vector):
     # JL    p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
     # p = Popen(expVecCmmd, shell=True, stdin=PIPE, stdout=PIPE,
     #          stderr=STDOUT, close_fds=False)
-    vectorAscii = (
-        gs.read_command("v.out.ascii", format="standard", input=vector)
-        .strip("\n")
-        .split("\n")
-    )
+    # On Windows, v.out.ascii output read in text mode has an empty line
+    # after each line (\r\r\n line endings), so empty lines are skipped.
+    # layer=-1 exports also lines without category.
+    vectorAscii = [
+        line
+        for line in gs.read_command(
+            "v.out.ascii", format="standard", input=vector, type="line", layer=-1
+        ).splitlines()
+        if line.strip()
+    ]
     l = 0
     while "ORGANIZATION" not in vectorAscii[l]:
         l += 1
@@ -124,25 +129,29 @@ def loadVector(vector):
     cats = []
     while l < len(vectorAscii):
         line = vectorAscii[l].split()
+        # the number of categories is omitted for features without category
+        ncat = int(line[2]) if len(line) > 2 else 0
         if line[0] in ["L", "B", "A"]:
-            skip = int(line[2])
-            ncat = int(line[2]) if len(line) > 2 else 0
             vertices = int(line[1])
             l += 1
             v.append([])
             for i in range(vertices):
                 v[-1].append(list(map(float, vectorAscii[l].split()[:2])))
                 l += 1
-            if ncat > 0:
-                cats += [vectorAscii[l].split()[1]]
-            l += ncat
+            # first category in layer 1, None if the line does not have any
+            cat = None
+            for i in range(ncat):
+                layer, value = vectorAscii[l].split()
+                if cat is None and layer == "1":
+                    cat = value
+                l += 1
+            cats.append(cat)
         elif line[0] in ["P", "C", "F", "K"]:
-            skip = int(line[2])
             vertices = int(line[1])
             l += 1
             for i in range(vertices):
                 l += 1
-            l += skip
+            l += ncat
         else:
             gs.fatal(_("Problem with line: <%s>") % vectorAscii[l])
     if len(v) < 1:
@@ -248,15 +257,13 @@ def NR(ip, fp):
 def writeTransects(transects, cats, output):
     """!Writes transects."""
     transects_str = ""
-    ncats = 2 if cats else 1
     cat = 1
-    linecat = True if cats else ""
     for i, transect in enumerate(transects):
         if len(transect) == 0:
             continue
-        # add line category in layer 2
-        if linecat:
-            linecat = "2 %s\n" % cats[i]
+        # add line category in layer 2 if the line has one
+        linecat = "2 %s\n" % cats[i] if cats[i] is not None else ""
+        ncats = 2 if linecat else 1
         transects_str += "\n".join(
             [
                 "L 2 %s\n" % ncats

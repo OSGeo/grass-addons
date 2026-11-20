@@ -391,7 +391,7 @@
 # %end
 
 
-from grass.script.core import run_command, parser
+from grass.script.core import run_command, parser, use_temp_region
 from grass.pygrass.raster import RasterRow
 from grass.pygrass.modules import Module
 from grass.pygrass.modules.shortcuts import raster as r
@@ -627,6 +627,7 @@ def main(opts, flgs):
     if resolution == "":
         resolution = 10
 
+    use_temp_region()
     run_command("g.region", vect=boundaries, res=resolution)
 
     run_command(

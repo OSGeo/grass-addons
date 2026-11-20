@@ -3,6 +3,7 @@ MODULE_TOPDIR =../..
 PGM = r.dem
 
 SUBDIRS = r.dem.nk \
+        r.dem.dod \
         r.dem.icp \
         r.dem.bias \
         r.dem.stats \

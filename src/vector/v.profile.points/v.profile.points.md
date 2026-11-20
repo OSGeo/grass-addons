@@ -1,7 +1,10 @@
 ## DESCRIPTION
 
 *v.profile.points* creates profile (transect) from vector point map or a
-lidar point cloud stored in a LAS file.
+lidar point cloud stored in a LAS file. A LAS (or LAZ) file is imported
+with *v.in.pdal* limited to the bounding box of the profile area and then
+clipped to the profile area. When *v.in.pdal* is not available,
+*v.in.lidar* is used instead.
 
 ![image-alt](v_profile_points.png)  
 *Figure: Profile (transect) of a lidar point cloud, closer points are
@@ -32,11 +35,16 @@ unnecessary overhead.
 ## EXAMPLE
 
 ```sh
-v.profile.points input_file=.../points.las output=points_profile width=5 \
-    coord=2090904,731231,2091435,731252
+v.profile.points file_input=.../points.las output=points_profile width=5 \
+    coordinates=2090904,731231,2091435,731252
 ```
 
-## AUTHOR
+## SEE ALSO
+
+*[v.in.lidar](v.in.lidar.md), [v.in.pdal](v.in.pdal.md),
+[v.select](v.select.md), [v.transform](v.transform.md)*
+
+## AUTHORS
 
 Vaclav Petras, [NCSU GeoForAll
 Lab](https://geospatial.ncsu.edu/geoforall/)

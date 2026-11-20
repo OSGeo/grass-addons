@@ -1,0 +1,141 @@
+<h2>DESCRIPTION</h2>
+
+<i>r.histogram</i> draws a histogram of the non-NULL values in an input raster
+map. The <b>bins</b> option sets the number of equal-width intervals. The height
+of each bar is the number of raster cells in that interval. Set
+<b>frequency=percent</b> to show each bin as a percentage of all non-NULL cells
+instead; the percentages across all bins sum to 100.
+
+<p>
+By default, the active Matplotlib style determines the bar color. A single
+<b>color</b> can be set using a color name, hexadecimal value, or <tt>R:G:B</tt>
+triplet. With the <b>-c</b> flag, every bar is assigned the input raster's color
+at the midpoint of that bin. This mirrors both continuous color ramps and
+discrete color tables. If both <b>-c</b> and <b>color</b> are given, <b>-c</b>
+takes precedence. The <b>border_color</b>, <b>border_width</b>, and relative bar
+width (<b>rwidth</b>) options control the remaining bar appearance.
+
+<p>
+The histogram can be drawn horizontally (<b>-h</b>), with grid lines along the
+count axis (<b>-g</b>), rotated value-axis labels (<b>rotate_labels</b>), an
+optional <b>title</b>, custom <b>x_label</b> and <b>y_label</b> axis labels, and
+limited value-axis bounds (<b>axis_limits</b>). A Matplotlib
+<a href="https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html">style sheet</a>
+can be applied with the <b>style</b> option, for example <tt>style=ggplot</tt>.
+<b>style</b> also accepts the path to a custom
+<a href="https://matplotlib.org/stable/tutorials/introductory/customizing.html#defining-your-own-style">.mplstyle file</a>.
+The <b>background_color</b> option sets the background of both the figure and
+the plotting area. It accepts color names, hexadecimal values, and
+<tt>R:G:B</tt> triplets. Set <tt>background_color=transparent</tt> to create a
+transparent background in output formats that support transparency, such as PNG.
+
+<p>
+By default, the plot is displayed on screen. If <b>output</b> is given, the plot
+is written to that file. The file format is determined from its extension. The
+size (<b>plot_dimensions</b>, in inches), resolution (<b>dpi</b>), and
+<b>fontsize</b> can be set as well.
+
+<h2>NOTES</h2>
+
+The histogram is computed over the current computational region and respects an
+active raster mask. When the current region, mask, or integer data type requires
+it, the module creates and removes a temporary floating-point raster. It does
+not modify the input map.
+
+<p>
+The histogram is computed with <i>r.stats</i>. Only the aggregated count for
+each bin is passed to Python, so memory use does not depend on the number of
+cells in the raster. Integer rasters are converted to a temporary floating-point
+raster to ensure that values are grouped into the requested number of
+equal-width bins instead of being reported as individual categories.
+
+<p>
+For a constant raster, the module draws one bar centered on the single raster
+value because multiple zero-width bins would overlap.
+
+<p>
+Matplotlib is required.
+
+<h2>EXAMPLES</h2>
+
+The examples below use the data from the
+<a href="https://grass.osgeo.org/download/data/">Raleigh, North Carolina sample dataset</a>.
+
+<p>
+The first example draw a histogram of the <tt>elevation</tt> raster, setting the
+plot dimensions and DPI.
+
+<div class="code">
+  <pre>
+g.region raster=elevation
+r.histogram map=elevation plot_dimensions=5,4 \
+  dpi=100 output=r_histogram_01.png
+</pre>
+</div>
+
+<p>
+<img src="r_histogram_01.png" alt="Histogram of elevation values">
+
+<p>
+To change the appearance of the plot, you can tweak individual elements, but
+also apply a
+<a href="https://tonysyu.github.io/raw_content/matplotlib-style-gallery/gallery.html">matplotlib style</a>.
+Below, the ggplot style is used.
+
+<div class="code">
+  <pre>
+r.histogram map=elevation plot_dimensions=5,4 \
+  dpi=100 frequency=percent style=ggplot \
+  output=r_histogram_02.png
+</pre>
+</div>
+
+<p>
+<img src="r_histogram_02.png" alt="Histogram of elevation values as percentages, using the ggplot style">
+
+<p>
+For a bit more colorfull result, we can draw the histogram with each bar colored
+based on the corresponding <tt>elevation</tt> raster color table. And we can
+express the frequencies as percentages.
+
+<div class="code">
+  <pre>
+r.histogram -c map=elevation plot_dimensions=5,4 \
+  dpi=100 frequency=percent style=_mpl-gallery \
+  output=r_histogram_03.png
+</pre>
+</div>
+
+<p>
+<img src="r_histogram_03.png" alt="Histogram of elevation values with bars colored by the elevation color table">
+
+<p>
+And one last example, let's draw a horizontal histogram with a grid, a reduced
+relative bar width, and a dark background:
+
+<div class="code">
+  <pre>
+r.histogram -hg map=elevation plot_dimensions=5,4 \
+  dpi=100  rwidth=0.9 style=ggplot \
+  x_label="Number of cells" y_label="Elevation (m)" \
+  output=r_histogram_04.png
+</pre>
+</div>
+
+<p>
+<img src="r_histogram_04.png" alt="Horizontal histogram of elevation values with a grid and dark background">
+
+<h2>SEE ALSO</h2>
+
+<i><a href="https://grass.osgeo.org/grass-stable/manuals/d.histogram.html">d.histogram</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/r.boxplot.html">r.boxplot</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.quantile.html">r.quantile</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/r.stats.html">r.stats</a>,
+<a href="https://grass.osgeo.org/grass-stable/manuals/addons/v.histogram.html">v.histogram</a></i>
+
+<h2>AUTHOR</h2>
+
+<a href="https://ecodiv.earth">Paulo van Breugel</a>,
+<a href="https://has.nl">HAS green academy</a>,
+<a href="https://www.has.nl/en/research/professorships/innovative-biomonitoring-professorship/">Innovative Biomonitoring research group</a>,
+<a href="https://www.has.nl/en/research/professorships/climate-robust-landscapes-professorship/">Climate-robust Landscapes research group</a>
