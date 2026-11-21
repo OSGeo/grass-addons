@@ -96,10 +96,12 @@ import subprocess
 import os
 
 crctd_lst = []
+crct_bands = []
 
 
 def main():
     options, flags = gs.parser()
+    atexit.register(cleanup)
     Blue = options["blue_band"]
     Green = options["green_band"]
     Red = options["red_band"]
@@ -183,6 +185,7 @@ def main():
         tmp_ = RasterRow(str(i))
         if tmp_.exist() is False:
             continue
+        crct_bands.append(j)
         gs.message("Ditermining minimum value for %s" % i)
         gs.run_command("g.region", vector=Calibration_points)
         # To ignore zero values
@@ -476,7 +479,21 @@ def main():
 
 def cleanup():
     gs.run_command("g.remove", type="raster", name="MASK", flags="f")
-    gs.run_command("g.remove", type="all", pattern="*tmp*", flags="f")
+    rasters = [
+        "tmp_Calibration_points",
+        "tmp_ratio",
+        "tmp_NDVI",
+        "tmp_water",
+        "tmp_b",
+        "tmp_deep",
+        "tmp_bathymetry",
+    ]
+    for band in crct_bands:
+        rasters += ["tmp_crct" + band, "tmp_crctd" + band]
+    gs.run_command("g.remove", type="raster", name=rasters, flags="f")
+    gs.run_command(
+        "g.remove", type="vector", name=["tmp_hull", "tmp_buffer"], flags="f"
+    )
     try:
         gs.try_remove(predict)
         gs.try_remove(r)
@@ -485,5 +502,4 @@ def cleanup():
 
 
 if __name__ == "__main__":
-    atexit.register(cleanup)
     main()
