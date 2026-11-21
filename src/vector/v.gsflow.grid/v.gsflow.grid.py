@@ -102,6 +102,16 @@ from grass.pygrass.vector.geometry import Point
 ###############
 
 
+def _bc_attrs(table, row, col, x, y):
+    """Attribute values for a b.c. cell in the column order of the table
+
+    The key column (cat) is left out. Columns made by r.to.vect (z, label, ...)
+    differ between GRASS versions and are set to None.
+    """
+    values = {"row": row, "col": col, "x": x, "y": y}
+    return tuple(values.get(name) for name in table.columns.names() if name != "cat")
+
+
 def main():
     """
     Builds a grid for the MODFLOW component of the USGS hydrologic model,
@@ -178,7 +188,7 @@ def main():
     # Cell numbers (row, column, continuous ID)
     v.db_addcolumn(map=grid, columns="id int", quiet=True)
     colNames = np.array(gs.vector_db_select(grid, layer=1)["columns"])
-    colValues = np.array(gs.vector_db_select(grid, layer=1)["values"].values())
+    colValues = np.array(list(gs.vector_db_select(grid, layer=1)["values"].values()))
     cats = colValues[:, colNames == "cat"].astype(int).squeeze()
     rows = colValues[:, colNames == "row"].astype(int).squeeze()
     cols = colValues[:, colNames == "col"].astype(int).squeeze()
@@ -198,7 +208,14 @@ def main():
 
     # Cell area
     v.db_addcolumn(map=grid, columns="area_m2 double precision", quiet=True)
-    v.to_db(map=grid, option="area", units="meters", columns="area_m2", quiet=True)
+    v.to_db(
+        map=grid,
+        option="area",
+        units="meters",
+        columns="area_m2",
+        overwrite=True,
+        quiet=True,
+    )
 
     # Basin mask
     if len(mask) > 0:
@@ -308,7 +325,7 @@ def main():
         v.what_vect(
             map=bc_cell, query_map=grid, column="col", query_column="col", quiet=True
         )
-        v.to_db(map=bc_cell, option="coor", columns=("x,y"))
+        v.to_db(map=bc_cell, option="coor", columns=("x,y"), overwrite=True)
 
         # Of the candidates, the pour point is the closest one
         # v.db_addcolumn(map=bc_cell, columns=('dist_to_pp double precision'), quiet=True)
@@ -316,11 +333,13 @@ def main():
 
         # Find out if this is diagonal: finite difference works only N-S, W-E
         colNames = np.array(gs.vector_db_select(pp, layer=1)["columns"])
-        colValues = np.array(gs.vector_db_select(pp, layer=1)["values"].values())
+        colValues = np.array(list(gs.vector_db_select(pp, layer=1)["values"].values()))
         pp_row = colValues[:, colNames == "row"].astype(int).squeeze()
         pp_col = colValues[:, colNames == "col"].astype(int).squeeze()
         colNames = np.array(gs.vector_db_select(bc_cell, layer=1)["columns"])
-        colValues = np.array(gs.vector_db_select(bc_cell, layer=1)["values"].values())
+        colValues = np.array(
+            list(gs.vector_db_select(bc_cell, layer=1)["values"].values())
+        )
         bc_row = colValues[:, colNames == "row"].astype(int).squeeze()
         bc_col = colValues[:, colNames == "col"].astype(int).squeeze()
         # Also get x and y while we are at it: may be needed later
@@ -345,14 +364,14 @@ def main():
                             where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                             columns="basinmask",
                         )
-                        _ismask_1 = int(_ismask_1["values"].values()[0][0])
+                        _ismask_1 = int(list(_ismask_1["values"].values())[0][0])
                         _ismask_2 = gs.vector_db_select(
                             grid,
                             layer=1,
                             where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
                             columns="basinmask",
                         )
-                        _ismask_2 = int(_ismask_2["values"].values()[0][0])
+                        _ismask_2 = int(list(_ismask_2["values"].values())[0][0])
                         # check if either of these is the other point
                         """
                         NOT DOING THIS YET -- HAVEN'T THOUGHT THROUGH IF
@@ -376,14 +395,14 @@ def main():
                 where="(row == " + _row1 + ") AND (col ==" + _col1 + ")",
                 columns="basinmask",
             )
-            _ismask_1 = int(_ismask_1["values"].values()[0][0])
+            _ismask_1 = int(list(_ismask_1["values"].values())[0][0])
             _ismask_2 = gs.vector_db_select(
                 grid,
                 layer=1,
                 where="(row == " + _row2 + ") AND (col ==" + _col2 + ")",
                 columns="basinmask",
             )
-            _ismask_2 = int(_ismask_2["values"].values()[0][0])
+            _ismask_2 = int(list(_ismask_2["values"].values())[0][0])
             # If both covered by mask, error
             if _ismask_1 and _ismask_2:
                 gs.fatal(
@@ -411,7 +430,7 @@ def main():
                     bcvect.write(
                         point0,
                         cat=_cat_i,
-                        attrs=(None, _row1, _col1, _x, _y),
+                        attrs=_bc_attrs(bcvect.table, _row1, _col1, _x, _y),
                     )
                     bcvect.table.conn.commit()
                     _cat_i += 1
@@ -423,7 +442,7 @@ def main():
                     bcvect.write(
                         point0,
                         cat=_cat_i,
-                        attrs=(None, _row2, _col2, _x, _y),
+                        attrs=_bc_attrs(bcvect.table, _row2, _col2, _x, _y),
                     )
                     bcvect.table.conn.commit()
                 # Build database table and vector geometry
