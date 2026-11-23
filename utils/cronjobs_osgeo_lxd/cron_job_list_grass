@@ -28,6 +28,11 @@
 # run every 6 hs at xx:00, each day:
 30 */6 * * * nice bash /home/neteler/cronjobs/fetch_unpack_manual_GHA.sh > /home/neteler/fetch_unpack_manual_GHA.log  2>&1
 
+### WINDOWS ADDONS
+# run every 3 hs at xx:15, each day: fetches the addons compiled for Windows from GitHub and unpacks them
+# (target dir: /var/www/code_and_data/addons/grassX/binaries/)
+15 */3 * * * nice bash /home/neteler/cronjobs/fetch_unpack_windows_addons.sh > /home/neteler/fetch_unpack_windows_addons.log 2>&1
+
 ### SOURCE CODE snapshot packages
 # weekly source snapshots (target dir: /var/www/code_and_data/)
 # legacy

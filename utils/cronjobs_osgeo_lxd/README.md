@@ -59,6 +59,26 @@ programmer's manual.
     generates the modules.xml file required for the g.extension module
   - `grass-addons-index.sh` - called from `cron_grass_XXX_build_binaries.sh`
   - `get_page_description.py` - called from `grass-addons-index.sh`
+- GRASS addons compiled for Windows, used by `g.extension` on Windows:
+  - `fetch_unpack_windows_addons.sh`
+  - `windows_addons_latest.py` - called from `fetch_unpack_windows_addons.sh`
+  - The addons are compiled by GitHub Actions in this repository
+    (`.github/workflows/ci-windows.yml`) for each supported GRASS version and
+    published every night as one checksummed ZIP file per GRASS version on a
+    [pre-release](https://github.com/OSGeo/grass-addons/releases).
+    The name of a ZIP file ends with the platform the addons are compiled
+    for (distribution and CPU architecture, e.g. `osgeo4w-x86_64`).
+    This job takes the newest ZIP file for each platform and GRASS version,
+    verifies its SHA256 checksum, and rsyncs its content into
+    `/var/www/code_and_data/addons/grassX/binaries/<platform>/X.Y.Z/`,
+    where `g.extension` of GRASS 8.5.1 and newer downloads them from. The
+    build logs are in the `logs` subdirectory and the versions used for the
+    build in `build-info.txt`. The platforms and GRASS versions come from the
+    names of the published files, so the job needs no change for a new GRASS
+    version or platform. It only needs `python3`, `curl`, `sha256sum`,
+    `unzip`, `rsync`, and `flock`, and no GitHub token. To roll back a bad
+    build, delete its pre-release and this job deploys the previous one on its
+    next run.
 - GRASS GIS programmer's manual:
   - within `cron_grass_XXX_build_binaries.sh`
 - compilation addons:
